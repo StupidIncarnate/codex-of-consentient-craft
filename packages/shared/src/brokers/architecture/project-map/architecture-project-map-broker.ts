@@ -38,20 +38,19 @@ export const architectureProjectMapBroker = async ({
   const packagesPath = absoluteFilePathContract.parse(
     `${projectRoot}/${projectMapStatics.packagesDirName}`,
   );
-  const packagesEntries = discoverPackagesLayerBroker({ dirPath: packagesPath });
-  const packageDirs = packagesEntries.filter((entry) => entry.isDirectory());
+  const packageEntries = discoverPackagesLayerBroker({ dirPath: packagesPath });
 
   const scanTargets: {
     packageName: ContentText;
     packageRoot: AbsoluteFilePath;
   }[] = [];
 
-  if (packageDirs.length > 0) {
-    const sortedPackages = [...packageDirs].sort((a, b) => a.name.localeCompare(b.name));
+  if (packageEntries.length > 0) {
+    const sortedPackages = [...packageEntries].sort((a, b) => a.name.localeCompare(b.name));
 
     for (const pkg of sortedPackages) {
       const pkgRoot = absoluteFilePathContract.parse(
-        `${projectRoot}/${projectMapStatics.packagesDirName}/${pkg.name}`,
+        `${projectRoot}/${projectMapStatics.packagesDirName}/${pkg.relativeDir}`,
       );
       scanTargets.push({
         packageName: contentTextContract.parse(pkg.name),

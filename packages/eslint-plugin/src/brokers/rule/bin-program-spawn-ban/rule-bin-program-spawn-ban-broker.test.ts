@@ -10,7 +10,7 @@ ruleTester.run('bin-program-spawn-ban', ruleBinProgramSpawnBanBroker(), {
     // --- the gateway's own bin implementation is exempt: it must spawn its own program ---
     {
       code: "import { run } from '@dungeonmaster/node/child_process'; run({ command: 'git', args: ['rev-parse', 'HEAD'], cwd: '/repo' });",
-      filename: '/repo/packages/bin/src/git/git-run.ts',
+      filename: '/repo/packages/@gateway/bin/src/git/git-run.ts',
     },
 
     // --- a command built at runtime is not statically resolvable, so it is allowed ---
@@ -64,7 +64,7 @@ ruleTester.run('bin-program-spawn-ban', ruleBinProgramSpawnBanBroker(), {
           data: {
             program: 'git',
             binFunction: 'currentBranch',
-            gatewayPath: '@dungeonmaster/bin/git',
+            gatewayPath: '#gateway/bin/git',
           },
         },
       ],
@@ -81,7 +81,7 @@ ruleTester.run('bin-program-spawn-ban', ruleBinProgramSpawnBanBroker(), {
           data: {
             program: 'git',
             binFunction: 'currentBranch',
-            gatewayPath: '@dungeonmaster/bin/git',
+            gatewayPath: '#gateway/bin/git',
           },
         },
       ],
@@ -98,7 +98,7 @@ ruleTester.run('bin-program-spawn-ban', ruleBinProgramSpawnBanBroker(), {
           data: {
             program: 'git',
             binFunction: 'currentBranch',
-            gatewayPath: '@dungeonmaster/bin/git',
+            gatewayPath: '#gateway/bin/git',
           },
         },
       ],
@@ -115,7 +115,7 @@ ruleTester.run('bin-program-spawn-ban', ruleBinProgramSpawnBanBroker(), {
           data: {
             program: 'lsof',
             binFunction: 'listeningPids',
-            gatewayPath: '@dungeonmaster/bin/lsof',
+            gatewayPath: '#gateway/bin/lsof',
           },
         },
       ],
@@ -133,7 +133,7 @@ ruleTester.run('bin-program-spawn-ban', ruleBinProgramSpawnBanBroker(), {
           data: {
             program: 'claude',
             binFunction: 'spawnStreamJson',
-            gatewayPath: '@dungeonmaster/bin/claude',
+            gatewayPath: '#gateway/bin/claude',
           },
         },
       ],
@@ -147,7 +147,7 @@ ruleTester.run('bin-program-spawn-ban', ruleBinProgramSpawnBanBroker(), {
       errors: [
         {
           messageId: 'binProgramSpawn',
-          data: { program: 'npm', binFunction: 'install', gatewayPath: '@dungeonmaster/bin/npm' },
+          data: { program: 'npm', binFunction: 'install', gatewayPath: '#gateway/bin/npm' },
         },
       ],
     },
@@ -161,7 +161,7 @@ ruleTester.run('bin-program-spawn-ban', ruleBinProgramSpawnBanBroker(), {
       errors: [
         {
           messageId: 'binProgramSpawn',
-          data: { program: 'kill', binFunction: 'killPid', gatewayPath: '@dungeonmaster/bin/kill' },
+          data: { program: 'kill', binFunction: 'killPid', gatewayPath: '#gateway/bin/kill' },
         },
       ],
     },
@@ -178,7 +178,7 @@ ruleTester.run('bin-program-spawn-ban', ruleBinProgramSpawnBanBroker(), {
           data: {
             program: 'cp',
             binFunction: 'copyRecursive',
-            gatewayPath: '@dungeonmaster/bin/cp',
+            gatewayPath: '#gateway/bin/cp',
           },
         },
       ],
@@ -195,7 +195,7 @@ ruleTester.run('bin-program-spawn-ban', ruleBinProgramSpawnBanBroker(), {
           data: {
             program: 'git',
             binFunction: 'currentBranch',
-            gatewayPath: '@dungeonmaster/bin/git',
+            gatewayPath: '#gateway/bin/git',
           },
         },
       ],
@@ -212,13 +212,14 @@ ruleTester.run('bin-program-spawn-ban', ruleBinProgramSpawnBanBroker(), {
           data: {
             program: 'git',
             binFunction: 'currentBranch',
-            gatewayPath: '@dungeonmaster/bin/git',
+            gatewayPath: '#gateway/bin/git',
           },
         },
       ],
     },
 
-    // --- consumer scope other than @dungeonmaster maps to its own bin home ---
+    // --- consumer scope only gates which raw imports are workspace imports; the suggested
+    // gatewayPath is always the '#gateway/...' alias text, identical in every consumer repo ---
     {
       code: "import { spawn } from 'child_process'; spawn('git', ['status']);",
       filename: '/repo/packages/hooks/src/brokers/x/x-broker.ts',
@@ -226,7 +227,7 @@ ruleTester.run('bin-program-spawn-ban', ruleBinProgramSpawnBanBroker(), {
       errors: [
         {
           messageId: 'binProgramSpawn',
-          data: { program: 'git', binFunction: 'currentBranch', gatewayPath: '@acme/bin/git' },
+          data: { program: 'git', binFunction: 'currentBranch', gatewayPath: '#gateway/bin/git' },
         },
       ],
     },

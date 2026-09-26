@@ -11,7 +11,7 @@
  * USAGE:
  * isIoBoundaryProxyGuard({ filename: '/repo/packages/shared/src/adapters/fs/read/fs-read-adapter.proxy.ts' });
  * // Returns true
- * isIoBoundaryProxyGuard({ filename: '/repo/packages/node/src/fs/read-file-sync.proxy.ts' });
+ * isIoBoundaryProxyGuard({ filename: '/repo/packages/@gateway/node/src/fs/read-file-sync.proxy.ts' });
  * // Returns true — inside a gateway package
  * isIoBoundaryProxyGuard({ filename: '/repo/packages/shared/src/brokers/user/user-broker.proxy.ts' });
  * // Returns false

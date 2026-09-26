@@ -304,3 +304,88 @@ fixed here, per this unit's scope):
 - `packages/node/readline/line-reader.proxy.ts`, `packages/node/readline/question.proxy.ts`
 - `packages/browser/fetch/*.proxy.ts`, `packages/browser/indexedDB/*.proxy.ts`,
   `packages/browser/localStorage/*.proxy.ts`
+
+## Caller-facing lint rules (raw-import-ban, platform-globals-ban, bin-program-spawn-ban)
+
+**RESOLVED** — `platform-globals-ban`'s suggestion text named `@dungeonmaster/node/Buffer` (capital
+`B`) instead of the real lowercase `buffer` subpath. Fixed: the rule now falls back to the lowercased
+module name for an ambient global whose class name and module name differ only by case (`Buffer` the
+class vs. `buffer` the module), the same convention `gatewayPathFromImportSourceTransformer` uses.
+
+All three rules still ship commented out in `configDungeonmasterBroker`
+(`packages/eslint-plugin/src/brokers/config/dungeonmaster/config-dungeonmaster-broker.ts`) — their
+suggestion text already reads `#gateway/...`. Two things gate turning them on for real:
+
+- Every caller still importing a package raw (not yet switched by Trial 1 or Trial 2 in
+  `scrolls/gateway-build/README.md`) fails immediately once `raw-import-ban` goes live.
+- The old `@dungeonmaster/<folder>/...` bare-name import form needs banning at the same moment every
+  caller has migrated to `#gateway/<folder>/...` — otherwise a caller that switched early and one that
+  has not both keep passing.
+
+## Two gateway-dependency checks — RESOLVED 2026-09-26, one gap left
+
+1. **Duplicate installed copies: built as `npm run ward -- dedupe`.** It reads every
+   `packages/@gateway/*/package.json` `dependencies`/`peerDependencies` name and fails when one name is
+   installed in more than one top-level `node_modules` (repo root or any workspace package). It reads
+   the folders directly and never shells out to `npm ls`. Code: `packages/ward/src/brokers/duplicate-install/`.
+   **Open: a bare `npm run ward` does not run it**, the same as the `platform` subcommand. Folding a
+   whole-repo check into a bare run needs a new check type, a way to run it once per repo instead of
+   once per package, and result storage for `ward list`/`ward detail` (see "Platform-crossing check"
+   above). Until then, a regression only shows up when someone runs `npm run ward -- dedupe`.
+2. **Missing gateway dependency: built as the lint rule `@dungeonmaster/gateway-dependency-declared`,
+   switched on.** A file importing `#gateway/<folder>/...` fails unless its nearest `package.json` maps
+   that specifier in `imports` and lists the mapped target package in `dependencies` (a test-support
+   file may use `devDependencies`). It reads the target name from the `imports` field, so it works for a
+   consumer's `@acme/npm` the same as for `@dungeonmaster/npm`. Code:
+   `packages/eslint-plugin/src/brokers/rule/gateway-dependency-declared/`.
+
+## Consumer `init`: gateway scaffolding — RESOLVED 2026-09-26, one gap left
+
+`dungeonmaster init` now sets up the gateway in a consumer repo, from `cli`'s install
+(`packages/cli/src/responders/install/setup-gateway/`). It scaffolds
+`packages/@gateway/{npm,node,browser,bin}` named from the root package's scope; adds
+`packages/@gateway/*` to root `workspaces`; merges the four `#gateway` entries into every package's
+`imports` field; and merges the `paths` entries into the root `tsconfig.json`, into any package
+`tsconfig.json` with its own `paths`, and into each `tsconfig.build.json` (pointing at the gateway
+`dist`). Comments in tsconfig files are kept. A second run changes nothing.
+
+**Open: a consumer's first gateway proxy has no `@dungeonmaster/testing` to import.** The scaffolded
+gateway packages list no `@dungeonmaster/testing` dev dependency, because that package is not on the
+npm registry and `npm install` in a consumer failed with a 404 while it was listed. A proxy needs
+`registerMock` from it. Decide how a consumer gets it (publish it, or reach it through the installed
+`dungeonmaster` package) before consumers write gateway proxies.
+
+## "Copy, don't reference" is not yet a rule anywhere
+
+Decision 10 in `scrolls/gateway-build/README.md`, section 3: an agent adding a gateway module to a
+consumer repo should copy dungeonmaster's own wrapper into the consumer's own
+`packages/@gateway/<folder>/`, never import dungeonmaster's copy directly. Open question before this
+can become a real rule: where an agent in a consumer repo reads dungeonmaster's gateway SOURCE from —
+a published install ships only `dist` (`files: ["dist"]` in every gateway `package.json`), not `src`.
+Once decided, the rule belongs in a session snippet
+(`packages/shared/src/statics/session-snippet/session-snippet-statics.ts`), not here.
+
+## This worktree's compiled `dist` for mcp and hooks is stale
+
+`packages/mcp/dist` and `packages/hooks/dist` (both present on disk) predate this session's move to
+`packages/@gateway/`, so their package-listing tools still answer from the OLD layout. Rebuild both
+before relying on either from this worktree.
+
+## ward typecheck's `DISCOVERY MISMATCH` for `@dungeonmaster/npm`
+
+A typecheck run over `@dungeonmaster/npm` reports a file-count mismatch — 144 files vs. 95 discovered —
+because the package's built `dist/**/index.d.ts` files enter the same count as its source files. Not a
+failure: ward's discovery counts source files, `tsc --listFiles` counts everything the program actually
+loads, and a gateway package's own build output is part of that program once it exists.
+
+## Remaining stale JSDoc path examples in eslint-plugin
+
+Three files' `USAGE` examples still show a gateway path from before the `packages/@gateway/` move —
+`/repo/packages/node/src/...` instead of `/repo/packages/@gateway/node/src/...`:
+
+- `packages/eslint-plugin/src/brokers/rule/platform-globals-ban/find-ancestor-directory-layer-broker.ts`
+- `packages/eslint-plugin/src/brokers/rule/platform-globals-ban/resolve-gateway-scope-layer-broker.ts`
+- `packages/eslint-plugin/src/adapters/fs/readdir-sync/fs-readdir-sync-adapter.ts`
+
+Cosmetic — none of the three reads a literal path at runtime, so nothing behaves differently — but
+worth fixing in the same pass that next touches any of them.

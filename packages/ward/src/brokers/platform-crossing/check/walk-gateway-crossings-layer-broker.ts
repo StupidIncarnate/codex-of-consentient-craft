@@ -25,7 +25,11 @@
  * about what counts as a crossing), so `platformCrossingCheckBroker` keeps one memo per platform
  * rather than one for the whole run. Every dependency edge is handled through `Array.prototype.map`
  * rather than a `for` loop, because `no-await-in-loop` (error, repo-wide) forbids the loop-statement
- * form of awaiting each edge's own resolution.
+ * form of awaiting each edge's own resolution. Every dependency's specifier runs through
+ * `gatewaySpecifierCanonicalizeTransformer` before it is matched against `forbiddenPackageNames` or
+ * handed to `resolveSpecifierCachedLayerBroker`, so a `#gateway/<folder>/<sub>` import is treated as
+ * the real package specifier it names — one canonicalization, reused for both the crossing check and
+ * the reported chain hop, rather than teaching each of those two a separate gateway-aware match.
  *
  * USAGE:
  * await walkGatewayCrossingsLayerBroker({
@@ -51,6 +55,7 @@ import {
 } from '../../../contracts/platform-crossing-walk-memo-key/platform-crossing-walk-memo-key-contract';
 import { isImplementationSourceFileGuard } from '../../../guards/is-implementation-source-file/is-implementation-source-file-guard';
 import { specifierMatchesPackageGuard } from '../../../guards/specifier-matches-package/specifier-matches-package-guard';
+import { gatewaySpecifierCanonicalizeTransformer } from '../../../transformers/gateway-specifier-canonicalize/gateway-specifier-canonicalize-transformer';
 import { barrelProvidesNameTransformer } from '../../../transformers/barrel-provides-name/barrel-provides-name-transformer';
 import { intersectImportedNamesTransformer } from '../../../transformers/intersect-imported-names/intersect-imported-names-transformer';
 import { typescriptModuleShapeAdapter } from '../../../adapters/typescript/module-shape/typescript-module-shape-adapter';
@@ -112,9 +117,13 @@ export const walkGatewayCrossingsLayerBroker = async ({
   const perDependencyChains = await Promise.all(
     moduleShape.dependencies.map(
       async (dependency): Promise<readonly PlatformCrossingChainHop[][]> => {
-        const specifierHop = platformCrossingChainHopContract.parse(dependency.specifier);
+        const canonicalSpecifier = gatewaySpecifierCanonicalizeTransformer({
+          specifier: dependency.specifier,
+          knownPackages,
+        });
+        const specifierHop = platformCrossingChainHopContract.parse(canonicalSpecifier);
         const isCrossing = forbiddenPackageNames.some((packageName) =>
-          specifierMatchesPackageGuard({ specifier: dependency.specifier, packageName }),
+          specifierMatchesPackageGuard({ specifier: canonicalSpecifier, packageName }),
         );
 
         if (dependency.kind === 'named') {
@@ -130,7 +139,7 @@ export const walkGatewayCrossingsLayerBroker = async ({
           }
 
           const resolved = await resolveSpecifierCachedLayerBroker({
-            specifier: dependency.specifier,
+            specifier: canonicalSpecifier,
             containingFilePath: filePath,
             knownPackages,
             resolveCache,
@@ -174,7 +183,7 @@ export const walkGatewayCrossingsLayerBroker = async ({
         }
 
         const resolved = await resolveSpecifierCachedLayerBroker({
-          specifier: dependency.specifier,
+          specifier: canonicalSpecifier,
           containingFilePath: filePath,
           knownPackages,
           resolveCache,

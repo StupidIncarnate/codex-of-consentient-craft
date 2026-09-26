@@ -74,6 +74,7 @@ import { ruleBinProgramSpawnBanBroker } from '../../../brokers/rule/bin-program-
 import { ruleGatewayImportBoundaryBroker } from '../../../brokers/rule/gateway-import-boundary/rule-gateway-import-boundary-broker';
 import { ruleGatewayColocationBroker } from '../../../brokers/rule/gateway-colocation/rule-gateway-colocation-broker';
 import { ruleGatewayLayoutBroker } from '../../../brokers/rule/gateway-layout/rule-gateway-layout-broker';
+import { ruleGatewayDependencyDeclaredBroker } from '../../../brokers/rule/gateway-dependency-declared/rule-gateway-dependency-declared-broker';
 import { configDungeonmasterBroker } from '../../../brokers/config/dungeonmaster/config-dungeonmaster-broker';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 
@@ -148,6 +149,7 @@ export const EslintPluginCreateResponder = (): {
     readonly 'gateway-import-boundary': EslintRule;
     readonly 'gateway-colocation': EslintRule;
     readonly 'gateway-layout': EslintRule;
+    readonly 'gateway-dependency-declared': EslintRule;
   };
   readonly configs: {
     readonly dungeonmaster: ReturnType<typeof configDungeonmasterBroker>;
@@ -227,6 +229,7 @@ export const EslintPluginCreateResponder = (): {
       'gateway-import-boundary': ruleGatewayImportBoundaryBroker(),
       'gateway-colocation': ruleGatewayColocationBroker(),
       'gateway-layout': ruleGatewayLayoutBroker(),
+      'gateway-dependency-declared': ruleGatewayDependencyDeclaredBroker(),
     },
     configs: {
       dungeonmaster: configDungeonmasterBroker(),

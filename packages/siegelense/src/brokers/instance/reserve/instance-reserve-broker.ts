@@ -14,17 +14,19 @@
  * One atomic call rather than a read-modify-write per re-roll keeps the retry loop from opening a
  * fresh window on every attempt for another session's write to land in.
  *
- * `currentBranch` rejects on a real git failure (missing git, `cwd` not a repo) rather than
- * collapsing it to `null` — this broker lets that rejection propagate instead of catching it,
- * because a registry row that silently drops its provenance on the one case worth surfacing is a
- * worse failure mode than refusing the reservation outright.
+ * `currentBranch` rejects on any real git failure. This broker treats "not a git repository" as an
+ * expected outcome — like detached HEAD, which `currentBranch` already collapses to `null` itself —
+ * via `isGitNotARepositoryErrorGuard`, since an instance reserved outside a git worktree genuinely
+ * has no branch to record. Every OTHER failure (missing git, permission denied) still propagates: a
+ * registry row that silently drops real provenance is a worse failure mode than refusing the
+ * reservation outright.
  *
  * USAGE:
  * await instanceReserveBroker({ specName, specHash, questId, guildId });
  * // Returns the written RegistryEntry — a reservation, evidence directory already minted
  */
 
-import { currentBranch } from '@dungeonmaster/bin/git';
+import { currentBranch } from '#gateway/bin/git';
 import { cwd } from '@dungeonmaster/node/process';
 import { fsMkdirAdapter, netFreePortPairAdapter } from '@dungeonmaster/shared/adapters';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
@@ -42,6 +44,7 @@ import type { RegistryEntry } from '../../../contracts/registry-entry/registry-e
 import type { SpecHash } from '../../../contracts/spec-hash/spec-hash-contract';
 import type { SpecName } from '../../../contracts/spec-name/spec-name-contract';
 import { PortClaimExhaustedError } from '../../../errors/port-claim-exhausted/port-claim-exhausted-error';
+import { isGitNotARepositoryErrorGuard } from '../../../guards/is-git-not-a-repository-error/is-git-not-a-repository-error-guard';
 import { instanceLifecycleStatics } from '../../../statics/instance-lifecycle/instance-lifecycle-statics';
 
 export const instanceReserveBroker = async ({
@@ -68,7 +71,12 @@ export const instanceReserveBroker = async ({
   // Independent calls — the branch read and the port-candidate fan-out share no data — so they
   // run together rather than the branch read adding its own latency in front of the ports.
   const [resolvedBranch, rawPairs] = await Promise.all([
-    currentBranch({ cwd: cwd() }),
+    currentBranch({ cwd: cwd() }).catch((error: unknown) => {
+      if (isGitNotARepositoryErrorGuard({ error })) {
+        return null;
+      }
+      throw error;
+    }),
     Promise.all(
       Array.from({ length: instanceLifecycleStatics.ports.claimAttempts }, async () =>
         netFreePortPairAdapter(),

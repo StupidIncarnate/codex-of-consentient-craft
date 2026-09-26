@@ -43,9 +43,12 @@ module.exports = {
     '^react-dom$': reactDomDir,
     '^react-dom/(.*)$': `${reactDomDir}/$1`,
     '^react/(.*)$': `${reactDir}/$1`,
-    '^elkjs$': '<rootDir>/src/__mocks__/elkjs-mock.cjs',
-    '^@tabler/icons-react$': '<rootDir>/src/__mocks__/tabler-icons-mock.cjs',
-    '^@xyflow/react$': '<rootDir>/src/__mocks__/xyflow-react-mock.cjs',
+    // Each mocked package is mapped under its `#gateway/npm/` name too. Through the gateway, the
+    // pass-through's `export *` copies only the keys a mock can list, and the tabler mock answers
+    // any `Icon*` name on demand without listing any.
+    '^(#gateway/npm/)?elkjs$': '<rootDir>/src/__mocks__/elkjs-mock.cjs',
+    '^(#gateway/npm/)?@tabler/icons-react$': '<rootDir>/src/__mocks__/tabler-icons-mock.cjs',
+    '^(#gateway/npm/)?@xyflow/react$': '<rootDir>/src/__mocks__/xyflow-react-mock.cjs',
   },
   transformIgnorePatterns: [
     '/dist/',

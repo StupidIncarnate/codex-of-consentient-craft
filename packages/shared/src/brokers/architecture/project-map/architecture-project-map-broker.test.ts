@@ -150,6 +150,38 @@ describe('architectureProjectMapBroker', () => {
     });
   });
 
+  describe('@-scoped group folders (gateway packages)', () => {
+    it('VALID: {packages/@gateway/npm on disk, packages: [npm]} => renders the npm section by its bare name', async () => {
+      const proxy = architectureProjectMapBrokerProxy();
+      const projectRoot = AbsoluteFilePathStub({ value: '/project' });
+      proxy.setupGatewayGroupPackage({ projectRoot, groupName: '@gateway', packageName: 'npm' });
+
+      const result = await architectureProjectMapBroker({
+        projectRoot,
+        packages: [PackageNameStub({ value: 'npm' })],
+      });
+
+      expect(
+        String(result)
+          .split('\n')
+          .some((l) => l === '# npm [library]'),
+      ).toBe(true);
+    });
+
+    it('INVALID: {packages/@gateway/npm on disk, packages: [@gateway]} => throws Unknown package(s), so the group itself is never a valid name', async () => {
+      const proxy = architectureProjectMapBrokerProxy();
+      const projectRoot = AbsoluteFilePathStub({ value: '/project' });
+      proxy.setupGatewayGroupPackage({ projectRoot, groupName: '@gateway', packageName: 'npm' });
+
+      await expect(
+        architectureProjectMapBroker({
+          projectRoot,
+          packages: [PackageNameStub({ value: '@gateway' })],
+        }),
+      ).rejects.toThrow(/Unknown package\(s\): @gateway\. Valid: npm/u);
+    });
+  });
+
   describe('input validation', () => {
     it('INVALID: {packages: []} => throws "requires at least one package name"', async () => {
       architectureProjectMapBrokerProxy();

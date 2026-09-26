@@ -4,6 +4,7 @@ import {
   GlobPatternStub,
   PathSegmentStub as FilePathStub,
 } from '@dungeonmaster/shared/contracts';
+import { projectMapStatics } from '@dungeonmaster/shared/statics';
 import { ArchitectureHandleResponderProxy } from './architecture-handle-responder.proxy';
 
 describe('ArchitectureHandleResponder', () => {
@@ -225,6 +226,23 @@ describe('ArchitectureHandleResponder', () => {
       expect(text.split('\n')[0]).toBe(
         "[project-root: /default/cwd — WARNING: could not resolve the caller's own working directory (no matching Claude Code session JSONL within the scan budget); falling back to the MCP server's own startup directory. If the caller is working in a worktree, this result may describe the WRONG tree.]",
       );
+    });
+
+    it('VALID: {packageName: npm, packages/@gateway/npm on disk, no packages/npm} => resolves the gateway package by its bare name and renders its inventory header', async () => {
+      const proxy = ArchitectureHandleResponderProxy();
+      proxy.setupGatewayGroupPackage({ groupName: '@gateway', packageName: 'npm' });
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'get-project-inventory' }),
+        args: { packageName: 'npm' },
+      });
+
+      const lines = String(result.content[0]!.text).split('\n');
+
+      expect(lines.slice(2)).toStrictEqual([
+        '## npm (0 files)',
+        `  ${projectMapStatics.emptyLabel}`,
+      ]);
     });
   });
 

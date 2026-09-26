@@ -20,7 +20,7 @@
 import { useState } from 'react';
 
 import { Box, Group, Text } from '@mantine/core';
-import { IconSend, IconTrash } from '@tabler/icons-react';
+import { IconSend, IconTrash } from '#gateway/npm/@tabler/icons-react';
 
 import type { QuestId } from '@dungeonmaster/shared/contracts';
 

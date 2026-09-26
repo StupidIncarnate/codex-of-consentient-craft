@@ -64,6 +64,7 @@ describe('StartEslintPlugin', () => {
         'forbid-todo-skip',
         'forbid-type-reexport',
         'gateway-colocation',
+        'gateway-dependency-declared',
         'gateway-import-boundary',
         'gateway-layout',
         'jest-mocked-must-import',

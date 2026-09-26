@@ -2,6 +2,12 @@
   "name": "@dungeonmaster/siegelense",
   "version": "0.1.0",
   "description": "siegelense package",
+  "imports": {
+    "#gateway/npm/*": "@dungeonmaster/npm/*",
+    "#gateway/node/*": "@dungeonmaster/node/*",
+    "#gateway/browser/*": "@dungeonmaster/browser/*",
+    "#gateway/bin/*": "@dungeonmaster/bin/*"
+  },
   "exports": {
     "./contracts": {
       "source": "./contracts.ts",
@@ -80,6 +86,7 @@
     "@dungeonmaster/cli": "*",
     "@dungeonmaster/config": "*",
     "@dungeonmaster/node": "*",
+    "@dungeonmaster/npm": "*",
     "@dungeonmaster/shared": "*",
     "pixelmatch": "^5.3.0",
     "pngjs": "^6.0.0",

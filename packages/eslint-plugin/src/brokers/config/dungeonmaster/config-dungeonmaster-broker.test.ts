@@ -182,10 +182,10 @@ describe('configDungeonmasterBroker', () => {
       const { gateway } = configDungeonmasterBroker();
 
       expect(gateway.files).toStrictEqual([
-        'packages/npm/src/**/*.ts',
-        'packages/node/src/**/*.ts',
-        'packages/browser/src/**/*.ts',
-        'packages/bin/src/**/*.ts',
+        'packages/@gateway/npm/src/**/*.ts',
+        'packages/@gateway/node/src/**/*.ts',
+        'packages/@gateway/browser/src/**/*.ts',
+        'packages/@gateway/bin/src/**/*.ts',
       ]);
     });
 

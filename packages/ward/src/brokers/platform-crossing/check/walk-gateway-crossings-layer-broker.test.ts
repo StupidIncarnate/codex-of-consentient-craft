@@ -2,6 +2,7 @@ import { FilePathStub, FileContentsStub } from '@dungeonmaster/shared/contracts'
 import { walkGatewayCrossingsLayerBroker } from './walk-gateway-crossings-layer-broker';
 import { walkGatewayCrossingsLayerBrokerProxy } from './walk-gateway-crossings-layer-broker.proxy';
 import { GatewayPackageNameStub } from '../../../contracts/gateway-package-name/gateway-package-name.stub';
+import { ProjectFolderStub } from '../../../contracts/project-folder/project-folder.stub';
 
 describe('walkGatewayCrossingsLayerBroker', () => {
   describe('direct crossing', () => {
@@ -20,6 +21,54 @@ describe('walkGatewayCrossingsLayerBroker', () => {
       });
 
       expect(result).toStrictEqual([['@dungeonmaster/node/fs']]);
+    });
+
+    it('VALID: {entry file imports "#gateway/node/fs" directly} => reports one chain naming the real package', async () => {
+      walkGatewayCrossingsLayerBrokerProxy();
+      const entryPath = FilePathStub({ value: '/repo/entry.ts' });
+
+      const result = await walkGatewayCrossingsLayerBroker({
+        filePath: entryPath,
+        content: FileContentsStub({ value: "import { readFile } from '#gateway/node/fs';" }),
+        requestedNames: 'all',
+        pathHistory: [entryPath],
+        chainLabels: [],
+        knownPackages: [
+          ProjectFolderStub({ name: '@dungeonmaster/node', path: '/repo/packages/@gateway/node' }),
+        ],
+        forbiddenPackageNames: [GatewayPackageNameStub()],
+      });
+
+      expect(result).toStrictEqual([['@dungeonmaster/node/fs']]);
+    });
+
+    it('EMPTY: {entry file imports "#gateway/browser/localStorage", browser is not forbidden} => reports no chains', async () => {
+      const proxy = walkGatewayCrossingsLayerBrokerProxy();
+      const targetPath = '/repo/packages/@gateway/browser/src/localStorage';
+      proxy.setupMissing({ filePath: FilePathStub({ value: `${targetPath}.ts` }) });
+      proxy.setupMissing({ filePath: FilePathStub({ value: `${targetPath}.tsx` }) });
+      proxy.setupMissing({ filePath: FilePathStub({ value: `${targetPath}/index.ts` }) });
+      proxy.setupMissing({ filePath: FilePathStub({ value: `${targetPath}/index.tsx` }) });
+      const entryPath = FilePathStub({ value: '/repo/entry.ts' });
+
+      const result = await walkGatewayCrossingsLayerBroker({
+        filePath: entryPath,
+        content: FileContentsStub({
+          value: "import { getItem } from '#gateway/browser/localStorage';",
+        }),
+        requestedNames: 'all',
+        pathHistory: [entryPath],
+        chainLabels: [],
+        knownPackages: [
+          ProjectFolderStub({
+            name: '@dungeonmaster/browser',
+            path: '/repo/packages/@gateway/browser',
+          }),
+        ],
+        forbiddenPackageNames: [GatewayPackageNameStub()],
+      });
+
+      expect(result).toStrictEqual([]);
     });
 
     it('EMPTY: {entry file imports nothing forbidden} => reports no chains', async () => {

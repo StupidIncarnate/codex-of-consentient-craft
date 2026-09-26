@@ -145,6 +145,7 @@ export const configDungeonmasterBroker = ({
     '@dungeonmaster/ban-anonymous-jsx-in-map': 'error',
     '@dungeonmaster/ban-dom-handles-in-ingredients': 'error',
     '@dungeonmaster/ban-nondeterminism-in-ingredients': 'error',
+    '@dungeonmaster/gateway-dependency-declared': 'error',
     // Ready — measured against every non-gateway package in scrolls/gateway-build/lint-measurements.md
     // — and turns on once callers migrate (migration order step 3 in scrolls/adapters-to-one-place.md).
     // '@dungeonmaster/raw-import-ban': 'error',

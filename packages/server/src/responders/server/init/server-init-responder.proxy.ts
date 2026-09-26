@@ -1,4 +1,4 @@
-import { Hono } from 'hono';
+import { Hono } from '#gateway/npm/hono';
 import type { QuestStub } from '@dungeonmaster/shared/contracts';
 import type {
   AbsoluteFilePath,

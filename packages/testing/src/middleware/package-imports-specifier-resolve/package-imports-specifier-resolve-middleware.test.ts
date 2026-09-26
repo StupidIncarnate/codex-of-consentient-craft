@@ -1,0 +1,90 @@
+import { packageImportsSpecifierResolveMiddleware } from './package-imports-specifier-resolve-middleware';
+import { packageImportsSpecifierResolveMiddlewareProxy } from './package-imports-specifier-resolve-middleware.proxy';
+import { FilePathStub } from '../../contracts/file-path/file-path.stub';
+import { ImportPathStub } from '../../contracts/import-path/import-path.stub';
+
+describe('packageImportsSpecifierResolveMiddleware', () => {
+  describe('mapped gateway specifier', () => {
+    it("VALID: {#gateway/npm/_test_} => resolves through the importing package's own imports map", () => {
+      const proxy = packageImportsSpecifierResolveMiddlewareProxy();
+      proxy.setupImportingPackage({
+        dirPath: '/repo/packages/mcp',
+        packageJson: {
+          name: '@dungeonmaster/mcp',
+          imports: { '#gateway/npm/*': '@dungeonmaster/npm/*' },
+        },
+      });
+      proxy.setupWorkspaceRoot({
+        workspaceRootPath: '/repo',
+        workspaces: ['packages/*', 'packages/@gateway/*'],
+      });
+      proxy.setupWorkspacePackage({
+        workspaceRootPath: '/repo',
+        packageFolderName: 'npm',
+        packagesBaseDir: 'packages/@gateway',
+        packageJson: {
+          name: '@dungeonmaster/npm',
+          exports: { './_test_': { source: './src/_test_/index.ts' } },
+        },
+      });
+      proxy.setupSourceFileExists({ filePath: '/repo/packages/@gateway/npm/src/_test_/index.ts' });
+      const sourceFilePath = FilePathStub({
+        value: '/repo/packages/mcp/src/brokers/file/scanner/file-scanner-broker.proxy.ts',
+      });
+      const importPath = ImportPathStub({ value: '#gateway/npm/_test_' });
+
+      const result = packageImportsSpecifierResolveMiddleware({ sourceFilePath, importPath });
+
+      expect(result).toStrictEqual(
+        FilePathStub({ value: '/repo/packages/@gateway/npm/src/_test_/index.ts' }),
+      );
+    });
+  });
+
+  describe('unmapped specifier', () => {
+    it('INVALID: {#foo, importing package has an imports map but no matching key} => returns null', () => {
+      const proxy = packageImportsSpecifierResolveMiddlewareProxy();
+      proxy.setupImportingPackage({
+        dirPath: '/repo/packages/mcp',
+        packageJson: {
+          name: '@dungeonmaster/mcp',
+          imports: { '#gateway/npm/*': '@dungeonmaster/npm/*' },
+        },
+      });
+      const sourceFilePath = FilePathStub({ value: '/repo/packages/mcp/src/a.proxy.ts' });
+      const importPath = ImportPathStub({ value: '#foo' });
+
+      const result = packageImportsSpecifierResolveMiddleware({ sourceFilePath, importPath });
+
+      expect(result).toBe(null);
+    });
+  });
+
+  describe('empty imports map', () => {
+    it('EMPTY: {importing package has no imports field at all} => returns null', () => {
+      const proxy = packageImportsSpecifierResolveMiddlewareProxy();
+      proxy.setupImportingPackage({
+        dirPath: '/repo/packages/mcp',
+        packageJson: { name: '@dungeonmaster/mcp' },
+      });
+      const sourceFilePath = FilePathStub({ value: '/repo/packages/mcp/src/a.proxy.ts' });
+      const importPath = ImportPathStub({ value: '#gateway/npm/_test_' });
+
+      const result = packageImportsSpecifierResolveMiddleware({ sourceFilePath, importPath });
+
+      expect(result).toBe(null);
+    });
+  });
+
+  describe('no ancestor package.json', () => {
+    it('EMPTY: {no ancestor has any package.json} => returns null', () => {
+      packageImportsSpecifierResolveMiddlewareProxy();
+      const sourceFilePath = FilePathStub({ value: '/unreachable/deep/path/a.proxy.ts' });
+      const importPath = ImportPathStub({ value: '#gateway/npm/_test_' });
+
+      const result = packageImportsSpecifierResolveMiddleware({ sourceFilePath, importPath });
+
+      expect(result).toBe(null);
+    });
+  });
+});

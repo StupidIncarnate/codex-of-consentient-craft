@@ -14,7 +14,7 @@
  *
  * USAGE:
  * const rule = ruleGatewayLayoutBroker();
- * // Flags packages/node/src/URL/index.ts if a sibling packages/node/src/url/ also exists
+ * // Flags packages/@gateway/node/src/URL/index.ts if a sibling packages/@gateway/node/src/url/ also exists
  */
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';

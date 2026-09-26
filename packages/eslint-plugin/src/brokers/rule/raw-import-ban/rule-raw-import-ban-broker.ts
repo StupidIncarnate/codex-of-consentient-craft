@@ -1,17 +1,20 @@
 /**
  * PURPOSE: Bans a raw import/export/require/require.resolve of a non-workspace package (an npm
  * package or a Node built-in, `node:`-prefixed or bare) in any file outside the gateway packages
- * (`@<scope>/npm`, `@<scope>/node`, `@<scope>/browser`, `@<scope>/bin`). Value imports and
- * `import type` are both flagged — the gateway is the one path to an outside package, whatever
- * carries the specifier. `scope` defaults to the value resolveRepoScopeLayerBroker reads from the
- * repo root package.json at module load, and can be overridden per-rule-instance via the `scope`
- * option — the override exists so a RuleTester case can prove the rule works for a consumer repo
- * scoped differently than this one, without touching the filesystem.
+ * (`@<scope>/npm`, `@<scope>/node`, `@<scope>/browser`, `@<scope>/bin`) — an existing `@<scope>/...`
+ * gateway import, or the `#gateway/...` import-alias form, is a workspace import already going
+ * through the gateway and is never flagged. Value imports and `import type` are both flagged — the
+ * gateway is the one path to an outside package, whatever carries the specifier. `scope` defaults
+ * to the value resolveRepoScopeLayerBroker reads from the repo root package.json at module load,
+ * and can be overridden per-rule-instance via the `scope` option — the override exists so a
+ * RuleTester case can prove the rule works for a consumer repo scoped differently than this one,
+ * without touching the filesystem. `scope` only gates which imports count as "workspace"; the
+ * suggested gateway path is always the `#gateway/...` alias text, identical in every consumer repo.
  *
  * USAGE:
  * const rule = ruleRawImportBanBroker();
- * // Returns an EslintRule that flags `import fs from 'fs'` outside packages/node/src/**, etc.,
- * // naming the exact gateway replacement in the report message
+ * // Returns an EslintRule that flags `import fs from 'fs'` outside packages/@gateway/node/src/**,
+ * // etc., naming the exact gateway replacement in the report message
  */
 import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
 import { gatewayPathFromImportSourceTransformer } from '@dungeonmaster/shared/transformers';
@@ -98,7 +101,13 @@ export const ruleRawImportBanBroker = (): EslintRule => ({
         }
 
         const isRelative = importSource.startsWith('.') || importSource.startsWith('/');
-        const isWorkspacePackage = importSource === scope || importSource.startsWith(`${scope}/`);
+        // A raw import already written as '#gateway/<folder>/...' is already going through the
+        // gateway, exactly like '@scope/<folder>/...' — never a "raw" import to flag.
+        const isWorkspacePackage =
+          importSource === scope ||
+          importSource.startsWith(`${scope}/`) ||
+          importSource === gatewayLocationsStatics.importPrefix ||
+          importSource.startsWith(`${gatewayLocationsStatics.importPrefix}/`);
 
         if (isRelative || isWorkspacePackage) {
           return;
@@ -106,7 +115,6 @@ export const ruleRawImportBanBroker = (): EslintRule => ({
 
         const gatewayPath = gatewayPathFromImportSourceTransformer({
           importSource: importPathContract.parse(importSource),
-          scope,
         });
 
         ctx.report({
@@ -140,7 +148,13 @@ export const ruleRawImportBanBroker = (): EslintRule => ({
         }
 
         const isRelative = importSource.startsWith('.') || importSource.startsWith('/');
-        const isWorkspacePackage = importSource === scope || importSource.startsWith(`${scope}/`);
+        // A raw import already written as '#gateway/<folder>/...' is already going through the
+        // gateway, exactly like '@scope/<folder>/...' — never a "raw" import to flag.
+        const isWorkspacePackage =
+          importSource === scope ||
+          importSource.startsWith(`${scope}/`) ||
+          importSource === gatewayLocationsStatics.importPrefix ||
+          importSource.startsWith(`${gatewayLocationsStatics.importPrefix}/`);
 
         if (isRelative || isWorkspacePackage) {
           return;
@@ -148,7 +162,6 @@ export const ruleRawImportBanBroker = (): EslintRule => ({
 
         const gatewayPath = gatewayPathFromImportSourceTransformer({
           importSource: importPathContract.parse(importSource),
-          scope,
         });
 
         ctx.report({

@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Inside a gateway file (`packages/{npm,node,browser,bin}/src/**`), flags any import,
+ * PURPOSE: Inside a gateway file (`packages/@gateway/{npm,node,browser,bin}/src/**`), flags any import,
  * export-from, `require()` or `require.resolve()` whose source is one of OUR OWN workspace
  * packages, EXCEPT another gateway package (or a subpath of one). A relative import stays untouched
  * — that is a file inside the same gateway package — and an outside npm package or Node built-in is
@@ -20,7 +20,8 @@
  * USAGE:
  * const rule = ruleGatewayImportBoundaryBroker();
  * // Returns an EslintRule that flags `import {x} from '@dungeonmaster/shared/contracts'` inside
- * // packages/node/src/**, but allows `import {y} from '@dungeonmaster/npm/glob'` there
+ * // packages/@gateway/node/src/**, but allows `import {y} from '@dungeonmaster/npm/glob'` (or the
+ * // '#gateway/npm/glob' import-alias form) there
  */
 import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
 import { gatewayTestSupportSuffixStatics } from '../../../statics/gateway-test-support-suffix/gateway-test-support-suffix-statics';
@@ -104,16 +105,28 @@ export const ruleGatewayImportBoundaryBroker = (): EslintRule => ({
         }
 
         const isRelative = importSource.startsWith('.') || importSource.startsWith('/');
-        const isWorkspacePackage = importSource === scope || importSource.startsWith(`${scope}/`);
+        const isWorkspacePackage =
+          importSource === scope ||
+          importSource.startsWith(`${scope}/`) ||
+          importSource === gatewayLocationsStatics.importPrefix ||
+          importSource.startsWith(`${gatewayLocationsStatics.importPrefix}/`);
 
         if (isRelative || !isWorkspacePackage) {
           return;
         }
 
+        // A gateway package is reachable through the repo's own `@scope/<folder>` name AND the
+        // `#gateway/<folder>` import-alias form (gatewayLocationsStatics.importPrefix) every
+        // consumer repo resolves identically — either one names another gateway package, never a
+        // different workspace package, so both count the same way here.
         const isGatewayPackage = Object.values(gatewayLocationsStatics.folders).some((folder) => {
           const gatewayPackageName = `${scope}/${folder}`;
+          const gatewayAliasPackageName = `${gatewayLocationsStatics.importPrefix}/${folder}`;
           return (
-            importSource === gatewayPackageName || importSource.startsWith(`${gatewayPackageName}/`)
+            importSource === gatewayPackageName ||
+            importSource.startsWith(`${gatewayPackageName}/`) ||
+            importSource === gatewayAliasPackageName ||
+            importSource.startsWith(`${gatewayAliasPackageName}/`)
           );
         });
 
@@ -163,16 +176,28 @@ export const ruleGatewayImportBoundaryBroker = (): EslintRule => ({
         }
 
         const isRelative = importSource.startsWith('.') || importSource.startsWith('/');
-        const isWorkspacePackage = importSource === scope || importSource.startsWith(`${scope}/`);
+        const isWorkspacePackage =
+          importSource === scope ||
+          importSource.startsWith(`${scope}/`) ||
+          importSource === gatewayLocationsStatics.importPrefix ||
+          importSource.startsWith(`${gatewayLocationsStatics.importPrefix}/`);
 
         if (isRelative || !isWorkspacePackage) {
           return;
         }
 
+        // A gateway package is reachable through the repo's own `@scope/<folder>` name AND the
+        // `#gateway/<folder>` import-alias form (gatewayLocationsStatics.importPrefix) every
+        // consumer repo resolves identically — either one names another gateway package, never a
+        // different workspace package, so both count the same way here.
         const isGatewayPackage = Object.values(gatewayLocationsStatics.folders).some((folder) => {
           const gatewayPackageName = `${scope}/${folder}`;
+          const gatewayAliasPackageName = `${gatewayLocationsStatics.importPrefix}/${folder}`;
           return (
-            importSource === gatewayPackageName || importSource.startsWith(`${gatewayPackageName}/`)
+            importSource === gatewayPackageName ||
+            importSource.startsWith(`${gatewayPackageName}/`) ||
+            importSource === gatewayAliasPackageName ||
+            importSource.startsWith(`${gatewayAliasPackageName}/`)
           );
         });
 

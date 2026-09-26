@@ -2,17 +2,18 @@
  * PURPOSE: Maps a raw import specifier to the gateway path that replaces it — the mechanical rule
  * a caller-facing lint rule (banning a raw `fs`/`zod`/`@playwright/test` import outside the
  * gateway) and a future migration script both need to agree on byte-for-byte. Strips a leading
- * `node:`; a Node built-in (per nodeBuiltinStatics) maps to `<scope>/node/<bareName>`, subpath
- * kept (`fs/promises` stays `fs/promises`); anything else maps to `<scope>/npm/<importSource>`,
+ * `node:`; a Node built-in (per nodeBuiltinStatics) maps to `#gateway/node/<bareName>`, subpath
+ * kept (`fs/promises` stays `fs/promises`); anything else maps to `#gateway/npm/<importSource>`,
  * scoped-package identity kept intact (`@playwright/test` stays `@playwright/test` after the
- * prefix). `scope` is never hard-coded here — pass packageScopeFromNameTransformer's result, read
- * from the repo's own root `package.json`.
+ * prefix). Built from `gatewayLocationsStatics.importPrefix`, never a repo's own `@scope` — the
+ * `#gateway/...` text a lint message suggests must read identically in every consumer repo,
+ * whatever that repo names its gateway packages.
  *
  * USAGE:
- * gatewayPathFromImportSourceTransformer({ importSource: ImportPathStub({ value: 'fs' }), scope: PackageNameStub({ value: '@dungeonmaster' }) });
- * // Returns '@dungeonmaster/node/fs' as branded PackageName
- * gatewayPathFromImportSourceTransformer({ importSource: ImportPathStub({ value: 'zod' }), scope: PackageNameStub({ value: '@dungeonmaster' }) });
- * // Returns '@dungeonmaster/npm/zod' as branded PackageName
+ * gatewayPathFromImportSourceTransformer({ importSource: ImportPathStub({ value: 'fs' }) });
+ * // Returns '#gateway/node/fs' as branded PackageName
+ * gatewayPathFromImportSourceTransformer({ importSource: ImportPathStub({ value: 'zod' }) });
+ * // Returns '#gateway/npm/zod' as branded PackageName
  */
 import { packageNameContract } from '../../contracts/package-name/package-name-contract';
 import type { PackageName } from '../../contracts/package-name/package-name-contract';
@@ -24,10 +25,8 @@ const NODE_PREFIX = 'node:';
 
 export const gatewayPathFromImportSourceTransformer = ({
   importSource,
-  scope,
 }: {
   importSource: ImportPath;
-  scope: PackageName;
 }): PackageName => {
   const bareModule = importSource.startsWith(NODE_PREFIX)
     ? importSource.slice(NODE_PREFIX.length)
@@ -37,11 +36,11 @@ export const gatewayPathFromImportSourceTransformer = ({
 
   if (nodeBuiltinStatics.modules.some((moduleName) => moduleName === topLevelSegment)) {
     return packageNameContract.parse(
-      `${scope}/${gatewayLocationsStatics.folders.node}/${bareModule}`,
+      `${gatewayLocationsStatics.importPrefix}/${gatewayLocationsStatics.folders.node}/${bareModule}`,
     );
   }
 
   return packageNameContract.parse(
-    `${scope}/${gatewayLocationsStatics.folders.npm}/${importSource}`,
+    `${gatewayLocationsStatics.importPrefix}/${gatewayLocationsStatics.folders.npm}/${importSource}`,
   );
 };

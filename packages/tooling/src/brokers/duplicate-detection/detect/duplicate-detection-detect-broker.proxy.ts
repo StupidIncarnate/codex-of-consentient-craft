@@ -1,5 +1,5 @@
-import { globProxy } from '@dungeonmaster/npm/testing';
-import { readFileProxy } from '@dungeonmaster/node/testing';
+import { globProxy } from '#gateway/npm/_test_';
+import { readFileProxy } from '#gateway/node/_test_';
 import { typescriptParseAdapterProxy } from '../../../adapters/typescript/parse/typescript-parse-adapter.proxy';
 import { globIgnoreStatics } from '../../../statics/glob-ignore/glob-ignore-statics';
 import type { GlobPattern } from '../../../contracts/glob-pattern/glob-pattern-contract';

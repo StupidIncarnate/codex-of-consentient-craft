@@ -75,13 +75,13 @@ ruleTester.run('require-contract-validation', ruleRequireContractValidationBroke
     // never import our own contracts, so they cannot satisfy filePathContract.parse())
     {
       code: `const config = require(configPath);`,
-      filename: '/repo/packages/node/src/module/dynamic-import.ts',
+      filename: '/repo/packages/@gateway/node/src/module/dynamic-import.ts',
     },
 
     // ✅ import() with a bare variable, inside a gateway package
     {
       code: `const module = await import(modulePath);`,
-      filename: '/repo/packages/npm/src/glob/index.ts',
+      filename: '/repo/packages/@gateway/npm/src/glob/index.ts',
     },
   ],
 

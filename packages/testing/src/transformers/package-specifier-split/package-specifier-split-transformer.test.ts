@@ -50,4 +50,14 @@ describe('packageSpecifierSplitTransformer', () => {
       expect(result).toBe(null);
     });
   });
+
+  describe('imports-map specifier', () => {
+    it('INVALID: {importPath: "#gateway/npm/_test_"} => returns null', () => {
+      const importPath = ImportPathStub({ value: '#gateway/npm/_test_' });
+
+      const result = packageSpecifierSplitTransformer({ importPath });
+
+      expect(result).toBe(null);
+    });
+  });
 });

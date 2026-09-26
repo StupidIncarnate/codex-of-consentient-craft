@@ -181,6 +181,60 @@ describe('importPathResolverMiddleware', () => {
     });
   });
 
+  describe('imports-map "#" specifiers', () => {
+    it("VALID: {#gateway/npm/_test_} => resolves through the importing package's own imports map", () => {
+      const proxy = importPathResolverMiddlewareProxy();
+      proxy.setupImportingPackage({
+        dirPath: '/repo/packages/mcp',
+        packageJson: {
+          name: '@dungeonmaster/mcp',
+          imports: { '#gateway/npm/*': '@dungeonmaster/npm/*' },
+        },
+      });
+      proxy.setupWorkspaceRoot({
+        workspaceRootPath: '/repo',
+        workspaces: ['packages/*', 'packages/@gateway/*'],
+      });
+      proxy.setupWorkspacePackage({
+        workspaceRootPath: '/repo',
+        packageFolderName: 'npm',
+        packagesBaseDir: 'packages/@gateway',
+        packageJson: {
+          name: '@dungeonmaster/npm',
+          exports: { './_test_': { source: './src/_test_/index.ts' } },
+        },
+      });
+      proxy.setupSourceFileExists({ filePath: '/repo/packages/@gateway/npm/src/_test_/index.ts' });
+      const sourceFilePath = FilePathStub({
+        value: '/repo/packages/mcp/src/brokers/file/scanner/file-scanner-broker.proxy.ts',
+      });
+      const importPath = ImportPathStub({ value: '#gateway/npm/_test_' });
+
+      const result = importPathResolverMiddleware({ sourceFilePath, importPath });
+
+      expect(result).toStrictEqual(
+        FilePathStub({ value: '/repo/packages/@gateway/npm/src/_test_/index.ts' }),
+      );
+    });
+
+    it('INVALID: {#foo, unmapped specifier} => returns null', () => {
+      const proxy = importPathResolverMiddlewareProxy();
+      proxy.setupImportingPackage({
+        dirPath: '/repo/packages/mcp',
+        packageJson: {
+          name: '@dungeonmaster/mcp',
+          imports: { '#gateway/npm/*': '@dungeonmaster/npm/*' },
+        },
+      });
+      const sourceFilePath = FilePathStub({ value: '/repo/packages/mcp/src/a.proxy.ts' });
+      const importPath = ImportPathStub({ value: '#foo' });
+
+      const result = importPathResolverMiddleware({ sourceFilePath, importPath });
+
+      expect(result).toBe(null);
+    });
+  });
+
   describe('tsx extension', () => {
     it('VALID: {relative import to a .tsx proxy file} => returns FilePath with .tsx', () => {
       const proxy = importPathResolverMiddlewareProxy();

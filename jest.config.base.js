@@ -1,3 +1,5 @@
+const path = require('path');
+
 const dungeonmasterTransformers = require('./packages/testing/ts-jest/transformers.js');
 
 module.exports = {
@@ -11,13 +13,19 @@ module.exports = {
   // `setupFiles`/`setupFilesAfterEnv` entry cannot do this job. No package below sets its own
   // `globalSetup`/`globalTeardown` — confirmed by a repo-wide grep before adding these — so nothing
   // here needs chaining.
-  globalSetup: '<rootDir>/../../packages/testing/src/jest.setup-global.js',
-  globalTeardown: '<rootDir>/../../packages/testing/src/jest.setup-global-teardown.js',
+  //
+  // Built from this file's own location (`__dirname`), not `<rootDir>/../../...`: `<rootDir>`
+  // resolves against the CONSUMING package, which sits two directories under the repo root for
+  // most packages but three for the gateway packages under `packages/@gateway/*` — a fixed
+  // `../../` climbs out of the repo entirely for those. This file lives at the repo root, so
+  // `__dirname` is depth-agnostic by construction.
+  globalSetup: path.join(__dirname, 'packages/testing/src/jest.setup-global.js'),
+  globalTeardown: path.join(__dirname, 'packages/testing/src/jest.setup-global-teardown.js'),
   // `setupFiles`, not `setupFilesAfterEnv`: this one has to run before the test file's own imports,
   // so a module that reads `DUNGEONMASTER_HOME` while it loads sees the sandbox. The file itself
   // says what that costs when it resolves to the developer's real home.
-  setupFiles: ['<rootDir>/../../packages/testing/src/jest.setup-home.js'],
-  setupFilesAfterEnv: ['<rootDir>/../../packages/testing/src/jest.setup.js'],
+  setupFiles: [path.join(__dirname, 'packages/testing/src/jest.setup-home.js')],
+  setupFilesAfterEnv: [path.join(__dirname, 'packages/testing/src/jest.setup.js')],
   testMatch: ['**/src/**/*.test.[jt]s', '**/bin/**/*.test.[jt]s'],
   testPathIgnorePatterns: ['/node_modules/', '/tests/tmp/', '/hypothesis/', '/dist/'],
   modulePathIgnorePatterns: ['/tests/tmp/', '/hypothesis/'],

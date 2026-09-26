@@ -10,7 +10,7 @@ describe('gatewayTestingBarrelPathTransformer', () => {
       gatewayFolder: 'npm',
     });
 
-    expect(result).toBe('/repo/packages/npm/src/testing/index.ts');
+    expect(result).toBe('/repo/packages/@gateway/npm/src/_test_/index.ts');
   });
 
   it('VALID: {callerFilePath: nested worktree path, gatewayFolder: node} => anchors on the last /packages/ segment', () => {
@@ -21,7 +21,7 @@ describe('gatewayTestingBarrelPathTransformer', () => {
       gatewayFolder: 'node',
     });
 
-    expect(result).toBe('/repo/worktrees/gateway-pivot/packages/node/src/testing/index.ts');
+    expect(result).toBe('/repo/worktrees/gateway-pivot/packages/@gateway/node/src/_test_/index.ts');
   });
 
   it('EMPTY: {callerFilePath: no /packages/ segment} => returns null', () => {

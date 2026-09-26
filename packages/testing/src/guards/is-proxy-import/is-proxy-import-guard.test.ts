@@ -61,6 +61,48 @@ describe('isProxyImportGuard', () => {
 
       expect(result).toBe(true);
     });
+
+    it('VALID: {importPath: "@dungeonmaster/node/_test_"} => returns true', () => {
+      const result = isProxyImportGuard({ importPath: '@dungeonmaster/node/_test_' });
+
+      expect(result).toBe(true);
+    });
+
+    it('VALID: {importPath: "@dungeonmaster/npm/_test_"} => returns true', () => {
+      const result = isProxyImportGuard({ importPath: '@dungeonmaster/npm/_test_' });
+
+      expect(result).toBe(true);
+    });
+
+    it('VALID: {importPath: "@dungeonmaster/browser/_test_"} => returns true', () => {
+      const result = isProxyImportGuard({ importPath: '@dungeonmaster/browser/_test_' });
+
+      expect(result).toBe(true);
+    });
+
+    it('VALID: {importPath: "@dungeonmaster/bin/_test_"} => returns true', () => {
+      const result = isProxyImportGuard({ importPath: '@dungeonmaster/bin/_test_' });
+
+      expect(result).toBe(true);
+    });
+
+    it('VALID: {importPath: "#gateway/npm/_test_"} => returns true', () => {
+      const result = isProxyImportGuard({ importPath: '#gateway/npm/_test_' });
+
+      expect(result).toBe(true);
+    });
+
+    it('VALID: {importPath: "#gateway/browser/_test_"} => returns true', () => {
+      const result = isProxyImportGuard({ importPath: '#gateway/browser/_test_' });
+
+      expect(result).toBe(true);
+    });
+
+    it('VALID: {importPath: "#foo/bar/testing"} => returns true', () => {
+      const result = isProxyImportGuard({ importPath: '#foo/bar/testing' });
+
+      expect(result).toBe(true);
+    });
   });
 
   describe('non-proxy imports', () => {
@@ -96,6 +138,12 @@ describe('isProxyImportGuard', () => {
 
     it('INVALID: {importPath: "@dungeonmaster/bin/git"} => returns false', () => {
       const result = isProxyImportGuard({ importPath: '@dungeonmaster/bin/git' });
+
+      expect(result).toBe(false);
+    });
+
+    it('INVALID: {importPath: "#gateway/npm/glob"} => returns false', () => {
+      const result = isProxyImportGuard({ importPath: '#gateway/npm/glob' });
 
       expect(result).toBe(false);
     });

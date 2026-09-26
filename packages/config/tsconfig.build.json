@@ -7,7 +7,21 @@
     "incremental": true,
     "tsBuildInfoFile": "./.ward/build.tsbuildinfo",
     "declaration": true,
-    "declarationMap": true
+    "declarationMap": true,
+    "paths": {
+      "#gateway/npm/*": [
+        "../@gateway/npm/dist/*/index.d.ts"
+      ],
+      "#gateway/node/*": [
+        "../@gateway/node/dist/*/index.d.ts"
+      ],
+      "#gateway/browser/*": [
+        "../@gateway/browser/dist/*/index.d.ts"
+      ],
+      "#gateway/bin/*": [
+        "../@gateway/bin/dist/*/index.d.ts"
+      ]
+    }
   },
   "exclude": [
     "node_modules",

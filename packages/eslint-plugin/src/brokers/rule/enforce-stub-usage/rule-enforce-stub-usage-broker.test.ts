@@ -36,7 +36,7 @@ ruleTester.run('enforce-stub-usage', ruleEnforceStubUsageBroker(), {
           const entry: DirEntrySync = { name: 'a.txt', isDirectory: false };
         });
       `,
-      filename: '/repo/packages/node/src/fs/readdir-entries-sync.test.ts',
+      filename: '/repo/packages/@gateway/node/src/fs/readdir-entries-sync.test.ts',
     },
 
     // ✅ Primitive type annotations - allowed

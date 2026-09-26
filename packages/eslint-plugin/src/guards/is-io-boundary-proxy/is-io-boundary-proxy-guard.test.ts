@@ -11,7 +11,7 @@ describe('isIoBoundaryProxyGuard', () => {
 
   it('VALID: {filename: a gateway node proxy} => returns true', () => {
     const result = isIoBoundaryProxyGuard({
-      filename: '/repo/packages/node/src/fs/read-file-sync.proxy.ts',
+      filename: '/repo/packages/@gateway/node/src/fs/read-file-sync.proxy.ts',
     });
 
     expect(result).toBe(true);
@@ -19,7 +19,7 @@ describe('isIoBoundaryProxyGuard', () => {
 
   it('VALID: {filename: a gateway npm proxy} => returns true', () => {
     const result = isIoBoundaryProxyGuard({
-      filename: '/repo/packages/npm/src/zod/index.proxy.ts',
+      filename: '/repo/packages/@gateway/npm/src/zod/index.proxy.ts',
     });
 
     expect(result).toBe(true);
@@ -27,7 +27,7 @@ describe('isIoBoundaryProxyGuard', () => {
 
   it('VALID: {filename: a relative gateway browser proxy path} => returns true', () => {
     const result = isIoBoundaryProxyGuard({
-      filename: 'packages/browser/src/fetch/index.proxy.ts',
+      filename: 'packages/@gateway/browser/src/fetch/index.proxy.ts',
     });
 
     expect(result).toBe(true);

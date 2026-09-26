@@ -93,6 +93,19 @@ Contracts may not import a package's types, so eslint-plugin copies them:
 
 ## Structure
 
+**Update, 2026-09-26:** everything below in this section was decided on 2026-09-25 and describes the
+gateway as first built. The next day's build changed two things this section states as current. The
+gateway packages moved from `packages/{npm,node,browser,bin}` to `packages/@gateway/{npm,node,browser,bin}`
+— the package `name`s themselves (`@acme/npm` and so on) are unchanged. And the import prefix changed
+from the package's own scoped name (`@acme/npm/react`) to a fixed `#gateway/<folder>/<subpath>`
+(`#gateway/npm/react`), the same text in every repo, resolved through each package's own
+`package.json` `imports` field: an npm package literally named `@acme/npm` would collide with a
+consumer repo's own differently-scoped copy under Node's walk-up resolution, while a `#`-prefixed
+specifier resolves only from a package's own `package.json`, never through `node_modules`, so the two
+gateways can never meet. The `./testing` subpath described below is now `./_test_` for the matching
+reason: no npm package name can start with `_`, so it can never collide with a real one. Full
+rationale and file paths: `scrolls/gateway-build/README.md`.
+
 ### The gateway stays under `packages/`
 
 Moving it to the repo root would not change what lint sees: the main rule block applies to every
@@ -129,6 +142,9 @@ packages/browser/               "name": "@acme/browser"
 packages/bin/                   "name": "@acme/bin"
   git/index.ts                  currentBranch(), changedFiles(), …
 ```
+
+*(Import prefix and location updated 2026-09-26 — see the note at the top of "Structure". The
+folder-mirrors-subpath principle and the bundle-safety measurements below are unaffected.)*
 
 **A subpath starting with `@` resolves everywhere we need it.** Tested with a scratch package in
 `tmp/gateway-exp/`:
@@ -197,6 +213,10 @@ Decided on 2026-09-25. The workspace packages at `packages/npm`, `packages/node`
 `packages/browser` and `packages/bin` are the gateway, whatever the repo's scope makes their names. Lint and our tools target them with the path globs `packages/npm/**`, `packages/node/**`,
 `packages/browser/**` and `packages/bin/**`, and need no configuration. The check that refuses raw imports allows an import only when it resolves into one of those four folders.
 
+*(Location updated 2026-09-26: the four folders are `packages/@gateway/npm`, `packages/@gateway/node`,
+`packages/@gateway/browser` and `packages/@gateway/bin`, and the matching globs end
+`packages/@gateway/<folder>/src/**`. See the note at the top of "Structure".)*
+
 ### Naming in a repo with no scope
 
 Decided on 2026-09-25. A repo whose root `package.json` has a scoped name uses that scope:
@@ -206,6 +226,10 @@ Decided on 2026-09-25. A repo whose root `package.json` has a scoped name uses t
 Unscoped names are ruled out: `npm` and `node` are real packages on the npm registry, and the workspace link would shadow them inside the repo.
 
 Still to settle when building `init`: a root `package.json` with no `name` at all.
+
+*(Updated 2026-09-26: the repo's scope still names the gateway PACKAGES — `@acme/npm` and so on — but
+no longer names the IMPORT. Every caller imports through the fixed `#gateway/<folder>/<subpath>`
+prefix instead, whatever the repo's scope is. See the note at the top of "Structure".)*
 
 ### Four packages, split by where the code comes from
 

@@ -7,8 +7,8 @@
  * // Registers GET/POST /api/guilds and GET/PATCH/DELETE /api/guilds/:guildId
  */
 
-import { Hono } from 'hono';
-import type { ContentfulStatusCode } from 'hono/utils/http-status';
+import { Hono } from '#gateway/npm/hono';
+import type { ContentfulStatusCode } from '#gateway/npm/hono/utils/http-status';
 
 import { GuildListResponder } from '../../responders/guild/list/guild-list-responder';
 import { GuildAddResponder } from '../../responders/guild/add/guild-add-responder';

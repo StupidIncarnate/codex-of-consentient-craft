@@ -13,7 +13,7 @@ export const gatewayPackageNamesReadLayerBrokerProxy = ({
   const readProxy = readPackageNameOptionalLayerBrokerProxy();
 
   const pathFor = ({ folderName }: { folderName: (typeof FOLDER_NAMES)[number] }): FilePath =>
-    filePathContract.parse(`${rootPath}/packages/${folderName}/package.json`);
+    filePathContract.parse(`${rootPath}/packages/@gateway/${folderName}/package.json`);
 
   // Every gateway folder is absent by default — a fixture repo builds only the packages a test
   // cares about, so the other two must not throw an "unmatched call" error.

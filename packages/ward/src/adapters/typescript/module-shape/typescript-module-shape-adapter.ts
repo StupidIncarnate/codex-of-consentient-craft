@@ -9,7 +9,7 @@
  * // Returns: { dependencies: [{specifier: './x', kind: 'star', importedNames: []}], localExportNames: [] }
  */
 
-import * as ts from 'typescript';
+import * as ts from '#gateway/npm/typescript';
 import type { FileContents } from '@dungeonmaster/shared/contracts';
 
 import {

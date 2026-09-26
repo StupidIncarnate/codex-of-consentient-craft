@@ -6,7 +6,7 @@
  * // Returns array of FileMetadata for all matched files with optional metadata enrichment
  */
 
-import { glob as globFind } from '@dungeonmaster/npm/glob';
+import { glob as globFind } from '#gateway/npm/glob';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { sharedPackageResolveAdapter } from '../../../adapters/shared-package/resolve/shared-package-resolve-adapter';
 import { metadataExtractorTransformer } from '../../../transformers/metadata-extractor/metadata-extractor-transformer';

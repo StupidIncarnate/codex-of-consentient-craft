@@ -9,7 +9,7 @@
  * const cwd = absolutePathContract.parse('/home/user/project');
  * // Returns a branded AbsolutePath
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const absolutePathContract = z.string().brand<'AbsolutePath'>();
 

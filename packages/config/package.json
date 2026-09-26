@@ -2,6 +2,12 @@
   "name": "@dungeonmaster/config",
   "version": "0.1.0",
   "description": "Configuration parser and resolver for Dungeonmaster architecture lint rules",
+  "imports": {
+    "#gateway/npm/*": "@dungeonmaster/npm/*",
+    "#gateway/node/*": "@dungeonmaster/node/*",
+    "#gateway/browser/*": "@dungeonmaster/browser/*",
+    "#gateway/bin/*": "@dungeonmaster/bin/*"
+  },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {

@@ -108,6 +108,64 @@ describe('packageDiscoverBroker', () => {
     });
   });
 
+  describe('gateway-style @-scoped group folders', () => {
+    it("VALID: {dungeonmasterRoot, packages: [cli, @gateway/{npm,node}]} => discovers the group's children by their real package.json name, and does not treat @gateway itself as a package", () => {
+      const proxy = packageDiscoverBrokerProxy();
+      const dungeonmasterRoot = FilePathStub({ value: '/home/user/dungeonmaster' });
+
+      proxy.setupPackageDiscovery({
+        packagesPath: FilePathStub({ value: '/home/user/dungeonmaster/packages' }),
+        packages: [
+          {
+            name: FileNameStub({ value: 'cli' }),
+            standardPath: FilePathStub({
+              value: '/home/user/dungeonmaster/packages/cli/dist/startup/start-install.js',
+            }),
+            installerLocation: 'standard',
+          },
+          {
+            name: FileNameStub({ value: '@gateway' }),
+            children: [
+              {
+                name: FileNameStub({ value: 'npm' }),
+                standardPath: FilePathStub({
+                  value:
+                    '/home/user/dungeonmaster/packages/@gateway/npm/dist/startup/start-install.js',
+                }),
+                installerLocation: 'standard',
+              },
+              {
+                name: FileNameStub({ value: 'node' }),
+                standardPath: FilePathStub({
+                  value:
+                    '/home/user/dungeonmaster/packages/@gateway/node/dist/startup/start-install.js',
+                }),
+                installerLocation: 'none',
+              },
+            ],
+          },
+        ],
+      });
+
+      const result = packageDiscoverBroker({ dungeonmasterRoot });
+
+      expect(result).toStrictEqual([
+        {
+          packageName: PackageNameStub({ value: '@dungeonmaster/cli' }),
+          installPath: FilePathStub({
+            value: '/home/user/dungeonmaster/packages/cli/dist/startup/start-install.js',
+          }),
+        },
+        {
+          packageName: PackageNameStub({ value: '@dungeonmaster/npm' }),
+          installPath: FilePathStub({
+            value: '/home/user/dungeonmaster/packages/@gateway/npm/dist/startup/start-install.js',
+          }),
+        },
+      ]);
+    });
+  });
+
   describe('edge cases', () => {
     it('EDGE: {dungeonmasterRoot: "/path/with spaces"} => handles paths with spaces', () => {
       const proxy = packageDiscoverBrokerProxy();

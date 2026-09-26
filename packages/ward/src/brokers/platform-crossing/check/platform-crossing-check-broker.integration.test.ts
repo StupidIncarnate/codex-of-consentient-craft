@@ -132,6 +132,117 @@ describe('platformCrossingCheckBroker (integration)', () => {
     });
   });
 
+  describe('a browser package reaches the node gateway via the #gateway import prefix', () => {
+    it('VALID: {web imports "#gateway/node/fs" directly} => reports it naming the real gateway package', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'platform-crossing-gateway-prefix-direct' }),
+      });
+      await harness.writeWorkspacesRoot({ testbed });
+      await harness.writeWebPackage({ testbed });
+      await harness.writeNodeGatewayPackage({ testbed });
+      await harness.writeFile({
+        testbed,
+        relativePath: 'packages/web/src/widgets/chat/chat-widget.tsx',
+        content:
+          "import { readFile } from '#gateway/node/fs';\nexport const ChatWidget = () => readFile();",
+      });
+
+      const result = await platformCrossingCheckBroker({
+        rootPath: FilePathStub({ value: testbed.guildPath }),
+      });
+
+      testbed.cleanup();
+
+      expect(result).toStrictEqual([
+        {
+          packageName: 'web',
+          platform: 'browser',
+          chain: ['@dungeonmaster/node/fs'],
+          crossedGatewayPackage: '@dungeonmaster/node',
+        },
+      ]);
+    });
+
+    it('VALID: {web imports a named broker whose file imports "#gateway/node/fs"} => reports the full chain naming the real gateway package', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'platform-crossing-gateway-prefix-multi-hop' }),
+      });
+      await harness.writeWorkspacesRoot({ testbed });
+      await harness.writeWebPackage({ testbed });
+      await harness.writeNodeGatewayPackage({ testbed });
+      await harness.writeFile({
+        testbed,
+        relativePath: 'packages/shared2/package.json',
+        content: JSON.stringify({ name: '@dungeonmaster/shared2' }),
+      });
+      await harness.writeFile({
+        testbed,
+        relativePath: 'packages/shared2/brokers.ts',
+        content: "export * from './src/brokers/cwd-resolve/cwd-resolve-broker';",
+      });
+      await harness.writeFile({
+        testbed,
+        relativePath: 'packages/shared2/src/brokers/cwd-resolve/cwd-resolve-broker.ts',
+        content:
+          "import { readFile } from '#gateway/node/fs';\nexport const cwdResolveBroker = () => readFile();",
+      });
+      await harness.writeFile({
+        testbed,
+        relativePath: 'packages/web/src/widgets/chat/chat-widget.tsx',
+        content:
+          "import { cwdResolveBroker } from '@dungeonmaster/shared2/brokers';\nexport const ChatWidget = () => cwdResolveBroker();",
+      });
+
+      const result = await platformCrossingCheckBroker({
+        rootPath: FilePathStub({ value: testbed.guildPath }),
+      });
+
+      testbed.cleanup();
+
+      expect(result).toStrictEqual([
+        {
+          packageName: 'web',
+          platform: 'browser',
+          chain: [
+            '@dungeonmaster/shared2/brokers',
+            './src/brokers/cwd-resolve/cwd-resolve-broker',
+            '@dungeonmaster/node/fs',
+          ],
+          crossedGatewayPackage: '@dungeonmaster/node',
+        },
+      ]);
+    });
+  });
+
+  describe('a browser package uses its own gateway folder via #gateway', () => {
+    it('VALID: {web imports "#gateway/browser/localStorage"} => reports nothing, browser is not forbidden for a browser package', async () => {
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'platform-crossing-gateway-prefix-allowed' }),
+      });
+      await harness.writeWorkspacesRoot({ testbed });
+      await harness.writeWebPackage({ testbed });
+      // The node package must also exist so `forbiddenPackageNames` is non-empty for `web` — an
+      // empty forbidden list short-circuits the whole folder before it scans any file, which would
+      // make this assert nothing about the browser-to-browser import it means to cover.
+      await harness.writeNodeGatewayPackage({ testbed });
+      await harness.writeBrowserGatewayPackage({ testbed });
+      await harness.writeFile({
+        testbed,
+        relativePath: 'packages/web/src/widgets/chat/chat-widget.tsx',
+        content:
+          "import { getItem } from '#gateway/browser/localStorage';\nexport const ChatWidget = () => getItem();",
+      });
+
+      const result = await platformCrossingCheckBroker({
+        rootPath: FilePathStub({ value: testbed.guildPath }),
+      });
+
+      testbed.cleanup();
+
+      expect(result).toStrictEqual([]);
+    });
+  });
+
   describe('library package skip', () => {
     it('VALID: {a library package with no browser or node signals} => returns no violations even though it imports the gateway', async () => {
       const testbed = installTestbedCreateBroker({

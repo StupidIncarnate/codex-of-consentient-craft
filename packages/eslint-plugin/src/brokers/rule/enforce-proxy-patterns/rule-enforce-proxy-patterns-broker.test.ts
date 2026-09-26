@@ -18,7 +18,7 @@ beforeEach(() => {
       '/project/src/adapters/email/email-adapter.ts',
       '/project/src/adapters/api/api-adapter.ts',
       '/project/src/brokers/env/env-broker.ts',
-      '/project/packages/node/src/fs/read-file-sync.ts',
+      '/project/packages/@gateway/node/src/fs/read-file-sync.ts',
     ];
     return existingFiles.includes(String(filePath));
   });
@@ -60,7 +60,7 @@ ruleTester.run('enforce-proxy-patterns', ruleEnforceProxyPatternsBroker(), {
       `,
       filename: '/project/src/adapters/http/http-adapter.proxy.ts',
     },
-    // ✅ CORRECT - Gateway wrapper proxy (packages/node/**, no /adapters/ segment): jest.spyOn
+    // ✅ CORRECT - Gateway wrapper proxy (packages/@gateway/node/**, no /adapters/ segment): jest.spyOn
     // paired with a native mock-setup call before return. isIoBoundaryProxyGuard recognizes
     // this path as an I/O boundary, so validateAdapterMockSetupLayerBroker runs and passes.
     {
@@ -78,7 +78,7 @@ ruleTester.run('enforce-proxy-patterns', ruleEnforceProxyPatternsBroker(), {
           };
         };
       `,
-      filename: '/project/packages/node/src/fs/read-file-sync.proxy.ts',
+      filename: '/project/packages/@gateway/node/src/fs/read-file-sync.proxy.ts',
     },
     // ✅ CORRECT - No bootstrap method
     {
@@ -717,7 +717,7 @@ ruleTester.run('enforce-proxy-patterns', ruleEnforceProxyPatternsBroker(), {
           };
         };
       `,
-      filename: '/project/packages/node/src/fs/read-file-sync.proxy.ts',
+      filename: '/project/packages/@gateway/node/src/fs/read-file-sync.proxy.ts',
       errors: [{ messageId: 'adapterProxyMustSetupMocks' }],
     },
     // ❌ WRONG - Child proxy created at module level

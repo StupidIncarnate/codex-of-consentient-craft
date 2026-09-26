@@ -183,6 +183,12 @@ describe('packageScaffoldFilesTransformer', () => {
   "name": "@acme/widgets",
   "version": "0.1.0",
   "description": "Widgets package",
+  "imports": {
+    "#gateway/npm/*": "@acme/npm/*",
+    "#gateway/node/*": "@acme/node/*",
+    "#gateway/browser/*": "@acme/browser/*",
+    "#gateway/bin/*": "@acme/bin/*"
+  },
   "exports": {
     "./statics": {
       "source": "./statics.ts",
@@ -274,6 +280,12 @@ describe('packageScaffoldFilesTransformer', () => {
         name: '@acme/widgets',
         version: '0.1.0',
         description: 'Widgets package',
+        imports: {
+          '#gateway/npm/*': '@acme/npm/*',
+          '#gateway/node/*': '@acme/node/*',
+          '#gateway/browser/*': '@acme/browser/*',
+          '#gateway/bin/*': '@acme/bin/*',
+        },
         exports: {
           './statics': {
             source: './statics.ts',
@@ -310,6 +322,12 @@ describe('packageScaffoldFilesTransformer', () => {
         name: '@acme/widgets',
         version: '0.1.0',
         description: 'Widgets package',
+        imports: {
+          '#gateway/npm/*': '@acme/npm/*',
+          '#gateway/node/*': '@acme/node/*',
+          '#gateway/browser/*': '@acme/browser/*',
+          '#gateway/bin/*': '@acme/bin/*',
+        },
         files: ['dist/**/*'],
         bin: {
           'widgets-pre-tool-use': './dist/bin/widgets-pre-tool-use.js',
@@ -344,6 +362,12 @@ describe('packageScaffoldFilesTransformer', () => {
         name: '@acme/widgets',
         version: '0.1.0',
         description: 'Widgets package',
+        imports: {
+          '#gateway/npm/*': '@acme/npm/*',
+          '#gateway/node/*': '@acme/node/*',
+          '#gateway/browser/*': '@acme/browser/*',
+          '#gateway/bin/*': '@acme/bin/*',
+        },
         exports: {
           '.': {
             source: './src/startup/start-widgets.ts',
@@ -384,6 +408,12 @@ describe('packageScaffoldFilesTransformer', () => {
         name: '@acme/widgets',
         version: '0.1.0',
         description: 'Widgets package',
+        imports: {
+          '#gateway/npm/*': '@acme/npm/*',
+          '#gateway/node/*': '@acme/node/*',
+          '#gateway/browser/*': '@acme/browser/*',
+          '#gateway/bin/*': '@acme/bin/*',
+        },
         exports: {
           '.': {
             source: './src/index.ts',
@@ -421,6 +451,12 @@ describe('packageScaffoldFilesTransformer', () => {
         name: '@acme/widgets',
         version: '0.1.0',
         description: 'Widgets package',
+        imports: {
+          '#gateway/npm/*': '@acme/npm/*',
+          '#gateway/node/*': '@acme/node/*',
+          '#gateway/browser/*': '@acme/browser/*',
+          '#gateway/bin/*': '@acme/bin/*',
+        },
         exports: {
           './adapters': {
             source: './adapters.ts',
@@ -445,6 +481,35 @@ describe('packageScaffoldFilesTransformer', () => {
         },
         publishConfig: { access: 'public' },
       });
+    });
+
+    it.each(packageBuildOrderStatics.tiers.flat())(
+      'VALID: {packageType: %s} => package.json imports maps all four #gateway folders to the request scope',
+      (packageType) => {
+        const files = packageScaffoldFilesTransformer({
+          request: CreatePackageRequestStub({ packageType }),
+        });
+        const packageJsonFile = files.find((file) => file.relativePath === 'package.json');
+
+        expect(packageJsonFile!.contents).toMatch(
+          /^ {2}"imports": \{$\n^ {4}"#gateway\/npm\/\*": "@acme\/npm\/\*",$\n^ {4}"#gateway\/node\/\*": "@acme\/node\/\*",$\n^ {4}"#gateway\/browser\/\*": "@acme\/browser\/\*",$\n^ {4}"#gateway\/bin\/\*": "@acme\/bin\/\*"$\n^ {2}\},$/mu,
+        );
+      },
+    );
+
+    it('VALID: {packageName: "@other-scope/widgets"} => package.json imports substitutes that scope, not a hardcoded one', () => {
+      const files = packageScaffoldFilesTransformer({
+        request: CreatePackageRequestStub({
+          packageName: '@other-scope/widgets',
+          directoryName: 'widgets',
+          description: 'Widgets package',
+        }),
+      });
+      const packageJsonFile = files.find((file) => file.relativePath === 'package.json');
+
+      expect(packageJsonFile!.contents).toMatch(
+        /^ {2}"imports": \{$\n^ {4}"#gateway\/npm\/\*": "@other-scope\/npm\/\*",$\n^ {4}"#gateway\/node\/\*": "@other-scope\/node\/\*",$\n^ {4}"#gateway\/browser\/\*": "@other-scope\/browser\/\*",$\n^ {4}"#gateway\/bin\/\*": "@other-scope\/bin\/\*"$\n^ {2}\},$/mu,
+      );
     });
   });
 

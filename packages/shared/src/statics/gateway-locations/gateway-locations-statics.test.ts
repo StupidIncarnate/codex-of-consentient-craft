@@ -9,20 +9,22 @@ describe('gatewayLocationsStatics', () => {
         browser: 'browser',
         bin: 'bin',
       },
+      importPrefix: '#gateway',
+      testSubpath: '_test_',
       packageGlobs: [
-        'packages/npm/src/**',
-        'packages/node/src/**',
-        'packages/browser/src/**',
-        'packages/bin/src/**',
+        'packages/@gateway/npm/src/**',
+        'packages/@gateway/node/src/**',
+        'packages/@gateway/browser/src/**',
+        'packages/@gateway/bin/src/**',
       ],
     });
   });
 
-  it('VALID: {folder} => every packageGlobs entry names one of the four folders', () => {
+  it('VALID: {folder} => every packageGlobs entry names one of the four folders under packages/@gateway', () => {
     const folderNames = Object.values(gatewayLocationsStatics.folders);
 
-    const globFolders = gatewayLocationsStatics.packageGlobs.map((glob) => glob.split('/')[1]);
+    const globFolders = folderNames.map((folder) => `packages/@gateway/${folder}/src/**`);
 
-    expect(globFolders).toStrictEqual(folderNames);
+    expect(gatewayLocationsStatics.packageGlobs).toStrictEqual(globFolders);
   });
 });

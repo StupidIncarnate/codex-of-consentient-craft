@@ -38,7 +38,13 @@ const packagesDirFor = ({ projectRoot }: { projectRoot: AbsoluteFilePath }): Abs
 export const HookSessionSnippetPackagesResponderProxy = (): {
   setupEntries: (params: {
     projectRoot: AbsoluteFilePath;
-    entries: { name: string; isDirectory: boolean }[];
+    entries: {
+      name: string;
+      isDirectory: boolean;
+      // Present only on a `@scope` group entry — its own children are staged as a second readdir
+      // call into the group's directory, mirroring the two calls the responder itself makes.
+      children?: { name: string; isDirectory: boolean }[];
+    }[];
   }) => void;
   setupEmptyMonorepo: (params: { projectRoot: AbsoluteFilePath }) => void;
 } => {
@@ -51,12 +57,28 @@ export const HookSessionSnippetPackagesResponderProxy = (): {
       entries,
     }: {
       projectRoot: AbsoluteFilePath;
-      entries: { name: string; isDirectory: boolean }[];
+      entries: {
+        name: string;
+        isDirectory: boolean;
+        children?: { name: string; isDirectory: boolean }[];
+      }[];
     }): void => {
+      const packagesDir = packagesDirFor({ projectRoot });
       readdirProxy.returns({
-        dirPath: packagesDirFor({ projectRoot }),
+        dirPath: packagesDir,
         entries: entries.map((entry) => makeDirent({ name: entry.name, isDir: entry.isDirectory })),
       });
+
+      for (const entry of entries) {
+        if (entry.children) {
+          readdirProxy.returns({
+            dirPath: AbsoluteFilePathStub({ value: `${String(packagesDir)}/${entry.name}` }),
+            entries: entry.children.map((child) =>
+              makeDirent({ name: child.name, isDir: child.isDirectory }),
+            ),
+          });
+        }
+      }
     },
 
     setupEmptyMonorepo: ({ projectRoot }: { projectRoot: AbsoluteFilePath }): void => {

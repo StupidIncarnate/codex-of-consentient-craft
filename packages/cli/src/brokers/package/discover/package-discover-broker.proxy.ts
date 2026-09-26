@@ -5,12 +5,23 @@ import type { FilePath, FileName } from '@dungeonmaster/shared/contracts';
 export const packageDiscoverBrokerProxy = (): {
   setupPackageDiscovery: (params: {
     packagesPath: FilePath;
-    packages: {
-      name: FileName;
-      standardPath: FilePath;
-      alternatePath?: FilePath;
-      installerLocation: 'standard' | 'alternate' | 'none';
-    }[];
+    packages: (
+      | {
+          name: FileName;
+          standardPath: FilePath;
+          alternatePath?: FilePath;
+          installerLocation: 'standard' | 'alternate' | 'none';
+        }
+      | {
+          name: FileName;
+          children: {
+            name: FileName;
+            standardPath: FilePath;
+            alternatePath?: FilePath;
+            installerLocation: 'standard' | 'alternate' | 'none';
+          }[];
+        }
+    )[];
   }) => void;
   setupEmptyPackagesDirectory: (params: { packagesPath: FilePath }) => void;
 } => {
@@ -26,16 +37,39 @@ export const packageDiscoverBrokerProxy = (): {
     setupPackageDiscovery: ({ packagesPath, packages }) => {
       fsReaddirProxy.returns({ dirPath: packagesPath, files: packages.map((pkg) => pkg.name) });
 
-      for (const pkg of packages) {
-        if (pkg.installerLocation === 'standard') {
-          fsExistsSyncProxy.returns({ filePath: pkg.standardPath, result: true });
-        } else {
-          fsExistsSyncProxy.returns({ filePath: pkg.standardPath, result: false });
+      // A `@scope` entry in `packages` is a group folder, not a leaf package — the broker recurses
+      // into it via a second `fsReaddirAdapter` call, keyed here by the joined group path, and its
+      // `children` are the leaf entries that actually get an existsSync check below.
+      const leafEntries: {
+        name: FileName;
+        standardPath: FilePath;
+        alternatePath?: FilePath;
+        installerLocation: 'standard' | 'alternate' | 'none';
+      }[] = [];
 
-          if (pkg.alternatePath) {
+      for (const pkg of packages) {
+        if ('children' in pkg) {
+          fsReaddirProxy.returns({
+            dirPath: `${String(packagesPath)}/${String(pkg.name)}`,
+            files: pkg.children.map((child) => child.name),
+          });
+          leafEntries.push(...pkg.children);
+          continue;
+        }
+
+        leafEntries.push(pkg);
+      }
+
+      for (const entry of leafEntries) {
+        if (entry.installerLocation === 'standard') {
+          fsExistsSyncProxy.returns({ filePath: entry.standardPath, result: true });
+        } else {
+          fsExistsSyncProxy.returns({ filePath: entry.standardPath, result: false });
+
+          if (entry.alternatePath) {
             fsExistsSyncProxy.returns({
-              filePath: pkg.alternatePath,
-              result: pkg.installerLocation === 'alternate',
+              filePath: entry.alternatePath,
+              result: entry.installerLocation === 'alternate',
             });
           }
         }

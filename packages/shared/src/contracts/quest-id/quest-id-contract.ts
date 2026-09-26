@@ -6,7 +6,7 @@
  * // Returns: QuestId branded string
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const questIdContract = z.string().min(1).brand<'QuestId'>();
 

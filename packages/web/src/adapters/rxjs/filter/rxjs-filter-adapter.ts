@@ -6,8 +6,8 @@
  * filtered.subscribe(handle);
  */
 
-import type { Observable } from 'rxjs';
-import { filter } from 'rxjs/operators';
+import type { Observable } from '#gateway/npm/rxjs';
+import { filter } from '#gateway/npm/rxjs/operators';
 
 export const rxjsFilterAdapter = <T>({
   source,

@@ -14,7 +14,7 @@
  * // Returns a validated DecodedFrame: { width, height, pixels }
  */
 
-import { PNG } from 'pngjs';
+import { PNG } from '#gateway/npm/pngjs';
 
 import { decodedFrameContract } from '../../../contracts/decoded-frame/decoded-frame-contract';
 import { pixelCountContract } from '../../../contracts/pixel-count/pixel-count-contract';

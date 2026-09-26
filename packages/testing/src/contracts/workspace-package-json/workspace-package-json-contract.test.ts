@@ -67,6 +67,48 @@ describe('workspacePackageJsonContract', () => {
     });
   });
 
+  describe('importing package shape', () => {
+    it('VALID: {imports entry with a bare string target} => parses successfully', () => {
+      const result = workspacePackageJsonContract.parse({
+        name: '@dungeonmaster/mcp',
+        imports: { '#gateway/npm/*': '@dungeonmaster/npm/*' },
+      });
+
+      expect(result).toStrictEqual({
+        name: '@dungeonmaster/mcp',
+        imports: { '#gateway/npm/*': '@dungeonmaster/npm/*' },
+      });
+    });
+
+    it('VALID: {imports entry with a conditions-object target} => parses successfully', () => {
+      const result = workspacePackageJsonContract.parse({
+        name: '@dungeonmaster/mcp',
+        imports: {
+          '#gateway/npm/*': { source: '@dungeonmaster/npm/*', import: '@dungeonmaster/npm/*' },
+        },
+      });
+
+      expect(result).toStrictEqual({
+        name: '@dungeonmaster/mcp',
+        imports: {
+          '#gateway/npm/*': { source: '@dungeonmaster/npm/*', import: '@dungeonmaster/npm/*' },
+        },
+      });
+    });
+
+    it('VALID: {imports conditions-object entry, extra condition} => keeps it via passthrough', () => {
+      const result = workspacePackageJsonContract.parse({
+        name: '@dungeonmaster/mcp',
+        imports: { '#gateway/npm/*': { node: '@dungeonmaster/npm/*' } },
+      });
+
+      expect(result).toStrictEqual({
+        name: '@dungeonmaster/mcp',
+        imports: { '#gateway/npm/*': { node: '@dungeonmaster/npm/*' } },
+      });
+    });
+  });
+
   describe('invalid inputs', () => {
     it('INVALID: {name: 123} => safeParse fails', () => {
       const result = workspacePackageJsonContract.safeParse({ name: 123 });
@@ -78,6 +120,15 @@ describe('workspacePackageJsonContract', () => {
       const result = workspacePackageJsonContract.safeParse({
         name: '@dungeonmaster/bin',
         exports: { './testing': { source: 123 } },
+      });
+
+      expect(result.success).toBe(false);
+    });
+
+    it('INVALID: {imports entry target: 123} => safeParse fails', () => {
+      const result = workspacePackageJsonContract.safeParse({
+        name: '@dungeonmaster/mcp',
+        imports: { '#gateway/npm/*': 123 },
       });
 
       expect(result.success).toBe(false);

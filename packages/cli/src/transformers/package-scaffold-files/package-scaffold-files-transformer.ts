@@ -126,6 +126,17 @@ export const packageScaffoldFilesTransformer = ({
       String(value),
     ]),
   );
+  // Keys are the fixed `#gateway/<folder>/*` patterns and never carry a placeholder; only the
+  // target package specifier carries `__SCOPE__`, so this substitutes that one placeholder
+  // directly rather than reducing over the full `PLACEHOLDER_PAIRS` set — `gatewayImports`'s
+  // values are `as const` string literals, and `.replaceAll` (unlike the shared reduce) always
+  // types its result as plain `string` regardless of the literal it started from.
+  const substitutedGatewayImports = Object.fromEntries(
+    Object.entries(packageScaffoldConfigStatics.gatewayImports).map(([key, value]) => [
+      key,
+      value.replaceAll('__SCOPE__', scope ?? ''),
+    ]),
+  );
 
   const scriptsField = {
     ...packageScaffoldConfigStatics.scripts,
@@ -136,6 +147,7 @@ export const packageScaffoldFilesTransformer = ({
     name: request.packageName,
     version: packageScaffoldConfigStatics.packageVersion,
     description: request.description,
+    imports: substitutedGatewayImports,
     ...(exportsField === null ? {} : { exports: exportsField }),
     files: packageScaffoldConfigStatics.files,
     ...(binHasEntries ? { bin: substitutedBin } : {}),

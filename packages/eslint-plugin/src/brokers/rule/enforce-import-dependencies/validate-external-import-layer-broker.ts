@@ -40,14 +40,16 @@ export const validateExternalImportLayerBroker = ({
   // gateway is the sole boundary where an outside npm package, a Node module or global, a
   // browser global, or a spawned program is touched directly — it replaces the `adapters/`
   // folder type for that purpose, so it needs the same universal reach `node_modules` grants
-  // `adapters/` today, without actually being `node_modules`.
-  const isGatewayImport = gatewayLocationsStatics.packageGlobs.some((glob) => {
-    const [, gatewayFolder] = glob.split('/');
-    return (
+  // `adapters/` today, without actually being `node_modules`. The `#gateway/<folder>` form
+  // (gatewayLocationsStatics.importPrefix) is the same boundary reached through the
+  // `imports`-field alias every consumer repo resolves identically, so it gets the same reach.
+  const isGatewayImport = Object.values(gatewayLocationsStatics.folders).some(
+    (gatewayFolder) =>
       importSource === `@dungeonmaster/${gatewayFolder}` ||
-      importSource.startsWith(`@dungeonmaster/${gatewayFolder}/`)
-    );
-  });
+      importSource.startsWith(`@dungeonmaster/${gatewayFolder}/`) ||
+      importSource === `${gatewayLocationsStatics.importPrefix}/${gatewayFolder}` ||
+      importSource.startsWith(`${gatewayLocationsStatics.importPrefix}/${gatewayFolder}/`),
+  );
 
   if (isGatewayImport) {
     return true;

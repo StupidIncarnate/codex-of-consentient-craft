@@ -3,10 +3,12 @@ import type { InstallTestbed } from '@dungeonmaster/testing';
 
 /**
  * Builds the shared pieces of a fake monorepo `platformCrossingCheckBroker`'s own fixture tests
- * write onto a real `installTestbedCreateBroker` testbed: the workspaces root, a `frontend-react`
- * `web` package, and the `@dungeonmaster/node` gateway package's own `package.json` (never any of
- * its files — the check flags the import SPECIFIER, so it never needs to resolve into the gateway
- * package itself).
+ * write onto a real `installTestbedCreateBroker` testbed: the workspaces root (listing both
+ * `packages/*` and the `packages/@gateway/*` group folder, mirroring this repo's own root
+ * `package.json`), a `frontend-react` `web` package carrying the same `#gateway/*` -> `@dungeonmaster/*`
+ * `imports` field every real consumer package has, and the `@dungeonmaster/node`/`@dungeonmaster/browser`
+ * gateway packages' own `package.json` under `packages/@gateway/<folder>` (never any of their files —
+ * the check flags the import SPECIFIER, so it never needs to resolve into the gateway package itself).
  */
 export const platformCrossingFixtureHarness = (): {
   writeFile: (params: {
@@ -17,6 +19,7 @@ export const platformCrossingFixtureHarness = (): {
   writeWorkspacesRoot: (params: { testbed: InstallTestbed }) => Promise<void>;
   writeWebPackage: (params: { testbed: InstallTestbed }) => Promise<void>;
   writeNodeGatewayPackage: (params: { testbed: InstallTestbed }) => Promise<void>;
+  writeBrowserGatewayPackage: (params: { testbed: InstallTestbed }) => Promise<void>;
 } => ({
   writeFile: async ({
     testbed,
@@ -39,7 +42,7 @@ export const platformCrossingFixtureHarness = (): {
     testbed.writeFile({
       relativePath: RelativePathStub({ value: 'package.json' }),
       content: FileContentStub({
-        value: JSON.stringify({ name: 'root', workspaces: ['packages/*'] }),
+        value: JSON.stringify({ name: 'root', workspaces: ['packages/*', 'packages/@gateway/*'] }),
       }),
     });
   },
@@ -49,7 +52,16 @@ export const platformCrossingFixtureHarness = (): {
     testbed.writeFile({
       relativePath: RelativePathStub({ value: 'packages/web/package.json' }),
       content: FileContentStub({
-        value: JSON.stringify({ name: 'web', dependencies: { react: '18.2.0' } }),
+        value: JSON.stringify({
+          name: 'web',
+          dependencies: { react: '18.2.0' },
+          imports: {
+            '#gateway/npm/*': '@dungeonmaster/npm/*',
+            '#gateway/node/*': '@dungeonmaster/node/*',
+            '#gateway/browser/*': '@dungeonmaster/browser/*',
+            '#gateway/bin/*': '@dungeonmaster/bin/*',
+          },
+        }),
       }),
     });
     testbed.writeFile({
@@ -61,8 +73,27 @@ export const platformCrossingFixtureHarness = (): {
   writeNodeGatewayPackage: async ({ testbed }: { testbed: InstallTestbed }): Promise<void> => {
     await Promise.resolve();
     testbed.writeFile({
-      relativePath: RelativePathStub({ value: 'packages/node/package.json' }),
+      relativePath: RelativePathStub({ value: 'packages/@gateway/node/package.json' }),
       content: FileContentStub({ value: JSON.stringify({ name: '@dungeonmaster/node' }) }),
+    });
+    // packageReadLayerBroker only registers a workspace package that has a src/ directory — a real
+    // node gateway package always does (that is where every wrapped subpath's `index.ts` lives), so
+    // the fixture needs the same marker for `workspaceDiscoverBroker` to discover this one too.
+    testbed.writeFile({
+      relativePath: RelativePathStub({ value: 'packages/@gateway/node/src/.gitkeep' }),
+      content: FileContentStub({ value: '' }),
+    });
+  },
+
+  writeBrowserGatewayPackage: async ({ testbed }: { testbed: InstallTestbed }): Promise<void> => {
+    await Promise.resolve();
+    testbed.writeFile({
+      relativePath: RelativePathStub({ value: 'packages/@gateway/browser/package.json' }),
+      content: FileContentStub({ value: JSON.stringify({ name: '@dungeonmaster/browser' }) }),
+    });
+    testbed.writeFile({
+      relativePath: RelativePathStub({ value: 'packages/@gateway/browser/src/.gitkeep' }),
+      content: FileContentStub({ value: '' }),
     });
   },
 });

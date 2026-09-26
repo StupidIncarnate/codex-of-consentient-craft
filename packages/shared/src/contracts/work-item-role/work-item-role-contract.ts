@@ -9,7 +9,7 @@
  * chat-role guard, and every role matrix in tests read one list.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { workItemRoleStatics } from '../../statics/work-item-role/work-item-role-statics';
 

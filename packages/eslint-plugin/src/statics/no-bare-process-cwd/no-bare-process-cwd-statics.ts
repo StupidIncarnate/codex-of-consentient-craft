@@ -14,7 +14,7 @@ export const noBareProcessCwdStatics = {
     // The second entry is the gateway's own sanctioned wrapper — @dungeonmaster/node/process
     // exports `cwd`, the ONE place outside a path-resolver broker allowed to call
     // process.cwd() directly; everywhere else still goes through this rule.
-    allowedFolders: ['**/src/adapters/process/cwd/**', '**/packages/node/src/process/**'],
+    allowedFolders: ['**/src/adapters/process/cwd/**', '**/packages/@gateway/node/src/process/**'],
     allowTestFiles: true,
   },
   testCompanionSuffixes: ['.harness.ts', '.harness.tsx', '.proxy.ts', '.proxy.tsx'],

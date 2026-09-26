@@ -1,9 +1,4 @@
-import {
-  keysProxy,
-  readItemProxy,
-  removeItemProxy,
-  writeItemProxy,
-} from '@dungeonmaster/browser/testing';
+import { keysProxy, readItemProxy, removeItemProxy, writeItemProxy } from '#gateway/browser/_test_';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import type { QuestId } from '@dungeonmaster/shared/contracts';

@@ -5,13 +5,22 @@
  * flagged; a type position (`Buffer` as a parameter type, `NodeJS.ErrnoException`) is exempt because
  * a type never runs. This needs the type checker, so — unlike every other rule broker here — it
  * resolves a real symbol through `eslintTypedParserServicesAdapter` rather than relying on file-path
- * or `/src/` gates the way post-edit rules do.
+ * or `/src/` gates the way post-edit rules do. The suggested import is always the
+ * `#gateway/<platform>/<subpath>` alias text (gatewayLocationsStatics.importPrefix), never a
+ * repo's own `@scope` — resolveGatewayScopeLayerBroker still gates whether a repo root is even
+ * resolvable (a file outside any repo never reports), but its resolved scope no longer appears in
+ * the message. A Node builtin's ambient global can spell its own module name differently
+ * (`Buffer` the class vs. `buffer` the module) — the subpath falls back to the lowercased
+ * identifier only when that lowercase form is itself a real Node builtin, so `process`/`crypto`
+ * (already lowercase, already builtins) are untouched and `setTimeout` (lowercase but not a
+ * builtin) stays camelCase.
  *
  * USAGE:
  * const rule = rulePlatformGlobalsBanBroker();
- * // Returns ESLint rule that flags `process.stdout.write(...)` outside @dungeonmaster/node,
- * // suggesting `import { stdout } from '@dungeonmaster/node/process'`
+ * // Returns ESLint rule that flags `process.stdout.write(...)` outside the gateway,
+ * // suggesting `import { stdout } from '#gateway/node/process'`
  */
+import { gatewayLocationsStatics, nodeBuiltinStatics } from '@dungeonmaster/shared/statics';
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
@@ -76,17 +85,30 @@ export const rulePlatformGlobalsBanBroker = (): EslintRule => ({
           return;
         }
 
+        // Still gates on a resolvable repo root — a file outside any repo reports nothing — but
+        // the resolved scope itself no longer appears in the suggested path below.
         const scope = resolveGatewayScopeLayerBroker({ filename });
         if (scope === undefined) {
           return;
         }
         const platform = resolvePackagePlatformLayerBroker({ filename });
-        const gatewayPath = `${scope}/${platform}/${String(target.name)}`;
+        const identifierName = String(target.name);
+        // 'Buffer' the ambient global class spells its own wrapped module 'buffer' lowercase —
+        // fall back to the lowercase form only when IT is a real Node builtin, so 'process' and
+        // 'crypto' (already lowercase builtins) are untouched and 'setTimeout' (lowercase but not
+        // a builtin) keeps its camelCase spelling.
+        const lowercasedName = identifierName.toLowerCase();
+        const subpath =
+          platform === gatewayLocationsStatics.folders.node &&
+          nodeBuiltinStatics.modules.some((moduleName) => moduleName === lowercasedName)
+            ? lowercasedName
+            : identifierName;
+        const gatewayPath = `${gatewayLocationsStatics.importPrefix}/${platform}/${subpath}`;
 
         ctx.report({
           node: target,
           messageId: 'platformGlobal',
-          data: { name: String(target.name), gatewayPath },
+          data: { name: identifierName, gatewayPath },
         });
       },
     };

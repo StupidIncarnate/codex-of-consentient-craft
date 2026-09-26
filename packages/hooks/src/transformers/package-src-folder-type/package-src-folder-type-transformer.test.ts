@@ -62,6 +62,30 @@ describe('packageSrcFolderTypeTransformer', () => {
     );
   });
 
+  describe('@-scoped group folders (gateway packages)', () => {
+    it('VALID: {filePath: "packages/@gateway/npm/src/brokers/foo/foo-broker.ts"} => returns "brokers"', () => {
+      expect(
+        packageSrcFolderTypeTransformer({
+          filePath: 'packages/@gateway/npm/src/brokers/foo/foo-broker.ts',
+        }),
+      ).toBe('brokers');
+    });
+
+    it('VALID: {filePath: "/home/u/repo/packages/@gateway/npm/src/adapters/glob/glob-adapter.ts"} => returns "adapters"', () => {
+      expect(
+        packageSrcFolderTypeTransformer({
+          filePath: '/home/u/repo/packages/@gateway/npm/src/adapters/glob/glob-adapter.ts',
+        }),
+      ).toBe('adapters');
+    });
+
+    it('INVALID: {filePath: "packages/@gateway/npm/src/brokers"} => returns null (nothing after the folder type)', () => {
+      expect(
+        packageSrcFolderTypeTransformer({ filePath: 'packages/@gateway/npm/src/brokers' }),
+      ).toBe(null);
+    });
+  });
+
   describe('empty input', () => {
     it('EMPTY: {filePath: ""} => returns null', () => {
       expect(packageSrcFolderTypeTransformer({ filePath: '' })).toBe(null);

@@ -68,11 +68,11 @@ ruleTester.run('ban-primitives (default: strict)', ruleBanPrimitivesBroker(), {
     // never a branded contract
     {
       code: 'export const readFileSync = ({ path }: { path: string }): string => path;',
-      filename: '/repo/packages/node/src/fs/read-file-sync.ts',
+      filename: '/repo/packages/@gateway/node/src/fs/read-file-sync.ts',
     },
     {
       code: 'const path: string = "/tmp/a.txt";',
-      filename: '/repo/packages/node/src/fs/read-file-sync.test.ts',
+      filename: '/repo/packages/@gateway/node/src/fs/read-file-sync.test.ts',
     },
   ],
   invalid: [

@@ -21,7 +21,7 @@
  * // Returns a branded ReadingCount: the number of differing pixels
  */
 
-import pixelmatch from 'pixelmatch';
+import pixelmatch from '#gateway/npm/pixelmatch';
 
 import { readingCountContract } from '../../../contracts/reading-count/reading-count-contract';
 import { perceptionStatics } from '../../../statics/perception/perception-statics';

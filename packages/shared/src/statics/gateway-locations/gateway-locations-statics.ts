@@ -2,17 +2,27 @@
  * PURPOSE: Names and locates the gateway packages — @<scope>/npm, @<scope>/node, @<scope>/browser
  * and @<scope>/bin — the sole boundary where an outside npm package, a Node module or global, a
  * browser global, or a spawned program may be touched directly. `folders` names each gateway
- * package's directory under `packages/`, read by anything building a scoped import path
- * (gatewayPathFromImportSourceTransformer) instead of hard-coding 'node'/'npm'/'browser'/'bin'.
- * `packageGlobs` is the file-glob shape the gateway's own carve-out (the ESLint config block that
- * re-scopes rules for gateway files) and any other consumer needing "is this file inside the
- * gateway" match against — every gateway `.ts` file sits under that package's own `src/`.
+ * package's directory name (never its full path under `packages/@gateway/`), read by anything
+ * building a scoped import path (gatewayPathFromImportSourceTransformer) instead of hard-coding
+ * 'node'/'npm'/'browser'/'bin'. `packageGlobs` is the file-glob shape the gateway's own carve-out
+ * (the ESLint config block that re-scopes rules for gateway files) and any other consumer needing
+ * "is this file inside the gateway" match against — every gateway `.ts` file sits under that
+ * package's own `src/`. A consumer that needs the bare folder name (`npm`, `node`, …) reads
+ * `folders` directly rather than splitting a glob — the glob's directory segments are
+ * `packages/@gateway/<folder>/src`, not `packages/<folder>/src`, so a positional split lands on
+ * `@gateway` instead. `importPrefix` is the text every caller imports the gateway through
+ * (`#gateway/<folder>/<subpath>`), mapped by each package's own `package.json` `imports` field, so
+ * the import reads the same in every repo whatever the gateway packages are named. `testSubpath`
+ * names each gateway package's proxy barrel; it starts with `_` because no npm package name can,
+ * so it never collides with a real subpath.
  *
  * USAGE:
  * gatewayLocationsStatics.folders.node;
  * // Returns 'node'
+ * gatewayLocationsStatics.importPrefix;
+ * // Returns '#gateway'
  * gatewayLocationsStatics.packageGlobs;
- * // Returns ['packages/npm/src/**', 'packages/node/src/**', 'packages/browser/src/**', 'packages/bin/src/**']
+ * // Returns ['packages/@gateway/npm/src/**', 'packages/@gateway/node/src/**', 'packages/@gateway/browser/src/**', 'packages/@gateway/bin/src/**']
  */
 
 export const gatewayLocationsStatics = {
@@ -22,10 +32,12 @@ export const gatewayLocationsStatics = {
     browser: 'browser',
     bin: 'bin',
   },
+  importPrefix: '#gateway',
+  testSubpath: '_test_',
   packageGlobs: [
-    'packages/npm/src/**',
-    'packages/node/src/**',
-    'packages/browser/src/**',
-    'packages/bin/src/**',
+    'packages/@gateway/npm/src/**',
+    'packages/@gateway/node/src/**',
+    'packages/@gateway/browser/src/**',
+    'packages/@gateway/bin/src/**',
   ],
 } as const;

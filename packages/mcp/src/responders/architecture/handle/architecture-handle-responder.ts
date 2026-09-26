@@ -17,6 +17,11 @@
  * exactly what the mcp-server-flow integration suite caught. Either way, a fallback to the
  * server's own cwd, or a resolved cwd with no confirmed dungeonmaster config above it, is now
  * VISIBLE, not a repeat of the silent "worktree comes back empty" bug this exists to fix.
+ *
+ * get-project-inventory's `packageName` is looked up first as `packages/<packageName>` directly;
+ * only when that folder is absent does it scan `packages/@*` group folders for a child of that
+ * name, so a gateway package resolves by its own bare name (`npm`, not `@gateway/npm`) the same as
+ * every other package, and an ordinary package never pays the extra readdir.
  */
 
 import {
@@ -26,9 +31,11 @@ import {
 } from '@dungeonmaster/shared/brokers';
 import {
   absoluteFilePathContract,
+  filePathContract,
   pathSegmentContract,
   contentTextContract as sharedContentTextContract,
 } from '@dungeonmaster/shared/contracts';
+import { fsExistsSyncAdapter, fsReaddirWithTypesAdapter } from '@dungeonmaster/shared/adapters';
 // sharedContentTextContract is used to brand the packageName string for the inventory broker call
 import { architectureFolderDetailBroker } from '../../../brokers/architecture/folder-detail/architecture-folder-detail-broker';
 import { architectureTestingPatternsBroker } from '../../../brokers/architecture/testing-patterns/architecture-testing-patterns-broker';
@@ -45,6 +52,11 @@ import { getProjectMapInputContract } from '../../../contracts/get-project-map-i
 import { ResolveCallerRepoRootLayerResponder } from './resolve-caller-repo-root-layer-responder';
 
 const JSON_INDENT_SPACES = 2;
+
+// A directory directly under `packages/` whose name starts with `@` is a scope/group folder, not
+// a package itself — the same nesting `node_modules/@scope/name` uses. The gateway packages moved
+// under `packages/@gateway/` but kept their bare, unique lookup name (`npm`, not `@gateway/npm`).
+const GROUP_FOLDER_PREFIX = '@';
 
 export const ArchitectureHandleResponder = async ({
   tool,
@@ -147,10 +159,29 @@ export const ArchitectureHandleResponder = async ({
     const { packageName } = getProjectInventoryInputContract.parse(args);
     const { repoRoot, source, configFound } = await ResolveCallerRepoRootLayerResponder({ meta });
     const banner = callerRepoRootBannerTransformer({ repoRoot, source, configFound });
-    const srcPath = absoluteFilePathContract.parse(`${repoRoot}/packages/${packageName}/src`);
-    const packageJsonPath = absoluteFilePathContract.parse(
-      `${repoRoot}/packages/${packageName}/package.json`,
-    );
+
+    const packagesPath = absoluteFilePathContract.parse(`${repoRoot}/packages`);
+    const directPackageDir = absoluteFilePathContract.parse(`${packagesPath}/${packageName}`);
+
+    // Prefer the direct folder when it exists; only scan group folders for a matching child when
+    // it does not, so an ordinary (non-gateway) package never pays this extra readdir.
+    const groupChildMatch = fsExistsSyncAdapter({
+      filePath: filePathContract.parse(String(directPackageDir)),
+    })
+      ? undefined
+      : fsReaddirWithTypesAdapter({ dirPath: packagesPath })
+          .filter((entry) => entry.isDirectory() && entry.name.startsWith(GROUP_FOLDER_PREFIX))
+          .flatMap((group) => {
+            const groupPath = absoluteFilePathContract.parse(`${packagesPath}/${group.name}`);
+            return fsReaddirWithTypesAdapter({ dirPath: groupPath })
+              .filter((child) => child.isDirectory() && child.name === String(packageName))
+              .map((child) => absoluteFilePathContract.parse(`${groupPath}/${child.name}`));
+          })
+          .at(0);
+
+    const packageDir = groupChildMatch ?? directPackageDir;
+    const srcPath = absoluteFilePathContract.parse(`${packageDir}/src`);
+    const packageJsonPath = absoluteFilePathContract.parse(`${packageDir}/package.json`);
     const result = architecturePackageInventoryBroker({
       packageName: sharedContentTextContract.parse(packageName),
       srcPath,

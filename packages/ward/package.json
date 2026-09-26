@@ -2,6 +2,12 @@
   "name": "@dungeonmaster/ward",
   "version": "0.1.0",
   "description": "Structured lint/typecheck/test runner with tiered drill-down output",
+  "imports": {
+    "#gateway/npm/*": "@dungeonmaster/npm/*",
+    "#gateway/node/*": "@dungeonmaster/node/*",
+    "#gateway/browser/*": "@dungeonmaster/browser/*",
+    "#gateway/bin/*": "@dungeonmaster/bin/*"
+  },
   "bin": {
     "dungeonmaster-ward": "./dist/bin/ward-entry.js"
   },
@@ -40,6 +46,7 @@
   },
   "dependencies": {
     "@dungeonmaster/config": "*",
+    "@dungeonmaster/npm": "*",
     "@dungeonmaster/shared": "*",
     "zod": "^3.25.76"
   }

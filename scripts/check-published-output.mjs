@@ -33,6 +33,7 @@
 
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
+import { listWorkspacePackageDirs } from './workspace-package-dirs.mjs';
 
 const PACKAGES_DIR = 'packages';
 
@@ -101,10 +102,7 @@ const listEverything = ({ dirPath, relative }) => {
   return found;
 };
 
-const packageDirs = readdirSync(PACKAGES_DIR, { withFileTypes: true })
-  .filter((entry) => entry.isDirectory())
-  .map((entry) => entry.name)
-  .sort();
+const packageDirs = listWorkspacePackageDirs({ packagesDir: PACKAGES_DIR }).sort();
 
 const rows = [];
 let anyDistFound = false;

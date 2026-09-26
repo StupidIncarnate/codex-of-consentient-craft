@@ -47,7 +47,7 @@ ruleTester.run('jest-mocked-must-import', ruleJestMockedMustImportBroker(), {
           return { /* proxy methods */ };
         };
       `,
-      filename: '/project/packages/node/src/fs/read-file-sync.proxy.ts',
+      filename: '/project/packages/@gateway/node/src/fs/read-file-sync.proxy.ts',
     },
 
     // ✅ CORRECT: Namespace import with jest.mocked()
@@ -432,7 +432,7 @@ ruleTester.run('jest-mocked-must-import', ruleJestMockedMustImportBroker(), {
           return { /* proxy methods */ };
         };
       `,
-      filename: '/project/packages/node/src/fs/read-file-sync.proxy.ts',
+      filename: '/project/packages/@gateway/node/src/fs/read-file-sync.proxy.ts',
       errors: [
         {
           messageId: 'notNpmPackage',

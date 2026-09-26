@@ -3,6 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "description": "Digests Claude Code session transcripts and quest sign-off ledgers for post-mortem analysis of a quest run",
+  "imports": {
+    "#gateway/npm/*": "@dungeonmaster/npm/*",
+    "#gateway/node/*": "@dungeonmaster/node/*",
+    "#gateway/browser/*": "@dungeonmaster/browser/*",
+    "#gateway/bin/*": "@dungeonmaster/bin/*"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "build:clean": "rm -rf dist .ward/build.tsbuildinfo && npm run build",

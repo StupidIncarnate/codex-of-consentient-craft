@@ -11,8 +11,8 @@ import type { DuplicateLiteralReport } from '../../../contracts/duplicate-litera
 import type { LiteralOccurrence } from '../../../contracts/literal-occurrence/literal-occurrence-contract';
 import type { LiteralValue } from '../../../contracts/literal-value/literal-value-contract';
 import type { OccurrenceThreshold } from '../../../contracts/occurrence-threshold/occurrence-threshold-contract';
-import { glob } from '@dungeonmaster/npm/glob';
-import { readFile } from '@dungeonmaster/node/fs/promises';
+import { glob } from '#gateway/npm/glob';
+import { readFile } from '#gateway/node/fs/promises';
 import { typescriptParseAdapter } from '../../../adapters/typescript/parse/typescript-parse-adapter';
 import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import { sourceCodeContract } from '../../../contracts/source-code/source-code-contract';

@@ -2,7 +2,6 @@ import { reportBinProgramSpawnLayerBroker } from './report-bin-program-spawn-lay
 import { reportBinProgramSpawnLayerBrokerProxy } from './report-bin-program-spawn-layer-broker.proxy';
 import { EslintContextStub } from '../../../contracts/eslint-context/eslint-context.stub';
 import { TsestreeStub, TsestreeNodeType } from '../../../contracts/tsestree/tsestree.stub';
-import { PackageNameStub } from '@dungeonmaster/shared/contracts';
 
 describe('reportBinProgramSpawnLayerBroker', () => {
   describe('a homed program', () => {
@@ -19,7 +18,6 @@ describe('reportBinProgramSpawnLayerBroker', () => {
         commandNode,
         argsNode: undefined,
         moduleBody: [],
-        scope: PackageNameStub({ value: '@dungeonmaster' }),
       });
 
       expect(mockReport).toHaveBeenCalledWith({
@@ -28,12 +26,12 @@ describe('reportBinProgramSpawnLayerBroker', () => {
         data: {
           program: 'git',
           binFunction: 'currentBranch',
-          gatewayPath: '@dungeonmaster/bin/git',
+          gatewayPath: '#gateway/bin/git',
         },
       });
     });
 
-    it('VALID: {scope: "@acme"} => builds the gatewayPath from the given scope', () => {
+    it('VALID: {commandNode: Literal "lsof"} => builds the gatewayPath from the import-alias prefix', () => {
       reportBinProgramSpawnLayerBrokerProxy();
       const mockReport = jest.fn();
       const ctx = EslintContextStub({ report: mockReport });
@@ -46,7 +44,6 @@ describe('reportBinProgramSpawnLayerBroker', () => {
         commandNode,
         argsNode: undefined,
         moduleBody: [],
-        scope: PackageNameStub({ value: '@acme' }),
       });
 
       expect(mockReport).toHaveBeenCalledWith({
@@ -55,7 +52,7 @@ describe('reportBinProgramSpawnLayerBroker', () => {
         data: {
           program: 'lsof',
           binFunction: 'listeningPids',
-          gatewayPath: '@acme/bin/lsof',
+          gatewayPath: '#gateway/bin/lsof',
         },
       });
     });
@@ -75,7 +72,6 @@ describe('reportBinProgramSpawnLayerBroker', () => {
         commandNode,
         argsNode: undefined,
         moduleBody: [],
-        scope: PackageNameStub({ value: '@dungeonmaster' }),
       });
 
       expect(mockReport).toHaveBeenCalledTimes(0);
@@ -95,7 +91,6 @@ describe('reportBinProgramSpawnLayerBroker', () => {
         commandNode: undefined,
         argsNode: undefined,
         moduleBody: [],
-        scope: PackageNameStub({ value: '@dungeonmaster' }),
       });
 
       expect(mockReport).toHaveBeenCalledTimes(0);

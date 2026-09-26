@@ -5,6 +5,6 @@
  * const linter = eslintLinterAdapter();
  * // Returns Linter instance for linting code
  */
-import { Linter } from 'eslint';
+import { Linter } from '#gateway/npm/eslint';
 
 export const eslintLinterAdapter = (): Linter => new Linter();

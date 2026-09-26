@@ -1,7 +1,7 @@
 import { settingsPermissionsAddBroker } from './settings-permissions-add-broker';
 import { settingsPermissionsAddBrokerProxy } from './settings-permissions-add-broker.proxy';
 import { FileContentsStub, PathSegmentStub } from '@dungeonmaster/shared/contracts';
-import { FsErrorStub } from '@dungeonmaster/node/fs/promises';
+import { FsErrorStub } from '#gateway/node/fs/promises';
 
 describe('settingsPermissionsAddBroker', () => {
   describe('no existing settings file', () => {

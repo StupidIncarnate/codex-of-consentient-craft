@@ -1,9 +1,11 @@
 /**
  * PURPOSE: Resolves a workspace package's subpath import (`@dungeonmaster/bin/testing`) to the
- * exporting package's `source` file — walking up to the workspaces root, scanning its `packages/*`
- * siblings for the one whose own package.json carries that name, then matching the subpath against
- * ITS `exports` map. Needs no build: every step reads package.json/source files directly, the way
- * Node's own `exports` "source" condition would, without requiring `dist/` to exist first.
+ * exporting package's `source` file — walking up to the workspaces root, scanning every base
+ * directory its own `workspaces` globs declare (`packages/*`, and `packages/@gateway/*` for a
+ * group-folder package like `@dungeonmaster/npm`) for the sibling whose own package.json carries
+ * that name, then matching the subpath against ITS `exports` map. Needs no build: every step reads
+ * package.json/source files directly, the way Node's own `exports` "source" condition would,
+ * without requiring `dist/` to exist first.
  *
  * USAGE:
  * const filePath = workspacePackageImportResolveMiddleware({
@@ -18,6 +20,7 @@ import { fsReaddirAdapter } from '../../adapters/fs/readdir/fs-readdir-adapter';
 import { pathDirnameAdapter } from '../../adapters/path/dirname/path-dirname-adapter';
 import { pathJoinAdapter } from '../../adapters/path/join/path-join-adapter';
 import { packageSpecifierSplitTransformer } from '../../transformers/package-specifier-split/package-specifier-split-transformer';
+import { workspaceGlobBaseDirsTransformer } from '../../transformers/workspace-glob-base-dirs/workspace-glob-base-dirs-transformer';
 import { workspacePackageExportSourceTransformer } from '../../transformers/workspace-package-export-source/workspace-package-export-source-transformer';
 import { workspacePackageJsonReadMiddleware } from '../workspace-package-json-read/workspace-package-json-read-middleware';
 import { workspaceRootFindMiddleware } from '../workspace-root-find/workspace-root-find-middleware';
@@ -43,27 +46,36 @@ export const workspacePackageImportResolveMiddleware = ({
     return null;
   }
 
-  const packagesDirPath = pathJoinAdapter({ paths: [workspaceRoot, 'packages'] });
+  const rootPackageJson = workspacePackageJsonReadMiddleware({
+    packageJsonPath: pathJoinAdapter({ paths: [workspaceRoot, 'package.json'] }),
+  });
+  const packagesBaseDirs = workspaceGlobBaseDirsTransformer({
+    workspaces: rootPackageJson?.workspaces,
+  });
 
-  for (const folderName of fsReaddirAdapter({ dirPath: packagesDirPath })) {
-    const packageDirPath = pathJoinAdapter({ paths: [packagesDirPath, folderName] });
-    const packageJson = workspacePackageJsonReadMiddleware({
-      packageJsonPath: pathJoinAdapter({ paths: [packageDirPath, 'package.json'] }),
-    });
-    if (!packageJson || packageJson.name !== specifierParts.packageName) {
-      continue;
+  for (const packagesBaseDir of packagesBaseDirs) {
+    const packagesDirPath = pathJoinAdapter({ paths: [workspaceRoot, packagesBaseDir] });
+
+    for (const folderName of fsReaddirAdapter({ dirPath: packagesDirPath })) {
+      const packageDirPath = pathJoinAdapter({ paths: [packagesDirPath, folderName] });
+      const packageJson = workspacePackageJsonReadMiddleware({
+        packageJsonPath: pathJoinAdapter({ paths: [packageDirPath, 'package.json'] }),
+      });
+      if (!packageJson || packageJson.name !== specifierParts.packageName) {
+        continue;
+      }
+
+      const source = workspacePackageExportSourceTransformer({
+        exportsMap: packageJson.exports,
+        subpath: specifierParts.subpath,
+      });
+      if (!source) {
+        continue;
+      }
+
+      const resolvedSourcePath = pathJoinAdapter({ paths: [packageDirPath, source] });
+      return fsExistsAdapter({ filePath: resolvedSourcePath }) ? resolvedSourcePath : null;
     }
-
-    const source = workspacePackageExportSourceTransformer({
-      exportsMap: packageJson.exports,
-      subpath: specifierParts.subpath,
-    });
-    if (!source) {
-      continue;
-    }
-
-    const resolvedSourcePath = pathJoinAdapter({ paths: [packageDirPath, source] });
-    return fsExistsAdapter({ filePath: resolvedSourcePath }) ? resolvedSourcePath : null;
   }
 
   return null;

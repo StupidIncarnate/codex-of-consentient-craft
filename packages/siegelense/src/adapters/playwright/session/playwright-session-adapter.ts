@@ -26,7 +26,7 @@
  * await session.close();
  */
 
-import { chromium } from '@playwright/test';
+import { chromium } from '#gateway/npm/@playwright/test';
 import { z } from 'zod';
 import { osUserHomedirAdapter, pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import { contentTextContract } from '@dungeonmaster/shared/contracts';

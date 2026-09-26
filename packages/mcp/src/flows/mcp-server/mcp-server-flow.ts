@@ -6,13 +6,13 @@
  * // Creates server, sets up ListTools and CallTool handlers, connects StdioServerTransport
  */
 
-import { Server } from '@modelcontextprotocol/sdk/server';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { Server } from '#gateway/npm/@modelcontextprotocol/sdk/server';
+import { StdioServerTransport } from '#gateway/npm/@modelcontextprotocol/sdk/server/stdio.js';
 import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
   type CallToolRequest,
-} from '@modelcontextprotocol/sdk/types.js';
+} from '#gateway/npm/@modelcontextprotocol/sdk/types.js';
 
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';

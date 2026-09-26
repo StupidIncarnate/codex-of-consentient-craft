@@ -37,7 +37,7 @@ describe('StartInstall', () => {
         success: true,
         action: 'created',
         message:
-          'Added devDependencies to package.json; target project is not e2e-eligible (packageType is not frontend-react or frontend-ink); Created tsconfig.json; Created jest.config.js',
+          'Added devDependencies to package.json; target project is not e2e-eligible (packageType is not frontend-react or frontend-ink); Created tsconfig.json; Created jest.config.js; added packages/@gateway/* to workspaces; scaffolded gateway packages: npm, node, browser, bin; added gateway paths to tsconfig.json; updated imports in 0 existing package(s); updated tsconfig.json paths in 0 existing package(s); updated tsconfig.build.json paths in 0 existing package(s)',
       });
       expect(packageJsonContent).toMatch(/^\s*"devDependencies": \{$/mu);
       expect(packageJsonContent).toMatch(/^\s*"typescript": "\^5\.8\.3"$/mu);

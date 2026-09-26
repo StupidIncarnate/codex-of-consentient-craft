@@ -6,7 +6,7 @@
  * // Returns 6 ToolRegistration objects that delegate to ArchitectureHandleResponder
  */
 
-import { zodToJsonSchema } from 'zod-to-json-schema';
+import { zodToJsonSchema } from '#gateway/npm/zod-to-json-schema';
 
 import { discoverInputContract } from '../../contracts/discover-input/discover-input-contract';
 import { folderDetailInputContract } from '../../contracts/folder-detail-input/folder-detail-input-contract';

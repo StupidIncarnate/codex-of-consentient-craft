@@ -2,38 +2,69 @@
 
 ## 1. Where things stand
 
-Four gateway packages (`npm`, `node`, `browser`, `bin`) exist under `packages/*` with wrappers,
-tests, proxies and lint rules, plus a ten-unit trial that switched real callers onto them. Everything
-described here is committed on branch `worktrees/gateway-pivot`, eleven commits ahead of `master`
-(`git log --oneline master..HEAD`). **Nothing is merged to `master`.** No adapter has been deleted and
-no adapter's caller has been switched except the ten trial units — the consumption phase (moving every
-other caller) has not started.
+Four gateway packages (`npm`, `node`, `browser`, `bin`) exist, with wrappers, tests, proxies and lint
+rules. Two trials have switched real callers onto them, at two different gateway locations — both are
+in section 5, labeled Trial 1 and Trial 2:
+
+- **Trial 1** ran while the gateway lived at `packages/{npm,node,browser,bin}` and callers imported it
+  by its raw package name, e.g. `@dungeonmaster/npm/glob`. Ten units switched.
+- **Trial 2** ran after the gateway moved to `packages/@gateway/{npm,node,browser,bin}` — the package
+  `name`s themselves are unchanged (`@dungeonmaster/npm`, …) — onto the `#gateway/<folder>/<subpath>`
+  import form (e.g. `#gateway/npm/glob`), the same text every consumer repo will use. It switched
+  callers across web, mcp, server, siegelense, hooks, config, tooling, shared, orchestrator,
+  eslint-plugin and ward.
+
+16 commits land the gateway at its original location and Trial 1, on this worktree's branch
+(`gateway-pivot`; `git log --oneline master..HEAD`). **Nothing is merged to `master`.** The move to
+`packages/@gateway/` and Trial 2 are **uncommitted** in this worktree (`git status`); this doc-update
+pass does not commit them. No adapter has been deleted. The consumption phase — moving every remaining
+caller — has not started; the two trials together switch a small slice of the eventual callers.
 
 ## 2. The four gateway packages
 
+Every gateway package now lives at `packages/@gateway/<folder>/`, moved there from `packages/<folder>/`.
+The package `name`s did not change (`@dungeonmaster/npm`, `@dungeonmaster/node`,
+`@dungeonmaster/browser`, `@dungeonmaster/bin`), so the old bare-name import (`@dungeonmaster/npm/glob`)
+still resolves too, during the transition. Every caller now imports through
+`#gateway/<folder>/<subpath>` instead (e.g. `import { readItem } from '#gateway/browser/localStorage'`)
+— the same text in every repo, mapped by each package's own `package.json` `imports` field.
+
 | Package | Holds | Curated subpaths (main exports) | Pass-through rule |
 |---|---|---|---|
-| `@dungeonmaster/npm` (`packages/npm/src/`) | third-party npm packages | `glob` (`glob` — overrides the raw export, `packages/npm/src/glob/index.ts`); `@testing-library/react` (`render` wrapped in `MantineProvider`, `renderHook` untouched — `packages/npm/src/@testing-library/react/index.ts`) | every other subpath is `export * from '<pkg>'` plus `export { default }` where the package has one, for example `packages/npm/src/react/index.ts` and `packages/npm/src/zod/index.ts` |
-| `@dungeonmaster/node` (`packages/node/src/`) | Node modules and Node globals | `fs` (`existsSync`, `readFileSync`, `readJsonFileSyncIfExists`, `globSync`, `walkFilesSync`, `tailFile`, `isFsError` — `packages/node/src/fs/index.ts`); `fs/promises`; `child_process` (`run`, `runSync`, `stream`, `streamLines`, `spawnDetached`, `spawnLongLived`, `spawnLive`, `runFireAndForget`, `RunNotFoundError` — `packages/node/src/child_process/index.ts`); `process` (`stdout`, `stderr`, `cwd`, `exit`, `kill`, `getEnv`, `readStdinToEnd` — `packages/node/src/process/index.ts`); `fetch` (`fetchJson`, `fetchOk`, `fetchWithStatus`); `module` (`createRequire`, `builtinModules`, `resolvePackageRoot`, `dynamicImport`) | `path`, `url`, `util`, `events`, `os`, `crypto`, `buffer` are plain pass-throughs |
-| `@dungeonmaster/browser` (`packages/browser/src/`) | browser globals and APIs | `localStorage` (`readItem`, `writeItem`, `removeItem`, `keys` — `packages/browser/src/localStorage/index.ts`); `fetch` (`fetchJson`, `fetchWithStatus`); `WebSocket` (`connect`, now wires `onerror`); `indexedDB` (`openStore`, `getAll`, `put`, `deleteRecord`) | `document`, `window`, `navigator`, `console`, `crypto`, `URL`, and the rest of the global list pass through as `export const { x } = globalThis;` |
-| `@dungeonmaster/bin` (`packages/bin/src/`) | programs run through `spawn` | `git` (`currentBranch`, `addAll`, `commit`, worktree ops, `GitNotInstalledError` — `packages/bin/src/git/index.ts`); `claude` (`resolveClaudeCliPath`, `spawnStreamJson`, `ClaudeNotInstalledError`); `npm` (`install`, `runBuild`, `runScript`); `lsof` (`listeningPids`); `kill` (`killPid`, `killGroup`); `cp` (`copyRecursive`) | none — every `@dungeonmaster/bin` module is curated, since a program has no exports to pass through |
+| `@dungeonmaster/npm` (`packages/@gateway/npm/src/`) | third-party npm packages | `glob` (`glob` — overrides the raw export, `packages/@gateway/npm/src/glob/index.ts`); `@testing-library/react` (`render` wrapped in `MantineProvider`, `renderHook` untouched — `packages/@gateway/npm/src/@testing-library/react/index.ts`) | every other subpath is `export * from '<pkg>'` plus `export { default }` where the package has one, for example `packages/@gateway/npm/src/react/index.ts` and `packages/@gateway/npm/src/zod/index.ts` — except a package whose own types use `export =` (react, debug, pixelmatch, eslint-plugin-jest, `@typescript-eslint/eslint-plugin`, `@typescript-eslint/utils`), which names what callers need explicitly (`export { default } from '<pkg>'; export { a, b } from '<pkg>';`) instead of `export *` (see section 3) |
+| `@dungeonmaster/node` (`packages/@gateway/node/src/`) | Node modules and Node globals | `fs` (`existsSync`, `readFileSync`, `readJsonFileSyncIfExists`, `globSync`, `walkFilesSync`, `tailFile`, `isFsError` — `packages/@gateway/node/src/fs/index.ts`); `fs/promises`; `child_process` (`run`, `runSync`, `stream`, `streamLines`, `spawnDetached`, `spawnLongLived`, `spawnLive`, `runFireAndForget`, `RunNotFoundError` — `packages/@gateway/node/src/child_process/index.ts`); `process` (`stdout`, `stderr`, `cwd`, `exit`, `kill`, `getEnv`, `readStdinToEnd` — `packages/@gateway/node/src/process/index.ts`); `fetch` (`fetchJson`, `fetchOk`, `fetchWithStatus`); `module` (`createRequire`, `builtinModules`, `resolvePackageRoot`, `dynamicImport`) | `url`, `util`, `os`, `crypto`, `buffer` are plain pass-throughs; `path` and `events` are Node-only, so they keep `export =` (see section 3) |
+| `@dungeonmaster/browser` (`packages/@gateway/browser/src/`) | browser globals and APIs | `localStorage` (`readItem`, `writeItem`, `removeItem`, `keys` — `packages/@gateway/browser/src/localStorage/index.ts`); `fetch` (`fetchJson`, `fetchWithStatus`); `WebSocket` (`connect`, now wires `onerror`); `indexedDB` (`openStore`, `getAll`, `put`, `deleteRecord`) | `document`, `window`, `navigator`, `console`, `crypto`, `URL`, and the rest of the global list pass through as `export const { x } = globalThis;` |
+| `@dungeonmaster/bin` (`packages/@gateway/bin/src/`) | programs run through `spawn` | `git` (`currentBranch`, `addAll`, `commit`, worktree ops, `GitNotInstalledError` — `packages/@gateway/bin/src/git/index.ts`); `claude` (`resolveClaudeCliPath`, `spawnStreamJson`, `ClaudeNotInstalledError`); `npm` (`install`, `runBuild`, `runScript`); `lsof` (`listeningPids`); `kill` (`killPid`, `killGroup`); `cp` (`copyRecursive`) | none — every `@dungeonmaster/bin` module is curated, since a program has no exports to pass through |
 
-Every gateway package also exports a `./testing` subpath (`packages/<pkg>/src/testing/index.ts`)
-carrying that package's proxies, and declares no root `.` export.
+Every gateway package also exports a `_test_` subpath (`packages/@gateway/<pkg>/src/_test_/index.ts`,
+the package.json `exports` entry `./_test_`) carrying that package's proxies, and declares no root `.`
+export. `_test_` replaces the earlier `./testing` subpath: a leading `_` can't start an npm package
+name, and no Node module or browser global is called `_test_`, so it never collides with a real subpath
+the way `testing` risked.
 
 ## 3. Decisions made during the build that differ from, or add to, the design doc
 
 | Decision | Reason | Where it lives |
 |---|---|---|
-| Subpaths sit under `src/`, one pattern export (`"./*"`) plus `typesVersions`, not a literal `exports` entry per subpath | Ward and the inventory tools only see a package's `src/`; a pattern export means adding a subpath is "add a folder with `index.ts`", never a `package.json` edit | `packages/{npm,node,browser,bin}/package.json`; decision recorded in `scrolls/gateway-build/brief.md` |
+| Subpaths sit under `src/`, one pattern export (`"./*"`) plus `typesVersions`, not a literal `exports` entry per subpath | Ward and the inventory tools only see a package's `src/`; a pattern export means adding a subpath is "add a folder with `index.ts`", never a `package.json` edit | `packages/@gateway/{npm,node,browser,bin}/package.json`; decision recorded in `scrolls/gateway-build/brief.md` |
 | A global whose name collides with a Node module name, ignoring case, gets no subpath of its own — `URL`/`URLSearchParams` live under `@dungeonmaster/node/url`, `Buffer` under `@dungeonmaster/node/buffer` | Two sibling folders differing only by case is unsafe across filesystems and confusing to a model reading the import | `brief.md`, "Orchestrator rulings made during the build" #2 |
 | One `@dungeonmaster/bin` module per program (`git`, `npm`, `lsof`, `kill`, `cp`, `claude`), never a combined module like the design doc's sketched `bin/port` | The brief requires one module per program; the "list what's on this port, then kill it" composing function has no home yet and is a real gap, not a naming choice | `followups.md` "Where the lsof+kill combining function belongs"; `coverage.md` "Real gaps" |
 | A wrapper that keeps the outside function's own name also keeps its calling shape (positional args); a wrapper with a new name takes one destructured object argument | Consistency rule so a model can tell from the name alone whether a call is positional or object-shaped | `brief.md`, "Orchestrator rulings" #1 |
-| `run`/`stream`/`streamLines` throw `RunNotFoundError` when the program never started | So every `@dungeonmaster/bin` module reports "not installed" distinctly from an empty exit-1, instead of a bin function silently returning a blank result | `packages/node/src/child_process/run-not-found-error.ts`; commit `c87aa6fc6` |
+| `run`/`stream`/`streamLines` throw `RunNotFoundError` when the program never started | So every `@dungeonmaster/bin` module reports "not installed" distinctly from an empty exit-1, instead of a bin function silently returning a blank result | `packages/@gateway/node/src/child_process/run-not-found-error.ts`; commit `c87aa6fc6` |
 | The gateway's own lint block is the MAIN rule set minus named omissions, not a short bespoke list — the reverse of the design doc's "rules skip the gateway as a whole" | Keeps every rule that still makes sense (file header, colocation, no silent catch) ON for the gateway by default, so a new rule added later reaches the gateway unless explicitly omitted | `eslint.config.js`; `lint-plan.md` "Decisions made while building" table |
 | The three caller-facing rules (`raw-import-ban`, `platform-globals-ban`, `bin-program-spawn-ban`) were built, measured against every package, then commented out | They would fail every caller package immediately, since no caller has migrated yet; measuring first proves they detect real violations before flipping them on for good | `lint-measurements.md`; registered in the plugin's rule index only, not wired into `dungeonmasterCustomRules` per `followups.md` |
 | The three gateway shape rules (`gateway-import-boundary`, `gateway-colocation`, `gateway-layout`) stay ON, live, in the gateway config block | They police the gateway's own shape and cost nothing to leave running while the gateway itself is being built | `lint-measurements.md` — 605 files, 0 failures on the gateway packages |
 | `@dungeonmaster/testing` is reachable from a gateway `.proxy.ts`/`.test.ts`/`.stub.ts` file only, never from a gateway runtime file | The design doc's own "Tests" section says the gateway gets its own Jest config so `registerMock` proxies work there; `gateway-import-boundary` now special-cases `@<scope>/testing` gated to test-support suffixes | `followups.md` "RESOLVED" note under gateway-import-boundary; `gatewayTestSupportSuffixStatics` |
+| The four gateway packages move to `packages/@gateway/{npm,node,browser,bin}`, keeping their package `name`s (`@dungeonmaster/npm`, …); root `workspaces` becomes `["packages/*", "packages/@gateway/*"]` | Every tool that lists packages needed one rule for "what counts as a package folder", not a `@gateway`-specific carve-out: a directory directly under `packages/` whose name starts with `@` is a group folder, and its children are the real packages | `package.json`'s `workspaces`; `discoverPackagesLayerBroker` (`packages/shared/src/brokers/architecture/project-map/discover-packages-layer-broker.ts`); `get-project-inventory`'s fallback scan in `packages/mcp/src/responders/architecture/handle/architecture-handle-responder.ts` |
+| Every caller imports the gateway through `#gateway/<folder>/<subpath>` (e.g. `#gateway/browser/localStorage`), the same text in every repo, via each package's own `package.json` `imports` field | An npm package literally named `@dungeonmaster/node` would collide with a consumer repo's own differently-scoped `node` gateway package under Node's walk-up resolution; Node's `imports` field resolves a `#`-prefixed specifier from a package's OWN `package.json`, never through `node_modules`, so the two gateways can never meet | `packages/@gateway/{npm,node,browser,bin}/package.json`'s `imports` field; `gatewayLocationsStatics.importPrefix` in `packages/shared/src/statics/gateway-locations/gateway-locations-statics.ts`; `create-package` |
+| The `./testing` subpath is renamed `./_test_` (`src/_test_/index.ts`) in every gateway package | A leading `_` can't start an npm package name, and no Node module or browser global is called `_test_`, so it never collides with a real subpath — `testing` risked exactly that collision | `gatewayLocationsStatics.testSubpath`; e.g. `packages/@gateway/bin/src/_test_/index.ts` |
+| Every tsconfig keeps `moduleResolution: "node"` (which ignores `imports`); the root `tsconfig.json` gets a `paths` entry per gateway folder pointed at the gateway's own SOURCE, and every gateway package's `tsconfig.build.json` points the same specifier at the SIBLING gateways' `dist/*/index.d.ts` instead | `paths` is the only way `node`/`node10` resolution sees a `#`-prefixed specifier; a build config pointing at source would pull a sibling package's source into ITS OWN build program and TS6059 on `rootDir`. Switching to `moduleResolution: "bundler"` was rejected — it forces `module: "preserve"`, changing emitted JS | root `tsconfig.json`; `packages/eslint-plugin/tsconfig.json` (merges its own `paths` override); `packages/@gateway/npm/tsconfig.build.json` |
+| Tools that reason about imports learn `#gateway` alongside the old `@dungeonmaster/<folder>` form, both accepted during the transition: `@dungeonmaster/testing`'s mock-hoisting resolver, several eslint-plugin rules and guards, ward's platform-crossing check, and the lint suggestion text (fixing a `Buffer`/`buffer` capitalization bug on the way) | Callers switch one at a time, not all at once, so both import forms have to keep working while the migration is in progress | `packages/testing/src/middleware/workspace-package-import-resolve/workspace-package-import-resolve-middleware.ts`; `packages/eslint-plugin/src/brokers/rule/{enforce-import-dependencies,enforce-proxy-child-creation,gateway-import-boundary,raw-import-ban}`; `packages/eslint-plugin/src/guards/is-npm-package/is-npm-package-guard.ts`; `packages/ward/src/brokers/platform-crossing/check/gateway-package-names-read-layer-broker.ts`; `packages/shared/src/transformers/gateway-path-from-import-source/gateway-path-from-import-source-transformer.ts` |
+| A package that imports `#gateway/<folder>/...` lists `@dungeonmaster/<folder>` in its own `dependencies` (`"*"`) | The `imports` field only RENAMES a specifier; it never installs anything, so the real dependency edge still has to be declared | added to `packages/{eslint-plugin,hooks,orchestrator,server,shared,siegelense,ward}/package.json` |
+| A pass-through of a package whose types use `export =` (react, debug, pixelmatch, eslint-plugin-jest, `@typescript-eslint/eslint-plugin`) names what callers need explicitly (`export { default } from '<pkg>'; export { a, b } from '<pkg>'; export type { T } from '<pkg>';`) instead of `import x = require()`/`export =` or `export *` | `export *` against an `export =`-typed module is TS2498, unconditionally; `export =`/`import ... = require()` hides named exports from Vite/Rollup and fails ESM-target typecheck (TS1202/TS1203). `typescript`'s pass-through, and `path`/`events` in `@dungeonmaster/node`, keep `export =` — they are Node-only, so no bundler or ESM-target ever sees them | e.g. `packages/@gateway/npm/src/{react,debug,pixelmatch,eslint-plugin-jest,@typescript-eslint/eslint-plugin}/index.ts`; `packages/@gateway/npm/src/typescript/index.ts`; `packages/@gateway/node/src/{path,events}/index.ts` |
+| A gateway-listed package gets exactly ONE installed copy; `npm dedupe` merged the npm gateway's own nested `@mantine/core` 8.3.18 with web's 8.3.14 (and the matching `@mantine/notifications`/`hooks`/`store`) | A widget importing Mantine through the gateway couldn't see web's `MantineProvider` while two copies existed | `package-lock.json`; an unrelated bump the dedupe pulled in (`@types/node` 24.0.15 → 24.19.0) was reverted |
+| web's jest `moduleNameMapper` maps `elkjs`, `@tabler/icons-react` and `@xyflow/react` under both the bare name and `#gateway/npm/<name>` | A pass-through's `export *` only copies keys a mock can enumerate; the tabler mock answers any `Icon*` name on demand without listing one, so it needs to be reachable under either spelling | `packages/web/jest.config.cjs` |
+| Copy, don't reference: an agent adding a gateway module to a CONSUMER repo copies dungeonmaster's own wrapper into the consumer's `packages/@gateway/<folder>/`, never importing dungeonmaster's copy | Keeps a consumer repo's gateway self-contained the same way its other packages are | not yet wired into a tool or session snippet — recorded as a follow-up in `scrolls/gateway-build/followups.md` |
 
 ## 4. Lint
 
@@ -48,7 +79,7 @@ Existing rules taught about the gateway, and why (from `lint-plan.md`'s live-bui
 |---|---|---|
 | `ban-primitives` | Gained an `isGatewayFileGuard` check in its own `create()` | Gateway wrappers take/return the outside package's own plain values by design; the config-level carve-out alone cannot reach `.test.ts` files, which the rule also fires on |
 | `enforce-stub-usage` | Same `isGatewayFileGuard` check | Fires only on `.test.ts`, which a config-level omission (scoped to the implementation glob) never reaches |
-| `no-bare-process-cwd` | `noBareProcessCwdStatics.defaults.allowedFolders` gained `**/packages/node/src/process/**` | The rule's whole job is banning raw `process.cwd()` outside the one sanctioned wrapper; excluding the gateway wholesale would let every OTHER gateway file call it raw too |
+| `no-bare-process-cwd` | `noBareProcessCwdStatics.defaults.allowedFolders` gained `**/packages/@gateway/node/src/process/**` | The rule's whole job is banning raw `process.cwd()` outside the one sanctioned wrapper; excluding the gateway wholesale would let every OTHER gateway file call it raw too |
 | `enforce-import-dependencies` | `validateExternalImportLayerBroker` gained a gateway sentinel ahead of the `node_modules` gate | So every folder type, not just `adapters/`, can import any of the four gateway packages |
 | `isIoBoundaryProxyGuard` (new) | Replaces a bare `/adapters/` substring check inside `enforce-proxy-patterns` and `jest-mocked-must-import` | Both rules now recognise a gateway proxy as an I/O-boundary proxy the same way they already recognise `/adapters/` |
 | `isNpmPackageGuard` | Extended its special-case list to the four gateway packages and subpaths | A caller's proxy mocking a gateway export (`jest.mocked(readFileIfExists)`) was tripping `notNpmPackage` |
@@ -75,7 +106,11 @@ New rules and their measurement summary, from `lint-measurements.md` (2026-09-26
   `@dungeonmaster/node/Buffer` (capital B) instead of the real lowercase `buffer` subpath — flagged for
   whoever turns the rule back on.
 
-## 5. The trial
+## 5. The trials
+
+Two trials have run, at two different gateway locations and import forms — see section 1.
+
+### Trial 1 — gateway at `packages/{npm,node,browser,bin}`, imported by package name
 
 Ten units, each switching 1-3 caller files from an adapter (or a raw call) to a gateway import.
 
@@ -92,13 +127,33 @@ Ten units, each switching 1-3 caller files from an adapter (or a raw call) to a 
 | 9 | mcp | `claude-permission-contract` → `z` from `npm/zod` | Proves a contract, its stub and its test all resolve through a pass-through with no behaviour difference |
 | 10 | mcp | `file-scanner-broker` → `glob` from `npm/glob` | mcp's copy was the winning glob shape and moved over unchanged. It broke 9 tests in `mcp-discover-broker.test.ts`, because the gateway `globProxy` only matched exact patterns. Fixed by giving `globProxy` a default, tail matching and call inspection, like the adapter proxy it replaces |
 
+### Trial 2 — gateway at `packages/@gateway/{npm,node,browser,bin}`, imported as `#gateway/<folder>/<subpath>`
+
+Switched callers, the rest of each package untouched. Grouped by package rather than by unit, since
+several packages had more than 1-3 files switch this time.
+
+| Package | Switched | Proof |
+|---|---|---|
+| web | `comment-queue-state` (browser/localStorage), `home-content-widget.test` (react default import), `react-flow-diagram-widget` + test (@mantine/core, testing-library, user-event), `quest-queue-bar-widget` (react-router-dom), `comment-queue-bar-widget` (@tabler/icons-react), `rxjs-filter-adapter` | ward e2e run `1790441023679-3060`: 133 spec files PASS against a production bundle; the bundle has no unresolved `#gateway/` text |
+| mcp | the three earlier trial files, `claude-permission-contract`, `absolute-path-contract` (zod), `architecture-flow` (zod-to-json-schema), `mcp-server-flow` (three `@modelcontextprotocol/sdk` subpaths) | Node resolves them without the source condition; the npm gateway now builds with zero errors (fixes: a `paths` entry for `@modelcontextprotocol/sdk/server`, `dist` excluded from the build `include`, the gateway's own `#gateway/npm/*` build path pointed at src) |
+| server | `guild-flow` (hono, hono/utils/http-status), `server-init-responder.proxy`, `hono-serve-adapter` (@hono/node-server), `hono-create-node-web-socket-adapter` (@hono/node-ws), `mtime-ms-contract` (zod), `fs-read-file-bytes-adapter` (`#gateway/node/fs/promises`) | real server booted via `dev:no-watch`; `/api/health` returned `{"status":"ok",…}` |
+| siegelense | `instance-reserve-broker` (`#gateway/bin/git`) + proxy, `pngjs-decode-adapter`, `pixelmatch-compare-adapter`, `playwright-session-adapter` (@playwright/test) | cross-package `_test_` proxy composition applies mocks |
+| hooks, config, tooling | the three earlier trial files, `debug-debug-adapter`, `message-contract` (zod), `eslint-linter-adapter` | — |
+| shared, orchestrator | `quest-id-contract`, `work-item-role-contract`, `fast-xml-parser-parse-adapter`, `agent-role-contract`, `work-item-id-contract` | orchestrator whole-package typecheck + unit pass against them |
+| eslint-plugin, ward | `eslint-typed-parser-services-adapter` (@typescript-eslint/utils), `minimatch-match-adapter`, ward's `typescript-module-shape-adapter` | live lint loads rules that import `#gateway` |
+
+Final full run on all uncommitted changes: ward run `1790440830987-7d75` — lint, typecheck, unit,
+integration all PASS (e2e skipped in that run; web's e2e ran separately, above).
+
 ## 6. Edge cases the design did not account for
 
 - **Cross-package proxy hoisting.** A caller's `.proxy.ts` composing a gateway package's `./testing`
-  proxy (e.g. siegelense composing `@dungeonmaster/bin/testing`) silently failed to mock anything —
-  the resolver only understood a relative import or the one hardcoded `@dungeonmaster/shared/testing`
-  case. Fixed generally in `packages/testing/src` by reading each workspace package's own `exports` map
-  (`workspacePackageImportResolveMiddleware`), not by hardcoding package names. (`followups.md`, unit 6)
+  proxy (now `_test_`; e.g. siegelense composing `@dungeonmaster/bin/testing`) silently failed to mock
+  anything — the resolver only understood a relative import or the one hardcoded
+  `@dungeonmaster/shared/testing` case (that one is the real `@dungeonmaster/testing` package's own
+  subpath, unrelated to the gateway's `_test_` rename). Fixed generally in `packages/testing/src` by
+  reading each workspace package's own `exports` map (`workspacePackageImportResolveMiddleware`), not
+  by hardcoding package names. (`followups.md`, unit 6)
 - **Proxy naming.** Every gateway proxy whose factory name didn't match `<exportName>Proxy` tripped
   `enforce-proxy-child-creation` for callers with no way to know the two names referred to the same
   export. Fixed by renaming all 24 mismatched proxies (all in `@dungeonmaster/bin`). (unit 6)
@@ -130,6 +185,29 @@ Ten units, each switching 1-3 caller files from an adapter (or a raw call) to a 
   per-name `type` import as a value import; `platform-globals-ban` misses a global used as an object
   shorthand (`{ fetch }`); and it does not special-case siegelense's `page.evaluate` callbacks, which run
   in the driven browser.
+
+- **A gateway throw can break a caller written for the old collapse-to-null convention.** Trial 1's
+  `currentBranch` reconciliation (a real git failure throws instead of returning `null`) turned into a
+  real regression once a second caller reached it outside a git checkout:
+  `driver-flow.integration.test.ts` runs in a non-git temp dir, so `currentBranch` rejecting with "not a
+  git repository" broke it. Fixed with a narrow guard,
+  `packages/siegelense/src/guards/is-git-not-a-repository-error/is-git-not-a-repository-error-guard.ts`,
+  that maps only that one failure back to `null` inside `instanceReserveBroker`; every other git
+  failure still throws.
+- **A pass-through can simply be missing.** `eslint-typed-parser-services-adapter` needed
+  `@typescript-eslint/utils`, which had no gateway wrapper yet — added at
+  `packages/@gateway/npm/src/@typescript-eslint/utils/index.ts`.
+- **Not everything can go through the gateway as code.** Three CSS side-effect imports in web
+  (`@mantine/core/styles.css`, `@mantine/notifications/styles.css`, `@xyflow/react/dist/style.css`)
+  stay raw imports — they aren't code, so a TypeScript pass-through has nothing to wrap.
+- **A gateway-listed package needs exactly one installed copy.** The npm gateway had its own nested
+  `@mantine/core` 8.3.18 while web had 8.3.14, so a widget importing Mantine through the gateway
+  couldn't see web's `MantineProvider`. `npm dedupe` merged the four `@mantine/*` packages to one copy
+  each; no other gateway-listed package was duplicated.
+- **A pass-through's `export *` can't be mocked by name alone.** web's jest `moduleNameMapper` had to
+  map `elkjs`, `@tabler/icons-react` and `@xyflow/react` under both their bare name and
+  `#gateway/npm/<name>` (`packages/web/jest.config.cjs`), because `export *` only copies keys a mock
+  can enumerate, and the tabler mock answers any `Icon*` name on demand without listing one.
 
 ## 7. Not done, and why
 
@@ -165,7 +243,7 @@ Ten units, each switching 1-3 caller files from an adapter (or a raw call) to a 
 
 ```bash
 npm run ward -- platform                                            # the whole-repo platform-crossing check
-npm run ward -- --only lint,typecheck,unit -- packages/node/src packages/npm/src packages/browser/src packages/bin/src
+npm run ward -- --only lint,typecheck,unit -- packages/@gateway/node/src packages/@gateway/npm/src packages/@gateway/browser/src packages/@gateway/bin/src
 ```
 
 Start with `scrolls/gateway-build/lint-plan.md`'s "Decisions made while building" table and

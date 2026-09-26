@@ -16,6 +16,7 @@ import { InstallAddDevDepsResponder } from '../../responders/install/add-dev-dep
 import { InstallCreatePlaywrightResponder } from '../../responders/install/create-playwright/install-create-playwright-responder';
 import { InstallCreateTsconfigResponder } from '../../responders/install/create-tsconfig/install-create-tsconfig-responder';
 import { InstallCreateJestResponder } from '../../responders/install/create-jest/install-create-jest-responder';
+import { InstallSetupGatewayResponder } from '../../responders/install/setup-gateway/install-setup-gateway-responder';
 
 const PACKAGE_NAME = '@dungeonmaster/cli';
 
@@ -28,24 +29,30 @@ export const InstallFlow = async ({
   const playwrightResult = await InstallCreatePlaywrightResponder({ context });
   const tsconfigResult = await InstallCreateTsconfigResponder({ context });
   const jestResult = await InstallCreateJestResponder({ context });
+  // Runs LAST — it depends on tsconfig.json already existing, which InstallCreateTsconfigResponder
+  // guarantees for a target with none, and merges into whatever InstallAddDevDepsResponder already
+  // wrote rather than racing it.
+  const gatewayResult = await InstallSetupGatewayResponder({ context });
 
   const success =
     devDepsResult.success &&
     playwrightResult.success &&
     tsconfigResult.success &&
-    jestResult.success;
+    jestResult.success &&
+    gatewayResult.success;
   const created =
     devDepsResult.action === 'created' ||
     playwrightResult.action === 'created' ||
     tsconfigResult.action === 'created' ||
-    jestResult.action === 'created';
+    jestResult.action === 'created' ||
+    gatewayResult.action === 'created';
 
   return {
     packageName: packageNameContract.parse(PACKAGE_NAME),
     success,
     action: created ? 'created' : 'skipped',
     message: installMessageContract.parse(
-      `${String(devDepsResult.message)}; ${String(playwrightResult.message)}; ${String(tsconfigResult.message)}; ${String(jestResult.message)}`,
+      `${String(devDepsResult.message)}; ${String(playwrightResult.message)}; ${String(tsconfigResult.message)}; ${String(jestResult.message)}; ${String(gatewayResult.message)}`,
     ),
   };
 };

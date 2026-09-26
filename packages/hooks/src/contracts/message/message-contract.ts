@@ -5,7 +5,7 @@
  * const message = messageContract.parse("This is a message");
  * // Returns branded Message string
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const messageContract = z.string().brand<'Message'>();
 

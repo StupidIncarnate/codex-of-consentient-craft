@@ -61,6 +61,35 @@ describe('HookSessionSnippetPackagesResponder', () => {
     });
   });
 
+  describe('@-scoped group folders (gateway packages)', () => {
+    it('VALID: {@gateway group holding npm and node} => lists the gateway packages by bare name, and never lists @gateway itself', () => {
+      const proxy = HookSessionSnippetPackagesResponderProxy();
+
+      proxy.setupEntries({
+        projectRoot: AbsoluteFilePathStub({ value: '/project' }),
+        entries: [
+          { name: 'cli', isDirectory: true },
+          {
+            name: '@gateway',
+            isDirectory: true,
+            children: [
+              { name: 'npm', isDirectory: true },
+              { name: 'node', isDirectory: true },
+            ],
+          },
+        ],
+      });
+
+      const result = HookSessionSnippetPackagesResponder({
+        projectRoot: AbsoluteFilePathStub({ value: '/project' }),
+      });
+
+      expect(result).toBe(
+        ContentTextStub({ value: '## Packages\n\n- **cli**\n- **node**\n- **npm**' }),
+      );
+    });
+  });
+
   describe('single-root fallback', () => {
     it('EMPTY: {packages dir holds no directories} => returns root package entry', () => {
       const proxy = HookSessionSnippetPackagesResponderProxy();

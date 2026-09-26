@@ -5,8 +5,8 @@
  * const log = debugDebugAdapter({ namespace: 'dungeonmaster:session-start-hook' });
  * // Returns Debugger instance for logging with the given namespace
  */
-import debug from 'debug';
-import type { Debugger } from 'debug';
+import debug from '#gateway/npm/debug';
+import type { Debugger } from '#gateway/npm/debug';
 
 export const debugDebugAdapter = ({ namespace }: { namespace: string }): Debugger =>
   debug(namespace);

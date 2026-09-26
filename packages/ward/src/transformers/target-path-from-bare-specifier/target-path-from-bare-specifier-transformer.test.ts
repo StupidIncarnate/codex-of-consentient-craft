@@ -25,6 +25,28 @@ describe('targetPathFromBareSpecifierTransformer', () => {
 
       expect(result).toBe('/repo/packages/shared2');
     });
+
+    it('VALID: {"#gateway/node/fs", a known @gateway/node package} => appends /src and the subpath', () => {
+      const result = targetPathFromBareSpecifierTransformer({
+        specifier: ModuleSpecifierStub({ value: '#gateway/node/fs' }),
+        knownPackages: [
+          ProjectFolderStub({ name: '@dungeonmaster/node', path: '/repo/packages/@gateway/node' }),
+        ],
+      });
+
+      expect(result).toBe('/repo/packages/@gateway/node/src/fs');
+    });
+
+    it('VALID: {"@dungeonmaster/node/fs", the same @gateway/node package} => appends /src and the subpath too', () => {
+      const result = targetPathFromBareSpecifierTransformer({
+        specifier: ModuleSpecifierStub({ value: '@dungeonmaster/node/fs' }),
+        knownPackages: [
+          ProjectFolderStub({ name: '@dungeonmaster/node', path: '/repo/packages/@gateway/node' }),
+        ],
+      });
+
+      expect(result).toBe('/repo/packages/@gateway/node/src/fs');
+    });
   });
 
   describe('empty input', () => {
@@ -33,6 +55,17 @@ describe('targetPathFromBareSpecifierTransformer', () => {
         specifier: ModuleSpecifierStub({ value: 'react' }),
         knownPackages: [
           ProjectFolderStub({ name: '@dungeonmaster/shared2', path: '/repo/packages/shared2' }),
+        ],
+      });
+
+      expect(result).toBe(undefined);
+    });
+
+    it('EMPTY: {"#gateway/unknown-folder/x", no known package for that folder} => returns undefined', () => {
+      const result = targetPathFromBareSpecifierTransformer({
+        specifier: ModuleSpecifierStub({ value: '#gateway/unknown-folder/x' }),
+        knownPackages: [
+          ProjectFolderStub({ name: '@dungeonmaster/node', path: '/repo/packages/@gateway/node' }),
         ],
       });
 

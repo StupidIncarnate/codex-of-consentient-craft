@@ -1,0 +1,47 @@
+/**
+ * PURPOSE: Resolves a `#`-specifier import (`#gateway/npm/_test_`) to its target workspace
+ * package's `source` file. Reads the IMPORTING file's own nearest package.json — not the
+ * workspaces root — for its `imports` map, the same ancestor Node itself consults to resolve a
+ * `#specifier` at runtime, matches the specifier against that map to get a target specifier
+ * (`@dungeonmaster/npm/_test_`), then resolves that target the same way any other workspace-package
+ * subpath import resolves.
+ *
+ * USAGE:
+ * const filePath = packageImportsSpecifierResolveMiddleware({
+ *   sourceFilePath: filePathContract.parse('/repo/packages/mcp/src/brokers/file/scanner/file-scanner-broker.proxy.ts'),
+ *   importPath: importPathContract.parse('#gateway/npm/_test_'),
+ * });
+ * // Returns FilePath ('/repo/packages/@gateway/npm/src/_test_/index.ts') or null
+ */
+
+import { pathDirnameAdapter } from '../../adapters/path/dirname/path-dirname-adapter';
+import { nearestPackageJsonFindMiddleware } from '../nearest-package-json-find/nearest-package-json-find-middleware';
+import { workspacePackageImportResolveMiddleware } from '../workspace-package-import-resolve/workspace-package-import-resolve-middleware';
+import { workspacePackageImportsTargetTransformer } from '../../transformers/workspace-package-imports-target/workspace-package-imports-target-transformer';
+import type { FilePath } from '../../contracts/file-path/file-path-contract';
+import type { ImportPath } from '../../contracts/import-path/import-path-contract';
+
+export const packageImportsSpecifierResolveMiddleware = ({
+  sourceFilePath,
+  importPath,
+}: {
+  sourceFilePath: FilePath;
+  importPath: ImportPath;
+}): FilePath | null => {
+  const packageJson = nearestPackageJsonFindMiddleware({
+    dirPath: pathDirnameAdapter({ filePath: sourceFilePath }),
+  });
+  if (!packageJson) {
+    return null;
+  }
+
+  const target = workspacePackageImportsTargetTransformer({
+    importsMap: packageJson.imports,
+    specifier: importPath,
+  });
+  if (!target) {
+    return null;
+  }
+
+  return workspacePackageImportResolveMiddleware({ sourceFilePath, importPath: target });
+};

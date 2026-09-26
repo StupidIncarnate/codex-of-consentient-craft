@@ -1,0 +1,53 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "declarationMap": true,
+    "declaration": true,
+    "incremental": true,
+    "tsBuildInfoFile": "./.ward/build.tsbuildinfo",
+    "paths": {
+      // Points at OWN source, not `./dist/*/index.d.ts` — nothing in this package's own src
+      // imports itself via `#gateway/npm/*`, but a foreign file pulled into this program
+      // transitively (e.g. a shared contract reached through `@dungeonmaster/testing`) resolves
+      // `#gateway/npm/*` against WHICHEVER tsconfig is compiling it. A dist-pointing self-entry
+      // is a chicken-and-egg 5055/2307 on a clean build: the dist it points to is this same
+      // compilation's own not-yet-written output.
+      "#gateway/npm/*": [
+        "./src/*/index.ts"
+      ],
+      "#gateway/node/*": [
+        "../node/dist/*/index.d.ts"
+      ],
+      "#gateway/browser/*": [
+        "../browser/dist/*/index.d.ts"
+      ],
+      "#gateway/bin/*": [
+        "../bin/dist/*/index.d.ts"
+      ],
+      // The SDK exposes this subpath only through its `exports` map (no physical `server.d.ts` or
+      // `server/package.json` at the package root), which `moduleResolution: "node"` never reads —
+      // `typesVersions` redirects the sibling `.js`-suffixed subpaths (`server/stdio.js`,
+      // `types.js`) to their real `dist/esm/*.d.ts` FILE fine, but does not resolve this one because
+      // the redirected target is a DIRECTORY needing an `index.d.ts` step. Pointed at the real
+      // declaration file directly rather than widening the redirect to every SDK subpath.
+      "@modelcontextprotocol/sdk/server": [
+        "../../../node_modules/@modelcontextprotocol/sdk/dist/esm/server/index.d.ts"
+      ]
+    }
+  },
+  "exclude": [
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.proxy.ts",
+    "**/*.stub.ts",
+    "**/*.harness.ts",
+    "@types/**/*",
+    // The inherited `include` is unscoped ("**/*.ts") because this package has no `src/`-only
+    // layout. A `.d.ts` matches that glob too, so a second build re-includes its own prior emit
+    // as INPUT at the exact path it is about to write, and TS5055s.
+    "dist"
+  ]
+}

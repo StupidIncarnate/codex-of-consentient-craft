@@ -6,12 +6,15 @@
  * const result = await proxy.callResponder({ tool: ToolNameStub({ value: 'get-architecture' }), args: {} });
  */
 
+import type { Dirent } from 'fs';
 import {
   architectureOverviewBrokerProxy,
   architecturePackageInventoryBrokerProxy,
   architectureProjectMapBrokerProxy,
+  fsExistsSyncAdapterProxy,
+  fsReaddirWithTypesAdapterProxy,
 } from '@dungeonmaster/shared/testing';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub, FilePathStub } from '@dungeonmaster/shared/contracts';
 import type {
   FileContents,
   FolderType,
@@ -29,6 +32,20 @@ import { discoverIgnoreState } from '../../../state/discover-ignore/discover-ign
 import { folderConstraintsStateProxy } from '../../../state/folder-constraints/folder-constraints-state.proxy';
 import { folderConstraintsState } from '../../../state/folder-constraints/folder-constraints-state';
 import { ArchitectureHandleResponder } from './architecture-handle-responder';
+
+const makeDirent = ({ name, isDir }: { name: string; isDir: boolean }): Dirent =>
+  ({
+    name,
+    parentPath: '/stub',
+    path: '/stub',
+    isDirectory: () => isDir,
+    isFile: () => !isDir,
+    isBlockDevice: () => false,
+    isCharacterDevice: () => false,
+    isFIFO: () => false,
+    isSocket: () => false,
+    isSymbolicLink: () => false,
+  }) as Dirent;
 
 // The responder's get-project-map / get-project-inventory / discover branches all resolve their
 // project root via ResolveCallerRepoRootLayerResponder, which (with no `meta` staged for a caller
@@ -51,6 +68,7 @@ export const ArchitectureHandleResponderProxy = (): {
   setupFolderConstraint: (params: { folderType: string; content: string }) => void;
   setupLibraryPackage: (params: { packageName: string }) => void;
   setupFrontendInkPackage: (params: { packageName: string }) => void;
+  setupGatewayGroupPackage: (params: { groupName: string; packageName: string }) => void;
   setupEmptyMonorepo: () => void;
   setupCallerCwdRoot: (params: {
     toolUseId: string;
@@ -67,6 +85,12 @@ export const ArchitectureHandleResponderProxy = (): {
   architecturePackageInventoryBrokerProxy();
   const projectMapProxy = architectureProjectMapBrokerProxy();
   const discoverProxy = mcpDiscoverBrokerProxy();
+  // Only get-project-inventory's own gateway-group resolution addresses these two directly — every
+  // other branch reaches fs through architecturePackageInventoryBrokerProxy /
+  // architectureProjectMapBrokerProxy above, which already registers each adapter's low-specificity
+  // "not found" default (existsSync: false, readdir: []) for every unaddressed path.
+  const existsSyncProxy = fsExistsSyncAdapterProxy();
+  const readdirProxy = fsReaddirWithTypesAdapterProxy();
   architectureFolderDetailBrokerProxy();
   architectureTestingPatternsBrokerProxy();
   const stateProxy = folderConstraintsStateProxy();
@@ -110,6 +134,33 @@ export const ArchitectureHandleResponderProxy = (): {
     },
     setupFrontendInkPackage: ({ packageName }: { packageName: string }): void => {
       projectMapProxy.setupFrontendInkPackage({ projectRoot: DEFAULT_PROJECT_ROOT, packageName });
+    },
+    // get-project-inventory looks up `packages/<packageName>` directly first, and only scans a
+    // `@scope` group folder when that direct lookup misses — so a gateway package resolves this
+    // proxy's fs mocks in two steps: "the direct folder isn't there" then "here's the group's
+    // listing", exactly the two calls the responder itself makes.
+    setupGatewayGroupPackage: ({
+      groupName,
+      packageName,
+    }: {
+      groupName: string;
+      packageName: string;
+    }): void => {
+      const packagesPath = AbsoluteFilePathStub({
+        value: `${String(DEFAULT_PROJECT_ROOT)}/packages`,
+      });
+      existsSyncProxy.returns({
+        filePath: FilePathStub({ value: `${String(packagesPath)}/${packageName}` }),
+        result: false,
+      });
+      readdirProxy.returns({
+        dirPath: packagesPath,
+        entries: [makeDirent({ name: groupName, isDir: true })],
+      });
+      readdirProxy.returns({
+        dirPath: AbsoluteFilePathStub({ value: `${String(packagesPath)}/${groupName}` }),
+        entries: [makeDirent({ name: packageName, isDir: true })],
+      });
     },
     setupEmptyMonorepo: (): void => {
       projectMapProxy.setupEmptyMonorepo({ projectRoot: DEFAULT_PROJECT_ROOT });

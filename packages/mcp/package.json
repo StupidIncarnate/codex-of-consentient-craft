@@ -2,6 +2,12 @@
   "name": "@dungeonmaster/mcp",
   "version": "0.1.0",
   "description": "MCP server for discovering utilities, brokers, and standards across the codebase",
+  "imports": {
+    "#gateway/npm/*": "@dungeonmaster/npm/*",
+    "#gateway/node/*": "@dungeonmaster/node/*",
+    "#gateway/browser/*": "@dungeonmaster/browser/*",
+    "#gateway/bin/*": "@dungeonmaster/bin/*"
+  },
   "main": "dist/src/index.js",
   "exports": {
     ".": {

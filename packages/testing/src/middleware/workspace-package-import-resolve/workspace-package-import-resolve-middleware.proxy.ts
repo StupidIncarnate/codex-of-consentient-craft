@@ -1,7 +1,8 @@
 /**
  * PURPOSE: Proxy for workspacePackageImportResolveMiddleware — composes the workspace-root and
  * package.json-read proxies underneath it, plus its own readdir/exists staging for the
- * `packages/*` scan and the final resolved source file.
+ * `packages/*` scan (and any other workspaces glob's base dir, e.g. `packages/@gateway`) and the
+ * final resolved source file.
  *
  * USAGE:
  * const proxy = workspacePackageImportResolveMiddlewareProxy();
@@ -12,6 +13,15 @@
  *   packageJson: { name: '@dungeonmaster/bin', exports: { './testing': { source: './src/testing/index.ts' } } },
  * });
  * proxy.setupSourceFileExists({ filePath: '/repo/packages/bin/src/testing/index.ts' });
+ *
+ * // A group-folder package (packages/@gateway/npm), reachable once the root also declares that glob:
+ * proxy.setupWorkspaceRoot({ workspaceRootPath: '/repo', workspaces: ['packages/*', 'packages/@gateway/*'] });
+ * proxy.setupWorkspacePackage({
+ *   workspaceRootPath: '/repo',
+ *   packageFolderName: 'npm',
+ *   packagesBaseDir: 'packages/@gateway',
+ *   packageJson: { name: '@dungeonmaster/npm', exports: { './_test_': { source: './src/_test_/index.ts' } } },
+ * });
  */
 
 import { join } from 'path';
@@ -25,16 +35,26 @@ import { FileNameStub } from '../../contracts/file-name/file-name.stub';
 
 type FileName = ReturnType<typeof FileNameStub>;
 
+const DEFAULT_PACKAGES_BASE_DIR = 'packages';
+
 export const workspacePackageImportResolveMiddlewareProxy = (): {
-  setupWorkspaceRoot: ({ workspaceRootPath }: { workspaceRootPath: string }) => void;
+  setupWorkspaceRoot: ({
+    workspaceRootPath,
+    workspaces,
+  }: {
+    workspaceRootPath: string;
+    workspaces?: readonly string[];
+  }) => void;
   setupWorkspacePackage: ({
     workspaceRootPath,
     packageFolderName,
     packageJson,
+    packagesBaseDir,
   }: {
     workspaceRootPath: string;
     packageFolderName: string;
     packageJson: Record<PropertyKey, unknown>;
+    packagesBaseDir?: string;
   }) => void;
   setupSourceFileExists: ({ filePath }: { filePath: string }) => void;
 } => {
@@ -48,20 +68,31 @@ export const workspacePackageImportResolveMiddlewareProxy = (): {
   const folderNamesByPackagesDir = new Map<PropertyKey, FileName[]>();
 
   return {
-    setupWorkspaceRoot: ({ workspaceRootPath }: { workspaceRootPath: string }): void => {
-      rootProxy.setupWorkspaceRootAt({ dirPath: workspaceRootPath });
+    setupWorkspaceRoot: ({
+      workspaceRootPath,
+      workspaces,
+    }: {
+      workspaceRootPath: string;
+      workspaces?: readonly string[];
+    }): void => {
+      rootProxy.setupWorkspaceRootAt({
+        dirPath: workspaceRootPath,
+        ...(workspaces && { workspaces }),
+      });
     },
 
     setupWorkspacePackage: ({
       workspaceRootPath,
       packageFolderName,
       packageJson,
+      packagesBaseDir,
     }: {
       workspaceRootPath: string;
       packageFolderName: string;
       packageJson: Record<PropertyKey, unknown>;
+      packagesBaseDir?: string;
     }): void => {
-      const packagesDirPath = join(workspaceRootPath, 'packages');
+      const packagesDirPath = join(workspaceRootPath, packagesBaseDir ?? DEFAULT_PACKAGES_BASE_DIR);
       const existingFolderNames = folderNamesByPackagesDir.get(packagesDirPath);
       const folderNames: FileName[] = [
         ...(existingFolderNames ?? []),

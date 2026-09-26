@@ -19,6 +19,18 @@ ruleTester.run('raw-import-ban', ruleRawImportBanBroker(), {
       options: [{ scope: '@dungeonmaster' }],
     },
 
+    // --- the '#gateway/<folder>' import-alias form is a workspace import too, allowed the same way ---
+    {
+      code: "import { readFileIfExists } from '#gateway/node/fs';",
+      filename: '/repo/packages/hooks/src/brokers/x/x-broker.ts',
+      options: [{ scope: '@dungeonmaster' }],
+    },
+    {
+      code: "import type { Page } from '#gateway/npm/@playwright/test';",
+      filename: '/repo/packages/hooks/src/brokers/x/x-broker.ts',
+      options: [{ scope: '@dungeonmaster' }],
+    },
+
     // --- any other workspace package is allowed ---
     {
       code: "import { userContract } from '@dungeonmaster/shared/contracts';",
@@ -47,15 +59,15 @@ ruleTester.run('raw-import-ban', ruleRawImportBanBroker(), {
     // it ever reads `scope`, so these deliberately carry no `options` ---
     {
       code: "import { readFile } from 'fs/promises';",
-      filename: '/repo/packages/node/src/fs/read-file-if-exists.ts',
+      filename: '/repo/packages/@gateway/node/src/fs/read-file-if-exists.ts',
     },
     {
       code: "export * from 'react';",
-      filename: '/repo/packages/npm/src/react/index.ts',
+      filename: '/repo/packages/@gateway/npm/src/react/index.ts',
     },
     {
       code: "const fs = require('fs');",
-      filename: '/repo/packages/bin/src/git/git-current-branch.ts',
+      filename: '/repo/packages/@gateway/bin/src/git/git-current-branch.ts',
     },
 
     // --- consumer scope other than @dungeonmaster: its own workspace imports are allowed ---
@@ -75,7 +87,7 @@ ruleTester.run('raw-import-ban', ruleRawImportBanBroker(), {
       errors: [
         {
           messageId: 'rawImport',
-          data: { importSource: 'fs', gatewayPath: '@dungeonmaster/node/fs' },
+          data: { importSource: 'fs', gatewayPath: '#gateway/node/fs' },
         },
       ],
     },
@@ -87,7 +99,7 @@ ruleTester.run('raw-import-ban', ruleRawImportBanBroker(), {
       errors: [
         {
           messageId: 'rawImport',
-          data: { importSource: 'node:fs', gatewayPath: '@dungeonmaster/node/fs' },
+          data: { importSource: 'node:fs', gatewayPath: '#gateway/node/fs' },
         },
       ],
     },
@@ -99,7 +111,7 @@ ruleTester.run('raw-import-ban', ruleRawImportBanBroker(), {
       errors: [
         {
           messageId: 'rawImport',
-          data: { importSource: 'zod', gatewayPath: '@dungeonmaster/npm/zod' },
+          data: { importSource: 'zod', gatewayPath: '#gateway/npm/zod' },
         },
       ],
     },
@@ -113,7 +125,7 @@ ruleTester.run('raw-import-ban', ruleRawImportBanBroker(), {
           messageId: 'rawImport',
           data: {
             importSource: '@playwright/test',
-            gatewayPath: '@dungeonmaster/npm/@playwright/test',
+            gatewayPath: '#gateway/npm/@playwright/test',
           },
         },
       ],
@@ -128,7 +140,7 @@ ruleTester.run('raw-import-ban', ruleRawImportBanBroker(), {
           messageId: 'rawImport',
           data: {
             importSource: '@playwright/test/reporter',
-            gatewayPath: '@dungeonmaster/npm/@playwright/test/reporter',
+            gatewayPath: '#gateway/npm/@playwright/test/reporter',
           },
         },
       ],
@@ -143,7 +155,7 @@ ruleTester.run('raw-import-ban', ruleRawImportBanBroker(), {
           messageId: 'rawImport',
           data: {
             importSource: 'react-dom/client',
-            gatewayPath: '@dungeonmaster/npm/react-dom/client',
+            gatewayPath: '#gateway/npm/react-dom/client',
           },
         },
       ],
@@ -156,7 +168,7 @@ ruleTester.run('raw-import-ban', ruleRawImportBanBroker(), {
       errors: [
         {
           messageId: 'rawImport',
-          data: { importSource: 'lodash', gatewayPath: '@dungeonmaster/npm/lodash' },
+          data: { importSource: 'lodash', gatewayPath: '#gateway/npm/lodash' },
         },
       ],
     },
@@ -168,7 +180,7 @@ ruleTester.run('raw-import-ban', ruleRawImportBanBroker(), {
       errors: [
         {
           messageId: 'rawImport',
-          data: { importSource: 'lodash', gatewayPath: '@dungeonmaster/npm/lodash' },
+          data: { importSource: 'lodash', gatewayPath: '#gateway/npm/lodash' },
         },
       ],
     },
@@ -180,7 +192,7 @@ ruleTester.run('raw-import-ban', ruleRawImportBanBroker(), {
       errors: [
         {
           messageId: 'rawImport',
-          data: { importSource: 'glob', gatewayPath: '@dungeonmaster/npm/glob' },
+          data: { importSource: 'glob', gatewayPath: '#gateway/npm/glob' },
         },
       ],
     },
@@ -192,7 +204,7 @@ ruleTester.run('raw-import-ban', ruleRawImportBanBroker(), {
       errors: [
         {
           messageId: 'rawImport',
-          data: { importSource: 'glob', gatewayPath: '@dungeonmaster/npm/glob' },
+          data: { importSource: 'glob', gatewayPath: '#gateway/npm/glob' },
         },
       ],
     },
@@ -206,7 +218,7 @@ ruleTester.run('raw-import-ban', ruleRawImportBanBroker(), {
           messageId: 'rawImport',
           data: {
             importSource: '@anthropic-ai/claude-code',
-            gatewayPath: '@dungeonmaster/npm/@anthropic-ai/claude-code',
+            gatewayPath: '#gateway/npm/@anthropic-ai/claude-code',
           },
         },
       ],
@@ -219,7 +231,7 @@ ruleTester.run('raw-import-ban', ruleRawImportBanBroker(), {
       errors: [
         {
           messageId: 'rawImport',
-          data: { importSource: 'fs', gatewayPath: '@dungeonmaster/node/fs' },
+          data: { importSource: 'fs', gatewayPath: '#gateway/node/fs' },
         },
       ],
     },
@@ -231,11 +243,12 @@ ruleTester.run('raw-import-ban', ruleRawImportBanBroker(), {
       errors: [
         {
           messageId: 'rawImport',
-          data: { importSource: 'vite', gatewayPath: '@dungeonmaster/npm/vite' },
+          data: { importSource: 'vite', gatewayPath: '#gateway/npm/vite' },
         },
       ],
     },
-    // --- consumer scope other than @dungeonmaster maps to its own gateway paths ---
+    // --- consumer scope only gates which workspace imports are allowed; the suggested gateway
+    // path is always the '#gateway/...' alias text, identical in every consumer repo ---
     {
       code: "import fs from 'fs';",
       filename: '/repo/packages/hooks/src/brokers/x/x-broker.ts',
@@ -243,7 +256,7 @@ ruleTester.run('raw-import-ban', ruleRawImportBanBroker(), {
       errors: [
         {
           messageId: 'rawImport',
-          data: { importSource: 'fs', gatewayPath: '@acme/node/fs' },
+          data: { importSource: 'fs', gatewayPath: '#gateway/node/fs' },
         },
       ],
     },

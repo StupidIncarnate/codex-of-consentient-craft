@@ -1,6 +1,6 @@
 /**
  * PURPOSE: Enforces the gateway's own colocation and pass-through-purity shape, inside a gateway
- * file (`packages/{npm,node,browser,bin}/src/**`) only. A wrapper file — any single-dot `.ts` that
+ * file (`packages/@gateway/{npm,node,browser,bin}/src/**`) only. A wrapper file — any single-dot `.ts` that
  * is not `index.ts` — needs a colocated `.test.ts` (or `.integration.test.ts`) and a `.proxy.ts`,
  * the same requirement `enforce-implementation-colocation` already checks for every other folder
  * type, minus the `/src/` self-skip that rule carries (this rule is path-scoped to the gateway
@@ -19,8 +19,8 @@
  *
  * USAGE:
  * const rule = ruleGatewayColocationBroker();
- * // Flags packages/node/src/fs/read-file-sync.ts with no read-file-sync.proxy.ts;
- * // flags packages/node/src/module/index.ts, whose body builds an object instead of only
+ * // Flags packages/@gateway/node/src/fs/read-file-sync.ts with no read-file-sync.proxy.ts;
+ * // flags packages/@gateway/node/src/module/index.ts, whose body builds an object instead of only
  * // re-exporting, as passThroughNotPureReexport
  */
 import { filePathContract } from '@dungeonmaster/shared/contracts';

@@ -92,9 +92,11 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
         if (typeof source !== 'string') return;
 
         // Track .proxy imports (relative paths)
-        // Also track scoped package imports (@scope/pkg/folderType) that contain Proxy exports
+        // Also track scoped package imports (@scope/pkg/folderType, or the '#gateway/...'
+        // import-alias form) that contain Proxy exports
         const isProxyImport = source.endsWith('.proxy');
-        const isScopedPackageImport = source.startsWith('@');
+        const isScopedPackageImport =
+          source.startsWith('@') || source.startsWith(`${gatewayLocationsStatics.importPrefix}/`);
 
         if (!isProxyImport && !isScopedPackageImport) {
           return;
@@ -164,9 +166,12 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
           const expectedProxyNameString = `${importedName}Proxy`;
           const expectedProxyName = identifierContract.parse(expectedProxyNameString);
 
-          // For scoped package imports (@scope/pkg/folderType), proxy is exported from @scope/pkg/testing
-          // For relative imports, proxy is at path.proxy
-          const isScopedPackageImport = importPath.startsWith('@');
+          // For scoped package imports (@scope/pkg/folderType, or the '#gateway/...' import-alias
+          // form), proxy is exported from @scope/pkg/testing. For relative imports, proxy is at
+          // path.proxy
+          const isScopedPackageImport =
+            importPath.startsWith('@') ||
+            importPath.startsWith(`${gatewayLocationsStatics.importPrefix}/`);
 
           // A gateway import (any depth: @scope/node/fs/promises, @scope/npm/zod, ...) always
           // resolves its proxy through the PACKAGE's own testing barrel — the first two path
@@ -217,7 +222,7 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
           const expectedProxyPath = ((): ModulePath => {
             if (isGatewayImport) {
               const [scopeSegment, packageFolder] = importPathSegments;
-              return `${scopeSegment}/${packageFolder}/testing` as ModulePath;
+              return `${scopeSegment}/${packageFolder}/_test_` as ModulePath;
             }
             if (isScopedPackageImport) {
               const lastSlashIndex = importPath.lastIndexOf('/');

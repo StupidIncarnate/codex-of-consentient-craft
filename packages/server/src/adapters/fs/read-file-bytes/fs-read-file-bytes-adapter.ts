@@ -8,11 +8,11 @@
  * // Returns the raw bytes read from filePath
  */
 
-import { readFile } from 'fs/promises';
+import { readFileBytes } from '#gateway/node/fs/promises';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 export const fsReadFileBytesAdapter = async ({
   filePath,
 }: {
   filePath: AbsoluteFilePath;
-}): Promise<Uint8Array> => readFile(filePath);
+}): Promise<Uint8Array> => readFileBytes(filePath);

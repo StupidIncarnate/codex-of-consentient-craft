@@ -1,10 +1,6 @@
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import {
-  pathExistsProxy,
-  readJsonFileIfExistsProxy,
-  writeFileProxy,
-} from '@dungeonmaster/node/testing';
+import { pathExistsProxy, readJsonFileIfExistsProxy, writeFileProxy } from '#gateway/node/_test_';
 import { InstallCreateConfigResponder } from './install-create-config-responder';
 
 // Every test in this file calls the responder with this fixed targetProjectRoot, so this is

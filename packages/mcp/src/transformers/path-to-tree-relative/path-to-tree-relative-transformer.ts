@@ -11,7 +11,10 @@
 import { pathSegmentContract } from '@dungeonmaster/shared/contracts';
 import type { PathSegment } from '@dungeonmaster/shared/contracts';
 
-const PACKAGES_SRC_PATTERN = /(?:^|\/)packages\/([^/]+)\/src\//u;
+// The optional `(?:@[^/]+\/)?` skips a scope/group folder directly under `packages/` (mirrors
+// `node_modules/@scope/name`) — `packages/@gateway/npm/src/...` captures `npm`, the real package,
+// never the group.
+const PACKAGES_SRC_PATTERN = /(?:^|\/)packages\/(?:@[^/]+\/)?([^/]+)\/src\//u;
 const SCOPED_ALIAS_SRC_PATTERN = /(?:^|\/)(@[^/]+\/[^/]+)\/src\//u;
 const SRC_SEGMENT = '/src/';
 

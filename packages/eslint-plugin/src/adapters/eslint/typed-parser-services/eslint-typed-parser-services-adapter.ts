@@ -9,8 +9,8 @@
  * // Returns '/repo/node_modules/@types/node/globals.d.ts', or undefined if the symbol has no
  * // declaration (an unresolved identifier, or one declared in the same file)
  */
-import { ESLintUtils } from '@typescript-eslint/utils';
-import type { TSESLint, TSESTree } from '@typescript-eslint/utils';
+import { ESLintUtils } from '#gateway/npm/@typescript-eslint/utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/@typescript-eslint/utils';
 import { filePathContract, type FilePath } from '@dungeonmaster/shared/contracts';
 
 export const eslintTypedParserServicesAdapter = ({

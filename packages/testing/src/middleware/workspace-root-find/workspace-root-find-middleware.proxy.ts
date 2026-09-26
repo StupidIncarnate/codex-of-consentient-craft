@@ -7,6 +7,7 @@
  * const proxy = workspaceRootFindMiddlewareProxy();
  * proxy.setupPlainPackageAt({ dirPath: '/repo/packages/bin/src' });
  * proxy.setupWorkspaceRootAt({ dirPath: '/repo' });
+ * proxy.setupWorkspaceRootAt({ dirPath: '/repo', workspaces: ['packages/*', 'packages/@gateway/*'] });
  */
 
 import { join } from 'path';
@@ -14,8 +15,16 @@ import { pathDirnameAdapterProxy } from '../../adapters/path/dirname/path-dirnam
 import { pathJoinAdapterProxy } from '../../adapters/path/join/path-join-adapter.proxy';
 import { workspacePackageJsonReadMiddlewareProxy } from '../workspace-package-json-read/workspace-package-json-read-middleware.proxy';
 
+const DEFAULT_WORKSPACE_GLOBS = ['packages/*'];
+
 export const workspaceRootFindMiddlewareProxy = (): {
-  setupWorkspaceRootAt: ({ dirPath }: { dirPath: string }) => void;
+  setupWorkspaceRootAt: ({
+    dirPath,
+    workspaces,
+  }: {
+    dirPath: string;
+    workspaces?: readonly string[];
+  }) => void;
   setupPlainPackageAt: ({ dirPath }: { dirPath: string }) => void;
 } => {
   pathDirnameAdapterProxy();
@@ -23,10 +32,16 @@ export const workspaceRootFindMiddlewareProxy = (): {
   const readProxy = workspacePackageJsonReadMiddlewareProxy();
 
   return {
-    setupWorkspaceRootAt: ({ dirPath }: { dirPath: string }): void => {
+    setupWorkspaceRootAt: ({
+      dirPath,
+      workspaces,
+    }: {
+      dirPath: string;
+      workspaces?: readonly string[];
+    }): void => {
       readProxy.setupPackageJsonAt({
         packageJsonPath: join(dirPath, 'package.json'),
-        packageJson: { name: 'dungeonmaster', workspaces: ['packages/*'] },
+        packageJson: { name: 'dungeonmaster', workspaces: workspaces ?? DEFAULT_WORKSPACE_GLOBS },
       });
     },
     setupPlainPackageAt: ({ dirPath }: { dirPath: string }): void => {

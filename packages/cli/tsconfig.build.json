@@ -7,10 +7,30 @@
     "declarationMap": true,
     "declaration": true,
     "incremental": true,
-    "tsBuildInfoFile": "./.ward/build.tsbuildinfo"
+    "tsBuildInfoFile": "./.ward/build.tsbuildinfo",
+    "paths": {
+      "#gateway/npm/*": [
+        "../@gateway/npm/dist/*/index.d.ts"
+      ],
+      "#gateway/node/*": [
+        "../@gateway/node/dist/*/index.d.ts"
+      ],
+      "#gateway/browser/*": [
+        "../@gateway/browser/dist/*/index.d.ts"
+      ],
+      "#gateway/bin/*": [
+        "../@gateway/bin/dist/*/index.d.ts"
+      ]
+    }
   },
   "exclude": [
-    "**/*.test.ts", "**/*.test.tsx", "**/*.proxy.ts", "**/*.stub.ts",
-    "**/*.harness.ts", "test/**", "src/.test-tmp/**", "src/_lint-testbed/**"
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.proxy.ts",
+    "**/*.stub.ts",
+    "**/*.harness.ts",
+    "test/**",
+    "src/.test-tmp/**",
+    "src/_lint-testbed/**"
   ]
 }

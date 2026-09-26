@@ -83,6 +83,88 @@ describe('workspacePackageImportResolveMiddleware', () => {
     });
   });
 
+  describe('gateway group-folder packages', () => {
+    it('VALID: {@dungeonmaster/npm/_test_, packages/@gateway/npm} => scans the declared group-folder base dir', () => {
+      const proxy = workspacePackageImportResolveMiddlewareProxy();
+      proxy.setupWorkspaceRoot({
+        workspaceRootPath: '/repo',
+        workspaces: ['packages/*', 'packages/@gateway/*'],
+      });
+      proxy.setupWorkspacePackage({
+        workspaceRootPath: '/repo',
+        packageFolderName: 'npm',
+        packagesBaseDir: 'packages/@gateway',
+        packageJson: {
+          name: '@dungeonmaster/npm',
+          exports: { './_test_': { source: './src/_test_/index.ts' } },
+        },
+      });
+      proxy.setupSourceFileExists({ filePath: '/repo/packages/@gateway/npm/src/_test_/index.ts' });
+      const sourceFilePath = FilePathStub({ value: '/repo/packages/mcp/src/a.proxy.ts' });
+      const importPath = ImportPathStub({ value: '@dungeonmaster/npm/_test_' });
+
+      const result = workspacePackageImportResolveMiddleware({ sourceFilePath, importPath });
+
+      expect(result).toStrictEqual(
+        FilePathStub({ value: '/repo/packages/@gateway/npm/src/_test_/index.ts' }),
+      );
+    });
+
+    it('VALID: {no match in packages/*, match in packages/@gateway/*} => scans past the first base dir', () => {
+      const proxy = workspacePackageImportResolveMiddlewareProxy();
+      proxy.setupWorkspaceRoot({
+        workspaceRootPath: '/repo',
+        workspaces: ['packages/*', 'packages/@gateway/*'],
+      });
+      proxy.setupWorkspacePackage({
+        workspaceRootPath: '/repo',
+        packageFolderName: 'hooks',
+        packageJson: {
+          name: '@dungeonmaster/hooks',
+          exports: { './testing': { source: './testing.ts' } },
+        },
+      });
+      proxy.setupWorkspacePackage({
+        workspaceRootPath: '/repo',
+        packageFolderName: 'bin',
+        packagesBaseDir: 'packages/@gateway',
+        packageJson: {
+          name: '@dungeonmaster/bin',
+          exports: { './_test_': { source: './src/_test_/index.ts' } },
+        },
+      });
+      proxy.setupSourceFileExists({ filePath: '/repo/packages/@gateway/bin/src/_test_/index.ts' });
+      const sourceFilePath = FilePathStub({ value: '/repo/packages/mcp/src/a.proxy.ts' });
+      const importPath = ImportPathStub({ value: '@dungeonmaster/bin/_test_' });
+
+      const result = workspacePackageImportResolveMiddleware({ sourceFilePath, importPath });
+
+      expect(result).toStrictEqual(
+        FilePathStub({ value: '/repo/packages/@gateway/bin/src/_test_/index.ts' }),
+      );
+    });
+
+    it('VALID: {root workspaces only declares "packages/*"} => never scans packages/@gateway', () => {
+      const proxy = workspacePackageImportResolveMiddlewareProxy();
+      proxy.setupWorkspaceRoot({ workspaceRootPath: '/repo' });
+      proxy.setupWorkspacePackage({
+        workspaceRootPath: '/repo',
+        packageFolderName: 'npm',
+        packagesBaseDir: 'packages/@gateway',
+        packageJson: {
+          name: '@dungeonmaster/npm',
+          exports: { './_test_': { source: './src/_test_/index.ts' } },
+        },
+      });
+      const sourceFilePath = FilePathStub({ value: '/repo/packages/mcp/src/a.proxy.ts' });
+      const importPath = ImportPathStub({ value: '@dungeonmaster/npm/_test_' });
+
+      const result = workspacePackageImportResolveMiddleware({ sourceFilePath, importPath });
+
+      expect(result).toBe(null);
+    });
+  });
+
   describe('no match', () => {
     it('INVALID: {importPath has no subpath} => returns null', () => {
       workspacePackageImportResolveMiddlewareProxy();

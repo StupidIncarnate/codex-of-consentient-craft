@@ -35,6 +35,18 @@ export const packageScaffoldConfigStatics = {
 
   tsconfigExtends: '../../tsconfig.json',
   buildTsconfigExtends: './tsconfig.json',
+
+  // Every scaffolded package gets these four regardless of packageType, mirroring what every
+  // existing workspace package.json carries — Node's own `imports` field resolution, not a
+  // dungeonmaster-specific mechanism, so a package that never reaches for `#gateway/*` pays
+  // nothing for having the map. `__SCOPE__` substitutes the same way `__SCOPE__/shared` does in
+  // `seed.dependencies` above.
+  gatewayImports: {
+    '#gateway/npm/*': '__SCOPE__/npm/*',
+    '#gateway/node/*': '__SCOPE__/node/*',
+    '#gateway/browser/*': '__SCOPE__/browser/*',
+    '#gateway/bin/*': '__SCOPE__/bin/*',
+  },
   buildTsconfigFileName: 'tsconfig.build.json',
   jestConfigFileName: 'jest.config.js',
   playwrightConfigFileName: 'playwright.config.ts',

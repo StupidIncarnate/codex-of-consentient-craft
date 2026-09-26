@@ -19,8 +19,8 @@ import {
   type FileContents,
   type PathSegment,
 } from '@dungeonmaster/shared/contracts';
-import { join } from '@dungeonmaster/node/path';
-import { readJsonFileIfExists, writeFile, ensureDir } from '@dungeonmaster/node/fs/promises';
+import { join } from '#gateway/node/path';
+import { readJsonFileIfExists, writeFile, ensureDir } from '#gateway/node/fs/promises';
 import { mcpPermissionsCreatorTransformer } from '../../../transformers/mcp-permissions-creator/mcp-permissions-creator-transformer';
 import {
   agentBrowserPermissionsStatics,
@@ -81,8 +81,7 @@ export const settingsPermissionsAddBroker = async ({
 
   // Get existing permissions
   const existingPermissions = existingSettings.permissions as
-    | Record<PropertyKey, unknown>
-    | undefined;
+    Record<PropertyKey, unknown> | undefined;
   const existingAllow = (existingPermissions?.allow ?? []) as ClaudePermission[];
 
   // Prune stale dungeonmaster MCP permissions (tools no longer in mcpToolsStatics.tools.names),

@@ -6,7 +6,7 @@
  * // Returns { root: { child: 'value' } }
  */
 
-import { XMLParser } from 'fast-xml-parser';
+import { XMLParser } from '#gateway/npm/fast-xml-parser';
 
 export const fastXmlParserParseAdapter = ({ xml }: { xml: string }): unknown => {
   const parser = new XMLParser({

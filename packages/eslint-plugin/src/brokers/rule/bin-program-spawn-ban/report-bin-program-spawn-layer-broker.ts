@@ -1,15 +1,18 @@
 /**
- * PURPOSE: Resolves a call's spawned program and, when it names a program with a `@<scope>/bin` home,
- * reports the violation — shared by the parent rule's two call shapes (a gateway options-object call
- * and a raw positional call), since ESLint's own `ctx.report()` call needs identical shape either way.
- * Its own file, not a nested helper inside the rule broker's `create()`, because
- * `forbid-non-exported-functions` requires every function be the primary export of its file.
+ * PURPOSE: Resolves a call's spawned program and, when it names a program with a home in the
+ * `bin` gateway package, reports the violation — shared by the parent rule's two call shapes (a
+ * gateway options-object call and a raw positional call), since ESLint's own `ctx.report()` call
+ * needs identical shape either way. Its own file, not a nested helper inside the rule broker's
+ * `create()`, because `forbid-non-exported-functions` requires every function be the primary
+ * export of its file. The suggested `gatewayPath` is always the `#gateway/bin/<program>`
+ * import-alias text (gatewayLocationsStatics.importPrefix), never a repo's own `@scope` — the
+ * suggestion must read identically in every consumer repo.
  *
  * USAGE:
- * reportBinProgramSpawnLayerBroker({ ctx, node, commandNode, argsNode, moduleBody, scope });
+ * reportBinProgramSpawnLayerBroker({ ctx, node, commandNode, argsNode, moduleBody });
  * // Calls ctx.report() when the resolved command names a homed program, otherwise does nothing
  */
-import type { AdapterResult, PackageName } from '@dungeonmaster/shared/contracts';
+import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
@@ -23,14 +26,12 @@ export const reportBinProgramSpawnLayerBroker = ({
   commandNode,
   argsNode,
   moduleBody,
-  scope,
 }: {
   ctx: EslintContext;
   node: Tsestree;
   commandNode: Tsestree | undefined;
   argsNode: Tsestree | undefined;
   moduleBody: readonly Tsestree[];
-  scope: PackageName;
 }): AdapterResult => {
   const program = resolveSpawnedProgramLayerBroker({ commandNode, argsNode, moduleBody });
   const home =
@@ -45,7 +46,7 @@ export const reportBinProgramSpawnLayerBroker = ({
       data: {
         program,
         binFunction: home.binFunction,
-        gatewayPath: `${scope}/${gatewayLocationsStatics.folders.bin}/${program}`,
+        gatewayPath: `${gatewayLocationsStatics.importPrefix}/${gatewayLocationsStatics.folders.bin}/${program}`,
       },
     });
   }

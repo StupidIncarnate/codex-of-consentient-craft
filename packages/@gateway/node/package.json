@@ -1,0 +1,52 @@
+{
+  "name": "@dungeonmaster/node",
+  "version": "0.1.0",
+  "description": "Gateway package: everything the Node runtime provides, modules and globals alike",
+  "imports": {
+    "#gateway/npm/*": "@dungeonmaster/npm/*",
+    "#gateway/node/*": "@dungeonmaster/node/*",
+    "#gateway/browser/*": "@dungeonmaster/browser/*",
+    "#gateway/bin/*": "@dungeonmaster/bin/*"
+  },
+  "exports": {
+    "./_test_": {
+      "source": "./src/_test_/index.ts",
+      "import": "./dist/_test_/index.js",
+      "require": "./dist/_test_/index.js",
+      "types": "./dist/_test_/index.d.ts"
+    },
+    "./*": {
+      "source": "./src/*/index.ts",
+      "import": "./dist/*/index.js",
+      "require": "./dist/*/index.js",
+      "types": "./dist/*/index.d.ts"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "src/*/index.ts",
+        "src/*"
+      ]
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "build:clean": "rm -rf dist .ward/build.tsbuildinfo && npm run build",
+    "test": "dungeonmaster-ward --only test",
+    "typecheck": "dungeonmaster-ward --only typecheck",
+    "lint": "dungeonmaster-ward --only lint",
+    "ward": "dungeonmaster-ward"
+  },
+  "devDependencies": {
+    "@dungeonmaster/testing": "*",
+    "@types/node": "^24.0.15",
+    "typescript": "^5.8.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

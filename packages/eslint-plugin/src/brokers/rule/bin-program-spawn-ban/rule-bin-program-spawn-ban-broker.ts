@@ -12,8 +12,8 @@
  *
  * USAGE:
  * const rule = ruleBinProgramSpawnBanBroker();
- * // Returns an EslintRule that flags spawn('git', [...]) outside packages/bin/src/**, naming
- * // currentBranch() from @<scope>/bin/git in the report message
+ * // Returns an EslintRule that flags spawn('git', [...]) outside packages/@gateway/bin/src/**,
+ * // naming currentBranch() from #gateway/bin/git in the report message
  */
 import { contentTextContract, filePathContract } from '@dungeonmaster/shared/contracts';
 import type { ContentText, PackageName } from '@dungeonmaster/shared/contracts';
@@ -172,7 +172,6 @@ export const ruleBinProgramSpawnBanBroker = (): EslintRule => ({
             commandNode: objectPropertyValueTransformer({ properties, name: 'command' }),
             argsNode: objectPropertyValueTransformer({ properties, name: 'args' }),
             moduleBody,
-            scope,
           });
           return;
         }
@@ -209,7 +208,7 @@ export const ruleBinProgramSpawnBanBroker = (): EslintRule => ({
         )
           ? undefined
           : secondArg;
-        reportBinProgramSpawnLayerBroker({ ctx, node, commandNode, argsNode, moduleBody, scope });
+        reportBinProgramSpawnLayerBroker({ ctx, node, commandNode, argsNode, moduleBody });
       },
     };
   },

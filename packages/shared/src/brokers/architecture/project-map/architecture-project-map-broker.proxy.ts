@@ -1,4 +1,3 @@
-import type { Dirent } from 'fs';
 import { architecturePackageTypeDetectBrokerProxy } from '../package-type-detect/architecture-package-type-detect-broker.proxy';
 import { packageSectionBuildLayerBrokerProxy } from './package-section-build-layer-broker.proxy';
 import { pointerFooterRenderLayerBrokerProxy } from './pointer-footer-render-layer-broker.proxy';
@@ -7,20 +6,6 @@ import { ContentTextStub } from '../../../contracts/content-text/content-text.st
 import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { projectMapStatics } from '../../../statics/project-map/project-map-statics';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-
-const makeDirent = ({ name, isDir }: { name: string; isDir: boolean }): Dirent =>
-  ({
-    name,
-    parentPath: '/stub',
-    path: '/stub',
-    isDirectory: () => isDir,
-    isFile: () => !isDir,
-    isBlockDevice: () => false,
-    isCharacterDevice: () => false,
-    isFIFO: () => false,
-    isSocket: () => false,
-    isSymbolicLink: () => false,
-  }) as Dirent;
 
 /**
  * All sub-proxies share the same underlying `readdirSync` and `readFileSync` staging — one
@@ -53,6 +38,15 @@ export const architectureProjectMapBrokerProxy = (): {
     projectRoot: AbsoluteFilePath;
     packageName: string;
   }) => void;
+  setupGatewayGroupPackage: ({
+    projectRoot,
+    groupName,
+    packageName,
+  }: {
+    projectRoot: AbsoluteFilePath;
+    groupName: string;
+    packageName: string;
+  }) => void;
   setupEmptyMonorepo: ({ projectRoot }: { projectRoot: AbsoluteFilePath }) => void;
 } => {
   const discoverProxy = discoverPackagesLayerBrokerProxy();
@@ -74,7 +68,7 @@ export const architectureProjectMapBrokerProxy = (): {
         dirPath: AbsoluteFilePathStub({
           value: `${String(projectRoot)}/${projectMapStatics.packagesDirName}`,
         }),
-        entries: [makeDirent({ name: packageName, isDir: true })],
+        entries: [{ name: packageName, isDirectory: true }],
       });
       typeDetectProxy.setupPackage({
         packageRoot: `/project/packages/${packageName}`,
@@ -98,7 +92,7 @@ export const architectureProjectMapBrokerProxy = (): {
         dirPath: AbsoluteFilePathStub({
           value: `${String(projectRoot)}/${projectMapStatics.packagesDirName}`,
         }),
-        entries: [makeDirent({ name: packageName, isDir: true })],
+        entries: [{ name: packageName, isDirectory: true }],
       });
       typeDetectProxy.setupPackage({
         packageRoot: `/project/packages/${packageName}`,
@@ -129,7 +123,41 @@ export const architectureProjectMapBrokerProxy = (): {
         dirPath: AbsoluteFilePathStub({
           value: `${String(projectRoot)}/${projectMapStatics.packagesDirName}`,
         }),
-        entries: [makeDirent({ name: packageName, isDir: true })],
+        entries: [{ name: packageName, isDirectory: true }],
+      });
+    },
+
+    setupGatewayGroupPackage: ({
+      projectRoot,
+      groupName,
+      packageName,
+    }: {
+      projectRoot: AbsoluteFilePath;
+      groupName: string;
+      packageName: string;
+    }): void => {
+      // The group folder itself (`@gateway`) is the only top-level entry `discoverPackagesLayerBroker`
+      // sees; its own second readdir call into that group is what surfaces `packageName` as a child,
+      // with a relativeDir the broker builds from BOTH segments — proven at that broker's own level
+      // by discover-packages-layer-broker.test.ts. This proxy stages both readdir calls so the
+      // composer's OWN test can assert the resulting section uses the bare child name.
+      const packagesDir = AbsoluteFilePathStub({
+        value: `${String(projectRoot)}/${projectMapStatics.packagesDirName}`,
+      });
+      discoverProxy.setupPackages({
+        dirPath: packagesDir,
+        entries: [{ name: groupName, isDirectory: true }],
+      });
+      discoverProxy.setupGroupFolder({
+        dirPath: packagesDir,
+        groupName,
+        entries: [{ name: packageName, isDirectory: true }],
+      });
+      typeDetectProxy.setupPackage({
+        packageRoot: `/project/packages/${groupName}/${packageName}`,
+        packageJsonContent: '{"exports":{".":{"import":"./dist/index.js"}}}',
+        srcDirNames: [],
+        adapterDirNames: [],
       });
     },
 

@@ -2,6 +2,12 @@
   "name": "@dungeonmaster/hydration",
   "version": "0.1.0",
   "description": "Hydration utilities for Dungeonmaster",
+  "imports": {
+    "#gateway/npm/*": "@dungeonmaster/npm/*",
+    "#gateway/node/*": "@dungeonmaster/node/*",
+    "#gateway/browser/*": "@dungeonmaster/browser/*",
+    "#gateway/bin/*": "@dungeonmaster/bin/*"
+  },
   "exports": {
     "./statics": {
       "source": "./statics.ts",

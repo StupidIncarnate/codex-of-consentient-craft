@@ -15,7 +15,7 @@
  * // unsubscribe() stops further notifications for that listener
  */
 
-import { keys, readItem, removeItem, writeItem } from '@dungeonmaster/browser/localStorage';
+import { keys, readItem, removeItem, writeItem } from '#gateway/browser/localStorage';
 import { questIdContract } from '@dungeonmaster/shared/contracts';
 import type { QuestId } from '@dungeonmaster/shared/contracts';
 

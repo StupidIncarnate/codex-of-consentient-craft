@@ -1,6 +1,6 @@
 import { createServer, type Server } from 'net';
-import { currentBranchProxy } from '@dungeonmaster/bin/testing';
-import { cwdProxy } from '@dungeonmaster/node/testing';
+import { currentBranchProxy } from '#gateway/bin/_test_';
+import { cwdProxy } from '@dungeonmaster/node/_test_';
 import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { fsMkdirAdapterProxy, netFreePortPairAdapterProxy } from '@dungeonmaster/shared/testing';
 import type { FilePath, NetworkPort } from '@dungeonmaster/shared/contracts';

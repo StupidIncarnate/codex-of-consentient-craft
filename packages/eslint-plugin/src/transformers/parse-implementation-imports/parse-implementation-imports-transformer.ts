@@ -48,13 +48,21 @@ export const parseImplementationImportsTransformer = ({
     const [, namedImports, defaultImport, importPath] = match;
 
     // Handle gateway package imports at ANY depth (e.g. '@scope/node/fs/promises',
-    // '@scope/npm/zod', '@scope/npm/@playwright/test'). A gateway subpath's own folder segment
-    // (npm/node/browser/bin) is never a member of folderConfigStatics, so the folder-type
-    // matcher below never recognizes it — this is a separate, depth-agnostic match keyed on
-    // gatewayLocationsStatics instead, checked first so a 3-segment gateway import
-    // (`@scope/npm/zod`) is caught here rather than falling into the folder-type matcher and
-    // being silently dropped for having an unrecognized "folder type".
-    const gatewayMatch = importPath?.match(/^@[\w-]+\/([\w-]+)(?:\/.+)?$/u);
+    // '@scope/npm/zod', '@scope/npm/@playwright/test', or the '#gateway/...' import-alias form
+    // every consumer repo resolves identically via gatewayLocationsStatics.importPrefix). A
+    // gateway subpath's own folder segment (npm/node/browser/bin) is never a member of
+    // folderConfigStatics, so the folder-type matcher below never recognizes it — this is a
+    // separate, depth-agnostic match keyed on gatewayLocationsStatics instead, checked first so a
+    // 3-segment gateway import (`@scope/npm/zod`) is caught here rather than falling into the
+    // folder-type matcher and being silently dropped for having an unrecognized "folder type".
+    // The alternation's second branch is `importPrefix` verbatim, not a scope pattern — it holds
+    // no regex metacharacters ('#gateway'), so no escaping is needed before it goes into `RegExp`.
+    const gatewayMatch = importPath?.match(
+      new RegExp(
+        `^(?:@[\\w-]+|${gatewayLocationsStatics.importPrefix})\\/([\\w-]+)(?:\\/.+)?$`,
+        'u',
+      ),
+    );
     const gatewayFolderSegment = gatewayMatch?.[1];
     if (
       gatewayFolderSegment !== undefined &&

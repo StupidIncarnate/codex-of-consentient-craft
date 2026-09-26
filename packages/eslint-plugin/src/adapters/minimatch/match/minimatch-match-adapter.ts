@@ -6,7 +6,7 @@
  * const matched = minimatchMatchAdapter({ filePath: 'src/startup/start-install.ts', pattern: '**\/src\/startup\/start-install.ts' });
  * // Returns true if the path matches the glob, false otherwise
  */
-import { minimatch } from 'minimatch';
+import { minimatch } from '#gateway/npm/minimatch';
 
 export const minimatchMatchAdapter = ({
   filePath,

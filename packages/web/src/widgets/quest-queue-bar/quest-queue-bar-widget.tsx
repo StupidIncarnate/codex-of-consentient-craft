@@ -8,7 +8,7 @@
 
 import { Group, Stack, Text, UnstyledButton } from '@mantine/core';
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from '#gateway/npm/react-router-dom';
 
 import { arrayIndexContract, totalCountContract } from '@dungeonmaster/shared/contracts';
 

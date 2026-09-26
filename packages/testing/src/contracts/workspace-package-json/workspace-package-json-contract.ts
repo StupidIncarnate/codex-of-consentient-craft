@@ -1,9 +1,14 @@
 /**
  * PURPOSE: Validates a package.json this repo's own `packages/*` walk reads off disk — either the
  * workspaces ROOT (its `workspaces` field marks it as such) or one sibling workspace package (its
- * `name` + `exports` map). importPathResolverMiddleware uses both shapes to resolve a cross-package
- * subpath import (`@dungeonmaster/bin/testing`) back to the exporting package's `source` file, the
- * same way Node's own `exports` condition would — without that package needing a build first.
+ * `name` + `exports` map, and optionally its own `imports` map). importPathResolverMiddleware uses
+ * the `exports` shape to resolve a cross-package subpath import (`@dungeonmaster/bin/testing`) back
+ * to the exporting package's `source` file, the same way Node's own `exports` condition would —
+ * without that package needing a build first. packageImportsSpecifierResolveMiddleware reads the
+ * IMPORTING package's own `imports` map the same way, to resolve a `#`-specifier
+ * (`#gateway/npm/_test_`) to its target before that target is itself resolved through `exports`.
+ * An `imports` map entry is either a bare target specifier or a conditions object — Node's own
+ * `imports` field allows both shapes, same as `exports`.
  *
  * USAGE:
  * workspacePackageJsonContract.safeParse({ name: 'dungeonmaster', workspaces: ['packages/*'] });
@@ -11,17 +16,36 @@
  *   name: '@dungeonmaster/bin',
  *   exports: { './testing': { source: './src/testing/index.ts' } },
  * });
- * // Both return { success: true, data: {...} }
+ * workspacePackageJsonContract.safeParse({
+ *   name: '@dungeonmaster/mcp',
+ *   imports: { '#gateway/npm/*': '@dungeonmaster/npm/*' },
+ * });
+ * // All return { success: true, data: {...} }
  */
 
 import { z } from 'zod';
 import { workspacePackageExportSourcePathContract } from '../workspace-package-export-source-path/workspace-package-export-source-path-contract';
+import { importPathContract } from '../import-path/import-path-contract';
 
 // Keys stay unbranded: they are structural export-map path segments ('./testing', './*'), matched
 // and indexed by plain-string subpaths rather than exchanged as a domain value.
 const workspacePackageExportEntryContract = z
   .object({
     source: workspacePackageExportSourcePathContract.optional(),
+  })
+  .passthrough();
+
+// An `imports` map value's target is itself an import specifier ('@dungeonmaster/npm/*'), so it
+// reuses `ImportPath` rather than the file-path-shaped `WorkspacePackageExportSourcePath` — unlike
+// an `exports` entry's `source`, this string is fed straight back into
+// workspacePackageImportResolveMiddleware as another specifier to resolve, not joined onto a
+// package directory as a relative file path.
+const workspacePackageImportConditionsContract = z
+  .object({
+    source: importPathContract.optional(),
+    import: importPathContract.optional(),
+    require: importPathContract.optional(),
+    default: importPathContract.optional(),
   })
   .passthrough();
 
@@ -36,6 +60,12 @@ export const workspacePackageJsonContract = z
       .optional(),
     exports: z
       .record(z.string().brand<'WorkspacePackageExportKey'>(), workspacePackageExportEntryContract)
+      .optional(),
+    imports: z
+      .record(
+        z.string().brand<'WorkspacePackageImportKey'>(),
+        z.union([importPathContract, workspacePackageImportConditionsContract]),
+      )
       .optional(),
   })
   .passthrough();

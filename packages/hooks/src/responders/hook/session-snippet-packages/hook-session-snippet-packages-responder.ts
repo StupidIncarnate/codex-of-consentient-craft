@@ -18,6 +18,11 @@ import type { AbsoluteFilePath, ContentText, PackageName } from '@dungeonmaster/
 
 const SINGLE_ROOT_FALLBACK_PACKAGE_NAME = 'root';
 
+// A directory directly under `packages/` whose name starts with `@` is a scope/group folder, not
+// a package itself — mirrors `node_modules/@scope/name` — so its own children are listed here
+// instead, never the group.
+const GROUP_FOLDER_PREFIX = '@';
+
 export const HookSessionSnippetPackagesResponder = ({
   projectRoot = absoluteFilePathContract.parse(processCwdAdapter()),
 }: {
@@ -27,10 +32,28 @@ export const HookSessionSnippetPackagesResponder = ({
 
   let packages: PackageName[] = [packageNameContract.parse(SINGLE_ROOT_FALLBACK_PACKAGE_NAME)];
   try {
+    const topLevelEntries = fsReaddirWithTypesAdapter({ dirPath: packagesDir }).filter((entry) =>
+      entry.isDirectory(),
+    );
+
+    const groupChildNames = topLevelEntries
+      .filter((entry) => entry.name.startsWith(GROUP_FOLDER_PREFIX))
+      .flatMap((group) =>
+        fsReaddirWithTypesAdapter({
+          dirPath: absoluteFilePathContract.parse(`${String(packagesDir)}/${group.name}`),
+        })
+          .filter((child) => child.isDirectory())
+          .map((child) => child.name),
+      );
+
+    const names = topLevelEntries
+      .filter((entry) => !entry.name.startsWith(GROUP_FOLDER_PREFIX))
+      .map((entry) => entry.name)
+      .concat(groupChildNames);
+
     // readdir order is filesystem-dependent, so sort here or the snippet reshuffles between machines.
-    const dirs = fsReaddirWithTypesAdapter({ dirPath: packagesDir })
-      .filter((entry) => entry.isDirectory())
-      .map((entry) => packageNameContract.parse(entry.name))
+    const dirs = names
+      .map((name) => packageNameContract.parse(name))
       .sort((a, b) => String(a).localeCompare(String(b)));
     if (dirs.length > 0) {
       packages = dirs;

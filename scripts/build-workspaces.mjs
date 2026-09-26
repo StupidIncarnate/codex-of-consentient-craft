@@ -27,6 +27,7 @@
 import { spawnSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync, rmdirSync, unlinkSync } from 'node:fs';
 import { join, relative, resolve, sep } from 'node:path';
+import { listWorkspacePackageDirs } from './workspace-package-dirs.mjs';
 
 const PACKAGES_DIR = 'packages';
 const SCOPE = '@dungeonmaster/';
@@ -288,12 +289,8 @@ const reportPrune = ({ name, dirName }) => {
 const readManifests = () => {
   const manifests = new Map();
 
-  for (const dir of readdirSync(PACKAGES_DIR, { withFileTypes: true })) {
-    if (!dir.isDirectory()) {
-      continue;
-    }
-
-    const manifestPath = join(PACKAGES_DIR, dir.name, 'package.json');
+  for (const dirName of listWorkspacePackageDirs({ packagesDir: PACKAGES_DIR })) {
+    const manifestPath = join(PACKAGES_DIR, dirName, 'package.json');
     let raw;
     try {
       raw = readFileSync(manifestPath, 'utf8');
@@ -303,7 +300,7 @@ const readManifests = () => {
 
     const manifest = JSON.parse(raw);
     manifests.set(manifest.name, {
-      dir: dir.name,
+      dir: dirName,
       hasBuild: Boolean(manifest.scripts?.build),
       deps: Object.keys({
         ...manifest.dependencies,

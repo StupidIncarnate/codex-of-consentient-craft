@@ -3,7 +3,7 @@ import { isGatewayFileGuard } from './is-gateway-file-guard';
 describe('isGatewayFileGuard', () => {
   it('VALID: {filename: a gateway implementation file} => returns true', () => {
     const result = isGatewayFileGuard({
-      filename: '/repo/packages/node/src/fs/read-file-sync.ts',
+      filename: '/repo/packages/@gateway/node/src/fs/read-file-sync.ts',
     });
 
     expect(result).toBe(true);
@@ -11,7 +11,7 @@ describe('isGatewayFileGuard', () => {
 
   it('VALID: {filename: a gateway test file} => returns true', () => {
     const result = isGatewayFileGuard({
-      filename: '/repo/packages/node/src/fs/read-file-sync.test.ts',
+      filename: '/repo/packages/@gateway/node/src/fs/read-file-sync.test.ts',
     });
 
     expect(result).toBe(true);
@@ -19,7 +19,7 @@ describe('isGatewayFileGuard', () => {
 
   it('VALID: {filename: a relative gateway path} => returns true', () => {
     const result = isGatewayFileGuard({
-      filename: 'packages/bin/src/git/current-branch.test.ts',
+      filename: 'packages/@gateway/bin/src/git/current-branch.test.ts',
     });
 
     expect(result).toBe(true);

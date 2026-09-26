@@ -2,6 +2,12 @@
   "name": "@dungeonmaster/cli",
   "version": "0.1.0",
   "description": "CLI for Dungeonmaster quest management",
+  "imports": {
+    "#gateway/npm/*": "@dungeonmaster/npm/*",
+    "#gateway/node/*": "@dungeonmaster/node/*",
+    "#gateway/browser/*": "@dungeonmaster/browser/*",
+    "#gateway/bin/*": "@dungeonmaster/bin/*"
+  },
   "main": "dist/src/startup/start-cli.js",
   "types": "dist/src/startup/start-cli.d.ts",
   "exports": {

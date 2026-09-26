@@ -16,8 +16,8 @@ const REPO_ROOT = DIR_SEGMENTS.slice(0, -6).join('/');
 // 3 segments up is packages/eslint-plugin/src
 const NODE_PACKAGE_FILE = `${DIR_SEGMENTS.slice(0, -3).join('/')}/index.ts`;
 const BROWSER_PACKAGE_FILE = `${REPO_ROOT}/packages/web/src/main.ts`;
-const GATEWAY_NODE_FILE = `${REPO_ROOT}/packages/node/src/process/index.ts`;
-const GATEWAY_BROWSER_FILE = `${REPO_ROOT}/packages/browser/src/fetch/index.ts`;
+const GATEWAY_NODE_FILE = `${REPO_ROOT}/packages/@gateway/node/src/process/index.ts`;
+const GATEWAY_BROWSER_FILE = `${REPO_ROOT}/packages/@gateway/browser/src/fetch/index.ts`;
 
 const ruleTester = eslintTypedRuleTesterAdapter();
 
@@ -61,7 +61,7 @@ ruleTester.run('platform-globals-ban', rulePlatformGlobalsBanBroker(), {
       errors: [
         {
           messageId: 'platformGlobal',
-          data: { name: 'process', gatewayPath: '@dungeonmaster/node/process' },
+          data: { name: 'process', gatewayPath: '#gateway/node/process' },
         },
       ],
     },
@@ -72,7 +72,7 @@ ruleTester.run('platform-globals-ban', rulePlatformGlobalsBanBroker(), {
       errors: [
         {
           messageId: 'platformGlobal',
-          data: { name: 'fetch', gatewayPath: '@dungeonmaster/browser/fetch' },
+          data: { name: 'fetch', gatewayPath: '#gateway/browser/fetch' },
         },
       ],
     },
@@ -83,7 +83,7 @@ ruleTester.run('platform-globals-ban', rulePlatformGlobalsBanBroker(), {
       errors: [
         {
           messageId: 'platformGlobal',
-          data: { name: 'fetch', gatewayPath: '@dungeonmaster/browser/fetch' },
+          data: { name: 'fetch', gatewayPath: '#gateway/browser/fetch' },
         },
       ],
     },
@@ -94,30 +94,33 @@ ruleTester.run('platform-globals-ban', rulePlatformGlobalsBanBroker(), {
       errors: [
         {
           messageId: 'platformGlobal',
-          data: { name: 'crypto', gatewayPath: '@dungeonmaster/browser/crypto' },
+          data: { name: 'crypto', gatewayPath: '#gateway/browser/crypto' },
         },
       ],
     },
     {
-      // bare setTimeout, no globalThis. prefix
+      // bare setTimeout, no globalThis. prefix — 'settimeout' is not a Node builtin, so the
+      // subpath keeps its camelCase spelling rather than falling back to a lowercase module name
       code: 'setTimeout((): void => undefined, 0);',
       filename: NODE_PACKAGE_FILE,
       errors: [
         {
           messageId: 'platformGlobal',
-          data: { name: 'setTimeout', gatewayPath: '@dungeonmaster/node/setTimeout' },
+          data: { name: 'setTimeout', gatewayPath: '#gateway/node/setTimeout' },
         },
       ],
     },
     {
       // Buffer used as a VALUE (not a type) IS flagged — proves the AST-position guard
-      // discriminates a value use from the exempt type-position case above
+      // discriminates a value use from the exempt type-position case above. The suggested
+      // subpath is the lowercase 'buffer' — the real Node builtin module name — not the
+      // capitalized 'Buffer' class identifier written in the source.
       code: 'Buffer.from("x");',
       filename: NODE_PACKAGE_FILE,
       errors: [
         {
           messageId: 'platformGlobal',
-          data: { name: 'Buffer', gatewayPath: '@dungeonmaster/node/Buffer' },
+          data: { name: 'Buffer', gatewayPath: '#gateway/node/buffer' },
         },
       ],
     },

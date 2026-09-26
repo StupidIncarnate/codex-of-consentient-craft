@@ -3,6 +3,12 @@
   "version": "0.0.0",
   "private": true,
   "description": "Private ESLint plugin for the dungeonmaster monorepo itself (never shipped to consumers). Houses repo-local lint rules that only make sense inside this codebase.",
+  "imports": {
+    "#gateway/npm/*": "@dungeonmaster/npm/*",
+    "#gateway/node/*": "@dungeonmaster/node/*",
+    "#gateway/browser/*": "@dungeonmaster/browser/*",
+    "#gateway/bin/*": "@dungeonmaster/bin/*"
+  },
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
   "exports": {

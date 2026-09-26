@@ -227,10 +227,37 @@ describe('instanceReserveBroker', () => {
     });
   });
 
-  describe('git failure', () => {
-    it('ERROR: {git rev-parse fails} => the reservation rejects with the git failure', async () => {
+  describe('not inside a git repository', () => {
+    it('VALID: {git rev-parse fails with "not a git repository"} => reserves the instance with a null branch', async () => {
       const proxy = instanceReserveBrokerProxy();
       proxy.setupBranchFailure({ exitCode: 128, output: 'fatal: not a git repository' });
+      proxy.setupRegistry({ json: JSON.stringify(RegistryStub({ instances: [] })) });
+      proxy.setupEvidenceDir({
+        homeDir: HOME_DIR,
+        homePath: HOME_PATH,
+        rootPath: ROOT_PATH,
+        evidencePath: UNOWNED_EVIDENCE_PATH,
+      });
+      proxy.setupPortCandidates({ pairs: freePairs(instanceLifecycleStatics.ports.claimAttempts) });
+
+      const result = await instanceReserveBroker({
+        specName: SpecNameStub(),
+        specHash: SpecHashStub(),
+        questId: null,
+        guildId: null,
+      });
+
+      expect(result.branch).toBe(null);
+    });
+  });
+
+  describe('git failure', () => {
+    it('ERROR: {git rev-parse fails for a reason other than "not a git repository"} => the reservation rejects with the git failure', async () => {
+      const proxy = instanceReserveBrokerProxy();
+      proxy.setupBranchFailure({
+        exitCode: 128,
+        output: 'fatal: detected dubious ownership in repository',
+      });
       proxy.setupPortCandidates({ pairs: freePairs(instanceLifecycleStatics.ports.claimAttempts) });
 
       await expect(
@@ -242,7 +269,7 @@ describe('instanceReserveBroker', () => {
         }),
       ).rejects.toStrictEqual(
         new Error(
-          `git rev-parse --abbrev-ref HEAD failed in ${process.cwd()} with exit code 128: fatal: not a git repository`,
+          `git rev-parse --abbrev-ref HEAD failed in ${process.cwd()} with exit code 128: fatal: detected dubious ownership in repository`,
         ),
       );
     });

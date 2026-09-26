@@ -39,6 +39,30 @@ describe('pathToTreeRelativeTransformer', () => {
     });
   });
 
+  describe('@-scoped group folder paths (gateway packages)', () => {
+    it('VALID: {absolute path under packages/@gateway/npm/src/} => prepends the real package name, not the group, strips through src/', () => {
+      const filepath = PathSegmentStub({
+        value: '/home/user/repo/packages/@gateway/npm/src/glob/glob-adapter.ts',
+      });
+
+      const result = pathToTreeRelativeTransformer({ filepath });
+
+      expect(result).toBe('npm/glob/glob-adapter.ts');
+    });
+
+    it('VALID: {two gateway packages, same sub-path} => two distinct roots, neither named after the group', () => {
+      const npmPath = PathSegmentStub({
+        value: 'packages/@gateway/npm/src/glob/index.ts',
+      });
+      const nodePath = PathSegmentStub({
+        value: 'packages/@gateway/node/src/glob/index.ts',
+      });
+
+      expect(pathToTreeRelativeTransformer({ filepath: npmPath })).toBe('npm/glob/index.ts');
+      expect(pathToTreeRelativeTransformer({ filepath: nodePath })).toBe('node/glob/index.ts');
+    });
+  });
+
   describe('single-package repo paths', () => {
     it('VALID: {project with src/ only} => strips through src/, no package prefix', () => {
       const filepath = PathSegmentStub({

@@ -6,7 +6,7 @@
  * // Returns: 'codeweaver' as AgentRole
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { agentPromptClassificationStatics } from '../../statics/agent-prompt-classification/agent-prompt-classification-statics';
 

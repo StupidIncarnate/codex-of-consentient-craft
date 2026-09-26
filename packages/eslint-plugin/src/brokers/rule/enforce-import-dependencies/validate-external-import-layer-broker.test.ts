@@ -97,6 +97,42 @@ describe('validateExternalImportLayerBroker', () => {
       expect(mockReport.mock.calls).toStrictEqual([]);
     });
 
+    it('VALID: {#gateway subpath import, from a folder type that cannot import node_modules} => returns true, no report', () => {
+      validateExternalImportLayerBrokerProxy();
+      const mockReport = jest.fn();
+      const context = EslintContextStub({ report: mockReport });
+      const node = TsestreeStub({ type: TsestreeNodeType.ImportDeclaration });
+
+      const result = validateExternalImportLayerBroker({
+        node,
+        context,
+        folderType: FolderTypeStub({ value: 'contracts' }),
+        allowedImports: folderConfigStatics.contracts.allowedImports,
+        importSource: '#gateway/npm/glob',
+      });
+
+      expect(result).toBe(true);
+      expect(mockReport.mock.calls).toStrictEqual([]);
+    });
+
+    it('VALID: {bare #gateway package import, no subpath} => returns true, no report', () => {
+      validateExternalImportLayerBrokerProxy();
+      const mockReport = jest.fn();
+      const context = EslintContextStub({ report: mockReport });
+      const node = TsestreeStub({ type: TsestreeNodeType.ImportDeclaration });
+
+      const result = validateExternalImportLayerBroker({
+        node,
+        context,
+        folderType: FolderTypeStub({ value: 'contracts' }),
+        allowedImports: folderConfigStatics.contracts.allowedImports,
+        importSource: '#gateway/npm',
+      });
+
+      expect(result).toBe(true);
+      expect(mockReport.mock.calls).toStrictEqual([]);
+    });
+
     it('VALID: {bare external package in a node_modules folder} => returns true, no report', () => {
       validateExternalImportLayerBrokerProxy();
       const mockReport = jest.fn();

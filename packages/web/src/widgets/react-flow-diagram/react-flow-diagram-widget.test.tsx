@@ -1,5 +1,5 @@
-import { screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { screen, waitFor } from '#gateway/npm/@testing-library/react';
+import userEvent from '#gateway/npm/@testing-library/user-event';
 
 import {
   FlowEdgeStub,

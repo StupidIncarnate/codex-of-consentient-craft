@@ -73,6 +73,28 @@ describe('isNpmPackageGuard', () => {
     });
   });
 
+  describe('valid - #gateway import-alias exception', () => {
+    it('VALID: {importSource: "#gateway/node/fs"} => returns true', () => {
+      expect(isNpmPackageGuard({ importSource: '#gateway/node/fs' })).toBe(true);
+    });
+
+    it('VALID: {importSource: "#gateway/npm/zod"} => returns true', () => {
+      expect(isNpmPackageGuard({ importSource: '#gateway/npm/zod' })).toBe(true);
+    });
+
+    it('VALID: {importSource: "#gateway/browser/fetch"} => returns true', () => {
+      expect(isNpmPackageGuard({ importSource: '#gateway/browser/fetch' })).toBe(true);
+    });
+
+    it('VALID: {importSource: "#gateway/bin/git"} => returns true', () => {
+      expect(isNpmPackageGuard({ importSource: '#gateway/bin/git' })).toBe(true);
+    });
+
+    it('INVALID: {importSource: "#gateway/nonexistent/thing"} => returns false', () => {
+      expect(isNpmPackageGuard({ importSource: '#gateway/nonexistent/thing' })).toBe(false);
+    });
+  });
+
   describe('invalid - relative paths', () => {
     it('INVALID: {importSource: "./foo"} => returns false', () => {
       expect(isNpmPackageGuard({ importSource: './foo' })).toBe(false);

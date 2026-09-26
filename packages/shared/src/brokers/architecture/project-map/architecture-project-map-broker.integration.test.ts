@@ -19,9 +19,9 @@ const projectRoot = AbsoluteFilePathStub({
   value: cwd.slice(0, cwd.lastIndexOf('/packages/')),
 });
 const packagesPath = AbsoluteFilePathStub({ value: `${projectRoot}/packages` });
-const allPackages = discoverPackagesLayerBroker({ dirPath: packagesPath })
-  .filter((entry) => entry.isDirectory())
-  .map((entry) => PackageNameStub({ value: entry.name }));
+const allPackages = discoverPackagesLayerBroker({ dirPath: packagesPath }).map((entry) =>
+  PackageNameStub({ value: entry.name }),
+);
 
 // One whole-monorepo scan, awaited by every all-packages test below. The scan walks each
 // package's source tree and re-reads a given source file once per import edge into it — ~5s
@@ -84,7 +84,19 @@ describe('architectureProjectMapBroker (integration with real monorepo)', () => 
     const urlBlockIdx = lines.findIndex((l) => l.startsWith('**URL pairing convention**'));
     const after = lines.slice(urlBlockIdx + 1, urlBlockIdx + 5);
 
-    expect(after).toStrictEqual(['', '---', '', '# cli [cli-tool]']);
+    // 'bin' is one of the gateway packages under packages/@gateway/ — discovered by its own bare
+    // name, it sorts alphabetically before every other package, 'cli' included.
+    expect(after).toStrictEqual(['', '---', '', '# bin [library]']);
+  });
+
+  it('VALID: {real monorepo, packages: [all]} => discovers every gateway package by its bare name, and never lists @gateway itself', async () => {
+    const lines = String(await allPackagesMap).split('\n');
+
+    expect(lines.some((l) => l.startsWith('# bin ['))).toBe(true);
+    expect(lines.some((l) => l.startsWith('# browser ['))).toBe(true);
+    expect(lines.some((l) => l.startsWith('# node ['))).toBe(true);
+    expect(lines.some((l) => l.startsWith('# npm ['))).toBe(true);
+    expect(lines.some((l) => l.startsWith('# @gateway'))).toBe(false);
   });
 
   it('VALID: {real monorepo, packages: [all]} => emits pointer footer at the end with no EDGES section', async () => {

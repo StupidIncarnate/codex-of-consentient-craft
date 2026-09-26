@@ -2,6 +2,12 @@
   "name": "@dungeonmaster/hooks",
   "version": "0.1.0",
   "description": "Claude hooks for dungeonmaster - sanitization and process escape handling",
+  "imports": {
+    "#gateway/npm/*": "@dungeonmaster/npm/*",
+    "#gateway/node/*": "@dungeonmaster/node/*",
+    "#gateway/browser/*": "@dungeonmaster/browser/*",
+    "#gateway/bin/*": "@dungeonmaster/bin/*"
+  },
   "bin": {
     "dungeonmaster-pre-edit-lint": "./dist/src/startup/start-pre-edit-hook.js",
     "dungeonmaster-pre-bash": "./dist/src/startup/start-pre-bash-hook.js",
@@ -48,6 +54,7 @@
   },
   "dependencies": {
     "@dungeonmaster/node": "*",
+    "@dungeonmaster/npm": "*",
     "@dungeonmaster/shared": "*",
     "debug": "^4.4.1",
     "zod": "^3.25.76"

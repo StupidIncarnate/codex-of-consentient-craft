@@ -2,6 +2,12 @@
   "name": "@dungeonmaster/eslint-plugin",
   "version": "0.1.0",
   "description": "ESLint plugin enforcing Dungeonmaster architecture standards with custom rules for Zod contracts, folder structure, and type safety",
+  "imports": {
+    "#gateway/npm/*": "@dungeonmaster/npm/*",
+    "#gateway/node/*": "@dungeonmaster/node/*",
+    "#gateway/browser/*": "@dungeonmaster/browser/*",
+    "#gateway/bin/*": "@dungeonmaster/bin/*"
+  },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -49,6 +55,7 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
+    "@dungeonmaster/npm": "*",
     "@dungeonmaster/shared": "*",
     "minimatch": "^9.0.5",
     "zod": "^3.25.76"
