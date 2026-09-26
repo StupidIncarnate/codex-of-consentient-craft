@@ -16,7 +16,10 @@ import {
 import { eslintRuleStatics } from '../../../statics/eslint-rule/eslint-rule-statics';
 import { typescriptEslintRuleStatics } from '../../../statics/typescript-eslint-rule/typescript-eslint-rule-statics';
 import { jestRuleStatics } from '../../../statics/jest-rule/jest-rule-statics';
-import { dungeonmasterRuleEnforceOnStatics } from '@dungeonmaster/shared/statics';
+import {
+  dungeonmasterRuleEnforceOnStatics,
+  gatewayLocationsStatics,
+} from '@dungeonmaster/shared/statics';
 import { typescriptEslintEslintPluginLoadAdapter } from '../../../adapters/typescript-eslint-eslint-plugin/load/typescript-eslint-eslint-plugin-load-adapter';
 import { eslintPluginJestLoadAdapter } from '../../../adapters/eslint-plugin-jest/load/eslint-plugin-jest-load-adapter';
 import { eslintPluginEslintCommentsLoadAdapter } from '../../../adapters/eslint-plugin-eslint-comments/load/eslint-plugin-eslint-comments-load-adapter';
@@ -35,6 +38,7 @@ export const configDungeonmasterBroker = ({
 } = {}): {
   typescript: EslintConfig;
   test: EslintConfig;
+  gateway: EslintConfig;
   fileOverrides: EslintConfig[];
   ruleEnforceOn: typeof dungeonmasterRuleEnforceOnStatics;
 } => {
@@ -141,6 +145,13 @@ export const configDungeonmasterBroker = ({
     '@dungeonmaster/ban-anonymous-jsx-in-map': 'error',
     '@dungeonmaster/ban-dom-handles-in-ingredients': 'error',
     '@dungeonmaster/ban-nondeterminism-in-ingredients': 'error',
+    // Ready — measured against every non-gateway package in scrolls/gateway-build/lint-measurements.md
+    // — and turns on once callers migrate (migration order step 3 in scrolls/adapters-to-one-place.md).
+    // '@dungeonmaster/raw-import-ban': 'error',
+    // Ready — same measurement, same migration-order step 3 gate as raw-import-ban above.
+    // '@dungeonmaster/platform-globals-ban': 'error',
+    // Ready — same measurement, same migration-order step 3 gate as raw-import-ban above.
+    // '@dungeonmaster/bin-program-spawn-ban': 'error',
     // Disable @typescript-eslint/no-require-imports (replaced by require-contract-validation)
     '@typescript-eslint/no-require-imports': 'off',
     /**
@@ -174,6 +185,54 @@ export const configDungeonmasterBroker = ({
     rules: {
       ...mergedConfig.rules,
       ...(dungeonmasterCustomRules as unknown as DeepWritable<typeof dungeonmasterCustomRules>),
+    },
+  });
+
+  // The gateway carve-out (packages/{npm,node,browser,bin}/src/**): a re-scoped, POSITIVE rule
+  // set, never a `rules: {…: 'off'}` overlay. Built by OMITTING, from dungeonmasterCustomRules,
+  // only the handful whose model cannot fit the gateway's shape at all — see
+  // scrolls/gateway-build/lint-plan.md, "Decisions made while building", for the one-line reason
+  // behind each omission. Every other rule — the file header, no silent catch, the
+  // typescript-eslint set, forbid-type-reexport, and everything else — still applies unchanged.
+  //
+  // ban-primitives and enforce-stub-usage are NOT in this list even though the gateway
+  // structurally can't satisfy either: the TEST rule block (dungeonmasterCustomRules shared with
+  // testConfig) is not carved out by file glob, so a gateway `.test.ts` still needs each rule to
+  // recognize the gateway on its own — each rule's own file-gate calls isGatewayFileGuard
+  // directly, covering implementation AND test with one mechanism, so the config-level omission
+  // here would be redundant for those two.
+  const {
+    '@dungeonmaster/enforce-project-structure': _gatewayOmitEnforceProjectStructure,
+    '@dungeonmaster/enforce-object-destructuring-params':
+      _gatewayOmitEnforceObjectDestructuringParams,
+    '@dungeonmaster/enforce-proxy-child-creation': _gatewayOmitEnforceProxyChildCreation,
+    '@dungeonmaster/enforce-stub-patterns': _gatewayOmitEnforceStubPatterns,
+    '@dungeonmaster/ban-adhoc-types': _gatewayOmitBanAdhocTypes,
+    ...gatewayCustomRules
+  } = dungeonmasterCustomRules;
+
+  // ESLint's own flat-config resolver treats a `files` entry ending in bare `/**` (or `/*`) as
+  // a "universal" pattern: such a config only applies to a file when ANOTHER matching config
+  // also has an extension-specific pattern for it — otherwise the file resolves to NO config at
+  // all (silently unlintable), the same trap `ignores` on the main TS block hits if the gateway
+  // block that is meant to pick the file back up is itself bare `/**`. Appending `/*.ts` keeps
+  // the same directories while giving ESLint a concrete extension to match on.
+  const gatewayFiles = gatewayLocationsStatics.packageGlobs.map((glob) => `${glob}/*.ts`);
+
+  const gatewayConfig: EslintConfig = eslintConfigContract.parse({
+    files: gatewayFiles,
+    plugins: {
+      ...mergedConfig.plugins,
+      'eslint-comments': eslintPluginEslintCommentsLoadAdapter() as unknown,
+    },
+    rules: {
+      ...mergedConfig.rules,
+      ...(gatewayCustomRules as unknown as DeepWritable<typeof gatewayCustomRules>),
+      // Gateway shape rules: these guard the gateway's own layout and colocation, so they only
+      // ever apply inside this carve-out, never the main workspace block.
+      '@dungeonmaster/gateway-import-boundary': 'error',
+      '@dungeonmaster/gateway-colocation': 'error',
+      '@dungeonmaster/gateway-layout': 'error',
     },
   });
 
@@ -331,6 +390,7 @@ export const configDungeonmasterBroker = ({
   return {
     typescript: typescriptConfig,
     test: testConfig,
+    gateway: gatewayConfig,
     fileOverrides: [
       proxyOverrides,
       stubOverride,

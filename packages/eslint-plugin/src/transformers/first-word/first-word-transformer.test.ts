@@ -1,0 +1,34 @@
+import { firstWordTransformer } from './first-word-transformer';
+import { ContentTextStub } from '@dungeonmaster/shared/contracts';
+
+describe('firstWordTransformer', () => {
+  describe('single word', () => {
+    it('VALID: {text: "git"} => returns "git"', () => {
+      expect(firstWordTransformer({ text: ContentTextStub({ value: 'git' }) })).toBe('git');
+    });
+  });
+
+  describe('multiple words', () => {
+    it('VALID: {text: "git status"} => returns "git"', () => {
+      expect(firstWordTransformer({ text: ContentTextStub({ value: 'git status' }) })).toBe('git');
+    });
+
+    it('EDGE: {text: "git "} => returns "git", never a trailing space', () => {
+      expect(firstWordTransformer({ text: ContentTextStub({ value: 'git ' }) })).toBe('git');
+    });
+
+    it('EDGE: {text: "gitk"} => returns "gitk", never truncated to "git"', () => {
+      expect(firstWordTransformer({ text: ContentTextStub({ value: 'gitk' }) })).toBe('gitk');
+    });
+  });
+
+  describe('empty text', () => {
+    it('EMPTY: {text: ""} => returns undefined', () => {
+      expect(firstWordTransformer({ text: ContentTextStub({ value: '' }) })).toBe(undefined);
+    });
+
+    it('EMPTY: {text: "   "} => returns undefined', () => {
+      expect(firstWordTransformer({ text: ContentTextStub({ value: '   ' }) })).toBe(undefined);
+    });
+  });
+});

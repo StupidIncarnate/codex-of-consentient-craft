@@ -63,6 +63,17 @@ ruleTester.run('ban-primitives (default: strict)', ruleBanPrimitivesBroker(), {
       code: 'export type Config = { url: string; port: number; timeout: number; }',
       filename: 'src/@types/config.d.ts',
     },
+
+    // Gateway files (implementation and test) return the outside package's own plain values,
+    // never a branded contract
+    {
+      code: 'export const readFileSync = ({ path }: { path: string }): string => path;',
+      filename: '/repo/packages/node/src/fs/read-file-sync.ts',
+    },
+    {
+      code: 'const path: string = "/tmp/a.txt";',
+      filename: '/repo/packages/node/src/fs/read-file-sync.test.ts',
+    },
   ],
   invalid: [
     {

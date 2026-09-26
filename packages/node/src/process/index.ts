@@ -1,9 +1,9 @@
 /**
- * PURPOSE: Curated entry for the Node global `process`. `stdout`/`stderr` are exported as the raw
- * `Writable` objects, unchanged; `stdin` is guarded through `readStdinToEnd`; `env` reads go
- * through `getEnv`. Everything else here is a thin, un-added-to pass-through of a same-named
- * `process` member, each its own export so a raw-import lint rule has one name per call site to
- * catch.
+ * PURPOSE: Curated entry for the Node global `process`. Every export lives in its own
+ * colocated file with its own `.test.ts`/`.proxy.ts` — a global capture (`stdout`, `stderr`,
+ * `argv`, `pid`, `platform`, `execPath`) same as a real wrapper function (`cwd`, `exit`, `on`,
+ * `kill`, `getEnv`, `readStdinToEnd`, `getExitCode`, `setExitCode`) — so this file holds only
+ * re-exports, never an implementation of its own.
  *
  * USAGE:
  * import { stdout, getEnv, cwd, exit, kill } from '@dungeonmaster/node/process';
@@ -11,21 +11,15 @@
 
 export { readStdinToEnd } from './read-stdin-to-end';
 export { getEnv } from './get-env';
-
-export const { stdout } = process;
-export const { stderr } = process;
-export const { argv } = process;
-export const cwd = (): string => process.cwd();
-export const { pid } = process;
-export const exit = (code?: number): never => process.exit(code);
-export const { platform } = process;
-export const { execPath } = process;
-export const on = (signal: NodeJS.Signals, handler: () => void): NodeJS.Process =>
-  process.on(signal, handler);
-export const kill = (targetPid: number, signal?: NodeJS.Signals | number): true =>
-  process.kill(targetPid, signal);
-
-export const getExitCode = (): number | string | undefined => process.exitCode;
-export const setExitCode = (code: number | string | undefined): void => {
-  process.exitCode = code;
-};
+export { cwd } from './cwd';
+export { exit } from './exit';
+export { on } from './on';
+export { kill } from './kill';
+export { getExitCode } from './get-exit-code';
+export { setExitCode } from './set-exit-code';
+export { stdout } from './stdout';
+export { stderr } from './stderr';
+export { argv } from './argv';
+export { pid } from './pid';
+export { platform } from './platform';
+export { execPath } from './exec-path';

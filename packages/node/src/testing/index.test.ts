@@ -1,6 +1,7 @@
 import * as nodeTesting from './index';
 
 const SYNC_FS_PROXY_EXPORTS = [
+  ['isFsErrorProxy', nodeTesting.isFsErrorProxy],
   ['existsSyncProxy', nodeTesting.existsSyncProxy],
   ['readFileSyncProxy', nodeTesting.readFileSyncProxy],
   ['readFileSyncIfExistsProxy', nodeTesting.readFileSyncIfExistsProxy],
@@ -27,6 +28,12 @@ const CURATED_MODULE_PROXY_EXPORTS = [
   ['readStdinToEndProxy', nodeTesting.readStdinToEndProxy],
   ['getEnvProxy', nodeTesting.getEnvProxy],
   ['dynamicImportProxy', nodeTesting.dynamicImportProxy],
+  ['cwdProxy', nodeTesting.cwdProxy],
+  ['exitProxy', nodeTesting.exitProxy],
+  ['onProxy', nodeTesting.onProxy],
+  ['killProxy', nodeTesting.killProxy],
+  ['getExitCodeProxy', nodeTesting.getExitCodeProxy],
+  ['setExitCodeProxy', nodeTesting.setExitCodeProxy],
 ] as const;
 
 describe('@dungeonmaster/node/testing', () => {

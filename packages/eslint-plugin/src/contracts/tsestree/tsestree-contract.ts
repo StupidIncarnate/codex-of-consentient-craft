@@ -40,9 +40,11 @@ interface RecursiveNodeOutput {
   // CallExpression properties
   callee?: RecursiveNodeOutput | null | undefined;
   arguments?: (RecursiveNodeOutput | null)[] | undefined;
-  // MemberExpression properties
+  // MemberExpression properties — `computed` also applies to Property (an object literal's
+  // `{[x]: 1}` vs `{x: 1}`), so platform-globals-ban reads it on both node types
   object?: RecursiveNodeOutput | null | undefined;
   property?: RecursiveNodeOutput | null | undefined;
+  computed?: boolean | undefined;
   // Identifier properties
   name?: Identifier | undefined;
   // VariableDeclarator properties
@@ -143,6 +145,11 @@ interface RecursiveNodeOutput {
   alternate?: RecursiveNodeOutput | RecursiveNodeOutput[] | null | undefined;
   // Literal regex properties (ESLint AST stores /pattern/flags as {regex: {pattern, flags}})
   regex?: { pattern?: unknown; flags?: unknown } | undefined;
+  // TemplateLiteral properties — quasis are the static string segments (TemplateElement, whose
+  // own `value` is `{raw, cooked}`, carried through the existing untyped `value` field);
+  // expressions are the interpolated parts between them
+  quasis?: RecursiveNodeOutput[] | undefined;
+  expressions?: RecursiveNodeOutput[] | undefined;
 }
 
 // Input type (before parsing)
@@ -159,6 +166,7 @@ interface RecursiveNodeInput {
   // MemberExpression properties
   object?: RecursiveNodeInput | null | undefined;
   property?: RecursiveNodeInput | null | undefined;
+  computed?: boolean | undefined;
   // Identifier properties
   name?: Identifier | undefined;
   // VariableDeclarator properties
@@ -259,6 +267,9 @@ interface RecursiveNodeInput {
   alternate?: RecursiveNodeInput | RecursiveNodeInput[] | null | undefined;
   // Literal regex properties (ESLint AST stores /pattern/flags as {regex: {pattern, flags}})
   regex?: { pattern?: unknown; flags?: unknown } | undefined;
+  // TemplateLiteral properties
+  quasis?: RecursiveNodeInput[] | undefined;
+  expressions?: RecursiveNodeInput[] | undefined;
 }
 
 const recursiveBase: z.ZodType<RecursiveNodeOutput, z.ZodTypeDef, RecursiveNodeInput> = z.object({
@@ -295,6 +306,7 @@ const recursiveBase: z.ZodType<RecursiveNodeOutput, z.ZodTypeDef, RecursiveNodeI
     .lazy(() => recursiveBase)
     .nullable()
     .optional(),
+  computed: z.boolean().optional(),
   // Identifier properties
   name: identifierContract.optional(),
   // VariableDeclarator properties
@@ -466,6 +478,9 @@ const recursiveBase: z.ZodType<RecursiveNodeOutput, z.ZodTypeDef, RecursiveNodeI
     .optional(),
   // Literal regex properties
   regex: z.object({ pattern: z.unknown().optional(), flags: z.unknown().optional() }).optional(),
+  // TemplateLiteral properties
+  quasis: z.array(z.lazy(() => recursiveBase)).optional(),
+  expressions: z.array(z.lazy(() => recursiveBase)).optional(),
 }) as unknown as z.ZodType<RecursiveNodeOutput, z.ZodTypeDef, RecursiveNodeInput>;
 
 // Root level contract - parent is OPTIONAL
@@ -482,6 +497,7 @@ export const tsestreeContract = z.object({
   // MemberExpression properties
   object: recursiveBase.nullable().optional(),
   property: recursiveBase.nullable().optional(),
+  computed: z.boolean().optional(),
   // Identifier properties
   name: identifierContract.optional(),
   // VariableDeclarator properties
@@ -592,6 +608,9 @@ export const tsestreeContract = z.object({
     .optional(),
   // Literal regex properties
   regex: z.object({ pattern: z.unknown().optional(), flags: z.unknown().optional() }).optional(),
+  // TemplateLiteral properties
+  quasis: z.array(recursiveBase).optional(),
+  expressions: z.array(recursiveBase).optional(),
 });
 
 export type Tsestree = z.infer<typeof tsestreeContract>;

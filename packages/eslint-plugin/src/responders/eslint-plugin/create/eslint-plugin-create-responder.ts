@@ -68,6 +68,12 @@ import { ruleBanFlattenedContractParamsBroker } from '../../../brokers/rule/ban-
 import { ruleBanAnonymousJsxInMapBroker } from '../../../brokers/rule/ban-anonymous-jsx-in-map/rule-ban-anonymous-jsx-in-map-broker';
 import { ruleBanDomHandlesInIngredientsBroker } from '../../../brokers/rule/ban-dom-handles-in-ingredients/rule-ban-dom-handles-in-ingredients-broker';
 import { ruleBanNondeterminismInIngredientsBroker } from '../../../brokers/rule/ban-nondeterminism-in-ingredients/rule-ban-nondeterminism-in-ingredients-broker';
+import { ruleRawImportBanBroker } from '../../../brokers/rule/raw-import-ban/rule-raw-import-ban-broker';
+import { rulePlatformGlobalsBanBroker } from '../../../brokers/rule/platform-globals-ban/rule-platform-globals-ban-broker';
+import { ruleBinProgramSpawnBanBroker } from '../../../brokers/rule/bin-program-spawn-ban/rule-bin-program-spawn-ban-broker';
+import { ruleGatewayImportBoundaryBroker } from '../../../brokers/rule/gateway-import-boundary/rule-gateway-import-boundary-broker';
+import { ruleGatewayColocationBroker } from '../../../brokers/rule/gateway-colocation/rule-gateway-colocation-broker';
+import { ruleGatewayLayoutBroker } from '../../../brokers/rule/gateway-layout/rule-gateway-layout-broker';
 import { configDungeonmasterBroker } from '../../../brokers/config/dungeonmaster/config-dungeonmaster-broker';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 
@@ -136,6 +142,12 @@ export const EslintPluginCreateResponder = (): {
     readonly 'ban-anonymous-jsx-in-map': EslintRule;
     readonly 'ban-dom-handles-in-ingredients': EslintRule;
     readonly 'ban-nondeterminism-in-ingredients': EslintRule;
+    readonly 'raw-import-ban': EslintRule;
+    readonly 'platform-globals-ban': EslintRule;
+    readonly 'bin-program-spawn-ban': EslintRule;
+    readonly 'gateway-import-boundary': EslintRule;
+    readonly 'gateway-colocation': EslintRule;
+    readonly 'gateway-layout': EslintRule;
   };
   readonly configs: {
     readonly dungeonmaster: ReturnType<typeof configDungeonmasterBroker>;
@@ -209,6 +221,12 @@ export const EslintPluginCreateResponder = (): {
       'ban-anonymous-jsx-in-map': ruleBanAnonymousJsxInMapBroker(),
       'ban-dom-handles-in-ingredients': ruleBanDomHandlesInIngredientsBroker(),
       'ban-nondeterminism-in-ingredients': ruleBanNondeterminismInIngredientsBroker(),
+      'raw-import-ban': ruleRawImportBanBroker(),
+      'platform-globals-ban': rulePlatformGlobalsBanBroker(),
+      'bin-program-spawn-ban': ruleBinProgramSpawnBanBroker(),
+      'gateway-import-boundary': ruleGatewayImportBoundaryBroker(),
+      'gateway-colocation': ruleGatewayColocationBroker(),
+      'gateway-layout': ruleGatewayLayoutBroker(),
     },
     configs: {
       dungeonmaster: configDungeonmasterBroker(),

@@ -3,14 +3,20 @@ import { configDungeonmasterBrokerProxy } from './config-dungeonmaster-broker.pr
 
 describe('configDungeonmasterBroker', () => {
   describe('return value structure', () => {
-    it('VALID: {} => returns object with typescript, test, fileOverrides, and ruleEnforceOn keys', () => {
+    it('VALID: {} => returns object with typescript, test, gateway, fileOverrides, and ruleEnforceOn keys', () => {
       configDungeonmasterBrokerProxy();
 
       const result = configDungeonmasterBroker();
 
       const keys = Object.keys(result).sort();
 
-      expect(keys).toStrictEqual(['fileOverrides', 'ruleEnforceOn', 'test', 'typescript']);
+      expect(keys).toStrictEqual([
+        'fileOverrides',
+        'gateway',
+        'ruleEnforceOn',
+        'test',
+        'typescript',
+      ]);
     });
 
     it('VALID: {} => typescript config contains enforce-contract-usage-in-tests rule', () => {
@@ -166,6 +172,75 @@ describe('configDungeonmasterBroker', () => {
       const { ruleEnforceOn } = configDungeonmasterBroker();
 
       expect(ruleEnforceOn['@dungeonmaster/enforce-test-colocation']).toBe('post-edit');
+    });
+  });
+
+  describe('gateway config', () => {
+    it('VALID: {} => gateway files matches every gateway package glob', () => {
+      configDungeonmasterBrokerProxy();
+
+      const { gateway } = configDungeonmasterBroker();
+
+      expect(gateway.files).toStrictEqual([
+        'packages/npm/src/**/*.ts',
+        'packages/node/src/**/*.ts',
+        'packages/browser/src/**/*.ts',
+        'packages/bin/src/**/*.ts',
+      ]);
+    });
+
+    it.each([
+      '@dungeonmaster/enforce-project-structure',
+      '@dungeonmaster/enforce-object-destructuring-params',
+      '@dungeonmaster/enforce-proxy-child-creation',
+      '@dungeonmaster/enforce-stub-patterns',
+      '@dungeonmaster/ban-adhoc-types',
+    ])('VALID: {} => gateway rules omit %s (never set it to "off")', (ruleName) => {
+      configDungeonmasterBrokerProxy();
+
+      const { gateway } = configDungeonmasterBroker();
+
+      expect(gateway.rules?.[ruleName]).toBe(undefined);
+    });
+
+    it.each([
+      '@dungeonmaster/enforce-file-metadata',
+      '@dungeonmaster/ban-silent-catch',
+      '@dungeonmaster/forbid-type-reexport',
+      '@dungeonmaster/forbid-non-exported-functions',
+      '@dungeonmaster/no-bare-process-cwd',
+      '@typescript-eslint/no-explicit-any',
+      '@dungeonmaster/enforce-stub-usage',
+    ])('VALID: {} => gateway rules still apply %s as "error"', (ruleName) => {
+      configDungeonmasterBrokerProxy();
+
+      const { gateway } = configDungeonmasterBroker();
+
+      expect(gateway.rules?.[ruleName]).toBe('error');
+    });
+
+    // ban-primitives stays configured 'error' (with options) in the gateway config too — its
+    // OWN file-gate calls isGatewayFileGuard directly (rule-ban-primitives-broker.ts), because
+    // the TEST rule block that also carries this key is not carved out by file glob, so the
+    // rule has to recognize the gateway itself, in both implementation and test files.
+    it('VALID: {} => gateway rules still apply ban-primitives configured', () => {
+      configDungeonmasterBrokerProxy();
+
+      const { gateway } = configDungeonmasterBroker();
+
+      expect(gateway.rules?.['@dungeonmaster/ban-primitives']).toStrictEqual([
+        'error',
+        { allowPrimitiveInputs: true, allowPrimitiveReturns: false },
+      ]);
+    });
+
+    it('VALID: {} => typescript (non-gateway) config keeps every rule the gateway omits', () => {
+      configDungeonmasterBrokerProxy();
+
+      const { typescript } = configDungeonmasterBroker();
+
+      expect(typescript.rules?.['@dungeonmaster/enforce-project-structure']).toBe('error');
+      expect(typescript.rules?.['@dungeonmaster/enforce-proxy-child-creation']).toBe('error');
     });
   });
 

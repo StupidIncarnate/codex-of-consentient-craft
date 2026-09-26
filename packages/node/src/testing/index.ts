@@ -5,6 +5,7 @@
  * USAGE:
  * import { existsSyncProxy } from '@dungeonmaster/node/testing';
  */
+export { isFsErrorProxy } from '../fs/is-fs-error.proxy';
 export { existsSyncProxy } from '../fs/exists-sync.proxy';
 export { readFileSyncProxy } from '../fs/read-file-sync.proxy';
 export { readFileSyncIfExistsProxy } from '../fs/read-file-sync-if-exists.proxy';
@@ -87,3 +88,15 @@ export { fetchWithStatusProxy } from '../fetch/fetch-with-status.proxy';
 
 export { readStdinToEndProxy } from '../process/read-stdin-to-end.proxy';
 export { getEnvProxy } from '../process/get-env.proxy';
+export { cwdProxy } from '../process/cwd.proxy';
+export { exitProxy } from '../process/exit.proxy';
+export { onProxy } from '../process/on.proxy';
+export { killProxy } from '../process/kill.proxy';
+export { getExitCodeProxy } from '../process/get-exit-code.proxy';
+export { setExitCodeProxy } from '../process/set-exit-code.proxy';
+export { stdoutProxy } from '../process/stdout.proxy';
+export { stderrProxy } from '../process/stderr.proxy';
+export { argvProxy } from '../process/argv.proxy';
+export { pidProxy } from '../process/pid.proxy';
+export { platformProxy } from '../process/platform.proxy';
+export { execPathProxy } from '../process/exec-path.proxy';

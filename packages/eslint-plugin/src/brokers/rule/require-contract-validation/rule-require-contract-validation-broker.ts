@@ -13,6 +13,7 @@ import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-cont
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
+import { isGatewayFileGuard } from '../../../guards/is-gateway-file/is-gateway-file-guard';
 
 export const ruleRequireContractValidationBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -41,10 +42,16 @@ export const ruleRequireContractValidationBroker = (): EslintRule => ({
       (filename.includes('@dungeonmaster/shared') || filename.includes('packages/shared')) &&
       filename.includes('/adapters/runtime/dynamic-import/');
 
+    // A gateway file can never import our own workspace contracts (brief item 7: no
+    // contracts for outside packages), so it has no way to satisfy this rule's
+    // filePathContract.parse() requirement. Exempt it by the same shared guard every
+    // other gateway carve-out uses, rather than a hardcoded path.
+    const isExempt = isSharedDynamicImportAdapter || isGatewayFileGuard({ filename });
+
     return {
       // Handle require() calls
       'CallExpression[callee.name="require"]': (node: Tsestree): void => {
-        if (isSharedDynamicImportAdapter) {
+        if (isExempt) {
           return;
         }
         const arg = node.arguments?.[0];
@@ -98,7 +105,7 @@ export const ruleRequireContractValidationBroker = (): EslintRule => ({
 
       // Handle dynamic import() calls
       ImportExpression: (node: Tsestree): void => {
-        if (isSharedDynamicImportAdapter) {
+        if (isExempt) {
           return;
         }
         const { source } = node;

@@ -18,6 +18,7 @@ beforeEach(() => {
       '/project/src/adapters/email/email-adapter.ts',
       '/project/src/adapters/api/api-adapter.ts',
       '/project/src/brokers/env/env-broker.ts',
+      '/project/packages/node/src/fs/read-file-sync.ts',
     ];
     return existingFiles.includes(String(filePath));
   });
@@ -58,6 +59,26 @@ ruleTester.run('enforce-proxy-patterns', ruleEnforceProxyPatternsBroker(), {
         export const fooProxy = () => ({ returns: () => {} });
       `,
       filename: '/project/src/adapters/http/http-adapter.proxy.ts',
+    },
+    // ✅ CORRECT - Gateway wrapper proxy (packages/node/**, no /adapters/ segment): jest.spyOn
+    // paired with a native mock-setup call before return. isIoBoundaryProxyGuard recognizes
+    // this path as an I/O boundary, so validateAdapterMockSetupLayerBroker runs and passes.
+    {
+      code: `
+        import fs from 'fs';
+
+        export const readFileSyncProxy = () => {
+          const mock = jest.spyOn(fs, 'readFileSync');
+          mock.mockReturnValue('');
+
+          return {
+            returns: ({ path, contents }) => {
+              mock.mockReturnValueOnce(contents);
+            }
+          };
+        };
+      `,
+      filename: '/project/packages/node/src/fs/read-file-sync.proxy.ts',
     },
     // ✅ CORRECT - No bootstrap method
     {
@@ -676,6 +697,27 @@ ruleTester.run('enforce-proxy-patterns', ruleEnforceProxyPatternsBroker(), {
         };
       `,
       filename: '/project/src/adapters/fs/fs-adapter.proxy.ts',
+      errors: [{ messageId: 'adapterProxyMustSetupMocks' }],
+    },
+    // ❌ WRONG - Gateway wrapper proxy (no /adapters/ segment) with jest.spyOn but no
+    // mockImplementation. Proves isIoBoundaryProxyGuard treats a gateway path as an I/O
+    // boundary too, so validateAdapterMockSetupLayerBroker runs here the same as it does
+    // for a /adapters/ path.
+    {
+      code: `
+        import fs from 'fs';
+
+        export const readFileSyncProxy = () => {
+          const mock = jest.spyOn(fs, 'readFileSync');
+
+          return {
+            returns: ({ path, contents }) => {
+              mock.mockReturnValueOnce(contents);
+            }
+          };
+        };
+      `,
+      filename: '/project/packages/node/src/fs/read-file-sync.proxy.ts',
       errors: [{ messageId: 'adapterProxyMustSetupMocks' }],
     },
     // ❌ WRONG - Child proxy created at module level

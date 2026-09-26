@@ -1,0 +1,3 @@
+// A captured global, not an npm dependency — the colocated test compares it to process.stderr
+// directly rather than staging a mock.
+export const stderrProxy = (): Record<PropertyKey, never> => ({});

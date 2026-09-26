@@ -16,6 +16,7 @@ const dungeonmasterPlugin = require('./packages/eslint-plugin/src/index.ts').def
 const {
   configDungeonmasterBroker,
 } = require('./packages/eslint-plugin/src/brokers/config/dungeonmaster/config-dungeonmaster-broker.ts');
+const { gatewayLocationsStatics } = require('@dungeonmaster/shared/statics');
 // Import repo-private local-eslint plugin (never shipped) from TypeScript source
 const dungeonmasterLocalPlugin = require('./packages/local-eslint/src/index.ts').default;
 
@@ -88,6 +89,9 @@ module.exports = [
       // includes, so typed linting cannot parse them.
       '**/jest.setup*.js',
       '**/configs/**/*.js',
+      // The gateway carve-out: these files get the gateway rule block below instead — a
+      // re-scoped, positive rule set, not this block's workspace rules minus some turned off.
+      ...gatewayLocationsStatics.packageGlobs,
     ],
     languageOptions: {
       parser: tsparser,
@@ -121,6 +125,33 @@ module.exports = [
       '@dungeonmaster-local/ban-bare-os-home-tmp': 'error',
       // 'eslint-comments/no-unlimited-disable': 'error',
       // 'eslint-comments/no-use': ['error', { allow: [] }],
+    },
+  },
+  // The gateway's own positive rule set (packages/{npm,node,browser,bin}/src/**). Its tests
+  // still get the test block below by file suffix, the same as every other package's tests.
+  {
+    files: dungeonmasterConfigs.gateway.files,
+    languageOptions: {
+      parser: tsparser,
+      parserOptions: {
+        ecmaVersion: 2020,
+        sourceType: 'module',
+        project: true,
+        tsconfigRootDir: __dirname,
+      },
+    },
+    plugins: {
+      ...dungeonmasterConfigs.gateway.plugins,
+      prettier: prettierPlugin,
+      'eslint-comments': eslintCommentsPlugin,
+      '@dungeonmaster': dungeonmasterPlugin,
+    },
+    rules: {
+      ...dungeonmasterConfigs.gateway.rules,
+      ...prettierConfig.rules,
+      'prettier/prettier': 'error',
+      'arrow-body-style': ['error', 'as-needed'],
+      'prefer-arrow-callback': 'error',
     },
   },
   // File-specific overrides (from dungeonmaster config)

@@ -1,5 +1,5 @@
 import { existsSync, readJsonFileSyncIfExists } from '@dungeonmaster/node/fs';
-import moduleGateway from '@dungeonmaster/node/module';
+import { resolvePackageRoot } from '@dungeonmaster/node/module';
 import path from '@dungeonmaster/node/path';
 import { getEnv } from '@dungeonmaster/node/process';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
@@ -13,7 +13,7 @@ export const claudeResolveCliPathProxy = (): {
   setupPathScan: (params: { directories: string[]; foundInDirectory?: string }) => void;
 } => {
   const envHandle = registerMock({ fn: getEnv });
-  const resolvePackageRootHandle = registerMock({ fn: moduleGateway.resolvePackageRoot });
+  const resolvePackageRootHandle = registerMock({ fn: resolvePackageRoot });
   const readJsonHandle = registerMock({ fn: readJsonFileSyncIfExists });
   const existsHandle = registerMock({ fn: existsSync });
 

@@ -1,0 +1,202 @@
+/**
+ * PURPOSE: Inside a gateway file (`packages/{npm,node,browser,bin}/src/**`), flags any import,
+ * export-from, `require()` or `require.resolve()` whose source is one of OUR OWN workspace
+ * packages, EXCEPT another gateway package (or a subpath of one). A relative import stays untouched
+ * — that is a file inside the same gateway package — and an outside npm package or Node built-in is
+ * exactly what a gateway file exists to hold. The gateway is the bottom layer: it may depend on
+ * itself and on the outside world, never back up into a package built on top of it. `scope`
+ * defaults to the value resolveRepoScopeLayerBroker reads from the repo root package.json at
+ * module load, overridable per-rule-instance via the `scope` option so a RuleTester case can prove
+ * the rule for a differently-scoped consumer without touching the filesystem. The gateway-package
+ * check is duplicated across both AST listeners, the same way raw-import-ban duplicates its own
+ * relative/workspace checks — a shared named helper here would be a nested (or non-exported,
+ * top-level) function, which `@dungeonmaster/forbid-non-exported-functions` refuses.
+ *
+ * `@<scope>/testing` (and its subpaths, e.g. `@<scope>/testing/register-mock`) is a second,
+ * file-suffix-gated exception: allowed only from `.proxy.ts`, `.test.ts`, `.integration.test.ts` and
+ * `.stub.ts` files. Test support is not a runtime layer, so a gateway's runtime files (`index.ts`,
+ * plain wrappers) still may not import it — only the boundary those wrappers get tested through.
+ *
+ * USAGE:
+ * const rule = ruleGatewayImportBoundaryBroker();
+ * // Returns an EslintRule that flags `import {x} from '@dungeonmaster/shared/contracts'` inside
+ * // packages/node/src/**, but allows `import {y} from '@dungeonmaster/npm/glob'` there
+ */
+import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
+import { gatewayTestSupportSuffixStatics } from '../../../statics/gateway-test-support-suffix/gateway-test-support-suffix-statics';
+import type { PackageName } from '@dungeonmaster/shared/contracts';
+import { filePathContract } from '@dungeonmaster/shared/contracts';
+import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
+import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
+import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
+import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { minimatchMatchAdapter } from '../../../adapters/minimatch/match/minimatch-match-adapter';
+import { resolveRepoScopeLayerBroker } from './resolve-repo-scope-layer-broker';
+
+// Resolved lazily, on the first gateway file linted with no `scope` option, and cached from then
+// on — see raw-import-ban's identically-shaped cache for why this never runs during this rule's own
+// unit test (every RuleTester case passes `scope` explicitly).
+const defaultScopeCache: { value?: PackageName } = {};
+
+export const ruleGatewayImportBoundaryBroker = (): EslintRule => ({
+  ...eslintRuleContract.parse({
+    meta: {
+      type: 'problem',
+      docs: {
+        description:
+          'Ban a gateway file from importing our own workspace packages, other than another gateway package.',
+      },
+      messages: {
+        workspacePackageImport:
+          'Gateway files cannot import our own workspace packages ("{{importSource}}"). The gateway is the bottom layer — move logic that needs it out of the gateway into a broker that calls the gateway. "{{scope}}/testing" is the one exception, and only from .proxy.ts, .test.ts, .integration.test.ts and .stub.ts files: test support is not a runtime layer, so a runtime gateway file still may not import it.',
+      },
+      schema: [
+        {
+          type: 'object',
+          properties: {
+            scope: {
+              type: 'string',
+              description:
+                'Override the workspace `@scope` used to tell a gateway package from any other workspace package. Defaults to the scope read from the repo root package.json at rule module load.',
+            },
+          },
+          additionalProperties: false,
+        },
+      ],
+    },
+  }),
+  create: (context: EslintContext) => {
+    const ctx = context as EslintContext & { options?: { scope?: PackageName }[] };
+    const filename = ctx.filename ?? ctx.getFilename?.() ?? '';
+
+    const isGatewayFile = gatewayLocationsStatics.packageGlobs.some((glob) =>
+      minimatchMatchAdapter({ filePath: filename, pattern: `**/${glob}` }),
+    );
+
+    if (filename.length === 0 || !isGatewayFile) {
+      return {};
+    }
+
+    const optionScope = ctx.options?.[0]?.scope;
+
+    const scope = ((): PackageName => {
+      if (optionScope !== undefined) {
+        return optionScope;
+      }
+
+      if (defaultScopeCache.value === undefined) {
+        defaultScopeCache.value = resolveRepoScopeLayerBroker({
+          startDir: filePathContract.parse(__dirname),
+        });
+      }
+
+      return defaultScopeCache.value;
+    })();
+
+    return {
+      'ImportDeclaration, ExportNamedDeclaration, ExportAllDeclaration, ImportExpression': (
+        node: Tsestree,
+      ): void => {
+        const importSource = node.source?.value;
+
+        if (typeof importSource !== 'string') {
+          return;
+        }
+
+        const isRelative = importSource.startsWith('.') || importSource.startsWith('/');
+        const isWorkspacePackage = importSource === scope || importSource.startsWith(`${scope}/`);
+
+        if (isRelative || !isWorkspacePackage) {
+          return;
+        }
+
+        const isGatewayPackage = Object.values(gatewayLocationsStatics.folders).some((folder) => {
+          const gatewayPackageName = `${scope}/${folder}`;
+          return (
+            importSource === gatewayPackageName || importSource.startsWith(`${gatewayPackageName}/`)
+          );
+        });
+
+        if (isGatewayPackage) {
+          return;
+        }
+
+        const testingPackageName = `${scope}/testing`;
+        const isTestingPackage =
+          importSource === testingPackageName || importSource.startsWith(`${testingPackageName}/`);
+        const isTestSupportFile = gatewayTestSupportSuffixStatics.suffixes.some((suffix) =>
+          filename.endsWith(suffix),
+        );
+
+        if (isTestingPackage && isTestSupportFile) {
+          return;
+        }
+
+        ctx.report({
+          node,
+          messageId: 'workspacePackageImport',
+          data: { importSource, scope },
+        });
+      },
+
+      CallExpression: (node: Tsestree): void => {
+        const { callee } = node;
+        const args = node.arguments ?? [];
+        const [firstArg] = args;
+
+        const isRequireCall = callee?.type === 'Identifier' && callee.name === 'require';
+        const isRequireResolveCall =
+          callee?.type === 'MemberExpression' &&
+          callee.object?.type === 'Identifier' &&
+          callee.object.name === 'require' &&
+          callee.property?.type === 'Identifier' &&
+          callee.property.name === 'resolve';
+
+        if (!isRequireCall && !isRequireResolveCall) {
+          return;
+        }
+
+        const importSource = firstArg?.type === 'Literal' ? firstArg.value : undefined;
+
+        if (typeof importSource !== 'string') {
+          return;
+        }
+
+        const isRelative = importSource.startsWith('.') || importSource.startsWith('/');
+        const isWorkspacePackage = importSource === scope || importSource.startsWith(`${scope}/`);
+
+        if (isRelative || !isWorkspacePackage) {
+          return;
+        }
+
+        const isGatewayPackage = Object.values(gatewayLocationsStatics.folders).some((folder) => {
+          const gatewayPackageName = `${scope}/${folder}`;
+          return (
+            importSource === gatewayPackageName || importSource.startsWith(`${gatewayPackageName}/`)
+          );
+        });
+
+        if (isGatewayPackage) {
+          return;
+        }
+
+        const testingPackageName = `${scope}/testing`;
+        const isTestingPackage =
+          importSource === testingPackageName || importSource.startsWith(`${testingPackageName}/`);
+        const isTestSupportFile = gatewayTestSupportSuffixStatics.suffixes.some((suffix) =>
+          filename.endsWith(suffix),
+        );
+
+        if (isTestingPackage && isTestSupportFile) {
+          return;
+        }
+
+        ctx.report({
+          node,
+          messageId: 'workspacePackageImport',
+          data: { importSource, scope },
+        });
+      },
+    };
+  },
+});

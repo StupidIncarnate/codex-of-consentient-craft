@@ -19,6 +19,7 @@ describe('index', () => {
 
     expect(Object.keys(plugin.configs.dungeonmaster).sort()).toStrictEqual([
       'fileOverrides',
+      'gateway',
       'ruleEnforceOn',
       'test',
       'typescript',

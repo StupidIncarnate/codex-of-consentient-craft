@@ -13,6 +13,7 @@ import type { EslintContext } from '../../../contracts/eslint-context/eslint-con
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 import { isAstObjectStubSpreadGuard } from '../../../guards/is-ast-object-stub-spread/is-ast-object-stub-spread-guard';
+import { isGatewayFileGuard } from '../../../guards/is-gateway-file/is-gateway-file-guard';
 import { typeNameFromAnnotationTransformer } from '../../../transformers/type-name-from-annotation/type-name-from-annotation-transformer';
 
 export const ruleEnforceStubUsageBroker = (): EslintRule => ({
@@ -36,6 +37,12 @@ export const ruleEnforceStubUsageBroker = (): EslintRule => ({
 
     // Only apply to test files
     if (!hasFileSuffixGuard({ filename, suffix: 'test' })) {
+      return {};
+    }
+
+    // Skip the gateway: its tests build plain fixture objects mirroring the outside package's
+    // own shape (a Node error, a stat result) — there is no contract-backed stub to reach for.
+    if (isGatewayFileGuard({ filename })) {
       return {};
     }
 

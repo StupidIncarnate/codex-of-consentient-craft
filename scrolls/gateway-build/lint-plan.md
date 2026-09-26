@@ -258,3 +258,76 @@ wave above is sized so one agent can do that loop in one sitting.
 8. The platform-crossing check cannot be ESLint at all — it needs the whole import graph, so it is a ward check, per the doc's own explicit call.
 9. Rule brokers use `RuleTester`, never Jest `describe`/`it`; only layer-helper files inside a rule folder get plain Jest tests.
 10. Phasing: statics first, then fix the two false-negative guards, then carve out, then gateway-shape rules, then the three caller-facing new rules, then the ward-level graph check last.
+
+## Decisions made while building
+
+Built against the LIVE tree, not this doc's research snapshot: the scaffolded gateway packages
+now have a real `src/` (the doc's "no `src/`" ground truth is stale — confirmed via
+`find packages/node/src` and `packages/node/package.json`'s `exports`). That changes which rules
+self-skip for free: `enforce-project-structure`'s `shouldExcludeFileFromProjectStructureRulesGuard`
+no longer excludes gateway files (a real `/src/` segment exists), so `enforce-file-metadata` and
+`enforce-implementation-colocation` already run correctly with NO code change — §2 rows 1-2's
+"self-skips, no adjustment needed" premise was right about the OUTCOME (no change needed) but
+wrong about WHY (the guard now includes them, not excludes).
+
+**A load-bearing ESLint flat-config bug, found empirically, not in the doc.** Adding the gateway
+globs to the main TypeScript block's `ignores` (§1's sketch) makes ESLint's config-array resolver
+mark the file as **globally unlintable** (`calculateConfigForFile` returns `undefined`, `eslint
+<file>` reports "File ignored because no matching configuration was supplied"), even though a
+LATER config object's `files` matches the same path — reproduced in isolation
+(`node_modules/@eslint/config-array/dist/cjs/index.cjs`, the "universal pattern" branch around
+line 1289): a `files` entry ending in bare `/**` or `/*` is treated as "universal" and is only
+honored when ANOTHER matching config ALSO has an extension-specific pattern for that same file.
+The gateway block's `files` were exactly `packages/<x>/src/**` — all bare `/**`. **Fix:** the
+gateway config block's `files` append `/*.ts` (`packages/<x>/src/**/*.ts`), giving ESLint a
+concrete extension so the carve-out's `ignores` on the main block resolves the way the doc
+intended. `gatewayLocationsStatics.packageGlobs` itself is unchanged (still bare `/**`, since
+every OTHER consumer — `isIoBoundaryProxyGuard`, `isGatewayFileGuard`, `enforce-import-dependencies`'s
+sentinel — does prefix/substring matching, not ESLint glob resolution).
+
+**The TEST rule block is not carved out (confirmed, matches the doc), which forced two rules to
+be TAUGHT rather than omitted, even though both are also in the "must go off" bucket per §1 row
+5.** `ban-primitives` and `enforce-stub-usage` fired for real on gateway `.test.ts` files in a
+live `ward lint` sweep (`packages/node/src/fs/promises/index.test.ts`) — the config carve-out
+only reaches files matched by the gateway's OWN block glob, and neither rule's applicability is
+gated by that; both are shared into `testConfig` via `dungeonmasterCustomRules` same as
+`typescriptConfig`, and the test block still applies by file suffix everywhere. Both rules now
+call a new `isGatewayFileGuard({filename})` (guards/is-gateway-file) directly in their own
+`create()`, alongside their existing `.stub.ts`/`.d.ts` exemptions — covering implementation AND
+test with one mechanism, so they were REMOVED from the config-level omission list (redundant with
+the in-rule guard, and the in-rule guard is what actually does the work).
+
+`ban-adhoc-types` is a THIRD rule discovered misfiring live (not in the brief's original list): it
+flagged `export interface FsError extends Error {...}` in `packages/node/src/fs/is-fs-error.ts` —
+exactly the brief's "no contracts for outside packages" plain-type pattern. Added to the
+config-level omission list (implementation-only misfire; no gateway `.test.ts` case surfaced it,
+so no in-rule guard was needed).
+
+| Rule | Decision | Reason |
+|---|---|---|
+| `enforce-project-structure` | Omit from gateway config (implementation-only; `ignores` on the main block) | The gateway's flat "one folder per subpath name" layout has no `folderTypeContract` member for `fs`/`process`/etc. — a structural mismatch, not a migration gap. Superseded by the plan's own future `gateway-layout`/`gateway-colocation` rules (§3d, out of this wave's scope). |
+| `ban-primitives` | Teach the rule directly (`isGatewayFileGuard` in `rule-ban-primitives-broker.ts`); removed from the config omission list as redundant | Gateway wrappers take/return the outside package's own plain values by design (brief item 7) — permanent, not temporary. Needed a rule-level guard anyway because it also fires in `.test.ts`, which the config carve-out cannot reach. |
+| `enforce-object-destructuring-params` | Omit from gateway config (implementation-only) | A same-name wrapper keeps the outside function's positional shape (Orchestrator ruling #1) — permanent by design. Not taught in-rule: distinguishing "same-name wrapper" from "new-name wrapper" needs cross-referencing the wrapped package's own signature, a bigger, AST-tracing job flagged here as a follow-up for whoever builds the gateway-shape rules. |
+| `enforce-proxy-child-creation` | Omit from gateway config (implementation-only) | The rule's whole model is "for each implementation import, a proxy import+creation of `<name>Proxy`" — gateway proxies mock the outside function directly (`registerMock({fn: readFileSync})` / `jest.spyOn(fs, 'readFileSync')`), with no child-proxy delegation at all. Structural mismatch, not a gap; no dedicated gateway replacement written in this wave. |
+| `enforce-stub-patterns` | Omit from gateway config (implementation-only) | Fires only on `.stub.ts` files; gateway stubs (e.g. `FsErrorStub`) build a plain shape mirroring the outside package's own error, with no zod contract to `.parse()` — the rule's `useContractParse` check cannot pass by design. |
+| `enforce-stub-usage` | Teach the rule directly (`isGatewayFileGuard` in `rule-enforce-stub-usage-broker.ts`); removed from the config omission list as it was never reachable there | Fires only on `.test.ts` files, which the config carve-out (scoped to the gateway's own implementation glob) never reaches at all — the config-level entry would have been dead weight. Gateway tests build plain fixture objects (a Node error shape, a stat result) with no contract-backed stub to reach for. |
+| `no-bare-process-cwd` | Teach the rule (extend `noBareProcessCwdStatics.defaults.allowedFolders` with `**/packages/node/src/process/**`) | The rule's whole job is "ban raw `process.cwd()` outside the ONE sanctioned wrapper" — excluding the gateway wholesale would let every OTHER gateway file call `process.cwd()` directly too, defeating the point. `@dungeonmaster/node/process`'s own `cwd` export is that sanctioned wrapper, so it earns the same allowlist entry `adapters/process/cwd/` already has, and the rule stays ON for every other gateway file. |
+| `ban-adhoc-types` | Omit from gateway config (implementation-only) | Gateway wrapper types (`FsError`, `DirEntrySync`, `WalkedFile`, …) are plain `interface`/`type` declarations by design — brief item 7 says the gateway never imports zod contracts, so there is no contract to define these in instead. |
+
+Also decided, not previously in the brief's list:
+
+- `enforce-import-dependencies`: added a gateway sentinel to `validateExternalImportLayerBroker`
+  (ahead of the `node_modules` gate) so every folder type — not just `adapters/` — may import any
+  of the four gateway packages or their subpaths, per §2 row 4.
+- `isIoBoundaryProxyGuard` (new, `guards/is-io-boundary-proxy`) replaces the bare `/adapters/`
+  substring check in `enforce-proxy-patterns` and `jest-mocked-must-import`, per §2 row 9 — both
+  rules now run their adapter-shaped checks on a gateway proxy the same as on a `/adapters/` one.
+- `isNpmPackageGuard` extended: a gateway subpath (`@dungeonmaster/node/fs`, …) is now treated as
+  mockable, alongside the existing `@dungeonmaster/shared/adapters` exception, per §2 row 10.
+- `enforce-file-metadata`: re-verified against the live tree and left UNCHANGED. The lint plan's
+  §2 row 2 "false negative" was diagnosed against the stale no-`/src/` ground truth; with a real
+  `/src/` present, `shouldExcludeFileFromProjectStructureRulesGuard` already returns `false` for
+  gateway files, so the rule already applies with no code change.
+- `packages/node/src/net/free-port-pair.test.ts`: `jest/prefer-equality-matcher` vs
+  `@dungeonmaster/ban-negated-matchers` conflict resolved by asserting a positive fact instead —
+  `new Set([firstPort, secondPort]).size` is `2` — rather than adjusting either rule.

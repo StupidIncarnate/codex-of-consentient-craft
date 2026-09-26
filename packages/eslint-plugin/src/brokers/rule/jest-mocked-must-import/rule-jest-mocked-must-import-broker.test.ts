@@ -33,6 +33,23 @@ ruleTester.run('jest-mocked-must-import', ruleJestMockedMustImportBroker(), {
       filename: '/project/src/adapters/fs/fs-read-file-adapter.proxy.ts',
     },
 
+    // ✅ CORRECT: Gateway wrapper proxy (no /adapters/ segment) mocking the native `fs` function
+    // it wraps. isIoBoundaryProxyGuard treats this path as an I/O boundary, so the
+    // notNpmPackage/mockingAdapter checks run here — and pass, since the mocked identifier is
+    // the outside function itself, imported and jest.mock()'d.
+    {
+      code: `
+        import { readFileSync } from 'fs';
+        jest.mock('fs');
+
+        export const readFileSyncProxy = () => {
+          const mockReadFileSync = jest.mocked(readFileSync);
+          return { /* proxy methods */ };
+        };
+      `,
+      filename: '/project/packages/node/src/fs/read-file-sync.proxy.ts',
+    },
+
     // ✅ CORRECT: Namespace import with jest.mocked()
     {
       code: `
@@ -392,6 +409,30 @@ ruleTester.run('jest-mocked-must-import', ruleJestMockedMustImportBroker(), {
         };
       `,
       filename: '/project/src/adapters/some/some-adapter.proxy.ts',
+      errors: [
+        {
+          messageId: 'notNpmPackage',
+          data: {
+            name: 'userBroker',
+          },
+        },
+      ],
+    },
+
+    // ❌ WRONG: Gateway wrapper proxy (no /adapters/ segment) mocking a workspace broker
+    // instead of the outside function it wraps. Proves isIoBoundaryProxyGuard surfaces a real
+    // violation in the gateway the same way it already does for /adapters/.
+    {
+      code: `
+        import { userBroker } from '../../../shared/brokers/user/user-broker';
+        jest.mock('../../../shared/brokers/user/user-broker');
+
+        export const readFileSyncProxy = () => {
+          const mockBroker = jest.mocked(userBroker);
+          return { /* proxy methods */ };
+        };
+      `,
+      filename: '/project/packages/node/src/fs/read-file-sync.proxy.ts',
       errors: [
         {
           messageId: 'notNpmPackage',

@@ -13,6 +13,7 @@ import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-
 import { filePathContract, identifierContract } from '@dungeonmaster/shared/contracts';
 import type { Identifier } from '@dungeonmaster/shared/contracts';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
+import { isIoBoundaryProxyGuard } from '../../../guards/is-io-boundary-proxy/is-io-boundary-proxy-guard';
 import { validateProxyFunctionReturnLayerBroker } from './validate-proxy-function-return-layer-broker';
 import { validateAdapterMockSetupLayerBroker } from './validate-adapter-mock-setup-layer-broker';
 import { validateProxyConstructorSideEffectsLayerBroker } from './validate-proxy-constructor-side-effects-layer-broker';
@@ -303,14 +304,14 @@ export const ruleEnforceProxyPatternsBroker = (): EslintRule => ({
           if (init.type === 'ArrowFunctionExpression' || init.type === 'FunctionExpression') {
             validateProxyFunctionReturnLayerBroker({ functionNode: init, context: ctx });
 
-            // For adapter proxies, check that mock setup happens in constructor
+            // For I/O-boundary proxies (adapters/, and gateway wrappers under packages/{node,
+            // npm,browser,bin}/), check that mock setup happens in constructor
             const isAdapterProxy =
-              (filename?.includes('/adapters/') &&
-                hasFileSuffixGuard({
-                  ...(filename ? { filename: String(filename) } : {}),
-                  suffix: 'proxy',
-                })) ??
-              false;
+              isIoBoundaryProxyGuard({ ...(filename ? { filename: String(filename) } : {}) }) &&
+              hasFileSuffixGuard({
+                ...(filename ? { filename: String(filename) } : {}),
+                suffix: 'proxy',
+              });
             if (isAdapterProxy) {
               validateAdapterMockSetupLayerBroker({ functionNode: init, context: ctx });
             }

@@ -1,9 +1,14 @@
 import { clearInterval } from './index';
 import { setInterval } from '../setInterval/index';
 
+// Captured at module load, before ward's own leak-detecting jest setup rewraps the global timer
+// functions in its `beforeAll` (only on a worker-parallel run) — reading `globalThis.clearInterval`
+// live inside the `it` below would then compare against that instrumented wrapper instead.
+const globalClearInterval = globalThis.clearInterval;
+
 describe('@dungeonmaster/node/clearInterval', () => {
   it('VALID: {export} => is the same function Node provides on globalThis', () => {
-    expect(clearInterval).toBe(globalThis.clearInterval);
+    expect(clearInterval).toBe(globalClearInterval);
   });
 
   it('VALID: {handle} => cancels a real repeating timer before it fires', async () => {

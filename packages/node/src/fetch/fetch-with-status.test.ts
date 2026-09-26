@@ -2,13 +2,13 @@ import { fetchWithStatus } from './fetch-with-status';
 import { fetchWithStatusProxy } from './fetch-with-status.proxy';
 
 const STATUS_CASES = [
-  { status: 200, label: '2xx' },
-  { status: 404, label: '4xx' },
-  { status: 500, label: '5xx' },
+  { status: 200, ok: true, label: '2xx' },
+  { status: 404, ok: false, label: '4xx' },
+  { status: 500, ok: false, label: '5xx' },
 ] as const;
 
 describe('fetchWithStatus', () => {
-  describe.each(STATUS_CASES)('$label response', ({ status }) => {
+  describe.each(STATUS_CASES)('$label response', ({ status, ok }) => {
     it(`VALID: {status: ${status}, body present} => resolves {status, ok, body} rather than throwing`, async () => {
       const proxy = fetchWithStatusProxy();
       proxy.setupResponse({
@@ -21,7 +21,7 @@ describe('fetchWithStatus', () => {
 
       expect(result).toStrictEqual({
         status,
-        ok: status >= 200 && status < 300,
+        ok,
         body: '{"id":"g1"}',
       });
     });
@@ -48,11 +48,11 @@ describe('fetchWithStatus', () => {
     );
     const error = caught as Error & { url: string; code: string };
 
-    expect(error.message).toBe(
-      'GET http://localhost/api/guilds failed: connect ECONNREFUSED 127.0.0.1:4000',
-    );
-    expect(error.url).toBe('http://localhost/api/guilds');
-    expect(error.code).toBe('ECONNREFUSED');
+    expect({ message: error.message, url: error.url, code: error.code }).toStrictEqual({
+      message: 'GET http://localhost/api/guilds failed: connect ECONNREFUSED 127.0.0.1:4000',
+      url: 'http://localhost/api/guilds',
+      code: 'ECONNREFUSED',
+    });
   });
 
   it('ERROR: {timeoutMs elapses before any response} => aborts and throws naming the url', async () => {
@@ -65,10 +65,10 @@ describe('fetchWithStatus', () => {
     }).catch((rejection: unknown) => rejection);
     const error = caught as Error & { url: string };
 
-    expect(error.message).toBe(
-      'GET http://localhost/api/guilds failed: This operation was aborted',
-    );
-    expect(error.url).toBe('http://localhost/api/guilds');
+    expect({ message: error.message, url: error.url }).toStrictEqual({
+      message: 'GET http://localhost/api/guilds failed: This operation was aborted',
+      url: 'http://localhost/api/guilds',
+    });
   });
 
   it('ERROR: {fetch rejects with an AbortError outright} => throws naming the url, with no code', async () => {
@@ -80,10 +80,10 @@ describe('fetchWithStatus', () => {
     );
     const error = caught as Error & { url: string; code?: string };
 
-    expect(error.message).toBe(
-      'GET http://localhost/api/guilds failed: This operation was aborted',
-    );
-    expect(error.url).toBe('http://localhost/api/guilds');
-    expect(error.code).toBe(undefined);
+    expect({ message: error.message, url: error.url, code: error.code }).toStrictEqual({
+      message: 'GET http://localhost/api/guilds failed: This operation was aborted',
+      url: 'http://localhost/api/guilds',
+      code: undefined,
+    });
   });
 });

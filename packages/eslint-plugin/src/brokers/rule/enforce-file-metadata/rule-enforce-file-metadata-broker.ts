@@ -34,7 +34,9 @@ export const ruleEnforceFileMetadataBroker = (): EslintRule => ({
     const ctx = context;
     const { filename } = ctx;
 
-    // PRE-VALIDATION: Exclude files from structure validation
+    // PRE-VALIDATION: Exclude files outside src/ (root barrels, config, etc.) from structure
+    // validation. A gateway package's files sit under a real src/, so this guard reads them as
+    // in-scope — the header rule already applies to gateway wrappers with no extra handling.
     if (shouldExcludeFileFromProjectStructureRulesGuard({ filename: filename ?? '' })) {
       return {};
     }

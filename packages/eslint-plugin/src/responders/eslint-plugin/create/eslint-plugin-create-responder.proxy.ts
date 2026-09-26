@@ -75,6 +75,12 @@ import { ruleBanFlattenedContractParamsBrokerProxy } from '../../../brokers/rule
 import { ruleBanAnonymousJsxInMapBrokerProxy } from '../../../brokers/rule/ban-anonymous-jsx-in-map/rule-ban-anonymous-jsx-in-map-broker.proxy';
 import { ruleBanDomHandlesInIngredientsBrokerProxy } from '../../../brokers/rule/ban-dom-handles-in-ingredients/rule-ban-dom-handles-in-ingredients-broker.proxy';
 import { ruleBanNondeterminismInIngredientsBrokerProxy } from '../../../brokers/rule/ban-nondeterminism-in-ingredients/rule-ban-nondeterminism-in-ingredients-broker.proxy';
+import { ruleRawImportBanBrokerProxy } from '../../../brokers/rule/raw-import-ban/rule-raw-import-ban-broker.proxy';
+import { rulePlatformGlobalsBanBrokerProxy } from '../../../brokers/rule/platform-globals-ban/rule-platform-globals-ban-broker.proxy';
+import { ruleBinProgramSpawnBanBrokerProxy } from '../../../brokers/rule/bin-program-spawn-ban/rule-bin-program-spawn-ban-broker.proxy';
+import { ruleGatewayImportBoundaryBrokerProxy } from '../../../brokers/rule/gateway-import-boundary/rule-gateway-import-boundary-broker.proxy';
+import { ruleGatewayColocationBrokerProxy } from '../../../brokers/rule/gateway-colocation/rule-gateway-colocation-broker.proxy';
+import { ruleGatewayLayoutBrokerProxy } from '../../../brokers/rule/gateway-layout/rule-gateway-layout-broker.proxy';
 import { configDungeonmasterBrokerProxy } from '../../../brokers/config/dungeonmaster/config-dungeonmaster-broker.proxy';
 import { EslintPluginCreateResponder } from './eslint-plugin-create-responder';
 
@@ -144,6 +150,12 @@ export const EslintPluginCreateResponderProxy = (): {
   ruleBanAnonymousJsxInMapBrokerProxy();
   ruleBanDomHandlesInIngredientsBrokerProxy();
   ruleBanNondeterminismInIngredientsBrokerProxy();
+  ruleRawImportBanBrokerProxy();
+  rulePlatformGlobalsBanBrokerProxy();
+  ruleBinProgramSpawnBanBrokerProxy();
+  ruleGatewayImportBoundaryBrokerProxy();
+  ruleGatewayColocationBrokerProxy();
+  ruleGatewayLayoutBrokerProxy();
   configDungeonmasterBrokerProxy();
 
   return {

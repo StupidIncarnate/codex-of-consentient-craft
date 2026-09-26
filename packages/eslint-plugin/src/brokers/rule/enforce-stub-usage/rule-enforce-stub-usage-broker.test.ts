@@ -29,6 +29,16 @@ ruleTester.run('enforce-stub-usage', ruleEnforceStubUsageBroker(), {
       filename: '/project/src/brokers/user/user-broker.ts',
     },
 
+    // ✅ Gateway test file - inline object literal is the only option (no contract, no stub)
+    {
+      code: `
+        it('test', () => {
+          const entry: DirEntrySync = { name: 'a.txt', isDirectory: false };
+        });
+      `,
+      filename: '/repo/packages/node/src/fs/readdir-entries-sync.test.ts',
+    },
+
     // ✅ Primitive type annotations - allowed
     {
       code: `

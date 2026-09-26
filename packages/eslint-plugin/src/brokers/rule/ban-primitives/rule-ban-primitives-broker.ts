@@ -10,6 +10,7 @@ import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-cont
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
+import { isGatewayFileGuard } from '../../../guards/is-gateway-file/is-gateway-file-guard';
 import { checkPrimitiveViolationLayerBroker } from './check-primitive-violation-layer-broker';
 
 export const ruleBanPrimitivesBroker = (): EslintRule => ({
@@ -59,6 +60,13 @@ export const ruleBanPrimitivesBroker = (): EslintRule => ({
 
     // Skip .d.ts declaration files - they define external types and need primitives
     if (filename && filename.endsWith('.d.ts')) {
+      return {};
+    }
+
+    // Skip the gateway (implementation AND test): its wrappers take and return the outside
+    // package's own plain values, never a branded contract — this applies repo-wide (also
+    // covers gateway .test.ts, which the config carve-out's implementation-only scope cannot).
+    if (filename && isGatewayFileGuard({ filename })) {
       return {};
     }
 

@@ -2,13 +2,13 @@ import { fetchWithStatus } from './fetch-with-status';
 import { fetchWithStatusProxy } from './fetch-with-status.proxy';
 
 const STATUS_CASES = [
-  { status: 200, label: '2xx' },
-  { status: 404, label: '4xx' },
-  { status: 500, label: '5xx' },
+  { status: 200, ok: true, label: '2xx' },
+  { status: 404, ok: false, label: '4xx' },
+  { status: 500, ok: false, label: '5xx' },
 ] as const;
 
 describe('fetchWithStatus', () => {
-  describe.each(STATUS_CASES)('$label response', ({ status }) => {
+  describe.each(STATUS_CASES)('$label response', ({ status, ok }) => {
     it(`VALID: {status: ${status}, body present} => resolves {status, ok, body} rather than throwing`, async () => {
       const proxy = fetchWithStatusProxy();
       proxy.setupResponse({ url: '/api/quests', status, bodyText: '{"id":"q1"}' });
@@ -17,7 +17,7 @@ describe('fetchWithStatus', () => {
 
       expect(result).toStrictEqual({
         status,
-        ok: status >= 200 && status < 300,
+        ok,
         body: '{"id":"q1"}',
       });
     });
@@ -44,12 +44,14 @@ describe('fetchWithStatus', () => {
     );
     const error = caught as Error & { url: string; code: string };
 
-    expect(error.message).toBe('GET /api/quests failed: net::ERR_CONNECTION_REFUSED');
-    expect(error.url).toBe('/api/quests');
-    expect(error.code).toBe('ECONNREFUSED');
+    expect({ message: error.message, url: error.url, code: error.code }).toStrictEqual({
+      message: 'GET /api/quests failed: net::ERR_CONNECTION_REFUSED',
+      url: '/api/quests',
+      code: 'ECONNREFUSED',
+    });
   });
 
-  it('ERROR: {caller\'s own timeout fires the passed-in signal} => throws naming the url', async () => {
+  it("ERROR: {caller's own timeout fires the passed-in signal} => throws naming the url", async () => {
     const proxy = fetchWithStatusProxy();
     proxy.setupAbortsOnSignal({ url: '/api/quests' });
     const controller = new AbortController();
@@ -63,8 +65,10 @@ describe('fetchWithStatus', () => {
     }).catch((rejection: unknown) => rejection);
     const error = caught as Error & { url: string };
 
-    expect(error.message).toBe('GET /api/quests failed: The user aborted a request.');
-    expect(error.url).toBe('/api/quests');
+    expect({ message: error.message, url: error.url }).toStrictEqual({
+      message: 'GET /api/quests failed: The user aborted a request.',
+      url: '/api/quests',
+    });
   });
 
   it('ERROR: {fetch rejects with an AbortError outright} => throws naming the url, with no code', async () => {
@@ -76,8 +80,10 @@ describe('fetchWithStatus', () => {
     );
     const error = caught as Error & { url: string; code?: string };
 
-    expect(error.message).toBe('GET /api/quests failed: The user aborted a request.');
-    expect(error.url).toBe('/api/quests');
-    expect(error.code).toBe(undefined);
+    expect({ message: error.message, url: error.url, code: error.code }).toStrictEqual({
+      message: 'GET /api/quests failed: The user aborted a request.',
+      url: '/api/quests',
+      code: undefined,
+    });
   });
 });

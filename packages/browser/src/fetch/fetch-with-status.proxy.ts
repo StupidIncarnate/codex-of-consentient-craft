@@ -1,5 +1,8 @@
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
+const HTTP_OK_STATUS_MIN = 200;
+const HTTP_OK_STATUS_MAX_EXCLUSIVE = 300;
+
 const buildResponse = ({
   ok,
   status,
@@ -35,9 +38,13 @@ export const fetchWithStatusProxy = (): {
       status: number;
       bodyText: string;
     }): void => {
-      handle
-        .calledWith([url])
-        .resolves(buildResponse({ ok: status >= 200 && status < 300, status, bodyText }));
+      handle.calledWith([url]).resolves(
+        buildResponse({
+          ok: status >= HTTP_OK_STATUS_MIN && status < HTTP_OK_STATUS_MAX_EXCLUSIVE,
+          status,
+          bodyText,
+        }),
+      );
     },
     // `cause` carries its own `.cause` chain (a duck-typed error with `.code`), so the rejection
     // this stages matches what a real refused socket produces.
@@ -52,18 +59,16 @@ export const fetchWithStatusProxy = (): {
     // Only rejects once the caller-supplied `signal` actually fires — proves this adapter forwards
     // `signal` to the real fetch call rather than merely swallowing an unconditional rejection.
     setupAbortsOnSignal: ({ url }: { url: string }): void => {
-      handle
-        .calledWith([url])
-        .implement(
-          (_url: string, init: RequestInit) =>
-            new Promise<Response>((_resolve, reject) => {
-              init.signal?.addEventListener('abort', () => {
-                reject(
-                  Object.assign(new Error('The user aborted a request.'), { name: 'AbortError' }),
-                );
-              });
-            }),
-        );
+      handle.calledWith([url]).implement(
+        async (_url: string, init: RequestInit) =>
+          new Promise<Response>((_resolve, reject) => {
+            init.signal?.addEventListener('abort', () => {
+              reject(
+                Object.assign(new Error('The user aborted a request.'), { name: 'AbortError' }),
+              );
+            });
+          }),
+      );
     },
   };
 };

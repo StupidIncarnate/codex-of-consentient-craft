@@ -15,7 +15,7 @@
  */
 
 import { existsSync, readJsonFileSyncIfExists } from '@dungeonmaster/node/fs';
-import moduleGateway from '@dungeonmaster/node/module';
+import { resolvePackageRoot } from '@dungeonmaster/node/module';
 import path from '@dungeonmaster/node/path';
 import { getEnv } from '@dungeonmaster/node/process';
 
@@ -33,7 +33,7 @@ export const resolveClaudeCliPath = (): string => {
     return override;
   }
 
-  const packageRoot = moduleGateway.resolvePackageRoot({ specifier: ANTHROPIC_PACKAGE_SPECIFIER });
+  const packageRoot = resolvePackageRoot({ specifier: ANTHROPIC_PACKAGE_SPECIFIER });
   if (packageRoot !== null) {
     const packageJson = readJsonFileSyncIfExists(path.join(packageRoot, 'package.json'));
     if (typeof packageJson === 'object' && packageJson !== null) {

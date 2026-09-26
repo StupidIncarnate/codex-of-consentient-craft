@@ -51,6 +51,28 @@ describe('isNpmPackageGuard', () => {
     });
   });
 
+  describe('valid - gateway package exception', () => {
+    it('VALID: {importSource: "@dungeonmaster/node/fs"} => returns true', () => {
+      expect(isNpmPackageGuard({ importSource: '@dungeonmaster/node/fs' })).toBe(true);
+    });
+
+    it('VALID: {importSource: "@dungeonmaster/npm/zod"} => returns true', () => {
+      expect(isNpmPackageGuard({ importSource: '@dungeonmaster/npm/zod' })).toBe(true);
+    });
+
+    it('VALID: {importSource: "@dungeonmaster/browser/fetch"} => returns true', () => {
+      expect(isNpmPackageGuard({ importSource: '@dungeonmaster/browser/fetch' })).toBe(true);
+    });
+
+    it('VALID: {importSource: "@dungeonmaster/bin/git"} => returns true', () => {
+      expect(isNpmPackageGuard({ importSource: '@dungeonmaster/bin/git' })).toBe(true);
+    });
+
+    it('INVALID: {importSource: "@dungeonmaster/orchestrator"} => returns false', () => {
+      expect(isNpmPackageGuard({ importSource: '@dungeonmaster/orchestrator' })).toBe(false);
+    });
+  });
+
   describe('invalid - relative paths', () => {
     it('INVALID: {importSource: "./foo"} => returns false', () => {
       expect(isNpmPackageGuard({ importSource: './foo' })).toBe(false);

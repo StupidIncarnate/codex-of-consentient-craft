@@ -14,6 +14,7 @@ import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 import { isAstMethodCallGuard } from '../../../guards/is-ast-method-call/is-ast-method-call-guard';
 import { isNpmPackageGuard } from '../../../guards/is-npm-package/is-npm-package-guard';
+import { isIoBoundaryProxyGuard } from '../../../guards/is-io-boundary-proxy/is-io-boundary-proxy-guard';
 import { astGetImportsTransformer } from '../../../transformers/ast-get-imports/ast-get-imports-transformer';
 import { astGetCallFirstArgumentNameTransformer } from '../../../transformers/ast-get-call-first-argument-name/ast-get-call-first-argument-name-transformer';
 import type { Identifier, ModulePath } from '@dungeonmaster/shared/contracts';
@@ -85,10 +86,11 @@ export const ruleJestMockedMustImportBroker = (): EslintRule => {
             return;
           }
 
-          // Additional validation for adapter proxies
+          // Additional validation for I/O-boundary proxies (adapters/, and gateway wrappers
+          // under packages/{node,npm,browser,bin}/)
           const filename = ctx.filename ?? '';
           if (
-            filename.includes('/adapters/') &&
+            isIoBoundaryProxyGuard({ filename }) &&
             hasFileSuffixGuard({ filename, suffix: 'proxy' })
           ) {
             // Check if trying to mock the adapter itself

@@ -11,7 +11,7 @@
 import { readJsonFile } from './read-json-file';
 import { isFsError } from '../is-fs-error';
 
-export const readJsonFileIfExists = async (path: string): Promise<unknown | null> => {
+export const readJsonFileIfExists = async (path: string): Promise<unknown> => {
   try {
     return await readJsonFile(path);
   } catch (error: unknown) {

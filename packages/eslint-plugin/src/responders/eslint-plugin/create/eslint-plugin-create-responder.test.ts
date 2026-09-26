@@ -2,7 +2,7 @@ import { EslintPluginCreateResponderProxy } from './eslint-plugin-create-respond
 
 describe('EslintPluginCreateResponder', () => {
   describe('rule initialization', () => {
-    it('VALID: {} => returns plugin with all 64 rule names', () => {
+    it('VALID: {} => returns plugin with all 70 rule names', () => {
       const proxy = EslintPluginCreateResponderProxy();
       const plugin = proxy.callResponder();
 
@@ -36,6 +36,7 @@ describe('EslintPluginCreateResponder', () => {
         'ban-wait-for-timeout',
         'ban-weak-asymmetric-matchers',
         'ban-weak-existence-matchers',
+        'bin-program-spawn-ban',
         'enforce-contract-usage-in-tests',
         'enforce-e2e-base-import',
         'enforce-file-metadata',
@@ -63,10 +64,15 @@ describe('EslintPluginCreateResponder', () => {
         'forbid-non-exported-functions',
         'forbid-todo-skip',
         'forbid-type-reexport',
+        'gateway-colocation',
+        'gateway-import-boundary',
+        'gateway-layout',
         'jest-mocked-must-import',
         'no-bare-process-cwd',
         'no-multiple-property-assertions',
         'no-mutable-state-in-proxy-factory',
+        'platform-globals-ban',
+        'raw-import-ban',
         'require-contract-validation',
         'require-validation-on-untyped-property-access',
         'require-zod-on-primitives',
@@ -144,12 +150,13 @@ describe('EslintPluginCreateResponder', () => {
       ]);
     });
 
-    it('VALID: {} => returns dungeonmaster config with typescript, test, fileOverrides, and ruleEnforceOn', () => {
+    it('VALID: {} => returns dungeonmaster config with typescript, test, gateway, fileOverrides, and ruleEnforceOn', () => {
       const proxy = EslintPluginCreateResponderProxy();
       const plugin = proxy.callResponder();
 
       expect(Object.keys(plugin.configs.dungeonmaster).sort()).toStrictEqual([
         'fileOverrides',
+        'gateway',
         'ruleEnforceOn',
         'test',
         'typescript',

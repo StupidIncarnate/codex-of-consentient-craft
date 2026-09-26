@@ -15,6 +15,7 @@ import { isStubFileGuard } from '../../../guards/is-stub-file/is-stub-file-guard
 import { importFolderTypeFromNameTransformer } from '../../../transformers/import-folder-type-from-name/import-folder-type-from-name-transformer';
 import { importFolderTypeFromSubpathTransformer } from '../../../transformers/import-folder-type-from-subpath/import-folder-type-from-subpath-transformer';
 import { nodeBuiltinStatics } from '../../../statics/node-builtin/node-builtin-statics';
+import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
 
 export const validateExternalImportLayerBroker = ({
   node,
@@ -31,6 +32,24 @@ export const validateExternalImportLayerBroker = ({
 }): boolean => {
   // Any `.../@types` subpath is allowed for all folders (type augmentation).
   if (importSource.includes('/@types')) {
+    return true;
+  }
+
+  // Every gateway package (@dungeonmaster/npm, @dungeonmaster/node, @dungeonmaster/browser,
+  // @dungeonmaster/bin), and any of their subpaths, is importable from any folder type. The
+  // gateway is the sole boundary where an outside npm package, a Node module or global, a
+  // browser global, or a spawned program is touched directly — it replaces the `adapters/`
+  // folder type for that purpose, so it needs the same universal reach `node_modules` grants
+  // `adapters/` today, without actually being `node_modules`.
+  const isGatewayImport = gatewayLocationsStatics.packageGlobs.some((glob) => {
+    const [, gatewayFolder] = glob.split('/');
+    return (
+      importSource === `@dungeonmaster/${gatewayFolder}` ||
+      importSource.startsWith(`@dungeonmaster/${gatewayFolder}/`)
+    );
+  });
+
+  if (isGatewayImport) {
     return true;
   }
 

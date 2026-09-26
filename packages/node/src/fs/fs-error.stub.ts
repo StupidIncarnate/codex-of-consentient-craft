@@ -16,6 +16,6 @@ export const FsErrorStub = ({
 }): FsError =>
   Object.assign(new Error(`${code}: ${syscall ?? 'op'} '${path ?? ''}'`), {
     code,
-    ...(path !== undefined ? { path } : {}),
-    ...(syscall !== undefined ? { syscall } : {}),
+    ...(path === undefined ? {} : { path }),
+    ...(syscall === undefined ? {} : { syscall }),
   });

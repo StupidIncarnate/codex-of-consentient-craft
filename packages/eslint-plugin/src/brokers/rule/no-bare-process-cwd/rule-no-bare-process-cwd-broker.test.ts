@@ -16,6 +16,12 @@ ruleTester.run('no-bare-process-cwd (defaults)', ruleNoBareProcessCwdBroker(), {
       code: 'export const processCwdAdapter = () => process.cwd();',
       filename: '/repo/packages/shared/src/adapters/process/cwd/process-cwd-adapter.ts',
     },
+    // VALID: process.cwd() inside the gateway's own sanctioned wrapper
+    // (@dungeonmaster/node/process exports `cwd`)
+    {
+      code: 'export const cwd = () => process.cwd();',
+      filename: '/repo/packages/node/src/process/index.ts',
+    },
     // VALID: process.cwd() in *.test.ts when allowTestFiles is true (default)
     {
       code: 'const dir = process.cwd();',
@@ -73,6 +79,12 @@ ruleTester.run('no-bare-process-cwd (defaults)', ruleNoBareProcessCwdBroker(), {
     {
       code: 'const dir = process.cwd();',
       filename: '/repo/packages/server/src/adapters/glob/find/glob-find-adapter.ts',
+      errors: [{ messageId: 'bareProcessCwd' }],
+    },
+    // INVALID: process.cwd() in a gateway wrapper that is NOT the sanctioned process/ module
+    {
+      code: 'export const currentDirSync = () => process.cwd();',
+      filename: '/repo/packages/node/src/fs/current-dir-sync.ts',
       errors: [{ messageId: 'bareProcessCwd' }],
     },
   ],

@@ -22,7 +22,9 @@ describe('dynamicImport', () => {
 
     rmSync(dir, { recursive: true, force: true });
 
-    expect((caught as Error).message).toMatch(/Cannot find module/u);
+    expect((caught as Error).message).toBe(
+      `Cannot find module '${missingPath}' from 'src/module/dynamic-import.ts'`,
+    );
   });
 
   it('ERROR: {path: a file with a syntax error} => rejects with a real SyntaxError, unreshaped', async () => {
