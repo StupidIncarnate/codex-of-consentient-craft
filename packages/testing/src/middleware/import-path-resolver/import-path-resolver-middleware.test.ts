@@ -43,13 +43,141 @@ describe('importPathResolverMiddleware', () => {
   describe('package barrel imports', () => {
     it('VALID: {@dungeonmaster/shared/testing} => returns testing.ts barrel path', () => {
       const proxy = importPathResolverMiddlewareProxy();
-      proxy.setupFilesOnDiskMatching({ pattern: /\/packages\/shared\/testing\.ts$/u });
+      proxy.setupWorkspaceRoot({ workspaceRootPath: '/repo' });
+      proxy.setupWorkspacePackage({
+        workspaceRootPath: '/repo',
+        packageFolderName: 'shared',
+        packageJson: {
+          name: '@dungeonmaster/shared',
+          exports: { './testing': { source: './testing.ts' } },
+        },
+      });
+      proxy.setupSourceFileExists({ filePath: '/repo/packages/shared/testing.ts' });
       const sourceFilePath = FilePathStub({ value: '/repo/src/widget/widget.test.ts' });
       const importPath = ImportPathStub({ value: '@dungeonmaster/shared/testing' });
 
       const result = importPathResolverMiddleware({ sourceFilePath, importPath });
 
-      expect(String(result)).toMatch(/^\/.*\/packages\/shared\/testing\.ts$/u);
+      expect(result).toStrictEqual(FilePathStub({ value: '/repo/packages/shared/testing.ts' }));
+    });
+  });
+
+  describe('cross-package gateway testing subpaths', () => {
+    it('VALID: {@dungeonmaster/bin/testing, src/testing/index.ts pattern export} => returns resolved index path', () => {
+      const proxy = importPathResolverMiddlewareProxy();
+      proxy.setupWorkspaceRoot({ workspaceRootPath: '/repo' });
+      proxy.setupWorkspacePackage({
+        workspaceRootPath: '/repo',
+        packageFolderName: 'bin',
+        packageJson: {
+          name: '@dungeonmaster/bin',
+          exports: {
+            './testing': { source: './src/testing/index.ts' },
+            './*': { source: './src/*/index.ts' },
+          },
+        },
+      });
+      proxy.setupSourceFileExists({ filePath: '/repo/packages/bin/src/testing/index.ts' });
+      const sourceFilePath = FilePathStub({
+        value:
+          '/repo/packages/siegelense/src/brokers/instance/reserve/instance-reserve-broker.proxy.ts',
+      });
+      const importPath = ImportPathStub({ value: '@dungeonmaster/bin/testing' });
+
+      const result = importPathResolverMiddleware({ sourceFilePath, importPath });
+
+      expect(result).toStrictEqual(
+        FilePathStub({ value: '/repo/packages/bin/src/testing/index.ts' }),
+      );
+    });
+
+    it('VALID: {@dungeonmaster/node/testing, only a wildcard export} => resolves through the "./*" pattern', () => {
+      const proxy = importPathResolverMiddlewareProxy();
+      proxy.setupWorkspaceRoot({ workspaceRootPath: '/repo' });
+      proxy.setupWorkspacePackage({
+        workspaceRootPath: '/repo',
+        packageFolderName: 'node',
+        packageJson: {
+          name: '@dungeonmaster/node',
+          exports: { './*': { source: './src/*/index.ts' } },
+        },
+      });
+      proxy.setupSourceFileExists({ filePath: '/repo/packages/node/src/testing/index.ts' });
+      const sourceFilePath = FilePathStub({ value: '/repo/packages/hooks/src/a.proxy.ts' });
+      const importPath = ImportPathStub({ value: '@dungeonmaster/node/testing' });
+
+      const result = importPathResolverMiddleware({ sourceFilePath, importPath });
+
+      expect(result).toStrictEqual(
+        FilePathStub({ value: '/repo/packages/node/src/testing/index.ts' }),
+      );
+    });
+
+    it('VALID: {matching package, resolved source file missing on disk} => returns null', () => {
+      const proxy = importPathResolverMiddlewareProxy();
+      proxy.setupWorkspaceRoot({ workspaceRootPath: '/repo' });
+      proxy.setupWorkspacePackage({
+        workspaceRootPath: '/repo',
+        packageFolderName: 'bin',
+        packageJson: {
+          name: '@dungeonmaster/bin',
+          exports: { './testing': { source: './src/testing/index.ts' } },
+        },
+      });
+      const sourceFilePath = FilePathStub({ value: '/repo/packages/hooks/src/a.proxy.ts' });
+      const importPath = ImportPathStub({ value: '@dungeonmaster/bin/testing' });
+
+      const result = importPathResolverMiddleware({ sourceFilePath, importPath });
+
+      expect(result).toBe(null);
+    });
+
+    it('VALID: {no sibling package has this name} => returns null', () => {
+      const proxy = importPathResolverMiddlewareProxy();
+      proxy.setupWorkspaceRoot({ workspaceRootPath: '/repo' });
+      proxy.setupWorkspacePackage({
+        workspaceRootPath: '/repo',
+        packageFolderName: 'bin',
+        packageJson: {
+          name: '@dungeonmaster/bin',
+          exports: { './testing': { source: './src/testing/index.ts' } },
+        },
+      });
+      const sourceFilePath = FilePathStub({ value: '/repo/packages/hooks/src/a.proxy.ts' });
+      const importPath = ImportPathStub({ value: '@dungeonmaster/npm/testing' });
+
+      const result = importPathResolverMiddleware({ sourceFilePath, importPath });
+
+      expect(result).toBe(null);
+    });
+
+    it('VALID: {package found, but no export matches the subpath} => returns null', () => {
+      const proxy = importPathResolverMiddlewareProxy();
+      proxy.setupWorkspaceRoot({ workspaceRootPath: '/repo' });
+      proxy.setupWorkspacePackage({
+        workspaceRootPath: '/repo',
+        packageFolderName: 'bin',
+        packageJson: {
+          name: '@dungeonmaster/bin',
+          exports: { './git': { source: './src/git/index.ts' } },
+        },
+      });
+      const sourceFilePath = FilePathStub({ value: '/repo/packages/hooks/src/a.proxy.ts' });
+      const importPath = ImportPathStub({ value: '@dungeonmaster/bin/testing' });
+
+      const result = importPathResolverMiddleware({ sourceFilePath, importPath });
+
+      expect(result).toBe(null);
+    });
+
+    it('VALID: {no ancestor package.json declares workspaces} => returns null', () => {
+      importPathResolverMiddlewareProxy();
+      const sourceFilePath = FilePathStub({ value: '/unreachable/deep/path/a.proxy.ts' });
+      const importPath = ImportPathStub({ value: '@dungeonmaster/bin/testing' });
+
+      const result = importPathResolverMiddleware({ sourceFilePath, importPath });
+
+      expect(result).toBe(null);
     });
   });
 

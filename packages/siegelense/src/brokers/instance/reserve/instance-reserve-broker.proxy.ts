@@ -1,11 +1,11 @@
 import { createServer, type Server } from 'net';
+import { currentBranchProxy } from '@dungeonmaster/bin/testing';
 import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { fsMkdirAdapterProxy, netFreePortPairAdapterProxy } from '@dungeonmaster/shared/testing';
 import type { FilePath, NetworkPort } from '@dungeonmaster/shared/contracts';
 
 import { locationsInstanceEvidencePathFindBrokerProxy } from '../../locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker.proxy';
 import { registryUpdateBrokerProxy } from '../../registry/update/registry-update-broker.proxy';
-import { gitBranchReadAdapterProxy } from '../../../adapters/git/branch-read/git-branch-read-adapter.proxy';
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 
@@ -43,13 +43,14 @@ export const instanceReserveBrokerProxy = (): {
     pairs: readonly { api: NetworkPort; web: NetworkPort }[];
   }) => void;
   setupBranch: (params: { branch: string | null }) => void;
+  setupBranchFailure: (params: { exitCode: number; output: string }) => void;
   getWrittenRegistry: () => unknown;
   getCreatedDirs: () => readonly unknown[];
 } => {
   const updateProxy = registryUpdateBrokerProxy();
   const evidenceProxy = locationsInstanceEvidencePathFindBrokerProxy();
   const mkdirProxy = fsMkdirAdapterProxy();
-  const branchProxy = gitBranchReadAdapterProxy();
+  const branchProxy = currentBranchProxy();
   netFreePortPairAdapterProxy();
 
   const createServerHandle = registerMock({ fn: createServer });
@@ -100,8 +101,18 @@ export const instanceReserveBrokerProxy = (): {
       });
     },
 
+    // currentBranchProxy has no single "branch or null" method — a detached HEAD and a named
+    // branch are staged through its two separate scenario methods.
     setupBranch: ({ branch }: { branch: string | null }): void => {
+      if (branch === null) {
+        branchProxy.setupDetached();
+        return;
+      }
       branchProxy.setupBranch({ branch });
+    },
+
+    setupBranchFailure: ({ exitCode, output }: { exitCode: number; output: string }): void => {
+      branchProxy.setupFailure({ exitCode, output });
     },
 
     getWrittenRegistry: (): unknown => {

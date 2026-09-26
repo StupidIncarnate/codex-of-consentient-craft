@@ -1,9 +1,9 @@
 import { commit } from './git-commit';
-import { gitCommitProxy } from './git-commit.proxy';
+import { commitProxy } from './git-commit.proxy';
 
 describe('commit()', () => {
   it('VALID: {message: "work items: 3"} => runs plain commit, returns the result', async () => {
-    const proxy = gitCommitProxy();
+    const proxy = commitProxy();
     proxy.setupResult({ message: 'work items: 3', exitCode: 0, output: '' });
 
     const result = await commit({ cwd: '/repo', message: 'work items: 3' });
@@ -12,7 +12,7 @@ describe('commit()', () => {
   });
 
   it('VALID: {message, allowEmpty: true} => runs commit --allow-empty, returns the result', async () => {
-    const proxy = gitCommitProxy();
+    const proxy = commitProxy();
     proxy.setupResult({
       message: 'ward/commit: repair',
       allowEmpty: true,
@@ -26,7 +26,7 @@ describe('commit()', () => {
   });
 
   it('ERROR: {exitCode: 1, output: "nothing to commit"} => returns it, does not throw', async () => {
-    const proxy = gitCommitProxy();
+    const proxy = commitProxy();
     proxy.setupResult({ message: 'x', exitCode: 1, output: 'nothing to commit' });
 
     const result = await commit({ cwd: '/repo', message: 'x' });

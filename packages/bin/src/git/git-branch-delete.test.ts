@@ -1,9 +1,9 @@
 import { branchDelete } from './git-branch-delete';
-import { gitBranchDeleteProxy } from './git-branch-delete.proxy';
+import { branchDeleteProxy } from './git-branch-delete.proxy';
 
 describe('branchDelete()', () => {
   it('VALID: {branchName: "quest/foo"} => runs git branch -D quest/foo', async () => {
-    const proxy = gitBranchDeleteProxy();
+    const proxy = branchDeleteProxy();
     proxy.setupResult({ branchName: 'quest/foo', exitCode: 0, output: '' });
 
     const result = await branchDelete({ cwd: '/repo', branchName: 'quest/foo' });
@@ -12,7 +12,7 @@ describe('branchDelete()', () => {
   });
 
   it('ERROR: {exitCode: 1, output: "not found"} => returns it, does not throw', async () => {
-    const proxy = gitBranchDeleteProxy();
+    const proxy = branchDeleteProxy();
     proxy.setupResult({ branchName: 'quest/foo', exitCode: 1, output: 'not found' });
 
     const result = await branchDelete({ cwd: '/repo', branchName: 'quest/foo' });

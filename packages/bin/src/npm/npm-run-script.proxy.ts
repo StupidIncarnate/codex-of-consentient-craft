@@ -1,6 +1,6 @@
 import { npmRunProxy } from './npm-run.proxy';
 
-export const npmRunScriptProxy = (): {
+export const runScriptProxy = (): {
   setupResult: (params: {
     script: string;
     workspace?: string;

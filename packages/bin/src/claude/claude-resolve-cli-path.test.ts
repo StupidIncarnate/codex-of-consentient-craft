@@ -1,10 +1,10 @@
 import { ClaudeNotInstalledError } from './claude-not-installed-error';
 import { resolveClaudeCliPath } from './claude-resolve-cli-path';
-import { claudeResolveCliPathProxy } from './claude-resolve-cli-path.proxy';
+import { resolveClaudeCliPathProxy } from './claude-resolve-cli-path.proxy';
 
 describe('resolveClaudeCliPath()', () => {
   it('VALID: {CLAUDE_CLI_PATH set} => returns the override verbatim', () => {
-    const proxy = claudeResolveCliPathProxy();
+    const proxy = resolveClaudeCliPathProxy();
     proxy.setupOverride({ cliPath: '/fake/bin/claude' });
 
     const result = resolveClaudeCliPath();
@@ -13,7 +13,7 @@ describe('resolveClaudeCliPath()', () => {
   });
 
   it('VALID: {no override, npm package installed, bin is a string} => returns the joined absolute path', () => {
-    const proxy = claudeResolveCliPathProxy();
+    const proxy = resolveClaudeCliPathProxy();
     proxy.setupNoOverride();
     proxy.setupNpmPackage({
       packageRoot: '/repo/node_modules/@anthropic-ai/claude-code',
@@ -26,7 +26,7 @@ describe('resolveClaudeCliPath()', () => {
   });
 
   it('VALID: {no override, npm package installed, bin is an object} => returns the joined path of its first entry', () => {
-    const proxy = claudeResolveCliPathProxy();
+    const proxy = resolveClaudeCliPathProxy();
     proxy.setupNoOverride();
     proxy.setupNpmPackage({
       packageRoot: '/repo/node_modules/@anthropic-ai/claude-code',
@@ -39,7 +39,7 @@ describe('resolveClaudeCliPath()', () => {
   });
 
   it('EDGE: {no override, npm package resolves but package.json is unreadable} => falls through to PATH', () => {
-    const proxy = claudeResolveCliPathProxy();
+    const proxy = resolveClaudeCliPathProxy();
     proxy.setupNoOverride();
     proxy.setupPackageJsonMissing({ packageRoot: '/repo/node_modules/@anthropic-ai/claude-code' });
     proxy.setupPathScan({
@@ -53,7 +53,7 @@ describe('resolveClaudeCliPath()', () => {
   });
 
   it('VALID: {no override, no npm package, claude found on PATH} => returns "claude"', () => {
-    const proxy = claudeResolveCliPathProxy();
+    const proxy = resolveClaudeCliPathProxy();
     proxy.setupNoOverride();
     proxy.setupNoNpmPackage();
     proxy.setupPathScan({
@@ -67,7 +67,7 @@ describe('resolveClaudeCliPath()', () => {
   });
 
   it('ERROR: {no override, no npm package, claude nowhere on PATH} => throws ClaudeNotInstalledError', () => {
-    const proxy = claudeResolveCliPathProxy();
+    const proxy = resolveClaudeCliPathProxy();
     proxy.setupNoOverride();
     proxy.setupNoNpmPackage();
     proxy.setupPathScan({ directories: ['/usr/bin', '/usr/local/bin'] });
@@ -80,7 +80,7 @@ describe('resolveClaudeCliPath()', () => {
   });
 
   it('EMPTY: {no override, no npm package, PATH has no directories} => throws ClaudeNotInstalledError', () => {
-    const proxy = claudeResolveCliPathProxy();
+    const proxy = resolveClaudeCliPathProxy();
     proxy.setupNoOverride();
     proxy.setupNoNpmPackage();
     proxy.setupPathScan({ directories: [] });

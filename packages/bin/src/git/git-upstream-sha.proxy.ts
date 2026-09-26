@@ -1,6 +1,6 @@
 import { gitRunProxy } from './git-run.proxy';
 
-export const gitUpstreamShaProxy = (): {
+export const upstreamShaProxy = (): {
   setupResult: (params: { exitCode: number; output: string }) => void;
 } => {
   const runProxy = gitRunProxy();

@@ -1,6 +1,6 @@
 import { npmRunProxy } from './npm-run.proxy';
 
-export const npmInstallProxy = (): {
+export const installProxy = (): {
   setupResult: (params: { exitCode: number; output: string }) => void;
 } => {
   const runProxy = npmRunProxy();

@@ -1,6 +1,6 @@
 import { gitRunProxy } from './git-run.proxy';
 
-export const gitDetectDefaultBranchProxy = (): {
+export const detectDefaultBranchProxy = (): {
   setupMainExists: () => void;
   setupMasterExists: () => void;
   setupNeitherExists: () => void;

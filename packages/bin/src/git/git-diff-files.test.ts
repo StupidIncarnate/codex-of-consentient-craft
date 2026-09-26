@@ -1,9 +1,9 @@
 import { diffFiles } from './git-diff-files';
-import { gitDiffFilesProxy } from './git-diff-files.proxy';
+import { diffFilesProxy } from './git-diff-files.proxy';
 
 describe('diffFiles()', () => {
   it('VALID: {comparison: default} => diffs baseRef...HEAD, returns file paths', async () => {
-    const proxy = gitDiffFilesProxy();
+    const proxy = diffFilesProxy();
     proxy.setupResult({
       revisionArg: 'a1b2c3d4...HEAD',
       exitCode: 0,
@@ -16,7 +16,7 @@ describe('diffFiles()', () => {
   });
 
   it('VALID: {comparison: "ref-to-working-tree"} => diffs baseRef alone', async () => {
-    const proxy = gitDiffFilesProxy();
+    const proxy = diffFilesProxy();
     proxy.setupResult({ revisionArg: 'a1b2c3d4', exitCode: 0, output: 'packages/a/file.ts\n' });
 
     const result = await diffFiles({
@@ -29,7 +29,7 @@ describe('diffFiles()', () => {
   });
 
   it('ERROR: {exitCode: 128} => throws naming the command and output', async () => {
-    const proxy = gitDiffFilesProxy();
+    const proxy = diffFilesProxy();
     proxy.setupResult({
       revisionArg: 'a1b2c3d4...HEAD',
       exitCode: 128,
@@ -42,7 +42,7 @@ describe('diffFiles()', () => {
   });
 
   it('EMPTY: {output: ""} => returns an empty array', async () => {
-    const proxy = gitDiffFilesProxy();
+    const proxy = diffFilesProxy();
     proxy.setupResult({ revisionArg: 'a1b2c3d4...HEAD', exitCode: 0, output: '' });
 
     const result = await diffFiles({ cwd: '/repo', baseRef: 'a1b2c3d4' });

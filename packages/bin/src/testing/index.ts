@@ -5,7 +5,7 @@
  * in each function's colocated `.proxy.ts`.
  *
  * USAGE:
- * import { gitCurrentBranchProxy } from '@dungeonmaster/bin/testing';
+ * import { currentBranchProxy } from '@dungeonmaster/bin/testing';
  */
 
 export * from '../git/git-current-branch.proxy';

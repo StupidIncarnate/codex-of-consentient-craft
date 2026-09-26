@@ -31,6 +31,36 @@ describe('isProxyImportGuard', () => {
 
       expect(result).toBe(true);
     });
+
+    it('VALID: {importPath: "@dungeonmaster/bin/testing"} => returns true', () => {
+      const result = isProxyImportGuard({ importPath: '@dungeonmaster/bin/testing' });
+
+      expect(result).toBe(true);
+    });
+
+    it('VALID: {importPath: "@dungeonmaster/node/testing"} => returns true', () => {
+      const result = isProxyImportGuard({ importPath: '@dungeonmaster/node/testing' });
+
+      expect(result).toBe(true);
+    });
+
+    it('VALID: {importPath: "@dungeonmaster/npm/testing"} => returns true', () => {
+      const result = isProxyImportGuard({ importPath: '@dungeonmaster/npm/testing' });
+
+      expect(result).toBe(true);
+    });
+
+    it('VALID: {importPath: "@dungeonmaster/browser/testing"} => returns true', () => {
+      const result = isProxyImportGuard({ importPath: '@dungeonmaster/browser/testing' });
+
+      expect(result).toBe(true);
+    });
+
+    it('VALID: {importPath: "some-unscoped-package/testing"} => returns true', () => {
+      const result = isProxyImportGuard({ importPath: 'some-unscoped-package/testing' });
+
+      expect(result).toBe(true);
+    });
   });
 
   describe('non-proxy imports', () => {
@@ -54,6 +84,18 @@ describe('isProxyImportGuard', () => {
 
     it('INVALID: {importPath: "axios"} => returns false', () => {
       const result = isProxyImportGuard({ importPath: 'axios' });
+
+      expect(result).toBe(false);
+    });
+
+    it('INVALID: {importPath: "@testing-library/react"} => returns false', () => {
+      const result = isProxyImportGuard({ importPath: '@testing-library/react' });
+
+      expect(result).toBe(false);
+    });
+
+    it('INVALID: {importPath: "@dungeonmaster/bin/git"} => returns false', () => {
+      const result = isProxyImportGuard({ importPath: '@dungeonmaster/bin/git' });
 
       expect(result).toBe(false);
     });

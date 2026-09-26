@@ -1,6 +1,6 @@
 import { gitRunProxy } from './git-run.proxy';
 
-export const gitWorktreeRemoveProxy = (): {
+export const worktreeRemoveProxy = (): {
   setupResult: (params: { worktreePath: string; exitCode: number; output: string }) => void;
 } => {
   const runProxy = gitRunProxy();

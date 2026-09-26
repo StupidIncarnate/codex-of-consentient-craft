@@ -1,5 +1,9 @@
 /**
- * PURPOSE: Resolves an import path to an absolute file path using adapters
+ * PURPOSE: Resolves an import path to an absolute file path. A relative path resolves against its
+ * importing file's own directory, trying this codebase's source extensions in order. A workspace
+ * package subpath (`@dungeonmaster/bin/testing`, `@dungeonmaster/shared/testing`, …) delegates to
+ * workspacePackageImportResolveMiddleware, which resolves it the way Node's own `exports` map would
+ * under the `source` condition — without needing that package built first.
  *
  * USAGE:
  * const filePath = importPathResolverMiddleware({
@@ -14,6 +18,7 @@ import { fileExtensionsStatics } from '@dungeonmaster/shared/statics';
 import { pathDirnameAdapter } from '../../adapters/path/dirname/path-dirname-adapter';
 import { pathResolveAdapter } from '../../adapters/path/resolve/path-resolve-adapter';
 import { fsExistsSyncAdapter } from '../../adapters/fs/exists-sync/fs-exists-sync-adapter';
+import { workspacePackageImportResolveMiddleware } from '../workspace-package-import-resolve/workspace-package-import-resolve-middleware';
 import { filePathContract } from '../../contracts/file-path/file-path-contract';
 import type { FilePath } from '../../contracts/file-path/file-path-contract';
 import type { ImportPath } from '../../contracts/import-path/import-path-contract';
@@ -25,26 +30,8 @@ export const importPathResolverMiddleware = ({
   sourceFilePath: FilePath;
   importPath: ImportPath;
 }): FilePath | null => {
-  // Handle @dungeonmaster/shared/testing barrel
-  if (importPath === '@dungeonmaster/shared/testing') {
-    try {
-      // Use require.resolve to find the actual file path
-      const resolved = require.resolve('@dungeonmaster/shared/testing');
-      // Convert from .js to .ts (require.resolve returns dist path)
-      const tsPath = resolved.replace('/dist/', '/').replace('.js', '.ts');
-      const filePath = filePathContract.parse(tsPath);
-      if (fsExistsSyncAdapter({ filePath })) {
-        return filePath;
-      }
-    } catch {
-      return null;
-    }
-    return null;
-  }
-
-  // Handle relative imports
   if (!importPath.startsWith('.')) {
-    return null;
+    return workspacePackageImportResolveMiddleware({ sourceFilePath, importPath });
   }
 
   const sourceDir = pathDirnameAdapter({ filePath: sourceFilePath });

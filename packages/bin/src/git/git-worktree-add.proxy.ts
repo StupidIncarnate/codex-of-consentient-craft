@@ -1,6 +1,6 @@
 import { gitRunProxy } from './git-run.proxy';
 
-export const gitWorktreeAddProxy = (): {
+export const worktreeAddProxy = (): {
   setupCreateBranch: (params: {
     worktreePath: string;
     branchName: string;

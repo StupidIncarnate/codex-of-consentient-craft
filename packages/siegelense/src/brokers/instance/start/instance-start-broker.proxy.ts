@@ -154,10 +154,15 @@ export const instanceStartBrokerProxy = (): {
   stageProcessUnreachable: (params: { url: string }) => void;
   setupCapacityRefusal: (params: { specName: SpecName; why: string }) => void;
 } => {
-  // Created to satisfy enforce-proxy-child-creation; their onceFor-based semantic setup methods
-  // are never called, since every path here resolves through the REAL pathJoin passthrough (see
-  // the note above) rather than through a one-shot stub any of these would queue.
-  instanceReserveBrokerProxy();
+  // Created to satisfy enforce-proxy-child-creation; every OTHER setup method on this proxy is
+  // never called, since every path here resolves through the REAL pathJoin passthrough (see the
+  // note above) rather than through a one-shot stub any of these would queue.
+  const reserveProxy = instanceReserveBrokerProxy();
+  // instanceReserveBroker now reads the real git branch through @dungeonmaster/bin/git's
+  // currentBranch, which — unlike the adapter it replaces — has no constructor-time default and
+  // throws on an unaddressed call. No test in this file asserts on `branch`, so this stages the
+  // same "no branch" answer the old adapter's proxy defaulted to implicitly.
+  reserveProxy.setupBranch({ branch: null });
   // instanceReleaseBroker (called on every failed-boot path, defect 2) composes real
   // registryUpdateBroker underneath — the SAME generic writeFile/readFile mocks staged below
   // already satisfy it, matching how instanceReserveBroker's own registryUpdateBroker call runs

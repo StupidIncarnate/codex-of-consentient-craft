@@ -1,6 +1,6 @@
 import { gitRunProxy } from './git-run.proxy';
 
-export const gitAddAllProxy = (): {
+export const addAllProxy = (): {
   setupResult: (params: { exitCode: number; output: string }) => void;
 } => {
   const runProxy = gitRunProxy();

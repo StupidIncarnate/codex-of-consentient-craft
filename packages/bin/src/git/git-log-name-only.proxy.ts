@@ -1,6 +1,6 @@
 import { gitRunProxy } from './git-run.proxy';
 
-export const gitLogNameOnlyProxy = (): {
+export const logNameOnlyProxy = (): {
   setupResult: (params: { baseRef: string; exitCode: number; output: string }) => void;
 } => {
   const runProxy = gitRunProxy();

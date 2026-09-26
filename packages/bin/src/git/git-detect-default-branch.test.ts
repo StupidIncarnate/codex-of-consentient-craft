@@ -1,9 +1,9 @@
 import { detectDefaultBranch } from './git-detect-default-branch';
-import { gitDetectDefaultBranchProxy } from './git-detect-default-branch.proxy';
+import { detectDefaultBranchProxy } from './git-detect-default-branch.proxy';
 
 describe('detectDefaultBranch()', () => {
   it('VALID: {main exists} => returns "main"', async () => {
-    const proxy = gitDetectDefaultBranchProxy();
+    const proxy = detectDefaultBranchProxy();
     proxy.setupMainExists();
 
     const result = await detectDefaultBranch({ cwd: '/repo' });
@@ -12,7 +12,7 @@ describe('detectDefaultBranch()', () => {
   });
 
   it('VALID: {only master exists} => returns "master"', async () => {
-    const proxy = gitDetectDefaultBranchProxy();
+    const proxy = detectDefaultBranchProxy();
     proxy.setupMasterExists();
 
     const result = await detectDefaultBranch({ cwd: '/repo' });
@@ -21,7 +21,7 @@ describe('detectDefaultBranch()', () => {
   });
 
   it('EMPTY: {neither exists} => returns null', async () => {
-    const proxy = gitDetectDefaultBranchProxy();
+    const proxy = detectDefaultBranchProxy();
     proxy.setupNeitherExists();
 
     const result = await detectDefaultBranch({ cwd: '/repo' });

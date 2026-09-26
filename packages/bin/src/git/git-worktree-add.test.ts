@@ -1,9 +1,9 @@
 import { worktreeAdd } from './git-worktree-add';
-import { gitWorktreeAddProxy } from './git-worktree-add.proxy';
+import { worktreeAddProxy } from './git-worktree-add.proxy';
 
 describe('worktreeAdd()', () => {
   it('VALID: {mode: "create-branch"} => runs worktree add -b <branchName> <baseBranch>', async () => {
-    const proxy = gitWorktreeAddProxy();
+    const proxy = worktreeAddProxy();
     proxy.setupCreateBranch({
       worktreePath: '/repo/worktrees/foo',
       branchName: 'quest/foo',
@@ -24,7 +24,7 @@ describe('worktreeAdd()', () => {
   });
 
   it('VALID: {mode: "attach-existing"} => runs worktree add <worktreePath> <branchName>', async () => {
-    const proxy = gitWorktreeAddProxy();
+    const proxy = worktreeAddProxy();
     proxy.setupAttachExisting({
       worktreePath: '/repo/worktrees/foo',
       branchName: 'quest/foo',
@@ -44,7 +44,7 @@ describe('worktreeAdd()', () => {
   });
 
   it('ERROR: {exitCode: 128, output: "already exists"} => returns it, does not throw', async () => {
-    const proxy = gitWorktreeAddProxy();
+    const proxy = worktreeAddProxy();
     proxy.setupCreateBranch({
       worktreePath: '/repo/worktrees/foo',
       branchName: 'quest/foo',

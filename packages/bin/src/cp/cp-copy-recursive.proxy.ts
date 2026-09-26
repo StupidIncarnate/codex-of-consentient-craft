@@ -1,6 +1,6 @@
 import { cpRunProxy } from './cp-run.proxy';
 
-export const cpCopyRecursiveProxy = (): {
+export const copyRecursiveProxy = (): {
   setupResult: (params: {
     sources: string[];
     destination: string;

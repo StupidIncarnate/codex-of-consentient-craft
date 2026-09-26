@@ -1,6 +1,6 @@
 import { gitRunProxy } from './git-run.proxy';
 
-export const gitPushProxy = (): {
+export const pushProxy = (): {
   setupPlainPush: (params: { exitCode: number; output: string }) => void;
   setupUpstreamPush: (params: { branchName: string; exitCode: number; output: string }) => void;
 } => {

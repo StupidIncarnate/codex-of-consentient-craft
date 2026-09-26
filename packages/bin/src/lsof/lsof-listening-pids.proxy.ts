@@ -1,7 +1,7 @@
 import { run, RunNotFoundError } from '@dungeonmaster/node/child_process';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
-export const lsofListeningPidsProxy = (): {
+export const listeningPidsProxy = (): {
   setupPids: (params: { port: number; pids: number[] }) => void;
   setupNoneListening: (params: { port: number }) => void;
   setupNotFound: (params: { port: number; message: string }) => void;

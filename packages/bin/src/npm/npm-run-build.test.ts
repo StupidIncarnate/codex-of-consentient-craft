@@ -1,9 +1,9 @@
 import { runBuild } from './npm-run-build';
-import { npmRunBuildProxy } from './npm-run-build.proxy';
+import { runBuildProxy } from './npm-run-build.proxy';
 
 describe('runBuild()', () => {
   it('VALID: {workspace: "@scope/pkg"} => runs npm run build --workspace=@scope/pkg', async () => {
-    const proxy = npmRunBuildProxy();
+    const proxy = runBuildProxy();
     proxy.setupResult({ workspace: '@scope/pkg', exitCode: 0, output: '' });
 
     const result = await runBuild({ cwd: '/repo', workspace: '@scope/pkg' });
@@ -12,7 +12,7 @@ describe('runBuild()', () => {
   });
 
   it('ERROR: {exitCode: 1, output: "npm ERR! Missing script"} => returns it, does not throw', async () => {
-    const proxy = npmRunBuildProxy();
+    const proxy = runBuildProxy();
     proxy.setupResult({ workspace: '@scope/pkg', exitCode: 1, output: 'npm ERR! Missing script' });
 
     const result = await runBuild({ cwd: '/repo', workspace: '@scope/pkg' });

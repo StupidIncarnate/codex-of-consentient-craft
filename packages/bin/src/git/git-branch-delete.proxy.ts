@@ -1,6 +1,6 @@
 import { gitRunProxy } from './git-run.proxy';
 
-export const gitBranchDeleteProxy = (): {
+export const branchDeleteProxy = (): {
   setupResult: (params: { branchName: string; exitCode: number; output: string }) => void;
 } => {
   const runProxy = gitRunProxy();

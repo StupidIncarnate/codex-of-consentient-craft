@@ -1,10 +1,10 @@
 import { ClaudeNotInstalledError } from './claude-not-installed-error';
 import { spawnStreamJson } from './claude-spawn-stream-json';
-import { claudeSpawnStreamJsonProxy } from './claude-spawn-stream-json.proxy';
+import { spawnStreamJsonProxy } from './claude-spawn-stream-json.proxy';
 
 describe('spawnStreamJson()', () => {
   it('VALID: {args} => resolves the CLI path and returns the live process plus stdout', () => {
-    const proxy = claudeSpawnStreamJsonProxy();
+    const proxy = spawnStreamJsonProxy();
     const child = proxy.setupSuccess({ cliPath: '/fake/bin/claude' });
 
     const result = spawnStreamJson({ args: ['-p', 'hi', '--model', 'sonnet'] });
@@ -13,7 +13,7 @@ describe('spawnStreamJson()', () => {
   });
 
   it('VALID: {cwd, env, abortSignal} => passes them through to the underlying spawn', () => {
-    const proxy = claudeSpawnStreamJsonProxy();
+    const proxy = spawnStreamJsonProxy();
     proxy.setupSuccess({ cliPath: '/fake/bin/claude' });
     const controller = new AbortController();
 
@@ -36,7 +36,7 @@ describe('spawnStreamJson()', () => {
   });
 
   it('EMPTY: {cwd, env, abortSignal omitted} => spawn options carry none of them', () => {
-    const proxy = claudeSpawnStreamJsonProxy();
+    const proxy = spawnStreamJsonProxy();
     proxy.setupSuccess({ cliPath: '/fake/bin/claude' });
 
     spawnStreamJson({ args: ['-p', 'hi'] });
@@ -50,7 +50,7 @@ describe('spawnStreamJson()', () => {
   });
 
   it('VALID: {stdinMode: "ignore"} => passes ignore as stdin', () => {
-    const proxy = claudeSpawnStreamJsonProxy();
+    const proxy = spawnStreamJsonProxy();
     proxy.setupSuccess({ cliPath: '/fake/bin/claude' });
 
     spawnStreamJson({ args: ['-p', 'hi'], stdinMode: 'ignore' });
@@ -64,7 +64,7 @@ describe('spawnStreamJson()', () => {
   });
 
   it('VALID: {stderrMode: "inherit"} => passes inherit as stderr', () => {
-    const proxy = claudeSpawnStreamJsonProxy();
+    const proxy = spawnStreamJsonProxy();
     proxy.setupSuccess({ cliPath: '/fake/bin/claude' });
 
     spawnStreamJson({ args: ['-p', 'hi'], stderrMode: 'inherit' });
@@ -78,7 +78,7 @@ describe('spawnStreamJson()', () => {
   });
 
   it('VALID: {CLI exits non-zero with stderr output} => the process exit and stderr text both reach the caller', async () => {
-    const proxy = claudeSpawnStreamJsonProxy();
+    const proxy = spawnStreamJsonProxy();
     const child = proxy.setupSuccess({ cliPath: '/fake/bin/claude' });
 
     const result = spawnStreamJson({ args: ['-p', 'hi'] });
@@ -105,7 +105,7 @@ describe('spawnStreamJson()', () => {
   });
 
   it('EMPTY: {CLI prints nothing on stdout} => stdout ends with no data delivered', async () => {
-    const proxy = claudeSpawnStreamJsonProxy();
+    const proxy = spawnStreamJsonProxy();
     const child = proxy.setupSuccess({ cliPath: '/fake/bin/claude' });
 
     const result = spawnStreamJson({ args: ['-p', 'hi'] });
@@ -130,7 +130,7 @@ describe('spawnStreamJson()', () => {
   });
 
   it('EDGE: {stdinMode: "ignore"} => the process exposes no writable stdin, so a caller can never hit EPIPE writing to it', () => {
-    const proxy = claudeSpawnStreamJsonProxy();
+    const proxy = spawnStreamJsonProxy();
     const child = proxy.setupSuccess({ cliPath: '/fake/bin/claude' });
     child.stdin = null;
 
@@ -140,7 +140,7 @@ describe('spawnStreamJson()', () => {
   });
 
   it('ERROR: {claude not found anywhere} => throws ClaudeNotInstalledError before spawning', () => {
-    const proxy = claudeSpawnStreamJsonProxy();
+    const proxy = spawnStreamJsonProxy();
     proxy.setupCliPathThrows({
       error: new ClaudeNotInstalledError(
         'Claude CLI not found: no CLAUDE_CLI_PATH override, no installed @anthropic-ai/claude-code package, and no claude binary on PATH',

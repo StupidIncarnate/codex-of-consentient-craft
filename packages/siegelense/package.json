@@ -76,8 +76,10 @@
     "ward": "dungeonmaster-ward"
   },
   "dependencies": {
+    "@dungeonmaster/bin": "*",
     "@dungeonmaster/cli": "*",
     "@dungeonmaster/config": "*",
+    "@dungeonmaster/node": "*",
     "@dungeonmaster/shared": "*",
     "pixelmatch": "^5.3.0",
     "pngjs": "^6.0.0",

@@ -1,6 +1,6 @@
 import { gitRunProxy } from './git-run.proxy';
 
-export const gitCommitProxy = (): {
+export const commitProxy = (): {
   setupResult: (params: {
     message: string;
     allowEmpty?: boolean;

@@ -1,6 +1,6 @@
 import { gitRunProxy } from './git-run.proxy';
 
-export const gitDiffFilesProxy = (): {
+export const diffFilesProxy = (): {
   setupResult: (params: { revisionArg: string; exitCode: number; output: string }) => void;
 } => {
   const runProxy = gitRunProxy();

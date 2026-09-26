@@ -2,7 +2,7 @@ import { gitRunProxy } from './git-run.proxy';
 
 const ARGS = ['rev-parse', '--abbrev-ref', 'HEAD'];
 
-export const gitCurrentBranchProxy = (): {
+export const currentBranchProxy = (): {
   setupBranch: (params: { branch: string }) => void;
   setupDetached: () => void;
   setupFailure: (params: { exitCode: number; output: string }) => void;

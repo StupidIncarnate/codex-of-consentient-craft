@@ -1,10 +1,10 @@
 import { listeningPids } from './lsof-listening-pids';
-import { lsofListeningPidsProxy } from './lsof-listening-pids.proxy';
+import { listeningPidsProxy } from './lsof-listening-pids.proxy';
 import { LsofNotInstalledError } from './lsof-not-installed-error';
 
 describe('listeningPids()', () => {
   it('VALID: {two pids listening} => returns both as numbers', async () => {
-    const proxy = lsofListeningPidsProxy();
+    const proxy = listeningPidsProxy();
     proxy.setupPids({ port: 3737, pids: [111, 222] });
 
     const result = await listeningPids({ port: 3737 });
@@ -13,7 +13,7 @@ describe('listeningPids()', () => {
   });
 
   it('EMPTY: {nothing listening} => returns an empty array', async () => {
-    const proxy = lsofListeningPidsProxy();
+    const proxy = listeningPidsProxy();
     proxy.setupNoneListening({ port: 3737 });
 
     const result = await listeningPids({ port: 3737 });
@@ -22,7 +22,7 @@ describe('listeningPids()', () => {
   });
 
   it('ERROR: {run throws RunNotFoundError} => throws LsofNotInstalledError, never an empty array', async () => {
-    const proxy = lsofListeningPidsProxy();
+    const proxy = listeningPidsProxy();
     proxy.setupNotFound({ port: 3737, message: 'spawn lsof ENOENT' });
 
     await expect(listeningPids({ port: 3737 })).rejects.toStrictEqual(

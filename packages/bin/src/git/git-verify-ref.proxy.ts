@@ -1,6 +1,6 @@
 import { gitRunProxy } from './git-run.proxy';
 
-export const gitVerifyRefProxy = (): {
+export const verifyRefProxy = (): {
   setupResult: (params: { ref: string; exitCode: number }) => void;
 } => {
   const runProxy = gitRunProxy();

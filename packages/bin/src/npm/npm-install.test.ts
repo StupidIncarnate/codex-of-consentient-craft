@@ -1,9 +1,9 @@
 import { install } from './npm-install';
-import { npmInstallProxy } from './npm-install.proxy';
+import { installProxy } from './npm-install.proxy';
 
 describe('install()', () => {
   it('VALID: {cwd} => runs npm install, returns the result', async () => {
-    const proxy = npmInstallProxy();
+    const proxy = installProxy();
     proxy.setupResult({ exitCode: 0, output: 'added 3 packages' });
 
     const result = await install({ cwd: '/repo' });
@@ -12,7 +12,7 @@ describe('install()', () => {
   });
 
   it('ERROR: {exitCode: 1, output: "npm ERR! code E404"} => returns it, does not throw', async () => {
-    const proxy = npmInstallProxy();
+    const proxy = installProxy();
     proxy.setupResult({ exitCode: 1, output: 'npm ERR! code E404' });
 
     const result = await install({ cwd: '/repo' });

@@ -1,9 +1,9 @@
 import { detectOriginDefaultBranch } from './git-detect-origin-default-branch';
-import { gitDetectOriginDefaultBranchProxy } from './git-detect-origin-default-branch.proxy';
+import { detectOriginDefaultBranchProxy } from './git-detect-origin-default-branch.proxy';
 
 describe('detectOriginDefaultBranch()', () => {
   it('VALID: {origin/main exists} => returns "origin/main"', async () => {
-    const proxy = gitDetectOriginDefaultBranchProxy();
+    const proxy = detectOriginDefaultBranchProxy();
     proxy.setupOriginMainExists();
 
     const result = await detectOriginDefaultBranch({ cwd: '/repo' });
@@ -12,7 +12,7 @@ describe('detectOriginDefaultBranch()', () => {
   });
 
   it('VALID: {only origin/master exists} => returns "origin/master"', async () => {
-    const proxy = gitDetectOriginDefaultBranchProxy();
+    const proxy = detectOriginDefaultBranchProxy();
     proxy.setupOriginMasterExists();
 
     const result = await detectOriginDefaultBranch({ cwd: '/repo' });
@@ -21,7 +21,7 @@ describe('detectOriginDefaultBranch()', () => {
   });
 
   it('EMPTY: {neither exists} => returns null', async () => {
-    const proxy = gitDetectOriginDefaultBranchProxy();
+    const proxy = detectOriginDefaultBranchProxy();
     proxy.setupNeitherExists();
 
     const result = await detectOriginDefaultBranch({ cwd: '/repo' });

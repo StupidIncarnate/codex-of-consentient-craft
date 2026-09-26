@@ -22,7 +22,7 @@ const createMockChild = (): { child: ChildProcess; stdout: Readable } => {
   return { child, stdout };
 };
 
-export const claudeSpawnStreamJsonProxy = (): {
+export const spawnStreamJsonProxy = (): {
   setupSuccess: (params: { cliPath: string }) => ChildProcess;
   setupCliPathThrows: (params: { error: Error }) => void;
   getSpawnedOptions: (params: { cliPath: string }) => unknown;

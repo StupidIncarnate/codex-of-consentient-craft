@@ -4,7 +4,7 @@ import path from '@dungeonmaster/node/path';
 import { getEnv } from '@dungeonmaster/node/process';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
-export const claudeResolveCliPathProxy = (): {
+export const resolveClaudeCliPathProxy = (): {
   setupOverride: (params: { cliPath: string }) => void;
   setupNoOverride: () => void;
   setupNpmPackage: (params: { packageRoot: string; bin: unknown }) => void;

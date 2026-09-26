@@ -1,6 +1,6 @@
 import { npmRunProxy } from './npm-run.proxy';
 
-export const npmRunBuildProxy = (): {
+export const runBuildProxy = (): {
   setupResult: (params: { workspace: string; exitCode: number; output: string }) => void;
 } => {
   const runProxy = npmRunProxy();

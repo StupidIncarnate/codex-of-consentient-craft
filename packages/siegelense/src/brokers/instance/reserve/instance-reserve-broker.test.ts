@@ -36,6 +36,7 @@ describe('instanceReserveBroker', () => {
         id: InstanceIdStub({ value: 'inst_11111111' }),
         ports: PortPairStub({ api: 30_000, web: 30_001 }),
       });
+      proxy.setupBranch({ branch: null });
       proxy.setupRegistry({ json: JSON.stringify(RegistryStub({ instances: [bystander] })) });
       proxy.setupEvidenceDir({
         homeDir: HOME_DIR,
@@ -82,6 +83,7 @@ describe('instanceReserveBroker', () => {
 
     it('VALID: {registry claims an unrelated pair} => mints the instance evidence directory', async () => {
       const proxy = instanceReserveBrokerProxy();
+      proxy.setupBranch({ branch: null });
       proxy.setupRegistry({ json: JSON.stringify(RegistryStub({ instances: [] })) });
       proxy.setupEvidenceDir({
         homeDir: HOME_DIR,
@@ -110,6 +112,7 @@ describe('instanceReserveBroker', () => {
       const guildId = GuildIdStub();
       const specName = SpecNameStub();
       const specHash = SpecHashStub();
+      proxy.setupBranch({ branch: null });
       proxy.setupRegistry({ json: JSON.stringify(RegistryStub({ instances: [] })) });
       proxy.setupEvidenceDir({
         homeDir: HOME_DIR,
@@ -176,6 +179,7 @@ describe('instanceReserveBroker', () => {
       const specName = SpecNameStub();
       const specHash = SpecHashStub();
       const claimed = RegistryEntryStub({ ports: CLAIMED_PAIR });
+      proxy.setupBranch({ branch: null });
       proxy.setupRegistry({ json: JSON.stringify(RegistryStub({ instances: [claimed] })) });
       proxy.setupEvidenceDir({
         homeDir: HOME_DIR,
@@ -223,10 +227,32 @@ describe('instanceReserveBroker', () => {
     });
   });
 
+  describe('git failure', () => {
+    it('ERROR: {git rev-parse fails} => the reservation rejects with the git failure', async () => {
+      const proxy = instanceReserveBrokerProxy();
+      proxy.setupBranchFailure({ exitCode: 128, output: 'fatal: not a git repository' });
+      proxy.setupPortCandidates({ pairs: freePairs(instanceLifecycleStatics.ports.claimAttempts) });
+
+      await expect(
+        instanceReserveBroker({
+          specName: SpecNameStub(),
+          specHash: SpecHashStub(),
+          questId: null,
+          guildId: null,
+        }),
+      ).rejects.toStrictEqual(
+        new Error(
+          `git rev-parse --abbrev-ref HEAD failed in ${process.cwd()} with exit code 128: fatal: not a git repository`,
+        ),
+      );
+    });
+  });
+
   describe('every attempt collides', () => {
     it('ERROR: {every attempt collides} => throws PortClaimExhaustedError', async () => {
       const proxy = instanceReserveBrokerProxy();
       const claimed = RegistryEntryStub({ ports: FREE_PAIR });
+      proxy.setupBranch({ branch: null });
       proxy.setupRegistryForExhaustedClaim({
         json: JSON.stringify(RegistryStub({ instances: [claimed] })),
       });

@@ -14,16 +14,22 @@
  * One atomic call rather than a read-modify-write per re-roll keeps the retry loop from opening a
  * fresh window on every attempt for another session's write to land in.
  *
+ * `currentBranch` rejects on a real git failure (missing git, `cwd` not a repo) rather than
+ * collapsing it to `null` — this broker lets that rejection propagate instead of catching it,
+ * because a registry row that silently drops its provenance on the one case worth surfacing is a
+ * worse failure mode than refusing the reservation outright.
+ *
  * USAGE:
  * await instanceReserveBroker({ specName, specHash, questId, guildId });
  * // Returns the written RegistryEntry — a reservation, evidence directory already minted
  */
 
+import { currentBranch } from '@dungeonmaster/bin/git';
+import { cwd } from '@dungeonmaster/node/process';
 import { fsMkdirAdapter, netFreePortPairAdapter } from '@dungeonmaster/shared/adapters';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { GuildId, QuestId } from '@dungeonmaster/shared/contracts';
 
-import { gitBranchReadAdapter } from '../../../adapters/git/branch-read/git-branch-read-adapter';
 import { locationsInstanceEvidencePathFindBroker } from '../../locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker';
 import { registryUpdateBroker } from '../../registry/update/registry-update-broker';
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
@@ -58,13 +64,17 @@ export const instanceReserveBroker = async ({
   );
   const resolvedOwner = instanceOwnerContract.parse(String(process.pid));
   const resolvedReservedAtMs = epochMsContract.parse(Date.now());
-  const resolvedBranch = gitBranchReadAdapter();
 
-  const rawPairs = await Promise.all(
-    Array.from({ length: instanceLifecycleStatics.ports.claimAttempts }, async () =>
-      netFreePortPairAdapter(),
+  // Independent calls — the branch read and the port-candidate fan-out share no data — so they
+  // run together rather than the branch read adding its own latency in front of the ports.
+  const [resolvedBranch, rawPairs] = await Promise.all([
+    currentBranch({ cwd: cwd() }),
+    Promise.all(
+      Array.from({ length: instanceLifecycleStatics.ports.claimAttempts }, async () =>
+        netFreePortPairAdapter(),
+      ),
     ),
-  );
+  ]);
   const candidatePairs: PortPair[] = rawPairs.map(({ firstPort, secondPort }) =>
     portPairContract.parse({ api: firstPort, web: secondPort }),
   );

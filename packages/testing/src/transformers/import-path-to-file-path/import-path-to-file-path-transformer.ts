@@ -1,5 +1,9 @@
 /**
- * PURPOSE: Resolves a relative import path to an absolute file path
+ * PURPOSE: Decides whether a precomputed resolved path is the real answer for an import path — a
+ * relative import, or a workspace package's `./testing` subpath (per isProxyImportGuard) both
+ * resolve; any other bare package specifier ('axios', '@testing-library/react') never does, no
+ * matter what resolvedPath/fileExists claim, because only a workspace `./testing` barrel is ever
+ * meant to hoist mocks across a package boundary.
  *
  * USAGE:
  * const filePath = importPathToFilePathTransformer({
@@ -11,6 +15,7 @@
  * // Returns '/src/test.proxy.ts' as FilePath or null if file doesn't exist
  */
 
+import { isProxyImportGuard } from '../../guards/is-proxy-import/is-proxy-import-guard';
 import { filePathContract } from '../../contracts/file-path/file-path-contract';
 import type { FilePath } from '../../contracts/file-path/file-path-contract';
 import type { ImportPath } from '../../contracts/import-path/import-path-contract';
@@ -25,7 +30,8 @@ export const importPathToFilePathTransformer = ({
   resolvedPath: FilePath;
   fileExists: boolean;
 }): FilePath | null => {
-  if (!importPath.startsWith('.')) {
+  const isResolvableSpecifier = importPath.startsWith('.') || isProxyImportGuard({ importPath });
+  if (!isResolvableSpecifier) {
     return null;
   }
 
