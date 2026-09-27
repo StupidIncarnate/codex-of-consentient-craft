@@ -17,7 +17,7 @@
  * // Returns GitRelativePath[] covering every commit this branch added on top of origin/main
  */
 
-import { run } from '#gateway/node/child_process';
+import { run, RunNotFoundError } from '#gateway/node/child_process';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import type { GitRelativePath } from '../../../contracts/git-relative-path/git-relative-path-contract';
@@ -41,10 +41,18 @@ export const gitDiffCommittedBroker = async ({
     return [];
   }
 
+  // A missing `git` binary rejects `run` with RunNotFoundError rather than resolving a result —
+  // caught here and folded into the same failed-run shape the old spawn-capture adapter resolved
+  // for an ENOENT, so this reads as "no merge base" / "empty diff" below, exactly as it always has.
   const mergeBaseResult = await run({
     command: 'git',
     args: ['merge-base', 'HEAD', String(baseBranch)],
     cwd,
+  }).catch((error: unknown) => {
+    if (!(error instanceof RunNotFoundError)) {
+      throw error;
+    }
+    return { exitCode: 1, output: '', signal: null, timedOut: false };
   });
 
   if (mergeBaseResult.exitCode !== 0) {
@@ -56,6 +64,11 @@ export const gitDiffCommittedBroker = async ({
     command: 'git',
     args: ['diff', '--name-only', '--diff-filter=d', mergeBase, 'HEAD'],
     cwd,
+  }).catch((error: unknown) => {
+    if (!(error instanceof RunNotFoundError)) {
+      throw error;
+    }
+    return { exitCode: 1, output: '', signal: null, timedOut: false };
   });
 
   return parseDiffOutputTransformer({ output: diffResult.output });

@@ -16,7 +16,7 @@
  * // Returns GitRelativePath[] — tracked edits first, then untracked additions
  */
 
-import { run } from '#gateway/node/child_process';
+import { run, RunNotFoundError } from '#gateway/node/child_process';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import type { GitRelativePath } from '../../../contracts/git-relative-path/git-relative-path-contract';
@@ -27,11 +27,19 @@ export const gitDiffUncommittedBroker = async ({
 }: {
   cwd: AbsoluteFilePath;
 }): Promise<GitRelativePath[]> => {
+  // A missing `git` binary rejects `run` with RunNotFoundError rather than resolving a result —
+  // caught here and folded into the same failed-run shape the old spawn-capture adapter resolved
+  // for an ENOENT, so this reads as an empty tracked/untracked reading below, exactly as it always has.
   const [trackedResult, untrackedResult] = await Promise.all([
     run({
       command: 'git',
       args: ['diff', '--name-only', '--diff-filter=d', 'HEAD'],
       cwd,
+    }).catch((error: unknown) => {
+      if (!(error instanceof RunNotFoundError)) {
+        throw error;
+      }
+      return { exitCode: 1, output: '', signal: null, timedOut: false };
     }),
     // `--exclude-standard` applies .gitignore and friends, so build output and node_modules never
     // reach a check runner. Without it the untracked reading is every generated file in the repo.
@@ -39,6 +47,11 @@ export const gitDiffUncommittedBroker = async ({
       command: 'git',
       args: ['ls-files', '--others', '--exclude-standard'],
       cwd,
+    }).catch((error: unknown) => {
+      if (!(error instanceof RunNotFoundError)) {
+        throw error;
+      }
+      return { exitCode: 1, output: '', signal: null, timedOut: false };
     }),
   ]);
 

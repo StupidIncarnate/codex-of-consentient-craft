@@ -1,31 +1,27 @@
-import { run } from '#gateway/node/child_process';
 import { runProxy } from '#gateway/node/child_process/run/run.proxy';
-import { registerMock } from '@dungeonmaster/testing/register-mock';
+import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found.error.proxy';
 
 import { gitDetectDefaultBranchBrokerProxy } from '../detect-default-branch/git-detect-default-branch-broker.proxy';
 import { gitDetectOriginDefaultBranchBrokerProxy } from '../detect-origin-default-branch/git-detect-origin-default-branch-broker.proxy';
 
-type RunParams = Parameters<typeof run>[0];
-
 // merge-base and diff are both spawned as bare `git`, exactly like the sequential rev-parse checks
-// the two detection brokers issue — `run`'s own proxy (runProxy), which addresses only by
-// `command`, cannot tell them apart. `run` takes ONE argument object, so mocking `run` directly and
-// addressing by `{command, args}` tells every call apart by its own args, with no ordering games.
+// the two detection brokers issue — runProxy's own staging (addressed by `{command, args}` since
+// F25) tells every call this broker's whole chain makes apart, with no ordering games.
 export const gitDiffCommittedBrokerProxy = (): {
   setupWithOriginMain: (params: { diffOutput: string }) => void;
   setupWithLocalFallback: (params: { diffOutput: string }) => void;
   setupMergeBaseFails: () => void;
   setupNoBranchAnywhere: () => void;
-  getSpawnedArgs: () => unknown[];
+  setupGitNotFound: () => void;
+  getSpawnedArgs: () => readonly unknown[];
   getDiffArgs: () => unknown;
 } => {
   const originProxy = gitDetectOriginDefaultBranchBrokerProxy();
   const localProxy = gitDetectDefaultBranchBrokerProxy();
-  // Created but unstaged: see the module comment above — `run` is mocked directly below rather
-  // than through runProxy, which addresses only by `command`. Composing it here satisfies
-  // enforce-proxy-child-creation.
-  runProxy();
-  const handle = registerMock({ fn: run });
+  const run = runProxy();
+  // Created but unstaged: RunNotFoundError is a plain class with nothing to mock — composing its
+  // proxy satisfies enforce-proxy-child-creation for the broker's own `instanceof` import.
+  RunNotFoundErrorProxy();
 
   const stageMergeBaseThenDiff = ({
     diffOutput,
@@ -34,14 +30,20 @@ export const gitDiffCommittedBrokerProxy = (): {
     diffOutput: string;
     baseBranch: string;
   }): void => {
-    handle
-      .calledWith([{ command: 'git', args: ['merge-base', 'HEAD', baseBranch] }])
-      .resolves({ exitCode: 0, output: 'abc123\n', signal: null, timedOut: false });
-    handle
-      .calledWith([
-        { command: 'git', args: ['diff', '--name-only', '--diff-filter=d', 'abc123', 'HEAD'] },
-      ])
-      .resolves({ exitCode: 0, output: diffOutput, signal: null, timedOut: false });
+    run.setupSuccess({
+      command: 'git',
+      args: ['merge-base', 'HEAD', baseBranch],
+      exitCode: 0,
+      stdout: 'abc123\n',
+      stderr: '',
+    });
+    run.setupSuccess({
+      command: 'git',
+      args: ['diff', '--name-only', '--diff-filter=d', 'abc123', 'HEAD'],
+      exitCode: 0,
+      stdout: diffOutput,
+      stderr: '',
+    });
   };
 
   return {
@@ -62,9 +64,13 @@ export const gitDiffCommittedBrokerProxy = (): {
     // so there is no range to diff and the broker reports nothing rather than guessing one.
     setupMergeBaseFails: (): void => {
       originProxy.setupOriginMainExists();
-      handle
-        .calledWith([{ command: 'git', args: ['merge-base', 'HEAD', 'origin/main'] }])
-        .resolves({ exitCode: 1, output: 'fatal: no merge base', signal: null, timedOut: false });
+      run.setupSuccess({
+        command: 'git',
+        args: ['merge-base', 'HEAD', 'origin/main'],
+        exitCode: 1,
+        stdout: '',
+        stderr: 'fatal: no merge base',
+      });
     },
 
     setupNoBranchAnywhere: (): void => {
@@ -72,17 +78,18 @@ export const gitDiffCommittedBrokerProxy = (): {
       localProxy.setupNeitherExists();
     },
 
-    getSpawnedArgs: (): unknown[] =>
-      handle.callsMatching([{ command: 'git' }]).map((call) => {
-        const [params] = call;
-        return (params as RunParams).args;
-      }),
+    // git itself is missing: both detection brokers already fold every rev-parse into "not found",
+    // which resolves the base branch to null before this broker ever reaches merge-base or diff.
+    setupGitNotFound: (): void => {
+      originProxy.setupGitNotFound();
+      localProxy.setupGitNotFound();
+    },
+
+    getSpawnedArgs: (): readonly unknown[] => run.getCallsFor({ command: 'git' }),
 
     getDiffArgs: (): unknown => {
-      const calls = handle.callsMatching([{ command: 'git' }]);
-      const lastCall = calls.at(-1);
-      const [params] = lastCall ?? [];
-      return params === undefined ? undefined : (params as RunParams).args;
+      const calls = run.getCallsFor({ command: 'git' });
+      return calls.at(-1);
     },
   };
 };

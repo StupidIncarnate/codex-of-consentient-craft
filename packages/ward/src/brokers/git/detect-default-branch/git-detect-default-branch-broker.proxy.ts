@@ -1,47 +1,78 @@
-import { run } from '#gateway/node/child_process';
 import { runProxy } from '#gateway/node/child_process/run/run.proxy';
-import { registerMock } from '@dungeonmaster/testing/register-mock';
+import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found.error.proxy';
 
-// git-detect-default-branch spawns bare `git` for every rev-parse check, and `run`'s own proxy
-// (runProxy) addresses only by `command` — its `setupSuccess`/`setupError` cannot tell the two
-// sequential `git` calls this broker issues apart, let alone give them different results. `run`
-// itself takes ONE argument object, so mocking `run` directly and addressing by `{command, args}`
-// (object staging matches on the keys given, per @dungeonmaster/testing's own mechanics) tells
-// every call this broker makes apart by its own args, with no FIFO ordering needed at all.
+// git-detect-default-branch spawns bare `git` for every rev-parse check, so runProxy's own staging
+// (addressed by `{command, args}` since F25) tells the two sequential calls this broker issues
+// apart, with no FIFO ordering needed at all.
 export const gitDetectDefaultBranchBrokerProxy = (): {
   setupMainExists: () => void;
   setupMasterExists: () => void;
   setupNeitherExists: () => void;
+  setupGitNotFound: () => void;
 } => {
-  // Created but unstaged: runProxy mocks the raw `spawn` one layer below `run`, but this proxy
-  // answers `run` itself directly (see the module comment above), so runProxy's own mock of
-  // `spawn` is never exercised. Composing it here satisfies enforce-proxy-child-creation.
-  runProxy();
-  const handle = registerMock({ fn: run });
+  const run = runProxy();
+  // Created but unstaged: RunNotFoundError is a plain class with nothing to mock — composing its
+  // proxy satisfies enforce-proxy-child-creation for the broker's own `instanceof` import.
+  RunNotFoundErrorProxy();
 
   return {
     setupMainExists: (): void => {
-      handle
-        .calledWith([{ command: 'git', args: ['rev-parse', '--verify', 'main'] }])
-        .resolves({ exitCode: 0, output: '', signal: null, timedOut: false });
+      run.setupSuccess({
+        command: 'git',
+        args: ['rev-parse', '--verify', 'main'],
+        exitCode: 0,
+        stdout: '',
+        stderr: '',
+      });
     },
 
     setupMasterExists: (): void => {
-      handle
-        .calledWith([{ command: 'git', args: ['rev-parse', '--verify', 'main'] }])
-        .resolves({ exitCode: 1, output: 'fatal: not a valid ref', signal: null, timedOut: false });
-      handle
-        .calledWith([{ command: 'git', args: ['rev-parse', '--verify', 'master'] }])
-        .resolves({ exitCode: 0, output: '', signal: null, timedOut: false });
+      run.setupSuccess({
+        command: 'git',
+        args: ['rev-parse', '--verify', 'main'],
+        exitCode: 1,
+        stdout: '',
+        stderr: 'fatal: not a valid ref',
+      });
+      run.setupSuccess({
+        command: 'git',
+        args: ['rev-parse', '--verify', 'master'],
+        exitCode: 0,
+        stdout: '',
+        stderr: '',
+      });
     },
 
     setupNeitherExists: (): void => {
-      handle
-        .calledWith([{ command: 'git', args: ['rev-parse', '--verify', 'main'] }])
-        .resolves({ exitCode: 1, output: 'fatal: not a valid ref', signal: null, timedOut: false });
-      handle
-        .calledWith([{ command: 'git', args: ['rev-parse', '--verify', 'master'] }])
-        .resolves({ exitCode: 1, output: 'fatal: not a valid ref', signal: null, timedOut: false });
+      run.setupSuccess({
+        command: 'git',
+        args: ['rev-parse', '--verify', 'main'],
+        exitCode: 1,
+        stdout: '',
+        stderr: 'fatal: not a valid ref',
+      });
+      run.setupSuccess({
+        command: 'git',
+        args: ['rev-parse', '--verify', 'master'],
+        exitCode: 1,
+        stdout: '',
+        stderr: 'fatal: not a valid ref',
+      });
+    },
+
+    // git itself is missing: every `git` invocation rejects with RunNotFoundError, which the
+    // broker's own catch folds into a failed rev-parse for each call in turn.
+    setupGitNotFound: (): void => {
+      run.setupError({
+        command: 'git',
+        args: ['rev-parse', '--verify', 'main'],
+        error: Object.assign(new Error('spawn git ENOENT'), { code: 'ENOENT' }),
+      });
+      run.setupError({
+        command: 'git',
+        args: ['rev-parse', '--verify', 'master'],
+        error: Object.assign(new Error('spawn git ENOENT'), { code: 'ENOENT' }),
+      });
     },
   };
 };

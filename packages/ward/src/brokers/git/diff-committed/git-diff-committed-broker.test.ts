@@ -103,4 +103,21 @@ describe('gitDiffCommittedBroker', () => {
       expect(result).toStrictEqual([]);
     });
   });
+
+  describe('git is not on this machine', () => {
+    // The old childProcessSpawnCaptureAdapter resolved a missing `git` as a failed run
+    // ({ exitCode: 1, output: '' }) rather than throwing; `run` instead rejects with
+    // RunNotFoundError. Both detection brokers this broker calls first fold that into their own
+    // failed-rev-parse shape, so the base branch resolves to null before merge-base is ever run.
+    it('ERROR: {git is not on this machine} => returns empty array, same as no branch existing anywhere', async () => {
+      const proxy = gitDiffCommittedBrokerProxy();
+      proxy.setupGitNotFound();
+
+      const result = await gitDiffCommittedBroker({
+        cwd: AbsoluteFilePathStub({ value: '/project' }),
+      });
+
+      expect(result).toStrictEqual([]);
+    });
+  });
 });
