@@ -24,13 +24,23 @@ const PACKAGE_NAME = '@dungeonmaster/eslint-plugin';
 
 const NEW_CONFIG_TEMPLATE = `const dungeonmaster = require('@dungeonmaster/eslint-plugin').default;
 const tsparser = require('@typescript-eslint/parser');
+const { gatewayLocationsStatics } = require('@dungeonmaster/shared/statics');
 const dungeonmasterConfigs = dungeonmaster.configs.dungeonmaster;
 const dungeonmasterTestConfigs = dungeonmaster.configs.dungeonmasterTest;
 
 module.exports = [
+    // Compiled output is never lint's to grade — left off, a build anywhere in the workspace
+    // (this package's own \`npm run build\`, or a scaffolded gateway package's) leaves ESLint
+    // trying to type-check \`dist/**/*.d.ts\` against a tsconfig whose \`include\` never named it,
+    // which fails every one of those files with a parser error, not a rule violation.
+    {
+        ignores: ['**/node_modules/**', '**/dist/**', '**/coverage/**'],
+    },
     {
         files: ['**/*.ts', '**/*.tsx'],
-        ignores: ['**/*.test.ts', '**/*.test.tsx'],
+        // The gateway carve-out: these files get the gateway rule block below instead — a
+        // re-scoped, positive rule set, not this block's workspace rules minus some turned off.
+        ignores: ['**/*.test.ts', '**/*.test.tsx', ...gatewayLocationsStatics.packageGlobs],
         languageOptions: {
             parser: tsparser,
             parserOptions: {
@@ -44,6 +54,24 @@ module.exports = [
             '@dungeonmaster': dungeonmaster,
         },
         rules: {...dungeonmasterConfigs.typescript.rules},
+    },
+    // The gateway's own positive rule set (packages/@gateway/{npm,node,browser,bin}/src/**). Its
+    // tests still get the test block below by file suffix, the same as every other package's tests.
+    {
+        files: dungeonmasterConfigs.gateway.files,
+        languageOptions: {
+            parser: tsparser,
+            parserOptions: {
+                ecmaVersion: 2020,
+                sourceType: 'module',
+                project: './tsconfig.json',
+            },
+        },
+        plugins: {
+            ...dungeonmasterConfigs.gateway.plugins,
+            '@dungeonmaster': dungeonmaster,
+        },
+        rules: {...dungeonmasterConfigs.gateway.rules},
     },
     ...dungeonmasterConfigs.fileOverrides,
     {

@@ -23,7 +23,18 @@ export const packageDiscoverBroker = ({
 }: {
   dungeonmasterRoot: FilePath;
 }): { packageName: PackageName; installPath: FilePath }[] => {
-  const packagesDir = pathJoinAdapter({ paths: [dungeonmasterRoot, 'packages'] });
+  const monorepoPackagesDir = pathJoinAdapter({ paths: [dungeonmasterRoot, 'packages'] });
+  // A published install has no `packages/` folder to find: `cli-entry.ts` computes
+  // `dungeonmasterRoot` as four directories above the running bin, which lands on the monorepo
+  // root ONLY in this repo and its worktrees. In an installed consumer (local `node_modules`, or
+  // a global `npm root -g`) that same walk lands on `node_modules` itself, one level above
+  // `@dungeonmaster/<name>` directly — there is no extra `packages` segment to join. Falling back
+  // to `dungeonmasterRoot` itself reuses the SAME `@scope` group-folder walk below for both
+  // shapes: `node_modules/@dungeonmaster` is exactly a "`@`-prefixed group folder" of the kind
+  // `packages/@gateway` already is.
+  const packagesDir = fsExistsSyncAdapter({ filePath: monorepoPackagesDir })
+    ? monorepoPackagesDir
+    : dungeonmasterRoot;
   const topLevelDirs = fsReaddirAdapter({ dirPath: packagesDir });
 
   const candidates: { relativeDir: FileName[]; packageDirName: FileName }[] = [];

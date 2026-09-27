@@ -21,6 +21,99 @@ describe('InstallDetectConfigResponder', () => {
         message: 'Created eslint.config.js',
       });
     });
+
+    it('VALID: {context: no existing config} => the written config wires the gateway rule set for packages/@gateway', () => {
+      const proxy = InstallDetectConfigResponderProxy();
+      proxy.setupNoConfigExists({ targetProjectRoot: '/test/project' });
+
+      proxy.callResponder({
+        context: {
+          targetProjectRoot: FilePathStub({ value: '/test/project' }),
+          dungeonmasterRoot: FilePathStub({ value: '/test/.dungeonmaster' }),
+        },
+      });
+
+      const content = proxy.getWrittenConfigContent({ targetProjectRoot: '/test/project' });
+
+      // Left out, a real consumer's copied `packages/@gateway/**` source fails
+      // `enforce-project-structure` wholesale — that rule's valid-folder-type list has no entry
+      // for a gateway's own folder names (`process/`, `readline/`, `util/`, …), and only this
+      // `ignores` + a separate `files: dungeonmasterConfigs.gateway.files` block re-scopes them to
+      // the gateway's own short rule set (confirmed against a real scratch-consumer run, item G25).
+      expect(content).toBe(
+        `const dungeonmaster = require('@dungeonmaster/eslint-plugin').default;
+const tsparser = require('@typescript-eslint/parser');
+const { gatewayLocationsStatics } = require('@dungeonmaster/shared/statics');
+const dungeonmasterConfigs = dungeonmaster.configs.dungeonmaster;
+const dungeonmasterTestConfigs = dungeonmaster.configs.dungeonmasterTest;
+
+module.exports = [
+    // Compiled output is never lint's to grade — left off, a build anywhere in the workspace
+    // (this package's own \`npm run build\`, or a scaffolded gateway package's) leaves ESLint
+    // trying to type-check \`dist/**/*.d.ts\` against a tsconfig whose \`include\` never named it,
+    // which fails every one of those files with a parser error, not a rule violation.
+    {
+        ignores: ['**/node_modules/**', '**/dist/**', '**/coverage/**'],
+    },
+    {
+        files: ['**/*.ts', '**/*.tsx'],
+        // The gateway carve-out: these files get the gateway rule block below instead — a
+        // re-scoped, positive rule set, not this block's workspace rules minus some turned off.
+        ignores: ['**/*.test.ts', '**/*.test.tsx', ...gatewayLocationsStatics.packageGlobs],
+        languageOptions: {
+            parser: tsparser,
+            parserOptions: {
+                ecmaVersion: 2020,
+                sourceType: 'module',
+                project: './tsconfig.json',
+            },
+        },
+        plugins: {
+            ...dungeonmasterConfigs.typescript.plugins,
+            '@dungeonmaster': dungeonmaster,
+        },
+        rules: {...dungeonmasterConfigs.typescript.rules},
+    },
+    // The gateway's own positive rule set (packages/@gateway/{npm,node,browser,bin}/src/**). Its
+    // tests still get the test block below by file suffix, the same as every other package's tests.
+    {
+        files: dungeonmasterConfigs.gateway.files,
+        languageOptions: {
+            parser: tsparser,
+            parserOptions: {
+                ecmaVersion: 2020,
+                sourceType: 'module',
+                project: './tsconfig.json',
+            },
+        },
+        plugins: {
+            ...dungeonmasterConfigs.gateway.plugins,
+            '@dungeonmaster': dungeonmaster,
+        },
+        rules: {...dungeonmasterConfigs.gateway.rules},
+    },
+    ...dungeonmasterConfigs.fileOverrides,
+    {
+        files: ['**/*.test.ts', '**/*.test.tsx'],
+        languageOptions: {
+            parser: tsparser,
+            parserOptions: {
+                ecmaVersion: 2020,
+                sourceType: 'module',
+                project: './tsconfig.json',
+            },
+        },
+        plugins: {
+            ...dungeonmasterTestConfigs.test.plugins,
+            '@dungeonmaster': dungeonmaster,
+        },
+        rules: {...dungeonmasterTestConfigs.test.rules},
+    },
+    ...dungeonmasterTestConfigs.fileOverrides,
+];
+`,
+      );
+    });
   });
 
   describe('existing config with dungeonmaster', () => {
