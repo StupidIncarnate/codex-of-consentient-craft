@@ -32,6 +32,9 @@ export * from './src/contracts/framework/framework.stub';
 export * from './src/contracts/framework-presets/framework-presets-contract';
 export * from './src/contracts/framework-presets/framework-presets.stub';
 
+export * from './src/contracts/gateway-lint-config/gateway-lint-config-contract';
+export * from './src/contracts/gateway-lint-config/gateway-lint-config.stub';
+
 export * from './src/contracts/routing-library/routing-library-contract';
 export * from './src/contracts/routing-library/routing-library.stub';
 

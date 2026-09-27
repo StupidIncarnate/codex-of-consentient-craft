@@ -82,6 +82,9 @@ import { ruleGatewayImportBoundaryBrokerProxy } from '../../../brokers/rule/gate
 import { ruleGatewayColocationBrokerProxy } from '../../../brokers/rule/gateway-colocation/rule-gateway-colocation-broker.proxy';
 import { ruleGatewayLayoutBrokerProxy } from '../../../brokers/rule/gateway-layout/rule-gateway-layout-broker.proxy';
 import { ruleGatewayDependencyDeclaredBrokerProxy } from '../../../brokers/rule/gateway-dependency-declared/rule-gateway-dependency-declared-broker.proxy';
+import { ruleBanGatewayExportBrokerProxy } from '../../../brokers/rule/ban-gateway-export/rule-ban-gateway-export-broker.proxy';
+import { ruleEnforceGatewayRestrictedToBrokerProxy } from '../../../brokers/rule/enforce-gateway-restricted-to/rule-enforce-gateway-restricted-to-broker.proxy';
+import { ruleEnforceGatewayConfigNamesExistBrokerProxy } from '../../../brokers/rule/enforce-gateway-config-names-exist/rule-enforce-gateway-config-names-exist-broker.proxy';
 import { configDungeonmasterBrokerProxy } from '../../../brokers/config/dungeonmaster/config-dungeonmaster-broker.proxy';
 import { EslintPluginCreateResponder } from './eslint-plugin-create-responder';
 
@@ -158,6 +161,9 @@ export const EslintPluginCreateResponderProxy = (): {
   ruleGatewayColocationBrokerProxy();
   ruleGatewayLayoutBrokerProxy();
   ruleGatewayDependencyDeclaredBrokerProxy();
+  ruleBanGatewayExportBrokerProxy();
+  ruleEnforceGatewayRestrictedToBrokerProxy();
+  ruleEnforceGatewayConfigNamesExistBrokerProxy();
   configDungeonmasterBrokerProxy();
 
   return {

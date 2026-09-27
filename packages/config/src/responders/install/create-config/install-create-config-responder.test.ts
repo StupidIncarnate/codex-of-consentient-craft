@@ -1,5 +1,5 @@
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
-import { FsErrorStub } from '#gateway/node/_test_/fs';
+import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { e2eProcessPlaceholderStatics } from '../../../statics/e2e-process-placeholder/e2e-process-placeholder-statics';
 import { InstallCreateConfigResponderProxy } from './install-create-config-responder.proxy';
 
@@ -44,16 +44,34 @@ describe('InstallCreateConfigResponder', () => {
         processes: [e2eProcessPlaceholderStatics.process],
       });
     });
+
+    it('VALID: {context: no existing config} => seeds an empty gateway key', async () => {
+      const proxy = InstallCreateConfigResponderProxy();
+
+      proxy.setupConfigNotExists();
+
+      await proxy.callResponder({
+        context: {
+          targetProjectRoot: FilePathStub({ value: '/project' }),
+          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
+        },
+      });
+
+      const written = JSON.parse(String(proxy.getWrittenConfig())) as Record<PropertyKey, unknown>;
+
+      expect(written.gateway).toStrictEqual({});
+    });
   });
 
-  describe('existing config already has devServer.e2e', () => {
-    it('VALID: {context: existing config with devServer.e2e configured} => skips, leaving the file untouched', async () => {
+  describe('existing config already has devServer.e2e and gateway', () => {
+    it('VALID: {context: existing config with both configured} => skips, leaving the file untouched', async () => {
       const proxy = InstallCreateConfigResponderProxy();
 
       proxy.setupExistingConfigContent({
         content: JSON.stringify({
           framework: 'react',
           schema: 'zod',
+          gateway: {},
           devServer: {
             devCommand: 'npm run dev',
             port: 3000,
@@ -81,8 +99,8 @@ describe('InstallCreateConfigResponder', () => {
     });
   });
 
-  describe('existing config without devServer.e2e', () => {
-    it('VALID: {context: existing config with a devServer block, no e2e} => adds the placeholder and keeps every other key', async () => {
+  describe('existing config missing both devServer.e2e and gateway', () => {
+    it('VALID: {context: existing config with a devServer block, no e2e, no gateway} => adds both and keeps every other key', async () => {
       const proxy = InstallCreateConfigResponderProxy();
 
       proxy.setupExistingConfigContent({
@@ -110,7 +128,8 @@ describe('InstallCreateConfigResponder', () => {
         packageName: '@dungeonmaster/config',
         success: true,
         action: 'merged',
-        message: 'Added the devServer.e2e.processes placeholder to existing .dungeonmaster.json',
+        message:
+          'Added the devServer.e2e.processes placeholder and the gateway key to existing .dungeonmaster.json',
       });
 
       const written = JSON.parse(String(proxy.getWrittenConfig())) as Record<PropertyKey, unknown>;
@@ -119,6 +138,7 @@ describe('InstallCreateConfigResponder', () => {
         framework: 'monorepo',
         schema: 'zod',
         customTopLevelField: 'keep-me',
+        gateway: {},
         devServer: {
           devCommand: 'custom dev command',
           port: 4001,
@@ -128,7 +148,7 @@ describe('InstallCreateConfigResponder', () => {
       });
     });
 
-    it('VALID: {context: existing config with no devServer at all} => creates devServer and adds the placeholder', async () => {
+    it('VALID: {context: existing config with no devServer at all} => creates devServer, adds the placeholder, and adds gateway', async () => {
       const proxy = InstallCreateConfigResponderProxy();
 
       proxy.setupExistingConfigContent({
@@ -150,7 +170,122 @@ describe('InstallCreateConfigResponder', () => {
       expect(written).toStrictEqual({
         framework: 'react',
         schema: 'zod',
+        gateway: {},
         devServer: {
+          e2e: { processes: [e2eProcessPlaceholderStatics.process] },
+        },
+      });
+    });
+  });
+
+  describe('existing config has devServer.e2e but no gateway', () => {
+    it('VALID: {context: existing config with devServer.e2e, no gateway} => adds only the gateway key', async () => {
+      const proxy = InstallCreateConfigResponderProxy();
+
+      proxy.setupExistingConfigContent({
+        content: JSON.stringify({
+          framework: 'react',
+          schema: 'zod',
+          devServer: {
+            devCommand: 'npm run dev',
+            port: 3000,
+            e2e: {
+              processes: [{ name: 'api', command: 'npm start', portRole: 'api', readyPath: '/' }],
+            },
+          },
+        }),
+      });
+      proxy.setupWriteSucceeds();
+
+      const result = await proxy.callResponder({
+        context: {
+          targetProjectRoot: FilePathStub({ value: '/project' }),
+          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
+        },
+      });
+
+      expect(result).toStrictEqual({
+        packageName: '@dungeonmaster/config',
+        success: true,
+        action: 'merged',
+        message: 'Added the gateway key to existing .dungeonmaster.json',
+      });
+
+      const written = JSON.parse(String(proxy.getWrittenConfig())) as Record<PropertyKey, unknown>;
+
+      expect(written).toStrictEqual({
+        framework: 'react',
+        schema: 'zod',
+        gateway: {},
+        devServer: {
+          devCommand: 'npm run dev',
+          port: 3000,
+          e2e: {
+            processes: [{ name: 'api', command: 'npm start', portRole: 'api', readyPath: '/' }],
+          },
+        },
+      });
+    });
+  });
+
+  describe('existing config has gateway but no devServer.e2e', () => {
+    it('VALID: {context: existing config with a non-empty gateway, no e2e} => adds only the placeholder and keeps gateway untouched', async () => {
+      const proxy = InstallCreateConfigResponderProxy();
+
+      proxy.setupExistingConfigContent({
+        content: JSON.stringify({
+          framework: 'react',
+          schema: 'zod',
+          gateway: {
+            bannedExports: [
+              {
+                subpath: '#gateway/node/fs',
+                name: 'readFileSync',
+                use: 'readFile',
+                reason: 'blocks the event loop',
+              },
+            ],
+          },
+          devServer: {
+            devCommand: 'npm run dev',
+            port: 3000,
+          },
+        }),
+      });
+      proxy.setupWriteSucceeds();
+
+      const result = await proxy.callResponder({
+        context: {
+          targetProjectRoot: FilePathStub({ value: '/project' }),
+          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
+        },
+      });
+
+      expect(result).toStrictEqual({
+        packageName: '@dungeonmaster/config',
+        success: true,
+        action: 'merged',
+        message: 'Added the devServer.e2e.processes placeholder to existing .dungeonmaster.json',
+      });
+
+      const written = JSON.parse(String(proxy.getWrittenConfig())) as Record<PropertyKey, unknown>;
+
+      expect(written).toStrictEqual({
+        framework: 'react',
+        schema: 'zod',
+        gateway: {
+          bannedExports: [
+            {
+              subpath: '#gateway/node/fs',
+              name: 'readFileSync',
+              use: 'readFile',
+              reason: 'blocks the event loop',
+            },
+          ],
+        },
+        devServer: {
+          devCommand: 'npm run dev',
+          port: 3000,
           e2e: { processes: [e2eProcessPlaceholderStatics.process] },
         },
       });

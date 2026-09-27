@@ -8,6 +8,14 @@
  * // For test environments (relaxes some strict rules):
  * const configs = configDungeonmasterBroker({ forTesting: true });
  * // Returns configs with relaxed rules like max-depth, no-magic-numbers for test code
+ *
+ * // With the gateway.bannedExports/restrictedTo config from .dungeonmaster.json:
+ * const configs = configDungeonmasterBroker({ gatewayLintConfig });
+ * // gatewayLintConfig MUST be read by the CALLER (eslint.config.js reads it once when it loads via
+ * // configGatewayLintConfigBroker) — this broker takes no `startDir` and does no file I/O itself,
+ * // because @dungeonmaster/eslint-plugin's own index.ts calls this at MODULE IMPORT time
+ * // (`const plugin = StartEslintPlugin();`), so any I/O here would run merely from requiring the
+ * // package — breaking every other package's tests the moment they import a plugin export.
  */
 import {
   eslintConfigContract,
@@ -24,6 +32,7 @@ import { typescriptEslintEslintPluginLoadAdapter } from '../../../adapters/types
 import { eslintPluginJestLoadAdapter } from '../../../adapters/eslint-plugin-jest/load/eslint-plugin-jest-load-adapter';
 import { eslintPluginEslintCommentsLoadAdapter } from '../../../adapters/eslint-plugin-eslint-comments/load/eslint-plugin-eslint-comments-load-adapter';
 import { eslintConflictResolverTransformer } from '../../../transformers/eslint-conflict-resolver/eslint-conflict-resolver-transformer';
+import type { GatewayLintConfig } from '../../../contracts/gateway-lint-config/gateway-lint-config-contract';
 
 type DeepWritable<T> = T extends readonly (infer U)[]
   ? DeepWritable<U>[]
@@ -33,8 +42,10 @@ type DeepWritable<T> = T extends readonly (infer U)[]
 
 export const configDungeonmasterBroker = ({
   forTesting = false,
+  gatewayLintConfig = {},
 }: {
   forTesting?: boolean;
+  gatewayLintConfig?: GatewayLintConfig;
 } = {}): {
   typescript: EslintConfig;
   test: EslintConfig;
@@ -146,6 +157,14 @@ export const configDungeonmasterBroker = ({
     '@dungeonmaster/ban-dom-handles-in-ingredients': 'error',
     '@dungeonmaster/ban-nondeterminism-in-ingredients': 'error',
     '@dungeonmaster/gateway-dependency-declared': 'error',
+    // The three gateway config-key rules share ONE rule option — the `gatewayLintConfig` parameter
+    // the CALLER read once from `.dungeonmaster.json`, so a rule itself never reads a file for it.
+    '@dungeonmaster/ban-gateway-export': ['error', gatewayLintConfig],
+    '@dungeonmaster/enforce-gateway-restricted-to': ['error', gatewayLintConfig],
+    // Reads OTHER files (the gateway's own source, the workspace root's package.json), so it is not
+    // 'pre-edit'-eligible — it self-gates on dungeonmaster-config-contract.ts, the one file that owns
+    // this shape, rather than reporting the same repo-wide check once per linted file.
+    '@dungeonmaster/enforce-gateway-config-names-exist': ['error', gatewayLintConfig],
     // Ready — measured against every non-gateway package in scrolls/gateway-build/lint-measurements.md
     // — and turns on once callers migrate (migration order step 3 in scrolls/adapters-to-one-place.md).
     // '@dungeonmaster/raw-import-ban': 'error',

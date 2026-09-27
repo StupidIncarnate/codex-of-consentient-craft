@@ -698,6 +698,122 @@ describe('dungeonmaster-config-contract', () => {
     });
   });
 
+  describe('gateway configuration', () => {
+    it('VALID: config without gateway => gateway is undefined', () => {
+      const config = DungeonmasterConfigStub({ framework: 'react', schema: 'zod' });
+
+      expect(config.gateway).toBe(undefined);
+    });
+
+    it('VALID: config with empty gateway => parses with both arrays undefined', () => {
+      const parsed = dungeonmasterConfigContract.parse({
+        framework: 'react',
+        schema: 'zod',
+        gateway: {},
+      });
+
+      expect(parsed.gateway).toStrictEqual({});
+    });
+
+    it('VALID: config with a bannedExports entry => parses the full shape', () => {
+      const parsed = dungeonmasterConfigContract.parse({
+        framework: 'react',
+        schema: 'zod',
+        gateway: {
+          bannedExports: [
+            {
+              subpath: '#gateway/node/fs',
+              name: 'readFileSync',
+              use: 'readFile',
+              reason: 'blocks the event loop',
+            },
+          ],
+        },
+      });
+
+      expect(parsed.gateway).toStrictEqual({
+        bannedExports: [
+          {
+            subpath: '#gateway/node/fs',
+            name: 'readFileSync',
+            use: 'readFile',
+            reason: 'blocks the event loop',
+          },
+        ],
+      });
+    });
+
+    it('VALID: config with a restrictedTo entry naming one export => parses the full shape', () => {
+      const parsed = dungeonmasterConfigContract.parse({
+        framework: 'react',
+        schema: 'zod',
+        gateway: {
+          restrictedTo: [
+            {
+              subpath: '#gateway/npm/testing-library__react',
+              name: 'render',
+              packages: ['@dungeonmaster/testing'],
+              reason: 'wrap it in @dungeonmaster/testing render',
+            },
+          ],
+        },
+      });
+
+      expect(parsed.gateway).toStrictEqual({
+        restrictedTo: [
+          {
+            subpath: '#gateway/npm/testing-library__react',
+            name: 'render',
+            packages: ['@dungeonmaster/testing'],
+            reason: 'wrap it in @dungeonmaster/testing render',
+          },
+        ],
+      });
+    });
+
+    it('VALID: config with a restrictedTo entry without name => restricts the whole subpath', () => {
+      const parsed = dungeonmasterConfigContract.parse({
+        framework: 'react',
+        schema: 'zod',
+        gateway: {
+          restrictedTo: [
+            {
+              subpath: '#gateway/bin/spawn',
+              packages: ['@dungeonmaster/orchestrator'],
+              reason: 'only orchestrator spawns',
+            },
+          ],
+        },
+      });
+
+      expect(parsed.gateway?.restrictedTo?.[0]?.name).toBe(undefined);
+    });
+
+    it('INVALID: bannedExports entry missing use => throws validation error', () => {
+      expect(() => {
+        return dungeonmasterConfigContract.parse({
+          framework: 'react',
+          schema: 'zod',
+          gateway: {
+            bannedExports: [{ subpath: '#gateway/node/fs', name: 'readFileSync', reason: 'why' }],
+          },
+        });
+      }).toThrow(/Required/u);
+    });
+
+    it('INVALID: restrictedTo entry with empty packages array => throws validation error', () => {
+      expect(() => {
+        return dungeonmasterConfigContract.parse({
+          framework: 'react',
+          schema: 'zod',
+          gateway: {
+            restrictedTo: [{ subpath: '#gateway/bin/spawn', packages: [], reason: 'why' }],
+          },
+        });
+      }).toThrow(/too_small/u);
+    });
+  });
+
   describe('orchestrationMode', () => {
     it('VALID: config without orchestrationMode => defaults to "claude"', () => {
       const config = DungeonmasterConfigStub({ framework: 'react', schema: 'zod' });

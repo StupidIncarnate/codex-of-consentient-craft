@@ -52,6 +52,7 @@ describe('start-install integration', () => {
                 ],
               },
             },
+            gateway: {},
           },
           null,
           2,

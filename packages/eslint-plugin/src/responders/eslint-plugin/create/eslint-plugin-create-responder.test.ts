@@ -2,7 +2,7 @@ import { EslintPluginCreateResponderProxy } from './eslint-plugin-create-respond
 
 describe('EslintPluginCreateResponder', () => {
   describe('rule initialization', () => {
-    it('VALID: {} => returns plugin with all 71 rule names', () => {
+    it('VALID: {} => returns plugin with all 74 rule names', () => {
       const proxy = EslintPluginCreateResponderProxy();
       const plugin = proxy.callResponder();
 
@@ -12,6 +12,7 @@ describe('EslintPluginCreateResponder', () => {
         'ban-dom-handles-in-ingredients',
         'ban-fetch-in-proxies',
         'ban-flattened-contract-params',
+        'ban-gateway-export',
         'ban-inline-helpers-in-test-scenarios',
         'ban-jest-mock-in-proxies',
         'ban-jest-mock-in-tests',
@@ -41,6 +42,8 @@ describe('EslintPluginCreateResponder', () => {
         'enforce-e2e-base-import',
         'enforce-file-metadata',
         'enforce-folder-return-types',
+        'enforce-gateway-config-names-exist',
+        'enforce-gateway-restricted-to',
         'enforce-harness-patterns',
         'enforce-hydration-recipes-structure',
         'enforce-implementation-colocation',

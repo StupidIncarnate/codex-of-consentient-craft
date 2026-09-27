@@ -226,6 +226,7 @@ describe('dungeonmasterRuleEnforceOnStatics integration', () => {
         ['@dungeonmaster/enforce-test-colocation', 'post-edit'],
         ['@dungeonmaster/enforce-hydration-recipes-structure', 'post-edit'],
         ['@dungeonmaster/gateway-dependency-declared', 'post-edit'],
+        ['@dungeonmaster/enforce-gateway-config-names-exist', 'post-edit'],
       ]);
     });
   });
@@ -239,10 +240,10 @@ describe('dungeonmasterRuleEnforceOnStatics integration', () => {
       expect(totalCount).toBe(Number(preEditCount) + Number(postEditCount));
     });
 
-    it('VALID: pre-edit count => 68 rules (10 third-party + 58 @dungeonmaster)', () => {
+    it('VALID: pre-edit count => 70 rules (10 third-party + 60 @dungeonmaster)', () => {
       const preEditCount = getPreEditRuleCount();
 
-      expect(preEditCount).toBe(68);
+      expect(preEditCount).toBe(70);
     });
   });
 

@@ -82,6 +82,8 @@ export const dungeonmasterRuleEnforceOnStatics = {
   '@dungeonmaster/ban-anonymous-jsx-in-map': 'pre-edit',
   '@dungeonmaster/ban-dom-handles-in-ingredients': 'pre-edit',
   '@dungeonmaster/ban-nondeterminism-in-ingredients': 'pre-edit',
+  '@dungeonmaster/ban-gateway-export': 'pre-edit',
+  '@dungeonmaster/enforce-gateway-restricted-to': 'pre-edit',
 
   // @dungeonmaster - POST-EDIT
   '@dungeonmaster/enforce-proxy-patterns': 'post-edit',
@@ -90,4 +92,5 @@ export const dungeonmasterRuleEnforceOnStatics = {
   '@dungeonmaster/enforce-test-colocation': 'post-edit',
   '@dungeonmaster/enforce-hydration-recipes-structure': 'post-edit',
   '@dungeonmaster/gateway-dependency-declared': 'post-edit',
+  '@dungeonmaster/enforce-gateway-config-names-exist': 'post-edit',
 } as const;

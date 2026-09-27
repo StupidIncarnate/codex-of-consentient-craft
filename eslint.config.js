@@ -16,13 +16,25 @@ const dungeonmasterPlugin = require('./packages/eslint-plugin/src/index.ts').def
 const {
   configDungeonmasterBroker,
 } = require('./packages/eslint-plugin/src/brokers/config/dungeonmaster/config-dungeonmaster-broker.ts');
+const {
+  configGatewayLintConfigBroker,
+} = require('./packages/eslint-plugin/src/brokers/config/gateway-lint-config/config-gateway-lint-config-broker.ts');
 const { gatewayLocationsStatics } = require('@dungeonmaster/shared/statics');
+const { filePathContract } = require('@dungeonmaster/shared/contracts');
 // Import repo-private local-eslint plugin (never shipped) from TypeScript source
 const dungeonmasterLocalPlugin = require('./packages/local-eslint/src/index.ts').default;
 
+// Read `.dungeonmaster.json`'s `gateway` key ONCE, here, when this file loads — never inside a rule
+// at lint time. configDungeonmasterBroker itself does no file I/O: @dungeonmaster/eslint-plugin's own
+// index.ts calls it at MODULE IMPORT time, so any read inside it would run merely from requiring the
+// package, breaking every other package that imports a plugin export.
+const gatewayLintConfig = configGatewayLintConfigBroker({
+  startDir: filePathContract.parse(__dirname),
+});
+
 // Get the dungeonmaster configs (returns object with typescript, test, fileOverrides)
-const dungeonmasterConfigs = configDungeonmasterBroker();
-const dungeonmasterTestConfigs = configDungeonmasterBroker({ forTesting: true });
+const dungeonmasterConfigs = configDungeonmasterBroker({ gatewayLintConfig });
+const dungeonmasterTestConfigs = configDungeonmasterBroker({ forTesting: true, gatewayLintConfig });
 
 module.exports = [
   // Global ignores

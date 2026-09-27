@@ -1,5 +1,6 @@
 import { configDungeonmasterBroker } from './config-dungeonmaster-broker';
 import { configDungeonmasterBrokerProxy } from './config-dungeonmaster-broker.proxy';
+import { GatewayLintConfigStub } from '../../../contracts/gateway-lint-config/gateway-lint-config.stub';
 
 describe('configDungeonmasterBroker', () => {
   describe('return value structure', () => {
@@ -232,6 +233,43 @@ describe('configDungeonmasterBroker', () => {
         'error',
         { allowPrimitiveInputs: true, allowPrimitiveReturns: false },
       ]);
+    });
+
+    it('VALID: {} => typescript config defaults gatewayLintConfig to an empty option', () => {
+      configDungeonmasterBrokerProxy();
+
+      const { typescript } = configDungeonmasterBroker();
+
+      expect(typescript.rules?.['@dungeonmaster/ban-gateway-export']).toStrictEqual(['error', {}]);
+    });
+
+    it('VALID: {gatewayLintConfig} => threads the CALLER-supplied value into all three gateway config rules', () => {
+      configDungeonmasterBrokerProxy();
+
+      const gatewayLintConfig = GatewayLintConfigStub({
+        bannedExports: [
+          {
+            subpath: '#gateway/node/fs',
+            name: 'readFileSync',
+            use: 'readFile',
+            reason: 'blocks the event loop',
+          },
+        ],
+      });
+
+      const { typescript } = configDungeonmasterBroker({ gatewayLintConfig });
+
+      expect(typescript.rules?.['@dungeonmaster/ban-gateway-export']).toStrictEqual([
+        'error',
+        gatewayLintConfig,
+      ]);
+      expect(typescript.rules?.['@dungeonmaster/enforce-gateway-restricted-to']).toStrictEqual([
+        'error',
+        gatewayLintConfig,
+      ]);
+      expect(typescript.rules?.['@dungeonmaster/enforce-gateway-config-names-exist']).toStrictEqual(
+        ['error', gatewayLintConfig],
+      );
     });
 
     it('VALID: {} => typescript (non-gateway) config keeps every rule the gateway omits', () => {

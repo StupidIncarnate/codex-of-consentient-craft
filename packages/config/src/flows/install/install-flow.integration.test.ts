@@ -60,6 +60,7 @@ describe('install-flow integration', () => {
                 ],
               },
             },
+            gateway: {},
           },
           null,
           2,
@@ -67,7 +68,7 @@ describe('install-flow integration', () => {
       );
     });
 
-    it('VALID: {context: existing config already has devServer.e2e} => skips, leaving the file untouched', async () => {
+    it('VALID: {context: existing config already has devServer.e2e and gateway} => skips, leaving the file untouched', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'skip-config-has-e2e' }),
       });
@@ -75,6 +76,7 @@ describe('install-flow integration', () => {
         {
           framework: 'react',
           schema: 'zod',
+          gateway: {},
           devServer: {
             devCommand: 'npm run dev',
             port: 3000,
@@ -151,7 +153,8 @@ describe('install-flow integration', () => {
         packageName: '@dungeonmaster/config',
         success: true,
         action: 'merged',
-        message: 'Added the devServer.e2e.processes placeholder to existing .dungeonmaster.json',
+        message:
+          'Added the devServer.e2e.processes placeholder and the gateway key to existing .dungeonmaster.json',
       });
 
       const configContent = testbed.readFile({
@@ -182,6 +185,7 @@ describe('install-flow integration', () => {
                 ],
               },
             },
+            gateway: {},
           },
           null,
           2,
@@ -221,6 +225,7 @@ describe('install-flow integration', () => {
           {
             framework: 'react',
             schema: 'zod',
+            gateway: {},
             devServer: {
               e2e: {
                 processes: [

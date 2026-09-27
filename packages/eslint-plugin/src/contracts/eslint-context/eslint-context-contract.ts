@@ -17,6 +17,10 @@ import type { Tsestree } from '../tsestree/tsestree-contract';
 
 export const eslintContextContract = z.object({
   filename: z.string().brand<'Filename'>().optional(),
+  // The rule config array a rule was invoked with — `['error', optionsObject]` in eslint.config.js
+  // becomes `context.options === [optionsObject]`. A rule computing its own config once at
+  // eslint.config.js load time (rather than reading a file itself) reads it from here, position 0.
+  options: z.array(z.unknown()).optional(),
 });
 
 // Extract the branded Filename type from contract

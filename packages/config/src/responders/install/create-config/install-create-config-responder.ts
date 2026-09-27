@@ -1,18 +1,21 @@
 /**
- * PURPOSE: Creates .dungeonmaster.json with full defaults when missing. When it already exists, adds the
- * devServer.e2e.processes placeholder in place — preserving every other key and value, and creating devServer
- * when the file has none — unless the file already carries devServer.e2e, is corrupt/unreadable, or fails
- * dungeonmasterConfigContract; those three leave the file byte-for-byte untouched and say why in the result.
- * `readJsonFileIfExists` only ever answers `null` for "the file is gone" (ENOENT); a corrupt or permission-denied
- * read THROWS instead, so this responder catches that throw itself rather than folding it into the same `null`
- * a genuinely missing file produces — the two are different facts and get different messages. The placeholder
- * is the literal `e2eProcessPlaceholderStatics.process` value both here and in a later placeholder-detection
- * check, so the two stay in sync by construction.
+ * PURPOSE: Creates .dungeonmaster.json with full defaults when missing. When it already exists, adds
+ * whichever of the devServer.e2e.processes placeholder and the empty `gateway` key the file is missing —
+ * preserving every other key and value, and creating devServer when the file has none — unless the file
+ * already carries BOTH, is corrupt/unreadable, or fails dungeonmasterConfigContract; those three leave the
+ * file byte-for-byte untouched and say why in the result. The two additions are independent: a file that
+ * already ran `init` once (and so already has devServer.e2e) still gets `gateway: {}` added on a later
+ * `init` if it predates this key, and a file with a hand-added `gateway` key still gets the e2e placeholder
+ * if it lacks one. `readJsonFileIfExists` only ever answers `null` for "the file is gone" (ENOENT); a
+ * corrupt or permission-denied read THROWS instead, so this responder catches that throw itself rather than
+ * folding it into the same `null` a genuinely missing file produces — the two are different facts and get
+ * different messages. The placeholder is the literal `e2eProcessPlaceholderStatics.process` value both here
+ * and in a later placeholder-detection check, so the two stay in sync by construction.
  *
  * USAGE:
  * const result = await InstallCreateConfigResponder({ context });
- * // action: 'created' (fresh file), 'merged' (placeholder added to an existing file),
- * // or 'skipped' (already has devServer.e2e, fails validation, or could not be safely read)
+ * // action: 'created' (fresh file), 'merged' (the e2e placeholder and/or gateway key added to an existing
+ * // file), or 'skipped' (already has both, fails validation, or could not be safely read)
  */
 
 import {
@@ -86,7 +89,10 @@ export const InstallCreateConfigResponder = async ({
         };
       }
 
-      if (validatedExisting.data.devServer?.e2e) {
+      const hasDevServerE2e = Boolean(validatedExisting.data.devServer?.e2e);
+      const hasGateway = Boolean(validatedExisting.data.gateway);
+
+      if (hasDevServerE2e && hasGateway) {
         return {
           packageName: packageNameContract.parse(PACKAGE_NAME),
           success: true,
@@ -103,10 +109,10 @@ export const InstallCreateConfigResponder = async ({
 
       const mergedConfig: Record<PropertyKey, unknown> = {
         ...rawConfig,
-        devServer: {
-          ...existingDevServer,
-          e2e: { processes: [e2eProcessPlaceholderStatics.process] },
-        },
+        ...(hasGateway ? {} : { gateway: {} }),
+        devServer: hasDevServerE2e
+          ? existingDevServer
+          : { ...existingDevServer, e2e: { processes: [e2eProcessPlaceholderStatics.process] } },
       };
 
       const mergedContents = fileContentsContract.parse(
@@ -118,7 +124,11 @@ export const InstallCreateConfigResponder = async ({
         success: true,
         action: 'merged',
         message: installMessageContract.parse(
-          'Added the devServer.e2e.processes placeholder to existing .dungeonmaster.json',
+          !hasDevServerE2e && !hasGateway
+            ? 'Added the devServer.e2e.processes placeholder and the gateway key to existing .dungeonmaster.json'
+            : hasDevServerE2e
+              ? 'Added the gateway key to existing .dungeonmaster.json'
+              : 'Added the devServer.e2e.processes placeholder to existing .dungeonmaster.json',
         ),
       };
     }
@@ -133,6 +143,7 @@ export const InstallCreateConfigResponder = async ({
     orchestrationMode: 'node',
     dungeonmaster: { port: environmentStatics.defaultPort },
     orchestration: {},
+    gateway: {},
     devServer: {
       devCommand: configDefaultsStatics.devServer.devCommand,
       port: configDefaultsStatics.devServer.port.default,
