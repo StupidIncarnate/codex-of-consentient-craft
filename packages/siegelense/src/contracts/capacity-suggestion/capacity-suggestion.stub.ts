@@ -10,6 +10,7 @@ export const CapacitySuggestionStub = ({
     suggested: 2,
     ceiling: 3,
     memoryAllows: 2,
+    cpuAllows: 6,
     ceilingLeft: 2,
     availableMB: 4808,
     ...props,

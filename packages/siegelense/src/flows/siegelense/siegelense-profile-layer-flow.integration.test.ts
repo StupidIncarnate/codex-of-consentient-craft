@@ -168,9 +168,9 @@ describe('SiegelenseProfileLayerFlow', () => {
   });
 
   describe('the refusal when --spec is absent', () => {
-    it('INVALID: {callArgs: []} => rejects naming --spec rather than profiling every spec it can find', async () => {
+    it('INVALID: {callArgs: []} => rejects naming --spec, the known specs, rather than profiling every spec it can find', async () => {
       await expect(SiegelenseProfileLayerFlow({ callArgs: [] })).rejects.toThrow(
-        /^--spec is required: name the lane spec to profile\. A profile is keyed by one spec's content hash, so there is no fleet-wide form\.\n\nUsage: dungeonmaster siegelense profile --spec <specName> \[--json\]$/u,
+        /^--spec is required: name the lane spec to profile\. A profile is keyed by one spec's content hash, so there is no fleet-wide form\. Known specs: stack, api\.\n\nUsage: dungeonmaster siegelense profile --spec <specName> \[--json\]$/u,
       );
     });
   });

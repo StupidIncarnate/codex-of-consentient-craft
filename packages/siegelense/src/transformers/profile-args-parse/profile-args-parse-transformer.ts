@@ -2,9 +2,11 @@
  * PURPOSE: Reads `dungeonmaster siegelense profile`'s argv down to the spec to report on and
  * whether to output raw JSON. `--spec` is REQUIRED, unlike `statusArgsParseTransformer`'s optional
  * `--instance`: there is no fleet-wide form of a profile, because a profile is keyed by one spec's
- * content hash and two specs share nothing. `--json` outputs raw JSON instead of the default human
- * summary. `--human` is not a flag this parser accepts — it refuses it as an unknown flag, same as
- * any other unrecognized token.
+ * content hash and two specs share nothing. An absent `--spec` names the known specs off the same
+ * `laneSpecConventionStatics` `laneSpecFindBroker`'s own unknown-spec refusal reads, never
+ * hard-coded here. `--json` outputs raw JSON instead of the default human summary. `--human` is not
+ * a flag this parser accepts — it refuses it as an unknown flag, same as any other unrecognized
+ * token.
  *
  * USAGE:
  * profileArgsParseTransformer({ args: ['--spec', 'dungeonmaster-stack'] });
@@ -14,6 +16,7 @@
 import { profileArgsContract } from '../../contracts/profile-args/profile-args-contract';
 import type { ProfileArgs } from '../../contracts/profile-args/profile-args-contract';
 import { specNameContract } from '../../contracts/spec-name/spec-name-contract';
+import { laneSpecConventionStatics } from '../../statics/lane-spec-convention/lane-spec-convention-statics';
 import { siegelenseOutputStatics } from '../../statics/siegelense-output/siegelense-output-statics';
 import { flagContractParseTransformer } from '../flag-contract-parse/flag-contract-parse-transformer';
 import { flagValueReadTransformer } from '../flag-value-read/flag-value-read-transformer';
@@ -57,7 +60,8 @@ export const profileArgsParseTransformer = ({ args }: { args: readonly string[] 
   if (rawSpecName === null) {
     throw new Error(
       `${SPEC_FLAG} is required: name the lane spec to profile. ` +
-        `A profile is keyed by one spec's content hash, so there is no fleet-wide form.\n\n${USAGE}`,
+        `A profile is keyed by one spec's content hash, so there is no fleet-wide form. ` +
+        `Known specs: ${laneSpecConventionStatics.browsered}, ${laneSpecConventionStatics.headless}.\n\n${USAGE}`,
     );
   }
 

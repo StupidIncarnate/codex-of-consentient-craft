@@ -13,6 +13,9 @@
  *
  * capacityStatics.memory.headroomMB;
  * // Returns 512 — subtracted from free memory before anything is divided
+ *
+ * capacityStatics.cpu.minAllowed;
+ * // Returns 1 — the floor `capacitySuggestTransformer` never lets a saturated CPU suggest below
  */
 
 import { laneSpecConventionStatics } from '../lane-spec-convention/lane-spec-convention-statics';
@@ -38,6 +41,14 @@ export const capacityStatics = {
     // first pass that is not needlessly serial. Pragmatic rather than derived, and the failure
     // when it is wrong is slowness rather than corruption.
     suggested: 2,
+  },
+  cpu: {
+    // `capacitySuggestTransformer` never lets CPU pressure alone suggest fewer than this. Memory
+    // has a real zero — a machine that cannot hold one more instance's peak gets `suggested: 0`
+    // and `start` refuses. CPU has no equivalent hard stop: a 1-minute load average spiking past
+    // core count is throttle, not an OOM-style crash, and a formula that let it reach zero would
+    // starve a busy-but-working host forever rather than applying back-pressure.
+    minAllowed: 1,
   },
   defaults: {
     // The browsered convention name, and the more expensive of the two, so a bare `capacity` with

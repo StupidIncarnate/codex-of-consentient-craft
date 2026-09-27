@@ -23,6 +23,12 @@ describe('capacityStatics', () => {
     });
   });
 
+  describe('cpu', () => {
+    it('VALID: {cpu} => toStrictEqual a floor of one instance', () => {
+      expect(capacityStatics.cpu).toStrictEqual({ minAllowed: 1 });
+    });
+  });
+
   describe('defaults', () => {
     it('VALID: {defaults} => toStrictEqual the browsered convention name', () => {
       expect(capacityStatics.defaults).toStrictEqual({ specName: 'stack' });

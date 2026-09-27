@@ -18,18 +18,20 @@ import { SiegelenseStartLayerFlow } from './siegelense-start-layer-flow';
 // (a ~20s successful boot, a 220s ceiling for a failed one, and its own fake-CLI env setup).
 describe('SiegelenseStartLayerFlow', () => {
   describe('--spec is missing', () => {
-    it('INVALID: {callArgs: []} => refuses naming --spec as required', async () => {
+    it('INVALID: {callArgs: []} => refuses naming --spec as required and the known specs', async () => {
       await expect(SiegelenseStartLayerFlow({ callArgs: [] })).rejects.toThrow(
-        /^--spec is required: name the lane spec to boot\.$/u,
+        /^--spec is required: name the lane spec to boot\. Known specs: stack, api\.$/u,
       );
     });
 
-    it('INVALID: {callArgs: --quest and --guild but no --spec} => refuses naming --spec as required', async () => {
+    it('INVALID: {callArgs: --quest and --guild but no --spec} => refuses naming --spec as required and the known specs', async () => {
       await expect(
         SiegelenseStartLayerFlow({
           callArgs: ['--quest', 'add-auth', '--guild', 'f47ac10b-58cc-4372-a567-0e02b2c3d479'],
         }),
-      ).rejects.toThrow(/^--spec is required: name the lane spec to boot\.$/u);
+      ).rejects.toThrow(
+        /^--spec is required: name the lane spec to boot\. Known specs: stack, api\.$/u,
+      );
     });
   });
 
@@ -93,7 +95,9 @@ describe('SiegelenseStartLayerFlow', () => {
         SiegelenseStartLayerFlow({
           callArgs: ['--spec', 'dungeonmaster-stack', '--idle-timeout-ms', 'not-a-number'],
         }),
-      ).rejects.toThrow(/^--idle-timeout-ms: Expected number, received nan$/u);
+      ).rejects.toThrow(
+        /^--idle-timeout-ms must be a whole number of 0 or more; got "not-a-number"$/u,
+      );
     });
   });
 });

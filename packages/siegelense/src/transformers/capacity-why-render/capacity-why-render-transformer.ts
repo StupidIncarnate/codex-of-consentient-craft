@@ -12,8 +12,25 @@
  * same units the answer does. Headroom is named for the same reason: it is the one term in the
  * division that appears nowhere else in the answer.
  *
+ * `requestedPoolSize` is the raw `--pool` value, before `capacityReadBroker` resolves it to the
+ * policy ceiling or hands it to `capacitySampleSelectTransformer`. It never changes `suggested`; it
+ * only decides whether a second clause is owed. With no measured profile at all, `--pool` cannot
+ * pick anything — the default pair is the whole answer regardless of what was asked, and a caller
+ * who does not hear that reads a coincidence (`--pool 2` matching the default) as proof the flag
+ * did something. With a profile but no group at exactly that pool size,
+ * `capacitySampleSelectTransformer` already substitutes the nearest measured group silently; this is
+ * the only place that substitution becomes visible. `capacityAnswerRenderTransformer` extracts the
+ * spec name by matching `/no measured profile for ([^,]+)/u` against this string, so the no-profile
+ * clause keeps `specName` immediately followed by a comma.
+ *
+ * `cores` and `loadAvg1` back the CPU clause the same way `freeMemMB` backs the memory one — named
+ * so the arithmetic in `suggestion.cpuAllows` is recomputable, not merely asserted. It only appears
+ * when CPU is the tightest of the three limits (`capacitySuggestTransformer`'s
+ * `min(memoryAllows, cpuAllows, ceilingLeft)`), the same "first one that binds" rule the memory and
+ * policy clauses already follow.
+ *
  * USAGE:
- * capacityWhyRenderTransformer({ specName, profile, suggestion, freeMemMB, siegeInstances, reservedInstances });
+ * capacityWhyRenderTransformer({ specName, profile, suggestion, freeMemMB, siegeInstances, reservedInstances, requestedPoolSize, cores, loadAvg1 });
  * // Returns 'profile 2600MB peak / 1800MB steady at pool size 1, from 9 runs; free RAM 5320MB
  * // less 512MB headroom; 1 siege instance already up'
  */
@@ -21,9 +38,11 @@
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { ContentText } from '@dungeonmaster/shared/contracts';
 
+import type { CapacityMeasured } from '../../contracts/capacity-measured/capacity-measured-contract';
 import type { CapacityProfile } from '../../contracts/capacity-profile/capacity-profile-contract';
 import type { CapacitySuggestion } from '../../contracts/capacity-suggestion/capacity-suggestion-contract';
 import type { Megabytes } from '../../contracts/megabytes/megabytes-contract';
+import type { ProfilePoolSize } from '../../contracts/profile-pool-size/profile-pool-size-contract';
 import type { ReadingCount } from '../../contracts/reading-count/reading-count-contract';
 import type { SpecName } from '../../contracts/spec-name/spec-name-contract';
 import { capacityStatics } from '../../statics/capacity/capacity-statics';
@@ -37,6 +56,9 @@ export const capacityWhyRenderTransformer = ({
   freeMemMB,
   siegeInstances,
   reservedInstances,
+  requestedPoolSize,
+  cores,
+  loadAvg1,
 }: {
   specName: SpecName;
   profile: CapacityProfile | null;
@@ -44,15 +66,27 @@ export const capacityWhyRenderTransformer = ({
   freeMemMB: Megabytes;
   siegeInstances: ReadingCount;
   reservedInstances: ReadingCount;
+  requestedPoolSize: ProfilePoolSize | null;
+  cores: ReadingCount;
+  loadAvg1: CapacityMeasured['loadAvg1'];
 }): ContentText => {
   const { headroomMB } = capacityStatics.memory;
   const peakMB = profile === null ? 0 : profile.peakMB;
   const reservedDebitMB = peakMB * reservedInstances;
+  const { suggested: defaultSuggested } = capacityStatics.noProfile;
+
+  const ignoredPoolNote =
+    requestedPoolSize === null ? '' : ` --pool ${requestedPoolSize} has no effect:`;
 
   const profileClause =
     profile === null
-      ? `no measured profile for ${specName}, so the default pair of ${capacityStatics.noProfile.suggested} profiles itself`
+      ? `no measured profile for ${specName}, so${ignoredPoolNote} this suggests the default of ${defaultSuggested} instances; run a pool of ${defaultSuggested} once and siegelense records a profile for next time`
       : `profile ${profile.peakMB}MB peak / ${profile.steadyMB}MB steady at pool size ${profile.poolSize}, from ${profile.fromRuns} runs`;
+
+  const poolMismatchClause =
+    profile !== null && requestedPoolSize !== null && requestedPoolSize !== profile.poolSize
+      ? `--pool ${requestedPoolSize} has no measured group, so pool size ${profile.poolSize} was used instead`
+      : null;
 
   const memoryClause =
     reservedDebitMB === 0
@@ -65,15 +99,19 @@ export const capacityWhyRenderTransformer = ({
       ? 'nothing else up'
       : `${siegeInstances} siege instance${siegeInstances === 1 ? '' : 's'} already up${reservingSuffix}`;
 
-  // The first of the three that holds is the one reported: running out of memory is the case the
-  // OS answers by killing something at random (line 1589), so it outranks a policy cap that is
-  // only ever a knob.
+  // The first of these that holds is the one reported. Running out of memory is the case the OS
+  // answers by killing something at random (line 1589), so it outranks everything else; a fully
+  // booked policy pool is the next hardest stop. CPU is checked before the generic policy-cap
+  // clause so a load-driven number says load, not "policy", caused it.
   const limitClauses = [
     suggestion.memoryAllows === 0
       ? `no room for one more: ${suggestion.availableMB}MB available is under the ${peakMB}MB this spec peaks at`
       : null,
     suggestion.ceilingLeft === 0 ? `the policy pool of ${suggestion.ceiling} is full` : null,
-    suggestion.ceilingLeft < suggestion.memoryAllows
+    suggestion.cpuAllows < suggestion.memoryAllows && suggestion.cpuAllows <= suggestion.ceilingLeft
+      ? `load ${loadAvg1} across ${cores} cores allows only ${suggestion.cpuAllows}; CPU, not memory, is the limit`
+      : null,
+    suggestion.ceilingLeft < Math.min(suggestion.memoryAllows, suggestion.cpuAllows)
       ? `capped at the policy ceiling of ${suggestion.ceiling}`
       : null,
   ];
@@ -82,6 +120,7 @@ export const capacityWhyRenderTransformer = ({
   return contentTextContract.parse(
     [
       profileClause,
+      ...(poolMismatchClause === null ? [] : [poolMismatchClause]),
       memoryClause,
       instancesClause,
       ...(limitClause === null ? [] : [limitClause]),

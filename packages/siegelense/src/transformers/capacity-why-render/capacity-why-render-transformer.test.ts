@@ -1,10 +1,18 @@
+import { CapacityMeasuredStub } from '../../contracts/capacity-measured/capacity-measured.stub';
 import { CapacityProfileStub } from '../../contracts/capacity-profile/capacity-profile.stub';
 import { CapacitySuggestionStub } from '../../contracts/capacity-suggestion/capacity-suggestion.stub';
 import { MegabytesStub } from '../../contracts/megabytes/megabytes.stub';
+import { ProfilePoolSizeStub } from '../../contracts/profile-pool-size/profile-pool-size.stub';
 import { ReadingCountStub } from '../../contracts/reading-count/reading-count.stub';
 import { SpecNameStub } from '../../contracts/spec-name/spec-name.stub';
 
 import { capacityWhyRenderTransformer } from './capacity-why-render-transformer';
+
+// `CapacitySuggestionStub`'s own default (cpuAllows: 6) never wins against these tests' fixtures —
+// the policy ceiling never exceeds 3, so a default of 6 can never satisfy `cpuAllows <=
+// ceilingLeft`. These display figures only matter for the CPU-specific describe block below, where
+// each test sets its own.
+const { cores: SOME_CORES, loadAvg1: SOME_LOAD1 } = CapacityMeasuredStub();
 
 describe('capacityWhyRenderTransformer', () => {
   describe("the spec's own three clauses", () => {
@@ -21,6 +29,9 @@ describe('capacityWhyRenderTransformer', () => {
         freeMemMB: MegabytesStub({ value: 5320 }),
         siegeInstances: ReadingCountStub({ value: 1 }),
         reservedInstances: ReadingCountStub({ value: 0 }),
+        requestedPoolSize: null,
+        cores: SOME_CORES,
+        loadAvg1: SOME_LOAD1,
       });
 
       expect(result).toBe(
@@ -43,6 +54,9 @@ describe('capacityWhyRenderTransformer', () => {
         freeMemMB: MegabytesStub({ value: 6712 }),
         siegeInstances: ReadingCountStub({ value: 0 }),
         reservedInstances: ReadingCountStub({ value: 0 }),
+        requestedPoolSize: null,
+        cores: SOME_CORES,
+        loadAvg1: SOME_LOAD1,
       });
 
       expect(result).toBe(
@@ -65,6 +79,9 @@ describe('capacityWhyRenderTransformer', () => {
         freeMemMB: MegabytesStub({ value: 3412 }),
         siegeInstances: ReadingCountStub({ value: 2 }),
         reservedInstances: ReadingCountStub({ value: 0 }),
+        requestedPoolSize: null,
+        cores: SOME_CORES,
+        loadAvg1: SOME_LOAD1,
       });
 
       expect(result).toBe(
@@ -89,6 +106,9 @@ describe('capacityWhyRenderTransformer', () => {
         freeMemMB: MegabytesStub({ value: 8000 }),
         siegeInstances: ReadingCountStub({ value: 1 }),
         reservedInstances: ReadingCountStub({ value: 1 }),
+        requestedPoolSize: null,
+        cores: SOME_CORES,
+        loadAvg1: SOME_LOAD1,
       });
 
       expect(result).toBe(
@@ -100,7 +120,7 @@ describe('capacityWhyRenderTransformer', () => {
   });
 
   describe('no measured profile', () => {
-    it('EMPTY: {profile: null} => the first clause names the spec and says the default pair profiles itself', () => {
+    it('EMPTY: {profile: null, --pool omitted} => the first clause names the spec, the default, and how to record a profile', () => {
       const result = capacityWhyRenderTransformer({
         specName: SpecNameStub({ value: 'dungeonmaster-api' }),
         profile: null,
@@ -113,12 +133,95 @@ describe('capacityWhyRenderTransformer', () => {
         freeMemMB: MegabytesStub({ value: 5320 }),
         siegeInstances: ReadingCountStub({ value: 0 }),
         reservedInstances: ReadingCountStub({ value: 0 }),
+        requestedPoolSize: null,
+        cores: SOME_CORES,
+        loadAvg1: SOME_LOAD1,
       });
 
       expect(result).toBe(
-        'no measured profile for dungeonmaster-api, so the default pair of 2 profiles itself; ' +
+        'no measured profile for dungeonmaster-api, so this suggests the default of 2 instances; ' +
+          'run a pool of 2 once and siegelense records a profile for next time; ' +
           'free RAM 5320MB less 512MB headroom; ' +
           'nothing else up',
+      );
+    });
+
+    it('VALID: {profile: null, --pool 5} => names --pool as having no effect, since nothing was measured to pick a group from', () => {
+      const result = capacityWhyRenderTransformer({
+        specName: SpecNameStub({ value: 'dungeonmaster-api' }),
+        profile: null,
+        suggestion: CapacitySuggestionStub({
+          suggested: 2,
+          memoryAllows: 2,
+          ceilingLeft: 3,
+          availableMB: 4808,
+        }),
+        freeMemMB: MegabytesStub({ value: 5320 }),
+        siegeInstances: ReadingCountStub({ value: 0 }),
+        reservedInstances: ReadingCountStub({ value: 0 }),
+        requestedPoolSize: ProfilePoolSizeStub({ value: 5 }),
+        cores: SOME_CORES,
+        loadAvg1: SOME_LOAD1,
+      });
+
+      expect(result).toBe(
+        'no measured profile for dungeonmaster-api, so --pool 5 has no effect: this suggests the default of 2 instances; ' +
+          'run a pool of 2 once and siegelense records a profile for next time; ' +
+          'free RAM 5320MB less 512MB headroom; ' +
+          'nothing else up',
+      );
+    });
+  });
+
+  describe('a requested pool size against a measured profile', () => {
+    it('VALID: {--pool matches the profile group} => no extra clause, the requested and used pool sizes already agree', () => {
+      const result = capacityWhyRenderTransformer({
+        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        profile: CapacityProfileStub({ poolSize: 1, steadyMB: 1800, peakMB: 2600, fromRuns: 9 }),
+        suggestion: CapacitySuggestionStub({
+          suggested: 2,
+          memoryAllows: 2,
+          ceilingLeft: 2,
+          availableMB: 4808,
+        }),
+        freeMemMB: MegabytesStub({ value: 5320 }),
+        siegeInstances: ReadingCountStub({ value: 1 }),
+        reservedInstances: ReadingCountStub({ value: 0 }),
+        requestedPoolSize: ProfilePoolSizeStub({ value: 1 }),
+        cores: SOME_CORES,
+        loadAvg1: SOME_LOAD1,
+      });
+
+      expect(result).toBe(
+        'profile 2600MB peak / 1800MB steady at pool size 1, from 9 runs; ' +
+          'free RAM 5320MB less 512MB headroom; ' +
+          '1 siege instance already up',
+      );
+    });
+
+    it('EDGE: {--pool 99999, no group that large} => names which pool size the profile block actually used', () => {
+      const result = capacityWhyRenderTransformer({
+        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        profile: CapacityProfileStub({ poolSize: 1, steadyMB: 1800, peakMB: 2600, fromRuns: 9 }),
+        suggestion: CapacitySuggestionStub({
+          suggested: 2,
+          memoryAllows: 2,
+          ceilingLeft: 2,
+          availableMB: 4808,
+        }),
+        freeMemMB: MegabytesStub({ value: 5320 }),
+        siegeInstances: ReadingCountStub({ value: 1 }),
+        reservedInstances: ReadingCountStub({ value: 0 }),
+        requestedPoolSize: ProfilePoolSizeStub({ value: 99_999 }),
+        cores: SOME_CORES,
+        loadAvg1: SOME_LOAD1,
+      });
+
+      expect(result).toBe(
+        'profile 2600MB peak / 1800MB steady at pool size 1, from 9 runs; ' +
+          '--pool 99999 has no measured group, so pool size 1 was used instead; ' +
+          'free RAM 5320MB less 512MB headroom; ' +
+          '1 siege instance already up',
       );
     });
   });
@@ -137,6 +240,9 @@ describe('capacityWhyRenderTransformer', () => {
         freeMemMB: MegabytesStub({ value: 3111 }),
         siegeInstances: ReadingCountStub({ value: 0 }),
         reservedInstances: ReadingCountStub({ value: 0 }),
+        requestedPoolSize: null,
+        cores: SOME_CORES,
+        loadAvg1: SOME_LOAD1,
       });
 
       expect(result).toBe(
@@ -160,6 +266,9 @@ describe('capacityWhyRenderTransformer', () => {
         freeMemMB: MegabytesStub({ value: 64_000 }),
         siegeInstances: ReadingCountStub({ value: 3 }),
         reservedInstances: ReadingCountStub({ value: 0 }),
+        requestedPoolSize: null,
+        cores: SOME_CORES,
+        loadAvg1: SOME_LOAD1,
       });
 
       expect(result).toBe(
@@ -170,7 +279,7 @@ describe('capacityWhyRenderTransformer', () => {
       );
     });
 
-    it('VALID: {memory allows more than the ceiling} => says the answer was capped by policy', () => {
+    it('VALID: {memory allows more than the ceiling, CPU roomier still} => says the answer was capped by policy', () => {
       const result = capacityWhyRenderTransformer({
         specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
         profile: CapacityProfileStub({ poolSize: 1, steadyMB: 1800, peakMB: 2600, fromRuns: 9 }),
@@ -183,6 +292,9 @@ describe('capacityWhyRenderTransformer', () => {
         freeMemMB: MegabytesStub({ value: 64_000 }),
         siegeInstances: ReadingCountStub({ value: 0 }),
         reservedInstances: ReadingCountStub({ value: 0 }),
+        requestedPoolSize: null,
+        cores: SOME_CORES,
+        loadAvg1: SOME_LOAD1,
       });
 
       expect(result).toBe(
@@ -206,12 +318,75 @@ describe('capacityWhyRenderTransformer', () => {
         freeMemMB: MegabytesStub({ value: 5320 }),
         siegeInstances: ReadingCountStub({ value: 1 }),
         reservedInstances: ReadingCountStub({ value: 0 }),
+        requestedPoolSize: null,
+        cores: SOME_CORES,
+        loadAvg1: SOME_LOAD1,
       });
 
       expect(result).toBe(
         'profile 2600MB peak / 1800MB steady at pool size 1, from 9 runs; ' +
           'free RAM 5320MB less 512MB headroom; ' +
           '1 siege instance already up',
+      );
+    });
+  });
+
+  describe('CPU pressure', () => {
+    it('EDGE: {load 33.56 across 12 cores, memory and ceiling roomy} => names load, cores and the throttled count instead of the ceiling', () => {
+      const { cores, loadAvg1 } = CapacityMeasuredStub({ cores: 12, loadAvg1: 33.56 });
+
+      const result = capacityWhyRenderTransformer({
+        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        profile: CapacityProfileStub({ poolSize: 1, steadyMB: 1800, peakMB: 2600, fromRuns: 9 }),
+        suggestion: CapacitySuggestionStub({
+          suggested: 1,
+          memoryAllows: 34,
+          cpuAllows: 1,
+          ceilingLeft: 3,
+          availableMB: 63_488,
+        }),
+        freeMemMB: MegabytesStub({ value: 21_053 }),
+        siegeInstances: ReadingCountStub({ value: 0 }),
+        reservedInstances: ReadingCountStub({ value: 0 }),
+        requestedPoolSize: null,
+        cores,
+        loadAvg1,
+      });
+
+      expect(result).toBe(
+        'profile 2600MB peak / 1800MB steady at pool size 1, from 9 runs; ' +
+          'free RAM 21053MB less 512MB headroom; ' +
+          'nothing else up; ' +
+          'load 33.56 across 12 cores allows only 1; CPU, not memory, is the limit',
+      );
+    });
+
+    it('EDGE: {cpuAllows ties the ceiling, both below memory} => credits CPU rather than the generic policy-cap wording', () => {
+      const { cores, loadAvg1 } = CapacityMeasuredStub({ cores: 8, loadAvg1: 4.2 });
+
+      const result = capacityWhyRenderTransformer({
+        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        profile: CapacityProfileStub({ poolSize: 1, steadyMB: 1800, peakMB: 2600, fromRuns: 9 }),
+        suggestion: CapacitySuggestionStub({
+          suggested: 3,
+          memoryAllows: 34,
+          cpuAllows: 3,
+          ceilingLeft: 3,
+          availableMB: 63_488,
+        }),
+        freeMemMB: MegabytesStub({ value: 9_000 }),
+        siegeInstances: ReadingCountStub({ value: 0 }),
+        reservedInstances: ReadingCountStub({ value: 0 }),
+        requestedPoolSize: null,
+        cores,
+        loadAvg1,
+      });
+
+      expect(result).toBe(
+        'profile 2600MB peak / 1800MB steady at pool size 1, from 9 runs; ' +
+          'free RAM 9000MB less 512MB headroom; ' +
+          'nothing else up; ' +
+          'load 4.2 across 8 cores allows only 3; CPU, not memory, is the limit',
       );
     });
   });
