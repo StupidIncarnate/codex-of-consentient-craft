@@ -9,6 +9,7 @@
     "incremental": true,
     "tsBuildInfoFile": "./.ward/build.tsbuildinfo",
     "customConditions": [
+      "npm-own-source",
       "gateway-dist",
       "source"
     ]

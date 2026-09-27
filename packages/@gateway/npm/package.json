@@ -14,6 +14,7 @@
   },
   "exports": {
     "./*.proxy": {
+      "npm-own-source": "./src/*.proxy.ts",
       "gateway-dist": "./dist/*.proxy.d.ts",
       "source": "./src/*.proxy.ts",
       "import": "./dist/*.proxy.js",
@@ -21,6 +22,7 @@
       "types": "./dist/*.proxy.d.ts"
     },
     "./*.stub": {
+      "npm-own-source": "./src/*.stub.ts",
       "gateway-dist": "./dist/*.stub.d.ts",
       "source": "./src/*.stub.ts",
       "import": "./dist/*.stub.js",
@@ -28,6 +30,7 @@
       "types": "./dist/*.stub.d.ts"
     },
     "./_test_/*": {
+      "npm-own-source": "./src/*/*.proxy.ts",
       "gateway-dist": "./dist/*/*.proxy.d.ts",
       "source": "./src/*/*.proxy.ts",
       "import": "./dist/*/*.proxy.js",
@@ -35,6 +38,7 @@
       "types": "./dist/*/*.proxy.d.ts"
     },
     "./*": {
+      "npm-own-source": "./src/*/*.ts",
       "gateway-dist": "./dist/*/*.d.ts",
       "source": "./src/*/*.ts",
       "import": "./dist/*/*.js",
@@ -80,7 +84,6 @@
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.13.0",
     "rxjs": "^7.8.2",
-    "vite": "^6.0.0",
     "zod": "^3.25.76",
     "zod-to-json-schema": "^3.25.0"
   },
@@ -117,7 +120,8 @@
     "@types/node": "^24.0.15",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.2.3",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vite": "^6.0.0"
   },
   "publishConfig": {
     "access": "public"

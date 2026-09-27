@@ -11,6 +11,7 @@
   },
   "exports": {
     "./*.proxy": {
+      "node-own-source": "./src/*.proxy.ts",
       "gateway-dist": "./dist/*.proxy.d.ts",
       "source": "./src/*.proxy.ts",
       "import": "./dist/*.proxy.js",
@@ -18,6 +19,7 @@
       "types": "./dist/*.proxy.d.ts"
     },
     "./*.stub": {
+      "node-own-source": "./src/*.stub.ts",
       "gateway-dist": "./dist/*.stub.d.ts",
       "source": "./src/*.stub.ts",
       "import": "./dist/*.stub.js",
@@ -25,6 +27,7 @@
       "types": "./dist/*.stub.d.ts"
     },
     "./_test_/*": {
+      "node-own-source": "./src/*/*.proxy.ts",
       "gateway-dist": "./dist/*/*.proxy.d.ts",
       "source": "./src/*/*.proxy.ts",
       "import": "./dist/*/*.proxy.js",
@@ -32,6 +35,7 @@
       "types": "./dist/*/*.proxy.d.ts"
     },
     "./*": {
+      "node-own-source": "./src/*/*.ts",
       "gateway-dist": "./dist/*/*.d.ts",
       "source": "./src/*/*.ts",
       "import": "./dist/*/*.js",

@@ -62,6 +62,7 @@ describe('gatewayPackageScaffoldFilesTransformer', () => {
       },
       exports: {
         './*.proxy': {
+          'npm-own-source': './src/*.proxy.ts',
           'gateway-dist': './dist/*.proxy.d.ts',
           source: './src/*.proxy.ts',
           import: './dist/*.proxy.js',
@@ -69,6 +70,7 @@ describe('gatewayPackageScaffoldFilesTransformer', () => {
           types: './dist/*.proxy.d.ts',
         },
         './*.stub': {
+          'npm-own-source': './src/*.stub.ts',
           'gateway-dist': './dist/*.stub.d.ts',
           source: './src/*.stub.ts',
           import: './dist/*.stub.js',
@@ -76,6 +78,7 @@ describe('gatewayPackageScaffoldFilesTransformer', () => {
           types: './dist/*.stub.d.ts',
         },
         './*': {
+          'npm-own-source': './src/*/*.ts',
           'gateway-dist': './dist/*/*.d.ts',
           source: './src/*/*.ts',
           import: './dist/*/*.js',
@@ -122,6 +125,7 @@ describe('gatewayPackageScaffoldFilesTransformer', () => {
       },
       exports: {
         './*.proxy': {
+          'browser-own-source': './src/*.proxy.ts',
           'gateway-dist': './dist/*.proxy.d.ts',
           source: './src/*.proxy.ts',
           import: './dist/*.proxy.js',
@@ -129,6 +133,7 @@ describe('gatewayPackageScaffoldFilesTransformer', () => {
           types: './dist/*.proxy.d.ts',
         },
         './*.stub': {
+          'browser-own-source': './src/*.stub.ts',
           'gateway-dist': './dist/*.stub.d.ts',
           source: './src/*.stub.ts',
           import: './dist/*.stub.js',
@@ -136,6 +141,7 @@ describe('gatewayPackageScaffoldFilesTransformer', () => {
           types: './dist/*.stub.d.ts',
         },
         './*': {
+          'browser-own-source': './src/*/*.ts',
           'gateway-dist': './dist/*/*.d.ts',
           source: './src/*/*.ts',
           import: './dist/*/*.js',
@@ -200,7 +206,7 @@ describe('gatewayPackageScaffoldFilesTransformer', () => {
         declaration: true,
         incremental: true,
         tsBuildInfoFile: './.ward/build.tsbuildinfo',
-        customConditions: ['gateway-dist', 'source'],
+        customConditions: ['npm-own-source', 'gateway-dist', 'source'],
       },
       exclude: ['**/*.test.ts', '**/*.test.tsx', '**/*.harness.ts', '@types/**/*', 'dist'],
     });

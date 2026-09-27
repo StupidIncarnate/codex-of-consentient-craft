@@ -15,7 +15,13 @@
     // source through the `exports` maps, so a check never needs a build first. Each
     // tsconfig.build.json puts `gateway-dist` ahead of it: TypeScript never counts a file reached
     // through `#gateway` as a library, so a build reading gateway source would compile it into its
-    // own `dist`.
+    // own `dist`. A gateway's own tsconfig.build.json also activates a `<kind>-own-source` condition
+    // ahead of `gateway-dist` (only in its own package.json's exports), so a devDependency chain that
+    // loops back into that SAME package during its OWN build (e.g. a proxy's `registerMock` reaching
+    // `@dungeonmaster/shared`, which imports `#gateway/npm/zod`) resolves to its own source instead of
+    // its own already-built `dist/*.d.ts` — reading that back in as a build input collides with the
+    // build's own output (TS5055) on a second, warm build. A DIFFERENT gateway's build never activates
+    // that condition, so it still gets the compiled type through `gateway-dist`.
     "customConditions": ["source"],
     "allowJs": true,
     "checkJs": false,

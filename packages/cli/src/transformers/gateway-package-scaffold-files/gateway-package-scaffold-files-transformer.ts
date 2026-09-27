@@ -3,11 +3,19 @@
  * `packages/@gateway/<folder>` — matching what `packages/@gateway/{npm,node,browser,bin}` carry in
  * this repo, parameterized by scope and folder: the package.json with its `imports`, `exports` (three
  * keys — `./*.proxy` to `./src/*.proxy.ts`, `./*.stub` to `./src/*.stub.ts`, and the barrel key `./*`
- * to `./src/*\/*.ts`, each led by `gateway-dist`; there is no `_test_` key, since a test imports each
- * stub and proxy from its own file) and `sideEffects: false`, both tsconfigs, and a Jest config. node
- * and browser get their source copied in afterwards (`gatewaySourceCopyBroker`); npm and bin start
- * with no subpath, so they get the placeholder `src/index.d.ts` that keeps an empty package
- * compiling.
+ * to `./src/*\/*.ts`, each led by `<folder>-own-source` then `gateway-dist`; there is no `_test_` key,
+ * since a test imports each stub and proxy from its own file) and `sideEffects: false`, both
+ * tsconfigs, and a Jest config. node and browser get their source copied in afterwards
+ * (`gatewaySourceCopyBroker`); npm and bin start with no subpath, so they get the placeholder
+ * `src/index.d.ts` that keeps an empty package compiling.
+ *
+ * `<folder>-own-source` (e.g. `npm-own-source`) is unique to this package and listed first in its OWN
+ * exports only, and only this package's own tsconfig.build.json activates it. Without it, a
+ * devDependency chain that loops back into this SAME package during its own build (a proxy's
+ * `registerMock` reaching `@dungeonmaster/shared`, which imports `#gateway/<folder>/<subpath>`) would
+ * resolve through `gateway-dist` to this package's own already-built `dist/*.d.ts`, which collides with
+ * the build's own output (TS5055) on a second, warm build. A different gateway's build never activates
+ * this folder's condition, so it still resolves this package's exports through `gateway-dist`.
  *
  * USAGE:
  * gatewayPackageScaffoldFilesTransformer({ scope: PathSegmentStub({value: '@acme'}), folder: 'npm' });
@@ -38,6 +46,7 @@ export const gatewayPackageScaffoldFilesTransformer = ({
 }): readonly ScaffoldFile[] => {
   const packageName = `${String(scope)}/${folder}`;
   const receivesCopiedSource = Object.hasOwn(gatewaySourceCopyStatics.sources, folder);
+  const ownSourceCondition = `${folder}-own-source`;
 
   const packageJsonObject = {
     name: packageName,
@@ -47,6 +56,7 @@ export const gatewayPackageScaffoldFilesTransformer = ({
     imports: gatewayImportsFieldTransformer({ scope }),
     exports: {
       './*.proxy': {
+        [ownSourceCondition]: './src/*.proxy.ts',
         'gateway-dist': './dist/*.proxy.d.ts',
         source: './src/*.proxy.ts',
         import: './dist/*.proxy.js',
@@ -54,6 +64,7 @@ export const gatewayPackageScaffoldFilesTransformer = ({
         types: './dist/*.proxy.d.ts',
       },
       './*.stub': {
+        [ownSourceCondition]: './src/*.stub.ts',
         'gateway-dist': './dist/*.stub.d.ts',
         source: './src/*.stub.ts',
         import: './dist/*.stub.js',
@@ -61,6 +72,7 @@ export const gatewayPackageScaffoldFilesTransformer = ({
         types: './dist/*.stub.d.ts',
       },
       './*': {
+        [ownSourceCondition]: './src/*/*.ts',
         'gateway-dist': './dist/*/*.d.ts',
         source: './src/*/*.ts',
         import: './dist/*/*.js',
@@ -99,7 +111,10 @@ export const gatewayPackageScaffoldFilesTransformer = ({
       declaration: true,
       incremental: true,
       tsBuildInfoFile: './.ward/build.tsbuildinfo',
-      customConditions: gatewayPackageTemplateStatics.buildCustomConditions,
+      customConditions: [
+        ownSourceCondition,
+        ...gatewayPackageTemplateStatics.buildCustomConditions,
+      ],
     },
     exclude: gatewayPackageTemplateStatics.buildExclude,
   };
