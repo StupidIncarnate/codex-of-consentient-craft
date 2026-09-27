@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Proxy for packageJsonReadBroker — composes fsReadFileSyncAdapterProxy so a test
+ * PURPOSE: Proxy for packageJsonReadBroker — composes readFileSyncProxy so a test
  * controls the file's raw text without touching a real path on disk.
  *
  * USAGE:
@@ -7,19 +7,18 @@
  * proxy.returns({ filePath: '/repo/package.json', contents: '{"private":true}' });
  */
 
-import { fsReadFileSyncAdapterProxy } from '@dungeonmaster/shared/testing';
-import { AbsoluteFilePathStub, ContentTextStub } from '@dungeonmaster/shared/contracts';
+import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
 
 export const packageJsonReadBrokerProxy = (): {
   returns: (params: { filePath: string; contents: string }) => void;
 } => {
-  const fsProxy = fsReadFileSyncAdapterProxy();
+  const fsProxy = readFileSyncProxy();
 
   return {
     returns: ({ filePath, contents }: { filePath: string; contents: string }): void => {
       fsProxy.returns({
-        filePath: AbsoluteFilePathStub({ value: filePath }),
-        content: ContentTextStub({ value: contents }),
+        path: filePath,
+        contents,
       });
     },
   };

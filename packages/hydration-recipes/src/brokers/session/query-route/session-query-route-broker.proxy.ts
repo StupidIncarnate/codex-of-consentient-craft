@@ -1,7 +1,5 @@
-import {
-  fsReadFileSyncAdapterProxy,
-  fsReaddirWithTypesAdapterProxy,
-} from '@dungeonmaster/shared/testing';
+import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
+import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/readdir-entries-sync.proxy';
 
 export const sessionQueryRouteBrokerProxy = (): {
   succeeds: ({
@@ -14,8 +12,8 @@ export const sessionQueryRouteBrokerProxy = (): {
     lineCountByFileName: Readonly<Record<string, number>>;
   }) => void;
 } => {
-  const readdirProxy = fsReaddirWithTypesAdapterProxy();
-  const readFileProxy = fsReadFileSyncAdapterProxy();
+  const readdirProxy = readdirEntriesSyncProxy();
+  const readFileProxy = readFileSyncProxy();
 
   return {
     succeeds: ({
@@ -28,18 +26,18 @@ export const sessionQueryRouteBrokerProxy = (): {
       lineCountByFileName: Readonly<Record<string, number>>;
     }): void => {
       readdirProxy.returns({
-        dirPath: sessionsDir as never,
-        entries: fileNames.map((name) => ({ name, isFile: () => true }) as never) as never,
+        path: sessionsDir,
+        entries: fileNames.map((name) => ({ name, kind: 'file' as const })),
       });
       fileNames.forEach((name) => {
         const lineCount = lineCountByFileName[name] ?? 0;
-        const content = Array.from(
+        const contents = Array.from(
           { length: lineCount },
           (_unused, index) => `{"line":${index}}`,
         ).join('\n');
         readFileProxy.returns({
-          filePath: `${sessionsDir}/${name}` as never,
-          content: content as never,
+          path: `${sessionsDir}/${name}`,
+          contents,
         });
       });
     },

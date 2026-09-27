@@ -13,10 +13,11 @@
  * // Returns every completed subagent transcript under that session
  */
 import { claudePathSlugEncoderTransformer } from '@dungeonmaster/shared/transformers';
-import { fsReadFileSyncAdapter, fsReaddirWithTypesAdapter } from '@dungeonmaster/shared/adapters';
+import { readFileSync, readdirEntriesSync } from '#gateway/node/fs';
 import {
   absoluteFilePathContract,
   agentIdContract,
+  contentTextContract,
   lineCountContract,
   sessionIdContract,
 } from '@dungeonmaster/shared/contracts';
@@ -48,13 +49,14 @@ export const subagentQueryRouteBroker = ({
   const subagentsDirPath = absoluteFilePathContract.parse(`${sessionsDir}/${sessionId}/subagents`);
   const parentFilePath = absoluteFilePathContract.parse(`${sessionsDir}/${sessionId}.jsonl`);
 
-  const parentLines = fsReadFileSyncAdapter({ filePath: parentFilePath })
+  const parentLines = contentTextContract
+    .parse(readFileSync(parentFilePath))
     .split('\n')
     .filter((line) => line.length > 0);
 
-  const entries = fsReaddirWithTypesAdapter({ dirPath: subagentsDirPath });
+  const entries = readdirEntriesSync(subagentsDirPath);
   const subagentFiles = entries.filter(
-    (entry) => entry.isFile() && isJsonlFileGuard({ filename: entry.name }),
+    (entry) => entry.kind === 'file' && isJsonlFileGuard({ filename: entry.name }),
   );
 
   const records = subagentFiles.flatMap((entry) => {
@@ -67,7 +69,7 @@ export const subagentQueryRouteBroker = ({
     }
 
     const filePath = absoluteFilePathContract.parse(`${subagentsDirPath}/${entry.name}`);
-    const contents = fsReadFileSyncAdapter({ filePath });
+    const contents = contentTextContract.parse(readFileSync(filePath));
     const lineCount = lineCountContract.parse(
       contents.split('\n').filter((line) => line.length > 0).length,
     );
