@@ -2,10 +2,12 @@
  * PURPOSE: Enforces that proxies create all child proxies based on implementation file imports. A
  * gateway import's expected proxy is the WRAPPER's own `.proxy` file, colocated beside it and
  * imported per file (`#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy`) —
- * derived from the subpath's testing barrel, which still exists as a transition aid and names the
- * exact relative path per wrapped export. A proxy importing the same name from that barrel's own
- * `_test_` path instead still satisfies this check, since acceptance is name-based; only the
- * SUGGESTED path in a `missingProxyImport` report points at the per-file form.
+ * derived from the subpath's own production barrel (`<subpath>.ts`, which every subpath always has),
+ * which names the exact relative path per wrapped export. There is no `_test_` barrel to fall back
+ * on: a name the production barrel re-exports from a wrapper folder ONE level below it is WRAPPED and
+ * needs a proxy at that wrapper's own `.proxy` path; a name reached only through `export * from
+ * '<npm-or-node-module>'`, or through a `../` climb into a DIFFERENT subpath's own folder, is a
+ * PASS-THROUGH (or that other subpath's own concern) and needs none.
  *
  * USAGE:
  * const rule = ruleEnforceProxyChildCreationBroker();
@@ -23,8 +25,8 @@ import type { FileContents, Identifier, ModulePath } from '@dungeonmaster/shared
 import { identifierContract, filePathContract } from '@dungeonmaster/shared/contracts';
 import { proxyNameToImplementationNameTransformer } from '../../../transformers/proxy-name-to-implementation-name/proxy-name-to-implementation-name-transformer';
 import { proxyPathToImplementationPathTransformer } from '../../../transformers/proxy-path-to-implementation-path/proxy-path-to-implementation-path-transformer';
-import { gatewayTestingBarrelPathTransformer } from '../../../transformers/gateway-testing-barrel-path/gateway-testing-barrel-path-transformer';
-import { gatewayTestingBarrelProxyPathsTransformer } from '../../../transformers/gateway-testing-barrel-proxy-paths/gateway-testing-barrel-proxy-paths-transformer';
+import { gatewayBarrelPathTransformer } from '../../../transformers/gateway-barrel-path/gateway-barrel-path-transformer';
+import { gatewayBarrelWrapperPathsTransformer } from '../../../transformers/gateway-barrel-wrapper-paths/gateway-barrel-wrapper-paths-transformer';
 import { fileExtensionsStatics, gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
 
 export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
@@ -192,23 +194,23 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
           // Every gateway package holds pass-throughs alongside its wrapped exports — not only
           // npm (zod's `z`, react's `useState`, ...), but node too (`join` from @scope/node/path
           // is Node's own `path.join`, untouched, because `path` does no I/O and needs no guard).
-          // A pass-through export has no proxy at all, so only a name the subpath's own testing
-          // barrel actually re-exports as `<name>Proxy` is held to this check. That barrel also
-          // names the exact relative path to the wrapper's own per-file proxy, which is what a
-          // caller's proxy is now expected to import directly — the barrel itself is a transition
-          // aid for old-form imports and goes away once every caller has moved off it.
+          // A pass-through export has no proxy at all, so only a name the subpath's own PRODUCTION
+          // barrel actually re-exports from a wrapper folder one level below it is held to this
+          // check — there is no `_test_` barrel to read instead. The wrapper's own proxy sits
+          // beside it (`<folder>/<folder>.proxy.ts`), which is the per-file path a caller's proxy
+          // is expected to import directly.
           const expectedProxyPath = ((): ModulePath | null => {
             if (isGatewayImport) {
               const barrelPath =
                 gatewaySubpathSegment === undefined
                   ? null
-                  : gatewayTestingBarrelPathTransformer({
+                  : gatewayBarrelPathTransformer({
                       callerFilePath: filePathContract.parse(String(filename ?? '')),
                       gatewayFolder: gatewayFolderSegment,
                       subpath: gatewaySubpathSegment,
                     });
 
-              const wrappedProxyPaths = ((): Map<Identifier, ModulePath> => {
+              const wrapperPaths = ((): Map<Identifier, ModulePath> => {
                 if (barrelPath === null) {
                   return new Map<Identifier, ModulePath>();
                 }
@@ -224,17 +226,17 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
                 })();
                 return barrelContent === null
                   ? new Map<Identifier, ModulePath>()
-                  : gatewayTestingBarrelProxyPathsTransformer({ content: barrelContent });
+                  : gatewayBarrelWrapperPathsTransformer({ content: barrelContent });
               })();
 
-              const relativeProxyPath = wrappedProxyPaths.get(expectedProxyName);
-              if (relativeProxyPath === undefined) {
-                // Pass-through: no wrapper proxy exists, or is expected, for this name.
+              const relativeWrapperPath = wrapperPaths.get(importedName);
+              if (relativeWrapperPath === undefined) {
+                // Pass-through: no local wrapper exists, or is expected, for this name.
                 return null;
               }
 
               const [scopeSegment, packageFolder, subpath] = importPathSegments;
-              return `${scopeSegment}/${packageFolder}/${subpath}/${relativeProxyPath}` as ModulePath;
+              return `${scopeSegment}/${packageFolder}/${subpath}/${relativeWrapperPath}.proxy` as ModulePath;
             }
             if (isScopedPackageImport) {
               const lastSlashIndex = importPath.lastIndexOf('/');

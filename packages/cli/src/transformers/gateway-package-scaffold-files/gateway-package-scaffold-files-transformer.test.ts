@@ -61,12 +61,19 @@ describe('gatewayPackageScaffoldFilesTransformer', () => {
         '#gateway/bin/*': '@acme/bin/*',
       },
       exports: {
-        './_test_/*': {
-          'gateway-dist': './dist/*/*.proxy.d.ts',
-          source: './src/*/*.proxy.ts',
-          import: './dist/*/*.proxy.js',
-          require: './dist/*/*.proxy.js',
-          types: './dist/*/*.proxy.d.ts',
+        './*.proxy': {
+          'gateway-dist': './dist/*.proxy.d.ts',
+          source: './src/*.proxy.ts',
+          import: './dist/*.proxy.js',
+          require: './dist/*.proxy.js',
+          types: './dist/*.proxy.d.ts',
+        },
+        './*.stub': {
+          'gateway-dist': './dist/*.stub.d.ts',
+          source: './src/*.stub.ts',
+          import: './dist/*.stub.js',
+          require: './dist/*.stub.js',
+          types: './dist/*.stub.d.ts',
         },
         './*': {
           'gateway-dist': './dist/*/*.d.ts',
@@ -114,12 +121,19 @@ describe('gatewayPackageScaffoldFilesTransformer', () => {
         '#gateway/bin/*': '@acme/bin/*',
       },
       exports: {
-        './_test_/*': {
-          'gateway-dist': './dist/*/*.proxy.d.ts',
-          source: './src/*/*.proxy.ts',
-          import: './dist/*/*.proxy.js',
-          require: './dist/*/*.proxy.js',
-          types: './dist/*/*.proxy.d.ts',
+        './*.proxy': {
+          'gateway-dist': './dist/*.proxy.d.ts',
+          source: './src/*.proxy.ts',
+          import: './dist/*.proxy.js',
+          require: './dist/*.proxy.js',
+          types: './dist/*.proxy.d.ts',
+        },
+        './*.stub': {
+          'gateway-dist': './dist/*.stub.d.ts',
+          source: './src/*.stub.ts',
+          import: './dist/*.stub.js',
+          require: './dist/*.stub.js',
+          types: './dist/*.stub.d.ts',
         },
         './*': {
           'gateway-dist': './dist/*/*.d.ts',

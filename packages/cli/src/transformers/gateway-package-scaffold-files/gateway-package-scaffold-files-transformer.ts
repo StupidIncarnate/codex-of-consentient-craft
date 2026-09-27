@@ -1,11 +1,13 @@
 /**
  * PURPOSE: The pure file-building half of scaffolding ONE gateway workspace package —
  * `packages/@gateway/<folder>` — matching what `packages/@gateway/{npm,node,browser,bin}` carry in
- * this repo, parameterized by scope and folder: the package.json with its `imports`, `exports`
- * (`./*` to `./src/*\/*.ts`, `./_test_/*` to `./src/*\/*.proxy.ts`, each led by `gateway-dist`) and
- * `sideEffects: false`, both tsconfigs, and a Jest config. node and browser get their source copied
- * in afterwards (`gatewaySourceCopyBroker`); npm and bin start with no subpath, so they get the
- * placeholder `src/index.d.ts` that keeps an empty package compiling.
+ * this repo, parameterized by scope and folder: the package.json with its `imports`, `exports` (three
+ * keys — `./*.proxy` to `./src/*.proxy.ts`, `./*.stub` to `./src/*.stub.ts`, and the barrel key `./*`
+ * to `./src/*\/*.ts`, each led by `gateway-dist`; there is no `_test_` key, since a test imports each
+ * stub and proxy from its own file) and `sideEffects: false`, both tsconfigs, and a Jest config. node
+ * and browser get their source copied in afterwards (`gatewaySourceCopyBroker`); npm and bin start
+ * with no subpath, so they get the placeholder `src/index.d.ts` that keeps an empty package
+ * compiling.
  *
  * USAGE:
  * gatewayPackageScaffoldFilesTransformer({ scope: PathSegmentStub({value: '@acme'}), folder: 'npm' });
@@ -44,12 +46,19 @@ export const gatewayPackageScaffoldFilesTransformer = ({
     sideEffects: false,
     imports: gatewayImportsFieldTransformer({ scope }),
     exports: {
-      './_test_/*': {
-        'gateway-dist': './dist/*/*.proxy.d.ts',
-        source: './src/*/*.proxy.ts',
-        import: './dist/*/*.proxy.js',
-        require: './dist/*/*.proxy.js',
-        types: './dist/*/*.proxy.d.ts',
+      './*.proxy': {
+        'gateway-dist': './dist/*.proxy.d.ts',
+        source: './src/*.proxy.ts',
+        import: './dist/*.proxy.js',
+        require: './dist/*.proxy.js',
+        types: './dist/*.proxy.d.ts',
+      },
+      './*.stub': {
+        'gateway-dist': './dist/*.stub.d.ts',
+        source: './src/*.stub.ts',
+        import: './dist/*.stub.js',
+        require: './dist/*.stub.js',
+        types: './dist/*.stub.d.ts',
       },
       './*': {
         'gateway-dist': './dist/*/*.d.ts',

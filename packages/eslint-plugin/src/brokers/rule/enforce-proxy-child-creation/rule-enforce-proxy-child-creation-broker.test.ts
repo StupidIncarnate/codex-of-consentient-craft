@@ -398,25 +398,16 @@ beforeEach(() => {
         });
       }
 
-      // The node fs__promises subpath's own testing barrel: lists every WRAPPED export's proxy.
-      // 'join' from @scope/node/path is never in a testing barrel — path does no I/O and is a pure
-      // pass-through, so its subpath has none, unlike fs__promises's readJsonFileIfExists and
-      // writeFile.
-      if (filePath.includes('packages/@gateway/node/src/fs__promises/fs__promises.proxy.ts')) {
+      // The node fs__promises subpath's own PRODUCTION barrel: names the wrapper folder behind every
+      // WRAPPED export. 'join' from @scope/node/path is never re-exported from a local wrapper folder
+      // here — path does no I/O and is a pure pass-through — unlike fs__promises's
+      // readJsonFileIfExists and writeFile, each re-exported from its own folder one level down.
+      if (filePath.includes('packages/@gateway/node/src/fs__promises/fs__promises.ts')) {
         return FileContentsStub({
           value: `
-        export { readJsonFileIfExistsProxy } from './read-json-file-if-exists/read-json-file-if-exists.proxy';
-        export { writeFileProxy } from './write-file/write-file.proxy';
-      `,
-        });
-      }
-
-      // The npm glob subpath's own testing barrel. 'z' from zod is never in one, because the zod
-      // subpath is a pure pass-through with no testing barrel at all.
-      if (filePath.includes('packages/@gateway/npm/src/glob/glob.proxy.ts')) {
-        return FileContentsStub({
-          value: `
-        export { globProxy } from './glob/glob.proxy';
+        export * from 'fs/promises';
+        export { readJsonFileIfExists } from './read-json-file-if-exists/read-json-file-if-exists';
+        export { writeFile } from './write-file/write-file';
       `,
         });
       }
@@ -751,27 +742,8 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
       `,
       filename: '/project/src/widgets/button/button-widget.proxy.tsx',
     },
-    // ✅ CORRECT - Gateway import at a deep subpath (@scope/node/fs/promises): proxy imports and
-    // creates both proxies from the subpath's own @scope/node/_test_/fs__promises barrel, not a barrel
-    // scoped to the exact "fs/promises" subpath.
-    {
-      code: `
-        import { readJsonFileIfExistsProxy, writeFileProxy } from '@dungeonmaster/node/_test_/fs__promises';
-
-        export const installConfigCreateResponderProxy = () => {
-          const readProxy = readJsonFileIfExistsProxy();
-          const writeProxy = writeFileProxy();
-
-          return {
-            setup: () => {}
-          };
-        };
-      `,
-      filename:
-        '/repo/packages/mcp/src/responders/install/config-create/install-config-create-responder.proxy.ts',
-    },
-    // ✅ CORRECT - Gateway pass-through import (@scope/npm/zod): the npm testing barrel has no
-    // `zProxy`, so no proxy is required at all.
+    // ✅ CORRECT - Gateway pass-through import (@scope/npm/zod): the npm production barrel has no
+    // wrapper folder behind `z`, so no proxy is required at all.
     {
       code: `
         export const zodImportBrokerProxy = () => {
@@ -782,28 +754,9 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
       `,
       filename: '/repo/packages/mcp/src/brokers/zod-import/zod-import-broker.proxy.ts',
     },
-    // ✅ CORRECT - Gateway import through the '#gateway/...' import-alias form: proxy imports and
-    // creates both proxies from the subpath's own '#gateway/node/_test_/fs__promises' barrel,
-    // exactly as the '@dungeonmaster/node/_test_/fs__promises' form does above.
-    {
-      code: `
-        import { readJsonFileIfExistsProxy, writeFileProxy } from '#gateway/node/_test_/fs__promises';
-
-        export const installConfigCreateGatewayAliasResponderProxy = () => {
-          const readProxy = readJsonFileIfExistsProxy();
-          const writeProxy = writeFileProxy();
-
-          return {
-            setup: () => {}
-          };
-        };
-      `,
-      filename:
-        '/repo/packages/mcp/src/responders/install/config-create/install-config-create-gateway-alias-responder.proxy.ts',
-    },
     // ✅ CORRECT - Gateway import, per-file form: proxy imports and creates each wrapper's own
-    // proxy directly (the form step 5 migrates every caller to), instead of the subpath's
-    // '_test_' barrel. Acceptance is name-based, so this passes exactly like the barrel form above.
+    // proxy directly, reading the subpath's PRODUCTION barrel (never a `_test_` barrel, which does
+    // not exist) to find which folder exports each name.
     {
       code: `
         import { readJsonFileIfExistsProxy } from '@dungeonmaster/node/fs__promises/read-json-file-if-exists/read-json-file-if-exists.proxy';
