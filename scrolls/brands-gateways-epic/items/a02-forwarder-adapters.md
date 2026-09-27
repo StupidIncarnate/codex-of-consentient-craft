@@ -112,3 +112,28 @@ the 67th as dead code):
 ## Concessions made while executing
 
 <!-- Empty at the start. The operator fills this and mirrors it into EPIC.md's Concessions table. -->
+
+## Operator's split (2026-09-27)
+
+Several callers use more than one forwarder, and several forwarders have more than one caller. So the split is by CALLER file, and no caller-group agent deletes an adapter. A last agent deletes every adapter folder once no caller imports one.
+
+| Group | Caller files |
+|---|---|
+| S1 | server `responders/guild/{add,get,list,remove}` |
+| S2 | server `responders/guild/update`, `responders/directory/browse`, `responders/orchestration/{bootstrap,dispatch-get}` |
+| S3 | server `responders/orchestration/{dispatch-normalize-boot,dispatch-pause,dispatch-play,mode-get}` |
+| S4 | server `responders/process/status`, `responders/quest-driven-watchers/bootstrap` (both responders), `responders/quest/abandon` |
+| S5 | server `responders/quest/{chat,clarify,comment-batch,delete}` |
+| S6 | server `responders/quest/{find-by-session,followup-stop,followup,get}` |
+| S7 | server `responders/quest/{list,merge,modify,new}` |
+| S8 | server `responders/quest/{pause,projection,resume,riftcarver-detail}` |
+| S9 | server `responders/quest/{signal-back,start,summary,user-add}` |
+| S10 | server `responders/quest/ward-detail`, `responders/quests/queue`, `responders/rate-limits/get`, `responders/tooling/smoketest-run` |
+| S11 | server `responders/tooling/smoketest-state`, `responders/server/init`, `brokers/session/list`, `brokers/quest/wait-for-session-stamp` |
+| M1 | mcp `responders/interaction/handle`, `responders/orchestration/bootstrap` |
+| M2 | mcp `responders/quest/handle/{quest-handle-responder,get-quest-layer-responder,get-quest-work-layer-responder}` |
+| M3 | mcp `responders/quest/handle/{blight-checklist,create-worktree,quest-summary,quest-work}-layer-responder` |
+| C1 | `orchestrator` and `siegelense` `adapters/dungeonmaster-config/resolve` and their callers |
+| Z | delete `server/src/adapters/orchestrator/`, `mcp/src/adapters/orchestrator/`, and C1's two adapter folders |
+
+A00 named the proxy `StartOrchestratorProxy`, in PascalCase, and it is imported as `@dungeonmaster/orchestrator/startup/start-orchestrator.proxy`.
