@@ -6,7 +6,7 @@
  * // Returns { status: 200, data: entries[] } or { status: 500, data: { error } }
  */
 
-import { orchestratorBrowseDirectoriesAdapter } from '../../../adapters/orchestrator/browse-directories/orchestrator-browse-directories-adapter';
+import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { directoryBrowseBodyContract } from '../../../contracts/directory-browse-body/directory-browse-body-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
@@ -20,7 +20,7 @@ export const DirectoryBrowseResponder = ({ body }: { body: unknown }): Responder
         : undefined;
     const path = parsedBody?.success ? parsedBody.data.path : undefined;
 
-    const entries = orchestratorBrowseDirectoriesAdapter(path === undefined ? {} : { path });
+    const entries = StartOrchestrator.browseDirectories(path === undefined ? {} : { path });
     return responderResultContract.parse({ status: httpStatusStatics.success.ok, data: entries });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to browse directories';

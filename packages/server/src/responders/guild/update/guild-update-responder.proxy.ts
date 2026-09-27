@@ -1,4 +1,4 @@
-import { orchestratorUpdateGuildAdapterProxy } from '../../../adapters/orchestrator/update-guild/orchestrator-update-guild-adapter.proxy';
+import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import type { GuildId, GuildStub } from '@dungeonmaster/shared/contracts';
 import { GuildUpdateResponder } from './guild-update-responder';
 
@@ -9,14 +9,14 @@ export const GuildUpdateResponderProxy = (): {
   setupUpdateGuildError: (params: { guildId: GuildId; message: string }) => void;
   callResponder: typeof GuildUpdateResponder;
 } => {
-  const adapterProxy = orchestratorUpdateGuildAdapterProxy();
+  const orchestrator = StartOrchestratorProxy();
 
   return {
     setupUpdateGuild: ({ guild }: { guild: Guild }): void => {
-      adapterProxy.returns({ guildId: guild.id, guild });
+      orchestrator.updateGuildReturns({ guildId: guild.id, guild });
     },
     setupUpdateGuildError: ({ guildId, message }: { guildId: GuildId; message: string }): void => {
-      adapterProxy.throws({ guildId, error: new Error(message) });
+      orchestrator.updateGuildThrows({ guildId, error: new Error(message) });
     },
     callResponder: GuildUpdateResponder,
   };

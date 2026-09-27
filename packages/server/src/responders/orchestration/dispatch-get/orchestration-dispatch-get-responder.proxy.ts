@@ -1,4 +1,4 @@
-import { orchestratorGetDispatchStateAdapterProxy } from '../../../adapters/orchestrator/get-dispatch-state/orchestrator-get-dispatch-state-adapter.proxy';
+import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import type { DispatchStateStub } from '@dungeonmaster/shared/contracts';
 import { OrchestrationDispatchGetResponder } from './orchestration-dispatch-get-responder';
 
@@ -9,14 +9,14 @@ export const OrchestrationDispatchGetResponderProxy = (): {
   setupError: (params: { message: string }) => void;
   callResponder: typeof OrchestrationDispatchGetResponder;
 } => {
-  const adapterProxy = orchestratorGetDispatchStateAdapterProxy();
+  const orchestrator = StartOrchestratorProxy();
 
   return {
     setupState: ({ state }: { state: DispatchState }): void => {
-      adapterProxy.returns({ state });
+      orchestrator.getDispatchStateReturns({ state });
     },
     setupError: ({ message }: { message: string }): void => {
-      adapterProxy.throws({ error: new Error(message) });
+      orchestrator.getDispatchStateThrows({ error: new Error(message) });
     },
     callResponder: OrchestrationDispatchGetResponder,
   };

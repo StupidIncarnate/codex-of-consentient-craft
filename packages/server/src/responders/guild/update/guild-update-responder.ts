@@ -6,7 +6,7 @@
  * // Returns { status: 200, data: guild } or { status: 400/500, data: { error } }
  */
 
-import { orchestratorUpdateGuildAdapter } from '../../../adapters/orchestrator/update-guild/orchestrator-update-guild-adapter';
+import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { guildIdParamsContract } from '../../../contracts/guild-id-params/guild-id-params-contract';
 import { guildUpdateBodyContract } from '../../../contracts/guild-update-body/guild-update-body-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
@@ -48,7 +48,7 @@ export const GuildUpdateResponder = async ({
     const name = parsedBody.success ? parsedBody.data.name : undefined;
     const path = parsedBody.success ? parsedBody.data.path : undefined;
 
-    const guild = await orchestratorUpdateGuildAdapter({
+    const guild = await StartOrchestrator.updateGuild({
       guildId,
       ...(name !== undefined && { name }),
       ...(path !== undefined && { path }),

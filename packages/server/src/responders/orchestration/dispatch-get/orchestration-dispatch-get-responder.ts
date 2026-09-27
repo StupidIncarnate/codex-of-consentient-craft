@@ -7,14 +7,14 @@
  * // Returns { status: 200, data: { state } } or { status: 500, data: { error } }
  */
 
-import { orchestratorGetDispatchStateAdapter } from '../../../adapters/orchestrator/get-dispatch-state/orchestrator-get-dispatch-state-adapter';
+import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
 
 export const OrchestrationDispatchGetResponder = async (): Promise<ResponderResult> => {
   try {
-    const state = await orchestratorGetDispatchStateAdapter();
+    const state = await StartOrchestrator.getDispatchState();
     return responderResultContract.parse({
       status: httpStatusStatics.success.ok,
       data: { state },
