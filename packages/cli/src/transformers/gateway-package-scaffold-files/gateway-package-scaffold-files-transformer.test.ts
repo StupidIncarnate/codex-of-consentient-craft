@@ -158,6 +158,9 @@ describe('gatewayPackageScaffoldFilesTransformer', () => {
         lint: 'dungeonmaster-ward --only lint',
         ward: 'dungeonmaster-ward',
       },
+      dependencies: {
+        '@acme/node': '*',
+      },
       devDependencies: {
         '@types/node': '^24.0.15',
         typescript: '^5.8.3',

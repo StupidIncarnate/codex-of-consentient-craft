@@ -18,6 +18,7 @@ export const packageSeedServiceStatics = {
     dependencies: {
       hono: '^4.0.0',
     },
+    devDependencies: {},
     bin: {},
     compilerOptions: {},
     extraInclude: [],
@@ -74,6 +75,7 @@ describe('honoAppCreateAdapter', () => {
     dependencies: {
       '__SCOPE__/shared': '*',
     },
+    devDependencies: {},
     bin: {},
     compilerOptions: {},
     extraInclude: [],
@@ -193,6 +195,7 @@ describe('__PASCAL__Flow', () => {
   'cli-tool': {
     barrel: null,
     dependencies: {},
+    devDependencies: {},
     bin: {
       __NAME__: './dist/bin/__NAME__-entry.js',
     },

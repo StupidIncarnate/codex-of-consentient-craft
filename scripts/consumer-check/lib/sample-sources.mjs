@@ -22,7 +22,7 @@
  * legal in.
  */
 
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { run } from './proc.mjs';
 
@@ -223,14 +223,33 @@ describe('mswTrapProbeBroker', () => {
 });
 `;
 
+// A broker this function writes into `lib` (below) imports `#gateway/node/...` directly, the same
+// way a real developer's own code would — and `gateway-dependency-declared` requires the IMPORTING
+// package.json to list the real gateway package name in `dependencies`, exactly as it would for a
+// human-authored file (repo `packages/CLAUDE.md`'s own dependency rule, enforced here by lint).
+// `create-package` has no way to know in advance which gateway subpath a package will end up
+// importing, so this fixture — like a real developer would — adds the entry itself once the import
+// exists.
+const addGatewayNodeDependency = ({ consumerRoot, scope }) => {
+  const packageJsonPath = join(consumerRoot, 'packages', LIB_PACKAGE_NAME, 'package.json');
+  const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'));
+  packageJson.dependencies = {
+    ...packageJson.dependencies,
+    [`${scope}/node`]: '*',
+  };
+  writeFileSync(packageJsonPath, `${JSON.stringify(packageJson, null, 2)}\n`);
+};
+
 // `create-package`'s own gateway-scope detection (`works.mjs`'s `assertScopeDetection`, F5) and its
 // scaffolded jest.config.js (`assertJestConfigBase`, F6) are both plain passing assertions against
 // the `lib`/`app` packages this function scaffolds (never `probe` — F5/F6 need no known violation) —
 // nothing here works around either one.
-export const scaffoldFixturePackages = async ({ consumerRoot, cliBin }) => {
+export const scaffoldFixturePackages = async ({ consumerRoot, cliBin, scope }) => {
   await runCreatePackage({ consumerRoot, cliBin, name: LIB_PACKAGE_NAME, type: 'library' });
   await runCreatePackage({ consumerRoot, cliBin, name: WEB_PACKAGE_NAME, type: 'frontend-react' });
   await runCreatePackage({ consumerRoot, cliBin, name: PROBE_PACKAGE_NAME, type: 'library' });
+
+  addGatewayNodeDependency({ consumerRoot, scope });
 
   const libSrcDir = join(consumerRoot, 'packages', LIB_PACKAGE_NAME, 'src');
   const probeSrcDir = join(consumerRoot, 'packages', PROBE_PACKAGE_NAME, 'src');
@@ -241,14 +260,19 @@ export const scaffoldFixturePackages = async ({ consumerRoot, cliBin }) => {
   writeFileSync(join(hoistDomainDir, 'config-read-or-default-broker.proxy.ts'), HOISTING_PROOF_PROXY);
   writeFileSync(join(hoistDomainDir, 'config-read-or-default-broker.test.ts'), HOISTING_PROOF_TEST);
 
-  const ioTrapDomainDir = join(libSrcDir, 'adapters', 'fs', 'io-trap-probe');
+  // Both probes live in `probe`, never `lib` — `assertWardCleanFixture` sweeps `lib`/`app` and
+  // expects `dungeonmaster ward` to exit 0 there. These two ARE deliberately-failing tests (their
+  // whole point is proving unstaged I/O trips the trap), so a general ward sweep of whatever
+  // package holds them fails by design — exactly the same reason `probe`'s own ban-primitives
+  // violation lives outside `lib`/`app`'s scope (see the lintViolationFile comment below).
+  const ioTrapDomainDir = join(probeSrcDir, 'adapters', 'fs', 'io-trap-probe');
   mkdirSync(ioTrapDomainDir, { recursive: true });
   writeFileSync(join(ioTrapDomainDir, 'fs-io-trap-probe-adapter.ts'), IO_TRAP_PROOF_SOURCE);
   writeFileSync(join(ioTrapDomainDir, 'fs-io-trap-probe-adapter.proxy.ts'), IO_TRAP_PROOF_PROXY);
   const ioTrapTestFile = join(ioTrapDomainDir, 'fs-io-trap-probe-adapter.test.ts');
   writeFileSync(ioTrapTestFile, IO_TRAP_PROOF_TEST);
 
-  const mswTrapDomainDir = join(libSrcDir, 'brokers', 'msw-trap', 'probe');
+  const mswTrapDomainDir = join(probeSrcDir, 'brokers', 'msw-trap', 'probe');
   mkdirSync(mswTrapDomainDir, { recursive: true });
   writeFileSync(join(mswTrapDomainDir, 'msw-trap-probe-broker.ts'), MSW_TRAP_PROOF_SOURCE);
   writeFileSync(join(mswTrapDomainDir, 'msw-trap-probe-broker.proxy.ts'), MSW_TRAP_PROOF_PROXY);

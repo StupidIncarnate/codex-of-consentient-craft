@@ -11,6 +11,7 @@ describe('packageSeedServiceStatics', () => {
           exportPaths: ['./src/adapters/hono/app-create/hono-app-create-adapter'],
         },
         dependencies: { hono: '^4.0.0' },
+        devDependencies: {},
         bin: {},
         compilerOptions: {},
         extraInclude: [],
@@ -49,6 +50,7 @@ describe('packageSeedServiceStatics', () => {
           exportPaths: ['./src/flows/__NAME__/__NAME__-flow'],
         },
         dependencies: { '__SCOPE__/shared': '*' },
+        devDependencies: {},
         bin: {},
         compilerOptions: {},
         extraInclude: [],
@@ -88,6 +90,7 @@ describe('packageSeedServiceStatics', () => {
       expect(rest).toStrictEqual({
         barrel: null,
         dependencies: {},
+        devDependencies: {},
         bin: { __NAME__: './dist/bin/__NAME__-entry.js' },
         compilerOptions: {},
         extraInclude: ['bin/**/*'],

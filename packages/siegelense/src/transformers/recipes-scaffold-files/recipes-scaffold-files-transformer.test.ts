@@ -3,20 +3,48 @@ import { locationsStatics, recipesConventionStatics } from '@dungeonmaster/share
 
 import { recipesScaffoldFilesTransformer } from './recipes-scaffold-files-transformer';
 
+const findContents = ({
+  files,
+  relativePath,
+}: {
+  files: ReturnType<typeof recipesScaffoldFilesTransformer>;
+  relativePath: string;
+}): ReturnType<typeof recipesScaffoldFilesTransformer>[0]['contents'] => {
+  const found = files.find((file) => String(file.relativePath) === relativePath);
+  if (found === undefined) {
+    throw new Error(`recipesScaffoldFilesTransformer did not write ${relativePath}`);
+  }
+  return found.contents;
+};
+
 describe('recipesScaffoldFilesTransformer', () => {
   describe('the file list', () => {
-    it('VALID: {packageName: "@acme/hydration-recipes"} => returns package.json, tsconfig.json, tsconfig.build.json, src/index.ts, src/index.test.ts, in that order', () => {
+    it('VALID: {packageName: "@acme/hydration-recipes"} => returns every path enforce-hydration-recipes-structure and the recipes convention both require', () => {
       const packageName = PackageNameStub({ value: '@acme/hydration-recipes' });
 
       const result = recipesScaffoldFilesTransformer({ packageName });
 
-      expect(result.map((file) => file.relativePath)).toStrictEqual([
-        'package.json',
-        locationsStatics.repoRoot.tsconfig,
-        'tsconfig.build.json',
-        'src/index.ts',
-        'src/index.test.ts',
-      ]);
+      expect(result.map((file) => file.relativePath).sort()).toStrictEqual(
+        [
+          'package.json',
+          locationsStatics.repoRoot.tsconfig,
+          'tsconfig.build.json',
+          'jest.config.js',
+          'responders.ts',
+          'src/index.ts',
+          'src/index.integration.test.ts',
+          'src/startup/start-hydration-recipes.ts',
+          'src/startup/start-hydration-recipes.integration.test.ts',
+          'src/flows/recipes/recipes-flow.ts',
+          'src/flows/recipes/recipes-flow.integration.test.ts',
+          'src/responders/recipes/listing/recipes-listing-responder.ts',
+          'src/responders/recipes/listing/recipes-listing-responder.proxy.ts',
+          'src/responders/recipes/listing/recipes-listing-responder.test.ts',
+          'src/responders/recipes/seed/recipes-seed-responder.ts',
+          'src/responders/recipes/seed/recipes-seed-responder.proxy.ts',
+          'src/responders/recipes/seed/recipes-seed-responder.test.ts',
+        ].sort(),
+      );
     });
   });
 
@@ -24,9 +52,9 @@ describe('recipesScaffoldFilesTransformer', () => {
     it('VALID: {packageName: "@acme/hydration-recipes"} => a buildable package.json naming that scope', () => {
       const packageName = PackageNameStub({ value: '@acme/hydration-recipes' });
 
-      const [packageJsonFile] = recipesScaffoldFilesTransformer({ packageName });
+      const files = recipesScaffoldFilesTransformer({ packageName });
 
-      expect(JSON.parse(packageJsonFile.contents)).toStrictEqual({
+      expect(JSON.parse(findContents({ files, relativePath: 'package.json' }))).toStrictEqual({
         name: '@acme/hydration-recipes',
         version: '0.1.0',
         description: 'hydration-recipes package',
@@ -57,9 +85,9 @@ describe('recipesScaffoldFilesTransformer', () => {
     it('VALID: {packageName: "hydration-recipes", no scope} => an unscoped package.json with no imports field at all', () => {
       const packageName = PackageNameStub({ value: 'hydration-recipes' });
 
-      const [packageJsonFile] = recipesScaffoldFilesTransformer({ packageName });
+      const files = recipesScaffoldFilesTransformer({ packageName });
 
-      expect(JSON.parse(packageJsonFile.contents)).toStrictEqual({
+      expect(JSON.parse(findContents({ files, relativePath: 'package.json' }))).toStrictEqual({
         name: 'hydration-recipes',
         version: '0.1.0',
         description: 'hydration-recipes package',
@@ -91,9 +119,9 @@ describe('recipesScaffoldFilesTransformer', () => {
       const packageName = PackageNameStub({ value: '@acme/hydration-recipes' });
       const scope = PathSegmentStub({ value: '@acme' });
 
-      const [packageJsonFile] = recipesScaffoldFilesTransformer({ packageName, scope });
+      const files = recipesScaffoldFilesTransformer({ packageName, scope });
 
-      expect(JSON.parse(packageJsonFile.contents)).toStrictEqual({
+      expect(JSON.parse(findContents({ files, relativePath: 'package.json' }))).toStrictEqual({
         name: '@acme/hydration-recipes',
         version: '0.1.0',
         description: 'hydration-recipes package',
@@ -129,28 +157,32 @@ describe('recipesScaffoldFilesTransformer', () => {
   });
 
   describe('tsconfig.json', () => {
-    it('VALID: {} => extends the repo root tsconfig and includes only src/', () => {
+    it('VALID: {} => extends the repo root tsconfig and includes src/ plus the root responders barrel', () => {
       const packageName = PackageNameStub({ value: '@acme/hydration-recipes' });
 
-      const [, tsconfigFile] = recipesScaffoldFilesTransformer({ packageName });
+      const files = recipesScaffoldFilesTransformer({ packageName });
 
-      expect(JSON.parse(tsconfigFile.contents)).toStrictEqual({
+      expect(
+        JSON.parse(findContents({ files, relativePath: locationsStatics.repoRoot.tsconfig })),
+      ).toStrictEqual({
         extends: '../../tsconfig.json',
         compilerOptions: {
           typeRoots: ['../../node_modules/@types', '../../@types'],
         },
-        include: ['src/**/*'],
+        include: ['src/**/*', 'responders.ts'],
       });
     });
   });
 
   describe('tsconfig.build.json', () => {
-    it('VALID: {} => compiles src/index.ts down to dist/index.js', () => {
+    it('VALID: {} => compiles src/index.ts down to dist/index.js, and excludes responders.ts from the emit', () => {
       const packageName = PackageNameStub({ value: '@acme/hydration-recipes' });
 
-      const [, , tsconfigBuildFile] = recipesScaffoldFilesTransformer({ packageName });
+      const files = recipesScaffoldFilesTransformer({ packageName });
 
-      expect(JSON.parse(tsconfigBuildFile.contents)).toStrictEqual({
+      expect(
+        JSON.parse(findContents({ files, relativePath: 'tsconfig.build.json' })),
+      ).toStrictEqual({
         extends: './tsconfig.json',
         compilerOptions: {
           noEmit: false,
@@ -161,8 +193,10 @@ describe('recipesScaffoldFilesTransformer', () => {
           incremental: true,
           tsBuildInfoFile: './.ward/build.tsbuildinfo',
         },
+        include: ['src/**/*'],
         exclude: [
           '**/*.test.ts',
+          '**/*.integration.test.ts',
           '**/*.proxy.ts',
           '**/*.stub.ts',
           '**/*.harness.ts',
@@ -173,72 +207,98 @@ describe('recipesScaffoldFilesTransformer', () => {
     });
   });
 
-  describe('src/index.ts', () => {
-    it('VALID: {} => exports the three names recipesConventionStatics.exports requires', () => {
+  describe('jest.config.js', () => {
+    it('VALID: {} => requires the published testing base', () => {
       const packageName = PackageNameStub({ value: '@acme/hydration-recipes' });
 
-      const [, , , indexTsFile] = recipesScaffoldFilesTransformer({ packageName });
+      const files = recipesScaffoldFilesTransformer({ packageName });
 
-      expect(indexTsFile.contents).toBe(
-        `/**
- * PURPOSE: The starter surface for this \`hydration-recipes\` package — the three names
- * \`recipesConventionStatics.exports\` requires (\`@dungeonmaster/shared/statics\`), so
- * \`dungeonmaster siegelense recipes\` answers with an empty listing the moment this package is
- * built, instead of throwing \`RecipesBuildMissingError\`. Add a recipe under a sibling
- * \`src/recipes-<name>/\` folder and wire it into ${recipesConventionStatics.exports.listing}'s
- * return array and ${recipesConventionStatics.exports.seed}'s dispatch.
- *
- * USAGE:
- * ${recipesConventionStatics.exports.listing}();
- * // Returns []
- */
+      expect(findContents({ files, relativePath: 'jest.config.js' })).toBe(
+        `const base = require('@dungeonmaster/testing/jest-config-base');
 
-export const ${recipesConventionStatics.exports.listing} = (): readonly never[] => [];
-
-export const ${recipesConventionStatics.exports.manifest}: readonly never[] =
-  ${recipesConventionStatics.exports.listing}();
-
-export const ${recipesConventionStatics.exports.seed} = async (
-  _params: Record<string, unknown>,
-): Promise<never> => {
-  throw new Error(
-    'no recipes defined yet — add one under packages/hydration-recipes/src/recipes-<name>/',
-  );
+module.exports = {
+  ...base,
+  roots: ['<rootDir>/src'],
 };
 `,
       );
     });
   });
 
-  describe('src/index.test.ts', () => {
-    it('VALID: {} => proves the listing is empty and the seed throws', () => {
+  describe('responders.ts', () => {
+    it('VALID: {} => re-exports both responders', () => {
       const packageName = PackageNameStub({ value: '@acme/hydration-recipes' });
 
-      const [, , , , indexTestTsFile] = recipesScaffoldFilesTransformer({ packageName });
+      const files = recipesScaffoldFilesTransformer({ packageName });
 
-      expect(indexTestTsFile.contents).toBe(
-        `import {
-  ${recipesConventionStatics.exports.manifest},
-  ${recipesConventionStatics.exports.listing},
-  ${recipesConventionStatics.exports.seed},
-} from './index';
-
-describe('hydration-recipes starter index', () => {
-  it('VALID: {} => ${recipesConventionStatics.exports.listing} returns an empty array', () => {
-    expect(${recipesConventionStatics.exports.listing}()).toStrictEqual([]);
+      expect(findContents({ files, relativePath: 'responders.ts' })).toMatch(
+        /^export \* from '\.\/src\/responders\/recipes\/listing\/recipes-listing-responder';$/mu,
+      );
+      expect(findContents({ files, relativePath: 'responders.ts' })).toMatch(
+        /^export \* from '\.\/src\/responders\/recipes\/seed\/recipes-seed-responder';$/mu,
+      );
+    });
   });
 
-  it('VALID: {} => ${recipesConventionStatics.exports.manifest} is an empty array', () => {
-    expect(${recipesConventionStatics.exports.manifest}).toStrictEqual([]);
+  describe('src/responders/recipes/listing/recipes-listing-responder.ts', () => {
+    it(`VALID: {} => exports ${recipesConventionStatics.exports.listing}, returning an empty array`, () => {
+      const packageName = PackageNameStub({ value: '@acme/hydration-recipes' });
+
+      const files = recipesScaffoldFilesTransformer({ packageName });
+
+      expect(
+        findContents({
+          files,
+          relativePath: 'src/responders/recipes/listing/recipes-listing-responder.ts',
+        }),
+      ).toMatch(
+        new RegExp(
+          `^export const ${recipesConventionStatics.exports.listing} = \\(\\): readonly never\\[\\] => \\[\\];$`,
+          'mu',
+        ),
+      );
+    });
   });
 
-  it('ERROR: {seed request} => ${recipesConventionStatics.exports.seed} rejects naming where to add a recipe', async () => {
-    await expect(${recipesConventionStatics.exports.seed}({})).rejects.toThrow(
-      /no recipes defined yet/u,
-    );
+  describe('src/responders/recipes/seed/recipes-seed-responder.ts', () => {
+    it(`VALID: {} => exports ${recipesConventionStatics.exports.seed}, throwing "no recipes defined yet"`, () => {
+      const packageName = PackageNameStub({ value: '@acme/hydration-recipes' });
+
+      const files = recipesScaffoldFilesTransformer({ packageName });
+
+      expect(
+        findContents({
+          files,
+          relativePath: 'src/responders/recipes/seed/recipes-seed-responder.ts',
+        }),
+      ).toMatch(
+        /^ {2}'no recipes defined yet — add one under packages\/hydration-recipes\/src\/recipes-<name>\/';$/mu,
+      );
+    });
   });
-});
-`,
+
+  describe('src/index.ts', () => {
+    it('VALID: {} => exports the three names recipesConventionStatics.exports requires, delegating to StartHydrationRecipes', () => {
+      const packageName = PackageNameStub({ value: '@acme/hydration-recipes' });
+
+      const files = recipesScaffoldFilesTransformer({ packageName });
+
+      const indexTs = findContents({ files, relativePath: 'src/index.ts' });
+
+      expect(indexTs).toMatch(
+        /^import \{ StartHydrationRecipes \} from '\.\/startup\/start-hydration-recipes';$/mu,
+      );
+      expect(indexTs).toMatch(
+        new RegExp(`^export const ${recipesConventionStatics.exports.listing} = `, 'mu'),
+      );
+      expect(indexTs).toMatch(
+        new RegExp(`^export const ${recipesConventionStatics.exports.seed} = `, 'mu'),
+      );
+      expect(indexTs).toMatch(
+        new RegExp(
+          `^export const ${recipesConventionStatics.exports.manifest}: readonly never\\[\\] = \\[\\];$`,
+          'mu',
+        ),
       );
     });
   });

@@ -82,6 +82,11 @@ export const gatewayPackageScaffoldFilesTransformer = ({
     },
     files: gatewayPackageTemplateStatics.files,
     scripts: gatewayPackageTemplateStatics.scripts,
+    // browser's own copied source cross-imports node's stub (fetch-json.proxy.ts, for the
+    // realistic connection-refused error fetch can reject with) — `gateway-dependency-declared`
+    // requires the importing package.json to list the real target package name in `dependencies`,
+    // exactly as this repo's OWN packages/@gateway/browser/package.json already does.
+    ...(folder === 'browser' ? { dependencies: { [`${String(scope)}/node`]: '*' } } : {}),
     devDependencies:
       folder === 'browser'
         ? {

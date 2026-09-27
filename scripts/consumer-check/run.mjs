@@ -103,11 +103,31 @@ const runLocalMode = async ({ tarballs, gt }) => {
     return { report, consumerRoot, fatal: true };
   }
 
+  // `dungeonmaster init` (InstallAddDevDepsResponder) only WRITES the new devDependency entries
+  // into package.json — it never runs `npm install` itself, the same gap F7 found for
+  // create-package's own scaffolded dependencies. Without this, every devDependenciesStatics
+  // package (jest, prettier, ts-jest, @types/*, ...) sits in package.json but not in node_modules,
+  // and the very next check below (which reads node_modules for exactly those names) fails on a
+  // fresh consumer — confirmed against a real run of this suite: an isolated `npm install` of only
+  // the 18 packed tarballs, with no further step, resolves none of them.
+  const postInitInstallResult = await npmInstall({ cwd: consumerRoot });
+  report.check(
+    "npm install succeeds after dungeonmaster init adds devDependencies",
+    postInitInstallResult.code === 0,
+    postInitInstallResult.code === 0 ? '' : postInitInstallResult.stderr.slice(-2000),
+  );
+  if (postInitInstallResult.code !== 0) {
+    return { report, consumerRoot, fatal: true };
+  }
+
   runWriteAssertions({ report, consumerRoot, gt, mode: 'local' });
 
-  await runWorksAssertions({ report, consumerRoot, gt, mode: 'local' });
-
+  // Read before the fixture packages exist (init's own gateway step already scaffolded
+  // packages/@gateway/node by this point) so the fixture broker it writes can declare the right
+  // gateway dependency (F1-adjacent: gateway-dependency-declared needs a real scope, not a guess).
   const scope = detectScope({ consumerRoot });
+  await runWorksAssertions({ report, consumerRoot, gt, mode: 'local', scope });
+
   checkWorkspacePackageGatewayImports({ report, consumerRoot, gt, scope });
 
   await runMcpResolutionAssertion({ report, consumerRoot, gt, mode: 'local' });

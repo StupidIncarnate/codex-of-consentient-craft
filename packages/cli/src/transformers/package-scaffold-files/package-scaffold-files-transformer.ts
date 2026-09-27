@@ -154,7 +154,10 @@ export const packageScaffoldFilesTransformer = ({
     ...(binHasEntries ? { bin: substitutedBin } : {}),
     scripts: scriptsField,
     ...(dependenciesHasEntries ? { dependencies: substitutedDependencies } : {}),
-    devDependencies: packageScaffoldConfigStatics.devDependencies,
+    devDependencies: {
+      ...packageScaffoldConfigStatics.devDependencies,
+      ...seed.devDependencies,
+    },
     publishConfig: packageScaffoldConfigStatics.publishConfig,
   };
 
@@ -192,12 +195,19 @@ export const packageScaffoldFilesTransformer = ({
     seed.jestKind === 'tsx-jsdom'
       ? packageScaffoldConfigStatics.jestEnvironmentJsdom
       : packageScaffoldConfigStatics.jestEnvironmentNode;
+  // Only 'tsx-jsdom' (frontend-react) needs the polyfill: jest-environment-jsdom forwards none of
+  // Node's Request/Response/fetch globals into its sandbox, which is what @dungeonmaster/testing's
+  // unconditional MSW setup throws on. 'tsx-node' (frontend-ink) runs under testEnvironment 'node',
+  // where those globals are already Node's own — an empty array there is a no-op.
+  const jestSetupFilesValue =
+    seed.jestKind === 'tsx-jsdom' ? packageScaffoldConfigStatics.jestJsdomSetupFilesEntry : '';
   const jestConfigContents = jestTemplate
     .replaceAll(packageScaffoldConfigStatics.jestRootsPlaceholder, jestRootsValue)
     .replaceAll(
       packageScaffoldConfigStatics.jestTestEnvironmentPlaceholder,
       jestTestEnvironmentValue,
-    );
+    )
+    .replaceAll(packageScaffoldConfigStatics.jestSetupFilesPlaceholder, jestSetupFilesValue);
 
   const barrelContents =
     seed.barrel !== null && barrelStem !== null
@@ -248,6 +258,26 @@ ${seed.barrel.exportPaths
               packageScaffoldConfigStatics.playwrightConfigFileName,
             ),
             contents: fileContentsContract.parse(playwrightConfigTemplateStatics.content),
+          }),
+          // The scaffolded playwright.config.ts imports this companion statics file for its
+          // UNRESOLVABLE_TOKENS list — enforce-magic-arrays refuses an inline array of string
+          // literals outside a statics/ file, and the config itself cannot BE one (it lives at the
+          // package root, not under src/statics/).
+          scaffoldFileContract.parse({
+            relativePath: pathSegmentContract.parse(
+              'src/statics/e2e-unresolvable-token/e2e-unresolvable-token-statics.ts',
+            ),
+            contents: fileContentsContract.parse(
+              playwrightConfigTemplateStatics.unresolvableTokenStaticsContent,
+            ),
+          }),
+          scaffoldFileContract.parse({
+            relativePath: pathSegmentContract.parse(
+              'src/statics/e2e-unresolvable-token/e2e-unresolvable-token-statics.test.ts',
+            ),
+            contents: fileContentsContract.parse(
+              playwrightConfigTemplateStatics.unresolvableTokenStaticsTestContent,
+            ),
           }),
         ]
       : []),

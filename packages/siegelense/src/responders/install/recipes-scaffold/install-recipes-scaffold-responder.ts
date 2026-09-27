@@ -1,10 +1,12 @@
 /**
  * PURPOSE: Creates a complete, buildable `packages/hydration-recipes/` in the target repo when
- * that package is absent — package.json, tsconfig.json, tsconfig.build.json, and a starter
- * src/index.ts exporting the three names `recipesConventionStatics.exports` requires — so
+ * that package is absent — package.json, tsconfig.json, tsconfig.build.json, jest.config.js, a
+ * responders barrel, a startup file, a flow, and two responders (listing and seed) — so
  * `recipesLocateBroker` finds a package `npm run build` can actually act on instead of a bare
  * `src/` folder nothing can compile (`RecipesBuildMissingError` in every fresh consumer repo
- * otherwise). An existing package is left completely untouched — the convention travels, the
+ * otherwise), and so `@dungeonmaster/enforce-hydration-recipes-structure` (this repo's own
+ * architectural lint rule, which requires those same five files to exist) accepts the fresh
+ * scaffold outright. An existing package is left completely untouched — the convention travels, the
  * recipes do not. The scaffolded package.json's scope matches the target repo's OWN workspace
  * packages, detected off its root package.json's `name` field (falling back to the target
  * directory's basename) through `workspaceScopeFromRootNameTransformer` — the SAME transformer
@@ -18,15 +20,15 @@
  *
  * USAGE:
  * const result = await InstallRecipesScaffoldResponder({ context });
- * // Creates packages/hydration-recipes/{package.json,tsconfig.json,tsconfig.build.json,
- * // src/index.ts,src/index.test.ts} when the package is absent; an existing package's contents
- * // are neither read nor written
+ * // Creates packages/hydration-recipes/ with a full, lint-clean starter layout when the package is
+ * // absent; an existing package's contents are neither read nor written
  */
 
 import {
   fsExistsSyncAdapter,
   fsMkdirAdapter,
   pathBasenameAdapter,
+  pathDirnameAdapter,
   pathResolveAdapter,
 } from '@dungeonmaster/shared/adapters';
 import {
@@ -75,9 +77,6 @@ export const InstallRecipesScaffoldResponder = async ({
     };
   }
 
-  const recipesSrcPath = pathResolveAdapter({ paths: [recipesPackagePath, SRC_DIRNAME] });
-  await fsMkdirAdapter({ filepath: filePathContract.parse(recipesSrcPath) });
-
   const rootPackageJsonPath = pathResolveAdapter({
     paths: [context.targetProjectRoot, ROOT_PACKAGE_JSON_FILENAME],
   });
@@ -110,6 +109,26 @@ export const InstallRecipesScaffoldResponder = async ({
     ...(workspaceScope === undefined ? {} : { scope: workspaceScope }),
   });
 
+  // Unlike the original flat starter (package.json/tsconfig*/src/index.ts, all one level deep),
+  // enforce-hydration-recipes-structure's five required files sit under nested folders
+  // (src/startup/, src/flows/recipes/, src/responders/recipes/{listing,seed}/) that never exist
+  // yet — `fsWriteFileAdapter` is a bare `fs/promises.writeFile`, with no parent-directory creation
+  // of its own, so writing straight to those paths throws ENOENT. Every unique directory the
+  // scaffold touches (including the package root itself) is created first, deduped through a Set
+  // since `fsMkdirAdapter` is recursive and idempotent but still one real syscall per call.
+  const scaffoldDirs = new Set(
+    scaffoldFiles.map((file) =>
+      pathDirnameAdapter({
+        path: filePathContract.parse(
+          pathResolveAdapter({ paths: [recipesPackagePath, file.relativePath] }),
+        ),
+      }),
+    ),
+  );
+  await Promise.all(
+    [...scaffoldDirs].map(async (dirPath) => fsMkdirAdapter({ filepath: dirPath })),
+  );
+
   await Promise.all(
     scaffoldFiles.map(async (file) =>
       fsWriteFileAdapter({
@@ -119,7 +138,7 @@ export const InstallRecipesScaffoldResponder = async ({
     ),
   );
 
-  const createdMessage = `Created ${PACKAGES_DIRNAME}/${RECIPES_PACKAGE_DIRNAME}/ (package.json, tsconfig.json, tsconfig.build.json, ${SRC_DIRNAME}/index.ts)`;
+  const createdMessage = `Created ${PACKAGES_DIRNAME}/${RECIPES_PACKAGE_DIRNAME}/ (package.json, tsconfig.json, tsconfig.build.json, jest.config.js, responders.ts, ${SRC_DIRNAME}/index.ts, ${SRC_DIRNAME}/startup/, ${SRC_DIRNAME}/flows/, ${SRC_DIRNAME}/responders/)`;
   const buildCommand = `npm run build --workspace=${recipesPackageName}`;
 
   // Until `npm install` links the freshly scaffolded workspace and `npm run build` compiles it,

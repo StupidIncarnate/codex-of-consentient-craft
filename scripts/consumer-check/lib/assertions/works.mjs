@@ -1,18 +1,17 @@
 /**
- * Proves the freshly-init-ed consumer actually WORKS — typecheck, lint (plus the known F1 lint
- * failure on the copied `@gateway/node`, asserted rather than swallowed), `create-package`'s own
- * scope detection and scaffolded jest config (F5, F6 — plain passing assertions now that both are
- * fixed; no patching), the copied gateways' own tests, the I/O trap, a mocked gateway-proxy test,
- * the consumer's own build, the pre-edit hook, and idempotent re-init — every check here shells out
- * to the consumer's OWN installed binaries (`node_modules/.bin/*`), never this checkout's compiled
- * output.
+ * Proves the freshly-init-ed consumer actually WORKS — typecheck, lint (including a plain pass on
+ * the copied `@gateway/node`, F1), `create-package`'s own scope detection and scaffolded jest config
+ * (F5, F6 — plain passing assertions now that both are fixed; no patching), the copied gateways' own
+ * tests, the I/O trap, a mocked gateway-proxy test, the consumer's own build, the pre-edit hook, and
+ * idempotent re-init — every check here shells out to the consumer's OWN installed binaries
+ * (`node_modules/.bin/*`), never this checkout's compiled output.
  */
 
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { runDungeonmasterInit, runEslint, runJest, runNpm, runTsc, runWard } from '../bin-run.mjs';
 import { run } from '../proc.mjs';
-import { classifyGatewayNodeLintResult } from '../lint-known-failures.mjs';
+import { npmInstall } from '../fixture.mjs';
 import {
   LIB_PACKAGE_NAME,
   WEB_PACKAGE_NAME,
@@ -144,29 +143,25 @@ const assertLint = async ({ report, consumerRoot, lintViolationFile }) => {
   }
 };
 
-const assertGatewayNodeKnownF1 = async ({ report, consumerRoot }) => {
+// F1 (EPIC.md): a real consumer's newer `@typescript-eslint` used to report `no-unused-vars` on
+// five proxies and `no-deprecated` on the gateway's own `util.types.isNativeError` wrapper — both
+// fixed at the source (the wrapper no longer references the deprecated symbol at all), so this is
+// now a plain pass, not a known-shape classification to keep in sync by hand.
+const assertGatewayNodeLintPasses = async ({ report, consumerRoot }) => {
   const packageRoot = join(consumerRoot, 'packages', '@gateway', 'node');
   const result = await runEslintForPackage({ consumerRoot, packageDir: packageRoot });
-  const eslintJson = parseEslintJson({ report, result, label: 'unit F1' });
+  const eslintJson = parseEslintJson({ report, result, label: 'consumer lint of @gateway/node (F1)' });
   if (eslintJson === null) {
     return;
   }
-  const classification = classifyGatewayNodeLintResult({ eslintJson, packageRoot });
-  if (classification.failingFileCount === 0) {
-    report.check(
-      'unit F1 (EPIC.md): consumer lint of @gateway/node — NO LONGER REPRODUCES (regression may be fixed; update EPIC.md)',
-      true,
-      'eslint reported zero errors on packages/@gateway/node in this consumer',
-    );
-  } else {
-    report.check(
-      'unit F1 (EPIC.md): consumer lint of @gateway/node fails in EXACTLY the documented shape (no-unused-vars on 5 proxies, no-deprecated on fetch-ok.ts) and nothing else',
-      classification.matchesKnownF1Only,
-      classification.matchesKnownF1Only
-        ? `known-failing as documented: ${classification.failingFileCount} files`
-        : `unexpectedFiles=${JSON.stringify(classification.unexpectedFiles)} unexpectedRules=${JSON.stringify(classification.unexpectedRules)}`,
-    );
-  }
+  const filesWithErrors = eslintJson.filter((entry) => entry.errorCount > 0);
+  report.check(
+    'consumer lint of @gateway/node passes outright (F1)',
+    filesWithErrors.length === 0,
+    filesWithErrors.length === 0
+      ? ''
+      : JSON.stringify(filesWithErrors.map((entry) => ({ filePath: entry.filePath, messages: entry.messages }))),
+  );
 
   const typecheckAndTest = await runWard({
     consumerRoot,
@@ -179,7 +174,7 @@ const assertGatewayNodeKnownF1 = async ({ report, consumerRoot }) => {
     ],
   });
   report.check(
-    'the copied gateways’ own typecheck/unit/integration checks pass in the consumer (lint excluded — F1)',
+    "the copied gateways' own typecheck/unit/integration checks pass in the consumer",
     typecheckAndTest.code === 0,
     typecheckAndTest.code === 0 ? '' : `${typecheckAndTest.stdout}\n${typecheckAndTest.stderr}`.slice(-3000),
   );
@@ -191,7 +186,9 @@ const assertGatewayNodeKnownF1 = async ({ report, consumerRoot }) => {
 // `assertMswTrap` below, not a passing assertion of a throw (confirmed against a real run of this
 // suite: the test's own assertion passes, then the suite's `afterEach` still fails the test).
 const assertIoTrap = async ({ report, consumerRoot, ioTrapTestFile }) => {
-  const cwd = join(consumerRoot, 'packages', LIB_PACKAGE_NAME);
+  // Lives in `probe`, not `lib` — see sample-sources.mjs's own comment on why: a deliberately-
+  // failing test in `lib`'s scope would make assertWardCleanFixture's ward sweep fail by design.
+  const cwd = join(consumerRoot, 'packages', PROBE_PACKAGE_NAME);
   const result = await runJest({ consumerRoot, cwd, args: [ioTrapTestFile] });
   const output = `${result.stdout}\n${result.stderr}`;
   report.check(
@@ -206,7 +203,9 @@ const assertIoTrap = async ({ report, consumerRoot, ioTrapTestFile }) => {
 // `start-endpoint-mock-setup.ts`'s own `afterEach`, so the failure lands on the test as a whole —
 // this is an EXPECTED-FAILING jest run, not a passing assertion of a throw.
 const assertMswTrap = async ({ report, consumerRoot, mswTrapTestFile }) => {
-  const cwd = join(consumerRoot, 'packages', LIB_PACKAGE_NAME);
+  // Lives in `probe`, not `lib` — see sample-sources.mjs's own comment on why: a deliberately-
+  // failing test in `lib`'s scope would make assertWardCleanFixture's ward sweep fail by design.
+  const cwd = join(consumerRoot, 'packages', PROBE_PACKAGE_NAME);
   const result = await runJest({ consumerRoot, cwd, args: [mswTrapTestFile] });
   const output = `${result.stdout}\n${result.stderr}`;
   report.check(
@@ -293,7 +292,7 @@ const assertWardCleanFixture = async ({ report, consumerRoot }) => {
     ],
   });
   report.check(
-    'dungeonmaster ward runs in the consumer and exits 0 on the clean fixture (F1 excluded — its own dedicated check above)',
+    'dungeonmaster ward runs in the consumer and exits 0 on the clean fixture (@gateway/node covered separately above, F1)',
     result.code === 0,
     result.code === 0 ? '' : `${result.stdout}\n${result.stderr}`.slice(-3000),
   );
@@ -396,12 +395,30 @@ const assertIdempotentReinit = async ({ report, consumerRoot }) => {
   );
 };
 
-export const runWorksAssertions = async ({ report, consumerRoot, gt, mode }) => {
+// F7 (gateway-pivot): `create-package` never runs `npm install` itself — `cli-create-package-
+// responder.ts` prints "Next steps: npm install" and stops there, on purpose, the same way a real
+// user's next terminal command would be. So the fixture's own `react`/`@types/react` dependency
+// (packages/app/package.json, written by the `frontend-react` seed) sits in package.json but not
+// yet in node_modules until this runs — without it, `tsc` reports "Cannot find namespace 'React'"
+// on the scaffolded widget (confirmed against a real run of this suite: installing here, and only
+// here, makes that error disappear with no other change).
+const installScaffoldedPackages = async ({ report, consumerRoot }) => {
+  const result = await npmInstall({ cwd: consumerRoot });
+  report.check(
+    'npm install succeeds after create-package scaffolds lib/app/probe (F7)',
+    result.code === 0,
+    result.code === 0 ? '' : result.stderr.slice(-2000),
+  );
+};
+
+export const runWorksAssertions = async ({ report, consumerRoot, gt, mode, scope }) => {
   const { ioTrapTestFile, mswTrapTestFile, lintViolationFile } = await scaffoldFixturePackages({
     consumerRoot,
     cliBin: cliBinPath({ consumerRoot }),
     gt,
+    scope,
   });
+  await installScaffoldedPackages({ report, consumerRoot });
 
   assertScopeDetection({ report, consumerRoot, gt });
   assertJestConfigBase({ report, consumerRoot });
@@ -414,14 +431,21 @@ export const runWorksAssertions = async ({ report, consumerRoot, gt, mode }) => 
   // on a genuinely clean `lib`/`app` while lint and the pre-edit hook still see a real violation.
   await assertTypecheck({ report, consumerRoot });
   await assertLint({ report, consumerRoot, lintViolationFile });
-  await assertGatewayNodeKnownF1({ report, consumerRoot });
-  // BEFORE the gateway-proxy-mock test, never after: that test's own `#gateway/node/fs__promises`
-  // import resolves through the `require` condition (jest sets no `source` custom condition — only
-  // ward's own invocation does, via `check-run-unit-broker`), which points at `./dist/**` — so it
-  // needs `@gateway/node` actually BUILT first, exactly like a real consumer would (confirmed
-  // against a real run of this suite: "Cannot find module '#gateway/node/fs__promises'" on a fresh
-  // consumer whose gateway packages had never been built yet).
+  // BEFORE assertGatewayNodeLintPasses's own ward typecheck, and before the gateway-proxy-mock
+  // test: both need `@gateway/node` actually BUILT first, exactly like a real consumer would.
+  // assertGatewayNodeLintPasses's cross-gateway stub import (browser's fetch-json.proxy.ts reaches
+  // `#gateway/node/net/connection-refused-error/connection-refused-error.stub`) resolves through
+  // node's package.json `gateway-dist` export condition, which names a file under node's OWN
+  // `dist/` — with no dist yet, resolution falls through to node's `source` condition instead,
+  // pulling node's SOURCE `.ts` into browser's build program and tripping TS6059 (a file outside
+  // browser's own `rootDir`). The gateway-proxy-mock test's `#gateway/node/fs__promises` import
+  // resolves through the `require` condition (jest sets no `source` custom condition — only ward's
+  // own invocation does, via `check-run-unit-broker`), which points at `./dist/**` too. Both
+  // confirmed against a real run of this suite: the TS6059 above, and separately "Cannot find
+  // module '#gateway/node/fs__promises'" on a fresh consumer whose gateway packages had never been
+  // built yet.
   await assertBuild({ report, consumerRoot });
+  await assertGatewayNodeLintPasses({ report, consumerRoot });
   await assertIoTrap({ report, consumerRoot, ioTrapTestFile });
   await assertMswTrap({ report, consumerRoot, mswTrapTestFile });
   await assertGatewayProxyMockTest({ report, consumerRoot });
