@@ -1,14 +1,8 @@
 /**
  * PURPOSE: A complete `fs.StatsFs`-shaped value, built by hand, for a proxy staging what
- * `fs/promises`' `statfs` resolves to. Built through an intermediate `Record<string, number>`, cast
- * to `StatsFs` through `unknown` at the return rather than typed as `StatsFs` directly:
- * `fs.StatsFsBase` gained a required `frsize` field in a newer `@types/node` than this repo pins,
- * and a consumer installs that newer one (unit F1's own kind of skew). A `StatsFs`-typed object
- * literal carrying `frsize` is an excess property under THIS repo's older `@types/node`, which has
- * no such field to be excess against; a direct `Record<string, number> as StatsFs` refuses too
- * (TS2352 — neither is a source TypeScript considers "sufficiently overlapping" with a target
- * whose required properties an index signature alone does not prove present), so the `unknown`
- * bridge is what lets one object literal satisfy both `@types/node` shapes.
+ * `fs/promises`' `statfs` resolves to. `frsize` goes in through a spread: newer `@types/node` makes it
+ * required, and this repo's older one has no such field, so written as a literal property it is an
+ * excess property here. A spread of a variable is not excess-checked, so the value satisfies both.
  *
  * USAGE:
  * const stats = StatsFsStub({ bavail: 1000, bsize: 4096 });
@@ -35,7 +29,8 @@ export const StatsFsStub = ({
   ffree?: number;
   frsize?: number;
 } = {}): StatsFs => {
-  const stats: Record<string, number> = {
+  const newerTypesFields = { frsize };
+  return {
     type,
     bsize,
     blocks,
@@ -43,7 +38,6 @@ export const StatsFsStub = ({
     bavail,
     files,
     ffree,
-    frsize,
+    ...newerTypesFields,
   };
-  return stats as unknown as StatsFs;
 };
