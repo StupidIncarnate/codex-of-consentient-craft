@@ -257,6 +257,100 @@ describe('EvaluateHoldLayerResponder', () => {
     });
   });
 
+  describe('one scan at a time', () => {
+    it('VALID: {a tick lands while a scan is still running} => starts no second scan', async () => {
+      const proxy = EvaluateHoldLayerResponderProxy();
+      proxy.setupNoHeldState();
+      proxy.setupPendingScan({
+        ledger: UsageLedgerStub({
+          buckets: {},
+          cursors: {},
+          ceilings: { fiveHour: null, sevenDay: null },
+        }),
+      });
+
+      EvaluateHoldLayerResponder();
+      EvaluateHoldLayerResponder();
+      EvaluateHoldLayerResponder();
+      await new Promise((resolve) => {
+        setImmediate(resolve);
+      });
+
+      expect(proxy.scanCalls()).toStrictEqual([[{ nowMs: NOW }]]);
+    });
+
+    it('VALID: {the running scan finishes} => the next tick scans again', async () => {
+      const proxy = EvaluateHoldLayerResponderProxy();
+      proxy.setupNoHeldState();
+      const { finishScan } = proxy.setupPendingScan({
+        ledger: UsageLedgerStub({
+          buckets: {},
+          cursors: {},
+          ceilings: { fiveHour: null, sevenDay: null },
+        }),
+      });
+
+      EvaluateHoldLayerResponder();
+      finishScan();
+      await new Promise((resolve) => {
+        setImmediate(resolve);
+      });
+      EvaluateHoldLayerResponder();
+      await new Promise((resolve) => {
+        setImmediate(resolve);
+      });
+
+      expect(proxy.scanCalls()).toStrictEqual([[{ nowMs: NOW }], [{ nowMs: NOW }]]);
+    });
+
+    it('VALID: {a tick lands while a scan is still running} => still restores the persisted hold', async () => {
+      const proxy = EvaluateHoldLayerResponderProxy();
+      proxy.setupHeldState();
+      proxy.setupPendingScan({
+        ledger: UsageLedgerStub({
+          buckets: {},
+          cursors: {},
+          ceilings: { fiveHour: null, sevenDay: null },
+        }),
+      });
+
+      // The first tick's scan never finishes, so only the second tick can have evaluated the hold.
+      EvaluateHoldLayerResponder();
+      EvaluateHoldLayerResponder();
+      await new Promise((resolve) => {
+        setImmediate(resolve);
+      });
+
+      expect(orchestrationDispatchState.getHold()).toStrictEqual({
+        reason: 'approaching-limit',
+        window: 'seven-day',
+        detail: '7d window at 93%',
+        heldAt: '2026-09-13T04:49:29.242Z',
+        resumeAt: '2026-09-13T06:00:00.000Z',
+      });
+    });
+
+    it('ERROR: {the scan fails} => logs, and the next tick scans again', async () => {
+      const proxy = EvaluateHoldLayerResponderProxy();
+      proxy.setupNoHeldState();
+      proxy.setupScanFailure();
+
+      EvaluateHoldLayerResponder();
+      await new Promise((resolve) => {
+        setImmediate(resolve);
+      });
+      EvaluateHoldLayerResponder();
+      await new Promise((resolve) => {
+        setImmediate(resolve);
+      });
+
+      expect([proxy.scanCalls(), proxy.stderrLines()]).toStrictEqual([
+        [[{ nowMs: NOW }], [{ nowMs: NOW }]],
+        [['[rate-limits] dispatch hold evaluation failed: EMFILE: too many open files\n']],
+      ]);
+    });
+  });
+
   describe('the caller is a timer tick', () => {
     it('VALID: {any call} => returns success synchronously, before the scan resolves', () => {
       const proxy = EvaluateHoldLayerResponderProxy();
