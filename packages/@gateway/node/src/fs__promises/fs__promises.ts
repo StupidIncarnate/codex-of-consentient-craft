@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Entry point for @dungeonmaster/node/fs/promises, the async half of the fs gateway.
+ * PURPOSE: Entry point for #gateway/node/fs__promises, the async half of the fs gateway.
  * Every function here is our own wrapper; Node's raw `fs/promises` is never re-exported.
  *
  * USAGE:

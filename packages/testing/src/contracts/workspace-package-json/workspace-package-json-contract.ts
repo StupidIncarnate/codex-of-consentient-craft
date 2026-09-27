@@ -6,7 +6,7 @@
  * to the exporting package's `source` file, the same way Node's own `exports` condition would —
  * without that package needing a build first. packageImportsSpecifierResolveMiddleware reads the
  * IMPORTING package's own `imports` map the same way, to resolve a `#`-specifier
- * (`#gateway/npm/_test_`) to its target before that target is itself resolved through `exports`.
+ * (`#gateway/npm/_test_/glob`) to its target before that target is itself resolved through `exports`.
  * An `imports` map entry is either a bare target specifier or a conditions object — Node's own
  * `imports` field allows both shapes, same as `exports`.
  *

@@ -8,7 +8,7 @@
  * value per file.
  *
  * USAGE:
- * resolveGatewayScopeLayerBroker({ filename: '/repo/packages/node/src/fs/index.ts' });
+ * resolveGatewayScopeLayerBroker({ filename: '/repo/packages/@gateway/node/src/fs/fs.ts' });
  * // Returns '@dungeonmaster' as PackageName
  */
 import {

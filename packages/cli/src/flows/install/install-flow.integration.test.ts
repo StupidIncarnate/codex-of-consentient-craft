@@ -58,7 +58,7 @@ describe('InstallFlow', () => {
         success: true,
         action: 'created',
         message:
-          'Added devDependencies to package.json; Created playwright.config.ts; Created tsconfig.json; Created jest.config.js; added packages/@gateway/* to workspaces; scaffolded gateway packages: npm, node, browser, bin; added gateway paths to tsconfig.json; updated imports in 0 existing package(s); updated tsconfig.json paths in 0 existing package(s); updated tsconfig.build.json paths in 0 existing package(s)',
+          'Added devDependencies to package.json; Created playwright.config.ts; Created tsconfig.json; Created jest.config.js; added packages/@gateway/* to workspaces; scaffolded gateway packages: npm, node, browser, bin; tsconfig.json already resolves node16; updated imports in 0 existing package(s); set gateway-dist in tsconfig.build.json of 0 existing package(s)',
       });
       expect(packageJsonContent).toMatch(/^\s*"devDependencies": \{$/mu);
       expect(packageJsonContent).toMatch(/^\s*"typescript": "\^5\.8\.3"$/mu);
@@ -124,7 +124,7 @@ describe('InstallFlow', () => {
         success: true,
         action: 'created',
         message:
-          'All devDependencies already present; playwright.config.ts already exists; tsconfig.json already exists; jest.config.js already exists; added packages/@gateway/* to workspaces; scaffolded gateway packages: npm, node, browser, bin; tsconfig.json gateway paths already present; updated imports in 0 existing package(s); updated tsconfig.json paths in 0 existing package(s); updated tsconfig.build.json paths in 0 existing package(s)',
+          'All devDependencies already present; playwright.config.ts already exists; tsconfig.json already exists; jest.config.js already exists; added packages/@gateway/* to workspaces; scaffolded gateway packages: npm, node, browser, bin; tsconfig.json already resolves node16; updated imports in 0 existing package(s); set gateway-dist in tsconfig.build.json of 0 existing package(s)',
       });
       expect(playwrightConfigContent).toBe('// existing user config\n');
     });
@@ -154,7 +154,7 @@ describe('InstallFlow', () => {
         success: true,
         action: 'created',
         message:
-          'Added devDependencies to package.json; target project is not e2e-eligible (packageType is not frontend-react or frontend-ink); Created tsconfig.json; Created jest.config.js; added packages/@gateway/* to workspaces; scaffolded gateway packages: npm, node, browser, bin; added gateway paths to tsconfig.json; updated imports in 0 existing package(s); updated tsconfig.json paths in 0 existing package(s); updated tsconfig.build.json paths in 0 existing package(s)',
+          'Added devDependencies to package.json; target project is not e2e-eligible (packageType is not frontend-react or frontend-ink); Created tsconfig.json; Created jest.config.js; added packages/@gateway/* to workspaces; scaffolded gateway packages: npm, node, browser, bin; tsconfig.json already resolves node16; updated imports in 0 existing package(s); set gateway-dist in tsconfig.build.json of 0 existing package(s)',
       });
       expect(playwrightConfigContent).toBe(null);
     });
@@ -192,14 +192,14 @@ describe('InstallFlow', () => {
         success: true,
         action: 'created',
         message:
-          'Added devDependencies to package.json; target project is not e2e-eligible (packageType is not frontend-react or frontend-ink); Created tsconfig.json; target project has npm workspaces (each package owns its own jest.config.js); added packages/@gateway/* to workspaces; scaffolded gateway packages: npm, node, browser, bin; added gateway paths to tsconfig.json; updated imports in 0 existing package(s); updated tsconfig.json paths in 0 existing package(s); updated tsconfig.build.json paths in 0 existing package(s)',
+          'Added devDependencies to package.json; target project is not e2e-eligible (packageType is not frontend-react or frontend-ink); Created tsconfig.json; target project has npm workspaces (each package owns its own jest.config.js); added packages/@gateway/* to workspaces; scaffolded gateway packages: npm, node, browser, bin; tsconfig.json already resolves node16; updated imports in 0 existing package(s); set gateway-dist in tsconfig.build.json of 0 existing package(s)',
       });
       expect(jestConfigContent).toBe(null);
     });
   });
 
   describe('setup-gateway', () => {
-    it('VALID: {scoped root name, two packages — one with its own tsconfig paths, one with an existing imports entry} => scaffolds the four gateway packages, wires every package in, and a second run changes nothing', async () => {
+    it('VALID: {scoped root name, two packages — one with a build config and its own paths, one with an existing imports entry} => scaffolds the four gateway packages, wires every package in, and a second run changes nothing', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'flow-gateway-scoped' }),
       });
@@ -297,6 +297,7 @@ describe('InstallFlow', () => {
         version: '0.1.0',
         description:
           'Gateway package: one subpath per third-party npm package our code imports, named for it',
+        sideEffects: false,
         imports: {
           '#gateway/npm/*': '@acme/npm/*',
           '#gateway/node/*': '@acme/node/*',
@@ -304,20 +305,21 @@ describe('InstallFlow', () => {
           '#gateway/bin/*': '@acme/bin/*',
         },
         exports: {
-          './_test_': {
-            source: './src/_test_/index.ts',
-            import: './dist/_test_/index.js',
-            require: './dist/_test_/index.js',
-            types: './dist/_test_/index.d.ts',
+          './_test_/*': {
+            'gateway-dist': './dist/*/*.proxy.d.ts',
+            source: './src/*/*.proxy.ts',
+            import: './dist/*/*.proxy.js',
+            require: './dist/*/*.proxy.js',
+            types: './dist/*/*.proxy.d.ts',
           },
           './*': {
-            source: './src/*/index.ts',
-            import: './dist/*/index.js',
-            require: './dist/*/index.js',
-            types: './dist/*/index.d.ts',
+            'gateway-dist': './dist/*/*.d.ts',
+            source: './src/*/*.ts',
+            import: './dist/*/*.js',
+            require: './dist/*/*.js',
+            types: './dist/*/*.d.ts',
           },
         },
-        typesVersions: { '*': { '*': ['src/*/index.ts', 'src/*'] } },
         files: ['dist'],
         scripts: {
           build: 'tsc -p tsconfig.build.json',
@@ -335,16 +337,37 @@ describe('InstallFlow', () => {
       });
       expect(
         testbed.readFile({
-          relativePath: RelativePathStub({ value: 'packages/@gateway/npm/src/_test_/index.ts' }),
+          relativePath: RelativePathStub({ value: 'packages/@gateway/npm/src/index.d.ts' }),
         }),
-      ).toBe(`/**
- * PURPOSE: Caller-facing proxy surface for @acme/npm's wrapped modules. Empty until
- * a wrapped (non-pass-through) module needs a proxy a caller can import.
- *
- * USAGE:
- * import { exampleProxy } from '@acme/npm/_test_';
- */
+      )
+        .toBe(`// Keeps this package compiling while it holds no subpath: tsc refuses a config that matches no
+// file. Delete it once the first src/<subpath>/<subpath>.ts exists.
+export {};
 `);
+
+      // node and browser arrive holding dungeonmaster's own source, copied from the installed
+      // packages: a wrapper folder with its companions, and browser's jsdom polyfill beside src.
+      expect(
+        testbed.listDir({
+          relativePath: RelativePathStub({
+            value: 'packages/@gateway/node/src/fs__promises/copy-dir-contents-entries-recurse',
+          }),
+        }),
+      ).toStrictEqual([
+        'copy-dir-contents-entries-recurse.proxy.ts',
+        'copy-dir-contents-entries-recurse.test.ts',
+        'copy-dir-contents-entries-recurse.ts',
+      ]);
+      expect(
+        testbed.listDir({
+          relativePath: RelativePathStub({ value: 'packages/@gateway/browser/__mocks__' }),
+        }),
+      ).toStrictEqual(['jsdom-polyfills.cjs']);
+      expect(
+        testbed.listDir({
+          relativePath: RelativePathStub({ value: 'packages/@gateway/bin/src' }),
+        }),
+      ).toStrictEqual(['index.d.ts']);
 
       // Every folder was scaffolded, named for the repo's own scope — a substring check on the raw
       // text (not a JSON.parse + property access) since only the name needs proving here, the full
@@ -367,25 +390,10 @@ describe('InstallFlow', () => {
         extends: '@dungeonmaster/eslint-plugin/tsconfig',
         compilerOptions: {
           noEmit: true,
+          module: 'node16',
+          moduleResolution: 'node16',
+          customConditions: ['source'],
           typeRoots: ['./node_modules/@types', './@types'],
-          paths: {
-            '#gateway/npm/*': [
-              './packages/@gateway/npm/src/*/index.ts',
-              './packages/@gateway/npm/src/*',
-            ],
-            '#gateway/node/*': [
-              './packages/@gateway/node/src/*/index.ts',
-              './packages/@gateway/node/src/*',
-            ],
-            '#gateway/browser/*': [
-              './packages/@gateway/browser/src/*/index.ts',
-              './packages/@gateway/browser/src/*',
-            ],
-            '#gateway/bin/*': [
-              './packages/@gateway/bin/src/*/index.ts',
-              './packages/@gateway/bin/src/*',
-            ],
-          },
         },
         files: [],
       });
@@ -420,16 +428,7 @@ describe('InstallFlow', () => {
       expect(pkgATsconfig).toStrictEqual({
         extends: '../../tsconfig.json',
         compilerOptions: {
-          paths: {
-            '#alias/*': ['./src/*'],
-            '#gateway/npm/*': ['../@gateway/npm/src/*/index.ts', '../@gateway/npm/src/*'],
-            '#gateway/node/*': ['../@gateway/node/src/*/index.ts', '../@gateway/node/src/*'],
-            '#gateway/browser/*': [
-              '../@gateway/browser/src/*/index.ts',
-              '../@gateway/browser/src/*',
-            ],
-            '#gateway/bin/*': ['../@gateway/bin/src/*/index.ts', '../@gateway/bin/src/*'],
-          },
+          paths: { '#alias/*': ['./src/*'] },
         },
       });
 
@@ -445,12 +444,7 @@ describe('InstallFlow', () => {
         extends: './tsconfig.json',
         compilerOptions: {
           outDir: './dist',
-          paths: {
-            '#gateway/npm/*': ['../@gateway/npm/dist/*/index.d.ts'],
-            '#gateway/node/*': ['../@gateway/node/dist/*/index.d.ts'],
-            '#gateway/browser/*': ['../@gateway/browser/dist/*/index.d.ts'],
-            '#gateway/bin/*': ['../@gateway/bin/dist/*/index.d.ts'],
-          },
+          customConditions: ['gateway-dist', 'source'],
         },
       });
 
@@ -474,8 +468,8 @@ describe('InstallFlow', () => {
         },
       });
 
-      // pkg-b never declared its own tsconfig paths, so the merge leaves it untouched — it
-      // inherits the root's paths via `extends` instead of getting its own copy.
+      // A package's own tsconfig.json is never touched: it inherits node16 resolution from the root
+      // via `extends`. Only a tsconfig.build.json gets the gateway-dist condition.
       const pkgBTsconfigBefore = String(
         testbed.readFile({
           relativePath: RelativePathStub({ value: 'packages/pkg-b/tsconfig.json' }),
@@ -492,6 +486,7 @@ describe('InstallFlow', () => {
         RelativePathStub({ value: 'packages/@gateway/npm/package.json' }),
         RelativePathStub({ value: 'packages/@gateway/npm/tsconfig.json' }),
         RelativePathStub({ value: 'packages/@gateway/npm/tsconfig.build.json' }),
+        RelativePathStub({ value: 'packages/@gateway/node/src/fs/fs.ts' }),
         RelativePathStub({ value: 'packages/pkg-a/package.json' }),
         RelativePathStub({ value: 'packages/pkg-a/tsconfig.json' }),
         RelativePathStub({ value: 'packages/pkg-a/tsconfig.build.json' }),
@@ -554,6 +549,7 @@ describe('InstallFlow', () => {
         version: '0.1.0',
         description:
           'Gateway package: one subpath per third-party npm package our code imports, named for it',
+        sideEffects: false,
         imports: {
           '#gateway/npm/*': '@my-app/npm/*',
           '#gateway/node/*': '@my-app/node/*',
@@ -561,20 +557,21 @@ describe('InstallFlow', () => {
           '#gateway/bin/*': '@my-app/bin/*',
         },
         exports: {
-          './_test_': {
-            source: './src/_test_/index.ts',
-            import: './dist/_test_/index.js',
-            require: './dist/_test_/index.js',
-            types: './dist/_test_/index.d.ts',
+          './_test_/*': {
+            'gateway-dist': './dist/*/*.proxy.d.ts',
+            source: './src/*/*.proxy.ts',
+            import: './dist/*/*.proxy.js',
+            require: './dist/*/*.proxy.js',
+            types: './dist/*/*.proxy.d.ts',
           },
           './*': {
-            source: './src/*/index.ts',
-            import: './dist/*/index.js',
-            require: './dist/*/index.js',
-            types: './dist/*/index.d.ts',
+            'gateway-dist': './dist/*/*.d.ts',
+            source: './src/*/*.ts',
+            import: './dist/*/*.js',
+            require: './dist/*/*.js',
+            types: './dist/*/*.d.ts',
           },
         },
-        typesVersions: { '*': { '*': ['src/*/index.ts', 'src/*'] } },
         files: ['dist'],
         scripts: {
           build: 'tsc -p tsconfig.build.json',

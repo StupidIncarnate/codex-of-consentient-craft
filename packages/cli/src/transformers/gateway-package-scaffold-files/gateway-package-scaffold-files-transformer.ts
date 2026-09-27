@@ -1,13 +1,15 @@
 /**
  * PURPOSE: The pure file-building half of scaffolding ONE gateway workspace package —
- * `packages/@gateway/<folder>` — matching what `packages/@gateway/{npm,node,browser,bin}` already
- * carry in this repo byte-for-byte, parameterized by scope and folder. No wrapper modules: a fresh
- * gateway package holds only its configs and an empty `_test_` proxy barrel, exactly like
- * `packages/@gateway/node` before its first wrapped module existed.
+ * `packages/@gateway/<folder>` — matching what `packages/@gateway/{npm,node,browser,bin}` carry in
+ * this repo, parameterized by scope and folder: the package.json with its `imports`, `exports`
+ * (`./*` to `./src/*\/*.ts`, `./_test_/*` to `./src/*\/*.proxy.ts`, each led by `gateway-dist`) and
+ * `sideEffects: false`, both tsconfigs, and a Jest config. node and browser get their source copied
+ * in afterwards (`gatewaySourceCopyBroker`); npm and bin start with no subpath, so they get the
+ * placeholder `src/index.d.ts` that keeps an empty package compiling.
  *
  * USAGE:
  * gatewayPackageScaffoldFilesTransformer({ scope: PathSegmentStub({value: '@acme'}), folder: 'npm' });
- * // Returns the five ScaffoldFile entries for packages/@gateway/npm, relative to that package's own root
+ * // Returns the ScaffoldFile entries for packages/@gateway/npm, relative to that package's own root
  */
 
 import { pathSegmentContract, fileContentsContract } from '@dungeonmaster/shared/contracts';
@@ -20,8 +22,8 @@ import {
   type GatewayFolder,
 } from '../../statics/gateway-folders/gateway-folders-statics';
 import { gatewayPackageTemplateStatics } from '../../statics/gateway-package-template/gateway-package-template-statics';
+import { gatewaySourceCopyStatics } from '../../statics/gateway-source-copy/gateway-source-copy-statics';
 import { gatewayImportsFieldTransformer } from '../gateway-imports-field/gateway-imports-field-transformer';
-import { gatewayTsconfigPathsDeclarationValuesTransformer } from '../gateway-tsconfig-paths-declaration-values/gateway-tsconfig-paths-declaration-values-transformer';
 
 const JSON_INDENT = gatewayPackageTemplateStatics.jsonIndentSpaces;
 
@@ -33,34 +35,39 @@ export const gatewayPackageScaffoldFilesTransformer = ({
   folder: GatewayFolder;
 }): readonly ScaffoldFile[] => {
   const packageName = `${String(scope)}/${folder}`;
+  const receivesCopiedSource = Object.hasOwn(gatewaySourceCopyStatics.sources, folder);
 
   const packageJsonObject = {
     name: packageName,
     version: gatewayPackageTemplateStatics.packageVersion,
     description: gatewayFoldersStatics.descriptions[folder],
+    sideEffects: false,
     imports: gatewayImportsFieldTransformer({ scope }),
     exports: {
-      './_test_': {
-        source: './src/_test_/index.ts',
-        import: './dist/_test_/index.js',
-        require: './dist/_test_/index.js',
-        types: './dist/_test_/index.d.ts',
+      './_test_/*': {
+        'gateway-dist': './dist/*/*.proxy.d.ts',
+        source: './src/*/*.proxy.ts',
+        import: './dist/*/*.proxy.js',
+        require: './dist/*/*.proxy.js',
+        types: './dist/*/*.proxy.d.ts',
       },
       './*': {
-        source: './src/*/index.ts',
-        import: './dist/*/index.js',
-        require: './dist/*/index.js',
-        types: './dist/*/index.d.ts',
-      },
-    },
-    typesVersions: {
-      '*': {
-        '*': ['src/*/index.ts', 'src/*'],
+        'gateway-dist': './dist/*/*.d.ts',
+        source: './src/*/*.ts',
+        import: './dist/*/*.js',
+        require: './dist/*/*.js',
+        types: './dist/*/*.d.ts',
       },
     },
     files: gatewayPackageTemplateStatics.files,
     scripts: gatewayPackageTemplateStatics.scripts,
-    devDependencies: gatewayPackageTemplateStatics.devDependencies,
+    devDependencies:
+      folder === 'browser'
+        ? {
+            ...gatewayPackageTemplateStatics.devDependencies,
+            ...gatewaySourceCopyStatics.browserDevDependencies,
+          }
+        : gatewayPackageTemplateStatics.devDependencies,
     publishConfig: gatewayPackageTemplateStatics.publishConfig,
   };
 
@@ -69,25 +76,8 @@ export const gatewayPackageScaffoldFilesTransformer = ({
       typeRoots: gatewayPackageTemplateStatics.typeRoots,
     },
     include: gatewayPackageTemplateStatics.include,
+    exclude: gatewayPackageTemplateStatics.exclude,
     extends: gatewayPackageTemplateStatics.tsconfigExtends,
-  };
-
-  // Every SIBLING folder points at its emitted declaration; this package's OWN entry points at its
-  // own source instead — pointing it at `./dist` would be a chicken-and-egg 5055/2307 on a clean
-  // build, since that dist is this same compilation's own not-yet-written output. Written as a
-  // literal (not built from `gatewayFoldersStatics.folders` via `Object.fromEntries`) so its type is
-  // the exact four-key `Record<GatewayFolder, string>` the values transformer expects, with no cast.
-  const siblingDeclarationPaths = gatewayTsconfigPathsDeclarationValuesTransformer({
-    relativeToGatewayFolders: {
-      npm: '../npm',
-      node: '../node',
-      browser: '../browser',
-      bin: '../bin',
-    },
-  });
-  const buildPaths = {
-    ...siblingDeclarationPaths,
-    [`#gateway/${folder}/*`]: ['./src/*/index.ts'],
   };
 
   const tsconfigBuildObject = {
@@ -100,27 +90,10 @@ export const gatewayPackageScaffoldFilesTransformer = ({
       declaration: true,
       incremental: true,
       tsBuildInfoFile: './.ward/build.tsbuildinfo',
-      paths: buildPaths,
+      customConditions: gatewayPackageTemplateStatics.buildCustomConditions,
     },
-    exclude: [
-      '**/*.test.ts',
-      '**/*.test.tsx',
-      '**/*.proxy.ts',
-      '**/*.stub.ts',
-      '**/*.harness.ts',
-      '@types/**/*',
-      'dist',
-    ],
+    exclude: gatewayPackageTemplateStatics.buildExclude,
   };
-
-  const testBarrelContents = `/**
- * PURPOSE: Caller-facing proxy surface for ${packageName}'s wrapped modules. Empty until
- * a wrapped (non-pass-through) module needs a proxy a caller can import.
- *
- * USAGE:
- * import { exampleProxy } from '${packageName}/_test_';
- */
-`;
 
   return [
     scaffoldFileContract.parse({
@@ -143,11 +116,19 @@ export const gatewayPackageScaffoldFilesTransformer = ({
     }),
     scaffoldFileContract.parse({
       relativePath: pathSegmentContract.parse('jest.config.js'),
-      contents: fileContentsContract.parse(gatewayPackageTemplateStatics.jestConfigContent),
+      contents: fileContentsContract.parse(
+        folder === 'browser'
+          ? gatewayPackageTemplateStatics.browserJestConfigContent
+          : gatewayPackageTemplateStatics.jestConfigContent,
+      ),
     }),
-    scaffoldFileContract.parse({
-      relativePath: pathSegmentContract.parse('src/_test_/index.ts'),
-      contents: fileContentsContract.parse(testBarrelContents),
-    }),
+    ...(receivesCopiedSource
+      ? []
+      : [
+          scaffoldFileContract.parse({
+            relativePath: pathSegmentContract.parse(gatewayPackageTemplateStatics.placeholderPath),
+            contents: fileContentsContract.parse(gatewayPackageTemplateStatics.placeholderContent),
+          }),
+        ]),
   ];
 };

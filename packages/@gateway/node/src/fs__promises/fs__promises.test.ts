@@ -71,7 +71,7 @@ const EXPECTED_EXPORTS: readonly { name: string; direct: unknown }[] = [
   { name: 'symlink', direct: symlink },
 ];
 
-describe('@dungeonmaster/node/fs/promises barrel', () => {
+describe('#gateway/node/fs__promises barrel', () => {
   it.each(EXPECTED_EXPORTS)(
     'VALID: {export: $name} => the barrel re-exports the same function reference',
     ({ name, direct }) => {

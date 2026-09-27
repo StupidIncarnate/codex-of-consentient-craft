@@ -24,9 +24,10 @@ eventual callers.
 ## 2. The four gateway packages
 
 The layout below — an `index.ts` barrel per subpath, one `_test_` barrel per package — is what the build
-shipped. `scrolls/gateway/followup-sustainability.md`, "Gateway standards decided," sets the layout the
-gateway moves to next, and its "Restructure `packages/@gateway` to the standards" section has the steps;
-neither has started yet.
+shipped. The gateway has since moved to the layout `scrolls/gateway/followup-sustainability.md` sets out
+under "Gateway standards decided": one folder per subpath and per wrapper, a barrel named after its
+folder, and a `_test_` barrel per subpath. That file's "Restructure `packages/@gateway` to the standards"
+section records the before and after.
 
 Every gateway package now lives at `packages/@gateway/<folder>/`, moved there from `packages/<folder>/`.
 The package `name`s did not change (`@dungeonmaster/npm`, `@dungeonmaster/node`,

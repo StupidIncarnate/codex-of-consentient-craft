@@ -6,10 +6,10 @@ import {
 import type { FilePath, FileName } from '@dungeonmaster/shared/contracts';
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
-import { pathRelativeAdapterProxy } from '../../../adapters/path/relative/path-relative-adapter.proxy';
 import { packageScaffoldWriteBrokerProxy } from '../../../brokers/package/scaffold-write/package-scaffold-write-broker.proxy';
 import { gatewayExistingPackagesListBrokerProxy } from '../../../brokers/gateway/existing-packages-list/gateway-existing-packages-list-broker.proxy';
-import { gatewayTsconfigPathsWriteBrokerProxy } from '../../../brokers/gateway/tsconfig-paths-write/gateway-tsconfig-paths-write-broker.proxy';
+import { gatewayTsconfigCompilerOptionsWriteBrokerProxy } from '../../../brokers/gateway/tsconfig-compiler-options-write/gateway-tsconfig-compiler-options-write-broker.proxy';
+import { gatewaySourceCopyBrokerProxy } from '../../../brokers/gateway/source-copy/gateway-source-copy-broker.proxy';
 
 export const InstallSetupGatewayResponderProxy = (): {
   setupNoRootPackageJson: (params: { rootPackageJsonPath: FilePath }) => void;
@@ -25,16 +25,18 @@ export const InstallSetupGatewayResponderProxy = (): {
   setupPackageTsconfig: (params: { tsconfigPath: FilePath; content: string }) => void;
   setupPackageTsconfigBuildMissing: (params: { tsconfigBuildPath: FilePath }) => void;
   getWrittenFiles: () => readonly { path: unknown; content: unknown }[];
+  getCopiedSources: () => readonly unknown[];
 } => {
   pathJoinAdapterProxy();
   pathBasenameAdapterProxy();
-  pathRelativeAdapterProxy();
   const existsProxy = fsExistsSyncAdapterProxy();
   const readProxy = fsReadFileAdapterProxy();
   const writeProxy = fsWriteFileAdapterProxy();
   packageScaffoldWriteBrokerProxy();
   const existingPackagesProxy = gatewayExistingPackagesListBrokerProxy();
-  const tsconfigWriteProxy = gatewayTsconfigPathsWriteBrokerProxy();
+  const tsconfigWriteProxy = gatewayTsconfigCompilerOptionsWriteBrokerProxy();
+  const sourceCopyProxy = gatewaySourceCopyBrokerProxy();
+  sourceCopyProxy.copySucceeds();
 
   return {
     setupNoRootPackageJson: ({ rootPackageJsonPath }): void => {
@@ -78,5 +80,7 @@ export const InstallSetupGatewayResponderProxy = (): {
 
     getWrittenFiles: (): readonly { path: unknown; content: unknown }[] =>
       writeProxy.getAllWrittenFiles(),
+
+    getCopiedSources: (): readonly unknown[] => sourceCopyProxy.copiedSources(),
   };
 };

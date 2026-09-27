@@ -10,7 +10,7 @@ const fileNamed = ({
 }) => files.find((file) => String(file.relativePath) === relativePath);
 
 describe('gatewayPackageScaffoldFilesTransformer', () => {
-  it('VALID: {scope: "@acme", folder: "npm"} => builds five files, relative to the package root', () => {
+  it('VALID: {folder: "npm"} => builds the configs plus the placeholder that keeps an empty package compiling', () => {
     const files = gatewayPackageScaffoldFilesTransformer({
       scope: PathSegmentStub({ value: '@acme' }),
       folder: 'npm',
@@ -21,11 +21,25 @@ describe('gatewayPackageScaffoldFilesTransformer', () => {
       'tsconfig.json',
       'tsconfig.build.json',
       'jest.config.js',
-      'src/_test_/index.ts',
+      'src/index.d.ts',
     ]);
   });
 
-  it('VALID: {scope: "@acme", folder: "npm"} => package.json names it @acme/npm with the four-entry imports map and no dependencies', () => {
+  it('VALID: {folder: "node"} => builds only the configs, since its source is copied in', () => {
+    const files = gatewayPackageScaffoldFilesTransformer({
+      scope: PathSegmentStub({ value: '@acme' }),
+      folder: 'node',
+    });
+
+    expect(files.map((file) => String(file.relativePath))).toStrictEqual([
+      'package.json',
+      'tsconfig.json',
+      'tsconfig.build.json',
+      'jest.config.js',
+    ]);
+  });
+
+  it('VALID: {folder: "npm"} => package.json carries the per-subpath exports, sideEffects false and no typesVersions', () => {
     const files = gatewayPackageScaffoldFilesTransformer({
       scope: PathSegmentStub({ value: '@acme' }),
       folder: 'npm',
@@ -39,6 +53,7 @@ describe('gatewayPackageScaffoldFilesTransformer', () => {
       version: '0.1.0',
       description:
         'Gateway package: one subpath per third-party npm package our code imports, named for it',
+      sideEffects: false,
       imports: {
         '#gateway/npm/*': '@acme/npm/*',
         '#gateway/node/*': '@acme/node/*',
@@ -46,20 +61,21 @@ describe('gatewayPackageScaffoldFilesTransformer', () => {
         '#gateway/bin/*': '@acme/bin/*',
       },
       exports: {
-        './_test_': {
-          source: './src/_test_/index.ts',
-          import: './dist/_test_/index.js',
-          require: './dist/_test_/index.js',
-          types: './dist/_test_/index.d.ts',
+        './_test_/*': {
+          'gateway-dist': './dist/*/*.proxy.d.ts',
+          source: './src/*/*.proxy.ts',
+          import: './dist/*/*.proxy.js',
+          require: './dist/*/*.proxy.js',
+          types: './dist/*/*.proxy.d.ts',
         },
         './*': {
-          source: './src/*/index.ts',
-          import: './dist/*/index.js',
-          require: './dist/*/index.js',
-          types: './dist/*/index.d.ts',
+          'gateway-dist': './dist/*/*.d.ts',
+          source: './src/*/*.ts',
+          import: './dist/*/*.js',
+          require: './dist/*/*.js',
+          types: './dist/*/*.d.ts',
         },
       },
-      typesVersions: { '*': { '*': ['src/*/index.ts', 'src/*'] } },
       files: ['dist'],
       scripts: {
         build: 'tsc -p tsconfig.build.json',
@@ -77,19 +93,20 @@ describe('gatewayPackageScaffoldFilesTransformer', () => {
     });
   });
 
-  it('VALID: {scope: "@acme", folder: "bin"} => package.json description matches the bin folder\'s own', () => {
+  it('VALID: {folder: "browser"} => package.json adds the jsdom test dependencies', () => {
     const files = gatewayPackageScaffoldFilesTransformer({
       scope: PathSegmentStub({ value: '@acme' }),
-      folder: 'bin',
+      folder: 'browser',
     });
     const packageJson = JSON.parse(
       String(fileNamed({ files, relativePath: 'package.json' })?.contents),
     );
 
     expect(packageJson).toStrictEqual({
-      name: '@acme/bin',
+      name: '@acme/browser',
       version: '0.1.0',
-      description: 'Gateway package: programs installed on the machine, run through spawn',
+      description: 'Gateway package: everything the browser provides — globals and browser APIs',
+      sideEffects: false,
       imports: {
         '#gateway/npm/*': '@acme/npm/*',
         '#gateway/node/*': '@acme/node/*',
@@ -97,20 +114,21 @@ describe('gatewayPackageScaffoldFilesTransformer', () => {
         '#gateway/bin/*': '@acme/bin/*',
       },
       exports: {
-        './_test_': {
-          source: './src/_test_/index.ts',
-          import: './dist/_test_/index.js',
-          require: './dist/_test_/index.js',
-          types: './dist/_test_/index.d.ts',
+        './_test_/*': {
+          'gateway-dist': './dist/*/*.proxy.d.ts',
+          source: './src/*/*.proxy.ts',
+          import: './dist/*/*.proxy.js',
+          require: './dist/*/*.proxy.js',
+          types: './dist/*/*.proxy.d.ts',
         },
         './*': {
-          source: './src/*/index.ts',
-          import: './dist/*/index.js',
-          require: './dist/*/index.js',
-          types: './dist/*/index.d.ts',
+          'gateway-dist': './dist/*/*.d.ts',
+          source: './src/*/*.ts',
+          import: './dist/*/*.js',
+          require: './dist/*/*.js',
+          types: './dist/*/*.d.ts',
         },
       },
-      typesVersions: { '*': { '*': ['src/*/index.ts', 'src/*'] } },
       files: ['dist'],
       scripts: {
         build: 'tsc -p tsconfig.build.json',
@@ -123,12 +141,14 @@ describe('gatewayPackageScaffoldFilesTransformer', () => {
       devDependencies: {
         '@types/node': '^24.0.15',
         typescript: '^5.8.3',
+        'jest-environment-jsdom': '^30.0.0',
+        undici: '^7.21.0',
       },
       publishConfig: { access: 'public' },
     });
   });
 
-  it('VALID: {scope: "@acme", folder: "npm"} => tsconfig.json extends the repo root three levels up', () => {
+  it('VALID: {folder: "npm"} => tsconfig.json extends the repo root three levels up and excludes dist', () => {
     const files = gatewayPackageScaffoldFilesTransformer({
       scope: PathSegmentStub({ value: '@acme' }),
       folder: 'npm',
@@ -142,11 +162,12 @@ describe('gatewayPackageScaffoldFilesTransformer', () => {
         typeRoots: ['../../../node_modules/@types', '../../../@types', './@types'],
       },
       include: ['**/*.ts', '@types/**/*'],
+      exclude: ['node_modules', 'dist'],
       extends: '../../../tsconfig.json',
     });
   });
 
-  it('VALID: {scope: "@acme", folder: "npm"} => tsconfig.build.json points the other three folders at dist and itself at src', () => {
+  it('VALID: {folder: "npm"} => tsconfig.build.json reads other gateways through gateway-dist and ships proxies and stubs', () => {
     const files = gatewayPackageScaffoldFilesTransformer({
       scope: PathSegmentStub({ value: '@acme' }),
       folder: 'npm',
@@ -165,94 +186,59 @@ describe('gatewayPackageScaffoldFilesTransformer', () => {
         declaration: true,
         incremental: true,
         tsBuildInfoFile: './.ward/build.tsbuildinfo',
-        paths: {
-          '#gateway/npm/*': ['./src/*/index.ts'],
-          '#gateway/node/*': ['../node/dist/*/index.d.ts'],
-          '#gateway/browser/*': ['../browser/dist/*/index.d.ts'],
-          '#gateway/bin/*': ['../bin/dist/*/index.d.ts'],
-        },
+        customConditions: ['gateway-dist', 'source'],
       },
-      exclude: [
-        '**/*.test.ts',
-        '**/*.test.tsx',
-        '**/*.proxy.ts',
-        '**/*.stub.ts',
-        '**/*.harness.ts',
-        '@types/**/*',
-        'dist',
-      ],
+      exclude: ['**/*.test.ts', '**/*.test.tsx', '**/*.harness.ts', '@types/**/*', 'dist'],
     });
   });
 
-  it('VALID: {scope: "@acme", folder: "bin"} => tsconfig.build.json points itself at src and every OTHER folder at dist', () => {
+  it('VALID: {folder: "node"} => jest.config.js spreads the published @dungeonmaster/testing base', () => {
     const files = gatewayPackageScaffoldFilesTransformer({
       scope: PathSegmentStub({ value: '@acme' }),
-      folder: 'bin',
-    });
-    const tsconfigBuild = JSON.parse(
-      String(fileNamed({ files, relativePath: 'tsconfig.build.json' })?.contents),
-    );
-
-    expect(tsconfigBuild).toStrictEqual({
-      extends: './tsconfig.json',
-      compilerOptions: {
-        noEmit: false,
-        rootDir: './src',
-        outDir: './dist',
-        declarationMap: true,
-        declaration: true,
-        incremental: true,
-        tsBuildInfoFile: './.ward/build.tsbuildinfo',
-        paths: {
-          '#gateway/npm/*': ['../npm/dist/*/index.d.ts'],
-          '#gateway/node/*': ['../node/dist/*/index.d.ts'],
-          '#gateway/browser/*': ['../browser/dist/*/index.d.ts'],
-          '#gateway/bin/*': ['./src/*/index.ts'],
-        },
-      },
-      exclude: [
-        '**/*.test.ts',
-        '**/*.test.tsx',
-        '**/*.proxy.ts',
-        '**/*.stub.ts',
-        '**/*.harness.ts',
-        '@types/**/*',
-        'dist',
-      ],
-    });
-  });
-
-  it('VALID: {scope: "@acme", folder: "npm"} => jest.config.js spreads the repo-root base three levels up', () => {
-    const files = gatewayPackageScaffoldFilesTransformer({
-      scope: PathSegmentStub({ value: '@acme' }),
-      folder: 'npm',
+      folder: 'node',
     });
 
-    expect(fileNamed({ files, relativePath: 'jest.config.js' })?.contents).toBe(
-      `// Extend shared Jest configuration
-const baseConfig = require('../../../jest.config.base.js');
+    expect(String(fileNamed({ files, relativePath: 'jest.config.js' })?.contents)).toBe(
+      `const base = require('@dungeonmaster/testing/jest-config-base');
 
 module.exports = {
-  ...baseConfig,
+  ...base,
 };
 `,
     );
   });
 
-  it('VALID: {scope: "@acme", folder: "npm"} => src/_test_/index.ts is an empty proxy barrel naming the package', () => {
+  it('VALID: {folder: "browser"} => jest.config.js runs under jsdom with the copied polyfill', () => {
     const files = gatewayPackageScaffoldFilesTransformer({
       scope: PathSegmentStub({ value: '@acme' }),
-      folder: 'npm',
+      folder: 'browser',
     });
 
-    expect(fileNamed({ files, relativePath: 'src/_test_/index.ts' })?.contents).toBe(
-      `/**
- * PURPOSE: Caller-facing proxy surface for @acme/npm's wrapped modules. Empty until
- * a wrapped (non-pass-through) module needs a proxy a caller can import.
- *
- * USAGE:
- * import { exampleProxy } from '@acme/npm/_test_';
- */
+    expect(String(fileNamed({ files, relativePath: 'jest.config.js' })?.contents)).toBe(
+      `// A jsdom environment: this package wraps browser globals (fetch, localStorage, WebSocket,
+// indexedDB, document, ...), none of which exist under the base config's Node environment.
+const base = require('@dungeonmaster/testing/jest-config-base');
+
+module.exports = {
+  ...base,
+  testEnvironment: 'jsdom',
+  testEnvironmentOptions: { url: 'http://localhost' },
+  setupFiles: ['<rootDir>/__mocks__/jsdom-polyfills.cjs'],
+};
+`,
+    );
+  });
+
+  it('VALID: {folder: "bin"} => the placeholder is an empty module declaration', () => {
+    const files = gatewayPackageScaffoldFilesTransformer({
+      scope: PathSegmentStub({ value: '@acme' }),
+      folder: 'bin',
+    });
+
+    expect(String(fileNamed({ files, relativePath: 'src/index.d.ts' })?.contents)).toBe(
+      `// Keeps this package compiling while it holds no subpath: tsc refuses a config that matches no
+// file. Delete it once the first src/<subpath>/<subpath>.ts exists.
+export {};
 `,
     );
   });

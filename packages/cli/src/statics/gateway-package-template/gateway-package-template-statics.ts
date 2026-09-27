@@ -6,10 +6,13 @@
  * static and drifting from the packages a consumer will actually run `npm install` against.
  *
  * `devDependencies` deliberately OMITS `@dungeonmaster/testing`, unlike this repo's own gateway
- * packages: theirs resolves through THIS monorepo's own workspace symlink, never the public
- * registry, but a freshly scaffolded package in a consumer repo has no such workspace member —
- * `npm install` 404s on it there. A fresh scaffold ships no wrapper module and no test file yet
- * either, so nothing needs it until the consumer adds one.
+ * packages: `init` already lists it at the consumer's root, and npm hoists it from there to the
+ * copied node and browser proxies that import it.
+ *
+ * The Jest configs spread the PUBLISHED `@dungeonmaster/testing/jest-config-base`, never this
+ * repo's root `jest.config.base.js`, which does not exist in a consumer repo. `placeholderContent`
+ * is the one input a gateway package with no subpath yet (npm, bin) needs, since `tsc` refuses a
+ * config that matches no file at all.
  *
  * USAGE:
  * gatewayPackageTemplateStatics.tsconfigExtends;
@@ -22,6 +25,16 @@ export const gatewayPackageTemplateStatics = {
   tsconfigExtends: '../../../tsconfig.json',
   typeRoots: ['../../../node_modules/@types', '../../../@types', './@types'],
   include: ['**/*.ts', '@types/**/*'],
+  exclude: ['node_modules', 'dist'],
+  buildExclude: ['**/*.test.ts', '**/*.test.tsx', '**/*.harness.ts', '@types/**/*', 'dist'],
+  buildCustomConditions: ['gateway-dist', 'source'],
+  // The consumer's ROOT tsconfig: node16 reads each package's `imports`/`exports`, which is how
+  // `#gateway/<pkg>/<subpath>` resolves; `source` reads the gateway's TypeScript without a build.
+  rootCompilerOptions: {
+    module: 'node16',
+    moduleResolution: 'node16',
+    customConditions: ['source'],
+  },
   files: ['dist'],
   scripts: {
     build: 'tsc -p tsconfig.build.json',
@@ -36,11 +49,26 @@ export const gatewayPackageTemplateStatics = {
     typescript: '^5.8.3',
   },
   publishConfig: { access: 'public' },
-  jestConfigContent: `// Extend shared Jest configuration
-const baseConfig = require('../../../jest.config.base.js');
+  jestConfigContent: `const base = require('@dungeonmaster/testing/jest-config-base');
 
 module.exports = {
-  ...baseConfig,
+  ...base,
 };
+`,
+  browserJestConfigContent: `// A jsdom environment: this package wraps browser globals (fetch, localStorage, WebSocket,
+// indexedDB, document, ...), none of which exist under the base config's Node environment.
+const base = require('@dungeonmaster/testing/jest-config-base');
+
+module.exports = {
+  ...base,
+  testEnvironment: 'jsdom',
+  testEnvironmentOptions: { url: 'http://localhost' },
+  setupFiles: ['<rootDir>/__mocks__/jsdom-polyfills.cjs'],
+};
+`,
+  placeholderPath: 'src/index.d.ts',
+  placeholderContent: `// Keeps this package compiling while it holds no subpath: tsc refuses a config that matches no
+// file. Delete it once the first src/<subpath>/<subpath>.ts exists.
+export {};
 `,
 } as const;

@@ -3,7 +3,7 @@
  * globals rule does not apply, since wrapping the platform is the gateway's whole job.
  *
  * USAGE:
- * isInsideGatewayLayerBroker({ filename: '/repo/packages/@gateway/node/src/fs/index.ts' });
+ * isInsideGatewayLayerBroker({ filename: '/repo/packages/@gateway/node/src/fs/fs.ts' });
  * // Returns true
  */
 import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';

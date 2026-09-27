@@ -27,7 +27,16 @@ module.exports = {
     '^.+\\.ts$': [
       'ts-jest',
       {
-        tsconfig: { allowJs: true, esModuleInterop: true, skipLibCheck: true },
+        // commonjs/node pinned: a consumer's root tsconfig resolves node16 (that is how
+        // `#gateway/...` imports resolve for tsc), and ts-jest refuses node16 outside its own
+        // isolatedModules mode. Jest resolves modules itself, so tests lose nothing.
+        tsconfig: {
+          allowJs: true,
+          esModuleInterop: true,
+          skipLibCheck: true,
+          module: 'commonjs',
+          moduleResolution: 'node',
+        },
         astTransformers: { before: dungeonmasterTransformers },
       },
     ],

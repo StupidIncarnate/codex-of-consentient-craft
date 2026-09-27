@@ -1,10 +1,11 @@
 /**
  * PURPOSE: `dungeonmaster init`'s gateway step — scaffolds the four `packages/@gateway/{npm,node,
- * browser,bin}` workspace packages a fresh consumer repo is missing, links them into root
- * `workspaces`, adds the four-entry `#gateway/*` `imports` map to every EXISTING workspace package,
- * and merges the matching `compilerOptions.paths` into the root tsconfig.json plus any existing
- * package's own tsconfig.json (only when it already overrides `paths`) and tsconfig.build.json (when
- * one exists). Every step is independently idempotent — a second run changes nothing further.
+ * browser,bin}` workspace packages a fresh consumer repo is missing (node and browser filled with
+ * dungeonmaster's own source, npm and bin empty), links them into root `workspaces`, adds the
+ * four-entry `#gateway/*` `imports` map to every EXISTING workspace package, sets the root
+ * tsconfig.json to node16 resolution with the `source` condition, and gives every existing
+ * package's tsconfig.build.json the `gateway-dist` condition. Every step is independently
+ * idempotent — a second run changes nothing further.
  *
  * USAGE:
  * const result = await InstallSetupGatewayResponder({ context });
@@ -26,18 +27,18 @@ import {
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
-import { pathRelativeAdapter } from '../../../adapters/path/relative/path-relative-adapter';
 import { packageJsonRawContract } from '../../../contracts/package-json-raw/package-json-raw-contract';
+import { tsconfigCompilerOptionsContract } from '../../../contracts/tsconfig-compiler-options/tsconfig-compiler-options-contract';
 import { packageScaffoldWriteBroker } from '../../../brokers/package/scaffold-write/package-scaffold-write-broker';
 import { gatewayExistingPackagesListBroker } from '../../../brokers/gateway/existing-packages-list/gateway-existing-packages-list-broker';
-import { gatewayTsconfigPathsWriteBroker } from '../../../brokers/gateway/tsconfig-paths-write/gateway-tsconfig-paths-write-broker';
+import { gatewayTsconfigCompilerOptionsWriteBroker } from '../../../brokers/gateway/tsconfig-compiler-options-write/gateway-tsconfig-compiler-options-write-broker';
+import { gatewaySourceCopyBroker } from '../../../brokers/gateway/source-copy/gateway-source-copy-broker';
 import { gatewayScopeDetectTransformer } from '../../../transformers/gateway-scope-detect/gateway-scope-detect-transformer';
 import { gatewayWorkspacesMergeTransformer } from '../../../transformers/gateway-workspaces-merge/gateway-workspaces-merge-transformer';
 import { gatewayImportsMergeTransformer } from '../../../transformers/gateway-imports-merge/gateway-imports-merge-transformer';
 import { gatewayPackageScaffoldFilesTransformer } from '../../../transformers/gateway-package-scaffold-files/gateway-package-scaffold-files-transformer';
-import { gatewayTsconfigPathsSourceValuesTransformer } from '../../../transformers/gateway-tsconfig-paths-source-values/gateway-tsconfig-paths-source-values-transformer';
-import { gatewayTsconfigPathsDeclarationValuesTransformer } from '../../../transformers/gateway-tsconfig-paths-declaration-values/gateway-tsconfig-paths-declaration-values-transformer';
 import { gatewayFoldersStatics } from '../../../statics/gateway-folders/gateway-folders-statics';
+import { gatewayPackageTemplateStatics } from '../../../statics/gateway-package-template/gateway-package-template-statics';
 
 const PACKAGE_NAME = '@dungeonmaster/cli';
 const JSON_INDENT_SPACES = 2;
@@ -91,47 +92,23 @@ export const InstallSetupGatewayResponder = async ({
       }
       const files = gatewayPackageScaffoldFilesTransformer({ scope, folder });
       await packageScaffoldWriteBroker({ packageRoot, files });
+      if (folder === 'node' || folder === 'browser') {
+        await gatewaySourceCopyBroker({ folder, packageRoot });
+      }
       return folder;
     }),
   );
   const createdFolders = scaffoldOutcomes.filter((folder) => folder !== null);
 
-  const rootRelativeToGatewayFolders = {
-    npm: String(
-      pathRelativeAdapter({
-        from: context.targetProjectRoot,
-        to: pathJoinAdapter({ paths: [gatewayDir, 'npm'] }),
-      }),
-    ),
-    node: String(
-      pathRelativeAdapter({
-        from: context.targetProjectRoot,
-        to: pathJoinAdapter({ paths: [gatewayDir, 'node'] }),
-      }),
-    ),
-    browser: String(
-      pathRelativeAdapter({
-        from: context.targetProjectRoot,
-        to: pathJoinAdapter({ paths: [gatewayDir, 'browser'] }),
-      }),
-    ),
-    bin: String(
-      pathRelativeAdapter({
-        from: context.targetProjectRoot,
-        to: pathJoinAdapter({ paths: [gatewayDir, 'bin'] }),
-      }),
-    ),
-  };
   const rootTsconfigPath = pathJoinAdapter({
     paths: [context.targetProjectRoot, locationsStatics.repoRoot.tsconfig],
   });
   const rootTsconfigExists = fsExistsSyncAdapter({ filePath: rootTsconfigPath });
-  const rootTsconfigChanged = await gatewayTsconfigPathsWriteBroker({
+  const rootTsconfigChanged = await gatewayTsconfigCompilerOptionsWriteBroker({
     tsconfigPath: rootTsconfigPath,
-    entries: gatewayTsconfigPathsSourceValuesTransformer({
-      relativeToGatewayFolders: rootRelativeToGatewayFolders,
-    }),
-    skipWhenPathsMissing: false,
+    options: tsconfigCompilerOptionsContract.parse(
+      gatewayPackageTemplateStatics.rootCompilerOptions,
+    ),
   });
 
   const existingPackageDirs = gatewayExistingPackagesListBroker({ packagesDir });
@@ -159,57 +136,18 @@ export const InstallSetupGatewayResponder = async ({
         });
       }
 
-      const pkgRelativeToGatewayFolders = {
-        npm: String(
-          pathRelativeAdapter({
-            from: packageDir,
-            to: pathJoinAdapter({ paths: [gatewayDir, 'npm'] }),
-          }),
-        ),
-        node: String(
-          pathRelativeAdapter({
-            from: packageDir,
-            to: pathJoinAdapter({ paths: [gatewayDir, 'node'] }),
-          }),
-        ),
-        browser: String(
-          pathRelativeAdapter({
-            from: packageDir,
-            to: pathJoinAdapter({ paths: [gatewayDir, 'browser'] }),
-          }),
-        ),
-        bin: String(
-          pathRelativeAdapter({
-            from: packageDir,
-            to: pathJoinAdapter({ paths: [gatewayDir, 'bin'] }),
-          }),
-        ),
-      };
-
-      const pkgTsconfigChanged = await gatewayTsconfigPathsWriteBroker({
-        tsconfigPath: pathJoinAdapter({ paths: [packageDir, locationsStatics.repoRoot.tsconfig] }),
-        entries: gatewayTsconfigPathsSourceValuesTransformer({
-          relativeToGatewayFolders: pkgRelativeToGatewayFolders,
-        }),
-        skipWhenPathsMissing: true,
-      });
-
-      const pkgTsconfigBuildChanged = await gatewayTsconfigPathsWriteBroker({
+      const pkgTsconfigBuildChanged = await gatewayTsconfigCompilerOptionsWriteBroker({
         tsconfigPath: pathJoinAdapter({ paths: [packageDir, TSCONFIG_BUILD_FILENAME] }),
-        entries: gatewayTsconfigPathsDeclarationValuesTransformer({
-          relativeToGatewayFolders: pkgRelativeToGatewayFolders,
+        options: tsconfigCompilerOptionsContract.parse({
+          customConditions: gatewayPackageTemplateStatics.buildCustomConditions,
         }),
-        skipWhenPathsMissing: false,
       });
 
-      return { importsChanged, pkgTsconfigChanged, pkgTsconfigBuildChanged };
+      return { importsChanged, pkgTsconfigBuildChanged };
     }),
   );
 
   const updatedImportsCount = perPackageOutcomes.filter((outcome) => outcome.importsChanged).length;
-  const updatedPackageTsconfigCount = perPackageOutcomes.filter(
-    (outcome) => outcome.pkgTsconfigChanged,
-  ).length;
   const updatedBuildTsconfigCount = perPackageOutcomes.filter(
     (outcome) => outcome.pkgTsconfigBuildChanged,
   ).length;
@@ -219,7 +157,6 @@ export const InstallSetupGatewayResponder = async ({
     createdFolders.length > 0 ||
     rootTsconfigChanged ||
     updatedImportsCount > 0 ||
-    updatedPackageTsconfigCount > 0 ||
     updatedBuildTsconfigCount > 0;
 
   const messageParts = [
@@ -231,12 +168,11 @@ export const InstallSetupGatewayResponder = async ({
       : 'gateway packages already scaffolded',
     rootTsconfigExists
       ? rootTsconfigChanged
-        ? 'added gateway paths to tsconfig.json'
-        : 'tsconfig.json gateway paths already present'
-      : 'no tsconfig.json found to add gateway paths to',
+        ? 'set node16 resolution in tsconfig.json'
+        : 'tsconfig.json already resolves node16'
+      : 'no tsconfig.json found to set node16 resolution in',
     `updated imports in ${String(updatedImportsCount)} existing package(s)`,
-    `updated tsconfig.json paths in ${String(updatedPackageTsconfigCount)} existing package(s)`,
-    `updated tsconfig.build.json paths in ${String(updatedBuildTsconfigCount)} existing package(s)`,
+    `set gateway-dist in tsconfig.build.json of ${String(updatedBuildTsconfigCount)} existing package(s)`,
   ];
 
   return {

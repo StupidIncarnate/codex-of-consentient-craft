@@ -2,9 +2,9 @@ import { fsExistsSyncAdapterProxy } from '@dungeonmaster/shared/testing';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
-import { typescriptTsconfigPathsLocateAdapterProxy } from '../../../adapters/typescript/tsconfig-paths-locate/typescript-tsconfig-paths-locate-adapter.proxy';
+import { typescriptTsconfigCompilerOptionsLocateAdapterProxy } from '../../../adapters/typescript/tsconfig-compiler-options-locate/typescript-tsconfig-compiler-options-locate-adapter.proxy';
 
-export const gatewayTsconfigPathsWriteBrokerProxy = (): {
+export const gatewayTsconfigCompilerOptionsWriteBrokerProxy = (): {
   setupMissingFile: (params: { tsconfigPath: FilePath }) => void;
   setupFileContent: (params: { tsconfigPath: FilePath; content: string }) => void;
   getWrittenContent: (params: { tsconfigPath: FilePath }) => unknown;
@@ -12,9 +12,9 @@ export const gatewayTsconfigPathsWriteBrokerProxy = (): {
   const existsProxy = fsExistsSyncAdapterProxy();
   const readProxy = fsReadFileAdapterProxy();
   const writeProxy = fsWriteFileAdapterProxy();
-  // Empty proxy: the real TypeScript JSON parse runs for real, the same reason ESLint/SQL adapters
-  // run real rather than mocked. Called only to satisfy enforce-proxy-child-creation.
-  typescriptTsconfigPathsLocateAdapterProxy();
+  // Empty proxy: the real TypeScript JSON parse runs for real. Called only to satisfy
+  // enforce-proxy-child-creation.
+  typescriptTsconfigCompilerOptionsLocateAdapterProxy();
 
   return {
     setupMissingFile: ({ tsconfigPath }): void => {

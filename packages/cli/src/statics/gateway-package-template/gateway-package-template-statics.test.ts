@@ -12,15 +12,29 @@ describe('gatewayPackageTemplateStatics', () => {
     });
   });
 
-  it('VALID: {} => the jest config content spreads the repo-root base three levels up', () => {
+  it('VALID: {} => the jest config content spreads the published @dungeonmaster/testing base', () => {
     expect(gatewayPackageTemplateStatics.jestConfigContent).toBe(
-      `// Extend shared Jest configuration
-const baseConfig = require('../../../jest.config.base.js');
+      `const base = require('@dungeonmaster/testing/jest-config-base');
 
 module.exports = {
-  ...baseConfig,
+  ...base,
 };
 `,
     );
+  });
+
+  it('VALID: {} => the root tsconfig resolves node16 with the source condition', () => {
+    expect(gatewayPackageTemplateStatics.rootCompilerOptions).toStrictEqual({
+      module: 'node16',
+      moduleResolution: 'node16',
+      customConditions: ['source'],
+    });
+  });
+
+  it('VALID: {} => a build reads other gateways through gateway-dist before source', () => {
+    expect(gatewayPackageTemplateStatics.buildCustomConditions).toStrictEqual([
+      'gateway-dist',
+      'source',
+    ]);
   });
 });

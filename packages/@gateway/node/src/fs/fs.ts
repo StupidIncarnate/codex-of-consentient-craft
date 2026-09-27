@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Entry point for @dungeonmaster/node/fs, the synchronous half of the fs gateway. Holds
+ * PURPOSE: Entry point for #gateway/node/fs, the synchronous half of the fs gateway. Holds
  * the realm-safe error guard shared with fs/promises; the synchronous wrappers themselves are
  * added here by the agent that owns them.
  *

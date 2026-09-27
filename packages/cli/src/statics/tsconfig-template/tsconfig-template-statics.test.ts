@@ -7,6 +7,9 @@ describe('tsconfigTemplateStatics', () => {
   "extends": "@dungeonmaster/eslint-plugin/tsconfig",
   "compilerOptions": {
     "noEmit": true,
+    "module": "node16",
+    "moduleResolution": "node16",
+    "customConditions": ["source"],
     "typeRoots": ["./node_modules/@types", "./@types"]
   },
   "files": []
@@ -18,7 +21,13 @@ describe('tsconfigTemplateStatics', () => {
   it('VALID: content => is valid JSON extending the published base', () => {
     expect(JSON.parse(tsconfigTemplateStatics.content)).toStrictEqual({
       extends: '@dungeonmaster/eslint-plugin/tsconfig',
-      compilerOptions: { noEmit: true, typeRoots: ['./node_modules/@types', './@types'] },
+      compilerOptions: {
+        noEmit: true,
+        module: 'node16',
+        moduleResolution: 'node16',
+        customConditions: ['source'],
+        typeRoots: ['./node_modules/@types', './@types'],
+      },
       files: [],
     });
   });
