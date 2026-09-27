@@ -1,4 +1,6 @@
+import { FilePathStub } from '@dungeonmaster/shared/contracts';
 import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
+import { FileNameStub } from '../../../contracts/file-name/file-name.stub';
 import { ruleGatewayColocationBroker } from './rule-gateway-colocation-broker';
 import { ruleGatewayColocationBrokerProxy } from './rule-gateway-colocation-broker.proxy';
 
@@ -22,9 +24,47 @@ beforeEach(() => {
       '/repo/packages/@gateway/node/src/console/console.test.ts',
       '/repo/packages/@gateway/node/src/setTimeout/setTimeout.test.ts',
       '/repo/packages/@gateway/npm/src/testing-library__jest-dom/testing-library__jest-dom.test.ts',
+      '/repo/packages/@gateway/node/src/os/os.test.ts',
     ];
 
     return existingFiles.includes(String(filePath));
+  });
+
+  // requireStub's directory walk — staged once here since every invalid/valid requireStub case
+  // below shares these two subpaths' directory shapes.
+  proxy.gatewaySubpathDirectoryWalk.fsReaddirSync.returns({
+    dirPath: FilePathStub({ value: '/repo/packages/@gateway/node/src/fs/' }),
+    entries: [
+      { name: FileNameStub({ value: 'is-fs-error' }), isDirectory: true },
+      { name: FileNameStub({ value: 'fs.ts' }), isDirectory: false },
+      { name: FileNameStub({ value: 'fs.test.ts' }), isDirectory: false },
+    ],
+  });
+  proxy.gatewaySubpathDirectoryWalk.fsReaddirSync.returns({
+    dirPath: FilePathStub({ value: '/repo/packages/@gateway/node/src/fs/is-fs-error/' }),
+    entries: [
+      { name: FileNameStub({ value: 'fs-error.ts' }), isDirectory: false },
+      { name: FileNameStub({ value: 'fs-error.stub.ts' }), isDirectory: false },
+      { name: FileNameStub({ value: 'is-fs-error.ts' }), isDirectory: false },
+      { name: FileNameStub({ value: 'is-fs-error.proxy.ts' }), isDirectory: false },
+      { name: FileNameStub({ value: 'is-fs-error.test.ts' }), isDirectory: false },
+    ],
+  });
+  proxy.gatewaySubpathDirectoryWalk.fsReaddirSync.returns({
+    dirPath: FilePathStub({ value: '/repo/packages/@gateway/node/src/os/' }),
+    entries: [
+      { name: FileNameStub({ value: 'homedir' }), isDirectory: true },
+      { name: FileNameStub({ value: 'os.ts' }), isDirectory: false },
+      { name: FileNameStub({ value: 'os.test.ts' }), isDirectory: false },
+    ],
+  });
+  proxy.gatewaySubpathDirectoryWalk.fsReaddirSync.returns({
+    dirPath: FilePathStub({ value: '/repo/packages/@gateway/node/src/os/homedir/' }),
+    entries: [
+      { name: FileNameStub({ value: 'homedir.ts' }), isDirectory: false },
+      { name: FileNameStub({ value: 'homedir.proxy.ts' }), isDirectory: false },
+      { name: FileNameStub({ value: 'homedir.test.ts' }), isDirectory: false },
+    ],
   });
 });
 
@@ -95,6 +135,17 @@ ruleTester.run('gateway-colocation', ruleGatewayColocationBroker(), {
       code: 'export const orderFetchBroker = () => {};',
       filename: '/repo/packages/hooks/src/brokers/order/fetch/order-fetch-broker.ts',
     },
+    // --- requireStub off by default: a subpath with no .stub.ts anywhere is fine without the option ---
+    {
+      code: "export * from 'os';",
+      filename: '/repo/packages/@gateway/node/src/os/os.ts',
+    },
+    // --- requireStub true: a subpath whose directory tree DOES have a nested .stub.ts passes ---
+    {
+      code: "export { readFileSync } from './read-file-sync/read-file-sync';\nexport type { FsError } from './is-fs-error/fs-error';",
+      filename: '/repo/packages/@gateway/node/src/fs/fs.ts',
+      options: [{ requireStub: true }],
+    },
   ],
 
   invalid: [
@@ -147,6 +198,13 @@ ruleTester.run('gateway-colocation', ruleGatewayColocationBroker(), {
       code: "import { resolvePackageRoot } from './resolve-package-root';\nconst gateway = Object.create({});\ngateway.resolvePackageRoot = resolvePackageRoot;\nexport = gateway;",
       filename: '/repo/packages/@gateway/node/src/module/module.ts',
       errors: [{ messageId: 'passThroughNotPureReexport' }],
+    },
+    // --- requireStub true: a subpath whose directory tree has no .stub.ts anywhere is flagged ---
+    {
+      code: "export * from 'os';",
+      filename: '/repo/packages/@gateway/node/src/os/os.ts',
+      options: [{ requireStub: true }],
+      errors: [{ messageId: 'missingStub' }],
     },
   ],
 });

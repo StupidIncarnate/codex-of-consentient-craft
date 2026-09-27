@@ -20,6 +20,9 @@
  * // Flags packages/@gateway/node/src/fs/read-file-sync/read-file-sync.ts with no read-file-sync.proxy.ts;
  * // flags packages/@gateway/node/src/module/module.ts if its body builds an object instead of only
  * // re-exporting, as passThroughNotPureReexport
+ * // With options: [{requireStub: true}], also flags a subpath barrel whose folder tree has no
+ * // .stub.ts anywhere under it, as missingStub — off by default (G18 turns it on repo-wide once
+ * // every subpath actually has one; see gateway-subpath-has-stub-layer-broker.ts)
  */
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
@@ -33,6 +36,7 @@ import { dotCountTransformer } from '../../../transformers/dot-count/dot-count-t
 import { getFileExtensionTransformer } from '../../../transformers/get-file-extension/get-file-extension-transformer';
 import { removeFileExtensionTransformer } from '../../../transformers/remove-file-extension/remove-file-extension-transformer';
 import { gatewayPureReexportStatementTypesStatics } from '../../../statics/gateway-pure-reexport-statement-types/gateway-pure-reexport-statement-types-statics';
+import { gatewaySubpathHasStubLayerBroker } from './gateway-subpath-has-stub-layer-broker';
 
 export const ruleGatewayColocationBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -48,13 +52,28 @@ export const ruleGatewayColocationBroker = (): EslintRule => ({
         missingProxyFile: 'Gateway file "{{fileName}}" needs a colocated {{proxyFileName}}.',
         passThroughNotPureReexport:
           'Subpath barrel "{{fileName}}" may only re-export ("export * from \'...\'", "export { a } from \'./a/a\'", "export type", or "export = x"). Found a non-export statement — move that behavior into a wrapper folder beside the barrel.',
+        missingStub:
+          'Gateway subpath "{{subpathName}}" needs at least one .stub.ts file somewhere under its folder (see #gateway/node/fs/is-fs-error/fs-error.stub.ts for the pattern).',
       },
-      schema: [],
+      schema: [
+        {
+          type: 'object',
+          properties: {
+            requireStub: {
+              type: 'boolean',
+              description:
+                'When true, every subpath barrel must have at least one .stub.ts file somewhere under its folder. Off by default until every subpath has one (G18).',
+            },
+          },
+          additionalProperties: false,
+        },
+      ],
     },
   }),
   create: (context: EslintContext) => {
-    const ctx = context;
+    const ctx = context as EslintContext & { options?: { requireStub?: boolean }[] };
     const filename = ctx.filename ?? ctx.getFilename?.() ?? '';
+    const requireStub = ctx.options?.[0]?.requireStub === true;
 
     if (filename.length === 0 || !isGatewayFileGuard({ filename })) {
       return {};
@@ -206,6 +225,19 @@ export const ruleGatewayColocationBroker = (): EslintRule => ({
             node,
             messageId: 'missingTestFile',
             data: { fileName: fileBaseName, testFileName },
+          });
+        }
+
+        if (
+          requireStub &&
+          !gatewaySubpathHasStubLayerBroker({
+            subpathDirectory: filePathContract.parse(directory),
+          })
+        ) {
+          ctx.report({
+            node,
+            messageId: 'missingStub',
+            data: { subpathName: baseNameWithoutExtension },
           });
         }
       },
