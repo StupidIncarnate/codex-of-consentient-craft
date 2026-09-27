@@ -1,8 +1,7 @@
-import {
-  pathJoinAdapterProxy,
-  fsExistsSyncAdapterProxy,
-  architecturePackageE2eEligibleDetectBrokerProxy,
-} from '@dungeonmaster/shared/testing';
+import { join } from '#gateway/node/path';
+import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
+import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
+import { architecturePackageE2eEligibleDetectBrokerProxy } from '@dungeonmaster/shared/testing';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
 import { InstallCreatePlaywrightResponder } from './install-create-playwright-responder';
@@ -14,10 +13,12 @@ export const InstallCreatePlaywrightResponderProxy = (): {
   setupNotE2eEligible: (params: { targetProjectRoot: string }) => void;
   getWrittenFiles: () => readonly { path: unknown; content: unknown }[];
 } => {
-  pathJoinAdapterProxy();
-  const existsProxy = fsExistsSyncAdapterProxy();
+  const existsProxy = existsSyncProxy();
   const writeProxy = fsWriteFileAdapterProxy();
   const eligibleProxy = architecturePackageE2eEligibleDetectBrokerProxy();
+  const realPath = requireActual<{ join: typeof join }>({ module: 'path' });
+  const joinHandle = registerMock({ fn: join });
+  joinHandle.calledWith([]).implement((...segments: never[]) => realPath.join(...segments));
 
   const markEligible = ({ targetProjectRoot }: { targetProjectRoot: string }): void => {
     eligibleProxy.setupPackage({
@@ -32,12 +33,12 @@ export const InstallCreatePlaywrightResponderProxy = (): {
 
     setupFileExists: ({ filePath }: { filePath: FilePath }): void => {
       markEligible({ targetProjectRoot: '/project' });
-      existsProxy.returns({ filePath, result: true });
+      existsProxy.returns({ path: filePath, exists: true });
     },
 
     setupFileNotExists: ({ filePath }: { filePath: FilePath }): void => {
       markEligible({ targetProjectRoot: '/project' });
-      existsProxy.returns({ filePath, result: false });
+      existsProxy.returns({ path: filePath, exists: false });
       writeProxy.succeeds({ filePath });
     },
 

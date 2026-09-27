@@ -17,8 +17,10 @@ import {
   installMessageContract,
   packageNameContract,
   fileContentsContract,
+  filePathContract,
 } from '@dungeonmaster/shared/contracts';
-import { pathJoinAdapter, fsExistsSyncAdapter } from '@dungeonmaster/shared/adapters';
+import { existsSync } from '#gateway/node/fs';
+import { join } from '#gateway/node/path';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import { jestConfigTemplateStatics } from '../../../statics/jest-config-template/jest-config-template-statics';
@@ -32,11 +34,9 @@ export const InstallCreateJestResponder = async ({
 }: {
   context: InstallContext;
 }): Promise<InstallResult> => {
-  const packageJsonPath = pathJoinAdapter({
-    paths: [context.targetProjectRoot, 'package.json'],
-  });
+  const packageJsonPath = filePathContract.parse(join(context.targetProjectRoot, 'package.json'));
 
-  if (fsExistsSyncAdapter({ filePath: packageJsonPath })) {
+  if (existsSync(packageJsonPath)) {
     const packageJsonContent = await fsReadFileAdapter({ filePath: packageJsonPath });
     const rawParsed: unknown = JSON.parse(packageJsonContent);
     const parsedPackageJson = packageJsonContract.safeParse(rawParsed);
@@ -57,11 +57,9 @@ export const InstallCreateJestResponder = async ({
     }
   }
 
-  const configPath = pathJoinAdapter({
-    paths: [context.targetProjectRoot, CONFIG_FILENAME],
-  });
+  const configPath = filePathContract.parse(join(context.targetProjectRoot, CONFIG_FILENAME));
 
-  if (fsExistsSyncAdapter({ filePath: configPath })) {
+  if (existsSync(configPath)) {
     return {
       packageName: packageNameContract.parse(PACKAGE_NAME),
       success: true,
