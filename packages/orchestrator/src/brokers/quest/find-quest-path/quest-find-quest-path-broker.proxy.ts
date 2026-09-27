@@ -24,15 +24,6 @@ import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 
 import { matchCandidatesLayerBrokerProxy } from './match-candidates-layer-broker.proxy';
-import { questFindQuestPathBroker } from './quest-find-quest-path-broker';
-// Self-referencing package import, deliberately separate from the relative one above: a caller
-// outside this package (server) reaches this broker through the bare `@dungeonmaster/orchestrator`
-// barrel, and jest.mock() keys on the resolved module path — a barrel automock (forced whenever the
-// SAME test also composes StartOrchestratorProxy, per the merge rule in
-// mock-calls-merge-by-module-transformer.ts) replaces the barrel's OWN `questFindQuestPathBroker`
-// binding with a fresh, disconnected stub, unrelated to the real broker this file otherwise stages.
-// Same shape as start-orchestrator.proxy.ts's own self-import of StartOrchestrator.
-import { questFindQuestPathBroker as questFindQuestPathBrokerBarrelExport } from '@dungeonmaster/orchestrator';
 
 // The guild shape below is written out at each use site rather than named once: a `type` alias here
 // is rewritten to an `interface` by lint --fix, and `ban-adhoc-types` then rejects the interface in
@@ -260,18 +251,6 @@ export const questFindQuestPathBrokerProxy = (): {
   const readdirThrows = ({ dirPath, error }: { dirPath: FilePath; error: Error }): void => {
     readdirHandle.calledWith([dirPath, { withFileTypes: true }]).throws(error);
   };
-
-  // The barrel-reached mock is a SEPARATE stub from the real, relatively-imported broker (a
-  // different resolved module), so a caller composing this proxy through
-  // `@dungeonmaster/orchestrator` needs its own wiring — delegating every call to the REAL broker,
-  // which then settles the answer through whichever setupQuestFound/setupQuestPath/... scenario
-  // this proxy staged. `questId` varies per call and the real implementation handles any of them
-  // correctly using the args it actually receives, so `[]` is the honest address for this generic
-  // fallback — same shape as quest-list-broker.proxy.ts's own real-passthrough default.
-  const barrelMocked = registerMock({ fn: questFindQuestPathBrokerBarrelExport });
-  barrelMocked
-    .calledWith([])
-    .implement(async (params: { questId: QuestId }) => questFindQuestPathBroker(params));
 
   return {
     setupQuestFound: ({

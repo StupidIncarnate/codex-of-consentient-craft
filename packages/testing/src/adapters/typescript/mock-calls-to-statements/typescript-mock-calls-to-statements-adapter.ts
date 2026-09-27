@@ -32,7 +32,10 @@ export const typescriptMockCallsToStatementsAdapter = ({
 
     const args: ts.Expression[] = [tsNodeFactory.createStringLiteral(mock.moduleName)];
 
-    if (!mock.factory && mock.identifierNames.length > 0) {
+    if (
+      !mock.factory &&
+      (mock.identifierNames.length > 0 || mock.objectIdentifierNames.length > 0)
+    ) {
       // Generate selective factory: () => ({ ...jest.requireActual('module'), id1: jest.fn(), id2: jest.fn() })
       const requireActualCall = tsNodeFactory.createCallExpression(
         tsNodeFactory.createPropertyAccessExpression(
@@ -56,6 +59,103 @@ export const typescriptMockCallsToStatementsAdapter = ({
           tsNodeFactory.createPropertyAssignment(
             tsNodeFactory.createIdentifier(identifierName),
             jestFnCall,
+          ),
+        );
+      }
+
+      // A property-access request (`registerMock({fn: X.method})`) records X here. Rather than
+      // replacing X with a flat jest.fn() (destroying every OTHER method X carries), each of X's
+      // OWN methods is individually auto-mocked — the same recursive treatment Jest's bare
+      // `jest.mock(module)` already gives a nested object, given one named object at a time
+      // instead of the whole module: `X: Object.fromEntries(Object.entries(<real>.X).map(([key,
+      // value]) => [key, typeof value === 'function' ? jest.fn() : value]))`.
+      for (const objectIdentifierName of mock.objectIdentifierNames) {
+        const objectRequireActualCall = tsNodeFactory.createCallExpression(
+          tsNodeFactory.createPropertyAccessExpression(
+            tsNodeFactory.createIdentifier('jest'),
+            tsNodeFactory.createIdentifier('requireActual'),
+          ),
+          undefined,
+          [tsNodeFactory.createStringLiteral(mock.moduleName)],
+        );
+        const realObjectAccess = tsNodeFactory.createPropertyAccessExpression(
+          tsNodeFactory.createParenthesizedExpression(objectRequireActualCall),
+          tsNodeFactory.createIdentifier(objectIdentifierName),
+        );
+        const keyIdentifier = tsNodeFactory.createIdentifier('key');
+        const valueIdentifier = tsNodeFactory.createIdentifier('value');
+        const arrayParam = tsNodeFactory.createParameterDeclaration(
+          undefined,
+          undefined,
+          tsNodeFactory.createArrayBindingPattern([
+            tsNodeFactory.createBindingElement(undefined, undefined, keyIdentifier, undefined),
+            tsNodeFactory.createBindingElement(undefined, undefined, valueIdentifier, undefined),
+          ]),
+          undefined,
+          undefined,
+          undefined,
+        );
+        const isFunctionCheck = tsNodeFactory.createBinaryExpression(
+          tsNodeFactory.createTypeOfExpression(valueIdentifier),
+          ts.SyntaxKind.EqualsEqualsEqualsToken,
+          tsNodeFactory.createStringLiteral('function'),
+        );
+        const nestedJestFnCall = tsNodeFactory.createCallExpression(
+          tsNodeFactory.createPropertyAccessExpression(
+            tsNodeFactory.createIdentifier('jest'),
+            tsNodeFactory.createIdentifier('fn'),
+          ),
+          undefined,
+          [],
+        );
+        const mapArrow = tsNodeFactory.createArrowFunction(
+          undefined,
+          undefined,
+          [arrayParam],
+          undefined,
+          undefined,
+          tsNodeFactory.createArrayLiteralExpression(
+            [
+              keyIdentifier,
+              tsNodeFactory.createConditionalExpression(
+                isFunctionCheck,
+                tsNodeFactory.createToken(ts.SyntaxKind.QuestionToken),
+                nestedJestFnCall,
+                tsNodeFactory.createToken(ts.SyntaxKind.ColonToken),
+                valueIdentifier,
+              ),
+            ],
+            false,
+          ),
+        );
+        const objectEntriesCall = tsNodeFactory.createCallExpression(
+          tsNodeFactory.createPropertyAccessExpression(
+            tsNodeFactory.createIdentifier('Object'),
+            tsNodeFactory.createIdentifier('entries'),
+          ),
+          undefined,
+          [realObjectAccess],
+        );
+        const mapCall = tsNodeFactory.createCallExpression(
+          tsNodeFactory.createPropertyAccessExpression(
+            objectEntriesCall,
+            tsNodeFactory.createIdentifier('map'),
+          ),
+          undefined,
+          [mapArrow],
+        );
+        const fromEntriesCall = tsNodeFactory.createCallExpression(
+          tsNodeFactory.createPropertyAccessExpression(
+            tsNodeFactory.createIdentifier('Object'),
+            tsNodeFactory.createIdentifier('fromEntries'),
+          ),
+          undefined,
+          [mapCall],
+        );
+        mockProperties.push(
+          tsNodeFactory.createPropertyAssignment(
+            tsNodeFactory.createIdentifier(objectIdentifierName),
+            fromEntriesCall,
           ),
         );
       }

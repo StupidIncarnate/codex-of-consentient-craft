@@ -85,9 +85,12 @@ describe('typescriptSourceFileGetterAdapter', () => {
   // Reproduces A02 group S4's finding against the REAL collector + merge + statement-generation
   // pipeline (not hand-built MockCall stubs): a property-access proxy (the StartOrchestratorProxy
   // shape) and a bare-export proxy (the questListBrokerProxy shape) both mock the same module from
-  // one entry file's transitive proxy graph.
+  // one entry file's transitive proxy graph. F19: the property-access mock records ONLY its own
+  // object's name (objectIdentifierNames), so the merge stays SELECTIVE — a factory naming both
+  // exports — rather than absorbing into a whole-module auto-mock the way an empty identifierNames
+  // request used to.
   describe('composing a property-access proxy and a bare-export proxy against one real module', () => {
-    it('VALID: {StartOrchestrator-shaped property-access mock, questListBroker-shaped bare-export mock, same module} => hoists exactly one full auto-mock jest.mock() call, not a selective one', () => {
+    it('VALID: {StartOrchestrator-shaped property-access mock, questListBroker-shaped bare-export mock, same module} => hoists one selective factory naming both, never a bare whole-module auto-mock', () => {
       const proxy = typescriptSourceFileGetterAdapterProxy();
       proxy.readsRealFiles();
 
@@ -158,19 +161,123 @@ describe('typescriptSourceFileGetterAdapter', () => {
       });
 
       const printed = ts.createPrinter().printFile(transformed as unknown as ts.SourceFile);
-      // A bare `jest.mock("<module>")` — no second argument — IS the full auto-mock decision:
-      // Jest's automock replaces every export with a jest.fn(), objects (FixtureOrchestrator)
-      // mocked recursively, which already covers the bare export too. The buggy merge instead
-      // emitted `jest.mock("<module>", () => ({...}))` (a selective spread-real factory naming
-      // only fixtureBrokerFn), which this pattern does NOT match — so a regression back to that
-      // shape drives `bareAutoMockCalls` to `[]` and fails the assertion below.
-      const bareAutoMockCalls = [...printed.matchAll(/jest\.mock\((['"])([^'"]+)\1\)/gu)].map(
+      // A regression back to F19's own bug (property access forcing a whole-module auto-mock)
+      // would print a BARE `jest.mock("<module>");` here instead — this pattern only matches a
+      // factory-less call, so it stays empty on the correct, selective behaviour and would catch
+      // the regression by turning non-empty.
+      const bareAutoMockCalls = [...printed.matchAll(/jest\.mock\((['"])([^'"]+)\1\);/gu)].map(
+        (match) => match[2],
+      );
+      // The selective factory names BOTH exports: fixtureBrokerFn flat, FixtureOrchestrator's own
+      // methods individually auto-mocked rather than the whole object flattened to one jest.fn().
+      const mockedModules = [...printed.matchAll(/jest\.mock\((['"])([^'"]+)\1/gu)].map(
+        (match) => match[2],
+      );
+      const flatMockedNames = [...printed.matchAll(/(\w+): jest\.fn\(\)/gu)].map(
+        (match) => match[1],
+      );
+      const objectAutoMockedNames = [...printed.matchAll(/(\w+): Object\.fromEntries/gu)].map(
+        (match) => match[1],
+      );
+
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+
+      expect(bareAutoMockCalls).toStrictEqual([]);
+      expect(mockedModules).toStrictEqual([fixtureModuleSpecifier]);
+      expect(flatMockedNames).toStrictEqual(['fixtureBrokerFn']);
+      expect(objectAutoMockedNames).toStrictEqual(['FixtureOrchestrator']);
+    });
+  });
+
+  // F17: a test's proxy composes ONE proxy out of a barrel that re-exports MANY. Before the fix, the
+  // collector followed every `export *` target of the barrel regardless of which name the composing
+  // proxy actually imported, hoisting a selective mock for modules the test never asked to mock —
+  // silently turning their real functions into unconfigured jest.fn()s for every caller in the file.
+  describe('composing one proxy out of a barrel that re-exports several', () => {
+    it("VALID: {barrel re-exports a path-like and an os-like proxy, composing proxy names only the path-like one} => hoists a mock for 'path' only, never for 'os'", () => {
+      const proxy = typescriptSourceFileGetterAdapterProxy();
+      proxy.readsRealFiles();
+
+      const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'proxy-mock-barrel-'));
+
+      fs.writeFileSync(
+        path.join(tmpDir, 'testing.ts'),
+        [
+          "export * from './path-join-like.proxy';",
+          "export * from './os-homedir-like.proxy';",
+          '',
+        ].join('\n'),
+      );
+      fs.writeFileSync(
+        path.join(tmpDir, 'path-join-like.proxy.ts'),
+        [
+          "import { join } from 'path';",
+          "import { registerMock } from '@dungeonmaster/testing/register-mock';",
+          '',
+          'export const pathJoinLikeProxy = () => {',
+          '  registerMock({ fn: join });',
+          '};',
+          '',
+        ].join('\n'),
+      );
+      fs.writeFileSync(
+        path.join(tmpDir, 'os-homedir-like.proxy.ts'),
+        [
+          "import { homedir } from 'os';",
+          "import { registerMock } from '@dungeonmaster/testing/register-mock';",
+          '',
+          'export const osHomedirLikeProxy = () => {',
+          '  registerMock({ fn: homedir });',
+          '};',
+          '',
+        ].join('\n'),
+      );
+      fs.writeFileSync(
+        path.join(tmpDir, 'composing.proxy.ts'),
+        [
+          "import { pathJoinLikeProxy } from './testing';",
+          '',
+          'export const composingProxy = () => {',
+          '  pathJoinLikeProxy();',
+          '};',
+          '',
+        ].join('\n'),
+      );
+      fs.writeFileSync(
+        path.join(tmpDir, 'entry.test.ts'),
+        ["import './composing.proxy';", ''].join('\n'),
+      );
+
+      const entryPath = FilePathStub({ value: path.join(tmpDir, 'entry.test.ts') });
+      const composingProxyPath = path.join(tmpDir, 'composing.proxy.ts');
+      const barrelPath = path.join(tmpDir, 'testing.ts');
+      const pathJoinLikeProxyPath = path.join(tmpDir, 'path-join-like.proxy.ts');
+      const osHomedirLikeProxyPath = path.join(tmpDir, 'os-homedir-like.proxy.ts');
+
+      const tsProgram = ts.createProgram(
+        [entryPath, composingProxyPath, barrelPath, pathJoinLikeProxyPath, osHomedirLikeProxyPath],
+        { skipLibCheck: true, noEmit: true, types: [], noLib: true },
+      );
+      const entrySourceFile = tsProgram.getSourceFile(entryPath);
+
+      const program = TypescriptProgramStub({ value: tsProgram });
+      const sourceFile = TypescriptSourceFileStub({ value: entrySourceFile });
+      const nodeFactory = TypescriptNodeFactoryStub({ value: ts.factory });
+
+      const transformed = typescriptProxyMockTransformerMiddleware({
+        sourceFile,
+        program,
+        nodeFactory,
+      });
+
+      const printed = ts.createPrinter().printFile(transformed as unknown as ts.SourceFile);
+      const mockedModules = [...printed.matchAll(/jest\.mock\((['"])([^'"]+)\1/gu)].map(
         (match) => match[2],
       );
 
       fs.rmSync(tmpDir, { recursive: true, force: true });
 
-      expect(bareAutoMockCalls).toStrictEqual([fixtureModuleSpecifier]);
+      expect(mockedModules).toStrictEqual(['path']);
     });
   });
 });

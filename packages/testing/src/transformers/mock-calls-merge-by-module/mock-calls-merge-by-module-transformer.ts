@@ -9,27 +9,34 @@
  * resolves correctly either way.
  *
  * Three kinds of request land on the same module: a FACTORY mock (an explicit second argument),
- * a FULL-AUTO mock (no factory, empty identifierNames — a property-access `registerMock`, e.g.
- * `StartOrchestrator.getQuest`, or a bare `registerModuleMock({module})` with no factory), and a
- * SELECTIVE mock (no factory, non-empty identifierNames — a bare-export `registerMock`, e.g.
- * `questListBroker`). Precedence is FACTORY > FULL-AUTO > SELECTIVE, decided pairwise so the
- * result is the same regardless of arrival order:
+ * a FULL-AUTO mock (`isFullAutoMockCallGuard` — no factory, identifierNames AND
+ * objectIdentifierNames both empty — a bare `registerModuleMock({module})` with no factory; a
+ * property-access `registerMock({fn: X.method})` no longer produces this shape, see below), and a
+ * SELECTIVE mock (no factory, at least one of identifierNames/objectIdentifierNames non-empty — a
+ * bare-export `registerMock`, e.g. `questListBroker`, OR a property-access `registerMock`, e.g.
+ * `StartOrchestrator.getQuest`, which records `StartOrchestrator` in objectIdentifierNames).
+ * Precedence is FACTORY > FULL-AUTO > SELECTIVE, decided pairwise so the result is the same
+ * regardless of arrival order:
  * - An existing factory always wins; a later factory never displaces the first one to arrive.
- * - Absent a factory on either side, a FULL-AUTO request (either side has empty identifierNames)
- *   wins and the merged record's identifierNames is forced to []. Jest's automock already
- *   replaces every export with a jest.fn() (objects mocked recursively — that's what makes a
- *   property-accessed `StartOrchestrator.method` mockable at all), so a bare `jest.mock(module)`
- *   already covers whatever a SELECTIVE request named; nothing from that request is lost.
- * - Two SELECTIVE requests union their identifierNames, so each proxy's own named export ends up
- *   in the one spread-real factory.
+ * - Absent a factory on either side, a FULL-AUTO request on EITHER side wins and the merged
+ *   record's identifierNames/objectIdentifierNames are forced to []. Jest's automock already
+ *   replaces every export with a jest.fn() (objects mocked recursively — the same recursive
+ *   behaviour objectIdentifierNames' own codegen gives ONE named object), so a bare
+ *   `jest.mock(module)` already covers whatever a SELECTIVE request named; nothing from that
+ *   request is lost.
+ * - Two SELECTIVE requests union their identifierNames and separately union their
+ *   objectIdentifierNames, so each proxy's own named export (or accessed object) ends up in the
+ *   one spread-real factory.
  *
  * USAGE:
  * mockCallsMergeByModuleTransformer({ mockCalls: [processCwdMock, processKillMock] });
- * // Returns one MockCall per module, identifierNames unioned across every specifier form
+ * // Returns one MockCall per module, identifierNames/objectIdentifierNames unioned across every
+ * // specifier form
  */
 
 import { mockCallContract } from '../../contracts/mock-call/mock-call-contract';
 import { moduleNameContract } from '../../contracts/module-name/module-name-contract';
+import { isFullAutoMockCallGuard } from '../../guards/is-full-auto-mock-call/is-full-auto-mock-call-guard';
 import type { MockCall } from '../../contracts/mock-call/mock-call-contract';
 import type { ModuleName } from '../../contracts/module-name/module-name-contract';
 
@@ -58,10 +65,11 @@ export const mockCallsMergeByModuleTransformer = ({
       continue;
     }
 
-    if (existing.identifierNames.length === 0 || mock.identifierNames.length === 0) {
-      // A full auto-mock is present on either side. It already covers every named export, so it
-      // wins outright and absorbs the selective request rather than merging names into it.
-      mocksByModuleKey.set(moduleKey, mockCallContract.parse({ ...existing, identifierNames: [] }));
+    if (isFullAutoMockCallGuard({ mock: existing }) || isFullAutoMockCallGuard({ mock })) {
+      mocksByModuleKey.set(
+        moduleKey,
+        mockCallContract.parse({ ...existing, identifierNames: [], objectIdentifierNames: [] }),
+      );
       continue;
     }
 
@@ -71,9 +79,19 @@ export const mockCallsMergeByModuleTransformer = ({
         mergedIdentifiers.push(name);
       }
     }
+    const mergedObjectIdentifiers = [...existing.objectIdentifierNames];
+    for (const name of mock.objectIdentifierNames) {
+      if (!mergedObjectIdentifiers.includes(name)) {
+        mergedObjectIdentifiers.push(name);
+      }
+    }
     mocksByModuleKey.set(
       moduleKey,
-      mockCallContract.parse({ ...existing, identifierNames: mergedIdentifiers }),
+      mockCallContract.parse({
+        ...existing,
+        identifierNames: mergedIdentifiers,
+        objectIdentifierNames: mergedObjectIdentifiers,
+      }),
     );
   }
 

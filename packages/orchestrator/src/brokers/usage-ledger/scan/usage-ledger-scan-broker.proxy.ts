@@ -62,7 +62,6 @@ export const usageLedgerScanBrokerProxy = (): {
       // the next broker that joins a path gets this one's answer instead of its own.
       rootProxy.setupProjectsRoot({
         homeDir: FilePathStub({ value: '/home/user' }),
-        projectsRoot: FilePathStub({ value: '/home/user/.claude/projects' }),
       });
 
       walkProxy.setupDirectory({

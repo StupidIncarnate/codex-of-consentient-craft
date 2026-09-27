@@ -333,6 +333,92 @@ describe('typescriptMockCallsToStatementsAdapter', () => {
     });
   });
 
+  describe('property-access (objectIdentifierNames) auto-mock generation', () => {
+    it('VALID: {mockCall with objectIdentifierNames} => auto-mocks every method of the named object, not the whole module', () => {
+      typescriptMockCallsToStatementsAdapterProxy();
+
+      const mockCall = MockCallStub({
+        moduleName: ModuleNameStub({ value: '@dungeonmaster/orchestrator' }),
+        factory: null,
+        sourceFile: SourceFileNameStub({ value: 'orchestration-events-state.proxy.ts' }),
+        identifierNames: [],
+        objectIdentifierNames: [IdentifierNameStub({ value: 'orchestrationEventsState' })],
+      });
+
+      const nodeFactory = TypescriptNodeFactoryStub({ value: ts.factory });
+      const statements = typescriptMockCallsToStatementsAdapter({
+        mockCalls: [mockCall],
+        nodeFactory,
+      });
+
+      const printer = ts.createPrinter();
+      const sourceFile = ts.createSourceFile('temp.ts', '', ts.ScriptTarget.Latest);
+      const outputs = statements.map((s) =>
+        printer.printNode(ts.EmitHint.Unspecified, s as unknown as ts.Node, sourceFile),
+      );
+
+      expect(outputs).toStrictEqual([
+        '// Auto-hoisted from: orchestration-events-state.proxy.ts\njest.mock("@dungeonmaster/orchestrator", () => ({ ...(globalThis.__ioTrap?.("@dungeonmaster/orchestrator") ?? jest.requireActual("@dungeonmaster/orchestrator")), orchestrationEventsState: Object.fromEntries(Object.entries((jest.requireActual("@dungeonmaster/orchestrator")).orchestrationEventsState).map(([key, value]) => [key, typeof value === "function" ? jest.fn() : value])) }));',
+      ]);
+    });
+
+    it('VALID: {mockCall with both identifierNames and objectIdentifierNames} => generates a flat property for one and a nested auto-mock for the other', () => {
+      typescriptMockCallsToStatementsAdapterProxy();
+
+      const mockCall = MockCallStub({
+        moduleName: ModuleNameStub({ value: '@dungeonmaster/orchestrator' }),
+        factory: null,
+        sourceFile: SourceFileNameStub({ value: 'x.proxy.ts' }),
+        identifierNames: [IdentifierNameStub({ value: 'questListBroker' })],
+        objectIdentifierNames: [IdentifierNameStub({ value: 'StartOrchestrator' })],
+      });
+
+      const nodeFactory = TypescriptNodeFactoryStub({ value: ts.factory });
+      const statements = typescriptMockCallsToStatementsAdapter({
+        mockCalls: [mockCall],
+        nodeFactory,
+      });
+
+      const printer = ts.createPrinter();
+      const sourceFile = ts.createSourceFile('temp.ts', '', ts.ScriptTarget.Latest);
+      const outputs = statements.map((s) =>
+        printer.printNode(ts.EmitHint.Unspecified, s as unknown as ts.Node, sourceFile),
+      );
+
+      expect(outputs).toStrictEqual([
+        '// Auto-hoisted from: x.proxy.ts\njest.mock("@dungeonmaster/orchestrator", () => ({ ...(globalThis.__ioTrap?.("@dungeonmaster/orchestrator") ?? jest.requireActual("@dungeonmaster/orchestrator")), questListBroker: jest.fn(), StartOrchestrator: Object.fromEntries(Object.entries((jest.requireActual("@dungeonmaster/orchestrator")).StartOrchestrator).map(([key, value]) => [key, typeof value === "function" ? jest.fn() : value])) }));',
+      ]);
+    });
+
+    it('VALID: {mockCall with both arrays empty, no factory} => returns a bare jest.mock() call (whole-module automock)', () => {
+      typescriptMockCallsToStatementsAdapterProxy();
+
+      const mockCall = MockCallStub({
+        moduleName: ModuleNameStub({ value: '@dungeonmaster/orchestrator' }),
+        factory: null,
+        sourceFile: SourceFileNameStub({ value: 'y.proxy.ts' }),
+        identifierNames: [],
+        objectIdentifierNames: [],
+      });
+
+      const nodeFactory = TypescriptNodeFactoryStub({ value: ts.factory });
+      const statements = typescriptMockCallsToStatementsAdapter({
+        mockCalls: [mockCall],
+        nodeFactory,
+      });
+
+      const printer = ts.createPrinter();
+      const sourceFile = ts.createSourceFile('temp.ts', '', ts.ScriptTarget.Latest);
+      const outputs = statements.map((s) =>
+        printer.printNode(ts.EmitHint.Unspecified, s as unknown as ts.Node, sourceFile),
+      );
+
+      expect(outputs).toStrictEqual([
+        '// Auto-hoisted from: y.proxy.ts\njest.mock("@dungeonmaster/orchestrator");',
+      ]);
+    });
+  });
+
   describe('empty mock calls', () => {
     it('EMPTY: {empty mockCalls array} => returns empty array', () => {
       typescriptMockCallsToStatementsAdapterProxy();

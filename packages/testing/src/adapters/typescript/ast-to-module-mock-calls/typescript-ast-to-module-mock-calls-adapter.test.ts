@@ -19,6 +19,7 @@ describe('typescriptAstToModuleMockCallsAdapter', () => {
         factory: `() => ({ default: { rules: {} } })`,
         sourceFile: 'test.proxy.ts',
         identifierNames: [],
+        objectIdentifierNames: [],
       },
     ]);
   });
@@ -38,6 +39,7 @@ describe('typescriptAstToModuleMockCallsAdapter', () => {
         factory: null,
         sourceFile: 'test.proxy.ts',
         identifierNames: [],
+        objectIdentifierNames: [],
       },
     ]);
   });

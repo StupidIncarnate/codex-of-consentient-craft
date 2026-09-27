@@ -5,7 +5,7 @@ import { TypescriptSourceFileStub } from '../../../contracts/typescript-source-f
 
 describe('typescriptAstToProxyImportsAdapter', () => {
   describe('valid proxy imports', () => {
-    it('VALID: {sourceFile with .proxy import} => returns proxy import path', () => {
+    it('VALID: {sourceFile with named .proxy import} => returns import edge with its names', () => {
       typescriptAstToProxyImportsAdapterProxy();
 
       const code = `
@@ -22,28 +22,59 @@ describe('test', () => {
 
       const result = typescriptAstToProxyImportsAdapter({ sourceFile });
 
-      expect(result).toStrictEqual(['./test.proxy']);
+      expect(result).toStrictEqual([
+        { kind: 'import', importPath: './test.proxy', names: ['adapterProxy'] },
+      ]);
     });
 
-    it('VALID: {multiple proxy imports} => returns all proxy import paths', () => {
+    it('VALID: {multiple proxy imports} => returns one edge per import, each with its own names', () => {
       typescriptAstToProxyImportsAdapterProxy();
 
       const code = `
 import { proxy1 } from './proxy1.proxy';
 import { proxy2 } from '../proxy2.proxy';
 import { something } from './regular';
-
-describe('test', () => {});
 `;
       const tsSourceFile = ts.createSourceFile('test.ts', code, ts.ScriptTarget.Latest, true);
       const sourceFile = TypescriptSourceFileStub({ value: tsSourceFile });
 
       const result = typescriptAstToProxyImportsAdapter({ sourceFile });
 
-      expect(result).toStrictEqual(['../proxy2.proxy', './proxy1.proxy']);
+      expect([...result].sort((a, b) => a.importPath.localeCompare(b.importPath))).toStrictEqual([
+        { kind: 'import', importPath: '../proxy2.proxy', names: ['proxy2'] },
+        { kind: 'import', importPath: './proxy1.proxy', names: ['proxy1'] },
+      ]);
     });
 
-    it('VALID: {proxy import with .ts extension} => returns proxy import', () => {
+    it('VALID: {renamed named import} => returns edge naming the ORIGINAL export, not the local alias', () => {
+      typescriptAstToProxyImportsAdapterProxy();
+
+      const code = `import { adapterProxy as renamed } from './test.proxy';`;
+      const tsSourceFile = ts.createSourceFile('test.ts', code, ts.ScriptTarget.Latest, true);
+      const sourceFile = TypescriptSourceFileStub({ value: tsSourceFile });
+
+      const result = typescriptAstToProxyImportsAdapter({ sourceFile });
+
+      expect(result).toStrictEqual([
+        { kind: 'import', importPath: './test.proxy', names: ['adapterProxy'] },
+      ]);
+    });
+
+    it('VALID: {namespace import} => returns import edge with names: null', () => {
+      typescriptAstToProxyImportsAdapterProxy();
+
+      const code = `import * as testingBarrel from '@dungeonmaster/shared/testing';`;
+      const tsSourceFile = ts.createSourceFile('test.ts', code, ts.ScriptTarget.Latest, true);
+      const sourceFile = TypescriptSourceFileStub({ value: tsSourceFile });
+
+      const result = typescriptAstToProxyImportsAdapter({ sourceFile });
+
+      expect(result).toStrictEqual([
+        { kind: 'import', importPath: '@dungeonmaster/shared/testing', names: null },
+      ]);
+    });
+
+    it('VALID: {proxy import with .ts extension} => returns import edge', () => {
       typescriptAstToProxyImportsAdapterProxy();
 
       const code = `import { adapterProxy } from './test.proxy.ts';`;
@@ -52,12 +83,14 @@ describe('test', () => {});
 
       const result = typescriptAstToProxyImportsAdapter({ sourceFile });
 
-      expect(result).toStrictEqual(['./test.proxy.ts']);
+      expect(result).toStrictEqual([
+        { kind: 'import', importPath: './test.proxy.ts', names: ['adapterProxy'] },
+      ]);
     });
   });
 
   describe('valid proxy exports', () => {
-    it('VALID: {sourceFile with export * from .proxy} => returns proxy export path', () => {
+    it('VALID: {sourceFile with export * from .proxy} => returns reexport edge with names: null', () => {
       typescriptAstToProxyImportsAdapterProxy();
 
       const code = `
@@ -70,10 +103,12 @@ export const foo = 'bar';
 
       const result = typescriptAstToProxyImportsAdapter({ sourceFile });
 
-      expect(result).toStrictEqual(['./adapters.proxy']);
+      expect(result).toStrictEqual([
+        { kind: 'reexport', importPath: './adapters.proxy', names: null },
+      ]);
     });
 
-    it('VALID: {sourceFile with named export from .proxy} => returns proxy export path', () => {
+    it('VALID: {sourceFile with named export from .proxy} => returns reexport edge with its names', () => {
       typescriptAstToProxyImportsAdapterProxy();
 
       const code = `export { adapterProxy } from './test.proxy';`;
@@ -82,10 +117,12 @@ export const foo = 'bar';
 
       const result = typescriptAstToProxyImportsAdapter({ sourceFile });
 
-      expect(result).toStrictEqual(['./test.proxy']);
+      expect(result).toStrictEqual([
+        { kind: 'reexport', importPath: './test.proxy', names: ['adapterProxy'] },
+      ]);
     });
 
-    it('VALID: {mixed imports and exports} => returns all proxy paths', () => {
+    it('VALID: {mixed imports and exports} => returns one edge per declaration, kind and names intact', () => {
       typescriptAstToProxyImportsAdapterProxy();
 
       const code = `
@@ -99,7 +136,11 @@ export { other } from './other.proxy';
 
       const result = typescriptAstToProxyImportsAdapter({ sourceFile });
 
-      expect(result.sort()).toStrictEqual(['./adapter.proxy', './broker.proxy', './other.proxy']);
+      expect([...result].sort((a, b) => a.importPath.localeCompare(b.importPath))).toStrictEqual([
+        { kind: 'reexport', importPath: './adapter.proxy', names: null },
+        { kind: 'import', importPath: './broker.proxy', names: ['brokerProxy'] },
+        { kind: 'reexport', importPath: './other.proxy', names: ['other'] },
+      ]);
     });
   });
 

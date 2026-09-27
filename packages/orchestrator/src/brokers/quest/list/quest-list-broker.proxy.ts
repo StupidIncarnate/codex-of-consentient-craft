@@ -17,14 +17,6 @@ import { fsReaddirAdapterProxy } from '../../../adapters/fs/readdir/fs-readdir-a
 import { questLoadBrokerProxy } from '../load/quest-load-broker.proxy';
 import { questResolveQuestsPathBrokerProxy } from '../resolve-quests-path/quest-resolve-quests-path-broker.proxy';
 import { questListBroker } from './quest-list-broker';
-// Self-referencing package import, deliberately separate from the relative one above: a caller
-// outside this package (mcp, server) reaches this broker through the bare `@dungeonmaster/orchestrator`
-// barrel, and jest.mock() keys on the resolved module path — a barrel automock (forced whenever the
-// SAME test also composes StartOrchestratorProxy, per the merge rule in
-// mock-calls-merge-by-module-transformer.ts) replaces the barrel's OWN `questListBroker` binding with
-// a fresh, disconnected stub, unrelated to the one wired below. Same shape as
-// start-orchestrator.proxy.ts's own self-import of StartOrchestrator.
-import { questListBroker as questListBrokerBarrelExport } from '@dungeonmaster/orchestrator';
 
 registerModuleMock({ module: './quest-list-broker' });
 
@@ -58,16 +50,6 @@ export const questListBrokerProxy = (): {
     module: './quest-list-broker',
   });
   mocked.calledWith([]).implement(realMod.questListBroker as never);
-
-  // The barrel-reached mock is a SEPARATE stub from `mocked` above (different resolved module),
-  // so every scenario this proxy exposes has to reach it too. Delegating every call straight to
-  // the relative import (`questListBroker`, itself the dispatcher this file wired above) means a
-  // caller composing this proxy through the bare `@dungeonmaster/orchestrator` import gets the
-  // SAME staged answers with no scenario method written twice.
-  const barrelMocked = registerMock({ fn: questListBrokerBarrelExport });
-  barrelMocked
-    .calledWith([])
-    .implement(async (params: { guildId: GuildId }) => questListBroker(params));
 
   // setupQuestsPath is always called immediately before setupQuestDirectories* in every caller —
   // captured here so the readdir mock can be addressed by the SAME questsPath the broker will

@@ -33,18 +33,19 @@ export const typescriptProxyMockTransformerMiddleware = ({
 }): TypescriptSourceFile => {
   const mockCalls: MockCall[] = [];
 
-  const proxyImports = typescriptAstToProxyImportsAdapter({ sourceFile });
+  const proxyEdges = typescriptAstToProxyImportsAdapter({ sourceFile });
 
-  for (const proxyImport of proxyImports) {
+  for (const edge of proxyEdges) {
     const sourceFilePath = filePathContract.parse(sourceFile.fileName);
     const proxyPath = importPathResolverMiddleware({
       sourceFilePath,
-      importPath: proxyImport,
+      importPath: edge.importPath,
     });
     if (proxyPath) {
       const mocks = proxyMockCollectorMiddleware({
         proxyFilePath: proxyPath,
         program,
+        requestedNames: edge.names,
       });
       mockCalls.push(...mocks);
     }

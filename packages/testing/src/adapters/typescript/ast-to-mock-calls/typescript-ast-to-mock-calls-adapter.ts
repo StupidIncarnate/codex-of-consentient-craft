@@ -12,6 +12,7 @@ import { moduleNameContract } from '../../../contracts/module-name/module-name-c
 import { identifierNameContract } from '../../../contracts/identifier-name/identifier-name-contract';
 import { factoryFunctionTextContract } from '../../../contracts/factory-function-text/factory-function-text-contract';
 import { sourceFileNameContract } from '../../../contracts/source-file-name/source-file-name-contract';
+import { mockFnIdentifierNamesTransformer } from '../../../transformers/mock-fn-identifier-names/mock-fn-identifier-names-transformer';
 import type { IdentifierName } from '../../../contracts/identifier-name/identifier-name-contract';
 import type { MockCall } from '../../../contracts/mock-call/mock-call-contract';
 import type { ModuleName } from '../../../contracts/module-name/module-name-contract';
@@ -164,14 +165,16 @@ export const typescriptAstToMockCallsAdapter = ({
               const resolvedModule = importModuleMap.get(rootIdentifier);
               const exportName = namedExportMap.get(rootIdentifier);
               if (resolvedModule) {
-                // Selective mock only for direct named imports (not property access, not default/namespace)
-                const identifierNames = exportName && !isPropertyAccess ? [exportName] : [];
+                const { identifierNames, objectIdentifierNames } = mockFnIdentifierNamesTransformer(
+                  { exportName, isPropertyAccess, rootIdentifier },
+                );
                 mockCalls.push(
                   mockCallContract.parse({
                     moduleName: moduleNameContract.parse(resolvedModule),
                     factory: null,
                     sourceFile: parsedSourceFile,
                     identifierNames,
+                    objectIdentifierNames,
                   }),
                 );
               }
@@ -183,13 +186,18 @@ export const typescriptAstToMockCallsAdapter = ({
             const resolvedModule = importModuleMap.get(shorthandIdentifier);
             const exportName = namedExportMap.get(shorthandIdentifier);
             if (resolvedModule) {
-              const identifierNames = exportName ? [exportName] : [];
+              const { identifierNames, objectIdentifierNames } = mockFnIdentifierNamesTransformer({
+                exportName,
+                isPropertyAccess: false,
+                rootIdentifier: shorthandIdentifier,
+              });
               mockCalls.push(
                 mockCallContract.parse({
                   moduleName: moduleNameContract.parse(resolvedModule),
                   factory: null,
                   sourceFile: parsedSourceFile,
                   identifierNames,
+                  objectIdentifierNames,
                 }),
               );
             }
