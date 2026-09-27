@@ -63,16 +63,16 @@ describe('startArgsParseTransformer', () => {
   });
 
   describe('missing --spec', () => {
-    it('INVALID: {args: []} => throws naming --spec as required', () => {
+    it('INVALID: {args: []} => throws naming --spec as required and the known specs', () => {
       expect(() => startArgsParseTransformer({ args: [] })).toThrow(
-        /^--spec is required: name the lane spec to boot\.$/u,
+        /^--spec is required: name the lane spec to boot\. Known specs: stack, api\.$/u,
       );
     });
 
-    it('INVALID: {--quest and --guild but no --spec} => throws naming --spec as required', () => {
+    it('INVALID: {--quest and --guild but no --spec} => throws naming --spec as required and the known specs', () => {
       expect(() =>
         startArgsParseTransformer({ args: ['--quest', 'add-auth', '--guild', 'x'] }),
-      ).toThrow(/^--spec is required: name the lane spec to boot\.$/u);
+      ).toThrow(/^--spec is required: name the lane spec to boot\. Known specs: stack, api\.$/u);
     });
   });
 

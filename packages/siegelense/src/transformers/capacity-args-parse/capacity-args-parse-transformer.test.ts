@@ -2,9 +2,9 @@ import { capacityArgsParseTransformer } from './capacity-args-parse-transformer'
 
 describe('capacityArgsParseTransformer', () => {
   describe('the bare form', () => {
-    it('EMPTY: {args: []} => refuses because --spec is required', () => {
+    it('EMPTY: {args: []} => refuses because --spec is required, naming the known specs', () => {
       expect(() => capacityArgsParseTransformer({ args: [] })).toThrow(
-        /^--spec is required: name the lane spec to calculate capacity against. Capacity calculation depends on spec footprint.\n\nUsage: dungeonmaster siegelense capacity --spec <specName> \[--pool <n>\] \[--json\]/u,
+        /^--spec is required: name the lane spec to calculate capacity against. Capacity calculation depends on spec footprint. Known specs: stack, api.\n\nUsage: dungeonmaster siegelense capacity --spec <specName> \[--pool <n>\] \[--json\]/u,
       );
     });
 

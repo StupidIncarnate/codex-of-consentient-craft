@@ -154,9 +154,9 @@ describe('SiegelenseCapacityLayerFlow', () => {
   });
 
   describe('the refusal when --spec is absent', () => {
-    it('INVALID: {callArgs: []} => rejects naming --spec rather than defaulting to a spec', async () => {
+    it('INVALID: {callArgs: []} => rejects naming --spec, the known specs, rather than defaulting to a spec', async () => {
       await expect(SiegelenseCapacityLayerFlow({ callArgs: [] })).rejects.toThrow(
-        /^--spec is required: name the lane spec to calculate capacity against\. Capacity calculation depends on spec footprint\.\n\nUsage: dungeonmaster siegelense capacity --spec <specName> \[--pool <n>\] \[--json\]$/u,
+        /^--spec is required: name the lane spec to calculate capacity against\. Capacity calculation depends on spec footprint\. Known specs: stack, api\.\n\nUsage: dungeonmaster siegelense capacity --spec <specName> \[--pool <n>\] \[--json\]$/u,
       );
     });
   });

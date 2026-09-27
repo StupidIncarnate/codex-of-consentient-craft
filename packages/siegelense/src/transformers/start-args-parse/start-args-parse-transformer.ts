@@ -10,7 +10,8 @@
  * `flagValueReadTransformer`, and every flag's own contract-parse refusal (a bad spec name, quest id,
  * guild id, or a non-numeric/negative ceiling) to `flagContractParseTransformer`, so this file owns
  * only the vocabulary — which flags exist, which one is required, and what an unrecognised token
- * means.
+ * means. A missing `--spec` names the known specs off the same `laneSpecConventionStatics`
+ * `laneSpecFindBroker`'s own unknown-spec refusal reads, never hard-coded here.
  *
  * USAGE:
  * startArgsParseTransformer({ args: ['--spec', 'dungeonmaster-stack'] });
@@ -30,6 +31,7 @@ import { recipeNameContract } from '../../contracts/recipe-name/recipe-name-cont
 import { specNameContract } from '../../contracts/spec-name/spec-name-contract';
 import { startArgsContract } from '../../contracts/start-args/start-args-contract';
 import type { StartArgs } from '../../contracts/start-args/start-args-contract';
+import { laneSpecConventionStatics } from '../../statics/lane-spec-convention/lane-spec-convention-statics';
 import { siegelenseOutputStatics } from '../../statics/siegelense-output/siegelense-output-statics';
 import { flagContractParseTransformer } from '../flag-contract-parse/flag-contract-parse-transformer';
 import { flagValueReadTransformer } from '../flag-value-read/flag-value-read-transformer';
@@ -77,7 +79,10 @@ export const startArgsParseTransformer = ({ args }: { args: readonly string[] })
 
   const specValue = flagValueReadTransformer({ args, flag: SPEC_FLAG });
   if (specValue === null) {
-    throw new Error(`${SPEC_FLAG} is required: name the lane spec to boot.`);
+    throw new Error(
+      `${SPEC_FLAG} is required: name the lane spec to boot. ` +
+        `Known specs: ${laneSpecConventionStatics.browsered}, ${laneSpecConventionStatics.headless}.`,
+    );
   }
 
   const questValue = flagValueReadTransformer({ args, flag: QUEST_FLAG });

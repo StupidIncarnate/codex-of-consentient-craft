@@ -37,9 +37,9 @@ describe('profileArgsParseTransformer', () => {
   });
 
   describe('the spec is missing', () => {
-    it('EMPTY: {no args} => refuses, naming --spec and why there is no fleet-wide form', () => {
+    it('EMPTY: {no args} => refuses, naming --spec, why there is no fleet-wide form, and the known specs', () => {
       expect(() => profileArgsParseTransformer({ args: [] })).toThrow(
-        /--spec is required: name the lane spec to profile\./u,
+        /^--spec is required: name the lane spec to profile\. A profile is keyed by one spec's content hash, so there is no fleet-wide form\. Known specs: stack, api\.\n\nUsage: dungeonmaster siegelense profile --spec <specName> \[--json\]$/u,
       );
     });
 
