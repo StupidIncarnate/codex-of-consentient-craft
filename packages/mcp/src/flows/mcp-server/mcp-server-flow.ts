@@ -6,7 +6,7 @@
  * // Creates server, sets up ListTools and CallTool handlers, connects StdioServerTransport
  */
 
-import { Server } from '#gateway/npm/modelcontextprotocol__sdk__server';
+import { McpServer } from '#gateway/npm/modelcontextprotocol__sdk__server__mcp';
 import { StdioServerTransport } from '#gateway/npm/modelcontextprotocol__sdk__server__stdio';
 import {
   CallToolRequestSchema,
@@ -27,7 +27,15 @@ export const McpServerFlow = async ({
 }): Promise<AdapterResult> => {
   await ServerInitResponder();
 
-  const server = new Server(
+  // The SDK's own docs on McpServer point custom-request-handler callers at this exact shape:
+  // "For advanced usage (like sending notifications or setting custom request handlers), use the
+  // underlying Server instance available via the `server` property." The bare low-level `Server`
+  // constructor is marked `@deprecated` in the SDK's own types (`node_modules/@modelcontextprotocol/sdk`),
+  // so constructing it directly trips `@typescript-eslint/no-deprecated`; going through `McpServer`
+  // reaches the identical `Server` instance (its constructor is just `this.server = new Server(serverInfo, options)`)
+  // without ever registering a tool/resource/prompt, so nothing but this manual setRequestHandler
+  // dispatch below ever touches ListToolsRequestSchema/CallToolRequestSchema.
+  const { server } = new McpServer(
     { name: '@dungeonmaster/mcp', version: '0.1.0' },
     { capabilities: { tools: {} } },
   );
