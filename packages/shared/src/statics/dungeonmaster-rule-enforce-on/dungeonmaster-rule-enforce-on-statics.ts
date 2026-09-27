@@ -16,6 +16,7 @@ export const dungeonmasterRuleEnforceOnStatics = {
   '@typescript-eslint/no-explicit-any': 'pre-edit',
   '@typescript-eslint/ban-ts-comment': 'pre-edit',
   '@typescript-eslint/no-magic-numbers': 'pre-edit',
+  '@typescript-eslint/no-shadow': 'pre-edit',
   'eslint-comments/no-use': 'pre-edit',
   'eslint-comments/no-unlimited-disable': 'pre-edit',
   'jest/no-restricted-jest-methods': 'pre-edit',

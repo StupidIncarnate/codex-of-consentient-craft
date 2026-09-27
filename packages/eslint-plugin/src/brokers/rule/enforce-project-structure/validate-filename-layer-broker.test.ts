@@ -278,7 +278,7 @@ describe('validateFilenameLayerBroker', () => {
       });
     });
 
-    it('INVALID: contract missing -contract.ts => reports invalidFileSuffix', () => {
+    it('INVALID: contract missing -contract.ts => reports invalidFileSuffixWithLayer', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -297,12 +297,12 @@ describe('validateFilenameLayerBroker', () => {
       expect(result).toBe(false);
       expect(mockReport).toHaveBeenCalledWith({
         node,
-        messageId: 'invalidFileSuffix',
+        messageId: 'invalidFileSuffixWithLayer',
         data: { expected: '-contract.ts or .stub.ts', folderType: firstFolder },
       });
     });
 
-    it('INVALID: transformer missing -transformer.ts => reports invalidFileSuffix', () => {
+    it('INVALID: transformer missing -transformer.ts => reports invalidFileSuffixWithLayer', () => {
       validateFilenameLayerBrokerProxy();
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
@@ -321,7 +321,7 @@ describe('validateFilenameLayerBroker', () => {
       expect(result).toBe(false);
       expect(mockReport).toHaveBeenCalledWith({
         node,
-        messageId: 'invalidFileSuffix',
+        messageId: 'invalidFileSuffixWithLayer',
         data: { expected: '-transformer.ts', folderType: firstFolder },
       });
     });
