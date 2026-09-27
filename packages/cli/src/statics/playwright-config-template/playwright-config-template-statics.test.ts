@@ -6,6 +6,9 @@ describe('playwrightConfigTemplateStatics', () => {
       content: `import { defineConfig } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { contentTextContract, networkPortContract } from '@dungeonmaster/shared/contracts';
+import type { ContentText, NetworkPort } from '@dungeonmaster/shared/contracts';
+import { e2eUnresolvableTokenStatics } from './src/statics/e2e-unresolvable-token/e2e-unresolvable-token-statics';
 
 const DEFAULT_API_PORT = 3737;
 
@@ -15,38 +18,43 @@ const DEFAULT_API_PORT = 3737;
 // "Timed out waiting 60000ms from config.webServer" and says nothing else about why.
 const API_PORT = Number(process.env.DUNGEONMASTER_PORT) || DEFAULT_API_PORT;
 const WEB_PORT = Number(process.env.DUNGEONMASTER_WEB_PORT) || API_PORT + 1;
-const PORT_BY_ROLE: Record<string, number> = { api: API_PORT, web: WEB_PORT };
-
-type E2eProcessConfig = {
-  name: string;
-  command: string;
-  portRole: string;
-  readyPath: string;
-  env?: Record<string, string>;
+const PORT_BY_ROLE: Record<PropertyKey, NetworkPort> = {
+  api: networkPortContract.parse(API_PORT),
+  web: networkPortContract.parse(WEB_PORT),
 };
 
-type DungeonmasterConfigShape = {
+interface E2eProcessConfig {
+  name: ContentText;
+  command: ContentText;
+  portRole: ContentText;
+  readyPath: ContentText;
+  env?: Record<PropertyKey, ContentText>;
+}
+
+interface DungeonmasterConfigShape {
   devServer?: {
     e2e?: {
       processes?: E2eProcessConfig[];
     };
   };
-};
+}
 
 // Both this file and siegelense read devServer.e2e.processes out of the SAME .dungeonmaster.json —
 // one edit reaches both, so the lane and this suite never drift onto two different dev commands.
 const CONFIG_PATH = join(__dirname, '.dungeonmaster.json');
 
-let rawConfig: unknown;
-try {
-  rawConfig = JSON.parse(readFileSync(CONFIG_PATH, 'utf8'));
-} catch (error) {
-  throw new Error(
-    \`playwright.config.ts could not read or parse .dungeonmaster.json at \${CONFIG_PATH}: \${String(error)}\`,
-  );
-}
+const readRawConfig = (): unknown => {
+  try {
+    return JSON.parse(readFileSync(CONFIG_PATH, 'utf8'));
+  } catch (error) {
+    throw new Error(
+      \`playwright.config.ts could not read or parse .dungeonmaster.json at \${CONFIG_PATH}: \${String(error)}\`,
+      { cause: error },
+    );
+  }
+};
 
-const processes = (rawConfig as DungeonmasterConfigShape).devServer?.e2e?.processes;
+const processes = (readRawConfig() as DungeonmasterConfigShape).devServer?.e2e?.processes;
 
 if (!Array.isArray(processes) || processes.length === 0) {
   throw new Error(
@@ -59,15 +67,15 @@ if (!Array.isArray(processes) || processes.length === 0) {
 // The literal seeded placeholder \`dungeonmaster init\` writes when nobody has pointed
 // devServer.e2e.processes at a real app yet — refuse it by name instead of letting the shell fail
 // on "npm run dev:no-watch" with no hint which config field to edit.
-const firstProcess = processes[0];
+const [firstProcess] = processes;
 const isUneditedPlaceholder =
   processes.length === 1 &&
   firstProcess?.name === 'app' &&
-  firstProcess?.command === 'npm run dev:no-watch' &&
-  firstProcess?.portRole === 'api' &&
-  firstProcess?.readyPath === '/' &&
-  Object.keys(firstProcess?.env ?? {}).length === 1 &&
-  firstProcess?.env?.PORT === '{apiPort}';
+  firstProcess.command === 'npm run dev:no-watch' &&
+  firstProcess.portRole === 'api' &&
+  firstProcess.readyPath === '/' &&
+  Object.keys(firstProcess.env ?? {}).length === 1 &&
+  firstProcess.env?.PORT === '{apiPort}';
 
 if (isUneditedPlaceholder) {
   throw new Error(
@@ -76,21 +84,23 @@ if (isUneditedPlaceholder) {
   );
 }
 
-const RESOLVABLE_TOKENS: Record<string, string> = {
-  '{apiPort}': String(API_PORT),
-  '{webPort}': String(WEB_PORT),
+const RESOLVABLE_TOKENS: Record<PropertyKey, ContentText> = {
+  '{apiPort}': contentTextContract.parse(String(API_PORT)),
+  '{webPort}': contentTextContract.parse(String(WEB_PORT)),
 };
+
+const UNRESOLVABLE_TOKENS = e2eUnresolvableTokenStatics.tokens.all;
 
 // {apiWorkspace}/{webWorkspace} need this repo's own package-type detection, and {claudeQueueDir}/
 // {wardQueueDir} need siegelense's own per-instance mkdir — neither exists in a scaffolded file
 // that imports nothing beyond node:fs/node:path, so a value using one of these fails loudly here
 // instead of spawning a command that still carries the literal, unexpanded token text.
-const UNRESOLVABLE_TOKENS = ['{apiWorkspace}', '{webWorkspace}', '{claudeQueueDir}', '{wardQueueDir}'];
-
-const substituteTokens = (value: string): string =>
-  Object.entries(RESOLVABLE_TOKENS).reduce(
-    (result, [token, replacement]) => result.split(token).join(replacement),
-    value,
+const substituteTokens = (value: string): ContentText =>
+  contentTextContract.parse(
+    Object.entries(RESOLVABLE_TOKENS).reduce(
+      (result, [token, replacement]) => result.split(token).join(replacement),
+      value,
+    ),
   );
 
 const refuseUnresolvableToken = ({ value, field }: { value: string; field: string }): void => {
@@ -140,9 +150,9 @@ const webServer = processes.map((entry) => {
   refuseUnresolvableToken({ value: entry.command, field: 'command' });
   const port = PORT_BY_ROLE[entry.portRole];
 
-  const env: Record<string, string> = {
-    DUNGEONMASTER_PORT: String(API_PORT),
-    DUNGEONMASTER_WEB_PORT: String(WEB_PORT),
+  const env: Record<PropertyKey, ContentText> = {
+    DUNGEONMASTER_PORT: contentTextContract.parse(String(API_PORT)),
+    DUNGEONMASTER_WEB_PORT: contentTextContract.parse(String(WEB_PORT)),
   };
   for (const [key, value] of Object.entries(entry.env ?? {})) {
     refuseUnresolvableToken({ value, field: \`env.\${key}\` });
@@ -182,6 +192,38 @@ export default defineConfig({
   outputDir: \`test-results/\${String(API_PORT)}\`,
 
   webServer,
+});
+`,
+      unresolvableTokenStaticsContent: `/**
+ * PURPOSE: The \`devServer.e2e.processes[].command\`/\`.env\` placeholder tokens this scaffolded
+ * \`playwright.config.ts\` cannot resolve — it has no workspace-path or queue-dir resolver of its
+ * own, unlike a siegelense lane. A configured value using one of these refuses loudly instead of
+ * spawning a command that still carries the unexpanded token text.
+ *
+ * USAGE:
+ * e2eUnresolvableTokenStatics.tokens.all;
+ * // Returns ['{apiWorkspace}', '{webWorkspace}', '{claudeQueueDir}', '{wardQueueDir}']
+ */
+
+export const e2eUnresolvableTokenStatics = {
+  tokens: {
+    all: ['{apiWorkspace}', '{webWorkspace}', '{claudeQueueDir}', '{wardQueueDir}'],
+  },
+} as const;
+`,
+      unresolvableTokenStaticsTestContent: `import { e2eUnresolvableTokenStatics } from './e2e-unresolvable-token-statics';
+
+describe('e2eUnresolvableTokenStatics', () => {
+  describe('tokens.all', () => {
+    it('VALID: {} => names the four placeholder tokens this scaffolded config cannot resolve', () => {
+      expect(e2eUnresolvableTokenStatics.tokens.all).toStrictEqual([
+        '{apiWorkspace}',
+        '{webWorkspace}',
+        '{claudeQueueDir}',
+        '{wardQueueDir}',
+      ]);
+    });
+  });
 });
 `,
     });

@@ -74,10 +74,13 @@ const RELATIVE_PATHS_BY_TYPE = [
       'tsconfig.build.json',
       'jest.config.js',
       'playwright.config.ts',
+      'src/statics/e2e-unresolvable-token/e2e-unresolvable-token-statics.ts',
+      'src/statics/e2e-unresolvable-token/e2e-unresolvable-token-statics.test.ts',
       'widgets.ts',
       'src/widgets/sample-pkg-panel/sample-pkg-panel-widget.tsx',
       'src/widgets/sample-pkg-panel/sample-pkg-panel-widget.proxy.tsx',
       'src/widgets/sample-pkg-panel/sample-pkg-panel-widget.test.tsx',
+      '__mocks__/jsdom-polyfills.cjs',
     ],
   ] as const,
   [
@@ -88,6 +91,8 @@ const RELATIVE_PATHS_BY_TYPE = [
       'tsconfig.build.json',
       'jest.config.js',
       'playwright.config.ts',
+      'src/statics/e2e-unresolvable-token/e2e-unresolvable-token-statics.ts',
+      'src/statics/e2e-unresolvable-token/e2e-unresolvable-token-statics.test.ts',
       'widgets.ts',
       'src/adapters/ink/render/ink-render-adapter.ts',
       'src/adapters/ink/render/ink-render-adapter.proxy.ts',
@@ -498,6 +503,17 @@ describe('packageScaffoldFilesTransformer', () => {
       );
     });
 
+    it('VALID: {packageType: "frontend-react"} => devDependencies merge the seed\'s jest-environment-jsdom/undici pair onto the base pair', () => {
+      const files = packageScaffoldFilesTransformer({
+        request: CreatePackageRequestStub({ packageType: 'frontend-react' }),
+      });
+      const packageJsonFile = files.find((file) => file.relativePath === 'package.json');
+
+      expect(packageJsonFile!.contents).toMatch(
+        /^ {2}"devDependencies": \{$\n^ {4}"@types\/node": "\^20\.11\.0",$\n^ {4}"typescript": "\^5\.3\.3",$\n^ {4}"jest-environment-jsdom": "\^30\.0\.0",$\n^ {4}"undici": "\^7\.21\.0"$\n^ {2}\},$/mu,
+      );
+    });
+
     it.each(packageBuildOrderStatics.tiers.flat())(
       'VALID: {packageType: %s} => package.json imports maps all four #gateway folders to the request scope',
       (packageType) => {
@@ -651,13 +667,25 @@ module.exports = {
   ...base,
   testEnvironment: 'jsdom',
   roots: ['<rootDir>/src'],
+  setupFiles: ['<rootDir>/__mocks__/jsdom-polyfills.cjs'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'mjs', 'json'],
   testMatch: ['**/src/**/*.test.[jt]s?(x)'],
   transform: {
     '^.+\\\\.[jt]sx?$': tsJestEntry,
+    '/node_modules/.+\\\\.[cm]?js$': tsJestEntry,
   },
 };
 `);
+      });
+
+      it('VALID: {packageType: "frontend-ink"} => jest config carries an empty setupFiles, since testEnvironment stays node', () => {
+        const files = packageScaffoldFilesTransformer({
+          request: CreatePackageRequestStub({ packageType: 'frontend-ink' }),
+          usesPublishedJestBase: true,
+        });
+        const jestConfigFile = files.find((file) => file.relativePath === 'jest.config.js');
+
+        expect(jestConfigFile!.contents).toMatch(/^ {2}setupFiles: \[\],$/mu);
       });
     });
   });

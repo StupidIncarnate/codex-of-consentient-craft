@@ -14,6 +14,7 @@ export const PackageSeedStub = ({ ...props }: StubArgument<PackageSeed> = {}): P
   packageSeedContract.parse({
     barrel: { fileName: 'statics.ts', exportPaths: ['./src/statics/thing/thing-statics'] },
     dependencies: {},
+    devDependencies: {},
     bin: {},
     compilerOptions: {},
     extraInclude: [],

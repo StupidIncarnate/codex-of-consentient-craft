@@ -33,6 +33,14 @@
  * directly — `@dungeonmaster/testing`'s `package.json` `exports` map has no subpath for it, so an
  * external `require` of that path 404s under Node's own resolution.
  *
+ * A fifth: both tsx templates' `setupFiles` carries `__SETUP_FILES__`, substituted with the jsdom
+ * polyfill path only for a `tsx-jsdom` seed (frontend-react) and left an empty, harmless `[]` for
+ * `tsx-node` (frontend-ink, testEnvironment 'node'). `@dungeonmaster/testing`'s base loads MSW in
+ * `setupFilesAfterEnv` unconditionally, and jest-environment-jsdom forwards none of Node's
+ * Request/Response/fetch globals into the jsdom sandbox — without the polyfill, EVERY test file in
+ * a scaffolded frontend-react package throws `ReferenceError: Request is not defined` before a
+ * single assertion runs (confirmed against a real packed-and-installed consumer, item G27).
+ *
  * USAGE:
  * packageScaffoldConfigStatics.buildCompilerOptions;
  * // Returns the compilerOptions block for a package's tsconfig.build.json
@@ -146,6 +154,14 @@ module.exports = {
   // scaffold — see this file's PURPOSE header for why that pairing is a deliberate tradeoff, not an
   // oversight. `setupFilesAfterEnv` is left unrestated for the same reason: object spread replaces
   // the base's array wholesale, so pinning it here would drop T01's MSW setup file.
+  // `transformIgnorePatterns` un-ignores the same four node_modules packages
+  // `jestConfigNodeIntegration` does: under testEnvironment 'jsdom', MSW's node setup also wires
+  // jsdom's own `XMLHttpRequest` global, which pulls in an ESM `.mjs` file from
+  // @mswjs/interceptors' browser build — left ignored (the repo-root base sets no
+  // `transformIgnorePatterns` of its own, so this template would otherwise fall back to jest's
+  // default `/node_modules/` blanket ignore), that file reaches Node's CJS loader raw and throws
+  // "Must use import to load ES Module" (confirmed directly against a real packed-and-installed
+  // consumer, item G27). The second `transform` key is what then actually converts it.
   jestConfigTsx: `const baseConfig = require('../../jest.config.base.js');
 const dungeonmasterTsJestOptions = require('../../packages/testing/ts-jest/options.js');
 
@@ -154,8 +170,10 @@ module.exports = {
   preset: undefined,
   testEnvironment: '__TEST_ENVIRONMENT__',
   roots: [__ROOTS__],
+  setupFiles: [__SETUP_FILES__],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
   testMatch: ['**/src/**/*.test.[jt]s?(x)'],
+  transformIgnorePatterns: ['/dist/', '/node_modules/(?!(msw|@mswjs|until-async|outvariant)/)'],
   transform: {
     '^.+\\\\.[jt]sx?$': [
       'ts-jest',
@@ -164,6 +182,7 @@ module.exports = {
         tsconfig: { ...dungeonmasterTsJestOptions.tsconfig, jsx: 'react-jsx' },
       },
     ],
+    '/node_modules/.+\\\\.[cm]?js$': ['ts-jest', dungeonmasterTsJestOptions],
   },
 };
 `,
@@ -184,6 +203,11 @@ module.exports = {
   // The published-base sibling of `jestConfigTsx`. `tsJestEntry` is read back off the spread base's
   // own `transform` value rather than required directly, because `@dungeonmaster/testing`'s
   // `package.json` `exports` carries no `./ts-jest/*` subpath for an outside `require` to reach.
+  // `transform` restates BOTH of the base's keys, not just the widened own-source one: under
+  // testEnvironment 'jsdom', MSW's node setup also wires jsdom's own `XMLHttpRequest` global, which
+  // pulls in an ESM `.mjs` file from @mswjs/interceptors' browser build. The `[jt]sx?` key alone
+  // never matches ".mjs", so that file reached jest's CJS loader raw and threw "Must use import to
+  // load ES Module" — confirmed directly against a real packed-and-installed consumer (item G27).
   jestConfigTsxPublished: `const base = require('@dungeonmaster/testing/jest-config-base');
 const tsJestEntry = Object.values(base.transform)[0];
 
@@ -191,18 +215,25 @@ module.exports = {
   ...base,
   testEnvironment: '__TEST_ENVIRONMENT__',
   roots: [__ROOTS__],
+  setupFiles: [__SETUP_FILES__],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'mjs', 'json'],
   testMatch: ['**/src/**/*.test.[jt]s?(x)'],
   transform: {
     '^.+\\\\.[jt]sx?$': tsJestEntry,
+    '/node_modules/.+\\\\.[cm]?js$': tsJestEntry,
   },
 };
 `,
 
   jestRootsPlaceholder: '__ROOTS__',
   jestTestEnvironmentPlaceholder: '__TEST_ENVIRONMENT__',
+  // Always present in both tsx templates so `setupFiles: []` is a harmless no-op for
+  // frontend-ink (testEnvironment 'node', where Node's own Request/fetch globals already exist) —
+  // only frontend-react's 'tsx-jsdom' kind substitutes the polyfill path in here.
+  jestSetupFilesPlaceholder: '__SETUP_FILES__',
   jestRootSrc: "'<rootDir>/src'",
   jestRootBin: "'<rootDir>/bin'",
   jestEnvironmentJsdom: 'jsdom',
   jestEnvironmentNode: 'node',
+  jestJsdomSetupFilesEntry: "'<rootDir>/__mocks__/jsdom-polyfills.cjs'",
 } as const;

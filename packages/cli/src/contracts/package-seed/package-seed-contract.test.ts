@@ -10,6 +10,7 @@ describe('packageSeedContract', () => {
           exportPaths: ['./src/widgets/foo-panel/foo-panel-widget'],
         },
         dependencies: { react: '^18.3.1' },
+        devDependencies: { 'jest-environment-jsdom': '^30.0.0' },
         bin: { foo: './dist/bin/foo-entry.js' },
         compilerOptions: { jsx: 'react-jsx' },
         extraInclude: ['playwright.config.ts'],
@@ -32,6 +33,7 @@ describe('packageSeedContract', () => {
           exportPaths: ['./src/widgets/foo-panel/foo-panel-widget'],
         },
         dependencies: { react: '^18.3.1' },
+        devDependencies: { 'jest-environment-jsdom': '^30.0.0' },
         bin: { foo: './dist/bin/foo-entry.js' },
         compilerOptions: { jsx: 'react-jsx' },
         extraInclude: ['playwright.config.ts'],
@@ -53,6 +55,7 @@ describe('packageSeedContract', () => {
       const result = packageSeedContract.parse({
         barrel: null,
         dependencies: {},
+        devDependencies: {},
         bin: {},
         compilerOptions: {},
         extraInclude: [],
@@ -71,6 +74,7 @@ describe('packageSeedContract', () => {
       const result = packageSeedContract.parse({
         barrel: { fileName: 'statics.ts', exportPaths: ['./src/statics/foo/foo-statics'] },
         dependencies: {},
+        devDependencies: {},
         bin: {},
         compilerOptions: {},
         extraInclude: [],
@@ -94,6 +98,7 @@ describe('packageSeedContract', () => {
       const result = packageSeedContract.parse({
         barrel: null,
         dependencies: {},
+        devDependencies: {},
         bin: {},
         compilerOptions: {},
         extraInclude: [],
@@ -115,6 +120,7 @@ describe('packageSeedContract', () => {
         return packageSeedContract.parse({
           barrel: null,
           dependencies: {},
+          devDependencies: {},
           bin: {},
           compilerOptions: {},
           extraInclude: [],
@@ -132,6 +138,7 @@ describe('packageSeedContract', () => {
       expect(() => {
         return packageSeedContract.parse({
           barrel: null,
+          devDependencies: {},
           bin: {},
           compilerOptions: {},
           extraInclude: [],
@@ -153,6 +160,7 @@ describe('packageSeedContract', () => {
       expect(result).toStrictEqual({
         barrel: { fileName: 'statics.ts', exportPaths: ['./src/statics/thing/thing-statics'] },
         dependencies: {},
+        devDependencies: {},
         bin: {},
         compilerOptions: {},
         extraInclude: [],

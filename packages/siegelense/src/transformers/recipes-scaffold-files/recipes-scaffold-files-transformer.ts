@@ -1,21 +1,33 @@
 /**
  * PURPOSE: The complete, minimal file set `InstallRecipesScaffoldResponder` writes for a FRESH
  * `hydration-recipes` package — one `npm run build` can actually act on, unlike a bare `src/` folder
- * with no `package.json`. Mirrors the shape this repo's own `packages/hydration-recipes` carries (a
- * package.json/tsconfig.json/tsconfig.build.json trio plus a source entry that compiles down to
- * `dist/index.js`, the exact path `recipesConventionStatics.entry.distRelativePath` names), scaled
- * down to a package with no domain folders yet. Kept in `siegelense` rather than reused from
- * `@dungeonmaster/cli`'s own `packageScaffoldFilesTransformer` — this scaffolder targets one fixed,
- * narrow package shape and the two scaffolders stay independently owned
- * (`siegelense-consumer-lanes.md`, section 3.6). The package.json declares its own `#gateway/*`
- * `imports` field here, at scaffold time, through the SAME `gatewayImportsFieldTransformer` cli's
- * `init` gateway step and `create-package` use — this package cannot wait for that step to find it
- * on disk, because the gateway step scans `packages/*` once, before this scaffolder ever runs.
+ * with no `package.json`, and one `@dungeonmaster/enforce-hydration-recipes-structure` (this repo's
+ * own lint rule) accepts outright rather than flagging as an incomplete package. That rule requires
+ * five files to exist regardless of a package's maturity — a startup file, a flow, a responders
+ * barrel, and two responders — so the starter mirrors this repo's OWN `packages/hydration-recipes`
+ * layering (startup delegates to a flow, a flow delegates to responders) at the smallest size that
+ * satisfies it: the listing responder always returns `[]` and the seed responder always throws,
+ * until a real recipe is added and wired in. Mirrors the shape this repo's own
+ * `packages/hydration-recipes` carries (a package.json/tsconfig.json/tsconfig.build.json/
+ * jest.config.js quartet plus a source entry that compiles down to `dist/index.js`, the exact path
+ * `recipesConventionStatics.entry.distRelativePath` names), scaled down to a package with no domain
+ * recipes yet. Kept in `siegelense` rather than reused from `@dungeonmaster/cli`'s own
+ * `packageScaffoldFilesTransformer` — this scaffolder targets one fixed, narrow package shape and
+ * the two scaffolders stay independently owned (`siegelense-consumer-lanes.md`, section 3.6). The
+ * package.json declares its own `#gateway/*` `imports` field here, at scaffold time, through the
+ * SAME `gatewayImportsFieldTransformer` cli's `init` gateway step and `create-package` use — this
+ * package cannot wait for that step to find it on disk, because the gateway step scans `packages/*`
+ * once, before this scaffolder ever runs. `jest.config.js` always requires the PUBLISHED
+ * `@dungeonmaster/testing/jest-config-base` — this scaffolder only ever creates a package inside a
+ * real consumer repo (THIS checkout's own `packages/hydration-recipes` already exists and is never
+ * re-scaffolded), so there is no repo-root `jest.config.base.js` to require instead.
  *
  * USAGE:
  * recipesScaffoldFilesTransformer({ packageName: PackageNameStub({ value: '@acme/hydration-recipes' }), scope: PathSegmentStub({ value: '@acme' }) });
- * // Returns 5 RecipesScaffoldFile entries: package.json (with an `imports` field scoped to `@acme`),
- * // tsconfig.json, tsconfig.build.json, src/index.ts, src/index.test.ts
+ * // Returns the ordered RecipesScaffoldFile[]: package.json, tsconfig.json, tsconfig.build.json,
+ * // jest.config.js, responders.ts, src/index.ts, src/index.integration.test.ts, a startup file
+ * // (plus its integration test), a flow (plus its integration test), and two responders (each with
+ * // a proxy and a unit test)
  */
 
 import { fileContentsContract, pathSegmentContract } from '@dungeonmaster/shared/contracts';
@@ -31,19 +43,17 @@ const PACKAGE_VERSION = '0.1.0';
 const NO_RECIPES_MESSAGE =
   'no recipes defined yet — add one under packages/hydration-recipes/src/recipes-<name>/';
 
+const LISTING_EXPORT = recipesConventionStatics.exports.listing;
+const SEED_EXPORT = recipesConventionStatics.exports.seed;
+const MANIFEST_EXPORT = recipesConventionStatics.exports.manifest;
+
 export const recipesScaffoldFilesTransformer = ({
   packageName,
   scope,
 }: {
   packageName: PackageName;
   scope?: PathSegment;
-}): readonly [
-  RecipesScaffoldFile,
-  RecipesScaffoldFile,
-  RecipesScaffoldFile,
-  RecipesScaffoldFile,
-  RecipesScaffoldFile,
-] => {
+}): readonly RecipesScaffoldFile[] => {
   const packageJson = {
     name: packageName,
     version: PACKAGE_VERSION,
@@ -77,7 +87,7 @@ export const recipesScaffoldFilesTransformer = ({
     compilerOptions: {
       typeRoots: ['../../node_modules/@types', '../../@types'],
     },
-    include: ['src/**/*'],
+    include: ['src/**/*', 'responders.ts'],
   };
 
   const tsconfigBuildJson = {
@@ -91,8 +101,14 @@ export const recipesScaffoldFilesTransformer = ({
       incremental: true,
       tsBuildInfoFile: './.ward/build.tsbuildinfo',
     },
+    // Overrides the checking tsconfig's wider `include` (which also names root-level
+    // `responders.ts`, for the lint rule below) back down to `src/**/*` alone — nothing outside
+    // this package imports `responders.ts`'s compiled output, so it needs no place in `dist/`, and
+    // building it under `rootDir: './src'` would trip TS6059 (a file outside `rootDir`).
+    include: ['src/**/*'],
     exclude: [
       '**/*.test.ts',
+      '**/*.integration.test.ts',
       '**/*.proxy.ts',
       '**/*.stub.ts',
       '**/*.harness.ts',
@@ -101,82 +117,268 @@ export const recipesScaffoldFilesTransformer = ({
     ],
   };
 
+  const jestConfigJs = `const base = require('@dungeonmaster/testing/jest-config-base');
+
+module.exports = {
+  ...base,
+  roots: ['<rootDir>/src'],
+};
+`;
+
+  // `@dungeonmaster/enforce-hydration-recipes-structure` (this repo's own architectural lint rule)
+  // requires this exact path to exist, so `dungeonmaster siegelense recipes`'s own consumer
+  // scaffold lints clean instead of reporting five missing-structure violations.
+  const respondersTs = `/**
+ * PURPOSE: Root barrel exporting all responders declared by this package.
+ *
+ * USAGE:
+ * import {
+ *   ${LISTING_EXPORT},
+ *   ${SEED_EXPORT},
+ * } from '<packageName>/responders';
+ */
+
+export * from './src/responders/recipes/listing/recipes-listing-responder';
+export * from './src/responders/recipes/seed/recipes-seed-responder';
+`;
+
+  const listingResponderTs = `/**
+ * PURPOSE: Answers the recipe listing \`dungeonmaster siegelense recipes\` reads — starts empty
+ * until a real recipe is added under a sibling \`src/recipes-<name>/\` folder and wired into this
+ * responder's own return array.
+ *
+ * USAGE:
+ * ${LISTING_EXPORT}();
+ * // Returns []
+ */
+
+export const ${LISTING_EXPORT} = (): readonly never[] => [];
+`;
+
+  const listingResponderProxyTs = `export const ${LISTING_EXPORT}Proxy = (): Record<PropertyKey, never> => ({});
+`;
+
+  const listingResponderTestTs = `import { ${LISTING_EXPORT} } from './recipes-listing-responder';
+import { ${LISTING_EXPORT}Proxy } from './recipes-listing-responder.proxy';
+
+describe('${LISTING_EXPORT}', () => {
+  it('VALID: {} => returns an empty array', () => {
+    ${LISTING_EXPORT}Proxy();
+
+    expect(${LISTING_EXPORT}()).toStrictEqual([]);
+  });
+});
+`;
+
+  const seedResponderTs = `/**
+ * PURPOSE: Answers a recipe seed request — throws until a real recipe is added under a sibling
+ * \`src/recipes-<name>/\` folder and wired into this responder's own dispatch.
+ *
+ * USAGE:
+ * ${SEED_EXPORT}({});
+ * // Throws: no recipes defined yet
+ */
+
+const NO_RECIPES_MESSAGE =
+  '${NO_RECIPES_MESSAGE}';
+
+export const ${SEED_EXPORT} = ({
+  recipeName: _recipeName,
+}: Record<string, unknown>): never => {
+  throw new Error(NO_RECIPES_MESSAGE);
+};
+`;
+
+  const seedResponderProxyTs = `export const ${SEED_EXPORT}Proxy = (): Record<PropertyKey, never> => ({});
+`;
+
+  const seedResponderTestTs = `import { ${SEED_EXPORT} } from './recipes-seed-responder';
+import { ${SEED_EXPORT}Proxy } from './recipes-seed-responder.proxy';
+
+describe('${SEED_EXPORT}', () => {
+  it('ERROR: {seed request} => throws naming where to add a recipe', () => {
+    ${SEED_EXPORT}Proxy();
+
+    expect(() => ${SEED_EXPORT}({})).toThrow(/no recipes defined yet/u);
+  });
+});
+`;
+
+  const recipesFlowTs = `/**
+ * PURPOSE: Orchestrates recipe operations by delegating to recipe responders. Entry point for
+ * recipe flows across this package.
+ *
+ * USAGE:
+ * const listing = RecipesFlow.listing();
+ * RecipesFlow.seed({});
+ */
+
+import { ${LISTING_EXPORT} } from '../../responders/recipes/listing/recipes-listing-responder';
+import { ${SEED_EXPORT} } from '../../responders/recipes/seed/recipes-seed-responder';
+
+type ListingResult = ReturnType<typeof ${LISTING_EXPORT}>;
+type SeedParams = Parameters<typeof ${SEED_EXPORT}>[0];
+type SeedResult = ReturnType<typeof ${SEED_EXPORT}>;
+
+export const RecipesFlow = {
+  listing: (): ListingResult => ${LISTING_EXPORT}(),
+
+  seed: (params: SeedParams): SeedResult => ${SEED_EXPORT}(params),
+};
+`;
+
+  const recipesFlowIntegrationTestTs = `import { RecipesFlow } from './recipes-flow';
+
+describe('RecipesFlow', () => {
+  it('VALID: {} => listing returns an empty array', () => {
+    expect(RecipesFlow.listing()).toStrictEqual([]);
+  });
+
+  it('ERROR: {seed request} => throws naming where to add a recipe', () => {
+    expect(() => RecipesFlow.seed({})).toThrow(/no recipes defined yet/u);
+  });
+});
+`;
+
+  const startHydrationRecipesTs = `/**
+ * PURPOSE: Application initialization and public API entry point for this package. Wires up
+ * recipe flows for listing and seeding.
+ *
+ * USAGE:
+ * import { StartHydrationRecipes } from '<packageName>';
+ * const listing = StartHydrationRecipes.listing();
+ * StartHydrationRecipes.seed({});
+ */
+
+import { RecipesFlow } from '../flows/recipes/recipes-flow';
+
+type ListingResult = ReturnType<typeof RecipesFlow.listing>;
+type SeedParams = Parameters<typeof RecipesFlow.seed>[0];
+type SeedResult = ReturnType<typeof RecipesFlow.seed>;
+
+export const StartHydrationRecipes = {
+  listing: (): ListingResult => RecipesFlow.listing(),
+
+  seed: (params: SeedParams): SeedResult => RecipesFlow.seed(params),
+};
+`;
+
+  const startHydrationRecipesIntegrationTestTs = `import { StartHydrationRecipes } from './start-hydration-recipes';
+
+describe('StartHydrationRecipes', () => {
+  it('VALID: {} => listing returns an empty array', () => {
+    expect(StartHydrationRecipes.listing()).toStrictEqual([]);
+  });
+
+  it('ERROR: {seed request} => throws naming where to add a recipe', () => {
+    expect(() => StartHydrationRecipes.seed({})).toThrow(/no recipes defined yet/u);
+  });
+});
+`;
+
   const indexTs = `/**
  * PURPOSE: The starter surface for this \`hydration-recipes\` package — the three names
  * \`recipesConventionStatics.exports\` requires (\`@dungeonmaster/shared/statics\`), so
  * \`dungeonmaster siegelense recipes\` answers with an empty listing the moment this package is
  * built, instead of throwing \`RecipesBuildMissingError\`. Add a recipe under a sibling
- * \`src/recipes-<name>/\` folder and wire it into ${recipesConventionStatics.exports.listing}'s
- * return array and ${recipesConventionStatics.exports.seed}'s dispatch.
+ * \`src/recipes-<name>/\` folder and wire it into \`StartHydrationRecipes.listing\`'s return array
+ * and \`StartHydrationRecipes.seed\`'s dispatch.
  *
  * USAGE:
- * ${recipesConventionStatics.exports.listing}();
+ * ${LISTING_EXPORT}();
  * // Returns []
  */
 
-export const ${recipesConventionStatics.exports.listing} = (): readonly never[] => [];
+import { StartHydrationRecipes } from './startup/start-hydration-recipes';
 
-export const ${recipesConventionStatics.exports.manifest}: readonly never[] =
-  ${recipesConventionStatics.exports.listing}();
+export const ${LISTING_EXPORT} = (): ReturnType<typeof StartHydrationRecipes.listing> =>
+  StartHydrationRecipes.listing();
 
-export const ${recipesConventionStatics.exports.seed} = async (
-  _params: Record<string, unknown>,
-): Promise<never> => {
-  throw new Error(
-    '${NO_RECIPES_MESSAGE}',
-  );
-};
+export const ${SEED_EXPORT} = (
+  { ...params }: Parameters<typeof StartHydrationRecipes.seed>[0],
+): ReturnType<typeof StartHydrationRecipes.seed> => StartHydrationRecipes.seed(params);
+
+export const ${MANIFEST_EXPORT}: readonly never[] = [];
 `;
 
-  const indexTestTs = `import {
-  ${recipesConventionStatics.exports.manifest},
-  ${recipesConventionStatics.exports.listing},
-  ${recipesConventionStatics.exports.seed},
-} from './index';
+  const indexIntegrationTestTs = `import { ${LISTING_EXPORT}, ${SEED_EXPORT}, ${MANIFEST_EXPORT} } from './index';
 
 describe('hydration-recipes starter index', () => {
-  it('VALID: {} => ${recipesConventionStatics.exports.listing} returns an empty array', () => {
-    expect(${recipesConventionStatics.exports.listing}()).toStrictEqual([]);
+  it('VALID: {} => ${LISTING_EXPORT} returns an empty array', () => {
+    expect(${LISTING_EXPORT}()).toStrictEqual([]);
   });
 
-  it('VALID: {} => ${recipesConventionStatics.exports.manifest} is an empty array', () => {
-    expect(${recipesConventionStatics.exports.manifest}).toStrictEqual([]);
+  it('VALID: {} => ${MANIFEST_EXPORT} is an empty array', () => {
+    expect(${MANIFEST_EXPORT}).toStrictEqual([]);
   });
 
-  it('ERROR: {seed request} => ${recipesConventionStatics.exports.seed} rejects naming where to add a recipe', async () => {
-    await expect(${recipesConventionStatics.exports.seed}({})).rejects.toThrow(
-      /no recipes defined yet/u,
-    );
+  it('ERROR: {seed request} => ${SEED_EXPORT} throws naming where to add a recipe', () => {
+    expect(() => ${SEED_EXPORT}({})).toThrow(/no recipes defined yet/u);
   });
 });
 `;
 
-  return [
-    recipesScaffoldFileContract.parse({
-      relativePath: pathSegmentContract.parse('package.json'),
-      contents: fileContentsContract.parse(
-        `${JSON.stringify(packageJson, null, JSON_INDENT_SPACES)}\n`,
-      ),
-    }),
-    recipesScaffoldFileContract.parse({
-      relativePath: pathSegmentContract.parse(locationsStatics.repoRoot.tsconfig),
-      contents: fileContentsContract.parse(
-        `${JSON.stringify(tsconfigJson, null, JSON_INDENT_SPACES)}\n`,
-      ),
-    }),
-    recipesScaffoldFileContract.parse({
-      relativePath: pathSegmentContract.parse('tsconfig.build.json'),
-      contents: fileContentsContract.parse(
-        `${JSON.stringify(tsconfigBuildJson, null, JSON_INDENT_SPACES)}\n`,
-      ),
-    }),
-    recipesScaffoldFileContract.parse({
-      relativePath: pathSegmentContract.parse('src/index.ts'),
-      contents: fileContentsContract.parse(indexTs),
-    }),
-    recipesScaffoldFileContract.parse({
-      relativePath: pathSegmentContract.parse('src/index.test.ts'),
-      contents: fileContentsContract.parse(indexTestTs),
-    }),
+  const plannedFiles = [
+    {
+      relativePath: 'package.json',
+      contents: `${JSON.stringify(packageJson, null, JSON_INDENT_SPACES)}\n`,
+    },
+    {
+      relativePath: locationsStatics.repoRoot.tsconfig,
+      contents: `${JSON.stringify(tsconfigJson, null, JSON_INDENT_SPACES)}\n`,
+    },
+    {
+      relativePath: 'tsconfig.build.json',
+      contents: `${JSON.stringify(tsconfigBuildJson, null, JSON_INDENT_SPACES)}\n`,
+    },
+    { relativePath: 'jest.config.js', contents: jestConfigJs },
+    { relativePath: 'responders.ts', contents: respondersTs },
+
+    {
+      relativePath: 'src/responders/recipes/listing/recipes-listing-responder.ts',
+      contents: listingResponderTs,
+    },
+    {
+      relativePath: 'src/responders/recipes/listing/recipes-listing-responder.proxy.ts',
+      contents: listingResponderProxyTs,
+    },
+    {
+      relativePath: 'src/responders/recipes/listing/recipes-listing-responder.test.ts',
+      contents: listingResponderTestTs,
+    },
+    {
+      relativePath: 'src/responders/recipes/seed/recipes-seed-responder.ts',
+      contents: seedResponderTs,
+    },
+    {
+      relativePath: 'src/responders/recipes/seed/recipes-seed-responder.proxy.ts',
+      contents: seedResponderProxyTs,
+    },
+    {
+      relativePath: 'src/responders/recipes/seed/recipes-seed-responder.test.ts',
+      contents: seedResponderTestTs,
+    },
+    { relativePath: 'src/flows/recipes/recipes-flow.ts', contents: recipesFlowTs },
+    {
+      relativePath: 'src/flows/recipes/recipes-flow.integration.test.ts',
+      contents: recipesFlowIntegrationTestTs,
+    },
+    {
+      relativePath: 'src/startup/start-hydration-recipes.ts',
+      contents: startHydrationRecipesTs,
+    },
+    {
+      relativePath: 'src/startup/start-hydration-recipes.integration.test.ts',
+      contents: startHydrationRecipesIntegrationTestTs,
+    },
+    { relativePath: 'src/index.ts', contents: indexTs },
+    { relativePath: 'src/index.integration.test.ts', contents: indexIntegrationTestTs },
   ];
+
+  return plannedFiles.map((file) =>
+    recipesScaffoldFileContract.parse({
+      relativePath: pathSegmentContract.parse(file.relativePath),
+      contents: fileContentsContract.parse(file.contents),
+    }),
+  );
 };

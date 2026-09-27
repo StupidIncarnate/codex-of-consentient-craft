@@ -16,6 +16,7 @@ export const packageSeedPlainStatics = {
       exportPaths: ['./src/statics/__NAME__/__NAME__-statics'],
     },
     dependencies: {},
+    devDependencies: {},
     bin: {},
     compilerOptions: {},
     extraInclude: [],
@@ -62,6 +63,7 @@ describe('__CAMEL__Statics', () => {
       exportPaths: ['./src/flows/__NAME__/__NAME__-flow'],
     },
     dependencies: { '__SCOPE__/shared': '*' },
+    devDependencies: {},
     bin: {},
     compilerOptions: {},
     extraInclude: [],
@@ -316,6 +318,7 @@ describe('Start__PASCAL__', () => {
   'eslint-plugin': {
     barrel: null,
     dependencies: { '__SCOPE__/shared': '*' },
+    devDependencies: {},
     bin: {},
     compilerOptions: {},
     extraInclude: [],
@@ -470,6 +473,7 @@ describe('index', () => {
   'hook-handlers': {
     barrel: null,
     dependencies: { '__SCOPE__/shared': '*' },
+    devDependencies: {},
     bin: {
       '__NAME__-pre-tool-use': './dist/bin/__NAME__-pre-tool-use.js',
       '__NAME__-session-start': './dist/bin/__NAME__-session-start.js',
