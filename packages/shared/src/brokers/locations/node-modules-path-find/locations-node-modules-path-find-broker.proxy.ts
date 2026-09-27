@@ -1,5 +1,5 @@
 import { join } from '#gateway/node/path';
-import { registerMock } from '@dungeonmaster/testing/register-mock';
+import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
 import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 
@@ -11,6 +11,10 @@ export const locationsNodeModulesPathFindBrokerProxy = (): {
   // specifier the broker imports. rootPath is recovered by slicing the known 'node_modules'
   // suffix off nodeModulesPath, so join() is staged on the EXACT tuple the broker really passes.
   const joinHandle = registerMock({ fn: join });
+  const realPath = requireActual<{ join: typeof join }>({ module: 'path' });
+  // Sticky real-passthrough default for every OTHER join() call this test never describes —
+  // join(rootPath, 'node_modules') is pure string arithmetic with nothing to fake.
+  joinHandle.calledWith([]).implement((...segments: never[]) => realPath.join(...segments));
 
   return {
     setupNodeModulesPath: ({ nodeModulesPath }: { nodeModulesPath: FilePath }): void => {

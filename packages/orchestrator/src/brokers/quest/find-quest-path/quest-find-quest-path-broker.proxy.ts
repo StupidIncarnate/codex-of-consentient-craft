@@ -215,8 +215,13 @@ export const questFindQuestPathBrokerProxy = (): {
     questId: QuestId;
     guildId: GuildId;
     questPath: AbsoluteFilePath;
+    // A real process has one home. Omit this to get a per-questId fixture home this scenario
+    // invents for itself; pass the SAME homeDir a sibling proxy composed in the same test staged
+    // (e.g. pastedImagePersistBrokerProxy.setupHome's own homePath) when that sibling's real
+    // resolution also has to run through this one process's homedir().
+    homeDir?: string;
   }) => void;
-  setupQuestPathError: (params: { questId: QuestId }) => void;
+  setupQuestPathError: (params: { questId: QuestId; homeDir?: string }) => void;
 } => {
   const homeFindProxy = dungeonmasterHomeFindBrokerProxy();
   // Wired to satisfy enforce-proxy-child-creation and to keep its zero-arg catch-all
@@ -251,7 +256,6 @@ export const questFindQuestPathBrokerProxy = (): {
   const readdirThrows = ({ dirPath, error }: { dirPath: FilePath; error: Error }): void => {
     readdirHandle.calledWith([dirPath, { withFileTypes: true }]).throws(error);
   };
-
   return {
     setupQuestFound: ({
       homeDir,
@@ -414,12 +418,14 @@ export const questFindQuestPathBrokerProxy = (): {
       questId,
       guildId,
       questPath,
+      homeDir: givenHomeDir,
     }: {
       questId: QuestId;
       guildId: GuildId;
       questPath: AbsoluteFilePath;
+      homeDir?: string;
     }): void => {
-      const homeDir = `/quest-find-quest-path-broker-proxy/${String(questId)}`;
+      const homeDir = givenHomeDir ?? `/quest-find-quest-path-broker-proxy/${String(questId)}`;
       const homePath = filePathContract.parse(`${homeDir}/.dungeonmaster`);
       const guildsDir = filePathContract.parse(`${homePath}/guilds`);
       const questFilePath = filePathContract.parse(
@@ -451,18 +457,20 @@ export const questFindQuestPathBrokerProxy = (): {
       });
       setupProbeEntries({ guilds, pathJoinProxy, existsSyncProxy, layerProxy });
       // No setupScanEntries here, unlike setupQuestFound: the probe above is staged to ALWAYS hit
-      // (`exists: true`), so the real broker returns before its own scan phase ever runs. Queuing
-      // the scan's path.join answers anyway would leave them unconsumed — a real risk for a caller
-      // composing this alongside another real-path-joining proxy in the same test (the shared
-      // `path.join` mock's queue is a single FIFO across every composer; a leftover entry answers
-      // THAT proxy's own next join call instead of running its real passthrough).
+      // (`exists: true`), so the real broker returns before its own scan phase ever runs.
     },
 
     // No guilds at all — both the probe and the scan come up empty, so the REAL broker throws its
     // own QuestNotFoundError(questId) (packages/orchestrator/src/errors/quest-not-found/quest-not-found-error.ts)
     // rather than this proxy ever handing a caller-invented Error.
-    setupQuestPathError: ({ questId }: { questId: QuestId }): void => {
-      const homeDir = `/quest-find-quest-path-broker-proxy/${String(questId)}`;
+    setupQuestPathError: ({
+      questId,
+      homeDir: givenHomeDir,
+    }: {
+      questId: QuestId;
+      homeDir?: string;
+    }): void => {
+      const homeDir = givenHomeDir ?? `/quest-find-quest-path-broker-proxy/${String(questId)}`;
       const homePath = filePathContract.parse(`${homeDir}/.dungeonmaster`);
       const guildsDir = filePathContract.parse(`${homePath}/guilds`);
 

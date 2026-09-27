@@ -27,6 +27,7 @@ export const QuestChatResponderProxy = (): {
     questId: QuestId;
     guildId: GuildId;
     questPath: AbsoluteFilePath;
+    homePath?: string;
   }) => void;
   setupStartChat: (params: { guildId: GuildId; chatProcessId: ProcessId }) => void;
   setupStartChatError: (params: { guildId: GuildId; message: string }) => void;
@@ -80,12 +81,21 @@ export const QuestChatResponderProxy = (): {
       questId,
       guildId,
       questPath,
+      homePath,
     }: {
       questId: QuestId;
       guildId: GuildId;
       questPath: AbsoluteFilePath;
+      // A real process has one home. Pass the SAME homePath given to setupPastedImageHome so
+      // both proxies' real chains resolve through the identical homedir() answer.
+      homePath?: string;
     }): void => {
-      findQuestPathProxy.setupQuestPath({ questId, guildId, questPath });
+      findQuestPathProxy.setupQuestPath({
+        questId,
+        guildId,
+        questPath,
+        ...(homePath === undefined ? {} : { homeDir: homePath }),
+      });
     },
     setupStartChat: ({
       guildId,

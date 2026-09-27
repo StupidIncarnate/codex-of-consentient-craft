@@ -510,6 +510,7 @@ describe('QuestChatResponder', () => {
         questId,
         guildId,
         questPath: AbsoluteFilePathStub({ value: '/quests/one-image-rewrite' }),
+        homePath,
       });
       proxy.setupStartChat({ guildId, chatProcessId });
       const image = PastedImageUploadStub({ mediaType: 'image/png', dataBase64: 'b25lLWltYWdl' });
@@ -553,6 +554,7 @@ describe('QuestChatResponder', () => {
         questId,
         guildId,
         questPath: AbsoluteFilePathStub({ value: '/quests/local-path-no-images-key' }),
+        homePath,
       });
       proxy.setupStartChat({ guildId, chatProcessId });
 

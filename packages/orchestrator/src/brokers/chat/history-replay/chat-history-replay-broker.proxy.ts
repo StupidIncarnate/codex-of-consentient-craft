@@ -1,3 +1,4 @@
+import { homedir } from 'os';
 import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
 import {
   claudeLineNormalizeBrokerProxy,
@@ -68,7 +69,11 @@ export const chatHistoryReplayBrokerProxy = (): {
   // `setPort` below so an individual test can pin a different port.
   const serverConfigProxy = questGetServerConfigBrokerProxy();
   serverConfigProxy.setPort({ value: '3737' });
-  const homedirProxy = osUserHomedirAdapterProxy();
+  // Wired to satisfy enforce-proxy-child-creation; osUserHomedirAdapterProxy's own .returns() is
+  // a one-shot, so a test replaying two sessions (two osUserHomedirAdapter() calls) needs a sticky
+  // stage instead — the direct handle below, on the same shared `homedir`.
+  osUserHomedirAdapterProxy();
+  const homedirHandle = registerMock({ fn: homedir });
   const readJsonlProxy = fsReadJsonlAdapterProxy();
   const readdirProxy = fsReaddirAdapterProxy();
   // Wired to satisfy enforce-proxy-child-creation; the readJsonlProxy above already
@@ -147,7 +152,7 @@ export const chatHistoryReplayBrokerProxy = (): {
       sessionId: SessionId;
     }): void => {
       guildProxy.setupConfig({ config });
-      homedirProxy.returns({ path: homeDir });
+      homedirHandle.calledWith([]).returns(homeDir);
       homeDirRef.value = absoluteFilePathContract.parse(homeDir);
       sessionIdRef.value = sessionId;
 

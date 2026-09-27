@@ -327,6 +327,11 @@ describe('ServerInitResponder', () => {
       const questId = QuestIdStub({ value: 'quest-retained-completion' });
       const chatProcessId = ProcessIdStub({ value: 'chat-first-message' });
       proxy.setupLoadQuestSuccess({ quest: QuestStub({ id: questId, workItems: [] }) });
+      proxy.setupFindQuestPathSuccess({
+        questId,
+        questPath: AbsoluteFilePathStub({ value: '/quests/quest-retained-completion' }),
+        guildId: GuildIdStub(),
+      });
       proxy.callResponder();
 
       const completeHandler = proxy.getCapturedEventHandler({ type: 'chat-complete' });
@@ -372,6 +377,11 @@ describe('ServerInitResponder', () => {
       const questIdX = QuestIdStub({ value: 'quest-retained-X' });
       const questIdY = QuestIdStub({ value: 'quest-retained-Y' });
       proxy.setupLoadQuestSuccess({ quest: QuestStub({ id: questIdY, workItems: [] }) });
+      proxy.setupFindQuestPathSuccess({
+        questId: questIdY,
+        questPath: AbsoluteFilePathStub({ value: '/quests/quest-retained-Y' }),
+        guildId: GuildIdStub(),
+      });
       proxy.callResponder();
 
       const completeHandler = proxy.getCapturedEventHandler({ type: 'chat-complete' });
