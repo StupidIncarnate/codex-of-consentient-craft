@@ -16,7 +16,8 @@
 
 import { absoluteFilePathContract, packageNameContract } from '@dungeonmaster/shared/contracts';
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import { fsReaddirWithTypesAdapter, processCwdAdapter } from '@dungeonmaster/shared/adapters';
+import { readdirEntriesSync } from '#gateway/node/fs';
+import { cwd } from '#gateway/node/process';
 import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
 import type { AbsoluteFilePath, ContentText, PackageName } from '@dungeonmaster/shared/contracts';
 
@@ -35,16 +36,17 @@ const GROUP_FOLDER_PREFIX = '@';
 const GATEWAY_GROUP_DIR_NAME = '@gateway';
 
 export const HookSessionSnippetPackagesResponder = ({
-  projectRoot = absoluteFilePathContract.parse(processCwdAdapter()),
+  projectRoot,
 }: {
   projectRoot?: AbsoluteFilePath;
 } = {}): ContentText => {
-  const packagesDir = absoluteFilePathContract.parse(`${String(projectRoot)}/packages`);
+  const resolvedProjectRoot = projectRoot ?? absoluteFilePathContract.parse(cwd());
+  const packagesDir = absoluteFilePathContract.parse(`${String(resolvedProjectRoot)}/packages`);
 
   let packages: PackageName[] = [packageNameContract.parse(SINGLE_ROOT_FALLBACK_PACKAGE_NAME)];
   try {
-    const topLevelEntries = fsReaddirWithTypesAdapter({ dirPath: packagesDir }).filter((entry) =>
-      entry.isDirectory(),
+    const topLevelEntries = readdirEntriesSync(packagesDir).filter(
+      (entry) => entry.kind === 'directory',
     );
 
     const groupChildNames = topLevelEntries
@@ -54,10 +56,8 @@ export const HookSessionSnippetPackagesResponder = ({
           return [gatewayLocationsStatics.importPrefix];
         }
 
-        return fsReaddirWithTypesAdapter({
-          dirPath: absoluteFilePathContract.parse(`${String(packagesDir)}/${group.name}`),
-        })
-          .filter((child) => child.isDirectory())
+        return readdirEntriesSync(`${String(packagesDir)}/${group.name}`)
+          .filter((child) => child.kind === 'directory')
           .map((child) => child.name);
       });
 

@@ -8,27 +8,12 @@
  * const result = HookSessionSnippetPackagesResponder({ projectRoot });
  */
 
-import type { Dirent } from 'fs';
-import {
-  fsReaddirWithTypesAdapterProxy,
-  processCwdAdapterProxy,
-} from '@dungeonmaster/shared/testing';
+import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/readdir-entries-sync.proxy';
+import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
+import { cwd } from '#gateway/node/process';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
-
-const makeDirent = ({ name, isDir }: { name: string; isDir: boolean }): Dirent =>
-  ({
-    name,
-    parentPath: '/stub',
-    path: '/stub',
-    isDirectory: () => isDir,
-    isFile: () => !isDir,
-    isBlockDevice: () => false,
-    isCharacterDevice: () => false,
-    isFIFO: () => false,
-    isSocket: () => false,
-    isSymbolicLink: () => false,
-  }) as Dirent;
 
 // The responder builds `${projectRoot}/packages` as the readdir target — mirror that exact join
 // here so the mock is keyed on the same dirPath the responder actually reads.
@@ -48,8 +33,9 @@ export const HookSessionSnippetPackagesResponderProxy = (): {
   }) => void;
   setupEmptyMonorepo: (params: { projectRoot: AbsoluteFilePath }) => void;
 } => {
-  processCwdAdapterProxy();
-  const readdirProxy = fsReaddirWithTypesAdapterProxy();
+  cwdProxy();
+  const readdirProxy = readdirEntriesSyncProxy();
+  const cwdHandle = registerMock({ fn: cwd });
 
   return {
     setupEntries: ({
@@ -63,29 +49,35 @@ export const HookSessionSnippetPackagesResponderProxy = (): {
         children?: { name: string; isDirectory: boolean }[];
       }[];
     }): void => {
+      cwdHandle.calledWith([]).returns(projectRoot);
       const packagesDir = packagesDirFor({ projectRoot });
       readdirProxy.returns({
-        dirPath: packagesDir,
-        entries: entries.map((entry) => makeDirent({ name: entry.name, isDir: entry.isDirectory })),
+        path: packagesDir,
+        entries: entries.map((entry) => ({
+          name: entry.name,
+          kind: entry.isDirectory ? ('directory' as const) : ('file' as const),
+        })),
       });
 
       for (const entry of entries) {
         if (entry.children) {
           readdirProxy.returns({
-            dirPath: AbsoluteFilePathStub({ value: `${String(packagesDir)}/${entry.name}` }),
-            entries: entry.children.map((child) =>
-              makeDirent({ name: child.name, isDir: child.isDirectory }),
-            ),
+            path: `${String(packagesDir)}/${entry.name}`,
+            entries: entry.children.map((child) => ({
+              name: child.name,
+              kind: child.isDirectory ? ('directory' as const) : ('file' as const),
+            })),
           });
         }
       }
     },
 
     setupEmptyMonorepo: ({ projectRoot }: { projectRoot: AbsoluteFilePath }): void => {
+      cwdHandle.calledWith([]).returns(projectRoot);
       // Make the responder's readdir throw so it falls back to the literal 'root' name.
       readdirProxy.throws({
-        dirPath: packagesDirFor({ projectRoot }),
-        error: new Error('ENOENT: no packages dir'),
+        path: packagesDirFor({ projectRoot }),
+        error: Object.assign(new Error('ENOENT: no packages dir'), { code: 'ENOENT' }),
       });
     },
   };

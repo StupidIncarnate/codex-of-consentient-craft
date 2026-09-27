@@ -5,14 +5,14 @@ import { eslintLintRunTargetedBrokerProxy } from '../../eslint/lint-run-targeted
 import { eslintIsPathIgnoredBrokerProxy } from '../../eslint/is-path-ignored/eslint-is-path-ignored-broker.proxy';
 import { processHookLintIgnoredPathsAdapterProxy } from '../../../adapters/process/hook-lint-ignored-paths/process-hook-lint-ignored-paths-adapter.proxy';
 import { violationsAnalyzeBrokerProxy } from '../analyze/violations-analyze-broker.proxy';
-import { processCwdAdapterProxy } from '@dungeonmaster/shared/testing';
+import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 
 export const violationsCheckNewBrokerProxy = (): {
   setupViolationCheck: (params?: { hasViolations?: boolean }) => void;
   setPathIgnored: (params: { ignored: boolean }) => void;
 } => {
-  processCwdAdapterProxy();
+  cwdProxy();
   const contentChangesProxy = toolInputGetContentChangesBrokerProxy();
   hookConfigLoadBrokerProxy();
   eslintLoadConfigBrokerProxy();

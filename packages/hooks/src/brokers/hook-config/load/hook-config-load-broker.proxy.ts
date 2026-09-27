@@ -1,5 +1,5 @@
 import { pathResolveAdapterProxy } from '../../../adapters/path/resolve/path-resolve-adapter.proxy';
-import { processCwdAdapterProxy } from '@dungeonmaster/shared/testing';
+import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { fsExistsSyncAdapterProxy } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter.proxy';
 import { moduleRequireFreshAdapterProxy } from '../../../adapters/module/require-fresh/module-require-fresh-adapter.proxy';
 import { hookConfigDefaultBrokerProxy } from '../default/hook-config-default-broker.proxy';
@@ -11,7 +11,7 @@ export const hookConfigLoadBrokerProxy = (): {
   setupConfigPath: (params: { workingDir: string; filename: string; path: FilePath }) => void;
   setupConfigExists: (params: { filePath: FilePath; exists: boolean }) => void;
 } => {
-  processCwdAdapterProxy();
+  cwdProxy();
   const pathProxy = pathResolveAdapterProxy();
   const fsProxy = fsExistsSyncAdapterProxy();
   moduleRequireFreshAdapterProxy();
