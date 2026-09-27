@@ -26,14 +26,6 @@
       "require": "./dist/*.stub.js",
       "types": "./dist/*.stub.d.ts"
     },
-    "./_test_/*": {
-      "bin-own-source": "./src/*/*.proxy.ts",
-      "gateway-dist": "./dist/*/*.proxy.d.ts",
-      "source": "./src/*/*.proxy.ts",
-      "import": "./dist/*/*.proxy.js",
-      "require": "./dist/*/*.proxy.js",
-      "types": "./dist/*/*.proxy.d.ts"
-    },
     "./*": {
       "bin-own-source": "./src/*/*.ts",
       "gateway-dist": "./dist/*/*.d.ts",

@@ -4,8 +4,9 @@
  * named after its own folder directly under `src/` (`src/fs/fs.ts`); every other single-dot `.ts`
  * sits in a wrapper folder. A wrapper file needs a colocated `.test.ts` (or `.integration.test.ts`)
  * and a `.proxy.ts`, the same requirement `enforce-implementation-colocation` checks for every other
- * folder type; a file declaring only types needs neither. A barrel needs only a colocated test (its
- * `.proxy.ts`, when present, is the subpath's `_test_` barrel), and it may hold ONLY re-exports —
+ * folder type; a file declaring only types needs neither. A barrel needs only a colocated test, and
+ * it never needs a `.proxy.ts` of its own — a test importing one of its wrappers imports that
+ * wrapper's own proxy per file. A barrel may hold ONLY re-exports —
  * `export *`, `export { a } from './a/a'`, `export type`, the `export =` form (`import x =
  * require('pkg'); export = x;`), a global capture (`export const { x } = globalThis;`, or `export
  * const x = globalThis.x;` — a global has no module to `export * from`, so this IS its re-export),
