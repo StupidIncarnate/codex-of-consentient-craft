@@ -137,3 +137,13 @@ Several callers use more than one forwarder, and several forwarders have more th
 | Z | delete `server/src/adapters/orchestrator/`, `mcp/src/adapters/orchestrator/`, and C1's two adapter folders |
 
 A00 named the proxy `StartOrchestratorProxy`, in PascalCase, and it is imported as `@dungeonmaster/orchestrator/startup/start-orchestrator.proxy`.
+
+### Recipe from group S1 (commit after d128c4cf4)
+
+1. Read the old adapter. Confirm exactly which `StartOrchestrator.<method>`, specific broker or state module it calls, with which arguments.
+2. In the caller, import `{ StartOrchestrator }` from `'@dungeonmaster/orchestrator'` and call the same method with the same arguments. Nothing else in the responder changes.
+3. In the caller's `.proxy.ts`, replace `<adapter>Proxy()` with `const orchestrator = StartOrchestratorProxy();` (from `'@dungeonmaster/orchestrator/startup/start-orchestrator.proxy'`). Swap each adapter-proxy `returns`/`throws` for `orchestrator.<method>Returns(...)`/`<method>Throws(...)`. That file documents every scenario.
+4. Leave the test file alone. Its assertions and the caller's own proxy method names stay the same.
+5. Do not delete the adapter.
+
+Trap: `StartOrchestratorProxy` has zero-address `calledWith([])` defaults. They act as a prefix-match catch-all, so a VALID case that stages nothing still passes. T05 will ban catch-all defaults and must revisit them.
