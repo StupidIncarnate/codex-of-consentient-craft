@@ -1,7 +1,9 @@
 import {
+  AbsoluteFilePathStub,
   FileContentsStub,
   FileNameStub,
   FilePathStub,
+  GuildIdStub,
   QuestIdStub,
   QuestStub,
 } from '@dungeonmaster/shared/contracts';
@@ -504,6 +506,35 @@ describe('questFindQuestPathBroker', () => {
 
       await expect(questFindQuestPathBroker({ questId })).rejects.toThrow(
         /Quest with id "add-auth" not found in any guild/u,
+      );
+    });
+  });
+
+  // These two prove the CALLER-LEVEL scenarios composed by callers outside this package (server's
+  // quest-chat/clarify/comment-batch responders) — addressed by {questId, guildId, questPath} alone,
+  // built on this proxy's own staged dependencies, never a raw registerMock on the broker itself.
+  describe('caller-level scenarios', () => {
+    it('VALID: {setupQuestPath with an arbitrary questPath} => the real broker resolves it verbatim', async () => {
+      const proxy = questFindQuestPathBrokerProxy();
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const questPath = AbsoluteFilePathStub({ value: '/quests/add-auth' });
+
+      proxy.setupQuestPath({ questId, guildId, questPath });
+
+      const result = await questFindQuestPathBroker({ questId });
+
+      expect(result).toStrictEqual({ questPath: '/quests/add-auth', guildId });
+    });
+
+    it('ERROR: {setupQuestPathError} => the real broker throws its own QuestNotFoundError', async () => {
+      const proxy = questFindQuestPathBrokerProxy();
+      const questId = QuestIdStub({ value: 'missing-quest' });
+
+      proxy.setupQuestPathError({ questId });
+
+      await expect(questFindQuestPathBroker({ questId })).rejects.toThrow(
+        /Quest with id "missing-quest" not found in any guild/u,
       );
     });
   });

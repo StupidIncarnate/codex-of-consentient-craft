@@ -6,7 +6,20 @@ import {
   fsReaddirWithTypesAdapterProxy,
   pathJoinAdapterProxy,
 } from '@dungeonmaster/shared/testing';
-import type { FileContents, FileName, FilePath } from '@dungeonmaster/shared/contracts';
+import {
+  FileContentsStub,
+  fileNameContract,
+  filePathContract,
+} from '@dungeonmaster/shared/contracts';
+import type {
+  AbsoluteFilePath,
+  FileContents,
+  FileName,
+  FilePath,
+  GuildId,
+  QuestId,
+} from '@dungeonmaster/shared/contracts';
+import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 
@@ -193,6 +206,16 @@ export const questFindQuestPathBrokerProxy = (): {
     guildDirName: FileName;
     questsDirPath: FilePath;
   }) => void;
+  // Caller-level scenarios: address by questId alone, and let the REAL broker (probe → scan →
+  // matchCandidatesLayerBroker) settle the answer through the SAME staged dependencies
+  // setupQuestFound composes above — never a raw registerMock on questFindQuestPathBroker itself,
+  // which is what a bare-root import's caller is expected to compose (enforce-proxy-child-creation).
+  setupQuestPath: (params: {
+    questId: QuestId;
+    guildId: GuildId;
+    questPath: AbsoluteFilePath;
+  }) => void;
+  setupQuestPathError: (params: { questId: QuestId }) => void;
 } => {
   const homeFindProxy = dungeonmasterHomeFindBrokerProxy();
   // Wired to satisfy enforce-proxy-child-creation and to keep its zero-arg catch-all
@@ -378,6 +401,73 @@ export const questFindQuestPathBrokerProxy = (): {
         dirPath: questsDirPath,
         error: new Error('ENOENT: no such file or directory'),
       });
+    },
+
+    // Addressed by questId alone — a single guild, named by guildId, whose canonical PROBE path
+    // (questsDir/<questId>) already holds a quest.json recording that same id. The probe answers
+    // before the scan ever runs (see the broker's own header, "TWO PHASES, ONE ANSWER"), so
+    // `questFolders` stays empty. Every internal home/guilds path is a fixture this scenario
+    // invents for itself — a caller only cares about the {questId, guildId} -> {questPath} answer,
+    // never the fs layout that produced it.
+    setupQuestPath: ({
+      questId,
+      guildId,
+      questPath,
+    }: {
+      questId: QuestId;
+      guildId: GuildId;
+      questPath: AbsoluteFilePath;
+    }): void => {
+      const homeDir = `/quest-find-quest-path-broker-proxy/${String(questId)}`;
+      const homePath = filePathContract.parse(`${homeDir}/.dungeonmaster`);
+      const guildsDir = filePathContract.parse(`${homePath}/guilds`);
+      const questFilePath = filePathContract.parse(
+        `${String(questPath)}/${locationsStatics.quest.questFile}`,
+      );
+      const guilds = [
+        {
+          dirName: fileNameContract.parse(String(guildId)),
+          questsDirPath: filePathContract.parse(`${guildsDir}/${String(guildId)}/quests`),
+          probe: {
+            questFolderPath: filePathContract.parse(String(questPath)),
+            questFilePath,
+            exists: true,
+            // matchCandidatesLayerBroker checks `id` alone (questContract.pick({ id: true })), so
+            // a minimal object carries everything the real broker's match needs.
+            contents: FileContentsStub({ value: JSON.stringify({ id: String(questId) }) }),
+          },
+          questFolders: [],
+        },
+      ];
+
+      homeFindProxy.setupHomePath({ homeDir, homePath });
+      pathJoinProxy.returns({ result: guildsDir });
+      readdirReturns({
+        dirPath: guildsDir,
+        entries: guilds.map(({ dirName }) =>
+          createMockDirent({ name: dirName, parentPath: guildsDir }),
+        ),
+      });
+      setupProbeEntries({ guilds, pathJoinProxy, existsSyncProxy, layerProxy });
+      // No setupScanEntries here, unlike setupQuestFound: the probe above is staged to ALWAYS hit
+      // (`exists: true`), so the real broker returns before its own scan phase ever runs. Queuing
+      // the scan's path.join answers anyway would leave them unconsumed — a real risk for a caller
+      // composing this alongside another real-path-joining proxy in the same test (the shared
+      // `path.join` mock's queue is a single FIFO across every composer; a leftover entry answers
+      // THAT proxy's own next join call instead of running its real passthrough).
+    },
+
+    // No guilds at all — both the probe and the scan come up empty, so the REAL broker throws its
+    // own QuestNotFoundError(questId) (packages/orchestrator/src/errors/quest-not-found/quest-not-found-error.ts)
+    // rather than this proxy ever handing a caller-invented Error.
+    setupQuestPathError: ({ questId }: { questId: QuestId }): void => {
+      const homeDir = `/quest-find-quest-path-broker-proxy/${String(questId)}`;
+      const homePath = filePathContract.parse(`${homeDir}/.dungeonmaster`);
+      const guildsDir = filePathContract.parse(`${homePath}/guilds`);
+
+      homeFindProxy.setupHomePath({ homeDir, homePath });
+      pathJoinProxy.returns({ result: guildsDir });
+      readdirReturns({ dirPath: guildsDir, entries: [] });
     },
   };
 };

@@ -6,14 +6,13 @@
  * // Returns { status: 200, data: { deleted: true } } or { status: 400/500, data: { error } }
  */
 
+import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import {
   isPreExecutionQuestStatusGuard,
   isTerminalQuestStatusGuard,
   isUserPausedQuestStatusGuard,
 } from '@dungeonmaster/shared/guards';
 
-import { orchestratorDeleteQuestAdapter } from '../../../adapters/orchestrator/delete-quest/orchestrator-delete-quest-adapter';
-import { orchestratorGetQuestAdapter } from '../../../adapters/orchestrator/get-quest/orchestrator-get-quest-adapter';
 import { guildIdQueryContract } from '../../../contracts/guild-id-query/guild-id-query-contract';
 import { questIdParamsContract } from '../../../contracts/quest-id-params/quest-id-params-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
@@ -61,7 +60,7 @@ export const QuestDeleteResponder = async ({
     }
     const { guildId } = parsedQuery.data;
 
-    const questResult = await orchestratorGetQuestAdapter({ questId });
+    const questResult = await StartOrchestrator.getQuest({ questId });
     if (!questResult.success || !questResult.quest) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
@@ -82,7 +81,7 @@ export const QuestDeleteResponder = async ({
       });
     }
 
-    const result = await orchestratorDeleteQuestAdapter({ questId, guildId });
+    const result = await StartOrchestrator.deleteQuest({ questId, guildId });
     return responderResultContract.parse({
       status: httpStatusStatics.success.ok,
       data: result,

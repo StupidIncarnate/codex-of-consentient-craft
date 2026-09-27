@@ -7,11 +7,9 @@
  * // or { status: 409, data: { error, staleAnchors } } naming every anchor that no longer resolves
  */
 
+import { questFindQuestPathBroker, StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { isChatWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
 
-import { orchestratorCommentBatchAdapter } from '../../../adapters/orchestrator/comment-batch/orchestrator-comment-batch-adapter';
-import { orchestratorFindQuestPathAdapter } from '../../../adapters/orchestrator/find-quest-path/orchestrator-find-quest-path-adapter';
-import { orchestratorLoadQuestAdapter } from '../../../adapters/orchestrator/load-quest/orchestrator-load-quest-adapter';
 import { commentBatchBodyContract } from '../../../contracts/comment-batch-body/comment-batch-body-contract';
 import { commentBatchResponseContract } from '../../../contracts/comment-batch-response/comment-batch-response-contract';
 import { questIdParamsContract } from '../../../contracts/quest-id-params/quest-id-params-contract';
@@ -70,7 +68,7 @@ export const QuestCommentBatchResponder = async ({
     }
     const { comments } = parsedBody.data;
 
-    const quest = await orchestratorLoadQuestAdapter({ questId });
+    const quest = await StartOrchestrator.loadQuest({ questId });
 
     const chatItem = quest.workItems.find(
       (wi) => isChatWorkItemRoleGuard({ role: wi.role }) && wi.sessionId,
@@ -96,9 +94,9 @@ export const QuestCommentBatchResponder = async ({
       });
     }
 
-    const { guildId } = await orchestratorFindQuestPathAdapter({ questId });
+    const { guildId } = await questFindQuestPathBroker({ questId });
 
-    const { chatProcessId, message } = await orchestratorCommentBatchAdapter({
+    const { chatProcessId, message } = await StartOrchestrator.commentBatch({
       guildId,
       sessionId: resolvedSessionId,
       questId,

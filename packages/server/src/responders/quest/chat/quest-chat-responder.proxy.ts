@@ -1,5 +1,7 @@
 import { writeFile } from 'fs/promises';
-import { StartOrchestrator } from '@dungeonmaster/orchestrator';
+import { questFindQuestPathBroker, StartOrchestrator } from '@dungeonmaster/orchestrator';
+import { questFindQuestPathBrokerProxy } from '@dungeonmaster/orchestrator/brokers/quest/find-quest-path/quest-find-quest-path-broker.proxy';
+import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import type {
   AbsoluteFilePathStub,
   GuildIdStub,
@@ -8,50 +10,21 @@ import type {
   QuestStatus,
   QuestStub,
 } from '@dungeonmaster/shared/contracts';
-import { registerMock, registerModuleMock } from '@dungeonmaster/testing/register-mock';
+import {
+  registerMock,
+  registerModuleMock,
+  requireActual,
+} from '@dungeonmaster/testing/register-mock';
 
-// Combine StartOrchestrator method mocks with the questFindQuestPathBroker mock under
-// one explicit module-mock factory so both can coexist on @dungeonmaster/orchestrator.
-// Named explicitly rather than spread from jest.requireActual: this responder's whole
-// dependent tree (its adapters, its broker, its contracts) only ever imports
-// StartOrchestrator and questFindQuestPathBroker off this module, so those are the only
-// two exports the factory needs to supply.
-registerModuleMock({
-  module: '@dungeonmaster/orchestrator',
-  factory: () => ({
-    StartOrchestrator: {
-      addGuild: jest.fn(),
-      addQuest: jest.fn(),
-      browseDirectories: jest.fn(),
-      getGuild: jest.fn(),
-      getQuest: jest.fn(),
-      getQuestStatus: jest.fn(),
-      listGuilds: jest.fn(),
-      listQuests: jest.fn(),
-      loadQuest: jest.fn(),
-      modifyQuest: jest.fn(),
-      pauseQuest: jest.fn(),
-      abandonQuest: jest.fn(),
-      recoverActiveQuests: jest.fn(),
-      removeGuild: jest.fn(),
-      replayChatHistory: jest.fn(),
-      startChat: jest.fn(),
-      startQuest: jest.fn(),
-      stopAllChats: jest.fn(),
-      stopChat: jest.fn(),
-      updateGuild: jest.fn(),
-      clarifyAnswer: jest.fn(),
-      resumeQuest: jest.fn(),
-      deleteQuest: jest.fn(),
-    },
-    questFindQuestPathBroker: jest.fn(),
-  }),
-});
+// KNOWN HOISTER BUG (2026-09-27, being fixed in packages/testing by a sibling agent — S5 must not
+// edit that package): the proxy-mock hoister's merge drops StartOrchestratorProxy's whole-module
+// auto-mock when another proxy in this same test mocks a bare export of the SAME module. This
+// explicit, FACTORY-LESS registerModuleMock works around it until the fix lands: a bare jest
+// automock still deep-mocks every StartOrchestrator method (a plain nested object of functions),
+// which is all StartOrchestratorProxy's own registerMock() calls need — so no 54-key factory to
+// keep in sync by hand.
+registerModuleMock({ module: '@dungeonmaster/orchestrator' });
 
-import { orchestratorFindQuestPathAdapterProxy } from '../../../adapters/orchestrator/find-quest-path/orchestrator-find-quest-path-adapter.proxy';
-import { orchestratorLoadQuestAdapterProxy } from '../../../adapters/orchestrator/load-quest/orchestrator-load-quest-adapter.proxy';
-import { orchestratorResumeQuestAdapterProxy } from '../../../adapters/orchestrator/resume-quest/orchestrator-resume-quest-adapter.proxy';
-import { orchestratorStartChatAdapterProxy } from '../../../adapters/orchestrator/start-chat/orchestrator-start-chat-adapter.proxy';
 import { pastedImagePersistBrokerProxy } from '../../../brokers/pasted-image/persist/pasted-image-persist-broker.proxy';
 import { QuestChatResponder } from './quest-chat-responder';
 
@@ -68,7 +41,6 @@ export const QuestChatResponderProxy = (): {
     guildId: GuildId;
     questPath: AbsoluteFilePath;
   }) => void;
-  setupFindQuestPathError: (params: { questId: QuestId; error: Error }) => void;
   setupStartChat: (params: { guildId: GuildId; chatProcessId: ProcessId }) => void;
   setupStartChatError: (params: { guildId: GuildId; message: string }) => void;
   setupResumeQuest: (params: {
@@ -87,10 +59,32 @@ export const QuestChatResponderProxy = (): {
   getWrittenPayloadsInOrder: () => unknown[];
   callResponder: typeof QuestChatResponder;
 } => {
-  const loadProxy = orchestratorLoadQuestAdapterProxy();
-  const findPathProxy = orchestratorFindQuestPathAdapterProxy();
-  const startChatProxy = orchestratorStartChatAdapterProxy();
-  const resumeProxy = orchestratorResumeQuestAdapterProxy();
+  const orchestrator = StartOrchestratorProxy();
+  // questFindQuestPathBroker is a specific-broker forward, composed via ITS OWN proxy —
+  // setupQuestPath/setupQuestPathError run the REAL broker through its own staged fs dependencies
+  // (readdir, path.join, existsSync), the same way questListBrokerProxy's setupDirectList composes
+  // the real questListBroker. The bare automock above still leaves questFindQuestPathBroker itself
+  // an unstaffed stub (a plain function export, not a nested object jest can deep-mock into
+  // anything useful), so this sticky, zero-address passthrough delegates every unaddressed call to
+  // the REAL implementation — reached through '@dungeonmaster/orchestrator/brokers', a module
+  // specifier distinct from the bare '@dungeonmaster/orchestrator' the automock above replaces, so
+  // it is untouched by that automock (orchestrator has no generic per-file source export for a bare
+  // broker, only `./*.proxy`/`./*.stub`, and re-exporting from a brokers/ file is banned — `brokers`
+  // is that package's own existing subpath for reaching one broker directly without its heavy `.`
+  // barrel's bootstraps). Mirrors quest-list-broker.proxy.ts's own real-passthrough default.
+  const findQuestPathMock = registerMock({ fn: questFindQuestPathBroker });
+  const realFindQuestPath = requireActual<{
+    questFindQuestPathBroker: typeof questFindQuestPathBroker;
+  }>({
+    module: '@dungeonmaster/orchestrator/brokers',
+  });
+  findQuestPathMock.calledWith([]).implement(realFindQuestPath.questFindQuestPathBroker as never);
+  const findQuestPathProxy = questFindQuestPathBrokerProxy();
+  // startChat has no cross-package getLastCalledArgs scenario on StartOrchestratorProxy, so this
+  // second registerMock call on the SAME mocked fn is read-only — it shares the underlying staged
+  // calls with the handle StartOrchestratorProxy already registered (jestRegisterMockAdapter keys
+  // its state by the mock function itself), never calling .calledWith() on it.
+  const startChatHandle = registerMock({ fn: StartOrchestrator.startChat });
   // pastedImagePersistBroker is APPLICATION code — it runs REAL. This proxy only mocks the npm
   // boundary underneath it (mkdir, writeFile, randomUUID, homedir), composed exactly the way the
   // broker's own test does.
@@ -104,10 +98,10 @@ export const QuestChatResponderProxy = (): {
 
   return {
     setupQuestLoad: ({ quest }: { quest: Quest }): void => {
-      loadProxy.returns({ questId: quest.id, quest });
+      orchestrator.loadQuestReturns({ questId: quest.id, quest });
     },
     setupQuestLoadError: ({ questId, error }: { questId: QuestId; error: Error }): void => {
-      loadProxy.throws({ questId, error });
+      orchestrator.loadQuestThrows({ questId, error });
     },
     setupFindQuestPath: ({
       questId,
@@ -118,10 +112,7 @@ export const QuestChatResponderProxy = (): {
       guildId: GuildId;
       questPath: AbsoluteFilePath;
     }): void => {
-      findPathProxy.returns({ questId, guildId, questPath });
-    },
-    setupFindQuestPathError: ({ questId, error }: { questId: QuestId; error: Error }): void => {
-      findPathProxy.throws({ questId, error });
+      findQuestPathProxy.setupQuestPath({ questId, guildId, questPath });
     },
     setupStartChat: ({
       guildId,
@@ -130,10 +121,10 @@ export const QuestChatResponderProxy = (): {
       guildId: GuildId;
       chatProcessId: ProcessId;
     }): void => {
-      startChatProxy.returns({ guildId, chatProcessId });
+      orchestrator.startChatReturns({ guildId, chatProcessId });
     },
     setupStartChatError: ({ guildId, message }: { guildId: GuildId; message: string }): void => {
-      startChatProxy.throws({ guildId, error: new Error(message) });
+      orchestrator.startChatThrows({ guildId, error: new Error(message) });
     },
     // Explicit staging for the "quest was paused" path — resumeQuest genuinely gets called for
     // that questId before start-chat, so the mock must be told what it resolves to instead of
@@ -147,10 +138,10 @@ export const QuestChatResponderProxy = (): {
       resumed: boolean;
       restoredStatus: QuestStatus;
     }): void => {
-      resumeProxy.returns({ questId, resumed, restoredStatus });
+      orchestrator.resumeQuestReturns({ questId, resumed, restoredStatus });
     },
     setupResumeQuestError: ({ questId, message }: { questId: QuestId; message: string }): void => {
-      resumeProxy.throws({ questId, error: new Error(message) });
+      orchestrator.resumeQuestThrows({ questId, error: new Error(message) });
     },
     getResumeQuestCalls: (): readonly unknown[] => {
       const resumeFn = StartOrchestrator.resumeQuest as jest.MockedFunction<
@@ -173,7 +164,7 @@ export const QuestChatResponderProxy = (): {
       return resumeOrder < startChatOrder;
     },
     getStartChatCallArgs: ({ guildId }: { guildId: GuildId }): unknown =>
-      startChatProxy.getLastCalledArgs({ guildId }),
+      startChatHandle.callsMatching([{ guildId }]).at(-1)?.[0],
     getStartChatCallCount: (): unknown => {
       const startChatFn = StartOrchestrator.startChat as jest.MockedFunction<
         typeof StartOrchestrator.startChat

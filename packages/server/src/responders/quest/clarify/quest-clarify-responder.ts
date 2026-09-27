@@ -6,18 +6,16 @@
  * // Returns { status: 200, data: { chatProcessId } } or { status: 400/404/500, data: { error } }
  */
 
+import { questFindQuestPathBroker, StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { isChatWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
 
-import { orchestratorClarifyAdapter } from '../../../adapters/orchestrator/clarify/orchestrator-clarify-adapter';
-import { orchestratorFindQuestPathAdapter } from '../../../adapters/orchestrator/find-quest-path/orchestrator-find-quest-path-adapter';
-import { orchestratorLoadQuestAdapter } from '../../../adapters/orchestrator/load-quest/orchestrator-load-quest-adapter';
 import { questClarifyBodyContract } from '../../../contracts/quest-clarify-body/quest-clarify-body-contract';
 import { questIdParamsContract } from '../../../contracts/quest-id-params/quest-id-params-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
 
-type ClarifyAdapterParams = Parameters<typeof orchestratorClarifyAdapter>[0];
+type ClarifyAdapterParams = Parameters<typeof StartOrchestrator.clarifyAnswer>[0];
 
 export const QuestClarifyResponder = async ({
   params,
@@ -66,7 +64,7 @@ export const QuestClarifyResponder = async ({
     }
     const { answers, questions } = parsedBody.data;
 
-    const quest = await orchestratorLoadQuestAdapter({ questId });
+    const quest = await StartOrchestrator.loadQuest({ questId });
 
     const chatItem = quest.workItems.find(
       (wi) => isChatWorkItemRoleGuard({ role: wi.role }) && wi.sessionId,
@@ -80,9 +78,9 @@ export const QuestClarifyResponder = async ({
       });
     }
 
-    const { guildId } = await orchestratorFindQuestPathAdapter({ questId });
+    const { guildId } = await questFindQuestPathBroker({ questId });
 
-    const { chatProcessId } = await orchestratorClarifyAdapter({
+    const { chatProcessId } = await StartOrchestrator.clarifyAnswer({
       guildId,
       sessionId: resolvedSessionId,
       questId,

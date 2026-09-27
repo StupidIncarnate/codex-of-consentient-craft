@@ -10,16 +10,13 @@
  * // Returns { status: 200, data: { chatProcessId } } or { status: 400/500, data: { error } }
  */
 
+import { questFindQuestPathBroker, StartOrchestrator } from '@dungeonmaster/orchestrator';
 import {
   isChatWorkItemRoleGuard,
   isPostQuestChatWorkItemRoleGuard,
   isUserPausedQuestStatusGuard,
 } from '@dungeonmaster/shared/guards';
 
-import { orchestratorFindQuestPathAdapter } from '../../../adapters/orchestrator/find-quest-path/orchestrator-find-quest-path-adapter';
-import { orchestratorLoadQuestAdapter } from '../../../adapters/orchestrator/load-quest/orchestrator-load-quest-adapter';
-import { orchestratorResumeQuestAdapter } from '../../../adapters/orchestrator/resume-quest/orchestrator-resume-quest-adapter';
-import { orchestratorStartChatAdapter } from '../../../adapters/orchestrator/start-chat/orchestrator-start-chat-adapter';
 import { pastedImagePersistBroker } from '../../../brokers/pasted-image/persist/pasted-image-persist-broker';
 import { messageBodyContract } from '../../../contracts/message-body/message-body-contract';
 import { questIdParamsContract } from '../../../contracts/quest-id-params/quest-id-params-contract';
@@ -79,12 +76,12 @@ export const QuestChatResponder = async ({
     }
     const { message, images } = parsedBody.data;
 
-    const quest = await orchestratorLoadQuestAdapter({ questId });
+    const quest = await StartOrchestrator.loadQuest({ questId });
 
     // Mirror session-chat-broker.ts pause→resume: if the user paused the quest, resume it
     // BEFORE delegating to chat-start so the user's message lands in a live chat.
     if (isUserPausedQuestStatusGuard({ status: quest.status })) {
-      await orchestratorResumeQuestAdapter({ questId });
+      await StartOrchestrator.resumeQuest({ questId });
     }
 
     // The main composer resumes the thread it owns — spec intake (chaoswhisperer) or bug-hunt
@@ -99,8 +96,8 @@ export const QuestChatResponder = async ({
     );
     const resolvedSessionId = chatItem?.sessionId;
 
-    // Resolve guildId via the quest path adapter — quests do not carry guildId directly.
-    const { guildId } = await orchestratorFindQuestPathAdapter({ questId });
+    // Resolve guildId via the quest path broker — quests do not carry guildId directly.
+    const { guildId } = await questFindQuestPathBroker({ questId });
 
     // Pasted images ride in the body as base64, and a screenshot's absolute local path can ride in
     // the text alone with no images key at all — the broker scans every send for both, so the call
@@ -120,7 +117,7 @@ export const QuestChatResponder = async ({
     // quest's own work item — see resolveChatQuestLayerBroker's header. The images persisted above
     // already live under this exact questId, so this can never spawn into a different quest than
     // the one it wrote them to.
-    const { chatProcessId } = await orchestratorStartChatAdapter({
+    const { chatProcessId } = await StartOrchestrator.startChat({
       guildId,
       message: rewrittenMessage,
       existingQuestId: questId,
