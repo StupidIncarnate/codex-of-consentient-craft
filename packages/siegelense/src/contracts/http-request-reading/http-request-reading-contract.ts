@@ -15,7 +15,7 @@ export const httpRequestReadingContract = z
   .object({
     status: z.number().int().brand<'HttpRequestStatus'>(),
     statusText: z.string().brand<'HttpRequestStatusText'>(),
-    headers: z.record(z.string().brand<'HttpHeaderValue'>()),
+    headers: z.record(z.string().brand<'HttpHeaderName'>(), z.string().brand<'HttpHeaderValue'>()),
     body: z.unknown(),
   })
   .strict();

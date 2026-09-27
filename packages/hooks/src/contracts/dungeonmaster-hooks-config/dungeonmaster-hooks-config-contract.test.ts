@@ -18,7 +18,7 @@ describe('dungeonmasterHooksConfigContract', () => {
     it('INVALID: {invalid data} => throws validation error', () => {
       expect(() => {
         return dungeonmasterHooksConfigContract.parse('invalid' as never);
-      }).toThrow(/Expected object/u);
+      }).toThrow(/expected object/u);
     });
   });
 });

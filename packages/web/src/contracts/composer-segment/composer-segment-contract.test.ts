@@ -38,11 +38,11 @@ describe('composerSegmentContract', () => {
     it('INVALID: {kind: image, attachmentId: "not-a-uuid"} => throws for a non-uuid attachmentId', () => {
       expect(() =>
         composerSegmentContract.parse({ kind: 'image', attachmentId: 'not-a-uuid' }),
-      ).toThrow(/Invalid uuid/u);
+      ).toThrow(/Invalid UUID/u);
     });
 
     it('INVALID: {kind: text, no text key} => throws for a missing text field', () => {
-      expect(() => composerSegmentContract.parse({ kind: 'text' })).toThrow(/Required/u);
+      expect(() => composerSegmentContract.parse({ kind: 'text' })).toThrow(/received undefined/u);
     });
   });
 

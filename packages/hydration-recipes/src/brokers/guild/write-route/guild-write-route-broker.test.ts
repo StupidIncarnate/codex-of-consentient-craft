@@ -65,7 +65,7 @@ describe('guildWriteRouteBroker', () => {
       const proxy = guildWriteRouteBrokerProxy();
       const target = DmTargetStub({ home: '/tmp/dm-home', claudeHome: '/tmp/dm-home' });
       const guild = GuildStub({
-        id: '12345678-1234-1234-1234-123456789abc',
+        id: '7a33141f-192d-204d-847e-9918b4840d56',
         name: 'Real Project',
         path: '/home/user/real-project',
         urlSlug: 'real-project',
@@ -89,7 +89,7 @@ describe('guildWriteRouteBroker', () => {
       const proxy = guildWriteRouteBrokerProxy();
       const target = DmTargetStub({ home: '/tmp/dm-home', claudeHome: '/tmp/dm-home' });
       const guild = GuildStub({
-        id: '12345678-1234-1234-1234-123456789abc',
+        id: '7a33141f-192d-204d-847e-9918b4840d56',
         name: 'Real Project',
         path: '/home/user/real-project',
         urlSlug: 'real-project',
@@ -318,7 +318,7 @@ describe('guildWriteRouteBroker', () => {
     it('VALID: {name, path, id} => registers the guild with exactly that id', async () => {
       const proxy = guildWriteRouteBrokerProxy();
       const target = DmTargetStub({ home: '/tmp/dm-home', claudeHome: '/tmp/dm-home' });
-      const id = '11111111-1111-1111-1111-111111111111';
+      const id = '38c6cbd2-8bf1-6507-8d07-0980dd1fb595';
       const guild = GuildStub({
         id,
         name: 'Guild 1',
@@ -356,7 +356,7 @@ describe('guildWriteRouteBroker', () => {
           target,
           fields: { name: 'Guild 1', path: 'guilds-under-test/guild-1', id: 'not-a-uuid' },
         }),
-      ).rejects.toThrow(/Invalid uuid/u);
+      ).rejects.toThrow(/Invalid UUID/u);
     });
   });
 });

@@ -7,8 +7,11 @@
  */
 import { z } from 'zod';
 
-export const rateLimitsWatchHandleContract = z.object({
-  stop: z.function().returns(z.void()),
-});
+// `stop` is a function — a Zod object schema cannot check callability, so it stays out of the
+// parse and is attached only through the type intersection below. `.loose()` carries it
+// through `.parse()` unvalidated when a real caller supplies one.
+export const rateLimitsWatchHandleContract = z.object({}).loose();
 
-export type RateLimitsWatchHandle = z.infer<typeof rateLimitsWatchHandleContract>;
+export type RateLimitsWatchHandle = z.infer<typeof rateLimitsWatchHandleContract> & {
+  stop: () => void;
+};

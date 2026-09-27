@@ -38,7 +38,7 @@ describe('delayMillisecondsContract', () => {
     it('INVALID: {value: 1.5} => throws validation error for non-integer', () => {
       expect(() => {
         return delayMillisecondsContract.parse(1.5);
-      }).toThrow(/integer/iu);
+      }).toThrow(/expected int, received number/iu);
     });
 
     it('INVALID: {value: "1000"} => throws validation error for string', () => {

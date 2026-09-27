@@ -14,8 +14,6 @@ describe('rateLimitsWatchTickOutcomeContract', () => {
   );
 
   it('INVALID: {value: "unknown"} => throws validation error', () => {
-    expect(() => rateLimitsWatchTickOutcomeContract.parse('unknown')).toThrow(
-      /Invalid enum value/u,
-    );
+    expect(() => rateLimitsWatchTickOutcomeContract.parse('unknown')).toThrow(/Invalid option/u);
   });
 });

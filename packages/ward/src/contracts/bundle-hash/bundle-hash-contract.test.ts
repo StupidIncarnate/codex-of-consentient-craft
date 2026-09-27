@@ -39,7 +39,7 @@ describe('bundleHashContract', () => {
     });
 
     it('EMPTY: {undefined} => throws a validation error', () => {
-      expect(() => bundleHashContract.parse(undefined)).toThrow(/Required/u);
+      expect(() => bundleHashContract.parse(undefined)).toThrow(/received undefined/u);
     });
   });
 

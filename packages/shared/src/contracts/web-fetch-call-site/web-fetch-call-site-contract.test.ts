@@ -44,7 +44,7 @@ describe('webFetchCallSiteContract', () => {
         webFetchCallSiteContract.parse({
           rawArg: 'webConfigStatics.api.routes.quests',
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {missing rawArg} => throws ZodError', () => {
@@ -52,7 +52,7 @@ describe('webFetchCallSiteContract', () => {
         webFetchCallSiteContract.parse({
           method: 'GET',
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 });

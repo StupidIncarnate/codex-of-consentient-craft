@@ -127,7 +127,7 @@ describe('shotListingContract', () => {
           blank: false,
           blankColour: null,
         } as never),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {missing pixelChange} => throws validation error', () => {
@@ -141,7 +141,7 @@ describe('shotListingContract', () => {
           blank: false,
           blankColour: null,
         } as never),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 

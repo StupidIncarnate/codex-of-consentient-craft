@@ -22,7 +22,7 @@ describe('serverLogWindowContract', () => {
         serverLogWindowContract.parse({
           fromByte: 0,
         } as never),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {fromByte: -1} => a negative byte offset throws validation error', () => {
@@ -31,7 +31,7 @@ describe('serverLogWindowContract', () => {
           fromByte: -1,
           toByte: 0,
         }),
-      ).toThrow(/greater than or equal to 0/u);
+      ).toThrow(/to be >=0/u);
     });
   });
 

@@ -63,7 +63,7 @@ describe('flowEdgeContract', () => {
     it('INVALID: {missing required fields} => throws validation error', () => {
       expect(() => {
         flowEdgeContract.parse({});
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

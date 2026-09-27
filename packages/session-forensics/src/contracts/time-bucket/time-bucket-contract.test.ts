@@ -101,7 +101,9 @@ describe('timeBucketContract', () => {
     });
 
     it('INVALID: {topTools entry missing count} => throws', () => {
-      expect(() => TimeBucketStub({ topTools: [{ name: 'Read' }] as never })).toThrow(/Required/u);
+      expect(() => TimeBucketStub({ topTools: [{ name: 'Read' }] as never })).toThrow(
+        /received undefined/u,
+      );
     });
   });
 
@@ -116,7 +118,7 @@ describe('timeBucketContract', () => {
           contextInTokens: 0,
           toolResultBytes: 0,
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 });

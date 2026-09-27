@@ -58,7 +58,7 @@ describe('guildAddBroker', () => {
       });
 
       const existingGuild = GuildStub({
-        id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
+        id: 'a99ef0d8-6ae0-1972-9617-694d449a8242',
         name: 'First App',
         path: '/home/user/first-app',
       });
@@ -91,7 +91,7 @@ describe('guildAddBroker', () => {
       const path = GuildPathStub({ value: '/home/user/my-app' });
 
       const existingGuild = GuildStub({
-        id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
+        id: 'a99ef0d8-6ae0-1972-9617-694d449a8242',
         name: 'Existing App',
         path: '/home/user/my-app',
       });
@@ -111,7 +111,7 @@ describe('guildAddBroker', () => {
       const proxy = guildAddBrokerProxy();
       const name = GuildNameStub({ value: 'Pinned App' });
       const path = GuildPathStub({ value: '/home/user/pinned-app' });
-      const suppliedId = '11111111-1111-1111-1111-111111111111';
+      const suppliedId = '38c6cbd2-8bf1-6507-8d07-0980dd1fb595';
       const homePath = FilePathStub({ value: '/home/user/.dungeonmaster' });
       const guildsPath = FilePathStub({ value: '/home/user/.dungeonmaster/guilds' });
       const guildDirPath = FilePathStub({
@@ -160,7 +160,7 @@ describe('guildAddBroker', () => {
       });
 
       await expect(guildAddBroker({ name, path, id: 'not-a-uuid' })).rejects.toThrow(
-        /Invalid uuid/u,
+        /Invalid UUID/u,
       );
     });
   });
@@ -321,8 +321,8 @@ describe('guildAddBroker', () => {
       const proxy = guildAddBrokerProxy();
       const homePath = FilePathStub({ value: '/home/user/.dungeonmaster' });
       const guildsPath = FilePathStub({ value: '/home/user/.dungeonmaster/guilds' });
-      const firstId = 'aaaaaaaa-1111-1111-1111-111111111111';
-      const secondId = 'bbbbbbbb-2222-2222-2222-222222222222';
+      const firstId = '45ccae5e-c8bd-3883-8d53-8ed4bf696af3';
+      const secondId = '016612e6-8f4a-726a-802b-10c043690d99';
 
       proxy.setupAddGuild({
         existingConfig: GuildConfigStub({ guilds: [] }),

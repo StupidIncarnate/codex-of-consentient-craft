@@ -95,11 +95,11 @@ describe('discoverInputContract', () => {
   });
 
   it('INVALID: {verbose: "yes"} => rejects non-boolean-shaped string', () => {
-    expect(() => discoverInputContract.parse({ verbose: 'yes' })).toThrow(/Expected boolean/u);
+    expect(() => discoverInputContract.parse({ verbose: 'yes' })).toThrow(/expected boolean/u);
   });
 
   it('INVALID: {strict: "yes"} => rejects non-boolean-shaped string', () => {
-    expect(() => discoverInputContract.parse({ strict: 'yes' })).toThrow(/Expected boolean/u);
+    expect(() => discoverInputContract.parse({ strict: 'yes' })).toThrow(/expected boolean/u);
   });
 
   it('INVALID: {path: "..."} => rejects unknown key with Unrecognized key message', () => {

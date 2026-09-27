@@ -14,7 +14,9 @@ describe('pieceIdContract', () => {
 
   describe('invalid piece ids', () => {
     it('EMPTY: {value: ""} => throws', () => {
-      expect(() => pieceIdContract.parse('')).toThrow(/String must contain at least 1/u);
+      expect(() => pieceIdContract.parse('')).toThrow(
+        /Too small: expected string to have >=1 characters/u,
+      );
     });
   });
 });

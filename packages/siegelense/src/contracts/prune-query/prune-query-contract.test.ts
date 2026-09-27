@@ -33,7 +33,7 @@ describe('pruneQueryContract', () => {
     it('INVALID: {olderThan omitted} => throws, so a prune can never default to taking everything', () => {
       expect(() => {
         pruneQueryContract.parse({ instanceId: null, kind: null });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {instanceId: "inst_"} => a malformed instance id throws naming the shape it needed', () => {

@@ -59,14 +59,14 @@ export const getQuestInputContract = z
     // prevent, arriving by a different route.
     if (value.stage !== undefined && value.flowId !== undefined) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         path: ['flowId'],
         message: getQuestInputConflictsStatics.flowIdWithStage,
       });
     }
     if (value.stage !== undefined && value.packageName !== undefined) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         path: ['packageName'],
         message: getQuestInputConflictsStatics.packageNameWithStage,
       });

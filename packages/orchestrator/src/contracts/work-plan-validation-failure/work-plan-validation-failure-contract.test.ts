@@ -28,7 +28,7 @@ describe('workPlanValidationFailureContract', () => {
           check: 5,
           message: '',
         });
-      }).toThrow(/String must contain at least 1 character/u);
+      }).toThrow(/expected string to have >=1 characters/u);
     });
 
     it('INVALID: {check: 0} => throws validation error', () => {

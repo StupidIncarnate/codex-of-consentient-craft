@@ -17,12 +17,12 @@ describe('operationItemIdContract', () => {
   it('INVALID: {value: "not-a-uuid"} => throws validation error', () => {
     expect(() => {
       return operationItemIdContract.parse('not-a-uuid');
-    }).toThrow(/invalid_string/u);
+    }).toThrow(/invalid_format/u);
   });
 
   it('EMPTY: {value: ""} => throws validation error', () => {
     expect(() => {
       return operationItemIdContract.parse('');
-    }).toThrow(/invalid_string/u);
+    }).toThrow(/invalid_format/u);
   });
 });

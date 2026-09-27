@@ -137,7 +137,7 @@ export const questWorkInputContract = z
 
       if (!rehydrated.success) {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: 'custom',
           path: ['payload', 'plan'],
           message: rehydrated.error.issues.map((issue) => issue.message).join('; '),
         });
@@ -153,7 +153,7 @@ export const questWorkInputContract = z
 
         if (!rehydrated.success) {
           ctx.addIssue({
-            code: z.ZodIssueCode.custom,
+            code: 'custom',
             path: ['payload', 'observations', index],
             message: rehydrated.error.issues.map((issue) => issue.message).join('; '),
           });

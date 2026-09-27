@@ -12,7 +12,7 @@ describe('wardSummaryContract', () => {
 
   describe('invalid input', () => {
     it('INVALID: {value: number} => throws ZodError', () => {
-      expect(() => wardSummaryContract.parse(123 as never)).toThrow(/Expected string/u);
+      expect(() => wardSummaryContract.parse(123 as never)).toThrow(/expected string/u);
     });
   });
 });

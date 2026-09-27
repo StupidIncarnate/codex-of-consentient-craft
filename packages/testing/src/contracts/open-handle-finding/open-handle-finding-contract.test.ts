@@ -44,13 +44,13 @@ describe('openHandleFindingContract', () => {
           testPath: 'packages/a/src/poll.test.ts',
           stack: '',
         }),
-      ).toThrow(/Invalid enum value/u);
+      ).toThrow(/Invalid option/u);
     });
 
     it('EMPTY: {testPath: ""} => throws', () => {
       expect(() =>
         openHandleFindingContract.parse({ kind: 'setInterval', testPath: '', stack: '' }),
-      ).toThrow(/at least 1 character/u);
+      ).toThrow(/>=1 characters/u);
     });
 
     it('INVALID: {stack: 42} => throws', () => {
@@ -60,11 +60,11 @@ describe('openHandleFindingContract', () => {
           testPath: 'packages/a/src/poll.test.ts',
           stack: 42,
         }),
-      ).toThrow(/Expected string/u);
+      ).toThrow(/expected string/u);
     });
 
     it('EMPTY: {} => throws', () => {
-      expect(() => openHandleFindingContract.parse({})).toThrow(/Required/u);
+      expect(() => openHandleFindingContract.parse({})).toThrow(/received undefined/u);
     });
   });
 });

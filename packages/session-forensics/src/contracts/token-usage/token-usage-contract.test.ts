@@ -58,7 +58,7 @@ describe('tokenUsageContract', () => {
     });
 
     it('INVALID: {cacheReadTokens: string} => throws', () => {
-      expect(() => TokenUsageStub({ cacheReadTokens: '5' as never })).toThrow(/Expected number/u);
+      expect(() => TokenUsageStub({ cacheReadTokens: '5' as never })).toThrow(/expected number/u);
     });
   });
 
@@ -71,7 +71,7 @@ describe('tokenUsageContract', () => {
           cacheReadTokens: 0,
           thinkingTokens: 0,
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 });

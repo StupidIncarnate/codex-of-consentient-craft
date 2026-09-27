@@ -18,11 +18,11 @@ describe('rowOrderContract', () => {
 
   describe('invalid inputs', () => {
     it('INVALID: {value: 0} => throws for zero (row order is 1-based)', () => {
-      expect(() => rowOrderContract.parse(0)).toThrow(/greater than 0/u);
+      expect(() => rowOrderContract.parse(0)).toThrow(/to be >0/u);
     });
 
     it('INVALID: {value: -1} => throws for negative number', () => {
-      expect(() => rowOrderContract.parse(-1)).toThrow(/greater than 0/u);
+      expect(() => rowOrderContract.parse(-1)).toThrow(/to be >0/u);
     });
 
     it('INVALID: {value: 1.5} => throws for non-integer', () => {

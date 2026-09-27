@@ -4,7 +4,7 @@
  * `zodToJsonSchema` for the advertised schema; the orchestrator's own `questWorkInputContract`
  * (`@dungeonmaster/orchestrator`, not importable from here — that package exports no `./contracts`
  * subpath) is the one that actually validates. `plan` and `amendment.plan` are deliberately
- * `z.record(z.unknown())`: the real per-family plan shape lives on `workPlanFieldsContract`
+ * `z.record(z.string().brand<'PlanFieldKey'>(), z.unknown())`: the real per-family plan shape lives on `workPlanFieldsContract`
  * (orchestrator-only), and `signalBackInputContract` already carries this exact duplication, twice
  * — `packages/mcp/src/contracts/signal-back-input/` and `packages/server/src/contracts/signal-back-input/`.
  *
@@ -23,7 +23,7 @@ const planPayloadContract = z
   .object({
     kind: z.literal('plan'),
     plan: z
-      .record(z.unknown())
+      .record(z.string().brand<'PlanFieldKey'>(), z.unknown())
       .describe(
         "The pieces and their batches, plus plannerMarks — story 07's whole-plan envelope, minus writtenBy/writtenAt (stamped server-side).",
       ),
@@ -60,7 +60,7 @@ const amendmentPayloadContract = z
       .brand<'AmendmentReason'>()
       .describe('What the run revealed that makes the plan wrong.'),
     plan: z
-      .record(z.unknown())
+      .record(z.string().brand<'PlanFieldKey'>(), z.unknown())
       .describe(
         'The WHOLE replacement plan, in the same shape as the plan payload — never a patch.',
       ),

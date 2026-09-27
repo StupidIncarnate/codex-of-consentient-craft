@@ -10,7 +10,7 @@ import { z } from 'zod';
 export const cliSignalContract = z.object({
   action: z.literal('return').brand<'CliSignalAction'>(),
   screen: z.enum(['menu', 'list']).brand<'CliSignalScreen'>(),
-  timestamp: z.string().datetime().brand<'Timestamp'>(),
+  timestamp: z.iso.datetime().brand<'Timestamp'>(),
 });
 
 export type CliSignal = z.infer<typeof cliSignalContract>;

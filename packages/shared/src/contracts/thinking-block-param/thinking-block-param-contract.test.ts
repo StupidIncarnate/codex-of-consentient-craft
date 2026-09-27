@@ -40,17 +40,19 @@ describe('thinkingBlockParamContract', () => {
     it('INVALID: {type: "text"} => throws wrong discriminator', () => {
       expect(() =>
         thinkingBlockParamContract.parse({ type: 'text', thinking: 'some reasoning' }),
-      ).toThrow(/Invalid literal value/u);
+      ).toThrow(/Invalid input: expected/u);
     });
 
     it('INVALID: {thinking missing} => throws on missing required field', () => {
-      expect(() => thinkingBlockParamContract.parse({ type: 'thinking' })).toThrow(/Required/u);
+      expect(() => thinkingBlockParamContract.parse({ type: 'thinking' })).toThrow(
+        /received undefined/u,
+      );
     });
 
     it('INVALID: {thinking: 123} => throws on non-string thinking', () => {
       expect(() =>
         thinkingBlockParamContract.parse({ type: 'thinking', thinking: 123 as never }),
-      ).toThrow(/Expected string/u);
+      ).toThrow(/expected string/u);
     });
   });
 });

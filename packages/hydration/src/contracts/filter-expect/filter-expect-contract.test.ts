@@ -18,7 +18,7 @@ describe('filterExpectContract', () => {
   describe('invalid filter expectations', () => {
     it('INVALID: {value: "exactly-two"} => throws naming the valid options', () => {
       expect(() => filterExpectContract.parse('exactly-two')).toThrow(
-        /Invalid enum value\. Expected 'one' \| 'some' \| 'any', received 'exactly-two'/u,
+        /Invalid option: expected one of \\"one\\"\|\\"some\\"\|\\"any\\"/u,
       );
     });
   });

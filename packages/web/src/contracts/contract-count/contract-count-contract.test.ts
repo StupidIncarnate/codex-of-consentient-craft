@@ -24,20 +24,18 @@ describe('contractCountContract', () => {
 
   describe('invalid inputs', () => {
     it('INVALID: {value: -1} => throws for negative count', () => {
-      expect(() => ContractCountStub({ value: -1 as never })).toThrow(
-        /Number must be greater than or equal to 0/u,
-      );
+      expect(() => ContractCountStub({ value: -1 as never })).toThrow(/expected number to be >=0/u);
     });
 
     it('INVALID: {value: 1.5} => throws for non-integer', () => {
       expect(() => ContractCountStub({ value: 1.5 as never })).toThrow(
-        /Expected integer, received float/u,
+        /expected int, received number/u,
       );
     });
 
     it('INVALID: {value: "x"} => throws for non-number', () => {
       expect(() => ContractCountStub({ value: 'x' as never })).toThrow(
-        /Expected number, received string/u,
+        /expected number, received string/u,
       );
     });
   });

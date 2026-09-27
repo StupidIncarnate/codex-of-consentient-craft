@@ -86,7 +86,7 @@ export const ingredientConfigContract = z
   .superRefine((config, ctx) => {
     if (config.routes.write !== undefined && config.copies === undefined) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         message: `ingredient '${config.name}' declares a 'write' route and must declare 'copies'`,
         path: ['copies'],
       });

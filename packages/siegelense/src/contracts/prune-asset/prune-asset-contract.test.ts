@@ -29,7 +29,7 @@ describe('pruneAssetContract', () => {
     it('INVALID: {sizeBytes: -1} => a negative size throws, so freedBytes can never be talked downward', () => {
       expect(() => {
         PruneAssetStub({ sizeBytes: -1 as never });
-      }).toThrow(/greater than or equal to 0/u);
+      }).toThrow(/to be >=0/u);
     });
 
     it('INVALID: {path: "runs/run_1/step1.png"} => a relative path throws', () => {

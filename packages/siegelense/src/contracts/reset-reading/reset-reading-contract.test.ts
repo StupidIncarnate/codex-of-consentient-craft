@@ -45,7 +45,7 @@ describe('resetReadingContract', () => {
     it('INVALID: {restored: 123} => non-string restored throws validation error', () => {
       expect(() => {
         ResetReadingStub({ restored: 123 as never });
-      }).toThrow(/Expected string/u);
+      }).toThrow(/expected string/u);
     });
   });
 });

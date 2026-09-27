@@ -7,7 +7,7 @@
  * const parsed = askUserQuestionToolInputContract.parse(rawInput);
  * if (typeof parsed.questions === 'string') { ... }
  *
- * `.passthrough()` so other tool-specific keys (rare; primarily `questions`) survive validation.
+ * `.loose()` so other tool-specific keys (rare; primarily `questions`) survive validation.
  */
 import { z } from 'zod';
 
@@ -17,6 +17,6 @@ export const askUserQuestionToolInputContract = z
       .union([z.string().brand<'AskUserQuestionRawJsonQuestions'>(), z.array(z.unknown())])
       .optional(),
   })
-  .passthrough();
+  .loose();
 
 export type AskUserQuestionToolInput = z.infer<typeof askUserQuestionToolInputContract>;

@@ -24,7 +24,7 @@ describe('recipeContextContract', () => {
           homePath: '/tmp/dm-siege-inst_abc',
           browser: 'anything',
         }),
-      ).toThrow(/Unrecognized key\(s\) in object: 'browser'/u);
+      ).toThrow(/Unrecognized key: \\"browser\\"/u);
     });
 
     it('INVALID: {page} => throws naming the unrecognized key', () => {
@@ -34,7 +34,7 @@ describe('recipeContextContract', () => {
           homePath: '/tmp/dm-siege-inst_abc',
           page: 'anything',
         }),
-      ).toThrow(/Unrecognized key\(s\) in object: 'page'/u);
+      ).toThrow(/Unrecognized key: \\"page\\"/u);
     });
   });
 

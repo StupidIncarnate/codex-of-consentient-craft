@@ -57,7 +57,7 @@ describe('errorEntryContract', () => {
           message: 'test',
           severity: 'info',
         }),
-      ).toThrow(/Invalid enum value/u);
+      ).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {line: "ten"} => throws validation error', () => {
@@ -69,11 +69,11 @@ describe('errorEntryContract', () => {
           message: 'test',
           severity: 'error',
         }),
-      ).toThrow(/Expected number/u);
+      ).toThrow(/expected number/u);
     });
 
     it('INVALID: {missing all fields} => throws validation error', () => {
-      expect(() => errorEntryContract.parse({})).toThrow(/Required/u);
+      expect(() => errorEntryContract.parse({})).toThrow(/received undefined/u);
     });
   });
 

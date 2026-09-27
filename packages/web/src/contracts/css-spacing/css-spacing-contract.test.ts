@@ -18,11 +18,11 @@ describe('cssSpacingContract', () => {
 
   describe('invalid inputs', () => {
     it('EMPTY: {value: null} => throws for null', () => {
-      expect(() => cssSpacingContract.parse(null)).toThrow(/Expected number/u);
+      expect(() => cssSpacingContract.parse(null)).toThrow(/expected number/u);
     });
 
     it('INVALID: {value: "8px"} => throws for string', () => {
-      expect(() => cssSpacingContract.parse('8px')).toThrow(/Expected number/u);
+      expect(() => cssSpacingContract.parse('8px')).toThrow(/expected number/u);
     });
   });
 

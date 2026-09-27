@@ -65,7 +65,7 @@ describe('smoketestScenarioContract', () => {
           scripts: { codeweaver: ['notARealPromptName'] },
           assertions: [],
         });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {scripts contains unknown role} => throws validation error', () => {
@@ -77,7 +77,7 @@ describe('smoketestScenarioContract', () => {
           scripts: { bogusRole: ['signalComplete'] },
           assertions: [],
         });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Unrecognized key: \\"bogusRole\\"/u);
     });
 
     it('INVALID: {caseId empty} => throws validation error', () => {
@@ -89,7 +89,7 @@ describe('smoketestScenarioContract', () => {
           scripts: {},
           assertions: [],
         });
-      }).toThrow(/String must contain at least 1 character/u);
+      }).toThrow(/expected string to have >=1 characters/u);
     });
 
     it('INVALID: {name empty} => throws validation error', () => {
@@ -101,7 +101,7 @@ describe('smoketestScenarioContract', () => {
           scripts: {},
           assertions: [],
         });
-      }).toThrow(/String must contain at least 1 character/u);
+      }).toThrow(/expected string to have >=1 characters/u);
     });
   });
 });

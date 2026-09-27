@@ -34,9 +34,7 @@ describe('qaWalkPathContract', () => {
 
   describe('invalid input', () => {
     it('EMPTY: {nodeIds: []} => throws, because a path with no nodes is not an itinerary', () => {
-      expect(() => QaWalkPathStub({ nodeIds: [] })).toThrow(
-        /Array must contain at least 1 element/u,
-      );
+      expect(() => QaWalkPathStub({ nodeIds: [] })).toThrow(/expected array to have >=1 items/u);
     });
 
     it('INVALID: {non-kebab node id} => throws', () => {
@@ -45,7 +43,7 @@ describe('qaWalkPathContract', () => {
 
     it('EMPTY: {blank branch label} => throws, because an unlabelled edge is sequence, not a decision', () => {
       expect(() => QaWalkPathStub({ branchLabels: ['' as never] })).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
   });

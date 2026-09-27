@@ -10,6 +10,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import { ClaudeModelStub } from '../../../contracts/claude-model/claude-model.stub';
 import { PromptTextStub } from '../../../contracts/prompt-text/prompt-text.stub';
+import { SpawnOptionsEnvNameStub } from '../../../contracts/spawn-options-env-name/spawn-options-env-name.stub';
 import { spawnedOptionsSnapshotTransformer } from '../../../transformers/spawned-options-snapshot/spawned-options-snapshot-transformer';
 
 describe('childProcessSpawnStreamJsonAdapter', () => {
@@ -281,7 +282,9 @@ describe('childProcessSpawnStreamJsonAdapter', () => {
 
       const options = spawnedOptionsSnapshotTransformer({ rawOptions: proxy.getSpawnedOptions() });
 
-      expect(options.env?.CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS).toBe('0');
+      const envName = SpawnOptionsEnvNameStub({ value: 'CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS' });
+
+      expect(options.env?.[envName]).toBe('0');
     });
   });
 

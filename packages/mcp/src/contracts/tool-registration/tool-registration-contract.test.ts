@@ -70,7 +70,7 @@ describe('toolRegistrationContract', () => {
     it('INVALID: {} => throws when required fields are missing', () => {
       expect(() => {
         _toolRegistrationContract.parse({});
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {name: 123} => throws when name is not a string', () => {
@@ -80,7 +80,7 @@ describe('toolRegistrationContract', () => {
           description: 'test',
           inputSchema: {},
         });
-      }).toThrow(/Expected string/u);
+      }).toThrow(/expected string/u);
     });
   });
 });

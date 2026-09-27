@@ -18,13 +18,13 @@ describe('reconcileWatchersResultContract', () => {
 
   it('ERROR: {negative started} => throws', () => {
     expect(() => reconcileWatchersResultContract.parse({ started: -1, stopped: 0 })).toThrow(
-      /Number must be greater than or equal to 0/u,
+      /expected number to be >=0/u,
     );
   });
 
   it('ERROR: {non-integer stopped} => throws', () => {
     expect(() => reconcileWatchersResultContract.parse({ started: 0, stopped: 1.5 })).toThrow(
-      /Expected integer/u,
+      /expected int/u,
     );
   });
 });

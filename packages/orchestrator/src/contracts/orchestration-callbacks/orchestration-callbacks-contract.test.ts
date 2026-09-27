@@ -85,6 +85,6 @@ describe('orchestrationCallbacksContract', () => {
   it('INVALID: {missing params} => throws validation error', () => {
     expect(() => {
       orchestrationCallbacksContract.parse({});
-    }).toThrow(/Required/u);
+    }).toThrow(/received undefined/u);
   });
 });

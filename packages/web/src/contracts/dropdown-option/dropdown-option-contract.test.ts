@@ -13,12 +13,12 @@ describe('dropdownOptionContract', () => {
   describe('invalid inputs', () => {
     it('INVALID: {value: ""} => throws for empty string', () => {
       expect(() => dropdownOptionContract.parse('')).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
 
     it('EMPTY: {value: null} => throws for null', () => {
-      expect(() => dropdownOptionContract.parse(null)).toThrow(/Expected string/u);
+      expect(() => dropdownOptionContract.parse(null)).toThrow(/expected string/u);
     });
   });
 

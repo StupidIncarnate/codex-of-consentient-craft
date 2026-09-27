@@ -29,12 +29,12 @@ describe('redactedThinkingBlockParamContract', () => {
           type: 'thinking',
           data: 'EncryptedBlob==',
         }),
-      ).toThrow(/Invalid literal value/u);
+      ).toThrow(/Invalid input: expected/u);
     });
 
     it('INVALID: {data missing} => throws on missing required field', () => {
       expect(() => redactedThinkingBlockParamContract.parse({ type: 'redacted_thinking' })).toThrow(
-        /Required/u,
+        /received undefined/u,
       );
     });
 
@@ -44,7 +44,7 @@ describe('redactedThinkingBlockParamContract', () => {
           type: 'redacted_thinking',
           data: 123 as never,
         }),
-      ).toThrow(/Expected string/u);
+      ).toThrow(/expected string/u);
     });
   });
 });

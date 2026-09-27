@@ -18,7 +18,7 @@ describe('stepVerbContract', () => {
     it('INVALID: {value: "hover"} => an unlisted string throws validation error', () => {
       expect(() => {
         StepVerbStub({ value: 'hover' as never });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
   });
 
@@ -26,7 +26,7 @@ describe('stepVerbContract', () => {
     it('EDGE: {value: "Click"} => a mismatched-case variant of a valid member throws validation error', () => {
       expect(() => {
         stepVerbContract.parse('Click');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
   });
 });

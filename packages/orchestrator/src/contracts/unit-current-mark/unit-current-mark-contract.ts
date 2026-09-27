@@ -39,7 +39,7 @@ export const unitCurrentMarkContract = z.object({
   step: stepNameContract.optional(),
   // The moment the unit was SETTLED, taken verbatim off the observation — not the moment the
   // session that settled it ended.
-  at: z.string().datetime().brand<'IsoTimestamp'>(),
+  at: z.iso.datetime().brand<'IsoTimestamp'>(),
 });
 
 export type UnitCurrentMark = z.infer<typeof unitCurrentMarkContract>;

@@ -3,6 +3,7 @@ import {
   operationIngredient,
   operationFieldsContract,
   sessionIngredient,
+  nestedChainArgsContract,
 } from '../../../test/type-fixtures/dm-target';
 import type { IngredientConfigStub } from '../../contracts/ingredient-config/ingredient-config.stub';
 import type { HydrationOpStub } from '../../contracts/hydration-op/hydration-op.stub';
@@ -67,7 +68,9 @@ describe('matchedSetChainTransformer', () => {
       where: { guildId: 'guild-1' },
     });
 
-    const result = matched.withNestedChain({ depth: 2 }) as unknown as HydrationOp[];
+    const result = matched.withNestedChain({
+      depth: nestedChainArgsContract.shape.depth.parse(2),
+    }) as unknown as HydrationOp[];
 
     expect(result).toStrictEqual([
       {

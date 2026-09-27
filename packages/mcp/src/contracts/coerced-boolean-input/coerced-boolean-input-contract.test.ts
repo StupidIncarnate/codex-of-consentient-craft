@@ -27,26 +27,26 @@ describe('coercedBooleanInputContract', () => {
   });
 
   it('INVALID: {"yes"} => throws Expected boolean error', () => {
-    expect(() => coercedBooleanInputContract.parse('yes')).toThrow(/Expected boolean/u);
+    expect(() => coercedBooleanInputContract.parse('yes')).toThrow(/expected boolean/u);
   });
 
   it('INVALID: {""} => throws Expected boolean error', () => {
-    expect(() => coercedBooleanInputContract.parse('')).toThrow(/Expected boolean/u);
+    expect(() => coercedBooleanInputContract.parse('')).toThrow(/expected boolean/u);
   });
 
   it('INVALID: {1} => throws Expected boolean error', () => {
-    expect(() => coercedBooleanInputContract.parse(1)).toThrow(/Expected boolean/u);
+    expect(() => coercedBooleanInputContract.parse(1)).toThrow(/expected boolean/u);
   });
 
   it('INVALID: {0} => throws Expected boolean error', () => {
-    expect(() => coercedBooleanInputContract.parse(0)).toThrow(/Expected boolean/u);
+    expect(() => coercedBooleanInputContract.parse(0)).toThrow(/expected boolean/u);
   });
 
   it('INVALID: {null} => throws Expected boolean error', () => {
-    expect(() => coercedBooleanInputContract.parse(null)).toThrow(/Expected boolean/u);
+    expect(() => coercedBooleanInputContract.parse(null)).toThrow(/expected boolean/u);
   });
 
   it('INVALID: {undefined} => throws Required error', () => {
-    expect(() => coercedBooleanInputContract.parse(undefined)).toThrow(/Required/u);
+    expect(() => coercedBooleanInputContract.parse(undefined)).toThrow(/received undefined/u);
   });
 });

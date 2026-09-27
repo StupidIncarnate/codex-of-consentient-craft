@@ -21,7 +21,7 @@ describe('duplicateInstallPackageNameContract', () => {
   describe('invalid inputs', () => {
     it('INVALID: {value: ""} => throws', () => {
       expect(() => duplicateInstallPackageNameContract.parse('')).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
 

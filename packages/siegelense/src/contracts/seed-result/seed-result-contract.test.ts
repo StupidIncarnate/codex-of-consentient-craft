@@ -44,7 +44,7 @@ describe('seedResultContract', () => {
 
   describe('invalid result', () => {
     it('INVALID: {a number value, neither an id nor a saved row} => throws', () => {
-      expect(() => seedResultContract.parse({ guildSlug: 123 })).toThrow(/Expected string/u);
+      expect(() => seedResultContract.parse({ guildSlug: 123 })).toThrow(/expected string/u);
     });
   });
 });

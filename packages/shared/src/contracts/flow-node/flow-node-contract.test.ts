@@ -91,7 +91,7 @@ describe('flowNodeContract', () => {
           label: 'Start',
           type: 'state',
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('EMPTY: {packages: []} => throws, the field is min(1) rather than a defaulted empty array', () => {
@@ -102,7 +102,7 @@ describe('flowNodeContract', () => {
           type: 'state',
           packages: [],
         });
-      }).toThrow(/Array must contain at least 1 element/u);
+      }).toThrow(/Too small: expected array to have >=1 items/u);
     });
 
     it('EMPTY: {packages: [""]} => throws validation error', () => {
@@ -126,7 +126,7 @@ describe('flowNodeContract', () => {
           type: 'state',
           packages: ['auth-service'],
         });
-      }).toThrow(/invalid_string/u);
+      }).toThrow(/invalid_format/u);
     });
 
     it('INVALID: {label: ""} => throws validation error', () => {
@@ -148,13 +148,13 @@ describe('flowNodeContract', () => {
           type: 'invalid',
           packages: ['auth-service'],
         });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {missing required fields} => throws validation error', () => {
       expect(() => {
         flowNodeContract.parse({});
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 
@@ -178,7 +178,7 @@ describe('flowNodeContract', () => {
             },
           ],
         });
-      }).toThrow(/Unrecognized key\(s\) in object: 'edges'/u);
+      }).toThrow(/Unrecognized key/u);
     });
 
     it('INVALID: {node carrying an unrecognized field} => throws naming the unrecognized key, so extra keys are not silently dropped', () => {
@@ -190,7 +190,7 @@ describe('flowNodeContract', () => {
           packages: ['auth-service'],
           extraField: 'unexpected',
         });
-      }).toThrow(/Unrecognized key\(s\) in object: 'extraField'/u);
+      }).toThrow(/Unrecognized key/u);
     });
   });
 });

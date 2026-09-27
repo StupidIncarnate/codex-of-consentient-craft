@@ -43,12 +43,12 @@ describe('armedTimerContract', () => {
   describe('invalid armed timers', () => {
     it('INVALID: {kind: "queueMicrotask"} => throws', () => {
       expect(() => armedTimerContract.parse({ kind: 'queueMicrotask', stack: '' })).toThrow(
-        /Invalid enum value/u,
+        /Invalid option/u,
       );
     });
 
     it('EMPTY: {} => throws', () => {
-      expect(() => armedTimerContract.parse({})).toThrow(/Required/u);
+      expect(() => armedTimerContract.parse({})).toThrow(/received undefined/u);
     });
   });
 });

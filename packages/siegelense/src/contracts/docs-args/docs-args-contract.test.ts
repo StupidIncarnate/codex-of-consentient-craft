@@ -39,7 +39,7 @@ describe('docsArgsContract', () => {
           expected: "'walking' | 'attacking' | 'fixing'",
           received: 'undefined',
           path: ['scope'],
-          message: 'Required',
+          message: 'received undefined',
         },
       ]);
     });
@@ -70,7 +70,7 @@ describe('docsArgsContract', () => {
           expected: 'boolean',
           received: 'undefined',
           path: ['isJson'],
-          message: 'Required',
+          message: 'received undefined',
         },
       ]);
     });

@@ -25,20 +25,20 @@ describe('toolDisplayLabelContract', () => {
   describe('invalid inputs', () => {
     it('INVALID: {value: ""} => throws for empty string', () => {
       expect(() => toolDisplayLabelContract.parse('')).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
 
     it('INVALID: {value: 123} => throws for number', () => {
-      expect(() => toolDisplayLabelContract.parse(123)).toThrow(/Expected string/u);
+      expect(() => toolDisplayLabelContract.parse(123)).toThrow(/expected string/u);
     });
 
     it('EMPTY: {value: null} => throws for null', () => {
-      expect(() => toolDisplayLabelContract.parse(null)).toThrow(/Expected string/u);
+      expect(() => toolDisplayLabelContract.parse(null)).toThrow(/expected string/u);
     });
 
     it('EMPTY: {value: undefined} => throws for undefined', () => {
-      expect(() => toolDisplayLabelContract.parse(undefined)).toThrow(/Required/u);
+      expect(() => toolDisplayLabelContract.parse(undefined)).toThrow(/received undefined/u);
     });
   });
 

@@ -18,17 +18,15 @@ describe('gapFloorSecondsContract', () => {
 
   describe('invalid values', () => {
     it('INVALID: "0" => throws, a zero-second floor is not a floor', () => {
-      expect(() => gapFloorSecondsContract.parse('0')).toThrow(/Number must be greater than 0/u);
+      expect(() => gapFloorSecondsContract.parse('0')).toThrow(/expected number to be >0/u);
     });
 
     it('INVALID: "-30" => throws for a negative floor', () => {
-      expect(() => gapFloorSecondsContract.parse('-30')).toThrow(/Number must be greater than 0/u);
+      expect(() => gapFloorSecondsContract.parse('-30')).toThrow(/expected number to be >0/u);
     });
 
     it('INVALID: "2.5" => throws for a non-integer floor', () => {
-      expect(() => gapFloorSecondsContract.parse('2.5')).toThrow(
-        /Expected integer, received float/u,
-      );
+      expect(() => gapFloorSecondsContract.parse('2.5')).toThrow(/expected int, received number/u);
     });
 
     it('INVALID: "abc" => throws for a non-numeric string', () => {

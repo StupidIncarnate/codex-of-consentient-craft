@@ -40,6 +40,13 @@ describe('spawnBatchLayerBroker', () => {
             {
               id: instruction.workItemId,
               sessionId: SESSION_ID,
+              assignedUnitIds: [],
+              attempt: 0,
+              dependsOn: [],
+              maxAttempts: 1,
+              observations: [],
+              relatedDataItems: [],
+              retryCount: 0,
             },
           ],
         },

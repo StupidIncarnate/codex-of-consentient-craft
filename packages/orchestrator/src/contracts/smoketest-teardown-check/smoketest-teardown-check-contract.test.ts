@@ -53,25 +53,25 @@ describe('smoketestTeardownCheckContract', () => {
     it('INVALID: {kind: "port-free", port: 0} => throws for out-of-range port', () => {
       expect(() => {
         smoketestTeardownCheckContract.parse({ kind: 'port-free', port: 0 });
-      }).toThrow(/greater than or equal to 1/u);
+      }).toThrow(/to be >=1/u);
     });
 
     it('INVALID: {kind: "port-free", port: 70000} => throws for port above max', () => {
       expect(() => {
         smoketestTeardownCheckContract.parse({ kind: 'port-free', port: 70_000 });
-      }).toThrow(/less than or equal to 65535/u);
+      }).toThrow(/Too big: expected number to be <=65535/u);
     });
 
     it('INVALID: {kind: "process-gone", pid: 0} => throws for non-positive pid', () => {
       expect(() => {
         smoketestTeardownCheckContract.parse({ kind: 'process-gone', pid: 0 });
-      }).toThrow(/greater than 0/u);
+      }).toThrow(/to be >0/u);
     });
 
     it('INVALID: {kind: "process-gone", pid: 1.5} => throws for non-integer pid', () => {
       expect(() => {
         smoketestTeardownCheckContract.parse({ kind: 'process-gone', pid: 1.5 });
-      }).toThrow(/integer/u);
+      }).toThrow(/Invalid input: expected int, received number/u);
     });
   });
 });

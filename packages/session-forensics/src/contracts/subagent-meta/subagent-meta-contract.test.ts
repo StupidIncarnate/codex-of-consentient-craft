@@ -74,7 +74,7 @@ describe('subagentMetaContract', () => {
     });
 
     it('INVALID: {agentType: number} => throws', () => {
-      expect(() => SubagentMetaStub({ agentType: 42 as never })).toThrow(/Expected string/u);
+      expect(() => SubagentMetaStub({ agentType: 42 as never })).toThrow(/expected string/u);
     });
   });
 
@@ -86,7 +86,7 @@ describe('subagentMetaContract', () => {
           description: 'Add pasted-image upload contract',
           spawnDepth: 1,
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 });

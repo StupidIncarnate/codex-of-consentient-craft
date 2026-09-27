@@ -15,11 +15,11 @@ describe('opSaveRecordContract', () => {
   });
 
   describe('invalid saveRecord ops', () => {
-    it.each(REQUIRED_FIELDS)('INVALID: {no %s} => throws "Required"', (field) => {
+    it.each(REQUIRED_FIELDS)('INVALID: {no %s} => throws "received undefined"', (field) => {
       const incomplete: Record<string, unknown> = { ...OpSaveRecordStub() };
       Reflect.deleteProperty(incomplete, field);
 
-      expect(() => opSaveRecordContract.parse(incomplete)).toThrow(/Required/u);
+      expect(() => opSaveRecordContract.parse(incomplete)).toThrow(/received undefined/u);
     });
 
     it('INVALID: {op: "nope"} => throws naming the expected literal', () => {
@@ -29,7 +29,7 @@ describe('opSaveRecordContract', () => {
           ref: 'guild[0:0]/quest[0:2]',
           name: 'third',
         }),
-      ).toThrow(/Invalid literal value/u);
+      ).toThrow(/Invalid input: expected/u);
     });
   });
 });

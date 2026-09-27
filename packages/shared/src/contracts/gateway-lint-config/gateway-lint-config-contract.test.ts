@@ -72,7 +72,7 @@ describe('gateway-lint-config-contract', () => {
         return gatewayLintConfigContract.parse({
           bannedExports: [{ subpath: '#gateway/node/fs', name: 'readFileSync', reason: 'why' }],
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: entry missing reason => throws validation error', () => {
@@ -80,7 +80,7 @@ describe('gateway-lint-config-contract', () => {
         return gatewayLintConfigContract.parse({
           bannedExports: [{ subpath: '#gateway/node/fs', name: 'readFileSync', use: 'readFile' }],
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 
@@ -150,7 +150,7 @@ describe('gateway-lint-config-contract', () => {
         return gatewayLintConfigContract.parse({
           restrictedTo: [{ subpath: '#gateway/bin/spawn', reason: 'why' }],
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: entry missing reason => throws validation error', () => {
@@ -160,7 +160,7 @@ describe('gateway-lint-config-contract', () => {
             { subpath: '#gateway/bin/spawn', packages: ['@dungeonmaster/orchestrator'] },
           ],
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 

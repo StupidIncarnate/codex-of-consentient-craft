@@ -37,7 +37,7 @@ describe('tsconfigJsonContract', () => {
         tsconfigJsonContract.parse({
           include: 'src',
         }),
-      ).toThrow(/Expected array/u);
+      ).toThrow(/expected array/u);
     });
 
     it('INVALID: {exclude: [42]} => throws validation error', () => {
@@ -45,7 +45,7 @@ describe('tsconfigJsonContract', () => {
         tsconfigJsonContract.parse({
           exclude: [42],
         }),
-      ).toThrow(/Expected string/u);
+      ).toThrow(/expected string/u);
     });
   });
 

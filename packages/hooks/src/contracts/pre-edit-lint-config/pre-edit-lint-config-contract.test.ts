@@ -22,7 +22,7 @@ describe('preEditLintConfigContract', () => {
     it('INVALID: {invalid data} => throws validation error', () => {
       expect(() => {
         return preEditLintConfigContract.parse({} as never);
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

@@ -86,11 +86,13 @@ describe('rawKeyReadingContract', () => {
           highestRef: 1,
           skipped: [],
         }),
-      ).toThrow(/Invalid enum value/u);
+      ).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {missing highestRef} => throws Required, because without it a navigation cannot be told from another instance', () => {
-      expect(() => rawKeyReadingContract.parse({ rows: [], skipped: [] })).toThrow(/Required/u);
+      expect(() => rawKeyReadingContract.parse({ rows: [], skipped: [] })).toThrow(
+        /received undefined/u,
+      );
     });
   });
 });

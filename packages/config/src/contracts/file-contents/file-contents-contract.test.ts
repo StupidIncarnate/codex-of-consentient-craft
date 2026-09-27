@@ -36,13 +36,13 @@ describe('fileContentsContract', () => {
     it('INVALID: 123 => throws validation error', () => {
       expect(() => {
         return fileContentsContract.parse(123);
-      }).toThrow(/Expected string/u);
+      }).toThrow(/expected string/u);
     });
 
     it('INVALID: undefined => throws validation error', () => {
       expect(() => {
         return fileContentsContract.parse(undefined);
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

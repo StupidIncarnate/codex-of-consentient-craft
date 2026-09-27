@@ -87,7 +87,7 @@ describe('askUserQuestionContract', () => {
         askUserQuestionContract.parse({
           questions: [{ header: 'H', options: [], multiSelect: false }],
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {empty question string} => throws validation error', () => {
@@ -116,7 +116,7 @@ describe('askUserQuestionContract', () => {
     it('INVALID: {missing all fields} => throws validation error', () => {
       expect(() => {
         askUserQuestionContract.parse({});
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

@@ -14,7 +14,7 @@ describe('processIdParamsContract', () => {
     it('INVALID: {missing processId} => throws validation error', () => {
       expect(() => {
         processIdParamsContract.parse({});
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

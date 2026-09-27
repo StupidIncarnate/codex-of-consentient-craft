@@ -38,7 +38,7 @@ describe('createQuestInputContract', () => {
         userRequest: 'valid',
         questType: 'bogus',
       } as never),
-    ).toThrow(/Invalid enum value/u);
+    ).toThrow(/Invalid option/u);
   });
 
   it('INVALID: {userRequest, questId: "anything"} => throws Unrecognized key error', () => {

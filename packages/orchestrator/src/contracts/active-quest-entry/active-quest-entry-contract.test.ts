@@ -11,6 +11,6 @@ describe('activeQuestEntryContract', () => {
   it('INVALID: {missing guildSlug} => throws', () => {
     const { quest, guildId } = ActiveQuestEntryStub();
 
-    expect(() => activeQuestEntryContract.parse({ quest, guildId })).toThrow(/Required/u);
+    expect(() => activeQuestEntryContract.parse({ quest, guildId })).toThrow(/received undefined/u);
   });
 });

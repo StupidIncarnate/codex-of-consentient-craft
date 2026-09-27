@@ -56,7 +56,7 @@ describe('wsIncomingMessageContract', () => {
           guildId: GuildIdStub(),
           chatProcessId: 'proc-1',
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('ERROR: ward-detail-request without questId => throws validation error', () => {
@@ -65,7 +65,7 @@ describe('wsIncomingMessageContract', () => {
           type: 'ward-detail-request',
           wardResultId: 'ward-result-1',
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('ERROR: bogus type => throws validation error', () => {

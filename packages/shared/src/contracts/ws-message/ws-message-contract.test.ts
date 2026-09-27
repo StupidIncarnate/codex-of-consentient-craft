@@ -62,7 +62,7 @@ describe('wsMessageContract', () => {
           payload: {},
           timestamp: '2025-01-01T00:00:00.000Z',
         });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {timestamp: "not-a-date"} => throws validation error', () => {
@@ -81,7 +81,7 @@ describe('wsMessageContract', () => {
           payload: {},
           timestamp: '2025-01-01T00:00:00.000Z',
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/Invalid option: expected one of/u);
     });
 
     it('INVALID: {missing payload} => throws validation error', () => {
@@ -90,7 +90,7 @@ describe('wsMessageContract', () => {
           type: 'phase-change',
           timestamp: '2025-01-01T00:00:00.000Z',
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

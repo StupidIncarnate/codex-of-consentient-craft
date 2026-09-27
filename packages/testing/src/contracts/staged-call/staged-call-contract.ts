@@ -8,11 +8,16 @@
 
 import { z } from 'zod';
 
-export const stagedCallContract = z.object({
-  args: z.array(z.unknown()).readonly(),
-  impl: z.function(),
-  once: z.boolean(),
-  consumed: z.boolean(),
-});
+// `impl` is a function — zod validates only the data fields; `.loose()` carries `impl`
+// through `.parse()` unvalidated, since a Zod object schema cannot check callability.
+export const stagedCallContract = z
+  .object({
+    args: z.array(z.unknown()).readonly(),
+    once: z.boolean(),
+    consumed: z.boolean(),
+  })
+  .loose();
 
-export type StagedCall = z.infer<typeof stagedCallContract>;
+export type StagedCall = z.infer<typeof stagedCallContract> & {
+  impl: (...args: unknown[]) => unknown;
+};

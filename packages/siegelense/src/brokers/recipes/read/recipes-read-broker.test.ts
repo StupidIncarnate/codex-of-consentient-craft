@@ -10,7 +10,7 @@ import { RecipesListingExportInvalidError } from '../../../errors/recipes-listin
 const ENTRY_PATH = '/repo/packages/hydration-recipes/dist/index.js';
 
 const MISSING_RUNS_ZOD_MESSAGE =
-  '[\n  {\n    "code": "invalid_type",\n    "expected": "object",\n    "received": "undefined",\n    "path": [\n      0,\n      "runs"\n    ],\n    "message": "Required"\n  }\n]';
+  '[\n  {\n    "code": "invalid_type",\n    "expected": "object",\n    "received": "undefined",\n    "path": [\n      0,\n      "runs"\n    ],\n    "message": "received undefined"\n  }\n]';
 
 describe('recipesReadBroker', () => {
   describe('a well-formed listing', () => {

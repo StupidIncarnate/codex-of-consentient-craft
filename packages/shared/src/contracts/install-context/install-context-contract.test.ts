@@ -58,7 +58,7 @@ describe('installContextContract', () => {
         return installContextContract.parse({
           dungeonmasterRoot: '/home/user/.dungeonmaster',
         });
-      }).toThrow('Required');
+      }).toThrow('received undefined');
     });
 
     it('INVALID: {missing dungeonmasterRoot} => throws ZodError', () => {
@@ -66,7 +66,7 @@ describe('installContextContract', () => {
         return installContextContract.parse({
           targetProjectRoot: '/home/user/project',
         });
-      }).toThrow('Required');
+      }).toThrow('received undefined');
     });
 
     it('INVALID: {empty targetProjectRoot} => throws ZodError', () => {
@@ -75,7 +75,7 @@ describe('installContextContract', () => {
           targetProjectRoot: '',
           dungeonmasterRoot: '/home/user/.dungeonmaster',
         });
-      }).toThrow('String must contain at least 1 character');
+      }).toThrow('expected string to have >=1 characters');
     });
 
     it('INVALID: {empty dungeonmasterRoot} => throws ZodError', () => {
@@ -84,7 +84,7 @@ describe('installContextContract', () => {
           targetProjectRoot: '/home/user/project',
           dungeonmasterRoot: '',
         });
-      }).toThrow('String must contain at least 1 character');
+      }).toThrow('expected string to have >=1 characters');
     });
 
     it('INVALID: {invalid path format} => throws ZodError', () => {
@@ -99,7 +99,7 @@ describe('installContextContract', () => {
     it('INVALID: {empty object} => throws ZodError', () => {
       expect(() => {
         return installContextContract.parse({});
-      }).toThrow('Required');
+      }).toThrow('received undefined');
     });
   });
 });

@@ -24,11 +24,11 @@ describe('servedImageContentContract', () => {
 
   describe('invalid content', () => {
     it('INVALID: {value: 123} => throws for a number', () => {
-      expect(() => servedImageContentContract.parse(123)).toThrow(/Expected string/u);
+      expect(() => servedImageContentContract.parse(123)).toThrow(/expected string/u);
     });
 
     it('EMPTY: {value: null} => throws for null', () => {
-      expect(() => servedImageContentContract.parse(null)).toThrow(/Expected string/u);
+      expect(() => servedImageContentContract.parse(null)).toThrow(/expected string/u);
     });
   });
 });

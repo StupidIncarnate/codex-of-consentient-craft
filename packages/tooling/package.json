@@ -41,7 +41,7 @@
     "@dungeonmaster/shared": "*",
     "glob": "^10.3.10",
     "typescript": "^5.3.3",
-    "zod": "^3.22.4"
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@dungeonmaster/testing": "*",

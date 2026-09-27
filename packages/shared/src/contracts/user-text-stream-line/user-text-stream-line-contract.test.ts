@@ -99,7 +99,7 @@ describe('userTextStreamLineContract', () => {
           type: 'assistant',
           message: { role: 'user', content: 'Hello' },
         });
-      }).toThrow(/Invalid literal value/u);
+      }).toThrow(/Invalid input: expected/u);
     });
 
     it('INVALID: {role: "assistant"} => throws validation error', () => {
@@ -108,7 +108,7 @@ describe('userTextStreamLineContract', () => {
           type: 'user',
           message: { role: 'assistant', content: 'Hello' },
         });
-      }).toThrow(/Invalid literal value/u);
+      }).toThrow(/Invalid input: expected/u);
     });
 
     it('INVALID: {missing message} => throws validation error', () => {
@@ -116,7 +116,7 @@ describe('userTextStreamLineContract', () => {
         userTextStreamLineContract.parse({
           type: 'user',
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {array block with wrong type} => throws validation error when block type is not "text"', () => {
@@ -140,7 +140,7 @@ describe('userTextStreamLineContract', () => {
             content: [{ type: 'text' }],
           },
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

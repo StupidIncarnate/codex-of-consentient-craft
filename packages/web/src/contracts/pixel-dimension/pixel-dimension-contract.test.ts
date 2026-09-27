@@ -24,27 +24,27 @@ describe('pixelDimensionContract', () => {
 
   describe('invalid inputs', () => {
     it('INVALID: {value: 0} => throws for zero', () => {
-      expect(() => pixelDimensionContract.parse(0)).toThrow(/Number must be greater than 0/u);
+      expect(() => pixelDimensionContract.parse(0)).toThrow(/expected number to be >0/u);
     });
 
     it('INVALID: {value: -1} => throws for negative number', () => {
-      expect(() => pixelDimensionContract.parse(-1)).toThrow(/Number must be greater than 0/u);
+      expect(() => pixelDimensionContract.parse(-1)).toThrow(/expected number to be >0/u);
     });
 
     it('INVALID: {value: 1.5} => throws for non-integer', () => {
-      expect(() => pixelDimensionContract.parse(1.5)).toThrow(/Expected integer/u);
+      expect(() => pixelDimensionContract.parse(1.5)).toThrow(/expected int/u);
     });
 
     it('INVALID: {value: "8"} => throws for string', () => {
-      expect(() => pixelDimensionContract.parse('8')).toThrow(/Expected number/u);
+      expect(() => pixelDimensionContract.parse('8')).toThrow(/expected number/u);
     });
 
     it('EMPTY: {value: null} => throws for null', () => {
-      expect(() => pixelDimensionContract.parse(null)).toThrow(/Expected number/u);
+      expect(() => pixelDimensionContract.parse(null)).toThrow(/expected number/u);
     });
 
     it('EMPTY: {value: undefined} => throws for undefined', () => {
-      expect(() => pixelDimensionContract.parse(undefined)).toThrow(/Required/u);
+      expect(() => pixelDimensionContract.parse(undefined)).toThrow(/received undefined/u);
     });
   });
 

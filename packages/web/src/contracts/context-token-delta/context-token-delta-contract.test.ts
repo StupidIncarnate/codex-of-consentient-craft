@@ -24,19 +24,19 @@ describe('contextTokenDeltaContract', () => {
 
   describe('invalid inputs', () => {
     it('INVALID: {value: 1.5} => throws for non-integer', () => {
-      expect(() => contextTokenDeltaContract.parse(1.5)).toThrow(/Expected integer/u);
+      expect(() => contextTokenDeltaContract.parse(1.5)).toThrow(/expected int/u);
     });
 
     it('INVALID: {value: "0"} => throws for string', () => {
-      expect(() => contextTokenDeltaContract.parse('0')).toThrow(/Expected number/u);
+      expect(() => contextTokenDeltaContract.parse('0')).toThrow(/expected number/u);
     });
 
     it('EMPTY: {value: null} => throws for null', () => {
-      expect(() => contextTokenDeltaContract.parse(null)).toThrow(/Expected number/u);
+      expect(() => contextTokenDeltaContract.parse(null)).toThrow(/expected number/u);
     });
 
     it('EMPTY: {value: undefined} => throws for undefined', () => {
-      expect(() => contextTokenDeltaContract.parse(undefined)).toThrow(/Required/u);
+      expect(() => contextTokenDeltaContract.parse(undefined)).toThrow(/received undefined/u);
     });
   });
 

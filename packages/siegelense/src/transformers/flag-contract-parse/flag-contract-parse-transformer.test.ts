@@ -55,8 +55,8 @@ describe('flagContractParseTransformer', () => {
     it('INVALID: {parse throws two issues} => throws both, joined by "; ", losing neither', () => {
       const zodIssueError = Object.assign(new Error('ignored'), {
         issues: [
-          { message: 'Required', path: ['a'] },
-          { message: 'Required', path: ['b'] },
+          { message: 'received undefined', path: ['a'] },
+          { message: 'received undefined', path: ['b'] },
         ],
       });
 

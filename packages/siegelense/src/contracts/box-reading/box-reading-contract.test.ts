@@ -76,7 +76,7 @@ describe('boxReadingContract', () => {
           visible: true,
           inViewport: true,
         }),
-      ).toThrow(/Number must be greater than or equal to 0/u);
+      ).toThrow(/expected number to be >=0/u);
     });
 
     it('INVALID: {extra property} => throws due to strict schema', () => {
@@ -94,7 +94,7 @@ describe('boxReadingContract', () => {
           ...BoxReadingStub(),
           ref: 0,
         }),
-      ).toThrow(/Number must be greater than 0/u);
+      ).toThrow(/expected number to be >0/u);
     });
   });
 });

@@ -28,6 +28,7 @@ import {
   questWorkItemIdContract,
   stepNameContract,
   unitIdContract,
+  workItemPayloadKeyContract,
   workItemRoleContract,
 } from '@dungeonmaster/shared/contracts';
 import { z } from 'zod';
@@ -40,7 +41,7 @@ export const mintedWorkItemContract = z.object({
   assignedUnitIds: z.array(unitIdContract).default([]),
   pieceId: pieceIdContract.optional(),
   payload: z
-    .record(z.unknown())
+    .record(workItemPayloadKeyContract, z.unknown())
     .optional()
     .describe("The piece's own brief, or the copy inherited from the piece that first claimed."),
   mintedBy: questWorkItemIdContract

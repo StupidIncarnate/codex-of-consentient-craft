@@ -26,7 +26,7 @@ describe('nextStepContract', () => {
 
     it('INVALID: {type: idle, reason: ""} => throws min-length error', () => {
       expect(() => nextStepContract.parse({ type: 'idle', reason: '' })).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
   });
@@ -112,7 +112,7 @@ describe('nextStepContract', () => {
     });
 
     it('INVALID: {type: spawn-agents, missing agents} => throws Required', () => {
-      expect(() => nextStepContract.parse({ type: 'spawn-agents' })).toThrow(/Required/u);
+      expect(() => nextStepContract.parse({ type: 'spawn-agents' })).toThrow(/received undefined/u);
     });
   });
 });

@@ -16,7 +16,7 @@ describe('toolResultKeyContract', () => {
     it('INVALID: {non-string} => throws validation error', () => {
       expect(() => {
         toolResultKeyContract.parse(42);
-      }).toThrow(/Expected string/u);
+      }).toThrow(/expected string/u);
     });
   });
 });

@@ -44,31 +44,31 @@ describe('flowNodeIdContract', () => {
     it('INVALID: {value: "View-List"} => uppercase throws validation error', () => {
       expect(() => {
         flowNodeIdContract.parse('View-List');
-      }).toThrow(/invalid_string/u);
+      }).toThrow(/invalid_format/u);
     });
 
     it('INVALID: {value: "-start"} => leading hyphen throws validation error', () => {
       expect(() => {
         flowNodeIdContract.parse('-start');
-      }).toThrow(/invalid_string/u);
+      }).toThrow(/invalid_format/u);
     });
 
     it('INVALID: {value: "start-"} => trailing hyphen throws validation error', () => {
       expect(() => {
         flowNodeIdContract.parse('start-');
-      }).toThrow(/invalid_string/u);
+      }).toThrow(/invalid_format/u);
     });
 
     it('INVALID: {value: "1start"} => leading digit throws validation error', () => {
       expect(() => {
         flowNodeIdContract.parse('1start');
-      }).toThrow(/invalid_string/u);
+      }).toThrow(/invalid_format/u);
     });
 
     it('INVALID: {value: "start--end"} => double hyphen throws validation error', () => {
       expect(() => {
         flowNodeIdContract.parse('start--end');
-      }).toThrow(/invalid_string/u);
+      }).toThrow(/invalid_format/u);
     });
   });
 });

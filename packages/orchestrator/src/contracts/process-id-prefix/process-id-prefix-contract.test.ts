@@ -24,15 +24,15 @@ describe('processIdPrefixContract', () => {
 
   describe('invalid prefix', () => {
     it('INVALID: {value: "agent"} => throws validation error', () => {
-      expect(() => processIdPrefixContract.parse('agent')).toThrow(/Invalid enum value/u);
+      expect(() => processIdPrefixContract.parse('agent')).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {value: "design"} => throws validation error', () => {
-      expect(() => processIdPrefixContract.parse('design')).toThrow(/Invalid enum value/u);
+      expect(() => processIdPrefixContract.parse('design')).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {value: ""} => throws validation error', () => {
-      expect(() => processIdPrefixContract.parse('')).toThrow(/Invalid enum value/u);
+      expect(() => processIdPrefixContract.parse('')).toThrow(/Invalid option/u);
     });
   });
 });

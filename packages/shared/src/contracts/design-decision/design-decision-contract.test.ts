@@ -40,7 +40,7 @@ describe('designDecisionContract', () => {
         rationale: 'reason',
         relatedNodeIds: [],
       });
-    }).toThrow(/invalid_string/u);
+    }).toThrow(/invalid_format/u);
   });
 
   it('INVALID: {relatedNodeIds: ["Bad-Id"]} => throws validation error', () => {
@@ -51,6 +51,6 @@ describe('designDecisionContract', () => {
         rationale: 'reason',
         relatedNodeIds: ['Bad-Id'],
       });
-    }).toThrow(/invalid_string/u);
+    }).toThrow(/invalid_format/u);
   });
 });

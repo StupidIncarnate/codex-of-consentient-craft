@@ -146,7 +146,7 @@ describe('flowContract', () => {
           entryPoint: '/login',
           exitPoints: ['/dashboard'],
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/Invalid option: expected one of/u);
     });
 
     it('INVALID: {id: "Bad"} => throws validation error', () => {
@@ -158,7 +158,7 @@ describe('flowContract', () => {
           entryPoint: '/login',
           exitPoints: ['/dashboard'],
         });
-      }).toThrow(/invalid_string/u);
+      }).toThrow(/invalid_format/u);
     });
 
     it('INVALID: {name: ""} => throws validation error', () => {
@@ -170,7 +170,7 @@ describe('flowContract', () => {
           entryPoint: '/login',
           exitPoints: ['/dashboard'],
         });
-      }).toThrow(/String must contain at least 1 character/u);
+      }).toThrow(/expected string to have >=1 characters/u);
     });
 
     it('INVALID: {entryPoint: ""} => throws validation error', () => {
@@ -182,7 +182,7 @@ describe('flowContract', () => {
           entryPoint: '',
           exitPoints: ['/dashboard'],
         });
-      }).toThrow(/String must contain at least 1 character/u);
+      }).toThrow(/expected string to have >=1 characters/u);
     });
 
     it('INVALID: {exitPoints: []} => throws validation error', () => {
@@ -194,13 +194,13 @@ describe('flowContract', () => {
           entryPoint: '/login',
           exitPoints: [],
         });
-      }).toThrow(/Array must contain at least 1 element/u);
+      }).toThrow(/Too small: expected array to have >=1 items/u);
     });
 
     it('INVALID: {missing required fields} => throws validation error', () => {
       expect(() => {
         flowContract.parse({});
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

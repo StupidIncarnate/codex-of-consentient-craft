@@ -10,13 +10,18 @@ import { z } from 'zod';
 import { smoketestAssertionContract } from '../smoketest-assertion/smoketest-assertion-contract';
 import { smoketestTeardownCheckContract } from '../smoketest-teardown-check/smoketest-teardown-check-contract';
 
-// Functions cannot be fully Zod-validated — assertion/teardown arrays validate fully;
-// stopDriver accepts any callable (or undefined) as an internal runtime handle.
-export const smoketestListenerEntryContract = z.object({
-  assertions: z.array(smoketestAssertionContract).readonly(),
-  postTeardownChecks: z.array(smoketestTeardownCheckContract).readonly().optional(),
-  stopDriver: z.function().optional(),
-  isOrchestration: z.boolean(),
-});
+// `stopDriver` is a function — a Zod object schema cannot check callability, so it stays out of
+// the parse and is attached only through the type intersection below. `.loose()` carries it
+// through `.parse()` unvalidated when a real caller supplies one; assertion/teardown arrays and
+// `isOrchestration` still validate fully.
+export const smoketestListenerEntryContract = z
+  .object({
+    assertions: z.array(smoketestAssertionContract).readonly(),
+    postTeardownChecks: z.array(smoketestTeardownCheckContract).readonly().optional(),
+    isOrchestration: z.boolean(),
+  })
+  .loose();
 
-export type SmoketestListenerEntry = z.infer<typeof smoketestListenerEntryContract>;
+export type SmoketestListenerEntry = z.infer<typeof smoketestListenerEntryContract> & {
+  stopDriver?: () => void;
+};

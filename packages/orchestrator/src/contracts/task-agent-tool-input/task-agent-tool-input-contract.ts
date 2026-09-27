@@ -14,6 +14,6 @@ export const taskAgentToolInputContract = z
   .object({
     prompt: taskAgentToolPromptContract,
   })
-  .passthrough();
+  .loose();
 
 export type TaskAgentToolInput = z.infer<typeof taskAgentToolInputContract>;

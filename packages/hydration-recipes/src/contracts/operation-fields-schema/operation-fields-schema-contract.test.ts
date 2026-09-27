@@ -33,13 +33,13 @@ describe('operationFieldsSchemaContract', () => {
           questId: 'add-auth',
           guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         }),
-      ).toThrow(/Invalid enum value/u);
+      ).toThrow(/Invalid option/u);
     });
   });
 
   describe('empty operation fields', () => {
-    it('EMPTY: {} => throws "Required"', () => {
-      expect(() => operationFieldsSchemaContract.parse({})).toThrow(/Required/u);
+    it('EMPTY: {} => throws "received undefined"', () => {
+      expect(() => operationFieldsSchemaContract.parse({})).toThrow(/received undefined/u);
     });
   });
 });

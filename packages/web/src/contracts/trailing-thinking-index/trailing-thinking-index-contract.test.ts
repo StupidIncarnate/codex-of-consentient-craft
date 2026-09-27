@@ -30,7 +30,7 @@ describe('trailingThinkingIndexContract', () => {
     });
 
     it('INVALID: {value: 1.5} => throws for non-integer', () => {
-      expect(() => trailingThinkingIndexContract.parse(1.5)).toThrow(/Expected integer/u);
+      expect(() => trailingThinkingIndexContract.parse(1.5)).toThrow(/expected int/u);
     });
   });
 

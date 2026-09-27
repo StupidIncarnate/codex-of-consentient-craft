@@ -65,7 +65,7 @@ export const InstallSetupGatewayResponder = async ({
 
   const rawRootPackageJson = await fsReadFileAdapter({ filePath: rootPackageJsonPath });
   const rootPackageJson = packageJsonRawContract.parse(JSON.parse(rawRootPackageJson));
-  const nameKey = packageJsonRawContract.keySchema.parse('name');
+  const nameKey = packageJsonRawContract.keyType.parse('name');
   const rootNameValue = rootPackageJson[nameKey];
   const rootPackageJsonName = typeof rootNameValue === 'string' ? rootNameValue : undefined;
   const fallbackName = pathBasenameAdapter({ path: context.targetProjectRoot });
@@ -122,7 +122,7 @@ export const InstallSetupGatewayResponder = async ({
       const pkgPackageJsonPath = pathJoinAdapter({ paths: [packageDir, 'package.json'] });
       const rawPkgPackageJson = await fsReadFileAdapter({ filePath: pkgPackageJsonPath });
       const pkgPackageJson = packageJsonRawContract.parse(JSON.parse(rawPkgPackageJson));
-      const importsKey = packageJsonRawContract.keySchema.parse('imports');
+      const importsKey = packageJsonRawContract.keyType.parse('imports');
       const existingImports = pkgPackageJson[importsKey];
       const mergedImports = gatewayImportsMergeTransformer({ existingImports, scope });
       const importsChanged = mergedImports !== existingImports;

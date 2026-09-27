@@ -24,11 +24,11 @@ describe('buttonVariantContract', () => {
 
   describe('invalid inputs', () => {
     it('INVALID: {value: "secondary"} => throws for unknown variant', () => {
-      expect(() => buttonVariantContract.parse('secondary')).toThrow(/Invalid enum value/u);
+      expect(() => buttonVariantContract.parse('secondary')).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {value: ""} => throws for empty string', () => {
-      expect(() => buttonVariantContract.parse('')).toThrow(/Invalid enum value/u);
+      expect(() => buttonVariantContract.parse('')).toThrow(/Invalid option/u);
     });
 
     it('EMPTY: {value: null} => throws for null', () => {
@@ -36,7 +36,7 @@ describe('buttonVariantContract', () => {
     });
 
     it('EMPTY: {value: undefined} => throws for undefined', () => {
-      expect(() => buttonVariantContract.parse(undefined)).toThrow(/Required/u);
+      expect(() => buttonVariantContract.parse(undefined)).toThrow(/received undefined/u);
     });
   });
 

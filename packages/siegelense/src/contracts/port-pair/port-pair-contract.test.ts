@@ -34,7 +34,7 @@ describe('portPairContract', () => {
     });
 
     it('INVALID: {missing web} => throws Required', () => {
-      expect(() => portPairContract.parse({ api: 34_172 })).toThrow(/Required/u);
+      expect(() => portPairContract.parse({ api: 34_172 })).toThrow(/received undefined/u);
     });
   });
 });

@@ -15,7 +15,7 @@
  * USAGE:
  * const parsed = wardDetailContract.safeParse(detail);
  * if (parsed.success) for (const check of parsed.data.checks ?? []) { ... }
- * // Every nested object is .passthrough() so unread ward fields survive validation.
+ * // Every nested object is .loose() so unread ward fields survive validation.
  */
 
 import { z } from 'zod';
@@ -27,7 +27,7 @@ const errorEntry = z
     line: z.number().brand<'WardDetailErrorLine'>().optional(),
     rule: z.string().brand<'WardDetailErrorRule'>().optional(),
   })
-  .passthrough();
+  .loose();
 
 const testFailure = z
   .object({
@@ -35,14 +35,14 @@ const testFailure = z
     testName: z.string().brand<'WardDetailTestName'>().optional(),
     message: z.string().brand<'WardDetailTestFailureMessage'>().optional(),
   })
-  .passthrough();
+  .loose();
 
 const projectFolder = z
   .object({
     name: z.string().brand<'WardDetailProjectName'>().optional(),
     path: z.string().brand<'WardDetailProjectPath'>().optional(),
   })
-  .passthrough();
+  .loose();
 
 const rawOutput = z
   .object({
@@ -50,7 +50,7 @@ const rawOutput = z
     stderr: z.string().brand<'WardDetailRawStderr'>().optional(),
     exitCode: z.number().brand<'WardDetailRawExitCode'>().optional(),
   })
-  .passthrough();
+  .loose();
 
 const projectResult = z
   .object({
@@ -64,7 +64,7 @@ const projectResult = z
     onlyDiscovered: z.array(z.string().brand<'WardDetailOnlyDiscovered'>()).optional(),
     onlyProcessed: z.array(z.string().brand<'WardDetailOnlyProcessed'>()).optional(),
   })
-  .passthrough();
+  .loose();
 
 const checkResult = z
   .object({
@@ -73,12 +73,12 @@ const checkResult = z
     discoveryMismatch: z.boolean().optional(),
     projectResults: z.array(projectResult).optional(),
   })
-  .passthrough();
+  .loose();
 
 export const wardDetailContract = z
   .object({
     checks: z.array(checkResult).optional(),
   })
-  .passthrough();
+  .loose();
 
 export type WardDetail = z.infer<typeof wardDetailContract>;

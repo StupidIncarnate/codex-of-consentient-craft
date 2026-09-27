@@ -24,23 +24,19 @@ describe('stepChunkSizeContract', () => {
 
   describe('invalid cap values', () => {
     it('ERROR: 0 => throws for zero (cap must allow at least one step per chunk)', () => {
-      expect(() => stepChunkSizeContract.parse(0)).toThrow(
-        /Number must be greater than or equal to 1/u,
-      );
+      expect(() => stepChunkSizeContract.parse(0)).toThrow(/expected number to be >=1/u);
     });
 
     it('ERROR: -1 => throws for negative number', () => {
-      expect(() => stepChunkSizeContract.parse(-1)).toThrow(
-        /Number must be greater than or equal to 1/u,
-      );
+      expect(() => stepChunkSizeContract.parse(-1)).toThrow(/expected number to be >=1/u);
     });
 
     it('ERROR: 1.5 => throws for non-integer', () => {
-      expect(() => stepChunkSizeContract.parse(1.5)).toThrow(/Expected integer, received float/u);
+      expect(() => stepChunkSizeContract.parse(1.5)).toThrow(/expected int, received number/u);
     });
 
     it('ERROR: "6" => throws for string', () => {
-      expect(() => stepChunkSizeContract.parse('6')).toThrow(/Expected number, received string/u);
+      expect(() => stepChunkSizeContract.parse('6')).toThrow(/expected number, received string/u);
     });
   });
 

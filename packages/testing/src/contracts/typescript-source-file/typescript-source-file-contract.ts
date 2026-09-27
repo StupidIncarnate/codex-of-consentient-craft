@@ -12,7 +12,7 @@ export const typescriptSourceFileContract = z
   .object({
     fileName: z.string(),
   })
-  .passthrough()
+  .loose()
   .brand<'TypescriptSourceFile'>();
 
 export type TypescriptSourceFile = z.infer<typeof typescriptSourceFileContract>;

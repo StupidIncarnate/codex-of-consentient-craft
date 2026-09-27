@@ -57,7 +57,8 @@
   ],
   "dependencies": {
     "@dungeonmaster/node": "*",
-    "@dungeonmaster/shared": "*"
+    "@dungeonmaster/shared": "*",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@dungeonmaster/testing": "*"

@@ -10,11 +10,20 @@
 import { z } from 'zod';
 
 import { orchestrationEventsStateFacadeContract } from '../orchestration-events-state-facade/orchestration-events-state-facade-contract';
+import type { OrchestrationEventsStateFacade } from '../orchestration-events-state-facade/orchestration-events-state-facade-contract';
 
 export const orchestrationEventsStateModuleContract = z
   .object({
     orchestrationEventsState: orchestrationEventsStateFacadeContract,
   })
-  .passthrough();
+  .loose();
 
-export type OrchestrationEventsStateModule = z.infer<typeof orchestrationEventsStateModuleContract>;
+// `orchestrationEventsState`'s `on`/`off` live outside the FACADE's own schema (see that contract's
+// own header), so the module's exported type widens the field to the facade's real type rather than
+// the schema-only `{[x: string]: unknown}` `z.infer` would otherwise give it.
+export type OrchestrationEventsStateModule = Omit<
+  z.infer<typeof orchestrationEventsStateModuleContract>,
+  'orchestrationEventsState'
+> & {
+  orchestrationEventsState: OrchestrationEventsStateFacade;
+};

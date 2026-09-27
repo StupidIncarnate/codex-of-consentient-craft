@@ -23,13 +23,13 @@ describe('dmQuestOutboxLineContract', () => {
     it('INVALID: {timestamp: "not-a-date"} => throws "Invalid datetime"', () => {
       expect(() =>
         dmQuestOutboxLineContract.parse({ questId: 'add-auth', timestamp: 'not-a-date' }),
-      ).toThrow(/Invalid datetime/u);
+      ).toThrow(/Invalid ISO datetime/u);
     });
   });
 
   describe('empty lines', () => {
-    it('EMPTY: {} => throws "Required" for questId', () => {
-      expect(() => dmQuestOutboxLineContract.parse({})).toThrow(/Required/u);
+    it('EMPTY: {} => throws "received undefined" for questId', () => {
+      expect(() => dmQuestOutboxLineContract.parse({})).toThrow(/received undefined/u);
     });
   });
 });

@@ -105,7 +105,7 @@ describe('orchestrationStatusContract', () => {
           total: 5,
           slots: [],
         });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {completed: -1} => throws validation error', () => {
@@ -118,7 +118,7 @@ describe('orchestrationStatusContract', () => {
           total: 5,
           slots: [],
         });
-      }).toThrow(/Number must be greater than or equal to 0/u);
+      }).toThrow(/expected number to be >=0/u);
     });
 
     it('INVALID: {completed: 1.5} => throws validation error', () => {
@@ -131,7 +131,7 @@ describe('orchestrationStatusContract', () => {
           total: 5,
           slots: [],
         });
-      }).toThrow(/Expected integer, received float/u);
+      }).toThrow(/expected int, received number/u);
     });
 
     it('INVALID: {total: -1} => throws validation error', () => {
@@ -144,7 +144,7 @@ describe('orchestrationStatusContract', () => {
           total: -1,
           slots: [],
         });
-      }).toThrow(/Number must be greater than or equal to 0/u);
+      }).toThrow(/expected number to be >=0/u);
     });
 
     it('INVALID: {total: 2.7} => throws validation error', () => {
@@ -157,7 +157,7 @@ describe('orchestrationStatusContract', () => {
           total: 2.7,
           slots: [],
         });
-      }).toThrow(/Expected integer, received float/u);
+      }).toThrow(/expected int, received number/u);
     });
 
     it('INVALID: {} => throws validation error', () => {
@@ -169,7 +169,7 @@ describe('orchestrationStatusContract', () => {
           total: 5,
           slots: [],
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

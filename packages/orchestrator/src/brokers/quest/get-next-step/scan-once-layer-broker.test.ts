@@ -33,7 +33,7 @@ describe('scanOnceLayerBroker', () => {
 
   it('VALID: {only a paused quest with pending work} => not dispatchable, clears active and returns null', async () => {
     const proxy = scanOnceLayerBrokerProxy();
-    const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+    const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
     const guildItem = GuildListItemStub({ id: guildId, valid: true });
     const quest = QuestStub({
       id: QuestIdStub({ value: 'q-scan-paused' }),
@@ -55,7 +55,7 @@ describe('scanOnceLayerBroker', () => {
 
   it('VALID: {one in_progress quest with ready codeweaver} => sets active and returns spawn-agents', async () => {
     const proxy = scanOnceLayerBrokerProxy();
-    const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+    const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
     const guildItem = GuildListItemStub({ id: guildId, valid: true });
     const questId = QuestIdStub({ value: 'q-scan-cw' });
     const cwId = QuestWorkItemIdStub({
@@ -92,7 +92,7 @@ describe('scanOnceLayerBroker', () => {
 
   it('VALID: {orphaned in_progress item without sessionId blocking a pending dependent} => resets the orphan and returns a fresh spawn for it', async () => {
     const proxy = scanOnceLayerBrokerProxy();
-    const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+    const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
     const guildItem = GuildListItemStub({ id: guildId, valid: true });
     const questId = QuestIdStub({ value: 'q-scan-orphan' });
     const orphanId = QuestWorkItemIdStub({
@@ -142,7 +142,7 @@ describe('scanOnceLayerBroker', () => {
 
   it('VALID: {orphan at the reset budget with a pending operation item behind it} => blocks and returns null WITHOUT advancing the ledger or dispatching', async () => {
     const proxy = scanOnceLayerBrokerProxy();
-    const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+    const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
     const guildItem = GuildListItemStub({ id: guildId, valid: true });
     const questId = QuestIdStub({ value: 'q-scan-orphan-exhausted' });
     const orphanId = QuestWorkItemIdStub({ value: 'ccc33333-1111-4222-9333-444444444444' });
@@ -187,7 +187,7 @@ describe('scanOnceLayerBroker', () => {
 
   it('VALID: {orphaned in_progress item WITH sessionId} => resumed spawn carries resumeSessionId and resumePrompt, taskPrompt stays fresh', async () => {
     const proxy = scanOnceLayerBrokerProxy();
-    const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+    const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
     const guildItem = GuildListItemStub({ id: guildId, valid: true });
     const questId = QuestIdStub({ value: 'q-scan-resume' });
     const orphanId = QuestWorkItemIdStub({
@@ -230,7 +230,7 @@ describe('scanOnceLayerBroker', () => {
 
   it('VALID: {one in_progress quest with all items complete and no operations} => clears active and returns null', async () => {
     const proxy = scanOnceLayerBrokerProxy();
-    const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+    const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
     const guildItem = GuildListItemStub({ id: guildId, valid: true });
     const quest = QuestStub({
       id: QuestIdStub({ value: 'q-scan-done' }),
@@ -252,7 +252,7 @@ describe('scanOnceLayerBroker', () => {
 
   it('ERROR: {the router halts the scope} => the scan stops dead, clearing active and minting nothing', async () => {
     const proxy = scanOnceLayerBrokerProxy();
-    const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+    const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
     const guildItem = GuildListItemStub({ id: guildId, valid: true });
     const questId = QuestIdStub({ value: 'q-scan-router-halt' });
     const quest = QuestStub({
@@ -290,7 +290,7 @@ describe('scanOnceLayerBroker', () => {
 
   it('VALID: {all work items terminal, one pending operation item} => advance self-heal creates the next work item and the step dispatches it', async () => {
     const proxy = scanOnceLayerBrokerProxy();
-    const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+    const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
     const guildItem = GuildListItemStub({ id: guildId, valid: true });
     const questId = QuestIdStub({ value: 'q-scan-self-heal' });
     const doneId = QuestWorkItemIdStub({
@@ -371,7 +371,7 @@ describe('scanOnceLayerBroker', () => {
 
   it('VALID: {quest whose recorded worktree is missing} => returns null, blocks the quest naming the path, and dispatches nothing', async () => {
     const proxy = scanOnceLayerBrokerProxy();
-    const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+    const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
     const guildItem = GuildListItemStub({ id: guildId, valid: true });
     const questId = QuestIdStub({ value: 'q-scan-missing-worktree' });
     const pendingId = QuestWorkItemIdStub({ value: 'ddd66666-1111-4222-9333-444444444444' });
@@ -420,7 +420,7 @@ describe('scanOnceLayerBroker', () => {
   describe('missing worktree: riftcarver passes the halt, every other role still trips it', () => {
     it('VALID: {recorded worktree missing, ready carve step} => returns run-step for the carve handler and blocks nothing', async () => {
       const proxy = scanOnceLayerBrokerProxy();
-      const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+      const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
       const guildItem = GuildListItemStub({ id: guildId, valid: true });
       const questId = QuestIdStub({ value: 'q-scan-missing-worktree-riftcarver' });
       const carveId = QuestWorkItemIdStub({ value: 'aab11111-1111-4222-9333-444444444444' });
@@ -480,7 +480,7 @@ describe('scanOnceLayerBroker', () => {
     // repo-root checkout would grade the wrong branch.
     it('VALID: {recorded worktree missing, ready ward gate step instead} => returns null and blocks the quest naming the path', async () => {
       const proxy = scanOnceLayerBrokerProxy();
-      const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+      const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
       const guildItem = GuildListItemStub({ id: guildId, valid: true });
       const questId = QuestIdStub({ value: 'q-scan-missing-worktree-ward' });
       const wardId = QuestWorkItemIdStub({ value: 'aab33333-1111-4222-9333-444444444444' });
@@ -540,7 +540,7 @@ describe('scanOnceLayerBroker', () => {
     // pre-empting the very advance that would have minted the carve — and every resume repeats it.
     it('VALID: {pending riftcarver op with NO work item, recorded worktree gone} => the self-heal mints the carve and the scan dispatches it instead of blocking', async () => {
       const proxy = scanOnceLayerBrokerProxy();
-      const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+      const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
       const guildItem = GuildListItemStub({ id: guildId, valid: true });
       const questId = QuestIdStub({ value: 'q-scan-carve-self-heal' });
       const mendedId = QuestWorkItemIdStub({ value: 'baa11111-1111-4222-9333-444444444444' });
@@ -638,7 +638,7 @@ describe('scanOnceLayerBroker', () => {
 
     it('VALID: {same missing worktree, ready codeweaver item instead} => returns null and blocks the quest naming the path', async () => {
       const proxy = scanOnceLayerBrokerProxy();
-      const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+      const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
       const guildItem = GuildListItemStub({ id: guildId, valid: true });
       const questId = QuestIdStub({ value: 'q-scan-missing-worktree-codeweaver' });
       const cwId = QuestWorkItemIdStub({ value: 'aab22222-1111-4222-9333-444444444444' });
@@ -686,7 +686,7 @@ describe('scanOnceLayerBroker', () => {
 
   it('VALID: {quest with no recorded worktreePath (legacy)} => the scan proceeds and returns its normal step', async () => {
     const proxy = scanOnceLayerBrokerProxy();
-    const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+    const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
     const guildItem = GuildListItemStub({ id: guildId, valid: true });
     const questId = QuestIdStub({ value: 'q-scan-legacy' });
     const cwId = QuestWorkItemIdStub({
@@ -733,7 +733,7 @@ describe('scanOnceLayerBroker', () => {
   describe('quest-agent-cwd: worktree-present branch (kind: worktree, never missing)', () => {
     it('VALID: {worktree present, ready ward gate step} => proceeds past the guard and returns run-step, never blocking', async () => {
       const proxy = scanOnceLayerBrokerProxy();
-      const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+      const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
       const guildItem = GuildListItemStub({ id: guildId, valid: true });
       const questId = QuestIdStub({ value: 'q-scan-worktree-ward' });
       const wardId = QuestWorkItemIdStub({ value: 'fff88888-1111-4222-9333-444444444444' });
@@ -789,7 +789,7 @@ describe('scanOnceLayerBroker', () => {
 
     it('VALID: {worktree present, ready codeweaver item} => proceeds past the guard and returns spawn-agents, never blocking', async () => {
       const proxy = scanOnceLayerBrokerProxy();
-      const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+      const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
       const guildItem = GuildListItemStub({ id: guildId, valid: true });
       const questId = QuestIdStub({ value: 'q-scan-worktree-agent' });
       const cwId = QuestWorkItemIdStub({ value: 'fff99999-1111-4222-9333-444444444444' });
@@ -851,7 +851,7 @@ describe('scanOnceLayerBroker', () => {
   describe('quest-resume-worktree: the dispatcher restores a drifted worktree branch', () => {
     it('VALID: {worktree drifted onto another branch, ready codeweaver item} => checks the quest branch back out BEFORE handing back the spawn instruction', async () => {
       const proxy = scanOnceLayerBrokerProxy();
-      const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+      const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
       const guildItem = GuildListItemStub({ id: guildId, valid: true });
       const questId = QuestIdStub({ value: 'q-scan-drift-restore' });
       const cwId = QuestWorkItemIdStub({ value: 'a1b2c3d4-1111-4222-9333-444444444444' });
@@ -925,7 +925,7 @@ describe('scanOnceLayerBroker', () => {
 
     it('VALID: {worktree already on the quest branch, ready codeweaver item} => probes the branch once and runs no checkout at all', async () => {
       const proxy = scanOnceLayerBrokerProxy();
-      const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+      const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
       const guildItem = GuildListItemStub({ id: guildId, valid: true });
       const questId = QuestIdStub({ value: 'q-scan-on-branch' });
       const cwId = QuestWorkItemIdStub({ value: 'b2c3d4e5-1111-4222-9333-444444444444' });
@@ -983,7 +983,7 @@ describe('scanOnceLayerBroker', () => {
 
     it('EDGE: {drifted worktree on a non-ASCII branch name, under a very long worktree path carrying spaces} => the exact branch name reaches git checkout unmangled', async () => {
       const proxy = scanOnceLayerBrokerProxy();
-      const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+      const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
       const guildItem = GuildListItemStub({ id: guildId, valid: true });
       const questId = QuestIdStub({ value: 'q-scan-hostile-branch' });
       const cwId = QuestWorkItemIdStub({ value: 'c3d4e5f6-1111-4222-9333-444444444444' });
@@ -1033,7 +1033,7 @@ describe('scanOnceLayerBroker', () => {
 
     it('EDGE: {drifted worktree whose checkout fails} => the dispatcher still returns the step, logging the failure under its own trigger prefix', async () => {
       const proxy = scanOnceLayerBrokerProxy();
-      const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+      const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
       const guildItem = GuildListItemStub({ id: guildId, valid: true });
       const questId = QuestIdStub({ value: 'q-scan-restore-fails' });
       const cwId = QuestWorkItemIdStub({ value: 'd4e5f6a7-1111-4222-9333-444444444444' });

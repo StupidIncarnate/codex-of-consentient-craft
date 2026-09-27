@@ -63,7 +63,7 @@ describe('getQuestInputContract', () => {
     it('INVALID: {stage with invalid value} => throws validation error', () => {
       expect(() => {
         return getQuestInputContract.parse({ questId: 'add-auth', stage: 'invalid' });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {unknown key} => throws Unrecognized key error', () => {

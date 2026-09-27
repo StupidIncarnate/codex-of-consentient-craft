@@ -38,11 +38,11 @@ describe('wardRunIdContract', () => {
     });
 
     it('INVALID: {value: number} => throws for non-string type', () => {
-      expect(() => wardRunIdContract.parse(123 as never)).toThrow(/Expected string/u);
+      expect(() => wardRunIdContract.parse(123 as never)).toThrow(/expected string/u);
     });
 
     it('INVALID: {value: null} => throws for null', () => {
-      expect(() => wardRunIdContract.parse(null as never)).toThrow(/Expected string/u);
+      expect(() => wardRunIdContract.parse(null as never)).toThrow(/expected string/u);
     });
   });
 });

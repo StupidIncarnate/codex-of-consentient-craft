@@ -48,7 +48,7 @@ ruleTester.run(
       'z.string().refine((value) => value.length > 0)',
       'z.string().refine((value) => value.startsWith("/"))',
       'z.string().refine((path) => { return path.startsWith("/"); })',
-      'const schema = z.string().refine((x) => x.length > 0, { message: "Required" })',
+      'const schema = z.string().refine((x) => x.length > 0, { message: "received undefined" })',
       'z.number().refine((n) => n > 0)',
       'z.array(z.string()).refine((arr) => arr.length > 0)',
       '[1, 2, 3].map((n) => n * 2)',

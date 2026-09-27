@@ -24,6 +24,5 @@ import type { GuildFields } from '../guild-fields/guild-fields-contract';
 
 export const guildFieldsSchemaContract: z.ZodType<
   GuildFields,
-  z.ZodTypeDef,
   z.input<typeof guildFieldsContract>
 > = guildFieldsContract;

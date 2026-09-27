@@ -34,7 +34,7 @@ describe('recipeListingEntryContract', () => {
           runs: { serverless: false },
           makes: [],
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {an entry carrying an unrecognised key} => throws naming that key', () => {

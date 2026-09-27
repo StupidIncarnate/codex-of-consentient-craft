@@ -37,7 +37,7 @@ describe('decodedFrameContract', () => {
           height: 1,
           pixels: new Uint8Array(4),
         } as never),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 

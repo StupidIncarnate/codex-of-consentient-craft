@@ -45,7 +45,7 @@ describe('networkPortContract', () => {
     it('INVALID: {value: 3.5} => throws validation error for non-integer', () => {
       const NON_INTEGER = 3.5;
 
-      expect(() => networkPortContract.parse(NON_INTEGER)).toThrow(/Expected integer/u);
+      expect(() => networkPortContract.parse(NON_INTEGER)).toThrow(/expected int/u);
     });
   });
 });

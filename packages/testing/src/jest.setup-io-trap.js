@@ -73,8 +73,16 @@ const NODE_MODULES_PATH = /[\\/]node_modules(?:[\\/]|$)/iu;
 // happens to need a fresh compile first in a given worker) and this trap misreports it as that
 // test's own unstaged call — observed as `net.createConnection` to tsx's IPC pipe and `new
 // Worker(esbuild/lib/main.js)`, on a file with no real I/O of its own.
+//
+// The glue files call back INTO `@dungeonmaster/testing`'s own `src/middleware/**` (import path
+// resolution, proxy-mock collection) before that cold compile happens, so the FIRST repo-owned
+// frame `isCallFromTestInfrastructure` finds is often one of those, not the glue file itself —
+// observed as `src/middleware/import-path-resolver/…` sitting between the `ts-jest/` glue and the
+// `esbuild`/`tsx` frames on `@dungeonmaster/shared`'s contract tests, which import more sibling
+// contracts (more proxy-mock collection) than most packages' own tests do. This package's own
+// `src/` is the compiler-pipeline's implementation, same trust level as the `ts-jest/` glue above.
 const TEST_INFRASTRUCTURE_FRAME =
-  /\.(test|proxy|stub|harness)\.[jt]sx?$|[\\/]packages[\\/][^\\/]+[\\/]test[\\/]|[\\/]ts-jest[\\/]/u;
+  /\.(test|proxy|stub|harness)\.[jt]sx?$|[\\/]packages[\\/][^\\/]+[\\/]test[\\/]|[\\/]ts-jest[\\/]|[\\/]packages[\\/]testing[\\/]src[\\/]/u;
 // Reading a fixture under a package's `test/` directory is test infrastructure, whoever reads it —
 // a real TypeScript compile over fixtures reads them from inside node_modules. Reads only: nothing
 // may write into the checkout's fixtures.

@@ -24,7 +24,7 @@ export const copiesTargetContract = z
     // the shape that caused the bug is the one this rejects.
     if (value.includes('/')) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         message:
           "copies: may not contain '/'. Use a bare identifier naming in-repo production code " +
           "(e.g. 'guildAddBroker'), or 'external:<name>' naming a producer outside the repo " +
@@ -34,7 +34,7 @@ export const copiesTargetContract = z
     }
     if (value.startsWith('external:') && value.slice('external:'.length).length === 0) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         message:
           "copies: 'external:' must name a producer after the prefix. Use a bare identifier " +
           "naming in-repo production code (e.g. 'guildAddBroker'), or 'external:<name>' naming a " +

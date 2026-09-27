@@ -50,7 +50,9 @@ describe('hexColorContract', () => {
     });
 
     it('ERROR: 123 => throws for non-string', () => {
-      expect(() => hexColorContract.parse(123)).toThrow(/Expected string, received number/u);
+      expect(() => hexColorContract.parse(123)).toThrow(
+        /Invalid input: expected string, received number/u,
+      );
     });
   });
 

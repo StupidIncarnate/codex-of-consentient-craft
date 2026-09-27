@@ -30,7 +30,7 @@
   "dependencies": {
     "@dungeonmaster/eslint-plugin": "*",
     "@dungeonmaster/shared": "*",
-    "zod": "^3.25.76"
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@dungeonmaster/testing": "*",

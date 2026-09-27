@@ -114,7 +114,7 @@ describe('startArgsContract', () => {
           expected: 'string',
           received: 'undefined',
           path: ['questId'],
-          message: 'Required',
+          message: 'received undefined',
         },
       ]);
     });
@@ -133,7 +133,7 @@ describe('startArgsContract', () => {
           expected: 'string',
           received: 'undefined',
           path: ['guildId'],
-          message: 'Required',
+          message: 'received undefined',
         },
       ]);
     });

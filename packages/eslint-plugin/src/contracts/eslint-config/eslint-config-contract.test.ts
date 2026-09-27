@@ -102,6 +102,6 @@ describe('EslintConfigStub', () => {
       EslintConfigStub({
         files: [''],
       });
-    }).toThrow('String must contain at least 1 character(s)');
+    }).toThrow('expected string to have >=1 characters');
   });
 });

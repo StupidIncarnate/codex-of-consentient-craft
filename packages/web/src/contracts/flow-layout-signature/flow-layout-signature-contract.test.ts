@@ -27,7 +27,7 @@ describe('flowLayoutSignatureContract', () => {
   describe('invalid inputs', () => {
     it('EMPTY: {value: ""} => throws for an empty signature', () => {
       expect(() => FlowLayoutSignatureStub({ value: '' })).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
 

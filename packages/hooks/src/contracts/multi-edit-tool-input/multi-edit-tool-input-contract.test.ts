@@ -35,7 +35,7 @@ describe('multiEditToolInputContract', () => {
     it('INVALID: {invalid data} => throws validation error', () => {
       expect(() => {
         return multiEditToolInputContract.parse({} as never);
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

@@ -36,19 +36,19 @@ describe('taskNotificationDataContract', () => {
     it('INVALID: {taskId empty} => throws validation error', () => {
       expect(() => {
         return taskNotificationDataContract.parse({ taskId: '', status: 'completed' });
-      }).toThrow(/String must contain at least 1 character/u);
+      }).toThrow(/expected string to have >=1 characters/u);
     });
 
     it('INVALID: {status empty} => throws validation error', () => {
       expect(() => {
         return taskNotificationDataContract.parse({ taskId: 'abc', status: '' });
-      }).toThrow(/String must contain at least 1 character/u);
+      }).toThrow(/expected string to have >=1 characters/u);
     });
 
     it('INVALID: {missing taskId} => throws validation error', () => {
       expect(() => {
         return taskNotificationDataContract.parse({ status: 'completed' });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

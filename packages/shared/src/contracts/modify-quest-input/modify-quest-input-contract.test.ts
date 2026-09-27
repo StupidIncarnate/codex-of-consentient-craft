@@ -133,7 +133,15 @@ describe('modifyQuestInputContract', () => {
 
     expect(result).toStrictEqual({
       questId: 'add-auth',
-      operations: [{ id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479', status: 'complete' }],
+      operations: [
+        {
+          id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          status: 'complete',
+          locked: false,
+          flowIds: [],
+          packageNames: [],
+        },
+      ],
     });
   });
 
@@ -145,7 +153,15 @@ describe('modifyQuestInputContract', () => {
 
     expect(result).toStrictEqual({
       questId: 'add-auth',
-      operations: [{ id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479', _delete: true }],
+      operations: [
+        {
+          id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          _delete: true,
+          locked: false,
+          flowIds: [],
+          packageNames: [],
+        },
+      ],
     });
   });
 
@@ -309,7 +325,7 @@ describe('modifyQuestInputContract', () => {
         questId: 'add-auth',
         packagesAffected: ['orchestrator', 'web', 'shared'] as never,
       });
-    }).toThrow(/Expected object, received string/u);
+    }).toThrow(/Invalid input: expected object, received string/u);
   });
 
   // The flow/node/observable unions are .extend().partial() objects, which STRIP an unrecognised
@@ -346,6 +362,7 @@ describe('modifyQuestInputContract', () => {
               packages: ['auth-service', 'gateway'],
             },
           ],
+          recipes: [],
         },
       ],
     });
@@ -359,7 +376,9 @@ describe('modifyQuestInputContract', () => {
 
     expect(result).toStrictEqual({
       questId: 'add-auth',
-      flows: [{ id: 'login-flow', nodes: [{ id: 'press-warp', packages: ['gateway'] }] }],
+      flows: [
+        { id: 'login-flow', nodes: [{ id: 'press-warp', packages: ['gateway'] }], recipes: [] },
+      ],
     });
   });
 
@@ -386,13 +405,14 @@ describe('modifyQuestInputContract', () => {
           id: 'login-flow',
           nodes: [{ id: 'press-warp', label: 'Press Warp', type: 'action' }],
           edges: [],
+          recipes: [],
         },
       ],
     });
 
     expect(() => {
       return flowNodeContract.parse({ id: 'press-warp', label: 'Press Warp', type: 'action' });
-    }).toThrow(/Required/u);
+    }).toThrow(/received undefined/u);
   });
 
   it('VALID: {observable carrying an explicit package} => keeps the resolved side of the seam', () => {
@@ -419,9 +439,12 @@ describe('modifyQuestInputContract', () => {
           nodes: [
             {
               id: 'press-warp',
-              observables: [{ id: 'login-redirects-to-dashboard', package: 'gateway' }],
+              observables: [
+                { id: 'login-redirects-to-dashboard', package: 'gateway', addedBy: 'spec' },
+              ],
             },
           ],
+          recipes: [],
         },
       ],
     });
@@ -469,6 +492,7 @@ describe('modifyQuestInputContract', () => {
               ],
             },
           ],
+          recipes: [],
         },
       ],
     });
@@ -479,7 +503,7 @@ describe('modifyQuestInputContract', () => {
         type: 'ui-state',
         description: 'redirects to dashboard',
       });
-    }).toThrow(/Required/u);
+    }).toThrow(/received undefined/u);
   });
 
   it('INVALID: {packageGraph} => throws Unrecognized key, the derived graph is never agent-written', () => {
@@ -589,7 +613,7 @@ describe('modifyQuestInputContract', () => {
 
     expect(result).toStrictEqual({
       questId: 'add-auth',
-      flows: [{ id: 'login-flow', _delete: true }],
+      flows: [{ id: 'login-flow', _delete: true, recipes: [] }],
     });
   });
 
@@ -621,9 +645,13 @@ describe('modifyQuestInputContract', () => {
           id: 'login-flow',
           nodes: [
             { id: 'start', _delete: true },
-            { id: 'end', observables: [{ id: 'login-redirects-to-dashboard', _delete: true }] },
+            {
+              id: 'end',
+              observables: [{ id: 'login-redirects-to-dashboard', _delete: true, addedBy: 'spec' }],
+            },
           ],
           edges: [{ id: 'start-to-end', _delete: true }],
+          recipes: [],
         },
       ],
     });
@@ -646,6 +674,7 @@ describe('modifyQuestInputContract', () => {
         {
           id: 'login-flow',
           offMapSignoffs: [{ id: 'concurrency' }],
+          recipes: [],
         },
       ],
     });
@@ -763,7 +792,18 @@ describe('modifyQuestInputContract', () => {
 
     expect(result).toStrictEqual({
       questId: 'add-auth',
-      workItems: [{ id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }],
+      workItems: [
+        {
+          id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+          assignedUnitIds: [],
+          attempt: 0,
+          dependsOn: [],
+          maxAttempts: 1,
+          observations: [],
+          relatedDataItems: [],
+          retryCount: 0,
+        },
+      ],
     });
   });
 

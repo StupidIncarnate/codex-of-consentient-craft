@@ -30,7 +30,7 @@ describe('summaryStreamLineContract', () => {
           type: 'result',
           summary: 'some summary',
         });
-      }).toThrow(/Invalid literal value/u);
+      }).toThrow(/Invalid input: expected/u);
     });
 
     it('INVALID: {missing summary} => throws validation error', () => {
@@ -38,7 +38,7 @@ describe('summaryStreamLineContract', () => {
         summaryStreamLineContract.parse({
           type: 'summary',
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

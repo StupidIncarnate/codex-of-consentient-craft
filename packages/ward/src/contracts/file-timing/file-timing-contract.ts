@@ -31,7 +31,9 @@ export const fileTimingContract = z.object({
   // is the number that catches it.
   slowestTestMs: durationMsContract.default(0),
   // How many tests the suite ran, so a reader can tell a big file from a slow one at a glance.
-  testCount: z.number().int().nonnegative().brand<'TestCount'>().default(0),
+  // `.default()` before `.brand()` — zod v4 checks a `.default()` literal against the schema's
+  // own output type, and a bare number can never satisfy a branded type.
+  testCount: z.number().int().nonnegative().default(0).brand<'TestCount'>(),
   // The lint half of that same pair: every `stats.times.passes[].rules` entry plus `fix`, and NOT
   // `parse`, which is where @typescript-eslint's TypeScript program is built once per eslint
   // process and charged to whichever file the parser reached first. One 40-file web run read 8.5s

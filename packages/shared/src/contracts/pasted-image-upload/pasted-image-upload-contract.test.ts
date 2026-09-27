@@ -22,7 +22,7 @@ describe('pastedImageUploadContract', () => {
           mediaType: 'image/svg+xml',
           dataBase64: 'iVBORw0KGgo=',
         } as never),
-      ).toThrow(/Invalid enum value/u);
+      ).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {dataBase64: "not base64!"} => throws validation error', () => {
@@ -31,7 +31,7 @@ describe('pastedImageUploadContract', () => {
           mediaType: PastedImageMediaTypeStub(),
           dataBase64: 'not base64!',
         } as never),
-      ).toThrow(/invalid_string/u);
+      ).toThrow(/Invalid base64 image data/u);
     });
   });
 

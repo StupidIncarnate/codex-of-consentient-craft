@@ -18,13 +18,11 @@ describe('questSummaryParamsContract', () => {
 
   describe('invalid input', () => {
     it('EMPTY: {questId: ""} => throws', () => {
-      expect(() => questSummaryParamsContract.parse({ questId: '' })).toThrow(
-        /at least 1 character/u,
-      );
+      expect(() => questSummaryParamsContract.parse({ questId: '' })).toThrow(/>=1 characters/u);
     });
 
     it('INVALID: {missing questId} => throws', () => {
-      expect(() => questSummaryParamsContract.parse({})).toThrow(/Required/u);
+      expect(() => questSummaryParamsContract.parse({})).toThrow(/received undefined/u);
     });
   });
 });

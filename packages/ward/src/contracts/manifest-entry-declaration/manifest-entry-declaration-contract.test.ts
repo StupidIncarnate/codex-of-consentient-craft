@@ -45,7 +45,7 @@ describe('manifestEntryDeclarationContract', () => {
     it('INVALID: {missing declaredPath} => throws validation error', () => {
       expect(() => {
         return manifestEntryDeclarationContract.parse({ field: 'main' });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

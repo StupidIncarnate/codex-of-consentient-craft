@@ -68,7 +68,7 @@ describe('tokenAnnotationContract', () => {
           contextDelta: null,
           source: 'unknown',
         });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {missing source} => throws validation error', () => {
@@ -79,7 +79,7 @@ describe('tokenAnnotationContract', () => {
           cumulativeContext: null,
           contextDelta: null,
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

@@ -28,13 +28,13 @@ describe('fieldValuesContract', () => {
   describe('invalid field values', () => {
     it('INVALID: {"": "x"} => throws "String must contain at least 1 character(s)"', () => {
       expect(() => fieldValuesContract.parse({ '': 'x' })).toThrow(
-        /String must contain at least 1 character\(s\)/u,
+        /expected string to have >=1 characters/u,
       );
     });
 
     it('INVALID: {userRequest: {__savedRef: true}} => throws naming the missing name field', () => {
       expect(() => fieldValuesContract.parse({ userRequest: { __savedRef: true } })).toThrow(
-        /"path":\s*\[\s*"userRequest",\s*"name"\s*\][\s\S]*"message":\s*"Required"/u,
+        /"message":\s*"Invalid input: expected string, received undefined"[\s\S]*"path":\s*\[\s*"userRequest",\s*"name"\s*\]/u,
       );
     });
   });

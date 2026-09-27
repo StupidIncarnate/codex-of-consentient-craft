@@ -21,16 +21,16 @@ describe('guildFieldsSchemaContract', () => {
   });
 
   describe('invalid guild fields', () => {
-    it('INVALID: {path only} => throws "Required"', () => {
+    it('INVALID: {path only} => throws "received undefined"', () => {
       expect(() =>
         guildFieldsSchemaContract.parse({ path: '/tmp/guilds-under-test/guild-1' }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 
   describe('empty guild fields', () => {
-    it('EMPTY: {} => throws "Required"', () => {
-      expect(() => guildFieldsSchemaContract.parse({})).toThrow(/Required/u);
+    it('EMPTY: {} => throws "received undefined"', () => {
+      expect(() => guildFieldsSchemaContract.parse({})).toThrow(/received undefined/u);
     });
   });
 });

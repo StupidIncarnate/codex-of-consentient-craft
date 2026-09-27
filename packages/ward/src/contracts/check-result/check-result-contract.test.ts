@@ -81,11 +81,11 @@ describe('checkResultContract', () => {
           status: 'pass',
           projectResults: [],
         }),
-      ).toThrow(/Invalid enum value/u);
+      ).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {missing all fields} => throws validation error', () => {
-      expect(() => checkResultContract.parse({})).toThrow(/Required/u);
+      expect(() => checkResultContract.parse({})).toThrow(/received undefined/u);
     });
   });
 

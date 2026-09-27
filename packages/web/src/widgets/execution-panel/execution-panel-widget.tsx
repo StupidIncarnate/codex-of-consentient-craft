@@ -378,7 +378,7 @@ export const ExecutionPanelWidget = ({
         return;
       }
       // Piece name: a human name off the payload if one exists there, else the plan's own
-      // mnemonic pieceId — `payload` is `z.record(z.unknown())` (the per-family shape lives on
+      // mnemonic pieceId — `payload` is `z.record(z.string(), z.unknown())` (the per-family shape lives on
       // the orchestrator's own plan-file contract, which this package may not import), so
       // `pieceName` is the one key checked defensively. A work item with no `pieceId` at all
       // groups under the sentinel.

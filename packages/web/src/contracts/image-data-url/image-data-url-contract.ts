@@ -65,9 +65,10 @@ export const imageDataUrlContract = z
     })();
 
     if (!isValid) {
+      // `custom`, not `invalid_string` — zod v4 dropped that code (string-format issues report as
+      // `invalid_format` now), and this check is hand-rolled, not a real `.regex()` validator.
       ctx.addIssue({
-        code: z.ZodIssueCode.invalid_string,
-        validation: 'regex',
+        code: 'custom',
         message: 'Invalid image data URL',
       });
     }

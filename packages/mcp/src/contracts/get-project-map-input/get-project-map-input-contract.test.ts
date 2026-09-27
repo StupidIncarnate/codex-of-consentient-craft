@@ -17,7 +17,7 @@ describe('getProjectMapInputContract', () => {
   it('INVALID: {packages omitted} => throws Required error', () => {
     expect(() => {
       getProjectMapInputContract.parse({});
-    }).toThrow(/Required/u);
+    }).toThrow(/received undefined/u);
   });
 
   it('INVALID: {packages: []} => throws min-length error', () => {
@@ -29,7 +29,7 @@ describe('getProjectMapInputContract', () => {
   it('INVALID: {packages: [""]} => throws min-length error on the package name', () => {
     expect(() => {
       getProjectMapInputContract.parse({ packages: [''] });
-    }).toThrow(/at least 1 character/u);
+    }).toThrow(/>=1 characters/u);
   });
 
   it('INVALID: {packages, extra} => throws Unrecognized key error', () => {

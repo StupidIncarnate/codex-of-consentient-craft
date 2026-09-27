@@ -60,7 +60,7 @@ describe('healthReadingContract', () => {
           rootPresent: true,
           blank: false,
         } as never);
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

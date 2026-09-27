@@ -25,7 +25,7 @@ describe('typescriptModuleShapeContract', () => {
   describe('invalid inputs', () => {
     it('INVALID: {missing dependencies} => throws validation error', () => {
       expect(() => typescriptModuleShapeContract.parse({ localExportNames: [] })).toThrow(
-        /Required/u,
+        /received undefined/u,
       );
     });
   });

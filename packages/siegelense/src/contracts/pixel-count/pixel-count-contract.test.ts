@@ -9,13 +9,11 @@ describe('pixelCountContract', () => {
   });
 
   it('INVALID: {value: -1} => throws for a negative count', () => {
-    expect(() => pixelCountContract.parse(-1)).toThrow(
-      /Number must be greater than or equal to 0/u,
-    );
+    expect(() => pixelCountContract.parse(-1)).toThrow(/expected number to be >=0/u);
   });
 
   it('INVALID: {value: 1.5} => throws for a non-integer', () => {
-    expect(() => pixelCountContract.parse(1.5)).toThrow(/Expected integer, received float/u);
+    expect(() => pixelCountContract.parse(1.5)).toThrow(/expected int, received number/u);
   });
 
   it('EDGE: {value: 0} => parses the zero boundary', () => {

@@ -38,7 +38,7 @@ describe('compareQueryContract', () => {
           instanceId: 'inst_7f3a9c21',
           runA: 'run_4',
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 });

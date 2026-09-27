@@ -10,14 +10,14 @@ const PROJECT_DIR = '/home/user/proj';
 describe('claudeCodeParentSessionFindByToolUseIdBroker', () => {
   it('VALID: {sub-agent JSONL contains the toolUseId in a tool_use line} => returns its parentSessionId + realAgentId', async () => {
     const proxy = claudeCodeParentSessionFindByToolUseIdBrokerProxy();
-    const targetSessionId = '12345678-aaaa-bbbb-cccc-eeeeeeeeeeee';
+    const targetSessionId = 'b9475f2b-5cc8-22ca-927f-fde977f6cb4b';
     proxy.setupSessionsDir({
       homedir: HOMEDIR,
       projectDir: PROJECT_DIR,
       sessionIds: [
         'c2f964f7-31b7-4ac6-88f7-e7a985d8c671',
         targetSessionId,
-        '87654321-dddd-eeee-ffff-aaaaaaaaaaaa',
+        'ac18f7d2-3182-64e4-a5dc-7354ea787fbd',
       ],
     });
     proxy.setupSubagentsDir({
@@ -35,7 +35,7 @@ describe('claudeCodeParentSessionFindByToolUseIdBroker', () => {
     proxy.setupSubagentsDir({
       homedir: HOMEDIR,
       projectDir: PROJECT_DIR,
-      sessionId: '87654321-dddd-eeee-ffff-aaaaaaaaaaaa',
+      sessionId: 'ac18f7d2-3182-64e4-a5dc-7354ea787fbd',
       agentFilenames: [],
     });
     proxy.setupAgentFile({
@@ -131,7 +131,7 @@ describe('claudeCodeParentSessionFindByToolUseIdBroker', () => {
   it('EMPTY: {session has no subagents dir} => skipped, search continues to next session', async () => {
     const proxy = claudeCodeParentSessionFindByToolUseIdBrokerProxy();
     const missingSessionId = 'c2f964f7-31b7-4ac6-88f7-e7a985d8c671';
-    const targetSessionId = '12345678-aaaa-bbbb-cccc-eeeeeeeeeeee';
+    const targetSessionId = 'b9475f2b-5cc8-22ca-927f-fde977f6cb4b';
     proxy.setupSessionsDir({
       homedir: HOMEDIR,
       projectDir: PROJECT_DIR,

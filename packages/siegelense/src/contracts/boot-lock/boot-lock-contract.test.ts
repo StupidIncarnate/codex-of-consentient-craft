@@ -27,7 +27,7 @@ describe('bootLockContract', () => {
           heldByPid: 'proc-12345',
           acquiredAtMs: 1_700_000_000_000,
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {heldBy: "run_1"} => throws for an InstanceId with the wrong prefix', () => {
@@ -37,7 +37,7 @@ describe('bootLockContract', () => {
           heldByPid: 'proc-12345',
           acquiredAtMs: 1_700_000_000_000,
         }),
-      ).toThrow(/invalid_string/u);
+      ).toThrow(/invalid_format/u);
     });
   });
 });

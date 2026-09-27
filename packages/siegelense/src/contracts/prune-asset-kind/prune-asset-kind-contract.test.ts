@@ -3,7 +3,7 @@ import { PruneAssetKindStub } from './prune-asset-kind.stub';
 
 describe('pruneAssetKindContract', () => {
   describe('valid members', () => {
-    it.each(pruneAssetKindContract.unwrap().options)(
+    it.each(pruneAssetKindContract.options)(
       'VALID: {value: %s} => parses to itself',
       (value) => {
         const kind = PruneAssetKindStub({ value });
@@ -21,7 +21,7 @@ describe('pruneAssetKindContract', () => {
 
   describe('the closed set', () => {
     it('VALID: {options} => video first, because it is the one a caller reclaiming space reaches for', () => {
-      expect(pruneAssetKindContract.unwrap().options).toStrictEqual([
+      expect(pruneAssetKindContract.options).toStrictEqual([
         'video',
         'shot',
         'transcript',
@@ -34,13 +34,13 @@ describe('pruneAssetKindContract', () => {
     it('INVALID: {value: "screenshot"} => an unlisted string throws validation error', () => {
       expect(() => {
         PruneAssetKindStub({ value: 'screenshot' as never });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('EDGE: {value: "VIDEO"} => an uppercase variant throws validation error', () => {
       expect(() => {
         pruneAssetKindContract.parse('VIDEO');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
   });
 });

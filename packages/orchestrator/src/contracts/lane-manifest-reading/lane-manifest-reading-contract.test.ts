@@ -58,7 +58,7 @@ describe('laneManifestReadingContract', () => {
             api: '/repo/.dungeonmaster-assets/siegelense-assets/g1/instances/inst_7f3a9c21/api-server.log',
           },
         }),
-      ).toThrow(/Expected object/u);
+      ).toThrow(/expected object/u);
     });
   });
 });

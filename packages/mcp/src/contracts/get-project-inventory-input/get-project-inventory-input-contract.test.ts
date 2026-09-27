@@ -17,7 +17,7 @@ describe('getProjectInventoryInputContract', () => {
   it('INVALID: {packageName: ""} => throws min-length error', () => {
     expect(() => {
       getProjectInventoryInputContract.parse({ packageName: '' });
-    }).toThrow(/at least 1 character/u);
+    }).toThrow(/>=1 characters/u);
   });
 
   it('INVALID: {packageName, extra} => throws Unrecognized key error', () => {

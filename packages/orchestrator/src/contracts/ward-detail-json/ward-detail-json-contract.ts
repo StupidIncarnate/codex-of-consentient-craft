@@ -10,7 +10,7 @@
  * const detail = wardDetailJsonContract.parse(JSON.parse(detailJsonString));
  * for (const check of detail.checks ?? []) { ... }
  *
- * `.passthrough()` on every nested object so unread ward fields (rawOutput trim is a separate
+ * `.loose()` on every nested object so unread ward fields (rawOutput trim is a separate
  * concern in the producer; ward emits more keys than this contract names) survive validation.
  */
 import { z } from 'zod';
@@ -23,7 +23,7 @@ const errorEntry = z
     column: z.number().brand<'WardDetailErrorColumn'>().optional(),
     rule: z.string().brand<'WardDetailErrorRule'>().optional(),
   })
-  .passthrough();
+  .loose();
 
 const testFailure = z
   .object({
@@ -32,14 +32,14 @@ const testFailure = z
     message: z.string().brand<'WardDetailTestFailureMessage'>().optional(),
     stackTrace: z.string().brand<'WardDetailStackTrace'>().optional(),
   })
-  .passthrough();
+  .loose();
 
 const projectFolder = z
   .object({
     name: z.string().brand<'WardDetailProjectName'>().optional(),
     path: z.string().brand<'WardDetailProjectPath'>().optional(),
   })
-  .passthrough();
+  .loose();
 
 const rawOutput = z
   .object({
@@ -47,7 +47,7 @@ const rawOutput = z
     stderr: z.string().brand<'WardDetailRawStderr'>().optional(),
     exitCode: z.number().brand<'WardDetailRawExitCode'>().optional(),
   })
-  .passthrough();
+  .loose();
 
 const projectResult = z
   .object({
@@ -57,7 +57,7 @@ const projectResult = z
     testFailures: z.array(testFailure).optional(),
     rawOutput: rawOutput.optional(),
   })
-  .passthrough();
+  .loose();
 
 const checkResult = z
   .object({
@@ -65,12 +65,12 @@ const checkResult = z
     status: z.enum(['pass', 'fail', 'skip']).optional(),
     projectResults: z.array(projectResult).optional(),
   })
-  .passthrough();
+  .loose();
 
 export const wardDetailJsonContract = z
   .object({
     checks: z.array(checkResult).optional(),
   })
-  .passthrough();
+  .loose();
 
 export type WardDetailJson = z.infer<typeof wardDetailJsonContract>;

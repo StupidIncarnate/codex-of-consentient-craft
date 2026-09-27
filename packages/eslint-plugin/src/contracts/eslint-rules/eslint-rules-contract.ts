@@ -6,8 +6,10 @@
  * // Returns validated EslintRules record
  */
 import { z } from 'zod';
+import { eslintRuleNameContract } from '../eslint-rule-name/eslint-rule-name-contract';
 
 export const eslintRulesContract = z.record(
+  eslintRuleNameContract,
   z.union([z.literal('off'), z.literal('warn'), z.literal('error'), z.array(z.unknown())]),
 );
 

@@ -43,28 +43,37 @@ const baseOpFilterContract = z.object({
 });
 
 /**
- * `hydrationOpContract` (the discriminated union over all six op kinds) is declared one file group
- * later than this one and cannot be imported here without a real import cycle. This union names the
- * same six branches by hand so `filter`'s own nested ops validate identically to that later union —
- * see this package's `hydration-op-contract.ts` once it lands.
+ * `hydrationOpContract` (the union over every op kind) is declared one file group later than this
+ * one and cannot be imported here without a real import cycle — see this package's
+ * `hydration-op-contract.ts`. So the getter below names the same six branches by hand, and this
+ * local type is the only place their union is spelled out (no separate exported alias beside it).
  */
-export type OpFilterNestedOp = OpCreate | OpSet | OpRemove | OpSaveRecord | OpExtra | OpFilter;
-
-export type OpFilter = z.infer<typeof baseOpFilterContract> & {
-  ops: readonly OpFilterNestedOp[];
+type OpFilterSelf = z.infer<typeof baseOpFilterContract> & {
+  ops: readonly (OpCreate | OpSet | OpRemove | OpSaveRecord | OpExtra | OpFilterSelf)[];
 };
 
-type OpFilterInput = z.input<typeof baseOpFilterContract> & {
-  ops: readonly OpFilterNestedOp[];
-};
-
-export const opFilterContract: z.ZodType<OpFilter, z.ZodTypeDef, OpFilterInput> =
-  baseOpFilterContract.extend({
-    // z.discriminatedUnion demands every branch stay a ZodObject; the cast below already widens
-    // this contract's own type to a plain ZodType, which a discriminated union's own type rejects
-    // as a branch. z.union has no such constraint and validates the identical six shapes.
-    ops: z.lazy(() =>
-      z.array(
+// A getter, not `z.lazy` + a cast — the getter's return type wraps `z.core.$ZodType`, which is
+// the only self-reference form `contracts/` allows (zod v4 dropped the old `z.ZodTypeDef` type
+// param `z.lazy` needed here). z.discriminatedUnion demands every branch stay a ZodObject, which a
+// self-referencing branch cannot; z.union has no such constraint and validates the identical shapes.
+export const opFilterContract = z.object({
+  ...baseOpFilterContract.shape,
+  get ops(): z.ZodReadonly<
+    z.ZodArray<
+      z.ZodUnion<
+        readonly [
+          typeof opCreateContract,
+          typeof opSetContract,
+          typeof opRemoveContract,
+          typeof opSaveRecordContract,
+          typeof opExtraContract,
+          z.core.$ZodType<OpFilterSelf>,
+        ]
+      >
+    >
+  > {
+    return z
+      .array(
         z.union([
           opCreateContract,
           opSetContract,
@@ -73,6 +82,14 @@ export const opFilterContract: z.ZodType<OpFilter, z.ZodTypeDef, OpFilterInput> 
           opExtraContract,
           opFilterContract,
         ]),
-      ),
-    ),
-  }) as unknown as z.ZodType<OpFilter, z.ZodTypeDef, OpFilterInput>;
+      )
+      .readonly();
+  },
+});
+
+export type OpFilter = z.infer<typeof opFilterContract>;
+
+// Derived from the getter above, not a second hand-written union — a caller that narrows one
+// nested op at a time (`op-filter-transformer.ts`, `op-filter-apply-layer-broker.ts`) names this
+// rather than repeating the six branches.
+export type OpFilterNestedOp = OpFilter['ops'][number];

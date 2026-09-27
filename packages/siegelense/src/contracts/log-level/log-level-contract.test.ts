@@ -3,7 +3,7 @@ import { LogLevelStub } from './log-level.stub';
 
 describe('logLevelContract', () => {
   describe('valid members', () => {
-    it.each(logLevelContract.unwrap().options)(
+    it.each(logLevelContract.options)(
       'VALID: {value: %s} => parses to itself',
       (value) => {
         const logLevel = LogLevelStub({ value });
@@ -19,7 +19,7 @@ describe('logLevelContract', () => {
     it('INVALID: {value: "debug"} => an unlisted severity throws validation error', () => {
       expect(() => {
         LogLevelStub({ value: 'debug' as never });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
   });
 
@@ -27,7 +27,7 @@ describe('logLevelContract', () => {
     it('EDGE: {value: "ERROR"} => an uppercase variant of a valid member throws validation error', () => {
       expect(() => {
         logLevelContract.parse('ERROR');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
   });
 });

@@ -32,7 +32,7 @@ describe('workPlanCodeweaverUnitContract', () => {
 
     it("INVALID: {kind: 'off-map'} => refused, since no unit test beside the code reaches a probe family", () => {
       expect(() => WorkPlanCodeweaverUnitStub({ kind: 'off-map' as never })).toThrow(
-        /Invalid enum value/u,
+        /Invalid option/u,
       );
     });
   });
@@ -48,7 +48,7 @@ describe('workPlanCodeweaverUnitContract', () => {
 
     it('EMPTY: {failsIf: empty string} => refused', () => {
       expect(() => WorkPlanCodeweaverUnitStub({ failsIf: '' })).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
   });

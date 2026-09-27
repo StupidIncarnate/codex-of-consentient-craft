@@ -76,7 +76,7 @@
     "@dungeonmaster/web": "*",
     "@types/ioredis": "^4.28.10",
     "ioredis": "^5.7.0",
-    "zod": "^3.25.76"
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@dungeonmaster/eslint-plugin": "*",

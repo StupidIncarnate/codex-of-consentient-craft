@@ -59,19 +59,17 @@ describe('questSummaryFlowContract', () => {
 
     it('EMPTY: {name: ""} => throws', () => {
       expect(() => QuestSummaryFlowStub({ name: '' as never })).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
 
     it('INVALID: {flowType: "batch"} => throws', () => {
-      expect(() => QuestSummaryFlowStub({ flowType: 'batch' as never })).toThrow(
-        /Invalid enum value/u,
-      );
+      expect(() => QuestSummaryFlowStub({ flowType: 'batch' as never })).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {tracks: [{id: "blightwarden"}]} => throws', () => {
       expect(() => QuestSummaryFlowStub({ tracks: [{ id: 'blightwarden' } as never] })).toThrow(
-        /Invalid enum value/u,
+        /Invalid option/u,
       );
     });
   });

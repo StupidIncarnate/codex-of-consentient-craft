@@ -53,19 +53,19 @@ describe('workItemIndexRowContract', () => {
     it('INVALID: {role: "not-a-role"} => throws', () => {
       expect(() => {
         WorkItemIndexRowStub({ role: 'not-a-role' as never });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {status: "not-a-status"} => throws', () => {
       expect(() => {
         WorkItemIndexRowStub({ status: 'not-a-status' as never });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {transcriptSizeBytes: -1} => throws for a negative size', () => {
       expect(() => {
         WorkItemIndexRowStub({ transcriptSizeBytes: -1 });
-      }).toThrow(/Number must be greater than or equal to 0/u);
+      }).toThrow(/expected number to be >=0/u);
     });
   });
 });

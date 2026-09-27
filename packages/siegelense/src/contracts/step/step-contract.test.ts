@@ -174,7 +174,7 @@ describe('stepContract', () => {
     it('INVALID: {step: look, +target} => throws naming the stray key, because look reads and never targets', () => {
       expect(() =>
         stepContract.parse({ step: 'look', target: '[data-testid="X"]' } as never),
-      ).toThrow(/Unrecognized key\(s\) in object: 'target'/u);
+      ).toThrow(/Unrecognized key: "target"/u);
     });
 
     it('VALID: {step: box} => parses the complete box member', () => {
@@ -189,13 +189,13 @@ describe('stepContract', () => {
     });
 
     it('INVALID: {step: box, no ref} => throws for the missing ref', () => {
-      expect(() => stepContract.parse({ step: 'box' } as never)).toThrow(/Required/u);
+      expect(() => stepContract.parse({ step: 'box' } as never)).toThrow(/received undefined/u);
     });
 
     it('INVALID: {step: box, +target} => throws naming the stray key, because box takes ref only', () => {
       expect(() =>
         stepContract.parse({ step: 'box', ref: 26, target: '[data-testid="X"]' } as never),
-      ).toThrow(/Unrecognized key\(s\) in object: 'target'/u);
+      ).toThrow(/Unrecognized key: "target"/u);
     });
 
     it('VALID: {step: dom} => parses the complete dom member with target, defaults for fields and text', () => {
@@ -230,7 +230,7 @@ describe('stepContract', () => {
     });
 
     it('INVALID: {step: dom, no target} => throws for missing target', () => {
-      expect(() => stepContract.parse({ step: 'dom' } as never)).toThrow(/Required/u);
+      expect(() => stepContract.parse({ step: 'dom' } as never)).toThrow(/received undefined/u);
     });
 
     it('INVALID: {step: dom, +ref} => throws naming the stray key, because dom takes target only', () => {
@@ -328,7 +328,7 @@ describe('stepContract', () => {
     });
 
     it('INVALID: {step: key, missing press} => throws for missing press', () => {
-      expect(() => stepContract.parse({ step: 'key' } as never)).toThrow(/Required/u);
+      expect(() => stepContract.parse({ step: 'key' } as never)).toThrow(/received undefined/u);
     });
 
     it('INVALID: {step: key, +target} => throws naming the stray key, because key takes press only', () => {
@@ -338,7 +338,7 @@ describe('stepContract', () => {
           press: 'Enter',
           target: '[data-testid="X"]',
         } as never),
-      ).toThrow(/Unrecognized key\(s\) in object: 'target'/u);
+      ).toThrow(/Unrecognized key: "target"/u);
     });
 
     it('VALID: {step: health} => parses the complete health member', () => {
@@ -373,7 +373,7 @@ describe('stepContract', () => {
           step: 'health',
           target: '[data-testid="X"]',
         } as never),
-      ).toThrow(/Unrecognized key\(s\) in object: 'target'/u);
+      ).toThrow(/Unrecognized key: "target"/u);
     });
 
     it('VALID: {step: until, visible} => parses the visible form, the other four conditions null', () => {
@@ -528,13 +528,13 @@ describe('stepContract', () => {
           within: null,
           node: null,
         } as never),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {step: waitFor, path, no target/state} => throws for the missing waitFor fields', () => {
       expect(() =>
         stepContract.parse({ step: 'waitFor', path: '/api/guilds', node: null } as never),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it("INVALID: {step: click, path, no target} => throws naming goto's field as the stray key", () => {
@@ -552,13 +552,13 @@ describe('stepContract', () => {
           timeoutMs: null,
           node: null,
         } as never),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {step: screenshot, source, no name} => throws for the missing screenshot field', () => {
       expect(() =>
         stepContract.parse({ step: 'screenshot', source: 'document.title', node: null } as never),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('VALID: {step: paste, target, value} => parses the complete paste member with value', () => {
@@ -644,7 +644,9 @@ describe('stepContract', () => {
     });
 
     it('INVALID: {step: seed, no recipe} => throws for the missing seed field', () => {
-      expect(() => stepContract.parse({ step: 'seed', node: null } as never)).toThrow(/Required/u);
+      expect(() => stepContract.parse({ step: 'seed', node: null } as never)).toThrow(
+        /received undefined/u,
+      );
     });
   });
 
@@ -657,7 +659,7 @@ describe('stepContract', () => {
           node: null,
           target: '[data-testid="PIXEL_BTN"]',
         } as never),
-      ).toThrow(/Unrecognized key\(s\) in object: 'target'/u);
+      ).toThrow(/Unrecognized key: "target"/u);
     });
 
     it('INVALID: {step: waitFor, +path from goto} => throws naming the stray key', () => {
@@ -775,7 +777,7 @@ describe('stepContract', () => {
           recipe: 'guild-mid-execution',
           target: '[data-testid="PIXEL_BTN"]',
         } as never),
-      ).toThrow(/Unrecognized key\(s\) in object: 'target'/u);
+      ).toThrow(/Unrecognized key: "target"/u);
     });
   });
 
@@ -1037,7 +1039,7 @@ describe('stepContract', () => {
           width: 0,
           height: 720,
         } as never),
-      ).toThrow(/Number must be greater than 0/u);
+      ).toThrow(/expected number to be >0/u);
     });
 
     it('INVALID: {step: resize, width: 1280.5} => throws for non-integer width', () => {
@@ -1047,7 +1049,7 @@ describe('stepContract', () => {
           width: 1280.5,
           height: 720,
         } as never),
-      ).toThrow(/Expected integer/u);
+      ).toThrow(/expected int/u);
     });
 
     it('INVALID: {step: resize, height: -10} => throws for negative height', () => {
@@ -1057,7 +1059,7 @@ describe('stepContract', () => {
           width: 1280,
           height: -10,
         } as never),
-      ).toThrow(/Number must be greater than 0/u);
+      ).toThrow(/expected number to be >0/u);
     });
 
     it('INVALID: {step: resize, +target} => throws naming the stray key, because resize is strict', () => {
@@ -1068,7 +1070,7 @@ describe('stepContract', () => {
           height: 720,
           target: '[data-testid="X"]',
         } as never),
-      ).toThrow(/Unrecognized key\(s\) in object: 'target'/u);
+      ).toThrow(/Unrecognized key: "target"/u);
     });
   });
 
@@ -1112,7 +1114,7 @@ describe('stepContract', () => {
         stepContract.parse({
           step: 'request',
         } as never),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {step: request, invalid method} => throws for unlisted method', () => {
@@ -1122,7 +1124,7 @@ describe('stepContract', () => {
           path: '/api/guilds',
           method: 'INVALID_METHOD',
         } as never),
-      ).toThrow(/Invalid enum value/u);
+      ).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {step: request, +target} => throws naming the stray key, because request is strict', () => {
@@ -1132,7 +1134,7 @@ describe('stepContract', () => {
           path: '/api/guilds',
           target: '[data-testid="X"]',
         } as never),
-      ).toThrow(/Unrecognized key\(s\) in object: 'target'/u);
+      ).toThrow(/Unrecognized key: "target"/u);
     });
   });
 
@@ -1180,7 +1182,7 @@ describe('stepContract', () => {
         stepContract.parse({
           step: 'before',
         } as never),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {step: before, +target} => throws naming the stray key, because before is strict', () => {
@@ -1190,7 +1192,7 @@ describe('stepContract', () => {
           source: 'window.__injected = true;',
           target: '[data-testid="X"]',
         } as never),
-      ).toThrow(/Unrecognized key\(s\) in object: 'target'/u);
+      ).toThrow(/Unrecognized key: "target"/u);
     });
   });
 
@@ -1238,7 +1240,7 @@ describe('stepContract', () => {
         stepContract.parse({
           step: 'file',
         } as never),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {step: file, +target} => throws naming the stray key, because file is strict', () => {
@@ -1248,7 +1250,7 @@ describe('stepContract', () => {
           path: 'guilds/g1/quests/q1/quest.json',
           target: '[data-testid="X"]',
         } as never),
-      ).toThrow(/Unrecognized key\(s\) in object: 'target'/u);
+      ).toThrow(/Unrecognized key: "target"/u);
     });
   });
 
@@ -1311,7 +1313,7 @@ describe('stepContract', () => {
           step: 'storage',
           target: '[data-testid="X"]',
         } as never),
-      ).toThrow(/Unrecognized key\(s\) in object: 'target'/u);
+      ).toThrow(/Unrecognized key: "target"/u);
     });
 
     it('VALID: {step: hold, minimal} => parses with defaults', () => {
@@ -1364,7 +1366,7 @@ describe('stepContract', () => {
           step: 'hold',
           frames: 1,
         } as never),
-      ).toThrow(/Number must be greater than or equal to 2/u);
+      ).toThrow(/expected number to be >=2/u);
     });
 
     it('INVALID: {step: hold, everyMs: 0} => throws everyMs validation error', () => {
@@ -1373,7 +1375,7 @@ describe('stepContract', () => {
           step: 'hold',
           everyMs: 0,
         } as never),
-      ).toThrow(/Number must be greater than 0/u);
+      ).toThrow(/expected number to be >0/u);
     });
 
     it('INVALID: {step: hold, +target} => throws naming stray key because hold is strict', () => {
@@ -1382,7 +1384,7 @@ describe('stepContract', () => {
           step: 'hold',
           target: '[data-testid="X"]',
         } as never),
-      ).toThrow(/Unrecognized key\(s\) in object: 'target'/u);
+      ).toThrow(/Unrecognized key: "target"/u);
     });
   });
 
@@ -1434,7 +1436,7 @@ describe('stepContract', () => {
           step: 'video',
           action: 'pause',
         } as never),
-      ).toThrow(/Invalid enum value/u);
+      ).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {step: video, +target} => throws naming stray key because video is strict', () => {
@@ -1444,7 +1446,7 @@ describe('stepContract', () => {
           action: 'start',
           target: '[data-testid="X"]',
         } as never),
-      ).toThrow(/Unrecognized key\(s\) in object: 'target'/u);
+      ).toThrow(/Unrecognized key: "target"/u);
     });
   });
 
@@ -1496,7 +1498,7 @@ describe('stepContract', () => {
           step: 'snapshot',
           as: '',
         } as never),
-      ).toThrow(/String must contain at least 1 character/u);
+      ).toThrow(/expected string to have >=1 characters/u);
     });
 
     it('INVALID: {step: snapshot, as: "invalid name!"} => throws on invalid characters in name', () => {
@@ -1515,7 +1517,7 @@ describe('stepContract', () => {
           as: 'clean',
           target: '[data-testid="X"]',
         } as never),
-      ).toThrow(/Unrecognized key\(s\) in object: 'target'/u);
+      ).toThrow(/Unrecognized key: "target"/u);
     });
 
     it('VALID: {step: reset, to: "clean"} => parses valid reset step with state level and to snapshot', () => {
@@ -1583,7 +1585,7 @@ describe('stepContract', () => {
           level: 'page',
           target: '[data-testid="X"]',
         } as never),
-      ).toThrow(/Unrecognized key\(s\) in object: 'target'/u);
+      ).toThrow(/Unrecognized key: "target"/u);
     });
   });
 });

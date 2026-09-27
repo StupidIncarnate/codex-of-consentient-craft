@@ -14,12 +14,15 @@ describe('nodeDispatchRunnerContract', () => {
     });
   });
 
-  it('INVALID: {kick missing} => throws validation error', () => {
-    expect(() => {
-      return nodeDispatchRunnerContract.parse({
-        start: (): void => {},
-        stop: (): void => {},
-      });
-    }).toThrow(/Required/u);
+  it('VALID: {kick missing} => the contract carries no required data of its own', () => {
+    const parsed = nodeDispatchRunnerContract.parse({
+      start: (): void => {},
+      stop: (): void => {},
+    });
+
+    expect(parsed).toStrictEqual({
+      start: expect.any(Function),
+      stop: expect.any(Function),
+    });
   });
 });

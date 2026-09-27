@@ -29,11 +29,11 @@ describe('blightDispositionContract', () => {
 
   describe('invalid input', () => {
     it('INVALID: {disposition: "pending"} => throws, because a unit with no entry has no disposition at all', () => {
-      expect(() => BlightDispositionStub({ value: 'pending' })).toThrow(/Invalid enum value/u);
+      expect(() => BlightDispositionStub({ value: 'pending' })).toThrow(/Invalid option/u);
     });
 
     it('EMPTY: {disposition: ""} => throws', () => {
-      expect(() => BlightDispositionStub({ value: '' })).toThrow(/Invalid enum value/u);
+      expect(() => BlightDispositionStub({ value: '' })).toThrow(/Invalid option/u);
     });
   });
 });

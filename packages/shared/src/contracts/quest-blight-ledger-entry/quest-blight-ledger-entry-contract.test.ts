@@ -83,7 +83,7 @@ describe('questBlightLedgerEntryContract', () => {
   describe('evidence is mandatory on every disposition', () => {
     it('EMPTY: {evidence: ""} => throws, so no unit can be dispositioned with nothing behind it', () => {
       expect(() => QuestBlightLedgerEntryStub({ evidence: '' as never })).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
 
@@ -96,20 +96,20 @@ describe('questBlightLedgerEntryContract', () => {
           workItemId: '9c4d8f1c-3e38-48c9-bdec-22b61883b473',
           createdAt: '2024-01-15T10:00:00.000Z',
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 
   describe('invalid input', () => {
     it('INVALID: {disposition: "pending"} => throws, because a unit with no entry has no disposition at all', () => {
       expect(() => QuestBlightLedgerEntryStub({ disposition: 'pending' as never })).toThrow(
-        /Invalid enum value/u,
+        /Invalid option/u,
       );
     });
 
     it('INVALID: {itemId empty} => throws', () => {
       expect(() => QuestBlightLedgerEntryStub({ itemId: '' as never })).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
 

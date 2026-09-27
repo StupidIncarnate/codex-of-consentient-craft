@@ -798,7 +798,7 @@ describe('dungeonmaster-config-contract', () => {
             bannedExports: [{ subpath: '#gateway/node/fs', name: 'readFileSync', reason: 'why' }],
           },
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: restrictedTo entry with empty packages array => throws validation error', () => {
@@ -838,7 +838,7 @@ describe('dungeonmaster-config-contract', () => {
           schema: 'zod',
           orchestrationMode: 'hybrid',
         });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
   });
 
@@ -1038,7 +1038,7 @@ describe('dungeonmaster-config-contract', () => {
             e2e: {},
           },
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: devServer.e2e with empty processes array => throws validation error', () => {
@@ -1084,7 +1084,7 @@ describe('dungeonmaster-config-contract', () => {
             },
           },
         });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
   });
 });

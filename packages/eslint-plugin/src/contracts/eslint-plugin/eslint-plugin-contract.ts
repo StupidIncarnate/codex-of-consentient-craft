@@ -11,9 +11,9 @@
 import { z } from 'zod';
 
 export const eslintPluginContract = z.object({
-  rules: z.record(z.unknown()).optional(),
-  configs: z.record(z.unknown()).optional(),
-  processors: z.record(z.unknown()).optional(),
+  rules: z.record(z.string().brand<'EslintRuleName'>(), z.unknown()).optional(),
+  configs: z.record(z.string().brand<'EslintConfigName'>(), z.unknown()).optional(),
+  processors: z.record(z.string().brand<'EslintProcessorName'>(), z.unknown()).optional(),
 });
 
 export type EslintPlugin = z.infer<typeof eslintPluginContract>;

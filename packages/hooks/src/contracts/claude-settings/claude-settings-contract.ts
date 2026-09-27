@@ -68,7 +68,7 @@ const permissionsConfigContract = z.object({
 
 const envValueContract = z.string().brand<'EnvValue'>();
 
-const envConfigContract = z.record(envValueContract);
+const envConfigContract = z.record(z.string().brand<'EnvVarName'>(), envValueContract);
 
 const promptCacheTtlContract = z.enum(['5m', '1h']);
 
@@ -86,7 +86,7 @@ export const claudeSettingsContract = z
     subagentPromptCacheTtl: promptCacheTtlContract.optional(),
     promptSuggestionEnabled: z.boolean().optional(),
   })
-  .passthrough();
+  .loose();
 
 export type ClaudeSettings = z.infer<typeof claudeSettingsContract>;
 export type HooksConfig = z.infer<typeof hooksConfigContract>;

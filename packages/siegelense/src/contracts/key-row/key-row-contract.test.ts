@@ -98,25 +98,25 @@ describe('keyRowContract', () => {
   describe('invalid rows', () => {
     it('INVALID: {ref: 0} => throws, because a ref names one element and zero names none', () => {
       expect(() => keyRowContract.parse({ ...KeyRowStub(), ref: 0 })).toThrow(
-        /Number must be greater than 0/u,
+        /expected number to be >0/u,
       );
     });
 
     it('INVALID: {tag: null} => throws, because the tag is present even when a testId is', () => {
       expect(() => keyRowContract.parse({ ...KeyRowStub(), tag: null })).toThrow(
-        /Expected string/u,
+        /expected string/u,
       );
     });
 
     it('INVALID: {flags: ["className"]} => throws, because className is in neither column', () => {
       expect(() => keyRowContract.parse({ ...KeyRowStub(), flags: ['className'] })).toThrow(
-        /Invalid enum value/u,
+        /Invalid option/u,
       );
     });
 
     it('INVALID: {depth: -1} => throws', () => {
       expect(() => keyRowContract.parse({ ...KeyRowStub(), depth: -1 })).toThrow(
-        /Number must be greater than or equal to 0/u,
+        /expected number to be >=0/u,
       );
     });
   });

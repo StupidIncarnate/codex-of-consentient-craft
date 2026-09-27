@@ -19,7 +19,7 @@ describe('copiesTargetContract', () => {
   describe('invalid copies targets', () => {
     it('INVALID: {value: ""} => throws "String must contain at least 1 character(s)"', () => {
       expect(() => copiesTargetContract.parse('')).toThrow(
-        /String must contain at least 1 character\(s\)/u,
+        /expected string to have >=1 characters/u,
       );
     });
 

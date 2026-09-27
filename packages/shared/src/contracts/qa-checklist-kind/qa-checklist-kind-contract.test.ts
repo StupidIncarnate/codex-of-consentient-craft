@@ -25,11 +25,11 @@ describe('qaChecklistKindContract', () => {
 
   describe('invalid input', () => {
     it('INVALID: {kind: "node"} => throws', () => {
-      expect(() => QaChecklistKindStub({ value: 'node' })).toThrow(/Invalid enum value/u);
+      expect(() => QaChecklistKindStub({ value: 'node' })).toThrow(/Invalid option/u);
     });
 
     it('EMPTY: {kind: ""} => throws', () => {
-      expect(() => QaChecklistKindStub({ value: '' })).toThrow(/Invalid enum value/u);
+      expect(() => QaChecklistKindStub({ value: '' })).toThrow(/Invalid option/u);
     });
   });
 });

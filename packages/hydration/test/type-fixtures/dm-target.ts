@@ -79,7 +79,7 @@ declare const walkQuestStatus: (args: {
 // ------------------------------------------------- ids shared across more than one ingredient
 
 const guildIdContract = z.string().brand<'GuildId'>();
-const questIdContract = z.string().brand<'QuestId'>();
+export const questIdContract = z.string().brand<'QuestId'>();
 const sessionIdContract = z.string().brand<'SessionId'>();
 const urlSlugContract = z.string().brand<'UrlSlug'>();
 
@@ -106,7 +106,6 @@ export const guildRecordContract = z.object({
 type GuildFields = z.infer<typeof guildFieldsContract>;
 const guildFields: z.ZodType<
   GuildFields,
-  z.ZodTypeDef,
   z.input<typeof guildFieldsContract>
 > = guildFieldsContract;
 
@@ -145,7 +144,6 @@ export const questRecordContract = z.object({
 type QuestFields = z.infer<typeof questFieldsContract>;
 const questFields: z.ZodType<
   QuestFields,
-  z.ZodTypeDef,
   z.input<typeof questFieldsContract>
 > = questFieldsContract;
 
@@ -195,7 +193,6 @@ export const operationRecordContract = z.object({
 type OperationFields = z.infer<typeof operationFieldsContract>;
 const operationFields: z.ZodType<
   OperationFields,
-  z.ZodTypeDef,
   z.input<typeof operationFieldsContract>
 > = operationFieldsContract;
 
@@ -230,7 +227,6 @@ export const nestedChainArgsContract = z.object({ depth: z.number().brand<'Chain
 type SessionFields = z.infer<typeof sessionFieldsContract>;
 const sessionFields: z.ZodType<
   SessionFields,
-  z.ZodTypeDef,
   z.input<typeof sessionFieldsContract>
 > = sessionFieldsContract;
 

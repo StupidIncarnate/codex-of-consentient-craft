@@ -309,7 +309,7 @@ describe('userToolResultStreamLineContract', () => {
           type: 'assistant',
           message: { role: 'user', content: [] },
         });
-      }).toThrow(/Invalid literal value/u);
+      }).toThrow(/Invalid input: expected/u);
     });
 
     it('INVALID: {content item with unknown type discriminator} => throws validation error', () => {
@@ -351,7 +351,7 @@ describe('userToolResultStreamLineContract', () => {
             content: [{ type: 'tool_result', content: 'some result' }],
           },
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

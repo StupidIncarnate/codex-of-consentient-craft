@@ -25,25 +25,25 @@ describe('docsScopeContract', () => {
     it('INVALID: {value: "reader"} => the code-reading role has no scope and is refused', () => {
       expect(() => {
         DocsScopeStub({ value: 'reader' as never });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {value: "start"} => a call name is not a scope name', () => {
       expect(() => {
         docsScopeContract.parse('start');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {value: "planning"} => the planning scope is deleted, and refused like any unknown scope', () => {
       expect(() => {
         docsScopeContract.parse('planning');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {value: "driving"} => the driving scope is deleted, and refused like any unknown scope', () => {
       expect(() => {
         docsScopeContract.parse('driving');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
   });
 
@@ -51,7 +51,7 @@ describe('docsScopeContract', () => {
     it('EDGE: {value: "Walking"} => a mismatched-case variant of a valid member is refused', () => {
       expect(() => {
         docsScopeContract.parse('Walking');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
   });
 });

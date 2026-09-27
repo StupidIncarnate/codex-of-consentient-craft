@@ -48,7 +48,7 @@ describe('digestCommandContract', () => {
     it('INVALID: unknown command string => throws validation error', () => {
       expect(() => {
         digestCommandContract.parse('unknown');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
   });
 });

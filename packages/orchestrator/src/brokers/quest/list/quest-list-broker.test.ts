@@ -235,7 +235,7 @@ describe('questListBroker', () => {
 
       expect(proxy.getSkipReports()).toStrictEqual([
         '[quest-list] skipping unloadable quest — Failed to parse quest file at /project/.dungeonmaster-quests/011-changed/quest.json: file contents are not valid JSON (repeats suppressed until this file changes)\n',
-        '[quest-list] skipping unloadable quest — Failed to parse quest file at /project/.dungeonmaster-quests/011-changed/quest.json: (root): Expected object, received array (repeats suppressed until this file changes)\n',
+        '[quest-list] skipping unloadable quest — Failed to parse quest file at /project/.dungeonmaster-quests/011-changed/quest.json: (root): Invalid input: expected object, received array (repeats suppressed until this file changes)\n',
       ]);
     });
 

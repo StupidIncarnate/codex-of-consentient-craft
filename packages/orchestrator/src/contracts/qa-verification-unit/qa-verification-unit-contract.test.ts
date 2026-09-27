@@ -68,7 +68,7 @@ describe('qaVerificationUnitContract', () => {
           edgeLabel: '',
           edgeTo: 'dashboard',
         }),
-      ).toThrow(/at least 1 character/u);
+      ).toThrow(/>=1 characters/u);
     });
   });
 
@@ -157,7 +157,7 @@ describe('qaVerificationUnitContract', () => {
           observableType: 'ui-state',
           observableDescription: 'the login form is on screen',
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/Invalid option: expected one of/u);
     });
   });
 
@@ -185,7 +185,7 @@ describe('qaVerificationUnitContract', () => {
           flowId: 'login-flow',
           offMapFamily: 'vibes',
         }),
-      ).toThrow(/Invalid enum value/u);
+      ).toThrow(/Invalid option/u);
     });
   });
 

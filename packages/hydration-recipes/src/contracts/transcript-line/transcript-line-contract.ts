@@ -6,7 +6,7 @@
  * test that asserts its own output has to READ that output, and a cast would let the read drift
  * from what was written without anything failing.
  *
- * Deliberately `.passthrough()` and mostly optional: this is a READ shape for the fields a
+ * Deliberately `.loose()` and mostly optional: this is a READ shape for the fields a
  * recipe's claim is made of, never a second declaration of the whole Claude CLI line format. The
  * stream-line contracts in `@dungeonmaster/shared/contracts` own that, and a stricter copy here
  * would be exactly the drift `fidelity: direct` exists to warn about.
@@ -25,7 +25,7 @@ const CONTENT_ITEM = z
     id: z.string().min(1).brand<'TranscriptToolUseId'>().optional(),
     tool_use_id: z.string().min(1).brand<'TranscriptToolUseId'>().optional(),
   })
-  .passthrough();
+  .loose();
 
 export const transcriptLineContract = z
   .object({
@@ -35,12 +35,12 @@ export const transcriptLineContract = z
       .object({
         content: z.union([z.string().brand<'TranscriptUserText'>(), z.array(CONTENT_ITEM)]),
       })
-      .passthrough(),
+      .loose(),
     toolUseResult: z
       .object({ agentId: z.string().min(1).brand<'TranscriptAgentId'>() })
-      .passthrough()
+      .loose()
       .optional(),
   })
-  .passthrough();
+  .loose();
 
 export type TranscriptLine = z.infer<typeof transcriptLineContract>;

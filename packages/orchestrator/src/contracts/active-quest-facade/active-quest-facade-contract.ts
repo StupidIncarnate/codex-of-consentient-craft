@@ -8,14 +8,14 @@
 
 import { z } from 'zod';
 
-import { questIdContract } from '@dungeonmaster/shared/contracts';
+import type { QuestId } from '@dungeonmaster/shared/contracts';
 
-export const activeQuestFacadeContract = z.object({
-  setActive: z
-    .function()
-    .args(z.object({ questId: questIdContract.nullable() }))
-    .returns(z.void()),
-  clear: z.function().args().returns(z.void()),
-});
+// `setActive` and `clear` are functions — a Zod object schema cannot check callability, so both
+// stay out of the parse and are attached only through the type intersection below.
+// `.loose()` carries them through `.parse()` unvalidated when a real caller supplies one.
+export const activeQuestFacadeContract = z.object({}).loose();
 
-export type ActiveQuestFacade = z.infer<typeof activeQuestFacadeContract>;
+export type ActiveQuestFacade = z.infer<typeof activeQuestFacadeContract> & {
+  setActive: ({ questId }: { questId: QuestId | null }) => void;
+  clear: () => void;
+};

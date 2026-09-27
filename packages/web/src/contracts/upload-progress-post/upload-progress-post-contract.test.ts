@@ -13,7 +13,7 @@ describe('uploadProgressPostContract', () => {
   describe('invalid input', () => {
     it('INVALID: {url: ""} => throws for empty url', () => {
       expect(() => UploadProgressPostStub({ url: '' })).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
 

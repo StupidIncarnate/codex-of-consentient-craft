@@ -36,7 +36,9 @@ import type { StorageReading } from '../storage-reading/storage-reading-contract
 import type { VideoAction } from '../video-action/video-action-contract';
 import type { VideoResult } from '../video-result/video-result-contract';
 
-export const browserSessionContract = z.object({});
+// `.loose()` keeps `z.infer` of the empty shape from narrowing to `Record<string, never>` (zod
+// v4), which the field-carrying intersection below could never satisfy.
+export const browserSessionContract = z.object({}).loose();
 
 const _matchCountContract = z.number().int().nonnegative().brand<'MatchCount'>();
 export type MatchCount = z.infer<typeof _matchCountContract>;

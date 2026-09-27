@@ -1,7 +1,7 @@
 import { unitMarkChurnEntryContract } from './unit-mark-churn-entry-contract';
 import { UnitMarkChurnEntryStub } from './unit-mark-churn-entry.stub';
 
-const MARKS = unitMarkChurnEntryContract.shape.mark.unwrap().options;
+const MARKS = unitMarkChurnEntryContract.shape.mark.options;
 
 describe('unitMarkChurnEntryContract', () => {
   describe('valid entries', () => {
@@ -89,16 +89,16 @@ describe('unitMarkChurnEntryContract', () => {
     });
 
     it('EMPTY: {at: null} => refused, since a row with no time cannot be placed in the sequence', () => {
-      expect(() => UnitMarkChurnEntryStub({ at: null as never })).toThrow(/Expected string/u);
+      expect(() => UnitMarkChurnEntryStub({ at: null as never })).toThrow(/expected string/u);
     });
 
     it("INVALID: {workItemId: 'wi1'} => refused, since a work item id is a uuid", () => {
-      expect(() => UnitMarkChurnEntryStub({ workItemId: 'wi1' })).toThrow(/Invalid uuid/u);
+      expect(() => UnitMarkChurnEntryStub({ workItemId: 'wi1' })).toThrow(/Invalid UUID/u);
     });
 
     it('EMPTY: {evidence: empty string} => refused, since an empty mark note is not a null one', () => {
       expect(() => UnitMarkChurnEntryStub({ evidence: '' })).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
   });

@@ -9,10 +9,10 @@ import {
 import { smoketestAssertFinalStateBroker } from './smoketest-assert-final-state-broker';
 import { smoketestAssertFinalStateBrokerProxy } from './smoketest-assert-final-state-broker.proxy';
 
-const WI_1 = QuestWorkItemIdStub({ value: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1' });
-const WI_2 = QuestWorkItemIdStub({ value: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2' });
-const WI_3 = QuestWorkItemIdStub({ value: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa3' });
-const WI_4 = QuestWorkItemIdStub({ value: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa4' });
+const WI_1 = QuestWorkItemIdStub({ value: '96a0b069-bd3d-31a1-b298-838febb93560' });
+const WI_2 = QuestWorkItemIdStub({ value: 'e771e02e-baf1-787c-861c-7bca87de9968' });
+const WI_3 = QuestWorkItemIdStub({ value: '51bbfb31-fc82-6426-8546-117f3152cf8b' });
+const WI_4 = QuestWorkItemIdStub({ value: 'cc6c4bc4-fa45-4874-b1e7-930ef7cf5841' });
 
 const completeQuest = QuestStub({
   status: 'complete',

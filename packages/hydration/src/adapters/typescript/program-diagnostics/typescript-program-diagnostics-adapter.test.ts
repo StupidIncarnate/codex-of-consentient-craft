@@ -172,7 +172,7 @@ describe('the malformed call sites that must not compile', () => {
         line: LineCountStub({ value: 10 }),
         code: 2493,
         message:
-          'Tuple type \'[Handle<{ guilds: Ingredient<{ readonly name: "guild"; readonly description: "a guild the server has registered, with its id and url slug minted"; readonly fields: ZodType<{ path: string & BRAND<"GuildPath">; name: string & BRAND<...>; }, ZodTypeDef, { ...; }>; readonly record: ZodObject<...>; readonly routes: { ......\' of length \'3\' has no element at index \'3\'.',
+          'Tuple type \'[Handle<{ guilds: Ingredient<{ readonly name: "guild"; readonly description: "a guild the server has registered, with its id and url slug minted"; readonly fields: ZodType<{ name: string & $brand<"GuildName">; path: string & $brand<...>; }, { ...; }, $ZodTypeInternals<...>>; readonly record: ZodObject<...>; readonly...\' of length \'3\' has no element at index \'3\'.',
       }),
     ]);
   });
@@ -189,7 +189,7 @@ describe('the malformed call sites that must not compile', () => {
         line: LineCountStub({ value: 8 }),
         code: 2353,
         message:
-          'Object literal may only specify known properties, and \'nope\' does not exist in type \'FieldValuesFor<{ path: string & BRAND<"GuildPath">; name: string & BRAND<"GuildName">; }>\'.',
+          'Object literal may only specify known properties, and \'nope\' does not exist in type \'FieldValuesFor<{ name: string & $brand<"GuildName">; path: string & $brand<"GuildPath">; }>\'.',
       }),
     ]);
   });
@@ -272,7 +272,8 @@ describe('the malformed call sites that must not compile', () => {
         file: EXTRA_ARG_TYPED,
         line: LineCountStub({ value: 10 }),
         code: 2322,
-        message: "Type 'string' is not assignable to type 'number'.",
+        message:
+          "Type 'string' is not assignable to type 'number & $brand<\"ChainDepth\">'.   Type 'string' is not assignable to type 'number'.",
       }),
     ]);
   });
@@ -337,7 +338,7 @@ describe('the malformed call sites that must not compile', () => {
         line: LineCountStub({ value: 10 }),
         code: 7053,
         message:
-          'Element implicitly has an \'any\' type because expression of type \'0\' can\'t be used to index type \'RowVerbs<Ingredient<{ readonly name: "session"; readonly description: "a claude session transcript on disk, addressable by url"; readonly fields: ZodType<{ guildId: string & BRAND<"GuildId">; transcript: string & BRAND<...>; }, ZodTypeDef, { ...; }>; ... 4 more ...; readonly extras: { ...; }; }>> & { ...; }\'.   Property \'0\' does not exist on type \'RowVerbs<Ingredient<{ readonly name: "session"; readonly description: "a claude session transcript on disk, addressable by url"; readonly fields: ZodType<{ guildId: string & BRAND<"GuildId">; transcript: string & BRAND<...>; }, ZodTypeDef, { ...; }>; ... 4 more ...; readonly extras: { ...; }; }>> & { ...; }\'.',
+          'Element implicitly has an \'any\' type because expression of type \'0\' can\'t be used to index type \'RowVerbs<Ingredient<{ readonly name: "session"; readonly description: "a claude session transcript on disk, addressable by url"; readonly fields: ZodType<{ guildId: string & $brand<"GuildId">; transcript: string & $brand<...>; }, { ...; }, $ZodTypeInternals<...>>; ... 4 more ...; readonly extras: { ...; }; }>> & { ....\'.   Property \'0\' does not exist on type \'RowVerbs<Ingredient<{ readonly name: "session"; readonly description: "a claude session transcript on disk, addressable by url"; readonly fields: ZodType<{ guildId: string & $brand<"GuildId">; transcript: string & $brand<...>; }, { ...; }, $ZodTypeInternals<...>>; ... 4 more ...; readonly extras: { ...; }; }>> & { ....\'.',
       }),
     ]);
   });
@@ -354,7 +355,7 @@ describe('the malformed call sites that must not compile', () => {
         line: LineCountStub({ value: 12 }),
         code: 2339,
         message:
-          'Property \'add\' does not exist on type \'Matched<Ingredient<{ readonly name: "session"; readonly description: "a claude session transcript on disk, addressable by url"; readonly fields: ZodType<{ guildId: string & BRAND<"GuildId">; transcript: string & BRAND<...>; }, ZodTypeDef, { ...; }>; ... 4 more ...; readonly extras: { ...; }; }>>\'.',
+          'Property \'add\' does not exist on type \'Matched<Ingredient<{ readonly name: "session"; readonly description: "a claude session transcript on disk, addressable by url"; readonly fields: ZodType<{ guildId: string & $brand<"GuildId">; transcript: string & $brand<...>; }, { ...; }, $ZodTypeInternals<...>>; ... 4 more ...; readonly extras: { ...; }; }>>\'.',
       }),
     ]);
   });
@@ -370,7 +371,7 @@ describe('the malformed call sites that must not compile', () => {
         file: BAD_EXPECT,
         line: LineCountStub({ value: 9 }),
         code: 2322,
-        message: 'Type \'"exactly-two"\' is not assignable to type \'"some" | "one" | "any"\'.',
+        message: 'Type \'"exactly-two"\' is not assignable to type \'"any" | "one" | "some"\'.',
       }),
     ]);
   });
@@ -387,7 +388,7 @@ describe('the malformed call sites that must not compile', () => {
         line: LineCountStub({ value: 9 }),
         code: 2353,
         message:
-          'Object literal may only specify known properties, and \'nope\' does not exist in type \'FieldValuesFor<{ status: "queued" | "accepted" | "underway" | "stalled" | "finished"; title: string & BRAND<"QuestTitle">; userRequest: string & BRAND<"QuestUserRequest">; guildId: string & BRAND<...>; }>\'.',
+          'Object literal may only specify known properties, and \'nope\' does not exist in type \'FieldValuesFor<{ title: string & $brand<"QuestTitle">; userRequest: string & $brand<"QuestUserRequest">; status: "queued" | "accepted" | "underway" | "stalled" | "finished"; guildId: string & $brand<...>; }>\'.',
       }),
     ]);
   });
@@ -404,7 +405,7 @@ describe('the malformed call sites that must not compile', () => {
         line: LineCountStub({ value: 8 }),
         code: 2353,
         message:
-          'Object literal may only specify known properties, and \'nope\' does not exist in type \'FieldValuesFor<{ status: "queued" | "accepted" | "underway" | "stalled" | "finished"; title: string & BRAND<"QuestTitle">; userRequest: string & BRAND<"QuestUserRequest">; guildId: string & BRAND<...>; } & { ...; }>\'.',
+          'Object literal may only specify known properties, and \'nope\' does not exist in type \'FieldValuesFor<{ title: string & $brand<"QuestTitle">; userRequest: string & $brand<"QuestUserRequest">; status: "queued" | "accepted" | "underway" | "stalled" | "finished"; guildId: string & $brand<...>; } & { ...; }>\'.',
       }),
     ]);
   });
@@ -438,7 +439,7 @@ describe('the malformed call sites that must not compile', () => {
         line: LineCountStub({ value: 11 }),
         code: 2353,
         message:
-          'Object literal may only specify known properties, and \'nope\' does not exist in type \'FieldValuesFor<{ status: "draft" | "scheduled" | "published" | "takendown"; title: string & BRAND<"PostTitle">; body: string & BRAND<"PostBody">; authorId: string & BRAND<"UserId">; }>\'.',
+          'Object literal may only specify known properties, and \'nope\' does not exist in type \'FieldValuesFor<{ title: string & $brand<"PostTitle">; body: string & $brand<"PostBody">; status: "draft" | "scheduled" | "published" | "takendown"; authorId: string & $brand<"UserId">; }>\'.',
       }),
     ]);
   });

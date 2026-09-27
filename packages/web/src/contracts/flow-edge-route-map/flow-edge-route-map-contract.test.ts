@@ -44,7 +44,7 @@ describe('flowEdgeRouteMapContract', () => {
     it('INVALID: {point missing y} => throws validation error', () => {
       expect(() => {
         flowEdgeRouteMapContract.parse({ e1: [{ x: 0 }] });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

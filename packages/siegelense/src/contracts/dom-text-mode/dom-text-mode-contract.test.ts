@@ -21,6 +21,6 @@ describe('domTextModeContract', () => {
   it('INVALID: {value: "invalid"} => throws ZodError for unrecognized mode', () => {
     expect(() => {
       domTextModeContract.parse('invalid');
-    }).toThrow(/Invalid enum value/u);
+    }).toThrow(/Invalid option/u);
   });
 });

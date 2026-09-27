@@ -57,12 +57,12 @@ describe('composerAttachmentContract', () => {
     it('INVALID: {dataUrl: "https://example.com/a.png"} => throws for a non-data-url', () => {
       expect(() =>
         ComposerAttachmentStub({ dataUrl: 'https://example.com/a.png' as never }),
-      ).toThrow(/invalid_string/u);
+      ).toThrow(/invalid_format/u);
     });
 
     it('INVALID: {widthPx: 0} => throws for a non-positive width', () => {
       expect(() => ComposerAttachmentStub({ widthPx: 0 as never })).toThrow(
-        /Number must be greater than 0/u,
+        /expected number to be >0/u,
       );
     });
   });

@@ -17,7 +17,7 @@ const HTTP_STATUS_MAX = 599;
 // Re-derives the 'Url', 'HttpStatus' and 'ResponseBody' brands `hydration-target-contract.ts` and
 // `http-response-contract.ts` each keep private (one exported schema per contract file) — the
 // literal brand argument, not an import, is what makes these structurally identical.
-const urlLikeContract = z.string().url().brand<'Url'>();
+const urlLikeContract = z.url().brand<'Url'>();
 const httpStatusContract = z
   .number()
   .int()

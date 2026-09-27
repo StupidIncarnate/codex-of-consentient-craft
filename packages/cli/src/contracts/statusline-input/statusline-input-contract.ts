@@ -23,6 +23,6 @@ export const statuslineInputContract = z
       })
       .optional(),
   })
-  .passthrough();
+  .loose();
 
 export type StatuslineInput = z.infer<typeof statuslineInputContract>;

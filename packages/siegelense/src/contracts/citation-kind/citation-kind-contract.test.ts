@@ -3,7 +3,7 @@ import { CitationKindStub } from './citation-kind.stub';
 
 describe('citationKindContract', () => {
   describe('valid members', () => {
-    it.each(citationKindContract.unwrap().options)(
+    it.each(citationKindContract.options)(
       'VALID: {value: %s} => parses to itself',
       (value) => {
         const citationKind = CitationKindStub({ value });
@@ -21,7 +21,7 @@ describe('citationKindContract', () => {
 
   describe('the closed set', () => {
     it('VALID: {options} => exactly the things the spec says hold evidence', () => {
-      expect(citationKindContract.unwrap().options).toStrictEqual([
+      expect(citationKindContract.options).toStrictEqual([
         'verified-prelude',
         'open-issue',
         'walked-note',
@@ -33,13 +33,13 @@ describe('citationKindContract', () => {
     it('INVALID: {value: "prelude"} => an unlisted string throws validation error', () => {
       expect(() => {
         CitationKindStub({ value: 'prelude' as never });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('EMPTY: {value: ""} => throws validation error', () => {
       expect(() => {
         citationKindContract.parse('');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('EMPTY: {value: null} => throws, rather than accepting an absent kind as a member', () => {

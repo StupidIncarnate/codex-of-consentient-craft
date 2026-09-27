@@ -222,7 +222,7 @@ describe('refRegistryLayerAdapter', () => {
       const registry = refRegistryLayerAdapter();
 
       expect(() => registry.toResolution({ raw: 'maybe', ref: 1, highestMinted: 1 })).toThrow(
-        /Invalid enum value/u,
+        /Invalid option/u,
       );
     });
   });

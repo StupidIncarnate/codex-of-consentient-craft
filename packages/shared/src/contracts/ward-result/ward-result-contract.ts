@@ -20,8 +20,8 @@ import { z } from 'zod';
 const LEGACY_COMMITTED = 'changed';
 
 export const wardResultContract = z.object({
-  id: z.string().uuid().brand<'WardResultId'>(),
-  createdAt: z.string().datetime().brand<'IsoTimestamp'>(),
+  id: z.uuid().brand<'WardResultId'>(),
+  createdAt: z.iso.datetime().brand<'IsoTimestamp'>(),
   exitCode: z.number().int().brand<'ExitCode'>(),
   runId: z.string().brand<'WardRunId'>().optional(),
   wardMode: z

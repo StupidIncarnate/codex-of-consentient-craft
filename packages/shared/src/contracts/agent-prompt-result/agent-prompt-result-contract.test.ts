@@ -23,7 +23,7 @@ describe('agentPromptResultContract', () => {
           model: 'sonnet',
           prompt: 'Some prompt',
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {empty name} => throws validation error', () => {

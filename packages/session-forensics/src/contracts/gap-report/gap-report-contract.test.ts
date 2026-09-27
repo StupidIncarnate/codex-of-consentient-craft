@@ -77,7 +77,7 @@ describe('gapReportContract', () => {
     });
 
     it('INVALID: {gaps: bare object} => throws', () => {
-      expect(() => GapReportStub({ gaps: { gapSeconds: 5 } as never })).toThrow(/Expected array/u);
+      expect(() => GapReportStub({ gaps: { gapSeconds: 5 } as never })).toThrow(/expected array/u);
     });
   });
 
@@ -89,7 +89,7 @@ describe('gapReportContract', () => {
           wallClockSeconds: 0,
           blockedSeconds: 0,
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 });

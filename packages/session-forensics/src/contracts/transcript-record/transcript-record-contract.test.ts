@@ -110,7 +110,7 @@ describe('transcriptRecordContract', () => {
 
   describe('invalid input', () => {
     it('INVALID: {missing type} => throws', () => {
-      expect(() => transcriptRecordContract.parse({})).toThrow(/Required/u);
+      expect(() => transcriptRecordContract.parse({})).toThrow(/received undefined/u);
     });
 
     it('INVALID: {type: number} => throws', () => {

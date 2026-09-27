@@ -114,11 +114,13 @@ describe('documentBlockParamContract', () => {
           type: 'text',
           source: { type: 'url', url: 'https://example.com/doc.pdf' },
         }),
-      ).toThrow(/Invalid literal value/u);
+      ).toThrow(/Invalid input: expected/u);
     });
 
     it('INVALID: {source missing} => throws on missing required field', () => {
-      expect(() => documentBlockParamContract.parse({ type: 'document' })).toThrow(/Required/u);
+      expect(() => documentBlockParamContract.parse({ type: 'document' })).toThrow(
+        /received undefined/u,
+      );
     });
 
     it('INVALID: {source.type: "file"} => throws unknown discriminator value', () => {
@@ -136,7 +138,7 @@ describe('documentBlockParamContract', () => {
           type: 'document',
           source: { type: 'base64', media_type: 'image/png', data: 'abc' },
         }),
-      ).toThrow(/Invalid literal value/u);
+      ).toThrow(/Invalid input: expected/u);
     });
   });
 });

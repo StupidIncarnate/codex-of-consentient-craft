@@ -3,7 +3,7 @@ import { InstanceStateStub } from './instance-state.stub';
 
 describe('instanceStateContract', () => {
   describe('valid members', () => {
-    it.each(instanceStateContract.unwrap().options)(
+    it.each(instanceStateContract.options)(
       'VALID: {value: %s} => parses to itself',
       (value) => {
         const instanceState = InstanceStateStub({ value });
@@ -19,7 +19,7 @@ describe('instanceStateContract', () => {
     it('INVALID: {value: "starting"} => an unlisted string throws validation error', () => {
       expect(() => {
         InstanceStateStub({ value: 'starting' as never });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
   });
 
@@ -27,7 +27,7 @@ describe('instanceStateContract', () => {
     it('EDGE: {value: "ALIVE"} => an uppercase variant of a valid member throws validation error', () => {
       expect(() => {
         instanceStateContract.parse('ALIVE');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
   });
 });

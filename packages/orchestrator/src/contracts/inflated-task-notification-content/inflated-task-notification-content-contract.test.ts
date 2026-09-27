@@ -28,6 +28,6 @@ describe('inflatedTaskNotificationContentContract', (): void => {
   it('ERROR: {non-object} => throws', (): void => {
     expect((): unknown =>
       inflatedTaskNotificationContentContract.parse('xml-not-inflated'),
-    ).toThrow(/Expected object/u);
+    ).toThrow(/expected object/u);
   });
 });

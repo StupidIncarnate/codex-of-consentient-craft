@@ -31,7 +31,7 @@ describe('violationCountContract', () => {
     it('INVALID: {invalid data} => throws validation error', () => {
       expect(() => {
         return violationCountContract.parse({} as never);
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

@@ -17,7 +17,9 @@ import { importPathContract } from '../import-path/import-path-contract';
 
 export const folderDependencyTreeContract = z.object({
   hierarchy: contentTextContract,
-  graph: z.record(folderTypeContract, z.array(importPathContract).readonly()),
+  // `z.partialRecord`, not `z.record` — zod v4 made an enum-keyed `z.record` exhaustive (every
+  // enum member required), and a dependency graph legitimately omits a folder type with no edges.
+  graph: z.partialRecord(folderTypeContract, z.array(importPathContract).readonly()),
   matrix: contentTextContract,
 });
 

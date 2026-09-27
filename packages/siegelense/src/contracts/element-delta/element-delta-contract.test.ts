@@ -45,7 +45,7 @@ describe('elementDeltaContract', () => {
           ...ElementDeltaStub(),
           changed: [{ before: KeyRowStub() }],
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 });

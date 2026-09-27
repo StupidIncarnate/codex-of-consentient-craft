@@ -24,7 +24,7 @@ describe('fileContentContract', () => {
     it('INVALID: {value: number} => throws validation error', () => {
       expect(() => {
         return fileContentContract.parse(123 as never);
-      }).toThrow(/Expected string/u);
+      }).toThrow(/expected string/u);
     });
   });
 });

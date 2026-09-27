@@ -38,12 +38,15 @@ import { fromSavedRefTransformer } from '@dungeonmaster/hydration/transformers';
 
 import { operationFieldsContract } from '../../../contracts/operation-fields/operation-fields-contract';
 import { questFieldsContract } from '../../../contracts/quest-fields/quest-fields-contract';
+import { workItemAttachArgsContract } from '../../../contracts/work-item-attach-args/work-item-attach-args-contract';
 import { dmRegistryBroker } from '../../dm/registry/dm-registry-broker';
 import { recipesHydrationCreateBroker } from '../../recipes-hydration/create/recipes-hydration-create-broker';
 
 const { recipe } = recipesHydrationCreateBroker();
 
-const SEEDED_WORK_ITEM_CREATED_AT = '2024-01-01T00:00:00.000Z';
+const SEEDED_WORK_ITEM_CREATED_AT = workItemAttachArgsContract.shape.createdAt.parse(
+  '2024-01-01T00:00:00.000Z',
+);
 const CODEWEAVER_OPERATION_SAVED_NAME = savedRecordNameContract.parse('codeweaverOperation');
 const WARD_OPERATION_SAVED_NAME = savedRecordNameContract.parse('wardOperation');
 const OPERATION_ID_FIELD = fieldNameContract.parse('id');

@@ -50,7 +50,7 @@ describe('citationResolutionContract', () => {
     it('INVALID: {blocked omitted} => throws, so a resolution can never be silent about whether it settled', () => {
       expect(() => {
         citationResolutionContract.parse({ references: [], gaps: [] });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {an extra key} => .strict() throws rather than accepting a field nothing reads', () => {

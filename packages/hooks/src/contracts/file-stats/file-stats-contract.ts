@@ -7,9 +7,9 @@
  */
 import { z } from 'zod';
 
+// `isFile` and `isDirectory` are functions — a Zod object schema cannot check callability, so
+// both stay out of the parse and are attached only through the type intersection below.
 export const fileStatsContract = z.object({
-  isFile: z.function().optional(),
-  isDirectory: z.function().optional(),
   size: z.number().int().nonnegative().brand<'FileSize'>().optional(),
 });
 

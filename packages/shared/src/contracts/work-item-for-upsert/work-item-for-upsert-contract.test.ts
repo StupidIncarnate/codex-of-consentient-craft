@@ -7,13 +7,31 @@ describe('workItemForUpsertContract', () => {
     const id = QuestWorkItemIdStub();
     const result = workItemForUpsertContract.parse({ id });
 
-    expect(result).toStrictEqual({ id });
+    expect(result).toStrictEqual({
+      id,
+      assignedUnitIds: [],
+      attempt: 0,
+      dependsOn: [],
+      maxAttempts: 1,
+      observations: [],
+      relatedDataItems: [],
+      retryCount: 0,
+    });
   });
 
   it('VALID: {via stub} => parses successfully', () => {
     const id = QuestWorkItemIdStub();
     const result = WorkItemForUpsertStub({ id });
 
-    expect(result).toStrictEqual({ id });
+    expect(result).toStrictEqual({
+      id,
+      assignedUnitIds: [],
+      attempt: 0,
+      dependsOn: [],
+      maxAttempts: 1,
+      observations: [],
+      relatedDataItems: [],
+      retryCount: 0,
+    });
   });
 });

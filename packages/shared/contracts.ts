@@ -356,6 +356,9 @@ export * from './src/contracts/work-item-status/work-item-status.stub';
 export * from './src/contracts/work-item-role/work-item-role-contract';
 export * from './src/contracts/work-item-role/work-item-role.stub';
 
+export * from './src/contracts/work-item-payload-key/work-item-payload-key-contract';
+export * from './src/contracts/work-item-payload-key/work-item-payload-key.stub';
+
 export * from './src/contracts/spawner-type/spawner-type-contract';
 export * from './src/contracts/spawner-type/spawner-type.stub';
 
@@ -800,6 +803,8 @@ export * from './src/contracts/pasted-image-upload/pasted-image-upload-contract'
 export * from './src/contracts/pasted-image-upload/pasted-image-upload.stub';
 export * from './src/contracts/weighted-tokens/weighted-tokens-contract';
 export * from './src/contracts/weighted-tokens/weighted-tokens.stub';
+export * from './src/contracts/bucket-start-key/bucket-start-key-contract';
+export * from './src/contracts/bucket-start-key/bucket-start-key.stub';
 export * from './src/contracts/usage-bucket/usage-bucket-contract';
 export * from './src/contracts/usage-bucket/usage-bucket.stub';
 export * from './src/contracts/usage-ledger/usage-ledger-contract';
@@ -809,6 +814,8 @@ export * from './src/contracts/usage-ledger/usage-ledger.stub';
 // graphReachabilityViolationsTransformer)
 export * from './src/contracts/routed-graph-node-key/routed-graph-node-key-contract';
 export * from './src/contracts/routed-graph-node-key/routed-graph-node-key.stub';
+export * from './src/contracts/routed-graph-outcome-word/routed-graph-outcome-word-contract';
+export * from './src/contracts/routed-graph-outcome-word/routed-graph-outcome-word.stub';
 export * from './src/contracts/routed-graph/routed-graph-contract';
 export * from './src/contracts/routed-graph/routed-graph.stub';
 

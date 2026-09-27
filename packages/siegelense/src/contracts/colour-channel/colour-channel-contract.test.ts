@@ -27,12 +27,10 @@ describe('colourChannelContract', () => {
   });
 
   it('INVALID: {value: -1} => throws for a negative channel', () => {
-    expect(() => colourChannelContract.parse(-1)).toThrow(
-      /Number must be greater than or equal to 0/u,
-    );
+    expect(() => colourChannelContract.parse(-1)).toThrow(/expected number to be >=0/u);
   });
 
   it('INVALID: {value: 1.5} => throws for a non-integer', () => {
-    expect(() => colourChannelContract.parse(1.5)).toThrow(/Expected integer, received float/u);
+    expect(() => colourChannelContract.parse(1.5)).toThrow(/expected int, received number/u);
   });
 });

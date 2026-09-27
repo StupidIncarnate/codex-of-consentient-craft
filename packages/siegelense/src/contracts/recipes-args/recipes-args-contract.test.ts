@@ -31,7 +31,7 @@ describe('recipesArgsContract', () => {
           expected: 'boolean',
           received: 'undefined',
           path: ['isJson'],
-          message: 'Required',
+          message: 'received undefined',
         },
       ]);
     });

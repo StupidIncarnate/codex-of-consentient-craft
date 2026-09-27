@@ -51,14 +51,14 @@ describe('questSummaryNoteGroupContract', () => {
   describe('invalid input', () => {
     it('INVALID: {id: "blocker"} => throws, the group id is a note kind', () => {
       expect(() => QuestSummaryNoteGroupStub({ id: 'blocker' as never })).toThrow(
-        /Invalid enum value/u,
+        /Invalid option/u,
       );
     });
 
     it('INVALID: {notes: [{}]} => throws, a note carries required fields', () => {
       expect(() =>
         questSummaryNoteGroupContract.parse({ id: 'out-of-scope', notes: [{}] }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 });

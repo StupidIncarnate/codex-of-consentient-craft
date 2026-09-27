@@ -33,7 +33,7 @@ describe('pruneRefusalContract', () => {
     it('INVALID: {why omitted} => throws, so a refusal can never be silent about its reason', () => {
       expect(() => {
         pruneRefusalContract.parse({ id: 'inst_1d09' });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

@@ -70,7 +70,7 @@ describe('runArgsContract', () => {
           expected: "'error' | 'never'",
           received: 'undefined',
           path: ['stopOn'],
-          message: 'Required',
+          message: 'received undefined',
         },
       ]);
     });
@@ -89,7 +89,7 @@ describe('runArgsContract', () => {
           expected: 'string',
           received: 'undefined',
           path: ['instanceId'],
-          message: 'Required',
+          message: 'received undefined',
         },
       ]);
     });
@@ -108,7 +108,7 @@ describe('runArgsContract', () => {
           expected: 'boolean',
           received: 'undefined',
           path: ['isJson'],
-          message: 'Required',
+          message: 'received undefined',
         },
       ]);
     });

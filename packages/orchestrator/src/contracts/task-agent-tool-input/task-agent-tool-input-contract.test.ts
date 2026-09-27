@@ -27,18 +27,18 @@ describe('taskAgentToolInputContract', () => {
   it('INVALID: {prompt: ""} => throws validation error', () => {
     expect(() => {
       return taskAgentToolInputContract.parse({ prompt: '' });
-    }).toThrow(/String must contain at least 1 character/u);
+    }).toThrow(/expected string to have >=1 characters/u);
   });
 
   it('INVALID: {prompt missing} => throws validation error', () => {
     expect(() => {
       return taskAgentToolInputContract.parse({});
-    }).toThrow(/Required/u);
+    }).toThrow(/received undefined/u);
   });
 
   it('INVALID: {prompt is number} => throws validation error', () => {
     expect(() => {
       return taskAgentToolInputContract.parse({ prompt: 42 as never });
-    }).toThrow(/Expected string/u);
+    }).toThrow(/expected string/u);
   });
 });

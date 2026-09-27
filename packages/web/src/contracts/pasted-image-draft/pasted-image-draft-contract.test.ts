@@ -25,19 +25,19 @@ describe('pastedImageDraftContract', () => {
   describe('invalid inputs', () => {
     it('INVALID: {attachmentId: "not-a-uuid"} => throws for non-uuid attachmentId', () => {
       expect(() => PastedImageDraftStub({ attachmentId: 'not-a-uuid' as never })).toThrow(
-        /Invalid uuid/u,
+        /Invalid UUID/u,
       );
     });
 
     it('INVALID: {mediaType: "image/bmp"} => throws for unsupported mediaType', () => {
       expect(() => PastedImageDraftStub({ mediaType: 'image/bmp' as never })).toThrow(
-        /Invalid enum value/u,
+        /Invalid option/u,
       );
     });
 
     it('INVALID: {dataBase64: "not base64!"} => throws for malformed dataBase64', () => {
       expect(() => PastedImageDraftStub({ dataBase64: 'not base64!' as never })).toThrow(
-        /invalid_string/u,
+        /invalid_format/u,
       );
     });
 

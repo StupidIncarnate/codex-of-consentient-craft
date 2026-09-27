@@ -92,7 +92,7 @@ describe('questStatusMetadataContract', () => {
           previousReviewStatus: null,
           displayHeader: DisplayHeaderStub({ value: 'QUEST CREATED' }),
         }),
-      ).toThrow('Required');
+      ).toThrow('received undefined');
     });
 
     it('ERROR: {non-boolean flag} => throws validation error', () => {
@@ -116,7 +116,7 @@ describe('questStatusMetadataContract', () => {
           previousReviewStatus: null,
           displayHeader: DisplayHeaderStub({ value: 'QUEST CREATED' }),
         }),
-      ).toThrow('Expected boolean, received string');
+      ).toThrow('Invalid input: expected boolean, received string');
     });
 
     it('ERROR: {invalid nextApprovalStatus value} => throws validation error', () => {
@@ -140,7 +140,7 @@ describe('questStatusMetadataContract', () => {
           previousReviewStatus: null,
           displayHeader: DisplayHeaderStub({ value: 'QUEST CREATED' }),
         }),
-      ).toThrow('Invalid enum value');
+      ).toThrow('Invalid option');
     });
   });
 

@@ -24,15 +24,17 @@ describe('claudePermissionContract', () => {
 
   describe('invalid permissions', () => {
     it('INVALID: {value: 123} => throws Expected string', () => {
-      expect(() => claudePermissionContract.parse(123 as never)).toThrow(/Expected string/u);
+      expect(() => claudePermissionContract.parse(123 as never)).toThrow(/expected string/u);
     });
 
     it('INVALID: {value: null} => throws Expected string', () => {
-      expect(() => claudePermissionContract.parse(null as never)).toThrow(/Expected string/u);
+      expect(() => claudePermissionContract.parse(null as never)).toThrow(/expected string/u);
     });
 
     it('EMPTY: {value: undefined} => throws Required', () => {
-      expect(() => claudePermissionContract.parse(undefined as never)).toThrow(/Required/u);
+      expect(() => claudePermissionContract.parse(undefined as never)).toThrow(
+        /received undefined/u,
+      );
     });
   });
 });

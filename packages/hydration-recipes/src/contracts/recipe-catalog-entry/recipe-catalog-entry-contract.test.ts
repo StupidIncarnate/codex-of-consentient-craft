@@ -79,7 +79,7 @@ describe('recipeCatalogEntryContract', () => {
           recipeName: '',
           description: 'one guild',
         }),
-      ).toThrow(/at least 1/u);
+      ).toThrow(/>=1/u);
     });
 
     it('INVALID: {description: ""} => throws "at least 1"', () => {
@@ -88,11 +88,11 @@ describe('recipeCatalogEntryContract', () => {
           recipeName: 'guild-mid-execution',
           description: '',
         }),
-      ).toThrow(/at least 1/u);
+      ).toThrow(/>=1/u);
     });
 
-    it('EMPTY: {} => throws "Required"', () => {
-      expect(() => recipeCatalogEntryContract.parse({})).toThrow(/Required/u);
+    it('EMPTY: {} => throws "received undefined"', () => {
+      expect(() => recipeCatalogEntryContract.parse({})).toThrow(/received undefined/u);
     });
   });
 });

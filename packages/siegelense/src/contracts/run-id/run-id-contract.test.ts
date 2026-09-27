@@ -9,15 +9,15 @@ describe('runIdContract', () => {
   });
 
   it('INVALID: {value: "inst_1"} => throws for the wrong prefix', () => {
-    expect(() => runIdContract.parse('inst_1')).toThrow(/invalid_string/u);
+    expect(() => runIdContract.parse('inst_1')).toThrow(/invalid_format/u);
   });
 
   it('INVALID: {value: "run_01"} => throws for a leading zero', () => {
-    expect(() => runIdContract.parse('run_01')).toThrow(/invalid_string/u);
+    expect(() => runIdContract.parse('run_01')).toThrow(/invalid_format/u);
   });
 
   it('INVALID: {value: "run_0"} => throws for zero', () => {
-    expect(() => runIdContract.parse('run_0')).toThrow(/invalid_string/u);
+    expect(() => runIdContract.parse('run_0')).toThrow(/invalid_format/u);
   });
 
   it('EDGE: {value: "run_1"} => parses at the first-run boundary', () => {

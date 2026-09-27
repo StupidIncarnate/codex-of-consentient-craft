@@ -1,7 +1,7 @@
 import { workPlanPayloadSiegemasterContract } from './work-plan-payload-siegemaster-contract';
 import { WorkPlanPayloadSiegemasterStub } from './work-plan-payload-siegemaster.stub';
 
-const OFF_MAP_FAMILIES = workPlanPayloadSiegemasterContract.shape.offMapFamily.unwrap().options;
+const OFF_MAP_FAMILIES = workPlanPayloadSiegemasterContract.shape.offMapFamily.options;
 
 describe('workPlanPayloadSiegemasterContract', () => {
   describe('valid payloads', () => {
@@ -52,7 +52,7 @@ describe('workPlanPayloadSiegemasterContract', () => {
 
     it("INVALID: {offMapFamily: 'security'} => refused by name, since an eighth family is not one", () => {
       expect(() => WorkPlanPayloadSiegemasterStub({ offMapFamily: 'security' as never })).toThrow(
-        /Invalid enum value.*received 'security'/su,
+        /Invalid option: expected one of/u,
       );
     });
   });
@@ -79,7 +79,7 @@ describe('workPlanPayloadSiegemasterContract', () => {
 
     it('EMPTY: {path with no nodeIds} => refused', () => {
       expect(() => WorkPlanPayloadSiegemasterStub({ path: { nodeIds: [] } })).toThrow(
-        /Array must contain at least 1 element/u,
+        /expected array to have >=1 items/u,
       );
     });
   });

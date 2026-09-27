@@ -21,7 +21,7 @@ describe('specNameContract', () => {
   it('INVALID: {value: ""} => throws validation error', () => {
     expect(() => {
       specNameContract.parse('');
-    }).toThrow(/String must contain at least 1 character/u);
+    }).toThrow(/expected string to have >=1 characters/u);
   });
 
   it('EDGE: {value: "a"} => a single-character name parses successfully', () => {

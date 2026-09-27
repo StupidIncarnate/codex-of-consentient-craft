@@ -79,7 +79,7 @@ describe('questNewBodyContract', () => {
 
     it('INVALID: {message, questType: "bogus"} => throws Invalid enum value', () => {
       expect(() => questNewBodyContract.parse({ message: 'Add auth', questType: 'bogus' })).toThrow(
-        /Invalid enum value/u,
+        /Invalid option/u,
       );
     });
 

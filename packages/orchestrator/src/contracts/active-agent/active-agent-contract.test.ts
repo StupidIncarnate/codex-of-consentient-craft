@@ -19,6 +19,18 @@ describe('activeAgentContract', () => {
       expect(result.slotIndex).toBe(0);
     });
 
+    it('VALID: {promise field} => passes through unvalidated and resolves to the real value', async () => {
+      const streamingResult = AgentSpawnStreamingResultStub();
+      const result = activeAgentContract.parse({
+        slotIndex: SlotIndexStub(),
+        workItemId: WorkItemIdStub(),
+        sessionId: SessionIdStub(),
+        promise: Promise.resolve(streamingResult),
+      });
+
+      await expect(result.promise).resolves.toStrictEqual(streamingResult);
+    });
+
     it('VALID: {stub} => parses successfully', () => {
       const stub = ActiveAgentStub();
 
@@ -68,17 +80,11 @@ describe('activeAgentContract', () => {
           sessionId: SessionIdStub(),
           promise: Promise.resolve(AgentSpawnStreamingResultStub()),
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
-    it('INVALID: {missing promise} => throws error', () => {
-      expect(() =>
-        activeAgentContract.parse({
-          slotIndex: SlotIndexStub(),
-          workItemId: WorkItemIdStub(),
-          sessionId: SessionIdStub(),
-        }),
-      ).toThrow(/Required/u);
-    });
+    // `promise` lives outside the zod schema (see the contract's own header) — a missing one is not
+    // a parse failure. Coverage for a call site's own actual dependency on the field belongs at that
+    // call site, not here.
   });
 });

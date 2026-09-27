@@ -32,7 +32,7 @@ describe('lintResultContract', () => {
     it('INVALID: {invalid data} => throws validation error', () => {
       expect(() => {
         return lintResultContract.parse({} as never);
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

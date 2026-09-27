@@ -37,11 +37,11 @@ describe('questResumeTriggerContract', () => {
 
   describe('invalid triggers', () => {
     it('INVALID: {value: "resume"} => throws for a name outside the union', () => {
-      expect(() => questResumeTriggerContract.parse('resume')).toThrow(/invalid_enum_value/u);
+      expect(() => questResumeTriggerContract.parse('resume')).toThrow(/invalid_value/u);
     });
 
     it('EMPTY: {value: ""} => throws for an empty trigger name', () => {
-      expect(() => questResumeTriggerContract.parse('')).toThrow(/invalid_enum_value/u);
+      expect(() => questResumeTriggerContract.parse('')).toThrow(/invalid_value/u);
     });
   });
 });

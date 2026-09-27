@@ -62,7 +62,7 @@ describe('mcpConfigContract', () => {
             },
           },
         });
-      }).toThrow('Required');
+      }).toThrow('received undefined');
     });
   });
 });

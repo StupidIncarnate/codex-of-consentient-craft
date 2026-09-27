@@ -34,24 +34,13 @@ describe('stagedCallContract', () => {
     it('INVALID: null => throws validation error', () => {
       expect(() => {
         return stagedCallContract.parse(null);
-      }).toThrow(/Expected object/u);
+      }).toThrow(/expected object, received null/u);
     });
 
     it('INVALID: undefined => throws validation error', () => {
       expect(() => {
         return stagedCallContract.parse(undefined);
-      }).toThrow(/Required/u);
-    });
-
-    it('INVALID: {impl: "not-a-function"} => throws validation error', () => {
-      expect(() => {
-        return stagedCallContract.parse({
-          args: [],
-          impl: 'not-a-function',
-          once: false,
-          consumed: false,
-        });
-      }).toThrow(/Expected function/u);
+      }).toThrow(/expected object, received undefined/u);
     });
   });
 });

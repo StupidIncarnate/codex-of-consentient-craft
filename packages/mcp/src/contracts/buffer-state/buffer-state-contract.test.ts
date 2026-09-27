@@ -24,11 +24,11 @@ describe('bufferStateContract', () => {
 
   describe('INVALID', () => {
     it('INVALID: {value: 123} => rejects non-string value', () => {
-      expect(() => bufferStateContract.parse({ value: 123 })).toThrow('Expected string');
+      expect(() => bufferStateContract.parse({ value: 123 })).toThrow('expected string');
     });
 
     it('INVALID: {} => rejects missing value', () => {
-      expect(() => bufferStateContract.parse({})).toThrow('Required');
+      expect(() => bufferStateContract.parse({})).toThrow('received undefined');
     });
   });
 });

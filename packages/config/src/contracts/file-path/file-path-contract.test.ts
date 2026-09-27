@@ -36,19 +36,19 @@ describe('filePathContract', () => {
     it('INVALID: "" => throws validation error', () => {
       expect(() => {
         return filePathContract.parse('');
-      }).toThrow(/String must contain at least 1 character/u);
+      }).toThrow(/expected string to have >=1 characters/u);
     });
 
     it('INVALID: 123 => throws validation error', () => {
       expect(() => {
         return filePathContract.parse(123);
-      }).toThrow(/Expected string/u);
+      }).toThrow(/expected string/u);
     });
 
     it('INVALID: undefined => throws validation error', () => {
       expect(() => {
         return filePathContract.parse(undefined);
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

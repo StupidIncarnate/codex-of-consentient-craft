@@ -18,11 +18,13 @@ describe('floorNameContract', () => {
 
   describe('invalid inputs', () => {
     it('INVALID: {value: ""} => throws for empty string', () => {
-      expect(() => floorNameContract.parse('')).toThrow(/String must contain at least 1/u);
+      expect(() => floorNameContract.parse('')).toThrow(
+        /Too small: expected string to have >=1 characters/u,
+      );
     });
 
     it('INVALID: {value: 123} => throws for number', () => {
-      expect(() => floorNameContract.parse(123)).toThrow(/Expected string/u);
+      expect(() => floorNameContract.parse(123)).toThrow(/expected string/u);
     });
   });
 

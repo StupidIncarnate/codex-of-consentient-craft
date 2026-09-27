@@ -29,15 +29,15 @@ describe('questToListItemTransformer', () => {
       const quest = QuestStub({
         operations: [
           OperationItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
+            id: '235be74a-c2e6-687c-a91c-7169625c0e54',
             status: 'complete',
           }),
           OperationItemStub({
-            id: 'a0000000-0000-0000-0000-000000000002',
+            id: '7d42a5b3-83e0-4dd4-b874-900390937194',
             status: 'pending',
           }),
           OperationItemStub({
-            id: 'a0000000-0000-0000-0000-000000000003',
+            id: '0c478f2e-447c-8816-a9f9-24a2987ea557',
             status: 'pending',
           }),
         ],
@@ -52,11 +52,11 @@ describe('questToListItemTransformer', () => {
       const quest = QuestStub({
         operations: [
           OperationItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
+            id: '235be74a-c2e6-687c-a91c-7169625c0e54',
             status: 'complete',
           }),
           OperationItemStub({
-            id: 'a0000000-0000-0000-0000-000000000002',
+            id: '7d42a5b3-83e0-4dd4-b874-900390937194',
             status: 'complete',
           }),
         ],
@@ -71,11 +71,11 @@ describe('questToListItemTransformer', () => {
       const quest = QuestStub({
         operations: [
           OperationItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
+            id: '235be74a-c2e6-687c-a91c-7169625c0e54',
             status: 'pending',
           }),
           OperationItemStub({
-            id: 'a0000000-0000-0000-0000-000000000002',
+            id: '7d42a5b3-83e0-4dd4-b874-900390937194',
             status: 'in_progress',
           }),
         ],

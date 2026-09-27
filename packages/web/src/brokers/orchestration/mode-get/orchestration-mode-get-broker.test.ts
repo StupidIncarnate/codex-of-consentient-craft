@@ -40,7 +40,7 @@ describe('orchestrationModeGetBroker', () => {
 
       proxy.setupInvalidResponse({ data: { mode: 'hybrid' } });
 
-      await expect(orchestrationModeGetBroker()).rejects.toThrow(/Invalid enum value/u);
+      await expect(orchestrationModeGetBroker()).rejects.toThrow(/Invalid option/u);
     });
   });
 });

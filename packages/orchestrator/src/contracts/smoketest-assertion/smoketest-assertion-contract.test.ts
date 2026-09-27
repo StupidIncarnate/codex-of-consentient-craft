@@ -77,7 +77,7 @@ describe('smoketestAssertionContract', () => {
           kind: 'quest-status',
           expected: 'not-a-status' as never,
         });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {kind: "work-item-status-histogram", expected: {complete: -1}} => throws for negative count', () => {
@@ -86,7 +86,7 @@ describe('smoketestAssertionContract', () => {
           kind: 'work-item-status-histogram',
           expected: { complete: -1 },
         });
-      }).toThrow(/greater than or equal to 0/u);
+      }).toThrow(/to be >=0/u);
     });
 
     it('INVALID: {kind: "work-item-status-histogram", expected: {complete: 1.5}} => throws for non-integer count', () => {
@@ -95,7 +95,7 @@ describe('smoketestAssertionContract', () => {
           kind: 'work-item-status-histogram',
           expected: { complete: 1.5 },
         });
-      }).toThrow(/integer/u);
+      }).toThrow(/Invalid input: expected int, received number/u);
     });
 
     it('INVALID: {kind: "work-item-status-histogram", expected: {"bogus-status": 1}} => throws for unknown status key', () => {
@@ -104,7 +104,7 @@ describe('smoketestAssertionContract', () => {
           kind: 'work-item-status-histogram',
           expected: { 'bogus-status': 1 },
         });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Unrecognized key: \\"bogus-status\\"/u);
     });
 
     it('INVALID: {kind: "work-item-role-count", role: "bogus"} => throws for unknown role', () => {
@@ -114,7 +114,7 @@ describe('smoketestAssertionContract', () => {
           role: 'bogus' as never,
           minCount: 1,
         });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {kind: "work-item-role-count", minCount: -1} => throws for negative minCount', () => {
@@ -124,7 +124,7 @@ describe('smoketestAssertionContract', () => {
           role: 'codeweaver',
           minCount: -1,
         });
-      }).toThrow(/greater than or equal to 0/u);
+      }).toThrow(/to be >=0/u);
     });
   });
 });

@@ -18,11 +18,11 @@ describe('pastedImageOrdinalContract', () => {
 
   describe('invalid inputs', () => {
     it('INVALID: {value: 0} => throws for a non-positive number', () => {
-      expect(() => pastedImageOrdinalContract.parse(0)).toThrow(/greater than 0/u);
+      expect(() => pastedImageOrdinalContract.parse(0)).toThrow(/to be >0/u);
     });
 
     it('INVALID: {value: -1} => throws for a negative number', () => {
-      expect(() => pastedImageOrdinalContract.parse(-1)).toThrow(/greater than 0/u);
+      expect(() => pastedImageOrdinalContract.parse(-1)).toThrow(/to be >0/u);
     });
 
     it('INVALID: {value: 1.5} => throws for a non-integer number', () => {
@@ -30,11 +30,11 @@ describe('pastedImageOrdinalContract', () => {
     });
 
     it('INVALID: {value: "1"} => throws for a string', () => {
-      expect(() => pastedImageOrdinalContract.parse('1')).toThrow(/Expected number/u);
+      expect(() => pastedImageOrdinalContract.parse('1')).toThrow(/expected number/u);
     });
 
     it('EMPTY: {value: undefined} => throws for undefined', () => {
-      expect(() => pastedImageOrdinalContract.parse(undefined)).toThrow(/Required/u);
+      expect(() => pastedImageOrdinalContract.parse(undefined)).toThrow(/received undefined/u);
     });
   });
 

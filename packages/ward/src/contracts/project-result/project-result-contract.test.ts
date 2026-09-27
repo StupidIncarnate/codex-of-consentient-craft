@@ -178,11 +178,11 @@ describe('projectResultContract', () => {
           testFailures: [],
           rawOutput: { stdout: '', stderr: '', exitCode: 0, signal: null },
         }),
-      ).toThrow(/Invalid enum value/u);
+      ).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {missing all fields} => throws validation error', () => {
-      expect(() => projectResultContract.parse({})).toThrow(/Required/u);
+      expect(() => projectResultContract.parse({})).toThrow(/received undefined/u);
     });
 
     it('INVALID: {filesCount: -1} => throws validation error', () => {

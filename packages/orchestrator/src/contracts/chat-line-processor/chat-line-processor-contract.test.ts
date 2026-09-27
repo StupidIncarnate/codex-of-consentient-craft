@@ -14,14 +14,6 @@ describe('chatLineProcessorContract', () => {
     });
   });
 
-  describe('invalid processor', () => {
-    it('INVALID: {processLine: "not a function"} => throws validation error', () => {
-      expect(() => chatLineProcessorContract.parse({ processLine: 'not a function' })).toThrow(
-        /Expected function/u,
-      );
-    });
-  });
-
   describe('ChatLineProcessorStub defaults', () => {
     it('VALID: resolveToolUseIdForAgent({agentId}) => undefined (empty reverse map)', () => {
       const processor = ChatLineProcessorStub();

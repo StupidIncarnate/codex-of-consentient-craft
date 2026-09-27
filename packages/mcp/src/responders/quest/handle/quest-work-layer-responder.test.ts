@@ -111,7 +111,7 @@ describe('QuestWorkLayerResponder', () => {
             payload: { kind: 'outcome', word: 'done', reason: 'ok' },
           },
         }),
-      ).rejects.toThrow(/Required/u);
+      ).rejects.toThrow(/received undefined/u);
     });
 
     it("INVALID: {payload.kind: 'signal'} => throws, no seventh branch exists", async () => {

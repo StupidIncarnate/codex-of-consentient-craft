@@ -238,7 +238,7 @@ describe('HomeContentWidget', () => {
     it('VALID: {stored guild in localStorage, guild not in list} => clears localStorage', async () => {
       const proxy = HomeContentWidgetProxy();
       proxy.clearStorage();
-      const staleGuildId = GuildIdStub({ value: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee' });
+      const staleGuildId = GuildIdStub({ value: 'a99ef0d8-6ae0-1972-9617-694d449a8242' });
       const realGuild = GuildListItemStub({ name: 'Real Guild' });
 
       localStorage.setItem(GUILD_STORAGE_KEY, staleGuildId);

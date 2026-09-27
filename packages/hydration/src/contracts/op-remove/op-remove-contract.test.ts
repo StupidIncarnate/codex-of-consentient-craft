@@ -12,14 +12,14 @@ describe('opRemoveContract', () => {
   });
 
   describe('invalid remove ops', () => {
-    it('INVALID: {no ref} => throws "Required"', () => {
-      expect(() => opRemoveContract.parse({ op: 'remove' })).toThrow(/Required/u);
+    it('INVALID: {no ref} => throws "received undefined"', () => {
+      expect(() => opRemoveContract.parse({ op: 'remove' })).toThrow(/received undefined/u);
     });
 
     it('INVALID: {op: "nope"} => throws naming the expected literal', () => {
       expect(() =>
         opRemoveContract.parse({ op: 'nope' as never, ref: 'guild[0:0]/quest[0:1]' }),
-      ).toThrow(/Invalid literal value/u);
+      ).toThrow(/Invalid input: expected/u);
     });
   });
 });

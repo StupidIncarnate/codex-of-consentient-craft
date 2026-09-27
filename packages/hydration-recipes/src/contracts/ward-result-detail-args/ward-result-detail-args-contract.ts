@@ -19,7 +19,7 @@ import { wardResultContract } from '@dungeonmaster/shared/contracts';
 
 export const wardResultDetailArgsContract = z.object({
   wardResultId: wardResultContract.shape.id,
-  detail: z.record(z.unknown()),
+  detail: z.record(z.string().brand<'WardResultDetailKey'>(), z.unknown()),
 });
 
 export type WardResultDetailArgs = z.infer<typeof wardResultDetailArgsContract>;

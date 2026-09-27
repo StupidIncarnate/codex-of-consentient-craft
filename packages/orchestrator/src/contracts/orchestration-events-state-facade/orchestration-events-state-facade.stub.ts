@@ -13,9 +13,12 @@ const noop = (): void => {
  */
 export const OrchestrationEventsStateFacadeStub = ({
   ...props
-}: StubArgument<OrchestrationEventsStateFacade> = {}): OrchestrationEventsStateFacade =>
-  orchestrationEventsStateFacadeContract.parse({
-    on: noop,
-    off: noop,
-    ...props,
-  });
+}: StubArgument<OrchestrationEventsStateFacade> = {}): OrchestrationEventsStateFacade => {
+  const { on, off, ...dataProps } = props;
+
+  return {
+    ...orchestrationEventsStateFacadeContract.parse(dataProps),
+    on: on ?? noop,
+    off: off ?? noop,
+  };
+};

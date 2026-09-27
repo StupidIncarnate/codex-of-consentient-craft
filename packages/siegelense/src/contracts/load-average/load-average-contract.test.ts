@@ -24,7 +24,7 @@ describe('loadAverageContract', () => {
 
   it('INVALID: {value: ["7.9", 6.2, 4.1]} => throws when the 1-minute slot is not a number', () => {
     expect(() => loadAverageContract.parse(['7.9', 6.2, 4.1])).toThrow(
-      /Expected number, received string/u,
+      /expected number, received string/u,
     );
   });
 });

@@ -13,6 +13,7 @@ import { safeJsonParseTransformer } from '@dungeonmaster/shared/transformers';
 import type { FolderType } from '@dungeonmaster/shared/contracts';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { transcriptLineContract } from '../../../contracts/transcript-line/transcript-line-contract';
+import { toolInputParamNameContract } from '../../../contracts/tool-input-param-name/tool-input-param-name-contract';
 import { folderDetailCallLookupContract } from '../../../contracts/folder-detail-call-lookup/folder-detail-call-lookup-contract';
 import type { FolderDetailCallLookup } from '../../../contracts/folder-detail-call-lookup/folder-detail-call-lookup-contract';
 import type { FilePath } from '../../../contracts/file-path/file-path-contract';
@@ -69,7 +70,7 @@ export const folderDetailWasCalledBroker = async ({
         (item) =>
           item.type === 'tool_use' &&
           item.name === GET_FOLDER_DETAIL_TOOL_NAME &&
-          item.input?.folderType === folderType,
+          item.input?.[toolInputParamNameContract.parse('folderType')] === folderType,
       );
     });
 

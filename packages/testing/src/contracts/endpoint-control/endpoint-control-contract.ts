@@ -9,7 +9,9 @@ import { z } from 'zod';
 
 import type { RequestCount } from '../request-count/request-count-contract';
 
-export const endpointControlContract = z.object({});
+// `.loose()` keeps `z.infer` of the empty shape from narrowing to `Record<string, never>` (zod
+// v4), which the function-carrying intersection below could never satisfy.
+export const endpointControlContract = z.object({}).loose();
 
 export type HttpMethod = 'delete' | 'get' | 'head' | 'options' | 'patch' | 'post' | 'put';
 

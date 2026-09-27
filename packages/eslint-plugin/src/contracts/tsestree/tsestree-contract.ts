@@ -11,12 +11,17 @@
  *
  * TSESTree contract - translates @typescript-eslint/utils types to Zod schemas.
  * Contract defines ONLY data properties (no functions).
- * Uses z.lazy() for recursive parent reference.
+ * Every recursive field is a GETTER returning `z.core.$ZodType<TsestreeSelf>` (or an
+ * array/union/nullable built from it) — zod v4 has no `z.ZodTypeDef` to hand-annotate a
+ * `z.lazy()` cast against, so the getter form is what makes this self-reference typecheck. The
+ * root and the recursive "base" used to be two structurally identical objects (one for the
+ * top-level parse, one `z.lazy()`-referenced from within itself); a getter needs no such split,
+ * since `tsestreeContract` can refer to itself directly once it exists.
  * Type property constrained to TsestreeNodeType enum values.
  */
 import { z } from 'zod';
 import { tsestreeNodeTypeStatics } from '../../statics/tsestree-node-type/tsestree-node-type-statics';
-import { identifierContract, type Identifier } from '@dungeonmaster/shared/contracts';
+import { identifierContract } from '@dungeonmaster/shared/contracts';
 
 // Extract literal type union from statics
 type TsestreeNodeTypeValue =
@@ -28,614 +33,299 @@ const nodeTypeValues = Object.values(tsestreeNodeTypeStatics.nodeTypes) as [
   ...TsestreeNodeTypeValue[],
 ];
 
-// Recursive base defines full object with REQUIRED parent using z.lazy()
-// Output type (after parsing)
-interface RecursiveNodeOutput {
-  type: TsestreeNodeTypeValue;
-  range?: readonly [unknown, unknown] | undefined;
-  parent?: RecursiveNodeOutput | null | undefined;
-  init?: RecursiveNodeOutput | null | undefined;
-  returnType?: RecursiveNodeOutput | null | undefined;
-  typeAnnotation?: RecursiveNodeOutput | null | undefined;
-  // CallExpression properties
-  callee?: RecursiveNodeOutput | null | undefined;
-  arguments?: (RecursiveNodeOutput | null)[] | undefined;
+// Every field this contract validates WITHOUT recursing into another node.
+const tsestreeFields = z.object({
+  type: z.enum(nodeTypeValues),
+  range: z.tuple([z.unknown(), z.unknown()]).readonly().optional(),
   // MemberExpression properties — `computed` also applies to Property (an object literal's
   // `{[x]: 1}` vs `{x: 1}`), so platform-globals-ban reads it on both node types
-  object?: RecursiveNodeOutput | null | undefined;
-  property?: RecursiveNodeOutput | null | undefined;
-  computed?: boolean | undefined;
+  computed: z.boolean().optional(),
   // Identifier properties
-  name?: Identifier | undefined;
-  // VariableDeclarator properties
-  id?: RecursiveNodeOutput | null | undefined;
-  // ImportDeclaration/ExportDeclaration properties
-  specifiers?: RecursiveNodeOutput[] | undefined;
-  source?: RecursiveNodeOutput | null | undefined;
-  // ImportSpecifier/ExportSpecifier properties
-  imported?: RecursiveNodeOutput | null | undefined;
-  local?: RecursiveNodeOutput | null | undefined;
-  exported?: RecursiveNodeOutput | null | undefined;
+  name: identifierContract.optional(),
   // Literal properties
-  value?: unknown;
-  // TSAsExpression properties
-  expression?: RecursiveNodeOutput | null | undefined;
-  // Function properties (ArrowFunctionExpression, FunctionDeclaration, FunctionExpression)
-  params?: RecursiveNodeOutput[] | undefined;
-  // body can be a single node (arrow function expression) or array (BlockStatement)
-  body?: RecursiveNodeOutput | RecursiveNodeOutput[] | null | undefined;
-  // AssignmentPattern properties
-  left?: RecursiveNodeOutput | null | undefined;
-  // ObjectPattern/ObjectExpression properties
-  properties?: RecursiveNodeOutput[] | undefined;
-  // SpreadElement/ReturnStatement properties
-  argument?: RecursiveNodeOutput | null | undefined;
+  value: z.unknown().optional(),
   // VariableDeclaration properties
-  declarations?: RecursiveNodeOutput[] | undefined;
-  kind?: 'const' | 'let' | 'var' | undefined;
+  kind: z.enum(['const', 'let', 'var']).optional(),
   // Property properties
-  key?: RecursiveNodeOutput | null | undefined;
-  shorthand?: boolean | undefined;
-  // TSTypeReference properties
-  typeName?: RecursiveNodeOutput | null | undefined;
-  // TSTypeParameterInstantiation properties (typeArguments in @typescript-eslint v6+)
-  typeParameters?: RecursiveNodeOutput | null | undefined;
-  typeArguments?: RecursiveNodeOutput | null | undefined;
+  shorthand: z.boolean().optional(),
   // TSPropertySignature properties
-  optional?: boolean | undefined;
-  // TSTypeLiteral properties
-  members?: RecursiveNodeOutput[] | undefined;
-  // TSIndexedAccessType properties — `objectType[indexType]`, as in WorkItem['summary']
-  objectType?: RecursiveNodeOutput | null | undefined;
-  indexType?: RecursiveNodeOutput | null | undefined;
-  // JSXElement / JSXFragment properties
-  openingElement?: RecursiveNodeOutput | null | undefined;
-  children?: RecursiveNodeOutput[] | undefined;
+  optional: z.boolean().optional(),
   // ExportNamedDeclaration properties
-  exportKind?: 'type' | 'value' | undefined;
-  declaration?: RecursiveNodeOutput | null | undefined;
+  exportKind: z.enum(['type', 'value']).optional(),
   // ImportDeclaration additional properties
-  importKind?: 'type' | 'value' | undefined;
-  // ClassDeclaration/ClassExpression properties — `extends <X>`, null when a class extends nothing
-  superClass?: RecursiveNodeOutput | null | undefined;
-  // TSArrayType properties (elementType is alternate to typeAnnotation for some parsers)
-  elementType?: RecursiveNodeOutput | null | undefined;
-  // ArrayExpression properties
-  elements?: (RecursiveNodeOutput | null)[] | undefined;
+  importKind: z.enum(['type', 'value']).optional(),
   // UnaryExpression / BinaryExpression / LogicalExpression / AssignmentExpression operator
-  operator?:
-    | 'typeof'
-    | 'void'
-    | 'delete'
-    | '!'
-    | '-'
-    | '+'
-    | '~'
-    | '=='
-    | '!='
-    | '==='
-    | '!=='
-    | '<'
-    | '<='
-    | '>'
-    | '>='
-    | '<<'
-    | '>>'
-    | '>>>'
-    | '*'
-    | '/'
-    | '%'
-    | '**'
-    | '|'
-    | '^'
-    | '&'
-    | '&&'
-    | '||'
-    | '??'
-    | 'in'
-    | 'instanceof'
-    | undefined;
-  // BinaryExpression / LogicalExpression / AssignmentExpression / AssignmentPattern right-hand side
-  right?: RecursiveNodeOutput | null | undefined;
-  // SwitchStatement properties
-  discriminant?: RecursiveNodeOutput | null | undefined;
-  cases?: RecursiveNodeOutput[] | undefined;
-  // SwitchCase properties
-  test?: RecursiveNodeOutput | null | undefined;
-  consequent?: RecursiveNodeOutput | RecursiveNodeOutput[] | null | undefined;
-  // ConditionalExpression / IfStatement else-branch
-  alternate?: RecursiveNodeOutput | RecursiveNodeOutput[] | null | undefined;
+  operator: z
+    .enum([
+      'typeof',
+      'void',
+      'delete',
+      '!',
+      '-',
+      '+',
+      '~',
+      '==',
+      '!=',
+      '===',
+      '!==',
+      '<',
+      '<=',
+      '>',
+      '>=',
+      '<<',
+      '>>',
+      '>>>',
+      '*',
+      '/',
+      '%',
+      '**',
+      '|',
+      '^',
+      '&',
+      '&&',
+      '||',
+      '??',
+      'in',
+      'instanceof',
+    ])
+    .optional(),
   // Literal regex properties (ESLint AST stores /pattern/flags as {regex: {pattern, flags}})
-  regex?: { pattern?: unknown; flags?: unknown } | undefined;
+  regex: z.object({ pattern: z.unknown().optional(), flags: z.unknown().optional() }).optional(),
+});
+
+// The recursive shape, expressed once and reused by every getter's return type below — never
+// hand-written per field, so a new recursive field only ever adds one line to THIS type and one
+// getter, never a second copy of either.
+type TsestreeSelf = z.infer<typeof tsestreeFields> & {
+  parent?: TsestreeSelf | null | undefined;
+  init?: TsestreeSelf | null | undefined;
+  returnType?: TsestreeSelf | null | undefined;
+  typeAnnotation?: TsestreeSelf | null | undefined;
+  // CallExpression properties
+  callee?: TsestreeSelf | null | undefined;
+  arguments?: (TsestreeSelf | null)[] | undefined;
+  // MemberExpression properties
+  object?: TsestreeSelf | null | undefined;
+  property?: TsestreeSelf | null | undefined;
+  // VariableDeclarator properties
+  id?: TsestreeSelf | null | undefined;
+  // ImportDeclaration/ExportDeclaration properties
+  specifiers?: TsestreeSelf[] | undefined;
+  source?: TsestreeSelf | null | undefined;
+  // ImportSpecifier/ExportSpecifier properties
+  imported?: TsestreeSelf | null | undefined;
+  local?: TsestreeSelf | null | undefined;
+  exported?: TsestreeSelf | null | undefined;
+  // TSAsExpression properties
+  expression?: TsestreeSelf | null | undefined;
+  // Function properties (ArrowFunctionExpression, FunctionDeclaration, FunctionExpression)
+  params?: TsestreeSelf[] | undefined;
+  // body can be a single node (arrow function expression) or array (BlockStatement)
+  body?: TsestreeSelf | TsestreeSelf[] | null | undefined;
+  // AssignmentPattern properties
+  left?: TsestreeSelf | null | undefined;
+  // ObjectPattern/ObjectExpression properties
+  properties?: TsestreeSelf[] | undefined;
+  // SpreadElement/ReturnStatement properties
+  argument?: TsestreeSelf | null | undefined;
+  // VariableDeclaration properties
+  declarations?: TsestreeSelf[] | undefined;
+  // Property properties
+  key?: TsestreeSelf | null | undefined;
+  // TSTypeReference properties
+  typeName?: TsestreeSelf | null | undefined;
+  // TSTypeParameterInstantiation properties (typeArguments in @typescript-eslint v6+)
+  typeParameters?: TsestreeSelf | null | undefined;
+  typeArguments?: TsestreeSelf | null | undefined;
+  // TSTypeLiteral properties
+  members?: TsestreeSelf[] | undefined;
+  // TSIndexedAccessType properties — `objectType[indexType]`, as in WorkItem['summary']
+  objectType?: TsestreeSelf | null | undefined;
+  indexType?: TsestreeSelf | null | undefined;
+  // JSXElement / JSXFragment properties
+  openingElement?: TsestreeSelf | null | undefined;
+  children?: TsestreeSelf[] | undefined;
+  // ExportNamedDeclaration properties
+  declaration?: TsestreeSelf | null | undefined;
+  // ClassDeclaration/ClassExpression properties — `extends <X>`, null when a class extends nothing
+  superClass?: TsestreeSelf | null | undefined;
+  // TSArrayType properties (elementType is alternate to typeAnnotation for some parsers)
+  elementType?: TsestreeSelf | null | undefined;
+  // ArrayExpression properties
+  elements?: (TsestreeSelf | null)[] | undefined;
+  // BinaryExpression / LogicalExpression / AssignmentExpression / AssignmentPattern right-hand side
+  right?: TsestreeSelf | null | undefined;
+  // SwitchStatement properties
+  discriminant?: TsestreeSelf | null | undefined;
+  cases?: TsestreeSelf[] | undefined;
+  // SwitchCase properties
+  test?: TsestreeSelf | null | undefined;
+  consequent?: TsestreeSelf | TsestreeSelf[] | null | undefined;
+  // ConditionalExpression / IfStatement else-branch
+  alternate?: TsestreeSelf | TsestreeSelf[] | null | undefined;
   // TemplateLiteral properties — quasis are the static string segments (TemplateElement, whose
   // own `value` is `{raw, cooked}`, carried through the existing untyped `value` field);
   // expressions are the interpolated parts between them
-  quasis?: RecursiveNodeOutput[] | undefined;
-  expressions?: RecursiveNodeOutput[] | undefined;
+  quasis?: TsestreeSelf[] | undefined;
+  expressions?: TsestreeSelf[] | undefined;
   // TSLiteralType properties — a string/number/boolean literal used in TYPE position, e.g. the
   // `'#GatewayWalkedFile'` in `.brand<'#GatewayWalkedFile'>()`; `literal` is the inner Literal node,
   // whose own `value` (already on this interface) carries the actual string/number/boolean.
-  literal?: RecursiveNodeOutput | null | undefined;
-}
+  literal?: TsestreeSelf | null | undefined;
+};
 
-// Input type (before parsing)
-interface RecursiveNodeInput {
-  type: TsestreeNodeTypeValue;
-  range?: readonly [unknown, unknown] | undefined;
-  parent?: RecursiveNodeInput | null | undefined;
-  init?: RecursiveNodeInput | null | undefined;
-  returnType?: RecursiveNodeInput | null | undefined;
-  typeAnnotation?: RecursiveNodeInput | null | undefined;
-  // CallExpression properties
-  callee?: RecursiveNodeInput | null | undefined;
-  arguments?: (RecursiveNodeInput | null)[] | undefined;
-  // MemberExpression properties
-  object?: RecursiveNodeInput | null | undefined;
-  property?: RecursiveNodeInput | null | undefined;
-  computed?: boolean | undefined;
-  // Identifier properties
-  name?: Identifier | undefined;
-  // VariableDeclarator properties
-  id?: RecursiveNodeInput | null | undefined;
-  // ImportDeclaration/ExportDeclaration properties
-  specifiers?: RecursiveNodeInput[] | undefined;
-  source?: RecursiveNodeInput | null | undefined;
-  // ImportSpecifier/ExportSpecifier properties
-  imported?: RecursiveNodeInput | null | undefined;
-  local?: RecursiveNodeInput | null | undefined;
-  exported?: RecursiveNodeInput | null | undefined;
-  // Literal properties
-  value?: unknown;
-  // TSAsExpression properties
-  expression?: RecursiveNodeInput | null | undefined;
-  // Function properties (ArrowFunctionExpression, FunctionDeclaration, FunctionExpression)
-  params?: RecursiveNodeInput[] | undefined;
-  // body can be a single node (arrow function expression) or array (BlockStatement)
-  body?: RecursiveNodeInput | RecursiveNodeInput[] | null | undefined;
-  // AssignmentPattern properties
-  left?: RecursiveNodeInput | null | undefined;
-  // ObjectPattern/ObjectExpression properties
-  properties?: RecursiveNodeInput[] | undefined;
-  // SpreadElement/ReturnStatement properties
-  argument?: RecursiveNodeInput | null | undefined;
-  // VariableDeclaration properties
-  declarations?: RecursiveNodeInput[] | undefined;
-  kind?: 'const' | 'let' | 'var' | undefined;
-  // Property properties
-  key?: RecursiveNodeInput | null | undefined;
-  shorthand?: boolean | undefined;
-  // TSTypeReference properties
-  typeName?: RecursiveNodeInput | null | undefined;
-  // TSTypeParameterInstantiation properties (typeArguments in @typescript-eslint v6+)
-  typeParameters?: RecursiveNodeInput | null | undefined;
-  typeArguments?: RecursiveNodeInput | null | undefined;
-  // TSPropertySignature properties
-  optional?: boolean | undefined;
-  // TSTypeLiteral properties
-  members?: RecursiveNodeInput[] | undefined;
-  // TSIndexedAccessType properties — `objectType[indexType]`, as in WorkItem['summary']
-  objectType?: RecursiveNodeInput | null | undefined;
-  indexType?: RecursiveNodeInput | null | undefined;
-  // JSXElement / JSXFragment properties
-  openingElement?: RecursiveNodeInput | null | undefined;
-  children?: RecursiveNodeInput[] | undefined;
-  // ExportNamedDeclaration properties
-  exportKind?: 'type' | 'value' | undefined;
-  declaration?: RecursiveNodeInput | null | undefined;
-  // ImportDeclaration additional properties
-  importKind?: 'type' | 'value' | undefined;
-  // ClassDeclaration/ClassExpression properties — `extends <X>`, null when a class extends nothing
-  superClass?: RecursiveNodeInput | null | undefined;
-  // TSArrayType properties (elementType is alternate to typeAnnotation for some parsers)
-  elementType?: RecursiveNodeInput | null | undefined;
-  // ArrayExpression properties
-  elements?: (RecursiveNodeInput | null)[] | undefined;
-  // UnaryExpression / BinaryExpression / LogicalExpression / AssignmentExpression operator
-  operator?:
-    | 'typeof'
-    | 'void'
-    | 'delete'
-    | '!'
-    | '-'
-    | '+'
-    | '~'
-    | '=='
-    | '!='
-    | '==='
-    | '!=='
-    | '<'
-    | '<='
-    | '>'
-    | '>='
-    | '<<'
-    | '>>'
-    | '>>>'
-    | '*'
-    | '/'
-    | '%'
-    | '**'
-    | '|'
-    | '^'
-    | '&'
-    | '&&'
-    | '||'
-    | '??'
-    | 'in'
-    | 'instanceof'
-    | undefined;
-  // BinaryExpression / LogicalExpression / AssignmentExpression / AssignmentPattern right-hand side
-  right?: RecursiveNodeInput | null | undefined;
-  // SwitchStatement properties
-  discriminant?: RecursiveNodeInput | null | undefined;
-  cases?: RecursiveNodeInput[] | undefined;
-  // SwitchCase properties
-  test?: RecursiveNodeInput | null | undefined;
-  consequent?: RecursiveNodeInput | RecursiveNodeInput[] | null | undefined;
-  // ConditionalExpression / IfStatement else-branch
-  alternate?: RecursiveNodeInput | RecursiveNodeInput[] | null | undefined;
-  // Literal regex properties (ESLint AST stores /pattern/flags as {regex: {pattern, flags}})
-  regex?: { pattern?: unknown; flags?: unknown } | undefined;
-  // TemplateLiteral properties
-  quasis?: RecursiveNodeInput[] | undefined;
-  expressions?: RecursiveNodeInput[] | undefined;
-  // TSLiteralType properties
-  literal?: RecursiveNodeInput | null | undefined;
-}
+// The four recursive shapes every getter below returns, spelled out once each.
+type TsestreeNodeSchema = z.ZodOptional<z.ZodNullable<z.core.$ZodType<TsestreeSelf>>>;
+type TsestreeArraySchema = z.ZodOptional<z.ZodArray<z.core.$ZodType<TsestreeSelf>>>;
+type TsestreeNullableArraySchema = z.ZodOptional<
+  z.ZodArray<z.ZodNullable<z.core.$ZodType<TsestreeSelf>>>
+>;
+type TsestreeNodeOrArraySchema = z.ZodOptional<
+  z.ZodNullable<
+    z.ZodUnion<readonly [z.core.$ZodType<TsestreeSelf>, z.ZodArray<z.core.$ZodType<TsestreeSelf>>]>
+  >
+>;
 
-const recursiveBase: z.ZodType<RecursiveNodeOutput, z.ZodTypeDef, RecursiveNodeInput> = z.object({
-  type: z.enum(nodeTypeValues),
-  range: z.tuple([z.unknown(), z.unknown()]).readonly().optional(),
-  parent: z
-    .lazy(() => recursiveBase)
-    .nullable()
-    .optional(),
-  init: z
-    .lazy(() => recursiveBase)
-    .nullable()
-    .optional(),
-  returnType: z
-    .lazy(() => recursiveBase)
-    .nullable()
-    .optional(),
-  typeAnnotation: z
-    .lazy(() => recursiveBase)
-    .nullable()
-    .optional(),
-  // CallExpression properties
-  callee: z
-    .lazy(() => recursiveBase)
-    .nullable()
-    .optional(),
-  arguments: z.array(z.lazy(() => recursiveBase).nullable()).optional(),
-  // MemberExpression properties
-  object: z
-    .lazy(() => recursiveBase)
-    .nullable()
-    .optional(),
-  property: z
-    .lazy(() => recursiveBase)
-    .nullable()
-    .optional(),
-  computed: z.boolean().optional(),
-  // Identifier properties
-  name: identifierContract.optional(),
-  // VariableDeclarator properties
-  id: z
-    .lazy(() => recursiveBase)
-    .nullable()
-    .optional(),
-  // ImportDeclaration/ExportDeclaration properties
-  specifiers: z.array(z.lazy(() => recursiveBase)).optional(),
-  source: z
-    .lazy(() => recursiveBase)
-    .nullable()
-    .optional(),
-  // ImportSpecifier/ExportSpecifier properties
-  imported: z
-    .lazy(() => recursiveBase)
-    .nullable()
-    .optional(),
-  local: z
-    .lazy(() => recursiveBase)
-    .nullable()
-    .optional(),
-  exported: z
-    .lazy(() => recursiveBase)
-    .nullable()
-    .optional(),
-  // Literal properties
-  value: z.unknown().optional(),
-  // TSAsExpression properties
-  expression: z
-    .lazy(() => recursiveBase)
-    .nullable()
-    .optional(),
-  // Function properties (ArrowFunctionExpression, FunctionDeclaration, FunctionExpression)
-  params: z.array(z.lazy(() => recursiveBase)).optional(),
-  // body can be a single node (arrow function expression) or array (BlockStatement)
-  body: z
-    .union([z.lazy(() => recursiveBase), z.array(z.lazy(() => recursiveBase))])
-    .nullable()
-    .optional(),
-  // AssignmentPattern properties
-  left: z
-    .lazy(() => recursiveBase)
-    .nullable()
-    .optional(),
-  // ObjectPattern/ObjectExpression properties
-  properties: z.array(z.lazy(() => recursiveBase)).optional(),
-  // SpreadElement/ReturnStatement properties
-  argument: z
-    .lazy(() => recursiveBase)
-    .nullable()
-    .optional(),
-  // VariableDeclaration properties
-  declarations: z.array(z.lazy(() => recursiveBase)).optional(),
-  kind: z.enum(['const', 'let', 'var']).optional(),
-  // Property properties
-  key: z
-    .lazy(() => recursiveBase)
-    .nullable()
-    .optional(),
-  shorthand: z.boolean().optional(),
-  // TSTypeReference properties
-  typeName: z
-    .lazy(() => recursiveBase)
-    .nullable()
-    .optional(),
-  // TSTypeParameterInstantiation properties (typeArguments in @typescript-eslint v6+)
-  typeParameters: z
-    .lazy(() => recursiveBase)
-    .nullable()
-    .optional(),
-  typeArguments: z
-    .lazy(() => recursiveBase)
-    .nullable()
-    .optional(),
-  // TSPropertySignature properties
-  optional: z.boolean().optional(),
-  // TSTypeLiteral properties
-  members: z.array(z.lazy(() => recursiveBase)).optional(),
-  // TSIndexedAccessType properties — `objectType[indexType]`, as in WorkItem['summary']
-  objectType: z
-    .lazy(() => recursiveBase)
-    .nullable()
-    .optional(),
-  indexType: z
-    .lazy(() => recursiveBase)
-    .nullable()
-    .optional(),
-  // JSXElement / JSXFragment properties
-  openingElement: z
-    .lazy(() => recursiveBase)
-    .nullable()
-    .optional(),
-  children: z.array(z.lazy(() => recursiveBase)).optional(),
-  // ExportNamedDeclaration properties
-  exportKind: z.enum(['type', 'value']).optional(),
-  declaration: z
-    .lazy(() => recursiveBase)
-    .nullable()
-    .optional(),
-  // ImportDeclaration additional properties
-  importKind: z.enum(['type', 'value']).optional(),
-  // ClassDeclaration/ClassExpression properties — `extends <X>`, null when a class extends nothing
-  superClass: z
-    .lazy(() => recursiveBase)
-    .nullable()
-    .optional(),
-  // TSArrayType properties (elementType is alternate to typeAnnotation for some parsers)
-  elementType: z
-    .lazy(() => recursiveBase)
-    .nullable()
-    .optional(),
-  // ArrayExpression properties
-  elements: z.array(z.lazy(() => recursiveBase).nullable()).optional(),
-  // UnaryExpression / BinaryExpression / LogicalExpression / AssignmentExpression operator
-  operator: z
-    .enum([
-      'typeof',
-      'void',
-      'delete',
-      '!',
-      '-',
-      '+',
-      '~',
-      '==',
-      '!=',
-      '===',
-      '!==',
-      '<',
-      '<=',
-      '>',
-      '>=',
-      '<<',
-      '>>',
-      '>>>',
-      '*',
-      '/',
-      '%',
-      '**',
-      '|',
-      '^',
-      '&',
-      '&&',
-      '||',
-      '??',
-      'in',
-      'instanceof',
-    ])
-    .optional(),
-  // BinaryExpression / LogicalExpression / AssignmentExpression / AssignmentPattern right-hand side
-  right: z
-    .lazy(() => recursiveBase)
-    .nullable()
-    .optional(),
-  // SwitchStatement properties
-  discriminant: z
-    .lazy(() => recursiveBase)
-    .nullable()
-    .optional(),
-  cases: z.array(z.lazy(() => recursiveBase)).optional(),
-  // SwitchCase properties
-  test: z
-    .lazy(() => recursiveBase)
-    .nullable()
-    .optional(),
-  consequent: z
-    .union([z.lazy(() => recursiveBase), z.array(z.lazy(() => recursiveBase))])
-    .nullable()
-    .optional(),
-  // ConditionalExpression / IfStatement else-branch
-  alternate: z
-    .union([z.lazy(() => recursiveBase), z.array(z.lazy(() => recursiveBase))])
-    .nullable()
-    .optional(),
-  // Literal regex properties
-  regex: z.object({ pattern: z.unknown().optional(), flags: z.unknown().optional() }).optional(),
-  // TemplateLiteral properties
-  quasis: z.array(z.lazy(() => recursiveBase)).optional(),
-  expressions: z.array(z.lazy(() => recursiveBase)).optional(),
-  // TSLiteralType properties
-  literal: z
-    .lazy(() => recursiveBase)
-    .nullable()
-    .optional(),
-}) as unknown as z.ZodType<RecursiveNodeOutput, z.ZodTypeDef, RecursiveNodeInput>;
-
-// Root level contract - parent is OPTIONAL
 export const tsestreeContract = z.object({
-  type: z.enum(nodeTypeValues),
-  range: z.tuple([z.unknown(), z.unknown()]).readonly().optional(),
-  parent: recursiveBase.nullable().optional(),
-  init: recursiveBase.nullable().optional(),
-  returnType: recursiveBase.nullable().optional(),
-  typeAnnotation: recursiveBase.nullable().optional(),
-  // CallExpression properties
-  callee: recursiveBase.nullable().optional(),
-  arguments: z.array(recursiveBase.nullable()).optional(),
-  // MemberExpression properties
-  object: recursiveBase.nullable().optional(),
-  property: recursiveBase.nullable().optional(),
-  computed: z.boolean().optional(),
-  // Identifier properties
-  name: identifierContract.optional(),
-  // VariableDeclarator properties
-  id: recursiveBase.nullable().optional(),
-  // ImportDeclaration properties
-  specifiers: z.array(recursiveBase).optional(),
-  source: recursiveBase.nullable().optional(),
-  // ImportSpecifier/ExportSpecifier properties
-  imported: recursiveBase.nullable().optional(),
-  local: recursiveBase.nullable().optional(),
-  exported: recursiveBase.nullable().optional(),
-  // Literal properties
-  value: z.unknown().optional(),
-  // TSAsExpression properties
-  expression: recursiveBase.nullable().optional(),
-  // Function properties (ArrowFunctionExpression, FunctionDeclaration, FunctionExpression)
-  params: z.array(recursiveBase).optional(),
-  // body can be a single node (arrow function expression) or array (BlockStatement)
-  body: z
-    .union([recursiveBase, z.array(recursiveBase)])
-    .nullable()
-    .optional(),
-  // AssignmentPattern properties
-  left: recursiveBase.nullable().optional(),
-  // ObjectPattern/ObjectExpression properties
-  properties: z.array(recursiveBase).optional(),
-  // SpreadElement/ReturnStatement properties
-  argument: recursiveBase.nullable().optional(),
-  // VariableDeclaration properties
-  declarations: z.array(recursiveBase).optional(),
-  kind: z.enum(['const', 'let', 'var']).optional(),
-  // Property properties
-  key: recursiveBase.nullable().optional(),
-  shorthand: z.boolean().optional(),
-  // TSTypeReference properties
-  typeName: recursiveBase.nullable().optional(),
-  // TSTypeParameterInstantiation properties (typeArguments in @typescript-eslint v6+)
-  typeParameters: recursiveBase.nullable().optional(),
-  typeArguments: recursiveBase.nullable().optional(),
-  // TSPropertySignature properties
-  optional: z.boolean().optional(),
-  // TSTypeLiteral properties
-  members: z.array(recursiveBase).optional(),
-  // TSIndexedAccessType properties — `objectType[indexType]`, as in WorkItem['summary']
-  objectType: recursiveBase.nullable().optional(),
-  indexType: recursiveBase.nullable().optional(),
-  // JSXElement / JSXFragment properties
-  openingElement: recursiveBase.nullable().optional(),
-  children: z.array(recursiveBase).optional(),
-  // ExportNamedDeclaration properties
-  exportKind: z.enum(['type', 'value']).optional(),
-  declaration: recursiveBase.nullable().optional(),
-  // ImportDeclaration additional properties
-  importKind: z.enum(['type', 'value']).optional(),
-  // ClassDeclaration/ClassExpression properties — `extends <X>`, null when a class extends nothing
-  superClass: recursiveBase.nullable().optional(),
-  // TSArrayType properties (elementType is alternate to typeAnnotation for some parsers)
-  elementType: recursiveBase.nullable().optional(),
-  // ArrayExpression properties
-  elements: z.array(recursiveBase.nullable()).optional(),
-  // UnaryExpression / BinaryExpression / LogicalExpression / AssignmentExpression operator
-  operator: z
-    .enum([
-      'typeof',
-      'void',
-      'delete',
-      '!',
-      '-',
-      '+',
-      '~',
-      '==',
-      '!=',
-      '===',
-      '!==',
-      '<',
-      '<=',
-      '>',
-      '>=',
-      '<<',
-      '>>',
-      '>>>',
-      '*',
-      '/',
-      '%',
-      '**',
-      '|',
-      '^',
-      '&',
-      '&&',
-      '||',
-      '??',
-      'in',
-      'instanceof',
-    ])
-    .optional(),
-  // BinaryExpression / LogicalExpression / AssignmentExpression / AssignmentPattern right-hand side
-  right: recursiveBase.nullable().optional(),
-  // SwitchStatement properties
-  discriminant: recursiveBase.nullable().optional(),
-  cases: z.array(recursiveBase).optional(),
-  // SwitchCase properties
-  test: recursiveBase.nullable().optional(),
-  consequent: z
-    .union([recursiveBase, z.array(recursiveBase)])
-    .nullable()
-    .optional(),
-  // ConditionalExpression / IfStatement else-branch
-  alternate: z
-    .union([recursiveBase, z.array(recursiveBase)])
-    .nullable()
-    .optional(),
-  // Literal regex properties
-  regex: z.object({ pattern: z.unknown().optional(), flags: z.unknown().optional() }).optional(),
-  // TemplateLiteral properties
-  quasis: z.array(recursiveBase).optional(),
-  expressions: z.array(recursiveBase).optional(),
-  // TSLiteralType properties
-  literal: recursiveBase.nullable().optional(),
+  ...tsestreeFields.shape,
+  get parent(): TsestreeNodeSchema {
+    return tsestreeContract.nullable().optional();
+  },
+  get init(): TsestreeNodeSchema {
+    return tsestreeContract.nullable().optional();
+  },
+  get returnType(): TsestreeNodeSchema {
+    return tsestreeContract.nullable().optional();
+  },
+  get typeAnnotation(): TsestreeNodeSchema {
+    return tsestreeContract.nullable().optional();
+  },
+  get callee(): TsestreeNodeSchema {
+    return tsestreeContract.nullable().optional();
+  },
+  get arguments(): TsestreeNullableArraySchema {
+    return z.array(tsestreeContract.nullable()).optional();
+  },
+  get object(): TsestreeNodeSchema {
+    return tsestreeContract.nullable().optional();
+  },
+  get property(): TsestreeNodeSchema {
+    return tsestreeContract.nullable().optional();
+  },
+  get id(): TsestreeNodeSchema {
+    return tsestreeContract.nullable().optional();
+  },
+  get specifiers(): TsestreeArraySchema {
+    return z.array(tsestreeContract).optional();
+  },
+  get source(): TsestreeNodeSchema {
+    return tsestreeContract.nullable().optional();
+  },
+  get imported(): TsestreeNodeSchema {
+    return tsestreeContract.nullable().optional();
+  },
+  get local(): TsestreeNodeSchema {
+    return tsestreeContract.nullable().optional();
+  },
+  get exported(): TsestreeNodeSchema {
+    return tsestreeContract.nullable().optional();
+  },
+  get expression(): TsestreeNodeSchema {
+    return tsestreeContract.nullable().optional();
+  },
+  get params(): TsestreeArraySchema {
+    return z.array(tsestreeContract).optional();
+  },
+  get body(): TsestreeNodeOrArraySchema {
+    return z
+      .union([tsestreeContract, z.array(tsestreeContract)])
+      .nullable()
+      .optional();
+  },
+  get left(): TsestreeNodeSchema {
+    return tsestreeContract.nullable().optional();
+  },
+  get properties(): TsestreeArraySchema {
+    return z.array(tsestreeContract).optional();
+  },
+  get argument(): TsestreeNodeSchema {
+    return tsestreeContract.nullable().optional();
+  },
+  get declarations(): TsestreeArraySchema {
+    return z.array(tsestreeContract).optional();
+  },
+  get key(): TsestreeNodeSchema {
+    return tsestreeContract.nullable().optional();
+  },
+  get typeName(): TsestreeNodeSchema {
+    return tsestreeContract.nullable().optional();
+  },
+  get typeParameters(): TsestreeNodeSchema {
+    return tsestreeContract.nullable().optional();
+  },
+  get typeArguments(): TsestreeNodeSchema {
+    return tsestreeContract.nullable().optional();
+  },
+  get members(): TsestreeArraySchema {
+    return z.array(tsestreeContract).optional();
+  },
+  get objectType(): TsestreeNodeSchema {
+    return tsestreeContract.nullable().optional();
+  },
+  get indexType(): TsestreeNodeSchema {
+    return tsestreeContract.nullable().optional();
+  },
+  get openingElement(): TsestreeNodeSchema {
+    return tsestreeContract.nullable().optional();
+  },
+  get children(): TsestreeArraySchema {
+    return z.array(tsestreeContract).optional();
+  },
+  get declaration(): TsestreeNodeSchema {
+    return tsestreeContract.nullable().optional();
+  },
+  get superClass(): TsestreeNodeSchema {
+    return tsestreeContract.nullable().optional();
+  },
+  get elementType(): TsestreeNodeSchema {
+    return tsestreeContract.nullable().optional();
+  },
+  get elements(): TsestreeNullableArraySchema {
+    return z.array(tsestreeContract.nullable()).optional();
+  },
+  get right(): TsestreeNodeSchema {
+    return tsestreeContract.nullable().optional();
+  },
+  get discriminant(): TsestreeNodeSchema {
+    return tsestreeContract.nullable().optional();
+  },
+  get cases(): TsestreeArraySchema {
+    return z.array(tsestreeContract).optional();
+  },
+  get test(): TsestreeNodeSchema {
+    return tsestreeContract.nullable().optional();
+  },
+  get consequent(): TsestreeNodeOrArraySchema {
+    return z
+      .union([tsestreeContract, z.array(tsestreeContract)])
+      .nullable()
+      .optional();
+  },
+  get alternate(): TsestreeNodeOrArraySchema {
+    return z
+      .union([tsestreeContract, z.array(tsestreeContract)])
+      .nullable()
+      .optional();
+  },
+  get quasis(): TsestreeArraySchema {
+    return z.array(tsestreeContract).optional();
+  },
+  get expressions(): TsestreeArraySchema {
+    return z.array(tsestreeContract).optional();
+  },
+  get literal(): TsestreeNodeSchema {
+    return tsestreeContract.nullable().optional();
+  },
 });
 
 export type Tsestree = z.infer<typeof tsestreeContract>;

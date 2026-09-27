@@ -31,7 +31,7 @@ describe('useGuildsBinding', () => {
       const proxy = useGuildsBindingProxy();
       const guilds = [
         GuildListItemStub({ id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479', name: 'First Guild' }),
-        GuildListItemStub({ id: 'a1b2c3d4-5678-9abc-def0-123456789abc', name: 'Second Guild' }),
+        GuildListItemStub({ id: 'c2cb8161-6200-6ca1-b8d4-8b9a3c14cc7c', name: 'Second Guild' }),
       ];
 
       proxy.setupGuilds({ guilds });
@@ -135,7 +135,7 @@ describe('useGuildsBinding', () => {
       proxy.setupGuilds({
         guilds: [
           GuildListItemStub({ id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479', name: 'First' }),
-          GuildListItemStub({ id: 'a1b2c3d4-5678-9abc-def0-123456789abc', name: 'Second' }),
+          GuildListItemStub({ id: 'c2cb8161-6200-6ca1-b8d4-8b9a3c14cc7c', name: 'Second' }),
         ],
       });
 
@@ -158,7 +158,7 @@ describe('useGuildsBinding', () => {
       expect(result.current).toStrictEqual({
         guilds: [
           GuildListItemStub({ id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479', name: 'First' }),
-          GuildListItemStub({ id: 'a1b2c3d4-5678-9abc-def0-123456789abc', name: 'Second' }),
+          GuildListItemStub({ id: 'c2cb8161-6200-6ca1-b8d4-8b9a3c14cc7c', name: 'Second' }),
         ],
         loading: false,
         error: null,

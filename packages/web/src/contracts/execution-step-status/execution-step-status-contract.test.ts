@@ -48,7 +48,7 @@ describe('executionStepStatusContract', () => {
 
   describe('invalid inputs', () => {
     it('INVALID: {value: "unknown"} => throws for invalid status', () => {
-      expect(() => executionStepStatusContract.parse('unknown')).toThrow(/Invalid enum value/u);
+      expect(() => executionStepStatusContract.parse('unknown')).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {value: 123} => throws for number', () => {
@@ -57,7 +57,7 @@ describe('executionStepStatusContract', () => {
 
     it('INVALID: {value: "partially_complete"} => throws, since the persisted work-item-status enum never produces it and the orchestrator signal contract rejects it', () => {
       expect(() => executionStepStatusContract.parse('partially_complete')).toThrow(
-        /Invalid enum value/u,
+        /Invalid option/u,
       );
     });
   });

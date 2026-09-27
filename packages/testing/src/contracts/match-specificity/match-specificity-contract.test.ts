@@ -19,16 +19,16 @@ describe('matchSpecificityContract', () => {
   describe('invalid values', () => {
     it('INVALID: {value: -1} => throws', () => {
       expect(() => matchSpecificityContract.parse(-1)).toThrow(
-        /greater than or equal to 0|Number must be/u,
+        /expected number to be >=0/u,
       );
     });
 
     it('INVALID: {value: 1.5} => throws', () => {
-      expect(() => matchSpecificityContract.parse(1.5)).toThrow(/integer/u);
+      expect(() => matchSpecificityContract.parse(1.5)).toThrow(/expected int, received number/u);
     });
 
     it('INVALID: {value: "3"} => throws', () => {
-      expect(() => matchSpecificityContract.parse('3' as never)).toThrow(/Expected number/u);
+      expect(() => matchSpecificityContract.parse('3' as never)).toThrow(/expected number/u);
     });
   });
 });

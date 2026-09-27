@@ -245,7 +245,7 @@ describe('planRunBroker', () => {
       });
 
       // `guildId` does not survive into the saved record: `IngredientConfigStub`'s default
-      // `record` schema is `{id, title}` with no `.passthrough()`, and zod strips any key an
+      // `record` schema is `{id, title}` with no `.loose()`, and zod strips any key an
       // `z.object` does not declare — the same reason a real ingredient's `record` contract must
       // name every field `saveRecordAs` is expected to hand back.
       expect(result).toStrictEqual({

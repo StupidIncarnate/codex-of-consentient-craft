@@ -118,13 +118,13 @@ describe('transcriptSummaryContract', () => {
 
     it('INVALID: {apiResponseCount: string} => throws', () => {
       expect(() => TranscriptSummaryStub({ apiResponseCount: '96' as never })).toThrow(
-        /Expected number/u,
+        /expected number/u,
       );
     });
 
     it('INVALID: {toolCallCounts value: string} => throws', () => {
       expect(() => TranscriptSummaryStub({ toolCallCounts: { Read: 'many' } as never })).toThrow(
-        /Expected number/u,
+        /expected number/u,
       );
     });
   });

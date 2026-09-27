@@ -5,7 +5,7 @@ import { commandChatOutputEmitTransformer } from './command-chat-output-emit-tra
 
 const FIXED_UUID = 'c1c2c3c4-d5d6-4e7f-8a9b-0c1d2e3f4a5b';
 const FIXED_TIMESTAMP = '2024-01-15T10:00:00.000Z';
-const WORK_ITEM_ID = 'a1a1a1a1-b2b2-c3c3-d4d4-e5e5e5e5e5e5';
+const WORK_ITEM_ID = '54abb935-7a96-3e73-83b3-3d46fdc6f046';
 
 describe('commandChatOutputEmitTransformer', () => {
   describe('the emit shape every command dispatcher hands to the bus', () => {

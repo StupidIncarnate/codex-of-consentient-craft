@@ -29,6 +29,6 @@ describe('domFieldContract', () => {
   it('INVALID: {value: "invalid"} => throws ZodError for unrecognized field name', () => {
     expect(() => {
       domFieldContract.parse('invalid');
-    }).toThrow(/Invalid enum value/u);
+    }).toThrow(/Invalid option/u);
   });
 });

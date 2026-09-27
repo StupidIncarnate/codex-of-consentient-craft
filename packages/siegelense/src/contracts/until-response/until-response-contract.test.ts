@@ -27,7 +27,7 @@ describe('untilResponseContract', () => {
   describe('invalid input', () => {
     it('INVALID: {method: "post"} => throws for a lower-cased method', () => {
       expect(() => untilResponseContract.parse({ method: 'post', path: '/api/quests' })).toThrow(
-        /Invalid enum value/u,
+        /Invalid option/u,
       );
     });
 
@@ -38,7 +38,9 @@ describe('untilResponseContract', () => {
     });
 
     it('INVALID: {missing path} => throws for the missing field', () => {
-      expect(() => untilResponseContract.parse({ method: 'POST' } as never)).toThrow(/Required/u);
+      expect(() => untilResponseContract.parse({ method: 'POST' } as never)).toThrow(
+        /received undefined/u,
+      );
     });
   });
 });

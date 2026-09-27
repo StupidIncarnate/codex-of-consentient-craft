@@ -47,7 +47,7 @@ export const rawKeyReadingContract = z.object({
         placeholder: contentTextContract.nullable(),
         attributes: z.array(attrPairContract).readonly(),
         flags: z.array(elementFlagContract).readonly(),
-        flagDetail: z.record(contentTextContract).readonly(),
+        flagDetail: z.record(z.string().brand<'ElementFlagName'>(), contentTextContract).readonly(),
       }),
     )
     .readonly(),

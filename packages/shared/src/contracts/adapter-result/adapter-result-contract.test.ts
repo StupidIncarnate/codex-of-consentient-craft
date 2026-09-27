@@ -14,31 +14,31 @@ describe('adapterResultContract', () => {
     it('INVALID: {success: false} => throws ZodError', () => {
       expect(() => {
         return adapterResultContract.parse({ success: false });
-      }).toThrow('Invalid literal value');
+      }).toThrow('Invalid input: expected');
     });
 
     it('INVALID: {empty object} => throws ZodError', () => {
       expect(() => {
         return adapterResultContract.parse({});
-      }).toThrow('Invalid literal value');
+      }).toThrow('Invalid input: expected');
     });
 
     it('INVALID: {success: "true"} => throws ZodError', () => {
       expect(() => {
         return adapterResultContract.parse({ success: 'true' });
-      }).toThrow('Invalid literal value');
+      }).toThrow('Invalid input: expected');
     });
 
     it('INVALID: {null} => throws ZodError', () => {
       expect(() => {
         return adapterResultContract.parse(null);
-      }).toThrow('Expected object');
+      }).toThrow('Invalid input: expected object, received null');
     });
 
     it('INVALID: {undefined} => throws ZodError', () => {
       expect(() => {
         return adapterResultContract.parse(undefined);
-      }).toThrow('Required');
+      }).toThrow('received undefined');
     });
   });
 });

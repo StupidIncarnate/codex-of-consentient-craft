@@ -125,7 +125,7 @@ describe('trackCoverageContract', () => {
     });
 
     it("INVALID: {track: 'ward'} => throws", () => {
-      expect(() => TrackCoverageStub({ track: 'ward' as never })).toThrow(/Invalid enum value/u);
+      expect(() => TrackCoverageStub({ track: 'ward' as never })).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {owed: -1} => throws', () => {

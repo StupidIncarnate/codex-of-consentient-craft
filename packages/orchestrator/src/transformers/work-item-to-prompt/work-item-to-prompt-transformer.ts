@@ -69,6 +69,7 @@
 import {
   agentPromptResultContract,
   contentTextContract,
+  workItemPayloadKeyContract,
   workItemRoleContract,
   type AgentPromptResult,
   type ContentText,
@@ -239,7 +240,9 @@ export const workItemToPromptTransformer = ({
   // field stringified unconditionally reads back as the literal text "null", exactly what
   // `Base branch`'s own guard above exists to avoid.
   if (workItem.needsLane === true) {
-    const parsedInstance = questWorkInstanceContract.safeParse(workItem.payload?.instance);
+    const parsedInstance = questWorkInstanceContract.safeParse(
+      workItem.payload?.[workItemPayloadKeyContract.parse('instance')],
+    );
     if (parsedInstance.success) {
       parts.push(
         contentTextContract.parse(''),

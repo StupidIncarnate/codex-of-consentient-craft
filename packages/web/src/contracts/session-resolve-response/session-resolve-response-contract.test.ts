@@ -38,7 +38,7 @@ describe('sessionResolveResponseContract', () => {
     it('INVALID: {missing questId} => throws validation error', () => {
       expect(() => {
         sessionResolveResponseContract.parse({});
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {empty questId string} => throws validation error', () => {

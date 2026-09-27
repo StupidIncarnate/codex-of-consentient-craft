@@ -3,7 +3,7 @@ import { StepExpectationStub } from './step-expectation.stub';
 
 describe('stepExpectationContract', () => {
   describe('valid members', () => {
-    it.each(stepExpectationContract.unwrap().options)(
+    it.each(stepExpectationContract.options)(
       'VALID: {value: %s} => parses to itself',
       (value) => {
         const stepExpectation = StepExpectationStub({ value });
@@ -19,7 +19,7 @@ describe('stepExpectationContract', () => {
     it('INVALID: {value: "skip"} => an unlisted string throws validation error', () => {
       expect(() => {
         StepExpectationStub({ value: 'skip' as never });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
   });
 
@@ -27,7 +27,7 @@ describe('stepExpectationContract', () => {
     it('EDGE: {value: "OK"} => an uppercase variant of a valid member throws validation error', () => {
       expect(() => {
         stepExpectationContract.parse('OK');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
   });
 });

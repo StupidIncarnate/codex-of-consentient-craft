@@ -23,6 +23,6 @@ describe('AllowedImportStub', () => {
   it('INVALID: {value: "invalid-value"} => throws ZodError', () => {
     expect(() => {
       allowedImportContract.parse('invalid-value');
-    }).toThrow('Invalid enum value');
+    }).toThrow('Invalid option');
   });
 });

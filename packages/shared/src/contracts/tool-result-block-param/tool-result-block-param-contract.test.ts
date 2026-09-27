@@ -76,13 +76,13 @@ describe('toolResultBlockParamContract', () => {
           tool_use_id: 'toolu_abc',
           content: 'result',
         }),
-      ).toThrow(/Invalid literal value/u);
+      ).toThrow(/Invalid input: expected/u);
     });
 
     it('INVALID: {tool_use_id missing} => throws on missing required field', () => {
       expect(() =>
         toolResultBlockParamContract.parse({ type: 'tool_result', content: 'result' }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {tool_use_id: ""} => throws on empty tool_use_id', () => {
@@ -102,7 +102,7 @@ describe('toolResultBlockParamContract', () => {
           tool_use_id: 'toolu_abc',
           is_error: 'yes' as never,
         }),
-      ).toThrow(/Expected boolean/u);
+      ).toThrow(/expected boolean/u);
     });
   });
 });

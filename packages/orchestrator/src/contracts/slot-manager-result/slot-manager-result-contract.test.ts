@@ -104,7 +104,7 @@ describe('slotManagerResultContract', () => {
           completed: false,
           failedIds: [],
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {completed: false, missing failedIds} => throws required error', () => {
@@ -113,7 +113,7 @@ describe('slotManagerResultContract', () => {
           completed: false,
           incompleteIds: [],
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 });

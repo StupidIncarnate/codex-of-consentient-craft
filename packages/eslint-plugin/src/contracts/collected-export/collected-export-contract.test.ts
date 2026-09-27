@@ -34,7 +34,7 @@ describe('CollectedExportContract', () => {
 
   it('INVALID: missing type => throws ZodError', () => {
     expect(() => collectedExportContract.parse({ name: 'test', isTypeOnly: false })).toThrow(
-      'Required',
+      'received undefined',
     );
   });
 });

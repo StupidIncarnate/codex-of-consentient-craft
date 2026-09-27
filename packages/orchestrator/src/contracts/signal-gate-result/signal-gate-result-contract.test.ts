@@ -82,18 +82,18 @@ describe('signalGateResultContract', () => {
     it('INVALID: {ok: false, message: ""} => throws min-length', () => {
       expect(() =>
         signalGateResultContract.parse({ ok: false, unmarked: [], message: '' }),
-      ).toThrow(/String must contain at least 1 character/u);
+      ).toThrow(/expected string to have >=1 characters/u);
     });
 
     it('INVALID: {ok: false, no message} => throws Required', () => {
       expect(() => signalGateResultContract.parse({ ok: false, unmarked: [] })).toThrow(
-        /Required/u,
+        /received undefined/u,
       );
     });
 
     it('INVALID: {ok: false, no unmarked} => throws Required', () => {
       expect(() => signalGateResultContract.parse({ ok: false, message: REFUSAL_MESSAGE })).toThrow(
-        /Required/u,
+        /received undefined/u,
       );
     });
 

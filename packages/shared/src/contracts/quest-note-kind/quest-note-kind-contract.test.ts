@@ -30,15 +30,15 @@ describe('questNoteKindContract', () => {
 
   describe('invalid input', () => {
     it('INVALID: {kind: "unconfirmable"} => throws, because a note never carries a workItem-observation mark', () => {
-      expect(() => QuestNoteKindStub({ value: 'unconfirmable' })).toThrow(/Invalid enum value/u);
+      expect(() => QuestNoteKindStub({ value: 'unconfirmable' })).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {kind: "verdict"} => throws, the near miss of the newest kind\'s own name', () => {
-      expect(() => QuestNoteKindStub({ value: 'verdict' })).toThrow(/Invalid enum value/u);
+      expect(() => QuestNoteKindStub({ value: 'verdict' })).toThrow(/Invalid option/u);
     });
 
     it('EMPTY: {kind: ""} => throws', () => {
-      expect(() => QuestNoteKindStub({ value: '' })).toThrow(/Invalid enum value/u);
+      expect(() => QuestNoteKindStub({ value: '' })).toThrow(/Invalid option/u);
     });
   });
 });

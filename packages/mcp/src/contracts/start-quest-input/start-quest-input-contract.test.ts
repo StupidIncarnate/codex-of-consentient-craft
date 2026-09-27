@@ -18,13 +18,13 @@ describe('startQuestInputContract', () => {
     it('INVALID: {questId: empty string} => throws validation error', () => {
       expect(() => {
         startQuestInputContract.parse({ questId: '' });
-      }).toThrow(/String must contain at least 1 character/u);
+      }).toThrow(/expected string to have >=1 characters/u);
     });
 
     it('INVALID: {questId: missing} => throws validation error', () => {
       expect(() => {
         startQuestInputContract.parse({});
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {unknown key} => throws Unrecognized key error', () => {

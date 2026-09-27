@@ -23,7 +23,7 @@ describe('sessionStartHookDataContract', () => {
     it('INVALID: {invalid data} => throws validation error', () => {
       expect(() => {
         return sessionStartHookDataContract.parse({} as never);
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

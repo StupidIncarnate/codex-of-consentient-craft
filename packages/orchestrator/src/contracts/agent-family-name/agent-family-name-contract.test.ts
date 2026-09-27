@@ -15,6 +15,8 @@ describe('agentFamilyNameContract', () => {
   });
 
   it('INVALID: {value: ""} => throws validation error', () => {
-    expect(() => agentFamilyNameContract.parse('')).toThrow(/String must contain at least 1/u);
+    expect(() => agentFamilyNameContract.parse('')).toThrow(
+      /Too small: expected string to have >=1 characters/u,
+    );
   });
 });

@@ -17,7 +17,7 @@ export const transcriptRecordContentBlockContract = z.object({
   text: z.string().brand<'TranscriptRecordContentText'>().optional(),
   thinking: z.string().brand<'TranscriptRecordContentThinking'>().optional(),
   name: z.string().brand<'TranscriptRecordToolName'>().optional(),
-  input: z.record(z.unknown()).optional(),
+  input: z.record(z.string().brand<'TranscriptRecordToolInputKey'>(), z.unknown()).optional(),
 });
 
 export type TranscriptRecordContentBlock = z.infer<typeof transcriptRecordContentBlockContract>;

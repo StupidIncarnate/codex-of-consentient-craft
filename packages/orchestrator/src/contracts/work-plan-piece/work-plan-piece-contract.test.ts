@@ -74,13 +74,13 @@ describe('workPlanPieceContract', () => {
 
     it('EMPTY: {context: empty string} => refused', () => {
       expect(() => WorkPlanPieceStub({ context: '' })).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
 
     it('EMPTY: {pieceName: empty string} => refused, since a plan file with no name re-authors rather than falls back', () => {
       expect(() => WorkPlanPieceStub({ pieceName: '' })).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
 

@@ -67,7 +67,15 @@ import { stepNameContract } from '../step-name/step-name-contract';
 import { workItemRoleContract } from '../work-item-role/work-item-role-contract';
 import { workItemStatusContract } from '../work-item-status/work-item-status-contract';
 
-const projectedStepCountContract = z.number().int().nonnegative().brand<'ProjectedStepCount'>();
+// `.default()` before `.brand()`, baked in here rather than at each use site below — zod v4
+// checks a `.default()` literal against the schema's own output type, and a bare number can never
+// satisfy a branded type. Every use of this contract wants the same default anyway.
+const projectedStepCountContract = z
+  .number()
+  .int()
+  .nonnegative()
+  .default(0)
+  .brand<'ProjectedStepCount'>();
 
 const questProjectionStepContract = z
   .object({
@@ -115,19 +123,15 @@ export const questProjectionContract = z
       .array(questProjectionScopeContract)
       .default([])
       .describe('One entry per MINTED operation item — a family not yet routed to has none here.'),
-    totalPlannedSteps: projectedStepCountContract
-      .default(0)
-      .describe(
-        'actual.length + planned.length, summed over every scope. Grows as an `unmet` mark routes new ' +
-          'work; never shrinks.',
-      ),
-    completedSteps: projectedStepCountContract
-      .default(0)
-      .describe(
-        '`kind: "actual"` rows whose `status` is `complete`, summed over every scope. Always ' +
-          '<= totalPlannedSteps by construction, since a completed row is counted only among the ' +
-          'actual rows that totalPlannedSteps already includes.',
-      ),
+    totalPlannedSteps: projectedStepCountContract.describe(
+      'actual.length + planned.length, summed over every scope. Grows as an `unmet` mark routes new ' +
+        'work; never shrinks.',
+    ),
+    completedSteps: projectedStepCountContract.describe(
+      '`kind: "actual"` rows whose `status` is `complete`, summed over every scope. Always ' +
+        '<= totalPlannedSteps by construction, since a completed row is counted only among the ' +
+        'actual rows that totalPlannedSteps already includes.',
+    ),
   })
   .strict();
 

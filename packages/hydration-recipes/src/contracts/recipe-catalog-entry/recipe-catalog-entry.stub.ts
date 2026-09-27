@@ -10,7 +10,6 @@
 
 import type { StubArgument } from '@dungeonmaster/shared/@types';
 import { HydrationRunResultStub, PlanRunsResultStub } from '@dungeonmaster/hydration/contracts';
-import type { z } from 'zod';
 
 import { recipeCatalogEntryContract } from './recipe-catalog-entry-contract';
 import type { RecipeCatalogEntry } from './recipe-catalog-entry-contract';
@@ -26,7 +25,7 @@ export const RecipeCatalogEntryStub = ({
       description: 'one guild holding three quests',
       ...dataProps,
     }),
-    ...(inputs ? { inputs: inputs as z.ZodTypeAny } : {}),
+    ...(inputs ? { inputs } : {}),
     probeListing:
       probeListing ??
       (() => ({

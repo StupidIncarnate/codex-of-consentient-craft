@@ -27,7 +27,7 @@ describe('devLogEventFormatTransformer', () => {
       const result = devLogEventFormatTransformer({
         type: 'chat-output',
         payload: {
-          chatProcessId: 'proc-abc12345-1111-2222-3333-444444444444',
+          chatProcessId: 'proc-99cf9441-9852-5274-a073-30f5c2eb07be',
           entries: [
             {
               role: 'assistant',
@@ -47,7 +47,7 @@ describe('devLogEventFormatTransformer', () => {
       const result = devLogEventFormatTransformer({
         type: 'chat-output',
         payload: {
-          chatProcessId: 'proc-abc12345-1111-2222-3333-444444444444',
+          chatProcessId: 'proc-99cf9441-9852-5274-a073-30f5c2eb07be',
           entries: [
             {
               role: 'assistant',
@@ -91,7 +91,7 @@ describe('devLogEventFormatTransformer', () => {
       const result = devLogEventFormatTransformer({
         type: 'chat-output',
         payload: {
-          chatProcessId: 'proc-abc12345-1111-2222-3333-444444444444',
+          chatProcessId: 'proc-99cf9441-9852-5274-a073-30f5c2eb07be',
         },
       });
 

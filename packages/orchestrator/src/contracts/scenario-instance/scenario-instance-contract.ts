@@ -22,9 +22,11 @@ const smoketestPromptNames = Object.keys(smoketestPromptsStatics) as [
 
 const smoketestPromptNameContract = z.enum(smoketestPromptNames);
 
+// `z.partialRecord`, not `z.record` — zod v4 made an enum-keyed `z.record` exhaustive (every role
+// required), and a real scenario only ever scripts the roles it dispatches.
 export const scenarioInstanceContract = z.object({
-  scripts: z.record(workItemRoleContract, z.array(smoketestPromptNameContract).readonly()),
-  callOrdinals: z.record(workItemRoleContract, arrayIndexContract),
+  scripts: z.partialRecord(workItemRoleContract, z.array(smoketestPromptNameContract).readonly()),
+  callOrdinals: z.partialRecord(workItemRoleContract, arrayIndexContract),
 });
 
 export type ScenarioInstance = z.infer<typeof scenarioInstanceContract>;

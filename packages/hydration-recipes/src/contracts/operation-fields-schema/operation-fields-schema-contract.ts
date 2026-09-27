@@ -25,6 +25,5 @@ import type { OperationFields } from '../operation-fields/operation-fields-contr
 
 export const operationFieldsSchemaContract: z.ZodType<
   OperationFields,
-  z.ZodTypeDef,
   z.input<typeof operationFieldsContract>
 > = operationFieldsContract;

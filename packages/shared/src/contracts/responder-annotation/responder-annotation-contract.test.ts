@@ -57,7 +57,7 @@ describe('responderAnnotationContract', () => {
         responderAnnotationContract.parse({
           suffix: null,
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {missing suffix} => throws ZodError', () => {
@@ -65,7 +65,7 @@ describe('responderAnnotationContract', () => {
         responderAnnotationContract.parse({
           childLines: [],
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 });

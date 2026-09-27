@@ -59,7 +59,7 @@ describe('flowObservableContract', () => {
           type: 'ui-state',
           description: 'redirects to dashboard',
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('EMPTY: {package: ""} => throws validation error', () => {
@@ -105,7 +105,7 @@ describe('flowObservableContract', () => {
 
     it('INVALID: {verifyByReading: "yes"} => throws, because the flag is a boolean and a truthy string would silently pass', () => {
       expect(() => FlowObservableStub({ verifyByReading: 'yes' as never })).toThrow(
-        /Expected boolean/u,
+        /expected boolean/u,
       );
     });
   });
@@ -151,13 +151,13 @@ describe('flowObservableContract', () => {
 
     it('INVALID: {verifyByHuman: "yes"} => throws, because the flag is a boolean and a truthy string would silently pass', () => {
       expect(() => FlowObservableStub({ verifyByHuman: 'yes' as never })).toThrow(
-        /Expected boolean/u,
+        /expected boolean/u,
       );
     });
 
     it('INVALID: {verifyByHuman: null} => throws, because the field is optional, not nullable', () => {
       expect(() => FlowObservableStub({ verifyByHuman: null as never })).toThrow(
-        /Expected boolean/u,
+        /expected boolean/u,
       );
     });
 
@@ -220,7 +220,7 @@ describe('flowObservableContract', () => {
           description: 'test',
           package: 'auth-service',
         });
-      }).toThrow(/invalid_string/u);
+      }).toThrow(/invalid_format/u);
     });
 
     it('INVALID: {type: "invalid"} => throws validation error', () => {
@@ -231,7 +231,7 @@ describe('flowObservableContract', () => {
           description: 'test',
           package: 'auth-service',
         });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {addedBy: "blightwarden"} => throws, because the origin list is closed to roles that add observables', () => {
@@ -243,13 +243,13 @@ describe('flowObservableContract', () => {
           package: 'auth-service',
           addedBy: 'blightwarden',
         });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {missing required fields} => throws validation error', () => {
       expect(() => {
         flowObservableContract.parse({});
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

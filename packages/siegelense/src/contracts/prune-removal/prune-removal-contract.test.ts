@@ -64,7 +64,7 @@ describe('pruneRemovalContract', () => {
           freedBytes: 1,
           freedMB: 0,
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

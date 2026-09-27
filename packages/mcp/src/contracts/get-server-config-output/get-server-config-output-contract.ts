@@ -12,7 +12,6 @@ import { networkPortContract } from '@dungeonmaster/shared/contracts';
 export const getServerConfigOutputContract = z
   .object({
     baseUrl: z
-      .string()
       .url()
       .brand<'BaseUrl'>()
       .describe(

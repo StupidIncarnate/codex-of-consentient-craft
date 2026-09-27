@@ -28,11 +28,11 @@ describe('commentAnchorContract', () => {
 
   describe('invalid inputs', () => {
     it('INVALID: {flowId: "Bad Flow"} => throws for non-kebab flowId', () => {
-      expect(() => CommentAnchorStub({ flowId: 'Bad Flow' as never })).toThrow(/invalid_string/u);
+      expect(() => CommentAnchorStub({ flowId: 'Bad Flow' as never })).toThrow(/invalid_format/u);
     });
 
     it('INVALID: {nodeId: "Bad Node"} => throws for non-kebab nodeId', () => {
-      expect(() => CommentAnchorStub({ nodeId: 'Bad Node' as never })).toThrow(/invalid_string/u);
+      expect(() => CommentAnchorStub({ nodeId: 'Bad Node' as never })).toThrow(/invalid_format/u);
     });
   });
 });

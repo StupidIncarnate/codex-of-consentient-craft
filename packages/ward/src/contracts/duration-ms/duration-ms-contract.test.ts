@@ -32,7 +32,7 @@ describe('durationMsContract', () => {
     });
 
     it('INVALID: {string} => throws validation error', () => {
-      expect(() => durationMsContract.parse('100' as never)).toThrow(/Expected number/u);
+      expect(() => durationMsContract.parse('100' as never)).toThrow(/expected number/u);
     });
   });
 

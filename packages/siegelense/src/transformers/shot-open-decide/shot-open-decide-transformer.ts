@@ -2,7 +2,7 @@
  * PURPOSE: Pure policy over one run's raw shot list — the five-way precedence `blank` -> `failed` ->
  * `start` -> `end` -> `changed` (siegelense-tooling.md line 1631: `blank` is checked BEFORE
  * `pixelChange` is interpreted at all). The precedence ORDER is read off
- * `shotOpenReasonContract.unwrap().options` (`.unwrap()` reaches the underlying `ZodEnum` the brand
+ * `shotOpenReasonContract.options` (`.unwrap()` reaches the underlying `ZodEnum` the brand
  * wraps) rather than re-encoded here — the per-reason condition still has to live somewhere, but
  * WHICH one wins is decided by walking that array in order and taking the first match, so a future
  * re-ordering of the enum reorders precedence with no change to this file. `changed` compares the
@@ -37,7 +37,7 @@ export const shotOpenDecideTransformer = ({
 
   return shots.map((shot, position) => {
     const reason =
-      shotOpenReasonContract.unwrap().options.find((option) => {
+      shotOpenReasonContract.options.find((option) => {
         if (option === 'blank') {
           return shot.blank === true;
         }

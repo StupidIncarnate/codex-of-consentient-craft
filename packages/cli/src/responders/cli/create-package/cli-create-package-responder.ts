@@ -64,7 +64,7 @@ export const CliCreatePackageResponder = async ({
   const rootPackageJsonContent = await fsReadFileAdapter({ filePath: rootPackageJsonPath });
   const rootPackageJsonRaw: unknown = JSON.parse(rootPackageJsonContent);
   const rootPackageJson = packageJsonRawContract.parse(rootPackageJsonRaw);
-  const nameKey = packageJsonRawContract.keySchema.parse('name');
+  const nameKey = packageJsonRawContract.keyType.parse('name');
   const rootNameValue = rootPackageJson[nameKey];
   const rootPackageJsonName = typeof rootNameValue === 'string' ? rootNameValue : undefined;
   const fallbackName = pathBasenameAdapter({ path: context.targetProjectRoot });

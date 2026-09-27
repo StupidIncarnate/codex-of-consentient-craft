@@ -19,12 +19,12 @@ describe('planMakesEntryContract', () => {
   describe('invalid entries', () => {
     it('INVALID: {count: 0} => throws "Number must be greater than 0"', () => {
       expect(() => planMakesEntryContract.parse({ ingredient: 'quest', count: 0 })).toThrow(
-        /Number must be greater than 0/u,
+        /expected number to be >0/u,
       );
     });
 
-    it('INVALID: {no ingredient} => throws "Required"', () => {
-      expect(() => planMakesEntryContract.parse({ count: 3 })).toThrow(/Required/u);
+    it('INVALID: {no ingredient} => throws "received undefined"', () => {
+      expect(() => planMakesEntryContract.parse({ count: 3 })).toThrow(/received undefined/u);
     });
   });
 });

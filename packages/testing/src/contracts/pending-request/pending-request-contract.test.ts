@@ -32,7 +32,7 @@ describe('pendingRequestContract', () => {
           url: '/api/test',
           timestampMs: 1000,
         });
-      }).toThrow(/Expected string/u);
+      }).toThrow(/expected string/u);
     });
 
     it('INVALID: {timestampMs: -1} => throws validation error', () => {
@@ -42,7 +42,7 @@ describe('pendingRequestContract', () => {
           url: '/api/test',
           timestampMs: -1,
         });
-      }).toThrow(/Number must be greater than or equal to 0/u);
+      }).toThrow(/expected number to be >=0/u);
     });
   });
 });

@@ -18,7 +18,7 @@ export const extraVerbNameContract = z
   .superRefine((value, ctx) => {
     if (RESERVED_VERBS.includes(value)) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         message: `'${value}' is a reserved verb and cannot be declared as an extra`,
       });
     }

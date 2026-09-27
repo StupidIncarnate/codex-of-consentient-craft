@@ -8,15 +8,19 @@
 
 import { z } from 'zod';
 
+import { scriptNameContract } from '../script-name/script-name-contract';
+
 export const packageJsonContract = z
   .object({
     name: z.string().brand<'PackageName'>(),
     version: z.string().brand<'PackageVersion'>(),
-    scripts: z.record(z.string().brand<'ScriptCommand'>()),
-    devDependencies: z.record(z.string().brand<'DependencyVersion'>()).optional(),
+    scripts: z.record(scriptNameContract, z.string().brand<'ScriptCommand'>()),
+    devDependencies: z
+      .record(z.string().brand<'PackageName'>(), z.string().brand<'DependencyVersion'>())
+      .optional(),
     eslintConfig: z.unknown().optional(),
     jest: z.unknown().optional(),
   })
-  .passthrough();
+  .loose();
 
 export type PackageJson = z.infer<typeof packageJsonContract>;

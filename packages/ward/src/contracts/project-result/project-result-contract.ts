@@ -31,8 +31,10 @@ export const projectResultContract = z.object({
   elsewhereErrors: z.array(errorEntryContract).default([]),
   testFailures: z.array(testFailureContract),
   rawOutput: rawOutputContract.default({ stdout: '', stderr: '', exitCode: 0 }),
-  filesCount: z.number().int().nonnegative().brand<'FilesCount'>().default(0),
-  discoveredCount: z.number().int().nonnegative().brand<'DiscoveredCount'>().default(0),
+  // `.default()` before `.brand()` on both — zod v4 checks a `.default()` literal against the
+  // schema's own output type, and a bare number can never satisfy a branded type.
+  filesCount: z.number().int().nonnegative().default(0).brand<'FilesCount'>(),
+  discoveredCount: z.number().int().nonnegative().default(0).brand<'DiscoveredCount'>(),
   onlyDiscovered: z.array(gitRelativePathContract).default([]),
   onlyProcessed: z.array(gitRelativePathContract).default([]),
   fileTimings: z.array(fileTimingContract).default([]),

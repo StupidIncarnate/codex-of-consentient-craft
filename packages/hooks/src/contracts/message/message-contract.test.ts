@@ -34,19 +34,19 @@ describe('messageContract', () => {
     it('INVALID: {value: number} => throws validation error', () => {
       expect(() => {
         return messageContract.parse(123);
-      }).toThrow('Expected string');
+      }).toThrow('expected string');
     });
 
     it('INVALID: {value: null} => throws validation error', () => {
       expect(() => {
         return messageContract.parse(null);
-      }).toThrow('Expected string');
+      }).toThrow('expected string');
     });
 
     it('INVALID: {value: object} => throws validation error', () => {
       expect(() => {
         return messageContract.parse({ text: 'test' });
-      }).toThrow('Expected string');
+      }).toThrow('expected string');
     });
   });
 });

@@ -9,15 +9,15 @@ describe('instanceIdContract', () => {
   });
 
   it('INVALID: {value: "run_7f3a9c21"} => throws for the wrong prefix', () => {
-    expect(() => instanceIdContract.parse('run_7f3a9c21')).toThrow(/invalid_string/u);
+    expect(() => instanceIdContract.parse('run_7f3a9c21')).toThrow(/invalid_format/u);
   });
 
   it('INVALID: {value: "inst_7F3A"} => throws for uppercase hex', () => {
-    expect(() => instanceIdContract.parse('inst_7F3A')).toThrow(/invalid_string/u);
+    expect(() => instanceIdContract.parse('inst_7F3A')).toThrow(/invalid_format/u);
   });
 
   it('INVALID: {value: "inst_abc"} => throws for fewer than 4 hex characters', () => {
-    expect(() => instanceIdContract.parse('inst_abc')).toThrow(/invalid_string/u);
+    expect(() => instanceIdContract.parse('inst_abc')).toThrow(/invalid_format/u);
   });
 
   it('EDGE: {value: "inst_abcd"} => parses at the 4-character hex minimum', () => {
@@ -34,10 +34,12 @@ describe('instanceIdContract', () => {
     expect(String(thrownError)).toBe(
       '[\n' +
         '  {\n' +
-        '    "validation": "regex",\n' +
-        '    "code": "invalid_string",\n' +
-        '    "message": "Instance id must look like \\"inst_\\" followed by 4 or more lowercase hex characters, e.g. \\"inst_7f3a9c21\\"",\n' +
-        '    "path": []\n' +
+        '    "origin": "string",\n' +
+        '    "code": "invalid_format",\n' +
+        '    "format": "regex",\n' +
+        '    "pattern": "/^inst_[0-9a-f]{4,}$/u",\n' +
+        '    "path": [],\n' +
+        '    "message": "Instance id must look like \\"inst_\\" followed by 4 or more lowercase hex characters, e.g. \\"inst_7f3a9c21\\""\n' +
         '  }\n' +
         ']',
     );

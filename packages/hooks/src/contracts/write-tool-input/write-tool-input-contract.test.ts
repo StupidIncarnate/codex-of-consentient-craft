@@ -27,7 +27,7 @@ describe('writeToolInputContract', () => {
     it('INVALID: {invalid data} => throws validation error', () => {
       expect(() => {
         return writeToolInputContract.parse({} as never);
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

@@ -41,7 +41,7 @@ describe('widgetContextContract', () => {
           wsEdges: [],
           projectRoot: '/repo',
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 });

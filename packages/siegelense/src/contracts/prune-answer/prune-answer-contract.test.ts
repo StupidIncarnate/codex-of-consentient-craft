@@ -59,7 +59,7 @@ describe('pruneAnswerContract', () => {
           removed: [],
           refused: [],
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {an extra key} => .strict() throws rather than accepting a field nothing renders', () => {

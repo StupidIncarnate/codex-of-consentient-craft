@@ -43,19 +43,19 @@ describe('reactFlowNodeDataContract', () => {
   describe('invalid inputs', () => {
     it('INVALID: {contractCount: -1} => throws for negative contractCount', () => {
       expect(() => ReactFlowNodeDataStub({ contractCount: -1 as never })).toThrow(
-        /Number must be greater than or equal to 0/u,
+        /expected number to be >=0/u,
       );
     });
 
     it('INVALID: {nodeType: bogus} => throws for invalid nodeType', () => {
       expect(() => ReactFlowNodeDataStub({ nodeType: 'bogus' as never })).toThrow(
-        /Invalid enum value/u,
+        /Invalid option/u,
       );
     });
 
     it('INVALID: {commentCount: -1} => throws for negative commentCount', () => {
       expect(() => ReactFlowNodeDataStub({ commentCount: -1 as never })).toThrow(
-        /Number must be greater than or equal to 0/u,
+        /expected number to be >=0/u,
       );
     });
 
@@ -74,7 +74,7 @@ describe('reactFlowNodeDataContract', () => {
           contractCount: 0,
           commentCount: 0,
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 
@@ -155,7 +155,7 @@ describe('reactFlowNodeDataContract', () => {
 
     it('INVALID: {questId: ""} => throws for empty questId', () => {
       expect(() => ReactFlowNodeDataStub({ questId: '' as never })).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
 

@@ -27,25 +27,25 @@ describe('formattedToolFieldContract', () => {
   describe('invalid inputs', () => {
     it('INVALID: {missing key} => throws', () => {
       expect(() => formattedToolFieldContract.parse({ value: 'ls -la', isLong: false })).toThrow(
-        /Required/u,
+        /received undefined/u,
       );
     });
 
     it('INVALID: {key: ""} => throws', () => {
       expect(() =>
         formattedToolFieldContract.parse({ key: '', value: 'ls -la', isLong: false }),
-      ).toThrow(/String must contain at least 1 character/u);
+      ).toThrow(/expected string to have >=1 characters/u);
     });
 
     it('INVALID: {missing value} => throws', () => {
       expect(() => formattedToolFieldContract.parse({ key: 'command', isLong: false })).toThrow(
-        /Required/u,
+        /received undefined/u,
       );
     });
 
     it('INVALID: {missing isLong} => throws', () => {
       expect(() => formattedToolFieldContract.parse({ key: 'command', value: 'ls -la' })).toThrow(
-        /Required/u,
+        /received undefined/u,
       );
     });
   });

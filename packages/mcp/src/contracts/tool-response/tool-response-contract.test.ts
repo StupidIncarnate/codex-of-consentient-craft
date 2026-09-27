@@ -62,13 +62,13 @@ describe('toolResponseContract', () => {
     it('INVALID: {} => throws when content is missing', () => {
       expect(() => {
         _toolResponseContract.parse({});
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {content: "string"} => throws when content is not an array', () => {
       expect(() => {
         _toolResponseContract.parse({ content: 'not-an-array' });
-      }).toThrow(/Expected array/u);
+      }).toThrow(/expected array/u);
     });
   });
 });

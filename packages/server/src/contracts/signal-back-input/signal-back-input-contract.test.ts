@@ -81,7 +81,7 @@ describe('signalBackInputContract', () => {
           signal: 'complete',
           blockedReason: '',
         }),
-      ).toThrow(/String must contain at least 1 character/u);
+      ).toThrow(/expected string to have >=1 characters/u);
     });
   });
 
@@ -93,13 +93,13 @@ describe('signalBackInputContract', () => {
           workItemId,
           signal: 'failed',
         });
-      }).toThrow(/Invalid literal value/u);
+      }).toThrow(/Invalid input: expected/u);
     });
 
     it('INVALID: {missing signal} => throws validation error because the literal check rejects undefined', () => {
       expect(() => {
         signalBackInputContract.parse({ questId, workItemId });
-      }).toThrow(/Invalid literal value/u);
+      }).toThrow(/Invalid input: expected/u);
     });
 
     it('INVALID: {missing questId} => throws validation error', () => {
@@ -108,7 +108,7 @@ describe('signalBackInputContract', () => {
           workItemId,
           signal: 'complete',
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {missing workItemId} => throws validation error', () => {
@@ -117,7 +117,7 @@ describe('signalBackInputContract', () => {
           questId,
           signal: 'complete',
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {workItemId: "not-a-uuid"} => throws validation error', () => {
@@ -127,7 +127,7 @@ describe('signalBackInputContract', () => {
           workItemId: 'not-a-uuid',
           signal: 'complete',
         });
-      }).toThrow(/Invalid uuid/u);
+      }).toThrow(/Invalid UUID/u);
     });
 
     it('INVALID: {operationItemId: "not-a-uuid"} => throws validation error', () => {
@@ -138,7 +138,7 @@ describe('signalBackInputContract', () => {
           signal: 'complete',
           operationItemId: 'not-a-uuid',
         });
-      }).toThrow(/Invalid uuid/u);
+      }).toThrow(/Invalid UUID/u);
     });
 
     it.each(['done', 'partial', 'blocked'] as const)(

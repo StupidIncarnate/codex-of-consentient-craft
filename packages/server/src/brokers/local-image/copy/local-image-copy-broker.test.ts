@@ -14,7 +14,7 @@ describe('localImageCopyBroker', () => {
     it('VALID: {one match ending .jpeg, a staged uuid, a read resolving known bytes} => writes exactly one file named after the staged uuid carrying the source extension, with byte-identical content', async () => {
       const match = LocalImagePathMatchStub({ path: '/home/user/pasted.jpeg', ordinal: 1 });
       const bytes = new Uint8Array([1, 2, 3, 4]);
-      const stagedUuid = 'aaaaaaaa-1111-1111-1111-111111111111';
+      const stagedUuid = '45ccae5e-c8bd-3883-8d53-8ed4bf696af3';
       const proxy = localImageCopyBrokerProxy();
       proxy.stageCopyIds({ ids: [stagedUuid] });
       proxy.sourceReads({ filePath: match.path, bytes });
@@ -49,7 +49,7 @@ describe('localImageCopyBroker', () => {
     it('VALID: {one match whose read rejects with ENOENT} => the quest images folder gains no new file', async () => {
       const match = LocalImagePathMatchStub({ path: '/home/user/missing.png', ordinal: 1 });
       const proxy = localImageCopyBrokerProxy();
-      proxy.stageCopyIds({ ids: ['bbbbbbbb-2222-2222-2222-222222222222'] });
+      proxy.stageCopyIds({ ids: ['016612e6-8f4a-726a-802b-10c043690d99'] });
       proxy.sourceReadFails({
         filePath: match.path,
         error: new Error('ENOENT: no such file or directory'),
@@ -66,8 +66,8 @@ describe('localImageCopyBroker', () => {
       const badMatch = LocalImagePathMatchStub({ path: '/home/user/missing.png', ordinal: 1 });
       const goodMatch = LocalImagePathMatchStub({ path: '/home/user/pasted.png', ordinal: 2 });
       const bytes = new Uint8Array([5, 6, 7]);
-      const badUuid = 'cccccccc-3333-3333-3333-333333333333';
-      const goodUuid = 'dddddddd-4444-4444-4444-444444444444';
+      const badUuid = '4a83d5db-6d50-1058-bb3a-b7a4a87599ba';
+      const goodUuid = '5858f7d1-cf11-5633-a358-b63524fb50c4';
       const proxy = localImageCopyBrokerProxy();
       proxy.stageCopyIds({ ids: [badUuid, goodUuid] });
       proxy.sourceReadFails({
@@ -88,7 +88,7 @@ describe('localImageCopyBroker', () => {
     it('VALID: {one match whose read resolves known bytes} => the written path is the one destination under imagesDirPath, holding the read bytes', async () => {
       const match = LocalImagePathMatchStub({ path: '/home/user/pasted.gif', ordinal: 1 });
       const bytes = new Uint8Array([8, 9]);
-      const stagedUuid = 'eeeeeeee-5555-5555-5555-555555555555';
+      const stagedUuid = '49df2c11-269e-6593-b3bf-b74bda3a6170';
       const proxy = localImageCopyBrokerProxy();
       proxy.stageCopyIds({ ids: [stagedUuid] });
       proxy.sourceReads({ filePath: match.path, bytes });
@@ -106,7 +106,7 @@ describe('localImageCopyBroker', () => {
     it("VALID: {one match read and written successfully} => the returned map holds exactly that match's ordinal mapped to its destination", async () => {
       const match = LocalImagePathMatchStub({ path: '/home/user/pasted.webp', ordinal: 3 });
       const bytes = new Uint8Array([10]);
-      const stagedUuid = 'ffffffff-6666-6666-6666-666666666666';
+      const stagedUuid = 'e14b252b-55bc-8cc7-a689-70a291329d68';
       const proxy = localImageCopyBrokerProxy();
       proxy.stageCopyIds({ ids: [stagedUuid] });
       proxy.sourceReads({ filePath: match.path, bytes });
@@ -123,7 +123,7 @@ describe('localImageCopyBroker', () => {
     it('VALID: {one match whose read resolves but whose write rejects} => the returned map holds no entry for that match', async () => {
       const match = LocalImagePathMatchStub({ path: '/home/user/pasted.png', ordinal: 4 });
       const bytes = new Uint8Array([11, 12]);
-      const stagedUuid = '11111111-7777-7777-7777-777777777777';
+      const stagedUuid = '5cb43fa2-6d67-3565-ab1e-ef2a92e363bb';
       const proxy = localImageCopyBrokerProxy();
       proxy.stageCopyIds({ ids: [stagedUuid] });
       proxy.sourceReads({ filePath: match.path, bytes });

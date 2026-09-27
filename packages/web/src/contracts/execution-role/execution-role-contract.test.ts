@@ -30,7 +30,7 @@ describe('executionRoleContract', () => {
 
   describe('invalid inputs', () => {
     it('INVALID: {value: "unknown"} => throws for invalid role', () => {
-      expect(() => executionRoleContract.parse('unknown')).toThrow(/Invalid enum value/u);
+      expect(() => executionRoleContract.parse('unknown')).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {value: 123} => throws for number', () => {

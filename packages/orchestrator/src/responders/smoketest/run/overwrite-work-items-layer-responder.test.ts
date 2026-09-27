@@ -11,9 +11,9 @@ import { OverwriteWorkItemsLayerResponderProxy } from './overwrite-work-items-la
 type Quest = ReturnType<typeof QuestStub>;
 
 const QUEST_ID = QuestIdStub({ value: 'overwrite-work-items-quest' });
-const PRIOR_ID = QuestWorkItemIdStub({ value: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' });
-const WI_1_ID = QuestWorkItemIdStub({ value: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb' });
-const WI_2_ID = QuestWorkItemIdStub({ value: 'cccccccc-cccc-cccc-cccc-cccccccccccc' });
+const PRIOR_ID = QuestWorkItemIdStub({ value: 'e4a1c2fd-8bcf-83b0-ba4b-1818d51fc09c' });
+const WI_1_ID = QuestWorkItemIdStub({ value: '9febc069-b4e3-2f38-bd80-34df765c3b3e' });
+const WI_2_ID = QuestWorkItemIdStub({ value: '7deffe0a-8c09-6b80-b915-2d977bb48a5c' });
 
 const priorHead = WorkItemStub({
   id: PRIOR_ID,

@@ -54,7 +54,7 @@ describe('eslintRawMessageContract', () => {
           message: 'lint error',
           severity: 2,
         });
-      }).toThrow(/Expected number/u);
+      }).toThrow(/expected number/u);
     });
 
     it('INVALID: {missing message} => throws validation error', () => {
@@ -64,7 +64,7 @@ describe('eslintRawMessageContract', () => {
           column: 0,
           severity: 2,
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

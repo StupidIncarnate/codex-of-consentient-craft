@@ -76,11 +76,11 @@ describe('operationPlanPieceContract', () => {
 
     it('VALID: {notes} => parses spike findings', () => {
       const piece = OperationPlanPieceStub({
-        notes: 'The existing sibling uses z.string().uuid() rather than a regex; follow that.',
+        notes: 'The existing sibling uses z.uuid() rather than a regex; follow that.',
       });
 
       expect(piece.notes).toBe(
-        'The existing sibling uses z.string().uuid() rather than a regex; follow that.',
+        'The existing sibling uses z.uuid() rather than a regex; follow that.',
       );
     });
 
@@ -141,19 +141,19 @@ describe('operationPlanPieceContract', () => {
           title: 'Branded id contract',
           intent: 'operationPlanPieceIdContract exists',
         });
-      }).toThrow(/invalid_string/u);
+      }).toThrow(/invalid_format/u);
     });
 
     it('INVALID: {dependsOn: ["not-a-uuid"]} => throws validation error', () => {
       expect(() => {
         return OperationPlanPieceStub({ dependsOn: ['not-a-uuid'] });
-      }).toThrow(/invalid_string/u);
+      }).toThrow(/invalid_format/u);
     });
 
     it('INVALID: {status: "in-flight"} => throws validation error', () => {
       expect(() => {
         return OperationPlanPieceStub({ status: 'in-flight' as never });
-      }).toThrow(/invalid_enum_value/u);
+      }).toThrow(/invalid_value/u);
     });
 
     it('INVALID: {files: ["relative/no-prefix.ts"]} => throws validation error', () => {

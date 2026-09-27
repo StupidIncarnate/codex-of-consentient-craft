@@ -13,24 +13,24 @@ describe('questAdvancesOneStepInputsContract', () => {
 
     it('VALID: {stub with guildId override} => parses with the overridden id', () => {
       const result = QuestAdvancesOneStepInputsStub({
-        guildId: '12345678-1234-1234-1234-123456789abc',
+        guildId: '7a33141f-192d-204d-847e-9918b4840d56',
       });
 
-      expect(result.guildId).toBe('12345678-1234-1234-1234-123456789abc');
+      expect(result.guildId).toBe('7a33141f-192d-204d-847e-9918b4840d56');
     });
   });
 
   describe('invalid inputs', () => {
     it('INVALID: {guildId: "not-a-uuid"} => throws Invalid uuid', () => {
       expect(() => questAdvancesOneStepInputsContract.parse({ guildId: 'not-a-uuid' })).toThrow(
-        /Invalid uuid/u,
+        /Invalid UUID/u,
       );
     });
   });
 
   describe('empty inputs', () => {
-    it('EMPTY: {} => throws "Required"', () => {
-      expect(() => questAdvancesOneStepInputsContract.parse({})).toThrow(/Required/u);
+    it('EMPTY: {} => throws "received undefined"', () => {
+      expect(() => questAdvancesOneStepInputsContract.parse({})).toThrow(/received undefined/u);
     });
   });
 });

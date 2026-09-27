@@ -43,7 +43,7 @@ describe('questGetServerConfigResultContract', () => {
           baseUrl: 'http://localhost:3737',
           port: 0,
         }),
-      ).toThrow(/greater than or equal to 1/u);
+      ).toThrow(/to be >=1/u);
     });
 
     it('INVALID: {missing baseUrl} => throws Required', () => {
@@ -51,7 +51,7 @@ describe('questGetServerConfigResultContract', () => {
         questGetServerConfigResultContract.parse({
           port: NetworkPortStub({ value: 3737 }),
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {missing port} => throws Required', () => {
@@ -59,7 +59,7 @@ describe('questGetServerConfigResultContract', () => {
         questGetServerConfigResultContract.parse({
           baseUrl: 'http://localhost:3737',
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 });

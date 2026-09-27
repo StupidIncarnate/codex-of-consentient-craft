@@ -36,7 +36,7 @@ describe('typeDiagnosticContract', () => {
           code: 0,
           message: 'irrelevant',
         }),
-      ).toThrow(/Number must be greater than 0/u);
+      ).toThrow(/expected number to be >0/u);
     });
   });
 });

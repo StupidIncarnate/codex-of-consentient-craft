@@ -47,7 +47,7 @@ describe('runRequestContract', () => {
           instanceId: 'inst_7f3a9c21',
           steps: [],
         } as never),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {missing instanceId} => throws validation error', () => {
@@ -56,7 +56,7 @@ describe('runRequestContract', () => {
           steps: [],
           stopOn: 'error',
         } as never),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 

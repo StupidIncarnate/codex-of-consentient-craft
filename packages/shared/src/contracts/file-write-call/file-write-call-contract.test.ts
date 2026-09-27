@@ -30,13 +30,13 @@ describe('fileWriteCallContract', () => {
     it('INVALID: {missing adapter} => throws validation error', () => {
       expect(() => {
         return fileWriteCallContract.parse({ filePathArg: '/quest.json' });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {missing filePathArg} => throws validation error', () => {
       expect(() => {
         return fileWriteCallContract.parse({ adapter: 'fsWriteFileAdapter' });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

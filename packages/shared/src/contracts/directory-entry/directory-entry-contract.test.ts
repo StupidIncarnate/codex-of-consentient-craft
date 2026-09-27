@@ -36,7 +36,7 @@ describe('directoryEntryContract', () => {
     it('INVALID: missing required fields => throws validation error', () => {
       expect(() => {
         directoryEntryContract.parse({});
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: empty name => throws validation error', () => {
@@ -47,7 +47,7 @@ describe('directoryEntryContract', () => {
           ...baseEntry,
           name: '',
         });
-      }).toThrow(/String must contain at least 1 character/u);
+      }).toThrow(/expected string to have >=1 characters/u);
     });
   });
 });

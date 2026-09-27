@@ -695,7 +695,7 @@ describe('questContract', () => {
           ...quest,
           packagesAffected: ['auth-service'],
         });
-      }).toThrow(/Expected object, received string/u);
+      }).toThrow(/Invalid input: expected object, received string/u);
     });
 
     it('VALID: quest with packageGraph => round-trips the derived post-quest dependency layers', () => {
@@ -746,7 +746,7 @@ describe('questContract', () => {
             },
           ],
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('VALID: quest whose flow carries a tagged node => parses, the same shape with the tag present', () => {
@@ -810,7 +810,7 @@ describe('questContract', () => {
     it('INVALID: missing required fields => throws validation error', () => {
       expect(() => {
         questContract.parse({});
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: empty id => throws validation error', () => {
@@ -821,7 +821,7 @@ describe('questContract', () => {
           ...baseQuest,
           id: '',
         });
-      }).toThrow(/String must contain at least 1 character/u);
+      }).toThrow(/expected string to have >=1 characters/u);
     });
 
     it('INVALID: invalid status => throws validation error', () => {
@@ -832,7 +832,7 @@ describe('questContract', () => {
           ...baseQuest,
           status: 'invalid',
         });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: invalid timestamp => throws validation error', () => {
@@ -843,7 +843,7 @@ describe('questContract', () => {
           ...baseQuest,
           createdAt: 'not-a-timestamp',
         });
-      }).toThrow(/Invalid datetime/u);
+      }).toThrow(/Invalid ISO datetime/u);
     });
 
     it('INVALID: questSource with invalid enum value => throws validation error', () => {
@@ -854,7 +854,7 @@ describe('questContract', () => {
           ...baseQuest,
           questSource: 'not-a-source',
         });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
   });
 });

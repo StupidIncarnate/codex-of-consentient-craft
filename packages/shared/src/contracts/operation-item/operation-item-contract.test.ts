@@ -141,7 +141,7 @@ describe('operationItemContract', () => {
           text: 'core: config load+validate adapter',
           status: 'partial',
         });
-      }).toThrow(/invalid_enum_value/u);
+      }).toThrow(/invalid_value/u);
     });
 
     it('INVALID: {role: pathseeker} => throws validation error', () => {
@@ -152,7 +152,7 @@ describe('operationItemContract', () => {
           text: 'plan the quest',
           status: 'pending',
         });
-      }).toThrow(/invalid_enum_value/u);
+      }).toThrow(/invalid_value/u);
     });
 
     it('EMPTY: {text: ""} => throws validation error', () => {

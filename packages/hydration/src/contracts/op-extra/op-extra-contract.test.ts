@@ -27,11 +27,11 @@ describe('opExtraContract', () => {
   });
 
   describe('invalid extra ops', () => {
-    it.each(REQUIRED_FIELDS)('INVALID: {no %s} => throws "Required"', (field) => {
+    it.each(REQUIRED_FIELDS)('INVALID: {no %s} => throws "received undefined"', (field) => {
       const incomplete: Record<string, unknown> = { ...OpExtraStub() };
       Reflect.deleteProperty(incomplete, field);
 
-      expect(() => opExtraContract.parse(incomplete)).toThrow(/Required/u);
+      expect(() => opExtraContract.parse(incomplete)).toThrow(/received undefined/u);
     });
 
     it('INVALID: {verb: "set"} => throws naming the reserved verb', () => {
@@ -48,7 +48,7 @@ describe('opExtraContract', () => {
           verb: 'withNestedChain',
           args: {},
         }),
-      ).toThrow(/Invalid literal value/u);
+      ).toThrow(/Invalid input: expected/u);
     });
   });
 });

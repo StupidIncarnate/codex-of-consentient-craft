@@ -70,67 +70,67 @@ describe('workItemRoleContract', () => {
     it('INVALID: unknown role => throws validation error', () => {
       expect(() => {
         workItemRoleContract.parse('unknown_role');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: pesteater => throws validation error (removed role)', () => {
       expect(() => {
         workItemRoleContract.parse('pesteater');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: groundstomper => throws validation error (removed role)', () => {
       expect(() => {
         workItemRoleContract.parse('groundstomper');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: pathseeker => throws validation error (removed role)', () => {
       expect(() => {
         workItemRoleContract.parse('pathseeker');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: pathseeker-surface => throws validation error (removed role)', () => {
       expect(() => {
         workItemRoleContract.parse('pathseeker-surface');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: lawbringer => throws validation error (removed role)', () => {
       expect(() => {
         workItemRoleContract.parse('lawbringer');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: blightwarden-security-minion => throws validation error (removed role)', () => {
       expect(() => {
         workItemRoleContract.parse('blightwarden-security-minion');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: blightwarden-dedup-minion => throws validation error (removed role)', () => {
       expect(() => {
         workItemRoleContract.parse('blightwarden-dedup-minion');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: blightwarden-perf-minion => throws validation error (removed role)', () => {
       expect(() => {
         workItemRoleContract.parse('blightwarden-perf-minion');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: blightwarden-integrity-minion => throws validation error (removed role)', () => {
       expect(() => {
         workItemRoleContract.parse('blightwarden-integrity-minion');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: blightwarden-dead-code-minion => throws validation error (removed role)', () => {
       expect(() => {
         workItemRoleContract.parse('blightwarden-dead-code-minion');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
   });
 });

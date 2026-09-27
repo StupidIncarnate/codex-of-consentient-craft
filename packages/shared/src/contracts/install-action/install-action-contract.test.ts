@@ -32,37 +32,37 @@ describe('installActionContract', () => {
     it('INVALID: {action: "unknown"} => throws ZodError', () => {
       expect(() => {
         return installActionContract.parse('unknown');
-      }).toThrow('Invalid enum value');
+      }).toThrow('Invalid option');
     });
 
     it('INVALID: {action: "deleted"} => throws ZodError', () => {
       expect(() => {
         return installActionContract.parse('deleted');
-      }).toThrow('Invalid enum value');
+      }).toThrow('Invalid option');
     });
 
     it('INVALID: {action: ""} => throws ZodError', () => {
       expect(() => {
         return installActionContract.parse('');
-      }).toThrow('Invalid enum value');
+      }).toThrow('Invalid option');
     });
 
     it('INVALID: {action: 123} => throws ZodError', () => {
       expect(() => {
         return installActionContract.parse(123);
-      }).toThrow('received number');
+      }).toThrow('Invalid option: expected one of');
     });
 
     it('INVALID: {action: null} => throws ZodError', () => {
       expect(() => {
         return installActionContract.parse(null);
-      }).toThrow('received null');
+      }).toThrow('Invalid option: expected one of');
     });
 
     it('INVALID: {action: undefined} => throws ZodError', () => {
       expect(() => {
         return installActionContract.parse(undefined);
-      }).toThrow('Required');
+      }).toThrow('Invalid option: expected one of');
     });
   });
 });

@@ -49,13 +49,13 @@ describe('flowObservableNodeDataContract', () => {
 
     it('INVALID: {outcomeType: bogus} => throws for invalid outcomeType', () => {
       expect(() => FlowObservableNodeDataStub({ outcomeType: 'bogus' as never })).toThrow(
-        /Invalid enum value/u,
+        /Invalid option/u,
       );
     });
 
     it('INVALID: {commentCount: -1} => throws for negative commentCount', () => {
       expect(() => FlowObservableNodeDataStub({ commentCount: -1 as never })).toThrow(
-        /Number must be greater than or equal to 0/u,
+        /expected number to be >=0/u,
       );
     });
 
@@ -68,7 +68,7 @@ describe('flowObservableNodeDataContract', () => {
           package: { name: 'auth-service', packageType: 'library' },
           commentCount: 0,
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('EMPTY: {no package} => throws, so no assertion card can render without naming its side', () => {
@@ -80,7 +80,7 @@ describe('flowObservableNodeDataContract', () => {
           commentCount: 0,
           nodeId: 'login-page',
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 
@@ -126,7 +126,7 @@ describe('flowObservableNodeDataContract', () => {
 
     it('INVALID: {questId: ""} => throws for empty questId', () => {
       expect(() => FlowObservableNodeDataStub({ questId: '' as never })).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
 

@@ -27,12 +27,12 @@ describe('bootFailureMarkerContract', () => {
     it('INVALID: {message: 123} => throws validation error', () => {
       expect(() =>
         bootFailureMarkerContract.parse({ message: 123, atMs: 1_700_000_000_000 }),
-      ).toThrow(/Expected string/u);
+      ).toThrow(/expected string/u);
     });
 
     it('INVALID: {missing atMs} => throws validation error', () => {
       expect(() => bootFailureMarkerContract.parse({ message: 'boot failed' })).toThrow(
-        /Required/u,
+        /received undefined/u,
       );
     });
   });

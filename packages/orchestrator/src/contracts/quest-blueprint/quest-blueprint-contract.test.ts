@@ -107,7 +107,7 @@ describe('questBlueprintContract', () => {
           toolingRequirements: [],
           operations: [],
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {userRequest missing} => throws validation error', () => {
@@ -120,7 +120,7 @@ describe('questBlueprintContract', () => {
           toolingRequirements: [],
           operations: [],
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {skipRoles: ["bogus"]} => throws validation error', () => {
@@ -135,7 +135,7 @@ describe('questBlueprintContract', () => {
           operations: [],
           skipRoles: ['bogus' as never],
         });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {targetStatus: "nonsense"} => throws validation error', () => {
@@ -150,7 +150,7 @@ describe('questBlueprintContract', () => {
           operations: [],
           targetStatus: 'nonsense' as never,
         });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {fixedQuestId: ""} => throws validation error', () => {
@@ -165,7 +165,7 @@ describe('questBlueprintContract', () => {
           operations: [],
           fixedQuestId: '',
         });
-      }).toThrow(/String must contain at least 1/u);
+      }).toThrow(/Too small: expected string to have >=1 characters/u);
     });
 
     it('INVALID: {fixedWorkItemId: "not-a-uuid"} => throws validation error', () => {
@@ -180,7 +180,7 @@ describe('questBlueprintContract', () => {
           operations: [],
           fixedWorkItemId: 'not-a-uuid',
         });
-      }).toThrow(/Invalid uuid/u);
+      }).toThrow(/Invalid UUID/u);
     });
   });
 });

@@ -18,7 +18,7 @@ describe('platformContract', () => {
 
   describe('invalid inputs', () => {
     it('INVALID: {value: "library"} => throws validation error', () => {
-      expect(() => platformContract.parse('library')).toThrow(/Invalid enum value/u);
+      expect(() => platformContract.parse('library')).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {value: 1} => throws validation error', () => {

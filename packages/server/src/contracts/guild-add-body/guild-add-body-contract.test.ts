@@ -14,7 +14,7 @@ describe('guildAddBodyContract', () => {
     it('INVALID: {missing path} => throws validation error', () => {
       expect(() => {
         guildAddBodyContract.parse({ name: 'g' });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

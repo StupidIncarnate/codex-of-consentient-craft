@@ -46,13 +46,13 @@ describe('toolUseBlockParamContract', () => {
           name: 'Bash',
           input: {},
         }),
-      ).toThrow(/Invalid literal value/u);
+      ).toThrow(/Invalid input: expected/u);
     });
 
     it('INVALID: {id missing} => throws on missing required field', () => {
       expect(() =>
         toolUseBlockParamContract.parse({ type: 'tool_use', name: 'Bash', input: {} }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {id: ""} => throws on empty id', () => {
@@ -68,7 +68,7 @@ describe('toolUseBlockParamContract', () => {
           id: 'toolu_abc',
           input: {},
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 });

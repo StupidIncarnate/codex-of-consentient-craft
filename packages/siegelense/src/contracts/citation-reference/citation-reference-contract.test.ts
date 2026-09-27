@@ -36,7 +36,7 @@ describe('citationReferenceContract', () => {
     it('INVALID: {kind: "prelude"} => an unlisted citation kind throws', () => {
       expect(() => {
         CitationReferenceStub({ kind: 'prelude' as never });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {runId: "run_zero"} => a malformed run id throws rather than reaching a refusal sentence', () => {

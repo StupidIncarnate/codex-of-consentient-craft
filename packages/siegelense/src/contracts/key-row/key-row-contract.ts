@@ -52,7 +52,7 @@ export const keyRowContract = z.object({
   attrs: z.array(attrPairContract).readonly(),
   attrsDropped: readingCountContract,
   flags: z.array(elementFlagContract).readonly(),
-  flagDetail: z.record(contentTextContract).readonly(),
+  flagDetail: z.record(z.string().brand<'ElementFlagName'>(), contentTextContract).readonly(),
 });
 
 export type KeyRow = z.infer<typeof keyRowContract>;

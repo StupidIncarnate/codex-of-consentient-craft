@@ -52,7 +52,7 @@ describe('profileObservationContract', () => {
           measuredAtMs: 1_700_000_600_000,
           pools: [{ poolSize: 0, peakMB: 2600, steadySumMB: 12_600, steadyBeats: 7 }],
         });
-      }).toThrow(/greater than 0/u);
+      }).toThrow(/to be >0/u);
     });
 
     it('INVALID: {peakMB: -1} => throws', () => {
@@ -64,7 +64,7 @@ describe('profileObservationContract', () => {
           measuredAtMs: 1_700_000_600_000,
           pools: [{ poolSize: 1, peakMB: -1, steadySumMB: 12_600, steadyBeats: 7 }],
         });
-      }).toThrow(/greater than or equal to 0/u);
+      }).toThrow(/to be >=0/u);
     });
 
     it('INVALID: {no specHash} => throws, a profile record without its key cannot be filed', () => {
@@ -75,7 +75,7 @@ describe('profileObservationContract', () => {
           measuredAtMs: 1_700_000_600_000,
           pools: [],
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

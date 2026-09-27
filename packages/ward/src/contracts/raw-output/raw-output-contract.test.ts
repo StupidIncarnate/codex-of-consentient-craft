@@ -36,11 +36,11 @@ describe('rawOutputContract', () => {
           stderr: '',
           exitCode: 'zero' as never,
         }),
-      ).toThrow(/Expected number/u);
+      ).toThrow(/expected number/u);
     });
 
     it('INVALID: {missing all fields} => throws validation error', () => {
-      expect(() => rawOutputContract.parse({})).toThrow(/Required/u);
+      expect(() => rawOutputContract.parse({})).toThrow(/received undefined/u);
     });
   });
 

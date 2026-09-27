@@ -37,7 +37,7 @@ describe('workItemStatusMetadataContract', () => {
           isSkipped: false,
           isFailure: false,
         }),
-      ).toThrow('Required');
+      ).toThrow('received undefined');
     });
 
     it('ERROR: {non-boolean flag} => throws validation error', () => {
@@ -51,7 +51,7 @@ describe('workItemStatusMetadataContract', () => {
           isSkipped: false,
           isFailure: false,
         }),
-      ).toThrow('Expected boolean, received string');
+      ).toThrow('Invalid input: expected boolean, received string');
     });
   });
 

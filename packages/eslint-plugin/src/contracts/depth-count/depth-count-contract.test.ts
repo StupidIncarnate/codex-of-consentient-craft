@@ -29,18 +29,18 @@ describe('DepthCountStub', () => {
   it('INVALID: {value: -1} => throws ZodError', () => {
     expect(() => {
       return depthCountContract.parse(-1);
-    }).toThrow(/Number must be greater than or equal to 0/u);
+    }).toThrow(/expected number to be >=0/u);
   });
 
   it('INVALID: {value: 1.5} => throws ZodError', () => {
     expect(() => {
       return DepthCountStub({ value: 1.5 });
-    }).toThrow(/Expected integer, received float/u);
+    }).toThrow(/expected int, received number/u);
   });
 
   it('INVALID: {value: "3"} => throws ZodError', () => {
     expect(() => {
       return DepthCountStub({ value: '3' as never });
-    }).toThrow(/Expected number, received string/u);
+    }).toThrow(/expected number, received string/u);
   });
 });

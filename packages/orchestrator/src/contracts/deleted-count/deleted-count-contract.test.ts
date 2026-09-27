@@ -30,7 +30,7 @@ describe('deletedCountContract', () => {
     it('INVALID: {decimal number} => throws validation error', () => {
       expect(() => {
         deletedCountContract.parse(1.5);
-      }).toThrow(/integer/u);
+      }).toThrow(/Invalid input: expected int, received number/u);
     });
   });
 });

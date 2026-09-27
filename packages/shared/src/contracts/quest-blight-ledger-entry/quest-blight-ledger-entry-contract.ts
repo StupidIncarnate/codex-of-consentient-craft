@@ -74,8 +74,7 @@ export const questBlightLedgerEntryContract = z.object({
       'For `fixed`: every other place the same value renders or the same logic runs, that was checked for the identical defect. A fix without a ripple list is half a fix. Repo-relative so the persisted ledger stays portable across machines.',
     ),
   workItemId: questWorkItemIdContract,
-  createdAt: z
-    .string()
+  createdAt: z.iso
     .datetime()
     .brand<'IsoTimestamp'>()
     .describe(

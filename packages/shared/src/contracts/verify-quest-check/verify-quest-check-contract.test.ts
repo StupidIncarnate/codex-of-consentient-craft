@@ -42,7 +42,7 @@ describe('verifyQuestCheckContract', () => {
     it('INVALID: {missing all fields} => throws validation error', () => {
       expect(() => {
         return verifyQuestCheckContract.parse({});
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

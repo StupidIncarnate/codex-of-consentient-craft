@@ -9,12 +9,14 @@ describe('orchestrationEventsStateModuleContract', (): void => {
   });
 
   it('ERROR: {missing orchestrationEventsState} => throws', (): void => {
-    expect((): unknown => orchestrationEventsStateModuleContract.parse({})).toThrow(/Required/u);
+    expect((): unknown => orchestrationEventsStateModuleContract.parse({})).toThrow(
+      /received undefined/u,
+    );
   });
 
   it('ERROR: {non-object module} => throws', (): void => {
     expect((): unknown => orchestrationEventsStateModuleContract.parse('foo')).toThrow(
-      /Expected object/u,
+      /expected object/u,
     );
   });
 

@@ -22,7 +22,7 @@ describe('workItemIdContract', () => {
     });
 
     it('INVALID: {value: 123} => throws validation error', () => {
-      expect(() => workItemIdContract.parse(123 as never)).toThrow(/Expected string/u);
+      expect(() => workItemIdContract.parse(123 as never)).toThrow(/expected string/u);
     });
   });
 });

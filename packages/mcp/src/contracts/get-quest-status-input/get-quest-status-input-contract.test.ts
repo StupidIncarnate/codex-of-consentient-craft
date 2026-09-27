@@ -18,13 +18,13 @@ describe('getQuestStatusInputContract', () => {
     it('INVALID: {processId: empty string} => throws validation error', () => {
       expect(() => {
         getQuestStatusInputContract.parse({ processId: '' });
-      }).toThrow(/String must contain at least 1 character/u);
+      }).toThrow(/expected string to have >=1 characters/u);
     });
 
     it('INVALID: {processId: missing} => throws validation error', () => {
       expect(() => {
         getQuestStatusInputContract.parse({});
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {unknown key} => throws Unrecognized key error', () => {

@@ -8,6 +8,6 @@
 
 import { z } from 'zod';
 
-export const isoTimestampContract = z.string().datetime().brand<'IsoTimestamp'>();
+export const isoTimestampContract = z.iso.datetime().brand<'IsoTimestamp'>();
 
 export type IsoTimestamp = z.infer<typeof isoTimestampContract>;

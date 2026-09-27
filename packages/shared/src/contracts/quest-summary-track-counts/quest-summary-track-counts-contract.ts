@@ -52,31 +52,26 @@ import { z } from 'zod';
 
 import { verificationTrackContract } from '../verification-track/verification-track-contract';
 
-const trackUnitCountContract = z.number().int().nonnegative().brand<'TrackUnitCount'>();
+// `.default()` before `.brand()`, baked in here rather than at each use site below — zod v4
+// checks a `.default()` literal against the schema's own output type, and a bare number can never
+// satisfy a branded type. Every use of this contract wants the same default anyway.
+const trackUnitCountContract = z.number().int().nonnegative().default(0).brand<'TrackUnitCount'>();
 
 export const questSummaryTrackCountsContract = z
   .object({
     id: verificationTrackContract,
-    met: trackUnitCountContract
-      .default(0)
-      .describe(
-        "Units in THIS track's denominator that a work item of THIS track marked `met` — settled, it holds. A `met` another track wrote on the same unit belongs to that track's row and is excluded from this one.",
-      ),
-    cantMeet: trackUnitCountContract
-      .default(0)
-      .describe(
-        "Units in THIS track's denominator that a work item of THIS track marked `cant-meet` — settled, because this layer genuinely cannot confirm them. Settled is not proven: each one is carried whole in the summary's debt list, the only place its evidence and its next action surface. Excludes what another track could not meet.",
-      ),
-    unmet: trackUnitCountContract
-      .default(0)
-      .describe(
-        "Units in THIS track's denominator that a work item of THIS track marked `unmet` — NOT settled: work is outstanding right now and a successor is minted for exactly these. Never folded into `outstanding`, because a session looked at these and left them open. Excludes what another track left unmet.",
-      ),
-    outstanding: trackUnitCountContract
-      .default(0)
-      .describe(
-        "Units in THIS track's denominator carrying NO mark from this track at all — nobody has looked yet. This is the track's work list, and nothing refuses a `done` over it. Excludes every unit outside this track's step scope, which is not in the denominator to begin with.",
-      ),
+    met: trackUnitCountContract.describe(
+      "Units in THIS track's denominator that a work item of THIS track marked `met` — settled, it holds. A `met` another track wrote on the same unit belongs to that track's row and is excluded from this one.",
+    ),
+    cantMeet: trackUnitCountContract.describe(
+      "Units in THIS track's denominator that a work item of THIS track marked `cant-meet` — settled, because this layer genuinely cannot confirm them. Settled is not proven: each one is carried whole in the summary's debt list, the only place its evidence and its next action surface. Excludes what another track could not meet.",
+    ),
+    unmet: trackUnitCountContract.describe(
+      "Units in THIS track's denominator that a work item of THIS track marked `unmet` — NOT settled: work is outstanding right now and a successor is minted for exactly these. Never folded into `outstanding`, because a session looked at these and left them open. Excludes what another track left unmet.",
+    ),
+    outstanding: trackUnitCountContract.describe(
+      "Units in THIS track's denominator carrying NO mark from this track at all — nobody has looked yet. This is the track's work list, and nothing refuses a `done` over it. Excludes every unit outside this track's step scope, which is not in the denominator to begin with.",
+    ),
   })
   .strict();
 

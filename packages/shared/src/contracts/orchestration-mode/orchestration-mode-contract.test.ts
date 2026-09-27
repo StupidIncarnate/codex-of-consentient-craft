@@ -21,10 +21,10 @@ describe('orchestrationModeContract', () => {
   });
 
   it('INVALID: {value: "hybrid"} => throws', () => {
-    expect(() => orchestrationModeContract.parse('hybrid')).toThrow(/Invalid enum value/u);
+    expect(() => orchestrationModeContract.parse('hybrid')).toThrow(/Invalid option/u);
   });
 
   it('INVALID: {value: ""} => throws', () => {
-    expect(() => orchestrationModeContract.parse('')).toThrow(/Invalid enum value/u);
+    expect(() => orchestrationModeContract.parse('')).toThrow(/Invalid option/u);
   });
 });

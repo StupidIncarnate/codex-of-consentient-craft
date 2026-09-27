@@ -17,14 +17,14 @@
  * contract instead when you need `.omit()`/`.shape` — see that file's own header for why.
  */
 
-import { z } from 'zod';
+import type { z } from 'zod';
 
 import { unitObservationFieldsContract } from '../unit-observation-fields/unit-observation-fields-contract';
 
 export const unitObservationContract = unitObservationFieldsContract.superRefine((value, ctx) => {
   if (value.mark === 'cant-meet' && value.toSettle === undefined) {
     ctx.addIssue({
-      code: z.ZodIssueCode.custom,
+      code: 'custom',
       path: ['toSettle'],
       message:
         "toSettle is required when mark is 'cant-meet' — it names the action that WOULD settle " +
@@ -33,7 +33,7 @@ export const unitObservationContract = unitObservationFieldsContract.superRefine
   }
   if (value.mark !== 'cant-meet' && value.toSettle !== undefined) {
     ctx.addIssue({
-      code: z.ZodIssueCode.custom,
+      code: 'custom',
       path: ['toSettle'],
       message:
         "toSettle is only valid when mark is 'cant-meet'. 'met' has already settled the unit; " +

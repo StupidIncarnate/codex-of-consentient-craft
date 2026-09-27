@@ -1,14 +1,14 @@
 /**
- * ESLint rule name contract - branded string for ESLint rule names.
- *
- * PURPOSE: Validates and brands ESLint rule name strings (non-empty strings)
+ * PURPOSE: A key into `eslintRulesContract`'s record — a plugin-qualified ESLint rule name (e.g.
+ * `'@typescript-eslint/no-explicit-any'`). A caller reading or writing a known rule name re-parses
+ * it through this contract to index or write the branded `Record` that field returns.
  *
  * USAGE:
- * const ruleName = eslintRuleNameContract.parse('no-console');
- * // Returns branded EslintRuleName; throws on empty string
+ * eslintRuleNameContract.parse('@typescript-eslint/no-explicit-any');
+ * // Returns a branded EslintRuleName
  */
 import { z } from 'zod';
 
-export const eslintRuleNameContract = z.string().min(1).brand<'EslintRuleName'>();
+export const eslintRuleNameContract = z.string().brand<'EslintRuleName'>();
 
 export type EslintRuleName = z.infer<typeof eslintRuleNameContract>;

@@ -17,7 +17,7 @@ describe('workPlanFieldsContract', () => {
 
     it("INVALID: {family: 'warpgate'} => refused, since warpgate holds no plan step", () => {
       expect(() => WorkPlanFieldsStub({ family: 'warpgate' as never })).toThrow(
-        /Invalid enum value.*received 'warpgate'/su,
+        /Invalid option: expected one of/su,
       );
     });
   });
@@ -89,11 +89,13 @@ describe('workPlanFieldsContract', () => {
     });
 
     it('INVALID: {writtenAt not an ISO datetime} => refused', () => {
-      expect(() => WorkPlanFieldsStub({ writtenAt: '2026-01-01' })).toThrow(/Invalid datetime/u);
+      expect(() => WorkPlanFieldsStub({ writtenAt: '2026-01-01' })).toThrow(
+        /Invalid ISO datetime/u,
+      );
     });
 
     it('INVALID: {operationItemId not a uuid} => refused', () => {
-      expect(() => WorkPlanFieldsStub({ operationItemId: 'pc-badge' })).toThrow(/Invalid uuid/u);
+      expect(() => WorkPlanFieldsStub({ operationItemId: 'pc-badge' })).toThrow(/Invalid UUID/u);
     });
   });
 });

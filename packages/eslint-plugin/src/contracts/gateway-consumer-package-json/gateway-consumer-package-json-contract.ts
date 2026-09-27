@@ -26,7 +26,7 @@ const gatewayImportsTargetContract = z.union([
       require: z.string().brand<'GatewayImportsTarget'>().optional(),
       default: z.string().brand<'GatewayImportsTarget'>().optional(),
     })
-    .passthrough(),
+    .loose(),
 ]);
 
 export const gatewayConsumerPackageJsonContract = z
@@ -38,6 +38,6 @@ export const gatewayConsumerPackageJsonContract = z
     dependencies: z.record(packageNameContract, z.string().brand<'DepVersion'>()).optional(),
     devDependencies: z.record(packageNameContract, z.string().brand<'DepVersion'>()).optional(),
   })
-  .passthrough();
+  .loose();
 
 export type GatewayConsumerPackageJson = z.infer<typeof gatewayConsumerPackageJsonContract>;

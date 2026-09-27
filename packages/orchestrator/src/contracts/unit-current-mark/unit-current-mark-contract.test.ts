@@ -68,27 +68,27 @@ describe('unitCurrentMarkContract', () => {
     });
 
     it("INVALID: {mark: 'confirmed'} => refused, since the sign-off verdicts are a different vocabulary", () => {
-      expect(() => UnitCurrentMarkStub({ mark: 'confirmed' as never })).toThrow(
-        /Invalid enum value/u,
-      );
+      expect(() => UnitCurrentMarkStub({ mark: 'confirmed' as never })).toThrow(/Invalid option/u);
     });
 
     it('EMPTY: {evidence: empty string} => refused', () => {
       expect(() => UnitCurrentMarkStub({ evidence: '' })).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
 
     it("INVALID: {workItemId: 'wi1'} => refused, since a work item id is a uuid", () => {
-      expect(() => UnitCurrentMarkStub({ workItemId: 'wi1' })).toThrow(/Invalid uuid/u);
+      expect(() => UnitCurrentMarkStub({ workItemId: 'wi1' })).toThrow(/Invalid UUID/u);
     });
 
     it("INVALID: {at: '2026-01-01'} => refused, since a date alone is not an ISO datetime", () => {
-      expect(() => UnitCurrentMarkStub({ at: '2026-01-01' })).toThrow(/Invalid datetime/u);
+      expect(() => UnitCurrentMarkStub({ at: '2026-01-01' })).toThrow(/Invalid ISO datetime/u);
     });
 
     it('EMPTY: {mark: null} => refused, since an absent mark is the transformer returning null', () => {
-      expect(() => UnitCurrentMarkStub({ mark: null as never })).toThrow(/Expected/u);
+      expect(() => UnitCurrentMarkStub({ mark: null as never })).toThrow(
+        /Invalid option: expected one of \\"met\\"\|\\"cant-meet\\"\|\\"unmet\\"/u,
+      );
     });
   });
 });

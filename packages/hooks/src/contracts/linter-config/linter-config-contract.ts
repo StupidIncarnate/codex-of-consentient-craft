@@ -7,8 +7,10 @@
  */
 import { z } from 'zod';
 
+import { eslintRuleNameContract } from '../eslint-rule-name/eslint-rule-name-contract';
+
 export const linterConfigContract = z.object({
-  rules: z.record(z.unknown()).optional(),
+  rules: z.record(eslintRuleNameContract, z.unknown()).optional(),
   files: z.array(z.string().brand<'FilePattern'>()).optional(),
   plugins: z.unknown().optional(), // ESLint plugins configuration
   languageOptions: z.unknown().optional(), // TypeScript parser and parser options

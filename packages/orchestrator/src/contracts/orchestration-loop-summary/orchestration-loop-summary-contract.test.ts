@@ -18,7 +18,7 @@ describe('orchestrationLoopSummaryContract', () => {
   describe('invalid input', () => {
     it('INVALID: {value: number} => throws ZodError', () => {
       expect(() => orchestrationLoopSummaryContract.parse(123 as never)).toThrow(
-        /Expected string/u,
+        /expected string/u,
       );
     });
   });

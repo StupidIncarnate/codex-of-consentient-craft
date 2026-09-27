@@ -24,7 +24,7 @@ describe('fileNameContract', () => {
     it('INVALID: {value: number} => throws validation error', () => {
       expect(() => {
         return fileNameContract.parse(123 as never);
-      }).toThrow(/Expected string/u);
+      }).toThrow(/expected string/u);
     });
   });
 });

@@ -27,7 +27,7 @@ describe('pruneArgsContract', () => {
     it('INVALID: {isJson omitted} => throws, so the responder never has to guess which renderer was asked for', () => {
       expect(() => {
         pruneArgsContract.parse({ query: { instanceId: null, kind: null, olderThan: '7d' } });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {an extra key} => .strict() throws rather than accepting a flag nothing reads', () => {

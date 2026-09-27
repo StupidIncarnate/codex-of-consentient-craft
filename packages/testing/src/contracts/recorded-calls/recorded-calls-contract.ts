@@ -8,11 +8,14 @@
 
 import { z } from 'zod';
 
+// The schema exists for `.parse()` in the stub below, not for its inferred type: zod v4 infers a
+// bare empty `z.object({})` as `Record<string, never>`, which an array-shaped value (see
+// `RecordedCalls` below) can never satisfy, so the exported type is hand-written instead of
+// intersected with `z.infer<typeof recordedCallsContract>`.
 export const recordedCallsContract = z.object({});
 
-export type RecordedCalls = z.infer<typeof recordedCallsContract> &
-  Readonly<Pick<unknown[][], 'length'>> & {
-    map: <U>(fn: (call: unknown[], index: number) => U) => U[];
-    filter: (fn: (call: unknown[], index: number) => boolean) => unknown[][];
-    [Symbol.iterator]: () => IterableIterator<unknown[]>;
-  };
+export type RecordedCalls = Readonly<Pick<unknown[][], 'length'>> & {
+  map: <U>(fn: (call: unknown[], index: number) => U) => U[];
+  filter: (fn: (call: unknown[], index: number) => boolean) => unknown[][];
+  [Symbol.iterator]: () => IterableIterator<unknown[]>;
+};

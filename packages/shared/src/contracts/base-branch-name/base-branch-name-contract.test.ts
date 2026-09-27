@@ -17,6 +17,6 @@ describe('baseBranchNameContract', () => {
   it('INVALID: {value: "develop"} => throws validation error', () => {
     expect(() => {
       return baseBranchNameContract.parse('develop');
-    }).toThrow(/Invalid enum value/u);
+    }).toThrow(/Invalid option/u);
   });
 });

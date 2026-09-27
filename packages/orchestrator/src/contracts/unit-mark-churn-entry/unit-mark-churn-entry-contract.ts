@@ -39,7 +39,7 @@ export const unitMarkChurnEntryContract = z.object({
   // `toSettle` rides on the entry because a `cant-meet` without its instruction renders as a dead
   // end with no owner, and this walk is the surface a human reads it off.
   toSettle: z.string().min(1).brand<'ToSettleInstruction'>().nullish(),
-  at: z.string().datetime().brand<'IsoTimestamp'>(),
+  at: z.iso.datetime().brand<'IsoTimestamp'>(),
 });
 
 export type UnitMarkChurnEntry = z.infer<typeof unitMarkChurnEntryContract>;

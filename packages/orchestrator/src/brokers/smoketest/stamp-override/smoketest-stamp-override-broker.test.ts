@@ -11,8 +11,8 @@ import { smoketestStampOverrideBrokerProxy } from './smoketest-stamp-override-br
 
 type Quest = ReturnType<typeof QuestStub>;
 
-const TARGET_WORK_ITEM_ID = QuestWorkItemIdStub({ value: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' });
-const OTHER_WORK_ITEM_ID = QuestWorkItemIdStub({ value: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb' });
+const TARGET_WORK_ITEM_ID = QuestWorkItemIdStub({ value: 'e4a1c2fd-8bcf-83b0-ba4b-1818d51fc09c' });
+const OTHER_WORK_ITEM_ID = QuestWorkItemIdStub({ value: '9febc069-b4e3-2f38-bd80-34df765c3b3e' });
 const QUEST_ID = QuestIdStub({ value: 'stamp-override-quest' });
 const OVERRIDE_PROMPT = PromptTextStub({ value: 'You are a test agent. Signal complete.' });
 
@@ -104,7 +104,7 @@ describe('smoketestStampOverrideBroker', () => {
           override: OVERRIDE_PROMPT,
         }),
       ).rejects.toThrow(
-        /smoketestStampOverrideBroker: work item "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa" not found on quest/u,
+        /smoketestStampOverrideBroker: work item "e4a1c2fd-8bcf-83b0-ba4b-1818d51fc09c" not found on quest/u,
       );
     });
   });

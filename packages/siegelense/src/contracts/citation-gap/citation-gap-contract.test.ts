@@ -19,13 +19,13 @@ describe('citationGapContract', () => {
     it('INVALID: {kind: "issue"} => an unlisted citation kind throws', () => {
       expect(() => {
         CitationGapStub({ kind: 'issue' as never });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {kind omitted} => a gap with no kind throws, so a caller is never told something went unchecked without being told what', () => {
       expect(() => {
         citationGapContract.parse({ why: 'no issue record exists on disk to check' });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

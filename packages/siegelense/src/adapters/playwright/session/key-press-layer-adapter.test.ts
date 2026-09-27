@@ -60,7 +60,7 @@ describe('keyPressLayerAdapter', () => {
       const adapter = keyPressLayerAdapter();
 
       expect(() => adapter.toReading({ press: 'Enter', rawFocused: 'not-an-element' })).toThrow(
-        /Expected object/u,
+        /expected object/u,
       );
     });
   });

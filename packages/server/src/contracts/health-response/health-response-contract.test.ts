@@ -14,7 +14,7 @@ describe('healthResponseContract', () => {
     it('INVALID: {missing status} => throws validation error', () => {
       expect(() => {
         healthResponseContract.parse({ timestamp: '2024-01-01T00:00:00Z' });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

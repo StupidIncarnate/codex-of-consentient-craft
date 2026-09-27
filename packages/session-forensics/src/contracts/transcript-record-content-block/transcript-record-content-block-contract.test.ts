@@ -49,7 +49,7 @@ describe('transcriptRecordContentBlockContract', () => {
 
   describe('invalid input', () => {
     it('INVALID: {missing type} => throws', () => {
-      expect(() => transcriptRecordContentBlockContract.parse({})).toThrow(/Required/u);
+      expect(() => transcriptRecordContentBlockContract.parse({})).toThrow(/received undefined/u);
     });
 
     it('INVALID: {type: number} => throws', () => {

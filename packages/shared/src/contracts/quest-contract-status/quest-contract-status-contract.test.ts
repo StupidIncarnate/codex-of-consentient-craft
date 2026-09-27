@@ -38,13 +38,13 @@ describe('questContractStatusContract', () => {
     it('INVALID: {value: "invalid"} => throws validation error', () => {
       expect(() => {
         return questContractStatusContract.parse('invalid');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {value: ""} => throws validation error', () => {
       expect(() => {
         return questContractStatusContract.parse('');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
   });
 });

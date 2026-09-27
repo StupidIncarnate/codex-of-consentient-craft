@@ -8,6 +8,7 @@
 import type { PreEditLintConfig } from '../../contracts/pre-edit-lint-config/pre-edit-lint-config-contract';
 import type { LinterConfig } from '../../contracts/linter-config/linter-config-contract';
 import { linterConfigContract } from '../../contracts/linter-config/linter-config-contract';
+import { eslintRuleNameContract } from '../../contracts/eslint-rule-name/eslint-rule-name-contract';
 import { ruleNamesExtractTransformer } from '../rule-names-extract/rule-names-extract-transformer';
 import { rawEslintConfigToPartialTransformer } from '../raw-eslint-config-to-partial/raw-eslint-config-to-partial-transformer';
 import { rawEslintConfigContract } from '../../contracts/raw-eslint-config/raw-eslint-config-contract';
@@ -39,7 +40,7 @@ export const eslintConfigFilterTransformer = ({
     ruleNames.forEach((rule) => {
       // ESLint rules are always strings, filter out symbols
       if (typeof rule === 'string') {
-        const ruleValue = eslintRules[rule];
+        const ruleValue = eslintRules[eslintRuleNameContract.parse(rule)];
         if (ruleValue !== undefined) {
           filteredRules[rule] = ruleValue;
         }

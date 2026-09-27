@@ -26,7 +26,7 @@ describe('questDeleteBroker', () => {
 
     it('VALID: {questId, guildId, missing directory} => idempotent: force ignores ENOENT and still appends outbox', async () => {
       const questId = QuestIdStub({ value: 'already-gone' });
-      const guildId = GuildIdStub({ value: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' });
+      const guildId = GuildIdStub({ value: 'e4a1c2fd-8bcf-83b0-ba4b-1818d51fc09c' });
       const homePath = FilePathStub({ value: '/home/testuser/.dungeonmaster' });
       const questFolderPath = FilePathStub({
         value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/${questId}`,
@@ -47,7 +47,7 @@ describe('questDeleteBroker', () => {
 
     it('VALID: {questId, guildId} => appends quest-modified event via outbox with questId payload', async () => {
       const questId = QuestIdStub({ value: 'emit-event' });
-      const guildId = GuildIdStub({ value: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb' });
+      const guildId = GuildIdStub({ value: '9febc069-b4e3-2f38-bd80-34df765c3b3e' });
       const homePath = FilePathStub({ value: '/home/testuser/.dungeonmaster' });
       const questFolderPath = FilePathStub({
         value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/${questId}`,

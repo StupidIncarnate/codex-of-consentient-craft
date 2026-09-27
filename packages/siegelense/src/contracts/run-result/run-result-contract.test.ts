@@ -181,7 +181,7 @@ describe('runResultContract', () => {
           },
           shots: [],
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 

@@ -9,15 +9,15 @@ describe('stepIndexContract', () => {
   });
 
   it('INVALID: {value: 0} => throws for zero, below the first-step minimum', () => {
-    expect(() => stepIndexContract.parse(0)).toThrow(/Number must be greater than or equal to 1/u);
+    expect(() => stepIndexContract.parse(0)).toThrow(/expected number to be >=1/u);
   });
 
   it('INVALID: {value: -1} => throws for a negative number', () => {
-    expect(() => stepIndexContract.parse(-1)).toThrow(/Number must be greater than or equal to 1/u);
+    expect(() => stepIndexContract.parse(-1)).toThrow(/expected number to be >=1/u);
   });
 
   it('INVALID: {value: 1.5} => throws for a non-integer', () => {
-    expect(() => stepIndexContract.parse(1.5)).toThrow(/Expected integer, received float/u);
+    expect(() => stepIndexContract.parse(1.5)).toThrow(/expected int, received number/u);
   });
 
   it('EDGE: {value: 1} => parses at the first-step boundary', () => {

@@ -250,7 +250,7 @@ describe('registryEntryContract', () => {
           prunedAtMs: null,
           prunedByRule: null,
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {state: "starting"} => throws for an unlisted InstanceState', () => {
@@ -273,7 +273,7 @@ describe('registryEntryContract', () => {
           prunedAtMs: null,
           prunedByRule: null,
         }),
-      ).toThrow(/Invalid enum value/u);
+      ).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {questId: undefined} => an omitted-but-present key still requires a value', () => {
@@ -296,7 +296,7 @@ describe('registryEntryContract', () => {
           prunedAtMs: null,
           prunedByRule: null,
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {missing socketPath} => throws Required, because .nullable() is not .optional()', () => {
@@ -318,7 +318,7 @@ describe('registryEntryContract', () => {
           prunedAtMs: null,
           prunedByRule: null,
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 });

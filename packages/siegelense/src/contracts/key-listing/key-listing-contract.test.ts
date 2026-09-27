@@ -64,7 +64,7 @@ describe('keyListingContract', () => {
     it('INVALID: {missing rendered} => throws Required, because the key IS the navigation surface', () => {
       expect(() =>
         keyListingContract.parse({ within: null, rows: [], duplicates: [], truncated: [] }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 });

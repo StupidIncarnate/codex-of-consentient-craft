@@ -11,7 +11,7 @@ import { smoketestScenarioDriverBrokerProxy } from './smoketest-scenario-driver-
 
 const QUEST_ID = QuestIdStub({ value: 'driver-test-quest' });
 const OTHER_QUEST_ID = QuestIdStub({ value: 'other-driver-quest' });
-const WI_PENDING = QuestWorkItemIdStub({ value: 'cccccccc-cccc-cccc-cccc-cccccccccc01' });
+const WI_PENDING = QuestWorkItemIdStub({ value: '31096472-cad7-761a-94b1-19c2c934957e' });
 const CODEWEAVER_ROLE = WorkItemRoleStub({ value: 'codeweaver' });
 // Unique substring from smoketestPromptsStatics.signalComplete that survives JSON escaping.
 const SIGNAL_COMPLETE_SIGNATURE = 'smoketest-complete';

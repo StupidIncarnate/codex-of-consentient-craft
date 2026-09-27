@@ -58,7 +58,7 @@ describe('devLogToolInputFormatTransformer', () => {
   it('VALID: {MCP tool with questId} => returns short quest ID', () => {
     const result = devLogToolInputFormatTransformer({
       toolName: 'mcp__dungeonmaster__modify-quest',
-      input: { questId: 'abc12345-dead-beef-cafe-123456789012' },
+      input: { questId: '2cdcdce1-2f1c-5467-986c-8a9fd7c9b874' },
     });
 
     expect(result).toBe('quest:abc12345');

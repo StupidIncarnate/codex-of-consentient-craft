@@ -41,7 +41,7 @@ describe('commentBatchResponseContract', () => {
     it('INVALID: {missing chatProcessId} => throws validation error', () => {
       expect(() => {
         commentBatchResponseContract.parse({});
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('EMPTY: {chatProcessId: ""} => throws validation error', () => {
@@ -50,19 +50,19 @@ describe('commentBatchResponseContract', () => {
           chatProcessId: '',
           deliveredMessage: 'User Comment: This copy is wrong',
         });
-      }).toThrow(/String must contain at least 1 character/u);
+      }).toThrow(/expected string to have >=1 characters/u);
     });
 
     it('INVALID: {missing deliveredMessage} => throws validation error', () => {
       expect(() => {
         commentBatchResponseContract.parse({ chatProcessId: 'proc-12345' });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('EMPTY: {deliveredMessage: ""} => throws validation error', () => {
       expect(() => {
         commentBatchResponseContract.parse({ chatProcessId: 'proc-12345', deliveredMessage: '' });
-      }).toThrow(/String must contain at least 1 character/u);
+      }).toThrow(/expected string to have >=1 characters/u);
     });
   });
 });

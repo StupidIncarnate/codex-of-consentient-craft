@@ -278,7 +278,7 @@ describe('questContractEntryContract', () => {
           nodeId: 'some-node',
           properties: [{ name: 'field' }],
         });
-      }).toThrow(/invalid_string/u);
+      }).toThrow(/invalid_format/u);
     });
 
     it('INVALID: {name: ""} => throws validation error', () => {
@@ -318,7 +318,7 @@ describe('questContractEntryContract', () => {
           nodeId: 'some-node',
           properties: [{ name: 'field' }],
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {source: ""} => throws validation error (source must be non-empty)', () => {

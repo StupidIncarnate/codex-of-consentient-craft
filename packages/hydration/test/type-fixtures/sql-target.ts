@@ -88,11 +88,7 @@ export const userRecordContract = z.object({
 // argument is the schema's own pre-brand INPUT type: `z.ZodType<T>` alone defaults it to `T`,
 // which a branded schema's real input never satisfies.
 type UserFields = z.infer<typeof userFieldsContract>;
-const userFields: z.ZodType<
-  UserFields,
-  z.ZodTypeDef,
-  z.input<typeof userFieldsContract>
-> = userFieldsContract;
+const userFields: z.ZodType<UserFields, z.input<typeof userFieldsContract>> = userFieldsContract;
 
 export const userIngredient = sqlIngredient({
   name: 'user',
@@ -125,11 +121,7 @@ export const postRecordContract = z.object({
 
 // See `userFields`'s own comment.
 type PostFields = z.infer<typeof postFieldsContract>;
-const postFields: z.ZodType<
-  PostFields,
-  z.ZodTypeDef,
-  z.input<typeof postFieldsContract>
-> = postFieldsContract;
+const postFields: z.ZodType<PostFields, z.input<typeof postFieldsContract>> = postFieldsContract;
 
 export const postIngredient = sqlIngredient({
   name: 'post',
@@ -167,7 +159,6 @@ export const commentRecordContract = z.object({
 type CommentFields = z.infer<typeof commentFieldsContract>;
 const commentFields: z.ZodType<
   CommentFields,
-  z.ZodTypeDef,
   z.input<typeof commentFieldsContract>
 > = commentFieldsContract;
 

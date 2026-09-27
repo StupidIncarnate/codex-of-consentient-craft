@@ -30,6 +30,6 @@ describe('spawnOptionsSnapshotContract', (): void => {
   });
 
   it('ERROR: {non-object} => throws', (): void => {
-    expect((): unknown => spawnOptionsSnapshotContract.parse('foo')).toThrow(/Expected object/u);
+    expect((): unknown => spawnOptionsSnapshotContract.parse('foo')).toThrow(/expected object/u);
   });
 });

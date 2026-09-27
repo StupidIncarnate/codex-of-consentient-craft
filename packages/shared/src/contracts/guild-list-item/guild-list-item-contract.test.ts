@@ -41,7 +41,7 @@ describe('guildListItemContract', () => {
     it('INVALID: missing required fields => throws validation error', () => {
       expect(() => {
         guildListItemContract.parse({});
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: negative questCount => throws validation error', () => {
@@ -52,7 +52,7 @@ describe('guildListItemContract', () => {
           ...baseItem,
           questCount: -1,
         });
-      }).toThrow(/Number must be greater than or equal to 0/u);
+      }).toThrow(/expected number to be >=0/u);
     });
 
     it('INVALID: non-integer questCount => throws validation error', () => {
@@ -63,7 +63,7 @@ describe('guildListItemContract', () => {
           ...baseItem,
           questCount: 1.5,
         });
-      }).toThrow(/Expected integer/u);
+      }).toThrow(/expected int/u);
     });
   });
 });

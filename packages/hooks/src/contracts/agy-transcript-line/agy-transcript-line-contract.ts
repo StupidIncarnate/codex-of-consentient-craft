@@ -14,7 +14,7 @@ export const agyTranscriptLineContract = z
       .array(
         z.object({
           name: z.string().optional(),
-          args: z.record(z.unknown()).optional(),
+          args: z.record(z.string(), z.unknown()).optional(),
         }),
       )
       .optional(),

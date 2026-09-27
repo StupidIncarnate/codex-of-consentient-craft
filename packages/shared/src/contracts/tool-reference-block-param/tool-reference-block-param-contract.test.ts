@@ -29,19 +29,19 @@ describe('toolReferenceBlockParamContract', () => {
           type: 'text',
           tool_name: 'Bash',
         }),
-      ).toThrow(/Invalid literal value/u);
+      ).toThrow(/Invalid input: expected/u);
     });
 
     it('INVALID: {tool_name missing} => throws on missing required field', () => {
       expect(() => toolReferenceBlockParamContract.parse({ type: 'tool_reference' })).toThrow(
-        /Required/u,
+        /received undefined/u,
       );
     });
 
     it('INVALID: {tool_name: 123} => throws on non-string tool_name', () => {
       expect(() =>
         toolReferenceBlockParamContract.parse({ type: 'tool_reference', tool_name: 123 as never }),
-      ).toThrow(/Expected string/u);
+      ).toThrow(/expected string/u);
     });
   });
 });

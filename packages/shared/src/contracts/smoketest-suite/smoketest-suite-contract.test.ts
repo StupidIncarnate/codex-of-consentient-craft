@@ -10,6 +10,6 @@ describe('smoketestSuiteContract', () => {
   );
 
   it('INVALID: {value: "nope"} => throws', () => {
-    expect(() => smoketestSuiteContract.parse('nope')).toThrow(/Invalid enum value/u);
+    expect(() => smoketestSuiteContract.parse('nope')).toThrow(/Invalid option/u);
   });
 });

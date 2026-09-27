@@ -30,7 +30,7 @@ export const userToolResultStreamLineContract = z.object({
   // object branch first — string and array values do not carry the field.
   toolUseResult: z
     .union([
-      z.object({ agentId: z.string().brand<'AgentIdCorrelation'>().optional() }).passthrough(),
+      z.object({ agentId: z.string().brand<'AgentIdCorrelation'>().optional() }).loose(),
       z.array(z.unknown()),
       z.string().brand<'ToolUseResultErrorMessage'>(),
     ])

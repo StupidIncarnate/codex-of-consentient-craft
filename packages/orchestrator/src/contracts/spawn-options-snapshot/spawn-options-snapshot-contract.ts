@@ -9,12 +9,16 @@
  */
 import { z } from 'zod';
 
+import { spawnOptionsEnvNameContract } from '../spawn-options-env-name/spawn-options-env-name-contract';
+
 export const spawnOptionsSnapshotContract = z
   .object({
     cwd: z.string().brand<'SpawnOptionsCwd'>().optional(),
-    env: z.record(z.string().brand<'SpawnOptionsEnvValue'>()).optional(),
+    env: z
+      .record(spawnOptionsEnvNameContract, z.string().brand<'SpawnOptionsEnvValue'>())
+      .optional(),
     stdio: z.array(z.string().brand<'SpawnOptionsStdioMode'>()).optional(),
   })
-  .passthrough();
+  .loose();
 
 export type SpawnOptionsSnapshot = z.infer<typeof spawnOptionsSnapshotContract>;

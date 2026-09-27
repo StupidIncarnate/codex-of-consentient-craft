@@ -18,17 +18,15 @@ describe('totalCountContract', () => {
 
   describe('invalid inputs', () => {
     it('INVALID: {value: -1} => throws for negative number', () => {
-      expect(() => totalCountContract.parse(-1)).toThrow(
-        /Number must be greater than or equal to 0/u,
-      );
+      expect(() => totalCountContract.parse(-1)).toThrow(/expected number to be >=0/u);
     });
 
     it('INVALID: {value: 2.5} => throws for non-integer', () => {
-      expect(() => totalCountContract.parse(2.5)).toThrow(/Expected integer/u);
+      expect(() => totalCountContract.parse(2.5)).toThrow(/expected int/u);
     });
 
     it('INVALID: {value: "8"} => throws for string', () => {
-      expect(() => totalCountContract.parse('8')).toThrow(/Expected number/u);
+      expect(() => totalCountContract.parse('8')).toThrow(/expected number/u);
     });
   });
 

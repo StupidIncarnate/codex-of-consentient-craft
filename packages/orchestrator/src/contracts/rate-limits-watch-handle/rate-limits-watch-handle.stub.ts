@@ -5,8 +5,11 @@ import type { RateLimitsWatchHandle } from './rate-limits-watch-handle-contract'
 
 export const RateLimitsWatchHandleStub = ({
   ...props
-}: StubArgument<RateLimitsWatchHandle> = {}): RateLimitsWatchHandle =>
-  rateLimitsWatchHandleContract.parse({
-    stop: (): void => undefined,
-    ...props,
-  });
+}: StubArgument<RateLimitsWatchHandle> = {}): RateLimitsWatchHandle => {
+  const { stop, ...dataProps } = props;
+
+  return {
+    ...rateLimitsWatchHandleContract.parse(dataProps),
+    stop: stop ?? ((): void => undefined),
+  };
+};

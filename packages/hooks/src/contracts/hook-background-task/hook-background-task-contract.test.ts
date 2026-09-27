@@ -35,13 +35,13 @@ describe('hookBackgroundTaskContract', () => {
   describe('invalid tasks', () => {
     it('INVALID: {id: ""} => throws, because an unidentifiable task cannot be reported back', () => {
       expect(() => hookBackgroundTaskContract.parse({ id: '', status: 'running' })).toThrow(
-        /at least 1 character/u,
+        />=1 characters/u,
       );
     });
 
     it('INVALID: {status: ""} => throws, because an empty status decides nothing', () => {
       expect(() => hookBackgroundTaskContract.parse({ id: 'bcibjy15w', status: '' })).toThrow(
-        /at least 1 character/u,
+        />=1 characters/u,
       );
     });
   });

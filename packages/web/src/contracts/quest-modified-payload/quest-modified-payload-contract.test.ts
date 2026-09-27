@@ -19,7 +19,7 @@ describe('questModifiedPayloadContract', () => {
     it('INVALID: {missing questId} => throws validation error', () => {
       expect(() => {
         questModifiedPayloadContract.parse({ quest: {} });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

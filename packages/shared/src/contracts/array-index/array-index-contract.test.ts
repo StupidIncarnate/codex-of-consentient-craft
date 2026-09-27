@@ -24,17 +24,15 @@ describe('arrayIndexContract', () => {
 
   describe('invalid index values', () => {
     it('ERROR: -1 => throws for negative number', () => {
-      expect(() => arrayIndexContract.parse(-1)).toThrow(
-        /Number must be greater than or equal to 0/u,
-      );
+      expect(() => arrayIndexContract.parse(-1)).toThrow(/expected number to be >=0/u);
     });
 
     it('ERROR: 1.5 => throws for non-integer', () => {
-      expect(() => arrayIndexContract.parse(1.5)).toThrow(/Expected integer, received float/u);
+      expect(() => arrayIndexContract.parse(1.5)).toThrow(/expected int, received number/u);
     });
 
     it('ERROR: "0" => throws for string', () => {
-      expect(() => arrayIndexContract.parse('0')).toThrow(/Expected number, received string/u);
+      expect(() => arrayIndexContract.parse('0')).toThrow(/expected number, received string/u);
     });
   });
 

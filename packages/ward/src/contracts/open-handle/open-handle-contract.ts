@@ -14,7 +14,9 @@ export const openHandleContract = z.object({
   // the half that says WHAT leaked.
   message: z.string().brand<'OpenHandleMessage'>(),
   // The frames say WHERE it was opened, which is the only half that leads to a fix.
-  stack: z.string().brand<'OpenHandleStack'>().default(''),
+  // `.default()` before `.brand()` — zod v4 checks a `.default()` literal against the schema's
+  // own output type, and a bare string can never satisfy a branded type.
+  stack: z.string().default('').brand<'OpenHandleStack'>(),
 });
 
 export type OpenHandle = z.infer<typeof openHandleContract>;

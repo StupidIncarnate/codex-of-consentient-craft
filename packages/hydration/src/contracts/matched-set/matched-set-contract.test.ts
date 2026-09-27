@@ -12,7 +12,9 @@ describe('matchedSetContract', () => {
 
   describe('invalid matched sets', () => {
     it('INVALID: {no matchedRef} => throws Required', () => {
-      expect(() => matchedSetContract.parse({ ingredient: 'operation' })).toThrow(/Required/u);
+      expect(() => matchedSetContract.parse({ ingredient: 'operation' })).toThrow(
+        /received undefined/u,
+      );
     });
 
     it('INVALID: {matchedRef: \'operation\'} => throws "must be an ancestor path"', () => {

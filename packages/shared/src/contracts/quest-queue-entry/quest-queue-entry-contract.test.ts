@@ -58,19 +58,19 @@ describe('questQueueEntryContract', () => {
   it('INVALID: {empty questTitle} => throws validation error', () => {
     expect(() => {
       return QuestQueueEntryStub({ questTitle: '' as never });
-    }).toThrow(/at least 1/u);
+    }).toThrow(/>=1/u);
   });
 
   it('INVALID: {bad status enum} => throws validation error', () => {
     expect(() => {
       return QuestQueueEntryStub({ status: 'not-a-status' as never });
-    }).toThrow(/Invalid enum value/u);
+    }).toThrow(/Invalid option/u);
   });
 
   it('INVALID: {bad questSource enum} => throws validation error', () => {
     expect(() => {
       return QuestQueueEntryStub({ questSource: 'smoketest-unknown' as never });
-    }).toThrow(/Invalid enum value/u);
+    }).toThrow(/Invalid option/u);
   });
 
   it('INVALID: {bad enqueuedAt format} => throws validation error', () => {
@@ -87,6 +87,6 @@ describe('questQueueEntryContract', () => {
           at: '2024-01-15T10:06:00.000Z' as never,
         },
       });
-    }).toThrow(/at least 1/u);
+    }).toThrow(/>=1/u);
   });
 });

@@ -41,7 +41,7 @@ describe('questCommentContract', () => {
           text: 'This assertion looks wrong',
           createdAt: '2024-01-15T10:00:00.000Z',
         });
-      }).toThrow(/Invalid uuid/u);
+      }).toThrow(/Invalid UUID/u);
     });
 
     it('INVALID: {flowId: "Login Flow"} => throws validation error', () => {
@@ -53,7 +53,7 @@ describe('questCommentContract', () => {
           text: 'This assertion looks wrong',
           createdAt: '2024-01-15T10:00:00.000Z',
         });
-      }).toThrow(/invalid_string/u);
+      }).toThrow(/invalid_format/u);
     });
 
     it('INVALID: {nodeId: "Start Node"} => throws validation error', () => {
@@ -65,7 +65,7 @@ describe('questCommentContract', () => {
           text: 'This assertion looks wrong',
           createdAt: '2024-01-15T10:00:00.000Z',
         });
-      }).toThrow(/invalid_string/u);
+      }).toThrow(/invalid_format/u);
     });
 
     it('INVALID: {observableId: "Login Redirects"} => throws validation error', () => {
@@ -78,7 +78,7 @@ describe('questCommentContract', () => {
           text: 'This assertion looks wrong',
           createdAt: '2024-01-15T10:00:00.000Z',
         });
-      }).toThrow(/invalid_string/u);
+      }).toThrow(/invalid_format/u);
     });
 
     it('INVALID: {text: ""} => throws validation error', () => {
@@ -90,7 +90,7 @@ describe('questCommentContract', () => {
           text: '',
           createdAt: '2024-01-15T10:00:00.000Z',
         });
-      }).toThrow(/String must contain at least 1 character/u);
+      }).toThrow(/expected string to have >=1 characters/u);
     });
 
     it('INVALID: {createdAt: "not-a-date"} => throws validation error', () => {
@@ -102,7 +102,7 @@ describe('questCommentContract', () => {
           text: 'This assertion looks wrong',
           createdAt: 'not-a-date',
         });
-      }).toThrow(/Invalid datetime/u);
+      }).toThrow(/Invalid ISO datetime/u);
     });
 
     it('INVALID: {missing nodeId} => throws validation error', () => {
@@ -113,7 +113,7 @@ describe('questCommentContract', () => {
           text: 'This assertion looks wrong',
           createdAt: '2024-01-15T10:00:00.000Z',
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

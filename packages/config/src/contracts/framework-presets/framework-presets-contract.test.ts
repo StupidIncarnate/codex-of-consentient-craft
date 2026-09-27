@@ -52,7 +52,7 @@ describe('frameworkPresetsContract', () => {
         return frameworkPresetsContract.parse({
           widgets: [],
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: widgets not array or null => throws validation error', () => {

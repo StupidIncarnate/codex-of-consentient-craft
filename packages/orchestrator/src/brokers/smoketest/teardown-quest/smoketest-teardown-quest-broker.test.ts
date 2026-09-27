@@ -6,9 +6,9 @@ import { smoketestTeardownQuestBrokerProxy } from './smoketest-teardown-quest-br
 const QUEST_ID = QuestIdStub({ value: 'teardown-quest' });
 const QUEST_PATH = AbsoluteFilePathStub({
   value:
-    '/home/testuser/.dungeonmaster/guilds/11111111-1111-1111-1111-111111111111/quests/teardown-quest',
+    '/home/testuser/.dungeonmaster/guilds/38c6cbd2-8bf1-6507-8d07-0980dd1fb595/quests/teardown-quest',
 });
-const GUILD_ID = GuildIdStub({ value: '11111111-1111-1111-1111-111111111111' });
+const GUILD_ID = GuildIdStub({ value: '38c6cbd2-8bf1-6507-8d07-0980dd1fb595' });
 
 describe('smoketestTeardownQuestBroker', () => {
   describe('successful removal', () => {

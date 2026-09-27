@@ -12,11 +12,11 @@ describe('tagItemContract', () => {
 
   describe('invalid inputs', () => {
     it('INVALID: {value: ""} => throws for empty string', () => {
-      expect(() => tagItemContract.parse('')).toThrow(/String must contain at least 1 character/u);
+      expect(() => tagItemContract.parse('')).toThrow(/expected string to have >=1 characters/u);
     });
 
     it('EMPTY: {value: null} => throws for null', () => {
-      expect(() => tagItemContract.parse(null)).toThrow(/Expected string/u);
+      expect(() => tagItemContract.parse(null)).toThrow(/expected string/u);
     });
   });
 

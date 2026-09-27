@@ -41,13 +41,15 @@ describe('chatLineOutputContract', () => {
     });
 
     it('INVALID: {type: "entries" without entries field} => throws validation error', () => {
-      expect(() => chatLineOutputContract.parse({ type: 'entries' })).toThrow(/Required/u);
+      expect(() => chatLineOutputContract.parse({ type: 'entries' })).toThrow(
+        /received undefined/u,
+      );
     });
 
     it('INVALID: {type: "agent-detected" without toolUseId} => throws validation error', () => {
       expect(() =>
         chatLineOutputContract.parse({ type: 'agent-detected', agentId: 'agent-abc' }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {type: "agent-detected" without agentId} => throws validation error', () => {
@@ -56,7 +58,7 @@ describe('chatLineOutputContract', () => {
           type: 'agent-detected',
           toolUseId: 'toolu_01EaCJyt5y8gzMNyGYarwUDZ',
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 });

@@ -26,25 +26,25 @@ describe('installMessageContract', () => {
     it('INVALID: {message: ""} => throws ZodError', () => {
       expect(() => {
         return installMessageContract.parse('');
-      }).toThrow('String must contain at least 1 character');
+      }).toThrow('expected string to have >=1 characters');
     });
 
     it('INVALID: {message: 123} => throws ZodError', () => {
       expect(() => {
         return installMessageContract.parse(123);
-      }).toThrow('Expected string');
+      }).toThrow('expected string');
     });
 
     it('INVALID: {message: null} => throws ZodError', () => {
       expect(() => {
         return installMessageContract.parse(null);
-      }).toThrow('Expected string');
+      }).toThrow('expected string');
     });
 
     it('INVALID: {message: undefined} => throws ZodError', () => {
       expect(() => {
         return installMessageContract.parse(undefined);
-      }).toThrow('Required');
+      }).toThrow('received undefined');
     });
   });
 });

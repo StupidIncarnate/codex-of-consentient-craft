@@ -64,7 +64,7 @@ describe('serverRouteCallSiteContract', () => {
           rawArg: 'apiRoutesStatics.quests.list',
           responderName: 'QuestListResponder',
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {missing rawArg} => throws ZodError', () => {
@@ -73,7 +73,7 @@ describe('serverRouteCallSiteContract', () => {
           method: 'GET',
           responderName: 'QuestListResponder',
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {missing responderName} => throws ZodError', () => {
@@ -82,7 +82,7 @@ describe('serverRouteCallSiteContract', () => {
           method: 'GET',
           rawArg: 'apiRoutesStatics.quests.list',
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 });

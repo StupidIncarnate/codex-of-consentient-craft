@@ -28,7 +28,7 @@ describe('buttonLabelContract', () => {
   describe('invalid inputs', () => {
     it('INVALID: {value: ""} => throws for empty string', () => {
       expect(() => buttonLabelContract.parse('')).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
 
@@ -39,11 +39,11 @@ describe('buttonLabelContract', () => {
     });
 
     it('EMPTY: {value: null} => throws for null', () => {
-      expect(() => buttonLabelContract.parse(null)).toThrow(/Expected string/u);
+      expect(() => buttonLabelContract.parse(null)).toThrow(/expected string/u);
     });
 
     it('EMPTY: {value: undefined} => throws for undefined', () => {
-      expect(() => buttonLabelContract.parse(undefined)).toThrow(/Required/u);
+      expect(() => buttonLabelContract.parse(undefined)).toThrow(/received undefined/u);
     });
   });
 

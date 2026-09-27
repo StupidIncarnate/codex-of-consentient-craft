@@ -29,23 +29,23 @@ describe('blightConcernContract', () => {
 
   describe('invalid input', () => {
     it('INVALID: {concern: "style"} => throws', () => {
-      expect(() => BlightConcernStub({ value: 'style' })).toThrow(/Invalid enum value/u);
+      expect(() => BlightConcernStub({ value: 'style' })).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {concern: "coverage"} => throws, because the test track belongs to Flowrider and Siegemaster, not to a blight review unit', () => {
-      expect(() => BlightConcernStub({ value: 'coverage' })).toThrow(/Invalid enum value/u);
+      expect(() => BlightConcernStub({ value: 'coverage' })).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {concern: "security"} => throws, because Siegemaster\'s hostile-input probe owns it by sending a real payload', () => {
-      expect(() => BlightConcernStub({ value: 'security' })).toThrow(/Invalid enum value/u);
+      expect(() => BlightConcernStub({ value: 'security' })).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {concern: "dead-code"} => throws, because orphan-export detection needs the whole import graph and is a whole-diff minion, not a per-file crossing', () => {
-      expect(() => BlightConcernStub({ value: 'dead-code' })).toThrow(/Invalid enum value/u);
+      expect(() => BlightConcernStub({ value: 'dead-code' })).toThrow(/Invalid option/u);
     });
 
     it('EMPTY: {concern: ""} => throws', () => {
-      expect(() => BlightConcernStub({ value: '' })).toThrow(/Invalid enum value/u);
+      expect(() => BlightConcernStub({ value: '' })).toThrow(/Invalid option/u);
     });
   });
 });

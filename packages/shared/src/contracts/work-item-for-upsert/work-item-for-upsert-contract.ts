@@ -25,7 +25,7 @@ export const workItemForUpsertContract = workItemContract.partial().extend({
   id: questWorkItemIdContract,
   sessionId: sessionIdContract.nullable().optional(),
   agentId: agentIdContract.nullable().optional(),
-  startedAt: z.string().datetime().brand<'IsoTimestamp'>().nullable().optional(),
+  startedAt: z.iso.datetime().brand<'IsoTimestamp'>().nullable().optional(),
 });
 
 export type WorkItemForUpsert = ReturnType<typeof workItemForUpsertContract.parse>;

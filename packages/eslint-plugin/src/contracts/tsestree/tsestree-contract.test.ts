@@ -40,7 +40,7 @@ describe('TsestreeStub', () => {
       TsestreeStub({
         type: '' as unknown as typeof TsestreeNodeType.Identifier,
       });
-    }).toThrow(/Invalid enum value/u);
+    }).toThrow(/Invalid option/u);
   });
 
   it('INVALID: {type: "InvalidNodeType"} => throws ZodError for invalid enum value', () => {
@@ -48,7 +48,7 @@ describe('TsestreeStub', () => {
       TsestreeStub({
         type: 'InvalidNodeType' as unknown as typeof TsestreeNodeType.Identifier,
       });
-    }).toThrow(/Invalid enum value/u);
+    }).toThrow(/Invalid option/u);
   });
 
   it('VALID: {type: UnaryExpression, operator: "typeof"} => returns Tsestree with operator', () => {

@@ -39,11 +39,11 @@ describe('testFailureContract', () => {
           testName: 'test',
           message: 'msg',
         }),
-      ).toThrow(/Expected string/u);
+      ).toThrow(/expected string/u);
     });
 
     it('INVALID: {missing all fields} => throws validation error', () => {
-      expect(() => testFailureContract.parse({})).toThrow(/Required/u);
+      expect(() => testFailureContract.parse({})).toThrow(/received undefined/u);
     });
   });
 

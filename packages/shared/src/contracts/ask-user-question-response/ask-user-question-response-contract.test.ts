@@ -46,6 +46,6 @@ describe('askUserQuestionResponseContract', () => {
           },
         ],
       }),
-    ).toThrow('Required');
+    ).toThrow('received undefined');
   });
 });

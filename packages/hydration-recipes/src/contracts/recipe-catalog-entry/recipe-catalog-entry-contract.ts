@@ -34,7 +34,7 @@ export const recipeCatalogEntryContract = z.object({
 export type RecipeCatalogEntryData = z.infer<typeof recipeCatalogEntryContract>;
 
 export type RecipeCatalogEntry = RecipeCatalogEntryData & {
-  inputs?: z.ZodTypeAny | undefined;
+  inputs?: z.ZodType | undefined;
   probeListing: () => {
     runs: PlanRunsResult;
     makes: readonly PlanMakesEntry[];

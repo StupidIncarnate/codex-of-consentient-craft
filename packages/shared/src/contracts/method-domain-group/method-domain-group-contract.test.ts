@@ -43,7 +43,7 @@ describe('methodDomainGroupContract', () => {
         return methodDomainGroupContract.parse({
           methods: ['listGuilds'],
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

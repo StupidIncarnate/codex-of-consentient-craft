@@ -39,7 +39,7 @@ describe('baseHookDataContract', () => {
           cwd: '/cwd',
           hook_event_name: 'PreToolUse',
         });
-      }).toThrow(/Expected string/u);
+      }).toThrow(/expected string/u);
     });
 
     it('INVALID: {missing cwd} => throws validation error', () => {
@@ -49,7 +49,7 @@ describe('baseHookDataContract', () => {
           transcript_path: '/test',
           hook_event_name: 'PreToolUse',
         } as never);
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

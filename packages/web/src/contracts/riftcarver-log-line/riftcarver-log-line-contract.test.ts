@@ -24,7 +24,7 @@ describe('riftcarverLogLineContract', () => {
 
   describe('invalid input', () => {
     it('INVALID: {value: number} => throws', () => {
-      expect(() => riftcarverLogLineContract.parse(123 as never)).toThrow(/Expected string/u);
+      expect(() => riftcarverLogLineContract.parse(123 as never)).toThrow(/expected string/u);
     });
   });
 });

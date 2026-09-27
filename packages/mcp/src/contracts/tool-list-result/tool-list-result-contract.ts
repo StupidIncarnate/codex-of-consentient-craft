@@ -9,7 +9,7 @@ import { z } from 'zod';
 
 const jsonSchemaContract = z.object({
   type: z.string().brand<'JsonSchemaType'>(),
-  properties: z.record(z.unknown()).optional(),
+  properties: z.record(z.string().brand<'JsonSchemaPropertyName'>(), z.unknown()).optional(),
   required: z.array(z.string().brand<'PropertyName'>()).optional(),
   additionalProperties: z.boolean().optional(),
   $schema: z.string().brand<'SchemaUri'>().optional(),

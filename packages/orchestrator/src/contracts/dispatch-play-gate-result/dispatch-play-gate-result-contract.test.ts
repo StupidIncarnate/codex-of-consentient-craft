@@ -22,11 +22,11 @@ describe('dispatchPlayGateResultContract', () => {
 
   it('INVALID: {reason: ""} => throws min-length error', () => {
     expect(() => DispatchPlayGateResultStub({ allowed: false, reason: '' as never })).toThrow(
-      /String must contain at least 1 character/u,
+      /expected string to have >=1 characters/u,
     );
   });
 
   it('INVALID: {allowed missing} => throws Required', () => {
-    expect(() => dispatchPlayGateResultContract.parse({})).toThrow(/Required/u);
+    expect(() => dispatchPlayGateResultContract.parse({})).toThrow(/received undefined/u);
   });
 });

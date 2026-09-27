@@ -8,7 +8,7 @@
  * const parsed = normalizedStreamLineContract.parse(claudeLineNormalizeBroker({ rawLine }));
  * // parsed.type, parsed.message?.content, parsed.parentToolUseId — all typed
  *
- * The schema is `.passthrough()` because the underlying Claude CLI emits a long tail of fields
+ * The schema is `.loose()` because the underlying Claude CLI emits a long tail of fields
  * (sessionId, uuid, parentUuid, isSidechain, timestamp, etc.) that downstream code does not need
  * to read. Validation guarantees the shapes we DO read; the rest are preserved by passthrough.
  */
@@ -29,7 +29,7 @@ const _contentItem = z
     source: z.string().brand<'StreamContentSource'>().optional(),
     agentId: z.string().brand<'StreamContentAgentId'>().optional(),
   })
-  .passthrough();
+  .loose();
 
 // Optional fields use `.nullish()` (= nullable + optional) because Claude CLI emits
 // explicit `null` for stop_reason / model on streamed assistant deltas before the turn
@@ -42,7 +42,7 @@ const message = z
     stopReason: z.string().brand<'StreamMessageStopReason'>().nullish(),
     model: z.string().brand<'StreamMessageModel'>().nullish(),
   })
-  .passthrough();
+  .loose();
 
 const taskNotification = z
   .object({
@@ -70,7 +70,7 @@ const taskNotification = z
       .optional(),
     toolUseId: z.string().brand<'StreamTaskNotificationToolUseId'>().optional(),
   })
-  .passthrough();
+  .loose();
 
 // Claude CLI emits `toolUseResult` in three distinct shapes — Task / sub-agent object form
 // (`{agentId, status, ...}`), MCP / Bash array form (`[{type:'text', text:'...'}]`), and
@@ -84,7 +84,7 @@ const toolUseResult = z.union([
       // sub-agent run. An async launch's result object carries no such field.
       totalDurationMs: z.number().brand<'NormalizedToolUseResultTotalDurationMs'>().nullish(),
     })
-    .passthrough(),
+    .loose(),
   z.array(z.unknown()),
   z.string().brand<'NormalizedToolUseResultErrorMessage'>(),
 ]);
@@ -107,7 +107,7 @@ export const normalizedStreamLineContract = z
     timestamp: z.string().brand<'NormalizedStreamLineTimestamp'>().optional(),
     uuid: z.string().brand<'NormalizedStreamLineUuid'>().optional(),
   })
-  .passthrough();
+  .loose();
 
 export type NormalizedStreamLine = z.infer<typeof normalizedStreamLineContract>;
 export type NormalizedStreamLineContentItem = z.infer<typeof _contentItem>;

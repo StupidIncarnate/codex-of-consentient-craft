@@ -61,7 +61,7 @@ describe('registryContract', () => {
 
   describe('invalid registries', () => {
     it('INVALID: {missing instances} => throws Required', () => {
-      expect(() => registryContract.parse({})).toThrow(/Required/u);
+      expect(() => registryContract.parse({})).toThrow(/received undefined/u);
     });
 
     it('INVALID: {instances: [row missing id]} => throws for an invalid row inside the list', () => {
@@ -87,7 +87,7 @@ describe('registryContract', () => {
             },
           ],
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 });

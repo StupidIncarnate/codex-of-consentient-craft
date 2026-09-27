@@ -24,15 +24,15 @@ describe('shortenedPathTextContract', () => {
 
   describe('invalid inputs', () => {
     it('INVALID: {value: 123} => throws for number', () => {
-      expect(() => shortenedPathTextContract.parse(123)).toThrow(/Expected string/u);
+      expect(() => shortenedPathTextContract.parse(123)).toThrow(/expected string/u);
     });
 
     it('EMPTY: {value: null} => throws for null', () => {
-      expect(() => shortenedPathTextContract.parse(null)).toThrow(/Expected string/u);
+      expect(() => shortenedPathTextContract.parse(null)).toThrow(/expected string/u);
     });
 
     it('EMPTY: {value: undefined} => throws for undefined', () => {
-      expect(() => shortenedPathTextContract.parse(undefined)).toThrow(/Required/u);
+      expect(() => shortenedPathTextContract.parse(undefined)).toThrow(/received undefined/u);
     });
   });
 

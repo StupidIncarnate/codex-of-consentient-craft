@@ -13,7 +13,7 @@ describe('elapsedPartsContract', () => {
   describe('invalid splits', () => {
     it('INVALID: {hours: -1} => throws "Number must be greater than or equal to 0"', () => {
       expect(() => elapsedPartsContract.parse({ hours: -1, minutes: 0, seconds: 0 })).toThrow(
-        'Number must be greater than or equal to 0',
+        'expected number to be >=0',
       );
     });
 

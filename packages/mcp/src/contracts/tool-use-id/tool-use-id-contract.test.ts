@@ -13,6 +13,6 @@ describe('toolUseIdContract', () => {
   });
 
   it('INVALID: {non-string} => throws', () => {
-    expect(() => toolUseIdContract.parse(123)).toThrow(/Expected string/u);
+    expect(() => toolUseIdContract.parse(123)).toThrow(/expected string/u);
   });
 });

@@ -128,49 +128,49 @@ describe('questStatusContract', () => {
     it('INVALID: unknown status => throws validation error', () => {
       expect(() => {
         questStatusContract.parse('invalid_status');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: requirements_approved => throws validation error (removed status)', () => {
       expect(() => {
         questStatusContract.parse('requirements_approved');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: seek_scope => throws validation error (removed status)', () => {
       expect(() => {
         questStatusContract.parse('seek_scope');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: seek_synth => throws validation error (removed status)', () => {
       expect(() => {
         questStatusContract.parse('seek_synth');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: seek_walk => throws validation error (removed status)', () => {
       expect(() => {
         questStatusContract.parse('seek_walk');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: explore_design => throws validation error (removed status)', () => {
       expect(() => {
         questStatusContract.parse('explore_design');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: review_design => throws validation error (removed status)', () => {
       expect(() => {
         questStatusContract.parse('review_design');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: design_approved => throws validation error (removed status)', () => {
       expect(() => {
         questStatusContract.parse('design_approved');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
   });
 });

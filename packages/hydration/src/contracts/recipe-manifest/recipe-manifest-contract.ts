@@ -21,7 +21,7 @@ export const recipeManifestContract = z.array(recipeDefContract).superRefine((en
       return;
     }
     ctx.addIssue({
-      code: z.ZodIssueCode.custom,
+      code: 'custom',
       message: `recipes at index ${firstIndex} and ${index} both declare the name '${entry.recipeName}'`,
       path: [index, 'recipeName'],
     });

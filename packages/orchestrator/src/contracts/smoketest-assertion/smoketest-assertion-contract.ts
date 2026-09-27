@@ -21,7 +21,9 @@ const questStatusAssertionContract = z.object({
 
 const workItemStatusHistogramAssertionContract = z.object({
   kind: z.literal('work-item-status-histogram'),
-  expected: z.record(
+  // `z.partialRecord`, not `z.record` — zod v4 made an enum-keyed `z.record` exhaustive (every
+  // status required), and a real histogram asserts only the statuses it cares about.
+  expected: z.partialRecord(
     workItemStatusContract,
     z.number().int().nonnegative().brand<'WorkItemStatusCount'>(),
   ),

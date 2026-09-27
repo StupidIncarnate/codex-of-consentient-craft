@@ -18,11 +18,11 @@ describe('testNamePatternMatchContract', () => {
 
   describe('invalid inputs', () => {
     it('INVALID: {value: "skip"} => throws for unknown outcome', () => {
-      expect(() => testNamePatternMatchContract.parse('skip')).toThrow(/Invalid enum value/u);
+      expect(() => testNamePatternMatchContract.parse('skip')).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {value: ""} => throws for empty string', () => {
-      expect(() => testNamePatternMatchContract.parse('')).toThrow(/Invalid enum value/u);
+      expect(() => testNamePatternMatchContract.parse('')).toThrow(/Invalid option/u);
     });
 
     it('EMPTY: {value: null} => throws for null', () => {
@@ -30,7 +30,7 @@ describe('testNamePatternMatchContract', () => {
     });
 
     it('EMPTY: {value: undefined} => throws for undefined', () => {
-      expect(() => testNamePatternMatchContract.parse(undefined)).toThrow(/Required/u);
+      expect(() => testNamePatternMatchContract.parse(undefined)).toThrow(/received undefined/u);
     });
   });
 

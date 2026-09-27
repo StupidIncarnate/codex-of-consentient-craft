@@ -184,7 +184,7 @@ describe('instanceManifestContract', () => {
           aheadOfMe: 2,
           bootMs: 21_000,
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 });

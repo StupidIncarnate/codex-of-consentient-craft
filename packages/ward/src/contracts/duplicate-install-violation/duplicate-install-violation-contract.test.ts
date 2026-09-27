@@ -60,7 +60,7 @@ describe('duplicateInstallViolationContract', () => {
             { location: 'b/node_modules/x', version: '1.0.1' },
           ],
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 });

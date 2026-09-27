@@ -62,12 +62,12 @@ describe('questListResultContract', () => {
 
   describe('invalid results', () => {
     it('INVALID: {quests: missing} => throws validation error', () => {
-      expect(() => questListResultContract.parse({ skipped: [] })).toThrow(/Required/u);
+      expect(() => questListResultContract.parse({ skipped: [] })).toThrow(/received undefined/u);
     });
 
     it('INVALID: {quests: bare array payload} => throws validation error', () => {
       expect(() => questListResultContract.parse([QuestListItemStub()])).toThrow(
-        /Expected object, received array/u,
+        /Invalid input: expected object, received array/u,
       );
     });
 
@@ -82,7 +82,7 @@ describe('questListResultContract', () => {
             },
           ],
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 });

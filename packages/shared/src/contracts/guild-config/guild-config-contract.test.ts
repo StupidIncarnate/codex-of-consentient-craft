@@ -38,7 +38,7 @@ describe('guildConfigContract', () => {
         guildConfigContract.parse({
           guilds: [{ id: 'not-a-uuid' }],
         });
-      }).toThrow(/Invalid uuid/u);
+      }).toThrow(/Invalid UUID/u);
     });
   });
 });

@@ -21,11 +21,11 @@ import { dispatchHoldContract } from '../dispatch-hold/dispatch-hold-contract';
 
 export const dispatchStateContract = z.object({
   mode: z.enum(['node-playing', 'paused']),
-  mcpHeartbeatAt: z.string().datetime().brand<'IsoTimestamp'>().optional(),
+  mcpHeartbeatAt: z.iso.datetime().brand<'IsoTimestamp'>().optional(),
   // `.nullish()`, not `.optional()` — clearing an expired hold writes an explicit null through the
   // same persist path that wrote it, and `.optional()` alone rejects that.
   hold: dispatchHoldContract.nullish(),
-  updatedAt: z.string().datetime().brand<'IsoTimestamp'>(),
+  updatedAt: z.iso.datetime().brand<'IsoTimestamp'>(),
 });
 
 export type DispatchState = z.infer<typeof dispatchStateContract>;

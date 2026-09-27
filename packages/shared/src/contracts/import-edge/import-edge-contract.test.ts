@@ -43,7 +43,7 @@ describe('importEdgeContract', () => {
           barrel: ContentTextStub({ value: 'contracts' }),
           importCount: 0,
         }),
-      ).toThrow(/Number must be greater than or equal to 1/u);
+      ).toThrow(/expected number to be >=1/u);
     });
 
     it('INVALID: {importCount: negative} => throws min-1 validation error', () => {
@@ -54,7 +54,7 @@ describe('importEdgeContract', () => {
           barrel: ContentTextStub({ value: 'contracts' }),
           importCount: -1,
         }),
-      ).toThrow(/Number must be greater than or equal to 1/u);
+      ).toThrow(/expected number to be >=1/u);
     });
   });
 });

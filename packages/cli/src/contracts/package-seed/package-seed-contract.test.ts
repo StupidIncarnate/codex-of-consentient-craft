@@ -125,7 +125,7 @@ describe('packageSeedContract', () => {
           needsMswTransform: false,
           files: [],
         } as never);
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {missing dependencies} => throws validation error', () => {
@@ -142,7 +142,7 @@ describe('packageSeedContract', () => {
           needsMswTransform: false,
           files: [],
         } as never);
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 

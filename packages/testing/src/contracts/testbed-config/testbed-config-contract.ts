@@ -14,8 +14,8 @@ import { z } from 'zod';
 export const testbedConfigContract = z
   .object({
     questFolder: z.string().brand<'QuestFolder'>(),
-    wardCommands: z.record(z.unknown()),
+    wardCommands: z.record(z.string().brand<'WardCommandName'>(), z.unknown()),
   })
-  .passthrough();
+  .loose();
 
 export type TestbedConfig = z.infer<typeof testbedConfigContract>;

@@ -39,7 +39,7 @@ describe('toolInputContract', () => {
     it('INVALID: {invalid data} => throws validation error', () => {
       expect(() => {
         return toolInputContract.parse({} as never);
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

@@ -26,19 +26,19 @@ describe('processIdContract', () => {
     it('INVALID: {value: ""} => throws validation error', () => {
       expect(() => {
         processIdContract.parse('');
-      }).toThrow(/String must contain at least 1 character/u);
+      }).toThrow(/expected string to have >=1 characters/u);
     });
 
     it('INVALID: {value: 123} => throws validation error', () => {
       expect(() => {
         processIdContract.parse(123 as never);
-      }).toThrow(/Expected string/u);
+      }).toThrow(/expected string/u);
     });
 
     it('INVALID: {value: null} => throws validation error', () => {
       expect(() => {
         processIdContract.parse(null);
-      }).toThrow(/Expected string/u);
+      }).toThrow(/expected string/u);
     });
   });
 });

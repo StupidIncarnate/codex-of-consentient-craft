@@ -11,10 +11,12 @@ describe('enqueuedCountContract', () => {
   });
 
   it('INVALID: {negative} => throws', () => {
-    expect(() => enqueuedCountContract.parse(-1)).toThrow(/greater than or equal/u);
+    expect(() => enqueuedCountContract.parse(-1)).toThrow(/Too small: expected number to be >=0/u);
   });
 
   it('INVALID: {float} => throws', () => {
-    expect(() => enqueuedCountContract.parse(1.5)).toThrow(/integer/u);
+    expect(() => enqueuedCountContract.parse(1.5)).toThrow(
+      /Invalid input: expected int, received number/u,
+    );
   });
 });

@@ -9,11 +9,14 @@
  */
 import { z } from 'zod';
 
-export const orchestrationEventsStateFacadeContract = z
-  .object({
-    on: z.function(),
-    off: z.function(),
-  })
-  .passthrough();
+// `on` and `off` are functions — a Zod object schema cannot check callability, so both stay out
+// of the parse and are attached only through the type intersection below. `.loose()`
+// carries them through `.parse()` unvalidated when a real caller supplies one.
+export const orchestrationEventsStateFacadeContract = z.object({}).loose();
 
-export type OrchestrationEventsStateFacade = z.infer<typeof orchestrationEventsStateFacadeContract>;
+export type OrchestrationEventsStateFacade = z.infer<
+  typeof orchestrationEventsStateFacadeContract
+> & {
+  on: (...args: unknown[]) => unknown;
+  off: (...args: unknown[]) => unknown;
+};

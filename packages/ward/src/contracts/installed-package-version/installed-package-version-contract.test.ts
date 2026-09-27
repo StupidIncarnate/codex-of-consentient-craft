@@ -15,7 +15,7 @@ describe('installedPackageVersionContract', () => {
   describe('invalid inputs', () => {
     it('INVALID: {value: ""} => throws', () => {
       expect(() => installedPackageVersionContract.parse('')).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
 

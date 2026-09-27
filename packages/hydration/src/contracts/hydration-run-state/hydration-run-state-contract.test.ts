@@ -13,7 +13,7 @@ describe('hydrationRunStateContract', () => {
   describe('an empty recipe name', () => {
     it('INVALID: {recipeName: ""} => throws "String must contain at least 1 character(s)"', () => {
       expect(() => hydrationRunStateContract.parse({ recipeName: '' })).toThrow(
-        /String must contain at least 1 character\(s\)/u,
+        /expected string to have >=1 characters/u,
       );
     });
   });

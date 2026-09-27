@@ -58,13 +58,13 @@ describe('subagentRosterRowContract', () => {
     });
 
     it('INVALID: {records: not an array} => throws', () => {
-      expect(() => SubagentRosterRowStub({ records: 'nope' as never })).toThrow(/Expected array/u);
+      expect(() => SubagentRosterRowStub({ records: 'nope' as never })).toThrow(/expected array/u);
     });
 
     it('INVALID: {meta: missing required fields} => throws', () => {
       expect(() =>
         SubagentRosterRowStub({ meta: { agentType: 'general-purpose' } as never }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 
@@ -76,7 +76,7 @@ describe('subagentRosterRowContract', () => {
           meta: SubagentMetaStub(),
           records: [],
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('EMPTY: {no records} => throws', () => {
@@ -86,7 +86,7 @@ describe('subagentRosterRowContract', () => {
           meta: SubagentMetaStub(),
           turnCount: 0,
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 });

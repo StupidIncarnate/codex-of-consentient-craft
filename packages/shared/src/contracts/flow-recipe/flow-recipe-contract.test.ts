@@ -26,7 +26,7 @@ describe('flowRecipeContract', () => {
     it('INVALID: {missing required fields} => throws validation error', () => {
       expect(() => {
         flowRecipeContract.parse({});
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {id: "Bad_Name"} => throws validation error', () => {
@@ -36,7 +36,7 @@ describe('flowRecipeContract', () => {
           instanceId: 'inst_7f3a9c21',
           runId: 'run_2',
         });
-      }).toThrow(/invalid_string/u);
+      }).toThrow(/invalid_format/u);
     });
 
     it('INVALID: {instanceId: "not-an-instance-id"} => throws validation error', () => {
@@ -46,7 +46,7 @@ describe('flowRecipeContract', () => {
           instanceId: 'not-an-instance-id',
           runId: 'run_2',
         });
-      }).toThrow(/invalid_string/u);
+      }).toThrow(/invalid_format/u);
     });
 
     it('INVALID: {runId: "not-a-run-id"} => throws validation error', () => {
@@ -56,7 +56,7 @@ describe('flowRecipeContract', () => {
           instanceId: 'inst_7f3a9c21',
           runId: 'not-a-run-id',
         });
-      }).toThrow(/invalid_string/u);
+      }).toThrow(/invalid_format/u);
     });
   });
 });

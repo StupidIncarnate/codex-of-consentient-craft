@@ -25,7 +25,7 @@ describe('questInputServerTimestampsTransformer', () => {
       });
 
       expect(result.flows).toStrictEqual([
-        { id: 'login-flow', nodes: [{ id: 'submit-form', label: 'Submit' }] },
+        { id: 'login-flow', nodes: [{ id: 'submit-form', label: 'Submit' }], recipes: [] },
       ]);
     });
   });

@@ -33,12 +33,12 @@ describe('seedStepContract', () => {
 
   describe('invalid seed steps', () => {
     it('INVALID: {no recipe} => throws Required', () => {
-      expect(() => seedStepContract.parse({ step: 'seed' })).toThrow(/Required/u);
+      expect(() => seedStepContract.parse({ step: 'seed' })).toThrow(/received undefined/u);
     });
 
     it('INVALID: {step: "nope"} => throws Invalid literal', () => {
       expect(() => seedStepContract.parse({ step: 'nope', recipe: 'guild-mid-execution' })).toThrow(
-        /Invalid literal value/u,
+        /Invalid input: expected/u,
       );
     });
   });

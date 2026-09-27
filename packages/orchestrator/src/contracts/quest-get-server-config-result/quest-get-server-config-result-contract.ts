@@ -14,7 +14,7 @@ import { z } from 'zod';
 import { networkPortContract } from '@dungeonmaster/shared/contracts';
 
 export const questGetServerConfigResultContract = z.object({
-  baseUrl: z.string().url().brand<'ServerBaseUrl'>(),
+  baseUrl: z.url().brand<'ServerBaseUrl'>(),
   port: networkPortContract,
 });
 

@@ -16,7 +16,7 @@ describe('guildIdQueryContract', () => {
     it('INVALID: {missing guildId} => throws validation error', () => {
       expect(() => {
         guildIdQueryContract.parse({});
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {guildId: not-a-uuid} => throws validation error', () => {

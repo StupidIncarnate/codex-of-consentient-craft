@@ -38,7 +38,7 @@ describe('scenarioInstanceContract', () => {
           scripts: { codeweaver: ['notARealPromptName'] },
           callOrdinals: {},
         });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {scripts unknown role} => throws validation error', () => {
@@ -47,7 +47,7 @@ describe('scenarioInstanceContract', () => {
           scripts: { bogusRole: ['signalComplete'] },
           callOrdinals: {},
         });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Unrecognized key: \\"bogusRole\\"/u);
     });
 
     it('INVALID: {scripts pathseeker role} => throws validation error (removed role)', () => {
@@ -56,7 +56,7 @@ describe('scenarioInstanceContract', () => {
           scripts: { pathseeker: ['signalComplete'] },
           callOrdinals: {},
         });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Unrecognized key: \\"pathseeker\\"/u);
     });
 
     it('INVALID: {callOrdinals negative} => throws validation error', () => {
@@ -65,7 +65,7 @@ describe('scenarioInstanceContract', () => {
           scripts: { codeweaver: ['signalComplete'] },
           callOrdinals: { codeweaver: -1 },
         });
-      }).toThrow(/greater than or equal to 0/u);
+      }).toThrow(/to be >=0/u);
     });
   });
 });

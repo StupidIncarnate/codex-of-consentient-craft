@@ -236,7 +236,9 @@ export const stepContract = z
         method: httpMethodContract.default('GET'),
         path: z.string().brand<'HttpRequestPath'>(),
         body: z.unknown().optional(),
-        headers: z.record(z.string().brand<'HttpHeaderValue'>()).optional(),
+        headers: z
+          .record(z.string().brand<'HttpHeaderName'>(), z.string().brand<'HttpHeaderValue'>())
+          .optional(),
         node: nodeLabelContract.nullable().default(null),
         expect: stepExpectationContract.default(stepStatics.defaults.expect),
       })
@@ -260,10 +262,9 @@ export const stepContract = z
     z
       .object({
         step: z.literal('storage'),
-        prefix: z
-          .string()
-          .brand<'StoragePrefix'>()
-          .default(storageStatics.defaults.prefix as never),
+        // `.default()` before `.brand()` — zod v4 checks a `.default()` literal against the
+        // schema's own output type, and a bare string can never satisfy a branded type.
+        prefix: z.string().default(storageStatics.defaults.prefix).brand<'StoragePrefix'>(),
         node: nodeLabelContract.nullable().default(null),
         expect: stepExpectationContract.default(stepStatics.defaults.expect),
       })
@@ -284,18 +285,20 @@ export const stepContract = z
     z
       .object({
         step: z.literal('hold'),
+        // `.default()` before `.brand()` on both — zod v4 checks a `.default()` literal against
+        // the schema's own output type, and a bare number can never satisfy a branded type.
         frames: z
           .number()
           .int()
           .min(holdStatics.defaults.minFrames)
-          .brand<'HoldFrames'>()
-          .default(holdStatics.defaults.frames as never),
+          .default(holdStatics.defaults.frames)
+          .brand<'HoldFrames'>(),
         everyMs: z
           .number()
           .int()
           .positive()
-          .brand<'HoldEveryMs'>()
-          .default(holdStatics.defaults.everyMs as never),
+          .default(holdStatics.defaults.everyMs)
+          .brand<'HoldEveryMs'>(),
         node: nodeLabelContract.nullable().default(null),
         expect: stepExpectationContract.default(stepStatics.defaults.expect),
       })
@@ -336,7 +339,7 @@ export const stepContract = z
     if (step.step === 'reset') {
       if (step.level === 'state' && step.to === null) {
         context.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: 'custom',
           message: 'a reset step with level "state" requires an explicit "to" snapshot name',
           path: ['to'],
         });
@@ -347,7 +350,7 @@ export const stepContract = z
     if (step.step === 'click' || step.step === 'type') {
       if ((step.target === null) === (step.ref === null)) {
         context.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: 'custom',
           message: HANDLE_MESSAGE,
           path: ['target'],
         });
@@ -358,14 +361,14 @@ export const stepContract = z
     if (step.step === 'paste') {
       if (step.target === null && step.ref === null) {
         context.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: 'custom',
           message: 'a paste step requires at least one target handle: target or ref',
           path: ['target'],
         });
       }
       if (step.filePath === null && step.value === null) {
         context.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: 'custom',
           message: 'a paste step requires at least one payload: filePath or value',
           path: ['value'],
         });
@@ -386,7 +389,7 @@ export const stepContract = z
     ].filter((value) => value !== null).length;
     if (conditionCount !== 1) {
       context.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         message: UNTIL_CONDITION_MESSAGE,
         path: ['visible'],
       });

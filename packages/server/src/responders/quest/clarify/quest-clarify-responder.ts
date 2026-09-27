@@ -7,8 +7,10 @@
  */
 
 import { questFindQuestPathBroker, StartOrchestrator } from '@dungeonmaster/orchestrator';
+import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import { isChatWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
 
+import { zodFirstFieldErrorMessageAdapter } from '../../../adapters/zod/first-field-error-message/zod-first-field-error-message-adapter';
 import { questClarifyBodyContract } from '../../../contracts/quest-clarify-body/quest-clarify-body-contract';
 import { questIdParamsContract } from '../../../contracts/quest-id-params/quest-id-params-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
@@ -50,8 +52,11 @@ export const QuestClarifyResponder = async ({
 
     const parsedBody = questClarifyBodyContract.safeParse(body);
     if (!parsedBody.success) {
-      const { fieldErrors } = parsedBody.error.flatten();
-      if (fieldErrors.answers) {
+      const answersError = zodFirstFieldErrorMessageAdapter({
+        error: parsedBody.error,
+        field: contentTextContract.parse('answers'),
+      });
+      if (answersError !== undefined) {
         return responderResultContract.parse({
           status: httpStatusStatics.clientError.badRequest,
           data: { error: 'answers array is required and must not be empty' },

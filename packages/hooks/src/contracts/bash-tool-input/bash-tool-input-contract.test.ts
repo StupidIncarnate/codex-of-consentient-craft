@@ -69,25 +69,25 @@ describe('bashToolInputContract', () => {
     it('INVALID: {missing command} => throws validation error', () => {
       expect(() => {
         return bashToolInputContract.parse({});
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {empty command} => throws validation error', () => {
       expect(() => {
         return bashToolInputContract.parse({ command: '' });
-      }).toThrow(/String must contain at least 1 character/u);
+      }).toThrow(/expected string to have >=1 characters/u);
     });
 
     it('INVALID: {command is number} => throws validation error', () => {
       expect(() => {
         return bashToolInputContract.parse({ command: 123 as never });
-      }).toThrow(/Expected string/u);
+      }).toThrow(/expected string/u);
     });
 
     it('INVALID: {missing all fields} => throws validation error', () => {
       expect(() => {
         return bashToolInputContract.parse({} as never);
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

@@ -29,7 +29,7 @@ describe('worktreeCreateHookDataContract', () => {
           cwd: '/home',
           hook_event_name: 'WorktreeCreate',
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: wrong hook_event_name => throws ZodError', () => {
@@ -38,7 +38,7 @@ describe('worktreeCreateHookDataContract', () => {
           ...WorktreeCreateHookDataStub(),
           hook_event_name: 'SessionStart',
         }),
-      ).toThrow(/Invalid literal value/u);
+      ).toThrow(/Invalid input: expected/u);
     });
   });
 });

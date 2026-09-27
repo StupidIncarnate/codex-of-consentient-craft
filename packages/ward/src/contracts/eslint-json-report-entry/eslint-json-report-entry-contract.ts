@@ -18,13 +18,13 @@ const eslintMessageContract = z
     line: z.number().brand<'EslintLine'>().nullable().optional(),
     column: z.number().brand<'EslintColumn'>().nullable().optional(),
   })
-  .passthrough();
+  .loose();
 
 const eslintTimeContract = z
   .object({
     total: z.number().brand<'EslintTimeTotal'>().optional().catch(undefined),
   })
-  .passthrough();
+  .loose();
 
 const eslintPassContract = z
   .object({
@@ -33,11 +33,11 @@ const eslintPassContract = z
     // run: 3573ms on that file against 2-13ms on the other 39. Split out so nothing ranks on it.
     parse: eslintTimeContract.optional(),
     // One entry per rule that ran. This plus `fix` is the file's OWN cost, with no program build.
-    rules: z.record(eslintTimeContract).optional(),
+    rules: z.record(z.string().brand<'EslintRuleId'>(), eslintTimeContract).optional(),
     fix: eslintTimeContract.optional(),
     total: z.number().brand<'EslintPassTotal'>().optional().catch(undefined),
   })
-  .passthrough();
+  .loose();
 
 const eslintStatsContract = z
   .object({
@@ -45,10 +45,10 @@ const eslintStatsContract = z
       .object({
         passes: z.array(eslintPassContract).optional(),
       })
-      .passthrough()
+      .loose()
       .optional(),
   })
-  .passthrough();
+  .loose();
 
 export const eslintJsonReportEntryContract = z
   .object({
@@ -56,6 +56,6 @@ export const eslintJsonReportEntryContract = z
     messages: z.array(eslintMessageContract).optional(),
     stats: eslintStatsContract.optional(),
   })
-  .passthrough();
+  .loose();
 
 export type EslintJsonReportEntry = z.infer<typeof eslintJsonReportEntryContract>;

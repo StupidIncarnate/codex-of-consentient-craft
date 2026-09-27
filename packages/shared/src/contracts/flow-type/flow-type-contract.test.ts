@@ -32,19 +32,19 @@ describe('flowTypeContract', () => {
     it('INVALID: {value: "user"} => throws validation error', () => {
       expect(() => {
         flowTypeContract.parse('user');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {value: ""} => throws validation error', () => {
       expect(() => {
         flowTypeContract.parse('');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {value: null} => throws validation error', () => {
       expect(() => {
         flowTypeContract.parse(null);
-      }).toThrow(/Expected/u);
+      }).toThrow(/Invalid option: expected one of/u);
     });
   });
 });

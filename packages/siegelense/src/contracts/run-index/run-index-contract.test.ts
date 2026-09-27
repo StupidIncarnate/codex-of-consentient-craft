@@ -42,7 +42,7 @@ describe('runIndexContract', () => {
           server: { errors: 0 },
           network: { exchanges: 14 },
         } as never),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {negative console.errors} => throws validation error', () => {
@@ -52,7 +52,7 @@ describe('runIndexContract', () => {
           server: { errors: 0 },
           network: { exchanges: 0, non2xx: 0 },
         } as never),
-      ).toThrow(/Number must be greater than or equal to 0/u);
+      ).toThrow(/expected number to be >=0/u);
     });
   });
 

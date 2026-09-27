@@ -7,7 +7,9 @@
 
 import { z } from 'zod';
 
-export const mockStagingContract = z.object({});
+// `.loose()` keeps `z.infer` of the empty shape from narrowing to `Record<string, never>` (zod
+// v4), which the function-carrying intersection below could never satisfy.
+export const mockStagingContract = z.object({}).loose();
 
 export type MockStaging = z.infer<typeof mockStagingContract> & {
   returns: (val: unknown) => void;

@@ -36,7 +36,7 @@ describe('routingLibraryContract', () => {
     it('INVALID: "invalid" => throws validation error', () => {
       expect(() => {
         return routingLibraryContract.parse('invalid');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: 123 => throws validation error', () => {
@@ -48,7 +48,7 @@ describe('routingLibraryContract', () => {
     it('INVALID: undefined => throws validation error', () => {
       expect(() => {
         return routingLibraryContract.parse(undefined);
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

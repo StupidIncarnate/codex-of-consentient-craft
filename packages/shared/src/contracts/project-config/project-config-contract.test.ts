@@ -40,7 +40,7 @@ describe('projectConfigContract', () => {
     it('INVALID: dungeonmaster.port out of range => throws validation error', () => {
       expect(() => {
         projectConfigContract.parse({ dungeonmaster: { port: 99999 } });
-      }).toThrow(/Number must be/u);
+      }).toThrow(/Too big: expected number to be <=65535/u);
     });
   });
 });

@@ -20,6 +20,6 @@ export const chatOutputPayloadContract = z
     workItemId: questWorkItemIdContract.optional(),
     chatProcessId: processIdContract.optional(),
   })
-  .passthrough();
+  .loose();
 
 export type ChatOutputPayload = z.infer<typeof chatOutputPayloadContract>;

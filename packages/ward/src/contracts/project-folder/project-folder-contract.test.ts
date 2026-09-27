@@ -32,11 +32,11 @@ describe('projectFolderContract', () => {
           name: 123 as never,
           path: '/some/path',
         }),
-      ).toThrow(/Expected string/u);
+      ).toThrow(/expected string/u);
     });
 
     it('INVALID: {missing all fields} => throws validation error', () => {
-      expect(() => projectFolderContract.parse({})).toThrow(/Required/u);
+      expect(() => projectFolderContract.parse({})).toThrow(/received undefined/u);
     });
   });
 

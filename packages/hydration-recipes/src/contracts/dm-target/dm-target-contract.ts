@@ -33,7 +33,7 @@ export type HttpRequestFn = (args: {
   body?: unknown;
 }) => Promise<unknown>;
 
-const urlContract = z.string().url().brand<'Url'>();
+const urlContract = z.url().brand<'Url'>();
 
 const httpRequestFnContract = z.custom<HttpRequestFn>((value) => typeof value === 'function', {
   message: 'Expected a request function',

@@ -11,7 +11,11 @@
  */
 
 import type { UsageLedger } from '@dungeonmaster/shared/contracts';
-import { filePathContract, usageBucketContract } from '@dungeonmaster/shared/contracts';
+import {
+  bucketStartKeyContract,
+  filePathContract,
+  usageBucketContract,
+} from '@dungeonmaster/shared/contracts';
 
 import { fsReadFileRangeAdapter } from '../../../adapters/fs/read-file-range/fs-read-file-range-adapter';
 import type { TranscriptRead } from '../../../contracts/transcript-read/transcript-read-contract';
@@ -54,7 +58,7 @@ export const foldBatchLayerBroker = async ({
         return inner;
       }
 
-      const key = String(sample.bucketStartMs);
+      const key = bucketStartKeyContract.parse(String(sample.bucketStartMs));
       const already = inner[key];
 
       return {

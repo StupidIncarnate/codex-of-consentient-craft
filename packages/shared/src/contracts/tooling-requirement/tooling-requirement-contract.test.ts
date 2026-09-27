@@ -61,7 +61,7 @@ describe('toolingRequirementContract', () => {
         requiredByObservables: [],
       });
 
-    expect(parseInvalidId).toThrow(/invalid_string/u);
+    expect(parseInvalidId).toThrow(/invalid_format/u);
   });
 
   it('INVALID: {name: ""} => throws validation error', () => {
@@ -74,7 +74,7 @@ describe('toolingRequirementContract', () => {
         requiredByObservables: [],
       });
 
-    expect(parseEmptyName).toThrow(/String must contain at least 1 character/u);
+    expect(parseEmptyName).toThrow(/expected string to have >=1 characters/u);
   });
 
   it('INVALID: {packageName: ""} => throws validation error', () => {
@@ -87,7 +87,7 @@ describe('toolingRequirementContract', () => {
         requiredByObservables: [],
       });
 
-    expect(parseEmptyPackageName).toThrow(/String must contain at least 1 character/u);
+    expect(parseEmptyPackageName).toThrow(/expected string to have >=1 characters/u);
   });
 
   it('INVALID: {requiredByObservables: ["Bad"]} => throws validation error', () => {
@@ -100,7 +100,7 @@ describe('toolingRequirementContract', () => {
         requiredByObservables: ['Bad'],
       });
 
-    expect(parseInvalidRequiredBy).toThrow(/invalid_string/u);
+    expect(parseInvalidRequiredBy).toThrow(/invalid_format/u);
   });
 
   it('VALID: database driver => parses pg package', () => {

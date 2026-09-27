@@ -36,7 +36,7 @@ const modelContract = z.string().min(1).brand<'ModelName'>().optional();
 // dedup — both the parent stdout and the sub-agent JSONL tail emit the same key for the
 // same content, collapsing duplicates that arise from the dual-source convergence.
 const uuidContract = z.string().min(1).brand<'ChatEntryUuid'>();
-const timestampContract = z.string().datetime().brand<'IsoTimestamp'>();
+const timestampContract = z.iso.datetime().brand<'IsoTimestamp'>();
 
 export type ChatEntryUuid = z.infer<typeof uuidContract>;
 export type IsoTimestamp = z.infer<typeof timestampContract>;

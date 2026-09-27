@@ -26,11 +26,11 @@ describe('guildListingContract', () => {
 
   describe('invalid listings', () => {
     it('INVALID: {guilds: [{}]} => throws', () => {
-      expect(() => guildListingContract.parse({ guilds: [{}] })).toThrow(/Required/u);
+      expect(() => guildListingContract.parse({ guilds: [{}] })).toThrow(/received undefined/u);
     });
 
     it('INVALID: {a bare array} => throws', () => {
-      expect(() => guildListingContract.parse([])).toThrow(/Expected object/u);
+      expect(() => guildListingContract.parse([])).toThrow(/expected object/u);
     });
   });
 });

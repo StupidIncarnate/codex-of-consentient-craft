@@ -80,7 +80,7 @@ describe('networkLogEntryContract', () => {
           url: '/api/guilds',
           source: 'mock',
         });
-      }).toThrow(/Expected string/u);
+      }).toThrow(/expected string/u);
     });
 
     it('INVALID: {source: "unknown"} => throws validation error', () => {
@@ -90,13 +90,13 @@ describe('networkLogEntryContract', () => {
           url: '/api/guilds',
           source: 'unknown',
         });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {missing all fields} => throws validation error', () => {
       expect(() => {
         return networkLogEntryContract.parse({});
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {status: 1.5} => throws validation error', () => {
@@ -107,7 +107,7 @@ describe('networkLogEntryContract', () => {
           status: 1.5,
           source: 'mock',
         });
-      }).toThrow(/Expected integer/u);
+      }).toThrow(/expected int/u);
     });
 
     it('INVALID: {durationMs: -1} => throws validation error', () => {
@@ -118,7 +118,7 @@ describe('networkLogEntryContract', () => {
           durationMs: -1,
           source: 'mock',
         });
-      }).toThrow(/Number must be greater than or equal to 0/u);
+      }).toThrow(/expected number to be >=0/u);
     });
   });
 });

@@ -42,12 +42,12 @@ describe('driverRequestContract', () => {
   describe('malformed frames', () => {
     it('INVALID: {kind: "status"} => an unlisted kind throws validation error rather than something unrecognisable', () => {
       expect(() => driverRequestContract.parse({ kind: 'status' as never, payload: '' })).toThrow(
-        /Invalid enum value/u,
+        /Invalid option/u,
       );
     });
 
     it('INVALID: {missing payload} => throws Required', () => {
-      expect(() => driverRequestContract.parse({ kind: 'ping' })).toThrow(/Required/u);
+      expect(() => driverRequestContract.parse({ kind: 'ping' })).toThrow(/received undefined/u);
     });
   });
 });

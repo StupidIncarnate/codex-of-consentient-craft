@@ -41,9 +41,7 @@ describe('workPlanFileEntryContract', () => {
     });
 
     it('INVALID: {change: rename} => refused', () => {
-      expect(() => WorkPlanFileEntryStub({ change: 'rename' as never })).toThrow(
-        /Invalid enum value/u,
-      );
+      expect(() => WorkPlanFileEntryStub({ change: 'rename' as never })).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {proves naming a bare unit id} => refused, since unit ids are flow-scoped', () => {
@@ -52,7 +50,7 @@ describe('workPlanFileEntryContract', () => {
 
     it('EMPTY: {in: empty string} => refused', () => {
       expect(() => WorkPlanFileEntryStub({ in: '' })).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
   });

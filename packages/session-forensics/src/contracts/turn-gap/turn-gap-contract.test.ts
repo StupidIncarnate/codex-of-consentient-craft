@@ -89,12 +89,12 @@ describe('turnGapContract', () => {
           elapsedMinutes: 5,
           gapSeconds: 30,
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {liveSubagentIds: bare string} => throws', () => {
       expect(() => TurnGapStub({ liveSubagentIds: 'agent-abc' as never })).toThrow(
-        /Expected array/u,
+        /expected array/u,
       );
     });
   });

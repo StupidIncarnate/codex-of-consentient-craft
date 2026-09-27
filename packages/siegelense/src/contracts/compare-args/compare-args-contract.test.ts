@@ -64,7 +64,7 @@ describe('compareArgsContract', () => {
           expected: 'string',
           received: 'undefined',
           path: ['runB'],
-          message: 'Required',
+          message: 'received undefined',
         },
       ]);
     });

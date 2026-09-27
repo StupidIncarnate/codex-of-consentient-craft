@@ -1,4 +1,9 @@
-import { OperationItemStub, QuestStub } from '@dungeonmaster/shared/contracts';
+import {
+  OperationItemStub,
+  QuestStub,
+  RoutedGraphNodeKeyStub,
+  RoutedGraphOutcomeWordStub,
+} from '@dungeonmaster/shared/contracts';
 
 import { agentFlowFamilyResolveTransformer } from './agent-flow-family-resolve-transformer';
 
@@ -34,7 +39,9 @@ describe('agentFlowFamilyResolveTransformer', () => {
         operationItem: OperationItemStub({ role: 'siegemaster' }),
       });
 
-      expect(graph.nodes.ward?.routes.done).toBe('sweepOut');
+      const wardNode = graph.nodes[RoutedGraphNodeKeyStub({ value: 'ward' })];
+
+      expect(wardNode?.routes[RoutedGraphOutcomeWordStub({ value: 'done' })]).toBe('sweepOut');
     });
   });
 

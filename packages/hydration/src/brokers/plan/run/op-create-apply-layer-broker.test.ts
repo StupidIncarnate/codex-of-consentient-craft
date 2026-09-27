@@ -138,7 +138,7 @@ describe('opCreateApplyLayerBroker', () => {
           state,
         }),
       ).rejects.toThrow(
-        /^recipe "guild-mid-execution": ingredient "guild"'s write route returned a record that field "id" rejects: Required$/u,
+        /^recipe "guild-mid-execution": ingredient "guild"'s write route returned a record that field "id" rejects: Invalid input: expected string, received undefined$/u,
       );
     });
 

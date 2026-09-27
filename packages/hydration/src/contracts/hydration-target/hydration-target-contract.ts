@@ -37,7 +37,7 @@ import type { HydrationRunResult } from '../hydration-run-result/hydration-run-r
 import type { PlanRunsResult } from '../plan-runs-result/plan-runs-result-contract';
 import type { PlanMakesEntry } from '../plan-makes-entry/plan-makes-entry-contract';
 
-const urlContract = z.string().url().brand<'Url'>();
+const urlContract = z.url().brand<'Url'>();
 
 export type Url = z.infer<typeof urlContract>;
 

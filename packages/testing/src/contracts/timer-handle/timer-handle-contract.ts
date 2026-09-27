@@ -11,8 +11,14 @@
 
 import { z } from 'zod';
 
+// A bare (stripping) object, not `.loose()`: a real value this contract also has to accept — Node's
+// own `Timeout` / `Immediate`, handed back by the real `setTimeout`/`setInterval`/`setImmediate` —
+// carries dozens of internal fields no caller reads, and a passthrough schema would copy every one
+// of them onto the parsed result. Stripping is also why the exported type below is hand-written
+// rather than `z.infer<typeof timerHandleContract> & {...}`: an index signature could never be
+// satisfied by a real `Timeout`/`Immediate` value, which carries no index signature of its own.
 export const timerHandleContract = z.object({});
 
-export type TimerHandle = z.infer<typeof timerHandleContract> & {
+export interface TimerHandle {
   hasRef?: () => boolean;
-};
+}

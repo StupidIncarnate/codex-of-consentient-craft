@@ -14,7 +14,7 @@ import { sessionIdContract } from '../session-id/session-id-contract';
 export const sessionListItemContract = z.object({
   sessionId: sessionIdContract,
   summary: z.string().brand<'SessionSummary'>().optional(),
-  startedAt: z.string().datetime().brand<'IsoTimestamp'>(),
+  startedAt: z.iso.datetime().brand<'IsoTimestamp'>(),
   questId: questIdContract.optional(),
   questTitle: z.string().brand<'QuestTitle'>().optional(),
   questStatus: z.string().brand<'QuestStatus'>().optional(),

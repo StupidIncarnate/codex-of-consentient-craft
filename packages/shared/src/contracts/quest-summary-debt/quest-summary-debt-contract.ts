@@ -84,8 +84,7 @@ export const questSummaryDebtContract = z
         'The action that WOULD settle this unit — an instruction, never a question. Required on `cant-meet`; refused on `unmet`, which has a successor rather than a handover.',
       ),
     workItemId: questWorkItemIdContract,
-    at: z
-      .string()
+    at: z.iso
       .datetime()
       .brand<'IsoTimestamp'>()
       .describe('The moment the mark was recorded, taken verbatim off the observation.'),
@@ -93,7 +92,7 @@ export const questSummaryDebtContract = z
   .superRefine((value, ctx) => {
     if (value.mark === 'cant-meet' && value.toSettle === undefined) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         path: ['toSettle'],
         message:
           "toSettle is required when mark is 'cant-meet' — it names the action that WOULD settle " +
@@ -102,7 +101,7 @@ export const questSummaryDebtContract = z
     }
     if (value.mark === 'unmet' && value.toSettle !== undefined) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         path: ['toSettle'],
         message:
           "toSettle is only valid when mark is 'cant-meet'. 'unmet' means work remains, not that " +

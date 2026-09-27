@@ -24,7 +24,7 @@ describe('blankReadingContract', () => {
         blankReadingContract.parse({
           colour: null,
         } as never),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 

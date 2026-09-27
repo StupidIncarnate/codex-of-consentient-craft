@@ -30,7 +30,7 @@ describe('getQuestPlanningNotesInputContract', () => {
     it('INVALID: {missing questId} => throws validation error', () => {
       expect(() => {
         return getQuestPlanningNotesInputContract.parse({});
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {section} => throws Unrecognized key error, because the tool takes no section filter', () => {

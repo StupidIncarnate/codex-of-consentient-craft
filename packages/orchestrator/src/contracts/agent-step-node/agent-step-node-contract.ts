@@ -22,7 +22,7 @@
  * one field, one reader pair, so the two can never name a different model for the same session. A
  * deterministic step carries no `model` (it spawns nothing), which is why the field stays optional.
  * Everything else a step node carries — `routes`, `maxVisits`, `needsLane`, `maxConcurrent` — has
- * exactly one reader inside the router and stays undeclared behind `.passthrough()`, because a
+ * exactly one reader inside the router and stays undeclared behind `.loose()`, because a
  * second copy of a shape the `as const` already pins is the copy that drifts.
  */
 
@@ -41,6 +41,6 @@ export const agentStepNodeContract = z
     prompt: agentPromptNameContract.optional(),
     model: claudeModelContract.optional(),
   })
-  .passthrough();
+  .loose();
 
 export type AgentStepNode = z.infer<typeof agentStepNodeContract>;

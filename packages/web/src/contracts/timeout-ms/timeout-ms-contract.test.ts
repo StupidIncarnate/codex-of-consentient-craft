@@ -11,10 +11,10 @@ describe('timeoutMsContract', () => {
   });
 
   it('INVALID: {0} => throws', () => {
-    expect(() => timeoutMsContract.parse(0)).toThrow(/greater than 0/u);
+    expect(() => timeoutMsContract.parse(0)).toThrow(/to be >0/u);
   });
 
   it('INVALID: {-1} => throws', () => {
-    expect(() => timeoutMsContract.parse(-1)).toThrow(/greater than 0/u);
+    expect(() => timeoutMsContract.parse(-1)).toThrow(/to be >0/u);
   });
 });

@@ -24,6 +24,6 @@ describe('processActivityContract', () => {
   });
 
   it('INVALID: {missing lastActivityAt} => throws validation error', () => {
-    expect(() => processActivityContract.parse({})).toThrow(/Required/u);
+    expect(() => processActivityContract.parse({})).toThrow(/received undefined/u);
   });
 });

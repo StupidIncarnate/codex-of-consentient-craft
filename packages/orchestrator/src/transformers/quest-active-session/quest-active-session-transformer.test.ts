@@ -59,7 +59,7 @@ describe('questActiveSessionTransformer', () => {
         completedAt: '2024-01-15T10:00:00.000Z',
       });
       const activeBughunt = WorkItemStub({
-        id: QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e' }),
+        id: QuestWorkItemIdStub({ value: '03a9d8d8-7d74-4041-981c-977812e6dc45' }),
         role: 'bughunt',
         status: 'in_progress',
         sessionId: bughuntSession,
@@ -89,7 +89,7 @@ describe('questActiveSessionTransformer', () => {
         completedAt: '2024-01-15T10:00:00.000Z',
       });
       const newerChaos = WorkItemStub({
-        id: QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e' }),
+        id: QuestWorkItemIdStub({ value: '03a9d8d8-7d74-4041-981c-977812e6dc45' }),
         role: 'chaoswhisperer',
         status: 'complete',
         sessionId: newerSession,
@@ -153,7 +153,7 @@ describe('questActiveSessionTransformer', () => {
         completedAt: '2024-01-15T10:00:00.000Z',
       });
       const newerItem = WorkItemStub({
-        id: QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e' }),
+        id: QuestWorkItemIdStub({ value: '03a9d8d8-7d74-4041-981c-977812e6dc45' }),
         role: 'codeweaver',
         status: 'complete',
         sessionId: newSession,
@@ -178,7 +178,7 @@ describe('questActiveSessionTransformer', () => {
         status: 'in_progress',
       });
       const cw = WorkItemStub({
-        id: QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e' }),
+        id: QuestWorkItemIdStub({ value: '03a9d8d8-7d74-4041-981c-977812e6dc45' }),
         role: 'codeweaver',
         status: 'in_progress',
         sessionId,

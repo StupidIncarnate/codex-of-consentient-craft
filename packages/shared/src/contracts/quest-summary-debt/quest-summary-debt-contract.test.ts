@@ -1,3 +1,4 @@
+import { unitMarkContract } from '../unit-mark/unit-mark-contract';
 import { verificationTrackContract } from '../verification-track/verification-track-contract';
 import { questSummaryDebtContract } from './quest-summary-debt-contract';
 import { QuestSummaryDebtStub } from './quest-summary-debt.stub';
@@ -74,16 +75,17 @@ describe('questSummaryDebtContract', () => {
 
   describe('the mark this list refuses', () => {
     it('INVALID: {mark: met} => refused, a proven unit is not debt', () => {
+      // The thrown message is `JSON.stringify(issues, null, 2)`, so a quoted option name inside
+      // one issue's own `message` field is escaped (`\"cant-meet\"`) in the thrown string.
       expect(() => QuestSummaryDebtStub({ mark: 'met' as never })).toThrow(
-        /Invalid enum value. Expected 'cant-meet' \| 'unmet', received 'met'/u,
+        /Invalid option: expected one of \\"cant-meet\\"\|\\"unmet\\"/u,
       );
     });
 
     it('VALID: {mark options} => the enum carries cant-meet and unmet and nothing else', () => {
-      expect(questSummaryDebtContract.innerType().shape.mark.options).toStrictEqual([
-        'cant-meet',
-        'unmet',
-      ]);
+      // `.superRefine()` no longer exposes `.innerType()` in zod v4 — this is the same narrowing
+      // `quest-summary-debt-contract.ts` builds its `mark` field from.
+      expect(unitMarkContract.exclude(['met']).options).toStrictEqual(['cant-meet', 'unmet']);
     });
   });
 
@@ -111,17 +113,17 @@ describe('questSummaryDebtContract', () => {
 
     it('EMPTY: {id: ""} => throws', () => {
       expect(() => QuestSummaryDebtStub({ id: '' })).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
 
     it('INVALID: {kind: "path"} => throws', () => {
-      expect(() => QuestSummaryDebtStub({ kind: 'path' as never })).toThrow(/Invalid enum value/u);
+      expect(() => QuestSummaryDebtStub({ kind: 'path' as never })).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {workItemId: "not-a-uuid"} => throws, the entry must route back to a session', () => {
       expect(() => QuestSummaryDebtStub({ workItemId: 'not-a-uuid' as never })).toThrow(
-        /Invalid uuid/u,
+        /Invalid UUID/u,
       );
     });
 

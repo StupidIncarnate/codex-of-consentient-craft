@@ -36,7 +36,7 @@ describe('orchestrationEventEnvelopeContract', (): void => {
 
   it('ERROR: {non-object} => throws', (): void => {
     expect((): unknown => orchestrationEventEnvelopeContract.parse('foo')).toThrow(
-      /Expected object/u,
+      /expected object/u,
     );
   });
 });

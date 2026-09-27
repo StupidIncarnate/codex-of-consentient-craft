@@ -13,7 +13,7 @@ describe('resultFieldContract', () => {
   it('INVALID: {value: ""} => an empty field name throws validation error', () => {
     expect(() => {
       resultFieldContract.parse('');
-    }).toThrow(/String must contain at least 1 character/u);
+    }).toThrow(/expected string to have >=1 characters/u);
   });
 
   it('EDGE: {value: "a"} => a single-character field name parses successfully', () => {

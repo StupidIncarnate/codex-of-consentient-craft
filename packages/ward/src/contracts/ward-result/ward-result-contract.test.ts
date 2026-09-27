@@ -59,7 +59,7 @@ describe('wardResultContract', () => {
     });
 
     it('INVALID: {missing all fields} => throws validation error', () => {
-      expect(() => wardResultContract.parse({})).toThrow(/Required/u);
+      expect(() => wardResultContract.parse({})).toThrow(/received undefined/u);
     });
   });
 

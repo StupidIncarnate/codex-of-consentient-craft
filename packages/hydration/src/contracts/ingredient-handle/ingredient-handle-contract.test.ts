@@ -12,7 +12,9 @@ describe('ingredientHandleContract', () => {
 
   describe('invalid handles', () => {
     it('INVALID: {no ref} => throws Required', () => {
-      expect(() => ingredientHandleContract.parse({ ingredient: 'quest' })).toThrow(/Required/u);
+      expect(() => ingredientHandleContract.parse({ ingredient: 'quest' })).toThrow(
+        /received undefined/u,
+      );
     });
 
     it('INVALID: {ref: \'quest\'} => throws "must be an ancestor path"', () => {

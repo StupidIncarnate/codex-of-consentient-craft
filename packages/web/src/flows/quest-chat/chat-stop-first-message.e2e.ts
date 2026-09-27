@@ -46,7 +46,7 @@ test.describe('Chat STOP on the first message', () => {
     claudeMock.queueResponse({
       response: {
         sessionId: SessionIdStub({
-          value: 'e2e-session-00000000-0000-0000-0000-0000000000a1',
+          value: 'e2e-session-550b6bac-7332-8622-adc4-6cd9fa67f8f4',
         }),
         delayMs: TimeoutMsStub({ value: HELD_BACK_DELAY_MS }),
         lines: [
@@ -121,7 +121,7 @@ test.describe('Chat STOP on the first message', () => {
     claudeMock.queueResponse({
       response: {
         sessionId: SessionIdStub({
-          value: 'e2e-session-00000000-0000-0000-0000-0000000000a2',
+          value: 'e2e-session-1e80c917-f245-2aa9-a660-5bf9756ddea8',
         }),
         lines: [streamLineToJsonLineTransformer({ streamLine: SystemInitStreamLineStub() })],
       },

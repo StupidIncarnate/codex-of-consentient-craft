@@ -341,7 +341,7 @@ describe('workItemContract', () => {
     it('INVALID: {missing required fields} => throws validation error', () => {
       expect(() => {
         workItemContract.parse({});
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {non-uuid id} => throws validation error', () => {
@@ -353,7 +353,7 @@ describe('workItemContract', () => {
           spawnerType: 'agent',
           createdAt: '2024-01-15T10:00:00.000Z',
         });
-      }).toThrow(/Invalid uuid/u);
+      }).toThrow(/Invalid UUID/u);
     });
 
     it('INVALID: {unknown role} => throws validation error', () => {
@@ -365,7 +365,7 @@ describe('workItemContract', () => {
           spawnerType: 'agent',
           createdAt: '2024-01-15T10:00:00.000Z',
         });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {unknown status} => throws validation error', () => {
@@ -377,7 +377,7 @@ describe('workItemContract', () => {
           spawnerType: 'agent',
           createdAt: '2024-01-15T10:00:00.000Z',
         });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {invalid createdAt timestamp} => throws validation error', () => {
@@ -389,7 +389,7 @@ describe('workItemContract', () => {
           spawnerType: 'agent',
           createdAt: 'not-a-timestamp',
         });
-      }).toThrow(/Invalid datetime/u);
+      }).toThrow(/Invalid ISO datetime/u);
     });
 
     // `.string().datetime()` with no `{ offset: true }` accepts ONLY a bare `Z` suffix — an
@@ -406,7 +406,7 @@ describe('workItemContract', () => {
           startedAt: '2024-01-15T10:01:00.000Z',
           completedAt: '2026-01-01T11:56:00.000+05:00',
         });
-      }).toThrow(/Invalid datetime/u);
+      }).toThrow(/Invalid ISO datetime/u);
     });
 
     it('INVALID: {invalid relatedDataItem format} => throws validation error', () => {
@@ -458,7 +458,7 @@ describe('workItemContract', () => {
           createdAt: '2024-01-15T10:00:00.000Z',
           smoketestExpectedSignal: 'not-a-real-signal',
         });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid input: expected/u);
     });
 
     it('INVALID: {empty agentId} => throws validation error', () => {
@@ -510,7 +510,7 @@ describe('workItemContract', () => {
           createdAt: '2024-01-15T10:00:00.000Z',
           actualSignal: 'bogus',
         });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid input: expected/u);
     });
   });
 
@@ -554,7 +554,7 @@ describe('workItemContract', () => {
           createdAt: '2024-01-15T10:00:00.000Z',
           actualSignal: 'failed-replan',
         });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid input: expected/u);
     });
   });
 
@@ -743,7 +743,7 @@ describe('workItemContract', () => {
           createdAt: '2024-01-15T10:00:00.000Z',
           retryCount: 1.5,
         });
-      }).toThrow(/integer/u);
+      }).toThrow(/Invalid input: expected int, received number/u);
     });
   });
 
@@ -847,7 +847,7 @@ describe('workItemContract', () => {
           createdAt: '2024-01-15T10:00:00.000Z',
           mintedBy: 'not-a-uuid',
         });
-      }).toThrow(/Invalid uuid/u);
+      }).toThrow(/Invalid UUID/u);
     });
 
     it('INVALID: {pieceId: ""} => throws validation error', () => {
@@ -929,7 +929,7 @@ describe('workItemContract', () => {
           createdAt: '2024-01-15T10:00:00.000Z',
           declaredWord: 'blocked',
         });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
   });
 

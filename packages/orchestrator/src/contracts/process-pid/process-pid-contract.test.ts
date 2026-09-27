@@ -36,7 +36,7 @@ describe('processPidContract', () => {
     it('INVALID: {decimal number} => throws validation error', () => {
       expect(() => {
         processPidContract.parse(1.5);
-      }).toThrow(/integer/u);
+      }).toThrow(/Invalid input: expected int, received number/u);
     });
   });
 });

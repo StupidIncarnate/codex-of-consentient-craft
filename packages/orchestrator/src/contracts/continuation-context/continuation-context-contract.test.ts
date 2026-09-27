@@ -28,7 +28,7 @@ describe('continuationContextContract', () => {
     });
 
     it('INVALID: {value: 123} => throws for non-string', () => {
-      expect(() => continuationContextContract.parse(123 as never)).toThrow(/Expected string/u);
+      expect(() => continuationContextContract.parse(123 as never)).toThrow(/expected string/u);
     });
   });
 });

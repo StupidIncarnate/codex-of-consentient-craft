@@ -23,16 +23,16 @@ describe('blockedReasonContract', () => {
   describe('invalid reasons', () => {
     it('EMPTY: {value: ""} => throws because a blocked signal must say why', () => {
       expect(() => blockedReasonContract.parse('')).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
 
     it('INVALID: {value: 123} => throws Expected string', () => {
-      expect(() => blockedReasonContract.parse(123 as never)).toThrow(/Expected string/u);
+      expect(() => blockedReasonContract.parse(123 as never)).toThrow(/expected string/u);
     });
 
     it('EMPTY: {value: undefined} => throws Required', () => {
-      expect(() => blockedReasonContract.parse(undefined as never)).toThrow(/Required/u);
+      expect(() => blockedReasonContract.parse(undefined as never)).toThrow(/received undefined/u);
     });
   });
 });

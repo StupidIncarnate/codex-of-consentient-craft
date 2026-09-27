@@ -21,6 +21,6 @@ describe('agentsHooksConfigContract', () => {
   it('INVALID: {missing dungeonmaster-guard} => throws validation error', () => {
     expect(() => {
       return agentsHooksConfigContract.parse({} as never);
-    }).toThrow(/Required/u);
+    }).toThrow(/received undefined/u);
   });
 });

@@ -44,7 +44,7 @@ describe('guildMessageBodyContract', () => {
     it('INVALID: {missing message} => throws validation error', () => {
       expect(() => {
         guildMessageBodyContract.parse({ guildId: GuildIdStub() });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {images: maxImagesPerMessage + 1} => throws validation error', () => {

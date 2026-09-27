@@ -70,7 +70,9 @@ describe('CreateWorktreeLayerResponder', () => {
     it('INVALID: {missing name} => throws before any adapter call', async () => {
       CreateWorktreeLayerResponderProxy();
 
-      await expect(CreateWorktreeLayerResponder({ args: {} })).rejects.toThrow(/Required/u);
+      await expect(CreateWorktreeLayerResponder({ args: {} })).rejects.toThrow(
+        /received undefined/u,
+      );
     });
 
     it('INVALID: {unknown key} => throws on the strict contract, a caller never chooses the location', async () => {

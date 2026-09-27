@@ -71,7 +71,7 @@ describe('laneProcessContract', () => {
           logFileName: 'api-server.log',
           env: {},
         } as never),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 });

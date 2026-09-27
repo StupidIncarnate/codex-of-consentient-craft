@@ -44,7 +44,7 @@ describe('addQuestInputContract', () => {
         userRequest: 'User wants to test the quest system',
         questSource: 'bogus',
       }),
-    ).toThrow(/Invalid enum value/u);
+    ).toThrow(/Invalid option/u);
   });
 
   it('VALID: {questType: "bug-hunt"} => parses with questType', () => {
@@ -68,6 +68,6 @@ describe('addQuestInputContract', () => {
         userRequest: 'User wants to test the quest system',
         questType: 'bogus',
       }),
-    ).toThrow(/Invalid enum value/u);
+    ).toThrow(/Invalid option/u);
   });
 });

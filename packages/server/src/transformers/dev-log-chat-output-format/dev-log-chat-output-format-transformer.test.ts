@@ -4,7 +4,7 @@ describe('devLogChatOutputFormatTransformer', () => {
   it('VALID: {chat event with assistant text entries} => formats summary', () => {
     const result = devLogChatOutputFormatTransformer({
       payload: {
-        chatProcessId: 'proc-abc12345-1111-2222-3333-444444444444',
+        chatProcessId: 'proc-99cf9441-9852-5274-a073-30f5c2eb07be',
         entries: [
           {
             role: 'assistant',
@@ -44,7 +44,7 @@ describe('devLogChatOutputFormatTransformer', () => {
   it('EDGE: {no entries field} => shows (no entries)', () => {
     const result = devLogChatOutputFormatTransformer({
       payload: {
-        chatProcessId: 'proc-abc12345-1111-2222-3333-444444444444',
+        chatProcessId: 'proc-99cf9441-9852-5274-a073-30f5c2eb07be',
       },
     });
 
@@ -54,7 +54,7 @@ describe('devLogChatOutputFormatTransformer', () => {
   it('EDGE: {empty entries array} => shows (no entries)', () => {
     const result = devLogChatOutputFormatTransformer({
       payload: {
-        chatProcessId: 'proc-abc12345-1111-2222-3333-444444444444',
+        chatProcessId: 'proc-99cf9441-9852-5274-a073-30f5c2eb07be',
         entries: [],
       },
     });
@@ -65,7 +65,7 @@ describe('devLogChatOutputFormatTransformer', () => {
   it('VALID: {multiple entries} => joins with " | "', () => {
     const result = devLogChatOutputFormatTransformer({
       payload: {
-        chatProcessId: 'proc-abc12345-1111-2222-3333-444444444444',
+        chatProcessId: 'proc-99cf9441-9852-5274-a073-30f5c2eb07be',
         entries: [
           {
             role: 'assistant',

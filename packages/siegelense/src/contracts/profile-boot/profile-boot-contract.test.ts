@@ -33,7 +33,7 @@ describe('profileBootContract', () => {
           bootMs: -1,
           recordedAtMs: 1_700_000_000_000,
         });
-      }).toThrow(/greater than or equal to 0/u);
+      }).toThrow(/to be >=0/u);
     });
 
     it('INVALID: {no bootMs} => throws', () => {
@@ -43,7 +43,7 @@ describe('profileBootContract', () => {
           specHash: 'a3f9c2e1',
           recordedAtMs: 1_700_000_000_000,
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

@@ -87,7 +87,7 @@ describe('questSessionContract', () => {
           role: 'codeweaver',
           startedAt: '2024-01-15T10:00:00.000Z',
         });
-      }).toThrow(/at least 1 character/u);
+      }).toThrow(/>=1 characters/u);
     });
 
     it('INVALID: {cwd: "relative/path"} => throws a must-be-absolute error', () => {
@@ -109,7 +109,7 @@ describe('questSessionContract', () => {
           role: 'codeweaver-reviewer',
           startedAt: '2024-01-15T10:00:00.000Z',
         });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {workItemId: "not-a-uuid"} => throws an invalid-uuid error', () => {
@@ -121,7 +121,7 @@ describe('questSessionContract', () => {
           workItemId: 'not-a-uuid',
           startedAt: '2024-01-15T10:00:00.000Z',
         });
-      }).toThrow(/Invalid uuid/u);
+      }).toThrow(/Invalid UUID/u);
     });
 
     it('INVALID: {startedAt: "2024-01-15"} => throws an invalid-datetime error', () => {
@@ -132,7 +132,7 @@ describe('questSessionContract', () => {
           role: 'codeweaver',
           startedAt: '2024-01-15',
         });
-      }).toThrow(/Invalid datetime/u);
+      }).toThrow(/Invalid ISO datetime/u);
     });
 
     it('INVALID: {cwd: 42} => throws an expected-string error', () => {
@@ -143,7 +143,7 @@ describe('questSessionContract', () => {
           role: 'codeweaver',
           startedAt: '2024-01-15T10:00:00.000Z',
         });
-      }).toThrow(/Expected string/u);
+      }).toThrow(/expected string/u);
     });
 
     it('INVALID: {only sessionId} => throws a required error', () => {
@@ -151,7 +151,7 @@ describe('questSessionContract', () => {
         return questSessionContract.parse({
           sessionId: 'e0047cb8-02a2-448f-a1cb-909c9681f999',
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

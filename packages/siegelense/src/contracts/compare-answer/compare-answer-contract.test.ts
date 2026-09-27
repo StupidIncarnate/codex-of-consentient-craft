@@ -86,7 +86,7 @@ describe('compareAnswerContract', () => {
           pixels: null,
           elements: { runA: null, runB: null },
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {missing elements} => throws Required', () => {
@@ -100,7 +100,7 @@ describe('compareAnswerContract', () => {
           network: { errors: '+1', new: [] },
           pixels: null,
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 });

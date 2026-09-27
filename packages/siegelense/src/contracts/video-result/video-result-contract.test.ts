@@ -30,13 +30,13 @@ describe('videoResultContract', () => {
     it('INVALID: {status: 123} => non-string status throws validation error', () => {
       expect(() => {
         videoResultContract.parse({ status: 123, path: null });
-      }).toThrow(/Expected string/u);
+      }).toThrow(/expected string/u);
     });
 
     it('INVALID: {path: 123} => non-string non-null path throws validation error', () => {
       expect(() => {
         videoResultContract.parse({ status: 'stopped', path: 123 });
-      }).toThrow(/Expected string/u);
+      }).toThrow(/expected string/u);
     });
 
     it('INVALID: {extra: "field"} => extra property throws due to strict mode', () => {

@@ -57,7 +57,7 @@ describe('localImagePathMatchContract', () => {
           matchedText: '/home/user/pasted.png',
           ordinal: 0,
         });
-      }).toThrow(/greater than 0/u);
+      }).toThrow(/to be >0/u);
     });
 
     it('INVALID: {missing ordinal} => throws validation error', () => {
@@ -66,13 +66,13 @@ describe('localImagePathMatchContract', () => {
           path: '/home/user/pasted.png',
           matchedText: '/home/user/pasted.png',
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {missing matchedText} => throws validation error', () => {
       expect(() => {
         localImagePathMatchContract.parse({ path: '/home/user/pasted.png', ordinal: 1 });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {matchedText: ""} => throws for an empty span', () => {
@@ -82,7 +82,7 @@ describe('localImagePathMatchContract', () => {
           matchedText: '',
           ordinal: 1,
         });
-      }).toThrow(/at least 1/u);
+      }).toThrow(/>=1/u);
     });
   });
 });

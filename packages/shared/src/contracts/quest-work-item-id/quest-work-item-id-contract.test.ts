@@ -23,12 +23,12 @@ describe('questWorkItemIdContract', () => {
   it('INVALID: {value: "not-a-uuid"} => throws validation error', () => {
     expect(() => {
       return questWorkItemIdContract.parse('not-a-uuid');
-    }).toThrow(/Invalid uuid/u);
+    }).toThrow(/Invalid UUID/u);
   });
 
   it('INVALID: {value: ""} => throws validation error', () => {
     expect(() => {
       return questWorkItemIdContract.parse('');
-    }).toThrow(/Invalid uuid/u);
+    }).toThrow(/Invalid UUID/u);
   });
 });

@@ -34,7 +34,7 @@ describe('recipesAnswerContract', () => {
           expected: 'array',
           received: 'undefined',
           path: ['recipes'],
-          message: 'Required',
+          message: 'received undefined',
         },
       ]);
     });

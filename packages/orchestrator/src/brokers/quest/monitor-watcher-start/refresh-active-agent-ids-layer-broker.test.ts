@@ -27,7 +27,7 @@ describe('refreshActiveAgentIdsLayerBroker', () => {
 
   it('VALID: {one active quest with one in_progress agentId} => populates the map', async () => {
     const proxy = refreshActiveAgentIdsLayerBrokerProxy();
-    const guildId = GuildIdStub({ value: '11111111-aaaa-bbbb-cccc-111111111111' });
+    const guildId = GuildIdStub({ value: '787093e7-1906-1194-8299-9ec402ef2c7e' });
     const questId = QuestIdStub({ value: 'q-active-1' });
     const agentId = AgentIdStub({ value: 'agent-1' });
 
@@ -51,7 +51,7 @@ describe('refreshActiveAgentIdsLayerBroker', () => {
 
   it('VALID: {work item without agentId} => excluded from active set', async () => {
     const proxy = refreshActiveAgentIdsLayerBrokerProxy();
-    const guildId = GuildIdStub({ value: '22222222-aaaa-bbbb-cccc-222222222222' });
+    const guildId = GuildIdStub({ value: '17b1ab22-4310-3fc0-b2cc-e513e3c7bfe3' });
     const questId = QuestIdStub({ value: 'q-no-agent' });
 
     proxy.setupGuilds({ guilds: [GuildListItemStub({ id: guildId, valid: true })] });
@@ -73,7 +73,7 @@ describe('refreshActiveAgentIdsLayerBroker', () => {
 
   it('VALID: {quest disappears between calls} => removed from map and reported in droppedQuestIds', async () => {
     const proxy = refreshActiveAgentIdsLayerBrokerProxy();
-    const guildId = GuildIdStub({ value: '33333333-aaaa-bbbb-cccc-333333333333' });
+    const guildId = GuildIdStub({ value: '40ec4fe9-dc49-5d95-9a95-6c24b90dfb24' });
     const goneQuestId = QuestIdStub({ value: 'q-gone' });
 
     const map = new Map<QuestId, Set<AgentId>>();
@@ -90,7 +90,7 @@ describe('refreshActiveAgentIdsLayerBroker', () => {
 
   it('VALID: {invalid guild} => skipped, no quests stamped', async () => {
     const proxy = refreshActiveAgentIdsLayerBrokerProxy();
-    const guildId = GuildIdStub({ value: '44444444-aaaa-bbbb-cccc-444444444444' });
+    const guildId = GuildIdStub({ value: '05291b9a-ec64-2f2b-ac45-b7d3ee1cfaa5' });
 
     proxy.setupGuilds({ guilds: [GuildListItemStub({ id: guildId, valid: false })] });
 

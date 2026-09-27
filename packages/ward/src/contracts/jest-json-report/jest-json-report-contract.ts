@@ -15,7 +15,7 @@ const jestAssertionResultContract = z
     failureMessages: z.array(z.string().brand<'JestFailureMessage'>()).optional(),
     duration: z.number().brand<'JestAssertionDuration'>().nullable().optional(),
   })
-  .passthrough();
+  .loose();
 
 const jestSuiteResultContract = z
   .object({
@@ -26,7 +26,7 @@ const jestSuiteResultContract = z
     startTime: z.number().brand<'JestSuiteStartTime'>().optional(),
     endTime: z.number().brand<'JestSuiteEndTime'>().optional(),
   })
-  .passthrough();
+  .loose();
 
 // Jest serializes each open handle as an Error through its own `serializeToJSON`, which keeps only
 // `message`, `name` and `stack` — so this mirrors that shape and nothing wider.
@@ -36,7 +36,7 @@ const jestOpenHandleContract = z
     message: z.string().brand<'JestOpenHandleMessage'>().optional(),
     stack: z.string().brand<'JestOpenHandleStack'>().optional(),
   })
-  .passthrough();
+  .loose();
 
 export const jestJsonReportContract = z
   .object({
@@ -45,6 +45,6 @@ export const jestJsonReportContract = z
     testResults: z.array(jestSuiteResultContract).optional(),
     openHandles: z.array(jestOpenHandleContract).optional(),
   })
-  .passthrough();
+  .loose();
 
 export type JestJsonReport = z.infer<typeof jestJsonReportContract>;

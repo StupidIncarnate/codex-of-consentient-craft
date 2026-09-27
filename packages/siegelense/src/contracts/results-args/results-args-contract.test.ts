@@ -83,7 +83,7 @@ describe('resultsArgsContract', () => {
           expected: 'string',
           received: 'undefined',
           path: ['instanceId'],
-          message: 'Required',
+          message: 'received undefined',
         },
       ]);
     });

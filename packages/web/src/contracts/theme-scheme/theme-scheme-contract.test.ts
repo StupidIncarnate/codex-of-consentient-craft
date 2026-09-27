@@ -63,19 +63,19 @@ describe('themeSchemeContract', () => {
     it('INVALID: {missing name} => throws validation error', () => {
       expect(() => {
         themeSchemeContract.parse({ desc: 'A theme', colors: {} });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {missing desc} => throws validation error', () => {
       expect(() => {
         themeSchemeContract.parse({ name: 'Test', colors: {} });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {missing colors} => throws validation error', () => {
       expect(() => {
         themeSchemeContract.parse({ name: 'Test', desc: 'A theme' });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {invalid color token key} => throws validation error', () => {
@@ -85,7 +85,7 @@ describe('themeSchemeContract', () => {
           desc: 'A theme',
           colors: { 'invalid-token': '#ff4500' },
         });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {invalid hex value} => throws validation error', () => {

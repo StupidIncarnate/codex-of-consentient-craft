@@ -116,7 +116,7 @@ describe('editToolInputContract', () => {
           old_string: 'old',
           new_string: 'new',
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {empty file_path} => throws validation error', () => {
@@ -126,7 +126,7 @@ describe('editToolInputContract', () => {
           old_string: 'old',
           new_string: 'new',
         });
-      }).toThrow(/String must contain at least 1 character/u);
+      }).toThrow(/expected string to have >=1 characters/u);
     });
 
     it('INVALID: {missing old_string} => throws validation error', () => {
@@ -135,7 +135,7 @@ describe('editToolInputContract', () => {
           file_path: '/test/file.ts',
           new_string: 'new',
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {missing new_string} => throws validation error', () => {
@@ -144,13 +144,13 @@ describe('editToolInputContract', () => {
           file_path: '/test/file.ts',
           old_string: 'old',
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {missing all required fields} => throws validation error', () => {
       expect(() => {
         return editToolInputContract.parse({});
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {file_path is number} => throws validation error', () => {
@@ -160,7 +160,7 @@ describe('editToolInputContract', () => {
           old_string: 'old',
           new_string: 'new',
         });
-      }).toThrow(/Expected string/u);
+      }).toThrow(/expected string/u);
     });
 
     it('INVALID: {old_string is number} => throws validation error', () => {
@@ -170,7 +170,7 @@ describe('editToolInputContract', () => {
           old_string: 123 as never,
           new_string: 'new',
         });
-      }).toThrow(/Expected string/u);
+      }).toThrow(/expected string/u);
     });
 
     it('INVALID: {new_string is number} => throws validation error', () => {
@@ -180,7 +180,7 @@ describe('editToolInputContract', () => {
           old_string: 'old',
           new_string: 123 as never,
         });
-      }).toThrow(/Expected string/u);
+      }).toThrow(/expected string/u);
     });
 
     it('INVALID: {replace_all is string} => throws validation error', () => {
@@ -191,7 +191,7 @@ describe('editToolInputContract', () => {
           new_string: 'new',
           replace_all: 'true' as never,
         });
-      }).toThrow(/Expected boolean/u);
+      }).toThrow(/expected boolean/u);
     });
   });
 
@@ -199,7 +199,7 @@ describe('editToolInputContract', () => {
     it('INVALID: {invalid data} => throws validation error', () => {
       expect(() => {
         return editToolInputContract.parse({} as never);
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

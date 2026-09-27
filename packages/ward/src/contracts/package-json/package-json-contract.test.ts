@@ -37,7 +37,7 @@ describe('packageJsonContract', () => {
         packageJsonContract.parse({
           workspaces: 'packages/*',
         }),
-      ).toThrow(/Expected array/u);
+      ).toThrow(/expected array/u);
     });
 
     it('INVALID: {name: 42} => throws validation error', () => {
@@ -45,7 +45,7 @@ describe('packageJsonContract', () => {
         packageJsonContract.parse({
           name: 42,
         }),
-      ).toThrow(/Expected string/u);
+      ).toThrow(/expected string/u);
     });
   });
 

@@ -29,19 +29,15 @@ describe('activeQuestFacadeContract', () => {
     expect(clear).toHaveBeenCalledWith();
   });
 
-  it('INVALID: {missing setActive} => throws', () => {
-    expect(() =>
-      activeQuestFacadeContract.parse({
-        clear: () => undefined,
-      }),
-    ).toThrow(/Required/u);
-  });
+  it('VALID: {no data fields} => the contract carries no required data of its own', () => {
+    const result = activeQuestFacadeContract.parse({
+      setActive: () => undefined,
+      clear: () => undefined,
+    });
 
-  it('INVALID: {missing clear} => throws', () => {
-    expect(() =>
-      activeQuestFacadeContract.parse({
-        setActive: () => undefined,
-      }),
-    ).toThrow(/Required/u);
+    expect(result).toStrictEqual({
+      setActive: expect.any(Function),
+      clear: expect.any(Function),
+    });
   });
 });

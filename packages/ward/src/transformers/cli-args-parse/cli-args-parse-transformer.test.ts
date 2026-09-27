@@ -613,7 +613,7 @@ describe('cliArgsParseTransformer', () => {
         cliArgsParseTransformer({
           args: [CliArgStub({ value: '--only' }), CliArgStub({ value: 'badvalue' })],
         }),
-      ).toThrow(/Invalid enum value/u);
+      ).toThrow(/Invalid option/u);
     });
 
     it('EDGE: {args: ["--only"]} => only flag with no value is ignored', () => {

@@ -34,17 +34,17 @@ describe('testingOpenHandleFindingContract', () => {
     it('EMPTY: {kind: ""} => throws', () => {
       expect(() =>
         testingOpenHandleFindingContract.parse({ kind: '', testPath: 'a.test.ts', stack: '' }),
-      ).toThrow(/at least 1 character/u);
+      ).toThrow(/>=1 characters/u);
     });
 
     it('EMPTY: {testPath: ""} => throws', () => {
       expect(() =>
         testingOpenHandleFindingContract.parse({ kind: 'setInterval', testPath: '', stack: '' }),
-      ).toThrow(/at least 1 character/u);
+      ).toThrow(/>=1 characters/u);
     });
 
     it('EMPTY: {} => throws', () => {
-      expect(() => testingOpenHandleFindingContract.parse({})).toThrow(/Required/u);
+      expect(() => testingOpenHandleFindingContract.parse({})).toThrow(/received undefined/u);
     });
 
     it('INVALID: {stack: 42} => throws', () => {
@@ -54,7 +54,7 @@ describe('testingOpenHandleFindingContract', () => {
           testPath: 'a.test.ts',
           stack: 42,
         }),
-      ).toThrow(/Expected string/u);
+      ).toThrow(/expected string/u);
     });
   });
 });

@@ -58,7 +58,7 @@
     "@dungeonmaster/npm": "*",
     "@dungeonmaster/shared": "*",
     "minimatch": "^9.0.5",
-    "zod": "^3.25.76"
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@dungeonmaster/testing": "*",

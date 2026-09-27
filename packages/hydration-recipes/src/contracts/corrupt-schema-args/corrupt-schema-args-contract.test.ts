@@ -25,7 +25,7 @@ describe('corruptSchemaArgsContract', () => {
   describe('invalid corrupt schema args', () => {
     it('INVALID: {value: "not-an-object"} => throws "Expected object, received string"', () => {
       expect(() => corruptSchemaArgsContract.parse('not-an-object' as never)).toThrow(
-        /Expected object, received string/u,
+        /Invalid input: expected object, received string/u,
       );
     });
   });

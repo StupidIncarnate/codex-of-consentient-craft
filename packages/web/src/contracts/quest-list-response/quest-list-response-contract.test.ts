@@ -62,7 +62,7 @@ describe('questListResponseContract', () => {
     it('INVALID: {invalid item in array} => throws validation error', () => {
       expect(() => {
         questListResponseContract.parse([{ invalid: true }]);
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

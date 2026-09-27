@@ -15,7 +15,7 @@ describe('devLogGenericEventFormatTransformer', () => {
   it('VALID: {payload with phase} => shows phase value', () => {
     const result = devLogGenericEventFormatTransformer({
       payload: {
-        processId: 'proc-abc12345-1111-2222-3333-444444444444',
+        processId: 'proc-99cf9441-9852-5274-a073-30f5c2eb07be',
         phase: 'running',
       },
     });
@@ -26,7 +26,7 @@ describe('devLogGenericEventFormatTransformer', () => {
   it('VALID: {payload with role and slotIndex} => shows both', () => {
     const result = devLogGenericEventFormatTransformer({
       payload: {
-        processId: 'proc-abc12345-1111-2222-3333-444444444444',
+        processId: 'proc-99cf9441-9852-5274-a073-30f5c2eb07be',
         role: 'codeweaver',
         slotIndex: 1,
       },
@@ -38,7 +38,7 @@ describe('devLogGenericEventFormatTransformer', () => {
   it('VALID: {payload with questions array} => shows count', () => {
     const result = devLogGenericEventFormatTransformer({
       payload: {
-        chatProcessId: 'proc-abc12345-1111-2222-3333-444444444444',
+        chatProcessId: 'proc-99cf9441-9852-5274-a073-30f5c2eb07be',
         questions: ['q1', 'q2'],
       },
     });
@@ -69,7 +69,7 @@ describe('devLogGenericEventFormatTransformer', () => {
   it('EDGE: {phase, slotIndex and role all null} => omits each null part', () => {
     const result = devLogGenericEventFormatTransformer({
       payload: {
-        processId: 'proc-abc12345-1111-2222-3333-444444444444',
+        processId: 'proc-99cf9441-9852-5274-a073-30f5c2eb07be',
         phase: null,
         role: null,
         slotIndex: null,
@@ -82,7 +82,7 @@ describe('devLogGenericEventFormatTransformer', () => {
   it('VALID: {smoketest-shaped payload with caseResult} => ignores smoketest-specific fields', () => {
     const result = devLogGenericEventFormatTransformer({
       payload: {
-        processId: 'smoketest-abc12345-1111-2222-3333-444444444444',
+        processId: 'smoketest-99cf9441-9852-5274-a073-30f5c2eb07be',
         suite: 'mcp',
         phase: 'case-complete',
         caseResult: { caseId: 'mcp-discover', name: 'MCP: discover', passed: true },

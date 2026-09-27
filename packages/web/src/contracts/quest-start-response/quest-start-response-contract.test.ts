@@ -31,13 +31,13 @@ describe('questStartResponseContract', () => {
   describe('invalid bodies', () => {
     it('INVALID: {processId: ""} => throws validation error', () => {
       expect(() => questStartResponseContract.parse({ processId: '' })).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
 
     it('INVALID: {error: ""} => throws validation error', () => {
       expect(() => questStartResponseContract.parse({ error: '' })).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
   });

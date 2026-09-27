@@ -71,18 +71,18 @@ describe('dispatchStateContract', () => {
 
   describe('invalid input', () => {
     it('INVALID: {mode: "running"} => throws validation error', () => {
-      expect(() => DispatchStateStub({ mode: 'running' as never })).toThrow(/Invalid enum value/u);
+      expect(() => DispatchStateStub({ mode: 'running' as never })).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {updatedAt: "not-a-date"} => throws validation error', () => {
       expect(() => DispatchStateStub({ updatedAt: 'not-a-date' as never })).toThrow(
-        /Invalid datetime/u,
+        /Invalid ISO datetime/u,
       );
     });
 
     it('INVALID: {mcpHeartbeatAt: "not-a-date"} => throws validation error', () => {
       expect(() => DispatchStateStub({ mcpHeartbeatAt: 'not-a-date' as never })).toThrow(
-        /Invalid datetime/u,
+        /Invalid ISO datetime/u,
       );
     });
   });

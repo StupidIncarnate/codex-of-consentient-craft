@@ -18,7 +18,7 @@ export const guildContract = z.object({
   name: guildNameContract,
   path: guildPathContract,
   urlSlug: urlSlugContract.optional(),
-  createdAt: z.string().datetime().brand<'IsoTimestamp'>(),
+  createdAt: z.iso.datetime().brand<'IsoTimestamp'>(),
 });
 
 export type Guild = z.infer<typeof guildContract>;

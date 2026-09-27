@@ -51,7 +51,7 @@ describe('workPlanPayloadFlowriderContract', () => {
   describe('units may not be empty on this family', () => {
     it('EMPTY: {units: []} => refused, since a flowrider piece exists to prove units', () => {
       expect(() => WorkPlanPayloadFlowriderStub({ units: [] })).toThrow(
-        /Array must contain at least 1 element/u,
+        /expected array to have >=1 items/u,
       );
     });
   });

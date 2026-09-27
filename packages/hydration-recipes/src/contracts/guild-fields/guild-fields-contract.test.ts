@@ -32,20 +32,20 @@ describe('guildFieldsContract', () => {
   });
 
   describe('invalid guild fields', () => {
-    it('INVALID: {path only} => throws "Required"', () => {
+    it('INVALID: {path only} => throws "received undefined"', () => {
       expect(() => guildFieldsContract.parse({ path: '/tmp/guilds-under-test/guild-1' })).toThrow(
-        /Required/u,
+        /received undefined/u,
       );
     });
 
-    it('INVALID: {name only} => throws "Required"', () => {
-      expect(() => guildFieldsContract.parse({ name: 'Guild 1' })).toThrow(/Required/u);
+    it('INVALID: {name only} => throws "received undefined"', () => {
+      expect(() => guildFieldsContract.parse({ name: 'Guild 1' })).toThrow(/received undefined/u);
     });
   });
 
   describe('empty guild fields', () => {
-    it('EMPTY: {} => throws "Required" for both name and path', () => {
-      expect(() => guildFieldsContract.parse({})).toThrow(/Required/u);
+    it('EMPTY: {} => throws "received undefined" for both name and path', () => {
+      expect(() => guildFieldsContract.parse({})).toThrow(/received undefined/u);
     });
   });
 });

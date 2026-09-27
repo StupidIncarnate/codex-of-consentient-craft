@@ -23,7 +23,7 @@ describe('questMonitorWatcherStartBroker', () => {
       proxy.setupHomeDir({ path: '/home/user' });
 
       const handle = await questMonitorWatcherStartBroker({
-        parentSessionId: '11111111-1111-1111-1111-111111111111',
+        parentSessionId: '38c6cbd2-8bf1-6507-8d07-0980dd1fb595',
         projectDir: '/home/user/my-project',
         emit: (): void => {
           // no-op — emit recording covered by per-output assertions below
@@ -54,7 +54,7 @@ describe('questMonitorWatcherStartBroker', () => {
 
       const parentSessionId = '88888888-8888-8888-8888-888888888888';
       const workerWorkItemId = String(WorkItemStub().id);
-      const workerQuestId = String(QuestIdStub({ value: 'ffffffff-1111-2222-3333-444444444444' }));
+      const workerQuestId = String(QuestIdStub({ value: 'a1e884c2-5f67-6af6-97dd-5819484fba4d' }));
 
       const emitted: EmitParam[] = [];
 
@@ -88,14 +88,14 @@ describe('questMonitorWatcherStartBroker', () => {
       const proxy = questMonitorWatcherStartBrokerProxy();
       proxy.setupHomeDir({ path: '/home/user' });
 
-      const parentSessionId = '99999999-9999-9999-9999-999999999999';
+      const parentSessionId = 'a979fd6f-6969-1e05-b65b-fd78e7c13ea6';
       const emitted: EmitParam[] = [];
 
       const handle = await questMonitorWatcherStartBroker({
         parentSessionId,
         projectDir: '/home/user/p',
         workerWorkItemId: String(WorkItemStub().id),
-        workerQuestId: String(QuestIdStub({ value: 'ffffffff-5555-6666-7777-888888888888' })),
+        workerQuestId: String(QuestIdStub({ value: 'd1d3dc17-dd42-495e-af8a-8e1e84e470db' })),
         emit: (call) => {
           emitted.push(call);
         },
@@ -116,7 +116,7 @@ describe('questMonitorWatcherStartBroker', () => {
       const emitted: EmitParam[] = [];
 
       const handle = await questMonitorWatcherStartBroker({
-        parentSessionId: 'aaaaaaaa-9999-9999-9999-999999999999',
+        parentSessionId: 'c52bdfd3-3aeb-2325-887f-4dc02d562097',
         projectDir: '/home/user/p',
         emit: (call) => {
           emitted.push(call);
@@ -134,7 +134,7 @@ describe('questMonitorWatcherStartBroker', () => {
       const proxy = questMonitorWatcherStartBrokerProxy();
       proxy.setupHomeDir({ path: '/home/user' });
 
-      const parentSessionId = '55555555-5555-5555-5555-555555555555';
+      const parentSessionId = '35fd5b8f-551b-8baf-b8fb-a5c4702e7b71';
       const realAgentId = 'b9d4a2c8f7e6';
 
       proxy.setupSubagentDirFiles({
@@ -144,7 +144,7 @@ describe('questMonitorWatcherStartBroker', () => {
         files: [FileNameStub({ value: `agent-${realAgentId}.jsonl` })],
       });
       proxy.setupActiveQuest({
-        questId: QuestIdStub({ value: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee' }),
+        questId: QuestIdStub({ value: 'a99ef0d8-6ae0-1972-9617-694d449a8242' }),
         agentIds: [AgentIdStub({ value: realAgentId })],
       });
       proxy.setupLines({
@@ -198,7 +198,7 @@ describe('questMonitorWatcherStartBroker', () => {
       const proxy = questMonitorWatcherStartBrokerProxy();
       proxy.setupHomeDir({ path: '/home/user' });
 
-      const parentSessionId = '66666666-6666-6666-6666-666666666666';
+      const parentSessionId = '97241aaa-ae56-6f58-b9ec-a952ee85b407';
 
       proxy.setupSubagentDirFiles({
         homeDir: '/home/user',
@@ -250,7 +250,7 @@ describe('questMonitorWatcherStartBroker', () => {
       const proxy = questMonitorWatcherStartBrokerProxy();
       proxy.setupHomeDir({ path: '/home/user' });
 
-      const parentSessionId = '77777777-7777-7777-7777-777777777777';
+      const parentSessionId = '9f7abf0d-ce8a-518c-9781-61bfa3057384';
       const workerWorkItemId = String(WorkItemStub().id);
 
       proxy.setupSubagentDirFiles({

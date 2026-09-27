@@ -37,13 +37,13 @@ describe('recipeDefContract', () => {
     it('INVALID: {description: ""} => throws a blank description degrades the listing', () => {
       expect(() =>
         recipeDefContract.parse({ recipeName: 'guild-mid-execution', description: '' }),
-      ).toThrow(/String must contain at least 1 character/u);
+      ).toThrow(/expected string to have >=1 characters/u);
     });
 
     it('INVALID: {no recipeName} => throws Required', () => {
       expect(() =>
         recipeDefContract.parse({ description: 'one guild holding three quests' }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 });

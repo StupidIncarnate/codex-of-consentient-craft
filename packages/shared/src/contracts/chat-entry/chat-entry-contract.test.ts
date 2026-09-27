@@ -200,7 +200,7 @@ describe('chatEntryContract', () => {
           uuid: FIXED_UUID,
           timestamp: FIXED_TS,
         } as never),
-      ).toThrow(/greater than or equal to 0/u);
+      ).toThrow(/to be >=0/u);
     });
   });
 
@@ -562,7 +562,7 @@ describe('chatEntryContract', () => {
           uuid: FIXED_UUID,
           timestamp: 'yesterday',
         });
-      }).toThrow(/Invalid datetime/u);
+      }).toThrow(/Invalid ISO datetime/u);
     });
   });
 

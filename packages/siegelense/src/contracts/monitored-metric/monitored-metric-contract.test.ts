@@ -15,7 +15,7 @@ describe('monitoredMetricContract', () => {
 
   describe('derivation', () => {
     it('VALID: {machineStatics.monitored} => the contract accepts exactly those five names, in order', () => {
-      expect(monitoredMetricContract.unwrap().options).toStrictEqual(machineStatics.monitored);
+      expect(monitoredMetricContract.options).toStrictEqual(machineStatics.monitored);
     });
   });
 
@@ -23,7 +23,7 @@ describe('monitoredMetricContract', () => {
     it('INVALID: {value: "cpu usage"} => an unlisted metric name throws validation error', () => {
       expect(() => {
         MonitoredMetricStub({ value: 'cpu usage' as never });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
   });
 });

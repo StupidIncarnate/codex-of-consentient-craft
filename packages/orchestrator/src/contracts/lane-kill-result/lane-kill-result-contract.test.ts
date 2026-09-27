@@ -18,7 +18,7 @@ describe('laneKillResultContract', () => {
 
   describe('invalid results', () => {
     it('INVALID: {stopped missing} => throws Required', () => {
-      expect(() => laneKillResultContract.parse({})).toThrow(/Required/u);
+      expect(() => laneKillResultContract.parse({})).toThrow(/received undefined/u);
     });
   });
 });

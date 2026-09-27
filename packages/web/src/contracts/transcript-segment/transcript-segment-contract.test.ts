@@ -39,7 +39,7 @@ describe('transcriptSegmentContract', () => {
 
     it('INVALID: {kind: image, ordinal: 1, no src key} => throws for a missing src field', () => {
       expect(() => transcriptSegmentContract.parse({ kind: 'image', ordinal: 1 })).toThrow(
-        /Required/u,
+        /received undefined/u,
       );
     });
 
@@ -50,12 +50,12 @@ describe('transcriptSegmentContract', () => {
           ordinal: 0,
           src: '/api/images?path=x',
         }),
-      ).toThrow(/greater than 0/u);
+      ).toThrow(/to be >0/u);
     });
 
     it('INVALID: {kind: image, ordinal: 1, src: ""} => throws for an empty src', () => {
       expect(() => transcriptSegmentContract.parse({ kind: 'image', ordinal: 1, src: '' })).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
 
