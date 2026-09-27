@@ -1,4 +1,4 @@
-import { orchestratorPauseDispatchAdapterProxy } from '../../../adapters/orchestrator/pause-dispatch/orchestrator-pause-dispatch-adapter.proxy';
+import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import type { DispatchStateStub } from '@dungeonmaster/shared/contracts';
 import { OrchestrationDispatchPauseResponder } from './orchestration-dispatch-pause-responder';
 
@@ -9,14 +9,14 @@ export const OrchestrationDispatchPauseResponderProxy = (): {
   setupError: (params: { message: string }) => void;
   callResponder: typeof OrchestrationDispatchPauseResponder;
 } => {
-  const adapterProxy = orchestratorPauseDispatchAdapterProxy();
+  const orchestrator = StartOrchestratorProxy();
 
   return {
     setupState: ({ state }: { state: DispatchState }): void => {
-      adapterProxy.returns({ state });
+      orchestrator.pauseDispatchReturns({ state });
     },
     setupError: ({ message }: { message: string }): void => {
-      adapterProxy.throws({ error: new Error(message) });
+      orchestrator.pauseDispatchThrows({ error: new Error(message) });
     },
     callResponder: OrchestrationDispatchPauseResponder,
   };

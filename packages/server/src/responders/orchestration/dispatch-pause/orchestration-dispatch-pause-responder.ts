@@ -7,14 +7,15 @@
  * // Returns { status: 200, data: { state } } or { status: 500, data: { error } }
  */
 
-import { orchestratorPauseDispatchAdapter } from '../../../adapters/orchestrator/pause-dispatch/orchestrator-pause-dispatch-adapter';
+import { StartOrchestrator } from '@dungeonmaster/orchestrator';
+
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
 
 export const OrchestrationDispatchPauseResponder = async (): Promise<ResponderResult> => {
   try {
-    const state = await orchestratorPauseDispatchAdapter();
+    const state = await StartOrchestrator.pauseDispatch();
     return responderResultContract.parse({
       status: httpStatusStatics.success.ok,
       data: { state },

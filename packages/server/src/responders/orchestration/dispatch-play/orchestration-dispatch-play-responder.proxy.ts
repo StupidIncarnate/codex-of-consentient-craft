@@ -1,4 +1,4 @@
-import { orchestratorPlayDispatchAdapterProxy } from '../../../adapters/orchestrator/play-dispatch/orchestrator-play-dispatch-adapter.proxy';
+import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import { DispatchPlayResponseStub } from '@dungeonmaster/orchestrator/testing';
 import type { DispatchStateStub } from '@dungeonmaster/shared/contracts';
 import { OrchestrationDispatchPlayResponder } from './orchestration-dispatch-play-responder';
@@ -12,21 +12,23 @@ export const OrchestrationDispatchPlayResponderProxy = (): {
   getAdapterCalls: () => readonly unknown[];
   callResponder: typeof OrchestrationDispatchPlayResponder;
 } => {
-  const adapterProxy = orchestratorPlayDispatchAdapterProxy();
+  const orchestrator = StartOrchestratorProxy();
 
   return {
     setupAllowed: ({ state }: { state: DispatchState }): void => {
-      adapterProxy.returns({ response: DispatchPlayResponseStub({ allowed: true, state }) });
+      orchestrator.playDispatchReturns({
+        response: DispatchPlayResponseStub({ allowed: true, state }),
+      });
     },
     setupRefused: ({ reason, state }: { reason: string; state: DispatchState }): void => {
-      adapterProxy.returns({
+      orchestrator.playDispatchReturns({
         response: DispatchPlayResponseStub({ allowed: false, reason: reason as never, state }),
       });
     },
     setupError: ({ message }: { message: string }): void => {
-      adapterProxy.throws({ error: new Error(message) });
+      orchestrator.playDispatchThrows({ error: new Error(message) });
     },
-    getAdapterCalls: (): readonly unknown[] => adapterProxy.getCalls(),
+    getAdapterCalls: (): readonly unknown[] => orchestrator.playDispatchGetCalls(),
     callResponder: OrchestrationDispatchPlayResponder,
   };
 };

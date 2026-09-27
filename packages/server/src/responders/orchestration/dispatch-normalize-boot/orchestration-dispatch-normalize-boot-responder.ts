@@ -8,9 +8,8 @@
  * // Returns the effective DispatchState after normalization
  */
 
+import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import type { DispatchState } from '@dungeonmaster/shared/contracts';
 
-import { orchestratorNormalizeDispatchBootAdapter } from '../../../adapters/orchestrator/normalize-dispatch-boot/orchestrator-normalize-dispatch-boot-adapter';
-
 export const OrchestrationDispatchNormalizeBootResponder = async (): Promise<DispatchState> =>
-  orchestratorNormalizeDispatchBootAdapter();
+  StartOrchestrator.normalizeDispatchBoot();

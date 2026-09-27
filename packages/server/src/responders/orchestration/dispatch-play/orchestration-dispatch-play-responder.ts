@@ -7,7 +7,8 @@
  * // Returns { status: 200, data: response } | { status: 409, data: response } | { status: 400 | 500, data: { error } }
  */
 
-import { orchestratorPlayDispatchAdapter } from '../../../adapters/orchestrator/play-dispatch/orchestrator-play-dispatch-adapter';
+import { StartOrchestrator } from '@dungeonmaster/orchestrator';
+
 import { dispatchPlayBodyContract } from '../../../contracts/dispatch-play-body/dispatch-play-body-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
@@ -27,7 +28,7 @@ export const OrchestrationDispatchPlayResponder = async ({
   }
 
   try {
-    const response = await orchestratorPlayDispatchAdapter({
+    const response = await StartOrchestrator.playDispatch({
       ...(validated.data.force !== undefined && { force: validated.data.force }),
     });
     return responderResultContract.parse({
