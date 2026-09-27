@@ -1,22 +1,24 @@
 /**
  * PURPOSE: Composes every child proxy `instanceEntryLayerBroker` reaches through — the evidence-path
  * resolution (twice: once directly, once inside `heartbeatReadBroker`), the runs-directory listing,
- * `/proc` for orphans and rss, the two known log files, the repo-local symlink, and the last run's
+ * `/proc` for orphans and rss, the three known log files, the repo-local symlink, and the last run's
  * transcript — behind scenario methods a test calls in the SAME order the broker itself reaches
  * them, since `pathJoinAdapter`'s mock is one call-ordered queue shared by every proxy that stages it
- * (see `heartbeat-write-broker.proxy.ts` for the same rule on a shorter chain). Five of this broker's
- * OWN joins — `runs`, `shutdown-reason.json`, `api-server.log`, `web-server.log`, and the last run's
- * transcript — are explicitly staged here too, via `setupRunsDirPathJoin` /
- * `setupShutdownReasonPathJoin` / `setupApiWebLogPathJoins` / `setupTranscriptPathJoin`, rather than
- * left to `pathJoinAdapter`'s real-passthrough default:
- * `locationsRepoLinkPathFindBroker`'s OWN resolution (staged by `setupRepoLinkResolves`) pushes ITS
- * pending entries onto this SAME shared queue well before it actually runs, and an unstaged call
- * from this broker in between would consume one of those instead of computing its own real join. A
- * test therefore calls the push-registering methods in exactly this order: `setupEvidenceDir`,
- * `setupHeartbeatFound`/`setupHeartbeatMissing`, `setupRunsDirPathJoin`,
- * `setupShutdownReasonPathJoin` (whenever `state !== 'alive'`), `setupApiWebLogPathJoins` (named
- * only), `setupRepoLinkResolves` (named only), `setupTranscriptPathJoin` (named, with a run, only) —
- * the non-pushing methods (`setupRunsDirEntries`, `setupShutdownReasonMissing`/
+ * (see `heartbeat-write-broker.proxy.ts` for the same rule on a shorter chain). This broker's OWN
+ * joins — `runs`, `shutdown-reason.json`, the three log STAT paths, one FULL path per log that
+ * passed its stat check, and the last run's transcript — are explicitly staged here too, via
+ * `setupRunsDirPathJoin` / `setupShutdownReasonPathJoin` / `setupApiWebLogPathJoins` /
+ * `setupLogFullPathJoins` / `setupTranscriptPathJoin`, rather than left to `pathJoinAdapter`'s
+ * real-passthrough default: `locationsRepoLinkPathFindBroker`'s OWN resolution (staged by
+ * `setupRepoLinkResolves`) pushes ITS pending entries onto this SAME shared queue well before it
+ * actually runs, and an unstaged call from this broker in between would consume one of those instead
+ * of computing its own real join. A test therefore calls the push-registering methods in exactly
+ * this order: `setupEvidenceDir`, `setupHeartbeatFound`/`setupHeartbeatMissing`,
+ * `setupRunsDirPathJoin`, `setupShutdownReasonPathJoin` (whenever `state !== 'alive'`),
+ * `setupApiWebLogPathJoins` (named only, three joins: api, web, driver STAT paths),
+ * `setupRepoLinkResolves` (named only), `setupLogFullPathJoins` (named only, one join per log that
+ * PASSED its presence check, in api/web/driver order), `setupTranscriptPathJoin` (named, with a run,
+ * only) — the non-pushing methods (`setupRunsDirEntries`, `setupShutdownReasonMissing`/
  * `setupShutdownReasonFound`, `setupProcListing`, the log presence/absence, `setupTranscriptLines`)
  * may be called in any position relative to those. `setupProcListing` alone answers BOTH
  * `orphanReadBroker`'s and `machineRssByPgidBroker`'s own `/proc` readdir, since both call it with
@@ -95,6 +97,8 @@ export const instanceEntryLayerBrokerProxy = (): {
   setupApiLogAbsent: (params: { evidencePath: FilePath }) => void;
   setupWebLogPresent: (params: { evidencePath: FilePath }) => void;
   setupWebLogAbsent: (params: { evidencePath: FilePath }) => void;
+  setupDriverLogPresent: (params: { evidencePath: FilePath }) => void;
+  setupDriverLogAbsent: (params: { evidencePath: FilePath }) => void;
   setupRepoLinkResolves: (params: {
     cwdPath: string;
     linkPath: FilePath;
@@ -102,6 +106,7 @@ export const instanceEntryLayerBrokerProxy = (): {
     homePath: FilePath;
     rootPath: FilePath;
   }) => void;
+  setupLogFullPathJoins: (params: { repoLocalPath: string; logs: readonly string[] }) => void;
   setupTranscriptPathJoin: (params: { evidencePath: FilePath; runId: string }) => void;
   setupTranscriptLines: (params: {
     evidencePath: FilePath;
@@ -118,6 +123,7 @@ export const instanceEntryLayerBrokerProxy = (): {
   const orphanProxy = orphanReadBrokerProxy();
   const apiLogStatProxy = fsStatAdapterProxy();
   const webLogStatProxy = fsStatAdapterProxy();
+  const driverLogStatProxy = fsStatAdapterProxy();
   const repoLinkProxy = locationsRepoLinkPathFindBrokerProxy();
   const transcriptReadProxy = fsReadFileAdapterProxy();
   const shutdownReasonProxy = shutdownReasonReadBrokerProxy();
@@ -249,15 +255,18 @@ export const instanceEntryLayerBrokerProxy = (): {
       orphanProxy.setupGone(params);
     },
 
-    // The broker computes the api-log path THEN the web-log path — two real joins, in that order —
-    // right before it calls `locationsRepoLinkPathFindBroker`, so both are pushed here together,
-    // ahead of `setupRepoLinkResolves`.
+    // The broker computes the api-log path, THEN the web-log path, THEN the driver-log path —
+    // three real joins, in that order — right before it calls `locationsRepoLinkPathFindBroker`, so
+    // all three are pushed here together, ahead of `setupRepoLinkResolves`.
     setupApiWebLogPathJoins: ({ evidencePath }: { evidencePath: FilePath }): void => {
       ownPathJoinProxy.returns({
         result: FilePathStub({ value: `${evidencePath}/${locationsStatics.siegelense.apiLog}` }),
       });
       ownPathJoinProxy.returns({
         result: FilePathStub({ value: `${evidencePath}/${locationsStatics.siegelense.webLog}` }),
+      });
+      ownPathJoinProxy.returns({
+        result: FilePathStub({ value: `${evidencePath}/${locationsStatics.siegelense.driverLog}` }),
       });
     },
 
@@ -299,6 +308,25 @@ export const instanceEntryLayerBrokerProxy = (): {
       });
     },
 
+    setupDriverLogPresent: ({ evidencePath }: { evidencePath: FilePath }): void => {
+      driverLogStatProxy.resolves({
+        filePath: AbsoluteFilePathStub({
+          value: `${evidencePath}/${locationsStatics.siegelense.driverLog}`,
+        }),
+        sizeBytes: 1,
+        modifiedAtMs: 0,
+      });
+    },
+
+    setupDriverLogAbsent: ({ evidencePath }: { evidencePath: FilePath }): void => {
+      driverLogStatProxy.rejects({
+        filePath: AbsoluteFilePathStub({
+          value: `${evidencePath}/${locationsStatics.siegelense.driverLog}`,
+        }),
+        error: Object.assign(new Error('ENOENT: no such file or directory'), { code: 'ENOENT' }),
+      });
+    },
+
     setupRepoLinkResolves: (params: {
       cwdPath: string;
       linkPath: FilePath;
@@ -307,6 +335,23 @@ export const instanceEntryLayerBrokerProxy = (): {
       rootPath: FilePath;
     }): void => {
       repoLinkProxy.setupLinkResolvesToRoot(params);
+    },
+
+    // Pushed onto the SAME shared queue, AFTER `setupRepoLinkResolves`'s own internal joins — the
+    // broker only joins a full path for a log that PASSED its presence check, so a test names
+    // exactly the present ones, in api/web/driver order.
+    setupLogFullPathJoins: ({
+      repoLocalPath,
+      logs,
+    }: {
+      repoLocalPath: string;
+      logs: readonly string[];
+    }): void => {
+      logs.forEach((logName) => {
+        ownPathJoinProxy.returns({
+          result: FilePathStub({ value: `${repoLocalPath}/${logName}` }),
+        });
+      });
     },
 
     setupTranscriptPathJoin: ({

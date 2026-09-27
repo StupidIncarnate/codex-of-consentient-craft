@@ -559,7 +559,9 @@ describe('SiegelenseFlow', () => {
         ]);
         expect(entry?.evidence?.dir.path).toBe(tree.killedInstanceEvidenceDir());
         expect(entry?.evidence?.transcript).toBe('run_2.jsonl');
-        expect(entry?.evidence?.logs).toStrictEqual(['api-server.log']);
+        expect(entry?.evidence?.logs).toStrictEqual([
+          `${tree.killedInstanceEvidenceDir()}/api-server.log`,
+        ]);
         expect(entry?.evidence?.lastShot).toBe('run_2/step1.png');
         expect(entry?.lastStep).toStrictEqual({ run: 'run_2', step: 1, verb: 'goto' });
         expect(entry?.rssAtLastBeat).toBe(1_840);
