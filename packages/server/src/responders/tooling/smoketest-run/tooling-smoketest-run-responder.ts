@@ -7,8 +7,9 @@
  */
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
-import { processCwdAdapter } from '@dungeonmaster/shared/adapters';
+import { cwd } from '#gateway/node/process';
 import { configRootFindBroker } from '@dungeonmaster/shared/brokers';
+import { filePathContract } from '@dungeonmaster/shared/contracts';
 
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
@@ -29,7 +30,7 @@ export const ToolingSmoketestRunResponder = async ({
     // first package.json (the workspace member); `configRootFindBroker` walks up to the repo-level
     // .dungeonmaster.json.
     const startPath = await configRootFindBroker({
-      startPath: processCwdAdapter(),
+      startPath: filePathContract.parse(cwd()),
     });
 
     const result = await StartOrchestrator.runSmoketest({ suite, startPath });
