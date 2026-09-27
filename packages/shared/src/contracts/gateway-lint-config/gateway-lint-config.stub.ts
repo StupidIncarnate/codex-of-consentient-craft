@@ -1,4 +1,4 @@
-import type { StubArgument } from '@dungeonmaster/shared/@types';
+import type { StubArgument } from '../../@types/stub-argument.type';
 import { gatewayLintConfigContract, type GatewayLintConfig } from './gateway-lint-config-contract';
 
 export const GatewayLintConfigStub = ({
