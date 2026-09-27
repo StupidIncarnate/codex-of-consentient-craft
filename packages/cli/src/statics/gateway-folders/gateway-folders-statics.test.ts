@@ -1,8 +1,11 @@
+import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
 import { gatewayFoldersStatics } from './gateway-folders-statics';
 
 describe('gatewayFoldersStatics', () => {
-  it('VALID: {} => lists the four gateway folders in npm, node, browser, bin order', () => {
-    expect(gatewayFoldersStatics.folders).toStrictEqual(['npm', 'node', 'browser', 'bin']);
+  it('VALID: {} => lists the same folders, in the same order, as gatewayLocationsStatics.folders', () => {
+    expect(gatewayFoldersStatics.folders).toStrictEqual(
+      Object.values(gatewayLocationsStatics.folders),
+    );
   });
 
   it('VALID: {} => carries one description per folder', () => {

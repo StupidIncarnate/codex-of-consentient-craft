@@ -21,6 +21,7 @@ import { playwrightConfigTemplateStatics } from '../../statics/playwright-config
 import { pathSegmentContract, fileContentsContract } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { kebabCaseVariantsTransformer } from '../kebab-case-variants/kebab-case-variants-transformer';
+import { gatewayImportsFieldTransformer } from '../gateway-imports-field/gateway-imports-field-transformer';
 
 // No `satisfies Record<string, PackageSeed>` here: the seeds' `as const` literals are readonly
 // and unbranded, which can never structurally satisfy PackageSeed's mutable branded zod-inferred
@@ -126,17 +127,9 @@ export const packageScaffoldFilesTransformer = ({
       String(value),
     ]),
   );
-  // Keys are the fixed `#gateway/<folder>/*` patterns and never carry a placeholder; only the
-  // target package specifier carries `__SCOPE__`, so this substitutes that one placeholder
-  // directly rather than reducing over the full `PLACEHOLDER_PAIRS` set — `gatewayImports`'s
-  // values are `as const` string literals, and `.replaceAll` (unlike the shared reduce) always
-  // types its result as plain `string` regardless of the literal it started from.
-  const substitutedGatewayImports = Object.fromEntries(
-    Object.entries(packageScaffoldConfigStatics.gatewayImports).map(([key, value]) => [
-      key,
-      value.replaceAll('__SCOPE__', scope ?? ''),
-    ]),
-  );
+  const gatewayImports = gatewayImportsFieldTransformer({
+    scope: pathSegmentContract.parse(scope ?? ''),
+  });
 
   const scriptsField = {
     ...packageScaffoldConfigStatics.scripts,
@@ -147,7 +140,7 @@ export const packageScaffoldFilesTransformer = ({
     name: request.packageName,
     version: packageScaffoldConfigStatics.packageVersion,
     description: request.description,
-    imports: substitutedGatewayImports,
+    imports: gatewayImports,
     ...(exportsField === null ? {} : { exports: exportsField }),
     files: packageScaffoldConfigStatics.files,
     ...(binHasEntries ? { bin: substitutedBin } : {}),
