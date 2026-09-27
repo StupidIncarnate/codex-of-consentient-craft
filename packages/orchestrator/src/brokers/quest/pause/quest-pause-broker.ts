@@ -47,12 +47,12 @@ import {
   questContract,
   workItemContract,
 } from '@dungeonmaster/shared/contracts';
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import {
   isActiveWorkItemStatusGuard,
   isUserPausedQuestStatusGuard,
 } from '@dungeonmaster/shared/guards';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
+import { join } from '#gateway/node/path';
 
 import { questHasValidStatusTransitionGuard } from '../../../guards/quest-has-valid-status-transition/quest-has-valid-status-transition-guard';
 import { questFindQuestPathBroker } from '../find-quest-path/quest-find-quest-path-broker';
@@ -92,7 +92,7 @@ export const questPauseBroker = async ({
       run: async (): Promise<{ paused: boolean }> => {
         const { questPath } = await questFindQuestPathBroker({ questId });
         const questFilePath = filePathContract.parse(
-          pathJoinAdapter({ paths: [questPath, locationsStatics.quest.questFile] }),
+          join(questPath, locationsStatics.quest.questFile),
         );
         const quest = await questLoadBroker({ questFilePath });
 

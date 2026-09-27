@@ -101,6 +101,7 @@ describe('ChatReplayResponder', () => {
         files: [FileNameStub({ value: quest.folder })],
       });
       proxy.setupQuestFilePath({
+        folderName: FileNameStub({ value: quest.folder }),
         result: FilePathStub({
           value: `${questsPath}/${quest.folder}/quest.json`,
         }),
@@ -163,6 +164,7 @@ describe('ChatReplayResponder', () => {
         files: [FileNameStub({ value: quest.folder })],
       });
       proxy.setupQuestFilePath({
+        folderName: FileNameStub({ value: quest.folder }),
         result: FilePathStub({
           value: `${questsPath}/${quest.folder}/quest.json`,
         }),
@@ -234,6 +236,7 @@ describe('ChatReplayResponder', () => {
       });
       proxy.setupQuestDirectories({ files: [FileNameStub({ value: quest.folder })] });
       proxy.setupQuestFilePath({
+        folderName: FileNameStub({ value: quest.folder }),
         result: FilePathStub({ value: `${questsPath}/${quest.folder}/quest.json` }),
       });
       proxy.setupQuestFile({ questJson: JSON.stringify(quest) });
@@ -347,6 +350,7 @@ describe('ChatReplayResponder', () => {
         files: [FileNameStub({ value: quest.folder })],
       });
       proxy.setupQuestFilePath({
+        folderName: FileNameStub({ value: quest.folder }),
         result: FilePathStub({
           value: `${questsPath}/${quest.folder}/quest.json`,
         }),
@@ -649,6 +653,7 @@ describe('ChatReplayResponder', () => {
         files: [FileNameStub({ value: quest.folder })],
       });
       proxy.setupQuestFilePath({
+        folderName: FileNameStub({ value: quest.folder }),
         result: FilePathStub({
           value: `${questsPath}/${quest.folder}/quest.json`,
         }),
@@ -792,6 +797,7 @@ describe('ChatReplayResponder', () => {
         files: [FileNameStub({ value: quest.folder })],
       });
       proxy.setupQuestFilePath({
+        folderName: FileNameStub({ value: quest.folder }),
         result: FilePathStub({
           value: `${questsPath}/${quest.folder}/quest.json`,
         }),
@@ -835,6 +841,7 @@ describe('ChatReplayResponder', () => {
         files: [FileNameStub({ value: quest.folder })],
       });
       proxy.setupQuestFilePath({
+        folderName: FileNameStub({ value: quest.folder }),
         result: FilePathStub({
           value: `${questsPath}/${quest.folder}/quest.json`,
         }),

@@ -27,7 +27,7 @@ describe('OrchestrationDeleteResponder', () => {
         const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
         const quest = QuestStub({ id: questId, status: status as never });
         const proxy = OrchestrationDeleteResponderProxy();
-        proxy.setupQuestFound({ quest });
+        proxy.setupQuestFound({ quest, guildId });
 
         const result = await proxy.callResponder({ questId, guildId });
 
@@ -44,7 +44,7 @@ describe('OrchestrationDeleteResponder', () => {
         const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
         const quest = QuestStub({ id: questId, status: status as never });
         const proxy = OrchestrationDeleteResponderProxy();
-        proxy.setupQuestFound({ quest });
+        proxy.setupQuestFound({ quest, guildId });
 
         await expect(proxy.callResponder({ questId, guildId })).rejects.toThrow(
           /Quest must be in a terminal, paused, or pre-execution status to delete/u,

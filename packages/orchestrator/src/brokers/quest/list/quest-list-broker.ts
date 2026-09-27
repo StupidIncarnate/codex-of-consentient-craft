@@ -29,7 +29,6 @@
  * readable, while a caller building a response needs the full skip set on every call.
  */
 
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import type {
   ErrorMessage,
   FilePath,
@@ -43,6 +42,7 @@ import {
   skippedQuestFileContract,
 } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
+import { join } from '#gateway/node/path';
 
 import { fsReaddirAdapter } from '../../../adapters/fs/readdir/fs-readdir-adapter';
 import { isQuestFolderGuard } from '../../../guards/is-quest-folder/is-quest-folder-guard';
@@ -66,9 +66,9 @@ export const questListBroker = async ({
 
   const loaded = await Promise.all(
     questFolders.map(async (folderName): Promise<Quest | null> => {
-      const questFilePath = pathJoinAdapter({
-        paths: [questsPath, folderName, locationsStatics.quest.questFile],
-      });
+      const questFilePath = filePathContract.parse(
+        join(questsPath, folderName, locationsStatics.quest.questFile),
+      );
       const reportKey = filePathContract.parse(String(questFilePath));
       try {
         const quest = await questLoadBroker({ questFilePath });

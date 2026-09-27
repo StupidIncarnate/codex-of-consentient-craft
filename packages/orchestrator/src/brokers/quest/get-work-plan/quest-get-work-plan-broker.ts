@@ -20,10 +20,10 @@
  * empty table.
  */
 
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import { filePathContract, stepNameContract } from '@dungeonmaster/shared/contracts';
 import type { ContentText, OperationItemId, Quest, QuestId } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
+import { join } from '#gateway/node/path';
 
 import { agentFlowStatics } from '../../../statics/agent-flow/agent-flow-statics';
 import { questWorkUnitsTransformer } from '../../../transformers/quest-work-units/quest-work-units-transformer';
@@ -42,9 +42,7 @@ export const questGetWorkPlanBroker = async ({
   operationItemId: OperationItemId;
 }): Promise<ContentText> => {
   const { questPath } = await questFindQuestPathBroker({ questId });
-  const questFilePath = filePathContract.parse(
-    pathJoinAdapter({ paths: [questPath, locationsStatics.quest.questFile] }),
-  );
+  const questFilePath = filePathContract.parse(join(questPath, locationsStatics.quest.questFile));
   const quest: Quest = await questLoadBroker({ questFilePath });
 
   const operationItem = quest.operations.find((item) => item.id === operationItemId);

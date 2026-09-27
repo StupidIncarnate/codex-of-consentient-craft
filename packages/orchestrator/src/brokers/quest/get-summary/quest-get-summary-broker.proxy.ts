@@ -7,6 +7,8 @@
  * proxy.setupQuestNotFound();
  */
 
+import { join } from '#gateway/node/path';
+
 import {
   FileContentsStub,
   FileNameStub,
@@ -14,7 +16,8 @@ import {
   GuildIdStub,
 } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts';
-import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
+import { locationsStatics } from '@dungeonmaster/shared/statics';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { questFindQuestPathBrokerProxy } from '../find-quest-path/quest-find-quest-path-broker.proxy';
 import { questLoadBrokerProxy } from '../load/quest-load-broker.proxy';
@@ -26,7 +29,7 @@ export const questGetSummaryBrokerProxy = (): {
   setupQuestNotFound: () => void;
 } => {
   const findQuestPathProxy = questFindQuestPathBrokerProxy();
-  const pathJoinProxy = pathJoinAdapterProxy();
+  const joinHandle = registerMock({ fn: join });
   const loadProxy = questLoadBrokerProxy();
 
   return {
@@ -64,7 +67,12 @@ export const questGetSummaryBrokerProxy = (): {
         ],
       });
 
-      pathJoinProxy.returns({ result: questFilePath });
+      // questGetSummaryBroker's own join(questPath, quest.json) -> questFilePath, addressed by
+      // the exact tuple rather than an address-less FIFO slot, so it can never answer a
+      // different broker's join call sharing the same underlying mocked `join`.
+      joinHandle
+        .calledWith([questFolderPath, locationsStatics.quest.questFile])
+        .returns(questFilePath);
       loadProxy.setupQuestFile({ questJson: JSON.stringify(quest) });
     },
 

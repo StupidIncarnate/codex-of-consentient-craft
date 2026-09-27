@@ -13,7 +13,7 @@ describe('questDeleteBroker', () => {
         value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/${questId}`,
       });
       const proxy = questDeleteBrokerProxy();
-      proxy.setupQuestFolderPath({ homePath, questFolderPath });
+      proxy.setupQuestFolderPath({ homePath, guildId, questId, questFolderPath });
 
       const result = await questDeleteBroker({ questId, guildId });
 
@@ -32,7 +32,7 @@ describe('questDeleteBroker', () => {
         value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/${questId}`,
       });
       const proxy = questDeleteBrokerProxy();
-      proxy.setupQuestFolderPath({ homePath, questFolderPath });
+      proxy.setupQuestFolderPath({ homePath, guildId, questId, questFolderPath });
 
       const result = await questDeleteBroker({ questId, guildId });
 
@@ -53,7 +53,7 @@ describe('questDeleteBroker', () => {
         value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/${questId}`,
       });
       const proxy = questDeleteBrokerProxy();
-      proxy.setupQuestFolderPath({ homePath, questFolderPath });
+      proxy.setupQuestFolderPath({ homePath, guildId, questId, questFolderPath });
 
       await questDeleteBroker({ questId, guildId });
 

@@ -26,7 +26,8 @@
  * mirrors that import list, which is what `enforce-proxy-child-creation` grades.
  */
 
-import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
+import { join } from '#gateway/node/path';
+
 import {
   FileContentsStub,
   FileNameStub,
@@ -35,6 +36,7 @@ import {
   questContract,
 } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts';
+import { locationsStatics } from '@dungeonmaster/shared/statics';
 import {
   registerMock,
   registerModuleMock,
@@ -69,7 +71,7 @@ export const questPauseBrokerProxy = (): {
   mocked.calledWith([]).resolves({ paused: true });
 
   const findQuestPathProxy = questFindQuestPathBrokerProxy();
-  const pathJoinProxy = pathJoinAdapterProxy();
+  const joinHandle = registerMock({ fn: join });
   const loadProxy = questLoadBrokerProxy();
   const persistProxy = questPersistBrokerProxy();
   const lockProxy = questWithModifyLockBrokerProxy();
@@ -133,8 +135,12 @@ export const questPauseBrokerProxy = (): {
         ],
       });
 
-      // pathJoin for questPauseBroker joining questPath + quest.json
-      pathJoinProxy.returns({ result: questFilePath });
+      // questPauseBroker's own join(questPath, quest.json) -> questFilePath, addressed by the exact
+      // tuple rather than an address-less FIFO slot, so it can never answer a different broker's
+      // join call sharing the same underlying mocked `join`.
+      joinHandle
+        .calledWith([questFolderPath, locationsStatics.quest.questFile])
+        .returns(questFilePath);
 
       // questLoadBroker reads the quest file
       loadProxy.setupQuestFile({ questJson: JSON.stringify(quest) });

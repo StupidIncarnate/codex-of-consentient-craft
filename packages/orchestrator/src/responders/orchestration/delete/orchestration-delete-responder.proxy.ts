@@ -1,4 +1,4 @@
-import type { QuestStub } from '@dungeonmaster/shared/contracts';
+import type { GuildId, QuestStub } from '@dungeonmaster/shared/contracts';
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
 
 import { questDeleteBrokerProxy } from '../../../brokers/quest/delete/quest-delete-broker.proxy';
@@ -9,7 +9,7 @@ type Quest = ReturnType<typeof QuestStub>;
 
 export const OrchestrationDeleteResponderProxy = (): {
   callResponder: typeof OrchestrationDeleteResponder;
-  setupQuestFound: (params: { quest: Quest }) => void;
+  setupQuestFound: (params: { quest: Quest; guildId: GuildId }) => void;
   setupQuestNotFound: () => void;
 } => {
   const getProxy = questGetBrokerProxy();
@@ -18,13 +18,13 @@ export const OrchestrationDeleteResponderProxy = (): {
   return {
     callResponder: OrchestrationDeleteResponder,
 
-    setupQuestFound: ({ quest }: { quest: Quest }): void => {
+    setupQuestFound: ({ quest, guildId }: { quest: Quest; guildId: GuildId }): void => {
       getProxy.setupQuestFound({ quest });
       const homePath = FilePathStub({ value: '/home/testuser/.dungeonmaster' });
       const questFolderPath = FilePathStub({
-        value: `/home/testuser/.dungeonmaster/guilds/${quest.id}`,
+        value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/${quest.id}`,
       });
-      deleteProxy.setupQuestFolderPath({ homePath, questFolderPath });
+      deleteProxy.setupQuestFolderPath({ homePath, guildId, questId: quest.id, questFolderPath });
     },
 
     setupQuestNotFound: (): void => {
