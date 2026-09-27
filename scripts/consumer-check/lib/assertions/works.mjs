@@ -13,7 +13,12 @@ import { join } from 'node:path';
 import { runDungeonmasterInit, runEslint, runJest, runNpm, runTsc, runWard } from '../bin-run.mjs';
 import { run } from '../proc.mjs';
 import { classifyGatewayNodeLintResult } from '../lint-known-failures.mjs';
-import { LIB_PACKAGE_NAME, WEB_PACKAGE_NAME, scaffoldFixturePackages } from '../sample-sources.mjs';
+import {
+  LIB_PACKAGE_NAME,
+  WEB_PACKAGE_NAME,
+  PROBE_PACKAGE_NAME,
+  scaffoldFixturePackages,
+} from '../sample-sources.mjs';
 
 const cliBinPath = ({ consumerRoot }) => join(consumerRoot, 'node_modules', '.bin', 'dungeonmaster');
 
@@ -109,7 +114,7 @@ const runEslintForPackage = ({ consumerRoot, packageDir }) =>
   runEslint({ consumerRoot, cwd: packageDir, args: ['.'] });
 
 const assertLint = async ({ report, consumerRoot, lintViolationFile }) => {
-  for (const packageName of [LIB_PACKAGE_NAME, WEB_PACKAGE_NAME]) {
+  for (const packageName of [LIB_PACKAGE_NAME, WEB_PACKAGE_NAME, PROBE_PACKAGE_NAME]) {
     const packageDir = join(consumerRoot, 'packages', packageName);
     const result = await runEslintForPackage({ consumerRoot, packageDir });
     const eslintJson = parseEslintJson({ report, result, label: `consumer lint (packages/${packageName})` });
@@ -128,7 +133,7 @@ const assertLint = async ({ report, consumerRoot, lintViolationFile }) => {
         : JSON.stringify(filesWithErrors.map((entry) => ({ filePath: entry.filePath, messages: entry.messages }))),
     );
 
-    if (packageName === LIB_PACKAGE_NAME) {
+    if (packageName === PROBE_PACKAGE_NAME) {
       const violatorResult = eslintJson.find((entry) => entry.filePath === lintViolationFile);
       report.check(
         'lint flags the sample file with a known violation (ban-primitives: a raw string return)',
@@ -269,6 +274,9 @@ const assertBuild = async ({ report, consumerRoot }) => {
   );
 };
 
+// `PROBE_PACKAGE_NAME` (sample-sources.mjs) never appears in this list — it holds the one
+// deliberate `ban-primitives` violation `assertLint`/`assertPreEditHook` need, so scoping ward onto
+// it here would make this check fail by design.
 const assertWardCleanFixture = async ({ report, consumerRoot }) => {
   const result = await runWard({
     consumerRoot,
@@ -398,10 +406,12 @@ export const runWorksAssertions = async ({ report, consumerRoot, gt, mode }) => 
   assertScopeDetection({ report, consumerRoot, gt });
   assertJestConfigBase({ report, consumerRoot });
 
-  // `lintViolationFile` (from sample-sources.mjs) already sits INSIDE `packages/lib/src/brokers/`,
-  // fully covered by that package's own tsconfig `include` — a real consumer never has source at
+  // `lintViolationFile` (from sample-sources.mjs) sits inside the DEDICATED `probe` package's own
+  // `src/brokers/`, fully covered by ITS tsconfig `include` — a real consumer never has source at
   // repo root (every consumer is an npm-workspaces monorepo — repo CLAUDE.md), so a real package's
-  // own broker is where this known violation genuinely belongs, with no synthetic root-level copy.
+  // own broker is where this known violation genuinely belongs. `probe` is never one of the
+  // packages `assertWardCleanFixture` scopes `dungeonmaster ward` onto below, so that check exits 0
+  // on a genuinely clean `lib`/`app` while lint and the pre-edit hook still see a real violation.
   await assertTypecheck({ report, consumerRoot });
   await assertLint({ report, consumerRoot, lintViolationFile });
   await assertGatewayNodeKnownF1({ report, consumerRoot });

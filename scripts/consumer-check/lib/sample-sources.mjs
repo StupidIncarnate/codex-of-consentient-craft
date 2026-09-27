@@ -4,8 +4,12 @@
  * own "do not hand-copy configs off a sibling"): `lib` (packageType `library`) proves the NODE
  * gateway platform end to end — a broker importing a gateway proxy from its own file, proving
  * `registerMock` hoists, and an adapter making a raw unstaged `fs` call, proving the I/O trap fires —
- * and `app` (packageType `frontend-react`) proves the BROWSER gateway platform and `init`'s own
- * e2e-eligibility detection sees a real frontend-react package in this fixture.
+ * `app` (packageType `frontend-react`) proves the BROWSER gateway platform and `init`'s own
+ * e2e-eligibility detection sees a real frontend-react package in this fixture, and `probe`
+ * (packageType `library`) holds ONLY the deliberate `ban-primitives` violation `assertLint` and
+ * `assertPreEditHook` need. `assertWardCleanFixture` never scopes `dungeonmaster ward` onto `probe`,
+ * so that check exits 0 over a genuinely clean `lib`/`app` while the violation still sits inside a
+ * real package's own tsconfig `include`, where lint and the pre-edit hook genuinely apply to it.
  *
  * Every sample below follows THIS repo's own architecture exactly (get-architecture,
  * get-testing-patterns, get-folder-detail: brokers, adapters) — the 2-level
@@ -24,6 +28,7 @@ import { run } from './proc.mjs';
 
 export const LIB_PACKAGE_NAME = 'lib';
 export const WEB_PACKAGE_NAME = 'app';
+export const PROBE_PACKAGE_NAME = 'probe';
 
 const CREATE_PACKAGE_TIMEOUT_MS = 120_000;
 
@@ -220,12 +225,15 @@ describe('mswTrapProbeBroker', () => {
 
 // `create-package`'s own gateway-scope detection (`works.mjs`'s `assertScopeDetection`, F5) and its
 // scaffolded jest.config.js (`assertJestConfigBase`, F6) are both plain passing assertions against
-// the two packages this function scaffolds — nothing here works around either one.
+// the `lib`/`app` packages this function scaffolds (never `probe` — F5/F6 need no known violation) —
+// nothing here works around either one.
 export const scaffoldFixturePackages = async ({ consumerRoot, cliBin }) => {
   await runCreatePackage({ consumerRoot, cliBin, name: LIB_PACKAGE_NAME, type: 'library' });
   await runCreatePackage({ consumerRoot, cliBin, name: WEB_PACKAGE_NAME, type: 'frontend-react' });
+  await runCreatePackage({ consumerRoot, cliBin, name: PROBE_PACKAGE_NAME, type: 'library' });
 
   const libSrcDir = join(consumerRoot, 'packages', LIB_PACKAGE_NAME, 'src');
+  const probeSrcDir = join(consumerRoot, 'packages', PROBE_PACKAGE_NAME, 'src');
 
   const hoistDomainDir = join(libSrcDir, 'brokers', 'config', 'read-or-default');
   mkdirSync(hoistDomainDir, { recursive: true });
@@ -250,8 +258,10 @@ export const scaffoldFixturePackages = async ({ consumerRoot, cliBin }) => {
   // A known, ACTIVE violation (`ban-primitives`: a function returning a raw `string` instead of a
   // branded type), inside a fully colocated broker (header, proxy, test) so the ONLY thing lint
   // flags about it is the one deliberate violation `assertLint` expects — never a missing-companion
-  // or missing-header finding this suite did not intend.
-  const lintViolationDomainDir = join(libSrcDir, 'brokers', 'pre-edit', 'probe');
+  // or missing-header finding this suite did not intend. Lives in the DEDICATED `probe` package, not
+  // `lib` — `assertWardCleanFixture` scopes `dungeonmaster ward` onto `lib`/`app` and expects exit 0,
+  // which a real violation inside `lib` would contradict.
+  const lintViolationDomainDir = join(probeSrcDir, 'brokers', 'pre-edit', 'probe');
   mkdirSync(lintViolationDomainDir, { recursive: true });
   const lintViolationFile = join(lintViolationDomainDir, 'pre-edit-probe-broker.ts');
   writeFileSync(
@@ -290,6 +300,7 @@ describe('preEditProbeBroker', () => {
   return {
     libDir: join(consumerRoot, 'packages', LIB_PACKAGE_NAME),
     webDir: join(consumerRoot, 'packages', WEB_PACKAGE_NAME),
+    probeDir: join(consumerRoot, 'packages', PROBE_PACKAGE_NAME),
     ioTrapTestFile,
     mswTrapTestFile,
     lintViolationFile,
