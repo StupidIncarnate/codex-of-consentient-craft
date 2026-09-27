@@ -87,6 +87,10 @@ import { ruleGatewaySchemaBrandBrokerProxy } from '../../../brokers/rule/gateway
 import { ruleBanGatewayExportBrokerProxy } from '../../../brokers/rule/ban-gateway-export/rule-ban-gateway-export-broker.proxy';
 import { ruleEnforceGatewayRestrictedToBrokerProxy } from '../../../brokers/rule/enforce-gateway-restricted-to/rule-enforce-gateway-restricted-to-broker.proxy';
 import { ruleEnforceGatewayConfigNamesExistBrokerProxy } from '../../../brokers/rule/enforce-gateway-config-names-exist/rule-enforce-gateway-config-names-exist-broker.proxy';
+import { ruleBanWorkspaceExportMocksBrokerProxy } from '../../../brokers/rule/ban-workspace-export-mocks/rule-ban-workspace-export-mocks-broker.proxy';
+import { ruleBanProxyCatchAllDefaultsBrokerProxy } from '../../../brokers/rule/ban-proxy-catch-all-defaults/rule-ban-proxy-catch-all-defaults-broker.proxy';
+import { ruleBanProxyEmptyCalledWithBrokerProxy } from '../../../brokers/rule/ban-proxy-empty-called-with/rule-ban-proxy-empty-called-with-broker.proxy';
+import { ruleBanInventedFailuresBrokerProxy } from '../../../brokers/rule/ban-invented-failures/rule-ban-invented-failures-broker.proxy';
 import { configDungeonmasterBrokerProxy } from '../../../brokers/config/dungeonmaster/config-dungeonmaster-broker.proxy';
 import { EslintPluginCreateResponder } from './eslint-plugin-create-responder';
 
@@ -168,6 +172,10 @@ export const EslintPluginCreateResponderProxy = (): {
   ruleBanGatewayExportBrokerProxy();
   ruleEnforceGatewayRestrictedToBrokerProxy();
   ruleEnforceGatewayConfigNamesExistBrokerProxy();
+  ruleBanWorkspaceExportMocksBrokerProxy();
+  ruleBanProxyCatchAllDefaultsBrokerProxy();
+  ruleBanProxyEmptyCalledWithBrokerProxy();
+  ruleBanInventedFailuresBrokerProxy();
   configDungeonmasterBrokerProxy();
 
   return {

@@ -80,6 +80,10 @@ import { ruleGatewaySchemaBrandBroker } from '../../../brokers/rule/gateway-sche
 import { ruleBanGatewayExportBroker } from '../../../brokers/rule/ban-gateway-export/rule-ban-gateway-export-broker';
 import { ruleEnforceGatewayRestrictedToBroker } from '../../../brokers/rule/enforce-gateway-restricted-to/rule-enforce-gateway-restricted-to-broker';
 import { ruleEnforceGatewayConfigNamesExistBroker } from '../../../brokers/rule/enforce-gateway-config-names-exist/rule-enforce-gateway-config-names-exist-broker';
+import { ruleBanWorkspaceExportMocksBroker } from '../../../brokers/rule/ban-workspace-export-mocks/rule-ban-workspace-export-mocks-broker';
+import { ruleBanProxyCatchAllDefaultsBroker } from '../../../brokers/rule/ban-proxy-catch-all-defaults/rule-ban-proxy-catch-all-defaults-broker';
+import { ruleBanProxyEmptyCalledWithBroker } from '../../../brokers/rule/ban-proxy-empty-called-with/rule-ban-proxy-empty-called-with-broker';
+import { ruleBanInventedFailuresBroker } from '../../../brokers/rule/ban-invented-failures/rule-ban-invented-failures-broker';
 import { configDungeonmasterBroker } from '../../../brokers/config/dungeonmaster/config-dungeonmaster-broker';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 
@@ -160,6 +164,10 @@ export const EslintPluginCreateResponder = (): {
     readonly 'ban-gateway-export': EslintRule;
     readonly 'enforce-gateway-restricted-to': EslintRule;
     readonly 'enforce-gateway-config-names-exist': EslintRule;
+    readonly 'ban-workspace-export-mocks': EslintRule;
+    readonly 'ban-proxy-catch-all-defaults': EslintRule;
+    readonly 'ban-proxy-empty-called-with': EslintRule;
+    readonly 'ban-invented-failures': EslintRule;
   };
   readonly configs: {
     readonly dungeonmaster: ReturnType<typeof configDungeonmasterBroker>;
@@ -245,6 +253,10 @@ export const EslintPluginCreateResponder = (): {
       'ban-gateway-export': ruleBanGatewayExportBroker(),
       'enforce-gateway-restricted-to': ruleEnforceGatewayRestrictedToBroker(),
       'enforce-gateway-config-names-exist': ruleEnforceGatewayConfigNamesExistBroker(),
+      'ban-workspace-export-mocks': ruleBanWorkspaceExportMocksBroker(),
+      'ban-proxy-catch-all-defaults': ruleBanProxyCatchAllDefaultsBroker(),
+      'ban-proxy-empty-called-with': ruleBanProxyEmptyCalledWithBroker(),
+      'ban-invented-failures': ruleBanInventedFailuresBroker(),
     },
     configs: {
       dungeonmaster: configDungeonmasterBroker(),

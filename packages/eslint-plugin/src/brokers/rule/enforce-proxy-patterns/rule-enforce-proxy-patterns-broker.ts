@@ -40,7 +40,7 @@ export const ruleEnforceProxyPatternsBroker = (): EslintRule => ({
         jestMockedOnlyNpmPackages:
           'jest.mocked({{name}}) - Only mock npm packages (axios, fs, etc), not implementation code. Implementation code ending with -adapter, -broker, -transformer, etc. should never be mocked.',
         adapterProxyMustSetupMocks:
-          'Adapter proxy must describe a call in the constructor (before return statement) with handle.calledWith([...]).returns/.resolves/.rejects/.throws/.implement(...), or handle.onceFor([...]) for a one-time result. This sets up default mock behavior when proxy is created.',
+          'Adapter proxy must describe a call in the constructor (before return statement) with handle.calledWith([...]).returns/.resolves/.rejects/.throws/.implement(...), or handle.onceFor([...]) for a one-time result.',
         childProxyMustBeInConstructor:
           'Child proxy {{proxyName}} must be created in constructor (before return statement), not inside returned methods. Create it before the return statement.',
         childProxyMustBeInsideFunction:
