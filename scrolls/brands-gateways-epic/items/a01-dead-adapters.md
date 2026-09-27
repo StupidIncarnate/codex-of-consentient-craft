@@ -129,3 +129,5 @@ is read as 46 real forwarders plus this one dead file, not 47 forwarders needing
 ## Concessions made while executing
 
 <!-- Empty at the start. The operator fills this and mirrors it into EPIC.md's Concessions table. -->
+
+- The `testing` row was wrong. `packages/web/test/harnesses/claude-mock/claude-mock.harness.ts` and `ward-mock.harness.ts` import `fs-queue-metadata-read-adapter` through `@dungeonmaster/testing/adapters/fs/queue-metadata-read`. It was left in place for A14 (row FS-2).
