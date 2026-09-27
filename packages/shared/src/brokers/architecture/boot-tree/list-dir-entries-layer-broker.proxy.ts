@@ -1,46 +1,52 @@
 import type { Dirent } from 'fs';
-import { fsReaddirWithTypesAdapterProxy } from '../../../adapters/fs/readdir-with-types/fs-readdir-with-types-adapter.proxy';
+import { readdirSync } from 'fs';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
+import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/readdir-entries-sync.proxy';
+import type { DirEntrySync } from '#gateway/node/fs';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 
-const buildDirent = ({ name, isDir }: { name: string; isDir: boolean }): Dirent =>
-  ({
-    name,
-    parentPath: '/stub',
-    path: '/stub',
-    isDirectory: () => isDir,
-    isFile: () => !isDir,
-    isBlockDevice: () => false,
-    isCharacterDevice: () => false,
-    isFIFO: () => false,
-    isSocket: () => false,
-    isSymbolicLink: () => false,
-  }) as Dirent;
-
 export const listDirEntriesLayerBrokerProxy = (): {
-  setupFiles: ({ dirPath, names }: { dirPath: AbsoluteFilePath; names: string[] }) => Dirent[];
+  setupFiles: ({
+    dirPath,
+    names,
+  }: {
+    dirPath: AbsoluteFilePath;
+    names: string[];
+  }) => DirEntrySync[];
   setupEmpty: ({ dirPath }: { dirPath: AbsoluteFilePath }) => void;
   setupError: ({ dirPath, error }: { dirPath: AbsoluteFilePath; error: Error }) => void;
   setupImplementation: ({ fn }: { fn: (dirPath: string) => Dirent[] }) => void;
 } => {
-  const fsProxy = fsReaddirWithTypesAdapterProxy();
+  const gatewayProxy = readdirEntriesSyncProxy();
+  const handle = registerMock({ fn: readdirSync });
 
   return {
-    setupFiles: ({ dirPath, names }: { dirPath: AbsoluteFilePath; names: string[] }): Dirent[] => {
-      const entries = names.map((name) => buildDirent({ name, isDir: false }));
-      fsProxy.returns({ dirPath, entries });
+    setupFiles: ({
+      dirPath,
+      names,
+    }: {
+      dirPath: AbsoluteFilePath;
+      names: string[];
+    }): DirEntrySync[] => {
+      const entries = names.map((name) => ({ name, kind: 'file' as const }));
+      gatewayProxy.returns({ path: dirPath, entries });
       return entries;
     },
 
     setupEmpty: ({ dirPath }: { dirPath: AbsoluteFilePath }): void => {
-      fsProxy.returns({ dirPath, entries: [] });
+      gatewayProxy.returns({ path: dirPath, entries: [] });
     },
 
     setupError: ({ dirPath, error }: { dirPath: AbsoluteFilePath; error: Error }): void => {
-      fsProxy.throws({ dirPath, error });
+      gatewayProxy.throws({ path: dirPath, error });
     },
 
+    // Registers directly on the real `readdirSync` (rather than composing the gateway proxy's
+    // own `.returns()`/`.throws()`) so a caller with no single directory to key on can answer
+    // every call from one function, with the gateway's own real `.map()` into `{name, kind}`
+    // still running for real underneath — see startup-files-find-layer-broker.proxy.ts.
     setupImplementation: ({ fn }: { fn: (dirPath: string) => Dirent[] }): void => {
-      fsProxy.implementation({ fn });
+      handle.calledWith([]).implement(fn as never);
     },
   };
 };

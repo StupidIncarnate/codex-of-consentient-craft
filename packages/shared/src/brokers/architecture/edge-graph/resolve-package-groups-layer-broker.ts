@@ -33,8 +33,8 @@ export const resolvePackageGroupsLayerBroker = ({
   const packagesDir = absoluteFilePathContract.parse(
     `${projectRoot}/${projectMapStatics.packagesDirName}`,
   );
-  const packageEntries = safeReaddirLayerBroker({ dirPath: packagesDir }).filter((entry) =>
-    entry.isDirectory(),
+  const packageEntries = safeReaddirLayerBroker({ dirPath: packagesDir }).filter(
+    (entry) => entry.kind === 'directory',
   );
   const candidateRoots =
     packageEntries.length > 0
@@ -53,14 +53,14 @@ export const resolvePackageGroupsLayerBroker = ({
       `${packageRoot}/${projectMapStatics.srcDirName}`,
     );
     const srcDirNames = safeReaddirLayerBroker({ dirPath: srcPath })
-      .filter((entry) => entry.isDirectory())
+      .filter((entry) => entry.kind === 'directory')
       .map((entry) => entry.name);
 
     const adaptersPath = absoluteFilePathContract.parse(
       `${packageRoot}/${projectMapStatics.srcDirName}/adapters`,
     );
     const adapterDirNames = safeReaddirLayerBroker({ dirPath: adaptersPath })
-      .filter((entry) => entry.isDirectory())
+      .filter((entry) => entry.kind === 'directory')
       .map((entry) => entry.name);
 
     if (hasHonoOrExpressAdapterGuard({ adapterDirNames })) {

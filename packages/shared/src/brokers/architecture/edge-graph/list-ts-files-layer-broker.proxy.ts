@@ -1,6 +1,7 @@
 import type { Dirent } from 'fs';
 import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
+import type { DirEntrySync } from '#gateway/node/fs';
 import { safeReaddirLayerBrokerProxy } from './safe-readdir-layer-broker.proxy';
 
 const buildFileDirent = ({ name }: { name: string }): Dirent =>
@@ -86,10 +87,10 @@ export const listTsFilesLayerBrokerProxy = (): {
       dirPath: AbsoluteFilePath;
       filePaths: AbsoluteFilePath[];
     }): void => {
-      const entries = filePaths.map((fp) => {
+      const entries: DirEntrySync[] = filePaths.map((fp) => {
         const parts = String(fp).split('/');
         const name = parts[parts.length - 1] ?? String(fp);
-        return buildFileDirent({ name });
+        return { name, kind: 'file' as const };
       });
       readdirProxy.setupDirectory({ dirPath, entries });
     },

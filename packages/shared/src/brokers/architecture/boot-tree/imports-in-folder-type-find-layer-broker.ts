@@ -25,7 +25,7 @@ import { importStatementsExtractTransformer } from '../../../transformers/import
 import { relativeImportResolveTransformer } from '../../../transformers/relative-import-resolve/relative-import-resolve-transformer';
 import { layerFileParentResolveTransformer } from '../../../transformers/layer-file-parent-resolve/layer-file-parent-resolve-transformer';
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
-import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter';
+import { existsSync } from '#gateway/node/fs';
 import { readFileContentsLayerBroker } from './read-file-contents-layer-broker';
 
 export const importsInFolderTypeFindLayerBroker = ({
@@ -58,11 +58,11 @@ export const importsInFolderTypeFindLayerBroker = ({
     const tsxCandidate = resolvedStr.endsWith(tsSuffix)
       ? absoluteFilePathContract.parse(`${resolvedStr.slice(0, -tsSuffix.length)}${tsxSuffix}`)
       : null;
-    const tsExists = fsExistsSyncAdapter({ filePath: filePathContract.parse(resolved) });
+    const tsExists = existsSync(resolved);
     const onDisk =
       tsExists || tsxCandidate === null
         ? resolved
-        : fsExistsSyncAdapter({ filePath: filePathContract.parse(tsxCandidate) })
+        : existsSync(tsxCandidate)
           ? tsxCandidate
           : resolved;
 

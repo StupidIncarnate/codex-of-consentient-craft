@@ -26,7 +26,7 @@ export const startupFilesFindLayerBroker = ({
 
   const result: AbsoluteFilePath[] = [];
   for (const entry of entries) {
-    if (entry.isDirectory()) continue;
+    if (entry.kind === 'directory') continue;
     if (!matchesStartupFileNameGuard({ name: entry.name })) continue;
     const filePath = absoluteFilePathContract.parse(`${String(startupDir)}/${entry.name}`);
     if (!isNonTestFileGuard({ filePath })) continue;

@@ -9,9 +9,12 @@
  * when a resolved import path resolves to a file that does not exist on disk
  */
 
-import { fsReadFileSyncAdapter } from '../../../adapters/fs/read-file-sync/fs-read-file-sync-adapter';
+import { readFileSync } from '#gateway/node/fs';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import type { ContentText } from '../../../contracts/content-text/content-text-contract';
+import {
+  contentTextContract,
+  type ContentText,
+} from '../../../contracts/content-text/content-text-contract';
 
 export const readFileContentsLayerBroker = ({
   filePath,
@@ -19,7 +22,7 @@ export const readFileContentsLayerBroker = ({
   filePath: AbsoluteFilePath;
 }): ContentText | undefined => {
   try {
-    return fsReadFileSyncAdapter({ filePath });
+    return contentTextContract.parse(readFileSync(filePath));
   } catch {
     return undefined;
   }
