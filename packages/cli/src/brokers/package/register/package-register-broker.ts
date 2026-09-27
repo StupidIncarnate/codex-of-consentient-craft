@@ -10,8 +10,8 @@
  * // Returns false and writes nothing when packageName is already a root dependency
  */
 
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
-import type { FilePath, PackageName } from '@dungeonmaster/shared/contracts';
+import { join } from '#gateway/node/path';
+import { filePathContract, type FilePath, type PackageName } from '@dungeonmaster/shared/contracts';
 import { jsonFileContentsTransformer } from '@dungeonmaster/shared/transformers';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
@@ -25,7 +25,7 @@ export const packageRegisterBroker = async ({
   projectRoot: FilePath;
   packageName: PackageName;
 }): Promise<boolean> => {
-  const packageJsonPath = pathJoinAdapter({ paths: [projectRoot, 'package.json'] });
+  const packageJsonPath = filePathContract.parse(join(projectRoot, 'package.json'));
 
   const rawContents = await fsReadFileAdapter({ filePath: packageJsonPath }).catch(
     (error: unknown) => {

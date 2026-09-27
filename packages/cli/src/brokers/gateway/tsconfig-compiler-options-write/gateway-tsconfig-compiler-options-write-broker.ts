@@ -13,7 +13,7 @@
  * // Returns true when the file changed; false when it was missing or already held every value
  */
 
-import { fsExistsSyncAdapter } from '@dungeonmaster/shared/adapters';
+import { existsSync } from '#gateway/node/fs';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
@@ -28,7 +28,7 @@ export const gatewayTsconfigCompilerOptionsWriteBroker = async ({
   tsconfigPath: FilePath;
   options: TsconfigCompilerOptions;
 }): Promise<boolean> => {
-  if (!fsExistsSyncAdapter({ filePath: tsconfigPath })) {
+  if (!existsSync(tsconfigPath)) {
     return false;
   }
 

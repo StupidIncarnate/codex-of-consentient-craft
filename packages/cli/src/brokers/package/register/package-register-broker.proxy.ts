@@ -1,6 +1,6 @@
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
-import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
+import { join } from '#gateway/node/path';
+import { filePathContract, type FilePath } from '@dungeonmaster/shared/contracts';
+import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
 import { packageRegisterBroker } from './package-register-broker';
@@ -11,10 +11,9 @@ export const packageRegisterBrokerProxy = (): {
   setupRootPackageJsonMissing: (params: { projectRoot: FilePath }) => void;
   getWrittenContents: () => readonly unknown[];
 } => {
-  // Unstaged: pathJoinAdapterProxy's default is a real path.join passthrough, and every
-  // packageJsonPath computed below is the real join of projectRoot + 'package.json' — there is
-  // nothing to fake, so read/write are the only mocks keyed here, addressed by those real paths.
-  pathJoinAdapterProxy();
+  const joinHandle = registerMock({ fn: join });
+  const realPath = requireActual<{ join: typeof join }>({ module: 'path' });
+  joinHandle.calledWith([]).implement((...segments: never[]) => realPath.join(...segments));
   const readProxy = fsReadFileAdapterProxy();
   const writeProxy = fsWriteFileAdapterProxy();
 
@@ -28,13 +27,13 @@ export const packageRegisterBrokerProxy = (): {
       projectRoot: FilePath;
       contents: string;
     }): void => {
-      const packageJsonPath = pathJoinAdapter({ paths: [projectRoot, 'package.json'] });
+      const packageJsonPath = filePathContract.parse(join(projectRoot, 'package.json'));
       readProxy.resolves({ filePath: packageJsonPath, content: contents });
       writeProxy.succeeds({ filePath: packageJsonPath });
     },
 
     setupRootPackageJsonMissing: ({ projectRoot }: { projectRoot: FilePath }): void => {
-      const packageJsonPath = pathJoinAdapter({ paths: [projectRoot, 'package.json'] });
+      const packageJsonPath = filePathContract.parse(join(projectRoot, 'package.json'));
       readProxy.rejects({
         filePath: packageJsonPath,
         error: new Error('ENOENT: no such file or directory'),

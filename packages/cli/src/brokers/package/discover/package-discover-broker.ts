@@ -9,7 +9,8 @@
  */
 
 import { fsReaddirAdapter } from '../../../adapters/fs/readdir/fs-readdir-adapter';
-import { pathJoinAdapter, fsExistsSyncAdapter } from '@dungeonmaster/shared/adapters';
+import { join } from '#gateway/node/path';
+import { existsSync } from '#gateway/node/fs';
 import { packageNameContract, filePathContract } from '@dungeonmaster/shared/contracts';
 import type { FilePath, PackageName, FileName } from '@dungeonmaster/shared/contracts';
 
@@ -23,7 +24,7 @@ export const packageDiscoverBroker = ({
 }: {
   dungeonmasterRoot: FilePath;
 }): { packageName: PackageName; installPath: FilePath }[] => {
-  const monorepoPackagesDir = pathJoinAdapter({ paths: [dungeonmasterRoot, 'packages'] });
+  const monorepoPackagesDir = filePathContract.parse(join(dungeonmasterRoot, 'packages'));
   // A published install has no `packages/` folder to find: `cli-entry.ts` computes
   // `dungeonmasterRoot` as four directories above the running bin, which lands on the monorepo
   // root ONLY in this repo and its worktrees. In an installed consumer (local `node_modules`, or
@@ -32,9 +33,7 @@ export const packageDiscoverBroker = ({
   // to `dungeonmasterRoot` itself reuses the SAME `@scope` group-folder walk below for both
   // shapes: `node_modules/@dungeonmaster` is exactly a "`@`-prefixed group folder" of the kind
   // `packages/@gateway` already is.
-  const packagesDir = fsExistsSyncAdapter({ filePath: monorepoPackagesDir })
-    ? monorepoPackagesDir
-    : dungeonmasterRoot;
+  const packagesDir = existsSync(monorepoPackagesDir) ? monorepoPackagesDir : dungeonmasterRoot;
   const topLevelDirs = fsReaddirAdapter({ dirPath: packagesDir });
 
   const candidates: { relativeDir: FileName[]; packageDirName: FileName }[] = [];
@@ -45,7 +44,7 @@ export const packageDiscoverBroker = ({
       continue;
     }
 
-    const groupDir = pathJoinAdapter({ paths: [packagesDir, dir] });
+    const groupDir = join(packagesDir, dir);
     for (const child of fsReaddirAdapter({ dirPath: groupDir })) {
       candidates.push({ relativeDir: [dir, child], packageDirName: child });
     }
@@ -55,18 +54,21 @@ export const packageDiscoverBroker = ({
 
   for (const { relativeDir, packageDirName } of candidates) {
     // Check standard path: dist/startup/start-install.js
-    const standardPath = pathJoinAdapter({
-      paths: [packagesDir, ...relativeDir, 'dist', 'startup', 'start-install.js'],
-    });
+    const standardPath = join(packagesDir, ...relativeDir, 'dist', 'startup', 'start-install.js');
 
     // Check alternate path: dist/src/startup/start-install.js (for packages with rootDir: ".")
-    const alternatePath = pathJoinAdapter({
-      paths: [packagesDir, ...relativeDir, 'dist', 'src', 'startup', 'start-install.js'],
-    });
+    const alternatePath = join(
+      packagesDir,
+      ...relativeDir,
+      'dist',
+      'src',
+      'startup',
+      'start-install.js',
+    );
 
-    const installPath = fsExistsSyncAdapter({ filePath: standardPath })
+    const installPath = existsSync(standardPath)
       ? standardPath
-      : fsExistsSyncAdapter({ filePath: alternatePath })
+      : existsSync(alternatePath)
         ? alternatePath
         : null;
 
