@@ -17,9 +17,9 @@
  * mutually exclusive at the contract, so no call reaches here asking for both.
  */
 
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
+import { join } from '#gateway/node/path';
 
 import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
 import type { GetQuestInput } from '@dungeonmaster/shared/contracts';
@@ -46,9 +46,7 @@ export const questGetBroker = async ({
 
     const { questPath } = await questFindQuestPathBroker({ questId: validated.questId });
 
-    const questFilePath = filePathContract.parse(
-      pathJoinAdapter({ paths: [questPath, locationsStatics.quest.questFile] }),
-    );
+    const questFilePath = filePathContract.parse(join(questPath, locationsStatics.quest.questFile));
 
     const loadedQuest = await questLoadBroker({ questFilePath });
 

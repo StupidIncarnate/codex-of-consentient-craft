@@ -15,7 +15,8 @@
  * passthrough-by-default behaviour.
  */
 
-import { pathJoinAdapterProxy, pathResolveAdapterProxy } from '@dungeonmaster/shared/testing';
+import { join, resolve } from '#gateway/node/path';
+
 import {
   FileContentsStub,
   FileNameStub,
@@ -25,6 +26,7 @@ import {
   RepoRootCwdStub,
 } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts';
+import { locationsStatics } from '@dungeonmaster/shared/statics';
 import {
   registerMock,
   registerModuleMock,
@@ -70,11 +72,17 @@ export const questModifyBrokerProxy = (): {
   // Server-stamped assertion ids come from crypto.randomUUID. Passthrough so every test gets a real
   // uuid by default; tests that assert on the stamped id queue deterministic values via setupAssertionIds.
   const uuidSpy = registerSpyOn({ object: crypto, method: 'randomUUID', passthrough: true });
-  const pathJoinProxy = pathJoinAdapterProxy();
+  // questModifyBroker's own join(questPath, quest.json) -> questFilePath, addressed by the exact
+  // tuple below (never an address-less FIFO slot), so it can never answer a different broker's
+  // join call sharing the same underlying mocked `join`.
+  const joinHandle = registerMock({ fn: join });
   // Left on its real `path.resolve` passthrough: anchoring a declared contract source on the quest's
   // own project root is the behaviour under test, so the broker computes the probed address for real
   // and setupContractSourceResolvesOnce names the absolute result it expects it to reach.
-  pathResolveAdapterProxy();
+  const realPath = requireActual<{ resolve: typeof resolve }>({ module: 'path' });
+  registerMock({ fn: resolve })
+    .calledWith([])
+    .implement((...segments: never[]) => realPath.resolve(...segments));
   const loadProxy = questLoadBrokerProxy();
   const persistProxy = questPersistBrokerProxy();
   const lockProxy = questWithModifyLockBrokerProxy();
@@ -143,8 +151,9 @@ export const questModifyBrokerProxy = (): {
         ],
       });
 
-      // pathJoin for questModifyBroker joining questPath + quest.json
-      pathJoinProxy.returns({ result: questFilePath });
+      joinHandle
+        .calledWith([questFolderPath, locationsStatics.quest.questFile])
+        .returns(questFilePath);
 
       // questLoadBroker reads the quest file
       loadProxy.setupQuestFile({ questJson: JSON.stringify(quest) });

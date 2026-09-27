@@ -12,7 +12,7 @@
  * // write fails is simply absent from the map — the broker itself always resolves.
  */
 
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
+import { join } from '#gateway/node/path';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
@@ -48,7 +48,7 @@ export const localImageCopyBroker = async ({
         // this changes no behaviour there — it keeps the quest's images directory uniform.
         const extension = match.path.slice(match.path.lastIndexOf('.') + 1).toLowerCase();
         const destination = absoluteFilePathContract.parse(
-          pathJoinAdapter({ paths: [imagesDirPath, `${crypto.randomUUID()}.${extension}`] }),
+          join(imagesDirPath, `${crypto.randomUUID()}.${extension}`),
         );
 
         try {

@@ -1,4 +1,5 @@
 import { writeFile } from 'fs/promises';
+import { join } from '#gateway/node/path';
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { questFindQuestPathBrokerProxy } from '@dungeonmaster/orchestrator/brokers/quest/find-quest-path/quest-find-quest-path-broker.proxy';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
@@ -10,6 +11,7 @@ import type {
   QuestStatus,
   QuestStub,
 } from '@dungeonmaster/shared/contracts';
+import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { pastedImagePersistBrokerProxy } from '../../../brokers/pasted-image/persist/pasted-image-persist-broker.proxy';
@@ -63,6 +65,15 @@ export const QuestChatResponderProxy = (): {
   // boundary underneath it (mkdir, writeFile, randomUUID, homedir), composed exactly the way the
   // broker's own test does.
   const persistProxy = pastedImagePersistBrokerProxy();
+  // pastedImagePersistBroker's own chain resolves `join(homePath, 'guilds', guildId)` — 3 real
+  // args — through `#gateway/node/path`'s real-passthrough default that broker's own proxy
+  // stages. That default is address-less (0 args), so it loses to findQuestPathProxy's own
+  // `join(homePath, 'guilds')` stage (2 args) below on a call sharing that 2-arg PREFIX: a
+  // shorter staged description still matches a longer real call (see get-testing-patterns' "How
+  // arguments are compared"), and MORE described arguments wins regardless of registration order.
+  // Staged here, addressed by the exact 3-arg tuple, only when setupFindQuestPath is given a
+  // homePath to collide against.
+  const joinHandle = registerMock({ fn: join });
   // Extra READ-ONLY handle on the same npm `writeFile` persistProxy's own fsWriteFileBase64AdapterProxy
   // already stages. It never calls .calledWith, only .callsMatching, so it cannot collide with that
   // staging — same pattern pastedImagePersistBrokerProxy itself uses for its writeCallCount(). This is
@@ -96,6 +107,18 @@ export const QuestChatResponderProxy = (): {
         questPath,
         ...(homePath === undefined ? {} : { homeDir: homePath }),
       });
+
+      if (homePath !== undefined) {
+        // See the constructor comment above: pins the exact 3-arg tuple
+        // pastedImagePersistBroker's own locations chain calls, at the SAME dungeonmaster home
+        // findQuestPathProxy just staged, so it outranks that proxy's own 2-arg guildsDir stage.
+        const dungeonmasterHomePath = `${homePath}/.dungeonmaster`;
+        joinHandle
+          .calledWith([dungeonmasterHomePath, dungeonmasterHomeStatics.paths.guildsDir, guildId])
+          .returns(
+            `${dungeonmasterHomePath}/${dungeonmasterHomeStatics.paths.guildsDir}/${String(guildId)}`,
+          );
+      }
     },
     setupStartChat: ({
       guildId,

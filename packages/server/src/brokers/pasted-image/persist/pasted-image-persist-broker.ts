@@ -15,7 +15,7 @@
  * // Writes each image under the quest's images dir and returns the message with its tokens rewritten
  */
 
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
+import { join } from '#gateway/node/path';
 import {
   locationsQuestFolderPathFindBroker,
   locationsQuestImagesPathFindBroker,
@@ -63,7 +63,7 @@ export const pastedImagePersistBroker = async ({
     images.map(async (image) => {
       const extension = image.mediaType.split('/')[1] ?? '';
       const filePath = absoluteFilePathContract.parse(
-        pathJoinAdapter({ paths: [imagesDirPath, `${crypto.randomUUID()}.${extension}`] }),
+        join(imagesDirPath, `${crypto.randomUUID()}.${extension}`),
       );
 
       await fsWriteFileBase64Adapter({ filePath, dataBase64: image.dataBase64 });

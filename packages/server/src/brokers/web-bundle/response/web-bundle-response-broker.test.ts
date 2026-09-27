@@ -102,4 +102,18 @@ describe('webBundleResponseBroker', () => {
       status: 500,
     });
   });
+
+  it('VALID: {pathname: "/assets/app.js"} => reads from distPath joined with relativePath', async () => {
+    const proxy = webBundleResponseBrokerProxy();
+    const contents = FileContentsStub({ value: 'console.log("app")' });
+    proxy.setupFileContents({ contents, expectedRelativePath: '/assets/app.js' });
+
+    const result = await webBundleResponseBroker({ pathname: '/assets/app.js' });
+
+    expect(result).toStrictEqual({
+      body: contents,
+      contentType: 'text/javascript; charset=utf-8',
+      status: 200,
+    });
+  });
 });

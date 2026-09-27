@@ -1,9 +1,8 @@
+import { dirname, resolve } from '#gateway/node/path';
+
 import { FileNameStub, FilePathStub } from '@dungeonmaster/shared/contracts';
-import {
-  architecturePackageTypeDetectBrokerProxy,
-  pathDirnameAdapterProxy,
-  pathResolveAdapterProxy,
-} from '@dungeonmaster/shared/testing';
+import { architecturePackageTypeDetectBrokerProxy } from '@dungeonmaster/shared/testing';
+import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
 import { fsIsAccessibleAdapterProxy } from '../../../adapters/fs/is-accessible/fs-is-accessible-adapter.proxy';
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
@@ -26,11 +25,19 @@ export const resolvePackageEntryFactsLayerBrokerProxy = (): {
 } => {
   const accessProxy = fsIsAccessibleAdapterProxy();
   accessProxy.defaultsToNotFound();
-  pathDirnameAdapterProxy();
-  // Left on its real `path.resolve` passthrough: anchoring a declared location on the quest's own
-  // project root is the behaviour under test, so the broker computes every address for real and the
-  // setups below name the absolute result they expect it to reach.
-  pathResolveAdapterProxy();
+  // Both left on a real passthrough default: anchoring a declared location on the quest's own
+  // project root (`resolve`) and finding a location's own parent workspace root (`dirname`) are the
+  // behaviour under test, so the broker computes every address for real and the setups below name
+  // the absolute result they expect it to reach.
+  const realPath = requireActual<{ dirname: typeof dirname; resolve: typeof resolve }>({
+    module: 'path',
+  });
+  registerMock({ fn: dirname })
+    .calledWith([])
+    .implement((inputPath: never) => realPath.dirname(inputPath));
+  registerMock({ fn: resolve })
+    .calledWith([])
+    .implement((...segments: never[]) => realPath.resolve(...segments));
   const detectProxy = architecturePackageTypeDetectBrokerProxy();
   const readdirProxy = fsReaddirAdapterProxy();
   const readFileProxy = fsReadFileAdapterProxy();

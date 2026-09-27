@@ -20,13 +20,13 @@
  *   unserialized writers would also collide on that one `quest.json.tmp`.
  */
 
-import { pathJoinAdapter, pathResolveAdapter } from '@dungeonmaster/shared/adapters';
 import {
   fileContentsContract,
   filePathContract,
   questContract,
 } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
+import { join, resolve } from '#gateway/node/path';
 
 import { questPersistBroker } from '../persist/quest-persist-broker';
 import { modifyQuestInputContract } from '@dungeonmaster/shared/contracts';
@@ -94,7 +94,7 @@ export const questModifyBroker = async ({
         const { questPath } = await questFindQuestPathBroker({ questId: validated.questId });
 
         const questFilePath = filePathContract.parse(
-          pathJoinAdapter({ paths: [questPath, locationsStatics.quest.questFile] }),
+          join(questPath, locationsStatics.quest.questFile),
         );
 
         const loadedQuest = await questLoadBroker({ questFilePath });
@@ -386,9 +386,7 @@ export const questModifyBroker = async ({
             const sourceExistenceChecks = await Promise.all(
               writtenContracts.map(async (entry) => {
                 const sourceStr = String(entry.source);
-                const filePath = filePathContract.parse(
-                  pathResolveAdapter({ paths: [String(projectRoot), sourceStr] }),
-                );
+                const filePath = filePathContract.parse(resolve(String(projectRoot), sourceStr));
                 const exists = await fsIsAccessibleAdapter({ filePath });
                 return { source: sourceStr, exists };
               }),

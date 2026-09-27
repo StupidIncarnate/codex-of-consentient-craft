@@ -19,7 +19,16 @@ const DEFAULT_HOME_PATH = FilePathStub({ value: '/home/user/.dungeonmaster' });
 const DEFAULT_CONFIG_FILE_PATH = FilePathStub({ value: '/home/user/.dungeonmaster/config.json' });
 
 export const guildConfigReadBrokerProxy = (): {
-  setupConfig: (params: { config: GuildConfig }) => void;
+  setupConfig: (params: {
+    config: GuildConfig;
+    // A real process has one home. Omit these to get this proxy's own fixture home; pass the SAME
+    // homeDir/homePath a sibling proxy composed in the same test staged (e.g.
+    // questFindQuestPathBrokerProxy's own setupQuestFound) when that sibling's real resolution also
+    // has to run through this one process's dungeonmasterHomeFindBroker() — the mock is shared and
+    // address-less, so the LAST setupHomePath call in a test wins for every composed proxy.
+    homeDir?: string;
+    homePath?: FilePath;
+  }) => void;
   setupConfigAt: (params: { configFilePath: FilePath; config: GuildConfig }) => void;
   setupConfigExists: (params: {
     homeDir: string;
@@ -44,14 +53,23 @@ export const guildConfigReadBrokerProxy = (): {
   const readFileProxy = fsReadFileAdapterProxy();
 
   return {
-    setupConfig: ({ config }: { config: GuildConfig }): void => {
-      homeFindProxy.setupHomePath({
-        homeDir: DEFAULT_HOME_DIR,
-        homePath: DEFAULT_HOME_PATH,
-      });
-      pathJoinProxy.returns({ result: DEFAULT_CONFIG_FILE_PATH });
+    setupConfig: ({
+      config,
+      homeDir = DEFAULT_HOME_DIR,
+      homePath = DEFAULT_HOME_PATH,
+    }: {
+      config: GuildConfig;
+      homeDir?: string;
+      homePath?: FilePath;
+    }): void => {
+      const configFilePath =
+        homePath === DEFAULT_HOME_PATH
+          ? DEFAULT_CONFIG_FILE_PATH
+          : FilePathStub({ value: `${String(homePath)}/config.json` });
+      homeFindProxy.setupHomePath({ homeDir, homePath });
+      pathJoinProxy.returns({ result: configFilePath });
       readFileProxy.resolves({
-        filePath: DEFAULT_CONFIG_FILE_PATH,
+        filePath: configFilePath,
         content: JSON.stringify(config),
       });
     },

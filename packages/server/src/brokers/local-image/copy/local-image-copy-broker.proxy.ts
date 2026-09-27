@@ -1,8 +1,8 @@
 import { writeFile } from 'fs/promises';
-import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { join } from '#gateway/node/path';
+import { registerMock, registerSpyOn, requireActual } from '@dungeonmaster/testing/register-mock';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
-import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
 
 import { fsReadFileBytesAdapterProxy } from '../../../adapters/fs/read-file-bytes/fs-read-file-bytes-adapter.proxy';
 import { fsWriteFileBytesAdapterProxy } from '../../../adapters/fs/write-file-bytes/fs-write-file-bytes-adapter.proxy';
@@ -17,7 +17,9 @@ export const localImageCopyBrokerProxy = (): {
 } => {
   const readProxy = fsReadFileBytesAdapterProxy();
   const writeProxy = fsWriteFileBytesAdapterProxy();
-  pathJoinAdapterProxy();
+  const joinHandle = registerMock({ fn: join });
+  const realPath = requireActual<{ join: typeof join }>({ module: 'path' });
+  joinHandle.calledWith([]).implement((...segments: never[]) => realPath.join(...segments));
   const uuidSpy = registerSpyOn({ object: crypto, method: 'randomUUID' });
   // A second handle purely for READING writeFile's call history — fsWriteFileBytesAdapterProxy
   // above already owns the staging (.calledWith); this handle only ever reads (.callsMatching),

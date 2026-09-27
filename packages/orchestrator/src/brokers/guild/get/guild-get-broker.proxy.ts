@@ -1,4 +1,4 @@
-import type { GuildConfig, GuildStub } from '@dungeonmaster/shared/contracts';
+import type { FilePath, GuildConfig, GuildStub } from '@dungeonmaster/shared/contracts';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
 import { guildConfigReadBrokerProxy } from '../../guild-config/read/guild-config-read-broker.proxy';
@@ -8,7 +8,13 @@ import { guildGetBroker } from './guild-get-broker';
 type Guild = ReturnType<typeof GuildStub>;
 
 export const guildGetBrokerProxy = (): {
-  setupConfig: (params: { config: GuildConfig }) => void;
+  setupConfig: (params: {
+    config: GuildConfig;
+    // Forwarded to guildConfigReadBrokerProxy's own setupConfig — see its header for why a
+    // composing test must pass the SAME homeDir/homePath a sibling quest-path proxy staged.
+    homeDir?: string;
+    homePath?: FilePath;
+  }) => void;
   setupDirectGuild: (params: { guild: Guild }) => void;
 } => {
   const configReadProxy = guildConfigReadBrokerProxy();
@@ -27,8 +33,20 @@ export const guildGetBrokerProxy = (): {
   mocked.calledWith([]).implement(realMod.guildGetBroker as never);
 
   return {
-    setupConfig: ({ config }: { config: GuildConfig }): void => {
-      configReadProxy.setupConfig({ config });
+    setupConfig: ({
+      config,
+      homeDir,
+      homePath,
+    }: {
+      config: GuildConfig;
+      homeDir?: string;
+      homePath?: FilePath;
+    }): void => {
+      configReadProxy.setupConfig({
+        config,
+        ...(homeDir === undefined ? {} : { homeDir }),
+        ...(homePath === undefined ? {} : { homePath }),
+      });
       // guildGetBroker only calls guildConfigWriteBroker when the matched guild lacks a
       // urlSlug (the backfill branch). Staging the write mocks unconditionally leaves two
       // never-consumed entries sitting in path.join's shared call-order queue whenever every

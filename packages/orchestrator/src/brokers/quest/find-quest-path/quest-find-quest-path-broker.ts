@@ -30,13 +30,8 @@
  */
 
 import { dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
-import {
-  fsExistsSyncAdapter,
-  fsReaddirWithTypesAdapter,
-  pathJoinAdapter,
-} from '@dungeonmaster/shared/adapters';
 import { dungeonmasterHomeStatics, locationsStatics } from '@dungeonmaster/shared/statics';
-import { fileNameContract } from '@dungeonmaster/shared/contracts';
+import { fileNameContract, filePathContract } from '@dungeonmaster/shared/contracts';
 import type {
   AbsoluteFilePath,
   FileName,
@@ -44,6 +39,8 @@ import type {
   GuildId,
   QuestId,
 } from '@dungeonmaster/shared/contracts';
+import { existsSync, readdirEntriesSync } from '#gateway/node/fs';
+import { join } from '#gateway/node/path';
 
 import { QuestNotFoundError } from '../../../errors/quest-not-found/quest-not-found-error';
 import { isSafePathSegmentGuard } from '../../../guards/is-safe-path-segment/is-safe-path-segment-guard';
@@ -56,40 +53,35 @@ export const questFindQuestPathBroker = async ({
 }): Promise<{ questPath: AbsoluteFilePath; guildId: GuildId }> => {
   const { homePath } = dungeonmasterHomeFindBroker();
 
-  const guildsDir = pathJoinAdapter({
-    paths: [homePath, dungeonmasterHomeStatics.paths.guildsDir],
-  });
+  const guildsDir = filePathContract.parse(
+    join(homePath, dungeonmasterHomeStatics.paths.guildsDir),
+  );
 
   // A guilds/ directory that does not exist yet reads as "no quests here" — the same treatment
   // the per-guild scan loop below gives an unreadable quests/ dir — rather than an ENOENT
   // escaping to the caller: `dungeonmasterHomeEnsureBroker` creates guilds/ lazily, so a fresh
   // or hand-pointed DUNGEONMASTER_HOME can reach this lookup before it exists on disk.
-  let guildEntries: ReturnType<typeof fsReaddirWithTypesAdapter> = [];
+  let guildEntries: ReturnType<typeof readdirEntriesSync> = [];
   try {
-    guildEntries = fsReaddirWithTypesAdapter({ dirPath: guildsDir as AbsoluteFilePath });
+    guildEntries = readdirEntriesSync(guildsDir);
   } catch {
     // guildsDir is missing — guildEntries keeps the empty-array default declared above.
   }
-  const guildDirs = guildEntries.filter((entry) => entry.isDirectory());
+  const guildDirs = guildEntries.filter((entry) => entry.kind === 'directory');
 
   // `questId` becomes a path segment here and nowhere else in this broker, and questIdContract is
   // `z.string().min(1)` with no format rule — so an id that does not name one directory skips the
   // probe rather than being joined into a path that resolves somewhere else.
   const probeCandidates = isSafePathSegmentGuard({ segment: String(questId) })
     ? guildDirs.map((guildDir) => {
-        const questFolderPath = pathJoinAdapter({
-          paths: [
-            guildsDir,
-            guildDir.name,
-            dungeonmasterHomeStatics.paths.questsDir,
-            String(questId),
-          ],
-        });
+        const questFolderPath = filePathContract.parse(
+          join(guildsDir, guildDir.name, dungeonmasterHomeStatics.paths.questsDir, String(questId)),
+        );
 
         return {
-          questFilePath: pathJoinAdapter({
-            paths: [questFolderPath, locationsStatics.quest.questFile],
-          }),
+          questFilePath: filePathContract.parse(
+            join(questFolderPath, locationsStatics.quest.questFile),
+          ),
           questFolderPath,
           guildDirName: guildDir.name,
         };
@@ -99,9 +91,7 @@ export const questFindQuestPathBroker = async ({
   // `existsSync` is synchronous, so this stops at the first guild directory that holds the folder
   // and never stats a later one. Nothing is read here: one stat per GUILD replaces the scan's full
   // read-and-parse per QUEST.
-  const probeHit = probeCandidates.find((candidate) =>
-    fsExistsSyncAdapter({ filePath: candidate.questFilePath }),
-  );
+  const probeHit = probeCandidates.find((candidate) => existsSync(candidate.questFilePath));
 
   // `guildDirName` is parsed for the ONE hit rather than for every candidate. Parsing it in the
   // map above costs a zod parse per guild directory on every lookup, including the misses that go
@@ -127,25 +117,21 @@ export const questFindQuestPathBroker = async ({
   }[] = [];
 
   for (const guildDir of guildDirs) {
-    const questsDirPath = pathJoinAdapter({
-      paths: [guildsDir, guildDir.name, dungeonmasterHomeStatics.paths.questsDir],
-    });
+    const questsDirPath = filePathContract.parse(
+      join(guildsDir, guildDir.name, dungeonmasterHomeStatics.paths.questsDir),
+    );
 
     try {
-      const questFolderEntries = fsReaddirWithTypesAdapter({
-        dirPath: questsDirPath as AbsoluteFilePath,
-      });
+      const questFolderEntries = readdirEntriesSync(questsDirPath);
 
-      const questFolders = questFolderEntries.filter((entry) => entry.isDirectory());
+      const questFolders = questFolderEntries.filter((entry) => entry.kind === 'directory');
 
       for (const questFolder of questFolders) {
         candidates.push({
-          questFilePath: pathJoinAdapter({
-            paths: [questsDirPath, questFolder.name, locationsStatics.quest.questFile],
-          }),
-          questFolderPath: pathJoinAdapter({
-            paths: [questsDirPath, questFolder.name],
-          }),
+          questFilePath: filePathContract.parse(
+            join(questsDirPath, questFolder.name, locationsStatics.quest.questFile),
+          ),
+          questFolderPath: filePathContract.parse(join(questsDirPath, questFolder.name)),
           guildDirName: fileNameContract.parse(guildDir.name),
         });
       }
