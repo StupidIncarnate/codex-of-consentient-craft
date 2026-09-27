@@ -1,8 +1,11 @@
-# Adapters that touch no outside thing — stay adapters
+# Adapters that touch no outside thing
 
-Scope: the `tmp/adapters-fresh/adapters.json` entries with `outside: []` (106 files). Per the
-brief, these stay adapters for now (they replace nothing in the gateway). Each row below is
-confirmed against the file itself, not just the scan. Grouped by package.
+Scope: the `tmp/adapters-fresh/adapters.json` entries with `outside: []` (106 files). Each row
+below is confirmed against the file itself, not just the scan. Grouped by package.
+
+None of these adapters stays an adapter. `scrolls/gateway/followup-sustainability.md`, in "Replace
+every adapter with the gateway, then delete what nothing uses," sorts each one into where it goes
+next.
 
 Two corrections to the scan feed this table (rather than `npm.md`):
 
@@ -21,7 +24,7 @@ Two corrections to the scan feed this table (rather than `npm.md`):
 
 ## eslint-plugin
 
-| Path | Calls instead | Reason it stays |
+| Path | Calls instead | Why no outside call |
 |---|---|---|
 | `src/adapters/eslint-plugin-eslint-comments/load/eslint-plugin-eslint-comments-load-adapter.ts` | nothing of ours — casts the loaded plugin to `EslintPlugin` | **flagged**: touches `eslint-plugin-eslint-comments`, an npm package outside my assigned list — see note below |
 | `src/adapters/eslint-plugin-jest/load/eslint-plugin-jest-load-adapter.ts` | nothing of ours | **flagged**: touches `eslint-plugin-jest`, outside my assigned list |
@@ -29,7 +32,7 @@ Two corrections to the scan feed this table (rather than `npm.md`):
 
 ## hooks
 
-| Path | Calls instead | Reason it stays |
+| Path | Calls instead | Why no outside call |
 |---|---|---|
 | `src/adapters/dungeonmaster-eslint-plugin/get-pre-edit-rules/dungeonmaster-eslint-plugin-get-pre-edit-rules-adapter.ts` | `@dungeonmaster/shared/statics` (`dungeonmasterRuleEnforceOnStatics`) | pure filter/map over our own statics, no library call |
 | `src/adapters/eslint/calculate-config-for-file/eslint-calculate-config-for-file-adapter.ts` | calls `.calculateConfigForFile()` on a passed-in `ESLint` instance | **flagged**: this is a real `eslint` API call (type-only import today, but the method call is runtime) — added to `npm.md`'s eslint mapping table instead of staying here |
@@ -42,18 +45,18 @@ touches a Node or browser global directly does not stay), its fate is `gateway` 
 
 ## hydration-recipes
 
-| Path | Calls instead | Reason it stays |
+| Path | Calls instead | Why no outside call |
 |---|---|---|
 | `src/adapters/dm-http/response-unwrap/dm-http-response-unwrap-adapter.ts` | nothing outside — a guard (`isHttpStatusSuccessGuard`) plus our own `DmHttpResponse` contract | pure envelope-unwrapping logic, no library call of any kind |
 
 ## mcp
 
-All 15 files below are one shape: call the equivalent function on `@dungeonmaster/orchestrator`'s
+Every file below is one shape: call the equivalent function on `@dungeonmaster/orchestrator`'s
 barrel (`start-orchestrator.ts`), so the MCP tool has a mockable boundary in front of the
 orchestrator package. Confirmed against `orchestrator-get-quest-adapter.ts` and
 `orchestrator-bootstrap-adapter.ts`, both a one-line forward.
 
-| Path | Calls instead | Reason it stays |
+| Path | Calls instead | Why no outside call |
 |---|---|---|
 | `src/adapters/orchestrator/bootstrap/orchestrator-bootstrap-adapter.ts` | `@dungeonmaster/orchestrator` (`start-orchestrator.ts`) | forwards to another package |
 | `src/adapters/orchestrator/create-quest/orchestrator-create-quest-adapter.ts` | same | forwards to another package |
@@ -86,7 +89,7 @@ each one is a thin, command-specific composition of shared's spawn adapter, matc
 `childProcessSpawnCaptureAdapter` directly ... never call `child_process` itself outside an
 adapter." None of these touch `child_process` (a Node builtin, not npm) directly themselves.
 
-| Path | Calls instead | Reason it stays |
+| Path | Calls instead | Why no outside call |
 |---|---|---|
 | `src/adapters/git/add-all/git-add-all-adapter.ts` | `@dungeonmaster/shared` (`childProcessSpawnCaptureAdapter`) | forwards to shared; fixes the exact git argument order for one command |
 | `src/adapters/git/branch-delete/git-branch-delete-adapter.ts` | same | same |
@@ -105,8 +108,8 @@ adapter." None of these touch `child_process` (a Node builtin, not npm) directly
 | `src/adapters/git/worktree-remove/git-worktree-remove-adapter.ts` | same | same |
 
 *(These 15 rows are exactly the `@dungeonmaster/bin/git` migration candidates the design doc's
-"Migration order" step 4 already names — they stay adapters for THIS build phase only because
-rule 6 says existing adapters are untouched until a consumption phase.)*
+"Migration order" step 4 already names. Rule 6 defers their migration to a later phase, so today's
+code leaves them as ordinary adapters, unchanged.)*
 
 ## server
 
@@ -115,7 +118,7 @@ All 41 rows below are the server-side mirror of mcp's forwarders — a thin call
 `orchestrator-list-quests-full-adapter.ts` (the latter forwards to a specific broker,
 `quest-list-broker.ts`, rather than the barrel — still "forwards to another package").
 
-| Path | Calls instead | Reason it stays |
+| Path | Calls instead | Why no outside call |
 |---|---|---|
 | `src/adapters/orchestrator/abandon-quest/orchestrator-abandon-quest-adapter.ts` | `@dungeonmaster/orchestrator` (barrel) | forwards to another package |
 | `src/adapters/orchestrator/add-guild/orchestrator-add-guild-adapter.ts` | same | forwards to another package |
@@ -176,7 +179,7 @@ adapters above.
 forwards to `@dungeonmaster/config`'s `config-resolve-broker.ts` — the scan already recorded this
 one correctly as `otherPkg`.
 
-| Path | Calls instead | Reason it stays |
+| Path | Calls instead | Why no outside call |
 |---|---|---|
 | `src/adapters/dungeonmaster-config/resolve/dungeonmaster-config-resolve-adapter.ts` | `@dungeonmaster/config` (`config-resolve-broker.ts`) | forwards to another package |
 | `src/adapters/npm/install/npm-install-adapter.ts` | `@dungeonmaster/shared` (`childProcessSpawnCaptureAdapter`) | forwards to shared; fixes the `npm install` argument shape |
@@ -195,8 +198,8 @@ rule. Each is now `split` in `coverage.md`: `src/adapters/dom/composer-delete-th
 `src/adapters/dom/composer-insert-image/dom-composer-insert-image-adapter.ts`,
 `src/adapters/dom/composer-insert-text/dom-composer-insert-text-adapter.ts`,
 `src/adapters/dom/composer-read/dom-composer-read-adapter.ts` (all four → `@dungeonmaster/browser/document`,
-our-logic half stays adapter), and `src/adapters/indexed-db/draft-images-read/migrate-legacy-records-layer-adapter.ts`
-(→ `@dungeonmaster/browser/indexedDB`, migration/guard logic stays adapter).
+our-logic half becomes a broker or transformer in web), and `src/adapters/indexed-db/draft-images-read/migrate-legacy-records-layer-adapter.ts`
+(→ `@dungeonmaster/browser/indexedDB`, migration and guard logic becomes a broker or transformer in web).
 
 No rows remain in this section — every web adapter this inventory found either touches an npm package (`npm.md`),
 a browser global (`coverage.md`), or forwards to another package.

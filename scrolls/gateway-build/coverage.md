@@ -2,6 +2,8 @@
 
 One row per adapter file under `packages/*/src/adapters/**` (excluding `.test.ts`, `.proxy.ts`, `.stub.ts`), with its fate — `gateway` (replaced by a gateway export), `split` (an outside half moves, an our-logic half stays), `stays` (touches no outside thing directly), or `dead` (no production callers). Built against the real `index.ts` files under `packages/{npm,node,browser,bin}/src/*/`, not the design docs alone.
 
+The "Gateway export" column below names each export in today's form, before the restructure. `scrolls/gateway/followup-sustainability.md`, under "Gateway standards decided," has the naming that replaces it.
+
 ## Counts per fate
 
 | Fate | Count |
@@ -14,26 +16,7 @@ One row per adapter file under `packages/*/src/adapters/**` (excluding `.test.ts
 
 ## Real gaps
 
-Adapters whose fate is `gateway`/`split` but the matching gateway export does not exist anywhere in the real `index.ts` files (`packages/browser`, `packages/npm` wrappers, and `packages/bin/src/claude` are excluded here — see Pending below).
-
-| Adapter | Would-be gateway target | Why it is a real gap |
-|---|---|---|
-| `packages/orchestrator/src/adapters/process/kill-by-port/process-kill-by-port-adapter.ts` | @dungeonmaster/bin/lsof #listeningPids + bin/kill #killPid | REAL GAP: the composing "list what is on this port, then kill it" function has no home yet (followups.md) |
-| `packages/ward/src/adapters/net/kill-port/net-kill-port-adapter.ts` | @dungeonmaster/bin/lsof #listeningPids + bin/kill #killPid | REAL GAP: same composing-function gap as orchestrator's process-kill-by-port-adapter (followups.md); signal/tolerance policy also needs reconciling (child-process-and-bin.md §4) |
-| `packages/ward/src/adapters/net/port-in-use/net-port-in-use-adapter.ts` | @dungeonmaster/bin/lsof #listeningPids | REAL GAP: same composing-function gap; "portInUse" convenience export has no home yet |
-
-## Pending — builder still running
-
-Adapters whose gateway target sits in a package that was still being built at the time of this census (`packages/browser`, `packages/npm` wrappers, `packages/bin/src/claude`).
-
-**Update, 2026-09-26:** `packages/browser`, the `packages/npm` wrappers, and `packages/bin/src/claude`
-(now `packages/@gateway/bin/src/claude`) are all built — `resolveClaudeCliPath`, `spawnStreamJson` and
-`ClaudeNotInstalledError` are real exports there (`scrolls/gateway-build/README.md` section 2). The row
-below is left as this census recorded it; only the "pending" reason is now stale.
-
-| Adapter | Would-be gateway target | Note |
-|---|---|---|
-| `packages/orchestrator/src/adapters/child-process/spawn-stream-json/child-process-spawn-stream-json-adapter.ts` | @dungeonmaster/bin/claude #spawnStreamJson | pending: builder still running (packages/bin/src/claude has no folder yet); settings-file read + --add-dir + env handling stay an orchestrator broker |
+Three rows in the coverage table below have a fate of `gateway` or `split` but no real function to switch to yet. Each one's Note column starts with `REAL GAP`. Each needs a "list what's on this port, then kill it" broker that composes `@dungeonmaster/bin/lsof`'s `listeningPids` with `bin/kill`'s `killPid`. `scrolls/gateway/followup-sustainability.md` item 32 has the plan to build that broker.
 
 ## Coverage table
 
@@ -127,9 +110,9 @@ below is left as this census recorded it; only the "pending" reason is now stale
 | `packages/mcp/src/adapters/orchestrator/start-quest/orchestrator-start-quest-adapter.ts` | stays | — | forwards to @dungeonmaster/orchestrator barrel — not an outside call (stays-as-adapter.md) |
 | `packages/mcp/src/adapters/path/join/path-join-adapter.ts` | gateway | @dungeonmaster/node/path #join | wrapper deleted; callers import path directly (node-and-browser.md mapping table) |
 | `packages/mcp/src/adapters/path/resolve/path-resolve-adapter.ts` | gateway | @dungeonmaster/node/path #resolve | wrapper deleted; callers import path directly (node-and-browser.md mapping table) |
-| `packages/mcp/src/adapters/shared-package/resolve/find-shared-package-root-layer-adapter.ts` | gateway | @dungeonmaster/node/fs #findUpSync | node-fs.md §2 row 99 |
+| `packages/mcp/src/adapters/shared-package/resolve/find-shared-package-root-layer-adapter.ts` | gateway | @dungeonmaster/node/fs #findUpSync | node-fs.md §2 |
 | `packages/mcp/src/adapters/shared-package/resolve/shared-package-resolve-adapter.ts` | gateway | @dungeonmaster/node/module (resolvePackageRoot) | new curated helper wrapping require.resolve+dirname (node-and-browser.md §2/§4) |
-| `packages/orchestrator/src/adapters/child-process/spawn-stream-json/child-process-spawn-stream-json-adapter.ts` | split | @dungeonmaster/bin/claude #spawnStreamJson | pending: builder still running (packages/bin/src/claude has no folder yet); settings-file read + --add-dir + env handling stay an orchestrator broker |
+| `packages/orchestrator/src/adapters/child-process/spawn-stream-json/child-process-spawn-stream-json-adapter.ts` | split | @dungeonmaster/bin/claude #spawnStreamJson | confirmed real export; settings-file read + --add-dir + env handling stay an orchestrator broker |
 | `packages/orchestrator/src/adapters/child-process/spawn/child-process-spawn-adapter.ts` | dead | — | 0 production callers (child-process-and-bin.md §3); delete, do not migrate |
 | `packages/orchestrator/src/adapters/dungeonmaster-config/resolve/dungeonmaster-config-resolve-adapter.ts` | stays | — | forwards to @dungeonmaster/config config-resolve-broker — not an outside call |
 | `packages/orchestrator/src/adapters/fs/append-file/fs-append-file-adapter.ts` | gateway | @dungeonmaster/node/fs/promises #appendFile | fs family — see inventory/node-fs.md mapping table |
@@ -163,7 +146,7 @@ below is left as this census recorded it; only the "pending" reason is now stale
 | `packages/orchestrator/src/adapters/http/readiness-poll/http-readiness-poll-adapter.ts` | split | @dungeonmaster/node/setTimeout, node/fetch (fetch used bare) | exponential-backoff poll loop is our own logic and stays; the raw fetch()/setTimeout() calls move |
 | `packages/orchestrator/src/adapters/net/check-port-free/net-check-port-free-adapter.ts` | gateway | @dungeonmaster/node/net #isPortFree | confirmed real export |
 | `packages/orchestrator/src/adapters/proc/check-alive/proc-check-alive-adapter.ts` | gateway | @dungeonmaster/node/process #kill | confirmed real export; probe-vs-signal semantics stay at the caller (node-and-browser.md §4) |
-| `packages/orchestrator/src/adapters/process/kill-by-port/process-kill-by-port-adapter.ts` | gateway | @dungeonmaster/bin/lsof #listeningPids + bin/kill #killPid | REAL GAP: the composing "list what is on this port, then kill it" function has no home yet (followups.md) |
+| `packages/orchestrator/src/adapters/process/kill-by-port/process-kill-by-port-adapter.ts` | gateway | @dungeonmaster/bin/lsof #listeningPids + bin/kill #killPid | REAL GAP: the composing "list what is on this port, then kill it" function has no home yet (`scrolls/gateway/followup-sustainability.md` item 32) |
 | `packages/orchestrator/src/adapters/process/signal/process-signal-adapter.ts` | gateway | @dungeonmaster/node/process #kill | confirmed real export |
 | `packages/orchestrator/src/adapters/readline/create-interface/readline-create-interface-adapter.ts` | gateway | @dungeonmaster/node/readline #lineReader | confirmed real export; adds an onError param the current bare adapter lacks |
 | `packages/orchestrator/src/adapters/timer/set-interval/timer-set-interval-adapter.ts` | gateway | @dungeonmaster/node/setInterval | confirmed real pass-through export |
@@ -251,7 +234,7 @@ below is left as this census recorded it; only the "pending" reason is now stale
 | `packages/shared/src/adapters/runtime/dynamic-import/runtime-dynamic-import-adapter.ts` | gateway | @dungeonmaster/node/module #dynamicImport | fills the gap: a curated property alongside #resolvePackageRoot on the module gateway object, wrapping the same `import()` expression |
 | `packages/siegelense/src/adapters/async/delay/async-delay-adapter.ts` | gateway | @dungeonmaster/node/setTimeout | wraps setTimeout as an awaitable promise; confirmed real pass-through export |
 | `packages/siegelense/src/adapters/child-process/spawn-detached/child-process-spawn-detached-adapter.ts` | gateway | @dungeonmaster/node/child_process #spawnDetached | confirmed real export |
-| `packages/siegelense/src/adapters/cli-package/bin-resolve/cli-package-bin-resolve-adapter.ts` | split | @dungeonmaster/node/fs #existsSync, #readFileSync | composed bin-path logic stays with siegelense (node-fs.md §2 row 111) |
+| `packages/siegelense/src/adapters/cli-package/bin-resolve/cli-package-bin-resolve-adapter.ts` | split | @dungeonmaster/node/fs #existsSync, #readFileSync | composed bin-path logic stays with siegelense (node-fs.md §2) |
 | `packages/siegelense/src/adapters/cli-package/bin-resolve/package-root-find-layer-adapter.ts` | gateway | @dungeonmaster/node/fs #findUpSync | identical logic to mcp's copy (node-fs.md §3 drift table) |
 | `packages/siegelense/src/adapters/crypto/hash/crypto-hash-adapter.ts` | gateway | @dungeonmaster/node/crypto (createHash) | output validated with a zod brand at the call site, not in the gateway |
 | `packages/siegelense/src/adapters/dungeonmaster-config/resolve/dungeonmaster-config-resolve-adapter.ts` | stays | — | forwards to @dungeonmaster/config config-resolve-broker (stays-as-adapter.md) |
@@ -274,7 +257,7 @@ below is left as this census recorded it; only the "pending" reason is now stale
 | `packages/siegelense/src/adapters/fs/symlink/fs-symlink-adapter.ts` | gateway | @dungeonmaster/node/fs/promises #symlink | fs family — see inventory/node-fs.md mapping table |
 | `packages/siegelense/src/adapters/fs/unlink/fs-unlink-adapter.ts` | gateway | @dungeonmaster/node/fs/promises #unlink | fs family — see inventory/node-fs.md mapping table |
 | `packages/siegelense/src/adapters/fs/write-file/fs-write-file-adapter.ts` | gateway | @dungeonmaster/node/fs/promises #writeFile | fs family — see inventory/node-fs.md mapping table |
-| `packages/siegelense/src/adapters/git/branch-read/git-branch-read-adapter.ts` | gateway | @dungeonmaster/bin/git #currentBranch | reconciled with orchestrator's async copy — sync→async and null-vs-"HEAD" behaviour changes for every caller (followups.md) |
+| `packages/siegelense/src/adapters/git/branch-read/git-branch-read-adapter.ts` | gateway | @dungeonmaster/bin/git #currentBranch | reconciled with orchestrator's async copy — sync→async and null-vs-"HEAD" behaviour changes for every caller (`scrolls/gateway/followup-sustainability.md` item 33) |
 | `packages/siegelense/src/adapters/net/unix-request/net-unix-request-adapter.ts` | gateway | @dungeonmaster/node/net #unixSocketRequest | confirmed real export; contract parsing moves to the caller |
 | `packages/siegelense/src/adapters/net/unix-serve/net-unix-serve-adapter.ts` | gateway | @dungeonmaster/node/net #unixSocketServe | confirmed real export; contract parsing moves to the caller |
 | `packages/siegelense/src/adapters/npm/install/npm-install-adapter.ts` | gateway | @dungeonmaster/bin/npm #install | confirmed real export in bin/npm/index.ts |
@@ -335,7 +318,7 @@ below is left as this census recorded it; only the "pending" reason is now stale
 | `packages/tooling/src/adapters/fs/read-file/fs-read-file-adapter.ts` | gateway | @dungeonmaster/node/fs/promises #readFile | fs family — see inventory/node-fs.md mapping table |
 | `packages/tooling/src/adapters/glob/find/glob-find-adapter.ts` | gateway | @dungeonmaster/npm/glob #glob | hard-coded 4-pattern ignore list is exactly the silent-divergence problem the winning shape avoids (npm.md) |
 | `packages/tooling/src/adapters/typescript/parse/typescript-parse-adapter.ts` | split | @dungeonmaster/npm/typescript (ts.*) | the AST walk + LiteralOccurrence/LiteralValue contract mapping stay adapter (npm.md splits table) |
-| `packages/ward/src/adapters/crypto/hash-files/crypto-hash-files-adapter.ts` | split | @dungeonmaster/node/crypto (createHash) + node/fs #readFileSync | per-file ENOENT/EISDIR skip, everything else rethrown, stays as ward logic (node-fs.md §2 row 115) |
+| `packages/ward/src/adapters/crypto/hash-files/crypto-hash-files-adapter.ts` | split | @dungeonmaster/node/crypto (createHash) + node/fs #readFileSync | per-file ENOENT/EISDIR skip, everything else rethrown, stays as ward logic (node-fs.md §2) |
 | `packages/ward/src/adapters/fs/glob-sync/fs-glob-sync-adapter.ts` | gateway | @dungeonmaster/node/fs #globSync | fs family — see inventory/node-fs.md mapping table |
 | `packages/ward/src/adapters/fs/mkdir/fs-mkdir-adapter.ts` | gateway | @dungeonmaster/node/fs/promises #ensureDir | fs family — see inventory/node-fs.md mapping table |
 | `packages/ward/src/adapters/fs/read-file/fs-read-file-adapter.ts` | gateway | @dungeonmaster/node/fs/promises #readFile | fs family — see inventory/node-fs.md mapping table |
@@ -347,7 +330,7 @@ below is left as this census recorded it; only the "pending" reason is now stale
 | `packages/ward/src/adapters/fs/stat/fs-stat-adapter.ts` | gateway | @dungeonmaster/node/fs/promises #statIfExists | fs family — see inventory/node-fs.md mapping table |
 | `packages/ward/src/adapters/fs/unlink/fs-unlink-adapter.ts` | gateway | @dungeonmaster/node/fs/promises #unlink | fs family — see inventory/node-fs.md mapping table |
 | `packages/ward/src/adapters/fs/write-file/fs-write-file-adapter.ts` | gateway | @dungeonmaster/node/fs/promises #writeFile | fs family — see inventory/node-fs.md mapping table |
-| `packages/ward/src/adapters/net/kill-port/net-kill-port-adapter.ts` | gateway | @dungeonmaster/bin/lsof #listeningPids + bin/kill #killPid | REAL GAP: same composing-function gap as orchestrator's process-kill-by-port-adapter (followups.md); signal/tolerance policy also needs reconciling (child-process-and-bin.md §4) |
+| `packages/ward/src/adapters/net/kill-port/net-kill-port-adapter.ts` | gateway | @dungeonmaster/bin/lsof #listeningPids + bin/kill #killPid | REAL GAP: same composing-function gap as orchestrator's process-kill-by-port-adapter (`scrolls/gateway/followup-sustainability.md` item 32); signal/tolerance policy also needs reconciling (child-process-and-bin.md §4) |
 | `packages/ward/src/adapters/net/port-in-use/net-port-in-use-adapter.ts` | gateway | @dungeonmaster/bin/lsof #listeningPids | REAL GAP: same composing-function gap; "portInUse" convenience export has no home yet |
 | `packages/ward/src/adapters/os/tmpdir/os-tmpdir-adapter.ts` | gateway | @dungeonmaster/node/os (tmpdir) | confirmed real pass-through export |
 | `packages/web/src/adapters/canvas/image-measure/canvas-image-measure-adapter.ts` | split | @dungeonmaster/browser/atob, /Blob, /createImageBitmap, /document | base64->bytes loop + downscale-target math stay a web transformer/broker |

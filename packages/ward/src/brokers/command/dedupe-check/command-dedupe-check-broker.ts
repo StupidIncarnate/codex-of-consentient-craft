@@ -2,7 +2,7 @@
  * PURPOSE: Runs the duplicate-install check over the whole repo and writes its report to stdout,
  * setting a failing exit code when it finds a duplicate. This is the one command surface the check
  * has today, the same shape `commandPlatformCheckBroker` chose for the platform-crossing check — see
- * `scrolls/gateway-build/followups.md` for what full ward check-type integration (a `dedupe` entry in
+ * `scrolls/gateway/followup-sustainability.md` item 30 for what full ward check-type integration (a `dedupe` entry in
  * `checkTypeContract`, `--only dedupe`, storage/list/detail) would still need.
  *
  * USAGE:

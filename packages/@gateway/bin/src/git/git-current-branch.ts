@@ -4,7 +4,7 @@
  * (which read `null` for detached HEAD but swallowed EVERY failure — missing git, not a repo,
  * permission denied — into that same `null`). This keeps siegelense's null-for-detached convention,
  * stays async like the rest of this module, and throws on a real git failure instead of hiding it —
- * see `scrolls/gateway-build/followups.md` for the callers this reconciliation affects.
+ * see `scrolls/gateway/followup-sustainability.md` item 33 for the callers this reconciliation affects.
  *
  * USAGE:
  * const branch = await currentBranch({ cwd: '/repo/worktrees/foo' });

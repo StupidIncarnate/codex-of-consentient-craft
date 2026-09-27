@@ -32,7 +32,7 @@ typescript, @testing-library/react, @testing-library/dom, minimatch, debug, @hon
 | @xyflow/system | pass-through | `@dungeonmaster/npm/@xyflow/system` | |
 | @xyflow/react | pass-through | `@dungeonmaster/npm/@xyflow/react` | |
 
-Nine wrappers get real design below: **glob**, **@testing-library/react**, **fast-xml-parser**,
+Four wrappers get real design below: **glob**, **@testing-library/react**, **fast-xml-parser**,
 **pngjs**. Everything else needs no override — its adapter today is either a trivial mockability
 shim (stays in its package, unmoved) or the mixed-with-our-contracts case the brief calls a split.
 
@@ -51,79 +51,34 @@ reasoning the doc already settled on: "what a scan skips is a decision built fro
 different tree than every other one." A hard-coded ignore list is exactly that silent divergence —
 server and tooling would each scan a different tree than mcp for the same pattern.
 
-**Gateway wrapper** (`@dungeonmaster/npm/glob`, overriding the `glob` export):
-- Same name (`glob`), compatible shape: `glob(pattern, { cwd?, absolute, nodir, ignore })` — no
-  argument renaming, so this is "pass-through gains a wrapper by overriding one export," not a new name.
-- `ignore` stays a required, caller-supplied array. No baked-in default list.
-- Drops the v7 callback fallback entirely — dead code, and pinning is checked once in the gateway's
-  own `package.json` instead of defended in every caller.
-- Adds a try/catch none of the three copies have (see Sad-path holes below).
+The gateway's `glob` wrapper is built, at `packages/@gateway/npm/src/glob/glob.ts`, matching this
+winner: the same name (`glob`), `ignore` a required caller-supplied array with no baked-in default,
+directories excluded by default, no v7 callback fallback, and a try/catch none of the three copies
+above had.
 
 ## @testing-library/react — the wrapper design
 
-**How tests render today:** every web widget test calls `mantineRenderAdapter` (never raw
-`render`) — confirmed against `packages/web/src/widgets/logo/logo-widget.test.tsx:1-12`:
-```ts
-import { screen } from '@testing-library/react';
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
-mantineRenderAdapter({ ui: <LogoWidget /> });
-```
-`mantine-render-adapter.ts:8-13` is the whole implementation:
-```ts
-import { render } from '@testing-library/react';
-import { MantineProvider } from '@mantine/core';
-export const mantineRenderAdapter = ({ ui }) => render(ui, { wrapper: MantineProvider });
-```
-`testing-library-render-hook-adapter.ts` and `testing-library-wait-for-adapter.ts` are bare
-pass-throughs of `renderHook` / `waitFor` — no provider, no options. **No router wrapper exists
-anywhere** — a repo-wide search for `MemoryRouter`/`RouterProvider`/`createMemoryRouter` under
-`packages/web` returns nothing; this app has no client-side router today.
+Every web widget test calls `mantineRenderAdapter`, never raw `render`, confirmed against
+`packages/web/src/widgets/logo/logo-widget.test.tsx`. That adapter wraps `render`'s output in
+`MantineProvider`, with no theme prop. `testing-library-render-hook-adapter.ts` and
+`testing-library-wait-for-adapter.ts` are bare pass-throughs of `renderHook` and `waitFor`, with no
+provider and no options. No client-side router exists anywhere in `packages/web` today.
 
-**Wrapper shape** (`@dungeonmaster/npm/@testing-library/react`):
-- `export * from '@testing-library/react'` — `screen`, `fireEvent`, `waitFor`, `renderHook`, types,
-  all pass through unguarded; none of them need app setup.
-- Override just `render`, keeping the name (compatible shape — same `(ui, options?)` signature,
-  options merged rather than replaced so a caller can still opt out or extend):
-  ```ts
-  export const render = (
-    ui: React.ReactElement,
-    options?: RenderOptions,
-  ): RenderResult => testingLibraryRender(ui, { wrapper: MantineProvider, ...options });
-  ```
-- No router wrapper is added — there is nothing to wrap today. If a router is introduced, this is
-  the one place a `MemoryRouter` wrapper would be layered on, same pattern as Mantine.
-- `renderHook` stays a plain pass-through, matching today's `testingLibraryRenderHookAdapter` (no
-  provider needed for a hook that touches no Mantine context) — revisit only if a hook test starts
-  needing one.
+The gateway's `@dungeonmaster/npm/@testing-library/react` is built, at
+`packages/@gateway/npm/src/@testing-library/react/`, matching this: every export passes through
+except `render`, which the gateway overrides with the same `MantineProvider` wrap, keeping the same
+`(ui, options?)` shape so a caller's own `options` still applies. `renderHook` stays a plain
+pass-through; there is no router to wrap yet, so none is added.
 
-`@testing-library/dom`'s `waitFor` is reached today only through `@testing-library/react`'s own
-re-export (`testing-library-wait-for-adapter.ts:8` imports it from `@testing-library/react`, and
-`tmp/adapters-fresh/adapters.json` resolves the type back to the `@testing-library/dom` package) —
-no file imports `@testing-library/dom` directly, so its gateway module is a plain pass-through with
-no callers wired to it yet.
+Checked 2026-09-26: no `@testing-library/dom` subpath exists yet under
+`packages/@gateway/npm/src/@testing-library/` — only `jest-dom`, `react` and `user-event` do.
+`waitFor` is reached today only through `@testing-library/react`'s own re-export, and no file imports
+`@testing-library/dom` directly.
 
-## Adapters replaced (mapping table)
+## Adapters replaced
 
-| Gateway export | Adapters it replaces |
-|---|---|
-| `glob` (wrapped) | `packages/mcp/src/adapters/glob/find/glob-find-adapter.ts`, `packages/mcp/src/adapters/fs/glob/fs-glob-adapter.ts`, `packages/server/src/adapters/glob/find/glob-find-adapter.ts`, `packages/tooling/src/adapters/glob/find/glob-find-adapter.ts` |
-| `render` (wrapped) | `packages/web/src/adapters/mantine/render/mantine-render-adapter.ts` |
-| `renderHook`, `waitFor` (pass-through) | `packages/web/src/adapters/testing-library/render-hook/testing-library-render-hook-adapter.ts`, `packages/web/src/adapters/testing-library/wait-for/testing-library-wait-for-adapter.ts` |
-| `XMLParser`/`parseXml` (wrapped) | `packages/shared/src/adapters/fast-xml-parser/parse/fast-xml-parser-parse-adapter.ts` |
-| `PNG`/`decodePng` (wrapped) | `packages/siegelense/src/adapters/pngjs/decode/pngjs-decode-adapter.ts` |
-| `minimatch` (pass-through) | `packages/eslint-plugin/src/adapters/minimatch/match/minimatch-match-adapter.ts` |
-| `debug` (pass-through) | `packages/hooks/src/adapters/debug/debug/debug-debug-adapter.ts` |
-| `createNodeWebSocket` (pass-through) | `packages/server/src/adapters/hono/create-node-web-socket/hono-create-node-web-socket-adapter.ts` |
-| `serve` (pass-through) | `packages/server/src/adapters/hono/serve/hono-serve-adapter.ts` |
-| `pixelmatch` default (pass-through) | `packages/siegelense/src/adapters/pixelmatch/compare/pixelmatch-compare-adapter.ts` |
-| `notifications`, `Notifications` (pass-through) | `packages/web/src/adapters/mantine/notifications-show/mantine-notifications-show-adapter.ts`, `packages/web/src/adapters/mantine/notifications/mantine-notifications-adapter.ts` |
-| `ELK`/`ElkConstructor` (pass-through) | `packages/web/src/adapters/elk/layout/elk-layout-adapter.ts` — **split**, see below |
-| `RuleTester`, `ESLint`, `Linter` (pass-through) | `packages/eslint-plugin/src/adapters/eslint/rule-tester/eslint-rule-tester-adapter.ts`, `packages/hooks/src/adapters/eslint/eslint/eslint-eslint-adapter.ts`, `packages/hooks/src/adapters/eslint/linter/eslint-linter-adapter.ts`, `packages/hooks/src/adapters/eslint/output-fixes/eslint-output-fixes-adapter.ts`, `packages/hooks/src/adapters/eslint/calculate-config-for-file/eslint-calculate-config-for-file-adapter.ts` (calls `.calculateConfigForFile()` on a passed `ESLint` instance — flagged, see below), `packages/hooks/src/adapters/eslint/is-path-ignored/eslint-is-path-ignored-adapter.ts` (calls `.isPathIgnored()` on a passed `ESLint` instance — flagged, see below) |
-| `ts.*` (pass-through) | `packages/cli/src/adapters/typescript/content-diagnostics/typescript-content-diagnostics-adapter.ts`, `packages/hydration/src/adapters/typescript/program-diagnostics/typescript-program-diagnostics-adapter.ts`, `packages/tooling/src/adapters/typescript/parse/typescript-parse-adapter.ts` — **all split**, see below |
-| `filter`/`merge`/`of`/`Subject`/`take`/`timeout` (pass-through) | the six `packages/web/src/adapters/rxjs/*` adapters |
-| `createRoot` (pass-through) | `packages/web/src/adapters/react-dom/mount/react-dom-mount-adapter.ts` — **split**, see below |
-| `Handle`/`Position`/`ReactFlow`/`Controls`/`BaseEdge`/`EdgeLabelRenderer`/`getBezierPath`/`useNodesInitialized`/`useUpdateNodeInternals` (pass-through) | the four `packages/web/src/adapters/xyflow/**` files — stay adapters, see below |
-| `chromium`/`Page`/`Browser`/`Locator` types (pass-through, via `@playwright/test`) | `packages/siegelense/src/adapters/playwright/session/*` — **split**, see below |
+`scrolls/gateway-build/coverage.md` maps every old adapter to its gateway export, including every npm
+one named above.
 
 ## Splits (npm call vs. our own logic)
 
@@ -135,7 +90,7 @@ and for now it stays an adapter."
 |---|---|---|
 | `packages/web/src/adapters/elk/layout/elk-layout-adapter.ts` | `new ELK()`, `elk.layout(graph)` (pass-through) | node-sizing math off `elkLayoutStatics`, `FlowNode`/`FlowEdge` contract parsing, portal handling |
 | `packages/siegelense/src/adapters/playwright/session/playwright-session-adapter.ts` (627 lines) and its two siblings `ref-registry-layer-adapter.ts`, `settle-poll-layer-adapter.ts` | `chromium.launch`, `browser.newContext`, `page.on(...)`, `page.evaluate`, `page.waitForTimeout` (pass-through via `@playwright/test`) | the whole `BrowserSession` facade, every `*Contract.parse`, the ref registry, the settle detector — these are almost entirely our own logic already; the npm surface is a handful of direct calls, most already isolated in `listeners-layer-adapter.ts` (which imports **nothing** from `@playwright/test` by design, per its own header comment at line 3-8) |
-| `packages/web/src/adapters/react-dom/mount/react-dom-mount-adapter.ts` | `createRoot`, `root.render` (pass-through) | `document.getElementById` (a **browser global**, not npm — belongs to `@dungeonmaster/browser`, out of this inventory's scope, flagged below), the `AdapterResult`/`Wrapper` shape |
+| `packages/web/src/adapters/react-dom/mount/react-dom-mount-adapter.ts` | `createRoot`, `root.render` (pass-through) | `document.getElementById` (a **browser global**, not npm — belongs to `@dungeonmaster/browser`, out of this inventory's scope), the `AdapterResult`/`Wrapper` shape |
 | `packages/cli/src/adapters/typescript/content-diagnostics/typescript-content-diagnostics-adapter.ts` | `ts.createCompilerHost`, `ts.createProgram`, `ts.createSourceFile`, `ts.flattenDiagnosticMessageText` (pass-through) | the virtual-file host overrides, the `ErrorMessage` contract mapping |
 | `packages/hydration/src/adapters/typescript/program-diagnostics/typescript-program-diagnostics-adapter.ts` | `ts.createProgram`, diagnostics getters (pass-through) | repo-root resolution, `TypeDiagnostic` contract mapping |
 | `packages/tooling/src/adapters/typescript/parse/typescript-parse-adapter.ts` | `ts.createSourceFile`, `ts.forEachChild`, `ts.isStringLiteral`, `ts.isRegularExpressionLiteral` (pass-through) | the AST walk and `LiteralOccurrence`/`LiteralValue` contract mapping |
@@ -154,41 +109,36 @@ adapter/widget as it is today.
 
 | Hole | What's missing |
 |---|---|
-| `packages/mcp/src/adapters/glob/find/glob-find-adapter.ts:31`, `packages/mcp/src/adapters/fs/glob/fs-glob-adapter.ts:25`, `packages/server/src/adapters/glob/find/glob-find-adapter.ts:29`, `packages/tooling/src/adapters/glob/find/glob-find-adapter.ts:25` | none of the four catch `glob()` throwing (bad pattern, unreadable cwd) |
 | `packages/hooks/src/adapters/eslint/output-fixes/eslint-output-fixes-adapter.ts:16` | `await ESLint.outputFixes(results)` — no catch around a disk-write failure |
-| `packages/shared/src/adapters/fast-xml-parser/parse/fast-xml-parser-parse-adapter.ts:17` | `parser.parse(xml)` — no catch around malformed XML |
 | `packages/server/src/adapters/hono/serve/hono-serve-adapter.ts:16` | `serve({...}, onListen)` — no catch (e.g. port already in use) |
 | `packages/server/src/adapters/hono/create-node-web-socket/hono-create-node-web-socket-adapter.ts:12-16` | same — no catch |
 | `packages/web/src/adapters/elk/layout/elk-layout-adapter.ts:126` | `await elk.layout(graph)` — no catch (disconnected graph, bad options) |
 | `packages/eslint-plugin/src/adapters/minimatch/match/minimatch-match-adapter.ts:17` | `minimatch(filePath, pattern, ...)` — no catch for an invalid pattern |
 | `packages/siegelense/src/adapters/playwright/session/playwright-session-adapter.ts:147` | `await chromium.launch({ headless: true })` — no catch (browser not installed) |
 
+Closed: the gateway's `glob` and `parseXml` (fast-xml-parser) wrappers now catch and wrap these two
+failures, confirmed against `packages/@gateway/npm/src/glob/glob.ts` and
+`packages/@gateway/npm/src/fast-xml-parser/parse-xml.ts`.
+
 **Not a hole, a deliberate decision:** `packages/siegelense/src/adapters/pixelmatch/compare/pixelmatch-compare-adapter.ts:12-17`
 explains in its own header why it never catches a dimension mismatch — it lets pixelmatch's own
 buffer-length check throw unmodified, because the broker that reads the two shot paths is the one
-that can name them in an error. `packages/siegelense/src/adapters/pngjs/decode/pngjs-decode-adapter.ts:37-40`
-already wraps and re-throws with `cause` — keep this shape verbatim in the gateway wrapper.
+that can name them in an error. The gateway's `decodePng` (`packages/@gateway/npm/src/pngjs/decode-png.ts`)
+keeps the same wrap-and-rethrow-with-`cause` shape this adapter used.
 
 ## Flagged: scan said "no outside call," but it touches an npm package
 
 `packages/web/src/adapters/mantine/notifications/mantine-notifications-adapter.ts` — `outside: []`
 in `adapters.json`, but line 10 is `import { Notifications } from '@mantine/notifications';` plus a
-line-8 CSS side-effect import from the same package. Added to the `@mantine/notifications` row
-above (mapping table) rather than to `stays-as-adapter.md`.
-
-Two more mismatches touch an outside thing that is **not npm** (out of this inventory's scope, but
-named here since they were found while confirming the npm list):
-`packages/web/src/adapters/react-dom/mount/react-dom-mount-adapter.ts` also calls
-`document.getElementById` (a browser global) and `packages/web/src/adapters/indexed-db/draft-images-read/migrate-legacy-records-layer-adapter.ts`
-and `packages/web/src/adapters/dom/composer-read/dom-composer-read-adapter.ts` touch `IDBDatabase`/
-`HTMLElement`/`Text`/`Element` (browser globals) — these belong to whoever is inventorying
-`@dungeonmaster/browser`, not here.
+line-8 CSS side-effect import from the same package. Recorded in `scrolls/gateway-build/coverage.md`'s
+`@mantine/notifications` row rather than in `stays-as-adapter.md`.
 
 `packages/hooks/src/adapters/eslint/calculate-config-for-file/eslint-calculate-config-for-file-adapter.ts`
 and `packages/hooks/src/adapters/eslint/is-path-ignored/eslint-is-path-ignored-adapter.ts` — the scan
 recorded `outside: []` for both because each imports only `type { ESLint, Linter } from 'eslint'`, but
 the runtime body calls `.calculateConfigForFile()` / `.isPathIgnored()` on the `ESLint` instance the
-caller passes in — a real `eslint` API call. Folded into the eslint row of the mapping table above.
+caller passes in — a real `eslint` API call. Recorded in `scrolls/gateway-build/coverage.md`'s eslint
+row.
 
 **Playwright's per-file boundary is not actually one file.** `playwright-session-adapter.ts:3-4`
 claims to be "the ONLY file in this package allowed to import `@playwright/test`," but three

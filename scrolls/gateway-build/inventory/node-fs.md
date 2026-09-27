@@ -5,82 +5,20 @@ Scope: every adapter whose `outside` in `tmp/adapters-fresh/adapters.json` holds
 Every adapter was opened, and so were its production callers. Line numbers are against this worktree
 on 2026-09-26. Paths in §2–§4 drop the leading `packages/`.
 
-## 1. Proposed API
+## 1. Status: built
 
-### Rules the whole module follows
+`@dungeonmaster/node/fs` and `@dungeonmaster/node/fs/promises` are built, at
+`packages/@gateway/node/src/fs/` and `packages/@gateway/node/src/fs/promises/`. Node's raw `fs` and
+`fs/promises` are never re-exported; every export is our own wrapper, and each wrapper file states its
+own behavior in its `PURPOSE` comment. An `*IfExists` function returns `null` on ENOENT and rejects on
+every other OS error. `readJsonFile` and `readJsonFileIfExists` raise a `SyntaxError` naming the path on
+invalid JSON. Every return value is a plain object — never a real `fs.Stats` or `Dirent`. `isFsError({
+error, code })` is the one guard every wrapper uses to check an error's code: Node builds `fs` rejections
+outside Jest's vm realm, so `instanceof Error` is false there even though it is true in production, and
+this guard reads the `code` field instead of using `instanceof`.
 
-| Rule | Decision | Why |
-|---|---|---|
-| Error shape | **An error raised by the OS passes through unchanged**: the raw `NodeJS.ErrnoException` with its own `code`, `path` and `syscall`. No wrapper puts it inside `new Error(msg, { cause })`. The module exports one realm-safe guard, `isFsError({ error, code })`, which checks `typeof error === 'object'` and the `code` field, never `instanceof`. | Most copies already let the raw error through (hooks, mcp, server, tooling, ward, shared, testing). The copies that wrap it (cli, config, orchestrator and siegelense `read-file`, hooks `stat`) make every caller dig `.cause.code` back out. That costs the 28-line check at `packages/siegelense/src/brokers/boot-lock/release/boot-lock-release-broker.ts:40-70` and the pre-check workaround described in `packages/orchestrator/src/brokers/planned-work/read/planned-work-read-broker.ts:4-5`. Node builds `fs` rejections outside Jest's vm realm, so `instanceof Error` is false in tests (same file, lines 53-56). That is why the guard reads the code field and never uses `instanceof`. |
-| Errors the gateway raises itself | Invalid JSON: a `SyntaxError` whose message names the path. It carries no `code`. | `JSON.parse`'s own message never names the file. Callers today cannot tell which read failed. |
-| "Missing" | **ENOENT, and nothing else.** An `*IfExists` function returns `null` on ENOENT. On EACCES, EPERM, EISDIR, ENOTDIR and invalid JSON it rejects. | Every hole in §4 comes from treating "any failure" as "missing". |
-| Absent value | `null`, everywhere. | cli, ward and siegelense `stat`, orchestrator `readlink` and config's sentinel already use `null`. mcp's `*IfExists` pair uses `undefined`, which is the minority shape. |
-| Encoding | Text functions are always UTF-8 and return `string`. Bytes have their own functions. | siegelense passes `'latin1'` to read a PNG losslessly (`packages/siegelense/src/adapters/fs/read-file/fs-read-file-adapter.ts:6-11`). `readFileBytes` covers that case. |
-| Return values | Plain values only: `Stats` becomes `{ kind, sizeBytes, modifiedAtMs }`, and `Dirent` becomes `{ name, kind }`. | Default 3 in the design doc. Today's proxies cast to fake a `Stats` (`packages/ward/src/adapters/fs/stat/fs-stat-adapter.proxy.ts:15`, `as unknown as Stats`), and the brief bans that cast. |
-| Subpath | A synchronous function goes in `fs`. A promise function goes in `fs/promises`. | A subpath equals the raw specifier, and Node's own split between `fs` and `fs/promises` is sync against async. A caller that imported `existsSync` from `'fs'` today imports it from `@dungeonmaster/node/fs`. |
-| Raw `readFile` | Never re-exported. `readFile` is our wrapper: fixed UTF-8, plain `string`, and the error rules above. | Brief rule 3. |
-
-Sad-path columns: **rejects** means the raw OS error propagates as described above. **n/a** means Node cannot raise that error for that call.
-
-### `@dungeonmaster/node/fs/promises`
-
-| Export | Signature | ENOENT | EACCES/EPERM | EISDIR/ENOTDIR | Invalid JSON | Empty file | Partial write |
-|---|---|---|---|---|---|---|---|
-| `readFile` | `(path) => Promise<string>` | rejects | rejects | rejects | n/a | `''` | reads whatever bytes are on disk |
-| `readFileIfExists` | `(path) => Promise<string \| null>` | `null` | rejects | rejects | n/a | `''`, which is distinct from `null` | as `readFile` |
-| `readFileBytes` | `(path) => Promise<Uint8Array>` | rejects | rejects | rejects | n/a | empty array | as `readFile` |
-| `readFileFromOffset` | `({ path, fromByte }) => Promise<string>` | rejects | rejects | rejects | n/a | `''`; an offset past EOF also gives `''` | returns the bytes present |
-| `readJsonFile` | `(path) => Promise<unknown>` | rejects | rejects | rejects | `SyntaxError` naming the path | `SyntaxError`, because empty is not JSON | `SyntaxError`; truncated is never reported as missing |
-| `readJsonFileIfExists` | `(path) => Promise<unknown \| null>` | `null` | rejects | rejects | `SyntaxError` naming the path | `SyntaxError` | `SyntaxError` |
-| `readNonEmptyLines` | `(path) => Promise<string[]>` | rejects | rejects | rejects | n/a, because lines come back unparsed | `[]` | a trailing partial line comes back as one line, and the caller's line parse decides what to do with it |
-| `writeFile` | `(path, contents: string) => Promise<void>` | creates the file; ENOENT on a missing parent rejects | rejects | rejects | n/a | writes `''` | **not atomic**: a crash leaves a truncated file |
-| `writeFileAtomic` | `(path, contents: string) => Promise<void>` | creates the parent directory | rejects | rejects | n/a | writes `''` | writes a sibling temp file, then `rename`s it over the target. **The temp file is removed if the rename fails.** Replaces the hand-built write-then-rename pairs listed in §2. |
-| `writeFileExclusive` | `(path, contents: string) => Promise<void>` | creates the file | rejects | rejects | n/a | — | flag `'wx'`. EEXIST rejects raw, and that is the lock signal siegelense `boot-lock-acquire-broker` relies on. |
-| `writeFileCreatingParent` | `(path, contents: string) => Promise<void>` | creates the parent directory and the file | rejects | rejects | n/a | — | not atomic |
-| `writeFileBytes` | `(path, bytes: Uint8Array) => Promise<void>` | creates the file | rejects | rejects | n/a | — | not atomic |
-| `writeFileFromBase64` | `(path, base64: string) => Promise<void>` | creates the file | rejects | rejects | n/a | — | not atomic |
-| `appendFile` | `(path, contents: string) => Promise<void>` | creates the file | rejects | rejects | n/a | — | a torn last line is possible, so readers use `readNonEmptyLines` |
-| `appendLinesCreatingParent` | `({ path, lines: string[] }) => Promise<void>` | creates the parent directory and the file | rejects | rejects | n/a | an empty `lines` list writes nothing | as `appendFile` |
-| `ensureDir` | `(path) => Promise<void>` | creates the directory; always recursive | rejects | ENOTDIR rejects | n/a | — | — |
-| `rm` | `(path, { recursive?, force? }) => Promise<void>` | rejects, or does nothing when `force` is set | rejects | rejects | n/a | — | — |
-| `rename` | `(from, to) => Promise<void>` | rejects | rejects | rejects | n/a | — | atomic on one filesystem. ENOTEMPTY and EEXIST reject raw; ward treats that as a real answer. |
-| `unlink` | `(path) => Promise<void>` | rejects | rejects | rejects | n/a | — | — |
-| `unlinkIfExists` | `(path) => Promise<void>` | resolves | rejects | rejects | n/a | — | — |
-| `copyFile` | `(from, to) => Promise<void>` | rejects | rejects | rejects | n/a | — | leaves a partial copy on failure |
-| `copyDirContents` | `({ from, to, excludeNames: string[] }) => Promise<void>` | rejects | rejects | rejects | n/a | — | rejects on the first failure and **removes what it already copied into `to`** (see §4) |
-| `symlink` | `({ target, path, type? }) => Promise<void>` | n/a | rejects | rejects | n/a | — | EEXIST rejects |
-| `readlink` | `(path) => Promise<string>` | rejects | rejects | EINVAL (the path is not a link) rejects | n/a | — | — |
-| `readlinkIfLink` | `(path) => Promise<string \| null>` | `null` | rejects | EINVAL gives `null` | n/a | — | — |
-| `realpath` | `(path) => Promise<string>` | rejects | rejects | rejects | n/a | — | never returns the input path in place of a resolved one |
-| `pathExists` | `(path) => Promise<boolean>` | `false` | **rejects** | ENOTDIR gives `false` | n/a | — | — |
-| `stat` | `(path) => Promise<{ kind: 'file'\|'directory'\|'symlink'\|'other', sizeBytes, modifiedAtMs }>` | rejects | rejects | rejects | n/a | — | — |
-| `statIfExists` | `(path) => Promise<… \| null>` | `null` | rejects | rejects | n/a | — | — |
-| `diskFreeBytes` | `(path) => Promise<number \| null>` | rejects | rejects | rejects | n/a | — | `null` only when the runtime has no `statfs` |
-| `readdir` | `(path) => Promise<string[]>` | rejects | rejects | ENOTDIR rejects | n/a | `[]` for an empty directory | — |
-| `readdirIfExists` | `(path) => Promise<string[] \| null>` | `null`, kept distinct from `[]` | rejects | rejects | n/a | `[]` | — |
-| `readdirEntries` | `(path) => Promise<{ name, kind }[]>` | rejects | rejects | rejects | n/a | `[]` | — |
-| `isFsError` | `({ error: unknown, code: string }) => boolean` | — | — | — | — | — | the pure guard from the rules table. The same function is exported from both subpaths. |
-
-### `@dungeonmaster/node/fs` (synchronous)
-
-The synchronous functions follow the same rules and the same sad-path behaviour as their promise counterparts.
-
-| Export | Signature | Notes |
-|---|---|---|
-| `existsSync` | `(path) => boolean` | Keeps Node's meaning exactly: `false` on any failure, EACCES included. It keeps the name because the meaning is unchanged. A caller that must tell EACCES apart from a missing path uses `pathExists`. |
-| `readFileSync` | `(path) => string` | |
-| `readFileSyncIfExists` | `(path) => string \| null` | Replaces eslint-plugin's check-then-read (`fs-ensure-read-file-sync-adapter.ts:22-26`), which has a gap between the check and the read. |
-| `readJsonFileSync` / `readJsonFileSyncIfExists` | `(path) => unknown` / `unknown \| null` | ward `read-json-sync`, testing `queue-metadata-read`, siegelense `cli-package-bin-resolve` |
-| `writeFileSync` / `appendFileSync` | `(path, contents: string) => void` | |
-| `ensureDirSync` | `(path) => void` | Always recursive. No production caller passes `recursive: false`. |
-| `rmSync` / `unlinkSync` / `symlinkSync` / `realpathSync` | as the promise versions | |
-| `readdirSync` / `readdirEntriesSync` | `(path) => string[]` / `{ name, kind }[]` | |
-| `statSync` | `(path) => {…}` | |
-| `globSync` | `({ patterns, cwd, exclude? }) => string[]` | Node's `fs.globSync`. No default ignore list is built in. |
-| `walkFilesSync` | `({ rootPath, suffix }) => { path, sizeBytes, modifiedAtMs }[]` | ENOENT or EACCES on a subtree **skips that subtree**. A file that disappears between listing and stat is skipped too. This leniency is a decision, not a hole: orchestrator's usage scan walks the whole Claude home, and one unreadable corner must not stop it. |
-| `findUpSync` | `({ startDir, fileName }) => string \| null` | Walks up the directory tree. mcp and siegelense each have an identical copy today (§3). |
-| `openForAppendSync` / `closeSync` | `(path) => number` / `(fd) => void` | These file descriptors feed spawn `stdio`. Flag `'a'` creates the file if it is missing. |
-| `tailFile` | `({ path, startPosition: 'beginning'\|'end', awaitCreate?, onLine, onError }) => { stop }` | orchestrator's `fs-watch-tail-adapter.ts`, moved whole: `fs.watch`, a read stream and readline, with no contracts. ENOENT without `awaitCreate` reports through `onError`. A file that shrinks resets the read position to 0. |
+Section 2 below maps each old adapter to its gateway export. Section 3 names the adapters that wrapped
+the same function differently, and which behavior won.
 
 ## 2. Mapping: today's adapter → gateway export
 
@@ -156,38 +94,18 @@ Paths are under `packages/`. **fp** means `…/fs/promises`, and **fs** means `�
 | `siegelense/src/adapters/fs/statfs/fs-statfs-adapter.ts:36` | A real `statfs` failure rejects the whole `machine-read-broker` status reading, not just the disk field. | No |
 | `server/src/brokers/local-image/copy/local-image-copy-broker.ts:57-63` | A failed image write goes to stderr and returns `undefined`. The image is dropped from the chat message and the user is not told. | **The image is dropped** |
 | `testing/src/brokers/integration-environment/create/integration-environment-create-broker.ts` `getPackageJson` | The only accessor in that file with no existence guard. The testing `read-file` itself is a synchronous read with no guard. | Test-harness crash |
+| `siegelense/src/brokers/boot-lock/acquire/boot-lock-acquire-broker.ts:105`, `siegelense/src/brokers/heartbeat/read/heartbeat-read-broker.ts:60` | `JSON.parse` with no guard of its own; malformed content throws a bare `SyntaxError` that names no file | No |
 
-## 5. How callers use the reads
+## 5. Proxy design
 
-The design doc's scan puts 61 read-file calls inside a `try` or `.catch`. Reading them gives these shapes, most common first:
+Every wrapper's own `.proxy.ts` file mocks the Node function underneath with `registerMock`, keyed by
+the path argument — for example `packages/@gateway/node/src/fs/promises/read-file-if-exists.proxy.ts`
+mocks `readFile` from `fs/promises`. Every fs proxy checked (`read-file-if-exists`, `stat-if-exists`,
+`read-json-file`, and others beside them) exposes one generic `rejects({ path, error })` method that
+accepts any `unknown` value as the staged rejection, rather than a named method per error code. Item 24
+of `scrolls/gateway/followup-sustainability.md` asks for every gateway proxy to be checked for a
+parameter that accepts any `Error`; the fs proxies still need that check.
 
-| Shape | What "the read failed" means | Where it appears | Verdict |
-|---|---|---|---|
-| **Swallow everything, then continue to a write** | "start fresh" | settings, `.mcp.json` and `.gitignore` installers (§4) | Unsafe. Becomes `readJsonFileIfExists`: missing means start fresh, invalid JSON rejects, and the write uses `writeFileAtomic` |
-| **Swallow everything, return a default** (`null`, `''`, `[]`, `{}`, `false`) | "not there yet" or "nothing to show" | ward workspace discovery, the typecheck tsconfig read, hooks folder-detail and subagent-stop (which fails open), shared architecture source read, orchestrator replay | Mostly meant ENOENT. Becomes `*IfExists` |
-| **Test ENOENT, rethrow the rest** | "absent is a valid answer" | hooks `file-read-or-empty`, cli, ward and siegelense `stat`, siegelense `readdir`, ward `crypto-hash-files` | Correct, and this is the model the gateway copies |
-| **Dig `.cause.code === 'ENOENT'`** | as above, through the wrap | siegelense heartbeat, orphan, boot-failure-marker, shutdown-reason, compare, results and boot-lock readers | Correct, but only because of the wrap. It collapses to `readFileIfExists` |
-| **Check existence first, then read** | skip without reading | cli install-add-dev-deps, the testing testbed accessors, eslint-plugin `ensure-read`, orchestrator planned-work (which does this *because of* the wrap) | Leaves a gap between the check and the read. Becomes `*IfExists` |
-| **Re-wrap as a domain error** | "config is broken", with a message | config `configFileLoadBroker` (as `InvalidConfigError`), cli register | Fine. The gateway error keeps the path, so this adds nothing |
-| **No catch** | a fault | most strict reads | Fine, once invalid JSON names its path |
-
-After a read, callers overwhelmingly `JSON.parse` the result and then run a zod contract on it. A few split lines: orchestrator `read-jsonl`, the siegelense buffer and transcript readers. `JSON.parse` with no guard of its own appears at `cli-create-package-responder.ts:40`, `install-add-dev-deps-responder.ts:47`, `package-register-broker.ts:40`, `siegelense boot-lock-acquire-broker.ts:105` and `heartbeat-read-broker.ts:60`. `readJsonFile*` gives each of these a `SyntaxError` that names the path.
-
-## 6. Proxy design
-
-**How it works today.** Each adapter's own proxy calls `registerMock({ fn: <node fn> })` on the Node function it wraps, for example `stat` from `'fs/promises'`. It stages answers keyed by the **path argument**: `handle.calledWith([filePath]).resolves(…)`, `.rejects(error)` (`packages/ward/src/adapters/fs/stat/fs-stat-adapter.proxy.ts:11-23`). The testing package's synchronous proxies add a no-argument default, `calledWith([]).returns('')`, so an unstaged call inside a composed broker does not throw (`packages/testing/src/adapters/fs/read-file/fs-read-file-adapter.proxy.ts:18-20`). A caller's proxy calls the adapter's proxy (for example `fsReadFileAdapterProxy()` from its responder proxy) and never touches `fs` directly. The ENOENT errors that proxies and tests stage are built by hand at every site with `Object.assign(new Error(...), { code: 'ENOENT' })`.
-
-**Wrapper tests, inside the gateway.** Each gateway wrapper's own `.proxy.ts` mocks the Node function underneath with `registerMock`, keyed by path, exactly as today. The wrapper's `.test.ts` drives every row of §1 through it: ENOENT, EACCES, EISDIR, ENOTDIR, invalid JSON, empty file, truncated file, and for `writeFileAtomic` and `copyDirContents` a failed `rename` or copy. Staged errors come from one stub, `FsErrorStub({ code, path, syscall })`. The stub builds a **plain object with no `Error` prototype**, so every test also proves that `isFsError` never depends on `instanceof`, which real rejections from outside the Jest realm would fail.
-
-**Callers' proxies.** `@dungeonmaster/node/testing` exports one proxy per wrapper: `readFileProxy`, `readFileIfExistsProxy`, `readJsonFileIfExistsProxy`, `writeFileAtomicProxy`, `statIfExistsProxy`, and so on. Each calls `registerMock({ fn: readFileIfExists })` on the **gateway function**, not on `fs`. Mocking `fs` would skip the wrapper's behaviour, and the broker depends on that behaviour. Every staging method is keyed by path and speaks in the wrapper's own terms, so a caller's test never builds an OS error:
-
-| Proxy method | What it stages |
-|---|---|
-| `returns({ path, value })` | the wrapper's success value |
-| `missing({ path })` | `null` on an `*IfExists` wrapper. On a strict wrapper it rejects with `FsErrorStub({ code: 'ENOENT' })` |
-| `denied({ path })` | rejects with `FsErrorStub({ code: 'EACCES' })` |
-| `invalidJson({ path })` | on `readJson*` only, rejects with the path-naming `SyntaxError` the wrapper raises |
-| no-argument default | `readFile`-family proxies stage the answer `missing` gives. Write-family proxies resolve. |
-| `writtenContents({ path })` | on write proxies, returns the contents written, so a caller's test asserts on real values and not merely that a write happened |
-
-For callers, `FsErrorStub` and `isFsError` are the only error-related surface, which keeps the one error shape the only one a test can create.
+`FsErrorStub({ code, path, syscall })`, in `packages/@gateway/node/src/fs/fs-error.stub.ts`, is the one
+recorded-failure stub these proxies stage with. It builds a real `Error` instance (not a bare object), so
+`registerMock`'s `.rejects()` and Jest's `.toThrow()` both accept it unchanged.

@@ -2,7 +2,7 @@
  * PURPOSE: Lists the pids of every process listening on a TCP port, via `lsof -ti :<port>`. Reach
  * for this before `@dungeonmaster/bin/kill`'s `killPid` — the two are always used as a pair, never
  * independently, but stay two modules per the one-module-per-program rule; see
- * `scrolls/gateway-build/followups.md` for where a combining function belongs.
+ * `scrolls/gateway/followup-sustainability.md` item 32 for where a combining function belongs.
  *
  * `lsof`'s own "nothing is listening" case exits non-zero with empty output — a normal RESOLVED
  * result from `run`, treated as "nothing listening", the common and legitimate case. A missing

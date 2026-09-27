@@ -1,7 +1,7 @@
 /**
  * PURPOSE: Runs the platform-crossing check over the whole repo and writes its report to stdout,
  * setting a failing exit code when it finds a crossing. This is the one command surface the check
- * has today — see `scrolls/gateway-build/followups.md` for what full ward check-type integration
+ * has today — see `scrolls/gateway/followup-sustainability.md` item 30 for what full ward check-type integration
  * (a `platform` entry in `checkTypeContract`, `--only platform`, storage/list/detail) would still
  * need.
  *

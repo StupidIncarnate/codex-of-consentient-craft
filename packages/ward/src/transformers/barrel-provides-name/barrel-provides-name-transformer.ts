@@ -3,7 +3,7 @@
  * a `star` dependency edge (`export * from 'x'`) down to only the targets an ancestor's named
  * import could actually reach. Checks one level only — the target's own local exports and its own
  * named re-exports — so a barrel-of-barrels answers `'unknown'` rather than `'no'`, which keeps the
- * walk from dropping a real crossing it could not fully rule out. `followups.md` documents this as
+ * walk from dropping a real crossing it could not fully rule out. `scrolls/gateway/followup-sustainability.md` item 30 documents this as
  * the one place deeper barrel nesting still falls back to following everything.
  *
  * USAGE:

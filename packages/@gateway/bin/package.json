@@ -2,6 +2,7 @@
   "name": "@dungeonmaster/bin",
   "version": "0.1.0",
   "description": "Gateway package: programs installed on the machine, run through spawn",
+  "sideEffects": false,
   "imports": {
     "#gateway/npm/*": "@dungeonmaster/npm/*",
     "#gateway/node/*": "@dungeonmaster/node/*",

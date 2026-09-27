@@ -472,8 +472,8 @@ Decided on 2026-09-25 as the obvious answers, so the discussion could focus on t
     **Update, 2026-09-26:** the scaffolding half of this is built. `dungeonmaster init` creates
     `packages/@gateway/{npm,node,browser,bin}` named from the consumer's own scope, adds them to root
     `workspaces`, merges the four `#gateway` entries into every package's `imports`, and merges the
-    matching `paths` into every tsconfig. See `scrolls/gateway-build/README.md` section 3 decision 4
-    and `scrolls/gateway-build/followups.md` "Consumer `init`: gateway scaffolding". Generating a
+    matching `paths` into every tsconfig. `scrolls/gateway/followup-sustainability.md`, "Changes
+    `dungeonmaster init` needs when it installs gateways", lists what the scaffold changes to. Generating a
     pass-through module per package the consumer already imports, rewriting the consumer's existing
     imports and global uses, and turning the raw-import/globals rules on are still not built — `init`
     scaffolds an empty gateway, and a consumer still adds its own wrapper modules by hand.

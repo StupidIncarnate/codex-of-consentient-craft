@@ -15,13 +15,7 @@ implementation and test files together: ward's file-scoped lint walks every `.ts
 `npm run ward -- --only lint,typecheck,unit -- packages/node/src packages/npm/src
 packages/browser/src packages/bin/src` — **PASS, 605 files, 0 failed** (lint), plus typecheck and
 unit both green across the same four packages. The three gateway shape rules fire zero violations
-on the gateway itself today. One real violation surfaced during this measurement and was fixed
-(not deferred) because it landed in a file this same branch's Task 3 had just written:
-`packages/node/src/process/index.ts` mixed six `export const {x} = process` global captures with
-real re-exports, which `gateway-colocation`'s purity check does not recognize (it accepts a
-destructure or member capture off `globalThis` only, not off `process`) — split each into its own
-`stdout.ts`/`stderr.ts`/`argv.ts`/`pid.ts`/`platform.ts`/`exec-path.ts` wrapper file with a
-colocated `.test.ts`/`.proxy.ts`, re-exported from `index.ts`.
+on the gateway itself.
 
 ## Non-gateway packages — the three caller-facing rules
 
@@ -104,13 +98,8 @@ nothing raw beyond that.
 | siegelense | `git` → `currentBranch()` from `@dungeonmaster/bin/git` (×1) |
 | ward | `lsof` → `listeningPids()` from `@dungeonmaster/bin/lsof` (×2); `kill` → `killPid()` from `@dungeonmaster/bin/kill` (×1) |
 
-## A real rule bug found during measurement, not fixed here
+## The `Buffer` suggestion text is fixed
 
-`platform-globals-ban`'s `Buffer` message names `@dungeonmaster/node/Buffer` (capital B) — e.g.
-`hooks`'s `build-folder-types-table-transformer.test.ts:33`. Orchestrator ruling #2 folds the
-`Buffer`/`buffer` case collision into one lowercase `buffer` folder (`@dungeonmaster/node/buffer`
-is the real subpath; there is no `Buffer` folder). The rule's `gatewayPath` construction reads the
-identifier's own casing verbatim instead of lowercasing it for this one collision case, so every
-`Buffer` hit across every package in the table above points callers at a gateway path that will
-not exist once the migration lands. Flagged for whoever turns `platform-globals-ban` back on —
-not fixed in this pass, since fixing it means touching the rule broker rather than measuring it.
+The measurement found `platform-globals-ban`'s suggestion naming `@dungeonmaster/node/Buffer` (capital
+B), a subpath that does not exist. The rule now falls back to the lowercase module name when that is
+a real Node builtin, so `Buffer` hits point at `buffer` (`rule-platform-globals-ban-broker.ts:96-104`).
