@@ -1,12 +1,12 @@
 /**
- * PURPOSE: Handles process status requests by validating params and delegating to the orchestrator adapter
+ * PURPOSE: Handles process status requests by validating params and delegating to StartOrchestrator.getQuestStatus
  *
  * USAGE:
  * const result = ProcessStatusResponder({ params: { processId: 'proc-123' } });
  * // Returns { status: 200, data: status } or { status: 400/500, data: { error } }
  */
 
-import { orchestratorGetQuestStatusAdapter } from '../../../adapters/orchestrator/get-quest-status/orchestrator-get-quest-status-adapter';
+import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { processIdParamsContract } from '../../../contracts/process-id-params/process-id-params-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
@@ -28,7 +28,7 @@ export const ProcessStatusResponder = ({ params }: { params: unknown }): Respond
       });
     }
     const { processId } = parsedParams.data;
-    const status = orchestratorGetQuestStatusAdapter({ processId });
+    const status = StartOrchestrator.getQuestStatus({ processId });
     return responderResultContract.parse({ status: httpStatusStatics.success.ok, data: status });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to get process status';

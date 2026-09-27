@@ -1,4 +1,4 @@
-import { orchestratorGetQuestStatusAdapterProxy } from '../../../adapters/orchestrator/get-quest-status/orchestrator-get-quest-status-adapter.proxy';
+import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import type { OrchestrationStatusStub, ProcessId } from '@dungeonmaster/shared/contracts';
 import { ProcessStatusResponder } from './process-status-responder';
 
@@ -9,11 +9,11 @@ export const ProcessStatusResponderProxy = (): {
   setupGetStatusError: (params: { processId: ProcessId; message: string }) => void;
   callResponder: typeof ProcessStatusResponder;
 } => {
-  const adapterProxy = orchestratorGetQuestStatusAdapterProxy();
+  const orchestrator = StartOrchestratorProxy();
 
   return {
     setupGetStatus: ({ status }: { status: OrchestrationStatus }): void => {
-      adapterProxy.returns({ processId: status.processId, status });
+      orchestrator.getQuestStatusReturns({ processId: status.processId, status });
     },
     setupGetStatusError: ({
       processId,
@@ -22,7 +22,7 @@ export const ProcessStatusResponderProxy = (): {
       processId: ProcessId;
       message: string;
     }): void => {
-      adapterProxy.throws({ processId, error: new Error(message) });
+      orchestrator.getQuestStatusThrows({ processId, error: new Error(message) });
     },
     callResponder: ProcessStatusResponder,
   };

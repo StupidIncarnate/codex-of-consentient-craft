@@ -1,6 +1,5 @@
 import type { QuestId, QuestStub } from '@dungeonmaster/shared/contracts';
-import { orchestratorAbandonQuestAdapterProxy } from '../../../adapters/orchestrator/abandon-quest/orchestrator-abandon-quest-adapter.proxy';
-import { orchestratorGetQuestAdapterProxy } from '../../../adapters/orchestrator/get-quest/orchestrator-get-quest-adapter.proxy';
+import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import { QuestAbandonResponder } from './quest-abandon-responder';
 
 type Quest = ReturnType<typeof QuestStub>;
@@ -11,18 +10,20 @@ export const QuestAbandonResponderProxy = (): {
   setupAbandonQuestError: (params: { questId: QuestId; message: string }) => void;
   callResponder: typeof QuestAbandonResponder;
 } => {
-  const questProxy = orchestratorGetQuestAdapterProxy();
-  const adapterProxy = orchestratorAbandonQuestAdapterProxy();
+  const orchestrator = StartOrchestratorProxy();
 
   return {
     setupQuest: ({ quest }: { quest: Quest }): void => {
-      questProxy.returns({ questId: quest.id, result: { success: true, quest } as never });
+      orchestrator.getQuestReturns({
+        questId: quest.id,
+        result: { success: true, quest } as never,
+      });
     },
     setupAbandonQuest: ({ questId, abandoned }: { questId: QuestId; abandoned: boolean }): void => {
-      adapterProxy.returns({ questId, abandoned });
+      orchestrator.abandonQuestReturns({ questId, abandoned });
     },
     setupAbandonQuestError: ({ questId, message }: { questId: QuestId; message: string }): void => {
-      adapterProxy.throws({ questId, error: new Error(message) });
+      orchestrator.abandonQuestThrows({ questId, error: new Error(message) });
     },
     callResponder: QuestAbandonResponder,
   };

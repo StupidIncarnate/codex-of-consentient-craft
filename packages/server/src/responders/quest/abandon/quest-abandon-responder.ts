@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Handles quest abandon requests by validating params and delegating to the orchestrator adapter
+ * PURPOSE: Handles quest abandon requests by validating params and delegating to StartOrchestrator
  *
  * USAGE:
  * const result = await QuestAbandonResponder({ params: { questId: 'abc' } });
@@ -7,8 +7,7 @@
  */
 
 import { isAbandonableQuestStatusGuard } from '@dungeonmaster/shared/guards';
-import { orchestratorAbandonQuestAdapter } from '../../../adapters/orchestrator/abandon-quest/orchestrator-abandon-quest-adapter';
-import { orchestratorGetQuestAdapter } from '../../../adapters/orchestrator/get-quest/orchestrator-get-quest-adapter';
+import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { questIdParamsContract } from '../../../contracts/quest-id-params/quest-id-params-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
@@ -35,7 +34,7 @@ export const QuestAbandonResponder = async ({
     }
     const { questId } = parsedParams.data;
 
-    const questResult = await orchestratorGetQuestAdapter({ questId });
+    const questResult = await StartOrchestrator.getQuest({ questId });
     if (!questResult.success || !questResult.quest) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
@@ -53,7 +52,7 @@ export const QuestAbandonResponder = async ({
       });
     }
 
-    const result = await orchestratorAbandonQuestAdapter({ questId });
+    const result = await StartOrchestrator.abandonQuest({ questId });
     return responderResultContract.parse({
       status: httpStatusStatics.success.ok,
       data: result,
