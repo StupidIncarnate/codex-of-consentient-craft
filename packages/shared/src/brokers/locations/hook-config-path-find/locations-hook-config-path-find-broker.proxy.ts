@@ -1,5 +1,6 @@
 import { variantWalkLayerBrokerProxy } from './variant-walk-layer-broker.proxy';
-import { pathDirnameAdapterProxy } from '../../../adapters/path/dirname/path-dirname-adapter.proxy';
+import { dirname } from '#gateway/node/path';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 
 export const locationsHookConfigPathFindBrokerProxy = (): {
@@ -12,7 +13,10 @@ export const locationsHookConfigPathFindBrokerProxy = (): {
   setupAllVariantsMissingThenParentNotFound: (params: { searchPath: string }) => void;
 } => {
   const variantWalkProxy = variantWalkLayerBrokerProxy();
-  const pathDirnameProxy = pathDirnameAdapterProxy();
+  // #gateway/node/path is a raw passthrough of the Node 'path' module (no per-function wrapper,
+  // so no gateway proxy to compose) — mocked directly here, on the same '#gateway/node/path'
+  // specifier the broker imports.
+  const dirnameHandle = registerMock({ fn: dirname });
 
   const variantOrder = ['.ts', '.js', '.mjs', '.cjs'] as const;
 
@@ -21,7 +25,8 @@ export const locationsHookConfigPathFindBrokerProxy = (): {
 
   return {
     setupConfigFoundAtFirstVariant: ({ configPath }: { configPath: FilePath }): void => {
-      variantWalkProxy.setupFirstVariantMatches({ configPath });
+      const searchPath = configPath.slice(0, configPath.lastIndexOf('/'));
+      variantWalkProxy.setupFirstVariantMatches({ searchPath, configPath });
     },
 
     setupConfigFoundAtLaterVariant: ({
@@ -36,6 +41,7 @@ export const locationsHookConfigPathFindBrokerProxy = (): {
         .slice(0, matchIndex)
         .map((variant) => `${searchPath}/.dungeonmaster-hooks.config${variant}` as never);
       variantWalkProxy.setupNthVariantMatches({
+        searchPath,
         missingPaths,
         configPath: `${searchPath}/.dungeonmaster-hooks.config${matchingVariant}` as never,
       });
@@ -49,19 +55,23 @@ export const locationsHookConfigPathFindBrokerProxy = (): {
       ancestorPath: string;
     }): void => {
       variantWalkProxy.setupAllVariantsMissing({
+        searchPath: startPath,
         missingPaths: buildAllMissing({ searchPath: startPath }),
       });
-      pathDirnameProxy.returns({ result: ancestorPath as never });
+      dirnameHandle.calledWith([startPath]).returns(ancestorPath);
       variantWalkProxy.setupFirstVariantMatches({
+        searchPath: ancestorPath,
         configPath: `${ancestorPath}/.dungeonmaster-hooks.config.ts` as never,
       });
     },
 
     setupAllVariantsMissingThenParentNotFound: ({ searchPath }: { searchPath: string }): void => {
       variantWalkProxy.setupAllVariantsMissing({
+        searchPath,
         missingPaths: buildAllMissing({ searchPath }),
       });
-      pathDirnameProxy.returns({ result: searchPath as never });
+      // Reached root: dirname(searchPath) === searchPath, so the broker throws.
+      dirnameHandle.calledWith([searchPath]).returns(searchPath);
     },
   };
 };

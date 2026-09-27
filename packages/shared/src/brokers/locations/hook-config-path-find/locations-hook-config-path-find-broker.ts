@@ -7,7 +7,7 @@
  */
 
 import { variantWalkLayerBroker } from './variant-walk-layer-broker';
-import { pathDirnameAdapter } from '../../../adapters/path/dirname/path-dirname-adapter';
+import { dirname } from '#gateway/node/path';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
 import { ProjectRootNotFoundError } from '../../../errors/project-root-not-found/project-root-not-found-error';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
@@ -31,7 +31,7 @@ export const locationsHookConfigPathFindBroker = async ({
     return matched;
   }
 
-  const parentPath = filePathContract.parse(pathDirnameAdapter({ path: searchPath }));
+  const parentPath = filePathContract.parse(dirname(searchPath));
   if (parentPath === searchPath) {
     throw new ProjectRootNotFoundError({ startPath });
   }

@@ -8,7 +8,7 @@
  * // Returns AbsoluteFilePath '/repo/node_modules'
  */
 
-import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
+import { join } from '#gateway/node/path';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
 import {
   absoluteFilePathContract,
@@ -20,9 +20,7 @@ export const locationsNodeModulesPathFindBroker = ({
 }: {
   rootPath: AbsoluteFilePath;
 }): AbsoluteFilePath => {
-  const joined = pathJoinAdapter({
-    paths: [rootPath, locationsStatics.repoRoot.nodeModules],
-  });
+  const joined = join(rootPath, locationsStatics.repoRoot.nodeModules);
 
   return absoluteFilePathContract.parse(joined);
 };

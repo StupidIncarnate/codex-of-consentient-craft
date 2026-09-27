@@ -9,6 +9,7 @@ describe('variantWalkLayerBroker', () => {
       const proxy = variantWalkLayerBrokerProxy();
 
       proxy.setupFirstVariantMatches({
+        searchPath: '/project',
         configPath: FilePathStub({ value: '/project/.dungeonmaster-hooks.config.ts' }),
       });
 
@@ -26,6 +27,7 @@ describe('variantWalkLayerBroker', () => {
       const proxy = variantWalkLayerBrokerProxy();
 
       proxy.setupNthVariantMatches({
+        searchPath: '/project',
         missingPaths: [FilePathStub({ value: '/project/.dungeonmaster-hooks.config.ts' })],
         configPath: FilePathStub({ value: '/project/.dungeonmaster-hooks.config.js' }),
       });
@@ -57,6 +59,7 @@ describe('variantWalkLayerBroker', () => {
       const proxy = variantWalkLayerBrokerProxy();
 
       proxy.setupAllVariantsMissing({
+        searchPath: '/project',
         missingPaths: [
           FilePathStub({ value: '/project/.dungeonmaster-hooks.config.ts' }),
           FilePathStub({ value: '/project/.dungeonmaster-hooks.config.js' }),

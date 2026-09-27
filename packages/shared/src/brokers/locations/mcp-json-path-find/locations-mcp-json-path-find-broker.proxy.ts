@@ -1,5 +1,7 @@
+import { join } from '#gateway/node/path';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { configRootFindBrokerProxy } from '../../config-root/find/config-root-find-broker.proxy';
-import { pathJoinAdapterProxy } from '../../../adapters/path/join/path-join-adapter.proxy';
+import { locationsStatics } from '../../../statics/locations/locations-statics';
 import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 
 export const locationsMcpJsonPathFindBrokerProxy = (): {
@@ -10,7 +12,10 @@ export const locationsMcpJsonPathFindBrokerProxy = (): {
   }) => void;
 } => {
   const configRootProxy = configRootFindBrokerProxy();
-  const pathJoinProxy = pathJoinAdapterProxy();
+  // #gateway/node/path is a raw passthrough of the Node 'path' module (no per-function wrapper,
+  // so no gateway proxy to compose) — mocked directly here, on the same '#gateway/node/path'
+  // specifier the broker imports.
+  const joinHandle = registerMock({ fn: join });
 
   return {
     setupMcpJsonPath: ({
@@ -22,8 +27,15 @@ export const locationsMcpJsonPathFindBrokerProxy = (): {
       configRootPath: string;
       mcpJsonPath: FilePath;
     }): void => {
-      configRootProxy.setupConfigRootFound({ startPath, configRootPath });
-      pathJoinProxy.returns({ result: mcpJsonPath });
+      // setupConfigRootFoundInParent (not setupConfigRootFound): the exact-tuple join stage below
+      // only matches when configRootFindBroker really walks up and returns configRootPath.
+      // setupConfigRootFound stages the config as found immediately at startPath regardless of
+      // the configRootPath argument, which the old address-less path-join-adapter stub never
+      // caught because it returned mcpJsonPath for ANY join() call.
+      configRootProxy.setupConfigRootFoundInParent({ startPath, configRootPath });
+      joinHandle
+        .calledWith([configRootPath, locationsStatics.repoRoot.mcpJson])
+        .returns(mcpJsonPath);
     },
   };
 };
