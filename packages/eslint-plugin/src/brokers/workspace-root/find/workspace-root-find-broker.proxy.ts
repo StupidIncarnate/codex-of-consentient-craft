@@ -4,8 +4,12 @@ import { fsReadFileSyncAdapterProxy } from '../../../adapters/fs/read-file-sync/
 import { pathJoinAdapterProxy } from '../../../adapters/path/join/path-join-adapter.proxy';
 import { pathDirnameAdapterProxy } from '../../../adapters/path/dirname/path-dirname-adapter.proxy';
 
-export const findWorkspaceRootLayerBrokerProxy = (): {
-  setupWorkspaceRoot: (args: { rootDir: string; packageNames: string[] }) => void;
+export const workspaceRootFindBrokerProxy = (): {
+  setupWorkspaceRoot: (args: {
+    rootDir: string;
+    rootPackageJsonName: string;
+    packageNames: string[];
+  }) => void;
   setupNonRootPackageJson: (args: { packageDir: string }) => void;
 } => {
   const existsProxy = fsExistsSyncAdapterProxy();
@@ -21,9 +25,11 @@ export const findWorkspaceRootLayerBrokerProxy = (): {
   return {
     setupWorkspaceRoot: ({
       rootDir,
+      rootPackageJsonName,
       packageNames,
     }: {
       rootDir: string;
+      rootPackageJsonName: string;
       packageNames: string[];
     }): void => {
       const packageJsonPath = FilePathStub({ value: `${rootDir}/package.json` });
@@ -32,7 +38,7 @@ export const findWorkspaceRootLayerBrokerProxy = (): {
         filePath: packageJsonPath,
         contents: FileContentsStub({
           value: JSON.stringify({
-            name: 'dungeonmaster',
+            name: rootPackageJsonName,
             workspaces: ['packages/*'],
             dependencies: Object.fromEntries(packageNames.map((name) => [name, '*'])),
           }),

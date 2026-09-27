@@ -1,18 +1,18 @@
 /**
  * PURPOSE: Walks up from a starting directory to the npm-workspaces root — the nearest ancestor
  * package.json carrying a `workspaces` field, per this repo's own "every consumer repo is an
- * npm-workspaces monorepo" constraint — and returns that directory along with every package name its
- * `dependencies`/`devDependencies` declare, which is what a consumer's own `dungeonmaster init` run
- * writes into (see packages/CLAUDE.md, "Why root registration matters"). enforce-gateway-config-names-exist
- * checks a `restrictedTo` entry's `packages` against this list, and resolves a `#gateway/...` subpath
- * against this same root's `packages/@gateway/` tree. Duplicated from gateway-import-boundary's
- * identically-shaped `resolveRepoScopeLayerBroker`, deliberately: a layer file is not an entry file
- * another domain may import.
+ * npm-workspaces monorepo" constraint — and returns that root's directory, its OWN `name` field,
+ * and every package name its `dependencies`/`devDependencies` declare. enforce-proxy-child-creation
+ * reads `rootPackageJsonName` to derive THIS workspace's own npm scope for a bare `@scope/pkg` root
+ * import; enforce-gateway-config-names-exist reads `packageNames` to check a `restrictedTo` entry's
+ * `packages` against the real workspace package list, and resolves a `#gateway/...` subpath against
+ * this same root's `packages/@gateway/` tree. An ordinary broker, not a layer file, precisely so both
+ * rules import ONE copy of this walk instead of each keeping its own.
  *
  * USAGE:
- * findWorkspaceRootLayerBroker({ startDir: filePathContract.parse(__dirname) });
- * // Returns { rootDir: '/repo', packageNames: ['@dungeonmaster/hooks', ...] }, or undefined when no
- * // ancestor package.json carries a `workspaces` field
+ * workspaceRootFindBroker({ startDir: filePathContract.parse(__dirname) });
+ * // Returns { rootDir: '/repo', rootPackageJsonName: '@dungeonmaster/hooks', packageNames: [...] },
+ * // or undefined when no ancestor package.json carries a `workspaces` field
  */
 import { filePathContract, packageNameContract } from '@dungeonmaster/shared/contracts';
 import type { FilePath, PackageName } from '@dungeonmaster/shared/contracts';
@@ -23,11 +23,13 @@ import { pathDirnameAdapter } from '../../../adapters/path/dirname/path-dirname-
 import { workspaceRootPackageJsonContract } from '../../../contracts/workspace-root-package-json/workspace-root-package-json-contract';
 import { gatewayConsumerPackageJsonContract } from '../../../contracts/gateway-consumer-package-json/gateway-consumer-package-json-contract';
 
-export const findWorkspaceRootLayerBroker = ({
+export const workspaceRootFindBroker = ({
   startDir,
 }: {
   startDir: FilePath;
-}): { rootDir: FilePath; packageNames: PackageName[] } | undefined => {
+}):
+  | { rootDir: FilePath; rootPackageJsonName: PackageName; packageNames: PackageName[] }
+  | undefined => {
   const packageJsonPath = pathJoinAdapter({ paths: [startDir, 'package.json'] });
 
   if (fsExistsSyncAdapter({ filePath: packageJsonPath })) {
@@ -41,7 +43,12 @@ export const findWorkspaceRootLayerBroker = ({
         ...withDeps.dependencies,
         ...withDeps.devDependencies,
       }).map((name) => packageNameContract.parse(name));
-      return { rootDir: startDir, packageNames };
+
+      return {
+        rootDir: startDir,
+        rootPackageJsonName: packageNameContract.parse(workspaceRoot.data.name),
+        packageNames,
+      };
     }
   }
 
@@ -50,5 +57,5 @@ export const findWorkspaceRootLayerBroker = ({
     return undefined;
   }
 
-  return findWorkspaceRootLayerBroker({ startDir: filePathContract.parse(parentDir) });
+  return workspaceRootFindBroker({ startDir: filePathContract.parse(parentDir) });
 };

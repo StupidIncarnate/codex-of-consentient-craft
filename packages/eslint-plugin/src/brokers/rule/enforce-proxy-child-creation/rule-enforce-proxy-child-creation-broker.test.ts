@@ -27,7 +27,7 @@ beforeEach(() => {
       }
 
       // Every package.json probe is answered explicitly, never by the generic placeholder default
-      // below (which is not valid JSON and would crash findWorkspaceRootLayerBroker's JSON.parse).
+      // below (which is not valid JSON and would crash workspaceRootFindBroker's JSON.parse).
       // '/repo' is this repo's own fake workspace root (unscoped name 'dungeonmaster', scope
       // '@dungeonmaster'); '/acme-repo' is a published consumer's own fake workspace root (scoped
       // name '@acme/repo', scope '@acme') — proving the scope is read off the real workspace root's

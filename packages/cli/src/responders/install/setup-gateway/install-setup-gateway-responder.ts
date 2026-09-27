@@ -24,7 +24,10 @@ import {
   pathBasenameAdapter,
 } from '@dungeonmaster/shared/adapters';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import { jsonFileContentsTransformer } from '@dungeonmaster/shared/transformers';
+import {
+  jsonFileContentsTransformer,
+  workspaceScopeFromRootNameTransformer,
+} from '@dungeonmaster/shared/transformers';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import { packageJsonRawContract } from '../../../contracts/package-json-raw/package-json-raw-contract';
@@ -33,7 +36,6 @@ import { packageScaffoldWriteBroker } from '../../../brokers/package/scaffold-wr
 import { gatewayExistingPackagesListBroker } from '../../../brokers/gateway/existing-packages-list/gateway-existing-packages-list-broker';
 import { gatewayTsconfigCompilerOptionsWriteBroker } from '../../../brokers/gateway/tsconfig-compiler-options-write/gateway-tsconfig-compiler-options-write-broker';
 import { gatewaySourceCopyBroker } from '../../../brokers/gateway/source-copy/gateway-source-copy-broker';
-import { gatewayScopeDetectTransformer } from '../../../transformers/gateway-scope-detect/gateway-scope-detect-transformer';
 import { gatewayWorkspacesMergeTransformer } from '../../../transformers/gateway-workspaces-merge/gateway-workspaces-merge-transformer';
 import { gatewayImportsMergeTransformer } from '../../../transformers/gateway-imports-merge/gateway-imports-merge-transformer';
 import { gatewayPackageScaffoldFilesTransformer } from '../../../transformers/gateway-package-scaffold-files/gateway-package-scaffold-files-transformer';
@@ -67,7 +69,12 @@ export const InstallSetupGatewayResponder = async ({
   const rootNameValue = rootPackageJson[nameKey];
   const rootPackageJsonName = typeof rootNameValue === 'string' ? rootNameValue : undefined;
   const fallbackName = pathBasenameAdapter({ path: context.targetProjectRoot });
-  const scope = gatewayScopeDetectTransformer({ rootPackageJsonName, fallbackName });
+  const scope = workspaceScopeFromRootNameTransformer({ rootPackageJsonName, fallbackName });
+  if (scope === undefined) {
+    throw new Error(
+      `Could not derive a workspace scope for ${context.targetProjectRoot}: no root package.json name and no fallback directory name`,
+    );
+  }
 
   const updatedRootPackageJson = gatewayWorkspacesMergeTransformer({ rootPackageJson });
   const workspacesChanged = updatedRootPackageJson !== rootPackageJson;

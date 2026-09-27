@@ -20,7 +20,7 @@ import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-cont
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { pathDirnameAdapter } from '../../../adapters/path/dirname/path-dirname-adapter';
-import { findWorkspaceRootLayerBroker } from './find-workspace-root-layer-broker';
+import { workspaceRootFindBroker } from '../../workspace-root/find/workspace-root-find-broker';
 import { checkGatewaySubpathExistsLayerBroker } from './check-gateway-subpath-exists-layer-broker';
 import { checkGatewayExportNameExistsLayerBroker } from './check-gateway-export-name-exists-layer-broker';
 
@@ -63,7 +63,7 @@ export const ruleEnforceGatewayConfigNamesExistBroker = (): EslintRule => ({
 
     return {
       Program: (node: Tsestree): void => {
-        const workspaceRoot = findWorkspaceRootLayerBroker({
+        const workspaceRoot = workspaceRootFindBroker({
           startDir: pathDirnameAdapter({ filePath: filePathContract.parse(filename) }),
         });
 

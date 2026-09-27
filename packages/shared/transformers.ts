@@ -142,6 +142,11 @@ export * from './src/transformers/graph-reachability-violations/graph-reachabili
 export * from './src/transformers/package-scope-from-name/package-scope-from-name-transformer';
 export * from './src/transformers/gateway-path-from-import-source/gateway-path-from-import-source-transformer';
 
+// Workspace scope, tolerant of a missing/empty root name and a caller-supplied fallback — `cli`'s
+// create-package/init gateway setup and eslint-plugin's enforce-proxy-child-creation both derive
+// THIS workspace's own scope through this one transformer.
+export * from './src/transformers/workspace-scope-from-root-name/workspace-scope-from-root-name-transformer';
+
 // JSON File Contents — the one place every install-time JSON writer (package.json,
 // .dungeonmaster.json, .mcp.json, .claude/settings.json, .agents/*.json) gets its on-disk
 // formatting (2-space indent, trailing newline) from, so they cannot drift apart.

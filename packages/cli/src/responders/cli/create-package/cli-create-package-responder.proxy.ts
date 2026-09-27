@@ -33,8 +33,8 @@ export const CliCreatePackageResponderProxy = (): {
   // Unstaged: the responder's packageRoot/packageJsonPath joins are real path.join calls with no
   // fake value to stage, same reasoning as packageRegisterBrokerProxy's own bare call below.
   pathJoinAdapterProxy();
-  // Unstaged: gatewayScopeDetectTransformer's fallback name is a real path.basename call with
-  // nothing to fake — only reached when the root package.json carries no string `name` at all.
+  // Unstaged: workspaceScopeFromRootNameTransformer's fallback name is a real path.basename call
+  // with nothing to fake — only reached when the root package.json carries no string `name` at all.
   pathBasenameAdapterProxy();
   const existsProxy = fsExistsSyncAdapterProxy();
   const scaffoldWriteProxy = packageScaffoldWriteBrokerProxy();

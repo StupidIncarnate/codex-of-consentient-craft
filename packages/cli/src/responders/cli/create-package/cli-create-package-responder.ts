@@ -5,15 +5,17 @@
  * registration) is a single call to a collaborator; this file only sequences those calls and
  * narrates them to stdout.
  *
- * Scope detection reuses `gatewayScopeDetectTransformer` — the SAME transformer `dungeonmaster
- * init`'s gateway step used to name `packages/@gateway/*` in the first place (root package.json's
- * own `name`, falling back to the target directory's basename) — rather than inferring a scope from
- * any dependency list. A dependency-list scan is unreliable two ways at once: `init` writes every
- * `@dungeonmaster/*` tooling package into `devDependencies` (never `dependencies`), and even a
- * merged scan would misread THAT scope as the consumer's own, since `@dungeonmaster/*` is the
- * tool vendor's scope, not whatever scope the consumer picked for their own workspace. Reusing the
- * gateway's own detector guarantees a new package's `#gateway/*` imports field always agrees with
- * the real, already-scaffolded `@gateway/*` packages on disk.
+ * Scope detection reuses `workspaceScopeFromRootNameTransformer` — the SAME shared transformer
+ * `dungeonmaster init`'s gateway step used to name `packages/@gateway/*` in the first place (root
+ * package.json's own `name`, falling back to the target directory's basename) — rather than
+ * inferring a scope from any dependency list. A dependency-list scan is unreliable two ways at
+ * once: `init` writes every `@dungeonmaster/*` tooling package into `devDependencies` (never
+ * `dependencies`), and even a merged scan would misread THAT scope as the consumer's own, since
+ * `@dungeonmaster/*` is the tool vendor's scope, not whatever scope the consumer picked for their
+ * own workspace. Reusing the gateway's own detector guarantees a new package's `#gateway/*` imports
+ * field always agrees with the real, already-scaffolded `@gateway/*` packages on disk. A fallback
+ * name is always passed here, so the transformer's `undefined` branch (no name and no fallback) is
+ * unreachable in this file — the throw below only narrows the type for it.
  *
  * A scaffolded package's `jest.config.js` also branches on context: this repo's OWN packages
  * require the repo-root `jest.config.base.js` (packages/CLAUDE.md's own jest section), which exists
@@ -34,6 +36,7 @@ import {
   fsExistsSyncAdapter,
   pathBasenameAdapter,
 } from '@dungeonmaster/shared/adapters';
+import { workspaceScopeFromRootNameTransformer } from '@dungeonmaster/shared/transformers';
 
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { createPackageResolveRequestBroker } from '../../../brokers/create-package/resolve-request/create-package-resolve-request-broker';
@@ -43,7 +46,6 @@ import { packageJsonRawContract } from '../../../contracts/package-json-raw/pack
 import { packageScaffoldConfigStatics } from '../../../statics/package-scaffold-config/package-scaffold-config-statics';
 import { createPackageArgsParseTransformer } from '../../../transformers/create-package-args-parse/create-package-args-parse-transformer';
 import { packageScaffoldFilesTransformer } from '../../../transformers/package-scaffold-files/package-scaffold-files-transformer';
-import { gatewayScopeDetectTransformer } from '../../../transformers/gateway-scope-detect/gateway-scope-detect-transformer';
 
 const JEST_CONFIG_BASE_FILENAME = 'jest.config.base.js';
 
@@ -66,7 +68,12 @@ export const CliCreatePackageResponder = async ({
   const rootNameValue = rootPackageJson[nameKey];
   const rootPackageJsonName = typeof rootNameValue === 'string' ? rootNameValue : undefined;
   const fallbackName = pathBasenameAdapter({ path: context.targetProjectRoot });
-  const scope = gatewayScopeDetectTransformer({ rootPackageJsonName, fallbackName });
+  const scope = workspaceScopeFromRootNameTransformer({ rootPackageJsonName, fallbackName });
+  if (scope === undefined) {
+    throw new Error(
+      `Could not derive a workspace scope for ${context.targetProjectRoot}: no root package.json name and no fallback directory name`,
+    );
+  }
 
   const jestConfigBasePath = pathJoinAdapter({
     paths: [context.targetProjectRoot, JEST_CONFIG_BASE_FILENAME],

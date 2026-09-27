@@ -1,22 +1,31 @@
 import { pathDirnameAdapterProxy } from '../../../adapters/path/dirname/path-dirname-adapter.proxy';
-import { findWorkspaceRootLayerBrokerProxy } from './find-workspace-root-layer-broker.proxy';
+import { workspaceRootFindBrokerProxy } from '../../workspace-root/find/workspace-root-find-broker.proxy';
 import { checkGatewaySubpathExistsLayerBrokerProxy } from './check-gateway-subpath-exists-layer-broker.proxy';
 import { checkGatewayExportNameExistsLayerBrokerProxy } from './check-gateway-export-name-exists-layer-broker.proxy';
+
+// This rule never reads `rootPackageJsonName` — only `packageNames` — so callers of this proxy
+// never need to supply one; the merged broker's own contract still requires a real string to build
+// valid package.json fixture text, hence this fixed placeholder.
+const PLACEHOLDER_ROOT_PACKAGE_JSON_NAME = 'dungeonmaster';
 
 export const ruleEnforceGatewayConfigNamesExistBrokerProxy = (): {
   setupWorkspaceRoot: (args: { rootDir: string; packageNames: string[] }) => void;
   setupBarrelExists: (args: { barrelPath: string; sourceText: string }) => void;
 } => {
   // Real passthrough default: the rule itself calls pathDirnameAdapter directly (not only through
-  // findWorkspaceRootLayerBroker), so this satisfies enforce-proxy-child-creation with no staging.
+  // workspaceRootFindBroker), so this satisfies enforce-proxy-child-creation with no staging.
   pathDirnameAdapterProxy();
-  const workspaceRootProxy = findWorkspaceRootLayerBrokerProxy();
+  const workspaceRootProxy = workspaceRootFindBrokerProxy();
   const subpathProxy = checkGatewaySubpathExistsLayerBrokerProxy();
   const exportNameProxy = checkGatewayExportNameExistsLayerBrokerProxy();
 
   return {
-    setupWorkspaceRoot: (args: { rootDir: string; packageNames: string[] }): void => {
-      workspaceRootProxy.setupWorkspaceRoot(args);
+    setupWorkspaceRoot: ({ rootDir, packageNames }: { rootDir: string; packageNames: string[] }): void => {
+      workspaceRootProxy.setupWorkspaceRoot({
+        rootDir,
+        packageNames,
+        rootPackageJsonName: PLACEHOLDER_ROOT_PACKAGE_JSON_NAME,
+      });
     },
 
     // Stages a barrel that exists AND carries `sourceText` as its content, so both the subpath
