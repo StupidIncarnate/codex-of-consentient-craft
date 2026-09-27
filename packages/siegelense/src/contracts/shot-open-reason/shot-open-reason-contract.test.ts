@@ -3,16 +3,13 @@ import { ShotOpenReasonStub } from './shot-open-reason.stub';
 
 describe('shotOpenReasonContract', () => {
   describe('valid members', () => {
-    it.each(shotOpenReasonContract.options)(
-      'VALID: {value: %s} => parses to itself',
-      (value) => {
-        const shotOpenReason = ShotOpenReasonStub({ value });
+    it.each(shotOpenReasonContract.options)('VALID: {value: %s} => parses to itself', (value) => {
+      const shotOpenReason = ShotOpenReasonStub({ value });
 
-        const result = shotOpenReasonContract.parse(shotOpenReason);
+      const result = shotOpenReasonContract.parse(shotOpenReason);
 
-        expect(result).toBe(value);
-      },
-    );
+      expect(result).toBe(value);
+    });
 
     it('VALID: {.options} => the five members are listed in PRECEDENCE order, the data shotOpenDecideTransformer reads rather than re-encodes', () => {
       const result = shotOpenReasonContract.options;

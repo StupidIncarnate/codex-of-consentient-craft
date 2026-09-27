@@ -32,7 +32,7 @@ describe('profilePoolSizeContract', () => {
     it('INVALID: {value: 1.5} => throws, a pool holds whole instances', () => {
       expect(() => {
         profilePoolSizeContract.parse(1.5);
-      }).toThrow(/integer/u);
+      }).toThrow(/Invalid input: expected int, received number/u);
     });
   });
 });

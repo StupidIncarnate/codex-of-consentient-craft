@@ -112,7 +112,7 @@ describe('transcriptSummaryContract', () => {
   describe('invalid input', () => {
     it('INVALID: {recordCount: -1} => throws', () => {
       expect(() => TranscriptSummaryStub({ recordCount: -1 })).toThrow(
-        /greater than or equal to 0|Number must be/u,
+        /Too small: expected number to be >=0/u,
       );
     });
 

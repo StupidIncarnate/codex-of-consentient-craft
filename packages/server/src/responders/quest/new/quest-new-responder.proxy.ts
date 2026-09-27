@@ -5,6 +5,7 @@ import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-moc
 import { locationsQuestFolderPathFindBrokerProxy } from '@dungeonmaster/shared/testing';
 
 import { fsRmAdapterProxy } from '../../../adapters/fs/rm/fs-rm-adapter.proxy';
+import { zodFirstFieldErrorMessageAdapterProxy } from '../../../adapters/zod/first-field-error-message/zod-first-field-error-message-adapter.proxy';
 import { pastedImagePersistBrokerProxy } from '../../../brokers/pasted-image/persist/pasted-image-persist-broker.proxy';
 import { QuestNewResponder } from './quest-new-responder';
 import type {
@@ -80,6 +81,9 @@ export const QuestNewResponderProxy = (): {
   // pastedImagePersistBroker), so its proxy must be composed here too even though it needs no
   // setup of its own — enforce-proxy-child-creation.
   locationsQuestFolderPathFindBrokerProxy();
+  // The adapter has no I/O to mock (see its own proxy header) — composing it here is what the
+  // proxy-child-creation rule expects of every implementation import, not a stage this test needs.
+  zodFirstFieldErrorMessageAdapterProxy();
 
   return {
     setupQuestNew: ({

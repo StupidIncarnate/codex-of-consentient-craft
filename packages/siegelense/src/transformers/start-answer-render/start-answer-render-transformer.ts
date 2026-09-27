@@ -42,9 +42,6 @@ export const startAnswerRenderTransformer = ({
               if (typeof value === 'string') {
                 return `  ${binding}: ${value}`;
               }
-              if (value === undefined) {
-                return `  ${binding}: -`;
-              }
 
               const rowEntries = Object.entries(value);
               const idEntry = rowEntries.find(([key]) => key === 'id');

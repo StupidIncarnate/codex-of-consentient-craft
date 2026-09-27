@@ -19,7 +19,7 @@ describe('lastStepReadingContract', () => {
           run: 'run_2',
           step: 7,
         }),
-      ).toThrow(/received undefined/u);
+      ).toThrow(/Invalid option: expected one of/u);
     });
 
     it('INVALID: {verb: "hover"} => throws for a verb outside the six', () => {

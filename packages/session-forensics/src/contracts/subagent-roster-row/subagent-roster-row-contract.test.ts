@@ -49,7 +49,7 @@ describe('subagentRosterRowContract', () => {
   describe('invalid input', () => {
     it('INVALID: {turnCount: -1} => throws', () => {
       expect(() => SubagentRosterRowStub({ turnCount: -1 })).toThrow(
-        /greater than or equal to 0|Number must be/u,
+        /Too small: expected number to be >=0/u,
       );
     });
 

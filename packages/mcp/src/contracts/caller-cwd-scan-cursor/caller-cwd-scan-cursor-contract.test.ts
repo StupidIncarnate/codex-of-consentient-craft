@@ -28,6 +28,6 @@ describe('callerCwdScanCursorContract', () => {
         filepath: '/home/tester/.claude/projects/-x/session.jsonl',
         offsetBytes: 1.5,
       }),
-    ).toThrow(/integer/u);
+    ).toThrow(/Invalid input: expected int, received number/u);
   });
 });

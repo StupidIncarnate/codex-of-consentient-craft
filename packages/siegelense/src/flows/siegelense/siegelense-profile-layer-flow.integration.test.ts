@@ -162,7 +162,7 @@ describe('SiegelenseProfileLayerFlow', () => {
   describe('a badly shaped --spec value', () => {
     it("INVALID: {callArgs: [--spec, '']} => refuses naming --spec and specNameContract's own message", async () => {
       await expect(SiegelenseProfileLayerFlow({ callArgs: ['--spec', ''] })).rejects.toThrow(
-        /^--spec: String must contain at least 1 character\(s\)$/u,
+        /^--spec: Too small: expected string to have >=1 characters$/u,
       );
     });
   });

@@ -47,7 +47,7 @@ describe('createPackageRequestContract', () => {
           description: 'Widgets package',
           packagesDir: 'packages',
         });
-      }).toThrow(/received undefined/u);
+      }).toThrow(/Invalid option: expected one of/u);
     });
 
     it('INVALID: {description missing} => throws', () => {

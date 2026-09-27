@@ -28,7 +28,7 @@ describe('durationMsContract', () => {
     });
 
     it('INVALID: {NaN} => throws validation error', () => {
-      expect(() => durationMsContract.parse(Number.NaN)).toThrow(/Expected number, received nan/u);
+      expect(() => durationMsContract.parse(Number.NaN)).toThrow(/expected number, received NaN/u);
     });
 
     it('INVALID: {string} => throws validation error', () => {

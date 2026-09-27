@@ -3,16 +3,13 @@ import { PortRoleStub } from './port-role.stub';
 
 describe('portRoleContract', () => {
   describe('valid members', () => {
-    it.each(portRoleContract.options)(
-      'VALID: {value: %s} => parses to itself',
-      (value) => {
-        const portRole = PortRoleStub({ value });
+    it.each(portRoleContract.options)('VALID: {value: %s} => parses to itself', (value) => {
+      const portRole = PortRoleStub({ value });
 
-        const result = portRoleContract.parse(portRole);
+      const result = portRoleContract.parse(portRole);
 
-        expect(result).toBe(value);
-      },
-    );
+      expect(result).toBe(value);
+    });
   });
 
   describe('invalid members', () => {

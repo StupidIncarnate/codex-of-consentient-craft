@@ -174,7 +174,7 @@ describe('stepContract', () => {
     it('INVALID: {step: look, +target} => throws naming the stray key, because look reads and never targets', () => {
       expect(() =>
         stepContract.parse({ step: 'look', target: '[data-testid="X"]' } as never),
-      ).toThrow(/Unrecognized key: "target"/u);
+      ).toThrow(/Unrecognized key: \\"target\\"/u);
     });
 
     it('VALID: {step: box} => parses the complete box member', () => {
@@ -195,7 +195,7 @@ describe('stepContract', () => {
     it('INVALID: {step: box, +target} => throws naming the stray key, because box takes ref only', () => {
       expect(() =>
         stepContract.parse({ step: 'box', ref: 26, target: '[data-testid="X"]' } as never),
-      ).toThrow(/Unrecognized key: "target"/u);
+      ).toThrow(/Unrecognized key: \\"target\\"/u);
     });
 
     it('VALID: {step: dom} => parses the complete dom member with target, defaults for fields and text', () => {
@@ -240,7 +240,7 @@ describe('stepContract', () => {
           target: '[data-testid="X"]',
           ref: 26,
         } as never),
-      ).toThrow(/Unrecognized key\(s\) in object: 'ref'/u);
+      ).toThrow(/Unrecognized key: \\"ref\\"/u);
     });
 
     it('VALID: {step: screenshot} => parses the complete screenshot member', () => {
@@ -338,7 +338,7 @@ describe('stepContract', () => {
           press: 'Enter',
           target: '[data-testid="X"]',
         } as never),
-      ).toThrow(/Unrecognized key: "target"/u);
+      ).toThrow(/Unrecognized key: \\"target\\"/u);
     });
 
     it('VALID: {step: health} => parses the complete health member', () => {
@@ -373,7 +373,7 @@ describe('stepContract', () => {
           step: 'health',
           target: '[data-testid="X"]',
         } as never),
-      ).toThrow(/Unrecognized key: "target"/u);
+      ).toThrow(/Unrecognized key: \\"target\\"/u);
     });
 
     it('VALID: {step: until, visible} => parses the visible form, the other four conditions null', () => {
@@ -540,7 +540,7 @@ describe('stepContract', () => {
     it("INVALID: {step: click, path, no target} => throws naming goto's field as the stray key", () => {
       expect(() =>
         stepContract.parse({ step: 'click', path: '/api/guilds', node: null } as never),
-      ).toThrow(/Unrecognized key\(s\) in object: 'path'/u);
+      ).toThrow(/Unrecognized key: \\"path\\"/u);
     });
 
     it('INVALID: {step: type, target, no value} => throws for the missing type field', () => {
@@ -659,7 +659,7 @@ describe('stepContract', () => {
           node: null,
           target: '[data-testid="PIXEL_BTN"]',
         } as never),
-      ).toThrow(/Unrecognized key: "target"/u);
+      ).toThrow(/Unrecognized key: \\"target\\"/u);
     });
 
     it('INVALID: {step: waitFor, +path from goto} => throws naming the stray key', () => {
@@ -673,7 +673,7 @@ describe('stepContract', () => {
           node: null,
           path: '/api/guilds',
         } as never),
-      ).toThrow(/Unrecognized key\(s\) in object: 'path'/u);
+      ).toThrow(/Unrecognized key: \\"path\\"/u);
     });
 
     it('INVALID: {step: click, +value from type} => throws naming the stray key', () => {
@@ -686,7 +686,7 @@ describe('stepContract', () => {
           node: null,
           value: '<script>alert(1)</script>',
         } as never),
-      ).toThrow(/Unrecognized key\(s\) in object: 'value'/u);
+      ).toThrow(/Unrecognized key: \\"value\\"/u);
     });
 
     it('INVALID: {step: type, +name from screenshot} => throws naming the stray key', () => {
@@ -700,7 +700,7 @@ describe('stepContract', () => {
           node: null,
           name: 'step1.png',
         } as never),
-      ).toThrow(/Unrecognized key\(s\) in object: 'name'/u);
+      ).toThrow(/Unrecognized key: \\"name\\"/u);
     });
 
     it('INVALID: {step: screenshot, +source from eval} => throws naming the stray key', () => {
@@ -711,7 +711,7 @@ describe('stepContract', () => {
           node: null,
           source: 'document.title',
         } as never),
-      ).toThrow(/Unrecognized key\(s\) in object: 'source'/u);
+      ).toThrow(/Unrecognized key: \\"source\\"/u);
     });
 
     it('INVALID: {step: eval, +path from goto} => throws naming the stray key', () => {
@@ -722,7 +722,7 @@ describe('stepContract', () => {
           node: null,
           path: '/api/guilds',
         } as never),
-      ).toThrow(/Unrecognized key\(s\) in object: 'path'/u);
+      ).toThrow(/Unrecognized key: \\"path\\"/u);
     });
 
     it('INVALID: {step: eval, +path from goto} => throws the exact rendered message', () => {
@@ -741,7 +741,7 @@ describe('stepContract', () => {
           '      "path"\n' +
           '    ],\n' +
           '    "path": [],\n' +
-          '    "message": "Unrecognized key(s) in object: \'path\'"\n' +
+          '    "message": "Unrecognized key: \\"path\\""\n' +
           '  }\n' +
           ']',
       );
@@ -754,7 +754,7 @@ describe('stepContract', () => {
           visible: '[data-testid="X"]',
           path: '/api/guilds',
         } as never),
-      ).toThrow(/Unrecognized key\(s\) in object: 'path'/u);
+      ).toThrow(/Unrecognized key: \\"path\\"/u);
     });
 
     it('INVALID: {step: waitFor, misspelled "taget"} => throws naming the misspelled key', () => {
@@ -767,7 +767,7 @@ describe('stepContract', () => {
           timeoutMs: 20000,
           node: null,
         } as never),
-      ).toThrow(/Unrecognized key\(s\) in object: 'taget'/u);
+      ).toThrow(/Unrecognized key: \\"taget\\"/u);
     });
 
     it('INVALID: {step: seed, +target from click} => throws naming the stray key', () => {
@@ -777,7 +777,7 @@ describe('stepContract', () => {
           recipe: 'guild-mid-execution',
           target: '[data-testid="PIXEL_BTN"]',
         } as never),
-      ).toThrow(/Unrecognized key: "target"/u);
+      ).toThrow(/Unrecognized key: \\"target\\"/u);
     });
   });
 
@@ -1070,7 +1070,7 @@ describe('stepContract', () => {
           height: 720,
           target: '[data-testid="X"]',
         } as never),
-      ).toThrow(/Unrecognized key: "target"/u);
+      ).toThrow(/Unrecognized key: \\"target\\"/u);
     });
   });
 
@@ -1134,7 +1134,7 @@ describe('stepContract', () => {
           path: '/api/guilds',
           target: '[data-testid="X"]',
         } as never),
-      ).toThrow(/Unrecognized key: "target"/u);
+      ).toThrow(/Unrecognized key: \\"target\\"/u);
     });
   });
 
@@ -1192,7 +1192,7 @@ describe('stepContract', () => {
           source: 'window.__injected = true;',
           target: '[data-testid="X"]',
         } as never),
-      ).toThrow(/Unrecognized key: "target"/u);
+      ).toThrow(/Unrecognized key: \\"target\\"/u);
     });
   });
 
@@ -1250,7 +1250,7 @@ describe('stepContract', () => {
           path: 'guilds/g1/quests/q1/quest.json',
           target: '[data-testid="X"]',
         } as never),
-      ).toThrow(/Unrecognized key: "target"/u);
+      ).toThrow(/Unrecognized key: \\"target\\"/u);
     });
   });
 
@@ -1313,7 +1313,7 @@ describe('stepContract', () => {
           step: 'storage',
           target: '[data-testid="X"]',
         } as never),
-      ).toThrow(/Unrecognized key: "target"/u);
+      ).toThrow(/Unrecognized key: \\"target\\"/u);
     });
 
     it('VALID: {step: hold, minimal} => parses with defaults', () => {
@@ -1384,7 +1384,7 @@ describe('stepContract', () => {
           step: 'hold',
           target: '[data-testid="X"]',
         } as never),
-      ).toThrow(/Unrecognized key: "target"/u);
+      ).toThrow(/Unrecognized key: \\"target\\"/u);
     });
   });
 
@@ -1446,7 +1446,7 @@ describe('stepContract', () => {
           action: 'start',
           target: '[data-testid="X"]',
         } as never),
-      ).toThrow(/Unrecognized key: "target"/u);
+      ).toThrow(/Unrecognized key: \\"target\\"/u);
     });
   });
 
@@ -1517,7 +1517,7 @@ describe('stepContract', () => {
           as: 'clean',
           target: '[data-testid="X"]',
         } as never),
-      ).toThrow(/Unrecognized key: "target"/u);
+      ).toThrow(/Unrecognized key: \\"target\\"/u);
     });
 
     it('VALID: {step: reset, to: "clean"} => parses valid reset step with state level and to snapshot', () => {
@@ -1585,7 +1585,7 @@ describe('stepContract', () => {
           level: 'page',
           target: '[data-testid="X"]',
         } as never),
-      ).toThrow(/Unrecognized key: "target"/u);
+      ).toThrow(/Unrecognized key: \\"target\\"/u);
     });
   });
 });

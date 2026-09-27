@@ -22,7 +22,9 @@ describe('snapshotOrdinalContract', () => {
     });
 
     it('INVALID: {value: 1.5} => throws, because a directory number is an integer', () => {
-      expect(() => snapshotOrdinalContract.parse(1.5)).toThrow(/integer/u);
+      expect(() => snapshotOrdinalContract.parse(1.5)).toThrow(
+        /Invalid input: expected int, received number/u,
+      );
     });
   });
 });

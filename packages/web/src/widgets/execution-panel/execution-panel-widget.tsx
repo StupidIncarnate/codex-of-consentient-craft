@@ -33,6 +33,7 @@ import type { ButtonLabel } from '../../contracts/button-label/button-label-cont
 import type { ChatEntry } from '@dungeonmaster/shared/contracts';
 import { completedCountContract } from '@dungeonmaster/shared/contracts';
 import type { CompletedCount } from '@dungeonmaster/shared/contracts';
+import { workItemPayloadKeyContract } from '@dungeonmaster/shared/contracts';
 import type { DependencyLabel } from '../../contracts/dependency-label/dependency-label-contract';
 import type { DisplayFilePath } from '../../contracts/display-file-path/display-file-path-contract';
 import type { DisplayLabel } from '../../contracts/display-label/display-label-contract';
@@ -378,13 +379,14 @@ export const ExecutionPanelWidget = ({
         return;
       }
       // Piece name: a human name off the payload if one exists there, else the plan's own
-      // mnemonic pieceId — `payload` is `z.record(z.string(), z.unknown())` (the per-family shape lives on
-      // the orchestrator's own plan-file contract, which this package may not import), so
-      // `pieceName` is the one key checked defensively. A work item with no `pieceId` at all
-      // groups under the sentinel.
+      // mnemonic pieceId — `payload` is `z.record(workItemPayloadKeyContract, z.unknown())` (the
+      // per-family shape lives on the orchestrator's own plan-file contract, which this package may
+      // not import), so `pieceName` is the one key checked defensively, re-parsed through the
+      // branded key contract to read it off the record. A work item with no `pieceId` at all groups
+      // under the sentinel.
       const pieceGroups = new Map<DisplayLabel, WorkItem[]>();
       stepGroup.forEach((wi) => {
-        const payloadPieceName = wi.payload?.pieceName;
+        const payloadPieceName = wi.payload?.[workItemPayloadKeyContract.parse('pieceName')];
         const pieceLabel =
           wi.pieceId === undefined
             ? undefined

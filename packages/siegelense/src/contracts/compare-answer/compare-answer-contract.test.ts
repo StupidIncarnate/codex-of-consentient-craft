@@ -70,7 +70,7 @@ describe('compareAnswerContract', () => {
           elements: { runA: null, runB: null },
           bogusField: 'x',
         } as never),
-      ).toThrow(/Unrecognized key\(s\) in object: 'bogusField'/u);
+      ).toThrow(/Unrecognized key: \\"bogusField\\"/u);
     });
   });
 

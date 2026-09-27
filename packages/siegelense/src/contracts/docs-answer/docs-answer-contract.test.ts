@@ -76,12 +76,10 @@ describe('docsAnswerContract', () => {
       expect(result.success).toBe(false);
       expect(result.error?.issues).toStrictEqual([
         {
-          code: 'invalid_enum_value',
-          options: ['walking', 'attacking', 'fixing'],
+          code: 'invalid_value',
+          values: ['walking', 'attacking', 'fixing'],
           path: ['requested'],
-          received: 'reader',
-          message:
-            "Invalid enum value. Expected 'walking' | 'attacking' | 'fixing', received 'reader'",
+          message: 'Invalid option: expected one of "walking"|"attacking"|"fixing"',
         },
       ]);
     });

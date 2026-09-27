@@ -40,7 +40,7 @@ describe('devLogEventFormatTransformer', () => {
         },
       });
 
-      expect(result).toBe('◂  chat-output  proc:abc12345  assistant/text  "Let me read the file."');
+      expect(result).toBe('◂  chat-output  proc:99cf9441  assistant/text  "Let me read the file."');
     });
 
     it('VALID: {assistant thinking entry} => shows thinking label', () => {
@@ -60,7 +60,7 @@ describe('devLogEventFormatTransformer', () => {
         },
       });
 
-      expect(result).toBe('◂  chat-output  proc:abc12345  assistant/thinking');
+      expect(result).toBe('◂  chat-output  proc:99cf9441  assistant/thinking');
     });
 
     it('VALID: {pipeline event with slotIndex} => shows slot label', () => {
@@ -95,7 +95,7 @@ describe('devLogEventFormatTransformer', () => {
         },
       });
 
-      expect(result).toBe('◂  chat-output  proc:abc12345  (no entries)');
+      expect(result).toBe('◂  chat-output  proc:99cf9441  (no entries)');
     });
   });
 });

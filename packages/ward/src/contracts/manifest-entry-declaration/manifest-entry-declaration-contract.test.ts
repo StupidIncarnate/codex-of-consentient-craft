@@ -33,13 +33,13 @@ describe('manifestEntryDeclarationContract', () => {
     it('INVALID: {field: ""} => throws validation error', () => {
       expect(() => {
         return manifestEntryDeclarationContract.parse({ field: '', declaredPath: 'dist/index.js' });
-      }).toThrow(/String must contain at least 1/u);
+      }).toThrow(/Too small: expected string to have >=1 characters/u);
     });
 
     it('INVALID: {declaredPath: ""} => throws validation error', () => {
       expect(() => {
         return manifestEntryDeclarationContract.parse({ field: 'main', declaredPath: '' });
-      }).toThrow(/String must contain at least 1/u);
+      }).toThrow(/Too small: expected string to have >=1 characters/u);
     });
 
     it('INVALID: {missing declaredPath} => throws validation error', () => {

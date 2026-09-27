@@ -54,7 +54,7 @@ export const laneEnvSubstituteTransformer = ({
   Object.fromEntries(
     Object.entries(env).map(([key, value]): [PropertyKey, ContentText] => {
       const substituted = lanePlaceholderSubstituteTransformer({
-        template: value ?? contentTextContract.parse(''),
+        template: value,
         ports,
         home,
         claudeQueueDir,

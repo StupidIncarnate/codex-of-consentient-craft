@@ -29,9 +29,8 @@ describe('killArgsContract', () => {
         {
           code: 'invalid_type',
           expected: 'string',
-          received: 'undefined',
           path: ['instanceId'],
-          message: 'received undefined',
+          message: 'Invalid input: expected string, received undefined',
         },
       ]);
     });

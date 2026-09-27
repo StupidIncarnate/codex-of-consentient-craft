@@ -23,7 +23,7 @@ describe('getProjectMapInputContract', () => {
   it('INVALID: {packages: []} => throws min-length error', () => {
     expect(() => {
       getProjectMapInputContract.parse({ packages: [] });
-    }).toThrow(/at least 1 element/u);
+    }).toThrow(/Too small: expected array to have >=1 items/u);
   });
 
   it('INVALID: {packages: [""]} => throws min-length error on the package name', () => {

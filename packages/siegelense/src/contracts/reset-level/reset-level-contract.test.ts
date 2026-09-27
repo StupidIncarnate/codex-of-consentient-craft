@@ -3,16 +3,13 @@ import { ResetLevelStub } from './reset-level.stub';
 
 describe('resetLevelContract', () => {
   describe('valid members', () => {
-    it.each(resetLevelContract.options)(
-      'VALID: {value: %s} => parses to itself',
-      (value) => {
-        const resetLevel = ResetLevelStub({ value });
+    it.each(resetLevelContract.options)('VALID: {value: %s} => parses to itself', (value) => {
+      const resetLevel = ResetLevelStub({ value });
 
-        const result = resetLevelContract.parse(resetLevel);
+      const result = resetLevelContract.parse(resetLevel);
 
-        expect(result).toBe(value);
-      },
-    );
+      expect(result).toBe(value);
+    });
   });
 
   describe('invalid members', () => {

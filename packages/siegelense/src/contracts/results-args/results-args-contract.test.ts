@@ -60,7 +60,7 @@ describe('resultsArgsContract', () => {
           since: null,
           isJson: false,
         } as never),
-      ).toThrow(/Unrecognized key\(s\) in object: 'instance'/u);
+      ).toThrow(/Unrecognized key: \\"instance\\"/u);
     });
   });
 
@@ -81,9 +81,8 @@ describe('resultsArgsContract', () => {
         {
           code: 'invalid_type',
           expected: 'string',
-          received: 'undefined',
           path: ['instanceId'],
-          message: 'received undefined',
+          message: 'Invalid input: expected string, received undefined',
         },
       ]);
     });

@@ -13,6 +13,7 @@ import type {
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { pastedImagePersistBrokerProxy } from '../../../brokers/pasted-image/persist/pasted-image-persist-broker.proxy';
+import { zodFirstFieldErrorMessageAdapterProxy } from '../../../adapters/zod/first-field-error-message/zod-first-field-error-message-adapter.proxy';
 import { QuestChatResponder } from './quest-chat-responder';
 
 type Quest = ReturnType<typeof QuestStub>;
@@ -63,6 +64,9 @@ export const QuestChatResponderProxy = (): {
   // boundary underneath it (mkdir, writeFile, randomUUID, homedir), composed exactly the way the
   // broker's own test does.
   const persistProxy = pastedImagePersistBrokerProxy();
+  // The adapter has no I/O to mock (see its own proxy header) — composing it here is what the
+  // proxy-child-creation rule expects of every implementation import, not a stage this test needs.
+  zodFirstFieldErrorMessageAdapterProxy();
   // Extra READ-ONLY handle on the same npm `writeFile` persistProxy's own fsWriteFileBase64AdapterProxy
   // already stages. It never calls .calledWith, only .callsMatching, so it cannot collide with that
   // staging — same pattern pastedImagePersistBrokerProxy itself uses for its writeCallCount(). This is

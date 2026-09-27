@@ -12,7 +12,7 @@ import { durationMsContract } from '../duration-ms/duration-ms-contract';
 export const passingTestContract = z.object({
   suitePath: z.string().brand<'SuitePath'>(),
   testName: z.string().brand<'TestName'>(),
-  durationMs: durationMsContract.default(0),
+  durationMs: durationMsContract.default(durationMsContract.parse(0)),
 });
 
 export type PassingTest = z.infer<typeof passingTestContract>;

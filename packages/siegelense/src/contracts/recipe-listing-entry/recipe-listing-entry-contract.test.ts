@@ -39,7 +39,7 @@ describe('recipeListingEntryContract', () => {
 
     it('INVALID: {an entry carrying an unrecognised key} => throws naming that key', () => {
       expect(() => RecipeListingEntryStub({ bogusKey: 'nope' } as never)).toThrow(
-        /Unrecognized key\(s\) in object: 'bogusKey'/u,
+        /Unrecognized key: \\"bogusKey\\"/u,
       );
     });
   });

@@ -130,7 +130,7 @@ describe('trackCoverageContract', () => {
 
     it('INVALID: {owed: -1} => throws', () => {
       expect(() => TrackCoverageStub({ owed: -1 as never })).toThrow(
-        /greater than or equal to 0|Number must be/u,
+        /Too small: expected number to be >=0/u,
       );
     });
   });

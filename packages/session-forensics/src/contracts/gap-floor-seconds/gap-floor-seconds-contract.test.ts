@@ -30,7 +30,7 @@ describe('gapFloorSecondsContract', () => {
     });
 
     it('INVALID: "abc" => throws for a non-numeric string', () => {
-      expect(() => gapFloorSecondsContract.parse('abc')).toThrow(/Expected number, received nan/u);
+      expect(() => gapFloorSecondsContract.parse('abc')).toThrow(/expected number, received NaN/u);
     });
   });
 

@@ -15,7 +15,7 @@ describe('tsconfigCompilerOptionsContract', () => {
   });
 
   it('INVALID: {value: a number} => throws', () => {
-    expect(() => tsconfigCompilerOptionsContract.parse({ strict: 1 })).toThrow(/Expected/u);
+    expect(() => tsconfigCompilerOptionsContract.parse({ strict: 1 })).toThrow(/received number/u);
   });
 
   it('VALID: {} => the stub defaults to a source customConditions entry', () => {

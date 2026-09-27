@@ -51,6 +51,7 @@ export const QuestWardDetailResponderProxy = (): {
       questPath: AbsoluteFilePathStub({ value: '/home/testuser/quest' }),
     });
     locationsProxy.setupWardResultsPath({
+      questFolderPath: '/home/testuser/quest',
       wardResultsPath: SharedFilePathStub({ value: '/home/testuser/quest/ward-results' }),
     });
     pathJoinProxy.returns({ result: SharedFilePathStub({ value: DETAIL_FILE_PATH_VALUE }) });

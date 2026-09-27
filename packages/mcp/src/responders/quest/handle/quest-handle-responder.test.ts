@@ -1055,7 +1055,7 @@ describe('QuestHandleResponder', () => {
           tool: ToolNameStub({ value: 'get-quest-planning-notes' }),
           args: { questId: 'test-quest-id', section: 'blight' },
         }),
-      ).rejects.toThrow(/Unrecognized key\(s\) in object: 'section'/u);
+      ).rejects.toThrow(/Unrecognized key: \\"section\\"/u);
     });
 
     it('VALID: {unsuccessful result} => returns isError true', async () => {

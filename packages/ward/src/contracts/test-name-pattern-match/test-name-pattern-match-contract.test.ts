@@ -26,11 +26,15 @@ describe('testNamePatternMatchContract', () => {
     });
 
     it('EMPTY: {value: null} => throws for null', () => {
-      expect(() => testNamePatternMatchContract.parse(null)).toThrow(/received null/u);
+      expect(() => testNamePatternMatchContract.parse(null)).toThrow(
+        /Invalid option: expected one of \\"matched\\"\|\\"unmatched\\"/u,
+      );
     });
 
     it('EMPTY: {value: undefined} => throws for undefined', () => {
-      expect(() => testNamePatternMatchContract.parse(undefined)).toThrow(/received undefined/u);
+      expect(() => testNamePatternMatchContract.parse(undefined)).toThrow(
+        /Invalid option: expected one of \\"matched\\"\|\\"unmatched\\"/u,
+      );
     });
   });
 

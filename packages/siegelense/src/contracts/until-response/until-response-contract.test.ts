@@ -34,7 +34,7 @@ describe('untilResponseContract', () => {
     it('INVALID: {+extra key} => throws naming the stray key', () => {
       expect(() =>
         untilResponseContract.parse({ method: 'POST', path: '/api/quests', extra: 'x' } as never),
-      ).toThrow(/Unrecognized key\(s\) in object: 'extra'/u);
+      ).toThrow(/Unrecognized key: \\"extra\\"/u);
     });
 
     it('INVALID: {missing path} => throws for the missing field', () => {

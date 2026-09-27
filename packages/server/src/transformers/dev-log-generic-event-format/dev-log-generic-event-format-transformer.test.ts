@@ -20,7 +20,7 @@ describe('devLogGenericEventFormatTransformer', () => {
       },
     });
 
-    expect(result).toBe('proc:abc12345  phase:running');
+    expect(result).toBe('proc:99cf9441  phase:running');
   });
 
   it('VALID: {payload with role and slotIndex} => shows both', () => {
@@ -32,7 +32,7 @@ describe('devLogGenericEventFormatTransformer', () => {
       },
     });
 
-    expect(result).toBe('proc:abc12345  slot:1  role:codeweaver');
+    expect(result).toBe('proc:99cf9441  slot:1  role:codeweaver');
   });
 
   it('VALID: {payload with questions array} => shows count', () => {
@@ -43,7 +43,7 @@ describe('devLogGenericEventFormatTransformer', () => {
       },
     });
 
-    expect(result).toBe('proc:abc12345  questions:2');
+    expect(result).toBe('proc:99cf9441  questions:2');
   });
 
   it('EDGE: {empty payload} => returns empty', () => {
@@ -76,7 +76,7 @@ describe('devLogGenericEventFormatTransformer', () => {
       },
     });
 
-    expect(result).toBe('proc:abc12345');
+    expect(result).toBe('proc:99cf9441');
   });
 
   it('VALID: {smoketest-shaped payload with caseResult} => ignores smoketest-specific fields', () => {
@@ -89,6 +89,6 @@ describe('devLogGenericEventFormatTransformer', () => {
       },
     });
 
-    expect(result).toBe('proc:abc12345  phase:case-complete');
+    expect(result).toBe('proc:99cf9441  phase:case-complete');
   });
 });

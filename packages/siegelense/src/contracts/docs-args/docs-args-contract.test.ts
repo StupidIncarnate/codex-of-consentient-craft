@@ -35,11 +35,10 @@ describe('docsArgsContract', () => {
       expect(result.success).toBe(false);
       expect(result.error?.issues).toStrictEqual([
         {
-          code: 'invalid_type',
-          expected: "'walking' | 'attacking' | 'fixing'",
-          received: 'undefined',
+          code: 'invalid_value',
+          values: ['walking', 'attacking', 'fixing'],
           path: ['scope'],
-          message: 'received undefined',
+          message: 'Invalid option: expected one of "walking"|"attacking"|"fixing"',
         },
       ]);
     });
@@ -50,12 +49,10 @@ describe('docsArgsContract', () => {
       expect(result.success).toBe(false);
       expect(result.error?.issues).toStrictEqual([
         {
-          code: 'invalid_enum_value',
-          options: ['walking', 'attacking', 'fixing'],
+          code: 'invalid_value',
+          values: ['walking', 'attacking', 'fixing'],
           path: ['scope'],
-          received: 'reader',
-          message:
-            "Invalid enum value. Expected 'walking' | 'attacking' | 'fixing', received 'reader'",
+          message: 'Invalid option: expected one of "walking"|"attacking"|"fixing"',
         },
       ]);
     });
@@ -68,9 +65,8 @@ describe('docsArgsContract', () => {
         {
           code: 'invalid_type',
           expected: 'boolean',
-          received: 'undefined',
           path: ['isJson'],
-          message: 'received undefined',
+          message: 'Invalid input: expected boolean, received undefined',
         },
       ]);
     });

@@ -81,7 +81,9 @@ export const stepContract = z
         // job (holding earlier steps' outputs), not this contract's.
         path: urlPathContract.or(stepRefContract),
         node: nodeLabelContract.nullable().default(null),
-        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+        expect: stepExpectationContract.default(
+          stepExpectationContract.parse(stepStatics.defaults.expect),
+        ),
       })
       .strict(),
     z
@@ -92,7 +94,9 @@ export const stepContract = z
         state: locatorStateContract,
         timeoutMs: timeoutMsContract.nullable().default(null),
         node: nodeLabelContract.nullable().default(null),
-        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+        expect: stepExpectationContract.default(
+          stepExpectationContract.parse(stepStatics.defaults.expect),
+        ),
       })
       .strict(),
     z
@@ -103,7 +107,9 @@ export const stepContract = z
         ref: refContract.nullable().default(null),
         timeoutMs: timeoutMsContract.nullable().default(null),
         node: nodeLabelContract.nullable().default(null),
-        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+        expect: stepExpectationContract.default(
+          stepExpectationContract.parse(stepStatics.defaults.expect),
+        ),
       })
       .strict(),
     z
@@ -115,7 +121,9 @@ export const stepContract = z
         value: contentTextContract,
         timeoutMs: timeoutMsContract.nullable().default(null),
         node: nodeLabelContract.nullable().default(null),
-        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+        expect: stepExpectationContract.default(
+          stepExpectationContract.parse(stepStatics.defaults.expect),
+        ),
       })
       .strict(),
     z
@@ -134,7 +142,9 @@ export const stepContract = z
           },
         ),
         node: nodeLabelContract.nullable().default(null),
-        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+        expect: stepExpectationContract.default(
+          stepExpectationContract.parse(stepStatics.defaults.expect),
+        ),
       })
       .strict(),
     z
@@ -142,7 +152,9 @@ export const stepContract = z
         step: z.literal('eval'),
         source: contentTextContract,
         node: nodeLabelContract.nullable().default(null),
-        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+        expect: stepExpectationContract.default(
+          stepExpectationContract.parse(stepStatics.defaults.expect),
+        ),
       })
       .strict(),
     z
@@ -156,7 +168,9 @@ export const stepContract = z
         // never one silent element-tag match apart.
         within: selectorContract.nullable().default(null),
         node: nodeLabelContract.nullable().default(null),
-        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+        expect: stepExpectationContract.default(
+          stepExpectationContract.parse(stepStatics.defaults.expect),
+        ),
       })
       .strict(),
     z
@@ -164,7 +178,9 @@ export const stepContract = z
         step: z.literal('box'),
         ref: refContract,
         node: nodeLabelContract.nullable().default(null),
-        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+        expect: stepExpectationContract.default(
+          stepExpectationContract.parse(stepStatics.defaults.expect),
+        ),
       })
       .strict(),
     z
@@ -174,7 +190,9 @@ export const stepContract = z
         fields: z.array(domFieldContract).readonly().nullable().default(null),
         text: domTextModeContract.nullable().default(null),
         node: nodeLabelContract.nullable().default(null),
-        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+        expect: stepExpectationContract.default(
+          stepExpectationContract.parse(stepStatics.defaults.expect),
+        ),
       })
       .strict(),
     z
@@ -187,7 +205,9 @@ export const stepContract = z
         params: z.record(recipeInputKeyContract, z.unknown()).nullable().default(null),
         as: stepOutputNameContract.nullable().default(null),
         node: nodeLabelContract.nullable().default(null),
-        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+        expect: stepExpectationContract.default(
+          stepExpectationContract.parse(stepStatics.defaults.expect),
+        ),
       })
       .strict(),
     z
@@ -203,7 +223,9 @@ export const stepContract = z
         console: untilConsolePatternContract.nullable().default(null),
         timeoutMs: timeoutMsContract.nullable().default(null),
         node: nodeLabelContract.nullable().default(null),
-        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+        expect: stepExpectationContract.default(
+          stepExpectationContract.parse(stepStatics.defaults.expect),
+        ),
       })
       .strict(),
     z
@@ -211,14 +233,18 @@ export const stepContract = z
         step: z.literal('key'),
         press: contentTextContract,
         node: nodeLabelContract.nullable().default(null),
-        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+        expect: stepExpectationContract.default(
+          stepExpectationContract.parse(stepStatics.defaults.expect),
+        ),
       })
       .strict(),
     z
       .object({
         step: z.literal('health'),
         node: nodeLabelContract.nullable().default(null),
-        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+        expect: stepExpectationContract.default(
+          stepExpectationContract.parse(stepStatics.defaults.expect),
+        ),
       })
       .strict(),
     z
@@ -227,20 +253,24 @@ export const stepContract = z
         width: z.number().int().positive().brand<'PositiveNumber'>(),
         height: z.number().int().positive().brand<'PositiveNumber'>(),
         node: nodeLabelContract.nullable().default(null),
-        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+        expect: stepExpectationContract.default(
+          stepExpectationContract.parse(stepStatics.defaults.expect),
+        ),
       })
       .strict(),
     z
       .object({
         step: z.literal('request'),
-        method: httpMethodContract.default('GET'),
+        method: httpMethodContract.default(httpMethodContract.parse('GET')),
         path: z.string().brand<'HttpRequestPath'>(),
         body: z.unknown().optional(),
         headers: z
           .record(z.string().brand<'HttpHeaderName'>(), z.string().brand<'HttpHeaderValue'>())
           .optional(),
         node: nodeLabelContract.nullable().default(null),
-        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+        expect: stepExpectationContract.default(
+          stepExpectationContract.parse(stepStatics.defaults.expect),
+        ),
       })
       .strict(),
     z
@@ -248,7 +278,9 @@ export const stepContract = z
         step: z.literal('before'),
         source: contentTextContract,
         node: nodeLabelContract.nullable().default(null),
-        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+        expect: stepExpectationContract.default(
+          stepExpectationContract.parse(stepStatics.defaults.expect),
+        ),
       })
       .strict(),
     z
@@ -256,7 +288,9 @@ export const stepContract = z
         step: z.literal('file'),
         path: stepFilePathContract,
         node: nodeLabelContract.nullable().default(null),
-        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+        expect: stepExpectationContract.default(
+          stepExpectationContract.parse(stepStatics.defaults.expect),
+        ),
       })
       .strict(),
     z
@@ -266,7 +300,9 @@ export const stepContract = z
         // schema's own output type, and a bare string can never satisfy a branded type.
         prefix: z.string().default(storageStatics.defaults.prefix).brand<'StoragePrefix'>(),
         node: nodeLabelContract.nullable().default(null),
-        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+        expect: stepExpectationContract.default(
+          stepExpectationContract.parse(stepStatics.defaults.expect),
+        ),
       })
       .strict(),
     z
@@ -279,7 +315,9 @@ export const stepContract = z
         value: contentTextContract.nullable().default(null),
         timeoutMs: timeoutMsContract.nullable().default(null),
         node: nodeLabelContract.nullable().default(null),
-        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+        expect: stepExpectationContract.default(
+          stepExpectationContract.parse(stepStatics.defaults.expect),
+        ),
       })
       .strict(),
     z
@@ -300,7 +338,9 @@ export const stepContract = z
           .default(holdStatics.defaults.everyMs)
           .brand<'HoldEveryMs'>(),
         node: nodeLabelContract.nullable().default(null),
-        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+        expect: stepExpectationContract.default(
+          stepExpectationContract.parse(stepStatics.defaults.expect),
+        ),
       })
       .strict(),
     z
@@ -308,7 +348,9 @@ export const stepContract = z
         step: z.literal('video'),
         action: videoActionContract,
         node: nodeLabelContract.nullable().default(null),
-        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+        expect: stepExpectationContract.default(
+          stepExpectationContract.parse(stepStatics.defaults.expect),
+        ),
       })
       .strict(),
     z
@@ -316,17 +358,21 @@ export const stepContract = z
         step: z.literal('snapshot'),
         as: snapshotNameContract,
         node: nodeLabelContract.nullable().default(null),
-        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+        expect: stepExpectationContract.default(
+          stepExpectationContract.parse(stepStatics.defaults.expect),
+        ),
       })
       .strict(),
     z
       .object({
         step: z.literal('reset'),
-        level: resetLevelContract.default('state'),
+        level: resetLevelContract.default(resetLevelContract.parse('state')),
         to: snapshotNameContract.nullable().default(null),
         reseed: contentTextContract.nullable().default(null),
         node: nodeLabelContract.nullable().default(null),
-        expect: stepExpectationContract.default(stepStatics.defaults.expect),
+        expect: stepExpectationContract.default(
+          stepExpectationContract.parse(stepStatics.defaults.expect),
+        ),
       })
       .strict(),
   ])

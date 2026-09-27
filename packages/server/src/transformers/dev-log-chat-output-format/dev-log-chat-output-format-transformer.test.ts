@@ -17,7 +17,7 @@ describe('devLogChatOutputFormatTransformer', () => {
       },
     });
 
-    expect(result).toBe('proc:abc12345  assistant/text  "Hello world"');
+    expect(result).toBe('proc:99cf9441  assistant/text  "Hello world"');
   });
 
   it('VALID: {pipeline event with slotIndex and tool_use entries} => shows slot and tool', () => {
@@ -48,7 +48,7 @@ describe('devLogChatOutputFormatTransformer', () => {
       },
     });
 
-    expect(result).toBe('proc:abc12345  (no entries)');
+    expect(result).toBe('proc:99cf9441  (no entries)');
   });
 
   it('EDGE: {empty entries array} => shows (no entries)', () => {
@@ -59,7 +59,7 @@ describe('devLogChatOutputFormatTransformer', () => {
       },
     });
 
-    expect(result).toBe('proc:abc12345  (no entries)');
+    expect(result).toBe('proc:99cf9441  (no entries)');
   });
 
   it('VALID: {multiple entries} => joins with " | "', () => {
@@ -85,6 +85,6 @@ describe('devLogChatOutputFormatTransformer', () => {
       },
     });
 
-    expect(result).toBe('proc:abc12345  assistant/text  "hello" | assistant/thinking');
+    expect(result).toBe('proc:99cf9441  assistant/text  "hello" | assistant/thinking');
   });
 });

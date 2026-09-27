@@ -32,7 +32,9 @@ describe('processGroupIdContract', () => {
     });
 
     it('INVALID: {value: 3.5} => throws validation error', () => {
-      expect(() => processGroupIdContract.parse(3.5)).toThrow(/integer/u);
+      expect(() => processGroupIdContract.parse(3.5)).toThrow(
+        /Invalid input: expected int, received number/u,
+      );
     });
   });
 });

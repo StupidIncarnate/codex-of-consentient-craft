@@ -181,7 +181,7 @@ describe('runResultContract', () => {
           },
           shots: [],
         }),
-      ).toThrow(/received undefined/u);
+      ).toThrow(/\\"done\\"\|\\"timeout\\"\|\\"failed\\"/u);
     });
   });
 

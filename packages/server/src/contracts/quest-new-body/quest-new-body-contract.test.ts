@@ -73,7 +73,7 @@ describe('questNewBodyContract', () => {
 
     it('INVALID: {message: ""} (empty string) => throws min length error', () => {
       expect(() => questNewBodyContract.parse({ message: '' })).toThrow(
-        /String must contain at least 1/u,
+        /Too small: expected string to have >=1 characters/u,
       );
     });
 

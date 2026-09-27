@@ -32,11 +32,15 @@ describe('checkStatusContract', () => {
     });
 
     it('EMPTY: {value: null} => throws for null', () => {
-      expect(() => checkStatusContract.parse(null)).toThrow(/received null/u);
+      expect(() => checkStatusContract.parse(null)).toThrow(
+        /Invalid option: expected one of \\"pass\\"\|\\"fail\\"\|\\"skip\\"/u,
+      );
     });
 
     it('EMPTY: {value: undefined} => throws for undefined', () => {
-      expect(() => checkStatusContract.parse(undefined)).toThrow(/received undefined/u);
+      expect(() => checkStatusContract.parse(undefined)).toThrow(
+        /Invalid option: expected one of \\"pass\\"\|\\"fail\\"\|\\"skip\\"/u,
+      );
     });
   });
 

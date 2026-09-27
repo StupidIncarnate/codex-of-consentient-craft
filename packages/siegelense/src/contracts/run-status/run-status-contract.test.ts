@@ -3,16 +3,13 @@ import { RunStatusStub } from './run-status.stub';
 
 describe('runStatusContract', () => {
   describe('valid members', () => {
-    it.each(runStatusContract.options)(
-      'VALID: {value: %s} => parses to itself',
-      (value) => {
-        const runStatus = RunStatusStub({ value });
+    it.each(runStatusContract.options)('VALID: {value: %s} => parses to itself', (value) => {
+      const runStatus = RunStatusStub({ value });
 
-        const result = runStatusContract.parse(runStatus);
+      const result = runStatusContract.parse(runStatus);
 
-        expect(result).toBe(value);
-      },
-    );
+      expect(result).toBe(value);
+    });
   });
 
   describe('invalid members', () => {

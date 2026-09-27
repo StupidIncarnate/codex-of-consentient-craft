@@ -72,7 +72,7 @@ describe('gapReportContract', () => {
   describe('invalid input', () => {
     it('INVALID: {blockedSeconds: -1} => throws', () => {
       expect(() => GapReportStub({ blockedSeconds: -1 })).toThrow(
-        /greater than or equal to 0|Number must be/u,
+        /Too small: expected number to be >=0/u,
       );
     });
 

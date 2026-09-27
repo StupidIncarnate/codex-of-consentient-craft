@@ -50,7 +50,7 @@ describe('storageReadingContract', () => {
           local: 'not an object' as never,
           session: {},
         });
-      }).toThrow(/expected object/u);
+      }).toThrow(/Invalid input: expected record/u);
     });
 
     it('INVALID: {session: { key: 123 }} => throws validation error on non-string/non-null value', () => {

@@ -3,16 +3,13 @@ import { InstanceStateStub } from './instance-state.stub';
 
 describe('instanceStateContract', () => {
   describe('valid members', () => {
-    it.each(instanceStateContract.options)(
-      'VALID: {value: %s} => parses to itself',
-      (value) => {
-        const instanceState = InstanceStateStub({ value });
+    it.each(instanceStateContract.options)('VALID: {value: %s} => parses to itself', (value) => {
+      const instanceState = InstanceStateStub({ value });
 
-        const result = instanceStateContract.parse(instanceState);
+      const result = instanceStateContract.parse(instanceState);
 
-        expect(result).toBe(value);
-      },
-    );
+      expect(result).toBe(value);
+    });
   });
 
   describe('invalid members', () => {

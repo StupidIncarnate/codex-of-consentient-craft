@@ -56,7 +56,7 @@ describe('toolResponseContract', () => {
         _toolResponseContract.parse({
           content: [{ type: 'image', text: 'data' }],
         });
-      }).toThrow(/invalid_literal/u);
+      }).toThrow(/Invalid input: expected \\"text\\"/u);
     });
 
     it('INVALID: {} => throws when content is missing', () => {

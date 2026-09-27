@@ -113,7 +113,7 @@ describe('cleanupAnswerContract', () => {
           assetsAged: { instances: 3, freedMB: 1840, videoFirst: true },
           leftAlone: [],
         }),
-      ).toThrow(/Unrecognized key\(s\) in object: 'videoFirst'/u);
+      ).toThrow(/Unrecognized key: \\"videoFirst\\"/u);
     });
   });
 

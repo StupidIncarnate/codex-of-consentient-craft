@@ -46,7 +46,7 @@ describe('compareArgsContract', () => {
           instanceA: 'inst_7f3a9c21',
           instanceB: 'inst_9b2c1234',
         } as never),
-      ).toThrow(/Unrecognized key\(s\) in object: 'instanceA', 'instanceB'/u);
+      ).toThrow(/Unrecognized keys: \\"instanceA\\", \\"instanceB\\"/u);
     });
   });
 
@@ -62,9 +62,8 @@ describe('compareArgsContract', () => {
         {
           code: 'invalid_type',
           expected: 'string',
-          received: 'undefined',
           path: ['runB'],
-          message: 'received undefined',
+          message: 'Invalid input: expected string, received undefined',
         },
       ]);
     });

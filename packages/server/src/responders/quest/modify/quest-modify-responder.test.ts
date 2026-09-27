@@ -100,7 +100,7 @@ describe('QuestModifyResponder', () => {
         status: 400,
         data: {
           error:
-            "Invalid enum value. Expected 'created' | 'pending' | 'explore_flows' | 'review_flows' | 'flows_approved' | 'explore_observables' | 'review_observables' | 'approved' | 'in_progress' | 'paused' | 'blocked' | 'complete' | 'merging' | 'merged' | 'abandoned', received 'not-a-real-status'",
+            'Invalid option: expected one of "created"|"pending"|"explore_flows"|"review_flows"|"flows_approved"|"explore_observables"|"review_observables"|"approved"|"in_progress"|"paused"|"blocked"|"complete"|"merging"|"merged"|"abandoned"',
         },
       });
     });

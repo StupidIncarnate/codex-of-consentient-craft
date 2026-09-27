@@ -96,7 +96,7 @@ describe('timeBucketContract', () => {
   describe('invalid input', () => {
     it('INVALID: {outputTokens: -1} => throws', () => {
       expect(() => TimeBucketStub({ outputTokens: -1 })).toThrow(
-        /greater than or equal to 0|Number must be/u,
+        /Too small: expected number to be >=0/u,
       );
     });
 

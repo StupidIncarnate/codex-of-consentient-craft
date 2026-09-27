@@ -28,7 +28,7 @@ describe('decodedFrameContract', () => {
           height: 1,
           pixels: [0, 0, 0, 255],
         } as never),
-      ).toThrow(/Input not instance of Uint8Array/u);
+      ).toThrow(/expected Uint8Array, received array/u);
     });
 
     it('INVALID: {missing width} => throws validation error', () => {

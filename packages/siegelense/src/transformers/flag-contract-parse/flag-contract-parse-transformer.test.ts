@@ -67,7 +67,7 @@ describe('flagContractParseTransformer', () => {
             throw zodIssueError;
           },
         }),
-      ).toThrow(/^--fields: a: Required; b: Required$/u);
+      ).toThrow(/^--fields: a: received undefined; b: received undefined$/u);
     });
   });
 

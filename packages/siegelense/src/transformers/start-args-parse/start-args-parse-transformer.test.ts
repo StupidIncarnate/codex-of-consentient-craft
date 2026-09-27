@@ -79,7 +79,7 @@ describe('startArgsParseTransformer', () => {
   describe('an empty --spec', () => {
     it('INVALID: {--spec ""} => throws naming --spec and specNameContract\'s own message', () => {
       expect(() => startArgsParseTransformer({ args: ['--spec', ''] })).toThrow(
-        /^--spec: String must contain at least 1 character\(s\)$/u,
+        /^--spec: Too small: expected string to have >=1 characters$/u,
       );
     });
   });
@@ -88,7 +88,7 @@ describe('startArgsParseTransformer', () => {
     it('INVALID: {--quest ""} => throws naming --quest and questIdContract\'s own message', () => {
       expect(() =>
         startArgsParseTransformer({ args: ['--spec', 'dungeonmaster-stack', '--quest', ''] }),
-      ).toThrow(/^--quest: String must contain at least 1 character\(s\)$/u);
+      ).toThrow(/^--quest: Too small: expected string to have >=1 characters$/u);
     });
   });
 
@@ -98,7 +98,7 @@ describe('startArgsParseTransformer', () => {
         startArgsParseTransformer({
           args: ['--spec', 'dungeonmaster-stack', '--guild', 'not-a-uuid'],
         }),
-      ).toThrow(/^--guild: Invalid uuid$/u);
+      ).toThrow(/^--guild: Invalid UUID$/u);
     });
   });
 

@@ -27,16 +27,16 @@ const FOLLOWUP_REJECTED_STATUSES: readonly StatusKey[] = STATUSES.filter(
 
 const FOLLOWUP_REJECTED_ERROR = 'Quest must be blocked, complete or merged for follow-up';
 
-// zod's own array-too-big message for pastedImageUploadListContract's `.max()` — the numeric ceiling
-// is derived from the static so this string tracks a future cap change without edits here.
-const IMAGES_TOO_MANY_ERROR = `Array must contain at most ${pastedImageStatics.maxImagesPerMessage} element(s)`;
+// zod v4's own array-too-big message for pastedImageUploadListContract's `.max()` — the numeric
+// ceiling is derived from the static so this string tracks a future cap change without edits here.
+const IMAGES_TOO_MANY_ERROR = `Too big: expected array to have <=${pastedImageStatics.maxImagesPerMessage} items`;
 
-// zod's own invalid_enum_value message for pastedImageMediaTypeContract — the option list is derived
+// zod v4's own invalid_value message for pastedImageMediaTypeContract — the option list is derived
 // from the static so it tracks pastedImageStatics.allowedMediaTypes rather than a hand-copied list.
 const DISALLOWED_MEDIA_TYPE = 'image/svg+xml';
-const IMAGES_DISALLOWED_MEDIA_TYPE_ERROR = `Invalid enum value. Expected ${pastedImageStatics.allowedMediaTypes
-  .map((mediaType) => `'${mediaType}'`)
-  .join(' | ')}, received '${DISALLOWED_MEDIA_TYPE}'`;
+const IMAGES_DISALLOWED_MEDIA_TYPE_ERROR = `Invalid option: expected one of ${pastedImageStatics.allowedMediaTypes
+  .map((mediaType) => `"${mediaType}"`)
+  .join('|')}`;
 
 // zod's own refine message for base64ImageDataContract's byte-ceiling check — the numeric ceiling is
 // derived from the static, matching the contract's own `Decoded image exceeds ${bytes} bytes` text.

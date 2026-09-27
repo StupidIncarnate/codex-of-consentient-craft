@@ -205,7 +205,7 @@ describe('resultsArgsParseTransformer', () => {
     it("INVALID: {--run bogus} => throws naming --run and runIdContract's own message", () => {
       expect(() =>
         resultsArgsParseTransformer({ args: ['--instance', 'inst_7f3a9c21', '--run', 'bogus'] }),
-      ).toThrow(/^--run: Invalid$/u);
+      ).toThrow(/^--run: Invalid string: must match pattern \/\^run_\[1-9\]\[0-9\]\*\$\/u$/u);
     });
   });
 
@@ -231,7 +231,7 @@ describe('resultsArgsParseTransformer', () => {
           args: ['--instance', 'inst_7f3a9c21', '--where-method', 'WOOF'],
         }),
       ).toThrow(
-        /^--where-method: Invalid enum value\. Expected 'GET' \| 'POST' \| 'PUT' \| 'PATCH' \| 'DELETE' \| 'HEAD' \| 'OPTIONS', received 'WOOF'$/u,
+        /^--where-method: Invalid option: expected one of "GET"\|"POST"\|"PUT"\|"PATCH"\|"DELETE"\|"HEAD"\|"OPTIONS"$/u,
       );
     });
   });
@@ -260,9 +260,7 @@ describe('resultsArgsParseTransformer', () => {
         resultsArgsParseTransformer({
           args: ['--instance', 'inst_7f3a9c21', '--where-level', 'fatal'],
         }),
-      ).toThrow(
-        /^--where-level: Invalid enum value\. Expected 'error' \| 'warn' \| 'info', received 'fatal'$/u,
-      );
+      ).toThrow(/^--where-level: Invalid option: expected one of "error"\|"warn"\|"info"$/u);
     });
   });
 
@@ -272,7 +270,7 @@ describe('resultsArgsParseTransformer', () => {
         resultsArgsParseTransformer({
           args: ['--instance', 'inst_7f3a9c21', '--where-steps', 'abc'],
         }),
-      ).toThrow(/^--where-steps: Invalid$/u);
+      ).toThrow(/^--where-steps: Invalid string: must match pattern \/\^\\d\+-\\d\+\$\/u$/u);
     });
   });
 
@@ -280,7 +278,7 @@ describe('resultsArgsParseTransformer', () => {
     it("INVALID: {--since now} => throws naming --since and sinceMarkerContract's own message", () => {
       expect(() =>
         resultsArgsParseTransformer({ args: ['--instance', 'inst_7f3a9c21', '--since', 'now'] }),
-      ).toThrow(/^--since: Invalid literal value, expected "boot"$/u);
+      ).toThrow(/^--since: Invalid input: expected "boot"$/u);
     });
   });
 

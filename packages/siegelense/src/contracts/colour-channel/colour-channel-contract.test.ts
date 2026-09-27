@@ -21,9 +21,7 @@ describe('colourChannelContract', () => {
   });
 
   it('INVALID: {value: 256} => throws, one past the 8-bit ceiling', () => {
-    expect(() => colourChannelContract.parse(256)).toThrow(
-      /Number must be less than or equal to 255/u,
-    );
+    expect(() => colourChannelContract.parse(256)).toThrow(/Too big: expected number to be <=255/u);
   });
 
   it('INVALID: {value: -1} => throws for a negative channel', () => {

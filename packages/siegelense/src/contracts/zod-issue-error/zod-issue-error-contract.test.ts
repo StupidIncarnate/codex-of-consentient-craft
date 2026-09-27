@@ -33,7 +33,7 @@ describe('zodIssueErrorContract', () => {
   describe('invalid input', () => {
     it('INVALID: {issues: []} => throws on the empty array', () => {
       expect(() => zodIssueErrorContract.parse({ issues: [] })).toThrow(
-        /Array must contain at least 1 element/u,
+        /"message": "Too small: expected array to have >=1 items"/u,
       );
     });
 

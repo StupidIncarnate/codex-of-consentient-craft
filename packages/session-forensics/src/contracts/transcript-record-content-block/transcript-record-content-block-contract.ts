@@ -11,13 +11,14 @@
  * // Every field but `type` is optional.
  */
 import { z } from 'zod';
+import { transcriptRecordToolInputKeyContract } from '../transcript-record-tool-input-key/transcript-record-tool-input-key-contract';
 
 export const transcriptRecordContentBlockContract = z.object({
   type: z.string().brand<'TranscriptRecordContentBlockType'>(),
   text: z.string().brand<'TranscriptRecordContentText'>().optional(),
   thinking: z.string().brand<'TranscriptRecordContentThinking'>().optional(),
   name: z.string().brand<'TranscriptRecordToolName'>().optional(),
-  input: z.record(z.string().brand<'TranscriptRecordToolInputKey'>(), z.unknown()).optional(),
+  input: z.record(transcriptRecordToolInputKeyContract, z.unknown()).optional(),
 });
 
 export type TranscriptRecordContentBlock = z.infer<typeof transcriptRecordContentBlockContract>;

@@ -128,7 +128,9 @@ describe('statusAnswerContract', () => {
           },
           instances: [],
         }),
-      ).toThrow(/received undefined/u);
+      ).toThrow(
+        /Invalid option: expected one of \\"alive\\"\|\\"killed\\"\|\\"dead\\"\|\\"pruned\\"\|\\"unknown\\"\|\\"unusable\\"/u,
+      );
     });
   });
 });

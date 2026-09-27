@@ -73,7 +73,7 @@ describe('chatOutputPayloadContract', () => {
   describe('invalid inputs', () => {
     it('ERROR: {questId: 42} (number) => throws ZodError', () => {
       expect(() => chatOutputPayloadContract.parse({ questId: 42 })).toThrow(
-        'Expected string, received number',
+        'Invalid input: expected string, received number',
       );
     });
 
@@ -85,7 +85,7 @@ describe('chatOutputPayloadContract', () => {
 
     it('ERROR: {workItemId: 7} (number) => throws ZodError', () => {
       expect(() => chatOutputPayloadContract.parse({ workItemId: 7 })).toThrow(
-        'Expected string, received number',
+        'Invalid input: expected string, received number',
       );
     });
 

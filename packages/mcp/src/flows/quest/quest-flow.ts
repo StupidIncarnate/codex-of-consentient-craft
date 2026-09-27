@@ -6,7 +6,7 @@
  * // Returns ToolRegistration objects that delegate to QuestHandleResponder
  */
 
-import { zodToJsonSchema } from 'zod-to-json-schema';
+import { toJSONSchema } from '#gateway/npm/zod';
 
 import { createQuestInputContract } from '../../contracts/create-quest-input/create-quest-input-contract';
 import { createWorktreeInputContract } from '../../contracts/create-worktree-input/create-worktree-input-contract';
@@ -28,36 +28,30 @@ import { startQuestInputContract } from '../../contracts/start-quest-input/start
 import type { ToolRegistration } from '../../contracts/tool-registration/tool-registration-contract';
 import { QuestHandleResponder } from '../../responders/quest/handle/quest-handle-responder';
 
-const jsonSchemaOptions = { $refStrategy: 'none' as const };
-const getQuestSchema = zodToJsonSchema(getQuestInputContract as never, jsonSchemaOptions);
-const modifyQuestSchema = zodToJsonSchema(modifyQuestInputContract as never, jsonSchemaOptions);
-const startQuestSchema = zodToJsonSchema(startQuestInputContract as never, jsonSchemaOptions);
-const getQuestStatusSchema = zodToJsonSchema(
-  getQuestStatusInputContract as never,
-  jsonSchemaOptions,
-);
-const listQuestsSchema = zodToJsonSchema(listQuestsInputContract as never, jsonSchemaOptions);
+// `reused: 'inline'` is zod v4's native replacement for the deprecated `zod-to-json-schema`
+// package's `$refStrategy: 'none'` — both mean "never emit a $ref/$defs pair for a schema reused
+// across fields, inline it at each occurrence instead." The npm package itself only produces a
+// correct schema for a v3-built input (its own README, as of the v4 upgrade: "so long as you
+// still provide v3-schemas") — fed a real v4 schema it silently returns an empty shell, which is
+// exactly the MCP tool inputSchema every caller here needs populated.
+const jsonSchemaOptions = { reused: 'inline' as const };
+const getQuestSchema = toJSONSchema(getQuestInputContract, jsonSchemaOptions);
+const modifyQuestSchema = toJSONSchema(modifyQuestInputContract, jsonSchemaOptions);
+const startQuestSchema = toJSONSchema(startQuestInputContract, jsonSchemaOptions);
+const getQuestStatusSchema = toJSONSchema(getQuestStatusInputContract, jsonSchemaOptions);
+const listQuestsSchema = toJSONSchema(listQuestsInputContract, jsonSchemaOptions);
 const emptySchema = { type: 'object', properties: {}, additionalProperties: false };
-const getQuestPlanningNotesSchema = zodToJsonSchema(
-  getQuestPlanningNotesInputContract as never,
+const getQuestPlanningNotesSchema = toJSONSchema(
+  getQuestPlanningNotesInputContract,
   jsonSchemaOptions,
 );
-const getBlightChecklistSchema = zodToJsonSchema(
-  getBlightChecklistInputContract as never,
-  jsonSchemaOptions,
-);
-const createQuestSchema = zodToJsonSchema(createQuestInputContract as never, jsonSchemaOptions);
-const getNextStepSchema = zodToJsonSchema(getNextStepInputContract as never, jsonSchemaOptions);
-const getQuestSummarySchema = zodToJsonSchema(
-  getQuestSummaryInputContract as never,
-  jsonSchemaOptions,
-);
-const createWorktreeSchema = zodToJsonSchema(
-  createWorktreeInputContract as never,
-  jsonSchemaOptions,
-);
-const questWorkSchema = zodToJsonSchema(questWorkInputContract as never, jsonSchemaOptions);
-const getQuestWorkSchema = zodToJsonSchema(getQuestWorkInputContract as never, jsonSchemaOptions);
+const getBlightChecklistSchema = toJSONSchema(getBlightChecklistInputContract, jsonSchemaOptions);
+const createQuestSchema = toJSONSchema(createQuestInputContract, jsonSchemaOptions);
+const getNextStepSchema = toJSONSchema(getNextStepInputContract, jsonSchemaOptions);
+const getQuestSummarySchema = toJSONSchema(getQuestSummaryInputContract, jsonSchemaOptions);
+const createWorktreeSchema = toJSONSchema(createWorktreeInputContract, jsonSchemaOptions);
+const questWorkSchema = toJSONSchema(questWorkInputContract, jsonSchemaOptions);
+const getQuestWorkSchema = toJSONSchema(getQuestWorkInputContract, jsonSchemaOptions);
 
 export const QuestFlow = (): ToolRegistration[] => [
   {

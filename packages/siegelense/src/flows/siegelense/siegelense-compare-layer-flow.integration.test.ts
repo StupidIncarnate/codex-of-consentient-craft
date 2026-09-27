@@ -175,7 +175,9 @@ describe('SiegelenseCompareLayerFlow', () => {
             tree.runTwo(),
           ],
         }),
-      ).rejects.toThrow(/^--run-a: Invalid$/u);
+      ).rejects.toThrow(
+        /^--run-a: Invalid string: must match pattern \/\^run_\[1-9\]\[0-9\]\*\$\/u$/u,
+      );
     });
 
     it("INVALID: {callArgs: [--instance, <killed>, --run-a, run_1, --run-b, bogus]} => rejects naming --run-b and the contract's own message", async () => {
@@ -190,7 +192,9 @@ describe('SiegelenseCompareLayerFlow', () => {
             'bogus',
           ],
         }),
-      ).rejects.toThrow(/^--run-b: Invalid$/u);
+      ).rejects.toThrow(
+        /^--run-b: Invalid string: must match pattern \/\^run_\[1-9\]\[0-9\]\*\$\/u$/u,
+      );
     });
   });
 

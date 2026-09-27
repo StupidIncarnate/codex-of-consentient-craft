@@ -197,7 +197,7 @@ describe('ArchitectureHandleResponder', () => {
           tool: ToolNameStub({ value: 'get-project-map' }),
           args: { packages: [] },
         }),
-      ).rejects.toThrow(/at least 1 element/u);
+      ).rejects.toThrow(/Too small: expected array to have >=1 items/u);
     });
 
     it('INVALID: {tool: get-project-map, packages: [unknown]} => throws Unknown package error', async () => {

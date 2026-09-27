@@ -52,7 +52,7 @@ describe('drivingOddityContract', () => {
           kind: 'quirk',
           route: '/guilds',
         } as never);
-      }).toThrow(/Unrecognized key\(s\) in object: 'route'/u);
+      }).toThrow(/Unrecognized key: \\"route\\"/u);
     });
   });
 

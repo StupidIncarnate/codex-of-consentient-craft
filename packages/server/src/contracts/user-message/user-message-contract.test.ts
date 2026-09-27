@@ -32,7 +32,7 @@ describe('userMessageContract', () => {
     it('INVALID: 123 => throws validation error for non-string', () => {
       expect(() => {
         userMessageContract.parse(123 as never);
-      }).toThrow(/Expected string, received number/u);
+      }).toThrow(/expected string, received number/u);
     });
   });
 });

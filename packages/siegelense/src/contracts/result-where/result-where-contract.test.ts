@@ -57,7 +57,7 @@ describe('resultWhereContract', () => {
           steps: null,
           serverError: true,
         } as never),
-      ).toThrow(/Unrecognized key\(s\) in object: 'serverError'/u);
+      ).toThrow(/Unrecognized key: \\"serverError\\"/u);
     });
   });
 });

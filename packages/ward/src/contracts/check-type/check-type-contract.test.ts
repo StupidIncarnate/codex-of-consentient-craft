@@ -44,11 +44,15 @@ describe('checkTypeContract', () => {
     });
 
     it('EMPTY: {value: null} => throws for null', () => {
-      expect(() => checkTypeContract.parse(null)).toThrow(/received null/u);
+      expect(() => checkTypeContract.parse(null)).toThrow(
+        /Invalid option: expected one of \\"lint\\"\|\\"typecheck\\"\|\\"unit\\"\|\\"integration\\"\|\\"e2e\\"/u,
+      );
     });
 
     it('EMPTY: {value: undefined} => throws for undefined', () => {
-      expect(() => checkTypeContract.parse(undefined)).toThrow(/received undefined/u);
+      expect(() => checkTypeContract.parse(undefined)).toThrow(
+        /Invalid option: expected one of \\"lint\\"\|\\"typecheck\\"\|\\"unit\\"\|\\"integration\\"\|\\"e2e\\"/u,
+      );
     });
   });
 

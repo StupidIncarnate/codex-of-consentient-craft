@@ -17,7 +17,7 @@ export const wardResultContract = z.object({
   timestamp: z.number().brand<'Timestamp'>(),
   filters: runFiltersContract,
   checks: z.array(checkResultContract),
-  durationMs: durationMsContract.default(0),
+  durationMs: durationMsContract.default(durationMsContract.parse(0)),
 });
 
 export type WardResult = z.infer<typeof wardResultContract>;

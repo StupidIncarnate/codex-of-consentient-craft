@@ -25,7 +25,9 @@ describe('citationGapContract', () => {
     it('INVALID: {kind omitted} => a gap with no kind throws, so a caller is never told something went unchecked without being told what', () => {
       expect(() => {
         citationGapContract.parse({ why: 'no issue record exists on disk to check' });
-      }).toThrow(/received undefined/u);
+      }).toThrow(
+        /Invalid option: expected one of \\"verified-prelude\\"\|\\"open-issue\\"\|\\"walked-note\\"/u,
+      );
     });
   });
 });

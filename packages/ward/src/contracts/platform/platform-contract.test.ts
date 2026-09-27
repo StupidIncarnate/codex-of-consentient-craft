@@ -22,7 +22,9 @@ describe('platformContract', () => {
     });
 
     it('INVALID: {value: 1} => throws validation error', () => {
-      expect(() => platformContract.parse(1 as never)).toThrow(/Expected 'browser' \| 'node'/u);
+      expect(() => platformContract.parse(1 as never)).toThrow(
+        /Invalid option: expected one of \\"browser\\"\|\\"node\\"/u,
+      );
     });
   });
 

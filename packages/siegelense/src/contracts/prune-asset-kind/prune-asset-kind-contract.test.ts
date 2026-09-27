@@ -3,16 +3,13 @@ import { PruneAssetKindStub } from './prune-asset-kind.stub';
 
 describe('pruneAssetKindContract', () => {
   describe('valid members', () => {
-    it.each(pruneAssetKindContract.options)(
-      'VALID: {value: %s} => parses to itself',
-      (value) => {
-        const kind = PruneAssetKindStub({ value });
+    it.each(pruneAssetKindContract.options)('VALID: {value: %s} => parses to itself', (value) => {
+      const kind = PruneAssetKindStub({ value });
 
-        const result = pruneAssetKindContract.parse(kind);
+      const result = pruneAssetKindContract.parse(kind);
 
-        expect(result).toBe(value);
-      },
-    );
+      expect(result).toBe(value);
+    });
 
     it('VALID: {no argument} => defaults to shot', () => {
       expect(PruneAssetKindStub()).toBe('shot');
@@ -21,12 +18,7 @@ describe('pruneAssetKindContract', () => {
 
   describe('the closed set', () => {
     it('VALID: {options} => video first, because it is the one a caller reclaiming space reaches for', () => {
-      expect(pruneAssetKindContract.options).toStrictEqual([
-        'video',
-        'shot',
-        'transcript',
-        'log',
-      ]);
+      expect(pruneAssetKindContract.options).toStrictEqual(['video', 'shot', 'transcript', 'log']);
     });
   });
 

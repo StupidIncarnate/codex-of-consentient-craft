@@ -54,7 +54,7 @@ describe('SiegelenseStartLayerFlow', () => {
   describe('--spec present with a badly-shaped value', () => {
     it('INVALID: {callArgs: --spec ""} => refuses naming --spec and specNameContract\'s own message', async () => {
       await expect(SiegelenseStartLayerFlow({ callArgs: ['--spec', ''] })).rejects.toThrow(
-        /^--spec: String must contain at least 1 character\(s\)$/u,
+        /^--spec: Too small: expected string to have >=1 characters$/u,
       );
     });
   });
@@ -65,7 +65,7 @@ describe('SiegelenseStartLayerFlow', () => {
         SiegelenseStartLayerFlow({
           callArgs: ['--spec', 'dungeonmaster-stack', '--quest', ''],
         }),
-      ).rejects.toThrow(/^--quest: String must contain at least 1 character\(s\)$/u);
+      ).rejects.toThrow(/^--quest: Too small: expected string to have >=1 characters$/u);
     });
   });
 
@@ -75,7 +75,7 @@ describe('SiegelenseStartLayerFlow', () => {
         SiegelenseStartLayerFlow({
           callArgs: ['--spec', 'dungeonmaster-stack', '--guild', 'not-a-uuid'],
         }),
-      ).rejects.toThrow(/^--guild: Invalid uuid$/u);
+      ).rejects.toThrow(/^--guild: Invalid UUID$/u);
     });
   });
 

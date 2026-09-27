@@ -79,7 +79,7 @@ describe('turnGapContract', () => {
   describe('invalid input', () => {
     it('INVALID: {gapSeconds: -1} => throws', () => {
       expect(() => TurnGapStub({ gapSeconds: -1 })).toThrow(
-        /greater than or equal to 0|Number must be/u,
+        /Too small: expected number to be >=0/u,
       );
     });
 

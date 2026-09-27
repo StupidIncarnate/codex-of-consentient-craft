@@ -58,7 +58,7 @@ describe('commentBatchBodyContract', () => {
     it('EMPTY: {comments: []} => throws validation error', () => {
       expect(() => {
         commentBatchBodyContract.parse({ comments: [] });
-      }).toThrow(/Array must contain at least 1 element/u);
+      }).toThrow(/Too small: expected array to have >=1 items/u);
     });
 
     it('INVALID: {comment with malformed flowId} => throws validation error', () => {

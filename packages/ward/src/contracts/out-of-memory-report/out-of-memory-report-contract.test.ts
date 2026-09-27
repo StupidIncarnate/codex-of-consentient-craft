@@ -19,7 +19,7 @@ describe('outOfMemoryReportContract', () => {
   describe('invalid reports', () => {
     it('INVALID: {value: 134} => throws validation error', () => {
       expect(() => outOfMemoryReportContract.parse(134)).toThrow(
-        /Expected string, received number/u,
+        /Invalid input: expected string, received number/u,
       );
     });
   });

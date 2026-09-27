@@ -63,9 +63,8 @@ describe('statusArgsContract', () => {
         {
           code: 'invalid_type',
           expected: 'string',
-          received: 'undefined',
           path: ['instanceId'],
-          message: 'received undefined',
+          message: 'Invalid input: expected string, received undefined',
         },
       ]);
     });
@@ -78,9 +77,8 @@ describe('statusArgsContract', () => {
         {
           code: 'invalid_type',
           expected: 'boolean',
-          received: 'undefined',
           path: ['isJson'],
-          message: 'received undefined',
+          message: 'Invalid input: expected boolean, received undefined',
         },
       ]);
     });

@@ -278,7 +278,7 @@ describe('wsIncomingMessageContract', () => {
       const [issue] = error.issues;
 
       expect(result.success).toBe(false);
-      expect(issue?.code).toBe('invalid_union_discriminator');
+      expect(issue?.code).toBe('invalid_union');
     });
 
     it('ERROR: unsubscribe-quest type misspelled => safeParse fails with invalid discriminator', () => {
@@ -290,7 +290,7 @@ describe('wsIncomingMessageContract', () => {
       const [issue] = error.issues;
 
       expect(result.success).toBe(false);
-      expect(issue?.code).toBe('invalid_union_discriminator');
+      expect(issue?.code).toBe('invalid_union');
     });
 
     it('ERROR: replay-quest-history type misspelled => safeParse fails with invalid discriminator', () => {
@@ -302,7 +302,7 @@ describe('wsIncomingMessageContract', () => {
       const [issue] = error.issues;
 
       expect(result.success).toBe(false);
-      expect(issue?.code).toBe('invalid_union_discriminator');
+      expect(issue?.code).toBe('invalid_union');
     });
   });
 });

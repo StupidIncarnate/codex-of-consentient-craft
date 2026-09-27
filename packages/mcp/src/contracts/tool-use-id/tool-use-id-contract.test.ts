@@ -9,7 +9,9 @@ describe('toolUseIdContract', () => {
   });
 
   it('INVALID: {empty string} => throws', () => {
-    expect(() => toolUseIdContract.parse('')).toThrow(/String must contain at least 1/u);
+    expect(() => toolUseIdContract.parse('')).toThrow(
+      /Too small: expected string to have >=1 characters/u,
+    );
   });
 
   it('INVALID: {non-string} => throws', () => {

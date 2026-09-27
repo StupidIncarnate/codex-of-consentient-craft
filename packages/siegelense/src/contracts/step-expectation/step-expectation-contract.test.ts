@@ -3,16 +3,13 @@ import { StepExpectationStub } from './step-expectation.stub';
 
 describe('stepExpectationContract', () => {
   describe('valid members', () => {
-    it.each(stepExpectationContract.options)(
-      'VALID: {value: %s} => parses to itself',
-      (value) => {
-        const stepExpectation = StepExpectationStub({ value });
+    it.each(stepExpectationContract.options)('VALID: {value: %s} => parses to itself', (value) => {
+      const stepExpectation = StepExpectationStub({ value });
 
-        const result = stepExpectationContract.parse(stepExpectation);
+      const result = stepExpectationContract.parse(stepExpectation);
 
-        expect(result).toBe(value);
-      },
-    );
+      expect(result).toBe(value);
+    });
   });
 
   describe('invalid members', () => {

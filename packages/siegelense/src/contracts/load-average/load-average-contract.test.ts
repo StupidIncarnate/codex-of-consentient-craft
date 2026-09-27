@@ -15,11 +15,15 @@ describe('loadAverageContract', () => {
   });
 
   it('INVALID: {value: [7.9, 6.2]} => throws for a short tuple', () => {
-    expect(() => loadAverageContract.parse([7.9, 6.2])).toThrow(/Array must contain/u);
+    expect(() => loadAverageContract.parse([7.9, 6.2])).toThrow(
+      /Too small: expected array to have >=3 items/u,
+    );
   });
 
   it('INVALID: {value: [7.9, 6.2, 4.1, 1.0]} => throws for a long tuple', () => {
-    expect(() => loadAverageContract.parse([7.9, 6.2, 4.1, 1.0])).toThrow(/Array must contain/u);
+    expect(() => loadAverageContract.parse([7.9, 6.2, 4.1, 1.0])).toThrow(
+      /Too big: expected array to have <=3 items/u,
+    );
   });
 
   it('INVALID: {value: ["7.9", 6.2, 4.1]} => throws when the 1-minute slot is not a number', () => {

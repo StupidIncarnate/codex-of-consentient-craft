@@ -61,7 +61,7 @@ describe('devLogToolInputFormatTransformer', () => {
       input: { questId: '2cdcdce1-2f1c-5467-986c-8a9fd7c9b874' },
     });
 
-    expect(result).toBe('quest:abc12345');
+    expect(result).toBe('quest:2cdcdce1');
   });
 
   it('EDGE: {unknown tool} => returns empty', () => {

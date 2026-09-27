@@ -3,16 +3,13 @@ import { LogLevelStub } from './log-level.stub';
 
 describe('logLevelContract', () => {
   describe('valid members', () => {
-    it.each(logLevelContract.options)(
-      'VALID: {value: %s} => parses to itself',
-      (value) => {
-        const logLevel = LogLevelStub({ value });
+    it.each(logLevelContract.options)('VALID: {value: %s} => parses to itself', (value) => {
+      const logLevel = LogLevelStub({ value });
 
-        const result = logLevelContract.parse(logLevel);
+      const result = logLevelContract.parse(logLevel);
 
-        expect(result).toBe(value);
-      },
-    );
+      expect(result).toBe(value);
+    });
   });
 
   describe('invalid members', () => {

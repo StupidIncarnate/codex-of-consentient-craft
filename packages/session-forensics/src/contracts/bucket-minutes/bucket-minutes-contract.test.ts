@@ -30,7 +30,7 @@ describe('bucketMinutesContract', () => {
     });
 
     it('INVALID: "abc" => throws for a non-numeric string', () => {
-      expect(() => bucketMinutesContract.parse('abc')).toThrow(/Expected number, received nan/u);
+      expect(() => bucketMinutesContract.parse('abc')).toThrow(/expected number, received NaN/u);
     });
   });
 
