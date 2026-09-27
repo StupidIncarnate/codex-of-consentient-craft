@@ -1,19 +1,25 @@
 /**
  * PURPOSE: Walks up from a starting directory to the nearest ancestor `package.json` that carries
  * a `workspaces` field — the npm-workspaces ROOT, per this repo's own "every consumer repo is an
- * npm-workspaces monorepo" constraint — and derives the `@scope` gateway-import-boundary compares
- * every workspace import against. Walking from a real directory (rather than reading
+ * npm-workspaces monorepo" constraint — and derives the `@scope` raw-import-ban, gateway-import-boundary
+ * and bin-program-spawn-ban all build their gateway-path checks from. One ordinary broker, not a
+ * layer file, precisely so the three rules import ONE copy instead of each keeping its own — the
+ * same fix F4 made for `workspaceRootFindBroker`. Walking from a real directory (rather than reading
  * `process.cwd()`, which `@dungeonmaster/no-bare-process-cwd` reserves for CLI entry points and
- * path-resolver brokers) means the same walk finds THIS repo's root when the rule runs from
- * source, and a consumer's own root once this package is installed under their `node_modules`.
- * Directories are joined with a plain "/" rather than `pathJoinAdapter`: every path here is already
+ * path-resolver brokers) means the same walk finds THIS repo's root when a rule runs from source,
+ * and a consumer's own root once this package is installed under their `node_modules`. Directories
+ * are joined with a plain "/" rather than `pathJoinAdapter`: every path here is already
  * POSIX-absolute (`__dirname` at rule-module load, or a value this same function derived), so no
- * adapter's cross-platform behaviour is needed, and skipping it keeps this broker's only child
- * proxy the fs one its own test actually stages. Duplicated from raw-import-ban's identically-named
- * layer, deliberately: a layer file is not an entry file another domain may import.
+ * adapter's cross-platform behaviour is needed, and skipping it keeps this broker's only child proxy
+ * the fs one its own test actually stages. Derives the scope via `packageScopeFromNameTransformer`
+ * directly, not the tolerant `workspaceScopeFromRootNameTransformer` (F4, in `shared`):
+ * `workspaceRootPackageJsonContract` already guarantees `name` is a non-empty string once a
+ * package.json parses as the workspaces root, so there is nothing missing for a fallback to stand in
+ * for, and every caller here needs the `PackageName` brand the direct transformer returns, not
+ * `workspaceScopeFromRootNameTransformer`'s `PathSegment`.
  *
  * USAGE:
- * resolveRepoScopeLayerBroker({ startDir: filePathContract.parse(__dirname) });
+ * repoScopeResolveBroker({ startDir: filePathContract.parse(__dirname) });
  * // Returns '@dungeonmaster' as branded PackageName, read from the repo root package.json's name
  */
 import type { FilePath, PackageName } from '@dungeonmaster/shared/contracts';
@@ -23,7 +29,7 @@ import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-
 import { fsReadFileSyncAdapter } from '../../../adapters/fs/read-file-sync/fs-read-file-sync-adapter';
 import { workspaceRootPackageJsonContract } from '../../../contracts/workspace-root-package-json/workspace-root-package-json-contract';
 
-export const resolveRepoScopeLayerBroker = ({ startDir }: { startDir: FilePath }): PackageName => {
+export const repoScopeResolveBroker = ({ startDir }: { startDir: FilePath }): PackageName => {
   const packageJsonPath = filePathContract.parse(`${startDir}/package.json`);
 
   if (fsExistsSyncAdapter({ filePath: packageJsonPath })) {
@@ -41,9 +47,9 @@ export const resolveRepoScopeLayerBroker = ({ startDir }: { startDir: FilePath }
 
   if (parentDir === startDir) {
     throw new Error(
-      `gateway-import-boundary could not find a workspaces root package.json walking up from "${startDir}".`,
+      `repoScopeResolveBroker could not find a workspaces root package.json walking up from "${startDir}".`,
     );
   }
 
-  return resolveRepoScopeLayerBroker({ startDir: filePathContract.parse(parentDir) });
+  return repoScopeResolveBroker({ startDir: filePathContract.parse(parentDir) });
 };

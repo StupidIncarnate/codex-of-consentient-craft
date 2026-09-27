@@ -24,7 +24,7 @@ import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { isGatewayFileGuard } from '../../../guards/is-gateway-file/is-gateway-file-guard';
 import { objectPropertyValueTransformer } from '../../../transformers/object-property-value/object-property-value-transformer';
 import { childProcessFunctionNamesStatics } from '../../../statics/child-process-function-names/child-process-function-names-statics';
-import { resolveRepoScopeLayerBroker } from './resolve-repo-scope-layer-broker';
+import { repoScopeResolveBroker } from '../../repo-scope/resolve/repo-scope-resolve-broker';
 import { reportBinProgramSpawnLayerBroker } from './report-bin-program-spawn-layer-broker';
 
 // Resolved lazily and cached, exactly as raw-import-ban's own scope resolution is: every RuleTester
@@ -72,7 +72,7 @@ export const ruleBinProgramSpawnBanBroker = (): EslintRule => ({
         return optionScope;
       }
       if (defaultScopeCache.value === undefined) {
-        defaultScopeCache.value = resolveRepoScopeLayerBroker({
+        defaultScopeCache.value = repoScopeResolveBroker({
           startDir: filePathContract.parse(__dirname),
         });
       }

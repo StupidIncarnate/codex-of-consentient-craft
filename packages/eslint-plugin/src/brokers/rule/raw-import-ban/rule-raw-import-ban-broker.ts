@@ -5,7 +5,7 @@
  * gateway import, or the `#gateway/...` import-alias form, is a workspace import already going
  * through the gateway and is never flagged. Value imports and `import type` are both flagged — the
  * gateway is the one path to an outside package, whatever carries the specifier. `scope` defaults
- * to the value resolveRepoScopeLayerBroker reads from the repo root package.json at module load,
+ * to the value repoScopeResolveBroker reads from the repo root package.json at module load,
  * and can be overridden per-rule-instance via the `scope` option — the override exists so a
  * RuleTester case can prove the rule works for a consumer repo scoped differently than this one,
  * without touching the filesystem. `scope` only gates which imports count as "workspace"; the
@@ -25,7 +25,7 @@ import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-cont
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { minimatchMatchAdapter } from '../../../adapters/minimatch/match/minimatch-match-adapter';
-import { resolveRepoScopeLayerBroker } from './resolve-repo-scope-layer-broker';
+import { repoScopeResolveBroker } from '../../repo-scope/resolve/repo-scope-resolve-broker';
 
 // Resolved lazily, on the first file linted with no `scope` option, and cached from then on.
 // Every RuleTester case passes `scope` explicitly, so this real filesystem walk never runs
@@ -82,7 +82,7 @@ export const ruleRawImportBanBroker = (): EslintRule => ({
       }
 
       if (defaultScopeCache.value === undefined) {
-        defaultScopeCache.value = resolveRepoScopeLayerBroker({
+        defaultScopeCache.value = repoScopeResolveBroker({
           startDir: filePathContract.parse(__dirname),
         });
       }

@@ -5,7 +5,7 @@
  * — that is a file inside the same gateway package — and an outside npm package or Node built-in is
  * exactly what a gateway file exists to hold. The gateway is the bottom layer: it may depend on
  * itself and on the outside world, never back up into a package built on top of it. `scope`
- * defaults to the value resolveRepoScopeLayerBroker reads from the repo root package.json at
+ * defaults to the value repoScopeResolveBroker reads from the repo root package.json at
  * module load, overridable per-rule-instance via the `scope` option so a RuleTester case can prove
  * the rule for a differently-scoped consumer without touching the filesystem. The gateway-package
  * check is duplicated across both AST listeners, the same way raw-import-ban duplicates its own
@@ -32,7 +32,7 @@ import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-cont
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { minimatchMatchAdapter } from '../../../adapters/minimatch/match/minimatch-match-adapter';
-import { resolveRepoScopeLayerBroker } from './resolve-repo-scope-layer-broker';
+import { repoScopeResolveBroker } from '../../repo-scope/resolve/repo-scope-resolve-broker';
 
 // Resolved lazily, on the first gateway file linted with no `scope` option, and cached from then
 // on — see raw-import-ban's identically-shaped cache for why this never runs during this rule's own
@@ -86,7 +86,7 @@ export const ruleGatewayImportBoundaryBroker = (): EslintRule => ({
       }
 
       if (defaultScopeCache.value === undefined) {
-        defaultScopeCache.value = resolveRepoScopeLayerBroker({
+        defaultScopeCache.value = repoScopeResolveBroker({
           startDir: filePathContract.parse(__dirname),
         });
       }

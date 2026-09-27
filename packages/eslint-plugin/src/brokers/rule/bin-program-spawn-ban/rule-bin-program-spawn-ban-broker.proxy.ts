@@ -9,11 +9,11 @@
  * proxies below satisfy enforce-proxy-child-creation; this file is never imported by the rule's own
  * RuleTester test, so mocking the scope walk here never reaches it.
  */
-import { resolveRepoScopeLayerBrokerProxy } from './resolve-repo-scope-layer-broker.proxy';
+import { repoScopeResolveBrokerProxy } from '../../repo-scope/resolve/repo-scope-resolve-broker.proxy';
 import { reportBinProgramSpawnLayerBrokerProxy } from './report-bin-program-spawn-layer-broker.proxy';
 
 export const ruleBinProgramSpawnBanBrokerProxy = (): Record<PropertyKey, never> => {
-  resolveRepoScopeLayerBrokerProxy();
+  repoScopeResolveBrokerProxy();
   reportBinProgramSpawnLayerBrokerProxy();
 
   return {};

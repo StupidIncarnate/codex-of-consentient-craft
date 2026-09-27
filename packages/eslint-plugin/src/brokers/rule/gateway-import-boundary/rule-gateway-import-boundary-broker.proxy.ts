@@ -10,11 +10,11 @@
  * RuleTester test, so mocking `minimatch`/the scope walk here never reaches it.
  */
 import { minimatchMatchAdapterProxy } from '../../../adapters/minimatch/match/minimatch-match-adapter.proxy';
-import { resolveRepoScopeLayerBrokerProxy } from './resolve-repo-scope-layer-broker.proxy';
+import { repoScopeResolveBrokerProxy } from '../../repo-scope/resolve/repo-scope-resolve-broker.proxy';
 
 export const ruleGatewayImportBoundaryBrokerProxy = (): Record<PropertyKey, never> => {
   minimatchMatchAdapterProxy();
-  resolveRepoScopeLayerBrokerProxy();
+  repoScopeResolveBrokerProxy();
 
   return {};
 };
