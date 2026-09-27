@@ -18,10 +18,11 @@
  * package's own composed startup object (which does) apart from everything else it exports (which
  * does not) — never a hardcoded folder type, and never a hardcoded package name. THE SCOPE ITSELF
  * IS NEVER HARDCODED EITHER: this package ships to consumers whose own workspace packages carry
- * their own scope, never `@dungeonmaster`, so `create()` reads it off the REAL workspace root
- * (`findWorkspaceRootLayerBroker`, the same walk `enforce-gateway-config-names-exist` already
- * uses — duplicated here rather than imported, since a layer file is not an entry file another
- * domain may import) before this check ever runs.
+ * their own scope, never `@dungeonmaster`, so `create()` reads it off the REAL workspace root's own
+ * package.json `name` (`findWorkspaceRootLayerBroker`, the same walk `enforce-gateway-config-names-exist`
+ * already uses — duplicated here rather than imported, since a layer file is not an entry file another
+ * domain may import) before this check ever runs — never off root `dependencies`/`devDependencies`, whose
+ * `@dungeonmaster/*` tooling entries a fresh consumer's own scope would otherwise lose to (F13).
  *
  * USAGE:
  * const rule = ruleEnforceProxyChildCreationBroker();
@@ -43,7 +44,7 @@ import { proxyPathToImplementationPathTransformer } from '../../../transformers/
 import { gatewayBarrelPathTransformer } from '../../../transformers/gateway-barrel-path/gateway-barrel-path-transformer';
 import { gatewayBarrelWrapperPathsTransformer } from '../../../transformers/gateway-barrel-wrapper-paths/gateway-barrel-wrapper-paths-transformer';
 import { packageRootSourcePathTransformer } from '../../../transformers/package-root-source-path/package-root-source-path-transformer';
-import { workspaceScopeFromPackageNamesTransformer } from '../../../transformers/workspace-scope-from-package-names/workspace-scope-from-package-names-transformer';
+import { workspaceScopeFromRootNameTransformer } from '../../../transformers/workspace-scope-from-root-name/workspace-scope-from-root-name-transformer';
 import { findWorkspaceRootLayerBroker } from './find-workspace-root-layer-broker';
 import { pathDirnameAdapter } from '../../../adapters/path/dirname/path-dirname-adapter';
 import { fileExtensionsStatics, gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
@@ -100,17 +101,16 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
       return {};
     }
 
-    // THIS workspace's own npm scope, read off the real workspace root's real package names —
-    // never hardcoded. `@dungeonmaster/orchestrator` and a published consumer's own
-    // `@acme/orders` both resolve through this one call; a repo with no discoverable workspace
-    // root (or no scoped package in it) yields undefined, and every bare-root check below then
-    // safely skips rather than matching nothing or matching the wrong scope.
+    // THIS workspace's own npm scope, read off the real workspace root's own package.json `name` —
+    // never hardcoded, and never scanned off `dependencies`/`devDependencies`. `@dungeonmaster/orchestrator`
+    // and a published consumer's own `@acme/orders` both resolve through this one call; a repo with no
+    // discoverable workspace root yields undefined, and every bare-root check below then safely skips
+    // rather than matching nothing or matching the wrong scope.
     const workspaceScope = filename
-      ? workspaceScopeFromPackageNamesTransformer({
-          packageNames:
-            findWorkspaceRootLayerBroker({
-              startDir: pathDirnameAdapter({ filePath: filePathContract.parse(filename) }),
-            })?.packageNames ?? [],
+      ? workspaceScopeFromRootNameTransformer({
+          rootPackageJsonName: findWorkspaceRootLayerBroker({
+            startDir: pathDirnameAdapter({ filePath: filePathContract.parse(filename) }),
+          })?.rootPackageJsonName,
         })
       : undefined;
 

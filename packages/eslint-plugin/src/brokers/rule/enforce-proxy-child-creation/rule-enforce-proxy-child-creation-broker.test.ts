@@ -28,27 +28,43 @@ beforeEach(() => {
 
       // Every package.json probe is answered explicitly, never by the generic placeholder default
       // below (which is not valid JSON and would crash findWorkspaceRootLayerBroker's JSON.parse).
-      // '/repo' is this repo's own fake workspace root (scope '@dungeonmaster'); '/acme-repo' is a
-      // published consumer's own fake workspace root (scope '@acme') — proving the scope is read
-      // off the real workspace root rather than hardcoded. Every OTHER package.json (every
-      // intermediate directory the walk climbs past, and every '/project/...' fixture that never
-      // exercises a bare-root import) answers "not a workspace root" by returning null, so the walk
-      // climbs past it exactly like a real ordinary package.json with no `workspaces` field would.
+      // '/repo' is this repo's own fake workspace root (unscoped name 'dungeonmaster', scope
+      // '@dungeonmaster'); '/acme-repo' is a published consumer's own fake workspace root (scoped
+      // name '@acme/repo', scope '@acme') — proving the scope is read off the real workspace root's
+      // own package.json `name`, never off a dependency list, which a consumer's own
+      // `devDependencies` would misreport as '@dungeonmaster' (F13; see
+      // '/acme-devdeps-repo/package.json' below for that exact regression). Every OTHER package.json
+      // (every intermediate directory the walk climbs past, and every '/project/...' fixture that
+      // never exercises a bare-root import) answers "not a workspace root" by returning null, so the
+      // walk climbs past it exactly like a real ordinary package.json with no `workspaces` field
+      // would.
       if (filePath === '/repo/package.json') {
         return FileContentsStub({
           value: JSON.stringify({
             name: 'dungeonmaster',
             workspaces: ['packages/*'],
-            dependencies: { '@dungeonmaster/orchestrator': '*', '@dungeonmaster/demo': '*' },
           }),
         });
       }
       if (filePath === '/acme-repo/package.json') {
         return FileContentsStub({
           value: JSON.stringify({
-            name: 'acme-app',
+            name: '@acme/repo',
             workspaces: ['packages/*'],
-            dependencies: { '@acme/orders': '*', '@acme/mcp': '*' },
+          }),
+        });
+      }
+      // F13 regression: a fresh consumer's root `dependencies` holds NOTHING yet (no workspace
+      // package has ever been registered there — `create-package`'s "register" step is what adds
+      // one, and this repo's own `install-setup-gateway-responder` never touches root `dependencies`
+      // either), while `devDependencies` already carries the `@dungeonmaster/*` tooling `dungeonmaster
+      // init` installed. The scope must still come out '@acme', from the root `name` alone.
+      if (filePath === '/acme-devdeps-repo/package.json') {
+        return FileContentsStub({
+          value: JSON.stringify({
+            name: '@acme/repo',
+            workspaces: ['packages/*'],
+            devDependencies: { '@dungeonmaster/cli': '*', '@dungeonmaster/testing': '*' },
           }),
         });
       }
@@ -560,6 +576,35 @@ beforeEach(() => {
         });
       }
 
+      // F13 regression fixture: same shape as the '/acme-repo' case above, under the root staged
+      // at '/acme-devdeps-repo/package.json' (root `devDependencies` hold '@dungeonmaster/*'
+      // tooling, no root `dependencies` at all).
+      if (filePath.includes('acme-devdeps-repo/packages/orders/src/index.ts')) {
+        return FileContentsStub({
+          value: `export { OrdersBroker } from './brokers/orders/orders-broker';`,
+        });
+      }
+      if (
+        filePath.includes(
+          'acme-devdeps-repo/packages/orders/src/brokers/orders/orders-broker.proxy.ts',
+        )
+      ) {
+        return FileContentsStub({ value: `export const OrdersBrokerProxy = () => ({});` });
+      }
+      if (
+        filePath.includes('acme-devdeps-repo/packages/mcp/src/adapters/orders/orders-adapter.ts')
+      ) {
+        return FileContentsStub({
+          value: `
+        import { OrdersBroker } from '@acme/orders';
+
+        export const ordersAdapter = () => {
+          return OrdersBroker.list();
+        };
+      `,
+        });
+      }
+
       // Default empty implementation
       return FileContentsStub({ value: `export const placeholder = () => {};` });
     },
@@ -1008,6 +1053,24 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
         };
       `,
       filename: '/acme-repo/packages/mcp/src/adapters/orders/orders-adapter.proxy.ts',
+    },
+    // ✅ CORRECT - F13: the SAME consumer scope resolves correctly even when root `devDependencies`
+    // hold '@dungeonmaster/*' tooling and root `dependencies` holds nothing at all — proving the
+    // scope comes from the workspace root's own package.json `name`, never from a dependency scan
+    // that would otherwise pick up the tool vendor's own scope first.
+    {
+      code: `
+        import { OrdersBrokerProxy } from '@acme/orders/brokers/orders/orders-broker.proxy';
+
+        export const ordersAdapterProxy = () => {
+          const ordersProxy = OrdersBrokerProxy();
+
+          return {
+            setup: () => {}
+          };
+        };
+      `,
+      filename: '/acme-devdeps-repo/packages/mcp/src/adapters/orders/orders-adapter.proxy.ts',
     },
   ],
   invalid: [

@@ -105,14 +105,15 @@ export const packageScaffoldConfigStatics = {
     typescript: '^5.3.3',
   },
 
-  // A node-environment package. `setupFilesAfterEnv` restates what the repo-root base already sets;
-  // every package on disk restates it too, and an explicit path survives a base that stops setting it.
+  // A node-environment package. No `setupFilesAfterEnv` override: object spread REPLACES an array
+  // rather than merging it, and the repo-root base already carries the pair a scaffolded package
+  // needs (`jest.setup.js` plus T01's `start-endpoint-mock-setup.ts`, which is what fails a test on
+  // anything MSW was not told to expect) — restating even one entry here silently drops the other.
   jestConfigNode: `const baseConfig = require('../../jest.config.base.js');
 
 module.exports = {
   ...baseConfig,
   roots: [__ROOTS__],
-  setupFilesAfterEnv: ['<rootDir>/../../packages/testing/src/jest.setup.js'],
 };
 `,
 
@@ -121,14 +122,15 @@ module.exports = {
   // `transform` matches only '.ts', so an un-ignored '.js' file under node_modules/msw still reaches
   // jest untransformed and throws "SyntaxError: Unexpected token 'export'". The widened `transform`
   // below is what actually converts it; both fields are required together, matching every real
-  // package on disk that carries this pair (packages/cli, packages/orchestrator, and others).
+  // package on disk that carries this pair (packages/cli, packages/orchestrator, and others). No
+  // `setupFilesAfterEnv` override, for the same reason `jestConfigNode` carries none: restating it
+  // would replace, not merge, the base's array and drop T01's MSW setup file.
   jestConfigNodeIntegration: `const baseConfig = require('../../jest.config.base.js');
 const dungeonmasterTsJestOptions = require('../../packages/testing/ts-jest/options.js');
 
 module.exports = {
   ...baseConfig,
   roots: [__ROOTS__],
-  setupFilesAfterEnv: ['<rootDir>/../../packages/testing/src/jest.setup.js'],
   transformIgnorePatterns: ['/dist/', '/node_modules/(?!(msw|@mswjs|until-async|outvariant)/)'],
   transform: {
     '^.+\\\\.[jt]s$': ['ts-jest', dungeonmasterTsJestOptions],
@@ -142,7 +144,8 @@ module.exports = {
   // would drop the `source` condition. Reusing the shared options entry (rather than restating
   // module/moduleResolution/etc. a third time) also pulls in `isolatedModules: true` for a JSX
   // scaffold — see this file's PURPOSE header for why that pairing is a deliberate tradeoff, not an
-  // oversight.
+  // oversight. `setupFilesAfterEnv` is left unrestated for the same reason: object spread replaces
+  // the base's array wholesale, so pinning it here would drop T01's MSW setup file.
   jestConfigTsx: `const baseConfig = require('../../jest.config.base.js');
 const dungeonmasterTsJestOptions = require('../../packages/testing/ts-jest/options.js');
 
@@ -151,7 +154,6 @@ module.exports = {
   preset: undefined,
   testEnvironment: '__TEST_ENVIRONMENT__',
   roots: [__ROOTS__],
-  setupFilesAfterEnv: ['<rootDir>/../../packages/testing/src/jest.setup.js'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
   testMatch: ['**/src/**/*.test.[jt]s?(x)'],
   transform: {

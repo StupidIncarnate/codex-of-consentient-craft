@@ -4,11 +4,11 @@ import { findWorkspaceRootLayerBrokerProxy } from './find-workspace-root-layer-b
 
 describe('findWorkspaceRootLayerBroker', () => {
   describe('workspaces root found directly', () => {
-    it('VALID: {startDir is the workspaces root} => returns rootDir and every dependency name', () => {
+    it('VALID: {startDir is the workspaces root} => returns rootDir and the root package.json name', () => {
       const proxy = findWorkspaceRootLayerBrokerProxy();
       proxy.setupWorkspaceRoot({
         rootDir: '/repo',
-        packageNames: ['@dungeonmaster/hooks', '@dungeonmaster/orchestrator'],
+        rootPackageJsonName: 'dungeonmaster',
       });
 
       const result = findWorkspaceRootLayerBroker({
@@ -17,15 +17,15 @@ describe('findWorkspaceRootLayerBroker', () => {
 
       expect(result).toStrictEqual({
         rootDir: '/repo',
-        packageNames: ['@dungeonmaster/hooks', '@dungeonmaster/orchestrator'],
+        rootPackageJsonName: 'dungeonmaster',
       });
     });
 
-    it("VALID: {startDir is a consumer's own workspaces root} => returns that consumer's own scoped package names", () => {
+    it("VALID: {startDir is a consumer's own workspaces root} => returns that consumer's own root package.json name", () => {
       const proxy = findWorkspaceRootLayerBrokerProxy();
       proxy.setupWorkspaceRoot({
         rootDir: '/consumer-repo',
-        packageNames: ['@acme/orders', '@acme/mcp'],
+        rootPackageJsonName: '@acme/repo',
       });
 
       const result = findWorkspaceRootLayerBroker({
@@ -34,7 +34,7 @@ describe('findWorkspaceRootLayerBroker', () => {
 
       expect(result).toStrictEqual({
         rootDir: '/consumer-repo',
-        packageNames: ['@acme/orders', '@acme/mcp'],
+        rootPackageJsonName: '@acme/repo',
       });
     });
   });
@@ -45,7 +45,7 @@ describe('findWorkspaceRootLayerBroker', () => {
       proxy.setupNonRootPackageJson({ packageDir: '/repo/packages/eslint-plugin' });
       proxy.setupWorkspaceRoot({
         rootDir: '/repo',
-        packageNames: ['@dungeonmaster/eslint-plugin'],
+        rootPackageJsonName: 'dungeonmaster',
       });
 
       const result = findWorkspaceRootLayerBroker({
@@ -54,7 +54,7 @@ describe('findWorkspaceRootLayerBroker', () => {
 
       expect(result).toStrictEqual({
         rootDir: '/repo',
-        packageNames: ['@dungeonmaster/eslint-plugin'],
+        rootPackageJsonName: 'dungeonmaster',
       });
     });
   });

@@ -85,6 +85,65 @@ describe('packageScaffoldConfigStatics', () => {
       );
     });
 
+    // F13: object spread REPLACES an array rather than merging it, so restating setupFilesAfterEnv
+    // here would drop the repo-root base's start-endpoint-mock-setup.ts entry (T01) and leave a
+    // scaffolded package with no MSW fail-on-unhandled guard. Asserting the COMPLETE template
+    // catches a restated array a partial `toMatch` would miss.
+    it('VALID: {} => the node template body is exactly the spread with no setupFilesAfterEnv override', () => {
+      expect(packageScaffoldConfigStatics.jestConfigNode).toBe(
+        `const baseConfig = require('../../jest.config.base.js');
+
+module.exports = {
+  ...baseConfig,
+  roots: [__ROOTS__],
+};
+`,
+      );
+    });
+
+    it('VALID: {} => the node-integration template carries no setupFilesAfterEnv override either', () => {
+      expect(packageScaffoldConfigStatics.jestConfigNodeIntegration).toBe(
+        `const baseConfig = require('../../jest.config.base.js');
+const dungeonmasterTsJestOptions = require('../../packages/testing/ts-jest/options.js');
+
+module.exports = {
+  ...baseConfig,
+  roots: [__ROOTS__],
+  transformIgnorePatterns: ['/dist/', '/node_modules/(?!(msw|@mswjs|until-async|outvariant)/)'],
+  transform: {
+    '^.+\\\\.[jt]s$': ['ts-jest', dungeonmasterTsJestOptions],
+  },
+};
+`,
+      );
+    });
+
+    it('VALID: {} => the tsx template carries no setupFilesAfterEnv override either', () => {
+      expect(packageScaffoldConfigStatics.jestConfigTsx).toBe(
+        `const baseConfig = require('../../jest.config.base.js');
+const dungeonmasterTsJestOptions = require('../../packages/testing/ts-jest/options.js');
+
+module.exports = {
+  ...baseConfig,
+  preset: undefined,
+  testEnvironment: '__TEST_ENVIRONMENT__',
+  roots: [__ROOTS__],
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
+  testMatch: ['**/src/**/*.test.[jt]s?(x)'],
+  transform: {
+    '^.+\\\\.[jt]sx?$': [
+      'ts-jest',
+      {
+        ...dungeonmasterTsJestOptions,
+        tsconfig: { ...dungeonmasterTsJestOptions.tsconfig, jsx: 'react-jsx' },
+      },
+    ],
+  },
+};
+`,
+      );
+    });
+
     it('VALID: {} => the tsx template spreads that same base, which is what carries customExportConditions', () => {
       expect(packageScaffoldConfigStatics.jestConfigTsx).toMatch(
         /^const baseConfig = require\('\.\.\/\.\.\/jest\.config\.base\.js'\);$/mu,

@@ -601,7 +601,7 @@ describe('packageScaffoldFilesTransformer', () => {
       },
     );
 
-    it('VALID: {packageType: "library"} => jest config body is exactly the bare node template, carrying no msw transform pair', () => {
+    it('VALID: {packageType: "library"} => jest config body is exactly the bare node template, carrying no msw transform pair and no setupFilesAfterEnv override', () => {
       const files = packageScaffoldFilesTransformer({ request: CreatePackageRequestStub() });
       const jestConfigFile = files.find((file) => file.relativePath === 'jest.config.js');
 
@@ -611,7 +611,6 @@ describe('packageScaffoldFilesTransformer', () => {
 module.exports = {
   ...baseConfig,
   roots: ['<rootDir>/src'],
-  setupFilesAfterEnv: ['<rootDir>/../../packages/testing/src/jest.setup.js'],
 };
 `);
     });
