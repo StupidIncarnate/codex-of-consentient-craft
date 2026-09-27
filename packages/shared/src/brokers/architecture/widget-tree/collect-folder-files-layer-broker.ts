@@ -25,7 +25,7 @@ export const collectFolderFilesLayerBroker = ({
 
   for (const entry of entries) {
     const entryPath = absoluteFilePathContract.parse(`${String(dirPath)}/${entry.name}`);
-    if (entry.isDirectory()) {
+    if (entry.kind === 'directory') {
       const children = collectFolderFilesLayerBroker({ dirPath: entryPath });
       for (const child of children) {
         results.push(child);

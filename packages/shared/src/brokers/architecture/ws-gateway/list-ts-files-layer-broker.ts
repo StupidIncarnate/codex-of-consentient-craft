@@ -25,7 +25,7 @@ export const listTsFilesLayerBroker = ({
   const results: AbsoluteFilePath[] = [];
   for (const entry of entries) {
     const entryPath = absoluteFilePathContract.parse(`${String(dirPath)}/${entry.name}`);
-    if (entry.isDirectory()) {
+    if (entry.kind === 'directory') {
       if (listTsFilesSkipDirsStatics.skipDirNames.some((n) => n === entry.name)) continue;
       const children = listTsFilesLayerBroker({ dirPath: entryPath });
       for (const child of children) {

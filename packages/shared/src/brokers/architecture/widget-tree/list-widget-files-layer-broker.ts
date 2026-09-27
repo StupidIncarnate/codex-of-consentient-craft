@@ -27,7 +27,7 @@ export const listWidgetFilesLayerBroker = ({
   for (const entry of entries) {
     const entryPath = absoluteFilePathContract.parse(`${String(widgetsDirPath)}/${entry.name}`);
 
-    if (entry.isDirectory()) {
+    if (entry.kind === 'directory') {
       const children = listWidgetFilesLayerBroker({ widgetsDirPath: entryPath });
       for (const child of children) {
         results.push(child);

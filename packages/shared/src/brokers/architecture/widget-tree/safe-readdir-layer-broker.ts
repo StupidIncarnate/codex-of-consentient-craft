@@ -3,22 +3,22 @@
  *
  * USAGE:
  * const entries = safeReaddirLayerBroker({ dirPath: absoluteFilePathContract.parse('/project/src/widgets') });
- * // Returns Dirent[] or empty array if directory does not exist
+ * // Returns DirEntrySync[] or empty array if directory does not exist
  *
  * WHEN-TO-USE: Widget-tree broker scanning widget directories where a missing directory should
  * be silently skipped rather than throwing
  */
 
-import { fsReaddirWithTypesAdapter } from '../../../adapters/fs/readdir-with-types/fs-readdir-with-types-adapter';
+import { readdirEntriesSync, type DirEntrySync } from '#gateway/node/fs';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 
 export const safeReaddirLayerBroker = ({
   dirPath,
 }: {
   dirPath: AbsoluteFilePath;
-}): ReturnType<typeof fsReaddirWithTypesAdapter> => {
+}): DirEntrySync[] => {
   try {
-    return fsReaddirWithTypesAdapter({ dirPath });
+    return readdirEntriesSync(dirPath);
   } catch {
     return [];
   }
