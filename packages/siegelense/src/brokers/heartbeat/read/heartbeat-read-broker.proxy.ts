@@ -2,18 +2,19 @@
  * PURPOSE: Composes the evidence-path resolution and the file read `heartbeatReadBroker` makes,
  * behind two semantic scenarios — a beat that is there, and one that never landed. Consumers
  * (`instanceEntryLayerBrokerProxy`) call these to describe an instance's heartbeat without knowing
- * this broker resolves its own evidence path independently on every call. The heartbeat-path join
- * itself is explicitly staged via `.returns()`, never left to `pathJoinAdapter`'s real-passthrough
- * default: a composing test (`instanceEntryLayerBrokerProxy`) stages OTHER future path resolutions
- * before this one runs, and an unstaged call here would consume one of those instead of computing
- * its own real join (the same rule `heartbeat-write-broker.proxy.ts` follows for the same join).
+ * this broker resolves its own evidence path independently on every call. The heartbeat-path join is
+ * staged on `#gateway/node/path`'s own `join` mock (the same one `locationsInstanceEvidencePathFindBrokerProxy`
+ * registers), addressed by its own exact tuple — `[evidencePath, heartbeat filename]` — so it never
+ * depends on call order relative to any sibling resolver's own join call, unlike the shared
+ * `pathJoinAdapter` queue this used to ride.
  *
  * USAGE:
  * const proxy = heartbeatReadBrokerProxy();
  * proxy.setupHeartbeatFound({ homeDir, homePath, rootPath, evidencePath, heartbeat });
  */
 
-import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
+import { join } from '#gateway/node/path';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { AbsoluteFilePathStub, FilePathStub } from '@dungeonmaster/shared/contracts';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
@@ -49,7 +50,9 @@ export const heartbeatReadBrokerProxy = (): {
 } => {
   errorIsNativeErrorAdapterProxy();
   const evidencePathProxy = locationsInstanceEvidencePathFindBrokerProxy();
-  const heartbeatPathJoinProxy = pathJoinAdapterProxy();
+  // Shares the same '#gateway/node/path' join handle evidencePathProxy's own constructor registers
+  // — addressed here on this file's OWN exact tuple, never a bare `calledWith([])`.
+  const joinHandle = registerMock({ fn: join });
   const readProxy = fsReadFileAdapterProxy();
 
   return {
@@ -68,7 +71,9 @@ export const heartbeatReadBrokerProxy = (): {
     }): void => {
       evidencePathProxy.setupInstanceEvidencePath({ homeDir, homePath, rootPath, evidencePath });
       const heartbeatPathValue = `${evidencePath}/${locationsStatics.siegelense.heartbeat}`;
-      heartbeatPathJoinProxy.returns({ result: FilePathStub({ value: heartbeatPathValue }) });
+      joinHandle
+        .calledWith([evidencePath, locationsStatics.siegelense.heartbeat])
+        .returns(FilePathStub({ value: heartbeatPathValue }));
       readProxy.resolves({
         filePath: AbsoluteFilePathStub({ value: heartbeatPathValue }),
         content: `${JSON.stringify(heartbeat)}\n`,
@@ -88,7 +93,9 @@ export const heartbeatReadBrokerProxy = (): {
     }): void => {
       evidencePathProxy.setupInstanceEvidencePath({ homeDir, homePath, rootPath, evidencePath });
       const heartbeatPathValue = `${evidencePath}/${locationsStatics.siegelense.heartbeat}`;
-      heartbeatPathJoinProxy.returns({ result: FilePathStub({ value: heartbeatPathValue }) });
+      joinHandle
+        .calledWith([evidencePath, locationsStatics.siegelense.heartbeat])
+        .returns(FilePathStub({ value: heartbeatPathValue }));
       readProxy.rejects({
         filePath: AbsoluteFilePathStub({ value: heartbeatPathValue }),
         error: Object.assign(new Error('ENOENT: no such file or directory'), { code: 'ENOENT' }),
@@ -110,7 +117,9 @@ export const heartbeatReadBrokerProxy = (): {
     }): void => {
       evidencePathProxy.setupInstanceEvidencePath({ homeDir, homePath, rootPath, evidencePath });
       const heartbeatPathValue = `${evidencePath}/${locationsStatics.siegelense.heartbeat}`;
-      heartbeatPathJoinProxy.returns({ result: FilePathStub({ value: heartbeatPathValue }) });
+      joinHandle
+        .calledWith([evidencePath, locationsStatics.siegelense.heartbeat])
+        .returns(FilePathStub({ value: heartbeatPathValue }));
       readProxy.rejects({
         filePath: AbsoluteFilePathStub({ value: heartbeatPathValue }),
         error,

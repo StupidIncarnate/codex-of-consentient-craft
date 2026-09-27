@@ -170,7 +170,6 @@ describe('instanceEntryLayerBroker', () => {
       });
       proxy.setupRunsDirPathJoin({ evidencePath });
       proxy.setupRunsDirEntries({ evidencePath, entries: [] });
-      proxy.setupShutdownReasonPathJoin({ evidencePath });
       proxy.setupShutdownReasonMissing({ evidencePath });
       proxy.setupProcListing({ pids: [] });
       proxy.setupApiWebLogPathJoins({ evidencePath });
@@ -251,7 +250,6 @@ describe('instanceEntryLayerBroker', () => {
       });
       proxy.setupRunsDirPathJoin({ evidencePath });
       proxy.setupRunsDirEntries({ evidencePath, entries: [] });
-      proxy.setupShutdownReasonPathJoin({ evidencePath });
       proxy.setupShutdownReasonFound({
         evidencePath,
         marker: ShutdownReasonStub({
@@ -349,7 +347,6 @@ describe('instanceEntryLayerBroker', () => {
         evidencePath,
         entries: ['run_1.jsonl', 'run_1.json', 'run_2.jsonl'],
       });
-      proxy.setupShutdownReasonPathJoin({ evidencePath });
       proxy.setupShutdownReasonMissing({ evidencePath });
       proxy.setupProcListing({ pids: ['100'] });
       proxy.setupPidStatPathJoin({ pid: '100' });
@@ -451,7 +448,6 @@ describe('instanceEntryLayerBroker', () => {
       });
       proxy.setupRunsDirPathJoin({ evidencePath });
       proxy.setupRunsDirEntries({ evidencePath, entries: ['run_1.jsonl', 'run_1.json'] });
-      proxy.setupShutdownReasonPathJoin({ evidencePath });
       proxy.setupShutdownReasonMissing({ evidencePath });
       proxy.setupProcListing({ pids: [] });
       proxy.setupApiWebLogPathJoins({ evidencePath });
@@ -540,7 +536,6 @@ describe('instanceEntryLayerBroker', () => {
         evidencePath,
         entries: ['run_1.jsonl', 'run_1.json', 'run_2.jsonl'],
       });
-      proxy.setupShutdownReasonPathJoin({ evidencePath });
       proxy.setupShutdownReasonMissing({ evidencePath });
       proxy.setupProcListing({ pids: [] });
       proxy.setupApiWebLogPathJoins({ evidencePath });

@@ -1,21 +1,20 @@
 /**
  * PURPOSE: Composes the file-read mock `bootFailureMarkerReadBroker` makes off an evidence path a
  * test already has in hand — no evidence-path resolution to stage, since the broker takes that path
- * directly. `pathJoinAdapterProxy` is constructed only to satisfy `enforce-proxy-child-creation` and
- * its `.returns()` is never called: this proxy is composed inside `instanceStartBootPollLayerBroker`'s
- * own proxy, itself composed inside `instanceStartBroker`'s — a chain that resolves every OTHER path
- * through `pathJoinAdapter`'s REAL passthrough (see that proxy's own comment), sharing ONE queue
- * across every composed resolver. A `.returns()` here would push a one-shot onto that SAME shared
- * queue and get consumed by whichever real `join()` call happens to run next, not necessarily this
- * broker's own — silently corrupting an unrelated resolution. Real passthrough already computes the
- * correct joined path for this broker's own two segments, so nothing needs staging.
+ * directly. `#gateway/node/path` is a raw passthrough of the Node 'path' module (no per-function
+ * wrapper, so no gateway proxy to compose) — mocked directly here, on the same '#gateway/node/path'
+ * specifier the broker imports. Every segment the broker's own `join` call passes (`evidencePath`, a
+ * literal filename) is already known to this proxy's own callers, and the real computation always
+ * lands on the same value a test's own template-literal assertion expects — so only the sticky
+ * real-passthrough default is installed; nothing needs staging with `.returns()`.
  *
  * USAGE:
  * const proxy = bootFailureMarkerReadBrokerProxy();
  * proxy.setupMarkerFound({ evidencePath, marker });
  */
 
-import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
+import { join } from '#gateway/node/path';
+import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
@@ -32,7 +31,9 @@ export const bootFailureMarkerReadBrokerProxy = (): {
   setupReadFails: (params: { evidencePath: AbsoluteFilePath; error: Error }) => void;
 } => {
   errorIsNativeErrorAdapterProxy();
-  pathJoinAdapterProxy();
+  const realPath = requireActual<{ join: typeof join }>({ module: 'path' });
+  const joinHandle = registerMock({ fn: join });
+  joinHandle.calledWith([]).implement((...segments: never[]) => realPath.join(...segments));
   const readProxy = fsReadFileAdapterProxy();
 
   return {

@@ -13,7 +13,7 @@
  * // Returns the parsed BootFailureMarker, or null if boot-failure.json does not exist
  */
 
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
+import { join } from '#gateway/node/path';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
@@ -29,7 +29,7 @@ export const bootFailureMarkerReadBroker = async ({
   evidencePath: AbsoluteFilePath;
 }): Promise<BootFailureMarker | null> => {
   const markerPath = absoluteFilePathContract.parse(
-    pathJoinAdapter({ paths: [evidencePath, locationsStatics.siegelense.bootFailure] }),
+    join(evidencePath, locationsStatics.siegelense.bootFailure),
   );
 
   const content = await fsReadFileAdapter({ filePath: markerPath }).catch((error: unknown) => {

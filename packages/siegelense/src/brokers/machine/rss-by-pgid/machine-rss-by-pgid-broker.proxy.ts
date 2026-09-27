@@ -1,5 +1,5 @@
 import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub, FilePathStub } from '@dungeonmaster/shared/contracts';
 
 import { errorIsNativeErrorAdapterProxy } from '../../../adapters/error/is-native-error/error-is-native-error-adapter.proxy';
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
@@ -16,11 +16,20 @@ export const machineRssByPgidBrokerProxy = (): {
   setupPidStatFails: (params: { pid: string; error: Error }) => void;
   setupPidStatm: (params: { pid: string; residentPages: number }) => void;
   setupPidStatmVanished: (params: { pid: string; code?: 'ENOENT' | 'ESRCH' }) => void;
+  // Opt-in defensive staging for a composing caller (heartbeat-write-broker.proxy.ts) that also
+  // composes a SIBLING proxy queuing its own pending resolution on this SAME shared pathJoinAdapter
+  // mock (registryWriteBrokerProxy, via registryUpdateBrokerProxy) — an unstaged real join here would
+  // otherwise consume that sibling's queued entry instead of computing its own real path. Not needed
+  // by instance-entry-layer-broker.proxy.ts, which stages these same joins itself through its own
+  // pathJoinAdapterProxy instance.
+  setupPidStatPathJoinDefensive: (params: { pid: string }) => void;
+  setupPidStatmPathJoinDefensive: (params: { pid: string }) => void;
 } => {
   errorIsNativeErrorAdapterProxy();
-  // pathJoinAdapter has no override staged here — its default is a real path.join passthrough,
-  // and joining '/proc', a pid and a leaf name needs no substitution to compute a real path.
-  pathJoinAdapterProxy();
+  // pathJoinAdapter has no override staged here by default — its default is a real path.join
+  // passthrough, and joining '/proc', a pid and a leaf name needs no substitution to compute a real
+  // path. The two ...Defensive methods below stage an explicit override only when a caller opts in.
+  const pathJoinProxy = pathJoinAdapterProxy();
   const statProxy = fsStatAdapterProxy();
   const readdirProxy = fsReaddirAdapterProxy();
   const readFileProxy = fsReadFileAdapterProxy();
@@ -88,6 +97,14 @@ export const machineRssByPgidBrokerProxy = (): {
         filePath: AbsoluteFilePathStub({ value: `/proc/${pid}/statm` }),
         error: Object.assign(new Error(`${code}: process vanished mid-read`), { code }),
       });
+    },
+
+    setupPidStatPathJoinDefensive: ({ pid }: { pid: string }): void => {
+      pathJoinProxy.returns({ result: FilePathStub({ value: `/proc/${pid}/stat` }) });
+    },
+
+    setupPidStatmPathJoinDefensive: ({ pid }: { pid: string }): void => {
+      pathJoinProxy.returns({ result: FilePathStub({ value: `/proc/${pid}/statm` }) });
     },
   };
 };

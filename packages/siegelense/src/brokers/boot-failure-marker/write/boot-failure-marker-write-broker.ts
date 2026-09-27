@@ -15,7 +15,7 @@
  * // Writes boot-failure.json under that directory and returns the written BootFailureMarker
  */
 
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
+import { join } from '#gateway/node/path';
 import { absoluteFilePathContract, fileContentsContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
@@ -33,7 +33,7 @@ export const bootFailureMarkerWriteBroker = async ({
   message: ContentText;
 }): Promise<BootFailureMarker> => {
   const markerPath = absoluteFilePathContract.parse(
-    pathJoinAdapter({ paths: [evidencePath, locationsStatics.siegelense.bootFailure] }),
+    join(evidencePath, locationsStatics.siegelense.bootFailure),
   );
 
   const marker = bootFailureMarkerContract.parse({

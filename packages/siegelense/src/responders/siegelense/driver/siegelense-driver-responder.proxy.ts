@@ -23,7 +23,6 @@
  * proxy.stageBootSucceeds({ lane });
  */
 
-import { join } from 'path';
 import {
   AbsoluteFilePathStub,
   ContentTextStub,
@@ -85,20 +84,6 @@ export const SiegelenseDriverResponderProxy = (): {
   registryReadBrokerProxy();
   registryUpdateBrokerProxy();
   bootFailureMarkerWriteBrokerProxy();
-
-  // Drains one-shot pathJoin entries any not-yet-migrated resolver in this composition chain may
-  // still queue on the raw 'path' mock (never the gateway `#gateway/node/path` `join` the migrated
-  // resolvers below use — a different captured reference, per
-  // dungeonmaster-home-find-broker.proxy.ts's own header). A drain past the real queue length is
-  // harmless: it falls through to that mock's own sticky real-passthrough default instead of an
-  // unconfigured-call throw. Plain calls, not a loop or `.forEach()` — `enforce-proxy-patterns`
-  // scans the constructor's own top-level statements for exactly those shapes.
-  join('drain', '0');
-  join('drain', '1');
-  join('drain', '2');
-  join('drain', '3');
-  join('drain', '4');
-  join('drain', '5');
 
   // locationsInstanceHomePathFindBroker runs REAL here, never asserted on beyond identity, so its
   // own proxy's sticky real-passthrough default (`#gateway/node/path`'s `join`, composed

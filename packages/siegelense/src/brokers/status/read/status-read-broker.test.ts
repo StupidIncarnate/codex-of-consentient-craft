@@ -209,7 +209,6 @@ describe('statusReadBroker', () => {
         evidencePath,
         entries: ['run_1.jsonl', 'run_1.json', 'run_2.jsonl'],
       });
-      proxy.setupShutdownReasonPathJoin({ evidencePath });
       proxy.setupShutdownReasonMissing({ evidencePath });
       proxy.setupProcListing({ pids: ['100'] });
       proxy.setupPidStatPathJoin({ pid: '100' });
@@ -562,7 +561,6 @@ describe('statusReadBroker', () => {
       });
       proxy.setupRunsDirPathJoin({ evidencePath: evidencePathOld });
       proxy.setupRunsDirEntries({ evidencePath: evidencePathOld, entries: [] });
-      proxy.setupShutdownReasonPathJoin({ evidencePath: evidencePathOld });
       proxy.setupShutdownReasonMissing({ evidencePath: evidencePathOld });
       proxy.setupProcListing({ pids: [] });
 

@@ -34,7 +34,7 @@
  * // the written InstanceHeartbeat — rssMB is null when the measurement failed or /proc is absent
  */
 
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
+import { join } from '#gateway/node/path';
 import { absoluteFilePathContract, fileContentsContract } from '@dungeonmaster/shared/contracts';
 import type { GuildId, ProcessId } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
@@ -63,7 +63,7 @@ export const heartbeatWriteBroker = async ({
 }): Promise<InstanceHeartbeat> => {
   const evidenceDir = locationsInstanceEvidencePathFindBroker({ instanceId, guildId });
   const heartbeatPath = absoluteFilePathContract.parse(
-    pathJoinAdapter({ paths: [evidenceDir, locationsStatics.siegelense.heartbeat] }),
+    join(evidenceDir, locationsStatics.siegelense.heartbeat),
   );
 
   let rssMB: Megabytes | null = null;
