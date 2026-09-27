@@ -12,11 +12,11 @@
  * // Returns { status: 200, data: { log: '...' } } or { status: 400/404, data: { error } }
  */
 
+import { questFindQuestPathBroker } from '@dungeonmaster/orchestrator';
 import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
-import { orchestratorFindQuestPathAdapter } from '../../../adapters/orchestrator/find-quest-path/orchestrator-find-quest-path-adapter';
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import { questRiftcarverDetailParamsContract } from '../../../contracts/quest-riftcarver-detail-params/quest-riftcarver-detail-params-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
@@ -39,7 +39,7 @@ export const QuestRiftcarverDetailResponder = async ({
   const { questId, riftcarverResultId } = parsedParams.data;
 
   try {
-    const { questPath } = await orchestratorFindQuestPathAdapter({ questId });
+    const { questPath } = await questFindQuestPathBroker({ questId });
     const logFilePath = pathJoinAdapter({
       paths: [questPath, locationsStatics.quest.riftcarverResultsDir, `${riftcarverResultId}.log`],
     });

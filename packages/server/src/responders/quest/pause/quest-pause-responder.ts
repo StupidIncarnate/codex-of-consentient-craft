@@ -1,15 +1,14 @@
 /**
- * PURPOSE: Handles quest pause requests by validating params and delegating to the orchestrator adapter
+ * PURPOSE: Handles quest pause requests by validating params and delegating to `StartOrchestrator`
  *
  * USAGE:
  * const result = await QuestPauseResponder({ params: { questId: 'abc' } });
  * // Returns { status: 200, data: { paused: true } } or { status: 400/500, data: { error } }
  */
 
+import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { isQuestPauseableQuestStatusGuard } from '@dungeonmaster/shared/guards';
 import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
-import { orchestratorGetQuestAdapter } from '../../../adapters/orchestrator/get-quest/orchestrator-get-quest-adapter';
-import { orchestratorPauseQuestAdapter } from '../../../adapters/orchestrator/pause-quest/orchestrator-pause-quest-adapter';
 import { questIdParamsContract } from '../../../contracts/quest-id-params/quest-id-params-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
@@ -36,7 +35,7 @@ export const QuestPauseResponder = async ({
     }
     const { questId } = parsedParams.data;
 
-    const questResult = await orchestratorGetQuestAdapter({ questId });
+    const questResult = await StartOrchestrator.getQuest({ questId });
     if (!questResult.success || !questResult.quest) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
@@ -59,7 +58,7 @@ export const QuestPauseResponder = async ({
       });
     }
 
-    const result = await orchestratorPauseQuestAdapter({ questId });
+    const result = await StartOrchestrator.pauseQuest({ questId });
     return responderResultContract.parse({
       status: httpStatusStatics.success.ok,
       data: result,

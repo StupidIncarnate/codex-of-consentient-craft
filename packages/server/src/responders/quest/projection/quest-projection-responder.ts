@@ -9,7 +9,7 @@
  * // Returns { status: 200, data: QuestProjection } or { status: 400/404, data: { error } }
  */
 
-import { orchestratorGetQuestProjectionAdapter } from '../../../adapters/orchestrator/get-quest-projection/orchestrator-get-quest-projection-adapter';
+import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { questProjectionParamsContract } from '../../../contracts/quest-projection-params/quest-projection-params-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
@@ -30,7 +30,7 @@ export const QuestProjectionResponder = async ({
   }
 
   try {
-    const projection = await orchestratorGetQuestProjectionAdapter({
+    const projection = await StartOrchestrator.getQuestProjection({
       questId: parsedParams.data.questId,
     });
     return responderResultContract.parse({

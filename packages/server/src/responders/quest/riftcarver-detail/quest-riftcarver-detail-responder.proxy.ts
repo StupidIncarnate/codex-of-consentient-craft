@@ -1,3 +1,4 @@
+import { questFindQuestPathBrokerProxy } from '@dungeonmaster/orchestrator/brokers/quest/find-quest-path/quest-find-quest-path-broker.proxy';
 import {
   AbsoluteFilePathStub,
   FileContentsStub,
@@ -8,7 +9,6 @@ import {
 import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
 
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
-import { orchestratorFindQuestPathAdapterProxy } from '../../../adapters/orchestrator/find-quest-path/orchestrator-find-quest-path-adapter.proxy';
 import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 import { QuestRiftcarverDetailResponder } from './quest-riftcarver-detail-responder';
 
@@ -25,12 +25,12 @@ export const QuestRiftcarverDetailResponderProxy = (): {
   setupNotFound: () => void;
   callResponder: typeof QuestRiftcarverDetailResponder;
 } => {
-  const findPathProxy = orchestratorFindQuestPathAdapterProxy();
+  const findQuestPathProxy = questFindQuestPathBrokerProxy();
   const pathJoinProxy = pathJoinAdapterProxy();
   const readFileProxy = fsReadFileAdapterProxy();
 
   const setupPaths = (): void => {
-    findPathProxy.returns({
+    findQuestPathProxy.setupQuestPath({
       questId: DETAIL_QUEST_ID,
       questPath: AbsoluteFilePathStub({ value: '/home/testuser/quest' }),
       guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),

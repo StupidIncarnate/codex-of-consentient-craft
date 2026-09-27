@@ -1,8 +1,7 @@
-import type { QuestId, QuestStatus, QuestStub } from '@dungeonmaster/shared/contracts';
+import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import { DispatchPlayResponseStub } from '@dungeonmaster/orchestrator/testing';
-import { orchestratorGetQuestAdapterProxy } from '../../../adapters/orchestrator/get-quest/orchestrator-get-quest-adapter.proxy';
-import { orchestratorPlayDispatchAdapterProxy } from '../../../adapters/orchestrator/play-dispatch/orchestrator-play-dispatch-adapter.proxy';
-import { orchestratorResumeQuestAdapterProxy } from '../../../adapters/orchestrator/resume-quest/orchestrator-resume-quest-adapter.proxy';
+import { GetQuestResultStub } from '@dungeonmaster/shared/contracts';
+import type { QuestId, QuestStatus, QuestStub } from '@dungeonmaster/shared/contracts';
 import { QuestResumeResponder } from './quest-resume-responder';
 
 type Quest = ReturnType<typeof QuestStub>;
@@ -21,13 +20,14 @@ export const QuestResumeResponderProxy = (): {
   getDispatchPlayCalls: () => readonly unknown[];
   callResponder: typeof QuestResumeResponder;
 } => {
-  const questProxy = orchestratorGetQuestAdapterProxy();
-  const adapterProxy = orchestratorResumeQuestAdapterProxy();
-  const playProxy = orchestratorPlayDispatchAdapterProxy();
+  const orchestrator = StartOrchestratorProxy();
 
   return {
     setupQuest: ({ quest }: { quest: Quest }): void => {
-      questProxy.returns({ questId: quest.id, result: { success: true, quest } as never });
+      orchestrator.getQuestReturns({
+        questId: quest.id,
+        result: GetQuestResultStub({ success: true, quest }),
+      });
     },
     setupResumeQuest: ({
       questId,
@@ -38,26 +38,26 @@ export const QuestResumeResponderProxy = (): {
       resumed: boolean;
       restoredStatus: QuestStatus;
     }): void => {
-      adapterProxy.returns({ questId, resumed, restoredStatus });
+      orchestrator.resumeQuestReturns({ questId, resumed, restoredStatus });
     },
     setupResumeQuestError: ({ questId, message }: { questId: QuestId; message: string }): void => {
-      adapterProxy.throws({ questId, error: new Error(message) });
+      orchestrator.resumeQuestThrows({ questId, error: new Error(message) });
     },
 
     // The Node dispatcher accepts the play — the ordinary case, where nothing else owns the queue.
     setupDispatchPlays: (): void => {
-      playProxy.returns({ response: DispatchPlayResponseStub({ allowed: true }) });
+      orchestrator.playDispatchReturns({ response: DispatchPlayResponseStub({ allowed: true }) });
     },
     // The exclusivity gate refuses: a live /dumpster-launch loop still owns the queue.
     setupDispatchRefused: ({ reason }: { reason: string }): void => {
-      playProxy.returns({
+      orchestrator.playDispatchReturns({
         response: DispatchPlayResponseStub({ allowed: false, reason: reason as never }),
       });
     },
     setupDispatchError: ({ message }: { message: string }): void => {
-      playProxy.throws({ error: new Error(message) });
+      orchestrator.playDispatchThrows({ error: new Error(message) });
     },
-    getDispatchPlayCalls: (): readonly unknown[] => playProxy.getCalls(),
+    getDispatchPlayCalls: (): readonly unknown[] => orchestrator.playDispatchGetCalls(),
 
     callResponder: QuestResumeResponder,
   };

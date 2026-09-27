@@ -1,6 +1,6 @@
 /**
- * PURPOSE: Handles quest resume requests by validating params, delegating to the orchestrator
- * adapter, and starting the Node dispatcher so the resumed quest actually moves.
+ * PURPOSE: Handles quest resume requests by validating params, delegating to `StartOrchestrator`,
+ * and starting the Node dispatcher so the resumed quest actually moves.
  *
  * USAGE:
  * const result = await QuestResumeResponder({ params: { questId: 'abc' } });
@@ -26,14 +26,12 @@
  * A play failure never fails the resume — the quest IS resumed at that point.
  */
 
+import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import {
   hasIncompleteQuestWorkGuard,
   isAnyAgentRunningQuestStatusGuard,
   isQuestResumableQuestStatusGuard,
 } from '@dungeonmaster/shared/guards';
-import { orchestratorGetQuestAdapter } from '../../../adapters/orchestrator/get-quest/orchestrator-get-quest-adapter';
-import { orchestratorPlayDispatchAdapter } from '../../../adapters/orchestrator/play-dispatch/orchestrator-play-dispatch-adapter';
-import { orchestratorResumeQuestAdapter } from '../../../adapters/orchestrator/resume-quest/orchestrator-resume-quest-adapter';
 import { questIdParamsContract } from '../../../contracts/quest-id-params/quest-id-params-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
@@ -60,7 +58,7 @@ export const QuestResumeResponder = async ({
     }
     const { questId } = parsedParams.data;
 
-    const questResult = await orchestratorGetQuestAdapter({ questId });
+    const questResult = await StartOrchestrator.getQuest({ questId });
     if (!questResult.success || !questResult.quest) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
@@ -78,7 +76,7 @@ export const QuestResumeResponder = async ({
       });
     }
 
-    const result = await orchestratorResumeQuestAdapter({ questId });
+    const result = await StartOrchestrator.resumeQuest({ questId });
 
     // The SAME predicate the dispatcher's own scan selects quests with
     // (scan-once-layer-broker filters on isAnyAgentRunning), so the two cannot disagree about
@@ -94,7 +92,7 @@ export const QuestResumeResponder = async ({
       });
 
     const dispatch = isDispatchable
-      ? await orchestratorPlayDispatchAdapter({}).then(
+      ? await StartOrchestrator.playDispatch({}).then(
           (played) => ({
             started: played.allowed,
             ...(played.reason === undefined ? {} : { reason: played.reason }),
