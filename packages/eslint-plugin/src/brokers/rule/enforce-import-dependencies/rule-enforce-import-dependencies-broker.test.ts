@@ -357,6 +357,13 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
       filename: '/project/src/responders/user/create/user-create-responder.ts',
     },
 
+    // Responders can import @dungeonmaster/orchestrator directly (A02: callers of the deleted
+    // server/mcp forwarder adapters import the workspace package instead of a forwarding adapter)
+    {
+      code: 'import { StartOrchestrator } from "@dungeonmaster/orchestrator";',
+      filename: '/project/src/responders/user/profile/user-profile-responder.ts',
+    },
+
     // Widgets (depth 1) can import from bindings, brokers, state, contracts, transformers, guards, statics, errors
     {
       code: 'import { useUserDataBinding } from "../../bindings/use-user-data/use-user-data-binding";',
@@ -881,7 +888,7 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
             folderType: 'responders',
             importedFolder: 'responders',
             allowed:
-              'adapters/, widgets/, brokers/, bindings/, state/, contracts/, transformers/, guards/, statics/, errors/',
+              'adapters/, widgets/, brokers/, bindings/, state/, contracts/, transformers/, guards/, statics/, errors/, @dungeonmaster/orchestrator',
           },
         },
       ],
@@ -945,7 +952,23 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
             folderType: 'responders',
             importedFolder: 'flows',
             allowed:
-              'adapters/, widgets/, brokers/, bindings/, state/, contracts/, transformers/, guards/, statics/, errors/',
+              'adapters/, widgets/, brokers/, bindings/, state/, contracts/, transformers/, guards/, statics/, errors/, @dungeonmaster/orchestrator',
+          },
+        },
+      ],
+    },
+
+    // Responders cannot import a workspace package that is not specifically allowlisted —
+    // package name alone grants nothing; only @dungeonmaster/orchestrator is sentinel-allowed
+    {
+      code: 'import Config from "@dungeonmaster/config";',
+      filename: '/project/src/responders/user/profile/user-profile-responder.ts',
+      errors: [
+        {
+          messageId: 'forbiddenExternalImport',
+          data: {
+            folderType: 'responders',
+            packageName: '@dungeonmaster/config',
           },
         },
       ],

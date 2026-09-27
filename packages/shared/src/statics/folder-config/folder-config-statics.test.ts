@@ -301,6 +301,7 @@ describe('folderConfigStatics', () => {
           'guards/',
           'statics/',
           'errors/',
+          '@dungeonmaster/orchestrator',
         ],
         disallowAdhocTypes: true,
         requireProxy: true,
