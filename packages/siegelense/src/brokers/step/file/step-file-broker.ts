@@ -12,7 +12,7 @@
  * // Returns file contents as ContentText
  */
 
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
+import { join } from '#gateway/node/path';
 import { absoluteFilePathContract, contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { ContentText } from '@dungeonmaster/shared/contracts';
 
@@ -29,9 +29,7 @@ export const stepFileBroker = async ({
   lane: LaneSession;
   path: StepFilePath;
 }): Promise<ContentText> => {
-  const homeFilePath = absoluteFilePathContract.parse(
-    pathJoinAdapter({ paths: [lane.homePath, path] }),
-  );
+  const homeFilePath = absoluteFilePathContract.parse(join(lane.homePath, path));
   const homeStat = await fsStatAdapter({ filePath: homeFilePath });
 
   if (homeStat !== null) {
@@ -39,9 +37,7 @@ export const stepFileBroker = async ({
     return contentTextContract.parse(content);
   }
 
-  const evidenceFilePath = absoluteFilePathContract.parse(
-    pathJoinAdapter({ paths: [lane.evidencePath, path] }),
-  );
+  const evidenceFilePath = absoluteFilePathContract.parse(join(lane.evidencePath, path));
   const evidenceStat = await fsStatAdapter({ filePath: evidenceFilePath });
 
   if (evidenceStat !== null) {

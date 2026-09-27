@@ -75,7 +75,6 @@ describe('statusReadBroker', () => {
           rootPath: FilePathStub({ value: ROOT_PATH_VALUE }),
           evidencePath,
         });
-        proxy.setupRunsDirPathJoin({ evidencePath });
         proxy.setupRunsDirEntries({ evidencePath, entries: [] });
         proxy.setupProcListing({ pids: [] });
       }
@@ -204,7 +203,6 @@ describe('statusReadBroker', () => {
         evidencePath,
         heartbeat,
       });
-      proxy.setupRunsDirPathJoin({ evidencePath });
       proxy.setupRunsDirEntries({
         evidencePath,
         entries: ['run_1.jsonl', 'run_1.json', 'run_2.jsonl'],
@@ -214,7 +212,6 @@ describe('statusReadBroker', () => {
       proxy.setupPidStat({ pid: '100', pgrp: 33_812, comm: 'node' });
       proxy.setupOrphanCmdline({ pid: '100', argv: ['npm', 'run', 'dev:no-watch'] });
       proxy.setupOrphanAlive({ pgid });
-      proxy.setupApiWebLogPathJoins({ evidencePath });
       proxy.setupApiLogPresent({ evidencePath });
       proxy.setupWebLogPresent({ evidencePath });
       proxy.setupRepoLinkResolves({
@@ -224,7 +221,6 @@ describe('statusReadBroker', () => {
         homePath,
         rootPath,
       });
-      proxy.setupTranscriptPathJoin({ evidencePath, runId: 'run_2' });
       proxy.setupTranscriptLines({
         evidencePath,
         runId: 'run_2',
@@ -380,7 +376,6 @@ describe('statusReadBroker', () => {
         rootPath: FilePathStub({ value: ROOT_PATH_VALUE }),
         evidencePath: evidencePath1,
       });
-      proxy.setupRunsDirPathJoin({ evidencePath: evidencePath1 });
       proxy.setupRunsDirEntries({ evidencePath: evidencePath1, entries: [] });
       proxy.setupProcListing({ pids: [] });
 
@@ -459,7 +454,6 @@ describe('statusReadBroker', () => {
         rootPath: FilePathStub({ value: ROOT_PATH_VALUE }),
         evidencePath: evidencePathRecent,
       });
-      proxy.setupRunsDirPathJoin({ evidencePath: evidencePathRecent });
       proxy.setupRunsDirEntries({ evidencePath: evidencePathRecent, entries: [] });
       proxy.setupProcListing({ pids: [] });
 
@@ -538,7 +532,6 @@ describe('statusReadBroker', () => {
         rootPath: FilePathStub({ value: ROOT_PATH_VALUE }),
         evidencePath: evidencePathRecent,
       });
-      proxy.setupRunsDirPathJoin({ evidencePath: evidencePathRecent });
       proxy.setupRunsDirEntries({ evidencePath: evidencePathRecent, entries: [] });
       proxy.setupProcListing({ pids: [] });
 
@@ -557,7 +550,6 @@ describe('statusReadBroker', () => {
         rootPath: FilePathStub({ value: ROOT_PATH_VALUE }),
         evidencePath: evidencePathOld,
       });
-      proxy.setupRunsDirPathJoin({ evidencePath: evidencePathOld });
       proxy.setupRunsDirEntries({ evidencePath: evidencePathOld, entries: [] });
       proxy.setupShutdownReasonMissing({ evidencePath: evidencePathOld });
       proxy.setupProcListing({ pids: [] });
@@ -653,7 +645,6 @@ describe('statusReadBroker', () => {
         rootPath: FilePathStub({ value: ROOT_PATH_VALUE }),
         evidencePath: evidencePathRecent,
       });
-      proxy.setupRunsDirPathJoin({ evidencePath: evidencePathRecent });
       proxy.setupRunsDirEntries({ evidencePath: evidencePathRecent, entries: [] });
       proxy.setupProcListing({ pids: [] });
 

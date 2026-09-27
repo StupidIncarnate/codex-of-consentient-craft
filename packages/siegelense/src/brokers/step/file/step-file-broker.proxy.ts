@@ -1,9 +1,13 @@
-// PURPOSE: Proxy for step-file-broker — composes pathJoinAdapterProxy, fsStatAdapterProxy,
-// and fsReadFileAdapterProxy for testing file existence checks and file reading off a lane's
-// throwaway home directory or evidence directory.
+// PURPOSE: Proxy for step-file-broker — composes fsStatAdapterProxy and fsReadFileAdapterProxy for
+// testing file existence checks and file reading off a lane's throwaway home directory or evidence
+// directory. `join` (from '#gateway/node/path') is mocked directly, on a sticky real-passthrough
+// default: both segments of every join this broker makes (a lane's home/evidence path, plus the
+// step's own file path) are already known at test-setup time, so the real computed path always
+// matches what `setupFileExists`/`setupFileNotFound` stage on fsStatAdapter/fsReadFileAdapter.
 // USAGE: const proxy = stepFileBrokerProxy(); proxy.setupFileExists({ filePath, content });
 
-import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
+import { join } from '#gateway/node/path';
+import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
@@ -16,7 +20,13 @@ export const stepFileBrokerProxy = (): {
     evidenceFilePath?: AbsoluteFilePath;
   }) => void;
 } => {
-  pathJoinAdapterProxy();
+  // #gateway/node/path is a raw passthrough of the Node 'path' module (no per-function wrapper, so
+  // no gateway proxy to compose) — mocked directly here, on the same '#gateway/node/path' specifier
+  // the broker imports.
+  const realPath = requireActual<{ join: typeof join }>({ module: 'path' });
+  registerMock({ fn: join })
+    .calledWith([])
+    .implement((...segments: never[]) => realPath.join(...segments));
   const statProxy = fsStatAdapterProxy();
   const readFileProxy = fsReadFileAdapterProxy();
 

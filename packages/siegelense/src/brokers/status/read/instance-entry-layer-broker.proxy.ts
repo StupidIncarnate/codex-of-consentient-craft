@@ -2,25 +2,14 @@
  * PURPOSE: Composes every child proxy `instanceEntryLayerBroker` reaches through — the evidence-path
  * resolution (twice: once directly, once inside `heartbeatReadBroker`), the runs-directory listing,
  * `/proc` for orphans and rss, the two known log files, the repo-local symlink, and the last run's
- * transcript — behind scenario methods a test calls in the SAME order the broker itself reaches
- * them, since `pathJoinAdapter`'s mock is one call-ordered queue shared by every proxy that stages it
- * (see `heartbeat-write-broker.proxy.ts` for the same rule on a shorter chain). `heartbeatReadBroker`,
- * `shutdownReasonReadBroker`, `orphanReadBroker` and `machineRssByPgidBroker` no longer ride that
- * shared queue at all — each resolves its own path on `#gateway/node/path`'s own `join` mock (orphan
- * and rss through their own sticky real-passthrough default, needing no staging here), so nothing
- * here stages a slot for any of them. Four of this broker's OWN joins — `runs`, `api-server.log`,
- * `web-server.log`, and the last run's transcript — are still explicitly staged here, via
- * `setupRunsDirPathJoin` / `setupApiWebLogPathJoins` / `setupTranscriptPathJoin`, rather than left to
- * `pathJoinAdapter`'s real-passthrough default: `locationsRepoLinkPathFindBroker`'s OWN resolution
- * (staged by `setupRepoLinkResolves`) pushes ITS pending entries onto this SAME shared queue well
- * before it actually runs, and an unstaged call from this broker in between would consume one of
- * those instead of computing its own real join. A test therefore calls the push-registering methods
- * in exactly this order: `setupEvidenceDir`, `setupHeartbeatFound`/`setupHeartbeatMissing`,
- * `setupRunsDirPathJoin`, `setupApiWebLogPathJoins` (named only), `setupRepoLinkResolves` (named
- * only), `setupTranscriptPathJoin` (named, with a run, only) — the non-pushing methods
- * (`setupRunsDirEntries`, `setupShutdownReasonMissing`/`setupShutdownReasonFound`,
- * `setupProcListing`, the log presence/absence, `setupTranscriptLines`) may be called in any
- * position relative to those. `setupProcListing` alone answers BOTH `orphanReadBroker`'s and
+ * transcript. Every one of those, and this broker's own four joins (`runs`, `api-server.log`,
+ * `web-server.log`, the last run's transcript), now resolve on the SAME shared `#gateway/node/path`
+ * `join` mock — this broker's own four through the sticky real-passthrough default
+ * `locationsInstanceEvidencePathFindBrokerProxy` installs transitively (via
+ * `locationsRootPathFindBrokerProxy`'s own `dungeonmasterHomeFindBrokerProxy`), the rest through
+ * their own proxy's exact-tuple addressing — so no scenario method here stages a join, and none of
+ * `instanceEntryLayerBroker`'s own setup calls depend on being made in any particular order relative
+ * to each other. `setupProcListing` alone answers BOTH `orphanReadBroker`'s and
  * `machineRssByPgidBroker`'s own `/proc` readdir, since both call it with the identical `dirPath`
  * argument against the one shared mock.
  *
@@ -28,14 +17,12 @@
  * const proxy = instanceEntryLayerBrokerProxy();
  * proxy.setupEvidenceDir({ homeDir, homePath, rootPath, evidencePath });
  * proxy.setupHeartbeatMissing({ homeDir, homePath, rootPath, evidencePath });
- * proxy.setupRunsDirPathJoin({ evidencePath });
  * proxy.setupRunsDirEntries({ evidencePath, entries: [] });
  * proxy.setupShutdownReasonMissing({ evidencePath });
  * proxy.setupProcListing({ pids: [] });
  */
 
-import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
-import { AbsoluteFilePathStub, FilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
@@ -77,7 +64,6 @@ export const instanceEntryLayerBrokerProxy = (): {
     evidencePath: FilePath;
     heartbeat: InstanceHeartbeat;
   }) => void;
-  setupRunsDirPathJoin: (params: { evidencePath: FilePath }) => void;
   setupRunsDirEntries: (params: { evidencePath: FilePath; entries: readonly string[] }) => void;
   setupShutdownReasonMissing: (params: { evidencePath: FilePath }) => void;
   setupShutdownReasonFound: (params: { evidencePath: FilePath; marker: ShutdownReason }) => void;
@@ -87,7 +73,6 @@ export const instanceEntryLayerBrokerProxy = (): {
   setupOrphanCmdline: (params: { pid: string; argv: readonly string[] }) => void;
   setupOrphanAlive: (params: { pgid: ProcessGroupId }) => void;
   setupOrphanGone: (params: { pgid: ProcessGroupId }) => void;
-  setupApiWebLogPathJoins: (params: { evidencePath: FilePath }) => void;
   setupApiLogPresent: (params: { evidencePath: FilePath }) => void;
   setupApiLogAbsent: (params: { evidencePath: FilePath }) => void;
   setupWebLogPresent: (params: { evidencePath: FilePath }) => void;
@@ -99,7 +84,6 @@ export const instanceEntryLayerBrokerProxy = (): {
     homePath: FilePath;
     rootPath: FilePath;
   }) => void;
-  setupTranscriptPathJoin: (params: { evidencePath: FilePath; runId: string }) => void;
   setupTranscriptLines: (params: {
     evidencePath: FilePath;
     runId: string;
@@ -109,7 +93,6 @@ export const instanceEntryLayerBrokerProxy = (): {
   likelyCauseLayerBrokerProxy();
   const directEvidencePathProxy = locationsInstanceEvidencePathFindBrokerProxy();
   const heartbeatProxy = heartbeatReadBrokerProxy();
-  const ownPathJoinProxy = pathJoinAdapterProxy();
   const runsDirProxy = fsReaddirAdapterProxy();
   const rssProxy = machineRssByPgidBrokerProxy();
   const orphanProxy = orphanReadBrokerProxy();
@@ -146,14 +129,6 @@ export const instanceEntryLayerBrokerProxy = (): {
       heartbeat: InstanceHeartbeat;
     }): void => {
       heartbeatProxy.setupHeartbeatFound(params);
-    },
-
-    setupRunsDirPathJoin: ({ evidencePath }: { evidencePath: FilePath }): void => {
-      ownPathJoinProxy.returns({
-        result: FilePathStub({
-          value: `${evidencePath}/${locationsStatics.siegelense.runsDir}`,
-        }),
-      });
     },
 
     setupRunsDirEntries: ({
@@ -196,8 +171,7 @@ export const instanceEntryLayerBrokerProxy = (): {
 
     // orphanReadBroker's and machineRssByPgidBroker's own per-pid `/proc` joins resolve on
     // `#gateway/node/path`'s own `join` mock, each through its own proxy's sticky real-passthrough
-    // default — neither rides this file's shared `pathJoinAdapter` queue any more, so there is
-    // nothing to stage here for either.
+    // default, so there is nothing to stage here for either.
     setupPidStat: (params: { pid: string; pgrp: number; comm?: string }): void => {
       rssProxy.setupPidStat(params);
     },
@@ -216,18 +190,6 @@ export const instanceEntryLayerBrokerProxy = (): {
 
     setupOrphanGone: (params: { pgid: ProcessGroupId }): void => {
       orphanProxy.setupGone(params);
-    },
-
-    // The broker computes the api-log path THEN the web-log path — two real joins, in that order —
-    // right before it calls `locationsRepoLinkPathFindBroker`, so both are pushed here together,
-    // ahead of `setupRepoLinkResolves`.
-    setupApiWebLogPathJoins: ({ evidencePath }: { evidencePath: FilePath }): void => {
-      ownPathJoinProxy.returns({
-        result: FilePathStub({ value: `${evidencePath}/${locationsStatics.siegelense.apiLog}` }),
-      });
-      ownPathJoinProxy.returns({
-        result: FilePathStub({ value: `${evidencePath}/${locationsStatics.siegelense.webLog}` }),
-      });
     },
 
     setupApiLogPresent: ({ evidencePath }: { evidencePath: FilePath }): void => {
@@ -276,20 +238,6 @@ export const instanceEntryLayerBrokerProxy = (): {
       rootPath: FilePath;
     }): void => {
       repoLinkProxy.setupLinkResolvesToRoot(params);
-    },
-
-    setupTranscriptPathJoin: ({
-      evidencePath,
-      runId,
-    }: {
-      evidencePath: FilePath;
-      runId: string;
-    }): void => {
-      ownPathJoinProxy.returns({
-        result: FilePathStub({
-          value: `${evidencePath}/${locationsStatics.siegelense.runsDir}/${runId}.jsonl`,
-        }),
-      });
     },
 
     setupTranscriptLines: ({

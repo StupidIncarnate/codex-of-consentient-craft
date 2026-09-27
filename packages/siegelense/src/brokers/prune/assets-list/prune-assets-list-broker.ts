@@ -12,7 +12,7 @@
  * // Returns { assets, runIds } — assets is empty for an instance whose tree was already taken
  */
 
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
+import { join } from '#gateway/node/path';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 
 import { fsReaddirAdapter } from '../../../adapters/fs/readdir/fs-readdir-adapter';
@@ -101,9 +101,7 @@ export const pruneAssetsListBroker = async ({
         return [];
       }
 
-      const filePath = absoluteFilePathContract.parse(
-        pathJoinAdapter({ paths: [runsDir, fileName] }),
-      );
+      const filePath = absoluteFilePathContract.parse(join(runsDir, fileName));
       const stat = await fsStatAdapter({ filePath });
 
       return stat === null

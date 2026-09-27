@@ -30,7 +30,7 @@
  * // Returns a validated InstanceStatus
  */
 
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
+import { join } from '#gateway/node/path';
 import { absoluteFilePathContract, fileNameContract } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
@@ -76,14 +76,9 @@ export const instanceEntryLayerBroker = async ({
     instanceId: entry.id,
     guildId: entry.guildId,
   });
-  // Invoked here, BEFORE runsDirPath, and only awaited below: `heartbeatReadBroker` resolves this
-  // SAME instance's evidence dir all over again internally, and that resolution has to run to
-  // completion before the next, unrelated `pathJoinAdapter` call below — the one computing
-  // `runsDirPath` — reaches the real npm `path.join` this proxy setup leaves as its sticky default
-  // rather than an unconsumed stand-in still queued for heartbeatReadBroker's own resolution.
   const heartbeatPromise = heartbeatReadBroker({ instanceId: entry.id, guildId: entry.guildId });
   const runsDirPath = absoluteFilePathContract.parse(
-    pathJoinAdapter({ paths: [evidenceDir, locationsStatics.siegelense.runsDir] }),
+    join(evidenceDir, locationsStatics.siegelense.runsDir),
   );
 
   const [heartbeat, runsDirEntries, orphans, rssMB, shutdownReasonMarker] = await Promise.all([
@@ -146,12 +141,12 @@ export const instanceEntryLayerBroker = async ({
   const [apiLogStat, webLogStat, repoLocalDir] = await Promise.all([
     fsStatAdapter({
       filePath: absoluteFilePathContract.parse(
-        pathJoinAdapter({ paths: [evidenceDir, locationsStatics.siegelense.apiLog] }),
+        join(evidenceDir, locationsStatics.siegelense.apiLog),
       ),
     }),
     fsStatAdapter({
       filePath: absoluteFilePathContract.parse(
-        pathJoinAdapter({ paths: [evidenceDir, locationsStatics.siegelense.webLog] }),
+        join(evidenceDir, locationsStatics.siegelense.webLog),
       ),
     }),
     locationsRepoLinkPathFindBroker({ homePath: evidenceDir }),
@@ -187,9 +182,7 @@ export const instanceEntryLayerBroker = async ({
   }
 
   const transcriptPath = absoluteFilePathContract.parse(
-    pathJoinAdapter({
-      paths: [runsDirPath, `${lastRunId}${evidenceFileStatics.extensions.transcript}`],
-    }),
+    join(runsDirPath, `${lastRunId}${evidenceFileStatics.extensions.transcript}`),
   );
   const transcriptContent = await fsReadFileAdapter({ filePath: transcriptPath });
   const transcriptLines = transcriptContent.split('\n').filter((line) => line.length > 0);

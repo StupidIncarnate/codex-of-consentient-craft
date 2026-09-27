@@ -49,7 +49,6 @@ describe('instanceEntryLayerBroker', () => {
         rootPath: ROOT_PATH,
         evidencePath,
       });
-      proxy.setupRunsDirPathJoin({ evidencePath });
       proxy.setupRunsDirEntries({ evidencePath, entries: [] });
       proxy.setupProcListing({ pids: [] });
 
@@ -107,7 +106,6 @@ describe('instanceEntryLayerBroker', () => {
         rootPath: ROOT_PATH,
         evidencePath,
       });
-      proxy.setupRunsDirPathJoin({ evidencePath });
       proxy.setupRunsDirEntries({ evidencePath, entries: [] });
       proxy.setupProcListing({ pids: [] });
 
@@ -168,11 +166,9 @@ describe('instanceEntryLayerBroker', () => {
         rootPath: ROOT_PATH,
         evidencePath,
       });
-      proxy.setupRunsDirPathJoin({ evidencePath });
       proxy.setupRunsDirEntries({ evidencePath, entries: [] });
       proxy.setupShutdownReasonMissing({ evidencePath });
       proxy.setupProcListing({ pids: [] });
-      proxy.setupApiWebLogPathJoins({ evidencePath });
       proxy.setupApiLogAbsent({ evidencePath });
       proxy.setupWebLogAbsent({ evidencePath });
       proxy.setupRepoLinkResolves({
@@ -248,7 +244,6 @@ describe('instanceEntryLayerBroker', () => {
         evidencePath,
         heartbeat,
       });
-      proxy.setupRunsDirPathJoin({ evidencePath });
       proxy.setupRunsDirEntries({ evidencePath, entries: [] });
       proxy.setupShutdownReasonFound({
         evidencePath,
@@ -259,7 +254,6 @@ describe('instanceEntryLayerBroker', () => {
         }),
       });
       proxy.setupProcListing({ pids: [] });
-      proxy.setupApiWebLogPathJoins({ evidencePath });
       proxy.setupApiLogAbsent({ evidencePath });
       proxy.setupWebLogAbsent({ evidencePath });
       proxy.setupRepoLinkResolves({
@@ -342,7 +336,6 @@ describe('instanceEntryLayerBroker', () => {
         evidencePath,
         heartbeat,
       });
-      proxy.setupRunsDirPathJoin({ evidencePath });
       proxy.setupRunsDirEntries({
         evidencePath,
         entries: ['run_1.jsonl', 'run_1.json', 'run_2.jsonl'],
@@ -352,7 +345,6 @@ describe('instanceEntryLayerBroker', () => {
       proxy.setupPidStat({ pid: '100', pgrp: 33_812, comm: 'node' });
       proxy.setupOrphanCmdline({ pid: '100', argv: ['npm', 'run', 'dev:no-watch'] });
       proxy.setupOrphanAlive({ pgid });
-      proxy.setupApiWebLogPathJoins({ evidencePath });
       proxy.setupApiLogPresent({ evidencePath });
       proxy.setupWebLogPresent({ evidencePath });
       proxy.setupRepoLinkResolves({
@@ -362,7 +354,6 @@ describe('instanceEntryLayerBroker', () => {
         homePath: HOME_PATH,
         rootPath: ROOT_PATH,
       });
-      proxy.setupTranscriptPathJoin({ evidencePath, runId: 'run_2' });
       proxy.setupTranscriptLines({
         evidencePath,
         runId: 'run_2',
@@ -444,11 +435,9 @@ describe('instanceEntryLayerBroker', () => {
         rootPath: ROOT_PATH,
         evidencePath,
       });
-      proxy.setupRunsDirPathJoin({ evidencePath });
       proxy.setupRunsDirEntries({ evidencePath, entries: ['run_1.jsonl', 'run_1.json'] });
       proxy.setupShutdownReasonMissing({ evidencePath });
       proxy.setupProcListing({ pids: [] });
-      proxy.setupApiWebLogPathJoins({ evidencePath });
       proxy.setupApiLogAbsent({ evidencePath });
       proxy.setupWebLogAbsent({ evidencePath });
       proxy.setupRepoLinkResolves({
@@ -458,7 +447,6 @@ describe('instanceEntryLayerBroker', () => {
         homePath: HOME_PATH,
         rootPath: ROOT_PATH,
       });
-      proxy.setupTranscriptPathJoin({ evidencePath, runId: 'run_1' });
       proxy.setupTranscriptLines({
         evidencePath,
         runId: 'run_1',
@@ -529,14 +517,12 @@ describe('instanceEntryLayerBroker', () => {
         rootPath: ROOT_PATH,
         evidencePath,
       });
-      proxy.setupRunsDirPathJoin({ evidencePath });
       proxy.setupRunsDirEntries({
         evidencePath,
         entries: ['run_1.jsonl', 'run_1.json', 'run_2.jsonl'],
       });
       proxy.setupShutdownReasonMissing({ evidencePath });
       proxy.setupProcListing({ pids: [] });
-      proxy.setupApiWebLogPathJoins({ evidencePath });
       proxy.setupApiLogAbsent({ evidencePath });
       proxy.setupWebLogAbsent({ evidencePath });
       proxy.setupRepoLinkResolves({
@@ -546,7 +532,6 @@ describe('instanceEntryLayerBroker', () => {
         homePath: HOME_PATH,
         rootPath: ROOT_PATH,
       });
-      proxy.setupTranscriptPathJoin({ evidencePath, runId: 'run_2' });
       proxy.setupTranscriptLines({
         evidencePath,
         runId: 'run_2',

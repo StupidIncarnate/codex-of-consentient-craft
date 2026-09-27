@@ -12,7 +12,7 @@
  * // Resolves the reading once the file appears, or throws UntilCeilingHitError at the ceiling
  */
 
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
+import { join } from '#gateway/node/path';
 import { absoluteFilePathContract, contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
 
@@ -34,7 +34,7 @@ export const untilFileWaitLayerBroker = async ({
   deadlineAtMs: number;
   timeoutMs: number;
 }): Promise<ContentText> => {
-  const filePath = absoluteFilePathContract.parse(pathJoinAdapter({ paths: [homePath, file] }));
+  const filePath = absoluteFilePathContract.parse(join(homePath, file));
   const stat = await fsStatAdapter({ filePath });
 
   if (stat !== null) {

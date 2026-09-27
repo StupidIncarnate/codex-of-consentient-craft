@@ -13,7 +13,7 @@
  * // Returns every .png and .webm inside runs/<runId>/, each with its real size and last write
  */
 
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
+import { join } from '#gateway/node/path';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
@@ -43,9 +43,7 @@ export const runShotsLayerBroker = async ({
         return [];
       }
 
-      const filePath = absoluteFilePathContract.parse(
-        pathJoinAdapter({ paths: [shotsDir, fileName] }),
-      );
+      const filePath = absoluteFilePathContract.parse(join(shotsDir, fileName));
       const stat = await fsStatAdapter({ filePath });
 
       if (stat === null) {
