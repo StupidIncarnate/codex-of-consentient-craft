@@ -5,17 +5,17 @@
  * carries its own dedicated test suite. This proxy only proves the boot SEQUENCE and the values
  * handed from one step to the next. laneSpecFindBroker runs real against its own proxy's sticky
  * default config (a single headless api process) — every test here passes `specName: 'api'`, which
- * matches it. The home resolver is staged to a fixed shared path value — never asserted on beyond
- * identity, so which real `join` call consumes it never matters. The evidence resolver instead
- * stages only its root chain (`setupRootOnly`) and leaves its own outer
- * join to the real passthrough default, because every test here picks its OWN `instanceId` after
- * the constructor already ran — `getExpectedEvidencePath` computes the real "unowned" shape
- * (guildId is null on every registry row this proxy's callers build) from that instanceId, on
- * demand, rather than a value this constructor could stage ahead of time. The socket resolver hits
- * the same problem the same way: `getExpectedSocketPath` calls the REAL
- * `locationsSocketPathFindBroker` with the caller's own instanceId, which resolves off
- * `locationsSocketPathFindBrokerProxy`'s own sticky real-passthrough default rather than a value
- * staged here for an instanceId the constructor cannot know yet.
+ * matches it. The home resolver runs REAL, off its own proxy's sticky real-passthrough default —
+ * never asserted on beyond identity, so which real `join` call consumes it never matters. The
+ * evidence resolver instead stages only its root chain (`setupRootOnly`) and leaves its own outer
+ * join to that same real passthrough default, because every test here picks its OWN `instanceId`
+ * after the constructor already ran — `getExpectedEvidencePath` builds the real "unowned" shape
+ * (guildId is null on every registry row this proxy's callers build) as a literal from that
+ * instanceId, on demand, rather than a value this constructor could stage ahead of time. The socket
+ * resolver hits the same problem the same way, so `getExpectedSocketPath` is also a literal built
+ * from the fixed tmp dir, the socket statics and the instance id, never a call to the real
+ * `locationsSocketPathFindBroker` — calling it would make the assertion compare the broker's own
+ * output against itself.
  *
  * USAGE:
  * const proxy = SiegelenseDriverResponderProxy();
@@ -42,7 +42,6 @@ import { laneBootBrokerProxy } from '../../../brokers/lane/boot/lane-boot-broker
 import { laneSpecFindBrokerProxy } from '../../../brokers/lane-spec/find/lane-spec-find-broker.proxy';
 import { locationsInstanceEvidencePathFindBrokerProxy } from '../../../brokers/locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker.proxy';
 import { locationsInstanceHomePathFindBrokerProxy } from '../../../brokers/locations/instance-home-path-find/locations-instance-home-path-find-broker.proxy';
-import { locationsSocketPathFindBroker } from '../../../brokers/locations/socket-path-find/locations-socket-path-find-broker';
 import { locationsSocketPathFindBrokerProxy } from '../../../brokers/locations/socket-path-find/locations-socket-path-find-broker.proxy';
 import { registryReadBroker } from '../../../brokers/registry/read/registry-read-broker';
 import { registryReadBrokerProxy } from '../../../brokers/registry/read/registry-read-broker.proxy';
@@ -54,12 +53,16 @@ import type { LaneSession } from '../../../contracts/lane-session/lane-session-c
 import { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
 import type { Registry } from '../../../contracts/registry/registry-contract';
 import type { RegistryEntry } from '../../../contracts/registry-entry/registry-entry-contract';
+import { evidenceFileStatics } from '../../../statics/evidence-file/evidence-file-statics';
 import { DriverServeLayerResponder } from './driver-serve-layer-responder';
 import { DriverServeLayerResponderProxy } from './driver-serve-layer-responder.proxy';
 
 type ReadingCount = ReturnType<typeof ReadingCountStub>;
 
 const SHARED_PATH_VALUE = '/tmp/dm-siege-sockets/inst-driver-test.sock';
+// Mirrors osTmpdirAdapterProxy's own default, composed transitively via
+// locationsSocketPathFindBrokerProxy and never overridden here.
+const TMP_DIR_VALUE = '/tmp';
 
 export const SiegelenseDriverResponderProxy = (): {
   stageRegistryRow: (params: { entry: RegistryEntry }) => void;
@@ -83,15 +86,13 @@ export const SiegelenseDriverResponderProxy = (): {
   registryUpdateBrokerProxy();
   bootFailureMarkerWriteBrokerProxy();
 
-  // Drains one-shot pathJoin entries queued before this line, on the SAME shared raw-'path' mock
-  // every still-old-adapter resolver in this chain shares (never the gateway `#gateway/node/path`
-  // `join` the migrated resolvers below use — a different captured reference, per
-  // dungeonmaster-home-find-broker.proxy.ts's own header) — `DriverServeLayerResponderProxy()`'s
-  // own unconditional `setupSocketPath`, and `bootLockReleaseBrokerProxy`'s own constructor, both
-  // still on the old adapter. A drain past the real queue length is harmless: it falls through to
-  // that mock's own sticky real-passthrough default instead of an unconfigured-call throw. Plain
-  // calls, not a loop or `.forEach()` — `enforce-proxy-patterns` scans the constructor's own
-  // top-level statements for exactly those shapes.
+  // Drains one-shot pathJoin entries any not-yet-migrated resolver in this composition chain may
+  // still queue on the raw 'path' mock (never the gateway `#gateway/node/path` `join` the migrated
+  // resolvers below use — a different captured reference, per
+  // dungeonmaster-home-find-broker.proxy.ts's own header). A drain past the real queue length is
+  // harmless: it falls through to that mock's own sticky real-passthrough default instead of an
+  // unconfigured-call throw. Plain calls, not a loop or `.forEach()` — `enforce-proxy-patterns`
+  // scans the constructor's own top-level statements for exactly those shapes.
   join('drain', '0');
   join('drain', '1');
   join('drain', '2');
@@ -99,14 +100,11 @@ export const SiegelenseDriverResponderProxy = (): {
   join('drain', '4');
   join('drain', '5');
 
-  // Home and socket still share one old-adapter pathJoin mock, queued one-shot per real call rather
-  // than a sticky catch-all — staging both to the SAME path value sidesteps having to track exactly
-  // which real call consumes which queued slot. Neither is asserted on beyond identity.
-  const homePathProxy = locationsInstanceHomePathFindBrokerProxy();
-  homePathProxy.setupHomePath({
-    tmpDir: '/tmp',
-    homePath: FilePathStub({ value: SHARED_PATH_VALUE }),
-  });
+  // locationsInstanceHomePathFindBroker runs REAL here, never asserted on beyond identity, so its
+  // own proxy's sticky real-passthrough default (`#gateway/node/path`'s `join`, composed
+  // transitively via locationsInstanceEvidencePathFindBrokerProxy below) is enough on its own; this
+  // file only composes its proxy for enforce-proxy-child-creation.
+  locationsInstanceHomePathFindBrokerProxy();
   // instanceId is only chosen by each test AFTER this constructor already ran, so the exact final
   // evidencePath can't be staged here — setupRootOnly stages just the root chain and getExpectedEvidencePath
   // computes the real "unowned" shape (guildId is null on every registry row this proxy's callers
@@ -190,11 +188,13 @@ export const SiegelenseDriverResponderProxy = (): {
       return argsList[argsList.length - 1];
     },
 
-    // Computed off the REAL broker rather than a stored literal, because the constructor never
-    // knows which instanceId a test will pick — the same reason getExpectedEvidencePath below is
-    // computed on demand instead of staged ahead of time.
+    // Built independently from the fixed tmp dir, the socket statics and the instance id — never
+    // by calling the real `locationsSocketPathFindBroker`, which would make this assertion compare
+    // the broker's own output against itself and let a wrong path pass silently.
     getExpectedSocketPath: ({ instanceId }: { instanceId: InstanceId }): AbsoluteFilePath =>
-      locationsSocketPathFindBroker({ instanceId }),
+      AbsoluteFilePathStub({
+        value: `${TMP_DIR_VALUE}/${locationsStatics.siegelense.socketsDirName}/${instanceId}${evidenceFileStatics.extensions.socket}`,
+      }),
 
     // Every registry row this proxy's callers build carries `guildId: null` (RegistryEntryStub's
     // own default, never overridden here), so the broker's real "unowned" shape —

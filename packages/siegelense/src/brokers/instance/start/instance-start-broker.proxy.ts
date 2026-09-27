@@ -1,6 +1,5 @@
 import { existsSync } from 'fs';
 import { access, readFile, realpath, rename, unlink, writeFile } from 'fs/promises';
-import { homedir } from 'os';
 import { dirname, join } from 'path';
 import { createServer } from 'net';
 import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
@@ -64,6 +63,7 @@ type SpecName = ReturnType<typeof SpecNameStub>;
 // queue shared across a dozen unrelated resolvers has no such guarantee (the wrong call consumes
 // the wrong entry the moment two callers interleave).
 const HOME_DIR_VALUE = '/home/user';
+const HOME_PATH_VALUE = `${HOME_DIR_VALUE}/.dungeonmaster`;
 const ROOT_PATH_VALUE = '/home/user/.dungeonmaster/siegelense';
 const REGISTRY_PATH_VALUE = `${ROOT_PATH_VALUE}/registry.json`;
 const REGISTRY_TMP_PATH_VALUE = `${ROOT_PATH_VALUE}/registry.json.tmp`;
@@ -115,6 +115,7 @@ const REGISTRY_LOCK_PATH_ABS = AbsoluteFilePathStub({ value: REGISTRY_LOCK_PATH_
 const BOOT_LOCK_PATH_ABS = AbsoluteFilePathStub({ value: BOOT_LOCK_PATH_VALUE });
 const CONFIG_FILE_PATH = FilePathStub({ value: CONFIG_FILE_PATH_VALUE });
 const LINK_PATH_FILE = FilePathStub({ value: LINK_PATH_VALUE });
+const HOME_PATH = FilePathStub({ value: HOME_PATH_VALUE });
 
 export const instanceStartBrokerProxy = (): {
   setupHappyBoot: (params: {
@@ -176,7 +177,10 @@ export const instanceStartBrokerProxy = (): {
   bootLockAcquireBrokerProxy();
   bootLockReleaseBrokerProxy();
   locationsInstanceEvidencePathFindBrokerProxy();
-  locationsRepoLinkPathFindBrokerProxy();
+  // Captured (not composed bare) so its own setupHomeOnly/setupCwd can stage the addressed home
+  // and cwd this broker's own locationsRepoLinkPathFindBroker call reads, never a raw 'os' mock or
+  // the real process.cwd() — the instanceKillBrokerProxy.setupRegistry/setupCwd convention.
+  const repoLinkProxy = locationsRepoLinkPathFindBrokerProxy();
   locationsSocketPathFindBrokerProxy();
   // laneSpecFindBrokerProxy() stages its own sticky default (a single headless api process) at
   // construction, so every test in this file that leaves the spec untouched still resolves a real,
@@ -232,7 +236,6 @@ export const instanceStartBrokerProxy = (): {
   registerSpyOn({ object: crypto, method: 'randomUUID' }).calledWith([]).returns(MINTED_UUID_VALUE);
   const dateNowHandle = registerSpyOn({ object: Date, method: 'now' });
   dateNowHandle.calledWith([]).returns(EpochMsStub().valueOf());
-  registerMock({ fn: homedir }).calledWith([]).returns(HOME_DIR_VALUE);
 
   tmpdirProxy.returns({ path: TMP_DIR_VALUE });
   cwdProxy.returns({ path: CWD_PATH_VALUE });
@@ -295,13 +298,19 @@ export const instanceStartBrokerProxy = (): {
     registry: Registry;
     idleTimeoutMs?: TimeoutMs;
   }): void => {
-    // dungeonmasterHomeFindBroker checks DUNGEONMASTER_HOME before falling back to os.homedir() —
-    // cleared explicitly here (the instanceKillBrokerProxy.setupRegistry pattern), rather than
-    // relying on bootLockAcquireBrokerProxy's own constructor incidentally clearing it via the
-    // dungeonmasterHomeFindBrokerProxy it composes: that clear is a side effect of an unrelated
-    // proxy's setup, not a guarantee this file controls, and jest's own global setup stamps a real
-    // tmp path here that would otherwise win.
-    Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+    // dungeonmasterHomeFindBroker checks DUNGEONMASTER_HOME before falling back to homedir() from
+    // '#gateway/node/os' — staged through locationsRepoLinkPathFindBrokerProxy's own setupHomeOnly
+    // forward (the instanceKillBrokerProxy.setupRegistry pattern), never a raw 'os' mock:
+    // dungeonmasterHomeFindBroker never touches the raw 'os' module, so a mock on it is never
+    // reached. Called explicitly here rather than relying on bootLockAcquireBrokerProxy's own
+    // constructor incidentally staging the same address via the dungeonmasterHomeFindBrokerProxy it
+    // composes — that stage is a side effect of an unrelated proxy's setup, not a guarantee this
+    // file controls.
+    repoLinkProxy.setupHomeOnly({ homeDir: HOME_DIR_VALUE, homePath: HOME_PATH });
+    // locationsRepoLinkPathFindBroker calls cwd() on every invocation, and instanceReserveBroker's
+    // own git-branch lookup shares this same '#gateway/node/process' cwd() mock — staged here so
+    // neither ever reads the real working directory.
+    repoLinkProxy.setupCwd({ cwdPath: CWD_PATH_VALUE });
 
     // Drains the onceFor entries boot-lock-acquire-broker.proxy.ts and
     // boot-lock-release-broker.proxy.ts queued unconditionally at construction time (see the note
