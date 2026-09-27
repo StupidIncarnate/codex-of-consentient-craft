@@ -1,7 +1,8 @@
 /**
  * PURPOSE: Layer of InteractionHandleResponder — resolves the calling sub-agent's
  * {sessionId, agentId} from MCP request metadata so `get-agent-prompt` can stamp work-item
- * identity. Uses `_meta.claudecode/toolUseId` (the toolUseId of the sub-agent's OWN MCP
+ * identity. Reads the caller context the pre-MCP-caller hook stamped onto the call first; only when
+ * no hook ran does it fall back to `_meta.claudecode/toolUseId` (the toolUseId of the sub-agent's OWN MCP
  * call) paired with a cross-session JSONL scan (claudeCodeParentSessionFindByToolUseIdBroker)
  * that matches by `tool_use.id` in each `subagents/agent-*.jsonl`. Deterministic — no
  * mtime races, no announce file, no global monitor session. The stamped sessionId becomes
@@ -29,6 +30,7 @@ import { cwd } from '#gateway/node/process';
 
 import { claudeCodeParentSessionFindByToolUseIdBroker } from '../../../brokers/claude-code-parent-session/find-by-tool-use-id/claude-code-parent-session-find-by-tool-use-id-broker';
 import { toolUseIdContract } from '../../../contracts/tool-use-id/tool-use-id-contract';
+import { metaCallerContextTransformer } from '../../../transformers/meta-caller-context/meta-caller-context-transformer';
 
 const TOOL_USE_ID_META_KEY = 'claudecode/toolUseId';
 
@@ -37,6 +39,21 @@ export const ResolveSubagentIdentityLayerResponder = async ({
 }: {
   meta?: Record<string, unknown>;
 }): Promise<{ sessionId: SessionId; agentId: AgentId; cwd: AbsoluteFilePath } | undefined> => {
+  // The pre-MCP-caller hook already knows the answer: for a Task-dispatched sub-agent its
+  // `session_id` is the PARENT session and its `agent_id` is the id in the sub-agent's own
+  // `subagents/agent-<id>.jsonl` filename — the same pair the scan below recovers. A caller with no
+  // agentId is a top-level session, which the scan could never match either.
+  const caller = metaCallerContextTransformer({ meta });
+  if (caller !== undefined) {
+    return caller.agentId === undefined
+      ? undefined
+      : {
+          sessionId: caller.sessionId,
+          agentId: caller.agentId,
+          cwd: absoluteFilePathContract.parse(cwd()),
+        };
+  }
+
   // Claude Code surfaces `claudecode/toolUseId` on every MCP call from a Task-dispatched
   // sub-agent. Without it we cannot identify the caller deterministically — no fallback.
   const toolUseIdRaw = meta?.[TOOL_USE_ID_META_KEY];

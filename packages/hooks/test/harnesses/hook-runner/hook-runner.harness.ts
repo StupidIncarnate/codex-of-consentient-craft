@@ -30,6 +30,7 @@ type HookName =
   | 'start-post-ask-question-hook'
   | 'start-pre-edit-hook'
   | 'start-pre-folder-detail-hook'
+  | 'start-pre-mcp-caller-hook'
   | 'start-pre-search-hook'
   | 'start-session-snippet-hook'
   | 'start-worktree-create-hook';

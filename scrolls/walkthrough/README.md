@@ -62,11 +62,15 @@ something that is not a listed case and it shows something worth keeping, add it
 
 Do these in order, in the same turn:
 
-1. Add a row to `LEDGER.md`'s defect table. Use the next free `DEF-NN`. Write the command, what was expected, what
-   happened, and any file and line you already know. Set the status to `dispatched`.
-2. Set the case's Result to `fail DEF-NN`.
-3. Dispatch one background sub-agent to fix it, using the brief below.
-4. Carry on with the walkthrough.
+1. Add a row to `LEDGER.md`'s defect table. Use the next free `DEF-NN`. Write the command, what was expected, what happened, and any file and line you already know. Set the status to `queued — section batch`.
+2. Set the case's Result to `fail DEF-NN`. If the user passes the case but still wants the gap fixed, write
+   `pass — DEF-NN <what it fixes>`.
+3. Carry on with the walkthrough.
+
+**Dispatch once per section, not once per defect.** A section is one `###` heading in the feature doc, such as
+`### capacity`. When the user finishes a section, send every `queued — section batch` defect from it to ONE sub-agent, in one worktree named after the section, such as `worktrees/sl-capacity`. List every DEF-NN in the brief. Set each row to `dispatched — worktrees/<name>`. The user decided this on 2026-09-27: one agent per section keeps several agents from colliding in the same package.
+
+The exception is a defect that needs real debugging, such as a crash, a hang or a wrong result with no obvious cause. Dispatch that one on its own at once, with the default model. Ask the user if you are unsure which kind it is.
 
 **Never fix code yourself.** A fix blocks your turn and stalls the user. Recording and dispatching is your whole job.
 Not a one-line edit, not a "quick" patch, not a test tweak.
@@ -128,8 +132,8 @@ LEFT STANDING — anything you could not fix, with file:line
 ### When a sub-agent reports back
 
 1. Read its report. Open one or two of the files it names, in its worktree, and check the claim holds.
-2. Merge its branch into `master` from the main checkout: `git merge --no-ff <branch>`. If it conflicts, stop and
-   tell the user. Do not resolve a conflict by picking a side blind.
+2. Bring `master` into the branch inside its worktree (`git -C worktrees/<name> merge --no-edit master`), re-run ward there on the files the branch touched, then fast-forward from the main checkout:
+   `git merge --ff-only <branch>`. A hook blocks `git rebase`. A `--no-ff` merge in the main checkout fails while the user has staged changes there. If a merge conflicts, stop and tell the user. Do not resolve a conflict by picking a side blind.
 3. Remove the worktree once merged: `git worktree remove worktrees/<name>`, then `git branch -d <branch>`.
 4. If it touched a compiled CLI, set the ledger row to `fixed, not built`. Otherwise set it to `fixed`. Put the
    merge SHA in the row.
@@ -150,6 +154,13 @@ Do all of these before your final reply. A background command dies with your fin
 ## Things that will trip you
 
 - **Siegelense and the other CLIs run compiled output.** A source fix does nothing until a build.
+- **The global `dungeonmaster` may not be this
+  checkout.** `npm link --workspaces` run inside a worktree points the global binary at THAT worktree. On 2026-09-27 it pointed at `worktrees/gateway-pivot`, so a fresh build of `master`
+  never showed. Check with `readlink -f $(which dungeonmaster)`. Run cases as
+  `node packages/cli/dist/bin/dungeonmaster.js siegelense ...` from the main checkout. Re-link with
+  `npm link --workspaces` from the main checkout only once the user says the other session is done with its link.
+- **Never run a call you have not read the help for, as a "bad input"
+  probe.** Bare `prune` takes no required flag and deletes evidence. See DEF-49.
 - **`npm run dev` is root-only.** Never run it inside a workspace. Root `CLAUDE.md` says why.
 - **An edit anywhere under `packages/*/src` restarts a watching dev server for about 1.5 seconds.** A sub-agent
   editing code will blip a UI you are looking at. Use a siegelense instance for UI cases: its lanes do not watch files.

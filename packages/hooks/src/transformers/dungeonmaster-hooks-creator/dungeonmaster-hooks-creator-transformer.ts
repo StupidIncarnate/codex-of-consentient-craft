@@ -15,7 +15,7 @@ import type {
   SessionStartHook,
   WorktreeCreateHook,
 } from '../../contracts/claude-settings/claude-settings-contract';
-import { sessionSnippetStatics } from '@dungeonmaster/shared/statics';
+import { mcpCallerContextStatics, sessionSnippetStatics } from '@dungeonmaster/shared/statics';
 
 export const dungeonmasterHooksCreatorTransformer = (): {
   PreToolUse: PreToolUseHook[];
@@ -44,6 +44,10 @@ export const dungeonmasterHooksCreatorTransformer = (): {
         {
           matcher: 'Write',
           hooks: [{ type: 'command', command: 'dungeonmaster-pre-folder-detail' }],
+        },
+        {
+          matcher: mcpCallerContextStatics.hook.matcher,
+          hooks: [{ type: 'command', command: 'dungeonmaster-pre-mcp-caller' }],
         },
       ],
       PostToolUse: [

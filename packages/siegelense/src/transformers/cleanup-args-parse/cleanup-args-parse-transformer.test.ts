@@ -40,7 +40,7 @@ describe('cleanupArgsParseTransformer', () => {
   describe('a positional argument', () => {
     it('INVALID: {args: [extra]} => throws stating cleanup takes no input AND the canonical positional-argument sentence', () => {
       expect(() => cleanupArgsParseTransformer({ args: ['extra'] })).toThrow(
-        /^Unexpected positional argument: extra\n\nTakes no input: it reaps stale instances and ages assets on their own windows, with nothing to select\. Every value must directly follow the flag it belongs to\.\n\nUsage: dungeonmaster siegelense cleanup \[--json\]$/u,
+        /^Unexpected positional argument: extra\n\nTakes no input: it reaps stale instances and ages assets on their own windows, with nothing to select\.\n\nUsage: dungeonmaster siegelense cleanup \[--json\]$/u,
       );
     });
   });

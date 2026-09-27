@@ -24,6 +24,7 @@ interface FlowModule {
   HookPreFolderDetailFlow?: AsyncHookFlow;
   HookPreBashFlow?: SyncHookFlow;
   HookPreSearchFlow?: SyncHookFlow;
+  HookPreMcpCallerFlow?: SyncHookFlow;
   HookSessionSnippetFlow?: SessionSnippetFlow;
   HookAgyPreToolFlow?: AsyncHookFlow;
   HookAgyStopFlow?: AsyncHookFlow;
@@ -68,7 +69,8 @@ const processEnvelope = async (params: {
     return;
   }
 
-  const syncFlow = flowModule.HookPreBashFlow ?? flowModule.HookPreSearchFlow;
+  const syncFlow =
+    flowModule.HookPreBashFlow ?? flowModule.HookPreSearchFlow ?? flowModule.HookPreMcpCallerFlow;
   if (syncFlow) {
     const result = syncFlow({ inputData });
     writeResult(result);

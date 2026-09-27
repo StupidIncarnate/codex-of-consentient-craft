@@ -408,6 +408,8 @@ export * from './src/contracts/ward-run-id/ward-run-id.stub';
 // Agent ID Contracts
 export * from './src/contracts/agent-id/agent-id-contract';
 export * from './src/contracts/agent-id/agent-id.stub';
+export * from './src/contracts/mcp-caller-context/mcp-caller-context-contract';
+export * from './src/contracts/mcp-caller-context/mcp-caller-context.stub';
 
 // Adapter Result Contracts
 export * from './src/contracts/adapter-result/adapter-result-contract';

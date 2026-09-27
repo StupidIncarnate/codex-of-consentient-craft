@@ -60,6 +60,10 @@ describe('start-install integration', () => {
               matcher: 'Write',
               hooks: [{ type: 'command', command: 'dungeonmaster-pre-folder-detail' }],
             },
+            {
+              matcher: 'mcp__dungeonmaster__.*',
+              hooks: [{ type: 'command', command: 'dungeonmaster-pre-mcp-caller' }],
+            },
           ],
           PostToolUse: [
             {
@@ -289,6 +293,10 @@ describe('start-install integration', () => {
             {
               matcher: 'Write',
               hooks: [{ type: 'command', command: 'dungeonmaster-pre-folder-detail' }],
+            },
+            {
+              matcher: 'mcp__dungeonmaster__.*',
+              hooks: [{ type: 'command', command: 'dungeonmaster-pre-mcp-caller' }],
             },
           ],
           PostToolUse: [
@@ -529,6 +537,10 @@ describe('start-install integration', () => {
               matcher: 'Write',
               hooks: [{ type: 'command', command: 'dungeonmaster-pre-folder-detail' }],
             },
+            {
+              matcher: 'mcp__dungeonmaster__.*',
+              hooks: [{ type: 'command', command: 'dungeonmaster-pre-mcp-caller' }],
+            },
           ],
           PostToolUse: [
             {
@@ -767,6 +779,10 @@ describe('start-install integration', () => {
             {
               matcher: 'Write',
               hooks: [{ type: 'command', command: 'dungeonmaster-pre-folder-detail' }],
+            },
+            {
+              matcher: 'mcp__dungeonmaster__.*',
+              hooks: [{ type: 'command', command: 'dungeonmaster-pre-mcp-caller' }],
             },
           ],
           PostToolUse: [

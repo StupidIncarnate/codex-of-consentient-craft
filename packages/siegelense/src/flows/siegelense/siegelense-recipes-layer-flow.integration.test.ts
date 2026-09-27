@@ -234,7 +234,7 @@ describe('SiegelenseRecipesLayerFlow', () => {
   describe('the refusal for a bare positional argument', () => {
     it('INVALID: {callArgs: [extra]} => rejects it, stating the catalogue needs no running instance', async () => {
       await expect(SiegelenseRecipesLayerFlow({ callArgs: ['extra'] })).rejects.toThrow(
-        /^Unexpected positional argument: extra\n\nTakes no instance\. `recipes` lists what states can be created, not what a running instance is doing — no instance is needed to answer it\. Every value must directly follow the flag it belongs to\.\n\nUsage: dungeonmaster siegelense recipes \[--json\]$/u,
+        /^Unexpected positional argument: extra\n\nTakes no instance\. `recipes` lists what states can be created, not what a running instance is doing — no instance is needed to answer it\.\n\nUsage: dungeonmaster siegelense recipes \[--json\]$/u,
       );
     });
   });

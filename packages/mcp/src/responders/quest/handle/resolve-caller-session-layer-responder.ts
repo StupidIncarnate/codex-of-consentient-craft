@@ -7,7 +7,10 @@
  * const sessionId = await ResolveCallerSessionLayerResponder({ meta });
  * // Returns the caller's SessionId, or undefined when neither strategy identifies one.
  *
- * Two strategies, in order:
+ * Three strategies, in order:
+ *  0. HOOK — the session id the pre-MCP-caller hook stamped onto the call, read off `meta`. Exact,
+ *     and written before the call is sent, so it needs no scan at all. The two below run only when
+ *     no hook ran.
  *  1. DETERMINISTIC — `_meta['claudecode/toolUseId']` scanned against every top-level
  *     `<sessionId>.jsonl` in this cwd. The intake agent runs inline in the user's own session, so
  *     the session's JSONL records the very `create-quest` tool_use being handled. Exact even with
@@ -28,6 +31,7 @@ import { cwd } from '#gateway/node/process';
 import { claudeCodeSessionFindByToolUseIdBroker } from '../../../brokers/claude-code-session/find-by-tool-use-id/claude-code-session-find-by-tool-use-id-broker';
 import { claudeCodeSessionResolveBroker } from '../../../brokers/claude-code-session/resolve/claude-code-session-resolve-broker';
 import { toolUseIdContract } from '../../../contracts/tool-use-id/tool-use-id-contract';
+import { metaCallerContextTransformer } from '../../../transformers/meta-caller-context/meta-caller-context-transformer';
 
 const TOOL_USE_ID_META_KEY = 'claudecode/toolUseId';
 
@@ -39,6 +43,11 @@ export const ResolveCallerSessionLayerResponder = async ({
   // guarding the property into existence with a conditional spread at the call site.
   meta: Record<string, unknown> | undefined;
 }): Promise<SessionId | undefined> => {
+  const caller = metaCallerContextTransformer({ meta });
+  if (caller !== undefined) {
+    return caller.sessionId;
+  }
+
   const projectDir: AbsoluteFilePath = absoluteFilePathContract.parse(cwd());
 
   const toolUseIdRaw = meta?.[TOOL_USE_ID_META_KEY];

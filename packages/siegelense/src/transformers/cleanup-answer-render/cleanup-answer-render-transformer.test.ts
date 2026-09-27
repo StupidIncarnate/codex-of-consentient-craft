@@ -43,7 +43,7 @@ describe('cleanupAnswerRenderTransformer', () => {
       expect(result).toBe(
         'REAPED: none\n' +
           'PORTS RELEASED: none\n' +
-          'LOCK RELEASED: no\n' +
+          'LOCK RELEASED: none held\n' +
           'ASSETS AGED: 0 instances, 0MB\n' +
           'LEFT ALONE: none\n',
       );
@@ -92,7 +92,7 @@ describe('cleanupAnswerRenderTransformer', () => {
       expect(result).toBe(
         'REAPED: none\n' +
           'PORTS RELEASED: none\n' +
-          'LOCK RELEASED: no\n' +
+          'LOCK RELEASED: none held\n' +
           'ASSETS AGED: 1 instances, 12MB\n' +
           'LEFT ALONE: inst_1d09 (run_7 cited by a VERIFIED prelude in /repo/.quest-plans/1dac5395/path-3.md)\n',
       );

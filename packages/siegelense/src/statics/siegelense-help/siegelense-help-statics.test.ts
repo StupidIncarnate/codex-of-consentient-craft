@@ -295,7 +295,7 @@ describe('siegelenseHelpStatics', () => {
         },
       ],
       refusals: [
-        "Takes no input. Reaps, releases, and ages assets out on their own windows — video first on a shorter one. It refuses exactly what prune refuses, so a capture a VERIFIED prelude or an open quest's WALKED line still cites is never touched, and the instance it belongs to says so in leftAlone.",
+        "Takes no input. An instance is stale once its heartbeat goes 15s without a beat (3 missed beats of 5000ms) — that reaps it and releases its ports and, if stuck, its locks. Evidence then ages out on its own window, video first on the shorter one: non-video after 7d, video after 2d. It refuses exactly what prune refuses, so a capture a VERIFIED prelude or an open quest's WALKED line still cites is never touched, and the instance it belongs to says so in leftAlone.",
       ],
       output:
         'By default, what was reaped, which ports and locks came back, how much evidence aged out, and what was left alone and why. `--json` prints the raw CleanupAnswer.',

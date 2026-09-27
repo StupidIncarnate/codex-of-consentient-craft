@@ -2,6 +2,45 @@ import { ResolveSubagentIdentityLayerResponder } from './resolve-subagent-identi
 import { ResolveSubagentIdentityLayerResponderProxy } from './resolve-subagent-identity-layer-responder.proxy';
 
 describe('ResolveSubagentIdentityLayerResponder', () => {
+  it('VALID: {meta carries a hook caller with an agentId} => returns the parent session and agent id with no scan', async () => {
+    const proxy = ResolveSubagentIdentityLayerResponderProxy();
+    proxy.setupCwd({ path: '/home/user/proj' });
+    // No scan staging: an unstaged readdir throws, so a fall-through to the scan fails this test.
+
+    const result = await ResolveSubagentIdentityLayerResponder({
+      meta: {
+        'claudecode/toolUseId': 'toolu_011pw36EFwmLorR7MdaSDEQG',
+        'dungeonmaster/caller': {
+          cwd: '/home/user/proj/worktrees/x',
+          sessionId: 'c2f964f7-31b7-4ac6-88f7-e7a985d8c671',
+          agentId: 'ad0775d7695b4d4eb',
+        },
+      },
+    });
+
+    expect(result).toStrictEqual({
+      sessionId: 'c2f964f7-31b7-4ac6-88f7-e7a985d8c671',
+      agentId: 'ad0775d7695b4d4eb',
+      cwd: '/home/user/proj',
+    });
+  });
+
+  it('EMPTY: {meta carries a hook caller with no agentId} => returns undefined, since a top-level session is no sub-agent', async () => {
+    ResolveSubagentIdentityLayerResponderProxy();
+
+    const result = await ResolveSubagentIdentityLayerResponder({
+      meta: {
+        'claudecode/toolUseId': 'toolu_011pw36EFwmLorR7MdaSDEQG',
+        'dungeonmaster/caller': {
+          cwd: '/home/user/proj',
+          sessionId: 'c2f964f7-31b7-4ac6-88f7-e7a985d8c671',
+        },
+      },
+    });
+
+    expect(result).toBe(undefined);
+  });
+
   it('VALID: {meta has toolUseId + cross-session scan finds match} => returns identity', async () => {
     const proxy = ResolveSubagentIdentityLayerResponderProxy();
     const parentSessionId = 'c2f964f7-31b7-4ac6-88f7-e7a985d8c671';
