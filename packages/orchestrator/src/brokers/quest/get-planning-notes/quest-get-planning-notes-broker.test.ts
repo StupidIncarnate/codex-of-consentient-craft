@@ -59,4 +59,19 @@ describe('questGetPlanningNotesBroker', () => {
       ).rejects.toThrow(/Quest with id "nonexistent" not found/u);
     });
   });
+
+  describe('the quest file path it reads', () => {
+    it('VALID: {questId, fresh quest} => joins the found folder with quest.json, not any other name', async () => {
+      const proxy = questGetPlanningNotesBrokerProxy();
+      const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth' });
+      const { questFolderPath } = proxy.setupQuestFound({ quest });
+
+      await questGetPlanningNotesBroker({ questId: QuestIdStub({ value: 'add-auth' }) });
+
+      expect(proxy.getQuestFileJoinArgs({ questFolderPath })).toStrictEqual([
+        questFolderPath,
+        'quest.json',
+      ]);
+    });
+  });
 });

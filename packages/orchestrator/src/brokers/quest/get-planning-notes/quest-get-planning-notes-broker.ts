@@ -9,10 +9,10 @@
  * // Returns { blightLedger, questNotes, operationPlans }
  */
 
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { Quest, QuestId } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
+import { join } from '#gateway/node/path';
 
 import { questFindQuestPathBroker } from '../find-quest-path/quest-find-quest-path-broker';
 import { questLoadBroker } from '../load/quest-load-broker';
@@ -26,9 +26,7 @@ export const questGetPlanningNotesBroker = async ({
 }): Promise<QuestGetPlanningNotesResult> => {
   const { questPath } = await questFindQuestPathBroker({ questId });
 
-  const questFilePath = filePathContract.parse(
-    pathJoinAdapter({ paths: [questPath, locationsStatics.quest.questFile] }),
-  );
+  const questFilePath = filePathContract.parse(join(questPath, locationsStatics.quest.questFile));
 
   const quest = await questLoadBroker({ questFilePath });
 

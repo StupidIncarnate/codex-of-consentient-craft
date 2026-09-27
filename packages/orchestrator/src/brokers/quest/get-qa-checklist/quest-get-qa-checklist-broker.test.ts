@@ -494,4 +494,19 @@ describe('questGetQaChecklistBroker', () => {
       ).rejects.toThrow(/Quest with id "nonexistent" not found/u);
     });
   });
+
+  describe('the quest file path it reads', () => {
+    it('VALID: {quest with no flows} => joins the found folder with quest.json, not any other name', async () => {
+      const proxy = questGetQaChecklistBrokerProxy();
+      const quest = QuestStub({ flows: [] });
+      const { questFolderPath } = proxy.setupQuestFound({ quest });
+
+      await questGetQaChecklistBroker({ questId: QuestIdStub({ value: quest.id }) });
+
+      expect(proxy.getQuestFileJoinArgs({ questFolderPath })).toStrictEqual([
+        questFolderPath,
+        'quest.json',
+      ]);
+    });
+  });
 });

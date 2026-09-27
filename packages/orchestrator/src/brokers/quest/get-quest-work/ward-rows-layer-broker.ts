@@ -27,10 +27,10 @@
  * together and why neither is derived from the other.
  */
 
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import { filePathContract, wardDetailContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, FilePath, Quest } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
+import { join } from '#gateway/node/path';
 
 import { fsIsAccessibleAdapter } from '../../../adapters/fs/is-accessible/fs-is-accessible-adapter';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
@@ -57,13 +57,11 @@ export const wardRowsLayerBroker = async ({
     failedCarve === undefined
       ? null
       : filePathContract.parse(
-          pathJoinAdapter({
-            paths: [
-              questPath,
-              locationsStatics.quest.riftcarverResultsDir,
-              `${String(failedCarve.id)}${LOG_EXTENSION}`,
-            ],
-          }),
+          join(
+            questPath,
+            locationsStatics.quest.riftcarverResultsDir,
+            `${String(failedCarve.id)}${LOG_EXTENSION}`,
+          ),
         );
 
   const failedWard = [...quest.wardResults]
@@ -75,13 +73,11 @@ export const wardRowsLayerBroker = async ({
   }
 
   const blobPath = filePathContract.parse(
-    pathJoinAdapter({
-      paths: [
-        questPath,
-        locationsStatics.quest.wardResultsDir,
-        `${String(failedWard.id)}${JSON_EXTENSION}`,
-      ],
-    }),
+    join(
+      questPath,
+      locationsStatics.quest.wardResultsDir,
+      `${String(failedWard.id)}${JSON_EXTENSION}`,
+    ),
   );
 
   // Existence is probed FIRST because this package's fsReadFileAdapter rewraps every failure —

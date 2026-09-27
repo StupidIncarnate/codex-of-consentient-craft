@@ -155,7 +155,11 @@ describe('wardRowsLayerBroker', () => {
 
   describe('the carve graph', () => {
     it('VALID: {a failed carve and no failed ward} => the log path is served and ward stays null', async () => {
-      wardRowsLayerBrokerProxy();
+      const proxy = wardRowsLayerBrokerProxy();
+      proxy.setupCarveLog({
+        questPath: QUEST_PATH,
+        carveId: RiftcarverResultStub({ id: CARVE_ID as never }).id,
+      });
 
       const rows = await wardRowsLayerBroker({
         questPath: QUEST_PATH,

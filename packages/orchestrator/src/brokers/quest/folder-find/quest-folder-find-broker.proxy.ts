@@ -6,8 +6,12 @@
  * proxy.setupQuestFolders({ questFolders, questFiles });
  */
 
-import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
+import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { FilePath, FileContents, FileName } from '@dungeonmaster/shared/contracts';
+import { locationsStatics } from '@dungeonmaster/shared/statics';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
+import type { MockHandle } from '@dungeonmaster/testing/register-mock';
+import { join } from '#gateway/node/path';
 
 import { fsReaddirAdapterProxy } from '../../../adapters/fs/readdir/fs-readdir-adapter.proxy';
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
@@ -36,7 +40,7 @@ export const questFolderFindBrokerProxy = (): {
 } => {
   const readdirProxy = fsReaddirAdapterProxy();
   const readFileProxy = fsReadFileAdapterProxy();
-  const pathJoinProxy = pathJoinAdapterProxy();
+  const joinHandle: MockHandle = registerMock({ fn: join });
 
   return {
     setupQuestFolders: ({
@@ -54,19 +58,25 @@ export const questFolderFindBrokerProxy = (): {
     }): void => {
       readdirProxy.returns({ dirPath: questsPath, files: questFolders });
 
-      // First: all folder paths
-      for (const questFile of questFiles) {
-        pathJoinProxy.returns({ result: questFile.folderPath });
-      }
+      // Folder name and quest file are paired by index — questFolders and questFiles are parallel
+      // arrays every caller passes in the same order, which is what lets the real folder-name
+      // segment (known only at readdir time) address the exact join the broker will make.
+      questFolders.forEach((folderName, index) => {
+        const questFile = questFiles[index];
 
-      // Second: all quest file paths and their file reads
-      for (const questFile of questFiles) {
-        pathJoinProxy.returns({ result: questFile.questFilePath });
+        if (questFile === undefined) {
+          return;
+        }
+
+        joinHandle.calledWith([questsPath, folderName]).returns(questFile.folderPath);
+        joinHandle
+          .calledWith([questFile.folderPath, locationsStatics.quest.questFile])
+          .returns(questFile.questFilePath);
         readFileProxy.resolves({
           filePath: questFile.questFilePath,
           content: questFile.contents,
         });
-      }
+      });
     },
 
     setupEmptyFolder: ({ questsPath }: { questsPath: FilePath }): void => {
@@ -90,20 +100,28 @@ export const questFolderFindBrokerProxy = (): {
     }): void => {
       readdirProxy.returns({ dirPath: questsPath, files: questFolders });
 
-      // First: all folder paths (invalid folder, then valid folder)
-      pathJoinProxy.returns({
-        result: missingFileFolder.replace('/quest.json', '') as FilePath,
-      });
-      pathJoinProxy.returns({ result: validQuestFile.folderPath });
+      const [invalidFolderName, validFolderName] = questFolders;
+      const missingFolderPath = filePathContract.parse(
+        missingFileFolder.replace(`/${locationsStatics.quest.questFile}`, ''),
+      );
 
-      // Second: all quest file paths (invalid first, then valid)
-      pathJoinProxy.returns({ result: missingFileFolder });
+      if (invalidFolderName !== undefined) {
+        joinHandle.calledWith([questsPath, invalidFolderName]).returns(missingFolderPath);
+        joinHandle
+          .calledWith([missingFolderPath, locationsStatics.quest.questFile])
+          .returns(missingFileFolder);
+      }
       readFileProxy.rejects({
         filePath: missingFileFolder,
         error: new Error('ENOENT: no such file or directory'),
       });
 
-      pathJoinProxy.returns({ result: validQuestFile.questFilePath });
+      if (validFolderName !== undefined) {
+        joinHandle.calledWith([questsPath, validFolderName]).returns(validQuestFile.folderPath);
+        joinHandle
+          .calledWith([validQuestFile.folderPath, locationsStatics.quest.questFile])
+          .returns(validQuestFile.questFilePath);
+      }
       readFileProxy.resolves({
         filePath: validQuestFile.questFilePath,
         content: validQuestFile.contents,

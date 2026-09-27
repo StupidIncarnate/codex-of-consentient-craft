@@ -30,11 +30,11 @@
  * SERIALIZED string, so nothing can decide whether a section fits until the whole object exists.
  */
 
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import { filePathContract, stepNameContract } from '@dungeonmaster/shared/contracts';
 import type { Quest, QuestId, QuestWorkItemId } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { questFlowSliceTransformer } from '@dungeonmaster/shared/transformers';
+import { join } from '#gateway/node/path';
 
 import { agentStepNodeContract } from '../../../contracts/agent-step-node/agent-step-node-contract';
 import { questWorkViewContract } from '../../../contracts/quest-work-view/quest-work-view-contract';
@@ -60,9 +60,7 @@ export const questGetQuestWorkBroker = async ({
   workItemId: QuestWorkItemId;
 }): Promise<QuestWorkView> => {
   const { questPath } = await questFindQuestPathBroker({ questId });
-  const questFilePath = filePathContract.parse(
-    pathJoinAdapter({ paths: [questPath, locationsStatics.quest.questFile] }),
-  );
+  const questFilePath = filePathContract.parse(join(questPath, locationsStatics.quest.questFile));
   const quest: Quest = await questLoadBroker({ questFilePath });
 
   const workItem = quest.workItems.find((item) => item.id === workItemId);
