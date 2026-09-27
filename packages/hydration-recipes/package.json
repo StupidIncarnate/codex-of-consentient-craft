@@ -63,6 +63,7 @@
   },
   "dependencies": {
     "@dungeonmaster/hydration": "*",
+    "@dungeonmaster/node": "*",
     "@dungeonmaster/orchestrator": "*",
     "@dungeonmaster/shared": "*",
     "zod": "^3.25.76"
