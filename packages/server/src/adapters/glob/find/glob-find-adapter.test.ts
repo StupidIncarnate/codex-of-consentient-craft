@@ -15,7 +15,7 @@ describe('globFindAdapter', () => {
     ];
 
     // Simulate glob v7 behavior: returns an iterable non-array object
-    adapterProxy.returnsNonArray({ pattern, files: expectedFiles });
+    adapterProxy.returnsNonArray({ pattern, cwd: defaultCwd, files: expectedFiles });
 
     const result = await globFindAdapter({ pattern, cwd: defaultCwd });
 
@@ -30,7 +30,7 @@ describe('globFindAdapter', () => {
       FilePathStub({ value: '/home/project/src/file2.ts' }),
     ];
 
-    adapterProxy.returns({ pattern, files: expectedFiles });
+    adapterProxy.returns({ pattern, cwd: defaultCwd, files: expectedFiles });
 
     const result = await globFindAdapter({ pattern, cwd: defaultCwd });
 
@@ -43,7 +43,7 @@ describe('globFindAdapter', () => {
     const cwd = FilePathStub({ value: '/custom/path' });
     const expectedFiles = [FilePathStub({ value: '/custom/path/src/component.tsx' })];
 
-    adapterProxy.returns({ pattern, files: expectedFiles });
+    adapterProxy.returns({ pattern, cwd, files: expectedFiles });
 
     const result = await globFindAdapter({ pattern, cwd });
 
@@ -55,7 +55,7 @@ describe('globFindAdapter', () => {
     const pattern = GlobPatternStub({ value: '**/*.ts' });
     const error = new Error('Glob callback error');
 
-    adapterProxy.throwsNonArray({ pattern, error });
+    adapterProxy.throwsNonArray({ pattern, cwd: defaultCwd, error });
 
     await expect(globFindAdapter({ pattern, cwd: defaultCwd })).rejects.toThrow(
       /Glob callback error/u,
@@ -67,7 +67,7 @@ describe('globFindAdapter', () => {
     const pattern = GlobPatternStub({ value: 'nonexistent/**' });
     const expectedFiles: ReturnType<typeof FilePathStub>[] = [];
 
-    adapterProxy.returns({ pattern, files: expectedFiles });
+    adapterProxy.returns({ pattern, cwd: defaultCwd, files: expectedFiles });
 
     const result = await globFindAdapter({ pattern, cwd: defaultCwd });
 
