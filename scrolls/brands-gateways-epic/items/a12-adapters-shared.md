@@ -177,3 +177,18 @@ run.getCallsFor({ command: 'git' }); // each call's args array, in call order
 ```
 
 Never `registerMock({ fn: run })` in a caller's proxy: `runProxy()` now addresses by `command`, `args` and `cwd`.
+
+### Phase 2 census (2026-09-27, after F29)
+
+192 files outside `shared` still import the adapters or their proxies, not counting the orchestrator quest brokers (O3, O4) and siegelense machine, registry, orphan and profile brokers (SL5) in flight. `shared` itself has only three type-only imports left, all in `brokers/architecture/orphan-detect/*.test.ts`. `ward`, `hooks`, `hydration-recipes`, `mcp`, `config` and `tooling` are clean; `cli` has one file left.
+
+| Package | Files | Planned groups |
+|---|---|---|
+| orchestrator | 101 | `adapters/git/*` (15 folders, the orchestrator's own git adapters on `run`); chat and directory brokers; guild and guild-config; lane and planned-work; smoketest; step-handler; ward and worktree brokers; install and quest responders; three test harnesses |
+| siegelense | 69 | npm and playwright adapters; boot-lock, instance and lane brokers; prune, results, status and step brokers; recipe loaders (`dynamicImport`); install and run responders; two harnesses |
+| session-forensics | 14 | one group |
+| web | 5 | `playwright.config.ts` and four e2e harnesses (homedir only) |
+| server | 2 | `responders/server/init` |
+| cli | 1 | `bin/cli-entry.ts` |
+
+Phase 3 deletes `packages/shared/src/adapters/`, `packages/shared/adapters.ts`, the "Adapter Proxies" block of `packages/shared/testing.ts` and the `./adapters` export, once this census is empty.
