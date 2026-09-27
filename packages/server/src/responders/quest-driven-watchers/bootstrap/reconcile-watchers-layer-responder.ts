@@ -35,10 +35,8 @@ import type {
 } from '@dungeonmaster/shared/contracts';
 import { isActiveWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
 import { questSessionCwdTransformer } from '@dungeonmaster/shared/transformers';
+import { StartOrchestrator, questListBroker } from '@dungeonmaster/orchestrator';
 
-import { orchestratorListGuildsAdapter } from '../../../adapters/orchestrator/list-guilds/orchestrator-list-guilds-adapter';
-import { orchestratorListQuestsFullAdapter } from '../../../adapters/orchestrator/list-quests-full/orchestrator-list-quests-full-adapter';
-import { orchestratorStartMonitorWatcherAdapter } from '../../../adapters/orchestrator/start-monitor-watcher/orchestrator-start-monitor-watcher-adapter';
 import { processDevLogAdapter } from '../../../adapters/process/dev-log/process-dev-log-adapter';
 
 export const ReconcileWatchersLayerResponder = async ({
@@ -48,7 +46,7 @@ export const ReconcileWatchersLayerResponder = async ({
   watchers: Map<SessionId, { stop: () => void }>;
   projectDir: string;
 }): Promise<ReconcileWatchersResult> => {
-  const guilds = await orchestratorListGuildsAdapter();
+  const guilds = await StartOrchestrator.listGuilds();
   // Track each quest's owning guild so the watcher uses the guild's `path` (not the
   // server's process.cwd()) when encoding the Claude CLI sessions directory. In prod
   // the two coincide because Claude Code, MCP, and the HTTP server all launch from
@@ -60,7 +58,7 @@ export const ReconcileWatchersLayerResponder = async ({
     guilds
       .filter((guild) => guild.valid)
       .map(async (guild) => {
-        const quests = await orchestratorListQuestsFullAdapter({ guildId: guild.id });
+        const quests = await questListBroker({ guildId: guild.id });
         for (const quest of quests) {
           guildPathByQuestId.set(quest.id, guild.path);
         }
@@ -141,7 +139,7 @@ export const ReconcileWatchersLayerResponder = async ({
       try {
         const workerWorkItemId = workerWorkItemIdBySessionId.get(sessionId);
         const workerQuestId = workerQuestIdBySessionId.get(sessionId);
-        const handle = await orchestratorStartMonitorWatcherAdapter({
+        const handle = await StartOrchestrator.startMonitorWatcher({
           parentSessionId: String(sessionId),
           projectDir: projectDirBySessionId.get(sessionId) ?? projectDir,
           ...(workerWorkItemId === undefined ? {} : { workerWorkItemId: String(workerWorkItemId) }),
