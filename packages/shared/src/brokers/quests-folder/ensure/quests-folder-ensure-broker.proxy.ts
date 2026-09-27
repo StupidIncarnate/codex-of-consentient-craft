@@ -6,7 +6,8 @@
  * proxy.setupQuestsFolderEnsureSuccess({ startPath, projectRootPath, questsFolderPath });
  */
 
-import { fsMkdirAdapterProxy } from '../../../adapters/fs/mkdir/fs-mkdir-adapter.proxy';
+import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
+import type { FsError } from '#gateway/node/fs';
 import { questsFolderFindBrokerProxy } from '../find/quests-folder-find-broker.proxy';
 import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 
@@ -20,11 +21,11 @@ export const questsFolderEnsureBrokerProxy = (): {
     startPath: string;
     projectRootPath: string;
     questsFolderPath: FilePath;
-    error: Error;
+    error: FsError;
   }) => void;
 } => {
   const findProxy = questsFolderFindBrokerProxy();
-  const mkdirProxy = fsMkdirAdapterProxy();
+  const ensureDirHandle = ensureDirProxy();
 
   return {
     setupQuestsFolderEnsureSuccess: ({
@@ -37,7 +38,7 @@ export const questsFolderEnsureBrokerProxy = (): {
       questsFolderPath: FilePath;
     }): void => {
       findProxy.setupQuestsFolderFound({ startPath, projectRootPath, questsFolderPath });
-      mkdirProxy.succeeds({ filepath: questsFolderPath });
+      ensureDirHandle.succeeds({ path: questsFolderPath });
     },
     setupQuestsFolderMkdirFails: ({
       startPath,
@@ -48,10 +49,10 @@ export const questsFolderEnsureBrokerProxy = (): {
       startPath: string;
       projectRootPath: string;
       questsFolderPath: FilePath;
-      error: Error;
+      error: FsError;
     }): void => {
       findProxy.setupQuestsFolderFound({ startPath, projectRootPath, questsFolderPath });
-      mkdirProxy.throws({ filepath: questsFolderPath, error });
+      ensureDirHandle.rejects({ path: questsFolderPath, error });
     },
   };
 };

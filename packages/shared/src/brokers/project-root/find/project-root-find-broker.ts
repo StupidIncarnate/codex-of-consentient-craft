@@ -8,14 +8,11 @@
  * // Returns FilePath to directory containing package.json
  */
 
-import { fsAccessAdapter } from '../../../adapters/fs/access/fs-access-adapter';
-import { pathDirnameAdapter } from '../../../adapters/path/dirname/path-dirname-adapter';
-import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
+import { pathExists } from '#gateway/node/fs__promises';
+import { dirname, join } from '#gateway/node/path';
 import { ProjectRootNotFoundError } from '../../../errors/project-root-not-found/project-root-not-found-error';
 import { questsFolderStatics } from '../../../statics/quests-folder/quests-folder-statics';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
-
-const R_OK = 4;
+import { filePathContract, type FilePath } from '../../../contracts/file-path/file-path-contract';
 
 export const projectRootFindBroker = async ({
   startPath,
@@ -28,20 +25,14 @@ export const projectRootFindBroker = async ({
   // Then fall back to parent directory search (handles file paths like /project/src/file.ts)
   const searchPath = currentPath ?? startPath;
 
-  const packageJsonPath = pathJoinAdapter({
-    paths: [searchPath, questsFolderStatics.files.packageJson],
-  });
+  const packageJsonPath = join(searchPath, questsFolderStatics.files.packageJson);
 
-  // Check if package.json exists at this level
-  try {
-    await fsAccessAdapter({ filePath: packageJsonPath, mode: R_OK });
+  if (await pathExists(packageJsonPath)) {
     return searchPath;
-  } catch {
-    // package.json doesn't exist at this level, check parent
   }
 
   // Check if we've reached the root directory
-  const parentPath = pathDirnameAdapter({ path: searchPath });
+  const parentPath = filePathContract.parse(dirname(searchPath));
   if (parentPath === searchPath) {
     // We've reached the root directory without finding package.json
     throw new ProjectRootNotFoundError({ startPath });

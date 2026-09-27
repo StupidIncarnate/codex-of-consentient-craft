@@ -6,10 +6,10 @@
  * // Returns FilePath to .dungeonmaster-quests folder
  */
 
-import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
+import { join } from '#gateway/node/path';
 import { projectRootFindBroker } from '../../project-root/find/project-root-find-broker';
 import { questsFolderStatics } from '../../../statics/quests-folder/quests-folder-statics';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
+import { filePathContract, type FilePath } from '../../../contracts/file-path/file-path-contract';
 
 export const questsFolderFindBroker = async ({
   startPath,
@@ -18,9 +18,7 @@ export const questsFolderFindBroker = async ({
 }): Promise<FilePath> => {
   const projectRoot = await projectRootFindBroker({ startPath });
 
-  const questsFolderPath = pathJoinAdapter({
-    paths: [projectRoot, questsFolderStatics.paths.root],
-  });
+  const questsFolderPath = join(projectRoot, questsFolderStatics.paths.root);
 
-  return questsFolderPath;
+  return filePathContract.parse(questsFolderPath);
 };
