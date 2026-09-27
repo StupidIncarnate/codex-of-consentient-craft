@@ -232,7 +232,7 @@ Package items run side by side, one agent group per package. Each is split by th
 
 | ID | Item | Needs | Runs with | Status | Notes |
 |---|---|---|---|---|---|
-| T01 | [MSW loads in every package and fails on anything unhandled](items/t01-msw-everywhere.md) | G08 | any | todo | |
+| T01 | [MSW loads in every package and fails on anything unhandled](items/t01-msw-everywhere.md) | G08 | any | active | agent t01 |
 | T02 | [The I/O trap covers every way out of the process](items/t02-io-trap-every-way-out.md) | T01 | any | todo | |
 | T03 | [MSW handlers are checked against the server's contracts](items/t03-contract-checked-handlers.md) | T01 | any | todo | |
 | T04 | [No test mocks another workspace package's exports](items/t04-workspace-export-mocks-ban.md) | A02 | any | todo | |
