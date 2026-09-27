@@ -21,8 +21,7 @@ import {
   isChatWorkItemRoleGuard,
   isPendingWorkItemStatusGuard,
 } from '@dungeonmaster/shared/guards';
-
-import { orchestratorLoadQuestAdapter } from '../../../adapters/orchestrator/load-quest/orchestrator-load-quest-adapter';
+import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 
 const DEFAULT_TOTAL_MS = 200;
 const DEFAULT_INTERVAL_MS = 20;
@@ -40,7 +39,7 @@ export const questWaitForSessionStampBroker = async ({
 }): Promise<Quest> => {
   const interval = intervalMs ?? DEFAULT_INTERVAL_MS;
   const effectiveDeadline = deadline ?? Date.now() + DEFAULT_TOTAL_MS;
-  const seed = current ?? (await orchestratorLoadQuestAdapter({ questId }).catch(() => null));
+  const seed = current ?? (await StartOrchestrator.loadQuest({ questId }).catch(() => null));
   if (!seed) {
     throw new Error(`questWaitForSessionStampBroker: failed to load quest ${questId}`);
   }
@@ -55,7 +54,7 @@ export const questWaitForSessionStampBroker = async ({
   await new Promise<void>((resolve) => {
     setTimeout(resolve, interval);
   });
-  const refreshed = await orchestratorLoadQuestAdapter({ questId }).catch(() => seed);
+  const refreshed = await StartOrchestrator.loadQuest({ questId }).catch(() => seed);
   return questWaitForSessionStampBroker({
     questId,
     current: refreshed,

@@ -6,9 +6,9 @@ import type {
   QuestStub,
 } from '@dungeonmaster/shared/contracts';
 import { osUserHomedirAdapterProxy } from '@dungeonmaster/shared/testing';
-import { orchestratorGetGuildAdapterProxy } from '../../../adapters/orchestrator/get-guild/orchestrator-get-guild-adapter.proxy';
-import { orchestratorListQuestsAdapterProxy } from '../../../adapters/orchestrator/list-quests/orchestrator-list-quests-adapter.proxy';
-import { orchestratorLoadQuestAdapterProxy } from '../../../adapters/orchestrator/load-quest/orchestrator-load-quest-adapter.proxy';
+import { StartOrchestrator } from '@dungeonmaster/orchestrator';
+import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { globFindAdapterProxy } from '../../../adapters/glob/find/glob-find-adapter.proxy';
 import { fsStatAdapterProxy } from '../../../adapters/fs/stat/fs-stat-adapter.proxy';
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
@@ -36,9 +36,21 @@ export const sessionListBrokerProxy = (): {
   setupLoadQuestError: (params: { questId: QuestId; error: Error }) => void;
   setupGuildNotFound: (params: { guildId: GuildId }) => void;
 } => {
-  const guildProxy = orchestratorGetGuildAdapterProxy();
-  const questsProxy = orchestratorListQuestsAdapterProxy();
-  const loadQuestProxy = orchestratorLoadQuestAdapterProxy();
+  const orchestrator = StartOrchestratorProxy();
+  // Second handle on the SAME mocked StartOrchestrator.loadQuest function — shares staged calls
+  // with the handle StartOrchestratorProxy already registered (jestRegisterMockAdapter keys its
+  // state by the mock function itself, the same pattern quest-chat-responder.proxy.ts uses for
+  // startChatHandle). This broker calls loadQuest directly (no wrapping async adapter, since A02
+  // deleted it) with `.catch(() => null)` chained on the call itself for EVERY quest whether or not
+  // a test cares about its workItems — an unstaged call throws SYNCHRONOUSLY (registerMock has no
+  // passthrough), which lands before that `.catch()` can attach and propagates out of the broker
+  // entirely instead of degrading to null. `.rejects(...)` (not `.throws(...)`) is what makes this
+  // a REAL rejected promise the `.catch()` can actually catch — restoring the pre-A02 adapter's own
+  // async-wrapping safety net for every quest a test's own setupLoadQuest/setupLoadQuestError never
+  // addresses.
+  registerMock({ fn: StartOrchestrator.loadQuest })
+    .calledWith([])
+    .rejects(new Error('sessionListBrokerProxy: no loadQuest scenario staged for this questId'));
   const homedirProxy = osUserHomedirAdapterProxy();
   const globProxy = globFindAdapterProxy();
   const statProxy = fsStatAdapterProxy();
@@ -55,7 +67,7 @@ export const sessionListBrokerProxy = (): {
 
   return {
     setupGuild: ({ guild }: { guild: Guild }): void => {
-      guildProxy.returns({ guild });
+      orchestrator.getGuildReturns({ guild });
     },
     setupHomeDir: ({ path }: { path: string }): void => {
       homedirProxy.returns({ path });
@@ -92,16 +104,16 @@ export const sessionListBrokerProxy = (): {
       statProxy.throws({ filePath, error });
     },
     setupQuests: ({ guildId, quests }: { guildId: GuildId; quests: QuestListItem[] }): void => {
-      questsProxy.returns({ guildId, quests });
+      orchestrator.listQuestsReturns({ guildId, quests });
     },
     setupLoadQuest: ({ quest }: { quest: Quest }): void => {
-      loadQuestProxy.returns({ questId: quest.id, quest });
+      orchestrator.loadQuestReturns({ questId: quest.id, quest });
     },
     setupLoadQuestError: ({ questId, error }: { questId: QuestId; error: Error }): void => {
-      loadQuestProxy.throws({ questId, error });
+      orchestrator.loadQuestThrows({ questId, error });
     },
     setupGuildNotFound: ({ guildId }: { guildId: GuildId }): void => {
-      guildProxy.throws({ guildId, error: new Error(`Guild not found: ${guildId}`) });
+      orchestrator.getGuildThrows({ guildId, error: new Error(`Guild not found: ${guildId}`) });
     },
   };
 };

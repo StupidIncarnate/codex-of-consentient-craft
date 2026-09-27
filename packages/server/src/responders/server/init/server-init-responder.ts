@@ -24,12 +24,12 @@ import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-a
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import { honoCreateNodeWebSocketAdapter } from '../../../adapters/hono/create-node-web-socket/hono-create-node-web-socket-adapter';
 import { honoServeAdapter } from '../../../adapters/hono/serve/hono-serve-adapter';
-import { orchestratorEventsOnAdapter } from '../../../adapters/orchestrator/events-on/orchestrator-events-on-adapter';
-import { orchestratorLoadQuestAdapter } from '../../../adapters/orchestrator/load-quest/orchestrator-load-quest-adapter';
-import { orchestratorOutboxWatchAdapter } from '../../../adapters/orchestrator/outbox-watch/orchestrator-outbox-watch-adapter';
-import { orchestratorReplayChatHistoryAdapter } from '../../../adapters/orchestrator/replay-chat-history/orchestrator-replay-chat-history-adapter';
-import { orchestratorStopAllChatsAdapter } from '../../../adapters/orchestrator/stop-all-chats/orchestrator-stop-all-chats-adapter';
-import { orchestratorFindQuestPathAdapter } from '../../../adapters/orchestrator/find-quest-path/orchestrator-find-quest-path-adapter';
+import {
+  StartOrchestrator,
+  orchestrationEventsState,
+  questFindQuestPathBroker,
+  questOutboxWatchBroker,
+} from '@dungeonmaster/orchestrator';
 import { processDevLogAdapter } from '../../../adapters/process/dev-log/process-dev-log-adapter';
 import { questWaitForSessionStampBroker } from '../../../brokers/quest/wait-for-session-stamp/quest-wait-for-session-stamp-broker';
 import { webBundleResponseBroker } from '../../../brokers/web-bundle/response/web-bundle-response-broker';
@@ -45,7 +45,6 @@ import type {
   WsMessage,
 } from '@dungeonmaster/shared/contracts';
 
-import { orchestratorFindQuestByWorkItemIdAdapter } from '../../../adapters/orchestrator/find-quest-by-work-item-id/orchestrator-find-quest-by-work-item-id-adapter';
 import type { WsClient } from '../../../contracts/ws-client/ws-client-contract';
 import { chatOutputPayloadContract } from '../../../contracts/chat-output-payload/chat-output-payload-contract';
 import type { ToolName } from '../../../contracts/tool-name/tool-name-contract';
@@ -196,7 +195,7 @@ export const ServerInitResponder = ({
             // which would otherwise drop orphan-session frames (no questId stamped).
             replayClientByChatProcessId.set(chatProcessId, replayWs);
 
-            orchestratorReplayChatHistoryAdapter({
+            StartOrchestrator.replayChatHistory({
               sessionId,
               guildId,
               chatProcessId,
@@ -208,7 +207,7 @@ export const ServerInitResponder = ({
           if (message.type === 'ward-detail-request') {
             const { questId, wardResultId } = message;
 
-            orchestratorFindQuestPathAdapter({ questId })
+            questFindQuestPathBroker({ questId })
               .then(async ({ questPath }) => {
                 const detailFilePath = pathJoinAdapter({
                   paths: [
@@ -259,7 +258,7 @@ export const ServerInitResponder = ({
             // above to prevent live + replay duplicates).
             const replayChatProcessIds: ProcessId[] = [];
             // Replay-on-subscribe — load the quest, replay each work item's session JSONL.
-            orchestratorLoadQuestAdapter({ questId: subQuestId })
+            StartOrchestrator.loadQuest({ questId: subQuestId })
               .then(async (quest) => {
                 for (const wi of quest.workItems) {
                   workItemQuestIdCache.set(wi.id, quest.id);
@@ -288,7 +287,7 @@ export const ServerInitResponder = ({
                   questId: subQuestId,
                   current: quest,
                 });
-                const findResult = await orchestratorFindQuestPathAdapter({
+                const findResult = await questFindQuestPathBroker({
                   questId: subQuestId,
                 }).catch(() => null);
                 const subGuildId = findResult?.guildId;
@@ -303,7 +302,7 @@ export const ServerInitResponder = ({
                         );
                         replayChatProcessIds.push(taggedId);
                         replayClientByChatProcessId.set(taggedId, subWs);
-                        await orchestratorReplayChatHistoryAdapter({
+                        await StartOrchestrator.replayChatHistory({
                           sessionId: wi.sessionId,
                           ...(wi.agentId === undefined ? {} : { agentId: wi.agentId }),
                           guildId: subGuildId,
@@ -452,7 +451,7 @@ export const ServerInitResponder = ({
           if (message.type === 'replay-quest-history') {
             const replayQuestId = message.questId;
             const replayWs = _ws as WsClient;
-            orchestratorLoadQuestAdapter({ questId: replayQuestId })
+            StartOrchestrator.loadQuest({ questId: replayQuestId })
               .then(async (quest) => {
                 // Send current quest state to the requesting client BEFORE replay,
                 // mirroring subscribe-quest. Keeps both flows consistent.
@@ -465,7 +464,7 @@ export const ServerInitResponder = ({
                     }),
                   ),
                 );
-                const findResult = await orchestratorFindQuestPathAdapter({
+                const findResult = await questFindQuestPathBroker({
                   questId: replayQuestId,
                 }).catch(() => null);
                 const replayGuildId = findResult?.guildId;
@@ -478,7 +477,7 @@ export const ServerInitResponder = ({
                       const taggedId = processIdContract.parse(
                         `quest-replay-${replayQuestId}-${wi.id}-${wi.sessionId}`,
                       );
-                      await orchestratorReplayChatHistoryAdapter({
+                      await StartOrchestrator.replayChatHistory({
                         sessionId: wi.sessionId,
                         ...(wi.agentId === undefined ? {} : { agentId: wi.agentId }),
                         guildId: replayGuildId,
@@ -589,7 +588,7 @@ export const ServerInitResponder = ({
     if (type === 'quest-modified') continue;
     if (type === 'quest-created') continue;
 
-    orchestratorEventsOnAdapter({
+    orchestrationEventsState.on({
       type,
       handler: ({ processId, payload }) => {
         const parsedPayload = chatOutputPayloadContract.safeParse(payload);
@@ -650,7 +649,7 @@ export const ServerInitResponder = ({
         ) {
           const cached = workItemQuestIdCache.get(payloadWorkItemId);
           if (cached === undefined) {
-            orchestratorFindQuestByWorkItemIdAdapter({ workItemId: payloadWorkItemId })
+            StartOrchestrator.findQuestByWorkItemId({ workItemId: payloadWorkItemId })
               .then((looked) => {
                 if (looked !== null) workItemQuestIdCache.set(payloadWorkItemId, looked);
               })
@@ -881,14 +880,14 @@ export const ServerInitResponder = ({
   }, FLUSH_INTERVAL_MS);
   flushIntervalHandle.unref();
 
-  orchestratorOutboxWatchAdapter({
+  questOutboxWatchBroker({
     onQuestChanged: ({ questId }) => {
       // Wait for whatever this questId's previous firing is already doing before starting this
       // read — see outboxLoadChainByQuest above. The prior chain always resolves (its own
       // .catch below never rethrows), so this .then always runs.
       const previousChain = outboxLoadChainByQuest.get(questId) ?? Promise.resolve();
       const chain = previousChain
-        .then(async () => orchestratorLoadQuestAdapter({ questId }))
+        .then(async () => StartOrchestrator.loadQuest({ questId }))
         .then((quest) => {
           // The outbox fires on every quest persist, so this is where a newly-minted work
           // item's owning quest becomes known — before its agent has a session to write
@@ -956,13 +955,13 @@ export const ServerInitResponder = ({
   process.on('SIGTERM', () => {
     processDevLogAdapter({ message: 'Shutting down: killing all chat processes (SIGTERM)' });
     clearInterval(flushIntervalHandle);
-    orchestratorStopAllChatsAdapter();
+    StartOrchestrator.stopAllChats();
     process.exit(0);
   });
   process.on('SIGINT', () => {
     processDevLogAdapter({ message: 'Shutting down: killing all chat processes (SIGINT)' });
     clearInterval(flushIntervalHandle);
-    orchestratorStopAllChatsAdapter();
+    StartOrchestrator.stopAllChats();
     process.exit(0);
   });
   return adapterResultContract.parse({ success: true });

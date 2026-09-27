@@ -84,6 +84,16 @@ describe('orchestrationEventsState', () => {
     });
   });
 
+  // getCapturedHandler/getCapturedHandlers only capture anything when `.on` is ALREADY a bare Jest
+  // automock — jestRegisterMockAdapter's own no-op guard (`typeof mock.mockImplementation ===
+  // 'function'`) skips wiring entirely otherwise, which is exactly this file's own real, unmocked
+  // `.on`. That automock only happens in a CALLER's test file that also composes
+  // StartOrchestratorProxy (property-access registerMock forces a bare
+  // jest.mock('@dungeonmaster/orchestrator') — see mock-calls-merge-by-module-transformer's own
+  // header), so the real proof of this scenario lives in the caller that needs it:
+  // packages/server/src/responders/server/init/server-init-responder.test.ts drives every
+  // orchestration event type through getCapturedEventHandler and asserts on the delivered frames.
+
   describe('removeAllListeners', () => {
     it('VALID: {listeners registered} => all listeners cleared', () => {
       const proxy = orchestrationEventsStateProxy();

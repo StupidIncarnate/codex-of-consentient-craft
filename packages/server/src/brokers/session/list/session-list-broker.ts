@@ -13,11 +13,8 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import type { GuildId, SessionId } from '@dungeonmaster/shared/contracts';
 import { osUserHomedirAdapter } from '@dungeonmaster/shared/adapters';
-import { isoTimestampContract } from '@dungeonmaster/orchestrator';
+import { StartOrchestrator, isoTimestampContract } from '@dungeonmaster/orchestrator';
 
-import { orchestratorGetGuildAdapter } from '../../../adapters/orchestrator/get-guild/orchestrator-get-guild-adapter';
-import { orchestratorListQuestsAdapter } from '../../../adapters/orchestrator/list-quests/orchestrator-list-quests-adapter';
-import { orchestratorLoadQuestAdapter } from '../../../adapters/orchestrator/load-quest/orchestrator-load-quest-adapter';
 import { globFindAdapter } from '../../../adapters/glob/find/glob-find-adapter';
 import { fsStatAdapter } from '../../../adapters/fs/stat/fs-stat-adapter';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
@@ -46,7 +43,7 @@ export const sessionListBroker = async ({
     summary: SessionSummary | undefined;
   }) => void;
 }): Promise<unknown[]> => {
-  const guild = await orchestratorGetGuildAdapter({ guildId });
+  const guild = await StartOrchestrator.getGuild({ guildId });
 
   const homeDir = osUserHomedirAdapter();
   const guildPath = absoluteFilePathContract.parse(guild.path);
@@ -65,13 +62,13 @@ export const sessionListBroker = async ({
     cwd: claudeProjectDir,
   });
 
-  const quests = await orchestratorListQuestsAdapter({ guildId });
+  const quests = await StartOrchestrator.listQuests({ guildId });
 
   // Load full quests so we can walk every work item's sessionId — completed quests no longer
   // have an activeSessionId, but their work items still hold sessionIds for parent + sub-agent
   // sessions that should appear in the home Sessions list.
   const fullQuests = await Promise.all(
-    quests.map(async (q) => orchestratorLoadQuestAdapter({ questId: q.id }).catch(() => null)),
+    quests.map(async (q) => StartOrchestrator.loadQuest({ questId: q.id }).catch(() => null)),
   );
 
   const workItemSessionIds = new Set<SessionId>();
