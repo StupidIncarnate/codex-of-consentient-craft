@@ -4,7 +4,6 @@ import type { FileName } from '@dungeonmaster/shared/contracts';
 
 import { fsReadJsonlAdapterProxy } from '../../../adapters/fs/read-jsonl/fs-read-jsonl-adapter.proxy';
 import { fsReaddirAdapterProxy } from '../../../adapters/fs/readdir/fs-readdir-adapter.proxy';
-import { fsWatchTailAdapterProxy } from '../../../adapters/fs/watch-tail/fs-watch-tail-adapter.proxy';
 
 import { startSubagentTailLayerBrokerProxy } from './start-subagent-tail-layer-broker.proxy';
 
@@ -34,12 +33,13 @@ export const scanSubagentsDirLayerBrokerProxy = (): {
   // sub-agent file's first line for prompt-pairing. Defaults to empty so files no test
   // configures yield no first line and skip pairing.
   const readJsonlProxy = fsReadJsonlAdapterProxy();
-  // Same registerMock collision rationale as `quest-monitor-jsonl-watcher-broker.proxy.ts`
-  // — the LAST mockImplementation on `fsWatchTailAdapter` wins, so the parent's own tail
-  // proxy takes ownership when this layer is composed inside it. The child proxy also
-  // sets up `claudeLineNormalizeBrokerProxy` via its own composition chain.
-  startSubagentTailLayerBrokerProxy();
-  const tailProxy = fsWatchTailAdapterProxy();
+  // scan-subagents-dir-layer-broker.ts imports startSubagentTailLayerBroker as a value (not
+  // fsWatchTailAdapter directly — that one is type-only, for the subagentHandles Map's value
+  // type), so this call is the sole fsWatchTailAdapter registration this file makes. When
+  // this proxy is composed inside `quest-monitor-jsonl-watcher-broker.proxy.ts`, that
+  // parent's OWN later `fsWatchTailAdapterProxy()` call still wins the registerMock
+  // last-implementation race and takes ownership of the queue + watch callbacks.
+  const tailProxy = startSubagentTailLayerBrokerProxy();
 
   return {
     setupSubagentDirFiles: ({

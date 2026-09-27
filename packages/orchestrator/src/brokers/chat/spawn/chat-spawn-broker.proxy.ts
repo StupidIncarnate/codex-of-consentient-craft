@@ -21,7 +21,6 @@ import { registerMock, registerSpyOn, requireActual } from '@dungeonmaster/testi
 import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 
 import { agentLaunchBrokerProxy } from '../../agent/launch/agent-launch-broker.proxy';
-import { chatStreamProcessHandleBrokerProxy } from '../stream-process-handle/chat-stream-process-handle-broker.proxy';
 import { questCwdResolveBrokerProxy } from '../../quest/cwd-resolve/quest-cwd-resolve-broker.proxy';
 import { questModifyBrokerProxy } from '../../quest/modify/quest-modify-broker.proxy';
 import { questSessionRecordBroker } from '../../quest/session-record/quest-session-record-broker';
@@ -130,10 +129,6 @@ export const chatSpawnBrokerProxy = (): {
   // wires up the transitive agent-spawn-unified + chat-stream-process-handle + main-tail
   // mocks the launcher composes around.
   const launchProxy = agentLaunchBrokerProxy();
-  // chatStreamProcessHandleBroker is type-imported by chat-spawn-broker; this call satisfies
-  // enforce-proxy-child-creation which tracks the import edge. The runtime mock is already
-  // wired transitively via agentLaunchBrokerProxy so this is a registration-only invocation.
-  chatStreamProcessHandleBrokerProxy();
   // chatSpawnBroker resolves the quest + chat work item via resolveChatQuestLayerBroker;
   // loading its proxy wires up questGetBroker + questUserAddBroker mocks the layer uses.
   const resolveProxy = resolveChatQuestLayerBrokerProxy();
