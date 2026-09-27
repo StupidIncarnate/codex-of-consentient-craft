@@ -31,7 +31,7 @@ export const findStartupFilesLayerBroker = ({
   const entries = safeReaddirLayerBroker({ dirPath: startupDir });
   const result: AbsoluteFilePath[] = [];
   for (const entry of entries) {
-    if (entry.isDirectory()) continue;
+    if (entry.kind === 'directory') continue;
     if (!entry.name.startsWith(STARTUP_PREFIX)) continue;
     if (!entry.name.endsWith(TS_SUFFIX) && !entry.name.endsWith(TSX_SUFFIX)) continue;
     const filePath = absoluteFilePathContract.parse(`${String(startupDir)}/${entry.name}`);

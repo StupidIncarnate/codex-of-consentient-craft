@@ -1,37 +1,10 @@
+import type { DirEntrySync } from '#gateway/node/fs';
 import { findStartupFilesLayerBroker } from './find-startup-files-layer-broker';
 import { findStartupFilesLayerBrokerProxy } from './find-startup-files-layer-broker.proxy';
 import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
-import type { fsReaddirWithTypesAdapter } from '../../../adapters/fs/readdir-with-types/fs-readdir-with-types-adapter';
 
-type Dirent = ReturnType<typeof fsReaddirWithTypesAdapter>[0];
-
-const fileEntry = ({ name }: { name: string }): Dirent =>
-  ({
-    name,
-    parentPath: '/stub',
-    path: '/stub',
-    isDirectory: () => false,
-    isFile: () => true,
-    isBlockDevice: () => false,
-    isCharacterDevice: () => false,
-    isFIFO: () => false,
-    isSocket: () => false,
-    isSymbolicLink: () => false,
-  }) as Dirent;
-
-const dirEntry = ({ name }: { name: string }): Dirent =>
-  ({
-    name,
-    parentPath: '/stub',
-    path: '/stub',
-    isDirectory: () => true,
-    isFile: () => false,
-    isBlockDevice: () => false,
-    isCharacterDevice: () => false,
-    isFIFO: () => false,
-    isSocket: () => false,
-    isSymbolicLink: () => false,
-  }) as Dirent;
+const fileEntry = ({ name }: { name: string }): DirEntrySync => ({ name, kind: 'file' });
+const dirEntry = ({ name }: { name: string }): DirEntrySync => ({ name, kind: 'directory' });
 
 describe('findStartupFilesLayerBroker', () => {
   it('VALID: {startup dir has start-app.ts} => returns the absolute path', () => {

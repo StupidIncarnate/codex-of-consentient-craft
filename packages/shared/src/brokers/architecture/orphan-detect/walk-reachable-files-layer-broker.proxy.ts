@@ -1,7 +1,7 @@
 import type { Dirent } from 'fs';
+import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { findStartupFilesLayerBrokerProxy } from './find-startup-files-layer-broker.proxy';
 import { readSourceTextLayerBrokerProxy } from './read-source-text-layer-broker.proxy';
-import { fsExistsSyncAdapterProxy } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter.proxy';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 
 export const walkReachableFilesLayerBrokerProxy = (): {
@@ -11,7 +11,7 @@ export const walkReachableFilesLayerBrokerProxy = (): {
 } => {
   const startupProxy = findStartupFilesLayerBrokerProxy();
   const sourceProxy = readSourceTextLayerBrokerProxy();
-  const existsProxy = fsExistsSyncAdapterProxy();
+  const existsProxy = existsSyncProxy();
 
   return {
     setupReaddirImplementation: ({ fn }: { fn: (dirPath: string) => Dirent[] }): void => {
@@ -20,8 +20,19 @@ export const walkReachableFilesLayerBrokerProxy = (): {
     setupReadFileImplementation: ({ fn }: { fn: (filePath: ContentText) => ContentText }): void => {
       sourceProxy.setupImplementation({ fn });
     },
+    // Two mutually exclusive predicates, not a raw registerMock: there is no single known path
+    // to key on (the resolved ts/tsx candidate comes from relativeImportResolveTransformer), and
+    // `fn`/`!fn` partition every call between the two registrations, so `returnsMatchingPath`
+    // alone answers the caller's per-path lookup with no tie for staging order to break.
     setupExistsImplementation: ({ fn }: { fn: (filePath: string) => boolean }): void => {
-      existsProxy.implementation({ fn: (input) => fn(String(input)) });
+      existsProxy.returnsMatchingPath({
+        path: (value): boolean => fn(String(value)),
+        exists: true,
+      });
+      existsProxy.returnsMatchingPath({
+        path: (value): boolean => !fn(String(value)),
+        exists: false,
+      });
     },
   };
 };

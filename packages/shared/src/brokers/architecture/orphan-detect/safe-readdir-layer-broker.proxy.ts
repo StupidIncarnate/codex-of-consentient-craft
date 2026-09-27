@@ -1,5 +1,8 @@
-import { fsReaddirWithTypesAdapterProxy } from '../../../adapters/fs/readdir-with-types/fs-readdir-with-types-adapter.proxy';
 import type { Dirent } from 'fs';
+import { readdirSync } from 'fs';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
+import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/readdir-entries-sync.proxy';
+import type { DirEntrySync } from '#gateway/node/fs';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 
 export const safeReaddirLayerBrokerProxy = (): {
@@ -9,26 +12,32 @@ export const safeReaddirLayerBrokerProxy = (): {
     entries,
   }: {
     dirPath: AbsoluteFilePath;
-    entries: Dirent[];
+    entries: DirEntrySync[];
   }) => void;
   setupReaddirImplementation: ({ fn }: { fn: (dirPath: string) => Dirent[] }) => void;
 } => {
-  const readdirProxy = fsReaddirWithTypesAdapterProxy();
+  const gatewayProxy = readdirEntriesSyncProxy();
+  const handle = registerMock({ fn: readdirSync });
+
   return {
     setupReaddirThrows: ({ dirPath, error }: { dirPath: AbsoluteFilePath; error: Error }): void => {
-      readdirProxy.throws({ dirPath, error });
+      gatewayProxy.throws({ path: dirPath, error });
     },
     setupReaddirReturns: ({
       dirPath,
       entries,
     }: {
       dirPath: AbsoluteFilePath;
-      entries: Dirent[];
+      entries: DirEntrySync[];
     }): void => {
-      readdirProxy.returns({ dirPath, entries });
+      gatewayProxy.returns({ path: dirPath, entries });
     },
+    // Registers directly on the real `readdirSync` (rather than composing the gateway proxy's
+    // own `.returns()`/`.throws()`) so a caller with no single directory to key on can answer
+    // every call from one function, with the gateway's own real `.map()` into `{name, kind}`
+    // still running for real underneath.
     setupReaddirImplementation: ({ fn }: { fn: (dirPath: string) => Dirent[] }): void => {
-      readdirProxy.implementation({ fn });
+      handle.calledWith([]).implement(fn as never);
     },
   };
 };

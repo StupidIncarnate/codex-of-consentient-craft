@@ -1,13 +1,23 @@
 import type { Dirent } from 'fs';
-import { fsReaddirWithTypesAdapterProxy } from '../../../adapters/fs/readdir-with-types/fs-readdir-with-types-adapter.proxy';
+import { readdirSync } from 'fs';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
+import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/readdir-entries-sync.proxy';
+import type { DirEntrySync } from '#gateway/node/fs';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 
 export const safeReaddirLayerBrokerProxy = (): {
-  setupDirectory: ({ dirPath, entries }: { dirPath: AbsoluteFilePath; entries: Dirent[] }) => void;
+  setupDirectory: ({
+    dirPath,
+    entries,
+  }: {
+    dirPath: AbsoluteFilePath;
+    entries: DirEntrySync[];
+  }) => void;
   setupError: ({ dirPath, error }: { dirPath: AbsoluteFilePath; error: Error }) => void;
   setupImplementation: ({ fn }: { fn: (dirPath: string) => Dirent[] }) => void;
 } => {
-  const fsProxy = fsReaddirWithTypesAdapterProxy();
+  const gatewayProxy = readdirEntriesSyncProxy();
+  const handle = registerMock({ fn: readdirSync });
 
   return {
     setupDirectory: ({
@@ -15,17 +25,22 @@ export const safeReaddirLayerBrokerProxy = (): {
       entries,
     }: {
       dirPath: AbsoluteFilePath;
-      entries: Dirent[];
+      entries: DirEntrySync[];
     }): void => {
-      fsProxy.returns({ dirPath, entries });
+      gatewayProxy.returns({ path: dirPath, entries });
     },
 
     setupError: ({ dirPath, error }: { dirPath: AbsoluteFilePath; error: Error }): void => {
-      fsProxy.throws({ dirPath, error });
+      gatewayProxy.throws({ path: dirPath, error });
     },
 
+    // Registers directly on the real `readdirSync` (rather than composing the gateway proxy's
+    // own `.returns()`/`.throws()`) so a caller with no single directory to key on — the tree
+    // walk in architecture-import-edges-broker.proxy.ts — can answer every call from one
+    // function, with the gateway's own real `.map()` into `{name, kind}` still running for real
+    // underneath.
     setupImplementation: ({ fn }: { fn: (dirPath: string) => Dirent[] }): void => {
-      fsProxy.implementation({ fn });
+      handle.calledWith([]).implement(fn as never);
     },
   };
 };

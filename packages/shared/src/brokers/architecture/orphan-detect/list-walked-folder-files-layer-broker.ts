@@ -42,7 +42,7 @@ export const listWalkedFolderFilesLayerBroker = ({
     const entries = safeReaddirLayerBroker({ dirPath: current });
     for (const entry of entries) {
       const entryPath = absoluteFilePathContract.parse(`${String(current)}/${entry.name}`);
-      if (entry.isDirectory()) {
+      if (entry.kind === 'directory') {
         stack.push(entryPath);
         continue;
       }

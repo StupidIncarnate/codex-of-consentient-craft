@@ -47,7 +47,7 @@ export const architectureImportEdgesBroker = ({
 
   const knownPackageNames = new Set<ContentText>();
   for (const entry of packageEntries) {
-    if (entry.isDirectory() && entry.name !== locationsStatics.repoRoot.claudeMd) {
+    if (entry.kind === 'directory' && entry.name !== locationsStatics.repoRoot.claudeMd) {
       knownPackageNames.add(contentTextContract.parse(entry.name));
     }
   }

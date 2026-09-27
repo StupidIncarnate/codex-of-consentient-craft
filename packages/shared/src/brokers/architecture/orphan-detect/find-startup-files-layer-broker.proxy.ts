@@ -1,4 +1,5 @@
 import type { Dirent } from 'fs';
+import type { DirEntrySync } from '#gateway/node/fs';
 import { safeReaddirLayerBrokerProxy } from './safe-readdir-layer-broker.proxy';
 import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
@@ -9,7 +10,7 @@ export const findStartupFilesLayerBrokerProxy = (): {
     entries,
   }: {
     packageSrcPath: AbsoluteFilePath;
-    entries: Dirent[];
+    entries: DirEntrySync[];
   }) => void;
   setupReaddirThrows: ({
     packageSrcPath,
@@ -27,7 +28,7 @@ export const findStartupFilesLayerBrokerProxy = (): {
       entries,
     }: {
       packageSrcPath: AbsoluteFilePath;
-      entries: Dirent[];
+      entries: DirEntrySync[];
     }): void => {
       const dirPath = AbsoluteFilePathStub({ value: `${String(packageSrcPath)}/startup` });
       readdirProxy.setupReaddirReturns({ dirPath, entries });

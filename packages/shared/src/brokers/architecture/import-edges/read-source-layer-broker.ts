@@ -11,9 +11,12 @@
  * WHEN-TO-USE: architecture-import-edges-broker reading source files to scan for imports
  */
 
-import { fsReadFileSyncAdapter } from '../../../adapters/fs/read-file-sync/fs-read-file-sync-adapter';
+import { readFileSync } from '#gateway/node/fs';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import type { ContentText } from '../../../contracts/content-text/content-text-contract';
+import {
+  contentTextContract,
+  type ContentText,
+} from '../../../contracts/content-text/content-text-contract';
 
 export const readSourceLayerBroker = ({
   filePath,
@@ -21,7 +24,7 @@ export const readSourceLayerBroker = ({
   filePath: AbsoluteFilePath;
 }): ContentText | undefined => {
   try {
-    return fsReadFileSyncAdapter({ filePath });
+    return contentTextContract.parse(readFileSync(filePath));
   } catch {
     return undefined;
   }
