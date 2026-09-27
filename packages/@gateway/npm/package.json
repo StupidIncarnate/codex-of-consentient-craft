@@ -13,6 +13,20 @@
     "#gateway/bin/*": "@dungeonmaster/bin/*"
   },
   "exports": {
+    "./*.proxy": {
+      "gateway-dist": "./dist/*.proxy.d.ts",
+      "source": "./src/*.proxy.ts",
+      "import": "./dist/*.proxy.js",
+      "require": "./dist/*.proxy.js",
+      "types": "./dist/*.proxy.d.ts"
+    },
+    "./*.stub": {
+      "gateway-dist": "./dist/*.stub.d.ts",
+      "source": "./src/*.stub.ts",
+      "import": "./dist/*.stub.js",
+      "require": "./dist/*.stub.js",
+      "types": "./dist/*.stub.d.ts"
+    },
     "./_test_/*": {
       "gateway-dist": "./dist/*/*.proxy.d.ts",
       "source": "./src/*/*.proxy.ts",

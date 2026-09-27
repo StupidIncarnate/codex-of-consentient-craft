@@ -137,6 +137,162 @@ describe('workspacePackageExportSourceTransformer', () => {
     });
   });
 
+  describe('gateway three-key form, order independent', () => {
+    it('VALID: {subpath ends in .proxy, keys in proxy/stub/barrel order} => the .proxy key wins', () => {
+      const { exports: exportsMap } = WorkspacePackageJsonStub({
+        name: '@dungeonmaster/node',
+        exports: {
+          './*.proxy': { source: './src/*.proxy.ts' },
+          './*.stub': { source: './src/*.stub.ts' },
+          './*': { source: './src/*/*.ts' },
+        },
+      });
+      const { subpath } = PackageSpecifierPartsStub({
+        packageName: '@dungeonmaster/node',
+        subpath: 'fs__promises/read-file-if-exists/read-file-if-exists.proxy',
+      });
+
+      const result = workspacePackageExportSourceTransformer({ exportsMap, subpath });
+
+      expect(result).toBe('./src/fs__promises/read-file-if-exists/read-file-if-exists.proxy.ts');
+    });
+
+    it('VALID: {subpath ends in .proxy, keys in barrel/stub/proxy order} => the .proxy key still wins', () => {
+      const { exports: exportsMap } = WorkspacePackageJsonStub({
+        name: '@dungeonmaster/node',
+        exports: {
+          './*': { source: './src/*/*.ts' },
+          './*.stub': { source: './src/*.stub.ts' },
+          './*.proxy': { source: './src/*.proxy.ts' },
+        },
+      });
+      const { subpath } = PackageSpecifierPartsStub({
+        packageName: '@dungeonmaster/node',
+        subpath: 'fs__promises/read-file-if-exists/read-file-if-exists.proxy',
+      });
+
+      const result = workspacePackageExportSourceTransformer({ exportsMap, subpath });
+
+      expect(result).toBe('./src/fs__promises/read-file-if-exists/read-file-if-exists.proxy.ts');
+    });
+
+    it('VALID: {subpath ends in .stub, keys in proxy/stub/barrel order} => the .stub key wins', () => {
+      const { exports: exportsMap } = WorkspacePackageJsonStub({
+        name: '@dungeonmaster/node',
+        exports: {
+          './*.proxy': { source: './src/*.proxy.ts' },
+          './*.stub': { source: './src/*.stub.ts' },
+          './*': { source: './src/*/*.ts' },
+        },
+      });
+      const { subpath } = PackageSpecifierPartsStub({
+        packageName: '@dungeonmaster/node',
+        subpath: 'fs/is-fs-error/fs-error.stub',
+      });
+
+      const result = workspacePackageExportSourceTransformer({ exportsMap, subpath });
+
+      expect(result).toBe('./src/fs/is-fs-error/fs-error.stub.ts');
+    });
+
+    it('VALID: {subpath ends in .stub, keys in barrel/proxy/stub order} => the .stub key still wins', () => {
+      const { exports: exportsMap } = WorkspacePackageJsonStub({
+        name: '@dungeonmaster/node',
+        exports: {
+          './*': { source: './src/*/*.ts' },
+          './*.proxy': { source: './src/*.proxy.ts' },
+          './*.stub': { source: './src/*.stub.ts' },
+        },
+      });
+      const { subpath } = PackageSpecifierPartsStub({
+        packageName: '@dungeonmaster/node',
+        subpath: 'fs/is-fs-error/fs-error.stub',
+      });
+
+      const result = workspacePackageExportSourceTransformer({ exportsMap, subpath });
+
+      expect(result).toBe('./src/fs/is-fs-error/fs-error.stub.ts');
+    });
+
+    it('VALID: {subpath is a plain barrel path, keys in proxy/stub/barrel order} => the "./*" key wins', () => {
+      const { exports: exportsMap } = WorkspacePackageJsonStub({
+        name: '@dungeonmaster/node',
+        exports: {
+          './*.proxy': { source: './src/*.proxy.ts' },
+          './*.stub': { source: './src/*.stub.ts' },
+          './*': { source: './src/*/*.ts' },
+        },
+      });
+      const { subpath } = PackageSpecifierPartsStub({
+        packageName: '@dungeonmaster/node',
+        subpath: 'fs__promises',
+      });
+
+      const result = workspacePackageExportSourceTransformer({ exportsMap, subpath });
+
+      expect(result).toBe('./src/fs__promises/fs__promises.ts');
+    });
+
+    it('VALID: {subpath is a plain barrel path, keys in barrel/stub/proxy order} => the "./*" key still wins', () => {
+      const { exports: exportsMap } = WorkspacePackageJsonStub({
+        name: '@dungeonmaster/node',
+        exports: {
+          './*': { source: './src/*/*.ts' },
+          './*.stub': { source: './src/*.stub.ts' },
+          './*.proxy': { source: './src/*.proxy.ts' },
+        },
+      });
+      const { subpath } = PackageSpecifierPartsStub({
+        packageName: '@dungeonmaster/node',
+        subpath: 'fs__promises',
+      });
+
+      const result = workspacePackageExportSourceTransformer({ exportsMap, subpath });
+
+      expect(result).toBe('./src/fs__promises/fs__promises.ts');
+    });
+
+    it('VALID: {all four gateway keys present, "./_test_/*" listed last} => "./_test_/*" still beats "./*" for a "_test_/" subpath', () => {
+      const { exports: exportsMap } = WorkspacePackageJsonStub({
+        name: '@dungeonmaster/node',
+        exports: {
+          './*.proxy': { source: './src/*.proxy.ts' },
+          './*.stub': { source: './src/*.stub.ts' },
+          './*': { source: './src/*/*.ts' },
+          './_test_/*': { source: './src/*/*.proxy.ts' },
+        },
+      });
+      const { subpath } = PackageSpecifierPartsStub({
+        packageName: '@dungeonmaster/node',
+        subpath: '_test_/fs__promises',
+      });
+
+      const result = workspacePackageExportSourceTransformer({ exportsMap, subpath });
+
+      expect(result).toBe('./src/fs__promises/fs__promises.proxy.ts');
+    });
+
+    it('VALID: {all four gateway keys present, "./_test_/*" listed first} => "./_test_/*" still beats "./*" for a "_test_/" subpath', () => {
+      const { exports: exportsMap } = WorkspacePackageJsonStub({
+        name: '@dungeonmaster/node',
+        exports: {
+          './_test_/*': { source: './src/*/*.proxy.ts' },
+          './*': { source: './src/*/*.ts' },
+          './*.stub': { source: './src/*.stub.ts' },
+          './*.proxy': { source: './src/*.proxy.ts' },
+        },
+      });
+      const { subpath } = PackageSpecifierPartsStub({
+        packageName: '@dungeonmaster/node',
+        subpath: '_test_/fs__promises',
+      });
+
+      const result = workspacePackageExportSourceTransformer({ exportsMap, subpath });
+
+      expect(result).toBe('./src/fs__promises/fs__promises.proxy.ts');
+    });
+  });
+
   describe('empty input', () => {
     it('EMPTY: {exportsMap: undefined} => returns null', () => {
       const { subpath } = PackageSpecifierPartsStub({

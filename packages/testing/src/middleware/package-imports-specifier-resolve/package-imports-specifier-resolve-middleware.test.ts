@@ -41,6 +41,102 @@ describe('packageImportsSpecifierResolveMiddleware', () => {
     });
   });
 
+  describe('gateway three-key exports form, order independent', () => {
+    it('VALID: {#gateway/node/fs__promises/.../read-file-if-exists.proxy, keys in proxy/stub/barrel order} => resolves through the ".proxy" key', () => {
+      const proxy = packageImportsSpecifierResolveMiddlewareProxy();
+      proxy.setupImportingPackage({
+        dirPath: '/repo/packages/mcp',
+        packageJson: {
+          name: '@dungeonmaster/mcp',
+          imports: { '#gateway/node/*': '@dungeonmaster/node/*' },
+        },
+      });
+      proxy.setupWorkspaceRoot({
+        workspaceRootPath: '/repo',
+        workspaces: ['packages/*', 'packages/@gateway/*'],
+      });
+      proxy.setupWorkspacePackage({
+        workspaceRootPath: '/repo',
+        packageFolderName: 'node',
+        packagesBaseDir: 'packages/@gateway',
+        packageJson: {
+          name: '@dungeonmaster/node',
+          exports: {
+            './*.proxy': { source: './src/*.proxy.ts' },
+            './*.stub': { source: './src/*.stub.ts' },
+            './*': { source: './src/*/*.ts' },
+          },
+        },
+      });
+      proxy.setupSourceFileExists({
+        filePath:
+          '/repo/packages/@gateway/node/src/fs__promises/read-file-if-exists/read-file-if-exists.proxy.ts',
+      });
+      const sourceFilePath = FilePathStub({
+        value: '/repo/packages/mcp/src/brokers/file/scanner/file-scanner-broker.proxy.ts',
+      });
+      const importPath = ImportPathStub({
+        value: '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy',
+      });
+
+      const result = packageImportsSpecifierResolveMiddleware({ sourceFilePath, importPath });
+
+      expect(result).toStrictEqual(
+        FilePathStub({
+          value:
+            '/repo/packages/@gateway/node/src/fs__promises/read-file-if-exists/read-file-if-exists.proxy.ts',
+        }),
+      );
+    });
+
+    it('VALID: {same import, keys in barrel/stub/proxy order} => still resolves through the ".proxy" key', () => {
+      const proxy = packageImportsSpecifierResolveMiddlewareProxy();
+      proxy.setupImportingPackage({
+        dirPath: '/repo/packages/mcp',
+        packageJson: {
+          name: '@dungeonmaster/mcp',
+          imports: { '#gateway/node/*': '@dungeonmaster/node/*' },
+        },
+      });
+      proxy.setupWorkspaceRoot({
+        workspaceRootPath: '/repo',
+        workspaces: ['packages/*', 'packages/@gateway/*'],
+      });
+      proxy.setupWorkspacePackage({
+        workspaceRootPath: '/repo',
+        packageFolderName: 'node',
+        packagesBaseDir: 'packages/@gateway',
+        packageJson: {
+          name: '@dungeonmaster/node',
+          exports: {
+            './*': { source: './src/*/*.ts' },
+            './*.stub': { source: './src/*.stub.ts' },
+            './*.proxy': { source: './src/*.proxy.ts' },
+          },
+        },
+      });
+      proxy.setupSourceFileExists({
+        filePath:
+          '/repo/packages/@gateway/node/src/fs__promises/read-file-if-exists/read-file-if-exists.proxy.ts',
+      });
+      const sourceFilePath = FilePathStub({
+        value: '/repo/packages/mcp/src/brokers/file/scanner/file-scanner-broker.proxy.ts',
+      });
+      const importPath = ImportPathStub({
+        value: '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy',
+      });
+
+      const result = packageImportsSpecifierResolveMiddleware({ sourceFilePath, importPath });
+
+      expect(result).toStrictEqual(
+        FilePathStub({
+          value:
+            '/repo/packages/@gateway/node/src/fs__promises/read-file-if-exists/read-file-if-exists.proxy.ts',
+        }),
+      );
+    });
+  });
+
   describe('unmapped specifier', () => {
     it('INVALID: {#foo, importing package has an imports map but no matching key} => returns null', () => {
       const proxy = packageImportsSpecifierResolveMiddlewareProxy();

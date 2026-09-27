@@ -1,5 +1,11 @@
 /**
- * PURPOSE: Enforces that proxies create all child proxies based on implementation file imports
+ * PURPOSE: Enforces that proxies create all child proxies based on implementation file imports. A
+ * gateway import's expected proxy is the WRAPPER's own `.proxy` file, colocated beside it and
+ * imported per file (`#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy`) —
+ * derived from the subpath's testing barrel, which still exists as a transition aid and names the
+ * exact relative path per wrapped export. A proxy importing the same name from that barrel's own
+ * `_test_` path instead still satisfies this check, since acceptance is name-based; only the
+ * SUGGESTED path in a `missingProxyImport` report points at the per-file form.
  *
  * USAGE:
  * const rule = ruleEnforceProxyChildCreationBroker();
@@ -18,7 +24,7 @@ import { identifierContract, filePathContract } from '@dungeonmaster/shared/cont
 import { proxyNameToImplementationNameTransformer } from '../../../transformers/proxy-name-to-implementation-name/proxy-name-to-implementation-name-transformer';
 import { proxyPathToImplementationPathTransformer } from '../../../transformers/proxy-path-to-implementation-path/proxy-path-to-implementation-path-transformer';
 import { gatewayTestingBarrelPathTransformer } from '../../../transformers/gateway-testing-barrel-path/gateway-testing-barrel-path-transformer';
-import { gatewayTestingBarrelProxyNamesTransformer } from '../../../transformers/gateway-testing-barrel-proxy-names/gateway-testing-barrel-proxy-names-transformer';
+import { gatewayTestingBarrelProxyPathsTransformer } from '../../../transformers/gateway-testing-barrel-proxy-paths/gateway-testing-barrel-proxy-paths-transformer';
 import { fileExtensionsStatics, gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
 
 export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
@@ -167,15 +173,14 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
           const expectedProxyName = identifierContract.parse(expectedProxyNameString);
 
           // For scoped package imports (@scope/pkg/folderType), proxy is exported from
-          // @scope/pkg/testing; a gateway subpath's proxy from its own `_test_/<subpath>` barrel.
+          // @scope/pkg/testing; a gateway import's proxy sits beside its own wrapper (below).
           // For relative imports, proxy is at path.proxy
           const isScopedPackageImport =
             importPath.startsWith('@') ||
             importPath.startsWith(`${gatewayLocationsStatics.importPrefix}/`);
 
-          // A gateway import (#gateway/node/fs__promises, @scope/npm/zod, ...) resolves its proxy
-          // through that subpath's own `_test_` barrel: the gateway folder is the second path
-          // segment and the subpath the third.
+          // A gateway import (#gateway/node/fs__promises, @scope/npm/zod, ...) names the gateway
+          // folder as the second path segment and the subpath as the third.
           const importPathSegments = isScopedPackageImport ? importPath.split('/') : [];
           const [, gatewayFolderSegment, gatewaySubpathSegment] = importPathSegments;
           const isGatewayImport =
@@ -184,48 +189,52 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
               (folder) => folder === gatewayFolderSegment,
             );
 
-          if (isGatewayImport) {
-            // Every gateway package holds pass-throughs alongside its wrapped exports — not
-            // only npm (zod's `z`, react's `useState`, ...), but node too (`join` from
-            // @scope/node/path is Node's own `path.join`, untouched, because `path` does no I/O
-            // and needs no guard). A pass-through export has no proxy at all, so only a name the
-            // subpath's own testing barrel actually re-exports as `<name>Proxy` is held to this
-            // check.
-            const barrelPath =
-              gatewaySubpathSegment === undefined
-                ? null
-                : gatewayTestingBarrelPathTransformer({
-                    callerFilePath: filePathContract.parse(String(filename ?? '')),
-                    gatewayFolder: gatewayFolderSegment,
-                    subpath: gatewaySubpathSegment,
-                  });
-
-            const wrappedNames = ((): Set<Identifier> => {
-              if (barrelPath === null) {
-                return new Set<Identifier>();
-              }
-              const barrelContent = ((): FileContents | null => {
-                try {
-                  return fsEnsureReadFileSyncAdapter({ filePath: barrelPath, encoding: 'utf-8' });
-                } catch {
-                  return null;
-                }
-              })();
-              return barrelContent === null
-                ? new Set<Identifier>()
-                : gatewayTestingBarrelProxyNamesTransformer({ content: barrelContent });
-            })();
-
-            if (!wrappedNames.has(expectedProxyName)) {
-              // Pass-through: no proxy exists, or is expected, for this name.
-              continue;
-            }
-          }
-
-          const expectedProxyPath = ((): ModulePath => {
+          // Every gateway package holds pass-throughs alongside its wrapped exports — not only
+          // npm (zod's `z`, react's `useState`, ...), but node too (`join` from @scope/node/path
+          // is Node's own `path.join`, untouched, because `path` does no I/O and needs no guard).
+          // A pass-through export has no proxy at all, so only a name the subpath's own testing
+          // barrel actually re-exports as `<name>Proxy` is held to this check. That barrel also
+          // names the exact relative path to the wrapper's own per-file proxy, which is what a
+          // caller's proxy is now expected to import directly — the barrel itself is a transition
+          // aid for old-form imports and goes away once every caller has moved off it.
+          const expectedProxyPath = ((): ModulePath | null => {
             if (isGatewayImport) {
+              const barrelPath =
+                gatewaySubpathSegment === undefined
+                  ? null
+                  : gatewayTestingBarrelPathTransformer({
+                      callerFilePath: filePathContract.parse(String(filename ?? '')),
+                      gatewayFolder: gatewayFolderSegment,
+                      subpath: gatewaySubpathSegment,
+                    });
+
+              const wrappedProxyPaths = ((): Map<Identifier, ModulePath> => {
+                if (barrelPath === null) {
+                  return new Map<Identifier, ModulePath>();
+                }
+                const barrelContent = ((): FileContents | null => {
+                  try {
+                    return fsEnsureReadFileSyncAdapter({
+                      filePath: barrelPath,
+                      encoding: 'utf-8',
+                    });
+                  } catch {
+                    return null;
+                  }
+                })();
+                return barrelContent === null
+                  ? new Map<Identifier, ModulePath>()
+                  : gatewayTestingBarrelProxyPathsTransformer({ content: barrelContent });
+              })();
+
+              const relativeProxyPath = wrappedProxyPaths.get(expectedProxyName);
+              if (relativeProxyPath === undefined) {
+                // Pass-through: no wrapper proxy exists, or is expected, for this name.
+                return null;
+              }
+
               const [scopeSegment, packageFolder, subpath] = importPathSegments;
-              return `${scopeSegment}/${packageFolder}/_test_/${subpath}` as ModulePath;
+              return `${scopeSegment}/${packageFolder}/${subpath}/${relativeProxyPath}` as ModulePath;
             }
             if (isScopedPackageImport) {
               const lastSlashIndex = importPath.lastIndexOf('/');
@@ -243,6 +252,10 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
                 : importPath.replace(tsExtension, '.proxy')
             ) as ModulePath;
           })();
+
+          if (expectedProxyPath === null) {
+            continue;
+          }
 
           // Check if proxy imports the corresponding proxy
           const hasProxyImport = Array.from(proxyImports.keys()).some(

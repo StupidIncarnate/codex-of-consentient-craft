@@ -345,7 +345,8 @@ beforeEach(() => {
       // subpath, reproducing the exact misfire found in the mcp config-create trial unit.
       if (
         filePath.includes('install-config-create-responder.ts') ||
-        filePath.includes('install-config-create-no-proxy-responder.ts')
+        filePath.includes('install-config-create-no-proxy-responder.ts') ||
+        filePath.includes('install-config-create-per-file-responder.ts')
       ) {
         return FileContentsStub({
           value: `
@@ -366,7 +367,8 @@ beforeEach(() => {
       // through the identical proxy-child-creation path as the '@dungeonmaster/...' form.
       if (
         filePath.includes('install-config-create-gateway-alias-responder.ts') ||
-        filePath.includes('install-config-create-gateway-alias-no-proxy-responder.ts')
+        filePath.includes('install-config-create-gateway-alias-no-proxy-responder.ts') ||
+        filePath.includes('install-config-create-gateway-alias-per-file-responder.ts')
       ) {
         return FileContentsStub({
           value: `
@@ -799,6 +801,45 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
       filename:
         '/repo/packages/mcp/src/responders/install/config-create/install-config-create-gateway-alias-responder.proxy.ts',
     },
+    // ✅ CORRECT - Gateway import, per-file form: proxy imports and creates each wrapper's own
+    // proxy directly (the form step 5 migrates every caller to), instead of the subpath's
+    // '_test_' barrel. Acceptance is name-based, so this passes exactly like the barrel form above.
+    {
+      code: `
+        import { readJsonFileIfExistsProxy } from '@dungeonmaster/node/fs__promises/read-json-file-if-exists/read-json-file-if-exists.proxy';
+        import { writeFileProxy } from '@dungeonmaster/node/fs__promises/write-file/write-file.proxy';
+
+        export const installConfigCreatePerFileResponderProxy = () => {
+          const readProxy = readJsonFileIfExistsProxy();
+          const writeProxy = writeFileProxy();
+
+          return {
+            setup: () => {}
+          };
+        };
+      `,
+      filename:
+        '/repo/packages/mcp/src/responders/install/config-create/install-config-create-per-file-responder.proxy.ts',
+    },
+    // ✅ CORRECT - Gateway import through the '#gateway/...' import-alias form, per-file: same as
+    // above, proving the alias resolves through the identical per-file acceptance path.
+    {
+      code: `
+        import { readJsonFileIfExistsProxy } from '#gateway/node/fs__promises/read-json-file-if-exists/read-json-file-if-exists.proxy';
+        import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
+
+        export const installConfigCreateGatewayAliasPerFileResponderProxy = () => {
+          const readProxy = readJsonFileIfExistsProxy();
+          const writeProxy = writeFileProxy();
+
+          return {
+            setup: () => {}
+          };
+        };
+      `,
+      filename:
+        '/repo/packages/mcp/src/responders/install/config-create/install-config-create-gateway-alias-per-file-responder.proxy.ts',
+    },
   ],
   invalid: [
     // ❌ WRONG - Missing proxy import
@@ -1174,14 +1215,15 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
           messageId: 'missingProxyImport',
           data: {
             implementationName: 'readJsonFileIfExists',
-            proxyPath: '@dungeonmaster/node/_test_/fs__promises',
+            proxyPath:
+              '@dungeonmaster/node/fs__promises/read-json-file-if-exists/read-json-file-if-exists.proxy',
           },
         },
         {
           messageId: 'missingProxyImport',
           data: {
             implementationName: 'writeFile',
-            proxyPath: '@dungeonmaster/node/_test_/fs__promises',
+            proxyPath: '@dungeonmaster/node/fs__promises/write-file/write-file.proxy',
           },
         },
       ],
@@ -1204,14 +1246,15 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
           messageId: 'missingProxyImport',
           data: {
             implementationName: 'readJsonFileIfExists',
-            proxyPath: '#gateway/node/_test_/fs__promises',
+            proxyPath:
+              '#gateway/node/fs__promises/read-json-file-if-exists/read-json-file-if-exists.proxy',
           },
         },
         {
           messageId: 'missingProxyImport',
           data: {
             implementationName: 'writeFile',
-            proxyPath: '#gateway/node/_test_/fs__promises',
+            proxyPath: '#gateway/node/fs__promises/write-file/write-file.proxy',
           },
         },
       ],
