@@ -1,17 +1,19 @@
 /**
- * PURPOSE: Extracts every name a gateway subpath's own production barrel
- * (`packages/@gateway/<folder>/src/<subpath>/<subpath>.ts`) re-exports from a wrapper folder ONE
- * level below it (`export { readFile } from './read-file/read-file'`), paired with that wrapper's own
- * relative module path, leading `./` stripped, so a caller joins it onto `#gateway/<folder>/<subpath>/`
- * with no further parsing and appends `.proxy` for the wrapper's own proxy file. Only a bare `./` match —
- * a name the barrel re-exports through `export * from '<npm-or-node-module>'` (a pass-through, no local
- * wrapper) or through a `../` climb into a DIFFERENT subpath's own folder (a convenience re-export,
- * whose proxy is that OTHER subpath's own concern — `fs__promises.ts` re-exports `isFsError` from
- * `../fs/is-fs-error/is-fs-error`, but `isFsErrorProxy` lives in `fs`'s own barrel, `fs.proxy.ts`, not
- * `fs__promises`'s) never appears here. This is exactly how enforce-proxy-child-creation tells a
- * WRAPPED gateway export from a pass-through one now that no `_test_` barrel exists to read instead —
- * the production barrel is the one place both facts already live, since a barrel line either names a
- * wrapper folder inside its OWN subpath or it does not.
+ * PURPOSE: Extracts every name a barrel file re-exports from a relative sibling ONE line at a time
+ * (`export { readFile } from './read-file/read-file'`), paired with that target's own relative
+ * module path, leading `./` stripped. Only a bare `./` match — a name the barrel re-exports through
+ * `export * from '<npm-or-node-module>'` (a pass-through, no local file) or through a `../` climb
+ * into a DIFFERENT domain's own folder (a convenience re-export whose proxy is that OTHER domain's
+ * concern — `fs__promises.ts` re-exports `isFsError` from `../fs/is-fs-error/is-fs-error`, but
+ * `isFsErrorProxy` lives in `fs`'s own barrel, `fs.proxy.ts`, not `fs__promises`'s) — never appears
+ * here. Two callers share it: a gateway subpath's own production barrel
+ * (`packages/@gateway/<folder>/src/<subpath>/<subpath>.ts`), where the caller joins the result onto
+ * `#gateway/<folder>/<subpath>/` and appends `.proxy` for the wrapper's own proxy file; and a
+ * workspace package's own root barrel (`packages/<pkg>/src/index.ts`), where the caller joins the
+ * result onto `@scope/<pkg>/` the same way. This is exactly how enforce-proxy-child-creation tells a
+ * WRAPPED export from a pass-through one in both cases, now that no `_test_` barrel exists to read
+ * instead — the production barrel is the one place both facts already live, since a barrel line
+ * either names a sibling file or it does not.
  *
  * USAGE:
  * gatewayBarrelWrapperPathsTransformer({

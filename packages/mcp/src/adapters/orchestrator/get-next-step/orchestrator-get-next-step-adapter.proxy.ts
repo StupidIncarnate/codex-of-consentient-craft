@@ -1,31 +1,30 @@
 /**
- * PURPOSE: Proxy for orchestrator-get-next-step-adapter that mocks the orchestrator package
+ * PURPOSE: Proxy for orchestrator-get-next-step-adapter that mocks the orchestrator package.
+ * Composes orchestrator's own cross-package proxy (A00, brands doc T6) instead of registering its
+ * own mock on StartOrchestrator.getNextStep — proves the per-file import
+ * `@dungeonmaster/orchestrator/startup/start-orchestrator.proxy` resolves and hoists correctly
+ * from OUTSIDE the orchestrator package.
  *
  * USAGE:
  * const proxy = orchestratorGetNextStepAdapterProxy();
  * proxy.returns({ step: NextStepStub() });
  */
 
-import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import type { NextStep } from '@dungeonmaster/orchestrator';
-import { NextStepStub } from '@dungeonmaster/orchestrator/testing';
-import { registerMock } from '@dungeonmaster/testing/register-mock';
+import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 
 export const orchestratorGetNextStepAdapterProxy = (): {
   returns: (params: { step: NextStep }) => void;
   throws: (params: { error: Error }) => void;
 } => {
-  const handle = registerMock({ fn: StartOrchestrator.getNextStep });
-
-  // getNextStep takes no arguments — [] is the only possible address.
-  handle.calledWith([]).resolves(NextStepStub());
+  const orchestrator = StartOrchestratorProxy();
 
   return {
     returns: ({ step }: { step: NextStep }): void => {
-      handle.calledWith([]).resolves(step);
+      orchestrator.getNextStepReturns({ step });
     },
     throws: ({ error }: { error: Error }): void => {
-      handle.calledWith([]).rejects(error);
+      orchestrator.getNextStepThrows({ error });
     },
   };
 };

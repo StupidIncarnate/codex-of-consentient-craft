@@ -20,6 +20,42 @@ beforeEach(() => {
         return null;
       }
 
+      // agentRoleContract has no colocated proxy on disk — a bare workspace-package-root import
+      // of a contract stays a pass-through, exactly like a gateway pass-through does.
+      if (filePath.includes('orchestrator/src/contracts/agent-role/agent-role-contract.proxy.ts')) {
+        return null;
+      }
+
+      // Every package.json probe is answered explicitly, never by the generic placeholder default
+      // below (which is not valid JSON and would crash findWorkspaceRootLayerBroker's JSON.parse).
+      // '/repo' is this repo's own fake workspace root (scope '@dungeonmaster'); '/acme-repo' is a
+      // published consumer's own fake workspace root (scope '@acme') — proving the scope is read
+      // off the real workspace root rather than hardcoded. Every OTHER package.json (every
+      // intermediate directory the walk climbs past, and every '/project/...' fixture that never
+      // exercises a bare-root import) answers "not a workspace root" by returning null, so the walk
+      // climbs past it exactly like a real ordinary package.json with no `workspaces` field would.
+      if (filePath === '/repo/package.json') {
+        return FileContentsStub({
+          value: JSON.stringify({
+            name: 'dungeonmaster',
+            workspaces: ['packages/*'],
+            dependencies: { '@dungeonmaster/orchestrator': '*', '@dungeonmaster/demo': '*' },
+          }),
+        });
+      }
+      if (filePath === '/acme-repo/package.json') {
+        return FileContentsStub({
+          value: JSON.stringify({
+            name: 'acme-app',
+            workspaces: ['packages/*'],
+            dependencies: { '@acme/orders': '*', '@acme/mcp': '*' },
+          }),
+        });
+      }
+      if (filePath.endsWith('/package.json')) {
+        return null;
+      }
+
       // All broker files that import httpAdapter only
       if (
         filePath.includes('brokers/user/user-broker.ts') ||
@@ -412,6 +448,118 @@ beforeEach(() => {
         });
       }
 
+      // Orchestrator's own root barrel (packages/orchestrator/src/index.ts): a bare
+      // '@dungeonmaster/orchestrator' import's proxy is resolved from THIS file, exactly the way
+      // a gateway subpath's own production barrel resolves a gateway import's proxy.
+      if (filePath.includes('packages/orchestrator/src/index.ts')) {
+        return FileContentsStub({
+          value: `
+        export { StartOrchestrator } from './startup/start-orchestrator';
+        export { agentRoleContract } from './contracts/agent-role/agent-role-contract';
+      `,
+        });
+      }
+
+      // StartOrchestrator's own colocated cross-package composing proxy exists on disk (A00) —
+      // this is what tells enforce-proxy-child-creation the name is WRAPPED, not a pass-through.
+      if (filePath.includes('packages/orchestrator/src/startup/start-orchestrator.proxy.ts')) {
+        return FileContentsStub({ value: `export const StartOrchestratorProxy = () => ({});` });
+      }
+
+      // Adapter that imports StartOrchestrator bare-root, per-file, and uses it — the real A00
+      // shape (packages/mcp/src/adapters/orchestrator/get-next-step/...).
+      if (
+        filePath.includes(
+          'adapters/orchestrator/get-next-step/orchestrator-get-next-step-adapter.ts',
+        )
+      ) {
+        return FileContentsStub({
+          value: `
+        import { StartOrchestrator } from '@dungeonmaster/orchestrator';
+
+        export const orchestratorGetNextStepAdapter = () => {
+          return StartOrchestrator.getNextStep();
+        };
+      `,
+        });
+      }
+
+      // Adapter that imports ONLY agentRoleContract bare-root (a pass-through — contracts use
+      // stubs, never a proxy) — proves recording every bare-root name costs nothing extra.
+      if (
+        filePath.includes('adapters/orchestrator/agent-role/orchestrator-agent-role-adapter.ts')
+      ) {
+        return FileContentsStub({
+          value: `
+        import { agentRoleContract } from '@dungeonmaster/orchestrator';
+
+        export const orchestratorAgentRoleAdapter = () => {
+          return agentRoleContract;
+        };
+      `,
+        });
+      }
+
+      // Adapter that imports NOTHING from '@dungeonmaster/orchestrator' at all — for the
+      // still-flagged phantom-creation case: a proxy composing StartOrchestratorProxy() here has
+      // nothing real behind it.
+      if (filePath.includes('adapters/orchestrator/phantom/orchestrator-phantom-adapter.ts')) {
+        return FileContentsStub({
+          value: `
+        export const orchestratorPhantomAdapter = () => {
+          return { data: 'test' };
+        };
+      `,
+        });
+      }
+
+      // A SECOND, differently-named workspace package — proves the mapping is not hardcoded to
+      // orchestrator. Its own root barrel wraps DemoWidget from a widgets/ file.
+      if (filePath.includes('packages/demo/src/index.ts')) {
+        return FileContentsStub({
+          value: `export { DemoWidget } from './widgets/demo/demo-widget';`,
+        });
+      }
+      if (filePath.includes('packages/demo/src/widgets/demo/demo-widget.proxy.ts')) {
+        return FileContentsStub({ value: `export const DemoWidgetProxy = () => ({});` });
+      }
+      if (filePath.includes('adapters/demo/demo-adapter.ts')) {
+        return FileContentsStub({
+          value: `
+        import { DemoWidget } from '@dungeonmaster/demo';
+
+        export const demoAdapter = () => {
+          return DemoWidget;
+        };
+      `,
+        });
+      }
+
+      // A CONSUMER repo's own workspace package, scoped '@acme' — not '@dungeonmaster' — proving
+      // the workspace scope is read off the real workspace root (staged above at
+      // '/acme-repo/package.json') rather than hardcoded to this repo's own scope.
+      if (filePath.includes('acme-repo/packages/orders/src/index.ts')) {
+        return FileContentsStub({
+          value: `export { OrdersBroker } from './brokers/orders/orders-broker';`,
+        });
+      }
+      if (
+        filePath.includes('acme-repo/packages/orders/src/brokers/orders/orders-broker.proxy.ts')
+      ) {
+        return FileContentsStub({ value: `export const OrdersBrokerProxy = () => ({});` });
+      }
+      if (filePath.includes('acme-repo/packages/mcp/src/adapters/orders/orders-adapter.ts')) {
+        return FileContentsStub({
+          value: `
+        import { OrdersBroker } from '@acme/orders';
+
+        export const ordersAdapter = () => {
+          return OrdersBroker.list();
+        };
+      `,
+        });
+      }
+
       // Default empty implementation
       return FileContentsStub({ value: `export const placeholder = () => {};` });
     },
@@ -792,6 +940,74 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
       `,
       filename:
         '/repo/packages/mcp/src/responders/install/config-create/install-config-create-gateway-alias-per-file-responder.proxy.ts',
+    },
+    // ✅ CORRECT - Bare workspace-package ROOT import (A00): the implementation reaches
+    // StartOrchestrator via '@dungeonmaster/orchestrator', no folder-type subpath at all, and the
+    // proxy composes orchestrator's OWN cross-package composing proxy per file, resolved from
+    // orchestrator's own root barrel (src/index.ts) exactly the way a gateway import resolves
+    // against a subpath's own production barrel.
+    {
+      code: `
+        import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
+
+        export const orchestratorGetNextStepAdapterProxy = () => {
+          const orchestrator = StartOrchestratorProxy();
+
+          return {
+            setup: () => {}
+          };
+        };
+      `,
+      filename:
+        '/repo/packages/mcp/src/adapters/orchestrator/get-next-step/orchestrator-get-next-step-adapter.proxy.ts',
+    },
+    // ✅ CORRECT - Bare workspace-package ROOT import of a name with NO colocated proxy on disk
+    // (a contract, re-exported from orchestrator's root barrel same as StartOrchestrator) — a
+    // pass-through, needing nothing from the proxy, exactly like a gateway pass-through needs
+    // nothing.
+    {
+      code: `
+        export const orchestratorAgentRoleAdapterProxy = () => {
+          return {
+            setup: () => {}
+          };
+        };
+      `,
+      filename:
+        '/repo/packages/mcp/src/adapters/orchestrator/agent-role/orchestrator-agent-role-adapter.proxy.ts',
+    },
+    // ✅ CORRECT - A SECOND, differently-named workspace package (not orchestrator): proves the
+    // bare-root mapping reads each package's OWN root barrel rather than a hardcoded name.
+    {
+      code: `
+        import { DemoWidgetProxy } from '@dungeonmaster/demo/widgets/demo/demo-widget.proxy';
+
+        export const demoAdapterProxy = () => {
+          const demoProxy = DemoWidgetProxy();
+
+          return {
+            setup: () => {}
+          };
+        };
+      `,
+      filename: '/repo/packages/mcp/src/adapters/demo/demo-adapter.proxy.ts',
+    },
+    // ✅ CORRECT - A CONSUMER repo's own workspace, scoped '@acme' rather than '@dungeonmaster' —
+    // proves the workspace scope is read off the REAL workspace root (this repo's own operator
+    // flagged the earlier hardcoded '@dungeonmaster' as a blocker for exactly this case).
+    {
+      code: `
+        import { OrdersBrokerProxy } from '@acme/orders/brokers/orders/orders-broker.proxy';
+
+        export const ordersAdapterProxy = () => {
+          const ordersProxy = OrdersBrokerProxy();
+
+          return {
+            setup: () => {}
+          };
+        };
+      `,
+      filename: '/acme-repo/packages/mcp/src/adapters/orders/orders-adapter.proxy.ts',
     },
   ],
   invalid: [
@@ -1208,6 +1424,80 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
           data: {
             implementationName: 'writeFile',
             proxyPath: '#gateway/node/fs__promises/write-file/write-file.proxy',
+          },
+        },
+      ],
+    },
+    // ❌ WRONG - Bare workspace-package ROOT import (A00), no proxy import or creation at all —
+    // still flagged after teaching the transformer the bare-root form: a genuinely missing child
+    // proxy for StartOrchestrator must still be caught, not silently waved through.
+    {
+      code: `
+        export const orchestratorGetNextStepAdapterProxy = () => {
+          return {
+            setup: () => {}
+          };
+        };
+      `,
+      filename:
+        '/repo/packages/mcp/src/adapters/orchestrator/get-next-step/orchestrator-get-next-step-adapter.proxy.ts',
+      errors: [
+        {
+          messageId: 'missingProxyImport',
+          data: {
+            implementationName: 'StartOrchestrator',
+            proxyPath: '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy',
+          },
+        },
+      ],
+    },
+    // ❌ WRONG - Phantom proxy creation, bare workspace-package-root form: the proxy composes
+    // StartOrchestratorProxy() but this implementation imports nothing from
+    // '@dungeonmaster/orchestrator' at all — still flagged, proving the fix does not exempt every
+    // bare-root creation from the phantom check.
+    {
+      code: `
+        import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
+
+        export const orchestratorPhantomAdapterProxy = () => {
+          const orchestrator = StartOrchestratorProxy();
+
+          return {
+            setup: () => {}
+          };
+        };
+      `,
+      filename:
+        '/repo/packages/mcp/src/adapters/orchestrator/phantom/orchestrator-phantom-adapter.proxy.ts',
+      errors: [
+        {
+          messageId: 'phantomProxyCreation',
+          data: {
+            proxyName: 'StartOrchestratorProxy',
+            implementationFile: 'orchestrator-phantom-adapter.ts',
+            implementationName: 'StartOrchestrator',
+          },
+        },
+      ],
+    },
+    // ❌ WRONG - A CONSUMER repo's own workspace ('@acme'), no proxy import or creation at all —
+    // still flagged: the scope-detection fix must not silently exempt a real consumer's own
+    // missing child proxy just because it is not '@dungeonmaster'.
+    {
+      code: `
+        export const ordersAdapterProxy = () => {
+          return {
+            setup: () => {}
+          };
+        };
+      `,
+      filename: '/acme-repo/packages/mcp/src/adapters/orders/orders-adapter.proxy.ts',
+      errors: [
+        {
+          messageId: 'missingProxyImport',
+          data: {
+            implementationName: 'OrdersBroker',
+            proxyPath: '@acme/orders/brokers/orders/orders-broker.proxy',
           },
         },
       ],

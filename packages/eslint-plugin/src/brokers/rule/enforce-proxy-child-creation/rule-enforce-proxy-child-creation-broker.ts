@@ -9,6 +9,20 @@
  * '<npm-or-node-module>'`, or through a `../` climb into a DIFFERENT subpath's own folder, is a
  * PASS-THROUGH (or that other subpath's own concern) and needs none.
  *
+ * A bare workspace-package ROOT import (`import { StartOrchestrator } from '@dungeonmaster/orchestrator'`,
+ * or `@acme/orders` in a published consumer — no folder-type subpath at all) resolves the same way,
+ * against that OTHER package's own root barrel (`packages/<pkg>/src/index.ts`) instead of a gateway
+ * subpath barrel — brands doc T6, EPIC concession 2. A name that barrel re-exports from a relative
+ * sibling is held to this check only when THAT sibling's own `.proxy.ts` exists on disk: most
+ * package-root exports (contracts, statics, guards) never ship one, so this is what tells a
+ * package's own composed startup object (which does) apart from everything else it exports (which
+ * does not) — never a hardcoded folder type, and never a hardcoded package name. THE SCOPE ITSELF
+ * IS NEVER HARDCODED EITHER: this package ships to consumers whose own workspace packages carry
+ * their own scope, never `@dungeonmaster`, so `create()` reads it off the REAL workspace root
+ * (`findWorkspaceRootLayerBroker`, the same walk `enforce-gateway-config-names-exist` already
+ * uses — duplicated here rather than imported, since a layer file is not an entry file another
+ * domain may import) before this check ever runs.
+ *
  * USAGE:
  * const rule = ruleEnforceProxyChildCreationBroker();
  * // Returns ESLint rule that ensures proxy creates child proxy for each dependency imported by implementation
@@ -18,6 +32,7 @@ import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-cont
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { fsEnsureReadFileSyncAdapter } from '../../../adapters/fs/ensure-read-file-sync/fs-ensure-read-file-sync-adapter';
+import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 import { astGetImportsTransformer } from '../../../transformers/ast-get-imports/ast-get-imports-transformer';
 import { parseImplementationImportsTransformer } from '../../../transformers/parse-implementation-imports/parse-implementation-imports-transformer';
@@ -27,6 +42,10 @@ import { proxyNameToImplementationNameTransformer } from '../../../transformers/
 import { proxyPathToImplementationPathTransformer } from '../../../transformers/proxy-path-to-implementation-path/proxy-path-to-implementation-path-transformer';
 import { gatewayBarrelPathTransformer } from '../../../transformers/gateway-barrel-path/gateway-barrel-path-transformer';
 import { gatewayBarrelWrapperPathsTransformer } from '../../../transformers/gateway-barrel-wrapper-paths/gateway-barrel-wrapper-paths-transformer';
+import { packageRootSourcePathTransformer } from '../../../transformers/package-root-source-path/package-root-source-path-transformer';
+import { workspaceScopeFromPackageNamesTransformer } from '../../../transformers/workspace-scope-from-package-names/workspace-scope-from-package-names-transformer';
+import { findWorkspaceRootLayerBroker } from './find-workspace-root-layer-broker';
+import { pathDirnameAdapter } from '../../../adapters/path/dirname/path-dirname-adapter';
 import { fileExtensionsStatics, gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
 
 export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
@@ -81,10 +100,25 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
       return {};
     }
 
+    // THIS workspace's own npm scope, read off the real workspace root's real package names —
+    // never hardcoded. `@dungeonmaster/orchestrator` and a published consumer's own
+    // `@acme/orders` both resolve through this one call; a repo with no discoverable workspace
+    // root (or no scoped package in it) yields undefined, and every bare-root check below then
+    // safely skips rather than matching nothing or matching the wrong scope.
+    const workspaceScope = filename
+      ? workspaceScopeFromPackageNamesTransformer({
+          packageNames:
+            findWorkspaceRootLayerBroker({
+              startDir: pathDirnameAdapter({ filePath: filePathContract.parse(filename) }),
+            })?.packageNames ?? [],
+        })
+      : undefined;
+
     // Parse implementation imports
     const implementationImports = parseImplementationImportsTransformer({
       content: implementationFileResult,
       implementationFilePath: implementationPath,
+      ...(workspaceScope === undefined ? {} : { workspaceScope }),
     });
 
     // Track proxy imports and creation calls
@@ -191,6 +225,20 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
               (folder) => folder === gatewayFolderSegment,
             );
 
+          // A bare workspace-package ROOT import — '@dungeonmaster/orchestrator', or '@acme/orders'
+          // in a published consumer — no subpath at all, every real caller reaches a package's own
+          // composed export this way. Exactly 2 segments (scope + package name), the package name is
+          // not one of the four gateway folders (those are gateway imports, handled above), and the
+          // scope matches THIS workspace's own — read off the real workspace root above, never
+          // hardcoded — so a repo with no discoverable scope never falls into this branch at all.
+          const isWorkspacePackageRootImport =
+            isScopedPackageImport &&
+            !isGatewayImport &&
+            gatewayFolderSegment !== undefined &&
+            gatewaySubpathSegment === undefined &&
+            workspaceScope !== undefined &&
+            importPathSegments[0] === workspaceScope;
+
           // Every gateway package holds pass-throughs alongside its wrapped exports — not only
           // npm (zod's `z`, react's `useState`, ...), but node too (`join` from @scope/node/path
           // is Node's own `path.join`, untouched, because `path` does no I/O and needs no guard).
@@ -237,6 +285,69 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
 
               const [scopeSegment, packageFolder, subpath] = importPathSegments;
               return `${scopeSegment}/${packageFolder}/${subpath}/${relativeWrapperPath}.proxy` as ModulePath;
+            }
+            if (isWorkspacePackageRootImport) {
+              // TS narrows gatewayFolderSegment to `string` here via aliased-condition analysis —
+              // isWorkspacePackageRootImport's own definition already conjuncts
+              // `gatewayFolderSegment !== undefined`.
+              const packageName = gatewayFolderSegment;
+
+              // Read the OTHER package's own root barrel (src/index.ts) — the one place a bare
+              // root import's name is mapped to the file it actually comes from, the same
+              // technique gatewayBarrelWrapperPathsTransformer already applies to a gateway
+              // subpath's barrel (see its own PURPOSE — both are "which sibling file does this
+              // name re-export from").
+              const barrelPath = packageRootSourcePathTransformer({
+                callerFilePath: filePathContract.parse(String(filename ?? '')),
+                packageName,
+                relativePath: 'index.ts',
+              });
+
+              const wrapperPaths = ((): Map<Identifier, ModulePath> => {
+                if (barrelPath === null) {
+                  return new Map<Identifier, ModulePath>();
+                }
+                const barrelContent = ((): FileContents | null => {
+                  try {
+                    return fsEnsureReadFileSyncAdapter({
+                      filePath: barrelPath,
+                      encoding: 'utf-8',
+                    });
+                  } catch {
+                    return null;
+                  }
+                })();
+                return barrelContent === null
+                  ? new Map<Identifier, ModulePath>()
+                  : gatewayBarrelWrapperPathsTransformer({ content: barrelContent });
+              })();
+
+              const relativeWrapperPath = wrapperPaths.get(importedName);
+              if (relativeWrapperPath === undefined) {
+                // Not re-exported via a single-name relative line at all (a multi-name grouped
+                // export, or an external contract re-exported from @dungeonmaster/shared) —
+                // nothing local to compose a proxy from.
+                return null;
+              }
+
+              // The real mapping, never a hardcoded folder type: only a name whose OWN file
+              // ships a colocated `.proxy.ts` on disk is held to this check. Most package-root
+              // exports (contracts, statics, guards, transformers) never do, so this is what
+              // tells `StartOrchestrator` (proxy at startup/start-orchestrator.proxy.ts) apart
+              // from `agentRoleContract` (no proxy — contracts use stubs) without this rule ever
+              // naming either one.
+              const wrapperProxyPath = packageRootSourcePathTransformer({
+                callerFilePath: filePathContract.parse(String(filename ?? '')),
+                packageName,
+                relativePath: `${relativeWrapperPath}.proxy.ts`,
+              });
+              const hasWrapperProxy =
+                wrapperProxyPath !== null && fsExistsSyncAdapter({ filePath: wrapperProxyPath });
+              if (!hasWrapperProxy) {
+                return null;
+              }
+
+              return `${importPath}/${relativeWrapperPath}.proxy` as ModulePath;
             }
             if (isScopedPackageImport) {
               const lastSlashIndex = importPath.lastIndexOf('/');

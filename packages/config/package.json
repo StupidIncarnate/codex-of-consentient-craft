@@ -22,6 +22,18 @@
       "import": "./dist/contracts.js",
       "require": "./dist/contracts.js",
       "types": "./dist/contracts.d.ts"
+    },
+    "./*.proxy": {
+      "source": "./src/*.proxy.ts",
+      "import": "./dist/*.proxy.js",
+      "require": "./dist/*.proxy.js",
+      "types": "./dist/*.proxy.d.ts"
+    },
+    "./*.stub": {
+      "source": "./src/*.stub.ts",
+      "import": "./dist/*.stub.js",
+      "require": "./dist/*.stub.js",
+      "types": "./dist/*.stub.d.ts"
     }
   },
   "files": [

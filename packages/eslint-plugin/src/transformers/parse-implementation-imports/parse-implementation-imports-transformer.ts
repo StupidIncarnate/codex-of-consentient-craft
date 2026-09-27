@@ -11,6 +11,12 @@
  * // Also handles scoped package imports with folder type subpaths (e.g., '@scope/pkg/brokers')
  * // Excludes type-only names too: a whole `import type { X }` statement, and a per-name
  * // `type` prefix inside an otherwise-value import ('{ walkBroker, type WalkMemo }')
+ * // Also handles a bare workspace-package ROOT import with no subpath at all (e.g.
+ * // '@dungeonmaster/orchestrator', or '@acme/orders' in a published consumer) — every real
+ * // caller reaches a package's own composed export this way, and enforce-proxy-child-creation
+ * // decides per name whether it needs a child proxy. The caller passes its own workspace's
+ * // scope (read off the real workspace root, never hardcoded); with none given, this shape is
+ * // skipped entirely, same as before this branch existed
  */
 import type { Identifier, ModulePath } from '@dungeonmaster/shared/contracts';
 import { identifierContract, modulePathContract } from '@dungeonmaster/shared/contracts';
@@ -20,15 +26,19 @@ import {
   gatewayLocationsStatics,
 } from '@dungeonmaster/shared/statics';
 import { folderConfigTransformer } from '../folder-config/folder-config-transformer';
+import { namedImportEntriesTransformer } from '../named-import-entries/named-import-entries-transformer';
+import { workspacePackageRootImportNameTransformer } from '../workspace-package-root-import-name/workspace-package-root-import-name-transformer';
 
 const gatewayFolderNames = Object.values(gatewayLocationsStatics.folders);
 
 export const parseImplementationImportsTransformer = ({
   content,
   implementationFilePath,
+  workspaceScope,
 }: {
   content: string;
   implementationFilePath?: string;
+  workspaceScope?: string;
 }): Map<Identifier, ModulePath> => {
   const imports = new Map<Identifier, ModulePath>();
 
@@ -82,24 +92,41 @@ export const parseImplementationImportsTransformer = ({
       gatewayFolderSegment !== undefined &&
       gatewayFolderNames.some((folder) => folder === gatewayFolderSegment)
     ) {
-      if (namedImports !== undefined) {
-        const names = namedImports
-          .split(',')
-          .map((n) => {
-            const specifier = n.trim();
-            // A per-name `type` prefix inside an otherwise-value import marks only THIS
-            // specifier type-only ('{ walkBroker, type WalkMemo }'), checked before the
-            // alias split since an alias never changes whether the source name is a type.
-            if (/^type\s+/u.test(specifier)) {
-              return undefined;
-            }
-            const [trimmed] = specifier.split(/\s+as\s+/u);
-            return trimmed;
-          })
-          .filter((n): n is Exclude<typeof n, undefined> => Boolean(n));
-        for (const name of names) {
-          imports.set(identifierContract.parse(name), modulePathContract.parse(importPath ?? ''));
-        }
+      for (const [name, path] of namedImportEntriesTransformer({
+        namedImports,
+        importPath: importPath ?? '',
+      })) {
+        imports.set(name, path);
+      }
+      match = importRegex.exec(contentWithoutComments);
+      continue;
+    }
+
+    // Handle a bare WORKSPACE PACKAGE ROOT import (e.g. '@dungeonmaster/orchestrator', or
+    // '@acme/orders' in a published consumer — no folder-type subpath) — every real caller
+    // reaches a package's own composed export this way ('import { StartOrchestrator } from
+    // '@dungeonmaster/orchestrator''). The 3-segment scopedPackageMatch below never fires for
+    // this shape (it requires a subpath segment), so without this branch the name is silently
+    // dropped — invisible to enforce-proxy-child-creation, which then cannot tell a real missing
+    // child proxy from a phantom one. Every named import is recorded here; enforce-proxy-child-creation
+    // itself decides, per name, whether the package's own root barrel (src/index.ts) re-exports it
+    // from a file that ships a colocated proxy — most root exports (contracts, statics, guards)
+    // never do, so recording every name here costs nothing, exactly like a gateway pass-through
+    // name costs nothing above. No gateway-folder-name check is needed: the gateway branch above
+    // already `continue`s for '@dungeonmaster/npm' and its three siblings, so control only reaches
+    // here when the segment is not one of them. `workspaceScope` is read off the REAL workspace
+    // root by the caller (never hardcoded here) — with none given, this shape is skipped, the same
+    // as any repo with no discoverable workspace root.
+    const workspacePackageName = workspacePackageRootImportNameTransformer({
+      importPath,
+      workspaceScope,
+    });
+    if (workspacePackageName !== undefined) {
+      for (const [name, path] of namedImportEntriesTransformer({
+        namedImports,
+        importPath: importPath ?? '',
+      })) {
+        imports.set(name, path);
       }
       match = importRegex.exec(contentWithoutComments);
       continue;
@@ -114,23 +141,12 @@ export const parseImplementationImportsTransformer = ({
       if (folderType !== undefined && folderTypes.includes(folderType)) {
         const folderConfigValue = folderConfigTransformer({ folderType });
 
-        if (folderConfigValue?.requireProxy === true && namedImports !== undefined) {
-          const names = namedImports
-            .split(',')
-            .map((n) => {
-              const specifier = n.trim();
-              // A per-name `type` prefix inside an otherwise-value import marks only THIS
-              // specifier type-only ('{ walkBroker, type WalkMemo }'), checked before the
-              // alias split since an alias never changes whether the source name is a type.
-              if (/^type\s+/u.test(specifier)) {
-                return undefined;
-              }
-              const [trimmed] = specifier.split(/\s+as\s+/u);
-              return trimmed;
-            })
-            .filter((n): n is Exclude<typeof n, undefined> => Boolean(n));
-          for (const name of names) {
-            imports.set(identifierContract.parse(name), modulePathContract.parse(importPath ?? ''));
+        if (folderConfigValue?.requireProxy === true) {
+          for (const [name, path] of namedImportEntriesTransformer({
+            namedImports,
+            importPath: importPath ?? '',
+          })) {
+            imports.set(name, path);
           }
         }
       }
@@ -199,25 +215,8 @@ export const parseImplementationImportsTransformer = ({
 
         // Only process if folder type requires proxies
         if (folderConfigValue?.requireProxy === true) {
-          if (namedImports !== undefined) {
-            const names = namedImports
-              .split(',')
-              .map((n) => {
-                const specifier = n.trim();
-                // A per-name `type` prefix inside an otherwise-value import marks only
-                // THIS specifier type-only ('{ walkBroker, type WalkMemo }'), checked
-                // before the alias split since an alias never changes whether the source
-                // name is a type.
-                if (/^type\s+/u.test(specifier)) {
-                  return undefined;
-                }
-                const [trimmed] = specifier.split(/\s+as\s+/u);
-                return trimmed;
-              })
-              .filter((n): n is Exclude<typeof n, undefined> => Boolean(n));
-            for (const name of names) {
-              imports.set(identifierContract.parse(name), modulePathContract.parse(importPath));
-            }
+          for (const [name, path] of namedImportEntriesTransformer({ namedImports, importPath })) {
+            imports.set(name, path);
           }
 
           if (defaultImport !== undefined) {

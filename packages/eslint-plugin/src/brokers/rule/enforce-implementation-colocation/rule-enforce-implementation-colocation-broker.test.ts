@@ -36,6 +36,11 @@ beforeEach(() => {
       '/project/src/startup/start-database.integration.test.ts',
       // Startup with forbidden unit test (for invalid case)
       '/project/src/startup/start-bad-unit.test.ts',
+      // Startup with a colocated cross-package composing proxy — allowed (EPIC concession 2)
+      '/project/src/startup/start-worker.integration.test.ts',
+      // Flow with a colocated proxy — still forbidden, integration test present so the ONLY
+      // error the invalid case below reports is forbiddenProxyFile
+      '/project/src/flows/bad-proxy/bad-proxy-flow.integration.test.ts',
       // Responder test files (normal unit tests)
       '/project/src/responders/user/get/user-get-responder.test.ts',
       '/project/src/responders/user/create/validate-request-layer-responder.test.ts',
@@ -72,6 +77,11 @@ beforeEach(() => {
       // Responder proxy files (normal proxies)
       '/project/src/responders/user/get/user-get-responder.proxy.ts',
       '/project/src/responders/user/create/validate-request-layer-responder.proxy.ts',
+      // Startup's own cross-package composing proxy — allowed (EPIC concession 2)
+      '/project/src/startup/start-worker.proxy.ts',
+      // Flow proxy — still forbidden; exists on disk so the invalid case below can prove it
+      // still gets flagged
+      '/project/src/flows/bad-proxy/bad-proxy-flow.proxy.ts',
     ];
 
     if (existingProxyFiles.includes(path)) {
@@ -233,6 +243,13 @@ ruleTester.run('enforce-implementation-colocation', ruleEnforceImplementationCol
       code: 'export const StartDatabase = () => {};',
       filename: '/project/src/startup/start-database.ts',
     },
+    // Startup with BOTH an integration test AND a colocated proxy - valid (EPIC concession 2):
+    // a startup file may carry a cross-package composing proxy another workspace package's
+    // tests import, the way start-orchestrator.ts does for StartOrchestrator.
+    {
+      code: 'export const StartWorker = () => {};',
+      filename: '/project/src/startup/start-worker.ts',
+    },
 
     // Layer files with colocated tests and proxies
     {
@@ -362,6 +379,14 @@ ruleTester.run('enforce-implementation-colocation', ruleEnforceImplementationCol
       code: 'export const BadFlow = () => {};',
       filename: '/project/src/flows/bad/bad-flow.ts',
       errors: [{ messageId: 'forbiddenUnitTestFile' }],
+    },
+    // A flow with a colocated proxy is STILL flagged — the startup exemption above (EPIC
+    // concession 2) is scoped to startup files only; a flow's own integration test already
+    // exercises real dependencies, so a proxy beside it stays dead weight.
+    {
+      code: 'export const BadProxyFlow = () => {};',
+      filename: '/project/src/flows/bad-proxy/bad-proxy-flow.ts',
+      errors: [{ messageId: 'forbiddenProxyFile' }],
     },
   ],
 });

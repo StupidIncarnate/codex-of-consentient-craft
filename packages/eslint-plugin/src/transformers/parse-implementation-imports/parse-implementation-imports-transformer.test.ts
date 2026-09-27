@@ -271,7 +271,44 @@ describe('parseImplementationImportsTransformer', () => {
     );
   });
 
-  it('EDGE: {content: scoped package without subpath} => skips import without folder type', () => {
+  it('EDGE: {content: a bare workspace-package ROOT import, no subpath at all, workspaceScope given} => records it, since enforce-proxy-child-creation decides per name whether it needs a proxy', () => {
+    const content = `
+      import { something } from '@dungeonmaster/shared';
+      import { httpAdapter } from '../../adapters/http/http-adapter';
+    `;
+
+    const result = parseImplementationImportsTransformer({
+      content,
+      workspaceScope: '@dungeonmaster',
+    });
+
+    expect(result.size).toBe(2);
+    expect(result.get(IdentifierStub({ value: 'something' }))).toStrictEqual(
+      ModulePathStub({ value: '@dungeonmaster/shared' }),
+    );
+    expect(result.get(IdentifierStub({ value: 'httpAdapter' }))).toStrictEqual(
+      ModulePathStub({ value: '../../adapters/http/http-adapter' }),
+    );
+  });
+
+  it("EDGE: {content: a bare root import, workspaceScope: '@acme'} => records it under a CONSUMER's own scope, never '@dungeonmaster'", () => {
+    const content = `
+      import { OrdersBroker } from '@acme/orders';
+      import { httpAdapter } from '../../adapters/http/http-adapter';
+    `;
+
+    const result = parseImplementationImportsTransformer({ content, workspaceScope: '@acme' });
+
+    expect(result.size).toBe(2);
+    expect(result.get(IdentifierStub({ value: 'OrdersBroker' }))).toStrictEqual(
+      ModulePathStub({ value: '@acme/orders' }),
+    );
+    expect(result.get(IdentifierStub({ value: 'httpAdapter' }))).toStrictEqual(
+      ModulePathStub({ value: '../../adapters/http/http-adapter' }),
+    );
+  });
+
+  it('EMPTY: {content: a bare workspace-package ROOT import, no workspaceScope given at all} => skips it — a repo with no discoverable workspace scope has no bare-root form to recognize', () => {
     const content = `
       import { something } from '@dungeonmaster/shared';
       import { httpAdapter } from '../../adapters/http/http-adapter';
@@ -280,6 +317,23 @@ describe('parseImplementationImportsTransformer', () => {
     const result = parseImplementationImportsTransformer({ content });
 
     expect(result.size).toBe(1);
+    expect(result.get(IdentifierStub({ value: 'httpAdapter' }))).toStrictEqual(
+      ModulePathStub({ value: '../../adapters/http/http-adapter' }),
+    );
+  });
+
+  it('EDGE: {content: a bare root import to one of the four gateway packages} => still records it via the gateway branch, unaffected by the new workspace-package-root branch added after it', () => {
+    const content = `
+      import { z } from '@dungeonmaster/npm';
+      import { httpAdapter } from '../../adapters/http/http-adapter';
+    `;
+
+    const result = parseImplementationImportsTransformer({ content });
+
+    expect(result.size).toBe(2);
+    expect(result.get(IdentifierStub({ value: 'z' }))).toStrictEqual(
+      ModulePathStub({ value: '@dungeonmaster/npm' }),
+    );
     expect(result.get(IdentifierStub({ value: 'httpAdapter' }))).toStrictEqual(
       ModulePathStub({ value: '../../adapters/http/http-adapter' }),
     );

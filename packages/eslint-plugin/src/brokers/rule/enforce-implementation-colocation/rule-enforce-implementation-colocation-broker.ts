@@ -1,6 +1,12 @@
 /**
  * PURPOSE: Enforces that implementation files have colocated test and proxy files, and contract files have stub files
  *
+ * A startup or a flow file's OWN test is `.integration.test.ts`, never `.test.ts`, and never
+ * gets its own proxy for that test — its integration test exercises real dependencies. A startup
+ * file is the one exception to the no-proxy rule: it may ALSO carry a `.proxy.ts`, a cross-package
+ * composing proxy another workspace package's tests import (brands doc T6, EPIC concession 2) —
+ * `enforce-proxy-child-creation` is what checks that proxy is correct, not this rule.
+ *
  * USAGE:
  * const rule = ruleEnforceImplementationColocationBroker();
  * // Returns ESLint rule that requires foo-broker.ts to have foo-broker.test.ts and foo-broker.proxy.ts in same directory
@@ -154,23 +160,33 @@ export const ruleEnforceImplementationColocationBroker = (): EslintRule => ({
             });
           }
 
-          // Check for forbidden proxy file on integration-test-only files
-          const proxyBaseName = `${removeFileExtensionTransformer({ filename: fileBaseName })}.proxy${extension}`;
-          const proxyDir = filename.split('/').slice(0, -1).join('/');
-          const proxyFilePath = filePathContract.parse(
-            proxyDir ? `${proxyDir}/${proxyBaseName}` : proxyBaseName,
-          );
-          const hasForbiddenProxy = fsExistsSyncAdapter({ filePath: proxyFilePath });
+          // Check for forbidden proxy file on integration-test-only files. A startup file is
+          // exempt: brands doc T6 (EPIC concession 2) makes a startup file's own cross-package
+          // composing proxy legitimate — how another workspace package's tests mock THIS
+          // package's export, since `ban-workspace-export-mocks` (T04) forbids mocking it
+          // directly. Every startup file qualifies, not only a package's "public" one: which
+          // startup file another package actually composes is a fact about ITS callers, not
+          // about this file, and requiring a proxy to exist on disk (enforce-proxy-child-creation's
+          // job) already keeps a stray, uncomposed proxy from being anything but dead weight.
+          // Only a flow — no such cross-package composing convention — keeps this check.
+          if (!isStartup) {
+            const proxyBaseName = `${removeFileExtensionTransformer({ filename: fileBaseName })}.proxy${extension}`;
+            const proxyDir = filename.split('/').slice(0, -1).join('/');
+            const proxyFilePath = filePathContract.parse(
+              proxyDir ? `${proxyDir}/${proxyBaseName}` : proxyBaseName,
+            );
+            const hasForbiddenProxy = fsExistsSyncAdapter({ filePath: proxyFilePath });
 
-          if (hasForbiddenProxy) {
-            ctx.report({
-              node,
-              messageId: 'forbiddenProxyFile',
-              data: {
-                fileType: integrationTestOnlyFileType,
-                proxyFileName: proxyBaseName,
-              },
-            });
+            if (hasForbiddenProxy) {
+              ctx.report({
+                node,
+                messageId: 'forbiddenProxyFile',
+                data: {
+                  fileType: integrationTestOnlyFileType,
+                  proxyFileName: proxyBaseName,
+                },
+              });
+            }
           }
         } else if (testType === 'unit') {
           // A statics file is data, not logic, so it needs a colocated test only when it
