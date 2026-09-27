@@ -1,5 +1,6 @@
 import { dungeonmasterHomeEnsureBroker } from './dungeonmaster-home-ensure-broker';
 import { dungeonmasterHomeEnsureBrokerProxy } from './dungeonmaster-home-ensure-broker.proxy';
+import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 
 describe('dungeonmasterHomeEnsureBroker', () => {
@@ -42,14 +43,15 @@ describe('dungeonmasterHomeEnsureBroker', () => {
   describe('error cases', () => {
     it('ERROR: {mkdir fails} => throws permission error', async () => {
       const proxy = dungeonmasterHomeEnsureBrokerProxy();
+      const error = FsErrorStub({ code: 'EACCES', path: '/home/user/.dungeonmaster' });
 
       proxy.setupMkdirFails({
         homeDir: '/home/user',
         homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
-        error: new Error('Permission denied'),
+        error,
       });
 
-      await expect(dungeonmasterHomeEnsureBroker()).rejects.toThrow('Permission denied');
+      await expect(dungeonmasterHomeEnsureBroker()).rejects.toBe(error);
     });
   });
 });

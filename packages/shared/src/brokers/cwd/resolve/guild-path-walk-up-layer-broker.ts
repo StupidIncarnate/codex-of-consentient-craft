@@ -6,14 +6,11 @@
  * // Returns FilePath to the directory containing guild.json — throws GuildRootNotFoundError if none found
  */
 
-import { fsAccessAdapter } from '../../../adapters/fs/access/fs-access-adapter';
-import { pathDirnameAdapter } from '../../../adapters/path/dirname/path-dirname-adapter';
-import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
+import { pathExists } from '#gateway/node/fs__promises';
+import { dirname, join } from '#gateway/node/path';
+import { filePathContract, type FilePath } from '../../../contracts/file-path/file-path-contract';
 import { GuildRootNotFoundError } from '../../../errors/guild-root-not-found/guild-root-not-found-error';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
-
-const R_OK = 4;
 
 export const guildPathWalkUpLayerBroker = async ({
   startPath,
@@ -24,18 +21,13 @@ export const guildPathWalkUpLayerBroker = async ({
 }): Promise<FilePath> => {
   const searchPath = currentPath ?? startPath;
 
-  const guildConfigPath = pathJoinAdapter({
-    paths: [searchPath, locationsStatics.dungeonmasterHome.guildConfigFile],
-  });
+  const guildConfigPath = join(searchPath, locationsStatics.dungeonmasterHome.guildConfigFile);
 
-  try {
-    await fsAccessAdapter({ filePath: guildConfigPath, mode: R_OK });
+  if (await pathExists(guildConfigPath)) {
     return searchPath;
-  } catch {
-    // not here, check parent
   }
 
-  const parentPath = pathDirnameAdapter({ path: searchPath });
+  const parentPath = filePathContract.parse(dirname(searchPath));
   if (parentPath === searchPath) {
     throw new GuildRootNotFoundError({ startPath });
   }

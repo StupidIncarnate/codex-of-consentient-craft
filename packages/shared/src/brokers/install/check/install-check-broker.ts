@@ -7,10 +7,10 @@
  * // Returns validation result with optional error message
  */
 
-import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter';
-import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
+import { existsSync } from '#gateway/node/fs';
+import { join } from '#gateway/node/path';
 import type { ErrorMessage } from '../../../contracts/error-message/error-message-contract';
+import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
 
 /**
@@ -22,16 +22,14 @@ export const installCheckBroker = ({
 }: {
   projectRoot: FilePath;
 }): { valid: boolean; error?: ErrorMessage } => {
-  const packageJsonPath = pathJoinAdapter({ paths: [projectRoot, 'package.json'] });
-  const claudeDirPath = pathJoinAdapter({
-    paths: [projectRoot, locationsStatics.repoRoot.claude.dir],
-  });
+  const packageJsonPath = join(projectRoot, 'package.json');
+  const claudeDirPath = join(projectRoot, locationsStatics.repoRoot.claude.dir);
 
-  if (!fsExistsSyncAdapter({ filePath: packageJsonPath })) {
+  if (!existsSync(packageJsonPath)) {
     return { valid: false, error: 'No package.json found.' as ErrorMessage };
   }
 
-  if (!fsExistsSyncAdapter({ filePath: claudeDirPath })) {
+  if (!existsSync(claudeDirPath)) {
     return { valid: false, error: 'No .claude directory found.' as ErrorMessage };
   }
 

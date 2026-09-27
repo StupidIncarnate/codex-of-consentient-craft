@@ -1,8 +1,7 @@
-import { fsExistsSyncAdapterProxy } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter.proxy';
-import { fsReadFileSyncAdapterProxy } from '../../../adapters/fs/read-file-sync/fs-read-file-sync-adapter.proxy';
+import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
+import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
-import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 
 export const gatewayLintConfigReadBrokerProxy = (): {
   setupMissingConfig: ({ configPath }: { configPath: AbsoluteFilePath }) => void;
@@ -14,15 +13,12 @@ export const gatewayLintConfigReadBrokerProxy = (): {
     fileContent: ContentText;
   }) => void;
 } => {
-  const existsProxy = fsExistsSyncAdapterProxy();
-  const readProxy = fsReadFileSyncAdapterProxy();
+  const existsProxy = existsSyncProxy();
+  const readProxy = readFileSyncProxy();
 
   return {
     setupMissingConfig: ({ configPath }: { configPath: AbsoluteFilePath }): void => {
-      existsProxy.returns({
-        filePath: FilePathStub({ value: String(configPath) }),
-        result: false,
-      });
+      existsProxy.returns({ path: configPath, exists: false });
     },
 
     setupConfig: ({
@@ -32,8 +28,8 @@ export const gatewayLintConfigReadBrokerProxy = (): {
       configPath: AbsoluteFilePath;
       fileContent: ContentText;
     }): void => {
-      existsProxy.returns({ filePath: FilePathStub({ value: String(configPath) }), result: true });
-      readProxy.returns({ filePath: configPath, content: fileContent });
+      existsProxy.returns({ path: configPath, exists: true });
+      readProxy.returns({ path: configPath, contents: fileContent });
     },
   };
 };

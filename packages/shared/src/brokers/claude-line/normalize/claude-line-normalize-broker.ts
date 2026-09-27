@@ -6,7 +6,7 @@
  * // Returns { sessionId: 'abc', toolUseResult: { agentId: 'a1' } } or null if JSON.parse failed
  */
 
-import { fastXmlParserParseAdapter } from '../../../adapters/fast-xml-parser/parse/fast-xml-parser-parse-adapter';
+import { parseXml } from '#gateway/npm/fast-xml-parser';
 import {
   normalizedLineContract,
   type NormalizedLine,
@@ -27,7 +27,7 @@ export const claudeLineNormalizeBroker = ({
   const camelKeyed = snakeKeysToCamelKeysTransformer({ value: parseResult.value });
   const inflated = inflateXmlStringsTransformer({
     value: camelKeyed,
-    parseXml: fastXmlParserParseAdapter,
+    parseXml,
   });
   return normalizedLineContract.parse(inflated);
 };

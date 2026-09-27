@@ -6,11 +6,11 @@
  * // Creates both directories and returns their paths
  */
 
-import { fsMkdirAdapter } from '../../../adapters/fs/mkdir/fs-mkdir-adapter';
-import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
+import { ensureDir } from '#gateway/node/fs__promises';
+import { join } from '#gateway/node/path';
+import { filePathContract, type FilePath } from '../../../contracts/file-path/file-path-contract';
 import { dungeonmasterHomeStatics } from '../../../statics/dungeonmaster-home/dungeonmaster-home-statics';
 import { dungeonmasterHomeFindBroker } from '../find/dungeonmaster-home-find-broker';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 
 export const dungeonmasterHomeEnsureBroker = async (): Promise<{
   homePath: FilePath;
@@ -18,13 +18,13 @@ export const dungeonmasterHomeEnsureBroker = async (): Promise<{
 }> => {
   const { homePath } = dungeonmasterHomeFindBroker();
 
-  await fsMkdirAdapter({ filepath: homePath });
+  await ensureDir(homePath);
 
-  const guildsPath = pathJoinAdapter({
-    paths: [homePath, dungeonmasterHomeStatics.paths.guildsDir],
-  });
+  const guildsPath = filePathContract.parse(
+    join(homePath, dungeonmasterHomeStatics.paths.guildsDir),
+  );
 
-  await fsMkdirAdapter({ filepath: guildsPath });
+  await ensureDir(guildsPath);
 
   return { homePath, guildsPath };
 };

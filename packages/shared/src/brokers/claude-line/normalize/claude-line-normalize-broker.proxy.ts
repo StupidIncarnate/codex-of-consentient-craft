@@ -1,6 +1,6 @@
-import { fastXmlParserParseAdapterProxy } from '../../../adapters/fast-xml-parser/parse/fast-xml-parser-parse-adapter.proxy';
+import { parseXmlProxy } from '#gateway/npm/fast-xml-parser/parse-xml/parse-xml.proxy';
 
 export const claudeLineNormalizeBrokerProxy = (): Record<PropertyKey, never> => {
-  fastXmlParserParseAdapterProxy();
+  parseXmlProxy();
   return {};
 };

@@ -1,35 +1,33 @@
-import { fsExistsSyncAdapterProxy } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter.proxy';
-import { pathJoinAdapterProxy } from '../../../adapters/path/join/path-join-adapter.proxy';
+import { join } from 'path';
+import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
+import { locationsStatics } from '../../../statics/locations/locations-statics';
 
 export const installCheckBrokerProxy = (): {
   setupValid: (params: { projectRoot: string }) => void;
   setupMissingPackageJson: (params: { projectRoot: string }) => void;
   setupMissingClaudeDir: (params: { projectRoot: string }) => void;
 } => {
-  const fsExistsSyncProxy = fsExistsSyncAdapterProxy();
-  const pathJoinProxy = pathJoinAdapterProxy();
+  const existsProxy = existsSyncProxy();
 
   return {
     setupValid: ({ projectRoot }: { projectRoot: string }) => {
-      pathJoinProxy.returns({ result: `${projectRoot}/package.json` as never });
-      fsExistsSyncProxy.returns({ filePath: `${projectRoot}/package.json` as never, result: true });
-      pathJoinProxy.returns({ result: `${projectRoot}/.claude` as never });
-      fsExistsSyncProxy.returns({ filePath: `${projectRoot}/.claude` as never, result: true });
-    },
-
-    setupMissingPackageJson: ({ projectRoot }: { projectRoot: string }) => {
-      pathJoinProxy.returns({ result: `${projectRoot}/package.json` as never });
-      fsExistsSyncProxy.returns({
-        filePath: `${projectRoot}/package.json` as never,
-        result: false,
+      existsProxy.returns({ path: join(projectRoot, 'package.json'), exists: true });
+      existsProxy.returns({
+        path: join(projectRoot, locationsStatics.repoRoot.claude.dir),
+        exists: true,
       });
     },
 
+    setupMissingPackageJson: ({ projectRoot }: { projectRoot: string }) => {
+      existsProxy.returns({ path: join(projectRoot, 'package.json'), exists: false });
+    },
+
     setupMissingClaudeDir: ({ projectRoot }: { projectRoot: string }) => {
-      pathJoinProxy.returns({ result: `${projectRoot}/package.json` as never });
-      fsExistsSyncProxy.returns({ filePath: `${projectRoot}/package.json` as never, result: true });
-      pathJoinProxy.returns({ result: `${projectRoot}/.claude` as never });
-      fsExistsSyncProxy.returns({ filePath: `${projectRoot}/.claude` as never, result: false });
+      existsProxy.returns({ path: join(projectRoot, 'package.json'), exists: true });
+      existsProxy.returns({
+        path: join(projectRoot, locationsStatics.repoRoot.claude.dir),
+        exists: false,
+      });
     },
   };
 };

@@ -15,11 +15,10 @@
  * // Returns {} when '/repo/.dungeonmaster.json' is absent or carries no 'gateway' key
  */
 
-import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter';
-import { fsReadFileSyncAdapter } from '../../../adapters/fs/read-file-sync/fs-read-file-sync-adapter';
+import { existsSync, readFileSync } from '#gateway/node/fs';
 import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import { filePathContract } from '../../../contracts/file-path/file-path-contract';
+import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 import { gatewayLintConfigContract } from '../../../contracts/gateway-lint-config/gateway-lint-config-contract';
 import type { GatewayLintConfig } from '../../../contracts/gateway-lint-config/gateway-lint-config-contract';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
@@ -35,12 +34,12 @@ export const gatewayLintConfigReadBroker = ({
     `${repoRoot}/${locationsStatics.repoRoot.config}`,
   );
 
-  if (!fsExistsSyncAdapter({ filePath: filePathContract.parse(String(configPath)) })) {
+  if (!existsSync(configPath)) {
     return EMPTY_GATEWAY_LINT_CONFIG;
   }
 
   try {
-    const raw = fsReadFileSyncAdapter({ filePath: configPath });
+    const raw = contentTextContract.parse(readFileSync(configPath));
     const parsed: unknown = JSON.parse(raw);
     const gatewayValue =
       typeof parsed === 'object' && parsed !== null && 'gateway' in parsed
