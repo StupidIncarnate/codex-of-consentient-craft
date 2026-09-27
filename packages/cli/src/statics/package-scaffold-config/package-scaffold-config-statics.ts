@@ -112,7 +112,7 @@ module.exports = {
   // below is what actually converts it; both fields are required together, matching every real
   // package on disk that carries this pair (packages/cli, packages/orchestrator, and others).
   jestConfigNodeIntegration: `const baseConfig = require('../../jest.config.base.js');
-const dungeonmasterTransformers = require('../../packages/testing/ts-jest/transformers.js');
+const dungeonmasterTsJestOptions = require('../../packages/testing/ts-jest/options.js');
 
 module.exports = {
   ...baseConfig,
@@ -120,22 +120,7 @@ module.exports = {
   setupFilesAfterEnv: ['<rootDir>/../../packages/testing/src/jest.setup.js'],
   transformIgnorePatterns: ['/dist/', '/node_modules/(?!(msw|@mswjs|until-async|outvariant)/)'],
   transform: {
-    '^.+\\\\.[jt]s$': [
-      'ts-jest',
-      {
-        tsconfig: {
-          allowJs: true,
-          esModuleInterop: true,
-          skipLibCheck: true,
-          isolatedModules: true,
-          module: 'commonjs',
-          moduleResolution: 'node',
-        },
-        astTransformers: {
-          before: dungeonmasterTransformers,
-        },
-      },
-    ],
+    '^.+\\\\.[jt]s$': ['ts-jest', dungeonmasterTsJestOptions],
   },
 };
 `,
@@ -143,9 +128,12 @@ module.exports = {
   // A package with .tsx sources. The repo-root base transforms '^.+\\.ts$' only, so a widget file
   // reaches jest untransformed without this block. `testEnvironmentOptions` is deliberately NOT
   // restated: spreading the base is what carries `customExportConditions`, and pinning it here
-  // would drop the `source` condition.
+  // would drop the `source` condition. Reusing the shared options entry (rather than restating
+  // module/moduleResolution/etc. a third time) also pulls in `isolatedModules: true` for a JSX
+  // scaffold — see this file's PURPOSE header for why that pairing is a deliberate tradeoff, not an
+  // oversight.
   jestConfigTsx: `const baseConfig = require('../../jest.config.base.js');
-const dungeonmasterTransformers = require('../../packages/testing/ts-jest/transformers.js');
+const dungeonmasterTsJestOptions = require('../../packages/testing/ts-jest/options.js');
 
 module.exports = {
   ...baseConfig,
@@ -159,17 +147,8 @@ module.exports = {
     '^.+\\\\.[jt]sx?$': [
       'ts-jest',
       {
-        tsconfig: {
-          allowJs: true,
-          esModuleInterop: true,
-          skipLibCheck: true,
-          jsx: 'react-jsx',
-          module: 'commonjs',
-          moduleResolution: 'node',
-        },
-        astTransformers: {
-          before: dungeonmasterTransformers,
-        },
+        ...dungeonmasterTsJestOptions,
+        tsconfig: { ...dungeonmasterTsJestOptions.tsconfig, jsx: 'react-jsx' },
       },
     ],
   },

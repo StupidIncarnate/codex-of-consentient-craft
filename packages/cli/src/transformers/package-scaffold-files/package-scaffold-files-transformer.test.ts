@@ -577,7 +577,7 @@ describe('packageScaffoldFilesTransformer', () => {
     );
 
     it.each(NEEDS_MSW_TRANSFORM_TYPES)(
-      'VALID: {packageType: %s} => jest config requires the dungeonmasterTransformers module, which only rides along with an explicit transform block',
+      'VALID: {packageType: %s} => jest config requires the shared ts-jest options entry, which only rides along with an explicit transform block',
       (packageType) => {
         const files = packageScaffoldFilesTransformer({
           request: CreatePackageRequestStub({ packageType }),
@@ -585,7 +585,7 @@ describe('packageScaffoldFilesTransformer', () => {
         const jestConfigFile = files.find((file) => file.relativePath === 'jest.config.js');
 
         expect(jestConfigFile!.contents).toMatch(
-          /^const dungeonmasterTransformers = require\('\.\.\/\.\.\/packages\/testing\/ts-jest\/transformers\.js'\);$/mu,
+          /^const dungeonmasterTsJestOptions = require\('\.\.\/\.\.\/packages\/testing\/ts-jest\/options\.js'\);$/mu,
         );
       },
     );

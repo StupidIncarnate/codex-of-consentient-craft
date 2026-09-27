@@ -101,6 +101,30 @@ describe('packageScaffoldConfigStatics', () => {
       );
     });
 
+    it('VALID: {} => the node-integration template requires the shared ts-jest options entry instead of restating it', () => {
+      expect(packageScaffoldConfigStatics.jestConfigNodeIntegration).toMatch(
+        /^const dungeonmasterTsJestOptions = require\('\.\.\/\.\.\/packages\/testing\/ts-jest\/options\.js'\);$/mu,
+      );
+    });
+
+    it('VALID: {} => the node-integration template hands the shared options straight to ts-jest, restating no keys', () => {
+      expect(packageScaffoldConfigStatics.jestConfigNodeIntegration).toMatch(
+        /^ {4}'\^\.\+\\\\\.\[jt\]s\$': \['ts-jest', dungeonmasterTsJestOptions\],$/mu,
+      );
+    });
+
+    it('VALID: {} => the tsx template requires the shared ts-jest options entry instead of restating it', () => {
+      expect(packageScaffoldConfigStatics.jestConfigTsx).toMatch(
+        /^const dungeonmasterTsJestOptions = require\('\.\.\/\.\.\/packages\/testing\/ts-jest\/options\.js'\);$/mu,
+      );
+    });
+
+    it('VALID: {} => the tsx template layers jsx onto the shared options tsconfig rather than restating the whole object', () => {
+      expect(packageScaffoldConfigStatics.jestConfigTsx).toMatch(
+        /^ {8}\.\.\.dungeonmasterTsJestOptions,\n {8}tsconfig: \{ \.\.\.dungeonmasterTsJestOptions\.tsconfig, jsx: 'react-jsx' \},$/mu,
+      );
+    });
+
     it('VALID: {} => the placeholder tokens and their substitution values are the ones the transformer uses', () => {
       expect({
         jestRootsPlaceholder: packageScaffoldConfigStatics.jestRootsPlaceholder,

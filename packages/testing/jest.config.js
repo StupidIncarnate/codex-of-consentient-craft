@@ -1,4 +1,4 @@
-const dungeonmasterTransformers = require('./ts-jest/transformers.js');
+const dungeonmasterTsJestOptions = require('./ts-jest/options.js');
 
 module.exports = {
   preset: 'ts-jest',
@@ -15,22 +15,7 @@ module.exports = {
   transformIgnorePatterns: ['/dist/', '/node_modules/(?!(msw|@mswjs|until-async|outvariant)/)'],
   moduleFileExtensions: ['ts', 'js', 'json'],
   transform: {
-    '^.+\\.[jt]s$': [
-      'ts-jest',
-      {
-        tsconfig: {
-          allowJs: true,
-          esModuleInterop: true,
-          skipLibCheck: true,
-          isolatedModules: true,
-          module: 'commonjs',
-          moduleResolution: 'node',
-        },
-        astTransformers: {
-          before: dungeonmasterTransformers,
-        },
-      },
-    ],
+    '^.+\\.[jt]s$': ['ts-jest', dungeonmasterTsJestOptions],
   },
   coverageDirectory: 'coverage',
   verbose: false,
