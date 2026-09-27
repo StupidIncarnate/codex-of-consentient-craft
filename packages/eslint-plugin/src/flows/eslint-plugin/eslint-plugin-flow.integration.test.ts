@@ -70,6 +70,7 @@ describe('EslintPluginFlow', () => {
         'gateway-dependency-declared',
         'gateway-import-boundary',
         'gateway-layout',
+        'gateway-return-unknown-not-caller-type',
         'jest-mocked-must-import',
         'no-bare-process-cwd',
         'no-multiple-property-assertions',

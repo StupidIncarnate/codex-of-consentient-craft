@@ -4,14 +4,18 @@
  * constructed here), and throws with url/status/body context on anything short of a 2xx. Reach for
  * this whenever a caller wants "throw on anything unready"; unlike the Node gateway's version, no
  * internal timeout is applied — a caller that wants one composes its own `AbortController` and
- * passes `signal`, since no browser caller in this codebase needed one yet.
+ * passes `signal`, since no browser caller in this codebase needed one yet. Returns `unknown`,
+ * never a caller-picked type: the gateway cannot import the caller's contracts, so it cannot check
+ * what it hands back — the caller parses the result through one.
  *
  * USAGE:
- * await fetchJson({ url: '/api/quests', method: 'POST', body: { name: 'quest-1' } });
- * // Returns the parsed JSON response body; throws naming url, status and body text otherwise
+ * const parsed = await fetchJson({ url: '/api/quests', method: 'POST', body: { name: 'quest-1' } });
+ * const quest = questContract.parse(parsed);
+ * // fetchJson resolves the parsed JSON response body as `unknown`; throws naming url, status and
+ * // body text otherwise
  */
 
-export const fetchJson = async <TResponse>({
+export const fetchJson = async ({
   url,
   method,
   headers,
@@ -23,7 +27,7 @@ export const fetchJson = async <TResponse>({
   headers?: Record<string, string>;
   body?: unknown;
   signal?: AbortSignal;
-}): Promise<TResponse> => {
+}): Promise<unknown> => {
   const requestHeaders: Record<string, string> = { ...headers };
   const isObjectBody = body !== undefined && typeof body !== 'string';
   const requestBody: BodyInit | undefined =
@@ -52,7 +56,7 @@ export const fetchJson = async <TResponse>({
   }
 
   try {
-    return JSON.parse(text) as TResponse;
+    return JSON.parse(text);
   } catch (parseError) {
     const message = parseError instanceof Error ? parseError.message : String(parseError);
     throw new Error(`${method ?? 'GET'} ${url} returned invalid JSON: ${message} (body: ${text})`, {

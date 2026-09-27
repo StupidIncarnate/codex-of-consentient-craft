@@ -6,7 +6,7 @@ describe('fetchJson', () => {
     const proxy = fetchJsonProxy();
     proxy.setupSuccess({ url: '/api/guilds', body: { id: 'g1' } });
 
-    const result = await fetchJson<{ id: string }>({ url: '/api/guilds' });
+    const result = await fetchJson({ url: '/api/guilds' });
 
     expect(result).toStrictEqual({ id: 'g1' });
   });
@@ -15,7 +15,7 @@ describe('fetchJson', () => {
     const proxy = fetchJsonProxy();
     proxy.setupSuccess({ url: '/api/quests', body: { id: 'q1' } });
 
-    const result = await fetchJson<{ id: string }>({ url: '/api/quests' });
+    const result = await fetchJson({ url: '/api/quests' });
 
     expect(result).toStrictEqual({ id: 'q1' });
   });
@@ -57,10 +57,11 @@ describe('fetchJson', () => {
     const proxy = fetchJsonProxy();
     proxy.setupAborted({ url: '/api/guilds' });
 
-    const error: Error = await fetchJson<never>({
+    const caught: unknown = await fetchJson({
       url: '/api/guilds',
       signal: new AbortController().signal,
-    }).catch((caught: unknown) => caught as Error);
+    }).catch((rejection: unknown) => rejection);
+    const error = caught as Error;
 
     expect(error.name).toBe('AbortError');
   });

@@ -5,11 +5,13 @@ import { dynamicImport } from './dynamic-import';
 
 describe('dynamicImport', () => {
   it('VALID: {path: a real module} => returns its module namespace object', async () => {
-    const result = await dynamicImport<{ dynamicImport: unknown }>({
+    const result = await dynamicImport({
       path: './dynamic-import',
     });
 
-    expect(result.dynamicImport).toBe(dynamicImport);
+    const { dynamicImport: reimportedDynamicImport } = result as { dynamicImport: unknown };
+
+    expect(reimportedDynamicImport).toBe(dynamicImport);
   });
 
   it("ERROR: {path: a module that does not exist} => rejects with Node's own module-not-found error", async () => {

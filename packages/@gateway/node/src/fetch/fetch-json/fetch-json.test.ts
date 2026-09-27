@@ -6,7 +6,7 @@ describe('fetchJson', () => {
     const proxy = fetchJsonProxy();
     proxy.setupSuccess({ url: 'http://localhost/api/guilds', body: { id: 'g1' } });
 
-    const result = await fetchJson<{ id: string }>({ url: 'http://localhost/api/guilds' });
+    const result = await fetchJson({ url: 'http://localhost/api/guilds' });
 
     expect(result).toStrictEqual({ id: 'g1' });
   });

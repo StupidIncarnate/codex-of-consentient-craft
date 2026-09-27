@@ -256,6 +256,9 @@ export const configDungeonmasterBroker = ({
       '@dungeonmaster/gateway-import-boundary': 'error',
       '@dungeonmaster/gateway-colocation': 'error',
       '@dungeonmaster/gateway-layout': 'error',
+      // Needs the type checker (project: true, already set for this carve-out below) to tell a
+      // function's own type parameter apart from a real declared type — G15.
+      '@dungeonmaster/gateway-return-unknown-not-caller-type': 'error',
     },
   });
 
