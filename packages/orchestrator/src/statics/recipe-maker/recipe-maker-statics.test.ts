@@ -451,6 +451,23 @@ describe('recipeMakerStatics', () => {
     ).toBe(true);
   });
 
+  // THE LISTING'S REAL FIELDS, NOT THE RETIRED BOOK'S — `produces:`/fidelity/parameters/returns
+  // were the old recipe book's own shape, which the listing never read. Naming the fields the
+  // listing actually returns is what keeps this step honest about what step 3 will see on screen.
+  it("VALID: served template => step 3 names the fields the real listing returns, not the retired book's", () => {
+    expect({
+      realFields: hasIn({
+        needle:
+          "The listing gives each recipe's name, its\ndescription, its input keys, whether it needs a live server, and what it makes",
+        text: TEMPLATE,
+      }),
+      retiredBookFields: TEMPLATE.includes('`produces:`'),
+    }).toStrictEqual({
+      realFields: true,
+      retiredBookFields: false,
+    });
+  });
+
   it('VALID: served template => opens with `get-quest-work` as its first call', () => {
     expect({
       firstStep: hasIn({ needle: '### 1. Read the request', text: TEMPLATE }),

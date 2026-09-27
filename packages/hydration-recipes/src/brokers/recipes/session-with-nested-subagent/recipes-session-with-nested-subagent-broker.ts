@@ -1,8 +1,23 @@
 /**
  * PURPOSE: The `session-with-nested-subagent` recipe, executable — produces one session
  * transcript holding an outer sub-agent chain with one chain nested inside it, both finished, at
- * fidelity: direct. Reach for this over other recipes when testing sub-agent transcript nesting
- * and replay parsing.
+ * fidelity: direct (it writes JSONL files itself rather than building a `Plan`). Reach for this
+ * over other recipes when testing sub-agent transcript nesting and replay parsing.
+ *
+ * Its one input, `guild`, is the guild id the transcript is filed under — an earlier recipe's
+ * `guild.id`, passed explicitly, required because this recipe has no ancestor of its own to link
+ * through.
+ *
+ * What it returns, one meaning each:
+ * - `sessionId` — the session the outer chain was written as
+ * - `sessions.outer` — the route that renders the outer sub-agent chain
+ * - `sessions.nested` — the route that renders the chain nested inside it
+ *
+ * `copies:` the Claude CLI session transcript writer — its on-disk location is
+ * `claudePathSlugEncoderTransformer` (the same transformer the server resolves a session through),
+ * its line shapes are the stream-line contracts and stubs in `@dungeonmaster/shared/contracts`, and
+ * the reader a drift shows up against is the orchestrator chat replay, which pairs a sub-agent file
+ * to its Task by `toolUseResult.agentId`.
  *
  * USAGE:
  * await recipesSessionWithNestedSubagentBroker({ context, guild: '7306b468-…' });

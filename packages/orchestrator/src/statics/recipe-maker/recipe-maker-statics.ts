@@ -116,9 +116,9 @@ request touches. A path's entry state is a property of the flow, not of the aske
 
 ### 3. Enumerate what already exists
 
-\`dungeonmaster siegelense recipes\`. **Never assume.** The listing gives each recipe's \`produces:\`
-line, its fidelity, its parameters and what it returns — which is what tells you whether two
-existing recipes already compose to the state you were asked for.
+\`dungeonmaster siegelense recipes\`. **Never assume.** The listing gives each recipe's name, its
+description, its input keys, whether it needs a live server, and what it makes — which is what tells
+you whether two existing recipes already compose to the state you were asked for.
 
 An empty listing means no recipe has been written yet. An error instead of a listing means the
 recipes package is missing, which is an environment wall rather than an empty book.
