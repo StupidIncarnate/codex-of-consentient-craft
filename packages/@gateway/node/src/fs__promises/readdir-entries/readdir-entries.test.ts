@@ -64,4 +64,42 @@ describe('readdirEntries', () => {
       );
     });
   });
+
+  describe('tolerant addressing', () => {
+    it('VALID: {returnsMatchingPath, a predicate} => resolves for a path the predicate accepts', async () => {
+      const proxy = readdirEntriesProxy();
+      proxy.returnsMatchingPath({
+        path: (value) => String(value).endsWith('.dungeonmaster'),
+        entries: [{ name: 'config.json', kind: 'file' }],
+      });
+
+      const result = await readdirEntries('/resolved/at/runtime/.dungeonmaster');
+
+      expect(result).toStrictEqual([{ name: 'config.json', kind: 'file' }]);
+    });
+
+    it('ERROR: {throwsMatchingPath, a predicate} => rejects with the staged error', async () => {
+      const proxy = readdirEntriesProxy();
+      const error = FsErrorStub({ code: 'ENOENT', path: '/resolved/at/runtime/missing' });
+      proxy.throwsMatchingPath({
+        path: (value) => String(value).endsWith('missing'),
+        error,
+      });
+
+      await expect(readdirEntries('/resolved/at/runtime/missing')).rejects.toStrictEqual(error);
+    });
+  });
+
+  describe('call inspection', () => {
+    it('VALID: {a real call already made} => getCallsFor reads it back', async () => {
+      const proxy = readdirEntriesProxy();
+      proxy.returns({ path: '/repo/.dungeonmaster', entries: [] });
+
+      await readdirEntries('/repo/.dungeonmaster');
+
+      expect(proxy.getCallsFor({ path: '/repo/.dungeonmaster' })).toStrictEqual([
+        ['/repo/.dungeonmaster', { withFileTypes: true }],
+      ]);
+    });
+  });
 });

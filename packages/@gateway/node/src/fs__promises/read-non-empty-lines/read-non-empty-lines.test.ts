@@ -63,4 +63,47 @@ describe('readNonEmptyLines', () => {
       );
     });
   });
+
+  describe('tolerant addressing', () => {
+    it('VALID: {returnsRawMatchingPath, a predicate} => resolves for a path the predicate accepts', async () => {
+      const proxy = readNonEmptyLinesProxy();
+      proxy.returnsRawMatchingPath({
+        path: (value) => String(value).endsWith('abc.jsonl'),
+        rawContents: '{"a":1}\n{"b":2}\n',
+      });
+
+      const result = await readNonEmptyLines('/resolved/at/runtime/abc.jsonl');
+
+      expect(result).toStrictEqual(['{"a":1}', '{"b":2}']);
+    });
+
+    it('ERROR: {throwsMatchingPath, a predicate} => rejects with the staged error', async () => {
+      const proxy = readNonEmptyLinesProxy();
+      const error = FsErrorStub({ code: 'ENOENT', path: '/resolved/at/runtime/missing.jsonl' });
+      proxy.throwsMatchingPath({
+        path: (value) => String(value).endsWith('missing.jsonl'),
+        error,
+      });
+
+      await expect(readNonEmptyLines('/resolved/at/runtime/missing.jsonl')).rejects.toStrictEqual(
+        error,
+      );
+    });
+  });
+
+  describe('call inspection', () => {
+    it('VALID: {a real call already made} => getCallsFor reads it back', async () => {
+      const proxy = readNonEmptyLinesProxy();
+      proxy.returnsRaw({
+        path: '/home/user/.claude/sessions/abc.jsonl',
+        rawContents: '{"a":1}\n',
+      });
+
+      await readNonEmptyLines('/home/user/.claude/sessions/abc.jsonl');
+
+      expect(proxy.getCallsFor({ path: '/home/user/.claude/sessions/abc.jsonl' })).toStrictEqual([
+        ['/home/user/.claude/sessions/abc.jsonl', 'utf8'],
+      ]);
+    });
+  });
 });

@@ -71,4 +71,54 @@ describe('readFileFromOffset', () => {
       ).rejects.toStrictEqual(FsErrorStub({ code: 'EISDIR', path: '/home/user/.claude/sessions' }));
     });
   });
+
+  describe('tolerant addressing', () => {
+    it('VALID: {returnsMatchingPath, a predicate} => resolves for a path the predicate accepts', async () => {
+      const proxy = readFileFromOffsetProxy();
+      const fullContents = 'line one\nline two\nline three';
+      const fromByte = 9;
+      proxy.returnsMatchingPath({
+        path: (value) => String(value).endsWith('abc.jsonl'),
+        size: fullContents.length,
+        contents: fullContents.slice(fromByte),
+      });
+
+      const result = await readFileFromOffset({
+        path: '/resolved/at/runtime/abc.jsonl',
+        fromByte,
+      });
+
+      expect(result).toBe('line two\nline three');
+    });
+
+    it('ERROR: {throwsMatchingPath, a predicate} => rejects with the staged error', async () => {
+      const proxy = readFileFromOffsetProxy();
+      const error = FsErrorStub({ code: 'ENOENT', path: '/resolved/at/runtime/missing.jsonl' });
+      proxy.throwsMatchingPath({
+        path: (value) => String(value).endsWith('missing.jsonl'),
+        error,
+      });
+
+      await expect(
+        readFileFromOffset({ path: '/resolved/at/runtime/missing.jsonl', fromByte: 0 }),
+      ).rejects.toStrictEqual(error);
+    });
+  });
+
+  describe('call inspection', () => {
+    it('VALID: {a real call already made} => getCallsFor reads it back', async () => {
+      const proxy = readFileFromOffsetProxy();
+      proxy.returns({
+        path: '/home/user/.claude/sessions/abc.jsonl',
+        size: 10,
+        contents: 'two',
+      });
+
+      await readFileFromOffset({ path: '/home/user/.claude/sessions/abc.jsonl', fromByte: 7 });
+
+      expect(proxy.getCallsFor({ path: '/home/user/.claude/sessions/abc.jsonl' })).toStrictEqual([
+        ['/home/user/.claude/sessions/abc.jsonl', 'r'],
+      ]);
+    });
+  });
 });

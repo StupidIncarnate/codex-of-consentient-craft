@@ -62,4 +62,42 @@ describe('readJsonFile', () => {
       );
     });
   });
+
+  describe('tolerant addressing', () => {
+    it('VALID: {returnsRawMatchingPath, a predicate} => resolves for a path the predicate accepts', async () => {
+      const proxy = readJsonFileProxy();
+      proxy.returnsRawMatchingPath({
+        path: (value) => String(value).endsWith('.dungeonmaster.json'),
+        rawContents: '{"port":3737}',
+      });
+
+      const result = await readJsonFile('/resolved/at/runtime/.dungeonmaster.json');
+
+      expect(result).toStrictEqual({ port: 3737 });
+    });
+
+    it('ERROR: {throwsMatchingPath, a predicate} => rejects with the staged error', async () => {
+      const proxy = readJsonFileProxy();
+      const error = FsErrorStub({ code: 'ENOENT', path: '/resolved/at/runtime/missing.json' });
+      proxy.throwsMatchingPath({
+        path: (value) => String(value).endsWith('missing.json'),
+        error,
+      });
+
+      await expect(readJsonFile('/resolved/at/runtime/missing.json')).rejects.toStrictEqual(error);
+    });
+  });
+
+  describe('call inspection', () => {
+    it('VALID: {a real call already made} => getCallsFor reads it back', async () => {
+      const proxy = readJsonFileProxy();
+      proxy.returnsRaw({ path: '/repo/.dungeonmaster.json', rawContents: '{"port":3737}' });
+
+      await readJsonFile('/repo/.dungeonmaster.json');
+
+      expect(proxy.getCallsFor({ path: '/repo/.dungeonmaster.json' })).toStrictEqual([
+        ['/repo/.dungeonmaster.json', 'utf8'],
+      ]);
+    });
+  });
 });

@@ -62,4 +62,44 @@ describe('readFileBytes', () => {
       );
     });
   });
+
+  describe('tolerant addressing', () => {
+    it('VALID: {returnsMatchingPath, a predicate} => resolves for a path the predicate accepts', async () => {
+      const proxy = readFileBytesProxy();
+      const bytes = new Uint8Array([137, 80, 78, 71]);
+      proxy.returnsMatchingPath({
+        path: (value) => String(value).endsWith('step7.png'),
+        bytes,
+      });
+
+      const result = await readFileBytes('/resolved/at/runtime/step7.png');
+
+      expect(result).toStrictEqual(bytes);
+    });
+
+    it('ERROR: {throwsMatchingPath, a predicate} => rejects with the staged error', async () => {
+      const proxy = readFileBytesProxy();
+      const error = FsErrorStub({ code: 'ENOENT', path: '/resolved/at/runtime/missing.png' });
+      proxy.throwsMatchingPath({
+        path: (value) => String(value).endsWith('missing.png'),
+        error,
+      });
+
+      await expect(readFileBytes('/resolved/at/runtime/missing.png')).rejects.toStrictEqual(error);
+    });
+  });
+
+  describe('call inspection', () => {
+    it('VALID: {a real call already made} => getCallsFor reads it back', async () => {
+      const proxy = readFileBytesProxy();
+      const bytes = new Uint8Array([137, 80, 78, 71]);
+      proxy.returns({ path: '/repo/.dungeonmaster-assets/step7.png', bytes });
+
+      await readFileBytes('/repo/.dungeonmaster-assets/step7.png');
+
+      expect(proxy.getCallsFor({ path: '/repo/.dungeonmaster-assets/step7.png' })).toStrictEqual([
+        ['/repo/.dungeonmaster-assets/step7.png'],
+      ]);
+    });
+  });
 });

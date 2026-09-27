@@ -45,4 +45,45 @@ describe('realpath', () => {
       );
     });
   });
+
+  describe('tolerant addressing', () => {
+    it('VALID: {returnsMatchingPath, a predicate} => resolves for a path the predicate accepts', async () => {
+      const proxy = realpathProxy();
+      proxy.returnsMatchingPath({
+        path: (value) => String(value).endsWith('siegelense-assets'),
+        resolved: '/home/user/.dungeonmaster/siegelense',
+      });
+
+      const result = await realpath('/resolved/at/runtime/siegelense-assets');
+
+      expect(result).toBe('/home/user/.dungeonmaster/siegelense');
+    });
+
+    it('ERROR: {throwsMatchingPath, a predicate} => rejects with the staged error', async () => {
+      const proxy = realpathProxy();
+      const error = FsErrorStub({ code: 'ENOENT', path: '/resolved/at/runtime/missing' });
+      proxy.throwsMatchingPath({
+        path: (value) => String(value).endsWith('missing'),
+        error,
+      });
+
+      await expect(realpath('/resolved/at/runtime/missing')).rejects.toStrictEqual(error);
+    });
+  });
+
+  describe('call inspection', () => {
+    it('VALID: {a real call already made} => getCallsFor reads it back', async () => {
+      const proxy = realpathProxy();
+      proxy.returns({
+        path: '/repo/.dungeonmaster-assets/siegelense-assets',
+        resolved: '/home/user/.dungeonmaster/siegelense',
+      });
+
+      await realpath('/repo/.dungeonmaster-assets/siegelense-assets');
+
+      expect(
+        proxy.getCallsFor({ path: '/repo/.dungeonmaster-assets/siegelense-assets' }),
+      ).toStrictEqual([['/repo/.dungeonmaster-assets/siegelense-assets']]);
+    });
+  });
 });

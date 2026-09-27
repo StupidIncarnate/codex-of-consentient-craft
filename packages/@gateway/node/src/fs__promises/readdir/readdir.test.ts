@@ -56,4 +56,42 @@ describe('readdir', () => {
       );
     });
   });
+
+  describe('tolerant addressing', () => {
+    it('VALID: {returnsMatchingPath, a predicate} => resolves for a path the predicate accepts', async () => {
+      const proxy = readdirProxy();
+      proxy.returnsMatchingPath({
+        path: (value) => String(value).endsWith('quests'),
+        names: ['quest-1.json'],
+      });
+
+      const result = await readdir('/resolved/at/runtime/quests');
+
+      expect(result).toStrictEqual(['quest-1.json']);
+    });
+
+    it('ERROR: {throwsMatchingPath, a predicate} => rejects with the staged error', async () => {
+      const proxy = readdirProxy();
+      const error = FsErrorStub({ code: 'ENOENT', path: '/resolved/at/runtime/missing' });
+      proxy.throwsMatchingPath({
+        path: (value) => String(value).endsWith('missing'),
+        error,
+      });
+
+      await expect(readdir('/resolved/at/runtime/missing')).rejects.toStrictEqual(error);
+    });
+  });
+
+  describe('call inspection', () => {
+    it('VALID: {a real call already made} => getCallsFor reads it back', async () => {
+      const proxy = readdirProxy();
+      proxy.returns({ path: '/repo/.dungeonmaster/quests', names: ['quest-1.json'] });
+
+      await readdir('/repo/.dungeonmaster/quests');
+
+      expect(proxy.getCallsFor({ path: '/repo/.dungeonmaster/quests' })).toStrictEqual([
+        ['/repo/.dungeonmaster/quests'],
+      ]);
+    });
+  });
 });

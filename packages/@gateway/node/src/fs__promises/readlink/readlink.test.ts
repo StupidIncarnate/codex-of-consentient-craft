@@ -45,4 +45,45 @@ describe('readlink', () => {
       );
     });
   });
+
+  describe('tolerant addressing', () => {
+    it('VALID: {returnsMatchingPath, a predicate} => resolves for a path the predicate accepts', async () => {
+      const proxy = readlinkProxy();
+      proxy.returnsMatchingPath({
+        path: (value) => String(value).endsWith('orchestrator'),
+        target: '../../../packages/orchestrator',
+      });
+
+      const result = await readlink('/resolved/at/runtime/orchestrator');
+
+      expect(result).toBe('../../../packages/orchestrator');
+    });
+
+    it('ERROR: {throwsMatchingPath, a predicate} => rejects with the staged error', async () => {
+      const proxy = readlinkProxy();
+      const error = FsErrorStub({ code: 'ENOENT', path: '/resolved/at/runtime/missing' });
+      proxy.throwsMatchingPath({
+        path: (value) => String(value).endsWith('missing'),
+        error,
+      });
+
+      await expect(readlink('/resolved/at/runtime/missing')).rejects.toStrictEqual(error);
+    });
+  });
+
+  describe('call inspection', () => {
+    it('VALID: {a real call already made} => getCallsFor reads it back', async () => {
+      const proxy = readlinkProxy();
+      proxy.returns({
+        path: '/worktree/node_modules/@dungeonmaster/orchestrator',
+        target: '../../../packages/orchestrator',
+      });
+
+      await readlink('/worktree/node_modules/@dungeonmaster/orchestrator');
+
+      expect(
+        proxy.getCallsFor({ path: '/worktree/node_modules/@dungeonmaster/orchestrator' }),
+      ).toStrictEqual([['/worktree/node_modules/@dungeonmaster/orchestrator']]);
+    });
+  });
 });

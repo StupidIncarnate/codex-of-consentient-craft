@@ -88,4 +88,48 @@ describe('stat', () => {
       );
     });
   });
+
+  describe('tolerant addressing', () => {
+    it('VALID: {returnsMatchingPath, a predicate} => resolves for a path the predicate accepts', async () => {
+      const proxy = statProxy();
+      proxy.returnsMatchingPath({
+        path: (value) => String(value).endsWith('.dungeonmaster.json'),
+        kind: 'file',
+        sizeBytes: 128,
+        modifiedAtMs: 1700000000000,
+      });
+
+      const result = await stat('/resolved/at/runtime/.dungeonmaster.json');
+
+      expect(result).toStrictEqual({ kind: 'file', sizeBytes: 128, modifiedAtMs: 1700000000000 });
+    });
+
+    it('ERROR: {throwsMatchingPath, a predicate} => rejects with the staged error', async () => {
+      const proxy = statProxy();
+      const error = FsErrorStub({ code: 'ENOENT', path: '/resolved/at/runtime/missing.json' });
+      proxy.throwsMatchingPath({
+        path: (value) => String(value).endsWith('missing.json'),
+        error,
+      });
+
+      await expect(stat('/resolved/at/runtime/missing.json')).rejects.toStrictEqual(error);
+    });
+  });
+
+  describe('call inspection', () => {
+    it('VALID: {a real call already made} => getCallsFor reads it back', async () => {
+      const proxy = statProxy();
+      proxy.returnsFile({
+        path: '/repo/.dungeonmaster.json',
+        sizeBytes: 128,
+        modifiedAtMs: 1700000000000,
+      });
+
+      await stat('/repo/.dungeonmaster.json');
+
+      expect(proxy.getCallsFor({ path: '/repo/.dungeonmaster.json' })).toStrictEqual([
+        ['/repo/.dungeonmaster.json'],
+      ]);
+    });
+  });
 });

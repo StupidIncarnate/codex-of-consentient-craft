@@ -55,4 +55,44 @@ describe('readJsonFileIfExists', () => {
       );
     });
   });
+
+  describe('tolerant addressing', () => {
+    it('VALID: {returnsRawMatchingPath, a predicate} => resolves for a path the predicate accepts', async () => {
+      const proxy = readJsonFileIfExistsProxy();
+      proxy.returnsRawMatchingPath({
+        path: (value) => String(value).endsWith('settings.json'),
+        rawContents: '{"port":3737}',
+      });
+
+      const result = await readJsonFileIfExists('/resolved/at/runtime/settings.json');
+
+      expect(result).toStrictEqual({ port: 3737 });
+    });
+
+    it('ERROR: {throwsMatchingPath, a predicate} => rejects with the staged error', async () => {
+      const proxy = readJsonFileIfExistsProxy();
+      const error = FsErrorStub({ code: 'EACCES', path: '/resolved/at/runtime/locked.json' });
+      proxy.throwsMatchingPath({
+        path: (value) => String(value).endsWith('locked.json'),
+        error,
+      });
+
+      await expect(readJsonFileIfExists('/resolved/at/runtime/locked.json')).rejects.toStrictEqual(
+        error,
+      );
+    });
+  });
+
+  describe('call inspection', () => {
+    it('VALID: {a real call already made} => getCallsFor reads it back', async () => {
+      const proxy = readJsonFileIfExistsProxy();
+      proxy.returnsRaw({ path: '/repo/.dungeonmaster.json', rawContents: '{"port":3737}' });
+
+      await readJsonFileIfExists('/repo/.dungeonmaster.json');
+
+      expect(proxy.getCallsFor({ path: '/repo/.dungeonmaster.json' })).toStrictEqual([
+        ['/repo/.dungeonmaster.json', 'utf8'],
+      ]);
+    });
+  });
 });

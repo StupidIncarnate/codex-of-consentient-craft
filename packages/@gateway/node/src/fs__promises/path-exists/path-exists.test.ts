@@ -44,4 +44,39 @@ describe('pathExists', () => {
       );
     });
   });
+
+  describe('tolerant addressing', () => {
+    it('VALID: {presentMatchingPath, a predicate} => resolves true for a path the predicate accepts', async () => {
+      const proxy = pathExistsProxy();
+      proxy.presentMatchingPath({ path: (value) => String(value).endsWith('quest.json') });
+
+      const result = await pathExists('/resolved/at/runtime/quest.json');
+
+      expect(result).toBe(true);
+    });
+
+    it('ERROR: {throwsMatchingPath, a predicate} => rejects with the staged error', async () => {
+      const proxy = pathExistsProxy();
+      const error = FsErrorStub({ code: 'EACCES', path: '/resolved/at/runtime/locked.json' });
+      proxy.throwsMatchingPath({
+        path: (value) => String(value).endsWith('locked.json'),
+        error,
+      });
+
+      await expect(pathExists('/resolved/at/runtime/locked.json')).rejects.toStrictEqual(error);
+    });
+  });
+
+  describe('call inspection', () => {
+    it('VALID: {a real call already made} => getCallsFor reads it back', async () => {
+      const proxy = pathExistsProxy();
+      proxy.present({ path: '/repo/.dungeonmaster.json' });
+
+      await pathExists('/repo/.dungeonmaster.json');
+
+      expect(proxy.getCallsFor({ path: '/repo/.dungeonmaster.json' })).toStrictEqual([
+        ['/repo/.dungeonmaster.json'],
+      ]);
+    });
+  });
 });

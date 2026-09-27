@@ -49,4 +49,45 @@ describe('readlinkIfLink', () => {
       );
     });
   });
+
+  describe('tolerant addressing', () => {
+    it('VALID: {returnsMatchingPath, a predicate} => resolves for a path the predicate accepts', async () => {
+      const proxy = readlinkIfLinkProxy();
+      proxy.returnsMatchingPath({
+        path: (value) => String(value).endsWith('siegelense-assets'),
+        target: '/home/user/.dungeonmaster/siegelense',
+      });
+
+      const result = await readlinkIfLink('/resolved/at/runtime/siegelense-assets');
+
+      expect(result).toBe('/home/user/.dungeonmaster/siegelense');
+    });
+
+    it('ERROR: {throwsMatchingPath, a predicate} => rejects with the staged error', async () => {
+      const proxy = readlinkIfLinkProxy();
+      const error = FsErrorStub({ code: 'EACCES', path: '/resolved/at/runtime/locked' });
+      proxy.throwsMatchingPath({
+        path: (value) => String(value).endsWith('locked'),
+        error,
+      });
+
+      await expect(readlinkIfLink('/resolved/at/runtime/locked')).rejects.toStrictEqual(error);
+    });
+  });
+
+  describe('call inspection', () => {
+    it('VALID: {a real call already made} => getCallsFor reads it back', async () => {
+      const proxy = readlinkIfLinkProxy();
+      proxy.returns({
+        path: '/repo/.dungeonmaster-assets/siegelense-assets',
+        target: '/home/user/.dungeonmaster/siegelense',
+      });
+
+      await readlinkIfLink('/repo/.dungeonmaster-assets/siegelense-assets');
+
+      expect(
+        proxy.getCallsFor({ path: '/repo/.dungeonmaster-assets/siegelense-assets' }),
+      ).toStrictEqual([['/repo/.dungeonmaster-assets/siegelense-assets']]);
+    });
+  });
 });
