@@ -16,8 +16,8 @@ const REPO_ROOT = DIR_SEGMENTS.slice(0, -6).join('/');
 // 3 segments up is packages/eslint-plugin/src
 const NODE_PACKAGE_FILE = `${DIR_SEGMENTS.slice(0, -3).join('/')}/index.ts`;
 const BROWSER_PACKAGE_FILE = `${REPO_ROOT}/packages/web/src/main.ts`;
-const GATEWAY_NODE_FILE = `${REPO_ROOT}/packages/@gateway/node/src/process/index.ts`;
-const GATEWAY_BROWSER_FILE = `${REPO_ROOT}/packages/@gateway/browser/src/fetch/index.ts`;
+const GATEWAY_NODE_FILE = `${REPO_ROOT}/packages/@gateway/node/src/process/process.ts`;
+const GATEWAY_BROWSER_FILE = `${REPO_ROOT}/packages/@gateway/browser/src/fetch/fetch.ts`;
 
 const ruleTester = eslintTypedRuleTesterAdapter();
 

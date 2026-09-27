@@ -25,7 +25,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import { locationsStatics, environmentStatics } from '@dungeonmaster/shared/statics';
 import { join } from '#gateway/node/path';
-import { pathExists, readJsonFileIfExists, writeFile } from '#gateway/node/fs/promises';
+import { pathExists, readJsonFileIfExists, writeFile } from '#gateway/node/fs__promises';
 import { dungeonmasterConfigContract } from '../../../contracts/dungeonmaster-config/dungeonmaster-config-contract';
 import { configDefaultsStatics } from '../../../statics/config-defaults/config-defaults-statics';
 import { e2eProcessPlaceholderStatics } from '../../../statics/e2e-process-placeholder/e2e-process-placeholder-statics';

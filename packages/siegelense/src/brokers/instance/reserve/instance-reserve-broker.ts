@@ -27,7 +27,7 @@
  */
 
 import { currentBranch } from '#gateway/bin/git';
-import { cwd } from '@dungeonmaster/node/process';
+import { cwd } from '#gateway/node/process';
 import { fsMkdirAdapter, netFreePortPairAdapter } from '@dungeonmaster/shared/adapters';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { GuildId, QuestId } from '@dungeonmaster/shared/contracts';

@@ -12,7 +12,7 @@ import type { LiteralOccurrence } from '../../../contracts/literal-occurrence/li
 import type { LiteralValue } from '../../../contracts/literal-value/literal-value-contract';
 import type { OccurrenceThreshold } from '../../../contracts/occurrence-threshold/occurrence-threshold-contract';
 import { glob } from '#gateway/npm/glob';
-import { readFile } from '#gateway/node/fs/promises';
+import { readFile } from '#gateway/node/fs__promises';
 import { typescriptParseAdapter } from '../../../adapters/typescript/parse/typescript-parse-adapter';
 import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import { sourceCodeContract } from '../../../contracts/source-code/source-code-contract';

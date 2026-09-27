@@ -106,8 +106,7 @@ export const questMonitorJsonlWatcherBroker = ({
   // until workItemIdForAgent resolves a non-null id. Depth-1 sub-agents resolve on the first
   // hop; top-level (no ancestor work item) resolve to null and emit without a workItemId.
   const resolveAncestorWorkItemId:
-    | ((params: { agentId: AgentId }) => QuestWorkItemId | null)
-    | undefined =
+    ((params: { agentId: AgentId }) => QuestWorkItemId | null) | undefined =
     workItemIdForAgent === undefined
       ? undefined
       : ({ agentId }: { agentId: AgentId }): QuestWorkItemId | null => {

@@ -29,7 +29,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import path from '#gateway/node/path';
-import { readJsonFileIfExists, writeFileCreatingParent } from '#gateway/node/fs/promises';
+import { readJsonFileIfExists, writeFileCreatingParent } from '#gateway/node/fs__promises';
 import { installAgentsSetupBroker } from '../../../brokers/install/agents-setup/install-agents-setup-broker';
 import type { ClaudeSettings } from '../../../contracts/claude-settings/claude-settings-contract';
 import { dungeonmasterHooksCreatorTransformer } from '../../../transformers/dungeonmaster-hooks-creator/dungeonmaster-hooks-creator-transformer';

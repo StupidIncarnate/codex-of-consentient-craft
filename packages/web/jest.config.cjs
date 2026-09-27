@@ -47,8 +47,8 @@ module.exports = {
     // pass-through's `export *` copies only the keys a mock can list, and the tabler mock answers
     // any `Icon*` name on demand without listing any.
     '^(#gateway/npm/)?elkjs$': '<rootDir>/src/__mocks__/elkjs-mock.cjs',
-    '^(#gateway/npm/)?@tabler/icons-react$': '<rootDir>/src/__mocks__/tabler-icons-mock.cjs',
-    '^(#gateway/npm/)?@xyflow/react$': '<rootDir>/src/__mocks__/xyflow-react-mock.cjs',
+    '^(#gateway/npm/tabler__icons-react|@tabler/icons-react)$': '<rootDir>/src/__mocks__/tabler-icons-mock.cjs',
+    '^(#gateway/npm/xyflow__react|@xyflow/react)$': '<rootDir>/src/__mocks__/xyflow-react-mock.cjs',
   },
   transformIgnorePatterns: [
     '/dist/',

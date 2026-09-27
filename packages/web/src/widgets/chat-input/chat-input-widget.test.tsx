@@ -424,8 +424,8 @@ describe('ChatInputWidget', () => {
     it('VALID: {type text, press Enter} => calls onSendMessage with the composed text', () => {
       const proxy = ChatInputWidgetProxy();
       proxy.clearStorage();
-      const onSendMessage = jest.fn(
-        async (_params: OnSendMessageParams): Promise<void> => Promise.resolve(),
+      const onSendMessage = jest.fn(async (_params: OnSendMessageParams): Promise<void> =>
+        Promise.resolve(),
       );
 
       mantineRenderAdapter({
@@ -1098,8 +1098,8 @@ describe('ChatInputWidget', () => {
 
       firstRender.unmount();
 
-      const onSendMessage = jest.fn(
-        async (_params: OnSendMessageParams): Promise<void> => Promise.resolve(),
+      const onSendMessage = jest.fn(async (_params: OnSendMessageParams): Promise<void> =>
+        Promise.resolve(),
       );
       mantineRenderAdapter({
         ui: (
@@ -1186,8 +1186,8 @@ describe('ChatInputWidget', () => {
 
       firstRender.unmount();
 
-      const onSendMessage = jest.fn(
-        async (_params: OnSendMessageParams): Promise<void> => Promise.resolve(),
+      const onSendMessage = jest.fn(async (_params: OnSendMessageParams): Promise<void> =>
+        Promise.resolve(),
       );
       mantineRenderAdapter({
         ui: (
@@ -1790,8 +1790,8 @@ describe('ChatInputWidget', () => {
     it('VALID: {paste image A, type text, paste image B, press Enter} => #check-attachments-in-paste-order the images array reaching onSendMessage is ordered first-pasted first', async () => {
       const proxy = ChatInputWidgetProxy();
       proxy.clearStorage();
-      const onSendMessage = jest.fn(
-        async (_params: OnSendMessageParams): Promise<void> => Promise.resolve(),
+      const onSendMessage = jest.fn(async (_params: OnSendMessageParams): Promise<void> =>
+        Promise.resolve(),
       );
 
       mantineRenderAdapter({
@@ -1992,8 +1992,8 @@ describe('ChatInputWidget', () => {
     it('ERROR: {server rejects with a 409 and "Quest is not accepting follow-ups"} => #check-server-error-text-in-toast the toast shows that exact sentence', async () => {
       const proxy = ChatInputWidgetProxy();
       proxy.clearStorage();
-      const onSendMessage = jest.fn(
-        async (): Promise<void> => Promise.reject(new Error('Quest is not accepting follow-ups')),
+      const onSendMessage = jest.fn(async (): Promise<void> =>
+        Promise.reject(new Error('Quest is not accepting follow-ups')),
       );
 
       mantineRenderAdapter({
@@ -2026,8 +2026,8 @@ describe('ChatInputWidget', () => {
     it('ERROR: {server rejects with a 500 and "Could not save pasted image"} => #check-write-failure-toast-text the toast shows that exact sentence rather than a generic failure message', async () => {
       const proxy = ChatInputWidgetProxy();
       proxy.clearStorage();
-      const onSendMessage = jest.fn(
-        async (): Promise<void> => Promise.reject(new Error('Could not save pasted image')),
+      const onSendMessage = jest.fn(async (): Promise<void> =>
+        Promise.reject(new Error('Could not save pasted image')),
       );
 
       mantineRenderAdapter({
@@ -2060,8 +2060,8 @@ describe('ChatInputWidget', () => {
     it('ERROR: {send rejected with two images attached} => #check-composer-reenabled-intact CHAT_INPUT is editable again and still holds its text and both thumbnails', async () => {
       const proxy = ChatInputWidgetProxy();
       proxy.clearStorage();
-      const onSendMessage = jest.fn(
-        async (): Promise<void> => Promise.reject(new Error('Quest is not accepting follow-ups')),
+      const onSendMessage = jest.fn(async (): Promise<void> =>
+        Promise.reject(new Error('Quest is not accepting follow-ups')),
       );
 
       mantineRenderAdapter({
@@ -2128,8 +2128,8 @@ describe('ChatInputWidget', () => {
     it('ERROR: {a draft already saved before the rejected send} => #check-draft-survives-rejection both the localStorage key and its IndexedDB records still exist after the rejection', async () => {
       const proxy = ChatInputWidgetProxy();
       proxy.clearStorage();
-      const onSendMessage = jest.fn(
-        async (): Promise<void> => Promise.reject(new Error('Could not save pasted image')),
+      const onSendMessage = jest.fn(async (): Promise<void> =>
+        Promise.reject(new Error('Could not save pasted image')),
       );
 
       mantineRenderAdapter({
@@ -2185,8 +2185,8 @@ describe('ChatInputWidget', () => {
     it('ERROR: {rejection with the attachment id list unchanged since the last write} => #check-rejection-writes-draft-when-none-saved rewrites the draft anyway', async () => {
       const proxy = ChatInputWidgetProxy();
       proxy.clearStorage();
-      const onSendMessage = jest.fn(
-        async (): Promise<void> => Promise.reject(new Error('Quest is not accepting follow-ups')),
+      const onSendMessage = jest.fn(async (): Promise<void> =>
+        Promise.reject(new Error('Quest is not accepting follow-ups')),
       );
 
       mantineRenderAdapter({
@@ -2242,8 +2242,8 @@ describe('ChatInputWidget', () => {
     it('ERROR: {rejected send that carried one image} => #check-progress-bar-gone-on-rejection the upload progress bar is no longer in the document', async () => {
       const proxy = ChatInputWidgetProxy();
       proxy.clearStorage();
-      const onSendMessage = jest.fn(
-        async (): Promise<void> => Promise.reject(new Error('Quest is not accepting follow-ups')),
+      const onSendMessage = jest.fn(async (): Promise<void> =>
+        Promise.reject(new Error('Quest is not accepting follow-ups')),
       );
 
       mantineRenderAdapter({
@@ -2494,8 +2494,8 @@ describe('ChatInputWidget', () => {
     it('ERROR: {send rejected} => #check-stamp-cleared-on-rejection the dispatched stamp is removed while the draft text survives', async () => {
       const proxy = ChatInputWidgetProxy();
       proxy.clearStorage();
-      const onSendMessage = jest.fn(
-        async (): Promise<void> => Promise.reject(new Error('Quest is not accepting follow-ups')),
+      const onSendMessage = jest.fn(async (): Promise<void> =>
+        Promise.reject(new Error('Quest is not accepting follow-ups')),
       );
 
       mantineRenderAdapter({

@@ -18,10 +18,10 @@ export const checkIsJsonParseCallLayerBroker = ({ node }: { node?: Tsestree | nu
   const { object, property } = callee;
   return Boolean(
     object &&
-      object.type === 'Identifier' &&
-      object.name === 'JSON' &&
-      property &&
-      property.type === 'Identifier' &&
-      property.name === 'parse',
+    object.type === 'Identifier' &&
+    object.name === 'JSON' &&
+    property &&
+    property.type === 'Identifier' &&
+    property.name === 'parse',
   );
 };

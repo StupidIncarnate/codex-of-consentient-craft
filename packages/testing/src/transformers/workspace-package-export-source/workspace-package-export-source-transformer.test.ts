@@ -36,6 +36,39 @@ describe('workspacePackageExportSourceTransformer', () => {
       expect(result).toBe('./src/testing/index.ts');
     });
 
+    it('VALID: {subpath: "git", "./*" -> "./src/*/*.ts"} => substitutes the captured segment for every star', () => {
+      const { exports: exportsMap } = WorkspacePackageJsonStub({
+        name: '@dungeonmaster/bin',
+        exports: { './*': { source: './src/*/*.ts' } },
+      });
+      const { subpath } = PackageSpecifierPartsStub({
+        packageName: '@dungeonmaster/bin',
+        subpath: 'git',
+      });
+
+      const result = workspacePackageExportSourceTransformer({ exportsMap, subpath });
+
+      expect(result).toBe('./src/git/git.ts');
+    });
+
+    it('VALID: {subpath: "_test_/git", "./*" listed before "./_test_/*"} => the longer-prefix key wins', () => {
+      const { exports: exportsMap } = WorkspacePackageJsonStub({
+        name: '@dungeonmaster/bin',
+        exports: {
+          './*': { source: './src/*/*.ts' },
+          './_test_/*': { source: './src/*/*.proxy.ts' },
+        },
+      });
+      const { subpath } = PackageSpecifierPartsStub({
+        packageName: '@dungeonmaster/bin',
+        subpath: '_test_/git',
+      });
+
+      const result = workspacePackageExportSourceTransformer({ exportsMap, subpath });
+
+      expect(result).toBe('./src/git/git.proxy.ts');
+    });
+
     it('VALID: {literal AND wildcard both present} => the literal key wins', () => {
       const { exports: exportsMap } = WorkspacePackageJsonStub({
         name: '@dungeonmaster/bin',

@@ -59,7 +59,7 @@ export const workspacePackageImportsTargetTransformer = ({
     const longEnough = specifier.length >= prefix.length + suffix.length;
     if (longEnough && specifier.startsWith(prefix) && specifier.endsWith(suffix)) {
       const captured = specifier.slice(prefix.length, specifier.length - suffix.length);
-      wildcardMatch = importPathContract.parse(target.replace('*', captured));
+      wildcardMatch = importPathContract.parse(target.replaceAll('*', captured));
     }
   }
 

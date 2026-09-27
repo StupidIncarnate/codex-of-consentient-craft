@@ -998,18 +998,16 @@ export const composerPasteHarness = ({
   readThumbnailNaturalWidths: async (): Promise<readonly unknown[]> =>
     page
       .getByTestId('CHAT_INPUT_THUMBNAIL')
-      .evaluateAll<
-        unknown[],
-        HTMLImageElement
-      >((images) => images.map((image) => image.naturalWidth)),
+      .evaluateAll<unknown[], HTMLImageElement>((images) =>
+        images.map((image) => image.naturalWidth),
+      ),
 
   readThumbnailNaturalHeights: async (): Promise<readonly unknown[]> =>
     page
       .getByTestId('CHAT_INPUT_THUMBNAIL')
-      .evaluateAll<
-        unknown[],
-        HTMLImageElement
-      >((images) => images.map((image) => image.naturalHeight)),
+      .evaluateAll<unknown[], HTMLImageElement>((images) =>
+        images.map((image) => image.naturalHeight),
+      ),
 
   readThumbnailChildElementCounts: async (): Promise<readonly unknown[]> =>
     page

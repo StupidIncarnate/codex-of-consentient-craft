@@ -8,7 +8,7 @@
  */
 
 import { Hono } from '#gateway/npm/hono';
-import type { ContentfulStatusCode } from '#gateway/npm/hono/utils/http-status';
+import type { ContentfulStatusCode } from '#gateway/npm/hono__utils__http-status';
 
 import { GuildListResponder } from '../../responders/guild/list/guild-list-responder';
 import { GuildAddResponder } from '../../responders/guild/add/guild-add-responder';

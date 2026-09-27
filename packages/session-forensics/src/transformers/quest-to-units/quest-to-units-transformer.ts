@@ -145,15 +145,14 @@ export const questToUnitsTransformer = ({
       ];
     });
 
-    const offMapUnits = Object.keys(qaOffMapProbeStatics.byFamily).map(
-      (family): VerificationUnit =>
-        verificationUnitContract.parse({
-          flowId: flow.id,
-          flowType: flow.flowType,
-          kind: 'off-map',
-          unitId: family,
-          trackMarks: {},
-        }),
+    const offMapUnits = Object.keys(qaOffMapProbeStatics.byFamily).map((family): VerificationUnit =>
+      verificationUnitContract.parse({
+        flowId: flow.id,
+        flowType: flow.flowType,
+        kind: 'off-map',
+        unitId: family,
+        trackMarks: {},
+      }),
     );
 
     return [...terminalUnits, ...observableUnits, ...branchUnits, ...offMapUnits];

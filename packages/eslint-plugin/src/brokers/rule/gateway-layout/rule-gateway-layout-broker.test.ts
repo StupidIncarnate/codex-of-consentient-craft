@@ -13,14 +13,11 @@ beforeEach(() => {
     dirPath: FilePathStub({ value: '/repo/packages/@gateway/node/src' }),
     entries: [
       { name: FileNameStub({ value: 'fs' }), isDirectory: true },
+      { name: FileNameStub({ value: 'fs__promises' }), isDirectory: true },
       { name: FileNameStub({ value: 'buffer' }), isDirectory: true },
       { name: FileNameStub({ value: 'process' }), isDirectory: true },
       { name: FileNameStub({ value: 'jest.config.js' }), isDirectory: false },
     ],
-  });
-  proxy.fsReaddirSync.returns({
-    dirPath: FilePathStub({ value: '/repo/packages/@gateway/node/src/fs' }),
-    entries: [{ name: FileNameStub({ value: 'promises' }), isDirectory: true }],
   });
   proxy.fsReaddirSync.returns({
     dirPath: FilePathStub({ value: '/repo/packages/@gateway/browser/src' }),
@@ -39,18 +36,18 @@ ruleTester.run('gateway-layout', ruleGatewayLayoutBroker(), {
   valid: [
     // --- no colliding sibling: fs, buffer and process all differ beyond case ---
     {
-      code: "export { readFileSync } from './read-file-sync';",
-      filename: '/repo/packages/@gateway/node/src/fs/index.ts',
+      code: "export { readFileSync } from './read-file-sync/read-file-sync';",
+      filename: '/repo/packages/@gateway/node/src/fs/fs.ts',
     },
-    // --- a nested subpath folder (fs/promises) with no colliding sibling ---
+    // --- a flattened nested subpath (fs__promises) with no colliding sibling ---
     {
-      code: "export { readFile } from './read-file';",
-      filename: '/repo/packages/@gateway/node/src/fs/promises/index.ts',
+      code: "export { readFile } from './read-file/read-file';",
+      filename: '/repo/packages/@gateway/node/src/fs__promises/fs__promises.ts',
     },
-    // --- a non-index file inside the same folder is not itself checked ---
+    // --- a wrapper file inside a subpath folder is not itself checked ---
     {
       code: 'export const readFileSync = (): string => "";',
-      filename: '/repo/packages/@gateway/node/src/fs/read-file-sync.ts',
+      filename: '/repo/packages/@gateway/node/src/fs/read-file-sync/read-file-sync.ts',
     },
     // --- a non-gateway file is untouched ---
     {
@@ -63,7 +60,7 @@ ruleTester.run('gateway-layout', ruleGatewayLayoutBroker(), {
     // --- URL and url differ only by case ---
     {
       code: "export * from 'url';",
-      filename: '/repo/packages/@gateway/browser/src/URL/index.ts',
+      filename: '/repo/packages/@gateway/browser/src/URL/URL.ts',
       errors: [
         {
           messageId: 'caseCollision',
@@ -75,10 +72,10 @@ ruleTester.run('gateway-layout', ruleGatewayLayoutBroker(), {
         },
       ],
     },
-    // --- the mirror direction reports too, from url's own index.ts ---
+    // --- the mirror direction reports too, from url's own barrel ---
     {
       code: "export * from 'url';",
-      filename: '/repo/packages/@gateway/browser/src/url/index.ts',
+      filename: '/repo/packages/@gateway/browser/src/url/url.ts',
       errors: [
         {
           messageId: 'caseCollision',

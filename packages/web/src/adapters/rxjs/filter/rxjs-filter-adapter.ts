@@ -7,7 +7,7 @@
  */
 
 import type { Observable } from '#gateway/npm/rxjs';
-import { filter } from '#gateway/npm/rxjs/operators';
+import { filter } from '#gateway/npm/rxjs__operators';
 
 export const rxjsFilterAdapter = <T>({
   source,

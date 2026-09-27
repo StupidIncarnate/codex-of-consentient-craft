@@ -6,7 +6,7 @@
  * proxy.setupGuilds({ guilds: [] });
  */
 
-import { screen, within } from '@dungeonmaster/npm/@testing-library/react';
+import { screen, within } from '#gateway/npm/testing-library__react';
 import userEvent from '@testing-library/user-event';
 
 import type { RecordedCalls, SpyOnHandle } from '@dungeonmaster/testing/register-mock';

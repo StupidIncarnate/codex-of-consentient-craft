@@ -298,8 +298,7 @@ export const ExecutionPanelWidget = ({
   visibleWorkItems.forEach((wi) => {
     const operationRef = wi.relatedDataItems.find((ref) => ref.startsWith(OPERATIONS_PREFIX));
     const rawOperationId = operationRef?.slice(OPERATIONS_PREFIX_LENGTH) as
-      | (typeof quest.operations)[0]['id']
-      | undefined;
+      (typeof quest.operations)[0]['id'] | undefined;
     const operation = rawOperationId === undefined ? undefined : operationsById.get(rawOperationId);
     const scopeKey = displayLabelContract.parse(
       operation ? `op:${operation.id}` : `role:${wi.role}`,

@@ -65,8 +65,7 @@ export const ruleBanSyncSeedingMethodsBroker = (): EslintRule => ({
 
         const returnType = valueNode.returnType as Record<PropertyKey, unknown> | undefined;
         const typeAnnotation = returnType?.typeAnnotation as
-          | Record<PropertyKey, unknown>
-          | undefined;
+          Record<PropertyKey, unknown> | undefined;
         const typeName = typeAnnotation?.typeName as Record<PropertyKey, unknown> | undefined;
 
         if (
@@ -114,8 +113,7 @@ export const ruleBanSyncSeedingMethodsBroker = (): EslintRule => ({
 
         const returnType = valueNode.returnType as Record<PropertyKey, unknown> | undefined;
         const typeAnnotation = returnType?.typeAnnotation as
-          | Record<PropertyKey, unknown>
-          | undefined;
+          Record<PropertyKey, unknown> | undefined;
         const typeName = typeAnnotation?.typeName as Record<PropertyKey, unknown> | undefined;
 
         if (

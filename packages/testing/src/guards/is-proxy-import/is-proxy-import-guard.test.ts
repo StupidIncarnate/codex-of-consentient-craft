@@ -62,40 +62,48 @@ describe('isProxyImportGuard', () => {
       expect(result).toBe(true);
     });
 
-    it('VALID: {importPath: "@dungeonmaster/node/_test_"} => returns true', () => {
-      const result = isProxyImportGuard({ importPath: '@dungeonmaster/node/_test_' });
+    it('VALID: {importPath: "@dungeonmaster/node/_test_/fs"} => returns true', () => {
+      const result = isProxyImportGuard({ importPath: '@dungeonmaster/node/_test_/fs' });
 
       expect(result).toBe(true);
     });
 
-    it('VALID: {importPath: "@dungeonmaster/npm/_test_"} => returns true', () => {
-      const result = isProxyImportGuard({ importPath: '@dungeonmaster/npm/_test_' });
+    it('VALID: {importPath: "@dungeonmaster/npm/_test_/glob"} => returns true', () => {
+      const result = isProxyImportGuard({ importPath: '@dungeonmaster/npm/_test_/glob' });
 
       expect(result).toBe(true);
     });
 
-    it('VALID: {importPath: "@dungeonmaster/browser/_test_"} => returns true', () => {
-      const result = isProxyImportGuard({ importPath: '@dungeonmaster/browser/_test_' });
+    it('VALID: {importPath: "@dungeonmaster/browser/_test_/localStorage"} => returns true', () => {
+      const result = isProxyImportGuard({
+        importPath: '@dungeonmaster/browser/_test_/localStorage',
+      });
 
       expect(result).toBe(true);
     });
 
-    it('VALID: {importPath: "@dungeonmaster/bin/_test_"} => returns true', () => {
-      const result = isProxyImportGuard({ importPath: '@dungeonmaster/bin/_test_' });
+    it('VALID: {importPath: "@dungeonmaster/bin/_test_/git"} => returns true', () => {
+      const result = isProxyImportGuard({ importPath: '@dungeonmaster/bin/_test_/git' });
 
       expect(result).toBe(true);
     });
 
-    it('VALID: {importPath: "#gateway/npm/_test_"} => returns true', () => {
-      const result = isProxyImportGuard({ importPath: '#gateway/npm/_test_' });
+    it('VALID: {importPath: "#gateway/npm/_test_/playwright__test"} => returns true', () => {
+      const result = isProxyImportGuard({ importPath: '#gateway/npm/_test_/playwright__test' });
 
       expect(result).toBe(true);
     });
 
-    it('VALID: {importPath: "#gateway/browser/_test_"} => returns true', () => {
-      const result = isProxyImportGuard({ importPath: '#gateway/browser/_test_' });
+    it('VALID: {importPath: "#gateway/browser/_test_/fetch"} => returns true', () => {
+      const result = isProxyImportGuard({ importPath: '#gateway/browser/_test_/fetch' });
 
       expect(result).toBe(true);
+    });
+
+    it('INVALID: {importPath: "#gateway/node/_test_"} => returns false, a gateway test barrel is always per subpath', () => {
+      const result = isProxyImportGuard({ importPath: '#gateway/node/_test_' });
+
+      expect(result).toBe(false);
     });
 
     it('VALID: {importPath: "#foo/bar/testing"} => returns true', () => {

@@ -6,7 +6,7 @@
  * // Returns WebSocket utilities for the Hono app
  */
 
-import { createNodeWebSocket } from '#gateway/npm/@hono/node-ws';
+import { createNodeWebSocket } from '#gateway/npm/hono__node-ws';
 import type { Hono } from '#gateway/npm/hono';
 
 export const honoCreateNodeWebSocketAdapter = ({

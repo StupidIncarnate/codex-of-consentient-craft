@@ -14,5 +14,5 @@ module.exports = {
   },
   // The base entry rides along: a plain override would drop the sandbox dungeonmaster home it
   // sets before this package's own test files import anything.
-  setupFiles: [...baseConfig.setupFiles, '<rootDir>/src/__mocks__/jsdom-polyfills.cjs'],
+  setupFiles: [...baseConfig.setupFiles, '<rootDir>/__mocks__/jsdom-polyfills.cjs'],
 };

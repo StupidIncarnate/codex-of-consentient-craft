@@ -23,10 +23,10 @@ export const isAstContractParseCallGuard = ({ node }: { node?: Tsestree }): bool
   const { object, property } = callee;
   return Boolean(
     object &&
-      object.type === 'Identifier' &&
-      object.name?.endsWith('Contract') &&
-      property &&
-      property.type === 'Identifier' &&
-      property.name === 'parse',
+    object.type === 'Identifier' &&
+    object.name?.endsWith('Contract') &&
+    property &&
+    property.type === 'Identifier' &&
+    property.name === 'parse',
   );
 };

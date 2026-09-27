@@ -22,8 +22,7 @@ const CONTENT_TYPES = {
 const FALLBACK = 'application/octet-stream';
 
 export type WebBundleContentType =
-  | (typeof CONTENT_TYPES)[keyof typeof CONTENT_TYPES]
-  | typeof FALLBACK;
+  (typeof CONTENT_TYPES)[keyof typeof CONTENT_TYPES] | typeof FALLBACK;
 
 export const webBundleContentTypeTransformer = ({
   filePath,

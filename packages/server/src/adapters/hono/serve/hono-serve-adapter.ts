@@ -6,7 +6,7 @@
  * // Starts the HTTP server
  */
 
-import { serve } from '#gateway/npm/@hono/node-server';
+import { serve } from '#gateway/npm/hono__node-server';
 
 export const honoServeAdapter = ({
   fetch,

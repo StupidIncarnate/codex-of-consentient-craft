@@ -14,9 +14,7 @@
 import type { StatusLiteralKind } from '../classify-status-literal/classify-status-literal-transformer';
 
 export type StatusLiteralMessageId =
-  | 'questStatusLiteral'
-  | 'workItemStatusLiteral'
-  | 'ambiguousStatusLiteral';
+  'questStatusLiteral' | 'workItemStatusLiteral' | 'ambiguousStatusLiteral';
 
 export const statusLiteralMessageIdTransformer = ({
   kind,

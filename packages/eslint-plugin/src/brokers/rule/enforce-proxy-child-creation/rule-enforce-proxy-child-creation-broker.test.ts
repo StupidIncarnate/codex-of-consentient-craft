@@ -335,7 +335,7 @@ beforeEach(() => {
         return FileContentsStub({
           value: `
         import { join } from '@dungeonmaster/node/path';
-        import { readJsonFileIfExists, writeFile } from '@dungeonmaster/node/fs/promises';
+        import { readJsonFileIfExists, writeFile } from '@dungeonmaster/node/fs__promises';
 
         export const installConfigCreateResponder = async () => {
           const configPath = join('/repo', '.mcp.json');
@@ -356,7 +356,7 @@ beforeEach(() => {
         return FileContentsStub({
           value: `
         import { join } from '#gateway/node/path';
-        import { readJsonFileIfExists, writeFile } from '#gateway/node/fs/promises';
+        import { readJsonFileIfExists, writeFile } from '#gateway/node/fs__promises';
 
         export const installConfigCreateGatewayAliasResponder = async () => {
           const configPath = join('/repo', '.mcp.json');
@@ -381,25 +381,25 @@ beforeEach(() => {
         });
       }
 
-      // The node gateway package's own testing barrel: lists every WRAPPED node export's proxy.
-      // 'join' from @scope/node/path is never in here — path does no I/O and is a pure
-      // pass-through, unlike fs/promises's readJsonFileIfExists and writeFile.
-      if (filePath.includes('packages/@gateway/node/src/_test_/index.ts')) {
+      // The node fs__promises subpath's own testing barrel: lists every WRAPPED export's proxy.
+      // 'join' from @scope/node/path is never in a testing barrel — path does no I/O and is a pure
+      // pass-through, so its subpath has none, unlike fs__promises's readJsonFileIfExists and
+      // writeFile.
+      if (filePath.includes('packages/@gateway/node/src/fs__promises/fs__promises.proxy.ts')) {
         return FileContentsStub({
           value: `
-        export { readJsonFileIfExistsProxy } from '../fs/promises/read-json-file-if-exists.proxy';
-        export { writeFileProxy } from '../fs/promises/write-file.proxy';
+        export { readJsonFileIfExistsProxy } from './read-json-file-if-exists/read-json-file-if-exists.proxy';
+        export { writeFileProxy } from './write-file/write-file.proxy';
       `,
         });
       }
 
-      // The npm gateway package's own testing barrel: lists every WRAPPED npm export's proxy.
-      // 'z' from zod is never in here, because zod is a pure pass-through.
-      if (filePath.includes('packages/@gateway/npm/src/_test_/index.ts')) {
+      // The npm glob subpath's own testing barrel. 'z' from zod is never in one, because the zod
+      // subpath is a pure pass-through with no testing barrel at all.
+      if (filePath.includes('packages/@gateway/npm/src/glob/glob.proxy.ts')) {
         return FileContentsStub({
           value: `
-        export { globProxy } from '../glob/glob.proxy';
-        export { renderProxy } from '../@testing-library/react/render.proxy';
+        export { globProxy } from './glob/glob.proxy';
       `,
         });
       }
@@ -719,11 +719,11 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
       filename: '/project/src/widgets/button/button-widget.proxy.tsx',
     },
     // ✅ CORRECT - Gateway import at a deep subpath (@scope/node/fs/promises): proxy imports and
-    // creates both proxies from the package's own @scope/node/_test_ barrel, not a barrel
+    // creates both proxies from the subpath's own @scope/node/_test_/fs__promises barrel, not a barrel
     // scoped to the exact "fs/promises" subpath.
     {
       code: `
-        import { readJsonFileIfExistsProxy, writeFileProxy } from '@dungeonmaster/node/_test_';
+        import { readJsonFileIfExistsProxy, writeFileProxy } from '@dungeonmaster/node/_test_/fs__promises';
 
         export const installConfigCreateResponderProxy = () => {
           const readProxy = readJsonFileIfExistsProxy();
@@ -750,11 +750,11 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
       filename: '/repo/packages/mcp/src/brokers/zod-import/zod-import-broker.proxy.ts',
     },
     // ✅ CORRECT - Gateway import through the '#gateway/...' import-alias form: proxy imports and
-    // creates both proxies from the package's own '#gateway/node/_test_' barrel, exactly as the
-    // '@dungeonmaster/node/_test_' form does above.
+    // creates both proxies from the subpath's own '#gateway/node/_test_/fs__promises' barrel,
+    // exactly as the '@dungeonmaster/node/_test_/fs__promises' form does above.
     {
       code: `
-        import { readJsonFileIfExistsProxy, writeFileProxy } from '#gateway/node/_test_';
+        import { readJsonFileIfExistsProxy, writeFileProxy } from '#gateway/node/_test_/fs__promises';
 
         export const installConfigCreateGatewayAliasResponderProxy = () => {
           const readProxy = readJsonFileIfExistsProxy();
@@ -1143,14 +1143,14 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
           messageId: 'missingProxyImport',
           data: {
             implementationName: 'readJsonFileIfExists',
-            proxyPath: '@dungeonmaster/node/_test_',
+            proxyPath: '@dungeonmaster/node/_test_/fs__promises',
           },
         },
         {
           messageId: 'missingProxyImport',
           data: {
             implementationName: 'writeFile',
-            proxyPath: '@dungeonmaster/node/_test_',
+            proxyPath: '@dungeonmaster/node/_test_/fs__promises',
           },
         },
       ],
@@ -1173,14 +1173,14 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
           messageId: 'missingProxyImport',
           data: {
             implementationName: 'readJsonFileIfExists',
-            proxyPath: '#gateway/node/_test_',
+            proxyPath: '#gateway/node/_test_/fs__promises',
           },
         },
         {
           messageId: 'missingProxyImport',
           data: {
             implementationName: 'writeFile',
-            proxyPath: '#gateway/node/_test_',
+            proxyPath: '#gateway/node/_test_/fs__promises',
           },
         },
       ],

@@ -41,8 +41,8 @@ export const QuestDrivenWatchersBootstrapResponder = async (): Promise<{
     resetOnStart: true,
     onQuestChanged: (): void => {
       chain.promise = chain.promise
-        .then(
-          async (): Promise<unknown> => ReconcileWatchersLayerResponder({ watchers, projectDir }),
+        .then(async (): Promise<unknown> =>
+          ReconcileWatchersLayerResponder({ watchers, projectDir }),
         )
         .catch((error: unknown): void => {
           processDevLogAdapter({

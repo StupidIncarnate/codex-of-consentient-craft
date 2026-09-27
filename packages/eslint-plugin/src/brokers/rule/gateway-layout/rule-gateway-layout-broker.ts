@@ -1,6 +1,6 @@
 /**
- * PURPOSE: Checks the one gateway-layout invariant a lint rule can verify cheaply: no two sibling
- * folders directly under a gateway package's `src/` (at any depth) may differ only by case. This
+ * PURPOSE: Checks the one gateway-layout invariant a lint rule can verify cheaply: no two subpath
+ * folders directly under a gateway package's `src/` may differ only by case. This
  * is the orchestrator ruling behind `@dungeonmaster/node/buffer` having no separate `Buffer`
  * subpath — TypeScript's `forceConsistentCasingInFileNames` refuses two such folders, and node10
  * resolution needs a real, unambiguous folder for every subpath. Every OTHER layout invariant
@@ -14,7 +14,7 @@
  *
  * USAGE:
  * const rule = ruleGatewayLayoutBroker();
- * // Flags packages/@gateway/node/src/URL/index.ts if a sibling packages/@gateway/node/src/url/ also exists
+ * // Flags packages/@gateway/node/src/URL/URL.ts if a sibling packages/@gateway/node/src/url/ also exists
  */
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
@@ -22,6 +22,7 @@ import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-cont
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { isGatewayFileGuard } from '../../../guards/is-gateway-file/is-gateway-file-guard';
+import { isGatewayBarrelFileGuard } from '../../../guards/is-gateway-barrel-file/is-gateway-barrel-file-guard';
 import { fsReaddirSyncAdapter } from '../../../adapters/fs/readdir-sync/fs-readdir-sync-adapter';
 
 export const ruleGatewayLayoutBroker = (): EslintRule => ({
@@ -49,8 +50,9 @@ export const ruleGatewayLayoutBroker = (): EslintRule => ({
 
     const fileBaseName = filename.split('/').pop() ?? '';
 
-    // One check per subpath folder is enough; every subpath folder has exactly one index.ts.
-    if (fileBaseName !== 'index.ts' && fileBaseName !== 'index.tsx') {
+    // One check per subpath folder is enough; every subpath folder has exactly one barrel, the
+    // file named after the folder, directly under `src/`.
+    if (!isGatewayBarrelFileGuard({ filename })) {
       return {};
     }
 

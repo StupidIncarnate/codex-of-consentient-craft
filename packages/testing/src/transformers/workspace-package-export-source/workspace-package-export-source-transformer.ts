@@ -1,14 +1,14 @@
 /**
  * PURPOSE: Matches a subpath against a workspace package's own `exports` map the way Node's
- * pattern-export resolution does — an exact literal key first, then a single-star wildcard key,
- * substituting the captured remainder into the matched key's `source` target. Resolves
- * `@dungeonmaster/bin/testing` against a wildcard `"./" + star` export key whose `source` is
- * `"./src/" + star + "/index.ts"`, without needing that package built — the same answer Node's own
- * `exports` "source" condition would give.
+ * pattern-export resolution does — an exact literal key first, then the single-star wildcard key
+ * with the longest prefix, substituting the captured remainder for every star in that key's
+ * `source` target. Resolves `@dungeonmaster/bin/git` against a wildcard `"./" + star` export key
+ * whose `source` is `"./src/" + star + "/" + star + ".ts"`, without needing that package built —
+ * the same answer Node's own `exports` "source" condition would give.
  *
  * USAGE:
  * workspacePackageExportSourceTransformer({
- *   exportsMap: WorkspacePackageJsonStub({ exports: { './git': { source: './src/git/index.ts' } } }).exports,
+ *   exportsMap: WorkspacePackageJsonStub({ exports: { './git': { source: './src/git/git.ts' } } }).exports,
  *   subpath: PackageSpecifierPartsStub({}).subpath,
  * });
  * // Returns the matched entry's branded source path, or null
@@ -36,16 +36,16 @@ export const workspacePackageExportSourceTransformer = ({
   // key comparison below stays a `===` rather than indexing exportsMap by a constructed key.
   const literalKey = `./${subpath}`;
   let wildcardMatch: WorkspacePackageExportSourcePath | null = null;
+  let wildcardPrefixLength = -1;
 
+  // Node picks the wildcard key with the LONGEST prefix, whatever order the map lists them in —
+  // `./_test_/*` beats `./*` for `_test_/fs`. Every `*` in the target takes the captured text.
   for (const [key, entry] of Object.entries(exportsMap)) {
     if (!entry?.source) {
       continue;
     }
     if (key === literalKey) {
       return entry.source;
-    }
-    if (wildcardMatch) {
-      continue;
     }
 
     const starIndex = key.indexOf('*');
@@ -56,11 +56,17 @@ export const workspacePackageExportSourceTransformer = ({
     const prefix = key.slice(KEY_PREFIX_LENGTH, starIndex);
     const suffix = key.slice(starIndex + 1);
     const longEnough = subpath.length >= prefix.length + suffix.length;
-    if (longEnough && subpath.startsWith(prefix) && subpath.endsWith(suffix)) {
+    if (
+      longEnough &&
+      prefix.length > wildcardPrefixLength &&
+      subpath.startsWith(prefix) &&
+      subpath.endsWith(suffix)
+    ) {
       const captured = subpath.slice(prefix.length, subpath.length - suffix.length);
       wildcardMatch = workspacePackageExportSourcePathContract.parse(
-        entry.source.replace('*', captured),
+        entry.source.replaceAll('*', captured),
       );
+      wildcardPrefixLength = prefix.length;
     }
   }
 

@@ -1,5 +1,5 @@
-import { globProxy } from '#gateway/npm/_test_';
-import { readFileProxy } from '#gateway/node/_test_';
+import { globProxy } from '#gateway/npm/_test_/glob';
+import { readFileProxy } from '#gateway/node/_test_/fs__promises';
 import { typescriptParseAdapterProxy } from '../../../adapters/typescript/parse/typescript-parse-adapter.proxy';
 import { globIgnoreStatics } from '../../../statics/glob-ignore/glob-ignore-statics';
 import type { GlobPattern } from '../../../contracts/glob-pattern/glob-pattern-contract';

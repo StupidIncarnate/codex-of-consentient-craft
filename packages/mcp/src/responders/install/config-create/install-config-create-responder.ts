@@ -17,7 +17,7 @@ import {
   fileContentsContract,
 } from '@dungeonmaster/shared/contracts';
 import { join } from '#gateway/node/path';
-import { readJsonFileIfExists, writeFile } from '#gateway/node/fs/promises';
+import { readJsonFileIfExists, writeFile } from '#gateway/node/fs__promises';
 import type { McpConfig } from '../../../contracts/mcp-config/mcp-config-contract';
 import { dungeonmasterConfigCreatorTransformer } from '../../../transformers/dungeonmaster-config-creator/dungeonmaster-config-creator-transformer';
 import { settingsPermissionsAddBroker } from '../../../brokers/settings/permissions-add/settings-permissions-add-broker';

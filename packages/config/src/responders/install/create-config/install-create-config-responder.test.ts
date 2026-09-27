@@ -1,5 +1,5 @@
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
-import { FsErrorStub } from '#gateway/node/fs/promises';
+import { FsErrorStub } from '#gateway/node/_test_/fs';
 import { e2eProcessPlaceholderStatics } from '../../../statics/e2e-process-placeholder/e2e-process-placeholder-statics';
 import { InstallCreateConfigResponderProxy } from './install-create-config-responder.proxy';
 

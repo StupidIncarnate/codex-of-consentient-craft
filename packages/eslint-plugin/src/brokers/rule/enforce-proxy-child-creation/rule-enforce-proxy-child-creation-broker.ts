@@ -166,19 +166,18 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
           const expectedProxyNameString = `${importedName}Proxy`;
           const expectedProxyName = identifierContract.parse(expectedProxyNameString);
 
-          // For scoped package imports (@scope/pkg/folderType, or the '#gateway/...' import-alias
-          // form), proxy is exported from @scope/pkg/testing. For relative imports, proxy is at
-          // path.proxy
+          // For scoped package imports (@scope/pkg/folderType), proxy is exported from
+          // @scope/pkg/testing; a gateway subpath's proxy from its own `_test_/<subpath>` barrel.
+          // For relative imports, proxy is at path.proxy
           const isScopedPackageImport =
             importPath.startsWith('@') ||
             importPath.startsWith(`${gatewayLocationsStatics.importPrefix}/`);
 
-          // A gateway import (any depth: @scope/node/fs/promises, @scope/npm/zod, ...) always
-          // resolves its proxy through the PACKAGE's own testing barrel — the first two path
-          // segments — never a barrel scoped to the exact imported subpath the way an ordinary
-          // scoped package's folder-type subpath does (@scope/shared/brokers -> @scope/shared/testing).
+          // A gateway import (#gateway/node/fs__promises, @scope/npm/zod, ...) resolves its proxy
+          // through that subpath's own `_test_` barrel: the gateway folder is the second path
+          // segment and the subpath the third.
           const importPathSegments = isScopedPackageImport ? importPath.split('/') : [];
-          const [, gatewayFolderSegment] = importPathSegments;
+          const [, gatewayFolderSegment, gatewaySubpathSegment] = importPathSegments;
           const isGatewayImport =
             gatewayFolderSegment !== undefined &&
             Object.values(gatewayLocationsStatics.folders).some(
@@ -190,12 +189,16 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
             // only npm (zod's `z`, react's `useState`, ...), but node too (`join` from
             // @scope/node/path is Node's own `path.join`, untouched, because `path` does no I/O
             // and needs no guard). A pass-through export has no proxy at all, so only a name the
-            // package's own testing barrel actually re-exports as `<name>Proxy` is held to this
+            // subpath's own testing barrel actually re-exports as `<name>Proxy` is held to this
             // check.
-            const barrelPath = gatewayTestingBarrelPathTransformer({
-              callerFilePath: filePathContract.parse(String(filename ?? '')),
-              gatewayFolder: gatewayFolderSegment,
-            });
+            const barrelPath =
+              gatewaySubpathSegment === undefined
+                ? null
+                : gatewayTestingBarrelPathTransformer({
+                    callerFilePath: filePathContract.parse(String(filename ?? '')),
+                    gatewayFolder: gatewayFolderSegment,
+                    subpath: gatewaySubpathSegment,
+                  });
 
             const wrappedNames = ((): Set<Identifier> => {
               if (barrelPath === null) {
@@ -221,8 +224,8 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
 
           const expectedProxyPath = ((): ModulePath => {
             if (isGatewayImport) {
-              const [scopeSegment, packageFolder] = importPathSegments;
-              return `${scopeSegment}/${packageFolder}/_test_` as ModulePath;
+              const [scopeSegment, packageFolder, subpath] = importPathSegments;
+              return `${scopeSegment}/${packageFolder}/_test_/${subpath}` as ModulePath;
             }
             if (isScopedPackageImport) {
               const lastSlashIndex = importPath.lastIndexOf('/');

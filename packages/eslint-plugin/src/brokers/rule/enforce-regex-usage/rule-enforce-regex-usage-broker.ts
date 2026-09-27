@@ -60,8 +60,7 @@ export const ruleEnforceRegexUsageBroker = (): EslintRule => ({
 
         // Get folder config
         const folderConfig = folderConfigTransformer({ folderType }) as
-          | { allowRegex?: boolean }
-          | undefined;
+          { allowRegex?: boolean } | undefined;
 
         // If config doesn't exist or allowRegex is false, report error
         if (!folderConfig || folderConfig.allowRegex !== true) {

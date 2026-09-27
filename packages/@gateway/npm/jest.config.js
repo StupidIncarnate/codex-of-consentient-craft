@@ -14,7 +14,7 @@ module.exports = {
   // file whose own `@jest-environment jsdom` docblock switches it out of this package's default
   // node environment (`@testing-library/react/render.test.ts`) — a node-environment file already
   // has a real `setImmediate`, so the polyfill's own guard is a no-op there.
-  setupFiles: [...baseConfig.setupFiles, '<rootDir>/src/__mocks__/jsdom-polyfills.cjs'],
+  setupFiles: [...baseConfig.setupFiles, '<rootDir>/../browser/__mocks__/jsdom-polyfills.cjs'],
   transform: {
     '^.+\\.[jt]s$': [
       'ts-jest',

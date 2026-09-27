@@ -45,9 +45,22 @@ const computeVersion = () => {
       ),
     );
 
-    const proxyFiles = globSync('*/src/**/*.proxy.ts', { cwd: packagesRoot }).sort();
-    for (const proxyFile of proxyFiles) {
-      const fullPath = path.join(packagesRoot, proxyFile);
+    // Also hashed: the gateway's proxies (two folders deep, under `@gateway/`), this package's own
+    // import-resolution source, and every package.json — the `imports`/`exports` maps decide which
+    // file a `#gateway/.../_test_/...` specifier reaches, so a change there changes what hoists.
+    const keyFiles = globSync(
+      [
+        '*/src/**/*.proxy.ts',
+        '@gateway/*/src/**/*.proxy.ts',
+        'testing/src/{guards,middleware,transformers,adapters}/**/*.ts',
+        '*/package.json',
+        '@gateway/*/package.json',
+      ],
+      { cwd: packagesRoot, ignore: ['**/*.test.ts', '**/node_modules/**'] },
+    ).sort();
+    for (const keyFile of keyFiles) {
+      const fullPath = path.join(packagesRoot, keyFile);
+      hash.update(keyFile);
       hash.update(fs.readFileSync(fullPath, 'utf-8'));
     }
 

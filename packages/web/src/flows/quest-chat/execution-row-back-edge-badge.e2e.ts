@@ -181,8 +181,6 @@ test.describe('Execution row back-edge badge: codeweaver ward red -> repair -> f
     // never the raw id.
     await expect(wardPt1Row.getByTestId('execution-row-minted-by-badge')).toHaveCount(0);
     await expect(wardPt2Row.getByTestId('execution-row-minted-by-badge')).toHaveCount(0);
-    await expect(repairRow.getByTestId('execution-row-minted-by-badge')).toHaveText(
-      '↩ ward pt: 1',
-    );
+    await expect(repairRow.getByTestId('execution-row-minted-by-badge')).toHaveText('↩ ward pt: 1');
   });
 });

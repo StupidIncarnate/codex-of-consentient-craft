@@ -9,7 +9,7 @@
  */
 
 import { join } from 'path';
-import { readJsonFileIfExistsProxy, writeFileProxy } from '#gateway/node/_test_';
+import { readJsonFileIfExistsProxy, writeFileProxy } from '#gateway/node/_test_/fs__promises';
 import { settingsPermissionsAddBrokerProxy } from '../../../brokers/settings/permissions-add/settings-permissions-add-broker.proxy';
 import { agentsPluginCreateBrokerProxy } from '../../../brokers/agents/plugin-create/agents-plugin-create-broker.proxy';
 import { PathSegmentStub, pathSegmentContract } from '@dungeonmaster/shared/contracts';

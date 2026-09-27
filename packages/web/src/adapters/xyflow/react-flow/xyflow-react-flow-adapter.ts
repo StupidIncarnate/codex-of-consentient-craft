@@ -30,9 +30,7 @@ import { nodeMeasureLayerAdapter } from './node-measure-layer-adapter';
 // endpoints (FlowPortalNodeData). All carry a string `id`, which is all the click handler reads to
 // resolve the clicked node back to a flow node.
 export type XyflowReactFlowAdapterNode =
-  | Node<ReactFlowNodeData>
-  | Node<FlowObservableNodeData>
-  | Node<FlowPortalNodeData>;
+  Node<ReactFlowNodeData> | Node<FlowObservableNodeData> | Node<FlowPortalNodeData>;
 
 export interface XyflowReactFlowAdapterProps {
   nodes: XyflowReactFlowAdapterNode[];

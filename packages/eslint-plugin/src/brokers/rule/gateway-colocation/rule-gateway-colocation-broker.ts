@@ -1,26 +1,23 @@
 /**
  * PURPOSE: Enforces the gateway's own colocation and pass-through-purity shape, inside a gateway
- * file (`packages/@gateway/{npm,node,browser,bin}/src/**`) only. A wrapper file — any single-dot `.ts` that
- * is not `index.ts` — needs a colocated `.test.ts` (or `.integration.test.ts`) and a `.proxy.ts`,
- * the same requirement `enforce-implementation-colocation` already checks for every other folder
- * type, minus the `/src/` self-skip that rule carries (this rule is path-scoped to the gateway
- * glob instead, so it never needs one). An `index.ts` is the subpath's single entry, and it may
- * hold ONLY re-exports — `export *`, `export { a } from './a'`, `export type`, the `export =`
- * form (`import x = require('pkg'); export = x;`), a global capture (`export const { x } =
- * globalThis;`, or `export const x = globalThis.x;` — a global has no module to `export * from`,
- * so this IS its re-export), and a bare side-effect `import 'pkg';` with zero specifiers (a
- * pass-through for a package that only registers side effects, e.g. jest-dom augmenting `expect`).
- * A pure-reexport `index.ts` needs only a colocated `index.test.ts` (or `.integration.test.ts`); a
- * proxy there is dead weight, not an error, so it is flagged softly under its own messageId rather
- * than treated the same as a missing file. An `index.ts` that fails purity (it holds a plain
- * `import` with bindings, a `const` not shaped like a global capture, a function body — real
- * wrapping behaviour) is reported for that, AND is then held to the wrapper's own test+proxy
- * requirement, because a file doing wrapper work needs a wrapper's tests.
+ * file (`packages/@gateway/{npm,node,browser,bin}/src/**`) only. A subpath's barrel is the file
+ * named after its own folder directly under `src/` (`src/fs/fs.ts`); every other single-dot `.ts`
+ * sits in a wrapper folder. A wrapper file needs a colocated `.test.ts` (or `.integration.test.ts`)
+ * and a `.proxy.ts`, the same requirement `enforce-implementation-colocation` checks for every other
+ * folder type; a file declaring only types needs neither. A barrel needs only a colocated test (its
+ * `.proxy.ts`, when present, is the subpath's `_test_` barrel), and it may hold ONLY re-exports —
+ * `export *`, `export { a } from './a/a'`, `export type`, the `export =` form (`import x =
+ * require('pkg'); export = x;`), a global capture (`export const { x } = globalThis;`, or `export
+ * const x = globalThis.x;` — a global has no module to `export * from`, so this IS its re-export),
+ * and a bare side-effect `import 'pkg';` with zero specifiers (a pass-through for a package that only
+ * registers side effects, e.g. jest-dom augmenting `expect`). A barrel holding anything else — a
+ * plain `import` with bindings, a `const` not shaped like a global capture, a function body — does
+ * wrapper work that belongs in a wrapper folder, and is reported for it.
  *
  * USAGE:
  * const rule = ruleGatewayColocationBroker();
- * // Flags packages/@gateway/node/src/fs/read-file-sync.ts with no read-file-sync.proxy.ts;
- * // flags packages/@gateway/node/src/module/index.ts, whose body builds an object instead of only
+ * // Flags packages/@gateway/node/src/fs/read-file-sync/read-file-sync.ts with no read-file-sync.proxy.ts;
+ * // flags packages/@gateway/node/src/module/module.ts if its body builds an object instead of only
  * // re-exporting, as passThroughNotPureReexport
  */
 import { filePathContract } from '@dungeonmaster/shared/contracts';
@@ -30,6 +27,7 @@ import type { EslintContext } from '../../../contracts/eslint-context/eslint-con
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter';
 import { isGatewayFileGuard } from '../../../guards/is-gateway-file/is-gateway-file-guard';
+import { isGatewayBarrelFileGuard } from '../../../guards/is-gateway-barrel-file/is-gateway-barrel-file-guard';
 import { dotCountTransformer } from '../../../transformers/dot-count/dot-count-transformer';
 import { getFileExtensionTransformer } from '../../../transformers/get-file-extension/get-file-extension-transformer';
 import { removeFileExtensionTransformer } from '../../../transformers/remove-file-extension/remove-file-extension-transformer';
@@ -41,16 +39,14 @@ export const ruleGatewayColocationBroker = (): EslintRule => ({
       type: 'problem',
       docs: {
         description:
-          "Enforce the gateway's own colocation shape: a wrapper file needs a test and a proxy, an index.ts holds only re-exports.",
+          "Enforce the gateway's own colocation shape: a wrapper file needs a test and a proxy, a subpath barrel holds only re-exports.",
       },
       messages: {
         missingTestFile:
           'Gateway file "{{fileName}}" needs a colocated {{testFileName}} (or an .integration.test.ts variant).',
         missingProxyFile: 'Gateway file "{{fileName}}" needs a colocated {{proxyFileName}}.',
         passThroughNotPureReexport:
-          'Pass-through entry "{{fileName}}" may only re-export ("export * from \'...\'", "export { a } from \'./a\'", "export type", or "export = x"). Found a non-export statement — this file wraps behavior, so it needs its own colocated test and proxy like a wrapper.',
-        passThroughHasStrayProxy:
-          'Pass-through entry "{{fileName}}" is a pure re-export and needs no proxy; "{{proxyFileName}}" is dead weight — delete it, or add real wrapping behavior that needs it.',
+          'Subpath barrel "{{fileName}}" may only re-export ("export * from \'...\'", "export { a } from \'./a/a\'", "export type", or "export = x"). Found a non-export statement — move that behavior into a wrapper folder beside the barrel.',
       },
       schema: [],
     },
@@ -75,7 +71,7 @@ export const ruleGatewayColocationBroker = (): EslintRule => ({
     const directory = filename.slice(0, filename.length - fileBaseName.length);
     const extension = getFileExtensionTransformer({ filename });
     const baseNameWithoutExtension = removeFileExtensionTransformer({ filename: fileBaseName });
-    const isIndexFile = String(baseNameWithoutExtension) === 'index';
+    const isBarrelFile = isGatewayBarrelFileGuard({ filename });
 
     return {
       Program: (node: Tsestree): void => {
@@ -90,11 +86,23 @@ export const ruleGatewayColocationBroker = (): EslintRule => ({
           fsExistsSyncAdapter({
             filePath: filePathContract.parse(`${directory}${integrationTestFileName}`),
           });
-        const hasProxyFile = fsExistsSyncAdapter({
-          filePath: filePathContract.parse(`${directory}${proxyFileName}`),
-        });
 
-        if (!isIndexFile) {
+        if (!isBarrelFile) {
+          const statements = Array.isArray(node.body) ? node.body : [];
+          const declaresOnlyTypes =
+            statements.length > 0 &&
+            statements.every(
+              (statement) =>
+                statement.type === 'ImportDeclaration' ||
+                (statement.type === 'ExportNamedDeclaration' &&
+                  (statement.declaration?.type === 'TSInterfaceDeclaration' ||
+                    statement.declaration?.type === 'TSTypeAliasDeclaration')),
+            );
+
+          if (declaresOnlyTypes) {
+            return;
+          }
+
           if (!hasTestFile) {
             ctx.report({
               node,
@@ -102,6 +110,10 @@ export const ruleGatewayColocationBroker = (): EslintRule => ({
               data: { fileName: fileBaseName, testFileName },
             });
           }
+
+          const hasProxyFile = fsExistsSyncAdapter({
+            filePath: filePathContract.parse(`${directory}${proxyFileName}`),
+          });
 
           if (!hasProxyFile) {
             ctx.report({
@@ -186,24 +198,6 @@ export const ruleGatewayColocationBroker = (): EslintRule => ({
             messageId: 'passThroughNotPureReexport',
             data: { fileName: fileBaseName },
           });
-
-          if (!hasTestFile) {
-            ctx.report({
-              node,
-              messageId: 'missingTestFile',
-              data: { fileName: fileBaseName, testFileName },
-            });
-          }
-
-          if (!hasProxyFile) {
-            ctx.report({
-              node,
-              messageId: 'missingProxyFile',
-              data: { fileName: fileBaseName, proxyFileName },
-            });
-          }
-
-          return;
         }
 
         if (!hasTestFile) {
@@ -211,14 +205,6 @@ export const ruleGatewayColocationBroker = (): EslintRule => ({
             node,
             messageId: 'missingTestFile',
             data: { fileName: fileBaseName, testFileName },
-          });
-        }
-
-        if (hasProxyFile) {
-          ctx.report({
-            node,
-            messageId: 'passThroughHasStrayProxy',
-            data: { fileName: fileBaseName, proxyFileName },
           });
         }
       },

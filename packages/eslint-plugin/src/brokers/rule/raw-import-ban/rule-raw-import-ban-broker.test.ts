@@ -26,7 +26,7 @@ ruleTester.run('raw-import-ban', ruleRawImportBanBroker(), {
       options: [{ scope: '@dungeonmaster' }],
     },
     {
-      code: "import type { Page } from '#gateway/npm/@playwright/test';",
+      code: "import type { Page } from '#gateway/npm/playwright__test';",
       filename: '/repo/packages/hooks/src/brokers/x/x-broker.ts',
       options: [{ scope: '@dungeonmaster' }],
     },
@@ -125,7 +125,7 @@ ruleTester.run('raw-import-ban', ruleRawImportBanBroker(), {
           messageId: 'rawImport',
           data: {
             importSource: '@playwright/test',
-            gatewayPath: '#gateway/npm/@playwright/test',
+            gatewayPath: '#gateway/npm/playwright__test',
           },
         },
       ],
@@ -140,7 +140,7 @@ ruleTester.run('raw-import-ban', ruleRawImportBanBroker(), {
           messageId: 'rawImport',
           data: {
             importSource: '@playwright/test/reporter',
-            gatewayPath: '#gateway/npm/@playwright/test/reporter',
+            gatewayPath: '#gateway/npm/playwright__test__reporter',
           },
         },
       ],
@@ -155,7 +155,7 @@ ruleTester.run('raw-import-ban', ruleRawImportBanBroker(), {
           messageId: 'rawImport',
           data: {
             importSource: 'react-dom/client',
-            gatewayPath: '#gateway/npm/react-dom/client',
+            gatewayPath: '#gateway/npm/react-dom__client',
           },
         },
       ],
@@ -218,7 +218,7 @@ ruleTester.run('raw-import-ban', ruleRawImportBanBroker(), {
           messageId: 'rawImport',
           data: {
             importSource: '@anthropic-ai/claude-code',
-            gatewayPath: '#gateway/npm/@anthropic-ai/claude-code',
+            gatewayPath: '#gateway/npm/anthropic-ai__claude-code',
           },
         },
       ],

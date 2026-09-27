@@ -209,6 +209,9 @@ export const configDungeonmasterBroker = ({
     '@dungeonmaster/enforce-proxy-child-creation': _gatewayOmitEnforceProxyChildCreation,
     '@dungeonmaster/enforce-stub-patterns': _gatewayOmitEnforceStubPatterns,
     '@dungeonmaster/ban-adhoc-types': _gatewayOmitBanAdhocTypes,
+    // gateway-colocation holds the gateway's own version: a wrapper needs a test and a proxy, a
+    // barrel needs a test, and a file declaring only types needs neither.
+    '@dungeonmaster/enforce-implementation-colocation': _gatewayOmitEnforceImplementationColocation,
     ...gatewayCustomRules
   } = dungeonmasterCustomRules;
 

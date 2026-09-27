@@ -61,16 +61,15 @@ export const instanceKillBroker = async ({
     request,
     timeoutMs: driverStatics.socket.requestTimeoutMs,
   })
-    .then(
-      (): KillResult =>
-        killResultContract.parse({
-          instanceId,
-          stopped: true,
-          portsReleased,
-          homeRemoved: true,
-          evidenceKept,
-          reapedPgids: [],
-        }),
+    .then((): KillResult =>
+      killResultContract.parse({
+        instanceId,
+        stopped: true,
+        portsReleased,
+        homeRemoved: true,
+        evidenceKept,
+        reapedPgids: [],
+      }),
     )
     .catch(async (): Promise<KillResult> => {
       const heartbeatPath = absoluteFilePathContract.parse(

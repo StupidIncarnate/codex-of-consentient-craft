@@ -13,7 +13,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from '#gateway/npm/react';
 
-import { Group } from '#gateway/npm/@mantine/core';
+import { Group } from '#gateway/npm/mantine__core';
 import { IconFocusCentered, IconZoomIn, IconZoomOut } from '@tabler/icons-react';
 
 import type {

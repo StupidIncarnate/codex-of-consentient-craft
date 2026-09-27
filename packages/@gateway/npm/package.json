@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "description": "Gateway package: one subpath per third-party npm package our code imports, named for it",
   "sideEffects": [
-    "./src/@testing-library/jest-dom/index.ts",
-    "./dist/@testing-library/jest-dom/index.js"
+    "./src/testing-library__jest-dom/testing-library__jest-dom.ts",
+    "./dist/testing-library__jest-dom/testing-library__jest-dom.js"
   ],
   "imports": {
     "#gateway/npm/*": "@dungeonmaster/npm/*",
@@ -13,27 +13,19 @@
     "#gateway/bin/*": "@dungeonmaster/bin/*"
   },
   "exports": {
-    "./_test_": {
-      "gateway-dist": "./dist/_test_/index.d.ts",
-      "source": "./src/_test_/index.ts",
-      "import": "./dist/_test_/index.js",
-      "require": "./dist/_test_/index.js",
-      "types": "./dist/_test_/index.d.ts"
+    "./_test_/*": {
+      "gateway-dist": "./dist/*/*.proxy.d.ts",
+      "source": "./src/*/*.proxy.ts",
+      "import": "./dist/*/*.proxy.js",
+      "require": "./dist/*/*.proxy.js",
+      "types": "./dist/*/*.proxy.d.ts"
     },
     "./*": {
-      "gateway-dist": "./dist/*/index.d.ts",
-      "source": "./src/*/index.ts",
-      "import": "./dist/*/index.js",
-      "require": "./dist/*/index.js",
-      "types": "./dist/*/index.d.ts"
-    }
-  },
-  "typesVersions": {
-    "*": {
-      "*": [
-        "src/*/index.ts",
-        "src/*"
-      ]
+      "gateway-dist": "./dist/*/*.d.ts",
+      "source": "./src/*/*.ts",
+      "import": "./dist/*/*.js",
+      "require": "./dist/*/*.js",
+      "types": "./dist/*/*.d.ts"
     }
   },
   "files": [

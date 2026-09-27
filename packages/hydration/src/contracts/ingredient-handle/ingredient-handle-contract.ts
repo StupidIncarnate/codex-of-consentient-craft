@@ -108,13 +108,15 @@ type AncestorNames<Anc extends AnyIngredient[]> = NameOf<Anc[number]>;
  * SECOND case wrong, not the first.
  */
 export type ChildAccessors<R extends Registry, Host, Anc extends AnyIngredient[]> = {
-  [K in keyof R as [LinkNames<R[K]>] extends [never]
-    ? never
-    : NameOf<Host> extends LinkNames<R[K]>
-      ? LinkNames<R[K]> extends AncestorNames<Anc>
-        ? K
+  [
+    K in keyof R as [LinkNames<R[K]>] extends [never]
+      ? never
+      : NameOf<Host> extends LinkNames<R[K]>
+        ? LinkNames<R[K]> extends AncestorNames<Anc>
+          ? K
+          : never
         : never
-      : never]: Collection<R, R[K], Anc>;
+  ]: Collection<R, R[K], Anc>;
 };
 
 export type Handle<R extends Registry, I, Anc extends AnyIngredient[]> = RowVerbs<I> &
