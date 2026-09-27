@@ -32,11 +32,10 @@ import {
 } from '@dungeonmaster/shared/brokers';
 import {
   absoluteFilePathContract,
-  filePathContract,
   pathSegmentContract,
   contentTextContract as sharedContentTextContract,
 } from '@dungeonmaster/shared/contracts';
-import { fsExistsSyncAdapter, fsReaddirWithTypesAdapter } from '@dungeonmaster/shared/adapters';
+import { existsSync, readdirEntriesSync } from '#gateway/node/fs';
 import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
 // sharedContentTextContract is used to brand the packageName string for the inventory broker call
 import { architectureFolderDetailBroker } from '../../../brokers/architecture/folder-detail/architecture-folder-detail-broker';
@@ -187,16 +186,16 @@ export const ArchitectureHandleResponder = async ({
 
     // Prefer the direct folder when it exists; only scan group folders for a matching child when
     // it does not, so an ordinary (non-gateway) package never pays this extra readdir.
-    const groupChildMatch = fsExistsSyncAdapter({
-      filePath: filePathContract.parse(String(directPackageDir)),
-    })
+    const groupChildMatch = existsSync(directPackageDir)
       ? undefined
-      : fsReaddirWithTypesAdapter({ dirPath: packagesPath })
-          .filter((entry) => entry.isDirectory() && entry.name.startsWith(GROUP_FOLDER_PREFIX))
+      : readdirEntriesSync(packagesPath)
+          .filter(
+            (entry) => entry.kind === 'directory' && entry.name.startsWith(GROUP_FOLDER_PREFIX),
+          )
           .flatMap((group) => {
             const groupPath = absoluteFilePathContract.parse(`${packagesPath}/${group.name}`);
-            return fsReaddirWithTypesAdapter({ dirPath: groupPath })
-              .filter((child) => child.isDirectory() && child.name === String(packageName))
+            return readdirEntriesSync(groupPath)
+              .filter((child) => child.kind === 'directory' && child.name === String(packageName))
               .map((child) => absoluteFilePathContract.parse(`${groupPath}/${child.name}`));
           })
           .at(0);

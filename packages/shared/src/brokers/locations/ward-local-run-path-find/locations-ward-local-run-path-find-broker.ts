@@ -9,7 +9,7 @@
  * // Returns AbsoluteFilePath '/repo/.ward/run-1739625600000-a3f1.json'
  */
 
-import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
+import { join } from '#gateway/node/path';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
 import {
   absoluteFilePathContract,
@@ -24,9 +24,7 @@ export const locationsWardLocalRunPathFindBroker = ({
   rootPath: AbsoluteFilePath;
   runId: WardRunId;
 }): AbsoluteFilePath => {
-  const joined = pathJoinAdapter({
-    paths: [rootPath, locationsStatics.repoRoot.wardLocalDir, `run-${runId}.json`],
-  });
+  const joined = join(rootPath, locationsStatics.repoRoot.wardLocalDir, `run-${runId}.json`);
 
   return absoluteFilePathContract.parse(joined);
 };

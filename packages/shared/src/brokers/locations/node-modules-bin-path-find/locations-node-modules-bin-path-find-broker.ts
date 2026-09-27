@@ -9,7 +9,7 @@
  * // Returns AbsoluteFilePath '/repo/node_modules/.bin/jest'
  */
 
-import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
+import { join } from '#gateway/node/path';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
 import {
   absoluteFilePathContract,
@@ -24,9 +24,7 @@ export const locationsNodeModulesBinPathFindBroker = ({
   rootPath: AbsoluteFilePath;
   binName: FileName;
 }): AbsoluteFilePath => {
-  const joined = pathJoinAdapter({
-    paths: [rootPath, locationsStatics.repoRoot.nodeModulesBin, binName],
-  });
+  const joined = join(rootPath, locationsStatics.repoRoot.nodeModulesBin, binName);
 
   return absoluteFilePathContract.parse(joined);
 };

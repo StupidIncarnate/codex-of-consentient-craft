@@ -9,7 +9,7 @@
  * await questWardResultDetailWriteBroker({ target, record: quest, args: { wardResultId, detail } });
  * // Writes <questFolder>/ward-results/<wardResultId>.json
  */
-import { fsMkdirAdapter } from '@dungeonmaster/shared/adapters';
+import { ensureDir } from '#gateway/node/fs__promises';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { fileContentsContract, filePathContract } from '@dungeonmaster/shared/contracts';
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
@@ -32,7 +32,7 @@ export const questWardResultDetailWriteBroker = async ({
   const questFolderPath = await questFolderPathResolveBroker({ target, record });
   const wardResultsDirPath = `${questFolderPath}/${locationsStatics.quest.wardResultsDir}`;
 
-  await fsMkdirAdapter({ filepath: filePathContract.parse(wardResultsDirPath) });
+  await ensureDir(wardResultsDirPath);
 
   return fsWriteFileAdapter({
     filePath: filePathContract.parse(`${wardResultsDirPath}/${parsedArgs.wardResultId}.json`),

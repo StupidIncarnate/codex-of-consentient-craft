@@ -10,9 +10,10 @@
  * // Returns every session directly under that guild's encoded directory
  */
 import { claudePathSlugEncoderTransformer } from '@dungeonmaster/shared/transformers';
-import { fsReadFileSyncAdapter, fsReaddirWithTypesAdapter } from '@dungeonmaster/shared/adapters';
+import { readFileSync, readdirEntriesSync } from '#gateway/node/fs';
 import {
   absoluteFilePathContract,
+  contentTextContract,
   lineCountContract,
   sessionIdContract,
 } from '@dungeonmaster/shared/contracts';
@@ -38,9 +39,9 @@ export const sessionQueryRouteBroker = ({
     projectPath: cwd,
   });
 
-  const entries = fsReaddirWithTypesAdapter({ dirPath: sessionsDir });
+  const entries = readdirEntriesSync(sessionsDir);
   const sessionFiles = entries.filter(
-    (entry) => entry.isFile() && isJsonlFileGuard({ filename: entry.name }),
+    (entry) => entry.kind === 'file' && isJsonlFileGuard({ filename: entry.name }),
   );
 
   const records = sessionFiles.map((entry) => {
@@ -48,7 +49,7 @@ export const sessionQueryRouteBroker = ({
       stripJsonlExtensionTransformer({ filename: entry.name }),
     );
     const filePath = absoluteFilePathContract.parse(`${sessionsDir}/${entry.name}`);
-    const contents = fsReadFileSyncAdapter({ filePath });
+    const contents = contentTextContract.parse(readFileSync(filePath));
     const lineCount = lineCountContract.parse(
       contents.split('\n').filter((line) => line.length > 0).length,
     );

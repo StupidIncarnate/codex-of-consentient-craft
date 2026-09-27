@@ -15,14 +15,13 @@
 import {
   type InstallContext,
   type InstallResult,
+  filePathContract,
   installMessageContract,
   packageNameContract,
+  pathSegmentContract,
 } from '@dungeonmaster/shared/contracts';
-import {
-  pathJoinAdapter,
-  fsExistsSyncAdapter,
-  pathBasenameAdapter,
-} from '@dungeonmaster/shared/adapters';
+import { existsSync } from '#gateway/node/fs';
+import { basename, join } from '#gateway/node/path';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import {
   jsonFileContentsTransformer,
@@ -50,11 +49,11 @@ export const InstallSetupGatewayResponder = async ({
 }: {
   context: InstallContext;
 }): Promise<InstallResult> => {
-  const rootPackageJsonPath = pathJoinAdapter({
-    paths: [context.targetProjectRoot, 'package.json'],
-  });
+  const rootPackageJsonPath = filePathContract.parse(
+    join(context.targetProjectRoot, 'package.json'),
+  );
 
-  if (!fsExistsSyncAdapter({ filePath: rootPackageJsonPath })) {
+  if (!existsSync(rootPackageJsonPath)) {
     return {
       packageName: packageNameContract.parse(PACKAGE_NAME),
       success: false,
@@ -68,7 +67,7 @@ export const InstallSetupGatewayResponder = async ({
   const nameKey = packageJsonRawContract.keyType.parse('name');
   const rootNameValue = rootPackageJson[nameKey];
   const rootPackageJsonName = typeof rootNameValue === 'string' ? rootNameValue : undefined;
-  const fallbackName = pathBasenameAdapter({ path: context.targetProjectRoot });
+  const fallbackName = pathSegmentContract.parse(basename(context.targetProjectRoot));
   const scope = workspaceScopeFromRootNameTransformer({ rootPackageJsonName, fallbackName });
   if (scope === undefined) {
     throw new Error(
@@ -85,13 +84,13 @@ export const InstallSetupGatewayResponder = async ({
     });
   }
 
-  const packagesDir = pathJoinAdapter({ paths: [context.targetProjectRoot, 'packages'] });
-  const gatewayDir = pathJoinAdapter({ paths: [packagesDir, '@gateway'] });
+  const packagesDir = filePathContract.parse(join(context.targetProjectRoot, 'packages'));
+  const gatewayDir = filePathContract.parse(join(packagesDir, '@gateway'));
 
   const scaffoldOutcomes = await Promise.all(
     gatewayFoldersStatics.folders.map(async (folder) => {
-      const packageRoot = pathJoinAdapter({ paths: [gatewayDir, folder] });
-      if (fsExistsSyncAdapter({ filePath: packageRoot })) {
+      const packageRoot = filePathContract.parse(join(gatewayDir, folder));
+      if (existsSync(packageRoot)) {
         return null;
       }
       const files = gatewayPackageScaffoldFilesTransformer({ scope, folder });
@@ -104,10 +103,10 @@ export const InstallSetupGatewayResponder = async ({
   );
   const createdFolders = scaffoldOutcomes.filter((folder) => folder !== null);
 
-  const rootTsconfigPath = pathJoinAdapter({
-    paths: [context.targetProjectRoot, locationsStatics.repoRoot.tsconfig],
-  });
-  const rootTsconfigExists = fsExistsSyncAdapter({ filePath: rootTsconfigPath });
+  const rootTsconfigPath = filePathContract.parse(
+    join(context.targetProjectRoot, locationsStatics.repoRoot.tsconfig),
+  );
+  const rootTsconfigExists = existsSync(rootTsconfigPath);
   const rootTsconfigChanged = await gatewayTsconfigCompilerOptionsWriteBroker({
     tsconfigPath: rootTsconfigPath,
     options: tsconfigCompilerOptionsContract.parse(
@@ -119,7 +118,7 @@ export const InstallSetupGatewayResponder = async ({
 
   const perPackageOutcomes = await Promise.all(
     existingPackageDirs.map(async (packageDir) => {
-      const pkgPackageJsonPath = pathJoinAdapter({ paths: [packageDir, 'package.json'] });
+      const pkgPackageJsonPath = filePathContract.parse(join(packageDir, 'package.json'));
       const rawPkgPackageJson = await fsReadFileAdapter({ filePath: pkgPackageJsonPath });
       const pkgPackageJson = packageJsonRawContract.parse(JSON.parse(rawPkgPackageJson));
       const importsKey = packageJsonRawContract.keyType.parse('imports');
@@ -137,7 +136,7 @@ export const InstallSetupGatewayResponder = async ({
       }
 
       const pkgTsconfigBuildChanged = await gatewayTsconfigCompilerOptionsWriteBroker({
-        tsconfigPath: pathJoinAdapter({ paths: [packageDir, TSCONFIG_BUILD_FILENAME] }),
+        tsconfigPath: filePathContract.parse(join(packageDir, TSCONFIG_BUILD_FILENAME)),
         options: tsconfigCompilerOptionsContract.parse({
           customConditions: gatewayPackageTemplateStatics.buildCustomConditions,
         }),

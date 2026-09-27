@@ -10,7 +10,7 @@ import { eslintEslintAdapter } from '../../../adapters/eslint/eslint/eslint-esli
 import { eslintOutputFixesAdapter } from '../../../adapters/eslint/output-fixes/eslint-output-fixes-adapter';
 import { pathResolveAdapter } from '../../../adapters/path/resolve/path-resolve-adapter';
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
-import { processCwdAdapter } from '@dungeonmaster/shared/adapters';
+import { cwd } from '#gateway/node/process';
 import type { LintResult } from '../../../contracts/lint-result/lint-result-contract';
 import { eslintResultToLintResultTransformer } from '../../../transformers/eslint-result-to-lint-result/eslint-result-to-lint-result-transformer';
 import { lintSeverityStatics } from '../../../statics/lint-severity/lint-severity-statics';
@@ -26,21 +26,22 @@ import { lintSeverityStatics } from '../../../statics/lint-severity/lint-severit
  *
  * @param filePath - The file path to lint and fix
  * @param config - The ESLint configuration with rules to apply
- * @param cwd - The current working directory (defaults to processCwdAdapter())
+ * @param cwd - The current working directory (defaults to cwd())
  * @returns Array of lint results containing only error-level violations
  */
 export const eslintLintRunWithFixBroker = async ({
   filePath,
   config: _config,
-  cwd = processCwdAdapter(),
+  cwd: customCwd,
 }: {
   filePath: string;
   config: unknown;
   cwd?: string;
 }): Promise<LintResult[]> => {
   try {
+    const resolvedWorkingDir = customCwd ?? cwd();
     // Ensure we have an absolute path for ESLint
-    const absolutePath = pathResolveAdapter({ paths: [cwd, filePath] });
+    const absolutePath = pathResolveAdapter({ paths: [resolvedWorkingDir, filePath] });
     const absoluteFilePath = filePathContract.parse(absolutePath);
 
     // Verify file is readable before linting (prevents race condition with file writes)
@@ -55,7 +56,7 @@ export const eslintLintRunWithFixBroker = async ({
     // Use the project's eslint.config.js for full plugin support (prettier, etc.)
     const eslint = eslintEslintAdapter({
       options: {
-        cwd,
+        cwd: resolvedWorkingDir,
         fix: true, // Auto-fix violations
       },
     });

@@ -63,16 +63,16 @@ describe('startArgsParseTransformer', () => {
   });
 
   describe('missing --spec', () => {
-    it('INVALID: {args: []} => throws naming --spec as required', () => {
+    it('INVALID: {args: []} => throws naming --spec as required and the known specs', () => {
       expect(() => startArgsParseTransformer({ args: [] })).toThrow(
-        /^--spec is required: name the lane spec to boot\.$/u,
+        /^--spec is required: name the lane spec to boot\. Known specs: stack, api\.$/u,
       );
     });
 
-    it('INVALID: {--quest and --guild but no --spec} => throws naming --spec as required', () => {
+    it('INVALID: {--quest and --guild but no --spec} => throws naming --spec as required and the known specs', () => {
       expect(() =>
         startArgsParseTransformer({ args: ['--quest', 'add-auth', '--guild', 'x'] }),
-      ).toThrow(/^--spec is required: name the lane spec to boot\.$/u);
+      ).toThrow(/^--spec is required: name the lane spec to boot\. Known specs: stack, api\.$/u);
     });
   });
 
@@ -146,20 +146,22 @@ describe('startArgsParseTransformer', () => {
       });
     });
 
-    it('INVALID: {--idle-timeout-ms not-a-number} => throws naming --idle-timeout-ms', () => {
-      expect(() =>
-        startArgsParseTransformer({
-          args: ['--spec', 'dungeonmaster-stack', '--idle-timeout-ms', 'not-a-number'],
-        }),
-      ).toThrow(/^--idle-timeout-ms: Expected number, received nan$/u);
-    });
-
-    it("INVALID: {--idle-timeout-ms -1} => throws naming --idle-timeout-ms and the contract's own message", () => {
-      expect(() =>
-        startArgsParseTransformer({
-          args: ['--spec', 'dungeonmaster-stack', '--idle-timeout-ms', '-1'],
-        }),
-      ).toThrow(/^--idle-timeout-ms: Number must be greater than or equal to 0$/u);
+    describe('a --idle-timeout-ms value the contract refuses', () => {
+      it.each(['not-a-number', '-1'])(
+        'INVALID: {--idle-timeout-ms %s} => refuses saying --idle-timeout-ms must be a whole number of 0 or more, and what was typed',
+        (idleTimeoutValue) => {
+          expect(() =>
+            startArgsParseTransformer({
+              args: ['--spec', 'dungeonmaster-stack', '--idle-timeout-ms', idleTimeoutValue],
+            }),
+          ).toThrow(
+            new RegExp(
+              `^--idle-timeout-ms must be a whole number of 0 or more; got "${idleTimeoutValue}"$`,
+              'u',
+            ),
+          );
+        },
+      );
     });
   });
 

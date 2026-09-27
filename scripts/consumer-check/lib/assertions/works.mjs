@@ -1,19 +1,23 @@
 /**
- * Proves the freshly-init-ed consumer actually WORKS — typecheck, lint (plus the known F1 lint
- * failure on the copied `@gateway/node`, asserted rather than swallowed), `create-package`'s own
- * scope detection and scaffolded jest config (F5, F6 — plain passing assertions now that both are
- * fixed; no patching), the copied gateways' own tests, the I/O trap, a mocked gateway-proxy test,
- * the consumer's own build, the pre-edit hook, and idempotent re-init — every check here shells out
- * to the consumer's OWN installed binaries (`node_modules/.bin/*`), never this checkout's compiled
- * output.
+ * Proves the freshly-init-ed consumer actually WORKS — typecheck, lint (including a plain pass on
+ * the copied `@gateway/node`, F1), `create-package`'s own scope detection and scaffolded jest config
+ * (F5, F6 — plain passing assertions now that both are fixed; no patching), the copied gateways' own
+ * tests, the I/O trap, a mocked gateway-proxy test, the consumer's own build, the pre-edit hook, and
+ * idempotent re-init — every check here shells out to the consumer's OWN installed binaries
+ * (`node_modules/.bin/*`), never this checkout's compiled output.
  */
 
-import { copyFileSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { runDungeonmasterInit, runEslint, runJest, runNpm, runTsc, runWard } from '../bin-run.mjs';
 import { run } from '../proc.mjs';
-import { classifyGatewayNodeLintResult } from '../lint-known-failures.mjs';
-import { LIB_PACKAGE_NAME, WEB_PACKAGE_NAME, scaffoldFixturePackages } from '../sample-sources.mjs';
+import { npmInstall } from '../fixture.mjs';
+import {
+  LIB_PACKAGE_NAME,
+  WEB_PACKAGE_NAME,
+  PROBE_PACKAGE_NAME,
+  scaffoldFixturePackages,
+} from '../sample-sources.mjs';
 
 const cliBinPath = ({ consumerRoot }) => join(consumerRoot, 'node_modules', '.bin', 'dungeonmaster');
 
@@ -108,8 +112,8 @@ const parseEslintJson = ({ report, result, label }) => {
 const runEslintForPackage = ({ consumerRoot, packageDir }) =>
   runEslint({ consumerRoot, cwd: packageDir, args: ['.'] });
 
-const assertLint = async ({ report, consumerRoot, inPackageViolationFile }) => {
-  for (const packageName of [LIB_PACKAGE_NAME, WEB_PACKAGE_NAME]) {
+const assertLint = async ({ report, consumerRoot, lintViolationFile }) => {
+  for (const packageName of [LIB_PACKAGE_NAME, WEB_PACKAGE_NAME, PROBE_PACKAGE_NAME]) {
     const packageDir = join(consumerRoot, 'packages', packageName);
     const result = await runEslintForPackage({ consumerRoot, packageDir });
     const eslintJson = parseEslintJson({ report, result, label: `consumer lint (packages/${packageName})` });
@@ -118,7 +122,7 @@ const assertLint = async ({ report, consumerRoot, inPackageViolationFile }) => {
     }
 
     const filesWithErrors = eslintJson.filter(
-      (entry) => entry.errorCount > 0 && entry.filePath !== inPackageViolationFile,
+      (entry) => entry.errorCount > 0 && entry.filePath !== lintViolationFile,
     );
     report.check(
       `lint passes on every file in the clean fixture (packages/${packageName})`,
@@ -128,8 +132,8 @@ const assertLint = async ({ report, consumerRoot, inPackageViolationFile }) => {
         : JSON.stringify(filesWithErrors.map((entry) => ({ filePath: entry.filePath, messages: entry.messages }))),
     );
 
-    if (packageName === LIB_PACKAGE_NAME) {
-      const violatorResult = eslintJson.find((entry) => entry.filePath === inPackageViolationFile);
+    if (packageName === PROBE_PACKAGE_NAME) {
+      const violatorResult = eslintJson.find((entry) => entry.filePath === lintViolationFile);
       report.check(
         'lint flags the sample file with a known violation (ban-primitives: a raw string return)',
         Boolean(violatorResult && violatorResult.errorCount > 0),
@@ -139,29 +143,25 @@ const assertLint = async ({ report, consumerRoot, inPackageViolationFile }) => {
   }
 };
 
-const assertGatewayNodeKnownF1 = async ({ report, consumerRoot }) => {
+// F1 (EPIC.md): a real consumer's newer `@typescript-eslint` used to report `no-unused-vars` on
+// five proxies and `no-deprecated` on the gateway's own `util.types.isNativeError` wrapper — both
+// fixed at the source (the wrapper no longer references the deprecated symbol at all), so this is
+// now a plain pass, not a known-shape classification to keep in sync by hand.
+const assertGatewayNodeLintPasses = async ({ report, consumerRoot }) => {
   const packageRoot = join(consumerRoot, 'packages', '@gateway', 'node');
   const result = await runEslintForPackage({ consumerRoot, packageDir: packageRoot });
-  const eslintJson = parseEslintJson({ report, result, label: 'unit F1' });
+  const eslintJson = parseEslintJson({ report, result, label: 'consumer lint of @gateway/node (F1)' });
   if (eslintJson === null) {
     return;
   }
-  const classification = classifyGatewayNodeLintResult({ eslintJson, packageRoot });
-  if (classification.failingFileCount === 0) {
-    report.check(
-      'unit F1 (EPIC.md): consumer lint of @gateway/node — NO LONGER REPRODUCES (regression may be fixed; update EPIC.md)',
-      true,
-      'eslint reported zero errors on packages/@gateway/node in this consumer',
-    );
-  } else {
-    report.check(
-      'unit F1 (EPIC.md): consumer lint of @gateway/node fails in EXACTLY the documented shape (no-unused-vars on 5 proxies, no-deprecated on fetch-ok.ts) and nothing else',
-      classification.matchesKnownF1Only,
-      classification.matchesKnownF1Only
-        ? `known-failing as documented: ${classification.failingFileCount} files`
-        : `unexpectedFiles=${JSON.stringify(classification.unexpectedFiles)} unexpectedRules=${JSON.stringify(classification.unexpectedRules)}`,
-    );
-  }
+  const filesWithErrors = eslintJson.filter((entry) => entry.errorCount > 0);
+  report.check(
+    'consumer lint of @gateway/node passes outright (F1)',
+    filesWithErrors.length === 0,
+    filesWithErrors.length === 0
+      ? ''
+      : JSON.stringify(filesWithErrors.map((entry) => ({ filePath: entry.filePath, messages: entry.messages }))),
+  );
 
   const typecheckAndTest = await runWard({
     consumerRoot,
@@ -174,7 +174,7 @@ const assertGatewayNodeKnownF1 = async ({ report, consumerRoot }) => {
     ],
   });
   report.check(
-    'the copied gateways’ own typecheck/unit/integration checks pass in the consumer (lint excluded — F1)',
+    "the copied gateways' own typecheck/unit/integration checks pass in the consumer",
     typecheckAndTest.code === 0,
     typecheckAndTest.code === 0 ? '' : `${typecheckAndTest.stdout}\n${typecheckAndTest.stderr}`.slice(-3000),
   );
@@ -186,7 +186,9 @@ const assertGatewayNodeKnownF1 = async ({ report, consumerRoot }) => {
 // `assertMswTrap` below, not a passing assertion of a throw (confirmed against a real run of this
 // suite: the test's own assertion passes, then the suite's `afterEach` still fails the test).
 const assertIoTrap = async ({ report, consumerRoot, ioTrapTestFile }) => {
-  const cwd = join(consumerRoot, 'packages', LIB_PACKAGE_NAME);
+  // Lives in `probe`, not `lib` — see sample-sources.mjs's own comment on why: a deliberately-
+  // failing test in `lib`'s scope would make assertWardCleanFixture's ward sweep fail by design.
+  const cwd = join(consumerRoot, 'packages', PROBE_PACKAGE_NAME);
   const result = await runJest({ consumerRoot, cwd, args: [ioTrapTestFile] });
   const output = `${result.stdout}\n${result.stderr}`;
   report.check(
@@ -201,7 +203,9 @@ const assertIoTrap = async ({ report, consumerRoot, ioTrapTestFile }) => {
 // `start-endpoint-mock-setup.ts`'s own `afterEach`, so the failure lands on the test as a whole —
 // this is an EXPECTED-FAILING jest run, not a passing assertion of a throw.
 const assertMswTrap = async ({ report, consumerRoot, mswTrapTestFile }) => {
-  const cwd = join(consumerRoot, 'packages', LIB_PACKAGE_NAME);
+  // Lives in `probe`, not `lib` — see sample-sources.mjs's own comment on why: a deliberately-
+  // failing test in `lib`'s scope would make assertWardCleanFixture's ward sweep fail by design.
+  const cwd = join(consumerRoot, 'packages', PROBE_PACKAGE_NAME);
   const result = await runJest({ consumerRoot, cwd, args: [mswTrapTestFile] });
   const output = `${result.stdout}\n${result.stderr}`;
   report.check(
@@ -213,7 +217,7 @@ const assertMswTrap = async ({ report, consumerRoot, mswTrapTestFile }) => {
 
 const assertGatewayProxyMockTest = async ({ report, consumerRoot }) => {
   const cwd = join(consumerRoot, 'packages', LIB_PACKAGE_NAME);
-  const result = await runJest({ consumerRoot, cwd, args: ['read-config-or-default'] });
+  const result = await runJest({ consumerRoot, cwd, args: ['config-read-or-default-broker'] });
   report.check(
     'a test importing a gateway wrapper proxy per file has its registerMock hoisted and passes',
     result.code === 0,
@@ -269,6 +273,9 @@ const assertBuild = async ({ report, consumerRoot }) => {
   );
 };
 
+// `PROBE_PACKAGE_NAME` (sample-sources.mjs) never appears in this list — it holds the one
+// deliberate `ban-primitives` violation `assertLint`/`assertPreEditHook` need, so scoping ward onto
+// it here would make this check fail by design.
 const assertWardCleanFixture = async ({ report, consumerRoot }) => {
   const result = await runWard({
     consumerRoot,
@@ -285,7 +292,7 @@ const assertWardCleanFixture = async ({ report, consumerRoot }) => {
     ],
   });
   report.check(
-    'dungeonmaster ward runs in the consumer and exits 0 on the clean fixture (F1 excluded — its own dedicated check above)',
+    'dungeonmaster ward runs in the consumer and exits 0 on the clean fixture (@gateway/node covered separately above, F1)',
     result.code === 0,
     result.code === 0 ? '' : `${result.stdout}\n${result.stderr}`.slice(-3000),
   );
@@ -301,7 +308,7 @@ const preEditPayload = ({ consumerRoot, filePath, content }) =>
     tool_input: { file_path: filePath, content },
   });
 
-const assertPreEditHook = async ({ report, consumerRoot, inPackageViolationFile }) => {
+const assertPreEditHook = async ({ report, consumerRoot, lintViolationFile }) => {
   const binPath = join(consumerRoot, 'node_modules', '.bin', 'dungeonmaster-pre-edit-lint');
   if (!existsSync(binPath)) {
     report.check('the pre-edit hook binary is installed', false, binPath);
@@ -310,14 +317,14 @@ const assertPreEditHook = async ({ report, consumerRoot, inPackageViolationFile 
 
   // The hook only blocks a violation the edit ADDS — it diffs the file's CURRENT on-disk text
   // against the proposed new text (repo `scrolls/brands-types-tests-rules.md`'s own description of
-  // `violations-check-new-broker.ts`). Handing it `inPackageViolationFile`'s own already-on-disk
+  // `violations-check-new-broker.ts`). Handing it `lintViolationFile`'s own already-on-disk
   // violating content as the "new" text is a no-op edit from the hook's point of view — old and new
   // are byte-identical, so nothing was ADDED, and it allows the write (confirmed against a real run
   // of this suite: exit 0, not the expected 2). A path that does not exist on disk YET has no "old"
   // text to diff against, so the violating content the payload proposes is entirely new.
-  const violatingContent = readFileSync(inPackageViolationFile, 'utf8');
+  const violatingContent = readFileSync(lintViolationFile, 'utf8');
   const neverWrittenFile = join(
-    join(inPackageViolationFile, '..'),
+    join(lintViolationFile, '..'),
     'pre-edit-hook-new-file-probe-broker.ts',
   );
   const blockedResult = await run({
@@ -332,14 +339,18 @@ const assertPreEditHook = async ({ report, consumerRoot, inPackageViolationFile 
     `exit ${String(blockedResult.code)}: ${blockedResult.stdout}${blockedResult.stderr}`.slice(-1500),
   );
 
+  // Same export name and file identity as the on-disk violator (`preEditProbeBroker`, in
+  // `pre-edit-probe-broker.ts`) — only the return type changes, from a raw `string` to a branded
+  // `PathSegment` — so this is a genuine same-file fix, never a different function under the same
+  // name the naming convention (entry file name = folder path + suffix) would itself flag.
   const cleanContent =
-    '/**\n * PURPOSE: A clean, pre-edit-hook-compliant file used only to prove the hook ALLOWS a well-formed write.\n *\n * USAGE:\n * preEditCleanBroker();\n */\n\nimport { pathSegmentContract, type PathSegment } from '
+    "/**\n * PURPOSE: Uppercases a path segment, returning a branded PathSegment instead of a raw\n * string.\n *\n * USAGE:\n * preEditProbeBroker({ path: 'a/b' });\n */\n\nimport { pathSegmentContract, type PathSegment } from "
     + "'@dungeonmaster/shared/contracts';"
-    + '\n\nexport const preEditCleanBroker = ({ value }: { value: string }): PathSegment =>\n  pathSegmentContract.parse(value);\n';
+    + "\n\nexport const preEditProbeBroker = ({ path }: { path: string }): PathSegment =>\n  pathSegmentContract.parse(path.toUpperCase());\n";
   const allowedResult = await run({
     command: binPath,
     cwd: consumerRoot,
-    input: preEditPayload({ consumerRoot, filePath: inPackageViolationFile, content: cleanContent }),
+    input: preEditPayload({ consumerRoot, filePath: lintViolationFile, content: cleanContent }),
     timeoutMs: 30_000,
   });
   report.check(
@@ -384,46 +395,62 @@ const assertIdempotentReinit = async ({ report, consumerRoot }) => {
   );
 };
 
-export const runWorksAssertions = async ({ report, consumerRoot, gt, mode }) => {
+// F7 (gateway-pivot): `create-package` never runs `npm install` itself — `cli-create-package-
+// responder.ts` prints "Next steps: npm install" and stops there, on purpose, the same way a real
+// user's next terminal command would be. So the fixture's own `react`/`@types/react` dependency
+// (packages/app/package.json, written by the `frontend-react` seed) sits in package.json but not
+// yet in node_modules until this runs — without it, `tsc` reports "Cannot find namespace 'React'"
+// on the scaffolded widget (confirmed against a real run of this suite: installing here, and only
+// here, makes that error disappear with no other change).
+const installScaffoldedPackages = async ({ report, consumerRoot }) => {
+  const result = await npmInstall({ cwd: consumerRoot });
+  report.check(
+    'npm install succeeds after create-package scaffolds lib/app/probe (F7)',
+    result.code === 0,
+    result.code === 0 ? '' : result.stderr.slice(-2000),
+  );
+};
+
+export const runWorksAssertions = async ({ report, consumerRoot, gt, mode, scope }) => {
   const { ioTrapTestFile, mswTrapTestFile, lintViolationFile } = await scaffoldFixturePackages({
     consumerRoot,
     cliBin: cliBinPath({ consumerRoot }),
     gt,
+    scope,
   });
+  await installScaffoldedPackages({ report, consumerRoot });
 
   assertScopeDetection({ report, consumerRoot, gt });
   assertJestConfigBase({ report, consumerRoot });
 
-  // `lintViolationFile` (from sample-sources.mjs) sits at the consumer ROOT — outside every
-  // package's own tsconfig `include`, so typescript-eslint's `parserOptions.project` can never
-  // parse it (the scaffolded root tsconfig.json's own `"files": []` accepts nothing directly; it
-  // exists only for packages to `extends`). A real consumer never has source at repo root (every
-  // consumer is an npm-workspaces monorepo — repo CLAUDE.md), so this copies the same known
-  // violation INSIDE `packages/lib/src` instead, where a real package's own lint genuinely applies.
-  const inPackageViolationFile = join(
-    consumerRoot,
-    'packages',
-    LIB_PACKAGE_NAME,
-    'src',
-    'lint-violation-sample.ts',
-  );
-  copyFileSync(lintViolationFile, inPackageViolationFile);
-
+  // `lintViolationFile` (from sample-sources.mjs) sits inside the DEDICATED `probe` package's own
+  // `src/brokers/`, fully covered by ITS tsconfig `include` — a real consumer never has source at
+  // repo root (every consumer is an npm-workspaces monorepo — repo CLAUDE.md), so a real package's
+  // own broker is where this known violation genuinely belongs. `probe` is never one of the
+  // packages `assertWardCleanFixture` scopes `dungeonmaster ward` onto below, so that check exits 0
+  // on a genuinely clean `lib`/`app` while lint and the pre-edit hook still see a real violation.
   await assertTypecheck({ report, consumerRoot });
-  await assertLint({ report, consumerRoot, inPackageViolationFile });
-  await assertGatewayNodeKnownF1({ report, consumerRoot });
-  // BEFORE the gateway-proxy-mock test, never after: that test's own `#gateway/node/fs__promises`
-  // import resolves through the `require` condition (jest sets no `source` custom condition — only
-  // ward's own invocation does, via `check-run-unit-broker`), which points at `./dist/**` — so it
-  // needs `@gateway/node` actually BUILT first, exactly like a real consumer would (confirmed
-  // against a real run of this suite: "Cannot find module '#gateway/node/fs__promises'" on a fresh
-  // consumer whose gateway packages had never been built yet).
+  await assertLint({ report, consumerRoot, lintViolationFile });
+  // BEFORE assertGatewayNodeLintPasses's own ward typecheck, and before the gateway-proxy-mock
+  // test: both need `@gateway/node` actually BUILT first, exactly like a real consumer would.
+  // assertGatewayNodeLintPasses's cross-gateway stub import (browser's fetch-json.proxy.ts reaches
+  // `#gateway/node/net/connection-refused-error/connection-refused-error.stub`) resolves through
+  // node's package.json `gateway-dist` export condition, which names a file under node's OWN
+  // `dist/` — with no dist yet, resolution falls through to node's `source` condition instead,
+  // pulling node's SOURCE `.ts` into browser's build program and tripping TS6059 (a file outside
+  // browser's own `rootDir`). The gateway-proxy-mock test's `#gateway/node/fs__promises` import
+  // resolves through the `require` condition (jest sets no `source` custom condition — only ward's
+  // own invocation does, via `check-run-unit-broker`), which points at `./dist/**` too. Both
+  // confirmed against a real run of this suite: the TS6059 above, and separately "Cannot find
+  // module '#gateway/node/fs__promises'" on a fresh consumer whose gateway packages had never been
+  // built yet.
   await assertBuild({ report, consumerRoot });
+  await assertGatewayNodeLintPasses({ report, consumerRoot });
   await assertIoTrap({ report, consumerRoot, ioTrapTestFile });
   await assertMswTrap({ report, consumerRoot, mswTrapTestFile });
   await assertGatewayProxyMockTest({ report, consumerRoot });
   await assertWardCleanFixture({ report, consumerRoot });
-  await assertPreEditHook({ report, consumerRoot, inPackageViolationFile });
+  await assertPreEditHook({ report, consumerRoot, lintViolationFile });
   await assertIdempotentReinit({ report, consumerRoot });
 
   return { lintViolationFile, ioTrapTestFile };

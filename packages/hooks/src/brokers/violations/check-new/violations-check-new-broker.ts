@@ -18,8 +18,8 @@ import {
   violationComparisonContract,
   type ViolationComparison,
 } from '../../../contracts/violation-comparison/violation-comparison-contract';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
-import { processCwdAdapter } from '@dungeonmaster/shared/adapters';
+import { filePathContract, type FilePath } from '../../../contracts/file-path/file-path-contract';
+import { cwd } from '#gateway/node/process';
 
 /**
  * Checks for new ESLint violations introduced by a tool input operation.
@@ -38,12 +38,12 @@ import { processCwdAdapter } from '@dungeonmaster/shared/adapters';
  */
 export const violationsCheckNewBroker = async ({
   toolInput,
-  cwd,
+  cwd: cwdParam,
 }: {
   toolInput: ToolInput;
   cwd?: FilePath;
 }): Promise<ViolationComparison> => {
-  const workingDir = cwd ?? processCwdAdapter();
+  const workingDir = cwdParam ?? filePathContract.parse(cwd());
   const filePath = 'file_path' in toolInput ? toolInput.file_path : '';
 
   if (filePath === '') {

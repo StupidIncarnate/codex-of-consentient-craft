@@ -13,8 +13,8 @@
 // already read when this worker started.
 //
 // Because `HOME` is now sandboxed for the whole run, `usageLedgerScanBroker`'s walk of
-// `locationsClaudeProjectsRootFindBroker()` (which resolves through `osUserHomedirAdapter`, the
-// real `os.homedir()`) lands on an empty directory rather than the developer's own
+// `locationsClaudeProjectsRootFindBroker()` (which resolves through `#gateway/node/os`'s
+// `homedir()`, the real `os.homedir()`) lands on an empty directory rather than the developer's own
 // `~/.claude/projects` tree, so this file no longer seeds a ledger stamped at the current time to
 // keep that walk off its slow path — an absent ledger already resolves to the epoch-stamped
 // default, and the walk it triggers now finds nothing to read either way. The rate-limits-watcher

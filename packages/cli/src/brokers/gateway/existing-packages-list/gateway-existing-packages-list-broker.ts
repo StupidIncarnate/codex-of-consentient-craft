@@ -12,7 +12,8 @@
  * // Returns the absolute path of every package directory under packages/*, @gateway excluded
  */
 
-import { pathJoinAdapter, fsExistsSyncAdapter } from '@dungeonmaster/shared/adapters';
+import { join } from '#gateway/node/path';
+import { existsSync } from '#gateway/node/fs';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { fsReaddirAdapter } from '../../../adapters/fs/readdir/fs-readdir-adapter';
@@ -25,7 +26,7 @@ export const gatewayExistingPackagesListBroker = ({
 }: {
   packagesDir: FilePath;
 }): readonly FilePath[] => {
-  if (!fsExistsSyncAdapter({ filePath: packagesDir })) {
+  if (!existsSync(packagesDir)) {
     return [];
   }
 
@@ -36,17 +37,13 @@ export const gatewayExistingPackagesListBroker = ({
       return [];
     }
     if (!dir.startsWith(GROUP_FOLDER_PREFIX)) {
-      return [pathJoinAdapter({ paths: [packagesDir, dir] })];
+      return [join(packagesDir, dir)];
     }
-    const groupDir = pathJoinAdapter({ paths: [packagesDir, dir] });
-    return fsReaddirAdapter({ dirPath: groupDir }).map((child) =>
-      pathJoinAdapter({ paths: [groupDir, child] }),
-    );
+    const groupDir = join(packagesDir, dir);
+    return fsReaddirAdapter({ dirPath: groupDir }).map((child) => join(groupDir, child));
   });
 
   return candidateDirs
-    .filter((candidateDir) =>
-      fsExistsSyncAdapter({ filePath: pathJoinAdapter({ paths: [candidateDir, 'package.json'] }) }),
-    )
+    .filter((candidateDir) => existsSync(join(candidateDir, 'package.json')))
     .map((candidateDir) => filePathContract.parse(candidateDir));
 };

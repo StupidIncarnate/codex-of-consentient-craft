@@ -13,6 +13,36 @@ interface ProxyConfig {
   neverDrain: boolean;
 }
 
+// `spawn(command, args, options)` is the real call this proxy mocks — one layer below `run` — so
+// the address is built positionally: `command` alone (every existing caller's form, kept working),
+// plus `args` and/or `cwd` when a caller passes them, addressing by EXACTLY the keys given (never a
+// made-up default for the ones it doesn't). `args` given without `cwd` skips position 2 entirely, a
+// prefix match; `cwd` given without `args` still has to fill position 1 to reach position 2, so it
+// takes a permissive array predicate there rather than inventing an `args` value nobody staged.
+const buildSpawnAddress = ({
+  command,
+  args,
+  cwd,
+}: {
+  command: string;
+  args?: string[];
+  cwd?: string;
+}): unknown[] => {
+  const address: unknown[] = [command];
+
+  if (args !== undefined) {
+    address.push(args);
+  } else if (cwd !== undefined) {
+    address.push((value: unknown): boolean => Array.isArray(value));
+  }
+
+  if (cwd !== undefined) {
+    address.push({ cwd });
+  }
+
+  return address;
+};
+
 const createMockChildFromConfig = ({
   snapshot,
   killMock,
@@ -69,6 +99,8 @@ const createMockChildFromConfig = ({
 export const runProxy = (): {
   setupSuccess: (params: {
     command: string;
+    args?: string[];
+    cwd?: string;
     exitCode: number;
     stdout: string;
     stderr: string;
@@ -76,16 +108,27 @@ export const runProxy = (): {
   }) => void;
   setupSignalKill: (params: {
     command: string;
+    args?: string[];
+    cwd?: string;
     signal: NodeJS.Signals;
     stdout: string;
     stderr: string;
   }) => void;
-  setupError: (params: { command: string; error: Error }) => void;
+  setupError: (params: { command: string; args?: string[]; cwd?: string; error: Error }) => void;
   // The process never exits on its own — the mock only emits `exit` once its own `kill()` is
   // called, so a test proves the wrapper's OWN timeout timer is what triggers the kill, not just
   // that the mocked child happens to exit around the same time.
-  setupHangsUntilKilled: (params: { command: string; signalOnKill: NodeJS.Signals }) => void;
+  setupHangsUntilKilled: (params: {
+    command: string;
+    args?: string[];
+    cwd?: string;
+    signalOnKill: NodeJS.Signals;
+  }) => void;
   getKillCallCount: (params: { command: string }) => number;
+  // Every call's own `args` (spawn's 2nd positional argument), in call order, for calls whose
+  // command matches — the same shape callers addressed by `{command, args}` staging need back to
+  // assert exactly what ran.
+  getCallsFor: (params: { command: string }) => readonly string[][];
 } => {
   const handle = registerMock({ fn: spawn });
   const killCallCountByCommand = new Map<string, number>();
@@ -101,12 +144,16 @@ export const runProxy = (): {
   return {
     setupSuccess: ({
       command,
+      args,
+      cwd,
       exitCode,
       stdout,
       stderr,
       neverDrain,
     }: {
       command: string;
+      args?: string[];
+      cwd?: string;
       exitCode: number;
       stdout: string;
       stderr: string;
@@ -121,7 +168,13 @@ export const runProxy = (): {
         neverDrain: neverDrain ?? false,
       };
       handle
-        .calledWith([command])
+        .calledWith(
+          buildSpawnAddress({
+            command,
+            ...(args === undefined ? {} : { args }),
+            ...(cwd === undefined ? {} : { cwd }),
+          }),
+        )
         .implement(() =>
           createMockChildFromConfig({ snapshot, killMock: buildKillMock({ command }) }),
         );
@@ -129,11 +182,15 @@ export const runProxy = (): {
 
     setupSignalKill: ({
       command,
+      args,
+      cwd,
       signal,
       stdout,
       stderr,
     }: {
       command: string;
+      args?: string[];
+      cwd?: string;
       signal: NodeJS.Signals;
       stdout: string;
       stderr: string;
@@ -147,13 +204,29 @@ export const runProxy = (): {
         neverDrain: false,
       };
       handle
-        .calledWith([command])
+        .calledWith(
+          buildSpawnAddress({
+            command,
+            ...(args === undefined ? {} : { args }),
+            ...(cwd === undefined ? {} : { cwd }),
+          }),
+        )
         .implement(() =>
           createMockChildFromConfig({ snapshot, killMock: buildKillMock({ command }) }),
         );
     },
 
-    setupError: ({ command, error }: { command: string; error: Error }): void => {
+    setupError: ({
+      command,
+      args,
+      cwd,
+      error,
+    }: {
+      command: string;
+      args?: string[];
+      cwd?: string;
+      error: Error;
+    }): void => {
       const snapshot: ProxyConfig = {
         exitCode: 0,
         signal: null,
@@ -163,7 +236,13 @@ export const runProxy = (): {
         neverDrain: false,
       };
       handle
-        .calledWith([command])
+        .calledWith(
+          buildSpawnAddress({
+            command,
+            ...(args === undefined ? {} : { args }),
+            ...(cwd === undefined ? {} : { cwd }),
+          }),
+        )
         .implement(() =>
           createMockChildFromConfig({ snapshot, killMock: buildKillMock({ command }) }),
         );
@@ -171,38 +250,53 @@ export const runProxy = (): {
 
     setupHangsUntilKilled: ({
       command,
+      args,
+      cwd,
       signalOnKill,
     }: {
       command: string;
+      args?: string[];
+      cwd?: string;
       signalOnKill: NodeJS.Signals;
     }): void => {
       killCallCountByCommand.set(command, 0);
-      handle.calledWith([command]).implement(() => {
-        const child = new EventEmitter() as ChildProcess;
-        child.stdout = new Readable({
-          read(): void {
-            /* noop */
-          },
-        });
-        child.stderr = new Readable({
-          read(): void {
-            /* noop */
-          },
-        });
-        child.stdout.push(null);
-        child.stderr.push(null);
-        child.kill = ((): boolean => {
-          killCallCountByCommand.set(command, (killCallCountByCommand.get(command) ?? 0) + 1);
-          setImmediate(() => {
-            child.emit('exit', null, signalOnKill);
+      handle
+        .calledWith(
+          buildSpawnAddress({
+            command,
+            ...(args === undefined ? {} : { args }),
+            ...(cwd === undefined ? {} : { cwd }),
+          }),
+        )
+        .implement(() => {
+          const child = new EventEmitter() as ChildProcess;
+          child.stdout = new Readable({
+            read(): void {
+              /* noop */
+            },
           });
-          return true;
-        }) as ChildProcess['kill'];
-        return child;
-      });
+          child.stderr = new Readable({
+            read(): void {
+              /* noop */
+            },
+          });
+          child.stdout.push(null);
+          child.stderr.push(null);
+          child.kill = ((): boolean => {
+            killCallCountByCommand.set(command, (killCallCountByCommand.get(command) ?? 0) + 1);
+            setImmediate(() => {
+              child.emit('exit', null, signalOnKill);
+            });
+            return true;
+          }) as ChildProcess['kill'];
+          return child;
+        });
     },
 
     getKillCallCount: ({ command }: { command: string }): number =>
       killCallCountByCommand.get(command) ?? 0,
+
+    getCallsFor: ({ command }: { command: string }): readonly string[][] =>
+      handle.callsMatching([command]).map((call) => call[1] as string[]),
   };
 };

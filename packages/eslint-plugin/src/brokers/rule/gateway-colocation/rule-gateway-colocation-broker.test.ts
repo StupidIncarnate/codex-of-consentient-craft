@@ -249,6 +249,14 @@ ruleTester.run('gateway-colocation', ruleGatewayColocationBroker(), {
       filename: '/repo/packages/@gateway/node/src/fs/fs.ts',
       options: [{ requireStub: true }],
     },
+    // --- requireStub true: a consumer's EMPTY npm/bin gateway has only the scaffolded placeholder,
+    // never a subpath barrel (its parent folder is "src", not the file's own folder name), so
+    // missingStub never fires against it — there is no subpath here to require a stub for ---
+    {
+      code: '// Keeps this package compiling while it holds no subpath: tsc refuses a config that matches no\n// file. Delete it once the first src/<subpath>/<subpath>.ts exists.\nexport {};',
+      filename: '/repo/packages/@gateway/npm/src/index.d.ts',
+      options: [{ requireStub: true }],
+    },
     // --- .error.ts: a bare one-line error class needs no test and no proxy ---
     {
       code: 'export class GitNotInstalledError extends Error {}',

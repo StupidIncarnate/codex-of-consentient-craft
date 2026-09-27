@@ -14,11 +14,18 @@ import { eslintCalculateConfigForFileAdapterProxy } from '../../../adapters/esli
 import { pathResolveAdapterProxy } from '../../../adapters/path/resolve/path-resolve-adapter.proxy';
 import { fsExistsSyncAdapterProxy } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter.proxy';
 import { eslintFallbackPathsBrokerProxy } from '../fallback-paths/eslint-fallback-paths-broker.proxy';
-import { processCwdAdapterProxy } from '@dungeonmaster/shared/testing';
+import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
+import { cwd } from '#gateway/node/process';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 export const eslintLoadConfigBrokerProxy = (): Record<PropertyKey, never> => {
   // Create child proxies
-  processCwdAdapterProxy();
+  cwdProxy();
+  // cwdProxy() itself stages nothing (the gateway wrapper offers no staging surface), so the
+  // no-cwd branch is staged directly on the gateway function it calls — a fixed address, not
+  // the real process.cwd(), so this test's outcome never depends on where jest runs.
+  const cwdHandle = registerMock({ fn: cwd });
+  cwdHandle.calledWith([]).returns('/default/cwd');
   const eslintProxy = eslintEslintAdapterProxy();
   eslintCalculateConfigForFileAdapterProxy();
   const resolveProxy = pathResolveAdapterProxy();
@@ -70,7 +77,7 @@ export const eslintLoadConfigBrokerProxy = (): Record<PropertyKey, never> => {
   const constructorHandle = eslintProxy.getConstructorHandle();
 
   // Registered first (lowest priority): any cwd this proxy doesn't special-case, including the
-  // mocked processCwdAdapter default of '/default/cwd'. A function matcher scores the same as the
+  // default cwd from cwd(). A function matcher scores the same as the
   // more specific `{cwd: X}` object matchers below, so registering it FIRST lets the specific
   // stagings win ties by "later registration wins" — order-independent of what any OTHER eslint
   // broker proxy registers on eslintEslintAdapterProxy's own `calledWith([])` default, since a
@@ -102,6 +109,15 @@ export const eslintLoadConfigBrokerProxy = (): Record<PropertyKey, never> => {
   constructorHandle
     .calledWith([{ cwd: '/test1' }])
     .implement(() => eslintInstanceReturning({ rules: { 'no-undef': 'error' } } as Linter.Config));
+
+  // Keyed on the staged '/default/cwd' address specifically, scoring above the any-object
+  // catch-all above — this is what a caller that omits `cwd` actually constructs ESLint with, so
+  // a broker that stops calling cwd() on that branch fails whatever test asserts on this.
+  constructorHandle
+    .calledWith([{ cwd: '/default/cwd' }])
+    .implement(() =>
+      eslintInstanceReturning({ rules: { 'default-cwd-marker': 'error' } } as Linter.Config),
+    );
 
   return {};
 };

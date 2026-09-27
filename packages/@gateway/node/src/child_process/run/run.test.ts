@@ -175,6 +175,115 @@ describe('run()', () => {
     });
   });
 
+  describe('disambiguating repeated calls to the same command', () => {
+    it('VALID: {two calls to the same command with different args} => each gets its own staged result', async () => {
+      const proxy = runProxy();
+      proxy.setupSuccess({
+        command: 'git',
+        args: ['rev-parse', '--verify', 'main'],
+        exitCode: 0,
+        stdout: 'main-sha\n',
+        stderr: '',
+      });
+      proxy.setupSuccess({
+        command: 'git',
+        args: ['rev-parse', '--verify', 'master'],
+        exitCode: 1,
+        stdout: '',
+        stderr: 'fatal: not a valid ref',
+      });
+
+      const mainResult = await run({
+        command: 'git',
+        args: ['rev-parse', '--verify', 'main'],
+        cwd: '/project',
+      });
+      const masterResult = await run({
+        command: 'git',
+        args: ['rev-parse', '--verify', 'master'],
+        cwd: '/project',
+      });
+
+      expect(mainResult).toStrictEqual({
+        exitCode: 0,
+        output: 'main-sha\n',
+        signal: null,
+        timedOut: false,
+      });
+      expect(masterResult).toStrictEqual({
+        exitCode: 1,
+        output: 'fatal: not a valid ref',
+        signal: null,
+        timedOut: false,
+      });
+    });
+
+    it('VALID: {two calls to the same command and args in different cwds} => each gets its own staged result', async () => {
+      const proxy = runProxy();
+      proxy.setupSuccess({
+        command: 'git',
+        args: ['status'],
+        cwd: '/repo-a',
+        exitCode: 0,
+        stdout: 'clean in a\n',
+        stderr: '',
+      });
+      proxy.setupSuccess({
+        command: 'git',
+        args: ['status'],
+        cwd: '/repo-b',
+        exitCode: 0,
+        stdout: 'clean in b\n',
+        stderr: '',
+      });
+
+      const resultA = await run({ command: 'git', args: ['status'], cwd: '/repo-a' });
+      const resultB = await run({ command: 'git', args: ['status'], cwd: '/repo-b' });
+
+      expect(resultA).toStrictEqual({
+        exitCode: 0,
+        output: 'clean in a\n',
+        signal: null,
+        timedOut: false,
+      });
+      expect(resultB).toStrictEqual({
+        exitCode: 0,
+        output: 'clean in b\n',
+        signal: null,
+        timedOut: false,
+      });
+    });
+
+    it('VALID: {two calls to the same command with different args, one staged to fail} => only the matching call rejects', async () => {
+      const proxy = runProxy();
+      proxy.setupSuccess({
+        command: 'git',
+        args: ['rev-parse', '--verify', 'main'],
+        exitCode: 0,
+        stdout: '',
+        stderr: '',
+      });
+      proxy.setupError({
+        command: 'git',
+        args: ['rev-parse', '--verify', 'master'],
+        error: Object.assign(new Error('spawn git ENOENT'), { code: 'ENOENT' }),
+      });
+
+      const mainResult = await run({
+        command: 'git',
+        args: ['rev-parse', '--verify', 'main'],
+        cwd: '/project',
+      });
+
+      await expect(
+        run({ command: 'git', args: ['rev-parse', '--verify', 'master'], cwd: '/project' }),
+      ).rejects.toStrictEqual(
+        new RunNotFoundError({ command: 'git', code: 'ENOENT', message: 'spawn git ENOENT' }),
+      );
+      expect(mainResult).toStrictEqual({ exitCode: 0, output: '', signal: null, timedOut: false });
+    });
+  });
+
   describe('stdio drains after exit fires', () => {
     it('EDGE: {child exits but neither stdio stream ever emits end/close} => promise stays unsettled', async () => {
       const proxy = runProxy();

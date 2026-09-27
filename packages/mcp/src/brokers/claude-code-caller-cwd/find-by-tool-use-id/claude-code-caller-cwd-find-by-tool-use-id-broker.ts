@@ -31,8 +31,12 @@
  * // when no JSONL line matches within the retry budget.
  */
 
-import { pathSegmentContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
-import { osUserHomedirAdapter } from '@dungeonmaster/shared/adapters';
+import {
+  absoluteFilePathContract,
+  pathSegmentContract,
+  type AbsoluteFilePath,
+} from '@dungeonmaster/shared/contracts';
+import { homedir } from '#gateway/node/os';
 import { claudePathSlugEncoderTransformer } from '@dungeonmaster/shared/transformers';
 
 import { fsReaddirIfExistsAdapter } from '../../../adapters/fs/readdir-if-exists/fs-readdir-if-exists-adapter';
@@ -56,7 +60,7 @@ export const claudeCodeCallerCwdFindByToolUseIdBroker = async ({
   // default; the broker manages the count itself.
   attemptsLeft?: number;
 }): Promise<{ cwd: AbsoluteFilePath; cursor: CallerCwdScanCursor } | undefined> => {
-  const homeDir = osUserHomedirAdapter();
+  const homeDir = absoluteFilePathContract.parse(homedir());
   const sessionsDir = String(
     claudePathSlugEncoderTransformer({ homeDir, projectPath: projectDir }),
   );

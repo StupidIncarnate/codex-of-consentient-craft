@@ -11,7 +11,7 @@
  * // Returns AbsoluteFilePath '/repo/worktrees/add-auth-7bc217a1'
  */
 
-import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
+import { join } from '#gateway/node/path';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
 import {
   absoluteFilePathContract,
@@ -26,9 +26,7 @@ export const locationsWorktreePathFindBroker = ({
   repoRoot: AbsoluteFilePath;
   worktreeDirName: FileName;
 }): AbsoluteFilePath => {
-  const joined = pathJoinAdapter({
-    paths: [repoRoot, locationsStatics.repoRoot.worktreesDir, worktreeDirName],
-  });
+  const joined = join(repoRoot, locationsStatics.repoRoot.worktreesDir, worktreeDirName);
 
   return absoluteFilePathContract.parse(joined);
 };

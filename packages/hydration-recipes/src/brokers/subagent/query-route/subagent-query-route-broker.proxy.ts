@@ -1,7 +1,5 @@
-import {
-  fsReadFileSyncAdapterProxy,
-  fsReaddirWithTypesAdapterProxy,
-} from '@dungeonmaster/shared/testing';
+import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
+import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/readdir-entries-sync.proxy';
 
 export const subagentQueryRouteBrokerProxy = (): {
   succeeds: ({
@@ -16,8 +14,8 @@ export const subagentQueryRouteBrokerProxy = (): {
     fileNames: readonly string[];
   }) => void;
 } => {
-  const readdirProxy = fsReaddirWithTypesAdapterProxy();
-  const readFileProxy = fsReadFileSyncAdapterProxy();
+  const readdirProxy = readdirEntriesSyncProxy();
+  const readFileProxy = readFileSyncProxy();
 
   return {
     succeeds: ({
@@ -32,17 +30,17 @@ export const subagentQueryRouteBrokerProxy = (): {
       fileNames: readonly string[];
     }): void => {
       readFileProxy.returns({
-        filePath: parentFilePath as never,
-        content: parentContents as never,
+        path: parentFilePath,
+        contents: parentContents,
       });
       readdirProxy.returns({
-        dirPath: subagentsDirPath as never,
-        entries: fileNames.map((name) => ({ name, isFile: () => true }) as never) as never,
+        path: subagentsDirPath,
+        entries: fileNames.map((name) => ({ name, kind: 'file' as const })),
       });
       fileNames.forEach((name) => {
         readFileProxy.returns({
-          filePath: `${subagentsDirPath}/${name}` as never,
-          content: '{"line":0}' as never,
+          path: `${subagentsDirPath}/${name}`,
+          contents: '{"line":0}',
         });
       });
     },

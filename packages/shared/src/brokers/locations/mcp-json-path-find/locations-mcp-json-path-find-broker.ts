@@ -7,7 +7,7 @@
  */
 
 import { configRootFindBroker } from '../../config-root/find/config-root-find-broker';
-import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
+import { join } from '#gateway/node/path';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
 import {
   absoluteFilePathContract,
@@ -22,9 +22,7 @@ export const locationsMcpJsonPathFindBroker = async ({
 }): Promise<AbsoluteFilePath> => {
   const configRoot = await configRootFindBroker({ startPath });
 
-  const joined = pathJoinAdapter({
-    paths: [configRoot, locationsStatics.repoRoot.mcpJson],
-  });
+  const joined = join(configRoot, locationsStatics.repoRoot.mcpJson);
 
   return absoluteFilePathContract.parse(joined);
 };

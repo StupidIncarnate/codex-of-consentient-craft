@@ -1,5 +1,6 @@
 import { questsFolderEnsureBroker } from './quests-folder-ensure-broker';
 import { questsFolderEnsureBrokerProxy } from './quests-folder-ensure-broker.proxy';
+import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 
 describe('questsFolderEnsureBroker', () => {
@@ -41,15 +42,16 @@ describe('questsFolderEnsureBroker', () => {
     it('ERROR: {mkdir fails} => throws permission error', async () => {
       const proxy = questsFolderEnsureBrokerProxy();
       const startPath = FilePathStub({ value: '/project/src/file.ts' });
+      const error = FsErrorStub({ code: 'EACCES', path: '/project/.dungeonmaster-quests' });
 
       proxy.setupQuestsFolderMkdirFails({
         startPath: '/project/src/file.ts',
         projectRootPath: '/project',
         questsFolderPath: FilePathStub({ value: '/project/.dungeonmaster-quests' }),
-        error: new Error('Permission denied'),
+        error,
       });
 
-      await expect(questsFolderEnsureBroker({ startPath })).rejects.toThrow('Permission denied');
+      await expect(questsFolderEnsureBroker({ startPath })).rejects.toBe(error);
     });
   });
 });

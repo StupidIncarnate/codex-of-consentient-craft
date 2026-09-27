@@ -14,11 +14,15 @@ import { hookConfigMergeBroker } from '../merge/hook-config-merge-broker';
 import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import { dungeonmasterHooksConfigContract } from '../../../contracts/dungeonmaster-hooks-config/dungeonmaster-hooks-config-contract';
-import { processCwdAdapter } from '@dungeonmaster/shared/adapters';
+import { cwd } from '#gateway/node/process';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
-export const hookConfigLoadBroker = ({ cwd }: { cwd?: FilePath } = {}): PreEditLintConfig => {
-  const workingDir = cwd ?? processCwdAdapter();
+export const hookConfigLoadBroker = ({
+  cwd: cwdParam,
+}: {
+  cwd?: FilePath;
+} = {}): PreEditLintConfig => {
+  const workingDir = cwdParam ?? filePathContract.parse(cwd());
   // Skip the .ts variant (index 0) — require() cannot load TypeScript without a transpiler.
   const configPaths = locationsStatics.hooks.configFiles
     .filter((f) => !f.endsWith('.ts'))

@@ -6,7 +6,7 @@
  * // Creates folder if it doesn't exist, returns path
  */
 
-import { fsMkdirAdapter } from '../../../adapters/fs/mkdir/fs-mkdir-adapter';
+import { ensureDir } from '#gateway/node/fs__promises';
 import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 import { questsFolderFindBroker } from '../find/quests-folder-find-broker';
 
@@ -17,7 +17,7 @@ export const questsFolderEnsureBroker = async ({
 }): Promise<{ questsBasePath: FilePath }> => {
   const questsBasePath = await questsFolderFindBroker({ startPath });
 
-  await fsMkdirAdapter({ filepath: questsBasePath });
+  await ensureDir(questsBasePath);
 
   return { questsBasePath };
 };

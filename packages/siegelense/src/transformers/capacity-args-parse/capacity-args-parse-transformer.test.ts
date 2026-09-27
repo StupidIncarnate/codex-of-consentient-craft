@@ -2,9 +2,9 @@ import { capacityArgsParseTransformer } from './capacity-args-parse-transformer'
 
 describe('capacityArgsParseTransformer', () => {
   describe('the bare form', () => {
-    it('EMPTY: {args: []} => refuses because --spec is required', () => {
+    it('EMPTY: {args: []} => refuses because --spec is required, naming the known specs', () => {
       expect(() => capacityArgsParseTransformer({ args: [] })).toThrow(
-        /^--spec is required: name the lane spec to calculate capacity against. Capacity calculation depends on spec footprint.\n\nUsage: dungeonmaster siegelense capacity --spec <specName> \[--pool <n>\] \[--json\]/u,
+        /^--spec is required: name the lane spec to calculate capacity against. Capacity calculation depends on spec footprint. Known specs: stack, api.\n\nUsage: dungeonmaster siegelense capacity --spec <specName> \[--pool <n>\] \[--json\]/u,
       );
     });
 
@@ -62,20 +62,19 @@ describe('capacityArgsParseTransformer', () => {
       );
     });
 
-    it('INVALID: {--pool zero} => refuses under the flag with the contract’s own message', () => {
-      expect(() =>
-        capacityArgsParseTransformer({
-          args: ['--spec', 'dungeonmaster-stack', '--pool', '0'],
-        }),
-      ).toThrow(/^--pool: .*greater than 0/u);
-    });
-
-    it('INVALID: {--pool abc} => refuses under the flag rather than dividing by NaN', () => {
-      expect(() =>
-        capacityArgsParseTransformer({
-          args: ['--spec', 'dungeonmaster-stack', '--pool', 'abc'],
-        }),
-      ).toThrow(/^--pool: /u);
+    describe('a --pool value the contract refuses', () => {
+      it.each(['abc', '0', '-1', '1.5'])(
+        'INVALID: {--pool %s} => refuses saying --pool must be a whole number of 1 or more, and what was typed',
+        (poolValue) => {
+          expect(() =>
+            capacityArgsParseTransformer({
+              args: ['--spec', 'dungeonmaster-stack', '--pool', poolValue],
+            }),
+          ).toThrow(
+            new RegExp(`^--pool must be a whole number of 1 or more; got "${poolValue}"$`, 'u'),
+          );
+        },
+      );
     });
 
     it('INVALID: {a positional argument} => refuses and says values follow their own flag', () => {

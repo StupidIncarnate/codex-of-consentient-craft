@@ -71,7 +71,7 @@ describe('DriverServeLayerResponder', () => {
       await DriverServeLayerResponder({ instanceId, guildId: null, lane: LaneSessionStub() });
 
       expect(proxy.getShutdownReasonWriteCallArgs()).toStrictEqual({
-        evidencePath: '/tmp/dm-siege-evidence-test/inst-serve-test',
+        evidencePath: '/tmp/dm-siege-evidence-test/unowned/instances/inst_7f3a9c21',
         reason: 'reaped by idle timeout after 900s with no run received',
       });
     });
@@ -89,7 +89,7 @@ describe('DriverServeLayerResponder', () => {
       });
 
       expect(proxy.getShutdownReasonWriteCallArgs()).toStrictEqual({
-        evidencePath: '/tmp/dm-siege-evidence-test/inst-serve-test',
+        evidencePath: '/tmp/dm-siege-evidence-test/unowned/instances/inst_7f3a9c21',
         reason: 'reaped by idle timeout after 1800s with no run received',
       });
     });

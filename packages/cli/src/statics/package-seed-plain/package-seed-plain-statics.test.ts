@@ -8,6 +8,7 @@ describe('packageSeedPlainStatics', () => {
       expect({
         barrel: library.barrel,
         dependencies: library.dependencies,
+        devDependencies: library.devDependencies,
         bin: library.bin,
         compilerOptions: library.compilerOptions,
         extraInclude: library.extraInclude,
@@ -22,6 +23,7 @@ describe('packageSeedPlainStatics', () => {
           exportPaths: ['./src/statics/__NAME__/__NAME__-statics'],
         },
         dependencies: {},
+        devDependencies: {},
         bin: {},
         compilerOptions: {},
         extraInclude: [],
@@ -50,6 +52,7 @@ describe('packageSeedPlainStatics', () => {
       expect({
         barrel: programmaticService.barrel,
         dependencies: programmaticService.dependencies,
+        devDependencies: programmaticService.devDependencies,
         bin: programmaticService.bin,
         compilerOptions: programmaticService.compilerOptions,
         extraInclude: programmaticService.extraInclude,
@@ -64,6 +67,7 @@ describe('packageSeedPlainStatics', () => {
           exportPaths: ['./src/flows/__NAME__/__NAME__-flow'],
         },
         dependencies: { '__SCOPE__/shared': '*' },
+        devDependencies: {},
         bin: {},
         compilerOptions: {},
         extraInclude: [],
@@ -119,6 +123,7 @@ describe('packageSeedPlainStatics', () => {
       expect({
         barrel: eslintPlugin.barrel,
         dependencies: eslintPlugin.dependencies,
+        devDependencies: eslintPlugin.devDependencies,
         bin: eslintPlugin.bin,
         compilerOptions: eslintPlugin.compilerOptions,
         extraInclude: eslintPlugin.extraInclude,
@@ -130,6 +135,7 @@ describe('packageSeedPlainStatics', () => {
       }).toStrictEqual({
         barrel: null,
         dependencies: { '__SCOPE__/shared': '*' },
+        devDependencies: {},
         bin: {},
         compilerOptions: {},
         extraInclude: [],
@@ -178,6 +184,7 @@ describe('packageSeedPlainStatics', () => {
       expect({
         barrel: hookHandlers.barrel,
         dependencies: hookHandlers.dependencies,
+        devDependencies: hookHandlers.devDependencies,
         bin: hookHandlers.bin,
         compilerOptions: hookHandlers.compilerOptions,
         extraInclude: hookHandlers.extraInclude,
@@ -189,6 +196,7 @@ describe('packageSeedPlainStatics', () => {
       }).toStrictEqual({
         barrel: null,
         dependencies: { '__SCOPE__/shared': '*' },
+        devDependencies: {},
         bin: {
           '__NAME__-pre-tool-use': './dist/bin/__NAME__-pre-tool-use.js',
           '__NAME__-session-start': './dist/bin/__NAME__-session-start.js',

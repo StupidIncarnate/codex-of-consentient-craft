@@ -1,4 +1,6 @@
-import { pathJoinAdapterProxy, fsExistsSyncAdapterProxy } from '@dungeonmaster/shared/testing';
+import { join } from '#gateway/node/path';
+import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
+import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import { fsReaddirAdapterProxy } from '../../../adapters/fs/readdir/fs-readdir-adapter.proxy';
 import type { FilePath, FileName } from '@dungeonmaster/shared/contracts';
 
@@ -46,18 +48,16 @@ export const packageDiscoverBrokerProxy = (): {
   }) => void;
 } => {
   const fsReaddirProxy = fsReaddirAdapterProxy();
-  // Unstaged: pathJoinAdapterProxy's default is a real path.join passthrough, and every
-  // packagesPath/standardPath/alternatePath supplied below is already the real join of
-  // dungeonmasterRoot + segments — there is nothing to fake, so fsExistsSync is the only mock
-  // keyed here, addressed by those real paths.
-  pathJoinAdapterProxy();
-  const fsExistsSyncProxy = fsExistsSyncAdapterProxy();
+  const joinHandle = registerMock({ fn: join });
+  const realPath = requireActual<{ join: typeof join }>({ module: 'path' });
+  joinHandle.calledWith([]).implement((...segments: never[]) => realPath.join(...segments));
+  const fsExistsSyncProxy = existsSyncProxy();
 
   return {
     setupPackageDiscovery: ({ packagesPath, packages }) => {
       // The broker checks `<dungeonmasterRoot>/packages` first — in every monorepo/worktree
       // scenario `packagesPath` IS that path, so it exists.
-      fsExistsSyncProxy.returns({ filePath: packagesPath, result: true });
+      fsExistsSyncProxy.returns({ path: packagesPath, exists: true });
       fsReaddirProxy.returns({ dirPath: packagesPath, files: packages.map((pkg) => pkg.name) });
 
       // A `@scope` entry in `packages` is a group folder, not a leaf package — the broker recurses
@@ -85,22 +85,27 @@ export const packageDiscoverBrokerProxy = (): {
 
       for (const entry of leafEntries) {
         if (entry.installerLocation === 'standard') {
-          fsExistsSyncProxy.returns({ filePath: entry.standardPath, result: true });
+          fsExistsSyncProxy.returns({ path: entry.standardPath, exists: true });
         } else {
-          fsExistsSyncProxy.returns({ filePath: entry.standardPath, result: false });
+          fsExistsSyncProxy.returns({ path: entry.standardPath, exists: false });
 
-          if (entry.alternatePath) {
-            fsExistsSyncProxy.returns({
-              filePath: entry.alternatePath,
-              result: entry.installerLocation === 'alternate',
-            });
-          }
+          const alternatePath =
+            entry.alternatePath ??
+            entry.standardPath.replace(
+              '/dist/startup/start-install.js',
+              '/dist/src/startup/start-install.js',
+            );
+
+          fsExistsSyncProxy.returns({
+            path: alternatePath,
+            exists: entry.installerLocation === 'alternate',
+          });
         }
       }
     },
 
     setupEmptyPackagesDirectory: ({ packagesPath }) => {
-      fsExistsSyncProxy.returns({ filePath: packagesPath, result: true });
+      fsExistsSyncProxy.returns({ path: packagesPath, exists: true });
       fsReaddirProxy.returns({ dirPath: packagesPath, files: [] });
     },
 
@@ -110,7 +115,7 @@ export const packageDiscoverBrokerProxy = (): {
     // `dungeonmasterRoot` directly, reusing the same leaf/group staging as the monorepo case.
     setupInstalledConsumerPackageDiscovery: ({ dungeonmasterRoot, packages }) => {
       const monorepoPackagesPath = `${String(dungeonmasterRoot)}/packages` as never;
-      fsExistsSyncProxy.returns({ filePath: monorepoPackagesPath, result: false });
+      fsExistsSyncProxy.returns({ path: monorepoPackagesPath, exists: false });
       fsReaddirProxy.returns({
         dirPath: dungeonmasterRoot,
         files: packages.map((pkg) => pkg.name),
@@ -138,16 +143,21 @@ export const packageDiscoverBrokerProxy = (): {
 
       for (const entry of leafEntries) {
         if (entry.installerLocation === 'standard') {
-          fsExistsSyncProxy.returns({ filePath: entry.standardPath, result: true });
+          fsExistsSyncProxy.returns({ path: entry.standardPath, exists: true });
         } else {
-          fsExistsSyncProxy.returns({ filePath: entry.standardPath, result: false });
+          fsExistsSyncProxy.returns({ path: entry.standardPath, exists: false });
 
-          if (entry.alternatePath) {
-            fsExistsSyncProxy.returns({
-              filePath: entry.alternatePath,
-              result: entry.installerLocation === 'alternate',
-            });
-          }
+          const alternatePath =
+            entry.alternatePath ??
+            entry.standardPath.replace(
+              '/dist/startup/start-install.js',
+              '/dist/src/startup/start-install.js',
+            );
+
+          fsExistsSyncProxy.returns({
+            path: alternatePath,
+            exists: entry.installerLocation === 'alternate',
+          });
         }
       }
     },

@@ -1,5 +1,7 @@
+import { join } from '#gateway/node/path';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { locationsGuildPathFindBrokerProxy } from '../guild-path-find/locations-guild-path-find-broker.proxy';
-import { pathJoinAdapterProxy } from '../../../adapters/path/join/path-join-adapter.proxy';
+import { locationsStatics } from '../../../statics/locations/locations-statics';
 import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 
 export const locationsGuildQuestsPathFindBrokerProxy = (): {
@@ -11,7 +13,10 @@ export const locationsGuildQuestsPathFindBrokerProxy = (): {
   }) => void;
 } => {
   const guildPathProxy = locationsGuildPathFindBrokerProxy();
-  const pathJoinProxy = pathJoinAdapterProxy();
+  // #gateway/node/path is a raw passthrough of the Node 'path' module (no per-function wrapper,
+  // so no gateway proxy to compose) — mocked directly here, on the same '#gateway/node/path'
+  // specifier the broker imports.
+  const joinHandle = registerMock({ fn: join });
 
   return {
     setupGuildQuestsPath: ({
@@ -26,7 +31,7 @@ export const locationsGuildQuestsPathFindBrokerProxy = (): {
       guildQuestsPath: FilePath;
     }): void => {
       guildPathProxy.setupGuildPath({ homeDir, homePath, guildPath });
-      pathJoinProxy.returns({ result: guildQuestsPath });
+      joinHandle.calledWith([guildPath, locationsStatics.guild.questsDir]).returns(guildQuestsPath);
     },
   };
 };

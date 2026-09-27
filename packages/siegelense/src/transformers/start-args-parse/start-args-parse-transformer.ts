@@ -8,9 +8,13 @@
  * no-op affirmation of the default every other siegelense call takes. Delegates every flag's own
  * value-reading refusal (missing value, a value that starts with "--", a repeated flag) to
  * `flagValueReadTransformer`, and every flag's own contract-parse refusal (a bad spec name, quest id,
- * guild id, or a non-numeric/negative ceiling) to `flagContractParseTransformer`, so this file owns
- * only the vocabulary — which flags exist, which one is required, and what an unrecognised token
- * means.
+ * or guild id) to `flagContractParseTransformer`; `--idle-timeout-ms`'s own refusal (non-numeric, or
+ * below `0`) goes through `numericFlagParseTransformer` instead, since it turns its raw text into a
+ * number with `Number()` before `timeoutMsContract` ever sees it, and that contract given
+ * `Number('abc')` never sees "abc" — it sees NaN. This file owns only the vocabulary — which flags
+ * exist, which one is required, and what an unrecognised token means. A missing `--spec` names the
+ * known specs off the same `laneSpecConventionStatics` `laneSpecFindBroker`'s own unknown-spec
+ * refusal reads, never hard-coded here.
  *
  * USAGE:
  * startArgsParseTransformer({ args: ['--spec', 'dungeonmaster-stack'] });
@@ -30,9 +34,11 @@ import { recipeNameContract } from '../../contracts/recipe-name/recipe-name-cont
 import { specNameContract } from '../../contracts/spec-name/spec-name-contract';
 import { startArgsContract } from '../../contracts/start-args/start-args-contract';
 import type { StartArgs } from '../../contracts/start-args/start-args-contract';
+import { laneSpecConventionStatics } from '../../statics/lane-spec-convention/lane-spec-convention-statics';
 import { siegelenseOutputStatics } from '../../statics/siegelense-output/siegelense-output-statics';
 import { flagContractParseTransformer } from '../flag-contract-parse/flag-contract-parse-transformer';
 import { flagValueReadTransformer } from '../flag-value-read/flag-value-read-transformer';
+import { numericFlagParseTransformer } from '../numeric-flag-parse/numeric-flag-parse-transformer';
 
 const SPEC_FLAG = '--spec';
 const QUEST_FLAG = '--quest';
@@ -77,7 +83,10 @@ export const startArgsParseTransformer = ({ args }: { args: readonly string[] })
 
   const specValue = flagValueReadTransformer({ args, flag: SPEC_FLAG });
   if (specValue === null) {
-    throw new Error(`${SPEC_FLAG} is required: name the lane spec to boot.`);
+    throw new Error(
+      `${SPEC_FLAG} is required: name the lane spec to boot. ` +
+        `Known specs: ${laneSpecConventionStatics.browsered}, ${laneSpecConventionStatics.headless}.`,
+    );
   }
 
   const questValue = flagValueReadTransformer({ args, flag: QUEST_FLAG });
@@ -118,9 +127,11 @@ export const startArgsParseTransformer = ({ args }: { args: readonly string[] })
     ...(idleTimeoutValue === null
       ? {}
       : {
-          idleTimeoutMs: flagContractParseTransformer({
+          idleTimeoutMs: numericFlagParseTransformer({
             flag: IDLE_TIMEOUT_MS_FLAG,
-            parse: () => timeoutMsContract.parse(Number(idleTimeoutValue)),
+            raw: idleTimeoutValue,
+            accepts: 'a whole number of 0 or more',
+            parse: (value) => timeoutMsContract.parse(value),
           }),
         }),
     isJson: args.includes(siegelenseOutputStatics.flags.json),

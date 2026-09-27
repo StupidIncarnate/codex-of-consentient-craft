@@ -21,12 +21,13 @@
  */
 
 import {
+  absoluteFilePathContract,
   pathSegmentContract,
   sessionIdContract,
   type AbsoluteFilePath,
   type SessionId,
 } from '@dungeonmaster/shared/contracts';
-import { osUserHomedirAdapter } from '@dungeonmaster/shared/adapters';
+import { homedir } from '#gateway/node/os';
 import { claudePathSlugEncoderTransformer } from '@dungeonmaster/shared/transformers';
 
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
@@ -49,7 +50,7 @@ export const claudeCodeSessionFindByToolUseIdBroker = async ({
   // default; the broker manages the count itself.
   attemptsLeft?: number;
 }): Promise<SessionId | undefined> => {
-  const homeDir = osUserHomedirAdapter();
+  const homeDir = absoluteFilePathContract.parse(homedir());
   const sessionsDir = claudePathSlugEncoderTransformer({
     homeDir,
     projectPath: projectDir,

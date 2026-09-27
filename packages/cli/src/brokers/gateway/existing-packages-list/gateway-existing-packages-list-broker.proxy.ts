@@ -1,5 +1,7 @@
-import { pathJoinAdapterProxy, fsExistsSyncAdapterProxy } from '@dungeonmaster/shared/testing';
+import { join } from '#gateway/node/path';
+import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
+import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import { fsReaddirAdapterProxy } from '../../../adapters/fs/readdir/fs-readdir-adapter.proxy';
 import type { FilePath, FileName } from '@dungeonmaster/shared/contracts';
 
@@ -14,14 +16,14 @@ export const gatewayExistingPackagesListBrokerProxy = (): {
   setupNoPackagesDir: (params: { packagesDir: FilePath }) => void;
 } => {
   const fsReaddirProxy = fsReaddirAdapterProxy();
-  // Unstaged: pathJoinAdapterProxy's default is a real path.join passthrough, and every path this
-  // proxy stages below is already the real join of packagesDir + segments — nothing to fake.
-  pathJoinAdapterProxy();
-  const fsExistsSyncProxy = fsExistsSyncAdapterProxy();
+  const joinHandle = registerMock({ fn: join });
+  const realPath = requireActual<{ join: typeof join }>({ module: 'path' });
+  joinHandle.calledWith([]).implement((...segments: never[]) => realPath.join(...segments));
+  const fsExistsSyncProxy = existsSyncProxy();
 
   return {
     setupPackages: ({ packagesDir, packages }): void => {
-      fsExistsSyncProxy.returns({ filePath: packagesDir, result: true });
+      fsExistsSyncProxy.returns({ path: packagesDir, exists: true });
       fsReaddirProxy.returns({ dirPath: packagesDir, files: packages.map((pkg) => pkg.name) });
 
       for (const pkg of packages) {
@@ -37,25 +39,23 @@ export const gatewayExistingPackagesListBrokerProxy = (): {
         if ('children' in pkg) {
           for (const child of pkg.children) {
             fsExistsSyncProxy.returns({
-              filePath: filePathContract.parse(
+              path: filePathContract.parse(
                 `${String(packagesDir)}/${String(pkg.name)}/${String(child.name)}/package.json`,
               ),
-              result: child.hasPackageJson,
+              exists: child.hasPackageJson,
             });
           }
           continue;
         }
         fsExistsSyncProxy.returns({
-          filePath: filePathContract.parse(
-            `${String(packagesDir)}/${String(pkg.name)}/package.json`,
-          ),
-          result: pkg.hasPackageJson,
+          path: filePathContract.parse(`${String(packagesDir)}/${String(pkg.name)}/package.json`),
+          exists: pkg.hasPackageJson,
         });
       }
     },
 
     setupNoPackagesDir: ({ packagesDir }): void => {
-      fsExistsSyncProxy.returns({ filePath: packagesDir, result: false });
+      fsExistsSyncProxy.returns({ path: packagesDir, exists: false });
     },
   };
 };

@@ -3,7 +3,7 @@
  * inside a rule itself — so configDungeonmasterBroker can hand the parsed value to ban-gateway-export,
  * enforce-gateway-restricted-to, and enforce-gateway-config-names-exist as a single shared rule
  * OPTION. The caller passes `startDir: filePathContract.parse(__dirname)` from its OWN module, the
- * same shape resolveRepoScopeLayerBroker's callers use: inside this repo that walk resolves the repo
+ * same shape repoScopeResolveBroker's callers use: inside this repo that walk resolves the repo
  * root, and once this package is installed under a consumer's `node_modules/@dungeonmaster/eslint-plugin`,
  * the SAME walk climbs out through `node_modules` to that consumer's own root. A missing, unreadable,
  * or invalid file returns an empty config rather than throwing — no `gateway` key yet is the common

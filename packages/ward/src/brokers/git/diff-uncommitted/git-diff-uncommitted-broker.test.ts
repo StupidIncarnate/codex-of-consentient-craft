@@ -95,4 +95,21 @@ describe('gitDiffUncommittedBroker', () => {
       expect(result).toStrictEqual([]);
     });
   });
+
+  describe('git is not on this machine', () => {
+    // The old childProcessSpawnCaptureAdapter resolved a missing `git` as a failed run
+    // ({ exitCode: 1, output: '' }) rather than throwing; `run` instead rejects with
+    // RunNotFoundError, which this broker catches and folds back into that same failed-run shape
+    // for both parallel calls.
+    it('ERROR: {git is not on this machine} => returns empty array, same as a clean working tree', async () => {
+      const proxy = gitDiffUncommittedBrokerProxy();
+      proxy.setupGitNotFound();
+
+      const result = await gitDiffUncommittedBroker({
+        cwd: AbsoluteFilePathStub({ value: '/project' }),
+      });
+
+      expect(result).toStrictEqual([]);
+    });
+  });
 });

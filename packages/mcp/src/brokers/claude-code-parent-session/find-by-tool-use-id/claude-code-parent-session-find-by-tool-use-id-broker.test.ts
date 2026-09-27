@@ -123,6 +123,7 @@ describe('claudeCodeParentSessionFindByToolUseIdBroker', () => {
     const result = await claudeCodeParentSessionFindByToolUseIdBroker({
       projectDir: AbsoluteFilePathStub({ value: PROJECT_DIR }),
       toolUseId: ToolUseIdStub({ value: 'toolu_011pw36EFwmLorR7MdaSDEQG' }),
+      attemptsLeft: 1,
     });
 
     expect(result).toBe(undefined);
@@ -206,6 +207,7 @@ describe('claudeCodeParentSessionFindByToolUseIdBroker', () => {
     const result = await claudeCodeParentSessionFindByToolUseIdBroker({
       projectDir: AbsoluteFilePathStub({ value: PROJECT_DIR }),
       toolUseId: ToolUseIdStub({ value: 'toolu_011pw36EFwmLorR7MdaSDEQG' }),
+      attemptsLeft: 1,
     });
 
     expect(result).toBe(undefined);

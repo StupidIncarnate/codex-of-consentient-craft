@@ -6,9 +6,8 @@
  * // Returns AbsoluteFilePath '/project/tsconfig.json'
  */
 
-import { fsAccessAdapter } from '../../../adapters/fs/access/fs-access-adapter';
-import { pathDirnameAdapter } from '../../../adapters/path/dirname/path-dirname-adapter';
-import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
+import { pathExists } from '#gateway/node/fs__promises';
+import { dirname, join } from '#gateway/node/path';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
 import { ProjectRootNotFoundError } from '../../../errors/project-root-not-found/project-root-not-found-error';
 import {
@@ -16,8 +15,6 @@ import {
   type AbsoluteFilePath,
 } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import { filePathContract, type FilePath } from '../../../contracts/file-path/file-path-contract';
-
-const R_OK = 4;
 
 export const locationsTsconfigPathFindBroker = async ({
   startPath,
@@ -28,18 +25,14 @@ export const locationsTsconfigPathFindBroker = async ({
 }): Promise<AbsoluteFilePath> => {
   const searchPath = currentPath ?? startPath;
 
-  const candidate = pathJoinAdapter({
-    paths: [searchPath, locationsStatics.repoRoot.tsconfig],
-  });
+  const candidate = join(searchPath, locationsStatics.repoRoot.tsconfig);
 
-  try {
-    await fsAccessAdapter({ filePath: candidate, mode: R_OK });
+  const exists = await pathExists(candidate);
+  if (exists) {
     return absoluteFilePathContract.parse(candidate);
-  } catch {
-    // not here, walk up
   }
 
-  const parentPath = filePathContract.parse(pathDirnameAdapter({ path: searchPath }));
+  const parentPath = filePathContract.parse(dirname(searchPath));
   if (parentPath === searchPath) {
     throw new ProjectRootNotFoundError({ startPath });
   }

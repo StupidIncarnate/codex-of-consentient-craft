@@ -1,6 +1,7 @@
 import { guildAddBroker } from '@dungeonmaster/orchestrator/brokers';
 import { guildAddBrokerProxy } from '@dungeonmaster/orchestrator/testing';
-import { fsMkdirAdapterProxy, pathResolveAdapterProxy } from '@dungeonmaster/shared/testing';
+import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
+import { resolve } from '#gateway/node/path';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import type { GuildStub } from '@dungeonmaster/shared/contracts';
@@ -32,19 +33,11 @@ export const guildWriteRouteBrokerProxy = (): {
     id: string;
     guild: Guild;
   }) => void;
+  setupDirectoryCreation: ({ path }: { path: string }) => void;
   pathsTouched: () => readonly unknown[];
   registrationsMade: () => readonly unknown[];
 } => {
-  // fsMkdirAdapterProxy's own default (any unaddressed call succeeds) is all this route needs —
-  // composed bare, with no per-call staging, exactly as chat-subagent-tail-broker.proxy.ts does.
-  // It also covers the invalid-id scenario, where mkdir runs before the id validation throws.
-  const mkdirProxy = fsMkdirAdapterProxy();
-  // pathResolveAdapterProxy's own default is a REAL passthrough, so the route's containment check
-  // computes a genuine resolved path with nothing staged.
-  pathResolveAdapterProxy();
-  // guildAddBrokerProxy's own setup mints a FIXED id/createdAt via crypto.randomUUID, which does
-  // not let a test stage an arbitrary `guild` fixture — created here only to satisfy
-  // `enforce-proxy-child-creation`; this route's own registerMock below stages the real answer.
+  const ensureDirHandle = ensureDirProxy();
   guildAddBrokerProxy();
   const addGuildHandle = registerMock({ fn: guildAddBroker });
 
@@ -63,6 +56,11 @@ export const guildWriteRouteBrokerProxy = (): {
       home: string;
       guild: Guild;
     }): void => {
+      const targetRoot = resolve(home);
+      const guildDir = resolve(path);
+      if (guildDir === targetRoot || guildDir.startsWith(`${targetRoot}/`)) {
+        ensureDirHandle.succeeds({ path: guildDir });
+      }
       addGuildHandle.calledWith([{ name, path, home }]).resolves(guild);
     },
     // A more specific address than `succeeds` above (it names `id` too) — for a call this route
@@ -80,12 +78,21 @@ export const guildWriteRouteBrokerProxy = (): {
       id: string;
       guild: Guild;
     }): void => {
+      const targetRoot = resolve(home);
+      const guildDir = resolve(path);
+      if (guildDir === targetRoot || guildDir.startsWith(`${targetRoot}/`)) {
+        ensureDirHandle.succeeds({ path: guildDir });
+      }
       addGuildHandle.calledWith([{ name, path, home, id }]).resolves(guild);
+    },
+    setupDirectoryCreation: ({ path }: { path: string }): void => {
+      ensureDirHandle.succeeds({ path });
     },
     // Every filesystem path the route reached — the one directory it makes, and nothing else, since
     // `guildAddBroker` is mocked at the broker boundary and its own mkdir never runs. Assert
     // containment against this, never against a staged address.
-    pathsTouched: (): readonly unknown[] => mkdirProxy.getCreatedDirs(),
+    pathsTouched: (): readonly unknown[] =>
+      ensureDirHandle.getCallsFor({ path: () => true }).map((call) => call[0]),
     // The whole argument object of every `guildAddBroker` call, so a test reads back the home the
     // route really handed down rather than inferring it from a mock address that happened to match.
     registrationsMade: (): readonly unknown[] =>

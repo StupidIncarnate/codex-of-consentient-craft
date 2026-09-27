@@ -1,4 +1,4 @@
-import { fsExistsSyncAdapterProxy } from '@dungeonmaster/shared/testing';
+import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
@@ -9,7 +9,7 @@ export const gatewayTsconfigCompilerOptionsWriteBrokerProxy = (): {
   setupFileContent: (params: { tsconfigPath: FilePath; content: string }) => void;
   getWrittenContent: (params: { tsconfigPath: FilePath }) => unknown;
 } => {
-  const existsProxy = fsExistsSyncAdapterProxy();
+  const existsProxy = existsSyncProxy();
   const readProxy = fsReadFileAdapterProxy();
   const writeProxy = fsWriteFileAdapterProxy();
   // Empty proxy: the real TypeScript JSON parse runs for real. Called only to satisfy
@@ -18,11 +18,11 @@ export const gatewayTsconfigCompilerOptionsWriteBrokerProxy = (): {
 
   return {
     setupMissingFile: ({ tsconfigPath }): void => {
-      existsProxy.returns({ filePath: tsconfigPath, result: false });
+      existsProxy.returns({ path: tsconfigPath, exists: false });
     },
 
     setupFileContent: ({ tsconfigPath, content }): void => {
-      existsProxy.returns({ filePath: tsconfigPath, result: true });
+      existsProxy.returns({ path: tsconfigPath, exists: true });
       readProxy.resolves({ filePath: tsconfigPath, content });
       writeProxy.succeeds({ filePath: tsconfigPath });
     },

@@ -1,6 +1,8 @@
 /**
  * PURPOSE: Reads `dungeonmaster siegelense capacity`'s argv into a `CapacityArgs`. `--spec` is
- * REQUIRED: capacity calculation depends on spec footprint, so an absent flag is refused naming the flag.
+ * REQUIRED: capacity calculation depends on spec footprint, so an absent flag is refused naming the
+ * flag and, from the same `laneSpecConventionStatics` `laneSpecFindBroker`'s own unknown-spec
+ * refusal reads, the known spec names — never hard-coded here.
  *
  * `--pool` is what makes the never-average rule operable from a terminal: it is the size of the pool
  * the caller is about to open, and the sample group matching it is the one the division uses.
@@ -15,9 +17,11 @@ import { capacityArgsContract } from '../../contracts/capacity-args/capacity-arg
 import type { CapacityArgs } from '../../contracts/capacity-args/capacity-args-contract';
 import { profilePoolSizeContract } from '../../contracts/profile-pool-size/profile-pool-size-contract';
 import { specNameContract } from '../../contracts/spec-name/spec-name-contract';
+import { laneSpecConventionStatics } from '../../statics/lane-spec-convention/lane-spec-convention-statics';
 import { siegelenseOutputStatics } from '../../statics/siegelense-output/siegelense-output-statics';
 import { flagContractParseTransformer } from '../flag-contract-parse/flag-contract-parse-transformer';
 import { flagValueReadTransformer } from '../flag-value-read/flag-value-read-transformer';
+import { numericFlagParseTransformer } from '../numeric-flag-parse/numeric-flag-parse-transformer';
 
 const SPEC_FLAG = '--spec';
 const POOL_FLAG = '--pool';
@@ -64,7 +68,8 @@ export const capacityArgsParseTransformer = ({
   if (rawSpecName === null) {
     throw new Error(
       `${SPEC_FLAG} is required: name the lane spec to calculate capacity against. ` +
-        `Capacity calculation depends on spec footprint.\n\n${USAGE}`,
+        `Capacity calculation depends on spec footprint. ` +
+        `Known specs: ${laneSpecConventionStatics.browsered}, ${laneSpecConventionStatics.headless}.\n\n${USAGE}`,
     );
   }
 
@@ -77,9 +82,11 @@ export const capacityArgsParseTransformer = ({
   const poolSize =
     rawPoolSize === null
       ? null
-      : flagContractParseTransformer({
+      : numericFlagParseTransformer({
           flag: POOL_FLAG,
-          parse: () => profilePoolSizeContract.parse(Number(rawPoolSize)),
+          raw: rawPoolSize,
+          accepts: 'a whole number of 1 or more',
+          parse: (value) => profilePoolSizeContract.parse(value),
         });
 
   const isJson = args.includes(siegelenseOutputStatics.flags.json);

@@ -1,4 +1,4 @@
-import { fsMkdirAdapterProxy } from '@dungeonmaster/shared/testing';
+import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 
 import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
 import { questFolderPathResolveBrokerProxy } from '../folder-path-resolve/quest-folder-path-resolve-broker.proxy';
@@ -20,7 +20,7 @@ export const questWardResultDetailWriteBrokerProxy = (): {
   getWrittenContents: ({ wardResultFilePath }: { wardResultFilePath: string }) => unknown;
 } => {
   const findGuildProxy = questFolderPathResolveBrokerProxy();
-  fsMkdirAdapterProxy();
+  const ensureDirHandle = ensureDirProxy();
   const writeProxy = fsWriteFileAdapterProxy();
 
   return {
@@ -34,6 +34,8 @@ export const questWardResultDetailWriteBrokerProxy = (): {
       wardResultFilePath: string;
     }): void => {
       findGuildProxy.succeeds({ guild, quest });
+      const wardResultsDirPath = wardResultFilePath.slice(0, wardResultFilePath.lastIndexOf('/'));
+      ensureDirHandle.succeeds({ path: wardResultsDirPath });
       writeProxy.succeeds({ filePath: wardResultFilePath });
     },
     getWrittenContents: ({ wardResultFilePath }: { wardResultFilePath: string }): unknown =>

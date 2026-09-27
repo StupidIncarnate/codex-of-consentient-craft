@@ -10,13 +10,18 @@ describe('locationsUsageLedgerTmpPathFindBroker', () => {
     proxy.setupLedgerTmpPath({
       homeDir: '/home/user',
       homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
-      ledgerTmpPath: FilePathStub({ value: '/home/user/.dungeonmaster/usage-ledger.json.tmp' }),
+      token: '4821-1789337123234',
+      ledgerTmpPath: FilePathStub({
+        value: '/home/user/.dungeonmaster/usage-ledger.json.tmp.4821-1789337123234',
+      }),
     });
 
     const result = locationsUsageLedgerTmpPathFindBroker({ token: '4821-1789337123234' });
 
     expect(result).toBe(
-      AbsoluteFilePathStub({ value: '/home/user/.dungeonmaster/usage-ledger.json.tmp' }),
+      AbsoluteFilePathStub({
+        value: '/home/user/.dungeonmaster/usage-ledger.json.tmp.4821-1789337123234',
+      }),
     );
   });
 

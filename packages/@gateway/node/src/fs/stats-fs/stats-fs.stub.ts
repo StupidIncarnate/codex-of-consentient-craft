@@ -1,9 +1,8 @@
 /**
  * PURPOSE: A complete `fs.StatsFs`-shaped value, built by hand, for a proxy staging what
- * `fs/promises`' `statfs` resolves to. `StatsFs` merges an all-public interface with an empty
- * class, so a plain object literal satisfies the type with no cast — reach for this over an
- * `as unknown as StatsFs` on a partial object, which is what left the type import with nothing
- * else using it.
+ * `fs/promises`' `statfs` resolves to. `frsize` goes in through a spread: newer `@types/node` makes it
+ * required, and this repo's older one has no such field, so written as a literal property it is an
+ * excess property here. A spread of a variable is not excess-checked, so the value satisfies both.
  *
  * USAGE:
  * const stats = StatsFsStub({ bavail: 1000, bsize: 4096 });
@@ -19,6 +18,7 @@ export const StatsFsStub = ({
   bavail = 0,
   files = 0,
   ffree = 0,
+  frsize = 0,
 }: {
   type?: number;
   bsize?: number;
@@ -27,12 +27,17 @@ export const StatsFsStub = ({
   bavail?: number;
   files?: number;
   ffree?: number;
-} = {}): StatsFs => ({
-  type,
-  bsize,
-  blocks,
-  bfree,
-  bavail,
-  files,
-  ffree,
-});
+  frsize?: number;
+} = {}): StatsFs => {
+  const newerTypesFields = { frsize };
+  return {
+    type,
+    bsize,
+    blocks,
+    bfree,
+    bavail,
+    files,
+    ffree,
+    ...newerTypesFields,
+  };
+};

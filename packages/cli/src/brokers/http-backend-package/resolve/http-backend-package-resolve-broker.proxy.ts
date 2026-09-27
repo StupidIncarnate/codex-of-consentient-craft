@@ -1,6 +1,6 @@
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
-import { ContentTextStub, PackageJsonStub } from '@dungeonmaster/shared/contracts';
-import { cwdResolveBrokerProxy, fsReadFileSyncAdapterProxy } from '@dungeonmaster/shared/testing';
+import { absoluteFilePathContract, PackageJsonStub } from '@dungeonmaster/shared/contracts';
+import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/testing';
+import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
 
 // The broker resolves its OWN package.json by walking up from its own __dirname via
 // cwdResolveBroker. This proxy file sits beside the broker file, so __dirname computed here is
@@ -16,7 +16,7 @@ export const httpBackendPackageResolveBrokerProxy = (): {
 } => {
   const cwdProxy = cwdResolveBrokerProxy();
   cwdProxy.setupProjectRootFoundAtStart({ startPath: OWN_PACKAGE_ROOT });
-  const fsProxy = fsReadFileSyncAdapterProxy();
+  const fsProxy = readFileSyncProxy();
 
   return {
     // A candidate name not in this list is never probed at all — Object.keys drives the whole
@@ -24,8 +24,8 @@ export const httpBackendPackageResolveBrokerProxy = (): {
     setupOwnDependencies: ({ dependencyNames }: { dependencyNames: readonly string[] }): void => {
       const dependencies = Object.fromEntries(dependencyNames.map((name) => [name, '*']));
       fsProxy.returns({
-        filePath: OWN_PACKAGE_JSON_PATH,
-        content: ContentTextStub({ value: JSON.stringify(PackageJsonStub({ dependencies })) }),
+        path: OWN_PACKAGE_JSON_PATH,
+        contents: JSON.stringify(PackageJsonStub({ dependencies })),
       });
     },
 
@@ -36,17 +36,15 @@ export const httpBackendPackageResolveBrokerProxy = (): {
     // test-controlled.
     setupCandidateHono: ({ candidateName }: { candidateName: string }): void => {
       fsProxy.returns({
-        filePath: absoluteFilePathContract.parse(require.resolve(`${candidateName}/package.json`)),
-        content: ContentTextStub({
-          value: JSON.stringify(PackageJsonStub({ dependencies: { hono: '^4.0.0' } })),
-        }),
+        path: absoluteFilePathContract.parse(require.resolve(`${candidateName}/package.json`)),
+        contents: JSON.stringify(PackageJsonStub({ dependencies: { hono: '^4.0.0' } })),
       });
     },
 
     setupCandidateNoHono: ({ candidateName }: { candidateName: string }): void => {
       fsProxy.returns({
-        filePath: absoluteFilePathContract.parse(require.resolve(`${candidateName}/package.json`)),
-        content: ContentTextStub({ value: JSON.stringify(PackageJsonStub({ dependencies: {} })) }),
+        path: absoluteFilePathContract.parse(require.resolve(`${candidateName}/package.json`)),
+        contents: JSON.stringify(PackageJsonStub({ dependencies: {} })),
       });
     },
   };

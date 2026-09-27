@@ -23,9 +23,22 @@ describe('InstallRecipesScaffoldResponder', () => {
         success: true,
         action: 'created',
         message:
-          'Created packages/hydration-recipes/ (package.json, tsconfig.json, tsconfig.build.json, src/index.ts)',
+          'Created packages/hydration-recipes/ (package.json, tsconfig.json, tsconfig.build.json, ' +
+          'jest.config.js, responders.ts, src/index.ts, src/startup/, src/flows/, src/responders/)',
       });
-      expect(proxy.getCreatedDirs()).toStrictEqual(['/project/packages/hydration-recipes/src']);
+
+      const sortByLocale = (a: unknown, b: unknown) => String(a).localeCompare(String(b));
+
+      expect([...proxy.getCreatedDirs()].sort(sortByLocale)).toStrictEqual(
+        [
+          '/project/packages/hydration-recipes',
+          '/project/packages/hydration-recipes/src',
+          '/project/packages/hydration-recipes/src/startup',
+          '/project/packages/hydration-recipes/src/flows/recipes',
+          '/project/packages/hydration-recipes/src/responders/recipes/listing',
+          '/project/packages/hydration-recipes/src/responders/recipes/seed',
+        ].sort(sortByLocale),
+      );
     });
 
     it('VALID: {no root package.json} => package.json is unscoped', async () => {
@@ -173,7 +186,7 @@ describe('InstallRecipesScaffoldResponder', () => {
         compilerOptions: {
           typeRoots: ['../../node_modules/@types', '../../@types'],
         },
-        include: ['src/**/*'],
+        include: ['src/**/*', 'responders.ts'],
       });
     });
 
@@ -198,8 +211,10 @@ describe('InstallRecipesScaffoldResponder', () => {
           incremental: true,
           tsBuildInfoFile: './.ward/build.tsbuildinfo',
         },
+        include: ['src/**/*'],
         exclude: [
           '**/*.test.ts',
+          '**/*.integration.test.ts',
           '**/*.proxy.ts',
           '**/*.stub.ts',
           '**/*.harness.ts',
@@ -219,34 +234,64 @@ describe('InstallRecipesScaffoldResponder', () => {
         proxy.getWrittenContents({ relativePath: PathSegmentStub({ value: 'src/index.ts' }) }),
       );
 
-      expect(indexTsContents).toBe(
-        `/**
- * PURPOSE: The starter surface for this \`hydration-recipes\` package — the three names
- * \`recipesConventionStatics.exports\` requires (\`@dungeonmaster/shared/statics\`), so
- * \`dungeonmaster siegelense recipes\` answers with an empty listing the moment this package is
- * built, instead of throwing \`RecipesBuildMissingError\`. Add a recipe under a sibling
- * \`src/recipes-<name>/\` folder and wire it into ${recipesConventionStatics.exports.listing}'s
- * return array and ${recipesConventionStatics.exports.seed}'s dispatch.
- *
- * USAGE:
- * ${recipesConventionStatics.exports.listing}();
- * // Returns []
- */
-
-export const ${recipesConventionStatics.exports.listing} = (): readonly never[] => [];
-
-export const ${recipesConventionStatics.exports.manifest}: readonly never[] =
-  ${recipesConventionStatics.exports.listing}();
-
-export const ${recipesConventionStatics.exports.seed} = async (
-  _params: Record<string, unknown>,
-): Promise<never> => {
-  throw new Error(
-    'no recipes defined yet — add one under packages/hydration-recipes/src/recipes-<name>/',
-  );
-};
-`,
+      expect(indexTsContents).toMatch(
+        /^import \{ StartHydrationRecipes \} from '\.\/startup\/start-hydration-recipes';$/mu,
       );
+      expect(indexTsContents).toMatch(
+        new RegExp(`^export const ${recipesConventionStatics.exports.listing} = `, 'mu'),
+      );
+      expect(indexTsContents).toMatch(
+        new RegExp(`^export const ${recipesConventionStatics.exports.seed} = `, 'mu'),
+      );
+      expect(indexTsContents).toMatch(
+        new RegExp(
+          `^export const ${recipesConventionStatics.exports.manifest}: readonly never\\[\\] = \\[\\];$`,
+          'mu',
+        ),
+      );
+    });
+
+    it('VALID: {rootPackageJsonName: "@acme/root-app"} => the five enforce-hydration-recipes-structure files are all written', async () => {
+      const proxy = InstallRecipesScaffoldResponderProxy();
+      proxy.setupPackageAbsent({ rootPackageJsonName: '@acme/root-app' });
+
+      await proxy.callResponder({ context: CONTEXT });
+
+      expect({
+        startup: String(
+          proxy.getWrittenContents({
+            relativePath: PathSegmentStub({ value: 'src/startup/start-hydration-recipes.ts' }),
+          }),
+        ).includes('export const StartHydrationRecipes'),
+        flow: String(
+          proxy.getWrittenContents({
+            relativePath: PathSegmentStub({ value: 'src/flows/recipes/recipes-flow.ts' }),
+          }),
+        ).includes('export const RecipesFlow'),
+        respondersBarrel: String(
+          proxy.getWrittenContents({ relativePath: PathSegmentStub({ value: 'responders.ts' }) }),
+        ).includes('export * from'),
+        listingResponder: String(
+          proxy.getWrittenContents({
+            relativePath: PathSegmentStub({
+              value: 'src/responders/recipes/listing/recipes-listing-responder.ts',
+            }),
+          }),
+        ).includes(`export const ${recipesConventionStatics.exports.listing}`),
+        seedResponder: String(
+          proxy.getWrittenContents({
+            relativePath: PathSegmentStub({
+              value: 'src/responders/recipes/seed/recipes-seed-responder.ts',
+            }),
+          }),
+        ).includes(`export const ${recipesConventionStatics.exports.seed}`),
+      }).toStrictEqual({
+        startup: true,
+        flow: true,
+        respondersBarrel: true,
+        listingResponder: true,
+        seedResponder: true,
+      });
     });
   });
 
@@ -353,7 +398,8 @@ export const ${recipesConventionStatics.exports.seed} = async (
         success: true,
         action: 'created',
         message:
-          'Created packages/hydration-recipes/ (package.json, tsconfig.json, tsconfig.build.json, src/index.ts)',
+          'Created packages/hydration-recipes/ (package.json, tsconfig.json, tsconfig.build.json, ' +
+          'jest.config.js, responders.ts, src/index.ts, src/startup/, src/flows/, src/responders/)',
       });
     });
   });
@@ -371,7 +417,8 @@ export const ${recipesConventionStatics.exports.seed} = async (
         success: false,
         action: 'created',
         message:
-          'Created packages/hydration-recipes/ (package.json, tsconfig.json, tsconfig.build.json, src/index.ts); ' +
+          'Created packages/hydration-recipes/ (package.json, tsconfig.json, tsconfig.build.json, ' +
+          'jest.config.js, responders.ts, src/index.ts, src/startup/, src/flows/, src/responders/); ' +
           'npm install failed (exit 1): npm ERR! network request failed — run "npm install" at the repo root, ' +
           'then "npm run build --workspace=hydration-recipes" to finish setting it up',
       });
@@ -392,7 +439,8 @@ export const ${recipesConventionStatics.exports.seed} = async (
         success: false,
         action: 'created',
         message:
-          'Created packages/hydration-recipes/ (package.json, tsconfig.json, tsconfig.build.json, src/index.ts); ' +
+          'Created packages/hydration-recipes/ (package.json, tsconfig.json, tsconfig.build.json, ' +
+          'jest.config.js, responders.ts, src/index.ts, src/startup/, src/flows/, src/responders/); ' +
           'npm run build --workspace=hydration-recipes failed (exit 1): error TS2307: Cannot find module — run ' +
           '"npm run build --workspace=hydration-recipes" to finish setting it up',
       });

@@ -38,7 +38,7 @@ import {
   repoRootCwdContract,
   type RepoRootCwd,
 } from '@dungeonmaster/shared/contracts';
-import { processCwdAdapter } from '@dungeonmaster/shared/adapters';
+import { cwd } from '#gateway/node/process';
 import { ProjectRootNotFoundError } from '@dungeonmaster/shared/errors';
 
 import { claudeCodeCallerCwdFindByToolUseIdBroker } from '../../claude-code-caller-cwd/find-by-tool-use-id/claude-code-caller-cwd-find-by-tool-use-id-broker';
@@ -64,7 +64,7 @@ export const callerRepoRootResolveBroker = async ({
   configFound: boolean;
   cursorUpdates: readonly CallerCwdScanCursor[];
 }> => {
-  const serverCwd = processCwdAdapter();
+  const serverCwd = filePathContract.parse(cwd());
 
   const toolUseIdRaw = meta?.[TOOL_USE_ID_META_KEY];
   const parsedToolUseId =

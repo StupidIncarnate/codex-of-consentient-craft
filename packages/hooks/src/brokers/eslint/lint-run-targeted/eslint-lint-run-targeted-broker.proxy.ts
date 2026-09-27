@@ -9,7 +9,9 @@
 
 import { eslintEslintAdapterProxy } from '../../../adapters/eslint/eslint/eslint-eslint-adapter.proxy';
 import { pathResolveAdapterProxy } from '../../../adapters/path/resolve/path-resolve-adapter.proxy';
-import { processCwdAdapterProxy } from '@dungeonmaster/shared/testing';
+import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
+import { cwd } from '#gateway/node/process';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 export const eslintLintRunTargetedBrokerProxy = (): {
   setupLintResults: (params: {
@@ -18,9 +20,19 @@ export const eslintLintRunTargetedBrokerProxy = (): {
     newResults: unknown[];
   }) => void;
   returnsLintResults: (params: { content: string; results: unknown[] }) => void;
+  returnsLintResultsForDefaultCwd: (params: {
+    content: string;
+    filePath: string;
+    results: unknown[];
+  }) => void;
   throwsOnConstruction: (params: { error: Error }) => void;
 } => {
-  processCwdAdapterProxy();
+  cwdProxy();
+  // cwdProxy() itself stages nothing (the gateway wrapper offers no staging surface), so the
+  // no-cwd branch is staged directly on the gateway function it calls — a fixed address, not
+  // the real process.cwd(), so a test built on it never depends on where jest runs.
+  const cwdHandle = registerMock({ fn: cwd });
+  cwdHandle.calledWith([]).returns('/default/cwd');
   const eslintProxy = eslintEslintAdapterProxy();
   const resolveProxy = pathResolveAdapterProxy();
 
@@ -46,6 +58,15 @@ export const eslintLintRunTargetedBrokerProxy = (): {
 
     returnsLintResults: ({ content, results }): void => {
       lintTextHandle.calledWith([content]).resolves(results);
+    },
+
+    // Addressed by the staged '/default/cwd' (via the resolved absolute path) rather than by
+    // content alone — this is what a caller that omits `cwd` actually resolves and lints against,
+    // so a broker that stops calling cwd() on that branch fails whatever test stages this.
+    returnsLintResultsForDefaultCwd: ({ content, filePath, results }): void => {
+      const absolutePath = `/default/cwd/resolved/${filePath}`;
+      resolveProxy.getHandle().calledWith(['/default/cwd', filePath]).returns(absolutePath);
+      lintTextHandle.calledWith([content, { filePath: absolutePath }]).resolves(results);
     },
 
     // Overrides the constructor's success catch-all with a real throw, so the broker's

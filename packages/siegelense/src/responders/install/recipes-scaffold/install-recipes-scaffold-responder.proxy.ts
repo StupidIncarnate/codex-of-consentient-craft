@@ -4,6 +4,7 @@ import {
   fsExistsSyncAdapterProxy,
   fsMkdirAdapterProxy,
   pathBasenameAdapterProxy,
+  pathDirnameAdapterProxy,
   pathResolveAdapterProxy,
 } from '@dungeonmaster/shared/testing';
 import {
@@ -76,35 +77,39 @@ const createNpmChild = ({
 // Every caller in these tests exercises targetProjectRoot: '/project' (the real, unstaged
 // pathResolve passthrough resolves it to these exact paths), so every test lands on these paths.
 const RECIPES_PACKAGE_PATH = FilePathStub({ value: '/project/packages/hydration-recipes' });
-const RECIPES_SRC_PATH = FilePathStub({ value: '/project/packages/hydration-recipes/src' });
 const ROOT_PACKAGE_JSON_PATH = FilePathStub({ value: '/project/package.json' });
 const ROOT_PACKAGE_JSON_ABSOLUTE_PATH = AbsoluteFilePathStub({ value: '/project/package.json' });
+
+const RECIPES_PACKAGE_ROOT = '/project/packages/hydration-recipes';
+const SCAFFOLD_RELATIVE_PATHS = [
+  'package.json',
+  'tsconfig.json',
+  'tsconfig.build.json',
+  'jest.config.js',
+  'responders.ts',
+  'src/index.ts',
+  'src/index.integration.test.ts',
+  'src/startup/start-hydration-recipes.ts',
+  'src/startup/start-hydration-recipes.integration.test.ts',
+  'src/flows/recipes/recipes-flow.ts',
+  'src/flows/recipes/recipes-flow.integration.test.ts',
+  'src/responders/recipes/listing/recipes-listing-responder.ts',
+  'src/responders/recipes/listing/recipes-listing-responder.proxy.ts',
+  'src/responders/recipes/listing/recipes-listing-responder.test.ts',
+  'src/responders/recipes/seed/recipes-seed-responder.ts',
+  'src/responders/recipes/seed/recipes-seed-responder.proxy.ts',
+  'src/responders/recipes/seed/recipes-seed-responder.test.ts',
+] as const;
 
 const SCAFFOLD_FILE_ABSOLUTE_PATHS: ReadonlyMap<
   PathSegment,
   ReturnType<typeof AbsoluteFilePathStub>
-> = new Map([
-  [
-    PathSegmentStub({ value: 'package.json' }),
-    AbsoluteFilePathStub({ value: '/project/packages/hydration-recipes/package.json' }),
-  ],
-  [
-    PathSegmentStub({ value: 'tsconfig.json' }),
-    AbsoluteFilePathStub({ value: '/project/packages/hydration-recipes/tsconfig.json' }),
-  ],
-  [
-    PathSegmentStub({ value: 'tsconfig.build.json' }),
-    AbsoluteFilePathStub({ value: '/project/packages/hydration-recipes/tsconfig.build.json' }),
-  ],
-  [
-    PathSegmentStub({ value: 'src/index.ts' }),
-    AbsoluteFilePathStub({ value: '/project/packages/hydration-recipes/src/index.ts' }),
-  ],
-  [
-    PathSegmentStub({ value: 'src/index.test.ts' }),
-    AbsoluteFilePathStub({ value: '/project/packages/hydration-recipes/src/index.test.ts' }),
-  ],
-]);
+> = new Map(
+  SCAFFOLD_RELATIVE_PATHS.map((relativePath) => [
+    PathSegmentStub({ value: relativePath }),
+    AbsoluteFilePathStub({ value: `${RECIPES_PACKAGE_ROOT}/${relativePath}` }),
+  ]),
+);
 
 export const InstallRecipesScaffoldResponderProxy = (): {
   callResponder: typeof InstallRecipesScaffoldResponder;
@@ -125,7 +130,13 @@ export const InstallRecipesScaffoldResponderProxy = (): {
 } => {
   pathResolveAdapterProxy();
   pathBasenameAdapterProxy();
+  // No explicit staging: its default is a real `path.dirname` passthrough, exactly what
+  // computing each scaffold file's real parent directory needs.
+  pathDirnameAdapterProxy();
   const existsProxy = fsExistsSyncAdapterProxy();
+  // No explicit staging either: fsMkdirAdapterProxy's own default answers ANY unaddressed call
+  // as a success, which is what every one of the responder's now-several mkdir calls (one per
+  // unique scaffold directory) needs — there is no single fixed path left to address.
   const mkdirProxy = fsMkdirAdapterProxy();
   const readProxy = fsReadFileAdapterProxy();
   const writeProxy = fsWriteFileAdapterProxy();
@@ -203,7 +214,6 @@ export const InstallRecipesScaffoldResponderProxy = (): {
       rootPackageJsonName?: string;
     } = {}): void => {
       existsProxy.returns({ filePath: RECIPES_PACKAGE_PATH, result: false });
-      mkdirProxy.succeeds({ filepath: RECIPES_SRC_PATH });
 
       const rootPackageJsonExists =
         rootPackageJsonPresent === true || rootPackageJsonName !== undefined;

@@ -3,7 +3,7 @@ import { EslintPluginCreateResponderProxy } from './eslint-plugin-create-respond
 
 describe('EslintPluginCreateResponder', () => {
   describe('rule initialization', () => {
-    it('VALID: {} => returns plugin with all 76 rule names', () => {
+    it('VALID: {} => returns plugin with all 80 rule names', () => {
       const proxy = EslintPluginCreateResponderProxy();
       const plugin = proxy.callResponder();
 
@@ -15,6 +15,7 @@ describe('EslintPluginCreateResponder', () => {
         'ban-flattened-contract-params',
         'ban-gateway-export',
         'ban-inline-helpers-in-test-scenarios',
+        'ban-invented-failures',
         'ban-jest-mock-in-proxies',
         'ban-jest-mock-in-tests',
         'ban-negated-matchers',
@@ -26,6 +27,8 @@ describe('EslintPluginCreateResponder', () => {
         'ban-playwright-evaluate-for-styles',
         'ban-playwright-extract-then-assert',
         'ban-primitives',
+        'ban-proxy-catch-all-defaults',
+        'ban-proxy-empty-called-with',
         'ban-reflect-outside-guards',
         'ban-require-in-source',
         'ban-silent-catch',
@@ -38,6 +41,7 @@ describe('EslintPluginCreateResponder', () => {
         'ban-wait-for-timeout',
         'ban-weak-asymmetric-matchers',
         'ban-weak-existence-matchers',
+        'ban-workspace-export-mocks',
         'bin-program-spawn-ban',
         'enforce-contract-usage-in-tests',
         'enforce-e2e-base-import',

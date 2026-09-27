@@ -25,4 +25,13 @@ describe('eslintIsPathIgnoredBroker', () => {
 
     expect(result).toBe(false);
   });
+
+  it('VALID: {filePath, no cwd} => resolves the file against the default cwd', async () => {
+    const proxy = eslintIsPathIgnoredBrokerProxy();
+    proxy.setIgnoredForDefaultCwd({ filePath: 'marker.ts', ignored: true });
+
+    const result = await eslintIsPathIgnoredBroker({ filePath: 'marker.ts' });
+
+    expect(result).toBe(true);
+  });
 });

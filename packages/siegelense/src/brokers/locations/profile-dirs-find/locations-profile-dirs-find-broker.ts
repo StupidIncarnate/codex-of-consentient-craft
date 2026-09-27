@@ -11,7 +11,7 @@
  * //           bootsDir:   '<root>/profiles/<specHash>/boots' }
  */
 
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
+import { join } from '#gateway/node/path';
 import { absoluteFilePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import type { SpecHash } from '../../../contracts/spec-hash/spec-hash-contract';
@@ -28,8 +28,8 @@ export const locationsProfileDirsFindBroker = ({
 } => {
   const profilePath = locationsProfilesPathFindBroker({ specHash });
 
-  const samplesDir = pathJoinAdapter({ paths: [profilePath, profileStatics.dirs.samples] });
-  const bootsDir = pathJoinAdapter({ paths: [profilePath, profileStatics.dirs.boots] });
+  const samplesDir = join(profilePath, profileStatics.dirs.samples);
+  const bootsDir = join(profilePath, profileStatics.dirs.boots);
 
   return {
     samplesDir: absoluteFilePathContract.parse(samplesDir),

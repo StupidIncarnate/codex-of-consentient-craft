@@ -13,13 +13,14 @@
  */
 import {
   absoluteFilePathContract,
+  contentTextContract,
   filePathContract,
   packageJsonContract,
   packageNameContract,
 } from '@dungeonmaster/shared/contracts';
 import type { PackageName } from '@dungeonmaster/shared/contracts';
 import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
-import { fsReadFileSyncAdapter } from '@dungeonmaster/shared/adapters';
+import { readFileSync } from '#gateway/node/fs';
 
 const WEB_BUNDLE_DEPENDENCY_SIGNAL = 'react';
 const SCOPE_PREFIX = '@dungeonmaster/';
@@ -31,9 +32,9 @@ export const webBundlePackageResolveBroker = async (): Promise<PackageName> => {
   });
   const ownPackageJson = packageJsonContract.parse(
     JSON.parse(
-      fsReadFileSyncAdapter({
-        filePath: absoluteFilePathContract.parse(`${projectRoot}/package.json`),
-      }),
+      contentTextContract.parse(
+        readFileSync(absoluteFilePathContract.parse(`${projectRoot}/package.json`)),
+      ),
     ) as unknown,
   );
 
@@ -45,11 +46,11 @@ export const webBundlePackageResolveBroker = async (): Promise<PackageName> => {
     try {
       const candidatePackageJson = packageJsonContract.parse(
         JSON.parse(
-          fsReadFileSyncAdapter({
-            filePath: absoluteFilePathContract.parse(
-              require.resolve(`${candidateName}/package.json`),
+          contentTextContract.parse(
+            readFileSync(
+              absoluteFilePathContract.parse(require.resolve(`${candidateName}/package.json`)),
             ),
-          }),
+          ),
         ) as unknown,
       );
       return Object.keys(candidatePackageJson.dependencies ?? {}).includes(

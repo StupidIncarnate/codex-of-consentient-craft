@@ -6,12 +6,12 @@
  * // Returns { written: true } on accepted write, { written: false } when throttled
  */
 
+import { dirname } from '#gateway/node/path';
 import {
   fileContentsContract,
   filePathContract,
   type RateLimitsSnapshot,
 } from '@dungeonmaster/shared/contracts';
-import { pathDirnameAdapter } from '@dungeonmaster/shared/adapters';
 import {
   locationsRateLimitsSnapshotPathFindBroker,
   locationsRateLimitsSnapshotTmpPathFindBroker,
@@ -38,7 +38,7 @@ export const rateLimitsSnapshotWriteBroker = async ({
     return { written: false };
   }
 
-  const homeDir = pathDirnameAdapter({ path: filePathContract.parse(snapshotPath) });
+  const homeDir = filePathContract.parse(dirname(snapshotPath));
   await fsMkdirAdapter({ filePath: homeDir });
 
   const contents = fileContentsContract.parse(`${JSON.stringify(snapshot)}\n`);

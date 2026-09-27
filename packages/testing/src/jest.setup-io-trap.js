@@ -83,6 +83,15 @@ const NODE_MODULES_PATH = /[\\/]node_modules(?:[\\/]|$)/iu;
 // `src/` is the compiler-pipeline's implementation, same trust level as the `ts-jest/` glue above.
 const TEST_INFRASTRUCTURE_FRAME =
   /\.(test|proxy|stub|harness)\.[jt]sx?$|[\\/]packages[\\/][^\\/]+[\\/]test[\\/]|[\\/]ts-jest[\\/]|[\\/]packages[\\/]testing[\\/]src[\\/]/u;
+// The glue files' OWN `.ts` dependencies — the hoister's `middleware/`/`adapters/` implementation,
+// which `proxy-mock-transformer.js` requires transitively through the `tsx/cjs` hook — carry none of
+// TEST_INFRASTRUCTURE_FRAME's markers (no `/ts-jest/` segment, no `.test`/`.proxy` suffix), so a cold
+// tsx compile of one of THOSE files is a repo frame the check above cannot recognize. It is still a
+// first-party compile step, not application code: the call originates from INSIDE tsx/esbuild's own
+// toolchain (`node_modules/tsx/…`, `node_modules/esbuild/…`), one or more `node_modules` frames above
+// wherever the compiled `.ts` file's own top-level code happens to sit. Checked by walking frames
+// nearest-first and asking "toolchain, or application repo code — whichever this call reaches first".
+const COMPILER_TOOLCHAIN_FRAME = /[\\/]node_modules[\\/](tsx|ts-jest|esbuild)[\\/]/u;
 // Reading a fixture under a package's `test/` directory is test infrastructure, whoever reads it —
 // a real TypeScript compile over fixtures reads them from inside node_modules. Reads only: nothing
 // may write into the checkout's fixtures.
@@ -170,15 +179,23 @@ if (!REAL_IO_TEST_FILE.test(testPath) && !GATEWAY_OWN_TEST_FILE.test(testPath)) 
       .filter((fileName) => !fileName.endsWith('jest.setup-io-trap.js'));
   };
 
-  // Shared by every trap point below: the first repo-owned frame on the call stack — skipping
-  // every node_modules frame, including MSW's and any other npm package's — is a
-  // test/proxy/stub/harness file, or a file under a package's own `test/` directory. That is how a
-  // proxy's own recorded-failure stub is allowed to do the real call it exists to capture.
+  // Shared by every trap point below. Walks frames nearest-first and answers the first of two
+  // questions the stack reaches: a `node_modules/tsx|ts-jest|esbuild` frame (COMPILER_TOOLCHAIN_FRAME)
+  // means tsx is mid-compile of some `.ts` file, whatever that file turns out to be — exempt outright,
+  // before ever asking what repo file it is. Otherwise, the first repo-owned frame — skipping every
+  // node_modules frame, including MSW's and any other npm package's — decides it: a test/proxy/stub/
+  // harness file, or a file under a package's own `test/` directory. That is how a proxy's own
+  // recorded-failure stub is allowed to do the real call it exists to capture.
   const isCallFromTestInfrastructure = () => {
-    const firstRepoFrame = callerFrames(400).find(
-      (line) => line.includes(`${path.sep}packages${path.sep}`) && !line.includes(NODE_MODULES_SEGMENT),
-    );
-    return firstRepoFrame !== undefined && TEST_INFRASTRUCTURE_FRAME.test(firstRepoFrame);
+    for (const frame of callerFrames(400)) {
+      if (COMPILER_TOOLCHAIN_FRAME.test(frame)) {
+        return true;
+      }
+      if (frame.includes(`${path.sep}packages${path.sep}`) && !frame.includes(NODE_MODULES_SEGMENT)) {
+        return TEST_INFRASTRUCTURE_FRAME.test(frame);
+      }
+    }
+    return false;
   };
 
   // Every trap point's final step: record the message so the afterEach drain below still catches

@@ -21,6 +21,12 @@ export const mockCallContract = z.object({
   factory: factoryFunctionTextContract.nullable(),
   sourceFile: sourceFileNameContract,
   identifierNames: z.array(identifierNameContract).default([]),
+  // A property-access `registerMock({fn: X.method})` records X here, never in identifierNames — the
+  // codegen for these auto-mocks every one of X's OWN methods (an object export, mockable the same
+  // way Jest's own whole-module automock already mocks a nested object recursively), instead of
+  // replacing X's single accessed method with a flat `X: jest.fn()`, which would destroy X's other
+  // methods entirely.
+  objectIdentifierNames: z.array(identifierNameContract).default([]),
 });
 
 export type MockCall = z.infer<typeof mockCallContract>;

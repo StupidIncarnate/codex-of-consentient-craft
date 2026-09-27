@@ -8,7 +8,7 @@
  * // server's in-memory orchestrationProcessesState directly — it bridges via HTTP.
  */
 
-import { fetchGetAdapter } from '@dungeonmaster/shared/adapters';
+import { fetchJson } from '#gateway/node/fetch';
 import { portResolveBroker } from '@dungeonmaster/shared/brokers';
 import {
   orchestrationStatusContract,
@@ -32,7 +32,7 @@ export const orchestratorGetQuestStatusBroker = async ({
   const url = `http://${environmentStatics.hostname}:${String(port)}/api/process/${processId}`;
 
   try {
-    const response = await fetchGetAdapter<unknown>({ url });
+    const response = await fetchJson({ url });
     return orchestrationStatusContract.parse(response);
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);

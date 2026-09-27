@@ -43,6 +43,7 @@ describe('locationsEslintConfigPathFindBroker', () => {
       proxy.setupConfigFoundAtParentDirectory({
         childPaths: ['/repo/packages/foo/src', '/repo/packages/foo', '/repo/packages'],
         parentPaths: ['/repo/packages/foo', '/repo/packages', '/repo'],
+        finalSearchPath: '/repo',
         parentMissingPaths: [FilePathStub({ value: '/repo/eslint.config.ts' })],
         parentConfigPath: FilePathStub({ value: '/repo/eslint.config.js' }),
       });

@@ -9,6 +9,7 @@ describe('locationsWardResultsPathFindBroker', () => {
       const proxy = locationsWardResultsPathFindBrokerProxy();
 
       proxy.setupWardResultsPath({
+        questFolderPath: '/quest',
         wardResultsPath: FilePathStub({ value: '/quest/ward-results' }),
       });
 

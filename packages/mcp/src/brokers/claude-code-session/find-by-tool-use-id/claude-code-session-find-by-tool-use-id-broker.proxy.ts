@@ -1,4 +1,5 @@
-import { osUserHomedirAdapterProxy } from '@dungeonmaster/shared/testing';
+import { homedir } from '#gateway/node/os';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 import {
   AbsoluteFilePathStub,
   FileContentsStub,
@@ -20,23 +21,23 @@ export const claudeCodeSessionFindByToolUseIdBrokerProxy = (): {
   }) => void;
   setupSessionsDirMissing: (params: { homedir: string; projectDir: string }) => void;
 } => {
-  const homedirProxy = osUserHomedirAdapterProxy();
+  const homedirHandle = registerMock({ fn: homedir });
   const readdirProxy = fsReaddirIfExistsAdapterProxy();
   const readFileProxy = fsReadFileAdapterProxy();
 
   // Mirrors the broker's own sessionsDir computation — a real, unmocked transformer — so the
   // readdir/readFile addresses below match what the broker really calls them with.
   const sessionsDirFor = ({
-    homedir,
+    homeDir,
     projectDir,
   }: {
-    homedir: string;
+    homeDir: string;
     projectDir: string;
   }): PathSegment =>
     PathSegmentStub({
       value: String(
         claudePathSlugEncoderTransformer({
-          homeDir: AbsoluteFilePathStub({ value: homedir }),
+          homeDir: AbsoluteFilePathStub({ value: homeDir }),
           projectPath: AbsoluteFilePathStub({ value: projectDir }),
         }),
       ),
@@ -44,7 +45,7 @@ export const claudeCodeSessionFindByToolUseIdBrokerProxy = (): {
 
   return {
     setupSessions: ({
-      homedir,
+      homedir: homeDir,
       projectDir,
       sessions,
     }: {
@@ -52,8 +53,8 @@ export const claudeCodeSessionFindByToolUseIdBrokerProxy = (): {
       projectDir: string;
       sessions: readonly { name: string; contents: string }[];
     }): void => {
-      homedirProxy.returns({ path: homedir });
-      const sessionsDir = sessionsDirFor({ homedir, projectDir });
+      homedirHandle.calledWith([]).returns(homeDir);
+      const sessionsDir = sessionsDirFor({ homeDir, projectDir });
       readdirProxy.returns({
         filepath: sessionsDir,
         entries: sessions.map((session) => FolderNameStub({ value: session.name })),
@@ -66,14 +67,14 @@ export const claudeCodeSessionFindByToolUseIdBrokerProxy = (): {
       }
     },
     setupSessionsDirMissing: ({
-      homedir,
+      homedir: homeDir,
       projectDir,
     }: {
       homedir: string;
       projectDir: string;
     }): void => {
-      homedirProxy.returns({ path: homedir });
-      readdirProxy.returnsUndefined({ filepath: sessionsDirFor({ homedir, projectDir }) });
+      homedirHandle.calledWith([]).returns(homeDir);
+      readdirProxy.returnsUndefined({ filepath: sessionsDirFor({ homeDir, projectDir }) });
     },
   };
 };

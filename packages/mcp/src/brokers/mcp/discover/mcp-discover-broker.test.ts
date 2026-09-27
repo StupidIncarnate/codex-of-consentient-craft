@@ -36,7 +36,7 @@ describe('mcpDiscoverBroker', () => {
 
     it('VALID: {glob: "**/*.ts"} => returns tree format with matched files', async () => {
       const brokerProxy = mcpDiscoverBrokerProxy();
-      const filepath = FilePathStub({ value: `${process.cwd()}/src/guards/standalone-guard.ts` });
+      const filepath = FilePathStub({ value: '/default/cwd/src/guards/standalone-guard.ts' });
       const contents = FileContentsStub({
         value:
           '/**\n * PURPOSE: standalone guard\n *\n * USAGE:\n * example\n */\nexport const standaloneGuard = () => {};',
@@ -57,7 +57,7 @@ describe('mcpDiscoverBroker', () => {
     it('VALID: {grep: "ENOENT"} => returns tree format with grep hits rendered', async () => {
       const brokerProxy = mcpDiscoverBrokerProxy();
       const filepath = FilePathStub({
-        value: `${process.cwd()}/src/adapters/fs-access-adapter.ts`,
+        value: '/default/cwd/src/adapters/fs-access-adapter.ts',
       });
       const contents = FileContentsStub({
         value:
@@ -79,7 +79,7 @@ describe('mcpDiscoverBroker', () => {
 
     it('VALID: {glob: "**/*.ts", grep: "guard"} => passes both glob and grep to scanner', async () => {
       const brokerProxy = mcpDiscoverBrokerProxy();
-      const filepath = FilePathStub({ value: `${process.cwd()}/src/guards/standalone-guard.ts` });
+      const filepath = FilePathStub({ value: '/default/cwd/src/guards/standalone-guard.ts' });
       const contents = FileContentsStub({
         value:
           '/**\n * PURPOSE: standalone guard\n *\n * USAGE:\n * example\n */\nexport const standaloneGuard = () => {};',
@@ -99,7 +99,7 @@ describe('mcpDiscoverBroker', () => {
 
     it('VALID: {grep: "guard", context: 2} => passes context to scanner', async () => {
       const brokerProxy = mcpDiscoverBrokerProxy();
-      const filepath = FilePathStub({ value: `${process.cwd()}/src/guards/standalone-guard.ts` });
+      const filepath = FilePathStub({ value: '/default/cwd/src/guards/standalone-guard.ts' });
       const contents = FileContentsStub({
         value:
           '/**\n * PURPOSE: standalone guard\n *\n * USAGE:\n * example\n */\nexport const standaloneGuard = () => {};',
@@ -119,7 +119,7 @@ describe('mcpDiscoverBroker', () => {
 
     it('VALID: {grep: "NOMATCH"} => returns empty tree when no files match', async () => {
       const brokerProxy = mcpDiscoverBrokerProxy();
-      const filepath = FilePathStub({ value: `${process.cwd()}/src/guards/standalone-guard.ts` });
+      const filepath = FilePathStub({ value: '/default/cwd/src/guards/standalone-guard.ts' });
       const contents = FileContentsStub({
         value: '/**\n * PURPOSE: standalone guard\n */\nexport const standaloneGuard = () => {};',
       });
@@ -223,10 +223,10 @@ describe('mcpDiscoverBroker', () => {
       // Simulate a glob like `packages/eslint-plugin/src/brokers/rule/explicit-return-types*`
       // that matches a directory but no files (classic nodir:true miss).
       const pattern = GlobPatternStub({
-        value: `${process.cwd()}/packages/eslint-plugin/src/brokers/rule/explicit-return-types*/**/*`,
+        value: '/default/cwd/packages/eslint-plugin/src/brokers/rule/explicit-return-types*/**/*',
       });
       const directoryPath = FilePathStub({
-        value: `${process.cwd()}/packages/eslint-plugin/src/brokers/rule/explicit-return-types`,
+        value: '/default/cwd/packages/eslint-plugin/src/brokers/rule/explicit-return-types',
       });
 
       brokerProxy.setupEmptyWithDirectoryHits({
@@ -255,7 +255,7 @@ describe('mcpDiscoverBroker', () => {
       const brokerProxy = mcpDiscoverBrokerProxy();
 
       const pattern = GlobPatternStub({
-        value: `${process.cwd()}/totally-fake-folder/**/*`,
+        value: '/default/cwd/totally-fake-folder/**/*',
       });
 
       brokerProxy.setupEmptyWithDirectoryHits({
@@ -276,11 +276,11 @@ describe('mcpDiscoverBroker', () => {
       const brokerProxy = mcpDiscoverBrokerProxy();
 
       const pattern = GlobPatternStub({
-        value: `${process.cwd()}/packages/web/src/**`,
+        value: '/default/cwd/packages/web/src/**',
       });
-      const filePath1 = FilePathStub({ value: `${process.cwd()}/packages/web/src/file1.ts` });
-      const filePath2 = FilePathStub({ value: `${process.cwd()}/packages/web/src/file2.ts` });
-      const filePath3 = FilePathStub({ value: `${process.cwd()}/packages/web/src/file3.ts` });
+      const filePath1 = FilePathStub({ value: '/default/cwd/packages/web/src/file1.ts' });
+      const filePath2 = FilePathStub({ value: '/default/cwd/packages/web/src/file2.ts' });
+      const filePath3 = FilePathStub({ value: '/default/cwd/packages/web/src/file3.ts' });
 
       brokerProxy.setupGrepFilteredEmpty({
         filePaths: [filePath1, filePath2, filePath3],
@@ -308,7 +308,9 @@ describe('mcpDiscoverBroker', () => {
     it('VALID: multi-dot files (.test.ts, .proxy.ts) appear as regular results', async () => {
       const brokerProxy = mcpDiscoverBrokerProxy();
 
-      const implPath = FilePathStub({ value: '/default/cwd/src/brokers/user-fetch-broker.ts' });
+      const implPath = FilePathStub({
+        value: '/default/cwd/src/brokers/user-fetch-broker.ts',
+      });
       const testPath = FilePathStub({
         value: '/default/cwd/src/brokers/user-fetch-broker.test.ts',
       });
@@ -383,7 +385,7 @@ describe('mcpDiscoverBroker', () => {
     it('VALID: {grep PascalCase, no strict} => cross-convention matches kebab content via tree output', async () => {
       const brokerProxy = mcpDiscoverBrokerProxy();
       const filepath = FilePathStub({
-        value: `${process.cwd()}/packages/mcp/src/contracts/orchestration-event-type-contract.ts`,
+        value: '/default/cwd/packages/mcp/src/contracts/orchestration-event-type-contract.ts',
       });
       const contents = FileContentsStub({
         value: `export const orchestrationEventTypeContract = z.enum(['x', 'y']);`,
@@ -412,9 +414,9 @@ describe('mcpDiscoverBroker', () => {
     it('VALID: {grep PascalCase, strict: true} => no match against kebab content, returns grep-empty hint', async () => {
       const brokerProxy = mcpDiscoverBrokerProxy();
       const filepath = FilePathStub({
-        value: `${process.cwd()}/src/contracts/orchestration-event-type-contract.ts`,
+        value: '/default/cwd/src/contracts/orchestration-event-type-contract.ts',
       });
-      const pattern = GlobPatternStub({ value: `${process.cwd()}/**/*.ts` });
+      const pattern = GlobPatternStub({ value: '/default/cwd/**/*.ts' });
 
       brokerProxy.setupGrepFilteredEmpty({ filePaths: [filepath], pattern });
 

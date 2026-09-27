@@ -72,7 +72,7 @@ const checkClaudeSettingsHooks = ({ report, consumerRoot, gt }) => {
   );
 };
 
-const checkDevDependencies = ({ report, consumerRoot, gt }) => {
+const checkDevDependencies = ({ report, consumerRoot, gt, mode }) => {
   const packageJsonPath = join(consumerRoot, 'package.json');
   const packageJson = readJson(packageJsonPath);
   const expectedNames = Object.keys(gt.devDependenciesStatics.packages);
@@ -84,11 +84,21 @@ const checkDevDependencies = ({ report, consumerRoot, gt }) => {
     missingDeclared.length === 0 ? '' : `missing: ${missingDeclared.join(', ')}`,
   );
 
+  // Scenario 4 (repo CLAUDE.md's "Four Resolution Scenarios") never runs `npm install` inside the
+  // bare consumer — `run.mjs`'s `runGlobalMode` only installs the tarballs into a separate, FAKE
+  // global prefix (`global-prefix.mjs`), never into `consumerRoot` itself — so `consumerRoot`'s own
+  // `node_modules` never exists in global mode, by this suite's own design, not by regression. The
+  // two checks below would fail every global run for that reason alone, so they run in local mode
+  // only, exactly as this file's own header already promises.
+  if (mode === 'global') {
+    return;
+  }
+
   const missingInstalled = expectedNames.filter(
     (name) => !existsSync(join(consumerRoot, 'node_modules', ...name.split('/'))),
   );
   report.check(
-    'every devDependenciesStatics package actually resolves in node_modules',
+    'every devDependenciesStatics package actually resolves in node_modules (local mode only)',
     missingInstalled.length === 0,
     missingInstalled.length === 0 ? '' : `missing: ${missingInstalled.join(', ')}`,
   );
@@ -102,7 +112,7 @@ const checkDevDependencies = ({ report, consumerRoot, gt }) => {
       return manifest.publishConfig?.access !== 'public';
     });
   report.check(
-    'every devDependenciesStatics @dungeonmaster/* package carries publishConfig.access "public" (a real install 404s otherwise)',
+    'every devDependenciesStatics @dungeonmaster/* package carries publishConfig.access "public" (a real install 404s otherwise) (local mode only)',
     publishConfigGaps.length === 0,
     publishConfigGaps.length === 0 ? '' : `missing publishConfig.access: ${publishConfigGaps.join(', ')}`,
   );
@@ -115,7 +125,14 @@ const checkDevDependencies = ({ report, consumerRoot, gt }) => {
 // consumer's own top-level `node_modules`, never nested under `@dungeonmaster/testing`):
 // `transformIgnorePatterns` must still transform msw's own files, and `setupFilesAfterEnv` must
 // load `start-endpoint-mock-setup.ts` (never opt-in — a consumer package gets this for free).
-const checkJestConfigBaseMsw = ({ report, consumerRoot }) => {
+const checkJestConfigBaseMsw = ({ report, consumerRoot, mode }) => {
+  // Local mode only, same reason as checkDevDependencies's own node_modules-dependent checks above:
+  // global mode never installs anything into consumerRoot, so @dungeonmaster/testing never resolves
+  // there at all.
+  if (mode === 'global') {
+    return;
+  }
+
   const jestConfigBasePath = join(
     consumerRoot,
     'node_modules',
@@ -124,7 +141,11 @@ const checkJestConfigBaseMsw = ({ report, consumerRoot }) => {
     'jest-config-base.js',
   );
   if (!existsSync(jestConfigBasePath)) {
-    report.check('@dungeonmaster/testing/jest-config-base.js is installed', false, jestConfigBasePath);
+    report.check(
+      '@dungeonmaster/testing/jest-config-base.js is installed (local mode only)',
+      false,
+      jestConfigBasePath,
+    );
     return;
   }
   const require_ = createRequire(join(consumerRoot, 'package.json'));
@@ -136,7 +157,7 @@ const checkJestConfigBaseMsw = ({ report, consumerRoot }) => {
     (pattern) => !new RegExp(pattern, 'u').test(mswPath),
   );
   report.check(
-    "jest-config-base.js's transformIgnorePatterns lets msw|@mswjs|until-async|outvariant through",
+    "jest-config-base.js's transformIgnorePatterns lets msw|@mswjs|until-async|outvariant through (local mode only)",
     transformIgnoreMatchesMsw,
     JSON.stringify(config.transformIgnorePatterns),
   );
@@ -144,7 +165,7 @@ const checkJestConfigBaseMsw = ({ report, consumerRoot }) => {
     entry.endsWith(join('startup', 'start-endpoint-mock-setup.ts')),
   );
   report.check(
-    "jest-config-base.js's setupFilesAfterEnv loads start-endpoint-mock-setup.ts",
+    "jest-config-base.js's setupFilesAfterEnv loads start-endpoint-mock-setup.ts (local mode only)",
     loadsEndpointMockSetup,
     JSON.stringify(config.setupFilesAfterEnv),
   );
@@ -168,12 +189,12 @@ const checkJestConfigBaseMsw = ({ report, consumerRoot }) => {
     new RegExp(pattern, 'u').test(nodeModulesEsmPath),
   );
   report.check(
-    "jest-config-base.js's transform anchors every .js/.mjs/.cjs entry to node_modules, so a consumer's own project .js fixture is never routed through ts-jest",
+    "jest-config-base.js's transform anchors every .js/.mjs/.cjs entry to node_modules, so a consumer's own project .js fixture is never routed through ts-jest (local mode only)",
     consumerOwnJsUntouched,
     JSON.stringify(Object.keys(config.transform ?? {})),
   );
   report.check(
-    "jest-config-base.js's transform still transforms msw's own node_modules .js",
+    "jest-config-base.js's transform still transforms msw's own node_modules .js (local mode only)",
     nodeModulesEsmStillTransformed,
     JSON.stringify(Object.keys(config.transform ?? {})),
   );
@@ -372,8 +393,8 @@ export const runWriteAssertions = ({ report, consumerRoot, gt, mode }) => {
     requireType: false,
   });
   checkClaudeSettingsHooks({ report, consumerRoot, gt });
-  checkDevDependencies({ report, consumerRoot, gt });
-  checkJestConfigBaseMsw({ report, consumerRoot });
+  checkDevDependencies({ report, consumerRoot, gt, mode });
+  checkJestConfigBaseMsw({ report, consumerRoot, mode });
   checkRootTsconfig({ report, consumerRoot });
   checkEslintConfig({ report, consumerRoot });
   checkDungeonmasterConfig({ report, consumerRoot, gt });
@@ -386,13 +407,6 @@ export const runWriteAssertions = ({ report, consumerRoot, gt, mode }) => {
   // `scaffoldFixturePackages` has put this suite's OWN fixture packages on disk too.
   checkWorkspacePackageGatewayImports({ report, consumerRoot, gt });
   checkWorktreesAndGitignore({ report, consumerRoot });
-
-  if (mode === 'global') {
-    // Scenario 4 (repo CLAUDE.md's "Four Resolution Scenarios") is scoped to MCP module
-    // resolution, never the full package-scaffold surface — a global-only install never runs
-    // `npm install` inside the bare consumer, so `node_modules` (and everything gated on it above)
-    // does not exist there by design. Nothing further to assert for this mode here.
-  }
 };
 
 // Re-exported so `run.mjs` can call it a second time once this suite's own fixture packages exist

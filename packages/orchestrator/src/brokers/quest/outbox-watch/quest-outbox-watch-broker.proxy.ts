@@ -4,20 +4,18 @@ import {
 } from '@dungeonmaster/shared/testing';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { FilePath, QuestId } from '@dungeonmaster/shared/contracts';
-import { registerMock } from '@dungeonmaster/testing/register-mock';
+import {
+  registerMock,
+  registerModuleMock,
+  requireActual,
+} from '@dungeonmaster/testing/register-mock';
 
 import { fsAppendFileAdapterProxy } from '../../../adapters/fs/append-file/fs-append-file-adapter.proxy';
 import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
 import { fsWatchTailAdapterProxy } from '../../../adapters/fs/watch-tail/fs-watch-tail-adapter.proxy';
 import { questOutboxWatchBroker } from './quest-outbox-watch-broker';
-// Self-referencing package import, deliberately separate from the relative one above: a caller
-// outside this package (server) reaches this broker through the bare `@dungeonmaster/orchestrator`
-// barrel, and jest.mock() keys on the resolved module path — a barrel automock (forced whenever the
-// SAME test also composes StartOrchestratorProxy, per the merge rule in
-// mock-calls-merge-by-module-transformer.ts) replaces the barrel's OWN `questOutboxWatchBroker`
-// binding with a fresh, disconnected stub, unrelated to the real broker this file otherwise stages.
-// Same shape as start-orchestrator.proxy.ts's own self-import of StartOrchestrator.
-import { questOutboxWatchBroker as questOutboxWatchBrokerBarrelExport } from '@dungeonmaster/orchestrator';
+
+registerModuleMock({ module: './quest-outbox-watch-broker' });
 
 type OnQuestChanged = (args: { questId: QuestId }) => void;
 type OnError = (args: { error: unknown }) => void;
@@ -73,11 +71,15 @@ export const questOutboxWatchBrokerProxy = (): {
     onError: OnError | undefined;
   } = { resetOnStart: undefined, onQuestChanged: undefined, onError: undefined };
 
-  // The barrel-reached mock is a SEPARATE stub from the real, relatively-imported broker above
-  // (different resolved module), so it needs its own wiring — delegating every call to the real
-  // broker while capturing exactly what the caller passed in.
-  const barrelMocked = registerMock({ fn: questOutboxWatchBrokerBarrelExport });
-  barrelMocked
+  // The broker itself is mocked (registerModuleMock above) purely to intercept and capture what a
+  // caller passed in — every real fs-level behavior still runs through the REAL broker via
+  // requireActual, driven by the same staged homeEnsureProxy/pathJoinProxy/watchTailProxy this file
+  // wires above.
+  const mocked = registerMock({ fn: questOutboxWatchBroker });
+  const realMod = requireActual<{ questOutboxWatchBroker: typeof questOutboxWatchBroker }>({
+    module: './quest-outbox-watch-broker',
+  });
+  mocked
     .calledWith([])
     .implement(
       async (params: {
@@ -88,7 +90,7 @@ export const questOutboxWatchBrokerProxy = (): {
         captured.resetOnStart = params.resetOnStart;
         captured.onQuestChanged = params.onQuestChanged;
         captured.onError = params.onError;
-        return questOutboxWatchBroker(params);
+        return realMod.questOutboxWatchBroker(params);
       },
     );
 

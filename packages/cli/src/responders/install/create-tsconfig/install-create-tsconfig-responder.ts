@@ -12,8 +12,10 @@ import {
   installMessageContract,
   packageNameContract,
   fileContentsContract,
+  filePathContract,
 } from '@dungeonmaster/shared/contracts';
-import { pathJoinAdapter, fsExistsSyncAdapter } from '@dungeonmaster/shared/adapters';
+import { existsSync } from '#gateway/node/fs';
+import { join } from '#gateway/node/path';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import { tsconfigTemplateStatics } from '../../../statics/tsconfig-template/tsconfig-template-statics';
@@ -26,11 +28,9 @@ export const InstallCreateTsconfigResponder = async ({
 }: {
   context: InstallContext;
 }): Promise<InstallResult> => {
-  const configPath = pathJoinAdapter({
-    paths: [context.targetProjectRoot, CONFIG_FILENAME],
-  });
+  const configPath = filePathContract.parse(join(context.targetProjectRoot, CONFIG_FILENAME));
 
-  if (fsExistsSyncAdapter({ filePath: configPath })) {
+  if (existsSync(configPath)) {
     return {
       packageName: packageNameContract.parse(PACKAGE_NAME),
       success: true,

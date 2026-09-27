@@ -30,12 +30,13 @@
  */
 
 import type { AdapterResult, InstallContext } from '@dungeonmaster/shared/contracts';
-import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import {
-  pathJoinAdapter,
-  fsExistsSyncAdapter,
-  pathBasenameAdapter,
-} from '@dungeonmaster/shared/adapters';
+  adapterResultContract,
+  filePathContract,
+  pathSegmentContract,
+} from '@dungeonmaster/shared/contracts';
+import { existsSync } from '#gateway/node/fs';
+import { basename, join } from '#gateway/node/path';
 import { workspaceScopeFromRootNameTransformer } from '@dungeonmaster/shared/transformers';
 
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
@@ -58,16 +59,16 @@ export const CliCreatePackageResponder = async ({
 }): Promise<AdapterResult> => {
   const parsedArgs = createPackageArgsParseTransformer({ args });
 
-  const rootPackageJsonPath = pathJoinAdapter({
-    paths: [context.targetProjectRoot, 'package.json'],
-  });
+  const rootPackageJsonPath = filePathContract.parse(
+    join(context.targetProjectRoot, 'package.json'),
+  );
   const rootPackageJsonContent = await fsReadFileAdapter({ filePath: rootPackageJsonPath });
   const rootPackageJsonRaw: unknown = JSON.parse(rootPackageJsonContent);
   const rootPackageJson = packageJsonRawContract.parse(rootPackageJsonRaw);
   const nameKey = packageJsonRawContract.keyType.parse('name');
   const rootNameValue = rootPackageJson[nameKey];
   const rootPackageJsonName = typeof rootNameValue === 'string' ? rootNameValue : undefined;
-  const fallbackName = pathBasenameAdapter({ path: context.targetProjectRoot });
+  const fallbackName = pathSegmentContract.parse(basename(context.targetProjectRoot));
   const scope = workspaceScopeFromRootNameTransformer({ rootPackageJsonName, fallbackName });
   if (scope === undefined) {
     throw new Error(
@@ -75,10 +76,10 @@ export const CliCreatePackageResponder = async ({
     );
   }
 
-  const jestConfigBasePath = pathJoinAdapter({
-    paths: [context.targetProjectRoot, JEST_CONFIG_BASE_FILENAME],
-  });
-  const usesPublishedJestBase = !fsExistsSyncAdapter({ filePath: jestConfigBasePath });
+  const jestConfigBasePath = filePathContract.parse(
+    join(context.targetProjectRoot, JEST_CONFIG_BASE_FILENAME),
+  );
+  const usesPublishedJestBase = !existsSync(jestConfigBasePath);
 
   // Zero args at a terminal prompts; zero args with no TTY falls through to the resolver, which
   // throws naming --name, so a script or agent can never hang on stdin — any args at all is
@@ -91,9 +92,9 @@ export const CliCreatePackageResponder = async ({
     interactive,
   });
   const files = packageScaffoldFilesTransformer({ request, usesPublishedJestBase });
-  const packageRoot = pathJoinAdapter({
-    paths: [context.targetProjectRoot, request.packagesDir, request.directoryName],
-  });
+  const packageRoot = filePathContract.parse(
+    join(context.targetProjectRoot, request.packagesDir, request.directoryName),
+  );
 
   process.stdout.write(`Scaffolding ${request.packageName} at ${packageRoot}\n`);
   files.forEach((file) => {

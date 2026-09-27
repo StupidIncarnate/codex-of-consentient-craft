@@ -45,7 +45,7 @@ describe('sessionListBroker', () => {
       expect(result).toStrictEqual([
         {
           sessionId: 'session-1',
-          startedAt: undefined,
+          startedAt: '2025-01-15T10:00:00.000Z',
           summary: 'Built login page',
         },
       ]);
@@ -105,7 +105,7 @@ describe('sessionListBroker', () => {
       expect(result).toStrictEqual([
         {
           sessionId: 'session-1',
-          startedAt: undefined,
+          startedAt: '2025-01-15T10:00:00.000Z',
           summary: 'Cached summary',
         },
       ]);
@@ -219,7 +219,7 @@ describe('sessionListBroker', () => {
       expect(result).toStrictEqual([
         {
           sessionId: 'session-1',
-          startedAt: undefined,
+          startedAt: '2025-01-15T10:00:00.000Z',
           summary: 'Built login page',
           questId: 'add-auth',
           questTitle: 'Add Authentication',
@@ -265,7 +265,7 @@ describe('sessionListBroker', () => {
       expect(result).toStrictEqual([
         {
           sessionId: 'session-1',
-          startedAt: undefined,
+          startedAt: '2025-01-15T10:00:00.000Z',
           summary: 'Built login page',
           questId: 'add-auth',
           questTitle: 'Add Authentication',
@@ -317,7 +317,7 @@ describe('sessionListBroker', () => {
       expect(result).toStrictEqual([
         {
           sessionId: 'smoketest-session',
-          startedAt: undefined,
+          startedAt: '2025-01-15T10:00:00.000Z',
           summary: 'Smoketest run',
           questId: 'add-auth',
           questTitle: 'Smoketest Quest',
@@ -370,7 +370,7 @@ describe('sessionListBroker', () => {
       expect(result).toStrictEqual([
         {
           sessionId: 'work-item-session',
-          startedAt: undefined,
+          startedAt: '2025-01-15T10:00:00.000Z',
           summary: 'Sub-agent work',
           questId: 'add-auth',
           questTitle: 'Completed Quest',
@@ -431,7 +431,7 @@ describe('sessionListBroker', () => {
       expect(result).toStrictEqual([
         {
           sessionId: 'shared-session',
-          startedAt: undefined,
+          startedAt: '2025-01-15T10:00:00.000Z',
           summary: 'Shared session work',
           questId: 'add-auth',
           questTitle: 'Quest With Duplicate Work-Item Sessions',
@@ -492,7 +492,7 @@ describe('sessionListBroker', () => {
       expect(result).toStrictEqual([
         {
           sessionId: 'overlapping-session',
-          startedAt: undefined,
+          startedAt: '2025-01-15T10:00:00.000Z',
           summary: 'Cross-quest session',
           questId: 'add-auth',
           questTitle: 'Second Quest Sharing Session',
@@ -544,7 +544,7 @@ describe('sessionListBroker', () => {
       expect(result).toStrictEqual([
         {
           sessionId: 'session-1',
-          startedAt: undefined,
+          startedAt: '2025-01-15T10:00:00.000Z',
           summary: 'Built login page',
         },
       ]);
@@ -589,12 +589,12 @@ describe('sessionListBroker', () => {
       expect(result).toStrictEqual([
         {
           sessionId: 'fresh',
-          startedAt: undefined,
+          startedAt: '2025-01-15T10:00:00.000Z',
           summary: 'Fresh session',
         },
         {
           sessionId: 'stale',
-          startedAt: undefined,
+          startedAt: '2025-01-15T10:00:00.000Z',
           summary: 'Stale session',
         },
       ]);

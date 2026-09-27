@@ -14,7 +14,7 @@ import {
   packageNameContract,
   filePathContract,
 } from '@dungeonmaster/shared/contracts';
-import { fsExistsSyncAdapter } from '@dungeonmaster/shared/adapters';
+import { existsSync } from '#gateway/node/fs';
 import { jsonFileContentsTransformer } from '@dungeonmaster/shared/transformers';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
@@ -34,7 +34,7 @@ export const InstallWriteScriptsResponder = async ({
     `${context.targetProjectRoot}/${PACKAGE_JSON_FILENAME}`,
   );
 
-  if (!fsExistsSyncAdapter({ filePath: packageJsonPath })) {
+  if (!existsSync(packageJsonPath)) {
     return {
       packageName: packageNameContract.parse(PACKAGE_NAME),
       success: false,

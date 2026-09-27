@@ -8,12 +8,12 @@
  * TODO(history-rotation): bound size when projection consumer ships. ~17k lines/day at 5s throttle = ~2.5MB/day; rotation strategy TBD.
  */
 
+import { dirname } from '#gateway/node/path';
 import {
   fileContentsContract,
   filePathContract,
   type RateLimitsHistoryLine,
 } from '@dungeonmaster/shared/contracts';
-import { pathDirnameAdapter } from '@dungeonmaster/shared/adapters';
 import { locationsRateLimitsHistoryPathFindBroker } from '@dungeonmaster/shared/brokers';
 
 import { fsAppendFileAdapter } from '../../../adapters/fs/append-file/fs-append-file-adapter';
@@ -25,7 +25,7 @@ export const rateLimitsHistoryAppendBroker = async ({
   line: RateLimitsHistoryLine;
 }): Promise<{ appended: true }> => {
   const historyPath = locationsRateLimitsHistoryPathFindBroker();
-  const homeDir = pathDirnameAdapter({ path: filePathContract.parse(historyPath) });
+  const homeDir = filePathContract.parse(dirname(historyPath));
 
   await fsMkdirAdapter({ filePath: homeDir });
 

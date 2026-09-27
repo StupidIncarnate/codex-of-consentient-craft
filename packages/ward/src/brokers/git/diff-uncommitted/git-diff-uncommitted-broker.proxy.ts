@@ -1,69 +1,18 @@
-import { spawn, type ChildProcess } from 'child_process';
-import { EventEmitter, Readable } from 'stream';
-import { childProcessSpawnCaptureAdapterProxy } from '@dungeonmaster/shared/testing';
-import {
-  ErrorMessageStub,
-  ExitCodeStub,
-  type ErrorMessage,
-  type ExitCode,
-} from '@dungeonmaster/shared/contracts';
-import { registerMock } from '@dungeonmaster/testing/register-mock';
+import { runProxy } from '#gateway/node/child_process/run/run.proxy';
+import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found.error.proxy';
 
-// The `git diff` and the `git ls-files` are both spawned as bare `git`, so `command` alone cannot
-// tell them apart. This proxy mocks `spawn` directly with onceFor (instead of composing the shared
-// childProcessSpawnCaptureAdapterProxy, which only exposes sticky calledWith staging), staging each
-// call in the same order the broker issues them. The broker awaits them through Promise.all, but
-// the array literal evaluates left to right, so the diff is still spawned before the ls-files.
-const createGitChild = ({
-  exitCode,
-  stdout,
-  stderr,
-}: {
-  exitCode: ExitCode;
-  stdout: ErrorMessage;
-  stderr: ErrorMessage;
-}): ChildProcess => {
-  const child = new EventEmitter() as ChildProcess;
-  child.stdout = new Readable({
-    read(): void {
-      /* noop */
-    },
-  });
-  child.stderr = new Readable({
-    read(): void {
-      /* noop */
-    },
-  });
-
-  const mockStdout = child.stdout;
-  const mockStderr = child.stderr;
-
-  setImmediate(() => {
-    if (String(stdout).length > 0) {
-      mockStdout.push(Buffer.from(String(stdout)));
-    }
-    mockStdout.push(null);
-    if (String(stderr).length > 0) {
-      mockStderr.push(Buffer.from(String(stderr)));
-    }
-    mockStderr.push(null);
-    child.emit('exit', Number(exitCode), null);
-  });
-
-  return child;
-};
-
+// The `git diff` and the `git ls-files` are both spawned as bare `git`, so runProxy's own staging
+// (addressed by `{command, args}` since F25) tells the two calls apart — the broker awaits them
+// through Promise.all, so no ordering matters anyway.
 export const gitDiffUncommittedBrokerProxy = (): {
   setupWorkingTree: (params: { trackedOutput: string; untrackedOutput: string }) => void;
-  getSpawnedArgs: () => unknown[];
+  setupGitNotFound: () => void;
+  getSpawnedArgs: () => readonly unknown[];
 } => {
-  const handle = registerMock({ fn: spawn });
-  // Created but unstaged: the real implementation composes childProcessSpawnCaptureAdapter, but this
-  // proxy answers `spawn` directly (see the module comment above) so the shared proxy's own
-  // constructor-level default never fires.
-  childProcessSpawnCaptureAdapterProxy();
-  const successCode = ExitCodeStub({ value: 0 });
-  const emptyMessage = ErrorMessageStub({ value: '' });
+  const run = runProxy();
+  // Created but unstaged: RunNotFoundError is a plain class with nothing to mock — composing its
+  // proxy satisfies enforce-proxy-child-creation for the broker's own `instanceof` import.
+  RunNotFoundErrorProxy();
 
   return {
     setupWorkingTree: ({
@@ -73,23 +22,37 @@ export const gitDiffUncommittedBrokerProxy = (): {
       trackedOutput: string;
       untrackedOutput: string;
     }): void => {
-      handle.onceFor(['git']).implement(() =>
-        createGitChild({
-          exitCode: successCode,
-          stdout: ErrorMessageStub({ value: trackedOutput }),
-          stderr: emptyMessage,
-        }),
-      );
-      handle.onceFor(['git']).implement(() =>
-        createGitChild({
-          exitCode: successCode,
-          stdout: ErrorMessageStub({ value: untrackedOutput }),
-          stderr: emptyMessage,
-        }),
-      );
+      run.setupSuccess({
+        command: 'git',
+        args: ['diff', '--name-only', '--diff-filter=d', 'HEAD'],
+        exitCode: 0,
+        stdout: trackedOutput,
+        stderr: '',
+      });
+      run.setupSuccess({
+        command: 'git',
+        args: ['ls-files', '--others', '--exclude-standard'],
+        exitCode: 0,
+        stdout: untrackedOutput,
+        stderr: '',
+      });
     },
 
-    getSpawnedArgs: (): unknown[] =>
-      handle.callsMatching(['git']).map((call) => (Array.isArray(call) ? call[1] : undefined)),
+    // git itself is missing: both parallel calls reject with RunNotFoundError, which the broker's
+    // own catch folds into an empty reading for each.
+    setupGitNotFound: (): void => {
+      run.setupError({
+        command: 'git',
+        args: ['diff', '--name-only', '--diff-filter=d', 'HEAD'],
+        error: Object.assign(new Error('spawn git ENOENT'), { code: 'ENOENT' }),
+      });
+      run.setupError({
+        command: 'git',
+        args: ['ls-files', '--others', '--exclude-standard'],
+        error: Object.assign(new Error('spawn git ENOENT'), { code: 'ENOENT' }),
+      });
+    },
+
+    getSpawnedArgs: (): readonly unknown[] => run.getCallsFor({ command: 'git' }),
   };
 };

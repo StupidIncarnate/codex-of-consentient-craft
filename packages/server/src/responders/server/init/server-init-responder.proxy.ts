@@ -16,7 +16,6 @@ import {
 } from '@dungeonmaster/shared/testing';
 import {
   StartOrchestrator,
-  isoTimestampContract,
   questFindQuestPathBroker,
   questOutboxWatchBroker,
 } from '@dungeonmaster/orchestrator';
@@ -39,13 +38,18 @@ import { ServerInitResponder } from './server-init-responder';
 
 type Quest = ReturnType<typeof QuestStub>;
 type EventHandler = (args: { processId: ProcessId; payload: Record<string, unknown> }) => void;
-// questOutboxWatchBroker is a specific-broker forward with no caller-level "capture what this
-// particular call passed" scenario on its own orchestrator proxy (unlike questFindQuestPathBroker's
-// setupQuestPath/setupQuestPathError, which run the REAL broker) — the real broker tails a live fs
-// watcher, and this responder's tests need to fire onQuestChanged/onError by hand with an arbitrary
-// questId, not through a staged JSONL line. Mocking the broker call itself, in THIS caller's own
-// proxy, is the same shape quest-driven-watchers-bootstrap-responder.proxy.ts already uses for the
-// identical problem (that responder's own colocated PURPOSE header names the reason).
+// questOutboxWatchBroker and questFindQuestPathBroker are specific-broker forwards mocked
+// DIRECTLY here rather than through their own proxy's real-broker-execution scenarios
+// (setupWatchStarted / setupQuestPath). This responder ALSO composes webBundleResponseBrokerProxy,
+// and every one of these real executions drives the SAME shared, globally-keyed mocks —
+// dungeonmasterHomeFindBrokerProxy's sticky (non-addressed) `os.homedir()` stage and
+// pathJoinAdapterProxy's FIFO one-shot queue — with no way to scope a stage to one caller.
+// Composing any of the real executions here (confirmed for both) corrupts that shared state for
+// whichever OTHER real execution runs in the same test: questFindQuestPathBroker computed a
+// guildsDir with a stray segment and threw QuestNotFoundError even though setupQuestPath had
+// staged a real match, and questOutboxWatchBroker's own pathJoinAdapter call made
+// webBundleResponseBroker's web-bundle-serving tests 500. A direct, argument-addressed
+// registerMock for each sidesteps the shared queue entirely.
 type OutboxWatchParams = Parameters<typeof questOutboxWatchBroker>[0];
 type OnQuestChanged = OutboxWatchParams['onQuestChanged'];
 type OnError = OutboxWatchParams['onError'];
@@ -93,20 +97,6 @@ export const ServerInitResponderProxy = (): {
     passthrough: true,
   });
   dateSpy.calledWith([]).returns('2024-01-01T00:00:00.000Z');
-  // isoTimestampContract is a zod schema (a real class instance, unlike StartOrchestrator's plain
-  // arrow-function properties), so extracting `.parse` as a bare registerMock({fn: ...}) reference
-  // trips @typescript-eslint/unbound-method — and every workaround that avoids the literal member
-  // expression (a computed-key read, a `this: void` cast) also breaks registerMock's own AST
-  // transform, which matches that literal expression to wire the mock (see
-  // playwright-session-adapter.proxy.ts's identical `chromium.launch` case). registerSpyOn takes
-  // the object and a string key instead of tearing off the method, so it never trips the rule.
-  // StartOrchestratorProxy's property-access registerMock calls force Jest to bare-automock the
-  // whole '@dungeonmaster/orchestrator' module (mock-calls-merge-by-module-transformer's own
-  // header), and Jest's automock of a zod schema instance breaks `.parse` (confirmed: it stops
-  // validating and returns undefined) — this restores an identity parse. No address: every real
-  // call here already passes a valid ISO string, so nothing needs the real implementation.
-  const isoTimestampParseSpy = registerSpyOn({ object: isoTimestampContract, method: 'parse' });
-  isoTimestampParseSpy.calledWith([]).implement((value: unknown) => value);
   const wsProxy = honoCreateNodeWebSocketAdapterProxy();
   const serveProxy = honoServeAdapterProxy();
   const orchestrator = StartOrchestratorProxy();
@@ -122,19 +112,13 @@ export const ServerInitResponderProxy = (): {
   const replayChatHistoryHandle = registerMock({ fn: StartOrchestrator.replayChatHistory });
   replayChatHistoryHandle.calledWith([]).resolves(undefined);
   const eventsProxy = orchestrationEventsStateProxy();
-  // questFindQuestPathBroker is a specific-broker forward. Composed via ITS OWN proxy to satisfy
-  // enforce-proxy-child-creation, but this responder's own setupFindQuestPathSuccess stages the
-  // broker DIRECTLY (below) rather than through findQuestPathProxy's own setupQuestPath — this
-  // responder ALSO composes webBundleResponseBrokerProxy, which shares the same queue-addressed
-  // path.join/os.homedir mocks setupQuestPath's real-broker-execution path depends on, and the two
-  // proxies' calls interleave in an order neither controls, corrupting the FIFO queue (confirmed:
-  // questFindQuestPathBroker computed a guildsDir with a stray null segment and threw
-  // QuestNotFoundError even though setupQuestPath had staged a real match). A direct, questId-
-  // addressed registerMock sidesteps the shared queue entirely — see this item's DECISIONS.
+  // Opt-in: this responder's own test drives every captured handler by hand
+  // (getCapturedEventHandler + an arbitrary processId/payload), never through a real `.emit()`, so
+  // `.on` is stubbed to record the handler instead of running real.
+  eventsProxy.captureHandlers();
+  // Instantiated to satisfy enforce-proxy-child-creation; both brokers are mocked directly below
+  // instead (see the shared-mock-state comment above).
   questFindQuestPathBrokerProxy();
-  const findQuestPathHandle = registerMock({ fn: questFindQuestPathBroker });
-  // Instantiated to satisfy enforce-proxy-child-creation; questOutboxWatchBroker is mocked
-  // directly below instead (see outboxWatchHandle's own comment).
   questOutboxWatchBrokerProxy();
   const devLogProxy = processDevLogAdapterProxy();
   pathJoinAdapterProxy();
@@ -145,6 +129,8 @@ export const ServerInitResponderProxy = (): {
   const webBundleProxy = webBundleResponseBrokerProxy();
   const portProxy = portResolveBrokerProxy();
   portProxy.setEnvPort({ value: '3737' });
+
+  const findQuestPathHandle = registerMock({ fn: questFindQuestPathBroker });
 
   const outboxWatchHandle = registerMock({ fn: questOutboxWatchBroker });
   const outboxCaptured: {

@@ -23,7 +23,7 @@ import {
   type AbsoluteFilePath,
   type SessionId,
 } from '@dungeonmaster/shared/contracts';
-import { processCwdAdapter } from '@dungeonmaster/shared/adapters';
+import { cwd } from '#gateway/node/process';
 
 import { claudeCodeSessionFindByToolUseIdBroker } from '../../../brokers/claude-code-session/find-by-tool-use-id/claude-code-session-find-by-tool-use-id-broker';
 import { claudeCodeSessionResolveBroker } from '../../../brokers/claude-code-session/resolve/claude-code-session-resolve-broker';
@@ -39,8 +39,7 @@ export const ResolveCallerSessionLayerResponder = async ({
   // guarding the property into existence with a conditional spread at the call site.
   meta: Record<string, unknown> | undefined;
 }): Promise<SessionId | undefined> => {
-  const cwd = processCwdAdapter();
-  const projectDir: AbsoluteFilePath = absoluteFilePathContract.parse(String(cwd));
+  const projectDir: AbsoluteFilePath = absoluteFilePathContract.parse(cwd());
 
   const toolUseIdRaw = meta?.[TOOL_USE_ID_META_KEY];
   const parsedToolUseId =

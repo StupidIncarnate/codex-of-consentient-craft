@@ -1,24 +1,24 @@
-import { fsExistsSyncAdapterProxy } from '@dungeonmaster/shared/testing';
+import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 export const pathCheckLayerBrokerProxy = (): {
   setupExistingPath: ({ filePath }: { filePath: FilePath }) => void;
   setupMissingPath: ({ filePath }: { filePath: FilePath }) => void;
 } => {
-  const existsProxy = fsExistsSyncAdapterProxy();
+  const existsProxy = existsSyncProxy();
 
   // NO CATCH-ALL HERE, deliberately. A constructor-level `calledWith([])` would sit at the same low
-  // specificity as the shared adapter proxy's own `false` default, and whichever proxy the parent
-  // happens to construct LAST would silently win everywhere — an order-dependency the address-based
-  // mocking exists to remove. Both methods below address the ABSOLUTE path, which is what the broker
-  // builds from `rootPath` plus the repo-relative arg, so two tests naming different paths cannot
-  // collide.
+  // specificity as another composing proxy's own catch-all on this SAME underlying fs.existsSync
+  // mock, and whichever proxy the parent happens to construct LAST would silently win everywhere —
+  // an order-dependency the address-based mocking exists to remove. Both methods below address the
+  // ABSOLUTE path, which is what the broker builds from `rootPath` plus the repo-relative arg, so
+  // two tests naming different paths cannot collide.
   return {
     setupExistingPath: ({ filePath }: { filePath: FilePath }): void => {
-      existsProxy.returns({ filePath, result: true });
+      existsProxy.returns({ path: filePath, exists: true });
     },
     setupMissingPath: ({ filePath }: { filePath: FilePath }): void => {
-      existsProxy.returns({ filePath, result: false });
+      existsProxy.returns({ path: filePath, exists: false });
     },
   };
 };

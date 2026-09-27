@@ -84,15 +84,42 @@ describe('orchestrationEventsState', () => {
     });
   });
 
-  // getCapturedHandler/getCapturedHandlers only capture anything when `.on` is ALREADY a bare Jest
-  // automock — jestRegisterMockAdapter's own no-op guard (`typeof mock.mockImplementation ===
-  // 'function'`) skips wiring entirely otherwise, which is exactly this file's own real, unmocked
-  // `.on`. That automock only happens in a CALLER's test file that also composes
-  // StartOrchestratorProxy (property-access registerMock forces a bare
-  // jest.mock('@dungeonmaster/orchestrator') — see mock-calls-merge-by-module-transformer's own
-  // header), so the real proof of this scenario lives in the caller that needs it:
-  // packages/server/src/responders/server/init/server-init-responder.test.ts drives every
-  // orchestration event type through getCapturedEventHandler and asserts on the delivered frames.
+  describe('captureHandlers (handler-capture opt-in)', () => {
+    it('EMPTY: {captureHandlers never called} => getCapturedHandler returns undefined', () => {
+      const proxy = orchestrationEventsStateProxy();
+      proxy.setupEmpty();
+      const type = OrchestrationEventTypeStub({ value: 'phase-change' });
+
+      expect(proxy.getCapturedHandler({ type })).toBe(undefined);
+      expect(proxy.getCapturedHandlers()).toStrictEqual(new Map());
+    });
+
+    it('VALID: {captureHandlers called, then .on() registers a handler} => getCapturedHandler returns that exact handler', () => {
+      const proxy = orchestrationEventsStateProxy();
+      proxy.setupEmpty();
+      proxy.captureHandlers();
+      const type = OrchestrationEventTypeStub({ value: 'phase-change' });
+      const handler = jest.fn();
+
+      orchestrationEventsState.on({ type, handler });
+
+      expect(proxy.getCapturedHandler({ type })).toBe(handler);
+    });
+
+    it('VALID: {captureHandlers called} => the stubbed .on does not really register the handler, so a real .emit() never invokes it', () => {
+      const proxy = orchestrationEventsStateProxy();
+      proxy.setupEmpty();
+      proxy.captureHandlers();
+      const type = OrchestrationEventTypeStub({ value: 'phase-change' });
+      const processId = ProcessIdStub({ value: 'proc-stub-on' });
+      const handler = jest.fn();
+
+      orchestrationEventsState.on({ type, handler });
+      orchestrationEventsState.emit({ type, processId, payload: {} });
+
+      expect(handler.mock.calls).toStrictEqual([]);
+    });
+  });
 
   describe('removeAllListeners', () => {
     it('VALID: {listeners registered} => all listeners cleared', () => {

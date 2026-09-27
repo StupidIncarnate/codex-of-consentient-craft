@@ -1,11 +1,12 @@
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
-import type { FileContents, FilePath, PathSegment } from '@dungeonmaster/shared/contracts';
+import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
+import { basename, join } from '#gateway/node/path';
 import {
-  pathJoinAdapterProxy,
-  pathBasenameAdapterProxy,
-  fsExistsSyncAdapterProxy,
-} from '@dungeonmaster/shared/testing';
-import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+  filePathContract,
+  type FileContents,
+  type FilePath,
+  type PathSegment,
+} from '@dungeonmaster/shared/contracts';
+import { registerMock, registerSpyOn, requireActual } from '@dungeonmaster/testing/register-mock';
 
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { createPackageResolveRequestBrokerProxy } from '../../../brokers/create-package/resolve-request/create-package-resolve-request-broker.proxy';
@@ -21,8 +22,8 @@ export const CliCreatePackageResponderProxy = (): {
     files: readonly { relativePath: PathSegment; contents: FileContents }[];
   }) => void;
   // Stages the repo-root build config file as PRESENT, the shape of THIS checkout's own
-  // packages — every other test leaves it unstaged (fsExistsSyncAdapterProxy's own default is
-  // "not found"), which is the shape of a real consumer repo.
+  // packages — setupRootPackageJson stages it absent by default, which is the shape of a
+  // real consumer repo.
   setupMonorepoBuildConfig: (params: { projectRoot: FilePath }) => void;
   getOutput: () => readonly unknown[];
   getWrittenFiles: () => readonly { path: unknown; content: unknown }[];
@@ -30,16 +31,17 @@ export const CliCreatePackageResponderProxy = (): {
   // Never interactive in this responder's tests, so its own setupAnswers is never needed — this
   // call only satisfies composition (an unmocked readline.createInterface would never be reached).
   createPackageResolveRequestBrokerProxy();
-  // Unstaged: the responder's packageRoot/packageJsonPath joins are real path.join calls with no
-  // fake value to stage, same reasoning as packageRegisterBrokerProxy's own bare call below.
-  pathJoinAdapterProxy();
-  // Unstaged: workspaceScopeFromRootNameTransformer's fallback name is a real path.basename call
-  // with nothing to fake — only reached when the root package.json carries no string `name` at all.
-  pathBasenameAdapterProxy();
-  const existsProxy = fsExistsSyncAdapterProxy();
+  const existsProxy = existsSyncProxy();
   const scaffoldWriteProxy = packageScaffoldWriteBrokerProxy();
   const registerProxy = packageRegisterBrokerProxy();
   const readFileProxy = fsReadFileAdapterProxy();
+  const realPath = requireActual<{ join: typeof join; basename: typeof basename }>({
+    module: 'path',
+  });
+  const joinHandle = registerMock({ fn: join });
+  joinHandle.calledWith([]).implement((...segments: never[]) => realPath.join(...segments));
+  const basenameHandle = registerMock({ fn: basename });
+  basenameHandle.calledWith([]).implement((inputPath: never) => realPath.basename(inputPath));
   const stdoutSpy = registerSpyOn({ object: process.stdout, method: 'write' });
   stdoutSpy.calledWith([(chunk: unknown) => typeof chunk === 'string']).returns(true);
 
@@ -51,11 +53,15 @@ export const CliCreatePackageResponderProxy = (): {
       projectRoot: FilePath;
       contents: string;
     }): void => {
-      const packageJsonPath = pathJoinAdapter({ paths: [projectRoot, 'package.json'] });
+      const packageJsonPath = filePathContract.parse(join(projectRoot, 'package.json'));
       readFileProxy.resolves({ filePath: packageJsonPath, content: contents });
       // Covers packageRegisterBroker's OWN read of the same path plus its write, in case the
       // responder's registration step needs to persist a change.
       registerProxy.setupRootPackageJson({ projectRoot, contents });
+      const jestConfigBasePath = filePathContract.parse(
+        join(projectRoot, JEST_CONFIG_BASE_FILENAME),
+      );
+      existsProxy.returns({ path: jestConfigBasePath, exists: false });
     },
 
     setupTargetMissing: ({
@@ -69,10 +75,10 @@ export const CliCreatePackageResponderProxy = (): {
     },
 
     setupMonorepoBuildConfig: ({ projectRoot }: { projectRoot: FilePath }): void => {
-      const jestConfigBasePath = pathJoinAdapter({
-        paths: [projectRoot, JEST_CONFIG_BASE_FILENAME],
-      });
-      existsProxy.returns({ filePath: jestConfigBasePath, result: true });
+      const jestConfigBasePath = filePathContract.parse(
+        join(projectRoot, JEST_CONFIG_BASE_FILENAME),
+      );
+      existsProxy.returns({ path: jestConfigBasePath, exists: true });
     },
 
     getOutput: (): readonly unknown[] => stdoutSpy.callsMatching([]).map((call) => call[0]),

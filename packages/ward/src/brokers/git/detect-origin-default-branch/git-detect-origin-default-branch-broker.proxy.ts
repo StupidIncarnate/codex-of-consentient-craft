@@ -1,120 +1,80 @@
-import { spawn, type ChildProcess } from 'child_process';
-import { EventEmitter, Readable } from 'stream';
-import { childProcessSpawnCaptureAdapterProxy } from '@dungeonmaster/shared/testing';
-import {
-  ErrorMessageStub,
-  ExitCodeStub,
-  type ErrorMessage,
-  type ExitCode,
-} from '@dungeonmaster/shared/contracts';
-import { registerMock } from '@dungeonmaster/testing/register-mock';
+import { runProxy } from '#gateway/node/child_process/run/run.proxy';
+import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found.error.proxy';
 
-// Both rev-parse calls this broker issues are spawned as bare `git`, so `command` alone cannot tell
-// them apart — they share one address. The shared childProcessSpawnCaptureAdapterProxy only exposes
-// sticky calledWith staging, where the LAST staging answers every matching call; onceFor's FIFO
-// consumption is what "identical calls must get different results" needs, so this proxy mocks
-// `spawn` directly and stages each call in the order the broker issues them.
-const createGitChild = ({
-  exitCode,
-  stdout,
-  stderr,
-}: {
-  exitCode: ExitCode;
-  stdout: ErrorMessage;
-  stderr: ErrorMessage;
-}): ChildProcess => {
-  const child = new EventEmitter() as ChildProcess;
-  child.stdout = new Readable({
-    read(): void {
-      /* noop */
-    },
-  });
-  child.stderr = new Readable({
-    read(): void {
-      /* noop */
-    },
-  });
-
-  const mockStdout = child.stdout;
-  const mockStderr = child.stderr;
-
-  setImmediate(() => {
-    if (String(stdout).length > 0) {
-      mockStdout.push(Buffer.from(String(stdout)));
-    }
-    mockStdout.push(null);
-    if (String(stderr).length > 0) {
-      mockStderr.push(Buffer.from(String(stderr)));
-    }
-    mockStderr.push(null);
-    child.emit('exit', Number(exitCode), null);
-  });
-
-  return child;
-};
-
+// Both rev-parse calls this broker issues are spawned as bare `git`, so runProxy's own staging
+// (addressed by `{command, args}` since F25) tells them apart, with no FIFO ordering needed.
 export const gitDetectOriginDefaultBranchBrokerProxy = (): {
   setupOriginMainExists: () => void;
   setupOriginMasterExists: () => void;
   setupNoOriginRefs: () => void;
-  getSpawnedArgs: () => unknown[];
+  setupGitNotFound: () => void;
+  getSpawnedArgs: () => readonly unknown[];
 } => {
-  const handle = registerMock({ fn: spawn });
-  // Created but unstaged: the real implementation composes childProcessSpawnCaptureAdapter, but this
-  // proxy answers `spawn` directly (see the module comment above) so the shared proxy's own
-  // constructor-level default never fires.
-  childProcessSpawnCaptureAdapterProxy();
-  const successCode = ExitCodeStub({ value: 0 });
-  const failCode = ExitCodeStub({ value: 1 });
-  const emptyMessage = ErrorMessageStub({ value: '' });
-  const fatalMessage = ErrorMessageStub({ value: 'fatal: Needed a single revision' });
+  const run = runProxy();
+  // Created but unstaged: RunNotFoundError is a plain class with nothing to mock — composing its
+  // proxy satisfies enforce-proxy-child-creation for the broker's own `instanceof` import.
+  RunNotFoundErrorProxy();
 
   return {
     setupOriginMainExists: (): void => {
-      handle.onceFor(['git']).implement(() =>
-        createGitChild({
-          exitCode: successCode,
-          stdout: ErrorMessageStub({ value: 'abc123\n' }),
-          stderr: emptyMessage,
-        }),
-      );
+      run.setupSuccess({
+        command: 'git',
+        args: ['rev-parse', '--verify', 'origin/main'],
+        exitCode: 0,
+        stdout: 'abc123\n',
+        stderr: '',
+      });
     },
 
     setupOriginMasterExists: (): void => {
-      handle.onceFor(['git']).implement(() =>
-        createGitChild({
-          exitCode: failCode,
-          stdout: emptyMessage,
-          stderr: fatalMessage,
-        }),
-      );
-      handle.onceFor(['git']).implement(() =>
-        createGitChild({
-          exitCode: successCode,
-          stdout: ErrorMessageStub({ value: 'def456\n' }),
-          stderr: emptyMessage,
-        }),
-      );
+      run.setupSuccess({
+        command: 'git',
+        args: ['rev-parse', '--verify', 'origin/main'],
+        exitCode: 1,
+        stdout: '',
+        stderr: 'fatal: Needed a single revision',
+      });
+      run.setupSuccess({
+        command: 'git',
+        args: ['rev-parse', '--verify', 'origin/master'],
+        exitCode: 0,
+        stdout: 'def456\n',
+        stderr: '',
+      });
     },
 
     setupNoOriginRefs: (): void => {
-      handle.onceFor(['git']).implement(() =>
-        createGitChild({
-          exitCode: failCode,
-          stdout: emptyMessage,
-          stderr: fatalMessage,
-        }),
-      );
-      handle.onceFor(['git']).implement(() =>
-        createGitChild({
-          exitCode: failCode,
-          stdout: emptyMessage,
-          stderr: fatalMessage,
-        }),
-      );
+      run.setupSuccess({
+        command: 'git',
+        args: ['rev-parse', '--verify', 'origin/main'],
+        exitCode: 1,
+        stdout: '',
+        stderr: 'fatal: Needed a single revision',
+      });
+      run.setupSuccess({
+        command: 'git',
+        args: ['rev-parse', '--verify', 'origin/master'],
+        exitCode: 1,
+        stdout: '',
+        stderr: 'fatal: Needed a single revision',
+      });
     },
 
-    getSpawnedArgs: (): unknown[] =>
-      handle.callsMatching(['git']).map((call) => (Array.isArray(call) ? call[1] : undefined)),
+    // git itself is missing: every `git` invocation rejects with RunNotFoundError, which the
+    // broker's own catch folds into a failed rev-parse for each call in turn.
+    setupGitNotFound: (): void => {
+      run.setupError({
+        command: 'git',
+        args: ['rev-parse', '--verify', 'origin/main'],
+        error: Object.assign(new Error('spawn git ENOENT'), { code: 'ENOENT' }),
+      });
+      run.setupError({
+        command: 'git',
+        args: ['rev-parse', '--verify', 'origin/master'],
+        error: Object.assign(new Error('spawn git ENOENT'), { code: 'ENOENT' }),
+      });
+    },
+
+    getSpawnedArgs: (): readonly unknown[] => run.getCallsFor({ command: 'git' }),
   };
 };

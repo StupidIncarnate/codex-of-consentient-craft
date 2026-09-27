@@ -20,6 +20,7 @@ describe('typescriptAstToMockCallsAdapter', () => {
           factory: null,
           sourceFile: 'test.proxy.ts',
           identifierNames: [],
+          objectIdentifierNames: [],
         },
       ]);
     });
@@ -44,6 +45,7 @@ describe('typescriptAstToMockCallsAdapter', () => {
           factory: '() => ({ get: jest.fn() })',
           sourceFile: 'adapter.proxy.ts',
           identifierNames: [],
+          objectIdentifierNames: [],
         },
       ]);
     });
@@ -62,13 +64,26 @@ jest.mock('axios', () => ({}));
       const result = typescriptAstToMockCallsAdapter({ sourceFile });
 
       expect(result).toStrictEqual([
-        { moduleName: 'fs', factory: null, sourceFile: 'test.proxy.ts', identifierNames: [] },
-        { moduleName: 'path', factory: null, sourceFile: 'test.proxy.ts', identifierNames: [] },
+        {
+          moduleName: 'fs',
+          factory: null,
+          sourceFile: 'test.proxy.ts',
+          identifierNames: [],
+          objectIdentifierNames: [],
+        },
+        {
+          moduleName: 'path',
+          factory: null,
+          sourceFile: 'test.proxy.ts',
+          identifierNames: [],
+          objectIdentifierNames: [],
+        },
         {
           moduleName: 'axios',
           factory: '() => ({})',
           sourceFile: 'test.proxy.ts',
           identifierNames: [],
+          objectIdentifierNames: [],
         },
       ]);
     });
@@ -128,6 +143,7 @@ export const myProxy = () => {
           factory: null,
           sourceFile: 'test.proxy.ts',
           identifierNames: ['execFile'],
+          objectIdentifierNames: [],
         },
       ]);
     });
@@ -157,12 +173,14 @@ export const myProxy = () => {
           factory: null,
           sourceFile: 'test.proxy.ts',
           identifierNames: ['execFile'],
+          objectIdentifierNames: [],
         },
         {
           moduleName: 'fs/promises',
           factory: null,
           sourceFile: 'test.proxy.ts',
           identifierNames: ['readFile'],
+          objectIdentifierNames: [],
         },
       ]);
     });
@@ -190,6 +208,7 @@ export const myProxy = () => {
           factory: null,
           sourceFile: 'test.proxy.ts',
           identifierNames: ['execFile'],
+          objectIdentifierNames: [],
         },
       ]);
     });
@@ -217,6 +236,7 @@ export const myProxy = () => {
           factory: null,
           sourceFile: 'test.proxy.ts',
           identifierNames: ['panzoom'],
+          objectIdentifierNames: [],
         },
       ]);
     });
@@ -241,7 +261,7 @@ export const myProxy = () => {
       expect(result).toStrictEqual([]);
     });
 
-    it('VALID: {registerMock({ fn: Obj.method })} => resolves module from object import', () => {
+    it('VALID: {registerMock({ fn: Obj.method })} => records the OBJECT name in objectIdentifierNames, not identifierNames', () => {
       typescriptAstToMockCallsAdapterProxy();
 
       const code = `
@@ -264,6 +284,35 @@ export const myProxy = () => {
           factory: null,
           sourceFile: 'test.proxy.ts',
           identifierNames: [],
+          objectIdentifierNames: ['StartOrchestrator'],
+        },
+      ]);
+    });
+
+    it('VALID: {registerMock({ fn: Obj.method }) with a renamed import} => records the ORIGINAL export name, not the local alias', () => {
+      typescriptAstToMockCallsAdapterProxy();
+
+      const code = `
+import { orchestrationEventsState as oes } from '@dungeonmaster/orchestrator';
+import { registerMock } from '@dungeonmaster/testing';
+
+export const myProxy = () => {
+  const handle = registerMock({ fn: oes.on });
+  return {};
+};
+`;
+      const tsSourceFile = ts.createSourceFile('test.proxy.ts', code, ts.ScriptTarget.Latest, true);
+      const sourceFile = TypescriptSourceFileStub({ value: tsSourceFile });
+
+      const result = typescriptAstToMockCallsAdapter({ sourceFile });
+
+      expect(result).toStrictEqual([
+        {
+          moduleName: '@dungeonmaster/orchestrator',
+          factory: null,
+          sourceFile: 'test.proxy.ts',
+          identifierNames: [],
+          objectIdentifierNames: ['orchestrationEventsState'],
         },
       ]);
     });
@@ -315,12 +364,14 @@ export const myProxy = () => {
           factory: null,
           sourceFile: 'test.proxy.ts',
           identifierNames: [],
+          objectIdentifierNames: [],
         },
         {
           moduleName: 'child_process',
           factory: null,
           sourceFile: 'test.proxy.ts',
           identifierNames: ['execFile'],
+          objectIdentifierNames: [],
         },
       ]);
     });
@@ -349,12 +400,14 @@ export const myProxy = () => {
           factory: null,
           sourceFile: 'test.proxy.ts',
           identifierNames: [],
+          objectIdentifierNames: [],
         },
         {
           moduleName: 'child_process',
           factory: null,
           sourceFile: 'test.proxy.ts',
           identifierNames: ['execFile'],
+          objectIdentifierNames: [],
         },
       ]);
     });

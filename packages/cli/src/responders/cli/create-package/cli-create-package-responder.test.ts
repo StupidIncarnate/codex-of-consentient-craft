@@ -183,11 +183,14 @@ describe('CliCreatePackageResponder', () => {
       '  tsconfig.build.json\n',
       '  jest.config.js\n',
       '  playwright.config.ts\n',
+      '  src/statics/e2e-unresolvable-token/e2e-unresolvable-token-statics.ts\n',
+      '  src/statics/e2e-unresolvable-token/e2e-unresolvable-token-statics.test.ts\n',
       '  widgets.ts\n',
       '  src/widgets/widgets-panel/widgets-panel-widget.tsx\n',
       '  src/widgets/widgets-panel/widgets-panel-widget.proxy.tsx\n',
       '  src/widgets/widgets-panel/widgets-panel-widget.test.tsx\n',
-      'Wrote 9 files.\n',
+      '  __mocks__/jsdom-polyfills.cjs\n',
+      'Wrote 12 files.\n',
       'Registered @acme/widgets in the root package.json.\n',
       'Next steps:\n',
       '  npm install\n',
@@ -318,5 +321,54 @@ describe('CliCreatePackageResponder', () => {
     expect(String(jestConfigFile?.content)).toMatch(
       /^const base = require\('@dungeonmaster\/testing\/jest-config-base'\);$/mu,
     );
+  });
+
+  it('VALID: {root package.json has no "name"} => derives scope from targetProjectRoot directory basename', async () => {
+    const proxy = CliCreatePackageResponderProxy();
+    const projectRoot = FilePathStub({ value: '/workspace/my-tool' });
+    const packageRoot = FilePathStub({ value: '/workspace/my-tool/packages/widgets' });
+    const files = packageScaffoldFilesTransformer({
+      request: CreatePackageRequestStub({
+        packageName: '@my-tool/widgets',
+        directoryName: 'widgets',
+        packageType: 'library',
+        packagesDir: 'packages',
+      }),
+    });
+
+    proxy.setupRootPackageJson({
+      projectRoot,
+      contents: JSON.stringify({ version: '1.0.0' }),
+    });
+    proxy.setupTargetMissing({ packageRoot, files });
+
+    const context = InstallContextStub({
+      value: {
+        targetProjectRoot: projectRoot,
+        dungeonmasterRoot: '/workspace/my-tool/.dungeonmaster',
+      },
+    });
+
+    const result = await CliCreatePackageResponder({
+      context,
+      args: ['--name', 'widgets', '--type', 'library'],
+    });
+
+    expect(result).toStrictEqual({ success: true });
+    expect(proxy.getOutput()).toStrictEqual([
+      'Scaffolding @my-tool/widgets at /workspace/my-tool/packages/widgets\n',
+      '  package.json\n',
+      '  tsconfig.json\n',
+      '  tsconfig.build.json\n',
+      '  jest.config.js\n',
+      '  statics.ts\n',
+      '  src/statics/widgets/widgets-statics.ts\n',
+      '  src/statics/widgets/widgets-statics.test.ts\n',
+      'Wrote 7 files.\n',
+      'Registered @my-tool/widgets in the root package.json.\n',
+      'Next steps:\n',
+      '  npm install\n',
+      '  npm run ward -- -- packages/widgets\n',
+    ]);
   });
 });

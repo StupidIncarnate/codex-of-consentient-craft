@@ -1,13 +1,14 @@
-import {
-  locationsQuestFolderPathFindBrokerProxy,
-  pathJoinAdapterProxy,
-} from '@dungeonmaster/shared/testing';
+import { join } from '#gateway/node/path';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
+import { locationsQuestFolderPathFindBrokerProxy } from '@dungeonmaster/shared/testing';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 // Delegates the whole home → guild → quests → quest-folder chain to shared's own proxy, which
-// stages one `pathJoinAdapter` one-shot per step. This broker's OWN join is the step after those
-// four, so it lands on `pathJoinAdapter`'s real passthrough and the quest.json suffix is genuinely
-// computed rather than staged — which is what makes the assertion about the filename real.
+// stages each step's own `join` call by exact tuple. This broker's OWN join is the step after
+// those four, so it lands on the real passthrough default that chain's own
+// dungeonmasterHomeFindBrokerProxy already registers on this same '#gateway/node/path' `join`
+// reference — the quest.json suffix stays genuinely computed rather than staged, which is what
+// makes the assertion about the filename real.
 export const locationsCitationQuestFilePathFindBrokerProxy = (): {
   setupQuestFolder: (params: {
     homeDir: string;
@@ -18,7 +19,12 @@ export const locationsCitationQuestFilePathFindBrokerProxy = (): {
   }) => void;
 } => {
   const questFolderProxy = locationsQuestFolderPathFindBrokerProxy();
-  pathJoinAdapterProxy();
+  // #gateway/node/path is a raw passthrough of the Node 'path' module (no per-function wrapper,
+  // so no gateway proxy to compose) — constructed here only to satisfy
+  // enforce-proxy-child-creation, since this broker imports `join` directly. Never staged: the
+  // real passthrough default questFolderProxy's own composition chain already registers on this
+  // same function reference covers it.
+  registerMock({ fn: join });
 
   return {
     setupQuestFolder: ({

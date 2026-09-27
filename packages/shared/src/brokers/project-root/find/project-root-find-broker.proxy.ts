@@ -1,6 +1,10 @@
-import { fsAccessAdapterProxy } from '../../../adapters/fs/access/fs-access-adapter.proxy';
-import { pathDirnameAdapterProxy } from '../../../adapters/path/dirname/path-dirname-adapter.proxy';
-import { pathJoinAdapterProxy } from '../../../adapters/path/join/path-join-adapter.proxy';
+import { dirname, join } from '#gateway/node/path';
+import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
+import { pathExistsProxy } from '#gateway/node/fs__promises/path-exists/path-exists.proxy';
+import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
+import { questsFolderStatics } from '../../../statics/quests-folder/quests-folder-statics';
+
+type FilePath = ReturnType<typeof FilePathStub>;
 
 export const projectRootFindBrokerProxy = (): {
   setupProjectRootFound: (params: { startPath: string; projectRootPath: string }) => void;
@@ -16,9 +20,52 @@ export const projectRootFindBrokerProxy = (): {
     projectRootPath: string;
   }) => void;
 } => {
-  const fsAccessProxy = fsAccessAdapterProxy();
-  const pathDirnameProxy = pathDirnameAdapterProxy();
-  const pathJoinProxy = pathJoinAdapterProxy();
+  const pathExistsHandle = pathExistsProxy();
+
+  // join/dirname are pure and carry no gateway proxy of their own (#gateway/node/path is a raw
+  // passthrough), so they are mocked directly here — but the mock MUST be registered on `join`/
+  // `dirname` as imported from '#gateway/node/path' (the same specifier the broker imports),
+  // never from raw 'path' (see config-root-find-broker.proxy.ts, which this proxy mirrors, for
+  // why the specifier must match exactly). The REAL values still come from requireActual, never
+  // the (possibly mocked) import above. Each call is staged on a SPECIFIC argument tuple, never a
+  // bare `calledWith([])`, except the sticky real-passthrough default every unstaged call falls
+  // back to.
+  const realPath = requireActual<{ join: typeof join; dirname: typeof dirname }>({
+    module: 'path',
+  });
+  const joinHandle = registerMock({ fn: join });
+  const dirnameHandle = registerMock({ fn: dirname });
+  joinHandle.calledWith([]).implement((...segments: never[]) => realPath.join(...segments));
+  dirnameHandle.calledWith([]).implement((inputPath: never) => realPath.dirname(inputPath));
+
+  const packageJsonPathFor = ({ dirPath }: { dirPath: string }): FilePath => {
+    const packageJsonFile = questsFolderStatics.files.packageJson;
+    const packageJsonPath = FilePathStub({ value: realPath.join(dirPath, packageJsonFile) });
+    joinHandle.calledWith([dirPath, packageJsonFile]).returns(packageJsonPath);
+    return packageJsonPath;
+  };
+
+  const dirnameFor = ({ dirPath }: { dirPath: string }): FilePath => {
+    const parent = FilePathStub({ value: realPath.dirname(dirPath) });
+    dirnameHandle.calledWith([dirPath]).returns(parent);
+    return parent;
+  };
+
+  // Recursive, not a loop: the real walk visits every ancestor directory one at a time, so
+  // every level needs its own staged "missing" answer up to (but not including) stopAt — or
+  // all the way to the filesystem root when stopAt is omitted. The object literal below omits
+  // `stopAt` rather than passing it as `undefined` (exactOptionalPropertyTypes).
+  const stageMissingUntil = ({ dirPath, stopAt }: { dirPath: string; stopAt?: string }): void => {
+    if (stopAt !== undefined && dirPath === stopAt) {
+      return;
+    }
+    pathExistsHandle.missing({ path: packageJsonPathFor({ dirPath }) });
+    const parent = dirnameFor({ dirPath });
+    if (parent === dirPath) {
+      return;
+    }
+    stageMissingUntil(stopAt === undefined ? { dirPath: parent } : { dirPath: parent, stopAt });
+  };
 
   return {
     setupProjectRootFound: ({
@@ -27,37 +74,13 @@ export const projectRootFindBrokerProxy = (): {
     }: {
       startPath: string;
       projectRootPath: string;
-    }) => {
-      // First check: startPath itself (for directory paths) - reject since it's a file path
-      pathJoinProxy.returns({ result: `${startPath}/package.json` as never });
-      fsAccessProxy.rejects({
-        filePath: `${startPath}/package.json` as never,
-        error: new Error('ENOENT'),
-      });
-      // Second check: parent directory (project root)
-      pathDirnameProxy.returns({ result: projectRootPath as never });
-      pathJoinProxy.returns({ result: `${projectRootPath}/package.json` as never });
-      fsAccessProxy.resolves({ filePath: `${projectRootPath}/package.json` as never });
+    }): void => {
+      stageMissingUntil({ dirPath: startPath, stopAt: projectRootPath });
+      pathExistsHandle.present({ path: packageJsonPathFor({ dirPath: projectRootPath }) });
     },
 
-    setupProjectRootNotFound: ({ startPath }: { startPath: string }) => {
-      const lastSlashIndex = startPath.lastIndexOf('/');
-      const directory = lastSlashIndex === 0 ? '/' : startPath.substring(0, lastSlashIndex);
-      // First check: startPath itself - reject
-      pathJoinProxy.returns({ result: `${startPath}/package.json` as never });
-      fsAccessProxy.rejects({
-        filePath: `${startPath}/package.json` as never,
-        error: new Error('ENOENT'),
-      });
-      // Second check: parent directory - reject
-      pathDirnameProxy.returns({ result: directory as never });
-      pathJoinProxy.returns({ result: `${directory}/package.json` as never });
-      fsAccessProxy.rejects({
-        filePath: `${directory}/package.json` as never,
-        error: new Error('ENOENT'),
-      });
-      // Simulate reaching root
-      pathDirnameProxy.returns({ result: directory as never });
+    setupProjectRootNotFound: ({ startPath }: { startPath: string }): void => {
+      stageMissingUntil({ dirPath: startPath });
     },
 
     setupProjectRootFoundInParent: ({
@@ -68,32 +91,13 @@ export const projectRootFindBrokerProxy = (): {
       startPath: string;
       parentPath: string;
       projectRootPath: string;
-    }) => {
-      const lastSlashIndex = startPath.lastIndexOf('/');
-      const directory = lastSlashIndex === 0 ? '/' : startPath.substring(0, lastSlashIndex);
-      // First check: startPath itself - reject
-      pathJoinProxy.returns({ result: `${startPath}/package.json` as never });
-      fsAccessProxy.rejects({
-        filePath: `${startPath}/package.json` as never,
-        error: new Error('ENOENT'),
-      });
-      // Second check: parent of startPath - reject
-      pathDirnameProxy.returns({ result: directory as never });
-      pathJoinProxy.returns({ result: `${directory}/package.json` as never });
-      fsAccessProxy.rejects({
-        filePath: `${directory}/package.json` as never,
-        error: new Error('ENOENT'),
-      });
-      // Third check: move to parent where package.json exists
-      pathDirnameProxy.returns({ result: projectRootPath as never });
-      pathJoinProxy.returns({ result: `${projectRootPath}/package.json` as never });
-      fsAccessProxy.resolves({ filePath: `${projectRootPath}/package.json` as never });
+    }): void => {
+      stageMissingUntil({ dirPath: startPath, stopAt: projectRootPath });
+      pathExistsHandle.present({ path: packageJsonPathFor({ dirPath: projectRootPath }) });
     },
 
-    setupProjectRootFoundInDirectory: ({ directoryPath }: { directoryPath: string }) => {
-      // When startPath is a directory, check the directory itself first
-      pathJoinProxy.returns({ result: `${directoryPath}/package.json` as never });
-      fsAccessProxy.resolves({ filePath: `${directoryPath}/package.json` as never });
+    setupProjectRootFoundInDirectory: ({ directoryPath }: { directoryPath: string }): void => {
+      pathExistsHandle.present({ path: packageJsonPathFor({ dirPath: directoryPath }) });
     },
 
     setupProjectRootFoundInDirectoryParent: ({
@@ -102,17 +106,9 @@ export const projectRootFindBrokerProxy = (): {
     }: {
       directoryPath: string;
       projectRootPath: string;
-    }) => {
-      // First check: startPath directory itself - no package.json
-      pathJoinProxy.returns({ result: `${directoryPath}/package.json` as never });
-      fsAccessProxy.rejects({
-        filePath: `${directoryPath}/package.json` as never,
-        error: new Error('ENOENT'),
-      });
-      // Then check parent directory
-      pathDirnameProxy.returns({ result: projectRootPath as never });
-      pathJoinProxy.returns({ result: `${projectRootPath}/package.json` as never });
-      fsAccessProxy.resolves({ filePath: `${projectRootPath}/package.json` as never });
+    }): void => {
+      stageMissingUntil({ dirPath: directoryPath, stopAt: projectRootPath });
+      pathExistsHandle.present({ path: packageJsonPathFor({ dirPath: projectRootPath }) });
     },
   };
 };

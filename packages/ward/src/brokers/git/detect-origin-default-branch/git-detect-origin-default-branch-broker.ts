@@ -15,8 +15,8 @@
  * // Returns GitBranchName('origin/master'), or null when the repo has no origin refs at all
  */
 
-import { childProcessSpawnCaptureAdapter } from '@dungeonmaster/shared/adapters';
-import { exitCodeContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+import { run, RunNotFoundError } from '#gateway/node/child_process';
+import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import type { GitBranchName } from '../../../contracts/git-branch-name/git-branch-name-contract';
 import { gitBranchNameContract } from '../../../contracts/git-branch-name/git-branch-name-contract';
@@ -27,23 +27,36 @@ export const gitDetectOriginDefaultBranchBroker = async ({
 }: {
   cwd: AbsoluteFilePath;
 }): Promise<GitBranchName | null> => {
-  const mainResult = await childProcessSpawnCaptureAdapter({
+  // A missing `git` binary rejects `run` with RunNotFoundError rather than resolving a result —
+  // caught here and folded into the same failed-run shape the old spawn-capture adapter resolved
+  // for an ENOENT, so "git is not on this machine" reads as "neither origin ref verified" below.
+  const mainResult = await run({
     command: 'git',
     args: ['rev-parse', '--verify', gitRemoteRefsStatics.originMain],
     cwd,
+  }).catch((error: unknown) => {
+    if (!(error instanceof RunNotFoundError)) {
+      throw error;
+    }
+    return { exitCode: 1, output: '', signal: null, timedOut: false };
   });
 
-  if (mainResult.exitCode === exitCodeContract.parse(0)) {
+  if (mainResult.exitCode === 0) {
     return gitBranchNameContract.parse(gitRemoteRefsStatics.originMain);
   }
 
-  const masterResult = await childProcessSpawnCaptureAdapter({
+  const masterResult = await run({
     command: 'git',
     args: ['rev-parse', '--verify', gitRemoteRefsStatics.originMaster],
     cwd,
+  }).catch((error: unknown) => {
+    if (!(error instanceof RunNotFoundError)) {
+      throw error;
+    }
+    return { exitCode: 1, output: '', signal: null, timedOut: false };
   });
 
-  if (masterResult.exitCode === exitCodeContract.parse(0)) {
+  if (masterResult.exitCode === 0) {
     return gitBranchNameContract.parse(gitRemoteRefsStatics.originMaster);
   }
 

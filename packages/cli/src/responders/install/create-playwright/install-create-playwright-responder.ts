@@ -16,9 +16,11 @@ import {
   packageNameContract,
   fileContentsContract,
   absoluteFilePathContract,
+  filePathContract,
 } from '@dungeonmaster/shared/contracts';
 import { architecturePackageE2eEligibleDetectBroker } from '@dungeonmaster/shared/brokers';
-import { pathJoinAdapter, fsExistsSyncAdapter } from '@dungeonmaster/shared/adapters';
+import { existsSync } from '#gateway/node/fs';
+import { join } from '#gateway/node/path';
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import { playwrightConfigTemplateStatics } from '../../../statics/playwright-config-template/playwright-config-template-statics';
 
@@ -44,11 +46,9 @@ export const InstallCreatePlaywrightResponder = async ({
     };
   }
 
-  const configPath = pathJoinAdapter({
-    paths: [context.targetProjectRoot, CONFIG_FILENAME],
-  });
+  const configPath = filePathContract.parse(join(context.targetProjectRoot, CONFIG_FILENAME));
 
-  if (fsExistsSyncAdapter({ filePath: configPath })) {
+  if (existsSync(configPath)) {
     return {
       packageName: packageNameContract.parse(PACKAGE_NAME),
       success: true,

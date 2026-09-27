@@ -1,40 +1,68 @@
-import { fsAccessAdapterProxy } from '../../../adapters/fs/access/fs-access-adapter.proxy';
-import { pathJoinAdapterProxy } from '../../../adapters/path/join/path-join-adapter.proxy';
+import { pathExistsProxy } from '#gateway/node/fs__promises/path-exists/path-exists.proxy';
+import { join } from '#gateway/node/path';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 
 export const variantWalkLayerBrokerProxy = (): {
-  setupFirstVariantMatches: (params: { configPath: FilePath }) => void;
-  setupNthVariantMatches: (params: { missingPaths: FilePath[]; configPath: FilePath }) => void;
-  setupAllVariantsMissing: (params: { missingPaths: FilePath[] }) => void;
+  setupFirstVariantMatches: (params: { searchPath: string; configPath: FilePath }) => void;
+  setupNthVariantMatches: (params: {
+    searchPath: string;
+    missingPaths: FilePath[];
+    configPath: FilePath;
+  }) => void;
+  setupAllVariantsMissing: (params: { searchPath: string; missingPaths: FilePath[] }) => void;
 } => {
-  const fsAccessProxy = fsAccessAdapterProxy();
-  const pathJoinProxy = pathJoinAdapterProxy();
+  const fsProxy = pathExistsProxy();
+  // #gateway/node/path is a raw passthrough of the Node 'path' module (no per-function wrapper,
+  // so no gateway proxy to compose) — mocked directly here, on the same '#gateway/node/path'
+  // specifier the broker imports. Each candidate's own variant filename is recovered by slicing
+  // it off the known searchPath prefix, so join() is staged on the EXACT (searchPath, variant)
+  // tuple the broker really passes — never an address-less catch-all.
+  const joinHandle = registerMock({ fn: join });
 
   return {
-    setupFirstVariantMatches: ({ configPath }: { configPath: FilePath }): void => {
-      pathJoinProxy.returns({ result: configPath });
-      fsAccessProxy.resolves({ filePath: configPath });
+    setupFirstVariantMatches: ({
+      searchPath,
+      configPath,
+    }: {
+      searchPath: string;
+      configPath: FilePath;
+    }): void => {
+      const variant = configPath.slice(searchPath.length + 1);
+      joinHandle.calledWith([searchPath, variant]).returns(configPath);
+      fsProxy.present({ path: configPath });
     },
 
     setupNthVariantMatches: ({
+      searchPath,
       missingPaths,
       configPath,
     }: {
+      searchPath: string;
       missingPaths: FilePath[];
       configPath: FilePath;
     }): void => {
       for (const missing of missingPaths) {
-        pathJoinProxy.returns({ result: missing });
-        fsAccessProxy.rejects({ filePath: missing, error: new Error('ENOENT') });
+        const missingVariant = missing.slice(searchPath.length + 1);
+        joinHandle.calledWith([searchPath, missingVariant]).returns(missing);
+        fsProxy.missing({ path: missing });
       }
-      pathJoinProxy.returns({ result: configPath });
-      fsAccessProxy.resolves({ filePath: configPath });
+      const variant = configPath.slice(searchPath.length + 1);
+      joinHandle.calledWith([searchPath, variant]).returns(configPath);
+      fsProxy.present({ path: configPath });
     },
 
-    setupAllVariantsMissing: ({ missingPaths }: { missingPaths: FilePath[] }): void => {
+    setupAllVariantsMissing: ({
+      searchPath,
+      missingPaths,
+    }: {
+      searchPath: string;
+      missingPaths: FilePath[];
+    }): void => {
       for (const missing of missingPaths) {
-        pathJoinProxy.returns({ result: missing });
-        fsAccessProxy.rejects({ filePath: missing, error: new Error('ENOENT') });
+        const variant = missing.slice(searchPath.length + 1);
+        joinHandle.calledWith([searchPath, variant]).returns(missing);
+        fsProxy.missing({ path: missing });
       }
     },
   };

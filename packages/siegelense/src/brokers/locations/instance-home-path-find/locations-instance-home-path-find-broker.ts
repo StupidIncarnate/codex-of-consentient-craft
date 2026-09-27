@@ -13,7 +13,7 @@
  */
 
 import { osTmpdirAdapter } from '../../../adapters/os/tmpdir/os-tmpdir-adapter';
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
+import { join } from '#gateway/node/path';
 import { absoluteFilePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
 import { driverStatics } from '../../../statics/driver/driver-statics';
@@ -25,9 +25,7 @@ export const locationsInstanceHomePathFindBroker = ({
 }): AbsoluteFilePath => {
   const tmpDir = osTmpdirAdapter();
 
-  const joined = pathJoinAdapter({
-    paths: [tmpDir, `${driverStatics.boot.homePrefix}${instanceId}`],
-  });
+  const joined = join(tmpDir, `${driverStatics.boot.homePrefix}${instanceId}`);
 
   return absoluteFilePathContract.parse(joined);
 };

@@ -17,6 +17,9 @@ describe('eslintLoadConfigBroker', () => {
       expect(result).toStrictEqual(expected);
     });
 
+    // Asserts on the config keyed to the staged '/default/cwd' address specifically, not the
+    // any-object catch-all — omitting `cwd` here only proves the no-cwd branch calls cwd() if the
+    // staged result would differ from every other test's expectation in this file.
     it('VALID: {filePath: "test.ts"} => returns eslint config with default cwd', async () => {
       eslintLoadConfigBrokerProxy();
 
@@ -24,7 +27,7 @@ describe('eslintLoadConfigBroker', () => {
         filePath: 'test.ts',
       });
 
-      const expected = LinterConfigStub({ rules: { 'no-console': 'warn' } });
+      const expected = LinterConfigStub({ rules: { 'default-cwd-marker': 'error' } });
 
       expect(result).toStrictEqual(expected);
     });

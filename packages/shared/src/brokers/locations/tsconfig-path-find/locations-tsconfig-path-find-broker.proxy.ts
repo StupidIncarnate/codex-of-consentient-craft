@@ -1,29 +1,44 @@
-import { fsAccessAdapterProxy } from '../../../adapters/fs/access/fs-access-adapter.proxy';
-import { pathDirnameAdapterProxy } from '../../../adapters/path/dirname/path-dirname-adapter.proxy';
-import { pathJoinAdapterProxy } from '../../../adapters/path/join/path-join-adapter.proxy';
+import { pathExistsProxy } from '#gateway/node/fs__promises/path-exists/path-exists.proxy';
+import { dirname, join } from '#gateway/node/path';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
+import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
+import { locationsStatics } from '../../../statics/locations/locations-statics';
+
+type FilePath = ReturnType<typeof FilePathStub>;
 
 export const locationsTsconfigPathFindBrokerProxy = (): {
   setupTsconfigFound: (params: { searchPath: string }) => void;
   setupTsconfigNotFound: (params: { searchPath: string }) => void;
   setupTsconfigMissingWithParent: (params: { searchPath: string; parentPath: string }) => void;
 } => {
-  const fsAccessProxy = fsAccessAdapterProxy();
-  const pathDirnameProxy = pathDirnameAdapterProxy();
-  const pathJoinProxy = pathJoinAdapterProxy();
+  const fsProxy = pathExistsProxy();
+  // join/dirname are pure and carry no gateway proxy of their own (#gateway/node/path is a raw
+  // passthrough), so they are mocked directly here — but the mock MUST be registered on `join`/
+  // `dirname` as imported from '#gateway/node/path' (the same specifier the broker imports),
+  // never from raw 'path' (see dungeonmaster-home-find-broker.proxy.ts for why a mismatched
+  // specifier silently misses the broker's own calls). Each call is staged on a SPECIFIC
+  // argument tuple, never a bare `calledWith([])` — see config-root-find-broker.proxy.ts for why
+  // a bare zero-arg address is an order-dependent queue a sibling proxy's own staging can consume
+  // out of turn.
+  const joinHandle = registerMock({ fn: join });
+  const dirnameHandle = registerMock({ fn: dirname });
+
+  const configPathFor = ({ searchPath }: { searchPath: string }): FilePath => {
+    const configPath = FilePathStub({
+      value: `${searchPath}/${locationsStatics.repoRoot.tsconfig}`,
+    });
+    joinHandle.calledWith([searchPath, locationsStatics.repoRoot.tsconfig]).returns(configPath);
+    return configPath;
+  };
 
   return {
     setupTsconfigFound: ({ searchPath }: { searchPath: string }): void => {
-      pathJoinProxy.returns({ result: `${searchPath}/tsconfig.json` as never });
-      fsAccessProxy.resolves({ filePath: `${searchPath}/tsconfig.json` as never });
+      fsProxy.present({ path: configPathFor({ searchPath }) });
     },
 
     setupTsconfigNotFound: ({ searchPath }: { searchPath: string }): void => {
-      pathJoinProxy.returns({ result: `${searchPath}/tsconfig.json` as never });
-      fsAccessProxy.rejects({
-        filePath: `${searchPath}/tsconfig.json` as never,
-        error: new Error('ENOENT'),
-      });
-      pathDirnameProxy.returns({ result: searchPath as never });
+      fsProxy.missing({ path: configPathFor({ searchPath }) });
+      dirnameHandle.calledWith([searchPath]).returns(FilePathStub({ value: searchPath }));
     },
 
     setupTsconfigMissingWithParent: ({
@@ -33,12 +48,8 @@ export const locationsTsconfigPathFindBrokerProxy = (): {
       searchPath: string;
       parentPath: string;
     }): void => {
-      pathJoinProxy.returns({ result: `${searchPath}/tsconfig.json` as never });
-      fsAccessProxy.rejects({
-        filePath: `${searchPath}/tsconfig.json` as never,
-        error: new Error('ENOENT'),
-      });
-      pathDirnameProxy.returns({ result: parentPath as never });
+      fsProxy.missing({ path: configPathFor({ searchPath }) });
+      dirnameHandle.calledWith([searchPath]).returns(FilePathStub({ value: parentPath }));
     },
   };
 };

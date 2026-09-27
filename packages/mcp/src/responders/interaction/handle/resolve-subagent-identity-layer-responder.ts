@@ -25,7 +25,7 @@ import {
   type AgentId,
   type SessionId,
 } from '@dungeonmaster/shared/contracts';
-import { processCwdAdapter } from '@dungeonmaster/shared/adapters';
+import { cwd } from '#gateway/node/process';
 
 import { claudeCodeParentSessionFindByToolUseIdBroker } from '../../../brokers/claude-code-parent-session/find-by-tool-use-id/claude-code-parent-session-find-by-tool-use-id-broker';
 import { toolUseIdContract } from '../../../contracts/tool-use-id/tool-use-id-contract';
@@ -48,8 +48,7 @@ export const ResolveSubagentIdentityLayerResponder = async ({
     return undefined;
   }
 
-  const cwd = processCwdAdapter();
-  const projectDir = absoluteFilePathContract.parse(String(cwd));
+  const projectDir = absoluteFilePathContract.parse(cwd());
 
   const found = await claudeCodeParentSessionFindByToolUseIdBroker({
     projectDir,

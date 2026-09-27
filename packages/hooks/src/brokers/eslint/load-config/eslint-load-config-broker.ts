@@ -12,7 +12,7 @@ import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-
 import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 import { hasEslintRulesConfigGuard } from '../../../guards/has-eslint-rules-config/has-eslint-rules-config-guard';
 import { eslintFallbackPathsBroker } from '../fallback-paths/eslint-fallback-paths-broker';
-import { processCwdAdapter } from '@dungeonmaster/shared/adapters';
+import { cwd } from '#gateway/node/process';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 // Cache keyed by resolved eslint.config.* path (or cwd when no config is found). Many cwds
@@ -22,13 +22,13 @@ const configCache = new Map<FilePath, unknown>();
 const MAX_WALK_UP_DEPTH = 20;
 
 export const eslintLoadConfigBroker = async ({
-  cwd = processCwdAdapter(),
+  cwd: customCwd,
   filePath,
 }: {
   cwd?: string;
   filePath: string;
 }): Promise<unknown> => {
-  const targetCwd = cwd;
+  const targetCwd = customCwd ?? cwd();
   const resolvedCwd = pathResolveAdapter({ paths: [targetCwd] });
 
   let cacheKey: FilePath = resolvedCwd;

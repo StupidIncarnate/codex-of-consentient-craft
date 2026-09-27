@@ -11,11 +11,9 @@
  * });
  * // Returns the absolute path of every file written, in write order
  */
-import {
-  pathJoinAdapter,
-  pathDirnameAdapter,
-  fsExistsSyncAdapter,
-} from '@dungeonmaster/shared/adapters';
+import { join, dirname } from '#gateway/node/path';
+import { existsSync } from '#gateway/node/fs';
+import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 import { fsMkdirAdapter } from '../../../adapters/fs/mkdir/fs-mkdir-adapter';
@@ -29,7 +27,7 @@ export const packageScaffoldWriteBroker = async ({
   packageRoot: FilePath;
   files: readonly ScaffoldFile[];
 }): Promise<readonly FilePath[]> => {
-  if (fsExistsSyncAdapter({ filePath: packageRoot })) {
+  if (existsSync(packageRoot)) {
     throw new Error(
       `Cannot scaffold ${packageRoot}: a package already exists there and this command will not overwrite it.`,
     );
@@ -43,8 +41,8 @@ export const packageScaffoldWriteBroker = async ({
   await files.reduce(async (previous, file) => {
     await previous;
 
-    const absolutePath = pathJoinAdapter({ paths: [packageRoot, file.relativePath] });
-    const parentDir = pathDirnameAdapter({ path: absolutePath });
+    const absolutePath = filePathContract.parse(join(packageRoot, file.relativePath));
+    const parentDir = filePathContract.parse(dirname(absolutePath));
 
     await fsMkdirAdapter({ filePath: parentDir });
     await fsWriteFileAdapter({ filePath: absolutePath, contents: file.contents });

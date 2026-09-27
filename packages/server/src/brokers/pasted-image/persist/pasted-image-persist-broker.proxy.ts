@@ -1,5 +1,5 @@
 import { mkdir, readFile, writeFile } from 'fs/promises';
-import { homedir } from 'os';
+import { homedir } from '#gateway/node/os';
 import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
@@ -35,6 +35,18 @@ export const pastedImagePersistBrokerProxy = (): {
   locationsQuestFolderPathFindBrokerProxy();
   locationsQuestImagesPathFindBrokerProxy();
   const uuidSpy = registerSpyOn({ object: crypto, method: 'randomUUID' });
+  // This broker's own images-directory resolution (locationsQuestFolderPathFindBroker ->
+  // locationsGuildQuestsPathFindBroker -> locationsGuildPathFindBroker ->
+  // dungeonmasterHomeFindBroker) reaches homedir() through '#gateway/node/os' — the SAME
+  // specifier dungeonmasterHomeFindBroker itself imports (mocking raw 'os' never reaches it: the
+  // gateway file captures its own reference to the real module at ITS OWN load time, so a mock on
+  // a different specifier is silently unused — see dungeonmasterHomeFindBrokerProxy's own
+  // header). Staged directly here rather than by composing dungeonmasterHomeFindBrokerProxy
+  // (enforce-proxy-child-creation refuses that: this file's own implementation never imports
+  // dungeonmasterHomeFindBroker directly, only locationsQuestFolderPathFindBroker/
+  // locationsQuestImagesPathFindBroker, already composed above) — the locations proxies already
+  // construct dungeonmasterHomeFindBrokerProxy transitively, which is what registers its join()
+  // real-passthrough default, so every join() beneath the resolved home dir still runs REAL.
   const homedirHandle = registerMock({ fn: homedir });
   // Extra handles on the SAME npm functions fsMkdirAdapterProxy/fsWriteFileBase64AdapterProxy/
   // localImageCopyBrokerProxy already mock (mkdir, writeFile, readFile) — registerMock shares
@@ -52,14 +64,17 @@ export const pastedImagePersistBrokerProxy = (): {
 
   return {
     setupHome: ({ homePath }: { homePath: string }): void => {
-      // osHomedirAdapter reads DUNGEONMASTER_HOME before falling back to homedir() — clearing it
-      // here is what makes the mocked homedir() below actually decide the resolved path.
+      // dungeonmasterHomeFindBroker reads DUNGEONMASTER_HOME before falling back to homedir() —
+      // clearing it here is what makes the staged homedir() below actually decide the resolved
+      // path.
       Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
       // Sticky, not one-shot: a test drives the broker across MULTIPLE sends and every one of
-      // them must resolve to the same home. Registered AFTER the locations proxies above (which
-      // also stage a sticky '/home/default' via their own nested osHomedirAdapterProxy), so this
-      // later registration is the one that wins.
-      homedirHandle.calledWith([]).returns(absoluteFilePathContract.parse(homePath));
+      // them must resolve to the same home. This is the LAST word on homedir() for every real
+      // chain composed in the same test that reaches it through dungeonmasterHomeFindBroker (a
+      // sibling proxy such as questFindQuestPathBrokerProxy's own setupQuestPath scenario stages
+      // only a one-shot for its own single call, never a sticky override, precisely so this
+      // registration — whenever it runs — is what every LATER call to homedir() answers to).
+      homedirHandle.calledWith([]).returns(homePath);
     },
     stageImageIds: ({ ids }: { ids: readonly string[] }): void => {
       // Each id answers ONE call, consumed in the order staged. images.map() invokes

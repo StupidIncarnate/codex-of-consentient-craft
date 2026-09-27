@@ -85,6 +85,9 @@ export const dungeonmasterRuleEnforceOnStatics = {
   '@dungeonmaster/ban-nondeterminism-in-ingredients': 'pre-edit',
   '@dungeonmaster/ban-gateway-export': 'pre-edit',
   '@dungeonmaster/enforce-gateway-restricted-to': 'pre-edit',
+  '@dungeonmaster/ban-proxy-catch-all-defaults': 'pre-edit',
+  '@dungeonmaster/ban-invented-failures': 'pre-edit',
+  '@dungeonmaster/ban-workspace-export-mocks': 'pre-edit',
 
   // @dungeonmaster - POST-EDIT
   '@dungeonmaster/enforce-proxy-patterns': 'post-edit',

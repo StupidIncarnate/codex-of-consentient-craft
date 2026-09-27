@@ -154,3 +154,26 @@ Traps:
 - For a path known only at run time, stage it with `returnsMatchingPath({ path: (p) => …, … })`. Never fall back to a raw `registerMock` on `fs`. The only exception is a proxy that also offers a 0-argument `setupImplementation` computed per path (see 3b63bf848's note).
 - Find consumers with `discover` using `strict: true` on the bare identifier. An alternation pattern misses some.
 - A cross-gateway import typechecks against `@gateway/node`'s compiled output. If `shared`'s typecheck says a gateway proxy method "does not exist", report "build needed: @gateway/node". Do not work around it.
+
+### Recipe for `childProcessSpawnCaptureAdapter` callers (F25, 5b3a16ede)
+
+The broker calls `run({ command, args, cwd })` from `#gateway/node/child_process`. Where the old adapter answered a missing program as a failed run, keep that behaviour by catching `RunNotFoundError` only:
+
+```ts
+await run({ command, args, cwd }).catch((error: unknown) => {
+  if (!(error instanceof RunNotFoundError)) throw error;
+  return { exitCode: 1, output: '', signal: null, timedOut: false };
+});
+```
+
+The proxy composes the gateway's proxies and stages each call by the exact keys that tell it apart:
+
+```ts
+const run = runProxy();
+RunNotFoundErrorProxy(); // only when the broker imports RunNotFoundError
+run.setupSuccess({ command: 'git', args: ['rev-parse', '--verify', 'main'], exitCode: 0, stdout: '', stderr: '' });
+run.setupError({ command: 'git', args: [...], error: Object.assign(new Error('spawn git ENOENT'), { code: 'ENOENT' }) });
+run.getCallsFor({ command: 'git' }); // each call's args array, in call order
+```
+
+Never `registerMock({ fn: run })` in a caller's proxy: `runProxy()` now addresses by `command`, `args` and `cwd`.

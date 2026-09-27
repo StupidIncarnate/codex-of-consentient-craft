@@ -128,8 +128,10 @@ module.exports = {
   preset: undefined,
   testEnvironment: '__TEST_ENVIRONMENT__',
   roots: [__ROOTS__],
+  setupFiles: [__SETUP_FILES__],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
   testMatch: ['**/src/**/*.test.[jt]s?(x)'],
+  transformIgnorePatterns: ['/dist/', '/node_modules/(?!(msw|@mswjs|until-async|outvariant)/)'],
   transform: {
     '^.+\\\\.[jt]sx?$': [
       'ts-jest',
@@ -138,6 +140,7 @@ module.exports = {
         tsconfig: { ...dungeonmasterTsJestOptions.tsconfig, jsx: 'react-jsx' },
       },
     ],
+    '/node_modules/.+\\\\.[cm]?js$': ['ts-jest', dungeonmasterTsJestOptions],
   },
 };
 `,
@@ -206,18 +209,28 @@ module.exports = {
       expect({
         jestRootsPlaceholder: packageScaffoldConfigStatics.jestRootsPlaceholder,
         jestTestEnvironmentPlaceholder: packageScaffoldConfigStatics.jestTestEnvironmentPlaceholder,
+        jestSetupFilesPlaceholder: packageScaffoldConfigStatics.jestSetupFilesPlaceholder,
         jestRootSrc: packageScaffoldConfigStatics.jestRootSrc,
         jestRootBin: packageScaffoldConfigStatics.jestRootBin,
         jestEnvironmentJsdom: packageScaffoldConfigStatics.jestEnvironmentJsdom,
         jestEnvironmentNode: packageScaffoldConfigStatics.jestEnvironmentNode,
+        jestJsdomSetupFilesEntry: packageScaffoldConfigStatics.jestJsdomSetupFilesEntry,
       }).toStrictEqual({
         jestRootsPlaceholder: '__ROOTS__',
         jestTestEnvironmentPlaceholder: '__TEST_ENVIRONMENT__',
+        jestSetupFilesPlaceholder: '__SETUP_FILES__',
         jestRootSrc: "'<rootDir>/src'",
         jestRootBin: "'<rootDir>/bin'",
         jestEnvironmentJsdom: 'jsdom',
         jestEnvironmentNode: 'node',
+        jestJsdomSetupFilesEntry: "'<rootDir>/__mocks__/jsdom-polyfills.cjs'",
       });
+    });
+
+    it('VALID: {} => the published tsx template also carries the setupFiles placeholder', () => {
+      expect(packageScaffoldConfigStatics.jestConfigTsxPublished).toMatch(
+        /^ {2}setupFiles: \[__SETUP_FILES__\],$/mu,
+      );
     });
   });
 

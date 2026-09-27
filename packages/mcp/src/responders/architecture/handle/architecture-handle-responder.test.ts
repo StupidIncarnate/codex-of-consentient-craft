@@ -216,6 +216,7 @@ describe('ArchitectureHandleResponder', () => {
   describe('get-project-inventory', () => {
     it('VALID: {tool: get-project-inventory, packageName} => returns inventory text prefixed by the project-root banner', async () => {
       const proxy = ArchitectureHandleResponderProxy();
+      proxy.setupDirectPackage({ packageName: 'shared' });
 
       const result = await proxy.callResponder({
         tool: ToolNameStub({ value: 'get-project-inventory' }),
@@ -277,6 +278,7 @@ describe('ArchitectureHandleResponder', () => {
   describe('project-root resolution banner', () => {
     it('EDGE: {no meta} => banner reports the server-cwd fallback, by name', async () => {
       const proxy = ArchitectureHandleResponderProxy();
+      proxy.setupDirectPackage({ packageName: 'shared' });
 
       const result = await proxy.callResponder({
         tool: ToolNameStub({ value: 'get-project-inventory' }),
@@ -296,6 +298,10 @@ describe('ArchitectureHandleResponder', () => {
         toolUseId: 'toolu_01K6qfGEd8bFzkPvY8nHt1Ts',
         homedir: '/home/tester',
         sessionId: 'aaaaaaaa-1111-4222-9333-444444444444',
+        repoRoot: '/repo/worktrees/siegelense',
+      });
+      proxy.setupDirectPackage({
+        packageName: 'shared',
         repoRoot: '/repo/worktrees/siegelense',
       });
 

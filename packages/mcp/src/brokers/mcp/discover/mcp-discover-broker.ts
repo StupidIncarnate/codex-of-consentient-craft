@@ -24,7 +24,7 @@ import { globIgnoreFilterTransformer } from '../../../transformers/glob-ignore-f
 import { globResolveTransformer } from '../../../transformers/glob-resolve/glob-resolve-transformer';
 import { pathToTreeRelativeTransformer } from '../../../transformers/path-to-tree-relative/path-to-tree-relative-transformer';
 import { discoverHintStatics } from '../../../statics/discover-hint/discover-hint-statics';
-import { processCwdAdapter } from '@dungeonmaster/shared/adapters';
+import { cwd } from '#gateway/node/process';
 
 export const mcpDiscoverBroker = async ({
   input,
@@ -34,7 +34,7 @@ export const mcpDiscoverBroker = async ({
   input: DiscoverInput;
   ignorePatterns?: readonly GlobPattern[];
   // The resolved project root to scan from — see fileScannerBroker's own rootPath for why the
-  // processCwdAdapter() fallback below exists only for standalone/test callers, never for the
+  // cwd() fallback below exists only for standalone/test callers, never for the
   // real MCP call site (architectureHandleResponder always passes this explicitly).
   rootPath?: PathSegment;
 }): Promise<{
@@ -89,7 +89,7 @@ export const mcpDiscoverBroker = async ({
 
   // Empty-result hint: distinguish between "glob found no files" vs "grep filtered everything".
   if (fileResults.length === 0 && validated.glob) {
-    const cwdPath = rootPath ?? pathSegmentContract.parse(processCwdAdapter());
+    const cwdPath = rootPath ?? pathSegmentContract.parse(cwd());
     const globSuffix = globResolveTransformer({ glob: validated.glob });
     const pattern = globPatternContract.parse(`${cwdPath}/${globSuffix}`);
 

@@ -16,7 +16,7 @@
  */
 
 import { locationsRootPathFindBroker } from '../root-path-find/locations-root-path-find-broker';
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
+import { join } from '#gateway/node/path';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import {
   absoluteFilePathContract,
@@ -36,23 +36,19 @@ export const locationsInstanceEvidencePathFindBroker = ({
 
   const joined =
     guildId === null
-      ? pathJoinAdapter({
-          paths: [
-            rootPath,
-            locationsStatics.siegelense.unownedDir,
-            locationsStatics.siegelense.instancesDir,
-            instanceId,
-          ],
-        })
-      : pathJoinAdapter({
-          paths: [
-            rootPath,
-            locationsStatics.siegelense.guildsDir,
-            guildId,
-            locationsStatics.siegelense.instancesDir,
-            instanceId,
-          ],
-        });
+      ? join(
+          rootPath,
+          locationsStatics.siegelense.unownedDir,
+          locationsStatics.siegelense.instancesDir,
+          instanceId,
+        )
+      : join(
+          rootPath,
+          locationsStatics.siegelense.guildsDir,
+          guildId,
+          locationsStatics.siegelense.instancesDir,
+          instanceId,
+        );
 
   return absoluteFilePathContract.parse(joined);
 };

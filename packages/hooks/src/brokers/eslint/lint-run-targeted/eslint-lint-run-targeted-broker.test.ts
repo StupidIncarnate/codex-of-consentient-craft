@@ -86,6 +86,41 @@ describe('eslintLintRunTargetedBroker()', () => {
     });
   });
 
+  describe('default cwd', () => {
+    it('VALID: {content, filePath, config, no cwd} => resolves against the default cwd', async () => {
+      const proxy = eslintLintRunTargetedBrokerProxy();
+
+      proxy.returnsLintResultsForDefaultCwd({
+        content: 'const marker = 1;',
+        filePath: 'marker.ts',
+        results: [
+          {
+            filePath: '/default/cwd/resolved/marker.ts',
+            messages: [],
+            errorCount: 0,
+            warningCount: 0,
+          },
+        ],
+      });
+
+      const config = LinterConfigStub();
+      const results = await eslintLintRunTargetedBroker({
+        content: 'const marker = 1;',
+        filePath: 'marker.ts',
+        config,
+      });
+
+      expect(results).toStrictEqual([
+        {
+          filePath: '/default/cwd/resolved/marker.ts',
+          messages: [],
+          errorCount: 0,
+          warningCount: 0,
+        },
+      ]);
+    });
+  });
+
   describe('empty content handling', () => {
     it('EMPTY: {content: "", filePath: "test.ts", config: {}} => returns empty array', async () => {
       eslintLintRunTargetedBrokerProxy();

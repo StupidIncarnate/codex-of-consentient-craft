@@ -11,7 +11,7 @@ describe('usageLedgerWriteBroker', () => {
   describe('pruning', () => {
     it('VALID: {a bucket inside the seven-day window} => is kept', async () => {
       const proxy = usageLedgerWriteBrokerProxy();
-      proxy.setupWriteSuccess();
+      proxy.setupWriteSuccess({ nowMs: NOW });
 
       const result = await usageLedgerWriteBroker({
         ledger: UsageLedgerStub({
@@ -28,7 +28,7 @@ describe('usageLedgerWriteBroker', () => {
 
     it('VALID: {a bucket older than seven days} => is dropped, because no window can read it again', async () => {
       const proxy = usageLedgerWriteBrokerProxy();
-      proxy.setupWriteSuccess();
+      proxy.setupWriteSuccess({ nowMs: NOW });
 
       const result = await usageLedgerWriteBroker({
         ledger: UsageLedgerStub({
@@ -43,7 +43,7 @@ describe('usageLedgerWriteBroker', () => {
 
     it('EDGE: {a bucket exactly at the window edge} => is kept', async () => {
       const proxy = usageLedgerWriteBrokerProxy();
-      proxy.setupWriteSuccess();
+      proxy.setupWriteSuccess({ nowMs: NOW });
 
       const result = await usageLedgerWriteBroker({
         ledger: UsageLedgerStub({
@@ -65,7 +65,7 @@ describe('usageLedgerWriteBroker', () => {
 
     it('VALID: {a cursor for a transcript untouched in a week} => is dropped', async () => {
       const proxy = usageLedgerWriteBrokerProxy();
-      proxy.setupWriteSuccess();
+      proxy.setupWriteSuccess({ nowMs: NOW });
 
       const result = await usageLedgerWriteBroker({
         ledger: UsageLedgerStub({
@@ -80,7 +80,7 @@ describe('usageLedgerWriteBroker', () => {
 
     it('VALID: {a cursor for a recent transcript} => is kept', async () => {
       const proxy = usageLedgerWriteBrokerProxy();
-      proxy.setupWriteSuccess();
+      proxy.setupWriteSuccess({ nowMs: NOW });
 
       const result = await usageLedgerWriteBroker({
         ledger: UsageLedgerStub({
@@ -97,7 +97,7 @@ describe('usageLedgerWriteBroker', () => {
   describe('what survives a write', () => {
     it('VALID: {calibrated ceilings} => are never pruned, because they outlive every window', async () => {
       const proxy = usageLedgerWriteBrokerProxy();
-      proxy.setupWriteSuccess();
+      proxy.setupWriteSuccess({ nowMs: NOW });
 
       const result = await usageLedgerWriteBroker({
         ledger: UsageLedgerStub({
@@ -116,7 +116,7 @@ describe('usageLedgerWriteBroker', () => {
 
     it('VALID: {any write} => stamps updatedAt to now', async () => {
       const proxy = usageLedgerWriteBrokerProxy();
-      proxy.setupWriteSuccess();
+      proxy.setupWriteSuccess({ nowMs: NOW });
 
       const result = await usageLedgerWriteBroker({
         ledger: UsageLedgerStub({ buckets: {}, cursors: {} }),
@@ -128,7 +128,7 @@ describe('usageLedgerWriteBroker', () => {
 
     it('VALID: {any write} => the tmp file carries the pruned ledger, which the rename then publishes', async () => {
       const proxy = usageLedgerWriteBrokerProxy();
-      proxy.setupWriteSuccess();
+      proxy.setupWriteSuccess({ nowMs: NOW });
 
       await usageLedgerWriteBroker({
         ledger: UsageLedgerStub({
@@ -151,7 +151,7 @@ describe('usageLedgerWriteBroker', () => {
   describe('failures', () => {
     it('ERROR: {the tmp write fails} => rejects with the write error', async () => {
       const proxy = usageLedgerWriteBrokerProxy();
-      proxy.setupWriteFailure({ error: new Error('disk full') });
+      proxy.setupWriteFailure({ nowMs: NOW, error: new Error('disk full') });
 
       await expect(
         usageLedgerWriteBroker({

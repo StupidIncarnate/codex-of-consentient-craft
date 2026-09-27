@@ -33,7 +33,7 @@ import { typescriptEslintEslintPluginLoadAdapter } from '../../../adapters/types
 import { eslintPluginJestLoadAdapter } from '../../../adapters/eslint-plugin-jest/load/eslint-plugin-jest-load-adapter';
 import { eslintPluginEslintCommentsLoadAdapter } from '../../../adapters/eslint-plugin-eslint-comments/load/eslint-plugin-eslint-comments-load-adapter';
 import { eslintConflictResolverTransformer } from '../../../transformers/eslint-conflict-resolver/eslint-conflict-resolver-transformer';
-import type { GatewayLintConfig } from '@dungeonmaster/shared/contracts';
+import type { GatewayLintConfig, PackageName } from '@dungeonmaster/shared/contracts';
 
 type DeepWritable<T> = T extends readonly (infer U)[]
   ? DeepWritable<U>[]
@@ -44,9 +44,15 @@ type DeepWritable<T> = T extends readonly (infer U)[]
 export const configDungeonmasterBroker = ({
   forTesting = false,
   gatewayLintConfig = {},
+  workspacePackageNames = [],
 }: {
   forTesting?: boolean;
   gatewayLintConfig?: GatewayLintConfig;
+  // Read ONCE by the CALLER (eslint.config.js, via configWorkspacePackageNamesBroker) from the
+  // workspaces root's own `workspaces` globs — ban-workspace-export-mocks' only rule option, so the
+  // rule itself reads no file. Defaults to `[]` so calling this broker with no argument (every
+  // existing test, every other consumer) still returns a config, with the rule reporting nothing.
+  workspacePackageNames?: PackageName[];
 } = {}): {
   typescript: EslintConfig;
   test: EslintConfig;
@@ -169,6 +175,9 @@ export const configDungeonmasterBroker = ({
     // 'pre-edit'-eligible — it self-gates on dungeonmaster-config-contract.ts, the one file that owns
     // this shape, rather than reporting the same repo-wide check once per linted file.
     '@dungeonmaster/enforce-gateway-config-names-exist': ['error', gatewayLintConfig],
+    // T04 (scrolls/brands-gateways-epic/items/t04-workspace-export-mocks-ban.md): built and
+    // scanned over the whole repo; off until the callers the scan found are fixed per-package.
+    '@dungeonmaster/ban-workspace-export-mocks': ['off', { workspacePackageNames }],
     // Ready — measured against every non-gateway package in scrolls/gateway-build/lint-measurements.md
     // — and turns on once callers migrate (migration order step 3 in scrolls/adapters-to-one-place.md).
     // '@dungeonmaster/raw-import-ban': 'error',
@@ -176,6 +185,16 @@ export const configDungeonmasterBroker = ({
     // '@dungeonmaster/platform-globals-ban': 'error',
     // Ready — same measurement, same migration-order step 3 gate as raw-import-ban above.
     // '@dungeonmaster/bin-program-spawn-ban': 'error',
+    // T05 (scrolls/brands-gateways-epic/items/t05-proxy-catch-all-and-invented-failures.md): built
+    // and scanned over the whole repo; off until the proxy fixes it flags are split per package and
+    // applied — turning it on now would fail every proxy the scan already found.
+    '@dungeonmaster/ban-proxy-catch-all-defaults': 'off',
+    '@dungeonmaster/ban-invented-failures': 'off',
+    // Same T05 item. Needs the type checker (fn's real signature), the same ward-only gate as
+    // raw-import-ban and platform-globals-ban above — so it carries no entry in
+    // dungeonmasterRuleEnforceOnStatics and stays out of this list (a key here, even 'off', would
+    // force one). Off for the same reason as the two rules above.
+    // '@dungeonmaster/ban-proxy-empty-called-with': 'error',
     // Disable @typescript-eslint/no-require-imports (replaced by require-contract-validation)
     '@typescript-eslint/no-require-imports': 'off',
     /**
@@ -258,7 +277,8 @@ export const configDungeonmasterBroker = ({
       // Gateway shape rules: these guard the gateway's own layout and colocation, so they only
       // ever apply inside this carve-out, never the main workspace block.
       '@dungeonmaster/gateway-import-boundary': 'error',
-      '@dungeonmaster/gateway-colocation': 'error',
+      // requireStub: true — every gateway subpath barrel now ships at least one .stub.ts (G18).
+      '@dungeonmaster/gateway-colocation': ['error', { requireStub: true }],
       '@dungeonmaster/gateway-layout': 'error',
       // Needs the type checker (project: true, already set for this carve-out below) to tell a
       // function's own type parameter apart from a real declared type — G15.

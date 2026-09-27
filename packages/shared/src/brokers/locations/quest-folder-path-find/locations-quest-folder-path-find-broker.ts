@@ -7,7 +7,7 @@
  */
 
 import { locationsGuildQuestsPathFindBroker } from '../guild-quests-path-find/locations-guild-quests-path-find-broker';
-import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
+import { join } from '#gateway/node/path';
 import {
   absoluteFilePathContract,
   type AbsoluteFilePath,
@@ -24,9 +24,7 @@ export const locationsQuestFolderPathFindBroker = ({
 }): AbsoluteFilePath => {
   const guildQuestsPath = locationsGuildQuestsPathFindBroker({ guildId });
 
-  const joined = pathJoinAdapter({
-    paths: [guildQuestsPath, questId],
-  });
+  const joined = join(guildQuestsPath, questId);
 
   return absoluteFilePathContract.parse(joined);
 };

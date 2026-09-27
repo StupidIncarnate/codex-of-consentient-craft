@@ -1,16 +1,9 @@
 import type { OrchestrationEventType } from '@dungeonmaster/shared/contracts';
-import { registerMock } from '@dungeonmaster/testing/register-mock';
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 
 import type { CapturedOrchestrationEmit } from '../../contracts/captured-orchestration-emit/captured-orchestration-emit-contract';
-// Self-referencing package import, deliberately NOT './orchestration-events-state': a caller in
-// another package (server) imports this singleton from '@dungeonmaster/orchestrator', and when
-// that SAME test file also composes StartOrchestratorProxy (a property-access registerMock, which
-// forces a bare, factory-less jest.mock('@dungeonmaster/orchestrator') — see
-// mock-calls-merge-by-module-transformer's own header for why), Jest's automock replaces every
-// export of that module, orchestrationEventsState included. A relative import here would spy on a
-// SEPARATE, un-mocked module instance from the one the real caller's `.on()` calls reach — matches
-// start-orchestrator.proxy.ts's own header, which hit the identical trap first.
-import { orchestrationEventsState } from '@dungeonmaster/orchestrator';
+import { orchestrationEventsState } from './orchestration-events-state';
 
 type OnCallArgs = Parameters<typeof orchestrationEventsState.on>[0];
 type EventHandler = OnCallArgs['handler'];
@@ -18,37 +11,31 @@ type EventHandler = OnCallArgs['handler'];
 export const orchestrationEventsStateProxy = (): {
   setupEmpty: () => void;
   captureEmits: (params: { type: OrchestrationEventType }) => readonly CapturedOrchestrationEmit[];
-  // Caller-level scenario for a caller that registers its OWN real handler with `.on` (a real
-  // subscriber, not this proxy's own captureEmits listener) and needs to invoke that exact handler
-  // later without a real `.emit()` — server-init-responder.ts's WS relay is the traced case: its
-  // test drives each handler by hand with an arbitrary processId/payload. registerMock (not
-  // registerSpyOn) is the right tool here: when the caller's OWN test file ALSO composes
-  // StartOrchestratorProxy, `.on` is ALREADY a bare Jest automock (see the import comment above),
-  // and jestRegisterMockAdapter's job is exactly "wire dispatch onto an already-mocked function" —
-  // registerSpyOn's jest.spyOn on an already-mocked property returns THAT SAME mock, so its own
-  // passthrough fallback recurses into itself (confirmed: RangeError, stack traced to
-  // jest-register-spy-on-adapter.ts's own passthrough branch). Where `.on` is NOT already a mock
-  // (every caller that never touches StartOrchestratorProxy — the three current captureEmits
-  // callers), registerMock's own no-op guard (`typeof mock.mockImplementation === 'function'`)
-  // skips wiring entirely, leaving `.on` fully real — captureEmits keeps working unmodified there.
+  // Opt-in only. Until a test calls this, `.on` is the real implementation, same as `.emit`/`.off`/
+  // `.removeAllListeners` always are — this is state, not I/O, so the honest default runs the whole
+  // bus for real. Call this when a test needs the exact handler FUNCTION a subscriber registered, to
+  // invoke it directly instead of driving it through a real `.emit()` — server-init-responder's WS
+  // relay is the traced case: its test drives each handler by hand with an arbitrary
+  // processId/payload. `registerSpyOn` addresses `.on` alone; `.emit`/`.off`/`.removeAllListeners`
+  // stay untouched on the same real singleton, so a caller composing this alongside a real
+  // `captureEmits()` elsewhere in the same suite is unaffected.
+  captureHandlers: () => void;
   getCapturedHandler: (params: { type: OrchestrationEventType }) => EventHandler | undefined;
   getCapturedHandlers: () => Map<OrchestrationEventType, EventHandler>;
 } => {
-  const onHandle = registerMock({ fn: orchestrationEventsState.on });
-  // No per-call address: every real call passes a fresh `{type, handler}` object whose closure
-  // never compares equal to another, so `[]` is the honest description — this only takes effect
-  // when `.on` is already a bare automock (see the getCapturedHandler comment); it is a no-op
-  // otherwise. `.on` itself returns nothing.
-  onHandle.calledWith([]).returns(undefined);
+  const onHandleRef: { value: SpyOnHandle | undefined } = { value: undefined };
 
-  // The event NAME is the real address (read by TYPE in the two getters below, never by call
-  // order), but production code registers handlers for many different types in one run
-  // (server-init-responder subscribes to every OrchestrationEventType) — so this reads every
-  // recorded `.on` call and keeps the LAST handler seen per type, mirroring a real re-`.on()` call
-  // for the same type.
+  // The event NAME is the real address (read by TYPE below, never by call order), but production
+  // code registers handlers for many different types in one run (server-init-responder subscribes
+  // to every OrchestrationEventType) — so this reads every recorded `.on` call and keeps the LAST
+  // handler seen per type, mirroring a real re-`.on()` call for the same type. Empty (no
+  // `captureHandlers()` call yet) reads as no calls recorded, so every lookup returns nothing.
   const readCapturedHandlers = (): Map<OrchestrationEventType, EventHandler> => {
     const handlers = new Map<OrchestrationEventType, EventHandler>();
-    for (const call of onHandle.callsMatching([])) {
+    if (onHandleRef.value === undefined) {
+      return handlers;
+    }
+    for (const call of onHandleRef.value.callsMatching([])) {
       const { type: calledType, handler } = call[0] as OnCallArgs;
       handlers.set(calledType, handler);
     }
@@ -59,6 +46,8 @@ export const orchestrationEventsStateProxy = (): {
     setupEmpty: (): void => {
       orchestrationEventsState.removeAllListeners();
     },
+    // Real-bus scenario: subscribes a genuine listener through the real `.on()`, so the caller's
+    // own real `.emit()` call is what delivers into `captured` — no mock sits between the two.
     captureEmits: ({
       type,
     }: {
@@ -73,6 +62,13 @@ export const orchestrationEventsStateProxy = (): {
         },
       });
       return captured;
+    },
+    captureHandlers: (): void => {
+      onHandleRef.value = registerSpyOn({ object: orchestrationEventsState, method: 'on' });
+      // No per-call address: every real call passes a fresh `{type, handler}` object whose closure
+      // never compares equal to another, so `[]` is the honest description. `.on` itself returns
+      // nothing.
+      onHandleRef.value.calledWith([]).returns(undefined);
     },
     getCapturedHandler: ({ type }: { type: OrchestrationEventType }): EventHandler | undefined =>
       readCapturedHandlers().get(type),

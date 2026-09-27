@@ -9,7 +9,7 @@
  * USAGE:
  * const seed = packageSeedContract.parse({
  *   barrel: { fileName: 'statics.ts', exportPaths: ['./src/statics/__NAME__/__NAME__-statics'] },
- *   dependencies: {}, bin: {}, compilerOptions: {}, extraInclude: [], buildRootDir: null,
+ *   dependencies: {}, devDependencies: {}, bin: {}, compilerOptions: {}, extraInclude: [], buildRootDir: null,
  *   jestKind: 'node', e2eEligible: false, exportsDot: false, needsMswTransform: false,
  *   files: [{ path: 'src/statics/__NAME__/__NAME__-statics.ts', contents: '...' }],
  * });
@@ -30,6 +30,11 @@ export const packageSeedContract = z.object({
     })
     .nullable(),
   dependencies: dependencyMapContract,
+  // Extra devDependencies this seed's own files need beyond packageScaffoldConfigStatics'
+  // fixed base (e.g. the jsdom polyfill file frontend-react ships needs `undici` and
+  // `jest-environment-jsdom` present at install time, not merely hoisted from a sibling
+  // workspace package) — see package-scaffold-files-transformer.ts's merge.
+  devDependencies: dependencyMapContract,
   bin: dependencyMapContract,
   compilerOptions: z.record(z.string().brand<'CompilerOptionKey'>(), z.unknown()),
   extraInclude: z.array(pathSegmentContract),
