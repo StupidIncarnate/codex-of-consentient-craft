@@ -9,6 +9,9 @@ export const cleanupRunBrokerProxy = (): {
   setupDriverUnreachableNoHeartbeat: ReturnType<
     typeof staleReapLayerBrokerProxy
   >['setupDriverUnreachableNoHeartbeat'];
+  setupShutdownReasonWriteSucceeds: ReturnType<
+    typeof staleReapLayerBrokerProxy
+  >['setupShutdownReasonWriteSucceeds'];
   setupNoLocks: ReturnType<typeof lockReleaseLayerBrokerProxy>['setupNoLocks'];
   setupBootLockStale: ReturnType<typeof lockReleaseLayerBrokerProxy>['setupBootLockStale'];
   getReleasedRegistry: ReturnType<typeof staleReapLayerBrokerProxy>['getReleasedRegistry'];
@@ -33,6 +36,7 @@ export const cleanupRunBrokerProxy = (): {
     setupRegistry: reapProxy.setupRegistry,
     setupDriverUnreachable: reapProxy.setupDriverUnreachable,
     setupDriverUnreachableNoHeartbeat: reapProxy.setupDriverUnreachableNoHeartbeat,
+    setupShutdownReasonWriteSucceeds: reapProxy.setupShutdownReasonWriteSucceeds,
     setupNoLocks: lockProxy.setupNoLocks,
     setupBootLockStale: lockProxy.setupBootLockStale,
     getReleasedRegistry: reapProxy.getReleasedRegistry,
