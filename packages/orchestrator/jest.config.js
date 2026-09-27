@@ -1,6 +1,6 @@
 // Extend shared Jest configuration
 const baseConfig = require('../../jest.config.base.js');
-const dungeonmasterTransformers = require('../../packages/testing/ts-jest/transformers.js');
+const dungeonmasterTsJestOptions = require('../../packages/testing/ts-jest/options.js');
 
 module.exports = {
   ...baseConfig,
@@ -14,21 +14,6 @@ module.exports = {
     '/packages/testing/src/jest\\.setup\\.js$',
   ],
   transform: {
-    '^.+\\.[jt]s$': [
-      'ts-jest',
-      {
-        tsconfig: {
-          allowJs: true,
-          esModuleInterop: true,
-          skipLibCheck: true,
-          isolatedModules: true,
-          module: 'commonjs',
-          moduleResolution: 'node',
-        },
-        astTransformers: {
-          before: dungeonmasterTransformers,
-        },
-      },
-    ],
+    '^.+\\.[jt]s$': ['ts-jest', dungeonmasterTsJestOptions],
   },
 };
