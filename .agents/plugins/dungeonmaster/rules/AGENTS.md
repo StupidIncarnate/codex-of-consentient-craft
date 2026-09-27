@@ -276,3 +276,19 @@ Applies in any repo `dungeonmaster init` has touched — siegelense works the sa
 It boots a throwaway instance, drives it with a batch of steps, and reads back readings — console, network, screenshots, server logs — never a verdict. Comparing two readings to decide pass or fail is yours to do.
 
 **Start here:** `dungeonmaster siegelense docs --for <scope>` — `walking` (drive a browser and record what you see), `attacking` (stress it and measure what breaks), or `fixing` (read a finished run's evidence and reproduce it). `dungeonmaster siegelense <call> --help` gives one call's flags, refusals and example.
+
+---
+
+## Adding a Gateway npm or bin Wrapper
+
+Applies in a consumer repo `dungeonmaster init` has touched — this monorepo's own four gateway packages already hold every wrapper, so nothing here is empty to fill in.
+
+A consumer's `packages/@gateway/npm/` and `packages/@gateway/bin/` start EMPTY, holding only a placeholder `src/index.d.ts`. `packages/@gateway/node/` and `packages/@gateway/browser/` do not — `init` copies their real source in, so those are a live, local worked example for the layout every gateway subpath uses: one folder per wrapper, holding the wrapper file plus its `.proxy.ts` and `.stub.ts`.
+
+To wrap a first npm package or program, write it directly under `packages/@gateway/npm/src/<subpath>/` or `packages/@gateway/bin/src/<subpath>/`, copying that same shape. For dungeonmaster's OWN npm/bin wrappers as a second worked example, read `node_modules/@dungeonmaster/npm/src` and `node_modules/@dungeonmaster/bin/src` — both ship real source, not `dist` only.
+
+Delete the placeholder `src/index.d.ts` once the first real subpath exists.
+
+**Never import dungeonmaster's own gateway.** A wrapper imports only the consumer's own copy — never `@dungeonmaster/{npm,node,browser,bin}` from `node_modules`. Read the installed package only to copy a shape from.
+
+`dungeonmaster create-package` refuses a name scoped `@gateway` — a wrapper is not a scaffolded package. Add the folder by hand instead.

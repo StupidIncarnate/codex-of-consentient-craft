@@ -81,6 +81,7 @@
     "@dungeonmaster/eslint-plugin": "*",
     "@dungeonmaster/hooks": "*",
     "@dungeonmaster/mcp": "*",
+    "@dungeonmaster/siegelense": "*",
     "@dungeonmaster/shared": "*",
     "@dungeonmaster/testing": "*",
     "@dungeonmaster/ward": "*",
@@ -102,9 +103,9 @@
     "jest": "^30.0.4",
     "prettier": "^3.6.2",
     "ts-jest": "^29.4.0",
-    "ts-node": "^10.9.2",
     "tsx": "^4.0.0",
     "typescript": "^5.8.3",
+    "ts-node": "^10.9.2",
     "@changesets/cli": "^2.29.7",
     "node-pty": "^1.1.0"
   }
