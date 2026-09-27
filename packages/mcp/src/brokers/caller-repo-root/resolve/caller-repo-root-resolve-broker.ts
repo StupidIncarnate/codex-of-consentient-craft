@@ -2,8 +2,11 @@
  * PURPOSE: Resolves the dungeonmaster project root for an MCP tool call FROM THE CALLER'S OWN
  * location, not the MCP server's — walking up from that location to the first `.dungeonmaster.json`
  * (via cwdResolveBroker's `repo-root` kind), which stops there rather than climbing into an
- * enclosing checkout that a worktree happens to live under. The caller's location comes from a
- * JSONL scan keyed on `_meta['claudecode/toolUseId']` — the only channel that carries a
+ * enclosing checkout that a worktree happens to live under. The caller's location comes first from
+ * the caller context the pre-MCP-caller hook stamped onto the call (read off `meta` by
+ * metaCallerContextTransformer): the hook runs before the call is sent, so that answer is exact
+ * and costs nothing. Only when no hook ran does it come from a JSONL scan keyed on
+ * `_meta['claudecode/toolUseId']` — the only channel that carries a
  * Task-dispatched sub-agent's real, possibly worktree-pinned, cwd, since the MCP stdio child is
  * shared by every sub-agent in a session and its own `process.cwd()` never moves. `cachedEntries`
  * (read from callerCwdScanCursorState by the caller — a broker cannot import `state/`) is tried
@@ -47,6 +50,7 @@ import { callerRepoRootSourceContract } from '../../../contracts/caller-repo-roo
 import type { CallerRepoRootSource } from '../../../contracts/caller-repo-root-source/caller-repo-root-source-contract';
 import type { CallerCwdScanCursor } from '../../../contracts/caller-cwd-scan-cursor/caller-cwd-scan-cursor-contract';
 import { toolUseIdContract } from '../../../contracts/tool-use-id/tool-use-id-contract';
+import { metaCallerContextTransformer } from '../../../transformers/meta-caller-context/meta-caller-context-transformer';
 
 const TOOL_USE_ID_META_KEY = 'claudecode/toolUseId';
 
@@ -65,6 +69,32 @@ export const callerRepoRootResolveBroker = async ({
   cursorUpdates: readonly CallerCwdScanCursor[];
 }> => {
   const serverCwd = processCwdAdapter();
+
+  const caller = metaCallerContextTransformer({ meta });
+  if (caller !== undefined) {
+    try {
+      const repoRoot = await cwdResolveBroker({
+        startPath: filePathContract.parse(String(caller.cwd)),
+        kind: 'repo-root',
+      });
+      return {
+        repoRoot,
+        source: callerRepoRootSourceContract.parse('caller-cwd'),
+        configFound: true,
+        cursorUpdates: [],
+      };
+    } catch (error) {
+      if (!(error instanceof ProjectRootNotFoundError)) {
+        throw error;
+      }
+      return {
+        repoRoot: repoRootCwdContract.parse(caller.cwd),
+        source: callerRepoRootSourceContract.parse('caller-cwd'),
+        configFound: false,
+        cursorUpdates: [],
+      };
+    }
+  }
 
   const toolUseIdRaw = meta?.[TOOL_USE_ID_META_KEY];
   const parsedToolUseId =

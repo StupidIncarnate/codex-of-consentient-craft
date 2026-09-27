@@ -24,7 +24,12 @@ import { kill } from 'process';
 import { resolve as resolvePath } from 'path';
 
 import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
-import type { AbsoluteFilePath, NetworkPort, ProcessId } from '@dungeonmaster/shared/contracts';
+import type {
+  AbsoluteFilePath,
+  NetworkPort,
+  ProcessId,
+  TimeoutMs,
+} from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { DungeonmasterConfigStub, configDefaultsStatics } from '@dungeonmaster/config';
 import { DevServerE2eProcessStub } from '@dungeonmaster/config/contracts';
@@ -34,6 +39,7 @@ import { instanceStartBroker } from '../../../src/brokers/instance/start/instanc
 import { locationsInstanceEvidencePathFindBroker } from '../../../src/brokers/locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker';
 import { locationsInstanceHomePathFindBroker } from '../../../src/brokers/locations/instance-home-path-find/locations-instance-home-path-find-broker';
 import { registryReadBroker } from '../../../src/brokers/registry/read/registry-read-broker';
+import { shutdownReasonReadBroker } from '../../../src/brokers/shutdown-reason/read/shutdown-reason-read-broker';
 import { netUnixRequestAdapter } from '../../../src/adapters/net/unix-request/net-unix-request-adapter';
 import { processIsAliveAdapter } from '../../../src/adapters/process/is-alive/process-is-alive-adapter';
 import { processKillGroupAdapter } from '../../../src/adapters/process/kill-group/process-kill-group-adapter';
@@ -99,7 +105,7 @@ const REPO_ROOT = resolvePath(__dirname, '..', '..', '..', '..', '..');
 export const driverFleetHarness = (): {
   ensureHomeReady: (params: { home: string }) => void;
   configureApiLane: (params: { configDir: string }) => void;
-  boot: (params: { specName: SpecName }) => Promise<InstanceManifest>;
+  boot: (params: { specName: SpecName; idleTimeoutMs?: TimeoutMs }) => Promise<InstanceManifest>;
   killViaBroker: (params: { instanceId: InstanceId }) => Promise<KillResult>;
   sigkillDriverPid: (params: { pid: ProcessId }) => void;
   registryEntry: (params: { instanceId: InstanceId }) => Promise<RegistryEntry | undefined>;
@@ -113,6 +119,14 @@ export const driverFleetHarness = (): {
     deadlineMs: number;
   }) => Promise<readonly ProcessGroupId[]>;
   waitForDriverProcessExit: (params: { pid: ProcessId; deadlineMs: number }) => Promise<boolean>;
+  waitForGroupsDead: (params: {
+    pgids: readonly ProcessGroupId[];
+    deadlineMs: number;
+  }) => Promise<boolean>;
+  waitForShutdownReason: (params: {
+    instanceId: InstanceId;
+    deadlineMs: number;
+  }) => Promise<boolean>;
   evidenceDirExists: (params: { instanceId: InstanceId }) => boolean;
   apiLogExists: (params: { instanceId: InstanceId }) => boolean;
   homeDirExists: (params: { instanceId: InstanceId }) => boolean;
@@ -163,7 +177,13 @@ export const driverFleetHarness = (): {
   const evidenceDir = ({ instanceId }: { instanceId: InstanceId }): AbsoluteFilePath =>
     locationsInstanceEvidencePathFindBroker({ instanceId, guildId: null });
 
-  const boot = async ({ specName }: { specName: SpecName }): Promise<InstanceManifest> => {
+  const boot = async ({
+    specName,
+    idleTimeoutMs,
+  }: {
+    specName: SpecName;
+    idleTimeoutMs?: TimeoutMs;
+  }): Promise<InstanceManifest> => {
     // See the module-level comment on FAKE_CLAUDE_CLI_PATH/FAKE_WARD_CLI_PATH above. Set here
     // rather than in the constructor (enforce-harness-patterns bans a constructor side effect) —
     // instanceStartBroker spawns the driver with no `env` override, so the driver inherits
@@ -176,6 +196,7 @@ export const driverFleetHarness = (): {
       questId: null,
       guildId: null,
       seed: null,
+      ...(idleTimeoutMs === undefined ? {} : { idleTimeoutMs }),
     });
     trackedInstanceIds.add(manifest.instanceId);
     return manifest;
@@ -283,6 +304,31 @@ export const driverFleetHarness = (): {
     return waitForHeartbeatPgids({ instanceId, deadlineMs });
   };
 
+  // Polls every named group's liveness rather than sleeping a fixed escalation window — a test
+  // waiting on this returns the moment laneTeardownBroker's SIGTERM -> graceMs -> SIGKILL pass
+  // actually finishes, instead of always paying the worst case.
+  const waitForGroupsDead = async ({
+    pgids,
+    deadlineMs,
+  }: {
+    pgids: readonly ProcessGroupId[];
+    deadlineMs: number;
+  }): Promise<boolean> => {
+    if (pgids.every((pgid) => !processIsAliveAdapter({ pgid }))) {
+      return true;
+    }
+
+    if (Date.now() >= deadlineMs) {
+      return false;
+    }
+
+    await new Promise<void>((resolve) => {
+      setTimeout(resolve, HEARTBEAT_POLL_MS);
+    });
+
+    return waitForGroupsDead({ pgids, deadlineMs });
+  };
+
   // The driver's own OS process is spawned via childProcessSpawnDetachedAdapter — the same
   // `detached: true` spawn every lane process uses — so its pgid numerically equals its own pid
   // (that adapter's own header), and `processIsAliveAdapter`'s `kill(-pgid, 0)` probe reads it
@@ -307,6 +353,33 @@ export const driverFleetHarness = (): {
     });
 
     return waitForDriverProcessExit({ pid, deadlineMs });
+  };
+
+  // Polls for the marker DriverServeLayerResponder writes on the IDLE path only, before it tears
+  // the lane down — never on a `kill` (that file's own header). Its presence is the signal the
+  // driver actually reached the self-reap branch, independent of whether the reap that followed
+  // it succeeded in killing anything.
+  const waitForShutdownReason = async ({
+    instanceId,
+    deadlineMs,
+  }: {
+    instanceId: InstanceId;
+    deadlineMs: number;
+  }): Promise<boolean> => {
+    const marker = await shutdownReasonReadBroker({ evidencePath: evidenceDir({ instanceId }) });
+    if (marker !== null) {
+      return true;
+    }
+
+    if (Date.now() >= deadlineMs) {
+      return false;
+    }
+
+    await new Promise<void>((resolve) => {
+      setTimeout(resolve, HEARTBEAT_POLL_MS);
+    });
+
+    return waitForShutdownReason({ instanceId, deadlineMs });
   };
 
   const evidenceDirExists = ({ instanceId }: { instanceId: InstanceId }): boolean =>
@@ -363,6 +436,8 @@ export const driverFleetHarness = (): {
     heartbeatExists,
     waitForHeartbeatPgids,
     waitForDriverProcessExit,
+    waitForGroupsDead,
+    waitForShutdownReason,
     evidenceDirExists,
     apiLogExists,
     homeDirExists,

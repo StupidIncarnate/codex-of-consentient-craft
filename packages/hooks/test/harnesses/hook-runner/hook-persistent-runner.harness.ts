@@ -33,6 +33,7 @@ type HookName =
   | 'start-post-edit-hook'
   | 'start-pre-edit-hook'
   | 'start-pre-folder-detail-hook'
+  | 'start-pre-mcp-caller-hook'
   | 'start-pre-search-hook'
   | 'start-session-snippet-hook'
   | 'start-subagent-stop-hook'

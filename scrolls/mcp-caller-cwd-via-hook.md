@@ -1,7 +1,19 @@
 # MCP caller directory: replace the transcript scan with a PreToolUse hook
 
-Status: proposal. Nothing is changed yet. The files named here are in the middle of another refactor, so apply this
-after that lands.
+Status: built. The `dungeonmaster-pre-mcp-caller` hook stamps `dungeonmasterCaller: { cwd, sessionId, agentId? }` onto
+every `mcp__dungeonmaster__*` call. `toolCallCallerLiftTransformer` in `mcp-server-flow.ts` moves it into `meta` before
+any tool contract parses the arguments. All three resolvers read it first and keep their transcript scan only as a
+fallback for calls no hook touched. The deletions listed under "What goes away" are NOT done yet: they wait until every
+consumer has regenerated its settings.
+
+What the checks below found, measured with a throwaway echo MCP server against Claude Code 2.1.283:
+
+| Check | Result |
+|---|---|
+| `updatedInput` reaches MCP tool arguments | Yes, including a tool whose schema says `additionalProperties: false`, and with no `permissionDecision` in the hook output. |
+| Hook `cwd` equals the transcript line's `cwd` | Yes, on all three calls: main agent before a `cd`, after a `cd`, and a sub-agent. A sub-agent inherits its parent's directory; its own `cd` changes neither value. |
+| Hook `session_id` for a sub-agent | The parent session's id, the same one the parent-session scan returns. |
+| Hook `agent_id` for a sub-agent | The id in its `subagents/agent-<id>.jsonl` filename. Absent for the main agent. |
 
 ## The problem
 

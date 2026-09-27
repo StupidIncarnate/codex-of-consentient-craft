@@ -1503,6 +1503,61 @@ describe('McpServerFlow', () => {
     });
   });
 
+  // The pre-MCP-caller hook stamps `dungeonmasterCaller` onto every call's arguments. The server
+  // runs in a temp testbed while this test runs inside the repo, so a caller cwd of process.cwd()
+  // can only resolve to the repo root if the server really read it off the call.
+  describe('tools/call carrying the pre-MCP-caller hook`s caller context', () => {
+    const CALLER_SESSION_ID = '9c4d8f1c-3e38-48c9-bdec-22b61883b473';
+
+    it('VALID: {strict-input tool, arguments carry dungeonmasterCaller} => the key is lifted off before the input contract parses', async () => {
+      const request = JsonRpcRequestStub({
+        id: RpcIdStub({ value: 4101 }),
+        method: RpcMethodStub({ value: 'tools/call' }),
+        params: {
+          name: 'get-folder-detail',
+          arguments: {
+            folderType: 'brokers',
+            dungeonmasterCaller: { cwd: process.cwd(), sessionId: CALLER_SESSION_ID },
+          },
+        },
+      });
+
+      const response = await client.sendRequest(request);
+
+      expect(response.error).toBe(undefined);
+
+      const result = ToolCallResultStub(response.result as never);
+
+      expect(result.content[0]?.text).toMatch(/^# brokers\/ Folder Type$/mu);
+    });
+
+    it('VALID: {get-project-inventory, caller cwd inside the repo} => resolves the project root from the caller, not the server', async () => {
+      const repoRoot = process.cwd().replace(/\/packages\/mcp$/u, '');
+      const request = JsonRpcRequestStub({
+        id: RpcIdStub({ value: 4102 }),
+        method: RpcMethodStub({ value: 'tools/call' }),
+        params: {
+          name: 'get-project-inventory',
+          arguments: {
+            packageName: 'mcp',
+            dungeonmasterCaller: { cwd: process.cwd(), sessionId: CALLER_SESSION_ID },
+          },
+        },
+      });
+
+      const response = await client.sendRequest(request);
+
+      expect(response.error).toBe(undefined);
+
+      const result = ToolCallResultStub(response.result as never);
+      const [bannerLine] = String(result.content[0]?.text).split('\n');
+
+      expect(bannerLine).toBe(
+        `[project-root: ${repoRoot} — resolved from the caller's own working directory]`,
+      );
+    });
+  });
+
   // Drives the REAL MCP boundary end-to-end for the summary: spawned server subprocess, real
   // orchestrator, real quest.json on disk. The layer responder and the renderer are unit-tested
   // against stubs, so this is the only place the registration, the dispatch Map entry, the
