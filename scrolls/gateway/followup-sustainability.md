@@ -1,8 +1,9 @@
 # Gateway: sustainability follow-ups
 
-Problems found while reviewing `packages/@gateway` after commit `bb6fffbdb`, which moved the gateway
-to `packages/@gateway/` and switched callers to `#gateway/<folder>/<subpath>`. Each item names what
-is wrong, where, and why it costs us later.
+Open problems and unbuilt work for `packages/@gateway`, the folder holding the four gateway packages
+(`npm`, `node`, `browser`, `bin`) that code imports as `#gateway/<folder>/<subpath>`. Each item names
+what is wrong or missing, where, and why it costs us later. Finished work is removed; git history has
+it.
 
 ## Found in the first review
 
@@ -12,7 +13,6 @@ The four folder names (`npm`, `node`, `browser`, `bin`) are written out separate
 
 - the `imports` field of every workspace `package.json`, gateway packages included
 - `gatewayLocationsStatics`, twice: once in `folders` and again in `packageGlobs`
-
 - `gatewayFoldersStatics` in `cli`, which `init` scaffolds from, and the node/browser split in
   `gatewaySourceCopyStatics` beside it
 
@@ -30,18 +30,18 @@ has the work.
 
 ### 10. Each `bin` program repeats the same run-and-error pair
 
-`git`, `npm`, `kill` and `cp` each have a `<program>-run.ts` and a `<program>-not-installed-error.ts`.
-These files turn `RunNotFoundError` into a program-specific error class, and each has its own proxy
+`git`, `npm`, `kill` and `cp` each have a `<program>-run/` and a `<program>-not-installed-error/`
+wrapper folder (`bin/src/git/git-run/`, `bin/src/git/git-not-installed-error/`). These turn `RunNotFoundError` into a program-specific error class, and each has its own proxy
 and test. `lsof` has the error class but no run file, so it does the same job a different way. A new
 program means copying four to six files and choosing which of the two styles to follow.
 
 ### 12. The npm gateway hand-writes types for the MCP SDK
 
 `packages/@gateway/npm/@types/modelcontextprotocol-sdk.d.ts` declares part of the SDK by hand. The
-file says it copies `packages/mcp/@types/modelcontextprotocol.d.ts`. That makes two workarounds for one
-problem: `moduleResolution: "node"` could not read the SDK's `exports` map. The build config's third
-workaround, a `paths` entry for `@modelcontextprotocol/sdk/server`, went with the `node16` switch, and
-the build passed without it. Check whether `node16` makes the other two unneeded as well. A hand-written type copy breaks the design doc's requirement 3:
+file says it copies `packages/mcp/@types/modelcontextprotocol.d.ts`. Both copies exist because
+`moduleResolution: "node"` could not read the SDK's `exports` map. The repo now resolves with `node16`,
+which does read it, so both may be deletable: delete them and typecheck. A hand-written type copy breaks
+the design doc's requirement 3:
 "Nobody copies a large type tree". A per-package `@types/` folder also breaks `packages/CLAUDE.md`,
 which says type definitions go in the root `@types/`.
 
@@ -59,147 +59,49 @@ library would have to override `wrapper` on every call.
 
 ### 19. Every pass-through carries its own near-identical test
 
-Each pass-through folder has its barrel and a test that is a copy of one template. For the `export *`
+Each pass-through folder has its barrel (`<subpath>/<subpath>.ts`) and a `<subpath>.test.ts` that is a
+copy of one template. For the `export *`
 form, the test compares export keys, which is useful. For the named-list form used by `react` and the
 other `export =` packages, the test checks one or two names. A new export in the real package goes
 unnoticed until a caller hits a type error. One table-driven test would cover every pass-through and
 remove a file per subpath. Barrels are excluded from the one-export rule, so the standards do not yet
 say whether a barrel needs a test of its own.
 
-## Gateway standards decided
+## Gateway standards not built yet
 
-These are agreed changes to how gateway packages are laid out and named. All of them are built except
-the lint rules in restructure step 10: the barrel rule, one export per gateway file, and a stub per
-subpath.
+The layout itself is built: one folder per subpath under `src/`, named with `__` for `/` and scopes
+and no `.js` (`fs__promises`, `modelcontextprotocol__sdk__types`); a barrel named after its folder;
+one folder per wrapper; a `<subpath>.proxy.ts` test barrel reached as `#gateway/<pkg>/_test_/<subpath>`;
+`node16` resolution with the `source` and `gateway-dist` conditions; `sideEffects`; and `init`
+scaffolding it all for consumers. What follows is agreed but not built.
 
-### Nothing in the gateway is private
+### Lint rules that keep the layout honest
 
-Every function a gateway package declares is usable by every other package. There is no private
-marker, no `_internal/` folder and no leading-`_` file name.
-
-A gateway file may call the raw outside thing to build its own helpers. The gateway does not have to
-re-export the raw call once it offers its own variants. For example, `bin/git` files call
-`child_process` through `node/child_process`, and `bin/git` exports only git functions.
-
-### One folder per subpath, one folder per wrapper, and a lint-checked barrel
-
-Each subpath is one folder directly under the gateway package's `src/`, holding a barrel named after
-the folder. Each wrapper function gets its own folder inside it, named after the function. That
-folder holds everything about the function: the function file, its test, its proxy, its stubs and its
-schemas. Nothing nests below a wrapper folder. Every function has its own file, and the file is named
-after its one export, as the architecture's naming rules require everywhere else.
-
-A type the gateway declares a schema or stub for, with no single wrapper that owns it, gets a folder
-named after the type at the same level: `child_process/child-process/child-process-schema.ts`.
-
-```
-packages/@gateway/node/src/fs/
-├── fs.ts                        barrel
-├── fs.proxy.ts                  _test_ barrel: proxies and stubs
-├── exists-sync/
-│   ├── exists-sync.ts
-│   ├── exists-sync.proxy.ts
-│   └── exists-sync.test.ts
-└── walk-files-sync/
-    ├── walk-files-sync.ts
-    ├── walk-files-sync.proxy.ts
-    ├── walk-files-sync.test.ts
-    ├── walked-file.stub.ts
-    └── walked-file-schema.ts
-```
-
-`src/fs/fs.ts`:
-
-```ts
-export * from 'fs';
-export { existsSync } from './exists-sync/exists-sync';
-export { readJsonFile } from './read-json-file/read-json-file';
-```
-
-`src/fs/fs.proxy.ts`:
-
-```ts
-export { existsSyncProxy } from './exists-sync/exists-sync.proxy';
-export { readJsonFileProxy } from './read-json-file/read-json-file.proxy';
-```
-
-A caller writes `import { existsSync, readJsonFile, statSync } from '#gateway/node/fs';`. `existsSync`
-and `readJsonFile` are ours; `statSync` is raw, through `export *`. A named re-export wins over the
-same name from `export *`, so a wrapper with a real name replaces the raw one.
-
-A wrapper named after its own subpath sits in a folder of the same name, so it never collides with
-the barrel. `src/glob/glob.ts` is the barrel; `src/glob/glob/glob.ts` is our `glob`.
-
-A subpath that wraps nothing is a barrel alone: `src/zod/zod.ts` holds only `export * from 'zod'`.
-
-A browser or Node global has no module to `export *` from. Its subpath file exports the one global,
-named after the file: `src/document/document.ts` holds `export const { document } = globalThis;`.
-
-A file that holds only `export` statements is a barrel. Barrels are excluded from the
-one-export-per-file rule; every other gateway file follows it.
-
-Barrels are written by hand. A lint rule keeps them current:
+Barrels are written by hand, and nothing checks them yet. Build:
 
 - A barrel holds at most one `export * from '<its real module>'`, plus one re-export per function or
   schema file in the folders beside it, and nothing else.
 - The `_test_` barrel re-exports every proxy and stub in those folders, and nothing else.
 - Linting a function, schema, proxy or stub file fails when the matching barrel does not re-export it.
 - Linting a barrel fails when it re-exports a file that does not exist, or misses one that does.
+- Every gateway file other than a barrel exports one thing, and is named after it. Files declaring
+  only types count; `gateway-colocation` already exempts them from needing a test and a proxy.
+- Every subpath ships at least one stub (item 25).
 
-Barrels are not generated, because a generator is hard to run in a consumer repo.
+These barrels do not fit the first rule today and need a decision when it is built:
 
-The `exports` pattern `src/*/*.ts` reaches only the barrels one level under `src/`. Wrapper folders
-sit a level deeper, so only barrels are importable.
-
-Callers import a subpath's proxies through a `_test_` prefix, for example
-`import { existsSyncProxy } from '#gateway/node/_test_/fs';`. Each gateway `package.json` carries an
-`exports` entry `"./_test_/*"` whose `source` target is `./src/*/*.proxy.ts`. Node matches the longest
-key first, so this entry wins over `"./*"`. No npm package or Node module can be named `_test_`, so
-the prefix never clashes with a real subpath. The single package-wide `src/_test_/index.ts` barrel
-goes away.
-
-### TypeScript resolves `#gateway` through `package.json`, not `paths`
-
-The root tsconfig sets `module: "node16"`, `moduleResolution: "node16"` and
-`customConditions: ["source"]`, and no tsconfig carries a `#gateway` `paths` entry. Under `node16`,
-TypeScript reads each package's `imports` and `exports` fields, and the `source` condition picks the
-TypeScript source. It is needed because a gateway `exports` entry of
-`"./*": { "source": "./src/*/*.ts" }` uses two `*`s, and TypeScript `paths` allows only one
-(`TS5062`).
-
-Three settings go with it, each found while switching:
-
-| Setting | Why |
-|---|---|
-| Every gateway `exports` entry starts with a `gateway-dist` condition naming its `.d.ts`, and every `tsconfig.build.json` sets `customConditions: ["gateway-dist", "source"]` | TypeScript never treats a file reached through a package's `imports` field, or through the package's own name, as a library file. A build reading gateway source through `#gateway` therefore compiled it into its own `dist`. A `.d.ts` is never emitted. A gateway not built yet falls through to `source`. |
-| Jest's ts-jest options pin `module: "commonjs"`, `moduleResolution: "node"`, in this repo's configs and in the published `@dungeonmaster/testing/jest-config-base` | ts-jest rewrites both anyway, and its `isolatedModules` path fails on `node16` with `TS2209`. Jest resolves modules itself, so tests lose nothing. |
-| `web` sets `moduleResolution: "bundler"` | Vite's own types are ES modules; `node16` in a CommonJS package reads Vite's deprecated CJS stub. |
-
-A package importing itself by name also counts as not-a-library, so `shared`'s source, stubs and
-proxies import each other by relative path.
-
-### Nested and scoped names flatten with `__`
-
-A subpath folder's name is the real module name with the `@` dropped and every `/` written as `__`.
-This is the spelling the `@types` packages use for scopes. Real package names almost never contain
-`__`, so the folder name can be turned back into the real module name.
-
-| Real module | Folder and import name |
-|---|---|
-| `fs/promises` | `fs__promises` |
-| `react-dom/client` | `react-dom__client` |
-| `hono/utils/http-status` | `hono__utils__http-status` |
-| `@testing-library/react` | `testing-library__react` |
-| `@modelcontextprotocol/sdk/server/stdio.js` | `modelcontextprotocol__sdk__server__stdio` |
-
-### No `.js` in gateway import names
-
-A folder and import name never ends in `.js`, even when the real subpath does. The `.js` appears only
-inside the gateway file's own import of the outside package, where npm needs it to resolve. Callers
-write `#gateway/npm/modelcontextprotocol__sdk__types`, and the gateway file imports
-`@modelcontextprotocol/sdk/types.js`.
+- `node/src/fs__promises/fs__promises.ts` re-exports `isFsError` and `FsError` from the `fs` subpath's
+  folder, not its own. Callers of `#gateway/node/fs__promises` use them.
+- `npm/src/fast-xml-parser/fast-xml-parser.ts` names its exports instead of `export *`, because
+  the package's CommonJS types are `export =` (`TS2498`).
+- `node/src/process`, `node/src/module` and `node/src/path` cannot pass their real module through
+  with `export *` for the same reason; `path` uses `import mod = require('path'); export = mod;`.
 
 ### A `gateway` config in `.dungeonmaster.json` constrains the gateway as bugs arise
+
+Not built: no `gateway` key, no validation and no rules exist. It matters now: the Node module
+subpaths pass their real module through with `export *` (`#gateway/node/fs` exports raw `readFileSync`,
+`#gateway/node/child_process` exports raw `spawn`), and nothing bans the unsafe ones until this exists.
 
 Lint rules read a `gateway` key in `.dungeonmaster.json`. `dungeonmasterConfigContract` validates it,
 and `init` writes an empty one in consumer repos. Nothing is restricted until an entry says so.
@@ -259,46 +161,6 @@ run before that import has loaded. Those four need a verified pattern before the
 `quest-route-scope-broker.proxy.ts`, `quest-node-dispatch-loop-broker.proxy.ts`,
 `quest-run-step-broker.proxy.ts` and `step-handler-riftcarver-broker.proxy.ts`.
 
-### Gateway packages declare their side effects, so bundles drop unused wrappers
-
-Web's Vite build reads gateway source through the `source` condition (`packages/web/vite.config.ts:33`),
-so barrels are plain ESM and unused wrappers can be left out of the bundle. Each gateway
-`package.json` declares `sideEffects`, which lets the bundler drop a whole module nothing uses:
-
-| Package | `sideEffects` |
-|---|---|
-| node, browser, bin | `false` |
-| npm | an array naming the jest-dom pass-through, source and `dist`. It is `import '@testing-library/jest-dom';`, which exists only for its side effect of extending `expect`. |
-
-Barrels stay. A bundler trims what a barrel re-exports; a server does not bundle, and Node loads only
-the files actually imported. Every gateway dependency is still installed, which costs disk space in a
-consumer's server-only install and nothing else.
-
-Done in this repo on 2026-09-26. Measured the same day with `vite build` of web, with and without the
-flags: both builds transform 8260 modules and emit the same file, `index-Dpplk0Wr.js` at 2,461.01 kB,
-with no unresolved `#gateway/` text. Rollup already proves today's gateway modules safe to drop; the
-flag guards wrappers added later. The jest-dom entry's path changes when that subpath moves to the new
-layout.
-
-### What `dungeonmaster init` writes when it installs gateways
-
-`cli`'s install step `packages/cli/src/responders/install/setup-gateway/` scaffolds a consumer's
-`packages/@gateway/{npm,node,browser,bin}`, named from the root package's scope, and adds
-`packages/@gateway/*` to the root `workspaces`. A second run changes nothing.
-
-| Where | What `init` writes |
-|---|---|
-| each gateway `package.json` | `"sideEffects": false`; `exports` `./*` to `./src/*/*.ts` and `./_test_/*` to `./src/*/*.proxy.ts`, each led by `gateway-dist`; no `typesVersions` |
-| each gateway `tsconfig.build.json` | `customConditions: ["gateway-dist", "source"]`, no `paths`; proxies and stubs are emitted, since callers compose them |
-| each gateway `jest.config.js` | a spread of the published `@dungeonmaster/testing/jest-config-base`; browser adds jsdom and the `__mocks__/jsdom-polyfills.cjs` setup file |
-| node and browser `src/` | dungeonmaster's own source, copied from the installed `@dungeonmaster/node` and `@dungeonmaster/browser` packages, which publish `src` for this (browser also copies `__mocks__`). Every Node runtime and browser has what they wrap, so the same wrappers fit any consumer. |
-| npm and bin `src/` | a placeholder `src/index.d.ts`, since `tsc` refuses a config matching no file. Their contents depend on the consumer's own dependencies and installed programs. |
-| the root `tsconfig.json` | `module`/`moduleResolution: "node16"`, `customConditions: ["source"]`, edited in place so comments survive |
-| every existing package | the four `#gateway/*` entries in its `imports`, and `customConditions: ["gateway-dist", "source"]` in its `tsconfig.build.json` |
-
-Still to build: an empty `gateway` key in `.dungeonmaster.json`, with `bannedExports` and
-`restrictedTo`, and the lint rules that read it.
-
 ### The discovery tools show the gateway as `#gateway`
 
 `get-project-map` lists `#gateway` beside the other packages and points at
@@ -321,56 +183,16 @@ our wrappers by name. A name banned or restricted by the `gateway` config is mar
       ours: resolveClaudeCliPath, spawnStreamJson (orchestrator only), ClaudeNotInstalledError
 ```
 
-Measured 2026-09-26 from this worktree: `get-project-map({ packages: ["node"] })` answers
-`Unknown package(s): node`, and `get-project-inventory({ packageName: "@gateway" })` answers
-`## @gateway (0 files) (empty)`. A model searching the gateway through these tools finds nothing.
+Measured 2026-09-26: `get-project-map({ packages: ["node"] })` answers `Unknown package(s): node`, and
+`get-project-inventory({ packageName: "@gateway" })` answers `## @gateway (0 files) (empty)`. A model
+searching the gateway through these tools finds nothing.
 
 The name `#gateway` is the same in a caller's import, in both discovery tools, and in the config.
-
-## Restructure `packages/@gateway` to the standards
-
-Steps 1 to 9 are done; step 10, the lint rules, is still to build.
-
-| | Before | After |
-|---|---|---|
-| Resolution | tsconfig `paths` per `#gateway` folder, `moduleResolution: "node"` | `node16` reading `imports`/`exports`, with the `source` and `gateway-dist` conditions ("TypeScript resolves `#gateway` through `package.json`") |
-| Subpath folders | nested and scoped (`fs/promises`, `@testing-library/react`, `@modelcontextprotocol/sdk/types.js`) | one flat folder each (`fs__promises`, `testing-library__react`, `modelcontextprotocol__sdk__types`) |
-| Barrel | `index.ts` | `<subpath>/<subpath>.ts`, with a named re-export per wrapper file |
-| Wrappers | flat files beside the barrel, `bin` files prefixed with the program (`git/git-current-branch.ts`) | one folder per export (`git/current-branch/current-branch.ts`), holding its test, proxy and stubs; helpers such as `gitRun`, `cpRun`, `npmRun` and `killRun` exported like the rest |
-| Types sharing a wrapper's file | seven interfaces (`FsStat`, `FsError`, `FileStat`, …) declared beside their function | each in its own file in that wrapper's folder (`stat-sync/fs-stat.ts`); a file declaring only types needs no test or proxy |
-| Test barrel | one `src/_test_/index.ts` per package, reached as `#gateway/<pkg>/_test_` | `<subpath>/<subpath>.proxy.ts`, reached as `#gateway/<pkg>/_test_/<subpath>`; builds emit proxies and stubs so they reach `dist` |
-| Node pass-throughs | curated subpaths exported only our wrappers | every Node module subpath also runs `export * from '<module>'`, except `process`, `module` and `path`, whose types are `export =` |
-| `package.json` | `exports` `./*` to `./src/*/index.ts`, `typesVersions` | `./*` to `./src/*/*.ts` and `./_test_/*` to `./src/*/*.proxy.ts`, each led by `gateway-dist`; no `typesVersions` |
-| jsdom polyfill | a copy in `npm/src/__mocks__` and one in `browser/src/__mocks__` | one, in `packages/@gateway/browser/__mocks__/` |
-| Gateway-internal imports and `USAGE` examples | `@dungeonmaster/<pkg>/<old subpath>` | `#gateway/<pkg>/<subpath>` |
-
-Decisions made while doing it:
-
-- `#gateway/npm/vite` is deleted. Nothing imported it, and a CommonJS gateway can only type Vite's
-  deprecated CJS entry, as `any`. `web/vite.config.ts` imports `vite` directly under `bundler`
-  resolution.
-- `fast-xml-parser`'s barrel names its exports instead of `export *`, since its CommonJS types are
-  `export =` (`TS2498`).
-- `copyDirContents`' recursion is its own wrapper, `copyDirContentsEntriesRecurse`.
-- The raw Node exports the new pass-throughs expose are reachable with nothing banning them until the
-  `gateway` config's `bannedExports` exists.
-
-Tools changed with it: `gateway-colocation` and `gateway-layout` key on the barrel (the new
-`isGatewayBarrelFileGuard`); the gateway lint block drops `enforce-implementation-colocation`, which
-`gateway-colocation` replaces there; `enforce-proxy-child-creation` reads and names the per-subpath test
-barrel; `gatewayPathFromImportSourceTransformer` suggests the flattened name; `testing`'s resolver
-substitutes every `*` and picks the longest wildcard key; its proxy-import guard matches
-`_test_/<subpath>`; and the proxy-mock transformer's cache key covers gateway proxies, its own resolver
-source and every `package.json`. Before that last change, a whole-package test run reused transforms
-from before a gateway change and failed on stale mock hoisting.
-
-10. **Build the lint rules the layout depends on:** the barrel rule, one export per gateway file named
-    after the file, and the stub-per-subpath requirement (item 25).
 
 ## Replace every adapter with the gateway, then delete what nothing uses
 
 This is the biggest piece of work left. The trials switched only a sample of callers, and no adapter has
-been deleted. Do it after the restructure above, or every caller changes its import twice.
+been deleted.
 
 `scrolls/gateway-build/coverage.md` lists every adapter with its fate and its gateway replacement.
 Counted 2026-09-26:
@@ -430,23 +252,23 @@ Add `gateway-constraints.md`, served as `get-folder-detail({ folderType: "gatewa
 `folderConfigStatics` describes the gateway is open: its fields assume a `fileSuffix` and an
 `exportSuffix`, and gateway files carry neither, since each is named after the outside export it wraps.
 
-The doc covers, from the standards above and the items below:
+The doc covers, from the built gateway, the standards above and the items below:
 
 | Topic | Source |
 |---|---|
 | What goes in: anything whose shape someone else controls, reached through `npm`, `node`, `browser` or `bin`. Jest is `#gateway/npm/jest__globals`. | "Jest goes through the gateway…" |
-| The import form `#gateway/<kind>/<subpath>`, `__` for `/` and scopes, no `.js` | "Nested and scoped names…", "No `.js`…" |
-| The layout: subpath folder, `{subpath}.ts` barrel, `{subpath}.proxy.ts`, one folder per export with its test, proxy, stubs and schemas, nothing deeper | "One folder per subpath…" |
-| What a barrel may hold; how a named re-export replaces the raw one from `export *`; the global form `export const { document } = globalThis;` | same |
-| Side-effect-only pass-throughs, and the `sideEffects` list | "Gateway packages declare their side effects…" |
-| Nothing is private; a wrapper may call the raw package to build helpers; prefer a new name when changing a real function's contract | "Nothing in the gateway is private", the config section |
+| The import form `#gateway/<kind>/<subpath>`, `__` for `/` and scopes, no `.js` | `gatewayPathFromImportSourceTransformer` in `shared` |
+| The layout: subpath folder, `{subpath}.ts` barrel, `{subpath}.proxy.ts`, one folder per export with its test, proxy, stubs and schemas, nothing deeper | `packages/@gateway/node/src/fs` as built; the `gateway-colocation` and `gateway-layout` rules |
+| What a barrel may hold; how a named re-export replaces the raw one from `export *`; the global form `export const { document } = globalThis;` | "Lint rules that keep the layout honest"; `packages/@gateway/browser/src/document/document.ts` |
+| Side-effect-only pass-throughs, and the `sideEffects` list | `packages/@gateway/npm/package.json` |
+| Nothing is private; a wrapper may call the raw package to build helpers; prefer a new name when changing a real function's contract | the `bin` barrels (`gitRun` and its siblings are exported), the config section |
 | Composing two outside calls is a broker in the owning package, not a gateway function | item 32 |
 | Return types: the package's type, a gateway-declared type, or `unknown` | item 22 |
 | Stubs and schemas | items 25, 26 |
-| Proxies: `registerMock` from `@dungeonmaster/testing`, no catch-all defaults, recorded failures, tolerant addressing and read-back, callers import from `_test_` | items 21, 23, 24, 28, and "One folder per subpath…" |
+| Proxies: `registerMock` from `@dungeonmaster/testing`, no catch-all defaults, recorded failures, tolerant addressing and read-back, callers import from `#gateway/<pkg>/_test_/<subpath>` | items 21, 23, 24, 28 |
 | The `gateway` config: `bannedExports`, `restrictedTo` | "A `gateway` config…" |
 | Dependencies: each outside package listed in its gateway package, one installed copy, callers list the gateway package | "Two gateway-dependency checks" in item 30, `gateway-dependency-declared` |
-| Worked examples: `fs` (wrapped, with `export *`), `glob` (a wrapper named after its subpath), `zod` (pass-through), `document` (a global) | "One folder per subpath…" |
+| Worked examples: `fs` (wrapped, with `export *`), `glob` (a wrapper named after its subpath), `zod` (pass-through), `document` (a global) | those folders under `packages/@gateway/*/src/` |
 
 ### Existing text that changes
 
@@ -462,16 +284,15 @@ The doc covers, from the standards above and the items below:
 | `<dungeonmaster-packages>` session snippet and `get-project-map`'s valid-name list | list `@gateway` as one package | `#gateway` ("The discovery tools show the gateway as `#gateway`") |
 | `<dungeonmaster-folderTypes>` session snippet | "adapters/ … Wrap npm package" | the gateway, and no adapters row |
 | `packages/CLAUDE.md`, "Root `@types/` folder" | type files go only in root `@types/` | unchanged; `packages/@gateway/npm/@types/` breaks it (item 12) |
-| `scrolls/gateway-build/README.md` sections 2 and 3 | the layout as built: `index.ts` barrels, one `_test_/index.ts`, `#gateway` tsconfig `paths` | a note at the top of each pointing here, "Gateway standards decided" |
+| `scrolls/gateway-build/README.md` section 3 | the layout as first built: `index.ts` barrels, one `_test_/index.ts`, `#gateway` tsconfig `paths` | a note at the top pointing at the current layout, as section 2 already has |
 | `scrolls/gateway-build/README.md` section 7 | its own list of work not done | a pointer to this doc, so the two lists cannot drift |
 | `scrolls/adapters-to-one-place.md`, "Structure" | an update note about the move to `packages/@gateway/` | one more line pointing here for the standards that replace its layout |
 | Brands doc, "Today's rules and docs that change" (main checkout) | the testing-patterns and architecture rows for T1–T8 | apply alongside this table; that doc lists them line by line |
 
 The design doc's migration order ends with "Update the teaching text and the tools: map, inventory,
 `init`, `create-package`". Map and inventory are "The discovery tools show the gateway as
-`#gateway`"; `init` is done ("What `dungeonmaster init` writes when it installs gateways").
-`create-package` writes the `gateway-dist` build condition for a new package, but is not covered
-otherwise: it should refuse, or handle, a name under `packages/@gateway/`.
+`#gateway`". `init` is done. `create-package` should refuse, or handle, a name under
+`packages/@gateway/`.
 
 ## Work carried over from the gateway build
 
@@ -488,7 +309,7 @@ Once `testing` calls jest and other outside packages through `#gateway`, the dep
 
 | Edge | Needed at |
 |---|---|
-| gateway proxies and tests import `@dungeonmaster/testing` (a `devDependency`) | test time only. Every gateway `tsconfig.build.json` excludes `**/*.proxy.ts` and `**/*.test.ts`, and ward and jest read source |
+| gateway proxies and tests import `@dungeonmaster/testing` (a `devDependency`) | test time, and build time for the proxies: gateway builds emit proxies and stubs so callers can compose them, and the build reads `testing` through its `source` condition, not its `dist` |
 | `testing` imports `#gateway/...` (a `dependency`) | build time and runtime, so the gateway builds before `testing` |
 
 That is not a cycle. `scripts/build-workspaces.mjs` reports one anyway: `readManifests` merges
@@ -496,16 +317,17 @@ That is not a cycle. `scripts/build-workspaces.mjs` reports one anyway: `readMan
 test-only `devDependency` counts as a build edge. It then throws `Dependency cycle among workspaces`.
 
 Fix: order the build by the dependencies a package's build actually compiles against, not by
-`devDependencies` used only by files its build config excludes. Needed before `testing` switches to
-`#gateway`.
+`devDependencies` used only by files its build config excludes. The proxy edge above is read through
+`source`, so it needs no build order either. Needed before `testing` switches to `#gateway`.
 
 ### 21a. `@dungeonmaster/testing` must be published publicly
 
 Consumer repos need `registerMock`, the I/O trap, the jest setup files and the proxy-mock hoister, and
 all of them live in `@dungeonmaster/testing`. Its `package.json` has no `publishConfig` with
-`"access": "public"`, and a consumer install of it failed with a 404. Fix: publish it publicly, like the
-four gateway packages, and have `init` list it as a `devDependency` of the scaffolded gateway packages
-once it resolves.
+`"access": "public"`, and a consumer install of it failed with a 404. `init` already lists it in the
+consumer's root `devDependencies`, so today that install fails. It also matters more now: `init` copies
+dungeonmaster's node and browser gateways into the consumer, and every copied proxy and test imports
+`@dungeonmaster/testing`. Fix: publish it publicly, like the four gateway packages.
 
 ### 22. A gateway function returns the package's type, a gateway-declared type, or `unknown`
 
@@ -541,7 +363,7 @@ counts as staged. This is rule T4 of `scrolls/brands-types-tests-rules.md` in th
 its lint rule `ban-proxy-catch-all-defaults` covers gateway proxies.
 
 Work: remove `handle.calledWith([]).resolves([])` from
-`packages/@gateway/npm/src/glob/glob.proxy.ts`. `file-scanner-broker.proxy.ts` already stages its
+`packages/@gateway/npm/src/glob/glob/glob.proxy.ts`. `file-scanner-broker.proxy.ts` already stages its
 second scan by name, so it keeps passing. Any other caller that leaned on the default stages its call.
 
 ### 24. Gateway proxies fail with recorded failures, not invented ones
@@ -552,7 +374,7 @@ recorded-failure stub that carries the platform's real fields (T5 of the brands 
 Work: `fetchJsonProxy`'s `setupNetworkError({ url, error })`, in both fetch modules, accepts any
 `Error`. Replace it with a named scenario built on a recorded `ECONNREFUSED` stub. Then check every
 other gateway proxy for a parameter that accepts any `Error`. The `node/fs` proxies are known cases:
-`read-file-if-exists.proxy.ts`, `stat-if-exists.proxy.ts`, `read-json-file.proxy.ts` and the rest
+`fs__promises`' `read-file-if-exists`, `stat-if-exists`, `read-json-file` proxies and the rest
 expose `rejects({ path, error: unknown })`. Their replacements are named scenarios such as `denied` and
 `invalidJson`, built on recorded failures.
 
@@ -632,20 +454,6 @@ Work:
 2. A gateway lint rule, gateway files only: no bare `z.custom<T>()` without a check; a
    `.brand<'…'>()` text must be `#Gateway` plus the name of the type the schema checks; and no two
    gateway modules may export types with the same name.
-
-### 27. Split each gateway package's `_test_` barrel into one per subpath
-
-The layout under "Gateway standards decided" gives each subpath its own `_test_` barrel, reached as
-`#gateway/node/_test_/fs` or `#gateway/npm/_test_/typescript-eslint__utils`. Our workspace packages
-follow the same shape, replacing `/testing` and `/stubs`: `@dungeonmaster/shared/_test_/contracts`,
-`@dungeonmaster/orchestrator/_test_` (C6 of the brands doc).
-
-Work:
-
-1. Split each gateway package's `src/_test_/index.ts` into the per-subpath barrels.
-2. Add the `./_test_/*` `exports` entry to each gateway `package.json`.
-3. Point `gatewayTestingBarrelPathTransformer`, which `enforce-proxy-child-creation` uses to find a
-   wrapper's proxy, at the subpath's barrel instead of the package's.
 
 ### 28. Gateway proxies need the addressing and read-back the adapter proxies gave callers
 
@@ -775,26 +583,16 @@ keeps `WalkMemo`, and `enforce-proxy-child-creation` then asks for a `WalkMemoPr
 Work: skip specifiers whose `importKind` is `type`. The platform check worked around this by deriving its
 types through `Parameters<typeof broker>[0]['field']`; that workaround can go once the fix lands.
 
-### 35. Where a consumer's agent copies gateway source from
+### 35. Tell a consumer's agent how to add an npm or bin wrapper
 
-Decided: `init` copies dungeonmaster's node and browser gateways into the consumer's own
-`packages/@gateway/{node,browser}/src`, from the installed `@dungeonmaster/node` and
-`@dungeonmaster/browser`, which publish `src` for it. npm and bin start empty. Still to write: the
-session-snippet rule in `packages/shared/src/statics/session-snippet/session-snippet-statics.ts` for
-an agent adding an npm or bin wrapper — where it copies from, and that it never imports ours.
+`init` gives a consumer dungeonmaster's node and browser gateways as their own source. Their npm and
+bin gateways start empty, with a placeholder `src/index.d.ts`. Nothing tells an agent in a consumer repo
+what to do next: that it writes or copies a wrapper into its own `packages/@gateway/{npm,bin}/`, where
+dungeonmaster's own npm and bin source can be read from (the installed packages ship only `dist`), that
+it deletes the placeholder once the first subpath exists, and that it never imports ours.
 
-### 36. Rebuild this worktree's mcp and hooks
-
-`packages/mcp/dist` and `packages/hooks/dist` predate the move to `packages/@gateway/`, so their
-package-listing tools answer from the old layout. The discovery-tool output quoted under "The discovery
-tools show the gateway as `#gateway`" confirms it. Rebuild both before relying on either tool from this
-worktree.
-
-### 37. Known, not a failure: ward typecheck's `DISCOVERY MISMATCH` for the npm gateway
-
-A typecheck run over `@dungeonmaster/npm` reported 144 files against 95 discovered. Ward counts source
-files; `tsc --listFiles` also counts the package's own built `dist/**/index.d.ts`. Recheck once `node16`
-resolution changes which files the program loads.
+Work: write that rule into a session snippet in
+`packages/shared/src/statics/session-snippet/session-snippet-statics.ts`.
 
 ### 38. Turn on `@typescript-eslint/no-shadow`, so a local name hiding a gateway import is caught clearly
 
@@ -808,3 +606,67 @@ No rule in this repo checks shadowing today. The existing rule `@typescript-esli
 local name that hides an outer one, imports included, and names both. No custom rule is needed.
 
 Work: measure how many existing shadows it reports across the repo, fix them, then turn it on.
+
+## Found while restructuring
+
+### 39. Ward's slow-test gate flags the `cli` install test under full-suite load
+
+The full `npm run ward` of 2026-09-26 passed every check, then failed its slow-test gate on
+`packages/cli/src/startup/start-install.integration.test.ts`: slowest test 10.7s against the 10s
+integration bar (`slowFileThresholdStatics.integrationTestWarnMs`). Run alone, the same file's slowest
+test takes 2.4s. The gateway source copy `init` now runs takes 50ms for 408 files, so the time is load
+from the rest of the suite, not the copy. A bare `npm run ward` is not green while it stands.
+
+Work: find which of the file's six tests hits 10s under load and why, before deciding between making it
+cheaper and raising the bar.
+
+### 40. Suspected: `init` in a consumer looks for dungeonmaster's packages in the wrong place
+
+`packages/cli/bin/cli-entry.ts` sets `dungeonmasterRoot` four directories above the running bin. In
+this repo that is the repo root. In a consumer, the bin sits at
+`node_modules/@dungeonmaster/cli/dist/bin/`, so `dungeonmasterRoot` becomes `<consumer>/node_modules`,
+and `packageDiscoverBroker` then looks for `node_modules/packages/*/dist/startup/start-install.js`.
+Not verified against a real published install. The gateway source copy does not depend on it: it
+finds `@dungeonmaster/node` and `@dungeonmaster/browser` through Node's own module resolution.
+
+Work: install the packed packages into a scratch consumer and run `dungeonmaster init`.
+
+### 41. The node and browser gateways `init` copies have not been run inside a consumer
+
+`init` copies dungeonmaster's node and browser source, tests and proxies included, into a consumer's
+`packages/@gateway/{node,browser}`. A scratch-consumer run proved the files land and the configs are
+written. Nobody has run the consumer's typecheck, tests or build against the copy. Known blockers:
+`@dungeonmaster/testing` is not published (item 21a), and the browser copy's tests need
+`jest-environment-jsdom` and `undici`, which `init` lists in the browser gateway's `devDependencies`.
+
+Work: once item 21a is done, run `npm install`, typecheck, the gateway tests and `npm run build` in a
+freshly `init`-ed consumer.
+
+### 42. Tool tests still use the old gateway layout as sample data
+
+Tests in `packages/testing/src/middleware/`, `packages/testing/src/transformers/` and several
+`packages/eslint-plugin` rule tests feed their code specifiers such as `#gateway/npm/_test_` and
+package maps whose `exports` point at `./src/_test_/index.ts` and `./src/*/index.ts`. Each fixture is
+self-consistent, so the tests still prove their resolver or rule. But a reader copying a fixture gets a
+layout that no longer exists.
+
+Work: move the fixtures to the current forms, `#gateway/<pkg>/_test_/<subpath>` and `./src/*/*.ts`.
+
+### 43. The published base tsconfig still resolves with node10
+
+`packages/eslint-plugin/configs/tsconfig.json`, published as `@dungeonmaster/eslint-plugin/tsconfig`,
+sets `module: "commonjs"` and `moduleResolution: "node"`. A consumer gets `node16` only because `init`
+writes it into their root tsconfig, which extends the base. A package tsconfig that extends the
+published base directly, skipping the root, cannot resolve `#gateway/...`.
+
+Work: decide whether the published base moves to `node16` with `customConditions: ["source"]`, so the
+root override becomes unneeded.
+
+### 44. The ts-jest inline options are repeated in every package's Jest config
+
+`module: 'commonjs'` and `moduleResolution: 'node'` now sit in the root `jest.config.base.js`, in 13
+package `jest.config.*` files that override `transform` with their own copy of the same inline options,
+in the published `@dungeonmaster/testing/jest-config-base`, and in `create-package`'s templates.
+A future ts-jest option has to be added to each copy by hand.
+
+Work: have the package configs reuse the base's `transform` entry instead of restating it.
