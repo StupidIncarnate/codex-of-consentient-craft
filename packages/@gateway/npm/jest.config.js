@@ -1,6 +1,6 @@
 // Extend shared Jest configuration
-const dungeonmasterTransformers = require('../../../packages/testing/ts-jest/transformers.js');
 const baseConfig = require('../../../jest.config.base.js');
+const dungeonmasterTsJestOptions = require('../../../packages/testing/ts-jest/options.js');
 
 module.exports = {
   ...baseConfig,
@@ -16,21 +16,6 @@ module.exports = {
   // has a real `setImmediate`, so the polyfill's own guard is a no-op there.
   setupFiles: [...baseConfig.setupFiles, '<rootDir>/../browser/__mocks__/jsdom-polyfills.cjs'],
   transform: {
-    '^.+\\.[jt]s$': [
-      'ts-jest',
-      {
-        tsconfig: {
-          allowJs: true,
-          esModuleInterop: true,
-          skipLibCheck: true,
-          isolatedModules: true,
-          module: 'commonjs',
-          moduleResolution: 'node',
-        },
-        astTransformers: {
-          before: dungeonmasterTransformers,
-        },
-      },
-    ],
+    '^.+\\.[jt]s$': ['ts-jest', dungeonmasterTsJestOptions],
   },
 };
