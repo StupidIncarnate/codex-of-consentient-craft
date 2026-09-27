@@ -72,4 +72,31 @@ describe('fetchJson', () => {
 
     expect(error.name).toBe('AbortError');
   });
+
+  describe('tolerant addressing', () => {
+    it('VALID: {returnsMatchingUrl, a predicate} => resolves for a url the predicate accepts', async () => {
+      const proxy = fetchJsonProxy();
+      proxy.returnsMatchingUrl({
+        url: (value) => String(value).startsWith('/api/guilds'),
+        body: { id: 'g1' },
+      });
+
+      const result = await fetchJson({ url: '/api/guilds?computed-at-runtime=1' });
+
+      expect(result).toStrictEqual({ id: 'g1' });
+    });
+  });
+
+  describe('call inspection', () => {
+    it('VALID: {a real call already made} => getCallsFor reads it back', async () => {
+      const proxy = fetchJsonProxy();
+      proxy.setupSuccess({ url: '/api/guilds', body: { id: 'g1' } });
+
+      await fetchJson({ url: '/api/guilds' });
+
+      expect(proxy.getCallsFor({ url: '/api/guilds' })).toStrictEqual([
+        ['/api/guilds', { method: 'GET', headers: {} }],
+      ]);
+    });
+  });
 });

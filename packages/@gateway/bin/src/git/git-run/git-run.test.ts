@@ -68,4 +68,49 @@ describe('gitRun()', () => {
       timedOut: true,
     });
   });
+
+  describe('tolerant addressing', () => {
+    it('VALID: {returnsMatchingArgs, a predicate} => resolves for args the predicate accepts', async () => {
+      const proxy = gitRunProxy();
+      proxy.returnsMatchingArgs({
+        args: [(value) => value === 'commit', '-m', (value) => String(value).startsWith('quest:')],
+        exitCode: 0,
+        output: '',
+      });
+
+      const result = await gitRun({
+        args: ['commit', '-m', 'quest: work items 3'],
+        cwd: '/worktrees/computed-at-runtime',
+      });
+
+      expect(result).toStrictEqual({ exitCode: 0, output: '', signal: null, timedOut: false });
+    });
+
+    it('ERROR: {throwsMatchingArgs, a predicate} => rejects with GitNotInstalledError', async () => {
+      const proxy = gitRunProxy();
+      proxy.throwsMatchingArgs({
+        args: [(value) => value === 'push'],
+        message: 'spawn git ENOENT',
+      });
+
+      await expect(gitRun({ args: ['push'], cwd: '/repo' })).rejects.toStrictEqual(
+        new GitNotInstalledError(
+          'git push could not start in /repo: "git" never started: spawn git ENOENT',
+        ),
+      );
+    });
+  });
+
+  describe('call inspection', () => {
+    it('VALID: {a real call already made} => getCallsFor reads back the actual cwd', async () => {
+      const proxy = gitRunProxy();
+      proxy.setupResult({ args: ['rev-parse', 'HEAD'], exitCode: 0, output: 'abc123' });
+
+      await gitRun({ args: ['rev-parse', 'HEAD'], cwd: '/worktrees/computed-at-runtime' });
+
+      expect(proxy.getCallsFor({ args: ['rev-parse', 'HEAD'] })).toStrictEqual([
+        [{ command: 'git', args: ['rev-parse', 'HEAD'], cwd: '/worktrees/computed-at-runtime' }],
+      ]);
+    });
+  });
 });

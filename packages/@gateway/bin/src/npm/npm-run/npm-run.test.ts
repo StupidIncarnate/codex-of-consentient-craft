@@ -41,4 +41,54 @@ describe('npmRun()', () => {
       timedOut: false,
     });
   });
+
+  describe('tolerant addressing', () => {
+    it('VALID: {returnsMatchingArgs, a predicate} => resolves for args the predicate accepts', async () => {
+      const proxy = npmRunProxy();
+      proxy.returnsMatchingArgs({
+        args: ['run', 'build', (value) => String(value).startsWith('--workspace=')],
+        exitCode: 0,
+        output: '',
+      });
+
+      const result = await npmRun({
+        args: ['run', 'build', '--workspace=@dungeonmaster/computed-at-runtime'],
+        cwd: '/repo',
+      });
+
+      expect(result).toStrictEqual({ exitCode: 0, output: '', signal: null, timedOut: false });
+    });
+
+    it('ERROR: {throwsMatchingArgs, a predicate} => rejects with NpmNotInstalledError', async () => {
+      const proxy = npmRunProxy();
+      proxy.throwsMatchingArgs({
+        args: ['run', 'build', (value) => String(value).startsWith('--workspace=')],
+        message: 'spawn npm ENOENT',
+      });
+
+      await expect(
+        npmRun({
+          args: ['run', 'build', '--workspace=@dungeonmaster/computed-at-runtime'],
+          cwd: '/repo',
+        }),
+      ).rejects.toStrictEqual(
+        new NpmNotInstalledError(
+          'npm run build --workspace=@dungeonmaster/computed-at-runtime could not start in /repo: "npm" never started: spawn npm ENOENT',
+        ),
+      );
+    });
+  });
+
+  describe('call inspection', () => {
+    it('VALID: {a real call already made} => getCallsFor reads back the actual cwd', async () => {
+      const proxy = npmRunProxy();
+      proxy.setupResult({ args: ['install'], exitCode: 0, output: '' });
+
+      await npmRun({ args: ['install'], cwd: '/worktrees/computed-at-runtime' });
+
+      expect(proxy.getCallsFor({ args: ['install'] })).toStrictEqual([
+        [{ command: 'npm', args: ['install'], cwd: '/worktrees/computed-at-runtime' }],
+      ]);
+    });
+  });
 });

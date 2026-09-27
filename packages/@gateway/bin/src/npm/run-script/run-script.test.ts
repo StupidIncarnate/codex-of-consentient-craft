@@ -39,4 +39,32 @@ describe('runScript()', () => {
 
     expect(result).toStrictEqual({ exitCode: 1, output: 'npm ERR! Missing script' });
   });
+
+  describe('tolerant addressing', () => {
+    it('VALID: {returnsMatchingScript, a predicate} => resolves for a script name the predicate accepts', async () => {
+      const proxy = runScriptProxy();
+      proxy.returnsMatchingScript({
+        script: (value) => String(value).startsWith('build'),
+        exitCode: 0,
+        output: '',
+      });
+
+      const result = await runScript({ cwd: '/repo', script: 'build:computed-at-runtime' });
+
+      expect(result).toStrictEqual({ exitCode: 0, output: '' });
+    });
+  });
+
+  describe('call inspection', () => {
+    it('VALID: {a real call already made} => getCallsFor reads back the actual cwd', async () => {
+      const proxy = runScriptProxy();
+      proxy.setupResult({ script: 'build', exitCode: 0, output: '' });
+
+      await runScript({ cwd: '/worktrees/computed-at-runtime', script: 'build' });
+
+      expect(proxy.getCallsFor({ script: 'build' })).toStrictEqual([
+        [{ command: 'npm', args: ['run', 'build'], cwd: '/worktrees/computed-at-runtime' }],
+      ]);
+    });
+  });
 });

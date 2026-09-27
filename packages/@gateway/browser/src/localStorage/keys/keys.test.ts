@@ -25,4 +25,16 @@ describe('keys', () => {
 
     expect(keys()).toStrictEqual({ success: false, error: securityError });
   });
+
+  describe('call inspection', () => {
+    it('VALID: {a real call already made} => getCallsFor reads back the enumerated index', () => {
+      globalThis.localStorage.clear();
+      globalThis.localStorage.setItem('keys-first', 'a');
+      const proxy = keysProxy();
+
+      keys();
+
+      expect(proxy.getCallsFor()).toStrictEqual([[0]]);
+    });
+  });
 });

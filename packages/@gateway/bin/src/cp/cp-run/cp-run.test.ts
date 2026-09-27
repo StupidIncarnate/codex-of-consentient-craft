@@ -43,4 +43,51 @@ describe('cpRun()', () => {
       timedOut: false,
     });
   });
+
+  describe('tolerant addressing', () => {
+    it('VALID: {returnsMatchingArgs, a predicate} => resolves for args the predicate accepts', async () => {
+      const proxy = cpRunProxy();
+      proxy.returnsMatchingArgs({
+        args: ['-a', (value) => String(value).startsWith('/worktrees/'), '/dest'],
+        exitCode: 0,
+        output: '',
+      });
+
+      const result = await cpRun({
+        args: ['-a', '/worktrees/computed-at-runtime/pkg', '/dest'],
+        cwd: '/repo',
+      });
+
+      expect(result).toStrictEqual({ exitCode: 0, output: '', signal: null, timedOut: false });
+    });
+
+    it('ERROR: {throwsMatchingArgs, a predicate} => rejects with CpNotInstalledError', async () => {
+      const proxy = cpRunProxy();
+      proxy.throwsMatchingArgs({
+        args: ['-a', (value) => String(value).startsWith('/worktrees/'), '/dest'],
+        message: 'spawn cp ENOENT',
+      });
+
+      await expect(
+        cpRun({ args: ['-a', '/worktrees/computed-at-runtime/pkg', '/dest'], cwd: '/repo' }),
+      ).rejects.toStrictEqual(
+        new CpNotInstalledError(
+          'cp -a /worktrees/computed-at-runtime/pkg /dest could not start in /repo: "cp" never started: spawn cp ENOENT',
+        ),
+      );
+    });
+  });
+
+  describe('call inspection', () => {
+    it('VALID: {a real call already made} => getCallsFor reads back the actual cwd', async () => {
+      const proxy = cpRunProxy();
+      proxy.setupResult({ args: ['-a', '/src', '/dest'], exitCode: 0, output: '' });
+
+      await cpRun({ args: ['-a', '/src', '/dest'], cwd: '/worktrees/computed-at-runtime' });
+
+      expect(proxy.getCallsFor({ args: ['-a', '/src', '/dest'] })).toStrictEqual([
+        [{ command: 'cp', args: ['-a', '/src', '/dest'], cwd: '/worktrees/computed-at-runtime' }],
+      ]);
+    });
+  });
 });

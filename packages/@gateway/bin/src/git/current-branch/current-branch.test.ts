@@ -30,4 +30,23 @@ describe('currentBranch()', () => {
       ),
     );
   });
+
+  describe('call inspection', () => {
+    it('VALID: {a real call already made} => getCallsFor reads back the actual cwd', async () => {
+      const proxy = currentBranchProxy();
+      proxy.setupBranch({ branch: 'main' });
+
+      await currentBranch({ cwd: '/worktrees/computed-at-runtime' });
+
+      expect(proxy.getCallsFor()).toStrictEqual([
+        [
+          {
+            command: 'git',
+            args: ['rev-parse', '--abbrev-ref', 'HEAD'],
+            cwd: '/worktrees/computed-at-runtime',
+          },
+        ],
+      ]);
+    });
+  });
 });

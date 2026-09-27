@@ -19,4 +19,34 @@ describe('verifyRef()', () => {
 
     expect(result).toBe(false);
   });
+
+  describe('tolerant addressing', () => {
+    it('VALID: {returnsMatchingRef, a predicate} => resolves for a ref the predicate accepts', async () => {
+      const proxy = verifyRefProxy();
+      proxy.returnsMatchingRef({ ref: (value) => String(value).length > 0, exitCode: 0 });
+
+      const result = await verifyRef({ cwd: '/repo', ref: 'computed-at-runtime' });
+
+      expect(result).toBe(true);
+    });
+  });
+
+  describe('call inspection', () => {
+    it('VALID: {a real call already made} => getCallsFor reads back the actual cwd', async () => {
+      const proxy = verifyRefProxy();
+      proxy.setupResult({ ref: 'main', exitCode: 0 });
+
+      await verifyRef({ cwd: '/worktrees/computed-at-runtime', ref: 'main' });
+
+      expect(proxy.getCallsFor({ ref: 'main' })).toStrictEqual([
+        [
+          {
+            command: 'git',
+            args: ['rev-parse', '--verify', 'main'],
+            cwd: '/worktrees/computed-at-runtime',
+          },
+        ],
+      ]);
+    });
+  });
 });

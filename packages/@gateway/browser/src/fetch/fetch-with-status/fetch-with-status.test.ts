@@ -86,4 +86,32 @@ describe('fetchWithStatus', () => {
       code: undefined,
     });
   });
+
+  describe('tolerant addressing', () => {
+    it('VALID: {returnsMatchingUrl, a predicate} => resolves for a url the predicate accepts', async () => {
+      const proxy = fetchWithStatusProxy();
+      proxy.returnsMatchingUrl({
+        url: (value) => String(value).startsWith('/api/quests'),
+        status: 200,
+        bodyText: '{"id":"q1"}',
+      });
+
+      const result = await fetchWithStatus({ url: '/api/quests?computed-at-runtime=1' });
+
+      expect(result).toStrictEqual({ status: 200, ok: true, body: '{"id":"q1"}' });
+    });
+  });
+
+  describe('call inspection', () => {
+    it('VALID: {a real call already made} => getCallsFor reads it back', async () => {
+      const proxy = fetchWithStatusProxy();
+      proxy.setupResponse({ url: '/api/quests', status: 200, bodyText: '{}' });
+
+      await fetchWithStatus({ url: '/api/quests' });
+
+      expect(proxy.getCallsFor({ url: '/api/quests' })).toStrictEqual([
+        ['/api/quests', { method: 'GET' }],
+      ]);
+    });
+  });
 });

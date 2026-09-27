@@ -63,4 +63,78 @@ describe('worktreeAdd()', () => {
 
     expect(result).toStrictEqual({ exitCode: 128, output: 'already exists' });
   });
+
+  describe('tolerant addressing', () => {
+    it('VALID: {returnsMatchingCreateBranch, a predicate} => resolves for a worktree path the predicate accepts', async () => {
+      const proxy = worktreeAddProxy();
+      proxy.returnsMatchingCreateBranch({
+        worktreePath: (value) => String(value).startsWith('/repo/worktrees/'),
+        branchName: 'quest/foo',
+        baseBranch: 'main',
+        exitCode: 0,
+        output: '',
+      });
+
+      const result = await worktreeAdd({
+        cwd: '/repo',
+        worktreePath: '/repo/worktrees/computed-at-runtime',
+        branchName: 'quest/foo',
+        baseBranch: 'main',
+        mode: 'create-branch',
+      });
+
+      expect(result).toStrictEqual({ exitCode: 0, output: '' });
+    });
+
+    it('VALID: {returnsMatchingAttachExisting, a predicate} => resolves for a worktree path the predicate accepts', async () => {
+      const proxy = worktreeAddProxy();
+      proxy.returnsMatchingAttachExisting({
+        worktreePath: (value) => String(value).startsWith('/repo/worktrees/'),
+        branchName: 'quest/foo',
+        exitCode: 0,
+        output: '',
+      });
+
+      const result = await worktreeAdd({
+        cwd: '/repo',
+        worktreePath: '/repo/worktrees/computed-at-runtime',
+        branchName: 'quest/foo',
+        baseBranch: 'main',
+        mode: 'attach-existing',
+      });
+
+      expect(result).toStrictEqual({ exitCode: 0, output: '' });
+    });
+  });
+
+  describe('call inspection', () => {
+    it('VALID: {a real call already made} => getCallsFor reads back the actual cwd', async () => {
+      const proxy = worktreeAddProxy();
+      proxy.setupCreateBranch({
+        worktreePath: '/repo/worktrees/foo',
+        branchName: 'quest/foo',
+        baseBranch: 'main',
+        exitCode: 0,
+        output: '',
+      });
+
+      await worktreeAdd({
+        cwd: '/worktrees/computed-at-runtime',
+        worktreePath: '/repo/worktrees/foo',
+        branchName: 'quest/foo',
+        baseBranch: 'main',
+        mode: 'create-branch',
+      });
+
+      expect(proxy.getCallsFor()).toStrictEqual([
+        [
+          {
+            command: 'git',
+            args: ['worktree', 'add', '/repo/worktrees/foo', '-b', 'quest/foo', 'main'],
+            cwd: '/worktrees/computed-at-runtime',
+          },
+        ],
+      ]);
+    });
+  });
 });

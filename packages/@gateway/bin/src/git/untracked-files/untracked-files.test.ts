@@ -30,4 +30,23 @@ describe('untrackedFiles()', () => {
 
     expect(result).toStrictEqual([]);
   });
+
+  describe('call inspection', () => {
+    it('VALID: {a real call already made} => getCallsFor reads back the actual cwd', async () => {
+      const proxy = untrackedFilesProxy();
+      proxy.setupResult({ exitCode: 0, output: '' });
+
+      await untrackedFiles({ cwd: '/worktrees/computed-at-runtime' });
+
+      expect(proxy.getCallsFor()).toStrictEqual([
+        [
+          {
+            command: 'git',
+            args: ['ls-files', '--others', '--exclude-standard'],
+            cwd: '/worktrees/computed-at-runtime',
+          },
+        ],
+      ]);
+    });
+  });
 });

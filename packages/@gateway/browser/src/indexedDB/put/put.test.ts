@@ -19,4 +19,15 @@ describe('put', () => {
       /put: failed to write to drafts — quota exceeded/u,
     );
   });
+
+  describe('call inspection', () => {
+    it('VALID: {a real call already made} => getCallsFor reads back the storeName and value', async () => {
+      const proxy = putProxy();
+      const db = proxy.buildDb({ key: 7 });
+
+      await put({ db, storeName: 'drafts', value: { text: 'computed-at-runtime' } });
+
+      expect(proxy.getCallsFor()).toStrictEqual([['drafts', { text: 'computed-at-runtime' }]]);
+    });
+  });
 });

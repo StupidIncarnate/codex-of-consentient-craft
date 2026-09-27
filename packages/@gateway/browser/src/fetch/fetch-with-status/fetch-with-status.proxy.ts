@@ -1,4 +1,5 @@
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import type { ValueMatcher } from '../../value-matcher/value-matcher';
 
 const HTTP_OK_STATUS_MIN = 200;
 const HTTP_OK_STATUS_MAX_EXCLUSIVE = 300;
@@ -23,6 +24,8 @@ export const fetchWithStatusProxy = (): {
   setupRefused: (params: { url: string; cause: Error }) => void;
   setupAbortImmediate: (params: { url: string }) => void;
   setupAbortsOnSignal: (params: { url: string }) => void;
+  returnsMatchingUrl: (params: { url: ValueMatcher; status: number; bodyText: string }) => void;
+  getCallsFor: (params: { url: ValueMatcher }) => readonly unknown[][];
 } => {
   const handle = registerSpyOn({ object: globalThis, method: 'fetch' });
 
@@ -70,5 +73,26 @@ export const fetchWithStatusProxy = (): {
           }),
       );
     },
+
+    returnsMatchingUrl: ({
+      url,
+      status,
+      bodyText,
+    }: {
+      url: ValueMatcher;
+      status: number;
+      bodyText: string;
+    }): void => {
+      handle.calledWith([url]).resolves(
+        buildResponse({
+          ok: status >= HTTP_OK_STATUS_MIN && status < HTTP_OK_STATUS_MAX_EXCLUSIVE,
+          status,
+          bodyText,
+        }),
+      );
+    },
+
+    getCallsFor: ({ url }: { url: ValueMatcher }): readonly unknown[][] =>
+      handle.callsMatching([url]),
   };
 };

@@ -33,4 +33,38 @@ describe('commit()', () => {
 
     expect(result).toStrictEqual({ exitCode: 1, output: 'nothing to commit' });
   });
+
+  describe('tolerant addressing', () => {
+    it('VALID: {returnsMatchingMessage, a predicate} => resolves for a message the predicate accepts', async () => {
+      const proxy = commitProxy();
+      proxy.returnsMatchingMessage({
+        message: (value) => String(value).startsWith('work items:'),
+        exitCode: 0,
+        output: '',
+      });
+
+      const result = await commit({ cwd: '/repo', message: 'work items: computed at runtime' });
+
+      expect(result).toStrictEqual({ exitCode: 0, output: '' });
+    });
+  });
+
+  describe('call inspection', () => {
+    it('VALID: {a real call already made} => getCallsFor reads back the actual cwd', async () => {
+      const proxy = commitProxy();
+      proxy.setupResult({ message: 'work items: 3', exitCode: 0, output: '' });
+
+      await commit({ cwd: '/worktrees/computed-at-runtime', message: 'work items: 3' });
+
+      expect(proxy.getCallsFor({ message: 'work items: 3' })).toStrictEqual([
+        [
+          {
+            command: 'git',
+            args: ['commit', '-m', 'work items: 3'],
+            cwd: '/worktrees/computed-at-runtime',
+          },
+        ],
+      ]);
+    });
+  });
 });

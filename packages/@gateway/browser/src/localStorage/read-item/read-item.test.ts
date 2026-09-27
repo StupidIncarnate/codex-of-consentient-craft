@@ -27,4 +27,29 @@ describe('readItem', () => {
 
     expect(readItem({ key: 'read-item-blocked' })).toBe(null);
   });
+
+  describe('tolerant addressing', () => {
+    it('ERROR: {throwsMatchingKey, a predicate} => returns null for a key the predicate accepts', () => {
+      const proxy = readItemProxy();
+      proxy.throwsMatchingKey({
+        key: (value) => String(value).startsWith('read-item-computed-'),
+        error: Object.assign(new Error('access denied'), { name: 'SecurityError' }),
+      });
+
+      expect(readItem({ key: 'read-item-computed-at-runtime' })).toBe(null);
+    });
+  });
+
+  describe('call inspection', () => {
+    it('VALID: {a real call already made} => getCallsFor reads back the key', () => {
+      const proxy = readItemProxy();
+      globalThis.localStorage.setItem('read-item-inspected', 'hello');
+
+      readItem({ key: 'read-item-inspected' });
+
+      expect(proxy.getCallsFor({ key: 'read-item-inspected' })).toStrictEqual([
+        ['read-item-inspected'],
+      ]);
+    });
+  });
 });

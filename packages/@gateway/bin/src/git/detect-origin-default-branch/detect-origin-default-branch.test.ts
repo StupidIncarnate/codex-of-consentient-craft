@@ -28,4 +28,23 @@ describe('detectOriginDefaultBranch()', () => {
 
     expect(result).toBe(null);
   });
+
+  describe('call inspection', () => {
+    it('VALID: {a real call already made} => getCallsFor reads back the actual cwd', async () => {
+      const proxy = detectOriginDefaultBranchProxy();
+      proxy.setupOriginMainExists();
+
+      await detectOriginDefaultBranch({ cwd: '/worktrees/computed-at-runtime' });
+
+      expect(proxy.getCallsFor()).toStrictEqual([
+        [
+          {
+            command: 'git',
+            args: ['rev-parse', '--verify', 'origin/main'],
+            cwd: '/worktrees/computed-at-runtime',
+          },
+        ],
+      ]);
+    });
+  });
 });

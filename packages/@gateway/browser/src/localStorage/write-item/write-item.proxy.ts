@@ -1,7 +1,10 @@
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import type { ValueMatcher } from '../../value-matcher/value-matcher';
 
 export const writeItemProxy = (): {
   setupWriteFails: (params: { key: string; error: Error }) => void;
+  throwsMatchingKey: (params: { key: ValueMatcher; error: Error }) => void;
+  getCallsFor: (params: { key: ValueMatcher }) => readonly unknown[][];
 } => {
   const handle = registerSpyOn({
     object: Storage.prototype,
@@ -16,5 +19,14 @@ export const writeItemProxy = (): {
     setupWriteFails: ({ key, error }: { key: string; error: Error }): void => {
       handle.calledWith([key]).throws(error);
     },
+
+    throwsMatchingKey: ({ key, error }: { key: ValueMatcher; error: Error }): void => {
+      handle.calledWith([key]).throws(error);
+    },
+
+    // Prefix-addressed, so the recorded call still carries the real value setItem serialized —
+    // `callsMatching([key]).at(-1)?.[1]` reads it back.
+    getCallsFor: ({ key }: { key: ValueMatcher }): readonly unknown[][] =>
+      handle.callsMatching([key]),
   };
 };

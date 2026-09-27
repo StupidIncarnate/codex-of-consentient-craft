@@ -4,6 +4,7 @@ export const detectDefaultBranchProxy = (): {
   setupMainExists: () => void;
   setupMasterExists: () => void;
   setupNeitherExists: () => void;
+  getCallsFor: () => readonly unknown[][];
 } => {
   const runProxy = gitRunProxy();
 
@@ -23,5 +24,17 @@ export const detectDefaultBranchProxy = (): {
         output: '',
       });
     },
+
+    // Neither call takes a caller-supplied value — `main`/`master` are this function's own
+    // literals, not something a caller passes in — so read-back has nothing to address beyond
+    // "was either verify call made", which this predicate recognizes regardless of which branch
+    // name it checked.
+    getCallsFor: (): readonly unknown[][] =>
+      runProxy.getCallsFor({
+        args: (args: readonly unknown[]): boolean =>
+          args[0] === 'rev-parse' &&
+          args[1] === '--verify' &&
+          (args[2] === 'main' || args[2] === 'master'),
+      }),
   };
 };

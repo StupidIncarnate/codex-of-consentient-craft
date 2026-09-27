@@ -4,6 +4,7 @@ export const detectOriginDefaultBranchProxy = (): {
   setupOriginMainExists: () => void;
   setupOriginMasterExists: () => void;
   setupNeitherExists: () => void;
+  getCallsFor: () => readonly unknown[][];
 } => {
   const runProxy = gitRunProxy();
 
@@ -39,5 +40,16 @@ export const detectOriginDefaultBranchProxy = (): {
         output: '',
       });
     },
+
+    // Neither call takes a caller-supplied value — `origin/main`/`origin/master` are this
+    // function's own literals — so read-back has nothing to address beyond "was either verify
+    // call made", which this predicate recognizes regardless of which ref it checked.
+    getCallsFor: (): readonly unknown[][] =>
+      runProxy.getCallsFor({
+        args: (args: readonly unknown[]): boolean =>
+          args[0] === 'rev-parse' &&
+          args[1] === '--verify' &&
+          (args[2] === 'origin/main' || args[2] === 'origin/master'),
+      }),
   };
 };

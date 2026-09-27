@@ -19,4 +19,17 @@ describe('addAll()', () => {
 
     expect(result).toStrictEqual({ exitCode: 128, output: 'fatal: not a git repository' });
   });
+
+  describe('call inspection', () => {
+    it('VALID: {a real call already made} => getCallsFor reads back the actual cwd', async () => {
+      const proxy = addAllProxy();
+      proxy.setupResult({ exitCode: 0, output: '' });
+
+      await addAll({ cwd: '/worktrees/computed-at-runtime' });
+
+      expect(proxy.getCallsFor()).toStrictEqual([
+        [{ command: 'git', args: ['add', '-A'], cwd: '/worktrees/computed-at-runtime' }],
+      ]);
+    });
+  });
 });

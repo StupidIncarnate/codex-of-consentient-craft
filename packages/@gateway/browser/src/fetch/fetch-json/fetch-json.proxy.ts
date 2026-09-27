@@ -1,5 +1,6 @@
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { ConnectionRefusedErrorStub } from '#gateway/node/net/connection-refused-error/connection-refused-error.stub';
+import type { ValueMatcher } from '../../value-matcher/value-matcher';
 
 const buildResponse = ({
   ok,
@@ -23,6 +24,8 @@ export const fetchJsonProxy = (): {
   setupEmptyBody: (params: { url: string }) => void;
   setupConnectionRefused: (params: { url: string }) => Promise<void>;
   setupAborted: (params: { url: string }) => void;
+  returnsMatchingUrl: (params: { url: ValueMatcher; body: unknown }) => void;
+  getCallsFor: (params: { url: ValueMatcher }) => readonly unknown[][];
 } => {
   const handle = registerSpyOn({ object: globalThis, method: 'fetch' });
 
@@ -59,5 +62,14 @@ export const fetchJsonProxy = (): {
         .calledWith([url])
         .rejects(Object.assign(new Error('This operation was aborted'), { name: 'AbortError' }));
     },
+
+    returnsMatchingUrl: ({ url, body }: { url: ValueMatcher; body: unknown }): void => {
+      handle
+        .calledWith([url])
+        .resolves(buildResponse({ ok: true, status: 200, bodyText: JSON.stringify(body) }));
+    },
+
+    getCallsFor: ({ url }: { url: ValueMatcher }): readonly unknown[][] =>
+      handle.callsMatching([url]),
   };
 };

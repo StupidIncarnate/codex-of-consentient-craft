@@ -28,4 +28,15 @@ describe('getAll', () => {
       /getAll: failed to read drafts — disk error/u,
     );
   });
+
+  describe('call inspection', () => {
+    it('VALID: {a real call already made} => getCallsFor reads back the storeName', async () => {
+      const proxy = getAllProxy();
+      const db = proxy.buildDb({ records: [] });
+
+      await getAll({ db, storeName: 'computed-at-runtime' });
+
+      expect(proxy.getCallsFor()).toStrictEqual([['computed-at-runtime']]);
+    });
+  });
 });

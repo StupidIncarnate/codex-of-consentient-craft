@@ -33,7 +33,14 @@ const buildFakePutRequest = ({
 export const putProxy = (): {
   buildDb: (params: { key: IDBValidKey }) => IDBDatabase;
   buildFailingDb: (params: { errorMessage: string }) => IDBDatabase;
+  getCallsFor: () => readonly unknown[][];
 } => {
+  // The fake db this proxy hands out ignores storeName/value entirely — it always resolves the
+  // same staged key or the same staged failure, regardless of what put passes — so there is
+  // nothing to stage a tolerant address FOR. What a caller test still needs is read-back: which
+  // storeName and value put actually called `put()` with.
+  const calls: unknown[][] = [];
+
   const buildDb = ({
     key,
     errorMessage,
@@ -43,8 +50,11 @@ export const putProxy = (): {
   }): IDBDatabase =>
     ({
       transaction: (): unknown => ({
-        objectStore: (): unknown => ({
-          put: (): IDBRequest<IDBValidKey> => buildFakePutRequest({ key, errorMessage }),
+        objectStore: (storeName: string): unknown => ({
+          put: (value: unknown): IDBRequest<IDBValidKey> => {
+            calls.push([storeName, value]);
+            return buildFakePutRequest({ key, errorMessage });
+          },
         }),
       }),
     }) as unknown as IDBDatabase;
@@ -53,5 +63,6 @@ export const putProxy = (): {
     buildDb: ({ key }: { key: IDBValidKey }): IDBDatabase => buildDb({ key, errorMessage: null }),
     buildFailingDb: ({ errorMessage }: { errorMessage: string }): IDBDatabase =>
       buildDb({ key: 0, errorMessage }),
+    getCallsFor: (): readonly unknown[][] => calls,
   };
 };

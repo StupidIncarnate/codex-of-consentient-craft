@@ -1,6 +1,7 @@
 /// <reference lib="dom" />
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
+import type { ValueMatcher } from '../../value-matcher/value-matcher';
 
 interface FakeOpenRequest {
   result: unknown;
@@ -15,6 +16,8 @@ export const openStoreProxy = (): {
   seedDatabaseMissingStore: (params: { name: string; version: number }) => void;
   seedStaleVersionRequest: (params: { name: string; version: number }) => void;
   seedOpenRefused: (params: { name: string; version: number; message: string }) => void;
+  seedExistingDatabaseMatchingName: (params: { name: ValueMatcher; version: number }) => void;
+  getCallsFor: (params: { name: ValueMatcher }) => readonly unknown[][];
 } => {
   // jsdom does not implement `indexedDB` by default — attach a real method to spy on. Re-typed to
   // an optional shape first because globalThis.indexedDB is declared non-nullable by lib.dom,
@@ -159,5 +162,35 @@ export const openStoreProxy = (): {
         return request;
       });
     },
+
+    // Mirrors seedExistingDatabase's no-heal happy path, tolerant on `name` — for a caller that
+    // resolves a database name from something the test does not control (a versioned or branded
+    // suffix).
+    seedExistingDatabaseMatchingName: ({
+      name,
+      version,
+    }: {
+      name: ValueMatcher;
+      version: number;
+    }): void => {
+      state.storeCreated = true;
+      handle.calledWith([name, version]).implement((): FakeOpenRequest => {
+        const request: FakeOpenRequest = {
+          result: undefined,
+          error: null,
+          onupgradeneeded: null,
+          onsuccess: null,
+          onerror: null,
+        };
+        queueMicrotask((): void => {
+          request.result = buildOpenedDatabase({ version });
+          request.onsuccess?.();
+        });
+        return request;
+      });
+    },
+
+    getCallsFor: ({ name }: { name: ValueMatcher }): readonly unknown[][] =>
+      handle.callsMatching([name]),
   };
 };

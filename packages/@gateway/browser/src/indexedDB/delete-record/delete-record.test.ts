@@ -17,4 +17,15 @@ describe('deleteRecord', () => {
       /deleteRecord: failed to delete from drafts — another tab holds an exclusive lock/u,
     );
   });
+
+  describe('call inspection', () => {
+    it('VALID: {a real call already made} => getCallsFor reads back the storeName and key', async () => {
+      const proxy = deleteRecordProxy();
+      const db = proxy.buildDb();
+
+      await deleteRecord({ db, storeName: 'drafts', key: 'computed-at-runtime' });
+
+      expect(proxy.getCallsFor()).toStrictEqual([['drafts', 'computed-at-runtime']]);
+    });
+  });
 });

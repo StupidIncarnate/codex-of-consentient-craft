@@ -32,4 +32,32 @@ describe('killPid()', () => {
 
     expect(result).toStrictEqual({ exitCode: 1, output: 'kill: (12345): No such process' });
   });
+
+  describe('tolerant addressing', () => {
+    it('VALID: {returnsMatchingPid, a predicate} => resolves for a pid the predicate accepts', async () => {
+      const proxy = killPidProxy();
+      proxy.returnsMatchingPid({
+        pid: (value) => Number(value) > 0,
+        exitCode: 0,
+        output: '',
+      });
+
+      const result = await killPid({ pid: 54321 });
+
+      expect(result).toStrictEqual({ exitCode: 0, output: '' });
+    });
+  });
+
+  describe('call inspection', () => {
+    it('VALID: {a real call already made} => getCallsFor reads back the actual cwd', async () => {
+      const proxy = killPidProxy();
+      proxy.setupResult({ pid: 12345, exitCode: 0, output: '' });
+
+      await killPid({ pid: 12345 });
+
+      expect(proxy.getCallsFor({ pid: 12345 })).toStrictEqual([
+        [{ command: 'kill', args: ['-SIGKILL', '12345'], cwd: '/' }],
+      ]);
+    });
+  });
 });

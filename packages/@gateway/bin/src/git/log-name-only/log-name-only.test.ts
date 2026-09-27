@@ -52,4 +52,38 @@ describe('logNameOnly()', () => {
 
     expect(result).toStrictEqual([]);
   });
+
+  describe('tolerant addressing', () => {
+    it('VALID: {returnsMatchingBaseRef, a predicate} => resolves for a base ref the predicate accepts', async () => {
+      const proxy = logNameOnlyProxy();
+      proxy.returnsMatchingBaseRef({
+        baseRef: (value) => String(value).length > 0,
+        exitCode: 0,
+        output: '',
+      });
+
+      const result = await logNameOnly({ cwd: '/repo', baseRef: 'computed-at-runtime' });
+
+      expect(result).toStrictEqual([]);
+    });
+  });
+
+  describe('call inspection', () => {
+    it('VALID: {a real call already made} => getCallsFor reads back the actual cwd', async () => {
+      const proxy = logNameOnlyProxy();
+      proxy.setupResult({ baseRef: 'base', exitCode: 0, output: '' });
+
+      await logNameOnly({ cwd: '/worktrees/computed-at-runtime', baseRef: 'base' });
+
+      expect(proxy.getCallsFor({ baseRef: 'base' })).toStrictEqual([
+        [
+          {
+            command: 'git',
+            args: ['log', '--name-only', '--format=%x1e%H%x1f%s%x1f%b%x1f', 'base..HEAD'],
+            cwd: '/worktrees/computed-at-runtime',
+          },
+        ],
+      ]);
+    });
+  });
 });

@@ -19,4 +19,17 @@ describe('install()', () => {
 
     expect(result).toStrictEqual({ exitCode: 1, output: 'npm ERR! code E404' });
   });
+
+  describe('call inspection', () => {
+    it('VALID: {a real call already made} => getCallsFor reads back the actual cwd', async () => {
+      const proxy = installProxy();
+      proxy.setupResult({ exitCode: 0, output: '' });
+
+      await install({ cwd: '/worktrees/computed-at-runtime' });
+
+      expect(proxy.getCallsFor()).toStrictEqual([
+        [{ command: 'npm', args: ['install'], cwd: '/worktrees/computed-at-runtime' }],
+      ]);
+    });
+  });
 });

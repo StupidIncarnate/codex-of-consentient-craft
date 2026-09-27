@@ -28,4 +28,17 @@ describe('headSha()', () => {
 
     expect(result).toBe(null);
   });
+
+  describe('call inspection', () => {
+    it('VALID: {a real call already made} => getCallsFor reads back the actual cwd', async () => {
+      const proxy = headShaProxy();
+      proxy.setupResult({ exitCode: 0, output: 'a1b2c3d4' });
+
+      await headSha({ cwd: '/worktrees/computed-at-runtime' });
+
+      expect(proxy.getCallsFor()).toStrictEqual([
+        [{ command: 'git', args: ['rev-parse', 'HEAD'], cwd: '/worktrees/computed-at-runtime' }],
+      ]);
+    });
+  });
 });

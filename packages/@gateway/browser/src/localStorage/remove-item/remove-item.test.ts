@@ -21,4 +21,32 @@ describe('removeItem', () => {
 
     expect(result).toStrictEqual({ success: false, error: securityError });
   });
+
+  describe('tolerant addressing', () => {
+    it('ERROR: {throwsMatchingKey, a predicate} => returns { success: false, error } for a key the predicate accepts', () => {
+      const proxy = removeItemProxy();
+      const securityError = Object.assign(new Error('access denied'), { name: 'SecurityError' });
+      proxy.throwsMatchingKey({
+        key: (value) => String(value).startsWith('remove-item-computed-'),
+        error: securityError,
+      });
+
+      const result = removeItem({ key: 'remove-item-computed-at-runtime' });
+
+      expect(result).toStrictEqual({ success: false, error: securityError });
+    });
+  });
+
+  describe('call inspection', () => {
+    it('VALID: {a real call already made} => getCallsFor reads back the key', () => {
+      const proxy = removeItemProxy();
+      globalThis.localStorage.setItem('remove-item-inspected', 'value');
+
+      removeItem({ key: 'remove-item-inspected' });
+
+      expect(proxy.getCallsFor({ key: 'remove-item-inspected' })).toStrictEqual([
+        ['remove-item-inspected'],
+      ]);
+    });
+  });
 });

@@ -37,4 +37,33 @@ describe('openStore', () => {
       openStore({ name: 'chat-drafts', version: 1, storeName: 'drafts' }),
     ).rejects.toThrow(/openStore: failed to open chat-drafts — blocked by another tab/u);
   });
+
+  describe('tolerant addressing', () => {
+    it('VALID: {seedExistingDatabaseMatchingName, a predicate} => resolves for a database name the predicate accepts', async () => {
+      const proxy = openStoreProxy();
+      proxy.seedExistingDatabaseMatchingName({
+        name: (value) => String(value).startsWith('chat-drafts'),
+        version: 1,
+      });
+
+      const db = await openStore({
+        name: 'chat-drafts-computed-at-runtime',
+        version: 1,
+        storeName: 'drafts',
+      });
+
+      expect(db.objectStoreNames.contains('drafts')).toBe(true);
+    });
+  });
+
+  describe('call inspection', () => {
+    it('VALID: {a real call already made} => getCallsFor reads back the actual version', async () => {
+      const proxy = openStoreProxy();
+      proxy.seedExistingDatabase({ name: 'chat-drafts', version: 1 });
+
+      await openStore({ name: 'chat-drafts', version: 1, storeName: 'drafts' });
+
+      expect(proxy.getCallsFor({ name: 'chat-drafts' })).toStrictEqual([['chat-drafts', 1]]);
+    });
+  });
 });
