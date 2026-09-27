@@ -74,9 +74,13 @@ describe('architectureProjectMapBroker (integration with real monorepo)', () => 
   it('VALID: {real monorepo, packages: [all]} => renders adapter chain entries by their export name', async () => {
     const lines = String(await allPackagesMap).split('\n');
 
-    expect(lines.some((l) => l.endsWith('→ orchestratorGetQuestAdapter'))).toBe(true);
-    expect(lines.some((l) => l.endsWith('→ orchestratorStartQuestAdapter'))).toBe(true);
-    expect(lines.some((l) => l.endsWith('→ orchestratorListQuestsAdapter'))).toBe(true);
+    // orchestrator's stepHandlerCommitBroker calls these three git adapters in sequence —
+    // add, commit, push — a real adapter chain still on disk (A02 deleted the server package's
+    // forwarder adapters this test used to point at; A10, orchestrator's own adapter item, has
+    // not started, so this chain is not scheduled to move).
+    expect(lines.some((l) => l.endsWith('→ gitAddAllAdapter'))).toBe(true);
+    expect(lines.some((l) => l.endsWith('→ gitCommitAdapter'))).toBe(true);
+    expect(lines.some((l) => l.endsWith('→ gitPushAdapter'))).toBe(true);
   });
 
   it('VALID: {real monorepo, packages: [all]} => emits exactly one --- separator after URL pairing block before first package', async () => {
