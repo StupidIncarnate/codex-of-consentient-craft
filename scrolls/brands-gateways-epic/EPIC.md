@@ -75,7 +75,8 @@ More rules for the operator:
     next thing to run needs compiled output.
 11. **Update this file as you go.** Status, blockers and concessions live here, so a fresh session can
     pick up from this file alone.
-12. **Keep the consumer suite growing.** Once G27 lands, any item that changes what `init` writes, what a
+12. **`create-worktree` branches from the main checkout's HEAD (`master`), not from `gateway-pivot`.** After carving one, run `git reset --hard gateway-pivot` inside it before anything else, then `npm run build:clean` there, because it arrives with no `dist`.
+13. **Keep the consumer suite growing.** Once G27 lands, any item that changes what `init` writes, what a
     package publishes, or how a consumer resolves, loads or tests code adds its assertions to the
     consumer suite in the same item. Before committing such an item, the operator runs
     `npm run build:clean`, then `npm run check:consumer`. G27 lists the items known to need this.
@@ -165,9 +166,9 @@ Mostly tooling and the gateway packages themselves. Most items here are independ
 | G22 | [Jest goes through the gateway](items/g22-jest-through-gateway.md) | G02, G03 | any outside `testing` | todo | |
 | G23 | [The discovery tools show the gateway as `#gateway`](items/g23-discovery-tools-show-gateway.md) | G12 | any | active | agent g23 |
 | G24 | [Tell a consumer's agent how to add an npm or bin wrapper](items/g24-consumer-npm-bin-wrapper-snippet.md) | — | any | review | part committed in b6ce9b203: the snippet, the `create-package` refusal and the `hooks` tests. Still to do: add `src` to `files` in `@gateway/npm` and `@gateway/bin`; move `@gateway/browser/__mocks__/jsdom-polyfills.cjs` into `testing` and repoint its references in `cli`; then the operator runs build, `npm link --workspaces` and `npm run init`, because an `orchestrator` test compares against the generated `.claude/settings.json`. |
-| G25 | [`init` works end to end in a scratch consumer](items/g25-consumer-init-end-to-end.md) | G03, G08 | any | active | agent g25, in its own worktree `worktrees/gp-g25-consumer` (branch `gp-g25-consumer`, carved from a7e9572a7). The operator ran `build:clean` there, so the agent may rebuild its own packages there. The branch merges back into `gateway-pivot`, then the operator deletes it. |
+| G25 | [`init` works end to end in a scratch consumer](items/g25-consumer-init-end-to-end.md) | G03, G08 | any | done | 62de99da9, merged in b430a2100. Two scratch consumers under `/tmp` ran `init`, typecheck, test and build green. Fixes: - `packageDiscoverBroker` scans `node_modules` in a consumer - `siegelense` joins `devDependenciesStatics` - the published Jest base transforms `@dungeonmaster/testing` - the published ts-jest options set `diagnostics: false` (see G27) - the scaffolded `eslint.config.js` wires the gateway carve-out - four `@gateway/node` fixes for newer tool versions  Left for unit **F1**: a consumer's newer `@typescript-eslint` (8.70.1 against the repo's 8.45.0) fails lint on `@gateway/node`: 5 proxies report `no-unused-vars` on types used in `as unknown as X`, and `fetch-ok.ts` reports `no-deprecated` on `util.types.isNativeError`. |
 | G26 | [Stubs and proxies are imported from their own files; the gateway's `_test_` barrels go](items/g26-per-file-proxy-and-stub-imports.md) | — | any outside `@gateway/*` and `testing` | done | 3e8d30de1, 55b993cfa, f8eab6107, fdca16800, c7409c6b5, 4b0728ba0, d3f170e5a. No `_test_` key or barrel exists; the 22 barrels are deleted. G23 removes the dead `gatewayLocationsStatics.testSubpath`. Concession 1 is realised. |
-| G27 | [A test suite proves a fresh consumer repo is bootstrapped correctly](items/g27-consumer-repo-test-suite.md) | G25, G26 | any | todo | the suite then grows with every item that changes what a consumer gets |
+| G27 | [A test suite proves a fresh consumer repo is bootstrapped correctly](items/g27-consumer-repo-test-suite.md) | G25, G26 | any | todo | ready, but waits for the testing build fix (blocked table). Worktree `worktrees/gp-g27-consumer-suite` is carved and reset to b430a2100. |
 
 ### Phase 2 — delete every adapter
 
@@ -262,6 +263,7 @@ When an item is marked `blocked`, add a row here. Clear the row when the item un
 
 | ID | What blocks it | What was tried | What else it holds up |
 |---|---|---|---|
+| — | `npm run build:clean` fails in `@dungeonmaster/testing` with TS6059: its build resolves `@dungeonmaster/shared` to source, and two shared stubs import a file outside `shared/src`. It passed at a7e9572a7 and fails at b430a2100. | Agent fix-testing-build is investigating. | G27; any full build; Z07 |
 
 ## Log
 
