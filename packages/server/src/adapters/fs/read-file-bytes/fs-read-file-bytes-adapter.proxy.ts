@@ -1,4 +1,4 @@
-import { readFileBytesProxy } from '#gateway/node/_test_/fs__promises';
+import { readFileBytesProxy } from '#gateway/node/fs__promises/read-file-bytes/read-file-bytes.proxy';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 export const fsReadFileBytesAdapterProxy = (): {

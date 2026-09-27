@@ -1,8 +1,6 @@
 import path from '#gateway/node/path';
-import {
-  readJsonFileIfExistsProxy,
-  writeFileCreatingParentProxy,
-} from '#gateway/node/_test_/fs__promises';
+import { readJsonFileIfExistsProxy } from '#gateway/node/fs__promises/read-json-file-if-exists/read-json-file-if-exists.proxy';
+import { writeFileCreatingParentProxy } from '#gateway/node/fs__promises/write-file-creating-parent/write-file-creating-parent.proxy';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { installAgentsSetupBrokerProxy } from '../../../brokers/install/agents-setup/install-agents-setup-broker.proxy';
 import { FilePathStub } from '../../../contracts/file-path/file-path.stub';

@@ -1,5 +1,5 @@
 import { cp } from '#gateway/node/fs__promises';
-import { resolvePackageRootProxy } from '#gateway/node/_test_/module';
+import { resolvePackageRootProxy } from '#gateway/node/module/resolve-package-root/resolve-package-root.proxy';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 export const gatewaySourceCopyBrokerProxy = (): {

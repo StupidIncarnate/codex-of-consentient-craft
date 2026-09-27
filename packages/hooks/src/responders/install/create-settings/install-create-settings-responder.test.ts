@@ -1,5 +1,5 @@
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
-import { FsErrorStub } from '#gateway/node/_test_/fs';
+import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { FileContentsStub } from '../../../contracts/file-contents/file-contents.stub';
 import { InstallCreateSettingsResponderProxy } from './install-create-settings-responder.proxy';
 
