@@ -112,6 +112,10 @@ export const ServerInitResponderProxy = (): {
   const replayChatHistoryHandle = registerMock({ fn: StartOrchestrator.replayChatHistory });
   replayChatHistoryHandle.calledWith([]).resolves(undefined);
   const eventsProxy = orchestrationEventsStateProxy();
+  // Opt-in: this responder's own test drives every captured handler by hand
+  // (getCapturedEventHandler + an arbitrary processId/payload), never through a real `.emit()`, so
+  // `.on` is stubbed to record the handler instead of running real.
+  eventsProxy.captureHandlers();
   // Instantiated to satisfy enforce-proxy-child-creation; both brokers are mocked directly below
   // instead (see the shared-mock-state comment above).
   questFindQuestPathBrokerProxy();
