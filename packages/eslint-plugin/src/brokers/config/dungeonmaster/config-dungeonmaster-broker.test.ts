@@ -272,6 +272,17 @@ describe('configDungeonmasterBroker', () => {
       );
     });
 
+    it('VALID: {} => gateway rules turn gateway-colocation requireStub on', () => {
+      configDungeonmasterBrokerProxy();
+
+      const { gateway } = configDungeonmasterBroker();
+
+      expect(gateway.rules?.['@dungeonmaster/gateway-colocation']).toStrictEqual([
+        'error',
+        { requireStub: true },
+      ]);
+    });
+
     it('VALID: {} => typescript (non-gateway) config keeps every rule the gateway omits', () => {
       configDungeonmasterBrokerProxy();
 
