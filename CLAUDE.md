@@ -143,7 +143,19 @@ Four build cases the `<dungeonmaster-buildDiscipline>` snippet cannot know, beca
 | `npm run prod`                             | the whole repo                           | runs `packages/server/dist/bin/server-entry.js`, and `vite preview` serves `packages/web/dist`                                                                             |
 | lint, after a `locationsStatics` change    | `--workspace=@dungeonmaster/shared`      | `eslint.config.js` loads this repo's own rules from source, but they import `@dungeonmaster/shared/statics` at module load, and ESLint sets no `source` condition           |
 | `npm run check:published`                  | `npm run build:clean`                    | it grades compiled output, and a warm tree still holds emit that no current build config would produce                                                                     |
+| `npm run check:consumer`                   | `npm run build:clean`                    | it `npm pack`s every non-private package's compiled `dist/`, so a stale or absent build silently packs last build's output or nothing                                       |
 | running anything in a fresh worktree       | nothing — `create-worktree` does it      | `git worktree add` checks out TRACKED files and `dist` is gitignored, so the tool `cp -a`s the main checkout's `dist` across at carve time                                 |
+
+- **Prove a fresh consumer repo bootstraps correctly**: `npm run check:consumer` (after `npm run build:clean`).
+  It builds a real, isolated consumer under the OS `/tmp` (never under this checkout — Node's `require` walk-up
+  would otherwise resolve `@dungeonmaster/*` to THIS repo's own copy and fake a pass), packs and installs every
+  published package's tarball, runs `dungeonmaster init` for real, scaffolds two application packages inside it
+  with the consumer's own `create-package`, and asserts both what `init` wrote and that the result actually
+  works (typecheck, lint, the copied gateways' own tests, the I/O trap, a mocked gateway-proxy test, the
+  consumer's own build, the MCP server, `dungeonmaster ward`, the pre-edit hook, and idempotent re-init). It
+  runs OUTSIDE ward (`scripts/consumer-check/**` — never a workspace package; see that script's own header for
+  why) and `release` runs it after `check:published`. `--mode=local|global|all` picks which of repo CLAUDE.md's
+  MCP resolution scenarios to drive; `--keep` keeps every consumer directory instead of deleting a passing one.
 
 - **Start dev server**: `npm run dev` — **root-only.** Never `npm run dev --workspace=@dungeonmaster/<pkg>` and
   never `cd packages/<pkg> && npm run dev`. The root script is the canonical entry point: it kills stale

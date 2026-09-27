@@ -58,5 +58,8 @@
     "@dungeonmaster/shared": "*",
     "debug": "^4.4.1",
     "zod": "^3.25.76"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

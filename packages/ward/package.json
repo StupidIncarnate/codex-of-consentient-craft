@@ -49,5 +49,8 @@
     "@dungeonmaster/npm": "*",
     "@dungeonmaster/shared": "*",
     "zod": "^3.25.76"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
