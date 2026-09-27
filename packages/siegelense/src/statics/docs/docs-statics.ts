@@ -45,10 +45,10 @@ export const docsStatics = {
           heading: 'THE LADDER',
           lines: [
             'Always try to use the look command first. Only use the dom command as a last resort, and always target it as narrowly as possible.',
-            'Rung 1, look — the default tool. It tells you what elements exist, what they are called, and if they have any errors. It is efficient and fully built.',
-            'Rung 2, look { within } — the same command, but restricted to a specific section of the page. Use this when the page is too crowded or has a very long list of items. It is faster and fully built. The within parameter accepts a simple testId or a full CSS selector like [data-testid="..."]',
-            'Rung 3, box { ref } — provides the exact physical dimensions and position of a single element on the screen. Fully built.',
-            'Rung 4, dom { target } — the escape hatch. Use this only when you need to answer a specific question that the look command cannot answer. It can be very slow and resource-intensive if used carelessly. Fully built.',
+            'Rung 1, look — the default tool. It tells you what elements exist, what they are called, and if they have any errors. It is efficient.',
+            'Rung 2, look { within } — the same command, but restricted to a specific section of the page. Use this when the page is too crowded or has a very long list of items. It is faster. The within parameter accepts a simple testId or a full CSS selector like [data-testid="..."]',
+            'Rung 3, box { ref } — provides the exact physical dimensions and position of a single element on the screen.',
+            'Rung 4, dom { target } — the escape hatch. Use this only when you need to answer a specific question that the look command cannot answer. It can be very slow and resource-intensive if used carelessly.',
             'Rung 5, eval — runs custom JavaScript on the page. This is a different kind of escape hatch. It is fast, but it risks breaking the rules by calculating test results inside the browser instead of returning raw data.',
           ],
         },
@@ -83,7 +83,7 @@ export const docsStatics = {
           ],
         },
         {
-          heading: 'THE VERBS YOU CAN SUBMIT TODAY',
+          heading: 'THE VERBS YOU CAN SUBMIT',
           lines: [
             `The step contract accepts ${stepStatics.verbs.all.length} step verbs: ${stepStatics.verbs.all.join(', ')}. You submit them as a list of steps in a run batch, not as individual commands. This page shows a worked example for the verbs a walker reaches for most; every other verb works exactly as its name suggests.`,
             '{ "step": "goto", "path": "/siege-1/session/sess-nested" }',
@@ -121,7 +121,7 @@ export const docsStatics = {
             'Every step above is a value inside a JSON array; dungeonmaster siegelense run is the command that actually drives a batch of them. If something already started your instance and handed you its id, submit steps straight away:',
             'dungeonmaster siegelense run --instance <id> --steps \'[{"step":"goto","path":"/"}]\'',
             'You can also load steps from a file using --steps-file <path>.',
-            'If you are managing your own instance instead, here is the whole surface in the order you will want it:',
+            'In an orchestrated run (siege-happy-walker), the router boots your instance and hands you its id in your brief; start, capacity, and kill belong to the router. If managing your own instance manually instead, here is the whole surface in the order you will want it:',
             'Run dungeonmaster siegelense capacity to see how many instances the machine can currently handle. You are sharing this machine, so always check this first. The start command will refuse to run if the machine is full.',
             'Run dungeonmaster siegelense start --spec stack to boot a new instance. The command waits until the instance is ready, then returns the manifest. The manifest includes the instance ID, URL, file paths, and boot times.',
             'Run dungeonmaster siegelense start --spec api to boot an instance without a web browser, for testing background processes.',
@@ -161,7 +161,7 @@ export const docsStatics = {
             "Do not try to clean up leftover processes. You cannot be sure which processes belong to you, and you might accidentally break another agent's test.",
             'Do not retry the test batch. Running the same test under the same conditions will just cause another crash.',
             'Never report an instance crash as a bug in the application itself. This makes the test results inaccurate.',
-            'A dead instance just means you need to try again, it does not mean the entire test is blocked. Send the instance ID and the status output back to the operator. Only the operator can see the full machine status and decide what to do.',
+            'A dead instance just means you need to try again, it does not mean the entire test is blocked. In an orchestrated run, mark the dead instance unmet with the status output as evidence; in a manual run, send the instance ID and the status output back to the operator.',
           ],
         },
       ],
@@ -175,8 +175,8 @@ export const docsStatics = {
         {
           heading: 'READ THIS FIRST',
           lines: [
-            'The reset and snapshot commands are BUILT. The health command is BUILT.',
             'If an attack changes the application state, you must start a fresh instance for it: boot the instance, run the attack, read the results, and close the instance. If you run a second attack on the same instance, you will be testing the damaged state left by the first attack.',
+            'In an orchestrated run, the router boots a fresh instance for your piece and closes it when done; use reset steps between probes rather than starting instances yourself.',
           ],
         },
         {
@@ -187,6 +187,8 @@ export const docsStatics = {
             'The tool intentionally reports a blank screen in both the health command and the screenshot data.',
             'You can perform this exact health check manually using existing commands: check results --kind console for browser errors, results --kind network for failed requests, results --kind server --where-steps a-b --where-level error for server logs, and check the blank status on your screenshots.',
             'Server logs are critical. If a background process fails, it might not show up in the browser console. Checking the server log is the only way to catch these hidden errors.',
+            '{ "step": "health" }',
+            'Run it as a step within a batch: dungeonmaster siegelense run --instance <id> --steps \'[{"step":"health"}]\'.',
           ],
         },
         {
@@ -206,7 +208,7 @@ export const docsStatics = {
             '{ "step": "reset", "level": "page" }',
             'The state level clears the disk and the browser, but it KEEPS SERVER MEMORY. This takes about two seconds. You must specify the exact name of the snapshot you want to restore.',
             '{ "step": "reset", "level": "state", "to": "guild-with-quest" }',
-            'The instance level clears everything by starting a completely new process. This takes about twenty seconds. Right now, you can only do this manually by closing the current instance and starting a new one.',
+            'The instance level clears everything by starting a completely new process. This takes about twenty seconds. In a manual run, close the current instance and start a new one. In an orchestrated run, the router manages instance lifecycles across pieces; use the state or page level between probes on your assigned instance.',
             'A snapshot only backs up the application data. Logs, screenshots, and test transcripts are completely separate and will survive any reset. Test evidence always accumulates safely.',
             'When you reset the state, the tool reports exactly what files were changed. This proves that the reset worked and acts as a damage check to ensure no corrupted files were left behind.',
             'You must declare which reset level your attack requires. Most attacks only need the state level. If your attack targets the server itself, like exhausting memory or breaking connections, you must use the instance level.',
@@ -239,7 +241,7 @@ export const docsStatics = {
           heading: 'SERVER-SIDE FAILURE INJECTION',
           lines: [
             'You can test many types of bad input directly through the web browser, like typing garbage text, entering huge values, or clicking rapidly.',
-            'The testing environment currently only fakes the agent CLI and the ward binary. It does not fake any other background systems.',
+            'The testing environment fakes the agent CLI and the ward binary. It does not fake other background systems.',
             'The look command is designed to help you find important HTML attributes like maxlength and pattern, as well as live regions where error messages appear. Use the dom command to read these attributes directly when an attack needs to check them.',
           ],
         },
@@ -255,7 +257,7 @@ export const docsStatics = {
           heading: 'WHAT YOU WERE HANDED, AND WHAT THE FIRST FOUR READS COST',
           lines: [
             'You will receive a test record containing the instance ID, the run ID, the step that failed, the setup sequence, and paths to the saved evidence.',
-            'Steps 1 through 4 below do not require a running instance. They only read files from disk. They are completely free and work perfectly even if the instance was shut down hours ago. You only need to start a new instance for Step 5, when you actually reproduce the bug.',
+            'Steps 1 through 4 below do not require a running instance. They only read files from disk. They are completely free and work perfectly even if the instance was shut down hours ago. When debugging manually, Step 5 reproduces on a fresh instance; an orchestrated fixer skips Step 5 entirely.',
             'Every data query will report the instance status as alive, killed, dead, pruned, or unknown.',
             'The statuses pruned and unknown are actual results, not just empty data. If you query an old test and receive an empty list, you might incorrectly assume the test did nothing. If you make a typo in the ID, the tool will return unknown, letting you know you made a mistake.',
           ],
@@ -298,13 +300,15 @@ export const docsStatics = {
             'Never try to restart or reuse the original instance that failed.',
             'The setup sequence you received is marked as VERIFIED. This means it is guaranteed to reach the correct starting state. You are reliably reproducing the bug, not just guessing how to trigger it.',
             'An instance will automatically shut down after 900 seconds of inactivity. Reading files from disk does not reset this timer. If you need more time to investigate, use the --idle-timeout-ms flag when starting the instance.',
+            'An orchestrated fixer (siege-happy-fixer or siege-adversarial-fixer) skips this step: you start no lane, and the router re-dispatches the walker to prove your fix. This step applies only when debugging manually outside an orchestrated quest.',
           ],
         },
         {
-          heading: 'STEP 6 — WRITE THE E2E WITH THE SAME RECIPES THE PRELUDE NAMED',
+          heading: 'STEP 6 — WRITE THE REGRESSION TEST WITH THE SAME RECIPES THE PRELUDE NAMED',
           lines: [
             'When you write the final automated test, use the exact same setup recipes that the original test used.',
             'The seed command uses the same backend code as the automated tests, ensuring that the manual test and the automated regression test use the exact same starting state.',
+            'Choose the test layer by what the defect is: unit for pure logic, integration for contracts and boundaries, or e2e for painted layout. An adversarial fixer writes its test at the contract/guard/broker layer, never Playwright.',
           ],
         },
         {
@@ -312,6 +316,7 @@ export const docsStatics = {
           lines: [
             'Run dungeonmaster siegelense kill --instance <newId> to shut down the instance. You are responsible for closing any instance you start.',
             'This will stop the processes, free up the network ports, and delete the temporary files, but it will safely preserve the evidence directory for future review.',
+            'An orchestrated fixer never opens an instance, so it has nothing of its own to close. When testing manually, always kill the instance you started.',
           ],
         },
         {

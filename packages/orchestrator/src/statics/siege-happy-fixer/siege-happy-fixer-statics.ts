@@ -100,6 +100,7 @@ YOURS
   Read                                        to read the code you found
   Write / Edit                                to fix the code, and to write your regression test
   Bash: dungeonmaster siegelense docs --for fixing      step 2, once
+  Bash: dungeonmaster siegelense results / status       read-only disk evidence queries (steps 1–4 of fixing manual)
   Bash: npm run ward -- -- <path>             step 10, to prove your regression test
   quest-work                                  observations (your marks), request, amendment, outcome
   modify-quest                                step 8, verifyByHuman only, on a unit nothing could ever settle

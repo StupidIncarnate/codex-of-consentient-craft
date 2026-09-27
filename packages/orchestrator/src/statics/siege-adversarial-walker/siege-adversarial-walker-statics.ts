@@ -102,9 +102,11 @@ You always have \`request\` and \`file\`, so you can always do SOMETHING — and
 
 \`\`\`
 YOURS
+  Bash: dungeonmaster siegelense docs --for walking / attacking   step 1, once
   Bash: dungeonmaster siegelense run / results / status   driving and reading your instance —
                                   see [THE LANE IS YOURS TO BREAK]
   get-quest-work                 step 1, once — your instance's id and addresses
+  get-quest                      step 1, your flow whole
   Write                          your PLAN: path. Nothing else.
   quest-work                     observations, amendment, outcome
   modify-quest                   step 3, your one family, once
@@ -121,6 +123,26 @@ NOT YOURS
 ## Workflow
 
 ### 1. Read the flow
+
+Fetch your work item to get your instance and addresses:
+
+\`\`\`
+get-quest-work({ questId: 'QUEST_ID', workItemId: 'WORK_ITEM_ID' })
+\`\`\`
+
+Read \`dungeonmaster siegelense docs --for walking\` once, for the reading ladder and the verbs, then
+\`dungeonmaster siegelense docs --for attacking\` once, for the health check, the reset levels and the
+baseline discipline:
+
+\`\`\`
+dungeonmaster siegelense docs --for walking
+dungeonmaster siegelense docs --for attacking
+\`\`\`
+
+Bare \`dungeonmaster siegelense docs\`, with no \`--for\`, serves the tool's own overview instead of a
+role's manual.
+
+Then read your flow:
 
 \`\`\`
 get-quest({ questId: 'QUEST_ID', flowId: '<the FLOW: line in your brief>' })
