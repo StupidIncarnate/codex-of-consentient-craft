@@ -116,3 +116,26 @@ Census of `packages/shared/src/adapters/**` run 2026-09-26: 19 files, all `gatew
 ## Concessions made while executing
 
 <!-- Empty at the start. The operator fills this and mirrors it into EPIC.md's Concessions table. -->
+
+## Operator's split (2026-09-27)
+
+Census on 2026-09-27: 75 caller files inside `shared` (each with its `.proxy.ts`), plus 257 importers of `@dungeonmaster/shared/adapters` in other packages. The largest are `orchestrator` (86), `siegelense` (73), `cli` (20), `ward` (17), `mcp` (13) and `server` (11). As in A02, the split is by CALLER file. No caller group deletes an adapter. `shared/adapters.ts`, `shared/testing.ts`'s adapter-proxy exports and the adapters go in a final group, once nothing imports them.
+
+Phase 1 covers `shared`'s own callers. All paths are under `packages/shared/src/brokers/`.
+
+| Group | Caller folders |
+|---|---|
+| SH1 | `architecture/boot-tree`, `architecture/edge-graph` |
+| SH2 | `architecture/event-bus`, `architecture/export-name-resolve`, `architecture/gateway-inventory` |
+| SH3 | `architecture/import-edges`, `architecture/orphan-detect` |
+| SH4 | `architecture/package-e2e-eligible-detect`, `architecture/package-inventory`, `architecture/package-type-detect` |
+| SH5 | `architecture/project-map`, `architecture/responder-annotations`, `architecture/source-read`, `architecture/state-writes` |
+| SH6 | `architecture/widget-tree`, `architecture/ws-edges`, `architecture/ws-gateway` |
+| SH7 | `claude-line/normalize`, `config-root/find`, `cwd/resolve`, `dungeonmaster-home/{ensure,find}` (the os-homedir split: the `DUNGEONMASTER_HOME` override stays ours), `gateway-lint-config/read`, `install/check` |
+| SH8 | `locations/claude-*` |
+| SH9 | `locations/{dispatch-state-path-find,dispatch-state-tmp-path-find,eslint-config-path-find,guild-config-path-find,guild-path-find,guild-quests-path-find}` |
+| SH10 | `locations/{hook-config-path-find,mcp-json-path-find,node-modules-bin-path-find,node-modules-path-find,outbox-path-find,planned-work-path-find}` |
+| SH11 | `locations/{quest-folder-path-find,quest-images-path-find,rate-limits-*,tsconfig-path-find}` |
+| SH12 | `locations/{usage-ledger-*,ward-*,worktree-path-find}`, `port/{config-walk,resolve}`, `project-root/find`, `quests-folder/{ensure,find}` |
+
+Phase 2 is the sweep of other packages, split per consuming package in groups of 4 to 6 caller files. Phase 3 deletes the adapters, the barrel entries and the `./adapters` export.
