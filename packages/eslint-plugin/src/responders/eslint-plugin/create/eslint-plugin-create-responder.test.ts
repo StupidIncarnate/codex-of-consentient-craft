@@ -2,7 +2,7 @@ import { EslintPluginCreateResponderProxy } from './eslint-plugin-create-respond
 
 describe('EslintPluginCreateResponder', () => {
   describe('rule initialization', () => {
-    it('VALID: {} => returns plugin with all 75 rule names', () => {
+    it('VALID: {} => returns plugin with all 76 rule names', () => {
       const proxy = EslintPluginCreateResponderProxy();
       const plugin = proxy.callResponder();
 
@@ -72,6 +72,7 @@ describe('EslintPluginCreateResponder', () => {
         'gateway-import-boundary',
         'gateway-layout',
         'gateway-return-unknown-not-caller-type',
+        'gateway-schema-brand',
         'jest-mocked-must-import',
         'no-bare-process-cwd',
         'no-multiple-property-assertions',

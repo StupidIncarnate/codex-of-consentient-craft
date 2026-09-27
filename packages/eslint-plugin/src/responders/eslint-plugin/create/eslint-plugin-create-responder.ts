@@ -76,6 +76,7 @@ import { ruleGatewayColocationBroker } from '../../../brokers/rule/gateway-coloc
 import { ruleGatewayLayoutBroker } from '../../../brokers/rule/gateway-layout/rule-gateway-layout-broker';
 import { ruleGatewayDependencyDeclaredBroker } from '../../../brokers/rule/gateway-dependency-declared/rule-gateway-dependency-declared-broker';
 import { ruleGatewayReturnUnknownNotCallerTypeBroker } from '../../../brokers/rule/gateway-return-unknown-not-caller-type/rule-gateway-return-unknown-not-caller-type-broker';
+import { ruleGatewaySchemaBrandBroker } from '../../../brokers/rule/gateway-schema-brand/rule-gateway-schema-brand-broker';
 import { ruleBanGatewayExportBroker } from '../../../brokers/rule/ban-gateway-export/rule-ban-gateway-export-broker';
 import { ruleEnforceGatewayRestrictedToBroker } from '../../../brokers/rule/enforce-gateway-restricted-to/rule-enforce-gateway-restricted-to-broker';
 import { ruleEnforceGatewayConfigNamesExistBroker } from '../../../brokers/rule/enforce-gateway-config-names-exist/rule-enforce-gateway-config-names-exist-broker';
@@ -155,6 +156,7 @@ export const EslintPluginCreateResponder = (): {
     readonly 'gateway-layout': EslintRule;
     readonly 'gateway-dependency-declared': EslintRule;
     readonly 'gateway-return-unknown-not-caller-type': EslintRule;
+    readonly 'gateway-schema-brand': EslintRule;
     readonly 'ban-gateway-export': EslintRule;
     readonly 'enforce-gateway-restricted-to': EslintRule;
     readonly 'enforce-gateway-config-names-exist': EslintRule;
@@ -239,6 +241,7 @@ export const EslintPluginCreateResponder = (): {
       'gateway-layout': ruleGatewayLayoutBroker(),
       'gateway-dependency-declared': ruleGatewayDependencyDeclaredBroker(),
       'gateway-return-unknown-not-caller-type': ruleGatewayReturnUnknownNotCallerTypeBroker(),
+      'gateway-schema-brand': ruleGatewaySchemaBrandBroker(),
       'ban-gateway-export': ruleBanGatewayExportBroker(),
       'enforce-gateway-restricted-to': ruleEnforceGatewayRestrictedToBroker(),
       'enforce-gateway-config-names-exist': ruleEnforceGatewayConfigNamesExistBroker(),

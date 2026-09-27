@@ -71,6 +71,7 @@ describe('StartEslintPlugin', () => {
         'gateway-import-boundary',
         'gateway-layout',
         'gateway-return-unknown-not-caller-type',
+        'gateway-schema-brand',
         'jest-mocked-must-import',
         'no-bare-process-cwd',
         'no-multiple-property-assertions',

@@ -13,6 +13,7 @@ const OUR_WRAPPERS = [
   'spawnLongLived',
   'stream',
   'streamLines',
+  'childProcessSchema',
 ] as const;
 
 describe('#gateway/node/child_process', () => {

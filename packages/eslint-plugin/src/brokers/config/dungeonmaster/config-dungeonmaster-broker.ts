@@ -259,6 +259,9 @@ export const configDungeonmasterBroker = ({
       // Needs the type checker (project: true, already set for this carve-out below) to tell a
       // function's own type parameter apart from a real declared type — G15.
       '@dungeonmaster/gateway-return-unknown-not-caller-type': 'error',
+      // BR C9: no bare z.custom<T>(), a schema's .brand<'…'>() text is derived not chosen, and no
+      // two gateway modules export a same-named type — G20.
+      '@dungeonmaster/gateway-schema-brand': 'error',
     },
   });
 

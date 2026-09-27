@@ -18,3 +18,4 @@ export { spawnLive } from './spawn-live/spawn-live';
 export { spawnLongLived } from './spawn-long-lived/spawn-long-lived';
 export { stream } from './stream/stream';
 export { streamLines } from './stream-lines/stream-lines';
+export { childProcessSchema } from './child-process/child-process-schema';

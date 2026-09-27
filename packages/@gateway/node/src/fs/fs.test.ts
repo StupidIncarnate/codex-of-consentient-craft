@@ -20,6 +20,7 @@ const EXPORTS = [
   ['realpathSync', fsGateway.realpathSync],
   ['globSync', fsGateway.globSync],
   ['walkFilesSync', fsGateway.walkFilesSync],
+  ['isWalkedFile', fsGateway.isWalkedFile],
   ['openForAppendSync', fsGateway.openForAppendSync],
   ['closeSync', fsGateway.closeSync],
   ['tailFile', fsGateway.tailFile],
@@ -28,5 +29,11 @@ const EXPORTS = [
 describe('#gateway/node/fs', () => {
   it.each(EXPORTS)('VALID: {export: %s} => is re-exported as a function', (_name, value) => {
     expect(value).toStrictEqual(expect.any(Function));
+  });
+
+  it('VALID: {export: walkedFileSchema} => is re-exported as a zod schema that parses a WalkedFile', () => {
+    const walked = { path: '/repo/a.jsonl', sizeBytes: 12, modifiedAtMs: 0 };
+
+    expect(fsGateway.walkedFileSchema.parse(walked)).toBe(walked);
   });
 });

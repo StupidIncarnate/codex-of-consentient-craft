@@ -152,6 +152,10 @@ interface RecursiveNodeOutput {
   // expressions are the interpolated parts between them
   quasis?: RecursiveNodeOutput[] | undefined;
   expressions?: RecursiveNodeOutput[] | undefined;
+  // TSLiteralType properties — a string/number/boolean literal used in TYPE position, e.g. the
+  // `'#GatewayWalkedFile'` in `.brand<'#GatewayWalkedFile'>()`; `literal` is the inner Literal node,
+  // whose own `value` (already on this interface) carries the actual string/number/boolean.
+  literal?: RecursiveNodeOutput | null | undefined;
 }
 
 // Input type (before parsing)
@@ -274,6 +278,8 @@ interface RecursiveNodeInput {
   // TemplateLiteral properties
   quasis?: RecursiveNodeInput[] | undefined;
   expressions?: RecursiveNodeInput[] | undefined;
+  // TSLiteralType properties
+  literal?: RecursiveNodeInput | null | undefined;
 }
 
 const recursiveBase: z.ZodType<RecursiveNodeOutput, z.ZodTypeDef, RecursiveNodeInput> = z.object({
@@ -490,6 +496,11 @@ const recursiveBase: z.ZodType<RecursiveNodeOutput, z.ZodTypeDef, RecursiveNodeI
   // TemplateLiteral properties
   quasis: z.array(z.lazy(() => recursiveBase)).optional(),
   expressions: z.array(z.lazy(() => recursiveBase)).optional(),
+  // TSLiteralType properties
+  literal: z
+    .lazy(() => recursiveBase)
+    .nullable()
+    .optional(),
 }) as unknown as z.ZodType<RecursiveNodeOutput, z.ZodTypeDef, RecursiveNodeInput>;
 
 // Root level contract - parent is OPTIONAL
@@ -623,6 +634,8 @@ export const tsestreeContract = z.object({
   // TemplateLiteral properties
   quasis: z.array(recursiveBase).optional(),
   expressions: z.array(recursiveBase).optional(),
+  // TSLiteralType properties
+  literal: recursiveBase.nullable().optional(),
 });
 
 export type Tsestree = z.infer<typeof tsestreeContract>;

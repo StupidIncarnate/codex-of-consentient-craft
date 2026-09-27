@@ -47,6 +47,9 @@
     "lint": "dungeonmaster-ward --only lint",
     "ward": "dungeonmaster-ward"
   },
+  "dependencies": {
+    "zod": "^3.25.76"
+  },
   "devDependencies": {
     "@dungeonmaster/testing": "*",
     "@types/node": "^24.0.15",
