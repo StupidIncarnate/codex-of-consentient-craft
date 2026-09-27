@@ -8,7 +8,7 @@
  * output.
  */
 
-import { copyFileSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { runDungeonmasterInit, runEslint, runJest, runNpm, runTsc, runWard } from '../bin-run.mjs';
 import { run } from '../proc.mjs';
@@ -108,7 +108,7 @@ const parseEslintJson = ({ report, result, label }) => {
 const runEslintForPackage = ({ consumerRoot, packageDir }) =>
   runEslint({ consumerRoot, cwd: packageDir, args: ['.'] });
 
-const assertLint = async ({ report, consumerRoot, inPackageViolationFile }) => {
+const assertLint = async ({ report, consumerRoot, lintViolationFile }) => {
   for (const packageName of [LIB_PACKAGE_NAME, WEB_PACKAGE_NAME]) {
     const packageDir = join(consumerRoot, 'packages', packageName);
     const result = await runEslintForPackage({ consumerRoot, packageDir });
@@ -118,7 +118,7 @@ const assertLint = async ({ report, consumerRoot, inPackageViolationFile }) => {
     }
 
     const filesWithErrors = eslintJson.filter(
-      (entry) => entry.errorCount > 0 && entry.filePath !== inPackageViolationFile,
+      (entry) => entry.errorCount > 0 && entry.filePath !== lintViolationFile,
     );
     report.check(
       `lint passes on every file in the clean fixture (packages/${packageName})`,
@@ -129,7 +129,7 @@ const assertLint = async ({ report, consumerRoot, inPackageViolationFile }) => {
     );
 
     if (packageName === LIB_PACKAGE_NAME) {
-      const violatorResult = eslintJson.find((entry) => entry.filePath === inPackageViolationFile);
+      const violatorResult = eslintJson.find((entry) => entry.filePath === lintViolationFile);
       report.check(
         'lint flags the sample file with a known violation (ban-primitives: a raw string return)',
         Boolean(violatorResult && violatorResult.errorCount > 0),
@@ -213,7 +213,7 @@ const assertMswTrap = async ({ report, consumerRoot, mswTrapTestFile }) => {
 
 const assertGatewayProxyMockTest = async ({ report, consumerRoot }) => {
   const cwd = join(consumerRoot, 'packages', LIB_PACKAGE_NAME);
-  const result = await runJest({ consumerRoot, cwd, args: ['read-config-or-default'] });
+  const result = await runJest({ consumerRoot, cwd, args: ['config-read-or-default-broker'] });
   report.check(
     'a test importing a gateway wrapper proxy per file has its registerMock hoisted and passes',
     result.code === 0,
@@ -301,7 +301,7 @@ const preEditPayload = ({ consumerRoot, filePath, content }) =>
     tool_input: { file_path: filePath, content },
   });
 
-const assertPreEditHook = async ({ report, consumerRoot, inPackageViolationFile }) => {
+const assertPreEditHook = async ({ report, consumerRoot, lintViolationFile }) => {
   const binPath = join(consumerRoot, 'node_modules', '.bin', 'dungeonmaster-pre-edit-lint');
   if (!existsSync(binPath)) {
     report.check('the pre-edit hook binary is installed', false, binPath);
@@ -310,14 +310,14 @@ const assertPreEditHook = async ({ report, consumerRoot, inPackageViolationFile 
 
   // The hook only blocks a violation the edit ADDS — it diffs the file's CURRENT on-disk text
   // against the proposed new text (repo `scrolls/brands-types-tests-rules.md`'s own description of
-  // `violations-check-new-broker.ts`). Handing it `inPackageViolationFile`'s own already-on-disk
+  // `violations-check-new-broker.ts`). Handing it `lintViolationFile`'s own already-on-disk
   // violating content as the "new" text is a no-op edit from the hook's point of view — old and new
   // are byte-identical, so nothing was ADDED, and it allows the write (confirmed against a real run
   // of this suite: exit 0, not the expected 2). A path that does not exist on disk YET has no "old"
   // text to diff against, so the violating content the payload proposes is entirely new.
-  const violatingContent = readFileSync(inPackageViolationFile, 'utf8');
+  const violatingContent = readFileSync(lintViolationFile, 'utf8');
   const neverWrittenFile = join(
-    join(inPackageViolationFile, '..'),
+    join(lintViolationFile, '..'),
     'pre-edit-hook-new-file-probe-broker.ts',
   );
   const blockedResult = await run({
@@ -332,14 +332,18 @@ const assertPreEditHook = async ({ report, consumerRoot, inPackageViolationFile 
     `exit ${String(blockedResult.code)}: ${blockedResult.stdout}${blockedResult.stderr}`.slice(-1500),
   );
 
+  // Same export name and file identity as the on-disk violator (`preEditProbeBroker`, in
+  // `pre-edit-probe-broker.ts`) — only the return type changes, from a raw `string` to a branded
+  // `PathSegment` — so this is a genuine same-file fix, never a different function under the same
+  // name the naming convention (entry file name = folder path + suffix) would itself flag.
   const cleanContent =
-    '/**\n * PURPOSE: A clean, pre-edit-hook-compliant file used only to prove the hook ALLOWS a well-formed write.\n *\n * USAGE:\n * preEditCleanBroker();\n */\n\nimport { pathSegmentContract, type PathSegment } from '
+    "/**\n * PURPOSE: Uppercases a path segment, returning a branded PathSegment instead of a raw\n * string.\n *\n * USAGE:\n * preEditProbeBroker({ path: 'a/b' });\n */\n\nimport { pathSegmentContract, type PathSegment } from "
     + "'@dungeonmaster/shared/contracts';"
-    + '\n\nexport const preEditCleanBroker = ({ value }: { value: string }): PathSegment =>\n  pathSegmentContract.parse(value);\n';
+    + "\n\nexport const preEditProbeBroker = ({ path }: { path: string }): PathSegment =>\n  pathSegmentContract.parse(path.toUpperCase());\n";
   const allowedResult = await run({
     command: binPath,
     cwd: consumerRoot,
-    input: preEditPayload({ consumerRoot, filePath: inPackageViolationFile, content: cleanContent }),
+    input: preEditPayload({ consumerRoot, filePath: lintViolationFile, content: cleanContent }),
     timeoutMs: 30_000,
   });
   report.check(
@@ -394,23 +398,12 @@ export const runWorksAssertions = async ({ report, consumerRoot, gt, mode }) => 
   assertScopeDetection({ report, consumerRoot, gt });
   assertJestConfigBase({ report, consumerRoot });
 
-  // `lintViolationFile` (from sample-sources.mjs) sits at the consumer ROOT — outside every
-  // package's own tsconfig `include`, so typescript-eslint's `parserOptions.project` can never
-  // parse it (the scaffolded root tsconfig.json's own `"files": []` accepts nothing directly; it
-  // exists only for packages to `extends`). A real consumer never has source at repo root (every
-  // consumer is an npm-workspaces monorepo — repo CLAUDE.md), so this copies the same known
-  // violation INSIDE `packages/lib/src` instead, where a real package's own lint genuinely applies.
-  const inPackageViolationFile = join(
-    consumerRoot,
-    'packages',
-    LIB_PACKAGE_NAME,
-    'src',
-    'lint-violation-sample.ts',
-  );
-  copyFileSync(lintViolationFile, inPackageViolationFile);
-
+  // `lintViolationFile` (from sample-sources.mjs) already sits INSIDE `packages/lib/src/brokers/`,
+  // fully covered by that package's own tsconfig `include` — a real consumer never has source at
+  // repo root (every consumer is an npm-workspaces monorepo — repo CLAUDE.md), so a real package's
+  // own broker is where this known violation genuinely belongs, with no synthetic root-level copy.
   await assertTypecheck({ report, consumerRoot });
-  await assertLint({ report, consumerRoot, inPackageViolationFile });
+  await assertLint({ report, consumerRoot, lintViolationFile });
   await assertGatewayNodeKnownF1({ report, consumerRoot });
   // BEFORE the gateway-proxy-mock test, never after: that test's own `#gateway/node/fs__promises`
   // import resolves through the `require` condition (jest sets no `source` custom condition — only
@@ -423,7 +416,7 @@ export const runWorksAssertions = async ({ report, consumerRoot, gt, mode }) => 
   await assertMswTrap({ report, consumerRoot, mswTrapTestFile });
   await assertGatewayProxyMockTest({ report, consumerRoot });
   await assertWardCleanFixture({ report, consumerRoot });
-  await assertPreEditHook({ report, consumerRoot, inPackageViolationFile });
+  await assertPreEditHook({ report, consumerRoot, lintViolationFile });
   await assertIdempotentReinit({ report, consumerRoot });
 
   return { lintViolationFile, ioTrapTestFile };
