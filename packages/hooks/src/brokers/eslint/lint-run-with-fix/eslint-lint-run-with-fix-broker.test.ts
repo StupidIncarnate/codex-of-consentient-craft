@@ -134,6 +134,39 @@ describe('eslintLintRunWithFixBroker()', () => {
     });
   });
 
+  describe('default cwd', () => {
+    it('VALID: {filePath, config, no cwd} => resolves against the default cwd', async () => {
+      const proxy = eslintLintRunWithFixBrokerProxy();
+
+      proxy.returnsLintResultsForDefaultCwd({
+        filePath: 'marker.ts',
+        results: [
+          {
+            filePath: '/default/cwd/resolved/marker.ts',
+            messages: [],
+            errorCount: 0,
+            warningCount: 0,
+          },
+        ],
+      });
+
+      const config = LinterConfigStub();
+      const results = await eslintLintRunWithFixBroker({
+        filePath: 'marker.ts',
+        config,
+      });
+
+      expect(results).toStrictEqual([
+        {
+          filePath: '/default/cwd/resolved/marker.ts',
+          messages: [],
+          errorCount: 0,
+          warningCount: 0,
+        },
+      ]);
+    });
+  });
+
   describe('with multiple errors', () => {
     it('VALID: {filePath, config} => returns all error-level violations', async () => {
       const proxy = eslintLintRunWithFixBrokerProxy();
