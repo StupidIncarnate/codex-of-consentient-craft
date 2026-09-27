@@ -9,11 +9,11 @@
  * // Returns { status: 200, data: <detail json> } or { status: 400/404, data: { error } }
  */
 
+import { questFindQuestPathBroker } from '@dungeonmaster/orchestrator';
 import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import { locationsWardResultsPathFindBroker } from '@dungeonmaster/shared/brokers';
 
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
-import { orchestratorFindQuestPathAdapter } from '../../../adapters/orchestrator/find-quest-path/orchestrator-find-quest-path-adapter';
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import { questWardDetailParamsContract } from '../../../contracts/quest-ward-detail-params/quest-ward-detail-params-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
@@ -36,7 +36,7 @@ export const QuestWardDetailResponder = async ({
   const { questId, wardResultId } = parsedParams.data;
 
   try {
-    const { questPath } = await orchestratorFindQuestPathAdapter({ questId });
+    const { questPath } = await questFindQuestPathBroker({ questId });
     const detailFilePath = pathJoinAdapter({
       paths: [
         locationsWardResultsPathFindBroker({ questFolderPath: questPath }),

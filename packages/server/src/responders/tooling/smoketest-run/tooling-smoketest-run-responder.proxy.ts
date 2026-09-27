@@ -1,7 +1,6 @@
+import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import { configRootFindBrokerProxy, processCwdAdapterProxy } from '@dungeonmaster/shared/testing';
 import type { SmoketestSuite } from '@dungeonmaster/shared/contracts';
-
-import { orchestratorRunSmoketestAdapterProxy } from '../../../adapters/orchestrator/run-smoketest/orchestrator-run-smoketest-adapter.proxy';
 
 // Matches processCwdAdapterProxy's own default — configRootFindBrokerProxy has no constructor
 // catch-all of its own, so the responder's cwd -> config-root walk must be addressed explicitly.
@@ -11,7 +10,7 @@ export const ToolingSmoketestRunResponderProxy = (): {
   setupAlreadyRunning: (params: { runId: string; suite: SmoketestSuite }) => void;
   setupRejectsWith: (params: { suite: SmoketestSuite; error: Error }) => void;
 } => {
-  const adapterProxy = orchestratorRunSmoketestAdapterProxy();
+  const orchestrator = StartOrchestratorProxy();
   const configRootProxy = configRootFindBrokerProxy();
   processCwdAdapterProxy();
 
@@ -19,13 +18,13 @@ export const ToolingSmoketestRunResponderProxy = (): {
 
   return {
     setupAlreadyRunning: ({ runId, suite }: { runId: string; suite: SmoketestSuite }): void => {
-      adapterProxy.throws({
+      orchestrator.runSmoketestThrows({
         suite,
         error: new Error(`Smoketest already running (runId=${runId}, suite=${suite})`),
       });
     },
     setupRejectsWith: ({ suite, error }: { suite: SmoketestSuite; error: Error }): void => {
-      adapterProxy.throws({ suite, error });
+      orchestrator.runSmoketestThrows({ suite, error });
     },
   };
 };

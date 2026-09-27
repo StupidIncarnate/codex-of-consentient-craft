@@ -1,15 +1,15 @@
 /**
- * PURPOSE: Validates POST /api/tooling/smoketest/run body and delegates to the orchestrator adapter
+ * PURPOSE: Validates POST /api/tooling/smoketest/run body and delegates to `StartOrchestrator.runSmoketest`
  *
  * USAGE:
  * const result = await ToolingSmoketestRunResponder({ body: { suite: 'mcp' } });
  * // Returns: { status, data: { runId, results } | { error } }
  */
 
+import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { processCwdAdapter } from '@dungeonmaster/shared/adapters';
 import { configRootFindBroker } from '@dungeonmaster/shared/brokers';
 
-import { orchestratorRunSmoketestAdapter } from '../../../adapters/orchestrator/run-smoketest/orchestrator-run-smoketest-adapter';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { toolingSmoketestRunBodyContract } from '../../../contracts/tooling-smoketest-run-body/tooling-smoketest-run-body-contract';
@@ -32,7 +32,7 @@ export const ToolingSmoketestRunResponder = async ({
       startPath: processCwdAdapter(),
     });
 
-    const result = await orchestratorRunSmoketestAdapter({ suite, startPath });
+    const result = await StartOrchestrator.runSmoketest({ suite, startPath });
 
     return responderResultContract.parse({
       status: httpStatusStatics.success.ok,

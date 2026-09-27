@@ -1,3 +1,4 @@
+import { questFindQuestPathBrokerProxy } from '@dungeonmaster/orchestrator/brokers/quest/find-quest-path/quest-find-quest-path-broker.proxy';
 import {
   AbsoluteFilePathStub,
   FileContentsStub,
@@ -11,7 +12,6 @@ import {
 } from '@dungeonmaster/shared/testing';
 
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
-import { orchestratorFindQuestPathAdapterProxy } from '../../../adapters/orchestrator/find-quest-path/orchestrator-find-quest-path-adapter.proxy';
 import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 import { QuestWardDetailResponder } from './quest-ward-detail-responder';
 
@@ -39,16 +39,16 @@ export const QuestWardDetailResponderProxy = (): {
   setupNotFound: () => void;
   callResponder: typeof QuestWardDetailResponder;
 } => {
-  const findPathProxy = orchestratorFindQuestPathAdapterProxy();
+  const findPathProxy = questFindQuestPathBrokerProxy();
   const locationsProxy = locationsWardResultsPathFindBrokerProxy();
   const pathJoinProxy = pathJoinAdapterProxy();
   const readFileProxy = fsReadFileAdapterProxy();
 
   const setupPaths = (): void => {
-    findPathProxy.returns({
+    findPathProxy.setupQuestPath({
       questId: DETAIL_QUEST_ID,
-      questPath: AbsoluteFilePathStub({ value: '/home/testuser/quest' }),
       guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
+      questPath: AbsoluteFilePathStub({ value: '/home/testuser/quest' }),
     });
     locationsProxy.setupWardResultsPath({
       wardResultsPath: SharedFilePathStub({ value: '/home/testuser/quest/ward-results' }),

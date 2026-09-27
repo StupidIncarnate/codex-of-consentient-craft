@@ -1,4 +1,4 @@
-import { orchestratorGetQuestQueueAdapterProxy } from '../../../adapters/orchestrator/get-quest-queue/orchestrator-get-quest-queue-adapter.proxy';
+import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import type { QuestQueueEntryStub } from '@dungeonmaster/shared/contracts';
 import { QuestsQueueResponder } from './quests-queue-responder';
 
@@ -9,14 +9,14 @@ export const QuestsQueueResponderProxy = (): {
   setupQueueError: (params: { message: string }) => void;
   callResponder: typeof QuestsQueueResponder;
 } => {
-  const adapterProxy = orchestratorGetQuestQueueAdapterProxy();
+  const orchestrator = StartOrchestratorProxy();
 
   return {
     setupQueue: ({ entries }: { entries: readonly QuestQueueEntry[] }): void => {
-      adapterProxy.returns({ entries });
+      orchestrator.getExecutionQueueReturns({ entries });
     },
     setupQueueError: ({ message }: { message: string }): void => {
-      adapterProxy.throws({ error: new Error(message) });
+      orchestrator.getExecutionQueueThrows({ error: new Error(message) });
     },
     callResponder: QuestsQueueResponder,
   };
