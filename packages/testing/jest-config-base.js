@@ -14,7 +14,9 @@
 
 const path = require('path');
 
-const dungeonmasterTransformers = require('./ts-jest/transformers.js');
+// One shared entry for the ts-jest inline options this file used to inline directly — see that
+// file's own header for why it carries no isolatedModules, unlike the repo-internal sibling.
+const dungeonmasterTsJestOptions = require('./ts-jest/published-options.js');
 
 module.exports = {
   preset: 'ts-jest',
@@ -24,22 +26,7 @@ module.exports = {
   testPathIgnorePatterns: ['/node_modules/', '/dist/'],
   moduleFileExtensions: ['ts', 'js', 'json'],
   transform: {
-    '^.+\\.ts$': [
-      'ts-jest',
-      {
-        // commonjs/node pinned: a consumer's root tsconfig resolves node16 (that is how
-        // `#gateway/...` imports resolve for tsc), and ts-jest refuses node16 outside its own
-        // isolatedModules mode. Jest resolves modules itself, so tests lose nothing.
-        tsconfig: {
-          allowJs: true,
-          esModuleInterop: true,
-          skipLibCheck: true,
-          module: 'commonjs',
-          moduleResolution: 'node',
-        },
-        astTransformers: { before: dungeonmasterTransformers },
-      },
-    ],
+    '^.+\\.ts$': ['ts-jest', dungeonmasterTsJestOptions],
   },
   coverageDirectory: 'coverage',
   verbose: false,

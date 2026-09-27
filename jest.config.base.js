@@ -1,6 +1,9 @@
 const path = require('path');
 
-const dungeonmasterTransformers = require('./packages/testing/ts-jest/transformers.js');
+// One shared entry for the ts-jest inline options every internal jest.config.* used to restate —
+// see that file's own header for why isolatedModules/commonjs/node stay pinned separately from the
+// published tsconfig's node16.
+const dungeonmasterTsJestOptions = require('./packages/testing/ts-jest/options.js');
 
 module.exports = {
   preset: 'ts-jest',
@@ -31,31 +34,7 @@ module.exports = {
   modulePathIgnorePatterns: ['/tests/tmp/', '/hypothesis/'],
   moduleFileExtensions: ['ts', 'js', 'json'],
   transform: {
-    '^.+\\.ts$': [
-      'ts-jest',
-      {
-        tsconfig: {
-          allowJs: true,
-          esModuleInterop: true,
-          skipLibCheck: true,
-          isolatedModules: true,
-          module: 'commonjs',
-          moduleResolution: 'node',
-        },
-        // `diagnostics: false` looks like free speed here and is not — measured on
-        // `packages/config` at 3.4% of cold-cache CPU and nothing at all warm, because a warm
-        // transform cache skips ts-jest entirely. It only skips `getSemanticDiagnostics`; the cost
-        // is building the TypeScript program and `getEmitOutput`, which stay either way.
-        // `isolatedModules` DOES remove the program and is what would actually pay — and is unusable
-        // as things stand: ts-jest only sets `program` when it is off, and the proxy-mock
-        // transformer below reads proxy source files out of that program to hoist `jest.mock()`
-        // calls. Turning it on stops the hoisting silently. Give that transformer its own
-        // `ts.createSourceFile` cache first; it uses the program for nothing else.
-        astTransformers: {
-          before: dungeonmasterTransformers,
-        },
-      },
-    ],
+    '^.+\\.ts$': ['ts-jest', dungeonmasterTsJestOptions],
   },
   coverageDirectory: 'coverage',
   verbose: false,
