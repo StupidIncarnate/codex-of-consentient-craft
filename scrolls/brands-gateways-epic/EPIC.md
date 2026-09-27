@@ -80,6 +80,20 @@ More rules for the operator:
     package publishes, or how a consumer resolves, loads or tests code adds its assertions to the
     consumer suite in the same item. Before committing such an item, the operator runs
     `npm run build:clean`, then `npm run check:consumer`. G27 lists the items known to need this.
+## Using Antigravity (`agy`) agents
+
+The user can lend Antigravity slots on top of the Claude sub-agents. This section records what the operator learns about driving them, and grows as the epic uses them more.
+
+| What | What we learned |
+|---|---|
+| The CLI | `agy` is at `~/.local/bin/agy`. `agy -p "<prompt>"` runs one prompt non-interactively and prints the final answer. `agy models` lists the models. |
+| The model | The user asked for Gemini 3.8 Flash. Pass `--model gemini-3.8-flash-high`. |
+| Permissions | Pass `--dangerously-skip-permissions`, or the run stalls on the first tool prompt, because nobody is there to answer it. |
+| Launching | Run it through the Bash tool with `run_in_background: true`. The harness notifies the operator when the command exits. The launcher is `tmp/agy/run.sh <group>`. It joins `tmp/agy/common.md` with `tmp/agy/<group>.md`, and writes the answer to `tmp/agy/<group>.out`. |
+| MCP tools | The dungeonmaster MCP tools are available inside `agy` (`discover` confirmed). |
+| Repo rules | A quiz with no file reads showed it already knows the core rules: `npm run ward -- -- <files>`, `registerMock` rather than `jest.mock`, the banned matchers, no builds, and `discover` rather than grep. It could not name most snippet tags. So the shared prompt restates the hard bans (no git staging or commits, no builds or installs, only scoped ward) and points at `session-snippet-statics.ts`. |
+| The prompt | It gets no agent brief automatically. `common.md` carries the brief, the recipe, the ban list and the report format, and each group file adds only the file list and who else is in the package. |
+
 ## Concessions
 
 Each row is a place where this epic departs from a source doc. The first rows were decided while the epic
