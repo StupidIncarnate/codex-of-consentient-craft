@@ -1,5 +1,5 @@
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
-import type { ValueMatcher } from '../../value-matcher/value-matcher';
+import type { ValueMatcher } from '../../gateway-test-support/value-matcher';
 
 export const writeItemProxy = (): {
   setupWriteFails: (params: { key: string; error: Error }) => void;

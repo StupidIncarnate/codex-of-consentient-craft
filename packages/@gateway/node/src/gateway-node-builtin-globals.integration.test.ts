@@ -1,16 +1,21 @@
 /**
  * PURPOSE: Every folder directly under this package's own `src/` must name a real thing the Node
- * runtime provides — a built-in module or a Node GLOBAL (`setTimeout`, `fetch`, …). ESLint's
- * file-glob rules cannot make this check: it needs a maintained list of real platform names to
- * compare folders against, not a source file a selector can parse. `nodeBuiltinModuleNamesForTest`
- * duplicates `nodeBuiltinStatics.modules` (`@dungeonmaster/shared`) by hand rather than importing it
- * — `gateway-import-boundary` (active, in the gateway ESLint config block) refuses ANY import of
- * `@dungeonmaster/shared` from inside a gateway file, this test included, since the gateway is the
- * bottom layer and may not depend on a package built on top of it. Keep this list in sync with
- * `nodeBuiltinStatics.modules` by hand when a builtin is added there. `nodeGlobalNamesForTest` is a
- * SEPARATE maintained list this test owns outright (no shared statics carries Node's globals at all,
- * only its built-in modules) — extend it here when a gateway folder wraps a Node global not already
- * listed, per the layout standard's rule that a global keeps its own exact casing.
+ * runtime provides — a built-in module or a Node GLOBAL (`setTimeout`, `fetch`, …) — with exactly
+ * one reserved exception, `RESERVED_TEST_SUPPORT_FOLDER`, the one folder every gateway may hold for a
+ * shared, type-only proxy-addressing helper (`PathMatcher` here) that has no real builtin or global
+ * to be named after. ESLint's file-glob rules cannot make this check: it needs a maintained list of
+ * real platform names to compare folders against, not a source file a selector can parse.
+ * `nodeBuiltinModuleNamesForTest` duplicates `nodeBuiltinStatics.modules` (`@dungeonmaster/shared`) by
+ * hand rather than importing it — `gateway-import-boundary` (active, in the gateway ESLint config
+ * block) refuses ANY import of `@dungeonmaster/shared` from inside a gateway file, this test
+ * included, since the gateway is the bottom layer and may not depend on a package built on top of it.
+ * Keep this list in sync with `nodeBuiltinStatics.modules` by hand when a builtin is added there.
+ * `nodeGlobalNamesForTest` is a SEPARATE maintained list this test owns outright (no shared statics
+ * carries Node's globals at all, only its built-in modules) — extend it here when a gateway folder
+ * wraps a Node global not already listed, per the layout standard's rule that a global keeps its own
+ * exact casing. `RESERVED_TEST_SUPPORT_FOLDER` is duplicated by hand from the same
+ * `gatewayReservedFolderNamesStatics.folders.testSupport` (`eslint-plugin`) `gateway-browser-globals`
+ * duplicates, for the same reason — change both when it changes.
  *
  * `.integration.test.ts`, not `.test.ts`: this file has no single implementation companion —
  * `@dungeonmaster/enforce-test-colocation` requires one for a plain `.test.ts`, and is turned off (in
@@ -23,6 +28,7 @@ import { readdirSync } from 'fs';
 
 const SRC_DIR = __dirname;
 const SUBPATH_JOIN = '__';
+const RESERVED_TEST_SUPPORT_FOLDER = 'gateway-test-support';
 
 // Duplicated by hand from `nodeBuiltinStatics.modules` in `@dungeonmaster/shared` — see PURPOSE for
 // why this cannot be an import.
@@ -99,13 +105,19 @@ const folderNamesAGlobal = ({ folderName }: { folderName: string }): boolean =>
 // A single named predicate, not an inline `&&`, so the conditional lives in a top-level function
 // instead of inside the `it()` body — `jest/no-conditional-in-test` flags a logical expression
 // written directly in a test.
-const folderNamesNeitherBuiltinNorGlobal = ({ folderName }: { folderName: string }): boolean =>
-  !folderNamesABuiltinModule({ folderName }) && !folderNamesAGlobal({ folderName });
+const folderNamesNeitherBuiltinNorGlobalNorReserved = ({
+  folderName,
+}: {
+  folderName: string;
+}): boolean =>
+  !folderNamesABuiltinModule({ folderName }) &&
+  !folderNamesAGlobal({ folderName }) &&
+  folderName !== RESERVED_TEST_SUPPORT_FOLDER;
 
 describe('gateway node builtin and global folder names', () => {
-  it('VALID: {every src/ folder} => names a real Node builtin module or a real Node global', () => {
+  it('VALID: {every src/ folder} => names a real Node builtin module, a real Node global, or is the one reserved test-support folder', () => {
     const foldersNamingNeither = readOwnSrcFolders().filter((folderName) =>
-      folderNamesNeitherBuiltinNorGlobal({ folderName }),
+      folderNamesNeitherBuiltinNorGlobalNorReserved({ folderName }),
     );
 
     expect(foldersNamingNeither).toStrictEqual([]);

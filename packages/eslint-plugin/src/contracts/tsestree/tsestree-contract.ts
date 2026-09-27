@@ -514,9 +514,10 @@ export const tsestreeContract = z.object({
   // ImportDeclaration properties
   specifiers: z.array(recursiveBase).optional(),
   source: recursiveBase.nullable().optional(),
-  // ImportSpecifier properties
+  // ImportSpecifier/ExportSpecifier properties
   imported: recursiveBase.nullable().optional(),
   local: recursiveBase.nullable().optional(),
+  exported: recursiveBase.nullable().optional(),
   // Literal properties
   value: z.unknown().optional(),
   // TSAsExpression properties

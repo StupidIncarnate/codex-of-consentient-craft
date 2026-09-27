@@ -6,7 +6,11 @@
  * resolved worktree path, a generated commit message) — the same tolerant address the pre-gateway
  * adapters offered (e.g.
  * `orchestrator/src/adapters/git/current-branch/git-current-branch-adapter.proxy.ts`'s
- * `getSpawnedArgs`/`getSpawnedCwd` read-back, generalized here into a stageable predicate).
+ * `getSpawnedArgs`/`getSpawnedCwd` read-back, generalized here into a stageable predicate). Lives in
+ * `gateway-test-support/`, the one folder every gateway may hold directly under `src/` that is not a
+ * subpath — `gatewayReservedFolderNamesStatics.folders.testSupport` (`eslint-plugin`) names it, and
+ * `gateway-node-builtin-globals`/`gateway-browser-globals` each carve it out by hand, since a bare
+ * type-only helper file has no real Node builtin or browser global to be named after.
  *
  * `ArgsMatcher` addresses the WHOLE argv array a `*-run` wrapper sends — either element-by-element
  * (an array of `ArgMatcher`, for a fixed-length call with one variable slot) or as one predicate over
@@ -14,7 +18,7 @@
  * literal ref names).
  *
  * USAGE:
- * import type { ArgMatcher, ArgsMatcher } from '../../arg-matcher/arg-matcher';
+ * import type { ArgMatcher, ArgsMatcher } from '../gateway-test-support/arg-matcher';
  * const matchesQuestBranch: ArgMatcher = (value) => String(value).startsWith('quest/');
  * const matchesEitherRef: ArgsMatcher = (args) => args[2] === 'main' || args[2] === 'master';
  */

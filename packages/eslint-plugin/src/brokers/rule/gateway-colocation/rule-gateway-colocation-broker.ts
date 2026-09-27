@@ -23,6 +23,14 @@
  * the gateway — inside an ordinary wrapper file — is refused too, so every future error class is
  * forced into its own `.error.ts` file from the start.
  *
+ * A barrel's own named re-exports (`export { x } from './y/y'`) are checked three further ways,
+ * each delegated to its own layer broker so a barrel visit computes the shared reexports list once:
+ * completeness in both directions (a wrapper's `const`/`function`/`class` export — or an `.error.ts`
+ * companion's one class — with no matching barrel re-export, and a barrel re-export whose target no
+ * longer carries that name), single-home (a re-export whose relative source climbs outside the
+ * barrel's own subpath folder), and no-test-support-reexport (a re-export sourced from a sibling
+ * `.proxy.ts` or `.stub.ts`, which G26 says stays imported from its own file, never the barrel).
+ *
  * USAGE:
  * const rule = ruleGatewayColocationBroker();
  * // Flags packages/@gateway/node/src/fs/read-file-sync/read-file-sync.ts with no read-file-sync.proxy.ts;
@@ -33,6 +41,10 @@
  * // With options: [{requireStub: true}], also flags a subpath barrel whose folder tree has no
  * // .stub.ts anywhere under it, as missingStub — off by default (G18 turns it on repo-wide once
  * // every subpath actually has one; see gateway-subpath-has-stub-layer-broker.ts)
+ * // Flags a barrel missing a re-export for an existing wrapper export as barrelMissingReexport, one
+ * // re-exporting a name no wrapper carries any more as barrelStaleReexport, one reaching into a
+ * // sibling subpath as reexportOutsideOwnSubpath, and one re-exporting a .proxy.ts/.stub.ts as
+ * // barrelReexportsTestSupportFile
  */
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
@@ -48,6 +60,10 @@ import { removeFileExtensionTransformer } from '../../../transformers/remove-fil
 import { kebabToPascalCaseTransformer } from '../../../transformers/kebab-to-pascal-case/kebab-to-pascal-case-transformer';
 import { gatewayPureReexportStatementTypesStatics } from '../../../statics/gateway-pure-reexport-statement-types/gateway-pure-reexport-statement-types-statics';
 import { gatewaySubpathHasStubLayerBroker } from './gateway-subpath-has-stub-layer-broker';
+import { barrelNamedReexportsLayerBroker } from './barrel-named-reexports-layer-broker';
+import { barrelSingleHomeLayerBroker } from './barrel-single-home-layer-broker';
+import { barrelNoTestSupportReexportLayerBroker } from './barrel-no-test-support-reexport-layer-broker';
+import { barrelCompletenessLayerBroker } from './barrel-completeness-layer-broker';
 
 export const ruleGatewayColocationBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -73,6 +89,14 @@ export const ruleGatewayColocationBroker = (): EslintRule => ({
           'Gateway error file "{{fileName}}" exports "{{actualName}}", but its filename requires the class "{{expectedName}}".',
         errorClassOutsideErrorFile:
           'Class "{{className}}" extends Error but is declared in "{{fileName}}" — move it into its own .error.ts file beside this wrapper.',
+        barrelMissingReexport:
+          'Subpath barrel "{{fileName}}" is missing a re-export for "{{name}}", exported by "{{wrapperFile}}". Add a named re-export for it to the barrel.',
+        barrelStaleReexport:
+          'Subpath barrel "{{fileName}}" re-exports "{{name}}" from "{{source}}", but no such export exists there any more. Remove the stale re-export or restore the wrapper.',
+        reexportOutsideOwnSubpath:
+          'Subpath barrel "{{fileName}}" re-exports "{{name}}" from "{{source}}", which reaches outside its own subpath folder. A barrel may only re-export from its own folder tree.',
+        barrelReexportsTestSupportFile:
+          'Subpath barrel "{{fileName}}" re-exports "{{name}}" from "{{source}}", a test-support file. A production barrel may not re-export a .proxy.ts or .stub.ts — each is imported from its own file.',
       },
       schema: [
         {
@@ -346,6 +370,23 @@ export const ruleGatewayColocationBroker = (): EslintRule => ({
             data: { subpathName: baseNameWithoutExtension },
           });
         }
+
+        const reexports = barrelNamedReexportsLayerBroker({ node });
+
+        barrelSingleHomeLayerBroker({ node, context: ctx, fileName: fileBaseName, reexports });
+        barrelNoTestSupportReexportLayerBroker({
+          node,
+          context: ctx,
+          fileName: fileBaseName,
+          reexports,
+        });
+        barrelCompletenessLayerBroker({
+          node,
+          context: ctx,
+          fileName: fileBaseName,
+          subpathDirectory: filePathContract.parse(directory),
+          reexports,
+        });
       },
     };
   },

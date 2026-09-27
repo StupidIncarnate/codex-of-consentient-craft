@@ -1,5 +1,5 @@
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
-import type { ValueMatcher } from '../../value-matcher/value-matcher';
+import type { ValueMatcher } from '../../gateway-test-support/value-matcher';
 
 const HTTP_OK_STATUS_MIN = 200;
 const HTTP_OK_STATUS_MAX_EXCLUSIVE = 300;

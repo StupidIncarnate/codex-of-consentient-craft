@@ -3,7 +3,7 @@ import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { FsErrorStub } from '../../fs/is-fs-error/fs-error.stub';
 import type { FsError } from '../../fs/is-fs-error/fs-error';
 import { StatsFsStub } from '../../fs/stats-fs/stats-fs.stub';
-import type { PathMatcher } from '../path-matcher/path-matcher';
+import type { PathMatcher } from '../../gateway-test-support/path-matcher';
 
 export const diskFreeBytesProxy = (): {
   returns: (params: { path: string; bavail: number; bsize: number }) => void;

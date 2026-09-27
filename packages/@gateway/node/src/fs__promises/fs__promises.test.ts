@@ -16,7 +16,6 @@ import { readdirEntries } from './readdir-entries/readdir-entries';
 import { readlink } from './readlink/readlink';
 import { readlinkIfLink } from './readlink-if-link/readlink-if-link';
 import { realpath } from './realpath/realpath';
-import { isFsError } from '../fs/is-fs-error/is-fs-error';
 import { writeFile } from './write-file/write-file';
 import { writeFileAtomic } from './write-file-atomic/write-file-atomic';
 import { writeFileExclusive } from './write-file-exclusive/write-file-exclusive';
@@ -52,7 +51,6 @@ const EXPECTED_EXPORTS: readonly { name: string; direct: unknown }[] = [
   { name: 'readlink', direct: readlink },
   { name: 'readlinkIfLink', direct: readlinkIfLink },
   { name: 'realpath', direct: realpath },
-  { name: 'isFsError', direct: isFsError },
   { name: 'writeFile', direct: writeFile },
   { name: 'writeFileAtomic', direct: writeFileAtomic },
   { name: 'writeFileExclusive', direct: writeFileExclusive },

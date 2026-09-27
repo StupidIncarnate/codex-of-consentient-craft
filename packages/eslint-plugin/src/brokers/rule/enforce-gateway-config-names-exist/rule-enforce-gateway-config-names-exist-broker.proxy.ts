@@ -20,7 +20,13 @@ export const ruleEnforceGatewayConfigNamesExistBrokerProxy = (): {
   const exportNameProxy = checkGatewayExportNameExistsLayerBrokerProxy();
 
   return {
-    setupWorkspaceRoot: ({ rootDir, packageNames }: { rootDir: string; packageNames: string[] }): void => {
+    setupWorkspaceRoot: ({
+      rootDir,
+      packageNames,
+    }: {
+      rootDir: string;
+      packageNames: string[];
+    }): void => {
       workspaceRootProxy.setupWorkspaceRoot({
         rootDir,
         packageNames,

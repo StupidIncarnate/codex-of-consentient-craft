@@ -1,5 +1,5 @@
 import { gitRunProxy } from '../git-run/git-run.proxy';
-import type { ArgMatcher } from '../../arg-matcher/arg-matcher';
+import type { ArgMatcher } from '../../gateway-test-support/arg-matcher';
 
 const LOG_FORMAT = '--format=%x1e%H%x1f%s%x1f%b%x1f';
 const RANGE_SUFFIX = '..HEAD';

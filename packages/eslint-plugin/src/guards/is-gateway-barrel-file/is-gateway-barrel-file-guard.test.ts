@@ -54,4 +54,12 @@ describe('isGatewayBarrelFileGuard', () => {
 
     expect(result).toBe(false);
   });
+
+  it('INVALID: {filename: a same-named file inside the reserved test-support folder} => returns false', () => {
+    const result = isGatewayBarrelFileGuard({
+      filename: '/repo/packages/@gateway/node/src/gateway-test-support/gateway-test-support.ts',
+    });
+
+    expect(result).toBe(false);
+  });
 });

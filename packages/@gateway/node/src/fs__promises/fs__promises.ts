@@ -7,8 +7,6 @@
  */
 
 export * from 'fs/promises';
-export { isFsError } from '../fs/is-fs-error/is-fs-error';
-export type { FsError } from '../fs/is-fs-error/fs-error';
 export { appendFile } from './append-file/append-file';
 export { appendLinesCreatingParent } from './append-lines-creating-parent/append-lines-creating-parent';
 export { copyDirContents } from './copy-dir-contents/copy-dir-contents';

@@ -3,7 +3,7 @@ import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { FsErrorStub } from '../../fs/is-fs-error/fs-error.stub';
 import type { FsError } from '../../fs/is-fs-error/fs-error';
 import { StatsStub } from '../../fs/stats/stats.stub';
-import type { PathMatcher } from '../path-matcher/path-matcher';
+import type { PathMatcher } from '../../gateway-test-support/path-matcher';
 
 type StatKind = 'file' | 'directory' | 'symlink' | 'other';
 

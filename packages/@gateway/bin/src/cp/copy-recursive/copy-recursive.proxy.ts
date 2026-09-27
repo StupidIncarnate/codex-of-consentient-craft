@@ -1,5 +1,5 @@
 import { cpRunProxy } from '../cp-run/cp-run.proxy';
-import type { ArgMatcher } from '../../arg-matcher/arg-matcher';
+import type { ArgMatcher } from '../../gateway-test-support/arg-matcher';
 
 export const copyRecursiveProxy = (): {
   setupResult: (params: {

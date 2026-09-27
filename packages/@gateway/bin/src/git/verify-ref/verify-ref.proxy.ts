@@ -1,5 +1,5 @@
 import { gitRunProxy } from '../git-run/git-run.proxy';
-import type { ArgMatcher } from '../../arg-matcher/arg-matcher';
+import type { ArgMatcher } from '../../gateway-test-support/arg-matcher';
 
 export const verifyRefProxy = (): {
   setupResult: (params: { ref: string; exitCode: number }) => void;

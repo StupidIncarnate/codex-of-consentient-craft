@@ -1,4 +1,4 @@
-import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub, FileContentsStub } from '@dungeonmaster/shared/contracts';
 import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
 import { FileNameStub } from '../../../contracts/file-name/file-name.stub';
 import { ruleGatewayColocationBroker } from './rule-gateway-colocation-broker';
@@ -13,6 +13,9 @@ beforeEach(() => {
     const existingFiles = [
       '/repo/packages/@gateway/node/src/fs/read-file-sync/read-file-sync.test.ts',
       '/repo/packages/@gateway/node/src/fs/read-file-sync/read-file-sync.proxy.ts',
+      '/repo/packages/@gateway/node/src/fs/read-file-sync/read-file-sync.ts',
+      '/repo/packages/@gateway/node/src/fs/is-fs-error/is-fs-error.ts',
+      '/repo/packages/@gateway/node/src/fs/is-fs-error/fs-error.ts',
       '/repo/packages/@gateway/node/src/fs/fs.test.ts',
       '/repo/packages/@gateway/node/src/fs/fs.proxy.ts',
       '/repo/packages/@gateway/npm/src/react/react.test.ts',
@@ -25,19 +28,26 @@ beforeEach(() => {
       '/repo/packages/@gateway/node/src/setTimeout/setTimeout.test.ts',
       '/repo/packages/@gateway/npm/src/testing-library__jest-dom/testing-library__jest-dom.test.ts',
       '/repo/packages/@gateway/node/src/os/os.test.ts',
+      '/repo/packages/@gateway/node/src/os/homedir/homedir.ts',
+      '/repo/packages/@gateway/node/src/dns/dns.test.ts',
+      '/repo/packages/@gateway/node/src/dgram/dgram.test.ts',
+      '/repo/packages/@gateway/node/src/tls/tls.test.ts',
+      '/repo/packages/@gateway/node/src/tls/create-server/create-server.ts',
+      '/repo/packages/@gateway/node/src/vm/vm.test.ts',
+      '/repo/packages/@gateway/node/src/perf_hooks/perf_hooks.test.ts',
     ];
 
     return existingFiles.includes(String(filePath));
   });
 
-  // requireStub's directory walk — staged once here since every invalid/valid requireStub case
-  // below shares these two subpaths' directory shapes.
+  // requireStub's directory walk, and (shared — registerMock keys by function reference, not by
+  // caller) barrel-completeness's own subpath scan. Every barrel filename below needs its own
+  // directory staged, even an empty one, since an unstaged dirPath throws.
   proxy.gatewaySubpathDirectoryWalk.fsReaddirSync.returns({
     dirPath: FilePathStub({ value: '/repo/packages/@gateway/node/src/fs/' }),
     entries: [
       { name: FileNameStub({ value: 'is-fs-error' }), isDirectory: true },
       { name: FileNameStub({ value: 'fs.ts' }), isDirectory: false },
-      { name: FileNameStub({ value: 'fs.test.ts' }), isDirectory: false },
     ],
   });
   proxy.gatewaySubpathDirectoryWalk.fsReaddirSync.returns({
@@ -55,7 +65,6 @@ beforeEach(() => {
     entries: [
       { name: FileNameStub({ value: 'homedir' }), isDirectory: true },
       { name: FileNameStub({ value: 'os.ts' }), isDirectory: false },
-      { name: FileNameStub({ value: 'os.test.ts' }), isDirectory: false },
     ],
   });
   proxy.gatewaySubpathDirectoryWalk.fsReaddirSync.returns({
@@ -65,6 +74,100 @@ beforeEach(() => {
       { name: FileNameStub({ value: 'homedir.proxy.ts' }), isDirectory: false },
       { name: FileNameStub({ value: 'homedir.test.ts' }), isDirectory: false },
     ],
+  });
+
+  // Barrels with no wrapper folders of their own — every barrel-completeness visits still calls
+  // readdir once, so each needs a stage even though the result is empty.
+  proxy.gatewaySubpathDirectoryWalk.fsReaddirSync.returns({
+    dirPath: FilePathStub({ value: '/repo/packages/@gateway/npm/src/react/' }),
+    entries: [],
+  });
+  proxy.gatewaySubpathDirectoryWalk.fsReaddirSync.returns({
+    dirPath: FilePathStub({ value: '/repo/packages/@gateway/node/src/console/' }),
+    entries: [],
+  });
+  proxy.gatewaySubpathDirectoryWalk.fsReaddirSync.returns({
+    dirPath: FilePathStub({ value: '/repo/packages/@gateway/node/src/setTimeout/' }),
+    entries: [],
+  });
+  proxy.gatewaySubpathDirectoryWalk.fsReaddirSync.returns({
+    dirPath: FilePathStub({
+      value: '/repo/packages/@gateway/npm/src/testing-library__jest-dom/',
+    }),
+    entries: [],
+  });
+  proxy.gatewaySubpathDirectoryWalk.fsReaddirSync.returns({
+    dirPath: FilePathStub({ value: '/repo/packages/@gateway/node/src/module/' }),
+    entries: [],
+  });
+  proxy.gatewaySubpathDirectoryWalk.fsReaddirSync.returns({
+    dirPath: FilePathStub({ value: '/repo/packages/@gateway/npm/src/zod/' }),
+    entries: [],
+  });
+  proxy.gatewaySubpathDirectoryWalk.fsReaddirSync.returns({
+    dirPath: FilePathStub({ value: '/repo/packages/@gateway/node/src/dgram/' }),
+    entries: [],
+  });
+  proxy.gatewaySubpathDirectoryWalk.fsReaddirSync.returns({
+    dirPath: FilePathStub({ value: '/repo/packages/@gateway/node/src/tls/' }),
+    entries: [],
+  });
+  proxy.gatewaySubpathDirectoryWalk.fsReaddirSync.returns({
+    dirPath: FilePathStub({ value: '/repo/packages/@gateway/node/src/vm/' }),
+    entries: [],
+  });
+  proxy.gatewaySubpathDirectoryWalk.fsReaddirSync.returns({
+    dirPath: FilePathStub({ value: '/repo/packages/@gateway/node/src/perf_hooks/' }),
+    entries: [],
+  });
+
+  // dns/ has one wrapper folder, for the barrelMissingReexport case.
+  proxy.gatewaySubpathDirectoryWalk.fsReaddirSync.returns({
+    dirPath: FilePathStub({ value: '/repo/packages/@gateway/node/src/dns/' }),
+    entries: [
+      { name: FileNameStub({ value: 'resolve4' }), isDirectory: true },
+      { name: FileNameStub({ value: 'dns.ts' }), isDirectory: false },
+    ],
+  });
+  proxy.gatewaySubpathDirectoryWalk.fsReaddirSync.returns({
+    dirPath: FilePathStub({ value: '/repo/packages/@gateway/node/src/dns/resolve4/' }),
+    entries: [{ name: FileNameStub({ value: 'resolve4.ts' }), isDirectory: false }],
+  });
+
+  // Source text barrel-completeness reads to learn each target file's exported names.
+  proxy.barrelCompleteness.fsReadFileSync.returns({
+    filePath: FilePathStub({
+      value: '/repo/packages/@gateway/node/src/fs/is-fs-error/fs-error.ts',
+    }),
+    contents: FileContentsStub({ value: 'export interface FsError {\n  code: string;\n}\n' }),
+  });
+  proxy.barrelCompleteness.fsReadFileSync.returns({
+    filePath: FilePathStub({
+      value: '/repo/packages/@gateway/node/src/fs/is-fs-error/is-fs-error.ts',
+    }),
+    contents: FileContentsStub({ value: 'export const isFsError = (): boolean => false;\n' }),
+  });
+  proxy.barrelCompleteness.fsReadFileSync.returns({
+    filePath: FilePathStub({
+      value: '/repo/packages/@gateway/node/src/fs/read-file-sync/read-file-sync.ts',
+    }),
+    contents: FileContentsStub({ value: 'export const readFileSync = (): string => "";\n' }),
+  });
+  proxy.barrelCompleteness.fsReadFileSync.returns({
+    filePath: FilePathStub({ value: '/repo/packages/@gateway/node/src/os/homedir/homedir.ts' }),
+    contents: FileContentsStub({ value: 'export const homedir = (): string => "";\n' }),
+  });
+  proxy.barrelCompleteness.fsReadFileSync.returns({
+    filePath: FilePathStub({
+      value: '/repo/packages/@gateway/node/src/dns/resolve4/resolve4.ts',
+    }),
+    contents: FileContentsStub({ value: 'export const resolve4 = (): string[] => [];\n' }),
+  });
+  proxy.barrelCompleteness.fsReadFileSync.returns({
+    filePath: FilePathStub({
+      value: '/repo/packages/@gateway/node/src/tls/create-server/create-server.ts',
+    }),
+    contents: FileContentsStub({ value: 'export const startServer = (): void => {};\n' }),
   });
 });
 
@@ -85,9 +188,9 @@ ruleTester.run('gateway-colocation', ruleGatewayColocationBroker(), {
       code: "export * from 'react';",
       filename: '/repo/packages/@gateway/npm/src/react/react.ts',
     },
-    // --- pure re-export barrel with a colocated test AND its _test_ barrel ---
+    // --- pure re-export barrel with a colocated test, every wrapper export re-exported ---
     {
-      code: "export { readFileSync } from './read-file-sync/read-file-sync';\nexport type { FsError } from './is-fs-error/fs-error';",
+      code: "export { readFileSync } from './read-file-sync/read-file-sync';\nexport { isFsError } from './is-fs-error/is-fs-error';\nexport type { FsError } from './is-fs-error/fs-error';",
       filename: '/repo/packages/@gateway/node/src/fs/fs.ts',
     },
     // --- pure re-export barrel using the export = form (import x = require(); export = x;) ---
@@ -137,12 +240,12 @@ ruleTester.run('gateway-colocation', ruleGatewayColocationBroker(), {
     },
     // --- requireStub off by default: a subpath with no .stub.ts anywhere is fine without the option ---
     {
-      code: "export * from 'os';",
+      code: "export * from 'os';\nexport { homedir } from './homedir/homedir';",
       filename: '/repo/packages/@gateway/node/src/os/os.ts',
     },
     // --- requireStub true: a subpath whose directory tree DOES have a nested .stub.ts passes ---
     {
-      code: "export { readFileSync } from './read-file-sync/read-file-sync';\nexport type { FsError } from './is-fs-error/fs-error';",
+      code: "export { readFileSync } from './read-file-sync/read-file-sync';\nexport { isFsError } from './is-fs-error/is-fs-error';\nexport type { FsError } from './is-fs-error/fs-error';",
       filename: '/repo/packages/@gateway/node/src/fs/fs.ts',
       options: [{ requireStub: true }],
     },
@@ -211,7 +314,7 @@ ruleTester.run('gateway-colocation', ruleGatewayColocationBroker(), {
     },
     // --- requireStub true: a subpath whose directory tree has no .stub.ts anywhere is flagged ---
     {
-      code: "export * from 'os';",
+      code: "export * from 'os';\nexport { homedir } from './homedir/homedir';",
       filename: '/repo/packages/@gateway/node/src/os/os.ts',
       options: [{ requireStub: true }],
       errors: [{ messageId: 'missingStub' }],
@@ -249,6 +352,36 @@ ruleTester.run('gateway-colocation', ruleGatewayColocationBroker(), {
         { messageId: 'missingTestFile' },
         { messageId: 'missingProxyFile' },
       ],
+    },
+    // --- barrel completeness, direction 1: a wrapper's value export the barrel never re-exports ---
+    {
+      code: '',
+      filename: '/repo/packages/@gateway/node/src/dns/dns.ts',
+      errors: [{ messageId: 'barrelMissingReexport' }],
+    },
+    // --- barrel completeness, direction 2: the target file is gone entirely ---
+    {
+      code: "export { createSocket } from './create-socket/create-socket';",
+      filename: '/repo/packages/@gateway/node/src/dgram/dgram.ts',
+      errors: [{ messageId: 'barrelStaleReexport' }],
+    },
+    // --- barrel completeness, direction 2: the target file exists but no longer carries that name ---
+    {
+      code: "export { createServer } from './create-server/create-server';",
+      filename: '/repo/packages/@gateway/node/src/tls/tls.ts',
+      errors: [{ messageId: 'barrelStaleReexport' }],
+    },
+    // --- single-home: a relative source that climbs into a sibling subpath ---
+    {
+      code: "export { isFsError } from '../fs/is-fs-error/is-fs-error';",
+      filename: '/repo/packages/@gateway/node/src/vm/vm.ts',
+      errors: [{ messageId: 'reexportOutsideOwnSubpath' }],
+    },
+    // --- no barrel re-exports a .proxy.ts or .stub.ts file ---
+    {
+      code: "export { readFileSyncProxy } from './read-file-sync/read-file-sync.proxy';",
+      filename: '/repo/packages/@gateway/node/src/perf_hooks/perf_hooks.ts',
+      errors: [{ messageId: 'barrelReexportsTestSupportFile' }],
     },
   ],
 });

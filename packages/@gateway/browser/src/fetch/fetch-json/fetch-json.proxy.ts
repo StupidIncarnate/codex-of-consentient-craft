@@ -1,6 +1,6 @@
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { ConnectionRefusedErrorStub } from '#gateway/node/net/connection-refused-error/connection-refused-error.stub';
-import type { ValueMatcher } from '../../value-matcher/value-matcher';
+import type { ValueMatcher } from '../../gateway-test-support/value-matcher';
 
 const buildResponse = ({
   ok,

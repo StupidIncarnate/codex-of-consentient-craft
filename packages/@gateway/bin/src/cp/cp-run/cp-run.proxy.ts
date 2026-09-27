@@ -1,6 +1,6 @@
 import { run, RunNotFoundError } from '#gateway/node/child_process';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-import type { ArgsMatcher } from '../../arg-matcher/arg-matcher';
+import type { ArgsMatcher } from '../../gateway-test-support/arg-matcher';
 
 export const cpRunProxy = (): {
   setupResult: (params: {

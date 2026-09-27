@@ -1,5 +1,5 @@
 import { npmRunProxy } from '../npm-run/npm-run.proxy';
-import type { ArgMatcher } from '../../arg-matcher/arg-matcher';
+import type { ArgMatcher } from '../../gateway-test-support/arg-matcher';
 
 export const runScriptProxy = (): {
   setupResult: (params: {
