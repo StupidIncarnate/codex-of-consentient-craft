@@ -11,7 +11,7 @@
  */
 
 import { locationsClaudeSessionsDirFindBroker } from '../claude-sessions-dir-find/locations-claude-sessions-dir-find-broker';
-import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
+import { join } from '#gateway/node/path';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
 import {
   absoluteFilePathContract,
@@ -31,14 +31,12 @@ export const locationsClaudeSubagentSessionFilePathFindBroker = ({
 }): AbsoluteFilePath => {
   const sessionsDir = locationsClaudeSessionsDirFindBroker({ guildPath });
 
-  const joined = pathJoinAdapter({
-    paths: [
-      sessionsDir,
-      sessionId,
-      locationsStatics.userHome.claude.subagentsDir,
-      `agent-${agentId}.jsonl`,
-    ],
-  });
+  const joined = join(
+    sessionsDir,
+    sessionId,
+    locationsStatics.userHome.claude.subagentsDir,
+    `agent-${agentId}.jsonl`,
+  );
 
   return absoluteFilePathContract.parse(joined);
 };

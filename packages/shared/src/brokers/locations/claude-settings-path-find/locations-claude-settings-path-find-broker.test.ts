@@ -12,7 +12,6 @@ describe('locationsClaudeSettingsPathFindBroker', () => {
       proxy.setupSettingsPath({
         startPath: '/project/src',
         configRootPath: '/project',
-        settingsPath: FilePathStub({ value: '/project/.claude/settings.json' }),
       });
 
       const result = await locationsClaudeSettingsPathFindBroker({
@@ -32,7 +31,6 @@ describe('locationsClaudeSettingsPathFindBroker', () => {
       proxy.setupSettingsPath({
         startPath: '/project/src',
         configRootPath: '/project',
-        settingsPath: FilePathStub({ value: '/project/.claude/settings.local.json' }),
       });
 
       const result = await locationsClaudeSettingsPathFindBroker({

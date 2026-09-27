@@ -1,13 +1,24 @@
-import { osUserHomedirAdapterProxy } from '../../../adapters/os/user-homedir/os-user-homedir-adapter.proxy';
+import { homedir } from '#gateway/node/os';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 export const locationsClaudeSessionsDirFindBrokerProxy = (): {
   setupSessionsDir: (params: { userHome: string }) => void;
 } => {
-  const userHomedirProxy = osUserHomedirAdapterProxy();
+  const homedirHandle = registerMock({ fn: homedir });
+
+  // homedir() takes no arguments — [] is the honest address, not a shortcut. This is the SAME
+  // underlying npm `homedir` function every other proxy across the repo mocks (a shared,
+  // global registration), so a sticky low-specificity default here is what keeps a composing
+  // proxy elsewhere — one that only constructs this proxy to satisfy
+  // enforce-proxy-child-creation, without ever calling setupSessionsDir — from throwing on an
+  // unstaged call instead of crashing with "nothing set up for the call". Both
+  // locations-claude-session-file-path-find and locations-claude-subagent-session-file-path-find
+  // compose this proxy for exactly that reason.
+  homedirHandle.calledWith([]).returns('/home/default');
 
   return {
     setupSessionsDir: ({ userHome }: { userHome: string }): void => {
-      userHomedirProxy.returns({ path: userHome });
+      homedirHandle.onceFor([]).returns(userHome);
     },
   };
 };

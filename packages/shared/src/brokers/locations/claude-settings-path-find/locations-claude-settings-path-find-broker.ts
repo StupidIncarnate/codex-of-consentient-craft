@@ -10,7 +10,7 @@
  */
 
 import { configRootFindBroker } from '../../config-root/find/config-root-find-broker';
-import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
+import { join } from '#gateway/node/path';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
 import {
   absoluteFilePathContract,
@@ -34,9 +34,7 @@ export const locationsClaudeSettingsPathFindBroker = async ({
       ? locationsStatics.repoRoot.claude.settings
       : locationsStatics.repoRoot.claude.settingsLocal;
 
-  const joined = pathJoinAdapter({
-    paths: [configRoot, locationsStatics.repoRoot.claude.dir, settingsFile],
-  });
+  const joined = join(configRoot, locationsStatics.repoRoot.claude.dir, settingsFile);
 
   return absoluteFilePathContract.parse(joined);
 };

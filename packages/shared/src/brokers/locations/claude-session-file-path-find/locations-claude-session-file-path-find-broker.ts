@@ -10,7 +10,7 @@
  */
 
 import { locationsClaudeSessionsDirFindBroker } from '../claude-sessions-dir-find/locations-claude-sessions-dir-find-broker';
-import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
+import { join } from '#gateway/node/path';
 import {
   absoluteFilePathContract,
   type AbsoluteFilePath,
@@ -26,9 +26,7 @@ export const locationsClaudeSessionFilePathFindBroker = ({
 }): AbsoluteFilePath => {
   const sessionsDir = locationsClaudeSessionsDirFindBroker({ guildPath });
 
-  const joined = pathJoinAdapter({
-    paths: [sessionsDir, `${sessionId}.jsonl`],
-  });
+  const joined = join(sessionsDir, `${sessionId}.jsonl`);
 
   return absoluteFilePathContract.parse(joined);
 };

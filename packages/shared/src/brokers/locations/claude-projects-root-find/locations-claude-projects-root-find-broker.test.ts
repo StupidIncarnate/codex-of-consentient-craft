@@ -9,7 +9,6 @@ describe('locationsClaudeProjectsRootFindBroker', () => {
 
     proxy.setupProjectsRoot({
       homeDir: FilePathStub({ value: '/home/user' }),
-      projectsRoot: FilePathStub({ value: '/home/user/.claude/projects' }),
     });
 
     const result = locationsClaudeProjectsRootFindBroker();

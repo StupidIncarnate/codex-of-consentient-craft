@@ -10,8 +10,8 @@
  * // Returns AbsoluteFilePath '/home/user/.claude/projects'
  */
 
-import { osUserHomedirAdapter } from '../../../adapters/os/user-homedir/os-user-homedir-adapter';
-import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
+import { homedir } from '#gateway/node/os';
+import { join } from '#gateway/node/path';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
 import {
   absoluteFilePathContract,
@@ -19,13 +19,11 @@ import {
 } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 
 export const locationsClaudeProjectsRootFindBroker = (): AbsoluteFilePath => {
-  const joined = pathJoinAdapter({
-    paths: [
-      osUserHomedirAdapter(),
-      locationsStatics.userHome.claude.dir,
-      locationsStatics.userHome.claude.projectsDir,
-    ],
-  });
+  const joined = join(
+    homedir(),
+    locationsStatics.userHome.claude.dir,
+    locationsStatics.userHome.claude.projectsDir,
+  );
 
   return absoluteFilePathContract.parse(joined);
 };

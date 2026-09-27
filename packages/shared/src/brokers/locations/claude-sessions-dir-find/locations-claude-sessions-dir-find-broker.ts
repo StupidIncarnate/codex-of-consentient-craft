@@ -6,9 +6,12 @@
  * // Returns AbsoluteFilePath '/home/user/.claude/projects/-home-user-my-project'
  */
 
-import { osUserHomedirAdapter } from '../../../adapters/os/user-homedir/os-user-homedir-adapter';
+import { homedir } from '#gateway/node/os';
 import { claudePathSlugEncoderTransformer } from '../../../transformers/claude-path-slug-encoder/claude-path-slug-encoder-transformer';
-import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
+import {
+  absoluteFilePathContract,
+  type AbsoluteFilePath,
+} from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 
 export const locationsClaudeSessionsDirFindBroker = ({
   guildPath,
@@ -16,6 +19,6 @@ export const locationsClaudeSessionsDirFindBroker = ({
   guildPath: AbsoluteFilePath;
 }): AbsoluteFilePath =>
   claudePathSlugEncoderTransformer({
-    homeDir: osUserHomedirAdapter(),
+    homeDir: absoluteFilePathContract.parse(homedir()),
     projectPath: guildPath,
   });

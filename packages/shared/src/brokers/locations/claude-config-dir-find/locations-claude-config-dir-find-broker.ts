@@ -1,16 +1,16 @@
 /**
  * PURPOSE: Resolves the directory that holds Claude CLI's own config and transcripts — the
  * folder CLAUDE_CONFIG_DIR replaces AS A WHOLE when set, not a suffix appended onto some other
- * root. Reach for this over osUserHomedirAdapter() plus a literal '.claude' join wherever a
- * reader needs the Claude folder itself, so CLAUDE_CONFIG_DIR can relocate it.
+ * root. Reach for this over homedir() plus a literal '.claude' join wherever a reader needs the
+ * Claude folder itself, so CLAUDE_CONFIG_DIR can relocate it.
  *
  * USAGE:
  * locationsClaudeConfigDirFindBroker();
  * // Returns AbsoluteFilePath '/home/user/.claude', or CLAUDE_CONFIG_DIR verbatim when set
  */
 
-import { osUserHomedirAdapter } from '../../../adapters/os/user-homedir/os-user-homedir-adapter';
-import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
+import { homedir } from '#gateway/node/os';
+import { join } from '#gateway/node/path';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
 import {
   absoluteFilePathContract,
@@ -30,9 +30,7 @@ export const locationsClaudeConfigDirFindBroker = (): AbsoluteFilePath => {
     return parsed.data;
   }
 
-  const joined = pathJoinAdapter({
-    paths: [osUserHomedirAdapter(), locationsStatics.userHome.claude.dir],
-  });
+  const joined = join(homedir(), locationsStatics.userHome.claude.dir);
 
   return absoluteFilePathContract.parse(joined);
 };
