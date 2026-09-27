@@ -1,4 +1,4 @@
-import { watch, createReadStream, statSync, existsSync, type FSWatcher } from 'fs';
+import { watch, createReadStream, statSync, existsSync } from 'fs';
 import { createInterface } from 'readline';
 import { EventEmitter } from 'events';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
@@ -47,7 +47,7 @@ export const tailFileProxy = (): {
 
   mockWatch.calledWith([]).implement((_path: unknown, listener: unknown) => {
     watchCallbacks.push(listener as () => void);
-    return watchEmitter as unknown as FSWatcher;
+    return watchEmitter as unknown as ReturnType<typeof watch>;
   });
 
   const trackedReadStreams = new WeakSet();

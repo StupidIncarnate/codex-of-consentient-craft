@@ -1,15 +1,9 @@
 import { statfs } from 'fs/promises';
-import type { StatsFs } from 'fs';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { FsErrorStub } from '../../fs/is-fs-error/fs-error.stub';
 import type { FsError } from '../../fs/is-fs-error/fs-error';
-
-// The exact-match methods above key on the caller's real path; the "MatchingPath" methods below
-// also accept a PREDICATE, for a caller whose real path is computed from a value the test does
-// not control (a resolved cwd, a joined path) — the same tolerant address the pre-gateway fs
-// adapters offered (e.g. server/src/adapters/fs/read-file/fs-read-file-adapter.proxy.ts's
-// `FilePathMatcher`).
-type PathMatcher = string | ((value: unknown) => boolean);
+import { StatsFsStub } from '../../fs/stats-fs/stats-fs.stub';
+import type { PathMatcher } from '../path-matcher/path-matcher';
 
 export const diskFreeBytesProxy = (): {
   returns: (params: { path: string; bavail: number; bsize: number }) => void;
@@ -23,7 +17,7 @@ export const diskFreeBytesProxy = (): {
 
   return {
     returns: ({ path, bavail, bsize }: { path: string; bavail: number; bsize: number }): void => {
-      handle.calledWith([path]).resolves({ bavail, bsize } as unknown as StatsFs);
+      handle.calledWith([path]).resolves(StatsFsStub({ bavail, bsize }));
     },
     missing: ({ path }: { path: string }): void => {
       handle.calledWith([path]).rejects(FsErrorStub({ code: 'ENOENT', path }));
@@ -40,7 +34,7 @@ export const diskFreeBytesProxy = (): {
       bavail: number;
       bsize: number;
     }): void => {
-      handle.calledWith([path]).resolves({ bavail, bsize } as unknown as StatsFs);
+      handle.calledWith([path]).resolves(StatsFsStub({ bavail, bsize }));
     },
     throwsMatchingPath: ({ path, error }: { path: PathMatcher; error: FsError }): void => {
       handle.calledWith([path]).rejects(error);

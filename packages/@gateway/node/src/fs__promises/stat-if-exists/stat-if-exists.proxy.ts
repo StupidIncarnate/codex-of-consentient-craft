@@ -3,13 +3,8 @@ import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { FsErrorStub } from '../../fs/is-fs-error/fs-error.stub';
 import type { FsError } from '../../fs/is-fs-error/fs-error';
 import { StatsStub } from '../../fs/stats/stats.stub';
+import type { PathMatcher } from '../path-matcher/path-matcher';
 
-// The exact-match methods above key on the caller's real path; the "MatchingPath" methods below
-// also accept a PREDICATE, for a caller whose real path is computed from a value the test does
-// not control (a resolved cwd, a joined path) — the same tolerant address the pre-gateway fs
-// adapters offered (e.g. server/src/adapters/fs/read-file/fs-read-file-adapter.proxy.ts's
-// `FilePathMatcher`).
-type PathMatcher = string | ((value: unknown) => boolean);
 type StatKind = 'file' | 'directory' | 'symlink' | 'other';
 
 export const statIfExistsProxy = (): {

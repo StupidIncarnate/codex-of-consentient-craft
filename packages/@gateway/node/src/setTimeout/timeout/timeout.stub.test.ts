@@ -17,10 +17,10 @@ describe('TimeoutStub', () => {
     const handle = TimeoutStub();
 
     expect({
-      ref: handle.ref,
-      unref: handle.unref,
-      hasRef: handle.hasRef,
-      refresh: handle.refresh,
+      ref: handle.ref.bind(handle),
+      unref: handle.unref.bind(handle),
+      hasRef: handle.hasRef.bind(handle),
+      refresh: handle.refresh.bind(handle),
     }).toStrictEqual({
       ref: expect.any(Function),
       unref: expect.any(Function),
