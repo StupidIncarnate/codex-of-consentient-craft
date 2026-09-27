@@ -304,7 +304,6 @@ const readManifests = () => {
       hasBuild: Boolean(manifest.scripts?.build),
       deps: Object.keys({
         ...manifest.dependencies,
-        ...manifest.devDependencies,
         ...manifest.peerDependencies,
       }).filter((dep) => dep.startsWith(SCOPE)),
     });
