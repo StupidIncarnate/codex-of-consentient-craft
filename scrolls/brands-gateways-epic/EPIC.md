@@ -75,7 +75,7 @@ More rules for the operator:
     next thing to run needs compiled output.
 11. **Update this file as you go.** Status, blockers and concessions live here, so a fresh session can
     pick up from this file alone.
-12. **`create-worktree` branches from the main checkout's HEAD (`master`), not from `gateway-pivot`.** After carving one, run `git reset --hard gateway-pivot` inside it before anything else, then `npm run build:clean` there, because it arrives with no `dist`.
+12. **`create-worktree` branches from the main checkout's HEAD (`master`), not from `gateway-pivot`.** After carving one, run `git merge --ff-only gateway-pivot` inside it before anything else (the pre-bash hook blocks `git reset --hard`), then `npm run build:clean` there, because it arrives with no `dist`.
 13. **Keep the consumer suite growing.** Once G27 lands, any item that changes what `init` writes, what a
     package publishes, or how a consumer resolves, loads or tests code adds its assertions to the
     consumer suite in the same item. Before committing such an item, the operator runs
@@ -207,7 +207,7 @@ Package items run side by side, one agent group per package. Each is split by th
 
 | ID | Item | Needs | Runs with | Status | Notes |
 |---|---|---|---|---|---|
-| B01 | [Upgrade zod to v4](items/b01-zod-v4.md) | G15 | Phase 2 items whose files it does not touch | ready | G15 is done. Needs an operator `npm install` after the agent edits `package.json`; plan a quiet window. |
+| B01 | [Upgrade zod to v4](items/b01-zod-v4.md) | G15 | Phase 2 items whose files it does not touch | active | agent b01 in worktree `worktrees/gp-b01-zod4` (fast-forwarded to 41093b9d9, `build:clean` green), where `npm install` is safe. It merges back into `gateway-pivot`. |
 | B02 | [The contract index, and unused contracts deleted](items/b02-contract-index-and-unused-contracts.md) | A19 | B01, B07 | todo | |
 | B03 | [Package `exports` serve barrels and per-file stubs and proxies; stubs and proxies out of production barrels](items/b03-package-exports-and-per-file-test-imports.md) | B02 | B04, B05 | todo | concessions 1 and 3; operator splits per package |
 | B04 | [Lint rules use the real `TSESTree` and the gateway's AST stubs](items/b04-eslint-rules-on-real-tsestree.md) | G17, A06 | B05 | todo | operator splits per rule folder |
