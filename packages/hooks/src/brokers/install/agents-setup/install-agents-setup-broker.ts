@@ -7,8 +7,9 @@
  * // Writes .agents files and AGENTS.md if CLAUDE.md exists
  */
 
-import { type AdapterResult, fileContentsContract } from '@dungeonmaster/shared/contracts';
+import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import { locationsStatics, mcpToolsStatics } from '@dungeonmaster/shared/statics';
+import { jsonFileContentsTransformer } from '@dungeonmaster/shared/transformers';
 import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
 import { fsEnsureWriteAdapter } from '../../../adapters/fs/ensure-write/fs-ensure-write-adapter';
 import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter';
@@ -17,8 +18,6 @@ import { agentsSkillsCreatorTransformer } from '../../../transformers/agents-ski
 import { agentsRulesCreatorTransformer } from '../../../transformers/agents-rules-creator/agents-rules-creator-transformer';
 import { agentsMdCreatorTransformer } from '../../../transformers/agents-md-creator/agents-md-creator-transformer';
 import type { FilePath } from '../../../contracts/file-path/file-path-contract';
-
-const JSON_INDENT_SPACES = 2;
 
 export const installAgentsSetupBroker = async ({
   targetProjectRoot,
@@ -36,7 +35,7 @@ export const installAgentsSetupBroker = async ({
   const hooksConfig = agentsHooksCreatorTransformer();
   await fsEnsureWriteAdapter({
     filepath: hooksPath,
-    contents: fileContentsContract.parse(JSON.stringify(hooksConfig, null, JSON_INDENT_SPACES)),
+    contents: jsonFileContentsTransformer({ value: hooksConfig }),
   });
 
   // 2. .agents/skills.json
@@ -50,7 +49,7 @@ export const installAgentsSetupBroker = async ({
   const skillsConfig = agentsSkillsCreatorTransformer();
   await fsEnsureWriteAdapter({
     filepath: skillsPath,
-    contents: fileContentsContract.parse(JSON.stringify(skillsConfig, null, JSON_INDENT_SPACES)),
+    contents: jsonFileContentsTransformer({ value: skillsConfig }),
   });
 
   // 3. .agents/plugins/dungeonmaster/rules/AGENTS.md

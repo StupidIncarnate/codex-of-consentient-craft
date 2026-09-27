@@ -34,8 +34,9 @@ describe('install-flow integration', () => {
 
       testbed.cleanup();
 
+      // String-exact: proves the real on-disk write ends in one trailing newline.
       expect(configContent).toBe(
-        JSON.stringify(
+        `${JSON.stringify(
           {
             framework: 'monorepo',
             orchestrationMode: 'node',
@@ -64,7 +65,7 @@ describe('install-flow integration', () => {
           },
           null,
           2,
-        ),
+        )}\n`,
       );
     });
 
@@ -163,8 +164,9 @@ describe('install-flow integration', () => {
 
       testbed.cleanup();
 
+      // String-exact: proves the real on-disk write ends in one trailing newline.
       expect(configContent).toBe(
-        JSON.stringify(
+        `${JSON.stringify(
           {
             framework: 'monorepo',
             schema: 'zod',
@@ -189,7 +191,7 @@ describe('install-flow integration', () => {
           },
           null,
           2,
-        ),
+        )}\n`,
       );
     });
 
@@ -220,8 +222,9 @@ describe('install-flow integration', () => {
 
       testbed.cleanup();
 
+      // String-exact: proves the real on-disk write ends in one trailing newline.
       expect(configContent).toBe(
-        JSON.stringify(
+        `${JSON.stringify(
           {
             framework: 'react',
             schema: 'zod',
@@ -242,7 +245,7 @@ describe('install-flow integration', () => {
           },
           null,
           2,
-        ),
+        )}\n`,
       );
     });
 

@@ -14,8 +14,8 @@ import {
   type InstallResult,
   installMessageContract,
   packageNameContract,
-  fileContentsContract,
 } from '@dungeonmaster/shared/contracts';
+import { jsonFileContentsTransformer } from '@dungeonmaster/shared/transformers';
 import { join } from '#gateway/node/path';
 import { readJsonFileIfExists, writeFile } from '#gateway/node/fs__promises';
 import type { McpConfig } from '../../../contracts/mcp-config/mcp-config-contract';
@@ -26,7 +26,6 @@ import { pathSegmentContract } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 const PACKAGE_NAME = '@dungeonmaster/mcp';
-const JSON_INDENT_SPACES = 2;
 
 export const InstallConfigCreateResponder = async ({
   context,
@@ -65,9 +64,7 @@ export const InstallConfigCreateResponder = async ({
       },
     };
 
-    const contents = fileContentsContract.parse(
-      JSON.stringify(mergedConfig, null, JSON_INDENT_SPACES),
-    );
+    const contents = jsonFileContentsTransformer({ value: mergedConfig });
 
     await writeFile(configPath, contents);
 
@@ -86,7 +83,7 @@ export const InstallConfigCreateResponder = async ({
     mcpServers: dungeonmasterConfigCreatorTransformer(),
   };
 
-  const contents = fileContentsContract.parse(JSON.stringify(newConfig, null, JSON_INDENT_SPACES));
+  const contents = jsonFileContentsTransformer({ value: newConfig });
 
   await writeFile(configPath, contents);
 

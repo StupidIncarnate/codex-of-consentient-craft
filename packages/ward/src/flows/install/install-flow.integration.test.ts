@@ -46,12 +46,13 @@ describe('InstallFlow', () => {
           'Created .gitignore with .ward/, test-results/, .ward-playwright-report*.json; Added ward scripts to package.json',
       });
       expect(gitignoreContent).toBe('.ward/\ntest-results/\n.ward-playwright-report*.json\n');
+      // String-exact: proves the real on-disk write ends in one trailing newline.
       expect(packageJsonContent).toBe(
-        JSON.stringify(
+        `${JSON.stringify(
           { name: 'proj', version: '1.0.0', scripts: installScriptsStatics.scripts },
           null,
           2,
-        ),
+        )}\n`,
       );
     });
 

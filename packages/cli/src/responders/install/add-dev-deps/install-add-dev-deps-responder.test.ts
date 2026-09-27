@@ -103,16 +103,22 @@ describe('InstallAddDevDepsResponder', () => {
 
       expect(writtenFiles[0]?.path).toBe('/project/package.json');
       // Derive from statics so the required set (incl. @dungeonmaster/* tooling) stays in sync.
+      // String-exact: proves the write ends in one trailing newline and the merged
+      // devDependencies come back alphabetically sorted, not in statics declaration order.
       expect(String(writtenFiles[0]?.content)).toBe(
-        JSON.stringify(
+        `${JSON.stringify(
           {
             name: 'test-project',
             version: '1.0.0',
-            devDependencies: { ...devDependenciesStatics.packages },
+            devDependencies: Object.fromEntries(
+              Object.entries({ ...devDependenciesStatics.packages }).sort(([keyA], [keyB]) =>
+                keyA.localeCompare(keyB),
+              ),
+            ),
           },
           null,
           2,
-        ),
+        )}\n`,
       );
     });
   });
@@ -146,17 +152,64 @@ describe('InstallAddDevDepsResponder', () => {
       });
 
       // String-exact: proves top-level order is preserved (name/devDependencies/license), not
-      // hoisted. The merged devDependencies keep the statics order with typescript's value overridden.
+      // hoisted; the merged devDependencies come back alphabetically sorted with typescript's
+      // value overridden; and the write ends in one trailing newline.
       expect(String(proxy.getWrittenFiles()[0]?.content)).toBe(
-        JSON.stringify(
+        `${JSON.stringify(
           {
             name: 'test-project',
-            devDependencies: { ...devDependenciesStatics.packages, typescript: '^5.0.0' },
+            devDependencies: Object.fromEntries(
+              Object.entries({ ...devDependenciesStatics.packages, typescript: '^5.0.0' }).sort(
+                ([keyA], [keyB]) => keyA.localeCompare(keyB),
+              ),
+            ),
             license: 'MIT',
           },
           null,
           2,
-        ),
+        )}\n`,
+      );
+    });
+  });
+
+  describe('extra devDependency outside the required set', () => {
+    it('VALID: {devDependencies has ts-node, not in the required list} => sorts it into its alphabetical position instead of appending it after every required package', async () => {
+      const proxy = InstallAddDevDepsResponderProxy();
+
+      proxy.setupFileExists({ filePath: FilePathStub({ value: '/project/package.json' }) });
+      proxy.setupReadFile({
+        filePath: FilePathStub({ value: '/project/package.json' }),
+        content: JSON.stringify({
+          name: 'test-project',
+          devDependencies: { 'ts-node': '^10.9.2', typescript: '^5.0.0' },
+        }),
+      });
+
+      await proxy.callResponder({
+        context: {
+          targetProjectRoot: FilePathStub({ value: '/project' }),
+          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
+        },
+      });
+
+      // String-exact: 'ts-node' sorts between 'ts-jest' and 'tsx' — proving it lands at its
+      // alphabetical position rather than tacked on after the whole required set, which is what a
+      // plain `{...required, ...existing}` spread does (the bug this test guards against).
+      expect(String(proxy.getWrittenFiles()[0]?.content)).toBe(
+        `${JSON.stringify(
+          {
+            name: 'test-project',
+            devDependencies: Object.fromEntries(
+              Object.entries({
+                ...devDependenciesStatics.packages,
+                'ts-node': '^10.9.2',
+                typescript: '^5.0.0',
+              }).sort(([keyA], [keyB]) => keyA.localeCompare(keyB)),
+            ),
+          },
+          null,
+          2,
+        )}\n`,
       );
     });
   });

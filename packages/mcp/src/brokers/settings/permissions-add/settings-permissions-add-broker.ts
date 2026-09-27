@@ -14,13 +14,10 @@
  * pruned, because this broker cannot tell which of them the user added themselves.
  */
 
-import {
-  fileContentsContract,
-  type FileContents,
-  type PathSegment,
-} from '@dungeonmaster/shared/contracts';
+import type { FileContents, PathSegment } from '@dungeonmaster/shared/contracts';
 import { join } from '#gateway/node/path';
 import { readJsonFileIfExists, writeFile, ensureDir } from '#gateway/node/fs__promises';
+import { jsonFileContentsTransformer } from '@dungeonmaster/shared/transformers';
 import { mcpPermissionsCreatorTransformer } from '../../../transformers/mcp-permissions-creator/mcp-permissions-creator-transformer';
 import {
   agentBrowserPermissionsStatics,
@@ -32,7 +29,6 @@ import {
 import { claudePermissionContract } from '../../../contracts/claude-permission/claude-permission-contract';
 import type { ClaudePermission } from '../../../contracts/claude-permission/claude-permission-contract';
 
-const JSON_INDENT_SPACES = 2;
 const DUNGEONMASTER_PERMISSION_PREFIX = `mcp__${mcpToolsStatics.server.name}__`;
 
 export const settingsPermissionsAddBroker = async ({
@@ -103,9 +99,7 @@ export const settingsPermissionsAddBroker = async ({
     },
   };
 
-  const contents = fileContentsContract.parse(
-    JSON.stringify(updatedSettings, null, JSON_INDENT_SPACES),
-  );
+  const contents = jsonFileContentsTransformer({ value: updatedSettings });
 
   await writeFile(settingsPath, contents);
 

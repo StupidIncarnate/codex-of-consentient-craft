@@ -23,10 +23,10 @@ import {
   type InstallResult,
   installMessageContract,
   packageNameContract,
-  fileContentsContract,
   errorMessageContract,
 } from '@dungeonmaster/shared/contracts';
 import { locationsStatics, environmentStatics } from '@dungeonmaster/shared/statics';
+import { jsonFileContentsTransformer } from '@dungeonmaster/shared/transformers';
 import { join } from '#gateway/node/path';
 import { pathExists, readJsonFileIfExists, writeFile } from '#gateway/node/fs__promises';
 import { dungeonmasterConfigContract } from '../../../contracts/dungeonmaster-config/dungeonmaster-config-contract';
@@ -35,7 +35,6 @@ import { e2eProcessPlaceholderStatics } from '../../../statics/e2e-process-place
 
 const CONFIG_FILENAME = locationsStatics.repoRoot.config;
 const PACKAGE_NAME = '@dungeonmaster/config';
-const JSON_INDENT_SPACES = 2;
 
 export const InstallCreateConfigResponder = async ({
   context,
@@ -115,9 +114,7 @@ export const InstallCreateConfigResponder = async ({
           : { ...existingDevServer, e2e: { processes: [e2eProcessPlaceholderStatics.process] } },
       };
 
-      const mergedContents = fileContentsContract.parse(
-        JSON.stringify(mergedConfig, null, JSON_INDENT_SPACES),
-      );
+      const mergedContents = jsonFileContentsTransformer({ value: mergedConfig });
       await writeFile(configPath, mergedContents);
       return {
         packageName: packageNameContract.parse(PACKAGE_NAME),
@@ -153,7 +150,7 @@ export const InstallCreateConfigResponder = async ({
     },
   });
 
-  const contents = fileContentsContract.parse(JSON.stringify(validated, null, JSON_INDENT_SPACES));
+  const contents = jsonFileContentsTransformer({ value: validated });
   await writeFile(configPath, contents);
   return {
     packageName: packageNameContract.parse(PACKAGE_NAME),

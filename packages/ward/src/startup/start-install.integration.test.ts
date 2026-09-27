@@ -32,6 +32,9 @@ describe('start-install integration', () => {
       const gitignoreContent = testbed.readFile({
         relativePath: RelativePathStub({ value: '.gitignore' }),
       });
+      const packageJsonContent = testbed.readFile({
+        relativePath: RelativePathStub({ value: 'package.json' }),
+      });
 
       testbed.cleanup();
 
@@ -43,6 +46,9 @@ describe('start-install integration', () => {
           'Created .gitignore with .ward/, test-results/, .ward-playwright-report*.json; Added ward scripts to package.json',
       });
       expect(gitignoreContent).toBe('.ward/\ntest-results/\n.ward-playwright-report*.json\n');
+      // String-exact: the real on-disk write ends in one trailing newline.
+      expect(String(packageJsonContent).endsWith('\n')).toBe(true);
+      expect(String(packageJsonContent).endsWith('\n\n')).toBe(false);
     });
   });
 });

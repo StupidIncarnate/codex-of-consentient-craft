@@ -34,14 +34,15 @@ describe('InstallConfigCreateResponder', () => {
 
       const writtenConfig = proxy.getWrittenConfig({ targetProjectRoot });
 
+      // String-exact: proves the write ends in one trailing newline.
       expect(writtenConfig).toBe(
-        JSON.stringify(
+        `${JSON.stringify(
           {
             mcpServers: dungeonmasterConfigCreatorTransformer(),
           },
           null,
           2,
-        ),
+        )}\n`,
       );
     });
   });
@@ -114,8 +115,9 @@ describe('InstallConfigCreateResponder', () => {
 
       const writtenConfig = proxy.getWrittenConfig({ targetProjectRoot });
 
+      // String-exact: proves the merged write also ends in one trailing newline.
       expect(writtenConfig).toBe(
-        JSON.stringify(
+        `${JSON.stringify(
           {
             mcpServers: {
               other: {
@@ -128,7 +130,7 @@ describe('InstallConfigCreateResponder', () => {
           },
           null,
           2,
-        ),
+        )}\n`,
       );
     });
   });

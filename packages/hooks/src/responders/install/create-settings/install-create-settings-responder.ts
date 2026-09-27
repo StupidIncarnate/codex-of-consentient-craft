@@ -25,9 +25,9 @@ import {
   type InstallResult,
   installMessageContract,
   packageNameContract,
-  fileContentsContract,
 } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
+import { jsonFileContentsTransformer } from '@dungeonmaster/shared/transformers';
 import path from '#gateway/node/path';
 import { readJsonFileIfExists, writeFileCreatingParent } from '#gateway/node/fs__promises';
 import { installAgentsSetupBroker } from '../../../brokers/install/agents-setup/install-agents-setup-broker';
@@ -37,7 +37,6 @@ import { sessionDefaultsCreatorTransformer } from '../../../transformers/session
 import { upsertDungeonmasterHookListTransformer } from '../../../transformers/upsert-dungeonmaster-hook-list/upsert-dungeonmaster-hook-list-transformer';
 
 const PACKAGE_NAME = '@dungeonmaster/hooks';
-const JSON_INDENT_SPACES = 2;
 
 export const InstallCreateSettingsResponder = async ({
   context,
@@ -93,9 +92,7 @@ export const InstallCreateSettingsResponder = async ({
       },
     };
 
-    const contents = fileContentsContract.parse(
-      JSON.stringify(mergedSettings, null, JSON_INDENT_SPACES),
-    );
+    const contents = jsonFileContentsTransformer({ value: mergedSettings });
 
     await writeFileCreatingParent(settingsPath, contents);
 
@@ -112,9 +109,7 @@ export const InstallCreateSettingsResponder = async ({
     hooks: dungeonmasterHooks,
   };
 
-  const contents = fileContentsContract.parse(
-    JSON.stringify(newSettings, null, JSON_INDENT_SPACES),
-  );
+  const contents = jsonFileContentsTransformer({ value: newSettings });
 
   await writeFileCreatingParent(settingsPath, contents);
 

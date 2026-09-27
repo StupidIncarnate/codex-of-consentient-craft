@@ -141,3 +141,8 @@ export * from './src/transformers/graph-reachability-violations/graph-reachabili
 // both depend on this staying mechanical.
 export * from './src/transformers/package-scope-from-name/package-scope-from-name-transformer';
 export * from './src/transformers/gateway-path-from-import-source/gateway-path-from-import-source-transformer';
+
+// JSON File Contents — the one place every install-time JSON writer (package.json,
+// .dungeonmaster.json, .mcp.json, .claude/settings.json, .agents/*.json) gets its on-disk
+// formatting (2-space indent, trailing newline) from, so they cannot drift apart.
+export * from './src/transformers/json-file-contents/json-file-contents-transformer';

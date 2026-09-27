@@ -75,13 +75,14 @@ describe('InstallWriteScriptsResponder', () => {
       });
 
       expect(String(proxy.getWrittenPath())).toBe('/project/package.json');
-      // String-exact: proves name/version stay first and scripts is appended (not hoisted).
+      // String-exact: proves name/version stay first, scripts is appended (not hoisted), and the
+      // write ends in one trailing newline.
       expect(String(proxy.getWrittenContent({ filePath }))).toBe(
-        JSON.stringify(
+        `${JSON.stringify(
           { name: 'proj', version: '1.0.0', scripts: installScriptsStatics.scripts },
           null,
           2,
-        ),
+        )}\n`,
       );
     });
   });
@@ -111,8 +112,9 @@ describe('InstallWriteScriptsResponder', () => {
         message: 'Added ward scripts to package.json',
       });
 
+      // String-exact: proves the write ends in one trailing newline.
       expect(String(proxy.getWrittenContent({ filePath }))).toBe(
-        JSON.stringify(
+        `${JSON.stringify(
           {
             name: 'proj',
             scripts: {
@@ -124,7 +126,7 @@ describe('InstallWriteScriptsResponder', () => {
           },
           null,
           2,
-        ),
+        )}\n`,
       );
     });
   });

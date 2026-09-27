@@ -26,8 +26,9 @@ describe('start-install integration', () => {
         success: true,
         action: 'created',
       });
+      // String-exact: proves the real on-disk write ends in one trailing newline.
       expect(configContent).toBe(
-        JSON.stringify(
+        `${JSON.stringify(
           {
             framework: 'monorepo',
             orchestrationMode: 'node',
@@ -56,7 +57,7 @@ describe('start-install integration', () => {
           },
           null,
           2,
-        ),
+        )}\n`,
       );
     });
   });

@@ -29,8 +29,9 @@ describe('start-install integration', () => {
         action: 'created',
         message: 'Created .mcp.json with dungeonmaster config and added permissions',
       });
+      // String-exact: proves the real on-disk write ends in one trailing newline.
       expect(configContent).toBe(
-        JSON.stringify(
+        `${JSON.stringify(
           {
             mcpServers: {
               dungeonmaster: {
@@ -42,7 +43,7 @@ describe('start-install integration', () => {
           },
           null,
           2,
-        ),
+        )}\n`,
       );
     });
   });

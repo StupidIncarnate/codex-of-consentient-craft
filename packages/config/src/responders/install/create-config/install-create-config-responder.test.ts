@@ -23,6 +23,12 @@ describe('InstallCreateConfigResponder', () => {
         action: 'created',
         message: 'Created .dungeonmaster.json',
       });
+
+      // String-exact: the write ends in exactly one trailing newline, never zero and never two.
+      const writtenConfig = String(proxy.getWrittenConfig());
+
+      expect(writtenConfig.endsWith('\n')).toBe(true);
+      expect(writtenConfig.endsWith('\n\n')).toBe(false);
     });
 
     it('VALID: {context: no existing config} => seeds the placeholder devServer.e2e.processes entry', async () => {
@@ -132,7 +138,8 @@ describe('InstallCreateConfigResponder', () => {
           'Added the devServer.e2e.processes placeholder and the gateway key to existing .dungeonmaster.json',
       });
 
-      const written = JSON.parse(String(proxy.getWrittenConfig())) as Record<PropertyKey, unknown>;
+      const writtenConfig = String(proxy.getWrittenConfig());
+      const written = JSON.parse(writtenConfig) as Record<PropertyKey, unknown>;
 
       expect(written).toStrictEqual({
         framework: 'monorepo',
@@ -146,6 +153,9 @@ describe('InstallCreateConfigResponder', () => {
           e2e: { processes: [e2eProcessPlaceholderStatics.process] },
         },
       });
+      // String-exact: the merged write also ends in exactly one trailing newline.
+      expect(writtenConfig.endsWith('\n')).toBe(true);
+      expect(writtenConfig.endsWith('\n\n')).toBe(false);
     });
 
     it('VALID: {context: existing config with no devServer at all} => creates devServer, adds the placeholder, and adds gateway', async () => {

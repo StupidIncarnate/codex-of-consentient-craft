@@ -16,7 +16,8 @@ describe('settingsPermissionsAddBroker', () => {
 
       expect(result).toStrictEqual(
         FileContentsStub({
-          value: JSON.stringify(
+          // String-exact: proves the write ends in one trailing newline.
+          value: `${JSON.stringify(
             {
               permissions: {
                 allow: [
@@ -69,7 +70,7 @@ describe('settingsPermissionsAddBroker', () => {
             },
             null,
             2,
-          ),
+          )}\n`,
         }),
       );
     });
@@ -90,7 +91,8 @@ describe('settingsPermissionsAddBroker', () => {
 
       expect(result).toStrictEqual(
         FileContentsStub({
-          value: JSON.stringify(
+          // String-exact: proves the write ends in one trailing newline.
+          value: `${JSON.stringify(
             {
               hooks: { PreToolUse: [] },
               permissions: {
@@ -144,7 +146,7 @@ describe('settingsPermissionsAddBroker', () => {
             },
             null,
             2,
-          ),
+          )}\n`,
         }),
       );
     });
@@ -169,7 +171,8 @@ describe('settingsPermissionsAddBroker', () => {
 
       expect(result).toStrictEqual(
         FileContentsStub({
-          value: JSON.stringify(
+          // String-exact: proves the write ends in one trailing newline.
+          value: `${JSON.stringify(
             {
               permissions: {
                 allow: [
@@ -223,7 +226,7 @@ describe('settingsPermissionsAddBroker', () => {
             },
             null,
             2,
-          ),
+          )}\n`,
         }),
       );
     });
@@ -248,7 +251,8 @@ describe('settingsPermissionsAddBroker', () => {
 
       expect(result).toStrictEqual(
         FileContentsStub({
-          value: JSON.stringify(
+          // String-exact: proves the write ends in one trailing newline.
+          value: `${JSON.stringify(
             {
               permissions: {
                 allow: [
@@ -301,7 +305,7 @@ describe('settingsPermissionsAddBroker', () => {
             },
             null,
             2,
-          ),
+          )}\n`,
         }),
       );
     });
@@ -330,7 +334,8 @@ describe('settingsPermissionsAddBroker', () => {
 
       expect(result).toStrictEqual(
         FileContentsStub({
-          value: JSON.stringify(
+          // String-exact: proves the write ends in one trailing newline.
+          value: `${JSON.stringify(
             {
               permissions: {
                 allow: [
@@ -384,7 +389,7 @@ describe('settingsPermissionsAddBroker', () => {
             },
             null,
             2,
-          ),
+          )}\n`,
         }),
       );
     });
@@ -407,7 +412,8 @@ describe('settingsPermissionsAddBroker', () => {
 
       expect(result).toStrictEqual(
         FileContentsStub({
-          value: JSON.stringify(
+          // String-exact: proves the write ends in one trailing newline.
+          value: `${JSON.stringify(
             {
               permissions: {
                 allow: [
@@ -463,7 +469,7 @@ describe('settingsPermissionsAddBroker', () => {
             },
             null,
             2,
-          ),
+          )}\n`,
         }),
       );
     });
@@ -491,7 +497,8 @@ describe('settingsPermissionsAddBroker', () => {
 
       expect(result).toStrictEqual(
         FileContentsStub({
-          value: JSON.stringify(
+          // String-exact: proves the write ends in one trailing newline.
+          value: `${JSON.stringify(
             {
               permissions: {
                 allow: [
@@ -544,7 +551,7 @@ describe('settingsPermissionsAddBroker', () => {
             },
             null,
             2,
-          ),
+          )}\n`,
         }),
       );
     });

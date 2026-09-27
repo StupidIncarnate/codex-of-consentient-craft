@@ -13,17 +13,17 @@ describe('agentsPluginCreateBroker', () => {
 
     expect(result).toStrictEqual({ success: true });
 
-    const writtenPlugin = JSON.parse(
-      String(proxy.getWrittenPluginJson({ targetProjectRoot })),
-    ) as Record<PropertyKey, unknown>;
+    const writtenPluginContent = String(proxy.getWrittenPluginJson({ targetProjectRoot }));
+    const writtenPlugin = JSON.parse(writtenPluginContent) as Record<PropertyKey, unknown>;
 
     expect(writtenPlugin).toStrictEqual({
       name: 'dungeonmaster',
     });
+    // String-exact: proves the write ends in one trailing newline.
+    expect(writtenPluginContent).toBe('{\n  "name": "dungeonmaster"\n}\n');
 
-    const writtenMcpConfig = JSON.parse(
-      String(proxy.getWrittenMcpConfigJson({ targetProjectRoot })),
-    ) as Record<PropertyKey, unknown>;
+    const writtenMcpConfigContent = String(proxy.getWrittenMcpConfigJson({ targetProjectRoot }));
+    const writtenMcpConfig = JSON.parse(writtenMcpConfigContent) as Record<PropertyKey, unknown>;
 
     expect(writtenMcpConfig).toStrictEqual({
       mcpServers: {
@@ -33,5 +33,20 @@ describe('agentsPluginCreateBroker', () => {
         },
       },
     });
+    // String-exact: proves the write ends in one trailing newline.
+    expect(writtenMcpConfigContent).toBe(
+      `${JSON.stringify(
+        {
+          mcpServers: {
+            dungeonmaster: {
+              command: 'node',
+              args: ['-e', mcpServerStatics.resolveScript],
+            },
+          },
+        },
+        null,
+        2,
+      )}\n`,
+    );
   });
 });

@@ -41,6 +41,9 @@ describe('StartInstall', () => {
       });
       expect(packageJsonContent).toMatch(/^\s*"devDependencies": \{$/mu);
       expect(packageJsonContent).toMatch(/^\s*"typescript": "\^5\.8\.3"$/mu);
+      // String-exact: the real on-disk write ends in one trailing newline.
+      expect(String(packageJsonContent).endsWith('\n')).toBe(true);
+      expect(String(packageJsonContent).endsWith('\n\n')).toBe(false);
     });
   });
 

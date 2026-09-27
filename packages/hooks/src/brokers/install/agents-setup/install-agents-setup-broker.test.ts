@@ -1,6 +1,7 @@
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
 import { locationsStatics, mcpToolsStatics } from '@dungeonmaster/shared/statics';
 import { agentsHooksCreatorTransformer } from '../../../transformers/agents-hooks-creator/agents-hooks-creator-transformer';
+import { agentsSkillsCreatorTransformer } from '../../../transformers/agents-skills-creator/agents-skills-creator-transformer';
 import { agentsRulesCreatorTransformer } from '../../../transformers/agents-rules-creator/agents-rules-creator-transformer';
 import { agentsMdCreatorTransformer } from '../../../transformers/agents-md-creator/agents-md-creator-transformer';
 import { installAgentsSetupBroker } from './install-agents-setup-broker';
@@ -33,8 +34,19 @@ describe('installAgentsSetupBroker', () => {
     });
     const writtenHooks = proxy.getWrittenFor({ filepath: hooksPath });
 
+    // String-exact: proves the write ends in one trailing newline.
     expect(writtenHooks).toBe(
-      JSON.stringify(agentsHooksCreatorTransformer(), null, JSON_INDENT_SPACES),
+      `${JSON.stringify(agentsHooksCreatorTransformer(), null, JSON_INDENT_SPACES)}\n`,
+    );
+
+    const skillsPath = FilePathStub({
+      value: `/test/repo/${locationsStatics.repoRoot.agents.dir}/${locationsStatics.repoRoot.agents.skillsJson}`,
+    });
+    const writtenSkills = proxy.getWrittenFor({ filepath: skillsPath });
+
+    // String-exact: same file format applies to .agents/skills.json.
+    expect(writtenSkills).toBe(
+      `${JSON.stringify(agentsSkillsCreatorTransformer(), null, JSON_INDENT_SPACES)}\n`,
     );
 
     const rulesPath = FilePathStub({

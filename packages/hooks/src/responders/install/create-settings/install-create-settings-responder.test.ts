@@ -24,7 +24,13 @@ describe('InstallCreateSettingsResponder', () => {
         message: 'Created .claude/settings.json with hooks',
       });
 
-      const written = JSON.parse(String(proxy.getWrittenContent())) as Record<PropertyKey, unknown>;
+      const writtenContent = String(proxy.getWrittenContent());
+
+      // String-exact: the write ends in exactly one trailing newline.
+      expect(writtenContent.endsWith('\n')).toBe(true);
+      expect(writtenContent.endsWith('\n\n')).toBe(false);
+
+      const written = JSON.parse(writtenContent) as Record<PropertyKey, unknown>;
 
       expect(written).toStrictEqual({
         crossSessionInbound: 'refuse',
@@ -268,7 +274,13 @@ describe('InstallCreateSettingsResponder', () => {
         message: 'Merged hooks into existing settings',
       });
 
-      const written = JSON.parse(String(proxy.getWrittenContent())) as Record<PropertyKey, unknown>;
+      const writtenContent = String(proxy.getWrittenContent());
+
+      // String-exact: a merged write also ends in exactly one trailing newline.
+      expect(writtenContent.endsWith('\n')).toBe(true);
+      expect(writtenContent.endsWith('\n\n')).toBe(false);
+
+      const written = JSON.parse(writtenContent) as Record<PropertyKey, unknown>;
 
       expect(written).toStrictEqual({
         tools: { Write: { enabled: true } },

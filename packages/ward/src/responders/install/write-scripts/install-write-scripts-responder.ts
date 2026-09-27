@@ -12,10 +12,10 @@ import {
   type InstallResult,
   installMessageContract,
   packageNameContract,
-  fileContentsContract,
   filePathContract,
 } from '@dungeonmaster/shared/contracts';
 import { fsExistsSyncAdapter } from '@dungeonmaster/shared/adapters';
+import { jsonFileContentsTransformer } from '@dungeonmaster/shared/transformers';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import { packageJsonContract } from '../../../contracts/package-json/package-json-contract';
@@ -24,7 +24,6 @@ import { installScriptsStatics } from '../../../statics/install-scripts/install-
 
 const PACKAGE_NAME = '@dungeonmaster/ward';
 const PACKAGE_JSON_FILENAME = 'package.json';
-const JSON_INDENT_SPACES = 2;
 
 export const InstallWriteScriptsResponder = async ({
   context,
@@ -79,9 +78,7 @@ export const InstallWriteScriptsResponder = async ({
   const orderedPackageJson = packageJsonRawContract.parse(rawParsed);
   const updatedPackageJson = { ...orderedPackageJson, scripts: mergedScripts };
 
-  const contents = fileContentsContract.parse(
-    JSON.stringify(updatedPackageJson, null, JSON_INDENT_SPACES),
-  );
+  const contents = jsonFileContentsTransformer({ value: updatedPackageJson });
   await fsWriteFileAdapter({ filePath: packageJsonPath, contents });
 
   return {

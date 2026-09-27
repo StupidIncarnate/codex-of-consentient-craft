@@ -17,7 +17,6 @@ import {
   type InstallResult,
   installMessageContract,
   packageNameContract,
-  fileContentsContract,
 } from '@dungeonmaster/shared/contracts';
 import {
   pathJoinAdapter,
@@ -25,6 +24,7 @@ import {
   pathBasenameAdapter,
 } from '@dungeonmaster/shared/adapters';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
+import { jsonFileContentsTransformer } from '@dungeonmaster/shared/transformers';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import { packageJsonRawContract } from '../../../contracts/package-json-raw/package-json-raw-contract';
@@ -41,7 +41,6 @@ import { gatewayFoldersStatics } from '../../../statics/gateway-folders/gateway-
 import { gatewayPackageTemplateStatics } from '../../../statics/gateway-package-template/gateway-package-template-statics';
 
 const PACKAGE_NAME = '@dungeonmaster/cli';
-const JSON_INDENT_SPACES = 2;
 const TSCONFIG_BUILD_FILENAME = 'tsconfig.build.json';
 
 export const InstallSetupGatewayResponder = async ({
@@ -75,9 +74,7 @@ export const InstallSetupGatewayResponder = async ({
   if (workspacesChanged) {
     await fsWriteFileAdapter({
       filePath: rootPackageJsonPath,
-      contents: fileContentsContract.parse(
-        `${JSON.stringify(updatedRootPackageJson, null, JSON_INDENT_SPACES)}\n`,
-      ),
+      contents: jsonFileContentsTransformer({ value: updatedRootPackageJson }),
     });
   }
 
@@ -126,13 +123,9 @@ export const InstallSetupGatewayResponder = async ({
       if (importsChanged) {
         await fsWriteFileAdapter({
           filePath: pkgPackageJsonPath,
-          contents: fileContentsContract.parse(
-            `${JSON.stringify(
-              { ...pkgPackageJson, [importsKey]: mergedImports },
-              null,
-              JSON_INDENT_SPACES,
-            )}\n`,
-          ),
+          contents: jsonFileContentsTransformer({
+            value: { ...pkgPackageJson, [importsKey]: mergedImports },
+          }),
         });
       }
 

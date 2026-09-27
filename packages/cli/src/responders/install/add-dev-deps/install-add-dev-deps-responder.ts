@@ -11,9 +11,9 @@ import {
   type InstallResult,
   installMessageContract,
   packageNameContract,
-  fileContentsContract,
 } from '@dungeonmaster/shared/contracts';
 import { pathJoinAdapter, fsExistsSyncAdapter } from '@dungeonmaster/shared/adapters';
+import { jsonFileContentsTransformer } from '@dungeonmaster/shared/transformers';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import { devDependenciesStatics } from '../../../statics/dev-dependencies/dev-dependencies-statics';
@@ -23,7 +23,6 @@ import { packageJsonContract } from '../../../contracts/package-json/package-jso
 import { packageJsonRawContract } from '../../../contracts/package-json-raw/package-json-raw-contract';
 
 const PACKAGE_NAME = '@dungeonmaster/cli';
-const JSON_INDENT_SPACES = 2;
 
 export const InstallAddDevDepsResponder = async ({
   context,
@@ -73,15 +72,22 @@ export const InstallAddDevDepsResponder = async ({
     };
   }
 
-  const mergedDevDeps = dependencyMapContract.parse({ ...requiredPackages, ...existingDevDeps });
+  // Sort the merged map alphabetically rather than keeping `requiredPackages`' declaration order
+  // followed by whatever extras `existingDevDeps` added: a plain `{...requiredPackages,
+  // ...existingDevDeps}` spread fixes each key's position at its FIRST insertion, so an existing
+  // package outside the required set (ts-node, @changesets/cli, ...) always lands after every
+  // required one instead of at its alphabetical position — silently reordering an already-sorted
+  // consumer package.json on every `init` re-run.
+  const mergedEntries = Object.entries({ ...requiredPackages, ...existingDevDeps }).sort(
+    ([keyA], [keyB]) => keyA.localeCompare(keyB),
+  );
+  const mergedDevDeps = dependencyMapContract.parse(Object.fromEntries(mergedEntries));
   // Preserve the original top-level key order (name/version/license first). packageJsonContract's
   // object parse hoists declared keys, so build the write from an order-preserving record parse.
   const orderedPackageJson = packageJsonRawContract.parse(rawParsed);
   const updatedPackageJson = { ...orderedPackageJson, devDependencies: mergedDevDeps };
 
-  const contents = fileContentsContract.parse(
-    JSON.stringify(updatedPackageJson, null, JSON_INDENT_SPACES),
-  );
+  const contents = jsonFileContentsTransformer({ value: updatedPackageJson });
 
   await fsWriteFileAdapter({ filePath: packageJsonPath, contents });
 
