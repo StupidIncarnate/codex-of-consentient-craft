@@ -14,9 +14,10 @@ export const registryReadBrokerProxy = (): {
   setupPresentRegistry: (params: { content: string }) => void;
   setupReadFailure: (params: { error: Error }) => void;
   // Forwards to locationsRegistryPathFindBrokerProxy's own addressed-only home stage — for a
-  // caller composed alongside another real-path.join-making resolver (instanceKillBrokerProxy's
+  // caller composed alongside another real-path.join-making resolver (instanceRunBrokerProxy's
   // convention), which cannot risk this file's own setupMissingRegistry/setupPresentRegistry/
-  // setupReadFailure — each queues a one-shot outer join via queuePath().
+  // setupReadFailure — each also stages exists/read for a specific registryPath this proxy
+  // computes, which such a caller wants to control independently.
   setupHomeOnly: (params: { homeDir: string; homePath: FilePath }) => void;
 } => {
   const pathProxy = locationsRegistryPathFindBrokerProxy();

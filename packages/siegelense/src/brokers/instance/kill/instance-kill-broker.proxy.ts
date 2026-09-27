@@ -82,11 +82,14 @@ export const instanceKillBrokerProxy = (): {
   errorIsNativeErrorAdapterProxy();
   registryReadBrokerProxy();
   locationsInstanceEvidencePathFindBrokerProxy();
-  // Captured (not composed bare) so its own setupHomeOnly can stage the addressed home — see
-  // locationsRootPathFindBrokerProxy's own header comment for why this file, composed alongside
-  // registryReadBrokerProxy/locationsInstanceEvidencePathFindBrokerProxy's own real path.join
-  // calls, cannot risk a one-shot outer join instead.
+  // Captured (not composed bare) so its own setupHomeOnly can stage the addressed home without
+  // also staging the link check itself, which this file stages independently (existsSync/realpath/
+  // cwd, below) — enforce-proxy-child-creation forbids reaching past this DIRECT child straight to
+  // dungeonmasterHomeFindBrokerProxy, since instance-kill-broker.ts never imports it directly.
   const repoLinkProxy = locationsRepoLinkPathFindBrokerProxy();
+  // Unconditional: locationsRepoLinkPathFindBroker calls cwd() on every invocation, before the
+  // link check this file stages independently below (existsSync/realpath).
+  repoLinkProxy.setupCwd({ cwdPath: CWD_PATH_VALUE });
   locationsSocketPathFindBrokerProxy();
   const releaseProxy = instanceReleaseBrokerProxy();
   const socketProxy = netUnixRequestAdapterProxy();

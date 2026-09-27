@@ -39,9 +39,10 @@ export const lockReleaseLayerBrokerProxy = (): {
 
   // setupHomeOnly (not setupBootLockPath/setupRegistryLockPath): this proxy is composed alongside
   // instanceKillBrokerProxy in cleanup-run-broker.proxy.ts, and both need the SAME addressed home
-  // stage. setupBootLockPath/setupRegistryLockPath each ALSO queue a one-shot outer join, which a
-  // sibling resolver's own unrelated real path.join call would silently consume instead — see
-  // locationsRootPathFindBrokerProxy's own header comment on setupHomeOnly for why.
+  // stage, without ALSO staging a bootLockPath/registryLockPath this proxy computes off its OWN
+  // real reads instead. enforce-proxy-child-creation forbids reaching past this DIRECT child
+  // straight to dungeonmasterHomeFindBrokerProxy, since lock-release-layer-broker.ts never imports
+  // it directly.
   const pathProxy = locationsBootLockPathFindBrokerProxy();
   locationsRegistryLockPathFindBrokerProxy();
 

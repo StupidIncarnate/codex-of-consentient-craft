@@ -51,20 +51,18 @@ const EVIDENCE_PATH = AbsoluteFilePathStub({
 
 // `CWD_PATH_VALUE` is `processCwdAdapterProxy`'s OWN sticky default, reused rather than staged, so
 // the repo-root walk below is the ONLY thing about `locationsRepoLinkPathFindBroker`'s call this
-// file ever addresses. Every stage in this file keys on the EXACT argument — a full path, or `[]`
-// for a global taking none — rather than composing `locationsRepoLinkPathFindBrokerProxy`'s own
-// `setupLinkAbsent`/`setupLinkResolvesToRoot`/`setupRootPath` scenario methods: those stage
-// `pathJoinAdapter` with a ONE-SHOT, non-discriminating address (`onceFor([])`, matching ANY join
-// call whatsoever), and `runExecuteBroker` itself makes several OTHER real `pathJoinAdapter` calls
-// (locationsRunPathsFindBroker's three joins, run first) before it ever reaches this one — so a
-// one-shot queued ahead of time is silently consumed by the wrong call, and this broker's own join
-// answers with a stale value nobody asked for. A `calledWith`-keyed stage cannot collide with
-// another caller's join, because the arguments differ.
+// file ever addresses. This file stages `existsSync`/`realpath` for the link check directly
+// (below) rather than composing `locationsRepoLinkPathFindBrokerProxy`'s own
+// `setupLinkAbsent`/`setupLinkResolvesToRoot` scenario methods, the same convention
+// instance-kill-broker.proxy.ts uses for the identical broker — `runExecuteBroker` itself makes
+// several OTHER real `path.join` calls (locationsRunPathsFindBroker's three joins, run first)
+// against the OLD, unmigrated `pathJoinAdapter`, unrelated to this file's own staging here.
 const CWD_PATH_VALUE = '/default/cwd';
 const CONFIG_FILE_PATH = FilePathStub({ value: `${CWD_PATH_VALUE}/.dungeonmaster.json` });
 // A REAL `path.join(CWD_PATH_VALUE, '.dungeonmaster-assets', 'siegelense-assets')` — matches what
-// the broker's own unstaged `pathJoinAdapter` call computes, so this address is exactly what a
-// real run would check.
+// the broker's own unstaged `join` call (via `#gateway/node/path`, staged by
+// locationsRepoLinkPathFindBrokerProxy's own sticky real-passthrough default) computes, so this
+// address is exactly what a real run would check.
 const LINK_PATH = FilePathStub({
   value: `${CWD_PATH_VALUE}/.dungeonmaster-assets/siegelense-assets`,
 });
@@ -195,6 +193,9 @@ export const runExecuteBrokerProxy = (): {
   // transitively — so the underlying node primitives are mocked here instead, the same convention
   // instance-kill-broker.proxy.ts uses for the identical broker.
   const repoLinkProxy = locationsRepoLinkPathFindBrokerProxy();
+  // Unconditional: locationsRepoLinkPathFindBroker calls cwd() on every invocation, before the
+  // link check this file's own scenarios individually stage below.
+  repoLinkProxy.setupCwd({ cwdPath: CWD_PATH_VALUE });
   const accessHandle: MockHandle = registerMock({ fn: access });
   const existsHandle: MockHandle = registerMock({ fn: existsSync });
   const realpathHandle: MockHandle = registerMock({ fn: realpath });

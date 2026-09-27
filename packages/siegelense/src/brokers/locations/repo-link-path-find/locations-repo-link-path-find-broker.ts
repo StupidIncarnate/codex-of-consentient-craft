@@ -13,13 +13,15 @@
  */
 
 import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
-import {
-  processCwdAdapter,
-  pathJoinAdapter,
-  fsExistsSyncAdapter,
-} from '@dungeonmaster/shared/adapters';
+import { cwd } from '#gateway/node/process';
+import { join } from '#gateway/node/path';
+import { existsSync } from '#gateway/node/fs';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import { absoluteFilePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+import {
+  absoluteFilePathContract,
+  filePathContract,
+  type AbsoluteFilePath,
+} from '@dungeonmaster/shared/contracts';
 
 import { locationsRootPathFindBroker } from '../root-path-find/locations-root-path-find-broker';
 import { fsRealpathAdapter } from '../../../adapters/fs/realpath/fs-realpath-adapter';
@@ -33,18 +35,18 @@ export const locationsRepoLinkPathFindBroker = async ({
 }: {
   homePath: AbsoluteFilePath;
 }): Promise<RepoLocalPath> => {
-  const cwdPath = processCwdAdapter();
+  const cwdPath = filePathContract.parse(cwd());
   const repoRoot = await cwdResolveBroker({ startPath: cwdPath, kind: 'repo-root' });
 
-  const linkPath = pathJoinAdapter({
-    paths: [
+  const linkPath = filePathContract.parse(
+    join(
       repoRoot,
       locationsStatics.repoRoot.dungeonmasterAssets,
       locationsStatics.repoRoot.siegelenseLink,
-    ],
-  });
+    ),
+  );
 
-  const linkExists = fsExistsSyncAdapter({ filePath: linkPath });
+  const linkExists = existsSync(linkPath);
 
   if (!linkExists) {
     return repoLocalPathContract.parse({ path: homePath, linkPresent: false });

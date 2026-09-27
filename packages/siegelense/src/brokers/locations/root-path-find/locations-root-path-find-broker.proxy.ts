@@ -1,21 +1,28 @@
-import {
-  dungeonmasterHomeFindBrokerProxy,
-  pathJoinAdapterProxy,
-} from '@dungeonmaster/shared/testing';
+import { join } from '#gateway/node/path';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
+import { dungeonmasterHomeFindBrokerProxy } from '@dungeonmaster/shared/testing';
+import { locationsStatics } from '@dungeonmaster/shared/statics';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 export const locationsRootPathFindBrokerProxy = (): {
   setupRootPath: (params: { homeDir: string; homePath: FilePath; rootPath: FilePath }) => void;
   // Stages ONLY the addressed homedir()/join() pair dungeonmasterHomeFindBroker reads — never the
-  // outer root join. A caller composed alongside another resolver that ALSO makes real path.join
-  // calls (instanceKillBrokerProxy's convention) needs this instead of setupRootPath: the outer
-  // join then falls through to pathJoinAdapterProxy's own sticky real-passthrough default, which
-  // computes the identical literal once the home resolves correctly — order-independent, unlike
-  // setupRootPath's one-shot `pathJoinProxy.returns()`.
+  // outer root join. A caller composed alongside another resolver that also needs the home to
+  // resolve, but does not want THIS file's own outer join staged too, reaches for this instead of
+  // setupRootPath: enforce-proxy-child-creation forbids a proxy from composing a grandchild proxy
+  // (dungeonmasterHomeFindBrokerProxy) its own implementation never imports directly, so a caller
+  // several layers up this composition chain (instanceKillBrokerProxy's convention) can only reach
+  // the home stage through its own DIRECT child's forwarded method.
   setupHomeOnly: (params: { homeDir: string; homePath: FilePath }) => void;
 } => {
   const dmHomeProxy = dungeonmasterHomeFindBrokerProxy();
-  const pathJoinProxy = pathJoinAdapterProxy();
+  // #gateway/node/path is a raw passthrough of the Node 'path' module (no per-function wrapper,
+  // so no gateway proxy to compose) — mocked directly here, on the same '#gateway/node/path'
+  // specifier the broker imports (see dungeonmaster-home-find-broker.proxy.ts for why the
+  // specifier must match exactly). Shared with dungeonmasterHomeFindBrokerProxy's own join
+  // handle, so its sticky real-passthrough default already covers any call this file leaves
+  // unaddressed.
+  const joinHandle = registerMock({ fn: join });
 
   return {
     setupRootPath: ({
@@ -29,7 +36,7 @@ export const locationsRootPathFindBrokerProxy = (): {
     }): void => {
       dmHomeProxy.clearHomeEnv();
       dmHomeProxy.setupHomePath({ homeDir, homePath });
-      pathJoinProxy.returns({ result: rootPath });
+      joinHandle.calledWith([homePath, locationsStatics.siegelense.dir]).returns(rootPath);
     },
 
     setupHomeOnly: ({ homeDir, homePath }: { homeDir: string; homePath: FilePath }): void => {
