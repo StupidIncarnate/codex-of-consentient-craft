@@ -136,7 +136,7 @@ use stubs from `@dungeonmaster/shared/contracts` — not raw inline JSON. See `p
 
 - **Build**: `npm run build`
 
-Four build cases the `<dungeonmaster-buildDiscipline>` snippet cannot know, because they are this checkout's:
+Build cases the `<dungeonmaster-buildDiscipline>` snippet cannot know, because they are this checkout's:
 
 | Before this                                | Build                                    | Why                                                                                                                                                                       |
 |--------------------------------------------|------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
