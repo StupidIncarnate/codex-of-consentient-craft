@@ -7,6 +7,7 @@ describe('devDependenciesStatics', () => {
         '@dungeonmaster/eslint-plugin': '*',
         '@dungeonmaster/hooks': '*',
         '@dungeonmaster/mcp': '*',
+        '@dungeonmaster/siegelense': '*',
         '@dungeonmaster/shared': '*',
         '@dungeonmaster/testing': '*',
         '@dungeonmaster/ward': '*',

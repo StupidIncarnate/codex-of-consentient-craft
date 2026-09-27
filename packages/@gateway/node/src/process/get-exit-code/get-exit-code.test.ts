@@ -22,4 +22,17 @@ describe('getExitCode', () => {
 
     expect(result).toBe(undefined);
   });
+
+  it('EDGE: {process.exitCode: null} => returns undefined', () => {
+    const original = process.exitCode;
+    // `as never`: a newer `@types/node` allows this assignment for real; this repo's own pinned
+    // version does not, so the deliberately-invalid cast keeps the test compiling under both.
+    process.exitCode = null as never;
+
+    const result = getExitCode();
+
+    process.exitCode = original;
+
+    expect(result).toBe(undefined);
+  });
 });

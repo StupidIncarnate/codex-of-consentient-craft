@@ -32,6 +32,16 @@ module.exports = {
   setupFilesAfterEnv: [path.join(__dirname, 'src', 'jest.setup.js')],
   testMatch: ['**/src/**/*.test.[jt]s', '**/bin/**/*.test.[jt]s'],
   testPathIgnorePatterns: ['/node_modules/', '/dist/'],
+  // Jest's own default ignores every `node_modules/**` path for `transform` too — harmless inside
+  // this monorepo, where `@dungeonmaster/testing` resolves through a workspace SYMLINK to real
+  // source outside `node_modules` entirely, but a genuine consumer install has no such symlink:
+  // this base's own `globalSetup`/`setupFilesAfterEnv` files (`jest.setup.js`,
+  // `jest.setup-global.js`) `require()` sibling `.ts` broker files by RELATIVE path, and those
+  // files physically sit inside `node_modules/@dungeonmaster/testing/src/**` there. Left ignored,
+  // ts-jest never transforms them and Jest hands the raw TypeScript to Node's CJS loader, which
+  // fails every single test with "Must use import to load ES Module" — confirmed against a real
+  // packed-and-installed consumer (this repo's own scratch-consumer proof, item G25).
+  transformIgnorePatterns: ['/node_modules/(?!@dungeonmaster/testing/)'],
   moduleFileExtensions: ['ts', 'js', 'json'],
   transform: {
     '^.+\\.ts$': ['ts-jest', dungeonmasterTsJestOptions],

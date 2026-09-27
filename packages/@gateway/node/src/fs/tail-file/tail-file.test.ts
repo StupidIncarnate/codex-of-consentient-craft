@@ -32,7 +32,7 @@ describe('tailFile', () => {
       const proxy = tailFileProxy();
       const onLine = jest.fn();
 
-      tailFile({ path: '/tmp/test.jsonl', onLine, onError: () => {} });
+      tailFile({ path: '/tmp/test.jsonl', onLine, onError: () => undefined });
 
       proxy.setupLines({ lines: ['line-one', 'line-two', 'line-three'] });
       proxy.triggerChange();
@@ -48,7 +48,7 @@ describe('tailFile', () => {
       const proxy = tailFileProxy();
       const onLine = jest.fn();
 
-      tailFile({ path: '/tmp/test.jsonl', onLine, onError: () => {} });
+      tailFile({ path: '/tmp/test.jsonl', onLine, onError: () => undefined });
 
       proxy.setupLines({ lines: ['', 'non-empty', ''] });
       proxy.triggerChange();
@@ -64,7 +64,7 @@ describe('tailFile', () => {
       const proxy = tailFileProxy();
       const onLine = jest.fn();
 
-      tailFile({ path: '/tmp/test.jsonl', onLine, onError: () => {} });
+      tailFile({ path: '/tmp/test.jsonl', onLine, onError: () => undefined });
 
       proxy.setupLines({ lines: ['first-batch'] });
       proxy.triggerChange();
@@ -81,7 +81,7 @@ describe('tailFile', () => {
       const proxy = tailFileProxy();
       const onLine = jest.fn();
 
-      const handle = tailFile({ path: '/tmp/test.jsonl', onLine, onError: () => {} });
+      const handle = tailFile({ path: '/tmp/test.jsonl', onLine, onError: () => undefined });
       handle.stop();
 
       proxy.setupLines({ lines: ['should-not-appear'] });
@@ -99,7 +99,7 @@ describe('tailFile', () => {
 
       proxy.setupExistingFileWithContent();
 
-      tailFile({ path: '/tmp/test.jsonl', onLine, onError: () => {}, startPosition: 'end' });
+      tailFile({ path: '/tmp/test.jsonl', onLine, onError: () => undefined, startPosition: 'end' });
 
       proxy.setupLines({ lines: ['appended-after-start'] });
       proxy.triggerChange();
@@ -116,7 +116,12 @@ describe('tailFile', () => {
 
       proxy.setupExistingFileWithContent();
 
-      tailFile({ path: '/tmp/test.jsonl', onLine, onError: () => {}, startPosition: 'beginning' });
+      tailFile({
+        path: '/tmp/test.jsonl',
+        onLine,
+        onError: () => undefined,
+        startPosition: 'beginning',
+      });
 
       proxy.setupLines({ lines: ['drained-from-start'] });
       proxy.triggerChange();
@@ -160,7 +165,7 @@ describe('tailFile: truncation reset', () => {
 
     proxy.setupExistingFileWithContent();
 
-    tailFile({ path: '/tmp/test.jsonl', onLine, onError: () => {} });
+    tailFile({ path: '/tmp/test.jsonl', onLine, onError: () => undefined });
 
     proxy.setupLines({ lines: ['default-drain'] });
     proxy.triggerChange();
@@ -177,7 +182,7 @@ describe('tailFile: error handling', () => {
     const proxy = tailFileProxy();
     const onError = jest.fn();
 
-    tailFile({ path: '/tmp/test.jsonl', onLine: () => {}, onError });
+    tailFile({ path: '/tmp/test.jsonl', onLine: () => undefined, onError });
 
     const watchError = new Error('ENOENT: file removed');
     proxy.triggerWatchError({ error: watchError });
@@ -190,7 +195,7 @@ describe('tailFile: error handling', () => {
     const proxy = tailFileProxy();
     const onError = jest.fn();
 
-    tailFile({ path: '/tmp/test.jsonl', onLine: () => {}, onError });
+    tailFile({ path: '/tmp/test.jsonl', onLine: () => undefined, onError });
 
     const streamError = new Error('EACCES: permission denied');
     proxy.setupStreamError({ error: streamError });
@@ -205,7 +210,7 @@ describe('tailFile: error handling', () => {
     const proxy = tailFileProxy();
     const onError = jest.fn();
 
-    const handle = tailFile({ path: '/tmp/test.jsonl', onLine: () => {}, onError });
+    const handle = tailFile({ path: '/tmp/test.jsonl', onLine: () => undefined, onError });
     handle.stop();
 
     proxy.triggerWatchError({ error: new Error('should-not-appear') });
@@ -217,7 +222,7 @@ describe('tailFile: error handling', () => {
     const proxy = tailFileProxy();
     const onError = jest.fn();
 
-    tailFile({ path: '/tmp/test.jsonl', onLine: () => {}, onError });
+    tailFile({ path: '/tmp/test.jsonl', onLine: () => undefined, onError });
 
     proxy.setupLines({ lines: ['data'] });
     proxy.setupStatError({ error: new Error('ENOENT: file deleted') });
@@ -232,7 +237,7 @@ describe('tailFile: error handling', () => {
     const proxy = tailFileProxy();
     const onError = jest.fn();
 
-    const handle = tailFile({ path: '/tmp/test.jsonl', onLine: () => {}, onError });
+    const handle = tailFile({ path: '/tmp/test.jsonl', onLine: () => undefined, onError });
 
     proxy.setupLines({ lines: ['data'] });
     proxy.setupStatError({ error: new Error('ENOENT: file deleted') });
@@ -264,7 +269,7 @@ describe('tailFile: error handling', () => {
     const proxy = tailFileProxy();
     const onError = jest.fn();
 
-    const handle = tailFile({ path: '/tmp/test.jsonl', onLine: () => {}, onError });
+    const handle = tailFile({ path: '/tmp/test.jsonl', onLine: () => undefined, onError });
 
     proxy.setupStreamError({ error: new Error('EACCES') });
     handle.stop();
@@ -333,7 +338,7 @@ describe('tailFile: a throwing onLine', () => {
       throw new Error('consumer blew up');
     });
 
-    tailFile({ path: '/tmp/test.jsonl', onLine, onError: () => {} });
+    tailFile({ path: '/tmp/test.jsonl', onLine, onError: () => undefined });
 
     proxy.setupLines({ lines: ['poison', 'survivor-one', 'survivor-two'] });
     proxy.triggerChange();
@@ -355,7 +360,7 @@ describe('tailFile: a throwing onLine', () => {
       onLine: () => {
         throw new Error('consumer blew up');
       },
-      onError: () => {},
+      onError: () => undefined,
     });
 
     proxy.setupLines({ lines: ['{"bad":"line"}'] });

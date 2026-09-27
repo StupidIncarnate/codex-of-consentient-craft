@@ -11,6 +11,13 @@ export const devDependenciesStatics = {
     '@dungeonmaster/eslint-plugin': '*',
     '@dungeonmaster/hooks': '*',
     '@dungeonmaster/mcp': '*',
+    // Nothing else in the dependency graph a real `npm install @dungeonmaster/cli` pulls in
+    // resolves this package — confirmed against a real scratch-consumer install (item G25): without
+    // it, `@dungeonmaster/siegelense` never lands in a consumer's `node_modules`, so
+    // `packageDiscoverBroker` never finds its `start-install.js`, and its install step (the
+    // `.dungeonmaster-assets/siegelense-assets` link, the `.gitignore` entry, and the scaffolded
+    // `packages/hydration-recipes/`) never runs for any real consumer.
+    '@dungeonmaster/siegelense': '*',
     '@dungeonmaster/shared': '*',
     '@dungeonmaster/testing': '*',
     '@dungeonmaster/ward': '*',

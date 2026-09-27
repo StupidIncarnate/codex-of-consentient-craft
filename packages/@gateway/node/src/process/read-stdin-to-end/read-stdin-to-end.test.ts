@@ -13,7 +13,9 @@ const withFakeStdin = async ({
 
   const result = await run();
 
-  Object.defineProperty(process, 'stdin', original!);
+  if (original) {
+    Object.defineProperty(process, 'stdin', original);
+  }
   return result;
 };
 

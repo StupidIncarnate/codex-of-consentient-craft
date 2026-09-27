@@ -166,6 +166,72 @@ describe('packageDiscoverBroker', () => {
     });
   });
 
+  describe('installed consumer (no monorepo packages/ folder)', () => {
+    it("VALID: {dungeonmasterRoot: '/consumer/node_modules', packages: [@dungeonmaster group]} => scans dungeonmasterRoot itself instead of joining 'packages'", () => {
+      const proxy = packageDiscoverBrokerProxy();
+      const dungeonmasterRoot = FilePathStub({ value: '/consumer/node_modules' });
+
+      proxy.setupInstalledConsumerPackageDiscovery({
+        dungeonmasterRoot,
+        packages: [
+          {
+            name: FileNameStub({ value: '@dungeonmaster' }),
+            children: [
+              {
+                name: FileNameStub({ value: 'cli' }),
+                standardPath: FilePathStub({
+                  value: '/consumer/node_modules/@dungeonmaster/cli/dist/startup/start-install.js',
+                }),
+                installerLocation: 'standard',
+              },
+              {
+                name: FileNameStub({ value: 'orchestrator' }),
+                standardPath: FilePathStub({
+                  value:
+                    '/consumer/node_modules/@dungeonmaster/orchestrator/dist/startup/start-install.js',
+                }),
+                installerLocation: 'standard',
+              },
+              {
+                name: FileNameStub({ value: 'shared' }),
+                standardPath: FilePathStub({
+                  value:
+                    '/consumer/node_modules/@dungeonmaster/shared/dist/startup/start-install.js',
+                }),
+                installerLocation: 'none',
+              },
+            ],
+          },
+          {
+            name: FileNameStub({ value: 'zod' }),
+            standardPath: FilePathStub({
+              value: '/consumer/node_modules/zod/dist/startup/start-install.js',
+            }),
+            installerLocation: 'none',
+          },
+        ],
+      });
+
+      const result = packageDiscoverBroker({ dungeonmasterRoot });
+
+      expect(result).toStrictEqual([
+        {
+          packageName: PackageNameStub({ value: '@dungeonmaster/cli' }),
+          installPath: FilePathStub({
+            value: '/consumer/node_modules/@dungeonmaster/cli/dist/startup/start-install.js',
+          }),
+        },
+        {
+          packageName: PackageNameStub({ value: '@dungeonmaster/orchestrator' }),
+          installPath: FilePathStub({
+            value:
+              '/consumer/node_modules/@dungeonmaster/orchestrator/dist/startup/start-install.js',
+          }),
+        },
+      ]);
+    });
+  });
+
   describe('edge cases', () => {
     it('EDGE: {dungeonmasterRoot: "/path/with spaces"} => handles paths with spaces', () => {
       const proxy = packageDiscoverBrokerProxy();

@@ -17,6 +17,7 @@ export const InstallDetectConfigResponderProxy = (): {
     configFileName: string;
     contents: FileContents;
   }) => void;
+  getWrittenConfigContent: (params: { targetProjectRoot: string }) => unknown;
 } => {
   const joinProxy = pathJoinAdapterProxy();
   const existsProxy = fsExistsSyncAdapterProxy();
@@ -64,6 +65,12 @@ export const InstallDetectConfigResponderProxy = (): {
 
       const filePath = filePathContract.parse(`${targetProjectRoot}/${configFileName}`);
       readProxy.returns({ filePath, contents });
+    },
+
+    getWrittenConfigContent: ({ targetProjectRoot }: { targetProjectRoot: string }): unknown => {
+      const [, newConfigFile] = locationsStatics.repoRoot.eslintConfig;
+      const newConfigPath = filePathContract.parse(`${targetProjectRoot}/${newConfigFile}`);
+      return writeProxy.getWrittenFor({ filePath: newConfigPath });
     },
   };
 };
