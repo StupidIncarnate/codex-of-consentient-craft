@@ -63,13 +63,19 @@ describe('docsStatics', () => {
         heading: 'THE LADDER',
         lines: [
           'Always try to use the look command first. Only use the dom command as a last resort, and always target it as narrowly as possible.',
-          'Rung 1, look — the default tool. It tells you what elements exist, what they are called, and if they have any errors. It is efficient and fully built.',
-          'Rung 2, look { within } — the same command, but restricted to a specific section of the page. Use this when the page is too crowded or has a very long list of items. It is faster and fully built. The within parameter accepts a simple testId or a full CSS selector like [data-testid="..."]',
-          'Rung 3, box { ref } — provides the exact physical dimensions and position of a single element on the screen. Fully built.',
-          'Rung 4, dom { target } — the escape hatch. Use this only when you need to answer a specific question that the look command cannot answer. It can be very slow and resource-intensive if used carelessly. Fully built.',
+          'Rung 1, look — the default tool. It tells you what elements exist, what they are called, and if they have any errors. It is efficient.',
+          'Rung 2, look { within } — the same command, but restricted to a specific section of the page. Use this when the page is too crowded or has a very long list of items. It is faster. The within parameter accepts a simple testId or a full CSS selector like [data-testid="..."]',
+          'Rung 3, box { ref } — provides the exact physical dimensions and position of a single element on the screen.',
+          'Rung 4, dom { target } — the escape hatch. Use this only when you need to answer a specific question that the look command cannot answer. It can be very slow and resource-intensive if used carelessly.',
           'Rung 5, eval — runs custom JavaScript on the page. This is a different kind of escape hatch. It is fast, but it risks breaking the rules by calculating test results inside the browser instead of returning raw data.',
         ],
       });
+    });
+
+    it('VALID: {walking} => carries no "built" status marker anywhere in the scope (fully/not/is/are built)', () => {
+      const allLines = docsStatics.scopes.walking.sections.flatMap((section) => section.lines);
+
+      expect(allLines.some((line) => /\b(?:fully|not|is|are)\s+built\b/iu.test(line))).toBe(false);
     });
 
     it('VALID: {walking} => opens by teaching the key, before any verb is taught', () => {
@@ -86,9 +92,9 @@ describe('docsStatics', () => {
   });
 
   describe('walking teaches the whole verb catalog with no wrong count (DEF-29)', () => {
-    it('VALID: {walking, THE VERBS YOU CAN SUBMIT TODAY} => opens naming every verb the step contract accepts, derived rather than hand-typed', () => {
+    it('VALID: {walking, AVAILABLE STEP VERBS} => opens naming every verb the step contract accepts, derived rather than hand-typed', () => {
       const section = docsStatics.scopes.walking.sections.find(
-        (candidate) => candidate.heading === 'THE VERBS YOU CAN SUBMIT TODAY',
+        (candidate) => candidate.heading === 'AVAILABLE STEP VERBS',
       );
 
       expect(section?.lines[0]).toBe(
@@ -206,16 +212,30 @@ describe('docsStatics', () => {
       ]);
     });
 
-    it('VALID: {attacking} => marks health, reset and snapshot as built', () => {
+    it('VALID: {attacking} => states the fresh instance rule for state-changing attacks', () => {
       expect(docsStatics.scopes.attacking.sections[0].lines[0]).toBe(
-        'The reset and snapshot commands are BUILT. The health command is BUILT.',
+        'If an attack changes the application state, you must start a fresh instance for it: boot the instance, run the attack, read the results, and close the instance. If you run a second attack on the same instance, you will be testing the damaged state left by the first attack.',
       );
     });
 
     it('VALID: {attacking} => gives the callable stand-in for the unbuilt health reading', () => {
-      expect(docsStatics.scopes.attacking.sections[1].lines[3]).toBe(
+      expect(docsStatics.scopes.attacking.sections[1].lines[4]).toBe(
         'You can perform this exact health check manually using existing commands: check results --kind console for browser errors, results --kind network for failed requests, results --kind server --where-steps a-b --where-level error for server logs, and check the blank status on your screenshots.',
       );
+    });
+
+    it('VALID: {attacking} => teaches health and snapshot steps and run batch invocation', () => {
+      const allLines = docsStatics.scopes.attacking.sections.flatMap((section) => section.lines);
+
+      expect({
+        teachesHealth: allLines.some((line) => line === '{ "step": "health" }'),
+        teachesSnapshot: allLines.some((line) => line.includes('"step": "snapshot"')),
+        teachesRunCommand: allLines.some((line) => line.includes('run --instance <id> --steps')),
+      }).toStrictEqual({
+        teachesHealth: true,
+        teachesSnapshot: true,
+        teachesRunCommand: true,
+      });
     });
   });
 });

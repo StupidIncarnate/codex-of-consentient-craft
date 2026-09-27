@@ -6,11 +6,11 @@
  * `pathJoinAdapter`, so calling the two setups out of order hands the wrong resolution to the wrong
  * caller (`statusReadBrokerProxy` documents the same hazard for the same two brokers).
  *
- * `profileReadBroker` is mocked DIRECTLY rather than composed, matching
- * `SiegelenseProfileResponderProxy`: a profile tree costs one staged readdir plus one staged read
- * per record, and every one of them competes for that same join queue — while the thing under test
- * here is which SAMPLE GROUP the arithmetic divides by, which a staged `SpecProfile` states
- * outright. `profileReadBrokerProxy` is still constructed to satisfy `enforce-proxy-child-creation`.
+ * `profileReadBroker` is mocked DIRECTLY rather than composed: a profile tree costs one staged
+ * readdir plus one staged read per record, and every one of them competes for that same join
+ * queue — while the thing under test here is which SAMPLE GROUP the arithmetic divides by, which a
+ * staged `SpecProfile` states outright. `profileReadBrokerProxy` is still constructed to satisfy
+ * `enforce-proxy-child-creation`.
  *
  * USAGE:
  * const proxy = capacityReadBrokerProxy();

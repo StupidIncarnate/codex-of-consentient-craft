@@ -241,16 +241,18 @@ describe('recipeMakerStatics', () => {
     });
   });
 
-  // THE BOOK HAS TWO HALVES and a recipe that seeds one of something proves nothing an assertion
-  // can tell apart — the quiet failure, which passes while measuring the wrong value.
-  it('VALID: served template => demands both halves of a recipe and two of anything an assertion separates', () => {
+  // THE BOOK HAS TWO HALVES, AND THE STANDARD LIVES ELSEWHERE — get-testing-patterns carries the
+  // general recipe-writing rules (naming inputs, seeding two of anything an assertion must tell
+  // apart, composing before writing), so this prompt points at that standard instead of repeating
+  // it, and states only where its own two halves live.
+  it('VALID: served template => demands both halves of a recipe and points at get-testing-patterns for how to write one', () => {
     expect({
-      bookEntry: hasIn({
-        needle: 'packages/hydration-recipes/src/statics/recipe-book/recipe-book-statics.ts',
+      recipeBroker: hasIn({
+        needle: 'packages/hydration-recipes/src/brokers/recipes/<name>/',
         text: TEMPLATE,
       }),
-      seedBroker: hasIn({
-        needle: 'packages/hydration-recipes/src/brokers/recipes/<name>/',
+      catalogEntry: hasIn({
+        needle: 'packages/hydration-recipes/src/brokers/recipes/catalog/recipes-catalog-broker.ts',
         text: TEMPLATE,
       }),
       bothHalves: hasIn({
@@ -258,8 +260,12 @@ describe('recipeMakerStatics', () => {
           '**An entry with no broker promises a state nothing can create; a broker with no entry is a state no\nsession can discover.**',
         text: TEMPLATE,
       }),
-      twoOfAnything: hasIn({
-        needle: '**Seed TWO of anything an assertion must tell apart.**',
+      pointsAtStandard: hasIn({
+        needle: 'Call `get-testing-patterns`',
+        text: TEMPLATE,
+      }),
+      recipesAndIngredientsSection: hasIn({
+        needle: 'its Recipes and Ingredients section is the standard you follow',
         text: TEMPLATE,
       }),
       notAnOutcome: hasIn({
@@ -271,10 +277,11 @@ describe('recipeMakerStatics', () => {
         text: TEMPLATE,
       }),
     }).toStrictEqual({
-      bookEntry: true,
-      seedBroker: true,
+      recipeBroker: true,
+      catalogEntry: true,
       bothHalves: true,
-      twoOfAnything: true,
+      pointsAtStandard: true,
+      recipesAndIngredientsSection: true,
       notAnOutcome: true,
       composeFirst: true,
     });
@@ -442,6 +449,23 @@ describe('recipeMakerStatics', () => {
         text: TEMPLATE,
       }),
     ).toBe(true);
+  });
+
+  // THE LISTING'S REAL FIELDS, NOT THE RETIRED BOOK'S — `produces:`/fidelity/parameters/returns
+  // were the old recipe book's own shape, which the listing never read. Naming the fields the
+  // listing actually returns is what keeps this step honest about what step 3 will see on screen.
+  it("VALID: served template => step 3 names the fields the real listing returns, not the retired book's", () => {
+    expect({
+      realFields: hasIn({
+        needle:
+          "The listing gives each recipe's name, its\ndescription, its input keys, whether it needs a live server, and what it makes",
+        text: TEMPLATE,
+      }),
+      retiredBookFields: TEMPLATE.includes('`produces:`'),
+    }).toStrictEqual({
+      realFields: true,
+      retiredBookFields: false,
+    });
   });
 
   it('VALID: served template => opens with `get-quest-work` as its first call', () => {

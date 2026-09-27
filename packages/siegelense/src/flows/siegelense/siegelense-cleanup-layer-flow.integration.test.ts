@@ -53,7 +53,7 @@ describe('SiegelenseCleanupLayerFlow', () => {
         new RegExp(
           `^REAPED: ${staleId} \\(stale \\d+m, killed ${tree.fakePgid()}, home removed\\)\\n` +
             'PORTS RELEASED: 40021, 40022\\n' +
-            'LOCK RELEASED: no\\n' +
+            'LOCK RELEASED: none held\\n' +
             'ASSETS AGED: 0 instances, 0MB\\n' +
             `LEFT ALONE: ${tree.liveInstanceId()} \\(live — last beat \\d+s ago\\)\\n$`,
           'u',

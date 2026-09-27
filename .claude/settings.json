@@ -125,7 +125,53 @@
         ]
       }
     ],
-    "PreToolUse": [],
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "dungeonmaster-pre-edit-lint"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "dungeonmaster-pre-bash"
+          }
+        ]
+      },
+      {
+        "matcher": "Grep|Glob|Search|Find",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "dungeonmaster-pre-search"
+          }
+        ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "dungeonmaster-pre-folder-detail"
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__dungeonmaster__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "dungeonmaster-pre-mcp-caller"
+          }
+        ]
+      }
+    ],
     "SubagentStart": [
       {
         "hooks": [

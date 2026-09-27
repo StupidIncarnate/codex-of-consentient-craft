@@ -16,6 +16,8 @@
  * // Returns the array holding the run-id refusal sentence and the unknown-id refusal
  */
 
+import { instanceLifecycleStatics } from '../instance-lifecycle/instance-lifecycle-statics';
+import { pruneStatics } from '../prune/prune-statics';
 import { resultsStatics } from '../results/results-statics';
 import { siegelenseCallStatics } from '../siegelense-call/siegelense-call-statics';
 import { siegelenseOutputStatics } from '../siegelense-output/siegelense-output-statics';
@@ -26,6 +28,15 @@ const JSON_FLAG = {
   required: false,
   description: 'print raw JSON output instead of the human-readable view.',
 } as const;
+
+// cleanup's own refusal builds its numbers off these two, so the help page can never say a stale
+// window or an age-out window this checkout does not actually run. Divides by
+// pruneStatics.olderThan.unitMs.s (1000) rather than a bare literal — the same ms-per-second this
+// file already imports pruneStatics for.
+const CLEANUP_STALE_AFTER_SECONDS =
+  (instanceLifecycleStatics.heartbeat.intervalMs *
+    instanceLifecycleStatics.heartbeat.stalenessBeats) /
+  pruneStatics.olderThan.unitMs.s;
 
 export const siegelenseHelpStatics = {
   index: {
@@ -264,28 +275,6 @@ export const siegelenseHelpStatics = {
         'By default, a human summary — suggested and ceiling counts, the spec, a why sentence naming every figure it reasoned from, the measured host block, and the one profile group it divided by. `--json` prints the raw CapacityAnswer (profile null for a spec nothing has run).',
       example: 'dungeonmaster siegelense capacity --spec stack --pool 3',
     },
-    profile: {
-      summary:
-        'siegelense profile — what one instance of a lane spec costs, measured. Starts nothing.',
-      synopsis: 'dungeonmaster siegelense profile --spec <specName> [--json]',
-      flags: [
-        {
-          name: '--spec',
-          value: '<specName>',
-          required: true,
-          description:
-            "the lane spec to report on. A profile is keyed by that spec's content hash, so there is no fleet-wide form.",
-        },
-        JSON_FLAG,
-      ],
-      refusals: [
-        'Reads what was measured and never measures on demand — a spec nothing has run yet answers samples: [] and bootMs: null rather than booting an instance to find out.',
-        'Samples are grouped by pool size and never averaged across them: a solo reading and a contended one describe different worlds, so read the group matching the pool you are about to open.',
-      ],
-      output:
-        "By default, spec name, process count, content hash, measuredAt/boot/runs, and a box-drawing table of samples by pool size (or 'none measured yet'). `--json` prints the raw SpecProfile.",
-      example: 'dungeonmaster siegelense profile --spec stack',
-    },
     status: {
       summary: 'siegelense status — report the fleet, or one instance in full.',
       synopsis:
@@ -326,7 +315,7 @@ export const siegelenseHelpStatics = {
       synopsis: 'dungeonmaster siegelense cleanup [--json]',
       flags: [JSON_FLAG],
       refusals: [
-        "Takes no input. Reaps, releases, and ages assets out on their own windows — video first on a shorter one. It refuses exactly what prune refuses, so a capture a VERIFIED prelude or an open quest's WALKED line still cites is never touched, and the instance it belongs to says so in leftAlone.",
+        `Takes no input. An instance is stale once its heartbeat goes ${CLEANUP_STALE_AFTER_SECONDS}s without a beat (${instanceLifecycleStatics.heartbeat.stalenessBeats} missed beats of ${instanceLifecycleStatics.heartbeat.intervalMs}ms) — that reaps it and releases its ports and, if stuck, its locks. Evidence then ages out on its own window, video first on the shorter one: non-video after ${pruneStatics.window.defaultOlderThan}, video after ${pruneStatics.window.videoOlderThan}. It refuses exactly what prune refuses, so a capture a VERIFIED prelude or an open quest's WALKED line still cites is never touched, and the instance it belongs to says so in leftAlone.`,
       ],
       output:
         'By default, what was reaped, which ports and locks came back, how much evidence aged out, and what was left alone and why. `--json` prints the raw CleanupAnswer.',

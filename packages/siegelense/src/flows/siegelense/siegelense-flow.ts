@@ -2,7 +2,7 @@
  * PURPOSE: Routes `dungeonmaster siegelense`'s calls. `--help`/`-h` is checked BEFORE any parsing —
  * bare, it prints the index; after a built call's name, that call's own page — so a caller piping
  * stdout gets the help it asked for rather than a refusal (siegelense-tooling.md §3.F). `driver
- * --instance <id> [--idle-timeout-ms <ms>]` sits outside the thirteen-call surface entirely —
+ * --instance <id> [--idle-timeout-ms <ms>]` sits outside the twelve-call surface entirely —
  * internal, spawned by `start`, never typed by a person — and keeps its own `--instance`/
  * `--idle-timeout-ms` reads, now through the shared `flagValueReadTransformer` rather than a second
  * `indexOf` dance, and its own value parses through `flagContractParseTransformer` so a badly-shaped
@@ -49,7 +49,6 @@ import { SiegelenseCleanupLayerFlow } from './siegelense-cleanup-layer-flow';
 import { SiegelenseCompareLayerFlow } from './siegelense-compare-layer-flow';
 import { SiegelenseDocsLayerFlow } from './siegelense-docs-layer-flow';
 import { SiegelenseKillLayerFlow } from './siegelense-kill-layer-flow';
-import { SiegelenseProfileLayerFlow } from './siegelense-profile-layer-flow';
 import { SiegelensePruneLayerFlow } from './siegelense-prune-layer-flow';
 import { SiegelenseRecipesLayerFlow } from './siegelense-recipes-layer-flow';
 import { SiegelenseResultsLayerFlow } from './siegelense-results-layer-flow';
@@ -65,7 +64,7 @@ const INSTANCE_FLAG = '--instance';
 const IDLE_TIMEOUT_MS_FLAG = '--idle-timeout-ms';
 const USAGE =
   'Usage: dungeonmaster siegelense [--help | start | run | results | kill | capacity | status | ' +
-  'cleanup | prune | compare | profile | snapshots | recipes | docs | driver --instance <instanceId>]';
+  'cleanup | prune | compare | snapshots | recipes | docs | driver --instance <instanceId>]';
 
 const CALL_ROUTES = new Map<
   SiegelenseCall,
@@ -76,7 +75,6 @@ const CALL_ROUTES = new Map<
   ['results', async (callArgs) => SiegelenseResultsLayerFlow({ callArgs })],
   ['kill', async (callArgs) => SiegelenseKillLayerFlow({ callArgs })],
   ['capacity', async (callArgs) => SiegelenseCapacityLayerFlow({ callArgs })],
-  ['profile', async (callArgs) => SiegelenseProfileLayerFlow({ callArgs })],
   ['status', async (callArgs) => SiegelenseStatusLayerFlow({ callArgs })],
   ['cleanup', async (callArgs) => SiegelenseCleanupLayerFlow({ callArgs })],
   ['prune', async (callArgs) => SiegelensePruneLayerFlow({ callArgs })],

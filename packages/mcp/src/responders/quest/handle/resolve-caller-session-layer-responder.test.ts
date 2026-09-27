@@ -30,6 +30,22 @@ const LINE_WITH_MATCH = JSON.stringify({
 });
 
 describe('ResolveCallerSessionLayerResponder', () => {
+  describe('hook strategy', () => {
+    it('VALID: {meta carries a hook caller} => returns its session with no scan at all', async () => {
+      // Nothing staged: an unstaged readdir throws, so a fall-through to either scan fails this test.
+      ResolveCallerSessionLayerResponderProxy();
+
+      const result = await ResolveCallerSessionLayerResponder({
+        meta: {
+          'claudecode/toolUseId': MATCHING_TOOL_USE_ID,
+          'dungeonmaster/caller': { cwd: PROJECT_DIR, sessionId: CALLER_SESSION },
+        },
+      });
+
+      expect(result).toBe(CALLER_SESSION);
+    });
+  });
+
   describe('deterministic strategy', () => {
     it('VALID: {meta carries a toolUseId matching an older session} => returns that session, not the newest-mtime one', async () => {
       // The failure this prevents: two Claude sessions open in one repo, and the quest is stamped

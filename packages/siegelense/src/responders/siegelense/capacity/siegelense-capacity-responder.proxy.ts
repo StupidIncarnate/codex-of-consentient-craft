@@ -1,8 +1,7 @@
 /**
  * PURPOSE: Test proxy for SiegelenseCapacityResponder — mocks `capacityReadBroker` directly rather
- * than composing its own child proxies' staging, matching `SiegelenseProfileResponderProxy`'s shape
- * for the sibling command. `capacityReadBrokerProxy` is still constructed (never addressed further)
- * to satisfy `enforce-proxy-child-creation`. The address carries the arguments, so a test can stage
+ * than composing its own child proxies' staging. `capacityReadBrokerProxy` is still constructed
+ * (never addressed further) to satisfy `enforce-proxy-child-creation`. The address carries the arguments, so a test can stage
  * a different answer per `{ specName, poolSize }` pair and prove the responder passes both through.
  *
  * USAGE:

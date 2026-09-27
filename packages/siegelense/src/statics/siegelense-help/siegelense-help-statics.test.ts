@@ -299,7 +299,7 @@ describe('siegelenseHelpStatics', () => {
         },
       ],
       refusals: [
-        "Takes no input. Reaps, releases, and ages assets out on their own windows — video first on a shorter one. It refuses exactly what prune refuses, so a capture a VERIFIED prelude or an open quest's WALKED line still cites is never touched, and the instance it belongs to says so in leftAlone.",
+        "Takes no input. An instance is stale once its heartbeat goes 15s without a beat (3 missed beats of 5000ms) — that reaps it and releases its ports and, if stuck, its locks. Evidence then ages out on its own window, video first on the shorter one: non-video after 7d, video after 2d. It refuses exactly what prune refuses, so a capture a VERIFIED prelude or an open quest's WALKED line still cites is never touched, and the instance it belongs to says so in leftAlone.",
       ],
       output:
         'By default, what was reaped, which ports and locks came back, how much evidence aged out, and what was left alone and why. `--json` prints the raw CleanupAnswer.',
@@ -334,36 +334,6 @@ describe('siegelenseHelpStatics', () => {
       output:
         'By default, instance id, the runs compared, console/server/network error deltas, and the pixel diff summary. `--json` prints the raw CompareAnswer. Either way, a READING, never a verdict on whether a unit passes.',
       example: 'dungeonmaster siegelense compare --instance inst_9b2c --run-a run_1 --run-b run_2',
-    });
-  });
-
-  it('VALID: {calls.profile} => toStrictEqual its summary, synopsis, flags, refusals, output and example', () => {
-    expect(siegelenseHelpStatics.calls.profile).toStrictEqual({
-      summary:
-        'siegelense profile — what one instance of a lane spec costs, measured. Starts nothing.',
-      synopsis: 'dungeonmaster siegelense profile --spec <specName> [--json]',
-      flags: [
-        {
-          name: '--spec',
-          value: '<specName>',
-          required: true,
-          description:
-            "the lane spec to report on. A profile is keyed by that spec's content hash, so there is no fleet-wide form.",
-        },
-        {
-          name: '--json',
-          value: null,
-          required: false,
-          description: 'print raw JSON output instead of the human-readable view.',
-        },
-      ],
-      refusals: [
-        'Reads what was measured and never measures on demand — a spec nothing has run yet answers samples: [] and bootMs: null rather than booting an instance to find out.',
-        'Samples are grouped by pool size and never averaged across them: a solo reading and a contended one describe different worlds, so read the group matching the pool you are about to open.',
-      ],
-      output:
-        "By default, spec name, process count, content hash, measuredAt/boot/runs, and a box-drawing table of samples by pool size (or 'none measured yet'). `--json` prints the raw SpecProfile.",
-      example: 'dungeonmaster siegelense profile --spec stack',
     });
   });
 

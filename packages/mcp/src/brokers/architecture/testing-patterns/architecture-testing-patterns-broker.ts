@@ -699,6 +699,26 @@ Integration tests that spawn processes or poll for state can time out silently �
 4. **Search SOURCE, not \`dist/\`:** jest reads source, so a stale \`dist/\` never explains an in-process hang. Use \`discover({ grep: 'oldFieldName' })\`; bash \`grep\` is hook-blocked.
 5. **Check poll helpers:** If the test uses \`pollForStatus\` or similar, the poll may be waiting for a status that the system will never reach (e.g., polling for \`complete\` when the quest went to \`blocked\`).`;
 
+  // Recipes and Ingredients
+  const recipesAndIngredients = `A recipe is a named, composable way to put the app into a known state. A siegelense \`seed\` step calls it, an e2e spec calls it, and an integration test calls it — the same recipe works everywhere, because a recipe only builds a plan and never decides who runs it.
+
+An ingredient is one entity's routes — its create, read, update and delete operations. Every ingredient declares \`copies:\`, naming the production code its routes imitate. When an ingredient's route breaks, \`copies:\` is where to look first: diff what it copies against what it writes, because a route that no longer matches production is the usual cause.
+
+### Writing a recipe
+
+Write a recipe so an agent who has read only \`docs --for walking\` can pick it up and use it correctly — nothing more.
+
+- **Name each input after the field it fills.** An input called \`guildId\` fills a \`guildId\` field, so a caller can guess the shape without opening the recipe.
+- **Give each input, and each field the recipe returns, a one-line meaning.** A bare key name like \`guildId\` says nothing about what value goes in or what comes out.
+- **Declare every field the recipe hands back to later steps.** A \`seed\` step names its own result with \`as\` (\`{ "step": "seed", "recipe": "<name>", "as": "g" }\`), and every step after it reaches into that handle — \`{g.guildId}\`, \`{g.guildSlug}\`. An undeclared field is a field the next step cannot know exists.
+- **Keep \`makes\` honest.** \`makes\` states the count of each thing the recipe creates. A recipe that creates three quests and reports one hides state an assertion will trip over later.
+- **Write the description for the agent who will read it, not for yourself.** That agent has not read the recipe's code and decides whether to reuse it or write a new one from the description alone.
+- **Seed TWO of anything an assertion must tell apart.** A recipe that seeds only one of something makes "the right one" and "the first one" the same value, so an off-by-index bug passes against it and a clean result proves nothing.
+- **Compose existing recipes before writing a new one.** Two existing recipes often already combine into the state a new task needs. A new recipe where two would compose makes the book bigger without making it more capable.
+- **Prove each recipe with a real run.** Run it against a throwaway instance and read back what it produced. An unproven recipe does not fail loudly — it manufactures a defect that does not exist, because nobody checked its claimed state against its real one.
+
+The \`CLAUDE.md\` in a repo's own \`hydration-recipes\` package is where that repo records the specifics of its own recipes and ingredients — which ones exist, what each one copies, and anything particular to that repo's state.`;
+
   // Argument Coverage for Entry Points
   const argumentCoverage = `**Every documented argument of an entry point needs a test.** Covering the entry point's default invocation is not covering the entry point — a flag no test ever sets is a flag no test ever proves works.
 
@@ -883,6 +903,10 @@ ${endpointMock}
 ## Integration Testing
 
 ${integrationTesting}
+
+## Recipes and Ingredients
+
+${recipesAndIngredients}
 
 ## Argument Coverage for Entry Points
 

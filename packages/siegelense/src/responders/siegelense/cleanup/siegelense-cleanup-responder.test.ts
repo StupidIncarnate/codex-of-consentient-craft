@@ -99,7 +99,7 @@ describe('SiegelenseCleanupResponder', () => {
       expect(proxy.getStdoutWrites()).toStrictEqual([
         'REAPED: none\n' +
           'PORTS RELEASED: none\n' +
-          'LOCK RELEASED: no\n' +
+          'LOCK RELEASED: none held\n' +
           'ASSETS AGED: 3 instances, 1840MB\n' +
           'LEFT ALONE: inst_7f3a (live — last beat 2s ago)\n',
       ]);

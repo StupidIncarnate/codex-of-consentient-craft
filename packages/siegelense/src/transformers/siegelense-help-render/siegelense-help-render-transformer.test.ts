@@ -58,7 +58,7 @@ describe('siegelenseHelpRenderTransformer', () => {
           '  --json             print raw JSON output instead of the human-readable view.\n' +
           '\n' +
           'REFUSES\n' +
-          "  Takes no input. Reaps, releases, and ages assets out on their own windows — video first on a shorter one. It refuses exactly what prune refuses, so a capture a VERIFIED prelude or an open quest's WALKED line still cites is never touched, and the instance it belongs to says so in leftAlone.\n" +
+          "  Takes no input. An instance is stale once its heartbeat goes 15s without a beat (3 missed beats of 5000ms) — that reaps it and releases its ports and, if stuck, its locks. Evidence then ages out on its own window, video first on the shorter one: non-video after 7d, video after 2d. It refuses exactly what prune refuses, so a capture a VERIFIED prelude or an open quest's WALKED line still cites is never touched, and the instance it belongs to says so in leftAlone.\n" +
           '\n' +
           'OUTPUT\n' +
           '  By default, what was reaped, which ports and locks came back, how much evidence aged out, and what was left alone and why. `--json` prints the raw CleanupAnswer.\n' +
@@ -153,7 +153,7 @@ describe('siegelenseHelpRenderTransformer', () => {
       const result = siegelenseHelpRenderTransformer({ call: null });
 
       expect(result).toBe(
-        'dungeonmaster siegelense — every built call reachable without installing anything. 13 of 13 calls are built.\n' +
+        'dungeonmaster siegelense — every built call reachable without installing anything. 12 of 12 calls are built.\n' +
           '\n' +
           'CALLS\n' +
           '  siegelense start — boot one instance for a lane spec and block until the driver answers or the boot deadline passes.\n' +
@@ -161,7 +161,6 @@ describe('siegelenseHelpRenderTransformer', () => {
           '  siegelense results — read evidence off disk for one instance. Starts nothing.\n' +
           '  siegelense kill — stop one running instance.\n' +
           '  siegelense capacity — how many instances this machine can take right now. Ask before opening a pool. Starts nothing.\n' +
-          '  siegelense profile — what one instance of a lane spec costs, measured. Starts nothing.\n' +
           '  siegelense status — report the fleet, or one instance in full.\n' +
           '  siegelense cleanup — reap every stale instance the registry holds.\n' +
           '  siegelense prune — reclaim asset space deliberately, rather than waiting for the age-out window.\n' +
