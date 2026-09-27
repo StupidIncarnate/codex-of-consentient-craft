@@ -23,7 +23,7 @@
  * // Returns AbsoluteFilePath '/repo/.../runs/run_2/after-create.png'
  */
 
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
+import { join } from '#gateway/node/path';
 import {
   absoluteFilePathContract,
   type AbsoluteFilePath,
@@ -43,9 +43,7 @@ export const locationsShotPathFindBroker = ({
 }): AbsoluteFilePath => {
   const fileName =
     name ?? `${evidenceFileStatics.naming.shotPrefix}${step}${evidenceFileStatics.extensions.shot}`;
-  const joined = pathJoinAdapter({
-    paths: [shotsDir, fileName],
-  });
+  const joined = join(shotsDir, fileName);
 
   return absoluteFilePathContract.parse(joined);
 };

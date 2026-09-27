@@ -1,9 +1,11 @@
-import {
-  cwdResolveBrokerProxy,
-  pathJoinAdapterProxy,
-  processCwdAdapterProxy,
-} from '@dungeonmaster/shared/testing';
+import { join } from '#gateway/node/path';
+import { cwd } from '#gateway/node/process';
+import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
+import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/testing';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
+
+import { recipeLocationStatics } from '../../../statics/recipe-location/recipe-location-statics';
 
 export const locationsRecipesPackagePathFindBrokerProxy = (): {
   setupRepoRootAtCwd: (params: { cwdPath: string; packagePath: FilePath }) => void;
@@ -13,9 +15,15 @@ export const locationsRecipesPackagePathFindBrokerProxy = (): {
     packagePath: FilePath;
   }) => void;
 } => {
-  const cwdProxy = processCwdAdapterProxy();
+  // #gateway/node/process/cwd/cwd.proxy has nothing to stage (a real read with nothing to fake),
+  // but enforce-proxy-child-creation still requires composing it since the broker imports `cwd`.
+  cwdProxy();
+  const cwdHandle = registerMock({ fn: cwd });
   const resolveProxy = cwdResolveBrokerProxy();
-  const pathJoinProxy = pathJoinAdapterProxy();
+  // #gateway/node/path is a raw passthrough of the Node 'path' module (no per-function wrapper,
+  // so no gateway proxy to compose) — mocked directly here, on the same '#gateway/node/path'
+  // specifier the broker imports.
+  const joinHandle = registerMock({ fn: join });
 
   return {
     setupRepoRootAtCwd: ({
@@ -25,9 +33,11 @@ export const locationsRecipesPackagePathFindBrokerProxy = (): {
       cwdPath: string;
       packagePath: FilePath;
     }): void => {
-      cwdProxy.returns({ path: cwdPath });
+      cwdHandle.calledWith([]).returns(cwdPath);
       resolveProxy.setupRepoRootFoundAtStart({ startPath: cwdPath });
-      pathJoinProxy.returns({ result: packagePath });
+      joinHandle
+        .calledWith([cwdPath, ...recipeLocationStatics.packageDir.segments])
+        .returns(packagePath);
     },
 
     setupRepoRootInParent: ({
@@ -39,9 +49,11 @@ export const locationsRecipesPackagePathFindBrokerProxy = (): {
       repoRoot: string;
       packagePath: FilePath;
     }): void => {
-      cwdProxy.returns({ path: cwdPath });
+      cwdHandle.calledWith([]).returns(cwdPath);
       resolveProxy.setupRepoRootFoundInParent({ startPath: cwdPath, repoRoot });
-      pathJoinProxy.returns({ result: packagePath });
+      joinHandle
+        .calledWith([repoRoot, ...recipeLocationStatics.packageDir.segments])
+        .returns(packagePath);
     },
   };
 };

@@ -12,7 +12,7 @@
  */
 
 import { osTmpdirAdapter } from '../../../adapters/os/tmpdir/os-tmpdir-adapter';
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
+import { join } from '#gateway/node/path';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { absoluteFilePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
@@ -25,13 +25,11 @@ export const locationsSocketPathFindBroker = ({
 }): AbsoluteFilePath => {
   const tmpDir = osTmpdirAdapter();
 
-  const joined = pathJoinAdapter({
-    paths: [
-      tmpDir,
-      locationsStatics.siegelense.socketsDirName,
-      `${instanceId}${evidenceFileStatics.extensions.socket}`,
-    ],
-  });
+  const joined = join(
+    tmpDir,
+    locationsStatics.siegelense.socketsDirName,
+    `${instanceId}${evidenceFileStatics.extensions.socket}`,
+  );
 
   return absoluteFilePathContract.parse(joined);
 };

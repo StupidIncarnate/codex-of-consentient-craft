@@ -5,13 +5,17 @@
  * carries its own dedicated test suite. This proxy only proves the boot SEQUENCE and the values
  * handed from one step to the next. laneSpecFindBroker runs real against its own proxy's sticky
  * default config (a single headless api process) — every test here passes `specName: 'api'`, which
- * matches it. The socket and home resolvers are both staged to the SAME shared path value — neither
- * is asserted on beyond identity, so which real `join` call consumes which value never matters. The
- * evidence resolver instead stages only its root chain (`setupRootOnly`) and leaves its own outer
+ * matches it. The home resolver is staged to a fixed shared path value — never asserted on beyond
+ * identity, so which real `join` call consumes it never matters. The evidence resolver instead
+ * stages only its root chain (`setupRootOnly`) and leaves its own outer
  * join to the real passthrough default, because every test here picks its OWN `instanceId` after
  * the constructor already ran — `getExpectedEvidencePath` computes the real "unowned" shape
  * (guildId is null on every registry row this proxy's callers build) from that instanceId, on
- * demand, rather than a value this constructor could stage ahead of time.
+ * demand, rather than a value this constructor could stage ahead of time. The socket resolver hits
+ * the same problem the same way: `getExpectedSocketPath` calls the REAL
+ * `locationsSocketPathFindBroker` with the caller's own instanceId, which resolves off
+ * `locationsSocketPathFindBrokerProxy`'s own sticky real-passthrough default rather than a value
+ * staged here for an instanceId the constructor cannot know yet.
  *
  * USAGE:
  * const proxy = SiegelenseDriverResponderProxy();
@@ -38,6 +42,7 @@ import { laneBootBrokerProxy } from '../../../brokers/lane/boot/lane-boot-broker
 import { laneSpecFindBrokerProxy } from '../../../brokers/lane-spec/find/lane-spec-find-broker.proxy';
 import { locationsInstanceEvidencePathFindBrokerProxy } from '../../../brokers/locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker.proxy';
 import { locationsInstanceHomePathFindBrokerProxy } from '../../../brokers/locations/instance-home-path-find/locations-instance-home-path-find-broker.proxy';
+import { locationsSocketPathFindBroker } from '../../../brokers/locations/socket-path-find/locations-socket-path-find-broker';
 import { locationsSocketPathFindBrokerProxy } from '../../../brokers/locations/socket-path-find/locations-socket-path-find-broker.proxy';
 import { registryReadBroker } from '../../../brokers/registry/read/registry-read-broker';
 import { registryReadBrokerProxy } from '../../../brokers/registry/read/registry-read-broker.proxy';
@@ -55,7 +60,6 @@ import { DriverServeLayerResponderProxy } from './driver-serve-layer-responder.p
 type ReadingCount = ReturnType<typeof ReadingCountStub>;
 
 const SHARED_PATH_VALUE = '/tmp/dm-siege-sockets/inst-driver-test.sock';
-const SOCKET_PATH = AbsoluteFilePathStub({ value: SHARED_PATH_VALUE });
 
 export const SiegelenseDriverResponderProxy = (): {
   stageRegistryRow: (params: { entry: RegistryEntry }) => void;
@@ -65,7 +69,7 @@ export const SiegelenseDriverResponderProxy = (): {
   stageBootFailsAndMarkerWriteFails: (params: { error: Error; markerWriteError: Error }) => void;
   applyRegistryMutate: (params: { current: Registry }) => Registry;
   getServeCallArgs: () => unknown;
-  getExpectedSocketPath: () => AbsoluteFilePath;
+  getExpectedSocketPath: (params: { instanceId: InstanceId }) => AbsoluteFilePath;
   getExpectedEvidencePath: (params: { instanceId: InstanceId }) => AbsoluteFilePath;
   getBootLockReleaseCallArgs: () => unknown;
   getBootFailureMarkerWriteCallArgs: () => unknown;
@@ -113,11 +117,11 @@ export const SiegelenseDriverResponderProxy = (): {
     homePath: FilePathStub({ value: SHARED_PATH_VALUE }),
     rootPath: FilePathStub({ value: SHARED_PATH_VALUE }),
   });
-  const socketPathProxy = locationsSocketPathFindBrokerProxy();
-  socketPathProxy.setupSocketPath({
-    tmpDir: '/tmp',
-    socketPath: FilePathStub({ value: SHARED_PATH_VALUE }),
-  });
+  // instanceId is only chosen by each test AFTER this constructor already ran, so the exact final
+  // socketPath can't be staged here either — locationsSocketPathFindBrokerProxy's own sticky
+  // real-passthrough default answers the real call, and getExpectedSocketPath computes the same
+  // real value on demand from the caller's own instanceId.
+  locationsSocketPathFindBrokerProxy();
 
   const registryReadHandle = registerMock({ fn: registryReadBroker });
   const laneBootHandle = registerMock({ fn: laneBootBroker });
@@ -186,7 +190,11 @@ export const SiegelenseDriverResponderProxy = (): {
       return argsList[argsList.length - 1];
     },
 
-    getExpectedSocketPath: (): AbsoluteFilePath => SOCKET_PATH,
+    // Computed off the REAL broker rather than a stored literal, because the constructor never
+    // knows which instanceId a test will pick — the same reason getExpectedEvidencePath below is
+    // computed on demand instead of staged ahead of time.
+    getExpectedSocketPath: ({ instanceId }: { instanceId: InstanceId }): AbsoluteFilePath =>
+      locationsSocketPathFindBroker({ instanceId }),
 
     // Every registry row this proxy's callers build carries `guildId: null` (RegistryEntryStub's
     // own default, never overridden here), so the broker's real "unowned" shape —

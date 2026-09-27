@@ -25,7 +25,7 @@
  * // }
  */
 
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
+import { join } from '#gateway/node/path';
 import { absoluteFilePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import type { SnapshotOrdinal } from '../../../contracts/snapshot-ordinal/snapshot-ordinal-contract';
@@ -42,18 +42,14 @@ export const locationsSnapshotPathsFindBroker = ({
   index: AbsoluteFilePath;
   payload: AbsoluteFilePath;
 } => {
-  const storeDir = pathJoinAdapter({
-    paths: [homePath, snapshotStatics.store.dirName],
-  });
+  const storeDir = join(homePath, snapshotStatics.store.dirName);
 
-  const index = pathJoinAdapter({
-    paths: [storeDir, snapshotStatics.store.indexFileName],
-  });
+  const index = join(storeDir, snapshotStatics.store.indexFileName);
 
   // A payload directory is addressed by ORDINAL, never by the snapshot's own name: a name carries a
   // colon and a caller may capture the same one twice, so two records would otherwise collide on one
   // directory and the earlier restore point would be silently overwritten.
-  const payload = pathJoinAdapter({ paths: [storeDir, String(ordinal)] });
+  const payload = join(storeDir, String(ordinal));
 
   return {
     storeDir: absoluteFilePathContract.parse(storeDir),
