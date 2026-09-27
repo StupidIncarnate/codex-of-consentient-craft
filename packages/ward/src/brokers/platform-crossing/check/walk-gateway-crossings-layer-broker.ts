@@ -59,21 +59,17 @@ import { gatewaySpecifierCanonicalizeTransformer } from '../../../transformers/g
 import { barrelProvidesNameTransformer } from '../../../transformers/barrel-provides-name/barrel-provides-name-transformer';
 import { intersectImportedNamesTransformer } from '../../../transformers/intersect-imported-names/intersect-imported-names-transformer';
 import { typescriptModuleShapeAdapter } from '../../../adapters/typescript/module-shape/typescript-module-shape-adapter';
-import { resolveSpecifierCachedLayerBroker } from './resolve-specifier-cached-layer-broker';
+import {
+  resolveSpecifierCachedLayerBroker,
+  type ResolveSpecifierCache,
+} from './resolve-specifier-cached-layer-broker';
 
 export type WalkGatewayCrossingsMemo = Map<
   PlatformCrossingWalkMemoKey,
   Promise<readonly PlatformCrossingChainHop[][]>
 >;
 export type ModuleShapeCache = Map<FilePath, TypescriptModuleShape>;
-// Derived from the value import rather than a separate `type ResolveSpecifierCache` import:
-// `parseImplementationImportsTransformer` (packages/eslint-plugin) does not strip a per-specifier
-// `type` modifier inside a mixed `{...}` import list, so a named type import here reads as an
-// implementation import needing its own `ResolveSpecifierCacheProxy` — a proxy that cannot exist
-// for a type. Reported to the lint phase rather than worked around with a suppression.
-type ResolveSpecifierCache = Parameters<
-  typeof resolveSpecifierCachedLayerBroker
->[0]['resolveCache'];
+export type { ResolveSpecifierCache };
 
 export const walkGatewayCrossingsLayerBroker = async ({
   filePath,

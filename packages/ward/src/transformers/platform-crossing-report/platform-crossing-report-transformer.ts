@@ -1,8 +1,10 @@
 /**
  * PURPOSE: Renders the whole platform-crossing run — every violation's display block, blank-line
- * separated, or a single clean-run line when the walk found none. `commandPlatformCheckBroker`
- * writes exactly this string to stdout, so the report a person reads and the string a test asserts
- * on are the same value.
+ * separated, or a single clean-run line when the walk found none — as the one string a whole-run
+ * report and a test asserting on it both share. `platformDedupeCheckLayerBroker` reports one
+ * `ErrorEntry` per violation instead (`ward` folds each into the `lint` check individually), so
+ * nothing in `ward` currently calls this; it stays as the shared renderer for a caller that wants
+ * the whole run as one block rather than one entry per violation.
  *
  * USAGE:
  * platformCrossingReportTransformer({violations: []});

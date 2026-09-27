@@ -1,6 +1,7 @@
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 
 import { ProjectFolderStub } from '../../../contracts/project-folder/project-folder.stub';
+import { ProjectResultStub } from '../../../contracts/project-result/project-result.stub';
 import { WardConfigStub } from '../../../contracts/ward-config/ward-config.stub';
 
 import { singlePackageLayerBroker } from './single-package-layer-broker';
@@ -157,6 +158,101 @@ describe('singlePackageLayerBroker', () => {
       const result = await singlePackageLayerBroker({ config, projectFolder, rootPath });
 
       expect(result.filters).toStrictEqual({ only: ['lint'] });
+    });
+  });
+
+  describe('platformDedupeProjectResult', () => {
+    it('VALID: {a failing platformDedupeProjectResult, lint otherwise passes} => folds it into lint and flips the check to fail', async () => {
+      const projectFolder = ProjectFolderStub();
+      const proxy = singlePackageLayerBrokerProxy();
+      proxy.setupLintOnlyPass({ projectFolder });
+
+      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const config = WardConfigStub({ only: ['lint'] });
+      const platformDedupeProjectResult = ProjectResultStub({
+        projectFolder: { name: '(platform + dedupe)', path: '/project' },
+        status: 'fail',
+        errors: [
+          {
+            filePath: 'web',
+            line: 0,
+            column: 0,
+            message: 'a platform crossing',
+            severity: 'error',
+          },
+        ],
+      });
+
+      const result = await singlePackageLayerBroker({
+        config,
+        projectFolder,
+        rootPath,
+        platformDedupeProjectResult,
+      });
+
+      expect(result.checks).toStrictEqual([
+        {
+          checkType: 'lint',
+          status: 'fail',
+          durationMs: 0,
+          projectResults: [
+            {
+              projectFolder,
+              status: 'pass',
+              errors: [],
+              elsewhereErrors: [],
+              testFailures: [],
+              filesCount: 0,
+              discoveredCount: 0,
+              onlyDiscovered: [],
+              onlyProcessed: [],
+              rawOutput: { stdout: '[]', stderr: '', exitCode: 0, signal: null },
+              fileTimings: [],
+              passingTests: [],
+              openHandles: [],
+              durationMs: 0,
+            },
+            platformDedupeProjectResult,
+          ],
+        },
+      ]);
+    });
+
+    it('EMPTY: {no platformDedupeProjectResult} => leaves the lint result exactly as the checks alone produced it', async () => {
+      const projectFolder = ProjectFolderStub();
+      const proxy = singlePackageLayerBrokerProxy();
+      proxy.setupLintOnlyPass({ projectFolder });
+
+      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const config = WardConfigStub({ only: ['lint'] });
+
+      const result = await singlePackageLayerBroker({ config, projectFolder, rootPath });
+
+      expect(result.checks).toStrictEqual([
+        {
+          checkType: 'lint',
+          status: 'pass',
+          durationMs: 0,
+          projectResults: [
+            {
+              projectFolder,
+              status: 'pass',
+              errors: [],
+              elsewhereErrors: [],
+              testFailures: [],
+              filesCount: 0,
+              discoveredCount: 0,
+              onlyDiscovered: [],
+              onlyProcessed: [],
+              rawOutput: { stdout: '[]', stderr: '', exitCode: 0, signal: null },
+              fileTimings: [],
+              passingTests: [],
+              openHandles: [],
+              durationMs: 0,
+            },
+          ],
+        },
+      ]);
     });
   });
 });

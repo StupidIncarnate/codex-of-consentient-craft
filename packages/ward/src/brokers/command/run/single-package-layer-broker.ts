@@ -20,6 +20,8 @@ import { allCheckTypesStatics } from '../../../statics/all-check-types/all-check
 import { msPerSecondStatics } from '../../../statics/ms-per-second/ms-per-second-statics';
 import { runIdGenerateTransformer } from '../../../transformers/run-id-generate/run-id-generate-transformer';
 import { checkResultBuildTransformer } from '../../../transformers/check-result-build/check-result-build-transformer';
+import { foldProjectResultIntoChecksTransformer } from '../../../transformers/fold-project-result-into-checks/fold-project-result-into-checks-transformer';
+import type { ProjectResult } from '../../../contracts/project-result/project-result-contract';
 import { checkRunLintBroker } from '../../check-run/lint/check-run-lint-broker';
 import { checkRunTypecheckBroker } from '../../check-run/typecheck/check-run-typecheck-broker';
 import { checkRunUnitBroker } from '../../check-run/unit/check-run-unit-broker';
@@ -41,10 +43,12 @@ export const singlePackageLayerBroker = async ({
   config,
   projectFolder,
   rootPath,
+  platformDedupeProjectResult,
 }: {
   config: WardConfig;
   projectFolder: ProjectFolder;
   rootPath: AbsoluteFilePath;
+  platformDedupeProjectResult?: ProjectResult;
 }): Promise<WardResult> => {
   const runId = runIdGenerateTransformer();
   const timestamp = Date.now();
@@ -134,6 +138,16 @@ export const singlePackageLayerBroker = async ({
 
   const totalDurationMs = Date.now() - runStartMs;
 
+  // Folded in AFTER the loop above finishes, never inside it: `platformDedupeProjectResult` is
+  // computed once for the whole repo by `commandRunBroker`, not once per check type here.
+  const foldedChecks = foldProjectResultIntoChecksTransformer({
+    checks,
+    checkType: 'lint',
+    ...(platformDedupeProjectResult === undefined
+      ? {}
+      : { extraProjectResult: platformDedupeProjectResult }),
+  });
+
   const wardResult = wardResultContract.parse({
     runId,
     timestamp,
@@ -147,7 +161,7 @@ export const singlePackageLayerBroker = async ({
       ...(config.uncommitted === true ? { uncommitted: true } : {}),
       ...(hasPassthrough ? { passthrough: config.passthrough } : {}),
     },
-    checks,
+    checks: foldedChecks,
     durationMs: durationMsContract.parse(totalDurationMs),
   });
 

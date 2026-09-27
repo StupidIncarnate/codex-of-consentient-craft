@@ -1,10 +1,12 @@
 import { AbsoluteFilePathStub, FilePathStub } from '@dungeonmaster/shared/contracts';
 
 import { WardConfigStub } from '../../../contracts/ward-config/ward-config.stub';
+import { PlatformCrossingViolationStub } from '../../../contracts/platform-crossing-violation/platform-crossing-violation.stub';
 import { fileScopeEmptyStatics } from '../../../statics/file-scope-empty/file-scope-empty-statics';
 import { gitScopeDroppedPathsStatics } from '../../../statics/git-scope-dropped-paths/git-scope-dropped-paths-statics';
 import { noFilesProcessedStatics } from '../../../statics/no-files-processed/no-files-processed-statics';
 import { pathNotFoundStatics } from '../../../statics/path-not-found/path-not-found-statics';
+import { platformCrossingViolationDisplayTransformer } from '../../../transformers/platform-crossing-violation-display/platform-crossing-violation-display-transformer';
 
 import { commandRunBroker } from './command-run-broker';
 import { commandRunBrokerProxy } from './command-run-broker.proxy';
@@ -473,6 +475,42 @@ describe('commandRunBroker', () => {
           '\nFull error details: npm run ward -- detail 1739625600000-a38e <filePath>\n',
         ],
         exitCode: 2,
+      });
+    });
+  });
+
+  describe('a platform-crossing violation folds into the lint result', () => {
+    it('VALID: {an otherwise-clean run, one platform-crossing violation} => the summary reports it under lint and the run fails', async () => {
+      process.exitCode = 0;
+      const proxy = commandRunBrokerProxy();
+      proxy.setupSinglePackagePass();
+      const violation = PlatformCrossingViolationStub();
+      proxy.setupPlatformCrossingViolation({ violation });
+
+      const rootPath = AbsoluteFilePathStub({ value: '/project' });
+      const config = WardConfigStub({ only: ['lint'] });
+
+      await commandRunBroker({ config, rootPath });
+
+      expect({
+        stdoutCalls: proxy.getStdoutCalls(),
+        exitCode: process.exitCode,
+        exitCalls: proxy.getExitCalls(),
+      }).toStrictEqual({
+        stdoutCalls: [
+          [
+            'run: 1739625600000-a38e',
+            'lint:      FAIL  0 files run',
+            '',
+            '--- lint ---',
+            'web',
+            `  platform-crossing ${platformCrossingViolationDisplayTransformer({ violation })}`,
+            '',
+          ].join('\n'),
+          '\nFull error details: npm run ward -- detail 1739625600000-a38e <filePath>\n',
+        ],
+        exitCode: 1,
+        exitCalls: [],
       });
     });
   });

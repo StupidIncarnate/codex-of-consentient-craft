@@ -35,7 +35,11 @@ import { nonImplementationGlobsStatics } from '../../../statics/non-implementati
 import { fsGlobSyncAdapter } from '../../../adapters/fs/glob-sync/fs-glob-sync-adapter';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { gatewayPackageNamesReadLayerBroker } from './gateway-package-names-read-layer-broker';
-import { walkGatewayCrossingsLayerBroker } from './walk-gateway-crossings-layer-broker';
+import {
+  walkGatewayCrossingsLayerBroker,
+  type ModuleShapeCache,
+  type ResolveSpecifierCache,
+} from './walk-gateway-crossings-layer-broker';
 
 const FRONTEND_REACT_TYPE = packageTypeContract.parse('frontend-react');
 const LIBRARY_TYPE = packageTypeContract.parse('library');
@@ -59,11 +63,8 @@ export const platformCrossingCheckBroker = async ({
   // file every package imports (a shared broker, a common utility) is parsed, resolved and walked
   // once per (platform, requested-names) pair for the whole run, not once per entry file that
   // happens to reach it.
-  const moduleShapeCache: Parameters<
-    typeof walkGatewayCrossingsLayerBroker
-  >[0]['moduleShapeCache'] = new Map();
-  const resolveCache: Parameters<typeof walkGatewayCrossingsLayerBroker>[0]['resolveCache'] =
-    new Map();
+  const moduleShapeCache: ModuleShapeCache = new Map();
+  const resolveCache: ResolveSpecifierCache = new Map();
   const chainMemoByPlatform = new Map<
     'browser' | 'node',
     Map<PlatformCrossingWalkMemoKey, Promise<readonly PlatformCrossingChainHop[][]>>

@@ -9,11 +9,13 @@ import { ProjectResultStub } from '../../../contracts/project-result/project-res
 import { CheckResultStub } from '../../../contracts/check-result/check-result.stub';
 import { WardResultStub } from '../../../contracts/ward-result/ward-result.stub';
 import type { TestNamePatternMatch } from '../../../contracts/test-name-pattern-match/test-name-pattern-match-contract';
+import type { PlatformCrossingViolation } from '../../../contracts/platform-crossing-violation/platform-crossing-violation-contract';
 import { folderResolveLayerBrokerProxy } from './folder-resolve-layer-broker.proxy';
 import { gitScopeLayerBrokerProxy } from './git-scope-layer-broker.proxy';
 import { pathCheckLayerBrokerProxy } from './path-check-layer-broker.proxy';
 import { singlePackageLayerBrokerProxy } from './single-package-layer-broker.proxy';
 import { multiPackageLayerBrokerProxy } from './multi-package-layer-broker.proxy';
+import { platformDedupeCheckLayerBrokerProxy } from './platform-dedupe-check-layer-broker.proxy';
 
 // One eslint finding — a genuine red run, as opposed to a check that exits non-zero while
 // reporting nothing (the crash shape below).
@@ -40,6 +42,7 @@ export const commandRunBrokerProxy = (): {
   setupMissingPath: ({ filePath }: { filePath: FilePath }) => void;
   setupMultiPackagePass: (params: { packageCount: number; subResultContent: string }) => void;
   setupMultiPackageOnlyTests: (params: { matches: TestNamePatternMatch[] }) => void;
+  setupPlatformCrossingViolation: (params: { violation: PlatformCrossingViolation }) => void;
   getStdoutCalls: () => unknown[];
   getExitCalls: () => RecordedCalls;
 } => {
@@ -59,10 +62,17 @@ export const commandRunBrokerProxy = (): {
   const folderProxy = folderResolveLayerBrokerProxy();
   const singleProxy = singlePackageLayerBrokerProxy();
   const multiProxy = multiPackageLayerBrokerProxy();
+  const platformDedupeProxy = platformDedupeCheckLayerBrokerProxy();
 
   // Matches what folderResolveLayerBroker actually returns for rootPath '/project' when
   // folderProxy stages a package.json named 'test-pkg'.
   const singlePackageProjectFolder = ProjectFolderStub({ name: 'test-pkg', path: '/project' });
+  // Every scenario in this file runs against this same rootPath, so the platform-crossing and
+  // duplicate-install checks stay clean by default — a scenario that wants a violation overrides it
+  // below, which is the one call REPLACING this default rather than adding to it (the two checks
+  // are staged together; see platformDedupeCheckLayerBrokerProxy's own comment for why).
+  const rootPathForPlatformDedupe = AbsoluteFilePathStub({ value: '/project' });
+  platformDedupeProxy.setupClean({ rootPath: rootPathForPlatformDedupe });
 
   return {
     setupSinglePackagePass: (): void => {
@@ -194,6 +204,18 @@ export const commandRunBrokerProxy = (): {
             ),
           };
         }),
+      });
+    },
+    // Overrides the clean default staged above for the SAME rootPath — one violation on the
+    // platform-crossing side, duplicate-install still clean.
+    setupPlatformCrossingViolation: ({
+      violation,
+    }: {
+      violation: PlatformCrossingViolation;
+    }): void => {
+      platformDedupeProxy.setupViolations({
+        rootPath: rootPathForPlatformDedupe,
+        platformViolations: [violation],
       });
     },
     // No independent address exists for arbitrary stdout text — flatten via .map() (a real

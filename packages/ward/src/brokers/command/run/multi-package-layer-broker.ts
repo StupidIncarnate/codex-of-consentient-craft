@@ -30,6 +30,8 @@ import { allCheckTypesStatics } from '../../../statics/all-check-types/all-check
 import { wardSpawnCommandStatics } from '../../../statics/ward-spawn-command/ward-spawn-command-statics';
 import { runIdGenerateTransformer } from '../../../transformers/run-id-generate/run-id-generate-transformer';
 import { checkResultBuildTransformer } from '../../../transformers/check-result-build/check-result-build-transformer';
+import { foldProjectResultIntoChecksTransformer } from '../../../transformers/fold-project-result-into-checks/fold-project-result-into-checks-transformer';
+import type { ProjectResult } from '../../../contracts/project-result/project-result-contract';
 import { extractChildRunIdTransformer } from '../../../transformers/extract-child-run-id/extract-child-run-id-transformer';
 import { hasPassthroughMatchGuard } from '../../../guards/has-passthrough-match/has-passthrough-match-guard';
 import { binResolveBroker } from '../../bin/resolve/bin-resolve-broker';
@@ -42,10 +44,12 @@ export const multiPackageLayerBroker = async ({
   config,
   projectFolders,
   rootPath,
+  platformDedupeProjectResult,
 }: {
   config: WardConfig;
   projectFolders: ProjectFolder[];
   rootPath: AbsoluteFilePath;
+  platformDedupeProjectResult?: ProjectResult;
 }): Promise<WardResult> => {
   const runId = runIdGenerateTransformer();
   const timestamp = Date.now();
@@ -212,6 +216,17 @@ export const multiPackageLayerBroker = async ({
 
   const totalDurationMs = Date.now() - runStartMs;
 
+  // Folded in AFTER every child spawn and aggregation above finishes, never inside the per-package
+  // pool: `platformDedupeProjectResult` is computed once for the whole repo by `commandRunBroker`,
+  // not once per package.
+  const foldedChecks = foldProjectResultIntoChecksTransformer({
+    checks,
+    checkType: 'lint',
+    ...(platformDedupeProjectResult === undefined
+      ? {}
+      : { extraProjectResult: platformDedupeProjectResult }),
+  });
+
   const wardResult = wardResultContract.parse({
     runId,
     timestamp,
@@ -225,7 +240,7 @@ export const multiPackageLayerBroker = async ({
       ...(config.uncommitted === true ? { uncommitted: true } : {}),
       ...(hasPassthrough ? { passthrough: config.passthrough } : {}),
     },
-    checks,
+    checks: foldedChecks,
     durationMs: durationMsContract.parse(totalDurationMs),
   });
 

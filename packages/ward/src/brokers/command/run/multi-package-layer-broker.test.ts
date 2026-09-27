@@ -1,6 +1,7 @@
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 
 import { ProjectFolderStub } from '../../../contracts/project-folder/project-folder.stub';
+import { ProjectResultStub } from '../../../contracts/project-result/project-result.stub';
 import { WardConfigStub } from '../../../contracts/ward-config/ward-config.stub';
 
 import { multiPackageLayerBroker } from './multi-package-layer-broker';
@@ -1171,6 +1172,88 @@ describe('multiPackageLayerBroker', () => {
       });
 
       expect(result.filters).toStrictEqual({ only: ['lint'] });
+    });
+  });
+
+  describe('platformDedupeProjectResult', () => {
+    it('VALID: {a failing platformDedupeProjectResult, every child package passes} => folds it into lint and flips the check to fail', async () => {
+      const subResult = JSON.stringify({
+        runId: '1739625600000-a38e',
+        timestamp: 1739625600000,
+        filters: {},
+        checks: [
+          {
+            checkType: 'lint',
+            status: 'pass',
+            projectResults: [
+              {
+                projectFolder: {
+                  name: '@dungeonmaster/ward',
+                  path: '/home/user/project/packages/ward',
+                },
+                status: 'pass',
+                errors: [],
+                testFailures: [],
+                filesCount: 5,
+              },
+            ],
+          },
+        ],
+      });
+
+      const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
+      const wardFolder = ProjectFolderStub({
+        name: 'ward',
+        path: '/home/user/project/packages/ward',
+      });
+      const proxy = multiPackageLayerBrokerProxy();
+      proxy.setupSpawnAndLoadSelective({
+        rootPath,
+        packages: [{ projectFolder: wardFolder, subResultContent: subResult }],
+      });
+      const platformDedupeProjectResult = ProjectResultStub({
+        projectFolder: { name: '(platform + dedupe)', path: '/home/user/project' },
+        status: 'fail',
+        errors: [
+          {
+            filePath: 'web',
+            line: 0,
+            column: 0,
+            message: 'a platform crossing',
+            severity: 'error',
+          },
+        ],
+      });
+
+      const result = await multiPackageLayerBroker({
+        config: WardConfigStub({ only: ['lint'] }),
+        projectFolders: [wardFolder],
+        rootPath,
+        platformDedupeProjectResult,
+      });
+
+      const lintCheck = result.checks.find((check) => check.checkType === 'lint');
+
+      expect(lintCheck?.status).toBe('fail');
+      expect(lintCheck?.projectResults).toStrictEqual([
+        {
+          projectFolder: { name: '@dungeonmaster/ward', path: '/home/user/project/packages/ward' },
+          status: 'pass',
+          errors: [],
+          elsewhereErrors: [],
+          testFailures: [],
+          filesCount: 5,
+          discoveredCount: 0,
+          onlyDiscovered: [],
+          onlyProcessed: [],
+          rawOutput: { stdout: '', stderr: '', exitCode: 0, signal: null },
+          fileTimings: [],
+          passingTests: [],
+          openHandles: [],
+          durationMs: 0,
+        },
+        platformDedupeProjectResult,
+      ]);
     });
   });
 });

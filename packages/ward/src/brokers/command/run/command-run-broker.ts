@@ -11,6 +11,7 @@ import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import { wardExitCodeStatics } from '@dungeonmaster/shared/statics';
 
 import type { WardConfig } from '../../../contracts/ward-config/ward-config-contract';
+import { allCheckTypesStatics } from '../../../statics/all-check-types/all-check-types-statics';
 import { fileScopeEmptyStatics } from '../../../statics/file-scope-empty/file-scope-empty-statics';
 import { gitScopeDroppedPathsStatics } from '../../../statics/git-scope-dropped-paths/git-scope-dropped-paths-statics';
 import { noFilesProcessedStatics } from '../../../statics/no-files-processed/no-files-processed-statics';
@@ -28,6 +29,7 @@ import { folderResolveLayerBroker } from './folder-resolve-layer-broker';
 import { gitScopeLayerBroker } from './git-scope-layer-broker';
 import { singlePackageLayerBroker } from './single-package-layer-broker';
 import { multiPackageLayerBroker } from './multi-package-layer-broker';
+import { platformDedupeCheckLayerBroker } from './platform-dedupe-check-layer-broker';
 import { passthroughNormalizeTransformer } from '../../../transformers/passthrough-normalize/passthrough-normalize-transformer';
 import { resultToSummaryTransformer } from '../../../transformers/result-to-summary/result-to-summary-transformer';
 import { hasCheckDiscoveryMismatchGuard } from '../../../guards/has-check-discovery-mismatch/has-check-discovery-mismatch-guard';
@@ -137,16 +139,37 @@ export const commandRunBroker = async ({
 
   const workspaces = await workspaceDiscoverBroker({ rootPath });
 
+  // Called ONCE here, never inside `singlePackageLayerBroker`'s or `multiPackageLayerBroker`'s own
+  // per-package loop: both checks walk the WHOLE repo in one pass regardless of how many packages
+  // are in scope, so the result is computed once and threaded through to whichever mode runs, which
+  // folds it into the `lint` CheckResult BEFORE saving — the only point at which `storageSaveBroker`
+  // has not yet run, so `ward list`/`ward detail` see it exactly like any other lint finding.
+  const checkTypes = scopedConfig.only ?? [...allCheckTypesStatics];
+  const platformDedupeProjectResult = await platformDedupeCheckLayerBroker({
+    rootPath,
+    checkTypes,
+    passthrough: scopedConfig.passthrough,
+  });
+
+  const platformDedupeProjectResultParam =
+    platformDedupeProjectResult === undefined ? {} : { platformDedupeProjectResult };
+
   const wardResult =
     workspaces === null
       ? await (async () => {
           const projectFolder = await folderResolveLayerBroker({ rootPath });
-          return singlePackageLayerBroker({ config: scopedConfig, projectFolder, rootPath });
+          return singlePackageLayerBroker({
+            config: scopedConfig,
+            projectFolder,
+            rootPath,
+            ...platformDedupeProjectResultParam,
+          });
         })()
       : await multiPackageLayerBroker({
           config: scopedConfig,
           projectFolders: workspaces,
           rootPath,
+          ...platformDedupeProjectResultParam,
         });
 
   process.stderr.write('\r\x1b[K\n');
