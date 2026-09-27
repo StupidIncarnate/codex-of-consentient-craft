@@ -1,6 +1,6 @@
 # Adapters and branded types: what they buy, what replaces them
 
-> **Superseded in part by `scrolls/brands-types-adapters-rules.md`.** That doc replaces this one's
+> **Superseded in part by `scrolls/brands-types-tests-rules.md`.** That doc replaces this one's
 > areas A and D, and the adapter half of area F. Dungeonmaster ships no adapters for other repos'
 > production code: each repo keeps its own adapters. Area B (the unit-test I/O trap and its record),
 > area C (proxies), area E (JSX) and the handoff below still stand.
@@ -124,8 +124,7 @@ const raw = await fsReadFileIfExistsAdapter({ filePath });   // undefined when m
 const config = configContract.parse(JSON.parse(raw));
 ```
 
-**Dropped:** dungeonmaster ships no adapters for other repos (see `brands-types-adapters-rules.md`,
-A5 and decision 4). Each repo keeps these in its own adapters package. The original text follows.
+**Dropped:** dungeonmaster ships no adapters for other repos. Each repo keeps its outside-package code in its own gateway (see `adapters-to-one-place.md`). The original text follows.
 
 Adapters with handling that every repo needs ship once, in `@dungeonmaster/shared/adapters`:
 `fsReadFileIfExistsAdapter`, `fsEnsureWriteAdapter`, `fsRmIfExistsAdapter`,
@@ -490,9 +489,8 @@ stay as they are.
 
 ### F. Shipped adapters and proxies are visible to a consumer's models
 
-**Adapters dropped:** dungeonmaster ships no adapters for other repos (see
-`brands-types-adapters-rules.md`, A5 and decision 4). What follows still applies to shipped proxies and
-stubs, which only tests load.
+**Adapters
+dropped:** dungeonmaster ships no adapters for other repos; each repo has its own gateway (see `adapters-to-one-place.md`). What follows still applies to shipped test infrastructure, which only tests load.
 
 In a consumer repo the shipped adapters and proxies live in `node_modules/@dungeonmaster/*`, which the
 search tools a model uses do not index. They reach a model the way `registerMock` already does:
