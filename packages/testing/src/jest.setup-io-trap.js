@@ -63,9 +63,18 @@ const NODE_MODULES_SEGMENT = `${path.sep}node_modules${path.sep}`;
 // A `/node_modules` segment, with or without a trailing separator: module resolution stats the
 // directory itself while walking up the tree.
 const NODE_MODULES_PATH = /[\\/]node_modules(?:[\\/]|$)/iu;
-// A test/proxy/stub/harness file, or any file under a package's own `test/` directory.
+// A test/proxy/stub/harness file, any file under a package's own `test/` directory, or one of
+// `@dungeonmaster/testing`'s own ts-jest AST-transformer glue files (`proxy-mock-transformer.js`,
+// `harness-lifecycle-transformer.js`, `transformers.js`). Those glue files `require('tsx/cjs')` at
+// their own top, which ts-jest invokes fresh on the first `getCacheKey()`/`resolveTransformers()`
+// call after ANY edit to a shared jest setup file invalidates the disk cache for every `.ts` file
+// in the repo — a real, first-party compile step, not application code reaching real I/O. Without
+// this, that cold compile can land inside a DIFFERENT test's own `afterEach` window (whichever file
+// happens to need a fresh compile first in a given worker) and this trap misreports it as that
+// test's own unstaged call — observed as `net.createConnection` to tsx's IPC pipe and `new
+// Worker(esbuild/lib/main.js)`, on a file with no real I/O of its own.
 const TEST_INFRASTRUCTURE_FRAME =
-  /\.(test|proxy|stub|harness)\.[jt]sx?$|[\\/]packages[\\/][^\\/]+[\\/]test[\\/]/u;
+  /\.(test|proxy|stub|harness)\.[jt]sx?$|[\\/]packages[\\/][^\\/]+[\\/]test[\\/]|[\\/]ts-jest[\\/]/u;
 // Reading a fixture under a package's `test/` directory is test infrastructure, whoever reads it —
 // a real TypeScript compile over fixtures reads them from inside node_modules. Reads only: nothing
 // may write into the checkout's fixtures.

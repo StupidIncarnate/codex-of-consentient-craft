@@ -1,4 +1,10 @@
 const dungeonmasterTsJestOptions = require('./ts-jest/options.js');
+const {
+  buildNodeModulesEsmTransformPatterns,
+} = require('./ts-jest/node-modules-esm-transform-packages.js');
+
+const { ignorePattern: nodeModulesEsmIgnorePattern, transformPattern: nodeModulesEsmTransformPattern } =
+  buildNodeModulesEsmTransformPatterns();
 
 module.exports = {
   preset: 'ts-jest',
@@ -19,10 +25,14 @@ module.exports = {
   ],
   testMatch: ['**/src/**/*.test.ts', '**/src/**/*.integration.test.ts'],
   testPathIgnorePatterns: ['/node_modules/', '/dist/'],
-  transformIgnorePatterns: ['/dist/', '/node_modules/(?!(msw|@mswjs|until-async|outvariant)/)'],
+  transformIgnorePatterns: ['/dist/', nodeModulesEsmIgnorePattern],
   moduleFileExtensions: ['ts', 'js', 'json'],
   transform: {
-    '^.+\\.[jt]s$': ['ts-jest', dungeonmasterTsJestOptions],
+    // Own TypeScript source only — an unanchored `.js` match here would also route this package's
+    // OWN `.js` fixtures through ts-jest's error-recovering `transpileModule`. See
+    // `node-modules-esm-transform-packages.js`'s own header.
+    '^.+\\.ts$': ['ts-jest', dungeonmasterTsJestOptions],
+    [nodeModulesEsmTransformPattern]: ['ts-jest', dungeonmasterTsJestOptions],
   },
   coverageDirectory: 'coverage',
   verbose: false,

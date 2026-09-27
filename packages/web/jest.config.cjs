@@ -1,5 +1,18 @@
 const { resolve, dirname } = require('path');
 const baseConfig = require('../../jest.config.base.js');
+const {
+  buildNodeModulesEsmTransformPatterns,
+} = require('../../packages/testing/ts-jest/node-modules-esm-transform-packages.js');
+
+// `undici` joins the shared four: this package's own fetch mocking pulls it in as an extra ESM
+// dependency none of the other packages reach.
+const { ignorePattern, packageNames } = buildNodeModulesEsmTransformPatterns({
+  extraPackageNames: ['undici'],
+});
+// `.m?js$`, not `.js$` alone — this package's own combined transform key used to also match a bare
+// `.mjs` anywhere, and anchoring that down to `node_modules` (rather than dropping it) keeps an ESM
+// `.mjs` dependency working exactly as before.
+const nodeModulesEsmTransformPattern = `/node_modules/(${packageNames.join('|')})/.+\\.m?js$`;
 
 // Resolve react/react-dom to their actual install location so the test suite shares a
 // single React instance regardless of whether npm hoists them to the repo root or nests
@@ -49,12 +62,29 @@ module.exports = {
     '^(#gateway/npm/tabler__icons-react|@tabler/icons-react)$': '<rootDir>/src/__mocks__/tabler-icons-mock.cjs',
     '^(#gateway/npm/xyflow__react|@xyflow/react)$': '<rootDir>/src/__mocks__/xyflow-react-mock.cjs',
   },
-  transformIgnorePatterns: [
-    '/dist/',
-    '/node_modules/(?!(msw|@mswjs|until-async|outvariant|undici)/)',
-  ],
+  transformIgnorePatterns: ['/dist/', ignorePattern],
   transform: {
-    '^.+\\.m?[jt]sx?$': [
+    // Own source only (.ts/.tsx, and .js/.jsx should this package ever add one) — anchoring the
+    // node_modules ESM entry below is what keeps a genuine syntax error in an own-source file
+    // throwing instead of being silently repaired by ts-jest's error-recovering `transpileModule`.
+    // This package holds no `.js`/`.jsx` file of its own today (verified against `packages/web/**`),
+    // so narrowing this from the previous combined `.m?[jt]sx?$` pattern changes nothing it runs
+    // today and only removes a latent trap. See `node-modules-esm-transform-packages.js`'s own
+    // header for the class of bug this guards against.
+    '^.+\\.[jt]sx?$': [
+      'ts-jest',
+      {
+        tsconfig: resolve(__dirname, 'tsconfig.test.json'),
+        astTransformers: {
+          before: [
+            {
+              path: require.resolve('../../packages/testing/ts-jest/proxy-mock-transformer.js'),
+            },
+          ],
+        },
+      },
+    ],
+    [nodeModulesEsmTransformPattern]: [
       'ts-jest',
       {
         tsconfig: resolve(__dirname, 'tsconfig.test.json'),

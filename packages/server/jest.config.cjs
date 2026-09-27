@@ -1,5 +1,10 @@
 const baseConfig = require('../../jest.config.base.js');
 const dungeonmasterTsJestOptions = require('../../packages/testing/ts-jest/options.js');
+const {
+  buildNodeModulesEsmTransformPatterns,
+} = require('../../packages/testing/ts-jest/node-modules-esm-transform-packages.js');
+
+const { ignorePattern, transformPattern } = buildNodeModulesEsmTransformPatterns();
 
 module.exports = {
   ...baseConfig,
@@ -10,9 +15,13 @@ module.exports = {
   // `@dungeonmaster/testing`'s root barrel pulls in msw (ESM), which jest's default
   // transformIgnorePatterns leaves untransformed — matches every other package that reaches
   // `installTestbedCreateBroker`.
-  transformIgnorePatterns: ['/dist/', '/node_modules/(?!(msw|@mswjs|until-async|outvariant)/)'],
+  transformIgnorePatterns: ['/dist/', ignorePattern],
   transform: {
-    '^.+\\.[jt]s$': ['ts-jest', dungeonmasterTsJestOptions],
+    // Own TypeScript source only — an unanchored `.js` match also routes this package's own real
+    // `.js` files through ts-jest's error-recovering `transpileModule`. See
+    // `node-modules-esm-transform-packages.js`'s own header.
+    '^.+\\.ts$': ['ts-jest', dungeonmasterTsJestOptions],
+    [transformPattern]: ['ts-jest', dungeonmasterTsJestOptions],
   },
   // A worker here RETAINS every test file it has already run, and dies of it partway through the
   // suite — `JavaScript heap out of memory`, on a different file each run, which reads as a flake

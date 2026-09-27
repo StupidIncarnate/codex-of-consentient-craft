@@ -1,6 +1,11 @@
 // Extend shared Jest configuration
 const baseConfig = require('../../jest.config.base.js');
 const dungeonmasterTsJestOptions = require('../../packages/testing/ts-jest/options.js');
+const {
+  buildNodeModulesEsmTransformPatterns,
+} = require('../../packages/testing/ts-jest/node-modules-esm-transform-packages.js');
+
+const { ignorePattern, transformPattern } = buildNodeModulesEsmTransformPatterns();
 
 module.exports = {
   ...baseConfig,
@@ -8,10 +13,14 @@ module.exports = {
   testMatch: ['**/src/**/*.test.[jt]s', '**/bin/**/*.test.[jt]s', '**/test/**/*.test.[jt]s'],
   transformIgnorePatterns: [
     '/dist/',
-    '/node_modules/(?!(msw|@mswjs|until-async|outvariant)/)',
+    ignorePattern,
     '/packages/testing/src/jest\\.setup\\.js$',
   ],
   transform: {
-    '^.+\\.[jt]s$': ['ts-jest', dungeonmasterTsJestOptions],
+    // Own TypeScript source only — an unanchored `.js` match also routes this package's own real
+    // `.js` files through ts-jest's error-recovering `transpileModule`. See
+    // `node-modules-esm-transform-packages.js`'s own header.
+    '^.+\\.ts$': ['ts-jest', dungeonmasterTsJestOptions],
+    [transformPattern]: ['ts-jest', dungeonmasterTsJestOptions],
   },
 };

@@ -58,17 +58,30 @@ module.exports = {
   // ts-jest's `allowJs` (`published-options.js`) already down-levels plain JS/ESM fine.
   transformIgnorePatterns: [],
   moduleFileExtensions: ['ts', 'js', 'mjs', 'json'],
-  // `[cm]?[jt]s`, not `[jt]s` alone: `transformIgnorePatterns` above only decides which
-  // node_modules paths are ELIGIBLE for transforming — msw's own dependency chain ships real
-  // `.mjs` files (`rettime`) that `^.+\.[jt]s$` never matched (an `.mjs` extension has no literal
-  // "." immediately before its `js`), so ts-jest never even got asked to down-level them, and
-  // Node's own CJS loader rejected the raw `import`/`export` syntax before ts-jest saw the file at
-  // all — confirmed against a real packed-and-installed consumer (item G27): "Must use import to
-  // load ES Module" fired on `rettime/build/index.mjs` even with the pattern above widened to
-  // include `rettime`, because THIS regex, not that one, was what excluded the file from a
-  // transform in the first place.
   transform: {
-    '^.+\\.[cm]?[jt]s$': ['ts-jest', dungeonmasterTsJestOptions],
+    // Own TypeScript source, anywhere — including inside `node_modules/@dungeonmaster/testing`,
+    // where this base's own `globalSetup`/`setupFilesAfterEnv` files `require()` sibling `.ts`
+    // broker files by relative path in a real consumer install (see this file's own header above).
+    '^.+\\.tsx?$': ['ts-jest', dungeonmasterTsJestOptions],
+    // Anchored to `node_modules`, not `.[cm]?[jt]s$` everywhere as this used to read:
+    // `transformIgnorePatterns` above is `[]` because msw's OWN transitive dependency graph is too
+    // deep and too volatile to enumerate by name (see this file's own header) — every node_modules
+    // path is therefore ELIGIBLE, and THIS pattern is what actually decides which ones ts-jest
+    // transforms. `[cm]?js$`, not `js$` alone: msw's dependency chain ships real `.mjs` files
+    // (`rettime`) that a bare `.js$` never matched (an `.mjs` extension has no literal "." right
+    // before its `js`), so ts-jest never got asked to down-level them and Node's own CJS loader
+    // rejected the raw `import`/`export` syntax before ts-jest ever saw the file — confirmed
+    // against a real packed-and-installed consumer (item G27).
+    //
+    // Anchoring to `node_modules` here — rather than matching every `.js`/`.mjs`/`.cjs` file in the
+    // CONSUMER's own project too, which is what this pattern used to do — is what keeps a
+    // consumer's own project `.js` fixture off ts-jest's error-recovering `transpileModule`: left
+    // unanchored, a genuine syntax error in that file comes back parsed and valid instead of
+    // throwing — the same class of bug `@gateway/node`'s `dynamic-import.test.ts` caught for this
+    // repo's own packages (fixed in cdf22d643). A path this pattern does not match still runs: Jest
+    // hands a genuine CommonJS `.js` file straight to Node's own loader, with no ts-jest step
+    // needed, so a real syntax error there still throws.
+    '/node_modules/.+\\.[cm]?js$': ['ts-jest', dungeonmasterTsJestOptions],
   },
   coverageDirectory: 'coverage',
   verbose: false,
