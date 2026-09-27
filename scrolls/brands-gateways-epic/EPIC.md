@@ -168,7 +168,7 @@ Mostly tooling and the gateway packages themselves. Most items here are independ
 | G24 | [Tell a consumer's agent how to add an npm or bin wrapper](items/g24-consumer-npm-bin-wrapper-snippet.md) | — | any | review | part committed in b6ce9b203: the snippet, the `create-package` refusal and the `hooks` tests. Still to do: add `src` to `files` in `@gateway/npm` and `@gateway/bin`; move `@gateway/browser/__mocks__/jsdom-polyfills.cjs` into `testing` and repoint its references in `cli`; then the operator runs build, `npm link --workspaces` and `npm run init`, because an `orchestrator` test compares against the generated `.claude/settings.json`. |
 | G25 | [`init` works end to end in a scratch consumer](items/g25-consumer-init-end-to-end.md) | G03, G08 | any | done | 62de99da9, merged in b430a2100. Two scratch consumers under `/tmp` ran `init`, typecheck, test and build green. Fixes: - `packageDiscoverBroker` scans `node_modules` in a consumer - `siegelense` joins `devDependenciesStatics` - the published Jest base transforms `@dungeonmaster/testing` - the published ts-jest options set `diagnostics: false` (see G27) - the scaffolded `eslint.config.js` wires the gateway carve-out - four `@gateway/node` fixes for newer tool versions  Left for unit **F1**: a consumer's newer `@typescript-eslint` (8.70.1 against the repo's 8.45.0) fails lint on `@gateway/node`: 5 proxies report `no-unused-vars` on types used in `as unknown as X`, and `fetch-ok.ts` reports `no-deprecated` on `util.types.isNativeError`. |
 | G26 | [Stubs and proxies are imported from their own files; the gateway's `_test_` barrels go](items/g26-per-file-proxy-and-stub-imports.md) | — | any outside `@gateway/*` and `testing` | done | 3e8d30de1, 55b993cfa, f8eab6107, fdca16800, c7409c6b5, 4b0728ba0, d3f170e5a. No `_test_` key or barrel exists; the 22 barrels are deleted. G23 removes the dead `gatewayLocationsStatics.testSubpath`. Concession 1 is realised. |
-| G27 | [A test suite proves a fresh consumer repo is bootstrapped correctly](items/g27-consumer-repo-test-suite.md) | G25, G26 | any | todo | ready, but waits for the testing build fix (blocked table). Worktree `worktrees/gp-g27-consumer-suite` is carved and reset to b430a2100. |
+| G27 | [A test suite proves a fresh consumer repo is bootstrapped correctly](items/g27-consumer-repo-test-suite.md) | G25, G26 | any | active | agent g27, in worktree `worktrees/gp-g27-consumer-suite` (reset to ed13c2901, `build:clean` green). |
 
 ### Phase 2 — delete every adapter
 
@@ -263,7 +263,6 @@ When an item is marked `blocked`, add a row here. Clear the row when the item un
 
 | ID | What blocks it | What was tried | What else it holds up |
 |---|---|---|---|
-| — | `npm run build:clean` fails in `@dungeonmaster/testing` with TS6059: its build resolves `@dungeonmaster/shared` to source, and two shared stubs import a file outside `shared/src`. It passed at a7e9572a7 and fails at b430a2100. | Agent fix-testing-build is investigating. | G27; any full build; Z07 |
 
 ## Log
 
