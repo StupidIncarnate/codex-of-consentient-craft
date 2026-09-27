@@ -1,4 +1,5 @@
 import { AbsoluteFilePathStub, ContentTextStub } from '@dungeonmaster/shared/contracts';
+import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
 import { HookSessionSnippetPackagesResponder } from './hook-session-snippet-packages-responder';
 import { HookSessionSnippetPackagesResponderProxy } from './hook-session-snippet-packages-responder.proxy';
 
@@ -62,7 +63,7 @@ describe('HookSessionSnippetPackagesResponder', () => {
   });
 
   describe('@-scoped group folders (gateway packages)', () => {
-    it('VALID: {@gateway group holding npm and node} => lists the gateway packages by bare name, and never lists @gateway itself', () => {
+    it('VALID: {@gateway group holding npm and node} => collapses the whole group to one #gateway entry, never @gateway and never its bare child names', () => {
       const proxy = HookSessionSnippetPackagesResponderProxy();
 
       proxy.setupEntries({
@@ -85,7 +86,31 @@ describe('HookSessionSnippetPackagesResponder', () => {
       });
 
       expect(result).toBe(
-        ContentTextStub({ value: '## Packages\n\n- **cli**\n- **node**\n- **npm**' }),
+        ContentTextStub({
+          value: `## Packages\n\n- **${gatewayLocationsStatics.importPrefix}**\n- **cli**`,
+        }),
+      );
+    });
+
+    it('VALID: {@gateway group with no readdir staged for its children} => still resolves to #gateway without ever reading inside the group folder', () => {
+      const proxy = HookSessionSnippetPackagesResponderProxy();
+
+      proxy.setupEntries({
+        projectRoot: AbsoluteFilePathStub({ value: '/project' }),
+        entries: [
+          { name: 'cli', isDirectory: true },
+          { name: '@gateway', isDirectory: true },
+        ],
+      });
+
+      const result = HookSessionSnippetPackagesResponder({
+        projectRoot: AbsoluteFilePathStub({ value: '/project' }),
+      });
+
+      expect(result).toBe(
+        ContentTextStub({
+          value: `## Packages\n\n- **${gatewayLocationsStatics.importPrefix}**\n- **cli**`,
+        }),
       );
     });
   });
