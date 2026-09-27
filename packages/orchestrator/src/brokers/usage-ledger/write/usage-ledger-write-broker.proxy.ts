@@ -9,8 +9,8 @@ import { fsRenameAdapterProxy } from '../../../adapters/fs/rename/fs-rename-adap
 import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
 
 export const usageLedgerWriteBrokerProxy = (): {
-  setupWriteSuccess: () => void;
-  setupWriteFailure: (params: { error: Error }) => void;
+  setupWriteSuccess: (params: { nowMs: number }) => void;
+  setupWriteFailure: (params: { nowMs: number; error: Error }) => void;
   getWrittenContent: () => unknown;
 } => {
   const ensureProxy = dungeonmasterHomeEnsureBrokerProxy();
@@ -20,10 +20,18 @@ export const usageLedgerWriteBrokerProxy = (): {
   const renameProxy = fsRenameAdapterProxy();
 
   const homePath = FilePathStub({ value: '/home/user/.dungeonmaster' });
-  const tmpPath = FilePathStub({ value: '/home/user/.dungeonmaster/usage-ledger.json.tmp' });
 
-  // Queued in the broker's own order: ensure-home, then the ledger path, then the tmp path.
-  const queuePaths = (): void => {
+  // Queued in the broker's own order: ensure-home, then the ledger path, then the tmp path. The
+  // broker's tmp-file token is `${process.pid}-${nowMs}` (usage-ledger-write-broker.ts) — reading
+  // process.pid here is not a stage, it is the SAME process the broker runs in, so this proxy and
+  // the broker always compute the identical token, which is what lets the write be staged against
+  // the exact token-suffixed path instead of a prefix/suffix predicate.
+  const queuePaths = ({ nowMs }: { nowMs: number }): ReturnType<typeof FilePathStub> => {
+    const token = `${String(process.pid)}-${String(nowMs)}`;
+    const tmpPath = FilePathStub({
+      value: `/home/user/.dungeonmaster/usage-ledger.json.tmp.${token}`,
+    });
+
     ensureProxy.setupEnsureSuccess({
       homeDir: '/home/user',
       homePath,
@@ -37,22 +45,25 @@ export const usageLedgerWriteBrokerProxy = (): {
     tmpPathProxy.setupLedgerTmpPath({
       homeDir: '/home/user',
       homePath,
+      token,
       ledgerTmpPath: tmpPath,
     });
+
+    return tmpPath;
   };
 
   return {
-    setupWriteSuccess: (): void => {
-      queuePaths();
+    setupWriteSuccess: ({ nowMs }: { nowMs: number }): void => {
+      const tmpPath = queuePaths({ nowMs });
       writeFileProxy.succeeds({ filePath: tmpPath });
       renameProxy.succeeds({ from: tmpPath });
     },
 
-    setupWriteFailure: ({ error }: { error: Error }): void => {
-      queuePaths();
+    setupWriteFailure: ({ nowMs, error }: { nowMs: number; error: Error }): void => {
+      const tmpPath = queuePaths({ nowMs });
       writeFileProxy.throws({ filePath: tmpPath, error });
     },
 
-    getWrittenContent: (): unknown => writeFileProxy.getWrittenFor({ filePath: tmpPath }),
+    getWrittenContent: (): unknown => writeFileProxy.getAllWrittenFiles().at(-1)?.content,
   };
 };
