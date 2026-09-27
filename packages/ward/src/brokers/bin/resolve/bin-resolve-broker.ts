@@ -6,7 +6,7 @@
  * // Returns BinCommand('/project/node_modules/.bin/eslint') if it exists, otherwise BinCommand('eslint')
  */
 
-import { fsExistsSyncAdapter } from '@dungeonmaster/shared/adapters';
+import { existsSync } from '#gateway/node/fs';
 import { filePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import {
@@ -22,6 +22,6 @@ export const binResolveBroker = ({
   cwd: AbsoluteFilePath;
 }): BinCommand => {
   const binPath = filePathContract.parse(`${String(cwd)}/node_modules/.bin/${String(binName)}`);
-  const exists = fsExistsSyncAdapter({ filePath: binPath });
+  const exists = existsSync(binPath);
   return exists ? binCommandContract.parse(String(binPath)) : binName;
 };

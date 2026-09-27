@@ -8,11 +8,11 @@
 
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
-import { processCwdAdapter } from '@dungeonmaster/shared/adapters';
+import { cwd } from '#gateway/node/process';
 
 import { WardFlow } from '../flows/ward/ward-flow';
 
 export const StartWard = async ({ args }: { args: readonly string[] }): Promise<AdapterResult> => {
-  const rootPath = absoluteFilePathContract.parse(processCwdAdapter());
+  const rootPath = absoluteFilePathContract.parse(cwd());
   return WardFlow({ args, rootPath });
 };

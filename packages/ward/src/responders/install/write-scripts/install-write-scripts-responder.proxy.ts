@@ -1,4 +1,4 @@
-import { fsExistsSyncAdapterProxy } from '@dungeonmaster/shared/testing';
+import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { FilePathStub, type FilePath } from '@dungeonmaster/shared/contracts';
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
@@ -12,7 +12,7 @@ export const InstallWriteScriptsResponderProxy = (): {
   getWrittenContent: (params: { filePath: FilePath }) => unknown;
   getWrittenPath: () => unknown;
 } => {
-  const existsProxy = fsExistsSyncAdapterProxy();
+  const existsProxy = existsSyncProxy();
   const readProxy = fsReadFileAdapterProxy();
   const writeProxy = fsWriteFileAdapterProxy();
 
@@ -24,11 +24,11 @@ export const InstallWriteScriptsResponderProxy = (): {
     callResponder: InstallWriteScriptsResponder,
 
     setupFileExists: (): void => {
-      existsProxy.returns({ filePath: packageJsonPath, result: true });
+      existsProxy.returns({ path: packageJsonPath, exists: true });
     },
 
     setupFileNotExists: (): void => {
-      existsProxy.returns({ filePath: packageJsonPath, result: false });
+      existsProxy.returns({ path: packageJsonPath, exists: false });
     },
 
     setupReadFileContent: ({

@@ -16,7 +16,7 @@
  * should fail a run depends on what the repo's lint and tsconfig actually cover.
  */
 
-import { fsExistsSyncAdapter } from '@dungeonmaster/shared/adapters';
+import { existsSync } from '#gateway/node/fs';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 
@@ -34,9 +34,6 @@ export const pathCheckLayerBroker = ({
   }
 
   return passthrough.filter(
-    (arg) =>
-      !fsExistsSyncAdapter({
-        filePath: filePathContract.parse(`${String(rootPath)}/${String(arg)}`),
-      }),
+    (arg) => !existsSync(filePathContract.parse(`${String(rootPath)}/${String(arg)}`)),
   );
 };

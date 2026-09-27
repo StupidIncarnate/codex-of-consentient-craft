@@ -4,6 +4,7 @@ import {
   RelativePathStub,
   FileContentStub,
 } from '@dungeonmaster/testing';
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import { wardRunnerHarness } from '../../test/harnesses/ward-runner/ward-runner.harness';
 import { WardResultStub } from '../contracts/ward-result/ward-result.stub';
@@ -62,7 +63,13 @@ describe('StartWard', () => {
       });
     });
 
-    it('VALID: {args: ["node", "ward", "detail", runId, "--json"]} => completes without throwing', async () => {
+    // StartWard resolves rootPath from the gateway's `cwd()`, which only lines up with the
+    // testbed directory below because the process really `chdir`ed there — a broker.ts that
+    // mis-wired the gateway call would resolve rootPath somewhere else, storageLoadBroker would
+    // find no `.ward/run-<id>.json` there, and the run would answer on stderr instead of stdout.
+    // Capturing stdout (record-and-swallow, per registerSpyOn's own pattern) and asserting the
+    // exact JSON it printed proves cwd() drove the real lookup, not just that nothing threw.
+    it('VALID: {args: ["node", "ward", "detail", runId, "--json"], real cwd chdir\'d to the testbed} => prints the stored result read from that exact directory', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'start-ward-detail-json' }),
       });
@@ -71,10 +78,14 @@ describe('StartWard', () => {
         value: `.ward/run-${VALID_RUN_ID}.json`,
       });
 
+      const storedResult = WardResultStub();
       testbed.writeFile({
         relativePath: wardResultRelativePath,
-        content: FileContentStub({ value: JSON.stringify(WardResultStub()) }),
+        content: FileContentStub({ value: JSON.stringify(storedResult) }),
       });
+
+      const stdoutSpy = registerSpyOn({ object: process.stdout, method: 'write' });
+      stdoutSpy.calledWith([]).returns(true);
 
       const originalCwd = process.cwd();
       process.chdir(testbed.guildPath);
@@ -92,6 +103,15 @@ describe('StartWard', () => {
       }
 
       expect(error).toBe(undefined);
+
+      const [written] = stdoutSpy.callsMatching([]).map((call) => call[0]);
+      const printed: unknown = JSON.parse(String(written));
+
+      expect(printed).toStrictEqual({
+        runId: storedResult.runId,
+        timestamp: storedResult.timestamp,
+        checks: storedResult.checks,
+      });
     });
   });
 
