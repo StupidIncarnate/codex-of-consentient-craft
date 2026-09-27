@@ -1,5 +1,6 @@
+import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
+import { AddQuestResultStub } from '@dungeonmaster/shared/contracts';
 import type { GuildId } from '@dungeonmaster/shared/contracts';
-import { orchestratorAddQuestAdapterProxy } from '../../../adapters/orchestrator/add-quest/orchestrator-add-quest-adapter.proxy';
 import { QuestUserAddResponder } from './quest-user-add-responder';
 
 export const QuestUserAddResponderProxy = (): {
@@ -7,21 +8,16 @@ export const QuestUserAddResponderProxy = (): {
   setupAddQuestError: (params: { guildId: GuildId; message: string }) => void;
   callResponder: typeof QuestUserAddResponder;
 } => {
-  const adapterProxy = orchestratorAddQuestAdapterProxy();
+  const orchestrator = StartOrchestratorProxy();
 
   return {
     setupAddQuest: ({ guildId }: { guildId: GuildId }): { expectedData: unknown } => {
-      const result = {
-        success: true as const,
-        questId: 'test-quest',
-        questFolder: '001-test-quest',
-        filePath: '/path/to/quest.json',
-      };
-      adapterProxy.returns({ guildId, result: result as never });
+      const result = AddQuestResultStub();
+      orchestrator.addQuestReturns({ guildId, result });
       return { expectedData: result };
     },
     setupAddQuestError: ({ guildId, message }: { guildId: GuildId; message: string }): void => {
-      adapterProxy.throws({ guildId, error: new Error(message) });
+      orchestrator.addQuestThrows({ guildId, error: new Error(message) });
     },
     callResponder: QuestUserAddResponder,
   };

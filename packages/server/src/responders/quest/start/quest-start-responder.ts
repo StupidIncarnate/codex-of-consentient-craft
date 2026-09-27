@@ -1,6 +1,6 @@
 /**
- * PURPOSE: Handles quest start requests by validating params, delegating to the orchestrator
- * adapter, and starting the Node dispatcher so the started quest actually moves.
+ * PURPOSE: Handles quest start requests by validating params, delegating to `StartOrchestrator`,
+ * and starting the Node dispatcher so the started quest actually moves.
  *
  * USAGE:
  * const result = await QuestStartResponder({ params: { questId: 'abc' } });
@@ -24,10 +24,8 @@
  * failing silently. A play failure never fails the start — the quest IS started at that point.
  */
 
+import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { isStartableQuestStatusGuard } from '@dungeonmaster/shared/guards';
-import { orchestratorGetQuestAdapter } from '../../../adapters/orchestrator/get-quest/orchestrator-get-quest-adapter';
-import { orchestratorPlayDispatchAdapter } from '../../../adapters/orchestrator/play-dispatch/orchestrator-play-dispatch-adapter';
-import { orchestratorStartQuestAdapter } from '../../../adapters/orchestrator/start-quest/orchestrator-start-quest-adapter';
 import { questIdParamsContract } from '../../../contracts/quest-id-params/quest-id-params-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
@@ -54,7 +52,7 @@ export const QuestStartResponder = async ({
     }
     const { questId } = parsedParams.data;
 
-    const questResult = await orchestratorGetQuestAdapter({ questId });
+    const questResult = await StartOrchestrator.getQuest({ questId });
     if (!questResult.success || !questResult.quest) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
@@ -72,9 +70,9 @@ export const QuestStartResponder = async ({
       });
     }
 
-    const processId = await orchestratorStartQuestAdapter({ questId });
+    const processId = await StartOrchestrator.startQuest({ questId });
 
-    const dispatch = await orchestratorPlayDispatchAdapter({}).then(
+    const dispatch = await StartOrchestrator.playDispatch({}).then(
       (played) => ({
         started: played.allowed,
         ...(played.reason === undefined ? {} : { reason: played.reason }),

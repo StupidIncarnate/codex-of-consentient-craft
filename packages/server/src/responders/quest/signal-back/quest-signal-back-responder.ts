@@ -1,15 +1,14 @@
 /**
  * PURPOSE: Handles the env-gated HTTP signal-back endpoint by validating the merged path/body input
- * and delegating to the orchestrator adapter — the same StartOrchestrator.handleSignalBack surface
- * the MCP signal-back tool uses. Lets Playwright e2e drive the operations-ledger relay without an
- * MCP client.
+ * and delegating to `StartOrchestrator.handleSignalBack` — the same surface the MCP signal-back tool
+ * uses. Lets Playwright e2e drive the operations-ledger relay without an MCP client.
  *
  * USAGE:
  * const result = await QuestSignalBackResponder({ params: { questId: 'abc' }, body: { workItemId, signal: 'complete' } });
  * // Returns { status: 200, data: { ok: true } } or { status: 400/500, data: { error } }
  */
 
-import { orchestratorHandleSignalBackAdapter } from '../../../adapters/orchestrator/handle-signal-back/orchestrator-handle-signal-back-adapter';
+import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { signalBackInputContract } from '../../../contracts/signal-back-input/signal-back-input-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
@@ -38,7 +37,7 @@ export const QuestSignalBackResponder = async ({
 
     const { questId, workItemId, signal, operationItemId, blockedReason } = parsed.data;
 
-    await orchestratorHandleSignalBackAdapter({
+    await StartOrchestrator.handleSignalBack({
       questId,
       workItemId,
       signal,

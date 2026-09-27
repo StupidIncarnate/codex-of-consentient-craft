@@ -10,7 +10,7 @@
  * // Returns { status: 200, data: QuestSummary } or { status: 400/404, data: { error } }
  */
 
-import { orchestratorGetQuestSummaryAdapter } from '../../../adapters/orchestrator/get-quest-summary/orchestrator-get-quest-summary-adapter';
+import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { questSummaryParamsContract } from '../../../contracts/quest-summary-params/quest-summary-params-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
@@ -31,7 +31,7 @@ export const QuestSummaryResponder = async ({
   }
 
   try {
-    const summary = await orchestratorGetQuestSummaryAdapter({
+    const summary = await StartOrchestrator.getQuestSummary({
       questId: parsedParams.data.questId,
     });
     return responderResultContract.parse({ status: httpStatusStatics.success.ok, data: summary });

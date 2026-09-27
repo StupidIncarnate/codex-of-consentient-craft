@@ -6,7 +6,7 @@
  * // Returns { status: 201, data: result } or { status: 400/500, data: { error } }
  */
 
-import { orchestratorAddQuestAdapter } from '../../../adapters/orchestrator/add-quest/orchestrator-add-quest-adapter';
+import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { questUserAddBodyContract } from '../../../contracts/quest-user-add-body/quest-user-add-body-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
@@ -40,7 +40,7 @@ export const QuestUserAddResponder = async ({
       });
     }
     const { title, userRequest, guildId } = parsedBody.data;
-    const result = await orchestratorAddQuestAdapter({ title, userRequest, guildId });
+    const result = await StartOrchestrator.addQuest({ title, userRequest, guildId });
     return responderResultContract.parse({
       status: httpStatusStatics.success.created,
       data: result,
