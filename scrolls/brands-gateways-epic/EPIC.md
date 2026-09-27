@@ -181,7 +181,7 @@ Package items run side by side, one agent group per package. Each is split by th
 
 | ID | Item | Needs | Runs with | Status | Notes |
 |---|---|---|---|---|---|
-| A00 | [Orchestrator ships its own proxy](items/a00-orchestrator-own-proxy.md) | P0-1, G26 | any outside `orchestrator` | review | Written: `StartOrchestratorProxy` (PascalCase, which both lint rules require; tell A02) and per-file `./*.proxy`/`./*.stub` exports in `orchestrator` and `config`. Two eslint-plugin rule gaps block its lint and are with agent a00-rules: a startup file may have a proxy, and a bare package-root import maps to that package's startup proxy. Until A02 finishes, the proxy must import `StartOrchestrator` by package name, not relatively, or Jest auto-mocks two module copies. |
+| A00 | [Orchestrator ships its own proxy](items/a00-orchestrator-own-proxy.md) | P0-1, G26 | any outside `orchestrator` | review | Written. The rule fixes are back with agent a00-rules, because they typed `@dungeonmaster` as the workspace scope, which fails in a consumer. `StartOrchestratorProxy` (PascalCase; tell A02). Until A02 finishes, the proxy must import `StartOrchestrator` by package name. |
 | A01 | [Delete the adapters the trials left without callers](items/a01-dead-adapters.md) | P0-1 | any | done | 7751fb471, d52d180cb. The `testing` row was a false positive: `web`'s claude-mock and ward-mock harnesses import `fs-queue-metadata-read-adapter`, so it stays for A14 (row FS-2). Tell A02: server has 46 orchestrator forwarders, not 47. Tell A03: orchestrator's `process-kill-by-port` adapter was dead and is gone. |
 | A02 | [Delete the forwarder adapters](items/a02-forwarder-adapters.md) | A00 | any outside `mcp`, `server` | todo | operator splits |
 | A03 | [One broker lists what is on a port and kills it](items/a03-port-kill-broker.md) | G21 | any outside `orchestrator`, `ward` | todo | |
@@ -264,8 +264,8 @@ Work that execution found and no item file owns. Each runs like an item.
 | ID | What | Found by | Status | Notes |
 |---|---|---|---|---|
 | F1 | Consumer lint of `@gateway/node` fails under the newer `@typescript-eslint` (8.70.1) a consumer installs. Five proxies report `no-unused-vars` on types used only in `as unknown as X`, and `fetch-ok.ts` reports `no-deprecated` on `util.types.isNativeError`. | G25 | todo | Consider upgrading this repo to the version consumers get, so dogfood sees the same rules. |
-| F2 | `init` writes `package.json` and `.dungeonmaster.json` with no trailing newline, and reorders `devDependencies`. | operator, c03a24d4f | active | agent f2 |
-| F3 | Ward's `typecheck` uses `tsconfig.json`, not `tsconfig.build.json`, so a build-only failure (TS6059 in ed13c2901, TS2379 in G15) passes ward. Consider a build-config `--noEmit` check in ward. | operator | todo | |
+| F2 | `init` writes `package.json` and `.dungeonmaster.json` with no trailing newline, and reorders `devDependencies`. | operator, c03a24d4f | done | e1fec0c5c. `shared`'s `jsonFileContentsTransformer` serialises every install-time JSON write; `add-dev-deps` sorts. The next `npm run init` rewrites the root `package.json` correctly. |
+| F3 | Ward's `typecheck` uses `tsconfig.json`, not `tsconfig.build.json`, so a build-only failure (TS6059 in ed13c2901, TS2379 in G15) passes ward. Consider a build-config `--noEmit` check in ward. | operator | active | agent f3 |
 
 ## Blocked items
 
