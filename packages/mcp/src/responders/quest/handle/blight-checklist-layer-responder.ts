@@ -11,7 +11,8 @@
  * complexity ceiling.
  */
 
-import { orchestratorGetBlightChecklistAdapter } from '../../../adapters/orchestrator/get-blight-checklist/orchestrator-get-blight-checklist-adapter';
+import { StartOrchestrator } from '@dungeonmaster/orchestrator';
+
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 import { getBlightChecklistInputContract } from '../../../contracts/get-blight-checklist-input/get-blight-checklist-input-contract';
 import type { ToolResponse } from '../../../contracts/tool-response/tool-response-contract';
@@ -26,7 +27,7 @@ export const BlightChecklistLayerResponder = async ({
   const { questId, scope } = getBlightChecklistInputContract.parse(args);
 
   try {
-    const checklist = await orchestratorGetBlightChecklistAdapter({
+    const checklist = await StartOrchestrator.getBlightChecklist({
       questId,
       ...(scope !== undefined && { scope }),
     });

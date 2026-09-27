@@ -1,5 +1,7 @@
 /**
- * PURPOSE: Proxy for quest-work-layer-responder. Delegates to the orchestrator adapter proxy.
+ * PURPOSE: Proxy for quest-work-layer-responder. Composes orchestrator's own cross-package proxy,
+ * and re-derives `getLastCalledInputFor` from `questWorkGetCalls()` — a responder's own test may not
+ * import another package, so the only route to staging a real call runs through this shared proxy.
  *
  * USAGE:
  * const proxy = QuestWorkLayerResponderProxy();
@@ -7,17 +9,19 @@
  */
 
 import type { StartOrchestrator } from '@dungeonmaster/orchestrator';
-
-import { orchestratorQuestWorkAdapterProxy } from '../../../adapters/orchestrator/quest-work/orchestrator-quest-work-adapter.proxy';
+import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 
 type QuestWorkResult = Awaited<ReturnType<typeof StartOrchestrator.questWork>>;
+// Derived from the real StartOrchestrator.questWork signature (never hand-typed) so the elements
+// questWorkGetCalls() hands back can be read by field without an ad-hoc cast.
+type QuestWorkParams = Parameters<typeof StartOrchestrator.questWork>[0];
 
 export const QuestWorkLayerResponderProxy = (): {
   setupReturns: (params: { questId: string; workItemId: string; result: QuestWorkResult }) => void;
   setupThrows: (params: { questId: string; workItemId: string; error: Error }) => void;
   getLastCalledInputFor: (params: { questId: string; workItemId: string }) => unknown;
 } => {
-  const adapterProxy = orchestratorQuestWorkAdapterProxy();
+  const orchestrator = StartOrchestratorProxy();
 
   return {
     setupReturns: ({
@@ -29,7 +33,7 @@ export const QuestWorkLayerResponderProxy = (): {
       workItemId: string;
       result: QuestWorkResult;
     }): void => {
-      adapterProxy.returns({ questId, workItemId, result });
+      orchestrator.questWorkReturns({ questId, workItemId, result });
     },
     setupThrows: ({
       questId,
@@ -40,7 +44,7 @@ export const QuestWorkLayerResponderProxy = (): {
       workItemId: string;
       error: Error;
     }): void => {
-      adapterProxy.throws({ questId, workItemId, error });
+      orchestrator.questWorkThrows({ questId, workItemId, error });
     },
     getLastCalledInputFor: ({
       questId,
@@ -48,6 +52,11 @@ export const QuestWorkLayerResponderProxy = (): {
     }: {
       questId: string;
       workItemId: string;
-    }): unknown => adapterProxy.getLastCalledInputFor({ questId, workItemId }),
+    }): unknown => {
+      const calls = orchestrator.questWorkGetCalls() as QuestWorkParams[];
+      return calls
+        .filter((call) => call.questId === questId && call.workItemId === workItemId)
+        .at(-1);
+    },
   };
 };

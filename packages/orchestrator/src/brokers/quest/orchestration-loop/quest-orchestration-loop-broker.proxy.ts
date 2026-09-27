@@ -7,9 +7,9 @@ import {
   type WorkItem,
   type WorkItemStatus,
 } from '@dungeonmaster/shared/contracts';
-import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { configResolveBroker, DungeonmasterConfigStub } from '@dungeonmaster/config';
 
-import { dungeonmasterConfigResolveAdapterProxy } from '../../../adapters/dungeonmaster-config/resolve/dungeonmaster-config-resolve-adapter.proxy';
 import { questGetBrokerProxy } from '../get/quest-get-broker.proxy';
 import { questModifyBrokerProxy } from '../modify/quest-modify-broker.proxy';
 import { runChatLayerBrokerProxy } from './run-chat-layer-broker.proxy';
@@ -17,8 +17,8 @@ import { runChatLayerBrokerProxy } from './run-chat-layer-broker.proxy';
 type QuestParam = ReturnType<typeof QuestStub>;
 
 // Every questOrchestrationLoopBroker.test.ts call site passes this same startPath, which is
-// what the broker forwards to dungeonmasterConfigResolveAdapter — the real, distinguishing
-// address every config-resolve call in this suite resolves.
+// what the broker forwards to configResolveBroker — the real, distinguishing address every
+// config-resolve call in this suite resolves.
 const START_PATH = FilePathStub({ value: '/project/src' });
 
 const parsePersistedQuests = ({
@@ -47,8 +47,16 @@ export const questOrchestrationLoopBrokerProxy = (): {
 } => {
   const getProxy = questGetBrokerProxy();
   const modifyProxy = questModifyBrokerProxy();
-  const configProxy = dungeonmasterConfigResolveAdapterProxy();
-  configProxy.setupConfigResolved({ startPath: START_PATH, config: configProxy.makeRealConfig() });
+  // Mocks configResolveBroker directly, rather than composing config's own colocated
+  // config-resolve-broker.proxy: that proxy mocks configResolveBroker's OWN internal
+  // dependencies, one of which (@dungeonmaster/shared's configRootFindBroker) is a broker this
+  // package's own quest/guild path resolution also calls for real — composing it here globally
+  // mocks that shared broker for the whole test FILE (registerMock's hoisted jest.mock() has no
+  // per-test-case granularity), breaking real path resolution in every OTHER responder proxy
+  // that also wires this broker in as a child (recover-guild-layer-responder,
+  // orchestration-resume-responder), even though neither ever calls a method on it.
+  const configHandle = registerMock({ fn: configResolveBroker });
+  configHandle.calledWith([{ filePath: START_PATH }]).resolves(DungeonmasterConfigStub());
   // Chat layer is the only remaining role-specific dispatch in the loop —
   // chaoswhisperer / bughunt still flow through the legacy spawn surface.
   // Every execution role (codeweaver, ward, flowrider, siegemaster, spiritmender)

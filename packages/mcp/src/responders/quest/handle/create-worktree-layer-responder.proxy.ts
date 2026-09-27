@@ -1,5 +1,8 @@
 /**
- * PURPOSE: Proxy for create-worktree-layer-responder. Delegates to the orchestrator adapter proxy.
+ * PURPOSE: Proxy for create-worktree-layer-responder. Composes orchestrator's own cross-package
+ * proxy, and re-derives `getLastCalledInputFor` from `createWorktreeGetCalls()` — a responder's own
+ * test may not import another package, so the only route to staging a real call runs through this
+ * shared proxy.
  *
  * USAGE:
  * const proxy = CreateWorktreeLayerResponderProxy();
@@ -7,26 +10,30 @@
  */
 
 import type { StartOrchestrator } from '@dungeonmaster/orchestrator';
-
-import { orchestratorCreateWorktreeAdapterProxy } from '../../../adapters/orchestrator/create-worktree/orchestrator-create-worktree-adapter.proxy';
+import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 
 type CreateWorktreeResult = Awaited<ReturnType<typeof StartOrchestrator.createWorktree>>;
+// Derived from the real StartOrchestrator.createWorktree signature (never hand-typed) so the
+// elements createWorktreeGetCalls() hands back can be read by field without an ad-hoc cast.
+type CreateWorktreeParams = Parameters<typeof StartOrchestrator.createWorktree>[0];
 
 export const CreateWorktreeLayerResponderProxy = (): {
   setupReturns: (params: { name: string; result: CreateWorktreeResult }) => void;
   setupThrows: (params: { name: string; error: Error }) => void;
   getLastCalledInputFor: (params: { name: string }) => unknown;
 } => {
-  const adapterProxy = orchestratorCreateWorktreeAdapterProxy();
+  const orchestrator = StartOrchestratorProxy();
 
   return {
     setupReturns: ({ name, result }: { name: string; result: CreateWorktreeResult }): void => {
-      adapterProxy.returns({ name, result });
+      orchestrator.createWorktreeReturns({ name, result });
     },
     setupThrows: ({ name, error }: { name: string; error: Error }): void => {
-      adapterProxy.throws({ name, error });
+      orchestrator.createWorktreeThrows({ name, error });
     },
-    getLastCalledInputFor: ({ name }: { name: string }): unknown =>
-      adapterProxy.getLastCalledInputFor({ name }),
+    getLastCalledInputFor: ({ name }: { name: string }): unknown => {
+      const calls = orchestrator.createWorktreeGetCalls() as CreateWorktreeParams[];
+      return calls.filter((call) => call.name === name).at(-1);
+    },
   };
 };

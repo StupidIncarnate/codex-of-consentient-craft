@@ -13,7 +13,8 @@
  * `isError: true` shape, so the message still rides back to the calling agent.
  */
 
-import { orchestratorQuestWorkAdapter } from '../../../adapters/orchestrator/quest-work/orchestrator-quest-work-adapter';
+import { StartOrchestrator } from '@dungeonmaster/orchestrator';
+
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 import { questWorkInputContract } from '../../../contracts/quest-work-input/quest-work-input-contract';
 import type { ToolResponse } from '../../../contracts/tool-response/tool-response-contract';
@@ -28,7 +29,7 @@ export const QuestWorkLayerResponder = async ({
   const { questId, workItemId, payload } = questWorkInputContract.parse(args);
 
   try {
-    const result = await orchestratorQuestWorkAdapter({ questId, workItemId, payload });
+    const result = await StartOrchestrator.questWork({ questId, workItemId, payload });
 
     return {
       content: [

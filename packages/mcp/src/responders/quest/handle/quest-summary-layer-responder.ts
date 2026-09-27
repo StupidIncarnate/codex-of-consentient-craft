@@ -17,9 +17,9 @@
  * ceiling.
  */
 
+import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { questSummaryToTextTransformer } from '@dungeonmaster/shared/transformers';
 
-import { orchestratorGetQuestSummaryAdapter } from '../../../adapters/orchestrator/get-quest-summary/orchestrator-get-quest-summary-adapter';
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 import { getQuestSummaryInputContract } from '../../../contracts/get-quest-summary-input/get-quest-summary-input-contract';
 import type { ToolResponse } from '../../../contracts/tool-response/tool-response-contract';
@@ -34,7 +34,7 @@ export const QuestSummaryLayerResponder = async ({
   const { questId } = getQuestSummaryInputContract.parse(args);
 
   try {
-    const summary = await orchestratorGetQuestSummaryAdapter({ questId });
+    const summary = await StartOrchestrator.getQuestSummary({ questId });
 
     // The render is already prose. JSON-stringifying it would escape every newline and roughly
     // double a payload whose whole value is being cheap enough to read in one turn.

@@ -9,12 +9,11 @@
  * // Returns OrchestrationMode ('claude' | 'node')
  */
 
+import { configResolveBroker } from '@dungeonmaster/config';
 import { pathJoinAdapter, processCwdAdapter } from '@dungeonmaster/shared/adapters';
 import { filePathContract, orchestrationModeContract } from '@dungeonmaster/shared/contracts';
 import type { OrchestrationMode } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
-
-import { dungeonmasterConfigResolveAdapter } from '../../../adapters/dungeonmaster-config/resolve/dungeonmaster-config-resolve-adapter';
 
 export const orchestrationModeGetBroker = async (): Promise<OrchestrationMode> => {
   // The config-find chain dirname()s startPath on its first iteration — it expects a FILE, so hand it
@@ -30,7 +29,7 @@ export const orchestrationModeGetBroker = async (): Promise<OrchestrationMode> =
   // back to the contract default, matching what a config missing the field would resolve to. Any
   // other error (malformed JSON, validation) MUST surface.
   try {
-    const config = await dungeonmasterConfigResolveAdapter({ startPath });
+    const config = await configResolveBroker({ filePath: startPath });
     return config.orchestrationMode;
   } catch (error: unknown) {
     if (error instanceof Error && error.name === 'ConfigNotFoundError') {

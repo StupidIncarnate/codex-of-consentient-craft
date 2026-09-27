@@ -11,7 +11,8 @@
  * inline pushed it over.
  */
 
-import { orchestratorCreateWorktreeAdapter } from '../../../adapters/orchestrator/create-worktree/orchestrator-create-worktree-adapter';
+import { StartOrchestrator } from '@dungeonmaster/orchestrator';
+
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 import { createWorktreeInputContract } from '../../../contracts/create-worktree-input/create-worktree-input-contract';
 import type { ToolResponse } from '../../../contracts/tool-response/tool-response-contract';
@@ -26,7 +27,7 @@ export const CreateWorktreeLayerResponder = async ({
   const { name } = createWorktreeInputContract.parse(args);
 
   try {
-    const { worktreePath } = await orchestratorCreateWorktreeAdapter({ name });
+    const { worktreePath } = await StartOrchestrator.createWorktree({ name });
 
     // `path`, not `worktreePath`: the caller asked for somewhere to work, and the answer is the one
     // value it needs to pass to every command it runs next.

@@ -158,6 +158,9 @@ export const StartOrchestratorProxy = (): {
   getPlanningNotesGetCalls: () => readonly unknown[];
   getQuestSummaryReturns: (params: { questId: string; summary: QuestSummary }) => void;
   getQuestSummaryThrows: (params: { questId: string; error: Error }) => void;
+  // Every call StartOrchestrator.getQuestSummary received, first-arg only — mirrors
+  // mergeQuestGetCalls.
+  getQuestSummaryGetCalls: () => readonly unknown[];
   getQuestProjectionReturns: (params: { questId: string; projection: QuestProjection }) => void;
   getQuestProjectionThrows: (params: { questId: string; error: Error }) => void;
   getQuestWorkReturns: (params: { questId: string; result: GetQuestWorkResult }) => void;
@@ -172,6 +175,10 @@ export const StartOrchestratorProxy = (): {
     result: GetBlightChecklistResult;
   }) => void;
   getBlightChecklistThrows: (params: { questId: string; error: Error }) => void;
+  // Every call StartOrchestrator.getBlightChecklist received, first-arg only — mirrors
+  // mergeQuestGetCalls. A caller needing the scope a specific call forwarded (never addressed,
+  // since two scopes for one questId would otherwise collide) filters/reads this array itself.
+  getBlightChecklistGetCalls: () => readonly unknown[];
   getQuestStatusReturns: (params: { processId: ProcessId; status: OrchestrationStatus }) => void;
   getQuestStatusThrows: (params: { processId: ProcessId; error: Error }) => void;
   // Quest mutation methods — OrchestrationFlow / QuestFlow.
@@ -204,6 +211,9 @@ export const StartOrchestratorProxy = (): {
   recordQuestSessionThrows: (params: { sessionId?: string; error: Error }) => void;
   createWorktreeReturns: (params: { name: string; result: CreateWorktreeResult }) => void;
   createWorktreeThrows: (params: { name: string; error: Error }) => void;
+  // Every call StartOrchestrator.createWorktree received, first-arg only — mirrors
+  // mergeQuestGetCalls.
+  createWorktreeGetCalls: () => readonly unknown[];
   // Chat methods — ChatStartFlow / ClarifyAnswerFlow / CommentBatchFlow / ChatReplayFlow.
   startChatReturns: (params: {
     guildId: GuildId;
@@ -299,6 +309,10 @@ export const StartOrchestratorProxy = (): {
     result: QuestWorkResult;
   }) => void;
   questWorkThrows: (params: { questId: string; workItemId: string; error: Error }) => void;
+  // Every call StartOrchestrator.questWork received, first-arg only — mirrors mergeQuestGetCalls.
+  // A caller needing the exact forwarded payload (which of the six payload kinds was sent) filters
+  // /reads this array itself.
+  questWorkGetCalls: () => readonly unknown[];
   // Reverse lookups — QuestFlow.findBySessionId / findByWorkItemId.
   findQuestBySessionIdReturns: (params: { sessionId: SessionId; questId: QuestId | null }) => void;
   findQuestBySessionIdThrows: (params: { sessionId: SessionId; error: Error }) => void;
@@ -550,6 +564,8 @@ export const StartOrchestratorProxy = (): {
     getQuestSummaryThrows: ({ questId, error }: { questId: string; error: Error }): void => {
       getQuestSummaryHandle.calledWith([{ questId }]).rejects(error);
     },
+    getQuestSummaryGetCalls: (): readonly unknown[] =>
+      getQuestSummaryHandle.callsMatching([]).map((call) => call[0]),
     getQuestProjectionReturns: ({
       questId,
       projection,
@@ -591,6 +607,8 @@ export const StartOrchestratorProxy = (): {
     getBlightChecklistThrows: ({ questId, error }: { questId: string; error: Error }): void => {
       getBlightChecklistHandle.calledWith([{ questId }]).rejects(error);
     },
+    getBlightChecklistGetCalls: (): readonly unknown[] =>
+      getBlightChecklistHandle.callsMatching([]).map((call) => call[0]),
     getQuestStatusReturns: ({
       processId,
       status,
@@ -715,6 +733,8 @@ export const StartOrchestratorProxy = (): {
     createWorktreeThrows: ({ name, error }: { name: string; error: Error }): void => {
       createWorktreeHandle.calledWith([{ name }]).rejects(error);
     },
+    createWorktreeGetCalls: (): readonly unknown[] =>
+      createWorktreeHandle.callsMatching([]).map((call) => call[0]),
     startChatReturns: ({
       guildId,
       chatProcessId,
@@ -980,6 +1000,8 @@ export const StartOrchestratorProxy = (): {
     }): void => {
       questWorkHandle.calledWith([{ questId, workItemId }]).rejects(error);
     },
+    questWorkGetCalls: (): readonly unknown[] =>
+      questWorkHandle.callsMatching([]).map((call) => call[0]),
     findQuestBySessionIdReturns: ({
       sessionId,
       questId,

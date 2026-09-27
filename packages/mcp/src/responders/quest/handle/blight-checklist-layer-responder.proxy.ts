@@ -1,5 +1,8 @@
 /**
- * PURPOSE: Proxy for blight-checklist-layer-responder. Delegates to the orchestrator adapter proxy.
+ * PURPOSE: Proxy for blight-checklist-layer-responder. Composes orchestrator's own cross-package
+ * proxy, and re-derives `getLastCalledInputFor` from `getBlightChecklistGetCalls()` — a responder's
+ * own test may not import another package, so the only route to staging a real call runs through
+ * this shared proxy.
  *
  * USAGE:
  * const proxy = BlightChecklistLayerResponderProxy();
@@ -7,17 +10,19 @@
  */
 
 import type { StartOrchestrator } from '@dungeonmaster/orchestrator';
-
-import { orchestratorGetBlightChecklistAdapterProxy } from '../../../adapters/orchestrator/get-blight-checklist/orchestrator-get-blight-checklist-adapter.proxy';
+import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 
 type GetBlightChecklistResult = Awaited<ReturnType<typeof StartOrchestrator.getBlightChecklist>>;
+// Derived from the real StartOrchestrator.getBlightChecklist signature (never hand-typed) so the
+// elements getBlightChecklistGetCalls() hands back can be read by field without an ad-hoc cast.
+type GetBlightChecklistParams = Parameters<typeof StartOrchestrator.getBlightChecklist>[0];
 
 export const BlightChecklistLayerResponderProxy = (): {
   setupReturns: (params: { questId: string; result: GetBlightChecklistResult }) => void;
   setupThrows: (params: { questId: string; error: Error }) => void;
   getLastCalledInputFor: (params: { questId: string }) => unknown;
 } => {
-  const adapterProxy = orchestratorGetBlightChecklistAdapterProxy();
+  const orchestrator = StartOrchestratorProxy();
 
   return {
     setupReturns: ({
@@ -27,12 +32,14 @@ export const BlightChecklistLayerResponderProxy = (): {
       questId: string;
       result: GetBlightChecklistResult;
     }): void => {
-      adapterProxy.returns({ questId, result });
+      orchestrator.getBlightChecklistReturns({ questId, result });
     },
     setupThrows: ({ questId, error }: { questId: string; error: Error }): void => {
-      adapterProxy.throws({ questId, error });
+      orchestrator.getBlightChecklistThrows({ questId, error });
     },
-    getLastCalledInputFor: ({ questId }: { questId: string }): unknown =>
-      adapterProxy.getLastCalledInputFor({ questId }),
+    getLastCalledInputFor: ({ questId }: { questId: string }): unknown => {
+      const calls = orchestrator.getBlightChecklistGetCalls() as GetBlightChecklistParams[];
+      return calls.filter((call) => call.questId === questId).at(-1);
+    },
   };
 };

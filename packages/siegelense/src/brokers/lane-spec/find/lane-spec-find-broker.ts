@@ -17,9 +17,8 @@
 import { processCwdAdapter } from '@dungeonmaster/shared/adapters';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics, locationsStatics } from '@dungeonmaster/shared/statics';
-import { e2eProcessPlaceholderStatics } from '@dungeonmaster/config';
+import { configResolveBroker, e2eProcessPlaceholderStatics } from '@dungeonmaster/config';
 
-import { dungeonmasterConfigResolveAdapter } from '../../../adapters/dungeonmaster-config/resolve/dungeonmaster-config-resolve-adapter';
 import { laneSpecContract } from '../../../contracts/lane-spec/lane-spec-contract';
 import type { LaneSpec } from '../../../contracts/lane-spec/lane-spec-contract';
 import type { SpecName } from '../../../contracts/spec-name/spec-name-contract';
@@ -54,7 +53,7 @@ export const laneSpecFindBroker = async ({
   const startPath = filePathContract.parse(
     `${processCwdAdapter()}/${dungeonmasterHomeStatics.paths.projectConfigFile}`,
   );
-  const config = await dungeonmasterConfigResolveAdapter({ startPath });
+  const config = await configResolveBroker({ filePath: startPath });
   const configuredProcesses = config.devServer?.e2e?.processes;
 
   if (configuredProcesses === undefined) {

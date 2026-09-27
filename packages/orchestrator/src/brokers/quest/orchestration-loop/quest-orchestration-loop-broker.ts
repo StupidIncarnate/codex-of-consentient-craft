@@ -6,6 +6,7 @@
  * // Loops until all items complete, quest blocked, or waiting for user
  */
 
+import { configResolveBroker } from '@dungeonmaster/config';
 import type {
   AdapterResult,
   FilePath,
@@ -29,7 +30,6 @@ import {
   isUserPausedQuestStatusGuard,
 } from '@dungeonmaster/shared/guards';
 import { workItemRoleStatics } from '@dungeonmaster/shared/statics';
-import { dungeonmasterConfigResolveAdapter } from '../../../adapters/dungeonmaster-config/resolve/dungeonmaster-config-resolve-adapter';
 import { nextReadyWorkItemsTransformer } from '../../../transformers/next-ready-work-items/next-ready-work-items-transformer';
 import { orchestrationLoopSummaryTransformer } from '../../../transformers/orchestration-loop-summary/orchestration-loop-summary-transformer';
 import { workItemsToQuestStatusTransformer } from '../../../transformers/work-items-to-quest-status/work-items-to-quest-status-transformer';
@@ -77,7 +77,7 @@ export const questOrchestrationLoopBroker = async ({
     (await (async (): Promise<SlotCount> => {
       const fallbackSlotCount = slotCountContract.parse(DEFAULT_SLOT_COUNT);
       try {
-        const config = await dungeonmasterConfigResolveAdapter({ startPath });
+        const config = await configResolveBroker({ filePath: startPath });
         return config.orchestration?.slotCount ?? fallbackSlotCount;
       } catch {
         return fallbackSlotCount;
