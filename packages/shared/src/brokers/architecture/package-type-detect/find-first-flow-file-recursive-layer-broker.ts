@@ -21,11 +21,11 @@ export const findFirstFlowFileRecursiveLayerBroker = ({
   const entries = safeReaddirLayerBroker({ dirPath });
 
   for (const entry of entries) {
-    if (!entry.isDirectory() && matchesFlowFileNameGuard({ name: entry.name })) {
+    if (entry.kind !== 'directory' && matchesFlowFileNameGuard({ name: entry.name })) {
       return absoluteFilePathContract.parse(`${dirPath}/${entry.name}`);
     }
 
-    if (entry.isDirectory()) {
+    if (entry.kind === 'directory') {
       const childPath = absoluteFilePathContract.parse(`${dirPath}/${entry.name}`);
       const found = findFirstFlowFileRecursiveLayerBroker({ dirPath: childPath });
       if (found !== undefined) {

@@ -37,12 +37,14 @@ export const architecturePackageE2eEligibleDetectBroker = async ({
 
   const srcPath = absoluteFilePathContract.parse(`${packageRoot}/src`);
   const srcEntries = safeReaddirLayerBroker({ dirPath: srcPath });
-  const srcDirNames = srcEntries.filter((entry) => entry.isDirectory()).map((entry) => entry.name);
+  const srcDirNames = srcEntries
+    .filter((entry) => entry.kind === 'directory')
+    .map((entry) => entry.name);
 
   const adaptersPath = absoluteFilePathContract.parse(`${packageRoot}/src/adapters`);
   const adapterEntries = safeReaddirLayerBroker({ dirPath: adaptersPath });
   const adapterDirNames = adapterEntries
-    .filter((entry) => entry.isDirectory())
+    .filter((entry) => entry.kind === 'directory')
     .map((entry) => entry.name);
 
   return Promise.resolve(isPackageE2eEligibleGuard({ adapterDirNames, srcDirNames, packageJson }));

@@ -33,7 +33,7 @@ export const formatFolderContentLayerBroker = ({
   if (folderDepth === projectMapStatics.depth0) {
     const entries = safeReaddirLayerBroker({ dirPath });
     const fileNames = entries
-      .filter((entry) => !entry.isDirectory())
+      .filter((entry) => entry.kind !== 'directory')
       .map((entry) => {
         const dotIndex = entry.name.lastIndexOf('.');
         return dotIndex > 0 ? entry.name.slice(0, dotIndex) : entry.name;
@@ -45,7 +45,7 @@ export const formatFolderContentLayerBroker = ({
   // Depth 2: list domain/ (action1/, action2/) pairs
   if (folderDepth === projectMapStatics.depth2) {
     const domains = safeReaddirLayerBroker({ dirPath })
-      .filter((entry) => entry.isDirectory())
+      .filter((entry) => entry.kind === 'directory')
       .filter((entry) => {
         const domainPath = absoluteFilePathContract.parse(`${dirPath}/${entry.name}`);
         return countFilesRecursiveLayerBroker({ dirPath: domainPath }) > 0;
@@ -57,7 +57,7 @@ export const formatFolderContentLayerBroker = ({
     for (const domain of domains) {
       const domainPath = absoluteFilePathContract.parse(`${dirPath}/${domain.name}`);
       const actions = safeReaddirLayerBroker({ dirPath: domainPath })
-        .filter((entry) => entry.isDirectory())
+        .filter((entry) => entry.kind === 'directory')
         .filter((entry) => {
           const actionPath = absoluteFilePathContract.parse(`${domainPath}/${entry.name}`);
           return countFilesRecursiveLayerBroker({ dirPath: actionPath }) > 0;
@@ -78,7 +78,7 @@ export const formatFolderContentLayerBroker = ({
   // Depth 1 (default): list first-level subdirectory names
   const entries = safeReaddirLayerBroker({ dirPath });
   const subdirNames = entries
-    .filter((entry) => entry.isDirectory())
+    .filter((entry) => entry.kind === 'directory')
     .filter((entry) => {
       const subdirPath = absoluteFilePathContract.parse(`${dirPath}/${entry.name}`);
       return countFilesRecursiveLayerBroker({ dirPath: subdirPath }) > 0;

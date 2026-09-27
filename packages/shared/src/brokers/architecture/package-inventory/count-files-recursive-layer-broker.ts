@@ -23,7 +23,7 @@ export const countFilesRecursiveLayerBroker = ({
   let count = 0;
 
   for (const entry of entries) {
-    if (entry.isDirectory()) {
+    if (entry.kind === 'directory') {
       count += countFilesRecursiveLayerBroker({
         dirPath: absoluteFilePathContract.parse(`${dirPath}/${entry.name}`),
       });

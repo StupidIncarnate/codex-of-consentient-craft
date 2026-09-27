@@ -1,4 +1,6 @@
-import { fsReadFileSyncAdapterProxy } from '../../../adapters/fs/read-file-sync/fs-read-file-sync-adapter.proxy';
+import { readFileSync } from 'fs';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
+import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 
@@ -13,7 +15,8 @@ export const readPackageDescriptionLayerBrokerProxy = (): {
   setupNoPackageJson: ({ packageJsonPath }: { packageJsonPath: AbsoluteFilePath }) => void;
   setupImplementation: ({ fn }: { fn: (filePath: ContentText) => ContentText }) => void;
 } => {
-  const fsProxy = fsReadFileSyncAdapterProxy();
+  const gatewayProxy = readFileSyncProxy();
+  const handle = registerMock({ fn: readFileSync });
 
   return {
     setupDescription: ({
@@ -23,18 +26,18 @@ export const readPackageDescriptionLayerBrokerProxy = (): {
       packageJsonPath: AbsoluteFilePath;
       description: ContentText;
     }): void => {
-      fsProxy.returns({
-        filePath: packageJsonPath,
-        content: JSON.stringify({ description }) as ContentText,
+      gatewayProxy.returns({
+        path: packageJsonPath,
+        contents: JSON.stringify({ description }),
       });
     },
 
     setupNoPackageJson: ({ packageJsonPath }: { packageJsonPath: AbsoluteFilePath }): void => {
-      fsProxy.throws({ filePath: packageJsonPath, error: new Error('ENOENT') });
+      gatewayProxy.throws({ path: packageJsonPath, error: new Error('ENOENT') });
     },
 
     setupImplementation: ({ fn }: { fn: (filePath: ContentText) => ContentText }): void => {
-      fsProxy.implementation({ fn });
+      handle.calledWith([]).implement(fn as never);
     },
   };
 };

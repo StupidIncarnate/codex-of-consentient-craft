@@ -28,7 +28,7 @@ export const readPackageCliContentLayerBroker = ({
   const startupDirPath = absoluteFilePathContract.parse(`${packageRoot}/src/startup`);
   const startupEntries = safeReaddirLayerBroker({ dirPath: startupDirPath });
   for (const entry of startupEntries) {
-    if (entry.isDirectory()) continue;
+    if (entry.kind === 'directory') continue;
     if (!matchesStartupFileNameGuard({ name: entry.name })) continue;
     const content = readFileOptionalLayerBroker({
       filePath: absoluteFilePathContract.parse(`${startupDirPath}/${entry.name}`),
@@ -39,7 +39,7 @@ export const readPackageCliContentLayerBroker = ({
   const binDirPath = absoluteFilePathContract.parse(`${packageRoot}/bin`);
   const binEntries = safeReaddirLayerBroker({ dirPath: binDirPath });
   for (const entry of binEntries) {
-    if (entry.isDirectory()) continue;
+    if (entry.kind === 'directory') continue;
     if (!isBinSourceFileNameGuard({ name: entry.name })) continue;
     const content = readFileOptionalLayerBroker({
       filePath: absoluteFilePathContract.parse(`${binDirPath}/${entry.name}`),

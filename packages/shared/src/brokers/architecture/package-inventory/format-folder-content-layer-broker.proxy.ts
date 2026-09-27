@@ -2,7 +2,18 @@ import type { Dirent } from 'fs';
 import { safeReaddirLayerBrokerProxy } from './safe-readdir-layer-broker.proxy';
 import { countFilesRecursiveLayerBrokerProxy } from './count-files-recursive-layer-broker.proxy';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
+import type { DirEntrySync } from '#gateway/node/fs';
 
+// Feeds `safeProxy.setupDirectory`, which composes the gateway's own `readdirEntriesSyncProxy` —
+// that proxy stages `{name, kind}` directly, never a raw `Dirent`.
+const makeDirEntrySync = ({ name, isDir }: { name: string; isDir: boolean }): DirEntrySync => ({
+  name,
+  kind: isDir ? 'directory' : 'file',
+});
+
+// Feeds `safeProxy.setupImplementation`, which registers directly on the raw `readdirSync` mock —
+// the gateway's own real `.map()` into `{name, kind}` still runs underneath, so this must keep
+// building the shape the real fs.Dirent's `isDirectory()`/`isFile()` methods provide.
 const makeDirent = ({ name, isDir }: { name: string; isDir: boolean }): Dirent =>
   ({
     name,
@@ -52,7 +63,7 @@ export const formatFolderContentLayerBrokerProxy = (): {
     }): void => {
       safeProxy.setupDirectory({
         dirPath,
-        entries: fileNames.map((name) => makeDirent({ name, isDir: false })),
+        entries: fileNames.map((name) => makeDirEntrySync({ name, isDir: false })),
       });
     },
 

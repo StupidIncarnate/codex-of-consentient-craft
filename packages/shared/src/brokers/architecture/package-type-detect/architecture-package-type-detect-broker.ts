@@ -43,12 +43,12 @@ export const architecturePackageTypeDetectBroker = async ({
   // List top-level dirs in src/
   const srcPath = absoluteFilePathContract.parse(`${packageRoot}/src`);
   const srcEntries = safeReaddirLayerBroker({ dirPath: srcPath });
-  const srcDirNames = srcEntries.filter((e) => e.isDirectory()).map((e) => e.name);
+  const srcDirNames = srcEntries.filter((e) => e.kind === 'directory').map((e) => e.name);
 
   // List dirs in src/adapters/ ([] if absent)
   const adaptersPath = absoluteFilePathContract.parse(`${packageRoot}/src/adapters`);
   const adapterEntries = safeReaddirLayerBroker({ dirPath: adaptersPath });
-  const adapterDirNames = adapterEntries.filter((e) => e.isDirectory()).map((e) => e.name);
+  const adapterDirNames = adapterEntries.filter((e) => e.kind === 'directory').map((e) => e.name);
 
   // Read concatenated content from every non-test startup + bin source file. Combining them lets
   // detection signals (process.argv reference, async-namespace export) surface even when argv parsing

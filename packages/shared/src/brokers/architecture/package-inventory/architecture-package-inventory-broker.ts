@@ -39,7 +39,7 @@ export const architecturePackageInventoryBroker = ({
   const descriptionSuffix =
     description.length > 0 ? ` ${projectMapStatics.descriptionSeparator} ${description}` : '';
   const folderEntries = safeReaddirLayerBroker({ dirPath: srcPath })
-    .filter((entry) => entry.isDirectory())
+    .filter((entry) => entry.kind === 'directory')
     .sort((a, b) => a.name.localeCompare(b.name));
 
   if (folderEntries.length === 0) {

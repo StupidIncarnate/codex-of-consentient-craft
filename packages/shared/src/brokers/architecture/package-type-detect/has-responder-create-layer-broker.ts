@@ -20,9 +20,9 @@ export const hasResponderCreateLayerBroker = ({
   const domainEntries = safeReaddirLayerBroker({ dirPath: respondersDirPath });
 
   return domainEntries.some((domain) => {
-    if (!domain.isDirectory()) return false;
+    if (domain.kind !== 'directory') return false;
     const domainPath = absoluteFilePathContract.parse(`${respondersDirPath}/${domain.name}`);
     const domainEntries2 = safeReaddirLayerBroker({ dirPath: domainPath });
-    return domainEntries2.some((entry) => entry.isDirectory() && entry.name === 'create');
+    return domainEntries2.some((entry) => entry.kind === 'directory' && entry.name === 'create');
   });
 };

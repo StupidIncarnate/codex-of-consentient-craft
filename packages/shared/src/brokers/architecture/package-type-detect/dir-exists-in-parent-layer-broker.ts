@@ -22,5 +22,5 @@ export const dirExistsInParentLayerBroker = ({
   dirName: string;
 }): boolean => {
   const entries = safeReaddirLayerBroker({ dirPath: parentDirPath });
-  return entries.some((entry) => entry.isDirectory() && entry.name === dirName);
+  return entries.some((entry) => entry.kind === 'directory' && entry.name === dirName);
 };

@@ -8,7 +8,7 @@
  * WHEN-TO-USE: When building the project map header line for a package
  */
 
-import { fsReadFileSyncAdapter } from '../../../adapters/fs/read-file-sync/fs-read-file-sync-adapter';
+import { readFileSync } from '#gateway/node/fs';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
@@ -19,7 +19,7 @@ export const readPackageDescriptionLayerBroker = ({
   packageJsonPath: AbsoluteFilePath;
 }): ContentText => {
   try {
-    const raw = fsReadFileSyncAdapter({ filePath: packageJsonPath });
+    const raw = readFileSync(packageJsonPath);
     const parsed: unknown = JSON.parse(raw);
 
     if (

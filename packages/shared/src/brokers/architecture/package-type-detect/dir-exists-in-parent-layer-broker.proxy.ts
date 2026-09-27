@@ -1,4 +1,4 @@
-import type { Dirent } from 'fs';
+import type { DirEntrySync } from '#gateway/node/fs';
 import { safeReaddirLayerBrokerProxy } from './safe-readdir-layer-broker.proxy';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 
@@ -14,17 +14,7 @@ export const dirExistsInParentLayerBrokerProxy = (): {
 } => {
   const readdirProxy = safeReaddirLayerBrokerProxy();
 
-  const makeDirDirent = ({ name }: { name: string }): Dirent =>
-    ({
-      name,
-      isDirectory: () => true,
-      isFile: () => false,
-      isBlockDevice: () => false,
-      isCharacterDevice: () => false,
-      isFIFO: () => false,
-      isSocket: () => false,
-      isSymbolicLink: () => false,
-    }) as Dirent;
+  const makeDirDirent = ({ name }: { name: string }): DirEntrySync => ({ name, kind: 'directory' });
 
   return {
     setupWithDir: ({
