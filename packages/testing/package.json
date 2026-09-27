@@ -86,6 +86,7 @@
     }
   },
   "dependencies": {
+    "@dungeonmaster/node": "*",
     "msw": "^2.12.10",
     "tsx": "^4.0.0"
   },

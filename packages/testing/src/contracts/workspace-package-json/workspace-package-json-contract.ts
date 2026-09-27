@@ -35,6 +35,16 @@ const workspacePackageExportEntryContract = z
   })
   .passthrough();
 
+// Node's own `exports` map allows a bare string value too (`"./jest-config-base": "./jest-config-base.js"`,
+// this repo's own `@dungeonmaster/testing` package.json) — every condition resolves to that one path,
+// no conditions object at all. A `z.record` fails its WHOLE parse on one entry that does not match,
+// so without this union `workspacePackageJsonReadMiddleware` returns null for a real, valid
+// package.json, and `nearestPackageJsonFindMiddleware` climbs straight past it looking for another.
+const workspacePackageExportValueContract = z.union([
+  workspacePackageExportSourcePathContract,
+  workspacePackageExportEntryContract,
+]);
+
 // An `imports` map value's target is itself an import specifier ('@dungeonmaster/npm/*'), so it
 // reuses `ImportPath` rather than the file-path-shaped `WorkspacePackageExportSourcePath` — unlike
 // an `exports` entry's `source`, this string is fed straight back into
@@ -59,7 +69,7 @@ export const workspacePackageJsonContract = z
       ])
       .optional(),
     exports: z
-      .record(z.string().brand<'WorkspacePackageExportKey'>(), workspacePackageExportEntryContract)
+      .record(z.string().brand<'WorkspacePackageExportKey'>(), workspacePackageExportValueContract)
       .optional(),
     imports: z
       .record(

@@ -88,6 +88,23 @@ describe('workspacePackageExportSourceTransformer', () => {
     });
   });
 
+  describe('bare string export value', () => {
+    it('VALID: {subpath: "jest-config-base", literal key holds a bare string} => returns it as the source', () => {
+      const { exports: exportsMap } = WorkspacePackageJsonStub({
+        name: '@dungeonmaster/testing',
+        exports: { './jest-config-base': './jest-config-base.js' },
+      });
+      const { subpath } = PackageSpecifierPartsStub({
+        packageName: '@dungeonmaster/testing',
+        subpath: 'jest-config-base',
+      });
+
+      const result = workspacePackageExportSourceTransformer({ exportsMap, subpath });
+
+      expect(result).toBe('./jest-config-base.js');
+    });
+  });
+
   describe('no match', () => {
     it('INVALID: {subpath: "testing", only an unrelated "./git" export} => returns null', () => {
       const { exports: exportsMap } = WorkspacePackageJsonStub({

@@ -65,6 +65,18 @@ describe('workspacePackageJsonContract', () => {
         exports: { './axios': { import: './dist/axios/index.js' } },
       });
     });
+
+    it('VALID: {exports entry with a bare string target} => parses successfully', () => {
+      const result = workspacePackageJsonContract.parse({
+        name: '@dungeonmaster/testing',
+        exports: { './jest-config-base': './jest-config-base.js' },
+      });
+
+      expect(result).toStrictEqual({
+        name: '@dungeonmaster/testing',
+        exports: { './jest-config-base': './jest-config-base.js' },
+      });
+    });
   });
 
   describe('importing package shape', () => {

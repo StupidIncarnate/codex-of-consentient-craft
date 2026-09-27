@@ -41,11 +41,14 @@ export const workspacePackageExportSourceTransformer = ({
   // Node picks the wildcard key with the LONGEST prefix, whatever order the map lists them in —
   // `./_test_/*` beats `./*` for `_test_/fs`. Every `*` in the target takes the captured text.
   for (const [key, entry] of Object.entries(exportsMap)) {
-    if (!entry?.source) {
+    // A bare string entry (`"./jest-config-base": "./jest-config-base.js"`) IS its own source —
+    // Node's shorthand for "every condition resolves here", no conditions object at all.
+    const source = typeof entry === 'string' ? entry : entry?.source;
+    if (!source) {
       continue;
     }
     if (key === literalKey) {
-      return entry.source;
+      return source;
     }
 
     const starIndex = key.indexOf('*');
@@ -64,7 +67,7 @@ export const workspacePackageExportSourceTransformer = ({
     ) {
       const captured = subpath.slice(prefix.length, subpath.length - suffix.length);
       wildcardMatch = workspacePackageExportSourcePathContract.parse(
-        entry.source.replaceAll('*', captured),
+        source.replaceAll('*', captured),
       );
       wildcardPrefixLength = prefix.length;
     }
