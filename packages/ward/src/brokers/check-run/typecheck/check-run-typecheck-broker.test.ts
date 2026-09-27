@@ -526,4 +526,87 @@ describe('checkRunTypecheckBroker', () => {
       );
     });
   });
+
+  describe('build config present (tsconfig.build.json)', () => {
+    // The mocked spawn addresses only on the resolved `tsc` command, identical for the checking
+    // and the build pass, so setupFail/setupPass answers BOTH invocations the same way here — this
+    // proves the MERGE/DEDUP logic (two runs, one real error, reported once). A real "checking pass
+    // clean, build pass fails" outcome needs the two runs to actually disagree, which needs a real
+    // `tsc` — see check-run-typecheck-broker.integration.test.ts.
+    it('VALID: {tsc fails, tsconfig.build.json exists, same error under both configs} => merges into one error, not two', async () => {
+      const proxy = checkRunTypecheckBrokerProxy();
+      const projectFolder = ProjectFolderStub();
+      const tscOutput = [
+        '/home/user/project/packages/ward/src/index.ts',
+        'src/index.ts(10,5): error TS2345: Argument mismatch.',
+      ].join('\n');
+      proxy.setupFail({ projectFolder, stdout: tscOutput });
+      proxy.setupBuildConfigPresent({ projectFolder });
+
+      const result = await checkRunTypecheckBroker({
+        projectFolder,
+        fileList: [],
+      });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          discoveredCount: 1,
+          projectFolder,
+          status: 'fail',
+          errors: [
+            ErrorEntryStub({
+              filePath: 'src/index.ts',
+              line: 10,
+              column: 5,
+              message: 'TS2345: Argument mismatch.',
+              severity: 'error',
+            }),
+          ],
+          testFailures: [],
+          filesCount: 1,
+          onlyDiscovered: ['discovered.ts'],
+          onlyProcessed: ['src/index.ts'],
+          rawOutput: RawOutputStub({
+            stdout: [
+              'src/index.ts(10,5): error TS2345: Argument mismatch.',
+              '--- tsconfig.build.json ---',
+              'src/index.ts(10,5): error TS2345: Argument mismatch.',
+            ].join('\n'),
+            stderr: '',
+            exitCode: 1,
+          }),
+        }),
+      );
+    });
+
+    it('VALID: {tsc exits 0, tsconfig.build.json exists and is also clean} => status stays pass', async () => {
+      const proxy = checkRunTypecheckBrokerProxy();
+      const projectFolder = ProjectFolderStub();
+      const listFilesOutput = [
+        '/home/user/project/packages/ward/node_modules/typescript/lib/lib.es5.d.ts',
+        '/home/user/project/packages/ward/src/index.ts',
+      ].join('\n');
+      proxy.setupPass({ projectFolder, stdout: listFilesOutput });
+      proxy.setupBuildConfigPresent({ projectFolder });
+
+      const result = await checkRunTypecheckBroker({
+        projectFolder,
+        fileList: [],
+      });
+
+      expect(result).toStrictEqual(
+        ProjectResultStub({
+          discoveredCount: 1,
+          projectFolder,
+          status: 'pass',
+          errors: [],
+          testFailures: [],
+          filesCount: 1,
+          onlyDiscovered: ['discovered.ts'],
+          onlyProcessed: ['src/index.ts'],
+          rawOutput: RawOutputStub({ stdout: '', exitCode: 0 }),
+        }),
+      );
+    });
+  });
 });

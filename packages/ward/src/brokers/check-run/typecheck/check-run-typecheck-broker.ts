@@ -8,9 +8,18 @@
  * counts stay truthful) and `elsewhereErrors` (so the summary can print them under their own
  * heading).
  *
+ * A package's `tsconfig.build.json` differs from `tsconfig.json` in `rootDir`, `outDir`, `exclude`
+ * and `customConditions` — real gaps a checking-config-only run misses (TS6059 in commit ed13c2901,
+ * TS2379 under `exactOptionalPropertyTypes` in G15, neither caught until `npm run build`). Whenever
+ * the file exists, this runs a SECOND `tsc --noEmit` pass against it, in parallel with the checking
+ * pass, and merges its errors into the same `errors`/`elsewhereErrors` lists — de-duplicated against
+ * the checking pass's own findings, so a real error the two configs agree on prints once, not twice,
+ * and no separate heading is needed: an error is an error whichever config found it.
+ *
  * USAGE:
  * const result = await checkRunTypecheckBroker({ projectFolder: ProjectFolderStub(), fileList: [] });
- * // Returns ProjectResult with parsed TypeScript errors; status reflects the whole package on any scoped run
+ * // Returns ProjectResult with parsed TypeScript errors from tsconfig.json and, when present,
+ * // tsconfig.build.json; status reflects the whole package on any scoped run
  */
 
 import {
@@ -21,6 +30,7 @@ import {
   absoluteFilePathContract,
   exitCodeContract,
   filePathContract,
+  type ProcessSignal,
 } from '@dungeonmaster/shared/contracts';
 
 import { binCommandContract } from '../../../contracts/bin-command/bin-command-contract';
@@ -70,7 +80,7 @@ export const checkRunTypecheckBroker = async ({
     });
   }
 
-  const { bin, args } = checkCommandsStatics.typecheck;
+  const { bin, args, buildArgs } = checkCommandsStatics.typecheck;
 
   let tsconfigData: unknown = {};
   try {
@@ -87,24 +97,78 @@ export const checkRunTypecheckBroker = async ({
   });
   const command = String(binResolveBroker({ binName: binCommandContract.parse(bin), cwd }));
 
-  const result = await childProcessSpawnCaptureAdapter({
-    command,
-    args: [...args],
-    cwd,
-  });
+  // The build config's `-p` target is per-package, so only `--noEmit` is a static arg; the path is
+  // appended here. Run alongside the checking pass, never after it — a sequential second `tsc`
+  // process would double the wall time of every package's typecheck that carries this file.
+  const buildTsconfigPath = filePathContract.parse(`${String(cwd)}/tsconfig.build.json`);
+  const hasBuildConfig = fsExistsSyncAdapter({ filePath: buildTsconfigPath });
+
+  const [result, buildResult] = await Promise.all([
+    childProcessSpawnCaptureAdapter({ command, args: [...args], cwd }),
+    hasBuildConfig
+      ? childProcessSpawnCaptureAdapter({
+          command,
+          args: [...buildArgs, '-p', String(buildTsconfigPath)],
+          cwd,
+        })
+      : Promise.resolve(null),
+  ]);
 
   const exitCode = result.exitCode ?? exitCodeContract.parse(1);
   const status = exitCode === exitCodeContract.parse(0) ? 'pass' : 'fail';
 
-  let allErrors: ReturnType<typeof tscOutputParseTransformer> = [];
+  let mainErrors: ReturnType<typeof tscOutputParseTransformer> = [];
 
   if (status === 'fail') {
     try {
-      allErrors = tscOutputParseTransformer({ output: result.output });
+      mainErrors = tscOutputParseTransformer({ output: result.output });
     } catch {
-      allErrors = [];
+      mainErrors = [];
     }
   }
+
+  let buildStatus: 'pass' | 'fail' = 'pass';
+  let buildErrors: ReturnType<typeof tscOutputParseTransformer> = [];
+  let buildStrippedOutput = '';
+  let buildExitCode = exitCodeContract.parse(0);
+  let buildSignal: ProcessSignal | null = null;
+
+  if (buildResult !== null) {
+    buildExitCode = buildResult.exitCode ?? exitCodeContract.parse(1);
+    buildSignal = buildResult.signal;
+    buildStatus = buildExitCode === exitCodeContract.parse(0) ? 'pass' : 'fail';
+
+    if (buildStatus === 'fail') {
+      try {
+        buildErrors = tscOutputParseTransformer({ output: buildResult.output });
+      } catch {
+        buildErrors = [];
+      }
+    }
+
+    buildStrippedOutput = buildResult.output
+      .split('\n')
+      .filter((line) => !line.startsWith('/'))
+      .join('\n');
+  }
+
+  // The build pass shares most of its source tree with the checking pass, so the same real error
+  // often surfaces under both configs. Merged on filePath+line+column+severity+message, so a caller
+  // reading `errors` sees it once and has no reason to know two `tsc` runs happened at all.
+  const mainErrorKeys = new Set(
+    mainErrors.map(
+      (entry) =>
+        `${entry.filePath}|${String(entry.line)}|${String(entry.column)}|${entry.severity}|${entry.message}`,
+    ),
+  );
+  const uniqueBuildErrors = buildErrors.filter(
+    (entry) =>
+      !mainErrorKeys.has(
+        `${entry.filePath}|${String(entry.line)}|${String(entry.column)}|${entry.severity}|${entry.message}`,
+      ),
+  );
+  const allErrors = [...mainErrors, ...uniqueBuildErrors];
+  const combinedStatus = status === 'fail' || buildStatus === 'fail' ? 'fail' : 'pass';
 
   // Every entry in `fileList` is either a FILE (extension-shaped, per isFilePathGuard) or a
   // DIRECTORY. tsc has no per-file mode (checkCommandsStatics.typecheck runs the whole project
@@ -166,15 +230,32 @@ export const checkRunTypecheckBroker = async ({
     cwd,
   });
 
-  const strippedOutput = tscLines.filter((line) => !line.startsWith('/')).join('\n');
+  const strippedOutputMain = tscLines.filter((line) => !line.startsWith('/')).join('\n');
+  const strippedOutput =
+    buildStatus === 'fail' && buildStrippedOutput.length > 0
+      ? [strippedOutputMain, '--- tsconfig.build.json ---', buildStrippedOutput]
+          .filter((part) => part.length > 0)
+          .join('\n')
+      : strippedOutputMain;
+
+  // The checking pass's exit code/signal stay the reported ones whenever IT failed — a build-only
+  // failure (checking pass clean) is the one case that needs the build pass's own exit evidence
+  // instead, or `rawOutput` would claim exit 0 on a run the summary reports as failed.
+  let combinedExitCode = exitCode;
+  let combinedSignal = result.signal;
+
+  if (status !== 'fail' && buildStatus === 'fail') {
+    combinedExitCode = buildExitCode;
+    combinedSignal = buildSignal;
+  }
 
   return projectResultContract.parse({
     projectFolder,
     // `status` is never overridden to 'pass' by scope any more: tsc always grades the WHOLE
     // package, so a real error anywhere in it fails the run whatever paths the caller passed —
-    // named or elsewhere, file or directory. A bare package arg reaches here with an empty
-    // `fileList`, where this was already the whole-package truth.
-    status,
+    // named or elsewhere, file or directory, from either config. A bare package arg reaches here
+    // with an empty `fileList`, where this was already the whole-package truth.
+    status: combinedStatus,
     // `errors` stays the FULL truthful list — named errors first, then elsewhere ones — so every
     // existing consumer (crash detection, failing-file counts) keeps working without knowing
     // `elsewhereErrors` exists. That field is a subset, kept only so the summary can print the two
@@ -189,8 +270,8 @@ export const checkRunTypecheckBroker = async ({
     rawOutput: rawOutputContract.parse({
       stdout: strippedOutput,
       stderr: '',
-      exitCode,
-      signal: result.signal,
+      exitCode: combinedExitCode,
+      signal: combinedSignal,
     }),
   });
 };

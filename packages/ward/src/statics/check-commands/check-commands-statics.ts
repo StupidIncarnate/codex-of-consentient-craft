@@ -53,11 +53,20 @@ export const checkCommandsStatics = {
   lint: {
     bin: 'eslint',
     args: ['--fix', '--stats', '--format', 'json', '.'],
+    // No second pass for this check type — present so `checkCommandsStatics` has one shape every
+    // entry satisfies, which is what lets `check-commands-statics.test.ts` flatten `args` and
+    // `buildArgs` together with no conditional.
+    buildArgs: [],
     discoverPatterns: lintDiscoverPatterns,
   },
   typecheck: {
     bin: 'tsc',
     args: ['--noEmit', '--listFiles'],
+    // Appended to at runtime with `-p <package's tsconfig.build.json>` — the path is per-package,
+    // so it cannot live here. Never `--listFiles`: the build pass exists only to surface errors the
+    // checking pass misses, and the checking pass's own `--listFiles` output already covers
+    // discovery/filesCount for the package.
+    buildArgs: ['--noEmit'],
     discoverPatterns: typecheckDiscoverPatterns,
   },
   unit: {
@@ -79,6 +88,7 @@ export const checkCommandsStatics = {
       // still never run as a unit test.
       `\\.integration\\.test\\.(${extRegex})$|\\.e2e\\.test\\.(${extRegex})$`,
     ],
+    buildArgs: [],
     discoverPatterns: unitDiscoverPatterns,
     excludePatterns: unitExcludePatterns,
   },
@@ -107,11 +117,13 @@ export const checkCommandsStatics = {
     // pattern only ever rides the `--findRelatedTests` branch, where the candidates are already
     // the tests reachable from the source files the caller named.
     relatedTestsIgnorePattern: `^(?!.*\\.integration\\.test\\.(${extRegex})$)`,
+    buildArgs: [],
     discoverPatterns: integrationDiscoverPatterns,
   },
   e2e: {
     bin: 'playwright',
     args: ['test', '--reporter=line,json'],
+    buildArgs: [],
     discoverPatterns: ['**/*.e2e.ts'],
   },
 } as const;

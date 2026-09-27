@@ -6,6 +6,7 @@ describe('checkCommandsStatics', () => {
       lint: {
         bin: 'eslint',
         args: ['--fix', '--stats', '--format', 'json', '.'],
+        buildArgs: [],
         discoverPatterns: [
           'src/**/*.ts',
           'bin/**/*.ts',
@@ -26,6 +27,7 @@ describe('checkCommandsStatics', () => {
       typecheck: {
         bin: 'tsc',
         args: ['--noEmit', '--listFiles'],
+        buildArgs: ['--noEmit'],
         discoverPatterns: ['src/**/*.ts', 'bin/**/*.ts', 'src/**/*.tsx', 'bin/**/*.tsx'],
       },
       unit: {
@@ -38,6 +40,7 @@ describe('checkCommandsStatics', () => {
           '--testPathIgnorePatterns',
           '\\.integration\\.test\\.(ts|tsx|js|jsx)$|\\.e2e\\.test\\.(ts|tsx|js|jsx)$',
         ],
+        buildArgs: [],
         discoverPatterns: [
           'src/**/*.test.ts',
           'bin/**/*.test.ts',
@@ -75,6 +78,7 @@ describe('checkCommandsStatics', () => {
           '\\.integration\\.test\\.(ts|tsx|js|jsx)$',
         ],
         relatedTestsIgnorePattern: '^(?!.*\\.integration\\.test\\.(ts|tsx|js|jsx)$)',
+        buildArgs: [],
         discoverPatterns: [
           'src/**/*.integration.test.ts',
           'bin/**/*.integration.test.ts',
@@ -93,6 +97,7 @@ describe('checkCommandsStatics', () => {
       e2e: {
         bin: 'playwright',
         args: ['test', '--reporter=line,json'],
+        buildArgs: [],
         discoverPatterns: ['**/*.e2e.ts'],
       },
     });
@@ -104,14 +109,16 @@ describe('checkCommandsStatics', () => {
   // mode, so the absence of that flag is the whole invariant.
   //
   // Derived rather than a second copy of the object above, so a check type added later is covered
-  // the day it is added.
+  // the day it is added. `buildArgs` (typecheck's second, build-config pass) flattens in alongside
+  // `args` unconditionally — every check command carries the field (empty where there is no second
+  // pass), which is what lets this stay conditional-free.
   describe('no check runs a compiler in build mode', () => {
     it('VALID: every check command => passes no build-mode flag', () => {
       // `.map(String)` widens each arg away from its `as const` literal type. Without it the
       // comparison is a TYPE ERROR the moment no check carries `-b` — the very state this asserts —
       // so the check would only compile while it was already failing.
       const buildModeChecks = Object.entries(checkCommandsStatics)
-        .filter(([, command]) => command.args.map(String).includes('-b'))
+        .filter(([, command]) => [...command.args, ...command.buildArgs].map(String).includes('-b'))
         .map(([checkType]) => checkType);
 
       expect(buildModeChecks).toStrictEqual([]);
