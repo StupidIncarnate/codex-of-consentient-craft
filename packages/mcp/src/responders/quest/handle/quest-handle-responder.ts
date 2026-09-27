@@ -6,17 +6,10 @@
  * // Returns ToolResponse with quest data
  */
 
+import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { questIdContract } from '@dungeonmaster/shared/contracts';
 import { ResolveCallerSessionLayerResponder } from './resolve-caller-session-layer-responder';
-import { orchestratorCreateQuestAdapter } from '../../../adapters/orchestrator/create-quest/orchestrator-create-quest-adapter';
-import { orchestratorGetNextStepAdapter } from '../../../adapters/orchestrator/get-next-step/orchestrator-get-next-step-adapter';
-import { orchestratorGetQuestPlanningNotesAdapter } from '../../../adapters/orchestrator/get-quest-planning-notes/orchestrator-get-quest-planning-notes-adapter';
-import { orchestratorGetServerConfigAdapter } from '../../../adapters/orchestrator/get-server-config/orchestrator-get-server-config-adapter';
-import { orchestratorModifyQuestAdapter } from '../../../adapters/orchestrator/modify-quest/orchestrator-modify-quest-adapter';
-import { orchestratorStartQuestAdapter } from '../../../adapters/orchestrator/start-quest/orchestrator-start-quest-adapter';
 import { orchestratorGetQuestStatusBroker } from '../../../brokers/orchestrator/get-quest-status/orchestrator-get-quest-status-broker';
-import { orchestratorListQuestsAdapter } from '../../../adapters/orchestrator/list-quests/orchestrator-list-quests-adapter';
-import { orchestratorListGuildsAdapter } from '../../../adapters/orchestrator/list-guilds/orchestrator-list-guilds-adapter';
 import { BlightChecklistLayerResponder } from './blight-checklist-layer-responder';
 import { CreateWorktreeLayerResponder } from './create-worktree-layer-responder';
 import { GetQuestLayerResponder } from './get-quest-layer-responder';
@@ -83,7 +76,7 @@ export const QuestHandleResponder = async ({
     Reflect.deleteProperty(sanitized, 'comments');
 
     try {
-      const result = await orchestratorModifyQuestAdapter({
+      const result = await StartOrchestrator.modifyQuest({
         questId,
         input: sanitized as never,
       });
@@ -132,7 +125,7 @@ export const QuestHandleResponder = async ({
     const { questId } = startQuestInputContract.parse(args);
 
     try {
-      const processId = await orchestratorStartQuestAdapter({ questId });
+      const processId = await StartOrchestrator.startQuest({ questId });
       return {
         content: [
           {
@@ -194,7 +187,7 @@ export const QuestHandleResponder = async ({
     const { guildId } = listQuestsInputContract.parse(args);
 
     try {
-      const quests = await orchestratorListQuestsAdapter({ guildId });
+      const quests = await StartOrchestrator.listQuests({ guildId });
       return {
         content: [
           {
@@ -223,7 +216,7 @@ export const QuestHandleResponder = async ({
 
   if (tool === 'list-guilds') {
     try {
-      const guilds = await orchestratorListGuildsAdapter();
+      const guilds = await StartOrchestrator.listGuilds();
       return {
         content: [
           {
@@ -259,7 +252,7 @@ export const QuestHandleResponder = async ({
     const { questId } = getQuestPlanningNotesInputContract.parse(args);
 
     try {
-      const notes = await orchestratorGetQuestPlanningNotesAdapter({ questId });
+      const notes = await StartOrchestrator.getPlanningNotes({ questId });
       return {
         content: [
           {
@@ -292,7 +285,7 @@ export const QuestHandleResponder = async ({
       // The resolved session is stamped on the quest's intake work item, which is what the HTTP
       // server's watcher reactor tails to stream this conversation into the browser chat panel.
       const sessionId = await ResolveCallerSessionLayerResponder({ meta });
-      const { questId, guildSlug } = await orchestratorCreateQuestAdapter({
+      const { questId, guildSlug } = await StartOrchestrator.createQuestForMcp({
         userRequest,
         ...(questType !== undefined && { questType }),
         ...(sessionId !== undefined && { sessionId }),
@@ -327,7 +320,7 @@ export const QuestHandleResponder = async ({
     getNextStepInputContract.parse(args);
 
     try {
-      const step = await orchestratorGetNextStepAdapter();
+      const step = await StartOrchestrator.getNextStep();
       return {
         content: [
           {
@@ -354,7 +347,7 @@ export const QuestHandleResponder = async ({
 
   if (tool === 'get-server-config') {
     try {
-      const config = orchestratorGetServerConfigAdapter();
+      const config = StartOrchestrator.getServerConfig();
       const payload = getServerConfigOutputContract.parse({
         baseUrl: config.baseUrl,
         port: config.port,

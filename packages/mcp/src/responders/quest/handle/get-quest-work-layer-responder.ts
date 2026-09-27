@@ -16,7 +16,8 @@
  * throw into the MCP protocol's `isError: true` shape, so the message still rides back to the agent.
  */
 
-import { orchestratorGetQuestWorkAdapter } from '../../../adapters/orchestrator/get-quest-work/orchestrator-get-quest-work-adapter';
+import { StartOrchestrator } from '@dungeonmaster/orchestrator';
+
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 import { getQuestWorkInputContract } from '../../../contracts/get-quest-work-input/get-quest-work-input-contract';
 import type { ToolResponse } from '../../../contracts/tool-response/tool-response-contract';
@@ -31,7 +32,7 @@ export const GetQuestWorkLayerResponder = async ({
   const { questId, workItemId, operationItemId } = getQuestWorkInputContract.parse(args);
 
   try {
-    const result = await orchestratorGetQuestWorkAdapter({
+    const result = await StartOrchestrator.getQuestWork({
       questId,
       ...(workItemId !== undefined && { workItemId }),
       ...(operationItemId !== undefined && { operationItemId }),

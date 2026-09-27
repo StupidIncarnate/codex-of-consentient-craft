@@ -8,8 +8,7 @@
  * // Returns { success: true }; a repeat call is a no-op
  */
 
+import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
-import { orchestratorBootstrapAdapter } from '../../../adapters/orchestrator/bootstrap/orchestrator-bootstrap-adapter';
-
-export const OrchestrationBootstrapResponder = (): AdapterResult => orchestratorBootstrapAdapter();
+export const OrchestrationBootstrapResponder = (): AdapterResult => StartOrchestrator.bootstrap();

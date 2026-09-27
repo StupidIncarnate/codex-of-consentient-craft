@@ -130,6 +130,19 @@ export const StartOrchestratorProxy = (): {
   listQuestsWithSkipsThrows: (params: { guildId: GuildId; error: Error }) => void;
   loadQuestReturns: (params: { questId: QuestId; quest: Quest }) => void;
   loadQuestThrows: (params: { questId: QuestId; error: Error }) => void;
+  // ONE-SHOT staging, consumed in REGISTRATION order — lets a test hand two SUCCESSIVE calls for
+  // the SAME questId two DIFFERENT quest snapshots, which the sticky `loadQuestReturns` cannot do
+  // (a later `loadQuestReturns` for the same questId overwrites every prior call). Traced from
+  // server-init-responder's outbox-race test: two onQuestChanged firings for one questId, resolved
+  // out of firing order.
+  loadQuestReturnsOnce: (params: { questId: QuestId; quest: Quest }) => void;
+  // Same one-shot ordering as `loadQuestReturnsOnce`, but resolves after `delayMs` instead of
+  // immediately — for reproducing two overlapping loads that finish OUT OF the order they started.
+  loadQuestReturnsOnceDelayed: (params: {
+    questId: QuestId;
+    quest: Quest;
+    delayMs: number;
+  }) => void;
   // getQuest — QuestFlow.get -> questGetBroker.ts, whose catch block never throws: every failure
   // (missing quest, bad JSON) comes back as { success: false, error: <message> }.
   getQuestReturns: (params: { questId: QuestId; result: GetQuestResult }) => void;
@@ -140,6 +153,9 @@ export const StartOrchestratorProxy = (): {
   getQuestNotFound: (params: { questId: QuestId }) => void;
   getPlanningNotesReturns: (params: { questId: string; result: GetPlanningNotesResult }) => void;
   getPlanningNotesThrows: (params: { questId: string; error: Error }) => void;
+  // Every call StartOrchestrator.getPlanningNotes received, first-arg only — mirrors
+  // mergeQuestGetCalls. A caller needing the exact forwarded shape filters/reads this itself.
+  getPlanningNotesGetCalls: () => readonly unknown[];
   getQuestSummaryReturns: (params: { questId: string; summary: QuestSummary }) => void;
   getQuestSummaryThrows: (params: { questId: string; error: Error }) => void;
   getQuestProjectionReturns: (params: { questId: string; projection: QuestProjection }) => void;
@@ -147,6 +163,10 @@ export const StartOrchestratorProxy = (): {
   getQuestWorkReturns: (params: { questId: string; result: GetQuestWorkResult }) => void;
   getQuestWorkThrows: (params: { questId: string; error: Error }) => void;
   getQuestWorkDefaultView: () => QuestWorkView;
+  // Every call StartOrchestrator.getQuestWork received, first-arg only — mirrors
+  // mergeQuestGetCalls. A caller needing one field off a specific call (which of the two shapes —
+  // workItemId or operationItemId — actually reached the call) filters/reads this array itself.
+  getQuestWorkGetCalls: () => readonly unknown[];
   getBlightChecklistReturns: (params: {
     questId: string;
     result: GetBlightChecklistResult;
@@ -176,6 +196,10 @@ export const StartOrchestratorProxy = (): {
   addQuestThrows: (params: { guildId: GuildId; error: Error }) => void;
   modifyQuestReturns: (params: { questId?: string; result: ModifyQuestResult }) => void;
   modifyQuestThrows: (params: { questId?: string; error: Error }) => void;
+  // Every call StartOrchestrator.modifyQuest received, first-arg only — mirrors mergeQuestGetCalls.
+  // A caller composing this proxy that needs one field off a specific call (by questId, the input
+  // payload) filters/reads this array itself rather than reaching for the jest mock directly.
+  modifyQuestGetCalls: () => readonly unknown[];
   recordQuestSessionReturns: (params: { sessionId?: string }) => void;
   recordQuestSessionThrows: (params: { sessionId?: string; error: Error }) => void;
   createWorktreeReturns: (params: { name: string; result: CreateWorktreeResult }) => void;
@@ -204,6 +228,10 @@ export const StartOrchestratorProxy = (): {
   stopAllChatsWasCalled: () => boolean;
   replayChatHistorySetupSuccess: () => void;
   replayChatHistorySetupFailure: (params: { error: Error }) => void;
+  // Every call StartOrchestrator.replayChatHistory received, first-arg only — mirrors
+  // startChatGetCalls/playDispatchGetCalls. Unaddressed on purpose: a caller needing one field off
+  // a specific call (the sessionId, whether agentId rode along) filters/reads this array itself.
+  replayChatHistoryGetCalls: () => readonly unknown[];
   startFollowupChatReturns: (params: { questId: QuestId; chatProcessId: ProcessId }) => void;
   startFollowupChatThrows: (params: { questId: QuestId; error: Error }) => void;
   stopFollowupChatReturns: (params: { questId: QuestId; stopped: boolean }) => void;
@@ -215,6 +243,10 @@ export const StartOrchestratorProxy = (): {
     result: AgentPromptResult;
   }) => void;
   getAgentPromptThrows: (params: { agent: string; questId: QuestId; error: Error }) => void;
+  // Every call StartOrchestrator.getAgentPrompt received, first-arg only — mirrors
+  // startChatGetCalls. A caller needing the exact forwarded shape (e.g. proving a field is ABSENT
+  // rather than merely undefined) filters/reads this array itself.
+  getAgentPromptGetCalls: () => readonly unknown[];
   // Smoketest — SmoketestFlow.
   runSmoketestReturns: (params: { suite: SmoketestSuite; result: RunSmoketestResult }) => void;
   runSmoketestThrows: (params: { suite: SmoketestSuite; error: Error }) => void;
@@ -243,6 +275,10 @@ export const StartOrchestratorProxy = (): {
     guildSlug: UrlSlug;
   }) => void;
   createQuestForMcpThrows: (params: { userRequest: string; error: Error }) => void;
+  // Every call StartOrchestrator.createQuestForMcp received, first-arg only — mirrors
+  // startChatGetCalls. A caller needing the exact forwarded shape (proving an optional field like
+  // questType/sessionId reached the call) filters/reads this array itself.
+  createQuestForMcpGetCalls: () => readonly unknown[];
   getNextStepReturns: (params: { step: NextStep }) => void;
   getNextStepThrows: (params: { error: Error }) => void;
   handleSignalBackResolves: (params: {
@@ -455,6 +491,27 @@ export const StartOrchestratorProxy = (): {
     loadQuestThrows: ({ questId, error }: { questId: QuestId; error: Error }): void => {
       loadQuestHandle.calledWith([{ questId }]).rejects(error);
     },
+    loadQuestReturnsOnce: ({ questId, quest }: { questId: QuestId; quest: Quest }): void => {
+      loadQuestHandle.onceFor([{ questId }]).resolves(quest);
+    },
+    loadQuestReturnsOnceDelayed: ({
+      questId,
+      quest,
+      delayMs,
+    }: {
+      questId: QuestId;
+      quest: Quest;
+      delayMs: number;
+    }): void => {
+      loadQuestHandle.onceFor([{ questId }]).implement(
+        async () =>
+          new Promise((resolve) => {
+            setTimeout(() => {
+              resolve(quest);
+            }, delayMs);
+          }),
+      );
+    },
     getQuestReturns: ({ questId, result }: { questId: QuestId; result: GetQuestResult }): void => {
       getQuestHandle.calledWith([{ questId }]).resolves(result);
     },
@@ -479,6 +536,8 @@ export const StartOrchestratorProxy = (): {
     getPlanningNotesThrows: ({ questId, error }: { questId: string; error: Error }): void => {
       getPlanningNotesHandle.calledWith([{ questId }]).rejects(error);
     },
+    getPlanningNotesGetCalls: (): readonly unknown[] =>
+      getPlanningNotesHandle.callsMatching([]).map((call) => call[0]),
     getQuestSummaryReturns: ({
       questId,
       summary,
@@ -518,6 +577,8 @@ export const StartOrchestratorProxy = (): {
       getQuestWorkHandle.calledWith([{ questId }]).rejects(error);
     },
     getQuestWorkDefaultView: (): QuestWorkView => QuestWorkViewStub(),
+    getQuestWorkGetCalls: (): readonly unknown[] =>
+      getQuestWorkHandle.callsMatching([]).map((call) => call[0]),
     getBlightChecklistReturns: ({
       questId,
       result,
@@ -621,6 +682,10 @@ export const StartOrchestratorProxy = (): {
     modifyQuestThrows: ({ questId, error }: { questId?: string; error: Error }): void => {
       modifyQuestHandle.calledWith(questId === undefined ? [] : [{ questId }]).rejects(error);
     },
+    // Unaddressed on purpose, mirroring mergeQuestGetCalls: a caller needing one field off a
+    // specific call (questId, the input payload) filters/reads this itself.
+    modifyQuestGetCalls: (): readonly unknown[] =>
+      modifyQuestHandle.callsMatching([]).map((call) => call[0]),
     recordQuestSessionReturns: ({ sessionId }: { sessionId?: string }): void => {
       recordQuestSessionHandle
         .calledWith(sessionId === undefined ? [] : [{ sessionId }])
@@ -710,6 +775,8 @@ export const StartOrchestratorProxy = (): {
     replayChatHistorySetupFailure: ({ error }: { error: Error }): void => {
       replayChatHistoryHandle.calledWith([]).rejects(error);
     },
+    replayChatHistoryGetCalls: (): readonly unknown[] =>
+      replayChatHistoryHandle.callsMatching([]).map((call) => call[0]),
     startFollowupChatReturns: ({
       questId,
       chatProcessId,
@@ -756,6 +823,10 @@ export const StartOrchestratorProxy = (): {
     }): void => {
       getAgentPromptHandle.calledWith([{ agent, questId }]).rejects(error);
     },
+    // Unaddressed on purpose, mirroring startChatGetCalls: a caller needing one field off a
+    // specific call (which optional keys were actually forwarded) filters/reads this itself.
+    getAgentPromptGetCalls: (): readonly unknown[] =>
+      getAgentPromptHandle.callsMatching([]).map((call) => call[0]),
     runSmoketestReturns: ({
       suite,
       result,
@@ -840,6 +911,8 @@ export const StartOrchestratorProxy = (): {
     }): void => {
       createQuestForMcpHandle.calledWith([{ userRequest }]).rejects(error);
     },
+    createQuestForMcpGetCalls: (): readonly unknown[] =>
+      createQuestForMcpHandle.callsMatching([]).map((call) => call[0]),
     // getNextStep takes no arguments — [] is the only possible, exhaustive address.
     getNextStepReturns: ({ step }: { step: NextStep }): void => {
       getNextStepHandle.calledWith([]).resolves(step);

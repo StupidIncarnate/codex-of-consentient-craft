@@ -8,16 +8,19 @@
 
 import type { AgentPromptResult } from '@dungeonmaster/shared/contracts';
 import { AdapterResultStub, ModifyQuestResultStub } from '@dungeonmaster/shared/contracts';
+import type { StartOrchestrator } from '@dungeonmaster/orchestrator';
+import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 
 import { askUserQuestionBrokerProxy } from '../../../brokers/ask/user-question/ask-user-question-broker.proxy';
 import { signalBackBrokerProxy } from '../../../brokers/signal/back/signal-back-broker.proxy';
-import { orchestratorGetAgentPromptAdapterProxy } from '../../../adapters/orchestrator/get-agent-prompt/orchestrator-get-agent-prompt-adapter.proxy';
-import { orchestratorHandleSignalBackAdapterProxy } from '../../../adapters/orchestrator/handle-signal-back/orchestrator-handle-signal-back-adapter.proxy';
-import { orchestratorModifyQuestAdapterProxy } from '../../../adapters/orchestrator/modify-quest/orchestrator-modify-quest-adapter.proxy';
-import { orchestratorRecordQuestSessionAdapterProxy } from '../../../adapters/orchestrator/record-quest-session/orchestrator-record-quest-session-adapter.proxy';
 import { InteractionHandleResponder } from './interaction-handle-responder';
 import { ResolveSubagentIdentityLayerResponderProxy } from './resolve-subagent-identity-layer-responder.proxy';
 import type { QuestId } from '@dungeonmaster/shared/contracts';
+
+// Derived from the real StartOrchestrator method signatures (never hand-typed) so the elements
+// each *GetCalls() hands back can be read by field without an ad-hoc structural cast.
+type ModifyQuestParams = Parameters<typeof StartOrchestrator.modifyQuest>[0];
+type GetAgentPromptParams = Parameters<typeof StartOrchestrator.getAgentPrompt>[0];
 
 export const InteractionHandleResponderProxy = (): {
   callResponder: typeof InteractionHandleResponder;
@@ -51,20 +54,17 @@ export const InteractionHandleResponderProxy = (): {
 } => {
   askUserQuestionBrokerProxy();
   signalBackBrokerProxy();
-  const agentPromptProxy = orchestratorGetAgentPromptAdapterProxy();
-  const signalBackAdapterProxy = orchestratorHandleSignalBackAdapterProxy();
+  const orchestratorProxy = StartOrchestratorProxy();
   // The signal-back tool call awaits this but never reads its result, and the questId/workItemId
   // it will be called with vary per test — this proxy has no per-test address to key on, so it
   // stages an explicit wildcard resolve rather than leaving the call unstaged.
-  signalBackAdapterProxy.resolves({ result: AdapterResultStub() });
-  const modifyProxy = orchestratorModifyQuestAdapterProxy();
+  orchestratorProxy.handleSignalBackResolves({ result: AdapterResultStub() });
   // Same story for the get-agent-prompt work-item stamp: the questId varies per test and the
   // stamp's result is never read, so this stages an explicit wildcard resolve too.
-  modifyProxy.returns({ result: ModifyQuestResultStub() });
+  orchestratorProxy.modifyQuestReturns({ result: ModifyQuestResultStub() });
   // And again for the session-cwd row the same stamp appends: the sessionId is discovered by the
   // JSONL scan rather than supplied by the test, so there is no per-test address to key on.
-  const recordSessionProxy = orchestratorRecordQuestSessionAdapterProxy();
-  recordSessionProxy.returns({});
+  orchestratorProxy.recordQuestSessionReturns({});
   const layerProxy = ResolveSubagentIdentityLayerResponderProxy();
 
   return {
@@ -78,15 +78,24 @@ export const InteractionHandleResponderProxy = (): {
       questId: QuestId;
       result: AgentPromptResult;
     }): void => {
-      agentPromptProxy.returns({ agent, questId, result });
+      orchestratorProxy.getAgentPromptReturns({ agent, questId, result });
     },
     setupCwd: layerProxy.setupCwd,
     setupSessionsDir: layerProxy.setupSessionsDir,
     setupSessionsDirMissing: layerProxy.setupSessionsDirMissing,
     setupSubagentsDir: layerProxy.setupSubagentsDir,
     setupAgentFile: layerProxy.setupAgentFile,
-    getLastModifyQuestInput: ({ questId }: { questId: QuestId }): unknown =>
-      modifyProxy.getLastCalledInputFor({ questId }),
-    getLastAgentPromptCallArgs: (): unknown => agentPromptProxy.getLastCallArgs(),
+    // The SAME modifyQuestGetCalls() read, filtered by questId here, so a test can pull the
+    // `input` field off the one call it made without re-describing questId on the proxy itself.
+    getLastModifyQuestInput: ({ questId }: { questId: QuestId }): unknown => {
+      const calls = orchestratorProxy.modifyQuestGetCalls() as ModifyQuestParams[];
+      return calls.filter((call) => call.questId === questId).at(-1)?.input;
+    },
+    // The SAME getAgentPromptGetCalls() read, here with no address, so a test can pull the whole
+    // forwarded object off the single call it made — including proving a key is ABSENT.
+    getLastAgentPromptCallArgs: (): unknown => {
+      const calls = orchestratorProxy.getAgentPromptGetCalls() as GetAgentPromptParams[];
+      return calls.at(-1);
+    },
   };
 };

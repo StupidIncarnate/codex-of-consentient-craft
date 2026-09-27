@@ -12,9 +12,9 @@
  * // Returns ToolResponse carrying that flow rendered whole for `web`
  */
 
+import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { questToTextDisplayTransformer } from '@dungeonmaster/shared/transformers';
 
-import { orchestratorGetQuestAdapter } from '../../../adapters/orchestrator/get-quest/orchestrator-get-quest-adapter';
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 import { getQuestInputContract } from '../../../contracts/get-quest-input/get-quest-input-contract';
 import type { ToolResponse } from '../../../contracts/tool-response/tool-response-contract';
@@ -30,7 +30,7 @@ export const GetQuestLayerResponder = async ({
   const { questId, stage, flowId, packageName, format } = getQuestInputContract.parse(args);
 
   try {
-    const result = await orchestratorGetQuestAdapter({
+    const result = await StartOrchestrator.getQuest({
       questId,
       ...(stage && { stage }),
       ...(flowId && { flowId }),

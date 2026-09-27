@@ -7,23 +7,16 @@
  * const result = await proxy.callResponder({ tool: ToolNameStub({ value: 'get-quest' }), args: { questId: 'abc' } });
  */
 
-import { orchestratorCreateQuestAdapterProxy } from '../../../adapters/orchestrator/create-quest/orchestrator-create-quest-adapter.proxy';
 import { ResolveCallerSessionLayerResponderProxy } from './resolve-caller-session-layer-responder.proxy';
-import { orchestratorGetNextStepAdapterProxy } from '../../../adapters/orchestrator/get-next-step/orchestrator-get-next-step-adapter.proxy';
-import { orchestratorGetQuestPlanningNotesAdapterProxy } from '../../../adapters/orchestrator/get-quest-planning-notes/orchestrator-get-quest-planning-notes-adapter.proxy';
 import { BlightChecklistLayerResponderProxy } from './blight-checklist-layer-responder.proxy';
 import { CreateWorktreeLayerResponderProxy } from './create-worktree-layer-responder.proxy';
 import { GetQuestLayerResponderProxy } from './get-quest-layer-responder.proxy';
 import { GetQuestWorkLayerResponderProxy } from './get-quest-work-layer-responder.proxy';
 import { QuestWorkLayerResponderProxy } from './quest-work-layer-responder.proxy';
 import { QuestSummaryLayerResponderProxy } from './quest-summary-layer-responder.proxy';
-import { orchestratorGetServerConfigAdapterProxy } from '../../../adapters/orchestrator/get-server-config/orchestrator-get-server-config-adapter.proxy';
-import { orchestratorModifyQuestAdapterProxy } from '../../../adapters/orchestrator/modify-quest/orchestrator-modify-quest-adapter.proxy';
-import { orchestratorStartQuestAdapterProxy } from '../../../adapters/orchestrator/start-quest/orchestrator-start-quest-adapter.proxy';
 import { orchestratorGetQuestStatusBrokerProxy } from '../../../brokers/orchestrator/get-quest-status/orchestrator-get-quest-status-broker.proxy';
-import { orchestratorListQuestsAdapterProxy } from '../../../adapters/orchestrator/list-quests/orchestrator-list-quests-adapter.proxy';
-import { orchestratorListGuildsAdapterProxy } from '../../../adapters/orchestrator/list-guilds/orchestrator-list-guilds-adapter.proxy';
 import type { StartOrchestrator } from '@dungeonmaster/orchestrator';
+import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 
 import { ProcessIdStub } from '@dungeonmaster/shared/contracts';
 import type {
@@ -52,6 +45,11 @@ type UrlSlug = ReturnType<typeof UrlSlugStub>;
 type GuildId = ReturnType<typeof GuildIdStub>;
 type QuestListItem = ReturnType<typeof QuestListItemStub>;
 type ProcessId = ReturnType<typeof ProcessIdStub>;
+// Derived from the real StartOrchestrator method signatures (never hand-typed) so the elements
+// each *GetCalls() hands back can be read by field without an ad-hoc structural cast.
+type ModifyQuestParams = Parameters<typeof StartOrchestrator.modifyQuest>[0];
+type CreateQuestForMcpParams = Parameters<typeof StartOrchestrator.createQuestForMcp>[0];
+type GetPlanningNotesParams = Parameters<typeof StartOrchestrator.getPlanningNotes>[0];
 
 export const QuestHandleResponderProxy = (): {
   callResponder: typeof QuestHandleResponder;
@@ -119,21 +117,14 @@ export const QuestHandleResponderProxy = (): {
   });
 
   const getQuestProxy = GetQuestLayerResponderProxy();
-  const modifyQuestProxy = orchestratorModifyQuestAdapterProxy();
-  const startQuestProxy = orchestratorStartQuestAdapterProxy();
+  const orchestrator = StartOrchestratorProxy();
   const getQuestStatusProxy = orchestratorGetQuestStatusBrokerProxy();
-  const listQuestsProxy = orchestratorListQuestsAdapterProxy();
-  const listGuildsProxy = orchestratorListGuildsAdapterProxy();
-  const getPlanningNotesProxy = orchestratorGetQuestPlanningNotesAdapterProxy();
   // Composed for enforce-proxy-child-creation against the responder's own imports; the two work
   // tools stage nothing here, and each has its own colocated suite.
   GetQuestWorkLayerResponderProxy();
   QuestWorkLayerResponderProxy();
   const blightChecklistProxy = BlightChecklistLayerResponderProxy();
   const questSummaryProxy = QuestSummaryLayerResponderProxy();
-  const createQuestProxy = orchestratorCreateQuestAdapterProxy();
-  const getNextStepProxy = orchestratorGetNextStepAdapterProxy();
-  const getServerConfigProxy = orchestratorGetServerConfigAdapterProxy();
   const createWorktreeProxy = CreateWorktreeLayerResponderProxy();
 
   return {
@@ -160,11 +151,11 @@ export const QuestHandleResponderProxy = (): {
       questId: string;
       result: ModifyQuestResult;
     }): void => {
-      modifyQuestProxy.returns({ questId, result });
+      orchestrator.modifyQuestReturns({ questId, result });
     },
 
     setupModifyQuestThrows: ({ questId, error }: { questId: string; error: Error }): void => {
-      modifyQuestProxy.throws({ questId, error });
+      orchestrator.modifyQuestThrows({ questId, error });
     },
 
     setupStartQuestReturns: ({
@@ -174,11 +165,11 @@ export const QuestHandleResponderProxy = (): {
       questId: QuestId;
       processId: ProcessId;
     }): void => {
-      startQuestProxy.returns({ questId, processId });
+      orchestrator.startQuestReturns({ questId, processId });
     },
 
     setupStartQuestThrows: ({ questId, error }: { questId: QuestId; error: Error }): void => {
-      startQuestProxy.throws({ questId, error });
+      orchestrator.startQuestThrows({ questId, error });
     },
 
     // processId is plain string here (matching every sibling setup*'s questId/guildId), branded
@@ -210,15 +201,15 @@ export const QuestHandleResponderProxy = (): {
       guildId: GuildId;
       quests: QuestListItem[];
     }): void => {
-      listQuestsProxy.returns({ guildId, quests });
+      orchestrator.listQuestsReturns({ guildId, quests });
     },
 
     setupListQuestsThrows: ({ guildId, error }: { guildId: GuildId; error: Error }): void => {
-      listQuestsProxy.throws({ guildId, error });
+      orchestrator.listQuestsThrows({ guildId, error });
     },
 
     setupListGuildsThrows: ({ error }: { error: Error }): void => {
-      listGuildsProxy.throws({ error });
+      orchestrator.listGuildsThrows({ error });
     },
 
     setupGetPlanningNotesReturns: ({
@@ -228,11 +219,11 @@ export const QuestHandleResponderProxy = (): {
       questId: string;
       result: GetPlanningNotesResult;
     }): void => {
-      getPlanningNotesProxy.returns({ questId, result });
+      orchestrator.getPlanningNotesReturns({ questId, result });
     },
 
     setupGetPlanningNotesThrows: ({ questId, error }: { questId: string; error: Error }): void => {
-      getPlanningNotesProxy.throws({ questId, error });
+      orchestrator.getPlanningNotesThrows({ questId, error });
     },
 
     setupGetBlightChecklistReturns: ({
@@ -284,7 +275,7 @@ export const QuestHandleResponderProxy = (): {
       questId: QuestId;
       guildSlug: UrlSlug;
     }): void => {
-      createQuestProxy.returns({ userRequest, questId, guildSlug });
+      orchestrator.createQuestForMcpReturns({ userRequest, questId, guildSlug });
     },
 
     setupCreateQuestThrows: ({
@@ -294,7 +285,7 @@ export const QuestHandleResponderProxy = (): {
       userRequest: string;
       error: Error;
     }): void => {
-      createQuestProxy.throws({ userRequest, error });
+      orchestrator.createQuestForMcpThrows({ userRequest, error });
     },
 
     setupSessionResolved: ({
@@ -312,22 +303,25 @@ export const QuestHandleResponderProxy = (): {
       });
     },
 
-    getLastCreateQuestInput: (): unknown => createQuestProxy.getLastCallInput(),
+    getLastCreateQuestInput: (): unknown => {
+      const calls = orchestrator.createQuestForMcpGetCalls() as CreateQuestForMcpParams[];
+      return calls.at(-1);
+    },
 
     setupGetNextStepReturns: ({ step }: { step: NextStep }): void => {
-      getNextStepProxy.returns({ step });
+      orchestrator.getNextStepReturns({ step });
     },
 
     setupGetNextStepThrows: ({ error }: { error: Error }): void => {
-      getNextStepProxy.throws({ error });
+      orchestrator.getNextStepThrows({ error });
     },
 
     setupGetServerConfigReturns: ({ result }: { result: QuestGetServerConfigResult }): void => {
-      getServerConfigProxy.returns({ result });
+      orchestrator.getServerConfigReturns({ result });
     },
 
     setupGetServerConfigThrows: ({ error }: { error: Error }): void => {
-      getServerConfigProxy.throws({ error });
+      orchestrator.getServerConfigThrows({ error });
     },
 
     setupCreateWorktreeReturns: ({
@@ -351,10 +345,14 @@ export const QuestHandleResponderProxy = (): {
 
     buildServerConfig: (): QuestGetServerConfigResult => QuestGetServerConfigResultStub(),
 
-    getLastModifyInput: ({ questId }: { questId: string }): unknown =>
-      modifyQuestProxy.getLastCalledInputFor({ questId }),
+    getLastModifyInput: ({ questId }: { questId: string }): unknown => {
+      const calls = orchestrator.modifyQuestGetCalls() as ModifyQuestParams[];
+      return calls.filter((call) => call.questId === questId).at(-1)?.input;
+    },
 
-    getLastGetPlanningNotesInput: ({ questId }: { questId: string }): unknown =>
-      getPlanningNotesProxy.getLastCalledInputFor({ questId }),
+    getLastGetPlanningNotesInput: ({ questId }: { questId: string }): unknown => {
+      const calls = orchestrator.getPlanningNotesGetCalls() as GetPlanningNotesParams[];
+      return calls.filter((call) => call.questId === questId).at(-1);
+    },
   };
 };

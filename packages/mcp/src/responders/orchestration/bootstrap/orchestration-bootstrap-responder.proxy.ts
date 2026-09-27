@@ -1,4 +1,4 @@
-import { orchestratorBootstrapAdapterProxy } from '../../../adapters/orchestrator/bootstrap/orchestrator-bootstrap-adapter.proxy';
+import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import { OrchestrationBootstrapResponder } from './orchestration-bootstrap-responder';
 
 export const OrchestrationBootstrapResponderProxy = (): {
@@ -6,14 +6,14 @@ export const OrchestrationBootstrapResponderProxy = (): {
   setupError: (params: { message: string }) => void;
   callResponder: typeof OrchestrationBootstrapResponder;
 } => {
-  const adapterProxy = orchestratorBootstrapAdapterProxy();
+  const orchestrator = StartOrchestratorProxy();
 
   return {
     setupSuccess: (): void => {
-      adapterProxy.succeeds();
+      orchestrator.bootstrapSucceeds();
     },
     setupError: ({ message }: { message: string }): void => {
-      adapterProxy.throws({ error: new Error(message) });
+      orchestrator.bootstrapThrows({ error: new Error(message) });
     },
     callResponder: OrchestrationBootstrapResponder,
   };

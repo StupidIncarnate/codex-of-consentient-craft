@@ -6,15 +6,12 @@
  * // Returns ToolResponse with interaction result
  */
 
+import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { workItemRoleContract } from '@dungeonmaster/shared/contracts';
 import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
 
 import { askUserQuestionBroker } from '../../../brokers/ask/user-question/ask-user-question-broker';
 import { signalBackBroker } from '../../../brokers/signal/back/signal-back-broker';
-import { orchestratorGetAgentPromptAdapter } from '../../../adapters/orchestrator/get-agent-prompt/orchestrator-get-agent-prompt-adapter';
-import { orchestratorHandleSignalBackAdapter } from '../../../adapters/orchestrator/handle-signal-back/orchestrator-handle-signal-back-adapter';
-import { orchestratorModifyQuestAdapter } from '../../../adapters/orchestrator/modify-quest/orchestrator-modify-quest-adapter';
-import { orchestratorRecordQuestSessionAdapter } from '../../../adapters/orchestrator/record-quest-session/orchestrator-record-quest-session-adapter';
 import { getAgentPromptInputContract } from '../../../contracts/get-agent-prompt-input/get-agent-prompt-input-contract';
 import { ResolveSubagentIdentityLayerResponder } from './resolve-subagent-identity-layer-responder';
 import type { ToolResponse } from '../../../contracts/tool-response/tool-response-contract';
@@ -40,7 +37,7 @@ export const InteractionHandleResponder = async ({
     if (result.success) {
       // After validating the signal, apply it server-side: the handler marks the work item
       // terminal and applies its outcome to the ledger atomically, then advances the relay.
-      await orchestratorHandleSignalBackAdapter({
+      await StartOrchestrator.handleSignalBack({
         questId: result.signal.questId,
         workItemId: result.signal.workItemId,
         signal: result.signal.signal,
@@ -103,7 +100,7 @@ export const InteractionHandleResponder = async ({
           ...(meta !== undefined && { meta }),
         });
         if (identity !== undefined) {
-          await orchestratorModifyQuestAdapter({
+          await StartOrchestrator.modifyQuest({
             questId: String(parsed.data.questId),
             input: {
               questId: parsed.data.questId,
@@ -125,7 +122,7 @@ export const InteractionHandleResponder = async ({
           // instead of throwing past the stamp above.
           const role = workItemRoleContract.safeParse(parsed.data.agent);
           if (role.success) {
-            await orchestratorRecordQuestSessionAdapter({
+            await StartOrchestrator.recordQuestSession({
               questId: parsed.data.questId,
               sessionId: identity.sessionId,
               cwd: identity.cwd,
@@ -141,7 +138,7 @@ export const InteractionHandleResponder = async ({
       }
     }
 
-    const result = await orchestratorGetAgentPromptAdapter({
+    const result = await StartOrchestrator.getAgentPrompt({
       agent: parsed.data.agent,
       questId: parsed.data.questId,
       ...(workItemId !== undefined && { workItemId }),
