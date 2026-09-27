@@ -10,7 +10,10 @@
  * proxy.setupRepoRootAtStart({ startPath: '/repo' });
  */
 
-import { processCwdAdapterProxy, cwdResolveBrokerProxy } from '@dungeonmaster/shared/testing';
+import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/testing';
+import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
+import { cwd } from '#gateway/node/process';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { claudeCodeCallerCwdFindByToolUseIdBrokerProxy } from '../../claude-code-caller-cwd/find-by-tool-use-id/claude-code-caller-cwd-find-by-tool-use-id-broker.proxy';
 import { claudeCodeCallerCwdScanCachedEntriesBrokerProxy } from '../../claude-code-caller-cwd/scan-cached-entries/claude-code-caller-cwd-scan-cached-entries-broker.proxy';
@@ -30,14 +33,15 @@ export const callerRepoRootResolveBrokerProxy = (): {
   setupRepoRootInParent: (params: { startPath: string; repoRoot: string }) => void;
   setupRepoRootNotFound: (params: { startPath: string }) => void;
 } => {
-  const processCwdProxy = processCwdAdapterProxy();
+  cwdProxy();
+  const cwdHandle = registerMock({ fn: cwd });
   const cachedEntriesProxy = claudeCodeCallerCwdScanCachedEntriesBrokerProxy();
   const coldScanProxy = claudeCodeCallerCwdFindByToolUseIdBrokerProxy();
   const cwdResolveProxy = cwdResolveBrokerProxy();
 
   return {
-    setupServerCwd: ({ cwd }: { cwd: string }): void => {
-      processCwdProxy.returns({ path: cwd });
+    setupServerCwd: ({ cwd: serverCwd }: { cwd: string }): void => {
+      cwdHandle.calledWith([]).returns(serverCwd);
     },
     setupCachedEntryFile: ({
       filepath,

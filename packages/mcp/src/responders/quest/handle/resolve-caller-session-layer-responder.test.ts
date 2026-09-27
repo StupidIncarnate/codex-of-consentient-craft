@@ -1,7 +1,7 @@
 import { ResolveCallerSessionLayerResponder } from './resolve-caller-session-layer-responder';
 import { ResolveCallerSessionLayerResponderProxy } from './resolve-caller-session-layer-responder.proxy';
 
-// The responder resolves its own projectDir from processCwdAdapter and its homedir from
+// The responder resolves its own projectDir from cwd() and its homedir from
 // osUserHomedirAdapter, so the staged readdir/readFile answers must be addressed at the sessions
 // directory encoded from exactly that pair. Both are the adapters' STICKY defaults on purpose:
 // `osUserHomedirAdapterProxy.returns` stages a one-shot, and the scan's retry loop calls

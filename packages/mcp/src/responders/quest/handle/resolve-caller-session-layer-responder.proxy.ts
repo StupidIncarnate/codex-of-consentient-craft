@@ -1,11 +1,13 @@
-import { processCwdAdapterProxy } from '@dungeonmaster/shared/testing';
+import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
+import { cwd } from '#gateway/node/process';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { claudeCodeSessionFindByToolUseIdBrokerProxy } from '../../../brokers/claude-code-session/find-by-tool-use-id/claude-code-session-find-by-tool-use-id-broker.proxy';
 import { claudeCodeSessionResolveBrokerProxy } from '../../../brokers/claude-code-session/resolve/claude-code-session-resolve-broker.proxy';
 
 export const ResolveCallerSessionLayerResponderProxy = (): {
-  // Stages BOTH strategies against the same homedir/projectDir the responder's unstaged
-  // processCwdAdapter/osUserHomedirAdapter defaults resolve to. `sessions` feeds the deterministic
+  // Stages BOTH strategies against the same homedir/projectDir the responder's
+  // cwd/osUserHomedirAdapter defaults resolve to. `sessions` feeds the deterministic
   // toolUseId scan; `mtimeEntries` feeds the newest-mtime fallback. Staging both in one call is
   // what lets a test prove which one actually answered.
   setupSessions: (params: {
@@ -16,7 +18,8 @@ export const ResolveCallerSessionLayerResponderProxy = (): {
   }) => void;
   setupSessionsMissing: (params: { homedir: string; projectDir: string }) => void;
 } => {
-  processCwdAdapterProxy();
+  cwdProxy();
+  const cwdHandle = registerMock({ fn: cwd });
   const findByToolUseIdProxy = claudeCodeSessionFindByToolUseIdBrokerProxy();
   const resolveProxy = claudeCodeSessionResolveBrokerProxy();
 
@@ -32,6 +35,7 @@ export const ResolveCallerSessionLayerResponderProxy = (): {
       sessions: readonly { name: string; contents: string }[];
       mtimeEntries: readonly { name: string; mtimeMs: number }[];
     }): void => {
+      cwdHandle.calledWith([]).returns(projectDir);
       // Both child proxies read the SAME readdir address, so the later registration wins for the
       // directory listing. Stage the mtime fallback last and give it the full entry list, then
       // stage per-file contents for the scan — those are addressed by path, so they do not collide.
@@ -45,6 +49,7 @@ export const ResolveCallerSessionLayerResponderProxy = (): {
       homedir: string;
       projectDir: string;
     }): void => {
+      cwdHandle.calledWith([]).returns(projectDir);
       findByToolUseIdProxy.setupSessionsDirMissing({ homedir, projectDir });
       resolveProxy.setupSessionsDirMissing({ homedir, projectDir });
     },

@@ -1,4 +1,6 @@
-import { processCwdAdapterProxy } from '@dungeonmaster/shared/testing';
+import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
+import { cwd } from '#gateway/node/process';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { claudeCodeParentSessionFindByToolUseIdBrokerProxy } from '../../../brokers/claude-code-parent-session/find-by-tool-use-id/claude-code-parent-session-find-by-tool-use-id-broker.proxy';
 
@@ -24,12 +26,13 @@ export const ResolveSubagentIdentityLayerResponderProxy = (): {
     contents: string;
   }) => void;
 } => {
-  const cwdProxy = processCwdAdapterProxy();
+  cwdProxy();
+  const cwdHandle = registerMock({ fn: cwd });
   const findProxy = claudeCodeParentSessionFindByToolUseIdBrokerProxy();
 
   return {
     setupCwd: ({ path }: { path: string }): void => {
-      cwdProxy.returns({ path });
+      cwdHandle.calledWith([]).returns(path);
     },
     setupSessionsDir: findProxy.setupSessionsDir,
     setupSessionsDirMissing: findProxy.setupSessionsDirMissing,
