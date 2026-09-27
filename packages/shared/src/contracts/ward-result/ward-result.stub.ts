@@ -1,4 +1,4 @@
-import type { StubArgument } from '@dungeonmaster/shared/@types';
+import type { StubArgument } from '../../@types/stub-argument.type';
 
 import { wardResultContract } from './ward-result-contract';
 import type { WardResult } from './ward-result-contract';

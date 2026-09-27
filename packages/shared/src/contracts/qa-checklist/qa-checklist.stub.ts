@@ -1,4 +1,4 @@
-import type { StubArgument } from '@dungeonmaster/shared/@types';
+import type { StubArgument } from '../../@types/stub-argument.type';
 
 import { QaChecklistItemStub } from '../qa-checklist-item/qa-checklist-item.stub';
 import { QaWalkPathStub } from '../qa-walk-path/qa-walk-path.stub';

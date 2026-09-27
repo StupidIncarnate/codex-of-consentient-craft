@@ -1,4 +1,4 @@
-import type { StubArgument } from '@dungeonmaster/shared/@types';
+import type { StubArgument } from '../../@types/stub-argument.type';
 
 import { smoketestCaseResultContract } from './smoketest-case-result-contract';
 import type { SmoketestCaseResult } from './smoketest-case-result-contract';

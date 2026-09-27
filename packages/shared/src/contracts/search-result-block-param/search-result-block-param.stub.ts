@@ -1,4 +1,4 @@
-import type { StubArgument } from '@dungeonmaster/shared/@types';
+import type { StubArgument } from '../../@types/stub-argument.type';
 
 import { searchResultBlockParamContract } from './search-result-block-param-contract';
 import type { SearchResultBlockParam } from './search-result-block-param-contract';

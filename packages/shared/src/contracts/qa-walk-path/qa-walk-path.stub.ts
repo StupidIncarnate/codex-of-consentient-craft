@@ -1,4 +1,4 @@
-import type { StubArgument } from '@dungeonmaster/shared/@types';
+import type { StubArgument } from '../../@types/stub-argument.type';
 
 import { qaWalkPathContract } from './qa-walk-path-contract';
 import type { QaWalkPath } from './qa-walk-path-contract';

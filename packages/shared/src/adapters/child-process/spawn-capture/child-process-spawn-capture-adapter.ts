@@ -25,13 +25,14 @@
 import { spawn } from 'child_process';
 import {
   errorMessageContract,
-  exitCodeContract,
-  processSignalContract,
-  type AbsoluteFilePath,
   type ErrorMessage,
-  type ExitCode,
+} from '../../../contracts/error-message/error-message-contract';
+import { exitCodeContract, type ExitCode } from '../../../contracts/exit-code/exit-code-contract';
+import {
+  processSignalContract,
   type ProcessSignal,
-} from '@dungeonmaster/shared/contracts';
+} from '../../../contracts/process-signal/process-signal-contract';
+import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 
 export const childProcessSpawnCaptureAdapter = async ({
   command,

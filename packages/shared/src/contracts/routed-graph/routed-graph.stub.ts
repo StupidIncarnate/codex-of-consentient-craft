@@ -1,4 +1,4 @@
-import type { StubArgument } from '@dungeonmaster/shared/@types';
+import type { StubArgument } from '../../@types/stub-argument.type';
 
 import { routedGraphContract } from './routed-graph-contract';
 import type { RoutedGraph } from './routed-graph-contract';

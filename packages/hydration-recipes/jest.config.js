@@ -26,6 +26,8 @@ module.exports = {
           esModuleInterop: true,
           skipLibCheck: true,
           isolatedModules: true,
+          module: 'commonjs',
+          moduleResolution: 'node',
         },
         astTransformers: {
           before: dungeonmasterTransformers,

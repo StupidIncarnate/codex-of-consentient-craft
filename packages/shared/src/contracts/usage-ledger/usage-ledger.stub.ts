@@ -1,4 +1,4 @@
-import type { StubArgument } from '@dungeonmaster/shared/@types';
+import type { StubArgument } from '../../@types/stub-argument.type';
 
 import { UsageBucketStub } from '../usage-bucket/usage-bucket.stub';
 import { usageLedgerContract } from './usage-ledger-contract';

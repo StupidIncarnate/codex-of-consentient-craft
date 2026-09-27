@@ -16,13 +16,12 @@
  * });
  * // Returns [] when every step is reachable, reaches a terminal, and every route target is real
  */
-import { errorMessageContract, routedGraphNodeKeyContract } from '@dungeonmaster/shared/contracts';
-import type {
-  ErrorMessage,
-  RoutedGraph,
-  RoutedGraphNodeKey,
-} from '@dungeonmaster/shared/contracts';
-import { graphOutcomeWordStatics } from '@dungeonmaster/shared/statics';
+import { errorMessageContract } from '../../contracts/error-message/error-message-contract';
+import { routedGraphNodeKeyContract } from '../../contracts/routed-graph-node-key/routed-graph-node-key-contract';
+import type { ErrorMessage } from '../../contracts/error-message/error-message-contract';
+import type { RoutedGraph } from '../../contracts/routed-graph/routed-graph-contract';
+import type { RoutedGraphNodeKey } from '../../contracts/routed-graph-node-key/routed-graph-node-key-contract';
+import { graphOutcomeWordStatics } from '../../statics/graph-outcome-word/graph-outcome-word-statics';
 
 export const graphReachabilityViolationsTransformer = ({
   graph,

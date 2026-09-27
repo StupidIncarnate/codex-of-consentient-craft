@@ -253,7 +253,11 @@ describe('packageScaffoldFilesTransformer', () => {
     "declaration": true,
     "declarationMap": true,
     "incremental": true,
-    "tsBuildInfoFile": "./.ward/build.tsbuildinfo"
+    "tsBuildInfoFile": "./.ward/build.tsbuildinfo",
+    "customConditions": [
+      "gateway-dist",
+      "source"
+    ]
   },
   "exclude": [
     "**/*.test.ts",

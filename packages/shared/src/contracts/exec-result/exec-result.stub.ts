@@ -6,7 +6,7 @@
  * // Returns valid ExecResult instance
  */
 
-import type { StubArgument } from '@dungeonmaster/shared/@types';
+import type { StubArgument } from '../../@types/stub-argument.type';
 import { execResultContract, type ExecResult } from './exec-result-contract';
 
 export const ExecResultStub = ({ ...props }: StubArgument<ExecResult> = {}): ExecResult =>

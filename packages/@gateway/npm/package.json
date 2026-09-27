@@ -14,12 +14,14 @@
   },
   "exports": {
     "./_test_": {
+      "gateway-dist": "./dist/_test_/index.d.ts",
       "source": "./src/_test_/index.ts",
       "import": "./dist/_test_/index.js",
       "require": "./dist/_test_/index.js",
       "types": "./dist/_test_/index.d.ts"
     },
     "./*": {
+      "gateway-dist": "./dist/*/index.d.ts",
       "source": "./src/*/index.ts",
       "import": "./dist/*/index.js",
       "require": "./dist/*/index.js",

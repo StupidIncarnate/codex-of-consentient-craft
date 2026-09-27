@@ -1,4 +1,4 @@
-import type { StubArgument } from '@dungeonmaster/shared/@types';
+import type { StubArgument } from '../../@types/stub-argument.type';
 
 import { imageBlockParamContract } from './image-block-param-contract';
 import type { ImageBlockParam } from './image-block-param-contract';

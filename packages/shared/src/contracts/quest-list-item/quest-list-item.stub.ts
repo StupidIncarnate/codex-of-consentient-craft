@@ -1,4 +1,4 @@
-import type { StubArgument } from '@dungeonmaster/shared/@types';
+import type { StubArgument } from '../../@types/stub-argument.type';
 
 import { questListItemContract } from './quest-list-item-contract';
 import type { QuestListItem } from './quest-list-item-contract';

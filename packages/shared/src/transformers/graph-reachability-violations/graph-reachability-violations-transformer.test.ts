@@ -1,6 +1,6 @@
 import { graphReachabilityViolationsTransformer } from './graph-reachability-violations-transformer';
 import { RoutedGraphStub } from '../../contracts/routed-graph/routed-graph.stub';
-import { questFlowStatics } from '@dungeonmaster/shared/statics';
+import { questFlowStatics } from '../../statics/quest-flow/quest-flow-statics';
 
 const STEP_TERMINALS = ['@done', '@blocked'];
 const FAMILY_TERMINALS = ['@complete', '@blocked'];

@@ -1,4 +1,4 @@
-import type { StubArgument } from '@dungeonmaster/shared/@types';
+import type { StubArgument } from '../../@types/stub-argument.type';
 
 import { summaryStreamLineContract } from './summary-stream-line-contract';
 import type { SummaryStreamLine } from './summary-stream-line-contract';

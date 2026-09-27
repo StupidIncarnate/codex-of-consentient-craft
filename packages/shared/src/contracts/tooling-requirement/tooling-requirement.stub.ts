@@ -1,4 +1,4 @@
-import type { StubArgument } from '@dungeonmaster/shared/@types';
+import type { StubArgument } from '../../@types/stub-argument.type';
 
 import { toolingRequirementContract } from './tooling-requirement-contract';
 import type { ToolingRequirement } from './tooling-requirement-contract';

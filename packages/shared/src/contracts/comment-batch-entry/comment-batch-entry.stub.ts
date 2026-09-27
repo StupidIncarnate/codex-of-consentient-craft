@@ -1,4 +1,4 @@
-import type { StubArgument } from '@dungeonmaster/shared/@types';
+import type { StubArgument } from '../../@types/stub-argument.type';
 
 import { commentBatchEntryContract } from './comment-batch-entry-contract';
 import type { CommentBatchEntry } from './comment-batch-entry-contract';

@@ -1,4 +1,4 @@
-import type { StubArgument } from '@dungeonmaster/shared/@types';
+import type { StubArgument } from '../../@types/stub-argument.type';
 
 import { orchestrationStatusContract } from './orchestration-status-contract';
 import type { OrchestrationStatus } from './orchestration-status-contract';

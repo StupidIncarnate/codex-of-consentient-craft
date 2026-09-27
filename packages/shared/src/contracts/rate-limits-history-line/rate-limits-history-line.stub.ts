@@ -1,4 +1,4 @@
-import type { StubArgument } from '@dungeonmaster/shared/@types';
+import type { StubArgument } from '../../@types/stub-argument.type';
 
 import { RateLimitWindowStub } from '../rate-limit-window/rate-limit-window.stub';
 import { rateLimitsHistoryLineContract } from './rate-limits-history-line-contract';

@@ -1,4 +1,4 @@
-import type { StubArgument } from '@dungeonmaster/shared/@types';
+import type { StubArgument } from '../../@types/stub-argument.type';
 
 import { designDecisionContract } from './design-decision-contract';
 import type { DesignDecision } from './design-decision-contract';

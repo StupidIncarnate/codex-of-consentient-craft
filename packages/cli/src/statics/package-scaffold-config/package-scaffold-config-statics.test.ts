@@ -25,6 +25,7 @@ describe('packageScaffoldConfigStatics', () => {
         declarationMap: true,
         incremental: true,
         tsBuildInfoFile: './.ward/build.tsbuildinfo',
+        customConditions: ['gateway-dist', 'source'],
       });
     });
 

@@ -1,4 +1,4 @@
-import type { StubArgument } from '@dungeonmaster/shared/@types';
+import type { StubArgument } from '../../@types/stub-argument.type';
 
 import { QuestWorkItemIdStub } from '../quest-work-item-id/quest-work-item-id.stub';
 import { workItemForUpsertContract } from './work-item-for-upsert-contract';

@@ -11,20 +11,12 @@
     "paths": {
       "@dungeonmaster/eslint-plugin": [
         "./src/index.ts"
-      ],
-      "#gateway/npm/*": [
-        "../@gateway/npm/dist/*/index.d.ts"
-      ],
-      "#gateway/node/*": [
-        "../@gateway/node/dist/*/index.d.ts"
-      ],
-      "#gateway/browser/*": [
-        "../@gateway/browser/dist/*/index.d.ts"
-      ],
-      "#gateway/bin/*": [
-        "../@gateway/bin/dist/*/index.d.ts"
       ]
-    }
+    },
+    "customConditions": [
+      "gateway-dist",
+      "source"
+    ]
   },
   "exclude": [
     "**/*.test.ts",

@@ -1,4 +1,6 @@
-import { ExitCodeStub, type ErrorMessage, type ExitCode } from '@dungeonmaster/shared/contracts';
+import { ExitCodeStub } from '../../../contracts/exit-code/exit-code.stub';
+import type { ErrorMessage } from '../../../contracts/error-message/error-message-contract';
+import type { ExitCode } from '../../../contracts/exit-code/exit-code-contract';
 import { spawn, type ChildProcess } from 'child_process';
 import { EventEmitter, Readable, Writable } from 'stream';
 import { registerMock } from '@dungeonmaster/testing/register-mock';

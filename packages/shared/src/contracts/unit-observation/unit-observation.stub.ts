@@ -1,4 +1,4 @@
-import type { StubArgument } from '@dungeonmaster/shared/@types';
+import type { StubArgument } from '../../@types/stub-argument.type';
 
 import { unitObservationContract } from './unit-observation-contract';
 import type { UnitObservation } from './unit-observation-contract';

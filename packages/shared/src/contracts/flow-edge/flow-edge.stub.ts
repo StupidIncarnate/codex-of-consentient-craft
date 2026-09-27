@@ -1,4 +1,4 @@
-import type { StubArgument } from '@dungeonmaster/shared/@types';
+import type { StubArgument } from '../../@types/stub-argument.type';
 
 import { flowEdgeContract } from './flow-edge-contract';
 import type { FlowEdge } from './flow-edge-contract';

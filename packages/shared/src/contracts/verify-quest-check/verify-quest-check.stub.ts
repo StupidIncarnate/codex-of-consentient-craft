@@ -1,4 +1,4 @@
-import type { StubArgument } from '@dungeonmaster/shared/@types';
+import type { StubArgument } from '../../@types/stub-argument.type';
 
 import { verifyQuestCheckContract } from './verify-quest-check-contract';
 import type { VerifyQuestCheck } from './verify-quest-check-contract';

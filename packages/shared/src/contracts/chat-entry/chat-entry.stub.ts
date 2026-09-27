@@ -1,4 +1,4 @@
-import type { StubArgument } from '@dungeonmaster/shared/@types';
+import type { StubArgument } from '../../@types/stub-argument.type';
 
 import { chatEntryContract } from './chat-entry-contract';
 import type { ChatEntry } from './chat-entry-contract';

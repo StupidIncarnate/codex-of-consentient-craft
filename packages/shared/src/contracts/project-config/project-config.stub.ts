@@ -1,4 +1,4 @@
-import type { StubArgument } from '@dungeonmaster/shared/@types';
+import type { StubArgument } from '../../@types/stub-argument.type';
 
 import { projectConfigContract } from './project-config-contract';
 import type { ProjectConfig } from './project-config-contract';

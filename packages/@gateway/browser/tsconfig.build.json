@@ -8,26 +8,17 @@
     "declaration": true,
     "incremental": true,
     "tsBuildInfoFile": "./.ward/build.tsbuildinfo",
-    "paths": {
-      "#gateway/npm/*": [
-        "../npm/dist/*/index.d.ts"
-      ],
-      "#gateway/node/*": [
-        "../node/dist/*/index.d.ts"
-      ],
-      "#gateway/browser/*": [
-        "./dist/*/index.d.ts"
-      ],
-      "#gateway/bin/*": [
-        "../bin/dist/*/index.d.ts"
-      ]
-    }
+    "customConditions": [
+      "gateway-dist",
+      "source"
+    ]
   },
   "exclude": [
     "**/*.test.ts",
     "**/*.test.tsx",
     "**/*.proxy.ts",
     "**/*.stub.ts",
-    "**/*.harness.ts"
+    "**/*.harness.ts",
+    "dist"
   ]
 }

@@ -1,4 +1,4 @@
-import type { StubArgument } from '@dungeonmaster/shared/@types';
+import type { StubArgument } from '../../@types/stub-argument.type';
 
 import { wardDetailContract } from './ward-detail-contract';
 import type { WardDetail } from './ward-detail-contract';

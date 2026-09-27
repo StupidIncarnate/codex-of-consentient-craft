@@ -1,4 +1,5 @@
-import { AbsoluteFilePathStub, ExitCodeStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
+import { ExitCodeStub } from '../../../contracts/exit-code/exit-code.stub';
 
 import { childProcessSpawnStreamAdapter } from './child-process-spawn-stream-adapter';
 import { childProcessSpawnStreamAdapterProxy } from './child-process-spawn-stream-adapter.proxy';

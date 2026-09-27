@@ -1,5 +1,6 @@
 import { PassThrough } from 'stream';
-import { ExitCodeStub, type ExitCode } from '@dungeonmaster/shared/contracts';
+import { ExitCodeStub } from '../../../contracts/exit-code/exit-code.stub';
+import type { ExitCode } from '../../../contracts/exit-code/exit-code-contract';
 import { spawn, type ChildProcess } from 'child_process';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 

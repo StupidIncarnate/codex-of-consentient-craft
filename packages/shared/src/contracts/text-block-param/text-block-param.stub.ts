@@ -1,4 +1,4 @@
-import type { StubArgument } from '@dungeonmaster/shared/@types';
+import type { StubArgument } from '../../@types/stub-argument.type';
 
 import { textBlockParamContract } from './text-block-param-contract';
 import type { TextBlockParam } from './text-block-param-contract';

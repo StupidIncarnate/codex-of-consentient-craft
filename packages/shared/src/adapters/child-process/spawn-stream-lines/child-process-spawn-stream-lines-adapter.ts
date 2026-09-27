@@ -18,11 +18,10 @@ import { createInterface } from 'readline';
 import { spawn } from 'child_process';
 import {
   errorMessageContract,
-  exitCodeContract,
-  type AbsoluteFilePath,
   type ErrorMessage,
-  type ExitCode,
-} from '@dungeonmaster/shared/contracts';
+} from '../../../contracts/error-message/error-message-contract';
+import { exitCodeContract, type ExitCode } from '../../../contracts/exit-code/exit-code-contract';
+import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 
 export const childProcessSpawnStreamLinesAdapter = async ({
   command,

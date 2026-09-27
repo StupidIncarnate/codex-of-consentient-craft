@@ -67,6 +67,10 @@ export const packageScaffoldConfigStatics = {
     declarationMap: true,
     incremental: true,
     tsBuildInfoFile: './.ward/build.tsbuildinfo',
+    // `gateway-dist` first: TypeScript never counts a file reached through `#gateway` as a library,
+    // so reading a gateway's source here would compile it into this package's `dist`. Its `.d.ts`
+    // is never emitted. An unbuilt gateway falls through to `source`.
+    customConditions: ['gateway-dist', 'source'],
   },
 
   // `test/**` alone would not do it: the emit walks `include`, and a `.stub.ts` or `.harness.ts`
@@ -135,6 +139,8 @@ module.exports = {
           esModuleInterop: true,
           skipLibCheck: true,
           isolatedModules: true,
+          module: 'commonjs',
+          moduleResolution: 'node',
         },
         astTransformers: {
           before: dungeonmasterTransformers,
@@ -169,6 +175,8 @@ module.exports = {
           esModuleInterop: true,
           skipLibCheck: true,
           jsx: 'react-jsx',
+          module: 'commonjs',
+          moduleResolution: 'node',
         },
         astTransformers: {
           before: dungeonmasterTransformers,

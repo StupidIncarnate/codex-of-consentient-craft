@@ -1,4 +1,4 @@
-import type { StubArgument } from '@dungeonmaster/shared/@types';
+import type { StubArgument } from '../../@types/stub-argument.type';
 
 import { toolUseBlockParamContract } from './tool-use-block-param-contract';
 import type { ToolUseBlockParam } from './tool-use-block-param-contract';

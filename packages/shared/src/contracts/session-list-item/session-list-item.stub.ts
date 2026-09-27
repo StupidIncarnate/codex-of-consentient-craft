@@ -1,4 +1,4 @@
-import type { StubArgument } from '@dungeonmaster/shared/@types';
+import type { StubArgument } from '../../@types/stub-argument.type';
 
 import { sessionListItemContract } from './session-list-item-contract';
 import type { SessionListItem } from './session-list-item-contract';

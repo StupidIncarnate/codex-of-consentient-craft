@@ -11,7 +11,10 @@
  */
 
 import { createServer } from 'net';
-import { networkPortContract, type NetworkPort } from '@dungeonmaster/shared/contracts';
+import {
+  networkPortContract,
+  type NetworkPort,
+} from '../../../contracts/network-port/network-port-contract';
 
 export const netFreePortPairAdapter = async (): Promise<{
   firstPort: NetworkPort;

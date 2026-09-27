@@ -1,4 +1,4 @@
-import type { StubArgument } from '@dungeonmaster/shared/@types';
+import type { StubArgument } from '../../@types/stub-argument.type';
 
 import { packageJsonContract } from './package-json-contract';
 import type { PackageJson } from './package-json-contract';

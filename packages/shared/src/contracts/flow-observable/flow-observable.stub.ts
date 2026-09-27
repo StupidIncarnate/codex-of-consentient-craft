@@ -1,4 +1,4 @@
-import type { StubArgument } from '@dungeonmaster/shared/@types';
+import type { StubArgument } from '../../@types/stub-argument.type';
 
 import { flowObservableContract } from './flow-observable-contract';
 import type { FlowObservable } from './flow-observable-contract';

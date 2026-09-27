@@ -1,9 +1,7 @@
-import {
-  AbsoluteFilePathStub,
-  ErrorMessageStub,
-  ExitCodeStub,
-  ProcessSignalStub,
-} from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
+import { ErrorMessageStub } from '../../../contracts/error-message/error-message.stub';
+import { ExitCodeStub } from '../../../contracts/exit-code/exit-code.stub';
+import { ProcessSignalStub } from '../../../contracts/process-signal/process-signal.stub';
 
 import { childProcessSpawnCaptureAdapter } from './child-process-spawn-capture-adapter';
 import { childProcessSpawnCaptureAdapterProxy } from './child-process-spawn-capture-adapter.proxy';

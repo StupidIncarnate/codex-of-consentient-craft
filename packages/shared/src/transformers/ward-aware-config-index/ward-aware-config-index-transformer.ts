@@ -16,7 +16,7 @@
  * `siegemaster`), never `ward`.
  */
 
-import type { WorkItem } from '@dungeonmaster/shared/contracts';
+import type { WorkItem } from '../../contracts/work-item/work-item-contract';
 
 import type { ConfigIndex } from '../../contracts/config-index/config-index-contract';
 import { floorNameContract } from '../../contracts/floor-name/floor-name-contract';

@@ -6,7 +6,7 @@
  * // Returns: Map<WorkItemId, TopologicalDepth> with depth per item
  */
 
-import type { WorkItem } from '@dungeonmaster/shared/contracts';
+import type { WorkItem } from '../../contracts/work-item/work-item-contract';
 
 import type { TopologicalDepth } from '../../contracts/topological-depth/topological-depth-contract';
 import { topologicalDepthContract } from '../../contracts/topological-depth/topological-depth-contract';

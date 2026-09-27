@@ -1,4 +1,5 @@
-import { QuestWorkItemIdStub, WorkItemStub } from '@dungeonmaster/shared/contracts';
+import { QuestWorkItemIdStub } from '../../contracts/quest-work-item-id/quest-work-item-id.stub';
+import { WorkItemStub } from '../../contracts/work-item/work-item.stub';
 
 import { workItemsInDispatchOrderTransformer } from './work-items-in-dispatch-order-transformer';
 

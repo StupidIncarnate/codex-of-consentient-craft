@@ -1,4 +1,4 @@
-import type { StubArgument } from '@dungeonmaster/shared/@types';
+import type { StubArgument } from '../../@types/stub-argument.type';
 
 import { packageGraphEntryContract } from './package-graph-entry-contract';
 import type { PackageGraphEntry } from './package-graph-entry-contract';

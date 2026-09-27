@@ -1,4 +1,4 @@
-import type { StubArgument } from '@dungeonmaster/shared/@types';
+import type { StubArgument } from '../../@types/stub-argument.type';
 
 import { BlightChecklistItemStub } from '../blight-checklist-item/blight-checklist-item.stub';
 import { blightChecklistContract } from './blight-checklist-contract';

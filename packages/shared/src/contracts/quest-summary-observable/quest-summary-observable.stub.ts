@@ -1,4 +1,4 @@
-import type { StubArgument } from '@dungeonmaster/shared/@types';
+import type { StubArgument } from '../../@types/stub-argument.type';
 
 import { questSummaryObservableContract } from './quest-summary-observable-contract';
 import type { QuestSummaryObservable } from './quest-summary-observable-contract';

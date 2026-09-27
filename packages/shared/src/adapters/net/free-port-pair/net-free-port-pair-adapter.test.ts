@@ -1,4 +1,4 @@
-import { NetworkPortStub } from '@dungeonmaster/shared/contracts';
+import { NetworkPortStub } from '../../../contracts/network-port/network-port.stub';
 
 import { netFreePortPairAdapter } from './net-free-port-pair-adapter';
 import { netFreePortPairAdapterProxy } from './net-free-port-pair-adapter.proxy';

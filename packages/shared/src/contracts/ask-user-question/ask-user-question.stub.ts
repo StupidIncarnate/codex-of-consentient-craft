@@ -1,4 +1,4 @@
-import type { StubArgument } from '@dungeonmaster/shared/@types';
+import type { StubArgument } from '../../@types/stub-argument.type';
 
 import { askUserQuestionContract } from './ask-user-question-contract';
 import type { AskUserQuestion } from './ask-user-question-contract';

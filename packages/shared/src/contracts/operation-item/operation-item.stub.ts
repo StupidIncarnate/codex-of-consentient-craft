@@ -1,4 +1,4 @@
-import type { StubArgument } from '@dungeonmaster/shared/@types';
+import type { StubArgument } from '../../@types/stub-argument.type';
 
 import { operationItemContract } from './operation-item-contract';
 import type { OperationItem } from './operation-item-contract';

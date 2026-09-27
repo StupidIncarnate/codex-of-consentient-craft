@@ -240,7 +240,7 @@ describe('the malformed call sites that must not compile', () => {
         line: LineCountStub({ value: 15 }),
         code: 2322,
         message:
-          'Type \'"blocked"\' is not assignable to type \'"approved" | "flows_approved" | "review_flows" | "review_observables" | "explore_flows" | "explore_observables" | "in_progress" | "complete" | "abandoned"\'.',
+          'Type \'"blocked"\' is not assignable to type \'"approved" | "explore_flows" | "review_flows" | "flows_approved" | "explore_observables" | "review_observables" | "in_progress" | "complete" | "abandoned"\'.',
       }),
     ]);
   });

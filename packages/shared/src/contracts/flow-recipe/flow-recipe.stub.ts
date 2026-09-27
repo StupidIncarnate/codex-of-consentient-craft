@@ -1,4 +1,4 @@
-import type { StubArgument } from '@dungeonmaster/shared/@types';
+import type { StubArgument } from '../../@types/stub-argument.type';
 
 import { flowRecipeContract } from './flow-recipe-contract';
 import type { FlowRecipe } from './flow-recipe-contract';

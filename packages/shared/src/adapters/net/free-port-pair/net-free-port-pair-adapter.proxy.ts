@@ -1,6 +1,7 @@
 import { createServer, type Server } from 'net';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-import { NetworkPortStub, type NetworkPort } from '@dungeonmaster/shared/contracts';
+import { NetworkPortStub } from '../../../contracts/network-port/network-port.stub';
+import type { NetworkPort } from '../../../contracts/network-port/network-port-contract';
 
 export const netFreePortPairAdapterProxy = (): {
   setupPorts: (params: { firstPort: number; secondPort: number }) => void;

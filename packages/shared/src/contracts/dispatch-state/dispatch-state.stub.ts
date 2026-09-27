@@ -1,4 +1,4 @@
-import type { StubArgument } from '@dungeonmaster/shared/@types';
+import type { StubArgument } from '../../@types/stub-argument.type';
 
 import { dispatchStateContract } from './dispatch-state-contract';
 import type { DispatchState } from './dispatch-state-contract';

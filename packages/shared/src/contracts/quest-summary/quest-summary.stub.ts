@@ -1,4 +1,4 @@
-import type { StubArgument } from '@dungeonmaster/shared/@types';
+import type { StubArgument } from '../../@types/stub-argument.type';
 
 import { QuestSummaryDebtStub } from '../quest-summary-debt/quest-summary-debt.stub';
 import { QuestSummaryFlowStub } from '../quest-summary-flow/quest-summary-flow.stub';

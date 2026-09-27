@@ -2,7 +2,7 @@
   "compilerOptions": {
     "noEmit": true,
     "target": "ES2022",
-    "module": "commonjs",
+    "module": "node16",
     "lib": [
       "ES2022"
     ],
@@ -10,26 +10,19 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "moduleResolution": "node",
+    "moduleResolution": "node16",
+    // `source` resolves every workspace package, and every `#gateway/*` import, to its TypeScript
+    // source through the `exports` maps, so a check never needs a build first. Each
+    // tsconfig.build.json puts `gateway-dist` ahead of it: TypeScript never counts a file reached
+    // through `#gateway` as a library, so a build reading gateway source would compile it into its
+    // own `dist`.
+    "customConditions": ["source"],
     "allowJs": true,
     "checkJs": false,
     "typeRoots": [
       "./node_modules/@types",
       "./@types"
-    ],
-    // node10 module resolution ignores package.json `imports`, so every package's `#gateway/*`
-    // specifier needs a matching tsconfig `paths` entry to typecheck. No `baseUrl` is set anywhere
-    // in this chain, so these relative targets resolve against THIS file's own directory (the repo
-    // root) wherever a package's tsconfig inherits them via `extends` — TypeScript resolves a
-    // relative `paths` target against the config file that DECLARES it, not the one that extends
-    // it. The `src/*/index.ts` entry matches the gateway packages' own `./*` export map; the bare
-    // `src/*` entry is a fallback for a deep specifier that has no `index.ts` at that level.
-    "paths": {
-      "#gateway/npm/*": ["./packages/@gateway/npm/src/*/index.ts", "./packages/@gateway/npm/src/*"],
-      "#gateway/node/*": ["./packages/@gateway/node/src/*/index.ts", "./packages/@gateway/node/src/*"],
-      "#gateway/browser/*": ["./packages/@gateway/browser/src/*/index.ts", "./packages/@gateway/browser/src/*"],
-      "#gateway/bin/*": ["./packages/@gateway/bin/src/*/index.ts", "./packages/@gateway/bin/src/*"]
-    }
+    ]
   },
   "exclude": [
     "node_modules",

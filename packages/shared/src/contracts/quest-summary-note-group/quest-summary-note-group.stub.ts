@@ -1,4 +1,4 @@
-import type { StubArgument } from '@dungeonmaster/shared/@types';
+import type { StubArgument } from '../../@types/stub-argument.type';
 
 import { QuestNoteStub } from '../quest-note/quest-note.stub';
 import { questSummaryNoteGroupContract } from './quest-summary-note-group-contract';

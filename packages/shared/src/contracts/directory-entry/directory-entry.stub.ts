@@ -1,4 +1,4 @@
-import type { StubArgument } from '@dungeonmaster/shared/@types';
+import type { StubArgument } from '../../@types/stub-argument.type';
 
 import { directoryEntryContract } from './directory-entry-contract';
 import type { DirectoryEntry } from './directory-entry-contract';

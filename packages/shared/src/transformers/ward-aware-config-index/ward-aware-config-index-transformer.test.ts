@@ -1,4 +1,4 @@
-import { WorkItemStub } from '@dungeonmaster/shared/contracts';
+import { WorkItemStub } from '../../contracts/work-item/work-item.stub';
 
 import { wardAwareConfigIndexTransformer } from './ward-aware-config-index-transformer';
 

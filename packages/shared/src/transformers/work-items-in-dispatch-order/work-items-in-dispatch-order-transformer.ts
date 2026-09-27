@@ -10,7 +10,7 @@
  * // Returns: WorkItem[] ordered by (topologicalDepth, wardAwareConfigIndex, createdAt)
  */
 
-import type { WorkItem } from '@dungeonmaster/shared/contracts';
+import type { WorkItem } from '../../contracts/work-item/work-item-contract';
 
 import { computeWorkItemDepthsTransformer } from '../compute-work-item-depths/compute-work-item-depths-transformer';
 import { wardAwareConfigIndexTransformer } from '../ward-aware-config-index/ward-aware-config-index-transformer';

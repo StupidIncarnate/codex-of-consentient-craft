@@ -1,4 +1,4 @@
-import type { StubArgument } from '@dungeonmaster/shared/@types';
+import type { StubArgument } from '../../@types/stub-argument.type';
 
 import { questBlightLedgerEntryContract } from './quest-blight-ledger-entry-contract';
 import type { QuestBlightLedgerEntry } from './quest-blight-ledger-entry-contract';

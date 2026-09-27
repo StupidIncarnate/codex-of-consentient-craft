@@ -3,6 +3,8 @@
   "compilerOptions": {
     "allowJs": true,
     "isolatedModules": true,
+    "module": "commonjs",
+    "moduleResolution": "node",
     "jsx": "react-jsx",
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "noEmit": true,

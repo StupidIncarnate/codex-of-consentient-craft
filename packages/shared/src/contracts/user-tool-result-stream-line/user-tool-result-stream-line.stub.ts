@@ -1,4 +1,4 @@
-import type { StubArgument } from '@dungeonmaster/shared/@types';
+import type { StubArgument } from '../../@types/stub-argument.type';
 
 import { ToolReferenceBlockParamStub } from '../tool-reference-block-param/tool-reference-block-param.stub';
 import { Base64ImageBlockParamStub } from '../image-block-param/image-block-param.stub';

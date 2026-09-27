@@ -1,4 +1,4 @@
-import type { StubArgument } from '@dungeonmaster/shared/@types';
+import type { StubArgument } from '../../@types/stub-argument.type';
 
 import { wsMessageContract } from './ws-message-contract';
 import type { WsMessage } from './ws-message-contract';
