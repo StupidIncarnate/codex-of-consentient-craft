@@ -63,7 +63,7 @@ describe('importPathResolverMiddleware', () => {
   });
 
   describe('cross-package gateway testing subpaths', () => {
-    it('VALID: {@dungeonmaster/bin/testing, src/testing/index.ts pattern export} => returns resolved index path', () => {
+    it('VALID: {@dungeonmaster/bin/testing, literal "./testing" export} => returns resolved barrel path', () => {
       const proxy = importPathResolverMiddlewareProxy();
       proxy.setupWorkspaceRoot({ workspaceRootPath: '/repo' });
       proxy.setupWorkspacePackage({
@@ -72,12 +72,12 @@ describe('importPathResolverMiddleware', () => {
         packageJson: {
           name: '@dungeonmaster/bin',
           exports: {
-            './testing': { source: './src/testing/index.ts' },
-            './*': { source: './src/*/index.ts' },
+            './testing': { source: './testing.ts' },
+            './*': { source: './src/*/*.ts' },
           },
         },
       });
-      proxy.setupSourceFileExists({ filePath: '/repo/packages/bin/src/testing/index.ts' });
+      proxy.setupSourceFileExists({ filePath: '/repo/packages/bin/testing.ts' });
       const sourceFilePath = FilePathStub({
         value:
           '/repo/packages/siegelense/src/brokers/instance/reserve/instance-reserve-broker.proxy.ts',
@@ -86,9 +86,7 @@ describe('importPathResolverMiddleware', () => {
 
       const result = importPathResolverMiddleware({ sourceFilePath, importPath });
 
-      expect(result).toStrictEqual(
-        FilePathStub({ value: '/repo/packages/bin/src/testing/index.ts' }),
-      );
+      expect(result).toStrictEqual(FilePathStub({ value: '/repo/packages/bin/testing.ts' }));
     });
 
     it('VALID: {@dungeonmaster/node/testing, only a wildcard export} => resolves through the "./*" pattern', () => {
@@ -99,17 +97,17 @@ describe('importPathResolverMiddleware', () => {
         packageFolderName: 'node',
         packageJson: {
           name: '@dungeonmaster/node',
-          exports: { './*': { source: './src/*/index.ts' } },
+          exports: { './*': { source: './src/*/*.ts' } },
         },
       });
-      proxy.setupSourceFileExists({ filePath: '/repo/packages/node/src/testing/index.ts' });
+      proxy.setupSourceFileExists({ filePath: '/repo/packages/node/src/testing/testing.ts' });
       const sourceFilePath = FilePathStub({ value: '/repo/packages/hooks/src/a.proxy.ts' });
       const importPath = ImportPathStub({ value: '@dungeonmaster/node/testing' });
 
       const result = importPathResolverMiddleware({ sourceFilePath, importPath });
 
       expect(result).toStrictEqual(
-        FilePathStub({ value: '/repo/packages/node/src/testing/index.ts' }),
+        FilePathStub({ value: '/repo/packages/node/src/testing/testing.ts' }),
       );
     });
 
@@ -121,7 +119,7 @@ describe('importPathResolverMiddleware', () => {
         packageFolderName: 'bin',
         packageJson: {
           name: '@dungeonmaster/bin',
-          exports: { './testing': { source: './src/testing/index.ts' } },
+          exports: { './testing': { source: './testing.ts' } },
         },
       });
       const sourceFilePath = FilePathStub({ value: '/repo/packages/hooks/src/a.proxy.ts' });
@@ -140,7 +138,7 @@ describe('importPathResolverMiddleware', () => {
         packageFolderName: 'bin',
         packageJson: {
           name: '@dungeonmaster/bin',
-          exports: { './testing': { source: './src/testing/index.ts' } },
+          exports: { './testing': { source: './testing.ts' } },
         },
       });
       const sourceFilePath = FilePathStub({ value: '/repo/packages/hooks/src/a.proxy.ts' });
@@ -159,7 +157,7 @@ describe('importPathResolverMiddleware', () => {
         packageFolderName: 'bin',
         packageJson: {
           name: '@dungeonmaster/bin',
-          exports: { './git': { source: './src/git/index.ts' } },
+          exports: { './git': { source: './git.ts' } },
         },
       });
       const sourceFilePath = FilePathStub({ value: '/repo/packages/hooks/src/a.proxy.ts' });
@@ -224,7 +222,7 @@ describe('importPathResolverMiddleware', () => {
   });
 
   describe('imports-map "#" specifiers', () => {
-    it("VALID: {#gateway/npm/_test_} => resolves through the importing package's own imports map", () => {
+    it("VALID: {#gateway/npm/glob/glob/glob.proxy} => resolves through the importing package's own imports map", () => {
       const proxy = importPathResolverMiddlewareProxy();
       proxy.setupImportingPackage({
         dirPath: '/repo/packages/mcp',
@@ -243,19 +241,21 @@ describe('importPathResolverMiddleware', () => {
         packagesBaseDir: 'packages/@gateway',
         packageJson: {
           name: '@dungeonmaster/npm',
-          exports: { './_test_': { source: './src/_test_/index.ts' } },
+          exports: { './*.proxy': { source: './src/*.proxy.ts' } },
         },
       });
-      proxy.setupSourceFileExists({ filePath: '/repo/packages/@gateway/npm/src/_test_/index.ts' });
+      proxy.setupSourceFileExists({
+        filePath: '/repo/packages/@gateway/npm/src/glob/glob/glob.proxy.ts',
+      });
       const sourceFilePath = FilePathStub({
         value: '/repo/packages/mcp/src/brokers/file/scanner/file-scanner-broker.proxy.ts',
       });
-      const importPath = ImportPathStub({ value: '#gateway/npm/_test_' });
+      const importPath = ImportPathStub({ value: '#gateway/npm/glob/glob/glob.proxy' });
 
       const result = importPathResolverMiddleware({ sourceFilePath, importPath });
 
       expect(result).toStrictEqual(
-        FilePathStub({ value: '/repo/packages/@gateway/npm/src/_test_/index.ts' }),
+        FilePathStub({ value: '/repo/packages/@gateway/npm/src/glob/glob/glob.proxy.ts' }),
       );
     });
 

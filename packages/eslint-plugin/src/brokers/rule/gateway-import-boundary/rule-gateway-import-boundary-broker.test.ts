@@ -15,7 +15,7 @@ ruleTester.run('gateway-import-boundary', ruleGatewayImportBoundaryBroker(), {
     },
     {
       code: "import { z } from 'zod';",
-      filename: '/repo/packages/@gateway/npm/src/zod/index.ts',
+      filename: '/repo/packages/@gateway/npm/src/zod/zod.ts',
       options: [{ scope: '@dungeonmaster' }],
     },
 
@@ -133,7 +133,7 @@ ruleTester.run('gateway-import-boundary', ruleGatewayImportBoundaryBroker(), {
     // --- export * from is flagged (ExportAllDeclaration) ---
     {
       code: "export * from '@dungeonmaster/shared/statics';",
-      filename: '/repo/packages/@gateway/node/src/fs/index.ts',
+      filename: '/repo/packages/@gateway/node/src/fs/fs.ts',
       options: [{ scope: '@dungeonmaster' }],
       errors: [
         {
@@ -202,10 +202,10 @@ ruleTester.run('gateway-import-boundary', ruleGatewayImportBoundaryBroker(), {
         },
       ],
     },
-    // --- index.ts is a runtime file too, not a test-support suffix ---
+    // --- the barrel file is a runtime file too, not a test-support suffix ---
     {
       code: "import { installTestbedCreateBroker } from '@dungeonmaster/testing';",
-      filename: '/repo/packages/@gateway/node/src/fs/index.ts',
+      filename: '/repo/packages/@gateway/node/src/fs/fs.ts',
       options: [{ scope: '@dungeonmaster' }],
       errors: [
         {

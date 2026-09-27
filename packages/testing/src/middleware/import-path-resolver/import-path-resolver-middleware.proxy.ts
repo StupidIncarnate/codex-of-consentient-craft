@@ -12,9 +12,9 @@
  * proxy.setupWorkspacePackage({
  *   workspaceRootPath: '/repo',
  *   packageFolderName: 'bin',
- *   packageJson: { name: '@dungeonmaster/bin', exports: { './testing': { source: './src/testing/index.ts' } } },
+ *   packageJson: { name: '@dungeonmaster/bin', exports: { './testing': { source: './testing.ts' } } },
  * });
- * proxy.setupSourceFileExists({ filePath: '/repo/packages/bin/src/testing/index.ts' });
+ * proxy.setupSourceFileExists({ filePath: '/repo/packages/bin/testing.ts' });
  * proxy.setupImportingPackage({
  *   dirPath: '/repo/packages/mcp',
  *   packageJson: { name: '@dungeonmaster/mcp', imports: { '#gateway/npm/*': '@dungeonmaster/npm/*' } },

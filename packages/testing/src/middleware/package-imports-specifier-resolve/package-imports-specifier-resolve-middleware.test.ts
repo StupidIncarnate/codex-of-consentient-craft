@@ -5,7 +5,7 @@ import { ImportPathStub } from '../../contracts/import-path/import-path.stub';
 
 describe('packageImportsSpecifierResolveMiddleware', () => {
   describe('mapped gateway specifier', () => {
-    it("VALID: {#gateway/npm/_test_} => resolves through the importing package's own imports map", () => {
+    it("VALID: {#gateway/npm/glob/glob/glob.proxy} => resolves through the importing package's own imports map", () => {
       const proxy = packageImportsSpecifierResolveMiddlewareProxy();
       proxy.setupImportingPackage({
         dirPath: '/repo/packages/mcp',
@@ -24,19 +24,21 @@ describe('packageImportsSpecifierResolveMiddleware', () => {
         packagesBaseDir: 'packages/@gateway',
         packageJson: {
           name: '@dungeonmaster/npm',
-          exports: { './_test_': { source: './src/_test_/index.ts' } },
+          exports: { './*.proxy': { source: './src/*.proxy.ts' } },
         },
       });
-      proxy.setupSourceFileExists({ filePath: '/repo/packages/@gateway/npm/src/_test_/index.ts' });
+      proxy.setupSourceFileExists({
+        filePath: '/repo/packages/@gateway/npm/src/glob/glob/glob.proxy.ts',
+      });
       const sourceFilePath = FilePathStub({
         value: '/repo/packages/mcp/src/brokers/file/scanner/file-scanner-broker.proxy.ts',
       });
-      const importPath = ImportPathStub({ value: '#gateway/npm/_test_' });
+      const importPath = ImportPathStub({ value: '#gateway/npm/glob/glob/glob.proxy' });
 
       const result = packageImportsSpecifierResolveMiddleware({ sourceFilePath, importPath });
 
       expect(result).toStrictEqual(
-        FilePathStub({ value: '/repo/packages/@gateway/npm/src/_test_/index.ts' }),
+        FilePathStub({ value: '/repo/packages/@gateway/npm/src/glob/glob/glob.proxy.ts' }),
       );
     });
   });
@@ -164,7 +166,7 @@ describe('packageImportsSpecifierResolveMiddleware', () => {
         packageJson: { name: '@dungeonmaster/mcp' },
       });
       const sourceFilePath = FilePathStub({ value: '/repo/packages/mcp/src/a.proxy.ts' });
-      const importPath = ImportPathStub({ value: '#gateway/npm/_test_' });
+      const importPath = ImportPathStub({ value: '#gateway/npm/glob/glob/glob.proxy' });
 
       const result = packageImportsSpecifierResolveMiddleware({ sourceFilePath, importPath });
 
@@ -176,7 +178,7 @@ describe('packageImportsSpecifierResolveMiddleware', () => {
     it('EMPTY: {no ancestor has any package.json} => returns null', () => {
       packageImportsSpecifierResolveMiddlewareProxy();
       const sourceFilePath = FilePathStub({ value: '/unreachable/deep/path/a.proxy.ts' });
-      const importPath = ImportPathStub({ value: '#gateway/npm/_test_' });
+      const importPath = ImportPathStub({ value: '#gateway/npm/glob/glob/glob.proxy' });
 
       const result = packageImportsSpecifierResolveMiddleware({ sourceFilePath, importPath });
 

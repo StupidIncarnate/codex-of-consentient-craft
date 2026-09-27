@@ -21,7 +21,7 @@ describe('resolveGatewayScopeLayerBroker', () => {
     });
 
     const result = resolveGatewayScopeLayerBroker({
-      filename: '/repo/packages/node/src/fs/index.ts',
+      filename: '/repo/packages/node/src/fs/fs.ts',
     });
 
     expect(result).toBe('@dungeonmaster');
@@ -31,7 +31,7 @@ describe('resolveGatewayScopeLayerBroker', () => {
     resolveGatewayScopeLayerBrokerProxy();
 
     const result = resolveGatewayScopeLayerBroker({
-      filename: '/repo/packages/browser/src/fetch/index.ts',
+      filename: '/repo/packages/browser/src/fetch/fetch.ts',
     });
 
     expect(result).toBe('@dungeonmaster');

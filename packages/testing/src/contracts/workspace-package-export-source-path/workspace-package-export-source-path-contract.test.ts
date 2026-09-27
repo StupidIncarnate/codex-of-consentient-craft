@@ -3,10 +3,10 @@ import { WorkspacePackageExportSourcePathStub } from './workspace-package-export
 
 describe('workspacePackageExportSourcePathContract', () => {
   describe('valid inputs', () => {
-    it('VALID: {value: "./src/testing/index.ts"} => parses successfully', () => {
-      const result = WorkspacePackageExportSourcePathStub({ value: './src/testing/index.ts' });
+    it('VALID: {value: "./src/glob/glob.ts"} => parses successfully', () => {
+      const result = WorkspacePackageExportSourcePathStub({ value: './src/glob/glob.ts' });
 
-      expect(result).toBe('./src/testing/index.ts');
+      expect(result).toBe('./src/glob/glob.ts');
     });
 
     it('VALID: {value: "./testing.ts"} => parses successfully', () => {

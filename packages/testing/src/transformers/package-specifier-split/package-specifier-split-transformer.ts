@@ -2,7 +2,7 @@
  * PURPOSE: Splits an import specifier into its package name and subpath halves — the same split
  * Node performs before consulting a package's own `exports` map. Returns null for a specifier with
  * no subpath ('some-package', 'axios'), which is never a workspace package's subpath import.
- * Returns null for a `#`-prefixed specifier ('#gateway/npm/_test_/glob') too — that is a package's own
+ * Returns null for a `#`-prefixed specifier ('#gateway/npm/glob/glob/glob.proxy') too — that is a package's own
  * `imports`-map key, not a package name, and the unscoped branch below would otherwise mis-split it
  * into a package literally named `#gateway`; packageImportsSpecifierResolveMiddleware substitutes
  * a `#`-specifier's TARGET before it ever reaches this function.

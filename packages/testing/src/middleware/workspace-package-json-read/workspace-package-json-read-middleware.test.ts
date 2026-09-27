@@ -10,7 +10,7 @@ describe('workspacePackageJsonReadMiddleware', () => {
         packageJsonPath: '/repo/packages/bin/package.json',
         packageJson: {
           name: '@dungeonmaster/bin',
-          exports: { './testing': { source: './src/testing/index.ts' } },
+          exports: { './testing': { source: './testing.ts' } },
         },
       });
       const packageJsonPath = FilePathStub({ value: '/repo/packages/bin/package.json' });
@@ -19,7 +19,7 @@ describe('workspacePackageJsonReadMiddleware', () => {
 
       expect(result).toStrictEqual({
         name: '@dungeonmaster/bin',
-        exports: { './testing': { source: './src/testing/index.ts' } },
+        exports: { './testing': { source: './testing.ts' } },
       });
     });
 

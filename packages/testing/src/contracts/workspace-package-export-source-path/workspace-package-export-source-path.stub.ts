@@ -10,5 +10,5 @@ import { workspacePackageExportSourcePathContract } from './workspace-package-ex
 import type { WorkspacePackageExportSourcePath } from './workspace-package-export-source-path-contract';
 
 export const WorkspacePackageExportSourcePathStub = (
-  { value }: { value: string } = { value: './src/testing/index.ts' },
+  { value }: { value: string } = { value: './src/glob/glob.ts' },
 ): WorkspacePackageExportSourcePath => workspacePackageExportSourcePathContract.parse(value);

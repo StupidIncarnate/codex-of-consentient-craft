@@ -4,9 +4,9 @@
  * package subpath (`@dungeonmaster/bin/testing`, `@dungeonmaster/shared/testing`, …) delegates to
  * workspacePackageImportResolveMiddleware, which resolves it the way Node's own `exports` map would
  * under the `source` condition — without needing that package built first. A `#`-prefixed specifier
- * (`#gateway/npm/_test_/glob`) delegates to packageImportsSpecifierResolveMiddleware instead, which reads
- * the IMPORTING package's own `imports` map (not workspace-wide) to find the target before that
- * target is itself resolved the same way.
+ * (`#gateway/npm/glob/glob/glob.proxy`) delegates to packageImportsSpecifierResolveMiddleware instead,
+ * which reads the IMPORTING package's own `imports` map (not workspace-wide) to find the target
+ * before that target is itself resolved the same way.
  *
  * USAGE:
  * const filePath = importPathResolverMiddleware({

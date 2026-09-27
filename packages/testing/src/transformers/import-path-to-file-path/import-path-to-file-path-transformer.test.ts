@@ -56,7 +56,7 @@ describe('importPathToFilePathTransformer', () => {
     it('VALID: {@dungeonmaster/bin/testing, file exists} => returns resolved file path', () => {
       const sourceFilePath = FilePathStub({ value: '/src/test.test.ts' });
       const importPath = ImportPathStub({ value: '@dungeonmaster/bin/testing' });
-      const resolvedPath = FilePathStub({ value: '/repo/packages/bin/src/testing/index.ts' });
+      const resolvedPath = FilePathStub({ value: '/repo/packages/bin/testing.ts' });
 
       const result = importPathToFilePathTransformer({
         sourceFilePath,
@@ -65,13 +65,13 @@ describe('importPathToFilePathTransformer', () => {
         fileExists: true,
       });
 
-      expect(result).toBe('/repo/packages/bin/src/testing/index.ts');
+      expect(result).toBe('/repo/packages/bin/testing.ts');
     });
 
     it('INVALID: {@dungeonmaster/bin/testing, file does not exist} => returns null', () => {
       const sourceFilePath = FilePathStub({ value: '/src/test.test.ts' });
       const importPath = ImportPathStub({ value: '@dungeonmaster/bin/testing' });
-      const resolvedPath = FilePathStub({ value: '/repo/packages/bin/src/testing/index.ts' });
+      const resolvedPath = FilePathStub({ value: '/repo/packages/bin/testing.ts' });
 
       const result = importPathToFilePathTransformer({
         sourceFilePath,

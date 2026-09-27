@@ -20,7 +20,7 @@ ruleTester.run('no-bare-process-cwd (defaults)', ruleNoBareProcessCwdBroker(), {
     // (@dungeonmaster/node/process exports `cwd`)
     {
       code: 'export const cwd = () => process.cwd();',
-      filename: '/repo/packages/@gateway/node/src/process/index.ts',
+      filename: '/repo/packages/@gateway/node/src/process/process.ts',
     },
     // VALID: process.cwd() in *.test.ts when allowTestFiles is true (default)
     {

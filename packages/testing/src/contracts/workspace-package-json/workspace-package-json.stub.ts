@@ -17,7 +17,7 @@ export const WorkspacePackageJsonStub = ({
   workspacePackageJsonContract.parse({
     name: '@dungeonmaster/bin',
     exports: {
-      './testing': { source: './src/testing/index.ts' },
+      './testing': { source: './testing.ts' },
     },
     ...props,
   });

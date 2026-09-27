@@ -21,19 +21,19 @@ describe('workspacePackageExportSourceTransformer', () => {
   });
 
   describe('wildcard export key', () => {
-    it('VALID: {subpath: "testing", "./*" -> "./src/*/index.ts"} => substitutes the captured segment', () => {
+    it('VALID: {subpath: "glob.proxy", "./*.proxy" -> "./src/*.proxy.ts"} => substitutes the captured segment', () => {
       const { exports: exportsMap } = WorkspacePackageJsonStub({
-        name: '@dungeonmaster/bin',
-        exports: { './*': { source: './src/*/index.ts' } },
+        name: '@dungeonmaster/npm',
+        exports: { './*.proxy': { source: './src/*.proxy.ts' } },
       });
       const { subpath } = PackageSpecifierPartsStub({
-        packageName: '@dungeonmaster/bin',
-        subpath: 'testing',
+        packageName: '@dungeonmaster/npm',
+        subpath: 'glob.proxy',
       });
 
       const result = workspacePackageExportSourceTransformer({ exportsMap, subpath });
 
-      expect(result).toBe('./src/testing/index.ts');
+      expect(result).toBe('./src/glob.proxy.ts');
     });
 
     it('VALID: {subpath: "git", "./*" -> "./src/*/*.ts"} => substitutes the captured segment for every star', () => {
@@ -73,8 +73,8 @@ describe('workspacePackageExportSourceTransformer', () => {
       const { exports: exportsMap } = WorkspacePackageJsonStub({
         name: '@dungeonmaster/bin',
         exports: {
-          './testing': { source: './src/testing/index.ts' },
-          './*': { source: './src/*/index.ts' },
+          './testing': { source: './testing.ts' },
+          './*': { source: './src/*/*.ts' },
         },
       });
       const { subpath } = PackageSpecifierPartsStub({
@@ -84,7 +84,7 @@ describe('workspacePackageExportSourceTransformer', () => {
 
       const result = workspacePackageExportSourceTransformer({ exportsMap, subpath });
 
-      expect(result).toBe('./src/testing/index.ts');
+      expect(result).toBe('./testing.ts');
     });
   });
 
@@ -109,7 +109,7 @@ describe('workspacePackageExportSourceTransformer', () => {
     it('INVALID: {subpath: "testing", only an unrelated "./git" export} => returns null', () => {
       const { exports: exportsMap } = WorkspacePackageJsonStub({
         name: '@dungeonmaster/bin',
-        exports: { './git': { source: './src/git/index.ts' } },
+        exports: { './git': { source: './git.ts' } },
       });
       const { subpath } = PackageSpecifierPartsStub({
         packageName: '@dungeonmaster/bin',

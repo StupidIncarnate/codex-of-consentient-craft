@@ -14,9 +14,9 @@
  *   workspaceRootPath: '/repo',
  *   packageFolderName: 'npm',
  *   packagesBaseDir: 'packages/@gateway',
- *   packageJson: { name: '@dungeonmaster/npm', exports: { './_test_': { source: './src/_test_/index.ts' } } },
+ *   packageJson: { name: '@dungeonmaster/npm', exports: { './*.proxy': { source: './src/*.proxy.ts' } } },
  * });
- * proxy.setupSourceFileExists({ filePath: '/repo/packages/@gateway/npm/src/_test_/index.ts' });
+ * proxy.setupSourceFileExists({ filePath: '/repo/packages/@gateway/npm/src/glob/glob/glob.proxy.ts' });
  */
 
 import { pathDirnameAdapterProxy } from '../../adapters/path/dirname/path-dirname-adapter.proxy';

@@ -63,7 +63,7 @@ ruleTester.run('raw-import-ban', ruleRawImportBanBroker(), {
     },
     {
       code: "export * from 'react';",
-      filename: '/repo/packages/@gateway/npm/src/react/index.ts',
+      filename: '/repo/packages/@gateway/npm/src/react/react.ts',
     },
     {
       code: "const fs = require('fs');",

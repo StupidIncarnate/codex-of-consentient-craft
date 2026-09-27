@@ -1,17 +1,17 @@
 /**
- * PURPOSE: Resolves a `#`-specifier import (`#gateway/npm/_test_/glob`) to its target workspace
- * package's `source` file. Reads the IMPORTING file's own nearest package.json — not the
+ * PURPOSE: Resolves a `#`-specifier import (`#gateway/npm/glob/glob/glob.proxy`) to its target
+ * workspace package's `source` file. Reads the IMPORTING file's own nearest package.json — not the
  * workspaces root — for its `imports` map, the same ancestor Node itself consults to resolve a
  * `#specifier` at runtime, matches the specifier against that map to get a target specifier
- * (`@dungeonmaster/npm/_test_/glob`), then resolves that target the same way any other workspace-package
- * subpath import resolves.
+ * (`@dungeonmaster/npm/glob/glob/glob.proxy`), then resolves that target the same way any other
+ * workspace-package subpath import resolves.
  *
  * USAGE:
  * const filePath = packageImportsSpecifierResolveMiddleware({
  *   sourceFilePath: filePathContract.parse('/repo/packages/mcp/src/brokers/file/scanner/file-scanner-broker.proxy.ts'),
- *   importPath: importPathContract.parse('#gateway/npm/_test_/glob'),
+ *   importPath: importPathContract.parse('#gateway/npm/glob/glob/glob.proxy'),
  * });
- * // Returns FilePath ('/repo/packages/@gateway/npm/src/glob/glob.proxy.ts') or null
+ * // Returns FilePath ('/repo/packages/@gateway/npm/src/glob/glob/glob.proxy.ts') or null
  */
 
 import { pathDirnameAdapter } from '../../adapters/path/dirname/path-dirname-adapter';

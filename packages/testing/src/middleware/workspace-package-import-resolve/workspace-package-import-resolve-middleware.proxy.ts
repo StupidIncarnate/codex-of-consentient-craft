@@ -10,9 +10,9 @@
  * proxy.setupWorkspacePackage({
  *   workspaceRootPath: '/repo',
  *   packageFolderName: 'bin',
- *   packageJson: { name: '@dungeonmaster/bin', exports: { './testing': { source: './src/testing/index.ts' } } },
+ *   packageJson: { name: '@dungeonmaster/bin', exports: { './testing': { source: './testing.ts' } } },
  * });
- * proxy.setupSourceFileExists({ filePath: '/repo/packages/bin/src/testing/index.ts' });
+ * proxy.setupSourceFileExists({ filePath: '/repo/packages/bin/testing.ts' });
  *
  * // A group-folder package (packages/@gateway/npm), reachable once the root also declares that glob:
  * proxy.setupWorkspaceRoot({ workspaceRootPath: '/repo', workspaces: ['packages/*', 'packages/@gateway/*'] });
@@ -20,7 +20,7 @@
  *   workspaceRootPath: '/repo',
  *   packageFolderName: 'npm',
  *   packagesBaseDir: 'packages/@gateway',
- *   packageJson: { name: '@dungeonmaster/npm', exports: { './_test_': { source: './src/_test_/index.ts' } } },
+ *   packageJson: { name: '@dungeonmaster/npm', exports: { './*.proxy': { source: './src/*.proxy.ts' } } },
  * });
  */
 

@@ -5,7 +5,7 @@
  * brand the identical string the identical way.
  *
  * USAGE:
- * workspacePackageExportSourcePathContract.parse('./src/testing/index.ts');
+ * workspacePackageExportSourcePathContract.parse('./src/glob/glob.ts');
  */
 
 import { z } from 'zod';

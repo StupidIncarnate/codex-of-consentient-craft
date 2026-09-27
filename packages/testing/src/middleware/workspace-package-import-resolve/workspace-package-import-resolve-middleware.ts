@@ -12,7 +12,7 @@
  *   sourceFilePath: filePathContract.parse('/repo/packages/siegelense/src/a.proxy.ts'),
  *   importPath: importPathContract.parse('@dungeonmaster/bin/testing'),
  * });
- * // Returns FilePath ('/repo/packages/bin/src/testing/index.ts') or null
+ * // Returns FilePath ('/repo/packages/bin/testing.ts') or null
  */
 
 import { fsExistsAdapter } from '../../adapters/fs/exists/fs-exists-adapter';

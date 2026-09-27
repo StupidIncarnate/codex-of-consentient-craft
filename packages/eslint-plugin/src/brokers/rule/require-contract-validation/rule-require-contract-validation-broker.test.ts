@@ -81,7 +81,7 @@ ruleTester.run('require-contract-validation', ruleRequireContractValidationBroke
     // ✅ import() with a bare variable, inside a gateway package
     {
       code: `const module = await import(modulePath);`,
-      filename: '/repo/packages/@gateway/npm/src/glob/index.ts',
+      filename: '/repo/packages/@gateway/npm/src/glob/glob.ts',
     },
   ],
 

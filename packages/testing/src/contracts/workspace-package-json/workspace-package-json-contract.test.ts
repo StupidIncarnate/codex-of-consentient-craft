@@ -29,14 +29,14 @@ describe('workspacePackageJsonContract', () => {
     it('VALID: {name, exports with source} => parses successfully', () => {
       const packageJson = WorkspacePackageJsonStub({
         name: '@dungeonmaster/bin',
-        exports: { './testing': { source: './src/testing/index.ts' } },
+        exports: { './testing': { source: './testing.ts' } },
       });
 
       const result = workspacePackageJsonContract.parse(packageJson);
 
       expect(result).toStrictEqual({
         name: '@dungeonmaster/bin',
-        exports: { './testing': { source: './src/testing/index.ts' } },
+        exports: { './testing': { source: './testing.ts' } },
       });
     });
 

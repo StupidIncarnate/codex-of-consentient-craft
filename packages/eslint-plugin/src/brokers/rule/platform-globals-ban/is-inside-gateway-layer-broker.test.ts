@@ -5,7 +5,7 @@ describe('isInsideGatewayLayerBroker', () => {
   describe('inside the gateway', () => {
     it('VALID: {filename under packages/@gateway/node/src} => returns true', () => {
       const proxy = isInsideGatewayLayerBrokerProxy();
-      const filename = '/repo/packages/@gateway/node/src/fs/index.ts';
+      const filename = '/repo/packages/@gateway/node/src/fs/fs.ts';
       proxy.setupFilename({ filename, matches: true });
 
       const result = isInsideGatewayLayerBroker({ filename });

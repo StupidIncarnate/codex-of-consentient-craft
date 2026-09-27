@@ -62,52 +62,24 @@ describe('isProxyImportGuard', () => {
       expect(result).toBe(true);
     });
 
-    it('VALID: {importPath: "@dungeonmaster/node/_test_/fs"} => returns true', () => {
-      const result = isProxyImportGuard({ importPath: '@dungeonmaster/node/_test_/fs' });
+    it('VALID: {importPath: "#foo/bar/testing"} => returns true', () => {
+      const result = isProxyImportGuard({ importPath: '#foo/bar/testing' });
 
       expect(result).toBe(true);
     });
 
-    it('VALID: {importPath: "@dungeonmaster/npm/_test_/glob"} => returns true', () => {
-      const result = isProxyImportGuard({ importPath: '@dungeonmaster/npm/_test_/glob' });
-
-      expect(result).toBe(true);
-    });
-
-    it('VALID: {importPath: "@dungeonmaster/browser/_test_/localStorage"} => returns true', () => {
+    it('VALID: {importPath: "#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy"} => returns true', () => {
       const result = isProxyImportGuard({
-        importPath: '@dungeonmaster/browser/_test_/localStorage',
+        importPath: '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy',
       });
 
       expect(result).toBe(true);
     });
 
-    it('VALID: {importPath: "@dungeonmaster/bin/_test_/git"} => returns true', () => {
-      const result = isProxyImportGuard({ importPath: '@dungeonmaster/bin/_test_/git' });
-
-      expect(result).toBe(true);
-    });
-
-    it('VALID: {importPath: "#gateway/npm/_test_/playwright__test"} => returns true', () => {
-      const result = isProxyImportGuard({ importPath: '#gateway/npm/_test_/playwright__test' });
-
-      expect(result).toBe(true);
-    });
-
-    it('VALID: {importPath: "#gateway/browser/_test_/fetch"} => returns true', () => {
-      const result = isProxyImportGuard({ importPath: '#gateway/browser/_test_/fetch' });
-
-      expect(result).toBe(true);
-    });
-
-    it('INVALID: {importPath: "#gateway/node/_test_"} => returns false, a gateway test barrel is always per subpath', () => {
-      const result = isProxyImportGuard({ importPath: '#gateway/node/_test_' });
-
-      expect(result).toBe(false);
-    });
-
-    it('VALID: {importPath: "#foo/bar/testing"} => returns true', () => {
-      const result = isProxyImportGuard({ importPath: '#foo/bar/testing' });
+    it('VALID: {importPath: "@dungeonmaster/node/fs/is-fs-error/is-fs-error.proxy"} => returns true', () => {
+      const result = isProxyImportGuard({
+        importPath: '@dungeonmaster/node/fs/is-fs-error/is-fs-error.proxy',
+      });
 
       expect(result).toBe(true);
     });
