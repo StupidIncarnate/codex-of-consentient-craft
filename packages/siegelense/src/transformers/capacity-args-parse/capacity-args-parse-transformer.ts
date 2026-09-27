@@ -21,6 +21,7 @@ import { laneSpecConventionStatics } from '../../statics/lane-spec-convention/la
 import { siegelenseOutputStatics } from '../../statics/siegelense-output/siegelense-output-statics';
 import { flagContractParseTransformer } from '../flag-contract-parse/flag-contract-parse-transformer';
 import { flagValueReadTransformer } from '../flag-value-read/flag-value-read-transformer';
+import { numericFlagParseTransformer } from '../numeric-flag-parse/numeric-flag-parse-transformer';
 
 const SPEC_FLAG = '--spec';
 const POOL_FLAG = '--pool';
@@ -81,9 +82,11 @@ export const capacityArgsParseTransformer = ({
   const poolSize =
     rawPoolSize === null
       ? null
-      : flagContractParseTransformer({
+      : numericFlagParseTransformer({
           flag: POOL_FLAG,
-          parse: () => profilePoolSizeContract.parse(Number(rawPoolSize)),
+          raw: rawPoolSize,
+          accepts: 'a whole number of 1 or more',
+          parse: (value) => profilePoolSizeContract.parse(value),
         });
 
   const isJson = args.includes(siegelenseOutputStatics.flags.json);

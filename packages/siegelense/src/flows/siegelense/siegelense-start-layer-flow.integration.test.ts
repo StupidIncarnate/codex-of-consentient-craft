@@ -95,7 +95,9 @@ describe('SiegelenseStartLayerFlow', () => {
         SiegelenseStartLayerFlow({
           callArgs: ['--spec', 'dungeonmaster-stack', '--idle-timeout-ms', 'not-a-number'],
         }),
-      ).rejects.toThrow(/^--idle-timeout-ms: Expected number, received nan$/u);
+      ).rejects.toThrow(
+        /^--idle-timeout-ms must be a whole number of 0 or more; got "not-a-number"$/u,
+      );
     });
   });
 });

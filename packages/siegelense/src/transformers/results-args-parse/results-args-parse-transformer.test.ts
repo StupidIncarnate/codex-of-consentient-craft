@@ -209,12 +209,19 @@ describe('resultsArgsParseTransformer', () => {
     });
   });
 
-  describe('a non-numeric --step', () => {
-    it("INVALID: {--step abc} => throws naming --step and stepIndexContract's own message", () => {
-      expect(() =>
-        resultsArgsParseTransformer({ args: ['--instance', 'inst_7f3a9c21', '--step', 'abc'] }),
-      ).toThrow(/^--step: Expected number, received nan$/u);
-    });
+  describe('a --step value the contract refuses', () => {
+    it.each(['abc', '0'])(
+      'INVALID: {--step %s} => refuses saying --step must be a whole number of 1 or more, and what was typed',
+      (stepValue) => {
+        expect(() =>
+          resultsArgsParseTransformer({
+            args: ['--instance', 'inst_7f3a9c21', '--step', stepValue],
+          }),
+        ).toThrow(
+          new RegExp(`^--step must be a whole number of 1 or more; got "${stepValue}"$`, 'u'),
+        );
+      },
+    );
   });
 
   describe('a badly-shaped --where-method', () => {
@@ -229,14 +236,22 @@ describe('resultsArgsParseTransformer', () => {
     });
   });
 
-  describe('a negative --where-nth', () => {
-    it("INVALID: {--where-nth -1} => throws naming --where-nth and arrayIndexContract's own message", () => {
-      expect(() =>
-        resultsArgsParseTransformer({
-          args: ['--instance', 'inst_7f3a9c21', '--where-nth', '-1'],
-        }),
-      ).toThrow(/^--where-nth: Number must be greater than or equal to 0$/u);
-    });
+  describe('a --where-nth value the contract refuses', () => {
+    it.each(['-1', 'abc'])(
+      'INVALID: {--where-nth %s} => refuses saying --where-nth must be a whole number of 0 or more, and what was typed',
+      (whereNthValue) => {
+        expect(() =>
+          resultsArgsParseTransformer({
+            args: ['--instance', 'inst_7f3a9c21', '--where-nth', whereNthValue],
+          }),
+        ).toThrow(
+          new RegExp(
+            `^--where-nth must be a whole number of 0 or more; got "${whereNthValue}"$`,
+            'u',
+          ),
+        );
+      },
+    );
   });
 
   describe('a badly-shaped --where-level', () => {

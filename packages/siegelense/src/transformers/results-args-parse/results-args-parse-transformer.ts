@@ -9,12 +9,15 @@
  * `--help` page has to print an accepted-value list per flag, so `--kind`'s vocabulary is checked
  * through `resultKindContract` (derived from `resultsStatics.kinds.all`) rather than retyped, and a
  * seventh kind arriving later costs one edit. Every OTHER branded parse (`--instance`, `--run`,
- * `--step`, the four `--where-*` flags that carry a contract, `--since`) goes through
+ * `--where-method`, `--where-level`, `--where-steps`, `--since`) goes through
  * `flagContractParseTransformer`, so a bad value answers with the contract's own message under its
- * own flag's name rather than a raw ZodError; `--kind` does not need it because the hand-written
- * check above it already refuses an invalid value before this point, and `--where-path`/`--fields`
- * do not need it because `contentTextContract`/`resultFieldContract` cannot reject a non-empty
- * string. `--run` and `--since boot` are mutually exclusive — the synopsis in
+ * own flag's name rather than a raw ZodError; `--step` and `--where-nth` go through
+ * `numericFlagParseTransformer` instead, because both turn their raw text into a number with
+ * `Number()` before a contract ever sees it, and a contract given `Number('abc')` never sees "abc" —
+ * it sees NaN, so its own message cannot name what the caller typed. `--kind` does not need it
+ * because the hand-written check above it already refuses an invalid value before this point, and
+ * `--where-path`/`--fields` do not need it because `contentTextContract`/`resultFieldContract`
+ * cannot reject a non-empty string. `--run` and `--since boot` are mutually exclusive — the synopsis in
  * `siegelense-help-statics.ts` reads `[--run <runId> | --since boot]` — so naming both refuses by
  * naming both flags, the same shape `runArgsParseTransformer` refuses `--steps`/`--steps-file` in.
  * Unlike that pair, neither flag here is required: omitting both is the ordinary "resolve the
@@ -48,6 +51,7 @@ import { resultsStatics } from '../../statics/results/results-statics';
 import { siegelenseOutputStatics } from '../../statics/siegelense-output/siegelense-output-statics';
 import { flagContractParseTransformer } from '../flag-contract-parse/flag-contract-parse-transformer';
 import { flagValueReadTransformer } from '../flag-value-read/flag-value-read-transformer';
+import { numericFlagParseTransformer } from '../numeric-flag-parse/numeric-flag-parse-transformer';
 
 const INSTANCE_FLAG = '--instance';
 const RUN_FLAG = '--run';
@@ -163,9 +167,11 @@ export const resultsArgsParseTransformer = ({ args }: { args: readonly string[] 
     step:
       stepValue === null
         ? null
-        : flagContractParseTransformer({
+        : numericFlagParseTransformer({
             flag: STEP_FLAG,
-            parse: () => stepIndexContract.parse(Number(stepValue)),
+            raw: stepValue,
+            accepts: 'a whole number of 1 or more',
+            parse: (value) => stepIndexContract.parse(value),
           }),
     kind: kindValue === null ? null : resultKindContract.parse(kindValue),
     where: hasWhere
@@ -181,9 +187,11 @@ export const resultsArgsParseTransformer = ({ args }: { args: readonly string[] 
           nth:
             whereNthValue === null
               ? null
-              : flagContractParseTransformer({
+              : numericFlagParseTransformer({
                   flag: WHERE_NTH_FLAG,
-                  parse: () => arrayIndexContract.parse(Number(whereNthValue)),
+                  raw: whereNthValue,
+                  accepts: 'a whole number of 0 or more',
+                  parse: (value) => arrayIndexContract.parse(value),
                 }),
           level:
             whereLevelValue === null
