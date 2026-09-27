@@ -88,5 +88,8 @@
   "dependencies": {
     "msw": "^2.12.10",
     "tsx": "^4.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
