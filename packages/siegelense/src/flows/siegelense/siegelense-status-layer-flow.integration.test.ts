@@ -41,6 +41,7 @@ import { InstanceIdStub } from '../../contracts/instance-id/instance-id.stub';
 import { RegistryEntryStub } from '../../contracts/registry-entry/registry-entry.stub';
 import { RegistryStub } from '../../contracts/registry/registry.stub';
 import { SpecNameStub } from '../../contracts/spec-name/spec-name.stub';
+import { InstanceUnknownError } from '../../errors/instance-unknown/instance-unknown-error';
 import { machineStatics } from '../../statics/machine/machine-statics';
 import { siegelenseOutputStatics } from '../../statics/siegelense-output/siegelense-output-statics';
 
@@ -66,12 +67,6 @@ const LIKELY_CAUSE_VALUE_PATTERN =
 
 const EMPTY_BRANCH_STATUS_JSON = `${JSON.stringify(
   { monitored: machineStatics.monitored, instances: [], queriedInstanceState: null },
-  null,
-  siegelenseOutputStatics.json.indentSpaces,
-)}\n`;
-
-const UNKNOWN_NAMED_STATUS_JSON = `${JSON.stringify(
-  { monitored: machineStatics.monitored, instances: [], queriedInstanceState: 'unknown' },
   null,
   siegelenseOutputStatics.json.indentSpaces,
 )}\n`;
@@ -351,7 +346,12 @@ describe('SiegelenseStatusLayerFlow', () => {
           .trim()
           .split('\n')
           .slice(3, -1)
-          .map((line) => line.slice(1, -1).split('│').map((cell) => cell.trim())),
+          .map((line) =>
+            line
+              .slice(1, -1)
+              .split('│')
+              .map((cell) => cell.trim()),
+          ),
       );
       const normalizedLikelyCause = String(renderedFields['LIKELY CAUSE']).replace(
         LIKELY_CAUSE_VALUE_PATTERN,
@@ -377,7 +377,7 @@ describe('SiegelenseStatusLayerFlow', () => {
   });
 
   describe('the --instance flag naming an id the registry never held', () => {
-    it('VALID: {callArgs: [--instance, <unknown id>]} => names the id as unknown, never existed', async () => {
+    it('ERROR: {callArgs: [--instance, <unknown id>]} => rejects with InstanceUnknownError before writing anything', async () => {
       const writes: ReturnType<typeof ContentTextStub>[] = [];
       const originalWrite = process.stdout.write.bind(process.stdout);
       process.stdout.write = ((chunk: string): boolean => {
@@ -385,16 +385,16 @@ describe('SiegelenseStatusLayerFlow', () => {
         return true;
       }) as unknown as typeof process.stdout.write;
 
-      await SiegelenseStatusLayerFlow({ callArgs: ['--instance', UNKNOWN_INSTANCE_ID] });
+      await expect(
+        SiegelenseStatusLayerFlow({ callArgs: ['--instance', UNKNOWN_INSTANCE_ID] }),
+      ).rejects.toStrictEqual(new InstanceUnknownError({ instanceId: UNKNOWN_INSTANCE_ID }));
 
       process.stdout.write = originalWrite;
 
-      expect(writes).toStrictEqual([
-        `No instance by the id "${UNKNOWN_INSTANCE_ID}" — unknown, never existed.\n`,
-      ]);
+      expect(writes).toStrictEqual([]);
     });
 
-    it('VALID: {callArgs: [--instance, <unknown id>, --json]} => the JSON names it "unknown", distinct from an empty fleet', async () => {
+    it('ERROR: {callArgs: [--instance, <unknown id>, --json]} => rejects the same way even with --json, since the registry check runs first', async () => {
       const writes: ReturnType<typeof ContentTextStub>[] = [];
       const originalWrite = process.stdout.write.bind(process.stdout);
       process.stdout.write = ((chunk: string): boolean => {
@@ -402,14 +402,13 @@ describe('SiegelenseStatusLayerFlow', () => {
         return true;
       }) as unknown as typeof process.stdout.write;
 
-      await SiegelenseStatusLayerFlow({ callArgs: ['--instance', UNKNOWN_INSTANCE_ID, '--json'] });
+      await expect(
+        SiegelenseStatusLayerFlow({ callArgs: ['--instance', UNKNOWN_INSTANCE_ID, '--json'] }),
+      ).rejects.toStrictEqual(new InstanceUnknownError({ instanceId: UNKNOWN_INSTANCE_ID }));
 
       process.stdout.write = originalWrite;
 
-      const [wholeOutput] = writes;
-      const withoutLiveMachineBlock = wholeOutput!.replace(MACHINE_BLOCK_PATTERN, '');
-
-      expect(withoutLiveMachineBlock).toBe(UNKNOWN_NAMED_STATUS_JSON);
+      expect(writes).toStrictEqual([]);
     });
   });
 

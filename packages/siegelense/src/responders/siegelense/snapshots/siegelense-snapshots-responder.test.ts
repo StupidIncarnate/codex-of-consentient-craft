@@ -1,7 +1,10 @@
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
+import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
+import { RegistryStub } from '../../../contracts/registry/registry.stub';
 import { SnapshotRecordStub } from '../../../contracts/snapshot-record/snapshot-record.stub';
 import { SnapshotsAnswerStub } from '../../../contracts/snapshots-answer/snapshots-answer.stub';
+import { InstanceUnknownError } from '../../../errors/instance-unknown/instance-unknown-error';
 import { SnapshotIndexUnreadableError } from '../../../errors/snapshot-index-unreadable/snapshot-index-unreadable-error';
 import { siegelenseOutputStatics } from '../../../statics/siegelense-output/siegelense-output-statics';
 import { snapshotsAnswerRenderTransformer } from '../../../transformers/snapshots-answer-render/snapshots-answer-render-transformer';
@@ -16,6 +19,9 @@ describe('SiegelenseSnapshotsResponder', () => {
       const nowMs = EpochMsStub({ value: 5000 });
       proxy.stageNow({ nowMs });
       const instanceId = InstanceIdStub({ value: 'inst_7f3a9c21' });
+      proxy.stageRegistry({
+        registry: RegistryStub({ instances: [RegistryEntryStub({ id: instanceId })] }),
+      });
       const answer = SnapshotsAnswerStub({
         instanceId,
         instanceState: 'alive',
@@ -46,6 +52,9 @@ describe('SiegelenseSnapshotsResponder', () => {
     it('VALID: {isJson: true} => writes the complete SnapshotsAnswer as one JSON document', async () => {
       const proxy = SiegelenseSnapshotsResponderProxy();
       const instanceId = InstanceIdStub({ value: 'inst_7f3a9c21' });
+      proxy.stageRegistry({
+        registry: RegistryStub({ instances: [RegistryEntryStub({ id: instanceId })] }),
+      });
       const answer = SnapshotsAnswerStub({
         instanceId,
         instanceState: 'alive',
@@ -69,22 +78,15 @@ describe('SiegelenseSnapshotsResponder', () => {
   });
 
   describe('an instance id nobody recognises', () => {
-    it('EMPTY: {instanceState unknown} => still writes a human document and never throws', async () => {
+    it('ERROR: {an id the registry never held} => throws InstanceUnknownError and snapshotListBroker is never reached', async () => {
       const proxy = SiegelenseSnapshotsResponderProxy();
       const instanceId = InstanceIdStub({ value: 'inst_deadbeef' });
-      const answer = SnapshotsAnswerStub({
-        instanceId,
-        instanceState: 'unknown',
-        snapshots: [],
-      });
-      proxy.stageAnswer({ answer });
+      proxy.stageRegistry({ registry: RegistryStub({ instances: [] }) });
 
-      const result = await SiegelenseSnapshotsResponder({ instanceId });
-
-      expect(result).toStrictEqual({ success: true });
-      expect(proxy.getStdoutWrites()).toStrictEqual([
-        'INSTANCE: inst_deadbeef (unknown)\nSNAPSHOTS: none recorded yet\n',
-      ]);
+      await expect(SiegelenseSnapshotsResponder({ instanceId })).rejects.toStrictEqual(
+        new InstanceUnknownError({ instanceId }),
+      );
+      expect(proxy.getStdoutWrites()).toStrictEqual([]);
     });
   });
 
@@ -92,6 +94,9 @@ describe('SiegelenseSnapshotsResponder', () => {
     it('ERROR: {SnapshotIndexUnreadableError} => propagates and stdout stays empty', async () => {
       const proxy = SiegelenseSnapshotsResponderProxy();
       const instanceId = InstanceIdStub({ value: 'inst_7f3a9c21' });
+      proxy.stageRegistry({
+        registry: RegistryStub({ instances: [RegistryEntryStub({ id: instanceId })] }),
+      });
       const error = new SnapshotIndexUnreadableError({
         indexPath: '/tmp/dm-siege-inst_7f3a9c21/.siegelense-snapshots/index.jsonl',
         cause: new Error('Unexpected end of JSON input'),

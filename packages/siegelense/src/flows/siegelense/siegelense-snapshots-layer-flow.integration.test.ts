@@ -44,6 +44,7 @@ import { InstanceIdStub } from '../../contracts/instance-id/instance-id.stub';
 import { RegistryEntryStub } from '../../contracts/registry-entry/registry-entry.stub';
 import { RegistryStub } from '../../contracts/registry/registry.stub';
 import { SnapshotRecordStub } from '../../contracts/snapshot-record/snapshot-record.stub';
+import { InstanceUnknownError } from '../../errors/instance-unknown/instance-unknown-error';
 
 import { SiegelenseSnapshotsLayerFlow } from './siegelense-snapshots-layer-flow';
 
@@ -200,7 +201,7 @@ describe('SiegelenseSnapshotsLayerFlow', () => {
   });
 
   describe('an --instance value the registry never held', () => {
-    it('VALID: {callArgs: [--instance, <unknown id>]} => renders instanceState unknown, never a throw', async () => {
+    it('ERROR: {callArgs: [--instance, <unknown id>]} => rejects with InstanceUnknownError before writing anything', async () => {
       const writes: ReturnType<typeof ContentTextStub>[] = [];
       const originalWrite = process.stdout.write.bind(process.stdout);
       process.stdout.write = ((chunk: string): boolean => {
@@ -208,16 +209,16 @@ describe('SiegelenseSnapshotsLayerFlow', () => {
         return true;
       }) as unknown as typeof process.stdout.write;
 
-      await SiegelenseSnapshotsLayerFlow({ callArgs: ['--instance', UNKNOWN_ID] });
+      await expect(
+        SiegelenseSnapshotsLayerFlow({ callArgs: ['--instance', UNKNOWN_ID] }),
+      ).rejects.toStrictEqual(new InstanceUnknownError({ instanceId: UNKNOWN_ID }));
 
       process.stdout.write = originalWrite;
 
-      expect(writes).toStrictEqual([
-        `INSTANCE: ${UNKNOWN_ID} (unknown)\nSNAPSHOTS: none recorded yet\n`,
-      ]);
+      expect(writes).toStrictEqual([]);
     });
 
-    it('VALID: {callArgs: [--instance, <unknown id>, --json]} => the JSON names it unknown, distinct from an empty fleet', async () => {
+    it('ERROR: {callArgs: [--instance, <unknown id>, --json]} => rejects the same way even with --json, since the registry check runs first', async () => {
       const writes: ReturnType<typeof ContentTextStub>[] = [];
       const originalWrite = process.stdout.write.bind(process.stdout);
       process.stdout.write = ((chunk: string): boolean => {
@@ -225,17 +226,13 @@ describe('SiegelenseSnapshotsLayerFlow', () => {
         return true;
       }) as unknown as typeof process.stdout.write;
 
-      await SiegelenseSnapshotsLayerFlow({ callArgs: ['--instance', UNKNOWN_ID, '--json'] });
+      await expect(
+        SiegelenseSnapshotsLayerFlow({ callArgs: ['--instance', UNKNOWN_ID, '--json'] }),
+      ).rejects.toStrictEqual(new InstanceUnknownError({ instanceId: UNKNOWN_ID }));
 
       process.stdout.write = originalWrite;
 
-      const [wholeOutput] = writes;
-
-      expect(JSON.parse(wholeOutput!)).toStrictEqual({
-        instanceId: UNKNOWN_ID,
-        instanceState: 'unknown',
-        snapshots: [],
-      });
+      expect(writes).toStrictEqual([]);
     });
   });
 

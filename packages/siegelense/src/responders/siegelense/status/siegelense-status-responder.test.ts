@@ -1,7 +1,10 @@
 import { siegelenseOutputStatics } from '../../../statics/siegelense-output/siegelense-output-statics';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { InstanceStatusStub } from '../../../contracts/instance-status/instance-status.stub';
+import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
+import { RegistryStub } from '../../../contracts/registry/registry.stub';
 import { StatusAnswerStub } from '../../../contracts/status-answer/status-answer.stub';
+import { InstanceUnknownError } from '../../../errors/instance-unknown/instance-unknown-error';
 
 import { SiegelenseStatusResponder } from './siegelense-status-responder';
 import { SiegelenseStatusResponderProxy } from './siegelense-status-responder.proxy';
@@ -50,30 +53,15 @@ describe('SiegelenseStatusResponder', () => {
   });
 
   describe('an instance named, that id not in the registry', () => {
-    it('EMPTY: {instanceId: inst_deadbeef, isJson: true, no instances} => writes the StatusAnswer as one JSON document', async () => {
+    it('ERROR: {instanceId: inst_deadbeef} => throws InstanceUnknownError and statusReadBroker is never reached', async () => {
       const proxy = SiegelenseStatusResponderProxy();
       const instanceId = InstanceIdStub({ value: 'inst_deadbeef' });
-      const answer = StatusAnswerStub({ instances: [] });
-      proxy.stageAnswer({ answer });
+      proxy.stageRegistry({ registry: RegistryStub({ instances: [] }) });
 
-      await SiegelenseStatusResponder({ instanceId, isJson: true });
-
-      expect(proxy.getStdoutWrites()).toStrictEqual([
-        `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`,
-      ]);
-    });
-
-    it('EMPTY: {instanceId: inst_deadbeef, isJson: false, no instances} => writes a sentence naming that id, distinct from the fleet-empty sentence', async () => {
-      const proxy = SiegelenseStatusResponderProxy();
-      const instanceId = InstanceIdStub({ value: 'inst_deadbeef' });
-      const answer = StatusAnswerStub({ instances: [] });
-      proxy.stageAnswer({ answer });
-
-      await SiegelenseStatusResponder({ instanceId, isJson: false });
-
-      expect(proxy.getStdoutWrites()).toStrictEqual([
-        'No instance by the id "inst_deadbeef" — unknown, never existed.\n',
-      ]);
+      await expect(SiegelenseStatusResponder({ instanceId, isJson: true })).rejects.toStrictEqual(
+        new InstanceUnknownError({ instanceId }),
+      );
+      expect(proxy.getStdoutWrites()).toStrictEqual([]);
     });
   });
 
@@ -194,6 +182,9 @@ describe('SiegelenseStatusResponder', () => {
     it('VALID: {instanceId: inst_9b2c, isJson: true} => writes the StatusAnswer as one JSON document', async () => {
       const proxy = SiegelenseStatusResponderProxy();
       const instanceId = InstanceIdStub({ value: 'inst_9b2c' });
+      proxy.stageRegistry({
+        registry: RegistryStub({ instances: [RegistryEntryStub({ id: instanceId })] }),
+      });
       const answer = StatusAnswerStub({
         instances: [
           InstanceStatusStub({
@@ -236,6 +227,9 @@ describe('SiegelenseStatusResponder', () => {
     it('VALID: {instanceId: inst_9b2c, isJson: false} => writes that instance in full', async () => {
       const proxy = SiegelenseStatusResponderProxy();
       const instanceId = InstanceIdStub({ value: 'inst_9b2c' });
+      proxy.stageRegistry({
+        registry: RegistryStub({ instances: [RegistryEntryStub({ id: instanceId })] }),
+      });
       const answer = StatusAnswerStub({
         instances: [
           InstanceStatusStub({

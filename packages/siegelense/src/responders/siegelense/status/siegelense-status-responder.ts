@@ -11,7 +11,12 @@
  * and only the renderer, told which question was asked, can tell those two apart in the text a
  * person reads. `isJson` defaults to `false` in the destructuring. **The refusal for `--human` lives
  * in `statusArgsParseTransformer`'s own known-flag set**, which rejects it as an unknown flag before
- * argv ever reaches this responder — this responder only ever renders when told to.
+ * argv ever reaches this responder — this responder only ever renders when told to. Reads the
+ * registry FIRST for a NAMED query and throws `InstanceUnknownError` on a miss, the same check
+ * `SiegelenseKillResponder`/`SiegelenseRunResponder` make: agents read exit codes to decide what
+ * happened, so an id the registry never held refuses (exit 1) rather than answering a typed
+ * `instances: []`/`unknown` reading (exit 0) — `statusReadBroker` itself is untouched and still
+ * answers that way for a `pruned`/`dead`/`killed` row, which DOES have a registry entry.
  *
  * USAGE:
  * await SiegelenseStatusResponder({ instanceId: null, isJson: false });
@@ -21,14 +26,16 @@
  * // Writes the fleet's StatusAnswer as one JSON document
  *
  * await SiegelenseStatusResponder({ instanceId: InstanceIdStub(), isJson: false });
- * // Writes that one instance in full, as the rendered table
+ * // Writes that one instance in full, as the rendered table, or throws InstanceUnknownError first
  */
 
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
+import { registryReadBroker } from '../../../brokers/registry/read/registry-read-broker';
 import { statusReadBroker } from '../../../brokers/status/read/status-read-broker';
 import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
+import { InstanceUnknownError } from '../../../errors/instance-unknown/instance-unknown-error';
 import { siegelenseOutputStatics } from '../../../statics/siegelense-output/siegelense-output-statics';
 import { statusAnswerRenderTransformer } from '../../../transformers/status-answer-render/status-answer-render-transformer';
 
@@ -43,6 +50,14 @@ export const SiegelenseStatusResponder = async ({
   since?: '1h' | '6h' | '1d' | 'beginning' | null | undefined;
   isJson?: boolean | undefined;
 }): Promise<AdapterResult> => {
+  if (instanceId !== null) {
+    const registry = await registryReadBroker();
+    const isKnownInstance = registry.instances.some((candidate) => candidate.id === instanceId);
+    if (!isKnownInstance) {
+      throw new InstanceUnknownError({ instanceId });
+    }
+  }
+
   const answer = await statusReadBroker({ instanceId, branch, since });
   process.stdout.write(
     isJson
