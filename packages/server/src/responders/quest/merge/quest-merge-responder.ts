@@ -1,6 +1,6 @@
 /**
  * PURPOSE: Handles the "Teleport with Booty (Merge)" button's POST by re-reading quest.json status
- * server-side before delegating to the orchestrator merge adapter — the execution tab stays open
+ * server-side before delegating to `StartOrchestrator.mergeQuest` — the execution tab stays open
  * across visits, so a stale browser cannot re-merge a quest that already merged, or start one on a
  * quest that went back to running
  *
@@ -9,9 +9,9 @@
  * // Returns { status: 200, data: { merging } } or { status: 400/500, data: { error } }
  */
 
+import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { isMergeableQuestStatusGuard } from '@dungeonmaster/shared/guards';
-import { orchestratorGetQuestAdapter } from '../../../adapters/orchestrator/get-quest/orchestrator-get-quest-adapter';
-import { orchestratorMergeQuestAdapter } from '../../../adapters/orchestrator/merge-quest/orchestrator-merge-quest-adapter';
+
 import { questIdParamsContract } from '../../../contracts/quest-id-params/quest-id-params-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
@@ -38,7 +38,7 @@ export const QuestMergeResponder = async ({
     }
     const { questId } = parsedParams.data;
 
-    const questResult = await orchestratorGetQuestAdapter({ questId });
+    const questResult = await StartOrchestrator.getQuest({ questId });
     if (!questResult.success || !questResult.quest) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.badRequest,
@@ -57,7 +57,7 @@ export const QuestMergeResponder = async ({
       });
     }
 
-    const { merging } = await orchestratorMergeQuestAdapter({ questId });
+    const { merging } = await StartOrchestrator.mergeQuest({ questId });
     return responderResultContract.parse({
       status: httpStatusStatics.success.ok,
       data: { merging },

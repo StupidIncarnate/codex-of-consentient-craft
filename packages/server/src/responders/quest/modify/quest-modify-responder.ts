@@ -1,12 +1,15 @@
 /**
- * PURPOSE: Handles quest modification requests by validating params/body and delegating to the orchestrator adapter
+ * PURPOSE: Handles quest modification requests by validating params/body against
+ * `modifyQuestInputContract` and delegating to `StartOrchestrator.modifyQuest`
  *
  * USAGE:
  * const result = await QuestModifyResponder({ params: { questId: 'abc' }, body: { status: 'approved' } });
  * // Returns { status: 200, data: result } or { status: 400/500, data: { error } }
  */
 
-import { orchestratorModifyQuestAdapter } from '../../../adapters/orchestrator/modify-quest/orchestrator-modify-quest-adapter';
+import { StartOrchestrator } from '@dungeonmaster/orchestrator';
+import { modifyQuestInputContract } from '@dungeonmaster/shared/contracts';
+
 import { questIdParamsContract } from '../../../contracts/quest-id-params/quest-id-params-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
@@ -42,9 +45,19 @@ export const QuestModifyResponder = async ({
       });
     }
 
-    const result = await orchestratorModifyQuestAdapter({
+    // questId always comes from the URL, never the body — spread body FIRST so the real one wins
+    // over anything a caller happened to send under that key.
+    const parsedInput = modifyQuestInputContract.safeParse({ ...body, questId });
+    if (!parsedInput.success) {
+      return responderResultContract.parse({
+        status: httpStatusStatics.clientError.badRequest,
+        data: { error: parsedInput.error.issues[0]?.message ?? 'Invalid modify-quest input' },
+      });
+    }
+
+    const result = await StartOrchestrator.modifyQuest({
       questId,
-      input: body as never,
+      input: parsedInput.data,
     });
     return responderResultContract.parse({ status: httpStatusStatics.success.ok, data: result });
   } catch (error: unknown) {

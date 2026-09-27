@@ -87,6 +87,23 @@ describe('QuestModifyResponder', () => {
         data: { error: 'Request body must be a JSON object' },
       });
     });
+
+    it('INVALID: {body.status is not a real quest status} => returns 400 naming what failed the input contract', async () => {
+      const proxy = QuestModifyResponderProxy();
+
+      const result = await proxy.callResponder({
+        params: { questId: 'test-quest' },
+        body: { status: 'not-a-real-status' },
+      });
+
+      expect(result).toStrictEqual({
+        status: 400,
+        data: {
+          error:
+            "Invalid enum value. Expected 'created' | 'pending' | 'explore_flows' | 'review_flows' | 'flows_approved' | 'explore_observables' | 'review_observables' | 'approved' | 'in_progress' | 'paused' | 'blocked' | 'complete' | 'merging' | 'merged' | 'abandoned', received 'not-a-real-status'",
+        },
+      });
+    });
   });
 
   describe('error cases', () => {

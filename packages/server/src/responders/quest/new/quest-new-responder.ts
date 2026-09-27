@@ -1,7 +1,7 @@
 /**
  * PURPOSE: Handles new-quest-from-chat creation by validating input, persisting any pasted images
  * AND any local image path the message text carries ahead of the send under a pre-minted questId,
- * then delegating to orchestrator startChat, and returning questId + chatProcessId. The
+ * then delegating to `StartOrchestrator.startChat`, and returning questId + chatProcessId. The
  * image-persist step must mint its own questId here (rather than reuse the chat/followup routes'
  * pattern of persisting against an already-existing quest) because the first message of a
  * brand-new quest has no questId to persist under until this responder makes one — so the mint
@@ -16,11 +16,11 @@
  * // Returns { status: 200, data: { questId, chatProcessId } } or { status: 400/500, data: { error } }
  */
 
+import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { locationsQuestFolderPathFindBroker } from '@dungeonmaster/shared/brokers';
 import { questIdContract } from '@dungeonmaster/shared/contracts';
 
 import { fsRmAdapter } from '../../../adapters/fs/rm/fs-rm-adapter';
-import { orchestratorStartChatAdapter } from '../../../adapters/orchestrator/start-chat/orchestrator-start-chat-adapter';
 import { pastedImagePersistBroker } from '../../../brokers/pasted-image/persist/pasted-image-persist-broker';
 import { guildIdParamsContract } from '../../../contracts/guild-id-params/guild-id-params-contract';
 import { questNewBodyContract } from '../../../contracts/quest-new-body/quest-new-body-contract';
@@ -97,7 +97,7 @@ export const QuestNewResponder = async ({
           ? message
           : await pastedImagePersistBroker({ guildId, questId, message, images: images ?? [] });
 
-      const { chatProcessId, questId: startedQuestId } = await orchestratorStartChatAdapter({
+      const { chatProcessId, questId: startedQuestId } = await StartOrchestrator.startChat({
         guildId,
         message: rewrittenMessage,
         ...(questType === undefined ? {} : { questType }),

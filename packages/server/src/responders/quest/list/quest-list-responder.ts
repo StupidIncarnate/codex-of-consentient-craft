@@ -1,5 +1,6 @@
 /**
- * PURPOSE: Handles quest list requests by validating query params and delegating to the orchestrator adapter
+ * PURPOSE: Handles quest list requests by validating query params and delegating to
+ * `StartOrchestrator.listQuestsWithSkips`
  *
  * USAGE:
  * const result = await QuestListResponder({ query: { guildId: 'abc-123' } });
@@ -10,7 +11,8 @@
  * quest file disappear from every surface without a word.
  */
 
-import { orchestratorListQuestsWithSkipsAdapter } from '../../../adapters/orchestrator/list-quests-with-skips/orchestrator-list-quests-with-skips-adapter';
+import { StartOrchestrator } from '@dungeonmaster/orchestrator';
+
 import { guildIdQueryContract } from '../../../contracts/guild-id-query/guild-id-query-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
@@ -36,7 +38,7 @@ export const QuestListResponder = async ({
       });
     }
     const { guildId } = parsedQuery.data;
-    const { quests, skipped } = await orchestratorListQuestsWithSkipsAdapter({ guildId });
+    const { quests, skipped } = await StartOrchestrator.listQuestsWithSkips({ guildId });
     return responderResultContract.parse({
       status: httpStatusStatics.success.ok,
       data: { quests, skipped },

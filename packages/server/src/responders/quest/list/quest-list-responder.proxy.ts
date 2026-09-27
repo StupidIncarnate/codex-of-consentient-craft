@@ -1,4 +1,4 @@
-import { orchestratorListQuestsWithSkipsAdapterProxy } from '../../../adapters/orchestrator/list-quests-with-skips/orchestrator-list-quests-with-skips-adapter.proxy';
+import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import type {
   GuildId,
   QuestListItemStub,
@@ -19,11 +19,11 @@ export const QuestListResponderProxy = (): {
   setupListQuestsError: (params: { guildId: GuildId; message: string }) => void;
   callResponder: typeof QuestListResponder;
 } => {
-  const adapterProxy = orchestratorListQuestsWithSkipsAdapterProxy();
+  const orchestrator = StartOrchestratorProxy();
 
   return {
     setupListQuests: ({ guildId, quests }: { guildId: GuildId; quests: QuestListItem[] }): void => {
-      adapterProxy.returns({ guildId, quests, skipped: [] });
+      orchestrator.listQuestsWithSkipsReturns({ guildId, quests, skipped: [] });
     },
     setupListQuestsWithSkips: ({
       guildId,
@@ -34,10 +34,10 @@ export const QuestListResponderProxy = (): {
       quests: QuestListItem[];
       skipped: SkippedQuestFile[];
     }): void => {
-      adapterProxy.returns({ guildId, quests, skipped });
+      orchestrator.listQuestsWithSkipsReturns({ guildId, quests, skipped });
     },
     setupListQuestsError: ({ guildId, message }: { guildId: GuildId; message: string }): void => {
-      adapterProxy.throws({ guildId, error: new Error(message) });
+      orchestrator.listQuestsWithSkipsThrows({ guildId, error: new Error(message) });
     },
     callResponder: QuestListResponder,
   };

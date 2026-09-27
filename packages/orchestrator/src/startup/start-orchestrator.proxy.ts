@@ -187,6 +187,11 @@ export const StartOrchestratorProxy = (): {
     questId?: QuestId;
   }) => void;
   startChatThrows: (params: { guildId: GuildId; error: Error }) => void;
+  // Every call StartOrchestrator.startChat received, first-arg only — mirrors
+  // playDispatchGetCalls. A caller composing this proxy that needs one field off a specific call
+  // (by guildId, the most recent message, a minted questId) filters/reads this array itself rather
+  // than reaching for the jest mock directly.
+  startChatGetCalls: () => readonly unknown[];
   clarifyAnswerReturns: (params: { questId: QuestId; chatProcessId: ProcessId }) => void;
   clarifyAnswerThrows: (params: { questId: QuestId; error: Error }) => void;
   commentBatchReturns: (params: {
@@ -661,6 +666,10 @@ export const StartOrchestratorProxy = (): {
     startChatThrows: ({ guildId, error }: { guildId: GuildId; error: Error }): void => {
       startChatHandle.calledWith([{ guildId }]).rejects(error);
     },
+    // Unaddressed on purpose, mirroring playDispatchGetCalls: a caller needing one field off a
+    // specific call (guildId, the last message, a minted questId) filters/reads this itself.
+    startChatGetCalls: (): readonly unknown[] =>
+      startChatHandle.callsMatching([]).map((call) => call[0]),
     clarifyAnswerReturns: ({
       questId,
       chatProcessId,

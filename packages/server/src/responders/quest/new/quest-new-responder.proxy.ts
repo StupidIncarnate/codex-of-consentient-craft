@@ -1,10 +1,10 @@
 import { rm, writeFile } from 'fs/promises';
-import { StartOrchestrator } from '@dungeonmaster/orchestrator';
+import type { StartOrchestrator } from '@dungeonmaster/orchestrator';
+import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { locationsQuestFolderPathFindBrokerProxy } from '@dungeonmaster/shared/testing';
 
 import { fsRmAdapterProxy } from '../../../adapters/fs/rm/fs-rm-adapter.proxy';
-import { orchestratorStartChatAdapterProxy } from '../../../adapters/orchestrator/start-chat/orchestrator-start-chat-adapter.proxy';
 import { pastedImagePersistBrokerProxy } from '../../../brokers/pasted-image/persist/pasted-image-persist-broker.proxy';
 import { QuestNewResponder } from './quest-new-responder';
 import type {
@@ -17,6 +17,9 @@ import type {
 type ProcessId = ReturnType<typeof ProcessIdStub>;
 type QuestId = ReturnType<typeof QuestIdStub>;
 type GuildId = ReturnType<typeof GuildIdStub>;
+// Derived from the real StartOrchestrator.startChat signature (never hand-typed) so the elements
+// startChatGetCalls() hands back can be read by field without an ad-hoc structural cast.
+type StartChatParams = Parameters<typeof StartOrchestrator.startChat>[0];
 
 export const QuestNewResponderProxy = (): {
   setupQuestNew: (params: {
@@ -47,15 +50,14 @@ export const QuestNewResponderProxy = (): {
   getWrittenPayloadsInOrder: () => unknown[];
   getRemovedFolderCallsInOrder: () => unknown[];
   // The `message` field of the most recent StartOrchestrator.startChat call, read directly off the
-  // jest mock rather than through orchestratorStartChatAdapterProxy's own getLastCalledArgs — lets
-  // a test assert the exact forwarded string with `toBe`.
+  // jest mock — lets a test assert the exact forwarded string with `toBe`.
   getLastStartChatMessage: () => unknown;
   // The `mintedQuestId` field of that same call — proves a path-only create's minted id actually
   // reaches the orchestrator call rather than merely existing locally in the responder.
   getLastStartChatMintedQuestId: () => unknown;
   callResponder: typeof QuestNewResponder;
 } => {
-  const adapterProxy = orchestratorStartChatAdapterProxy();
+  const orchestrator = StartOrchestratorProxy();
   // pastedImagePersistBroker is APPLICATION code — it runs REAL. This proxy only mocks the npm
   // boundary underneath it, composed exactly the way quest-chat-responder.proxy.ts does.
   const persistProxy = pastedImagePersistBrokerProxy();
@@ -89,20 +91,23 @@ export const QuestNewResponderProxy = (): {
       chatProcessId: ProcessId;
       questId?: QuestId;
     }): void => {
-      adapterProxy.returns({
+      orchestrator.startChatReturns({
         guildId,
         chatProcessId,
         ...(questId === undefined ? {} : { questId }),
       });
     },
     setupError: ({ guildId, message }: { guildId: GuildId; message: string }): void => {
-      adapterProxy.throws({ guildId, error: new Error(message) });
+      orchestrator.startChatThrows({ guildId, error: new Error(message) });
     },
     // The raw first-argument object of the most recent startChat call — the only way to prove
     // questType/questId reached the orchestrator, since `returns` addresses on guildId alone and
-    // would match identically if either field were dropped.
-    getLastStartChatArgs: ({ guildId }: { guildId: GuildId }): unknown =>
-      adapterProxy.getLastCalledArgs({ guildId }),
+    // would match identically if either field were dropped. startChatGetCalls() has no address of
+    // its own (mirrors playDispatchGetCalls), so the filter-by-guildId happens here.
+    getLastStartChatArgs: ({ guildId }: { guildId: GuildId }): unknown => {
+      const calls = orchestrator.startChatGetCalls() as StartChatParams[];
+      return calls.filter((call) => call.guildId === guildId).at(-1);
+    },
     setupPastedImageHome: ({ homePath }: { homePath: string }): void => {
       persistProxy.setupHome({ homePath });
     },
@@ -131,20 +136,15 @@ export const QuestNewResponderProxy = (): {
     // the responder computed rather than a value the test hands back to itself.
     getRemovedFolderCallsInOrder: (): unknown[] =>
       rmCallsHandle.callsMatching([]).map((call) => call),
-    // orchestratorStartChatAdapterProxy's own getLastCalledArgs addresses calls by {guildId} — the
-    // SAME jest mock read here directly, with no address, so a test can pull one field off the
-    // single call it made without re-describing guildId.
+    // The SAME startChatGetCalls() read above, here with no address, so a test can pull one field
+    // off the single call it made without re-describing guildId.
     getLastStartChatMessage: (): unknown => {
-      const startChatFn = StartOrchestrator.startChat as jest.MockedFunction<
-        typeof StartOrchestrator.startChat
-      >;
-      return startChatFn.mock.calls.at(-1)?.[0]?.message;
+      const calls = orchestrator.startChatGetCalls() as StartChatParams[];
+      return calls.at(-1)?.message;
     },
     getLastStartChatMintedQuestId: (): unknown => {
-      const startChatFn = StartOrchestrator.startChat as jest.MockedFunction<
-        typeof StartOrchestrator.startChat
-      >;
-      return startChatFn.mock.calls.at(-1)?.[0]?.mintedQuestId;
+      const calls = orchestrator.startChatGetCalls() as StartChatParams[];
+      return calls.at(-1)?.mintedQuestId;
     },
     callResponder: QuestNewResponder,
   };

@@ -1,4 +1,5 @@
-import { orchestratorModifyQuestAdapterProxy } from '../../../adapters/orchestrator/modify-quest/orchestrator-modify-quest-adapter.proxy';
+import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
+import { ModifyQuestResultStub } from '@dungeonmaster/shared/contracts';
 import { QuestModifyResponder } from './quest-modify-responder';
 
 export const QuestModifyResponderProxy = (): {
@@ -6,16 +7,16 @@ export const QuestModifyResponderProxy = (): {
   setupModifyQuestError: (params: { questId: string; message: string }) => void;
   callResponder: typeof QuestModifyResponder;
 } => {
-  const adapterProxy = orchestratorModifyQuestAdapterProxy();
+  const orchestrator = StartOrchestratorProxy();
 
   return {
     setupModifyQuest: ({ questId }: { questId: string }): { expectedData: { success: true } } => {
       const result = { success: true as const };
-      adapterProxy.returns({ questId, result: result as never });
+      orchestrator.modifyQuestReturns({ questId, result: ModifyQuestResultStub(result) });
       return { expectedData: result };
     },
     setupModifyQuestError: ({ questId, message }: { questId: string; message: string }): void => {
-      adapterProxy.throws({ questId, error: new Error(message) });
+      orchestrator.modifyQuestThrows({ questId, error: new Error(message) });
     },
     callResponder: QuestModifyResponder,
   };
