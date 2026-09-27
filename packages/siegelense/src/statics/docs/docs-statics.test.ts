@@ -86,9 +86,9 @@ describe('docsStatics', () => {
   });
 
   describe('walking teaches the whole verb catalog with no wrong count (DEF-29)', () => {
-    it('VALID: {walking, THE VERBS YOU CAN SUBMIT TODAY} => opens naming every verb the step contract accepts, derived rather than hand-typed', () => {
+    it('VALID: {walking, AVAILABLE STEP VERBS} => opens naming every verb the step contract accepts, derived rather than hand-typed', () => {
       const section = docsStatics.scopes.walking.sections.find(
-        (candidate) => candidate.heading === 'THE VERBS YOU CAN SUBMIT TODAY',
+        (candidate) => candidate.heading === 'AVAILABLE STEP VERBS',
       );
 
       expect(section?.lines[0]).toBe(
