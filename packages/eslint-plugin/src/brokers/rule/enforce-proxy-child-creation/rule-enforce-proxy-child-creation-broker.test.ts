@@ -145,6 +145,21 @@ beforeEach(() => {
         });
       }
 
+      // Broker that imports a mixed named import: a real value alongside a per-name
+      // type-only specifier ('{ walkBroker, type WalkMemo }') — the exact G06 regression
+      // case, where WalkMemo must never be treated as a value needing its own proxy.
+      if (filePath.includes('brokers/walk-consumer/walk-consumer-broker.ts')) {
+        return FileContentsStub({
+          value: `
+        import { walkBroker, type WalkMemo } from '../../brokers/walk/walk-broker';
+
+        export const walkConsumerBroker = () => {
+          return walkBroker();
+        };
+      `,
+        });
+      }
+
       // Broker that imports another broker (requireProxy: true) - same folder type
       if (
         filePath.includes(
@@ -588,6 +603,22 @@ ruleTester.run('enforce-proxy-child-creation', ruleEnforceProxyChildCreationBrok
         };
       `,
       filename: '/project/src/brokers/user-with-error/user-broker.proxy.ts',
+    },
+    // ✅ CORRECT - Mixed named import with a per-name type-only specifier: proxy creates
+    // walkBrokerProxy only. WalkMemo is a type, so no WalkMemoProxy is demanded (G06).
+    {
+      code: `
+        import { walkBrokerProxy } from '../../brokers/walk/walk-broker.proxy';
+
+        export const walkConsumerBrokerProxy = () => {
+          const walkProxy = walkBrokerProxy();
+
+          return {
+            setup: () => {}
+          };
+        };
+      `,
+      filename: '/project/src/brokers/walk-consumer/walk-consumer-broker.proxy.ts',
     },
     // ✅ CORRECT - Broker proxy importing other broker proxies (brokers have requireProxy: true)
     {

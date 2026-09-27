@@ -199,6 +199,35 @@ describe('parseImplementationImportsTransformer', () => {
     );
   });
 
+  it('VALID: {content: mixed named import with per-name type prefix} => keeps the value, excludes the type', () => {
+    const content = `
+      import { walkBroker, type WalkMemo } from '../../brokers/walk/walk-broker';
+    `;
+
+    const result = parseImplementationImportsTransformer({ content });
+
+    expect(result.size).toBe(1);
+    expect(result.get(IdentifierStub({ value: 'walkBroker' }))).toStrictEqual(
+      ModulePathStub({ value: '../../brokers/walk/walk-broker' }),
+    );
+    expect(result.get(IdentifierStub({ value: 'WalkMemo' }))).toBe(undefined);
+  });
+
+  it('EDGE: {content: whole-statement type import from a proxy-requiring path} => excludes every name in it', () => {
+    const content = `
+      import type { WalkMemo } from '../../brokers/walk/walk-broker';
+      import { httpAdapter } from '../../adapters/http/http-adapter';
+    `;
+
+    const result = parseImplementationImportsTransformer({ content });
+
+    expect(result.size).toBe(1);
+    expect(result.get(IdentifierStub({ value: 'httpAdapter' }))).toStrictEqual(
+      ModulePathStub({ value: '../../adapters/http/http-adapter' }),
+    );
+    expect(result.get(IdentifierStub({ value: 'WalkMemo' }))).toBe(undefined);
+  });
+
   it('EMPTY: {content: only npm imports} => returns empty map', () => {
     const content = `
       import axios from 'axios';

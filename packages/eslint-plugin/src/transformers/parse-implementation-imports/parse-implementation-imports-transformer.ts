@@ -9,6 +9,8 @@
  * // Returns: Map { 'userBroker' => '../user/user-broker' }
  * // Note: Excludes contracts, statics, and other non-proxy imports
  * // Also handles scoped package imports with folder type subpaths (e.g., '@scope/pkg/brokers')
+ * // Excludes type-only names too: a whole `import type { X }` statement, and a per-name
+ * // `type` prefix inside an otherwise-value import ('{ walkBroker, type WalkMemo }')
  */
 import type { Identifier, ModulePath } from '@dungeonmaster/shared/contracts';
 import { identifierContract, modulePathContract } from '@dungeonmaster/shared/contracts';
@@ -37,15 +39,27 @@ export const parseImplementationImportsTransformer = ({
   contentWithoutComments = contentWithoutComments.replace(/\/\/.*$/gmu, '');
 
   // Simple regex to match import statements
-  // Matches: import { name } from 'path' or import name from 'path'
-  const importRegex = /import\s+(?:type\s+)?(?:\{([^}]+)\}|(\w+))\s+from\s+['"]([^'"]+)['"]/gu;
+  // Matches: import { name } from 'path' or import name from 'path'. The first capture
+  // group is the whole-declaration `type` keyword ('import type { X }'). This parses raw
+  // file content by regex, not an ESTree, so there is no per-specifier ImportSpecifier
+  // node to read an `importKind` off — the `type ` prefix text is the only signal, both
+  // here (whole statement) and per-name below (mixed statement).
+  const importRegex = /import\s+(type\s+)?(?:\{([^}]+)\}|(\w+))\s+from\s+['"]([^'"]+)['"]/gu;
 
   // Get folder types that require proxies
   const folderTypes = Object.keys(folderConfigStatics);
 
   let match = importRegex.exec(contentWithoutComments);
   while (match !== null) {
-    const [, namedImports, defaultImport, importPath] = match;
+    const [, importTypeKeyword, namedImports, defaultImport, importPath] = match;
+
+    // A whole `import type { ... } from '...'` statement introduces no runtime bindings —
+    // every name it lists is a type — so it is skipped before any path-based branching
+    // below (gateway, scoped-package, relative) ever inspects the names inside it.
+    if (importTypeKeyword !== undefined) {
+      match = importRegex.exec(contentWithoutComments);
+      continue;
+    }
 
     // Handle gateway package imports at ANY depth (e.g. '@scope/node/fs/promises',
     // '@scope/npm/zod', '@scope/npm/@playwright/test', or the '#gateway/...' import-alias form
@@ -72,7 +86,14 @@ export const parseImplementationImportsTransformer = ({
         const names = namedImports
           .split(',')
           .map((n) => {
-            const [trimmed] = n.trim().split(/\s+as\s+/u);
+            const specifier = n.trim();
+            // A per-name `type` prefix inside an otherwise-value import marks only THIS
+            // specifier type-only ('{ walkBroker, type WalkMemo }'), checked before the
+            // alias split since an alias never changes whether the source name is a type.
+            if (/^type\s+/u.test(specifier)) {
+              return undefined;
+            }
+            const [trimmed] = specifier.split(/\s+as\s+/u);
             return trimmed;
           })
           .filter((n): n is Exclude<typeof n, undefined> => Boolean(n));
@@ -97,7 +118,14 @@ export const parseImplementationImportsTransformer = ({
           const names = namedImports
             .split(',')
             .map((n) => {
-              const [trimmed] = n.trim().split(/\s+as\s+/u);
+              const specifier = n.trim();
+              // A per-name `type` prefix inside an otherwise-value import marks only THIS
+              // specifier type-only ('{ walkBroker, type WalkMemo }'), checked before the
+              // alias split since an alias never changes whether the source name is a type.
+              if (/^type\s+/u.test(specifier)) {
+                return undefined;
+              }
+              const [trimmed] = specifier.split(/\s+as\s+/u);
               return trimmed;
             })
             .filter((n): n is Exclude<typeof n, undefined> => Boolean(n));
@@ -175,7 +203,15 @@ export const parseImplementationImportsTransformer = ({
             const names = namedImports
               .split(',')
               .map((n) => {
-                const [trimmed] = n.trim().split(/\s+as\s+/u);
+                const specifier = n.trim();
+                // A per-name `type` prefix inside an otherwise-value import marks only
+                // THIS specifier type-only ('{ walkBroker, type WalkMemo }'), checked
+                // before the alias split since an alias never changes whether the source
+                // name is a type.
+                if (/^type\s+/u.test(specifier)) {
+                  return undefined;
+                }
+                const [trimmed] = specifier.split(/\s+as\s+/u);
                 return trimmed;
               })
               .filter((n): n is Exclude<typeof n, undefined> => Boolean(n));
