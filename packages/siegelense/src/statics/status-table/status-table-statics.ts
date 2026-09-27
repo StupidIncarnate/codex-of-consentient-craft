@@ -11,9 +11,14 @@
  * per instance, since a single record's fields don't share one column's width the way a fleet's
  * same-typed rows do.
  *
+ * The `MEMORY` header (fleet) and `MEMORY` field (single-instance) name the same reading a `RSS`
+ * label used to — the last measured memory of the instance's processes, or a killed instance's
+ * footprint when it ended — under a plain word an agent or a person skimming does not need to know
+ * "RSS" to read.
+ *
  * USAGE:
  * statusTableStatics.table.headers;
- * // Returns ['ID', 'STATE', 'SPEC', 'BRANCH', 'UPTIME', 'LAST BEAT', 'RUNS', 'RSS', 'ORPHANS']
+ * // Returns ['ID', 'STATE', 'SPEC', 'BRANCH', 'UPTIME', 'LAST BEAT', 'RUNS', 'MEMORY', 'ORPHANS']
  *
  * statusTableStatics.table.cellPadding;
  * // Returns 2
@@ -35,7 +40,7 @@ export const statusTableStatics = {
       'UPTIME',
       'LAST BEAT',
       'RUNS',
-      'RSS',
+      'MEMORY',
       'ORPHANS',
     ] as const,
     cellPadding: 2,

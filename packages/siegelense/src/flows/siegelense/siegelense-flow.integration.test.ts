@@ -639,7 +639,7 @@ describe('SiegelenseFlow', () => {
 
         expect(lines.slice(2, 6)).toStrictEqual([
           '┌───────────────┬────────┬─────────────────────┬────────┬────────┬───────────┬──────┬────────┬─────────┐',
-          '│ ID            │ STATE  │ SPEC                │ BRANCH │ UPTIME │ LAST BEAT │ RUNS │ RSS    │ ORPHANS │',
+          '│ ID            │ STATE  │ SPEC                │ BRANCH │ UPTIME │ LAST BEAT │ RUNS │ MEMORY │ ORPHANS │',
           '├───────────────┼────────┼─────────────────────┼────────┼────────┼───────────┼──────┼────────┼─────────┤',
           `│ ${tree.killedInstanceId()} │ killed │ dungeonmaster-stack │ -      │ -      │ -         │ 2    │ 1840MB │ 0       │`,
         ]);
@@ -650,9 +650,9 @@ describe('SiegelenseFlow', () => {
   // The read path above proves resultsReadBroker/statusReadBroker/compareReadBroker are correct
   // by calling them directly. This block drives the SAME evidence tree through
   // SiegelenseFlow({ args }) instead, for the one case no layer-flow test independently re-proves:
-  // status's table render against a LIVE row with a real RSS value, which widens the RSS column
-  // past what any `siegelense-status-layer-flow.integration.test.ts` fixture (every row `killed`,
-  // RSS always `-`) can produce.
+  // status's table render against a LIVE row with a real MEMORY value, which widens the MEMORY
+  // column past what any `siegelense-status-layer-flow.integration.test.ts` fixture (every row
+  // `killed`, MEMORY always `-`) can produce.
   //
   // `start`, `run` and `kill` get NO integration test here. They need a live driver and this
   // suite deliberately has none — no port pair, no spawned process. Their coverage is
@@ -681,7 +681,7 @@ describe('SiegelenseFlow', () => {
 
       expect(lines.slice(2, 6)).toStrictEqual([
         '┌───────────────┬────────┬─────────────────────┬────────┬────────┬───────────┬──────┬────────┬─────────┐',
-        '│ ID            │ STATE  │ SPEC                │ BRANCH │ UPTIME │ LAST BEAT │ RUNS │ RSS    │ ORPHANS │',
+        '│ ID            │ STATE  │ SPEC                │ BRANCH │ UPTIME │ LAST BEAT │ RUNS │ MEMORY │ ORPHANS │',
         '├───────────────┼────────┼─────────────────────┼────────┼────────┼───────────┼──────┼────────┼─────────┤',
         `│ ${argvTree.killedInstanceId()} │ killed │ dungeonmaster-stack │ -      │ -      │ -         │ 2    │ 1840MB │ 0       │`,
       ]);

@@ -1,8 +1,10 @@
 /**
  * PURPOSE: Renders a `StatusAnswer` into the text a person reads at a terminal — the fleet form
  * (monitored vocabulary, machine reading, one line per instance) whenever no single instance
- * carries evidence, and the full single-instance form (last beat, last step, RSS, orphans, evidence
- * paths, likelyCause) when the one instance present does. Evidence is non-null only for a NAMED
+ * carries evidence, and the full single-instance form (last beat, last step, MEMORY, orphans,
+ * evidence paths, likelyCause) when the one instance present does. MEMORY is the last measured
+ * memory of the instance's processes — for a killed instance, its footprint when it ended — labelled
+ * plainly rather than as "RSS". Evidence is non-null only for a NAMED
  * query — `statusReadBroker`'s own no-browsing rule leaves it `null` on every fleet row — so that
  * field is what tells the two forms apart without a separate flag. Zero instances is AMBIGUOUS on
  * its own — `statusReadBroker` answers `instances: []` both for a genuinely empty fleet and for a
@@ -106,7 +108,7 @@ export const statusAnswerRenderTransformer = ({
       ['UPTIME', onlyInstance.uptime ?? '-'],
       ['LAST BEAT', onlyInstance.lastBeat ?? '-'],
       ['RUNS', String(onlyInstance.runs)],
-      ['RSS', rssText],
+      ['MEMORY', rssText],
       ['LAST STEP', lastStepText],
       ['ORPHANS', orphansText],
       ['EVIDENCE DIR', evidence.dir.path],

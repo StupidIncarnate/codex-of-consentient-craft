@@ -124,7 +124,7 @@ describe('statusAnswerRenderTransformer', () => {
         'MONITORED: rss per process group, free memory, free disk, load average, kernel OOM events\n' +
           'MACHINE: free 980MB/16000MB mem, free disk -MB, 8 cores, load 7.9/6.2/4.1, OOM kills - (last -)\n' +
           '┌───────────┬───────┬─────────────────────┬────────┬────────┬───────────┬──────┬────────┬─────────┐\n' +
-          '│ ID        │ STATE │ SPEC                │ BRANCH │ UPTIME │ LAST BEAT │ RUNS │ RSS    │ ORPHANS │\n' +
+          '│ ID        │ STATE │ SPEC                │ BRANCH │ UPTIME │ LAST BEAT │ RUNS │ MEMORY │ ORPHANS │\n' +
           '├───────────┼───────┼─────────────────────┼────────┼────────┼───────────┼──────┼────────┼─────────┤\n' +
           '│ inst_7f3a │ alive │ dungeonmaster-stack │ -      │ 14m    │ 2s ago    │ 3    │ 1840MB │ 0       │\n' +
           '└───────────┴───────┴─────────────────────┴────────┴────────┴───────────┴──────┴────────┴─────────┘\n',
@@ -182,7 +182,7 @@ describe('statusAnswerRenderTransformer', () => {
         'MONITORED: rss per process group, free memory, free disk, load average, kernel OOM events\n' +
           'MACHINE: free 980MB/16000MB mem, free disk 2100MB, 8 cores, load 7.9/6.2/4.1, OOM kills 2 (last 20:11:04)\n' +
           '┌───────────┬───────┬─────────────────────┬────────┬────────┬───────────┬──────┬────────┬─────────┐\n' +
-          '│ ID        │ STATE │ SPEC                │ BRANCH │ UPTIME │ LAST BEAT │ RUNS │ RSS    │ ORPHANS │\n' +
+          '│ ID        │ STATE │ SPEC                │ BRANCH │ UPTIME │ LAST BEAT │ RUNS │ MEMORY │ ORPHANS │\n' +
           '├───────────┼───────┼─────────────────────┼────────┼────────┼───────────┼──────┼────────┼─────────┤\n' +
           '│ inst_7f3a │ alive │ dungeonmaster-stack │ -      │ 14m    │ 2s ago    │ 3    │ 1840MB │ 0       │\n' +
           '│ inst_9b2c │ dead  │ dungeonmaster-api   │ -      │ -      │ 9h ago    │ 5    │ 1200MB │ 1       │\n' +
@@ -236,7 +236,7 @@ describe('statusAnswerRenderTransformer', () => {
           '│ UPTIME       │ -                                                                                       │\n' +
           '│ LAST BEAT    │ 9h ago                                                                                  │\n' +
           '│ RUNS         │ 3                                                                                       │\n' +
-          '│ RSS          │ at last beat 1840MB                                                                     │\n' +
+          '│ MEMORY       │ at last beat 1840MB                                                                     │\n' +
           '│ LAST STEP    │ run_2 step 7 click                                                                      │\n' +
           '│ ORPHANS      │ pgid 33812 (alive), pgid 33840 (dead)                                                   │\n' +
           '│ EVIDENCE DIR │ /repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_9b2c             │\n' +
@@ -290,7 +290,7 @@ describe('statusAnswerRenderTransformer', () => {
           '│ UPTIME       │ 14m                                                                         │\n' +
           '│ LAST BEAT    │ 2s ago                                                                      │\n' +
           '│ RUNS         │ 0                                                                           │\n' +
-          '│ RSS          │ 512MB                                                                       │\n' +
+          '│ MEMORY       │ 512MB                                                                       │\n' +
           '│ LAST STEP    │ -                                                                           │\n' +
           '│ ORPHANS      │ none                                                                        │\n' +
           '│ EVIDENCE DIR │ /repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a │\n' +

@@ -75,19 +75,19 @@ const EMPTY_BRANCH_STATUS_JSON = `${JSON.stringify(
 // BRANCH values are the same length across every fixture row, and every other column's widest cell
 // is its own header. The trailing '' matches the split artifact of the render's own trailing '\n'.
 const TABLE_TOP =
-  '┌───────────────┬────────┬─────────────────────┬────────┬────────┬───────────┬──────┬─────┬─────────┐';
+  '┌───────────────┬────────┬─────────────────────┬────────┬────────┬───────────┬──────┬────────┬─────────┐';
 const TABLE_HEADER =
-  '│ ID            │ STATE  │ SPEC                │ BRANCH │ UPTIME │ LAST BEAT │ RUNS │ RSS │ ORPHANS │';
+  '│ ID            │ STATE  │ SPEC                │ BRANCH │ UPTIME │ LAST BEAT │ RUNS │ MEMORY │ ORPHANS │';
 const TABLE_SEPARATOR =
-  '├───────────────┼────────┼─────────────────────┼────────┼────────┼───────────┼──────┼─────┼─────────┤';
+  '├───────────────┼────────┼─────────────────────┼────────┼────────┼───────────┼──────┼────────┼─────────┤';
 const TABLE_BOTTOM =
-  '└───────────────┴────────┴─────────────────────┴────────┴────────┴───────────┴──────┴─────┴─────────┘';
+  '└───────────────┴────────┴─────────────────────┴────────┴────────┴───────────┴──────┴────────┴─────────┘';
 const MAIN_RECENT_ROW =
-  '│ inst_00001aaa │ killed │ dungeonmaster-stack │ main   │ -      │ 20m       │ 0    │ -   │ 0       │';
+  '│ inst_00001aaa │ killed │ dungeonmaster-stack │ main   │ -      │ 20m       │ 0    │ -      │ 0       │';
 const FEATURE_MID_ROW =
-  '│ inst_00002bbb │ killed │ dungeonmaster-stack │ beta   │ -      │ 1h        │ 0    │ -   │ 0       │';
+  '│ inst_00002bbb │ killed │ dungeonmaster-stack │ beta   │ -      │ 1h        │ 0    │ -      │ 0       │';
 const MAIN_OLD_ROW =
-  '│ inst_00003ccc │ killed │ dungeonmaster-stack │ main   │ -      │ 7h        │ 0    │ -   │ 0       │';
+  '│ inst_00003ccc │ killed │ dungeonmaster-stack │ main   │ -      │ 7h        │ 0    │ -      │ 0       │';
 
 const SINCE_1H_TABLE_LINES = [
   TABLE_TOP,
@@ -364,7 +364,7 @@ describe('SiegelenseStatusLayerFlow', () => {
         UPTIME: '-',
         'LAST BEAT': '20m',
         RUNS: '0',
-        RSS: '-',
+        MEMORY: '-',
         'LAST STEP': '-',
         ORPHANS: 'none',
         'EVIDENCE DIR': `${testbed.guildPath}/siegelense/unowned/instances/${MAIN_RECENT_ID}`,
