@@ -1,61 +1,16 @@
-import { spawn, type ChildProcess } from 'child_process';
-import { EventEmitter, Readable } from 'stream';
-import { childProcessSpawnCaptureAdapterProxy } from '@dungeonmaster/shared/testing';
-import {
-  ErrorMessageStub,
-  ExitCodeStub,
-  type ErrorMessage,
-  type ExitCode,
-} from '@dungeonmaster/shared/contracts';
+import { run } from '#gateway/node/child_process';
+import { runProxy } from '#gateway/node/child_process/run/run.proxy';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { gitDetectDefaultBranchBrokerProxy } from '../detect-default-branch/git-detect-default-branch-broker.proxy';
 import { gitDetectOriginDefaultBranchBrokerProxy } from '../detect-origin-default-branch/git-detect-origin-default-branch-broker.proxy';
 
+type RunParams = Parameters<typeof run>[0];
+
 // merge-base and diff are both spawned as bare `git`, exactly like the sequential rev-parse checks
-// the two detection brokers issue — `command` alone cannot tell them apart. This proxy mocks `spawn`
-// directly with onceFor (instead of composing the shared childProcessSpawnCaptureAdapterProxy, which
-// only exposes sticky calledWith staging), staging each call in the same order the broker issues
-// them.
-const createGitChild = ({
-  exitCode,
-  stdout,
-  stderr,
-}: {
-  exitCode: ExitCode;
-  stdout: ErrorMessage;
-  stderr: ErrorMessage;
-}): ChildProcess => {
-  const child = new EventEmitter() as ChildProcess;
-  child.stdout = new Readable({
-    read(): void {
-      /* noop */
-    },
-  });
-  child.stderr = new Readable({
-    read(): void {
-      /* noop */
-    },
-  });
-
-  const mockStdout = child.stdout;
-  const mockStderr = child.stderr;
-
-  setImmediate(() => {
-    if (String(stdout).length > 0) {
-      mockStdout.push(Buffer.from(String(stdout)));
-    }
-    mockStdout.push(null);
-    if (String(stderr).length > 0) {
-      mockStderr.push(Buffer.from(String(stderr)));
-    }
-    mockStderr.push(null);
-    child.emit('exit', Number(exitCode), null);
-  });
-
-  return child;
-};
-
+// the two detection brokers issue — `run`'s own proxy (runProxy), which addresses only by
+// `command`, cannot tell them apart. `run` takes ONE argument object, so mocking `run` directly and
+// addressing by `{command, args}` tells every call apart by its own args, with no ordering games.
 export const gitDiffCommittedBrokerProxy = (): {
   setupWithOriginMain: (params: { diffOutput: string }) => void;
   setupWithLocalFallback: (params: { diffOutput: string }) => void;
@@ -66,36 +21,33 @@ export const gitDiffCommittedBrokerProxy = (): {
 } => {
   const originProxy = gitDetectOriginDefaultBranchBrokerProxy();
   const localProxy = gitDetectDefaultBranchBrokerProxy();
-  const handle = registerMock({ fn: spawn });
-  // Created but unstaged: the real implementation composes childProcessSpawnCaptureAdapter, but this
-  // proxy answers `spawn` directly (see the module comment above) so the shared proxy's own
-  // constructor-level default never fires.
-  childProcessSpawnCaptureAdapterProxy();
-  const successCode = ExitCodeStub({ value: 0 });
-  const failCode = ExitCodeStub({ value: 1 });
-  const emptyMessage = ErrorMessageStub({ value: '' });
+  // Created but unstaged: see the module comment above — `run` is mocked directly below rather
+  // than through runProxy, which addresses only by `command`. Composing it here satisfies
+  // enforce-proxy-child-creation.
+  runProxy();
+  const handle = registerMock({ fn: run });
 
-  const stageMergeBaseThenDiff = ({ diffOutput }: { diffOutput: string }): void => {
-    handle.onceFor(['git']).implement(() =>
-      createGitChild({
-        exitCode: successCode,
-        stdout: ErrorMessageStub({ value: 'abc123\n' }),
-        stderr: emptyMessage,
-      }),
-    );
-    handle.onceFor(['git']).implement(() =>
-      createGitChild({
-        exitCode: successCode,
-        stdout: ErrorMessageStub({ value: diffOutput }),
-        stderr: emptyMessage,
-      }),
-    );
+  const stageMergeBaseThenDiff = ({
+    diffOutput,
+    baseBranch,
+  }: {
+    diffOutput: string;
+    baseBranch: string;
+  }): void => {
+    handle
+      .calledWith([{ command: 'git', args: ['merge-base', 'HEAD', baseBranch] }])
+      .resolves({ exitCode: 0, output: 'abc123\n', signal: null, timedOut: false });
+    handle
+      .calledWith([
+        { command: 'git', args: ['diff', '--name-only', '--diff-filter=d', 'abc123', 'HEAD'] },
+      ])
+      .resolves({ exitCode: 0, output: diffOutput, signal: null, timedOut: false });
   };
 
   return {
     setupWithOriginMain: ({ diffOutput }: { diffOutput: string }): void => {
       originProxy.setupOriginMainExists();
-      stageMergeBaseThenDiff({ diffOutput });
+      stageMergeBaseThenDiff({ diffOutput, baseBranch: 'origin/main' });
     },
 
     // No origin refs at all (a fresh `git init`, an offline clone that has never fetched), so the
@@ -103,20 +55,16 @@ export const gitDiffCommittedBrokerProxy = (): {
     setupWithLocalFallback: ({ diffOutput }: { diffOutput: string }): void => {
       originProxy.setupNoOriginRefs();
       localProxy.setupMainExists();
-      stageMergeBaseThenDiff({ diffOutput });
+      stageMergeBaseThenDiff({ diffOutput, baseBranch: 'main' });
     },
 
     // The base ref resolves but shares no history with HEAD (an orphan or force-recreated branch),
     // so there is no range to diff and the broker reports nothing rather than guessing one.
     setupMergeBaseFails: (): void => {
       originProxy.setupOriginMainExists();
-      handle.onceFor(['git']).implement(() =>
-        createGitChild({
-          exitCode: failCode,
-          stdout: emptyMessage,
-          stderr: ErrorMessageStub({ value: 'fatal: no merge base' }),
-        }),
-      );
+      handle
+        .calledWith([{ command: 'git', args: ['merge-base', 'HEAD', 'origin/main'] }])
+        .resolves({ exitCode: 1, output: 'fatal: no merge base', signal: null, timedOut: false });
     },
 
     setupNoBranchAnywhere: (): void => {
@@ -125,13 +73,16 @@ export const gitDiffCommittedBrokerProxy = (): {
     },
 
     getSpawnedArgs: (): unknown[] =>
-      handle.callsMatching(['git']).map((call) => (Array.isArray(call) ? call[1] : undefined)),
+      handle.callsMatching([{ command: 'git' }]).map((call) => {
+        const [params] = call;
+        return (params as RunParams).args;
+      }),
 
     getDiffArgs: (): unknown => {
-      const calls = handle.callsMatching(['git']);
-      const lastCall: unknown = calls[calls.length - 1];
-      if (!Array.isArray(lastCall)) return undefined;
-      return lastCall[1];
+      const calls = handle.callsMatching([{ command: 'git' }]);
+      const lastCall = calls.at(-1);
+      const [params] = lastCall ?? [];
+      return params === undefined ? undefined : (params as RunParams).args;
     },
   };
 };

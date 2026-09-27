@@ -17,8 +17,8 @@
  * // Returns GitRelativePath[] covering every commit this branch added on top of origin/main
  */
 
-import { childProcessSpawnCaptureAdapter } from '@dungeonmaster/shared/adapters';
-import { exitCodeContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+import { run } from '#gateway/node/child_process';
+import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import type { GitRelativePath } from '../../../contracts/git-relative-path/git-relative-path-contract';
 import { parseDiffOutputTransformer } from '../../../transformers/parse-diff-output/parse-diff-output-transformer';
@@ -41,18 +41,18 @@ export const gitDiffCommittedBroker = async ({
     return [];
   }
 
-  const mergeBaseResult = await childProcessSpawnCaptureAdapter({
+  const mergeBaseResult = await run({
     command: 'git',
     args: ['merge-base', 'HEAD', String(baseBranch)],
     cwd,
   });
 
-  if (mergeBaseResult.exitCode !== exitCodeContract.parse(0)) {
+  if (mergeBaseResult.exitCode !== 0) {
     return [];
   }
 
   const mergeBase = mergeBaseResult.output.trim();
-  const diffResult = await childProcessSpawnCaptureAdapter({
+  const diffResult = await run({
     command: 'git',
     args: ['diff', '--name-only', '--diff-filter=d', mergeBase, 'HEAD'],
     cwd,

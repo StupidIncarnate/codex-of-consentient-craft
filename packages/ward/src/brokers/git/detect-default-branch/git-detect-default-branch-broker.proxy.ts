@@ -1,91 +1,47 @@
-import { spawn, type ChildProcess } from 'child_process';
-import { EventEmitter, Readable } from 'stream';
-import { childProcessSpawnCaptureAdapterProxy } from '@dungeonmaster/shared/testing';
-import {
-  ErrorMessageStub,
-  ExitCodeStub,
-  type ErrorMessage,
-  type ExitCode,
-} from '@dungeonmaster/shared/contracts';
+import { run } from '#gateway/node/child_process';
+import { runProxy } from '#gateway/node/child_process/run/run.proxy';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
-// git-detect-default-branch spawns bare `git` for every rev-parse check, so `command` alone cannot
-// tell the (up to two) sequential calls apart — every call shares the identical address, and the
-// shared childProcessSpawnCaptureAdapterProxy only exposes sticky calledWith staging (the LAST
-// staging wins for every matching call, not the call that happens first in real time). onceFor's
-// FIFO consumption is what "identical calls must get different results" needs, so this proxy mocks
-// `spawn` directly instead of composing the shared proxy.
-const createGitChild = ({
-  exitCode,
-  stderr,
-}: {
-  exitCode: ExitCode;
-  stderr: ErrorMessage;
-}): ChildProcess => {
-  const child = new EventEmitter() as ChildProcess;
-  child.stdout = new Readable({
-    read(): void {
-      /* noop */
-    },
-  });
-  child.stderr = new Readable({
-    read(): void {
-      /* noop */
-    },
-  });
-
-  const mockStderr = child.stderr;
-
-  setImmediate(() => {
-    if (String(stderr).length > 0) {
-      mockStderr.push(Buffer.from(String(stderr)));
-    }
-    mockStderr.push(null);
-    child.stdout?.push(null);
-    child.emit('exit', Number(exitCode), null);
-  });
-
-  return child;
-};
-
+// git-detect-default-branch spawns bare `git` for every rev-parse check, and `run`'s own proxy
+// (runProxy) addresses only by `command` — its `setupSuccess`/`setupError` cannot tell the two
+// sequential `git` calls this broker issues apart, let alone give them different results. `run`
+// itself takes ONE argument object, so mocking `run` directly and addressing by `{command, args}`
+// (object staging matches on the keys given, per @dungeonmaster/testing's own mechanics) tells
+// every call this broker makes apart by its own args, with no FIFO ordering needed at all.
 export const gitDetectDefaultBranchBrokerProxy = (): {
   setupMainExists: () => void;
   setupMasterExists: () => void;
   setupNeitherExists: () => void;
 } => {
-  const handle = registerMock({ fn: spawn });
-  // Created but unstaged: the real implementation composes childProcessSpawnCaptureAdapter, but
-  // this proxy answers `spawn` directly (see the module comment above) so the shared proxy's own
-  // constructor-level default never fires.
-  childProcessSpawnCaptureAdapterProxy();
-  const successCode = ExitCodeStub({ value: 0 });
-  const failCode = ExitCodeStub({ value: 1 });
-  const emptyMessage = ErrorMessageStub({ value: '' });
-  const fatalMessage = ErrorMessageStub({ value: 'fatal: not a valid ref' });
+  // Created but unstaged: runProxy mocks the raw `spawn` one layer below `run`, but this proxy
+  // answers `run` itself directly (see the module comment above), so runProxy's own mock of
+  // `spawn` is never exercised. Composing it here satisfies enforce-proxy-child-creation.
+  runProxy();
+  const handle = registerMock({ fn: run });
 
   return {
     setupMainExists: (): void => {
       handle
-        .onceFor(['git'])
-        .implement(() => createGitChild({ exitCode: successCode, stderr: emptyMessage }));
+        .calledWith([{ command: 'git', args: ['rev-parse', '--verify', 'main'] }])
+        .resolves({ exitCode: 0, output: '', signal: null, timedOut: false });
     },
 
     setupMasterExists: (): void => {
       handle
-        .onceFor(['git'])
-        .implement(() => createGitChild({ exitCode: failCode, stderr: fatalMessage }));
+        .calledWith([{ command: 'git', args: ['rev-parse', '--verify', 'main'] }])
+        .resolves({ exitCode: 1, output: 'fatal: not a valid ref', signal: null, timedOut: false });
       handle
-        .onceFor(['git'])
-        .implement(() => createGitChild({ exitCode: successCode, stderr: emptyMessage }));
+        .calledWith([{ command: 'git', args: ['rev-parse', '--verify', 'master'] }])
+        .resolves({ exitCode: 0, output: '', signal: null, timedOut: false });
     },
 
     setupNeitherExists: (): void => {
       handle
-        .onceFor(['git'])
-        .implement(() => createGitChild({ exitCode: failCode, stderr: fatalMessage }));
+        .calledWith([{ command: 'git', args: ['rev-parse', '--verify', 'main'] }])
+        .resolves({ exitCode: 1, output: 'fatal: not a valid ref', signal: null, timedOut: false });
       handle
-        .onceFor(['git'])
-        .implement(() => createGitChild({ exitCode: failCode, stderr: fatalMessage }));
+        .calledWith([{ command: 'git', args: ['rev-parse', '--verify', 'master'] }])
+        .resolves({ exitCode: 1, output: 'fatal: not a valid ref', signal: null, timedOut: false });
     },
   };
 };

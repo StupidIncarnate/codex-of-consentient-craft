@@ -1,69 +1,22 @@
-import { spawn, type ChildProcess } from 'child_process';
-import { EventEmitter, Readable } from 'stream';
-import { childProcessSpawnCaptureAdapterProxy } from '@dungeonmaster/shared/testing';
-import {
-  ErrorMessageStub,
-  ExitCodeStub,
-  type ErrorMessage,
-  type ExitCode,
-} from '@dungeonmaster/shared/contracts';
+import { run } from '#gateway/node/child_process';
+import { runProxy } from '#gateway/node/child_process/run/run.proxy';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
-// The `git diff` and the `git ls-files` are both spawned as bare `git`, so `command` alone cannot
-// tell them apart. This proxy mocks `spawn` directly with onceFor (instead of composing the shared
-// childProcessSpawnCaptureAdapterProxy, which only exposes sticky calledWith staging), staging each
-// call in the same order the broker issues them. The broker awaits them through Promise.all, but
-// the array literal evaluates left to right, so the diff is still spawned before the ls-files.
-const createGitChild = ({
-  exitCode,
-  stdout,
-  stderr,
-}: {
-  exitCode: ExitCode;
-  stdout: ErrorMessage;
-  stderr: ErrorMessage;
-}): ChildProcess => {
-  const child = new EventEmitter() as ChildProcess;
-  child.stdout = new Readable({
-    read(): void {
-      /* noop */
-    },
-  });
-  child.stderr = new Readable({
-    read(): void {
-      /* noop */
-    },
-  });
+type RunParams = Parameters<typeof run>[0];
 
-  const mockStdout = child.stdout;
-  const mockStderr = child.stderr;
-
-  setImmediate(() => {
-    if (String(stdout).length > 0) {
-      mockStdout.push(Buffer.from(String(stdout)));
-    }
-    mockStdout.push(null);
-    if (String(stderr).length > 0) {
-      mockStderr.push(Buffer.from(String(stderr)));
-    }
-    mockStderr.push(null);
-    child.emit('exit', Number(exitCode), null);
-  });
-
-  return child;
-};
-
+// The `git diff` and the `git ls-files` are both spawned as bare `git`, so `run`'s own proxy
+// (runProxy), which addresses only by `command`, cannot tell them apart. `run` takes ONE argument
+// object, so mocking `run` directly and addressing by `{command, args}` tells the two calls apart
+// by their own args — the broker awaits them through Promise.all, so no ordering matters anyway.
 export const gitDiffUncommittedBrokerProxy = (): {
   setupWorkingTree: (params: { trackedOutput: string; untrackedOutput: string }) => void;
   getSpawnedArgs: () => unknown[];
 } => {
-  const handle = registerMock({ fn: spawn });
-  // Created but unstaged: the real implementation composes childProcessSpawnCaptureAdapter, but this
-  // proxy answers `spawn` directly (see the module comment above) so the shared proxy's own
-  // constructor-level default never fires.
-  childProcessSpawnCaptureAdapterProxy();
-  const successCode = ExitCodeStub({ value: 0 });
-  const emptyMessage = ErrorMessageStub({ value: '' });
+  // Created but unstaged: see the module comment above — `run` is mocked directly below rather
+  // than through runProxy, which addresses only by `command`. Composing it here satisfies
+  // enforce-proxy-child-creation.
+  runProxy();
+  const handle = registerMock({ fn: run });
 
   return {
     setupWorkingTree: ({
@@ -73,23 +26,18 @@ export const gitDiffUncommittedBrokerProxy = (): {
       trackedOutput: string;
       untrackedOutput: string;
     }): void => {
-      handle.onceFor(['git']).implement(() =>
-        createGitChild({
-          exitCode: successCode,
-          stdout: ErrorMessageStub({ value: trackedOutput }),
-          stderr: emptyMessage,
-        }),
-      );
-      handle.onceFor(['git']).implement(() =>
-        createGitChild({
-          exitCode: successCode,
-          stdout: ErrorMessageStub({ value: untrackedOutput }),
-          stderr: emptyMessage,
-        }),
-      );
+      handle
+        .calledWith([{ command: 'git', args: ['diff', '--name-only', '--diff-filter=d', 'HEAD'] }])
+        .resolves({ exitCode: 0, output: trackedOutput, signal: null, timedOut: false });
+      handle
+        .calledWith([{ command: 'git', args: ['ls-files', '--others', '--exclude-standard'] }])
+        .resolves({ exitCode: 0, output: untrackedOutput, signal: null, timedOut: false });
     },
 
     getSpawnedArgs: (): unknown[] =>
-      handle.callsMatching(['git']).map((call) => (Array.isArray(call) ? call[1] : undefined)),
+      handle.callsMatching([{ command: 'git' }]).map((call) => {
+        const [params] = call;
+        return (params as RunParams).args;
+      }),
   };
 };
