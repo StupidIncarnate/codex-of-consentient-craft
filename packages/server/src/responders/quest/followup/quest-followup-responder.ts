@@ -1,6 +1,6 @@
 /**
  * PURPOSE: Handles the FOLLOW-UP tab's message to the tavernkeeper by re-reading quest.json
- * status server-side before delegating to the orchestrator start-followup-chat adapter — the tab
+ * status server-side before delegating to `StartOrchestrator.startFollowupChat` — the tab
  * stays open across visits, so a stale browser cannot spawn a session against a quest that moved
  * back to in_progress or merging since the tab was last loaded. Shares the pasted-image rewrite
  * step with the quest chat route: whichever send surface posts here or there, an `images` payload
@@ -11,11 +11,9 @@
  * // Returns { status: 200, data: { chatProcessId } } or { status: 400/500, data: { error } }
  */
 
+import { questFindQuestPathBroker, StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { isFollowupChatableQuestStatusGuard } from '@dungeonmaster/shared/guards';
 
-import { orchestratorFindQuestPathAdapter } from '../../../adapters/orchestrator/find-quest-path/orchestrator-find-quest-path-adapter';
-import { orchestratorLoadQuestAdapter } from '../../../adapters/orchestrator/load-quest/orchestrator-load-quest-adapter';
-import { orchestratorStartFollowupChatAdapter } from '../../../adapters/orchestrator/start-followup-chat/orchestrator-start-followup-chat-adapter';
 import { pastedImagePersistBroker } from '../../../brokers/pasted-image/persist/pasted-image-persist-broker';
 import { messageBodyContract } from '../../../contracts/message-body/message-body-contract';
 import { questIdParamsContract } from '../../../contracts/quest-id-params/quest-id-params-contract';
@@ -74,7 +72,7 @@ export const QuestFollowupResponder = async ({
     }
     const { message, images } = parsedBody.data;
 
-    const quest = await orchestratorLoadQuestAdapter({ questId });
+    const quest = await StartOrchestrator.loadQuest({ questId });
 
     // Re-check status against the freshly loaded quest, not anything the browser remembered — a
     // tab left open across a visit must not be able to spawn a session against a quest that moved
@@ -87,8 +85,8 @@ export const QuestFollowupResponder = async ({
       });
     }
 
-    // Resolve guildId via the quest path adapter — quests do not carry guildId directly.
-    const { guildId } = await orchestratorFindQuestPathAdapter({ questId });
+    // Resolve guildId via the quest path broker — quests do not carry guildId directly.
+    const { guildId } = await questFindQuestPathBroker({ questId });
 
     // Pasted images are persisted to disk, and a screenshot's absolute local path can ride in the
     // text alone with no images key at all — the broker scans every send for both, so the call is
@@ -101,7 +99,7 @@ export const QuestFollowupResponder = async ({
       images: images ?? [],
     });
 
-    const { chatProcessId } = await orchestratorStartFollowupChatAdapter({
+    const { chatProcessId } = await StartOrchestrator.startFollowupChat({
       questId,
       guildId,
       message: rewrittenMessage,

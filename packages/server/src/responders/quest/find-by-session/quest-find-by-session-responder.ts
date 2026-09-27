@@ -6,7 +6,8 @@
  * // Returns { status: 200, data: { questId } } or { status: 404, data: { error } }
  */
 
-import { orchestratorFindQuestBySessionIdAdapter } from '../../../adapters/orchestrator/find-quest-by-session-id/orchestrator-find-quest-by-session-id-adapter';
+import { StartOrchestrator } from '@dungeonmaster/orchestrator';
+
 import { sessionIdParamsContract } from '../../../contracts/session-id-params/session-id-params-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
@@ -32,7 +33,7 @@ export const QuestFindBySessionResponder = async ({
       });
     }
     const { sessionId } = parsedParams.data;
-    const questId = await orchestratorFindQuestBySessionIdAdapter({ sessionId });
+    const questId = await StartOrchestrator.findQuestBySessionId({ sessionId });
     if (questId === null) {
       return responderResultContract.parse({
         status: httpStatusStatics.clientError.notFound,

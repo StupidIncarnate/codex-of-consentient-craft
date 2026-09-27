@@ -1,12 +1,13 @@
 /**
- * PURPOSE: Handles quest retrieval requests by validating params and delegating to the orchestrator adapter
+ * PURPOSE: Handles quest retrieval requests by validating params and delegating to `StartOrchestrator.getQuest`
  *
  * USAGE:
  * const result = await QuestGetResponder({ params: { questId: 'abc' }, query: { stage: 'spec' } });
  * // Returns { status: 200, data: quest } or { status: 400/404/500, data: { error } }
  */
 
-import { orchestratorGetQuestAdapter } from '../../../adapters/orchestrator/get-quest/orchestrator-get-quest-adapter';
+import { StartOrchestrator } from '@dungeonmaster/orchestrator';
+
 import { questGetQueryContract } from '../../../contracts/quest-get-query/quest-get-query-contract';
 import { questIdParamsContract } from '../../../contracts/quest-id-params/quest-id-params-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
@@ -40,7 +41,7 @@ export const QuestGetResponder = async ({
         ? questGetQueryContract.safeParse(query)
         : undefined;
     const stage = parsedQuery?.success ? parsedQuery.data.stage : undefined;
-    const quest = await orchestratorGetQuestAdapter({
+    const quest = await StartOrchestrator.getQuest({
       questId,
       ...(typeof stage === 'string' && { stage }),
     });

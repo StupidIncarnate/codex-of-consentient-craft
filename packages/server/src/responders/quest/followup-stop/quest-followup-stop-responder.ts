@@ -15,7 +15,8 @@
  * // Returns { status: 200, data: { stopped } } or { status: 400/500, data: { error } }
  */
 
-import { orchestratorStopFollowupChatAdapter } from '../../../adapters/orchestrator/stop-followup-chat/orchestrator-stop-followup-chat-adapter';
+import { StartOrchestrator } from '@dungeonmaster/orchestrator';
+
 import { questIdParamsContract } from '../../../contracts/quest-id-params/quest-id-params-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
@@ -43,7 +44,7 @@ export const QuestFollowupStopResponder = async ({
     }
     const { questId } = parsedParams.data;
 
-    const { stopped } = await orchestratorStopFollowupChatAdapter({ questId });
+    const { stopped } = await StartOrchestrator.stopFollowupChat({ questId });
 
     // `stopped: false` is a 200, not an error. A STOP pressed before the spawn registered, or
     // after the turn already ended, asked for a state the quest is already in — answering 4xx
