@@ -1,15 +1,15 @@
-import { Dirent } from 'fs';
-import {
-  processCwdAdapterProxy,
-  pathJoinAdapterProxy,
-  fsExistsSyncAdapterProxy,
-  fsReaddirWithTypesAdapterProxy,
-  dungeonmasterHomeFindBrokerProxy,
-} from '@dungeonmaster/shared/testing';
+import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
+import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/readdir-entries-sync.proxy';
+import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
+import { cwd } from '#gateway/node/process';
+import { join } from '#gateway/node/path';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
+import { dungeonmasterHomeFindBrokerProxy } from '@dungeonmaster/shared/testing';
+import { FilePathStub } from '@dungeonmaster/shared/contracts';
 import type { QuestIdStub } from '@dungeonmaster/shared/contracts';
-import { FilePathStub, AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 
 type QuestId = ReturnType<typeof QuestIdStub>;
+type FilePath = ReturnType<typeof FilePathStub>;
 
 // A logical candidate root, in the exact precedence questFindBroker searches.
 type QuestFindRootKind = 'repoLocal' | 'dev' | 'envHome' | 'userGlobal';
@@ -24,9 +24,6 @@ const GUILDS_DIR = 'guilds';
 const QUESTS_DIR = 'quests';
 const QUEST_FILE = 'quest.json';
 
-const direntFor = ({ name }: { name: string }): Dirent =>
-  Object.assign(Object.create(Dirent.prototype) as Dirent, { name });
-
 export const questFindBrokerProxy = (): {
   setupQuestAt: (params: {
     root: QuestFindRootKind;
@@ -34,40 +31,76 @@ export const questFindBrokerProxy = (): {
     questId: QuestId;
     decoyGuildIds?: string[];
   }) => void;
-  setupGuildsWithoutQuest: (params: { root: QuestFindRootKind; guildIds: string[] }) => void;
+  setupGuildsWithoutQuest: (params: {
+    root: QuestFindRootKind;
+    guildIds: string[];
+    questId: QuestId;
+  }) => void;
   setupHomeEnvEmptyString: () => void;
   setupNoQuestAnywhere: () => void;
 } => {
-  const cwdProxy = processCwdAdapterProxy();
+  const existsProxy = existsSyncProxy();
+  const readdirProxy = readdirEntriesSyncProxy();
   const homeFindProxy = dungeonmasterHomeFindBrokerProxy();
-  const existsProxy = fsExistsSyncAdapterProxy();
-  const readdirProxy = fsReaddirWithTypesAdapterProxy();
-  // Not driven directly — questFindBroker imports pathJoinAdapter for its own repo-local/dev
-  // joins, which run against the REAL path.join. Instantiating this child keeps
-  // enforce-proxy-child-creation satisfied without staging a fake result. Address computation
-  // below deliberately uses template-literal concatenation instead of the (mocked) path.join,
-  // so staging never steals the one-shot homePath override meant for
-  // dungeonmasterHomeFindBroker's own internal join call.
-  pathJoinAdapterProxy();
+  // #gateway/node/path is a raw passthrough of the Node 'path' module (no per-function wrapper,
+  // so no gateway proxy to compose) — constructed here only to satisfy
+  // enforce-proxy-child-creation, since this broker imports `join` directly. Never staged: the
+  // real passthrough default homeFindProxy's own composition already registers on this same
+  // '#gateway/node/path' `join` reference covers every join call this broker makes.
+  registerMock({ fn: join });
+  cwdProxy();
+  const cwdHandle = registerMock({ fn: cwd });
+  cwdHandle.calledWith([]).returns(REPO_CWD);
 
-  cwdProxy.returns({ path: REPO_CWD });
+  const repoLocalGuildsPath = FilePathStub({
+    value: `${REPO_CWD}/${DUNGEONMASTER_DIR}/${GUILDS_DIR}`,
+  });
+  const devGuildsPath = FilePathStub({
+    value: `${REPO_CWD}/${DUNGEONMASTER_DEV_DIR}/${GUILDS_DIR}`,
+  });
+  const envHomeGuildsPath = FilePathStub({ value: `${ENV_HOME}/${GUILDS_DIR}` });
+  const userGlobalGuildsPath = FilePathStub({ value: `${USER_GLOBAL_ROOT}/${GUILDS_DIR}` });
 
-  const rootPathFor = ({ root }: { root: QuestFindRootKind }): ReturnType<typeof FilePathStub> => {
-    if (root === 'repoLocal') {
-      return FilePathStub({ value: `${REPO_CWD}/${DUNGEONMASTER_DIR}` });
-    }
-    if (root === 'dev') {
-      return FilePathStub({ value: `${REPO_CWD}/${DUNGEONMASTER_DEV_DIR}` });
-    }
-    if (root === 'envHome') {
-      homeFindProxy.setHomeEnv({ value: ENV_HOME });
-      return FilePathStub({ value: ENV_HOME });
-    }
+  // existsSyncProxy has no catch-all by design: every one of the four fixed root guildsPath
+  // addresses this broker's loop can reach gets an explicit false default here, overridden below
+  // by whichever root a test actually stages present (same address, later registration wins).
+  existsProxy.returns({ path: repoLocalGuildsPath, exists: false });
+  existsProxy.returns({ path: devGuildsPath, exists: false });
+  existsProxy.returns({ path: envHomeGuildsPath, exists: false });
+  existsProxy.returns({ path: userGlobalGuildsPath, exists: false });
+
+  const stageUserGlobalHomedir = (): void => {
     homeFindProxy.setupHomePath({
       homeDir: USER_HOMEDIR,
       homePath: FilePathStub({ value: USER_GLOBAL_ROOT }),
     });
-    return FilePathStub({ value: USER_GLOBAL_ROOT });
+  };
+
+  // questFindBroker calls dungeonmasterHomeFindBroker() unconditionally, before the loop even
+  // looks at which root a test is targeting, and a leaked DUNGEONMASTER_HOME left set by a PRIOR
+  // test (real env, never reset between tests) must not survive into this one. Pinning env to the
+  // already-registered ENV_HOME address (rather than clearing it) keeps dungeonmasterHomeFindBroker
+  // on its env branch by default, so it never calls the gateway's own homedir() — a zero-argument
+  // mock shared with every OTHER composed proxy in the same test (transcriptResolveBrokerProxy
+  // among them), which staging it here would silently override for all of them. Only the
+  // 'userGlobal' root (guildsPathFor, stageUserGlobalHomedir) or an explicit
+  // setupNoQuestAnywhere/setupHomeEnvEmptyString call ever needs the real homedir() branch, and
+  // each of those clears env and stages homedir() itself, scoped to the test that asked for it.
+  homeFindProxy.setHomeEnv({ value: ENV_HOME });
+
+  const guildsPathFor = ({ root }: { root: QuestFindRootKind }): FilePath => {
+    if (root === 'repoLocal') {
+      return repoLocalGuildsPath;
+    }
+    if (root === 'dev') {
+      return devGuildsPath;
+    }
+    if (root === 'envHome') {
+      homeFindProxy.setHomeEnv({ value: ENV_HOME });
+      return envHomeGuildsPath;
+    }
+    stageUserGlobalHomedir();
+    return userGlobalGuildsPath;
   };
 
   return {
@@ -82,38 +115,54 @@ export const questFindBrokerProxy = (): {
       questId: QuestId;
       decoyGuildIds?: string[];
     }): void => {
-      const rootPath = rootPathFor({ root });
-      const guildsPath = `${rootPath}/${GUILDS_DIR}`;
+      const guildsPath = guildsPathFor({ root });
       const allGuildIds = [...decoyGuildIds, guildId];
 
-      existsProxy.returns({ filePath: FilePathStub({ value: guildsPath }), result: true });
+      existsProxy.returns({ path: guildsPath, exists: true });
       readdirProxy.returns({
-        dirPath: AbsoluteFilePathStub({ value: guildsPath }),
-        entries: allGuildIds.map((name) => direntFor({ name })),
+        path: guildsPath,
+        entries: allGuildIds.map((name) => ({ name, kind: 'directory' as const })),
       });
+      for (const decoyId of decoyGuildIds) {
+        existsProxy.returns({
+          path: FilePathStub({
+            value: `${guildsPath}/${decoyId}/${QUESTS_DIR}/${questId}/${QUEST_FILE}`,
+          }),
+          exists: false,
+        });
+      }
       existsProxy.returns({
-        filePath: FilePathStub({
+        path: FilePathStub({
           value: `${guildsPath}/${guildId}/${QUESTS_DIR}/${questId}/${QUEST_FILE}`,
         }),
-        result: true,
+        exists: true,
       });
     },
 
     setupGuildsWithoutQuest: ({
       root,
       guildIds,
+      questId,
     }: {
       root: QuestFindRootKind;
       guildIds: string[];
+      questId: QuestId;
     }): void => {
-      const rootPath = rootPathFor({ root });
-      const guildsPath = `${rootPath}/${GUILDS_DIR}`;
+      const guildsPath = guildsPathFor({ root });
 
-      existsProxy.returns({ filePath: FilePathStub({ value: guildsPath }), result: true });
+      existsProxy.returns({ path: guildsPath, exists: true });
       readdirProxy.returns({
-        dirPath: AbsoluteFilePathStub({ value: guildsPath }),
-        entries: guildIds.map((name) => direntFor({ name })),
+        path: guildsPath,
+        entries: guildIds.map((name) => ({ name, kind: 'directory' as const })),
       });
+      for (const guildId of guildIds) {
+        existsProxy.returns({
+          path: FilePathStub({
+            value: `${guildsPath}/${guildId}/${QUESTS_DIR}/${questId}/${QUEST_FILE}`,
+          }),
+          exists: false,
+        });
+      }
     },
 
     setupHomeEnvEmptyString: (): void => {
@@ -122,6 +171,7 @@ export const questFindBrokerProxy = (): {
 
     setupNoQuestAnywhere: (): void => {
       homeFindProxy.clearHomeEnv();
+      stageUserGlobalHomedir();
     },
   };
 };

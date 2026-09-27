@@ -1,19 +1,19 @@
-import type { Dirent } from 'fs';
-import {
-  fsExistsSyncAdapterProxy,
-  fsReaddirWithTypesAdapterProxy,
-  fsReadFileSyncAdapterProxy,
-  pathJoinAdapterProxy,
-} from '@dungeonmaster/shared/testing';
-import {
+import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
+import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/readdir-entries-sync.proxy';
+import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
+import { join } from '#gateway/node/path';
+import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
+import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import type {
+  AgentIdStub,
+  PathSegmentStub,
   AbsoluteFilePathStub,
-  FilePathStub,
   ContentTextStub,
 } from '@dungeonmaster/shared/contracts';
-import type { AgentIdStub, PathSegmentStub } from '@dungeonmaster/shared/contracts';
 import type { SubagentMetaStub } from '../../../contracts/subagent-meta/subagent-meta.stub';
 
 type AbsoluteFilePath = ReturnType<typeof AbsoluteFilePathStub>;
+type FilePath = ReturnType<typeof FilePathStub>;
 type ContentText = ReturnType<typeof ContentTextStub>;
 type AgentId = ReturnType<typeof AgentIdStub>;
 type PathSegment = ReturnType<typeof PathSegmentStub>;
@@ -32,18 +32,6 @@ const SUBAGENTS_DIR_NAME = 'subagents';
 const JSONL_SUFFIX = '.jsonl';
 const META_SUFFIX = '.meta.json';
 
-const makeFileDirent = ({ name }: { name: string }): Dirent =>
-  ({
-    name,
-    isDirectory: () => false,
-    isFile: () => true,
-    isBlockDevice: () => false,
-    isCharacterDevice: () => false,
-    isFIFO: () => false,
-    isSocket: () => false,
-    isSymbolicLink: () => false,
-  }) as Dirent;
-
 export const subagentRosterLoadBrokerProxy = (): {
   setupRoster: (params: {
     sessionFilePath: AbsoluteFilePath;
@@ -51,21 +39,25 @@ export const subagentRosterLoadBrokerProxy = (): {
   }) => void;
   setupNoSubagentsDir: (params: { sessionFilePath: AbsoluteFilePath }) => void;
 } => {
-  const existsProxy = fsExistsSyncAdapterProxy();
-  const readdirProxy = fsReaddirWithTypesAdapterProxy();
-  const readFileProxy = fsReadFileSyncAdapterProxy();
-  // The broker's own pathJoinAdapter calls run for real (the shared proxy's default is a
-  // requireActual passthrough) — this child proxy exists only to satisfy
-  // enforce-proxy-child-creation; every path this proxy cares about is staged directly through
-  // the exists/readdir/readFile mocks below instead.
-  pathJoinAdapterProxy();
+  const existsProxy = existsSyncProxy();
+  const readdirProxy = readdirEntriesSyncProxy();
+  const readFileProxy = readFileSyncProxy();
+  // #gateway/node/path is a raw passthrough of the Node 'path' module (no per-function wrapper,
+  // so no gateway proxy to compose) — mocked directly here, on the same '#gateway/node/path'
+  // specifier the broker imports. The broker's own join() calls run for real off the caller's
+  // sessionFilePath and agent ids, so the real join runs for real rather than being staged.
+  const realPath = requireActual<{ join: typeof join }>({ module: 'path' });
+  registerMock({ fn: join })
+    .calledWith([])
+    .implement((...segments: never[]) => realPath.join(...segments));
 
-  const subagentsDirFor = ({
-    sessionFilePath,
-  }: {
-    sessionFilePath: AbsoluteFilePath;
-  }): AbsoluteFilePath =>
-    AbsoluteFilePathStub({
+  // existsSync has no catch-all by design; this mirrors the real function's own "false on
+  // anything unresolved" semantics — the optional transcript-file check relies on it, and every
+  // exact path staged true below is more specific and wins.
+  existsProxy.returnsMatchingPath({ path: (): boolean => true, exists: false });
+
+  const subagentsDirFor = ({ sessionFilePath }: { sessionFilePath: AbsoluteFilePath }): FilePath =>
+    FilePathStub({
       value: `${sessionFilePath.slice(0, -JSONL_SUFFIX.length)}/${SUBAGENTS_DIR_NAME}`,
     });
 
@@ -78,57 +70,51 @@ export const subagentRosterLoadBrokerProxy = (): {
       agents: readonly RosterFixtureAgent[];
     }): void => {
       const subagentsDir = subagentsDirFor({ sessionFilePath });
-      existsProxy.returns({ filePath: FilePathStub({ value: subagentsDir }), result: true });
+      existsProxy.returns({ path: subagentsDir, exists: true });
 
-      const direntNames = agents.map((agent) => {
+      const entries = agents.map((agent) => {
         if (agent.kind === 'strayFile') {
-          return agent.fileName;
+          return { name: agent.fileName, kind: 'file' as const };
         }
 
         const metaFileName = `${agent.agentId}${META_SUFFIX}`;
-        const metaFilePath = AbsoluteFilePathStub({ value: `${subagentsDir}/${metaFileName}` });
+        const metaFilePath = FilePathStub({ value: `${subagentsDir}/${metaFileName}` });
 
         if (agent.kind === 'malformedMetaJson') {
-          readFileProxy.returns({ filePath: metaFilePath, content: agent.rawMetaText });
-          return metaFileName;
+          readFileProxy.returns({ path: metaFilePath, contents: agent.rawMetaText });
+          return { name: metaFileName, kind: 'file' as const };
         }
 
         if (agent.kind === 'invalidMeta') {
           readFileProxy.returns({
-            filePath: metaFilePath,
-            content: ContentTextStub({ value: JSON.stringify(agent.rawMeta) }),
+            path: metaFilePath,
+            contents: JSON.stringify(agent.rawMeta),
           });
-          return metaFileName;
+          return { name: metaFileName, kind: 'file' as const };
         }
 
         readFileProxy.returns({
-          filePath: metaFilePath,
-          content: ContentTextStub({ value: JSON.stringify(agent.meta) }),
+          path: metaFilePath,
+          contents: JSON.stringify(agent.meta),
         });
 
         if (agent.transcriptJsonl !== undefined) {
-          const transcriptFilePath = AbsoluteFilePathStub({
+          const transcriptFilePath = FilePathStub({
             value: `${subagentsDir}/${agent.agentId}${JSONL_SUFFIX}`,
           });
-          existsProxy.returns({
-            filePath: FilePathStub({ value: transcriptFilePath }),
-            result: true,
-          });
-          readFileProxy.returns({ filePath: transcriptFilePath, content: agent.transcriptJsonl });
+          existsProxy.returns({ path: transcriptFilePath, exists: true });
+          readFileProxy.returns({ path: transcriptFilePath, contents: agent.transcriptJsonl });
         }
 
-        return metaFileName;
+        return { name: metaFileName, kind: 'file' as const };
       });
 
-      readdirProxy.returns({
-        dirPath: subagentsDir,
-        entries: direntNames.map((name) => makeFileDirent({ name })),
-      });
+      readdirProxy.returns({ path: subagentsDir, entries });
     },
 
     setupNoSubagentsDir: ({ sessionFilePath }: { sessionFilePath: AbsoluteFilePath }): void => {
       const subagentsDir = subagentsDirFor({ sessionFilePath });
-      existsProxy.returns({ filePath: FilePathStub({ value: subagentsDir }), result: false });
+      existsProxy.returns({ path: subagentsDir, exists: false });
     },
   };
 };

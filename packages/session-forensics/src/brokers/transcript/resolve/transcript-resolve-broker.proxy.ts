@@ -1,31 +1,17 @@
-import type { Dirent } from 'fs';
-import {
-  osUserHomedirAdapterProxy,
-  fsExistsSyncAdapterProxy,
-  fsReaddirWithTypesAdapterProxy,
-  pathJoinAdapterProxy,
-} from '@dungeonmaster/shared/testing';
-import { AbsoluteFilePathStub, FilePathStub } from '@dungeonmaster/shared/contracts';
-import type { SessionIdStub, PathSegmentStub } from '@dungeonmaster/shared/contracts';
+import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
+import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/readdir-entries-sync.proxy';
+import { homedir } from '#gateway/node/os';
+import { join } from '#gateway/node/path';
+import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
+import { PathSegmentStub, FilePathStub } from '@dungeonmaster/shared/contracts';
+import type { SessionIdStub } from '@dungeonmaster/shared/contracts';
 
 type PathSegment = ReturnType<typeof PathSegmentStub>;
 type SessionId = ReturnType<typeof SessionIdStub>;
 
-const HOME_DIR = AbsoluteFilePathStub({ value: '/home/user' });
-const PROJECTS_ROOT = AbsoluteFilePathStub({ value: `${HOME_DIR}/.claude/projects` });
+const HOME_DIR = '/home/user';
+const PROJECTS_ROOT = `${HOME_DIR}/.claude/projects`;
 const SUBAGENTS_DIR_NAME = 'subagents';
-
-const makeDirDirent = ({ name }: { name: string }): Dirent =>
-  ({
-    name,
-    isDirectory: () => true,
-    isFile: () => false,
-    isBlockDevice: () => false,
-    isCharacterDevice: () => false,
-    isFIFO: () => false,
-    isSocket: () => false,
-    isSymbolicLink: () => false,
-  }) as Dirent;
 
 export const transcriptResolveBrokerProxy = (): {
   setupSessionAt: (params: { projectDir: PathSegment; sessionId: SessionId }) => void;
@@ -36,32 +22,55 @@ export const transcriptResolveBrokerProxy = (): {
   }) => void;
   setupNothing: () => void;
 } => {
-  const homedirProxy = osUserHomedirAdapterProxy();
-  const existsProxy = fsExistsSyncAdapterProxy();
-  const readdirProxy = fsReaddirWithTypesAdapterProxy();
-  // The broker's own pathJoinAdapter calls run for real (the shared proxy's default is a
-  // requireActual passthrough) — this child proxy exists only to satisfy
-  // enforce-proxy-child-creation; every absolute path this proxy cares about is staged directly
-  // through the homedir/readdir/exists mocks below instead.
-  pathJoinAdapterProxy();
+  const existsProxy = existsSyncProxy();
+  const readdirProxy = readdirEntriesSyncProxy();
+  const homedirHandle = registerMock({ fn: homedir });
+  homedirHandle.calledWith([]).returns(HOME_DIR);
+  // #gateway/node/path is a raw passthrough of the Node 'path' module (no per-function wrapper,
+  // so no gateway proxy to compose) — mocked directly here, on the same '#gateway/node/path'
+  // specifier the broker imports. Every path this broker builds comes from HOME_DIR and the
+  // caller's own ids, so the real join runs for real off them rather than being staged.
+  const realPath = requireActual<{ join: typeof join }>({ module: 'path' });
+  registerMock({ fn: join })
+    .calledWith([])
+    .implement((...segments: never[]) => realPath.join(...segments));
 
-  homedirProxy.returns({ path: HOME_DIR });
+  // existsSync has no catch-all by design; this mirrors the real function's own "false on
+  // anything unresolved" semantics — every exact path staged true below is more specific and wins.
+  existsProxy.returnsMatchingPath({ path: (): boolean => true, exists: false });
 
   const projectDirNames: PathSegment[] = [];
+  const fileEntryNamesByProjectDir = new Map<PathSegment, PathSegment[]>();
   const sessionDirNamesByProjectDir = new Map<PathSegment, SessionId[]>();
 
-  const refreshProjectDirsListing = (): void => {
-    existsProxy.returns({ filePath: FilePathStub({ value: PROJECTS_ROOT }), result: true });
+  const refreshProjectsRootListing = (): void => {
+    existsProxy.returns({ path: FilePathStub({ value: PROJECTS_ROOT }), exists: true });
     readdirProxy.returns({
-      dirPath: PROJECTS_ROOT,
-      entries: projectDirNames.map((name) => makeDirDirent({ name })),
+      path: FilePathStub({ value: PROJECTS_ROOT }),
+      entries: projectDirNames.map((name) => ({ name, kind: 'directory' as const })),
     });
   };
 
+  const refreshProjectDirListing = ({ projectDirName }: { projectDirName: PathSegment }): void => {
+    const fileNames = fileEntryNamesByProjectDir.get(projectDirName) ?? [];
+    const sessionDirNames = sessionDirNamesByProjectDir.get(projectDirName) ?? [];
+    readdirProxy.returns({
+      path: FilePathStub({ value: `${PROJECTS_ROOT}/${projectDirName}` }),
+      entries: [
+        ...fileNames.map((name) => ({ name, kind: 'file' as const })),
+        ...sessionDirNames.map((name) => ({ name, kind: 'directory' as const })),
+      ],
+    });
+  };
+
+  const registerProjectDir = ({ projectDirName }: { projectDirName: PathSegment }): void => {
+    if (!projectDirNames.includes(projectDirName)) {
+      projectDirNames.push(projectDirName);
+    }
+    refreshProjectsRootListing();
+  };
+
   return {
-    // A project dir "having no matching file" for a target is modeled by staging some OTHER
-    // sessionId there — the only way to put a dir on the projectsRoot listing through this API
-    // without also making it the match.
     setupSessionAt: ({
       projectDir,
       sessionId,
@@ -69,13 +78,16 @@ export const transcriptResolveBrokerProxy = (): {
       projectDir: PathSegment;
       sessionId: SessionId;
     }): void => {
-      if (!projectDirNames.includes(projectDir)) {
-        projectDirNames.push(projectDir);
-      }
-      refreshProjectDirsListing();
+      registerProjectDir({ projectDirName: projectDir });
+
+      const fileNames = fileEntryNamesByProjectDir.get(projectDir) ?? [];
+      fileNames.push(PathSegmentStub({ value: `${sessionId}.jsonl` }));
+      fileEntryNamesByProjectDir.set(projectDir, fileNames);
+      refreshProjectDirListing({ projectDirName: projectDir });
+
       existsProxy.returns({
-        filePath: FilePathStub({ value: `${PROJECTS_ROOT}/${projectDir}/${sessionId}.jsonl` }),
-        result: true,
+        path: FilePathStub({ value: `${PROJECTS_ROOT}/${projectDir}/${sessionId}.jsonl` }),
+        exists: true,
       });
     },
     setupSubagentAt: ({
@@ -87,32 +99,25 @@ export const transcriptResolveBrokerProxy = (): {
       sessionId: SessionId;
       agentId: SessionId;
     }): void => {
-      if (!projectDirNames.includes(projectDir)) {
-        projectDirNames.push(projectDir);
-      }
-      refreshProjectDirsListing();
+      registerProjectDir({ projectDirName: projectDir });
 
       const sessionDirNames = sessionDirNamesByProjectDir.get(projectDir) ?? [];
       if (!sessionDirNames.includes(sessionId)) {
         sessionDirNames.push(sessionId);
       }
       sessionDirNamesByProjectDir.set(projectDir, sessionDirNames);
-      readdirProxy.returns({
-        dirPath: AbsoluteFilePathStub({ value: `${PROJECTS_ROOT}/${projectDir}` }),
-        entries: sessionDirNames.map((name) => makeDirDirent({ name })),
-      });
+      refreshProjectDirListing({ projectDirName: projectDir });
 
       existsProxy.returns({
-        filePath: FilePathStub({
+        path: FilePathStub({
           value: `${PROJECTS_ROOT}/${projectDir}/${sessionId}/${SUBAGENTS_DIR_NAME}/${agentId}.jsonl`,
         }),
-        result: true,
+        exists: true,
       });
     },
-    // Stages the projects root as existing but empty — an exhaustive search that finds nothing,
-    // as opposed to the root not existing at all (the untouched default proxy state).
     setupNothing: (): void => {
-      existsProxy.returns({ filePath: FilePathStub({ value: PROJECTS_ROOT }), result: true });
+      existsProxy.returns({ path: FilePathStub({ value: PROJECTS_ROOT }), exists: true });
+      readdirProxy.returns({ path: FilePathStub({ value: PROJECTS_ROOT }), entries: [] });
     },
   };
 };

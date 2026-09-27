@@ -1,9 +1,10 @@
-import { fsReadFileSyncAdapterProxy } from '@dungeonmaster/shared/testing';
-import { AbsoluteFilePathStub, ContentTextStub } from '@dungeonmaster/shared/contracts';
+import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
+import { FilePathStub } from '@dungeonmaster/shared/contracts';
 import type { QuestIdStub } from '@dungeonmaster/shared/contracts';
 import { questFindBrokerProxy } from '../find/quest-find-broker.proxy';
 
 type QuestId = ReturnType<typeof QuestIdStub>;
+type FilePath = ReturnType<typeof FilePathStub>;
 
 // Mirrors the private constants quest-find-broker.proxy.ts stages the search around — this proxy
 // has to predict the exact absolute path the REAL find broker will hand back so the fs mock can be
@@ -22,10 +23,10 @@ export const questIndexLoadBrokerProxy = (): {
   setupMissingQuest: () => void;
 } => {
   const findProxy = questFindBrokerProxy();
-  const readFileProxy = fsReadFileSyncAdapterProxy();
+  const readFileProxy = readFileSyncProxy();
 
-  const pathFor = ({ questId }: { questId: QuestId }): ReturnType<typeof AbsoluteFilePathStub> =>
-    AbsoluteFilePathStub({
+  const pathFor = ({ questId }: { questId: QuestId }): FilePath =>
+    FilePathStub({
       value: `${REPO_CWD}/${DUNGEONMASTER_DIR}/${GUILDS_DIR}/${GUILD_ID}/${QUESTS_DIR}/${questId}/${QUEST_FILE}`,
     });
 
@@ -33,15 +34,15 @@ export const questIndexLoadBrokerProxy = (): {
     setupQuest: ({ questId, questJson }: { questId: QuestId; questJson: unknown }): void => {
       findProxy.setupQuestAt({ root: 'repoLocal', guildId: GUILD_ID, questId });
       readFileProxy.returns({
-        filePath: pathFor({ questId }),
-        content: ContentTextStub({ value: JSON.stringify(questJson) }),
+        path: pathFor({ questId }),
+        contents: JSON.stringify(questJson),
       });
     },
     setupQuestRawContent: ({ questId, content }: { questId: QuestId; content: string }): void => {
       findProxy.setupQuestAt({ root: 'repoLocal', guildId: GUILD_ID, questId });
       readFileProxy.returns({
-        filePath: pathFor({ questId }),
-        content: ContentTextStub({ value: content }),
+        path: pathFor({ questId }),
+        contents: content,
       });
     },
     setupMissingQuest: (): void => {

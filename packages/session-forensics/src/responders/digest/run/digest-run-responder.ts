@@ -15,8 +15,12 @@
  * DigestRunResponder({ command: DigestCommandStub({ value: 'summary' }), target: 'abc-123' });
  * // Returns the rendered ContentText for the `summary` command
  */
-import { fsReadFileSyncAdapter } from '@dungeonmaster/shared/adapters';
-import { sessionIdContract, questIdContract } from '@dungeonmaster/shared/contracts';
+import { readFileSync } from '#gateway/node/fs';
+import {
+  contentTextContract,
+  sessionIdContract,
+  questIdContract,
+} from '@dungeonmaster/shared/contracts';
 import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import { transcriptLoadBroker } from '../../../brokers/transcript/load/transcript-load-broker';
@@ -75,7 +79,7 @@ export const DigestRunResponder = ({
       const transcriptSizeBytes =
         transcriptPath === undefined
           ? 0
-          : fsReadFileSyncAdapter({ filePath: transcriptPath }).length;
+          : contentTextContract.parse(readFileSync(transcriptPath)).length;
 
       const subagentCount =
         transcriptPath === undefined
