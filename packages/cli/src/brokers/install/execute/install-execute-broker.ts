@@ -10,7 +10,7 @@
  * // Returns InstallResult with success/failure status
  */
 
-import { runtimeDynamicImportAdapter } from '@dungeonmaster/shared/adapters';
+import { dynamicImport } from '#gateway/node/module';
 import { installResultContract, errorMessageContract } from '@dungeonmaster/shared/contracts';
 import type {
   InstallContext,
@@ -18,6 +18,7 @@ import type {
   PackageName,
   FilePath,
 } from '@dungeonmaster/shared/contracts';
+import { installModuleContract } from '../../../contracts/install-module/install-module-contract';
 
 export const installExecuteBroker = async ({
   packageName,
@@ -29,14 +30,11 @@ export const installExecuteBroker = async ({
   context: InstallContext;
 }): Promise<InstallResult> => {
   try {
-    const module = await runtimeDynamicImportAdapter({ path: installPath });
+    const parsedModule = installModuleContract.safeParse(
+      await dynamicImport({ path: installPath }),
+    );
 
-    if (
-      typeof module !== 'object' ||
-      module === null ||
-      !('StartInstall' in module) ||
-      typeof (module as Record<PropertyKey, unknown>).StartInstall !== 'function'
-    ) {
+    if (!parsedModule.success) {
       return installResultContract.parse({
         packageName,
         success: false,
@@ -45,11 +43,7 @@ export const installExecuteBroker = async ({
       });
     }
 
-    const startInstallFn = (module as Record<PropertyKey, unknown>).StartInstall as (params: {
-      context: InstallContext;
-    }) => Promise<InstallResult>;
-
-    const result = await startInstallFn({ context });
+    const result = await parsedModule.data.StartInstall({ context });
     return installResultContract.parse(result);
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);

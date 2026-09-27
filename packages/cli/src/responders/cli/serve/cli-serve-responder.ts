@@ -8,21 +8,18 @@
 
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import { adapterResultContract, filePathContract } from '@dungeonmaster/shared/contracts';
-import { runtimeDynamicImportAdapter } from '@dungeonmaster/shared/adapters';
+import { dynamicImport } from '#gateway/node/module';
 import { portResolveBroker } from '@dungeonmaster/shared/brokers';
 import { environmentStatics } from '@dungeonmaster/shared/statics';
 
 import { childProcessExecAdapter } from '../../../adapters/child-process/exec/child-process-exec-adapter';
 import { httpBackendPackageResolveBroker } from '../../../brokers/http-backend-package/resolve/http-backend-package-resolve-broker';
+import { startServerModuleContract } from '../../../contracts/start-server-module/start-server-module-contract';
 
 export const CliServeResponder = async (): Promise<AdapterResult> => {
   const serverPackageName = await httpBackendPackageResolveBroker();
   const serverPath = filePathContract.parse(require.resolve(serverPackageName));
-  const serverModule = await runtimeDynamicImportAdapter<{
-    StartServer: (args?: { serveWebBundle?: boolean }) => AdapterResult;
-  }>({
-    path: serverPath,
-  });
+  const serverModule = startServerModuleContract.parse(await dynamicImport({ path: serverPath }));
 
   // Published single-port launch: no separate vite server exists, so the HTTP server serves the
   // built @dungeonmaster/web bundle itself for non-API routes.
