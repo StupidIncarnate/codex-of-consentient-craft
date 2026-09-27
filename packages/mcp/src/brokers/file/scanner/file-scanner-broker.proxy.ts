@@ -13,7 +13,7 @@
  * // Sets up glob and read-file adapters to return test data
  */
 
-import { globProxy } from '#gateway/npm/_test_/glob';
+import { globProxy } from '#gateway/npm/glob/glob/glob.proxy';
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { sharedPackageResolveAdapterProxy } from '../../../adapters/shared-package/resolve/shared-package-resolve-adapter.proxy';
 import { sharedPackageResolveAdapter } from '../../../adapters/shared-package/resolve/shared-package-resolve-adapter';

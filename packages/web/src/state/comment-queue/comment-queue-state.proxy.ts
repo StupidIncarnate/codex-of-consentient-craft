@@ -1,9 +1,7 @@
-import {
-  keysProxy,
-  readItemProxy,
-  removeItemProxy,
-  writeItemProxy,
-} from '#gateway/browser/_test_/localStorage';
+import { keysProxy } from '#gateway/browser/localStorage/keys/keys.proxy';
+import { readItemProxy } from '#gateway/browser/localStorage/read-item/read-item.proxy';
+import { removeItemProxy } from '#gateway/browser/localStorage/remove-item/remove-item.proxy';
+import { writeItemProxy } from '#gateway/browser/localStorage/write-item/write-item.proxy';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import type { QuestId } from '@dungeonmaster/shared/contracts';

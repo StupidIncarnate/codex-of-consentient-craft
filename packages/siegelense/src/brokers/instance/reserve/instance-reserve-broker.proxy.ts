@@ -1,6 +1,6 @@
 import { createServer, type Server } from 'net';
-import { currentBranchProxy } from '#gateway/bin/_test_/git';
-import { cwdProxy } from '#gateway/node/_test_/process';
+import { currentBranchProxy } from '#gateway/bin/git/current-branch/current-branch.proxy';
+import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { fsMkdirAdapterProxy, netFreePortPairAdapterProxy } from '@dungeonmaster/shared/testing';
 import type { FilePath, NetworkPort } from '@dungeonmaster/shared/contracts';
