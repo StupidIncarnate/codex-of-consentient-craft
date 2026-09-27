@@ -126,3 +126,5 @@ For each subpath still missing a stub:
 ## Concessions made while executing
 
 <Empty at the start. The operator fills this and mirrors it into EPIC.md's Concessions table.>
+
+- G04 (b6b79b1f4) added a subpath, `@gateway/npm/src/modelcontextprotocol__sdk__server__mcp`. It has a pass-through test and no stub yet. This item stubs it with the rest.
