@@ -2,9 +2,10 @@
  * PURPOSE: Reads and parses the nearest ancestor package.json above a linted file — the IMPORTING
  * file's own manifest, never the workspaces root — caching by the resolved directory so a lint run
  * touching thousands of files inside the same package reads and parses that package's manifest once.
- * Distinct from gateway-import-boundary's resolveRepoScopeLayerBroker, which keeps climbing PAST an
- * ordinary package.json all the way to the workspaces ROOT: gateway-dependency-declared checks
- * against the calling package's OWN `imports`/`dependencies`, not the monorepo root's.
+ * Distinct from repoScopeResolveBroker (`packages/eslint-plugin/src/brokers/repo-scope/resolve/`),
+ * which keeps climbing PAST an ordinary package.json all the way to the workspaces ROOT:
+ * gateway-dependency-declared checks against the calling package's OWN `imports`/`dependencies`, not
+ * the monorepo root's.
  *
  * USAGE:
  * findNearestPackageJsonLayerBroker({ startDir: filePathContract.parse('/repo/packages/hooks/src/brokers/x') });

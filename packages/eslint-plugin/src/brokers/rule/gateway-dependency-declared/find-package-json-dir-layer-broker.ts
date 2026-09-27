@@ -1,7 +1,8 @@
 /**
  * PURPOSE: Walks a directory tree upward from a linted file's own directory to the nearest ancestor
  * (inclusive of the start) holding a package.json — the importing file's OWN manifest, not the
- * workspaces root gateway-import-boundary's resolveRepoScopeLayerBroker climbs past it to reach.
+ * workspaces root repoScopeResolveBroker (`packages/eslint-plugin/src/brokers/repo-scope/resolve/`)
+ * climbs past it to reach.
  * Duplicated from platform-globals-ban's identically-shaped `findAncestorDirectoryLayerBroker`,
  * deliberately: a layer file is not an entry file another domain may import.
  *
