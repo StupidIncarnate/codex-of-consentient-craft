@@ -110,6 +110,14 @@ describe('dungeonmasterHooksCreatorTransformer', () => {
               },
             ],
           },
+          {
+            hooks: [
+              {
+                type: 'command',
+                command: 'dungeonmaster-session-snippet consumerGatewayWrapper',
+              },
+            ],
+          },
         ],
         SubagentStart: [
           {
@@ -188,6 +196,14 @@ describe('dungeonmasterHooksCreatorTransformer', () => {
               {
                 type: 'command',
                 command: 'dungeonmaster-session-snippet siegelense',
+              },
+            ],
+          },
+          {
+            hooks: [
+              {
+                type: 'command',
+                command: 'dungeonmaster-session-snippet consumerGatewayWrapper',
               },
             ],
           },

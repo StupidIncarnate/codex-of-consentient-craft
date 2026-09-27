@@ -140,6 +140,14 @@ describe('InstallFlow', () => {
                 },
               ],
             },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet consumerGatewayWrapper',
+                },
+              ],
+            },
           ],
           SubagentStart: [
             {
@@ -215,6 +223,14 @@ describe('InstallFlow', () => {
                 {
                   type: 'command',
                   command: 'dungeonmaster-session-snippet siegelense',
+                },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet consumerGatewayWrapper',
                 },
               ],
             },
@@ -369,6 +385,14 @@ describe('InstallFlow', () => {
                 },
               ],
             },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet consumerGatewayWrapper',
+                },
+              ],
+            },
           ],
           SubagentStart: [
             {
@@ -444,6 +468,14 @@ describe('InstallFlow', () => {
                 {
                   type: 'command',
                   command: 'dungeonmaster-session-snippet siegelense',
+                },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet consumerGatewayWrapper',
                 },
               ],
             },

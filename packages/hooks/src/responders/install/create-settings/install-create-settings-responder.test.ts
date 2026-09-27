@@ -134,6 +134,14 @@ describe('InstallCreateSettingsResponder', () => {
                 },
               ],
             },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet consumerGatewayWrapper',
+                },
+              ],
+            },
           ],
           SubagentStart: [
             {
@@ -209,6 +217,14 @@ describe('InstallCreateSettingsResponder', () => {
                 {
                   type: 'command',
                   command: 'dungeonmaster-session-snippet siegelense',
+                },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet consumerGatewayWrapper',
                 },
               ],
             },
@@ -363,6 +379,14 @@ describe('InstallCreateSettingsResponder', () => {
                 },
               ],
             },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet consumerGatewayWrapper',
+                },
+              ],
+            },
           ],
           SubagentStart: [
             {
@@ -438,6 +462,14 @@ describe('InstallCreateSettingsResponder', () => {
                 {
                   type: 'command',
                   command: 'dungeonmaster-session-snippet siegelense',
+                },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet consumerGatewayWrapper',
                 },
               ],
             },
@@ -594,6 +626,14 @@ describe('InstallCreateSettingsResponder', () => {
                 },
               ],
             },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet consumerGatewayWrapper',
+                },
+              ],
+            },
           ],
           SubagentStart: [
             { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet discover' }] },
@@ -661,6 +701,14 @@ describe('InstallCreateSettingsResponder', () => {
                 {
                   type: 'command',
                   command: 'dungeonmaster-session-snippet siegelense',
+                },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet consumerGatewayWrapper',
                 },
               ],
             },
@@ -819,6 +867,14 @@ describe('InstallCreateSettingsResponder', () => {
                 },
               ],
             },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet consumerGatewayWrapper',
+                },
+              ],
+            },
           ],
           SubagentStart: [
             {
@@ -894,6 +950,14 @@ describe('InstallCreateSettingsResponder', () => {
                 {
                   type: 'command',
                   command: 'dungeonmaster-session-snippet siegelense',
+                },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet consumerGatewayWrapper',
                 },
               ],
             },
@@ -1052,6 +1116,14 @@ describe('InstallCreateSettingsResponder', () => {
                 },
               ],
             },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet consumerGatewayWrapper',
+                },
+              ],
+            },
           ],
           SubagentStart: [
             { hooks: [{ type: 'command', command: 'dungeonmaster-session-snippet discover' }] },
@@ -1119,6 +1191,14 @@ describe('InstallCreateSettingsResponder', () => {
                 {
                   type: 'command',
                   command: 'dungeonmaster-session-snippet siegelense',
+                },
+              ],
+            },
+            {
+              hooks: [
+                {
+                  type: 'command',
+                  command: 'dungeonmaster-session-snippet consumerGatewayWrapper',
                 },
               ],
             },

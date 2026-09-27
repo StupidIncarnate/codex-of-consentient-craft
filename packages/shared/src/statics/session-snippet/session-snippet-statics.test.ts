@@ -497,4 +497,43 @@ describe('sessionSnippetStatics', () => {
       namesNoRepoLocalPath: false,
     });
   });
+
+  // A CONSUMER'S npm/bin GATEWAY PACKAGES START EMPTY, AND NOTHING ELSE TOLD A SESSION WHAT TO DO
+  // ABOUT IT. Without this snippet, an agent working in a consumer repo has no rule pointing it at
+  // node/browser's copied-in source as the live worked example, no rule saying dungeonmaster's own
+  // installed npm/bin packages ship real `src` to copy from, and no rule against importing
+  // dungeonmaster's own gateway instead of the consumer's local copy.
+  it('VALID: consumerGatewayWrapper snippet => names the empty placeholder, the local worked example, and the never-import rule', () => {
+    expect({
+      scopedToConsumerRepo: sessionSnippetStatics.consumerGatewayWrapper.includes(
+        'Applies in a consumer repo `dungeonmaster init` has touched',
+      ),
+      startsEmpty: sessionSnippetStatics.consumerGatewayWrapper.includes(
+        'start EMPTY, holding only a placeholder `src/index.d.ts`',
+      ),
+      nodeAndBrowserAreTheLocalExample: sessionSnippetStatics.consumerGatewayWrapper.includes(
+        '`packages/@gateway/node/` and `packages/@gateway/browser/` do not',
+      ),
+      ownWrappersShipSrc: sessionSnippetStatics.consumerGatewayWrapper.includes(
+        'read `node_modules/@dungeonmaster/npm/src` and `node_modules/@dungeonmaster/bin/src`',
+      ),
+      deletesThePlaceholder: sessionSnippetStatics.consumerGatewayWrapper.includes(
+        'Delete the placeholder `src/index.d.ts` once the first real subpath exists.',
+      ),
+      neverImportsOwnGateway: sessionSnippetStatics.consumerGatewayWrapper.includes(
+        "**Never import dungeonmaster's own gateway.**",
+      ),
+      pointsAtTheRefusal: sessionSnippetStatics.consumerGatewayWrapper.includes(
+        '`dungeonmaster create-package` refuses a name scoped `@gateway`',
+      ),
+    }).toStrictEqual({
+      scopedToConsumerRepo: true,
+      startsEmpty: true,
+      nodeAndBrowserAreTheLocalExample: true,
+      ownWrappersShipSrc: true,
+      deletesThePlaceholder: true,
+      neverImportsOwnGateway: true,
+      pointsAtTheRefusal: true,
+    });
+  });
 });

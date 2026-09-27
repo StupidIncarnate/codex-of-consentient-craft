@@ -2,7 +2,11 @@
  * PURPOSE: The single place `dungeonmaster create-package` turns a partly-filled command line into a
  * complete scaffold request. It is the one component that knows the difference between the command's
  * two modes: a human typing the command bare gets prompted on stdin, while a script or agent passing
- * flags is never blocked waiting for input a non-interactive caller has no way to supply.
+ * flags is never blocked waiting for input a non-interactive caller has no way to supply. It also
+ * refuses a `@gateway/*` name outright — this scaffold builds a WORKSPACE package, and a gateway
+ * wrapper is a folder inside one of the four existing gateway packages, not a package of its own;
+ * the refusal fires before the scope/directory split below, which otherwise silently produces a
+ * package at `packages/<name>` whose own `package.json` still claims the `@gateway` name.
  *
  * USAGE:
  * const request = await createPackageResolveRequestBroker({
@@ -65,6 +69,14 @@ export const createPackageResolveRequestBroker = async ({
   }
 
   const name = packageNameContract.parse(nameAnswer);
+
+  if (name.startsWith('@gateway/')) {
+    throw new Error(
+      'create-package does not scaffold a package under the @gateway scope: a gateway wrapper ' +
+        'is not a create-package-scaffolded package. See the session snippet for adding an npm ' +
+        'or bin gateway wrapper.',
+    );
+  }
 
   const isFullyScoped = name.startsWith('@') && name.includes('/');
   const directoryName: PathSegment = pathSegmentContract.parse(

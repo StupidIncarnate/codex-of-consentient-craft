@@ -76,6 +76,18 @@ describe('createPackageResolveRequestBroker', () => {
       });
     });
 
+    it('INVALID: {name: "@gateway/foo"} => refuses the @gateway scope and points at the session snippet', async () => {
+      createPackageResolveRequestBrokerProxy();
+      const args = CreatePackageArgsStub({ name: '@gateway/foo' });
+      const scope = PathSegmentStub({ value: '@acme' });
+
+      await expect(
+        createPackageResolveRequestBroker({ args, scope, interactive: false }),
+      ).rejects.toThrow(
+        /^create-package does not scaffold a package under the @gateway scope: a gateway wrapper is not a create-package-scaffolded package\. See the session snippet for adding an npm or bin gateway wrapper\.$/u,
+      );
+    });
+
     it('INVALID: {name: absent, interactive: false} => throws naming --name', async () => {
       createPackageResolveRequestBrokerProxy();
       const args = CreatePackageArgsStub({ name: undefined as never });
@@ -146,6 +158,19 @@ describe('createPackageResolveRequestBroker', () => {
         description: 'A widget package',
         packagesDir: 'packages',
       });
+    });
+
+    it('INVALID: {name answer: "@gateway/foo"} => refuses the @gateway scope and points at the session snippet', async () => {
+      const proxy = createPackageResolveRequestBrokerProxy();
+      proxy.setupAnswers({ name: '@gateway/foo' });
+      const args = CreatePackageArgsStub({ name: undefined as never, packageType: 'library' });
+      const scope = PathSegmentStub({ value: '@acme' });
+
+      await expect(
+        createPackageResolveRequestBroker({ args, scope, interactive: true }),
+      ).rejects.toThrow(
+        /^create-package does not scaffold a package under the @gateway scope: a gateway wrapper is not a create-package-scaffolded package\. See the session snippet for adding an npm or bin gateway wrapper\.$/u,
+      );
     });
 
     it('EMPTY: {name answer: ""} => throws because the name is still empty', async () => {
