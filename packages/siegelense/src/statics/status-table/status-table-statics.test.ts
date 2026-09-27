@@ -7,6 +7,10 @@ describe('statusTableStatics', () => {
         headers: ['ID', 'STATE', 'SPEC', 'BRANCH', 'UPTIME', 'LAST BEAT', 'RUNS', 'RSS', 'ORPHANS'],
         cellPadding: 2,
       },
+      singleInstanceTable: {
+        headers: ['FIELD', 'VALUE'],
+        cellPadding: 2,
+      },
       sinceWindows: {
         order: ['1h', '6h', '1d', 'beginning'],
         widest: 'beginning',

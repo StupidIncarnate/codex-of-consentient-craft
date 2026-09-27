@@ -97,24 +97,46 @@ export const statusAnswerRenderTransformer = ({
           : `at last beat ${onlyInstance.rssAtLastBeat}MB`
         : `${onlyInstance.rssMB}MB`;
 
-    return contentTextContract.parse(
-      [
-        `INSTANCE ${onlyInstance.id} — ${onlyInstance.state}`,
-        `SPEC: ${onlyInstance.specName}`,
-        `UPTIME: ${onlyInstance.uptime ?? '-'}`,
-        `LAST BEAT: ${onlyInstance.lastBeat ?? '-'}`,
-        `RUNS: ${onlyInstance.runs}`,
-        `RSS: ${rssText}`,
-        `LAST STEP: ${lastStepText}`,
-        `ORPHANS: ${orphansText}`,
-        `EVIDENCE DIR: ${evidence.dir.path}`,
-        `TRANSCRIPT: ${evidence.transcript ?? '-'}`,
-        `LOGS: ${evidence.logs.length === 0 ? 'none' : evidence.logs.join(', ')}`,
-        `LAST SHOT: ${evidence.lastShot ?? '-'}`,
-        `LIKELY CAUSE: ${onlyInstance.likelyCause ?? '-'}`,
-        '',
-      ].join('\n'),
+    const { headers: singleHeaders, cellPadding: singleCellPadding } =
+      statusTableStatics.singleInstanceTable;
+
+    const singleRows = [
+      ['INSTANCE', `${onlyInstance.id} — ${onlyInstance.state}`],
+      ['SPEC', onlyInstance.specName],
+      ['UPTIME', onlyInstance.uptime ?? '-'],
+      ['LAST BEAT', onlyInstance.lastBeat ?? '-'],
+      ['RUNS', String(onlyInstance.runs)],
+      ['RSS', rssText],
+      ['LAST STEP', lastStepText],
+      ['ORPHANS', orphansText],
+      ['EVIDENCE DIR', evidence.dir.path],
+      ['TRANSCRIPT', evidence.transcript ?? '-'],
+      ['LOGS', evidence.logs.length === 0 ? 'none' : evidence.logs.join(', ')],
+      ['LAST SHOT', evidence.lastShot ?? '-'],
+      ['LIKELY CAUSE', onlyInstance.likelyCause ?? '-'],
+    ];
+
+    const singleWidths = singleHeaders.map((header, columnIndex) =>
+      Math.max(header.length, ...singleRows.map((row) => row[columnIndex]?.length ?? 0)),
     );
+
+    const singleTopLine = `┌${singleWidths.map((w) => '─'.repeat(w + singleCellPadding)).join('┬')}┐`;
+    const singleHeaderLine = `│${singleHeaders.map((h, i) => ` ${h.padEnd(singleWidths[i] ?? h.length)} `).join('│')}│`;
+    const singleHeaderSeparator = `├${singleWidths.map((w) => '─'.repeat(w + singleCellPadding)).join('┼')}┤`;
+    const singleRowLines = singleRows.map(
+      (cells) => `│${cells.map((c, i) => ` ${c.padEnd(singleWidths[i] ?? c.length)} `).join('│')}│`,
+    );
+    const singleBottomLine = `└${singleWidths.map((w) => '─'.repeat(w + singleCellPadding)).join('┴')}┘`;
+
+    const singleTableLines = [
+      singleTopLine,
+      singleHeaderLine,
+      singleHeaderSeparator,
+      ...singleRowLines,
+      singleBottomLine,
+    ];
+
+    return contentTextContract.parse(`${singleTableLines.join('\n')}\n`);
   }
 
   const { headers, cellPadding } = statusTableStatics.table;
