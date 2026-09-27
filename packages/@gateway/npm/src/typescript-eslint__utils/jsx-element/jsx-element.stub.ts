@@ -1,6 +1,6 @@
 import { AST_NODE_TYPES } from '@typescript-eslint/utils';
 import type { TSESTree } from '@typescript-eslint/utils';
-import { parseAndFindNode } from '../parse-and-find-node/parse-and-find-node';
+import { parseAndFindNode } from '../../gateway-test-support/parse-and-find-node';
 
 // jsx: true — the parser only accepts JSX syntax with this parser option on; parseAndFindNode's
 // own `jsx` flag also carries the `.tsx` filePath the parser needs to disambiguate JSX from a

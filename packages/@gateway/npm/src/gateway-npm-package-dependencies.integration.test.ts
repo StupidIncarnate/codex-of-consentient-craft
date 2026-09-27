@@ -3,8 +3,10 @@
  * two stay in lockstep — a check ESLint's file-glob rules cannot make, since neither `dependencies`
  * nor the folder list is itself a source file glob can select. Every folder directly under `src/`
  * must name a package this package.json actually declares (in `dependencies` or `peerDependencies`),
- * and every declared package must have a folder wrapping it. `bareFolderNameForDependency` inlines
- * the SAME `__` join / leading-`@`-drop rule `gatewayPathFromImportSourceTransformer` (in
+ * with exactly one reserved exception, `RESERVED_TEST_SUPPORT_FOLDER` — the one folder every gateway
+ * may hold for test support (`parseAndFindNode` here) that names no dependency at all — and every
+ * declared package must have a folder wrapping it. `bareFolderNameForDependency` inlines the SAME
+ * `__` join / leading-`@`-drop rule `gatewayPathFromImportSourceTransformer` (in
  * `@dungeonmaster/shared`) uses, rather than importing it: `gateway-import-boundary` (active, in the
  * gateway ESLint config block) refuses ANY import of `@dungeonmaster/shared` from inside a gateway
  * file, this test included — the gateway is the bottom layer and may not depend on a package built on
@@ -12,6 +14,10 @@
  * a `.js`-suffixed segment, so the fuller transformer's node-builtin branch and `.js`-stripping do not
  * apply here and are safely left out. A folder matches a dependency either by exact name (`glob` wraps
  * `glob`) or by prefix (`hono__utils__http-status` wraps a subpath of the `hono` dependency).
+ * `RESERVED_TEST_SUPPORT_FOLDER` is duplicated by hand from
+ * `gatewayReservedFolderNamesStatics.folders.testSupport` (`eslint-plugin`) for the same
+ * import-boundary reason `gateway-node-builtin-globals.integration.test.ts` and
+ * `gateway-browser-globals.integration.test.ts` each duplicate it — change all three when it changes.
  *
  * `.integration.test.ts`, not `.test.ts`: this file has no single implementation companion —
  * `@dungeonmaster/enforce-test-colocation` requires one for a plain `.test.ts`, and is turned off (in
@@ -28,6 +34,7 @@ import { join } from 'path';
 const PACKAGE_ROOT = join(__dirname, '..');
 const SRC_DIR = __dirname;
 const SUBPATH_JOIN = '__';
+const RESERVED_TEST_SUPPORT_FOLDER = 'gateway-test-support';
 
 const readOwnDependencyNames = (): string[] => {
   const rawPackageJson = JSON.parse(
@@ -55,15 +62,27 @@ const folderMatchesBareName = ({
   bareName: string;
 }): boolean => folderName === bareName || folderName.startsWith(`${bareName}${SUBPATH_JOIN}`);
 
+// A single named predicate, not an inline `&&`, so the conditional lives in a top-level function
+// instead of inside the `it()` body — `jest/no-conditional-in-test` flags a logical expression
+// written directly in a test.
+const folderHasNoDeclaredDependencyNorReserved = ({
+  folderName,
+  bareNames,
+}: {
+  folderName: string;
+  bareNames: string[];
+}): boolean =>
+  folderName !== RESERVED_TEST_SUPPORT_FOLDER &&
+  !bareNames.some((bareName) => folderMatchesBareName({ folderName, bareName }));
+
 describe('gateway npm package dependencies', () => {
-  it('VALID: {every src/ folder} => names a package declared in dependencies or peerDependencies', () => {
+  it('VALID: {every src/ folder} => names a package declared in dependencies or peerDependencies, or is the one reserved test-support folder', () => {
     const bareNames = readOwnDependencyNames().map((dependencyName) =>
       bareFolderNameForDependency({ dependencyName }),
     );
 
-    const foldersWithNoDeclaredDependency = readOwnSrcFolders().filter(
-      (folderName) =>
-        !bareNames.some((bareName) => folderMatchesBareName({ folderName, bareName })),
+    const foldersWithNoDeclaredDependency = readOwnSrcFolders().filter((folderName) =>
+      folderHasNoDeclaredDependencyNorReserved({ folderName, bareNames }),
     );
 
     expect(foldersWithNoDeclaredDependency).toStrictEqual([]);

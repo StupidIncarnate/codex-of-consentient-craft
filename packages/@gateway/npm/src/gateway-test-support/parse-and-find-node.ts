@@ -2,10 +2,13 @@
  * PURPOSE: Parses a code sample with the real `@typescript-eslint/typescript-estree` parser and
  * returns the first node of the given `AST_NODE_TYPES` member — never a hand-built object cast to
  * a `TSESTree` type, which is exactly the shape BR C5 refuses (a `CallExpression` with no
- * `arguments`, for example, something the real parser never emits). Every node stub in this
- * subpath calls this with its own default code sample and its own `nodeType`. The return type is
- * computed FROM `nodeType` (`Extract<TSESTree.Node, {type: K}>`), a real type this function
- * derives from an input — not a bare, caller-invented type parameter, which
+ * `arguments`, for example, something the real parser never emits). Every node stub under
+ * `typescript-eslint__utils/` calls this with its own default code sample and its own `nodeType`.
+ * Test support, not a wrapper's own export — it lives in `gateway-test-support/` (the one folder
+ * `isGatewayBarrelFileGuard` and the barrel-completeness check both exempt) rather than a subpath
+ * folder, because only stubs call it and a subpath barrel would otherwise be required to re-export
+ * it. The return type is computed FROM `nodeType` (`Extract<TSESTree.Node, {type: K}>`), a real type
+ * this function derives from an input — not a bare, caller-invented type parameter, which
  * `gateway-return-unknown-not-caller-type` refuses.
  *
  * Parses through `@typescript-eslint/typescript-estree` directly, not `@typescript-eslint/parser`

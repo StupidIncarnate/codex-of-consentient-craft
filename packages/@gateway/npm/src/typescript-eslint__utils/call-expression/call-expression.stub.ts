@@ -1,6 +1,6 @@
 import { AST_NODE_TYPES } from '@typescript-eslint/utils';
 import type { TSESTree } from '@typescript-eslint/utils';
-import { parseAndFindNode } from '../parse-and-find-node/parse-and-find-node';
+import { parseAndFindNode } from '../../gateway-test-support/parse-and-find-node';
 
 export const CallExpressionStub = ({
   code = 'foo(a);',

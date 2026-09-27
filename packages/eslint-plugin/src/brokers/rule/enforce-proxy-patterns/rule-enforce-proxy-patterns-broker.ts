@@ -21,6 +21,7 @@ import { validateNoExposedChildProxiesLayerBroker } from './validate-no-exposed-
 import { proxyPatternsStatics } from '../../../statics/proxy-patterns/proxy-patterns-statics';
 import { proxyPathToImplementationPathTransformer } from '../../../transformers/proxy-path-to-implementation-path/proxy-path-to-implementation-path-transformer';
 import { tsToTsxPathTransformer } from '../../../transformers/ts-to-tsx-path/ts-to-tsx-path-transformer';
+import { isAstNodeDirectlyInFunctionGuard } from '../../../guards/is-ast-node-directly-in-function/is-ast-node-directly-in-function-guard';
 
 export const ruleEnforceProxyPatternsBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -148,13 +149,21 @@ export const ruleEnforceProxyPatternsBroker = (): EslintRule => ({
 
         if (!callee) return;
 
-        // Check for child proxy creation (*Proxy() calls)
+        // Check for child proxy creation (*Proxy() calls). A call counts as "in constructor" when
+        // it sits directly in the proxy function's own body — a statement before return, OR part
+        // of the returned value's own expression (`return { ...childProxy() }`, same as the
+        // implicit-return `() => ({ ...childProxy() })`) — but NOT nested inside a further
+        // function the returned object exposes as a method, which is deferred rather than eager.
         if (callee.type === 'Identifier') {
           const calleeName = callee.name;
           if (calleeName?.endsWith('Proxy')) {
-            // Found a child proxy creation
             const isInsideProxyFunction = currentProxyFunction !== null;
-            const isBeforeReturn = isInsideProxyFunction && !foundReturnStatement;
+            const isBeforeReturn =
+              isInsideProxyFunction &&
+              isAstNodeDirectlyInFunctionGuard({
+                node,
+                functionNode: currentProxyFunction ?? undefined,
+              });
 
             childProxyCreations.push({
               node,

@@ -40,6 +40,7 @@ import { parseImplementationImportsTransformer } from '../../../transformers/par
 import type { FileContents, Identifier, ModulePath } from '@dungeonmaster/shared/contracts';
 import { identifierContract, filePathContract } from '@dungeonmaster/shared/contracts';
 import { proxyNameToImplementationNameTransformer } from '../../../transformers/proxy-name-to-implementation-name/proxy-name-to-implementation-name-transformer';
+import { isAstNodeDirectlyInFunctionGuard } from '../../../guards/is-ast-node-directly-in-function/is-ast-node-directly-in-function-guard';
 import { proxyPathToImplementationPathTransformer } from '../../../transformers/proxy-path-to-implementation-path/proxy-path-to-implementation-path-transformer';
 import { gatewayBarrelPathTransformer } from '../../../transformers/gateway-barrel-path/gateway-barrel-path-transformer';
 import { gatewayBarrelWrapperPathsTransformer } from '../../../transformers/gateway-barrel-wrapper-paths/gateway-barrel-wrapper-paths-transformer';
@@ -124,8 +125,7 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
     // Track proxy imports and creation calls
     const proxyImports = new Map<Identifier, ModulePath>(); // proxyName -> importPath
     const proxyCreationCalls = new Set<Identifier>(); // proxyName
-    let insideProxyFunction = false;
-    let foundReturnStatement = false;
+    let currentProxyFunctionNode: Tsestree | null = null;
 
     return {
       // Track proxy file imports
@@ -154,17 +154,23 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
         }
       },
 
-      // Track proxy creation calls
+      // Track proxy creation calls. A call counts as "created" when it sits directly in the proxy
+      // function's own body — a statement before return, OR part of the returned value's own
+      // expression (`return { ...childProxy() }`, same as the implicit-return
+      // `() => ({ ...childProxy() })`) — but NOT nested inside a further function the returned
+      // object exposes as a method, which is deferred rather than eager.
       CallExpression: (node: Tsestree): void => {
-        if (!insideProxyFunction) return;
-        if (foundReturnStatement) return;
+        if (currentProxyFunctionNode === null) return;
 
         const { callee } = node;
         if (!callee) return;
 
         if (callee.type === 'Identifier') {
           const calleeName = callee.name;
-          if (calleeName?.endsWith('Proxy')) {
+          if (
+            calleeName?.endsWith('Proxy') &&
+            isAstNodeDirectlyInFunctionGuard({ node, functionNode: currentProxyFunctionNode })
+          ) {
             proxyCreationCalls.add(calleeName);
           }
         }
@@ -178,8 +184,7 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
             if (ancestor.type === 'VariableDeclarator') {
               const ancestorId = ancestor.id;
               if (ancestorId?.name?.endsWith('Proxy')) {
-                insideProxyFunction = true;
-                foundReturnStatement = false;
+                currentProxyFunctionNode = node;
                 break;
               }
             }
@@ -189,16 +194,8 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
       // Track when we exit the proxy function
       'ExportNamedDeclaration > VariableDeclaration > VariableDeclarator > ArrowFunctionExpression:exit':
         (): void => {
-          insideProxyFunction = false;
-          foundReturnStatement = false;
+          currentProxyFunctionNode = null;
         },
-
-      // Track return statements
-      ReturnStatement: (): void => {
-        if (insideProxyFunction) {
-          foundReturnStatement = true;
-        }
-      },
 
       // Validate at the end
       'Program:exit': (node: Tsestree): void => {

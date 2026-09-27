@@ -432,6 +432,34 @@ ruleTester.run('enforce-proxy-patterns', ruleEnforceProxyPatternsBroker(), {
       `,
       filename: '/project/src/brokers/user/user-broker.proxy.ts',
     },
+    // ✅ CORRECT - Child proxy created via spread directly in an implicit-return object literal
+    // (no ReturnStatement node exists at all for this shape, so the call is tracked no matter what).
+    {
+      code: `
+        import { httpAdapterProxy } from '../../adapters/http/http-adapter.proxy';
+
+        export const userBrokerProxy = () => ({
+          ...httpAdapterProxy(),
+        });
+      `,
+      filename: '/project/src/brokers/user/user-broker.proxy.ts',
+    },
+    // ✅ CORRECT - Child proxy created via spread directly in a BLOCK-bodied return statement's own
+    // object literal — the identical content as the implicit-return case above, just block-bodied.
+    // Must be accepted the same way: the spread runs eagerly when userBrokerProxy() is called, not
+    // deferred inside a nested returned method.
+    {
+      code: `
+        import { httpAdapterProxy } from '../../adapters/http/http-adapter.proxy';
+
+        export const userBrokerProxy = () => {
+          return {
+            ...httpAdapterProxy(),
+          };
+        };
+      `,
+      filename: '/project/src/brokers/user/user-broker.proxy.ts',
+    },
   ],
   invalid: [
     // ❌ WRONG - Proxy returns void
