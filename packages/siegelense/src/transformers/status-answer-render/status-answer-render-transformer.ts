@@ -7,15 +7,24 @@
  * field is what tells the two forms apart without a separate flag. Zero instances is AMBIGUOUS on
  * its own — `statusReadBroker` answers `instances: []` both for a genuinely empty fleet and for a
  * named id the registry never held — so this transformer takes the `instanceId` the caller asked
- * for and renders the two apart: a fleet query gets the plain empty-fleet sentence, a named query
- * that resolved nothing gets a sentence naming the id as unknown. Without that parameter, a typo'd
- * `--instance` would read exactly like an empty fleet, which is the whole reason this file exists.
- * Pure, so this text is provable without stdout, the same split `fleetTableRenderTransformer`
- * already uses for the bare fleet listing.
+ * for and renders the two apart: a fleet query gets a sentence naming the `branch`/`since` filters
+ * that left it empty, a named query that resolved nothing gets a sentence naming the id as unknown.
+ * Without that parameter, a typo'd `--instance` would read exactly like an empty fleet, which is the
+ * whole reason this file exists. `branch`/`since` are the SAME filters `statusReadBroker` applied —
+ * passed straight through from the responder — because a `status` fleet listing filters by age and
+ * branch, never by alive, so "no instances running" was never an accurate reason for an empty table.
+ * `MONITORED`/`MACHINE` still print on an empty fleet: the host reading is useful independent of
+ * whether any instance matched. Pure, so this text is provable without stdout, the same split
+ * `fleetTableRenderTransformer` already uses for the bare fleet listing.
  *
  * USAGE:
- * statusAnswerRenderTransformer({ answer: StatusAnswerStub({ instances: [] }), instanceId: null });
- * // Returns 'No siegelense instances running.\n'
+ * statusAnswerRenderTransformer({
+ *   answer: StatusAnswerStub({ instances: [] }),
+ *   instanceId: null,
+ *   branch: null,
+ *   since: '6h',
+ * });
+ * // Returns 'MONITORED: ...\nMACHINE: ...\nNo siegelense instances created in the last 6hr. Widen with --since beginning.\n'
  *
  * statusAnswerRenderTransformer({ answer: StatusAnswerStub({ instances: [] }), instanceId: InstanceIdStub() });
  * // Returns 'No instance by the id "<id>" — unknown, never existed.\n'
@@ -28,20 +37,41 @@ import type { InstanceId } from '../../contracts/instance-id/instance-id-contrac
 import type { StatusAnswer } from '../../contracts/status-answer/status-answer-contract';
 import { statusTableStatics } from '../../statics/status-table/status-table-statics';
 
-const EMPTY_MESSAGE = 'No siegelense instances running.\n';
-
 export const statusAnswerRenderTransformer = ({
   answer,
   instanceId,
+  branch = null,
+  since = null,
 }: {
   answer: StatusAnswer;
   instanceId: InstanceId | null;
+  branch?: string | null;
+  since?: '1h' | '6h' | '1d' | 'beginning' | null;
 }): ContentText => {
+  const monitoredLine = `MONITORED: ${answer.monitored.join(', ')}`;
+  const machineLine = `MACHINE: free ${answer.machine.freeMemMB}MB/${answer.machine.totalMemMB}MB mem, free disk ${answer.machine.freeDiskMB ?? '-'}MB, ${answer.machine.cores} cores, load ${answer.machine.loadAvg.join('/')}, OOM kills ${answer.machine.oomKillsSinceBoot ?? '-'} (last ${answer.machine.lastOomAt ?? '-'})`;
+
   if (answer.instances.length === 0) {
+    if (instanceId !== null) {
+      return contentTextContract.parse(
+        `No instance by the id "${instanceId}" — unknown, never existed.\n`,
+      );
+    }
+
+    const { widest, display: sinceDisplay } = statusTableStatics.sinceWindows;
+
+    const branchClause = branch === null ? '' : ` on branch "${branch}"`;
+    const sinceClause =
+      since === null || since === 'beginning' ? '' : ` in the last ${sinceDisplay[since]}`;
+    const widenClause =
+      since === widest
+        ? branch === null
+          ? ''
+          : ' Widen by dropping --branch.'
+        : ` Widen with --since ${sinceDisplay[widest]}.`;
+
     return contentTextContract.parse(
-      instanceId === null
-        ? EMPTY_MESSAGE
-        : `No instance by the id "${instanceId}" — unknown, never existed.\n`,
+      `${monitoredLine}\n${machineLine}\nNo siegelense instances created${branchClause}${sinceClause}.${widenClause}\n`,
     );
   }
 
@@ -86,9 +116,6 @@ export const statusAnswerRenderTransformer = ({
       ].join('\n'),
     );
   }
-
-  const monitoredLine = `MONITORED: ${answer.monitored.join(', ')}`;
-  const machineLine = `MACHINE: free ${answer.machine.freeMemMB}MB/${answer.machine.totalMemMB}MB mem, free disk ${answer.machine.freeDiskMB ?? '-'}MB, ${answer.machine.cores} cores, load ${answer.machine.loadAvg.join('/')}, OOM kills ${answer.machine.oomKillsSinceBoot ?? '-'} (last ${answer.machine.lastOomAt ?? '-'})`;
 
   const { headers, cellPadding } = statusTableStatics.table;
 

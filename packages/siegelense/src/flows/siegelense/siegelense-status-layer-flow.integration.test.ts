@@ -285,7 +285,7 @@ describe('SiegelenseStatusLayerFlow', () => {
   });
 
   describe('the --branch filter matching no instance', () => {
-    it('EMPTY: {callArgs: [--branch, nonexistent-branch]} => renders the empty-fleet message, not a table', async () => {
+    it('EMPTY: {callArgs: [--branch, nonexistent-branch]} => renders the reworded empty-fleet message naming the branch and the default --since window, not a table', async () => {
       const writes: ReturnType<typeof ContentTextStub>[] = [];
       const originalWrite = process.stdout.write.bind(process.stdout);
       process.stdout.write = ((chunk: string): boolean => {
@@ -297,7 +297,12 @@ describe('SiegelenseStatusLayerFlow', () => {
 
       process.stdout.write = originalWrite;
 
-      expect(writes).toStrictEqual(['No siegelense instances running.\n']);
+      const [wholeOutput] = writes;
+
+      expect(wholeOutput!.split('\n').slice(2)).toStrictEqual([
+        'No siegelense instances created on branch "nonexistent-branch" in the last 6hr. Widen with --since beginning.',
+        '',
+      ]);
     });
 
     it('EMPTY: {callArgs: [--branch, nonexistent-branch, --json]} => writes the empty StatusAnswer as one JSON document', async () => {

@@ -20,24 +20,32 @@ describe('SiegelenseStatusResponder', () => {
       ]);
     });
 
-    it('EMPTY: {instanceId: null, isJson: false, no instances} => writes the plain fleet-empty sentence', async () => {
+    it('EMPTY: {instanceId: null, isJson: false, no instances} => writes the reworded empty-fleet sentence naming the default --since window', async () => {
       const proxy = SiegelenseStatusResponderProxy();
       const answer = StatusAnswerStub({ instances: [] });
       proxy.stageAnswer({ answer });
 
       await SiegelenseStatusResponder({ instanceId: null, isJson: false });
 
-      expect(proxy.getStdoutWrites()).toStrictEqual(['No siegelense instances running.\n']);
+      expect(proxy.getStdoutWrites()).toStrictEqual([
+        'MONITORED: rss per process group, free memory, free disk, load average, kernel OOM events\n' +
+          'MACHINE: free 980MB/16000MB mem, free disk 2100MB, 8 cores, load 7.9/6.2/4.1, OOM kills 2 (last 20:11:04)\n' +
+          'No siegelense instances created in the last 6hr. Widen with --since beginning.\n',
+      ]);
     });
 
-    it('EMPTY: {instanceId: null, isJson omitted, no instances} => writes the plain fleet-empty sentence by default', async () => {
+    it('EMPTY: {instanceId: null, isJson omitted, no instances} => writes the reworded empty-fleet sentence by default', async () => {
       const proxy = SiegelenseStatusResponderProxy();
       const answer = StatusAnswerStub({ instances: [] });
       proxy.stageAnswer({ answer });
 
       await SiegelenseStatusResponder({ instanceId: null });
 
-      expect(proxy.getStdoutWrites()).toStrictEqual(['No siegelense instances running.\n']);
+      expect(proxy.getStdoutWrites()).toStrictEqual([
+        'MONITORED: rss per process group, free memory, free disk, load average, kernel OOM events\n' +
+          'MACHINE: free 980MB/16000MB mem, free disk 2100MB, 8 cores, load 7.9/6.2/4.1, OOM kills 2 (last 20:11:04)\n' +
+          'No siegelense instances created in the last 6hr. Widen with --since beginning.\n',
+      ]);
     });
   });
 

@@ -106,7 +106,7 @@ describe('SiegelenseFlow', () => {
   });
 
   describe('the status route', () => {
-    it('VALID: {args: ["status"]} => routes to the status responder and reports an empty fleet in human format by default', async () => {
+    it('VALID: {args: ["status"]} => routes to the status responder and reports the reworded empty-fleet sentence naming the default --since window', async () => {
       const writes: ReturnType<typeof ContentTextStub>[] = [];
       const originalWrite = process.stdout.write.bind(process.stdout);
       process.stdout.write = ((chunk: string): boolean => {
@@ -118,7 +118,15 @@ describe('SiegelenseFlow', () => {
 
       process.stdout.write = originalWrite;
 
-      expect(writes).toStrictEqual(['No siegelense instances running.\n']);
+      // MACHINE reads live statfs/loadavg — stripped the same way EMPTY_FLEET_STATUS_JSON strips
+      // it from the --json form above, so this assertion stays deterministic.
+      const [wholeOutput] = writes;
+      const withoutLiveMachineLine = wholeOutput!.replace(/^MACHINE: .*\n/mu, '');
+
+      expect(withoutLiveMachineLine).toBe(
+        `MONITORED: ${machineStatics.monitored.join(', ')}\n` +
+          'No siegelense instances created in the last 6hr. Widen with --since beginning.\n',
+      );
     });
 
     it('VALID: {args: ["status", "--json"]} => routes to the status responder and reports an empty fleet as one JSON document when --json is passed', async () => {

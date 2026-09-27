@@ -47,7 +47,7 @@ export const SiegelenseStatusResponder = async ({
   process.stdout.write(
     isJson
       ? `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`
-      : statusAnswerRenderTransformer({ answer, instanceId }),
+      : statusAnswerRenderTransformer({ answer, instanceId, branch, since }),
   );
   return adapterResultContract.parse({ success: true });
 };

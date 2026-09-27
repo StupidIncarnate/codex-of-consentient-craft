@@ -6,12 +6,72 @@ import { statusAnswerRenderTransformer } from './status-answer-render-transforme
 
 describe('statusAnswerRenderTransformer', () => {
   describe('no instances, no instance named', () => {
-    it('EMPTY: {instanceId: null, instances: []} => the plain fleet-empty sentence, never an error', () => {
+    it('EMPTY: {branch: null, since: 6h, instances: []} => names the since window, keeps MONITORED/MACHINE, and suggests widening --since', () => {
       const answer = StatusAnswerStub({ instances: [] });
 
-      const result = statusAnswerRenderTransformer({ answer, instanceId: null });
+      const result = statusAnswerRenderTransformer({
+        answer,
+        instanceId: null,
+        branch: null,
+        since: '6h',
+      });
 
-      expect(result).toBe('No siegelense instances running.\n');
+      expect(result).toBe(
+        'MONITORED: rss per process group, free memory, free disk, load average, kernel OOM events\n' +
+          'MACHINE: free 980MB/16000MB mem, free disk 2100MB, 8 cores, load 7.9/6.2/4.1, OOM kills 2 (last 20:11:04)\n' +
+          'No siegelense instances created in the last 6hr. Widen with --since beginning.\n',
+      );
+    });
+
+    it('EMPTY: {branch: "main", since: 6h, instances: []} => names the branch AND the since window together', () => {
+      const answer = StatusAnswerStub({ instances: [] });
+
+      const result = statusAnswerRenderTransformer({
+        answer,
+        instanceId: null,
+        branch: 'main',
+        since: '6h',
+      });
+
+      expect(result).toBe(
+        'MONITORED: rss per process group, free memory, free disk, load average, kernel OOM events\n' +
+          'MACHINE: free 980MB/16000MB mem, free disk 2100MB, 8 cores, load 7.9/6.2/4.1, OOM kills 2 (last 20:11:04)\n' +
+          'No siegelense instances created on branch "main" in the last 6hr. Widen with --since beginning.\n',
+      );
+    });
+
+    it('EMPTY: {branch: "main", since: beginning, instances: []} => already the widest window, suggests dropping --branch instead', () => {
+      const answer = StatusAnswerStub({ instances: [] });
+
+      const result = statusAnswerRenderTransformer({
+        answer,
+        instanceId: null,
+        branch: 'main',
+        since: 'beginning',
+      });
+
+      expect(result).toBe(
+        'MONITORED: rss per process group, free memory, free disk, load average, kernel OOM events\n' +
+          'MACHINE: free 980MB/16000MB mem, free disk 2100MB, 8 cores, load 7.9/6.2/4.1, OOM kills 2 (last 20:11:04)\n' +
+          'No siegelense instances created on branch "main". Widen by dropping --branch.\n',
+      );
+    });
+
+    it('EMPTY: {branch: null, since: beginning, instances: []} => the widest window already, and no branch to drop => no widen clause', () => {
+      const answer = StatusAnswerStub({ instances: [] });
+
+      const result = statusAnswerRenderTransformer({
+        answer,
+        instanceId: null,
+        branch: null,
+        since: 'beginning',
+      });
+
+      expect(result).toBe(
+        'MONITORED: rss per process group, free memory, free disk, load average, kernel OOM events\n' +
+          'MACHINE: free 980MB/16000MB mem, free disk 2100MB, 8 cores, load 7.9/6.2/4.1, OOM kills 2 (last 20:11:04)\n' +
+          'No siegelense instances created.\n',
+      );
     });
   });
 
