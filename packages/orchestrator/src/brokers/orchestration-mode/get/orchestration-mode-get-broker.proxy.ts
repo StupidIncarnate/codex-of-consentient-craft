@@ -2,8 +2,8 @@ import type { OrchestrationModeStub } from '@dungeonmaster/shared/contracts';
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
 import { pathJoinAdapterProxy, processCwdAdapterProxy } from '@dungeonmaster/shared/testing';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
-import { configResolveBroker, DungeonmasterConfigStub } from '@dungeonmaster/config';
-import { registerMock } from '@dungeonmaster/testing/register-mock';
+import { DungeonmasterConfigStub } from '@dungeonmaster/config';
+import { configResolveBrokerProxy } from '@dungeonmaster/config/config-resolve-caller.proxy';
 
 type OrchestrationMode = ReturnType<typeof OrchestrationModeStub>;
 
@@ -22,29 +22,29 @@ export const orchestrationModeGetBrokerProxy = (): {
 } => {
   pathJoinAdapterProxy();
   processCwdAdapterProxy();
-  // Mocks configResolveBroker directly, rather than composing config's own colocated
-  // config-resolve-broker.proxy: that proxy mocks configResolveBroker's OWN internal
-  // dependencies, one of which (@dungeonmaster/shared's configRootFindBroker) is a broker this
-  // package's own quest/guild path resolution also calls for real — composing it here globally
-  // mocks that shared broker for the whole test FILE (registerMock's hoisted jest.mock() has no
-  // per-test-case granularity), breaking any other real path resolution the same file relies on.
-  // Traced by reproducing it: quest-orchestration-loop-broker.test.ts's whole suite started
-  // failing with "Quest not found" once its own proxy composed that same chain.
-  const handle = registerMock({ fn: configResolveBroker });
+  // Composes config's own black-box caller proxy (F18) rather than mocking configResolveBroker
+  // directly here, and rather than composing config's colocated config-resolve-broker.proxy:
+  // that proxy mocks configResolveBroker's OWN internal dependencies, one of which
+  // (@dungeonmaster/shared's configRootFindBroker) is a broker this package's own quest/guild
+  // path resolution also calls for real — composing it here globally mocks that shared broker
+  // for the whole test FILE (registerMock's hoisted jest.mock() has no per-test-case
+  // granularity), breaking any other real path resolution the same file relies on. Traced by
+  // reproducing it: quest-orchestration-loop-broker.test.ts's whole suite started failing with
+  // "Quest not found" once its own proxy composed that same chain.
+  const configProxy = configResolveBrokerProxy();
 
   return {
     setupMode: ({ mode }: { mode: OrchestrationMode }): void => {
-      handle
-        .calledWith([{ filePath: CONFIG_START_PATH }])
-        .resolves(DungeonmasterConfigStub({ orchestrationMode: mode }));
+      configProxy.setupResolves({
+        filePath: CONFIG_START_PATH,
+        config: DungeonmasterConfigStub({ orchestrationMode: mode }),
+      });
     },
     setupConfigNotFound: (): void => {
-      const error = new Error('ConfigNotFoundError: .dungeonmaster.json not found');
-      error.name = 'ConfigNotFoundError';
-      handle.calledWith([{ filePath: CONFIG_START_PATH }]).rejects(error);
+      configProxy.setupConfigNotFound({ filePath: CONFIG_START_PATH });
     },
     setupConfigError: ({ error }: { error: Error }): void => {
-      handle.calledWith([{ filePath: CONFIG_START_PATH }]).rejects(error);
+      configProxy.setupConfigMalformed({ filePath: CONFIG_START_PATH, message: error.message });
     },
   };
 };
