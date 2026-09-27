@@ -1,15 +1,12 @@
-import { existsSync } from 'fs';
-import {
-  childProcessSpawnCaptureAdapterProxy,
-  fsExistsSyncAdapterProxy,
-} from '@dungeonmaster/shared/testing';
+import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
+import { runProxy } from '#gateway/node/child_process/run/run.proxy';
+import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found.error.proxy';
 import {
   AbsoluteFilePathStub,
-  ErrorMessageStub,
-  ExitCodeStub,
   absoluteFilePathContract,
+  filePathContract,
+  type AbsoluteFilePath,
 } from '@dungeonmaster/shared/contracts';
-import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { fsGlobSyncAdapterProxy } from '../../../adapters/fs/glob-sync/fs-glob-sync-adapter.proxy';
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
@@ -23,6 +20,7 @@ import { BinCommandStub } from '../../../contracts/bin-command/bin-command.stub'
 import type { BinCommand } from '../../../contracts/bin-command/bin-command-contract';
 import { checkCommandsStatics } from '../../../statics/check-commands/check-commands-statics';
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
+import { ProjectFolderStub } from '../../../contracts/project-folder/project-folder.stub';
 
 export const checkRunUnitBrokerProxy = (): {
   setupPass: (params: { projectFolder: ProjectFolder }) => void;
@@ -41,21 +39,21 @@ export const checkRunUnitBrokerProxy = (): {
   }) => void;
   setupNoTestFiles: () => void;
   setDiscoveredFiles: (params: { files: string[] }) => void;
-  queueFsExists: (params: { result: boolean }) => void;
+  setupPathExists: (params: {
+    projectFolder: ProjectFolder;
+    relativePath: string;
+    exists: boolean;
+  }) => void;
   setupSourceConditionUnsupported: (params: { projectFolder: ProjectFolder }) => void;
   setupHandleReport: (params: { content: string }) => void;
   getSpawnedHandleReportPath: () => unknown;
   getSpawnedArgs: () => unknown;
   getSpawnedNodeOptions: () => unknown;
 } => {
-  const captureProxy = childProcessSpawnCaptureAdapterProxy();
+  const run = runProxy();
+  RunNotFoundErrorProxy();
   const sourceConditionProxy = sourceConditionSupportedBrokerProxy();
-  const existsProxy = fsExistsSyncAdapterProxy();
-  // Raw handle on the same existsSync mock existsProxy addresses, used only by queueFsExists below
-  // to answer a specific SEQUENCE of calls (jest.config.js, then each candidate .test.<ext>
-  // companion in order) differently — the shared proxy only exposes sticky calledWith staging,
-  // which cannot express "this call gets true, the next gets false."
-  const existsHandle = registerMock({ fn: existsSync });
+  const existsProxy = existsSyncProxy();
   const globProxy = fsGlobSyncAdapterProxy();
   // The broker asks the OS for a scratch dir, then reads and deletes the report jest appended to it.
   // Default: an empty report, so a test that says nothing about leaks gets none.
@@ -70,10 +68,11 @@ export const checkRunUnitBrokerProxy = (): {
   handleReadProxy.returns({ filePath: handleReportPath, content: '' });
   const handleUnlinkProxy = fsUnlinkAdapterProxy();
   handleUnlinkProxy.succeedsForAnyPath();
+  // Default: the report file is absent, so a test that says nothing about leaks gets none — the
+  // broker's own `wantsTimerWatch && existsSync(handleReportPath)` guard short-circuits before ever
+  // reading it. `setupHandleReport` below overrides this to present for the tests that stage one.
+  existsProxy.returns({ path: handleReportPath, exists: false });
   const binProxy = binResolveBrokerProxy();
-  const successCode = ExitCodeStub({ value: 0 });
-  const failCode = ExitCodeStub({ value: 1 });
-  const emptyMessage = ErrorMessageStub({ value: '' });
   // The resolved bin path depends on projectFolder.path, so the getter below (which takes no
   // params) addresses the spawn read against whatever setup last resolved — set here, read there.
   const resolvedCommandRef: { value: BinCommand } = { value: BinCommandStub() };
@@ -82,10 +81,14 @@ export const checkRunUnitBrokerProxy = (): {
   // jestDiscoverPatternsTransformer). These tests assert on jest output parsing, not which
   // pattern discovered which file, so the default describes every pattern with one predicate.
   globProxy.returnsForAnyPattern({ files: ['discovered.ts'] });
-  // The broker also calls existsSync for jest.config.js and, per passthrough file, for a colocated
-  // .test.ts companion. Most scenarios here don't care which specific path is asked about — only
-  // queueFsExists (below) overrides this for the companion-filtering tests.
-  existsProxy.implementation({ fn: () => true });
+
+  // `sourceConditionSupportedBroker` (composed inside the broker) walks every ancestor of
+  // whichever cwd `stage()` below is given — a composing caller (e.g. `singlePackageLayerBroker`)
+  // may pass a projectFolder other than the default `ProjectFolderStub()` this file's own tests
+  // use, so the "reachable" default is staged per-cwd, inside `stage()`, not once here against a
+  // guessed path. `unsupportedCwds` remembers which cwd `setupSourceConditionUnsupported` marked
+  // explicitly, so `stage()` never clobbers that with its own default regardless of call order.
+  const unsupportedCwds = new Set<AbsoluteFilePath>();
 
   const resolveCommand = ({ projectFolder }: { projectFolder: ProjectFolder }): BinCommand => {
     const command = binProxy.setupFound({
@@ -96,15 +99,51 @@ export const checkRunUnitBrokerProxy = (): {
     return command;
   };
 
+  // The broker's FIRST existsSync call, every run, before anything else. Staged by exact path —
+  // no wildcard — since every test that reaches `run` needs it, and `setupNoTestFiles` (which
+  // never reaches `run`, but still reaches THIS check before the discoveredCount==0 return) stages
+  // it separately below, against the same default ProjectFolderStub() path.
+  const stageJestConfigPresent = ({ projectFolder }: { projectFolder: ProjectFolder }): void => {
+    existsProxy.returns({
+      path: filePathContract.parse(
+        `${String(absoluteFilePathContract.parse(projectFolder.path))}/jest.config.js`,
+      ),
+      exists: true,
+    });
+  };
+
+  // Every scenario that reaches `run` shares this shape: jest.config.js answers present, the bin
+  // resolves (via `resolveCommand`, which composes `binResolveBrokerProxy` — itself an
+  // `existsSyncProxy` call against the SAME underlying mock), and `run` succeeds with the given
+  // exit code and output. Addressed by COMMAND ONLY (no args/cwd): every test here stages one
+  // outcome regardless of which of the broker's many arg-building branches actually ran.
+  const stage = ({
+    projectFolder,
+    exitCode,
+    stdout,
+    stderr,
+  }: {
+    projectFolder: ProjectFolder;
+    exitCode: number;
+    stdout: string;
+    stderr: string;
+  }): void => {
+    const cwd = absoluteFilePathContract.parse(projectFolder.path);
+    if (!unsupportedCwds.has(cwd)) {
+      sourceConditionProxy.setupSupported({ cwd });
+    }
+    stageJestConfigPresent({ projectFolder });
+    const command = String(resolveCommand({ projectFolder }));
+    run.setupSuccess({ command, exitCode, stdout, stderr });
+  };
+
   return {
     setupPass: ({ projectFolder }: { projectFolder: ProjectFolder }): void => {
-      captureProxy.setupSuccess({
-        command: String(resolveCommand({ projectFolder })),
-        exitCode: successCode,
-        stdout: ErrorMessageStub({
-          value: '{"testResults":[],"numTotalTestSuites":0,"success":true}',
-        }),
-        stderr: emptyMessage,
+      stage({
+        projectFolder,
+        exitCode: 0,
+        stdout: '{"testResults":[],"numTotalTestSuites":0,"success":true}',
+        stderr: '',
       });
     },
 
@@ -115,12 +154,7 @@ export const checkRunUnitBrokerProxy = (): {
       projectFolder: ProjectFolder;
       stdout: string;
     }): void => {
-      captureProxy.setupSuccess({
-        command: String(resolveCommand({ projectFolder })),
-        exitCode: successCode,
-        stdout: ErrorMessageStub({ value: stdout }),
-        stderr: emptyMessage,
-      });
+      stage({ projectFolder, exitCode: 0, stdout, stderr: '' });
     },
 
     setupFail: ({
@@ -130,21 +164,11 @@ export const checkRunUnitBrokerProxy = (): {
       projectFolder: ProjectFolder;
       stdout: string;
     }): void => {
-      captureProxy.setupSuccess({
-        command: String(resolveCommand({ projectFolder })),
-        exitCode: failCode,
-        stdout: ErrorMessageStub({ value: stdout }),
-        stderr: emptyMessage,
-      });
+      stage({ projectFolder, exitCode: 1, stdout, stderr: '' });
     },
 
     setupFailWithBadOutput: ({ projectFolder }: { projectFolder: ProjectFolder }): void => {
-      captureProxy.setupSuccess({
-        command: String(resolveCommand({ projectFolder })),
-        exitCode: failCode,
-        stdout: ErrorMessageStub({ value: 'not valid json \x1b[31m' }),
-        stderr: emptyMessage,
-      });
+      stage({ projectFolder, exitCode: 1, stdout: 'not valid json \x1b[31m', stderr: '' });
     },
 
     setupPassWithStderr: ({
@@ -156,12 +180,7 @@ export const checkRunUnitBrokerProxy = (): {
       stdout: string;
       stderr: string;
     }): void => {
-      captureProxy.setupSuccess({
-        command: String(resolveCommand({ projectFolder })),
-        exitCode: successCode,
-        stdout: ErrorMessageStub({ value: stdout }),
-        stderr: ErrorMessageStub({ value: stderr }),
-      });
+      stage({ projectFolder, exitCode: 0, stdout, stderr });
     },
 
     setupFailWithStderr: ({
@@ -173,15 +192,11 @@ export const checkRunUnitBrokerProxy = (): {
       stdout: string;
       stderr: string;
     }): void => {
-      captureProxy.setupSuccess({
-        command: String(resolveCommand({ projectFolder })),
-        exitCode: failCode,
-        stdout: ErrorMessageStub({ value: stdout }),
-        stderr: ErrorMessageStub({ value: stderr }),
-      });
+      stage({ projectFolder, exitCode: 1, stdout, stderr });
     },
 
     setupNoTestFiles: (): void => {
+      stageJestConfigPresent({ projectFolder: ProjectFolderStub() });
       globProxy.returnsForAnyPattern({ files: [] });
     },
 
@@ -189,40 +204,54 @@ export const checkRunUnitBrokerProxy = (): {
       globProxy.returnsForAnyPattern({ files });
     },
 
-    queueFsExists: ({ result }: { result: boolean }): void => {
-      existsHandle.onceFor([]).returns(result);
+    // Every candidate companion path this broker checks is a distinct, fully-known string (the
+    // source file's own base name plus one extension), so addressing by exact path — rather than
+    // the call-order FIFO the old adapter-backed raw mock needed — tells every scenario apart with
+    // no ambiguity.
+    setupPathExists: ({
+      projectFolder,
+      relativePath,
+      exists,
+    }: {
+      projectFolder: ProjectFolder;
+      relativePath: string;
+      exists: boolean;
+    }): void => {
+      existsProxy.returns({
+        path: filePathContract.parse(
+          `${String(absoluteFilePathContract.parse(projectFolder.path))}/${relativePath}`,
+        ),
+        exists,
+      });
     },
 
     // Models a consumer's install: `@dungeonmaster/shared` packs `dist` only, so no ancestor of the
-    // project folder holds the `source` barrel. The catch-all default above answers true for every
-    // unstaged path, so each candidate has to be addressed by name to get back to false.
+    // project folder holds the `source` barrel. Recorded in `unsupportedCwds` so `stage()` (called
+    // by `setupPass` etc., whether before or after this) never re-stages this cwd as reachable.
     setupSourceConditionUnsupported: ({
       projectFolder,
     }: {
       projectFolder: ProjectFolder;
     }): void => {
-      sourceConditionProxy.setupUnsupported({
-        cwd: absoluteFilePathContract.parse(projectFolder.path),
-      });
+      const cwd = absoluteFilePathContract.parse(projectFolder.path);
+      unsupportedCwds.add(cwd);
+      sourceConditionProxy.setupUnsupported({ cwd });
     },
 
     setupHandleReport: ({ content }: { content: string }): void => {
+      existsProxy.returns({ path: handleReportPath, exists: true });
       handleReadProxy.returns({ filePath: handleReportPath, content });
     },
 
     getSpawnedHandleReportPath: (): unknown =>
-      captureProxy.getSpawnedEnvValue({
-        command: String(resolvedCommandRef.value),
-        key: openHandleReportStatics.env.pathVar,
-      }),
+      run.getOptionsFor({ command: String(resolvedCommandRef.value) }).at(-1)?.env[
+        openHandleReportStatics.env.pathVar
+      ],
 
     getSpawnedArgs: (): unknown =>
-      captureProxy.getSpawnedArgs({ command: String(resolvedCommandRef.value) }),
+      run.getCallsFor({ command: String(resolvedCommandRef.value) }).at(-1),
 
     getSpawnedNodeOptions: (): unknown =>
-      captureProxy.getSpawnedEnvValue({
-        command: String(resolvedCommandRef.value),
-        key: 'NODE_OPTIONS',
-      }),
+      run.getOptionsFor({ command: String(resolvedCommandRef.value) }).at(-1)?.env.NODE_OPTIONS,
   };
 };

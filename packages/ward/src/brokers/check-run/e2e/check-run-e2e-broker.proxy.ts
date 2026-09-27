@@ -1,14 +1,12 @@
+import { architecturePackageE2eEligibleDetectBrokerProxy } from '@dungeonmaster/shared/testing';
+import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
+import { runProxy } from '#gateway/node/child_process/run/run.proxy';
+import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found.error.proxy';
+import { freePortPairProxy } from '#gateway/node/net/free-port-pair/free-port-pair.proxy';
 import {
-  architecturePackageE2eEligibleDetectBrokerProxy,
-  childProcessSpawnCaptureAdapterProxy,
-  fsExistsSyncAdapterProxy,
-  netFreePortPairAdapterProxy,
-} from '@dungeonmaster/shared/testing';
-import {
-  ErrorMessageStub,
-  ExitCodeStub,
   filePathContract,
   absoluteFilePathContract,
+  AbsoluteFilePathStub,
 } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
@@ -20,6 +18,7 @@ import { fsUnlinkAdapterProxy } from '../../../adapters/fs/unlink/fs-unlink-adap
 import { e2eArtifactsRemoveBrokerProxy } from '../../e2e-artifacts/remove/e2e-artifacts-remove-broker.proxy';
 import { binResolveBrokerProxy } from '../../bin/resolve/bin-resolve-broker.proxy';
 import { bundleBuildBrokerProxy } from '../../bundle/build/bundle-build-broker.proxy';
+import { openHandleReportPathTransformer } from '../../../transformers/open-handle-report-path/open-handle-report-path-transformer';
 import { BinCommandStub } from '../../../contracts/bin-command/bin-command.stub';
 import type { BinCommand } from '../../../contracts/bin-command/bin-command-contract';
 import { checkCommandsStatics } from '../../../statics/check-commands/check-commands-statics';
@@ -44,10 +43,11 @@ export const checkRunE2eBrokerProxy = (): {
   getSpawnedEnvValue: (params: { key: string }) => unknown;
   getSpawnedOptions: () => unknown;
 } => {
-  const captureProxy = childProcessSpawnCaptureAdapterProxy();
-  const existsProxy = fsExistsSyncAdapterProxy();
+  const run = runProxy();
+  RunNotFoundErrorProxy();
+  const existsProxy = existsSyncProxy();
   const eligibleProxy = architecturePackageE2eEligibleDetectBrokerProxy();
-  const freePortProxy = netFreePortPairAdapterProxy();
+  const freePortProxy = freePortPairProxy();
   // e2e discovery has exactly one static pattern (checkCommandsStatics.e2e.discoverPatterns),
   // unlike unit/integration which loop over a dozen. The pattern is known, so key on it exactly.
   const globProxy = fsGlobSyncAdapterProxy();
@@ -69,9 +69,6 @@ export const checkRunE2eBrokerProxy = (): {
   // UNSTAGED, so it answers "no build script" and the run gets no bundle — which is what those
   // setups' expectations describe.
   const bundleProxy = bundleBuildBrokerProxy();
-  const successCode = ExitCodeStub({ value: 0 });
-  const failCode = ExitCodeStub({ value: 1 });
-  const emptyMessage = ErrorMessageStub({ value: '' });
   // The resolved bin path depends on projectFolder.path, so the getters below (which take no
   // params) address the spawn read against whatever setup last resolved — set here, read there.
   const resolvedCommandRef: { value: BinCommand } = { value: BinCommandStub() };
@@ -81,8 +78,18 @@ export const checkRunE2eBrokerProxy = (): {
   // to move together.
   const STAGED_SERVER_PORT = 40_000;
 
+  // Playwright's own leak surface, checked unconditionally (no `wantsTimerWatch` gate the way
+  // unit/integration have — every e2e run asks). Staged by exact path — no wildcard — since no
+  // test here stages a leak report; default absent is what every one of them needs.
+  const handleReportPath = openHandleReportPathTransformer({
+    tmpdir: AbsoluteFilePathStub({ value: '/tmp' }),
+    checkType: 'e2e',
+    processId: STAGED_SERVER_PORT,
+  });
+  existsProxy.returns({ path: handleReportPath, exists: false });
+
   const queueFreePorts = (): void => {
-    freePortProxy.setupPorts({ firstPort: STAGED_SERVER_PORT, secondPort: 51_244 });
+    freePortProxy.returns({ server: STAGED_SERVER_PORT, web: 51_244 });
   };
 
   const stageCacheRemoval = ({ projectFolder }: { projectFolder: ProjectFolder }): void => {
@@ -116,8 +123,8 @@ export const checkRunE2eBrokerProxy = (): {
   }): void => {
     markEligible({ projectFolder });
     existsProxy.returns({
-      filePath: filePathContract.parse(`${projectFolder.path}/playwright.config.ts`),
-      result: true,
+      path: filePathContract.parse(`${projectFolder.path}/playwright.config.ts`),
+      exists: true,
     });
   };
 
@@ -139,11 +146,11 @@ export const checkRunE2eBrokerProxy = (): {
       setupPlaywrightConfigExists({ projectFolder });
       queueFreePorts();
       stageCacheRemoval({ projectFolder });
-      captureProxy.setupSuccess({
+      run.setupSuccess({
         command: String(resolveCommand({ projectFolder })),
-        exitCode: successCode,
-        stdout: emptyMessage,
-        stderr: emptyMessage,
+        exitCode: 0,
+        stdout: '',
+        stderr: '',
       });
     },
 
@@ -152,11 +159,11 @@ export const checkRunE2eBrokerProxy = (): {
       queueFreePorts();
       stageCacheRemoval({ projectFolder });
       stageCachedBundle({ projectFolder });
-      captureProxy.setupSuccess({
+      run.setupSuccess({
         command: String(resolveCommand({ projectFolder })),
-        exitCode: successCode,
-        stdout: emptyMessage,
-        stderr: emptyMessage,
+        exitCode: 0,
+        stdout: '',
+        stderr: '',
       });
     },
 
@@ -173,11 +180,11 @@ export const checkRunE2eBrokerProxy = (): {
       setupPlaywrightConfigExists({ projectFolder });
       queueFreePorts();
       stageCacheRemoval({ projectFolder });
-      captureProxy.setupSuccess({
+      run.setupSuccess({
         command: String(resolveCommand({ projectFolder })),
-        exitCode: successCode,
-        stdout: ErrorMessageStub({ value: stdout }),
-        stderr: emptyMessage,
+        exitCode: 0,
+        stdout,
+        stderr: '',
       });
     },
 
@@ -191,11 +198,11 @@ export const checkRunE2eBrokerProxy = (): {
       setupPlaywrightConfigExists({ projectFolder });
       queueFreePorts();
       stageCacheRemoval({ projectFolder });
-      captureProxy.setupSuccess({
+      run.setupSuccess({
         command: String(resolveCommand({ projectFolder })),
-        exitCode: successCode,
-        stdout: emptyMessage,
-        stderr: emptyMessage,
+        exitCode: 0,
+        stdout: '',
+        stderr: '',
       });
       readFileProxy.returns({
         filePath: filePathContract.parse(
@@ -215,11 +222,11 @@ export const checkRunE2eBrokerProxy = (): {
       setupPlaywrightConfigExists({ projectFolder });
       queueFreePorts();
       stageCacheRemoval({ projectFolder });
-      captureProxy.setupSuccess({
+      run.setupSuccess({
         command: String(resolveCommand({ projectFolder })),
-        exitCode: failCode,
-        stdout: ErrorMessageStub({ value: stdout }),
-        stderr: emptyMessage,
+        exitCode: 1,
+        stdout,
+        stderr: '',
       });
     },
 
@@ -227,11 +234,11 @@ export const checkRunE2eBrokerProxy = (): {
       setupPlaywrightConfigExists({ projectFolder });
       queueFreePorts();
       stageCacheRemoval({ projectFolder });
-      captureProxy.setupSuccess({
+      run.setupSuccess({
         command: String(resolveCommand({ projectFolder })),
-        exitCode: failCode,
-        stdout: emptyMessage,
-        stderr: emptyMessage,
+        exitCode: 1,
+        stdout: '',
+        stderr: '',
       });
     },
 
@@ -241,16 +248,16 @@ export const checkRunE2eBrokerProxy = (): {
         srcDirNames: ['brokers'],
       });
       existsProxy.returns({
-        filePath: filePathContract.parse(`${projectFolder.path}/playwright.config.ts`),
-        result: false,
+        path: filePathContract.parse(`${projectFolder.path}/playwright.config.ts`),
+        exists: false,
       });
     },
 
     setupEligibleMissingConfig: ({ projectFolder }: { projectFolder: ProjectFolder }): void => {
       markEligible({ projectFolder });
       existsProxy.returns({
-        filePath: filePathContract.parse(`${projectFolder.path}/playwright.config.ts`),
-        result: false,
+        path: filePathContract.parse(`${projectFolder.path}/playwright.config.ts`),
+        exists: false,
       });
     },
 
@@ -264,10 +271,10 @@ export const checkRunE2eBrokerProxy = (): {
         port: STAGED_SERVER_PORT,
       }),
     getSpawnedArgs: (): unknown =>
-      captureProxy.getSpawnedArgs({ command: String(resolvedCommandRef.value) }),
+      run.getCallsFor({ command: String(resolvedCommandRef.value) }).at(-1),
     getSpawnedEnvValue: ({ key }: { key: string }): unknown =>
-      captureProxy.getSpawnedEnvValue({ command: String(resolvedCommandRef.value), key }),
+      run.getOptionsFor({ command: String(resolvedCommandRef.value) }).at(-1)?.env[key],
     getSpawnedOptions: (): unknown =>
-      captureProxy.getSpawnedOptions({ command: String(resolvedCommandRef.value) }),
+      run.getOptionsFor({ command: String(resolvedCommandRef.value) }).at(-1),
   };
 };

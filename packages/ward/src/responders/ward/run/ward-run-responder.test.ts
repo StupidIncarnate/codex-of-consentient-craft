@@ -1,4 +1,4 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub, FilePathStub } from '@dungeonmaster/shared/contracts';
 
 import { WardRunResponderProxy } from './ward-run-responder.proxy';
 
@@ -35,6 +35,10 @@ describe('WardRunResponder', () => {
     it('VALID: {args with -- file1 file2} => parses passthrough and delegates to broker', async () => {
       const proxy = WardRunResponderProxy();
       proxy.setupSinglePackagePass();
+      proxy.setupExistingPath({ filePath: FilePathStub({ value: '/project/src/index.ts' }) });
+      proxy.setupExistingPath({ filePath: FilePathStub({ value: '/project/src/utils.ts' }) });
+      proxy.setupCompanionTestMissing({ relativePath: 'src/index.ts' });
+      proxy.setupCompanionTestMissing({ relativePath: 'src/utils.ts' });
 
       await proxy.callResponder({
         args: ['node', 'ward', 'run', '--', 'src/index.ts', 'src/utils.ts'],

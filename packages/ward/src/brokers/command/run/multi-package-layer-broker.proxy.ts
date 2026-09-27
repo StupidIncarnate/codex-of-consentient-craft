@@ -1,6 +1,6 @@
-import { childProcessSpawnStreamAdapterProxy } from '@dungeonmaster/shared/testing';
+import { streamProxy } from '#gateway/node/child_process/stream/stream.proxy';
+import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found.error.proxy';
 import {
-  ExitCodeStub,
   absoluteFilePathContract,
   filePathContract,
   type AbsoluteFilePath,
@@ -58,13 +58,16 @@ export const multiPackageLayerBrokerProxy = (): {
   const stderrSpy = registerSpyOn({ object: process.stderr, method: 'write' });
   stderrSpy.calledWith([]).returns(true);
 
-  const streamProxy = childProcessSpawnStreamAdapterProxy();
+  const stream = streamProxy();
+  RunNotFoundErrorProxy();
   const binProxy = binResolveBrokerProxy();
   const saveProxy = storageSaveBrokerProxy();
   const pruneProxy = storagePruneBrokerProxy();
   const loadProxy = storageLoadBrokerProxy();
   childCrashLayerBrokerProxy();
-  const successCode = ExitCodeStub({ value: 0 });
+  // The resolved bin path depends on rootPath, so `getAllSpawnedArgs` (which takes no params)
+  // addresses the spawn read against whatever setup last resolved — set here, read there.
+  const resolvedCommandRef: { value: BinCommand } = { value: BinCommandStub() };
 
   // Default: a resolved config carrying no `ward` key at all, matching what a consumer who has
   // never heard of this key gets back for real (see P14) — the broker under test falls back to
@@ -81,11 +84,14 @@ export const multiPackageLayerBrokerProxy = (): {
   // Matches what a child ward actually prints — id plus the trailing total-duration suffix.
   const childSummaryLine = `run: ${runId}  (1.2s)\n`;
 
-  const resolveWardBin = ({ rootPath }: { rootPath: AbsoluteFilePath }): BinCommand =>
-    binProxy.setupFound({
+  const resolveWardBin = ({ rootPath }: { rootPath: AbsoluteFilePath }): BinCommand => {
+    const command = binProxy.setupFound({
       cwd: rootPath,
       binName: BinCommandStub({ value: wardSpawnCommandStatics.bin }),
     });
+    resolvedCommandRef.value = command;
+    return command;
+  };
 
   return {
     setupSpawnAndLoad: ({
@@ -97,14 +103,12 @@ export const multiPackageLayerBrokerProxy = (): {
       projectFolders: ProjectFolder[];
       subResultContent: string;
     }): void => {
+      // Addressed by COMMAND ONLY (no args/cwd): one child is spawned per folder, each with its
+      // own args, and every one of them gets the SAME success output regardless — the folder is
+      // what tells the loaded sub-results apart, via `loadProxy.setupRunById` below, not the spawn.
       const command = String(resolveWardBin({ rootPath }));
+      stream.setupSuccess({ command, exitCode: 0, stdout: childSummaryLine, stderr: '' });
       for (const folder of projectFolders) {
-        streamProxy.setupSuccess({
-          command,
-          exitCode: successCode,
-          stdout: childSummaryLine,
-          stderr: '',
-        });
         loadProxy.setupRunById({
           rootPath: absoluteFilePathContract.parse(folder.path),
           runId,
@@ -123,13 +127,8 @@ export const multiPackageLayerBrokerProxy = (): {
       packages: { projectFolder: ProjectFolder; subResultContent: string }[];
     }): void => {
       const command = String(resolveWardBin({ rootPath }));
+      stream.setupSuccess({ command, exitCode: 0, stdout: childSummaryLine, stderr: '' });
       for (const pkg of packages) {
-        streamProxy.setupSuccess({
-          command,
-          exitCode: successCode,
-          stdout: childSummaryLine,
-          stderr: '',
-        });
         loadProxy.setupRunById({
           rootPath: absoluteFilePathContract.parse(pkg.projectFolder.path),
           runId,
@@ -148,12 +147,7 @@ export const multiPackageLayerBrokerProxy = (): {
       projectFolder: ProjectFolder;
     }): void => {
       const command = String(resolveWardBin({ rootPath }));
-      streamProxy.setupSuccess({
-        command,
-        exitCode: ExitCodeStub({ value: 1 }),
-        stdout: childSummaryLine,
-        stderr: '',
-      });
+      stream.setupSuccess({ command, exitCode: 1, stdout: childSummaryLine, stderr: '' });
       loadProxy.setupReadFail({
         rootPath: absoluteFilePathContract.parse(projectFolder.path),
         runId,
@@ -178,12 +172,7 @@ export const multiPackageLayerBrokerProxy = (): {
       staleResultContent: string;
     }): void => {
       const command = String(resolveWardBin({ rootPath }));
-      streamProxy.setupSuccess({
-        command,
-        exitCode: ExitCodeStub({ value: 1 }),
-        stdout: childStdout,
-        stderr: '',
-      });
+      stream.setupSuccess({ command, exitCode: 1, stdout: childStdout, stderr: '' });
       const staleRunId = RunIdStub({ value: '1739000000000-01de' });
       loadProxy.setupLatestRun({
         rootPath: absoluteFilePathContract.parse(projectFolder.path),
@@ -216,7 +205,9 @@ export const multiPackageLayerBrokerProxy = (): {
     },
 
     getStderrCalls: (): unknown[] => stderrSpy.callsMatching([]).map((call) => call[0]),
-    getAllSpawnedArgs: (): unknown[] => streamProxy.getAllSpawnedArgs(),
+    getAllSpawnedArgs: (): unknown[] => [
+      ...stream.getCallsFor({ command: String(resolvedCommandRef.value) }),
+    ],
     getConfigResolveCallCount: (): unknown => configResolveHandle.callsMatching([]).length,
     // Deliberately un-narrowed: the whole `{filePath}` call argument, one entry per call. Inline
     // structural casts are forbidden in brokers/, so the test asserts on this shape with

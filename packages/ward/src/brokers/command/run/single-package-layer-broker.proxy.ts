@@ -18,6 +18,10 @@ export const singlePackageLayerBrokerProxy = (): {
   setupLintOnlyPass: (params: { projectFolder: ProjectFolder }) => void;
   setupLintOnlyFail: (params: { projectFolder: ProjectFolder; stdout: string }) => void;
   setupE2eOnlySkip: (params: { projectFolder: ProjectFolder }) => void;
+  setupUnitCompanionTestMissing: (params: {
+    projectFolder: ProjectFolder;
+    relativePath: string;
+  }) => void;
   getStderrCalls: () => unknown[];
 } => {
   // Date.now/Math.random take no identifying argument — the receiver is what a spy cannot see.
@@ -79,6 +83,18 @@ export const singlePackageLayerBrokerProxy = (): {
       e2eProxy.setupNotE2eEligible({ projectFolder });
       saveProxy.setupSuccess({ rootPath, runId });
       pruneProxy.setupEmpty({ rootPath });
+    },
+    // `checkRunUnitBroker`'s own colocated-`.test.ts` check for a passthrough source file — exposed
+    // here (rather than a caller reaching into `unitProxy` directly) because this proxy is the one
+    // that already legitimately composes it.
+    setupUnitCompanionTestMissing: ({
+      projectFolder,
+      relativePath,
+    }: {
+      projectFolder: ProjectFolder;
+      relativePath: string;
+    }): void => {
+      unitProxy.setupPathExists({ projectFolder, relativePath, exists: false });
     },
     getStderrCalls: (): unknown[] => stderrSpy.callsMatching([]).map((call) => call[0]),
   };

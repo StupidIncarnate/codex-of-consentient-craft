@@ -354,6 +354,7 @@ describe('checkRunUnitBroker', () => {
     it('VALID: {fileList provided} => passes --findRelatedTests and --runInBand with files to jest', async () => {
       const projectFolder = ProjectFolderStub();
       const proxy = checkRunUnitBrokerProxy();
+      proxy.setupPathExists({ projectFolder, relativePath: 'src/index.test.ts', exists: true });
       proxy.setupPass({ projectFolder });
 
       await checkRunUnitBroker({
@@ -721,9 +722,7 @@ describe('checkRunUnitBroker', () => {
     it('VALID: {source file src/foo/foo.ts with .test.ts companion on disk} => keeps file and passes --findRelatedTests to jest', async () => {
       const projectFolder = ProjectFolderStub();
       const proxy = checkRunUnitBrokerProxy();
-      proxy.queueFsExists({ result: true }); // jest.config.js present
-      proxy.queueFsExists({ result: true }); // src/foo/foo.test.ts present
-      proxy.queueFsExists({ result: true }); // bin resolve found
+      proxy.setupPathExists({ projectFolder, relativePath: 'src/foo/foo.test.ts', exists: true });
       proxy.setupPass({ projectFolder });
 
       await checkRunUnitBroker({
@@ -748,13 +747,28 @@ describe('checkRunUnitBroker', () => {
 
     it('VALID: {source file with only .integration.test.ts companion on disk} => drops file, returns skip, does not spawn jest', async () => {
       const proxy = checkRunUnitBrokerProxy();
-      proxy.queueFsExists({ result: true }); // jest.config.js present
-      proxy.queueFsExists({ result: false }); // src/flows/cli/cli-flow.test.ts missing
-      proxy.queueFsExists({ result: false }); // src/flows/cli/cli-flow.test.tsx missing
-      proxy.queueFsExists({ result: false }); // src/flows/cli/cli-flow.test.js missing
-      proxy.queueFsExists({ result: false }); // src/flows/cli/cli-flow.test.jsx missing
-
       const projectFolder = ProjectFolderStub();
+      proxy.setupPathExists({ projectFolder, relativePath: 'jest.config.js', exists: true });
+      proxy.setupPathExists({
+        projectFolder,
+        relativePath: 'src/flows/cli/cli-flow.test.ts',
+        exists: false,
+      });
+      proxy.setupPathExists({
+        projectFolder,
+        relativePath: 'src/flows/cli/cli-flow.test.tsx',
+        exists: false,
+      });
+      proxy.setupPathExists({
+        projectFolder,
+        relativePath: 'src/flows/cli/cli-flow.test.js',
+        exists: false,
+      });
+      proxy.setupPathExists({
+        projectFolder,
+        relativePath: 'src/flows/cli/cli-flow.test.jsx',
+        exists: false,
+      });
 
       const result = await checkRunUnitBroker({
         projectFolder,
@@ -807,13 +821,11 @@ describe('checkRunUnitBroker', () => {
     it('VALID: {mix of source with companion and source without companion} => only the file with companion reaches --findRelatedTests', async () => {
       const projectFolder = ProjectFolderStub();
       const proxy = checkRunUnitBrokerProxy();
-      proxy.queueFsExists({ result: true }); // jest.config.js present
-      proxy.queueFsExists({ result: true }); // src/a/a.test.ts present
-      proxy.queueFsExists({ result: false }); // src/b/b.test.ts missing
-      proxy.queueFsExists({ result: false }); // src/b/b.test.tsx missing
-      proxy.queueFsExists({ result: false }); // src/b/b.test.js missing
-      proxy.queueFsExists({ result: false }); // src/b/b.test.jsx missing
-      proxy.queueFsExists({ result: true }); // bin resolve found
+      proxy.setupPathExists({ projectFolder, relativePath: 'src/a/a.test.ts', exists: true });
+      proxy.setupPathExists({ projectFolder, relativePath: 'src/b/b.test.ts', exists: false });
+      proxy.setupPathExists({ projectFolder, relativePath: 'src/b/b.test.tsx', exists: false });
+      proxy.setupPathExists({ projectFolder, relativePath: 'src/b/b.test.js', exists: false });
+      proxy.setupPathExists({ projectFolder, relativePath: 'src/b/b.test.jsx', exists: false });
       proxy.setupPass({ projectFolder });
 
       await checkRunUnitBroker({
@@ -842,10 +854,16 @@ describe('checkRunUnitBroker', () => {
     it('VALID: {source file src/widgets/app.tsx with .test.tsx companion on disk} => keeps file and passes to --findRelatedTests', async () => {
       const projectFolder = ProjectFolderStub();
       const proxy = checkRunUnitBrokerProxy();
-      proxy.queueFsExists({ result: true }); // jest.config.js present
-      proxy.queueFsExists({ result: false }); // src/widgets/app.test.ts missing
-      proxy.queueFsExists({ result: true }); // src/widgets/app.test.tsx present
-      proxy.queueFsExists({ result: true }); // bin resolve found
+      proxy.setupPathExists({
+        projectFolder,
+        relativePath: 'src/widgets/app.test.ts',
+        exists: false,
+      });
+      proxy.setupPathExists({
+        projectFolder,
+        relativePath: 'src/widgets/app.test.tsx',
+        exists: true,
+      });
       proxy.setupPass({ projectFolder });
 
       await checkRunUnitBroker({
@@ -870,13 +888,28 @@ describe('checkRunUnitBroker', () => {
 
     it('VALID: {proxy file foo.proxy.ts with no foo.proxy.test.ts companion} => drops file, returns skip', async () => {
       const proxy = checkRunUnitBrokerProxy();
-      proxy.queueFsExists({ result: true }); // jest.config.js present
-      proxy.queueFsExists({ result: false }); // src/foo/foo.proxy.test.ts missing
-      proxy.queueFsExists({ result: false }); // src/foo/foo.proxy.test.tsx missing
-      proxy.queueFsExists({ result: false }); // src/foo/foo.proxy.test.js missing
-      proxy.queueFsExists({ result: false }); // src/foo/foo.proxy.test.jsx missing
-
       const projectFolder = ProjectFolderStub();
+      proxy.setupPathExists({ projectFolder, relativePath: 'jest.config.js', exists: true });
+      proxy.setupPathExists({
+        projectFolder,
+        relativePath: 'src/foo/foo.proxy.test.ts',
+        exists: false,
+      });
+      proxy.setupPathExists({
+        projectFolder,
+        relativePath: 'src/foo/foo.proxy.test.tsx',
+        exists: false,
+      });
+      proxy.setupPathExists({
+        projectFolder,
+        relativePath: 'src/foo/foo.proxy.test.js',
+        exists: false,
+      });
+      proxy.setupPathExists({
+        projectFolder,
+        relativePath: 'src/foo/foo.proxy.test.jsx',
+        exists: false,
+      });
 
       const result = await checkRunUnitBroker({
         projectFolder,
@@ -1230,6 +1263,11 @@ describe('checkRunUnitBroker', () => {
       const projectFolder = ProjectFolderStub();
 
       const fileScopeProxy = checkRunUnitBrokerProxy();
+      fileScopeProxy.setupPathExists({
+        projectFolder,
+        relativePath: 'src/index.test.ts',
+        exists: true,
+      });
       fileScopeProxy.setupPass({ projectFolder });
       await checkRunUnitBroker({
         projectFolder,
@@ -1249,6 +1287,11 @@ describe('checkRunUnitBroker', () => {
       const directoryScopeArgs = String(directoryScopeProxy.getSpawnedArgs()).split(',');
 
       const mixedScopeProxy = checkRunUnitBrokerProxy();
+      mixedScopeProxy.setupPathExists({
+        projectFolder,
+        relativePath: 'src/index.test.ts',
+        exists: true,
+      });
       mixedScopeProxy.setupPass({ projectFolder });
       await checkRunUnitBroker({
         projectFolder,

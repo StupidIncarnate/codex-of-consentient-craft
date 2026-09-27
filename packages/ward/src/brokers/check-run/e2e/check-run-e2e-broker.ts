@@ -7,11 +7,9 @@
  * // e2e-eligible, or fail if it's eligible but missing playwright.config.ts
  */
 
-import {
-  childProcessSpawnCaptureAdapter,
-  fsExistsSyncAdapter,
-  netFreePortPairAdapter,
-} from '@dungeonmaster/shared/adapters';
+import { run, RunNotFoundError } from '#gateway/node/child_process';
+import { existsSync } from '#gateway/node/fs';
+import { freePortPair } from '#gateway/node/net';
 import { architecturePackageE2eEligibleDetectBroker } from '@dungeonmaster/shared/brokers';
 
 import { netKillPortAdapter } from '../../../adapters/net/kill-port/net-kill-port-adapter';
@@ -20,6 +18,7 @@ import {
   errorMessageContract,
   exitCodeContract,
   filePathContract,
+  networkPortContract,
 } from '@dungeonmaster/shared/contracts';
 
 import { binCommandContract } from '../../../contracts/bin-command/bin-command-contract';
@@ -80,7 +79,7 @@ export const checkRunE2eBroker = async ({
   }
 
   const configPath = filePathContract.parse(`${projectFolder.path}/playwright.config.ts`);
-  if (!fsExistsSyncAdapter({ filePath: configPath })) {
+  if (!existsSync(configPath)) {
     // Eligible per its own widgets/react (or ink) signals but missing the config Playwright needs
     // to run — a real gap, not something to skip quietly.
     return projectResultContract.parse({
@@ -164,7 +163,7 @@ export const checkRunE2eBroker = async ({
   // `serverPort + 1`: nothing checks that a derived port is free, a concurrent run can be handed
   // it as ITS server port, and the netKillPortAdapter teardown below then kills that run's server
   // mid-suite — which reads as an unrelated flaky spec rather than as a port collision.
-  const { firstPort: serverPort, secondPort: webPort } = await netFreePortPairAdapter();
+  const { firstPort: serverPort, secondPort: webPort } = await freePortPair();
 
   // The port makes this path unique per run, which is what lets two browser walks run against one
   // package at once. A name fixed per package has the second run overwriting a report the first is
@@ -184,7 +183,11 @@ export const checkRunE2eBroker = async ({
     processId: serverPort,
   });
 
-  const result = await childProcessSpawnCaptureAdapter({
+  // A missing `playwright` binary rejects `run` with RunNotFoundError rather than resolving a
+  // result — caught here and folded into the same failed-run shape the old spawn-capture adapter
+  // resolved for an ENOENT, so a machine without the resolved bin reads as a failing e2e run below,
+  // exactly as it always has.
+  const result = await run({
     command,
     args: finalArgs,
     cwd,
@@ -200,14 +203,19 @@ export const checkRunE2eBroker = async ({
         ? {}
         : { DUNGEONMASTER_WEB_BUNDLE_DIR: String(bundle.bundleDir) }),
     },
+  }).catch((error: unknown) => {
+    if (!(error instanceof RunNotFoundError)) {
+      throw error;
+    }
+    return { exitCode: 1, output: '', signal: null, timedOut: false };
   });
 
   await Promise.all([
-    netKillPortAdapter({ port: serverPort }),
-    netKillPortAdapter({ port: webPort }),
+    netKillPortAdapter({ port: networkPortContract.parse(serverPort) }),
+    netKillPortAdapter({ port: networkPortContract.parse(webPort) }),
   ]);
 
-  const exitCode = result.exitCode ?? exitCodeContract.parse(1);
+  const exitCode = exitCodeContract.parse(result.exitCode);
   const status = exitCode === exitCodeContract.parse(0) ? 'pass' : 'fail';
 
   let testFailures: ReturnType<typeof parsePlaywrightCrashOutputTransformer> = [];
@@ -241,7 +249,7 @@ export const checkRunE2eBroker = async ({
 
   // The file exists only when a spec actually left a timer armed.
   const openHandles = await (async (): Promise<OpenHandle[]> => {
-    if (!fsExistsSyncAdapter({ filePath: handleReportPath })) {
+    if (!existsSync(handleReportPath)) {
       return [];
     }
     try {
@@ -260,12 +268,12 @@ export const checkRunE2eBroker = async ({
   // nothing is normal in most packages — and cleanup placed at the end of the function would leak
   // a full cache on every one of those runs. It also has to be after the port kill above, since
   // the process that wrote the directory is still holding a port until then.
-  await e2eArtifactsRemoveBroker({ packageRoot, port: serverPort });
+  await e2eArtifactsRemoveBroker({ packageRoot, port: networkPortContract.parse(serverPort) });
 
   const processedFiles: GitRelativePath[] = [];
   const lineFiles =
     result.output.length > 0
-      ? extractPlaywrightLineFilesTransformer({ output: result.output })
+      ? extractPlaywrightLineFilesTransformer({ output: errorMessageContract.parse(result.output) })
       : [];
   for (const file of lineFiles) {
     processedFiles.push(file);
