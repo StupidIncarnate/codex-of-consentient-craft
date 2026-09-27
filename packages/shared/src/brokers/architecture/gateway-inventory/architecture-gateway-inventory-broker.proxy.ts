@@ -1,27 +1,14 @@
-import type { Dirent } from 'fs';
-import { fsReaddirWithTypesAdapterProxy } from '../../../adapters/fs/readdir-with-types/fs-readdir-with-types-adapter.proxy';
-import { fsExistsSyncAdapterProxy } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter.proxy';
-import { fsReadFileSyncAdapterProxy } from '../../../adapters/fs/read-file-sync/fs-read-file-sync-adapter.proxy';
+import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/readdir-entries-sync.proxy';
+import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
+import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
+import type { DirEntrySync } from '#gateway/node/fs';
 import { gatewayLintConfigReadBrokerProxy } from '../../gateway-lint-config/read/gateway-lint-config-read-broker.proxy';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
-import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 
-const makeDirEntry = ({ name }: { name: string }): Dirent =>
-  ({
-    name,
-    parentPath: '/stub',
-    path: '/stub',
-    isDirectory: () => true,
-    isFile: () => false,
-    isBlockDevice: () => false,
-    isCharacterDevice: () => false,
-    isFIFO: () => false,
-    isSocket: () => false,
-    isSymbolicLink: () => false,
-  }) as Dirent;
+const makeDirEntry = ({ name }: { name: string }): DirEntrySync => ({ name, kind: 'directory' });
 
 export const architectureGatewayInventoryBrokerProxy = (): {
   setupSubpath: ({
@@ -43,12 +30,21 @@ export const architectureGatewayInventoryBrokerProxy = (): {
     fileContent: ContentText;
   }) => void;
 } => {
-  const readdirProxy = fsReaddirWithTypesAdapterProxy();
-  const existsProxy = fsExistsSyncAdapterProxy();
-  const readProxy = fsReadFileSyncAdapterProxy();
+  const readdirProxy = readdirEntriesSyncProxy();
+  const existsProxy = existsSyncProxy();
+  const readProxy = readFileSyncProxy();
   const lintConfigProxy = gatewayLintConfigReadBrokerProxy();
 
-  const entriesByFolderSrcPath = new Map<ContentText, Dirent[]>();
+  // The broker's own existsSync call has no try/catch around it (unlike its readdir/read-file
+  // calls, which do), and the gateway's existsSyncProxy stages no default — so a subpath set up
+  // with no barrelContent (the "directory exists, barrel file does not" case below) needs this
+  // fallback, matching real fs.existsSync's own "false on anything unresolved" semantics. There is
+  // no known path to key on here (any subpath's barrel could be the unstaged one), so an
+  // always-true predicate is the explicit "answer any call" stage; setupSubpath's own path-exact
+  // `.returns()` below is more specific and always outranks it.
+  existsProxy.returnsMatchingPath({ path: (): boolean => true, exists: false });
+
+  const entriesByFolderSrcPath = new Map<ContentText, DirEntrySync[]>();
 
   return {
     setupSubpath: ({
@@ -70,17 +66,14 @@ export const architectureGatewayInventoryBrokerProxy = (): {
       const existingEntries = entriesByFolderSrcPath.get(folderSrcPathKey) ?? [];
       const entries = [...existingEntries, makeDirEntry({ name: subpathName })];
       entriesByFolderSrcPath.set(folderSrcPathKey, entries);
-      readdirProxy.returns({ dirPath: folderSrcPath, entries });
+      readdirProxy.returns({ path: folderSrcPath, entries });
 
       if (barrelContent !== undefined) {
         const barrelPath = AbsoluteFilePathStub({
           value: `${String(folderSrcPath)}/${subpathName}/${subpathName}.ts`,
         });
-        existsProxy.returns({
-          filePath: FilePathStub({ value: String(barrelPath) }),
-          result: true,
-        });
-        readProxy.returns({ filePath: barrelPath, content: barrelContent });
+        existsProxy.returns({ path: barrelPath, exists: true });
+        readProxy.returns({ path: barrelPath, contents: barrelContent });
       }
     },
 

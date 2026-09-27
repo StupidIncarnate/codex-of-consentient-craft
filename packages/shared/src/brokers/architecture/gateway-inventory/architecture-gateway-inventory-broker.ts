@@ -15,14 +15,12 @@
  * // Returns ContentText: "### bin\n  (empty)\n\n### browser\n...\n\n### node\n  #gateway/node/fs  passes through 'fs'\n      ours: existsSync, ...\n\n### npm\n..."
  */
 
-import { fsReaddirWithTypesAdapter } from '../../../adapters/fs/readdir-with-types/fs-readdir-with-types-adapter';
-import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter';
-import { fsReadFileSyncAdapter } from '../../../adapters/fs/read-file-sync/fs-read-file-sync-adapter';
+import { existsSync, readFileSync, readdirEntriesSync } from '#gateway/node/fs';
+import type { DirEntrySync } from '#gateway/node/fs';
 import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
-import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import { gatewayLocationsStatics } from '../../../statics/gateway-locations/gateway-locations-statics';
 import { projectMapStatics } from '../../../statics/project-map/project-map-statics';
 import { gatewaySubpathBarrelParseTransformer } from '../../../transformers/gateway-subpath-barrel-parse/gateway-subpath-barrel-parse-transformer';
@@ -48,15 +46,15 @@ export const architectureGatewayInventoryBroker = ({
       `${projectRoot}/${projectMapStatics.packagesDirName}/${GATEWAY_GROUP_DIR_NAME}/${folder}/${projectMapStatics.srcDirName}`,
     );
 
-    let subpathEntries: ReturnType<typeof fsReaddirWithTypesAdapter> = [];
+    let subpathEntries: DirEntrySync[] = [];
     try {
-      subpathEntries = fsReaddirWithTypesAdapter({ dirPath: folderSrcPath });
+      subpathEntries = readdirEntriesSync(folderSrcPath);
     } catch {
       // No subpaths scaffolded yet under this gateway folder — rendered as "(empty)" below.
     }
 
     const subpathNames = subpathEntries
-      .filter((entry) => entry.isDirectory())
+      .filter((entry) => entry.kind === 'directory')
       .map((entry) => entry.name)
       .sort((a, b) => a.localeCompare(b));
 
@@ -71,13 +69,13 @@ export const architectureGatewayInventoryBroker = ({
       );
       const bareSubpathLine = `${SUBPATH_LINE_INDENT}${fullSubpath}`;
 
-      if (!fsExistsSyncAdapter({ filePath: filePathContract.parse(String(barrelPath)) })) {
+      if (!existsSync(barrelPath)) {
         return [bareSubpathLine];
       }
 
       // A barrel that exists but cannot be read renders the same as one that never existed.
       try {
-        const barrelContent = fsReadFileSyncAdapter({ filePath: barrelPath });
+        const barrelContent = contentTextContract.parse(readFileSync(barrelPath));
         const { realModule, wrapperNames } = gatewaySubpathBarrelParseTransformer({
           barrelContent,
         });
