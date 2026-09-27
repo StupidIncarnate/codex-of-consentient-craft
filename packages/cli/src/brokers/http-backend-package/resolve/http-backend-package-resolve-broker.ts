@@ -10,6 +10,7 @@
  * const packageName = await httpBackendPackageResolveBroker();
  * // Returns PackageName('@dungeonmaster/server') — throws if none or several dependencies qualify
  */
+import { readFileSync } from '#gateway/node/fs';
 import {
   absoluteFilePathContract,
   filePathContract,
@@ -18,7 +19,6 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import type { PackageName } from '@dungeonmaster/shared/contracts';
 import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
-import { fsReadFileSyncAdapter } from '@dungeonmaster/shared/adapters';
 
 const HTTP_BACKEND_DEPENDENCY_SIGNAL = 'hono';
 const SCOPE_PREFIX = '@dungeonmaster/';
@@ -30,9 +30,7 @@ export const httpBackendPackageResolveBroker = async (): Promise<PackageName> =>
   });
   const ownPackageJson = packageJsonContract.parse(
     JSON.parse(
-      fsReadFileSyncAdapter({
-        filePath: absoluteFilePathContract.parse(`${projectRoot}/package.json`),
-      }),
+      readFileSync(absoluteFilePathContract.parse(`${projectRoot}/package.json`)),
     ) as unknown,
   );
 
@@ -44,11 +42,9 @@ export const httpBackendPackageResolveBroker = async (): Promise<PackageName> =>
     try {
       const candidatePackageJson = packageJsonContract.parse(
         JSON.parse(
-          fsReadFileSyncAdapter({
-            filePath: absoluteFilePathContract.parse(
-              require.resolve(`${candidateName}/package.json`),
-            ),
-          }),
+          readFileSync(
+            absoluteFilePathContract.parse(require.resolve(`${candidateName}/package.json`)),
+          ),
         ) as unknown,
       );
       return Object.keys(candidatePackageJson.dependencies ?? {}).includes(

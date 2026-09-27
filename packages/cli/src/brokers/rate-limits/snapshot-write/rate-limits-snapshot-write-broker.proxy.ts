@@ -1,9 +1,10 @@
+import { dirname } from '#gateway/node/path';
 import {
   locationsRateLimitsSnapshotPathFindBrokerProxy,
   locationsRateLimitsSnapshotTmpPathFindBrokerProxy,
-  pathDirnameAdapterProxy,
 } from '@dungeonmaster/shared/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { fsStatAdapterProxy } from '../../../adapters/fs/stat/fs-stat-adapter.proxy';
 import { fsMkdirAdapterProxy } from '../../../adapters/fs/mkdir/fs-mkdir-adapter.proxy';
@@ -20,16 +21,16 @@ export const rateLimitsSnapshotWriteBrokerProxy = (): {
   const mkdirProxy = fsMkdirAdapterProxy();
   const writeProxy = fsWriteFileAdapterProxy();
   const renameProxy = fsRenameAdapterProxy();
-  const dirnameProxy = pathDirnameAdapterProxy();
+  const dirnameHandle = registerMock({ fn: dirname });
   const snapshotPathProxy = locationsRateLimitsSnapshotPathFindBrokerProxy();
   const tmpPathProxy = locationsRateLimitsSnapshotTmpPathFindBrokerProxy();
 
   const snapshotPath = FilePathStub({ value: '/home/test/.dungeonmaster/rate-limits.json' });
   const tmpPath = FilePathStub({ value: '/home/test/.dungeonmaster/rate-limits.json.tmp' });
 
-  dirnameProxy.returns({
-    result: FilePathStub({ value: '/home/test/.dungeonmaster' }),
-  });
+  dirnameHandle
+    .calledWith([snapshotPath])
+    .returns(FilePathStub({ value: '/home/test/.dungeonmaster' }));
   snapshotPathProxy.setupSnapshotPath({
     homeDir: '/home/test',
     homePath: FilePathStub({ value: '/home/test/.dungeonmaster' }),

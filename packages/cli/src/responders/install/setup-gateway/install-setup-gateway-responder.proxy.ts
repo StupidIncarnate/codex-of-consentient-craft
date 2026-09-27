@@ -1,8 +1,6 @@
-import {
-  pathJoinAdapterProxy,
-  pathBasenameAdapterProxy,
-  fsExistsSyncAdapterProxy,
-} from '@dungeonmaster/shared/testing';
+import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
+import { basename, join } from '#gateway/node/path';
+import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import type { FilePath, FileName } from '@dungeonmaster/shared/contracts';
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
@@ -27,9 +25,14 @@ export const InstallSetupGatewayResponderProxy = (): {
   getWrittenFiles: () => readonly { path: unknown; content: unknown }[];
   getCopiedSources: () => readonly unknown[];
 } => {
-  pathJoinAdapterProxy();
-  pathBasenameAdapterProxy();
-  const existsProxy = fsExistsSyncAdapterProxy();
+  const existsProxy = existsSyncProxy();
+  const realPath = requireActual<{ join: typeof join; basename: typeof basename }>({
+    module: 'path',
+  });
+  const joinHandle = registerMock({ fn: join });
+  joinHandle.calledWith([]).implement((...segments: never[]) => realPath.join(...segments));
+  const basenameHandle = registerMock({ fn: basename });
+  basenameHandle.calledWith([]).implement((inputPath: never) => realPath.basename(inputPath));
   const readProxy = fsReadFileAdapterProxy();
   const writeProxy = fsWriteFileAdapterProxy();
   packageScaffoldWriteBrokerProxy();
@@ -40,17 +43,17 @@ export const InstallSetupGatewayResponderProxy = (): {
 
   return {
     setupNoRootPackageJson: ({ rootPackageJsonPath }): void => {
-      existsProxy.returns({ filePath: rootPackageJsonPath, result: false });
+      existsProxy.returns({ path: rootPackageJsonPath, exists: false });
     },
 
     setupRootPackageJson: ({ rootPackageJsonPath, content }): void => {
-      existsProxy.returns({ filePath: rootPackageJsonPath, result: true });
+      existsProxy.returns({ path: rootPackageJsonPath, exists: true });
       readProxy.resolves({ filePath: rootPackageJsonPath, content });
       writeProxy.succeeds({ filePath: rootPackageJsonPath });
     },
 
     setupGatewayFolderExists: ({ packageRoot }): void => {
-      existsProxy.returns({ filePath: packageRoot, result: true });
+      existsProxy.returns({ path: packageRoot, exists: true });
     },
 
     setupRootTsconfig: ({ rootTsconfigPath, content }): void => {
