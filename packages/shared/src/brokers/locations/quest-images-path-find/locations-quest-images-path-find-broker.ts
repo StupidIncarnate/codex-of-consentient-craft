@@ -8,7 +8,7 @@
  * // Returns AbsoluteFilePath '<questFolderPath>/images'
  */
 
-import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
+import { join } from '#gateway/node/path';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
 import {
   absoluteFilePathContract,
@@ -20,9 +20,7 @@ export const locationsQuestImagesPathFindBroker = ({
 }: {
   questFolderPath: AbsoluteFilePath;
 }): AbsoluteFilePath => {
-  const joined = pathJoinAdapter({
-    paths: [questFolderPath, locationsStatics.quest.imagesDir],
-  });
+  const joined = join(questFolderPath, locationsStatics.quest.imagesDir);
 
   return absoluteFilePathContract.parse(joined);
 };

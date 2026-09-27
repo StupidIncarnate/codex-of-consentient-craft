@@ -10,6 +10,8 @@ describe('locationsWorktreePathFindBroker', () => {
       const proxy = locationsWorktreePathFindBrokerProxy();
 
       proxy.setupWorktreePath({
+        repoRoot: '/repo',
+        worktreeDirName: 'add-auth-7bc217a1',
         worktreePath: FilePathStub({ value: '/repo/worktrees/add-auth-7bc217a1' }),
       });
 
@@ -25,6 +27,8 @@ describe('locationsWorktreePathFindBroker', () => {
       const proxy = locationsWorktreePathFindBrokerProxy();
 
       proxy.setupWorktreePath({
+        repoRoot: '/home/user/repo',
+        worktreeDirName: 'quest-git-lifecycle-baseref-branching-7bc217a1',
         worktreePath: FilePathStub({
           value: '/home/user/repo/worktrees/quest-git-lifecycle-baseref-branching-7bc217a1',
         }),

@@ -15,8 +15,8 @@
  * // Returns AbsoluteFilePath '<dmHome>/usage-ledger.json.tmp.4821-1789337123234'
  */
 
+import { join } from '#gateway/node/path';
 import { dungeonmasterHomeFindBroker } from '../../dungeonmaster-home/find/dungeonmaster-home-find-broker';
-import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
 import {
   absoluteFilePathContract,
@@ -30,9 +30,7 @@ export const locationsUsageLedgerTmpPathFindBroker = ({
 }): AbsoluteFilePath => {
   const { homePath } = dungeonmasterHomeFindBroker();
 
-  const joined = pathJoinAdapter({
-    paths: [homePath, `${locationsStatics.dungeonmasterHome.usageLedgerTmp}.${token}`],
-  });
+  const joined = join(homePath, `${locationsStatics.dungeonmasterHome.usageLedgerTmp}.${token}`);
 
   return absoluteFilePathContract.parse(joined);
 };

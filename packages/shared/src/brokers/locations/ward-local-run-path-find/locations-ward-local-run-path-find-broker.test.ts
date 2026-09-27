@@ -10,6 +10,8 @@ describe('locationsWardLocalRunPathFindBroker', () => {
       const proxy = locationsWardLocalRunPathFindBrokerProxy();
 
       proxy.setupWardLocalRunPath({
+        rootPath: '/repo',
+        runId: 'abc-123',
         runPath: FilePathStub({ value: '/repo/.ward/run-abc-123.json' }),
       });
 
@@ -25,6 +27,8 @@ describe('locationsWardLocalRunPathFindBroker', () => {
       const proxy = locationsWardLocalRunPathFindBrokerProxy();
 
       proxy.setupWardLocalRunPath({
+        rootPath: '/repo/packages/web',
+        runId: '1739625600000-a3f1',
         runPath: FilePathStub({
           value: '/repo/packages/web/.ward/run-1739625600000-a3f1.json',
         }),
