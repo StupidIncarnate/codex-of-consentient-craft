@@ -3,6 +3,15 @@
  * one in_progress, and one complete. Reach for this over other recipes when testing multi-quest
  * state progression under a single guild.
  *
+ * What this recipe hands back to a later step, by `saveRecordAs` name — `{g.guild}`, `{g.questInProgress}`,
+ * `{g.questComplete}` after a `seed` step names its result `g`:
+ * - `guild` — the seeded guild's whole record; read its `id` for a later recipe to stack onto, or
+ *   its `urlSlug` for the guild's own route segment
+ * - `questInProgress` — the one quest left in_progress, the one an assertion must tell from the
+ *   other two
+ * - `questComplete` — the one quest walked all the way to complete
+ * - `questCreated` — the one quest left at its create-time status, never walked
+ *
  * `questInProgress` and `questComplete` are walked there through `set()` — the ingredient's real
  * `transitions.reach` — never `setRaw()`, because `hasQuestGateContentGuard` genuinely refuses
  * `flows_approved`/`approved` without non-empty `flows` and `questSaveInvariantsTransformer`
