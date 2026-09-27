@@ -296,10 +296,9 @@ describe('configDungeonmasterBroker', () => {
 
       const { gateway } = configDungeonmasterBroker();
 
-      expect(gateway.rules?.['@dungeonmaster/gateway-colocation']).toStrictEqual([
-        'error',
-        { requireStub: true },
-      ]);
+      expect(
+        gateway.rules?.[EslintRuleNameStub({ value: '@dungeonmaster/gateway-colocation' })],
+      ).toStrictEqual(['error', { requireStub: true }]);
     });
 
     it('VALID: {} => typescript (non-gateway) config keeps every rule the gateway omits', () => {

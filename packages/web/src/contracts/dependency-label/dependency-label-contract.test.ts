@@ -12,7 +12,9 @@ describe('dependencyLabelContract', () => {
 
   describe('invalid inputs', () => {
     it('INVALID: {value: ""} => throws for empty string', () => {
-      expect(() => dependencyLabelContract.parse('')).toThrow(/String must contain at least 1/u);
+      expect(() => dependencyLabelContract.parse('')).toThrow(
+        /expected string to have >=1 characters/u,
+      );
     });
   });
 

@@ -61,7 +61,7 @@ describe('frameworkPresetsContract', () => {
           ...FrameworkPresetStub(),
           widgets: 'invalid',
         });
-      }).toThrow(/Expected/u);
+      }).toThrow(/Invalid input: expected array/u);
     });
 
     it('INVALID: adapters not array => throws validation error', () => {
@@ -70,7 +70,7 @@ describe('frameworkPresetsContract', () => {
           ...FrameworkPresetStub(),
           adapters: null,
         });
-      }).toThrow(/Expected/u);
+      }).toThrow(/Invalid input: expected array/u);
     });
   });
 });

@@ -26,11 +26,11 @@ describe('sessionFilterContract', () => {
     });
 
     it('EMPTY: {value: null} => throws for null', () => {
-      expect(() => sessionFilterContract.parse(null)).toThrow(/received null/u);
+      expect(() => sessionFilterContract.parse(null)).toThrow(/Invalid option/u);
     });
 
     it('EMPTY: {value: undefined} => throws for undefined', () => {
-      expect(() => sessionFilterContract.parse(undefined)).toThrow(/received undefined/u);
+      expect(() => sessionFilterContract.parse(undefined)).toThrow(/Invalid option/u);
     });
   });
 

@@ -1,7 +1,9 @@
+import { TimeoutMsStub } from '@dungeonmaster/shared/contracts';
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
 
 import { InstanceIdStub } from '../../contracts/instance-id/instance-id.stub';
 import { SpecNameStub } from '../../contracts/spec-name/spec-name.stub';
+import { driverStatics } from '../../statics/driver/driver-statics';
 import { driverFleetHarness } from '../../../test/harnesses/driver-fleet/driver-fleet.harness';
 
 import { DriverFlow } from './driver-flow';
@@ -346,11 +348,176 @@ describe('driver teardown', () => {
     });
   }
 
-  describe('an idle instance is reaped by the idle timeout — NOT YET ASSERTABLE', () => {
-    // driverStatics.idle.timeoutMs is 900_000ms with no override — a real spawned OS process, not
-    // this jest process's own memory, owns that timer. A suite that waited it out would cost 15
-    // minutes per run and nobody would run it. Reported as not-yet-assertable rather than asserting
-    // something adjacent (e.g. that the STATIC value equals 900_000, which proves nothing about
-    // whether the wait actually reaps).
-  });
+  if (DRIVER_BOOT_BLOCKER.length === 0) {
+    describe('an idle instance is reaped by the idle timeout', () => {
+      // driverStatics.idle.timeoutMs is 900_000ms with no override, which would cost 15 minutes per
+      // run — but `instanceStartBroker`'s own `idleTimeoutMs` override (the same `--idle-timeout-ms`
+      // flag `start` exposes) lets this suite ask the real spawned driver for a much shorter ceiling
+      // instead. This is DEF-52's own repro: `inst_d6f2b521c993487a87236623eabbd477` (evidence in
+      // scrolls/walkthrough/LEDGER.md) got no run before its idle timeout fired, and both process
+      // groups its heartbeat named were still alive minutes later, when only `kill` finally reaped
+      // them.
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'driver-teardown-idle' }),
+      });
+      const fleet = driverFleetHarness();
+      const originalHome = process.env.DUNGEONMASTER_HOME;
+      const originalCwd = process.cwd();
+
+      const IDLE_TIMEOUT_MS = 3_000;
+      // Covers the idle wait itself plus scheduler contention on a loaded machine — the same
+      // multi-second stretch driver-statics.ts's own `socket.connectTimeoutMs` comment measures.
+      const IDLE_REAP_WAIT_CEILING_MS = 20_000;
+      // laneTeardownBroker's SIGTERM -> driverStatics.teardown.graceMs -> SIGKILL escalation is the
+      // only real wait left once the marker lands.
+      const KILL_ESCALATION_WAIT_MS = driverStatics.teardown.graceMs + 3_000;
+
+      let hasAtLeastOneHeartbeatPgid: boolean;
+      let shutdownReasonWritten: boolean;
+      let everyHeartbeatPgidDeadAfterIdleReap: boolean;
+      let bothPortsFreeAfterIdleReap: boolean;
+
+      beforeAll(async () => {
+        process.env.DUNGEONMASTER_HOME = testbed.guildPath;
+        fleet.ensureHomeReady({ home: testbed.guildPath });
+        fleet.configureApiLane({ configDir: testbed.guildPath });
+        process.chdir(testbed.guildPath);
+
+        const manifest = await fleet.boot({
+          specName: HEADLESS_SPEC,
+          idleTimeoutMs: TimeoutMsStub({ value: IDLE_TIMEOUT_MS }),
+        });
+        const heartbeatPgids = await fleet.waitForHeartbeatPgids({
+          instanceId: manifest.instanceId,
+          deadlineMs: Date.now() + HEARTBEAT_WAIT_CEILING_MS,
+        });
+        hasAtLeastOneHeartbeatPgid = heartbeatPgids.length > 0;
+
+        const entry = await fleet.registryEntry({ instanceId: manifest.instanceId });
+        const ports = entry === undefined ? [] : [entry.ports.api, entry.ports.web];
+
+        shutdownReasonWritten = await fleet.waitForShutdownReason({
+          instanceId: manifest.instanceId,
+          deadlineMs: Date.now() + IDLE_TIMEOUT_MS + IDLE_REAP_WAIT_CEILING_MS,
+        });
+
+        everyHeartbeatPgidDeadAfterIdleReap = await fleet.waitForGroupsDead({
+          pgids: heartbeatPgids,
+          deadlineMs: Date.now() + KILL_ESCALATION_WAIT_MS,
+        });
+        const portFreeFlags = await Promise.all(
+          ports.map(async (port) => fleet.isPortFree({ port })),
+        );
+        bothPortsFreeAfterIdleReap =
+          portFreeFlags.length === 2 && portFreeFlags.every((free) => free);
+      }, BOOT_HOOK_TIMEOUT_MS);
+
+      afterAll(async () => {
+        await fleet.afterAll();
+        process.chdir(originalCwd);
+        if (originalHome === undefined) {
+          Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+        } else {
+          process.env.DUNGEONMASTER_HOME = originalHome;
+        }
+        testbed.cleanup();
+      }, BOOT_HOOK_TIMEOUT_MS);
+
+      it('VALID: {instance alive} => the heartbeat file names at least one process group', () => {
+        expect(hasAtLeastOneHeartbeatPgid).toBe(true);
+      });
+
+      it('VALID: {no run sent, idle timeout elapses} => the driver records the idle self-reap', () => {
+        expect(shutdownReasonWritten).toBe(true);
+      });
+
+      it('VALID: {idle timeout elapses} => no process group the heartbeat named survives', () => {
+        expect(everyHeartbeatPgidDeadAfterIdleReap).toBe(true);
+      });
+
+      it('VALID: {idle timeout elapses} => both claimed ports are free for the next allocation', () => {
+        expect(bothPortsFreeAfterIdleReap).toBe(true);
+      });
+    });
+  }
+
+  if (DRIVER_BOOT_BLOCKER.length === 0) {
+    describe('a browsered idle instance is reaped by the idle timeout', () => {
+      // The `stack` spec — a real Chromium session plus a video recorder — is what
+      // `inst_d6f2b521c993487a87236623eabbd477` (DEF-52's own report) and
+      // `inst_b7ed8a08fdc04b4bb5ba9d0e7ec6d370` (a later master repro, same LEDGER entry) both
+      // booted, so this variant covers the browser path the headless describe above cannot. It
+      // asserts only the two server process groups the heartbeat names — never that the driver's
+      // OWN OS process has exited by the time this hook returns. Measured directly: on a browsered
+      // lane the driver plus its Playwright video-recorder (ffmpeg) child can take 34-100s past the
+      // reap to finish finalizing the recording and exit on their own — a slow shutdown, not a
+      // leak, and asserting it here would make this test flaky against nothing more than that
+      // encode time.
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'driver-teardown-idle-browsered' }),
+      });
+      const fleet = driverFleetHarness();
+      const originalHome = process.env.DUNGEONMASTER_HOME;
+      const originalCwd = process.cwd();
+
+      const IDLE_TIMEOUT_MS = 3_000;
+      const IDLE_REAP_WAIT_CEILING_MS = 20_000;
+      const KILL_ESCALATION_WAIT_MS = driverStatics.teardown.graceMs + 3_000;
+      const BROWSERED_SPEC = SpecNameStub({ value: 'stack' });
+
+      let hasAtLeastOneHeartbeatPgid: boolean;
+      let shutdownReasonWritten: boolean;
+      let everyHeartbeatPgidDeadAfterIdleReap: boolean;
+
+      beforeAll(async () => {
+        process.env.DUNGEONMASTER_HOME = testbed.guildPath;
+        fleet.ensureHomeReady({ home: testbed.guildPath });
+        fleet.configureApiLane({ configDir: testbed.guildPath });
+        process.chdir(testbed.guildPath);
+
+        const manifest = await fleet.boot({
+          specName: BROWSERED_SPEC,
+          idleTimeoutMs: TimeoutMsStub({ value: IDLE_TIMEOUT_MS }),
+        });
+        const heartbeatPgids = await fleet.waitForHeartbeatPgids({
+          instanceId: manifest.instanceId,
+          deadlineMs: Date.now() + HEARTBEAT_WAIT_CEILING_MS,
+        });
+        hasAtLeastOneHeartbeatPgid = heartbeatPgids.length > 0;
+
+        shutdownReasonWritten = await fleet.waitForShutdownReason({
+          instanceId: manifest.instanceId,
+          deadlineMs: Date.now() + IDLE_TIMEOUT_MS + IDLE_REAP_WAIT_CEILING_MS,
+        });
+
+        everyHeartbeatPgidDeadAfterIdleReap = await fleet.waitForGroupsDead({
+          pgids: heartbeatPgids,
+          deadlineMs: Date.now() + KILL_ESCALATION_WAIT_MS,
+        });
+      }, BOOT_HOOK_TIMEOUT_MS);
+
+      afterAll(async () => {
+        await fleet.afterAll();
+        process.chdir(originalCwd);
+        if (originalHome === undefined) {
+          Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+        } else {
+          process.env.DUNGEONMASTER_HOME = originalHome;
+        }
+        testbed.cleanup();
+      }, BOOT_HOOK_TIMEOUT_MS);
+
+      it('VALID: {instance alive} => the heartbeat file names at least one process group', () => {
+        expect(hasAtLeastOneHeartbeatPgid).toBe(true);
+      });
+
+      it('VALID: {no run sent, idle timeout elapses} => the driver records the idle self-reap', () => {
+        expect(shutdownReasonWritten).toBe(true);
+      });
+
+      it('VALID: {idle timeout elapses} => no process group the heartbeat named survives', () => {
+        expect(everyHeartbeatPgidDeadAfterIdleReap).toBe(true);
+      });
+    });
+  }
 });

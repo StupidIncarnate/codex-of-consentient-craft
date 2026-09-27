@@ -26,7 +26,7 @@ describe('flattenedContractParamsStatics', () => {
         'React',
         'Readonly',
         'Record',
-        'received undefined',
+        'Required',
         'ReturnType',
         'Set',
         'TSESTree',

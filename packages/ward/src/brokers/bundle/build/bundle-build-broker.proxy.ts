@@ -1,13 +1,7 @@
-import {
-  fsExistsSyncAdapterProxy,
-  childProcessSpawnCaptureAdapterProxy,
-} from '@dungeonmaster/shared/testing';
-import {
-  ErrorMessageStub,
-  ExitCodeStub,
-  absoluteFilePathContract,
-  filePathContract,
-} from '@dungeonmaster/shared/contracts';
+import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
+import { runProxy } from '#gateway/node/child_process/run/run.proxy';
+import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found.error.proxy';
+import { absoluteFilePathContract, filePathContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { cryptoHashFilesAdapterProxy } from '../../../adapters/crypto/hash-files/crypto-hash-files-adapter.proxy';
@@ -43,17 +37,17 @@ export const bundleBuildBrokerProxy = (): {
   setupCachedSinglePackageBundle: (params: { packageRoot: AbsoluteFilePath; hash: string }) => void;
   bundleDirFor: (params: { packageRoot: AbsoluteFilePath; hash: string }) => AbsoluteFilePath;
   getSpawnedArgs: () => unknown;
-  getSpawnedCwd: () => unknown;
   getRemovedTempPaths: () => readonly unknown[][];
   getPublishCalls: () => readonly unknown[][];
 } => {
   const inputsProxy = collectInputsLayerBrokerProxy();
   const hashProxy = cryptoHashFilesAdapterProxy();
-  const existsProxy = fsExistsSyncAdapterProxy();
+  const existsProxy = existsSyncProxy();
   const mkdirProxy = fsMkdirAdapterProxy();
   const rmProxy = fsRmAdapterProxy();
   const renameProxy = fsRenameAdapterProxy();
-  const spawnProxy = childProcessSpawnCaptureAdapterProxy();
+  const run = runProxy();
+  RunNotFoundErrorProxy();
   const readProxy = fsReadFileAdapterProxy();
 
   const bundleParent = `${String(WEB_ROOT)}/${bundleStatics.parentDir}`;
@@ -125,33 +119,42 @@ export const bundleBuildBrokerProxy = (): {
 
     setupCachedBundle: ({ hash }: { hash: string }): void => {
       existsProxy.returns({
-        filePath: filePathContract.parse(String(hashDirFor({ packageRoot: WEB_ROOT, hash }))),
-        result: true,
+        path: String(hashDirFor({ packageRoot: WEB_ROOT, hash })),
+        exists: true,
       });
     },
 
     setupNoCachedBundle: ({ hash }: { hash: string }): void => {
       existsProxy.returns({
-        filePath: filePathContract.parse(String(hashDirFor({ packageRoot: WEB_ROOT, hash }))),
-        result: false,
+        path: String(hashDirFor({ packageRoot: WEB_ROOT, hash })),
+        exists: false,
       });
     },
 
+    // Addressed by command, args AND cwd (all known ahead of time: the build command is fixed, the
+    // args are the fixed buildArgs plus this proxy's own computed tempPath, and every test here
+    // builds WEB_ROOT) — staging the exact cwd is what proves it was passed through correctly: a
+    // broker that built with the WRONG cwd would match no staged call and throw, rather than
+    // silently succeed.
     setupBuildSucceeds: (): void => {
-      spawnProxy.setupSuccess({
+      run.setupSuccess({
         command: bundleStatics.buildCommand,
-        exitCode: ExitCodeStub({ value: 0 }),
-        stdout: ErrorMessageStub({ value: 'built in 9.7s' }),
-        stderr: ErrorMessageStub({ value: '' }),
+        args: [...bundleStatics.buildArgs, String(tempPath)],
+        cwd: String(WEB_ROOT),
+        exitCode: 0,
+        stdout: 'built in 9.7s',
+        stderr: '',
       });
     },
 
     setupBuildFails: ({ output }: { output: string }): void => {
-      spawnProxy.setupSuccess({
+      run.setupSuccess({
         command: bundleStatics.buildCommand,
-        exitCode: ExitCodeStub({ value: 1 }),
-        stdout: ErrorMessageStub({ value: output }),
-        stderr: ErrorMessageStub({ value: '' }),
+        args: [...bundleStatics.buildArgs, String(tempPath)],
+        cwd: String(WEB_ROOT),
+        exitCode: 1,
+        stdout: output,
+        stderr: '',
       });
     },
 
@@ -208,8 +211,8 @@ export const bundleBuildBrokerProxy = (): {
       });
 
       existsProxy.returns({
-        filePath: filePathContract.parse(String(hashDirFor({ packageRoot, hash }))),
-        result: true,
+        path: String(hashDirFor({ packageRoot, hash })),
+        exists: true,
       });
     },
 
@@ -221,10 +224,7 @@ export const bundleBuildBrokerProxy = (): {
       hash: string;
     }): AbsoluteFilePath => hashDirFor({ packageRoot, hash }),
 
-    getSpawnedArgs: (): unknown =>
-      spawnProxy.getSpawnedArgs({ command: bundleStatics.buildCommand }),
-
-    getSpawnedCwd: (): unknown => spawnProxy.getSpawnedCwd({ command: bundleStatics.buildCommand }),
+    getSpawnedArgs: (): unknown => run.getCallsFor({ command: bundleStatics.buildCommand }).at(-1),
 
     getRemovedTempPaths: (): readonly unknown[][] => rmProxy.getCallsFor({ filePath: tempPath }),
 

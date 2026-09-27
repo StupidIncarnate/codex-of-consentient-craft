@@ -32,11 +32,11 @@ describe('buttonVariantContract', () => {
     });
 
     it('EMPTY: {value: null} => throws for null', () => {
-      expect(() => buttonVariantContract.parse(null)).toThrow(/received null/u);
+      expect(() => buttonVariantContract.parse(null)).toThrow(/Invalid option/u);
     });
 
     it('EMPTY: {value: undefined} => throws for undefined', () => {
-      expect(() => buttonVariantContract.parse(undefined)).toThrow(/received undefined/u);
+      expect(() => buttonVariantContract.parse(undefined)).toThrow(/Invalid option/u);
     });
   });
 

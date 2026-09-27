@@ -57,7 +57,7 @@ describe('chatStreamEndedPayloadContract', () => {
   it('INVALID: {no reason} => throws, so no emit site can ship an unlabelled stream end', () => {
     expect(() => {
       chatStreamEndedPayloadContract.parse({ questId: QuestIdStub({ value: 'q-1' }) });
-    }).toThrow(/received undefined/u);
+    }).toThrow(/Invalid option/u);
   });
 
   it('INVALID: {unknown reason} => throws', () => {

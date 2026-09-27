@@ -47,7 +47,7 @@ describe('SiegelenseDriverResponder', () => {
       }).toStrictEqual({
         pid: String(process.pid),
         pgids: lane.pgids,
-        socketPath: proxy.getExpectedSocketPath(),
+        socketPath: proxy.getExpectedSocketPath({ instanceId }),
       });
     });
   });

@@ -1,10 +1,10 @@
 import { mkdir, readFile, writeFile } from 'fs/promises';
 import { homedir } from '#gateway/node/os';
-import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { join } from '#gateway/node/path';
+import { registerMock, registerSpyOn, requireActual } from '@dungeonmaster/testing/register-mock';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import {
-  pathJoinAdapterProxy,
   locationsQuestFolderPathFindBrokerProxy,
   locationsQuestImagesPathFindBrokerProxy,
 } from '@dungeonmaster/shared/testing';
@@ -31,7 +31,9 @@ export const pastedImagePersistBrokerProxy = (): {
   const mkdirProxy = fsMkdirAdapterProxy();
   const writeProxy = fsWriteFileBase64AdapterProxy();
   const copyProxy = localImageCopyBrokerProxy();
-  pathJoinAdapterProxy();
+  const joinHandle = registerMock({ fn: join });
+  const realPath = requireActual<{ join: typeof join }>({ module: 'path' });
+  joinHandle.calledWith([]).implement((...segments: never[]) => realPath.join(...segments));
   locationsQuestFolderPathFindBrokerProxy();
   locationsQuestImagesPathFindBrokerProxy();
   const uuidSpy = registerSpyOn({ object: crypto, method: 'randomUUID' });

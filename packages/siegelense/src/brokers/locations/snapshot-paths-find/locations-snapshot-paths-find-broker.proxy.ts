@@ -1,12 +1,18 @@
-import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
+import { join } from '#gateway/node/path';
+import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
 // homePath and ordinal arrive fully resolved as parameters, and the composed paths run through
-// pathJoinAdapter's real, deterministic implementation — there is nothing to stage beyond
-// instantiating its proxy, which enforce-proxy-child-creation requires since the broker imports it.
-// Deliberately stages NO one-shot: a parent proxy composing this one must not have its own
-// pathJoinAdapter calls answered by a queued value it never asked for.
+// the real, deterministic `join` — there is nothing to stage beyond the real passthrough default.
+// #gateway/node/path is a raw passthrough of the Node 'path' module (no per-function wrapper, so
+// no gateway proxy to compose) — mocked directly here, on the same '#gateway/node/path' specifier
+// the broker imports. The default answers every join call with the REAL computed result, so a
+// parent proxy composing this one alongside its own join calls is never answered by a fabricated
+// fixed value it never asked for.
 export const locationsSnapshotPathsFindBrokerProxy = (): Record<PropertyKey, never> => {
-  pathJoinAdapterProxy();
+  const realPath = requireActual<{ join: typeof join }>({ module: 'path' });
+  registerMock({ fn: join })
+    .calledWith([])
+    .implement((...segments: never[]) => realPath.join(...segments));
 
   return {};
 };

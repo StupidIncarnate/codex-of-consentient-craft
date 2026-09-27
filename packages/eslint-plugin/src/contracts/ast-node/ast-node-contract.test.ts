@@ -65,7 +65,7 @@ describe('AstNodeStub', () => {
           end: { line: 1, column: 10 },
         },
       });
-    }).toThrow('Number must be greater than 0');
+    }).toThrow('Too small: expected number to be >0');
   });
 
   it('INVALID: {loc: {start: {column: -1}}} => throws ZodError for negative column', () => {

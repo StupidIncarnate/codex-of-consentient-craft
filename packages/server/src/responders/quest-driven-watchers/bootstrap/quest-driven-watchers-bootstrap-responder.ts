@@ -15,7 +15,7 @@
  * WHEN-NOT-TO-USE: Anywhere needing a single-session watcher — this owns the global set.
  */
 
-import { processCwdAdapter } from '@dungeonmaster/shared/adapters';
+import { cwd } from '#gateway/node/process';
 import type { SessionId } from '@dungeonmaster/shared/contracts';
 import { questOutboxWatchBroker } from '@dungeonmaster/orchestrator';
 
@@ -28,7 +28,7 @@ export const QuestDrivenWatchersBootstrapResponder = async (): Promise<{
   stop: () => void;
 }> => {
   const watchers = new Map<SessionId, { stop: () => void }>();
-  const projectDir = String(processCwdAdapter());
+  const projectDir = cwd();
   // Mutable container so the outbox callback and the interval timer below can append to
   // the same chain without declaring a nested function that captures a `let` binding.
   const chain: { promise: Promise<unknown> } = { promise: Promise.resolve() };

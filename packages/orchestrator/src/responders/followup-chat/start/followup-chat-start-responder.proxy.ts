@@ -127,6 +127,20 @@ export const FollowupChatStartResponderProxy = (): {
         );
       }
 
+      // chatSpawnBroker's own bundled quest resolution (stageAddDirPathJoins + stageAccessibleSpawn,
+      // via CWD_STAGING_QUEST_ID) is staged FIRST, before any of this responder's own real-quest
+      // reads below. questGetBrokerProxy/questFindQuestPathBrokerProxy stage the guild's own
+      // directory-listing readdir by EXACT PATH (never an address-less FIFO slot), so a later
+      // registration for that SAME guild path wins over an earlier one — staging the bundled,
+      // never-queried CWD_STAGING fixture first means this responder's own tavernkeeper-quest
+      // registrations below land LAST and answer every real read that follows, instead of a
+      // later-registered, unrelated guild listing shadowing them.
+      spawnProxy.stageAddDirPathJoins();
+      stageAccessibleSpawn({
+        worktreePath: quest.worktreePath,
+        ...(stdoutLines === undefined ? {} : { stdoutLines }),
+      });
+
       getProxy.setupQuestFound({ quest });
       modifyProxy.setupQuestFound({ quest });
 
@@ -146,21 +160,9 @@ export const FollowupChatStartResponderProxy = (): {
       });
       getProxy.setupQuestFound({ quest: afterQuest }); // resolveChatQuestLayerBroker's own lookup
       getProxy.setupQuestFound({ quest: afterQuest }); // questCwdResolveBroker's own lookup
-      // chatSpawnBroker's own `--add-dir` computation runs here, right after the cwd lookup
-      // above and before the spawn. spawnProxy's bundled setupResumeSession/setupResumeWithWorktree
-      // below (via stageAccessibleSpawn) address a DIFFERENT, never-queried quest (see
-      // CWD_STAGING_QUEST_ID) and are staged AFTER this point, so calling the shared
-      // stageAddDirPathJoins() here — at the exact spot the five real path.join/homedir calls
-      // land in execution order — is what keeps this responder's own onComplete cycle below from
-      // being fed those five order-scoped one-shots instead of its own.
-      spawnProxy.stageAddDirPathJoins();
       // onComplete's own fire-and-forget questModifyBroker call (marking the item complete) loads
       // the quest AGAIN before merging — a fifth cycle, seeing the now-persisted afterQuest.
       modifyProxy.setupQuestFound({ quest: afterQuest });
-      stageAccessibleSpawn({
-        worktreePath: quest.worktreePath,
-        ...(stdoutLines === undefined ? {} : { stdoutLines }),
-      });
     },
 
     // `quest` already carries a tavernkeeper work item (whatever sessionId/status the test wants).
@@ -178,21 +180,23 @@ export const FollowupChatStartResponderProxy = (): {
         );
       }
 
-      getProxy.setupQuestFound({ quest }); // this responder's own pre-check
-      modifyProxy.setupQuestFound({ quest }); // this responder's own persist's internal load
-      getProxy.setupQuestFound({ quest }); // resolveChatQuestLayerBroker's own lookup
-      getProxy.setupQuestFound({ quest }); // questCwdResolveBroker's own lookup
-      // chatSpawnBroker's own `--add-dir` computation runs here — see the matching comment in
-      // setupNewTavernkeeperItem above.
+      // See the matching comment in setupNewTavernkeeperItem above: the bundled, never-queried
+      // CWD_STAGING fixture is staged FIRST so this responder's own tavernkeeper-quest
+      // registrations below land last and win the guild directory listing for every real read.
       spawnProxy.stageAddDirPathJoins();
-      // onComplete's own fire-and-forget questModifyBroker call (marking the item complete) loads
-      // the quest AGAIN before merging — a fifth cycle. Item presence never changes for an already-
-      // existing item, so it sees the same quest.
-      modifyProxy.setupQuestFound({ quest });
       stageAccessibleSpawn({
         worktreePath: quest.worktreePath,
         ...(stdoutLines === undefined ? {} : { stdoutLines }),
       });
+
+      getProxy.setupQuestFound({ quest }); // this responder's own pre-check
+      modifyProxy.setupQuestFound({ quest }); // this responder's own persist's internal load
+      getProxy.setupQuestFound({ quest }); // resolveChatQuestLayerBroker's own lookup
+      getProxy.setupQuestFound({ quest }); // questCwdResolveBroker's own lookup
+      // onComplete's own fire-and-forget questModifyBroker call (marking the item complete) loads
+      // the quest AGAIN before merging — a fifth cycle. Item presence never changes for an already-
+      // existing item, so it sees the same quest.
+      modifyProxy.setupQuestFound({ quest });
     },
 
     setupQuestNotFound: (): void => {
@@ -204,8 +208,7 @@ export const FollowupChatStartResponderProxy = (): {
     // accessibility check fails, and no spawn is ever staged (the responder throws first). The
     // responder catches that throw and issues a SECOND questModifyBroker call to mark the
     // tavernkeeper item `failed` rather than leaving it stuck `in_progress` — that call needs its
-    // own staged read/write cycle, the same as the responder's initial persist above it. No add-dir
-    // computation is staged here — chatSpawnBroker throws before ever reaching it.
+    // own staged read/write cycle, the same as the responder's initial persist above it.
     setupWorktreeMissing: ({ quest }: { quest: Quest }): void => {
       if (quest.worktreePath === undefined) {
         throw new Error(
@@ -213,15 +216,19 @@ export const FollowupChatStartResponderProxy = (): {
         );
       }
 
-      getProxy.setupQuestFound({ quest });
-      modifyProxy.setupQuestFound({ quest });
-      getProxy.setupQuestFound({ quest });
-      getProxy.setupQuestFound({ quest });
+      // See the matching comment in setupNewTavernkeeperItem above: the bundled, never-queried
+      // CWD_STAGING fixture is staged FIRST so this responder's own tavernkeeper-quest
+      // registrations below win the guild directory listing for every real read.
       spawnProxy.setupResumeWithMissingWorktree({
         questId: CWD_STAGING_QUEST_ID,
         sessionId: CWD_STAGING_SESSION_ID,
         worktreePath: quest.worktreePath,
       });
+
+      getProxy.setupQuestFound({ quest });
+      modifyProxy.setupQuestFound({ quest });
+      getProxy.setupQuestFound({ quest });
+      getProxy.setupQuestFound({ quest });
       // The catch block's own failure-marking questModifyBroker call. Its actual outcome
       // (whether the mocked internal find/load/persist chain resolves) is not what the
       // covering test asserts on — getModifyCallInputs() below inspects the raw arguments

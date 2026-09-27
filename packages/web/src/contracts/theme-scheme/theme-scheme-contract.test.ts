@@ -85,7 +85,7 @@ describe('themeSchemeContract', () => {
           desc: 'A theme',
           colors: { 'invalid-token': '#ff4500' },
         });
-      }).toThrow(/Invalid option/u);
+      }).toThrow(/Unrecognized key/u);
     });
 
     it('INVALID: {invalid hex value} => throws validation error', () => {

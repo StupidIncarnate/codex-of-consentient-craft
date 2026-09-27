@@ -231,7 +231,7 @@ describe('QuestFollowupResponder', () => {
       const imagesDirPath = `${homePath}/.dungeonmaster/guilds/${guildId}/quests/${questId}/images`;
 
       proxy.setupQuestLoad({ quest });
-      proxy.setupFindQuestPath({ questId, guildId });
+      proxy.setupFindQuestPath({ questId, guildId, homePath });
       proxy.setupStartFollowupChat({ questId, chatProcessId });
       proxy.setupPastedImageHome({ homePath });
       proxy.stagePastedImageIds({ ids: ['first-image-id', 'second-image-id'] });
@@ -273,7 +273,7 @@ describe('QuestFollowupResponder', () => {
       const expectedPath = `${imagesDirPath}/forwarded-image-id.png`;
 
       proxy.setupQuestLoad({ quest });
-      proxy.setupFindQuestPath({ questId, guildId });
+      proxy.setupFindQuestPath({ questId, guildId, homePath });
       proxy.setupStartFollowupChat({ questId, chatProcessId });
       proxy.setupPastedImageHome({ homePath });
       proxy.stagePastedImageIds({ ids: ['forwarded-image-id'] });
@@ -393,7 +393,7 @@ describe('QuestFollowupResponder', () => {
       const quest = QuestStub({ id: questId, status: 'complete' });
 
       proxy.setupQuestLoad({ quest });
-      proxy.setupFindQuestPath({ questId, guildId });
+      proxy.setupFindQuestPath({ questId, guildId, homePath });
       proxy.setupStartFollowupChat({ questId, chatProcessId });
       proxy.setupPastedImageHome({ homePath });
       proxy.stagePastedImageIds({ ids: [copyId] });

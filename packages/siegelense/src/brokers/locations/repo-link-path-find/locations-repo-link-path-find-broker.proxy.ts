@@ -2,7 +2,7 @@ import { join } from '#gateway/node/path';
 import { cwd } from '#gateway/node/process';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
-import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/testing';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
@@ -48,11 +48,11 @@ export const locationsRepoLinkPathFindBrokerProxy = (): {
   cwdProxy();
   const cwdHandle = registerMock({ fn: cwd });
   // cwd() takes no arguments — there is no call-site value to key on, so [] is the honest address.
-  // Sticky real-passthrough default for any OTHER cwd() call a sibling broker composed in the SAME
-  // test makes for a purpose this proxy's own scenarios never address (instanceReserveBroker's
-  // git-branch lookup) — a later `setupCwd`/scenario call is a live override.
-  const realProcess = requireActual<{ cwd: typeof cwd }>({ module: 'process' });
-  cwdHandle.calledWith([]).implement(() => realProcess.cwd());
+  // No default: every caller composing this proxy stages it explicitly, via `setupCwd` or a
+  // scenario method (`setupLinkResolvesToRoot`/`setupLinkAbsent`/`setupLinkPointsElsewhere`, via
+  // `stageOuterJoin` below) — instanceReserveBroker's own git-branch lookup shares this same cwd()
+  // mock, and a caller composed alongside it (instanceStartBrokerProxy's convention) stages this
+  // address too, so no test ever reads the real working directory.
   const resolveProxy = cwdResolveBrokerProxy();
   // #gateway/node/path is a raw passthrough of the Node 'path' module (no per-function wrapper,
   // so no gateway proxy to compose) — mocked directly here, on the same '#gateway/node/path'

@@ -19,6 +19,6 @@ describe('takeCountContract', () => {
   });
 
   it('INVALID: {1.5} => throws', () => {
-    expect(() => takeCountContract.parse(1.5)).toThrow(/integer/u);
+    expect(() => takeCountContract.parse(1.5)).toThrow(/expected int, received number/u);
   });
 });

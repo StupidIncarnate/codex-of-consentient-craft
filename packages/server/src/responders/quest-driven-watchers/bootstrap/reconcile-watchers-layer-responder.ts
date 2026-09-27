@@ -139,9 +139,20 @@ export const ReconcileWatchersLayerResponder = async ({
       try {
         const workerWorkItemId = workerWorkItemIdBySessionId.get(sessionId);
         const workerQuestId = workerQuestIdBySessionId.get(sessionId);
+        const resolvedProjectDir = projectDirBySessionId.get(sessionId);
+        if (resolvedProjectDir === undefined) {
+          // Every sessionId in `target` was added by the SAME loop iteration that also records a
+          // projectDirBySessionId entry for it — either the recorded cwd or the quest's own guess,
+          // which is always defined (every quest here came from `guildPathByQuestId`, populated for
+          // that exact quest.id before this loop runs). This branch guards that invariant; it is not
+          // a real fallback, so it names the bootstrap's own cwd only for triage if it ever fires.
+          throw new Error(
+            `quest-driven-watchers: no projectDir recorded for session ${String(sessionId)}; bootstrap cwd was ${projectDir}`,
+          );
+        }
         const handle = await StartOrchestrator.startMonitorWatcher({
           parentSessionId: String(sessionId),
-          projectDir: projectDirBySessionId.get(sessionId) ?? projectDir,
+          projectDir: resolvedProjectDir,
           ...(workerWorkItemId === undefined ? {} : { workerWorkItemId: String(workerWorkItemId) }),
           ...(workerQuestId === undefined ? {} : { workerQuestId: String(workerQuestId) }),
         });

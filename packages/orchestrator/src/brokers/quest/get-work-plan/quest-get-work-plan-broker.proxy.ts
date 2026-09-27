@@ -1,13 +1,14 @@
 /**
- * PURPOSE: Proxy for questGetWorkPlanBroker. Stages the quest read and the plan-file read, in that
- * order — `pathJoinAdapterProxy.returns` is a call-ordered one-shot queue, so staging the plan first
- * would hand the quest read the plan file's path.
+ * PURPOSE: Proxy for questGetWorkPlanBroker. Stages the quest read (exact-tuple addressed join,
+ * so it can never answer the plan-file read's own address) ahead of the plan-file read.
  *
  * USAGE:
  * const proxy = questGetWorkPlanBrokerProxy();
  * proxy.setupPlanFound({ quest, operationItemId, plan });
  * const text = await questGetWorkPlanBroker({ questId, operationItemId });
  */
+
+import { join } from '#gateway/node/path';
 
 import {
   AbsoluteFilePathStub,
@@ -17,7 +18,8 @@ import {
   GuildIdStub,
 } from '@dungeonmaster/shared/contracts';
 import type { OperationItemId, QuestStub } from '@dungeonmaster/shared/contracts';
-import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
+import { locationsStatics } from '@dungeonmaster/shared/statics';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import type { WorkPlanStub } from '../../../contracts/work-plan/work-plan.stub';
 import { plannedWorkReadBrokerProxy } from '../../planned-work/read/planned-work-read-broker.proxy';
@@ -41,7 +43,7 @@ export const questGetWorkPlanBrokerProxy = (): {
   setupPlanMissing: (params: { quest: Quest; operationItemId: OperationItemId }) => void;
 } => {
   const findQuestPathProxy = questFindQuestPathBrokerProxy();
-  const pathJoinProxy = pathJoinAdapterProxy();
+  const joinHandle = registerMock({ fn: join });
   const loadProxy = questLoadBrokerProxy();
   const plannedWorkProxy = plannedWorkReadBrokerProxy();
 
@@ -73,7 +75,12 @@ export const questGetWorkPlanBrokerProxy = (): {
       ],
     });
 
-    pathJoinProxy.returns({ result: questFilePath });
+    // questGetWorkPlanBroker's own join(questPath, quest.json) -> questFilePath, addressed by the
+    // exact tuple rather than an address-less FIFO slot, so it can never answer a different
+    // broker's join call sharing the same underlying mocked `join`.
+    joinHandle
+      .calledWith([questFolderPath, locationsStatics.quest.questFile])
+      .returns(questFilePath);
     loadProxy.setupQuestFile({ questJson: JSON.stringify(quest) });
   };
 

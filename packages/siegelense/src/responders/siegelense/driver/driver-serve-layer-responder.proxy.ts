@@ -72,15 +72,14 @@ export const DriverServeLayerResponderProxy = (): {
   DriverIdleWaitLayerResponderProxy();
   driverSessionStateProxy();
   shutdownReasonWriteBrokerProxy();
-  // locationsSocketPathFindBroker and locationsInstanceEvidencePathFindBroker both run REAL here
-  // (DriverServeLayerResponder never mocks either), so their own proxies must be STAGED, not just
-  // constructed — otherwise they leave the pathJoinAdapter catch-all unconfigured and the real call
-  // underneath throws.
-  const socketPathProxy = locationsSocketPathFindBrokerProxy();
-  socketPathProxy.setupSocketPath({
-    tmpDir: '/tmp',
-    socketPath: FilePathStub({ value: '/tmp/dm-siege-sockets/inst-serve-test.sock' }),
-  });
+  // locationsSocketPathFindBroker runs REAL here (DriverServeLayerResponder never mocks it) — its
+  // own proxy's sticky real-passthrough default (`#gateway/node/path`'s `join`, plus
+  // osTmpdirAdapterProxy's own '/tmp' default) already answers every test in this file's own
+  // instanceId, so this file only composes it for enforce-proxy-child-creation.
+  // locationsInstanceEvidencePathFindBroker ALSO runs real, but its own resolution reaches
+  // dungeonmasterHomeFindBroker's unaddressed `homedir()` call underneath — which throws unless
+  // staged — so its proxy must be STAGED below, not just constructed.
+  locationsSocketPathFindBrokerProxy();
   const evidencePathProxy = locationsInstanceEvidencePathFindBrokerProxy();
   // guildId is null on every call this proxy's tests make (see this responder's own test file),
   // so the real broker's own "unowned" shape — <rootPath>/unowned/instances/<instanceId> — is what

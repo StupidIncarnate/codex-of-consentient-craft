@@ -33,7 +33,7 @@ describe('flowLayoutSignatureContract', () => {
 
     it('INVALID: {value: 5} => throws for non-string', () => {
       expect(() => FlowLayoutSignatureStub({ value: 5 as never })).toThrow(
-        /Expected string, received number/u,
+        /Invalid input: expected string, received number/u,
       );
     });
   });

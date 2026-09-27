@@ -44,7 +44,7 @@ describe('partialEslintConfigContract', () => {
         return partialEslintConfigContract.parse({
           rules: 'invalid',
         });
-      }).toThrow(/Expected object, received string/u);
+      }).toThrow(/Invalid input: expected record, received string/u);
     });
 
     it('INVALID: {rules: array} => throws validation error', () => {
@@ -52,7 +52,7 @@ describe('partialEslintConfigContract', () => {
         return partialEslintConfigContract.parse({
           rules: ['no-console'],
         });
-      }).toThrow(/Expected object, received array/u);
+      }).toThrow(/Invalid input: expected record, received array/u);
     });
   });
 });

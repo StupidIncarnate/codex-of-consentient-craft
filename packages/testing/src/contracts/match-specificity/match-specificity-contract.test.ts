@@ -18,9 +18,7 @@ describe('matchSpecificityContract', () => {
 
   describe('invalid values', () => {
     it('INVALID: {value: -1} => throws', () => {
-      expect(() => matchSpecificityContract.parse(-1)).toThrow(
-        /expected number to be >=0/u,
-      );
+      expect(() => matchSpecificityContract.parse(-1)).toThrow(/expected number to be >=0/u);
     });
 
     it('INVALID: {value: 1.5} => throws', () => {

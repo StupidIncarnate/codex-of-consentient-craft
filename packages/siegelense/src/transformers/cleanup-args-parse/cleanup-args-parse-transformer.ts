@@ -1,11 +1,11 @@
 /**
  * PURPOSE: Reads `dungeonmaster siegelense cleanup`'s argv into a `CleanupArgs`. Every flag but
- * `--json` and `--human` refuses, carrying the reason nothing can be selected — cleanup "takes no
- * input" (siegelense-tooling.md line 2409) — AND the canonical positional-argument sentence its
- * siblings all carry, so a stray positional argument here states both why nothing was expected and
- * the general rule every other call states for the identical mistake. The sentence here is a
- * SHORTER one than `siegelenseHelpStatics.calls.cleanup.refusals[0]` on purpose, and the two are
- * allowed to differ in length but never in fact.
+ * `--json` refuses, carrying the reason nothing can be selected — cleanup "takes no input"
+ * (siegelense-tooling.md line 2409). A stray positional argument carries that same reason alone:
+ * cleanup has no flag that takes a value, so the canonical "a value follows its flag" sentence its
+ * value-taking siblings carry would send a caller looking for a flag that does not exist here, and
+ * is omitted. The sentence here is a SHORTER one than `siegelenseHelpStatics.calls.cleanup.refusals[0]`
+ * on purpose, and the two are allowed to differ in length but never in fact.
  *
  * USAGE:
  * cleanupArgsParseTransformer({ args: [] });
@@ -43,8 +43,7 @@ export const cleanupArgsParseTransformer = ({ args }: { args: readonly string[] 
     }
 
     throw new Error(
-      `Unexpected positional argument: ${arg}\n\n` +
-        `${CLEANUP_TAKES_NO_INPUT} Every value must directly follow the flag it belongs to.\n\n${USAGE}`,
+      `Unexpected positional argument: ${arg}\n\n${CLEANUP_TAKES_NO_INPUT}\n\n${USAGE}`,
     );
   }
 

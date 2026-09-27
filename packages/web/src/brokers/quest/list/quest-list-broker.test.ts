@@ -81,7 +81,7 @@ describe('questListBroker', () => {
       proxy.setupInvalidResponse({ data: [QuestListItemStub()] });
 
       await expect(questListBroker({ guildId })).rejects.toThrow(
-        /Expected object, received array/u,
+        /Invalid input: expected object, received array/u,
       );
     });
   });

@@ -26,7 +26,7 @@ describe('rowOrderContract', () => {
     });
 
     it('INVALID: {value: 1.5} => throws for non-integer', () => {
-      expect(() => rowOrderContract.parse(1.5)).toThrow(/integer/u);
+      expect(() => rowOrderContract.parse(1.5)).toThrow(/expected int, received number/u);
     });
 
     it('INVALID: {value: "1"} => throws for string', () => {

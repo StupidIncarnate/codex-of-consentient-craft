@@ -35,7 +35,7 @@ describe('themeSchemeNameContract', () => {
     it('INVALID: {value: exceeds max} => throws for exceeding max length', () => {
       expect(() =>
         themeSchemeNameContract.parse('A'.repeat(MAX_THEME_SCHEME_NAME_LENGTH + 1)),
-      ).toThrow(/String must contain at most 50 character/u);
+      ).toThrow(/expected string to have <=50 characters/u);
     });
 
     it('EMPTY: {value: null} => throws for null', () => {

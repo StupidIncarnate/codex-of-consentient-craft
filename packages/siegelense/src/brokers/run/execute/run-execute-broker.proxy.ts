@@ -49,14 +49,15 @@ const EVIDENCE_PATH = AbsoluteFilePathStub({
   value: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1',
 });
 
-// `CWD_PATH_VALUE` is `processCwdAdapterProxy`'s OWN sticky default, reused rather than staged, so
-// the repo-root walk below is the ONLY thing about `locationsRepoLinkPathFindBroker`'s call this
-// file ever addresses. This file stages `existsSync`/`realpath` for the link check directly
-// (below) rather than composing `locationsRepoLinkPathFindBrokerProxy`'s own
+// `CWD_PATH_VALUE` is staged directly on `repoLinkProxy.setupCwd` below (the address
+// `locationsRepoLinkPathFindBroker`'s own `cwd()` call reads), so the repo-root walk is the ONLY
+// thing about that call this file ever addresses. This file stages `existsSync`/`realpath` for the
+// link check directly (below) rather than composing `locationsRepoLinkPathFindBrokerProxy`'s own
 // `setupLinkAbsent`/`setupLinkResolvesToRoot` scenario methods, the same convention
 // instance-kill-broker.proxy.ts uses for the identical broker — `runExecuteBroker` itself makes
-// several OTHER real `path.join` calls (locationsRunPathsFindBroker's three joins, run first)
-// against the OLD, unmigrated `pathJoinAdapter`, unrelated to this file's own staging here.
+// several OTHER real `path.join` calls (locationsRunPathsFindBroker's three joins, run first),
+// resolved for real through `#gateway/node/path`'s own `join`, unrelated to this file's own staging
+// here.
 const CWD_PATH_VALUE = '/default/cwd';
 const CONFIG_FILE_PATH = FilePathStub({ value: `${CWD_PATH_VALUE}/.dungeonmaster.json` });
 // A REAL `path.join(CWD_PATH_VALUE, '.dungeonmaster-assets', 'siegelense-assets')` — matches what
@@ -261,8 +262,8 @@ export const runExecuteBrokerProxy = (): {
     // A `.dungeonmaster-assets/siegelense-assets` symlink at CWD_PATH_VALUE, resolving to
     // SIEGELENSE_ROOT_VALUE. Every stage
     // here is keyed on its EXACT argument (a path, or `[]` for homedir's own no-args call), so it
-    // is safe regardless of how many other real `pathJoinAdapter` calls happen before or after it
-    // — see this file's header comment on CWD_PATH_VALUE for why that matters.
+    // is safe regardless of how many other real `#gateway/node/path` `join` calls happen before or
+    // after it — see this file's header comment on CWD_PATH_VALUE for why that matters.
     stageRepoLinkPresent: (): void => {
       repoLinkProxy.setupHomeOnly({ homeDir: HOME_DIR_VALUE, homePath: HOME_PATH });
       existsHandle.calledWith([LINK_PATH]).returns(true);

@@ -43,7 +43,10 @@ export const cleanupAnswerRenderTransformer = ({
 
   return contentTextContract.parse(
     `REAPED: ${reapedText}\nPORTS RELEASED: ${portsText}\nLOCK RELEASED: ${
-      answer.lockReleased ? 'yes' : 'no'
+      // `false` here only ever means no stale lock needed releasing — an unlink failure inside
+      // lockReleaseLayerBroker throws rather than returning false, so "none held" never hides a
+      // failed release; that failure surfaces as a thrown error instead of a CleanupAnswer at all.
+      answer.lockReleased ? 'yes' : 'none held'
     }\nASSETS AGED: ${answer.assetsAged.instances} instances, ${
       answer.assetsAged.freedMB
     }MB\nLEFT ALONE: ${leftAloneText}\n`,

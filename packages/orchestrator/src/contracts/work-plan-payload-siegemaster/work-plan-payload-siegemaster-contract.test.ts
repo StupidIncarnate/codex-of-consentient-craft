@@ -1,7 +1,7 @@
 import { workPlanPayloadSiegemasterContract } from './work-plan-payload-siegemaster-contract';
 import { WorkPlanPayloadSiegemasterStub } from './work-plan-payload-siegemaster.stub';
 
-const OFF_MAP_FAMILIES = workPlanPayloadSiegemasterContract.shape.offMapFamily.options;
+const OFF_MAP_FAMILIES = workPlanPayloadSiegemasterContract.shape.offMapFamily.unwrap().options;
 
 describe('workPlanPayloadSiegemasterContract', () => {
   describe('valid payloads', () => {

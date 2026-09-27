@@ -48,9 +48,7 @@ describe('fetchGetWithStatusResultContract', () => {
     });
 
     it('INVALID: {status: 600} => throws (above maximum)', () => {
-      expect(() => FetchGetWithStatusResultStub({ status: 600 })).toThrow(
-        /less than or equal to 599/u,
-      );
+      expect(() => FetchGetWithStatusResultStub({ status: 600 })).toThrow(/to be <=599/u);
     });
 
     it('INVALID: {ok: "true" string} => throws (not boolean)', () => {

@@ -14,7 +14,9 @@
  */
 
 import { Dirent } from 'fs';
-import type { join } from 'path';
+
+import { existsSync, readdirEntriesSync } from '#gateway/node/fs';
+import { join } from '#gateway/node/path';
 
 import {
   childProcessSpawnCaptureAdapter,
@@ -200,6 +202,34 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
   const pathJoinImpl = ({ paths }: Parameters<typeof pathJoinAdapter>[0]): FilePath =>
     filePathContract.parse(realPath.join(...paths));
   pathJoinHandle.calledWith([]).implement(pathJoinImpl as never);
+
+  // questFindQuestPathBroker and questGetBroker reach these three through the gateway directly, not
+  // through `@dungeonmaster/shared/adapters`'s fsReaddirWithTypesAdapter/fsExistsSyncAdapter/
+  // pathJoinAdapter (those stay mocked above for the worktree brokers' own node_modules-mirror
+  // reads, which have not moved). Mocked at the WRAPPER rather than through `#gateway/node/fs`'s
+  // dedicated `readdir-entries-sync.proxy` / `exists-sync.proxy`: those compose only for a proxy
+  // whose OWN implementation imports the gateway name directly, and `enforce-proxy-child-creation`
+  // refuses them here, where the implementation is `step-handler-riftcarver-broker.ts`.
+  //
+  // Defaulted to the REAL WRAPPER implementation, not a fabricated value: this proxy is composed
+  // downstream (via stepHandlerRunBrokerProxy) alongside other brokers that ALSO reach
+  // questFindQuestPathBroker, for OTHER quests, staged through ITS OWN `existsSyncProxy`/
+  // `readdirEntriesSyncProxy` — which mock raw `fs`, one layer below this wrapper. Mocking this
+  // wrapper with no default would swallow every one of those calls before they ever reach the
+  // raw-fs mock that answers them; real-passthrough lets an unstaged call fall through to the
+  // wrapper's own body, which still calls the (separately mocked) raw fs underneath.
+  const realGatewayFs = requireActual<{
+    existsSync: typeof existsSync;
+    readdirEntriesSync: typeof readdirEntriesSync;
+  }>({ module: '#gateway/node/fs' });
+  const gatewayReaddirHandle = registerMock({ fn: readdirEntriesSync });
+  gatewayReaddirHandle.calledWith([]).implement(realGatewayFs.readdirEntriesSync as never);
+  const gatewayExistsHandle = registerMock({ fn: existsSync });
+  gatewayExistsHandle.calledWith([]).implement(realGatewayFs.existsSync as never);
+  // `join` is pure with nothing to virtualize — real passthrough by default, same as
+  // pathJoinAdapter's own above, since `#gateway/node/path`'s `join` is the identical function.
+  const gatewayJoinHandle = registerMock({ fn: join });
+  gatewayJoinHandle.calledWith([]).implement((...segments: never[]) => realPath.join(...segments));
 
   const dungeonmasterHomeFindHandle = registerMock({ fn: dungeonmasterHomeFindBroker });
   const dungeonmasterHomeFindImpl = (): { homePath: FilePath } => ({
@@ -430,6 +460,22 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
       ]);
       files.set(questFilePath, fileContentsContract.parse(JSON.stringify(quest)));
       questFilePathRef.value = questFilePath;
+
+      // questFindQuestPathBroker's own guild listing and per-guild quest scan, addressed by the
+      // exact known directories this store's one guild holds — never an address-less catch-all.
+      gatewayReaddirHandle
+        .calledWith([GUILDS_DIR])
+        .returns([{ name: GUILD_ID, kind: 'directory' }]);
+      gatewayReaddirHandle
+        .calledWith([QUESTS_DIR])
+        .returns([{ name: String(quest.folder), kind: 'directory' }]);
+      // The probe's own join keys its last segment on `questId`, not `folder` — this store only
+      // ever holds the quest under its FOLDER name, so the probe's exact candidate path is
+      // addressed as an explicit miss and the real broker falls through to the scan above, which
+      // does hold it.
+      gatewayExistsHandle
+        .calledWith([`${QUESTS_DIR}/${String(quest.id)}/quest.json`])
+        .returns(false);
 
       dirEntries.set(filePathContract.parse(`${REPO_ROOT}/node_modules`), [
         { name: fileNameContract.parse('@dungeonmaster'), isDir: true, isSymlink: false },

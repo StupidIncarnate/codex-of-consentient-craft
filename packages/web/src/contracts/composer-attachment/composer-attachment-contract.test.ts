@@ -50,14 +50,14 @@ describe('composerAttachmentContract', () => {
 
     it('INVALID: {mediaType: "image/bmp"} => throws for a media type outside the allowed set', () => {
       expect(() => ComposerAttachmentStub({ mediaType: 'image/bmp' as never })).toThrow(
-        "Invalid enum value. Expected 'image/png' | 'image/jpeg' | 'image/gif' | 'image/webp', received 'image/bmp'",
+        /Invalid option/u,
       );
     });
 
     it('INVALID: {dataUrl: "https://example.com/a.png"} => throws for a non-data-url', () => {
       expect(() =>
         ComposerAttachmentStub({ dataUrl: 'https://example.com/a.png' as never }),
-      ).toThrow(/invalid_format/u);
+      ).toThrow(/Invalid image data URL/u);
     });
 
     it('INVALID: {widthPx: 0} => throws for a non-positive width', () => {

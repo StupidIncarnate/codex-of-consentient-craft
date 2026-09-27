@@ -29,9 +29,7 @@ describe('workPlanBatchContract', () => {
 
   describe('invalid batches', () => {
     it('EMPTY: {pieces: []} => refused, since an empty batch forecasts nothing', () => {
-      expect(() => WorkPlanBatchStub({ pieces: [] })).toThrow(
-        /expected array to have >=1 items/u,
-      );
+      expect(() => WorkPlanBatchStub({ pieces: [] })).toThrow(/expected array to have >=1 items/u);
     });
 
     it('INVALID: {mode: concurrent} => refused', () => {

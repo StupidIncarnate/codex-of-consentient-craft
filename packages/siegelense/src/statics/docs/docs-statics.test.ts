@@ -206,16 +206,30 @@ describe('docsStatics', () => {
       ]);
     });
 
-    it('VALID: {attacking} => marks health, reset and snapshot as built', () => {
+    it('VALID: {attacking} => states the fresh instance rule for state-changing attacks', () => {
       expect(docsStatics.scopes.attacking.sections[0].lines[0]).toBe(
-        'The reset and snapshot commands are BUILT. The health command is BUILT.',
+        'If an attack changes the application state, you must start a fresh instance for it: boot the instance, run the attack, read the results, and close the instance. If you run a second attack on the same instance, you will be testing the damaged state left by the first attack.',
       );
     });
 
     it('VALID: {attacking} => gives the callable stand-in for the unbuilt health reading', () => {
-      expect(docsStatics.scopes.attacking.sections[1].lines[3]).toBe(
+      expect(docsStatics.scopes.attacking.sections[1].lines[4]).toBe(
         'You can perform this exact health check manually using existing commands: check results --kind console for browser errors, results --kind network for failed requests, results --kind server --where-steps a-b --where-level error for server logs, and check the blank status on your screenshots.',
       );
+    });
+
+    it('VALID: {attacking} => teaches health and snapshot steps and run batch invocation', () => {
+      const allLines = docsStatics.scopes.attacking.sections.flatMap((section) => section.lines);
+
+      expect({
+        teachesHealth: allLines.some((line) => line === '{ "step": "health" }'),
+        teachesSnapshot: allLines.some((line) => line.includes('"step": "snapshot"')),
+        teachesRunCommand: allLines.some((line) => line.includes('run --instance <id> --steps')),
+      }).toStrictEqual({
+        teachesHealth: true,
+        teachesSnapshot: true,
+        teachesRunCommand: true,
+      });
     });
   });
 });

@@ -42,11 +42,11 @@ describe('themeColorTokenContract', () => {
     });
 
     it('EMPTY: {value: null} => throws for null', () => {
-      expect(() => themeColorTokenContract.parse(null)).toThrow(/received null/u);
+      expect(() => themeColorTokenContract.parse(null)).toThrow(/Invalid option/u);
     });
 
     it('EMPTY: {value: undefined} => throws for undefined', () => {
-      expect(() => themeColorTokenContract.parse(undefined)).toThrow(/received undefined/u);
+      expect(() => themeColorTokenContract.parse(undefined)).toThrow(/Invalid option/u);
     });
   });
 

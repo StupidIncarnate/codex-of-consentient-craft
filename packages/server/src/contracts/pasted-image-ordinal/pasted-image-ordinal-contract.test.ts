@@ -26,9 +26,7 @@ describe('pastedImageOrdinalContract', () => {
     });
 
     it('INVALID: {value: 1.5} => throws for a non-integer number', () => {
-      expect(() => pastedImageOrdinalContract.parse(1.5)).toThrow(
-        /expected int, received number/u,
-      );
+      expect(() => pastedImageOrdinalContract.parse(1.5)).toThrow(/expected int, received number/u);
     });
 
     it('INVALID: {value: "1"} => throws for a string', () => {

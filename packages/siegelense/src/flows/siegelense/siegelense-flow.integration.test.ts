@@ -159,7 +159,7 @@ describe('SiegelenseFlow', () => {
       expect(writes).toStrictEqual([
         'REAPED: none\n' +
           'PORTS RELEASED: none\n' +
-          'LOCK RELEASED: no\n' +
+          'LOCK RELEASED: none held\n' +
           'ASSETS AGED: 0 instances, 0MB\n' +
           'LEFT ALONE: none\n',
       ]);

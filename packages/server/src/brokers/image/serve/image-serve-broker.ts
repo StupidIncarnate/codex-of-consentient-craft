@@ -16,13 +16,10 @@
  * // → { bytes, contentType: 'image/png' } when servable, or null for any refusal
  */
 
-import {
-  fsExistsSyncAdapter,
-  pathDirnameAdapter,
-  pathJoinAdapter,
-} from '@dungeonmaster/shared/adapters';
+import { existsSync } from '#gateway/node/fs';
+import { dirname, join } from '#gateway/node/path';
 import { locationsQuestImagesPathFindBroker } from '@dungeonmaster/shared/brokers';
-import { absoluteFilePathContract, filePathContract } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { fsReadFileBytesAdapter } from '../../../adapters/fs/read-file-bytes/fs-read-file-bytes-adapter';
@@ -54,12 +51,8 @@ export const imageServeBroker = async ({
     // reason about a name that resolves to nothing.
     const realFilePath = await fsRealpathAdapter({ filePath });
 
-    // Re-branded through filePathContract on the way in: AbsoluteFilePath is a sibling brand of
-    // FilePath, not a subtype of it, so the two do not assign to each other.
-    const containingDir = pathDirnameAdapter({ path: filePathContract.parse(realFilePath) });
-    const questFolderPath = absoluteFilePathContract.parse(
-      pathDirnameAdapter({ path: containingDir }),
-    );
+    const containingDir = dirname(realFilePath);
+    const questFolderPath = absoluteFilePathContract.parse(dirname(containingDir));
     const containingDirPath = absoluteFilePathContract.parse(containingDir);
 
     if (locationsQuestImagesPathFindBroker({ questFolderPath }) !== containingDirPath) {
@@ -69,10 +62,8 @@ export const imageServeBroker = async ({
     // A directory named `images` is common enough on a developer's machine that the name alone
     // does not make one a quest's. The quest file next to it is what does: every quest folder
     // holds one from the moment it is created, and nothing else on the host does by accident.
-    const questFilePath = pathJoinAdapter({
-      paths: [questFolderPath, locationsStatics.quest.questFile],
-    });
-    if (!fsExistsSyncAdapter({ filePath: questFilePath })) {
+    const questFilePath = join(questFolderPath, locationsStatics.quest.questFile);
+    if (!existsSync(questFilePath)) {
       return null;
     }
 

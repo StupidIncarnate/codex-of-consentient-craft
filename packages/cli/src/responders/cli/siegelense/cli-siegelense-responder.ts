@@ -1,7 +1,7 @@
 /**
  * PURPOSE: Forwards `dungeonmaster siegelense`'s argv verbatim to
  * `@dungeonmaster/siegelense/startup`'s `StartSiegelense`, reached through
- * `runtimeDynamicImportAdapter`. Dynamic, never static: a static import would pull Playwright (a
+ * `dynamicImport`. Dynamic, never static: a static import would pull Playwright (a
  * peer dependency of that package, needed only to boot a browser lane) into the esbuild bundle
  * that becomes `dist/bin/dungeonmaster.js`, the binary every consumer installs whether or not they
  * ever run one. This layer validates nothing — no subcommand allow-list, no flag pre-check —
@@ -22,7 +22,8 @@
 
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import { adapterResultContract, filePathContract } from '@dungeonmaster/shared/contracts';
-import { runtimeDynamicImportAdapter } from '@dungeonmaster/shared/adapters';
+import { dynamicImport } from '#gateway/node/module';
+import { siegelenseModuleContract } from '../../../contracts/siegelense-module/siegelense-module-contract';
 
 const SIEGELENSE_MODULE_NAME = '@dungeonmaster/siegelense/startup';
 const SIEGELENSE_PACKAGE_NAME = '@dungeonmaster/siegelense';
@@ -34,12 +35,12 @@ export const CliSiegelenseResponder = async ({
 }): Promise<AdapterResult> => {
   const siegelensePath = filePathContract.parse(require.resolve(SIEGELENSE_MODULE_NAME));
 
-  const siegelenseModule = await runtimeDynamicImportAdapter<{
-    StartSiegelense: (params: { args: readonly string[] }) => Promise<AdapterResult>;
-  }>({ path: siegelensePath }).catch((error: unknown) => {
-    const message = error instanceof Error ? error.message : String(error);
-    throw new Error(`Failed to load ${SIEGELENSE_PACKAGE_NAME}: ${message}`, { cause: error });
-  });
+  const siegelenseModule = siegelenseModuleContract.parse(
+    await dynamicImport({ path: siegelensePath }).catch((error: unknown) => {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(`Failed to load ${SIEGELENSE_PACKAGE_NAME}: ${message}`, { cause: error });
+    }),
+  );
 
   const result = await siegelenseModule.StartSiegelense({ args });
   return adapterResultContract.parse(result);

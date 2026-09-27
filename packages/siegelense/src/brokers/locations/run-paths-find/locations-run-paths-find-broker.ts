@@ -19,7 +19,7 @@
  * // }
  */
 
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
+import { join } from '#gateway/node/path';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { absoluteFilePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import type { RunId } from '../../../contracts/run-id/run-id-contract';
@@ -36,25 +36,19 @@ export const locationsRunPathsFindBroker = ({
   storedReturn: AbsoluteFilePath;
   shotsDir: AbsoluteFilePath;
 } => {
-  const transcript = pathJoinAdapter({
-    paths: [
-      evidencePath,
-      locationsStatics.siegelense.runsDir,
-      `${runId}${evidenceFileStatics.extensions.transcript}`,
-    ],
-  });
+  const transcript = join(
+    evidencePath,
+    locationsStatics.siegelense.runsDir,
+    `${runId}${evidenceFileStatics.extensions.transcript}`,
+  );
 
-  const storedReturn = pathJoinAdapter({
-    paths: [
-      evidencePath,
-      locationsStatics.siegelense.runsDir,
-      `${runId}${evidenceFileStatics.extensions.runReturn}`,
-    ],
-  });
+  const storedReturn = join(
+    evidencePath,
+    locationsStatics.siegelense.runsDir,
+    `${runId}${evidenceFileStatics.extensions.runReturn}`,
+  );
 
-  const shotsDir = pathJoinAdapter({
-    paths: [evidencePath, locationsStatics.siegelense.runsDir, runId],
-  });
+  const shotsDir = join(evidencePath, locationsStatics.siegelense.runsDir, runId);
 
   return {
     transcript: absoluteFilePathContract.parse(transcript),

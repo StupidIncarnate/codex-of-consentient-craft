@@ -18,6 +18,7 @@ describe('QuestListWithSkipsResponder', () => {
       });
       proxy.setupQuestDirectories({ files: [FileNameStub({ value: '001-add-auth' })] });
       proxy.setupQuestFilePath({
+        folderName: FileNameStub({ value: '001-add-auth' }),
         result: FilePathStub({
           value: '/home/testuser/.dungeonmaster/guilds/guild-1/quests/001-add-auth/quest.json',
         }),
@@ -47,12 +48,14 @@ describe('QuestListWithSkipsResponder', () => {
         files: [FileNameStub({ value: '001-broken' }), FileNameStub({ value: '002-good' })],
       });
       proxy.setupQuestFilePath({
+        folderName: FileNameStub({ value: '001-broken' }),
         result: FilePathStub({
           value: '/home/testuser/.dungeonmaster/guilds/guild-1/quests/001-broken/quest.json',
         }),
       });
       proxy.setupQuestFile({ questJson: '{ not valid json' });
       proxy.setupQuestFilePath({
+        folderName: FileNameStub({ value: '002-good' }),
         result: FilePathStub({
           value: '/home/testuser/.dungeonmaster/guilds/guild-1/quests/002-good/quest.json',
         }),
@@ -84,6 +87,7 @@ describe('QuestListWithSkipsResponder', () => {
       });
       proxy.setupQuestDirectories({ files: [FileNameStub({ value: '001-legacy' })] });
       proxy.setupQuestFilePath({
+        folderName: FileNameStub({ value: '001-legacy' }),
         result: FilePathStub({
           value: '/home/testuser/.dungeonmaster/guilds/guild-1/quests/001-legacy/quest.json',
         }),

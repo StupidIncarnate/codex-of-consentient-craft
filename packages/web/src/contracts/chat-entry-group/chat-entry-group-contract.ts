@@ -45,11 +45,14 @@ type ChatEntryGroupSelf = SingleGroup | SubagentChainGroupSelf;
 
 // A getter, not `z.lazy` + a cast — the getter's return type wraps `z.core.$ZodType`, which is
 // the only self-reference form `contracts/` allows (zod v4 dropped the old `z.ZodTypeDef` type
-// param `z.lazy` needed here).
+// param `z.lazy` needed here). The getter rebuilds the union rather than reading the exported
+// `chatEntryGroupContract` below — referencing a binding declared later triggers
+// `no-use-before-define` even though the getter defers evaluation until after module init;
+// self-reference to `subagentChainGroupContract` (this same const) is the exempted case.
 const subagentChainGroupContract = z.object({
   ...baseSubagentChainGroupContract.shape,
   get innerGroups(): z.ZodArray<z.core.$ZodType<ChatEntryGroupSelf>> {
-    return z.array(chatEntryGroupContract);
+    return z.array(z.union([singleGroupContract, subagentChainGroupContract]));
   },
 });
 

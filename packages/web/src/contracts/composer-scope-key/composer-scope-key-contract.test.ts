@@ -26,7 +26,9 @@ describe('composerScopeKeyContract', () => {
 
   describe('invalid inputs', () => {
     it('INVALID: {value: ""} => throws for empty string', () => {
-      expect(() => composerScopeKeyContract.parse('')).toThrow(/String must contain at least 1/u);
+      expect(() => composerScopeKeyContract.parse('')).toThrow(
+        /expected string to have >=1 characters/u,
+      );
     });
 
     it('INVALID: {value: 123} => throws for number', () => {

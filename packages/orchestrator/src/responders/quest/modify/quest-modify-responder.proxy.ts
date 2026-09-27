@@ -74,7 +74,13 @@ export const QuestModifyResponderProxy = (): {
     });
 
     const guild = GuildStub({ id: guildId, path: guildPath });
-    guildProxy.setupConfig({ config: GuildConfigStub({ guilds: [guild] }) });
+    // Same home as findQuestPathProxy above — one real process has one home, and
+    // dungeonmasterHomeFindBroker() is a single shared, address-less mock.
+    guildProxy.setupConfig({
+      config: GuildConfigStub({ guilds: [guild] }),
+      homeDir: '/home/testuser',
+      homePath,
+    });
   };
 
   return {

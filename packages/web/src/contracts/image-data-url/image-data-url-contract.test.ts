@@ -20,18 +20,20 @@ describe('imageDataUrlContract', () => {
   describe('invalid inputs', () => {
     it('INVALID: {value: "data:image/bmp;base64,iVBORw0KGgo="} => throws for disallowed media type', () => {
       expect(() => imageDataUrlContract.parse('data:image/bmp;base64,iVBORw0KGgo=')).toThrow(
-        /invalid_format/u,
+        /Invalid image data URL/u,
       );
     });
 
     it('INVALID: {value: "http://example.com/image.png"} => throws for plain http url', () => {
       expect(() => imageDataUrlContract.parse('http://example.com/image.png')).toThrow(
-        /invalid_format/u,
+        /Invalid image data URL/u,
       );
     });
 
     it('INVALID: {value: "data:image/png;base64,"} => throws for missing base64 payload', () => {
-      expect(() => imageDataUrlContract.parse('data:image/png;base64,')).toThrow(/invalid_format/u);
+      expect(() => imageDataUrlContract.parse('data:image/png;base64,')).toThrow(
+        /Invalid image data URL/u,
+      );
     });
   });
 

@@ -8,6 +8,7 @@ import { orchestrationDispatchStateProxy } from '../../../state/orchestration-di
 import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
 import { orchestrationEventsStateProxy } from '../../../state/orchestration-events/orchestration-events-state.proxy';
 import { rateLimitsStateProxy } from '../../../state/rate-limits/rate-limits-state.proxy';
+import { usageLedgerScanFlightStateProxy } from '../../../state/usage-ledger-scan-flight/usage-ledger-scan-flight-state.proxy';
 
 type UsageLedger = ReturnType<typeof UsageLedgerStub>;
 
@@ -18,9 +19,12 @@ registerModuleMock({ module: '../../../brokers/usage-ledger/scan/usage-ledger-sc
 
 export const EvaluateHoldLayerResponderProxy = (): {
   setupLedger: (params: { ledger: UsageLedger }) => void;
+  setupPendingScan: (params: { ledger: UsageLedger }) => { finishScan: () => void };
+  setupScanFailure: () => void;
   setupNoHeldState: () => void;
   setupHeldState: () => void;
   setupWriteFailure: () => void;
+  scanCalls: () => unknown;
   stderrLines: () => unknown;
   measureEvents: () => unknown[];
 } => {
@@ -29,6 +33,7 @@ export const EvaluateHoldLayerResponderProxy = (): {
   const limitsState = rateLimitsStateProxy();
   usageLedgerScanBrokerProxy();
   orchestrationEventsStateProxy();
+  const flightState = usageLedgerScanFlightStateProxy();
 
   const scanMock = usageLedgerScanBroker as jest.MockedFunction<typeof usageLedgerScanBroker>;
   scanMock.mockResolvedValue(
@@ -51,12 +56,32 @@ export const EvaluateHoldLayerResponderProxy = (): {
       scanMock.mockResolvedValue(ledger);
     },
 
+    // A scan that stays running until the test says it finished, so a second tick lands mid-scan.
+    setupPendingScan: ({ ledger }: { ledger: UsageLedger }): { finishScan: () => void } => {
+      const release: { finishScan: () => void } = { finishScan: (): void => undefined };
+      scanMock.mockReturnValue(
+        new Promise<UsageLedger>((resolve) => {
+          release.finishScan = (): void => {
+            resolve(ledger);
+          };
+        }),
+      );
+      return release;
+    },
+
+    setupScanFailure: (): void => {
+      scanMock.mockRejectedValueOnce(new Error('EMFILE: too many open files'));
+    },
+
+    scanCalls: (): unknown => scanMock.mock.calls,
+
     // Each of the three state setups also arms the measurement capture. rateLimitsState is module
     // state, so a reading left by an earlier test would otherwise be this test's `previous` and
     // the change guard would compare against the wrong baseline.
     setupNoHeldState: (): void => {
       dispatchState.setupEmpty();
       limitsState.reset();
+      flightState.reset();
       orchestrationEventsState.removeAllListeners();
       orchestrationEventsState.on({
         type: 'rate-limits-updated',
@@ -70,6 +95,7 @@ export const EvaluateHoldLayerResponderProxy = (): {
     setupHeldState: (): void => {
       dispatchState.setupEmpty();
       limitsState.reset();
+      flightState.reset();
       orchestrationEventsState.removeAllListeners();
       orchestrationEventsState.on({
         type: 'rate-limits-updated',
@@ -85,6 +111,7 @@ export const EvaluateHoldLayerResponderProxy = (): {
     setupWriteFailure: (): void => {
       dispatchState.setupEmpty();
       limitsState.reset();
+      flightState.reset();
       orchestrationEventsState.removeAllListeners();
       orchestrationEventsState.on({
         type: 'rate-limits-updated',

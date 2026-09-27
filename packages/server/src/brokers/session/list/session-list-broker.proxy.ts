@@ -1,11 +1,14 @@
+import { absoluteFilePathContract, sessionIdContract } from '@dungeonmaster/shared/contracts';
 import type {
+  AbsoluteFilePath,
   GuildId,
   GuildStub,
   QuestId,
   QuestListItemStub,
   QuestStub,
 } from '@dungeonmaster/shared/contracts';
-import { osUserHomedirAdapterProxy } from '@dungeonmaster/shared/testing';
+import { claudeProjectPathEncoderTransformer } from '@dungeonmaster/shared/transformers';
+import { homedir } from '#gateway/node/os';
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
@@ -51,7 +54,7 @@ export const sessionListBrokerProxy = (): {
   registerMock({ fn: StartOrchestrator.loadQuest })
     .calledWith([])
     .rejects(new Error('sessionListBrokerProxy: no loadQuest scenario staged for this questId'));
-  const homedirProxy = osUserHomedirAdapterProxy();
+  const homedirHandle = registerMock({ fn: homedir });
   const globProxy = globFindAdapterProxy();
   const statProxy = fsStatAdapterProxy();
   const readFileProxy = fsReadFileAdapterProxy();
@@ -65,17 +68,57 @@ export const sessionListBrokerProxy = (): {
   const pendingStatFilePaths: FilePath[] = [];
   const pendingReadFilePaths: FilePath[] = [];
 
+  // The broker computes two distinct glob cwds from the SAME homeDir + guild.path this proxy is
+  // staged with: the direct scan's cwd is the encoded Claude project dir (mirroring
+  // claudeProjectPathEncoderTransformer, exactly as the broker itself derives it), and the
+  // cross-project scan's cwd is the flat `.claude/projects` root. Recomputing them here — instead
+  // of accepting a caller-given cwd — is what makes a broker that computes the WRONG cwd (a
+  // mutated homedir, a bad encoding) call glob with an address nothing here answers.
+  const staged: { homeDir: AbsoluteFilePath | undefined; guildPath: AbsoluteFilePath | undefined } =
+    {
+      homeDir: undefined,
+      guildPath: undefined,
+    };
+
+  const directProjectDirFor = (): FilePath => {
+    if (staged.homeDir === undefined || staged.guildPath === undefined) {
+      throw new Error(
+        'sessionListBrokerProxy: setupGlobFiles needs setupHomeDir and setupGuild staged first',
+      );
+    }
+    const probePath = claudeProjectPathEncoderTransformer({
+      homeDir: staged.homeDir,
+      projectPath: staged.guildPath,
+      sessionId: sessionIdContract.parse('_probe'),
+    });
+    return String(probePath).slice(0, String(probePath).lastIndexOf('/')) as FilePath;
+  };
+
+  const crossProjectRootFor = (): FilePath => {
+    if (staged.homeDir === undefined) {
+      throw new Error('sessionListBrokerProxy: setupGlobFiles needs setupHomeDir staged first');
+    }
+    return `${staged.homeDir}/.claude/projects` as FilePath;
+  };
+
   return {
     setupGuild: ({ guild }: { guild: Guild }): void => {
+      staged.guildPath = absoluteFilePathContract.parse(guild.path);
       orchestrator.getGuildReturns({ guild });
     },
     setupHomeDir: ({ path }: { path: string }): void => {
-      homedirProxy.returns({ path });
+      staged.homeDir = absoluteFilePathContract.parse(path);
+      homedirHandle.calledWith([]).returns(path);
     },
     setupGlobFiles: ({ files, pattern }: { files: string[]; pattern?: string }): void => {
       const filePaths = files.map((f) => f as FilePath);
+      // No explicit pattern => the broker's direct scan (default '*.jsonl', encoded-project cwd);
+      // an explicit pattern => the cross-project scan (`*/<sessionId>.jsonl`, flat-root cwd) — the
+      // same split the broker's own two glob call sites use.
+      const cwd = pattern === undefined ? directProjectDirFor() : crossProjectRootFor();
       globProxy.returns({
         pattern: (pattern ?? '*.jsonl') as GlobPattern,
+        cwd,
         files: filePaths,
       });
       pendingStatFilePaths.push(...filePaths);

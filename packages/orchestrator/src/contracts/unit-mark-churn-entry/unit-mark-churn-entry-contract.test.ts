@@ -1,7 +1,7 @@
 import { unitMarkChurnEntryContract } from './unit-mark-churn-entry-contract';
 import { UnitMarkChurnEntryStub } from './unit-mark-churn-entry.stub';
 
-const MARKS = unitMarkChurnEntryContract.shape.mark.options;
+const MARKS = unitMarkChurnEntryContract.shape.mark.unwrap().options;
 
 describe('unitMarkChurnEntryContract', () => {
   describe('valid entries', () => {

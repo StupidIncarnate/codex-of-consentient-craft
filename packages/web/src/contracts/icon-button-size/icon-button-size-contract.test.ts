@@ -17,7 +17,7 @@ describe('iconButtonSizeContract', () => {
     });
 
     it('INVALID: {value: 20} => throws a type error', () => {
-      expect(() => IconButtonSizeStub({ value: 20 as never })).toThrow(/Expected 'xs' \| 'sm'/u);
+      expect(() => IconButtonSizeStub({ value: 20 as never })).toThrow(/Invalid option/u);
     });
 
     it('EMPTY: {value: ""} => throws an enum error', () => {

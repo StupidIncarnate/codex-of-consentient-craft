@@ -1,4 +1,5 @@
-import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
+import { join } from '#gateway/node/path';
+
 import {
   filePathContract,
   type FilePath,
@@ -6,6 +7,7 @@ import {
   type GuildId,
   type QuestStub,
 } from '@dungeonmaster/shared/contracts';
+import { locationsStatics } from '@dungeonmaster/shared/statics';
 import {
   registerMock,
   registerModuleMock,
@@ -26,7 +28,7 @@ export const questListBrokerProxy = (): {
   setupQuestsPath: (params: { homeDir: string; homePath: FilePath; questsPath: FilePath }) => void;
   setupQuestDirectories: (params: { files: FileName[] }) => void;
   setupQuestDirectoriesFailure: (params: { error: Error }) => void;
-  setupQuestFilePath: (params: { result: FilePath }) => void;
+  setupQuestFilePath: (params: { folderName: FileName; result: FilePath }) => void;
   setupQuestFile: (params: { questJson: string }) => void;
   setupDirectList: (params: { guildId: GuildId; quests: readonly Quest[] }) => void;
   setupDirectListOnce: (params: { guildId: GuildId; quests: readonly Quest[] }) => void;
@@ -35,7 +37,7 @@ export const questListBrokerProxy = (): {
 } => {
   const resolveQuestsPathProxy = questResolveQuestsPathBrokerProxy();
   const fsReaddirProxy = fsReaddirAdapterProxy();
-  const pathJoinProxy = pathJoinAdapterProxy();
+  const joinHandle = registerMock({ fn: join });
   const questLoadProxy = questLoadBrokerProxy();
   // The broker reports every skipped quest file on stderr. Capture it so test output stays
   // clean and tests can assert on `process.stderr.write` that a skip is never silent.
@@ -79,8 +81,19 @@ export const questListBrokerProxy = (): {
     setupQuestDirectoriesFailure: ({ error }: { error: Error }): void => {
       fsReaddirProxy.throws({ dirPath: String(questsPathRef.value), error });
     },
-    setupQuestFilePath: ({ result }: { result: FilePath }): void => {
-      pathJoinProxy.returns({ result });
+    setupQuestFilePath: ({
+      folderName,
+      result,
+    }: {
+      folderName: FileName;
+      result: FilePath;
+    }): void => {
+      // questListBroker's own per-folder join(questsPath, folderName, quest.json) -> result,
+      // addressed by the exact tuple rather than an address-less FIFO slot, so a second folder's
+      // join call in the same test can never answer this one.
+      joinHandle
+        .calledWith([questsPathRef.value, folderName, locationsStatics.quest.questFile])
+        .returns(result);
     },
     setupQuestFile: ({ questJson }: { questJson: string }): void => {
       questLoadProxy.setupQuestFile({ questJson });

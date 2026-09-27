@@ -25,7 +25,7 @@ describe('folderDetailCallLookupContract', () => {
     });
 
     it('INVALID: {value: 1} => throws', () => {
-      expect(() => folderDetailCallLookupContract.parse(1 as never)).toThrow(/received number/u);
+      expect(() => folderDetailCallLookupContract.parse(1 as never)).toThrow(/Invalid option/u);
     });
   });
 });

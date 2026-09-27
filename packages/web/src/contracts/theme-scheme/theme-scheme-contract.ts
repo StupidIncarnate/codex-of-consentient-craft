@@ -17,7 +17,10 @@ import { themeSchemeNameContract } from '../theme-scheme-name/theme-scheme-name-
 export const themeSchemeContract = z.object({
   name: themeSchemeNameContract,
   desc: themeSchemeDescriptionContract,
-  colors: z.record(themeColorTokenContract, hexColorContract),
+  // A theme may define only SOME color tokens (see the test's "subset"/"no color tokens" cases),
+  // so this is `partialRecord` — v4's plain `z.record` on an enum key is now EXHAUSTIVE and would
+  // require every token on every theme.
+  colors: z.partialRecord(themeColorTokenContract, hexColorContract),
 });
 
 export type ThemeScheme = z.infer<typeof themeSchemeContract>;

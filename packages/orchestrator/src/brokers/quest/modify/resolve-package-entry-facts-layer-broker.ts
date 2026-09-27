@@ -18,15 +18,19 @@
  * // the violations transformer and persist that same list.
  */
 
-import { pathDirnameAdapter, pathResolveAdapter } from '@dungeonmaster/shared/adapters';
 import { architecturePackageTypeDetectBroker } from '@dungeonmaster/shared/brokers';
-import { filePathContract, packageJsonContract } from '@dungeonmaster/shared/contracts';
+import {
+  absoluteFilePathContract,
+  filePathContract,
+  packageJsonContract,
+} from '@dungeonmaster/shared/contracts';
 import type {
   PackageType,
   QuestPackageEntryStub,
   RepoRootCwd,
 } from '@dungeonmaster/shared/contracts';
 import { packageJsonDependencyNamesTransformer } from '@dungeonmaster/shared/transformers';
+import { dirname, resolve } from '#gateway/node/path';
 
 import { fsIsAccessibleAdapter } from '../../../adapters/fs/is-accessible/fs-is-accessible-adapter';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
@@ -53,9 +57,9 @@ export const resolvePackageEntryFactsLayerBroker = async ({
   // run on one value and describe one directory.
   const locationChecks = await Promise.all(
     entries.map(async (entry) => {
-      const packageRoot = pathResolveAdapter({
-        paths: [String(projectRoot), String(entry.location)],
-      });
+      const packageRoot = absoluteFilePathContract.parse(
+        resolve(String(projectRoot), String(entry.location)),
+      );
       const filePath = filePathContract.parse(packageRoot);
       return {
         location: String(entry.location),
@@ -133,7 +137,7 @@ export const resolvePackageEntryFactsLayerBroker = async ({
   // Anchored on the RESOLVED location, not the declared one: a delete in a foreign repo would
   // otherwise scan a same-named directory under whichever repo this process happens to sit in.
   const workspaceRoots = new Set<unknown>(
-    locationChecks.map((check) => String(pathDirnameAdapter({ path: check.filePath }))),
+    locationChecks.map((check) => String(filePathContract.parse(dirname(check.filePath)))),
   );
 
   const siblingDirs: { root: unknown; dirName: unknown }[] = [];

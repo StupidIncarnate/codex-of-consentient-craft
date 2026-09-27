@@ -34,7 +34,7 @@ describe('executionRoleContract', () => {
     });
 
     it('INVALID: {value: 123} => throws for number', () => {
-      expect(() => executionRoleContract.parse(123)).toThrow(/received number/u);
+      expect(() => executionRoleContract.parse(123)).toThrow(/Invalid option/u);
     });
   });
 

@@ -338,22 +338,118 @@ Two-file fix, ~5 minutes, but I left it alone since it is unrelated to zod and p
 
 ## Exact next steps, in order
 
-1. `npm run ward -- --only lint,typecheck,unit,integration -- packages/server` — expect green; if not,
-   diagnose fresh (nothing else touched this package after my last fix pass).
-2. `npm run ward -- --only lint,unit,integration -- packages/web` (typecheck already confirmed, only
-   the known E issue there) — fix whatever wording surfaces the same mechanical way; this package's
-   unit/integration/lint have literally never been run this session.
-3. Fix A (config, 8 tests) and B (hooks, 5 tests) — both pure mechanical wording, same dossier method:
-   run `npm run ward -- --only unit -- <file>`, read the saved `.ward/run-*.json`'s
-   `checks[].projectResults[*].testFailures[].message` for the real text, update the assertion, re-run
-   to confirm PASS. Budget ~15 minutes total for both.
-4. Fix D (session-forensics, 1 integration test) the same way.
-5. Re-run `npm run ward -- --only lint,typecheck,unit,integration -- packages/eslint-plugin` (unit/
-   integration never re-confirmed post-merge, though nothing in the merge touched this package — low
-   risk, quick to confirm).
-6. Decide what to do about C and E — recommend leaving both as named, documented LEFT STANDING items
-   for their owning epic items (A12/def-39 gateway migration), NOT folding them into B01's scope.
-7. Once everything above is green (or explicitly left standing with C/E named), compile the final
-   B01 report in the agent-brief format (CHANGED / MUTATIONS / WARD / LEFT STANDING / DECISIONS /
-   BUILD NEEDED) and hand back to the operator. No `npm run build` is needed anywhere in this item —
-   every fix is source-level and every check ran with `--conditions=source`.
+1. ~~`npm run ward -- --only lint,typecheck,unit,integration -- packages/server`~~ — done, green
+   (agent b01b).
+2. ~~`npm run ward -- --only lint,unit,integration -- packages/web`~~ — done, green except the known
+   E issue (agent b01b).
+3. ~~Fix A (config) and B (hooks)~~ — done (agent b01b).
+4. ~~Fix D (session-forensics)~~ — done (agent b01b).
+5. ~~Re-run eslint-plugin~~ — done; found and fixed one real zod-caused break plus one unrelated
+   test-data mis-edit (agent b01b, see below).
+6. ~~Decide C and E~~ — left standing, as recommended.
+7. ~~Merge `gateway-pivot`~~ — done (agent b01b, see "Session 2" below). The merge itself is
+   uncommitted, staged and conflict-free, waiting on the operator's `git commit`.
+
+## Session 2 (agent b01b) — what changed, on top of everything above
+
+Picked up from the snapshot commit `0e46e2dd8` (the operator's commit of this handoff's own
+uncommitted state). Did items 1-6 above, then merged `gateway-pivot` (27 commits ahead, tip
+`9bff47066`) into this branch.
+
+**The merge itself:** `git merge --no-edit gateway-pivot` conflicted in exactly 3 files —
+`package-lock.json` (kept `zod: ^4.6.5`, matching every other package.json — my side), and two server
+proxy files (`quest-chat-responder.proxy.ts`, `quest-followup-responder.proxy.ts`) where MY zod-driven
+`zodFirstFieldErrorMessageAdapterProxy()` composition and gateway-pivot's own NEW `joinHandle =
+registerMock({ fn: join })` staging landed on the same line — both are independent additions with no
+overlap in what they do, so the resolution keeps both, one after the other. `npm install` afterward
+reconciled cleanly (`npm ls zod` → one deduped `4.6.5` repo-wide). The merge is **staged, not
+committed** — `git status` shows "All conflicts fixed but you are still merging" — per the operator's
+instruction to commit it themselves.
+
+**Zod-caused breaks the merge exposed, beyond the four the operator named**, found by sweeping every
+package's `lint,typecheck,unit` plus `integration` after the merge landed:
+
+- `packages/web/src/contracts/theme-scheme/theme-scheme-contract.ts` — real production bug, same
+  shape as the session 1 `z.record` EXHAUSTIVE-enum-key regression (pattern 7 above): `colors` is
+  meant to be a PARTIAL map (a theme may define only some tokens), so `z.record` → `z.partialRecord`.
+  Proved with a mutation: reverting to `z.record` reproduces both original `ZodError`-thrown
+  failures exactly; re-applying restores green.
+- `packages/web/src/contracts/chat-entry-group/chat-entry-group-contract.ts` — lint-only
+  (`no-use-before-define`): the getter-form self-reference (pattern 8) referenced the exported UNION
+  binding declared later in the file rather than itself; fixed by having the getter rebuild the union
+  from its own const (self-reference is exempt) instead of reading the later export.
+- ~33 web contract test files — pure v3→v4 wording, same dossier method as everything else (real
+  text captured from a scoped ward run's saved JSON before writing each regex).
+- `packages/eslint-plugin/src/contracts/ast-node/ast-node-contract.test.ts` — wording.
+- `packages/eslint-plugin/src/statics/flattened-contract-params/flattened-contract-params-statics.test.ts`
+  — **not zod at all**: a stray mis-edit from an earlier wording BATCH this session (or a prior one)
+  had replaced the literal string `'Required'` (a real TS-utility-type exempt-host name in test data)
+  with `'received undefined'` (the new v4 wording), because the two strings collided under whatever
+  batch replace ran. The PRODUCTION statics file was never touched (still correctly has `'Required'`
+  at line 40) — only the test's expected array was corrupted. Fixed by restoring the literal.
+- `packages/eslint-plugin/src/brokers/config/dungeonmaster/config-dungeonmaster-broker.test.ts` — the
+  branded-record-key pattern (pattern 9 above): line 299 indexed `gateway.rules?.['@dungeonmaster/gateway-colocation']`
+  with a raw string literal instead of `EslintRuleNameStub({ value: '@dungeonmaster/gateway-colocation' })`
+  like every sibling assertion in the same file already does.
+- `packages/cli/src/contracts/{install-module,start-server-module,siegelense-module}/*-contract.ts`
+  (the operator-named NEW contracts) — all three used `.passthrough()`, deprecated in zod v4
+  (`@typescript-eslint/no-deprecated` lint failure); fixed to `.loose()` (same semantics).
+- `packages/shared/src/contracts/mcp-caller-context/mcp-caller-context-contract.test.ts` (the
+  operator-named NEW contract) — wording.
+- `packages/orchestrator/src/contracts/{unit-mark-churn-entry,work-plan-payload-siegemaster}/*-contract.test.ts`
+  — a NEW zod v4 pattern not in the session-1 list: `.shape.<field>.options` doesn't exist on a
+  `ZodNullable<ZodEnum>` — needs `.unwrap().options` first (`.unwrap()` still exists on
+  `.nullable()`/`.optional()`/`.default()` per pattern 5, just not read that way here). Proved with a
+  mutation: reverting to bare `.options` reproduces the exact original `TS2339` + `.each()` failures on
+  both typecheck AND unit; re-applying restores green on both.
+- `packages/mcp/src/contracts/tool-call-params/tool-call-params-contract.test.ts` — wording.
+- `packages/testing/src/contracts/{proxy-import-edge,proxy-mock-queue-entry}/*-contract.test.ts` —
+  wording (2 files, 3 assertions).
+- `packages/hooks/src/contracts/{mcp-pre-tool-use-hook-data,mcp-tool-input}/*-contract.test.ts` — two
+  NEW files the merge brought in (a `dungeonmaster-pre-mcp-caller` hook flow), both wording.
+
+**Confirmed NOT zod, left standing** (each checked against git blame/diff to confirm it predates B01
+or was landed by a DIFFERENT epic item's own commits inside the merge, not by anything zod touches):
+
+- `packages/@gateway/node/src/path/path.ts` — item E from session 1, unchanged, still there.
+- `packages/cli/src/startup/start-install.integration.test.ts` (5 failures) — item C from session 1,
+  unchanged, still there.
+- `packages/shared/src/brokers/architecture/project-map/architecture-project-map-broker.integration.test.ts`
+  (1 failure) — **new finding**: the test expects `packages/server/src/adapters/orchestrator/get-quest/orchestrator-get-quest-adapter.ts`
+  to exist and render in the project map, but that file is GONE — deleted by gateway-pivot's own A02/A11
+  work ("server's forwarders are gone", per `EPIC.md`'s own A11 row), landed inside the 27 merged
+  commits. Belongs to A02/A11, not B01.
+- `packages/eslint-plugin/src/transformers/gateway-imports-target/gateway-imports-target-transformer.ts`
+  (lint, `no-unnecessary-condition`) — confirmed via `git log` to predate `c5a20074d` (the original
+  merge-base), untouched by B01 or the merge.
+- `packages/testing/src/transformers/workspace-package-{export-source,imports-target}/*.ts` (lint,
+  same rule, 3 occurrences across 2 files) — same: predates the merge-base entirely (`git merge-base
+  --is-ancestor` confirmed).
+- `packages/siegelense/src/statics/docs/docs-statics.ts` + its test (lint + typecheck + unit) — a
+  siegelense DOCS CONTENT rename ("THE VERBS YOU CAN SUBMIT TODAY" → "AVAILABLE STEP VERBS", plus new
+  health/snapshot step-verb prose) landed by gateway-pivot's own commits between the two merge points,
+  confirmed via `git diff c5a20074d..gateway-pivot` on both files — the test was never updated to
+  match. Unrelated to zod; belongs to whoever owns that siegelense docs content.
+
+**Build needed:** `packages/@gateway/node` (published as `@dungeonmaster/node`) needs a rebuild.
+Its SOURCE `fs__promises/ensure-dir/ensure-dir.proxy.ts` already has `getCallsFor` (added upstream at
+commit `002611db0`, well before this merge), but this worktree's compiled
+`dist/fs__promises/ensure-dir/ensure-dir.proxy.d.ts` is stale and still lacks it — confirmed by
+reading both files directly. That stale `dist/` is what `packages/hydration-recipes`' typecheck
+resolves to for its two write-route proxy files (`guild-write-route-broker.proxy.ts`,
+`quest-write-route-broker.proxy.ts`, both calling `.getCallsFor()`), producing 2 `TS2339` +
+2 `TS7006` errors. Not zod-caused (predates B01 — see the `GW-ENSURE` note in session 1's own log
+above) and not something I should build myself per the standing rule. A `npm run build
+--workspace=@dungeonmaster/node` (or whatever the real package name resolves to) should clear it.
+
+**Final state — every package this session touched or re-verified, full `lint,typecheck,unit`
+(+`integration` where the package has one) sweep, all green except the LEFT STANDING items named
+above:** config, hooks, session-forensics, server, web, cli, shared, eslint-plugin, siegelense,
+orchestrator, mcp, ward, hydration, hydration-recipes, tooling, local-eslint, testing, `@gateway/*`.
+See the final agent report (handed to the operator in this same turn) for every run id.
+
+B01 is now functionally DONE: every zod v4 break found (session 1's list plus session 2's merge
+fallout) is fixed, the version resolves to one `4.6.5` repo-wide, and the branch is merged up to
+`gateway-pivot`'s tip pending the operator's commit. What's left is entirely OUT of B01's scope
+(items C, E, the A02/A11 project-map test, the two pre-existing lint files, the siegelense docs
+content, and the `@gateway/node` rebuild) and is each named above for its owning item.

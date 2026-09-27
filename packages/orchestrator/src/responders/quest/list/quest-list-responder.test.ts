@@ -1,4 +1,9 @@
-import { FilePathStub, GuildIdStub, QuestStub } from '@dungeonmaster/shared/contracts';
+import {
+  FileNameStub,
+  FilePathStub,
+  GuildIdStub,
+  QuestStub,
+} from '@dungeonmaster/shared/contracts';
 
 import { QuestListResponderProxy } from './quest-list-responder.proxy';
 
@@ -16,8 +21,11 @@ describe('QuestListResponder', () => {
       });
       const proxy = QuestListResponderProxy();
       proxy.setupQuestsPath({ homeDir: '/home/testuser', homePath, questsPath });
-      proxy.setupQuestDirectories({ files: ['001-add-auth' as never] });
-      proxy.setupQuestFilePath({ result: questFilePath });
+      proxy.setupQuestDirectories({ files: [FileNameStub({ value: '001-add-auth' })] });
+      proxy.setupQuestFilePath({
+        folderName: FileNameStub({ value: '001-add-auth' }),
+        result: questFilePath,
+      });
       proxy.setupQuestFile({ questJson: JSON.stringify(quest) });
 
       const result = await proxy.callResponder({ guildId });

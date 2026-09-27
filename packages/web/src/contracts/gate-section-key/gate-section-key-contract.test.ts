@@ -42,7 +42,7 @@ describe('gateSectionKeyContract', () => {
     });
 
     it('EMPTY: {value: null} => throws for null', () => {
-      expect(() => gateSectionKeyContract.parse(null)).toThrow(/received null/u);
+      expect(() => gateSectionKeyContract.parse(null)).toThrow(/Invalid option/u);
     });
   });
 

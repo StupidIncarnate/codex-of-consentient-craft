@@ -30,4 +30,13 @@ describe('QuestDrivenWatchersBootstrapResponder', () => {
 
     expect(requestedReset).toBe(true);
   });
+
+  it('VALID: {fresh boot} => resolves its fallback project dir via the gateway cwd(), called once with no arguments', async () => {
+    const proxy = QuestDrivenWatchersBootstrapResponderProxy();
+
+    const handle = await QuestDrivenWatchersBootstrapResponder();
+    handle.stop();
+
+    expect(proxy.getCwdCalls()).toStrictEqual([[]]);
+  });
 });

@@ -97,7 +97,7 @@ describe('markdownBlockContract', () => {
 
     it('INVALID: {kind: "heading", level: 7} => throws past the deepest heading', () => {
       expect(() => markdownBlockContract.parse({ kind: 'heading', level: 7, spans: [] })).toThrow(
-        /less than or equal to 6/u,
+        /to be <=6/u,
       );
     });
 
@@ -110,7 +110,7 @@ describe('markdownBlockContract', () => {
     it('INVALID: {kind: "list-item", depth: 4} => throws past the indent clamp', () => {
       expect(() =>
         markdownBlockContract.parse({ kind: 'list-item', marker: '•', depth: 4, spans: [] }),
-      ).toThrow(/less than or equal to 3/u);
+      ).toThrow(/to be <=3/u);
     });
 
     it('INVALID: {kind: "list-item", marker: ""} => throws for a markerless item', () => {

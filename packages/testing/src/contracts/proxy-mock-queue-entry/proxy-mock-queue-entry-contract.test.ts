@@ -38,7 +38,7 @@ describe('proxyMockQueueEntryContract', () => {
     it('INVALID: {missing filePath} => throws validation error', () => {
       expect(() => {
         return proxyMockQueueEntryContract.parse({ requestedNames: null });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

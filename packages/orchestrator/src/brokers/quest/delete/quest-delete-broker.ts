@@ -6,11 +6,11 @@
  * // Deletes the quest folder recursively, appends a quest-modified outbox line.
  */
 
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import { dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { GuildId, QuestId } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
+import { join } from '#gateway/node/path';
 
 import { fsRmAdapter } from '../../../adapters/fs/rm/fs-rm-adapter';
 import { questOutboxAppendBroker } from '../outbox-append/quest-outbox-append-broker';
@@ -25,15 +25,13 @@ export const questDeleteBroker = async ({
   const { homePath } = dungeonmasterHomeFindBroker();
 
   const questFolderPath = filePathContract.parse(
-    pathJoinAdapter({
-      paths: [
-        homePath,
-        dungeonmasterHomeStatics.paths.guildsDir,
-        guildId,
-        dungeonmasterHomeStatics.paths.questsDir,
-        questId,
-      ],
-    }),
+    join(
+      homePath,
+      dungeonmasterHomeStatics.paths.guildsDir,
+      guildId,
+      dungeonmasterHomeStatics.paths.questsDir,
+      questId,
+    ),
   );
 
   await fsRmAdapter({

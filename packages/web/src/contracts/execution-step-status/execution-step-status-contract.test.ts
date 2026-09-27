@@ -52,7 +52,7 @@ describe('executionStepStatusContract', () => {
     });
 
     it('INVALID: {value: 123} => throws for number', () => {
-      expect(() => executionStepStatusContract.parse(123)).toThrow(/received number/u);
+      expect(() => executionStepStatusContract.parse(123)).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {value: "partially_complete"} => throws, since the persisted work-item-status enum never produces it and the orchestrator signal contract rejects it', () => {

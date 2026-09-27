@@ -31,25 +31,20 @@
  * what swaps them for the virtual store.
  */
 
-import { Dirent } from 'fs';
+import { existsSync, readdirEntriesSync } from '#gateway/node/fs';
+import { join } from '#gateway/node/path';
 
-import {
-  fsExistsSyncAdapter,
-  fsReaddirWithTypesAdapter,
-  pathJoinAdapter,
-} from '@dungeonmaster/shared/adapters';
+import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import { dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
 import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
 import {
   adapterResultContract,
   fileContentsContract,
-  fileNameContract,
   filePathContract,
   questContract,
 } from '@dungeonmaster/shared/contracts';
 import type {
   FileContents,
-  FileName,
   FilePath,
   OperationItemId,
   Quest,
@@ -82,8 +77,6 @@ registerModuleMock({
   module: '@dungeonmaster/shared/adapters',
   factory: () => ({
     ...jest.requireActual('@dungeonmaster/shared/adapters'),
-    fsExistsSyncAdapter: jest.fn(),
-    fsReaddirWithTypesAdapter: jest.fn(),
     pathJoinAdapter: jest.fn(),
   }),
 });
@@ -147,8 +140,6 @@ export const questRouteScopeBrokerProxy = (): {
   // Every mocked module, pointed back at the real thing. See this file's header: the mocks are
   // hoisted for any suite that imports this proxy, and these restore the behaviour that suite had.
   const realAdapters = requireActual<{
-    fsExistsSyncAdapter: typeof fsExistsSyncAdapter;
-    fsReaddirWithTypesAdapter: typeof fsReaddirWithTypesAdapter;
     pathJoinAdapter: typeof pathJoinAdapter;
   }>({ module: '@dungeonmaster/shared/adapters' });
   const realBrokers = requireActual<{
@@ -157,12 +148,38 @@ export const questRouteScopeBrokerProxy = (): {
 
   const pathJoinHandle = registerMock({ fn: pathJoinAdapter });
   pathJoinHandle.calledWith([]).implement(realAdapters.pathJoinAdapter as never);
-  const readdirHandle = registerMock({ fn: fsReaddirWithTypesAdapter });
-  readdirHandle.calledWith([]).implement(realAdapters.fsReaddirWithTypesAdapter as never);
-  const existsSyncHandle = registerMock({ fn: fsExistsSyncAdapter });
-  existsSyncHandle.calledWith([]).implement(realAdapters.fsExistsSyncAdapter as never);
   const homeFindHandle = registerMock({ fn: dungeonmasterHomeFindBroker });
   homeFindHandle.calledWith([]).implement(realBrokers.dungeonmasterHomeFindBroker as never);
+
+  // questFindQuestPathBroker (composed above via questFindQuestPathBrokerProxy for
+  // enforce-proxy-child-creation, but discarded — its OWN scenarios build a fs layout this file
+  // does not need) reaches these three directly now, not through `@dungeonmaster/shared/adapters`.
+  // Mocked at the WRAPPER, not through the dedicated `exists-sync.proxy`/`readdir-entries-sync.proxy`
+  // gateway proxies: those compose only for the file that IMPORTS the gateway name directly
+  // (`quest-find-quest-path-broker.ts`), and `enforce-proxy-child-creation` refuses them here, where
+  // the implementation is `quest-route-scope-broker.ts`.
+  //
+  // Defaulted to the REAL WRAPPER implementation, not a fabricated value: `existsSync`/
+  // `readdirEntriesSync` are ALSO called, for OTHER quests, by every other broker this test
+  // composes through `questGetBrokerProxy`/`questAdvanceBrokerProxy` (both reach
+  // questFindQuestPathBroker too, staged via ITS OWN `existsSyncProxy`/`readdirEntriesSyncProxy` —
+  // which mock RAW `fs`, one layer below this wrapper). Mocking this wrapper with no default would
+  // swallow every one of those calls before they ever reach the raw-fs mock that answers them;
+  // real-passthrough lets an unstaged call fall through to the wrapper's own body, which still
+  // calls the (separately mocked) raw fs underneath.
+  const realGatewayFs = requireActual<{
+    existsSync: typeof existsSync;
+    readdirEntriesSync: typeof readdirEntriesSync;
+  }>({ module: '#gateway/node/fs' });
+  const gatewayExistsHandle = registerMock({ fn: existsSync });
+  gatewayExistsHandle.calledWith([]).implement(realGatewayFs.existsSync as never);
+  const gatewayReaddirHandle = registerMock({ fn: readdirEntriesSync });
+  gatewayReaddirHandle.calledWith([]).implement(realGatewayFs.readdirEntriesSync as never);
+  // `join` is pure with nothing to virtualize — real passthrough by default, matching every other
+  // migrated caller's own proxy (see quest-get-broker.proxy.ts, quest-modify-broker.proxy.ts).
+  const realPath = requireActual<{ join: typeof join }>({ module: 'path' });
+  const gatewayJoinHandle = registerMock({ fn: join });
+  gatewayJoinHandle.calledWith([]).implement((...segments: never[]) => realPath.join(...segments));
 
   const realAppendFile = requireActual<{ fsAppendFileAdapter: typeof fsAppendFileAdapter }>({
     module: '../../../adapters/fs/append-file/fs-append-file-adapter',
@@ -192,7 +209,6 @@ export const questRouteScopeBrokerProxy = (): {
   writeFileHandle.calledWith([]).implement(realWriteFile.fsWriteFileAdapter as never);
 
   const files = new Map<FilePath, FileContents>();
-  const dirs = new Map<FilePath, FileName[]>();
   const questFilePathRef = { value: filePathContract.parse('/unset/quest.json') };
   const uuidCounter = { value: 0 };
 
@@ -212,7 +228,7 @@ export const questRouteScopeBrokerProxy = (): {
       mocked.calledWith([]).implement(realMod.questRouteScopeBroker as never);
 
       // The virtual store takes over. Every implementation is a generic simulator reading the REAL
-      // argument it was invoked with out of the shared `files`/`dirs` state.
+      // argument it was invoked with out of the shared `files` state.
       pathJoinHandle
         .calledWith([])
         .implement((({ paths }: Parameters<typeof pathJoinAdapter>[0]) =>
@@ -221,21 +237,6 @@ export const questRouteScopeBrokerProxy = (): {
       homeFindHandle
         .calledWith([])
         .implement((() => ({ homePath: filePathContract.parse(HOME_PATH) })) as never);
-
-      readdirHandle.calledWith([]).implement((({
-        dirPath,
-      }: Parameters<typeof fsReaddirWithTypesAdapter>[0]) =>
-        (dirs.get(filePathContract.parse(String(dirPath))) ?? []).map((name) =>
-          Object.assign(Object.create(Dirent.prototype) as Dirent, {
-            name,
-            isDirectory: (): boolean => true,
-          }),
-        )) as never);
-
-      existsSyncHandle
-        .calledWith([])
-        .implement((({ filePath }: Parameters<typeof fsExistsSyncAdapter>[0]) =>
-          files.has(filePathContract.parse(String(filePath)))) as never);
 
       isAccessibleHandle
         .calledWith([])
@@ -298,10 +299,24 @@ export const questRouteScopeBrokerProxy = (): {
       const questFilePath = filePathContract.parse(
         `${QUESTS_DIR}/${String(quest.folder)}/quest.json`,
       );
-      dirs.set(filePathContract.parse(GUILDS_DIR), [fileNameContract.parse(GUILD_ID)]);
-      dirs.set(filePathContract.parse(QUESTS_DIR), [fileNameContract.parse(String(quest.folder))]);
       files.set(questFilePath, fileContentsContract.parse(JSON.stringify(quest)));
       questFilePathRef.value = questFilePath;
+
+      // questFindQuestPathBroker's own guild listing and per-guild quest scan, addressed by the
+      // exact known directories this store's one guild holds — never an address-less catch-all.
+      gatewayReaddirHandle
+        .calledWith([GUILDS_DIR])
+        .returns([{ name: GUILD_ID, kind: 'directory' }]);
+      gatewayReaddirHandle
+        .calledWith([QUESTS_DIR])
+        .returns([{ name: String(quest.folder), kind: 'directory' }]);
+      // The probe's own join keys its last segment on `questId`, not `folder` — this store only
+      // ever holds the quest under its FOLDER name, so the probe's exact candidate path is
+      // addressed as an explicit miss (matching `quest-find-quest-path-broker.proxy.ts`'s own
+      // convention) and the real broker falls through to the scan above, which does hold it.
+      gatewayExistsHandle
+        .calledWith([`${QUESTS_DIR}/${String(quest.id)}/quest.json`])
+        .returns(false);
     },
 
     setupPlan: ({

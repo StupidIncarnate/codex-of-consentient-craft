@@ -1,9 +1,6 @@
-import { childProcessSpawnCaptureAdapterProxy } from '@dungeonmaster/shared/testing';
-import {
-  ErrorMessageStub,
-  ExitCodeStub,
-  absoluteFilePathContract,
-} from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
+import { runProxy } from '#gateway/node/child_process/run/run.proxy';
+import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found.error.proxy';
 
 import { binResolveBrokerProxy } from '../../bin/resolve/bin-resolve-broker.proxy';
 import { BinCommandStub } from '../../../contracts/bin-command/bin-command.stub';
@@ -22,11 +19,9 @@ export const checkRunLintBrokerProxy = (): {
   }) => void;
   setupNonJsonFailure: (params: { projectFolder: ProjectFolder; stdout: string }) => void;
 } => {
-  const captureProxy = childProcessSpawnCaptureAdapterProxy();
+  const run = runProxy();
+  RunNotFoundErrorProxy();
   const binProxy = binResolveBrokerProxy();
-  const successCode = ExitCodeStub({ value: 0 });
-  const failCode = ExitCodeStub({ value: 1 });
-  const emptyMessage = ErrorMessageStub({ value: '' });
 
   const resolveCommand = ({ projectFolder }: { projectFolder: ProjectFolder }): BinCommand =>
     binProxy.setupFound({
@@ -34,14 +29,31 @@ export const checkRunLintBrokerProxy = (): {
       binName: BinCommandStub({ value: checkCommandsStatics.lint.bin }),
     });
 
+  // Every eslint invocation this broker makes is a single call per test, so addressing by command
+  // and cwd (both known from `projectFolder`) tells every scenario's call apart from every other's.
+  const stage = ({
+    projectFolder,
+    exitCode,
+    stdout,
+    stderr,
+  }: {
+    projectFolder: ProjectFolder;
+    exitCode: number;
+    stdout: string;
+    stderr: string;
+  }): void => {
+    run.setupSuccess({
+      command: String(resolveCommand({ projectFolder })),
+      cwd: String(absoluteFilePathContract.parse(projectFolder.path)),
+      exitCode,
+      stdout,
+      stderr,
+    });
+  };
+
   return {
     setupPass: ({ projectFolder }: { projectFolder: ProjectFolder }): void => {
-      captureProxy.setupSuccess({
-        command: String(resolveCommand({ projectFolder })),
-        exitCode: successCode,
-        stdout: ErrorMessageStub({ value: '[]' }),
-        stderr: emptyMessage,
-      });
+      stage({ projectFolder, exitCode: 0, stdout: '[]', stderr: '' });
     },
 
     setupPassWithOutput: ({
@@ -51,12 +63,7 @@ export const checkRunLintBrokerProxy = (): {
       projectFolder: ProjectFolder;
       stdout: string;
     }): void => {
-      captureProxy.setupSuccess({
-        command: String(resolveCommand({ projectFolder })),
-        exitCode: successCode,
-        stdout: ErrorMessageStub({ value: stdout }),
-        stderr: emptyMessage,
-      });
+      stage({ projectFolder, exitCode: 0, stdout, stderr: '' });
     },
 
     setupFail: ({
@@ -66,12 +73,7 @@ export const checkRunLintBrokerProxy = (): {
       projectFolder: ProjectFolder;
       stdout: string;
     }): void => {
-      captureProxy.setupSuccess({
-        command: String(resolveCommand({ projectFolder })),
-        exitCode: failCode,
-        stdout: ErrorMessageStub({ value: stdout }),
-        stderr: emptyMessage,
-      });
+      stage({ projectFolder, exitCode: 1, stdout, stderr: '' });
     },
 
     setupPassWithStderr: ({
@@ -83,12 +85,7 @@ export const checkRunLintBrokerProxy = (): {
       stdout: string;
       stderr: string;
     }): void => {
-      captureProxy.setupSuccess({
-        command: String(resolveCommand({ projectFolder })),
-        exitCode: successCode,
-        stdout: ErrorMessageStub({ value: stdout }),
-        stderr: ErrorMessageStub({ value: stderr }),
-      });
+      stage({ projectFolder, exitCode: 0, stdout, stderr });
     },
 
     setupNonJsonFailure: ({
@@ -98,12 +95,7 @@ export const checkRunLintBrokerProxy = (): {
       projectFolder: ProjectFolder;
       stdout: string;
     }): void => {
-      captureProxy.setupSuccess({
-        command: String(resolveCommand({ projectFolder })),
-        exitCode: failCode,
-        stdout: ErrorMessageStub({ value: stdout }),
-        stderr: emptyMessage,
-      });
+      stage({ projectFolder, exitCode: 1, stdout, stderr: '' });
     },
   };
 };

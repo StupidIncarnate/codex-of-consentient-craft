@@ -1,3 +1,4 @@
+import { join } from '#gateway/node/path';
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { questFindQuestPathBrokerProxy } from '@dungeonmaster/orchestrator/brokers/quest/find-quest-path/quest-find-quest-path-broker.proxy';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
@@ -8,6 +9,7 @@ import type {
   QuestId,
   QuestStub,
 } from '@dungeonmaster/shared/contracts';
+import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { pastedImagePersistBrokerProxy } from '../../../brokers/pasted-image/persist/pasted-image-persist-broker.proxy';
@@ -22,7 +24,13 @@ type AbsoluteFilePath = ReturnType<typeof AbsoluteFilePathStub>;
 export const QuestFollowupResponderProxy = (): {
   setupQuestLoad: (params: { quest: Quest }) => void;
   setupQuestLoadError: (params: { questId: QuestId; error: Error }) => void;
-  setupFindQuestPath: (params: { questId: QuestId; guildId: GuildId }) => void;
+  setupFindQuestPath: (params: {
+    questId: QuestId;
+    guildId: GuildId;
+    // A real process has one home. Pass the SAME homePath given to setupPastedImageHome so both
+    // proxies' real chains resolve through the identical dungeonmasterHomeFindBroker() answer.
+    homePath?: string;
+  }) => void;
   setupStartFollowupChat: (params: { questId: QuestId; chatProcessId: ProcessId }) => void;
   setupStartFollowupChatError: (params: { questId: QuestId; error: Error }) => void;
   getStartFollowupChatCalls: () => readonly unknown[];
@@ -52,6 +60,15 @@ export const QuestFollowupResponderProxy = (): {
   // The adapter has no I/O to mock (see its own proxy header) — composing it here is what the
   // proxy-child-creation rule expects of every implementation import, not a stage this test needs.
   zodFirstFieldErrorMessageAdapterProxy();
+  // pastedImagePersistBroker's own chain resolves `join(homePath, 'guilds', guildId)` — 3 real
+  // args — through `#gateway/node/path`'s real-passthrough default that broker's own proxy
+  // stages. That default is address-less (0 args), so it loses to findQuestPathProxy's own
+  // `join(homePath, 'guilds')` stage (2 args) below on a call sharing that 2-arg PREFIX: a
+  // shorter staged description still matches a longer real call (see get-testing-patterns' "How
+  // arguments are compared"), and MORE described arguments wins regardless of registration order.
+  // Staged here, addressed by the exact 3-arg tuple, only when setupFindQuestPath is given a
+  // homePath to collide against.
+  const joinHandle = registerMock({ fn: join });
 
   return {
     setupQuestLoad: ({ quest }: { quest: Quest }): void => {
@@ -60,12 +77,33 @@ export const QuestFollowupResponderProxy = (): {
     setupQuestLoadError: ({ questId, error }: { questId: QuestId; error: Error }): void => {
       orchestrator.loadQuestThrows({ questId, error });
     },
-    setupFindQuestPath: ({ questId, guildId }: { questId: QuestId; guildId: GuildId }): void => {
+    setupFindQuestPath: ({
+      questId,
+      guildId,
+      homePath,
+    }: {
+      questId: QuestId;
+      guildId: GuildId;
+      homePath?: string;
+    }): void => {
       findQuestPathProxy.setupQuestPath({
         questId,
         guildId,
         questPath: AbsoluteFilePathStub({ value: `/quests/${questId}` }),
+        ...(homePath === undefined ? {} : { homeDir: homePath }),
       });
+
+      if (homePath !== undefined) {
+        // See the constructor comment above: pins the exact 3-arg tuple
+        // pastedImagePersistBroker's own locations chain calls, at the SAME dungeonmaster home
+        // findQuestPathProxy just staged, so it outranks that proxy's own 2-arg guildsDir stage.
+        const dungeonmasterHomePath = `${homePath}/.dungeonmaster`;
+        joinHandle
+          .calledWith([dungeonmasterHomePath, dungeonmasterHomeStatics.paths.guildsDir, guildId])
+          .returns(
+            `${dungeonmasterHomePath}/${dungeonmasterHomeStatics.paths.guildsDir}/${String(guildId)}`,
+          );
+      }
     },
     setupStartFollowupChat: ({
       questId,

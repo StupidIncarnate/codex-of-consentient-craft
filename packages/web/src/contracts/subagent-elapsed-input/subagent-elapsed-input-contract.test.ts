@@ -78,7 +78,7 @@ describe('subagentElapsedInputContract', () => {
           startedAt: '2026-09-10T10:00:00.000Z',
           reportedDurationMs: 1.5,
         }),
-      ).toThrow('Expected integer, received float');
+      ).toThrow('Invalid input: expected int, received number');
     });
   });
 

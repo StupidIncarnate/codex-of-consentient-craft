@@ -54,6 +54,7 @@ What's available to a tool handler when Claude Code invokes an MCP tool over std
 |---|---|---|
 | `request.params._meta.claudecode/toolUseId` | **Yes — per call.** | The toolUseId of the **sub-agent's own MCP call** (NOT the parent's Task() dispatch id — those are distinct, verified empirically). Unique per MCP call. Surfaced via the `meta` param in `ToolHandler`. |
 | `request.params._meta.progressToken` | Yes — per call. | MCP standard; opaque token for out-of-band progress notifications. |
+| `meta['dungeonmaster/caller']` | **Yes — per call, when the hook ran.** | `{ cwd, sessionId, agentId? }`, stamped onto the call's arguments by the `dungeonmaster-pre-mcp-caller` PreToolUse hook and moved into `meta` by `toolCallCallerLiftTransformer` in `mcp-server-flow.ts`. Read it with `metaCallerContextTransformer`. |
 | `extra.sessionId` (MCP SDK `RequestHandlerExtra.sessionId`) | **No.** | Unset for stdio transport. Don't rely on it. |
 | `extra._meta` | Yes — mirrors `request.params._meta`. | Either is fine. |
 | `process.env.CLAUDE_CODE_SESSION_ID` | **No.** | Not set on the MCP child — verified absent. Identify a caller via the toolUseId path below. |
@@ -66,10 +67,23 @@ spawned via `Task()` share the same MCP child — they do NOT get their own. The
 therefore receives interleaved calls from the parent and every live sub-agent simultaneously.
 Env vars are per-process and set at MCP boot; they cannot disambiguate per-call callers.
 
-### Identifying a sub-agent caller deterministically
+### Identifying the caller: the hook first, a transcript scan only without it
+
+**Read `metaCallerContextTransformer({ meta })` first.** The `dungeonmaster-pre-mcp-caller`
+PreToolUse hook runs before every `mcp__dungeonmaster__*` call and stamps the caller's `cwd`,
+`session_id` and — for a Task-dispatched sub-agent only — `agent_id` onto the call. For a sub-agent,
+`sessionId` is the PARENT session and `agentId` is the id in its `subagents/agent-<id>.jsonl`
+filename: the same pair the scan below recovers, measured identical against Claude Code 2.1.283.
+All three resolvers (`callerRepoRootResolveBroker`, `ResolveCallerSessionLayerResponder`,
+`ResolveSubagentIdentityLayerResponder`) take this path when it is present and never scan.
+
+**The scan below is the fallback for a call no hook touched** — a consumer whose settings predate the
+hook, or a client other than Claude Code. It is slow: Claude Code writes a call's own `tool_use` line
+only when the call finishes or is moved to the background, so during the call every pass misses and
+re-reads the whole transcript directory until the retry budget runs out.
 
 When a sub-agent calls a tool that needs to know its own identity (e.g. `get-agent-prompt`
-stamps work-item `sessionId`/`agentId`):
+stamps work-item `sessionId`/`agentId`) and no hook ran:
 
 1. Read `meta?.['claudecode/toolUseId']` from the handler params — `ToolHandler`
    (`contracts/tool-registration/tool-registration-contract.ts`) carries `meta` alongside

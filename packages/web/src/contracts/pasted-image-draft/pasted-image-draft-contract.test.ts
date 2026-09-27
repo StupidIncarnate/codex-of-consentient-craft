@@ -37,7 +37,7 @@ describe('pastedImageDraftContract', () => {
 
     it('INVALID: {dataBase64: "not base64!"} => throws for malformed dataBase64', () => {
       expect(() => PastedImageDraftStub({ dataBase64: 'not base64!' as never })).toThrow(
-        /invalid_format/u,
+        /Invalid base64 image data/u,
       );
     });
 
@@ -54,7 +54,7 @@ describe('pastedImageDraftContract', () => {
 
     it('INVALID: {scopeKey: ""} => throws for empty scopeKey', () => {
       expect(() => PastedImageDraftStub({ scopeKey: '' as never })).toThrow(
-        /String must contain at least 1/u,
+        /expected string to have >=1 characters/u,
       );
     });
   });

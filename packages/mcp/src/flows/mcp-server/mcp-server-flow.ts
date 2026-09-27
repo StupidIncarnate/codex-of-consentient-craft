@@ -19,6 +19,7 @@ import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import { ServerInitResponder } from '../../responders/server/init/server-init-responder';
 import type { ToolRegistration } from '../../contracts/tool-registration/tool-registration-contract';
 import { toolNameContract } from '../../contracts/tool-name/tool-name-contract';
+import { toolCallCallerLiftTransformer } from '../../transformers/tool-call-caller-lift/tool-call-caller-lift-transformer';
 
 export const McpServerFlow = async ({
   registrations,
@@ -57,12 +58,15 @@ export const McpServerFlow = async ({
     }
     // `params._meta` is a loose record. Claude Code surfaces `claudecode/toolUseId` here on
     // every call, which identifies the calling sub-agent's OWN MCP call (NOT the parent
-    // Task() dispatch id — the two are distinct, verified empirically). Handlers that don't
-    // need it ignore the param.
-    return handler({
+    // Task() dispatch id — the two are distinct, verified empirically). The lift moves the
+    // caller context the pre-MCP-caller hook stamped onto the arguments into `meta` beside it,
+    // before any tool's input contract sees the arguments. Handlers that don't need either
+    // ignore the param.
+    const { args, meta } = toolCallCallerLiftTransformer({
       args: request.params.arguments ?? {},
       ...(request.params._meta !== undefined && { meta: request.params._meta }),
     });
+    return handler({ args, ...(meta !== undefined && { meta }) });
   });
 
   const transport = new StdioServerTransport();

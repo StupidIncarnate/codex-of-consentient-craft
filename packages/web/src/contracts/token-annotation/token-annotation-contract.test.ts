@@ -79,7 +79,7 @@ describe('tokenAnnotationContract', () => {
           cumulativeContext: null,
           contextDelta: null,
         });
-      }).toThrow(/received undefined/u);
+      }).toThrow(/Invalid option/u);
     });
   });
 });

@@ -1,6 +1,5 @@
 import { existsSync } from 'fs';
 import { access, readFile, realpath, rename, unlink, writeFile } from 'fs/promises';
-import { cwd } from 'process';
 import { createConnection } from 'net';
 import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
@@ -111,7 +110,6 @@ export const instanceKillBrokerProxy = (): {
   const unlinkHandle: MockHandle = registerMock({ fn: unlink });
   const realpathHandle: MockHandle = registerMock({ fn: realpath });
   const accessHandle: MockHandle = registerMock({ fn: access });
-  const cwdHandle: MockHandle = registerMock({ fn: cwd });
   registerSpyOn({ object: Date, method: 'now' }).calledWith([]).returns(EpochMsStub().valueOf());
   // The SIGTERM-then-check-SIGKILL escalation always waits driverStatics.teardown.graceMs (3s)
   // before probing aliveness. Addressed on the delay specifically (a predicate for the callback,
@@ -129,7 +127,6 @@ export const instanceKillBrokerProxy = (): {
       return 0;
     }) as never);
   tmpdirProxy.returns({ path: TMP_DIR_VALUE });
-  cwdHandle.calledWith([]).returns(CWD_PATH_VALUE);
   accessHandle.calledWith([CONFIG_FILE_PATH]).resolves({ success: true as const });
 
   existsHandle.calledWith([REGISTRY_PATH_FILE]).returns(true);

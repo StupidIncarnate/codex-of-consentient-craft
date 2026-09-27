@@ -61,7 +61,7 @@ describe('reactFlowNodeDataContract', () => {
 
     it('EMPTY: {packages: []} => throws, so no card can render without naming where it lands', () => {
       expect(() => ReactFlowNodeDataStub({ packages: [] })).toThrow(
-        /Array must contain at least 1 element/u,
+        /expected array to have >=1 items/u,
       );
     });
 

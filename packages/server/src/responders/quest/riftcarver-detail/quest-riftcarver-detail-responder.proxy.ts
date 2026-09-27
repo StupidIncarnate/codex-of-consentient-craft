@@ -2,17 +2,19 @@ import { questFindQuestPathBrokerProxy } from '@dungeonmaster/orchestrator/broke
 import {
   AbsoluteFilePathStub,
   FileContentsStub,
-  FilePathStub as SharedFilePathStub,
   GuildIdStub,
   QuestIdStub,
 } from '@dungeonmaster/shared/contracts';
-import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
+import { join } from '#gateway/node/path';
+import { locationsStatics } from '@dungeonmaster/shared/statics';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 import { QuestRiftcarverDetailResponder } from './quest-riftcarver-detail-responder';
 
-const LOG_FILE_PATH_VALUE = '/home/testuser/quest/riftcarver-results/result.log';
+const DETAIL_RIFTCARVER_RESULT_ID = '22222222-2222-4222-8222-222222222222';
+const LOG_FILE_PATH_VALUE = `/home/testuser/quest/riftcarver-results/${DETAIL_RIFTCARVER_RESULT_ID}.log`;
 const LOG_FILE_PATH = FilePathStub({ value: LOG_FILE_PATH_VALUE });
 // Matches the literal VALID_QUEST_ID used by every test in quest-riftcarver-detail-responder.test.ts —
 // the responder passes params.questId straight through, so the mocked address must match it.
@@ -26,7 +28,7 @@ export const QuestRiftcarverDetailResponderProxy = (): {
   callResponder: typeof QuestRiftcarverDetailResponder;
 } => {
   const findQuestPathProxy = questFindQuestPathBrokerProxy();
-  const pathJoinProxy = pathJoinAdapterProxy();
+  const joinHandle = registerMock({ fn: join });
   const readFileProxy = fsReadFileAdapterProxy();
 
   const setupPaths = (): void => {
@@ -35,7 +37,13 @@ export const QuestRiftcarverDetailResponderProxy = (): {
       questPath: AbsoluteFilePathStub({ value: '/home/testuser/quest' }),
       guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
     });
-    pathJoinProxy.returns({ result: SharedFilePathStub({ value: LOG_FILE_PATH_VALUE }) });
+    joinHandle
+      .calledWith([
+        '/home/testuser/quest',
+        locationsStatics.quest.riftcarverResultsDir,
+        `${DETAIL_RIFTCARVER_RESULT_ID}.log`,
+      ])
+      .returns(LOG_FILE_PATH_VALUE);
   };
 
   return {

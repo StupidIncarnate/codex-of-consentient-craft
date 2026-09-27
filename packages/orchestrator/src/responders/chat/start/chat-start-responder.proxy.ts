@@ -85,7 +85,12 @@ export const ChatStartResponderProxy = ({
     const { homeDir, homePath, questsPath, questFiles, questFilePath, questJson } = questSetup;
     questListProxy.setupQuestsPath({ homeDir, homePath, questsPath });
     questListProxy.setupQuestDirectories({ files: questFiles });
-    questListProxy.setupQuestFilePath({ result: questFilePath });
+    // Every caller of this proxy seeds exactly one quest folder — questFiles[0] is that folder's
+    // name, the same value the broker's real join call addresses by.
+    const [folderName] = questFiles;
+    if (folderName !== undefined) {
+      questListProxy.setupQuestFilePath({ folderName, result: questFilePath });
+    }
     questListProxy.setupQuestFile({ questJson });
   }
 

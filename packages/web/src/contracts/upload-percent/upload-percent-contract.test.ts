@@ -28,9 +28,7 @@ describe('uploadPercentContract', () => {
     });
 
     it('INVALID: {value: 101} => throws for over max', () => {
-      expect(() => uploadPercentContract.parse(101)).toThrow(
-        /Number must be less than or equal to 100/u,
-      );
+      expect(() => uploadPercentContract.parse(101)).toThrow(/expected number to be <=100/u);
     });
 
     it('INVALID: {value: 50.5} => throws for non-integer', () => {
