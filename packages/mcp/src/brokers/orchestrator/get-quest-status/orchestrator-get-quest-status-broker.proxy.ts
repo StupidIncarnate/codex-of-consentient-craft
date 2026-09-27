@@ -2,7 +2,8 @@
 // USAGE: const proxy = orchestratorGetQuestStatusBrokerProxy(); proxy.returns({ processId, status: OrchestrationStatusStub() });
 
 import type { OrchestrationStatusStub, ProcessId } from '@dungeonmaster/shared/contracts';
-import { fetchGetAdapterProxy, portResolveBrokerProxy } from '@dungeonmaster/shared/testing';
+import { fetchJsonProxy } from '#gateway/node/fetch/fetch-json/fetch-json.proxy';
+import { portResolveBrokerProxy } from '@dungeonmaster/shared/testing';
 import { environmentStatics } from '@dungeonmaster/shared/statics';
 
 type OrchestrationStatus = ReturnType<typeof OrchestrationStatusStub>;
@@ -13,7 +14,7 @@ export const orchestratorGetQuestStatusBrokerProxy = (): {
   returns: (params: { processId: ProcessId; status: OrchestrationStatus }) => void;
   throws: (params: { processId: ProcessId; error: Error }) => void;
 } => {
-  const fetchProxy = fetchGetAdapterProxy();
+  const fetchProxy = fetchJsonProxy();
   const portProxy = portResolveBrokerProxy();
   portProxy.setEnvPort({ value: PORT });
 

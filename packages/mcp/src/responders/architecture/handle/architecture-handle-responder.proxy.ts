@@ -6,16 +6,15 @@
  * const result = await proxy.callResponder({ tool: ToolNameStub({ value: 'get-architecture' }), args: {} });
  */
 
-import type { Dirent } from 'fs';
 import {
   architectureOverviewBrokerProxy,
   architecturePackageInventoryBrokerProxy,
   architectureProjectMapBrokerProxy,
   architectureGatewayInventoryBrokerProxy,
-  fsExistsSyncAdapterProxy,
-  fsReaddirWithTypesAdapterProxy,
 } from '@dungeonmaster/shared/testing';
-import { AbsoluteFilePathStub, FilePathStub } from '@dungeonmaster/shared/contracts';
+import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
+import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/readdir-entries-sync.proxy';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 import type {
   ContentText,
   FileContents,
@@ -34,20 +33,6 @@ import { discoverIgnoreState } from '../../../state/discover-ignore/discover-ign
 import { folderConstraintsStateProxy } from '../../../state/folder-constraints/folder-constraints-state.proxy';
 import { folderConstraintsState } from '../../../state/folder-constraints/folder-constraints-state';
 import { ArchitectureHandleResponder } from './architecture-handle-responder';
-
-const makeDirent = ({ name, isDir }: { name: string; isDir: boolean }): Dirent =>
-  ({
-    name,
-    parentPath: '/stub',
-    path: '/stub',
-    isDirectory: () => isDir,
-    isFile: () => !isDir,
-    isBlockDevice: () => false,
-    isCharacterDevice: () => false,
-    isFIFO: () => false,
-    isSocket: () => false,
-    isSymbolicLink: () => false,
-  }) as Dirent;
 
 // The responder's get-project-map / get-project-inventory / discover branches all resolve their
 // project root via ResolveCallerRepoRootLayerResponder, which (with no `meta` staged for a caller
@@ -76,6 +61,7 @@ export const ArchitectureHandleResponderProxy = (): {
     subpathName: string;
     barrelContent?: ContentText;
   }) => void;
+  setupDirectPackage: (params: { packageName: string; repoRoot?: string }) => void;
   setupEmptyMonorepo: () => void;
   setupCallerCwdRoot: (params: {
     toolUseId: string;
@@ -97,8 +83,9 @@ export const ArchitectureHandleResponderProxy = (): {
   // other branch reaches fs through architecturePackageInventoryBrokerProxy /
   // architectureProjectMapBrokerProxy above, which already registers each adapter's low-specificity
   // "not found" default (existsSync: false, readdir: []) for every unaddressed path.
-  const existsSyncProxy = fsExistsSyncAdapterProxy();
-  const readdirProxy = fsReaddirWithTypesAdapterProxy();
+  const existsSyncHandle = existsSyncProxy();
+  const readdirHandle = readdirEntriesSyncProxy();
+
   architectureFolderDetailBrokerProxy();
   architectureTestingPatternsBrokerProxy();
   const stateProxy = folderConstraintsStateProxy();
@@ -157,17 +144,17 @@ export const ArchitectureHandleResponderProxy = (): {
       const packagesPath = AbsoluteFilePathStub({
         value: `${String(DEFAULT_PROJECT_ROOT)}/packages`,
       });
-      existsSyncProxy.returns({
-        filePath: FilePathStub({ value: `${String(packagesPath)}/${packageName}` }),
-        result: false,
+      existsSyncHandle.returns({
+        path: `${String(packagesPath)}/${packageName}`,
+        exists: false,
       });
-      readdirProxy.returns({
-        dirPath: packagesPath,
-        entries: [makeDirent({ name: groupName, isDir: true })],
+      readdirHandle.returns({
+        path: packagesPath,
+        entries: [{ name: groupName, kind: 'directory' }],
       });
-      readdirProxy.returns({
-        dirPath: AbsoluteFilePathStub({ value: `${String(packagesPath)}/${groupName}` }),
-        entries: [makeDirent({ name: packageName, isDir: true })],
+      readdirHandle.returns({
+        path: `${String(packagesPath)}/${groupName}`,
+        entries: [{ name: packageName, kind: 'directory' }],
       });
     },
     setupGatewaySubpath: ({
@@ -184,6 +171,19 @@ export const ArchitectureHandleResponderProxy = (): {
         folder,
         subpathName,
         ...(barrelContent !== undefined && { barrelContent }),
+      });
+    },
+    setupDirectPackage: ({
+      packageName,
+      repoRoot,
+    }: {
+      packageName: string;
+      repoRoot?: string;
+    }): void => {
+      const root = repoRoot ?? String(DEFAULT_PROJECT_ROOT);
+      existsSyncHandle.returns({
+        path: `${root}/packages/${packageName}`,
+        exists: true,
       });
     },
     setupEmptyMonorepo: (): void => {
