@@ -349,9 +349,7 @@ describe('instanceEntryLayerBroker', () => {
       });
       proxy.setupShutdownReasonMissing({ evidencePath });
       proxy.setupProcListing({ pids: ['100'] });
-      proxy.setupPidStatPathJoin({ pid: '100' });
       proxy.setupPidStat({ pid: '100', pgrp: 33_812, comm: 'node' });
-      proxy.setupPidCmdlinePathJoin({ pid: '100' });
       proxy.setupOrphanCmdline({ pid: '100', argv: ['npm', 'run', 'dev:no-watch'] });
       proxy.setupOrphanAlive({ pgid });
       proxy.setupApiWebLogPathJoins({ evidencePath });

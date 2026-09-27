@@ -5,6 +5,7 @@ import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
+import { machineStatics } from '../../../statics/machine/machine-statics';
 import { locationsInstanceEvidencePathFindBrokerProxy } from '../../locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker.proxy';
 import { machineRssByPgidBrokerProxy } from '../../machine/rss-by-pgid/machine-rss-by-pgid-broker.proxy';
 import { registryUpdateBrokerProxy } from '../../registry/update/registry-update-broker.proxy';
@@ -43,19 +44,15 @@ export const heartbeatWriteBrokerProxy = (): {
   getWrittenHeartbeatContent: (params: { evidencePath: FilePath }) => unknown;
   getRegistryWrittenContent: () => unknown;
 } => {
-  // heartbeatWriteBroker resolves the evidence dir, joins the heartbeat filename onto it (staged on
-  // `#gateway/node/path`'s own `join` mock, addressed below by its own exact tuple — never the
-  // shared `pathJoinAdapter` queue), measures rss over the given pgids, writes the file, then
-  // read-mutate-writes the registry. `rssProxy` (`machineRssByPgidBroker`) and `registryProxy`
-  // (transitively, `registryWriteBroker`) still resolve their own joins through that OTHER, shared
-  // `pathJoinAdapter` mock (neither is migrated here) — but this file no longer imports
-  // `pathJoinAdapter` itself, so `enforce-proxy-child-creation` forbids composing its proxy directly
-  // here. `rssProxy.setupPidStatPathJoinDefensive`/`setupPidStatmPathJoinDefensive` (below, in
-  // `setupHeartbeatWriteWithMeasuredRss`/`setupHeartbeatWriteWithRssMeasurementFailure`) reach that
-  // SAME shared mock through `machineRssByPgidBrokerProxy`'s own, already-legitimate composition
-  // instead — `registryProxy.setupCurrentRegistry` (called last in each method) queues ITS OWN
-  // pending resolution on it, and an unstaged real join from rss's calls, which run chronologically
-  // BEFORE registryUpdateBroker, would otherwise consume that instead of computing its own real path.
+  // heartbeatWriteBroker resolves the evidence dir, joins the heartbeat filename onto it, measures
+  // rss over the given pgids, writes the file, then read-mutate-writes the registry.
+  // `machineRssByPgidBroker` and (transitively, via `registryUpdateBrokerProxy`)
+  // `registryWriteBroker` are both migrated too, so every join in this chain — this file's own
+  // evidence+heartbeat join, rss's two per-pid `/proc` joins, and registry's own tmp-path join —
+  // resolves on the SAME shared `#gateway/node/path` `join` mock, each addressed by its own exact
+  // tuple. Exact-tuple addressing is order-independent (unlike the old shared `pathJoinAdapter`
+  // one-shot queue this used to ride), so `rssProxy`'s two joins below can be staged in any position
+  // relative to `registryProxy.setupCurrentRegistry`.
   const evidencePathProxy = locationsInstanceEvidencePathFindBrokerProxy();
   // Shares the same '#gateway/node/path' join handle evidencePathProxy's own constructor registers
   // — addressed below on this file's OWN exact tuple, never a bare `calledWith([])`.
@@ -128,8 +125,12 @@ export const heartbeatWriteBrokerProxy = (): {
       rssProxy.setupProcListing({ pids: [pid] });
       rssProxy.setupPidStat({ pid, pgrp });
       rssProxy.setupPidStatm({ pid, residentPages });
-      rssProxy.setupPidStatPathJoinDefensive({ pid });
-      rssProxy.setupPidStatmPathJoinDefensive({ pid });
+      joinHandle
+        .calledWith([machineStatics.procfs.root, pid, machineStatics.procfs.stat])
+        .returns(FilePathStub({ value: `/proc/${pid}/stat` }));
+      joinHandle
+        .calledWith([machineStatics.procfs.root, pid, machineStatics.procfs.statm])
+        .returns(FilePathStub({ value: `/proc/${pid}/statm` }));
 
       registryProxy.setupCurrentRegistry({ json: registryJson });
       dateHandle.calledWith([]).returns(nowMs);
@@ -167,7 +168,9 @@ export const heartbeatWriteBrokerProxy = (): {
       rssProxy.setupProcListing({ pids: [pid] });
       rssProxy.setupPidStatFails({ pid, error });
       // That failing read still makes ONE real path.join call before it rejects.
-      rssProxy.setupPidStatPathJoinDefensive({ pid });
+      joinHandle
+        .calledWith([machineStatics.procfs.root, pid, machineStatics.procfs.stat])
+        .returns(FilePathStub({ value: `/proc/${pid}/stat` }));
 
       registryProxy.setupCurrentRegistry({ json: registryJson });
       dateHandle.calledWith([]).returns(nowMs);

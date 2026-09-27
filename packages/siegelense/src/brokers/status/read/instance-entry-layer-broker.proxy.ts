@@ -4,17 +4,18 @@
  * `/proc` for orphans and rss, the two known log files, the repo-local symlink, and the last run's
  * transcript — behind scenario methods a test calls in the SAME order the broker itself reaches
  * them, since `pathJoinAdapter`'s mock is one call-ordered queue shared by every proxy that stages it
- * (see `heartbeat-write-broker.proxy.ts` for the same rule on a shorter chain). `heartbeatReadBroker`
- * and `shutdownReasonReadBroker` no longer ride that shared queue at all — both resolve their own
- * marker path on `#gateway/node/path`'s own `join` mock, addressed by exact tuple inside their own
- * proxies, so nothing here stages a slot for either. Four of this broker's OWN joins — `runs`,
- * `api-server.log`, `web-server.log`, and the last run's transcript — are still explicitly staged
- * here, via `setupRunsDirPathJoin` / `setupApiWebLogPathJoins` / `setupTranscriptPathJoin`, rather
- * than left to `pathJoinAdapter`'s real-passthrough default: `locationsRepoLinkPathFindBroker`'s OWN
- * resolution (staged by `setupRepoLinkResolves`) pushes ITS pending entries onto this SAME shared
- * queue well before it actually runs, and an unstaged call from this broker in between would consume
- * one of those instead of computing its own real join. A test therefore calls the push-registering
- * methods in exactly this order: `setupEvidenceDir`, `setupHeartbeatFound`/`setupHeartbeatMissing`,
+ * (see `heartbeat-write-broker.proxy.ts` for the same rule on a shorter chain). `heartbeatReadBroker`,
+ * `shutdownReasonReadBroker`, `orphanReadBroker` and `machineRssByPgidBroker` no longer ride that
+ * shared queue at all — each resolves its own path on `#gateway/node/path`'s own `join` mock (orphan
+ * and rss through their own sticky real-passthrough default, needing no staging here), so nothing
+ * here stages a slot for any of them. Four of this broker's OWN joins — `runs`, `api-server.log`,
+ * `web-server.log`, and the last run's transcript — are still explicitly staged here, via
+ * `setupRunsDirPathJoin` / `setupApiWebLogPathJoins` / `setupTranscriptPathJoin`, rather than left to
+ * `pathJoinAdapter`'s real-passthrough default: `locationsRepoLinkPathFindBroker`'s OWN resolution
+ * (staged by `setupRepoLinkResolves`) pushes ITS pending entries onto this SAME shared queue well
+ * before it actually runs, and an unstaged call from this broker in between would consume one of
+ * those instead of computing its own real join. A test therefore calls the push-registering methods
+ * in exactly this order: `setupEvidenceDir`, `setupHeartbeatFound`/`setupHeartbeatMissing`,
  * `setupRunsDirPathJoin`, `setupApiWebLogPathJoins` (named only), `setupRepoLinkResolves` (named
  * only), `setupTranscriptPathJoin` (named, with a run, only) — the non-pushing methods
  * (`setupRunsDirEntries`, `setupShutdownReasonMissing`/`setupShutdownReasonFound`,
@@ -81,11 +82,8 @@ export const instanceEntryLayerBrokerProxy = (): {
   setupShutdownReasonMissing: (params: { evidencePath: FilePath }) => void;
   setupShutdownReasonFound: (params: { evidencePath: FilePath; marker: ShutdownReason }) => void;
   setupProcListing: (params: { pids: readonly string[] }) => void;
-  setupPidStatPathJoin: (params: { pid: string }) => void;
   setupPidStat: (params: { pid: string; pgrp: number; comm?: string }) => void;
-  setupPidStatmPathJoin: (params: { pid: string }) => void;
   setupPidStatm: (params: { pid: string; residentPages: number }) => void;
-  setupPidCmdlinePathJoin: (params: { pid: string }) => void;
   setupOrphanCmdline: (params: { pid: string; argv: readonly string[] }) => void;
   setupOrphanAlive: (params: { pgid: ProcessGroupId }) => void;
   setupOrphanGone: (params: { pgid: ProcessGroupId }) => void;
@@ -196,30 +194,16 @@ export const instanceEntryLayerBrokerProxy = (): {
       rssProxy.setupProcListing(params);
     },
 
-    // orphanReadBroker and (when the instance is alive) machineRssByPgidBroker each join
-    // `/proc/<pid>/stat` for EVERY pid `/proc`'s own readdir returned, and that join happens only
-    // after the readdir's promise resolves — i.e. from a microtask queued alongside
-    // `setupRepoLinkResolves`'s own pending, not-yet-consumed entries. Unstaged, it would consume
-    // one of those instead of computing its own real path, the same reason
-    // `setupApiWebLogPathJoins` and `setupTranscriptPathJoin` are explicit.
-    setupPidStatPathJoin: ({ pid }: { pid: string }): void => {
-      ownPathJoinProxy.returns({ result: FilePathStub({ value: `/proc/${pid}/stat` }) });
-    },
-
+    // orphanReadBroker's and machineRssByPgidBroker's own per-pid `/proc` joins resolve on
+    // `#gateway/node/path`'s own `join` mock, each through its own proxy's sticky real-passthrough
+    // default — neither rides this file's shared `pathJoinAdapter` queue any more, so there is
+    // nothing to stage here for either.
     setupPidStat: (params: { pid: string; pgrp: number; comm?: string }): void => {
       rssProxy.setupPidStat(params);
     },
 
-    setupPidStatmPathJoin: ({ pid }: { pid: string }): void => {
-      ownPathJoinProxy.returns({ result: FilePathStub({ value: `/proc/${pid}/statm` }) });
-    },
-
     setupPidStatm: (params: { pid: string; residentPages: number }): void => {
       rssProxy.setupPidStatm(params);
-    },
-
-    setupPidCmdlinePathJoin: ({ pid }: { pid: string }): void => {
-      ownPathJoinProxy.returns({ result: FilePathStub({ value: `/proc/${pid}/cmdline` }) });
     },
 
     setupOrphanCmdline: (params: { pid: string; argv: readonly string[] }): void => {

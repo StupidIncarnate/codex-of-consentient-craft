@@ -14,7 +14,7 @@
  */
 
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
+import { join } from '#gateway/node/path';
 
 import { errorIsNativeErrorAdapter } from '../../../adapters/error/is-native-error/error-is-native-error-adapter';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
@@ -24,7 +24,7 @@ import { machineStatics } from '../../../statics/machine/machine-statics';
 
 export const machineOomCountBroker = async (): Promise<ReadingCount | null> => {
   const vmstatPath = absoluteFilePathContract.parse(
-    pathJoinAdapter({ paths: [machineStatics.procfs.root, machineStatics.procfs.vmstat] }),
+    join(machineStatics.procfs.root, machineStatics.procfs.vmstat),
   );
 
   const content = await fsReadFileAdapter({ filePath: vmstatPath }).catch((error: unknown) => {

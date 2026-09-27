@@ -1,4 +1,7 @@
-import { fsMkdirAdapterProxy, pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
+import { join } from '#gateway/node/path';
+import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
+import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { AbsoluteFilePathStub, FilePathStub } from '@dungeonmaster/shared/contracts';
 
 import { fsRenameAdapterProxy } from '../../../adapters/fs/rename/fs-rename-adapter.proxy';
@@ -26,21 +29,25 @@ export const registryWriteBrokerProxy = (): {
   getRenamedFrom: () => unknown;
   getRenamedTo: () => unknown;
 } => {
-  // registryWriteBroker calls locationsRootPathFindBroker() directly (for mkdir + the tmp-path
+  // registryWriteBroker calls locationsRootPathFindBroker() directly (for ensureDir + the tmp-path
   // join), then locationsRegistryPathFindBroker() (which recomputes the root path internally on
   // its way to the live path) — so the root-path resolution is staged TWICE, in that order,
   // matching the broker's real call sequence.
   const rootPathProxy = locationsRootPathFindBrokerProxy();
   const registryPathProxy = locationsRegistryPathFindBrokerProxy();
-  const pathJoinProxy = pathJoinAdapterProxy();
-  fsMkdirAdapterProxy();
+  // Shares the same '#gateway/node/path' join handle rootPathProxy's own constructor registers
+  // (transitively, via dungeonmasterHomeFindBrokerProxy) — addressed here on this file's OWN exact
+  // tuple, never a bare `calledWith([])`.
+  const joinHandle = registerMock({ fn: join });
+  const ensureDirHandle = ensureDirProxy();
   const writeProxy = fsWriteFileAdapterProxy();
   const renameProxy = fsRenameAdapterProxy();
 
   const queuePaths = (): void => {
     rootPathProxy.setupRootPath({ homeDir: HOME_DIR, homePath, rootPath });
     registryPathProxy.setupRegistryPath({ homeDir: HOME_DIR, homePath, rootPath, registryPath });
-    pathJoinProxy.returns({ result: tmpPath });
+    joinHandle.calledWith([rootPath, locationsStatics.siegelense.registryTmp]).returns(tmpPath);
+    ensureDirHandle.succeeds({ path: rootPath });
   };
 
   return {

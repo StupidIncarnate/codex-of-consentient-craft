@@ -22,7 +22,7 @@
  */
 
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
+import { join } from '#gateway/node/path';
 
 import { errorIsNativeErrorAdapter } from '../../../adapters/error/is-native-error/error-is-native-error-adapter';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
@@ -56,7 +56,7 @@ export const machineRssByPgidBroker = async ({
   const residentPagesPerPid = await Promise.all(
     pidEntries.map(async (pidEntry) => {
       const statPath = absoluteFilePathContract.parse(
-        pathJoinAdapter({ paths: [procRoot, String(pidEntry), machineStatics.procfs.stat] }),
+        join(procRoot, String(pidEntry), machineStatics.procfs.stat),
       );
 
       const statContent = await fsReadFileAdapter({ filePath: statPath }).catch(
@@ -103,7 +103,7 @@ export const machineRssByPgidBroker = async ({
       }
 
       const statmPath = absoluteFilePathContract.parse(
-        pathJoinAdapter({ paths: [procRoot, String(pidEntry), machineStatics.procfs.statm] }),
+        join(procRoot, String(pidEntry), machineStatics.procfs.statm),
       );
 
       const statmContent = await fsReadFileAdapter({ filePath: statmPath }).catch(

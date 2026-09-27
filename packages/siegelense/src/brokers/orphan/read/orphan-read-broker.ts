@@ -16,7 +16,7 @@
  * // Returns one OrphanReading per pgid, in the same order; cmd is null once nothing in /proc holds it
  */
 
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
+import { join } from '#gateway/node/path';
 import { absoluteFilePathContract, contentTextContract } from '@dungeonmaster/shared/contracts';
 
 import { errorIsNativeErrorAdapter } from '../../../adapters/error/is-native-error/error-is-native-error-adapter';
@@ -44,7 +44,7 @@ export const orphanReadBroker = async ({
   const statResults = await Promise.all(
     pidEntries.map(async (pidEntry) => {
       const statPath = absoluteFilePathContract.parse(
-        pathJoinAdapter({ paths: [procRoot, String(pidEntry), machineStatics.procfs.stat] }),
+        join(procRoot, String(pidEntry), machineStatics.procfs.stat),
       );
 
       const statContent = await fsReadFileAdapter({ filePath: statPath }).catch(
@@ -98,7 +98,7 @@ export const orphanReadBroker = async ({
       }
 
       const cmdlinePath = absoluteFilePathContract.parse(
-        pathJoinAdapter({ paths: [procRoot, match.pid, machineStatics.procfs.cmdline] }),
+        join(procRoot, match.pid, machineStatics.procfs.cmdline),
       );
 
       const cmdlineContent = await fsReadFileAdapter({ filePath: cmdlinePath }).catch(

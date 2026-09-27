@@ -10,8 +10,8 @@
  * proxy.getWrittenRecord({ profilesPath, instanceId });
  */
 
-import { fsMkdirAdapterProxy, pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
-import { AbsoluteFilePathStub, FilePathStub } from '@dungeonmaster/shared/contracts';
+import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
@@ -33,10 +33,10 @@ export const profileBootRecordBrokerProxy = (): {
   }) => void;
   getWrittenRecord: (params: { profilesPath: FilePath; instanceId: InstanceId }) => unknown;
 } => {
+  // Constructed, never staged: the record-path join runs through the real passthrough default
+  // dirsProxy's own composition chain already registers on '#gateway/node/path's `join`.
   const dirsProxy = locationsProfileDirsFindBrokerProxy();
-  // Constructed, never staged: the record-path join runs through the real passthrough.
-  pathJoinAdapterProxy();
-  const mkdirProxy = fsMkdirAdapterProxy();
+  const mkdirProxy = ensureDirProxy();
   const writeProxy = fsWriteFileAdapterProxy();
   const dateHandle = registerSpyOn({ object: Date, method: 'now' });
 
@@ -59,7 +59,7 @@ export const profileBootRecordBrokerProxy = (): {
       dirsProxy.setupProfilesPath({ homeDir, homePath, rootPath, profilesPath });
 
       const bootsDirValue = `${String(profilesPath)}/${profileStatics.dirs.boots}`;
-      mkdirProxy.succeeds({ filepath: FilePathStub({ value: bootsDirValue }) });
+      mkdirProxy.succeeds({ path: bootsDirValue });
       writeProxy.succeeds({
         filePath: AbsoluteFilePathStub({
           value: `${bootsDirValue}/${instanceId}${profileStatics.extensions.record}`,
