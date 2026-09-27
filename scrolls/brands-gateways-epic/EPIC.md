@@ -86,6 +86,7 @@ The user can lend Antigravity slots on top of the Claude sub-agents. This sectio
 
 | What | What we learned |
 |---|---|
+| Slot count | The user set the cap: at most 3 `agy` agents at once for this session (5 at first, cut to 3 because the user runs `agy` elsewhere at the same time). Runs already going when the cap dropped finish; no new one starts until fewer than 3 run. |
 | The CLI | `agy` is at `~/.local/bin/agy`. `agy -p "<prompt>"` runs one prompt non-interactively and prints the final answer. `agy models` lists the models. |
 | The model | The user asked for Gemini 3.8 Flash. Pass `--model gemini-3.8-flash-high`. |
 | Permissions | Pass `--dangerously-skip-permissions`, or the run stalls on the first tool prompt, because nobody is there to answer it. |
