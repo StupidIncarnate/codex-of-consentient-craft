@@ -131,18 +131,19 @@ where two compose makes the book worse while looking productive.
 
 ### 5. Author the gaps
 
-A recipe is COMPOSITION, and you write one yourself in a few lines. Two halves, both required:
+A recipe is COMPOSITION, and you write one yourself in a few lines. Call \`get-testing-patterns\`
+first — its Recipes and Ingredients section is the standard you follow for how to write one: naming
+each input after the field it fills, giving every input and returned field a one-line meaning,
+declaring what the recipe hands back, keeping \`makes\` honest, and composing before you write. Two
+halves, both required, and neither is a later pass:
 
-- an entry in \`packages/hydration-recipes/src/statics/recipe-book/recipe-book-statics.ts\` — its
-  name, its \`produces:\` line, its fidelity, its parameters and what it returns
-- its seed broker under \`packages/hydration-recipes/src/brokers/recipes/<name>/\`
+- the recipe's own broker under \`packages/hydration-recipes/src/brokers/recipes/<name>/\`
+- its entry in \`packages/hydration-recipes/src/brokers/recipes/catalog/recipes-catalog-broker.ts\` —
+  this is what the \`recipes {}\` listing and a \`seed\` step both read; a recipe nowhere in it does
+  not exist as far as either one is concerned
 
 **An entry with no broker promises a state nothing can create; a broker with no entry is a state no
-session can discover.** Neither half is optional and neither is a later pass.
-
-**Seed TWO of anything an assertion must tell apart.** A recipe that seeds one of something makes
-"the right one" and "the first one" the same value, so an off-by-index bug passes against it and the
-clean result means nothing. That is the quiet failure and it is worse than the loud one.
+session can discover.**
 
 **"No recipe covers this path" is not an outcome you may return.** Where the state needs an entity
 nothing declares yet, that is an INGREDIENT, and the section below says how you ask for it.
