@@ -76,13 +76,15 @@ describe('statusAnswerRenderTransformer', () => {
   });
 
   describe('no instances, an instance named', () => {
-    it('EMPTY: {instanceId: inst_deadbeef, instances: []} => a sentence naming that id as unknown, distinguishable from the fleet-empty sentence', () => {
+    it('EMPTY: {instanceId: inst_deadbeef, instances: []} => a sentence saying siegelense has no record of the id, distinguishable from the fleet-empty sentence', () => {
       const answer = StatusAnswerStub({ instances: [] });
       const instanceId = InstanceIdStub({ value: 'inst_deadbeef' });
 
       const result = statusAnswerRenderTransformer({ answer, instanceId });
 
-      expect(result).toBe('No instance by the id "inst_deadbeef" — unknown, never existed.\n');
+      expect(result).toBe(
+        'No record of the instance id "inst_deadbeef". Check the id dungeonmaster siegelense start returned.\n',
+      );
     });
   });
 

@@ -27,7 +27,7 @@
  * // Returns 'MONITORED: ...\nMACHINE: ...\nNo siegelense instances created in the last 6hr. Widen with --since beginning.\n'
  *
  * statusAnswerRenderTransformer({ answer: StatusAnswerStub({ instances: [] }), instanceId: InstanceIdStub() });
- * // Returns 'No instance by the id "<id>" — unknown, never existed.\n'
+ * // Returns 'No record of the instance id "<id>". Check the id dungeonmaster siegelense start returned.\n'
  */
 
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
@@ -54,7 +54,7 @@ export const statusAnswerRenderTransformer = ({
   if (answer.instances.length === 0) {
     if (instanceId !== null) {
       return contentTextContract.parse(
-        `No instance by the id "${instanceId}" — unknown, never existed.\n`,
+        `No record of the instance id "${instanceId}". Check the id dungeonmaster siegelense start returned.\n`,
       );
     }
 
