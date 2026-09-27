@@ -35,6 +35,11 @@ export const locationsRepoLinkPathFindBrokerProxy = (): {
   // so a second registration here reads the SAME call history the shared proxy already records —
   // this is the only way this broker's own test can prove which segments IT composed.
   getJoinedSegments: () => unknown;
+  // Forwards to locationsRootPathFindBrokerProxy's own addressed-only stage — see its header
+  // comment for why a caller composed alongside another real-path.join-making resolver needs this
+  // instead of setupLinkResolvesToRoot/setupLinkPointsElsewhere (both of which also stage a
+  // one-shot outer join this file's own callers deliberately avoid).
+  setupHomeOnly: (params: { homeDir: string; homePath: FilePath }) => void;
 } => {
   const cwdProxy = processCwdAdapterProxy();
   const resolveProxy = cwdResolveBrokerProxy();
@@ -100,5 +105,9 @@ export const locationsRepoLinkPathFindBrokerProxy = (): {
     // spreading it into a real array is how an unaddressed read is meant to inspect "the whole
     // list" here, since this broker makes exactly one join() call per invocation.
     getJoinedSegments: (): unknown => [...joinHandle.callsMatching([])].at(-1),
+
+    setupHomeOnly: (params: { homeDir: string; homePath: FilePath }): void => {
+      rootPathProxy.setupHomeOnly(params);
+    },
   };
 };

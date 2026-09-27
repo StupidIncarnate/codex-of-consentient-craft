@@ -1,5 +1,6 @@
 import { fsExistsSyncAdapterProxy } from '@dungeonmaster/shared/testing';
 import { AbsoluteFilePathStub, FilePathStub } from '@dungeonmaster/shared/contracts';
+import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { locationsRegistryPathFindBrokerProxy } from '../../locations/registry-path-find/locations-registry-path-find-broker.proxy';
@@ -12,6 +13,11 @@ export const registryReadBrokerProxy = (): {
   setupMissingRegistry: () => void;
   setupPresentRegistry: (params: { content: string }) => void;
   setupReadFailure: (params: { error: Error }) => void;
+  // Forwards to locationsRegistryPathFindBrokerProxy's own addressed-only home stage — for a
+  // caller composed alongside another real-path.join-making resolver (instanceKillBrokerProxy's
+  // convention), which cannot risk this file's own setupMissingRegistry/setupPresentRegistry/
+  // setupReadFailure — each queues a one-shot outer join via queuePath().
+  setupHomeOnly: (params: { homeDir: string; homePath: FilePath }) => void;
 } => {
   const pathProxy = locationsRegistryPathFindBrokerProxy();
   const existsProxy = fsExistsSyncAdapterProxy();
@@ -42,6 +48,10 @@ export const registryReadBrokerProxy = (): {
       queuePath();
       existsProxy.returns({ filePath: registryPath, result: true });
       readFileProxy.rejects({ filePath: registryPathAbs, error });
+    },
+
+    setupHomeOnly: (params: { homeDir: string; homePath: FilePath }): void => {
+      pathProxy.setupHomeOnly(params);
     },
   };
 };

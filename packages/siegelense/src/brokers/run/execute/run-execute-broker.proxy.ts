@@ -69,16 +69,19 @@ const LINK_PATH = FilePathStub({
   value: `${CWD_PATH_VALUE}/.dungeonmaster-assets/siegelense-assets`,
 });
 
-// `/home/default` is `osHomedirAdapterProxy`'s OWN sticky default — `stageRepoLinkPresent` below
-// only has to clear `DUNGEONMASTER_HOME` (a prior test, or the real environment, could have it
-// set) to let that default govern `dungeonmasterHomeFindBroker`. A different instance id
+// `stageRepoLinkPresent` stages the home through `repoLinkProxy.setupHomeOnly` (forwarded from
+// locationsRootPathFindBrokerProxy) so `locationsRootPathFindBroker` resolves to
+// SIEGELENSE_ROOT_VALUE, never a sticky override some other composed proxy happens to leave
+// behind. A different instance id
 // ('inst_2') from EVIDENCE_PATH's own ('inst_1') so neither constant is ever mistaken for the
 // other — this pair exists only for the one test proving the repo-local conversion itself.
 // `locationsRepoLinkPathFindBroker` builds its answer with `homePath.replace(rootPath, linkPath)`,
 // so `HOME_ROOTED_EVIDENCE_PATH` has to sit under `SIEGELENSE_ROOT_VALUE` for that substitution to
 // mean anything.
 const HOME_DIR_VALUE = '/home/default';
-const SIEGELENSE_ROOT_VALUE = `${HOME_DIR_VALUE}/.dungeonmaster/siegelense`;
+const HOME_PATH_VALUE = `${HOME_DIR_VALUE}/.dungeonmaster`;
+const HOME_PATH = FilePathStub({ value: HOME_PATH_VALUE });
+const SIEGELENSE_ROOT_VALUE = `${HOME_PATH_VALUE}/siegelense`;
 const HOME_ROOTED_EVIDENCE_PATH = AbsoluteFilePathStub({
   value: `${SIEGELENSE_ROOT_VALUE}/guilds/g1/instances/inst_2`,
 });
@@ -186,12 +189,12 @@ export const runExecuteBrokerProxy = (): {
   const snapshotCaptureHandle: MockHandle = registerMock({ fn: snapshotCaptureBroker });
   snapshotCaptureHandle.calledWith([]).resolves(SnapshotRecordStub());
 
-  // Satisfies enforce-proxy-child-creation for locationsRepoLinkPathFindBroker. Not composed as
-  // fsAccessAdapterProxy/fsExistsSyncAdapterProxy/fsRealpathAdapterProxy — this implementation
-  // never imports any of those directly, locationsRepoLinkPathFindBroker uses them transitively —
-  // so the underlying node primitives are mocked here instead, the same convention
+  // Captured (not composed bare) so its own setupHomeOnly can stage the addressed home. Not
+  // composed as fsAccessAdapterProxy/fsExistsSyncAdapterProxy/fsRealpathAdapterProxy — this
+  // implementation never imports any of those directly, locationsRepoLinkPathFindBroker uses them
+  // transitively — so the underlying node primitives are mocked here instead, the same convention
   // instance-kill-broker.proxy.ts uses for the identical broker.
-  locationsRepoLinkPathFindBrokerProxy();
+  const repoLinkProxy = locationsRepoLinkPathFindBrokerProxy();
   const accessHandle: MockHandle = registerMock({ fn: access });
   const existsHandle: MockHandle = registerMock({ fn: existsSync });
   const realpathHandle: MockHandle = registerMock({ fn: realpath });
@@ -260,7 +263,7 @@ export const runExecuteBrokerProxy = (): {
     // is safe regardless of how many other real `pathJoinAdapter` calls happen before or after it
     // — see this file's header comment on CWD_PATH_VALUE for why that matters.
     stageRepoLinkPresent: (): void => {
-      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+      repoLinkProxy.setupHomeOnly({ homeDir: HOME_DIR_VALUE, homePath: HOME_PATH });
       existsHandle.calledWith([LINK_PATH]).returns(true);
       realpathHandle.calledWith([LINK_PATH]).resolves(SIEGELENSE_ROOT_VALUE);
     },

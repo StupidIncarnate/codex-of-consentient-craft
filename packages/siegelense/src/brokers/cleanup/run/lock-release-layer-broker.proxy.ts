@@ -1,6 +1,8 @@
-import { homedir } from 'os';
-import { AbsoluteFilePathStub, FileContentsStub } from '@dungeonmaster/shared/contracts';
-import { registerMock } from '@dungeonmaster/testing/register-mock';
+import {
+  AbsoluteFilePathStub,
+  FileContentsStub,
+  FilePathStub,
+} from '@dungeonmaster/shared/contracts';
 
 import { errorIsNativeErrorAdapterProxy } from '../../../adapters/error/is-native-error/error-is-native-error-adapter.proxy';
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
@@ -13,8 +15,10 @@ import { locationsRegistryLockPathFindBrokerProxy } from '../../locations/regist
 type EpochMs = ReturnType<typeof EpochMsStub>;
 
 const HOME_DIR = '/home/user';
-const BOOT_LOCK_VALUE = `${HOME_DIR}/.dungeonmaster/siegelense/boot.lock`;
-const REGISTRY_LOCK_VALUE = `${HOME_DIR}/.dungeonmaster/siegelense/registry.lock`;
+const HOME_PATH_VALUE = `${HOME_DIR}/.dungeonmaster`;
+const HOME_PATH = FilePathStub({ value: HOME_PATH_VALUE });
+const BOOT_LOCK_VALUE = `${HOME_PATH_VALUE}/siegelense/boot.lock`;
+const REGISTRY_LOCK_VALUE = `${HOME_PATH_VALUE}/siegelense/registry.lock`;
 
 const enoentError = (): Error =>
   Object.assign(new Error('ENOENT: no such file or directory'), { code: 'ENOENT' });
@@ -33,40 +37,30 @@ export const lockReleaseLayerBrokerProxy = (): {
   const bootLockPath = AbsoluteFilePathStub({ value: BOOT_LOCK_VALUE });
   const registryLockPath = AbsoluteFilePathStub({ value: REGISTRY_LOCK_VALUE });
 
-  // Composed bare, satisfying enforce-proxy-child-creation, rather than through their own
-  // setupBootLockPath/setupRegistryLockPath one-shots: this proxy is composed alongside
-  // instanceKillBrokerProxy in cleanup-run-broker.proxy.ts, and BOTH ultimately mock the same raw
-  // os.homedir() and path.join — a one-shot staged here for "the next pathJoin call" is consumed
-  // by whichever real call happens to land next across the WHOLE composed test, not necessarily
-  // this broker's own. Real passthrough (path.join's own sticky default) plus the STICKY homedir
-  // registration below compute the identical literal paths either way, without that risk.
-  locationsBootLockPathFindBrokerProxy();
+  // setupHomeOnly (not setupBootLockPath/setupRegistryLockPath): this proxy is composed alongside
+  // instanceKillBrokerProxy in cleanup-run-broker.proxy.ts, and both need the SAME addressed home
+  // stage. setupBootLockPath/setupRegistryLockPath each ALSO queue a one-shot outer join, which a
+  // sibling resolver's own unrelated real path.join call would silently consume instead — see
+  // locationsRootPathFindBrokerProxy's own header comment on setupHomeOnly for why.
+  const pathProxy = locationsBootLockPathFindBrokerProxy();
   locationsRegistryLockPathFindBrokerProxy();
 
   errorIsNativeErrorAdapterProxy();
   const readProxy = fsReadFileAdapterProxy();
   const unlinkProxy = fsUnlinkAdapterProxy();
-  // Sticky (calledWith, not onceFor) so it answers every call regardless of how many real
-  // invocations happen before this broker's own — matching instanceKillBrokerProxy's identical
-  // convention for the same underlying function.
-  registerMock({ fn: homedir }).calledWith([]).returns(HOME_DIR);
-
-  const clearHomeEnv = (): void => {
-    Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
-  };
 
   return {
     bootLockPath,
     registryLockPath,
 
     setupNoLocks: (): void => {
-      clearHomeEnv();
+      pathProxy.setupHomeOnly({ homeDir: HOME_DIR, homePath: HOME_PATH });
       readProxy.rejects({ filePath: bootLockPath, error: enoentError() });
       readProxy.rejects({ filePath: registryLockPath, error: enoentError() });
     },
 
     setupBootLockFresh: ({ acquiredAtMs }: { acquiredAtMs: EpochMs }): void => {
-      clearHomeEnv();
+      pathProxy.setupHomeOnly({ homeDir: HOME_DIR, homePath: HOME_PATH });
       const lock = BootLockStub({ acquiredAtMs });
       readProxy.resolves({
         filePath: bootLockPath,
@@ -76,7 +70,7 @@ export const lockReleaseLayerBrokerProxy = (): {
     },
 
     setupBootLockStale: ({ acquiredAtMs }: { acquiredAtMs: EpochMs }): void => {
-      clearHomeEnv();
+      pathProxy.setupHomeOnly({ homeDir: HOME_DIR, homePath: HOME_PATH });
       const lock = BootLockStub({ acquiredAtMs });
       readProxy.resolves({
         filePath: bootLockPath,
@@ -87,7 +81,7 @@ export const lockReleaseLayerBrokerProxy = (): {
     },
 
     setupBootLockReadFailsForNonAbsenceReason: (): void => {
-      clearHomeEnv();
+      pathProxy.setupHomeOnly({ homeDir: HOME_DIR, homePath: HOME_PATH });
       readProxy.rejects({
         filePath: bootLockPath,
         error: Object.assign(new Error('EMFILE: too many open files'), { code: 'EMFILE' }),
@@ -95,7 +89,7 @@ export const lockReleaseLayerBrokerProxy = (): {
     },
 
     setupRegistryLockFresh: ({ acquiredAtMs }: { acquiredAtMs: EpochMs }): void => {
-      clearHomeEnv();
+      pathProxy.setupHomeOnly({ homeDir: HOME_DIR, homePath: HOME_PATH });
       readProxy.rejects({ filePath: bootLockPath, error: enoentError() });
       readProxy.resolves({
         filePath: registryLockPath,
@@ -104,7 +98,7 @@ export const lockReleaseLayerBrokerProxy = (): {
     },
 
     setupRegistryLockStale: ({ acquiredAtMs }: { acquiredAtMs: EpochMs }): void => {
-      clearHomeEnv();
+      pathProxy.setupHomeOnly({ homeDir: HOME_DIR, homePath: HOME_PATH });
       readProxy.rejects({ filePath: bootLockPath, error: enoentError() });
       readProxy.resolves({
         filePath: registryLockPath,

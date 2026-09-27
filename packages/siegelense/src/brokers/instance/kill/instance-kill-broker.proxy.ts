@@ -1,4 +1,3 @@
-import { homedir } from 'os';
 import { existsSync } from 'fs';
 import { access, readFile, realpath, rename, unlink, writeFile } from 'fs/promises';
 import { cwd } from 'process';
@@ -33,11 +32,14 @@ type InstanceHeartbeat = ReturnType<typeof InstanceHeartbeatStub>;
 type ProcessGroupId = ReturnType<typeof ProcessGroupIdStub>;
 
 // Same convention as instance-start-broker.proxy.ts: every path here is REAL `path.join` output
-// off a sticky os.homedir() / os.tmpdir() / processCwdAdapter() override, never a one-shot
+// off a sticky os.tmpdir() / processCwdAdapter() override, never a one-shot
 // `pathJoinAdapter.returns()` — see that file's header comment for why a shared one-shot queue
-// across unrelated resolvers is unsafe.
+// across unrelated resolvers is unsafe. The home itself is staged through
+// dungeonmasterHomeFindBrokerProxy (an addressed homedir()/join() pair), not a sticky override.
 const HOME_DIR_VALUE = '/home/user';
-const ROOT_PATH_VALUE = '/home/user/.dungeonmaster/siegelense';
+const HOME_PATH_VALUE = `${HOME_DIR_VALUE}/.dungeonmaster`;
+const HOME_PATH = FilePathStub({ value: HOME_PATH_VALUE });
+const ROOT_PATH_VALUE = `${HOME_PATH_VALUE}/siegelense`;
 const REGISTRY_PATH_VALUE = `${ROOT_PATH_VALUE}/registry.json`;
 const REGISTRY_TMP_PATH_VALUE = `${ROOT_PATH_VALUE}/registry.json.tmp`;
 const REGISTRY_LOCK_PATH_VALUE = `${ROOT_PATH_VALUE}/registry.lock`;
@@ -80,7 +82,11 @@ export const instanceKillBrokerProxy = (): {
   errorIsNativeErrorAdapterProxy();
   registryReadBrokerProxy();
   locationsInstanceEvidencePathFindBrokerProxy();
-  locationsRepoLinkPathFindBrokerProxy();
+  // Captured (not composed bare) so its own setupHomeOnly can stage the addressed home — see
+  // locationsRootPathFindBrokerProxy's own header comment for why this file, composed alongside
+  // registryReadBrokerProxy/locationsInstanceEvidencePathFindBrokerProxy's own real path.join
+  // calls, cannot risk a one-shot outer join instead.
+  const repoLinkProxy = locationsRepoLinkPathFindBrokerProxy();
   locationsSocketPathFindBrokerProxy();
   const releaseProxy = instanceReleaseBrokerProxy();
   const socketProxy = netUnixRequestAdapterProxy();
@@ -91,7 +97,7 @@ export const instanceKillBrokerProxy = (): {
   const isAliveProxy = processIsAliveAdapterProxy();
   // Not composed as processCwdAdapterProxy/cwdResolveBrokerProxy: this implementation never
   // imports either directly — locationsRepoLinkPathFindBroker uses them transitively, so the
-  // underlying node primitives are mocked here instead, same as os.homedir()/os.tmpdir() below.
+  // underlying node primitives are mocked here instead, same as os.tmpdir() below.
   pathJoinAdapterProxy();
   const connectionHandle: MockHandle = registerMock({ fn: createConnection });
 
@@ -103,7 +109,6 @@ export const instanceKillBrokerProxy = (): {
   const realpathHandle: MockHandle = registerMock({ fn: realpath });
   const accessHandle: MockHandle = registerMock({ fn: access });
   const cwdHandle: MockHandle = registerMock({ fn: cwd });
-  registerMock({ fn: homedir }).calledWith([]).returns(HOME_DIR_VALUE);
   registerSpyOn({ object: Date, method: 'now' }).calledWith([]).returns(EpochMsStub().valueOf());
   // The SIGTERM-then-check-SIGKILL escalation always waits driverStatics.teardown.graceMs (3s)
   // before probing aliveness. Addressed on the delay specifically (a predicate for the callback,
@@ -135,12 +140,11 @@ export const instanceKillBrokerProxy = (): {
   return {
     setupRegistry: ({ registry }: { registry: Registry }): void => {
       // dungeonmasterHomeFindBroker checks DUNGEONMASTER_HOME before falling back to
-      // os.homedir() — clear it here (a returned method, not this constructor, since this
-      // implementation never imports dungeonmasterHomeFindBroker directly and composing its
-      // proxy just for clearHomeEnv() would be a phantom creation) so the sticky homedir
-      // override above actually governs every root-path resolution; jest's own global setup
-      // stamps a real tmp path here, which would otherwise win.
-      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+      // homedir() — staged here (a returned method, not the constructor, since
+      // enforce-proxy-patterns confines constructor bodies to child-proxy creation and handle
+      // staging) so every root-path resolution this test drives resolves against HOME_PATH_VALUE
+      // rather than whatever jest's own global setup or the real OS homedir would produce.
+      repoLinkProxy.setupHomeOnly({ homeDir: HOME_DIR_VALUE, homePath: HOME_PATH });
       readHandle.calledWith([REGISTRY_PATH_ABS]).resolves(JSON.stringify(registry));
     },
 

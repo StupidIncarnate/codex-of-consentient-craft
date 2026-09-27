@@ -9,6 +9,10 @@ export const locationsBootLockPathFindBrokerProxy = (): {
     rootPath: FilePath;
     bootLockPath: FilePath;
   }) => void;
+  // Forwards to locationsRootPathFindBrokerProxy's own addressed-only stage — see its header
+  // comment for why a caller composed alongside another real-path.join-making resolver needs this
+  // instead of setupBootLockPath.
+  setupHomeOnly: (params: { homeDir: string; homePath: FilePath }) => void;
 } => {
   const rootPathProxy = locationsRootPathFindBrokerProxy();
   const pathJoinProxy = pathJoinAdapterProxy();
@@ -27,6 +31,10 @@ export const locationsBootLockPathFindBrokerProxy = (): {
     }): void => {
       rootPathProxy.setupRootPath({ homeDir, homePath, rootPath });
       pathJoinProxy.returns({ result: bootLockPath });
+    },
+
+    setupHomeOnly: (params: { homeDir: string; homePath: FilePath }): void => {
+      rootPathProxy.setupHomeOnly(params);
     },
   };
 };
