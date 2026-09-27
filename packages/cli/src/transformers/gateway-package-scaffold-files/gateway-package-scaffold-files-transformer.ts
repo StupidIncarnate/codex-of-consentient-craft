@@ -25,6 +25,7 @@
 import { pathSegmentContract, fileContentsContract } from '@dungeonmaster/shared/contracts';
 import type { PathSegment } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
+import { gatewayImportsFieldTransformer } from '@dungeonmaster/shared/transformers';
 import { scaffoldFileContract } from '../../contracts/scaffold-file/scaffold-file-contract';
 import type { ScaffoldFile } from '../../contracts/scaffold-file/scaffold-file-contract';
 import {
@@ -33,7 +34,6 @@ import {
 } from '../../statics/gateway-folders/gateway-folders-statics';
 import { gatewayPackageTemplateStatics } from '../../statics/gateway-package-template/gateway-package-template-statics';
 import { gatewaySourceCopyStatics } from '../../statics/gateway-source-copy/gateway-source-copy-statics';
-import { gatewayImportsFieldTransformer } from '../gateway-imports-field/gateway-imports-field-transformer';
 
 const JSON_INDENT = gatewayPackageTemplateStatics.jsonIndentSpaces;
 

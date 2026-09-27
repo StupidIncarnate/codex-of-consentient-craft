@@ -148,6 +148,35 @@ const checkJestConfigBaseMsw = ({ report, consumerRoot }) => {
     loadsEndpointMockSetup,
     JSON.stringify(config.setupFilesAfterEnv),
   );
+
+  // F14 (gateway-pivot): an unanchored `.js` transform key silently repairs a genuine syntax error
+  // in a CONSUMER's own project `.js` file via ts-jest's error-recovering `transpileModule` — the
+  // same class of bug `@gateway/node`'s `dynamic-import.test.ts` caught for this repo's own
+  // packages (fixed in cdf22d643). `transformIgnorePatterns` stays `[]` here on purpose (msw's own
+  // transitive ESM graph is too deep to enumerate by name — see this file's own header), so the
+  // `transform` regex itself is the only thing standing between a consumer's own `.js` fixture and
+  // ts-jest. Every `transform` key must therefore either match ONLY `.ts`/`.tsx` (own source,
+  // anywhere) or be anchored to a path containing `/node_modules/` — never a bare `.js`/`.mjs`/`.cjs`
+  // match with no anchor.
+  const consumerOwnJsPath = join(consumerRoot, 'src', 'fixtures', 'broken-syntax.js');
+  const nodeModulesEsmPath = join(consumerRoot, 'node_modules', 'msw', 'lib', 'node', 'index.js');
+  const transformEntries = Object.entries(config.transform ?? {});
+  const consumerOwnJsUntouched = transformEntries.every(
+    ([pattern]) => !new RegExp(pattern, 'u').test(consumerOwnJsPath),
+  );
+  const nodeModulesEsmStillTransformed = transformEntries.some(([pattern]) =>
+    new RegExp(pattern, 'u').test(nodeModulesEsmPath),
+  );
+  report.check(
+    "jest-config-base.js's transform anchors every .js/.mjs/.cjs entry to node_modules, so a consumer's own project .js fixture is never routed through ts-jest",
+    consumerOwnJsUntouched,
+    JSON.stringify(Object.keys(config.transform ?? {})),
+  );
+  report.check(
+    "jest-config-base.js's transform still transforms msw's own node_modules .js",
+    nodeModulesEsmStillTransformed,
+    JSON.stringify(Object.keys(config.transform ?? {})),
+  );
 };
 
 const checkRootTsconfig = ({ report, consumerRoot }) => {
@@ -238,6 +267,24 @@ const checkGatewayPackages = ({ report, consumerRoot, gt }) => {
   }
 };
 
+// The scope every scaffolded package's `#gateway/*` imports field must agree with, read straight
+// off the REAL `packages/@gateway/node/package.json`'s own `name` (never assumed) — the same
+// package `dungeonmaster init`'s gateway step scaffolded and named with
+// `workspaceScopeFromRootNameTransformer`. Returns `null` when that package does not exist yet (a
+// bare consumer `init` has not touched), so a caller can fall back to skipping the check rather
+// than asserting against a guess that would silently pass or fail for the wrong reason.
+const detectGatewayScope = ({ consumerRoot }) => {
+  const nodePkgPath = join(consumerRoot, 'packages', '@gateway', 'node', 'package.json');
+  if (!existsSync(nodePkgPath)) {
+    return null;
+  }
+  const nodePkg = readJson(nodePkgPath);
+  const suffix = '/node';
+  return typeof nodePkg.name === 'string' && nodePkg.name.endsWith(suffix)
+    ? nodePkg.name.slice(0, -suffix.length)
+    : null;
+};
+
 // Only actual `packages/*` entries get the `imports` merge (`install-setup-gateway-responder`
 // walks `gatewayExistingPackagesListBroker({ packagesDir })`, which is `packages/`, never the
 // workspaces ROOT package.json — that file has no `imports` field of its own to merge into).
@@ -252,13 +299,29 @@ const checkWorkspacePackageGatewayImports = ({ report, consumerRoot, gt, scope }
     .filter((entry) => entry.isDirectory() && entry.name !== '@gateway')
     .map((entry) => entry.name);
 
-  // `scope` is read from the REAL scaffolded `packages/@gateway/node/package.json`'s own `name`
-  // (this suite's `run.mjs` derives it there and passes it in) rather than assumed here —
-  // `gatewayScopeDetectTransformer` derives it from the root package.json's own `name` (falling back
-  // to the target directory's basename), which may or may not land on `@dungeonmaster` for THIS
-  // fixture; asserting against a guessed literal here would silently pass for the wrong reason
-  // either way.
-  const expectedImports = gt.gatewayImportsFieldTransformer({ scope: scope ?? '@dungeonmaster' });
+  // No-op in global mode (repo CLAUDE.md's scenario 4 scaffolds no `packages/*` of its own —
+  // `packagesDir` exists but is empty) and in any run where `init` has not yet scaffolded a single
+  // package to check. Only past this point does anything need a scope to compare against.
+  if (packageDirNames.length === 0) {
+    return;
+  }
+
+  // `scope`, when the caller passes one (`run.mjs` does, once this suite's own fixture packages
+  // exist), wins. Otherwise this detects the REAL scope itself off `packages/@gateway/node/`,
+  // which already exists by the time `runWriteAssertions` calls this with no `scope` — `init`
+  // scaffolds the gateway packages and `hydration-recipes` in the same pass. A hardcoded guess here
+  // would silently disagree with whatever this suite's own fixture root package.json is actually
+  // named.
+  const resolvedScope = scope ?? detectGatewayScope({ consumerRoot });
+  if (resolvedScope === null) {
+    report.check(
+      'packages/*/package.json #gateway/* imports match the real scaffolded gateway scope',
+      false,
+      'packages/@gateway/node/package.json is missing or unnamed — cannot detect the real scope',
+    );
+    return;
+  }
+  const expectedImports = gt.gatewayImportsFieldTransformer({ scope: resolvedScope });
 
   for (const dirName of packageDirNames) {
     const packageJsonPath = join(packagesDir, dirName, 'package.json');
@@ -315,10 +378,12 @@ export const runWriteAssertions = ({ report, consumerRoot, gt, mode }) => {
   checkEslintConfig({ report, consumerRoot });
   checkDungeonmasterConfig({ report, consumerRoot, gt });
   checkGatewayPackages({ report, consumerRoot, gt });
-  // A no-op here when no `packages/*` exist yet (a bare consumer, before this suite's own fixture
-  // packages are scaffolded) — `run.mjs` calls `checkWorkspacePackageGatewayImports` again, by
-  // name, once `writeGatewayImportSources`/`scaffoldFixturePackages` has put real packages on disk,
-  // which is the only point this bullet has anything to check against.
+  // Already checks something real here in local mode: `init` scaffolds `packages/@gateway/*` AND
+  // `packages/hydration-recipes` in the same pass, so both exist by now, and this call detects the
+  // real scope itself off disk (no `scope` argument, so `checkWorkspacePackageGatewayImports`'s own
+  // fallback runs). A no-op only in global mode, where scenario 4 scaffolds no `packages/*` of its
+  // own. `run.mjs` calls `checkWorkspacePackageGatewayImports` again, by name, once
+  // `scaffoldFixturePackages` has put this suite's OWN fixture packages on disk too.
   checkWorkspacePackageGatewayImports({ report, consumerRoot, gt });
   checkWorktreesAndGitignore({ report, consumerRoot });
 

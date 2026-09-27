@@ -20,9 +20,9 @@ const cliBinPath = ({ consumerRoot }) => join(consumerRoot, 'node_modules', '.bi
 // F5 (gateway-pivot): the real, on-disk scope every scaffolded package's `#gateway/*` imports field
 // must agree with — read straight off `packages/@gateway/node/package.json`'s own `name` (never
 // assumed), the same package `dungeonmaster init`'s gateway step scaffolded and named with
-// `gatewayScopeDetectTransformer`. `create-package`'s own scope detection now reuses that SAME
-// transformer, so the two are guaranteed to agree by construction; this only proves it holds for a
-// real run.
+// `workspaceScopeFromRootNameTransformer`. `create-package`'s own scope detection now reuses that
+// SAME transformer, so the two are guaranteed to agree by construction; this only proves it holds
+// for a real run.
 const detectCorrectScope = ({ consumerRoot }) => {
   const nodePkgPath = join(consumerRoot, 'packages', '@gateway', 'node', 'package.json');
   const nodePkg = JSON.parse(readFileSync(nodePkgPath, 'utf8'));

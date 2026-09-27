@@ -6,8 +6,15 @@
  * `src/` folder nothing can compile (`RecipesBuildMissingError` in every fresh consumer repo
  * otherwise). An existing package is left completely untouched — the convention travels, the
  * recipes do not. The scaffolded package.json's scope matches the target repo's OWN workspace
- * packages, detected off its root package.json the same convention `@dungeonmaster/cli`'s own
- * `create-package` uses.
+ * packages, detected off its root package.json's `name` field (falling back to the target
+ * directory's basename) through `workspaceScopeFromRootNameTransformer` — the SAME transformer
+ * `dungeonmaster init`'s gateway step and `create-package` use, never a scan of root
+ * `dependencies`/`devDependencies` (a consumer's own `devDependencies` carry the tool vendor's
+ * `@dungeonmaster/*` scope, not the consumer's own). It also writes its own `#gateway/*` `imports`
+ * field at scaffold time, through `gatewayImportsFieldTransformer` — the same builder `init`'s
+ * gateway step uses for every package ALREADY on disk when that step runs. This package cannot
+ * wait for that step to find it: the gateway step scans `packages/*` once, before this responder
+ * ever creates this one.
  *
  * USAGE:
  * const result = await InstallRecipesScaffoldResponder({ context });
@@ -19,6 +26,7 @@
 import {
   fsExistsSyncAdapter,
   fsMkdirAdapter,
+  pathBasenameAdapter,
   pathResolveAdapter,
 } from '@dungeonmaster/shared/adapters';
 import {
@@ -29,15 +37,14 @@ import {
   installMessageContract,
   packageJsonContract,
   packageNameContract,
-  pathSegmentContract,
 } from '@dungeonmaster/shared/contracts';
+import { workspaceScopeFromRootNameTransformer } from '@dungeonmaster/shared/transformers';
 
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import { npmInstallAdapter } from '../../../adapters/npm/install/npm-install-adapter';
 import { npmRunBuildAdapter } from '../../../adapters/npm/run-build/npm-run-build-adapter';
 import { recipesScaffoldFilesTransformer } from '../../../transformers/recipes-scaffold-files/recipes-scaffold-files-transformer';
-import { workspaceScopeDetectTransformer } from '../../../transformers/workspace-scope-detect/workspace-scope-detect-transformer';
 
 const PACKAGE_NAME = '@dungeonmaster/siegelense';
 const PACKAGES_DIRNAME = 'packages';
@@ -75,22 +82,33 @@ export const InstallRecipesScaffoldResponder = async ({
     paths: [context.targetProjectRoot, ROOT_PACKAGE_JSON_FILENAME],
   });
 
-  let workspaceScope = pathSegmentContract.parse('');
-  if (fsExistsSyncAdapter({ filePath: filePathContract.parse(rootPackageJsonPath) })) {
-    const rootPackageJsonContents = await fsReadFileAdapter({ filePath: rootPackageJsonPath });
-    const rawRootPackageJson: unknown = JSON.parse(rootPackageJsonContents);
-    workspaceScope = workspaceScopeDetectTransformer({
-      rootPackageJson: packageJsonContract.parse(rawRootPackageJson),
-    });
-  }
+  const rootPackageJsonExists = fsExistsSyncAdapter({
+    filePath: filePathContract.parse(rootPackageJsonPath),
+  });
+  // A fallback (this repo's OWN gateway-setup step names it the same way — install-setup-gateway-
+  // responder.ts) is only offered once the root package.json is confirmed to exist: an ABSENT root
+  // package.json means `dungeonmaster init`'s gateway step never scaffolded `packages/@gateway/*`
+  // scoped either, so there is no existing scope for this package to match, and it stays unscoped —
+  // exactly like every other existing package would in that same repo state.
+  const workspaceScope = rootPackageJsonExists
+    ? workspaceScopeFromRootNameTransformer({
+        rootPackageJsonName: packageJsonContract.parse(
+          JSON.parse(await fsReadFileAdapter({ filePath: rootPackageJsonPath })),
+        ).name,
+        fallbackName: pathBasenameAdapter({ path: context.targetProjectRoot }),
+      })
+    : undefined;
 
   const recipesPackageName = packageNameContract.parse(
-    workspaceScope === ''
+    workspaceScope === undefined
       ? RECIPES_PACKAGE_DIRNAME
       : `${workspaceScope}/${RECIPES_PACKAGE_DIRNAME}`,
   );
 
-  const scaffoldFiles = recipesScaffoldFilesTransformer({ packageName: recipesPackageName });
+  const scaffoldFiles = recipesScaffoldFilesTransformer({
+    packageName: recipesPackageName,
+    ...(workspaceScope === undefined ? {} : { scope: workspaceScope }),
+  });
 
   await Promise.all(
     scaffoldFiles.map(async (file) =>

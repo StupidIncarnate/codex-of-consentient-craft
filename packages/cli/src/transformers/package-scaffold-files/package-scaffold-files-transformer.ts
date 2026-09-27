@@ -26,8 +26,8 @@ import { packageScaffoldConfigStatics } from '../../statics/package-scaffold-con
 import { playwrightConfigTemplateStatics } from '../../statics/playwright-config-template/playwright-config-template-statics';
 import { pathSegmentContract, fileContentsContract } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
+import { gatewayImportsFieldTransformer } from '@dungeonmaster/shared/transformers';
 import { kebabCaseVariantsTransformer } from '../kebab-case-variants/kebab-case-variants-transformer';
-import { gatewayImportsFieldTransformer } from '../gateway-imports-field/gateway-imports-field-transformer';
 
 // No `satisfies Record<string, PackageSeed>` here: the seeds' `as const` literals are readonly
 // and unbranded, which can never structurally satisfy PackageSeed's mutable branded zod-inferred

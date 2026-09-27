@@ -816,3 +816,9 @@ export * from './src/contracts/routed-graph/routed-graph.stub';
 // `configDungeonmasterBroker`'s caller and passed into the three gateway lint rules as a rule option)
 export * from './src/contracts/gateway-lint-config/gateway-lint-config-contract';
 export * from './src/contracts/gateway-lint-config/gateway-lint-config.stub';
+
+// Gateway Imports Map Contracts (a package.json `imports` field's `#gateway/<folder>/*` shape —
+// every scaffolder that writes this field, and the merge step that reconciles it into an existing
+// package.json, share this one validated shape)
+export * from './src/contracts/gateway-imports-map/gateway-imports-map-contract';
+export * from './src/contracts/gateway-imports-map/gateway-imports-map.stub';

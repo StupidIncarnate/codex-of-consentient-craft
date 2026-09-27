@@ -1,4 +1,4 @@
-import { PackageNameStub } from '@dungeonmaster/shared/contracts';
+import { PackageNameStub, PathSegmentStub } from '@dungeonmaster/shared/contracts';
 import { locationsStatics, recipesConventionStatics } from '@dungeonmaster/shared/statics';
 
 import { recipesScaffoldFilesTransformer } from './recipes-scaffold-files-transformer';
@@ -54,7 +54,7 @@ describe('recipesScaffoldFilesTransformer', () => {
       });
     });
 
-    it('VALID: {packageName: "hydration-recipes"} => an unscoped package.json when no scope was detected', () => {
+    it('VALID: {packageName: "hydration-recipes", no scope} => an unscoped package.json with no imports field at all', () => {
       const packageName = PackageNameStub({ value: 'hydration-recipes' });
 
       const [packageJsonFile] = recipesScaffoldFilesTransformer({ packageName });
@@ -64,6 +64,46 @@ describe('recipesScaffoldFilesTransformer', () => {
         version: '0.1.0',
         description: 'hydration-recipes package',
         private: true,
+        exports: {
+          '.': {
+            source: './src/index.ts',
+            import: './dist/index.js',
+            require: './dist/index.js',
+            types: './dist/index.d.ts',
+          },
+        },
+        scripts: {
+          build: 'tsc -p tsconfig.build.json',
+          'build:clean': 'rm -rf dist .ward/build.tsbuildinfo && npm run build',
+          test: 'dungeonmaster-ward --only test',
+          typecheck: 'dungeonmaster-ward --only typecheck',
+          lint: 'dungeonmaster-ward --only lint',
+          ward: 'dungeonmaster-ward',
+        },
+        devDependencies: {
+          '@types/node': '^20.11.0',
+          typescript: '^5.3.3',
+        },
+      });
+    });
+
+    it('VALID: {packageName: "@acme/hydration-recipes", scope: "@acme"} => the package.json carries the four #gateway/* imports entries, scoped to match', () => {
+      const packageName = PackageNameStub({ value: '@acme/hydration-recipes' });
+      const scope = PathSegmentStub({ value: '@acme' });
+
+      const [packageJsonFile] = recipesScaffoldFilesTransformer({ packageName, scope });
+
+      expect(JSON.parse(packageJsonFile.contents)).toStrictEqual({
+        name: '@acme/hydration-recipes',
+        version: '0.1.0',
+        description: 'hydration-recipes package',
+        private: true,
+        imports: {
+          '#gateway/npm/*': '@acme/npm/*',
+          '#gateway/node/*': '@acme/node/*',
+          '#gateway/browser/*': '@acme/browser/*',
+          '#gateway/bin/*': '@acme/bin/*',
+        },
         exports: {
           '.': {
             source: './src/index.ts',

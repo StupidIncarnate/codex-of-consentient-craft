@@ -9,12 +9,12 @@
  * // Returns { '#alias/*': './src/*', '#gateway/npm/*': '@acme/npm/*', ... }
  */
 
-import type { PathSegment } from '@dungeonmaster/shared/contracts';
 import {
+  type PathSegment,
   gatewayImportsMapContract,
   type GatewayImportsMap,
-} from '../../contracts/gateway-imports-map/gateway-imports-map-contract';
-import { gatewayImportsFieldTransformer } from '../gateway-imports-field/gateway-imports-field-transformer';
+} from '@dungeonmaster/shared/contracts';
+import { gatewayImportsFieldTransformer } from '@dungeonmaster/shared/transformers';
 
 export const gatewayImportsMergeTransformer = ({
   existingImports,

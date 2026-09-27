@@ -3,6 +3,7 @@ import { EventEmitter, Readable } from 'stream';
 import {
   fsExistsSyncAdapterProxy,
   fsMkdirAdapterProxy,
+  pathBasenameAdapterProxy,
   pathResolveAdapterProxy,
 } from '@dungeonmaster/shared/testing';
 import {
@@ -25,11 +26,19 @@ import { InstallRecipesScaffoldResponder } from './install-recipes-scaffold-resp
 // calls) — addressing on the full args array instead discriminates them directly, in either order.
 const NPM_INSTALL_ARGS = ['install'];
 // The getters/failure-setters below all address the UNSCOPED package name — every test that reads
-// spawn args or stages a failure uses setupPackageAbsent() with no rootDependencies. The SCOPED
-// tests (rootDependencies present) only assert written file contents, never spawn calls, so the
+// spawn args or stages a failure uses setupPackageAbsent() with no rootPackageJsonName. The SCOPED
+// tests (rootPackageJsonName present) only assert written file contents, never spawn calls, so the
 // scope-aware build args setupPackageAbsent computes for its own default staging never need to be
 // read back through these fixed constants.
 const NPM_BUILD_ARGS = ['run', 'build', '--workspace=hydration-recipes'];
+// pathBasenameAdapterProxy() (called inside the factory below) stages the REAL, passthrough
+// basename as its own default, so the real responder's fallback — offered whenever the root
+// package.json exists but carries no `name` — genuinely resolves CONTEXT's targetProjectRoot
+// ('/project') to 'project'. Hardcoded rather than computed by calling `basename('/project')' at
+// this MODULE's own top level: 'path' is itself mocked the moment this file's module graph pulls
+// in pathBasenameAdapterProxy, and that mock is staged only once the factory below runs — a
+// module-level call here would run before any test's setup and silently see the unstaged mock.
+const FALLBACK_SCOPE = '@project';
 
 const createNpmChild = ({
   exitCode,
@@ -99,7 +108,10 @@ const SCAFFOLD_FILE_ABSOLUTE_PATHS: ReadonlyMap<
 
 export const InstallRecipesScaffoldResponderProxy = (): {
   callResponder: typeof InstallRecipesScaffoldResponder;
-  setupPackageAbsent: (params?: { rootDependencies?: Record<string, string> }) => void;
+  setupPackageAbsent: (params?: {
+    rootPackageJsonPresent?: boolean;
+    rootPackageJsonName?: string;
+  }) => void;
   setupPackagePresent: () => void;
   setupInstallFails: (params: { output: string }) => void;
   setupBuildFails: (params: { output: string }) => void;
@@ -112,6 +124,7 @@ export const InstallRecipesScaffoldResponderProxy = (): {
   wasNpmSpawned: () => boolean;
 } => {
   pathResolveAdapterProxy();
+  pathBasenameAdapterProxy();
   const existsProxy = fsExistsSyncAdapterProxy();
   const mkdirProxy = fsMkdirAdapterProxy();
   const readProxy = fsReadFileAdapterProxy();
@@ -142,25 +155,22 @@ export const InstallRecipesScaffoldResponderProxy = (): {
     spawnHandle.calledWith(['npm', args]).implement(() => createNpmChild({ exitCode, stderr }));
   };
 
-  // Mirrors workspaceScopeDetectTransformer: the first `@scope/name` dependency pinned to `*`
-  // names the scope a scaffolded package.json (and therefore its `--workspace=` build target)
-  // takes. Stages the call directly (`void`) rather than returning the computed args, since a
-  // function returning a raw (unbranded) string array/tuple trips `ban-primitives` in a
-  // responders/ file.
-  const stageBuildForScope = ({
-    rootDependencies,
+  // Stages the npm build call under whatever workspace name the REAL responder will actually
+  // request — scope resolution itself happens once, inline in setupPackageAbsent below (mirroring
+  // workspaceScopeFromRootNameTransformer's own branches for a real name, plus FALLBACK_SCOPE for
+  // the responder's own fallback path), so this only turns a resolved scope (or its absence) into
+  // the --workspace= value. Stages the call directly (`void`) rather than returning the computed
+  // args, since a function returning a raw (unbranded) string array/tuple trips `ban-primitives`
+  // in a responders/ file.
+  const stageBuildForWorkspace = ({
+    scope,
     exitCode,
     stderr,
   }: {
-    rootDependencies?: Record<string, string>;
+    scope?: string;
     exitCode: number;
     stderr: string;
   }): void => {
-    const scopedEntry = Object.entries(rootDependencies ?? {}).find(
-      ([name, version]) => version === '*' && name.startsWith('@') && name.includes('/'),
-    );
-    const scope =
-      scopedEntry === undefined ? undefined : scopedEntry[0].slice(0, scopedEntry[0].indexOf('/'));
     const workspaceName = scope === undefined ? 'hydration-recipes' : `${scope}/hydration-recipes`;
     stageBuild({ args: ['run', 'build', `--workspace=${workspaceName}`], exitCode, stderr });
   };
@@ -177,25 +187,36 @@ export const InstallRecipesScaffoldResponderProxy = (): {
     callResponder: InstallRecipesScaffoldResponder,
 
     // Neither packages/hydration-recipes/ nor its src/ exist yet — the fresh-install case. When
-    // `rootDependencies` is given, the target repo's own root package.json exists and carries them
-    // (workspace-scope detection reads it); when omitted, no root package.json exists at all. Every
-    // fresh scaffold now runs `npm install` then `npm run build --workspace=<name>`, so this stages
-    // both as succeeding by default — setupInstallFails/setupBuildFails re-stage one address
-    // afterward and win, per registerMock's most-recent-wins rule.
+    // `rootPackageJsonName` is given, the target repo's own root package.json exists and carries it
+    // as its `name` field (workspace-scope detection reads that field, never a dependency list);
+    // `rootPackageJsonPresent: true` with no name stages a root package.json that HAS no `name` key
+    // at all — the same "derive nothing" shape as it being absent entirely, but exercised through
+    // the real parse path instead of the existence check. Every fresh scaffold now runs `npm
+    // install` then `npm run build --workspace=<name>`, so this stages both as succeeding by
+    // default — setupInstallFails/setupBuildFails re-stage one address afterward and win, per
+    // registerMock's most-recent-wins rule.
     setupPackageAbsent: ({
-      rootDependencies,
-    }: { rootDependencies?: Record<string, string> } = {}): void => {
+      rootPackageJsonPresent,
+      rootPackageJsonName,
+    }: {
+      rootPackageJsonPresent?: boolean;
+      rootPackageJsonName?: string;
+    } = {}): void => {
       existsProxy.returns({ filePath: RECIPES_PACKAGE_PATH, result: false });
       mkdirProxy.succeeds({ filepath: RECIPES_SRC_PATH });
 
+      const rootPackageJsonExists =
+        rootPackageJsonPresent === true || rootPackageJsonName !== undefined;
       existsProxy.returns({
         filePath: ROOT_PACKAGE_JSON_PATH,
-        result: rootDependencies !== undefined,
+        result: rootPackageJsonExists,
       });
-      if (rootDependencies !== undefined) {
+      if (rootPackageJsonExists) {
         readProxy.resolves({
           filePath: ROOT_PACKAGE_JSON_ABSOLUTE_PATH,
-          content: JSON.stringify({ dependencies: rootDependencies }),
+          content: JSON.stringify(
+            rootPackageJsonName === undefined ? {} : { name: rootPackageJsonName },
+          ),
         });
       }
 
@@ -203,9 +224,20 @@ export const InstallRecipesScaffoldResponderProxy = (): {
         writeProxy.succeeds({ filePath });
       }
 
+      // Mirrors what the real responder resolves: absent root package.json => no scope at all;
+      // present with no name => FALLBACK_SCOPE (pathBasenameAdapter's real passthrough); present
+      // with a name => workspaceScopeFromRootNameTransformer's own two branches for that name.
+      const resolvedScope = rootPackageJsonExists
+        ? rootPackageJsonName === undefined || rootPackageJsonName.length === 0
+          ? FALLBACK_SCOPE
+          : rootPackageJsonName.startsWith('@')
+            ? rootPackageJsonName.slice(0, rootPackageJsonName.indexOf('/'))
+            : `@${rootPackageJsonName}`
+        : undefined;
+
       stageInstall({ exitCode: 0, stderr: '' });
-      stageBuildForScope({
-        ...(rootDependencies === undefined ? {} : { rootDependencies }),
+      stageBuildForWorkspace({
+        ...(resolvedScope === undefined ? {} : { scope: resolvedScope }),
         exitCode: 0,
         stderr: '',
       });

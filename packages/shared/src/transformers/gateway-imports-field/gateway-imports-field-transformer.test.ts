@@ -1,4 +1,4 @@
-import { PathSegmentStub } from '@dungeonmaster/shared/contracts';
+import { PathSegmentStub } from '../../contracts/path-segment/path-segment.stub';
 import { gatewayImportsFieldTransformer } from './gateway-imports-field-transformer';
 
 describe('gatewayImportsFieldTransformer', () => {

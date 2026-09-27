@@ -7,17 +7,21 @@
  * down to a package with no domain folders yet. Kept in `siegelense` rather than reused from
  * `@dungeonmaster/cli`'s own `packageScaffoldFilesTransformer` — this scaffolder targets one fixed,
  * narrow package shape and the two scaffolders stay independently owned
- * (`siegelense-consumer-lanes.md`, section 3.6).
+ * (`siegelense-consumer-lanes.md`, section 3.6). The package.json declares its own `#gateway/*`
+ * `imports` field here, at scaffold time, through the SAME `gatewayImportsFieldTransformer` cli's
+ * `init` gateway step and `create-package` use — this package cannot wait for that step to find it
+ * on disk, because the gateway step scans `packages/*` once, before this scaffolder ever runs.
  *
  * USAGE:
- * recipesScaffoldFilesTransformer({ packageName: PackageNameStub({ value: '@acme/hydration-recipes' }) });
- * // Returns 5 RecipesScaffoldFile entries: package.json, tsconfig.json, tsconfig.build.json,
- * // src/index.ts, src/index.test.ts
+ * recipesScaffoldFilesTransformer({ packageName: PackageNameStub({ value: '@acme/hydration-recipes' }), scope: PathSegmentStub({ value: '@acme' }) });
+ * // Returns 5 RecipesScaffoldFile entries: package.json (with an `imports` field scoped to `@acme`),
+ * // tsconfig.json, tsconfig.build.json, src/index.ts, src/index.test.ts
  */
 
 import { fileContentsContract, pathSegmentContract } from '@dungeonmaster/shared/contracts';
-import type { PackageName } from '@dungeonmaster/shared/contracts';
+import type { PackageName, PathSegment } from '@dungeonmaster/shared/contracts';
 import { locationsStatics, recipesConventionStatics } from '@dungeonmaster/shared/statics';
+import { gatewayImportsFieldTransformer } from '@dungeonmaster/shared/transformers';
 
 import { recipesScaffoldFileContract } from '../../contracts/recipes-scaffold-file/recipes-scaffold-file-contract';
 import type { RecipesScaffoldFile } from '../../contracts/recipes-scaffold-file/recipes-scaffold-file-contract';
@@ -29,8 +33,10 @@ const NO_RECIPES_MESSAGE =
 
 export const recipesScaffoldFilesTransformer = ({
   packageName,
+  scope,
 }: {
   packageName: PackageName;
+  scope?: PathSegment;
 }): readonly [
   RecipesScaffoldFile,
   RecipesScaffoldFile,
@@ -43,6 +49,7 @@ export const recipesScaffoldFilesTransformer = ({
     version: PACKAGE_VERSION,
     description: 'hydration-recipes package',
     private: true,
+    ...(scope === undefined ? {} : { imports: gatewayImportsFieldTransformer({ scope }) }),
     exports: {
       '.': {
         source: './src/index.ts',

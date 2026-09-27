@@ -70,15 +70,7 @@ export const loadGroundTruth = async () => {
     )
   );
   const gatewayImportsFieldTransformerModule = await import(
-    distPath(
-      'packages',
-      'cli',
-      'dist',
-      'src',
-      'transformers',
-      'gateway-imports-field',
-      'gateway-imports-field-transformer.js',
-    )
+    distPath('packages', 'shared', 'dist', 'transformers.js')
   );
   const dungeonmasterHooksCreatorTransformerModule = await import(
     distPath(

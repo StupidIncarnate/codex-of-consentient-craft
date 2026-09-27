@@ -147,6 +147,12 @@ export * from './src/transformers/gateway-path-from-import-source/gateway-path-f
 // THIS workspace's own scope through this one transformer.
 export * from './src/transformers/workspace-scope-from-root-name/workspace-scope-from-root-name-transformer';
 
+// The four-entry package.json `imports` map every workspace package needs to resolve
+// `#gateway/<folder>/*` — every scaffolder that writes this field (cli's create-package, init's
+// gateway step, siegelense's hydration-recipes scaffold) calls this one builder, so no scaffolder
+// has to wait for a LATER install step to find and merge it in.
+export * from './src/transformers/gateway-imports-field/gateway-imports-field-transformer';
+
 // JSON File Contents — the one place every install-time JSON writer (package.json,
 // .dungeonmaster.json, .mcp.json, .claude/settings.json, .agents/*.json) gets its on-disk
 // formatting (2-space indent, trailing newline) from, so they cannot drift apart.

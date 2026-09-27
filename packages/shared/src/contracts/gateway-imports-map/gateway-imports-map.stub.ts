@@ -6,8 +6,9 @@
  * // Returns valid GatewayImportsMap instance
  */
 
-import { gatewayImportsMapContract, type GatewayImportsMap } from './gateway-imports-map-contract';
-import type { StubArgument } from '@dungeonmaster/shared/@types';
+import type { StubArgument } from '../../@types/stub-argument.type';
+import { gatewayImportsMapContract } from './gateway-imports-map-contract';
+import type { GatewayImportsMap } from './gateway-imports-map-contract';
 
 export const GatewayImportsMapStub = ({
   ...props

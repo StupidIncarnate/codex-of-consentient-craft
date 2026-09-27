@@ -67,10 +67,56 @@ describe('InstallRecipesScaffoldResponder', () => {
     });
   });
 
-  describe('package absent, root package.json carries a scoped workspace dependency', () => {
-    it('VALID: {rootDependencies: {"@acme/shared": "*"}} => package.json is scoped to "@acme"', async () => {
+  describe('package absent, root package.json exists but carries no name field', () => {
+    it("VALID: {rootPackageJson: {}} => falls back to the target directory's basename, the same fallback install-setup-gateway-responder uses", async () => {
       const proxy = InstallRecipesScaffoldResponderProxy();
-      proxy.setupPackageAbsent({ rootDependencies: { '@acme/shared': '*' } });
+      proxy.setupPackageAbsent({ rootPackageJsonPresent: true });
+
+      await proxy.callResponder({ context: CONTEXT });
+
+      const packageJsonContents = proxy.getWrittenContents({
+        relativePath: PathSegmentStub({ value: 'package.json' }),
+      });
+
+      expect(JSON.parse(String(packageJsonContents))).toStrictEqual({
+        name: '@project/hydration-recipes',
+        version: '0.1.0',
+        description: 'hydration-recipes package',
+        private: true,
+        imports: {
+          '#gateway/npm/*': '@project/npm/*',
+          '#gateway/node/*': '@project/node/*',
+          '#gateway/browser/*': '@project/browser/*',
+          '#gateway/bin/*': '@project/bin/*',
+        },
+        exports: {
+          '.': {
+            source: './src/index.ts',
+            import: './dist/index.js',
+            require: './dist/index.js',
+            types: './dist/index.d.ts',
+          },
+        },
+        scripts: {
+          build: 'tsc -p tsconfig.build.json',
+          'build:clean': 'rm -rf dist .ward/build.tsbuildinfo && npm run build',
+          test: 'dungeonmaster-ward --only test',
+          typecheck: 'dungeonmaster-ward --only typecheck',
+          lint: 'dungeonmaster-ward --only lint',
+          ward: 'dungeonmaster-ward',
+        },
+        devDependencies: {
+          '@types/node': '^20.11.0',
+          typescript: '^5.3.3',
+        },
+      });
+    });
+  });
+
+  describe('package absent, root package.json name field is a scoped "@scope/rest" name', () => {
+    it('VALID: {rootPackageJsonName: "@acme/root-app"} => package.json is scoped to "@acme", with a matching #gateway/* imports field', async () => {
+      const proxy = InstallRecipesScaffoldResponderProxy();
+      proxy.setupPackageAbsent({ rootPackageJsonName: '@acme/root-app' });
 
       await proxy.callResponder({ context: CONTEXT });
 
@@ -83,6 +129,12 @@ describe('InstallRecipesScaffoldResponder', () => {
         version: '0.1.0',
         description: 'hydration-recipes package',
         private: true,
+        imports: {
+          '#gateway/npm/*': '@acme/npm/*',
+          '#gateway/node/*': '@acme/node/*',
+          '#gateway/browser/*': '@acme/browser/*',
+          '#gateway/bin/*': '@acme/bin/*',
+        },
         exports: {
           '.': {
             source: './src/index.ts',
@@ -106,9 +158,9 @@ describe('InstallRecipesScaffoldResponder', () => {
       });
     });
 
-    it('VALID: {rootDependencies: {"@acme/shared": "*"}} => tsconfig.json is written', async () => {
+    it('VALID: {rootPackageJsonName: "@acme/root-app"} => tsconfig.json is written', async () => {
       const proxy = InstallRecipesScaffoldResponderProxy();
-      proxy.setupPackageAbsent({ rootDependencies: { '@acme/shared': '*' } });
+      proxy.setupPackageAbsent({ rootPackageJsonName: '@acme/root-app' });
 
       await proxy.callResponder({ context: CONTEXT });
 
@@ -125,9 +177,9 @@ describe('InstallRecipesScaffoldResponder', () => {
       });
     });
 
-    it('VALID: {rootDependencies: {"@acme/shared": "*"}} => tsconfig.build.json compiles src/index.ts to dist/index.js', async () => {
+    it('VALID: {rootPackageJsonName: "@acme/root-app"} => tsconfig.build.json compiles src/index.ts to dist/index.js', async () => {
       const proxy = InstallRecipesScaffoldResponderProxy();
-      proxy.setupPackageAbsent({ rootDependencies: { '@acme/shared': '*' } });
+      proxy.setupPackageAbsent({ rootPackageJsonName: '@acme/root-app' });
 
       await proxy.callResponder({ context: CONTEXT });
 
@@ -157,9 +209,9 @@ describe('InstallRecipesScaffoldResponder', () => {
       });
     });
 
-    it('VALID: {rootDependencies: {"@acme/shared": "*"}} => src/index.ts exports the three recipesConventionStatics names', async () => {
+    it('VALID: {rootPackageJsonName: "@acme/root-app"} => src/index.ts exports the three recipesConventionStatics names', async () => {
       const proxy = InstallRecipesScaffoldResponderProxy();
-      proxy.setupPackageAbsent({ rootDependencies: { '@acme/shared': '*' } });
+      proxy.setupPackageAbsent({ rootPackageJsonName: '@acme/root-app' });
 
       await proxy.callResponder({ context: CONTEXT });
 
@@ -195,6 +247,52 @@ export const ${recipesConventionStatics.exports.seed} = async (
 };
 `,
       );
+    });
+  });
+
+  describe('package absent, root package.json name field is unscoped', () => {
+    it('VALID: {rootPackageJsonName: "acme-app"} => package.json is scoped to "@acme-app" (the name itself becomes the scope)', async () => {
+      const proxy = InstallRecipesScaffoldResponderProxy();
+      proxy.setupPackageAbsent({ rootPackageJsonName: 'acme-app' });
+
+      await proxy.callResponder({ context: CONTEXT });
+
+      const packageJsonContents = proxy.getWrittenContents({
+        relativePath: PathSegmentStub({ value: 'package.json' }),
+      });
+
+      expect(JSON.parse(String(packageJsonContents))).toStrictEqual({
+        name: '@acme-app/hydration-recipes',
+        version: '0.1.0',
+        description: 'hydration-recipes package',
+        private: true,
+        imports: {
+          '#gateway/npm/*': '@acme-app/npm/*',
+          '#gateway/node/*': '@acme-app/node/*',
+          '#gateway/browser/*': '@acme-app/browser/*',
+          '#gateway/bin/*': '@acme-app/bin/*',
+        },
+        exports: {
+          '.': {
+            source: './src/index.ts',
+            import: './dist/index.js',
+            require: './dist/index.js',
+            types: './dist/index.d.ts',
+          },
+        },
+        scripts: {
+          build: 'tsc -p tsconfig.build.json',
+          'build:clean': 'rm -rf dist .ward/build.tsbuildinfo && npm run build',
+          test: 'dungeonmaster-ward --only test',
+          typecheck: 'dungeonmaster-ward --only typecheck',
+          lint: 'dungeonmaster-ward --only lint',
+          ward: 'dungeonmaster-ward',
+        },
+        devDependencies: {
+          '@types/node': '^20.11.0',
+          typescript: '^5.3.3',
+        },
+      });
     });
   });
 
