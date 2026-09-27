@@ -15,7 +15,7 @@ export { currentBranch } from './current-branch/current-branch';
 export { detectDefaultBranch } from './detect-default-branch/detect-default-branch';
 export { detectOriginDefaultBranch } from './detect-origin-default-branch/detect-origin-default-branch';
 export { diffFiles } from './diff-files/diff-files';
-export { GitNotInstalledError } from './git-not-installed-error/git-not-installed-error';
+export { GitNotInstalledError } from './git-run/git-not-installed.error';
 export { gitRun } from './git-run/git-run';
 export { headSha } from './head-sha/head-sha';
 export { logNameOnly } from './log-name-only/log-name-only';

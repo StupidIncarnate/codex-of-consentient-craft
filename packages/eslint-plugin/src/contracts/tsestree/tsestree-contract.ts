@@ -96,6 +96,8 @@ interface RecursiveNodeOutput {
   declaration?: RecursiveNodeOutput | null | undefined;
   // ImportDeclaration additional properties
   importKind?: 'type' | 'value' | undefined;
+  // ClassDeclaration/ClassExpression properties — `extends <X>`, null when a class extends nothing
+  superClass?: RecursiveNodeOutput | null | undefined;
   // TSArrayType properties (elementType is alternate to typeAnnotation for some parsers)
   elementType?: RecursiveNodeOutput | null | undefined;
   // ArrayExpression properties
@@ -218,6 +220,8 @@ interface RecursiveNodeInput {
   declaration?: RecursiveNodeInput | null | undefined;
   // ImportDeclaration additional properties
   importKind?: 'type' | 'value' | undefined;
+  // ClassDeclaration/ClassExpression properties — `extends <X>`, null when a class extends nothing
+  superClass?: RecursiveNodeInput | null | undefined;
   // TSArrayType properties (elementType is alternate to typeAnnotation for some parsers)
   elementType?: RecursiveNodeInput | null | undefined;
   // ArrayExpression properties
@@ -409,6 +413,11 @@ const recursiveBase: z.ZodType<RecursiveNodeOutput, z.ZodTypeDef, RecursiveNodeI
     .optional(),
   // ImportDeclaration additional properties
   importKind: z.enum(['type', 'value']).optional(),
+  // ClassDeclaration/ClassExpression properties — `extends <X>`, null when a class extends nothing
+  superClass: z
+    .lazy(() => recursiveBase)
+    .nullable()
+    .optional(),
   // TSArrayType properties (elementType is alternate to typeAnnotation for some parsers)
   elementType: z
     .lazy(() => recursiveBase)
@@ -551,6 +560,8 @@ export const tsestreeContract = z.object({
   declaration: recursiveBase.nullable().optional(),
   // ImportDeclaration additional properties
   importKind: z.enum(['type', 'value']).optional(),
+  // ClassDeclaration/ClassExpression properties — `extends <X>`, null when a class extends nothing
+  superClass: recursiveBase.nullable().optional(),
   // TSArrayType properties (elementType is alternate to typeAnnotation for some parsers)
   elementType: recursiveBase.nullable().optional(),
   // ArrayExpression properties

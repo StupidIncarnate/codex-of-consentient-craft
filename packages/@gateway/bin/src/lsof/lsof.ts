@@ -6,4 +6,5 @@
  */
 
 export { listeningPids } from './listening-pids/listening-pids';
-export { LsofNotInstalledError } from './lsof-not-installed-error/lsof-not-installed-error';
+export { LsofNotInstalledError } from './lsof-run/lsof-not-installed.error';
+export { lsofRun } from './lsof-run/lsof-run';

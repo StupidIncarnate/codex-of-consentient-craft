@@ -1,5 +1,4 @@
-import { run, RunNotFoundError } from '#gateway/node/child_process';
-import { registerMock } from '@dungeonmaster/testing/register-mock';
+import { lsofRunProxy } from '../lsof-run/lsof-run.proxy';
 
 // `port` reaches argv only after being embedded in `:${port}`, so a tolerant address is a predicate
 // over that assembled string rather than the caller's own number.
@@ -17,54 +16,38 @@ export const listeningPidsProxy = (): {
   throwsMatchingPort: (params: { port: PortMatcher; message: string }) => void;
   getCallsFor: (params: { port: PortMatcher }) => readonly unknown[][];
 } => {
-  const handle = registerMock({ fn: run });
+  const runProxy = lsofRunProxy();
 
   return {
     setupPids: ({ port, pids }: { port: number; pids: number[] }): void => {
-      handle.calledWith([{ command: 'lsof', args: ['-ti', `:${String(port)}`] }]).resolves({
+      runProxy.setupResult({
+        args: ['-ti', `:${String(port)}`],
         exitCode: 0,
         output: `${pids.join('\n')}\n`,
-        signal: null,
-        timedOut: false,
       });
     },
     setupNoneListening: ({ port }: { port: number }): void => {
-      handle.calledWith([{ command: 'lsof', args: ['-ti', `:${String(port)}`] }]).resolves({
-        exitCode: 1,
-        output: '',
-        signal: null,
-        timedOut: false,
-      });
+      runProxy.setupResult({ args: ['-ti', `:${String(port)}`], exitCode: 1, output: '' });
     },
     setupNotFound: ({ port, message }: { port: number; message: string }): void => {
-      handle
-        .calledWith([{ command: 'lsof', args: ['-ti', `:${String(port)}`] }])
-        .rejects(new RunNotFoundError({ command: 'lsof', code: 'ENOENT', message }));
+      runProxy.setupNotFound({ args: ['-ti', `:${String(port)}`], message });
     },
 
     returnsMatchingPort: ({ port, pids }: { port: PortMatcher; pids: number[] }): void => {
-      handle.calledWith([{ command: 'lsof', args: ['-ti', portArg(port)] }]).resolves({
+      runProxy.returnsMatchingArgs({
+        args: ['-ti', portArg(port)],
         exitCode: 0,
         output: `${pids.join('\n')}\n`,
-        signal: null,
-        timedOut: false,
       });
     },
     noneListeningMatchingPort: ({ port }: { port: PortMatcher }): void => {
-      handle.calledWith([{ command: 'lsof', args: ['-ti', portArg(port)] }]).resolves({
-        exitCode: 1,
-        output: '',
-        signal: null,
-        timedOut: false,
-      });
+      runProxy.returnsMatchingArgs({ args: ['-ti', portArg(port)], exitCode: 1, output: '' });
     },
     throwsMatchingPort: ({ port, message }: { port: PortMatcher; message: string }): void => {
-      handle
-        .calledWith([{ command: 'lsof', args: ['-ti', portArg(port)] }])
-        .rejects(new RunNotFoundError({ command: 'lsof', code: 'ENOENT', message }));
+      runProxy.throwsMatchingArgs({ args: ['-ti', portArg(port)], message });
     },
 
     getCallsFor: ({ port }: { port: PortMatcher }): readonly unknown[][] =>
-      handle.callsMatching([{ command: 'lsof', args: ['-ti', portArg(port)] }]),
+      runProxy.getCallsFor({ args: ['-ti', portArg(port)] }),
   };
 };

@@ -11,7 +11,7 @@
 export * from 'child_process';
 export { run } from './run/run';
 export { runFireAndForget } from './run-fire-and-forget/run-fire-and-forget';
-export { RunNotFoundError } from './run-not-found-error/run-not-found-error';
+export { RunNotFoundError } from './run-not-found.error';
 export { runSync } from './run-sync/run-sync';
 export { spawnDetached } from './spawn-detached/spawn-detached';
 export { spawnLive } from './spawn-live/spawn-live';

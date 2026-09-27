@@ -1,4 +1,4 @@
-import { ClaudeNotInstalledError } from '../claude-not-installed-error/claude-not-installed-error';
+import { ClaudeNotInstalledError } from './claude-not-installed.error';
 import { resolveClaudeCliPath } from './resolve-claude-cli-path';
 import { resolveClaudeCliPathProxy } from './resolve-claude-cli-path.proxy';
 

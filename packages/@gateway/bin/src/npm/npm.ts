@@ -8,7 +8,7 @@
  */
 
 export { install } from './install/install';
-export { NpmNotInstalledError } from './npm-not-installed-error/npm-not-installed-error';
+export { NpmNotInstalledError } from './npm-run/npm-not-installed.error';
 export { npmRun } from './npm-run/npm-run';
 export { runBuild } from './run-build/run-build';
 export { runScript } from './run-script/run-script';

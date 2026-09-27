@@ -23,7 +23,7 @@
 import { createInterface } from 'readline';
 import { spawn } from 'child_process';
 
-import { RunNotFoundError } from '../run-not-found-error/run-not-found-error';
+import { RunNotFoundError } from '../run-not-found.error';
 
 export const streamLines = async ({
   command,

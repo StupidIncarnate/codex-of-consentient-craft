@@ -1,6 +1,6 @@
 import { npmRun } from './npm-run';
 import { npmRunProxy } from './npm-run.proxy';
-import { NpmNotInstalledError } from '../npm-not-installed-error/npm-not-installed-error';
+import { NpmNotInstalledError } from './npm-not-installed.error';
 
 describe('npmRun()', () => {
   it('VALID: {exitCode: 0} => returns the result unchanged', async () => {

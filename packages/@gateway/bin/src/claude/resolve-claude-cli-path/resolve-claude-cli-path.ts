@@ -19,7 +19,7 @@ import { resolvePackageRoot } from '#gateway/node/module';
 import path from '#gateway/node/path';
 import { getEnv } from '#gateway/node/process';
 
-import { ClaudeNotInstalledError } from '../claude-not-installed-error/claude-not-installed-error';
+import { ClaudeNotInstalledError } from './claude-not-installed.error';
 
 const ANTHROPIC_PACKAGE_SPECIFIER = '@anthropic-ai/claude-code';
 const CLAUDE_BINARY_NAME = 'claude';

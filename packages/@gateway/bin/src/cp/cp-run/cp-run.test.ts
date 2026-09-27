@@ -1,6 +1,6 @@
 import { cpRun } from './cp-run';
 import { cpRunProxy } from './cp-run.proxy';
-import { CpNotInstalledError } from '../cp-not-installed-error/cp-not-installed-error';
+import { CpNotInstalledError } from './cp-not-installed.error';
 
 describe('cpRun()', () => {
   it('VALID: {exitCode: 0} => returns the result unchanged', async () => {

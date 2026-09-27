@@ -1,6 +1,6 @@
 import { stream } from './stream';
 import { streamProxy } from './stream.proxy';
-import { RunNotFoundError } from '../run-not-found-error/run-not-found-error';
+import { RunNotFoundError } from '../run-not-found.error';
 
 describe('stream()', () => {
   describe('successful execution', () => {

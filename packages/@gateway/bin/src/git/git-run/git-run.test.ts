@@ -1,6 +1,6 @@
 import { gitRun } from './git-run';
 import { gitRunProxy } from './git-run.proxy';
-import { GitNotInstalledError } from '../git-not-installed-error/git-not-installed-error';
+import { GitNotInstalledError } from './git-not-installed.error';
 
 describe('gitRun()', () => {
   it('VALID: {exitCode: 0, output: "main"} => returns the result unchanged', async () => {

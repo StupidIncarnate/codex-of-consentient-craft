@@ -10,7 +10,7 @@
 
 import { run, RunNotFoundError } from '#gateway/node/child_process';
 
-import { KillNotInstalledError } from '../kill-not-installed-error/kill-not-installed-error';
+import { KillNotInstalledError } from './kill-not-installed.error';
 
 export const killRun = async ({
   args,

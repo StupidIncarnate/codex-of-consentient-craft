@@ -1,6 +1,6 @@
 import { runSync } from './run-sync';
 import { runSyncProxy } from './run-sync.proxy';
-import { RunNotFoundError } from '../run-not-found-error/run-not-found-error';
+import { RunNotFoundError } from '../run-not-found.error';
 
 describe('runSync()', () => {
   describe('successful execution', () => {

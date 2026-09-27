@@ -1,6 +1,6 @@
 import { streamLines } from './stream-lines';
 import { streamLinesProxy } from './stream-lines.proxy';
-import { RunNotFoundError } from '../run-not-found-error/run-not-found-error';
+import { RunNotFoundError } from '../run-not-found.error';
 
 describe('streamLines()', () => {
   describe('successful execution', () => {

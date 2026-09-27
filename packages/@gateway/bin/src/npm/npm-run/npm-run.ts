@@ -10,7 +10,7 @@
 
 import { run, RunNotFoundError } from '#gateway/node/child_process';
 
-import { NpmNotInstalledError } from '../npm-not-installed-error/npm-not-installed-error';
+import { NpmNotInstalledError } from './npm-not-installed.error';
 
 export const npmRun = async ({
   args,

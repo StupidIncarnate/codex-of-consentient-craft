@@ -1,4 +1,4 @@
-import { ClaudeNotInstalledError } from '../claude-not-installed-error/claude-not-installed-error';
+import { ClaudeNotInstalledError } from '../resolve-claude-cli-path/claude-not-installed.error';
 import { spawnStreamJson } from './spawn-stream-json';
 import { spawnStreamJsonProxy } from './spawn-stream-json.proxy';
 

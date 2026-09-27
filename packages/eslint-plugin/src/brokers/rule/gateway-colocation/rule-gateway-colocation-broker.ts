@@ -15,11 +15,21 @@
  * plain `import` with bindings, a `const` not shaped like a global capture, a function body — does
  * wrapper work that belongs in a wrapper folder, and is reported for it.
  *
+ * An `.error.ts` file (`git-not-installed.error.ts`) is a third shape, told apart from a
+ * test/proxy/stub companion by its own suffix rather than by dot count: it needs no test and no
+ * proxy, but may hold nothing besides imports plus exactly one exported class extending `Error`,
+ * whose name is the file's own base name (minus `.error`) in PascalCase plus `Error`
+ * (`run-not-found.error.ts` exports `RunNotFoundError`). An error class declared anywhere else in
+ * the gateway — inside an ordinary wrapper file — is refused too, so every future error class is
+ * forced into its own `.error.ts` file from the start.
+ *
  * USAGE:
  * const rule = ruleGatewayColocationBroker();
  * // Flags packages/@gateway/node/src/fs/read-file-sync/read-file-sync.ts with no read-file-sync.proxy.ts;
  * // flags packages/@gateway/node/src/module/module.ts if its body builds an object instead of only
  * // re-exporting, as passThroughNotPureReexport
+ * // Flags packages/@gateway/bin/src/git/git-run/git-run.ts if it declares `class X extends Error`
+ * // itself, as errorClassOutsideErrorFile
  * // With options: [{requireStub: true}], also flags a subpath barrel whose folder tree has no
  * // .stub.ts anywhere under it, as missingStub — off by default (G18 turns it on repo-wide once
  * // every subpath actually has one; see gateway-subpath-has-stub-layer-broker.ts)
@@ -35,6 +45,7 @@ import { isGatewayBarrelFileGuard } from '../../../guards/is-gateway-barrel-file
 import { dotCountTransformer } from '../../../transformers/dot-count/dot-count-transformer';
 import { getFileExtensionTransformer } from '../../../transformers/get-file-extension/get-file-extension-transformer';
 import { removeFileExtensionTransformer } from '../../../transformers/remove-file-extension/remove-file-extension-transformer';
+import { kebabToPascalCaseTransformer } from '../../../transformers/kebab-to-pascal-case/kebab-to-pascal-case-transformer';
 import { gatewayPureReexportStatementTypesStatics } from '../../../statics/gateway-pure-reexport-statement-types/gateway-pure-reexport-statement-types-statics';
 import { gatewaySubpathHasStubLayerBroker } from './gateway-subpath-has-stub-layer-broker';
 
@@ -54,6 +65,14 @@ export const ruleGatewayColocationBroker = (): EslintRule => ({
           'Subpath barrel "{{fileName}}" may only re-export ("export * from \'...\'", "export { a } from \'./a/a\'", "export type", or "export = x"). Found a non-export statement — move that behavior into a wrapper folder beside the barrel.',
         missingStub:
           'Gateway subpath "{{subpathName}}" needs at least one .stub.ts file somewhere under its folder (see #gateway/node/fs/is-fs-error/fs-error.stub.ts for the pattern).',
+        errorFileMultipleExports:
+          'Gateway error file "{{fileName}}" may hold only imports plus exactly one exported class extending Error. Move any other export into its own wrapper file.',
+        errorFileNotErrorClass:
+          'Gateway error file "{{fileName}}" must export exactly one class extending Error.',
+        errorFileNameMismatch:
+          'Gateway error file "{{fileName}}" exports "{{actualName}}", but its filename requires the class "{{expectedName}}".',
+        errorClassOutsideErrorFile:
+          'Class "{{className}}" extends Error but is declared in "{{fileName}}" — move it into its own .error.ts file beside this wrapper.',
       },
       schema: [
         {
@@ -81,10 +100,12 @@ export const ruleGatewayColocationBroker = (): EslintRule => ({
 
     const fileBaseName = filename.split('/').pop() ?? '';
     const dotCount = dotCountTransformer({ str: fileBaseName });
+    const isErrorFile = fileBaseName.endsWith('.error.ts') || fileBaseName.endsWith('.error.tsx');
 
     // A gateway file with more than one dot is itself a test/proxy/stub/d.ts companion, never the
-    // implementation this rule checks companions FOR.
-    if (dotCount > 1) {
+    // implementation this rule checks companions FOR — an `.error.ts` file is the one two-dot name
+    // that IS an implementation, so it alone is exempt from this skip.
+    if (dotCount > 1 && !isErrorFile) {
       return {};
     }
 
@@ -95,6 +116,68 @@ export const ruleGatewayColocationBroker = (): EslintRule => ({
 
     return {
       Program: (node: Tsestree): void => {
+        const statements = Array.isArray(node.body) ? node.body : [];
+
+        if (isErrorFile) {
+          const nonImportStatements = statements.filter(
+            (statement) => statement.type !== 'ImportDeclaration',
+          );
+
+          if (nonImportStatements.length !== 1) {
+            ctx.report({
+              node,
+              messageId: 'errorFileMultipleExports',
+              data: { fileName: fileBaseName },
+            });
+            return;
+          }
+
+          const [onlyStatement] = nonImportStatements;
+          const errorClassDeclaration =
+            onlyStatement?.type === 'ExportNamedDeclaration' &&
+            onlyStatement.declaration?.type === 'ClassDeclaration'
+              ? onlyStatement.declaration
+              : undefined;
+          const extendsError =
+            errorClassDeclaration?.superClass?.type === 'Identifier' &&
+            errorClassDeclaration.superClass.name === 'Error';
+
+          if (errorClassDeclaration === undefined || !extendsError) {
+            ctx.report({
+              node,
+              messageId: 'errorFileNotErrorClass',
+              data: { fileName: fileBaseName },
+            });
+            return;
+          }
+
+          // `baseNameWithoutExtension` still carries the trailing `.error` this branch's own
+          // `isErrorFile` guard confirmed — a plain slice, not a regex, since brokers/ may not
+          // hold a regex literal (transformers/guards/statics/contracts only).
+          const baseNameWithoutErrorSuffix = baseNameWithoutExtension.slice(
+            0,
+            baseNameWithoutExtension.length - '.error'.length,
+          );
+          const expectedClassName = `${kebabToPascalCaseTransformer({
+            str: baseNameWithoutErrorSuffix,
+          })}Error`;
+          const actualClassName = errorClassDeclaration.id?.name ?? '';
+
+          if (actualClassName !== expectedClassName) {
+            ctx.report({
+              node,
+              messageId: 'errorFileNameMismatch',
+              data: {
+                fileName: fileBaseName,
+                actualName: actualClassName,
+                expectedName: expectedClassName,
+              },
+            });
+          }
+
+          return;
+        }
+
         const testFileName = `${baseNameWithoutExtension}.test${extension}`;
         const integrationTestFileName = `${baseNameWithoutExtension}.integration.test${extension}`;
         const proxyFileName = `${baseNameWithoutExtension}.proxy${extension}`;
@@ -108,7 +191,31 @@ export const ruleGatewayColocationBroker = (): EslintRule => ({
           });
 
         if (!isBarrelFile) {
-          const statements = Array.isArray(node.body) ? node.body : [];
+          statements.forEach((statement) => {
+            const wrapperClassDeclaration =
+              statement.type === 'ClassDeclaration'
+                ? statement
+                : statement.type === 'ExportNamedDeclaration' &&
+                    statement.declaration?.type === 'ClassDeclaration'
+                  ? statement.declaration
+                  : undefined;
+
+            const wrapperClassExtendsError =
+              wrapperClassDeclaration?.superClass?.type === 'Identifier' &&
+              wrapperClassDeclaration.superClass.name === 'Error';
+
+            if (wrapperClassDeclaration !== undefined && wrapperClassExtendsError) {
+              ctx.report({
+                node,
+                messageId: 'errorClassOutsideErrorFile',
+                data: {
+                  fileName: fileBaseName,
+                  className: wrapperClassDeclaration.id?.name ?? '(anonymous)',
+                },
+              });
+            }
+          });
+
           const declaresOnlyTypes =
             statements.length > 0 &&
             statements.every(
@@ -146,8 +253,7 @@ export const ruleGatewayColocationBroker = (): EslintRule => ({
           return;
         }
 
-        const body = Array.isArray(node.body) ? node.body : [];
-        const isPureReexport = body.every((statement) => {
+        const isPureReexport = statements.every((statement) => {
           const statementType = statement.type;
 
           if (

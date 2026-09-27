@@ -7,6 +7,6 @@
  * import { resolveClaudeCliPath, spawnStreamJson, ClaudeNotInstalledError } from '#gateway/bin/claude';
  */
 
-export { ClaudeNotInstalledError } from './claude-not-installed-error/claude-not-installed-error';
+export { ClaudeNotInstalledError } from './resolve-claude-cli-path/claude-not-installed.error';
 export { resolveClaudeCliPath } from './resolve-claude-cli-path/resolve-claude-cli-path';
 export { spawnStreamJson } from './spawn-stream-json/spawn-stream-json';

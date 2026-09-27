@@ -10,7 +10,7 @@
 
 import { run, RunNotFoundError } from '#gateway/node/child_process';
 
-import { CpNotInstalledError } from '../cp-not-installed-error/cp-not-installed-error';
+import { CpNotInstalledError } from './cp-not-installed.error';
 
 export const cpRun = async ({
   args,

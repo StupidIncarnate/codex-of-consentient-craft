@@ -146,6 +146,16 @@ ruleTester.run('gateway-colocation', ruleGatewayColocationBroker(), {
       filename: '/repo/packages/@gateway/node/src/fs/fs.ts',
       options: [{ requireStub: true }],
     },
+    // --- .error.ts: a bare one-line error class needs no test and no proxy ---
+    {
+      code: 'export class GitNotInstalledError extends Error {}',
+      filename: '/repo/packages/@gateway/bin/src/git/git-run/git-not-installed.error.ts',
+    },
+    // --- .error.ts: imports are allowed alongside the one exported error class ---
+    {
+      code: "import type { Identifier } from '@dungeonmaster/shared/contracts';\nexport class RunNotFoundError extends Error {}",
+      filename: '/repo/packages/@gateway/node/src/child_process/run-not-found.error.ts',
+    },
   ],
 
   invalid: [
@@ -205,6 +215,40 @@ ruleTester.run('gateway-colocation', ruleGatewayColocationBroker(), {
       filename: '/repo/packages/@gateway/node/src/os/os.ts',
       options: [{ requireStub: true }],
       errors: [{ messageId: 'missingStub' }],
+    },
+    // --- .error.ts: more than one export alongside the error class ---
+    {
+      code: 'export class GitNotInstalledError extends Error {}\nexport const helper = (): void => {};',
+      filename: '/repo/packages/@gateway/bin/src/git/git-run/git-not-installed.error.ts',
+      errors: [{ messageId: 'errorFileMultipleExports' }],
+    },
+    // --- .error.ts: the one export is not a class at all ---
+    {
+      code: 'export const notAClass = 1;',
+      filename: '/repo/packages/@gateway/bin/src/git/git-run/git-not-installed.error.ts',
+      errors: [{ messageId: 'errorFileNotErrorClass' }],
+    },
+    // --- .error.ts: a class that does not extend Error ---
+    {
+      code: 'export class GitNotInstalledError {}',
+      filename: '/repo/packages/@gateway/bin/src/git/git-run/git-not-installed.error.ts',
+      errors: [{ messageId: 'errorFileNotErrorClass' }],
+    },
+    // --- .error.ts: a class extending Error whose name does not match the filename ---
+    {
+      code: 'export class WrongNameError extends Error {}',
+      filename: '/repo/packages/@gateway/bin/src/git/git-run/git-not-installed.error.ts',
+      errors: [{ messageId: 'errorFileNameMismatch' }],
+    },
+    // --- an error class declared inside an ordinary wrapper file, not its own .error.ts ---
+    {
+      code: 'export class GitNotInstalledError extends Error {}\nexport const gitRun = async (): Promise<void> => {};',
+      filename: '/repo/packages/@gateway/bin/src/git/git-run/git-run.ts',
+      errors: [
+        { messageId: 'errorClassOutsideErrorFile' },
+        { messageId: 'missingTestFile' },
+        { messageId: 'missingProxyFile' },
+      ],
     },
   ],
 });

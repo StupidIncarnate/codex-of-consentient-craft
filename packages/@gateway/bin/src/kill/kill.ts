@@ -7,6 +7,6 @@
  */
 
 export { killGroup } from './kill-group/kill-group';
-export { KillNotInstalledError } from './kill-not-installed-error/kill-not-installed-error';
+export { KillNotInstalledError } from './kill-run/kill-not-installed.error';
 export { killPid } from './kill-pid/kill-pid';
 export { killRun } from './kill-run/kill-run';

@@ -1,6 +1,6 @@
 import { run } from './run';
 import { runProxy } from './run.proxy';
-import { RunNotFoundError } from '../run-not-found-error/run-not-found-error';
+import { RunNotFoundError } from '../run-not-found.error';
 
 describe('run()', () => {
   describe('successful execution', () => {

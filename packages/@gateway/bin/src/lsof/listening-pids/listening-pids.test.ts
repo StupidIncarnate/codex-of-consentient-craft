@@ -1,6 +1,6 @@
 import { listeningPids } from './listening-pids';
 import { listeningPidsProxy } from './listening-pids.proxy';
-import { LsofNotInstalledError } from '../lsof-not-installed-error/lsof-not-installed-error';
+import { LsofNotInstalledError } from '../lsof-run/lsof-not-installed.error';
 
 describe('listeningPids()', () => {
   it('VALID: {two pids listening} => returns both as numbers', async () => {

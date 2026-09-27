@@ -1,6 +1,6 @@
 import { killRun } from './kill-run';
 import { killRunProxy } from './kill-run.proxy';
-import { KillNotInstalledError } from '../kill-not-installed-error/kill-not-installed-error';
+import { KillNotInstalledError } from './kill-not-installed.error';
 
 describe('killRun()', () => {
   it('VALID: {exitCode: 0} => returns the result unchanged', async () => {

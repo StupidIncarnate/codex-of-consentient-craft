@@ -11,7 +11,7 @@
 
 import { run, RunNotFoundError } from '#gateway/node/child_process';
 
-import { GitNotInstalledError } from '../git-not-installed-error/git-not-installed-error';
+import { GitNotInstalledError } from './git-not-installed.error';
 
 export const gitRun = async ({
   args,
