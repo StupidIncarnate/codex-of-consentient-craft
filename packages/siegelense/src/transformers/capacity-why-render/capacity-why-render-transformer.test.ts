@@ -1,3 +1,4 @@
+import { CapacityMeasuredStub } from '../../contracts/capacity-measured/capacity-measured.stub';
 import { CapacityProfileStub } from '../../contracts/capacity-profile/capacity-profile.stub';
 import { CapacitySuggestionStub } from '../../contracts/capacity-suggestion/capacity-suggestion.stub';
 import { MegabytesStub } from '../../contracts/megabytes/megabytes.stub';
@@ -6,6 +7,12 @@ import { ReadingCountStub } from '../../contracts/reading-count/reading-count.st
 import { SpecNameStub } from '../../contracts/spec-name/spec-name.stub';
 
 import { capacityWhyRenderTransformer } from './capacity-why-render-transformer';
+
+// `CapacitySuggestionStub`'s own default (cpuAllows: 6) never wins against these tests' fixtures —
+// the policy ceiling never exceeds 3, so a default of 6 can never satisfy `cpuAllows <=
+// ceilingLeft`. These display figures only matter for the CPU-specific describe block below, where
+// each test sets its own.
+const { cores: SOME_CORES, loadAvg1: SOME_LOAD1 } = CapacityMeasuredStub();
 
 describe('capacityWhyRenderTransformer', () => {
   describe("the spec's own three clauses", () => {
@@ -23,6 +30,8 @@ describe('capacityWhyRenderTransformer', () => {
         siegeInstances: ReadingCountStub({ value: 1 }),
         reservedInstances: ReadingCountStub({ value: 0 }),
         requestedPoolSize: null,
+        cores: SOME_CORES,
+        loadAvg1: SOME_LOAD1,
       });
 
       expect(result).toBe(
@@ -46,6 +55,8 @@ describe('capacityWhyRenderTransformer', () => {
         siegeInstances: ReadingCountStub({ value: 0 }),
         reservedInstances: ReadingCountStub({ value: 0 }),
         requestedPoolSize: null,
+        cores: SOME_CORES,
+        loadAvg1: SOME_LOAD1,
       });
 
       expect(result).toBe(
@@ -69,6 +80,8 @@ describe('capacityWhyRenderTransformer', () => {
         siegeInstances: ReadingCountStub({ value: 2 }),
         reservedInstances: ReadingCountStub({ value: 0 }),
         requestedPoolSize: null,
+        cores: SOME_CORES,
+        loadAvg1: SOME_LOAD1,
       });
 
       expect(result).toBe(
@@ -94,6 +107,8 @@ describe('capacityWhyRenderTransformer', () => {
         siegeInstances: ReadingCountStub({ value: 1 }),
         reservedInstances: ReadingCountStub({ value: 1 }),
         requestedPoolSize: null,
+        cores: SOME_CORES,
+        loadAvg1: SOME_LOAD1,
       });
 
       expect(result).toBe(
@@ -119,6 +134,8 @@ describe('capacityWhyRenderTransformer', () => {
         siegeInstances: ReadingCountStub({ value: 0 }),
         reservedInstances: ReadingCountStub({ value: 0 }),
         requestedPoolSize: null,
+        cores: SOME_CORES,
+        loadAvg1: SOME_LOAD1,
       });
 
       expect(result).toBe(
@@ -143,6 +160,8 @@ describe('capacityWhyRenderTransformer', () => {
         siegeInstances: ReadingCountStub({ value: 0 }),
         reservedInstances: ReadingCountStub({ value: 0 }),
         requestedPoolSize: ProfilePoolSizeStub({ value: 5 }),
+        cores: SOME_CORES,
+        loadAvg1: SOME_LOAD1,
       });
 
       expect(result).toBe(
@@ -169,6 +188,8 @@ describe('capacityWhyRenderTransformer', () => {
         siegeInstances: ReadingCountStub({ value: 1 }),
         reservedInstances: ReadingCountStub({ value: 0 }),
         requestedPoolSize: ProfilePoolSizeStub({ value: 1 }),
+        cores: SOME_CORES,
+        loadAvg1: SOME_LOAD1,
       });
 
       expect(result).toBe(
@@ -192,6 +213,8 @@ describe('capacityWhyRenderTransformer', () => {
         siegeInstances: ReadingCountStub({ value: 1 }),
         reservedInstances: ReadingCountStub({ value: 0 }),
         requestedPoolSize: ProfilePoolSizeStub({ value: 99_999 }),
+        cores: SOME_CORES,
+        loadAvg1: SOME_LOAD1,
       });
 
       expect(result).toBe(
@@ -218,6 +241,8 @@ describe('capacityWhyRenderTransformer', () => {
         siegeInstances: ReadingCountStub({ value: 0 }),
         reservedInstances: ReadingCountStub({ value: 0 }),
         requestedPoolSize: null,
+        cores: SOME_CORES,
+        loadAvg1: SOME_LOAD1,
       });
 
       expect(result).toBe(
@@ -242,6 +267,8 @@ describe('capacityWhyRenderTransformer', () => {
         siegeInstances: ReadingCountStub({ value: 3 }),
         reservedInstances: ReadingCountStub({ value: 0 }),
         requestedPoolSize: null,
+        cores: SOME_CORES,
+        loadAvg1: SOME_LOAD1,
       });
 
       expect(result).toBe(
@@ -252,7 +279,7 @@ describe('capacityWhyRenderTransformer', () => {
       );
     });
 
-    it('VALID: {memory allows more than the ceiling} => says the answer was capped by policy', () => {
+    it('VALID: {memory allows more than the ceiling, CPU roomier still} => says the answer was capped by policy', () => {
       const result = capacityWhyRenderTransformer({
         specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
         profile: CapacityProfileStub({ poolSize: 1, steadyMB: 1800, peakMB: 2600, fromRuns: 9 }),
@@ -266,6 +293,8 @@ describe('capacityWhyRenderTransformer', () => {
         siegeInstances: ReadingCountStub({ value: 0 }),
         reservedInstances: ReadingCountStub({ value: 0 }),
         requestedPoolSize: null,
+        cores: SOME_CORES,
+        loadAvg1: SOME_LOAD1,
       });
 
       expect(result).toBe(
@@ -290,12 +319,74 @@ describe('capacityWhyRenderTransformer', () => {
         siegeInstances: ReadingCountStub({ value: 1 }),
         reservedInstances: ReadingCountStub({ value: 0 }),
         requestedPoolSize: null,
+        cores: SOME_CORES,
+        loadAvg1: SOME_LOAD1,
       });
 
       expect(result).toBe(
         'profile 2600MB peak / 1800MB steady at pool size 1, from 9 runs; ' +
           'free RAM 5320MB less 512MB headroom; ' +
           '1 siege instance already up',
+      );
+    });
+  });
+
+  describe('CPU pressure', () => {
+    it('EDGE: {load 33.56 across 12 cores, memory and ceiling roomy} => names load, cores and the throttled count instead of the ceiling', () => {
+      const { cores, loadAvg1 } = CapacityMeasuredStub({ cores: 12, loadAvg1: 33.56 });
+
+      const result = capacityWhyRenderTransformer({
+        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        profile: CapacityProfileStub({ poolSize: 1, steadyMB: 1800, peakMB: 2600, fromRuns: 9 }),
+        suggestion: CapacitySuggestionStub({
+          suggested: 1,
+          memoryAllows: 34,
+          cpuAllows: 1,
+          ceilingLeft: 3,
+          availableMB: 63_488,
+        }),
+        freeMemMB: MegabytesStub({ value: 21_053 }),
+        siegeInstances: ReadingCountStub({ value: 0 }),
+        reservedInstances: ReadingCountStub({ value: 0 }),
+        requestedPoolSize: null,
+        cores,
+        loadAvg1,
+      });
+
+      expect(result).toBe(
+        'profile 2600MB peak / 1800MB steady at pool size 1, from 9 runs; ' +
+          'free RAM 21053MB less 512MB headroom; ' +
+          'nothing else up; ' +
+          'load 33.56 across 12 cores allows only 1; CPU, not memory, is the limit',
+      );
+    });
+
+    it('EDGE: {cpuAllows ties the ceiling, both below memory} => credits CPU rather than the generic policy-cap wording', () => {
+      const { cores, loadAvg1 } = CapacityMeasuredStub({ cores: 8, loadAvg1: 4.2 });
+
+      const result = capacityWhyRenderTransformer({
+        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        profile: CapacityProfileStub({ poolSize: 1, steadyMB: 1800, peakMB: 2600, fromRuns: 9 }),
+        suggestion: CapacitySuggestionStub({
+          suggested: 3,
+          memoryAllows: 34,
+          cpuAllows: 3,
+          ceilingLeft: 3,
+          availableMB: 63_488,
+        }),
+        freeMemMB: MegabytesStub({ value: 9_000 }),
+        siegeInstances: ReadingCountStub({ value: 0 }),
+        reservedInstances: ReadingCountStub({ value: 0 }),
+        requestedPoolSize: null,
+        cores,
+        loadAvg1,
+      });
+
+      expect(result).toBe(
+        'profile 2600MB peak / 1800MB steady at pool size 1, from 9 runs; ' +
+          'free RAM 9000MB less 512MB headroom; ' +
+          'nothing else up; ' +
+          'load 4.2 across 8 cores allows only 3; CPU, not memory, is the limit',
       );
     });
   });

@@ -1,8 +1,16 @@
+import { CapacityMeasuredStub } from '../../contracts/capacity-measured/capacity-measured.stub';
 import { CapacityProfileStub } from '../../contracts/capacity-profile/capacity-profile.stub';
 import { MegabytesStub } from '../../contracts/megabytes/megabytes.stub';
 import { ReadingCountStub } from '../../contracts/reading-count/reading-count.stub';
 
 import { capacitySuggestTransformer } from './capacity-suggest-transformer';
+
+// Comfortably above every memoryAllows/ceilingLeft value this file's non-CPU scenarios compute (8
+// cores − 0.5 load, floored, is 7), so those scenarios keep testing only what their names say.
+const { cores: ROOMY_CORES, loadAvg1: ROOMY_LOAD1 } = CapacityMeasuredStub({
+  cores: 8,
+  loadAvg1: 0.5,
+});
 
 describe('capacitySuggestTransformer', () => {
   describe("the spec's own worked example", () => {
@@ -12,12 +20,15 @@ describe('capacitySuggestTransformer', () => {
         freeMemMB: MegabytesStub({ value: 5320 }),
         siegeInstances: ReadingCountStub({ value: 1 }),
         reservedInstances: ReadingCountStub({ value: 0 }),
+        cores: ROOMY_CORES,
+        loadAvg1: ROOMY_LOAD1,
       });
 
       expect(result).toStrictEqual({
         suggested: 2,
         ceiling: 3,
         memoryAllows: 2,
+        cpuAllows: 7,
         ceilingLeft: 2,
         availableMB: 4808,
       });
@@ -31,12 +42,15 @@ describe('capacitySuggestTransformer', () => {
         freeMemMB: MegabytesStub({ value: 3112 }),
         siegeInstances: ReadingCountStub({ value: 0 }),
         reservedInstances: ReadingCountStub({ value: 0 }),
+        cores: ROOMY_CORES,
+        loadAvg1: ROOMY_LOAD1,
       });
 
       expect(result).toStrictEqual({
         suggested: 1,
         ceiling: 3,
         memoryAllows: 1,
+        cpuAllows: 7,
         ceilingLeft: 3,
         availableMB: 2600,
       });
@@ -48,12 +62,15 @@ describe('capacitySuggestTransformer', () => {
         freeMemMB: MegabytesStub({ value: 3111 }),
         siegeInstances: ReadingCountStub({ value: 0 }),
         reservedInstances: ReadingCountStub({ value: 0 }),
+        cores: ROOMY_CORES,
+        loadAvg1: ROOMY_LOAD1,
       });
 
       expect(result).toStrictEqual({
         suggested: 0,
         ceiling: 3,
         memoryAllows: 0,
+        cpuAllows: 7,
         ceilingLeft: 3,
         availableMB: 2599,
       });
@@ -65,12 +82,15 @@ describe('capacitySuggestTransformer', () => {
         freeMemMB: MegabytesStub({ value: 6712 }),
         siegeInstances: ReadingCountStub({ value: 0 }),
         reservedInstances: ReadingCountStub({ value: 0 }),
+        cores: ROOMY_CORES,
+        loadAvg1: ROOMY_LOAD1,
       });
 
       expect(result).toStrictEqual({
         suggested: 3,
         ceiling: 3,
         memoryAllows: 3,
+        cpuAllows: 7,
         ceilingLeft: 3,
         availableMB: 6200,
       });
@@ -84,12 +104,15 @@ describe('capacitySuggestTransformer', () => {
         freeMemMB: MegabytesStub({ value: 64_000 }),
         siegeInstances: ReadingCountStub({ value: 0 }),
         reservedInstances: ReadingCountStub({ value: 0 }),
+        cores: ROOMY_CORES,
+        loadAvg1: ROOMY_LOAD1,
       });
 
       expect(result).toStrictEqual({
         suggested: 3,
         ceiling: 3,
         memoryAllows: 34,
+        cpuAllows: 7,
         ceilingLeft: 3,
         availableMB: 63_488,
       });
@@ -101,12 +124,15 @@ describe('capacitySuggestTransformer', () => {
         freeMemMB: MegabytesStub({ value: 64_000 }),
         siegeInstances: ReadingCountStub({ value: 3 }),
         reservedInstances: ReadingCountStub({ value: 0 }),
+        cores: ROOMY_CORES,
+        loadAvg1: ROOMY_LOAD1,
       });
 
       expect(result).toStrictEqual({
         suggested: 0,
         ceiling: 3,
         memoryAllows: 34,
+        cpuAllows: 7,
         ceilingLeft: 0,
         availableMB: 63_488,
       });
@@ -118,12 +144,15 @@ describe('capacitySuggestTransformer', () => {
         freeMemMB: MegabytesStub({ value: 64_000 }),
         siegeInstances: ReadingCountStub({ value: 5 }),
         reservedInstances: ReadingCountStub({ value: 0 }),
+        cores: ROOMY_CORES,
+        loadAvg1: ROOMY_LOAD1,
       });
 
       expect(result).toStrictEqual({
         suggested: 0,
         ceiling: 3,
         memoryAllows: 34,
+        cpuAllows: 7,
         ceilingLeft: 0,
         availableMB: 63_488,
       });
@@ -137,12 +166,15 @@ describe('capacitySuggestTransformer', () => {
         freeMemMB: MegabytesStub({ value: 8000 }),
         siegeInstances: ReadingCountStub({ value: 1 }),
         reservedInstances: ReadingCountStub({ value: 1 }),
+        cores: ROOMY_CORES,
+        loadAvg1: ROOMY_LOAD1,
       });
 
       expect(result).toStrictEqual({
         suggested: 2,
         ceiling: 3,
         memoryAllows: 2,
+        cpuAllows: 7,
         ceilingLeft: 2,
         availableMB: 4888,
       });
@@ -154,12 +186,15 @@ describe('capacitySuggestTransformer', () => {
         freeMemMB: MegabytesStub({ value: 3000 }),
         siegeInstances: ReadingCountStub({ value: 2 }),
         reservedInstances: ReadingCountStub({ value: 2 }),
+        cores: ROOMY_CORES,
+        loadAvg1: ROOMY_LOAD1,
       });
 
       expect(result).toStrictEqual({
         suggested: 0,
         ceiling: 3,
         memoryAllows: 0,
+        cpuAllows: 7,
         ceilingLeft: 1,
         availableMB: 0,
       });
@@ -173,12 +208,15 @@ describe('capacitySuggestTransformer', () => {
         freeMemMB: MegabytesStub({ value: 5320 }),
         siegeInstances: ReadingCountStub({ value: 0 }),
         reservedInstances: ReadingCountStub({ value: 0 }),
+        cores: ROOMY_CORES,
+        loadAvg1: ROOMY_LOAD1,
       });
 
       expect(result).toStrictEqual({
         suggested: 2,
         ceiling: 3,
         memoryAllows: 2,
+        cpuAllows: 7,
         ceilingLeft: 3,
         availableMB: 4808,
       });
@@ -190,12 +228,15 @@ describe('capacitySuggestTransformer', () => {
         freeMemMB: MegabytesStub({ value: 100 }),
         siegeInstances: ReadingCountStub({ value: 0 }),
         reservedInstances: ReadingCountStub({ value: 0 }),
+        cores: ROOMY_CORES,
+        loadAvg1: ROOMY_LOAD1,
       });
 
       expect(result).toStrictEqual({
         suggested: 2,
         ceiling: 3,
         memoryAllows: 2,
+        cpuAllows: 7,
         ceilingLeft: 3,
         availableMB: 0,
       });
@@ -207,12 +248,15 @@ describe('capacitySuggestTransformer', () => {
         freeMemMB: MegabytesStub({ value: 64_000 }),
         siegeInstances: ReadingCountStub({ value: 3 }),
         reservedInstances: ReadingCountStub({ value: 0 }),
+        cores: ROOMY_CORES,
+        loadAvg1: ROOMY_LOAD1,
       });
 
       expect(result).toStrictEqual({
         suggested: 0,
         ceiling: 3,
         memoryAllows: 2,
+        cpuAllows: 7,
         ceilingLeft: 0,
         availableMB: 63_488,
       });
@@ -226,14 +270,107 @@ describe('capacitySuggestTransformer', () => {
         freeMemMB: MegabytesStub({ value: 514 }),
         siegeInstances: ReadingCountStub({ value: 0 }),
         reservedInstances: ReadingCountStub({ value: 0 }),
+        cores: ROOMY_CORES,
+        loadAvg1: ROOMY_LOAD1,
       });
 
       expect(result).toStrictEqual({
         suggested: 3,
         ceiling: 3,
         memoryAllows: 3,
+        cpuAllows: 7,
         ceilingLeft: 3,
         availableMB: 2,
+      });
+    });
+  });
+
+  describe('CPU pressure', () => {
+    it('EDGE: {load 33.56 across 12 cores, memory and ceiling roomy} => cpuAllows floors at 1, and suggested follows it down', () => {
+      const { cores, loadAvg1 } = CapacityMeasuredStub({ cores: 12, loadAvg1: 33.56 });
+
+      const result = capacitySuggestTransformer({
+        profile: CapacityProfileStub({ steadyMB: 1800, peakMB: 2600 }),
+        freeMemMB: MegabytesStub({ value: 64_000 }),
+        siegeInstances: ReadingCountStub({ value: 0 }),
+        reservedInstances: ReadingCountStub({ value: 0 }),
+        cores,
+        loadAvg1,
+      });
+
+      expect(result).toStrictEqual({
+        suggested: 1,
+        ceiling: 3,
+        memoryAllows: 34,
+        cpuAllows: 1,
+        ceilingLeft: 3,
+        availableMB: 63_488,
+      });
+    });
+
+    it('VALID: {load 6 across 12 cores, memory and ceiling roomy} => cpuAllows 6, so the policy ceiling still governs at 3', () => {
+      const { cores, loadAvg1 } = CapacityMeasuredStub({ cores: 12, loadAvg1: 6 });
+
+      const result = capacitySuggestTransformer({
+        profile: CapacityProfileStub({ steadyMB: 1800, peakMB: 2600 }),
+        freeMemMB: MegabytesStub({ value: 64_000 }),
+        siegeInstances: ReadingCountStub({ value: 0 }),
+        reservedInstances: ReadingCountStub({ value: 0 }),
+        cores,
+        loadAvg1,
+      });
+
+      expect(result).toStrictEqual({
+        suggested: 3,
+        ceiling: 3,
+        memoryAllows: 34,
+        cpuAllows: 6,
+        ceilingLeft: 3,
+        availableMB: 63_488,
+      });
+    });
+
+    it('VALID: {load 33.56 across 12 cores, tight memory} => memoryAllows is the tighter of the two, not CPU', () => {
+      const { cores, loadAvg1 } = CapacityMeasuredStub({ cores: 12, loadAvg1: 33.56 });
+
+      const result = capacitySuggestTransformer({
+        profile: CapacityProfileStub({ steadyMB: 1800, peakMB: 2600 }),
+        freeMemMB: MegabytesStub({ value: 3112 }),
+        siegeInstances: ReadingCountStub({ value: 0 }),
+        reservedInstances: ReadingCountStub({ value: 0 }),
+        cores,
+        loadAvg1,
+      });
+
+      expect(result).toStrictEqual({
+        suggested: 1,
+        ceiling: 3,
+        memoryAllows: 1,
+        cpuAllows: 1,
+        ceilingLeft: 3,
+        availableMB: 2600,
+      });
+    });
+
+    it('EMPTY: {profile: null, load 33.56 across 12 cores} => cpuAllows still floors the default pair', () => {
+      const { cores, loadAvg1 } = CapacityMeasuredStub({ cores: 12, loadAvg1: 33.56 });
+
+      const result = capacitySuggestTransformer({
+        profile: null,
+        freeMemMB: MegabytesStub({ value: 5320 }),
+        siegeInstances: ReadingCountStub({ value: 0 }),
+        reservedInstances: ReadingCountStub({ value: 0 }),
+        cores,
+        loadAvg1,
+      });
+
+      expect(result).toStrictEqual({
+        suggested: 1,
+        ceiling: 3,
+        memoryAllows: 2,
+        cpuAllows: 1,
+        ceilingLeft: 3,
+        availableMB: 4808,
       });
     });
   });

@@ -10,7 +10,12 @@
  * concurrently). Host figures (`freeMemMB`/`cores`/`loadAvg1`/`diskFreeMB`) are live reads with no
  * fixed value; each assertion strips or normalises exactly that figure before comparing the
  * remainder verbatim, the same technique `siegelense-flow.integration.test.ts` uses for `status
- * --json`'s live `machine` block.
+ * --json`'s live `machine` block. `SUGGESTED`/`"suggested"` and an optional trailing CPU clause are
+ * normalised the same way: this suite's own process, and every ward run sharing the host while it
+ * executes, is itself CPU load, so `capacitySuggestTransformer`'s CPU term can legitimately throttle
+ * the never-measured spec's default pair below 2 on a busy machine — a real result, not a bug, and
+ * asserting a fixed `2` here would make the suite flake under exactly the load DEF-41 exists to
+ * answer for.
  *
  * USAGE:
  * await SiegelenseCapacityLayerFlow({ callArgs: ['--spec', 'api'] });
@@ -33,6 +38,12 @@ const FREE_RAM_PATTERN = /free RAM \d+MB less/u;
 const FREE_RAM_PLACEHOLDER = 'free RAM <freeMemMB>MB less';
 const MEASURED_BLOCK_PATTERN = / {2}"measured": \{[\s\S]*?\n {2}\},\n/u;
 const HOST_LINE_PATTERN = /^HOST: .*\n/mu;
+const SUGGESTED_LINE_PATTERN = /^SUGGESTED: \d+ instances \(ceiling: 3\)$/mu;
+const SUGGESTED_LINE_PLACEHOLDER = 'SUGGESTED: <suggested> instances (ceiling: 3)';
+const SUGGESTED_JSON_PATTERN = /"suggested": \d+,/u;
+const SUGGESTED_JSON_PLACEHOLDER = '"suggested": <suggested>,';
+const CPU_CLAUSE_PATTERN =
+  /; load [\d.]+ across \d+ cores allows only \d+; CPU, not memory, is the limit/u;
 
 describe('SiegelenseCapacityLayerFlow', () => {
   const testbed = installTestbedCreateBroker({
@@ -90,7 +101,7 @@ describe('SiegelenseCapacityLayerFlow', () => {
   });
 
   describe('the default human summary, --pool omitted', () => {
-    it('VALID: {callArgs: [--spec, api]} => renders the default-pair answer, the policy ceiling assumed for the never-measured spec', async () => {
+    it('VALID: {callArgs: [--spec, api]} => renders the no-profile answer against the real host, the policy ceiling assumed for the never-measured spec', async () => {
       const writes: ReturnType<typeof ContentTextStub>[] = [];
       const originalWrite = process.stdout.write.bind(process.stdout);
       process.stdout.write = ((chunk: string): boolean => {
@@ -107,11 +118,13 @@ describe('SiegelenseCapacityLayerFlow', () => {
       const [wholeOutput] = writes;
       const normalized = wholeOutput!
         .replace(HOST_LINE_PATTERN, '')
-        .replace(FREE_RAM_PATTERN, FREE_RAM_PLACEHOLDER);
+        .replace(FREE_RAM_PATTERN, FREE_RAM_PLACEHOLDER)
+        .replace(SUGGESTED_LINE_PATTERN, SUGGESTED_LINE_PLACEHOLDER)
+        .replace(CPU_CLAUSE_PATTERN, '');
 
       expect(result).toStrictEqual({ success: true });
       expect(normalized).toBe(
-        'SUGGESTED: 2 instances (ceiling: 3)\n' +
+        'SUGGESTED: <suggested> instances (ceiling: 3)\n' +
           'SPEC: api\n' +
           'WHY: no measured profile for api, so this suggests the default of 2 instances; ' +
           'run a pool of 2 once and siegelense records a profile for next time; ' +
@@ -122,7 +135,7 @@ describe('SiegelenseCapacityLayerFlow', () => {
   });
 
   describe('--pool present, the --json branch', () => {
-    it('VALID: {callArgs: [--spec, stack, --pool, 2, --json]} => writes the CapacityAnswer as one JSON document, still the default pair for the never-measured spec', async () => {
+    it('VALID: {callArgs: [--spec, stack, --pool, 2, --json]} => writes the CapacityAnswer as one JSON document against the real host, --pool ignored for the never-measured spec', async () => {
       const writes: ReturnType<typeof ContentTextStub>[] = [];
       const originalWrite = process.stdout.write.bind(process.stdout);
       process.stdout.write = ((chunk: string): boolean => {
@@ -139,12 +152,14 @@ describe('SiegelenseCapacityLayerFlow', () => {
       const [wholeOutput] = writes;
       const normalized = wholeOutput!
         .replace(MEASURED_BLOCK_PATTERN, '')
-        .replace(FREE_RAM_PATTERN, FREE_RAM_PLACEHOLDER);
+        .replace(FREE_RAM_PATTERN, FREE_RAM_PLACEHOLDER)
+        .replace(SUGGESTED_JSON_PATTERN, SUGGESTED_JSON_PLACEHOLDER)
+        .replace(CPU_CLAUSE_PATTERN, '');
 
       expect(result).toStrictEqual({ success: true });
       expect(normalized).toBe(
         '{\n' +
-          '  "suggested": 2,\n' +
+          '  "suggested": <suggested>,\n' +
           '  "ceiling": 3,\n' +
           '  "why": "no measured profile for stack, so --pool 2 has no effect: this suggests ' +
           'the default of 2 instances; run a pool of 2 once and siegelense records a profile ' +

@@ -13,7 +13,11 @@ import { capacityReadBrokerProxy } from './capacity-read-broker.proxy';
 const MB_BYTES = 1_048_576;
 const NOW_MS = 1_700_000_000_000;
 const VMSTAT_CONTENT = 'nr_free_pages 12345\noom_kill 0\n';
-const LOAD_AVG = [4.2, 3.1, 2.0] as const;
+// Low enough that cpuAllows never binds against any memoryAllows/ceilingLeft value this file's
+// non-CPU scenarios compute (8 cores − 0.5 load, floored, is comfortably above the ceiling of 3) —
+// so these tests keep proving what they say they prove. The CPU-specific describe block below sets
+// its own load instead.
+const LOAD_AVG = [0.5, 0.3, 0.2] as const;
 
 describe('capacityReadBroker', () => {
   describe('two pool-size groups, never blended', () => {
@@ -54,7 +58,7 @@ describe('capacityReadBroker', () => {
         measured: {
           freeMemMB: 5000,
           cores: 8,
-          loadAvg1: 4.2,
+          loadAvg1: 0.5,
           siegeInstances: 0,
           diskFreeMB: 41_000,
         },
@@ -105,7 +109,7 @@ describe('capacityReadBroker', () => {
         measured: {
           freeMemMB: 5000,
           cores: 8,
-          loadAvg1: 4.2,
+          loadAvg1: 0.5,
           siegeInstances: 0,
           diskFreeMB: 41_000,
         },
@@ -156,7 +160,7 @@ describe('capacityReadBroker', () => {
         measured: {
           freeMemMB: 9000,
           cores: 8,
-          loadAvg1: 4.2,
+          loadAvg1: 0.5,
           siegeInstances: 0,
           diskFreeMB: 41_000,
         },
@@ -223,7 +227,7 @@ describe('capacityReadBroker', () => {
         measured: {
           freeMemMB: 9000,
           cores: 8,
-          loadAvg1: 4.2,
+          loadAvg1: 0.5,
           siegeInstances: 2,
           diskFreeMB: 41_000,
         },
@@ -282,7 +286,7 @@ describe('capacityReadBroker', () => {
         measured: {
           freeMemMB: 5000,
           cores: 8,
-          loadAvg1: 4.2,
+          loadAvg1: 0.5,
           siegeInstances: 0,
           diskFreeMB: 41_000,
         },
@@ -347,7 +351,7 @@ describe('capacityReadBroker', () => {
         measured: {
           freeMemMB: 5000,
           cores: 8,
-          loadAvg1: 4.2,
+          loadAvg1: 0.5,
           siegeInstances: 0,
           diskFreeMB: 41_000,
         },
@@ -401,7 +405,7 @@ describe('capacityReadBroker', () => {
         measured: {
           freeMemMB: 5000,
           cores: 8,
-          loadAvg1: 4.2,
+          loadAvg1: 0.5,
           siegeInstances: 0,
           diskFreeMB: 41_000,
         },
@@ -447,7 +451,7 @@ describe('capacityReadBroker', () => {
         measured: {
           freeMemMB: 5000,
           cores: 8,
-          loadAvg1: 4.2,
+          loadAvg1: 0.5,
           siegeInstances: 0,
           diskFreeMB: 41_000,
         },
@@ -493,7 +497,7 @@ describe('capacityReadBroker', () => {
         measured: {
           freeMemMB: 5000,
           cores: 8,
-          loadAvg1: 4.2,
+          loadAvg1: 0.5,
           siegeInstances: 0,
           diskFreeMB: 41_000,
         },
@@ -537,7 +541,7 @@ describe('capacityReadBroker', () => {
         measured: {
           freeMemMB: 9000,
           cores: 8,
-          loadAvg1: 4.2,
+          loadAvg1: 0.5,
           siegeInstances: 0,
           diskFreeMB: 41_000,
         },
@@ -588,7 +592,58 @@ describe('capacityReadBroker', () => {
         measured: {
           freeMemMB: 3111,
           cores: 8,
-          loadAvg1: 4.2,
+          loadAvg1: 0.5,
+          siegeInstances: 0,
+          diskFreeMB: 41_000,
+        },
+        profile: {
+          spec: 'dungeonmaster-stack',
+          poolSize: 1,
+          steadyMB: 1800,
+          peakMB: 2600,
+          fromRuns: 9,
+        },
+      });
+    });
+  });
+
+  describe('a saturated CPU', () => {
+    it('EDGE: {load 33.56 across 12 cores, memory and ceiling roomy} => CPU throttles suggested to 1, named in the why', async () => {
+      const proxy = capacityReadBrokerProxy();
+      proxy.setupRegistry({ registry: RegistryStub({ instances: [] }) });
+      proxy.setupMachineReading({
+        freeMemBytes: 21_053 * MB_BYTES,
+        totalMemBytes: 32_000 * MB_BYTES,
+        coreCount: 12,
+        loadAvg: [33.56, 20.1, 10.4],
+        diskBavail: 41_000,
+        diskBsize: MB_BYTES,
+        vmstatContent: VMSTAT_CONTENT,
+      });
+      proxy.setupProfile({
+        profile: SpecProfileStub({
+          specName: 'dungeonmaster-stack',
+          samples: [{ poolSize: 1, steadyMB: 1800, peakMB: 2600, runs: 9 }],
+        }),
+      });
+      proxy.setupNow({ nowMs: NOW_MS });
+
+      const answer = await capacityReadBroker({
+        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        poolSize: ProfilePoolSizeStub({ value: 1 }),
+      });
+
+      expect(answer).toStrictEqual({
+        suggested: 1,
+        ceiling: 3,
+        why:
+          'profile 2600MB peak / 1800MB steady at pool size 1, from 9 runs; ' +
+          'free RAM 21053MB less 512MB headroom; nothing else up; ' +
+          'load 33.56 across 12 cores allows only 1; CPU, not memory, is the limit',
+        measured: {
+          freeMemMB: 21_053,
+          cores: 12,
+          loadAvg1: 33.56,
           siegeInstances: 0,
           diskFreeMB: 41_000,
         },

@@ -9,6 +9,7 @@ describe('capacitySuggestionContract', () => {
           suggested: 2,
           ceiling: 3,
           memoryAllows: 2,
+          cpuAllows: 6,
           ceilingLeft: 2,
           availableMB: 4808,
         }),
@@ -18,6 +19,7 @@ describe('capacitySuggestionContract', () => {
         suggested: 2,
         ceiling: 3,
         memoryAllows: 2,
+        cpuAllows: 6,
         ceilingLeft: 2,
         availableMB: 4808,
       });
@@ -34,6 +36,7 @@ describe('capacitySuggestionContract', () => {
         suggested: 0,
         ceiling: 3,
         memoryAllows: 0,
+        cpuAllows: 6,
         ceilingLeft: 2,
         availableMB: 0,
       });
@@ -48,7 +51,23 @@ describe('capacitySuggestionContract', () => {
         suggested: 0,
         ceiling: 3,
         memoryAllows: 2,
+        cpuAllows: 6,
         ceilingLeft: 0,
+        availableMB: 4808,
+      });
+    });
+
+    it('EDGE: {cpuAllows: 1} => parses, so the refusal can say CPU, not memory or policy', () => {
+      const result = capacitySuggestionContract.parse(
+        CapacitySuggestionStub({ suggested: 1, memoryAllows: 10, cpuAllows: 1, ceilingLeft: 3 }),
+      );
+
+      expect(result).toStrictEqual({
+        suggested: 1,
+        ceiling: 3,
+        memoryAllows: 10,
+        cpuAllows: 1,
+        ceilingLeft: 3,
         availableMB: 4808,
       });
     });

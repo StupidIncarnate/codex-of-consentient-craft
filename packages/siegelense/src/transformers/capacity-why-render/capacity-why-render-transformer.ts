@@ -23,8 +23,14 @@
  * spec name by matching `/no measured profile for ([^,]+)/u` against this string, so the no-profile
  * clause keeps `specName` immediately followed by a comma.
  *
+ * `cores` and `loadAvg1` back the CPU clause the same way `freeMemMB` backs the memory one — named
+ * so the arithmetic in `suggestion.cpuAllows` is recomputable, not merely asserted. It only appears
+ * when CPU is the tightest of the three limits (`capacitySuggestTransformer`'s
+ * `min(memoryAllows, cpuAllows, ceilingLeft)`), the same "first one that binds" rule the memory and
+ * policy clauses already follow.
+ *
  * USAGE:
- * capacityWhyRenderTransformer({ specName, profile, suggestion, freeMemMB, siegeInstances, reservedInstances, requestedPoolSize });
+ * capacityWhyRenderTransformer({ specName, profile, suggestion, freeMemMB, siegeInstances, reservedInstances, requestedPoolSize, cores, loadAvg1 });
  * // Returns 'profile 2600MB peak / 1800MB steady at pool size 1, from 9 runs; free RAM 5320MB
  * // less 512MB headroom; 1 siege instance already up'
  */
@@ -32,6 +38,7 @@
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { ContentText } from '@dungeonmaster/shared/contracts';
 
+import type { CapacityMeasured } from '../../contracts/capacity-measured/capacity-measured-contract';
 import type { CapacityProfile } from '../../contracts/capacity-profile/capacity-profile-contract';
 import type { CapacitySuggestion } from '../../contracts/capacity-suggestion/capacity-suggestion-contract';
 import type { Megabytes } from '../../contracts/megabytes/megabytes-contract';
@@ -50,6 +57,8 @@ export const capacityWhyRenderTransformer = ({
   siegeInstances,
   reservedInstances,
   requestedPoolSize,
+  cores,
+  loadAvg1,
 }: {
   specName: SpecName;
   profile: CapacityProfile | null;
@@ -58,6 +67,8 @@ export const capacityWhyRenderTransformer = ({
   siegeInstances: ReadingCount;
   reservedInstances: ReadingCount;
   requestedPoolSize: ProfilePoolSize | null;
+  cores: ReadingCount;
+  loadAvg1: CapacityMeasured['loadAvg1'];
 }): ContentText => {
   const { headroomMB } = capacityStatics.memory;
   const peakMB = profile === null ? 0 : profile.peakMB;
@@ -88,15 +99,19 @@ export const capacityWhyRenderTransformer = ({
       ? 'nothing else up'
       : `${siegeInstances} siege instance${siegeInstances === 1 ? '' : 's'} already up${reservingSuffix}`;
 
-  // The first of the three that holds is the one reported: running out of memory is the case the
-  // OS answers by killing something at random (line 1589), so it outranks a policy cap that is
-  // only ever a knob.
+  // The first of these that holds is the one reported. Running out of memory is the case the OS
+  // answers by killing something at random (line 1589), so it outranks everything else; a fully
+  // booked policy pool is the next hardest stop. CPU is checked before the generic policy-cap
+  // clause so a load-driven number says load, not "policy", caused it.
   const limitClauses = [
     suggestion.memoryAllows === 0
       ? `no room for one more: ${suggestion.availableMB}MB available is under the ${peakMB}MB this spec peaks at`
       : null,
     suggestion.ceilingLeft === 0 ? `the policy pool of ${suggestion.ceiling} is full` : null,
-    suggestion.ceilingLeft < suggestion.memoryAllows
+    suggestion.cpuAllows < suggestion.memoryAllows && suggestion.cpuAllows <= suggestion.ceilingLeft
+      ? `load ${loadAvg1} across ${cores} cores allows only ${suggestion.cpuAllows}; CPU, not memory, is the limit`
+      : null,
+    suggestion.ceilingLeft < Math.min(suggestion.memoryAllows, suggestion.cpuAllows)
       ? `capped at the policy ceiling of ${suggestion.ceiling}`
       : null,
   ];

@@ -4,7 +4,10 @@
  * the asset tree, which is why it is one of the ten calls that need no live instance (line 2275).
  * Reach for this over reading a profile and dividing at a call site — `suggested` inverts the
  * STAGGERED high-water mark, and a caller doing its own arithmetic against `peak × N` leaves
- * capacity unused while one against `steady × N` invites the OOM (line 1529).
+ * capacity unused while one against `steady × N` invites the OOM (line 1529). `suggested` is also
+ * clamped against the 1-minute load average, computed here once and threaded to both
+ * `capacitySuggestTransformer` and `capacityWhyRenderTransformer` so the number and its `why` never
+ * disagree about which reading produced it.
  *
  * **It counts instances this session did not start** (line 1585). A parallel agent's lanes, a ward
  * e2e run holding a port pair, a developer's own browser: every one of them is a registry row, and
@@ -70,6 +73,10 @@ export const capacityReadBroker = async ({
     liveEntries.filter((entry) => isReservedRegistryEntryGuard({ entry })).length,
   );
 
+  const loadAvg1 = capacityMeasuredContract.shape.loadAvg1.parse(
+    machine.loadAvg[LOAD_AVERAGE_ONE_MINUTE],
+  );
+
   const profile = capacitySampleSelectTransformer({
     profile: specProfile,
     poolSize: resolvedPoolSize,
@@ -79,6 +86,8 @@ export const capacityReadBroker = async ({
     freeMemMB: machine.freeMemMB,
     siegeInstances,
     reservedInstances,
+    cores: machine.cores,
+    loadAvg1,
   });
 
   return capacityAnswerContract.parse({
@@ -92,11 +101,13 @@ export const capacityReadBroker = async ({
       siegeInstances,
       reservedInstances,
       requestedPoolSize: poolSize,
+      cores: machine.cores,
+      loadAvg1,
     }),
     measured: capacityMeasuredContract.parse({
       freeMemMB: machine.freeMemMB,
       cores: machine.cores,
-      loadAvg1: machine.loadAvg[LOAD_AVERAGE_ONE_MINUTE],
+      loadAvg1,
       siegeInstances,
       diskFreeMB: machine.freeDiskMB,
     }),
