@@ -12,8 +12,19 @@
  * same units the answer does. Headroom is named for the same reason: it is the one term in the
  * division that appears nowhere else in the answer.
  *
+ * `requestedPoolSize` is the raw `--pool` value, before `capacityReadBroker` resolves it to the
+ * policy ceiling or hands it to `capacitySampleSelectTransformer`. It never changes `suggested`; it
+ * only decides whether a second clause is owed. With no measured profile at all, `--pool` cannot
+ * pick anything — the default pair is the whole answer regardless of what was asked, and a caller
+ * who does not hear that reads a coincidence (`--pool 2` matching the default) as proof the flag
+ * did something. With a profile but no group at exactly that pool size,
+ * `capacitySampleSelectTransformer` already substitutes the nearest measured group silently; this is
+ * the only place that substitution becomes visible. `capacityAnswerRenderTransformer` extracts the
+ * spec name by matching `/no measured profile for ([^,]+)/u` against this string, so the no-profile
+ * clause keeps `specName` immediately followed by a comma.
+ *
  * USAGE:
- * capacityWhyRenderTransformer({ specName, profile, suggestion, freeMemMB, siegeInstances, reservedInstances });
+ * capacityWhyRenderTransformer({ specName, profile, suggestion, freeMemMB, siegeInstances, reservedInstances, requestedPoolSize });
  * // Returns 'profile 2600MB peak / 1800MB steady at pool size 1, from 9 runs; free RAM 5320MB
  * // less 512MB headroom; 1 siege instance already up'
  */
@@ -24,6 +35,7 @@ import type { ContentText } from '@dungeonmaster/shared/contracts';
 import type { CapacityProfile } from '../../contracts/capacity-profile/capacity-profile-contract';
 import type { CapacitySuggestion } from '../../contracts/capacity-suggestion/capacity-suggestion-contract';
 import type { Megabytes } from '../../contracts/megabytes/megabytes-contract';
+import type { ProfilePoolSize } from '../../contracts/profile-pool-size/profile-pool-size-contract';
 import type { ReadingCount } from '../../contracts/reading-count/reading-count-contract';
 import type { SpecName } from '../../contracts/spec-name/spec-name-contract';
 import { capacityStatics } from '../../statics/capacity/capacity-statics';
@@ -37,6 +49,7 @@ export const capacityWhyRenderTransformer = ({
   freeMemMB,
   siegeInstances,
   reservedInstances,
+  requestedPoolSize,
 }: {
   specName: SpecName;
   profile: CapacityProfile | null;
@@ -44,15 +57,25 @@ export const capacityWhyRenderTransformer = ({
   freeMemMB: Megabytes;
   siegeInstances: ReadingCount;
   reservedInstances: ReadingCount;
+  requestedPoolSize: ProfilePoolSize | null;
 }): ContentText => {
   const { headroomMB } = capacityStatics.memory;
   const peakMB = profile === null ? 0 : profile.peakMB;
   const reservedDebitMB = peakMB * reservedInstances;
+  const { suggested: defaultSuggested } = capacityStatics.noProfile;
+
+  const ignoredPoolNote =
+    requestedPoolSize === null ? '' : ` --pool ${requestedPoolSize} has no effect:`;
 
   const profileClause =
     profile === null
-      ? `no measured profile for ${specName}, so the default pair of ${capacityStatics.noProfile.suggested} profiles itself`
+      ? `no measured profile for ${specName}, so${ignoredPoolNote} this suggests the default of ${defaultSuggested} instances; run a pool of ${defaultSuggested} once and siegelense records a profile for next time`
       : `profile ${profile.peakMB}MB peak / ${profile.steadyMB}MB steady at pool size ${profile.poolSize}, from ${profile.fromRuns} runs`;
+
+  const poolMismatchClause =
+    profile !== null && requestedPoolSize !== null && requestedPoolSize !== profile.poolSize
+      ? `--pool ${requestedPoolSize} has no measured group, so pool size ${profile.poolSize} was used instead`
+      : null;
 
   const memoryClause =
     reservedDebitMB === 0
@@ -82,6 +105,7 @@ export const capacityWhyRenderTransformer = ({
   return contentTextContract.parse(
     [
       profileClause,
+      ...(poolMismatchClause === null ? [] : [poolMismatchClause]),
       memoryClause,
       instancesClause,
       ...(limitClause === null ? [] : [limitClause]),

@@ -113,7 +113,8 @@ describe('SiegelenseCapacityLayerFlow', () => {
       expect(normalized).toBe(
         'SUGGESTED: 2 instances (ceiling: 3)\n' +
           'SPEC: api\n' +
-          'WHY: no measured profile for api, so the default pair of 2 profiles itself; ' +
+          'WHY: no measured profile for api, so this suggests the default of 2 instances; ' +
+          'run a pool of 2 once and siegelense records a profile for next time; ' +
           'free RAM <freeMemMB>MB less 512MB headroom; nothing else up\n' +
           'PROFILE: no profile samples recorded\n',
       );
@@ -145,8 +146,9 @@ describe('SiegelenseCapacityLayerFlow', () => {
         '{\n' +
           '  "suggested": 2,\n' +
           '  "ceiling": 3,\n' +
-          '  "why": "no measured profile for stack, so the default pair of 2 profiles ' +
-          'itself; free RAM <freeMemMB>MB less 512MB headroom; nothing else up",\n' +
+          '  "why": "no measured profile for stack, so --pool 2 has no effect: this suggests ' +
+          'the default of 2 instances; run a pool of 2 once and siegelense records a profile ' +
+          'for next time; free RAM <freeMemMB>MB less 512MB headroom; nothing else up",\n' +
           '  "profile": null\n' +
           '}\n',
       );

@@ -363,7 +363,7 @@ describe('capacityReadBroker', () => {
   });
 
   describe('a spec nothing has ever run', () => {
-    it('EMPTY: {samples: []} => suggested 2, profile null, and a why that says the pair profiles itself', async () => {
+    it('EMPTY: {samples: []} => suggested 2, profile null, and a why that explains the default and how to measure one', async () => {
       const proxy = capacityReadBrokerProxy();
       proxy.setupRegistry({ registry: RegistryStub({ instances: [] }) });
       proxy.setupMachineReading({
@@ -395,7 +395,8 @@ describe('capacityReadBroker', () => {
         suggested: 2,
         ceiling: 3,
         why:
-          'no measured profile for dungeonmaster-stack, so the default pair of 2 profiles itself; ' +
+          'no measured profile for dungeonmaster-stack, so this suggests the default of 2 instances; ' +
+          'run a pool of 2 once and siegelense records a profile for next time; ' +
           'free RAM 5000MB less 512MB headroom; nothing else up',
         measured: {
           freeMemMB: 5000,
@@ -440,7 +441,8 @@ describe('capacityReadBroker', () => {
         suggested: 2,
         ceiling: 3,
         why:
-          'no measured profile for dungeonmaster-api, so the default pair of 2 profiles itself; ' +
+          'no measured profile for dungeonmaster-api, so this suggests the default of 2 instances; ' +
+          'run a pool of 2 once and siegelense records a profile for next time; ' +
           'free RAM 5000MB less 512MB headroom; nothing else up',
         measured: {
           freeMemMB: 5000,
@@ -450,6 +452,102 @@ describe('capacityReadBroker', () => {
           diskFreeMB: 41_000,
         },
         profile: null,
+      });
+    });
+
+    it('VALID: {samples: [], --pool 5} => the why says --pool had no effect because no profile exists yet', async () => {
+      const proxy = capacityReadBrokerProxy();
+      proxy.setupRegistry({ registry: RegistryStub({ instances: [] }) });
+      proxy.setupMachineReading({
+        freeMemBytes: 5000 * MB_BYTES,
+        totalMemBytes: 16_000 * MB_BYTES,
+        coreCount: 8,
+        loadAvg: LOAD_AVG,
+        diskBavail: 41_000,
+        diskBsize: MB_BYTES,
+        vmstatContent: VMSTAT_CONTENT,
+      });
+      proxy.setupProfile({
+        profile: SpecProfileStub({
+          specName: 'dungeonmaster-stack',
+          samples: [],
+          fromRuns: 0,
+          measuredAt: null,
+          bootMs: null,
+        }),
+      });
+      proxy.setupNow({ nowMs: NOW_MS });
+
+      const answer = await capacityReadBroker({
+        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        poolSize: ProfilePoolSizeStub({ value: 5 }),
+      });
+
+      expect(answer).toStrictEqual({
+        suggested: 2,
+        ceiling: 3,
+        why:
+          'no measured profile for dungeonmaster-stack, so --pool 5 has no effect: this suggests the default of 2 instances; ' +
+          'run a pool of 2 once and siegelense records a profile for next time; ' +
+          'free RAM 5000MB less 512MB headroom; nothing else up',
+        measured: {
+          freeMemMB: 5000,
+          cores: 8,
+          loadAvg1: 4.2,
+          siegeInstances: 0,
+          diskFreeMB: 41_000,
+        },
+        profile: null,
+      });
+    });
+
+    it('EDGE: {a measured profile, --pool 99999 with no matching group} => the why names which pool size was used instead', async () => {
+      const proxy = capacityReadBrokerProxy();
+      proxy.setupRegistry({ registry: RegistryStub({ instances: [] }) });
+      proxy.setupMachineReading({
+        freeMemBytes: 9000 * MB_BYTES,
+        totalMemBytes: 16_000 * MB_BYTES,
+        coreCount: 8,
+        loadAvg: LOAD_AVG,
+        diskBavail: 41_000,
+        diskBsize: MB_BYTES,
+        vmstatContent: VMSTAT_CONTENT,
+      });
+      proxy.setupProfile({
+        profile: SpecProfileStub({
+          specName: 'dungeonmaster-stack',
+          samples: [{ poolSize: 1, steadyMB: 1800, peakMB: 2600, runs: 9 }],
+        }),
+      });
+      proxy.setupNow({ nowMs: NOW_MS });
+
+      const answer = await capacityReadBroker({
+        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        poolSize: ProfilePoolSizeStub({ value: 99_999 }),
+      });
+
+      expect(answer).toStrictEqual({
+        suggested: 3,
+        ceiling: 3,
+        why:
+          'profile 2600MB peak / 1800MB steady at pool size 1, from 9 runs; ' +
+          '--pool 99999 has no measured group, so pool size 1 was used instead; ' +
+          'free RAM 9000MB less 512MB headroom; nothing else up; ' +
+          'capped at the policy ceiling of 3',
+        measured: {
+          freeMemMB: 9000,
+          cores: 8,
+          loadAvg1: 4.2,
+          siegeInstances: 0,
+          diskFreeMB: 41_000,
+        },
+        profile: {
+          spec: 'dungeonmaster-stack',
+          poolSize: 1,
+          steadyMB: 1800,
+          peakMB: 2600,
+          fromRuns: 9,
+        },
       });
     });
   });

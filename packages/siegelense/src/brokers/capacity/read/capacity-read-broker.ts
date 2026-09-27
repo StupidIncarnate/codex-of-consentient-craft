@@ -91,6 +91,7 @@ export const capacityReadBroker = async ({
       freeMemMB: machine.freeMemMB,
       siegeInstances,
       reservedInstances,
+      requestedPoolSize: poolSize,
     }),
     measured: capacityMeasuredContract.parse({
       freeMemMB: machine.freeMemMB,
