@@ -28,7 +28,15 @@ module.exports = {
   // so a module that reads `DUNGEONMASTER_HOME` while it loads sees the sandbox. The file itself
   // says what that costs when it resolves to the developer's real home.
   setupFiles: [path.join(__dirname, 'packages/testing/src/jest.setup-home.js')],
-  setupFilesAfterEnv: [path.join(__dirname, 'packages/testing/src/jest.setup.js')],
+  // `start-endpoint-mock-setup.js` loads MSW here so every package gets the fail-on-unhandled
+  // HTTP/WS behavior without its own opt-in — see that file's own header. A package whose config
+  // overrides this array wholesale (object spread does not merge arrays) has to spread
+  // `...baseConfig.setupFilesAfterEnv` back in rather than re-listing `jest.setup.js` alone, or it
+  // silently loses this entry.
+  setupFilesAfterEnv: [
+    path.join(__dirname, 'packages/testing/src/jest.setup.js'),
+    path.join(__dirname, 'packages/testing/src/startup/start-endpoint-mock-setup.ts'),
+  ],
   testMatch: ['**/src/**/*.test.[jt]s', '**/bin/**/*.test.[jt]s'],
   testPathIgnorePatterns: ['/node_modules/', '/tests/tmp/', '/hypothesis/', '/dist/'],
   modulePathIgnorePatterns: ['/tests/tmp/', '/hypothesis/'],

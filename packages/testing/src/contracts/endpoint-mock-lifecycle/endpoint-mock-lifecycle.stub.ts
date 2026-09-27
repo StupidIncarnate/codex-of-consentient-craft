@@ -5,7 +5,7 @@ import type { EndpointMockLifecycle } from './endpoint-mock-lifecycle-contract';
 export const EndpointMockLifecycleStub = ({
   ...props
 }: StubArgument<EndpointMockLifecycle> = {}): EndpointMockLifecycle => {
-  const { listen, resetHandlers, close, ...dataProps } = props;
+  const { listen, resetHandlers, close, assertNoUnhandledRequests, ...dataProps } = props;
 
   return {
     ...endpointMockLifecycleContract.parse({
@@ -14,5 +14,6 @@ export const EndpointMockLifecycleStub = ({
     listen: listen ?? ((): void => undefined),
     resetHandlers: resetHandlers ?? ((): void => undefined),
     close: close ?? ((): void => undefined),
+    assertNoUnhandledRequests: assertNoUnhandledRequests ?? ((): void => undefined),
   };
 };

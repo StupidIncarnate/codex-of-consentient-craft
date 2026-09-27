@@ -4,7 +4,6 @@ const dungeonmasterTsJestOptions = require('../../packages/testing/ts-jest/optio
 module.exports = {
   ...baseConfig,
   roots: ['<rootDir>/src'],
-  setupFilesAfterEnv: ['<rootDir>/../../packages/testing/src/jest.setup.js'],
   transformIgnorePatterns: ['/dist/', '/node_modules/(?!(msw|@mswjs|until-async|outvariant)/)'],
   transform: {
     '^.+\\.[jt]s$': ['ts-jest', dungeonmasterTsJestOptions],

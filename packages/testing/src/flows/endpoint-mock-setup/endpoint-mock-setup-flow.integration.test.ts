@@ -11,6 +11,7 @@ describe('EndpointMockSetupFlow', () => {
         listen: expect.any(Function),
         resetHandlers: expect.any(Function),
         close: expect.any(Function),
+        assertNoUnhandledRequests: expect.any(Function),
       });
     });
   });

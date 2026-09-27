@@ -1,11 +1,18 @@
 const baseConfig = require('../../jest.config.base.js');
+const dungeonmasterTsJestOptions = require('../../packages/testing/ts-jest/options.js');
 
 module.exports = {
   ...baseConfig,
   roots: ['<rootDir>/src'],
-  setupFilesAfterEnv: ['<rootDir>/../../packages/testing/src/jest.setup.js'],
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1',
+  },
+  // `@dungeonmaster/testing`'s root barrel pulls in msw (ESM), which jest's default
+  // transformIgnorePatterns leaves untransformed — matches every other package that reaches
+  // `installTestbedCreateBroker`.
+  transformIgnorePatterns: ['/dist/', '/node_modules/(?!(msw|@mswjs|until-async|outvariant)/)'],
+  transform: {
+    '^.+\\.[jt]s$': ['ts-jest', dungeonmasterTsJestOptions],
   },
   // A worker here RETAINS every test file it has already run, and dies of it partway through the
   // suite — `JavaScript heap out of memory`, on a different file each run, which reads as a flake

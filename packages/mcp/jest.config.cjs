@@ -5,8 +5,6 @@ const dungeonmasterTsJestOptions = require('../testing/ts-jest/options.js');
 module.exports = {
   ...baseConfig,
   roots: ['<rootDir>/src'],
-  // Override setupFilesAfterEnv to use correct relative path from this package
-  setupFilesAfterEnv: ['<rootDir>/../../packages/testing/src/jest.setup.js'],
   // Map .js imports to .ts files for ESM compatibility
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1',

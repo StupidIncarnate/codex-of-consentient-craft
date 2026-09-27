@@ -19,7 +19,10 @@ beforeAll(() => {
 
 afterEach(async () => {
   await recorder.afterEach();
+  // Reset FIRST, so a violation this test made never leaks a per-test handler into the next one —
+  // then assert, so the throw below fails only the test that made the violation.
   lifecycle.resetHandlers();
+  lifecycle.assertNoUnhandledRequests();
 });
 
 afterAll(() => {

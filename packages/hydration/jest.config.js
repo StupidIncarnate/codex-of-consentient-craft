@@ -4,7 +4,6 @@ const dungeonmasterTsJestOptions = require('../../packages/testing/ts-jest/optio
 module.exports = {
   ...baseConfig,
   roots: ['<rootDir>/src'],
-  setupFilesAfterEnv: ['<rootDir>/../../packages/testing/src/jest.setup.js'],
   // `test/harnesses/file-target/file-target.harness.ts` imports `@dungeonmaster/testing`'s root
   // barrel (for `installTestbedCreateBroker`, `BaseNameStub`, `RelativePathStub`), which pulls in
   // msw's ESM `until-async` — every other package resolving that barrel carries this same pair

@@ -21,15 +21,14 @@ module.exports = {
   // The base entry rides along: a plain override would drop the sandbox dungeonmaster home it sets
   // before this package's own test files import anything.
   setupFiles: [...baseConfig.setupFiles, '<rootDir>/src/__mocks__/jsdom-polyfills.cjs'],
-  setupFilesAfterEnv: [
-    '<rootDir>/../../packages/testing/src/jest.setup.js',
-    // Source, not dist: the specs reach `endpointMock` through `@dungeonmaster/testing`, which the
-    // `source` condition above now resolves to src. A dist setup file would build MSW's server from
-    // a SECOND module instance, so every handler a spec registers lands on a server that is not the
-    // one listening — which surfaces as "[MSW] Cannot bypass a request", not as a resolution error.
-    '<rootDir>/../../packages/testing/src/startup/start-endpoint-mock-setup.ts',
-    '@testing-library/jest-dom',
-  ],
+  // Spread, not re-listed: `jest.config.base.js` now carries both `jest.setup.js` AND
+  // `start-endpoint-mock-setup.ts` (source, not dist — the specs reach `endpointMock` through
+  // `@dungeonmaster/testing`, which the `source` condition above resolves to src; a dist setup file
+  // would build MSW's server from a SECOND module instance, so every handler a spec registers lands
+  // on a server that is not the one listening, surfacing as "[MSW] Cannot bypass a request" rather
+  // than a resolution error). Re-listing either path here would still work but drifts the moment
+  // the base's own array changes.
+  setupFilesAfterEnv: [...baseConfig.setupFilesAfterEnv, '@testing-library/jest-dom'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
   // Jest collects src/**/*.test.ts(x) plus harness unit tests under test/**/*.test.ts(x).
   // Playwright e2e specs (src/flows/**/*.e2e.ts) and harness fixtures (test/**/*.harness.ts)

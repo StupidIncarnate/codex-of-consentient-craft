@@ -6,8 +6,6 @@ module.exports = {
   ...baseConfig,
   roots: ['<rootDir>/src', '<rootDir>/test'],
   testMatch: ['**/src/**/*.test.[jt]s', '**/bin/**/*.test.[jt]s', '**/test/**/*.test.[jt]s'],
-  // Override setupFilesAfterEnv to use correct relative path from this package
-  setupFilesAfterEnv: ['<rootDir>/../../packages/testing/src/jest.setup.js'],
   transformIgnorePatterns: [
     '/dist/',
     '/node_modules/(?!(msw|@mswjs|until-async|outvariant)/)',

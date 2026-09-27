@@ -5,7 +5,6 @@ module.exports = {
   ...baseConfig,
   roots: ['<rootDir>/src', '<rootDir>/test'],
   testMatch: ['**/src/**/*.test.[jt]s', '**/test/**/*.test.[jt]s'],
-  setupFilesAfterEnv: ['<rootDir>/../../packages/testing/src/jest.setup.js'],
   // `@dungeonmaster/testing`'s root barrel (`installTestbedCreateBroker`, `BaseNameStub`) pulls in
   // its own MSW-backed endpoint-mock flow, and MSW ships ESM-only `.js` in `node_modules` — the
   // repo-root base config's default `transformIgnorePatterns` ignores all of `node_modules`, so

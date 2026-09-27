@@ -4,7 +4,6 @@ const dungeonmasterTsJestOptions = require('../../packages/testing/ts-jest/optio
 module.exports = {
   ...baseConfig,
   roots: ['<rootDir>/src'],
-  setupFilesAfterEnv: ['<rootDir>/../../packages/testing/src/jest.setup.js'],
   // `@dungeonmaster/testing`'s root barrel pulls in msw (ESM), which jest's default
   // transformIgnorePatterns leaves untransformed — matches packages/orchestrator and packages/cli,
   // both of which need this for the same `installTestbedCreateBroker` import their own install-flow
