@@ -51,4 +51,42 @@ describe('readdirEntriesSync', () => {
 
     expect(() => readdirEntriesSync('/repo/.dungeonmaster.json/nested')).toThrow(error);
   });
+
+  describe('tolerant addressing', () => {
+    it('VALID: {returnsMatchingPath, a predicate} => returns entries for a path the predicate accepts', () => {
+      const proxy = readdirEntriesSyncProxy();
+      proxy.returnsMatchingPath({
+        path: (value) => String(value).endsWith('.dungeonmaster'),
+        entries: [{ name: 'config.json', kind: 'file' }],
+      });
+
+      expect(readdirEntriesSync('/resolved/at/runtime/.dungeonmaster')).toStrictEqual([
+        { name: 'config.json', kind: 'file' },
+      ]);
+    });
+
+    it('ERROR: {throwsMatchingPath, a predicate} => throws the staged error', () => {
+      const proxy = readdirEntriesSyncProxy();
+      const error = FsErrorStub({ code: 'ENOENT', path: '/resolved/at/runtime/missing' });
+      proxy.throwsMatchingPath({
+        path: (value) => String(value).endsWith('missing'),
+        error,
+      });
+
+      expect(() => readdirEntriesSync('/resolved/at/runtime/missing')).toThrow(error);
+    });
+  });
+
+  describe('call inspection', () => {
+    it('VALID: {a real call already made} => getCallsFor reads it back', () => {
+      const proxy = readdirEntriesSyncProxy();
+      proxy.returns({ path: '/repo/.dungeonmaster', entries: [] });
+
+      readdirEntriesSync('/repo/.dungeonmaster');
+
+      expect(proxy.getCallsFor({ path: '/repo/.dungeonmaster' })).toStrictEqual([
+        ['/repo/.dungeonmaster', { withFileTypes: true }],
+      ]);
+    });
+  });
 });

@@ -40,4 +40,38 @@ describe('readdirSync', () => {
 
     expect(() => readdirSync('/tmp/afile/child')).toThrow(error);
   });
+
+  describe('tolerant addressing', () => {
+    it('VALID: {returnsMatchingPath, a predicate} => returns names for a path the predicate accepts', () => {
+      const proxy = readdirSyncProxy();
+      proxy.returnsMatchingPath({
+        path: (value) => String(value).endsWith('adir'),
+        names: ['a.txt', 'b.txt'],
+      });
+
+      expect(readdirSync('/resolved/at/runtime/adir')).toStrictEqual(['a.txt', 'b.txt']);
+    });
+
+    it('ERROR: {throwsMatchingPath, a predicate} => throws the staged error', () => {
+      const proxy = readdirSyncProxy();
+      const error = FsErrorStub({ code: 'ENOENT', path: '/resolved/at/runtime/missing' });
+      proxy.throwsMatchingPath({
+        path: (value) => String(value).endsWith('missing'),
+        error,
+      });
+
+      expect(() => readdirSync('/resolved/at/runtime/missing')).toThrow(error);
+    });
+  });
+
+  describe('call inspection', () => {
+    it('VALID: {a real call already made} => getCallsFor reads it back', () => {
+      const proxy = readdirSyncProxy();
+      proxy.returns({ path: '/tmp/adir', names: ['a.txt'] });
+
+      readdirSync('/tmp/adir');
+
+      expect(proxy.getCallsFor({ path: '/tmp/adir' })).toStrictEqual([['/tmp/adir']]);
+    });
+  });
 });

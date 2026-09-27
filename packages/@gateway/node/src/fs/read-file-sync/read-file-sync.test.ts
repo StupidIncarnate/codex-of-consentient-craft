@@ -48,4 +48,40 @@ describe('readFileSync', () => {
 
     expect(() => readFileSync('/tmp/a-file/child')).toThrow(error);
   });
+
+  describe('tolerant addressing', () => {
+    it('VALID: {returnsMatchingPath, a predicate} => returns contents for a path the predicate accepts', () => {
+      const proxy = readFileSyncProxy();
+      proxy.returnsMatchingPath({
+        path: (value) => String(value).endsWith('quest.json'),
+        contents: '{"port":3737}',
+      });
+
+      expect(readFileSync('/resolved/at/runtime/quest.json')).toBe('{"port":3737}');
+    });
+
+    it('ERROR: {throwsMatchingPath, a predicate} => throws the staged error', () => {
+      const proxy = readFileSyncProxy();
+      const error = FsErrorStub({ code: 'ENOENT', path: '/resolved/at/runtime/missing.json' });
+      proxy.throwsMatchingPath({
+        path: (value) => String(value).endsWith('missing.json'),
+        error,
+      });
+
+      expect(() => readFileSync('/resolved/at/runtime/missing.json')).toThrow(error);
+    });
+  });
+
+  describe('call inspection', () => {
+    it('VALID: {a real call already made} => getCallsFor reads it back', () => {
+      const proxy = readFileSyncProxy();
+      proxy.returns({ path: '/tmp/config.json', contents: '{"a":1}' });
+
+      readFileSync('/tmp/config.json');
+
+      expect(proxy.getCallsFor({ path: '/tmp/config.json' })).toStrictEqual([
+        ['/tmp/config.json', 'utf8'],
+      ]);
+    });
+  });
 });

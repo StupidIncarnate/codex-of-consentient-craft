@@ -52,4 +52,49 @@ describe('statSync', () => {
 
     expect(() => statSync('/tmp/locked')).toThrow(error);
   });
+
+  describe('tolerant addressing', () => {
+    it('VALID: {returnsMatchingPath, a predicate} => returns stats for a path the predicate accepts', () => {
+      const proxy = statSyncProxy();
+      proxy.returnsMatchingPath({
+        path: (value) => String(value).endsWith('config.json'),
+        kind: 'file',
+        sizeBytes: 42,
+        modifiedAtMs: 1700000000000,
+      });
+
+      expect(statSync('/resolved/at/runtime/config.json')).toStrictEqual({
+        kind: 'file',
+        sizeBytes: 42,
+        modifiedAtMs: 1700000000000,
+      });
+    });
+
+    it('ERROR: {throwsMatchingPath, a predicate} => throws the staged error', () => {
+      const proxy = statSyncProxy();
+      const error = FsErrorStub({ code: 'ENOENT', path: '/resolved/at/runtime/missing' });
+      proxy.throwsMatchingPath({
+        path: (value) => String(value).endsWith('missing'),
+        error,
+      });
+
+      expect(() => statSync('/resolved/at/runtime/missing')).toThrow(error);
+    });
+  });
+
+  describe('call inspection', () => {
+    it('VALID: {a real call already made} => getCallsFor reads it back', () => {
+      const proxy = statSyncProxy();
+      proxy.returns({
+        path: '/tmp/config.json',
+        kind: 'file',
+        sizeBytes: 42,
+        modifiedAtMs: 1700000000000,
+      });
+
+      statSync('/tmp/config.json');
+
+      expect(proxy.getCallsFor({ path: '/tmp/config.json' })).toStrictEqual([['/tmp/config.json']]);
+    });
+  });
 });

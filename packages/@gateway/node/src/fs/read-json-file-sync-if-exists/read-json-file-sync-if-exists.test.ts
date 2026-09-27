@@ -42,4 +42,40 @@ describe('readJsonFileSyncIfExists', () => {
 
     expect(() => readJsonFileSyncIfExists('/tmp/locked.json')).toThrow(error);
   });
+
+  describe('tolerant addressing', () => {
+    it('VALID: {returnsMatchingPath, a predicate} => returns the parsed value for a path the predicate accepts', () => {
+      const proxy = readJsonFileSyncIfExistsProxy();
+      proxy.returnsMatchingPath({
+        path: (value) => String(value).endsWith('config.json'),
+        json: '{"a":1}',
+      });
+
+      expect(readJsonFileSyncIfExists('/resolved/at/runtime/config.json')).toStrictEqual({ a: 1 });
+    });
+
+    it('ERROR: {throwsMatchingPath, a predicate} => throws the staged error', () => {
+      const proxy = readJsonFileSyncIfExistsProxy();
+      const error = FsErrorStub({ code: 'EACCES', path: '/resolved/at/runtime/locked.json' });
+      proxy.throwsMatchingPath({
+        path: (value) => String(value).endsWith('locked.json'),
+        error,
+      });
+
+      expect(() => readJsonFileSyncIfExists('/resolved/at/runtime/locked.json')).toThrow(error);
+    });
+  });
+
+  describe('call inspection', () => {
+    it('VALID: {a real call already made} => getCallsFor reads it back', () => {
+      const proxy = readJsonFileSyncIfExistsProxy();
+      proxy.returns({ path: '/tmp/config.json', json: '{"a":1}' });
+
+      readJsonFileSyncIfExists('/tmp/config.json');
+
+      expect(proxy.getCallsFor({ path: '/tmp/config.json' })).toStrictEqual([
+        ['/tmp/config.json', 'utf8'],
+      ]);
+    });
+  });
 });

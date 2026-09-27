@@ -22,4 +22,29 @@ describe('existsSync', () => {
 
     expect(existsSync('/tmp/locked.json')).toBe(false);
   });
+
+  describe('tolerant addressing', () => {
+    it('VALID: {returnsMatchingPath, a predicate} => returns true for a path the predicate accepts', () => {
+      const proxy = existsSyncProxy();
+      proxy.returnsMatchingPath({
+        path: (value) => String(value).endsWith('quest.json'),
+        exists: true,
+      });
+
+      expect(existsSync('/resolved/at/runtime/quest.json')).toBe(true);
+    });
+  });
+
+  describe('call inspection', () => {
+    it('VALID: {a real call already made} => getCallsFor reads it back', () => {
+      const proxy = existsSyncProxy();
+      proxy.returns({ path: '/tmp/present.json', exists: true });
+
+      existsSync('/tmp/present.json');
+
+      expect(proxy.getCallsFor({ path: '/tmp/present.json' })).toStrictEqual([
+        ['/tmp/present.json'],
+      ]);
+    });
+  });
 });

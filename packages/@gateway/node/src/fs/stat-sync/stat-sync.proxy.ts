@@ -1,6 +1,9 @@
 import { statSync } from 'fs';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { Stats } from 'fs';
+import type { PathMatcher } from '../../gateway-test-support/path-matcher';
+
+type StatKind = 'file' | 'directory' | 'symlink' | 'other';
 
 export const statSyncProxy = (): {
   returns: ({
@@ -10,11 +13,25 @@ export const statSyncProxy = (): {
     modifiedAtMs,
   }: {
     path: string;
-    kind: 'file' | 'directory' | 'symlink' | 'other';
+    kind: StatKind;
     sizeBytes: number;
     modifiedAtMs: number;
   }) => void;
   throws: ({ path, error }: { path: string; error: NodeJS.ErrnoException }) => void;
+  returnsMatchingPath: (params: {
+    path: PathMatcher;
+    kind: StatKind;
+    sizeBytes: number;
+    modifiedAtMs: number;
+  }) => void;
+  throwsMatchingPath: ({
+    path,
+    error,
+  }: {
+    path: PathMatcher;
+    error: NodeJS.ErrnoException;
+  }) => void;
+  getCallsFor: (params: { path: PathMatcher }) => readonly unknown[][];
 } => {
   const handle = registerMock({ fn: statSync });
 
@@ -26,7 +43,7 @@ export const statSyncProxy = (): {
       modifiedAtMs,
     }: {
       path: string;
-      kind: 'file' | 'directory' | 'symlink' | 'other';
+      kind: StatKind;
       sizeBytes: number;
       modifiedAtMs: number;
     }): void => {
@@ -47,5 +64,38 @@ export const statSyncProxy = (): {
         throw error;
       });
     },
+    returnsMatchingPath: ({
+      path,
+      kind,
+      sizeBytes,
+      modifiedAtMs,
+    }: {
+      path: PathMatcher;
+      kind: StatKind;
+      sizeBytes: number;
+      modifiedAtMs: number;
+    }): void => {
+      const stats: Pick<Stats, 'isDirectory' | 'isFile' | 'isSymbolicLink' | 'size' | 'mtimeMs'> = {
+        isDirectory: (): boolean => kind === 'directory',
+        isFile: (): boolean => kind === 'file',
+        isSymbolicLink: (): boolean => kind === 'symlink',
+        size: sizeBytes,
+        mtimeMs: modifiedAtMs,
+      };
+      handle.calledWith([path]).returns(stats as Stats);
+    },
+    throwsMatchingPath: ({
+      path,
+      error,
+    }: {
+      path: PathMatcher;
+      error: NodeJS.ErrnoException;
+    }): void => {
+      handle.calledWith([path]).implement((): never => {
+        throw error;
+      });
+    },
+    getCallsFor: ({ path }: { path: PathMatcher }): readonly unknown[][] =>
+      handle.callsMatching([path]),
   };
 };
