@@ -348,8 +348,9 @@ describe('guildWriteRouteBroker', () => {
     });
 
     it("INVALID: {id: 'not-a-uuid'} => throws guildIdContract's own validation error", async () => {
-      guildWriteRouteBrokerProxy();
+      const proxy = guildWriteRouteBrokerProxy();
       const target = DmTargetStub({ home: '/tmp/dm-home', claudeHome: '/tmp/dm-home' });
+      proxy.setupDirectoryCreation({ path: '/tmp/dm-home/guilds-under-test/guild-1' });
 
       await expect(
         guildWriteRouteBroker({

@@ -18,7 +18,7 @@
  * through unchanged for exactly that case — and mkdir'ing it is a write nobody asked for, in a
  * place no `cleanup()` reaches. A path resolving outside `target.home` is therefore registered
  * exactly as given and left uncreated, which is what keeps every path this route touches inside
- * the target it was handed. `pathResolveAdapter` rather than a bare prefix test: a `..` segment in
+ * the target it was handed. `resolve` rather than a bare prefix test: a `..` segment in
  * the fragment makes a string that starts with `target.home` and resolves above it.
  *
  * THE REGISTRATION IS FENCED THE SAME WAY, by `home: target.home`. `guildAddBroker` resolves its
@@ -43,8 +43,9 @@
  * // Returns a Guild carrying exactly that id
  */
 import { guildAddBroker } from '@dungeonmaster/orchestrator/brokers';
-import { fsMkdirAdapter, pathResolveAdapter } from '@dungeonmaster/shared/adapters';
-import { filePathContract, guildIdContract } from '@dungeonmaster/shared/contracts';
+import { ensureDir } from '#gateway/node/fs__promises';
+import { resolve } from '#gateway/node/path';
+import { guildIdContract } from '@dungeonmaster/shared/contracts';
 import type { Guild } from '@dungeonmaster/shared/contracts';
 
 import { guildFieldsContract } from '../../../contracts/guild-fields/guild-fields-contract';
@@ -61,11 +62,11 @@ export const guildWriteRouteBroker = async ({
   const parsedFields = guildFieldsContract.parse(fields);
   const path = guildPathDeriveTransformer({ target, path: parsedFields.path });
 
-  const targetRoot = pathResolveAdapter({ paths: [target.home] });
-  const guildDir = pathResolveAdapter({ paths: [path] });
+  const targetRoot = resolve(target.home);
+  const guildDir = resolve(path);
 
   if (guildDir === targetRoot || guildDir.startsWith(`${targetRoot}/`)) {
-    await fsMkdirAdapter({ filepath: filePathContract.parse(guildDir) });
+    await ensureDir(guildDir);
   }
 
   const id = guildIdContract.optional().parse(fields.id);

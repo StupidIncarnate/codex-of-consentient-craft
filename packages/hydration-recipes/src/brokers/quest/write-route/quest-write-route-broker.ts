@@ -21,14 +21,15 @@
  * the target and into whatever sits above it — a seed that reports success while the test reads an
  * empty target, and the operator's own `~/.dungeonmaster` when the target IS that. Unlike a
  * guild's `path`, no quest file has a legitimate home outside the target, so this throws naming
- * the resolved path instead of quietly writing nothing. `pathResolveAdapter` rather than a bare
+ * the resolved path instead of quietly writing nothing. `resolve` rather than a bare
  * prefix test: `<home>/guilds/<id>/quests/../../..` starts with `target.home` and resolves above it.
  *
  * USAGE:
  * await questWriteRouteBroker({ target, fields: { title, userRequest, status, guildId, … } });
  * // Returns the full Quest record, written to <target.home>/guilds/<guildId>/quests/<id>/quest.json
  */
-import { fsMkdirAdapter, pathResolveAdapter } from '@dungeonmaster/shared/adapters';
+import { ensureDir } from '#gateway/node/fs__promises';
+import { resolve } from '#gateway/node/path';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import {
   fileContentsContract,
@@ -58,16 +59,14 @@ export const questWriteRouteBroker = async ({
 
   const quest = questContract.parse({ ...parsedFields, id, folder, createdAt });
 
-  const targetRoot = pathResolveAdapter({ paths: [target.home] });
-  const questFolderPath = pathResolveAdapter({
-    paths: [
-      target.home,
-      dungeonmasterHomeStatics.paths.guildsDir,
-      parsedFields.guildId,
-      dungeonmasterHomeStatics.paths.questsDir,
-      folder,
-    ],
-  });
+  const targetRoot = resolve(target.home);
+  const questFolderPath = resolve(
+    target.home,
+    dungeonmasterHomeStatics.paths.guildsDir,
+    parsedFields.guildId,
+    dungeonmasterHomeStatics.paths.questsDir,
+    folder,
+  );
 
   if (!questFolderPath.startsWith(`${targetRoot}/`)) {
     throw new Error(
@@ -79,7 +78,7 @@ export const questWriteRouteBroker = async ({
     `${questFolderPath}/${dungeonmasterHomeStatics.paths.questFile}`,
   );
 
-  await fsMkdirAdapter({ filepath: filePathContract.parse(questFolderPath) });
+  await ensureDir(questFolderPath);
   await questPersistDirectBroker({
     target,
     questFilePath,
