@@ -61,7 +61,7 @@ const CONSUMER_NAME = 'acme-consumer';
 // The real scope `install-setup-gateway-responder` scaffolded the four `@gateway/*` packages
 // under, read back off disk — never assumed. `packages/@gateway/node/package.json`'s own `name`
 // is `<scope>/node`; stripping the known `/node` suffix recovers `<scope>` exactly, whatever
-// `workspaceScopeDetectTransformer` decided for THIS consumer's own root package.json.
+// `gatewayScopeDetectTransformer` decided for THIS consumer's own root package.json.
 const detectScope = ({ consumerRoot }) => {
   const nodePkgPath = join(consumerRoot, 'packages', '@gateway', 'node', 'package.json');
   if (!existsSync(nodePkgPath)) {

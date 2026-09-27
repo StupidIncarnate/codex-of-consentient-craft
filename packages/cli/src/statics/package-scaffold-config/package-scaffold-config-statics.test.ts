@@ -125,6 +125,24 @@ describe('packageScaffoldConfigStatics', () => {
       );
     });
 
+    it('VALID: {} => the published node template spreads the published testing base, not the repo-root file', () => {
+      expect(packageScaffoldConfigStatics.jestConfigNodePublished).toMatch(
+        /^const base = require\('@dungeonmaster\/testing\/jest-config-base'\);$/mu,
+      );
+    });
+
+    it('VALID: {} => the published tsx template spreads that same published base and reads its transform tuple back', () => {
+      expect(packageScaffoldConfigStatics.jestConfigTsxPublished).toMatch(
+        /^const base = require\('@dungeonmaster\/testing\/jest-config-base'\);\nconst tsJestEntry = Object\.values\(base\.transform\)\[0\];$/mu,
+      );
+    });
+
+    it('VALID: {} => the published tsx template widens that tuple to tsx/jsx rather than restating it', () => {
+      expect(packageScaffoldConfigStatics.jestConfigTsxPublished).toMatch(
+        /^ {4}'\^\.\+\\\\\.\[jt\]sx\?\$': tsJestEntry,$/mu,
+      );
+    });
+
     it('VALID: {} => the placeholder tokens and their substitution values are the ones the transformer uses', () => {
       expect({
         jestRootsPlaceholder: packageScaffoldConfigStatics.jestRootsPlaceholder,

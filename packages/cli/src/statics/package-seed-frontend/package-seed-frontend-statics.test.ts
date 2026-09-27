@@ -10,7 +10,12 @@ describe('packageSeedFrontendStatics', () => {
           fileName: 'widgets.ts',
           exportPaths: ['./src/widgets/__NAME__-panel/__NAME__-panel-widget'],
         },
-        dependencies: { react: '^19.0.0', 'react-dom': '^19.0.0' },
+        dependencies: {
+          react: '^19.0.0',
+          'react-dom': '^19.0.0',
+          '@types/react': '^19.0.0',
+          '@types/react-dom': '^19.2.3',
+        },
         bin: {},
         compilerOptions: { jsx: 'react-jsx', lib: ['ES2022', 'DOM', 'DOM.Iterable'] },
         extraInclude: ['playwright.config.ts'],

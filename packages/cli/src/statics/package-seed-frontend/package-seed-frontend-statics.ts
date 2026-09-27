@@ -15,9 +15,14 @@ export const packageSeedFrontendStatics = {
       fileName: 'widgets.ts',
       exportPaths: ['./src/widgets/__NAME__-panel/__NAME__-panel-widget'],
     },
+    // `@types/react` and `@types/react-dom` are here, not in a separate devDependencies field the
+    // seed contract has no room for: without them a scaffolded package neither typechecks (no
+    // `React.JSX.Element` global) nor builds (`tsc` reports the same gap in `dist`).
     dependencies: {
       react: '^19.0.0',
       'react-dom': '^19.0.0',
+      '@types/react': '^19.0.0',
+      '@types/react-dom': '^19.2.3',
     },
     bin: {},
     compilerOptions: {

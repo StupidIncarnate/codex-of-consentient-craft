@@ -5,6 +5,23 @@
  * registration) is a single call to a collaborator; this file only sequences those calls and
  * narrates them to stdout.
  *
+ * Scope detection reuses `gatewayScopeDetectTransformer` — the SAME transformer `dungeonmaster
+ * init`'s gateway step used to name `packages/@gateway/*` in the first place (root package.json's
+ * own `name`, falling back to the target directory's basename) — rather than inferring a scope from
+ * any dependency list. A dependency-list scan is unreliable two ways at once: `init` writes every
+ * `@dungeonmaster/*` tooling package into `devDependencies` (never `dependencies`), and even a
+ * merged scan would misread THAT scope as the consumer's own, since `@dungeonmaster/*` is the
+ * tool vendor's scope, not whatever scope the consumer picked for their own workspace. Reusing the
+ * gateway's own detector guarantees a new package's `#gateway/*` imports field always agrees with
+ * the real, already-scaffolded `@gateway/*` packages on disk.
+ *
+ * A scaffolded package's `jest.config.js` also branches on context: this repo's OWN packages
+ * require the repo-root `jest.config.base.js` (packages/CLAUDE.md's own jest section), which exists
+ * only in THIS checkout, so a consumer repo gets no such file and needs the PUBLISHED
+ * `@dungeonmaster/testing/jest-config-base` instead. `usesPublishedJestBase` answers that by asking
+ * disk whether the repo-root file exists, once, here — `packageScaffoldFilesTransformer` stays pure
+ * and only branches on the boolean it is handed.
+ *
  * USAGE:
  * await CliCreatePackageResponder({ context, args: ['--name', 'widgets', '--type', 'library'] });
  * // Scaffolds packages/widgets, registers it in the root package.json, and narrates both to stdout
@@ -12,7 +29,11 @@
 
 import type { AdapterResult, InstallContext } from '@dungeonmaster/shared/contracts';
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
+import {
+  pathJoinAdapter,
+  fsExistsSyncAdapter,
+  pathBasenameAdapter,
+} from '@dungeonmaster/shared/adapters';
 
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { createPackageResolveRequestBroker } from '../../../brokers/create-package/resolve-request/create-package-resolve-request-broker';
@@ -22,7 +43,9 @@ import { packageJsonRawContract } from '../../../contracts/package-json-raw/pack
 import { packageScaffoldConfigStatics } from '../../../statics/package-scaffold-config/package-scaffold-config-statics';
 import { createPackageArgsParseTransformer } from '../../../transformers/create-package-args-parse/create-package-args-parse-transformer';
 import { packageScaffoldFilesTransformer } from '../../../transformers/package-scaffold-files/package-scaffold-files-transformer';
-import { workspaceScopeDetectTransformer } from '../../../transformers/workspace-scope-detect/workspace-scope-detect-transformer';
+import { gatewayScopeDetectTransformer } from '../../../transformers/gateway-scope-detect/gateway-scope-detect-transformer';
+
+const JEST_CONFIG_BASE_FILENAME = 'jest.config.base.js';
 
 export const CliCreatePackageResponder = async ({
   context,
@@ -39,7 +62,16 @@ export const CliCreatePackageResponder = async ({
   const rootPackageJsonContent = await fsReadFileAdapter({ filePath: rootPackageJsonPath });
   const rootPackageJsonRaw: unknown = JSON.parse(rootPackageJsonContent);
   const rootPackageJson = packageJsonRawContract.parse(rootPackageJsonRaw);
-  const scope = workspaceScopeDetectTransformer({ rootPackageJson });
+  const nameKey = packageJsonRawContract.keySchema.parse('name');
+  const rootNameValue = rootPackageJson[nameKey];
+  const rootPackageJsonName = typeof rootNameValue === 'string' ? rootNameValue : undefined;
+  const fallbackName = pathBasenameAdapter({ path: context.targetProjectRoot });
+  const scope = gatewayScopeDetectTransformer({ rootPackageJsonName, fallbackName });
+
+  const jestConfigBasePath = pathJoinAdapter({
+    paths: [context.targetProjectRoot, JEST_CONFIG_BASE_FILENAME],
+  });
+  const usesPublishedJestBase = !fsExistsSyncAdapter({ filePath: jestConfigBasePath });
 
   // Zero args at a terminal prompts; zero args with no TTY falls through to the resolver, which
   // throws naming --name, so a script or agent can never hang on stdin — any args at all is
@@ -51,7 +83,7 @@ export const CliCreatePackageResponder = async ({
     scope,
     interactive,
   });
-  const files = packageScaffoldFilesTransformer({ request });
+  const files = packageScaffoldFilesTransformer({ request, usesPublishedJestBase });
   const packageRoot = pathJoinAdapter({
     paths: [context.targetProjectRoot, request.packagesDir, request.directoryName],
   });

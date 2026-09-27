@@ -128,11 +128,9 @@ describe('mswTrapProbe', () => {
 });
 `;
 
-// `create-package`'s own gateway-scope detection has a real bug for a scaffolded consumer (see
-// `works.mjs`'s `assertAndPatchScopeDetectionBug`, which both ASSERTS it — so the finding stays
-// visible in this suite's own report — and patches the two packages this function scaffolds so the
-// checks that run after it measure the rest of the stack rather than cascading on one already-
-// reported cause). Nothing here works around it silently.
+// `create-package`'s own gateway-scope detection (`works.mjs`'s `assertScopeDetection`, F5) and its
+// scaffolded jest.config.js (`assertJestConfigBase`, F6) are both plain passing assertions against
+// the two packages this function scaffolds — nothing here works around either one.
 export const scaffoldFixturePackages = async ({ consumerRoot, cliBin }) => {
   await runCreatePackage({ consumerRoot, cliBin, name: LIB_PACKAGE_NAME, type: 'library' });
   await runCreatePackage({ consumerRoot, cliBin, name: WEB_PACKAGE_NAME, type: 'frontend-react' });

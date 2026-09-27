@@ -253,11 +253,11 @@ const checkWorkspacePackageGatewayImports = ({ report, consumerRoot, gt, scope }
     .map((entry) => entry.name);
 
   // `scope` is read from the REAL scaffolded `packages/@gateway/node/package.json`'s own `name`
-  // (this suite's `run.mjs` derives it there and passes it in) rather than assumed here — the
-  // consumer's own devDependencies already carry `@dungeonmaster/*` names (this repo's packed
-  // tarballs), so `workspaceScopeDetectTransformer`'s "read the scope off the root package.json's
-  // own workspace deps" rule may or may not land on `@dungeonmaster` for THIS fixture; asserting
-  // against a guessed literal here would silently pass for the wrong reason either way.
+  // (this suite's `run.mjs` derives it there and passes it in) rather than assumed here —
+  // `gatewayScopeDetectTransformer` derives it from the root package.json's own `name` (falling back
+  // to the target directory's basename), which may or may not land on `@dungeonmaster` for THIS
+  // fixture; asserting against a guessed literal here would silently pass for the wrong reason
+  // either way.
   const expectedImports = gt.gatewayImportsFieldTransformer({ scope: scope ?? '@dungeonmaster' });
 
   for (const dirName of packageDirNames) {

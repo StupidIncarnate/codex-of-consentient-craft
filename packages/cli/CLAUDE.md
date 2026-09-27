@@ -39,7 +39,7 @@ The pieces, in the order the responder calls them:
 | File                                                    | Job                                                                |
 |---------------------------------------------------------|--------------------------------------------------------------------|
 | `transformers/create-package-args-parse/`               | argv → `CreatePackageArgs`; throws on an unknown flag or a missing value |
-| `transformers/workspace-scope-detect/`                  | reads the npm scope off the root package.json's own workspace deps |
+| `transformers/gateway-scope-detect/`                    | reads the npm scope off the root package.json's own `name` (falling back to the target directory's basename) — the SAME detector `init`'s gateway step used to name `packages/@gateway/*`, so a new package's scope always agrees with theirs. Never a dependency-list scan: a consumer's own `devDependencies` carry the tool vendor's `@dungeonmaster/*` scope, not the consumer's own |
 | `brokers/create-package/resolve-request/`               | fills the gaps by prompt or refuses by flag — the only file that knows the two modes apart |
 | `transformers/package-scaffold-files/`                  | request → the complete `ScaffoldFile[]`; PURE, which is what makes `--dry-run` truthful |
 | `brokers/package/scaffold-write/`                       | writes them; refuses when the target directory already exists      |
@@ -59,6 +59,12 @@ is what catches it.
 **The config values come from what the packages on disk actually carry, not from the prose.**
 `statics/package-scaffold-config/package-scaffold-config-statics.ts` holds them and its header names the three that a
 hand-copied config gets wrong.
+
+**A scaffolded package's `jest.config.js` body depends on where `create-package` runs.** THIS checkout has a
+repo-root `jest.config.base.js` its own packages `require('../../jest.config.base.js')`; a consumer repo has no such
+file and needs the published `@dungeonmaster/testing/jest-config-base` instead. `CliCreatePackageResponder` checks
+disk for that repo-root file once and passes the answer to `packageScaffoldFilesTransformer` as
+`usesPublishedJestBase`, which stays pure and only branches on the boolean.
 
 ## `dungeonmaster siegelense`
 

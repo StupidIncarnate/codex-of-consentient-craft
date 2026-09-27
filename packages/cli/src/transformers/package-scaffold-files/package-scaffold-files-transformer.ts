@@ -4,6 +4,12 @@
  * access) is what lets `--dry-run` print exactly what a real run would write and lets its own
  * tests assert file bodies without touching disk.
  *
+ * `usesPublishedJestBase` picks the scaffolded `jest.config.js`'s own require target: the
+ * repo-internal `../../jest.config.base.js` form when false (the default — this checkout's own
+ * packages), the published `@dungeonmaster/testing/jest-config-base` form when true (a consumer
+ * repo, which has no such repo-root file). The caller decides which by checking disk; this function
+ * stays pure and only branches on the boolean it is handed, which is what keeps `--dry-run` truthful.
+ *
  * USAGE:
  * packageScaffoldFilesTransformer({ request: CreatePackageRequestStub() });
  * // Returns the ordered ScaffoldFile[] for that request's packageType, every relativePath relative
@@ -34,8 +40,10 @@ const SEED_TABLE = {
 
 export const packageScaffoldFilesTransformer = ({
   request,
+  usesPublishedJestBase = false,
 }: {
   request: CreatePackageRequest;
+  usesPublishedJestBase?: boolean;
 }): readonly ScaffoldFile[] => {
   // `PackageType` carries zod's phantom brand, which TypeScript refuses as an index into a
   // literal-keyed object — matched over entries instead, same workaround as
@@ -168,8 +176,11 @@ export const packageScaffoldFilesTransformer = ({
     exclude: packageScaffoldConfigStatics.buildExclude,
   };
 
-  const jestTemplate =
-    seed.jestKind === 'node'
+  const jestTemplate = usesPublishedJestBase
+    ? seed.jestKind === 'node'
+      ? packageScaffoldConfigStatics.jestConfigNodePublished
+      : packageScaffoldConfigStatics.jestConfigTsxPublished
+    : seed.jestKind === 'node'
       ? seed.needsMswTransform
         ? packageScaffoldConfigStatics.jestConfigNodeIntegration
         : packageScaffoldConfigStatics.jestConfigNode

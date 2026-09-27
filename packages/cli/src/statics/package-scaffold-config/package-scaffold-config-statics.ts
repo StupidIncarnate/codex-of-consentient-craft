@@ -22,6 +22,17 @@
  * that imports `@dungeonmaster/testing`'s root barrel already hand-carries; the transformer picks
  * it over `jestConfigNode` for a seed whose `needsMswTransform` is true.
  *
+ * `jestConfigNodePublished` / `jestConfigTsxPublished` are the same two shapes for a CONSUMER repo,
+ * which has no `jest.config.base.js` at its root (only this checkout does) — the responder picks
+ * these when that file is absent, and picks the pair above when it is present. The published
+ * `@dungeonmaster/testing/jest-config-base` already transforms every extension `[cm]?[jt]s` with no
+ * per-library ignore list (see that file's own header), so ONE node template covers what
+ * `jestConfigNode` and `jestConfigNodeIntegration` split in two internally. The tsx variant widens
+ * that same transform to include `x` by reading the tuple back OFF the spread base's own `transform`
+ * object (`Object.values(base.transform)[0]`) rather than requiring `./ts-jest/published-options.js`
+ * directly — `@dungeonmaster/testing`'s `package.json` `exports` map has no subpath for it, so an
+ * external `require` of that path 404s under Node's own resolution.
+ *
  * USAGE:
  * packageScaffoldConfigStatics.buildCompilerOptions;
  * // Returns the compilerOptions block for a package's tsconfig.build.json
@@ -151,6 +162,37 @@ module.exports = {
         tsconfig: { ...dungeonmasterTsJestOptions.tsconfig, jsx: 'react-jsx' },
       },
     ],
+  },
+};
+`,
+
+  // The published-base sibling of `jestConfigNode` (and of `jestConfigNodeIntegration`, which a
+  // consumer needs no separate variant for — see this file's PURPOSE header). No
+  // `setupFilesAfterEnv` override: unlike the repo-internal base above, the published base already
+  // wires its own `jest.setup.js` + `start-endpoint-mock-setup.ts` pair, and restating the array here
+  // would only risk dropping one of them.
+  jestConfigNodePublished: `const base = require('@dungeonmaster/testing/jest-config-base');
+
+module.exports = {
+  ...base,
+  roots: [__ROOTS__],
+};
+`,
+
+  // The published-base sibling of `jestConfigTsx`. `tsJestEntry` is read back off the spread base's
+  // own `transform` value rather than required directly, because `@dungeonmaster/testing`'s
+  // `package.json` `exports` carries no `./ts-jest/*` subpath for an outside `require` to reach.
+  jestConfigTsxPublished: `const base = require('@dungeonmaster/testing/jest-config-base');
+const tsJestEntry = Object.values(base.transform)[0];
+
+module.exports = {
+  ...base,
+  testEnvironment: '__TEST_ENVIRONMENT__',
+  roots: [__ROOTS__],
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'mjs', 'json'],
+  testMatch: ['**/src/**/*.test.[jt]s?(x)'],
+  transform: {
+    '^.+\\\\.[jt]sx?$': tsJestEntry,
   },
 };
 `,

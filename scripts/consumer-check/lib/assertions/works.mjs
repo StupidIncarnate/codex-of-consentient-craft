@@ -1,11 +1,11 @@
 /**
  * Proves the freshly-init-ed consumer actually WORKS — typecheck, lint (plus the known F1 lint
- * failure on the copied `@gateway/node`, asserted rather than swallowed, and a SECOND, newly-found
- * bug in `create-package`'s own scope detection, asserted and then patched around so the rest of
- * the stack can still be measured), the copied gateways' own tests, the I/O trap, a mocked
- * gateway-proxy test, the consumer's own build, the pre-edit hook, and idempotent re-init — every
- * check here shells out to the consumer's OWN installed binaries (`node_modules/.bin/*`), never
- * this checkout's compiled output.
+ * failure on the copied `@gateway/node`, asserted rather than swallowed), `create-package`'s own
+ * scope detection and scaffolded jest config (F5, F6 — plain passing assertions now that both are
+ * fixed; no patching), the copied gateways' own tests, the I/O trap, a mocked gateway-proxy test,
+ * the consumer's own build, the pre-edit hook, and idempotent re-init — every check here shells out
+ * to the consumer's OWN installed binaries (`node_modules/.bin/*`), never this checkout's compiled
+ * output.
  */
 
 import { copyFileSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
@@ -17,19 +17,12 @@ import { LIB_PACKAGE_NAME, WEB_PACKAGE_NAME, scaffoldFixturePackages } from '../
 
 const cliBinPath = ({ consumerRoot }) => join(consumerRoot, 'node_modules', '.bin', 'dungeonmaster');
 
-// FOUND BUG (not F1 — a new, unlabeled unit; the agent's report names it precisely):
-// `dungeonmaster create-package`'s own `workspaceScopeDetectTransformer`
-// (packages/cli/src/transformers/workspace-scope-detect/workspace-scope-detect-transformer.ts)
-// looks ONLY at the root package.json's `dependencies` for an entry whose version is the literal
-// string `"*"` and whose name is `@scope/name`. But `dungeonmaster init`'s own
-// `install-add-dev-deps-responder` writes every `@dungeonmaster/*` package into `devDependencies`
-// (never `dependencies`) at version `"*"` — so for ANY real consumer (this fixture included, which
-// additionally uses `dependencies` for its packed-tarball `file:` specifiers, since a real npm
-// install of these unpublished packages needs one), the detector finds no matching entry and
-// silently returns an EMPTY scope. Every package `create-package` scaffolds after `init` then gets
-// a broken `imports` field (`"#gateway/npm/*": "/npm/*"` — an absolute-looking, unresolvable
-// target), which is the root cause behind every downstream `#gateway/...` resolution failure in
-// this fixture's own `lib`/`app` packages, confirmed against a real run.
+// F5 (gateway-pivot): the real, on-disk scope every scaffolded package's `#gateway/*` imports field
+// must agree with — read straight off `packages/@gateway/node/package.json`'s own `name` (never
+// assumed), the same package `dungeonmaster init`'s gateway step scaffolded and named with
+// `gatewayScopeDetectTransformer`. `create-package`'s own scope detection now reuses that SAME
+// transformer, so the two are guaranteed to agree by construction; this only proves it holds for a
+// real run.
 const detectCorrectScope = ({ consumerRoot }) => {
   const nodePkgPath = join(consumerRoot, 'packages', '@gateway', 'node', 'package.json');
   const nodePkg = JSON.parse(readFileSync(nodePkgPath, 'utf8'));
@@ -40,7 +33,7 @@ const detectCorrectScope = ({ consumerRoot }) => {
   return nodePkg.name.slice(0, -suffix.length);
 };
 
-const assertAndPatchScopeDetectionBug = ({ report, consumerRoot, gt }) => {
+const assertScopeDetection = ({ report, consumerRoot, gt }) => {
   const correctScope = detectCorrectScope({ consumerRoot });
   if (correctScope === null) {
     report.check('could not detect the real gateway scope to check create-package against', false, '');
@@ -54,61 +47,33 @@ const assertAndPatchScopeDetectionBug = ({ report, consumerRoot, gt }) => {
     const actualImports = packageJson.imports ?? {};
     const matches = JSON.stringify(actualImports) === JSON.stringify(correctImports);
     report.check(
-      `FOUND BUG (packages/cli workspace-scope-detect-transformer.ts, not F1, not this item's to fix): ` +
-        `create-package gave packages/${packageName} a working #gateway/* imports field`,
+      `create-package gave packages/${packageName} a working #gateway/* imports field (F5)`,
       matches,
-      matches
-        ? ''
-        : `create-package wrote ${JSON.stringify(actualImports)} — every @dungeonmaster/* devDependency ` +
-          `this consumer carries at version "*" sits in .devDependencies, which ` +
-          `workspaceScopeDetectTransformer never reads (only .dependencies) — patched to ` +
-          `${JSON.stringify(correctImports)} so the checks below measure the rest of the stack`,
+      matches ? '' : `got ${JSON.stringify(actualImports)}, expected ${JSON.stringify(correctImports)}`,
     );
-    if (!matches) {
-      writeFileSync(
-        packageJsonPath,
-        `${JSON.stringify({ ...packageJson, imports: correctImports }, null, 2)}\n`,
-      );
-    }
   }
 };
 
-// FOUND BUG (not F1, not the scope-detect bug above — a THIRD, separate unit): `create-package`'s
-// scaffolded `jest.config.js` does `require('../../jest.config.base.js')` — a path that resolves
-// only inside THIS monorepo (two levels up from `packages/<name>/` is the repo root's own
-// `jest.config.base.js`). A real consumer has no such file at its root; every fresh package's own
-// jest run crashes outright: `Cannot find module '../../jest.config.base.js'` (confirmed against a
-// real run of this suite). Asserted, then patched to spread the PUBLISHED
-// `@dungeonmaster/testing/jest-config-base` instead — the same rewrite `packages/CLAUDE.md`
-// prescribes for every package's own config — so the checks below (typecheck already covers
-// resolution; this unblocks unit/build) measure the rest of the stack instead of cascading on one
-// already-reported cause.
-const assertAndPatchJestConfigBug = ({ report, consumerRoot }) => {
+// F6 (gateway-pivot): a real consumer has no repo-root `jest.config.base.js` of its own (only THIS
+// checkout does), so `create-package`'s scaffolded `jest.config.js` must require the PUBLISHED
+// `@dungeonmaster/testing/jest-config-base` instead of the repo-relative path this checkout's own
+// packages use.
+const assertJestConfigBase = ({ report, consumerRoot }) => {
   for (const packageName of [LIB_PACKAGE_NAME, WEB_PACKAGE_NAME]) {
     const jestConfigPath = join(consumerRoot, 'packages', packageName, 'jest.config.js');
     if (!existsSync(jestConfigPath)) {
+      report.check(`packages/${packageName}/jest.config.js exists (F6)`, false, jestConfigPath);
       continue;
     }
     const content = readFileSync(jestConfigPath, 'utf8');
-    const referencesMonorepoBase = content.includes("require('../../jest.config.base.js')");
-    report.check(
-      `FOUND BUG (packages/cli create-package jest.config.js template, not this item's to fix): ` +
-        `create-package gave packages/${packageName} a working jest.config.js`,
-      !referencesMonorepoBase,
-      referencesMonorepoBase
-        ? "create-package wrote require('../../jest.config.base.js') — a path that resolves only " +
-          'inside this monorepo; every fresh consumer package crashes at "Cannot find module ' +
-          '\'../../jest.config.base.js\'" — patched to spread the PUBLISHED ' +
-          '@dungeonmaster/testing/jest-config-base so the checks below measure the rest of the stack'
-        : '',
+    const requiresPublishedBase = content.includes(
+      "require('@dungeonmaster/testing/jest-config-base')",
     );
-    if (referencesMonorepoBase) {
-      writeFileSync(
-        jestConfigPath,
-        "const base = require('@dungeonmaster/testing/jest-config-base');\n\n" +
-          "module.exports = { ...base, roots: ['<rootDir>/src'] };\n",
-      );
-    }
+    report.check(
+      `create-package gave packages/${packageName} a jest.config.js requiring the published testing base (F6)`,
+      requiresPublishedBase,
+      requiresPublishedBase ? '' : content,
+    );
   }
 };
 
@@ -426,8 +391,8 @@ export const runWorksAssertions = async ({ report, consumerRoot, gt, mode }) => 
     gt,
   });
 
-  assertAndPatchScopeDetectionBug({ report, consumerRoot, gt });
-  assertAndPatchJestConfigBug({ report, consumerRoot });
+  assertScopeDetection({ report, consumerRoot, gt });
+  assertJestConfigBase({ report, consumerRoot });
 
   // `lintViolationFile` (from sample-sources.mjs) sits at the consumer ROOT — outside every
   // package's own tsconfig `include`, so typescript-eslint's `parserOptions.project` can never

@@ -487,6 +487,17 @@ describe('packageScaffoldFilesTransformer', () => {
       });
     });
 
+    it('VALID: {packageType: "frontend-react"} => dependencies carry @types/react and @types/react-dom, so the seed typechecks and builds', () => {
+      const files = packageScaffoldFilesTransformer({
+        request: CreatePackageRequestStub({ packageType: 'frontend-react' }),
+      });
+      const packageJsonFile = files.find((file) => file.relativePath === 'package.json');
+
+      expect(packageJsonFile!.contents).toMatch(
+        /^ {2}"dependencies": \{$\n^ {4}"react": "\^19\.0\.0",$\n^ {4}"react-dom": "\^19\.0\.0",$\n^ {4}"@types\/react": "\^19\.0\.0",$\n^ {4}"@types\/react-dom": "\^19\.2\.3"$\n^ {2}\},$/mu,
+      );
+    });
+
     it.each(packageBuildOrderStatics.tiers.flat())(
       'VALID: {packageType: %s} => package.json imports maps all four #gateway folders to the request scope',
       (packageType) => {
@@ -603,6 +614,52 @@ module.exports = {
   setupFilesAfterEnv: ['<rootDir>/../../packages/testing/src/jest.setup.js'],
 };
 `);
+    });
+
+    // F6: a consumer repo has no repo-root `jest.config.base.js` (only this checkout does), so its
+    // scaffolded packages must require the PUBLISHED `@dungeonmaster/testing/jest-config-base`
+    // instead — never the repo-relative path above, which is unresolvable outside this monorepo.
+    describe('usesPublishedJestBase: true (a consumer repo)', () => {
+      it('VALID: {packageType: "library"} => jest config requires the published testing base, not the repo-root file', () => {
+        const files = packageScaffoldFilesTransformer({
+          request: CreatePackageRequestStub(),
+          usesPublishedJestBase: true,
+        });
+        const jestConfigFile = files.find((file) => file.relativePath === 'jest.config.js');
+
+        expect(jestConfigFile!.contents)
+          .toBe(`const base = require('@dungeonmaster/testing/jest-config-base');
+
+module.exports = {
+  ...base,
+  roots: ['<rootDir>/src'],
+};
+`);
+      });
+
+      it('VALID: {packageType: "frontend-react"} => jest config requires the published testing base and widens its transform to tsx/jsx', () => {
+        const files = packageScaffoldFilesTransformer({
+          request: CreatePackageRequestStub({ packageType: 'frontend-react' }),
+          usesPublishedJestBase: true,
+        });
+        const jestConfigFile = files.find((file) => file.relativePath === 'jest.config.js');
+
+        expect(jestConfigFile!.contents)
+          .toBe(`const base = require('@dungeonmaster/testing/jest-config-base');
+const tsJestEntry = Object.values(base.transform)[0];
+
+module.exports = {
+  ...base,
+  testEnvironment: 'jsdom',
+  roots: ['<rootDir>/src'],
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'mjs', 'json'],
+  testMatch: ['**/src/**/*.test.[jt]s?(x)'],
+  transform: {
+    '^.+\\\\.[jt]sx?$': tsJestEntry,
+  },
+};
+`);
+      });
     });
   });
 
