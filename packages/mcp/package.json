@@ -63,5 +63,8 @@
     "@dungeonmaster/testing": "*",
     "@types/node": "^20.0.0",
     "tsx": "^4.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

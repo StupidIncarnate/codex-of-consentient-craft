@@ -46,19 +46,29 @@ module.exports = {
   // ts-jest never transforms them and Jest hands the raw TypeScript to Node's CJS loader, which
   // fails every single test with "Must use import to load ES Module" — confirmed against a real
   // packed-and-installed consumer (this repo's own scratch-consumer proof, item G25).
-  // `msw|@mswjs|until-async|outvariant` joins that carve-out for the same reason
-  // `start-endpoint-mock-setup.ts` now loads here: MSW ships ESM-only `.js` with no CJS build, and
-  // a consumer install has msw hoisted to its own top-level `node_modules`, not nested under
-  // `@dungeonmaster/testing`.
-  transformIgnorePatterns: [
-    '/node_modules/(?!(@dungeonmaster/testing|msw|@mswjs|until-async|outvariant)/)',
-  ],
-  moduleFileExtensions: ['ts', 'js', 'json'],
-  // `[jt]s`, not `ts` alone: `transformIgnorePatterns` above only decides which node_modules paths
-  // are ELIGIBLE for transforming — msw's own `.js`/`.mjs` files still need ts-jest (allowJs: true,
-  // see `published-options.js`) to actually down-level their bare `export` syntax to `require()`.
+  // An empty list, not a named carve-out, because `msw`'s OWN transitive dependency graph turned
+  // out too deep and too volatile to enumerate by name: tracing `msw`'s `dependencies` recursively
+  // against a real packed-and-installed consumer (item G27) found 21 further ESM-only packages
+  // reached from `start-endpoint-mock-setup.ts` requiring `msw/node` alone (`rettime`,
+  // `@open-draft/deferred-promise`, `headers-polyfill`, `tough-cookie`, `set-cookie-parser`, the
+  // whole `@inquirer/confirm` CLI-prompt chain it pulls in — `yargs`, `cliui`, `string-width`,
+  // `wrap-ansi`, `y18n`, ...) — a named-package carve-out here is exactly the kind of second list
+  // that silently drifts the day msw (or any future setupFilesAfterEnv dependency) adds one more.
+  // Transforming everything costs real time only for files a test run ACTUALLY requires, and
+  // ts-jest's `allowJs` (`published-options.js`) already down-levels plain JS/ESM fine.
+  transformIgnorePatterns: [],
+  moduleFileExtensions: ['ts', 'js', 'mjs', 'json'],
+  // `[cm]?[jt]s`, not `[jt]s` alone: `transformIgnorePatterns` above only decides which
+  // node_modules paths are ELIGIBLE for transforming — msw's own dependency chain ships real
+  // `.mjs` files (`rettime`) that `^.+\.[jt]s$` never matched (an `.mjs` extension has no literal
+  // "." immediately before its `js`), so ts-jest never even got asked to down-level them, and
+  // Node's own CJS loader rejected the raw `import`/`export` syntax before ts-jest saw the file at
+  // all — confirmed against a real packed-and-installed consumer (item G27): "Must use import to
+  // load ES Module" fired on `rettime/build/index.mjs` even with the pattern above widened to
+  // include `rettime`, because THIS regex, not that one, was what excluded the file from a
+  // transform in the first place.
   transform: {
-    '^.+\\.[jt]s$': ['ts-jest', dungeonmasterTsJestOptions],
+    '^.+\\.[cm]?[jt]s$': ['ts-jest', dungeonmasterTsJestOptions],
   },
   coverageDirectory: 'coverage',
   verbose: false,
