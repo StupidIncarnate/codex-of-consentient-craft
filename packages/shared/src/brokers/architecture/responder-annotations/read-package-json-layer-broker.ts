@@ -11,7 +11,7 @@
  * WHEN-TO-USE: responder-annotations brokers reading package.json for bin entry discovery
  */
 
-import { fsReadFileSyncAdapter } from '../../../adapters/fs/read-file-sync/fs-read-file-sync-adapter';
+import { readFileSync } from '#gateway/node/fs';
 import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import {
@@ -26,8 +26,8 @@ export const readPackageJsonLayerBroker = ({
 }): PackageJson | undefined => {
   const filePath = absoluteFilePathContract.parse(`${String(packageRoot)}/package.json`);
   try {
-    const content = fsReadFileSyncAdapter({ filePath });
-    return packageJsonContract.parse(JSON.parse(String(content)));
+    const content = readFileSync(String(filePath));
+    return packageJsonContract.parse(JSON.parse(content));
   } catch {
     return undefined;
   }

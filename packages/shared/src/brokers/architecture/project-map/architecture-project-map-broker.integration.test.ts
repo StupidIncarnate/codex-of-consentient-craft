@@ -11,10 +11,10 @@ import { architectureProjectMapBroker } from './architecture-project-map-broker'
 import { discoverPackagesLayerBroker } from './discover-packages-layer-broker';
 import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { PackageNameStub } from '../../../contracts/package-name/package-name.stub';
-import { processCwdAdapter } from '../../../adapters/process/cwd/process-cwd-adapter';
+import { cwd as getCwd } from '#gateway/node/process';
 import { projectMapStatics } from '../../../statics/project-map/project-map-statics';
 
-const cwd = String(processCwdAdapter());
+const cwd = getCwd();
 const projectRoot = AbsoluteFilePathStub({
   value: cwd.slice(0, cwd.lastIndexOf('/packages/')),
 });

@@ -13,7 +13,7 @@
  * needs both a package's display name and its real on-disk path relative to `packages/`
  */
 
-import { fsReaddirWithTypesAdapter } from '../../../adapters/fs/readdir-with-types/fs-readdir-with-types-adapter';
+import { readdirEntriesSync, type DirEntrySync } from '#gateway/node/fs';
 import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
@@ -28,14 +28,14 @@ export const discoverPackagesLayerBroker = ({
 }: {
   dirPath: AbsoluteFilePath;
 }): { name: ContentText; relativeDir: PathSegment }[] => {
-  let topLevelEntries: ReturnType<typeof fsReaddirWithTypesAdapter> = [];
+  let topLevelEntries: DirEntrySync[] = [];
   try {
-    topLevelEntries = fsReaddirWithTypesAdapter({ dirPath });
+    topLevelEntries = readdirEntriesSync(String(dirPath));
   } catch {
     // Single-root mode (no packages/ directory): the empty initialization above already signals it.
   }
 
-  const directoryEntries = topLevelEntries.filter((entry) => entry.isDirectory());
+  const directoryEntries = topLevelEntries.filter((entry) => entry.kind === 'directory');
 
   const directPackages = directoryEntries
     .filter((entry) => !entry.name.startsWith(GROUP_FOLDER_PREFIX))
@@ -48,15 +48,15 @@ export const discoverPackagesLayerBroker = ({
     .filter((entry) => entry.name.startsWith(GROUP_FOLDER_PREFIX))
     .flatMap((group) => {
       const groupPath = absoluteFilePathContract.parse(`${String(dirPath)}/${group.name}`);
-      let groupEntries: ReturnType<typeof fsReaddirWithTypesAdapter> = [];
+      let groupEntries: DirEntrySync[] = [];
       try {
-        groupEntries = fsReaddirWithTypesAdapter({ dirPath: groupPath });
+        groupEntries = readdirEntriesSync(String(groupPath));
       } catch {
         // A group folder that vanished between the two reads is treated the same as an empty one.
       }
 
       return groupEntries
-        .filter((child) => child.isDirectory())
+        .filter((child) => child.kind === 'directory')
         .map((child) => ({
           name: contentTextContract.parse(child.name),
           relativeDir: pathSegmentContract.parse(`${group.name}/${child.name}`),

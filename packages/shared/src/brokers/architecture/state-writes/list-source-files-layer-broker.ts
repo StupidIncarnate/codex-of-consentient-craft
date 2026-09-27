@@ -26,7 +26,7 @@ export const listSourceFilesLayerBroker = ({
   const results: AbsoluteFilePath[] = [];
   for (const entry of entries) {
     const entryPath = absoluteFilePathContract.parse(`${String(dirPath)}/${entry.name}`);
-    if (entry.isDirectory()) {
+    if (entry.kind === 'directory') {
       const children = listSourceFilesLayerBroker({ dirPath: entryPath });
       for (const child of children) {
         results.push(child);

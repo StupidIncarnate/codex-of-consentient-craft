@@ -1,25 +1,24 @@
-import { fsReadFileSyncAdapterProxy } from '../../../adapters/fs/read-file-sync/fs-read-file-sync-adapter.proxy';
+import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
 import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 
 export const readPackageJsonLayerBrokerProxy = (): {
   setupJson: ({ packageRoot, json }: { packageRoot: AbsoluteFilePath; json: unknown }) => void;
   setupMissing: ({ packageRoot }: { packageRoot: AbsoluteFilePath }) => void;
 } => {
-  const fsProxy = fsReadFileSyncAdapterProxy();
+  const gatewayProxy = readFileSyncProxy();
 
   return {
     setupJson: ({ packageRoot, json }: { packageRoot: AbsoluteFilePath; json: unknown }): void => {
-      fsProxy.returns({
-        filePath: AbsoluteFilePathStub({ value: `${String(packageRoot)}/package.json` }),
-        content: JSON.stringify(json) as ContentText,
+      gatewayProxy.returns({
+        path: String(AbsoluteFilePathStub({ value: `${String(packageRoot)}/package.json` })),
+        contents: JSON.stringify(json),
       });
     },
 
     setupMissing: ({ packageRoot }: { packageRoot: AbsoluteFilePath }): void => {
-      fsProxy.throws({
-        filePath: AbsoluteFilePathStub({ value: `${String(packageRoot)}/package.json` }),
+      gatewayProxy.throws({
+        path: String(AbsoluteFilePathStub({ value: `${String(packageRoot)}/package.json` })),
         error: new Error('ENOENT'),
       });
     },

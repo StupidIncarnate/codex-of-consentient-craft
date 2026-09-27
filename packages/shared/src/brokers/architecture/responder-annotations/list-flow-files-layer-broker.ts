@@ -14,7 +14,7 @@
 import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import { isNonTestFileGuard } from '../../../guards/is-non-test-file/is-non-test-file-guard';
-import { fsReaddirWithTypesAdapter } from '../../../adapters/fs/readdir-with-types/fs-readdir-with-types-adapter';
+import { readdirEntriesSync } from '#gateway/node/fs';
 
 export const listFlowFilesLayerBroker = ({
   packageRoot,
@@ -30,10 +30,10 @@ export const listFlowFilesLayerBroker = ({
     if (current === undefined) break;
 
     try {
-      const entries = fsReaddirWithTypesAdapter({ dirPath: current });
+      const entries = readdirEntriesSync(String(current));
       for (const entry of entries) {
         const entryPath = absoluteFilePathContract.parse(`${String(current)}/${entry.name}`);
-        if (entry.isDirectory()) {
+        if (entry.kind === 'directory') {
           stack.push(entryPath);
         } else if (entry.name.endsWith('-flow.ts') && isNonTestFileGuard({ filePath: entryPath })) {
           results.push(entryPath);

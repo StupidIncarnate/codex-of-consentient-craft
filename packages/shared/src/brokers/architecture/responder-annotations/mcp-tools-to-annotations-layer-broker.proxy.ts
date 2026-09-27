@@ -1,4 +1,4 @@
-import type { Dirent } from 'fs';
+import type { DirEntrySync } from '#gateway/node/fs';
 import { listFlowFilesLayerBrokerProxy } from './list-flow-files-layer-broker.proxy';
 import { architectureSourceReadBrokerProxy } from '../source-read/architecture-source-read-broker.proxy';
 import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
@@ -13,7 +13,7 @@ export const mcpToolsToAnnotationsLayerBrokerProxy = (): {
     flowFiles,
   }: {
     packageRoot: AbsoluteFilePath;
-    flowEntries: Dirent[];
+    flowEntries: DirEntrySync[];
     flowFiles: { path: AbsoluteFilePath; source: ContentText }[];
   }) => void;
 } => {
@@ -27,7 +27,7 @@ export const mcpToolsToAnnotationsLayerBrokerProxy = (): {
       flowFiles,
     }: {
       packageRoot: AbsoluteFilePath;
-      flowEntries: Dirent[];
+      flowEntries: DirEntrySync[];
       flowFiles: { path: AbsoluteFilePath; source: ContentText }[];
     }): void => {
       listProxy.returns({

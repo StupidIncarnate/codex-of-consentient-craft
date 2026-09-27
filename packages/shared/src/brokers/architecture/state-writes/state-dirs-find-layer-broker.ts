@@ -28,6 +28,6 @@ export const stateDirsFindLayerBroker = ({
   const entries = safeReaddirLayerBroker({ dirPath: stateDirPath });
 
   return entries
-    .filter((entry) => entry.isDirectory())
+    .filter((entry) => entry.kind === 'directory')
     .map((entry) => contentTextContract.parse(entry.name));
 };

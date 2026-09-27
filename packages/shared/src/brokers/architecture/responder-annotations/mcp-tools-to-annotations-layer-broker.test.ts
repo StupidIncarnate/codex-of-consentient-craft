@@ -1,10 +1,8 @@
+import type { DirEntrySync } from '#gateway/node/fs';
 import { mcpToolsToAnnotationsLayerBroker } from './mcp-tools-to-annotations-layer-broker';
 import { mcpToolsToAnnotationsLayerBrokerProxy } from './mcp-tools-to-annotations-layer-broker.proxy';
 import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
-import type { fsReaddirWithTypesAdapter } from '../../../adapters/fs/readdir-with-types/fs-readdir-with-types-adapter';
-
-type Dirent = ReturnType<typeof fsReaddirWithTypesAdapter>[0];
 
 const PACKAGE_ROOT = AbsoluteFilePathStub({ value: '/repo/packages/mcp' });
 
@@ -12,19 +10,7 @@ const QUEST_HANDLE_RESPONDER_PATH = AbsoluteFilePathStub({
   value: '/repo/packages/mcp/src/responders/quest/handle/quest-handle-responder.ts',
 });
 
-const makeFileDirent = ({ name }: { name: string }): Dirent =>
-  ({
-    name,
-    parentPath: '/stub',
-    path: '/stub',
-    isDirectory: () => false,
-    isFile: () => true,
-    isBlockDevice: () => false,
-    isCharacterDevice: () => false,
-    isFIFO: () => false,
-    isSocket: () => false,
-    isSymbolicLink: () => false,
-  }) as Dirent;
+const makeFileDirent = ({ name }: { name: string }): DirEntrySync => ({ name, kind: 'file' });
 
 describe('mcpToolsToAnnotationsLayerBroker', () => {
   describe('empty package', () => {

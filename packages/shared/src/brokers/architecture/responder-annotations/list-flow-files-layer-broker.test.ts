@@ -1,40 +1,14 @@
+import type { DirEntrySync } from '#gateway/node/fs';
 import { listFlowFilesLayerBroker } from './list-flow-files-layer-broker';
 import { listFlowFilesLayerBrokerProxy } from './list-flow-files-layer-broker.proxy';
 import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
-import type { fsReaddirWithTypesAdapter } from '../../../adapters/fs/readdir-with-types/fs-readdir-with-types-adapter';
-
-type Dirent = ReturnType<typeof fsReaddirWithTypesAdapter>[0];
 
 const PACKAGE_ROOT = AbsoluteFilePathStub({ value: '/repo/packages/mcp' });
 const FLOWS_DIR = AbsoluteFilePathStub({ value: '/repo/packages/mcp/src/flows' });
 
-const makeFileDirent = ({ name }: { name: string }): Dirent =>
-  ({
-    name,
-    parentPath: '/stub',
-    path: '/stub',
-    isDirectory: () => false,
-    isFile: () => true,
-    isBlockDevice: () => false,
-    isCharacterDevice: () => false,
-    isFIFO: () => false,
-    isSocket: () => false,
-    isSymbolicLink: () => false,
-  }) as Dirent;
+const makeFileDirent = ({ name }: { name: string }): DirEntrySync => ({ name, kind: 'file' });
 
-const makeDirDirent = ({ name }: { name: string }): Dirent =>
-  ({
-    name,
-    parentPath: '/stub',
-    path: '/stub',
-    isDirectory: () => true,
-    isFile: () => false,
-    isBlockDevice: () => false,
-    isCharacterDevice: () => false,
-    isFIFO: () => false,
-    isSocket: () => false,
-    isSymbolicLink: () => false,
-  }) as Dirent;
+const makeDirDirent = ({ name }: { name: string }): DirEntrySync => ({ name, kind: 'directory' });
 
 describe('listFlowFilesLayerBroker', () => {
   describe('no flows directory', () => {
