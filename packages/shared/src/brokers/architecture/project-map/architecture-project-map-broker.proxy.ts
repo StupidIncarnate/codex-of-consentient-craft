@@ -1,4 +1,5 @@
 import { architecturePackageTypeDetectBrokerProxy } from '../package-type-detect/architecture-package-type-detect-broker.proxy';
+import { architectureGatewayInventoryBrokerProxy } from '../gateway-inventory/architecture-gateway-inventory-broker.proxy';
 import { packageSectionBuildLayerBrokerProxy } from './package-section-build-layer-broker.proxy';
 import { pointerFooterRenderLayerBrokerProxy } from './pointer-footer-render-layer-broker.proxy';
 import { discoverPackagesLayerBrokerProxy } from './discover-packages-layer-broker.proxy';
@@ -6,6 +7,7 @@ import { ContentTextStub } from '../../../contracts/content-text/content-text.st
 import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { projectMapStatics } from '../../../statics/project-map/project-map-statics';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
+import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 
 /**
  * All sub-proxies share the same underlying `readdirSync` and `readFileSync` staging — one
@@ -48,9 +50,21 @@ export const architectureProjectMapBrokerProxy = (): {
     packageName: string;
   }) => void;
   setupEmptyMonorepo: ({ projectRoot }: { projectRoot: AbsoluteFilePath }) => void;
+  setupGatewaySubpath: ({
+    projectRoot,
+    folder,
+    subpathName,
+    barrelContent,
+  }: {
+    projectRoot: AbsoluteFilePath;
+    folder: string;
+    subpathName: string;
+    barrelContent?: ContentText;
+  }) => void;
 } => {
   const discoverProxy = discoverPackagesLayerBrokerProxy();
   const typeDetectProxy = architecturePackageTypeDetectBrokerProxy();
+  const gatewayInventoryProxy = architectureGatewayInventoryBrokerProxy();
   packageSectionBuildLayerBrokerProxy();
   pointerFooterRenderLayerBrokerProxy();
 
@@ -172,6 +186,25 @@ export const architectureProjectMapBrokerProxy = (): {
         dirPath: AbsoluteFilePathStub({
           value: `${String(projectRoot)}/${projectMapStatics.packagesDirName}`,
         }),
+      });
+    },
+
+    setupGatewaySubpath: ({
+      projectRoot,
+      folder,
+      subpathName,
+      barrelContent,
+    }: {
+      projectRoot: AbsoluteFilePath;
+      folder: string;
+      subpathName: string;
+      barrelContent?: ContentText;
+    }): void => {
+      gatewayInventoryProxy.setupSubpath({
+        projectRoot,
+        folder,
+        subpathName,
+        ...(barrelContent !== undefined && { barrelContent }),
       });
     },
   };

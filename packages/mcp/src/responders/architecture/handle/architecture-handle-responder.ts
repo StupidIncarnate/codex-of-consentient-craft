@@ -28,6 +28,7 @@ import {
   architectureOverviewBroker,
   architecturePackageInventoryBroker,
   architectureProjectMapBroker,
+  architectureGatewayInventoryBroker,
 } from '@dungeonmaster/shared/brokers';
 import {
   absoluteFilePathContract,
@@ -36,6 +37,7 @@ import {
   contentTextContract as sharedContentTextContract,
 } from '@dungeonmaster/shared/contracts';
 import { fsExistsSyncAdapter, fsReaddirWithTypesAdapter } from '@dungeonmaster/shared/adapters';
+import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
 // sharedContentTextContract is used to brand the packageName string for the inventory broker call
 import { architectureFolderDetailBroker } from '../../../brokers/architecture/folder-detail/architecture-folder-detail-broker';
 import { architectureTestingPatternsBroker } from '../../../brokers/architecture/testing-patterns/architecture-testing-patterns-broker';
@@ -159,6 +161,26 @@ export const ArchitectureHandleResponder = async ({
     const { packageName } = getProjectInventoryInputContract.parse(args);
     const { repoRoot, source, configFound } = await ResolveCallerRepoRootLayerResponder({ meta });
     const banner = callerRepoRootBannerTransformer({ repoRoot, source, configFound });
+
+    // '#gateway' is never a real directory under packages/ — it names all four real gateway
+    // packages (npm, node, browser, bin) grouped as one, so it is answered here before the
+    // direct/group-folder lookup below, which resolves each of THEM by their own bare name.
+    if (String(packageName) === gatewayLocationsStatics.importPrefix) {
+      const gatewayResult = architectureGatewayInventoryBroker({
+        projectRoot: absoluteFilePathContract.parse(String(repoRoot)),
+      });
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: contentTextContract.parse(
+              `${banner}\n\n## ${String(packageName)} — outside packages, Node, the browser and installed programs, reached only through here\n\n${gatewayResult}`,
+            ),
+          },
+        ],
+      };
+    }
 
     const packagesPath = absoluteFilePathContract.parse(`${repoRoot}/packages`);
     const directPackageDir = absoluteFilePathContract.parse(`${packagesPath}/${packageName}`);

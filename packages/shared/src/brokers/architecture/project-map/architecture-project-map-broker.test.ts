@@ -2,6 +2,7 @@ import { architectureProjectMapBroker } from './architecture-project-map-broker'
 import { architectureProjectMapBrokerProxy } from './architecture-project-map-broker.proxy';
 import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { PackageNameStub } from '../../../contracts/package-name/package-name.stub';
+import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
 import { projectMapStatics } from '../../../statics/project-map/project-map-statics';
 
 describe('architectureProjectMapBroker', () => {
@@ -179,6 +180,72 @@ describe('architectureProjectMapBroker', () => {
           packages: [PackageNameStub({ value: '@gateway' })],
         }),
       ).rejects.toThrow(/Unknown package\(s\): @gateway\. Valid: npm/u);
+    });
+  });
+
+  describe('#gateway grouped view', () => {
+    it('VALID: {packages: [#gateway]} => renders the # #gateway [gateway] header, never "Unknown package(s)"', async () => {
+      const proxy = architectureProjectMapBrokerProxy();
+      const projectRoot = AbsoluteFilePathStub({ value: '/project' });
+      proxy.setupEmptyMonorepo({ projectRoot });
+
+      const result = await architectureProjectMapBroker({
+        projectRoot,
+        packages: [PackageNameStub({ value: '#gateway' })],
+      });
+
+      expect(
+        String(result)
+          .split('\n')
+          .some((l) =>
+            l.startsWith(
+              '# #gateway [gateway] — outside packages, Node, the browser and installed programs, reached only through here',
+            ),
+          ),
+      ).toBe(true);
+    });
+
+    it('VALID: {packages: [#gateway], a real node/fs subpath on disk} => the grouped body appears inline', async () => {
+      const proxy = architectureProjectMapBrokerProxy();
+      const projectRoot = AbsoluteFilePathStub({ value: '/project' });
+      proxy.setupEmptyMonorepo({ projectRoot });
+      proxy.setupGatewaySubpath({
+        projectRoot,
+        folder: 'node',
+        subpathName: 'fs',
+        barrelContent: ContentTextStub({
+          value: [
+            "export * from 'fs';",
+            "export { existsSync } from './exists-sync/exists-sync';",
+          ].join('\n'),
+        }),
+      });
+
+      const result = await architectureProjectMapBroker({
+        projectRoot,
+        packages: [PackageNameStub({ value: '#gateway' })],
+      });
+
+      const lines = String(result).split('\n');
+
+      expect(lines.some((l) => l === "  #gateway/node/fs  passes through 'fs'")).toBe(true);
+      expect(lines.some((l) => l === '      ours: existsSync')).toBe(true);
+    });
+
+    it('VALID: {packages: [#gateway, root]} => both the gateway section and the other package render', async () => {
+      const proxy = architectureProjectMapBrokerProxy();
+      const projectRoot = AbsoluteFilePathStub({ value: '/project' });
+      proxy.setupEmptyMonorepo({ projectRoot });
+
+      const result = await architectureProjectMapBroker({
+        projectRoot,
+        packages: [PackageNameStub({ value: '#gateway' }), PackageNameStub({ value: 'root' })],
+      });
+
+      const lines = String(result).split('\n');
+
+      expect(lines.some((l) => l.startsWith('# #gateway [gateway]'))).toBe(true);
+      expect(lines.some((l) => l === '# root [library]')).toBe(true);
     });
   });
 

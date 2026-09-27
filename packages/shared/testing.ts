@@ -32,6 +32,7 @@ export * from './src/adapters/fetch/get/fetch-get-adapter.proxy';
 export * from './src/brokers/architecture/overview/architecture-overview-broker.proxy';
 export * from './src/brokers/architecture/project-map/architecture-project-map-broker.proxy';
 export * from './src/brokers/architecture/package-inventory/architecture-package-inventory-broker.proxy';
+export * from './src/brokers/architecture/gateway-inventory/architecture-gateway-inventory-broker.proxy';
 export * from './src/brokers/architecture/package-type-detect/architecture-package-type-detect-broker.proxy';
 export * from './src/brokers/architecture/package-e2e-eligible-detect/architecture-package-e2e-eligible-detect-broker.proxy';
 export * from './src/brokers/architecture/boot-tree/architecture-boot-tree-broker.proxy';

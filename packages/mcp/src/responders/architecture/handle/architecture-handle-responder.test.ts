@@ -1,5 +1,6 @@
 import { ToolNameStub } from '../../../contracts/tool-name/tool-name.stub';
 import {
+  ContentTextStub,
   FileContentsStub,
   GlobPatternStub,
   PathSegmentStub as FilePathStub,
@@ -243,6 +244,33 @@ describe('ArchitectureHandleResponder', () => {
         '## npm (0 files)',
         `  ${projectMapStatics.emptyLabel}`,
       ]);
+    });
+
+    it('VALID: {packageName: #gateway} => renders the grouped body, never the "(0 files) (empty)" @gateway bug', async () => {
+      const proxy = ArchitectureHandleResponderProxy();
+      proxy.setupGatewaySubpath({
+        folder: 'node',
+        subpathName: 'fs',
+        barrelContent: ContentTextStub({
+          value: [
+            "export * from 'fs';",
+            "export { existsSync } from './exists-sync/exists-sync';",
+          ].join('\n'),
+        }),
+      });
+
+      const result = await proxy.callResponder({
+        tool: ToolNameStub({ value: 'get-project-inventory' }),
+        args: { packageName: '#gateway' },
+      });
+
+      const lines = String(result.content[0]!.text).split('\n');
+
+      expect(lines[2]).toBe(
+        '## #gateway — outside packages, Node, the browser and installed programs, reached only through here',
+      );
+      expect(lines.some((l) => l === "  #gateway/node/fs  passes through 'fs'")).toBe(true);
+      expect(lines.some((l) => l === '      ours: existsSync')).toBe(true);
     });
   });
 

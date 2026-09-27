@@ -15,9 +15,7 @@
  * `packages/@gateway/<folder>/src`, not `packages/<folder>/src`, so a positional split lands on
  * `@gateway` instead. `importPrefix` is the text every caller imports the gateway through
  * (`#gateway/<folder>/<subpath>`), mapped by each package's own `package.json` `imports` field, so
- * the import reads the same in every repo whatever the gateway packages are named. `testSubpath`
- * names each gateway package's proxy barrel; it starts with `_` because no npm package name can,
- * so it never collides with a real subpath.
+ * the import reads the same in every repo whatever the gateway packages are named.
  *
  * USAGE:
  * gatewayLocationsStatics.folders.node;
@@ -40,6 +38,5 @@ const packageGlobs = Object.values(folders).map((folder) => `packages/@gateway/$
 export const gatewayLocationsStatics = {
   folders,
   importPrefix: '#gateway',
-  testSubpath: '_test_',
   packageGlobs,
 } as const;

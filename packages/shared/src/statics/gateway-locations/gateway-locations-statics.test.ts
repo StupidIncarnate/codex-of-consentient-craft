@@ -10,7 +10,6 @@ describe('gatewayLocationsStatics', () => {
         bin: 'bin',
       },
       importPrefix: '#gateway',
-      testSubpath: '_test_',
       packageGlobs: [
         'packages/@gateway/npm/src/**',
         'packages/@gateway/node/src/**',

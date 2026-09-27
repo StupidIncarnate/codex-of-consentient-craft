@@ -11,11 +11,13 @@ import {
   architectureOverviewBrokerProxy,
   architecturePackageInventoryBrokerProxy,
   architectureProjectMapBrokerProxy,
+  architectureGatewayInventoryBrokerProxy,
   fsExistsSyncAdapterProxy,
   fsReaddirWithTypesAdapterProxy,
 } from '@dungeonmaster/shared/testing';
 import { AbsoluteFilePathStub, FilePathStub } from '@dungeonmaster/shared/contracts';
 import type {
+  ContentText,
   FileContents,
   FolderType,
   GlobPattern,
@@ -69,6 +71,11 @@ export const ArchitectureHandleResponderProxy = (): {
   setupLibraryPackage: (params: { packageName: string }) => void;
   setupFrontendInkPackage: (params: { packageName: string }) => void;
   setupGatewayGroupPackage: (params: { groupName: string; packageName: string }) => void;
+  setupGatewaySubpath: (params: {
+    folder: string;
+    subpathName: string;
+    barrelContent?: ContentText;
+  }) => void;
   setupEmptyMonorepo: () => void;
   setupCallerCwdRoot: (params: {
     toolUseId: string;
@@ -84,6 +91,7 @@ export const ArchitectureHandleResponderProxy = (): {
   architectureOverviewBrokerProxy();
   architecturePackageInventoryBrokerProxy();
   const projectMapProxy = architectureProjectMapBrokerProxy();
+  const gatewayInventoryProxy = architectureGatewayInventoryBrokerProxy();
   const discoverProxy = mcpDiscoverBrokerProxy();
   // Only get-project-inventory's own gateway-group resolution addresses these two directly — every
   // other branch reaches fs through architecturePackageInventoryBrokerProxy /
@@ -160,6 +168,22 @@ export const ArchitectureHandleResponderProxy = (): {
       readdirProxy.returns({
         dirPath: AbsoluteFilePathStub({ value: `${String(packagesPath)}/${groupName}` }),
         entries: [makeDirent({ name: packageName, isDir: true })],
+      });
+    },
+    setupGatewaySubpath: ({
+      folder,
+      subpathName,
+      barrelContent,
+    }: {
+      folder: string;
+      subpathName: string;
+      barrelContent?: ContentText;
+    }): void => {
+      gatewayInventoryProxy.setupSubpath({
+        projectRoot: DEFAULT_PROJECT_ROOT,
+        folder,
+        subpathName,
+        ...(barrelContent !== undefined && { barrelContent }),
       });
     },
     setupEmptyMonorepo: (): void => {

@@ -14,10 +14,12 @@
  */
 
 import { architecturePackageTypeDetectBroker } from '../package-type-detect/architecture-package-type-detect-broker';
+import { architectureGatewayInventoryBroker } from '../gateway-inventory/architecture-gateway-inventory-broker';
 import { packageSectionBuildLayerBroker } from './package-section-build-layer-broker';
 import { pointerFooterRenderLayerBroker } from './pointer-footer-render-layer-broker';
 import { discoverPackagesLayerBroker } from './discover-packages-layer-broker';
 import { projectMapStatics } from '../../../statics/project-map/project-map-statics';
+import { gatewayLocationsStatics } from '../../../statics/gateway-locations/gateway-locations-statics';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
@@ -66,7 +68,14 @@ export const architectureProjectMapBroker = async ({
 
   const discoveredNames = scanTargets.map(({ packageName }) => String(packageName));
   const requestedNames = packages.map((name) => String(name));
-  const unknown = requestedNames.filter((name) => !discoveredNames.includes(name));
+  // '#gateway' is never a real directory under packages/ — discoverPackagesLayerBroker only ever
+  // sees the four real gateway packages (npm, node, browser, bin) as separate entries — so it is
+  // excluded from the "must be discoverable" check below and rendered as its own grouped section
+  // instead, via architectureGatewayInventoryBroker.
+  const gatewayGroupName = gatewayLocationsStatics.importPrefix;
+  const isGatewayRequested = requestedNames.includes(gatewayGroupName);
+  const namesRequiringDiscovery = requestedNames.filter((name) => name !== gatewayGroupName);
+  const unknown = namesRequiringDiscovery.filter((name) => !discoveredNames.includes(name));
   if (unknown.length > 0) {
     const validList = [...discoveredNames].sort((a, b) => a.localeCompare(b)).join(', ');
     throw new Error(`Unknown package(s): ${unknown.join(', ')}. Valid: ${validList}`);
@@ -101,11 +110,20 @@ export const architectureProjectMapBroker = async ({
         }),
   );
 
+  const orderedSections = isGatewayRequested
+    ? [
+        contentTextContract.parse(
+          `# ${gatewayGroupName} [gateway] — outside packages, Node, the browser and installed programs, reached only through here\n\n${architectureGatewayInventoryBroker({ projectRoot })}`,
+        ),
+        ...packageSections,
+      ]
+    : packageSections;
+
   const topLevelParts: ContentText[] = [
     contentTextContract.parse(
       `${projectMapStatics.symbolLegend}\n${projectMapStatics.urlPairingConvention}`,
     ),
-    ...packageSections,
+    ...orderedSections,
     pointerFooterRenderLayerBroker(),
   ];
 
