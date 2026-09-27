@@ -6,7 +6,7 @@
  * // Returns { status: 200, data: guild } or { status: 400/500, data: { error } }
  */
 
-import { orchestratorGetGuildAdapter } from '../../../adapters/orchestrator/get-guild/orchestrator-get-guild-adapter';
+import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { guildIdParamsContract } from '../../../contracts/guild-id-params/guild-id-params-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
@@ -33,7 +33,7 @@ export const GuildGetResponder = async ({
       });
     }
     const { guildId } = parsedParams.data;
-    const guild = await orchestratorGetGuildAdapter({ guildId });
+    const guild = await StartOrchestrator.getGuild({ guildId });
     return responderResultContract.parse({ status: httpStatusStatics.success.ok, data: guild });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to get guild';

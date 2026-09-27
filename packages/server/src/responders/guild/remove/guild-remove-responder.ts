@@ -6,7 +6,7 @@
  * // Returns { status: 200, data: { success: true } } or { status: 400/500, data: { error } }
  */
 
-import { orchestratorRemoveGuildAdapter } from '../../../adapters/orchestrator/remove-guild/orchestrator-remove-guild-adapter';
+import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { guildIdParamsContract } from '../../../contracts/guild-id-params/guild-id-params-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
@@ -33,7 +33,7 @@ export const GuildRemoveResponder = async ({
       });
     }
     const { guildId } = parsedParams.data;
-    await orchestratorRemoveGuildAdapter({ guildId });
+    await StartOrchestrator.removeGuild({ guildId });
     return responderResultContract.parse({
       status: httpStatusStatics.success.ok,
       data: { success: true },

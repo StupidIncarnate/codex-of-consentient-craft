@@ -1,4 +1,4 @@
-import { orchestratorGetGuildAdapterProxy } from '../../../adapters/orchestrator/get-guild/orchestrator-get-guild-adapter.proxy';
+import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import type { GuildId, GuildStub } from '@dungeonmaster/shared/contracts';
 import { GuildGetResponder } from './guild-get-responder';
 
@@ -9,14 +9,14 @@ export const GuildGetResponderProxy = (): {
   setupGetGuildError: (params: { guildId: GuildId; message: string }) => void;
   callResponder: typeof GuildGetResponder;
 } => {
-  const adapterProxy = orchestratorGetGuildAdapterProxy();
+  const orchestrator = StartOrchestratorProxy();
 
   return {
     setupGetGuild: ({ guild }: { guild: Guild }): void => {
-      adapterProxy.returns({ guild });
+      orchestrator.getGuildReturns({ guild });
     },
     setupGetGuildError: ({ guildId, message }: { guildId: GuildId; message: string }): void => {
-      adapterProxy.throws({ guildId, error: new Error(message) });
+      orchestrator.getGuildThrows({ guildId, error: new Error(message) });
     },
     callResponder: GuildGetResponder,
   };

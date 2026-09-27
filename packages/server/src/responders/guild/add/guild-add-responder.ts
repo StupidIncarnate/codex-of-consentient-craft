@@ -6,7 +6,7 @@
  * // Returns { status: 201, data: guild } or { status: 400/500, data: { error } }
  */
 
-import { orchestratorAddGuildAdapter } from '../../../adapters/orchestrator/add-guild/orchestrator-add-guild-adapter';
+import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { guildAddBodyContract } from '../../../contracts/guild-add-body/guild-add-body-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
@@ -29,7 +29,7 @@ export const GuildAddResponder = async ({ body }: { body: unknown }): Promise<Re
       });
     }
     const { name, path } = parsedBody.data;
-    const result = await orchestratorAddGuildAdapter({ name, path });
+    const result = await StartOrchestrator.addGuild({ name, path });
     return responderResultContract.parse({
       status: httpStatusStatics.success.created,
       data: result,
