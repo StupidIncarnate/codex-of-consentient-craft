@@ -274,28 +274,6 @@ export const siegelenseHelpStatics = {
         'By default, a human summary — suggested and ceiling counts, the spec, a why sentence naming every figure it reasoned from, the measured host block, and the one profile group it divided by. `--json` prints the raw CapacityAnswer (profile null for a spec nothing has run).',
       example: 'dungeonmaster siegelense capacity --spec stack --pool 3',
     },
-    profile: {
-      summary:
-        'siegelense profile — what one instance of a lane spec costs, measured. Starts nothing.',
-      synopsis: 'dungeonmaster siegelense profile --spec <specName> [--json]',
-      flags: [
-        {
-          name: '--spec',
-          value: '<specName>',
-          required: true,
-          description:
-            "the lane spec to report on. A profile is keyed by that spec's content hash, so there is no fleet-wide form.",
-        },
-        JSON_FLAG,
-      ],
-      refusals: [
-        'Reads what was measured and never measures on demand — a spec nothing has run yet answers samples: [] and bootMs: null rather than booting an instance to find out.',
-        'Samples are grouped by pool size and never averaged across them: a solo reading and a contended one describe different worlds, so read the group matching the pool you are about to open.',
-      ],
-      output:
-        "By default, spec name, process count, content hash, measuredAt/boot/runs, and a box-drawing table of samples by pool size (or 'none measured yet'). `--json` prints the raw SpecProfile.",
-      example: 'dungeonmaster siegelense profile --spec stack',
-    },
     status: {
       summary: 'siegelense status — report the fleet, or one instance in full.',
       synopsis:

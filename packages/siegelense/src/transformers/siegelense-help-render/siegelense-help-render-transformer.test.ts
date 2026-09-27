@@ -152,7 +152,7 @@ describe('siegelenseHelpRenderTransformer', () => {
       const result = siegelenseHelpRenderTransformer({ call: null });
 
       expect(result).toBe(
-        'dungeonmaster siegelense — every built call reachable without installing anything. 13 of 13 calls are built.\n' +
+        'dungeonmaster siegelense — every built call reachable without installing anything. 12 of 12 calls are built.\n' +
           '\n' +
           'CALLS\n' +
           '  siegelense start — boot one instance for a lane spec and block until the driver answers or the boot deadline passes.\n' +
@@ -160,7 +160,6 @@ describe('siegelenseHelpRenderTransformer', () => {
           '  siegelense results — read evidence off disk for one instance. Starts nothing.\n' +
           '  siegelense kill — stop one running instance.\n' +
           '  siegelense capacity — how many instances this machine can take right now. Ask before opening a pool. Starts nothing.\n' +
-          '  siegelense profile — what one instance of a lane spec costs, measured. Starts nothing.\n' +
           '  siegelense status — report the fleet, or one instance in full.\n' +
           '  siegelense cleanup — reap every stale instance the registry holds.\n' +
           '  siegelense prune — reclaim asset space deliberately, rather than waiting for the age-out window.\n' +

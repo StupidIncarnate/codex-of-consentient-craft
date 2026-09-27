@@ -1,7 +1,7 @@
 /**
- * PURPOSE: Covers ONLY what belongs to the router itself, not to any one of the thirteen
+ * PURPOSE: Covers ONLY what belongs to the router itself, not to any one of the twelve
  * `dungeonmaster siegelense` subcommands: the `--help` surface (bare, and after a call name), the
- * `driver` call (outside the thirteen-command surface), the three-way fall-through for an
+ * `driver` call (outside the twelve-command surface), the three-way fall-through for an
  * unrecognised `args[0]` (a closed-set name with no route, an unknown name, and absent args), and
  * dispatch — that a given `args[0]` reaches the right layer flow. Per-flag behaviour, per-command
  * refusals, rendered output and `--json` shapes belong to each command's own
@@ -215,7 +215,7 @@ describe('SiegelenseFlow', () => {
   describe('an unknown subcommand', () => {
     it('INVALID: {args: [statuss]} => rejects naming the unknown subcommand instead of falling back to the fleet listing', async () => {
       await expect(SiegelenseFlow({ args: ['statuss'] })).rejects.toThrow(
-        /^Unknown siegelense subcommand: statuss\n\nUsage: dungeonmaster siegelense \[--help \| start \| run \| results \| kill \| capacity \| status \| cleanup \| prune \| compare \| profile \| snapshots \| recipes \| docs \| driver --instance <instanceId>\]$/u,
+        /^Unknown siegelense subcommand: statuss\n\nUsage: dungeonmaster siegelense \[--help \| start \| run \| results \| kill \| capacity \| status \| cleanup \| prune \| compare \| snapshots \| recipes \| docs \| driver --instance <instanceId>\]$/u,
       );
     });
   });

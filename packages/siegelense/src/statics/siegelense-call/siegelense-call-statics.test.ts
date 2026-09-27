@@ -10,7 +10,6 @@ describe('siegelenseCallStatics', () => {
           'results',
           'kill',
           'capacity',
-          'profile',
           'status',
           'cleanup',
           'prune',
@@ -26,14 +25,13 @@ describe('siegelenseCallStatics', () => {
     });
   });
 
-  it('VALID: {calls.names} => returns the complete thirteen-name array, and it holds no "look"', () => {
+  it('VALID: {calls.names} => returns the complete twelve-name array, and it holds no "look"', () => {
     expect(siegelenseCallStatics.calls.names).toStrictEqual([
       'start',
       'run',
       'results',
       'kill',
       'capacity',
-      'profile',
       'status',
       'cleanup',
       'prune',
