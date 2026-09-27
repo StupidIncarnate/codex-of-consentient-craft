@@ -1,10 +1,12 @@
 /**
  * PURPOSE: Validates the `gateway` key of `.dungeonmaster.json` — the mechanism this epic uses to ban
  * or restrict a gateway export as bugs arise, without hard-coding the ban into the gateway's own
- * source. Split out of `dungeonmasterConfigContract` (rather than inlined under its `gateway` key) so
- * eslint-plugin's three gateway lint rules can parse this ONE shape directly as a rule OPTION —
- * `configDungeonmasterBroker` reads `.dungeonmaster.json` once when ESLint's flat config loads and
- * passes the parsed value to every rule, so no rule reads a file itself for this shape.
+ * source. Lives here, not in `config` or `eslint-plugin`, because `eslint.config.js` loads
+ * eslint-plugin's rule brokers from TypeScript source but resolves a cross-package import through
+ * that OTHER package's BUILT `dist` — a `config`-only copy goes stale on every lint run until someone
+ * rebuilds `config`. Both `config` and `eslint-plugin` already depend on `@dungeonmaster/shared`, so
+ * this one copy is what `dungeonmasterConfigContract` and the three gateway lint rules parse
+ * identically, never two hand-kept shapes.
  *
  * USAGE:
  * gatewayLintConfigContract.parse({

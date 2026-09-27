@@ -1,7 +1,7 @@
 import { ruleEnforceGatewayConfigNamesExistBroker } from './rule-enforce-gateway-config-names-exist-broker';
 import { ruleEnforceGatewayConfigNamesExistBrokerProxy } from './rule-enforce-gateway-config-names-exist-broker.proxy';
 import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
-import { GatewayLintConfigStub } from '../../../contracts/gateway-lint-config/gateway-lint-config.stub';
+import { GatewayLintConfigStub } from '@dungeonmaster/shared/contracts';
 
 const ruleTester = eslintRuleTesterAdapter();
 

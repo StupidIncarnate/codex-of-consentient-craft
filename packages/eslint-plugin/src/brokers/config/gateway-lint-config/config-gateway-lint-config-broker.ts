@@ -14,11 +14,13 @@
  * configGatewayLintConfigBroker({ startDir: filePathContract.parse(__dirname) });
  * // Returns {} when no `.dungeonmaster.json` exists yet, or the parsed `gateway` key otherwise
  */
-import { filePathContract } from '@dungeonmaster/shared/contracts';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
+import {
+  filePathContract,
+  gatewayLintConfigContract,
+  type FilePath,
+  type GatewayLintConfig,
+} from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import { gatewayLintConfigContract } from '../../../contracts/gateway-lint-config/gateway-lint-config-contract';
-import type { GatewayLintConfig } from '../../../contracts/gateway-lint-config/gateway-lint-config-contract';
 import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter';
 import { fsReadFileSyncAdapter } from '../../../adapters/fs/read-file-sync/fs-read-file-sync-adapter';
 import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';

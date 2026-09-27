@@ -32,8 +32,8 @@ export * from './src/contracts/framework/framework.stub';
 export * from './src/contracts/framework-presets/framework-presets-contract';
 export * from './src/contracts/framework-presets/framework-presets.stub';
 
-export * from './src/contracts/gateway-lint-config/gateway-lint-config-contract';
-export * from './src/contracts/gateway-lint-config/gateway-lint-config.stub';
+// gatewayLintConfigContract / GatewayLintConfigStub live in @dungeonmaster/shared/contracts —
+// nothing outside this package imports config's copy, so this barrel re-exports neither.
 
 export * from './src/contracts/routing-library/routing-library-contract';
 export * from './src/contracts/routing-library/routing-library.stub';

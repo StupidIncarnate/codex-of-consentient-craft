@@ -1,6 +1,6 @@
 import { ruleBanGatewayExportBroker } from './rule-ban-gateway-export-broker';
 import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
-import { GatewayLintConfigStub } from '../../../contracts/gateway-lint-config/gateway-lint-config.stub';
+import { GatewayLintConfigStub } from '@dungeonmaster/shared/contracts';
 
 const ruleTester = eslintRuleTesterAdapter();
 

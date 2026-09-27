@@ -811,3 +811,8 @@ export * from './src/contracts/routed-graph-node-key/routed-graph-node-key-contr
 export * from './src/contracts/routed-graph-node-key/routed-graph-node-key.stub';
 export * from './src/contracts/routed-graph/routed-graph-contract';
 export * from './src/contracts/routed-graph/routed-graph.stub';
+
+// Gateway Lint Config Contracts (the `gateway` key of `.dungeonmaster.json` — parsed once by
+// `configDungeonmasterBroker`'s caller and passed into the three gateway lint rules as a rule option)
+export * from './src/contracts/gateway-lint-config/gateway-lint-config-contract';
+export * from './src/contracts/gateway-lint-config/gateway-lint-config.stub';

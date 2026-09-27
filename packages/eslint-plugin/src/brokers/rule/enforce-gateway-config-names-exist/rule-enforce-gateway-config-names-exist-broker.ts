@@ -14,8 +14,7 @@
  * // Registered at 'error' with the SAME gateway lint config option the other two gateway rules take;
  * // only reports while linting dungeonmaster-config-contract.ts
  */
-import { gatewayLintConfigContract } from '../../../contracts/gateway-lint-config/gateway-lint-config-contract';
-import { filePathContract } from '@dungeonmaster/shared/contracts';
+import { filePathContract, gatewayLintConfigContract } from '@dungeonmaster/shared/contracts';
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';

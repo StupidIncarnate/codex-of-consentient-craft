@@ -16,7 +16,7 @@
  * // Registered with options: [{restrictedTo: [{subpath: '#gateway/bin/spawn', packages: ['@dungeonmaster/orchestrator'], reason: '...'}]}]
  * // Flags `import { spawn } from '#gateway/bin/spawn'` from any package other than orchestrator
  */
-import { gatewayLintConfigContract } from '../../../contracts/gateway-lint-config/gateway-lint-config-contract';
+import { gatewayLintConfigContract } from '@dungeonmaster/shared/contracts';
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';

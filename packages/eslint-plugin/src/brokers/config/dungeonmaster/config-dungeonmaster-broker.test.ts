@@ -1,6 +1,6 @@
 import { configDungeonmasterBroker } from './config-dungeonmaster-broker';
 import { configDungeonmasterBrokerProxy } from './config-dungeonmaster-broker.proxy';
-import { GatewayLintConfigStub } from '../../../contracts/gateway-lint-config/gateway-lint-config.stub';
+import { GatewayLintConfigStub } from '@dungeonmaster/shared/contracts';
 
 describe('configDungeonmasterBroker', () => {
   describe('return value structure', () => {

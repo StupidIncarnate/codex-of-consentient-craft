@@ -1,8 +1,8 @@
 /**
  * PURPOSE: Validates dungeonmaster configuration structure for projects. The `gateway` key embeds
- * `gatewayLintConfigContract` rather than declaring its own shape inline, so eslint-plugin's gateway
- * lint rules can parse that one contract directly as a rule option — this file and those rules stay
- * in step by construction, never by two hand-kept copies of the same shape.
+ * `@dungeonmaster/shared`'s `gatewayLintConfigContract` rather than declaring its own shape inline, so
+ * eslint-plugin's gateway lint rules can parse that one contract directly as a rule option — this file
+ * and those rules stay in step by construction, never by two hand-kept copies of the same shape.
  *
  * USAGE:
  * import {dungeonmasterConfigContract} from './dungeonmaster-config-contract';
@@ -11,13 +11,16 @@
  */
 
 import { z } from 'zod';
-import { networkPortContract, orchestrationModeContract } from '@dungeonmaster/shared/contracts';
+import {
+  gatewayLintConfigContract,
+  networkPortContract,
+  orchestrationModeContract,
+} from '@dungeonmaster/shared/contracts';
 import { configDefaultsStatics } from '../../statics/config-defaults/config-defaults-statics';
 import { frameworkStatics } from '../../statics/framework/framework-statics';
 import { routingLibraryStatics } from '../../statics/routing-library/routing-library-statics';
 import { schemaLibraryStatics } from '../../statics/schema-library/schema-library-statics';
 import { devServerE2eProcessContract } from '../dev-server-e2e-process/dev-server-e2e-process-contract';
-import { gatewayLintConfigContract } from '../gateway-lint-config/gateway-lint-config-contract';
 
 export const dungeonmasterConfigContract = z
   .object({

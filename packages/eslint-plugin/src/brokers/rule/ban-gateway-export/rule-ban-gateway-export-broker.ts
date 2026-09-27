@@ -13,7 +13,7 @@
  * // Registered with options: [{bannedExports: [{subpath: '#gateway/node/fs', name: 'readFileSync', use: 'readFile', reason: '...'}]}]
  * // Flags `import { readFileSync } from '#gateway/node/fs'`
  */
-import { gatewayLintConfigContract } from '../../../contracts/gateway-lint-config/gateway-lint-config-contract';
+import { gatewayLintConfigContract } from '@dungeonmaster/shared/contracts';
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';

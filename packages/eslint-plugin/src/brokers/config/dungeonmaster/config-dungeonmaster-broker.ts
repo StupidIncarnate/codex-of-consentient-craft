@@ -32,7 +32,7 @@ import { typescriptEslintEslintPluginLoadAdapter } from '../../../adapters/types
 import { eslintPluginJestLoadAdapter } from '../../../adapters/eslint-plugin-jest/load/eslint-plugin-jest-load-adapter';
 import { eslintPluginEslintCommentsLoadAdapter } from '../../../adapters/eslint-plugin-eslint-comments/load/eslint-plugin-eslint-comments-load-adapter';
 import { eslintConflictResolverTransformer } from '../../../transformers/eslint-conflict-resolver/eslint-conflict-resolver-transformer';
-import type { GatewayLintConfig } from '../../../contracts/gateway-lint-config/gateway-lint-config-contract';
+import type { GatewayLintConfig } from '@dungeonmaster/shared/contracts';
 
 type DeepWritable<T> = T extends readonly (infer U)[]
   ? DeepWritable<U>[]
