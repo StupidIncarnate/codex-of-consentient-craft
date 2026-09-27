@@ -42,10 +42,11 @@ describe('readlinkIfLink', () => {
   describe('sad paths', () => {
     it('ERROR: {path: permission denied} => rejects with the raw EACCES error', async () => {
       const proxy = readlinkIfLinkProxy();
-      const error = FsErrorStub({ code: 'EACCES' });
-      proxy.rejects({ path: '/repo/locked', error });
+      proxy.denied({ path: '/repo/locked' });
 
-      await expect(readlinkIfLink('/repo/locked')).rejects.toBe(error);
+      await expect(readlinkIfLink('/repo/locked')).rejects.toStrictEqual(
+        FsErrorStub({ code: 'EACCES', path: '/repo/locked' }),
+      );
     });
   });
 });

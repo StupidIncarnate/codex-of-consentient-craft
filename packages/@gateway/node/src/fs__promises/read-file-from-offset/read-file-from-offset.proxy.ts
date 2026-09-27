@@ -1,10 +1,13 @@
 import { open } from 'fs/promises';
 import type { FileHandle } from 'fs/promises';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
+import { FsErrorStub } from '../../fs/is-fs-error/fs-error.stub';
 
 export const readFileFromOffsetProxy = (): {
   returns: (params: { path: string; size: number; contents: string }) => void;
-  rejects: (params: { path: string; error: unknown }) => void;
+  missing: (params: { path: string }) => void;
+  denied: (params: { path: string }) => void;
+  isDirectory: (params: { path: string }) => void;
 } => {
   const handle = registerMock({ fn: open });
 
@@ -26,8 +29,14 @@ export const readFileFromOffsetProxy = (): {
 
       handle.calledWith([path, 'r']).resolves(fileHandle);
     },
-    rejects: ({ path, error }: { path: string; error: unknown }): void => {
-      handle.calledWith([path, 'r']).rejects(error);
+    missing: ({ path }: { path: string }): void => {
+      handle.calledWith([path, 'r']).rejects(FsErrorStub({ code: 'ENOENT', path }));
+    },
+    denied: ({ path }: { path: string }): void => {
+      handle.calledWith([path, 'r']).rejects(FsErrorStub({ code: 'EACCES', path }));
+    },
+    isDirectory: ({ path }: { path: string }): void => {
+      handle.calledWith([path, 'r']).rejects(FsErrorStub({ code: 'EISDIR', path }));
     },
   };
 };

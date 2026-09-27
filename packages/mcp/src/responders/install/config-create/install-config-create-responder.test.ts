@@ -6,7 +6,6 @@
  */
 
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
-import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { dungeonmasterConfigCreatorTransformer } from '../../../transformers/dungeonmaster-config-creator/dungeonmaster-config-creator-transformer';
 import { InstallConfigCreateResponderProxy } from './install-config-create-responder.proxy';
 
@@ -159,12 +158,8 @@ describe('InstallConfigCreateResponder', () => {
     it('ERROR: {EACCES reading .mcp.json} => rejects naming the file and never writes', async () => {
       const proxy = InstallConfigCreateResponderProxy();
       const targetProjectRoot = FilePathStub({ value: '/project' });
-      const configPath = '/project/.mcp.json';
 
-      proxy.setupFileReadError({
-        targetProjectRoot,
-        error: FsErrorStub({ code: 'EACCES', path: configPath, syscall: 'open' }),
-      });
+      proxy.setupFileReadError({ targetProjectRoot });
 
       await expect(
         proxy.callResponder({

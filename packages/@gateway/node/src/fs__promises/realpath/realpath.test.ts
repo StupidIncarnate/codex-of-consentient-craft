@@ -20,26 +20,29 @@ describe('realpath', () => {
   describe('sad paths', () => {
     it('ERROR: {path: missing} => rejects with the raw ENOENT error', async () => {
       const proxy = realpathProxy();
-      const error = FsErrorStub({ code: 'ENOENT' });
-      proxy.rejects({ path: '/repo/missing', error });
+      proxy.missing({ path: '/repo/missing' });
 
-      await expect(realpath('/repo/missing')).rejects.toBe(error);
+      await expect(realpath('/repo/missing')).rejects.toStrictEqual(
+        FsErrorStub({ code: 'ENOENT', path: '/repo/missing' }),
+      );
     });
 
     it('ERROR: {path: permission denied} => rejects with the raw EACCES error', async () => {
       const proxy = realpathProxy();
-      const error = FsErrorStub({ code: 'EACCES' });
-      proxy.rejects({ path: '/repo/locked', error });
+      proxy.denied({ path: '/repo/locked' });
 
-      await expect(realpath('/repo/locked')).rejects.toBe(error);
+      await expect(realpath('/repo/locked')).rejects.toStrictEqual(
+        FsErrorStub({ code: 'EACCES', path: '/repo/locked' }),
+      );
     });
 
     it('ERROR: {path: a parent segment that is a file} => rejects with the raw ENOTDIR error', async () => {
       const proxy = realpathProxy();
-      const error = FsErrorStub({ code: 'ENOTDIR' });
-      proxy.rejects({ path: '/repo/.dungeonmaster.json/nested', error });
+      proxy.notADirectory({ path: '/repo/.dungeonmaster.json/nested' });
 
-      await expect(realpath('/repo/.dungeonmaster.json/nested')).rejects.toBe(error);
+      await expect(realpath('/repo/.dungeonmaster.json/nested')).rejects.toStrictEqual(
+        FsErrorStub({ code: 'ENOTDIR', path: '/repo/.dungeonmaster.json/nested' }),
+      );
     });
   });
 });

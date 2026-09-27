@@ -26,10 +26,7 @@ describe('pathExists', () => {
 
     it('EDGE: {path: a parent segment that is a file} => returns false on ENOTDIR', async () => {
       const proxy = pathExistsProxy();
-      proxy.rejects({
-        path: '/repo/.dungeonmaster.json/nested',
-        error: FsErrorStub({ code: 'ENOTDIR' }),
-      });
+      proxy.notADirectory({ path: '/repo/.dungeonmaster.json/nested' });
 
       const result = await pathExists('/repo/.dungeonmaster.json/nested');
 
@@ -40,10 +37,11 @@ describe('pathExists', () => {
   describe('sad paths', () => {
     it('ERROR: {path: permission denied} => rejects with the raw EACCES error', async () => {
       const proxy = pathExistsProxy();
-      const error = FsErrorStub({ code: 'EACCES' });
-      proxy.rejects({ path: '/repo/locked.json', error });
+      proxy.denied({ path: '/repo/locked.json' });
 
-      await expect(pathExists('/repo/locked.json')).rejects.toBe(error);
+      await expect(pathExists('/repo/locked.json')).rejects.toStrictEqual(
+        FsErrorStub({ code: 'EACCES', path: '/repo/locked.json' }),
+      );
     });
   });
 });

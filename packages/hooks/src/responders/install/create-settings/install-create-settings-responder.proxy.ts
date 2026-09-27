@@ -16,7 +16,7 @@ export const InstallCreateSettingsResponderProxy = (): {
   setupNoExistingSettings: () => void;
   setupExistingSettings: (params: { content: ReturnType<typeof FileContentsStub> }) => void;
   setupCorruptSettings: () => void;
-  setupUnreadableSettings: (params: { error: unknown }) => void;
+  setupUnreadableSettings: () => void;
   getWrittenContent: () => unknown;
 } => {
   const agentsBrokerProxy = installAgentsSetupBrokerProxy();
@@ -58,8 +58,8 @@ export const InstallCreateSettingsResponderProxy = (): {
       readProxy.returnsRaw({ path: settingsPath, rawContents: '{not valid json' });
     },
 
-    setupUnreadableSettings: ({ error }: { error: unknown }): void => {
-      readProxy.rejects({ path: settingsPath, error });
+    setupUnreadableSettings: (): void => {
+      readProxy.denied({ path: settingsPath });
     },
 
     getWrittenContent: (): unknown => writeProxy.writtenContentsFor({ path: settingsPath }),

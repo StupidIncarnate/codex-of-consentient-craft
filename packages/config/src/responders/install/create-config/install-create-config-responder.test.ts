@@ -1,5 +1,4 @@
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
-import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { e2eProcessPlaceholderStatics } from '../../../statics/e2e-process-placeholder/e2e-process-placeholder-statics';
 import { InstallCreateConfigResponderProxy } from './install-create-config-responder.proxy';
 
@@ -353,13 +352,7 @@ describe('InstallCreateConfigResponder', () => {
     it('ERROR: {context: existing .dungeonmaster.json cannot be read (EACCES)} => leaves it untouched, reports it is unreadable, and skips the write', async () => {
       const proxy = InstallCreateConfigResponderProxy();
 
-      proxy.setupExistingConfigUnreadable({
-        error: FsErrorStub({
-          code: 'EACCES',
-          path: '/project/.dungeonmaster.json',
-          syscall: 'open',
-        }),
-      });
+      proxy.setupExistingConfigUnreadable();
 
       const result = await proxy.callResponder({
         context: {

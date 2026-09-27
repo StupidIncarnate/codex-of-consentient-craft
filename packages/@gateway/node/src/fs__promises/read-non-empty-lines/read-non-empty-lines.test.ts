@@ -43,21 +43,23 @@ describe('readNonEmptyLines', () => {
   describe('sad paths', () => {
     it('ERROR: {path: missing} => rejects with the raw ENOENT error', async () => {
       const proxy = readNonEmptyLinesProxy();
-      const error = FsErrorStub({ code: 'ENOENT' });
-      proxy.rejects({ path: '/home/user/.claude/sessions/missing.jsonl', error });
+      proxy.missing({ path: '/home/user/.claude/sessions/missing.jsonl' });
 
-      await expect(readNonEmptyLines('/home/user/.claude/sessions/missing.jsonl')).rejects.toBe(
-        error,
+      await expect(
+        readNonEmptyLines('/home/user/.claude/sessions/missing.jsonl'),
+      ).rejects.toStrictEqual(
+        FsErrorStub({ code: 'ENOENT', path: '/home/user/.claude/sessions/missing.jsonl' }),
       );
     });
 
     it('ERROR: {path: permission denied} => rejects with the raw EACCES error', async () => {
       const proxy = readNonEmptyLinesProxy();
-      const error = FsErrorStub({ code: 'EACCES' });
-      proxy.rejects({ path: '/home/user/.claude/sessions/locked.jsonl', error });
+      proxy.denied({ path: '/home/user/.claude/sessions/locked.jsonl' });
 
-      await expect(readNonEmptyLines('/home/user/.claude/sessions/locked.jsonl')).rejects.toBe(
-        error,
+      await expect(
+        readNonEmptyLines('/home/user/.claude/sessions/locked.jsonl'),
+      ).rejects.toStrictEqual(
+        FsErrorStub({ code: 'EACCES', path: '/home/user/.claude/sessions/locked.jsonl' }),
       );
     });
   });

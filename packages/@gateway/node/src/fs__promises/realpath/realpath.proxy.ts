@@ -1,9 +1,12 @@
 import { realpath } from 'fs/promises';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
+import { FsErrorStub } from '../../fs/is-fs-error/fs-error.stub';
 
 export const realpathProxy = (): {
   returns: (params: { path: string; resolved: string }) => void;
-  rejects: (params: { path: string; error: unknown }) => void;
+  missing: (params: { path: string }) => void;
+  denied: (params: { path: string }) => void;
+  notADirectory: (params: { path: string }) => void;
 } => {
   const handle = registerMock({ fn: realpath });
 
@@ -11,8 +14,14 @@ export const realpathProxy = (): {
     returns: ({ path, resolved }: { path: string; resolved: string }): void => {
       handle.calledWith([path]).resolves(resolved);
     },
-    rejects: ({ path, error }: { path: string; error: unknown }): void => {
-      handle.calledWith([path]).rejects(error);
+    missing: ({ path }: { path: string }): void => {
+      handle.calledWith([path]).rejects(FsErrorStub({ code: 'ENOENT', path }));
+    },
+    denied: ({ path }: { path: string }): void => {
+      handle.calledWith([path]).rejects(FsErrorStub({ code: 'EACCES', path }));
+    },
+    notADirectory: ({ path }: { path: string }): void => {
+      handle.calledWith([path]).rejects(FsErrorStub({ code: 'ENOTDIR', path }));
     },
   };
 };

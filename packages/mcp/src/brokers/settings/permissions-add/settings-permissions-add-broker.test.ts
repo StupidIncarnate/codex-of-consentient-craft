@@ -577,7 +577,7 @@ describe('settingsPermissionsAddBroker', () => {
       const settingsPath = PathSegmentStub({ value: '/project/.claude/settings.json' });
       const eaccesError = FsErrorStub({ code: 'EACCES', path: settingsPath, syscall: 'open' });
 
-      proxy.setupUnreadableSettings({ targetProjectRoot, settingsPath, error: eaccesError });
+      proxy.setupUnreadableSettings({ targetProjectRoot, settingsPath });
 
       await expect(settingsPermissionsAddBroker({ targetProjectRoot })).rejects.toStrictEqual(
         eaccesError,

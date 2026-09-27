@@ -36,10 +36,11 @@ describe('statIfExists', () => {
   describe('sad paths', () => {
     it('ERROR: {path: permission denied} => rejects with the raw EACCES error', async () => {
       const proxy = statIfExistsProxy();
-      const error = FsErrorStub({ code: 'EACCES' });
-      proxy.rejects({ path: '/repo/locked.json', error });
+      proxy.denied({ path: '/repo/locked.json' });
 
-      await expect(statIfExists('/repo/locked.json')).rejects.toBe(error);
+      await expect(statIfExists('/repo/locked.json')).rejects.toStrictEqual(
+        FsErrorStub({ code: 'EACCES', path: '/repo/locked.json' }),
+      );
     });
   });
 });

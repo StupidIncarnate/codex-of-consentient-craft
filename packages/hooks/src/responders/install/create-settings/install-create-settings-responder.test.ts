@@ -1245,12 +1245,7 @@ describe('InstallCreateSettingsResponder', () => {
     it('ERROR: {settings.json: permission denied} => rejects with the raw EACCES error, and never writes', async () => {
       const proxy = InstallCreateSettingsResponderProxy();
 
-      const error = FsErrorStub({
-        code: 'EACCES',
-        path: '/project/.claude/settings.json',
-        syscall: 'open',
-      });
-      proxy.setupUnreadableSettings({ error });
+      proxy.setupUnreadableSettings();
 
       await expect(
         proxy.callResponder({
@@ -1259,7 +1254,13 @@ describe('InstallCreateSettingsResponder', () => {
             dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
           },
         }),
-      ).rejects.toBe(error);
+      ).rejects.toStrictEqual(
+        FsErrorStub({
+          code: 'EACCES',
+          path: '/project/.claude/settings.json',
+          syscall: 'open',
+        }),
+      );
 
       expect(proxy.getWrittenContent()).toBe(undefined);
     });

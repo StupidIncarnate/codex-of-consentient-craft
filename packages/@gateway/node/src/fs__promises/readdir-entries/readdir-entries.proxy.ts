@@ -1,13 +1,16 @@
 import { readdir } from 'fs/promises';
 import type { Dirent } from 'fs';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
+import { FsErrorStub } from '../../fs/is-fs-error/fs-error.stub';
 
 export const readdirEntriesProxy = (): {
   returns: (params: {
     path: string;
     entries: readonly { name: string; kind: 'file' | 'directory' | 'symlink' | 'other' }[];
   }) => void;
-  rejects: (params: { path: string; error: unknown }) => void;
+  missing: (params: { path: string }) => void;
+  denied: (params: { path: string }) => void;
+  notADirectory: (params: { path: string }) => void;
 } => {
   const handle = registerMock({ fn: readdir });
 
@@ -30,8 +33,20 @@ export const readdirEntriesProxy = (): {
       );
       handle.calledWith([path, { withFileTypes: true }]).resolves(dirents);
     },
-    rejects: ({ path, error }: { path: string; error: unknown }): void => {
-      handle.calledWith([path, { withFileTypes: true }]).rejects(error);
+    missing: ({ path }: { path: string }): void => {
+      handle
+        .calledWith([path, { withFileTypes: true }])
+        .rejects(FsErrorStub({ code: 'ENOENT', path }));
+    },
+    denied: ({ path }: { path: string }): void => {
+      handle
+        .calledWith([path, { withFileTypes: true }])
+        .rejects(FsErrorStub({ code: 'EACCES', path }));
+    },
+    notADirectory: ({ path }: { path: string }): void => {
+      handle
+        .calledWith([path, { withFileTypes: true }])
+        .rejects(FsErrorStub({ code: 'ENOTDIR', path }));
     },
   };
 };

@@ -40,6 +40,9 @@
     "src",
     "__mocks__"
   ],
+  "dependencies": {
+    "@dungeonmaster/node": "*"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "build:clean": "rm -rf dist .ward/build.tsbuildinfo && npm run build",

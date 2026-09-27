@@ -28,34 +28,38 @@ describe('readFileBytes', () => {
   describe('sad paths', () => {
     it('ERROR: {path: missing} => rejects with the raw ENOENT error', async () => {
       const proxy = readFileBytesProxy();
-      const error = FsErrorStub({ code: 'ENOENT' });
-      proxy.rejects({ path: '/repo/missing.png', error });
+      proxy.missing({ path: '/repo/missing.png' });
 
-      await expect(readFileBytes('/repo/missing.png')).rejects.toBe(error);
+      await expect(readFileBytes('/repo/missing.png')).rejects.toStrictEqual(
+        FsErrorStub({ code: 'ENOENT', path: '/repo/missing.png' }),
+      );
     });
 
     it('ERROR: {path: permission denied} => rejects with the raw EACCES error', async () => {
       const proxy = readFileBytesProxy();
-      const error = FsErrorStub({ code: 'EACCES' });
-      proxy.rejects({ path: '/repo/locked.png', error });
+      proxy.denied({ path: '/repo/locked.png' });
 
-      await expect(readFileBytes('/repo/locked.png')).rejects.toBe(error);
+      await expect(readFileBytes('/repo/locked.png')).rejects.toStrictEqual(
+        FsErrorStub({ code: 'EACCES', path: '/repo/locked.png' }),
+      );
     });
 
     it('ERROR: {path: a directory} => rejects with the raw EISDIR error', async () => {
       const proxy = readFileBytesProxy();
-      const error = FsErrorStub({ code: 'EISDIR' });
-      proxy.rejects({ path: '/repo/assets', error });
+      proxy.isDirectory({ path: '/repo/assets' });
 
-      await expect(readFileBytes('/repo/assets')).rejects.toBe(error);
+      await expect(readFileBytes('/repo/assets')).rejects.toStrictEqual(
+        FsErrorStub({ code: 'EISDIR', path: '/repo/assets' }),
+      );
     });
 
     it('ERROR: {path: a parent segment that is a file} => rejects with the raw ENOTDIR error', async () => {
       const proxy = readFileBytesProxy();
-      const error = FsErrorStub({ code: 'ENOTDIR' });
-      proxy.rejects({ path: '/repo/step7.png/nested', error });
+      proxy.notADirectory({ path: '/repo/step7.png/nested' });
 
-      await expect(readFileBytes('/repo/step7.png/nested')).rejects.toBe(error);
+      await expect(readFileBytes('/repo/step7.png/nested')).rejects.toStrictEqual(
+        FsErrorStub({ code: 'ENOTDIR', path: '/repo/step7.png/nested' }),
+      );
     });
   });
 });

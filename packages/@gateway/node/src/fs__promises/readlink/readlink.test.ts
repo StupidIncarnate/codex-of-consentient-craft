@@ -20,26 +20,29 @@ describe('readlink', () => {
   describe('sad paths', () => {
     it('ERROR: {path: missing} => rejects with the raw ENOENT error', async () => {
       const proxy = readlinkProxy();
-      const error = FsErrorStub({ code: 'ENOENT' });
-      proxy.rejects({ path: '/repo/missing', error });
+      proxy.missing({ path: '/repo/missing' });
 
-      await expect(readlink('/repo/missing')).rejects.toBe(error);
+      await expect(readlink('/repo/missing')).rejects.toStrictEqual(
+        FsErrorStub({ code: 'ENOENT', path: '/repo/missing' }),
+      );
     });
 
     it('ERROR: {path: permission denied} => rejects with the raw EACCES error', async () => {
       const proxy = readlinkProxy();
-      const error = FsErrorStub({ code: 'EACCES' });
-      proxy.rejects({ path: '/repo/locked', error });
+      proxy.denied({ path: '/repo/locked' });
 
-      await expect(readlink('/repo/locked')).rejects.toBe(error);
+      await expect(readlink('/repo/locked')).rejects.toStrictEqual(
+        FsErrorStub({ code: 'EACCES', path: '/repo/locked' }),
+      );
     });
 
     it('ERROR: {path: not a symlink} => rejects with the raw EINVAL error', async () => {
       const proxy = readlinkProxy();
-      const error = FsErrorStub({ code: 'EINVAL' });
-      proxy.rejects({ path: '/repo/.dungeonmaster.json', error });
+      proxy.notALink({ path: '/repo/.dungeonmaster.json' });
 
-      await expect(readlink('/repo/.dungeonmaster.json')).rejects.toBe(error);
+      await expect(readlink('/repo/.dungeonmaster.json')).rejects.toStrictEqual(
+        FsErrorStub({ code: 'EINVAL', path: '/repo/.dungeonmaster.json' }),
+      );
     });
   });
 });

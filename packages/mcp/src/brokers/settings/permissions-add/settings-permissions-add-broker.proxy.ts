@@ -36,11 +36,9 @@ export const settingsPermissionsAddBrokerProxy = (): {
   setupUnreadableSettings: ({
     targetProjectRoot,
     settingsPath,
-    error,
   }: {
     targetProjectRoot: FilePath;
     settingsPath: FilePath;
-    error: unknown;
   }) => void;
   wasWriteCalled: ({ settingsPath }: { settingsPath: FilePath }) => boolean;
 } => {
@@ -93,14 +91,12 @@ export const settingsPermissionsAddBrokerProxy = (): {
     setupUnreadableSettings: ({
       targetProjectRoot,
       settingsPath,
-      error,
     }: {
       targetProjectRoot: FilePath;
       settingsPath: FilePath;
-      error: unknown;
     }): void => {
       ensureDirProxyHandle.succeeds({ path: settingsDirFor({ targetProjectRoot }) });
-      readProxy.rejects({ path: settingsPath, error });
+      readProxy.denied({ path: settingsPath });
     },
     wasWriteCalled: ({ settingsPath }: { settingsPath: FilePath }): boolean =>
       writeProxy.writtenContentsFor({ path: settingsPath }) !== undefined,

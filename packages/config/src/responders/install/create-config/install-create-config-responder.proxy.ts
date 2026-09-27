@@ -16,7 +16,7 @@ export const InstallCreateConfigResponderProxy = (): {
   callResponder: typeof InstallCreateConfigResponder;
   setupConfigNotExists: () => void;
   setupExistingConfigContent: ({ content }: { content: string }) => void;
-  setupExistingConfigUnreadable: ({ error }: { error: unknown }) => void;
+  setupExistingConfigUnreadable: () => void;
   setupWriteSucceeds: () => void;
   getWrittenConfig: () => unknown;
 } => {
@@ -39,12 +39,12 @@ export const InstallCreateConfigResponderProxy = (): {
       readProxy.returnsRaw({ path: CONFIG_PATH, rawContents: content });
     },
 
-    // Stages an existing file the read itself fails on: invalid JSON (a real SyntaxError from
-    // readJsonFile) or an fs-level failure such as EACCES (an FsErrorStub) — both reach the
-    // responder as a rejection off readJsonFileIfExists, never as a resolved `null`.
-    setupExistingConfigUnreadable: ({ error }: { error: unknown }): void => {
+    // Stages an existing file the read itself fails on with EACCES — a recorded failure the
+    // gateway's own proxy builds, reaching the responder as a rejection off readJsonFileIfExists,
+    // never as a resolved `null`.
+    setupExistingConfigUnreadable: (): void => {
       existsProxy.present({ path: CONFIG_PATH });
-      readProxy.rejects({ path: CONFIG_PATH, error });
+      readProxy.denied({ path: CONFIG_PATH });
     },
 
     setupWriteSucceeds: (): void => {

@@ -37,26 +37,29 @@ describe('readFileIfExists', () => {
   describe('sad paths', () => {
     it('ERROR: {path: permission denied} => rejects with the raw EACCES error', async () => {
       const proxy = readFileIfExistsProxy();
-      const error = FsErrorStub({ code: 'EACCES' });
-      proxy.rejects({ path: '/repo/locked.json', error });
+      proxy.denied({ path: '/repo/locked.json' });
 
-      await expect(readFileIfExists('/repo/locked.json')).rejects.toBe(error);
+      await expect(readFileIfExists('/repo/locked.json')).rejects.toStrictEqual(
+        FsErrorStub({ code: 'EACCES', path: '/repo/locked.json' }),
+      );
     });
 
     it('ERROR: {path: a directory} => rejects with the raw EISDIR error', async () => {
       const proxy = readFileIfExistsProxy();
-      const error = FsErrorStub({ code: 'EISDIR' });
-      proxy.rejects({ path: '/repo/quests', error });
+      proxy.isDirectory({ path: '/repo/quests' });
 
-      await expect(readFileIfExists('/repo/quests')).rejects.toBe(error);
+      await expect(readFileIfExists('/repo/quests')).rejects.toStrictEqual(
+        FsErrorStub({ code: 'EISDIR', path: '/repo/quests' }),
+      );
     });
 
     it('ERROR: {path: a parent segment that is a file} => rejects with the raw ENOTDIR error', async () => {
       const proxy = readFileIfExistsProxy();
-      const error = FsErrorStub({ code: 'ENOTDIR' });
-      proxy.rejects({ path: '/repo/.dungeonmaster.json/nested', error });
+      proxy.notADirectory({ path: '/repo/.dungeonmaster.json/nested' });
 
-      await expect(readFileIfExists('/repo/.dungeonmaster.json/nested')).rejects.toBe(error);
+      await expect(readFileIfExists('/repo/.dungeonmaster.json/nested')).rejects.toStrictEqual(
+        FsErrorStub({ code: 'ENOTDIR', path: '/repo/.dungeonmaster.json/nested' }),
+      );
     });
   });
 });

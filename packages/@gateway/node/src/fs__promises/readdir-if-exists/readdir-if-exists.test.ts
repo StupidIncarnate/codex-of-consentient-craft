@@ -37,18 +37,20 @@ describe('readdirIfExists', () => {
   describe('sad paths', () => {
     it('ERROR: {path: permission denied} => rejects with the raw EACCES error', async () => {
       const proxy = readdirIfExistsProxy();
-      const error = FsErrorStub({ code: 'EACCES' });
-      proxy.rejects({ path: '/repo/locked', error });
+      proxy.denied({ path: '/repo/locked' });
 
-      await expect(readdirIfExists('/repo/locked')).rejects.toBe(error);
+      await expect(readdirIfExists('/repo/locked')).rejects.toStrictEqual(
+        FsErrorStub({ code: 'EACCES', path: '/repo/locked' }),
+      );
     });
 
     it('ERROR: {path: a parent segment that is a file} => rejects with the raw ENOTDIR error', async () => {
       const proxy = readdirIfExistsProxy();
-      const error = FsErrorStub({ code: 'ENOTDIR' });
-      proxy.rejects({ path: '/repo/.dungeonmaster.json/nested', error });
+      proxy.notADirectory({ path: '/repo/.dungeonmaster.json/nested' });
 
-      await expect(readdirIfExists('/repo/.dungeonmaster.json/nested')).rejects.toBe(error);
+      await expect(readdirIfExists('/repo/.dungeonmaster.json/nested')).rejects.toStrictEqual(
+        FsErrorStub({ code: 'ENOTDIR', path: '/repo/.dungeonmaster.json/nested' }),
+      );
     });
   });
 });

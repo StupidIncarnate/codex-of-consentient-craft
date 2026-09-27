@@ -48,10 +48,11 @@ describe('readJsonFileIfExists', () => {
   describe('sad paths', () => {
     it('ERROR: {path: permission denied} => rejects with the raw EACCES error', async () => {
       const proxy = readJsonFileIfExistsProxy();
-      const error = FsErrorStub({ code: 'EACCES' });
-      proxy.rejects({ path: '/repo/locked.json', error });
+      proxy.denied({ path: '/repo/locked.json' });
 
-      await expect(readJsonFileIfExists('/repo/locked.json')).rejects.toBe(error);
+      await expect(readJsonFileIfExists('/repo/locked.json')).rejects.toStrictEqual(
+        FsErrorStub({ code: 'EACCES', path: '/repo/locked.json', syscall: 'open' }),
+      );
     });
   });
 });

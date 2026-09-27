@@ -42,32 +42,33 @@ describe('readFileFromOffset', () => {
   describe('sad paths', () => {
     it('ERROR: {path: missing} => rejects with the raw ENOENT error', async () => {
       const proxy = readFileFromOffsetProxy();
-      const error = FsErrorStub({ code: 'ENOENT' });
-      proxy.rejects({ path: '/home/user/.claude/sessions/missing.jsonl', error });
+      proxy.missing({ path: '/home/user/.claude/sessions/missing.jsonl' });
 
       await expect(
         readFileFromOffset({ path: '/home/user/.claude/sessions/missing.jsonl', fromByte: 0 }),
-      ).rejects.toBe(error);
+      ).rejects.toStrictEqual(
+        FsErrorStub({ code: 'ENOENT', path: '/home/user/.claude/sessions/missing.jsonl' }),
+      );
     });
 
     it('ERROR: {path: permission denied} => rejects with the raw EACCES error', async () => {
       const proxy = readFileFromOffsetProxy();
-      const error = FsErrorStub({ code: 'EACCES' });
-      proxy.rejects({ path: '/home/user/.claude/sessions/locked.jsonl', error });
+      proxy.denied({ path: '/home/user/.claude/sessions/locked.jsonl' });
 
       await expect(
         readFileFromOffset({ path: '/home/user/.claude/sessions/locked.jsonl', fromByte: 0 }),
-      ).rejects.toBe(error);
+      ).rejects.toStrictEqual(
+        FsErrorStub({ code: 'EACCES', path: '/home/user/.claude/sessions/locked.jsonl' }),
+      );
     });
 
     it('ERROR: {path: a directory} => rejects with the raw EISDIR error', async () => {
       const proxy = readFileFromOffsetProxy();
-      const error = FsErrorStub({ code: 'EISDIR' });
-      proxy.rejects({ path: '/home/user/.claude/sessions', error });
+      proxy.isDirectory({ path: '/home/user/.claude/sessions' });
 
       await expect(
         readFileFromOffset({ path: '/home/user/.claude/sessions', fromByte: 0 }),
-      ).rejects.toBe(error);
+      ).rejects.toStrictEqual(FsErrorStub({ code: 'EISDIR', path: '/home/user/.claude/sessions' }));
     });
   });
 });

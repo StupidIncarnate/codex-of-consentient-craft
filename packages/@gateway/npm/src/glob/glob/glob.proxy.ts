@@ -73,11 +73,6 @@ export const globProxy = (): {
 } => {
   const handle = registerMock({ fn: glob });
 
-  // Safe default, matching the retired mcp adapter proxy's constructor-time catch-all: a call this
-  // test never described — a second, broader co-scan; a probe nobody staged — resolves empty
-  // instead of throwing on an unaddressed call.
-  handle.calledWith([]).resolves([]);
-
   return {
     returns: ({ pattern, options, matches }): void => {
       handle.calledWith([pattern, resolvedOptions(options)]).resolves([...matches]);

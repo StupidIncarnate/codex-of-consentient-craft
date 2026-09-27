@@ -38,13 +38,7 @@ export const InstallConfigCreateResponderProxy = (): {
     targetProjectRoot: FilePath;
     rawContents: string;
   }) => void;
-  setupFileReadError: ({
-    targetProjectRoot,
-    error,
-  }: {
-    targetProjectRoot: FilePath;
-    error: unknown;
-  }) => void;
+  setupFileReadError: ({ targetProjectRoot }: { targetProjectRoot: FilePath }) => void;
   getWrittenConfig: ({ targetProjectRoot }: { targetProjectRoot: FilePath }) => unknown;
 } => {
   const readProxy = readJsonFileIfExistsProxy();
@@ -117,14 +111,8 @@ export const InstallConfigCreateResponderProxy = (): {
 
     // No write/settings/agents setup here: the read rejects before the responder ever calls them,
     // so staging those proxies would hide a regression that made the responder call them anyway.
-    setupFileReadError: ({
-      targetProjectRoot,
-      error,
-    }: {
-      targetProjectRoot: FilePath;
-      error: unknown;
-    }): void => {
-      readProxy.rejects({ path: configPathFor({ targetProjectRoot }), error });
+    setupFileReadError: ({ targetProjectRoot }: { targetProjectRoot: FilePath }): void => {
+      readProxy.denied({ path: configPathFor({ targetProjectRoot }) });
     },
 
     getWrittenConfig: ({ targetProjectRoot }: { targetProjectRoot: FilePath }): unknown =>

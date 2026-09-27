@@ -40,10 +40,17 @@ describe('fetchJson', () => {
 
   it('ERROR: {connection refused} => propagates the real fetch failure unchanged', async () => {
     const proxy = fetchJsonProxy();
-    const refusalError = new Error('fetch failed');
-    proxy.setupNetworkError({ url: 'http://localhost/api/guilds', error: refusalError });
+    await proxy.setupConnectionRefused({ url: 'http://localhost/api/guilds' });
 
-    await expect(fetchJson({ url: 'http://localhost/api/guilds' })).rejects.toBe(refusalError);
+    const caught: unknown = await fetchJson({ url: 'http://localhost/api/guilds' }).catch(
+      (rejection: unknown) => rejection,
+    );
+    const error = caught as NodeJS.ErrnoException;
+
+    expect({ code: error.code, syscall: error.syscall }).toStrictEqual({
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+    });
   });
 
   it('ERROR: {timeoutMs elapses before any response} => aborts and rejects with AbortError', async () => {

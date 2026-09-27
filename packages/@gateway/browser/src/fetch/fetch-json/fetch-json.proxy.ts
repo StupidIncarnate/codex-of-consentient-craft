@@ -1,4 +1,5 @@
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { ConnectionRefusedErrorStub } from '#gateway/node/net/connection-refused-error/connection-refused-error.stub';
 
 const buildResponse = ({
   ok,
@@ -20,7 +21,7 @@ export const fetchJsonProxy = (): {
   setupNotOk: (params: { url: string; status: number; bodyText: string }) => void;
   setupInvalidJson: (params: { url: string; bodyText: string }) => void;
   setupEmptyBody: (params: { url: string }) => void;
-  setupNetworkError: (params: { url: string; error: Error }) => void;
+  setupConnectionRefused: (params: { url: string }) => Promise<void>;
   setupAborted: (params: { url: string }) => void;
 } => {
   const handle = registerSpyOn({ object: globalThis, method: 'fetch' });
@@ -50,8 +51,8 @@ export const fetchJsonProxy = (): {
     setupEmptyBody: ({ url }: { url: string }): void => {
       handle.calledWith([url]).resolves(buildResponse({ ok: true, status: 200, bodyText: '' }));
     },
-    setupNetworkError: ({ url, error }: { url: string; error: Error }): void => {
-      handle.calledWith([url]).rejects(error);
+    setupConnectionRefused: async ({ url }: { url: string }): Promise<void> => {
+      handle.calledWith([url]).rejects(await ConnectionRefusedErrorStub());
     },
     setupAborted: ({ url }: { url: string }): void => {
       handle

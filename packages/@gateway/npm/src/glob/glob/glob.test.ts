@@ -84,11 +84,13 @@ describe('glob', () => {
     );
   });
 
-  describe('safe default', () => {
-    it('EMPTY: {no call staged} => the constructor-time catch-all resolves an empty array', async () => {
+  describe('no catch-all', () => {
+    it('ERROR: {no call staged} => an unaddressed call throws instead of resolving empty', async () => {
       globProxy();
 
-      await expect(glob('**/*.ts', { cwd: '/repo', ignore: [] })).resolves.toStrictEqual([]);
+      await expect(glob('**/*.ts', { cwd: '/repo', ignore: [] })).rejects.toThrow(
+        /^glob failed for pattern "\*\*\/\*\.ts": registerMock: nothing set up for the call/u,
+      );
     });
   });
 

@@ -17,18 +17,20 @@ describe('diskFreeBytes', () => {
   describe('sad paths', () => {
     it('ERROR: {path: missing} => rejects with the raw ENOENT error', async () => {
       const proxy = diskFreeBytesProxy();
-      const error = FsErrorStub({ code: 'ENOENT' });
-      proxy.rejects({ path: '/repo/missing', error });
+      proxy.missing({ path: '/repo/missing' });
 
-      await expect(diskFreeBytes('/repo/missing')).rejects.toBe(error);
+      await expect(diskFreeBytes('/repo/missing')).rejects.toStrictEqual(
+        FsErrorStub({ code: 'ENOENT', path: '/repo/missing' }),
+      );
     });
 
     it('ERROR: {path: permission denied} => rejects with the raw EACCES error', async () => {
       const proxy = diskFreeBytesProxy();
-      const error = FsErrorStub({ code: 'EACCES' });
-      proxy.rejects({ path: '/repo/locked', error });
+      proxy.denied({ path: '/repo/locked' });
 
-      await expect(diskFreeBytes('/repo/locked')).rejects.toBe(error);
+      await expect(diskFreeBytes('/repo/locked')).rejects.toStrictEqual(
+        FsErrorStub({ code: 'EACCES', path: '/repo/locked' }),
+      );
     });
   });
 });

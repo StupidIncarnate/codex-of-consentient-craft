@@ -5,7 +5,9 @@ import { FsErrorStub } from '../../fs/is-fs-error/fs-error.stub';
 export const readFileIfExistsProxy = (): {
   returns: (params: { path: string; contents: string }) => void;
   missing: (params: { path: string }) => void;
-  rejects: (params: { path: string; error: unknown }) => void;
+  denied: (params: { path: string }) => void;
+  isDirectory: (params: { path: string }) => void;
+  notADirectory: (params: { path: string }) => void;
 } => {
   const handle = registerMock({ fn: readFile });
 
@@ -16,8 +18,14 @@ export const readFileIfExistsProxy = (): {
     missing: ({ path }: { path: string }): void => {
       handle.calledWith([path, 'utf8']).rejects(FsErrorStub({ code: 'ENOENT', path }));
     },
-    rejects: ({ path, error }: { path: string; error: unknown }): void => {
-      handle.calledWith([path, 'utf8']).rejects(error);
+    denied: ({ path }: { path: string }): void => {
+      handle.calledWith([path, 'utf8']).rejects(FsErrorStub({ code: 'EACCES', path }));
+    },
+    isDirectory: ({ path }: { path: string }): void => {
+      handle.calledWith([path, 'utf8']).rejects(FsErrorStub({ code: 'EISDIR', path }));
+    },
+    notADirectory: ({ path }: { path: string }): void => {
+      handle.calledWith([path, 'utf8']).rejects(FsErrorStub({ code: 'ENOTDIR', path }));
     },
   };
 };
