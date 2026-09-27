@@ -9,6 +9,7 @@ describe('variantWalkLayerBroker', () => {
       const proxy = variantWalkLayerBrokerProxy();
 
       proxy.setupFirstVariantMatches({
+        searchPath: '/project',
         configPath: FilePathStub({ value: '/project/eslint.config.ts' }),
       });
 
@@ -24,6 +25,7 @@ describe('variantWalkLayerBroker', () => {
       const proxy = variantWalkLayerBrokerProxy();
 
       proxy.setupNthVariantMatches({
+        searchPath: '/project',
         missingPaths: [FilePathStub({ value: '/project/eslint.config.ts' })],
         configPath: FilePathStub({ value: '/project/eslint.config.js' }),
       });
@@ -53,6 +55,7 @@ describe('variantWalkLayerBroker', () => {
       const proxy = variantWalkLayerBrokerProxy();
 
       proxy.setupAllVariantsMissing({
+        searchPath: '/project',
         missingPaths: [
           FilePathStub({ value: '/project/eslint.config.ts' }),
           FilePathStub({ value: '/project/eslint.config.js' }),

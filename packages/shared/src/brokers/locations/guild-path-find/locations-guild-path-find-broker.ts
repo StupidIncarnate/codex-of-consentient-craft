@@ -7,7 +7,7 @@
  */
 
 import { dungeonmasterHomeFindBroker } from '../../dungeonmaster-home/find/dungeonmaster-home-find-broker';
-import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
+import { join } from '#gateway/node/path';
 import { locationsStatics } from '../../../statics/locations/locations-statics';
 import {
   absoluteFilePathContract,
@@ -22,9 +22,7 @@ export const locationsGuildPathFindBroker = ({
 }): AbsoluteFilePath => {
   const { homePath } = dungeonmasterHomeFindBroker();
 
-  const joined = pathJoinAdapter({
-    paths: [homePath, locationsStatics.dungeonmasterHome.guildsDir, guildId],
-  });
+  const joined = join(homePath, locationsStatics.dungeonmasterHome.guildsDir, guildId);
 
   return absoluteFilePathContract.parse(joined);
 };

@@ -10,15 +10,13 @@
  * // Returns AbsoluteFilePath of first existing variant, or null
  */
 
-import { fsAccessAdapter } from '../../../adapters/fs/access/fs-access-adapter';
-import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
+import { pathExists } from '#gateway/node/fs__promises';
+import { join } from '#gateway/node/path';
 import {
   absoluteFilePathContract,
   type AbsoluteFilePath,
 } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { FilePath } from '../../../contracts/file-path/file-path-contract';
-
-const R_OK = 4;
 
 export const variantWalkLayerBroker = async ({
   searchPath,
@@ -32,12 +30,12 @@ export const variantWalkLayerBroker = async ({
     return null;
   }
 
-  const candidate = pathJoinAdapter({ paths: [searchPath, head] });
+  const candidate = join(searchPath, head);
 
-  try {
-    await fsAccessAdapter({ filePath: candidate, mode: R_OK });
+  const exists = await pathExists(candidate);
+  if (exists) {
     return absoluteFilePathContract.parse(candidate);
-  } catch {
-    return variantWalkLayerBroker({ searchPath, variants: rest });
   }
+
+  return variantWalkLayerBroker({ searchPath, variants: rest });
 };
