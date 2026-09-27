@@ -82,11 +82,17 @@ export const DriverServeLayerResponderProxy = (): {
     socketPath: FilePathStub({ value: '/tmp/dm-siege-sockets/inst-serve-test.sock' }),
   });
   const evidencePathProxy = locationsInstanceEvidencePathFindBrokerProxy();
+  // guildId is null on every call this proxy's tests make (see this responder's own test file),
+  // so the real broker's own "unowned" shape — <rootPath>/unowned/instances/<instanceId> — is what
+  // this must stage, using InstanceIdStub()'s own default 'inst_7f3a9c21' every call here leaves
+  // unoverridden.
   evidencePathProxy.setupInstanceEvidencePath({
     homeDir: '/home/user',
     homePath: FilePathStub({ value: '/tmp/dm-siege-evidence-test' }),
     rootPath: FilePathStub({ value: '/tmp/dm-siege-evidence-test' }),
-    evidencePath: FilePathStub({ value: '/tmp/dm-siege-evidence-test/inst-serve-test' }),
+    evidencePath: FilePathStub({
+      value: '/tmp/dm-siege-evidence-test/unowned/instances/inst_7f3a9c21',
+    }),
   });
 
   const handleRequestHandle = registerMock({ fn: driverHandleRequestBroker });

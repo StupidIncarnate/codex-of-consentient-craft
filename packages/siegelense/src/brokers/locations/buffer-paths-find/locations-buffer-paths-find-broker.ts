@@ -17,7 +17,7 @@
  * // }
  */
 
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
+import { join } from '#gateway/node/path';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { absoluteFilePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
@@ -30,17 +30,11 @@ export const locationsBufferPathsFindBroker = ({
   network: AbsoluteFilePath;
   websocket: AbsoluteFilePath;
 } => {
-  const consolePath = pathJoinAdapter({
-    paths: [evidencePath, locationsStatics.siegelense.consoleLog],
-  });
+  const consolePath = join(evidencePath, locationsStatics.siegelense.consoleLog);
 
-  const networkPath = pathJoinAdapter({
-    paths: [evidencePath, locationsStatics.siegelense.networkLog],
-  });
+  const networkPath = join(evidencePath, locationsStatics.siegelense.networkLog);
 
-  const websocketPath = pathJoinAdapter({
-    paths: [evidencePath, locationsStatics.siegelense.websocketLog],
-  });
+  const websocketPath = join(evidencePath, locationsStatics.siegelense.websocketLog);
 
   return {
     console: absoluteFilePathContract.parse(consolePath),

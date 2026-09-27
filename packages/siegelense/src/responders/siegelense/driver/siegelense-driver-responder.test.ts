@@ -93,7 +93,7 @@ describe('SiegelenseDriverResponder', () => {
       await expect(SiegelenseDriverResponder({ instanceId })).rejects.toThrow(bootError);
 
       expect(proxy.getBootFailureMarkerWriteCallArgs()).toStrictEqual({
-        evidencePath: proxy.getExpectedEvidencePath(),
+        evidencePath: proxy.getExpectedEvidencePath({ instanceId }),
         message: bootError.message,
       });
     });

@@ -1,6 +1,9 @@
-import { locationsRootPathFindBrokerProxy } from '../root-path-find/locations-root-path-find-broker.proxy';
-import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
+import { join } from '#gateway/node/path';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
+import { locationsStatics } from '@dungeonmaster/shared/statics';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
+
+import { locationsRootPathFindBrokerProxy } from '../root-path-find/locations-root-path-find-broker.proxy';
 
 export const locationsProfilesPathFindBrokerProxy = (): {
   setupProfilesPath: (params: {
@@ -11,9 +14,15 @@ export const locationsProfilesPathFindBrokerProxy = (): {
   }) => void;
 } => {
   const rootPathProxy = locationsRootPathFindBrokerProxy();
-  const pathJoinProxy = pathJoinAdapterProxy();
+  // Shares the same '#gateway/node/path' join handle rootPathProxy's own constructor registers —
+  // addressed here on this file's OWN exact tuple, so it never depends on call order relative to
+  // any sibling resolver's own join call.
+  const joinHandle = registerMock({ fn: join });
 
   return {
+    // This method's own callers never carry `specHash` (only the FINAL profilesPath), so it is
+    // recovered here by slicing rootPath + profilesDir's own known length off profilesPath — the
+    // same technique locationsQuestFolderPathFindBrokerProxy (shared) uses to recover `questId`.
     setupProfilesPath: ({
       homeDir,
       homePath,
@@ -26,7 +35,11 @@ export const locationsProfilesPathFindBrokerProxy = (): {
       profilesPath: FilePath;
     }): void => {
       rootPathProxy.setupRootPath({ homeDir, homePath, rootPath });
-      pathJoinProxy.returns({ result: profilesPath });
+      const prefixLength = rootPath.length + 1 + locationsStatics.siegelense.profilesDir.length + 1;
+      const specHash = profilesPath.slice(prefixLength);
+      joinHandle
+        .calledWith([rootPath, locationsStatics.siegelense.profilesDir, specHash])
+        .returns(profilesPath);
     },
   };
 };

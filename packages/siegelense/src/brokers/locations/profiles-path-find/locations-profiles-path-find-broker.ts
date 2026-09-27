@@ -10,7 +10,7 @@
  */
 
 import { locationsRootPathFindBroker } from '../root-path-find/locations-root-path-find-broker';
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
+import { join } from '#gateway/node/path';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { absoluteFilePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import type { SpecHash } from '../../../contracts/spec-hash/spec-hash-contract';
@@ -22,9 +22,7 @@ export const locationsProfilesPathFindBroker = ({
 }): AbsoluteFilePath => {
   const rootPath = locationsRootPathFindBroker();
 
-  const joined = pathJoinAdapter({
-    paths: [rootPath, locationsStatics.siegelense.profilesDir, specHash],
-  });
+  const joined = join(rootPath, locationsStatics.siegelense.profilesDir, specHash);
 
   return absoluteFilePathContract.parse(joined);
 };

@@ -12,7 +12,7 @@
  * // Returns AbsoluteFilePath '<worktreePath>/.quest-plans'
  */
 
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
+import { join } from '#gateway/node/path';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
@@ -23,6 +23,4 @@ export const locationsCitationQuestPlansPathFindBroker = ({
 }: {
   worktreePath: AbsoluteFilePath;
 }): AbsoluteFilePath =>
-  absoluteFilePathContract.parse(
-    pathJoinAdapter({ paths: [worktreePath, citationStatics.questPlans.dirName] }),
-  );
+  absoluteFilePathContract.parse(join(worktreePath, citationStatics.questPlans.dirName));
