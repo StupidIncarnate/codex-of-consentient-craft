@@ -103,8 +103,8 @@ there never reaches the real environ libuv already read when the worker started 
 so a fixture's `git commit` never depends on the operator's own global git identity. It pins `PLAYWRIGHT_BROWSERS_PATH`
 at the real browser cache first, so the sandboxed `HOME` never looks like a reason to download a fresh Chromium.
 `jest.setup-global-teardown.js` is the counterpart: it fails the whole run if a new directory appears under the
-developer's REAL `~/.claude/projects` — the one guard left for code the lint rule `ban-bare-os-home-tmp` can't see,
-since the fake CLI has no file extension and `jest.setup*.js` is itself lint-ignored.
+developer's REAL `~/.claude/projects` — the guard that catches a leak here, since the fake CLI has no file
+extension and `jest.setup*.js` is itself lint-ignored.
 
 ## Claude CLI Mock
 
