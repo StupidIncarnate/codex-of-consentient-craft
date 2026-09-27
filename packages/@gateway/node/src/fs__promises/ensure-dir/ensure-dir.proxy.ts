@@ -1,10 +1,12 @@
 import { mkdir } from 'fs/promises';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { FsError } from '../../fs/is-fs-error/fs-error';
+import type { PathMatcher } from '../../gateway-test-support/path-matcher';
 
 export const ensureDirProxy = (): {
   succeeds: ({ path }: { path: string }) => void;
   rejects: ({ path, error }: { path: string; error: FsError }) => void;
+  getCallsFor: (params: { path: PathMatcher }) => readonly unknown[][];
 } => {
   const handle = registerMock({ fn: mkdir });
 
@@ -21,5 +23,7 @@ export const ensureDirProxy = (): {
         return Promise.reject(error);
       });
     },
+    getCallsFor: ({ path }: { path: PathMatcher }): readonly unknown[][] =>
+      handle.callsMatching([path]),
   };
 };

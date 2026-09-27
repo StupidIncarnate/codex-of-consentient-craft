@@ -25,4 +25,22 @@ describe('ensureDir', () => {
 
     await expect(ensureDir('/project/settings.json/nested')).rejects.toBe(error);
   });
+
+  describe('call inspection', () => {
+    it('VALID: {two real calls already made} => getCallsFor reads them back', async () => {
+      const proxy = ensureDirProxy();
+      proxy.succeeds({ path: '/project/.claude' });
+      proxy.succeeds({ path: '/project/settings' });
+
+      await ensureDir('/project/.claude');
+      await ensureDir('/project/settings');
+
+      expect(proxy.getCallsFor({ path: '/project/.claude' })).toStrictEqual([
+        ['/project/.claude', { recursive: true }],
+      ]);
+      expect(proxy.getCallsFor({ path: '/project/settings' })).toStrictEqual([
+        ['/project/settings', { recursive: true }],
+      ]);
+    });
+  });
 });
