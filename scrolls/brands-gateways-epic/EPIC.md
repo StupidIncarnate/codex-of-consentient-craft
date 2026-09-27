@@ -80,6 +80,10 @@ More rules for the operator:
     package publishes, or how a consumer resolves, loads or tests code adds its assertions to the
     consumer suite in the same item. Before committing such an item, the operator runs
     `npm run build:clean`, then `npm run check:consumer`. G27 lists the items known to need this.
+## Machine-wide side effects
+
+**`npm link --workspaces` in this worktree moves every global `@dungeonmaster/*` link onto it.** G24's regeneration step (build, `npm link --workspaces`, `npm run init`, per `CLAUDE.md`'s "Regenerating `.claude/settings.json` Here") was run from `worktrees/gateway-pivot` on 2026-09-27 at 02:33 local. After it, the global npm folder resolved `@dungeonmaster/cli`, `ward`, `mcp`, `shared` and every other workspace package to this mid-migration branch, for every repo on the machine. The user pointed the links back to the main checkout. Before running that step again from a worktree, say so to the user, or run `npm link --workspaces` from the main checkout afterwards. Ward and tests here never need the global links; they resolve through the workspace.
+
 ## Using Antigravity (`agy`) agents
 
 The user can lend Antigravity slots on top of the Claude sub-agents. This section records what the operator learns about driving them, and grows as the epic uses them more.
