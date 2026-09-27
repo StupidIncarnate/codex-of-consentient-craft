@@ -922,7 +922,7 @@ export const orphanGuard = (): boolean => true;`,
   });
 
   describe('rootPath override', () => {
-    it('VALID: {rootPath: a path OTHER than processCwdAdapter()} => scans from rootPath, not the server cwd', async () => {
+    it('VALID: {rootPath: a path OTHER than cwd()} => scans from rootPath, not the server cwd', async () => {
       const proxy = fileScannerBrokerProxy();
       const rootPath = PathSegmentStub({ value: '/repo/worktrees/siegelense' });
       const filepath = PathSegmentStub({

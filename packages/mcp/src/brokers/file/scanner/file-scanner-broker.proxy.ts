@@ -4,8 +4,8 @@
  * the project root, and, for a broad (**-prefixed) glob, the co-scanned @dungeonmaster/shared root
  * — because the gateway's `globProxy` has no zero-arg catch-all the way the local adapter proxy
  * it replaces did: an unaddressed call throws instead of quietly resolving empty, so both
- * addresses are computed here the same way the broker derives them, from the same mocked
- * `processCwdAdapter`/`sharedPackageResolveAdapter` inputs.
+ * addresses are computed here the same way the broker derives them, from the same
+ * `cwd`/`sharedPackageResolveAdapter` inputs.
  *
  * USAGE:
  * const brokerProxy = fileScannerBrokerProxy();
@@ -19,8 +19,9 @@ import { sharedPackageResolveAdapterProxy } from '../../../adapters/shared-packa
 import { sharedPackageResolveAdapter } from '../../../adapters/shared-package/resolve/shared-package-resolve-adapter';
 import { globIgnoreFilterTransformer } from '../../../transformers/glob-ignore-filter/glob-ignore-filter-transformer';
 import { fileDiscoveryStatics } from '../../../statics/file-discovery/file-discovery-statics';
-import { processCwdAdapterProxy } from '@dungeonmaster/shared/testing';
-import { processCwdAdapter } from '@dungeonmaster/shared/adapters';
+import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
+import { cwd } from '#gateway/node/process';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { PathSegmentStub, globPatternContract } from '@dungeonmaster/shared/contracts';
 import type { FileContents, GlobPattern, PathSegment } from '@dungeonmaster/shared/contracts';
 
@@ -47,9 +48,11 @@ export const fileScannerBrokerProxy = (): {
   }) => void;
   setupGlobFailure: (params: { pattern: GlobPattern; error: Error }) => void;
 } => {
-  processCwdAdapterProxy();
-  // The scan root the broker will resolve, read from the same mocked adapter the broker calls.
-  const scanRoot = PathSegmentStub({ value: processCwdAdapter() });
+  cwdProxy();
+  const cwdHandle = registerMock({ fn: cwd });
+  cwdHandle.calledWith([]).returns('/default/cwd');
+  // The scan root the broker will resolve, read from the same gateway the broker calls.
+  const scanRoot = PathSegmentStub({ value: '/default/cwd' });
   const readFileProxy = fsReadFileAdapterProxy();
   sharedPackageResolveAdapterProxy();
   // A real call, made with the same mocked `existsSync` the line above just staged — the exact
@@ -159,8 +162,8 @@ export const fileScannerBrokerProxy = (): {
       }
     },
 
-    // For a call that passes an explicit `rootPath` — an address independent of the mocked
-    // processCwdAdapter() default, proving the broker scanned from the PASSED root rather than
+    // For a call that passes an explicit `rootPath` — an address independent of the
+    // cwd() default, proving the broker scanned from the PASSED root rather than
     // silently falling back to its own cwd.
     setupFilesAtRoot: ({
       rootPath,

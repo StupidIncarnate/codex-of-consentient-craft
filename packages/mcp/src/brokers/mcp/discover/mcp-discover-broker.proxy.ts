@@ -9,8 +9,9 @@
 
 import { fileScannerBrokerProxy } from '../../file/scanner/file-scanner-broker.proxy';
 import { globFindAdapterProxy } from '../../../adapters/glob/find/glob-find-adapter.proxy';
-import { processCwdAdapterProxy } from '@dungeonmaster/shared/testing';
-import { processCwdAdapter } from '@dungeonmaster/shared/adapters';
+import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
+import { cwd } from '#gateway/node/process';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { PathSegmentStub } from '@dungeonmaster/shared/contracts';
 import type { FileContents, GlobPattern, PathSegment } from '@dungeonmaster/shared/contracts';
 
@@ -39,9 +40,11 @@ export const mcpDiscoverBrokerProxy = (): {
     pattern: GlobPattern;
   }) => void;
 } => {
-  processCwdAdapterProxy();
+  cwdProxy();
+  const cwdHandle = registerMock({ fn: cwd });
+  cwdHandle.calledWith([]).returns('/default/cwd');
   // The scan root the broker resolves for both the scanner and its own empty-result probes.
-  const scanRoot = PathSegmentStub({ value: processCwdAdapter() });
+  const scanRoot = PathSegmentStub({ value: '/default/cwd' });
   const fileScannerProxy = fileScannerBrokerProxy();
   const globProxy = globFindAdapterProxy();
 
