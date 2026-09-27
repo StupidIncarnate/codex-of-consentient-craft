@@ -43,6 +43,12 @@ ruleTester.run('enforce-regex-usage', ruleEnforceRegexUsageBroker(), {
       filename: '/project/src/contracts/user/user-contract.ts',
     },
 
+    // Statics can use regex - a shared pattern many contracts reuse
+    {
+      code: 'export const pathStatics = { absolutePattern: /^(\\/|[A-Za-z]:\\\\)/u };',
+      filename: '/project/src/statics/path/path-statics.ts',
+    },
+
     // Files not in src/ folder should be ignored
     {
       code: 'const regex = /test/;',
@@ -81,7 +87,7 @@ ruleTester.run('enforce-regex-usage', ruleEnforceRegexUsageBroker(), {
           messageId: 'forbiddenRegex',
           data: {
             folderType: 'brokers',
-            allowedFolders: 'contracts, guards, transformers',
+            allowedFolders: 'statics, contracts, guards, transformers',
           },
         },
       ],
@@ -94,7 +100,7 @@ ruleTester.run('enforce-regex-usage', ruleEnforceRegexUsageBroker(), {
           messageId: 'forbiddenRegex',
           data: {
             folderType: 'brokers',
-            allowedFolders: 'contracts, guards, transformers',
+            allowedFolders: 'statics, contracts, guards, transformers',
           },
         },
       ],
@@ -109,7 +115,7 @@ ruleTester.run('enforce-regex-usage', ruleEnforceRegexUsageBroker(), {
           messageId: 'forbiddenRegex',
           data: {
             folderType: 'adapters',
-            allowedFolders: 'contracts, guards, transformers',
+            allowedFolders: 'statics, contracts, guards, transformers',
           },
         },
       ],
@@ -124,7 +130,7 @@ ruleTester.run('enforce-regex-usage', ruleEnforceRegexUsageBroker(), {
           messageId: 'forbiddenRegex',
           data: {
             folderType: 'widgets',
-            allowedFolders: 'contracts, guards, transformers',
+            allowedFolders: 'statics, contracts, guards, transformers',
           },
         },
       ],
@@ -139,7 +145,7 @@ ruleTester.run('enforce-regex-usage', ruleEnforceRegexUsageBroker(), {
           messageId: 'forbiddenRegex',
           data: {
             folderType: 'responders',
-            allowedFolders: 'contracts, guards, transformers',
+            allowedFolders: 'statics, contracts, guards, transformers',
           },
         },
       ],
@@ -154,7 +160,7 @@ ruleTester.run('enforce-regex-usage', ruleEnforceRegexUsageBroker(), {
           messageId: 'forbiddenRegex',
           data: {
             folderType: 'bindings',
-            allowedFolders: 'contracts, guards, transformers',
+            allowedFolders: 'statics, contracts, guards, transformers',
           },
         },
       ],
@@ -169,7 +175,7 @@ ruleTester.run('enforce-regex-usage', ruleEnforceRegexUsageBroker(), {
           messageId: 'forbiddenRegex',
           data: {
             folderType: 'state',
-            allowedFolders: 'contracts, guards, transformers',
+            allowedFolders: 'statics, contracts, guards, transformers',
           },
         },
       ],
@@ -184,7 +190,7 @@ ruleTester.run('enforce-regex-usage', ruleEnforceRegexUsageBroker(), {
           messageId: 'forbiddenRegex',
           data: {
             folderType: 'middleware',
-            allowedFolders: 'contracts, guards, transformers',
+            allowedFolders: 'statics, contracts, guards, transformers',
           },
         },
       ],
@@ -199,22 +205,7 @@ ruleTester.run('enforce-regex-usage', ruleEnforceRegexUsageBroker(), {
           messageId: 'forbiddenRegex',
           data: {
             folderType: 'flows',
-            allowedFolders: 'contracts, guards, transformers',
-          },
-        },
-      ],
-    },
-
-    // Statics cannot use regex
-    {
-      code: 'const emailPattern = /^[a-z@.]+$/;',
-      filename: '/project/src/statics/patterns/patterns-statics.ts',
-      errors: [
-        {
-          messageId: 'forbiddenRegex',
-          data: {
-            folderType: 'statics',
-            allowedFolders: 'contracts, guards, transformers',
+            allowedFolders: 'statics, contracts, guards, transformers',
           },
         },
       ],
@@ -229,7 +220,7 @@ ruleTester.run('enforce-regex-usage', ruleEnforceRegexUsageBroker(), {
           messageId: 'forbiddenRegex',
           data: {
             folderType: 'errors',
-            allowedFolders: 'contracts, guards, transformers',
+            allowedFolders: 'statics, contracts, guards, transformers',
           },
         },
       ],
@@ -244,7 +235,7 @@ ruleTester.run('enforce-regex-usage', ruleEnforceRegexUsageBroker(), {
           messageId: 'forbiddenRegex',
           data: {
             folderType: 'startup',
-            allowedFolders: 'contracts, guards, transformers',
+            allowedFolders: 'statics, contracts, guards, transformers',
           },
         },
       ],

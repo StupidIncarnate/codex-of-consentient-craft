@@ -29,6 +29,7 @@ beforeEach(() => {
       '/project/src/state/user-cache/user-cache-state.test.ts',
       '/project/src/middleware/http-telemetry/http-telemetry-middleware.test.ts',
       '/project/src/statics/user/user-statics.test.ts',
+      '/project/src/statics/path/path-statics.test.ts',
       '/project/src/bindings/use-user-data/use-user-data-binding.test.ts',
       '/project/src/errors/validation/validation-error.test.ts',
       '/project/src/startup/start-server.integration.test.ts',
@@ -176,6 +177,17 @@ ruleTester.run('enforce-implementation-colocation', ruleEnforceImplementationCol
       code: 'export const userStatics = {};',
       filename: '/project/src/statics/user/user-statics.ts',
     },
+    // Statics with no regex and no test file - valid (a statics file needs a test only
+    // when it holds a regex; this one is pure data)
+    {
+      code: 'export const configStatics = {};',
+      filename: '/project/src/statics/config/config-statics.ts',
+    },
+    // Statics with a regex literal AND a colocated test file - valid
+    {
+      code: 'export const pathStatics = { pattern: /^\\/[a-z]+$/u };',
+      filename: '/project/src/statics/path/path-statics.ts',
+    },
     // Additional files with multiple dots that should be skipped
     {
       code: 'export const appConfigStatics = {};',
@@ -239,11 +251,12 @@ ruleTester.run('enforce-implementation-colocation', ruleEnforceImplementationCol
     },
   ],
   invalid: [
-    // Statics without test file - invalid (testType: unit, test file required)
+    // Statics with a regex literal and no test file - invalid: the regex is logic,
+    // so it still needs a colocated test even though plain statics data does not
     {
-      code: 'export const configStatics = {};',
-      filename: '/project/src/statics/config/config-statics.ts',
-      errors: [{ messageId: 'missingTestFile' }],
+      code: 'export const urlStatics = { pattern: /^https?:\\/\\//u };',
+      filename: '/project/src/statics/url/url-statics.ts',
+      errors: [{ messageId: 'missingTestFileWithLayer' }],
     },
     // Implementation files without tests or proxy
     {
@@ -279,7 +292,7 @@ ruleTester.run('enforce-implementation-colocation', ruleEnforceImplementationCol
     {
       code: 'export const productContract = z.object({});',
       filename: '/project/src/contracts/product/product-contract.ts',
-      errors: [{ messageId: 'missingTestFile' }, { messageId: 'missingStubFile' }],
+      errors: [{ messageId: 'missingTestFileWithLayer' }, { messageId: 'missingStubFile' }],
     },
     // Contract with test but without stub file
     {

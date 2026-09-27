@@ -56,8 +56,16 @@ export const ruleEnforceImplementationColocationBroker = (): EslintRule => ({
   }),
   create: (context: EslintContext) => {
     const ctx = context;
+    let hasRegexLiteral = false;
     return {
-      Program: (node: Tsestree): void => {
+      // Runs on every Literal node the walk reaches before `Program:exit` fires below,
+      // so a regex anywhere in the file is seen before the statics test-requirement check runs.
+      Literal: (node: Tsestree): void => {
+        if (node.value instanceof RegExp) {
+          hasRegexLiteral = true;
+        }
+      },
+      'Program:exit': (node: Tsestree): void => {
         const { filename } = ctx;
 
         // Skip if filename is not provided
@@ -165,22 +173,29 @@ export const ruleEnforceImplementationColocationBroker = (): EslintRule => ({
             });
           }
         } else if (testType === 'unit') {
-          // Check if any test file exists
-          const hasTestFile = testFilePaths.some((testFilePath) => {
-            const parsedPath = filePathContract.parse(testFilePath);
-            return fsExistsSyncAdapter({ filePath: parsedPath });
-          });
+          // A statics file is data, not logic, so it needs a colocated test only when it
+          // holds a regex literal (logic worth pinning) — every other unit-tested folder
+          // type keeps the unconditional requirement.
+          const staticsNeedsNoTest = folderType === 'statics' && !hasRegexLiteral;
 
-          if (!hasTestFile) {
-            const primaryTestFileName = testFilePaths[0] ?? filename;
-            const allowsLayerFiles = Boolean(folderConfig?.allowsLayerFiles);
-            ctx.report({
-              node,
-              messageId: allowsLayerFiles ? 'missingTestFileWithLayer' : 'missingTestFile',
-              data: {
-                testFileName: primaryTestFileName.split('/').pop() ?? primaryTestFileName,
-              },
+          if (!staticsNeedsNoTest) {
+            // Check if any test file exists
+            const hasTestFile = testFilePaths.some((testFilePath) => {
+              const parsedPath = filePathContract.parse(testFilePath);
+              return fsExistsSyncAdapter({ filePath: parsedPath });
             });
+
+            if (!hasTestFile) {
+              const primaryTestFileName = testFilePaths[0] ?? filename;
+              const allowsLayerFiles = Boolean(folderConfig?.allowsLayerFiles);
+              ctx.report({
+                node,
+                messageId: allowsLayerFiles ? 'missingTestFileWithLayer' : 'missingTestFile',
+                data: {
+                  testFileName: primaryTestFileName.split('/').pop() ?? primaryTestFileName,
+                },
+              });
+            }
           }
         }
         // testType === 'none' → no test file required (assets, migrations)

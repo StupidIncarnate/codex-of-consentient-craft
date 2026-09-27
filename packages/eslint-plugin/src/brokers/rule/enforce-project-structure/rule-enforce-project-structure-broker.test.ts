@@ -43,6 +43,23 @@ ruleTester.run('enforce-project-structure', ruleEnforceProjectStructureBroker(),
       code: 'export const parseResponseLayerAdapter = () => {};',
       filename: '/project/src/adapters/axios/get/parse-response-layer-adapter.ts',
     },
+    // Layer files now allowed in contracts/, transformers/, statics/ and bindings/
+    {
+      code: 'export const toolUseLayerContract = z.object({});',
+      filename: '/project/src/contracts/assistant-stream-line/tool-use-layer-contract.ts',
+    },
+    {
+      code: 'export const decodeBodyLayerTransformer = () => {};',
+      filename: '/project/src/transformers/parse-response/decode-body-layer-transformer.ts',
+    },
+    {
+      code: 'export const banListLayerStatics = {};',
+      filename: '/project/src/statics/eslint-rule/ban-list-layer-statics.ts',
+    },
+    {
+      code: 'export const useScrollPositionLayerBinding = () => {};',
+      filename: '/project/src/bindings/use-quest-chat/use-scroll-position-layer-binding.ts',
+    },
 
     // ========== SKIP CONDITIONS ==========
     {
