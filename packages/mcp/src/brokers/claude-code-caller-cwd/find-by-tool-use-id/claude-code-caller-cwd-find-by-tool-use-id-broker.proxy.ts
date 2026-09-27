@@ -9,8 +9,9 @@
  * proxy.setupTopLevelSessions({ homedir, projectDir, sessions: [{ sessionId, mtimeMs, contents }] });
  */
 
+import { homedir } from '#gateway/node/os';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { AbsoluteFilePathStub, PathSegmentStub } from '@dungeonmaster/shared/contracts';
-import { osUserHomedirAdapterProxy } from '@dungeonmaster/shared/testing';
 import { claudePathSlugEncoderTransformer } from '@dungeonmaster/shared/transformers';
 
 import { fsReaddirIfExistsAdapterProxy } from '../../../adapters/fs/readdir-if-exists/fs-readdir-if-exists-adapter.proxy';
@@ -21,16 +22,16 @@ import { scanFilepathsFromTailLayerBrokerProxy } from './scan-filepaths-from-tai
 type PathSegment = ReturnType<typeof PathSegmentStub>;
 
 const sessionsDirFor = ({
-  homedir,
+  homeDir,
   projectDir,
 }: {
-  homedir: string;
+  homeDir: string;
   projectDir: string;
 }): PathSegment =>
   PathSegmentStub({
     value: String(
       claudePathSlugEncoderTransformer({
-        homeDir: AbsoluteFilePathStub({ value: homedir }),
+        homeDir: AbsoluteFilePathStub({ value: homeDir }),
         projectPath: AbsoluteFilePathStub({ value: projectDir }),
       }),
     ),
@@ -55,25 +56,25 @@ export const claudeCodeCallerCwdFindByToolUseIdBrokerProxy = (): {
     agents: readonly { agentFilename: string; mtimeMs: number; contents: string }[];
   }) => void;
 } => {
-  const homedirProxy = osUserHomedirAdapterProxy();
+  const homedirHandle = registerMock({ fn: homedir });
   const readdirProxy = fsReaddirIfExistsAdapterProxy();
   const statProxy = fsStatAdapterProxy();
   const fileScanProxy = scanFilepathsFromTailLayerBrokerProxy();
 
   return {
     setupSessionsDirMissing: ({
-      homedir,
+      homedir: homeDir,
       projectDir,
     }: {
       homedir: string;
       projectDir: string;
     }): void => {
-      homedirProxy.returns({ path: homedir });
-      readdirProxy.returnsUndefined({ filepath: sessionsDirFor({ homedir, projectDir }) });
+      homedirHandle.calledWith([]).returns(homeDir);
+      readdirProxy.returnsUndefined({ filepath: sessionsDirFor({ homeDir, projectDir }) });
     },
 
     setupTopLevelSessions: ({
-      homedir,
+      homedir: homeDir,
       projectDir,
       sessions,
     }: {
@@ -81,8 +82,8 @@ export const claudeCodeCallerCwdFindByToolUseIdBrokerProxy = (): {
       projectDir: string;
       sessions: readonly { sessionId: string; mtimeMs: number; contents: string }[];
     }): void => {
-      homedirProxy.returns({ path: homedir });
-      const sessionsDir = sessionsDirFor({ homedir, projectDir });
+      homedirHandle.calledWith([]).returns(homeDir);
+      const sessionsDir = sessionsDirFor({ homeDir, projectDir });
       readdirProxy.returns({
         filepath: sessionsDir,
         entries: sessions.map((session) => FolderNameStub({ value: `${session.sessionId}.jsonl` })),
@@ -98,7 +99,7 @@ export const claudeCodeCallerCwdFindByToolUseIdBrokerProxy = (): {
     },
 
     setupSubagentsDirMissing: ({
-      homedir,
+      homedir: homeDir,
       projectDir,
       sessionId,
     }: {
@@ -106,14 +107,15 @@ export const claudeCodeCallerCwdFindByToolUseIdBrokerProxy = (): {
       projectDir: string;
       sessionId: string;
     }): void => {
+      homedirHandle.calledWith([]).returns(homeDir);
       const subagentsDir = PathSegmentStub({
-        value: `${String(sessionsDirFor({ homedir, projectDir }))}/${sessionId}/subagents`,
+        value: `${String(sessionsDirFor({ homeDir, projectDir }))}/${sessionId}/subagents`,
       });
       readdirProxy.returnsUndefined({ filepath: subagentsDir });
     },
 
     setupSubagentFiles: ({
-      homedir,
+      homedir: homeDir,
       projectDir,
       sessionId,
       agents,
@@ -123,8 +125,9 @@ export const claudeCodeCallerCwdFindByToolUseIdBrokerProxy = (): {
       sessionId: string;
       agents: readonly { agentFilename: string; mtimeMs: number; contents: string }[];
     }): void => {
+      homedirHandle.calledWith([]).returns(homeDir);
       const subagentsDir = PathSegmentStub({
-        value: `${String(sessionsDirFor({ homedir, projectDir }))}/${sessionId}/subagents`,
+        value: `${String(sessionsDirFor({ homeDir, projectDir }))}/${sessionId}/subagents`,
       });
       readdirProxy.returns({
         filepath: subagentsDir,

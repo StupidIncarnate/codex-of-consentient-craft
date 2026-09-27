@@ -29,7 +29,7 @@ import {
   type AbsoluteFilePath,
   type SessionId,
 } from '@dungeonmaster/shared/contracts';
-import { osUserHomedirAdapter } from '@dungeonmaster/shared/adapters';
+import { homedir } from '#gateway/node/os';
 import { claudePathSlugEncoderTransformer } from '@dungeonmaster/shared/transformers';
 
 import { fsReaddirIfExistsAdapter } from '../../../adapters/fs/readdir-if-exists/fs-readdir-if-exists-adapter';
@@ -43,7 +43,7 @@ export const claudeCodeSessionResolveBroker = async ({
 }: {
   projectDir: AbsoluteFilePath;
 }): Promise<{ sessionId: SessionId; sessionFilePath: AbsoluteFilePath } | undefined> => {
-  const homeDir = osUserHomedirAdapter();
+  const homeDir = absoluteFilePathContract.parse(homedir());
   const sessionsDir = claudePathSlugEncoderTransformer({
     homeDir,
     projectPath: projectDir,

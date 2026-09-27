@@ -3,7 +3,8 @@ import {
   FileContentsStub,
   PathSegmentStub,
 } from '@dungeonmaster/shared/contracts';
-import { osUserHomedirAdapterProxy } from '@dungeonmaster/shared/testing';
+import { homedir } from '#gateway/node/os';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { claudePathSlugEncoderTransformer } from '@dungeonmaster/shared/transformers';
 
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
@@ -18,32 +19,32 @@ type PathSegment = ReturnType<typeof PathSegmentStub>;
 // setup call only needs to name the real directory or file it is answering for, independent of
 // the order these setup calls run in.
 const sessionsDirFor = ({
-  homedir,
+  homeDir,
   projectDir,
 }: {
-  homedir: string;
+  homeDir: string;
   projectDir: string;
 }): PathSegment =>
   PathSegmentStub({
     value: String(
       claudePathSlugEncoderTransformer({
-        homeDir: AbsoluteFilePathStub({ value: homedir }),
+        homeDir: AbsoluteFilePathStub({ value: homeDir }),
         projectPath: AbsoluteFilePathStub({ value: projectDir }),
       }),
     ),
   });
 
 const subagentsDirFor = ({
-  homedir,
+  homeDir,
   projectDir,
   sessionId,
 }: {
-  homedir: string;
+  homeDir: string;
   projectDir: string;
   sessionId: string;
 }): PathSegment =>
   PathSegmentStub({
-    value: `${String(sessionsDirFor({ homedir, projectDir }))}/${sessionId}/subagents`,
+    value: `${String(sessionsDirFor({ homeDir, projectDir }))}/${sessionId}/subagents`,
   });
 
 export const claudeCodeParentSessionFindByToolUseIdBrokerProxy = (): {
@@ -72,13 +73,13 @@ export const claudeCodeParentSessionFindByToolUseIdBrokerProxy = (): {
     contents: string;
   }) => void;
 } => {
-  const homedirProxy = osUserHomedirAdapterProxy();
+  const homedirHandle = registerMock({ fn: homedir });
   const readdirProxy = fsReaddirIfExistsAdapterProxy();
   const readFileProxy = fsReadFileAdapterProxy();
 
   return {
     setupSessionsDir: ({
-      homedir,
+      homedir: homeDir,
       projectDir,
       sessionIds,
     }: {
@@ -86,24 +87,24 @@ export const claudeCodeParentSessionFindByToolUseIdBrokerProxy = (): {
       projectDir: string;
       sessionIds: readonly string[];
     }): void => {
-      homedirProxy.returns({ path: homedir });
+      homedirHandle.calledWith([]).returns(homeDir);
       readdirProxy.returns({
-        filepath: sessionsDirFor({ homedir, projectDir }),
+        filepath: sessionsDirFor({ homeDir, projectDir }),
         entries: sessionIds.map((sessionId) => FolderNameStub({ value: `${sessionId}.jsonl` })),
       });
     },
     setupSessionsDirMissing: ({
-      homedir,
+      homedir: homeDir,
       projectDir,
     }: {
       homedir: string;
       projectDir: string;
     }): void => {
-      homedirProxy.returns({ path: homedir });
-      readdirProxy.returnsUndefined({ filepath: sessionsDirFor({ homedir, projectDir }) });
+      homedirHandle.calledWith([]).returns(homeDir);
+      readdirProxy.returnsUndefined({ filepath: sessionsDirFor({ homeDir, projectDir }) });
     },
     setupSubagentsDir: ({
-      homedir,
+      homedir: homeDir,
       projectDir,
       sessionId,
       agentFilenames,
@@ -113,13 +114,14 @@ export const claudeCodeParentSessionFindByToolUseIdBrokerProxy = (): {
       sessionId: string;
       agentFilenames: readonly string[];
     }): void => {
+      homedirHandle.calledWith([]).returns(homeDir);
       readdirProxy.returns({
-        filepath: subagentsDirFor({ homedir, projectDir, sessionId }),
+        filepath: subagentsDirFor({ homeDir, projectDir, sessionId }),
         entries: agentFilenames.map((name) => FolderNameStub({ value: name })),
       });
     },
     setupSubagentsDirMissing: ({
-      homedir,
+      homedir: homeDir,
       projectDir,
       sessionId,
     }: {
@@ -127,12 +129,13 @@ export const claudeCodeParentSessionFindByToolUseIdBrokerProxy = (): {
       projectDir: string;
       sessionId: string;
     }): void => {
+      homedirHandle.calledWith([]).returns(homeDir);
       readdirProxy.returnsUndefined({
-        filepath: subagentsDirFor({ homedir, projectDir, sessionId }),
+        filepath: subagentsDirFor({ homeDir, projectDir, sessionId }),
       });
     },
     setupAgentFile: ({
-      homedir,
+      homedir: homeDir,
       projectDir,
       sessionId,
       agentFilename,
@@ -144,8 +147,9 @@ export const claudeCodeParentSessionFindByToolUseIdBrokerProxy = (): {
       agentFilename: string;
       contents: string;
     }): void => {
+      homedirHandle.calledWith([]).returns(homeDir);
       const filepath = PathSegmentStub({
-        value: `${String(subagentsDirFor({ homedir, projectDir, sessionId }))}/${agentFilename}`,
+        value: `${String(subagentsDirFor({ homeDir, projectDir, sessionId }))}/${agentFilename}`,
       });
       readFileProxy.returnsFor({ filepath, contents: FileContentsStub({ value: contents }) });
     },
