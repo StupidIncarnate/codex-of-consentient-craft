@@ -194,7 +194,7 @@ Package items run side by side, one agent group per package. Each is split by th
 | A09 | [Adapters: `mcp`](items/a09-adapters-mcp.md) | A02, G05, G15, G19, G21 | other A items | todo | operator splits |
 | A10 | [Adapters: `orchestrator`](items/a10-adapters-orchestrator.md) | A03, G05, G15, G19, G21 | other A items | todo | operator splits |
 | A11 | [Adapters: `server`](items/a11-adapters-server.md) | A02, G05, G15, G19, G21 | other A items | todo | operator splits |
-| A12 | [Adapters: `shared`](items/a12-adapters-shared.md) | G05, G15, G19, G21 | other A items | active | Split by caller file; see the item's "Operator's split". Phase 1 group SH1 is with an agent; it writes the recipe. |
+| A12 | [Adapters: `shared`](items/a12-adapters-shared.md) | G05, G15, G19, G21 | other A items | active | Split by caller file; see the item's "Operator's split". SH1 is done in 0d788914a (lockfile updated for shared's new `@dungeonmaster/node` dependency). SH1 found that node's SYNC `fs` proxies lack G21's predicate addressing, so it fell back to raw `registerMock` on `fs` in broker proxies. An agent is adding `*MatchingPath` and `getCallsFor` to node's `src/fs/*` proxies and reworking SH1's proxies. The SH2 to SH12 groups wait for that, so they don't copy the raw-fs fallback. |
 | A13 | [Adapters: `siegelense`](items/a13-adapters-siegelense.md) | G05, G15, G19, G21 | other A items | todo | operator splits |
 | A14 | [Adapters: `testing`](items/a14-adapters-testing.md) | G22 | other A items | todo | operator splits |
 | A15 | [Adapters: `tooling`](items/a15-adapters-tooling.md) | G05, G15, G19, G21 | other A items | todo | |
