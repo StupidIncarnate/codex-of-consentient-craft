@@ -5,7 +5,7 @@ import type {
   QuestListItemStub,
   QuestStub,
 } from '@dungeonmaster/shared/contracts';
-import { osUserHomedirAdapterProxy } from '@dungeonmaster/shared/testing';
+import { homedir } from '#gateway/node/os';
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
@@ -51,7 +51,7 @@ export const sessionListBrokerProxy = (): {
   registerMock({ fn: StartOrchestrator.loadQuest })
     .calledWith([])
     .rejects(new Error('sessionListBrokerProxy: no loadQuest scenario staged for this questId'));
-  const homedirProxy = osUserHomedirAdapterProxy();
+  const homedirHandle = registerMock({ fn: homedir });
   const globProxy = globFindAdapterProxy();
   const statProxy = fsStatAdapterProxy();
   const readFileProxy = fsReadFileAdapterProxy();
@@ -70,7 +70,7 @@ export const sessionListBrokerProxy = (): {
       orchestrator.getGuildReturns({ guild });
     },
     setupHomeDir: ({ path }: { path: string }): void => {
-      homedirProxy.returns({ path });
+      homedirHandle.calledWith([]).returns(path);
     },
     setupGlobFiles: ({ files, pattern }: { files: string[]; pattern?: string }): void => {
       const filePaths = files.map((f) => f as FilePath);

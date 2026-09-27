@@ -12,7 +12,7 @@ import {
   sessionIdContract,
 } from '@dungeonmaster/shared/contracts';
 import type { GuildId, SessionId } from '@dungeonmaster/shared/contracts';
-import { osUserHomedirAdapter } from '@dungeonmaster/shared/adapters';
+import { homedir } from '#gateway/node/os';
 import { StartOrchestrator, isoTimestampContract } from '@dungeonmaster/orchestrator';
 
 import { globFindAdapter } from '../../../adapters/glob/find/glob-find-adapter';
@@ -45,7 +45,7 @@ export const sessionListBroker = async ({
 }): Promise<unknown[]> => {
   const guild = await StartOrchestrator.getGuild({ guildId });
 
-  const homeDir = osUserHomedirAdapter();
+  const homeDir = absoluteFilePathContract.parse(homedir());
   const guildPath = absoluteFilePathContract.parse(guild.path);
   const dummySessionId = sessionIdContract.parse('_probe');
   const probePath = claudeProjectPathEncoderTransformer({

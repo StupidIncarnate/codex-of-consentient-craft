@@ -5,7 +5,7 @@ import { GlobPatternStub } from '../../../contracts/glob-pattern/glob-pattern.st
 
 describe('PrimitiveDuplicateDetectionRunResponder', () => {
   describe('default args (no flags)', () => {
-    it('VALID: {no args} => outputs scanning header with default pattern, threshold, and min length', async () => {
+    it('VALID: {no args} => outputs scanning header with default pattern, threshold, min length, and cwd-derived directory', async () => {
       const proxy = PrimitiveDuplicateDetectionRunResponderProxy();
       proxy.setupNoDuplicates();
 
@@ -17,6 +17,10 @@ describe('PrimitiveDuplicateDetectionRunResponder', () => {
       expect(output).toMatch(/^ {2}Pattern: \*\*\/\*\.ts$/mu);
       expect(output).toMatch(/^ {2}Threshold: 3\+ occurrences$/mu);
       expect(output).toMatch(/^ {2}Min length: 3 characters$/mu);
+      // No `--cwd=` arg: the responder falls back to the gateway's `cwd()`, mocked here to a fixed
+      // value (see the proxy) instead of the real OS directory — this pins that fallback, not just
+      // the parser branch that reads an explicit `--cwd=`.
+      expect(output).toMatch(new RegExp(`^ {2}Directory: ${String(proxy.getDefaultCwd())}$`, 'mu'));
     });
   });
 

@@ -6,16 +6,16 @@ import {
   GuildIdStub,
   QuestIdStub,
 } from '@dungeonmaster/shared/contracts';
-import {
-  locationsWardResultsPathFindBrokerProxy,
-  pathJoinAdapterProxy,
-} from '@dungeonmaster/shared/testing';
+import { join } from '#gateway/node/path';
+import { locationsWardResultsPathFindBrokerProxy } from '@dungeonmaster/shared/testing';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 import { QuestWardDetailResponder } from './quest-ward-detail-responder';
 
-const DETAIL_FILE_PATH_VALUE = '/home/testuser/quest/ward-results/result.json';
+const DETAIL_WARD_RESULT_ID = '22222222-2222-4222-8222-222222222222';
+const DETAIL_FILE_PATH_VALUE = `/home/testuser/quest/ward-results/${DETAIL_WARD_RESULT_ID}.json`;
 const DETAIL_FILE_PATH = FilePathStub({ value: DETAIL_FILE_PATH_VALUE });
 // Matches the literal VALID_QUEST_ID used by every test in quest-ward-detail-responder.test.ts —
 // the responder passes params.questId straight through, so the mocked address must match it.
@@ -41,7 +41,7 @@ export const QuestWardDetailResponderProxy = (): {
 } => {
   const findPathProxy = questFindQuestPathBrokerProxy();
   const locationsProxy = locationsWardResultsPathFindBrokerProxy();
-  const pathJoinProxy = pathJoinAdapterProxy();
+  const joinHandle = registerMock({ fn: join });
   const readFileProxy = fsReadFileAdapterProxy();
 
   const setupPaths = (): void => {
@@ -51,9 +51,12 @@ export const QuestWardDetailResponderProxy = (): {
       questPath: AbsoluteFilePathStub({ value: '/home/testuser/quest' }),
     });
     locationsProxy.setupWardResultsPath({
+      questFolderPath: '/home/testuser/quest',
       wardResultsPath: SharedFilePathStub({ value: '/home/testuser/quest/ward-results' }),
     });
-    pathJoinProxy.returns({ result: SharedFilePathStub({ value: DETAIL_FILE_PATH_VALUE }) });
+    joinHandle
+      .calledWith(['/home/testuser/quest/ward-results', `${DETAIL_WARD_RESULT_ID}.json`])
+      .returns(DETAIL_FILE_PATH_VALUE);
   };
 
   return {
