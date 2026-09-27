@@ -7,6 +7,50 @@ const SESSION_ID = 'aaaaaaaa-1111-4222-9333-444444444444';
 const TOOL_USE_ID = 'toolu_01K6qfGEd8bFzkPvY8nHt1Ts';
 
 describe('callerRepoRootResolveBroker', () => {
+  describe('hook: the pre-MCP-caller hook stamped the caller onto the call', () => {
+    it('VALID: {meta carries a hook caller in a worktree} => resolves from the WORKTREE with no scan at all', async () => {
+      const proxy = callerRepoRootResolveBrokerProxy();
+      const callerCwd = '/repo/codex-of-consentient-craft/worktrees/siegelense';
+      proxy.setupServerCwd({ cwd: SERVER_CWD });
+      proxy.setupRepoRootAtStart({ startPath: callerCwd });
+      // No scan staging at all — an unstaged readdir or readFile throws, so a fall-through to either
+      // scan fails this test instead of passing it.
+
+      const result = await callerRepoRootResolveBroker({
+        meta: {
+          'claudecode/toolUseId': TOOL_USE_ID,
+          'dungeonmaster/caller': { cwd: callerCwd, sessionId: SESSION_ID },
+        },
+        cachedEntries: [{ filepath: '/cached/session.jsonl' as never, offsetBytes: 0 as never }],
+      });
+
+      expect(result).toStrictEqual({
+        repoRoot: callerCwd,
+        source: 'caller-cwd',
+        configFound: true,
+        cursorUpdates: [],
+      });
+    });
+
+    it('VALID: {hook caller cwd with no .dungeonmaster.json above it} => returns that cwd with configFound: false', async () => {
+      const proxy = callerRepoRootResolveBrokerProxy();
+      proxy.setupServerCwd({ cwd: SERVER_CWD });
+      proxy.setupRepoRootNotFound({ startPath: '/tmp/scratch' });
+
+      const result = await callerRepoRootResolveBroker({
+        meta: { 'dungeonmaster/caller': { cwd: '/tmp/scratch', sessionId: SESSION_ID } },
+        cachedEntries: [],
+      });
+
+      expect(result).toStrictEqual({
+        repoRoot: '/tmp/scratch',
+        source: 'caller-cwd',
+        configFound: false,
+        cursorUpdates: [],
+      });
+    });
+  });
+
   describe('warm: cached cursor already covers the caller', () => {
     it('VALID: {meta with matching toolUseId found in a CACHED file} => resolves from the WORKTREE, skipping the cold scan entirely', async () => {
       const proxy = callerRepoRootResolveBrokerProxy();
