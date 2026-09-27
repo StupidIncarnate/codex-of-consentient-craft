@@ -139,3 +139,18 @@ Phase 1 covers `shared`'s own callers. All paths are under `packages/shared/src/
 | SH12 | `locations/{usage-ledger-*,ward-*,worktree-path-find}`, `port/{config-walk,resolve}`, `project-root/find`, `quests-folder/{ensure,find}` |
 
 Phase 2 is the sweep of other packages, split per consuming package in groups of 4 to 6 caller files. Phase 3 deletes the adapters, the barrel entries and the `./adapters` export.
+
+### Recipe from SH1 (0d788914a) and the sync-fs follow-up (3b63bf848)
+
+| Old adapter | New call (import from `#gateway/node/fs`) | Proxy to compose, per file |
+|---|---|---|
+| `fsReadFileSyncAdapter({filePath})` | `contentTextContract.parse(readFileSync(filePath))`. Re-brand it: the gateway returns a plain string. | `#gateway/node/fs/read-file-sync/read-file-sync.proxy`: `readFileSyncProxy()` with `returns({path, contents})` or `throws({path, error})`, `returnsMatchingPath({path: predicate, contents})` and `getCallsFor` |
+| `fsExistsSyncAdapter({filePath})` | `existsSync(filePath)` | `#gateway/node/fs/exists-sync/exists-sync.proxy`: `existsSyncProxy()` with `returns({path, exists})`, `returnsMatchingPath({path: predicate, exists})` and `getCallsFor`. It never throws. |
+| `fsReaddirWithTypesAdapter({dirPath})` | `readdirEntriesSync(dirPath)`, which returns `DirEntrySync[]` (`{name, kind}`) | `#gateway/node/fs/readdir-entries-sync/readdir-entries-sync.proxy`: `returns`/`throws`/`returnsMatchingPath`/`getCallsFor` |
+
+Traps:
+- A `brokers/` file may not import `fs`, not even as a type. So a readdir broker returns `DirEntrySync[]`, and each consumer changes `.isDirectory()` to `.kind === 'directory'` and so on.
+- `enforce-proxy-child-creation` requires composing the gateway proxy for every gateway name the implementation imports.
+- For a path known only at run time, stage it with `returnsMatchingPath({ path: (p) => …, … })`. Never fall back to a raw `registerMock` on `fs`. The only exception is a proxy that also offers a 0-argument `setupImplementation` computed per path (see 3b63bf848's note).
+- Find consumers with `discover` using `strict: true` on the bare identifier. An alternation pattern misses some.
+- A cross-gateway import typechecks against `@gateway/node`'s compiled output. If `shared`'s typecheck says a gateway proxy method "does not exist", report "build needed: @gateway/node". Do not work around it.
