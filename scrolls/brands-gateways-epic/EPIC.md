@@ -1,0 +1,271 @@
+# Brands and gateways: the epic
+
+This file is the operator's run sheet. It lists every work item, the order they run in, which can run
+side by side, and what state each is in. Each item is its own file under `items/`. An operator hands an
+agent one item's link plus `agent-brief.md`, and nothing else.
+
+Two source docs feed this epic. Neither is edited by the epic; they stay as the record of why.
+
+| Source | What it holds |
+|---|---|
+| `scrolls/gateway/followup-sustainability.md` | Open work on the four gateway packages under `packages/@gateway/`, and the deletion of every `adapters/` folder |
+| `scrolls/brands-types-tests-rules.md` | The rules for brands, library types, returns, tests and mocking, and the lint rules that enforce them |
+
+Every command runs from this worktree's root, `worktrees/gateway-pivot`, on the branch `gateway-pivot`.
+
+## What this epic is trying to do
+
+This epic bridges two large new systems into one. The gateway decides how code reaches anything outside
+the repo. The brand rules decide how our own data is typed, checked and tested. The two docs were written
+separately, and this epic is a best stab at linking them into one order of work.
+
+The goals:
+
+1. Every object contract, every object nested in it, and every string and number field in it is branded.
+   Brand texts are derived, never chosen.
+2. The gateway file structure is used as it stands: four packages, `#gateway/<kind>/<subpath>` imports,
+   `{subpath}.ts` barrels, one folder per wrapper. The one change is the user's: there are no `_test_`
+   barrels. A test imports each stub and proxy from its own file (brands doc C6), in the gateway and in
+   workspace packages alike. Item G26 makes that change.
+3. Everything works in a consumer repo that `dungeonmaster init` touched, not only here.
+
+As items land, a build error, a type error or a Node, TypeScript or Jest disagreement may show that the
+layout planned here does not work. When that happens, the operator tweaks the plan so the whole epic can
+succeed. **Every such change is written into "Concessions" below**, with what the plan said, what we did
+instead, and why. A concession nobody wrote down is a silent rewrite of the rules, and is not allowed.
+
+Decide by clean architecture. When two designs both work, pick the one with fewer places to keep in step,
+and the one that works unchanged in a consumer repo.
+
+## How to operate — the user's standing instructions
+
+1. **At most FIVE sub-agents at a time.** The user raised the cap from three to five this session.
+2. **A heartbeat every 30 minutes.** Use `CronCreate` with `13,43 * * * *` (recurring). Do NOT use `/loop` or
+   `ScheduleWakeup`; the user asked for cron. It fires only while the session is idle, and dies with the session.
+3. **The operator owns builds and commits. A dispatched agent does neither.** Agents also never run `git add` or
+   `git mv`: the git index is shared, and one agent's `git mv` was swept into another unit's commit this session.
+   Before every commit, run `git diff --cached --stat` and stage explicit paths, never a whole package another
+   agent is still editing.
+4. **FIX EVERY PRE-EXISTING FAILURE YOU FIND.** The user's words: *"any pre-existing needs to be fixed... we're
+   trying to get to a good state with this slew of changes."* A full `npm run ward` must exit 0. A failure an agent
+   reports but leaves standing becomes a unit.
+5. **Commit on the branch you are on, `gateway-pivot`.** The operator may branch off it when that helps,
+   such as giving a large item or a group of agents its own worktree through
+   `mcp__dungeonmaster__create-worktree`, so they stop sharing one git index. Every such branch merges
+   back into `gateway-pivot` when its work is done, and the operator deletes it and its worktree after
+   the merge. Nothing merges anywhere else. Agents still never create branches themselves.
+
+More rules for the operator:
+
+6. **The user gives no input until the epic is marked finished.** When an item is blocked, make a real
+   effort to clear it: dispatch an agent to explore the Node, TypeScript, Jest or config disagreement
+   behind it. If it still will not clear, mark it `blocked` in the status table with the reason, and move
+   on to any item that does not depend on it. Never stop working because one item is stuck.
+7. **Use sub-agents for everything that is not coordination:** planning an item's split, implementing,
+   writing tests, fixing build errors, and exploring disagreements. The operator reads reports, builds,
+   commits and updates this file.
+8. **Hand each agent one item file and `agent-brief.md`.** When an item says "operator splits", the
+   operator dispatches it as several agents, each given 1 to 3 files for cleanup work or 2 to 4 files for
+   migration work, and names the files in the prompt. Use `model: "sonnet"` for large mechanical fan-outs.
+9. **Two agents never edit the same package at once** unless the operator has named disjoint file lists
+   for them. An item marked "runs alone" runs with no other agent editing its package.
+10. **After each item lands:** the operator runs `npm run ward -- --uncommitted` until it exits 0, commits
+    the item's paths, then sets the item's row below to `done` with the commit SHA. Build only when
+    the `<dungeonmaster-buildDiscipline>` snippet's table, or repo `CLAUDE.md`'s build table, says the
+    next thing to run needs compiled output.
+11. **Update this file as you go.** Status, blockers and concessions live here, so a fresh session can
+    pick up from this file alone.
+12. **Keep the consumer suite growing.** Once G27 lands, any item that changes what `init` writes, what a
+    package publishes, or how a consumer resolves, loads or tests code adds its assertions to the
+    consumer suite in the same item. Before committing such an item, the operator runs
+    `npm run build:clean`, then `npm run check:consumer`. G27 lists the items known to need this.
+## Concessions
+
+Each row is a place where this epic departs from a source doc. The first rows were decided while the epic
+was planned. Add a row whenever execution forces another.
+
+| # | Source doc said | We do instead | Why |
+|---|---|---|---|
+| 1 | Gateway follow-ups, "Gateway standards as built" and item 45: every package has a `./_test_/*` export and a `<subpath>.proxy.ts` test barrel, and callers import `#gateway/<kind>/_test_/<subpath>`. | The brands doc wins (C6), by the user's decision on 2026-09-26: no `_test_` barrel and no `_test_` import path anywhere. A test imports each stub and proxy from its own file: `#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy`, or `@dungeonmaster/orchestrator/startup/start-orchestrator.proxy`. Each package's `exports` holds three keys: `"./*.proxy": "./src/*.proxy.ts"`, `"./*.stub": "./src/*.stub.ts"` and the barrel key `"./*": "./src/*/*.ts"`, each with the usual conditions. G26 makes the change in the gateway; B03 makes it in workspace packages. | No barrel of test support to keep current. A probe on 2026-09-26 showed Node and TypeScript (`node16`, `source` condition) resolve all three key forms from one package: a more specific pattern key beats `./*`. Jest's resolver and the proxy-mock hoister are not proven yet; G26 proves them first. |
+| 2 | Brands doc T6 builds each workspace package's own proxy in step 10, near the end. | Orchestrator's own proxy (`startOrchestratorProxy`) is built in Phase 2, item A00, before the forwarder adapters are deleted. The lint rule `ban-workspace-export-mocks` still lands in Phase 5. | Server and mcp have 65 adapters that only forward into orchestrator. Deleting them leaves their callers' tests nothing to mock except orchestrator's exports, which T6 forbids. The proxy has to exist first. |
+| 3 | Gateway follow-up item 45 (every workspace package's `exports`) and brands doc C6 (stubs and proxies out of production barrels, imported per file) are two separate pieces of work. | One item, B03, does both, using row 1's three-key `exports` form. | They move the same barrels and rewrite the same import lines. Two passes would touch every file twice. |
+| 4 | Gateway follow-up item 25 is one item. | Split three ways: G16 (the colocation rule, recorded-failure stubs and Node library stubs), G17 (AST, rule-context and TypeScript stubs), G18 (a stub for every remaining subpath). | Each part is a different kind of work, and G17 alone is large. |
+
+## Status key
+
+| Status | Meaning |
+|---|---|
+| `todo` | Not started |
+| `ready` | Every dependency is `done`, so it can be dispatched now |
+| `active` | An agent is working on it; the Notes column names the agent |
+| `review` | The agent reported; the operator is checking ward and the diff |
+| `done` | Committed; the Notes column holds the SHA |
+| `blocked` | Tried and stuck; the Notes column says why and what was tried |
+
+## The order of work
+
+Phases run roughly in order, but an item may start as soon as every item in its "Needs" column is
+`done`. Items in the same phase with no link between them run side by side, up to five at once.
+
+```mermaid
+flowchart LR
+  P0[Phase 0<br/>baseline ward green] --> P1[Phase 1<br/>gateway foundation]
+  P1 --> P2[Phase 2<br/>delete every adapter]
+  P1 --> B01[B01 zod v4]
+  P2 --> P3[Phase 3<br/>brands foundation]
+  B01 --> P3
+  P3 --> P4[Phase 4<br/>brands]
+  P2 --> P5[Phase 5<br/>tests and mocking]
+  P4 --> P6[Phase 6<br/>docs and finish]
+  P5 --> P6
+```
+
+Phase 0 must finish before an item's own ward run means anything, but Phase 1 items that touch only
+tooling may start while Phase 0's fixes are in flight.
+
+Each item that adds or changes a lint rule also: tags it `'pre-edit'` in
+`packages/shared/src/statics/dungeonmaster-rule-enforce-on-statics.ts` only when the item file says it can
+run pre-edit; updates the teaching text rows the item file names; and runs the rule as a scan over the
+whole repo before switching it on, hand-checking a sample of what it flags and what it lets through.
+
+### Phase 0 — a green baseline
+
+| ID | Item | Needs | Runs with | Status | Notes |
+|---|---|---|---|---|---|
+| P0-1 | [Full `npm run ward` exits 0, including the slow `cli` install test](items/p0-1-baseline-ward.md) | — | any Phase 1 item outside the failing packages | done | Full ward on `a72edb985` exited 0 (run `1790490064405-d32d`, 783s). The `cli` slow-test gate did not trip on that run; Z07 rechecks it. |
+
+### Phase 1 — gateway foundation
+
+Mostly tooling and the gateway packages themselves. Most items here are independent.
+
+| ID | Item | Needs | Runs with | Status | Notes |
+|---|---|---|---|---|---|
+| G01 | [One list of gateway folder names](items/g01-gateway-folder-names-one-list.md) | — | any | todo | |
+| G02 | [Build order ignores `devDependencies`](items/g02-build-order-ignores-dev-deps.md) | — | any | todo | |
+| G03 | [Publish `@dungeonmaster/testing` publicly](items/g03-publish-testing-public.md) | — | any | todo | |
+| G04 | [Delete the hand-written MCP SDK types](items/g04-delete-hand-written-mcp-sdk-types.md) | — | any | todo | |
+| G05 | [Error classes live in `.error.ts` files](items/g05-error-classes-in-error-files.md) | — | any outside `@gateway/bin`, `@gateway/node` | todo | |
+| G06 | [A per-name `type` import is not a value](items/g06-type-import-specifiers-skipped.md) | — | any | todo | |
+| G07 | [Turn on `@typescript-eslint/no-shadow`](items/g07-no-shadow.md) | — | runs alone per package | todo | operator splits per package |
+| G08 | [`node16` in the published base tsconfig; one ts-jest options entry](items/g08-node16-base-tsconfig-and-ts-jest.md) | — | any not editing jest or tsconfig files | todo | |
+| G09 | [Tool tests use the current gateway layout as sample data](items/g09-tool-test-fixtures-current-layout.md) | — | any | todo | |
+| G10 | [Ward's `lint` runs the platform and dedupe checks](items/g10-platform-and-dedupe-into-ward-lint.md) | — | any outside `ward` | todo | |
+| G11 | [Per-package tests for the gateway layout](items/g11-gateway-layout-package-tests.md) | G01 | any | todo | |
+| G12 | [The `gateway` key in `.dungeonmaster.json` and its lint rules](items/g12-gateway-config-key-and-rules.md) | — | any | todo | |
+| G13 | [The Mantine-wrapped `render` moves to `@dungeonmaster/testing`](items/g13-mantine-render-to-testing.md) | G12, G26 | any outside `web`, `testing` | todo | |
+| G14 | [Lint rules that keep gateway barrels honest](items/g14-gateway-barrel-lint-rules.md) | G05, G26 | any | todo | |
+| G15 | [A gateway function returns a real type or `unknown`](items/g15-gateway-returns-unknown-not-caller-type.md) | — | any | todo | |
+| G16 | [Gateway stubs: the colocation rule, recorded failures, Node library types](items/g16-gateway-stubs-node-and-failures.md) | G26 | any | todo | |
+| G17 | [Gateway stubs: AST nodes, rule context, TypeScript source file](items/g17-gateway-stubs-ast-and-typescript.md) | G26 | any | todo | |
+| G18 | [A stub for every remaining gateway subpath](items/g18-gateway-stub-every-subpath.md) | G16, G17 | any | todo | operator splits per gateway package |
+| G19 | [Gateway proxies use recorded failures and drop catch-all defaults](items/g19-gateway-proxies-recorded-failures-no-catch-all.md) | G16, G26 | any | todo | |
+| G20 | [Gateway schemas branded `#Gateway<Type>`](items/g20-gateway-schemas-gateway-brand.md) | G16 | any | todo | |
+| G21 | [Gateway proxies offer loose addressing and call read-back](items/g21-gateway-proxy-addressing-read-back.md) | G19, G26 | any | todo | operator splits bin / node / browser |
+| G22 | [Jest goes through the gateway](items/g22-jest-through-gateway.md) | G02, G03 | any outside `testing` | todo | |
+| G23 | [The discovery tools show the gateway as `#gateway`](items/g23-discovery-tools-show-gateway.md) | G12 | any | todo | |
+| G24 | [Tell a consumer's agent how to add an npm or bin wrapper](items/g24-consumer-npm-bin-wrapper-snippet.md) | — | any | todo | |
+| G25 | [`init` works end to end in a scratch consumer](items/g25-consumer-init-end-to-end.md) | G03, G08 | any | todo | G27 turns its checks into a suite |
+| G26 | [Stubs and proxies are imported from their own files; the gateway's `_test_` barrels go](items/g26-per-file-proxy-and-stub-imports.md) | — | any outside `@gateway/*` and `testing` | todo | concession 1; do first in Phase 1 |
+| G27 | [A test suite proves a fresh consumer repo is bootstrapped correctly](items/g27-consumer-repo-test-suite.md) | G25, G26 | any | todo | the suite then grows with every item that changes what a consumer gets |
+
+### Phase 2 — delete every adapter
+
+The biggest phase. Each package's item moves its callers onto gateway exports and turns what is left into
+brokers, transformers or statics, then deletes every adapter with its proxy, test and stub.
+
+A package item may start once A00 to A02 are `done` and every Phase 1 item in its own "Needs" is `done`.
+Package items run side by side, one agent group per package. Each is split by the operator into agents of
+2 to 4 adapters each.
+
+| ID | Item | Needs | Runs with | Status | Notes |
+|---|---|---|---|---|---|
+| A00 | [Orchestrator ships its own proxy](items/a00-orchestrator-own-proxy.md) | P0-1, G26 | any outside `orchestrator` | todo | concession 2 |
+| A01 | [Delete the adapters the trials left without callers](items/a01-dead-adapters.md) | P0-1 | any | todo | |
+| A02 | [Delete the forwarder adapters](items/a02-forwarder-adapters.md) | A00 | any outside `mcp`, `server` | todo | operator splits |
+| A03 | [One broker lists what is on a port and kills it](items/a03-port-kill-broker.md) | G21 | any outside `orchestrator`, `ward` | todo | |
+| A04 | [Adapters: `cli`](items/a04-adapters-cli.md) | G05, G15, G19, G21 | other A items | todo | operator splits |
+| A05 | [Adapters: `config`](items/a05-adapters-config.md) | G05, G15, G19, G21 | other A items | todo | |
+| A06 | [Adapters: `eslint-plugin`](items/a06-adapters-eslint-plugin.md) | G05, G15, G19, G21 | other A items | todo | operator splits |
+| A07 | [Adapters: `hooks`](items/a07-adapters-hooks.md) | G05, G15, G19, G21 | other A items | todo | operator splits |
+| A08 | [Adapters: `hydration` and `hydration-recipes`](items/a08-adapters-hydration.md) | G05, G15, G19, G21 | other A items | todo | operator splits |
+| A09 | [Adapters: `mcp`](items/a09-adapters-mcp.md) | A02, G05, G15, G19, G21 | other A items | todo | operator splits |
+| A10 | [Adapters: `orchestrator`](items/a10-adapters-orchestrator.md) | A03, G05, G15, G19, G21 | other A items | todo | operator splits |
+| A11 | [Adapters: `server`](items/a11-adapters-server.md) | A02, G05, G15, G19, G21 | other A items | todo | operator splits |
+| A12 | [Adapters: `shared`](items/a12-adapters-shared.md) | G05, G15, G19, G21 | other A items | todo | do early. `shared` exports its adapters publicly: 249 files in 11 other packages import `@dungeonmaster/shared/adapters` (census 2026-09-26). Operator splits per consuming package, and those agents follow rule 9 against that package's own A item. |
+| A13 | [Adapters: `siegelense`](items/a13-adapters-siegelense.md) | G05, G15, G19, G21 | other A items | todo | operator splits |
+| A14 | [Adapters: `testing`](items/a14-adapters-testing.md) | G22 | other A items | todo | operator splits |
+| A15 | [Adapters: `tooling`](items/a15-adapters-tooling.md) | G05, G15, G19, G21 | other A items | todo | |
+| A16 | [Adapters: `ward`](items/a16-adapters-ward.md) | A03, G05, G15, G19, G21 | other A items | todo | operator splits |
+| A17 | [Adapters: `web`](items/a17-adapters-web.md) | G05, G13, G15, G19, G21 | other A items | todo | operator splits |
+| A18 | [Raw outside calls that never had an adapter; drop duplicate package deps](items/a18-raw-calls-and-dependency-cleanup.md) | A04–A17 | — | todo | operator splits per package |
+| A19 | [`adapters` stops being a folder type; caller-facing lint rules on](items/a19-adapters-folder-type-gone-caller-rules-on.md) | A18 | — | todo | runs alone |
+
+### Phase 3 — brands foundation
+
+| ID | Item | Needs | Runs with | Status | Notes |
+|---|---|---|---|---|---|
+| B01 | [Upgrade zod to v4](items/b01-zod-v4.md) | G15 | Phase 2 items whose files it does not touch | todo | operator splits the uuid and `z.function` fixes |
+| B02 | [The contract index, and unused contracts deleted](items/b02-contract-index-and-unused-contracts.md) | A19 | B01, B07 | todo | |
+| B03 | [Package `exports` serve barrels and per-file stubs and proxies; stubs and proxies out of production barrels](items/b03-package-exports-and-per-file-test-imports.md) | B02 | B04, B05 | todo | concessions 1 and 3; operator splits per package |
+| B04 | [Lint rules use the real `TSESTree` and the gateway's AST stubs](items/b04-eslint-rules-on-real-tsestree.md) | G17, A06 | B05 | todo | operator splits per rule folder |
+| B05 | [Every other copied library type goes](items/b05-other-library-type-copies.md) | G16, A07, A14 | B04 | todo | |
+| B06 | [Contract fields of outside types use the gateway's schemas](items/b06-gateway-schema-fields-in-contracts.md) | G20, B01 | any | todo | |
+| B07 | [Layer files in four more folder types; regex allowed in statics](items/b07-layers-and-statics-regex.md) | P0-1 | any | todo | |
+
+### Phase 4 — brands
+
+| ID | Item | Needs | Runs with | Status | Notes |
+|---|---|---|---|---|---|
+| B10 | [The owner index for B4, C8 and the indexed brand checks](items/b10-owner-index.md) | B02 | B14, B17, B18 | todo | |
+| B11 | [A contract name is unique across packages](items/b11-unique-contract-names.md) | B10, B03 | B14, B17, B18 | todo | fixes the `FolderType` bug |
+| B12 | [`require-object-contract-brands` and its autofix](items/b12-require-object-contract-brands.md) | B01, B10 | B13, B14 | todo | |
+| B13 | [A field that holds another object's field reuses it](items/b13-owner-field-reuse.md) | B10 | B12, B14 | todo | |
+| B14 | [No field-type aliases; object types that leave a function are contracts](items/b14-type-alias-and-adhoc-type-rules.md) | A19 | any | todo | operator splits the shape fixes per package |
+| B15 | [Brand the repo](items/b15-brand-migration.md) | B06, B07, B11, B12, B13, B14 | — | todo | operator splits per package; the largest item in the epic |
+| B16 | [An owner is a real object; an id is never re-branded](items/b16-real-owner-and-id-rebrand.md) | B15 | T-items | todo | |
+| B17 | [No type predicate onto our types; parsed JSON goes straight into a parse](items/b17-predicates-and-json-parse.md) | G15, B01 | any | todo | |
+| B18 | [A function returns what its calls told it](items/b18-returns-say-what-happened.md) | A19 | any | todo | |
+
+### Phase 5 — tests and mocking
+
+| ID | Item | Needs | Runs with | Status | Notes |
+|---|---|---|---|---|---|
+| T01 | [MSW loads in every package and fails on anything unhandled](items/t01-msw-everywhere.md) | G08 | any | todo | |
+| T02 | [The I/O trap covers every way out of the process](items/t02-io-trap-every-way-out.md) | T01 | any | todo | |
+| T03 | [MSW handlers are checked against the server's contracts](items/t03-contract-checked-handlers.md) | T01 | any | todo | |
+| T04 | [No test mocks another workspace package's exports](items/t04-workspace-export-mocks-ban.md) | A02 | any | todo | |
+| T05 | [No catch-all proxy defaults; no invented failures](items/t05-proxy-catch-all-and-invented-failures.md) | G19 | any | todo | operator splits the fixes per package |
+| T06 | [A proxy composes the proxy beside each wrapper it calls](items/t06-proxy-child-creation.md) | B03 | any | todo | |
+| T07 | [Consumers get the Jest home sandbox](items/t07-home-sandbox-for-consumers.md) | P0-1 | any | todo | |
+| T08 | [Read every catch-everything implementation](items/t08-catch-everything-implementations.md) | T05 | any | todo | operator splits |
+| T09 | [A generated catalog of the test infrastructure](items/t09-test-infrastructure-catalog.md) | B03, T05, T06 | any | todo | |
+| T10 | [JSX only in `widgets/` and `flows/`](items/t10-jsx-only-in-widgets-and-flows.md) | A17 | any | todo | |
+
+### Phase 6 — docs and the finish line
+
+Do this phase last. Every code item above may still change the layout the docs describe.
+
+| ID | Item | Needs | Runs with | Status | Notes |
+|---|---|---|---|---|---|
+| Z01 | [The `gateway` folder-type doc](items/z01-gateway-folder-type-doc.md) | every A, B, G, T item | Z02–Z06 | todo | |
+| Z02 | [`get-architecture` and the session snippets](items/z02-architecture-and-snippet-text.md) | every A, B, G, T item | Z01, Z03–Z06 | todo | |
+| Z03 | [`get-folder-detail` and `get-testing-patterns`](items/z03-folder-type-and-testing-docs.md) | every A, B, G, T item | Z01, Z02, Z04–Z06 | todo | |
+| Z04 | [Every `CLAUDE.md` and `AGENTS.md`](items/z04-claude-md-and-agents-md.md) | every A, B, G, T item | Z01–Z03, Z05, Z06 | todo | operator splits |
+| Z05 | [Every `PURPOSE` header in `packages/@gateway`](items/z05-gateway-purpose-headers.md) | every A, B, G, T item | Z01–Z04, Z06 | todo | operator splits per subpath |
+| Z06 | [Pointers in the older scrolls](items/z06-scrolls-pointers.md) | every A, B, G, T item | Z01–Z05 | todo | |
+| Z07 | [The finish line](items/z07-finish-line.md) | Z01–Z06, G27 | — | todo | runs alone |
+
+## Blocked items
+
+When an item is marked `blocked`, add a row here. Clear the row when the item unblocks.
+
+| ID | What blocks it | What was tried | What else it holds up |
+|---|---|---|---|
+
+## Log
+
+One line per session: the date, what landed, and where the next session starts.
+
+| Date | What happened |
+|---|---|
+| 2026-09-26 | Epic planned. Item files written. Nothing executed yet. |
