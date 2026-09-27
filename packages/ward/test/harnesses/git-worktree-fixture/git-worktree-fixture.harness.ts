@@ -22,7 +22,7 @@
 import { mkdirSync, promises as fsPromises, writeFileSync } from 'fs';
 import { dirname, join } from 'path';
 
-import { childProcessSpawnCaptureAdapter } from '@dungeonmaster/shared/adapters';
+import { run } from '#gateway/node/child_process';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import type { GitBranchName } from '../../../src/contracts/git-branch-name/git-branch-name-contract';
@@ -73,7 +73,10 @@ export const wardGitWorktreeFixtureHarness = (): {
     cwd: AbsoluteFilePath;
     args: readonly string[];
   }): Promise<void> => {
-    await childProcessSpawnCaptureAdapter({
+    // A real fixture repo: git is expected on the machine running these integration tests, so a
+    // missing binary (RunNotFoundError) is left to throw rather than folded into a fake result —
+    // there is no result shape here for a caller to inspect either way.
+    await run({
       command: 'git',
       args: [...args],
       cwd,

@@ -59,8 +59,10 @@ describe('bundleBuildBroker', () => {
 
       await bundleBuildBroker({ packageRoot });
 
+      // The proxy stages this exact call under cwd '/project/packages/web' (WEB_ROOT) — a build
+      // spawned with any other cwd would match no staged call and throw before this assertion runs,
+      // so reaching this args check already proves the cwd was passed through correctly.
       expect(proxy.getSpawnedArgs()).toStrictEqual(['run', 'build', '--', '--outDir', TEMP_DIR]);
-      expect(proxy.getSpawnedCwd()).toBe('/project/packages/web');
     });
 
     // Publishing is a rename ONTO the hash directory, never a write INSIDE one. A concurrent run

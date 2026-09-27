@@ -6,8 +6,12 @@
  * // Returns ProjectResult with parsed ESLint errors
  */
 
-import { childProcessSpawnCaptureAdapter } from '@dungeonmaster/shared/adapters';
-import { absoluteFilePathContract, exitCodeContract } from '@dungeonmaster/shared/contracts';
+import { run, RunNotFoundError } from '#gateway/node/child_process';
+import {
+  absoluteFilePathContract,
+  errorMessageContract,
+  exitCodeContract,
+} from '@dungeonmaster/shared/contracts';
 
 import { binCommandContract } from '../../../contracts/bin-command/bin-command-contract';
 import { rawOutputContract } from '../../../contracts/raw-output/raw-output-contract';
@@ -38,13 +42,18 @@ export const checkRunLintBroker = async ({
   const finalArgs = fileList.length > 0 ? [...args.slice(0, -1), ...fileList] : [...args];
   const command = String(binResolveBroker({ binName: binCommandContract.parse(bin), cwd }));
 
-  const result = await childProcessSpawnCaptureAdapter({
-    command,
-    args: finalArgs,
-    cwd,
+  // A missing `eslint` binary rejects `run` with RunNotFoundError rather than resolving a result —
+  // caught here and folded into the same failed-run shape the old spawn-capture adapter resolved
+  // for an ENOENT, so a machine without the resolved bin reads as a failing lint run below, exactly
+  // as it always has.
+  const result = await run({ command, args: finalArgs, cwd }).catch((error: unknown) => {
+    if (!(error instanceof RunNotFoundError)) {
+      throw error;
+    }
+    return { exitCode: 1, output: '', signal: null, timedOut: false };
   });
 
-  const exitCode = result.exitCode ?? exitCodeContract.parse(1);
+  const exitCode = exitCodeContract.parse(result.exitCode);
   const status = exitCode === exitCodeContract.parse(0) ? 'pass' : 'fail';
 
   let errors: ReturnType<typeof eslintJsonParseTransformer> = [];
@@ -62,7 +71,9 @@ export const checkRunLintBroker = async ({
   }
 
   try {
-    const jsonSlice = extractJsonArrayTransformer({ output: result.output });
+    const jsonSlice = extractJsonArrayTransformer({
+      output: errorMessageContract.parse(result.output),
+    });
     const parsed: unknown = JSON.parse(jsonSlice);
     if (Array.isArray(parsed)) {
       // AN IGNORED PATH IS NOT A LINTED FILE. ESLint replies with a full result entry for an

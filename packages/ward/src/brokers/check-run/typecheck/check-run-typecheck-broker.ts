@@ -22,15 +22,12 @@
  * // tsconfig.build.json; status reflects the whole package on any scoped run
  */
 
-import {
-  childProcessSpawnCaptureAdapter,
-  fsExistsSyncAdapter,
-} from '@dungeonmaster/shared/adapters';
+import { run, RunNotFoundError } from '#gateway/node/child_process';
+import { existsSync } from '#gateway/node/fs';
 import {
   absoluteFilePathContract,
   exitCodeContract,
   filePathContract,
-  type ProcessSignal,
 } from '@dungeonmaster/shared/contracts';
 
 import { binCommandContract } from '../../../contracts/bin-command/bin-command-contract';
@@ -65,7 +62,7 @@ export const checkRunTypecheckBroker = async ({
   const cwd = absoluteFilePathContract.parse(projectFolder.path);
   const tsconfigPath = filePathContract.parse(`${String(cwd)}/tsconfig.json`);
 
-  if (!fsExistsSyncAdapter({ filePath: tsconfigPath })) {
+  if (!existsSync(tsconfigPath)) {
     return projectResultContract.parse({
       projectFolder,
       status: 'skip',
@@ -101,20 +98,34 @@ export const checkRunTypecheckBroker = async ({
   // appended here. Run alongside the checking pass, never after it — a sequential second `tsc`
   // process would double the wall time of every package's typecheck that carries this file.
   const buildTsconfigPath = filePathContract.parse(`${String(cwd)}/tsconfig.build.json`);
-  const hasBuildConfig = fsExistsSyncAdapter({ filePath: buildTsconfigPath });
+  const hasBuildConfig = existsSync(buildTsconfigPath);
 
+  // A missing `tsc` binary rejects `run` with RunNotFoundError rather than resolving a result —
+  // caught here and folded into the same failed-run shape the old spawn-capture adapter resolved
+  // for an ENOENT, so a machine without the resolved bin reads as a failing typecheck run below,
+  // exactly as it always has.
   const [result, buildResult] = await Promise.all([
-    childProcessSpawnCaptureAdapter({ command, args: [...args], cwd }),
+    run({ command, args: [...args], cwd }).catch((error: unknown) => {
+      if (!(error instanceof RunNotFoundError)) {
+        throw error;
+      }
+      return { exitCode: 1, output: '', signal: null, timedOut: false };
+    }),
     hasBuildConfig
-      ? childProcessSpawnCaptureAdapter({
+      ? run({
           command,
           args: [...buildArgs, '-p', String(buildTsconfigPath)],
           cwd,
+        }).catch((error: unknown) => {
+          if (!(error instanceof RunNotFoundError)) {
+            throw error;
+          }
+          return { exitCode: 1, output: '', signal: null, timedOut: false };
         })
       : Promise.resolve(null),
   ]);
 
-  const exitCode = result.exitCode ?? exitCodeContract.parse(1);
+  const exitCode = exitCodeContract.parse(result.exitCode);
   const status = exitCode === exitCodeContract.parse(0) ? 'pass' : 'fail';
 
   let mainErrors: ReturnType<typeof tscOutputParseTransformer> = [];
@@ -131,10 +142,10 @@ export const checkRunTypecheckBroker = async ({
   let buildErrors: ReturnType<typeof tscOutputParseTransformer> = [];
   let buildStrippedOutput = '';
   let buildExitCode = exitCodeContract.parse(0);
-  let buildSignal: ProcessSignal | null = null;
+  let buildSignal: NodeJS.Signals | null = null;
 
   if (buildResult !== null) {
-    buildExitCode = buildResult.exitCode ?? exitCodeContract.parse(1);
+    buildExitCode = exitCodeContract.parse(buildResult.exitCode);
     buildSignal = buildResult.signal;
     buildStatus = buildExitCode === exitCodeContract.parse(0) ? 'pass' : 'fail';
 

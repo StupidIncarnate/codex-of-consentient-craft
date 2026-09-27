@@ -16,10 +16,8 @@
  * // no build script, and { bundleDir: null, error } when its build failed
  */
 
-import {
-  childProcessSpawnCaptureAdapter,
-  fsExistsSyncAdapter,
-} from '@dungeonmaster/shared/adapters';
+import { run, RunNotFoundError } from '#gateway/node/child_process';
+import { existsSync } from '#gateway/node/fs';
 import {
   absoluteFilePathContract,
   errorMessageContract,
@@ -71,7 +69,7 @@ export const bundleBuildBroker = async ({
   const bundleParent = `${String(packageRoot)}/${bundleStatics.parentDir}`;
   const bundleDir = absoluteFilePathContract.parse(`${bundleParent}/${String(hash)}`);
 
-  if (fsExistsSyncAdapter({ filePath: filePathContract.parse(String(bundleDir)) })) {
+  if (existsSync(filePathContract.parse(String(bundleDir)))) {
     return { bundleDir, error: null };
   }
 
@@ -85,10 +83,18 @@ export const bundleBuildBroker = async ({
   );
   await fsRmAdapter({ filePath: tempDir, recursive: true, force: true });
 
-  const result = await childProcessSpawnCaptureAdapter({
+  // A missing build binary rejects `run` with RunNotFoundError rather than resolving a result —
+  // caught here and folded into the same failed-run shape the old spawn-capture adapter resolved
+  // for an ENOENT, so a machine without it reads as a failing build below, exactly as it always has.
+  const result = await run({
     command: bundleStatics.buildCommand,
     args: [...bundleStatics.buildArgs, String(tempDir)],
     cwd: packageRoot,
+  }).catch((error: unknown) => {
+    if (!(error instanceof RunNotFoundError)) {
+      throw error;
+    }
+    return { exitCode: 1, output: '', signal: null, timedOut: false };
   });
 
   if (result.exitCode !== exitCodeContract.parse(0)) {
@@ -97,7 +103,7 @@ export const bundleBuildBroker = async ({
     return {
       bundleDir: null,
       error: errorMessageContract.parse(
-        `bundle build failed in ${String(packageRoot)}:\n${String(result.output)}`,
+        `bundle build failed in ${String(packageRoot)}:\n${result.output}`,
       ),
     };
   }
