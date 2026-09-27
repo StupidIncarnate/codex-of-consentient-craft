@@ -1,5 +1,13 @@
 // The unit-test I/O trap. Loaded by jest.setup.js; a no-op for integration and e2e test files, which
-// do real I/O by design.
+// do real I/O by design, and for a `packages/@gateway/*` package's OWN test files — a gateway
+// wrapper's own test proves the wrapper against the real socket/process/module it wraps rather than
+// staging one (its proxy headers say so directly: "Real TCP sockets against loopback, not
+// registerMock"). This is safe for a gateway proxy that DOES stage a TRAPPED_MODULES function
+// (`fs`/`fs/promises`/`child_process`, e.g. `read-file-if-exists.proxy.ts`'s `registerMock({fn:
+// readFile})`): the ts-jest hoister writes that mock's OTHER, unstaged functions as
+// `globalThis.__ioTrap?.(m) ?? jest.requireActual(m)` regardless of whether this file's own block
+// below ever runs, so they fall back to the real module instead of losing coverage. Holds in a
+// consumer repo too, whose `packages/@gateway/*` is copied source at the same path.
 //
 // Every trapped call throws when made, unless:
 //   - its first argument is a path inside node_modules (a package loading its own files), or
@@ -114,10 +122,14 @@ const NO_IO_FUNCTIONS = new Set([
   'getUnpackedSettings',
 ]);
 const REAL_IO_TEST_FILE = /\.(integration\.test|e2e)\.[jt]sx?$/u;
+// Any test file that sits inside one of the four gateway wrapper packages, in this repo or a
+// consumer's copy of it — never widened to a bare `@gateway` segment, which would also swallow a
+// path like `packages/foo/src/uses-at-gateway/…`.
+const GATEWAY_OWN_TEST_FILE = /[\\/]packages[\\/]@gateway[\\/]/u;
 
 const testPath = String(expect.getState().testPath);
 
-if (!REAL_IO_TEST_FILE.test(testPath)) {
+if (!REAL_IO_TEST_FILE.test(testPath) && !GATEWAY_OWN_TEST_FILE.test(testPath)) {
   const hits = [];
 
   // The caller file names. Structured call sites, never `new Error().stack`: under jest that string

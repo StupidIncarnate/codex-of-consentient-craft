@@ -34,11 +34,17 @@ const BIN_PATH = FilePathStub({ value: resolve(__dirname, '../../../dist/bin/dun
 // source (see jest.config.base.js's `customExportConditions`), matching how `npm run dev` runs
 // source.
 const SOURCE_ENTRY_PATH = FilePathStub({ value: resolve(__dirname, '../../../bin/cli-entry.ts') });
-// Measured against a real `siegelense <call> --help` spawn: 3.7s-4.7s, dominated by tsx compiling
-// the CLI's module graph and dynamically importing @dungeonmaster/siegelense. 20s leaves headroom
-// for a loaded machine running several of these spawns at once — callers fire them off in
-// parallel from one beforeAll rather than paying that cost once per `it`.
-const RUN_COMMAND_TIMEOUT_MS = 20_000;
+// Measured solo against a real `siegelense <call> --help` spawn: 2.5s-4.7s, dominated by tsx
+// compiling the CLI's module graph and dynamically importing @dungeonmaster/siegelense. Measured
+// with all 15 of this suite's `siegelense`-seam spawns fired at once (this file's own second
+// describe block): still only ~8s wall-clock on an otherwise-idle 12-core box. Neither measurement
+// is what a FULL, unscoped `npm run ward` produces — every package's own unit/integration/lint/
+// typecheck workers compete for the same cores at once there, and `npx` itself (package resolution,
+// occasional registry-adjacent I/O) is far more sensitive to that contention than a CPU-bound
+// task is. 60s is generous headroom for that case while still catching a genuine hang; it must
+// stay comfortably under `SPAWNS_TIMEOUT_MS`/`SIEGELENSE_SEAM_TIMEOUT_MS` in
+// `cli-entry.integration.test.ts`, since both wrap the SAME per-spawn timer.
+const RUN_COMMAND_TIMEOUT_MS = 60_000;
 // Probe-only port + timeout for `requireWithoutAutorun`. The port is a neutralizer: if the
 // import-time autorun guard ever regresses, the booted server lands here instead of the
 // configured port (4800), so the probe can't collide with a running instance.

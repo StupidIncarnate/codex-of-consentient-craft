@@ -29,11 +29,13 @@ const EXPECTED_INDEX_HEADLINE = `${siegelenseHelpStatics.index.headline} ${BUILT
 // RUN_COMMAND_TIMEOUT_MS kill timer inside the harness; this is the outer jest hook budget.
 const SIEGELENSE_SEAM_TIMEOUT_MS = 90_000;
 
-// Both child spawns share this budget now that they run together. The harness gives each its own
-// internal kill timer — 20000ms for runInit (via runCommand), 3000ms for the import probe — so
-// this only has to outlast the pair (run sequentially below), leaving the harness's timers to be
-// what resolves a hang.
-const SPAWNS_TIMEOUT_MS = 30_000;
+// Both child spawns share this budget. The harness gives each its own internal kill timer —
+// `RUN_COMMAND_TIMEOUT_MS` (60000ms) for runInit (via runCommand), 3000ms for the import probe —
+// so this only has to outlast the pair (run sequentially below), leaving the harness's timers to
+// be what resolves a hang. Kept aligned with `SIEGELENSE_SEAM_TIMEOUT_MS` below, since both wrap
+// the same per-spawn timer and a full, unscoped `npm run ward` is what actually exhausts a thin
+// margin here — see that constant's own comment.
+const SPAWNS_TIMEOUT_MS = 90_000;
 
 describe('dungeonmaster binary', () => {
   const harness = cliBinHarness();
