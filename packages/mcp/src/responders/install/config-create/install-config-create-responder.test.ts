@@ -6,7 +6,7 @@
  */
 
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
-import { FsErrorStub } from '#gateway/node/_test_/fs';
+import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { dungeonmasterConfigCreatorTransformer } from '../../../transformers/dungeonmaster-config-creator/dungeonmaster-config-creator-transformer';
 import { InstallConfigCreateResponderProxy } from './install-config-create-responder.proxy';
 

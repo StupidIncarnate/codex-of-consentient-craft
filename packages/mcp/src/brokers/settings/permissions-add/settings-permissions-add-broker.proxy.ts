@@ -1,9 +1,7 @@
 import { join } from 'path';
-import {
-  ensureDirProxy,
-  readJsonFileIfExistsProxy,
-  writeFileProxy,
-} from '#gateway/node/_test_/fs__promises';
+import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
+import { readJsonFileIfExistsProxy } from '#gateway/node/fs__promises/read-json-file-if-exists/read-json-file-if-exists.proxy';
+import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 import type { FileContentsStub } from '@dungeonmaster/shared/contracts';
 import { PathSegmentStub as FilePathStub } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
