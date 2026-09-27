@@ -2,19 +2,22 @@ import {
   PortFreeTeardownCheckStub,
   ProcessGoneTeardownCheckStub,
 } from '../../../contracts/smoketest-teardown-check/smoketest-teardown-check.stub';
+import { ProcessPidStub } from '../../../contracts/process-pid/process-pid.stub';
 import { smoketestRunTeardownChecksBroker } from './smoketest-run-teardown-checks-broker';
 import { smoketestRunTeardownChecksBrokerProxy } from './smoketest-run-teardown-checks-broker.proxy';
 
 const portCheck = PortFreeTeardownCheckStub({ port: 4751 });
-// 4_999_999 is above Linux's default pid_max (4194304), so process.kill(pid, 0) raises ESRCH reliably.
-const deadProcessCheck = ProcessGoneTeardownCheckStub({ pid: 4_999_999 });
-const alivePidProcessCheck = ProcessGoneTeardownCheckStub({ pid: process.pid });
+const DEAD_PID = ProcessPidStub({ value: 4_999_999 });
+const ALIVE_PID = ProcessPidStub({ value: 4_753 });
+const deadProcessCheck = ProcessGoneTeardownCheckStub({ pid: DEAD_PID });
+const alivePidProcessCheck = ProcessGoneTeardownCheckStub({ pid: ALIVE_PID });
 
 describe('smoketestRunTeardownChecksBroker', () => {
   describe('all checks pass', () => {
     it('VALID: {port free and process gone} => returns passed with empty failures', async () => {
       const proxy = smoketestRunTeardownChecksBrokerProxy();
       proxy.setupPortFree();
+      proxy.setupProcessGone({ pid: DEAD_PID });
 
       const result = await smoketestRunTeardownChecksBroker({
         checks: [portCheck, deadProcessCheck],
@@ -39,7 +42,8 @@ describe('smoketestRunTeardownChecksBroker', () => {
 
   describe('process still alive', () => {
     it('INVALID: {current test-runner pid} => returns failures containing the process check', async () => {
-      smoketestRunTeardownChecksBrokerProxy();
+      const proxy = smoketestRunTeardownChecksBrokerProxy();
+      proxy.setupProcessAlive({ pid: ALIVE_PID });
 
       const result = await smoketestRunTeardownChecksBroker({
         checks: [alivePidProcessCheck],
@@ -53,6 +57,7 @@ describe('smoketestRunTeardownChecksBroker', () => {
     it('INVALID: {port free but current-runner pid alive} => failures contain only the process check in original order', async () => {
       const proxy = smoketestRunTeardownChecksBrokerProxy();
       proxy.setupPortFree();
+      proxy.setupProcessAlive({ pid: ALIVE_PID });
 
       const result = await smoketestRunTeardownChecksBroker({
         checks: [portCheck, alivePidProcessCheck],
