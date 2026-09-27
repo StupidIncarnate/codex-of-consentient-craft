@@ -228,7 +228,7 @@ describe('CliFlow', () => {
       testbed.writeFile({
         relativePath: RelativePathStub({ value: 'package.json' }),
         content: FileContentStub({
-          value: `{\n  "name": "probe-root",\n  "version": "0.0.0",\n  "workspaces": ["packages/*"],\n  "dependencies": {\n    "@probe/shared": "*"\n  }\n}\n`,
+          value: `{\n  "name": "@probe/root",\n  "version": "0.0.0",\n  "workspaces": ["packages/*"]\n}\n`,
         }),
       });
       const stdout = harness.captureStdout();
