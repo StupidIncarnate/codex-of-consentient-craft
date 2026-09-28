@@ -1,7 +1,7 @@
-import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
+import { ruleTesterHarness } from '../../../../test/harnesses/rule-tester/rule-tester.harness';
 import { ruleEnforceMagicArraysBroker } from './rule-enforce-magic-arrays-broker';
 
-const ruleTester = eslintRuleTesterAdapter();
+const ruleTester = ruleTesterHarness();
 
 ruleTester.run('enforce-magic-arrays', ruleEnforceMagicArraysBroker(), {
   valid: [

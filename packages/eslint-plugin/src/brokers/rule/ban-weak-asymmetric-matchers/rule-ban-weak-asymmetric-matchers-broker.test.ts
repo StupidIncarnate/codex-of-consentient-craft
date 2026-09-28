@@ -1,7 +1,7 @@
-import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
+import { ruleTesterHarness } from '../../../../test/harnesses/rule-tester/rule-tester.harness';
 import { ruleBanWeakAsymmetricMatchersBroker } from './rule-ban-weak-asymmetric-matchers-broker';
 
-const ruleTester = eslintRuleTesterAdapter();
+const ruleTester = ruleTesterHarness();
 
 ruleTester.run('ban-weak-asymmetric-matchers', ruleBanWeakAsymmetricMatchersBroker(), {
   valid: [

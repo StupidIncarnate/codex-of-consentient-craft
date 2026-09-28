@@ -1,7 +1,7 @@
-import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
+import { ruleTesterHarness } from '../../../../test/harnesses/rule-tester/rule-tester.harness';
 import { ruleNoMultiplePropertyAssertionsBroker } from './rule-no-multiple-property-assertions-broker';
 
-const ruleTester = eslintRuleTesterAdapter();
+const ruleTester = ruleTesterHarness();
 
 ruleTester.run('no-multiple-property-assertions', ruleNoMultiplePropertyAssertionsBroker(), {
   valid: [

@@ -1,7 +1,7 @@
 import { ruleBanFlattenedContractParamsBroker } from './rule-ban-flattened-contract-params-broker';
-import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
+import { ruleTesterHarness } from '../../../../test/harnesses/rule-tester/rule-tester.harness';
 
-const ruleTester = eslintRuleTesterAdapter();
+const ruleTester = ruleTesterHarness();
 
 ruleTester.run('ban-flattened-contract-params', ruleBanFlattenedContractParamsBroker(), {
   valid: [

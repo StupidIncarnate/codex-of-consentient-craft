@@ -1,7 +1,7 @@
-import { eslintRuleTesterAdapter } from '@dungeonmaster/eslint-plugin';
+import { ruleTesterHarness } from '@dungeonmaster/eslint-plugin/rule-tester.harness';
 import { ruleBanSyncSeedingMethodsBroker } from './rule-ban-sync-seeding-methods-broker';
 
-const ruleTester = eslintRuleTesterAdapter();
+const ruleTester = ruleTesterHarness();
 const rule = ruleBanSyncSeedingMethodsBroker();
 
 ruleTester.run('ban-sync-seeding-methods', rule, {

@@ -1,7 +1,7 @@
-import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
+import { ruleTesterHarness } from '../../../../test/harnesses/rule-tester/rule-tester.harness';
 import { ruleNoMutableStateInProxyFactoryBroker } from './rule-no-mutable-state-in-proxy-factory-broker';
 
-const ruleTester = eslintRuleTesterAdapter();
+const ruleTester = ruleTesterHarness();
 
 ruleTester.run('no-mutable-state-in-proxy-factory', ruleNoMutableStateInProxyFactoryBroker(), {
   valid: [

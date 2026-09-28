@@ -1,7 +1,7 @@
 import { ruleBanAnonymousJsxInMapBroker } from './rule-ban-anonymous-jsx-in-map-broker';
-import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
+import { ruleTesterHarness } from '../../../../test/harnesses/rule-tester/rule-tester.harness';
 
-const ruleTester = eslintRuleTesterAdapter();
+const ruleTester = ruleTesterHarness();
 
 const WIDGET = '/project/src/widgets/panel/panel-widget.tsx';
 

@@ -1,8 +1,8 @@
-import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
+import { ruleTesterHarness } from '../../../../test/harnesses/rule-tester/rule-tester.harness';
 import { ruleEnforceHydrationRecipesStructureBroker } from './rule-enforce-hydration-recipes-structure-broker';
 import { ruleEnforceHydrationRecipesStructureBrokerProxy } from './rule-enforce-hydration-recipes-structure-broker.proxy';
 
-const ruleTester = eslintRuleTesterAdapter();
+const ruleTester = ruleTesterHarness();
 
 beforeEach(() => {
   const proxy = ruleEnforceHydrationRecipesStructureBrokerProxy();

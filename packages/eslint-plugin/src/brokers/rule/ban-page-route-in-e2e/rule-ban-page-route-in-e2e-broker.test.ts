@@ -1,7 +1,7 @@
 import { ruleBanPageRouteInE2eBroker } from './rule-ban-page-route-in-e2e-broker';
-import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
+import { ruleTesterHarness } from '../../../../test/harnesses/rule-tester/rule-tester.harness';
 
-const ruleTester = eslintRuleTesterAdapter();
+const ruleTester = ruleTesterHarness();
 
 ruleTester.run('ban-page-route-in-e2e', ruleBanPageRouteInE2eBroker(), {
   valid: [

@@ -1,7 +1,7 @@
-import { eslintRuleTesterAdapter } from '@dungeonmaster/eslint-plugin';
+import { ruleTesterHarness } from '@dungeonmaster/eslint-plugin/rule-tester.harness';
 import { ruleBanDirectIoInTestScenariosBroker } from './rule-ban-direct-io-in-test-scenarios-broker';
 
-const ruleTester = eslintRuleTesterAdapter();
+const ruleTester = ruleTesterHarness();
 const rule = ruleBanDirectIoInTestScenariosBroker();
 
 ruleTester.run('ban-direct-io-in-test-scenarios', rule, {

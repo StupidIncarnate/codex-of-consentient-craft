@@ -1,7 +1,7 @@
 import { ruleBanProxyCatchAllDefaultsBroker } from './rule-ban-proxy-catch-all-defaults-broker';
-import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
+import { ruleTesterHarness } from '../../../../test/harnesses/rule-tester/rule-tester.harness';
 
-const ruleTester = eslintRuleTesterAdapter();
+const ruleTester = ruleTesterHarness();
 
 ruleTester.run('ban-proxy-catch-all-defaults', ruleBanProxyCatchAllDefaultsBroker(), {
   valid: [

@@ -1,7 +1,7 @@
-import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
+import { ruleTesterHarness } from '../../../../test/harnesses/rule-tester/rule-tester.harness';
 import { ruleForbidNonExportedFunctionsBroker } from './rule-forbid-non-exported-functions-broker';
 
-const ruleTester = eslintRuleTesterAdapter();
+const ruleTester = ruleTesterHarness();
 
 ruleTester.run('forbid-non-exported-functions', ruleForbidNonExportedFunctionsBroker(), {
   valid: [

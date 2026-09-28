@@ -1,9 +1,9 @@
 import { ruleEnforceGatewayConfigNamesExistBroker } from './rule-enforce-gateway-config-names-exist-broker';
 import { ruleEnforceGatewayConfigNamesExistBrokerProxy } from './rule-enforce-gateway-config-names-exist-broker.proxy';
-import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
+import { ruleTesterHarness } from '../../../../test/harnesses/rule-tester/rule-tester.harness';
 import { GatewayLintConfigStub } from '@dungeonmaster/shared/contracts';
 
-const ruleTester = eslintRuleTesterAdapter();
+const ruleTester = ruleTesterHarness();
 
 const ANCHOR_FILE =
   '/repo/packages/config/src/contracts/dungeonmaster-config/dungeonmaster-config-contract.ts';

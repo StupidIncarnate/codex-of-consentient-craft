@@ -1,7 +1,7 @@
 import { ruleBanPlaywrightExtractThenAssertBroker } from './rule-ban-playwright-extract-then-assert-broker';
-import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
+import { ruleTesterHarness } from '../../../../test/harnesses/rule-tester/rule-tester.harness';
 
-const ruleTester = eslintRuleTesterAdapter();
+const ruleTester = ruleTesterHarness();
 
 ruleTester.run('ban-playwright-extract-then-assert', ruleBanPlaywrightExtractThenAssertBroker(), {
   valid: [

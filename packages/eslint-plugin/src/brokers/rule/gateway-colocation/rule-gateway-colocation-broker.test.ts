@@ -1,9 +1,9 @@
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
-import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
+import { ruleTesterHarness } from '../../../../test/harnesses/rule-tester/rule-tester.harness';
 import { ruleGatewayColocationBroker } from './rule-gateway-colocation-broker';
 import { ruleGatewayColocationBrokerProxy } from './rule-gateway-colocation-broker.proxy';
 
-const ruleTester = eslintRuleTesterAdapter();
+const ruleTester = ruleTesterHarness();
 
 beforeEach(() => {
   const proxy = ruleGatewayColocationBrokerProxy();

@@ -1,7 +1,7 @@
 import { ruleBanNondeterminismInIngredientsBroker } from './rule-ban-nondeterminism-in-ingredients-broker';
-import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
+import { ruleTesterHarness } from '../../../../test/harnesses/rule-tester/rule-tester.harness';
 
-const ruleTester = eslintRuleTesterAdapter();
+const ruleTester = ruleTesterHarness();
 
 const ingredientFixture = '/repo/packages/hydration-recipes/src/quest/quest-ingredient.ts';
 const nonIngredientFixture = '/repo/packages/hydration-recipes/src/quest/quest-broker.ts';

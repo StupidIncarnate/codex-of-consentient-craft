@@ -1,4 +1,4 @@
-import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
+import { ruleTesterHarness } from '../../../../test/harnesses/rule-tester/rule-tester.harness';
 import { ruleEnforceProxyChildCreationBroker } from './rule-enforce-proxy-child-creation-broker';
 import { ruleEnforceProxyChildCreationBrokerProxy } from './rule-enforce-proxy-child-creation-broker.proxy';
 import type { FilePathStub } from '@dungeonmaster/shared/contracts';
@@ -7,7 +7,7 @@ import { FileContentsStub } from '@dungeonmaster/shared/contracts';
 type FileContents = ReturnType<typeof FileContentsStub>;
 type FilePath = ReturnType<typeof FilePathStub>;
 
-const ruleTester = eslintRuleTesterAdapter();
+const ruleTester = ruleTesterHarness();
 
 beforeEach(() => {
   const brokerProxy = ruleEnforceProxyChildCreationBrokerProxy();

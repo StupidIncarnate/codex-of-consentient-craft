@@ -1,7 +1,7 @@
 import { ruleEnforceE2eBaseImportBroker } from './rule-enforce-e2e-base-import-broker';
-import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
+import { ruleTesterHarness } from '../../../../test/harnesses/rule-tester/rule-tester.harness';
 
-const ruleTester = eslintRuleTesterAdapter();
+const ruleTester = ruleTesterHarness();
 
 ruleTester.run('enforce-e2e-base-import', ruleEnforceE2eBaseImportBroker(), {
   valid: [

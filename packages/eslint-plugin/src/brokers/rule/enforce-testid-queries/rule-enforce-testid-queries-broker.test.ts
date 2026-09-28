@@ -1,7 +1,7 @@
 import { ruleEnforceTestidQueriesBroker } from './rule-enforce-testid-queries-broker';
-import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
+import { ruleTesterHarness } from '../../../../test/harnesses/rule-tester/rule-tester.harness';
 
-const ruleTester = eslintRuleTesterAdapter();
+const ruleTester = ruleTesterHarness();
 
 ruleTester.run('enforce-testid-queries', ruleEnforceTestidQueriesBroker(), {
   valid: [

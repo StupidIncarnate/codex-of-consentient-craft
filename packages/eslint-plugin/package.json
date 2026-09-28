@@ -21,6 +21,9 @@
       "import": "./dist/index.js",
       "require": "./dist/index.js"
     },
+    "./rule-tester.harness": {
+      "source": "./test/harnesses/rule-tester/rule-tester.harness.ts"
+    },
     "./tsconfig": "./configs/tsconfig.json",
     "./config": "./configs/eslint.dungeonmaster.js"
   },

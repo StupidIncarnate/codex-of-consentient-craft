@@ -1,7 +1,7 @@
 import { ruleBanJestMockInProxiesBroker } from './rule-ban-jest-mock-in-proxies-broker';
-import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
+import { ruleTesterHarness } from '../../../../test/harnesses/rule-tester/rule-tester.harness';
 
-const ruleTester = eslintRuleTesterAdapter();
+const ruleTester = ruleTesterHarness();
 
 ruleTester.run('ban-jest-mock-in-proxies', ruleBanJestMockInProxiesBroker(), {
   valid: [

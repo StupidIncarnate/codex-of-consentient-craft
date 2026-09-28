@@ -1,8 +1,8 @@
-import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
+import { ruleTesterHarness } from '../../../../test/harnesses/rule-tester/rule-tester.harness';
 import { ruleEnforceImplementationColocationBroker } from './rule-enforce-implementation-colocation-broker';
 import { ruleEnforceImplementationColocationBrokerProxy } from './rule-enforce-implementation-colocation-broker.proxy';
 
-const ruleTester = eslintRuleTesterAdapter();
+const ruleTester = ruleTesterHarness();
 
 // Mock setup: return true only for specific existing files
 beforeEach(() => {

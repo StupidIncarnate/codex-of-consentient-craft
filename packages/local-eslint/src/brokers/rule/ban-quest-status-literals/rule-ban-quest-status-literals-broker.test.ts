@@ -1,7 +1,7 @@
 import { ruleBanQuestStatusLiteralsBroker } from './rule-ban-quest-status-literals-broker';
-import { eslintRuleTesterAdapter } from '@dungeonmaster/eslint-plugin';
+import { ruleTesterHarness } from '@dungeonmaster/eslint-plugin/rule-tester.harness';
 
-const ruleTester = eslintRuleTesterAdapter();
+const ruleTester = ruleTesterHarness();
 
 // Virtual fixture paths — RuleTester does NOT read these off disk; it only uses them as the
 // "filename" key on each test case so path-based allowlist logic works.

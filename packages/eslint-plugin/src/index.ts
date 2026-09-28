@@ -24,7 +24,6 @@ export { tsestreeContract } from './contracts/tsestree/tsestree-contract';
 export { TsestreeStub, TsestreeNodeType } from './contracts/tsestree/tsestree.stub';
 
 // Export adapters for writing custom rule tests
-export { eslintRuleTesterAdapter } from './adapters/eslint/rule-tester/eslint-rule-tester-adapter';
 
 // Export brokers for custom configurations
 export { ruleBanPrimitivesBroker } from './brokers/rule/ban-primitives/rule-ban-primitives-broker';

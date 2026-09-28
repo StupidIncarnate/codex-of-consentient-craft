@@ -1,7 +1,7 @@
 import { ruleBanNotToThrowBroker } from './rule-ban-not-to-throw-broker';
-import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
+import { ruleTesterHarness } from '../../../../test/harnesses/rule-tester/rule-tester.harness';
 
-const ruleTester = eslintRuleTesterAdapter();
+const ruleTester = ruleTesterHarness();
 
 ruleTester.run('ban-not-to-throw', ruleBanNotToThrowBroker(), {
   valid: [

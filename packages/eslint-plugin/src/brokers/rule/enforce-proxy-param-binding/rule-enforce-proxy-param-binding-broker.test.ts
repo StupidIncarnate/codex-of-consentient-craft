@@ -1,7 +1,7 @@
-import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
+import { ruleTesterHarness } from '../../../../test/harnesses/rule-tester/rule-tester.harness';
 import { ruleEnforceProxyParamBindingBroker } from './rule-enforce-proxy-param-binding-broker';
 
-const ruleTester = eslintRuleTesterAdapter();
+const ruleTester = ruleTesterHarness();
 const PROXY_FILENAME = '/project/src/adapters/fs/read-file/fs-read-file-adapter.proxy.ts';
 const NON_PROXY_FILENAME = '/project/src/adapters/fs/read-file/fs-read-file-adapter.ts';
 

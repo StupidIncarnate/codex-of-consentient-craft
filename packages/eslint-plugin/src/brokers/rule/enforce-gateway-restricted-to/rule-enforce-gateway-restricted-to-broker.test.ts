@@ -1,8 +1,8 @@
 import { ruleEnforceGatewayRestrictedToBroker } from './rule-enforce-gateway-restricted-to-broker';
-import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
+import { ruleTesterHarness } from '../../../../test/harnesses/rule-tester/rule-tester.harness';
 import { GatewayLintConfigStub } from '@dungeonmaster/shared/contracts';
 
-const ruleTester = eslintRuleTesterAdapter();
+const ruleTester = ruleTesterHarness();
 
 const wholeSubpathOption = GatewayLintConfigStub({
   restrictedTo: [

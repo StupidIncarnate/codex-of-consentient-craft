@@ -60,10 +60,10 @@ All AST nodes in rule brokers must use `Tsestree` type. Never cast to inline str
 ## Structure
 
 ```typescript
-import {eslintRuleTesterAdapter} from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
+import {ruleTesterHarness} from '../../../../test/harnesses/rule-tester/rule-tester.harness';
 import {myRuleBroker} from './my-rule-broker';
 
-const ruleTester = eslintRuleTesterAdapter();
+const ruleTester = ruleTesterHarness();
 
 ruleTester.run('rule-name', myRuleBroker(), {
     valid: [

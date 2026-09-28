@@ -1,10 +1,10 @@
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
 import { ruleGatewaySchemaBrandBroker } from './rule-gateway-schema-brand-broker';
 import { ruleGatewaySchemaBrandBrokerProxy } from './rule-gateway-schema-brand-broker.proxy';
-import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
+import { ruleTesterHarness } from '../../../../test/harnesses/rule-tester/rule-tester.harness';
 import { FileNameStub } from '../../../contracts/file-name/file-name.stub';
 
-const ruleTester = eslintRuleTesterAdapter();
+const ruleTester = ruleTesterHarness();
 
 const CHILD_PROCESS_SCHEMA_FILE = FilePathStub({
   value: '/repo/packages/@gateway/node/src/child_process/child-process/child-process-schema.ts',

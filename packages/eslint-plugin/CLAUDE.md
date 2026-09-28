@@ -59,7 +59,7 @@ operations.
 
 - **Rule brokers** (`src/brokers/rule/**`) - Tested with ESLint's RuleTester integration tests, not traditional Jest
   unit tests. Tests are co-located (e.g., `rule-explicit-return-types-broker.test.ts`).
-- `eslintRuleTesterAdapter` (`src/adapters/eslint/rule-tester/`) - Configures RuleTester with TypeScript parser for rule integration tests.
+- `ruleTesterHarness` (`test/harnesses/rule-tester/rule-tester.harness.ts`) - Composes `RuleTester` from `#gateway/npm/eslint` with the TypeScript parser for rule integration tests. `local-eslint` imports it from `@dungeonmaster/eslint-plugin/rule-tester.harness`, a source-only export.
 
 ## Type Handling for ESLint Rules
 

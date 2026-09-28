@@ -1,8 +1,8 @@
 import { ruleBanGatewayExportBroker } from './rule-ban-gateway-export-broker';
-import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
+import { ruleTesterHarness } from '../../../../test/harnesses/rule-tester/rule-tester.harness';
 import { GatewayLintConfigStub } from '@dungeonmaster/shared/contracts';
 
-const ruleTester = eslintRuleTesterAdapter();
+const ruleTester = ruleTesterHarness();
 
 const bannedExportsOption = GatewayLintConfigStub({
   bannedExports: [

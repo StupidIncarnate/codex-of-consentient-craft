@@ -1,9 +1,9 @@
-import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
+import { ruleTesterHarness } from '../../../../test/harnesses/rule-tester/rule-tester.harness';
 import { ruleGatewayLayoutBroker } from './rule-gateway-layout-broker';
 import { ruleGatewayLayoutBrokerProxy } from './rule-gateway-layout-broker.proxy';
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
 
-const ruleTester = eslintRuleTesterAdapter();
+const ruleTester = ruleTesterHarness();
 
 beforeEach(() => {
   const proxy = ruleGatewayLayoutBrokerProxy();

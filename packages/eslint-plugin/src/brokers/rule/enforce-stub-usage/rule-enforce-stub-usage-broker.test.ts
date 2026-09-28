@@ -1,7 +1,7 @@
 import { ruleEnforceStubUsageBroker } from './rule-enforce-stub-usage-broker';
-import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
+import { ruleTesterHarness } from '../../../../test/harnesses/rule-tester/rule-tester.harness';
 
-const ruleTester = eslintRuleTesterAdapter();
+const ruleTester = ruleTesterHarness();
 
 ruleTester.run('enforce-stub-usage', ruleEnforceStubUsageBroker(), {
   valid: [

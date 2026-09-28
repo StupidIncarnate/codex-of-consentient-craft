@@ -1,8 +1,8 @@
-import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
+import { ruleTesterHarness } from '../../../../test/harnesses/rule-tester/rule-tester.harness';
 import { ruleNoBareProcessCwdBroker } from './rule-no-bare-process-cwd-broker';
 import { EslintContextStub } from '../../../contracts/eslint-context/eslint-context.stub';
 
-const ruleTester = eslintRuleTesterAdapter();
+const ruleTester = ruleTesterHarness();
 
 ruleTester.run('no-bare-process-cwd (defaults)', ruleNoBareProcessCwdBroker(), {
   valid: [

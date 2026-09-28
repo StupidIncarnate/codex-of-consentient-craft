@@ -1,8 +1,8 @@
 import { ruleGatewayDependencyDeclaredBroker } from './rule-gateway-dependency-declared-broker';
 import { ruleGatewayDependencyDeclaredBrokerProxy } from './rule-gateway-dependency-declared-broker.proxy';
-import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
+import { ruleTesterHarness } from '../../../../test/harnesses/rule-tester/rule-tester.harness';
 
-const ruleTester = eslintRuleTesterAdapter();
+const ruleTester = ruleTesterHarness();
 
 // registerMock resets between every test RuleTester generates, so every package.json fixture this
 // file's cases rely on is re-staged before each one — the same shape enforce-implementation-colocation's

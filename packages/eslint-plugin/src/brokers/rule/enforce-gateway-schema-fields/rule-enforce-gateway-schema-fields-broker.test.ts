@@ -1,7 +1,7 @@
-import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
+import { ruleTesterHarness } from '../../../../test/harnesses/rule-tester/rule-tester.harness';
 import { ruleEnforceGatewaySchemaFieldsBroker } from './rule-enforce-gateway-schema-fields-broker';
 
-const ruleTester = eslintRuleTesterAdapter();
+const ruleTester = ruleTesterHarness();
 
 const CONTRACT_FILE = '/project/src/contracts/work-item/work-item-contract.ts';
 const NESTED_CONTRACT_FILE = '/project/src/contracts/scan/scan-contract.ts';

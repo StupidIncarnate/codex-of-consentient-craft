@@ -1,7 +1,7 @@
 import { ruleGatewayImportBoundaryBroker } from './rule-gateway-import-boundary-broker';
-import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
+import { ruleTesterHarness } from '../../../../test/harnesses/rule-tester/rule-tester.harness';
 
-const ruleTester = eslintRuleTesterAdapter();
+const ruleTester = ruleTesterHarness();
 
 // Every case passes `scope` explicitly (except the non-gateway-file cases, which return before
 // scope is ever read) so this rule's own unit test never falls through to the real filesystem walk.

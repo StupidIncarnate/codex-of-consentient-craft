@@ -1,7 +1,7 @@
 import { ruleBanWorkspaceExportMocksBroker } from './rule-ban-workspace-export-mocks-broker';
-import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
+import { ruleTesterHarness } from '../../../../test/harnesses/rule-tester/rule-tester.harness';
 
-const ruleTester = eslintRuleTesterAdapter();
+const ruleTester = ruleTesterHarness();
 
 const WORKSPACE_PACKAGE_NAMES = [
   '@dungeonmaster/orchestrator',

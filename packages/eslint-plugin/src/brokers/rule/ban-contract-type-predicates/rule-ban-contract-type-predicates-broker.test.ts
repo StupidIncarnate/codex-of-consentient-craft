@@ -1,7 +1,7 @@
-import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
+import { ruleTesterHarness } from '../../../../test/harnesses/rule-tester/rule-tester.harness';
 import { ruleBanContractTypePredicatesBroker } from './rule-ban-contract-type-predicates-broker';
 
-const ruleTester = eslintRuleTesterAdapter();
+const ruleTester = ruleTesterHarness();
 
 const GUARD_FILE =
   '/project/src/guards/is-dungeonmaster-hooks-config/is-dungeonmaster-hooks-config-guard.ts';

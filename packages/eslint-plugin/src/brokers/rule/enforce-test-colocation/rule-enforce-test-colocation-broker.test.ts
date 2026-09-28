@@ -1,8 +1,8 @@
-import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
+import { ruleTesterHarness } from '../../../../test/harnesses/rule-tester/rule-tester.harness';
 import { ruleEnforceTestColocationBroker } from './rule-enforce-test-colocation-broker';
 import { ruleEnforceTestColocationBrokerProxy } from './rule-enforce-test-colocation-broker.proxy';
 
-const ruleTester = eslintRuleTesterAdapter();
+const ruleTester = ruleTesterHarness();
 
 beforeEach(() => {
   const proxy = ruleEnforceTestColocationBrokerProxy();

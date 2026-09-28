@@ -614,3 +614,110 @@ Scope (2026-09-28), all under `packages/eslint-plugin/src/brokers/rule/`. Caller
 - `enforce-gateway-config-names-exist/check-gateway-subpath-exists-layer-broker.ts`, `.proxy.ts`
 - `enforce-gateway-config-names-exist/check-gateway-export-name-exists-layer-broker.ts`, `.proxy.ts`
 - `enforce-gateway-config-names-exist/rule-enforce-gateway-config-names-exist-broker.ts`, `.proxy.ts`
+
+### G-I-c
+
+Scope (2026-09-28): the `eslint/rule-tester` adapter becomes a test harness. Named files:
+
+Create:
+- `packages/eslint-plugin/test/harnesses/rule-tester/rule-tester.harness.ts` (`ruleTesterHarness`, composes `RuleTester` from `#gateway/npm/eslint` and the parser from `#gateway/npm/typescript-eslint__parser`)
+
+Edit:
+- `packages/eslint-plugin/src/index.ts` (drops the `eslintRuleTesterAdapter` re-export; a production barrel carries no test support)
+- `packages/eslint-plugin/package.json` (`exports` gains the source-only key `./rule-tester.harness`)
+- `packages/eslint-plugin/tsconfig.json` (`include` gains `test/**/*` so typecheck grades the harness)
+- `packages/eslint-plugin/CLAUDE.md` (Testing line)
+- `packages/eslint-plugin/src/brokers/rule/CLAUDE.md` (Structure example names the adapter)
+- eslint-plugin rule tests, import line and one call site each (`sed`-free python3 sweep, re-censused on the tree):
+  - `packages/eslint-plugin/src/brokers/rule/ban-adhoc-types/rule-ban-adhoc-types-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/ban-anonymous-jsx-in-map/rule-ban-anonymous-jsx-in-map-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/ban-contract-type-predicates/rule-ban-contract-type-predicates-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/ban-dom-handles-in-ingredients/rule-ban-dom-handles-in-ingredients-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/ban-fetch-in-proxies/rule-ban-fetch-in-proxies-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/ban-flattened-contract-params/rule-ban-flattened-contract-params-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/ban-gateway-export/rule-ban-gateway-export-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/ban-inline-helpers-in-test-scenarios/rule-ban-inline-helpers-in-test-scenarios-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/ban-invented-failures/rule-ban-invented-failures-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/ban-jest-mock-in-proxies/rule-ban-jest-mock-in-proxies-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/ban-jest-mock-in-tests/rule-ban-jest-mock-in-tests-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/ban-negated-matchers/rule-ban-negated-matchers-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/ban-node-builtins-in-test-scenarios/rule-ban-node-builtins-in-test-scenarios-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/ban-nondeterminism-in-ingredients/rule-ban-nondeterminism-in-ingredients-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/ban-not-to-throw/rule-ban-not-to-throw-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/ban-object-keys-in-expect/rule-ban-object-keys-in-expect-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/ban-page-route-in-e2e/rule-ban-page-route-in-e2e-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/ban-playwright-evaluate-for-styles/rule-ban-playwright-evaluate-for-styles-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/ban-playwright-extract-then-assert/rule-ban-playwright-extract-then-assert-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/ban-primitives/rule-ban-primitives-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/ban-proxy-catch-all-defaults/rule-ban-proxy-catch-all-defaults-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/ban-reflect-outside-guards/rule-ban-reflect-outside-guards-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/ban-require-in-source/rule-ban-require-in-source-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/ban-silent-catch/rule-ban-silent-catch-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/ban-startup-branching/rule-ban-startup-branching-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/ban-string-includes-in-expect/rule-ban-string-includes-in-expect-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/ban-tautological-assertions/rule-ban-tautological-assertions-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/ban-typeof-assertions/rule-ban-typeof-assertions-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/ban-unanchored-to-match/rule-ban-unanchored-to-match-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/ban-unknown-payload-in-discriminated-union/rule-ban-unknown-payload-in-discriminated-union-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/ban-wait-for-timeout/rule-ban-wait-for-timeout-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/ban-weak-asymmetric-matchers/rule-ban-weak-asymmetric-matchers-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/ban-weak-existence-matchers/rule-ban-weak-existence-matchers-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/ban-workspace-export-mocks/rule-ban-workspace-export-mocks-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/bin-program-spawn-ban/rule-bin-program-spawn-ban-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/enforce-contract-usage-in-tests/rule-enforce-contract-usage-in-tests-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/enforce-e2e-base-import/rule-enforce-e2e-base-import-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/enforce-file-metadata/rule-enforce-file-metadata-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/enforce-gateway-config-names-exist/rule-enforce-gateway-config-names-exist-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/enforce-gateway-restricted-to/rule-enforce-gateway-restricted-to-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/enforce-gateway-schema-fields/rule-enforce-gateway-schema-fields-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/enforce-harness-patterns/rule-enforce-harness-patterns-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/enforce-hydration-recipes-structure/rule-enforce-hydration-recipes-structure-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/enforce-implementation-colocation/rule-enforce-implementation-colocation-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/enforce-import-dependencies/rule-enforce-import-dependencies-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/enforce-jest-mocked-usage/rule-enforce-jest-mocked-usage-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/enforce-magic-arrays/rule-enforce-magic-arrays-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/enforce-object-destructuring-params/rule-enforce-object-destructuring-params-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/enforce-optional-guard-params/rule-enforce-optional-guard-params-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/enforce-project-structure/rule-enforce-project-structure-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/enforce-proxy-child-creation/rule-enforce-proxy-child-creation-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/enforce-proxy-param-binding/rule-enforce-proxy-param-binding-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/enforce-proxy-patterns/rule-enforce-proxy-patterns-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/enforce-regex-usage/rule-enforce-regex-usage-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/enforce-stub-patterns/rule-enforce-stub-patterns-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/enforce-stub-usage/rule-enforce-stub-usage-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/enforce-test-colocation/rule-enforce-test-colocation-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/enforce-test-creation-of-proxy/rule-enforce-test-creation-of-proxy-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/enforce-test-name-prefix/rule-enforce-test-name-prefix-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/enforce-test-proxy-imports/rule-enforce-test-proxy-imports-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/enforce-testid-queries/rule-enforce-testid-queries-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/forbid-non-exported-functions/rule-forbid-non-exported-functions-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/forbid-todo-skip/rule-forbid-todo-skip-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/forbid-type-reexport/rule-forbid-type-reexport-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/gateway-colocation/rule-gateway-colocation-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/gateway-dependency-declared/rule-gateway-dependency-declared-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/gateway-import-boundary/rule-gateway-import-boundary-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/gateway-layout/rule-gateway-layout-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/gateway-schema-brand/rule-gateway-schema-brand-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/jest-mocked-must-import/rule-jest-mocked-must-import-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/no-bare-process-cwd/rule-no-bare-process-cwd-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/no-multiple-property-assertions/rule-no-multiple-property-assertions-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/no-mutable-state-in-proxy-factory/rule-no-mutable-state-in-proxy-factory-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/raw-import-ban/rule-raw-import-ban-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/require-contract-validation/rule-require-contract-validation-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/require-validation-on-untyped-property-access/rule-require-validation-on-untyped-property-access-broker.test.ts`
+  - `packages/eslint-plugin/src/brokers/rule/require-zod-on-primitives/rule-require-zod-on-primitives-broker.test.ts`
+- local-eslint rule tests, import from `@dungeonmaster/eslint-plugin/rule-tester.harness`:
+  - `packages/local-eslint/src/brokers/rule/ban-direct-io-in-test-scenarios/rule-ban-direct-io-in-test-scenarios-broker.test.ts`
+  - `packages/local-eslint/src/brokers/rule/ban-locator-pick/rule-ban-locator-pick-broker.test.ts`
+  - `packages/local-eslint/src/brokers/rule/ban-quest-status-literals/rule-ban-quest-status-literals-broker.test.ts`
+  - `packages/local-eslint/src/brokers/rule/ban-sync-seeding-methods/rule-ban-sync-seeding-methods-broker.test.ts`
+  - `packages/local-eslint/src/brokers/rule/graph-reachability/rule-graph-reachability-broker.test.ts`
+  - `packages/local-eslint/src/brokers/rule/no-bare-location-literals/rule-no-bare-location-literals-broker.test.ts`
+  - `packages/local-eslint/src/brokers/rule/no-hardcoded-package-names/rule-no-hardcoded-package-names-broker.test.ts`
+
+Delete:
+- `packages/eslint-plugin/src/adapters/eslint/rule-tester/eslint-rule-tester-adapter.proxy.ts`
+- `packages/eslint-plugin/src/adapters/eslint/rule-tester/eslint-rule-tester-adapter.test.ts`
+- `packages/eslint-plugin/src/adapters/eslint/rule-tester/eslint-rule-tester-adapter.ts`
+
+Not touched: `adapters/eslint/typed-rule-tester/**` and the other `typed-*` adapters (G-J). Docs and doc comments only mentioning the name in `typed-rule-tester` stay for G-J.

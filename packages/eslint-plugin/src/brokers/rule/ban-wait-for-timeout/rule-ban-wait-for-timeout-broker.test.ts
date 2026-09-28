@@ -1,7 +1,7 @@
 import { ruleBanWaitForTimeoutBroker } from './rule-ban-wait-for-timeout-broker';
-import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
+import { ruleTesterHarness } from '../../../../test/harnesses/rule-tester/rule-tester.harness';
 
-const ruleTester = eslintRuleTesterAdapter();
+const ruleTester = ruleTesterHarness();
 
 ruleTester.run('ban-wait-for-timeout', ruleBanWaitForTimeoutBroker(), {
   valid: [
