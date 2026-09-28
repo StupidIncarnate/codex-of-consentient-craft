@@ -220,6 +220,15 @@ comparison against the real `@jest/globals` module, matching `packages/@gateway/
 - `packages/testing/src/adapters/child-process/mocker/child-process-mocker-adapter.proxy.ts` — compose the used children's proxies (empty).
 - `packages/testing/src/adapters/child-process/mocker/child-process-mocker-adapter.test.ts` — re-run unchanged.
 
+**Added during G22-1..8 implementation, in-package (not in the file list above):**
+`packages/@gateway/npm/src/jest__globals/mock-function/mock-function.stub.ts` and
+`mock-function.stub.test.ts` — `gateway-colocation`'s `requireStub` option is `error` repo-wide
+(landed by G18, confirmed at `packages/eslint-plugin/src/brokers/config/dungeonmaster/config-dungeonmaster-broker.ts:285`),
+and `gatewaySubpathHasStubLayerBroker` requires at least one `.stub.ts` file somewhere under a
+subpath's own folder tree or the barrel is flagged `missingStub` — the plan's file list for this
+subpath named none. `MockFunctionStub` mints a real jest Mock through the subpath's own `fn`
+wrapper, the same "real value via the real call" shape as `debugger.stub.ts` beside `debug.ts`.
+
 **Not touched** (no `jest.*` call found): `jest-register-mock-adapter.ts`(+`.proxy.ts`/`.test.ts`),
 `jest-register-module-mock-adapter.ts`(+`.proxy.ts`/`.test.ts`), `timers-watch-adapter.ts`(+`.proxy.ts`/`.test.ts`),
 `packages/testing/register-mock.ts`, `packages/testing/index.ts`.
