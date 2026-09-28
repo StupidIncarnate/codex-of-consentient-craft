@@ -313,10 +313,11 @@ describe('SiegelenseFlow', () => {
     const tree = evidenceTreeHarness();
 
     describe('results', () => {
-      it('VALID: {results, run named, no kind} => the stored RunResult read back byte-for-byte', async () => {
+      it('VALID: {results, run named, no kind} => the stored RunResult read back byte-for-byte, plus every step reading', async () => {
         const result = await tree.readResults({
           query: ResultsQueryStub({ instanceId: tree.killedInstanceId(), runId: tree.runOne() }),
         });
+        const run1StepsRows = tree.run1Steps().map((step) => JSON.stringify(step));
 
         expect(result).toStrictEqual({
           instanceId: tree.killedInstanceId(),
@@ -327,10 +328,10 @@ describe('SiegelenseFlow', () => {
           verb: null,
           prunedAtMs: null,
           prunedByRule: null,
-          matched: 0,
-          returned: 0,
+          matched: run1StepsRows.length,
+          returned: run1StepsRows.length,
           truncated: false,
-          rows: [],
+          rows: run1StepsRows,
           storedReturn: tree.run1Result(),
         });
       });
@@ -479,6 +480,8 @@ describe('SiegelenseFlow', () => {
           }),
         });
 
+        const run2StepsRows = tree.run2Steps().map((step) => JSON.stringify(step));
+
         expect(noKindAnswer).toStrictEqual({
           instanceId: tree.killedInstanceId(),
           instanceState: 'killed',
@@ -488,10 +491,10 @@ describe('SiegelenseFlow', () => {
           verb: null,
           prunedAtMs: null,
           prunedByRule: null,
-          matched: 0,
-          returned: 0,
+          matched: run2StepsRows.length,
+          returned: run2StepsRows.length,
           truncated: false,
-          rows: [],
+          rows: run2StepsRows,
           storedReturn: null,
         });
         expect(stepsAnswer).toStrictEqual({
