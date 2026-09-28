@@ -1,10 +1,18 @@
 /**
- * PURPOSE: Proxy for stepHandlerWardBroker — mocks the child-process/fs adapter boundaries plus
- * three sibling brokers that each carry their own dedicated test suite (questCwdResolveBroker,
- * questFindQuestPathBroker, questModifyBroker), module-mocked directly rather than driven through
- * their own real logic. `pathJoinAdapter` is left on its real passthrough (its own proxy's
- * default) — the ward-results write path is computed for real and matched below rather than
- * stubbed, which is what makes the detail-write assertion meaningful.
+ * PURPOSE: Proxy for stepHandlerWardBroker — mocks the child-process/fs/path gateway boundaries
+ * plus three sibling brokers that each carry their own dedicated test suite
+ * (questCwdResolveBroker, questFindQuestPathBroker, questModifyBroker), module-mocked directly
+ * rather than driven through their own real logic. `join` (no dedicated proxy exists for it — see
+ * `#gateway/node/path`'s own header) is left on a real passthrough — the ward-results write path
+ * is computed for real and matched below rather than stubbed, which is what makes the detail-write
+ * assertion meaningful.
+ *
+ * `streamLinesProxy` (composed inertly below, to satisfy `enforce-proxy-child-creation` for the
+ * broker's `streamLines` import) addresses the underlying `spawn` by command alone and has no way
+ * to read back `cwd` — unlike `runProxy`'s `getOptionsFor`, added in F29 for exactly this need — so
+ * the mock below targets `streamLines` itself directly, the same boundary the pre-migration
+ * adapter proxy staged, keyed the same way on a queue of runs (one ward invocation per
+ * `wardExits*` call).
  *
  * USAGE:
  * const proxy = stepHandlerWardBrokerProxy();
@@ -13,12 +21,11 @@
  * const result = await stepHandlerWardBroker({ args: [], questId, workItemId, onLine });
  */
 
-import { childProcessSpawnStreamLinesAdapter } from '@dungeonmaster/shared/adapters';
-import {
-  childProcessSpawnStreamLinesAdapterProxy,
-  fsMkdirAdapterProxy,
-  pathJoinAdapterProxy,
-} from '@dungeonmaster/shared/testing';
+import { streamLines } from '#gateway/node/child_process';
+import { streamLinesProxy } from '#gateway/node/child_process/stream-lines/stream-lines.proxy';
+import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found.error.proxy';
+import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
+import { join } from '#gateway/node/path';
 import {
   AbsoluteFilePathStub,
   ErrorMessageStub,
@@ -36,6 +43,7 @@ import {
   registerMock,
   registerModuleMock,
   registerSpyOn,
+  requireActual,
 } from '@dungeonmaster/testing/register-mock';
 
 import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
@@ -69,12 +77,16 @@ export const stepHandlerWardBrokerProxy = (): {
   getSpawnedWardArgs: () => unknown;
   getSpawnedWardCwd: () => unknown;
 } => {
-  // Inert — the implementation imports pathJoinAdapter, and this proxy's own real-passthrough
-  // default is what lets the ward-results write path compute for real below.
-  pathJoinAdapterProxy();
-  const fsMkdirProxy = fsMkdirAdapterProxy();
+  // `join` has no dedicated proxy (a plain pass-through re-export — see `#gateway/node/path`'s own
+  // header), so this stages a real passthrough directly: the ward-results write path is computed
+  // for real below rather than stubbed, which is what makes the detail-write assertion meaningful.
+  const realPath = requireActual<{ join: typeof join }>({ module: 'path' });
+  registerMock({ fn: join })
+    .calledWith([])
+    .implement((...segments: never[]) => realPath.join(...segments));
+  const fsMkdirProxy = ensureDirProxy();
   fsMkdirProxy.succeeds({
-    filepath: FilePathStub({ value: `${QUEST_PATH}/${locationsStatics.quest.wardResultsDir}` }),
+    path: `${QUEST_PATH}/${locationsStatics.quest.wardResultsDir}`,
   });
   const fsWriteProxy = fsWriteFileAdapterProxy();
   fsWriteProxy.succeeds({
@@ -91,10 +103,12 @@ export const stepHandlerWardBrokerProxy = (): {
   // and defaults it to a real-implementation passthrough. The direct staging below (same `[]`
   // address, registered after) overrides that default for this handler's purposes.
   questModifyBrokerProxy();
-  // Inert — this handler stages childProcessSpawnStreamLinesAdapter directly below (its exact
-  // output has to replay through the caller's onLine, which the generic adapter proxy has no
-  // semantic method for), but the implementation imports it and the lint rule wants it composed.
-  childProcessSpawnStreamLinesAdapterProxy();
+  // Inert — this handler stages `streamLines` directly below (see the file header: its exact
+  // output has to replay through the caller's onLine and its `cwd` has to be read back, neither of
+  // which streamLinesProxy's own methods support), but the implementation imports `streamLines`
+  // and `RunNotFoundError`, and the lint rule wants both composed.
+  streamLinesProxy();
+  RunNotFoundErrorProxy();
 
   const cwdMock = registerMock({ fn: questCwdResolveBroker });
   cwdMock.calledWith([]).resolves(
@@ -118,10 +132,10 @@ export const stepHandlerWardBrokerProxy = (): {
     .returns('2024-01-15T10:00:00.000Z');
 
   const wardRuns: { exitCode: ExitCode; output: ErrorMessage }[] = [];
-  const spawnHandle = registerMock({ fn: childProcessSpawnStreamLinesAdapter });
+  const spawnHandle = registerMock({ fn: streamLines });
   const spawnImpl = async ({
     onLine,
-  }: Parameters<typeof childProcessSpawnStreamLinesAdapter>[0]): Promise<{
+  }: Parameters<typeof streamLines>[0]): Promise<{
     exitCode: ExitCode;
     output: ErrorMessage;
   }> => {
@@ -190,14 +204,12 @@ export const stepHandlerWardBrokerProxy = (): {
 
     getSpawnedWardArgs: (): unknown => {
       const [call] = spawnHandle.callsMatching([]);
-      return (call?.[0] as Parameters<typeof childProcessSpawnStreamLinesAdapter>[0] | undefined)
-        ?.args;
+      return (call?.[0] as Parameters<typeof streamLines>[0] | undefined)?.args;
     },
 
     getSpawnedWardCwd: (): unknown => {
       const [call] = spawnHandle.callsMatching([]);
-      return (call?.[0] as Parameters<typeof childProcessSpawnStreamLinesAdapter>[0] | undefined)
-        ?.cwd;
+      return (call?.[0] as Parameters<typeof streamLines>[0] | undefined)?.cwd;
     },
   };
 };

@@ -15,6 +15,11 @@
  * never reads it — the terminal work-item write it would have justified is routing, and the router
  * owns that now.
  *
+ * `streamLines` rejects with `RunNotFoundError` when the OS never starts `dungeonmaster-ward` at
+ * all, rather than resolving a result the way the adapter this replaced did — caught below and
+ * folded into the same failed-run shape so a missing binary still falls through to the
+ * `failing`-exit-code default.
+ *
  * USAGE:
  * const result = await stepHandlerWardBroker({
  *   args: ['--committed', '--uncommitted'],
@@ -26,14 +31,9 @@
  */
 
 import {
-  childProcessSpawnStreamLinesAdapter,
-  fsMkdirAdapter,
-  pathJoinAdapter,
-} from '@dungeonmaster/shared/adapters';
-import {
   absoluteFilePathContract,
   contentTextContract,
-  exitCodeContract,
+  errorMessageContract,
   fileContentsContract,
   filePathContract,
   relatedDataItemContract,
@@ -43,6 +43,9 @@ import {
   type QuestWorkItemId,
 } from '@dungeonmaster/shared/contracts';
 import { locationsStatics, wardExitCodeStatics } from '@dungeonmaster/shared/statics';
+import { streamLines, RunNotFoundError } from '#gateway/node/child_process';
+import { ensureDir } from '#gateway/node/fs__promises';
+import { join } from '#gateway/node/path';
 
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import { stepHandlerResultContract } from '../../../contracts/step-handler-result/step-handler-result-contract';
@@ -80,14 +83,20 @@ export const stepHandlerWardBroker = async ({
 
   const { questPath } = await questFindQuestPathBroker({ questId });
 
-  const { exitCode: rawExitCode, output } = await childProcessSpawnStreamLinesAdapter({
+  const { exitCode: rawExitCode, output: rawOutput } = await streamLines({
     command: process.env.WARD_CLI_PATH ?? WARD_COMMAND,
     args: [RUN_SUBCOMMAND, ...args],
     cwd: startPath,
     onLine,
+  }).catch((error: unknown) => {
+    if (!(error instanceof RunNotFoundError)) {
+      throw error;
+    }
+    return { exitCode: 1, output: '', signal: null };
   });
 
-  const exitCode = rawExitCode ?? exitCodeContract.parse(wardExitCodeStatics.exitCodes.failing);
+  const exitCode = rawExitCode ?? wardExitCodeStatics.exitCodes.failing;
+  const output = errorMessageContract.parse(rawOutput);
   // A 0-file scope is `empty`, not green — `runId === null` is the machine-readable signal.
   // `commandRunBroker` returns before any check runs and saves no result on that path, so no
   // `run: <id>` line is ever printed; string-matching the message it prints instead would be
@@ -98,13 +107,11 @@ export const stepHandlerWardBroker = async ({
   const wardResultId = crypto.randomUUID();
 
   if (detailJson) {
-    const wardResultsDir = pathJoinAdapter({
-      paths: [questPath, locationsStatics.quest.wardResultsDir],
-    });
-    await fsMkdirAdapter({ filepath: wardResultsDir });
-    const detailFilePath = filePathContract.parse(
-      pathJoinAdapter({ paths: [wardResultsDir, `${wardResultId}.json`] }),
+    const wardResultsDir = filePathContract.parse(
+      join(questPath, locationsStatics.quest.wardResultsDir),
     );
+    await ensureDir(wardResultsDir);
+    const detailFilePath = filePathContract.parse(join(wardResultsDir, `${wardResultId}.json`));
     await fsWriteFileAdapter({
       filePath: detailFilePath,
       contents: fileContentsContract.parse(detailJson),

@@ -19,18 +19,22 @@
  * boundary comes to `cleanupRunBroker`'s own "the call threw". A zero exit hands the printed JSON
  * to `cleanupOutcomeClassifyTransformer`.
  *
+ * `streamLines` rejects with `RunNotFoundError` when the OS never starts the CLI at all (a missing
+ * `dungeonmaster` binary), rather than resolving a result the way the adapter this replaced did —
+ * caught below and folded into the same failed-run shape so a missing binary still classifies `wall`.
+ *
  * USAGE:
  * const result = await stepHandlerCleanupBroker({ args: [], questId, workItemId, onLine });
  * // { outcome: 'done' | 'empty' | 'wall', detail }
  */
 
-import { childProcessSpawnStreamLinesAdapter } from '@dungeonmaster/shared/adapters';
 import {
   absoluteFilePathContract,
   contentTextContract,
   type QuestId,
   type QuestWorkItemId,
 } from '@dungeonmaster/shared/contracts';
+import { streamLines, RunNotFoundError } from '#gateway/node/child_process';
 
 import { cleanupAnswerContract } from '../../../contracts/cleanup-answer/cleanup-answer-contract';
 import { stepHandlerResultContract } from '../../../contracts/step-handler-result/step-handler-result-contract';
@@ -55,11 +59,16 @@ export const stepHandlerCleanupBroker = async ({
   const repoRoot = await questRepoRootBroker({ questId });
   const cwd = absoluteFilePathContract.parse(repoRoot);
 
-  const { exitCode, output } = await childProcessSpawnStreamLinesAdapter({
+  const { exitCode, output } = await streamLines({
     command: process.env.DUNGEONMASTER_CLI_PATH ?? cleanupCliCallStatics.call.bin,
     args: [...cleanupCliCallStatics.call.args],
     cwd,
     onLine,
+  }).catch((error: unknown) => {
+    if (!(error instanceof RunNotFoundError)) {
+      throw error;
+    }
+    return { exitCode: 1, output: '', signal: null };
   });
 
   if (exitCode !== CLI_SUCCESS_EXIT_CODE) {
@@ -69,7 +78,7 @@ export const stepHandlerCleanupBroker = async ({
     });
   }
 
-  const answer = cleanupAnswerContract.parse(JSON.parse(String(output)));
+  const answer = cleanupAnswerContract.parse(JSON.parse(output));
 
   return stepHandlerResultContract.parse({
     outcome: cleanupOutcomeClassifyTransformer({ answer }),
