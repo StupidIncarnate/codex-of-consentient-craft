@@ -94,11 +94,15 @@ Each was told never to commit. Commit each one's files, and only its files, when
 
 If an agent's notification never arrives (the operator lost track), look for uncommitted files in its scope with `git status`, send a sonnet sub-agent to review them, and commit what is green.
 
-O12 (841b050e7), SL9 (4712d1667) and O10 (c9e2915d9) finished after this handoff was written and are committed. Master merged again (56edcf26a) and hydration-recipes rebuilt. Wrap-up agents running: B01's final merge in its worktree, and F36.
+O12 (841b050e7), SL9 (4712d1667) and O10 (c9e2915d9) finished after this handoff was written and are committed. Master merged again (56edcf26a) and hydration-recipes rebuilt. No agent is running. B01 is merged and `npm install` has run; the operator stopped there on the user's instruction.
 
 ### Uncommitted state not owned by a running agent
 
-- **B01 (zod v4)** is finished in `worktrees/gp-b01-zod4` (branch `gp-b01-zod4`, last commit a1563960f, its handoff in that worktree's `scrolls/brands-gateways-epic/b01-handoff.md`). To land it: wait until no agent is running; inside the worktree `git merge gateway-pivot` (gateway-pivot has moved a long way since, so expect zod v4 fixes in new contracts); ward every package there; then in this checkout `git merge gp-b01-zod4`, `npm install` (zod ^4.6.5), `npm run build:clean`, a full `npm run ward`, and delete the worktree and branch.
+- **Where the operator stopped (user's instruction):** B01 is merged (bf8e0d2f6) and `npm install` has run; zod 4.6.5 resolves. Nothing else ran after it. The next session does, in order:
+  1. `npm run build:clean` (zod changed under every package's compiled output).
+  2. A full `npm run ward`, timeout 600000. B01's last full run in its worktree (1790565795209-c4f2) had four reds, none from zod, all older than the merge (F37).
+  3. Delete `worktrees/gp-b01-zod4` (`git worktree remove`) and the `gp-b01-zod4` branch.
+  4. Reconnect this session's MCP after the rebuild (`/mcp`).
 
 ### A12 (shared adapters) remaining after the running agents
 
@@ -333,7 +337,7 @@ Package items run side by side, one agent group per package. Each is split by th
 
 | ID | Item | Needs | Runs with | Status | Notes |
 |---|---|---|---|---|---|
-| B01 | [Upgrade zod to v4](items/b01-zod-v4.md) | G15 | Phase 2 items whose files it does not touch | review | Finished in its worktree by b01b and committed there as a1563960f (merge of gateway-pivot at 2a9fa97e8 plus every zod v4 fix; zod ^4.6.5 repo-wide). Merging it into gateway-pivot waits for a quiet point with no agents mid-run, because it needs `npm install` in this checkout and a `build:clean`, and gateway-pivot has moved since (merge it again first). Its web `theme-scheme` contract now uses `z.partialRecord`. |
+| B01 | [Upgrade zod to v4](items/b01-zod-v4.md) | G15 | Phase 2 items whose files it does not touch | done bf8e0d2f6 | Merged into gateway-pivot; `npm install` run, zod 4.6.5 resolves. The worktree `worktrees/gp-b01-zod4` and branch `gp-b01-zod4` still exist; delete them once the steps below are green. |
 | B02 | [The contract index, and unused contracts deleted](items/b02-contract-index-and-unused-contracts.md) | A19 | B01, B07 | todo | |
 | B03 | [Package `exports` serve barrels and per-file stubs and proxies; stubs and proxies out of production barrels](items/b03-package-exports-and-per-file-test-imports.md) | B02 | B04, B05 | todo | concessions 1 and 3; operator splits per package. Also: define one sanctioned home for a package's caller-facing proxy (F18's `config-resolve-caller.proxy.ts`, and orchestrator's `startup/start-orchestrator.proxy.ts`), and move A02's four `@dungeonmaster/orchestrator/testing` stub imports to per-file imports. |
 | B04 | [Lint rules use the real `TSESTree` and the gateway's AST stubs](items/b04-eslint-rules-on-real-tsestree.md) | G17, A06 | B05 | todo | operator splits per rule folder |
@@ -424,6 +428,7 @@ Work that execution found and no item file owns. Each runs like an item.
 | F34 | `streamLinesProxy` (`@gateway/node`) cannot read back a spawned call's cwd or command; O12 (841b050e7) mocks `streamLines` directly by command in the cleanup and ward step-handler proxies. Add a read-back like F29's `run.getOptionsFor`, then switch those proxies to it. | O12 | open | |
 | F35 | `step-handler-riftcarver-broker.proxy.ts` mocks raw `spawn` for `cp` and adds two `as never` casts on `.implement(...)` (O10, c9e2915d9), because its broker is still on the shared adapters. Migrate `step-handler-riftcarver-broker.ts` itself (streamLines, run, ensureDir, readdirEntriesSync, join) and drop both. | O10 | open | |
 | F36 | Five siegelense install integration tests (`start-install`, `install-flow`) pin the old small recipes scaffold; F20 rewrote it richer and SL9 moved it onto the gateway. Found by the second master merge's resolver. | merge 56edcf26a | done | The richer scaffold is intended; the tests now assert it. |
+| F37 | Reds in B01's full ward run (1790565795209-c4f2), none from zod, each file identical to gateway-pivot's tip: lint in `eslint-plugin`'s `gateway-imports-target-transformer.ts` (4) and `testing`'s `workspace-package-{export-source,imports-target}-transformer.ts` (5, `no-unnecessary-condition`); unit in `session-forensics`'s `digest-run-responder.test.ts` (11) and `siegelense`'s `instance-start-broker.test.ts` (1), both a `homedir` stage on `#gateway/node/os` against Jest's sandboxed `$HOME`. Reproduce on the rebuilt tree first. | B01 | open | |
 | F25 | `@gateway/node`'s `run`: `runProxy()` addresses a call by `command` alone, and `RunNotFoundError` has no proxy, so `enforce-proxy-child-creation` blocks any caller that catches it. W2 (40b6641d5) mocked `run` directly and let a missing `git` reject where the old adapter resolved `exitCode: 1`. F25 fixes the gateway, then restores that fallback in ward's git brokers. Every other `childProcessSpawnCaptureAdapter` group waits for F25. | W2 | done 5b3a16ede | `runProxy` stages by `command`, `args` and `cwd`; `RunNotFoundErrorProxy` exists; ward git brokers restored. `@gateway/node` rebuilt. The `run` recipe is in the A12 item. |
 | F3 | Ward's `typecheck` uses `tsconfig.json`, not `tsconfig.build.json`, so a build-only failure (TS6059 in ed13c2901, TS2379 in G15) passes ward. Consider a build-config `--noEmit` check in ward. | operator | done | a8369332a; ward rebuilt. Typecheck runs a second pass against `tsconfig.build.json`. It found TS2379 in `testing` (F11 fixing) and TS6059 in `@gateway/browser` (G21 fixing). |
 
