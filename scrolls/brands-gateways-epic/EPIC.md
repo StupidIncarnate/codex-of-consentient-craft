@@ -107,7 +107,7 @@ A new operator took over from the morning handoff below. Heartbeat cron `13,43 *
 | a17-xhrdom (sonnet) | A17: xhr/post-with-progress, dom/composer-* | `web` (disjoint) | running |
 | a17-misc (sonnet) | A17: elk (now a broker), xyflow (now widgets), mantine/notifications | `web` | finished, uncommitted (commits with a17-xhrdom: shared typecheck). Left: canvas (F69), indexed-db (F70), file/read-data-url, notifications-show, react-dom/mount |
 | f69-f70 (sonnet) | F69 canvas/createImageBitmap proxies; F70 IndexedDB clear-and-replace and one shared fake store | `@gateway/browser` | running |
-| a10-fs4 (sonnet) | A10: readlink, symlink, append-file | `orchestrator` (disjoint) | running |
+| a10-fs4 (sonnet) | A10: readlink, symlink, append-file | `orchestrator` | finished, uncommitted (commits with a10-misc). For T05: `quest-outbox-append-broker.proxy.ts` answers any unstaged path ending `outbox.jsonl` (about 40 responder and loop tests leaned on the old catch-all through quest persist); `chat-subagent-tail-broker.proxy.ts` stages the touch by path shape |
 | a10-misc (sonnet) | A10: spawn-stream-json, net, proc, process, readline, timers; project-map and enforce-folder-return-types anchors | `orchestrator` (disjoint), two anchor tests | running |
 | agy SL-FS5 | A13 `fs/read-file`, second half; delete the adapter | `siegelense` | running |
 
