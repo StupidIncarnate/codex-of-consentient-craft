@@ -101,8 +101,10 @@ A new operator took over from the morning handoff below. Heartbeat cron `13,43 *
 |---|---|---|---|
 | — | Landed this session | — | F59 3b25ecb7a, F60 38bf5031a, F45 2b75def09, F61 c7b81850d, F47 9be54ce7e, F52 71de2788a; A10 596bbd1e3, f231b3550; A16 e43c1c424, 7f79340c8 (ward `adapters/` gone); A06 dbb50d985, 6d116c296, 8e5e7f3ec, 235a64368, f296f59cb (eslint-plugin `adapters/` gone); A12 517f6361b, d743fa187 (shared `adapters/` gone); A13 ba951a330, 16097fbe1, e5d4ca0ae; A14 49d87fc38; A17 b30627b03, e1076c324 |
 | Build | Whole repo, plain `npm run build` after 49d87fc38 | — | done, exit 0. A `build:clean`, then `check:consumer` and `check:published` (concession 8) are still due at a quiet point. |
-| planner (opus) | Read-only: which remaining work can be scripted, for this repo and the next one; writes `scripting-opportunities.md` | none | running |
-| a17-get (sonnet) | A17 `fetch/get` batch | `web` | running |
+| planner (opus) | Read-only: which remaining work can be scripted | none | done: `scripting-opportunities.md` (in ace08af85). Two decisions put to the user: should the pre-edit hook block new violations of rules still `off`; may codemod output be proved by sampled mutations |
+| s1 (sonnet) | S1: adapter census command in `@dungeonmaster/tooling` (scripting opportunity 1); item `items/s1-adapter-census-command.md` | `tooling` | running |
+| a17-get (sonnet) | A17 `fetch/get` batch | `web` | part done ace08af85 (nine brokers) |
+| f65 (sonnet) | F65: widget proxies stage mount fetches; last five fetch brokers; delete `fetch/get` and `fetch/post` | `web` | running |
 | f64 (sonnet) | F64: `@gateway/node` one-shot staging for `readNonEmptyLines` and sync readdir; `tailFile` `initialDrain` | `@gateway/node` | running |
 | f35 (opus) | F35 widened: rebuild riftcarver, route-scope, run-step proxies on exact staging; unblocks orchestrator's seven fs adapters | `orchestrator` | running |
 | a14-fs2 (sonnet) | A14 testing: last five `fs`/`path` adapters and their middleware pairs | `testing` | running |
@@ -415,7 +417,7 @@ Package items run side by side, one agent group per package. Each is split by th
 | A14 | [Adapters: `testing`](items/a14-adapters-testing.md) | G22 | other A items | ready | G22 is done. Group G-Y in `triage-phase2.md` (A14's batches plus `msw/ws` and `typescript/ast-to-local-export-names`). |
 | A15 | [Adapters: `tooling`](items/a15-adapters-tooling.md) | G05, G15, G19, G21 | other A items | done | 5f4dcd0af. Only `typescript/parse` was left (the rest went in 7751fb471); its AST walk is now `typescriptParseBroker`. `packages/tooling/src/adapters/` is gone. |
 | A16 | [Adapters: `ward`](items/a16-adapters-ward.md) | A03, G05, G15, G19, G21 | other A items | done | e43c1c424, 7f79340c8: `packages/ward/src/adapters/` is gone. Earlier: | `## Plan — G-BB-1` written (11 adapters, 24 callers, 48 files with proxies) and split by adapter: G-BB-1a done (c833d4923, ward rebuilt); G-BB-1b done for mkdir, read-json-sync, readdir-dirs, readdir (the G-BB-1b commit, ward rebuilt); `fs/read-file` (18 callers) and `fs/unlink`'s check-run callers are G-BB-1e; G-BB-1c done for rename, rm, stat (the G-BB-1c commit, ward rebuilt); `fs/unlink` waits for F55; G-BB-1d (`crypto/hash-files` into `bundle-hash-files-broker`) waits for F50. MISC and TS-SHAPE after. |
-| A17 | [Adapters: `web`](items/a17-adapters-web.md) | G05, G13, G15, G19, G21 | other A items | blocked | Fetch batch blocked, nothing changed: `@gateway/browser`'s fetch proxies spy on `globalThis.fetch` and throw on any unmatched call, so one migrated broker breaks every MSW-staged caller in the same test file (write-up in the item). F56 (active) moves those proxies onto MSW endpoint handlers and proves it on quest-delete and comment-batch. The other batches wait for F56. |
+| A17 | [Adapters: `web`](items/a17-adapters-web.md) | G05, G13, G15, G19, G21 | other A items | active | F56 and F61 cleared the block. fetch/post and fetch/get mostly done (b30627b03, e1076c324, ace08af85); F65 has the last five. Earlier: | Fetch batch blocked, nothing changed: `@gateway/browser`'s fetch proxies spy on `globalThis.fetch` and throw on any unmatched call, so one migrated broker breaks every MSW-staged caller in the same test file (write-up in the item). F56 (active) moves those proxies onto MSW endpoint handlers and proves it on quest-delete and comment-batch. The other batches wait for F56. |
 | A18 | [Raw outside calls that never had an adapter; drop duplicate package deps](items/a18-raw-calls-and-dependency-cleanup.md) | A04–A17 | — | todo | operator splits per package |
 | A19 | [`adapters` stops being a folder type; caller-facing lint rules on](items/a19-adapters-folder-type-gone-caller-rules-on.md) | A18 | — | todo | runs alone |
 
@@ -552,7 +554,6 @@ When an item is marked `blocked`, add a row here. Clear the row when the item un
 
 | ID | What blocks it | What was tried | What else it holds up |
 |---|---|---|---|
-| A17 | `@gateway/browser`'s fetch proxies take over `globalThis.fetch` for a whole test file and break web's MSW staging. | Two brokers migrated and reverted after ward proved the regression. | A17's other batches, T10 |
 
 ## Log
 
