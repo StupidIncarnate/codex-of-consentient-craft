@@ -15,6 +15,7 @@
  * });
  * // later:
  * handle.stop();
+ * await handle.initialDrain; // resolves once the file's existing content has been emitted
  */
 import { watch, createReadStream, statSync, existsSync } from 'fs';
 import { dirname } from 'path';
@@ -38,6 +39,14 @@ export const tailFile = ({
   startPosition?: 'beginning' | 'end';
   awaitCreate?: boolean;
 }): TailFileHandle => {
+  // Resolves once the first drain has settled (its readline closed or errored), once ENOENT was
+  // reported, or on `stop()`, so an awaiter never hangs on a torn-down tail. Resolving twice is a
+  // no-op.
+  const resolveInitialDrainRef: { current: (() => void) | null } = { current: null };
+  const initialDrain = new Promise<void>((resolve) => {
+    resolveInitialDrainRef.current = resolve;
+  });
+
   // fs.watch and statSync throw synchronously when the path is missing. Check first via
   // existsSync and surface the error through onError instead of letting fs.watch crash the
   // process. The TOCTOU window between this check and the fs.watch call is real but tiny next to
@@ -45,10 +54,12 @@ export const tailFile = ({
   if (!existsSync(path)) {
     if (awaitCreate !== true) {
       onError({ error: new Error(`ENOENT: file does not exist: ${path}`) });
+      resolveInitialDrainRef.current?.();
       return {
         stop: (): void => {
           // No watcher was created; nothing to tear down.
         },
+        initialDrain,
       };
     }
 
@@ -75,19 +86,29 @@ export const tailFile = ({
           clearTimeout(awaitTimer);
           awaitTimer = null;
         }
-        awaitState.inner = tailFile({
+        const inner = tailFile({
           path,
           onLine,
           onError,
           ...(startPosition === undefined ? {} : { startPosition }),
         });
+        awaitState.inner = inner;
+        inner.initialDrain
+          .then((): void => {
+            resolveInitialDrainRef.current?.();
+          })
+          .catch((forwardError: unknown): void => {
+            onError({ error: forwardError });
+          });
       });
     } catch (dirWatchError: unknown) {
       onError({ error: dirWatchError });
+      resolveInitialDrainRef.current?.();
       return {
         stop: (): void => {
           // No watcher was created; nothing to tear down.
         },
+        initialDrain,
       };
     }
 
@@ -102,6 +123,7 @@ export const tailFile = ({
         return;
       }
       onError({ error: new Error(`ENOENT: file did not appear within timeout: ${path}`) });
+      resolveInitialDrainRef.current?.();
       if (dirWatcher !== null) {
         dirWatcher.close();
         dirWatcher = null;
@@ -126,7 +148,9 @@ export const tailFile = ({
           awaitTimer = null;
         }
         awaitState.inner?.stop();
+        resolveInitialDrainRef.current?.();
       },
+      initialDrain,
     };
   }
 
@@ -183,6 +207,7 @@ export const tailFile = ({
       if (!state.stopped) {
         onError({ error: rlError });
       }
+      resolveInitialDrainRef.current?.();
       if (state.pendingDrain && !state.stopped) {
         state.pendingDrain = false;
         watcher.emit('change', 'rename', path);
@@ -198,6 +223,7 @@ export const tailFile = ({
         }
       }
       state.reading = false;
+      resolveInitialDrainRef.current?.();
       if (state.pendingDrain && !state.stopped) {
         state.pendingDrain = false;
         watcher.emit('change', 'rename', path);
@@ -209,6 +235,7 @@ export const tailFile = ({
       if (!state.stopped) {
         onError({ error: streamError });
       }
+      resolveInitialDrainRef.current?.();
       if (state.pendingDrain && !state.stopped) {
         state.pendingDrain = false;
         watcher.emit('change', 'rename', path);
@@ -220,6 +247,7 @@ export const tailFile = ({
     if (!state.stopped) {
       onError({ error: watchError });
     }
+    resolveInitialDrainRef.current?.();
   });
 
   // Trigger an immediate drain of any existing file content: fs.watch does not fire until the
@@ -230,6 +258,8 @@ export const tailFile = ({
     stop: (): void => {
       state.stopped = true;
       watcher.close();
+      resolveInitialDrainRef.current?.();
     },
+    initialDrain,
   };
 };

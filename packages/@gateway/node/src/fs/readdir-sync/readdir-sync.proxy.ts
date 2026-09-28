@@ -13,6 +13,8 @@ export const readdirSyncProxy = (): {
     path: PathMatcher;
     error: NodeJS.ErrnoException;
   }) => void;
+  returnsOnce: ({ path, names }: { path: string; names: string[] }) => void;
+  throwsOnce: ({ path, error }: { path: string; error: NodeJS.ErrnoException }) => void;
   getCallsFor: (params: { path: PathMatcher }) => readonly unknown[][];
 } => {
   const handle = registerMock({ fn: readdirSync });
@@ -40,6 +42,16 @@ export const readdirSyncProxy = (): {
       error: NodeJS.ErrnoException;
     }): void => {
       handle.calledWith([path]).implement((): never => {
+        throw error;
+      });
+    },
+    // One-shot: answers the FIRST read of `path` only, then steps aside for a sticky staging or
+    // the next one-shot. Queued one-shots at one path are consumed in registration order.
+    returnsOnce: ({ path, names }: { path: string; names: string[] }): void => {
+      handle.onceFor([path]).returns(names);
+    },
+    throwsOnce: ({ path, error }: { path: string; error: NodeJS.ErrnoException }): void => {
+      handle.onceFor([path]).implement((): never => {
         throw error;
       });
     },

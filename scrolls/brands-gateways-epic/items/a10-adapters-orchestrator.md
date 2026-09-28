@@ -235,3 +235,66 @@ Gaps that stop the rest:
   every composing proxy lean on; `readdirIfExistsProxy` has no one-shot, and the adapter is sync where the wrapper is async.
 - `watch-tail`: `tailFile` returns no `initialDrain`, which `chat-subagent-tail-broker` awaits, and `tailFileProxy` stages every
   call as `calledWith([])`.
+
+## Plan — F64
+
+Three `@gateway/node` gaps, all under `packages/@gateway/node/src/`. No caller outside `@gateway/node` imports
+`tailFile`, `tailFileProxy`, `readNonEmptyLinesProxy` or `readdirSyncProxy` staging that a signature change touches
+(python3 census over `packages/**`; orchestrator's `fsWatchTailAdapter` is its own copy).
+
+Named files:
+- `fs__promises/read-non-empty-lines/read-non-empty-lines.proxy.ts` and `.test.ts`: `returnsRawOnce` and `throwsOnce`,
+  addressed by path, via `onceFor`.
+- `fs/readdir-sync/readdir-sync.proxy.ts` and `.test.ts`: `returnsOnce` and `throwsOnce`, addressed by path. No
+  catch-all default. (`readdir-entries-sync` is the `withFileTypes` twin and is left alone.)
+- `fs/tail-file/tail-file-handle.ts`: `TailFileHandle` gains `initialDrain: Promise<void>`.
+- `fs/tail-file/tail-file.ts`: returns `initialDrain` on every branch (resolves after the first drain closes or errors,
+  on ENOENT, on `stop()`, and forwarded from the delegated tail under `awaitCreate`).
+- `fs/tail-file/tail-file.proxy.ts`: every staging and read-back method takes `path`; no `calledWith([])`, no casts.
+- `fs/tail-file/tail-file.test.ts`: existing cases move onto the path-addressed proxy; new `initialDrain` cases.
+
+### F35 riftcarver proxies
+
+The three proxies that stop the seven fs adapters moving (riftcarver's step handler, `quest-route-scope`,
+`quest-run-step`) stop mocking the adapters' MODULES. Every adapter runs its real body, and the raw `fs/promises`
+call underneath is staged by exact path through the proxy chain the implementation already reaches (T06): each
+proxy composes the proxy beside each broker its implementation imports, and stages through that proxy's own
+semantic methods.
+
+Design:
+- No `registerModuleMock` of an adapter or of `@dungeonmaster/shared/brokers` in any of the three. The home is
+  resolved for real by `dungeonmasterHomeFindBroker`, staged through `dungeonmasterHomeFindBrokerProxy` inside
+  `questFindQuestPathBrokerProxy`.
+- The quest file lives at one exact path (`/home/testuser/.dungeonmaster/guilds/<GuildIdStub>/quests/<folder>/quest.json`).
+  `questOperationsUpdateBrokerProxy` gains `setupQuestOnDisk({ quest })`, which stages the find (probe miss, guild
+  listing, quest scan), every READ of that path (a sticky, addressed read through a new
+  `questLoadBrokerProxy.setupQuestFileAt`), and the persist (temp write, rename, outbox append) — every one at
+  its exact address. Because raw `readFile` is one shared mock, this one staging answers `questFindQuestPathBroker`,
+  `questGetBroker`, `questLoadBroker` and `questOperationsUpdateBroker` wherever they read that path.
+- The persisted quest is read back from the temp-file write (`getLastPersistedQuest`), not from a virtual store.
+- A read AFTER a write returns the seeded quest, not the write: raw `readFile` is staged statically, which is all
+  the gateway's `readFileProxy` can do too. No test here asserts a field only a read-after-write would carry
+  (route-scope and run-step's record updates depend only on the seeded item; riftcarver's result append asserts
+  only the appended result). The read-after-write path is covered by the route-scope integration test on real
+  disk.
+- `quest-route-scope`: `setupPassthrough` stages nothing but the real broker and the id/clock spies;
+  `setupQuest` calls `setupQuestOnDisk` and stages every operation's plan file as missing through
+  `plannedWorkReadBrokerProxy.setupPlanMissing`; `setupPlan` restages one as found (`setupPlanFound`, later wins).
+- `quest-run-step`: `setupQuest` calls `setupQuestOnDisk`; the handler stays stubbed.
+- riftcarver: no raw `spawn`/`mkdir`, no wrapper mocks of `readdirEntriesSync`/`existsSync`/`join`, no `as never`.
+  The node_modules mirror, seed and audit are staged through `worktreeProvisionBrokerProxy.setupBareWorktree`;
+  the result log through `riftcarverPersistResultBrokerProxy.setupSuccess`; the collision probe through
+  `fsIsAccessibleAdapterProxy` by the exact worktree path; the base-branch probes through
+  `gitDetectBaseBranchBrokerProxy` and `verifyRefProxy.setupResult` by exact ref (the two ref predicates go);
+  the repo root through `questRepoRootBrokerProxy.setupRepoRoot` with a stub.
+
+Files:
+- `packages/orchestrator/src/brokers/quest/load/quest-load-broker.proxy.ts` — add `setupQuestFileAt`
+- `packages/orchestrator/src/brokers/quest/operations-update/quest-operations-update-broker.proxy.ts` — add `setupQuestOnDisk`
+- `packages/orchestrator/src/brokers/quest/route-scope/quest-route-scope-broker.proxy.ts` — rebuilt
+- `packages/orchestrator/src/brokers/quest/run-step/quest-run-step-broker.proxy.ts` — rebuilt
+- `packages/orchestrator/src/brokers/step-handler/riftcarver/step-handler-riftcarver-broker.proxy.ts` — rebuilt
+- tests of the three, only where a public method's staging changed
+
+The adapter moves onto `#gateway/node` are the NEXT chunk: seven adapters, each with its callers, proxies and tests,
+run past the file budget of this one.

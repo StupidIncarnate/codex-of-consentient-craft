@@ -91,6 +91,54 @@ describe('readNonEmptyLines', () => {
     });
   });
 
+  describe('one-shot staging', () => {
+    it('ERROR: {throwsOnce, then a sticky returnsRaw at the same path} => the first read rejects and the second returns the lines', async () => {
+      const proxy = readNonEmptyLinesProxy();
+      const error = FsErrorStub({ code: 'EACCES', path: '/home/user/.claude/sessions/abc.jsonl' });
+      proxy.returnsRaw({
+        path: '/home/user/.claude/sessions/abc.jsonl',
+        rawContents: '{"a":1}\n',
+      });
+      proxy.throwsOnce({ path: '/home/user/.claude/sessions/abc.jsonl', error });
+
+      await expect(
+        readNonEmptyLines('/home/user/.claude/sessions/abc.jsonl'),
+      ).rejects.toStrictEqual(error);
+      await expect(
+        readNonEmptyLines('/home/user/.claude/sessions/abc.jsonl'),
+      ).resolves.toStrictEqual(['{"a":1}']);
+    });
+
+    it('VALID: {returnsRawOnce, then a sticky returnsRaw at the same path} => the first read gets the one-shot contents and the second the sticky ones', async () => {
+      const proxy = readNonEmptyLinesProxy();
+      proxy.returnsRaw({
+        path: '/home/user/.claude/sessions/abc.jsonl',
+        rawContents: '{"settled":true}\n',
+      });
+      proxy.returnsRawOnce({
+        path: '/home/user/.claude/sessions/abc.jsonl',
+        rawContents: '{"first":true}\n',
+      });
+
+      const first = await readNonEmptyLines('/home/user/.claude/sessions/abc.jsonl');
+      const second = await readNonEmptyLines('/home/user/.claude/sessions/abc.jsonl');
+
+      expect(first).toStrictEqual(['{"first":true}']);
+      expect(second).toStrictEqual(['{"settled":true}']);
+    });
+
+    it('ERROR: {throwsOnce at one path} => a read of another path is not answered by it', async () => {
+      const proxy = readNonEmptyLinesProxy();
+      proxy.returnsRaw({ path: '/home/user/other.jsonl', rawContents: '{"o":1}\n' });
+      proxy.throwsOnce({
+        path: '/home/user/abc.jsonl',
+        error: FsErrorStub({ code: 'EACCES', path: '/home/user/abc.jsonl' }),
+      });
+
+      await expect(readNonEmptyLines('/home/user/other.jsonl')).resolves.toStrictEqual(['{"o":1}']);
+    });
+  });
+
   describe('call inspection', () => {
     it('VALID: {a real call already made} => getCallsFor reads it back', async () => {
       const proxy = readNonEmptyLinesProxy();

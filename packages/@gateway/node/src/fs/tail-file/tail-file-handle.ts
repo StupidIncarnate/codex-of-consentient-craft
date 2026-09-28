@@ -8,4 +8,5 @@
 
 export interface TailFileHandle {
   stop: () => void;
+  initialDrain: Promise<void>;
 }
