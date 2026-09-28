@@ -34,9 +34,9 @@ describe('recipesListingBuildBroker', () => {
       expect(listing.find((entry) => entry.recipeName === 'guild-mid-execution')).toStrictEqual({
         recipeName: 'guild-mid-execution',
         description:
-          'one guild holding three quests — the first running with its riftcarver item dropped, ' +
-          'the second and third both freshly created and told apart only by their seeded title ' +
-          'and request text ("Quest 2"/"Quest 3")',
+          'one guild holding three quests — the first running with codeweaver actually in progress ' +
+          'and its riftcarver item dropped, the second and third both freshly created and told ' +
+          'apart only by their seeded title and request text ("Quest 2"/"Quest 3")',
         inputKeys: [],
         runs: { serverless: true },
         makes: [
@@ -63,7 +63,7 @@ describe('recipesListingBuildBroker', () => {
           runs: { serverless: true },
           makes: [
             { ingredient: 'quest', count: 1 },
-            { ingredient: 'operation', count: 2 },
+            { ingredient: 'operation', count: 'varies' },
           ],
         },
       );

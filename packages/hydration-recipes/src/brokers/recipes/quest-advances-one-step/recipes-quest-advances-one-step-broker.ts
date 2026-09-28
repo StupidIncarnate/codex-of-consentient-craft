@@ -17,6 +17,15 @@
  * in this file — both ids are minted by `operationWriteRouteBroker` at run time, the same as
  * `quest-completed`'s own recipe.
  *
+ * `q[0]`'s `setRaw` also carries `flows`/`packagesAffected` (`questGateContentDefaultsStatics`) —
+ * needed on a live target, where `questApiRouteBroker` walks the freshly-minted `created` quest to
+ * `in_progress` through `questReachRouteBroker`, clearing the real `flows_approved`/`approved` gates
+ * along the way (DEF-71) exactly as `guild-mid-execution`'s own header explains. That walk seeds ONE
+ * riftcarver operation via the live START route on its way to `in_progress` — absent on a `write`
+ * target, present on a live one — so a THIRD top-level op drops it by `questId` before the two
+ * hand-seeded operations are asserted as the whole ledger; `expect: 'any'` tolerates both the zero
+ * matches a `write` target leaves and the one match a live target does.
+ *
  * USAGE:
  * const plan = recipesQuestAdvancesOneStepBroker({ guildId: someGuildRecord.id });
  * const result = await dmRegistryBroker.run(plan, target);
@@ -28,6 +37,7 @@ import { fromSavedRefTransformer } from '@dungeonmaster/hydration/transformers';
 import { operationFieldsContract } from '../../../contracts/operation-fields/operation-fields-contract';
 import { questAdvancesOneStepInputsContract } from '../../../contracts/quest-advances-one-step-inputs/quest-advances-one-step-inputs-contract';
 import { questFieldsContract } from '../../../contracts/quest-fields/quest-fields-contract';
+import { questGateContentDefaultsStatics } from '../../../statics/quest-gate-content-defaults/quest-gate-content-defaults-statics';
 import { dmRegistryBroker } from '../../dm/registry/dm-registry-broker';
 import { recipesHydrationCreateBroker } from '../../recipes-hydration/create/recipes-hydration-create-broker';
 
@@ -49,9 +59,25 @@ export const recipesQuestAdvancesOneStepBroker = recipe(
       q[0].setRaw({
         status: questFieldsContract.shape.status.parse('in_progress'),
         title: questFieldsContract.shape.title.parse('Advancing quest'),
+        flows: questFieldsContract.shape.flows.parse(questGateContentDefaultsStatics.flows),
+        packagesAffected: questFieldsContract.shape.packagesAffected.parse(
+          questGateContentDefaultsStatics.packagesAffected,
+        ),
       }),
       q[0].saveRecordAs({ name: QUEST_SAVED_NAME }),
     ]),
+    // Drops the riftcarver operation a live target's real START route auto-seeds on the way to
+    // `in_progress` above — see this file's own header for why `expect: 'any'` is what makes this
+    // safe on both target kinds.
+    dmRegistryBroker.operations
+      .filter({
+        where: {
+          questId: fromSavedRefTransformer({ name: QUEST_SAVED_NAME, field: QUEST_ID_FIELD }),
+          role: operationFieldsContract.shape.role.parse('riftcarver'),
+        },
+        expect: 'any',
+      })
+      .remove(),
     dmRegistryBroker.operations
       .under({
         questId: fromSavedRefTransformer({ name: QUEST_SAVED_NAME, field: QUEST_ID_FIELD }),

@@ -58,6 +58,7 @@ import { machineRssByPgidBroker } from '../../machine/rss-by-pgid/machine-rss-by
 import { orphanReadBroker } from '../../orphan/read/orphan-read-broker';
 import { evidenceFileStatics } from '../../../statics/evidence-file/evidence-file-statics';
 import { likelyCauseLayerBroker } from './likely-cause-layer-broker';
+import { profileSoloReadLayerBroker } from './profile-solo-read-layer-broker';
 
 export const instanceEntryLayerBroker = async ({
   entry,
@@ -111,12 +112,21 @@ export const instanceEntryLayerBroker = async ({
 
   const rssAtLastBeat = state === 'alive' ? null : (heartbeat?.rssMB ?? null);
 
+  // Sequential, run only AFTER the Promise.all above has fully settled: profileSoloReadLayerBroker
+  // reaches profileReadBroker, which joins its own paths through the SAME shared pathJoinAdapter
+  // queue every other call above stages explicitly, in a fixed order (instance-entry-layer-broker.proxy.ts's
+  // own header). Racing it alongside that Promise.all would consume a queue entry staged for one of
+  // those other calls instead of computing its own real join.
+  const soloProfile =
+    state === 'alive' ? null : await profileSoloReadLayerBroker({ specName: entry.specName });
+
   const likelyCause = likelyCauseLayerBroker({
     state,
     specName: entry.specName,
     rssAtLastBeat,
     oomKillsSinceBoot,
     shutdownReason: shutdownReasonMarker === null ? null : shutdownReasonMarker.reason,
+    soloProfile,
   });
 
   if (!named) {

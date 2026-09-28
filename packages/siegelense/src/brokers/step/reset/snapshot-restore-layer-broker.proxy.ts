@@ -2,7 +2,9 @@ import type { DirEntrySync } from '#gateway/node/fs';
 import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/readdir-entries-sync.proxy';
 import type { AbsoluteFilePath, FileName } from '@dungeonmaster/shared/contracts';
 
+import { cryptoHashAdapterProxy } from '../../../adapters/crypto/hash/crypto-hash-adapter.proxy';
 import { fsCpAdapterProxy } from '../../../adapters/fs/cp/fs-cp-adapter.proxy';
+import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { fsRmAdapterProxy } from '../../../adapters/fs/rm/fs-rm-adapter.proxy';
 import { fsStatAdapterProxy } from '../../../adapters/fs/stat/fs-stat-adapter.proxy';
 import type { EpochMs } from '../../../contracts/epoch-ms/epoch-ms-contract';
@@ -18,6 +20,12 @@ export const snapshotRestoreLayerBrokerProxy = (): {
       sizeBytes: FileSizeBytes;
       modifiedAtMs: EpochMs;
     }[];
+  }) => void;
+  // Only same-size pairs ever reach a content read (a size mismatch is decided without one), so a
+  // test stages a home/payload pair here exactly when it wants to prove the modified-count decision
+  // that DEF-81 governs: equal content must not count, no matter what the two mtimes say.
+  setupFileContents: (params: {
+    contents: readonly { filePath: AbsoluteFilePath; content: string }[];
   }) => void;
   setupRmSucceeds: (params: { filePaths: readonly AbsoluteFilePath[] }) => void;
   setupCpSucceeds: (params: {
@@ -38,6 +46,10 @@ export const snapshotRestoreLayerBrokerProxy = (): {
   const statProxy = fsStatAdapterProxy();
   const rmProxy = fsRmAdapterProxy();
   const cpProxy = fsCpAdapterProxy();
+  const readFileProxy = fsReadFileAdapterProxy();
+  // createHash is deterministic and pure over its input — see the adapter's own proxy — so this is
+  // constructed only to satisfy enforce-proxy-child-creation and never addressed further.
+  cryptoHashAdapterProxy();
 
   return {
     setupDirectories: ({ dirs }): void => {
@@ -49,6 +61,12 @@ export const snapshotRestoreLayerBrokerProxy = (): {
     setupFileStats: ({ stats }): void => {
       stats.forEach(({ filePath, sizeBytes, modifiedAtMs }) => {
         statProxy.resolves({ filePath, sizeBytes, modifiedAtMs });
+      });
+    },
+
+    setupFileContents: ({ contents }): void => {
+      contents.forEach(({ filePath, content }) => {
+        readFileProxy.resolves({ filePath, content });
       });
     },
 

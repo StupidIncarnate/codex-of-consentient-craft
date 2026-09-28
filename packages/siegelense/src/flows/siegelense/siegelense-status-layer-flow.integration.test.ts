@@ -63,7 +63,7 @@ const MACHINE_BLOCK_PATTERN = / {2}"machine": \{[\s\S]*?\n {2}\},\n/u;
 // object before this pattern normalises the one host-dependent cell, rather than pattern-matching
 // the raw padded table text.
 const LIKELY_CAUSE_VALUE_PATTERN =
-  /^rss unavailable at last beat; kernel OOM (?:kills since boot: \d+|events unavailable)$/u;
+  /^memory unavailable at last beat; kernel OOM (?:kills since boot: \d+|events unavailable)$/u;
 
 const EMPTY_BRANCH_STATUS_JSON = `${JSON.stringify(
   { monitored: machineStatics.monitored, instances: [], queriedInstanceState: null },

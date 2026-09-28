@@ -177,6 +177,59 @@ describe('bufferReadLayerBroker', () => {
     expect(result).toStrictEqual([errorEntry.text]);
   });
 
+  it("VALID: {where: {steps: '6-8'}} => only entries whose own step falls inside that range, from a fixture holding steps 5, 7 and 9", async () => {
+    const proxy = bufferReadLayerBrokerProxy();
+    const step5 = BufferEntryStub({
+      runId: RUN_2,
+      step: StepIndexStub({ value: 5 }),
+      text: networkText({ method: 'GET', url: '/api/a', status: 200 }),
+    });
+    const step7 = BufferEntryStub({
+      runId: RUN_2,
+      step: StepIndexStub({ value: 7 }),
+      text: networkText({ method: 'GET', url: '/api/b', status: 200 }),
+    });
+    const step9 = BufferEntryStub({
+      runId: RUN_2,
+      step: StepIndexStub({ value: 9 }),
+      text: networkText({ method: 'GET', url: '/api/c', status: 200 }),
+    });
+    proxy.setupBuffer({
+      bufferPath: BUFFER_PATH,
+      content: [step5, step7, step9].map((entry) => `${JSON.stringify(entry)}\n`).join(''),
+    });
+
+    const result = await bufferReadLayerBroker({
+      bufferPath: BUFFER_PATH,
+      runId: RUN_2,
+      sinceBoot: false,
+      step: null,
+      where: ResultWhereStub({ steps: '6-8' }),
+    });
+
+    expect(result).toStrictEqual([step7.text]);
+  });
+
+  it("EDGE: {where: {steps: '1-1'}, an untagged between-runs entry with step: null} => the null-step entry never matches a range", async () => {
+    const proxy = bufferReadLayerBrokerProxy();
+    const betweenRuns = BufferEntryStub({ runId: null, step: null });
+    const step1 = BufferEntryStub({ runId: RUN_2, step: StepIndexStub({ value: 1 }) });
+    proxy.setupBuffer({
+      bufferPath: BUFFER_PATH,
+      content: [betweenRuns, step1].map((entry) => `${JSON.stringify(entry)}\n`).join(''),
+    });
+
+    const result = await bufferReadLayerBroker({
+      bufferPath: BUFFER_PATH,
+      runId: null,
+      sinceBoot: true,
+      step: null,
+      where: ResultWhereStub({ steps: '1-1' }),
+    });
+
+    expect(result).toStrictEqual([step1.text]);
+  });
+
   it('EDGE: {a transcript-style truncated final line} => the earlier complete entries still answer', async () => {
     const proxy = bufferReadLayerBrokerProxy();
     const complete = BufferEntryStub({ runId: RUN_2 });

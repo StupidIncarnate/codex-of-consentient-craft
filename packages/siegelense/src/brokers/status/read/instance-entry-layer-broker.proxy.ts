@@ -14,6 +14,11 @@
  * `machineRssByPgidBroker`'s own `/proc` readdir, since both call it with the identical `dirPath`
  * argument against the one shared mock.
  *
+ * `setupProfileSolo` (whenever `state !== 'alive'`) may ALSO be called in any position: it mocks
+ * `profileReadBroker` directly (`profileSoloReadLayerBrokerProxy`'s own choice, mirroring
+ * `capacityReadBrokerProxy`), so it never touches the shared `pathJoinAdapter` queue every join
+ * above competes on.
+ *
  * USAGE:
  * const proxy = instanceEntryLayerBrokerProxy();
  * proxy.setupEvidenceDir({ homeDir, homePath, rootPath, evidencePath });
@@ -33,6 +38,7 @@ import { fsStatAdapterProxy } from '../../../adapters/fs/stat/fs-stat-adapter.pr
 import type { InstanceHeartbeatStub } from '../../../contracts/instance-heartbeat/instance-heartbeat.stub';
 import type { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
 import type { ShutdownReasonStub } from '../../../contracts/shutdown-reason/shutdown-reason.stub';
+import type { SpecProfileStub } from '../../../contracts/spec-profile/spec-profile.stub';
 import { heartbeatReadBrokerProxy } from '../../heartbeat/read/heartbeat-read-broker.proxy';
 import { locationsInstanceEvidencePathFindBrokerProxy } from '../../locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker.proxy';
 import { locationsRepoLinkPathFindBrokerProxy } from '../../locations/repo-link-path-find/locations-repo-link-path-find-broker.proxy';
@@ -40,10 +46,12 @@ import { machineRssByPgidBrokerProxy } from '../../machine/rss-by-pgid/machine-r
 import { orphanReadBrokerProxy } from '../../orphan/read/orphan-read-broker.proxy';
 import { shutdownReasonReadBrokerProxy } from '../../shutdown-reason/read/shutdown-reason-read-broker.proxy';
 import { likelyCauseLayerBrokerProxy } from './likely-cause-layer-broker.proxy';
+import { profileSoloReadLayerBrokerProxy } from './profile-solo-read-layer-broker.proxy';
 
 type InstanceHeartbeat = ReturnType<typeof InstanceHeartbeatStub>;
 type ProcessGroupId = ReturnType<typeof ProcessGroupIdStub>;
 type ShutdownReason = ReturnType<typeof ShutdownReasonStub>;
+type SpecProfile = ReturnType<typeof SpecProfileStub>;
 
 export const instanceEntryLayerBrokerProxy = (): {
   setupEvidenceDir: (params: {
@@ -68,6 +76,7 @@ export const instanceEntryLayerBrokerProxy = (): {
   setupRunsDirEntries: (params: { evidencePath: FilePath; entries: readonly string[] }) => void;
   setupShutdownReasonMissing: (params: { evidencePath: FilePath }) => void;
   setupShutdownReasonFound: (params: { evidencePath: FilePath; marker: ShutdownReason }) => void;
+  setupProfileSolo: (params: { profile: SpecProfile }) => void;
   setupProcListing: (params: { pids: readonly string[] }) => void;
   setupPidStat: (params: { pid: string; pgrp: number; comm?: string }) => void;
   setupPidStatm: (params: { pid: string; residentPages: number }) => void;
@@ -94,6 +103,7 @@ export const instanceEntryLayerBrokerProxy = (): {
   }) => void;
 } => {
   likelyCauseLayerBrokerProxy();
+  const profileSoloProxy = profileSoloReadLayerBrokerProxy();
   const directEvidencePathProxy = locationsInstanceEvidencePathFindBrokerProxy();
   const heartbeatProxy = heartbeatReadBrokerProxy();
   const runsDirProxy = fsReaddirAdapterProxy();
@@ -167,6 +177,10 @@ export const instanceEntryLayerBrokerProxy = (): {
         evidencePath: AbsoluteFilePathStub({ value: String(evidencePath) }),
         marker,
       });
+    },
+
+    setupProfileSolo: ({ profile }: { profile: SpecProfile }): void => {
+      profileSoloProxy.setupProfile({ profile });
     },
 
     setupProcListing: (params: { pids: readonly string[] }): void => {

@@ -7,10 +7,11 @@
  * `capacity`'s own layer-flow tests, nothing here needs `DUNGEONMASTER_HOME` or an
  * `installTestbedCreateBroker` tree. The listing below is transcribed verbatim from a live
  * `dungeonmaster siegelense recipes` / `recipes --json` run against this checkout's current compiled
- * `hydration-recipes` output, not carried over from an older copy of this test — `guild-with-three-quests`
- * and `guild-mid-execution` both use a runtime `filter()` op in their plan, so their `quest`/`operation`
- * `makes` entries report `count: 'varies'` rather than a fixed number, and only a live run catches
- * that.
+ * `hydration-recipes` output, not carried over from an older copy of this test — `guild-with-three-quests`,
+ * `guild-mid-execution`, `quest-advances-one-step` and `quest-completed` all use a runtime `filter()`
+ * op in their plan (the last two to drop the riftcarver operation a live target's real START route
+ * auto-seeds), so their `quest`/`operation` `makes` entries report `count: 'varies'` rather than a
+ * fixed number, and only a live run catches that.
  *
  * USAGE:
  * await SiegelenseRecipesLayerFlow({ callArgs: ['--json'] });
@@ -35,7 +36,7 @@ const EXPECTED_HUMAN_OUTPUT = `  guild-empty
     makes:   guild ×1, quest (varies)
 
   guild-mid-execution
-    one guild holding three quests — the first running with its riftcarver item dropped, the second and third both freshly created and told apart only by their seeded title and request text ("Quest 2"/"Quest 3")
+    one guild holding three quests — the first running with codeweaver actually in progress and its riftcarver item dropped, the second and third both freshly created and told apart only by their seeded title and request text ("Quest 2"/"Quest 3")
     inputs:  none
     runs:    serverless
     makes:   guild ×1, quest ×3, operation (varies)
@@ -44,13 +45,13 @@ const EXPECTED_HUMAN_OUTPUT = `  guild-empty
     one quest under an existing guild, its ledger already one operation along — the first item complete and the second running
     inputs:  guildId
     runs:    serverless
-    makes:   quest ×1, operation ×2
+    makes:   quest ×1, operation (varies)
 
   quest-completed
     one guild holding one completed quest with all workflow operations and work items finished
     inputs:  none
     runs:    serverless
-    makes:   guild ×1, quest ×1, operation ×2
+    makes:   guild ×1, quest ×1, operation (varies)
 
   session-single-turn
     one session under an existing guild, holding a single turn prompt and response
@@ -136,7 +137,7 @@ describe('SiegelenseRecipesLayerFlow', () => {
           {
             recipeName: 'guild-mid-execution',
             description:
-              'one guild holding three quests — the first running with its riftcarver item dropped, the second and third both freshly created and told apart only by their seeded title and request text ("Quest 2"/"Quest 3")',
+              'one guild holding three quests — the first running with codeweaver actually in progress and its riftcarver item dropped, the second and third both freshly created and told apart only by their seeded title and request text ("Quest 2"/"Quest 3")',
             inputKeys: [],
             runs: { serverless: true },
             makes: [
@@ -153,7 +154,7 @@ describe('SiegelenseRecipesLayerFlow', () => {
             runs: { serverless: true },
             makes: [
               { ingredient: 'quest', count: 1 },
-              { ingredient: 'operation', count: 2 },
+              { ingredient: 'operation', count: 'varies' },
             ],
           },
           {
@@ -165,7 +166,7 @@ describe('SiegelenseRecipesLayerFlow', () => {
             makes: [
               { ingredient: 'guild', count: 1 },
               { ingredient: 'quest', count: 1 },
-              { ingredient: 'operation', count: 2 },
+              { ingredient: 'operation', count: 'varies' },
             ],
           },
           {

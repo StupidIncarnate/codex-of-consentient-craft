@@ -36,7 +36,7 @@ describe('siegelenseHelpRenderTransformer', () => {
           '  An --instance id with no record in the registry is refused rather than answered.\n' +
           '\n' +
           'OUTPUT\n' +
-          '  By default, an instance header followed by formatted step readings, or a notice when none matched. `--json` prints the raw ResultsAnswer. Every answer for a known instance carries instanceState; an id with no record in the registry refuses instead.\n' +
+          '  By default, an instance header, the run summary when the query names no --step and no --kind, and formatted step readings, or a notice when none matched. `--json` prints the raw ResultsAnswer. Every answer for a known instance carries instanceState; an id with no record in the registry refuses instead.\n' +
           '\n' +
           'EXAMPLE\n' +
           '  dungeonmaster siegelense results --instance inst_9b2c --run run_2 --step 7\n',

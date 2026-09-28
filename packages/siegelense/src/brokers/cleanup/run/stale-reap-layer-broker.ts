@@ -9,6 +9,11 @@
  * `entry.lastBeatMs` when one exists; a beat-less row has never advanced any clock but
  * `entry.reservedAtMs`, so that is the fallback.
  *
+ * Passes its own `reason` to `instanceKillBroker` rather than accepting the generic orphan-reap
+ * wording: this row is stale because ITS HEARTBEAT WENT COLD, a cause `cleanupRunBroker` has
+ * already proven before ever calling this broker — naming it here is what lets `status`'s
+ * `likelyCause` say what really ended the instance instead of only how the process groups died.
+ *
  * USAGE:
  * await staleReapLayerBroker({
  *   entry: RegistryEntryStub({ lastBeatMs: EpochMsStub({ value: 0 }) }),
@@ -17,6 +22,7 @@
  * // Returns { reaped: ReapedInstance, portsReleased: readonly NetworkPort[] }
  */
 
+import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { NetworkPort } from '@dungeonmaster/shared/contracts';
 
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
@@ -36,7 +42,10 @@ export const staleReapLayerBroker = async ({
 }): Promise<{ reaped: ReapedInstance; portsReleased: readonly NetworkPort[] }> => {
   const staleSinceMs = entry.lastBeatMs ?? entry.reservedAtMs;
 
-  const killResult = await instanceKillBroker({ instanceId: entry.id });
+  const killResult = await instanceKillBroker({
+    instanceId: entry.id,
+    reason: contentTextContract.parse('reaped by cleanup after its heartbeat went stale'),
+  });
 
   const staleFor = elapsedRenderTransformer({
     elapsedMs: epochMsContract.parse(nowMs - staleSinceMs),

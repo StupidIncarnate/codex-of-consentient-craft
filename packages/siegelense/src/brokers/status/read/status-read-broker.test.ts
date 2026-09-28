@@ -7,6 +7,7 @@ import { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
 import { RegistryStub } from '../../../contracts/registry/registry.stub';
 import { SpecNameStub } from '../../../contracts/spec-name/spec-name.stub';
+import { SpecProfileStub } from '../../../contracts/spec-profile/spec-profile.stub';
 import { StatusAnswerStub } from '../../../contracts/status-answer/status-answer.stub';
 import { StepReadingStub } from '../../../contracts/step-reading/step-reading.stub';
 import { machineStatics } from '../../../statics/machine/machine-statics';
@@ -208,6 +209,9 @@ describe('statusReadBroker', () => {
         entries: ['run_1.jsonl', 'run_1.json', 'run_2.jsonl'],
       });
       proxy.setupShutdownReasonMissing({ evidencePath });
+      proxy.setupProfileSolo({
+        profile: SpecProfileStub({ samples: [], fromRuns: 0, measuredAt: null, bootMs: null }),
+      });
       proxy.setupProcListing({ pids: ['100'] });
       proxy.setupPidStat({ pid: '100', pgrp: 33_812, comm: 'node' });
       proxy.setupOrphanCmdline({ pid: '100', argv: ['npm', 'run', 'dev:no-watch'] });
@@ -275,7 +279,7 @@ describe('statusReadBroker', () => {
                 lastShot: 'run_2/step7.png',
               },
               likelyCause:
-                'rss 2980MB at last beat; no profile recorded for spec dungeonmaster-stack; kernel OOM kills since boot: 2',
+                'memory 2980MB at last beat; no profile recorded for spec dungeonmaster-stack; kernel OOM kills since boot: 2',
               branch: null,
               evidenceComplete: false,
             },
@@ -556,6 +560,9 @@ describe('statusReadBroker', () => {
       });
       proxy.setupRunsDirEntries({ evidencePath: evidencePathOld, entries: [] });
       proxy.setupShutdownReasonMissing({ evidencePath: evidencePathOld });
+      proxy.setupProfileSolo({
+        profile: SpecProfileStub({ samples: [], fromRuns: 0, measuredAt: null, bootMs: null }),
+      });
       proxy.setupProcListing({ pids: [] });
 
       const result = await statusReadBroker({ instanceId: null, since: 'beginning' });
@@ -589,7 +596,7 @@ describe('statusReadBroker', () => {
           lastStep: null,
           orphans: [],
           evidence: null,
-          likelyCause: 'rss unavailable at last beat; kernel OOM kills since boot: 2',
+          likelyCause: 'memory unavailable at last beat; kernel OOM kills since boot: 2',
           branch: 'main',
           evidenceComplete: true,
         },

@@ -1,7 +1,6 @@
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
-import { InstanceHeartbeatStub } from '../../../contracts/instance-heartbeat/instance-heartbeat.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
@@ -24,21 +23,12 @@ const STALE_EVIDENCE_PATH = AbsoluteFilePathStub({
   value: `/home/user/.dungeonmaster/siegelense/unowned/instances/${STALE_ID}`,
 });
 const STALE_HOME_PATH = AbsoluteFilePathStub({ value: `/tmp/dm-siege-${STALE_ID}` });
-const STALE_HEARTBEAT_PATH = AbsoluteFilePathStub({
-  value: `${String(STALE_EVIDENCE_PATH)}/heartbeat.json`,
-});
 
 const ABANDONED_RESERVATION_SOCKET_PATH = AbsoluteFilePathStub({
   value: `/tmp/dm-siege-sockets/${ABANDONED_RESERVATION_ID}.sock`,
 });
-const ABANDONED_RESERVATION_EVIDENCE_PATH = AbsoluteFilePathStub({
-  value: `/home/user/.dungeonmaster/siegelense/unowned/instances/${ABANDONED_RESERVATION_ID}`,
-});
 const ABANDONED_RESERVATION_HOME_PATH = AbsoluteFilePathStub({
   value: `/tmp/dm-siege-${ABANDONED_RESERVATION_ID}`,
-});
-const ABANDONED_RESERVATION_HEARTBEAT_PATH = AbsoluteFilePathStub({
-  value: `${String(ABANDONED_RESERVATION_EVIDENCE_PATH)}/heartbeat.json`,
 });
 
 describe('cleanupRunBroker', () => {
@@ -51,9 +41,12 @@ describe('cleanupRunBroker', () => {
         bootedAtMs: EpochMsStub({ value: NOW_MS - 900_000 }),
         lastBeatMs: EpochMsStub({ value: NOW_MS - 2000 }),
       });
+      const pgidOne = ProcessGroupIdStub({ value: 33_812 });
+      const pgidTwo = ProcessGroupIdStub({ value: 33_840 });
       const staleEntry = RegistryEntryStub({
         id: STALE_ID,
         socketPath: STALE_SOCKET_PATH,
+        pgids: [pgidOne, pgidTwo],
         bootedAtMs: EpochMsStub({ value: NOW_MS - 32_400_000 }),
         lastBeatMs: EpochMsStub({ value: NOW_MS - 32_400_000 }),
       });
@@ -66,13 +59,9 @@ describe('cleanupRunBroker', () => {
         registry: RegistryStub({ instances: [liveEntry, staleEntry, reservedEntry] }),
       });
 
-      const pgidOne = ProcessGroupIdStub({ value: 33_812 });
-      const pgidTwo = ProcessGroupIdStub({ value: 33_840 });
-      const heartbeat = InstanceHeartbeatStub({ instanceId: STALE_ID, pgids: [pgidOne, pgidTwo] });
-      proxy.setupDriverUnreachable({
+      proxy.setupDriverUnreachableReapsLivePgids({
         socketPath: STALE_SOCKET_PATH,
-        heartbeatPath: STALE_HEARTBEAT_PATH,
-        heartbeat,
+        pgids: [pgidOne, pgidTwo],
         homePath: STALE_HOME_PATH,
       });
       proxy.setupShutdownReasonWriteSucceeds({ evidencePath: STALE_EVIDENCE_PATH });
@@ -108,9 +97,8 @@ describe('cleanupRunBroker', () => {
         reservedAtMs: EpochMsStub({ value: NOW_MS - 600_000 }),
       });
       proxy.setupRegistry({ registry: RegistryStub({ instances: [abandonedEntry] }) });
-      proxy.setupDriverUnreachableNoHeartbeat({
+      proxy.setupDriverUnreachableNoPgids({
         socketPath: ABANDONED_RESERVATION_SOCKET_PATH,
-        heartbeatPath: ABANDONED_RESERVATION_HEARTBEAT_PATH,
         homePath: ABANDONED_RESERVATION_HOME_PATH,
       });
       proxy.setupNoLocks();
@@ -160,20 +148,19 @@ describe('cleanupRunBroker', () => {
     it('VALID: {a reaped instance} => its registry row is killed, not deleted', async () => {
       const proxy = cleanupRunBrokerProxy();
 
+      const pgidOne = ProcessGroupIdStub({ value: 33_812 });
       const staleEntry = RegistryEntryStub({
         id: STALE_ID,
         socketPath: STALE_SOCKET_PATH,
+        pgids: [pgidOne],
         bootedAtMs: EpochMsStub({ value: NOW_MS - 32_400_000 }),
         lastBeatMs: EpochMsStub({ value: NOW_MS - 32_400_000 }),
       });
       proxy.setupRegistry({ registry: RegistryStub({ instances: [staleEntry] }) });
 
-      const pgidOne = ProcessGroupIdStub({ value: 33_812 });
-      const heartbeat = InstanceHeartbeatStub({ instanceId: STALE_ID, pgids: [pgidOne] });
-      proxy.setupDriverUnreachable({
+      proxy.setupDriverUnreachableReapsLivePgids({
         socketPath: STALE_SOCKET_PATH,
-        heartbeatPath: STALE_HEARTBEAT_PATH,
-        heartbeat,
+        pgids: [pgidOne],
         homePath: STALE_HOME_PATH,
       });
       proxy.setupShutdownReasonWriteSucceeds({ evidencePath: STALE_EVIDENCE_PATH });

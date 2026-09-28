@@ -28,6 +28,15 @@
  * stay byte-identical — the ids that vary are minted by the ROUTES/EXTRAS at RUN time, same as
  * `operationWriteRouteBroker` already did for `operations`.
  *
+ * `q[0]`'s `setRaw` also carries `flows`/`packagesAffected` (`questGateContentDefaultsStatics`) —
+ * needed on a live target, where `questApiRouteBroker` walks the freshly-minted `created` quest all
+ * the way to `complete` through `questReachRouteBroker`, clearing the real `flows_approved`/
+ * `approved` gates along the way (DEF-71) exactly as `guild-mid-execution`'s own header explains.
+ * That walk passes through `in_progress` too, which seeds ONE riftcarver operation via the live
+ * START route — absent on a `write` target, present on a live one — so the removal filter below
+ * (`expect: 'any'`) drops it either way before the codeweaver/ward pair is asserted as the whole
+ * ledger.
+ *
  * USAGE:
  * const plan = recipesQuestCompletedBroker();
  * const result = await dmRegistryBroker.run(plan, target);
@@ -38,6 +47,7 @@ import { fromSavedRefTransformer } from '@dungeonmaster/hydration/transformers';
 
 import { operationFieldsContract } from '../../../contracts/operation-fields/operation-fields-contract';
 import { questFieldsContract } from '../../../contracts/quest-fields/quest-fields-contract';
+import { questGateContentDefaultsStatics } from '../../../statics/quest-gate-content-defaults/quest-gate-content-defaults-statics';
 import { dmRegistryBroker } from '../../dm/registry/dm-registry-broker';
 import { recipesHydrationCreateBroker } from '../../recipes-hydration/create/recipes-hydration-create-broker';
 
@@ -61,6 +71,10 @@ export const recipesQuestCompletedBroker = recipe(
         q[0].setRaw({
           status: questFieldsContract.shape.status.parse('complete'),
           title: questFieldsContract.shape.title.parse('Verified Flow'),
+          flows: questFieldsContract.shape.flows.parse(questGateContentDefaultsStatics.flows),
+          packagesAffected: questFieldsContract.shape.packagesAffected.parse(
+            questGateContentDefaultsStatics.packagesAffected,
+          ),
         }),
         q[0].operations.add(OPERATION_COUNT, (ops) => [
           ops[0].setRaw({
@@ -76,6 +90,17 @@ export const recipesQuestCompletedBroker = recipe(
           }),
           ops[1].saveRecordAs({ name: WARD_OPERATION_SAVED_NAME }),
         ]),
+        // Drops the riftcarver operation a live target's real START route auto-seeds when the
+        // walk above passes through `in_progress` on its way to `complete` — `expect: 'any'`
+        // tolerates the zero matches a `write` target leaves (nothing auto-seeds there) as well as
+        // the one a live target does, so `operations` below is always exactly the codeweaver/ward
+        // pair this recipe means to describe as "complete with all workflow operations finished".
+        q[0].operations
+          .filter({
+            where: { role: operationFieldsContract.shape.role.parse('riftcarver') },
+            expect: 'any',
+          })
+          .remove(),
         q[0].attachWorkItem({
           role: 'codeweaver',
           status: 'complete',
