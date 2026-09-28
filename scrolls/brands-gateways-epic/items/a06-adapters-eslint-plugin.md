@@ -311,3 +311,51 @@ Found while implementing, added here per EPIC rule 14 (same package, so edited r
 ## Concessions made while executing
 
 <!-- Empty at the start. The operator fills this and mirrors it into EPIC.md's Concessions table. -->
+
+## Plan — F48
+
+Scope: `packages/eslint-plugin/src/dungeonmaster-rule-enforce-on.integration.test.ts` only. No helper file
+split out — the fix is two path/logic corrections inside functions the file already keeps local and
+unexported (`checkPreEditRulesForFsOperations`, `checkPostEditRulesForFsOperations`), matching this file's
+own existing precedent (it already keeps `getPreEditDungeonmasterRules` and its siblings unexported, and
+sits directly under `src/` with no folder type of its own).
+
+Edit (1 file):
+- `packages/eslint-plugin/src/dungeonmaster-rule-enforce-on.integration.test.ts`
+  - Import `readdirSync` alongside the existing `readFileSync` from `fs`, and `gatewayLocationsStatics`
+    alongside `dungeonmasterRuleEnforceOnStatics` from `@dungeonmaster/shared/statics`.
+  - Fix the path bug: `__dirname` is already `packages/eslint-plugin/src` (the file's own directory), so
+    a rule's folder is `join(__dirname, 'brokers', 'rule', ruleSlug)`, not
+    `join(__dirname, '../../src/brokers/rule', ruleSlug, ...)`.
+  - Replace the single guessed filename (`rule-${ruleSlug}-broker.ts`) with a real directory listing:
+    every `.ts` file directly inside that rule's folder, via `readdirSync(ruleDir, {withFileTypes: true})`,
+    excluding `.test.ts`, `.proxy.ts` and `.stub.ts` — this is what lets the check see fs work that lives
+    in a layer-broker file beside the rule's own entry file, not just the entry file itself.
+  - Replace text-substring matching (`line.includes(pattern)` against adapter FUNCTION names and bare
+    words like `'readFileSync'`) with import-SPECIFIER matching: extract every `from '...'`/`require(...)`
+    /`import(...)` specifier per file, and classify a specifier as file-system work when it contains
+    `/adapters/fs/` (the not-yet-migrated raw adapters) or starts with `#gateway/node/fs` or
+    `#gateway/node/fs__promises` (built from `gatewayLocationsStatics.importPrefix`/`.folders.node`, not
+    hardcoded). This is what stops `ban-gateway-export`'s doc comment (which only ever mentions the word
+    "readFileSync" in prose) from tripping the pre-edit check — a comment is not an import specifier.
+  - Remove the empty `catch {}` in both `checkPreEditRulesForFsOperations` and
+    `checkPostEditRulesForFsOperations` — with the path fixed, `readdirSync`/`readFileSync` reading a real
+    rule's own real folder should never throw, so a throw now means a genuine problem (a rule with no
+    folder, a rule slug that does not match a folder name), and the test should fail loudly on it rather
+    than silently reporting "no violations".
+  - `Violation`'s `pattern`/`line` fields become `specifier`/`location` (`<filePath>:<lineNumber>`), and
+    `throwErrorIfViolationsFound`'s message is updated to match — same shape, clearer content.
+  - No other function in the file changes: `getPreEditDungeonmasterRules`, `getPostEditDungeonmasterRules`,
+    `getAllPostEditRules`, `getPreEditRuleCount`, `getPostEditRuleCount`,
+    `throwErrorIfRulesWithoutFs`, `getRegisteredDungeonmasterRules`, `getStaticsDungeonmasterRules`,
+    `getMissingRules`, `excludeWardOnlyTypeCheckedRules`, `throwErrorIfMissingRules`,
+    `throwErrorIfExtraRules`, and every `describe`/`it` block, are unchanged.
+
+Proof (temporary, reverted before the final ward run): retag `@dungeonmaster/gateway-dependency-declared`
+from `'post-edit'` to `'pre-edit'` in
+`packages/shared/src/statics/dungeonmaster-rule-enforce-on/dungeonmaster-rule-enforce-on-statics.ts` — this
+rule's own fs work lives entirely in its layer files (`find-nearest-package-json-layer-broker.ts`,
+`find-package-json-dir-layer-broker.ts`), never in `rule-gateway-dependency-declared-broker.ts` itself, so
+it is the sharpest proof that folder-wide scanning (not just the one guessed filename) is what makes the
+check real. Run only the pre-edit describe block, confirm it fails with a readable message naming the rule,
+the fs specifier and the file:line, then revert the statics file.
