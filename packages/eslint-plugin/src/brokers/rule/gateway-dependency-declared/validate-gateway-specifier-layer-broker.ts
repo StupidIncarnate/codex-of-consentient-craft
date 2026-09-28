@@ -1,7 +1,8 @@
 /**
  * PURPOSE: Checks one `#gateway/...` specifier against the linted file's own nearest package.json —
  * mapped by its `imports` field, then declared in `dependencies` (or, for a test-support file,
- * `dependencies` OR `devDependencies`) — and reports whichever step fails. A package importing its
+ * `dependencies` OR `devDependencies`; a `.proxy`/`.stub`/`.harness` file or anything under the package's
+ * `test/` folder) — and reports whichever step fails. A package importing its
  * own gateway folder (a file inside `packages/@gateway/npm` importing `#gateway/npm/...`) needs no
  * dependency on itself, so a resolved target matching the linted package's own name is valid with no
  * further check. Shared by every AST listener rule-gateway-dependency-declared-broker registers
@@ -75,9 +76,10 @@ export const validateGatewaySpecifierLayerBroker = ({
     return true;
   }
 
-  const isTestSupportFile = gatewayTestSupportSuffixStatics.suffixes.some((suffix) =>
-    filename.endsWith(suffix),
-  );
+  // `test/` at the package root never ships, so everything under it is test support.
+  const isTestSupportFile =
+    gatewayTestSupportSuffixStatics.suffixes.some((suffix) => filename.endsWith(suffix)) ||
+    filename.startsWith(`${dirname(packageJsonPath)}/test/`);
 
   const declaredInDependencies = Boolean(packageJson.dependencies?.[targetPackageName]);
 

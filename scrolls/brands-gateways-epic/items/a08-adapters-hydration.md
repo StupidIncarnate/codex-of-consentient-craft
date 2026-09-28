@@ -275,3 +275,12 @@ None
 - `packages/hydration-recipes/src/brokers/session/nested-chain/session-nested-chain-broker.test.ts`
 - `packages/hydration-recipes/src/brokers/session/ingredient/session-ingredient-broker.test.ts`
 - `packages/eslint-plugin/src/brokers/rule/enforce-folder-return-types/rule-enforce-folder-return-types-broker.integration.test.ts`
+
+## Plan — F40
+
+Scope: `packages/eslint-plugin/src/brokers/rule/gateway-dependency-declared`, `packages/hydration/package.json`.
+
+Files to edit:
+- `packages/eslint-plugin/src/brokers/rule/gateway-dependency-declared/validate-gateway-specifier-layer-broker.ts` — a file under `<packageDir>/test/` counts as test support
+- `packages/eslint-plugin/src/brokers/rule/gateway-dependency-declared/rule-gateway-dependency-declared-broker.test.ts` — valid `test/` case, invalid `src/` case
+- `packages/hydration/package.json` — `@dungeonmaster/node` and `@dungeonmaster/npm` to `devDependencies` if no `src/` file imports them

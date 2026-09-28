@@ -92,6 +92,11 @@ ruleTester.run('gateway-dependency-declared', ruleGatewayDependencyDeclaredBroke
       code: "import { glob } from '#gateway/npm/glob';",
       filename: '/repo/packages/valid-test-devdep/src/brokers/x/x-broker.test.ts',
     },
+    // --- a helper under the package's test/ folder is test support too ---
+    {
+      code: "import { glob } from '#gateway/npm/glob';",
+      filename: '/repo/packages/valid-test-devdep/test/type-fixtures/helper.ts',
+    },
     // --- a conditions-object "imports" target resolves through its "source" condition ---
     {
       code: "import { glob } from '#gateway/npm/glob';",
@@ -114,6 +119,22 @@ ruleTester.run('gateway-dependency-declared', ruleGatewayDependencyDeclaredBroke
     {
       code: "import { glob } from '#gateway/npm/glob';",
       filename: '/repo/packages/invalid-runtime-devdep-only/src/brokers/x/x-broker.ts',
+      errors: [
+        {
+          messageId: 'missingDependency',
+          data: {
+            packageJsonPath: '/repo/packages/invalid-runtime-devdep-only/package.json',
+            targetPackage: '@dungeonmaster/npm',
+            specifier: '#gateway/npm/glob',
+            location: 'dependencies',
+          },
+        },
+      ],
+    },
+    // --- a src/ file is not test support, even with a test-ish name ---
+    {
+      code: "import { glob } from '#gateway/npm/glob';",
+      filename: '/repo/packages/invalid-runtime-devdep-only/src/test/helper.ts',
       errors: [
         {
           messageId: 'missingDependency',

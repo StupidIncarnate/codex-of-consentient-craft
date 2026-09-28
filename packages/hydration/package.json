@@ -44,8 +44,6 @@
     "dist/**/*"
   ],
   "dependencies": {
-    "@dungeonmaster/node": "*",
-    "@dungeonmaster/npm": "*",
     "@dungeonmaster/shared": "*",
     "zod": "^4.6.5"
   },
@@ -58,6 +56,8 @@
     "ward": "dungeonmaster-ward"
   },
   "devDependencies": {
+    "@dungeonmaster/node": "*",
+    "@dungeonmaster/npm": "*",
     "@types/node": "^20.11.0",
     "typescript": "^5.3.3"
   },
