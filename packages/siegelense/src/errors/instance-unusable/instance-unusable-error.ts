@@ -14,10 +14,10 @@
  * WHEN-TO-USE: From `instanceRunBroker`, once the registry row it already read for the socket path
  * carries `state: 'unusable'`, so a caller can `instanceof`-check it apart from every other `run`
  * failure.
- * WHEN-NOT-TO-USE: For any other instance state — `alive`, `dead`, `killed`, `pruned` and `unknown`
- * all reach the driver (or their own existing refusal) instead. Read paths (`results`, `status`,
- * `snapshots`, `compare`) never throw this — an unusable instance's evidence is still real and still
- * worth a fixer's look.
+ * WHEN-NOT-TO-USE: For any other instance state — `alive`, `dead`, `pruned` and `unknown` all reach
+ * the driver instead. `killed` has its own refusal, `InstanceKilledError`, thrown just before this
+ * check. Read paths (`results`, `status`, `snapshots`, `compare`) never throw this — an unusable
+ * instance's evidence is still real and still worth a fixer's look.
  */
 export class InstanceUnusableError extends Error {
   public constructor({ instanceId }: { instanceId: string }) {

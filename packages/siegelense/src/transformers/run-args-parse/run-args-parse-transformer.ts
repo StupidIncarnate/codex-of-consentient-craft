@@ -10,7 +10,9 @@
  * `--instance`, `--stop-on`, and the final `runArgsContract.parse` that validates `steps` against
  * `stepContract` — goes through `flagContractParseTransformer` so a bad value answers with the
  * contract's own message under its flag's name, attributing the composite parse's own failures
- * (a malformed step) to whichever of `--steps`/`--steps-file` supplied the raw JSON.
+ * (a malformed step) to whichever of `--steps`/`--steps-file` supplied the raw JSON. An empty array
+ * is refused HERE, naming whichever flag supplied it, rather than reaching `instanceRunBroker` and
+ * failing three layers down against a socket the empty batch already dialed for nothing.
  *
  * USAGE:
  * runArgsParseTransformer({
@@ -44,6 +46,10 @@ const USAGE =
 const STEPS_SOURCE_REFUSAL =
   `Exactly one of ${STEPS_FLAG} or ${STEPS_FILE_FLAG} is required: ${STEPS_FLAG} carries the ` +
   `batch's JSON array inline, ${STEPS_FILE_FLAG} names a file holding it, and`;
+
+const EMPTY_BATCH_MESSAGE =
+  'a run needs at least one step: an empty array reaches the driver only to fail there instead of ' +
+  'here, against a socket that has already been dialed.';
 
 export const runArgsParseTransformer = ({
   args,
@@ -132,6 +138,15 @@ export const runArgsParseTransformer = ({
           flag: STOP_ON_FLAG,
           parse: () => stopOnContract.parse(stopOnValue),
         });
+
+  // Refused HERE, at argv parsing — before `instanceRunBroker` ever dials the driver's socket — so
+  // an empty `--steps '[]'` fails with a message naming the flag rather than surfacing three layers
+  // down as `instanceRunBroker: driver for instance ... reported a failure: [` plus a raw JSON dump.
+  // Checked after `instanceId`/`stopOn` above, not before: those two refusals take priority over an
+  // empty batch when a caller's argv gets more than one thing wrong at once.
+  if (Array.isArray(parsedSteps) && parsedSteps.length === 0) {
+    throw new Error(`${sourceFlag}: ${EMPTY_BATCH_MESSAGE}`);
+  }
 
   return flagContractParseTransformer({
     flag: sourceFlag,

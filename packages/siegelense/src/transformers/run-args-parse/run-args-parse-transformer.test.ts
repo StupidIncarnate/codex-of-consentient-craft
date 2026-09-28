@@ -241,6 +241,28 @@ describe('runArgsParseTransformer', () => {
     });
   });
 
+  describe('DEF-84: an empty batch', () => {
+    it("INVALID: {--steps '[]'} => throws naming --steps, refused before ever reaching the driver", () => {
+      expect(() =>
+        runArgsParseTransformer({
+          args: ['--instance', 'inst_7f3a9c21', '--steps', '[]'],
+          stepsFileContent: null,
+        }),
+      ).toThrow(
+        /^--steps: a run needs at least one step: an empty array reaches the driver only to fail there instead of here, against a socket that has already been dialed\.$/u,
+      );
+    });
+
+    it("INVALID: {--steps-file resolves to '[]'} => throws naming --steps-file", () => {
+      expect(() =>
+        runArgsParseTransformer({
+          args: ['--instance', 'inst_7f3a9c21', '--steps-file', '/tmp/steps.json'],
+          stepsFileContent: ContentTextStub({ value: '[]' }),
+        }),
+      ).toThrow(/^--steps-file: a run needs at least one step/u);
+    });
+  });
+
   describe('every step example on a siegelense docs role page survives the same parse run --steps uses (DEF-79)', () => {
     it('VALID: {walking, attacking, fixing} => every line starting with { "step": round-trips through --steps as a one-step batch, and at least one exists', () => {
       const allLines = [
