@@ -225,6 +225,20 @@ const assertGatewayProxyMockTest = async ({ report, consumerRoot }) => {
   );
 };
 
+// T03 (gateway-pivot): the published @dungeonmaster/testing must really check a staged response
+// against a real installed zod contract, not just against source in this repo's own checkout. Both
+// cases in the sample file PASS (the mismatched one throws AND the test's own expect(...) catches
+// it), so this is a plain passing-jest-run assertion, the same shape as assertGatewayProxyMockTest.
+const assertContractCheckTest = async ({ report, consumerRoot }) => {
+  const cwd = join(consumerRoot, 'packages', LIB_PACKAGE_NAME);
+  const result = await runJest({ consumerRoot, cwd, args: ['contract-check-probe-broker'] });
+  report.check(
+    "StartEndpointMock.listen's contract param rejects a mismatched staged response in a real install",
+    result.code === 0,
+    result.code === 0 ? '' : `${result.stdout}\n${result.stderr}`.slice(-2000),
+  );
+};
+
 // `npm run build --workspaces` runs every workspace's script in package-declaration order, NOT in
 // dependency order — this repo's own root build (`scripts/build-workspaces.mjs`) exists BECAUSE
 // plain npm has no such ordering, and a consumer that scaffolds a package importing `#gateway/...`
@@ -449,6 +463,7 @@ export const runWorksAssertions = async ({ report, consumerRoot, gt, mode, scope
   await assertIoTrap({ report, consumerRoot, ioTrapTestFile });
   await assertMswTrap({ report, consumerRoot, mswTrapTestFile });
   await assertGatewayProxyMockTest({ report, consumerRoot });
+  await assertContractCheckTest({ report, consumerRoot });
   await assertWardCleanFixture({ report, consumerRoot });
   await assertPreEditHook({ report, consumerRoot, lintViolationFile });
   await assertIdempotentReinit({ report, consumerRoot });

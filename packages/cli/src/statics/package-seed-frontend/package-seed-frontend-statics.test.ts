@@ -18,7 +18,6 @@ describe('packageSeedFrontendStatics', () => {
         },
         devDependencies: {
           'jest-environment-jsdom': '^30.0.0',
-          undici: '^7.21.0',
         },
         bin: {},
         compilerOptions: { jsx: 'react-jsx', lib: ['ES2022', 'DOM', 'DOM.Iterable'] },
@@ -36,21 +35,11 @@ describe('packageSeedFrontendStatics', () => {
         'src/widgets/__NAME__-panel/__NAME__-panel-widget.tsx',
         'src/widgets/__NAME__-panel/__NAME__-panel-widget.proxy.tsx',
         'src/widgets/__NAME__-panel/__NAME__-panel-widget.test.tsx',
-        '__mocks__/jsdom-polyfills.cjs',
       ]);
     });
 
     it('VALID: {type: frontend-react} => the first seeded file is under src/widgets/, which the detector keys on alongside dependencies.react', () => {
       expect(files[0].path).toBe('src/widgets/__NAME__-panel/__NAME__-panel-widget.tsx');
-    });
-
-    it('VALID: {type: frontend-react} => the jsdom polyfill file requires undici and defines the globals MSW needs under jest-environment-jsdom', () => {
-      const polyfillFile = files.find((file) => file.path === '__mocks__/jsdom-polyfills.cjs');
-
-      expect(polyfillFile?.contents).toMatch(/^const undici = require\('undici'\);$/mu);
-      expect(polyfillFile?.contents).toMatch(
-        /^if \(typeof global\.fetch === 'undefined'\) global\.fetch = undici\.fetch;$/mu,
-      );
     });
   });
 

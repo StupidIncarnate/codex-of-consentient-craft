@@ -161,4 +161,39 @@ describe('EndpointMockListenResponder', () => {
       expect(body).toStrictEqual({ id: 'new-123' });
     });
   });
+
+  describe('contract', () => {
+    it('VALID: {contract, data matching the contract} => resolves stages it and fetch returns the parsed data', async () => {
+      const proxy = EndpointMockListenResponderProxy();
+      const contract = proxy.getSampleContract();
+
+      const endpoint = EndpointMockListenResponder({
+        method: 'get',
+        url: `${BASE}/test/contract-valid`,
+        contract,
+      });
+
+      endpoint.resolves({ data: { id: 'abc-123' } });
+
+      const response = await fetch(`${BASE}/test/contract-valid`);
+      const body = await parseBody(response);
+
+      expect(body).toStrictEqual({ id: 'abc-123' });
+    });
+
+    it('INVALID: {contract, data that does not match the contract} => resolves throws at staging time, naming the mismatch', () => {
+      const proxy = EndpointMockListenResponderProxy();
+      const contract = proxy.getSampleContract();
+
+      const endpoint = EndpointMockListenResponder({
+        method: 'get',
+        url: `${BASE}/test/contract-invalid`,
+        contract,
+      });
+
+      expect(() => {
+        endpoint.resolves({ data: { id: 42 } });
+      }).toThrow(/Invalid input: expected string, received number/u);
+    });
+  });
 });

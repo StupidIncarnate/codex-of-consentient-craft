@@ -356,7 +356,8 @@ export {};
 `);
 
       // node and browser arrive holding dungeonmaster's own source, copied from the installed
-      // packages: a wrapper folder with its companions, and browser's jsdom polyfill beside src.
+      // packages: a wrapper folder with its companions. Browser's jsdom polyfill is a
+      // @dungeonmaster/testing import, not a copied file, so no __mocks__ directory ships.
       expect(
         testbed.listDir({
           relativePath: RelativePathStub({
@@ -372,7 +373,7 @@ export {};
         testbed.listDir({
           relativePath: RelativePathStub({ value: 'packages/@gateway/browser/__mocks__' }),
         }),
-      ).toStrictEqual(['jsdom-polyfills.cjs']);
+      ).toBe(null);
       expect(
         testbed.listDir({
           relativePath: RelativePathStub({ value: 'packages/@gateway/bin/src' }),

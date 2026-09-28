@@ -223,7 +223,7 @@ module.exports = {
         jestRootBin: "'<rootDir>/bin'",
         jestEnvironmentJsdom: 'jsdom',
         jestEnvironmentNode: 'node',
-        jestJsdomSetupFilesEntry: "'<rootDir>/__mocks__/jsdom-polyfills.cjs'",
+        jestJsdomSetupFilesEntry: "'@dungeonmaster/testing/jsdom-polyfills'",
       });
     });
 

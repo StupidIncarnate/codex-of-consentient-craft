@@ -53,7 +53,8 @@
       "import": "./dist/brokers.js",
       "require": "./dist/brokers.js"
     },
-    "./jest-config-base": "./jest-config-base.js"
+    "./jest-config-base": "./jest-config-base.js",
+    "./jsdom-polyfills": "./src/jsdom-polyfills.cjs"
   },
   "files": [
     "dist",
@@ -100,6 +101,7 @@
     "@mantine/core": "^8.0.0",
     "msw": "^2.12.10",
     "tsx": "^4.0.0",
+    "undici": "^7.21.0",
     "zod": "^4.6.5"
   },
   "publishConfig": {

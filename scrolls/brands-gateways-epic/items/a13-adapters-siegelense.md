@@ -121,3 +121,77 @@ own `page.evaluate` calls move onto the gateway's `@playwright/test` wrapper.
 ## Concessions made while executing
 
 <!-- Empty at the start. The operator fills this and mirrors it into EPIC.md's Concessions table. -->
+
+## Plan — SL-FS1
+
+Group SL-FS1: first four `fs/*` adapters in `packages/siegelense`:
+- `packages/siegelense/src/adapters/fs/append-file/` -> `#gateway/node/fs__promises` (`appendFile`)
+- `packages/siegelense/src/adapters/fs/close-fd/` -> `#gateway/node/fs` (`closeSync`)
+- `packages/siegelense/src/adapters/fs/copy-file/` -> `#gateway/node/fs__promises` (`copyFile`)
+- `packages/siegelense/src/adapters/fs/cp/` -> `#gateway/node/fs__promises` (`copyDirContents`)
+
+### Full File Scope (43 files)
+
+#### Adapters to delete (12 files)
+- `packages/siegelense/src/adapters/fs/append-file/fs-append-file-adapter.ts`
+- `packages/siegelense/src/adapters/fs/append-file/fs-append-file-adapter.proxy.ts`
+- `packages/siegelense/src/adapters/fs/append-file/fs-append-file-adapter.test.ts`
+- `packages/siegelense/src/adapters/fs/close-fd/fs-close-fd-adapter.ts`
+- `packages/siegelense/src/adapters/fs/close-fd/fs-close-fd-adapter.proxy.ts`
+- `packages/siegelense/src/adapters/fs/close-fd/fs-close-fd-adapter.test.ts`
+- `packages/siegelense/src/adapters/fs/copy-file/fs-copy-file-adapter.ts`
+- `packages/siegelense/src/adapters/fs/copy-file/fs-copy-file-adapter.proxy.ts`
+- `packages/siegelense/src/adapters/fs/copy-file/fs-copy-file-adapter.test.ts`
+- `packages/siegelense/src/adapters/fs/cp/fs-cp-adapter.ts`
+- `packages/siegelense/src/adapters/fs/cp/fs-cp-adapter.proxy.ts`
+- `packages/siegelense/src/adapters/fs/cp/fs-cp-adapter.test.ts`
+
+#### Direct callers (24 files)
+- `packages/siegelense/src/brokers/buffer/append/buffer-append-broker.ts`
+- `packages/siegelense/src/brokers/buffer/append/buffer-append-broker.proxy.ts`
+- `packages/siegelense/src/brokers/buffer/append/buffer-append-broker.test.ts`
+- `packages/siegelense/src/brokers/driving/oddity-append/driving-oddity-append-broker.ts`
+- `packages/siegelense/src/brokers/driving/oddity-append/driving-oddity-append-broker.proxy.ts`
+- `packages/siegelense/src/brokers/driving/oddity-append/driving-oddity-append-broker.test.ts`
+- `packages/siegelense/src/brokers/run/transcript-append/run-transcript-append-broker.ts`
+- `packages/siegelense/src/brokers/run/transcript-append/run-transcript-append-broker.proxy.ts`
+- `packages/siegelense/src/brokers/run/transcript-append/run-transcript-append-broker.test.ts`
+- `packages/siegelense/src/brokers/snapshot/capture/snapshot-capture-broker.ts`
+- `packages/siegelense/src/brokers/snapshot/capture/snapshot-capture-broker.proxy.ts`
+- `packages/siegelense/src/brokers/snapshot/capture/snapshot-capture-broker.test.ts`
+- `packages/siegelense/src/brokers/lane/boot/lane-boot-broker.ts`
+- `packages/siegelense/src/brokers/lane/boot/lane-boot-broker.proxy.ts`
+- `packages/siegelense/src/brokers/lane/boot/lane-boot-broker.test.ts`
+- `packages/siegelense/src/brokers/lane/teardown/lane-teardown-broker.ts`
+- `packages/siegelense/src/brokers/lane/teardown/lane-teardown-broker.proxy.ts`
+- `packages/siegelense/src/brokers/lane/teardown/lane-teardown-broker.test.ts`
+- `packages/siegelense/src/brokers/step/hold/step-hold-broker.ts`
+- `packages/siegelense/src/brokers/step/hold/step-hold-broker.proxy.ts`
+- `packages/siegelense/src/brokers/step/hold/step-hold-broker.test.ts`
+- `packages/siegelense/src/brokers/snapshot/restore-layer/snapshot-restore-layer-broker.ts`
+- `packages/siegelense/src/brokers/snapshot/restore-layer/snapshot-restore-layer-broker.proxy.ts`
+- `packages/siegelense/src/brokers/snapshot/restore-layer/snapshot-restore-layer-broker.test.ts`
+
+#### Composing proxies (7 files)
+- `packages/siegelense/src/brokers/run/execute/run-execute-broker.proxy.ts` (composes `bufferAppendBrokerProxy`, `runTranscriptAppendBrokerProxy`, `snapshotCaptureBrokerProxy`)
+- `packages/siegelense/src/brokers/step/snapshot/step-snapshot-broker.proxy.ts` (composes `snapshotCaptureBrokerProxy`)
+- `packages/siegelense/src/responders/siegelense/driver/siegelense-driver-responder.proxy.ts` (composes `laneBootBrokerProxy`)
+- `packages/siegelense/src/brokers/driver/handle-request/driver-handle-request-broker.proxy.ts` (composes `laneTeardownBrokerProxy`)
+- `packages/siegelense/src/responders/siegelense/driver/driver-serve-layer-responder.proxy.ts` (composes `laneTeardownBrokerProxy`)
+- `packages/siegelense/src/brokers/step/dispatch/run-verb-layer-broker.proxy.ts` (composes `stepHoldBrokerProxy`)
+- `packages/siegelense/src/brokers/step/reset/step-reset-broker.proxy.ts` (composes `snapshotRestoreLayerBrokerProxy`)
+
+### Batch Sizing
+The 43 files exceed the ~25 file threshold for a single agent pass. Once gateway gaps are resolved, the group should be partitioned:
+- Batch A (10 files): `copy-file` adapter (3) + `step-hold-broker` (3) + `run-verb-layer-broker.proxy.ts` (1) + `snapshot-restore-layer-broker` (3)
+- Batch B (15 files): `cp` adapter (3) + `snapshot-capture-broker` (3) + `step-snapshot-broker.proxy.ts` (1) + `buffer-append-broker` (3) + `driving-oddity-append-broker` (3) + `run-execute-broker.proxy.ts` (2)
+- Batch C (18 files): `append-file` adapter (3) + `close-fd` adapter (3) + `run-transcript-append-broker` (3) + `lane-boot-broker` (3) + `lane-teardown-broker` (3) + 3 driver proxies
+
+### Gateway Gaps Blocking Execution
+Per the standing brief: "If the gateway offers no way to do something the recipe needs (no proxy, no read-back), STOP on that file and report it; do not work around it."
+All four gateway proxies lack read-backs required by callers' existing tests:
+1. `copyFileProxy` (`#gateway/node/fs__promises/copy-file/copy-file.proxy`): Has no read-back method (e.g. `getDestinationPathFor: ({ sourcePath })`). `step-hold-broker.test.ts:46,130` requires inspecting destination path.
+2. `copyDirContentsProxy` (`#gateway/node/fs__promises/copy-dir-contents/copy-dir-contents.proxy`): Has no read-back for copied pairs (`copiedPairs` / `callsMatching`). `snapshot-capture-broker.test.ts:61` requires verifying copied child paths and exclusion of snapshot directories.
+3. `appendFileProxy` (`#gateway/node/fs__promises/append-file/append-file.proxy`): `appendedContentsFor` returns only the last appended chunk (`at(-1)?.[1]`). `run-transcript-append-broker.test.ts:37` and `run-execute-broker.test.ts` require all appended lines in call order.
+4. `closeSyncProxy` (`#gateway/node/fs/close-sync/close-sync.proxy`): `calls: ({ fd })` requires an explicit fd; has no read-back of all closed FDs across invocations. `lane-boot-broker.test.ts:618,732` and `lane-teardown-broker.test.ts:260,303,338` assert `getClosedFds()` returns all closed FDs in order. `lane-teardown-broker.proxy.ts:143` also requires cross-function call ordering (`invocationCallOrder`).
+Execution is halted pending follow-up gateway items in `@gateway/node`.

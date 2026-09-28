@@ -74,13 +74,15 @@ describe('architectureProjectMapBroker (integration with real monorepo)', () => 
   it('VALID: {real monorepo, packages: [all]} => renders adapter chain entries by their export name', async () => {
     const lines = String(await allPackagesMap).split('\n');
 
-    // orchestrator's stepHandlerCommitBroker calls these three git adapters in sequence —
-    // add, commit, push — a real adapter chain still on disk (A02 deleted the server package's
-    // forwarder adapters this test used to point at; A10, orchestrator's own adapter item, has
-    // not started, so this chain is not scheduled to move).
-    expect(lines.some((l) => l.endsWith('→ gitAddAllAdapter'))).toBe(true);
-    expect(lines.some((l) => l.endsWith('→ gitCommitAdapter'))).toBe(true);
-    expect(lines.some((l) => l.endsWith('→ gitPushAdapter'))).toBe(true);
+    // orchestrator's worktreePrepareBroker calls these three git adapters in sequence — verify the
+    // branch exists, prune a stale worktree registration for it, then add the worktree — a real
+    // adapter chain still on disk. This test used to point at stepHandlerCommitBroker's
+    // add/commit/push chain; A10's GIT-3/GIT-4 batch moved `git add` and `git commit` off adapters
+    // onto `#gateway/bin/git` directly, so only `git push` remains an adapter there and the chain
+    // this test asserts moved to a sequence A10 has not reached yet.
+    expect(lines.some((l) => l.endsWith('→ gitVerifyRefAdapter'))).toBe(true);
+    expect(lines.some((l) => l.endsWith('→ gitWorktreePruneAdapter'))).toBe(true);
+    expect(lines.some((l) => l.endsWith('→ gitWorktreeAddAdapter'))).toBe(true);
   });
 
   it('VALID: {real monorepo, packages: [all]} => emits exactly one --- separator after URL pairing block before first package', async () => {

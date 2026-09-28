@@ -165,7 +165,6 @@ describe('gatewayPackageScaffoldFilesTransformer', () => {
         '@types/node': '^24.0.15',
         typescript: '^5.8.3',
         'jest-environment-jsdom': '^30.0.0',
-        undici: '^7.21.0',
       },
       publishConfig: { access: 'public' },
     });
@@ -231,7 +230,7 @@ module.exports = {
     );
   });
 
-  it('VALID: {folder: "browser"} => jest.config.js runs under jsdom with the copied polyfill', () => {
+  it('VALID: {folder: "browser"} => jest.config.js runs under jsdom with the testing package\'s polyfill', () => {
     const files = gatewayPackageScaffoldFilesTransformer({
       scope: PathSegmentStub({ value: '@acme' }),
       folder: 'browser',
@@ -246,7 +245,7 @@ module.exports = {
   ...base,
   testEnvironment: 'jsdom',
   testEnvironmentOptions: { url: 'http://localhost' },
-  setupFiles: ['<rootDir>/__mocks__/jsdom-polyfills.cjs'],
+  setupFiles: ['@dungeonmaster/testing/jsdom-polyfills'],
 };
 `,
     );

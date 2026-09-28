@@ -250,6 +250,34 @@ Checked against code on 2026-09-27:
   `['jsdom-polyfills.cjs']`; the directory no longer exists in a fresh `init` (nothing left in
   `@gateway/browser`'s `files` array ships it) — assert accordingly (an empty list, a thrown/not-found
   read, or delete the assertion, whichever `listDir`'s own contract returns for a missing directory).
+- **Added during implementation (not on the original list, found by reading real callers of the two
+  changed statics before editing them):**
+  - `packages/cli/src/transformers/gateway-package-scaffold-files/gateway-package-scaffold-files-transformer.test.ts:161-169,234-253`
+    — asserts `browserJestConfigContent`'s substituted output verbatim (`setupFiles:
+    ['<rootDir>/__mocks__/jsdom-polyfills.cjs']`, stale after G24-3), and the copied browser package.json's
+    exact `devDependencies` shape including `undici` (stale after the `gatewaySourceCopyStatics` fix below).
+  - `packages/cli/src/transformers/package-scaffold-files/package-scaffold-files-transformer.test.ts:83,505-513,670`
+    — the frontend-react `RELATIVE_PATHS_BY_TYPE` file list still names `'__mocks__/jsdom-polyfills.cjs'`
+    (stale after G24-4 removes it from the seed); a devDependencies-merge test still expects `undici` in the
+    scaffolded package.json (stale after G24-4's seed edit); a separate exact-content test pins
+    `setupFiles: ['<rootDir>/__mocks__/jsdom-polyfills.cjs']` (stale after G24-3's `jestJsdomSetupFilesEntry`
+    edit).
+  - **`packages/cli/src/statics/gateway-source-copy/gateway-source-copy-statics.ts`** — a THIRD, separate
+    devDependencies/directory list for the browser gateway copy `init` performs (distinct from both the
+    create-package seed and the gateway-scaffold template touched above). `sources.browser.directories`
+    listed `['src', '__mocks__']`: `gatewaySourceCopyBroker` (`packages/cli/src/brokers/gateway/source-copy/`)
+    `cp`s each listed directory straight from the INSTALLED `@dungeonmaster/browser` package root, and since
+    G24-1 drops `__mocks__` from that package's own `files`, the installed package no longer ships a
+    `__mocks__` directory to copy — left unfixed, `init` would throw ENOENT copying the browser gateway into
+    every future consumer. Dropped `__mocks__` from `directories` and `undici` from `browserDevDependencies`
+    (kept `jest-environment-jsdom`), mirroring the same-shaped fix already planned for the seed. Its
+    `.test.ts` pins the same shape and needed the matching edit.
+  - `packages/testing/src/adapters/mantine/render/mantine-render-adapter.test.ts:11` — a comment quoting
+    `@gateway/npm`'s old `setupFiles` literal verbatim as documentation; updated the quote to match G24-2's
+    edit (comment-only, no assertion change).
+  - `packages/cli/src/brokers/gateway/source-copy/gateway-source-copy-broker.test.ts:21-34` — asserts the
+    broker's real return value for `folder: 'browser'` includes a copied `__mocks__` directory, which the
+    `gatewaySourceCopyStatics.ts` fix above removes from `directories`.
 
 ### Batches
 

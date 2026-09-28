@@ -20,7 +20,7 @@ module.exports = {
   },
   // The base entry rides along: a plain override would drop the sandbox dungeonmaster home it
   // sets before this package's own test files import anything.
-  setupFiles: [...baseConfig.setupFiles, '<rootDir>/__mocks__/jsdom-polyfills.cjs'],
+  setupFiles: [...baseConfig.setupFiles, '@dungeonmaster/testing/jsdom-polyfills'],
   // `@dungeonmaster/testing`'s root barrel pulls in msw (ESM), which jest's default
   // transformIgnorePatterns leaves untransformed.
   transformIgnorePatterns: ['/dist/', ignorePattern],

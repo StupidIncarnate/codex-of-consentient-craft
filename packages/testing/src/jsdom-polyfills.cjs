@@ -1,6 +1,7 @@
 // jsdom does not implement ResizeObserver — the pass-through module still needs a real function
 // to export, so the same shape web's own jsdom-polyfills.cjs uses is reproduced here rather than
-// shared across packages (the gateway takes no dependency on @dungeonmaster/web).
+// shared across packages (web's copy also stubs performance.markResourceTiming, which this one does
+// not need).
 class ResizeObserver {
   observe() {}
   unobserve() {}

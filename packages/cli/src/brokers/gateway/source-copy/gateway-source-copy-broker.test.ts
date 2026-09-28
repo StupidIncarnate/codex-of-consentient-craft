@@ -18,7 +18,7 @@ describe('gatewaySourceCopyBroker', () => {
     ]);
   });
 
-  it('VALID: {folder: browser} => copies src and the jsdom __mocks__', async () => {
+  it('VALID: {folder: browser} => copies src only, since the jsdom polyfill is a @dungeonmaster/testing import now', async () => {
     const proxy = gatewaySourceCopyBrokerProxy();
     proxy.copySucceeds();
 
@@ -27,9 +27,6 @@ describe('gatewaySourceCopyBroker', () => {
       packageRoot: FilePathStub({ value: '/consumer/packages/@gateway/browser' }),
     });
 
-    expect(result).toStrictEqual([
-      '/consumer/packages/@gateway/browser/src',
-      '/consumer/packages/@gateway/browser/__mocks__',
-    ]);
+    expect(result).toStrictEqual(['/consumer/packages/@gateway/browser/src']);
   });
 });

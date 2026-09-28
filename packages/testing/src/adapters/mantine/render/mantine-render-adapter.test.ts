@@ -8,7 +8,7 @@
 // (`@mswjs/interceptors/src/utils/fetchUtils.ts`), before this test file's own code runs, so a
 // polyfill written here arrives too late. `packages/@gateway/npm/jest.config.js` solves the
 // identical gap for a jsdom-environment file via
-// `setupFiles: [...baseConfig.setupFiles, '<rootDir>/../browser/__mocks__/jsdom-polyfills.cjs']`.
+// `setupFiles: [...baseConfig.setupFiles, '@dungeonmaster/testing/jsdom-polyfills']`.
 import { createElement } from 'react';
 import type { ReactElement } from 'react';
 import { useMantineTheme } from '@mantine/core';

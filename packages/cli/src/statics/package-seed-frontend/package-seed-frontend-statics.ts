@@ -24,12 +24,12 @@ export const packageSeedFrontendStatics = {
       '@types/react': '^19.0.0',
       '@types/react-dom': '^19.2.3',
     },
-    // `jest-environment-jsdom` and `undici` back the __mocks__/jsdom-polyfills.cjs file below —
-    // declared here rather than left to npm-workspace hoisting from the copied @gateway/browser
-    // package, which happens to carry the same pair today but is not this package's own guarantee.
+    // `jest-environment-jsdom` is what testEnvironment: 'jsdom' resolves — this package's own
+    // guarantee, not left to npm-workspace hoisting. `undici` is not declared here: the jsdom
+    // polyfill file this scaffold's jest config points at (`@dungeonmaster/testing/jsdom-polyfills`)
+    // lives in, and requires `undici` from, `@dungeonmaster/testing`'s own dependencies.
     devDependencies: {
       'jest-environment-jsdom': '^30.0.0',
-      undici: '^7.21.0',
     },
     bin: {},
     compilerOptions: {
@@ -82,56 +82,6 @@ describe('__PASCAL__PanelWidget', () => {
     });
   });
 });
-`,
-      },
-      {
-        // jest-environment-jsdom provides no Request/Response/fetch globals at all (they are
-        // Node-only globals jest-environment-jsdom does not forward into the jsdom sandbox), so
-        // @dungeonmaster/testing's unconditional MSW setup (setupFilesAfterEnv, every package)
-        // throws "ReferenceError: Request is not defined" the moment ANY test file in a
-        // scaffolded frontend-react package runs — confirmed directly against a real
-        // packed-and-installed consumer (item G27). This mirrors packages/@gateway/browser's own
-        // __mocks__/jsdom-polyfills.cjs in this repo.
-        path: '__mocks__/jsdom-polyfills.cjs',
-        contents: `// jsdom does not implement ResizeObserver — the pass-through module still needs a real
-// function to export.
-class ResizeObserver {
-  observe() {}
-  unobserve() {}
-  disconnect() {}
-}
-
-global.ResizeObserver = ResizeObserver;
-
-// jest-environment-jsdom does not put Node's setImmediate/clearImmediate on globalThis.
-// @dungeonmaster/testing's open-handle leak tracker (jest.setup.js) reads
-// \`globalThis.setImmediate.__promisify__\` while wiring its own watcher, and an undefined
-// setImmediate throws before a single test in this package runs.
-const { setImmediate, clearImmediate } = require('node:timers');
-if (typeof global.setImmediate === 'undefined') global.setImmediate = setImmediate;
-if (typeof global.clearImmediate === 'undefined') global.clearImmediate = clearImmediate;
-
-// undici references TextEncoder/TextDecoder/ReadableStream at module load, none of which
-// jest-environment-jsdom provides.
-const { TextEncoder, TextDecoder } = require('node:util');
-const { ReadableStream, WritableStream, TransformStream } = require('node:stream/web');
-const { MessageChannel, MessagePort, BroadcastChannel } = require('node:worker_threads');
-if (typeof global.TextEncoder === 'undefined') global.TextEncoder = TextEncoder;
-if (typeof global.TextDecoder === 'undefined') global.TextDecoder = TextDecoder;
-if (typeof global.ReadableStream === 'undefined') global.ReadableStream = ReadableStream;
-if (typeof global.WritableStream === 'undefined') global.WritableStream = WritableStream;
-if (typeof global.TransformStream === 'undefined') global.TransformStream = TransformStream;
-if (typeof global.MessageChannel === 'undefined') global.MessageChannel = MessageChannel;
-if (typeof global.MessagePort === 'undefined') global.MessagePort = MessagePort;
-if (typeof global.BroadcastChannel === 'undefined') global.BroadcastChannel = BroadcastChannel;
-
-// jest-environment-jsdom defines no \`fetch\` at all (not even as an undefined property), and
-// MSW's module-scope setup references Request/Response/Headers/fetch directly.
-const undici = require('undici');
-if (typeof global.Response === 'undefined') global.Response = undici.Response;
-if (typeof global.Request === 'undefined') global.Request = undici.Request;
-if (typeof global.Headers === 'undefined') global.Headers = undici.Headers;
-if (typeof global.fetch === 'undefined') global.fetch = undici.fetch;
 `,
       },
     ],

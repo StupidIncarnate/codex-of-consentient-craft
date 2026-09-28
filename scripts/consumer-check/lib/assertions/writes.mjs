@@ -161,11 +161,16 @@ const checkJestConfigBaseMsw = ({ report, consumerRoot, mode }) => {
     transformIgnoreMatchesMsw,
     JSON.stringify(config.transformIgnorePatterns),
   );
+  // The COMPILED `dist` file, not `.ts` source: every caller reaches `StartEndpointMock` through
+  // this package's `.` export, which resolves to `dist/` here (no `source` condition — F-shape bug
+  // found against a real packed-and-installed consumer: a `src/` setup file gets its own, separate
+  // `mswServerAdapter()` singleton, so `server.listen()` intercepts on a server with no handlers and
+  // every staged response bypasses to a real, unanswered network call).
   const loadsEndpointMockSetup = (config.setupFilesAfterEnv ?? []).some((entry) =>
-    entry.endsWith(join('startup', 'start-endpoint-mock-setup.ts')),
+    entry.endsWith(join('dist', 'src', 'startup', 'start-endpoint-mock-setup.js')),
   );
   report.check(
-    "jest-config-base.js's setupFilesAfterEnv loads start-endpoint-mock-setup.ts (local mode only)",
+    "jest-config-base.js's setupFilesAfterEnv loads the compiled start-endpoint-mock-setup.js, not the .ts source (local mode only)",
     loadsEndpointMockSetup,
     JSON.stringify(config.setupFilesAfterEnv),
   );

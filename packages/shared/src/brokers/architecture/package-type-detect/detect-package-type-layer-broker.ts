@@ -12,6 +12,7 @@ import type { packageJsonContract } from '../../../contracts/package-json/packag
 import { packageTypeContract } from '../../../contracts/package-type/package-type-contract';
 import type { PackageType } from '../../../contracts/package-type/package-type-contract';
 import { hasHonoOrExpressAdapterGuard } from '../../../guards/has-hono-or-express-adapter/has-hono-or-express-adapter-guard';
+import { flowCreatesHonoOrExpressAppGuard } from '../../../guards/flow-creates-hono-or-express-app/flow-creates-hono-or-express-app-guard';
 import { hasModelcontextprotocolAdapterGuard } from '../../../guards/has-modelcontextprotocol-adapter/has-modelcontextprotocol-adapter-guard';
 import { packageBrowserTypeTransformer } from '../../../transformers/package-browser-type/package-browser-type-transformer';
 import { startupReferencesArgvGuard } from '../../../guards/startup-references-argv/startup-references-argv-guard';
@@ -49,7 +50,10 @@ export const detectPackageTypeLayerBroker = ({
   exportsHasDot: boolean;
   binEntryCount: FileCount;
 }): PackageType => {
-  if (hasHonoOrExpressAdapterGuard({ adapterDirNames })) {
+  if (
+    hasHonoOrExpressAdapterGuard({ adapterDirNames }) ||
+    flowCreatesHonoOrExpressAppGuard(flowFileContent === undefined ? {} : { flowFileContent })
+  ) {
     return packageTypeContract.parse('http-backend');
   }
 

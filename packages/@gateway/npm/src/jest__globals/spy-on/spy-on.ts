@@ -11,7 +11,7 @@
  * spy.mockImplementation(() => true);
  */
 import { jest } from '@jest/globals';
-import type { MethodLikeKeys } from 'jest-mock';
+import type { MethodLikeKeys } from '#gateway/npm/jest-mock';
 
 export const spyOn = <T extends object, K extends MethodLikeKeys<T>>({
   object,

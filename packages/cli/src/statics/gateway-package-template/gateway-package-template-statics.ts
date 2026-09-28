@@ -63,7 +63,7 @@ module.exports = {
   ...base,
   testEnvironment: 'jsdom',
   testEnvironmentOptions: { url: 'http://localhost' },
-  setupFiles: ['<rootDir>/__mocks__/jsdom-polyfills.cjs'],
+  setupFiles: ['@dungeonmaster/testing/jsdom-polyfills'],
 };
 `,
   placeholderPath: 'src/index.d.ts',

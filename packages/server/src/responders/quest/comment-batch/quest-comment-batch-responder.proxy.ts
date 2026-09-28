@@ -8,14 +8,20 @@ import type {
   QuestId,
   QuestStub,
 } from '@dungeonmaster/shared/contracts';
+import { StartEndpointMock } from '@dungeonmaster/testing';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
+// From the .stub file, not comment-batch-response-contract directly: @dungeonmaster/enforce-proxy-patterns
+// bans a proxy importing a value from any path ending `-contract` (only `.stub` paths are exempt).
+import { commentBatchResponseContract } from '../../../contracts/comment-batch-response/comment-batch-response.stub';
+import { apiRoutesStatics } from '../../../statics/api-routes/api-routes-statics';
 import { QuestCommentBatchResponder } from './quest-comment-batch-responder';
 
 type Quest = ReturnType<typeof QuestStub>;
 type ProcessId = ReturnType<typeof ProcessIdStub>;
 type GuildId = ReturnType<typeof GuildIdStub>;
 type AbsoluteFilePath = ReturnType<typeof AbsoluteFilePathStub>;
+type EndpointControl = ReturnType<typeof StartEndpointMock.listen>;
 
 export const QuestCommentBatchResponderProxy = (): {
   setupQuestLoad: (params: { quest: Quest }) => void;
@@ -34,6 +40,11 @@ export const QuestCommentBatchResponderProxy = (): {
   getDeliveredBatch: (params: { questId: QuestId }) => unknown;
   getDeliveryAttempts: (params: { questId: QuestId }) => unknown[];
   callResponder: typeof QuestCommentBatchResponder;
+  // Reusable MSW handler for this responder's own endpoint, checked against the same
+  // commentBatchResponseContract the responder parses its 200 body through (T03). Staged data the
+  // contract rejects throws at `.resolves()` time, not on the first fetch — the client-side mirror
+  // of T6's "no re-staging another package's own behaviour by hand" for HTTP mocks.
+  httpEndpoint: () => EndpointControl;
 } => {
   const orchestrator = StartOrchestratorProxy();
   // questFindQuestPathBroker is a specific-broker forward, composed via ITS OWN proxy —
@@ -89,5 +100,11 @@ export const QuestCommentBatchResponderProxy = (): {
     getDeliveryAttempts: ({ questId }: { questId: QuestId }): unknown[] =>
       commentBatchHandle.callsMatching([{ questId }]),
     callResponder: QuestCommentBatchResponder,
+    httpEndpoint: (): EndpointControl =>
+      StartEndpointMock.listen({
+        method: 'post',
+        url: apiRoutesStatics.quests.comments,
+        contract: commentBatchResponseContract,
+      }),
   };
 };

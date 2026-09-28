@@ -8,7 +8,8 @@
  * that could grow the other two names by accident; only the per-entry `specifier`/`directories`
  * data is hand-written. `specifier` is one exported subpath of the installed package, resolved to
  * locate its root; `directories` are copied from that root. The browser copy's tests run under
- * jsdom with the polyfill in `__mocks__`, which needs `browserDevDependencies`.
+ * jsdom, which needs `browserDevDependencies` (the jsdom polyfill itself is a `@dungeonmaster/testing`
+ * import, not a copied file, so it needs no directory of its own here).
  *
  * USAGE:
  * gatewaySourceCopyStatics.sources.node.specifier;
@@ -25,12 +26,11 @@ export const gatewaySourceCopyStatics = {
     },
     [gatewayLocationsStatics.folders.browser]: {
       specifier: '@dungeonmaster/browser/fetch',
-      directories: ['src', '__mocks__'],
+      directories: ['src'],
     },
   },
   browserDevDependencies: {
     'jest-environment-jsdom': '^30.0.0',
-    undici: '^7.21.0',
   },
 } as const;
 

@@ -11,12 +11,11 @@ describe('gatewaySourceCopyStatics', () => {
         },
         [gatewayLocationsStatics.folders.browser]: {
           specifier: '@dungeonmaster/browser/fetch',
-          directories: ['src', '__mocks__'],
+          directories: ['src'],
         },
       },
       browserDevDependencies: {
         'jest-environment-jsdom': '^30.0.0',
-        undici: '^7.21.0',
       },
     });
   });

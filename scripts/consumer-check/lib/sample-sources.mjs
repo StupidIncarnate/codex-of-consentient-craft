@@ -223,6 +223,80 @@ describe('mswTrapProbeBroker', () => {
 });
 `;
 
+// T03 (gateway-pivot): proves the PUBLISHED @dungeonmaster/testing really ships StartEndpointMock's
+// optional contract param, and that a real installed zod schema checks a staged response against
+// it — not just source resolution inside this repo's own checkout (EPIC rule 13: this item changes
+// what @dungeonmaster/testing publishes). This is a genuinely PASSING test, unlike the io-trap/msw-
+// trap probes above: the mismatched-data case throws synchronously inside resolves(), and the test's
+// own expect(...).toThrow(...) catches it, the same shape as the hoisting proof's own passing test.
+// It therefore lives in `lib`, not `probe` — `assertWardCleanFixture` sweeps `lib`/`app` and expects
+// exit 0, which this file satisfies same as the hoisting proof does.
+const CONTRACT_CHECK_PROOF_SOURCE = `/**
+ * PURPOSE: Fetches a mocked endpoint and returns its parsed body. Exists only to prove
+ * StartEndpointMock.listen's optional contract param really rejects a mismatched staged response,
+ * from a real installed @dungeonmaster/testing package, not just from source resolution in this
+ * repo's own checkout.
+ *
+ * USAGE:
+ * await contractCheckProbeBroker();
+ * // Returns whatever JSON body the test staged through StartEndpointMock.listen
+ */
+
+export const contractCheckProbeBroker = async (): Promise<unknown> => {
+  const response = await fetch('http://consumer-check.invalid/contract-check-probe');
+  return response.json();
+};
+`;
+
+// StartEndpointMock.listen is constructed in the CONSTRUCTOR, before the return statement, the same
+// shape packages/web's own quest-comment-batch-broker.proxy.ts already uses for the identical call.
+const CONTRACT_CHECK_PROOF_PROXY = `import { StartEndpointMock } from '@dungeonmaster/testing';
+import { z } from 'zod';
+
+export const contractCheckProbeBrokerProxy = (): {
+  stageValidResponse: () => void;
+  stageMismatchedResponse: () => void;
+} => {
+  const endpoint = StartEndpointMock.listen({
+    method: 'get',
+    url: 'http://consumer-check.invalid/contract-check-probe',
+    contract: z.object({ id: z.string().brand<'ContractCheckProbeId'>() }),
+  });
+
+  return {
+    stageValidResponse: (): void => {
+      endpoint.resolves({ data: { id: 'contract-check-probe-1' } });
+    },
+    stageMismatchedResponse: (): void => {
+      endpoint.resolves({ data: { id: 42 } });
+    },
+  };
+};
+`;
+
+const CONTRACT_CHECK_PROOF_TEST = `import { contractCheckProbeBroker } from './contract-check-probe-broker';
+import { contractCheckProbeBrokerProxy } from './contract-check-probe-broker.proxy';
+
+describe('contractCheckProbeBroker', () => {
+  it('VALID: {contract, data matching it} => resolves stages it and fetch returns the parsed data', async () => {
+    const proxy = contractCheckProbeBrokerProxy();
+    proxy.stageValidResponse();
+
+    const result = await contractCheckProbeBroker();
+
+    expect(result).toStrictEqual({ id: 'contract-check-probe-1' });
+  });
+
+  it('INVALID: {contract, data that does not match it} => resolves throws at staging time, naming the mismatch', () => {
+    const proxy = contractCheckProbeBrokerProxy();
+
+    expect(() => proxy.stageMismatchedResponse()).toThrow(
+      /Invalid input: expected string, received number/u,
+    );
+  });
+});
+`;
+
 // A broker this function writes into `lib` (below) imports `#gateway/node/...` directly, the same
 // way a real developer's own code would — and `gateway-dependency-declared` requires the IMPORTING
 // package.json to list the real gateway package name in `dependencies`, exactly as it would for a
@@ -259,6 +333,23 @@ export const scaffoldFixturePackages = async ({ consumerRoot, cliBin, scope }) =
   writeFileSync(join(hoistDomainDir, 'config-read-or-default-broker.ts'), HOISTING_PROOF_SOURCE);
   writeFileSync(join(hoistDomainDir, 'config-read-or-default-broker.proxy.ts'), HOISTING_PROOF_PROXY);
   writeFileSync(join(hoistDomainDir, 'config-read-or-default-broker.test.ts'), HOISTING_PROOF_TEST);
+
+  // Lives in `lib` beside the hoisting proof, not `probe` — see this constant's own comment above:
+  // both of this file's tests PASS, so `assertWardCleanFixture`'s ward sweep over `lib` stays green.
+  const contractCheckDomainDir = join(libSrcDir, 'brokers', 'contract-check', 'probe');
+  mkdirSync(contractCheckDomainDir, { recursive: true });
+  writeFileSync(
+    join(contractCheckDomainDir, 'contract-check-probe-broker.ts'),
+    CONTRACT_CHECK_PROOF_SOURCE,
+  );
+  writeFileSync(
+    join(contractCheckDomainDir, 'contract-check-probe-broker.proxy.ts'),
+    CONTRACT_CHECK_PROOF_PROXY,
+  );
+  writeFileSync(
+    join(contractCheckDomainDir, 'contract-check-probe-broker.test.ts'),
+    CONTRACT_CHECK_PROOF_TEST,
+  );
 
   // Both probes live in `probe`, never `lib` — `assertWardCleanFixture` sweeps `lib`/`app` and
   // expects `dungeonmaster ward` to exit 0 there. These two ARE deliberately-failing tests (their

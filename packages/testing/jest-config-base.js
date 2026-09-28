@@ -29,11 +29,20 @@ module.exports = {
   // `setupFilesAfterEnv` entry cannot do this job instead.
   globalSetup: path.join(__dirname, 'src', 'jest.setup-global.js'),
   globalTeardown: path.join(__dirname, 'src', 'jest.setup-global-teardown.js'),
-  // `start-endpoint-mock-setup.ts` loads MSW here so a consumer's package gets the fail-on-unhandled
-  // HTTP/WS behavior without its own opt-in, same as the repo-internal `jest.config.base.js`.
+  // `start-endpoint-mock-setup` loads MSW here so a consumer's package gets the fail-on-unhandled
+  // HTTP/WS behavior without its own opt-in, same as the repo-internal `jest.config.base.js`. The
+  // COMPILED `dist` file, not the `.ts` source: every caller reaches `StartEndpointMock` through
+  // this package's `.` export, which in a consumer (no `source` condition on this base — see this
+  // file's own header) resolves to `dist/`. Loading the setup file from `src/` instead gives it a
+  // SECOND, un-listened-to `mswServerAdapter()` singleton — a different module instance than the
+  // one `StartEndpointMock.listen()` registers handlers on — so `server.listen()` intercepts every
+  // request on a server with no handlers, and every staged response bypasses to a real network call
+  // that nothing is listening on. Reproduced against a real packed-and-installed consumer: every
+  // MSW-staged fetch failed with a real `ECONNREFUSED`/`fastNowTimeout` error instead of resolving
+  // the staged response.
   setupFilesAfterEnv: [
     path.join(__dirname, 'src', 'jest.setup.js'),
-    path.join(__dirname, 'src', 'startup', 'start-endpoint-mock-setup.ts'),
+    path.join(__dirname, 'dist', 'src', 'startup', 'start-endpoint-mock-setup.js'),
   ],
   testMatch: ['**/src/**/*.test.[jt]s', '**/bin/**/*.test.[jt]s'],
   testPathIgnorePatterns: ['/node_modules/', '/dist/'],

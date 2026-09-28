@@ -37,8 +37,7 @@
   },
   "files": [
     "dist",
-    "src",
-    "__mocks__"
+    "src"
   ],
   "dependencies": {
     "@dungeonmaster/node": "*"

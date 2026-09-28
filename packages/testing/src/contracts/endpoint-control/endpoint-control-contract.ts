@@ -15,6 +15,13 @@ export const endpointControlContract = z.object({}).loose();
 
 export type HttpMethod = 'delete' | 'get' | 'head' | 'options' | 'patch' | 'post' | 'put';
 
+// Structural, not a zod schema itself: any zod object's `.parse` satisfies this shape, so a
+// serving package's own response contract (e.g. `commentBatchResponseContract`) can be passed to
+// `StartEndpointMock.listen()` without this package depending on that contract's type.
+export interface EndpointResponseContract {
+  parse: (value: unknown) => unknown;
+}
+
 export type EndpointControl = z.infer<typeof endpointControlContract> & {
   resolves: (params: { data: unknown }) => void;
   responds: (params: { status: number; body?: unknown }) => void;

@@ -49,6 +49,28 @@ describe('detectPackageTypeLayerBroker', () => {
 
       expect(result).toBe(PackageTypeStub({ value: 'http-backend' }));
     });
+
+    it('VALID: {flowFileContent constructs new Hono()} => returns http-backend', () => {
+      detectPackageTypeLayerBrokerProxy();
+
+      const result = detectPackageTypeLayerBroker({
+        adapterDirNames: [],
+        srcDirNames: [],
+        packageJson: PackageJsonStub(),
+        startupFileContent: undefined,
+        flowFileContent: "import { Hono } from '#gateway/npm/hono';\nconst app = new Hono();",
+        hasResponderHook: false,
+        hasBrokersRule: false,
+        hasFlowsDir: false,
+        hasRespondersDir: false,
+        hasStateDir: false,
+        hasResponderCreate: false,
+        exportsHasDot: false,
+        binEntryCount: FileCountStub({ value: 0 }),
+      });
+
+      expect(result).toBe(PackageTypeStub({ value: 'http-backend' }));
+    });
   });
 
   describe('mcp-server (priority 2)', () => {

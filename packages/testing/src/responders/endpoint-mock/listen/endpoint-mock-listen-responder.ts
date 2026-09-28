@@ -12,6 +12,7 @@ import { requestCountContract } from '../../../contracts/request-count/request-c
 import type { RequestCount } from '../../../contracts/request-count/request-count-contract';
 import type {
   EndpointControl,
+  EndpointResponseContract,
   HttpMethod,
 } from '../../../contracts/endpoint-control/endpoint-control-contract';
 
@@ -20,9 +21,11 @@ const INTERNAL_SERVER_ERROR = 500;
 export const EndpointMockListenResponder = ({
   method,
   url,
+  contract,
 }: {
   method: HttpMethod;
   url: string;
+  contract?: EndpointResponseContract;
 }): EndpointControl => {
   const server = mswServerAdapter();
   const { http, HttpResponse } = mswHttpAdapter();
@@ -55,6 +58,10 @@ export const EndpointMockListenResponder = ({
 
   return {
     resolves: ({ data }: { data: unknown }): void => {
+      // Parsed BEFORE `server.use` registers the handler, so a response the contract rejects
+      // throws here, at staging time, rather than surfacing as a 500 the first time a test fetches.
+      const body = contract ? contract.parse(data) : data;
+
       server.use(
         http[method](handlerUrl, ({ request }) => {
           requestLog.push(
@@ -63,7 +70,7 @@ export const EndpointMockListenResponder = ({
               .json()
               .catch((error: unknown) => ({ bodyParseError: String(error) })),
           );
-          return HttpResponse.json(data as never);
+          return HttpResponse.json(body as never);
         }),
       );
     },

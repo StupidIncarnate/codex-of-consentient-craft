@@ -63,6 +63,7 @@ export * from './src/guards/matches-widget-file-name/matches-widget-file-name-gu
 
 // Package Type Detection Guards
 export * from './src/guards/has-hono-or-express-adapter/has-hono-or-express-adapter-guard';
+export * from './src/guards/flow-creates-hono-or-express-app/flow-creates-hono-or-express-app-guard';
 export * from './src/guards/has-modelcontextprotocol-adapter/has-modelcontextprotocol-adapter-guard';
 export * from './src/guards/has-ink-adapter/has-ink-adapter-guard';
 export * from './src/guards/has-widgets-folder/has-widgets-folder-guard';

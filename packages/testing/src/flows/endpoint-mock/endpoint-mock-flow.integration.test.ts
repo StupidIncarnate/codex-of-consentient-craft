@@ -53,5 +53,25 @@ describe('EndpointMockFlow', () => {
 
       expect(body).toStrictEqual({ wired: true });
     });
+
+    it('VALID: {contract, resolves with data} => listen forwards contract to the responder, and the parsed value is served', async () => {
+      // The contract is a plain object literal, not an import from a -contract.ts file: this is a
+      // test file, and @dungeonmaster/ban-contract-in-tests bans a contract import here (including a
+      // type-only one). `.parse` ignores its input and returns a fixed marker string, so the test
+      // proves the FLOW forwarded `contract` through to the responder — un-forwarded, the served body
+      // would be the raw staged data instead of this marker.
+      const endpoint = EndpointMockFlow.listen({
+        method: 'get',
+        url: `${BASE}/test/contract-wiring`,
+        contract: { parse: (): unknown => 'wired-via-contract' },
+      });
+
+      endpoint.resolves({ data: { wired: true } });
+
+      const response = await fetch(`${BASE}/test/contract-wiring`);
+      const body = JSON.parse(JSON.stringify(await response.json())) as unknown;
+
+      expect(body).toBe('wired-via-contract');
+    });
   });
 });

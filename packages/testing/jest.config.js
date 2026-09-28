@@ -18,7 +18,7 @@ module.exports = {
   // (`@mswjs/interceptors`'s own `fetchUtils`), before this test file's own code runs, so a
   // polyfill written there arrives too late. `packages/@gateway/npm/jest.config.js` solves the
   // identical gap the same way.
-  setupFiles: ['<rootDir>/../@gateway/browser/__mocks__/jsdom-polyfills.cjs'],
+  setupFiles: ['<rootDir>/src/jsdom-polyfills.cjs'],
   setupFilesAfterEnv: [
     '<rootDir>/src/jest.setup.js',
     '<rootDir>/src/startup/start-endpoint-mock-setup.ts',

@@ -449,4 +449,15 @@ describe('QuestCommentBatchResponder', () => {
       });
     });
   });
+
+  describe('httpEndpoint contract check', () => {
+    it('INVALID: {staged response missing deliveredMessage} => resolves throws at staging time, naming the mismatch', () => {
+      const proxy = QuestCommentBatchResponderProxy();
+      const endpoint = proxy.httpEndpoint();
+
+      expect(() => {
+        endpoint.resolves({ data: { chatProcessId: 'proc-comments' } });
+      }).toThrow(/Invalid input: expected string, received undefined/u);
+    });
+  });
 });

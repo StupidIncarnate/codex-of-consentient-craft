@@ -12,6 +12,10 @@ type ResponderParams = Parameters<typeof EndpointMockListenResponder>[0];
 type ResponderResult = ReturnType<typeof EndpointMockListenResponder>;
 
 export const EndpointMockFlow = {
-  listen: ({ method, url }: ResponderParams): ResponderResult =>
-    EndpointMockListenResponder({ method, url }),
+  listen: ({ method, url, contract }: ResponderParams): ResponderResult =>
+    EndpointMockListenResponder({
+      method,
+      url,
+      ...(contract === undefined ? {} : { contract }),
+    }),
 };
