@@ -6,6 +6,17 @@
  * disagree with what the write route registers for the identical `fields` — the divergence the
  * two-route comparison exists to catch.
  *
+ * THE MKDIR IS FENCED TO THE TARGET, through `guildDirectoryEnsureBroker` — the identical check
+ * `guildWriteRouteBroker` runs, and for the identical reason: `routeSelectTransformer` picks `api`
+ * over `write` whenever a target carries a `baseUrl` (every live siegelense lane does), so a
+ * seeded guild NEVER reaches the write route at all on a live target. The real `POST /api/guilds`
+ * handler legitimately does not `mkdir` an arbitrary path — a real guild's path points at a
+ * project the operator already has — so without this, a seeded guild registers against a
+ * directory nothing ever created and reads back `valid: false` from `guildQueryRouteBroker`'s own
+ * `fs.access` check. An already-absolute path outside the target is registered as given and left
+ * uncreated, matching the write route's own rule for a path the target merely points at rather
+ * than owns.
+ *
  * Returns the created `Guild` record itself on a success status, never `dmHttpRequestAdapter`'s
  * `{ status, body }` envelope — the runner parses whatever this route returns straight through
  * `guildContract`, and that contract can never accept an envelope. `dmHttpResponseUnwrapAdapter` is
@@ -21,6 +32,7 @@
  */
 import { dmHttpRequestAdapter } from '../../../adapters/dm-http/request/dm-http-request-adapter';
 import { dmHttpResponseUnwrapAdapter } from '../../../adapters/dm-http/response-unwrap/dm-http-response-unwrap-adapter';
+import { guildDirectoryEnsureBroker } from '../directory-ensure/guild-directory-ensure-broker';
 import { guildFieldsContract } from '../../../contracts/guild-fields/guild-fields-contract';
 import { dmHttpTransportFailureTransformer } from '../../../transformers/dm-http-transport-failure/dm-http-transport-failure-transformer';
 import { guildPathDeriveTransformer } from '../../../transformers/guild-path-derive/guild-path-derive-transformer';
@@ -37,6 +49,9 @@ export const guildApiRouteBroker = async ({
 }): Promise<unknown> => {
   const parsedFields = guildFieldsContract.parse(fields);
   const path = guildPathDeriveTransformer({ target, path: parsedFields.path });
+
+  await guildDirectoryEnsureBroker({ target, path });
+
   const url = target.baseUrl === undefined ? GUILDS_PATH : `${target.baseUrl}${GUILDS_PATH}`;
 
   const response = await (async (): ReturnType<typeof dmHttpRequestAdapter> => {

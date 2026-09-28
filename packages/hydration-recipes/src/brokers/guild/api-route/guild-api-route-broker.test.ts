@@ -29,6 +29,50 @@ describe('guildApiRouteBroker', () => {
         path: '/tmp/dm-home/guilds-under-test/guild-1',
       });
     });
+
+    it('VALID: {name, relative path} => creates the derived directory inside the target before posting', async () => {
+      const proxy = guildApiRouteBrokerProxy();
+      const target = DmTargetStub({
+        home: '/tmp/dm-home',
+        claudeHome: '/tmp/dm-home',
+        baseUrl: 'http://app.in-process',
+      });
+      const response = DmHttpResponseStub({
+        status: 201,
+        body: { id: 'f47ac10b', name: 'Guild 1', path: '/tmp/dm-home/guilds-under-test/guild-1' },
+      });
+      proxy.succeeds({ url: 'http://app.in-process/api/guilds', response });
+
+      await guildApiRouteBroker({
+        target,
+        fields: { name: 'Guild 1', path: 'guilds-under-test/guild-1' },
+      });
+
+      expect(proxy.pathsTouched()).toStrictEqual(['/tmp/dm-home/guilds-under-test/guild-1']);
+    });
+  });
+
+  describe('an absolute path outside the target', () => {
+    it('VALID: {absolute path outside the target} => posts it and makes no directory at all', async () => {
+      const proxy = guildApiRouteBrokerProxy();
+      const target = DmTargetStub({
+        home: '/tmp/dm-home',
+        claudeHome: '/tmp/dm-home',
+        baseUrl: 'http://app.in-process',
+      });
+      const response = DmHttpResponseStub({
+        status: 201,
+        body: { id: 'f47ac10b', name: 'Real Project', path: '/home/user/real-project' },
+      });
+      proxy.succeeds({ url: 'http://app.in-process/api/guilds', response });
+
+      await guildApiRouteBroker({
+        target,
+        fields: { name: 'Real Project', path: '/home/user/real-project' },
+      });
+
+      expect(proxy.pathsTouched()).toStrictEqual([]);
+    });
   });
 
   describe('a non-success status', () => {
