@@ -11,12 +11,22 @@
  * real START route auto-seeds on the way to `in_progress`/`complete` is left as-is — nothing here
  * asserts the ledger shape.
  *
+ * The session and subagent both carry `set()` content the `session`/`subagent` ingredients
+ * document as having "no honest default" (`session-ingredient-broker.ts`'s and
+ * `subagent-ingredient-broker.ts`'s own headers): a session's `lines` and a subagent's own
+ * `taskPrompt`/`lines`. Neither ingredient declares an `api` route, so both routes through `write`
+ * on every target kind, live or not — the gap this recipe shipped with was never about a live vs.
+ * write target, only that nothing here ever called `set()` on either row.
+ *
  * USAGE:
  * const plan = recipesGuildActiveSuiteBroker();
  * const result = await dmRegistryBroker.run(plan, target);
  */
 
+import { streamJsonLineContract } from '@dungeonmaster/shared/contracts';
+
 import { questFieldsContract } from '../../../contracts/quest-fields/quest-fields-contract';
+import { subagentFieldsContract } from '../../../contracts/subagent-fields/subagent-fields-contract';
 import { questGateContentDefaultsStatics } from '../../../statics/quest-gate-content-defaults/quest-gate-content-defaults-statics';
 import { dmRegistryBroker } from '../../dm/registry/dm-registry-broker';
 import { recipesHydrationCreateBroker } from '../../recipes-hydration/create/recipes-hydration-create-broker';
@@ -24,6 +34,20 @@ import { recipesHydrationCreateBroker } from '../../recipes-hydration/create/rec
 const { recipe } = recipesHydrationCreateBroker();
 
 const QUESTS_COUNT = 2;
+// `TaskPrompt` brands a LOCAL, unexported schema inside `subagent-fields-contract.ts` — no sibling
+// file gets its own `taskPromptContract` the way `taskDescriptionContract` does — so the only way to
+// mint a real one from here is through the field contract's own public `subagentFieldsContract`,
+// extracting the branded value off a throwaway, otherwise-unused probe object.
+const SUBAGENT_TASK_PROMPT = subagentFieldsContract.parse({
+  agentId: 'probe-agent',
+  toolUseId: 'toolu_probe',
+  taskDescription: 'Probe for a branded TaskPrompt',
+  taskPrompt: 'Investigate the active development suite',
+  lines: [],
+  completed: true,
+  sessionId: 'probe-session',
+  cwd: '/tmp/guild-active-suite-probe',
+}).taskPrompt;
 
 export const recipesGuildActiveSuiteBroker = recipe(
   {
@@ -54,7 +78,27 @@ export const recipesGuildActiveSuiteBroker = recipe(
         q[1].saveRecordAs({ name: 'questComplete' }),
       ]),
       g[0].sessions.add(1, (s) => [
-        s[0].subagents.add(1, (a) => [a[0].saveRecordAs({ name: 'subagent' })]),
+        s[0].set({
+          lines: [
+            streamJsonLineContract.parse(
+              '{"type":"user","message":{"role":"user","content":"What is the status of active development?"}}',
+            ),
+            streamJsonLineContract.parse(
+              '{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"Checking the active suite now."}]}}',
+            ),
+          ],
+        }),
+        s[0].subagents.add(1, (a) => [
+          a[0].set({
+            taskPrompt: SUBAGENT_TASK_PROMPT,
+            lines: [
+              streamJsonLineContract.parse(
+                '{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"Sub-agent investigating the active suite."}]}}',
+              ),
+            ],
+          }),
+          a[0].saveRecordAs({ name: 'subagent' }),
+        ]),
         s[0].saveRecordAs({ name: 'session' }),
       ]),
       g[0].saveRecordAs({ name: 'guild' }),

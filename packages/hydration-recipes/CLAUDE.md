@@ -305,7 +305,9 @@ fromSavedRefTransformer({name: 'quest', field: 'id'}), guildId}).add(2, ...)` �
 call, never `q[0].operations.add(...)` — so no fixed-literal operation id remains anywhere in the
 recipe; both ids are minted by `operationWriteRouteBroker` at run time, the same as
 `quest-completed`'s own recipe. This also changes what the recipe `makes`: `{ ingredient:
-'operation', count: 2 }` joins `{ ingredient: 'quest', count: 1 }`, which `recipes-catalog-broker.test.ts`,
+'operation', count: 'varies' }` joins `{ ingredient: 'quest', count: 1 }` — a runtime `filter()` op
+in the plan (dropping the riftcarver operation a live target's real START route auto-seeds) is what
+makes the count unknown at build time — which `recipes-catalog-broker.test.ts`,
 `recipes-listing-responder.test.ts`, `hydration-recipes-exports.integration.test.ts` and
 `siegelense-recipes-layer-flow.integration.test.ts` all pin — the last two read BUILT `dist` output,
 so confirming they stay green needs a rebuild.

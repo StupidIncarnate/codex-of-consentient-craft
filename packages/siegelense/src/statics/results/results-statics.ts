@@ -40,6 +40,11 @@ export const resultsStatics = {
   stepRange: {
     separator: '-',
   },
+  render: {
+    // The human text view's per-row body trim for `--kind network` — long enough that a real error
+    // body's shape still reads, short enough that a screenful of rows stays a screenful.
+    bodyTrimChars: 200,
+  },
   patterns: {
     // Copied verbatim from run-index-compute-transformer.ts's CONSOLE_ERROR_PATTERN (line 28),
     // NETWORK_STATUS_PATTERN (line 29) and SERVER_ERROR_PATTERN (line 32). consoleWarning has no
