@@ -114,15 +114,11 @@ describe('StartInstall', () => {
         relativePath: RelativePathStub({ value: 'playwright.config.ts' }),
       });
 
-      const typecheckHarness = scaffoldedTemplateTypecheckHarness();
-      const diagnostics = typecheckHarness.typecheck({
-        content: String(writtenContent),
-        dirPath: testbed.guildPath,
-      });
-
+      // The child starts before the in-process typecheck, so the two overlap: the typecheck
+      // blocks this thread while the spawned tsx compiles on another core.
       const runHarness = scaffoldedPlaywrightConfigRunHarness();
       runHarness.installPlaywrightTestStub({ dirPath: testbed.guildPath });
-      const { exitCode, stdout, stderr } = await runHarness.run({
+      const runResult = runHarness.run({
         configPath: `${testbed.guildPath}/playwright.config.ts`,
         cwd: testbed.guildPath,
         env: {
@@ -131,6 +127,14 @@ describe('StartInstall', () => {
           NODE_PATH: REPO_NODE_MODULES,
         },
       });
+
+      const typecheckHarness = scaffoldedTemplateTypecheckHarness();
+      const diagnostics = typecheckHarness.typecheck({
+        content: String(writtenContent),
+        dirPath: testbed.guildPath,
+      });
+
+      const { exitCode, stdout, stderr } = await runResult;
 
       testbed.cleanup();
 

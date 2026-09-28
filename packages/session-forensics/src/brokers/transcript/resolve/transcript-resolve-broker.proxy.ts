@@ -25,7 +25,14 @@ export const transcriptResolveBrokerProxy = (): {
   const existsProxy = existsSyncProxy();
   const readdirProxy = readdirEntriesSyncProxy();
   const homedirHandle = registerMock({ fn: homedir });
-  homedirHandle.calledWith([]).returns(HOME_DIR);
+  // homedir() takes no argument, so every composed proxy stages it at the same address and the
+  // latest wins. dungeonmasterHomeFindBrokerProxy stages a real-homedir passthrough in its own
+  // constructor, so a parent composing both would read Jest's sandboxed HOME. Each setup method
+  // below re-stages HOME_DIR, since setup runs after every sibling proxy is built.
+  const stageHomeDir = (): void => {
+    homedirHandle.calledWith([]).returns(HOME_DIR);
+  };
+  stageHomeDir();
   // #gateway/node/path is a raw passthrough of the Node 'path' module (no per-function wrapper,
   // so no gateway proxy to compose) — mocked directly here, on the same '#gateway/node/path'
   // specifier the broker imports. Every path this broker builds comes from HOME_DIR and the
@@ -120,6 +127,7 @@ export const transcriptResolveBrokerProxy = (): {
       projectDir: PathSegment;
       sessionId: SessionId;
     }): void => {
+      stageHomeDir();
       registerProjectDir({ projectDirName: projectDir });
 
       const fileNames = fileEntryNamesByProjectDir.get(projectDir) ?? [];
@@ -142,6 +150,7 @@ export const transcriptResolveBrokerProxy = (): {
       sessionId: SessionId;
       agentId: SessionId;
     }): void => {
+      stageHomeDir();
       registerProjectDir({ projectDirName: projectDir });
 
       const sessionDirNames = sessionDirNamesByProjectDir.get(projectDir) ?? [];
@@ -162,6 +171,7 @@ export const transcriptResolveBrokerProxy = (): {
       restageSubagentExistence();
     },
     setupNothing: (): void => {
+      stageHomeDir();
       existsProxy.returns({ path: FilePathStub({ value: PROJECTS_ROOT }), exists: true });
       readdirProxy.returns({ path: FilePathStub({ value: PROJECTS_ROOT }), entries: [] });
     },

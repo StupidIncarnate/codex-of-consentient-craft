@@ -48,7 +48,7 @@ export const workspacePackageExportSourceTransformer = ({
   for (const [key, entry] of Object.entries(exportsMap)) {
     // A bare string entry (`"./jest-config-base": "./jest-config-base.js"`) IS its own source —
     // Node's shorthand for "every condition resolves here", no conditions object at all.
-    const source = typeof entry === 'string' ? entry : entry?.source;
+    const source = typeof entry === 'string' ? entry : entry.source;
     if (!source) {
       continue;
     }

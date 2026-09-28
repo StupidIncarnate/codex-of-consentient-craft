@@ -80,6 +80,19 @@ More rules for the operator:
     package publishes, or how a consumer resolves, loads or tests code adds its assertions to the
     consumer suite in the same item. Before committing such an item, the operator runs
     `npm run build:clean`, then `npm run check:consumer`. G27 lists the items known to need this.
+14. **No item is dispatched without a plan that names its files.** Every remaining item's file under
+    `items/` carries a `## Plan` section before any agent implements it. The section lists every file
+    the item creates, edits or deletes, by full path, grouped into the agent-sized batches of rule 8.
+    The operator sizes the job from that list: how many agents, how many waves, and which items can run
+    side by side without two agents touching one file. The list is also each agent's complete scope.
+    - Not "the adapters in `packages/server`". Write each path.
+    - Not "and their callers". Name each caller.
+    - Not "about 40 files". Give the list itself.
+
+    An item with no named-file plan gets a planning agent first. That agent reads the code, writes the
+    `## Plan` section into the item file, and changes nothing else. Only then is the item implemented.
+    A file an implementing agent finds it must touch that is not on the list is reported back to the
+    operator, who adds it to the plan before the agent proceeds. The agent never widens its own scope.
 ## Handoff (operator, 2026-09-27 late)
 
 The operator stopped dispatching here because its context grew large. A fresh operator picks up from this section. Read it first, then the status table below.
@@ -94,15 +107,16 @@ Each was told never to commit. Commit each one's files, and only its files, when
 
 If an agent's notification never arrives (the operator lost track), look for uncommitted files in its scope with `git status`, send a sonnet sub-agent to review them, and commit what is green.
 
-O12 (841b050e7), SL9 (4712d1667) and O10 (c9e2915d9) finished after this handoff was written and are committed. Master merged again (56edcf26a) and hydration-recipes rebuilt. No agent is running. B01 is merged and `npm install` has run; the operator stopped there on the user's instruction.
+O12 (841b050e7), SL9 (4712d1667) and O10 (c9e2915d9) finished after this handoff was written and are committed. Master merged again (56edcf26a) and hydration-recipes rebuilt. No agent is running. B01 is merged, `npm install` has run, and the four steps below are done.
 
 ### Uncommitted state not owned by a running agent
 
-- **Where the operator stopped (user's instruction):** B01 is merged (bf8e0d2f6) and `npm install` has run; zod 4.6.5 resolves. Nothing else ran after it. The next session does, in order:
-  1. `npm run build:clean` (zod changed under every package's compiled output).
-  2. A full `npm run ward`, timeout 600000. B01's last full run in its worktree (1790565795209-c4f2) had four reds, none from zod, all older than the merge (F37).
-  3. Delete `worktrees/gp-b01-zod4` (`git worktree remove`) and the `gp-b01-zod4` branch.
-  4. Reconnect this session's MCP after the rebuild (`/mcp`).
+- **The four post-B01 steps are done (2026-09-27).**
+  1. `npm run build:clean` passed. esbuild warned 4 times about `@gateway/node`'s export condition order (F38).
+  2. A full `npm run ward` (1790567188706-0679) reproduced F37 exactly, plus two reds F37 did not list. All of them are fixed; see F37's row. The full regression run afterwards (1790568891949-552e) exited 0 on every check type.
+  3. `gp-b01-zod4` was confirmed an ancestor of `gateway-pivot` with a clean worktree, then its worktree was removed and the branch deleted.
+  4. The MCP was reconnected with `/mcp`.
+  The F37 fixes are not committed yet.
 
 ### A12 (shared adapters) remaining after the running agents
 
@@ -428,7 +442,8 @@ Work that execution found and no item file owns. Each runs like an item.
 | F34 | `streamLinesProxy` (`@gateway/node`) cannot read back a spawned call's cwd or command; O12 (841b050e7) mocks `streamLines` directly by command in the cleanup and ward step-handler proxies. Add a read-back like F29's `run.getOptionsFor`, then switch those proxies to it. | O12 | open | |
 | F35 | `step-handler-riftcarver-broker.proxy.ts` mocks raw `spawn` for `cp` and adds two `as never` casts on `.implement(...)` (O10, c9e2915d9), because its broker is still on the shared adapters. Migrate `step-handler-riftcarver-broker.ts` itself (streamLines, run, ensureDir, readdirEntriesSync, join) and drop both. | O10 | open | |
 | F36 | Five siegelense install integration tests (`start-install`, `install-flow`) pin the old small recipes scaffold; F20 rewrote it richer and SL9 moved it onto the gateway. Found by the second master merge's resolver. | merge 56edcf26a | done | The richer scaffold is intended; the tests now assert it. |
-| F37 | Reds in B01's full ward run (1790565795209-c4f2), none from zod, each file identical to gateway-pivot's tip: lint in `eslint-plugin`'s `gateway-imports-target-transformer.ts` (4) and `testing`'s `workspace-package-{export-source,imports-target}-transformer.ts` (5, `no-unnecessary-condition`); unit in `session-forensics`'s `digest-run-responder.test.ts` (11) and `siegelense`'s `instance-start-broker.test.ts` (1), both a `homedir` stage on `#gateway/node/os` against Jest's sandboxed `$HOME`. Reproduce on the rebuilt tree first. | B01 | open | |
+| F37 | Reds in B01's full ward run (1790565795209-c4f2), reproduced on the rebuilt tree (1790567188706-0679), plus two it had not listed: lint in `eslint-plugin`'s `gateway-imports-target-transformer.ts` (4) and `testing`'s `workspace-package-{export-source,imports-target}-transformer.ts` (5, `no-unnecessary-condition`); unit in `session-forensics`'s `digest-run-responder.test.ts` (11) and `siegelense`'s `instance-start-broker.test.ts` (1), both a `homedir` stage on `#gateway/node/os` against Jest's sandboxed `$HOME`; unit in `hydration`'s `registry-create-broker.test.ts` (1, new); and a slow test in `cli`'s `start-install.integration.test.ts` (11.2s against the 10s bar, new). | B01 | done, uncommitted | Lint: dropped the `?.` the contract types make dead. `homedir`: `homedir()` takes no argument, so every proxy stages it at one address and the latest wins; `dungeonmasterHomeFindBrokerProxy` stages a real passthrough in its constructor. `transcriptResolveBrokerProxy`'s setup methods and `stageBootLockAcquireFailsWithReadError` now re-stage `/home/user` themselves. Hydration: TypeScript cuts the message off at a length that includes the absolute checkout path, so the regex now matches each truncated type only up to `Ingredient<{`. Slow test: the config-run harness spawns `tsx`'s CLI under `node` instead of `npx tsx`, and the happy-path test starts that child before its in-process typecheck. Run alone, the slowest test fell from 3.1s to 1.7s. Full ward 1790568891949-552e exited 0. |
+| F38 | `npm run build:clean` prints 4 esbuild warnings: `packages/@gateway/node/package.json` lists the `types` export condition after `import` and `require`, so `types` is never used. Move `types` first. | post-B01 build | open | |
 | F25 | `@gateway/node`'s `run`: `runProxy()` addresses a call by `command` alone, and `RunNotFoundError` has no proxy, so `enforce-proxy-child-creation` blocks any caller that catches it. W2 (40b6641d5) mocked `run` directly and let a missing `git` reject where the old adapter resolved `exitCode: 1`. F25 fixes the gateway, then restores that fallback in ward's git brokers. Every other `childProcessSpawnCaptureAdapter` group waits for F25. | W2 | done 5b3a16ede | `runProxy` stages by `command`, `args` and `cwd`; `RunNotFoundErrorProxy` exists; ward git brokers restored. `@gateway/node` rebuilt. The `run` recipe is in the A12 item. |
 | F3 | Ward's `typecheck` uses `tsconfig.json`, not `tsconfig.build.json`, so a build-only failure (TS6059 in ed13c2901, TS2379 in G15) passes ward. Consider a build-config `--noEmit` check in ward. | operator | done | a8369332a; ward rebuilt. Typecheck runs a second pass against `tsconfig.build.json`. It found TS2379 in `testing` (F11 fixing) and TS6059 in `@gateway/browser` (G21 fixing). |
 
@@ -446,3 +461,4 @@ One line per session: the date, what landed, and where the next session starts.
 | Date | What happened |
 |---|---|
 | 2026-09-26 | Epic planned. Item files written. Nothing executed yet. |
+| 2026-09-27 | After B01: clean build, full ward, `gp-b01-zod4` removed, MCP reconnected. F37 fixed (uncommitted), full ward exit 0. F38 opened. Next: commit F37, then the "Before the next operator dispatches anything" section. |

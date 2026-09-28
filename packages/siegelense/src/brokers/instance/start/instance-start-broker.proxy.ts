@@ -587,7 +587,9 @@ export const instanceStartBrokerProxy = (): {
       registry: Registry;
       error: Error;
     }): void => {
-      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+      // Staged explicitly, as `stageBoot` does: this scenario reaches registryReadBroker's
+      // homedir() fallback with no other setup method having pinned it.
+      repoLinkProxy.setupHomeOnly({ homeDir: HOME_DIR_VALUE, homePath: HOME_PATH });
       // Same drain `stageBoot` runs, for the same reason (see PATH_JOIN_DRAIN_COUNT above):
       // bootLockAcquireBrokerProxy/bootLockReleaseBrokerProxy each queue one-shot pathJoin
       // resolutions unconditionally at construction, and this scenario reaches registryReadBroker's

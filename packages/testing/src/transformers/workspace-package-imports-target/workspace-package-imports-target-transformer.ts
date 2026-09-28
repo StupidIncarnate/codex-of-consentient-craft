@@ -38,7 +38,7 @@ export const workspacePackageImportsTargetTransformer = ({
     const target =
       typeof value === 'string'
         ? value
-        : (value?.source ?? value?.import ?? value?.require ?? value?.default);
+        : (value.source ?? value.import ?? value.require ?? value.default);
     if (!target) {
       continue;
     }

@@ -30,6 +30,7 @@ import { errorMessageContract, ExitCodeStub } from '@dungeonmaster/shared/contra
 import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
 
 const RUN_TIMEOUT_MS = 20_000;
+const TSX_CLI_PATH = require.resolve('tsx/cli');
 
 export const scaffoldedPlaywrightConfigRunHarness = (): {
   installPlaywrightTestStub: (params: { dirPath: string }) => void;
@@ -69,7 +70,8 @@ export const scaffoldedPlaywrightConfigRunHarness = (): {
       const evalCode =
         `const c = require(${JSON.stringify(configPath)}); ` +
         'process.stdout.write(JSON.stringify(c.default ?? c));';
-      const child = spawn('npx', ['tsx', '-e', evalCode], {
+      // tsx's own CLI under this node, not `npx tsx`: npx adds its own startup to every run.
+      const child = spawn(process.execPath, [TSX_CLI_PATH, '-e', evalCode], {
         stdio: ['ignore', 'pipe', 'pipe'],
         env: { ...process.env, ...env, FORCE_COLOR: '0' },
         cwd,
