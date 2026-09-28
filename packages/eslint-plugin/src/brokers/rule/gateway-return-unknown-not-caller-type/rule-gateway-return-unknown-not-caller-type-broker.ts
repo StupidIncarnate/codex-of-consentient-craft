@@ -26,7 +26,7 @@ import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-cont
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { isGatewayFileGuard } from '../../../guards/is-gateway-file/is-gateway-file-guard';
-import { eslintTypedTypeParameterNameAdapter } from '../../../adapters/eslint/typed-type-parameter-name/eslint-typed-type-parameter-name-adapter';
+import { typedTypeParameterNameTransformer } from '../../../transformers/typed-type-parameter-name/typed-type-parameter-name-transformer';
 import { isTypeNameReferencedLayerBroker } from './is-type-name-referenced-layer-broker';
 import { checkAnyLeakReturnLayerBroker } from './check-any-leak-return-layer-broker';
 import { isJsonParseOrDynamicImportCallLayerBroker } from './is-json-parse-or-dynamic-import-call-layer-broker';
@@ -78,7 +78,7 @@ export const ruleGatewayReturnUnknownNotCallerTypeBroker = (): EslintRule => ({
           return;
         }
 
-        const typeParameterName = eslintTypedTypeParameterNameAdapter({
+        const typeParameterName = typedTypeParameterNameTransformer({
           context: ctx,
           node: candidate.typeName,
         });
@@ -110,7 +110,7 @@ export const ruleGatewayReturnUnknownNotCallerTypeBroker = (): EslintRule => ({
           const candidate = isPromiseWrapped ? promiseInner : returnTypeAnnotation;
 
           if (candidate?.type === 'TSTypeReference' && candidate.typeName?.type === 'Identifier') {
-            const typeParameterName = eslintTypedTypeParameterNameAdapter({
+            const typeParameterName = typedTypeParameterNameTransformer({
               context: ctx,
               node: candidate.typeName,
             });

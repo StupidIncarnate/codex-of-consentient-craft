@@ -7,7 +7,7 @@
  * a type parameter (the caller's own invented type) while leaving a cast to a real type alone.
  *
  * USAGE:
- * const typeParameterName = eslintTypedTypeParameterNameAdapter({ context, node });
+ * const typeParameterName = typedTypeParameterNameTransformer({ context, node });
  * // node is the Identifier in `JSON.parse(text) as T` — returns 'T' when `T` resolves to that
  * // function's own `<T>` declaration, undefined when it resolves to an interface, a type alias,
  * // a class, or nothing at all
@@ -17,7 +17,7 @@ import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import * as ts from '#gateway/npm/typescript';
 import { identifierContract, type Identifier } from '@dungeonmaster/shared/contracts';
 
-export const eslintTypedTypeParameterNameAdapter = ({
+export const typedTypeParameterNameTransformer = ({
   context,
   node,
 }: {

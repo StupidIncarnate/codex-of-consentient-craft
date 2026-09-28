@@ -1,4 +1,4 @@
-import { eslintTypedRuleTesterAdapter } from '../../../adapters/eslint/typed-rule-tester/eslint-typed-rule-tester-adapter';
+import { typedRuleTesterHarness } from '../../../../test/harnesses/typed-rule-tester/typed-rule-tester.harness';
 import { ruleGatewayReturnUnknownNotCallerTypeBroker } from './rule-gateway-return-unknown-not-caller-type-broker';
 
 // Real files on disk, so `parserOptions.project: true` resolves each one to its own package's real
@@ -11,7 +11,7 @@ const REPO_ROOT = DIR_SEGMENTS.slice(0, -6).join('/');
 const NODE_PACKAGE_FILE = `${DIR_SEGMENTS.slice(0, -3).join('/')}/index.ts`;
 const GATEWAY_NODE_FILE = `${REPO_ROOT}/packages/@gateway/node/src/fetch/fetch.ts`;
 
-const ruleTester = eslintTypedRuleTesterAdapter();
+const ruleTester = typedRuleTesterHarness();
 
 ruleTester.run(
   'gateway-return-unknown-not-caller-type',

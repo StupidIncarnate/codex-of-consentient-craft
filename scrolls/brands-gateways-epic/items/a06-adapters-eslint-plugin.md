@@ -721,3 +721,29 @@ Delete:
 - `packages/eslint-plugin/src/adapters/eslint/rule-tester/eslint-rule-tester-adapter.ts`
 
 Not touched: `adapters/eslint/typed-rule-tester/**` and the other `typed-*` adapters (G-J). Docs and doc comments only mentioning the name in `typed-rule-tester` stay for G-J.
+
+### G-J
+
+Scope (2026-09-28), all under `packages/eslint-plugin/`. The four typed adapters hold our own logic over the type
+checker and each returns `boolean | undefined` / a branded value-or-undefined, so they are transformers (a guard
+returns `boolean` only, with all-optional params). `ESLintUtils`/`TSESLint`/`TSESTree`/`ts` keep coming from
+`#gateway/npm/typescript-eslint__utils` and `#gateway/npm/typescript`; the tests' raw `eslint` and
+`@typescript-eslint/parser` imports move to `#gateway/npm/eslint` and `#gateway/npm/typescript-eslint__parser`.
+
+Create:
+- `src/transformers/typed-function-takes-no-args/typed-function-takes-no-args-transformer.ts` (+ `.integration.test.ts`)
+- `src/transformers/typed-parser-services/typed-parser-services-transformer.ts` (+ `.integration.test.ts`)
+- `src/transformers/typed-return-is-void-like/typed-return-is-void-like-transformer.ts` (+ `.integration.test.ts`)
+- `src/transformers/typed-type-parameter-name/typed-type-parameter-name-transformer.ts` (+ `.integration.test.ts`)
+- `test/harnesses/typed-rule-tester/typed-rule-tester.harness.ts` (`typedRuleTesterHarness`; `REPO_ROOT` is five levels up from its folder)
+
+Edit:
+- `src/brokers/rule/enforce-folder-return-types/check-folder-return-type-layer-broker.ts`, `.proxy.ts` (registerMock targets become the transformers)
+- `src/brokers/rule/enforce-folder-return-types/rule-enforce-folder-return-types-broker.integration.test.ts` (harness; `ADAPTER_FILE` anchor pointed at a deleted adapter)
+- `src/brokers/rule/platform-globals-ban/rule-platform-globals-ban-broker.ts`, `.proxy.ts`, `.integration.test.ts`
+- `src/brokers/rule/ban-proxy-empty-called-with/rule-ban-proxy-empty-called-with-broker.ts`, `.proxy.ts`, `.integration.test.ts`
+- `src/brokers/rule/gateway-return-unknown-not-caller-type/rule-gateway-return-unknown-not-caller-type-broker.ts`, `.proxy.ts`, `.integration.test.ts`
+- `CLAUDE.md` (Testing line names the second harness)
+
+Delete: every file under `src/adapters/eslint/typed-*/`, then `src/adapters/` itself.
+No `package.json` or `tsconfig.json` change (`tsconfig.json` already includes `test/**/*`).

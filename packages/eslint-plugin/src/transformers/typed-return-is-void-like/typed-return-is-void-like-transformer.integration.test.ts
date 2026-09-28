@@ -1,19 +1,19 @@
-import { Linter } from 'eslint';
-import * as tsParser from '@typescript-eslint/parser';
-import { eslintTypedReturnIsVoidLikeAdapter } from './eslint-typed-return-is-void-like-adapter';
+import { Linter } from '#gateway/npm/eslint';
+import * as tsParser from '#gateway/npm/typescript-eslint__parser';
+import { typedReturnIsVoidLikeTransformer } from './typed-return-is-void-like-transformer';
 
-// Real ESLint + real TypeScript program: this adapter only resolves anything once a full typed
-// lint pass has built one, so it is exercised the same way eslintTypedFunctionTakesNoArgsAdapter
+// Real ESLint + real TypeScript program: this transformer only resolves anything once a full typed
+// lint pass has built one, so it is exercised the same way typedFunctionTakesNoArgsTransformer
 // is — against this package's own real file (no DOM lib) rather than a synthetic fixture. Built by
 // slicing __dirname's own segments, not path.join, so the filename carries no unresolved `..` for
 // `parserOptions.project: true` to walk from.
 const DIR_SEGMENTS = __dirname.split('/');
-// .../packages/eslint-plugin/src/adapters/eslint/typed-return-is-void-like — 3 up is src/
-const REAL_FILE = `${DIR_SEGMENTS.slice(0, -3).join('/')}/index.ts`;
+// .../packages/eslint-plugin/src/transformers/typed-return-is-void-like — 2 up is src/
+const REAL_FILE = `${DIR_SEGMENTS.slice(0, -2).join('/')}/index.ts`;
 
-describe('eslintTypedReturnIsVoidLikeAdapter', () => {
+describe('typedReturnIsVoidLikeTransformer', () => {
   it('VALID: {declared void, no call} => returns [true]', () => {
-    const found: ReturnType<typeof eslintTypedReturnIsVoidLikeAdapter>[] = [];
+    const found: ReturnType<typeof typedReturnIsVoidLikeTransformer>[] = [];
     const linter = new Linter({ configType: 'flat' });
 
     linter.verify(
@@ -30,7 +30,7 @@ describe('eslintTypedReturnIsVoidLikeAdapter', () => {
               x: {
                 create: (context: unknown) => ({
                   ArrowFunctionExpression: (node: unknown): void => {
-                    found.push(eslintTypedReturnIsVoidLikeAdapter({ context, node }));
+                    found.push(typedReturnIsVoidLikeTransformer({ context, node }));
                   },
                 }),
               },
@@ -46,7 +46,7 @@ describe('eslintTypedReturnIsVoidLikeAdapter', () => {
   });
 
   it('VALID: {declared Promise<{ success: true }>} => returns [true]', () => {
-    const found: ReturnType<typeof eslintTypedReturnIsVoidLikeAdapter>[] = [];
+    const found: ReturnType<typeof typedReturnIsVoidLikeTransformer>[] = [];
     const linter = new Linter({ configType: 'flat' });
 
     linter.verify(
@@ -63,7 +63,7 @@ describe('eslintTypedReturnIsVoidLikeAdapter', () => {
               x: {
                 create: (context: unknown) => ({
                   ArrowFunctionExpression: (node: unknown): void => {
-                    found.push(eslintTypedReturnIsVoidLikeAdapter({ context, node }));
+                    found.push(typedReturnIsVoidLikeTransformer({ context, node }));
                   },
                 }),
               },
@@ -79,7 +79,7 @@ describe('eslintTypedReturnIsVoidLikeAdapter', () => {
   });
 
   it('INVALID: {declared boolean} => returns [false]', () => {
-    const found: ReturnType<typeof eslintTypedReturnIsVoidLikeAdapter>[] = [];
+    const found: ReturnType<typeof typedReturnIsVoidLikeTransformer>[] = [];
     const linter = new Linter({ configType: 'flat' });
 
     linter.verify(
@@ -96,7 +96,7 @@ describe('eslintTypedReturnIsVoidLikeAdapter', () => {
               x: {
                 create: (context: unknown) => ({
                   ArrowFunctionExpression: (node: unknown): void => {
-                    found.push(eslintTypedReturnIsVoidLikeAdapter({ context, node }));
+                    found.push(typedReturnIsVoidLikeTransformer({ context, node }));
                   },
                 }),
               },
@@ -112,7 +112,7 @@ describe('eslintTypedReturnIsVoidLikeAdapter', () => {
   });
 
   it('INVALID: {declared Promise<string | undefined>} => returns [false]', () => {
-    const found: ReturnType<typeof eslintTypedReturnIsVoidLikeAdapter>[] = [];
+    const found: ReturnType<typeof typedReturnIsVoidLikeTransformer>[] = [];
     const linter = new Linter({ configType: 'flat' });
 
     linter.verify(
@@ -129,7 +129,7 @@ describe('eslintTypedReturnIsVoidLikeAdapter', () => {
               x: {
                 create: (context: unknown) => ({
                   ArrowFunctionExpression: (node: unknown): void => {
-                    found.push(eslintTypedReturnIsVoidLikeAdapter({ context, node }));
+                    found.push(typedReturnIsVoidLikeTransformer({ context, node }));
                   },
                 }),
               },
@@ -145,7 +145,7 @@ describe('eslintTypedReturnIsVoidLikeAdapter', () => {
   });
 
   it('VALID: {call resolving to void} => returns [true, true]', () => {
-    const found: ReturnType<typeof eslintTypedReturnIsVoidLikeAdapter>[] = [];
+    const found: ReturnType<typeof typedReturnIsVoidLikeTransformer>[] = [];
     const linter = new Linter({ configType: 'flat' });
 
     linter.verify(
@@ -162,10 +162,10 @@ describe('eslintTypedReturnIsVoidLikeAdapter', () => {
               x: {
                 create: (context: unknown) => ({
                   ArrowFunctionExpression: (node: unknown): void => {
-                    found.push(eslintTypedReturnIsVoidLikeAdapter({ context, node }));
+                    found.push(typedReturnIsVoidLikeTransformer({ context, node }));
                   },
                   CallExpression: (node: unknown): void => {
-                    found.push(eslintTypedReturnIsVoidLikeAdapter({ context, node }));
+                    found.push(typedReturnIsVoidLikeTransformer({ context, node }));
                   },
                 }),
               },
@@ -181,7 +181,7 @@ describe('eslintTypedReturnIsVoidLikeAdapter', () => {
   });
 
   it('INVALID: {call resolving to a real value} => returns [false, false]', () => {
-    const found: ReturnType<typeof eslintTypedReturnIsVoidLikeAdapter>[] = [];
+    const found: ReturnType<typeof typedReturnIsVoidLikeTransformer>[] = [];
     const linter = new Linter({ configType: 'flat' });
 
     linter.verify(
@@ -198,10 +198,10 @@ describe('eslintTypedReturnIsVoidLikeAdapter', () => {
               x: {
                 create: (context: unknown) => ({
                   ArrowFunctionExpression: (node: unknown): void => {
-                    found.push(eslintTypedReturnIsVoidLikeAdapter({ context, node }));
+                    found.push(typedReturnIsVoidLikeTransformer({ context, node }));
                   },
                   CallExpression: (node: unknown): void => {
-                    found.push(eslintTypedReturnIsVoidLikeAdapter({ context, node }));
+                    found.push(typedReturnIsVoidLikeTransformer({ context, node }));
                   },
                 }),
               },
@@ -217,7 +217,7 @@ describe('eslintTypedReturnIsVoidLikeAdapter', () => {
   });
 
   it('EMPTY: {non-callable value passed as a declaration node} => returns undefined', () => {
-    const found: ReturnType<typeof eslintTypedReturnIsVoidLikeAdapter>[] = [];
+    const found: ReturnType<typeof typedReturnIsVoidLikeTransformer>[] = [];
     const linter = new Linter({ configType: 'flat' });
 
     linter.verify(
@@ -234,7 +234,7 @@ describe('eslintTypedReturnIsVoidLikeAdapter', () => {
               x: {
                 create: (context: unknown) => ({
                   VariableDeclarator: (node: { init: unknown }): void => {
-                    found.push(eslintTypedReturnIsVoidLikeAdapter({ context, node: node.init }));
+                    found.push(typedReturnIsVoidLikeTransformer({ context, node: node.init }));
                   },
                 }),
               },

@@ -1,4 +1,4 @@
-import { eslintTypedRuleTesterAdapter } from '../../../adapters/eslint/typed-rule-tester/eslint-typed-rule-tester-adapter';
+import { typedRuleTesterHarness } from '../../../../test/harnesses/typed-rule-tester/typed-rule-tester.harness';
 import { rulePlatformGlobalsBanBroker } from './rule-platform-globals-ban-broker';
 
 // Real files on disk, so `parserOptions.project: true` resolves each one to its OWN package's real
@@ -19,7 +19,7 @@ const BROWSER_PACKAGE_FILE = `${REPO_ROOT}/packages/web/src/main.ts`;
 const GATEWAY_NODE_FILE = `${REPO_ROOT}/packages/@gateway/node/src/process/process.ts`;
 const GATEWAY_BROWSER_FILE = `${REPO_ROOT}/packages/@gateway/browser/src/fetch/fetch.ts`;
 
-const ruleTester = eslintTypedRuleTesterAdapter();
+const ruleTester = typedRuleTesterHarness();
 
 ruleTester.run('platform-globals-ban', rulePlatformGlobalsBanBroker(), {
   valid: [

@@ -1,4 +1,4 @@
-import { eslintTypedRuleTesterAdapter } from '../../../adapters/eslint/typed-rule-tester/eslint-typed-rule-tester-adapter';
+import { typedRuleTesterHarness } from '../../../../test/harnesses/typed-rule-tester/typed-rule-tester.harness';
 import { ruleEnforceFolderReturnTypesBroker } from './rule-enforce-folder-return-types-broker';
 
 // Real files on disk, so `parserOptions.project: true` resolves each one to its own package's real
@@ -16,14 +16,14 @@ const DIR_SEGMENTS = __dirname.split('/');
 const REPO_ROOT = DIR_SEGMENTS.slice(0, -6).join('/');
 const BROKER_FILE = `${DIR_SEGMENTS.join('/')}/rule-enforce-folder-return-types-broker.ts`;
 const BROKER_PROXY_FILE = `${DIR_SEGMENTS.join('/')}/check-folder-return-type-layer-broker.proxy.ts`;
-const ADAPTER_FILE = `${REPO_ROOT}/packages/eslint-plugin/src/adapters/eslint/typed-parser-services/eslint-typed-parser-services-adapter.ts`;
+const ADAPTER_FILE = `${REPO_ROOT}/packages/hydration-recipes/src/adapters/dm-jsonl/append/dm-jsonl-append-adapter.ts`;
 const GUARD_FILE = `${REPO_ROOT}/packages/eslint-plugin/src/guards/is-gateway-file/is-gateway-file-guard.ts`;
 const RESPONDER_FILE = `${REPO_ROOT}/packages/eslint-plugin/src/responders/eslint-plugin/create/eslint-plugin-create-responder.ts`;
 const FLOW_FILE = `${REPO_ROOT}/packages/eslint-plugin/src/flows/eslint-plugin/eslint-plugin-flow.ts`;
 const CONTRACT_FILE = `${REPO_ROOT}/packages/eslint-plugin/src/contracts/eslint-rule/eslint-rule-contract.ts`;
 const TRANSFORMER_FILE = `${REPO_ROOT}/packages/eslint-plugin/src/transformers/function-exporting-folder-from-filename/function-exporting-folder-from-filename-transformer.ts`;
 
-const ruleTester = eslintTypedRuleTesterAdapter();
+const ruleTester = typedRuleTesterHarness();
 
 ruleTester.run('enforce-folder-return-types', ruleEnforceFolderReturnTypesBroker(), {
   valid: [

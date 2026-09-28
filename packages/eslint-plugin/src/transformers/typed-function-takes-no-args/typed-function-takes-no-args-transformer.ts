@@ -6,7 +6,7 @@
  * first parameter is required), which AST shape alone cannot make.
  *
  * USAGE:
- * const takesNoArgs = eslintTypedFunctionTakesNoArgsAdapter({ context, node: fnExpressionNode });
+ * const takesNoArgs = typedFunctionTakesNoArgsTransformer({ context, node: fnExpressionNode });
  * // true when every call signature of `node`'s type accepts zero arguments (randomUUID);
  * // false when at least one signature requires an argument (readFileSync); undefined when the
  * // type carries no call signature at all (unresolved, or not callable) — the caller should not
@@ -16,7 +16,7 @@ import { ESLintUtils } from '#gateway/npm/typescript-eslint__utils';
 import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import * as ts from '#gateway/npm/typescript';
 
-export const eslintTypedFunctionTakesNoArgsAdapter = ({
+export const typedFunctionTakesNoArgsTransformer = ({
   context,
   node,
 }: {

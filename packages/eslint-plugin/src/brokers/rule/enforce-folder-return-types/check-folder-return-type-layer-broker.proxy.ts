@@ -1,9 +1,7 @@
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { FilePathStub } from '@dungeonmaster/shared/contracts';
-import { eslintTypedReturnIsVoidLikeAdapter } from '../../../adapters/eslint/typed-return-is-void-like/eslint-typed-return-is-void-like-adapter';
-import { eslintTypedReturnIsVoidLikeAdapterProxy } from '../../../adapters/eslint/typed-return-is-void-like/eslint-typed-return-is-void-like-adapter.proxy';
-import { eslintTypedParserServicesAdapter } from '../../../adapters/eslint/typed-parser-services/eslint-typed-parser-services-adapter';
-import { eslintTypedParserServicesAdapterProxy } from '../../../adapters/eslint/typed-parser-services/eslint-typed-parser-services-adapter.proxy';
+import { typedReturnIsVoidLikeTransformer } from '../../../transformers/typed-return-is-void-like/typed-return-is-void-like-transformer';
+import { typedParserServicesTransformer } from '../../../transformers/typed-parser-services/typed-parser-services-transformer';
 import type { TsestreeStub } from '../../../contracts/tsestree/tsestree.stub';
 
 type Tsestree = ReturnType<typeof TsestreeStub>;
@@ -20,13 +18,8 @@ export const checkFolderReturnTypeLayerBrokerProxy = (): {
     isVoidLike: boolean | undefined;
   }) => void;
 } => {
-  // Both children are empty, real-execution DSL proxies (see their own folders) — called only to
-  // satisfy enforce-proxy-child-creation; this proxy mocks the two adapters directly below.
-  eslintTypedReturnIsVoidLikeAdapterProxy();
-  eslintTypedParserServicesAdapterProxy();
-
-  const returnIsVoidLikeHandle = registerMock({ fn: eslintTypedReturnIsVoidLikeAdapter });
-  const declarationFileHandle = registerMock({ fn: eslintTypedParserServicesAdapter });
+  const returnIsVoidLikeHandle = registerMock({ fn: typedReturnIsVoidLikeTransformer });
+  const declarationFileHandle = registerMock({ fn: typedParserServicesTransformer });
 
   return {
     // Addressed by the exact function node under lint, so a test can stage both the declaration's

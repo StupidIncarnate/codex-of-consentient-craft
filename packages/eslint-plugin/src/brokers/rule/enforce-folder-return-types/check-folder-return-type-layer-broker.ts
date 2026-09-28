@@ -15,8 +15,8 @@ import type { AdapterResult, FolderType } from '@dungeonmaster/shared/contracts'
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
-import { eslintTypedReturnIsVoidLikeAdapter } from '../../../adapters/eslint/typed-return-is-void-like/eslint-typed-return-is-void-like-adapter';
-import { eslintTypedParserServicesAdapter } from '../../../adapters/eslint/typed-parser-services/eslint-typed-parser-services-adapter';
+import { typedReturnIsVoidLikeTransformer } from '../../../transformers/typed-return-is-void-like/typed-return-is-void-like-transformer';
+import { typedParserServicesTransformer } from '../../../transformers/typed-parser-services/typed-parser-services-transformer';
 import { isGatewayFileGuard } from '../../../guards/is-gateway-file/is-gateway-file-guard';
 import { functionExportingFolderFromFilenameTransformer } from '../../../transformers/function-exporting-folder-from-filename/function-exporting-folder-from-filename-transformer';
 
@@ -50,7 +50,7 @@ export const checkFolderReturnTypeLayerBroker = ({
   const typeArgs = typeAnnotation.typeArguments ?? typeAnnotation.typeParameters;
 
   if (!isProxyFile) {
-    const declaredIsVoidLike = eslintTypedReturnIsVoidLikeAdapter({ context: ctx, node });
+    const declaredIsVoidLike = typedReturnIsVoidLikeTransformer({ context: ctx, node });
 
     // Every ExpressionStatement in the function's own top-level block whose expression (bare, or
     // unwrapped from one `await`) is a plain-identifier call — a MemberExpression callee
@@ -76,7 +76,7 @@ export const checkFolderReturnTypeLayerBroker = ({
     }, []);
 
     const hasInformativeDiscardedCall = discardedCalls.some((callNode) => {
-      const declarationFile = eslintTypedParserServicesAdapter({
+      const declarationFile = typedParserServicesTransformer({
         context: ctx,
         node: callNode.callee,
       });
@@ -93,7 +93,7 @@ export const checkFolderReturnTypeLayerBroker = ({
         return false;
       }
 
-      return eslintTypedReturnIsVoidLikeAdapter({ context: ctx, node: callNode }) === false;
+      return typedReturnIsVoidLikeTransformer({ context: ctx, node: callNode }) === false;
     });
 
     if (declaredIsVoidLike === true && hasInformativeDiscardedCall) {

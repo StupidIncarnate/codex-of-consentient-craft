@@ -20,7 +20,7 @@ import type { EslintContext } from '../../../contracts/eslint-context/eslint-con
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { identifierContract, type Identifier } from '@dungeonmaster/shared/contracts';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
-import { eslintTypedFunctionTakesNoArgsAdapter } from '../../../adapters/eslint/typed-function-takes-no-args/eslint-typed-function-takes-no-args-adapter';
+import { typedFunctionTakesNoArgsTransformer } from '../../../transformers/typed-function-takes-no-args/typed-function-takes-no-args-transformer';
 
 export const ruleBanProxyEmptyCalledWithBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -47,7 +47,7 @@ export const ruleBanProxyEmptyCalledWithBroker = (): EslintRule => ({
 
     // `fnProperty.value` reads as `unknown` from the Tsestree contract (the same gap
     // validate-no-exposed-child-proxies-layer-broker documents for Property.value) — it is handed
-    // straight to eslintTypedFunctionTakesNoArgsAdapter, whose own `node` parameter is `unknown` too
+    // straight to typedFunctionTakesNoArgsTransformer, whose own `node` parameter is `unknown` too
     // and narrows it internally via the real TSESTree.Node cast, so no narrowing happens here.
     const fnNodesByHandleName = new Map<Identifier, unknown>();
 
@@ -107,7 +107,7 @@ export const ruleBanProxyEmptyCalledWithBroker = (): EslintRule => ({
           return;
         }
 
-        const takesNoArgs = eslintTypedFunctionTakesNoArgsAdapter({
+        const takesNoArgs = typedFunctionTakesNoArgsTransformer({
           context: ctx,
           node: fnValueNode,
         });

@@ -1,18 +1,18 @@
-import { Linter } from 'eslint';
-import * as tsParser from '@typescript-eslint/parser';
-import { eslintTypedTypeParameterNameAdapter } from './eslint-typed-type-parameter-name-adapter';
+import { Linter } from '#gateway/npm/eslint';
+import * as tsParser from '#gateway/npm/typescript-eslint__parser';
+import { typedTypeParameterNameTransformer } from './typed-type-parameter-name-transformer';
 
 // Real ESLint + real TypeScript program: parserServices only exist once a full typed lint pass has
-// built one, so this exercises the adapter the same way platform-globals-ban does, against this
+// built one, so this exercises the transformer the same way platform-globals-ban does, against this
 // package's own real file rather than a synthetic fixture. Built by slicing `__dirname`'s own
 // segments, not `path.join`, so the filename carries no unresolved `..` for
 // `parserOptions.project: true` to walk from.
 const DIR_SEGMENTS = __dirname.split('/');
-const REAL_FILE = `${DIR_SEGMENTS.slice(0, -3).join('/')}/index.ts`;
+const REAL_FILE = `${DIR_SEGMENTS.slice(0, -2).join('/')}/index.ts`;
 
-describe('eslintTypedTypeParameterNameAdapter', () => {
+describe('typedTypeParameterNameTransformer', () => {
   it("VALID: {identifier resolving to the enclosing function's own type parameter} => returns its name", () => {
-    const found: ReturnType<typeof eslintTypedTypeParameterNameAdapter>[] = [];
+    const found: ReturnType<typeof typedTypeParameterNameTransformer>[] = [];
     const linter = new Linter({ configType: 'flat' });
 
     linter.verify(
@@ -31,7 +31,7 @@ describe('eslintTypedTypeParameterNameAdapter', () => {
                   // Mirrors exactly what the rule passes: the Identifier under a cast's
                   // TSTypeReference (`typeAnnotation.typeName`), never the TSTypeReference itself.
                   'TSAsExpression > TSTypeReference > Identifier': (node: unknown): void => {
-                    found.push(eslintTypedTypeParameterNameAdapter({ context, node }));
+                    found.push(typedTypeParameterNameTransformer({ context, node }));
                   },
                 }),
               },
@@ -47,7 +47,7 @@ describe('eslintTypedTypeParameterNameAdapter', () => {
   });
 
   it('EMPTY: {identifier resolving to a real interface} => returns undefined', () => {
-    const found: ReturnType<typeof eslintTypedTypeParameterNameAdapter>[] = [];
+    const found: ReturnType<typeof typedTypeParameterNameTransformer>[] = [];
     const linter = new Linter({ configType: 'flat' });
 
     linter.verify(
@@ -64,7 +64,7 @@ describe('eslintTypedTypeParameterNameAdapter', () => {
               x: {
                 create: (context: unknown) => ({
                   'TSAsExpression > TSTypeReference > Identifier': (node: unknown): void => {
-                    found.push(eslintTypedTypeParameterNameAdapter({ context, node }));
+                    found.push(typedTypeParameterNameTransformer({ context, node }));
                   },
                 }),
               },
@@ -80,7 +80,7 @@ describe('eslintTypedTypeParameterNameAdapter', () => {
   });
 
   it('EMPTY: {identifier resolving to a lib type} => returns undefined', () => {
-    const found: ReturnType<typeof eslintTypedTypeParameterNameAdapter>[] = [];
+    const found: ReturnType<typeof typedTypeParameterNameTransformer>[] = [];
     const linter = new Linter({ configType: 'flat' });
 
     linter.verify(
@@ -97,7 +97,7 @@ describe('eslintTypedTypeParameterNameAdapter', () => {
               x: {
                 create: (context: unknown) => ({
                   'TSAsExpression > TSTypeReference > Identifier': (node: unknown): void => {
-                    found.push(eslintTypedTypeParameterNameAdapter({ context, node }));
+                    found.push(typedTypeParameterNameTransformer({ context, node }));
                   },
                 }),
               },

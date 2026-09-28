@@ -1,19 +1,19 @@
-import { Linter } from 'eslint';
-import * as tsParser from '@typescript-eslint/parser';
-import { eslintTypedFunctionTakesNoArgsAdapter } from './eslint-typed-function-takes-no-args-adapter';
+import { Linter } from '#gateway/npm/eslint';
+import * as tsParser from '#gateway/npm/typescript-eslint__parser';
+import { typedFunctionTakesNoArgsTransformer } from './typed-function-takes-no-args-transformer';
 
-// Real ESLint + real TypeScript program: this adapter only resolves anything once a full typed
-// lint pass has built one, so it is exercised the same way eslintTypedParserServicesAdapter is —
+// Real ESLint + real TypeScript program: this transformer only resolves anything once a full typed
+// lint pass has built one, so it is exercised the same way typedParserServicesTransformer is —
 // against this package's own real file (no DOM lib) rather than a synthetic fixture. Built by
 // slicing `__dirname`'s own segments, not `path.join`, so the filename carries no unresolved `..`
 // for `parserOptions.project: true` to walk from.
 const DIR_SEGMENTS = __dirname.split('/');
-// .../packages/eslint-plugin/src/adapters/eslint/typed-function-takes-no-args — 3 up is src/
-const REAL_FILE = `${DIR_SEGMENTS.slice(0, -3).join('/')}/index.ts`;
+// .../packages/eslint-plugin/src/transformers/typed-function-takes-no-args — 2 up is src/
+const REAL_FILE = `${DIR_SEGMENTS.slice(0, -2).join('/')}/index.ts`;
 
-describe('eslintTypedFunctionTakesNoArgsAdapter', () => {
+describe('typedFunctionTakesNoArgsTransformer', () => {
   it('VALID: {identifier typed with an optional-only parameter} => returns true', () => {
-    const found: ReturnType<typeof eslintTypedFunctionTakesNoArgsAdapter>[] = [];
+    const found: ReturnType<typeof typedFunctionTakesNoArgsTransformer>[] = [];
     const linter = new Linter({ configType: 'flat' });
 
     linter.verify(
@@ -30,7 +30,7 @@ describe('eslintTypedFunctionTakesNoArgsAdapter', () => {
               x: {
                 create: (context: unknown) => ({
                   VariableDeclarator: (node: { init: unknown }): void => {
-                    found.push(eslintTypedFunctionTakesNoArgsAdapter({ context, node: node.init }));
+                    found.push(typedFunctionTakesNoArgsTransformer({ context, node: node.init }));
                   },
                 }),
               },
@@ -46,7 +46,7 @@ describe('eslintTypedFunctionTakesNoArgsAdapter', () => {
   });
 
   it('INVALID: {identifier typed with a required first parameter} => returns false', () => {
-    const found: ReturnType<typeof eslintTypedFunctionTakesNoArgsAdapter>[] = [];
+    const found: ReturnType<typeof typedFunctionTakesNoArgsTransformer>[] = [];
     const linter = new Linter({ configType: 'flat' });
 
     linter.verify(
@@ -63,7 +63,7 @@ describe('eslintTypedFunctionTakesNoArgsAdapter', () => {
               x: {
                 create: (context: unknown) => ({
                   VariableDeclarator: (node: { init: unknown }): void => {
-                    found.push(eslintTypedFunctionTakesNoArgsAdapter({ context, node: node.init }));
+                    found.push(typedFunctionTakesNoArgsTransformer({ context, node: node.init }));
                   },
                 }),
               },
@@ -79,7 +79,7 @@ describe('eslintTypedFunctionTakesNoArgsAdapter', () => {
   });
 
   it('EMPTY: {non-callable value} => returns undefined', () => {
-    const found: ReturnType<typeof eslintTypedFunctionTakesNoArgsAdapter>[] = [];
+    const found: ReturnType<typeof typedFunctionTakesNoArgsTransformer>[] = [];
     const linter = new Linter({ configType: 'flat' });
 
     linter.verify(
@@ -96,7 +96,7 @@ describe('eslintTypedFunctionTakesNoArgsAdapter', () => {
               x: {
                 create: (context: unknown) => ({
                   VariableDeclarator: (node: { init: unknown }): void => {
-                    found.push(eslintTypedFunctionTakesNoArgsAdapter({ context, node: node.init }));
+                    found.push(typedFunctionTakesNoArgsTransformer({ context, node: node.init }));
                   },
                 }),
               },

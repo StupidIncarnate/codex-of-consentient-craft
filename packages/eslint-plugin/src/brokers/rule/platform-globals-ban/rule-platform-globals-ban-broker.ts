@@ -4,7 +4,7 @@
  * `@types/node`. ES built-ins (`JSON`, `Math`, `Promise`, …) live in `lib.es*.d.ts` and are never
  * flagged; a type position (`Buffer` as a parameter type, `NodeJS.ErrnoException`) is exempt because
  * a type never runs. This needs the type checker, so — unlike every other rule broker here — it
- * resolves a real symbol through `eslintTypedParserServicesAdapter` rather than relying on file-path
+ * resolves a real symbol through `typedParserServicesTransformer` rather than relying on file-path
  * or `/src/` gates the way post-edit rules do. The suggested import is always the
  * `#gateway/<platform>/<subpath>` alias text (gatewayLocationsStatics.importPrefix), never a
  * repo's own `@scope` — resolveGatewayScopeLayerBroker still gates whether a repo root is even
@@ -25,7 +25,7 @@ import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-c
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
-import { eslintTypedParserServicesAdapter } from '../../../adapters/eslint/typed-parser-services/eslint-typed-parser-services-adapter';
+import { typedParserServicesTransformer } from '../../../transformers/typed-parser-services/typed-parser-services-transformer';
 import { isBannedPlatformDeclarationFileGuard } from '../../../guards/is-banned-platform-declaration-file/is-banned-platform-declaration-file-guard';
 import { isInsideGatewayLayerBroker } from './is-inside-gateway-layer-broker';
 import { isTypePositionLayerBroker } from './is-type-position-layer-broker';
@@ -76,7 +76,7 @@ export const rulePlatformGlobalsBanBroker = (): EslintRule => ({
           return;
         }
 
-        const declarationFileName = eslintTypedParserServicesAdapter({ context, node: target });
+        const declarationFileName = typedParserServicesTransformer({ context, node: target });
 
         if (
           declarationFileName === undefined ||

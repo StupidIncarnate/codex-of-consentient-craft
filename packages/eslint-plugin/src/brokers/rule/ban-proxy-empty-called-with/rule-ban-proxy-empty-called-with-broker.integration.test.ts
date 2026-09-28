@@ -1,4 +1,4 @@
-import { eslintTypedRuleTesterAdapter } from '../../../adapters/eslint/typed-rule-tester/eslint-typed-rule-tester-adapter';
+import { typedRuleTesterHarness } from '../../../../test/harnesses/typed-rule-tester/typed-rule-tester.harness';
 import { ruleBanProxyEmptyCalledWithBroker } from './rule-ban-proxy-empty-called-with-broker';
 
 // Real files on disk, so `parserOptions.project: true` resolves each one to this package's own
@@ -13,7 +13,7 @@ const REPO_ROOT = DIR_SEGMENTS.slice(0, -6).join('/');
 const PROXY_FILE = `${REPO_ROOT}/packages/eslint-plugin/src/brokers/rule/ban-fetch-in-proxies/rule-ban-fetch-in-proxies-broker.proxy.ts`;
 const NON_PROXY_FILE = `${REPO_ROOT}/packages/eslint-plugin/src/brokers/rule/ban-fetch-in-proxies/rule-ban-fetch-in-proxies-broker.ts`;
 
-const ruleTester = eslintTypedRuleTesterAdapter();
+const ruleTester = typedRuleTesterHarness();
 
 ruleTester.run('ban-proxy-empty-called-with', ruleBanProxyEmptyCalledWithBroker(), {
   valid: [
