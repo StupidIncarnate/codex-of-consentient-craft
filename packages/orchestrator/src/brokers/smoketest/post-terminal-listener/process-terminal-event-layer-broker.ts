@@ -9,7 +9,6 @@
  * WHEN-NOT-TO-USE: Anywhere outside the smoketest flow.
  */
 
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import {
   adapterResultContract,
@@ -26,6 +25,7 @@ import type {
   SmoketestCaseResult,
 } from '@dungeonmaster/shared/contracts';
 import { isTerminalQuestStatusGuard } from '@dungeonmaster/shared/guards';
+import { join } from '#gateway/node/path';
 
 import type { SmoketestListenerEntry } from '../../../contracts/smoketest-listener-entry/smoketest-listener-entry-contract';
 import type { SmoketestScenarioMeta } from '../../../contracts/smoketest-scenario-meta/smoketest-scenario-meta-contract';
@@ -76,7 +76,7 @@ export const processTerminalEventLayerBroker = async ({
   }
 
   const questFilePath = filePathContract.parse(
-    pathJoinAdapter({ paths: [foundPath.questPath, locationsStatics.quest.questFile] }),
+    join(foundPath.questPath, locationsStatics.quest.questFile),
   );
 
   const quest: Quest = await questLoadBroker({ questFilePath });

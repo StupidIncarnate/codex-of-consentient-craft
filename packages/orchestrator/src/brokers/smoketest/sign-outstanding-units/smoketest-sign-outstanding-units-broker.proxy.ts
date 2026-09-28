@@ -1,7 +1,9 @@
-import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
 import { FilePathStub, GuildIdStub, questContract } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts';
+import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { registerMock, registerModuleMock } from '@dungeonmaster/testing/register-mock';
+import type { MockHandle } from '@dungeonmaster/testing/register-mock';
+import { join } from '#gateway/node/path';
 
 import { QuestNotFoundError } from '../../../errors/quest-not-found/quest-not-found-error';
 import { questFindQuestPathBroker } from '../../quest/find-quest-path/quest-find-quest-path-broker';
@@ -32,7 +34,7 @@ export const smoketestSignOutstandingUnitsBrokerProxy = (): {
   // consumed and shifts onto whatever real join runs next.
   questFindQuestPathBrokerProxy();
   const findQuestPathMock = registerMock({ fn: questFindQuestPathBroker });
-  const pathJoinProxy = pathJoinAdapterProxy();
+  const joinHandle: MockHandle = registerMock({ fn: join });
   const loadProxy = questLoadBrokerProxy();
   questPersistBrokerProxy();
   const persistMock = registerMock({ fn: questPersistBroker });
@@ -58,7 +60,9 @@ export const smoketestSignOutstandingUnitsBrokerProxy = (): {
         .calledWith([{ questId: quest.id }])
         .resolves({ questPath: questFolderPath, guildId });
 
-      pathJoinProxy.returns({ result: questFilePath });
+      joinHandle
+        .calledWith([questFolderPath, locationsStatics.quest.questFile])
+        .returns(questFilePath);
 
       loadProxy.setupQuestFile({ questJson: JSON.stringify(quest) });
 

@@ -1,7 +1,9 @@
-import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
 import { FilePathStub, GuildIdStub } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts';
+import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { registerMock, registerModuleMock } from '@dungeonmaster/testing/register-mock';
+import type { MockHandle } from '@dungeonmaster/testing/register-mock';
+import { join } from '#gateway/node/path';
 
 import { QuestNotFoundError } from '../../../errors/quest-not-found/quest-not-found-error';
 import { questFindQuestPathBroker } from '../../quest/find-quest-path/quest-find-quest-path-broker';
@@ -32,7 +34,7 @@ export const smoketestStampOverrideBrokerProxy = (): {
   // real argument (questId) sidesteps that internal chain altogether.
   questFindQuestPathBrokerProxy();
   const findQuestPathMock = registerMock({ fn: questFindQuestPathBroker });
-  const pathJoinProxy = pathJoinAdapterProxy();
+  const joinHandle: MockHandle = registerMock({ fn: join });
   const loadProxy = questLoadBrokerProxy();
   // Wired to satisfy enforce-proxy-child-creation; the registerMock below replaces
   // questPersistBroker entirely. questPersistBroker's own real body appends to the outbox via
@@ -60,7 +62,9 @@ export const smoketestStampOverrideBrokerProxy = (): {
         .calledWith([{ questId: quest.id }])
         .resolves({ questPath: questFolderPath, guildId });
 
-      pathJoinProxy.returns({ result: questFilePath });
+      joinHandle
+        .calledWith([questFolderPath, locationsStatics.quest.questFile])
+        .returns(questFilePath);
 
       loadProxy.setupQuestFile({ questJson: JSON.stringify(quest) });
 
