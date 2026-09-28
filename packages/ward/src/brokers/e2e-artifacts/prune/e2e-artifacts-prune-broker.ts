@@ -27,13 +27,11 @@
  */
 
 import { listeningPids } from '#gateway/bin/lsof';
-import { readdirIfExists } from '#gateway/node/fs__promises';
+import { readdirIfExists, rm, statIfExists } from '#gateway/node/fs__promises';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, AdapterResult } from '@dungeonmaster/shared/contracts';
 import { networkPortContract } from '@dungeonmaster/shared/contracts';
 
-import { fsRmAdapter } from '../../../adapters/fs/rm/fs-rm-adapter';
-import { fsStatAdapter } from '../../../adapters/fs/stat/fs-stat-adapter';
 import { isPortSuffixedArtifactGuard } from '../../../guards/is-port-suffixed-artifact/is-port-suffixed-artifact-guard';
 import { e2eArtifactsStatics } from '../../../statics/e2e-artifacts/e2e-artifacts-statics';
 
@@ -68,9 +66,9 @@ export const e2eArtifactsPruneBroker = async ({
           const entryPath = filePathContract.parse(`${String(parentPath)}/${name}`);
 
           try {
-            const stats = await fsStatAdapter({ filePath: entryPath });
+            const stats = await statIfExists(String(entryPath));
 
-            if (stats === null || now - stats.mtimeMs <= artifact.ttlMs) {
+            if (stats === null || now - stats.modifiedAtMs <= artifact.ttlMs) {
               return;
             }
 
@@ -84,7 +82,7 @@ export const e2eArtifactsPruneBroker = async ({
               }
             }
 
-            await fsRmAdapter({ filePath: entryPath, recursive: true, force: true });
+            await rm(String(entryPath), { recursive: true, force: true });
           } catch {
             // This entry is somebody else's problem now — a concurrent sweep took it, or the
             // filesystem said no. Every other candidate still gets its turn.

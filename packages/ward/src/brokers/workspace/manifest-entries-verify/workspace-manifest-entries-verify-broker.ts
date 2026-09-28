@@ -15,12 +15,12 @@
  * // Returns ManifestEntryDeclaration[] — the declared fields whose path does not exist on disk
  */
 
+import { statIfExists } from '#gateway/node/fs__promises';
 import { filePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { packageJsonRawContract } from '../../../contracts/package-json-raw/package-json-raw-contract';
 import type { ManifestEntryDeclaration } from '../../../contracts/manifest-entry-declaration/manifest-entry-declaration-contract';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
-import { fsStatAdapter } from '../../../adapters/fs/stat/fs-stat-adapter';
 import { packageJsonDeclaredEntriesTransformer } from '../../../transformers/package-json-declared-entries/package-json-declared-entries-transformer';
 
 export const workspaceManifestEntriesVerifyBroker = async ({
@@ -37,10 +37,10 @@ export const workspaceManifestEntriesVerifyBroker = async ({
   const verified = await Promise.all(
     declarations.map(async (declaration) => {
       const absolutePath = filePathContract.parse(`${packagePath}/${declaration.declaredPath}`);
-      const stats = await fsStatAdapter({ filePath: absolutePath });
+      const stats = await statIfExists(String(absolutePath));
       return stats === null ? declaration : null;
     }),
   );
 
-  return verified.filter((entry): entry is ManifestEntryDeclaration => entry !== null);
+  return verified.filter((entry) => entry !== null);
 };

@@ -1,6 +1,6 @@
+import { rmProxy } from '#gateway/node/fs__promises/rm/rm.proxy';
+import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { filePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
-
-import { fsRmAdapterProxy } from '../../../adapters/fs/rm/fs-rm-adapter.proxy';
 
 export const e2eArtifactsRemoveBrokerProxy = (): {
   setupRemovable: (params: { packageRoot: AbsoluteFilePath; port: number }) => void;
@@ -10,7 +10,7 @@ export const e2eArtifactsRemoveBrokerProxy = (): {
     port: number;
   }) => readonly unknown[][];
 } => {
-  const rmProxy = fsRmAdapterProxy();
+  const rm = rmProxy();
 
   const cachePathFor = ({
     packageRoot,
@@ -23,15 +23,20 @@ export const e2eArtifactsRemoveBrokerProxy = (): {
 
   return {
     setupRemovable: ({ packageRoot, port }): void => {
-      rmProxy.succeeds({ filePath: cachePathFor({ packageRoot, port }) });
+      rm.succeeds({ path: String(cachePathFor({ packageRoot, port })) });
     },
     setupRemoveFails: ({ packageRoot, port }): void => {
-      rmProxy.throws({
-        filePath: cachePathFor({ packageRoot, port }),
-        error: new Error('EACCES: permission denied'),
+      const path = String(cachePathFor({ packageRoot, port }));
+      rm.rejects({
+        path,
+        error: FsErrorStub({
+          code: 'EACCES',
+          syscall: 'rm',
+          path,
+        }),
       });
     },
     getRemovedPaths: ({ packageRoot, port }): readonly unknown[][] =>
-      rmProxy.getCallsFor({ filePath: cachePathFor({ packageRoot, port }) }),
+      rm.getCallsFor({ path: String(cachePathFor({ packageRoot, port })) }),
   };
 };

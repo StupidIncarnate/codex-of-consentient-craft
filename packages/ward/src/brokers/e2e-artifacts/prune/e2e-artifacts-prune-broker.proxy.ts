@@ -1,10 +1,11 @@
 import { listeningPidsProxy } from '#gateway/bin/lsof/listening-pids/listening-pids.proxy';
 import { readdirIfExistsProxy } from '#gateway/node/fs__promises/readdir-if-exists/readdir-if-exists.proxy';
+import { rmProxy } from '#gateway/node/fs__promises/rm/rm.proxy';
+import { statIfExistsProxy } from '#gateway/node/fs__promises/stat-if-exists/stat-if-exists.proxy';
+import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
-import { fsRmAdapterProxy } from '../../../adapters/fs/rm/fs-rm-adapter.proxy';
-import { fsStatAdapterProxy } from '../../../adapters/fs/stat/fs-stat-adapter.proxy';
 import { e2eArtifactsStatics } from '../../../statics/e2e-artifacts/e2e-artifacts-statics';
 
 // The broker only checks `.length > 0` on what listeningPids resolves — this pid's value is never
@@ -49,8 +50,8 @@ export const e2eArtifactsPruneBrokerProxy = (): {
   const NOW = Date.now();
 
   const readdirProxy = readdirIfExistsProxy();
-  const statProxy = fsStatAdapterProxy();
-  const rmProxy = fsRmAdapterProxy();
+  const statProxy = statIfExistsProxy();
+  const rm = rmProxy();
   const lsofProxy = listeningPidsProxy();
 
   const parentPathFor = ({
@@ -87,18 +88,24 @@ export const e2eArtifactsPruneBrokerProxy = (): {
       }
     },
     setupAge: ({ packageRoot, parentDir, name, daysOld }): void => {
-      statProxy.returnsMtime({
-        filePath: entryPathFor({ packageRoot, parentDir, name }),
-        mtimeMs: NOW - daysOld * DAY_MS,
+      statProxy.returnsFile({
+        path: String(entryPathFor({ packageRoot, parentDir, name })),
+        sizeBytes: 1024,
+        modifiedAtMs: NOW - daysOld * DAY_MS,
       });
     },
     setupRemovable: ({ packageRoot, parentDir, name }): void => {
-      rmProxy.succeeds({ filePath: entryPathFor({ packageRoot, parentDir, name }) });
+      rm.succeeds({ path: String(entryPathFor({ packageRoot, parentDir, name })) });
     },
     setupRemoveFails: ({ packageRoot, parentDir, name }): void => {
-      rmProxy.throws({
-        filePath: entryPathFor({ packageRoot, parentDir, name }),
-        error: new Error('ENOTEMPTY: another sweep is inside this tree'),
+      const path = String(entryPathFor({ packageRoot, parentDir, name }));
+      rm.rejects({
+        path,
+        error: FsErrorStub({
+          code: 'ENOTEMPTY',
+          syscall: 'rm',
+          path,
+        }),
       });
     },
     setupPortHeld: ({ port }): void => {
@@ -108,6 +115,6 @@ export const e2eArtifactsPruneBrokerProxy = (): {
       lsofProxy.setupNoneListening({ port });
     },
     getRemovedPaths: ({ packageRoot, parentDir, name }): readonly unknown[][] =>
-      rmProxy.getCallsFor({ filePath: entryPathFor({ packageRoot, parentDir, name }) }),
+      rm.getCallsFor({ path: String(entryPathFor({ packageRoot, parentDir, name })) }),
   };
 };

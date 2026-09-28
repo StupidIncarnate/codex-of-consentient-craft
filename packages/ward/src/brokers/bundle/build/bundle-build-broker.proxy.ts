@@ -2,12 +2,13 @@ import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy'
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { runProxy } from '#gateway/node/child_process/run/run.proxy';
 import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found.error.proxy';
+import { renameProxy } from '#gateway/node/fs__promises/rename/rename.proxy';
+import { rmProxy } from '#gateway/node/fs__promises/rm/rm.proxy';
+import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { absoluteFilePathContract, filePathContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { cryptoHashFilesAdapterProxy } from '../../../adapters/crypto/hash-files/crypto-hash-files-adapter.proxy';
-import { fsRenameAdapterProxy } from '../../../adapters/fs/rename/fs-rename-adapter.proxy';
-import { fsRmAdapterProxy } from '../../../adapters/fs/rm/fs-rm-adapter.proxy';
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { GitRelativePathStub } from '../../../contracts/git-relative-path/git-relative-path.stub';
 import { bundleStatics } from '../../../statics/bundle/bundle-statics';
@@ -44,8 +45,8 @@ export const bundleBuildBrokerProxy = (): {
   const hashProxy = cryptoHashFilesAdapterProxy();
   const existsProxy = existsSyncProxy();
   const mkdirProxy = ensureDirProxy();
-  const rmProxy = fsRmAdapterProxy();
-  const renameProxy = fsRenameAdapterProxy();
+  const rm = rmProxy();
+  const rename = renameProxy();
   const run = runProxy();
   RunNotFoundErrorProxy();
   const readProxy = fsReadFileAdapterProxy();
@@ -107,7 +108,7 @@ export const bundleBuildBrokerProxy = (): {
       });
 
       mkdirProxy.succeeds({ path: bundleParent });
-      rmProxy.succeeds({ filePath: tempPath });
+      rm.succeeds({ path: String(tempPath) });
     },
 
     setupNoBuildScript: (): void => {
@@ -159,16 +160,19 @@ export const bundleBuildBrokerProxy = (): {
     },
 
     setupPublishWins: ({ hash }: { hash: string }): void => {
-      renameProxy.succeeds({
-        fromPath: tempPath,
-        toPath: filePathContract.parse(String(hashDirFor({ packageRoot: WEB_ROOT, hash }))),
+      rename.succeeds({
+        from: String(tempPath),
+        to: String(hashDirFor({ packageRoot: WEB_ROOT, hash })),
       });
     },
 
     setupPublishLoses: ({ hash }: { hash: string }): void => {
-      renameProxy.losesRace({
-        fromPath: tempPath,
-        toPath: filePathContract.parse(String(hashDirFor({ packageRoot: WEB_ROOT, hash }))),
+      const from = String(tempPath);
+      const to = String(hashDirFor({ packageRoot: WEB_ROOT, hash }));
+      rename.rejects({
+        from,
+        to,
+        error: FsErrorStub({ code: 'ENOTEMPTY', syscall: 'rename', path: from }),
       });
     },
 
@@ -226,8 +230,12 @@ export const bundleBuildBrokerProxy = (): {
 
     getSpawnedArgs: (): unknown => run.getCallsFor({ command: bundleStatics.buildCommand }).at(-1),
 
-    getRemovedTempPaths: (): readonly unknown[][] => rmProxy.getCallsFor({ filePath: tempPath }),
+    getRemovedTempPaths: (): readonly unknown[][] => rm.getCallsFor({ path: String(tempPath) }),
 
-    getPublishCalls: (): readonly unknown[][] => renameProxy.getCallsFor({ fromPath: tempPath }),
+    getPublishCalls: (): readonly unknown[][] =>
+      rename.getCallsFor({
+        from: String(tempPath),
+        to: (p: unknown): boolean => typeof p === 'string',
+      }),
   };
 };

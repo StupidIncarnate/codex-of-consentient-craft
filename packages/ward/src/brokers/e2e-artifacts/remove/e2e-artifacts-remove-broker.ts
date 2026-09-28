@@ -14,6 +14,7 @@
  * // Removes <packageRoot>/node_modules/.vite-<port>; succeeds whether or not it was there
  */
 
+import { rm } from '#gateway/node/fs__promises';
 import {
   filePathContract,
   type AdapterResult,
@@ -21,7 +22,6 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
-import { fsRmAdapter } from '../../../adapters/fs/rm/fs-rm-adapter';
 import { e2eArtifactsStatics } from '../../../statics/e2e-artifacts/e2e-artifacts-statics';
 
 export const e2eArtifactsRemoveBroker = async ({
@@ -40,7 +40,7 @@ export const e2eArtifactsRemoveBroker = async ({
   try {
     // `force` turns "already gone" into a no-op, which is the ordinary outcome whenever a
     // concurrent sweep reached the same path first.
-    await fsRmAdapter({ filePath: cachePath, recursive: true, force: true });
+    await rm(String(cachePath), { recursive: true, force: true });
   } catch {
     // A cleanup must never change a check's verdict. Reclaiming disk is worth nothing next to
     // reporting an e2e run that really passed as a crash.

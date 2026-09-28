@@ -139,7 +139,7 @@ describe('storagePruneBroker', () => {
       const name = `run-${expiredTimestamp}-a1b2.json`;
 
       const proxy = storagePruneBrokerProxy();
-      // No mtimes/statNullFor entry for `name` — fsStatAdapter is never staged for it, so a call
+      // No mtimes/statNullFor entry for `name` — statIfExists is never staged for it, so a call
       // to it would throw "nothing set up" and the whole sweep would abort with zero deletions.
       // The file still getting deleted proves the timestamp branch decided without consulting stat.
       proxy.setupWithFiles({ rootPath, entries: [name], now });

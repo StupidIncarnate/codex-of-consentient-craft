@@ -339,6 +339,42 @@ Left for a follow-up group: `fs/read-file` (`fsReadFileAdapter` → `readFile`),
 `fsReadFileAdapter` import untouched until then) and their `.proxy.ts` files, plus the adapter's own
 3 files.
 
+### G-BB-1c
+
+Takes 3 adapters — `fs/rename`, `fs/rm`, `fs/stat` — migrating all callers onto `#gateway/node/fs__promises` (`rename`, `rm`, `statIfExists`) and deleting their 9 adapter files.
+Leaves `fs/unlink` for a follow-up group because `#gateway/node/fs__promises/unlink/unlink.proxy.ts` does not provide `getCallsFor` read-back needed by `storagePruneBrokerProxy.getDeletedPaths()`.
+
+Files to edit:
+
+- `packages/ward/src/brokers/bundle/build/bundle-build-broker.ts` — `fsRenameAdapter` → `rename`, `fsRmAdapter` → `rm` (`#gateway/node/fs__promises`); `fsReadFileAdapter`/`cryptoHashFilesAdapter` untouched (other groups)
+- `packages/ward/src/brokers/bundle/build/bundle-build-broker.proxy.ts` — compose `renameProxy` and `rmProxy` (`#gateway/node/fs__promises`) in place of `fsRenameAdapterProxy` and `fsRmAdapterProxy`
+- `packages/ward/src/brokers/e2e-artifacts/prune/e2e-artifacts-prune-broker.ts` — `fsRmAdapter` → `rm`, `fsStatAdapter` → `statIfExists` (`#gateway/node/fs__promises`)
+- `packages/ward/src/brokers/e2e-artifacts/prune/e2e-artifacts-prune-broker.proxy.ts` — compose `rmProxy` and `statIfExistsProxy` (`#gateway/node/fs__promises`) in place of `fsRmAdapterProxy` and `fsStatAdapterProxy`
+- `packages/ward/src/brokers/e2e-artifacts/remove/e2e-artifacts-remove-broker.ts` — `fsRmAdapter` → `rm` (`#gateway/node/fs__promises`)
+- `packages/ward/src/brokers/e2e-artifacts/remove/e2e-artifacts-remove-broker.proxy.ts` — compose `rmProxy` (`#gateway/node/fs__promises`) in place of `fsRmAdapterProxy`
+- `packages/ward/src/brokers/workspace/manifest-entries-verify/workspace-manifest-entries-verify-broker.ts` — `fsStatAdapter` → `statIfExists` (`#gateway/node/fs__promises`); replace type predicate filter with plain `x !== null` filter; `fsReadFileAdapter` untouched (other group)
+- `packages/ward/src/brokers/workspace/manifest-entries-verify/workspace-manifest-entries-verify-broker.proxy.ts` — compose `statIfExistsProxy` (`#gateway/node/fs__promises`) in place of `fsStatAdapterProxy`
+- `packages/ward/src/brokers/storage/prune/storage-prune-broker.ts` — `fsStatAdapter` → `statIfExists` (`#gateway/node/fs__promises`); `fsUnlinkAdapter` untouched (left standing pending gateway read-back)
+- `packages/ward/src/brokers/storage/prune/storage-prune-broker.proxy.ts` — compose `statIfExistsProxy` (`#gateway/node/fs__promises`) in place of `fsStatAdapterProxy`; keep `fsUnlinkAdapterProxy`
+- `packages/ward/src/brokers/storage/prune/storage-prune-broker.test.ts` — update comment referencing `fsStatAdapter` to `statIfExists`
+
+Adapters deleted (with proxy and test, 3 × 3 = 9 files):
+
+- `packages/ward/src/adapters/fs/rename/fs-rename-adapter.ts`
+- `packages/ward/src/adapters/fs/rename/fs-rename-adapter.proxy.ts`
+- `packages/ward/src/adapters/fs/rename/fs-rename-adapter.test.ts`
+- `packages/ward/src/adapters/fs/rm/fs-rm-adapter.ts`
+- `packages/ward/src/adapters/fs/rm/fs-rm-adapter.proxy.ts`
+- `packages/ward/src/adapters/fs/rm/fs-rm-adapter.test.ts`
+- `packages/ward/src/adapters/fs/stat/fs-stat-adapter.ts`
+- `packages/ward/src/adapters/fs/stat/fs-stat-adapter.proxy.ts`
+- `packages/ward/src/adapters/fs/stat/fs-stat-adapter.test.ts`
+
+Left for a follow-up group:
+- `fs/unlink` (`fsUnlinkAdapter` → `unlink`), its 4 caller files (`check-run/e2e`, `check-run/integration`, `check-run/unit`, `storage/prune` unlink half) and their `.proxy.ts` files, plus the adapter's own 3 files.
+- `fs/read-file`, `crypto/hash-files`, `fs/write-file`, `os/tmpdir`, `typescript/module-shape` (other groups).
+
 ## Concessions made while executing
 
 <!-- Empty at the start. The operator fills this and mirrors it into EPIC.md's Concessions table. -->
+

@@ -6,7 +6,7 @@
  * // Removes run files older than ttlStatics.runResultTtl from the .ward directory
  */
 
-import { readdirIfExists } from '#gateway/node/fs__promises';
+import { readdirIfExists, statIfExists } from '#gateway/node/fs__promises';
 import {
   adapterResultContract,
   filePathContract,
@@ -15,7 +15,6 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import { ttlStatics } from '../../../statics/ttl/ttl-statics';
-import { fsStatAdapter } from '../../../adapters/fs/stat/fs-stat-adapter';
 import { fsUnlinkAdapter } from '../../../adapters/fs/unlink/fs-unlink-adapter';
 
 const RUN_PREFIX_LENGTH = 'run-'.length;
@@ -52,11 +51,11 @@ export const storagePruneBroker = async ({
         // that shape, so the name is legitimate. Reading an unparseable timestamp as "not a run
         // file" made those immortal — no age could ever expire them, and files five weeks old
         // survived every sweep. The file's own mtime answers the same question for any id shape.
-        const stats = await fsStatAdapter({ filePath });
+        const stats = await statIfExists(String(filePath));
         if (stats === null) {
           return { filePath, expired: false };
         }
-        return { filePath, expired: now - stats.mtimeMs > ttlStatics.runResultTtl };
+        return { filePath, expired: now - stats.modifiedAtMs > ttlStatics.runResultTtl };
       }),
     );
 

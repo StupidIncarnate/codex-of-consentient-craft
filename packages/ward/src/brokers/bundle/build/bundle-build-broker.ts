@@ -18,7 +18,7 @@
 
 import { run, RunNotFoundError } from '#gateway/node/child_process';
 import { existsSync } from '#gateway/node/fs';
-import { ensureDir } from '#gateway/node/fs__promises';
+import { ensureDir, rename, rm } from '#gateway/node/fs__promises';
 import {
   absoluteFilePathContract,
   errorMessageContract,
@@ -28,8 +28,6 @@ import {
 import type { AbsoluteFilePath, ErrorMessage } from '@dungeonmaster/shared/contracts';
 
 import { cryptoHashFilesAdapter } from '../../../adapters/crypto/hash-files/crypto-hash-files-adapter';
-import { fsRenameAdapter } from '../../../adapters/fs/rename/fs-rename-adapter';
-import { fsRmAdapter } from '../../../adapters/fs/rm/fs-rm-adapter';
 import { packageJsonContract } from '../../../contracts/package-json/package-json-contract';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { bundleStatics } from '../../../statics/bundle/bundle-statics';
@@ -81,7 +79,7 @@ export const bundleBuildBroker = async ({
   const tempDir = filePathContract.parse(
     `${bundleParent}/${bundleStatics.tempPrefix}${String(process.pid)}`,
   );
-  await fsRmAdapter({ filePath: tempDir, recursive: true, force: true });
+  await rm(String(tempDir), { recursive: true, force: true });
 
   // A missing build binary rejects `run` with RunNotFoundError rather than resolving a result —
   // caught here and folded into the same failed-run shape the old spawn-capture adapter resolved
@@ -98,7 +96,7 @@ export const bundleBuildBroker = async ({
   });
 
   if (result.exitCode !== exitCodeContract.parse(0)) {
-    await fsRmAdapter({ filePath: tempDir, recursive: true, force: true });
+    await rm(String(tempDir), { recursive: true, force: true });
 
     return {
       bundleDir: null,
@@ -109,12 +107,12 @@ export const bundleBuildBroker = async ({
   }
 
   try {
-    await fsRenameAdapter({ fromPath: tempDir, toPath: filePathContract.parse(String(bundleDir)) });
+    await rename(String(tempDir), String(bundleDir));
   } catch {
     // A sibling run published this hash first. Its bundle was built from the same inputs as ours,
     // and it may already be serving requests out of it, so ours is discarded rather than merged
     // over the top of it.
-    await fsRmAdapter({ filePath: tempDir, recursive: true, force: true });
+    await rm(String(tempDir), { recursive: true, force: true });
   }
 
   return { bundleDir, error: null };

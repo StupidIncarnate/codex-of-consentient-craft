@@ -6,7 +6,7 @@ import {
   type FilePath,
 } from '@dungeonmaster/shared/contracts';
 
-import { fsStatAdapterProxy } from '../../../adapters/fs/stat/fs-stat-adapter.proxy';
+import { statIfExistsProxy } from '#gateway/node/fs__promises/stat-if-exists/stat-if-exists.proxy';
 import { fsUnlinkAdapterProxy } from '../../../adapters/fs/unlink/fs-unlink-adapter.proxy';
 
 export const storagePruneBrokerProxy = (): {
@@ -22,7 +22,7 @@ export const storagePruneBrokerProxy = (): {
   getDeletedPaths: () => unknown[];
 } => {
   const readdirProxy = readdirIfExistsProxy();
-  const statProxy = fsStatAdapterProxy();
+  const statProxy = statIfExistsProxy();
   const unlinkProxy = fsUnlinkAdapterProxy();
 
   // The sweep chooses its own paths, so they cannot be staged one by one without staging the
@@ -58,10 +58,14 @@ export const storagePruneBrokerProxy = (): {
       readdirProxy.returns({ path: String(wardDirFor({ rootPath })), names: entries });
 
       for (const [name, mtimeMs] of Object.entries(mtimes)) {
-        statProxy.returnsMtime({ filePath: runFilePathFor({ rootPath, name }), mtimeMs });
+        statProxy.returnsFile({
+          path: String(runFilePathFor({ rootPath, name })),
+          sizeBytes: 1024,
+          modifiedAtMs: mtimeMs,
+        });
       }
       for (const name of statNullFor) {
-        statProxy.returnsNull({ filePath: runFilePathFor({ rootPath, name }) });
+        statProxy.missing({ path: String(runFilePathFor({ rootPath, name })) });
       }
     },
     setupEmpty: ({ rootPath }: { rootPath: AbsoluteFilePath }): void => {
