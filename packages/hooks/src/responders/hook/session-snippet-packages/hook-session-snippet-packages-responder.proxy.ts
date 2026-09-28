@@ -11,6 +11,7 @@
 import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/readdir-entries-sync.proxy';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { cwd } from '#gateway/node/process';
+import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
@@ -77,7 +78,7 @@ export const HookSessionSnippetPackagesResponderProxy = (): {
       // Make the responder's readdir throw so it falls back to the literal 'root' name.
       readdirProxy.throws({
         path: packagesDirFor({ projectRoot }),
-        error: Object.assign(new Error('ENOENT: no packages dir'), { code: 'ENOENT' }),
+        error: FileMissingErrorStub({ path: packagesDirFor({ projectRoot }) }),
       });
     },
   };

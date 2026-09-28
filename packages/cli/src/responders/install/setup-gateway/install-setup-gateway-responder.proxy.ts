@@ -1,6 +1,7 @@
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
+import type { dirname } from '#gateway/node/path';
 import { basename, join } from '#gateway/node/path';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import type { FilePath, FileName } from '@dungeonmaster/shared/contracts';
@@ -23,23 +24,26 @@ export const InstallSetupGatewayResponderProxy = (): {
   setupPackageTsconfig: (params: { tsconfigPath: FilePath; content: string }) => void;
   setupPackageTsconfigBuildMissing: (params: { tsconfigBuildPath: FilePath }) => void;
   getWrittenFiles: () => readonly { path: unknown; content: unknown }[];
+  setupGatewayCopy: (params: { folder: 'node' | 'browser'; packageRoot: FilePath }) => void;
   getCopiedSources: () => readonly unknown[];
 } => {
   const existsProxy = existsSyncProxy();
-  const realPath = requireActual<{ join: typeof join; basename: typeof basename }>({
+  const realPath = requireActual<{
+    join: typeof join;
+    basename: typeof basename;
+    dirname: typeof dirname;
+  }>({
     module: 'path',
   });
   const joinHandle = registerMock({ fn: join });
   joinHandle.calledWith([]).implement((...segments: never[]) => realPath.join(...segments));
   const basenameHandle = registerMock({ fn: basename });
-  basenameHandle.calledWith([]).implement((inputPath: never) => realPath.basename(inputPath));
   const readProxy = readFileProxy();
   const writeProxy = writeFileProxy();
   packageScaffoldWriteBrokerProxy();
   const existingPackagesProxy = gatewayExistingPackagesListBrokerProxy();
   const tsconfigWriteProxy = gatewayTsconfigCompilerOptionsWriteBrokerProxy();
   const sourceCopyProxy = gatewaySourceCopyBrokerProxy();
-  sourceCopyProxy.copySucceeds();
   // Every candidate write path, in the order the responder itself would reach it: a direct
   // package.json write (rootPackageJsonPath/packageJsonPath, answered by writeProxy) or a
   // tsconfig write routed through the composed broker (rootTsconfigPath/tsconfigPath, answered by
@@ -54,6 +58,8 @@ export const InstallSetupGatewayResponderProxy = (): {
 
     setupRootPackageJson: ({ rootPackageJsonPath, content }): void => {
       existsProxy.returns({ path: rootPackageJsonPath, exists: true });
+      const projectRoot = realPath.dirname(rootPackageJsonPath);
+      basenameHandle.calledWith([projectRoot]).returns(realPath.basename(projectRoot));
       readProxy.returns({ path: rootPackageJsonPath, contents: content });
       writeProxy.succeeds({ path: rootPackageJsonPath });
       writeCandidates.push(rootPackageJsonPath);
@@ -100,6 +106,10 @@ export const InstallSetupGatewayResponderProxy = (): {
         const tsconfigContent = tsconfigWriteProxy.getWrittenContent({ tsconfigPath: path });
         return tsconfigContent === undefined ? [] : [{ path, content: tsconfigContent }];
       }),
+
+    setupGatewayCopy: ({ folder, packageRoot }): void => {
+      sourceCopyProxy.copySucceeds({ folder, packageRoot });
+    },
 
     getCopiedSources: (): readonly unknown[] => sourceCopyProxy.copiedSources(),
   };

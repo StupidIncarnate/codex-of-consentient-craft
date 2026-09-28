@@ -23,7 +23,6 @@ export const packageScaffoldWriteBrokerProxy = (): {
   const joinHandle = registerMock({ fn: join });
   const dirnameHandle = registerMock({ fn: dirname });
   joinHandle.calledWith([]).implement((...segments: never[]) => realPath.join(...segments));
-  dirnameHandle.calledWith([]).implement((path: never) => realPath.dirname(path));
   const writtenPaths: FilePath[] = [];
 
   return {

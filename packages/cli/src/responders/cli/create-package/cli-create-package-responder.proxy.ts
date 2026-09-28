@@ -41,7 +41,6 @@ export const CliCreatePackageResponderProxy = (): {
   const joinHandle = registerMock({ fn: join });
   joinHandle.calledWith([]).implement((...segments: never[]) => realPath.join(...segments));
   const basenameHandle = registerMock({ fn: basename });
-  basenameHandle.calledWith([]).implement((inputPath: never) => realPath.basename(inputPath));
   const stdoutSpy = registerSpyOn({ object: process.stdout, method: 'write' });
   stdoutSpy.calledWith([(chunk: unknown) => typeof chunk === 'string']).returns(true);
   const rootPackageJsonPathHolder: FilePath[] = [];
@@ -57,6 +56,7 @@ export const CliCreatePackageResponderProxy = (): {
       const packageJsonPath = filePathContract.parse(join(projectRoot, 'package.json'));
       readProxy.returns({ path: packageJsonPath, contents });
       rootPackageJsonPathHolder.push(packageJsonPath);
+      basenameHandle.calledWith([projectRoot]).returns(realPath.basename(projectRoot));
       // Covers packageRegisterBroker's OWN read of the same path plus its write, in case the
       // responder's registration step needs to persist a change.
       registerProxy.setupRootPackageJson({ projectRoot, contents });

@@ -158,3 +158,26 @@ stages the default config per rootPath, addressed by the exact `{ filePath }`, f
 `resolveWardBin` step every setup method already calls; the one test that calls
 `setupWardConcurrency` now calls it after `setupSpawnAndLoad`, since the later staging wins.
 Rescanned after the edit: 0 violations across the three rules.
+
+## Plan — T05 cli, config, hooks
+
+Scanned each package alone with all three rules on (`node tmp/t05-scan-pkgs.js <pkg>`). Violations before any edit:
+
+- `packages/cli/src/brokers/gateway/source-copy/gateway-source-copy-broker.proxy.ts:17`
+  `ban-proxy-empty-called-with` — `cpHandle.calledWith([])` on `cp`, which takes source, destination, options.
+- `packages/cli/src/brokers/package/scaffold-write/package-scaffold-write-broker.proxy.ts:26`
+  `ban-proxy-empty-called-with` — `dirnameHandle.calledWith([])` on `dirname`.
+- `packages/cli/src/responders/cli/create-package/cli-create-package-responder.proxy.ts:44`
+  `ban-proxy-empty-called-with` — `basenameHandle.calledWith([])` on `basename`.
+- `packages/cli/src/responders/install/setup-gateway/install-setup-gateway-responder.proxy.ts:35`
+  `ban-proxy-empty-called-with` — `basenameHandle.calledWith([])` on `basename`.
+- `packages/hooks/src/responders/hook/session-snippet-packages/hook-session-snippet-packages-responder.proxy.ts:80`
+  `ban-invented-failures` — `Object.assign(new Error('ENOENT: ...'), { code: 'ENOENT' })`.
+- `packages/config`: none.
+
+Fixes: `copySucceeds({ folder, packageRoot })` computes the real source root the way the broker does and
+stages `cp` by exact source, destination and `{ recursive: true }`; the setup-gateway responder proxy
+drops its constructor-time staging and exposes `setupGatewayCopy` instead. `dirname` needs no default
+because `setupTargetMissing` already stages each exact path. Both responder proxies stage `basename` by
+the exact project root their setup method is handed. The hooks proxy stages `FileMissingErrorStub`.
+Rescanned: 0 violations across the three rules in all three packages.
