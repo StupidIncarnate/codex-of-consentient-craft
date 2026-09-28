@@ -45,6 +45,7 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
+    "@dungeonmaster/bin": "*",
     "@dungeonmaster/config": "*",
     "@dungeonmaster/node": "*",
     "@dungeonmaster/npm": "*",

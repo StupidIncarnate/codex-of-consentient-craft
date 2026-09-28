@@ -13,6 +13,18 @@ interface ProxyConfig {
   neverDrain: boolean;
 }
 
+// A caller composing this proxy for a program that takes an argument only known at test-run time
+// (a resolved worktree path, a generated commit message) needs a tolerant element or a whole-array
+// predicate, not just a literal. `mockArgValueMatchTransformer` (packages/testing) already treats a
+// function ANYWHERE in a staged structure as a predicate over the corresponding actual value —
+// `buildSpawnAddress` just pushes `args` into the staged tuple as-is, so widening this type from
+// `string[]` changes no runtime behavior for the many existing callers that still pass a plain
+// literal array; it only makes the wider shape typecheck too. Kept local (not imported from
+// `#gateway/bin`'s own `ArgsMatcher`) because `@gateway/node` sits BELOW `@gateway/bin` in the
+// gateway's own layering — importing upward would be backwards.
+type SpawnArgsMatcher =
+  readonly (string | ((value: unknown) => boolean))[] | ((args: readonly unknown[]) => boolean);
+
 // `spawn(command, args, options)` is the real call this proxy mocks — one layer below `run` — so
 // the address is built positionally: `command` alone (every existing caller's form, kept working),
 // plus `args` and/or `cwd` when a caller passes them, addressing by EXACTLY the keys given (never a
@@ -25,7 +37,7 @@ const buildSpawnAddress = ({
   cwd,
 }: {
   command: string;
-  args?: string[];
+  args?: SpawnArgsMatcher;
   cwd?: string;
 }): unknown[] => {
   const address: unknown[] = [command];
@@ -99,7 +111,7 @@ const createMockChildFromConfig = ({
 export const runProxy = (): {
   setupSuccess: (params: {
     command: string;
-    args?: string[];
+    args?: SpawnArgsMatcher;
     cwd?: string;
     exitCode: number;
     stdout: string;
@@ -108,19 +120,24 @@ export const runProxy = (): {
   }) => void;
   setupSignalKill: (params: {
     command: string;
-    args?: string[];
+    args?: SpawnArgsMatcher;
     cwd?: string;
     signal: NodeJS.Signals;
     stdout: string;
     stderr: string;
   }) => void;
-  setupError: (params: { command: string; args?: string[]; cwd?: string; error: Error }) => void;
+  setupError: (params: {
+    command: string;
+    args?: SpawnArgsMatcher;
+    cwd?: string;
+    error: Error;
+  }) => void;
   // The process never exits on its own — the mock only emits `exit` once its own `kill()` is
   // called, so a test proves the wrapper's OWN timeout timer is what triggers the kill, not just
   // that the mocked child happens to exit around the same time.
   setupHangsUntilKilled: (params: {
     command: string;
-    args?: string[];
+    args?: SpawnArgsMatcher;
     cwd?: string;
     signalOnKill: NodeJS.Signals;
   }) => void;
@@ -160,7 +177,7 @@ export const runProxy = (): {
       neverDrain,
     }: {
       command: string;
-      args?: string[];
+      args?: SpawnArgsMatcher;
       cwd?: string;
       exitCode: number;
       stdout: string;
@@ -197,7 +214,7 @@ export const runProxy = (): {
       stderr,
     }: {
       command: string;
-      args?: string[];
+      args?: SpawnArgsMatcher;
       cwd?: string;
       signal: NodeJS.Signals;
       stdout: string;
@@ -231,7 +248,7 @@ export const runProxy = (): {
       error,
     }: {
       command: string;
-      args?: string[];
+      args?: SpawnArgsMatcher;
       cwd?: string;
       error: Error;
     }): void => {
@@ -263,7 +280,7 @@ export const runProxy = (): {
       signalOnKill,
     }: {
       command: string;
-      args?: string[];
+      args?: SpawnArgsMatcher;
       cwd?: string;
       signalOnKill: NodeJS.Signals;
     }): void => {

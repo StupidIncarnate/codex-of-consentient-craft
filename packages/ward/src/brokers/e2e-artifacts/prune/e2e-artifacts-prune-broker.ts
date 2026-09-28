@@ -26,6 +26,7 @@
  * // Removes stale run artifacts under that package; a package with none is a no-op
  */
 
+import { listeningPids } from '#gateway/bin/lsof';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, AdapterResult } from '@dungeonmaster/shared/contracts';
 import { networkPortContract } from '@dungeonmaster/shared/contracts';
@@ -33,7 +34,6 @@ import { networkPortContract } from '@dungeonmaster/shared/contracts';
 import { fsReaddirAdapter } from '../../../adapters/fs/readdir/fs-readdir-adapter';
 import { fsRmAdapter } from '../../../adapters/fs/rm/fs-rm-adapter';
 import { fsStatAdapter } from '../../../adapters/fs/stat/fs-stat-adapter';
-import { netPortInUseAdapter } from '../../../adapters/net/port-in-use/net-port-in-use-adapter';
 import { isPortSuffixedArtifactGuard } from '../../../guards/is-port-suffixed-artifact/is-port-suffixed-artifact-guard';
 import { e2eArtifactsStatics } from '../../../statics/e2e-artifacts/e2e-artifacts-statics';
 
@@ -79,7 +79,7 @@ export const e2eArtifactsPruneBroker = async ({
                 Number(name.slice(artifact.prefix.length, name.length - artifact.suffix.length)),
               );
 
-              if (await netPortInUseAdapter({ port })) {
+              if ((await listeningPids({ port })).length > 0) {
                 return;
               }
             }

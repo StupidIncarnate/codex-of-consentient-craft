@@ -105,6 +105,96 @@ Confirmed 2026-09-26 by reading every file named below.
    `killPid`'s own proxies, imported per file: `#gateway/bin/lsof/listening-pids/listening-pids.proxy` and
    `#gateway/bin/kill/kill-pid/kill-pid.proxy`.
 
+## Plan
+
+### G-R
+
+New files:
+- `packages/shared/src/contracts/port-kill-listener-result/port-kill-listener-result-contract.ts` — the
+  `{pid, exitCode, output}` shape `killPid` reports per pid, branded.
+- `packages/shared/src/contracts/port-kill-listener-result/port-kill-listener-result-contract.test.ts`
+- `packages/shared/src/contracts/port-kill-listener-result/port-kill-listener-result.stub.ts`
+- `packages/shared/src/brokers/port/kill-listeners/port-kill-listeners-broker.ts` — composes
+  `#gateway/bin/lsof`'s `listeningPids` and `#gateway/bin/kill`'s `killPid`.
+- `packages/shared/src/brokers/port/kill-listeners/port-kill-listeners-broker.proxy.ts`
+- `packages/shared/src/brokers/port/kill-listeners/port-kill-listeners-broker.test.ts`
+
+Edited files:
+- `packages/shared/contracts.ts` — barrel export for the new contract.
+- `packages/shared/brokers.ts` — barrel export for the new broker.
+- `packages/shared/testing.ts` — barrel export for the new broker's proxy.
+- `packages/shared/package.json` — add `@dungeonmaster/bin` to `dependencies` (shared has no prior
+  caller of `#gateway/bin/*`; `siegelense` is the only package that already declares it, per the
+  same pattern this item follows).
+- `packages/ward/package.json` — add `@dungeonmaster/bin` to `dependencies` (`e2e-artifacts-prune-broker.ts`
+  calls `listeningPids` from `#gateway/bin/lsof` directly, per this item's step 2 recommendation).
+- `packages/ward/src/brokers/check-run/e2e/check-run-e2e-broker.ts` — replace both `netKillPortAdapter`
+  teardown calls with `portKillListenersBroker` from `@dungeonmaster/shared/brokers`.
+- `packages/ward/src/brokers/check-run/e2e/check-run-e2e-broker.proxy.ts` — replace
+  `netKillPortAdapterProxy` composition with `portKillListenersBrokerProxy` from
+  `@dungeonmaster/shared/testing`, staged per exact port.
+- `packages/ward/src/brokers/e2e-artifacts/prune/e2e-artifacts-prune-broker.ts` — replace
+  `netPortInUseAdapter({port})` with `(await listeningPids({port})).length > 0`, imported from
+  `#gateway/bin/lsof` directly (no second broker, per step 2's recommendation).
+- `packages/ward/src/brokers/e2e-artifacts/prune/e2e-artifacts-prune-broker.proxy.ts` — replace
+  `netPortInUseAdapterProxy` composition with `listeningPidsProxy` from
+  `#gateway/bin/lsof/listening-pids/listening-pids.proxy`.
+- `packages/ward/CLAUDE.md` — added after the fact, not in the original list: its own e2e-isolation
+  table named `netFreePortPairAdapter`/`netKillPortAdapter` by name, both stale (the real code already
+  called `freePortPair` before this item, and `netKillPortAdapter` is this item's own deletion) —
+  fixed both to the names this item's diff leaves behind.
+
+Deleted files:
+- `packages/ward/src/adapters/net/kill-port/net-kill-port-adapter.ts`
+- `packages/ward/src/adapters/net/kill-port/net-kill-port-adapter.proxy.ts`
+- `packages/ward/src/adapters/net/kill-port/net-kill-port-adapter.test.ts`
+- `packages/ward/src/adapters/net/kill-port/net-kill-port-adapter.integration.test.ts`
+- `packages/ward/src/adapters/net/port-in-use/net-port-in-use-adapter.ts`
+- `packages/ward/src/adapters/net/port-in-use/net-port-in-use-adapter.proxy.ts`
+- `packages/ward/src/adapters/net/port-in-use/net-port-in-use-adapter.test.ts`
+- `packages/ward/test/harnesses/kill-port/kill-port.harness.ts` — its one consumer (the integration
+  test above) is deleted alongside it.
+
+The deleted integration test drove a real spawned server and killed it for real. Its replacement, if
+any, is not another `.integration.test.ts`: `get-testing-patterns` restricts integration tests to
+`startup/`/`flows/` files, and this item's own "Checks to run" row names `lint, typecheck, unit`
+only. The unit tests above mock the gateway boundary instead; see DECISIONS in the final report for
+the coverage trade this makes.
+
+### Root-cause gateway fix (operator directive, after the gap above was found)
+
+Every `#gateway/bin` wrapper mocked `run` directly, permanently replacing its real body — the same
+conflict named above, not unique to lsof/kill. Fixed at the root instead of worked around in ward:
+
+- `packages/@gateway/node/src/child_process/run/run.proxy.ts` — widened `args?: string[]` to a new
+  local `SpawnArgsMatcher` type on `setupSuccess`/`setupSignalKill`/`setupError`/`setupHangsUntilKilled`
+  (purely additive; `buildSpawnAddress` already pushed `args` untyped, so no existing caller's runtime
+  behavior changes) — the five `*-run.proxy.ts` files below need to stage a tolerant/predicate `args`
+  through it, which the old `string[]`-only signature couldn't express.
+- `packages/@gateway/bin/src/gateway-test-support/arg-matcher.ts` — added an `argsMatcher` read-back
+  helper (matches one real argv array against an `ArgsMatcher`) — every rewritten `*-run.proxy.ts`'s
+  own `getCallsFor` needs to filter `runProxy()`'s command-only read-back by the caller's own address,
+  since `runProxy` has no such filter itself.
+- `packages/@gateway/bin/src/gateway-test-support/arg-matcher.proxy.ts` — new, empty (colocation
+  requires one now that `arg-matcher.ts` exports a real function, not only types).
+- `packages/@gateway/bin/src/gateway-test-support/arg-matcher.test.ts` — added coverage for `argsMatcher`.
+- `packages/@gateway/bin/src/{kill/kill-run,lsof/lsof-run,git/git-run,cp/cp-run,npm/npm-run}/*-run.proxy.ts`
+  — all five rewritten to compose `runProxy()` (spawn level) instead of `registerMock({ fn: run })`,
+  keeping every public method name/param identical. `setupNotFound`/`throwsMatchingArgs` now stage a
+  raw `Error` with `.code = 'ENOENT'` via `run.setupError`, letting `run`'s real body wrap it into
+  `RunNotFoundError` — byte-identical to what these proxies used to construct by hand. A `signal` param
+  routes to `run.setupSignalKill`; a `timedOut` param is accepted (API parity) but cannot be wired
+  through — see the exact gap below.
+- `packages/@gateway/bin/src/git/git-run/git-run.test.ts` — removed the one test staging
+  `timedOut: true`: unreachable under real `run()` semantics for this call shape (see below).
+
+**Exact case where spawn-level staging cannot express something a caller needed:** `run`'s real body
+sets `timedOut` ONLY from its own internal timer, armed by a `timeout` param passed to `run()` at the
+call site — and no `*-run.ts` file in this gateway ever passes one. The five old `run`-level proxies
+could stage `timedOut: true` anyway (they resolved `run`'s mock directly, bypassing that constraint
+entirely), and `git-run.test.ts` was the one place that exercised it — a combination unreachable in
+production. No fix existed inside `@gateway/bin`'s own files for this one case.
+
 ## Done when
 
 - `packages/ward/src/adapters/net/kill-port/` and `packages/ward/src/adapters/net/port-in-use/` no longer exist.
@@ -116,6 +206,50 @@ Confirmed 2026-09-26 by reading every file named below.
   were confirmed or updated — reported under DECISIONS either way.
 - `npm run ward -- --only lint,typecheck,unit -- packages/shared/src/brokers/port packages/ward` (narrowed to the
   files actually touched) exits 0.
+
+## Gap found while implementing, fixed at the root (see below)
+
+`#gateway/bin/lsof`'s and `#gateway/bin/kill`'s own test-support proxies (`lsofRunProxy`,
+`killRunProxy`, and thus `listeningPidsProxy`/`killPidProxy`) mock `#gateway/node/child_process`'s
+`run` DIRECTLY: `registerMock({ fn: run })`, replacing `run`'s real implementation outright.
+`#gateway/node/child_process/run/run.proxy.ts` (`runProxy()`) — the proxy every OTHER `run`-based
+ward check (lint's eslint, typecheck's tsc, unit/integration's jest, and this file's own playwright
+spawn) already composes — mocks `spawn`, ONE LEVEL BELOW `run`, relying on `run`'s real body to reach
+it. **These two mock levels cannot coexist in one test file.** `registerMock({ fn: run })` installs a
+dispatcher the moment it is CONSTRUCTED (before any `calledWith` staging), regardless of whether it is
+ever exercised, and that dispatcher permanently intercepts every call to `run` — including the
+UNRELATED playwright/eslint/git calls other proxies in the same file stage at the `spawn` level, which
+never reach `run`'s real body again for the rest of that test.
+
+`enforce-proxy-child-creation` (lint) makes this unavoidable from either direction: `check-run-e2e-broker.ts`
+importing `portKillListenersBroker` MUST have its proxy compose `portKillListenersBrokerProxy`, which
+(per this item's own instruction) MUST compose `listeningPidsProxy`/`killPidProxy` to satisfy the SAME
+rule on `port-kill-listeners-broker.ts` itself; `e2e-artifacts-prune-broker.ts` importing `listeningPids`
+MUST have its proxy compose `listeningPidsProxy` directly. Both are therefore lint-mandated, and both
+install the conflicting `run`-level mock the moment their proxy is constructed — which
+`singlePackageLayerBrokerProxy` does unconditionally, for every scenario, since production code always
+calls `e2eArtifactsPruneBroker` "at the end of every invocation" regardless of which check types were
+requested.
+
+**Confirmed broken, whole `packages/ward` unit suite (237 passed / 4 failed):**
+- `packages/ward/src/brokers/check-run/e2e/check-run-e2e-broker.test.ts` — its own playwright `run.setupSuccess` staging (spawn-level) never fires once `portKillListenersBrokerProxy` constructs.
+- `packages/ward/src/brokers/command/run/single-package-layer-broker.test.ts`
+- `packages/ward/src/brokers/command/run/command-run-broker.test.ts`
+- `packages/ward/src/responders/ward/run/ward-run-responder.test.ts`
+
+The last three never touch e2e/port-kill in their own scenarios (lint-only, git-scope-only) — they
+break purely because `singlePackageLayerBrokerProxy` eagerly constructs `checkRunE2eBrokerProxy()` and
+`e2eArtifactsPruneBrokerProxy()` alongside `checkRunLintBrokerProxy()` and the git brokers' own
+`spawn`-level proxies. Every other file in `packages/ward` and the whole of `packages/shared` (611/611
+units) stays green — the four above are the full, confirmed blast radius, and all four share this one
+root cause.
+
+**No fix stayed inside this item's scope (`shared`, `ward`).** The real fix is either in
+`packages/@gateway/bin` (make `lsofRun`/`killRun`'s own proxies mock `spawn` instead of `run`, matching
+`run.proxy.ts`'s own level) or a restructuring of `single-package-layer-broker.proxy.ts` so `run`-based
+child proxies never coexist with `spawn`-based ones in one test file — both outside `shared`/`ward`, or
+a much wider redesign of `ward`'s own check-run-* proxy layer, respectively. Left standing; see the
+implementing agent's final report for what was tried.
 
 ## Traps
 

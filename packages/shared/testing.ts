@@ -49,6 +49,7 @@ export * from './src/brokers/dungeonmaster-home/ensure/dungeonmaster-home-ensure
 // Port Broker Proxies
 export * from './src/brokers/port/resolve/port-resolve-broker.proxy';
 export * from './src/brokers/port/config-walk/port-config-walk-broker.proxy';
+export * from './src/brokers/port/kill-listeners/port-kill-listeners-broker.proxy';
 
 // Claude Line Normalize Broker Proxy (single funnel)
 export * from './src/brokers/claude-line/normalize/claude-line-normalize-broker.proxy';

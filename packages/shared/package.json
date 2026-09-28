@@ -86,6 +86,7 @@
     "typescript"
   ],
   "dependencies": {
+    "@dungeonmaster/bin": "*",
     "@dungeonmaster/node": "*",
     "@dungeonmaster/npm": "*",
     "fast-xml-parser": "^5.6.0",

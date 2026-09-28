@@ -1,11 +1,15 @@
-import { filePathContract, networkPortContract } from '@dungeonmaster/shared/contracts';
+import { listeningPidsProxy } from '#gateway/bin/lsof/listening-pids/listening-pids.proxy';
+import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { fsReaddirAdapterProxy } from '../../../adapters/fs/readdir/fs-readdir-adapter.proxy';
 import { fsRmAdapterProxy } from '../../../adapters/fs/rm/fs-rm-adapter.proxy';
 import { fsStatAdapterProxy } from '../../../adapters/fs/stat/fs-stat-adapter.proxy';
-import { netPortInUseAdapterProxy } from '../../../adapters/net/port-in-use/net-port-in-use-adapter.proxy';
 import { e2eArtifactsStatics } from '../../../statics/e2e-artifacts/e2e-artifacts-statics';
+
+// The broker only checks `.length > 0` on what listeningPids resolves — this pid's value is never
+// read, so one fixed placeholder covers every "port held" setup.
+const HELD_PORT_PID = 88_888;
 
 const DAY_MS = 86_400_000;
 
@@ -47,7 +51,7 @@ export const e2eArtifactsPruneBrokerProxy = (): {
   const readdirProxy = fsReaddirAdapterProxy();
   const statProxy = fsStatAdapterProxy();
   const rmProxy = fsRmAdapterProxy();
-  const portProxy = netPortInUseAdapterProxy();
+  const lsofProxy = listeningPidsProxy();
 
   const parentPathFor = ({
     packageRoot,
@@ -98,10 +102,10 @@ export const e2eArtifactsPruneBrokerProxy = (): {
       });
     },
     setupPortHeld: ({ port }): void => {
-      portProxy.inUse({ port: networkPortContract.parse(port) });
+      lsofProxy.setupPids({ port, pids: [HELD_PORT_PID] });
     },
     setupPortFree: ({ port }): void => {
-      portProxy.free({ port: networkPortContract.parse(port) });
+      lsofProxy.setupNoneListening({ port });
     },
     getRemovedPaths: ({ packageRoot, parentDir, name }): readonly unknown[][] =>
       rmProxy.getCallsFor({ filePath: entryPathFor({ packageRoot, parentDir, name }) }),

@@ -78,6 +78,10 @@ export * from './src/contracts/exit-code/exit-code.stub';
 export * from './src/contracts/exec-result/exec-result-contract';
 export * from './src/contracts/exec-result/exec-result.stub';
 
+// Port Kill Listener Result Contracts
+export * from './src/contracts/port-kill-listener-result/port-kill-listener-result-contract';
+export * from './src/contracts/port-kill-listener-result/port-kill-listener-result.stub';
+
 export * from './src/contracts/network-port/network-port-contract';
 export * from './src/contracts/network-port/network-port.stub';
 

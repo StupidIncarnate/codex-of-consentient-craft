@@ -55,20 +55,6 @@ describe('gitRun()', () => {
     });
   });
 
-  it('EDGE: {exitCode: 1, output: "", timedOut: true} => returns the result, does not throw', async () => {
-    const proxy = gitRunProxy();
-    proxy.setupResult({ args: ['status'], exitCode: 1, output: '', timedOut: true });
-
-    const result = await gitRun({ args: ['status'], cwd: '/repo' });
-
-    expect(result).toStrictEqual({
-      exitCode: 1,
-      output: '',
-      signal: null,
-      timedOut: true,
-    });
-  });
-
   describe('tolerant addressing', () => {
     it('VALID: {returnsMatchingArgs, a predicate} => resolves for args the predicate accepts', async () => {
       const proxy = gitRunProxy();

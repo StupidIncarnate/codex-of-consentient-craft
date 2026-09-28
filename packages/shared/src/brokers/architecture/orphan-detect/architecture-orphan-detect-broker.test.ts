@@ -2,9 +2,7 @@ import { architectureOrphanDetectBroker } from './architecture-orphan-detect-bro
 import { architectureOrphanDetectBrokerProxy } from './architecture-orphan-detect-broker.proxy';
 import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
-import type { fsReaddirWithTypesAdapter } from '../../../adapters/fs/readdir-with-types/fs-readdir-with-types-adapter';
-
-type Dirent = ReturnType<typeof fsReaddirWithTypesAdapter>[0];
+import type { Dirent } from '#gateway/node/fs';
 
 const fileEntry = ({ name }: { name: string }): Dirent =>
   ({

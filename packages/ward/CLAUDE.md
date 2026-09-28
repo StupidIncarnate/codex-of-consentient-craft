@@ -441,7 +441,7 @@ Three things carry the run's identity, and all three must stay per-run or the is
 
 | Per-run thing            | Where it comes from                                          | What sharing it costs                                                                                                                                                     |
 |--------------------------|--------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| The two ports            | `netFreePortPairAdapter`, both sockets held open together    | A derived `port + 1` is never checked for being free, so a concurrent run can be handed it — and the `netKillPortAdapter` teardown then kills that run's server mid-suite |
+| The two ports            | `freePortPair` (`#gateway/node/net`), both sockets held open together | A derived `port + 1` is never checked for being free, so a concurrent run can be handed it — and the `portKillListenersBroker` teardown then kills that run's server mid-suite |
 | The JSON report path     | `.ward-playwright-report-<serverPort>.json`                  | The second run overwrites a report the first is still reading, and both agents read a run describing neither                                                              |
 | Playwright's `outputDir` | `test-results/<port>` in `packages/web/playwright.config.ts` | Playwright clears the folder at run start, so the second run wipes the first's failure traces and screenshots                                                             |
 

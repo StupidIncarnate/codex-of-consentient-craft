@@ -1,4 +1,7 @@
-import { architecturePackageE2eEligibleDetectBrokerProxy } from '@dungeonmaster/shared/testing';
+import {
+  architecturePackageE2eEligibleDetectBrokerProxy,
+  portKillListenersBrokerProxy,
+} from '@dungeonmaster/shared/testing';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { runProxy } from '#gateway/node/child_process/run/run.proxy';
 import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found.error.proxy';
@@ -6,12 +9,12 @@ import { freePortPairProxy } from '#gateway/node/net/free-port-pair/free-port-pa
 import {
   filePathContract,
   absoluteFilePathContract,
+  networkPortContract,
   AbsoluteFilePathStub,
 } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { fsGlobSyncAdapterProxy } from '../../../adapters/fs/glob-sync/fs-glob-sync-adapter.proxy';
-import { netKillPortAdapterProxy } from '../../../adapters/net/kill-port/net-kill-port-adapter.proxy';
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { osTmpdirAdapterProxy } from '../../../adapters/os/tmpdir/os-tmpdir-adapter.proxy';
 import { fsUnlinkAdapterProxy } from '../../../adapters/fs/unlink/fs-unlink-adapter.proxy';
@@ -52,7 +55,7 @@ export const checkRunE2eBrokerProxy = (): {
   // unlike unit/integration which loop over a dozen. The pattern is known, so key on it exactly.
   const globProxy = fsGlobSyncAdapterProxy();
   globProxy.returnsForPattern({ pattern: '**/*.e2e.ts', files: ['discovered.ts'] });
-  netKillPortAdapterProxy();
+  const portKillProxy = portKillListenersBrokerProxy();
   const readFileProxy = fsReadFileAdapterProxy();
   const tmpdirProxy = osTmpdirAdapterProxy();
   tmpdirProxy.returns({ path: '/tmp' });
@@ -77,6 +80,7 @@ export const checkRunE2eBrokerProxy = (): {
   // number, the readFile address in setupPassWithJsonReport, and the removal staged below all have
   // to move together.
   const STAGED_SERVER_PORT = 40_000;
+  const STAGED_WEB_PORT = 51_244;
 
   // Playwright's own leak surface, checked unconditionally (no `wantsTimerWatch` gate the way
   // unit/integration have — every e2e run asks). Staged by exact path — no wildcard — since no
@@ -89,7 +93,16 @@ export const checkRunE2eBrokerProxy = (): {
   existsProxy.returns({ path: handleReportPath, exists: false });
 
   const queueFreePorts = (): void => {
-    freePortProxy.returns({ server: STAGED_SERVER_PORT, web: 51_244 });
+    freePortProxy.returns({ server: STAGED_SERVER_PORT, web: STAGED_WEB_PORT });
+    // The post-run teardown always sweeps both ports; every setup below reaches it, so both are
+    // staged "nothing listening" here rather than at each call site. KNOWN GATEWAY GAP (see this
+    // file's CLAUDE.md-adjacent report under A03/DECISIONS): portKillListenersBrokerProxy composes
+    // #gateway/bin's listeningPidsProxy/killPidProxy, which mock `run` DIRECTLY — replacing its real
+    // body outright, so the playwright `run.setupSuccess` staged elsewhere in this file (mocking
+    // `spawn`, one level below `run`, and relying on `run`'s real body to reach it) never fires once
+    // this constructs. There is no address-level fix; the two mock levels cannot coexist.
+    portKillProxy.setupNoneListening({ port: networkPortContract.parse(STAGED_SERVER_PORT) });
+    portKillProxy.setupNoneListening({ port: networkPortContract.parse(STAGED_WEB_PORT) });
   };
 
   const stageCacheRemoval = ({ projectFolder }: { projectFolder: ProjectFolder }): void => {

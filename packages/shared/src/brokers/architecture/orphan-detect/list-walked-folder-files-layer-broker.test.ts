@@ -1,9 +1,7 @@
 import { listWalkedFolderFilesLayerBroker } from './list-walked-folder-files-layer-broker';
 import { listWalkedFolderFilesLayerBrokerProxy } from './list-walked-folder-files-layer-broker.proxy';
 import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
-import type { fsReaddirWithTypesAdapter } from '../../../adapters/fs/readdir-with-types/fs-readdir-with-types-adapter';
-
-type Dirent = ReturnType<typeof fsReaddirWithTypesAdapter>[0];
+import type { Dirent } from '#gateway/node/fs';
 
 const fileEntry = ({ name }: { name: string }): Dirent =>
   ({

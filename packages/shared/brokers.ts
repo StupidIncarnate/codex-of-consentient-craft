@@ -54,6 +54,7 @@ export * from './src/brokers/dungeonmaster-home/ensure/dungeonmaster-home-ensure
 // Port
 export * from './src/brokers/port/resolve/port-resolve-broker';
 export * from './src/brokers/port/config-walk/port-config-walk-broker';
+export * from './src/brokers/port/kill-listeners/port-kill-listeners-broker';
 
 // Install
 export * from './src/brokers/install/check/install-check-broker';

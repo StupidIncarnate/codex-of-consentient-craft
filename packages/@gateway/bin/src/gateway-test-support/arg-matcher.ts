@@ -24,3 +24,30 @@
  */
 export type ArgMatcher = string | ((value: unknown) => boolean);
 export type ArgsMatcher = readonly ArgMatcher[] | ((args: readonly unknown[]) => boolean);
+
+/**
+ * Tests one real argv array a `*-run` wrapper's own read-back already collected against an
+ * `ArgsMatcher` a caller's `getCallsFor` was asked for — the read-back half of the same tolerance
+ * `returnsMatchingArgs`/`throwsMatchingArgs` stage with. `#gateway/node/child_process`'s `run.proxy`
+ * pushes an `ArgsMatcher` straight into its own staged tuple (matched there by
+ * `mockArgValueMatchTransformer`), but its `getCallsFor`/`getOptionsFor` answer by COMMAND alone —
+ * every `*-run.proxy` composing it filters that list down to the calls its own caller asked about
+ * with this.
+ */
+export const argsMatcher = ({
+  matcher,
+  actual,
+}: {
+  matcher: ArgsMatcher;
+  actual: readonly string[];
+}): boolean => {
+  if (typeof matcher === 'function') {
+    return matcher(actual);
+  }
+  if (matcher.length !== actual.length) {
+    return false;
+  }
+  return matcher.every((element, index) =>
+    typeof element === 'function' ? element(actual[index]) : element === actual[index],
+  );
+};

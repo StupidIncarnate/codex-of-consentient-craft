@@ -10,9 +10,11 @@
 import { run, RunNotFoundError } from '#gateway/node/child_process';
 import { existsSync } from '#gateway/node/fs';
 import { freePortPair } from '#gateway/node/net';
-import { architecturePackageE2eEligibleDetectBroker } from '@dungeonmaster/shared/brokers';
+import {
+  architecturePackageE2eEligibleDetectBroker,
+  portKillListenersBroker,
+} from '@dungeonmaster/shared/brokers';
 
-import { netKillPortAdapter } from '../../../adapters/net/kill-port/net-kill-port-adapter';
 import {
   absoluteFilePathContract,
   errorMessageContract,
@@ -161,8 +163,8 @@ export const checkRunE2eBroker = async ({
 
   // Both ports come from their own bound socket, held open together. Do NOT simplify this to
   // `serverPort + 1`: nothing checks that a derived port is free, a concurrent run can be handed
-  // it as ITS server port, and the netKillPortAdapter teardown below then kills that run's server
-  // mid-suite — which reads as an unrelated flaky spec rather than as a port collision.
+  // it as ITS server port, and the portKillListenersBroker teardown below then kills that run's
+  // server mid-suite — which reads as an unrelated flaky spec rather than as a port collision.
   const { firstPort: serverPort, secondPort: webPort } = await freePortPair();
 
   // The port makes this path unique per run, which is what lets two browser walks run against one
@@ -211,8 +213,8 @@ export const checkRunE2eBroker = async ({
   });
 
   await Promise.all([
-    netKillPortAdapter({ port: networkPortContract.parse(serverPort) }),
-    netKillPortAdapter({ port: networkPortContract.parse(webPort) }),
+    portKillListenersBroker({ port: networkPortContract.parse(serverPort) }),
+    portKillListenersBroker({ port: networkPortContract.parse(webPort) }),
   ]);
 
   const exitCode = exitCodeContract.parse(result.exitCode);
