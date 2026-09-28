@@ -1,9 +1,9 @@
 import { existsSync } from 'fs';
 import { access, readFile, realpath, rename, unlink, writeFile } from 'fs/promises';
 import { createConnection } from 'net';
-import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { join } from '#gateway/node/path';
+import { registerMock, registerSpyOn, requireActual } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
-import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
 import { AbsoluteFilePathStub, FilePathStub } from '@dungeonmaster/shared/contracts';
 
 import { errorIsNativeErrorAdapterProxy } from '../../../adapters/error/is-native-error/error-is-native-error-adapter.proxy';
@@ -32,10 +32,10 @@ type InstanceHeartbeat = ReturnType<typeof InstanceHeartbeatStub>;
 type ProcessGroupId = ReturnType<typeof ProcessGroupIdStub>;
 
 // Same convention as instance-start-broker.proxy.ts: every path here is REAL `path.join` output
-// off a sticky os.tmpdir() / processCwdAdapter() override, never a one-shot
-// `pathJoinAdapter.returns()` — see that file's header comment for why a shared one-shot queue
-// across unrelated resolvers is unsafe. The home itself is staged through
-// dungeonmasterHomeFindBrokerProxy (an addressed homedir()/join() pair), not a sticky override.
+// off a sticky os.tmpdir() override, resolved through `#gateway/node/path`'s own `join` mock's
+// sticky real-passthrough default — never a one-shot stage, which a shared queue across unrelated
+// resolvers cannot guarantee. The home itself is staged through dungeonmasterHomeFindBrokerProxy
+// (an addressed homedir()/join() pair), not a sticky override.
 const HOME_DIR_VALUE = '/home/user';
 const HOME_PATH_VALUE = `${HOME_DIR_VALUE}/.dungeonmaster`;
 const HOME_PATH = FilePathStub({ value: HOME_PATH_VALUE });
@@ -105,10 +105,15 @@ export const instanceKillBrokerProxy = (): {
   const tmpdirProxy = osTmpdirAdapterProxy();
   const killGroupProxy = processKillGroupAdapterProxy();
   const isAliveProxy = processIsAliveAdapterProxy();
-  // Not composed as processCwdAdapterProxy/cwdResolveBrokerProxy: this implementation never
-  // imports either directly — locationsRepoLinkPathFindBroker uses them transitively, so the
-  // underlying node primitives are mocked here instead, same as os.tmpdir() below.
-  pathJoinAdapterProxy();
+  // #gateway/node/path is a raw passthrough of the Node 'path' module (no per-function wrapper, so
+  // no gateway proxy to compose) — mocked directly here, on the same '#gateway/node/path' specifier
+  // the broker imports. Both joins this broker makes (the heartbeat path, the throwaway home) need
+  // no substitution to compute their real value, so only the sticky real-passthrough default is
+  // installed.
+  const realPath = requireActual<{ join: typeof join }>({ module: 'path' });
+  registerMock({ fn: join })
+    .calledWith([])
+    .implement((...segments: never[]) => realPath.join(...segments));
   const connectionHandle: MockHandle = registerMock({ fn: createConnection });
 
   const existsHandle: MockHandle = registerMock({ fn: existsSync });

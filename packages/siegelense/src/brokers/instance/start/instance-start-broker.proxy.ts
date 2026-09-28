@@ -1,14 +1,11 @@
 import { existsSync } from 'fs';
 import { access, readFile, realpath, rename, unlink, writeFile } from 'fs/promises';
-import { dirname, join } from 'path';
-import { createServer } from 'net';
-import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { dirname, join } from '#gateway/node/path';
+import { cwd } from '#gateway/node/process';
+import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
+import { registerMock, registerSpyOn, requireActual } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
-import {
-  cwdResolveBrokerProxy,
-  pathJoinAdapterProxy,
-  processCwdAdapterProxy,
-} from '@dungeonmaster/shared/testing';
+import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/testing';
 import {
   AbsoluteFilePathStub,
   ContentTextStub,
@@ -16,7 +13,8 @@ import {
   NetworkPortStub,
   filePathContract,
 } from '@dungeonmaster/shared/contracts';
-import type { FilePath, NetworkPort, TimeoutMs } from '@dungeonmaster/shared/contracts';
+import type { FilePath, TimeoutMs } from '@dungeonmaster/shared/contracts';
+import { instanceLifecycleStatics } from '../../../statics/instance-lifecycle/instance-lifecycle-statics';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import type { DevServerE2eProcess } from '@dungeonmaster/config';
 
@@ -55,13 +53,13 @@ type InstanceId = ReturnType<typeof InstanceIdStub>;
 type Registry = ReturnType<typeof RegistryStub>;
 type SpecName = ReturnType<typeof SpecNameStub>;
 
-// Every path below is REAL `path.join` output off two sticky roots (os.homedir() and
-// processCwdAdapter()'s own built-in default) — never a one-shot `pathJoinAdapter.returns()`.
+// Every path below is REAL `path.join` output off two sticky roots (os.homedir() and `cwd()`'s
+// own built-in default) — never a one-shot stage on `#gateway/node/path`'s `join` mock.
 // instanceReserveBroker, bootLockAcquireBroker and every registry broker they compose ALSO
-// resolve their own paths through the SAME real pathJoinAdapter passthrough, so one sticky root
-// answers every caller consistently regardless of how many times each resolver runs — a one-shot
-// queue shared across a dozen unrelated resolvers has no such guarantee (the wrong call consumes
-// the wrong entry the moment two callers interleave).
+// resolve their own paths through the SAME real `join` passthrough, so one sticky root answers
+// every caller consistently regardless of how many times each resolver runs — a one-shot queue
+// shared across a dozen unrelated resolvers has no such guarantee (the wrong call consumes the
+// wrong entry the moment two callers interleave).
 const HOME_DIR_VALUE = '/home/user';
 const HOME_PATH_VALUE = `${HOME_DIR_VALUE}/.dungeonmaster`;
 const ROOT_PATH_VALUE = '/home/user/.dungeonmaster/siegelense';
@@ -73,10 +71,10 @@ const CWD_PATH_VALUE = '/default/cwd';
 const CONFIG_FILE_PATH_VALUE = `${CWD_PATH_VALUE}/.dungeonmaster.json`;
 // Built from locationsStatics rather than a re-hardcoded literal, so this constant tracks
 // locationsRepoLinkPathFindBroker's own linkPath composition instead of drifting the moment the
-// nesting under repoRoot changes again. Plain string interpolation, NOT the real `join` adapter
-// call every other path below uses: `join` (imported at the top of this file from 'path') is one
-// of the functions `registerMock` governs, so calling it here at MODULE scope — before any proxy
-// in this file has run its constructor and staged the real-passthrough default — hits the
+// nesting under repoRoot changes again. Plain string interpolation, NOT the real `join` call every
+// other path below uses: `join` (imported at the top of this file from '#gateway/node/path') is
+// one of the functions `registerMock` governs, so calling it here at MODULE scope — before any
+// proxy in this file has run its constructor and staged the real-passthrough default — hits the
 // unconfigured mock and resolves to `undefined`, exactly as `join()` would if called at module
 // scope anywhere else in this file. `locationsStatics` itself is a plain object, never mocked.
 const LINK_PATH_VALUE = `${CWD_PATH_VALUE}/${locationsStatics.repoRoot.dungeonmasterAssets}/${locationsStatics.repoRoot.siegelenseLink}`;
@@ -87,14 +85,13 @@ const CLI_BIN_RELATIVE_VALUE = './dist/bin/dungeonmaster.js';
 const MINTED_UUID_VALUE = '7f3a9c21-58cc-4372-a567-0e02b2c3d479';
 const FIRST_PORT_VALUE = 40_000;
 const SECOND_PORT_VALUE = 40_001;
-const PORT_ROLE_TOGGLE_DIVISOR = 2;
 // boot-lock-acquire-broker.proxy.ts and boot-lock-release-broker.proxy.ts each pre-stage their
 // OWN one-shot pathJoin/homedir resolutions unconditionally in their constructors (never gated
 // behind a semantic setup method) — 4 rounds of {homedir-join, root-join, bootlock-join} for
 // acquire, 1 round for release, 15 pathJoin one-shots total. enforce-proxy-child-creation requires
 // BOTH proxies be constructed here even though this file never calls their setup methods, so those
 // one-shots sit queued ahead of every real call this test drives. Draining well past that count
-// empties the queue back to pathJoinAdapterProxy's own sticky real-passthrough default, which every
+// empties the queue back to this file's own sticky real-passthrough default on `join`, which every
 // call in this file relies on; a call past the real queue length is a harmless real join.
 const PATH_JOIN_DRAIN_COUNT = 40;
 // this broker's own nowMsForStaleness (1) + instanceReserveBroker's reservedAtMs (1) +
@@ -155,9 +152,9 @@ export const instanceStartBrokerProxy = (): {
   stageProcessUnreachable: (params: { url: string }) => void;
   setupCapacityRefusal: (params: { specName: SpecName; why: string }) => void;
 } => {
-  // Created to satisfy enforce-proxy-child-creation; every OTHER setup method on this proxy is
-  // never called, since every path here resolves through the REAL pathJoin passthrough (see the
-  // note above) rather than through a one-shot stub any of these would queue.
+  // Composed (not phantom) — this file stages its own branch answer and port candidates through
+  // reserveProxy's own semantic methods below, rather than through a one-shot stub any of these
+  // would otherwise queue onto a shared mock.
   const reserveProxy = instanceReserveBrokerProxy();
   // instanceReserveBroker now reads the real git branch through @dungeonmaster/bin/git's
   // currentBranch, which — unlike the adapter it replaces — has no constructor-time default and
@@ -188,7 +185,13 @@ export const instanceStartBrokerProxy = (): {
   const laneSpecFindProxy = laneSpecFindBrokerProxy();
   laneSpecHashBrokerProxy();
   cwdResolveBrokerProxy();
-  pathJoinAdapterProxy();
+  // `join` (from '#gateway/node/path') runs for real, on a sticky passthrough default — this
+  // broker's own five joins (driver log, throwaway home, api log, web log) and every join a
+  // composed child proxy resolves transitively all share it.
+  const realPath = requireActual<{ join: typeof join }>({ module: 'path' });
+  registerMock({ fn: join })
+    .calledWith([])
+    .implement((...segments: never[]) => realPath.join(...segments));
   // Constructed for enforce-proxy-child-creation. Its own setup methods are never called here: the
   // boot record's path is keyed by the spec's REAL content hash, which no test in this file names,
   // so the write below is addressed by a predicate on the boots directory instead.
@@ -211,7 +214,8 @@ export const instanceStartBrokerProxy = (): {
   const tmpdirProxy = osTmpdirAdapterProxy();
   const pollProxy = instanceStartBootPollLayerBrokerProxy();
   const readyWaitProxy = laneReadyWaitBrokerProxy();
-  const cwdProxy = processCwdAdapterProxy();
+  cwdProxy(); // gateway proxy import — inert, satisfies enforce-proxy-child-creation
+  const cwdHandle = registerMock({ fn: cwd });
   const stderrHandle = registerSpyOn({ object: process.stderr, method: 'write' });
 
   const existsHandle: MockHandle = registerMock({ fn: existsSync });
@@ -221,7 +225,6 @@ export const instanceStartBrokerProxy = (): {
   const realpathHandle: MockHandle = registerMock({ fn: realpath });
   const renameHandle: MockHandle = registerMock({ fn: rename });
   const accessHandle: MockHandle = registerMock({ fn: access });
-  const createServerHandle: MockHandle = registerMock({ fn: createServer });
 
   // instanceStartBroker asks `capacity` whether the machine can hold another instance before it
   // reserves one. It is staged DIRECTLY rather than composed: capacityReadBroker's own reads
@@ -238,7 +241,7 @@ export const instanceStartBrokerProxy = (): {
   dateNowHandle.calledWith([]).returns(EpochMsStub().valueOf());
 
   tmpdirProxy.returns({ path: TMP_DIR_VALUE });
-  cwdProxy.returns({ path: CWD_PATH_VALUE });
+  cwdHandle.calledWith([]).returns(CWD_PATH_VALUE);
   accessHandle.calledWith([CONFIG_FILE_PATH]).resolves({ success: true as const });
   // Record-and-swallow: no test cares what stderr does with the write, only what was written —
   // asserted separately via getStderrMessages/callsMatching.
@@ -265,26 +268,15 @@ export const instanceStartBrokerProxy = (): {
   unlinkHandle.calledWith([REGISTRY_LOCK_PATH_ABS]).resolves(undefined);
   renameHandle.calledWith([REGISTRY_TMP_PATH_ABS]).resolves(undefined);
 
-  // net.createServer() takes no args — [] is the address. Two calls per port-pair request (api
-  // then web), so an odd/even counter is what keeps every pair's two members distinct; the exact
-  // numbers only need to differ, never match a real free port.
-  const firstPort = NetworkPortStub({ value: FIRST_PORT_VALUE });
-  const secondPort = NetworkPortStub({ value: SECOND_PORT_VALUE });
-  const portCallState = { count: 0 };
-  createServerHandle.calledWith([]).implement(() => {
-    const isFirst = portCallState.count % PORT_ROLE_TOGGLE_DIVISOR === 0;
-    portCallState.count += 1;
-    const port: NetworkPort = isFirst ? firstPort : secondPort;
-    return {
-      listen: (_listenPort: number, callback: () => void): void => {
-        callback();
-      },
-      close: (callback: () => void): void => {
-        callback();
-      },
-      address: (): { port: NetworkPort } => ({ port }),
-      on: (): undefined => undefined,
-    } as never;
+  // instanceReserveBroker asks the OS for `claimAttempts` port-pair candidates upfront, through
+  // reserveProxy's own freePortPair() staging — every scenario in this file is a machine with room
+  // and no port collision, so every candidate resolves to the same fixed pair; the exact numbers
+  // only need to differ from each other, never match a real free port.
+  reserveProxy.setupPortCandidates({
+    pairs: Array.from({ length: instanceLifecycleStatics.ports.claimAttempts }, () => ({
+      api: NetworkPortStub({ value: FIRST_PORT_VALUE }),
+      web: NetworkPortStub({ value: SECOND_PORT_VALUE }),
+    })),
   });
 
   const stageBoot = ({
@@ -323,11 +315,12 @@ export const instanceStartBrokerProxy = (): {
       },
     );
 
-    // Computed AFTER the drain above, for the same reason the drain exists at all: `join` is
-    // globally mocked as a one-shot QUEUE (pathJoinAdapterProxy), and a call made before the
-    // queue is drained steals an entry staged for an unrelated caller instead of reaching the
-    // sticky real-passthrough default. Must mirror the real cliPackageBinResolveAdapter's own
-    // require.resolve('@dungeonmaster/cli') + join(dirname(...), ...) exactly.
+    // Computed AFTER the drain above, for the same reason the drain exists at all: `join` (from
+    // '#gateway/node/path') is globally mocked as a one-shot QUEUE by other composed proxies, and
+    // a call made before the queue is drained steals an entry staged for an unrelated caller
+    // instead of reaching the sticky real-passthrough default. Must mirror the real
+    // cliPackageBinResolveAdapter's own require.resolve('@dungeonmaster/cli') +
+    // join(dirname(...), ...) exactly.
     const expectedDriverBinPath = join(
       dirname(require.resolve('@dungeonmaster/cli')),
       CLI_BIN_RELATIVE_VALUE,

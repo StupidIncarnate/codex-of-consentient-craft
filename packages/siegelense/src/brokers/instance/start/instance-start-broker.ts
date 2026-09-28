@@ -56,10 +56,12 @@
  * // ceiling that instance reaps itself against above driverStatics.idle.timeoutMs
  */
 
-import { pathJoinAdapter, processCwdAdapter } from '@dungeonmaster/shared/adapters';
+import { join } from '#gateway/node/path';
+import { cwd } from '#gateway/node/process';
 import {
   absoluteFilePathContract,
   contentTextContract,
+  filePathContract,
   type ContentText,
   type GuildId,
   type QuestId,
@@ -185,11 +187,11 @@ export const instanceStartBroker = async ({
       guildId,
     });
     const driverLogPath = absoluteFilePathContract.parse(
-      pathJoinAdapter({ paths: [evidencePath, locationsStatics.siegelense.driverLog] }),
+      join(evidencePath, locationsStatics.siegelense.driverLog),
     );
     const driverLogFd = fsOpenFdAdapter({ filePath: driverLogPath });
 
-    const cwdSeed = processCwdAdapter();
+    const cwdSeed = filePathContract.parse(cwd());
     const repoRoot = await cwdResolveBroker({ startPath: cwdSeed, kind: 'repo-root' });
 
     // Spawns the CLI's own resolved bin script through the CURRENT node binary rather than the
@@ -331,13 +333,13 @@ export const instanceStartBroker = async ({
     }
 
     const homePath = absoluteFilePathContract.parse(
-      pathJoinAdapter({ paths: [osTmpdirAdapter(), `dm-siege-${reservedEntry.id}`] }),
+      join(osTmpdirAdapter(), `dm-siege-${reservedEntry.id}`),
     );
     const apiLogPath = absoluteFilePathContract.parse(
-      pathJoinAdapter({ paths: [evidencePath, locationsStatics.siegelense.apiLog] }),
+      join(evidencePath, locationsStatics.siegelense.apiLog),
     );
     const webLogPath = absoluteFilePathContract.parse(
-      pathJoinAdapter({ paths: [evidencePath, locationsStatics.siegelense.webLog] }),
+      join(evidencePath, locationsStatics.siegelense.webLog),
     );
 
     const [evidenceRepoLocal, apiLogRepoLocal, webLogRepoLocal] = await Promise.all([

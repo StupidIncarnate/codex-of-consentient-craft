@@ -1,7 +1,7 @@
 import { existsSync } from 'fs';
 import { access, realpath } from 'fs/promises';
 import { z } from 'zod';
-import { fsMkdirAdapterProxy } from '@dungeonmaster/shared/testing';
+import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 import {
@@ -168,7 +168,9 @@ export const runExecuteBrokerProxy = (): {
   locationsRunPathsFindBrokerProxy();
   locationsShotPathFindBrokerProxy();
   locationsBufferPathsFindBrokerProxy();
-  fsMkdirAdapterProxy(); // its own constructor already resolves ANY filepath — nothing to address.
+  // Unlike the old shared fsMkdirAdapter, ensureDirProxy has no permissive default — stagePaths
+  // below addresses it at the exact shotsDir the same real locationsRunPathsFindBroker call computes.
+  const mkdirProxy = ensureDirProxy();
   // Constructed for enforce-proxy-child-creation only; `snapshotCaptureBroker` is staged directly
   // below because it carries its own suite. Deliberately BEFORE the step-layer proxy: this one
   // registers `Date.now` without staging it, so whatever the step layer stages afterwards is what
@@ -254,6 +256,7 @@ export const runExecuteBrokerProxy = (): {
       shotsDir: AbsoluteFilePath;
     } => {
       const paths = locationsRunPathsFindBroker({ evidencePath, runId });
+      mkdirProxy.succeeds({ path: String(paths.shotsDir) });
       transcriptProxy.succeeds({ transcriptPath: paths.transcript });
       returnWriteProxy.succeeds({ storedReturnPath: paths.storedReturn });
       return paths;

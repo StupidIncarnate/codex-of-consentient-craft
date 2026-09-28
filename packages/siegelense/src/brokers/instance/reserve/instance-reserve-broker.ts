@@ -28,8 +28,8 @@
 
 import { currentBranch } from '#gateway/bin/git';
 import { cwd } from '#gateway/node/process';
-import { fsMkdirAdapter, netFreePortPairAdapter } from '@dungeonmaster/shared/adapters';
-import { filePathContract } from '@dungeonmaster/shared/contracts';
+import { ensureDir } from '#gateway/node/fs__promises';
+import { freePortPair } from '#gateway/node/net';
 import type { GuildId, QuestId } from '@dungeonmaster/shared/contracts';
 
 import { locationsInstanceEvidencePathFindBroker } from '../../locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker';
@@ -79,7 +79,7 @@ export const instanceReserveBroker = async ({
     }),
     Promise.all(
       Array.from({ length: instanceLifecycleStatics.ports.claimAttempts }, async () =>
-        netFreePortPairAdapter(),
+        freePortPair(),
       ),
     ),
   ]);
@@ -140,7 +140,7 @@ export const instanceReserveBroker = async ({
     instanceId: resolvedInstanceId,
     guildId,
   });
-  await fsMkdirAdapter({ filepath: filePathContract.parse(evidencePath) });
+  await ensureDir(evidencePath);
 
   return writtenEntry;
 };

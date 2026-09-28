@@ -42,12 +42,8 @@ import type { EpochMs } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
 import { instanceLifecycleStatics } from '../../../statics/instance-lifecycle/instance-lifecycle-statics';
 import { BootLockHeldError } from '../../../errors/boot-lock-held/boot-lock-held-error';
-import { fsMkdirAdapter } from '@dungeonmaster/shared/adapters';
-import {
-  processIdContract,
-  fileContentsContract,
-  filePathContract,
-} from '@dungeonmaster/shared/contracts';
+import { ensureDir } from '#gateway/node/fs__promises';
+import { processIdContract, fileContentsContract } from '@dungeonmaster/shared/contracts';
 
 export const bootLockAcquireBroker = async ({
   instanceId,
@@ -70,7 +66,7 @@ export const bootLockAcquireBroker = async ({
     acquiredAtMs: nowMs,
   });
 
-  await fsMkdirAdapter({ filepath: filePathContract.parse(rootPath) });
+  await ensureDir(rootPath);
 
   try {
     await fsWriteFileAdapter({

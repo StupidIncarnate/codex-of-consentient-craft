@@ -3,7 +3,7 @@ import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-moc
 import type { MockHandle, SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 import { locationsBootLockPathFindBrokerProxy } from '../../locations/boot-lock-path-find/locations-boot-lock-path-find-broker.proxy';
 import { locationsRootPathFindBrokerProxy } from '../../locations/root-path-find/locations-root-path-find-broker.proxy';
-import { fsMkdirAdapterProxy } from '@dungeonmaster/shared/testing';
+import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { errorIsNativeErrorAdapterProxy } from '../../../adapters/error/is-native-error/error-is-native-error-adapter.proxy';
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { fsUnlinkAdapterProxy } from '../../../adapters/fs/unlink/fs-unlink-adapter.proxy';
@@ -94,7 +94,10 @@ export const bootLockAcquireBrokerProxy = (): {
 
   const rootPathProxy = locationsRootPathFindBrokerProxy();
   const pathProxy = locationsBootLockPathFindBrokerProxy();
-  const mkdirProxy = fsMkdirAdapterProxy();
+  const mkdirProxy = ensureDirProxy();
+  // rootPath is fixed for every test in this file (never runtime-computed here), so the one path
+  // this broker ever ensureDirs is staged once, unconditionally, rather than per scenario.
+  mkdirProxy.succeeds({ path: rootPath });
   // pathJoinAdapterProxy's `returns()` is call-order-scoped (one resolution per staging), so a
   // broker that resolves the path more than once per test needs this staged again for each
   // resolution it will trigger. Each real acquire attempt now resolves the root path TWICE —
@@ -352,6 +355,10 @@ export const bootLockAcquireBrokerProxy = (): {
 
     getLastWriteFlag: (): unknown => writeProxy.getFlagFor({ filePath: bootLockPath }),
 
-    getCreatedDirs: (): readonly unknown[] => mkdirProxy.getCreatedDirs(),
+    // Every call this broker ever makes is against the SAME rootPath, so the count of calls
+    // matching it, each mapped back to that one path, is the created-dirs list a test compares
+    // against `[proxy.rootPath]`.
+    getCreatedDirs: (): readonly unknown[] =>
+      mkdirProxy.getCallsFor({ path: String(rootPath) }).map(() => rootPath),
   };
 };

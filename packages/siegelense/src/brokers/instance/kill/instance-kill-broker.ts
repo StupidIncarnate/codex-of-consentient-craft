@@ -18,7 +18,7 @@
  * // Driver unreachable: reaps the heartbeat's pgids, returns { stopped: true, reapedPgids: [...] }
  */
 
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
+import { join } from '#gateway/node/path';
 import { absoluteFilePathContract, contentTextContract } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
@@ -78,7 +78,7 @@ export const instanceKillBroker = async ({
     )
     .catch(async (): Promise<KillResult> => {
       const heartbeatPath = absoluteFilePathContract.parse(
-        pathJoinAdapter({ paths: [evidencePath, locationsStatics.siegelense.heartbeat] }),
+        join(evidencePath, locationsStatics.siegelense.heartbeat),
       );
 
       const heartbeat = await fsReadFileAdapter({ filePath: heartbeatPath })
@@ -140,7 +140,7 @@ export const instanceKillBroker = async ({
       }
 
       const homePath = absoluteFilePathContract.parse(
-        pathJoinAdapter({ paths: [osTmpdirAdapter(), `dm-siege-${instanceId}`] }),
+        join(osTmpdirAdapter(), `dm-siege-${instanceId}`),
       );
       await fsRmAdapter({ dirPath: homePath });
       await instanceReleaseBroker({ instanceId });
