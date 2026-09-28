@@ -16,7 +16,6 @@
  * // '/repo/worktrees/probe' — carved off the detected base branch, mirrored, seeded and audited
  */
 
-import { processCwdAdapter } from '@dungeonmaster/shared/adapters';
 import { cwdResolveBroker, locationsWorktreePathFindBroker } from '@dungeonmaster/shared/brokers';
 import {
   absoluteFilePathContract,
@@ -25,6 +24,7 @@ import {
   questBranchNameContract,
   type AbsoluteFilePath,
 } from '@dungeonmaster/shared/contracts';
+import { cwd } from '#gateway/node/process';
 
 import { fsIsAccessibleAdapter } from '../../../adapters/fs/is-accessible/fs-is-accessible-adapter';
 import { gitDetectBaseBranchBroker } from '../../../brokers/git/detect-base-branch/git-detect-base-branch-broker';
@@ -38,7 +38,7 @@ export const WorktreeCreateResponder = async ({
   name: string;
 }): Promise<{ worktreePath: AbsoluteFilePath }> => {
   const repoRoot = absoluteFilePathContract.parse(
-    await cwdResolveBroker({ startPath: processCwdAdapter(), kind: 'repo-root' }),
+    await cwdResolveBroker({ startPath: filePathContract.parse(cwd()), kind: 'repo-root' }),
   );
   const worktreeDirName = fileNameContract.parse(name);
   const worktreePath = locationsWorktreePathFindBroker({ repoRoot, worktreeDirName });

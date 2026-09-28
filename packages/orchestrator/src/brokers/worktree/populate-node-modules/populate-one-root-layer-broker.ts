@@ -28,7 +28,7 @@
  * Re-entrant by design: the riftcarver that drives it is dispatched again after a spiritmender, so
  * this root may already be mirrored. The done-check reads the TARGET directory on disk rather than
  * any record, and demands entries rather than mere existence, because an attempt that died right
- * after `fsMkdirAdapter` leaves an empty directory that would otherwise read as finished. The
+ * after `ensureDir` leaves an empty directory that would otherwise read as finished. The
  * SOURCE walk runs on both branches: the roots handed back are derived from the source's links, so
  * skipping it would leave a resumed run with nothing to iterate.
  *
@@ -43,18 +43,16 @@
  * // onLine sees exactly one line for this root — either the mirroring line or the skip line
  */
 
-import {
-  childProcessSpawnCaptureAdapter,
-  fsMkdirAdapter,
-  fsReaddirWithTypesAdapter,
-  pathJoinAdapter,
-} from '@dungeonmaster/shared/adapters';
 import { locationsNodeModulesPathFindBroker } from '@dungeonmaster/shared/brokers';
 import {
   absoluteFilePathContract,
   filePathContract,
   type AbsoluteFilePath,
 } from '@dungeonmaster/shared/contracts';
+import { run, RunNotFoundError } from '#gateway/node/child_process';
+import { readdirEntriesSync } from '#gateway/node/fs';
+import { ensureDir } from '#gateway/node/fs__promises';
+import { join } from '#gateway/node/path';
 
 import { fsIsAccessibleAdapter } from '../../../adapters/fs/is-accessible/fs-is-accessible-adapter';
 import { fsReadlinkAdapter } from '../../../adapters/fs/readlink/fs-readlink-adapter';
@@ -68,6 +66,10 @@ const COPY_COMMAND = 'cp';
 // instead of ~530 MB and ~6.6s.
 const COPY_HARDLINK_FLAGS = '-al';
 const COPY_GREEN_EXIT_CODE = 0;
+// A missing `cp` binary rejects `run` with RunNotFoundError rather than resolving a result — folded
+// into the same failed-run shape the old spawn-capture adapter resolved for an ENOENT, so the two
+// exit-code checks below still see a real (non-zero) result to report.
+const RUN_NOT_FOUND_RESULT = { exitCode: 1, output: '', signal: null, timedOut: false } as const;
 
 export type WorktreeRootPair = Readonly<{
   sourceRoot: AbsoluteFilePath;
@@ -91,14 +93,13 @@ export const populateOneRootLayerBroker = async ({
 
   // The done-check reads DISK, not a record: a directory with entries in it is proof, and the
   // spiritmender that ran between two riftcarver attempts may have npm-installed or deleted things
-  // no ledger knows about. Existence alone is not enough — `fsMkdirAdapter` leaves an EMPTY
+  // no ledger knows about. Existence alone is not enough — `ensureDir` leaves an EMPTY
   // node_modules behind the moment it runs, so an attempt that died right after the mkdir would
   // otherwise look done and mirror nothing.
   const targetExists = await fsIsAccessibleAdapter({
     filePath: filePathContract.parse(targetNodeModules),
   });
-  const alreadyPopulated =
-    targetExists && fsReaddirWithTypesAdapter({ dirPath: targetNodeModules }).length > 0;
+  const alreadyPopulated = targetExists && readdirEntriesSync(targetNodeModules).length > 0;
 
   onLine(
     alreadyPopulated
@@ -107,70 +108,72 @@ export const populateOneRootLayerBroker = async ({
   );
 
   if (!alreadyPopulated) {
-    await fsMkdirAdapter({ filepath: filePathContract.parse(targetNodeModules) });
+    await ensureDir(targetNodeModules);
   }
 
   // The SOURCE walk runs either way. `workspacePackageRoots` is derived entirely from the source
   // side's links plus path arithmetic, so a skipped root still hands the parent the roots to visit
   // next — skipping the walk instead would leave a resumed run with nothing to iterate.
-  const entries = fsReaddirWithTypesAdapter({ dirPath: sourceNodeModules }).filter(
+  const entries = readdirEntriesSync(sourceNodeModules).filter(
     (entry) => !entry.name.startsWith(VITE_CACHE_PREFIX),
   );
 
   const scopeEntries = entries.filter(
-    (entry) => entry.isDirectory() && entry.name.startsWith(NPM_SCOPE_PREFIX),
+    (entry) => entry.kind === 'directory' && entry.name.startsWith(NPM_SCOPE_PREFIX),
   );
   const plainEntries = entries.filter(
-    (entry) => !entry.isDirectory() || !entry.name.startsWith(NPM_SCOPE_PREFIX),
+    (entry) => entry.kind !== 'directory' || !entry.name.startsWith(NPM_SCOPE_PREFIX),
   );
 
   if (!alreadyPopulated && plainEntries.length > 0) {
     // ONE invocation for the whole set, because `cp` copies every source into a trailing
     // destination DIRECTORY. A root holds 500-odd of these, and spawning a process per entry would
     // cost several times what the hardlinking itself does.
-    const copied = await childProcessSpawnCaptureAdapter({
+    const copied = await run({
       command: COPY_COMMAND,
       args: [
         COPY_HARDLINK_FLAGS,
-        ...plainEntries.map((entry) =>
-          String(pathJoinAdapter({ paths: [sourceNodeModules, entry.name] })),
-        ),
+        ...plainEntries.map((entry) => join(sourceNodeModules, entry.name)),
         String(targetNodeModules),
       ],
       cwd: sourceRoot,
+    }).catch((error: unknown) => {
+      if (!(error instanceof RunNotFoundError)) {
+        throw error;
+      }
+      return RUN_NOT_FOUND_RESULT;
     });
 
     if (copied.exitCode !== COPY_GREEN_EXIT_CODE) {
       // `cp -al` cannot cross filesystems, so a worktree placed on another mount fails here rather
       // than degrading into a mechanism nobody chose.
       throw new Error(
-        `node_modules hardlink populate failed for ${String(targetRoot)}: ${String(copied.output)}`,
+        `node_modules hardlink populate failed for ${String(targetRoot)}: ${copied.output}`,
       );
     }
   }
 
   const perEntry = await Promise.all(
     scopeEntries.map(async (entry) => {
-      const entrySourcePath = pathJoinAdapter({ paths: [sourceNodeModules, entry.name] });
-      const entryTargetPath = pathJoinAdapter({ paths: [targetNodeModules, entry.name] });
+      const entrySourcePath = join(sourceNodeModules, entry.name);
+      const entryTargetPath = join(targetNodeModules, entry.name);
 
       // A scope directory becomes a REAL directory whose children are handled one by one. Linking
       // the scope itself would resolve its relative children back to the source checkout, which is
       // exactly the divergence this whole mechanism exists to prevent.
       if (!alreadyPopulated) {
-        await fsMkdirAdapter({ filepath: entryTargetPath });
+        await ensureDir(entryTargetPath);
       }
 
-      const scopeChildren = fsReaddirWithTypesAdapter({
-        dirPath: absoluteFilePathContract.parse(entrySourcePath),
-      });
+      const scopeChildren = readdirEntriesSync(entrySourcePath);
 
       const inspected = await Promise.all(
         scopeChildren.map(async (child) => {
-          const childSourcePath = pathJoinAdapter({ paths: [entrySourcePath, child.name] });
-          const storedTarget = child.isSymbolicLink()
-            ? await fsReadlinkAdapter({ linkPath: childSourcePath })
-            : null;
+          const childSourcePath = join(entrySourcePath, child.name);
+          const storedTarget =
+            child.kind === 'symlink'
+              ? await fsReadlinkAdapter({ linkPath: filePathContract.parse(childSourcePath) })
+              : null;
 
           return {
             name: child.name,
@@ -190,14 +193,14 @@ export const populateOneRootLayerBroker = async ({
       );
       const vendoredSources = inspected
         .filter((item) => item.relativeTarget === null)
-        .map((item) => String(item.childSourcePath));
+        .map((item) => item.childSourcePath);
 
       if (!alreadyPopulated) {
         await Promise.all(
           workspaceChildren.map(async (item) =>
             fsSymlinkAdapter({
               target: item.relativeTarget,
-              linkPath: pathJoinAdapter({ paths: [entryTargetPath, item.name] }),
+              linkPath: filePathContract.parse(join(entryTargetPath, item.name)),
             }),
           ),
         );
@@ -206,15 +209,20 @@ export const populateOneRootLayerBroker = async ({
           // Hardlinked like every other third-party package, NOT linked at the source copy: an
           // absolute link here is the shape `worktreeVerifyLinksBroker` refuses, because it points
           // the worktree's own dependency tree back at the main checkout.
-          const copiedChildren = await childProcessSpawnCaptureAdapter({
+          const copiedChildren = await run({
             command: COPY_COMMAND,
-            args: [COPY_HARDLINK_FLAGS, ...vendoredSources, String(entryTargetPath)],
+            args: [COPY_HARDLINK_FLAGS, ...vendoredSources, entryTargetPath],
             cwd: sourceRoot,
+          }).catch((error: unknown) => {
+            if (!(error instanceof RunNotFoundError)) {
+              throw error;
+            }
+            return RUN_NOT_FOUND_RESULT;
           });
 
           if (copiedChildren.exitCode !== COPY_GREEN_EXIT_CODE) {
             throw new Error(
-              `node_modules hardlink populate failed for ${String(entryTargetPath)}: ${String(copiedChildren.output)}`,
+              `node_modules hardlink populate failed for ${entryTargetPath}: ${copiedChildren.output}`,
             );
           }
         }
@@ -224,12 +232,8 @@ export const populateOneRootLayerBroker = async ({
       // scope directory normalises the `..` segments away and names the same package under each
       // root — which is precisely the pair of roots whose own node_modules must be mirrored next.
       return workspaceChildren.map((item) => ({
-        sourceRoot: absoluteFilePathContract.parse(
-          pathJoinAdapter({ paths: [entrySourcePath, item.relativeTarget] }),
-        ),
-        targetRoot: absoluteFilePathContract.parse(
-          pathJoinAdapter({ paths: [entryTargetPath, item.relativeTarget] }),
-        ),
+        sourceRoot: absoluteFilePathContract.parse(join(entrySourcePath, item.relativeTarget)),
+        targetRoot: absoluteFilePathContract.parse(join(entryTargetPath, item.relativeTarget)),
       }));
     }),
   );

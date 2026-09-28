@@ -25,17 +25,15 @@
  */
 
 import {
-  childProcessSpawnCaptureAdapter,
-  fsReaddirWithTypesAdapter,
-  pathJoinAdapter,
-} from '@dungeonmaster/shared/adapters';
-import {
   absoluteFilePathContract,
   filePathContract,
   type AbsoluteFilePath,
   type AdapterResult,
 } from '@dungeonmaster/shared/contracts';
 import { locationsStatics, projectMapStatics } from '@dungeonmaster/shared/statics';
+import { run, RunNotFoundError } from '#gateway/node/child_process';
+import { readdirEntriesSync } from '#gateway/node/fs';
+import { join } from '#gateway/node/path';
 
 import { fsIsAccessibleAdapter } from '../../../adapters/fs/is-accessible/fs-is-accessible-adapter';
 import { WorktreePrepareError } from '../../../errors/worktree-prepare/worktree-prepare-error';
@@ -58,7 +56,7 @@ export const worktreeSeedDistBroker = async ({
   worktreePath: AbsoluteFilePath;
 }): Promise<AdapterResult> => {
   const sourcePackagesDir = absoluteFilePathContract.parse(
-    pathJoinAdapter({ paths: [repoRoot, projectMapStatics.packagesDirName] }),
+    join(repoRoot, projectMapStatics.packagesDirName),
   );
 
   // A repo with no `packages/` is not a monorepo, so nothing was re-pointed at a workspace package
@@ -72,28 +70,20 @@ export const worktreeSeedDistBroker = async ({
     return { success: true as const };
   }
 
-  const candidates = fsReaddirWithTypesAdapter({ dirPath: sourcePackagesDir }).filter((entry) =>
-    entry.isDirectory(),
+  const candidates = readdirEntriesSync(sourcePackagesDir).filter(
+    (entry) => entry.kind === 'directory',
   );
 
   const inspected = await Promise.all(
     candidates.map(async (entry) => {
-      const sourcePackage = pathJoinAdapter({ paths: [sourcePackagesDir, entry.name] });
-      const sourceDist = pathJoinAdapter({
-        paths: [sourcePackage, locationsStatics.repoRoot.dist],
-      });
-      const targetPackage = pathJoinAdapter({
-        paths: [worktreePath, projectMapStatics.packagesDirName, entry.name],
-      });
-      const targetDist = pathJoinAdapter({
-        paths: [targetPackage, locationsStatics.repoRoot.dist],
-      });
+      const sourcePackage = join(sourcePackagesDir, entry.name);
+      const sourceDist = join(sourcePackage, locationsStatics.repoRoot.dist);
+      const targetPackage = join(worktreePath, projectMapStatics.packagesDirName, entry.name);
+      const targetDist = join(targetPackage, locationsStatics.repoRoot.dist);
 
       const [isPackage, hasSourceDist, hasTargetDist] = await Promise.all([
         fsIsAccessibleAdapter({
-          filePath: filePathContract.parse(
-            pathJoinAdapter({ paths: [sourcePackage, projectMapStatics.packageJsonName] }),
-          ),
+          filePath: filePathContract.parse(join(sourcePackage, projectMapStatics.packageJsonName)),
         }),
         fsIsAccessibleAdapter({ filePath: filePathContract.parse(sourceDist) }),
         fsIsAccessibleAdapter({ filePath: filePathContract.parse(targetDist) }),
@@ -129,10 +119,18 @@ export const worktreeSeedDistBroker = async ({
   // path inside the worktree, and `cp` has no form that maps N sources onto N distinct destinations.
   const copies = await Promise.all(
     missing.map(async (candidate) =>
-      childProcessSpawnCaptureAdapter({
+      run({
         command: COPY_COMMAND,
         args: [COPY_ARCHIVE_FLAG, candidate.sourceDist, candidate.targetDist],
         cwd: repoRoot,
+      }).catch((error: unknown) => {
+        if (!(error instanceof RunNotFoundError)) {
+          throw error;
+        }
+        // A missing `cp` binary rejects `run` with RunNotFoundError rather than resolving a
+        // result — folded into the same failed-run shape the old spawn-capture adapter resolved
+        // for an ENOENT, so the exit-code check right below still sees a real result to report.
+        return { exitCode: 1, output: '', signal: null, timedOut: false };
       }),
     ),
   );
@@ -144,7 +142,7 @@ export const worktreeSeedDistBroker = async ({
       step: STEPS.seedDist,
       detail: worktreeFailureDetailTransformer({
         worktreePath,
-        cause: failed.map((copy) => String(copy.output)).join(' | '),
+        cause: failed.map((copy) => copy.output).join(' | '),
       }),
     });
   }

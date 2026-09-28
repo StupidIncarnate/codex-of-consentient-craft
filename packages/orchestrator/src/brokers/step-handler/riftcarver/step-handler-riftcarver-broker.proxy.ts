@@ -13,9 +13,13 @@
  * const result = await stepHandlerRiftcarverBroker({ args: [], questId, workItemId, onLine: () => undefined });
  */
 
+import { spawn, type ChildProcess } from 'child_process';
 import { Dirent } from 'fs';
+import { mkdir } from 'fs/promises';
+import { EventEmitter, Readable } from 'stream';
 
 import { existsSync, readdirEntriesSync } from '#gateway/node/fs';
+import type { DirEntrySync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
 
 import {
@@ -30,6 +34,7 @@ import {
   childProcessSpawnStreamLinesAdapterProxy,
   locationsWorktreePathFindBrokerProxy,
 } from '@dungeonmaster/shared/testing';
+import { locationsStatics } from '@dungeonmaster/shared/statics';
 import {
   adapterResultContract,
   errorMessageContract,
@@ -203,33 +208,74 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
     filePathContract.parse(realPath.join(...paths));
   pathJoinHandle.calledWith([]).implement(pathJoinImpl as never);
 
-  // questFindQuestPathBroker and questGetBroker reach these three through the gateway directly, not
-  // through `@dungeonmaster/shared/adapters`'s fsReaddirWithTypesAdapter/fsExistsSyncAdapter/
-  // pathJoinAdapter (those stay mocked above for the worktree brokers' own node_modules-mirror
-  // reads, which have not moved). Mocked at the WRAPPER rather than through `#gateway/node/fs`'s
-  // dedicated `readdir-entries-sync.proxy` / `exists-sync.proxy`: those compose only for a proxy
-  // whose OWN implementation imports the gateway name directly, and `enforce-proxy-child-creation`
-  // refuses them here, where the implementation is `step-handler-riftcarver-broker.ts`.
+  // questFindQuestPathBroker and questGetBroker reach `readdirEntriesSync`/`existsSync` through the
+  // gateway directly, not through `@dungeonmaster/shared/adapters` — and so, now, do the node_modules
+  // mirror brokers (populateOneRootLayerBroker, worktreeSeedDistBroker), which used to reach them
+  // through the shared `fsReaddirWithTypesAdapter` this file still mocks below for whatever in this
+  // chain has not moved yet. Mocked at the WRAPPER rather than through `#gateway/node/fs`'s dedicated
+  // `readdir-entries-sync.proxy` / `exists-sync.proxy`: those compose only for a proxy whose OWN
+  // implementation imports the gateway name directly, and `enforce-proxy-child-creation` refuses them
+  // here, where the implementation is `step-handler-riftcarver-broker.ts`.
   //
-  // Defaulted to the REAL WRAPPER implementation, not a fabricated value: this proxy is composed
-  // downstream (via stepHandlerRunBrokerProxy) alongside other brokers that ALSO reach
-  // questFindQuestPathBroker, for OTHER quests, staged through ITS OWN `existsSyncProxy`/
-  // `readdirEntriesSyncProxy` — which mock raw `fs`, one layer below this wrapper. Mocking this
-  // wrapper with no default would swallow every one of those calls before they ever reach the
-  // raw-fs mock that answers them; real-passthrough lets an unstaged call fall through to the
-  // wrapper's own body, which still calls the (separately mocked) raw fs underneath.
+  // `existsSync` defaults to the REAL WRAPPER implementation, not a fabricated value: this proxy is
+  // composed downstream (via stepHandlerRunBrokerProxy) alongside other brokers that ALSO reach
+  // questFindQuestPathBroker, for OTHER quests, staged through ITS OWN `existsSyncProxy` — which mocks
+  // raw `fs`, one layer below this wrapper. Mocking this wrapper with no default would swallow every
+  // one of those calls before they ever reach the raw-fs mock that answers them; real-passthrough lets
+  // an unstaged call fall through to the wrapper's own body, which still calls the (separately mocked)
+  // raw fs underneath. `readdirEntriesSync` has no such sibling to fall through to, so it is backed by
+  // the `dirEntries` virtual store directly (below), same as the shared adapter's own implementation.
   const realGatewayFs = requireActual<{
     existsSync: typeof existsSync;
-    readdirEntriesSync: typeof readdirEntriesSync;
   }>({ module: '#gateway/node/fs' });
+  // The node_modules-mirror brokers (populateOneRootLayerBroker, worktreeSeedDistBroker) now call
+  // `readdirEntriesSync` from `#gateway/node/fs` directly rather than the shared
+  // `fsReaddirWithTypesAdapter`, so this virtual world backs it with the SAME `dirEntries` store —
+  // never a real disk read, which would ENOENT on every one of this test's fake paths.
   const gatewayReaddirHandle = registerMock({ fn: readdirEntriesSync });
-  gatewayReaddirHandle.calledWith([]).implement(realGatewayFs.readdirEntriesSync as never);
+  const gatewayReaddirImpl = (dirPath: string): DirEntrySync[] =>
+    (dirEntries.get(filePathContract.parse(dirPath)) ?? []).map((entry) => ({
+      name: String(entry.name),
+      kind: entry.isSymlink ? 'symlink' : entry.isDir ? 'directory' : 'file',
+    }));
+  gatewayReaddirHandle.calledWith([]).implement(gatewayReaddirImpl as never);
   const gatewayExistsHandle = registerMock({ fn: existsSync });
   gatewayExistsHandle.calledWith([]).implement(realGatewayFs.existsSync as never);
   // `join` is pure with nothing to virtualize — real passthrough by default, same as
   // pathJoinAdapter's own above, since `#gateway/node/path`'s `join` is the identical function.
   const gatewayJoinHandle = registerMock({ fn: join });
   gatewayJoinHandle.calledWith([]).implement((...segments: never[]) => realPath.join(...segments));
+  // The same brokers now call `ensureDir` (`#gateway/node/fs__promises`) rather than the shared
+  // `fsMkdirAdapter`, reaching raw fs/promises `mkdir` underneath. Staged per-quest below, once
+  // `setupQuest` knows the real questFolderPath and the real node_modules-mirror targets, on the
+  // exact directories those brokers compute — never an address-less default.
+  const mkdirHandle = registerMock({ fn: mkdir });
+  // populateOneRootLayerBroker hardlinks third-party node_modules entries by spawning `cp` through
+  // the gateway's `run`, which reaches raw `child_process.spawn` directly — never through the
+  // (module-mocked) `childProcessSpawnCaptureAdapter` `spawnCaptureImpl` below answers every git
+  // command by. Addressed by the command alone: this virtual world has no real files for `cp` to
+  // hardlink and no test here reads its argv back.
+  const spawnHandle = registerMock({ fn: spawn });
+  const createCpChild = (): ChildProcess => {
+    const child = new EventEmitter() as ChildProcess;
+    child.stdout = new Readable({
+      read(): void {
+        /* noop */
+      },
+    });
+    child.stderr = new Readable({
+      read(): void {
+        /* noop */
+      },
+    });
+    setImmediate(() => {
+      child.stdout?.push(null);
+      child.stderr?.push(null);
+      child.emit('exit', 0, null);
+    });
+    return child;
+  };
+  spawnHandle.calledWith(['cp']).implement(createCpChild as never);
 
   const dungeonmasterHomeFindHandle = registerMock({ fn: dungeonmasterHomeFindBroker });
   const dungeonmasterHomeFindImpl = (): { homePath: FilePath } => ({
@@ -461,6 +507,14 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
       files.set(questFilePath, fileContentsContract.parse(JSON.stringify(quest)));
       questFilePathRef.value = questFilePath;
 
+      // riftcarverPersistResultBroker's own ensureDir call, addressed on the exact directory it
+      // computes (questPath + riftcarverResultsDir) — never an address-less catch-all.
+      const questFolderPath = `${QUESTS_DIR}/${String(quest.folder)}`;
+      const riftcarverResultsDir = filePathContract.parse(
+        `${questFolderPath}/${locationsStatics.quest.riftcarverResultsDir}`,
+      );
+      mkdirHandle.calledWith([riftcarverResultsDir]).resolves(undefined);
+
       // questFindQuestPathBroker's own guild listing and per-guild quest scan, addressed by the
       // exact known directories this store's one guild holds — never an address-less catch-all.
       gatewayReaddirHandle
@@ -483,6 +537,15 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
       dirEntries.set(filePathContract.parse(`${REPO_ROOT}/node_modules/@dungeonmaster`), [
         { name: fileNameContract.parse(WORKSPACE_PACKAGE), isDir: false, isSymlink: true },
       ]);
+      // populateOneRootLayerBroker's own ensureDir calls for the node_modules mirror — the
+      // worktree's root node_modules, the @dungeonmaster scope dir beneath it, and the workspace
+      // package's own node_modules — each addressed on the exact target this test's fixed
+      // WORKTREE_PATH and WORKSPACE_PACKAGE compute, never an address-less catch-all.
+      mkdirHandle.calledWith([`${WORKTREE_PATH}/node_modules`]).resolves(undefined);
+      mkdirHandle.calledWith([`${WORKTREE_PATH}/node_modules/@dungeonmaster`]).resolves(undefined);
+      mkdirHandle
+        .calledWith([`${WORKTREE_PATH}/packages/${WORKSPACE_PACKAGE}/node_modules`])
+        .resolves(undefined);
       dirEntries.set(
         filePathContract.parse(`${REPO_ROOT}/packages/${WORKSPACE_PACKAGE}/node_modules`),
         [{ name: fileNameContract.parse('zod'), isDir: true, isSymlink: false }],

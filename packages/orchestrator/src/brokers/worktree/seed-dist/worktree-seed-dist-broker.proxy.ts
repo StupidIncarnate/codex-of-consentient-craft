@@ -1,37 +1,17 @@
-import type { Dirent } from 'fs';
-
-import {
-  childProcessSpawnCaptureAdapterProxy,
-  fsReaddirWithTypesAdapterProxy,
-  pathJoinAdapterProxy,
-} from '@dungeonmaster/shared/testing';
 import {
   AbsoluteFilePathStub,
-  ErrorMessageStub,
-  ExitCodeStub,
   FilePathStub,
   type AbsoluteFilePath,
 } from '@dungeonmaster/shared/contracts';
+import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
+import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found.error.proxy';
+import { runProxy } from '#gateway/node/child_process/run/run.proxy';
+import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/readdir-entries-sync.proxy';
+import { join } from '#gateway/node/path';
 
 import { fsIsAccessibleAdapterProxy } from '../../../adapters/fs/is-accessible/fs-is-accessible-adapter.proxy';
 
 const COPY_COMMAND = 'cp';
-const GREEN_EXIT_CODE = 0;
-const RED_EXIT_CODE = 1;
-
-const buildDirent = ({ name, isDir }: { name: string; isDir: boolean }): Dirent =>
-  ({
-    name,
-    parentPath: '/stub',
-    path: '/stub',
-    isDirectory: () => isDir,
-    isFile: () => !isDir,
-    isBlockDevice: () => false,
-    isCharacterDevice: () => false,
-    isFIFO: () => false,
-    isSocket: () => false,
-    isSymbolicLink: () => false,
-  }) as Dirent;
 
 export const worktreeSeedDistBrokerProxy = (): {
   setupPackagesDirAbsent: () => void;
@@ -53,11 +33,18 @@ export const worktreeSeedDistBrokerProxy = (): {
   // "Nothing is there" is the honest default: an undescribed path has not been built, and every
   // path a test does describe outranks this catch-all.
   isAccessibleProxy.defaultsToNotFound();
-  const readdirProxy = fsReaddirWithTypesAdapterProxy();
-  const spawnProxy = childProcessSpawnCaptureAdapterProxy();
-  // Wired to satisfy enforce-proxy-child-creation and left UNADDRESSED: it defaults to a real
-  // path.join passthrough, so every staged path must match Node's own output byte-for-byte.
-  pathJoinAdapterProxy();
+  const readdirProxy = readdirEntriesSyncProxy();
+  const run = runProxy();
+  // Created but unstaged: RunNotFoundError is a plain class with nothing to mock — composing its
+  // proxy satisfies enforce-proxy-child-creation for the broker's own `instanceof` import.
+  RunNotFoundErrorProxy();
+  // `join` computes every source/target dist path purely from string arithmetic, and the setups
+  // below describe their result by the REAL joined path, so the default stays a real passthrough
+  // rather than staging every tuple individually.
+  const realPath = requireActual<{ join: typeof join }>({ module: 'path' });
+  registerMock({ fn: join })
+    .calledWith([])
+    .implement((...segments: never[]) => realPath.join(...segments));
 
   return {
     setupPackagesDirAbsent: (): void => {
@@ -82,8 +69,8 @@ export const worktreeSeedDistBrokerProxy = (): {
         filePath: FilePathStub({ value: `${String(repoRoot)}/packages` }),
       });
       readdirProxy.returns({
-        dirPath: AbsoluteFilePathStub({ value: `${String(repoRoot)}/packages` }),
-        entries: packages.map(({ name }) => buildDirent({ name, isDir: true })),
+        path: AbsoluteFilePathStub({ value: `${String(repoRoot)}/packages` }),
+        entries: packages.map(({ name }) => ({ name, kind: 'directory' as const })),
       });
 
       packages.forEach(({ name, isPackage, hasSourceDist, hasTargetDist }) => {
@@ -108,23 +95,13 @@ export const worktreeSeedDistBrokerProxy = (): {
     },
 
     setupCopySucceeds: (): void => {
-      spawnProxy.setupSuccess({
-        command: COPY_COMMAND,
-        exitCode: ExitCodeStub({ value: GREEN_EXIT_CODE }),
-        stdout: ErrorMessageStub({ value: '' }),
-        stderr: ErrorMessageStub({ value: '' }),
-      });
+      run.setupSuccess({ command: COPY_COMMAND, exitCode: 0, stdout: '', stderr: '' });
     },
 
     setupCopyFails: ({ output }: { output: string }): void => {
-      spawnProxy.setupSuccess({
-        command: COPY_COMMAND,
-        exitCode: ExitCodeStub({ value: RED_EXIT_CODE }),
-        stdout: ErrorMessageStub({ value: '' }),
-        stderr: ErrorMessageStub({ value: output }),
-      });
+      run.setupSuccess({ command: COPY_COMMAND, exitCode: 1, stdout: '', stderr: output });
     },
 
-    getCopyArgs: (): unknown => spawnProxy.getSpawnedArgs({ command: COPY_COMMAND }),
+    getCopyArgs: (): unknown => run.getCallsFor({ command: COPY_COMMAND }).at(-1),
   };
 };
