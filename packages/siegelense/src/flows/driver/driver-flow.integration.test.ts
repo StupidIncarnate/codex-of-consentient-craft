@@ -3,6 +3,7 @@ import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing
 
 import { InstanceIdStub } from '../../contracts/instance-id/instance-id.stub';
 import { SpecNameStub } from '../../contracts/spec-name/spec-name.stub';
+import { InstanceUnknownError } from '../../errors/instance-unknown/instance-unknown-error';
 import { driverStatics } from '../../statics/driver/driver-statics';
 import { driverFleetHarness } from '../../../test/harnesses/driver-fleet/driver-fleet.harness';
 
@@ -14,10 +15,12 @@ describe('DriverFlow', () => {
   process.env.DUNGEONMASTER_HOME = testbed.guildPath;
 
   describe('the registry has no row for this instance', () => {
-    it('ERROR: {a fresh, isolated registry} => rejects naming the instance', async () => {
+    it('ERROR: {a fresh, isolated registry} => rejects with InstanceUnknownError, the same shared message every other call throws', async () => {
       const instanceId = InstanceIdStub({ value: 'inst_00000000' });
 
-      await expect(DriverFlow({ instanceId })).rejects.toThrow(/not found in the registry/u);
+      await expect(DriverFlow({ instanceId })).rejects.toThrow(
+        new InstanceUnknownError({ instanceId }),
+      );
     });
   });
 

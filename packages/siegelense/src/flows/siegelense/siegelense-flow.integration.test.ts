@@ -29,6 +29,7 @@ import { CompareQueryStub } from '../../contracts/compare-query/compare-query.st
 import { ResultsQueryStub } from '../../contracts/results-query/results-query.stub';
 import { ResultWhereStub } from '../../contracts/result-where/result-where.stub';
 import { StepIndexStub } from '../../contracts/step-index/step-index.stub';
+import { InstanceUnknownError } from '../../errors/instance-unknown/instance-unknown-error';
 import { machineStatics } from '../../statics/machine/machine-statics';
 import { siegelenseCallStatics } from '../../statics/siegelense-call/siegelense-call-statics';
 import { siegelenseHelpStatics } from '../../statics/siegelense-help/siegelense-help-statics';
@@ -129,10 +130,10 @@ describe('SiegelenseFlow', () => {
   });
 
   describe('the driver route', () => {
-    it('ERROR: {args: driver --instance <unreserved id>} => routes to the driver responder, which rejects naming the instance', async () => {
+    it('ERROR: {args: driver --instance <unreserved id>} => routes to the driver responder, which rejects with InstanceUnknownError', async () => {
       await expect(
         SiegelenseFlow({ args: ['driver', '--instance', 'inst_dead0000'] }),
-      ).rejects.toThrow(/inst_dead0000 not found in the registry/u);
+      ).rejects.toThrow(new InstanceUnknownError({ instanceId: 'inst_dead0000' }));
     });
 
     it('ERROR: {args: driver --instance <badly-shaped id>} => rejects the id shape naming --instance rather than a raw ZodError', async () => {
@@ -154,7 +155,7 @@ describe('SiegelenseFlow', () => {
         SiegelenseFlow({
           args: ['driver', '--instance', 'inst_dead0000', '--idle-timeout-ms', '5000'],
         }),
-      ).rejects.toThrow(/inst_dead0000 not found in the registry/u);
+      ).rejects.toThrow(new InstanceUnknownError({ instanceId: 'inst_dead0000' }));
     });
   });
 
@@ -165,7 +166,7 @@ describe('SiegelenseFlow', () => {
       // SiegelenseFlow registers the guard before routing, whatever the route does afterward.
       await expect(
         SiegelenseFlow({ args: ['driver', '--instance', 'inst_dead0000'] }),
-      ).rejects.toThrow(/inst_dead0000 not found in the registry/u);
+      ).rejects.toThrow(new InstanceUnknownError({ instanceId: 'inst_dead0000' }));
 
       const listeners = process.stdout.listeners('error') as ((
         error: NodeJS.ErrnoException,
@@ -188,7 +189,7 @@ describe('SiegelenseFlow', () => {
     it('ERROR: {a non-EPIPE-coded error reaches process.stdout after SiegelenseFlow has run} => the installed listener still rethrows it', async () => {
       await expect(
         SiegelenseFlow({ args: ['driver', '--instance', 'inst_dead0000'] }),
-      ).rejects.toThrow(/inst_dead0000 not found in the registry/u);
+      ).rejects.toThrow(new InstanceUnknownError({ instanceId: 'inst_dead0000' }));
 
       const listeners = process.stdout.listeners('error') as ((
         error: NodeJS.ErrnoException,
