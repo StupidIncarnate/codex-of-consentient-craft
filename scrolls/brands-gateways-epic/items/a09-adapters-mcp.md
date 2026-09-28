@@ -106,3 +106,55 @@ Edit (callers, onto `#gateway/node/fs__promises`):
 - `packages/mcp/src/brokers/folder-constraints/init/folder-constraints-init-broker.proxy.ts` — compose `readFileProxy`; stage each of the 14 real constraint files explicitly (the gateway proxy ships no real-disk passthrough the way the old local adapter proxy did — see DECISIONS)
 - `packages/mcp/src/brokers/discover-ignore/init/discover-ignore-init-broker.ts` — `fsReadFileIfExistsAdapter` → `readFileIfExists`; `undefined` sentinel becomes `null`
 - `packages/mcp/src/brokers/discover-ignore/init/discover-ignore-init-broker.proxy.ts` — compose `readFileIfExistsProxy`
+
+### G-B
+
+Scope: `packages/mcp/src/adapters/{fs/stat,fs/write-file,glob/find,path/join,path/resolve,shared-package/resolve}/`
+(21 files, confirmed by `discover` — matches the item's batches 2-4) and every real caller.
+
+`fsStatAdapter` has zero real callers anywhere in `packages/mcp` (confirmed by `discover` with `strict: true` —
+only its own definition, proxy and test reference it; the JSDoc's claimed caller, "the Claude Code session
+resolver," does not exist in this package) — delete it and its proxy/test with no caller migration, the same
+shape as G-A's `readdirIfExists`.
+
+`findSharedPackageRootLayerAdapter` has zero real callers besides `sharedPackageResolveAdapter` itself.
+`#gateway/node/module`'s `resolvePackageRoot({specifier, startDir?})` already implements the SAME
+`require.resolve` + walk-up-to-`package.json` recursion internally (confirmed by reading its source) — it is
+not a thin 1:1 replacement for `sharedPackageResolveAdapter` alone, it subsumes BOTH mcp adapters at once. Both
+are deleted together; the layer adapter has no direct gateway successor because nothing needs one. See
+DECISIONS.
+
+Delete (adapter + proxy + test, 7 folders, 21 files):
+- `packages/mcp/src/adapters/fs/stat/fs-stat-adapter.ts` (+`.proxy.ts`, +`.test.ts`)
+- `packages/mcp/src/adapters/fs/write-file/fs-write-file-adapter.ts` (+`.proxy.ts`, +`.test.ts`)
+- `packages/mcp/src/adapters/glob/find/glob-find-adapter.ts` (+`.proxy.ts`, +`.test.ts`)
+- `packages/mcp/src/adapters/path/join/path-join-adapter.ts` (+`.proxy.ts`, +`.test.ts`)
+- `packages/mcp/src/adapters/path/resolve/path-resolve-adapter.ts` (+`.proxy.ts`, +`.test.ts`)
+- `packages/mcp/src/adapters/shared-package/resolve/shared-package-resolve-adapter.ts` (+`.proxy.ts`, +`.test.ts`)
+- `packages/mcp/src/adapters/shared-package/resolve/find-shared-package-root-layer-adapter.ts` (+`.proxy.ts`,
+  +`.test.ts`)
+
+Edit (callers, onto `#gateway/*`):
+- `packages/mcp/src/brokers/agents/plugin-create/agents-plugin-create-broker.ts` — `pathJoinAdapter` → `join`
+  (`#gateway/node/path`); `fsWriteFileAdapter` → `writeFile` (`#gateway/node/fs__promises`)
+- `packages/mcp/src/brokers/agents/plugin-create/agents-plugin-create-broker.proxy.ts` — compose
+  `writeFileProxy`; `registerMock({fn: join})` on the `#gateway/node/path` import (the gateway ships no
+  per-file proxy for `join`, per the recipe's own fallback) with a `requireActual` real-passthrough default
+- `packages/mcp/src/brokers/file/scanner/file-scanner-broker.ts` — `sharedPackageResolveAdapter` →
+  `resolvePackageRoot` (`#gateway/node/module`)
+- `packages/mcp/src/brokers/file/scanner/file-scanner-broker.proxy.ts` — compose `resolvePackageRootProxy`
+  (empty — the gateway ships no mocking hook for this, it is a real `require.resolve` + real `package.json`
+  walk, matching the mcp adapter's own test which was ALSO partly real)
+- `packages/mcp/src/brokers/folder-constraints/init/folder-constraints-init-broker.ts` — `pathResolveAdapter` →
+  `resolve` (`#gateway/node/path`)
+- `packages/mcp/src/brokers/folder-constraints/init/folder-constraints-init-broker.proxy.ts` — drop
+  `pathResolveAdapterProxy` (no gateway proxy ships for `resolve`, it is a real passthrough); use `resolve`
+  directly to compute the same addresses `readFileProxy` is staged against
+- `packages/mcp/src/brokers/mcp/discover/mcp-discover-broker.ts` — `globFindAdapter` → `glob`
+  (`#gateway/npm/glob`), both hint-probe calls (grep-filtered-empty and directory-hint)
+- `packages/mcp/src/brokers/mcp/discover/mcp-discover-broker.proxy.ts` — compose `globProxy` and
+  `readFileProxy` directly (NOT through `fileScannerBrokerProxy`'s own `setupFiles`, whose `stageScan` prepends
+  a root onto `pattern` — this proxy's own `pattern` params are already the full absolute pattern the broker
+  computes, so prepending again would double it); `setupGrepFilteredEmpty` restaged as ONE sticky glob answer
+  (glob genuinely matches the files) plus non-grep-matching real read content, instead of the old adapter's two
+  order-dependent (`onceFor`) answers — see DECISIONS

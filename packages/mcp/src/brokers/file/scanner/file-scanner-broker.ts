@@ -8,7 +8,7 @@
 
 import { glob as globFind } from '#gateway/npm/glob';
 import { readFile } from '#gateway/node/fs__promises';
-import { sharedPackageResolveAdapter } from '../../../adapters/shared-package/resolve/shared-package-resolve-adapter';
+import { resolvePackageRoot } from '#gateway/node/module';
 import { metadataExtractorTransformer } from '../../../transformers/metadata-extractor/metadata-extractor-transformer';
 import { signatureExtractorTransformer } from '../../../transformers/signature-extractor/signature-extractor-transformer';
 import { fileTypeDetectorTransformer } from '../../../transformers/file-type-detector/file-type-detector-transformer';
@@ -77,7 +77,9 @@ export const fileScannerBroker = async ({
 
   // Also scan @dungeonmaster/shared for broad (unscoped) globs starting with **
   const isBroadGlob = globSuffix.startsWith('**');
-  const sharedPath = isBroadGlob ? sharedPackageResolveAdapter() : null;
+  const sharedPath = isBroadGlob
+    ? resolvePackageRoot({ specifier: '@dungeonmaster/shared/contracts' })
+    : null;
   const sharedFilePaths: PathSegment[] = [];
   const sharedBasePathStr = sharedPath ? pathSegmentContract.parse(sharedPath) : null;
   if (sharedBasePathStr !== null) {

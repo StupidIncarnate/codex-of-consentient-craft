@@ -16,7 +16,7 @@ import { fileScannerBroker } from '../../file/scanner/file-scanner-broker';
 import { treeFormatterTransformer } from '../../../transformers/tree-formatter/tree-formatter-transformer';
 import { treeOutputContract } from '../../../contracts/tree-output/tree-output-contract';
 import type { TreeOutput } from '../../../contracts/tree-output/tree-output-contract';
-import { globFindAdapter } from '../../../adapters/glob/find/glob-find-adapter';
+import { glob as globFind } from '#gateway/npm/glob';
 import { globPatternContract, pathSegmentContract } from '@dungeonmaster/shared/contracts';
 import type { GlobPattern, PathSegment } from '@dungeonmaster/shared/contracts';
 import { fileDiscoveryStatics } from '../../../statics/file-discovery/file-discovery-statics';
@@ -105,7 +105,9 @@ export const mcpDiscoverBroker = async ({
     // When grep was set, check if the glob itself matched files before grep filtered them out.
     // This prevents the misleading "append /**" directory hint when the real problem is grep.
     if (validated.grep) {
-      const fileHits = await globFindAdapter({ pattern, cwd: cwdPath, ignore });
+      const fileHits = (await globFind(pattern, { cwd: cwdPath, ignore })).map((foundPath) =>
+        pathSegmentContract.parse(foundPath),
+      );
       if (fileHits.length > 0) {
         const hintLines = [
           discoverHintStatics.grepNoMatchHeader,
@@ -120,12 +122,9 @@ export const mcpDiscoverBroker = async ({
     }
 
     // Fall-through: glob matched no files. Probe for directories and suggest `/**`.
-    const directoryHits = await globFindAdapter({
-      pattern,
-      cwd: cwdPath,
-      includeDirectories: true,
-      ignore,
-    });
+    const directoryHits = (await globFind(pattern, { cwd: cwdPath, nodir: false, ignore })).map(
+      (foundPath) => pathSegmentContract.parse(foundPath),
+    );
 
     // Keep only directory entries — glob still returns both when includeDirectories is true.
     const matchedDirs = directoryHits.filter(

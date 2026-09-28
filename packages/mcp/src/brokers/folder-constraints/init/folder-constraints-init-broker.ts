@@ -6,26 +6,27 @@
  * // Returns Map of folder types to constraint content
  */
 import { folderConstraintsStatics } from '../../../statics/folder-constraints/folder-constraints-statics';
-import { pathResolveAdapter } from '../../../adapters/path/resolve/path-resolve-adapter';
+import { resolve } from '#gateway/node/path';
 import { readFile } from '#gateway/node/fs__promises';
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
+import { pathSegmentContract } from '@dungeonmaster/shared/contracts';
 import type { FolderType } from '@dungeonmaster/shared/contracts';
 
 export const folderConstraintsInitBroker = async (): Promise<{
   folderConstraints: Map<FolderType, ContentText>;
 }> => {
   const constraintsMap = new Map<FolderType, ContentText>();
-  const constraintsDir = pathResolveAdapter({
-    paths: [__dirname, '../../../statics/folder-constraints'],
-  });
+  const constraintsDir = pathSegmentContract.parse(
+    resolve(__dirname, '../../../statics/folder-constraints'),
+  );
 
   // Load each folder-specific constraint file using Promise.all
   const entries = Object.entries(folderConstraintsStatics);
   const results = await Promise.all(
     entries.map(async ([folderType, filename]) => {
       try {
-        const filepath = pathResolveAdapter({ paths: [constraintsDir, filename] });
+        const filepath = pathSegmentContract.parse(resolve(constraintsDir, filename));
         const content = await readFile(filepath);
         const validated = contentTextContract.parse(`\n${content}`);
         return { folderType: folderType as FolderType, content: validated, error: null };

@@ -1,5 +1,14 @@
 /**
- * PURPOSE: Proxy for mcp-discover-broker that composes file-scanner broker proxy
+ * PURPOSE: Proxy for mcp-discover-broker that composes file-scanner broker proxy, plus the glob
+ * gateway proxy directly for this broker's OWN directory-hint probe (mcp-discover-broker.ts
+ * calls the glob gateway itself for that one, so composing its proxy here is legitimate —
+ * `enforce-proxy-child-creation` refuses a proxy that composes a gateway its own implementation
+ * never imports, which is why read-file staging always goes through fileScannerBrokerProxy
+ * instead: only file-scanner-broker.ts imports `readFile`). Every `pattern` param here is the
+ * SUFFIX (e.g. `'**\/*.ts'`), the same convention fileScannerBrokerProxy's own `setupFiles` uses
+ * — never the full `${cwdPath}/${globSuffix}` the broker computes internally — because
+ * `globResolveTransformer` leaves an already-wildcarded glob unchanged (no trailing `/**\/*`
+ * appended), so only the real transformer's output, not a hand-guessed one, is safe to stage.
  *
  * USAGE:
  * const brokerProxy = mcpDiscoverBrokerProxy();
@@ -8,12 +17,21 @@
  */
 
 import { fileScannerBrokerProxy } from '../../file/scanner/file-scanner-broker.proxy';
-import { globFindAdapterProxy } from '../../../adapters/glob/find/glob-find-adapter.proxy';
+import { globProxy } from '#gateway/npm/glob/glob/glob.proxy';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { cwd } from '#gateway/node/process';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-import { PathSegmentStub } from '@dungeonmaster/shared/contracts';
+import {
+  FileContentsStub,
+  globPatternContract,
+  PathSegmentStub,
+} from '@dungeonmaster/shared/contracts';
 import type { FileContents, GlobPattern, PathSegment } from '@dungeonmaster/shared/contracts';
+
+// Placeholder content for a file glob genuinely matched but grep then filters out — any real
+// content works here, as long as it never contains a grep pattern a setupGrepFilteredEmpty
+// caller stages (checked against every mcp-discover-broker.test.ts use).
+const NON_GREP_MATCHING_CONTENTS = FileContentsStub({ value: 'export const placeholder = true;' });
 
 export const mcpDiscoverBrokerProxy = (): {
   setupFileDiscovery: (params: {
@@ -43,10 +61,11 @@ export const mcpDiscoverBrokerProxy = (): {
   cwdProxy();
   const cwdHandle = registerMock({ fn: cwd });
   cwdHandle.calledWith([]).returns('/default/cwd');
-  // The scan root the broker resolves for both the scanner and its own empty-result probes.
+  // The scan root the broker resolves for both fileScannerBroker's own scan and this broker's
+  // own directory-hint probe.
   const scanRoot = PathSegmentStub({ value: '/default/cwd' });
   const fileScannerProxy = fileScannerBrokerProxy();
-  const globProxy = globFindAdapterProxy();
+  const globGateway = globProxy();
 
   return {
     setupFileDiscovery: ({
@@ -78,15 +97,16 @@ export const mcpDiscoverBrokerProxy = (): {
       directoryPaths: readonly PathSegment[];
       pattern: GlobPattern;
     }): void => {
-      // The scanner's file scan and the hint's directory probe run the same pattern from the same
-      // root; they differ only in includeDirectories, which the adapter turns into nodir. So the
-      // file scan finds nothing and the directory probe finds directories, addressed by nodir.
+      // The scanner's own file scan finds nothing (staged through fileScannerProxy, which owns
+      // the read-file gateway too); this hint's OWN directory probe is the one direct glob call
+      // mcp-discover-broker.ts itself makes, at the SAME full pattern (root + suffix, computed
+      // here the way the broker computes it) but addressed by nodir (false) — the only thing
+      // distinguishing it from the scan's own call (nodir: true).
       fileScannerProxy.setupFiles({ files: [], pattern });
-      globProxy.returns({
-        pattern,
-        cwd: scanRoot,
-        includeDirectories: true,
-        files: directoryPaths,
+      globGateway.returnsMatchingTail({
+        pattern: globPatternContract.parse(`${scanRoot}/${pattern}`),
+        options: { nodir: false },
+        matches: [...directoryPaths],
       });
     },
 
@@ -97,12 +117,17 @@ export const mcpDiscoverBrokerProxy = (): {
       filePaths: readonly PathSegment[];
       pattern: GlobPattern;
     }): void => {
-      // The scanner's file scan and the hint's file-hit probe reach glob with identical arguments
-      // — same pattern, same root, same nodir — and must answer differently: the scan sees the
-      // files the grep then filters out, the probe reports that the glob itself did match. Two
-      // one-shots, in the order the broker issues them, is the only way to tell them apart.
-      globProxy.returnsOnce({ pattern, cwd: scanRoot, files: [] });
-      globProxy.returnsOnce({ pattern, cwd: scanRoot, files: filePaths });
+      // The scanner's own file scan and this hint's file-hit probe reach the gateway's glob with
+      // IDENTICAL arguments — same pattern, same nodir — so they cannot be told apart by address
+      // and must share one answer: glob genuinely matches these files. Staging them through
+      // fileScannerProxy.setupFiles (rather than composing the glob and read-file gateways here
+      // directly) answers both calls with that one sticky stage AND stages the read content; the
+      // placeholder content, never matching whatever grep pattern a test asks for, is what makes
+      // the scan's own post-grep-filter result come back empty.
+      fileScannerProxy.setupFiles({
+        files: filePaths.map((filepath) => ({ filepath, contents: NON_GREP_MATCHING_CONTENTS })),
+        pattern,
+      });
     },
 
     setupFileDiscoveryAtRoot: ({

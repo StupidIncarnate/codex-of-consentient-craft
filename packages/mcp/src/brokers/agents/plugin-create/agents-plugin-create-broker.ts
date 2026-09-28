@@ -14,9 +14,8 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import { locationsStatics, mcpToolsStatics } from '@dungeonmaster/shared/statics';
 import { jsonFileContentsTransformer } from '@dungeonmaster/shared/transformers';
-import { ensureDir } from '#gateway/node/fs__promises';
-import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
-import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
+import { ensureDir, writeFile } from '#gateway/node/fs__promises';
+import { join } from '#gateway/node/path';
 import { dungeonmasterConfigCreatorTransformer } from '../../../transformers/dungeonmaster-config-creator/dungeonmaster-config-creator-transformer';
 
 export const agentsPluginCreateBroker = async ({
@@ -25,23 +24,21 @@ export const agentsPluginCreateBroker = async ({
   targetProjectRoot: PathSegment;
 }): Promise<AdapterResult> => {
   const pluginDir = pathSegmentContract.parse(
-    pathJoinAdapter({
-      paths: [
-        targetProjectRoot,
-        locationsStatics.repoRoot.agents.dir,
-        locationsStatics.repoRoot.agents.pluginsDir,
-        mcpToolsStatics.server.name,
-      ],
-    }),
+    join(
+      targetProjectRoot,
+      locationsStatics.repoRoot.agents.dir,
+      locationsStatics.repoRoot.agents.pluginsDir,
+      mcpToolsStatics.server.name,
+    ),
   );
 
   await ensureDir(pluginDir);
 
   const pluginJsonPath = pathSegmentContract.parse(
-    pathJoinAdapter({ paths: [pluginDir, locationsStatics.repoRoot.agents.pluginJson] }),
+    join(pluginDir, locationsStatics.repoRoot.agents.pluginJson),
   );
   const mcpConfigJsonPath = pathSegmentContract.parse(
-    pathJoinAdapter({ paths: [pluginDir, locationsStatics.repoRoot.agents.mcpConfigJson] }),
+    join(pluginDir, locationsStatics.repoRoot.agents.mcpConfigJson),
   );
 
   const pluginJsonContent = jsonFileContentsTransformer({
@@ -64,8 +61,8 @@ export const agentsPluginCreateBroker = async ({
     },
   });
 
-  await fsWriteFileAdapter({ filepath: pluginJsonPath, contents: pluginJsonContent });
-  await fsWriteFileAdapter({ filepath: mcpConfigJsonPath, contents: mcpConfigContent });
+  await writeFile(pluginJsonPath, pluginJsonContent);
+  await writeFile(mcpConfigJsonPath, mcpConfigContent);
 
   return { success: true };
 };

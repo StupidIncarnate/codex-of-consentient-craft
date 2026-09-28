@@ -5,7 +5,7 @@
  * — because the gateway's `globProxy` has no zero-arg catch-all the way the local adapter proxy
  * it replaces did: an unaddressed call throws instead of quietly resolving empty, so both
  * addresses are computed here the same way the broker derives them, from the same
- * `cwd`/`sharedPackageResolveAdapter` inputs.
+ * `cwd`/`resolvePackageRoot` inputs.
  *
  * USAGE:
  * const brokerProxy = fileScannerBrokerProxy();
@@ -15,14 +15,18 @@
 
 import { globProxy } from '#gateway/npm/glob/glob/glob.proxy';
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
-import { sharedPackageResolveAdapterProxy } from '../../../adapters/shared-package/resolve/shared-package-resolve-adapter.proxy';
-import { sharedPackageResolveAdapter } from '../../../adapters/shared-package/resolve/shared-package-resolve-adapter';
+import { resolvePackageRootProxy } from '#gateway/node/module/resolve-package-root/resolve-package-root.proxy';
+import { resolvePackageRoot } from '#gateway/node/module';
 import { globIgnoreFilterTransformer } from '../../../transformers/glob-ignore-filter/glob-ignore-filter-transformer';
 import { fileDiscoveryStatics } from '../../../statics/file-discovery/file-discovery-statics';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { cwd } from '#gateway/node/process';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-import { PathSegmentStub, globPatternContract } from '@dungeonmaster/shared/contracts';
+import {
+  PathSegmentStub,
+  globPatternContract,
+  pathSegmentContract,
+} from '@dungeonmaster/shared/contracts';
 import type { FileContents, GlobPattern, PathSegment } from '@dungeonmaster/shared/contracts';
 import type { FsError } from '#gateway/node/fs';
 
@@ -55,10 +59,13 @@ export const fileScannerBrokerProxy = (): {
   // The scan root the broker will resolve, read from the same gateway the broker calls.
   const scanRoot = PathSegmentStub({ value: '/default/cwd' });
   const readFileGateway = readFileProxy();
-  sharedPackageResolveAdapterProxy();
-  // A real call, made with the same mocked `existsSync` the line above just staged — the exact
-  // root the broker will independently resolve for a broad glob's second scan.
-  const sharedRoot = sharedPackageResolveAdapter();
+  resolvePackageRootProxy();
+  // A real call — the gateway ships no mocking hook for this (a real `require.resolve` walk plus
+  // real `package.json` checks) — computing the exact root the broker will independently resolve
+  // for a broad glob's second scan.
+  const resolvedSharedRoot = resolvePackageRoot({ specifier: '@dungeonmaster/shared/contracts' });
+  const sharedRoot =
+    resolvedSharedRoot === null ? null : pathSegmentContract.parse(resolvedSharedRoot);
   const globGateway = globProxy();
 
   // Reproduces the broker's own ignore computation (fileScannerBroker, "1. Resolve glob pattern"

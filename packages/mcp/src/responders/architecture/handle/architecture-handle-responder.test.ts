@@ -46,7 +46,12 @@ describe('ArchitectureHandleResponder', () => {
 
       const result = await proxy.callResponder({
         tool: ToolNameStub({ value: 'discover' }),
-        args: { grep: 'OrchestrationEventType', verbose: true, strict: true },
+        args: {
+          glob: 'packages/mcp/src/responders/**',
+          grep: 'OrchestrationEventType',
+          verbose: true,
+          strict: true,
+        },
       });
 
       expect(result).toStrictEqual({
@@ -68,7 +73,12 @@ describe('ArchitectureHandleResponder', () => {
 
       const result = await proxy.callResponder({
         tool: ToolNameStub({ value: 'discover' }),
-        args: { grep: 'OrchestrationEventType', verbose: 'true', strict: 'true' },
+        args: {
+          glob: 'packages/mcp/src/responders/**',
+          grep: 'OrchestrationEventType',
+          verbose: 'true',
+          strict: 'true',
+        },
       });
 
       expect(result).toStrictEqual({

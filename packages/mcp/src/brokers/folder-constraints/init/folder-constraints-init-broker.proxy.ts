@@ -12,11 +12,11 @@
  * // Every constraint file this broker looks up resolves to its staged excerpt
  */
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
-import { pathResolveAdapterProxy } from '../../../adapters/path/resolve/path-resolve-adapter.proxy';
-import { pathResolveAdapter } from '../../../adapters/path/resolve/path-resolve-adapter';
+import { resolve } from '#gateway/node/path';
 import { folderConstraintsStatics } from '../../../statics/folder-constraints/folder-constraints-statics';
 import type { FolderTypeWithConstraints } from '../../../statics/folder-constraints/folder-constraints-statics';
 import { ContentTextStub } from '../../../contracts/content-text/content-text.stub';
+import { pathSegmentContract } from '@dungeonmaster/shared/contracts';
 
 type ContentText = ReturnType<typeof ContentTextStub>;
 
@@ -34,15 +34,14 @@ const SECTION_HEADING_BY_FOLDER_TYPE: Partial<Record<FolderTypeWithConstraints, 
 };
 
 export const folderConstraintsInitBrokerProxy = (): Record<PropertyKey, never> => {
-  pathResolveAdapterProxy();
   const fileGateway = readFileProxy();
 
-  const constraintsDir = pathResolveAdapter({
-    paths: [__dirname, '../../../statics/folder-constraints'],
-  });
+  const constraintsDir = pathSegmentContract.parse(
+    resolve(__dirname, '../../../statics/folder-constraints'),
+  );
 
   for (const [folderType, filename] of Object.entries(folderConstraintsStatics)) {
-    const filepath = pathResolveAdapter({ paths: [constraintsDir, filename] });
+    const filepath = pathSegmentContract.parse(resolve(constraintsDir, filename));
     const sectionHeading = SECTION_HEADING_BY_FOLDER_TYPE[folderType as FolderTypeWithConstraints];
     const contents = sectionHeading
       ? ContentTextStub({ value: `${FOLDER_STRUCTURE_HEADING}\n${sectionHeading}` })

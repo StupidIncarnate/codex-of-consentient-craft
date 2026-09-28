@@ -23,7 +23,13 @@ describe('mcpDiscoverBroker', () => {
 
   describe('tree format (default)', () => {
     it('EMPTY: {} => returns empty tree and count 0', async () => {
-      mcpDiscoverBrokerProxy();
+      const brokerProxy = mcpDiscoverBrokerProxy();
+      // No glob at all, so globResolveTransformer's own default suffix (`**/*`) is what the
+      // scan really asks for.
+      brokerProxy.setupEmptyWithDirectoryHits({
+        directoryPaths: [],
+        pattern: GlobPatternStub({ value: '**/*' }),
+      });
 
       const input = DiscoverInputStub();
       const result = await mcpDiscoverBroker({ input });
@@ -204,7 +210,13 @@ describe('mcpDiscoverBroker', () => {
     });
 
     it('EMPTY: {verbose: true} with no files => returns empty array and count 0', async () => {
-      mcpDiscoverBrokerProxy();
+      const brokerProxy = mcpDiscoverBrokerProxy();
+      // No glob at all, so globResolveTransformer's own default suffix (`**/*`) is what the
+      // scan really asks for.
+      brokerProxy.setupEmptyWithDirectoryHits({
+        directoryPaths: [],
+        pattern: GlobPatternStub({ value: '**/*' }),
+      });
 
       const input = DiscoverInputStub({ verbose: true as never });
       const result = await mcpDiscoverBroker({ input });
@@ -221,9 +233,10 @@ describe('mcpDiscoverBroker', () => {
       const brokerProxy = mcpDiscoverBrokerProxy();
 
       // Simulate a glob like `packages/eslint-plugin/src/brokers/rule/explicit-return-types*`
-      // that matches a directory but no files (classic nodir:true miss).
+      // that matches a directory but no files (classic nodir:true miss). Already wildcarded, so
+      // globResolveTransformer leaves it unchanged — this IS the real suffix the scan uses.
       const pattern = GlobPatternStub({
-        value: '/default/cwd/packages/eslint-plugin/src/brokers/rule/explicit-return-types*/**/*',
+        value: 'packages/eslint-plugin/src/brokers/rule/explicit-return-types*',
       });
       const directoryPath = FilePathStub({
         value: '/default/cwd/packages/eslint-plugin/src/brokers/rule/explicit-return-types',
@@ -254,8 +267,10 @@ describe('mcpDiscoverBroker', () => {
     it('VALID: {glob matches nothing at all} => returns empty tree without hint', async () => {
       const brokerProxy = mcpDiscoverBrokerProxy();
 
+      // No extension, no wildcard: globResolveTransformer treats this as directory-like and
+      // appends `/**/*` — this IS the real suffix the scan uses.
       const pattern = GlobPatternStub({
-        value: '/default/cwd/totally-fake-folder/**/*',
+        value: 'totally-fake-folder/**/*',
       });
 
       brokerProxy.setupEmptyWithDirectoryHits({
@@ -275,8 +290,10 @@ describe('mcpDiscoverBroker', () => {
     it('VALID: {glob matches files, grep filters all out} => returns grep-specific hint, not directory hint', async () => {
       const brokerProxy = mcpDiscoverBrokerProxy();
 
+      // Already wildcarded, so globResolveTransformer leaves it unchanged — this IS the real
+      // suffix the scan uses.
       const pattern = GlobPatternStub({
-        value: '/default/cwd/packages/web/src/**',
+        value: 'packages/web/src/**',
       });
       const filePath1 = FilePathStub({ value: '/default/cwd/packages/web/src/file1.ts' });
       const filePath2 = FilePathStub({ value: '/default/cwd/packages/web/src/file2.ts' });
@@ -416,7 +433,9 @@ describe('mcpDiscoverBroker', () => {
       const filepath = FilePathStub({
         value: '/default/cwd/src/contracts/orchestration-event-type-contract.ts',
       });
-      const pattern = GlobPatternStub({ value: '/default/cwd/**/*.ts' });
+      // Already wildcarded, so globResolveTransformer leaves it unchanged — this IS the real
+      // suffix the scan uses.
+      const pattern = GlobPatternStub({ value: '**/*.ts' });
 
       brokerProxy.setupGrepFilteredEmpty({ filePaths: [filepath], pattern });
 
