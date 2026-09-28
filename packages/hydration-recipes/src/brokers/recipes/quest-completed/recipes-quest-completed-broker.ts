@@ -93,8 +93,13 @@ export const recipesQuestCompletedBroker = recipe(
         // Drops the riftcarver operation a live target's real START route auto-seeds when the
         // walk above passes through `in_progress` on its way to `complete` — `expect: 'any'`
         // tolerates the zero matches a `write` target leaves (nothing auto-seeds there) as well as
-        // the one a live target does, so `operations` below is always exactly the codeweaver/ward
-        // pair this recipe means to describe as "complete with all workflow operations finished".
+        // the one a live target does. It is the ONLY item this filter touches: the same live START
+        // route (`questBuildRelayGraphBroker`) force-completes the `chaoswhisperer` intake
+        // operation `questCreateBroker` mints at every quest's create, rather than removing it, so
+        // a live target's real ledger reads `chaoswhisperer`/`codeweaver`/`ward`, all `complete` —
+        // matching what a production quest's own completed ledger holds (DEF-100). A `write`
+        // target never mints `chaoswhisperer` at all (nothing on that path calls
+        // `questCreateBroker`), so its ledger is the codeweaver/ward pair alone.
         q[0].operations
           .filter({
             where: { role: operationFieldsContract.shape.role.parse('riftcarver') },
