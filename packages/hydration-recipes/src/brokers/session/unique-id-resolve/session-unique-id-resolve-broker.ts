@@ -4,7 +4,7 @@
  * fix: every recipe's own `add()` call starts its own `defaults(index)` at index 0, so composing
  * `session-single-turn` and `session-with-nested-chain` into ONE target both mint the identical
  * literal id `seed-session-1`, and the second write silently overwrites the first's transcript
- * (`dmJsonlAppendAdapter` appends to whatever file is already there). Reach for this from
+ * (`appendLinesCreatingParent` appends to whatever file is already there). Reach for this from
  * `sessionWriteRouteBroker` before it derives the file path it appends to.
  *
  * DETERMINISTIC, not random — the identical mechanism `guildUniquePathResolveBroker` already uses

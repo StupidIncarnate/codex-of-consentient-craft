@@ -248,3 +248,30 @@ Scope: `packages/hydration-recipes`, and `packages/hydration` (error-shape build
 - `packages/hydration-recipes/src/brokers/quest/api-route/quest-api-route-broker.test.ts`
 - `packages/hydration-recipes/src/brokers/quest/reach-route/quest-reach-route-broker.test.ts`
 
+## Plan — HR-DMJSONL
+
+### Group HR-DMJSONL (hydration-recipes dm-jsonl/append adapter migration)
+
+Scope: `packages/hydration-recipes`, plus one test file in `packages/eslint-plugin`.
+
+#### Files to delete:
+- `packages/hydration-recipes/src/adapters/dm-jsonl/append/dm-jsonl-append-adapter.ts`
+- `packages/hydration-recipes/src/adapters/dm-jsonl/append/dm-jsonl-append-adapter.proxy.ts`
+- `packages/hydration-recipes/src/adapters/dm-jsonl/append/dm-jsonl-append-adapter.test.ts`
+
+#### Files to create:
+None
+
+#### Files to edit:
+- `packages/hydration-recipes/src/brokers/session/nested-chain/session-nested-chain-broker.ts` — migrate `dmJsonlAppendAdapter` to `appendLinesCreatingParent` from `#gateway/node/fs__promises`
+- `packages/hydration-recipes/src/brokers/session/nested-chain/session-nested-chain-broker.proxy.ts` — compose `appendLinesCreatingParentProxy` from `#gateway/node/fs__promises/append-lines-creating-parent/append-lines-creating-parent.proxy`, remove raw `appendFile` mock and raw `'fs/promises'` import
+- `packages/hydration-recipes/src/brokers/session/unique-id-resolve/session-unique-id-resolve-broker.ts` — update JSDoc comment referencing deleted adapter to reference `appendLinesCreatingParent`
+- `packages/eslint-plugin/src/brokers/rule/enforce-folder-return-types/rule-enforce-folder-return-types-broker.integration.test.ts` — re-point `ADAPTER_FILE` anchor from deleted `dm-jsonl-append-adapter.ts` to `packages/orchestrator/src/adapters/child-process/spawn-stream-json/child-process-spawn-stream-json-adapter.ts`
+
+#### Composing proxies in scope:
+- `packages/hydration-recipes/src/brokers/session/ingredient/session-ingredient-broker.proxy.ts` (composes `sessionNestedChainBrokerProxy`)
+
+#### Tests in scope:
+- `packages/hydration-recipes/src/brokers/session/nested-chain/session-nested-chain-broker.test.ts`
+- `packages/hydration-recipes/src/brokers/session/ingredient/session-ingredient-broker.test.ts`
+- `packages/eslint-plugin/src/brokers/rule/enforce-folder-return-types/rule-enforce-folder-return-types-broker.integration.test.ts`

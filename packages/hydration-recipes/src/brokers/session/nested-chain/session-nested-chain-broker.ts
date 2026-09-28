@@ -10,7 +10,7 @@
  * `subagentWriteRouteBroker` runs with `completed: false` here for every level — its own built-in
  * correlation always targets the TOP session (`session-write-route-broker.ts`'s sibling header),
  * which is only correct for level 1, so every level's Task tool_use AND tool_result correlation are
- * appended directly through `dmJsonlAppendAdapter` against that level's OWN parent instead, keeping
+ * appended directly through `appendLinesCreatingParent` against that level's OWN parent instead, keeping
  * one code path for every depth rather than a level-1 special case.
  *
  * Levels run SEQUENTIALLY (`reduce`, not `Promise.all`): level N's own file must already exist, and
@@ -36,7 +36,7 @@ import {
   streamLineToJsonLineTransformer,
 } from '@dungeonmaster/shared/transformers';
 
-import { dmJsonlAppendAdapter } from '../../../adapters/dm-jsonl/append/dm-jsonl-append-adapter';
+import { appendLinesCreatingParent } from '#gateway/node/fs__promises';
 import { subagentWriteRouteBroker } from '../../subagent/write-route/subagent-write-route-broker';
 import { nestedChainArgsContract } from '../../../contracts/nested-chain-args/nested-chain-args-contract';
 import { toolUseIdContract } from '../../../contracts/tool-use-id/tool-use-id-contract';
@@ -76,8 +76,8 @@ export const sessionNestedChainBroker = async ({
             `${sessionsDir}/${sessionId}/subagents/agent-seed-agent-1${NESTING_SUFFIX.repeat(previousLevel - 1)}.jsonl`,
           );
 
-    await dmJsonlAppendAdapter({
-      filePath: parentFilePath,
+    await appendLinesCreatingParent({
+      path: parentFilePath,
       lines: [
         streamLineToJsonLineTransformer({
           streamLine: AssistantTaskToolUseStreamLineStub({
@@ -124,8 +124,8 @@ export const sessionNestedChainBroker = async ({
       },
     });
 
-    await dmJsonlAppendAdapter({
-      filePath: parentFilePath,
+    await appendLinesCreatingParent({
+      path: parentFilePath,
       lines: [
         streamLineToJsonLineTransformer({
           streamLine: TaskToolResultStreamLineStub({
