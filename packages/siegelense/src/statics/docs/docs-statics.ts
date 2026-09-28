@@ -302,7 +302,7 @@ export const docsStatics = {
           lines: [
             'Run dungeonmaster siegelense results --instance <id> --run <runId> --step <n> to see the exact data from the failing step.',
             'You must specify the run ID. A single instance might contain multiple different test runs, and if the tool just picked the latest one, you might look at the wrong data.',
-            'If you run this command without specifying a step or a kind, you will receive the high-level summary of the entire run, which includes the list of screenshots and where the test stopped.',
+            'If you run this command without specifying a step or a kind, you will receive the high-level summary of the entire run (the list of screenshots and where the test stopped) together with the formatted reading for every step the run took.',
             'The tool provides absolute file paths to the screenshots. You can open these paths directly to view the images.',
           ],
         },
