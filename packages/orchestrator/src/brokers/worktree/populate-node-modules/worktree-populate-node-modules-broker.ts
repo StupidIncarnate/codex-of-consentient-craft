@@ -22,13 +22,9 @@
  */
 
 import { locationsNodeModulesPathFindBroker } from '@dungeonmaster/shared/brokers';
-import {
-  filePathContract,
-  type AbsoluteFilePath,
-  type AdapterResult,
-} from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, AdapterResult } from '@dungeonmaster/shared/contracts';
 
-import { fsIsAccessibleAdapter } from '../../../adapters/fs/is-accessible/fs-is-accessible-adapter';
+import { pathExists } from '#gateway/node/fs__promises';
 import { populateOneRootLayerBroker } from './populate-one-root-layer-broker';
 
 export const worktreePopulateNodeModulesBroker = async ({
@@ -54,11 +50,9 @@ export const worktreePopulateNodeModulesBroker = async ({
   // roots are visited — a package's own node_modules holds no workspace links to follow further.
   await Promise.all(
     workspacePackageRoots.map(async (pair) => {
-      const hasNodeModules = await fsIsAccessibleAdapter({
-        filePath: filePathContract.parse(
-          locationsNodeModulesPathFindBroker({ rootPath: pair.sourceRoot }),
-        ),
-      });
+      const hasNodeModules = await pathExists(
+        locationsNodeModulesPathFindBroker({ rootPath: pair.sourceRoot }),
+      );
 
       if (!hasNodeModules) {
         return;

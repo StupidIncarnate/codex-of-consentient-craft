@@ -134,7 +134,7 @@ export const chatSpawnBrokerProxy = (): {
   const resolveProxy = resolveChatQuestLayerBrokerProxy();
   const modifyProxy = questModifyBrokerProxy();
   // chatSpawnBroker reads the resolved quest's cwd via questCwdResolveBroker; loading its
-  // proxy wires up the questGetBroker/questRepoRootBroker/fsIsAccessibleAdapter mocks that
+  // proxy wires up the questGetBroker/questRepoRootBroker/pathExists mocks that
   // decide the 'worktree' | 'repo-root' | 'missing-worktree' outcome.
   const cwdProxy = questCwdResolveBrokerProxy();
   // locationsQuestFolderPathFindBroker/locationsQuestImagesPathFindBroker are imported by

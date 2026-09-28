@@ -19,7 +19,7 @@
 
 import type { FileContents, RateLimitsSnapshot } from '@dungeonmaster/shared/contracts';
 
-import { timerSetIntervalAdapter } from '../../../adapters/timer/set-interval/timer-set-interval-adapter';
+import { timerIntervalStartBroker } from '../../timer/interval-start/timer-interval-start-broker';
 import { rateLimitsWatchTickLayerBroker } from './rate-limits-watch-tick-layer-broker';
 
 export const rateLimitsWatchBroker = ({
@@ -40,7 +40,7 @@ export const rateLimitsWatchBroker = ({
     isReading: false,
   };
 
-  return timerSetIntervalAdapter({
+  return timerIntervalStartBroker({
     callback: (): void => {
       // A tick READS A FILE and only writes `lastJson` once that read resolves, so two ticks that
       // overlap both compare against the value from before either started. Both then see the

@@ -24,9 +24,9 @@ import {
   questBranchNameContract,
   type AbsoluteFilePath,
 } from '@dungeonmaster/shared/contracts';
+import { pathExists } from '#gateway/node/fs__promises';
 import { cwd } from '#gateway/node/process';
 
-import { fsIsAccessibleAdapter } from '../../../adapters/fs/is-accessible/fs-is-accessible-adapter';
 import { gitDetectBaseBranchBroker } from '../../../brokers/git/detect-base-branch/git-detect-base-branch-broker';
 import { worktreePrepareBroker } from '../../../brokers/worktree/prepare/worktree-prepare-broker';
 import { worktreeProvisionBroker } from '../../../brokers/worktree/provision/worktree-provision-broker';
@@ -45,9 +45,7 @@ export const WorktreeCreateResponder = async ({
 
   // The directory is the done-check for the git step, because `git worktree add` is the one step
   // with no done-check of its own — it refuses a path that already exists rather than resolving.
-  const alreadyCarved = await fsIsAccessibleAdapter({
-    filePath: filePathContract.parse(worktreePath),
-  });
+  const alreadyCarved = await pathExists(worktreePath);
 
   if (!alreadyCarved) {
     const baseBranch = await gitDetectBaseBranchBroker({ cwd: repoRoot });

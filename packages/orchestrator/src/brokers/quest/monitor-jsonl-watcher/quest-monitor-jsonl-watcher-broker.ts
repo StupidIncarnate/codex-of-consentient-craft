@@ -31,12 +31,12 @@ import {
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 
 import { fsWatchTailAdapter } from '../../../adapters/fs/watch-tail/fs-watch-tail-adapter';
-import { timerSetIntervalAdapter } from '../../../adapters/timer/set-interval/timer-set-interval-adapter';
 import type { AgentId } from '../../../contracts/agent-id/agent-id-contract';
 import { chatLineSourceContract } from '../../../contracts/chat-line-source/chat-line-source-contract';
 import { chatLineProcessTransformer } from '../../../transformers/chat-line-process/chat-line-process-transformer';
 import { stripJsonlSuffixTransformer } from '@dungeonmaster/shared/transformers';
 
+import { timerIntervalStartBroker } from '../../timer/interval-start/timer-interval-start-broker';
 import { questGetServerConfigBroker } from '../get-server-config/quest-get-server-config-broker';
 import { scanSubagentsDirLayerBroker } from './scan-subagents-dir-layer-broker';
 import { startSubagentTailLayerBroker } from './start-subagent-tail-layer-broker';
@@ -158,7 +158,7 @@ export const questMonitorJsonlWatcherBroker = ({
   // sub-agent's live activity is invisible to the web until the user refreshes (replay path
   // reads the full JSONL from disk). The poll also re-reads not-yet-paired sub-agent files
   // until their spawning Task is observed.
-  const pollHandle = timerSetIntervalAdapter({
+  const pollHandle = timerIntervalStartBroker({
     callback: (): void => {
       scanSubagentsDirLayerBroker(scanArgs).catch((error: unknown) => {
         process.stderr.write(`[monitor-watcher] subagent scan failed: ${String(error)}\n`);

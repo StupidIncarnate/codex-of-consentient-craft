@@ -40,8 +40,8 @@ import {
   type QuestStub,
 } from '@dungeonmaster/shared/contracts';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { pathExistsProxy } from '#gateway/node/fs__promises/path-exists/path-exists.proxy';
 
-import { fsIsAccessibleAdapterProxy } from '../../../adapters/fs/is-accessible/fs-is-accessible-adapter.proxy';
 import { wardCommandStatics } from '../../../statics/ward-command/ward-command-statics';
 import { gitDetectBaseBranchBrokerProxy } from '../../git/detect-base-branch/git-detect-base-branch-broker.proxy';
 import { riftcarverPersistResultBrokerProxy } from '../../riftcarver/persist-result/riftcarver-persist-result-broker.proxy';
@@ -98,7 +98,7 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
 } => {
   const typecheckSpawn = streamLinesProxy();
   locationsWorktreePathFindBrokerProxy();
-  const isAccessibleProxy = fsIsAccessibleAdapterProxy();
+  const isAccessibleProxy = pathExistsProxy();
   const gitCurrentBranchProxy = currentBranchProxy();
   const gitHeadShaProxy = headShaProxy();
   const gitPushProxy = pushProxy();
@@ -164,10 +164,21 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
       return;
     }
     if (questBranch.exists) {
-      prepareProxy.setupAttachExistingBranch({ worktreePath, branchName, sha: HEAD_SHA });
+      prepareProxy.setupAttachExistingBranch({
+        repoRoot: AbsoluteFilePathStub({ value: REPO_ROOT }),
+        worktreePath,
+        branchName,
+        sha: HEAD_SHA,
+      });
       return;
     }
-    prepareProxy.setupHappyPath({ worktreePath, branchName, baseBranch, sha: HEAD_SHA });
+    prepareProxy.setupHappyPath({
+      repoRoot: AbsoluteFilePathStub({ value: REPO_ROOT }),
+      worktreePath,
+      branchName,
+      baseBranch,
+      sha: HEAD_SHA,
+    });
   };
 
   // The typecheck spawn is staged per-quest inside `setupQuest`/`setupTypecheckFails` below, once
@@ -195,10 +206,7 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
 
       baseBranchProxy.setupMainExists();
       // Nothing sits at the worktree path before the first carve.
-      isAccessibleProxy.rejects({
-        filePath: FilePathStub({ value: WORKTREE_PATH }),
-        error: Object.assign(new Error('ENOENT: no such file or directory'), { code: 'ENOENT' }),
-      });
+      isAccessibleProxy.missing({ path: WORKTREE_PATH });
       stageCarve();
       provisionProxy.setupBareWorktree({
         repoRoot: AbsoluteFilePathStub({ value: REPO_ROOT }),
@@ -235,7 +243,7 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
     },
 
     setupExistingWorktree: (): void => {
-      isAccessibleProxy.resolves({ filePath: FilePathStub({ value: WORKTREE_PATH }) });
+      isAccessibleProxy.present({ path: WORKTREE_PATH });
       questBranch.exists = true;
       stageCarve();
       gitCurrentBranchProxy.setupBranch({ branch: BRANCH_NAME });

@@ -17,9 +17,8 @@ import { dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
 import { filePathContract, guildConfigContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, GuildConfig } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
+import { readFileIfExists } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
-
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 
 const DEFAULT_CONFIG: GuildConfig = guildConfigContract.parse({ guilds: [] });
 
@@ -34,18 +33,11 @@ export const guildConfigReadBroker = async ({
     join(homePath, dungeonmasterHomeStatics.paths.configFile),
   );
 
-  try {
-    const contents = await fsReadFileAdapter({ filePath: configFilePath });
-    const parsed: unknown = JSON.parse(contents);
-    return guildConfigContract.parse(parsed);
-  } catch (error) {
-    if (error instanceof Error && 'cause' in error) {
-      const { cause } = error;
-      if (cause instanceof Error && 'code' in cause && cause.code === 'ENOENT') {
-        return DEFAULT_CONFIG;
-      }
-    }
-
-    throw error;
+  const contents = await readFileIfExists(configFilePath);
+  if (contents === null) {
+    return DEFAULT_CONFIG;
   }
+
+  const parsed: unknown = JSON.parse(contents);
+  return guildConfigContract.parse(parsed);
 };

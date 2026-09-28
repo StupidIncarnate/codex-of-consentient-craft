@@ -1,14 +1,14 @@
 import { locationsRateLimitsSnapshotPathFindBrokerProxy } from '@dungeonmaster/shared/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
-
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
+import type { FsError } from '#gateway/node/fs';
+import { readFileIfExistsProxy } from '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
 
 export const rateLimitsWatchTickLayerBrokerProxy = (): {
   setupReadSucceeds: ({ contents }: { contents: string }) => void;
   setupReadEnoent: () => void;
-  setupReadError: ({ error }: { error: Error }) => void;
+  setupReadError: ({ error }: { error: FsError }) => void;
 } => {
-  const readProxy = fsReadFileAdapterProxy();
+  const readProxy = readFileIfExistsProxy();
   const pathProxy = locationsRateLimitsSnapshotPathFindBrokerProxy();
 
   const snapshotPath = FilePathStub({ value: '/home/test/.dungeonmaster/rate-limits.json' });
@@ -20,14 +20,13 @@ export const rateLimitsWatchTickLayerBrokerProxy = (): {
 
   return {
     setupReadSucceeds: ({ contents }: { contents: string }): void => {
-      readProxy.resolves({ filePath: snapshotPath, content: contents });
+      readProxy.returns({ path: snapshotPath, contents });
     },
     setupReadEnoent: (): void => {
-      const error = Object.assign(new Error('ENOENT: no such file'), { code: 'ENOENT' });
-      readProxy.rejects({ filePath: snapshotPath, error });
+      readProxy.missing({ path: snapshotPath });
     },
-    setupReadError: ({ error }: { error: Error }): void => {
-      readProxy.rejects({ filePath: snapshotPath, error });
+    setupReadError: ({ error }: { error: FsError }): void => {
+      readProxy.throwsMatchingPath({ path: snapshotPath, error });
     },
   };
 };

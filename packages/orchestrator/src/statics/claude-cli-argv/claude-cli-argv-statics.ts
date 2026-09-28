@@ -1,6 +1,6 @@
 /**
  * PURPOSE: The ceiling a chat spawn's whole composed prompt has to clear, and the budget carved
- * out of it for the user's own text. `childProcessSpawnStreamJsonAdapter` passes the composed
+ * out of it for the user's own text. `agentSpawnStreamJsonBroker` passes the composed
  * prompt as ONE argv element (`['-p', prompt, …]`) straight to `spawn()`, and on Linux the kernel
  * caps a single argv/envp string at `MAX_ARG_STRLEN` (`PAGE_SIZE * 32`) — an element over that
  * fails the spawn outright rather than truncating it. `chatPromptBuildTransformer` composes that

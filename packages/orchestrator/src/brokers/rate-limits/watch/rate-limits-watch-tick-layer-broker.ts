@@ -14,8 +14,8 @@ import {
   type RateLimitsSnapshot,
 } from '@dungeonmaster/shared/contracts';
 import { locationsRateLimitsSnapshotPathFindBroker } from '@dungeonmaster/shared/brokers';
+import { readFileIfExists } from '#gateway/node/fs__promises';
 
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import {
   rateLimitsWatchTickResultContract,
   type RateLimitsWatchTickResult,
@@ -32,22 +32,14 @@ export const rateLimitsWatchTickLayerBroker = async ({
 }): Promise<RateLimitsWatchTickResult> => {
   const path = filePathContract.parse(locationsRateLimitsSnapshotPathFindBroker());
 
-  const result = await fsReadFileAdapter({ filePath: path }).catch((error: unknown) => {
-    const code = error instanceof Error && 'code' in error ? error.code : null;
-    const cause =
-      error instanceof Error && error.cause instanceof Error && 'code' in error.cause
-        ? error.cause.code
-        : null;
-    if (code === 'ENOENT' || cause === 'ENOENT') {
-      return 'enoent' as const;
-    }
+  const result = await readFileIfExists(path).catch((error: unknown) => {
     onError({
       message: `rate-limits-watch read error: ${error instanceof Error ? error.message : String(error)}`,
     });
     return 'error' as const;
   });
 
-  if (result === 'enoent') {
+  if (result === null) {
     if (lastJson !== null) {
       onSnapshot({ snapshot: null });
       return rateLimitsWatchTickResultContract.parse({ outcome: 'cleared', lastJson: null });

@@ -1,4 +1,5 @@
 import { FilePathStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
+import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 
 import { questOutboxAppendBroker } from './quest-outbox-append-broker';
 import { questOutboxAppendBrokerProxy } from './quest-outbox-append-broker.proxy';
@@ -34,7 +35,9 @@ describe('questOutboxAppendBroker', () => {
 
       await questOutboxAppendBroker({ questId });
 
-      expect(proxy.getAppendedPath()).toBe('/home/testuser/.dungeonmaster/event-outbox.jsonl');
+      expect(proxy.getAppendedPath({ outboxFilePath })).toBe(
+        '/home/testuser/.dungeonmaster/event-outbox.jsonl',
+      );
     });
 
     it('VALID: {different questId} => appends line with different quest id', async () => {
@@ -67,10 +70,15 @@ describe('questOutboxAppendBroker', () => {
       proxy.setupAppendFailure({
         homePath,
         outboxFilePath,
-        error: new Error('Permission denied'),
+        error: FsErrorStub({
+          code: 'EACCES',
+          path: '/home/testuser/.dungeonmaster/event-outbox.jsonl',
+        }),
       });
 
-      await expect(questOutboxAppendBroker({ questId })).rejects.toThrow(/Permission denied/u);
+      await expect(questOutboxAppendBroker({ questId })).rejects.toThrow(
+        /^EACCES: op '\/home\/testuser\/\.dungeonmaster\/event-outbox\.jsonl'$/u,
+      );
     });
   });
 });

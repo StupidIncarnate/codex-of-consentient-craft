@@ -508,7 +508,7 @@ describe('chatSpawnBroker', () => {
       // is proven robust to shadowing — the chat-spawn line must be located among ALL
       // writes, never assumed to be the first.
       process.stderr.write(
-        'rate-limits-watch read error: Failed to read file at /home/x/.dungeonmaster/rate-limits.json\n',
+        "rate-limits-watch read error: EACCES: permission denied, open '/home/x/.dungeonmaster/rate-limits.json'\n",
       );
 
       await chatSpawnBroker({

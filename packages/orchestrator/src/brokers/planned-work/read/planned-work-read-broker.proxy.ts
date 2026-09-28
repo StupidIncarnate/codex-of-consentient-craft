@@ -1,6 +1,6 @@
 /**
  * PURPOSE: Proxy for plannedWorkReadBroker — mocks the shared planned-work directory resolver's
- * underlying path.join call, the existence check, and the file read, each keyed on the real
+ * underlying path.join call and the file read, each keyed on the real
  * computed address so a mock only answers for the path the broker actually builds. `join` is
  * mocked directly on the `#gateway/node/path` specifier (no per-function wrapper to compose),
  * addressed by the EXACT [dirPath, fileName] tuple: a shorter stage would prefix-match a longer
@@ -10,11 +10,11 @@
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, FilePath, OperationItemId } from '@dungeonmaster/shared/contracts';
 import { locationsPlannedWorkPathFindBrokerProxy } from '@dungeonmaster/shared/testing';
+import type { FsError } from '#gateway/node/fs';
+import { readFileIfExistsProxy } from '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
 import { join } from '#gateway/node/path';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
-import { fsIsAccessibleAdapterProxy } from '../../../adapters/fs/is-accessible/fs-is-accessible-adapter.proxy';
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import type { WorkPlanStub } from '../../../contracts/work-plan/work-plan.stub';
 
 type WorkPlan = ReturnType<typeof WorkPlanStub>;
@@ -49,13 +49,12 @@ export const plannedWorkReadBrokerProxy = (): {
   setupReadFailure: (params: {
     questFolderPath: AbsoluteFilePath;
     operationItemId: OperationItemId;
-    error: Error;
+    error: FsError;
   }) => void;
 } => {
   const locationsProxy = locationsPlannedWorkPathFindBrokerProxy();
   const joinHandle = registerMock({ fn: join });
-  const isAccessibleProxy = fsIsAccessibleAdapterProxy();
-  const readFileProxy = fsReadFileAdapterProxy();
+  const readFileHandle = readFileIfExistsProxy();
 
   const stagePaths = ({
     questFolderPath,
@@ -76,22 +75,17 @@ export const plannedWorkReadBrokerProxy = (): {
   return {
     setupPlanFound: ({ questFolderPath, operationItemId, plan }): void => {
       const filePath = stagePaths({ questFolderPath, operationItemId });
-      isAccessibleProxy.resolves({ filePath });
-      readFileProxy.resolves({ filePath, content: JSON.stringify(plan) });
+      readFileHandle.returns({ path: filePath, contents: JSON.stringify(plan) });
     },
 
     setupPlanMissing: ({ questFolderPath, operationItemId }): void => {
       const filePath = stagePaths({ questFolderPath, operationItemId });
-      isAccessibleProxy.rejects({
-        filePath,
-        error: Object.assign(new Error('ENOENT: no such file or directory'), { code: 'ENOENT' }),
-      });
+      readFileHandle.missing({ path: filePath });
     },
 
     setupReadFailure: ({ questFolderPath, operationItemId, error }): void => {
       const filePath = stagePaths({ questFolderPath, operationItemId });
-      isAccessibleProxy.resolves({ filePath });
-      readFileProxy.rejects({ filePath, error });
+      readFileHandle.throwsMatchingPath({ path: filePath, error });
     },
   };
 };

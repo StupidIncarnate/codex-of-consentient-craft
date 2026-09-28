@@ -8,10 +8,10 @@ import {
   requireActual,
 } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
+import { appendFileProxy } from '#gateway/node/fs__promises/append-file/append-file.proxy';
 import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 import { join } from '#gateway/node/path';
 
-import { fsAppendFileAdapterProxy } from '../../../adapters/fs/append-file/fs-append-file-adapter.proxy';
 import { fsWatchTailAdapterProxy } from '../../../adapters/fs/watch-tail/fs-watch-tail-adapter.proxy';
 import { questOutboxWatchBroker } from './quest-outbox-watch-broker';
 
@@ -42,7 +42,7 @@ export const questOutboxWatchBrokerProxy = (): {
 } => {
   const homeEnsureProxy = dungeonmasterHomeEnsureBrokerProxy();
   const joinHandle: MockHandle = registerMock({ fn: join });
-  const appendFileProxy = fsAppendFileAdapterProxy();
+  const appendProxy = appendFileProxy();
   const writeHandle = writeFileProxy();
   // Every outbox path this proxy staged: `getTruncatedPaths` reads back the writes at those addresses.
   const stagedOutboxPaths: FilePath[] = [];
@@ -73,7 +73,7 @@ export const questOutboxWatchBrokerProxy = (): {
     joinHandle
       .calledWith([homePath, locationsStatics.dungeonmasterHome.eventOutbox])
       .returns(outboxPath);
-    appendFileProxy.succeeds({ filePath: outboxPath });
+    appendProxy.succeeds({ path: outboxPath });
     stageStagedOutboxPaths(outboxPath);
     writeHandle.succeeds({ path: outboxPath });
   };
@@ -130,7 +130,9 @@ export const questOutboxWatchBrokerProxy = (): {
       ),
 
     getCreatedPaths: (): readonly unknown[] =>
-      appendFileProxy.getAllAppendedFiles().map((appended) => appended.path),
+      stagedOutboxPaths.flatMap((outboxPath) =>
+        appendProxy.getCallsFor({ path: outboxPath }).map((call) => call[0]),
+      ),
 
     setupWatchStarted: (): void => {
       const homeDir = '/quest-outbox-watch-broker-proxy';

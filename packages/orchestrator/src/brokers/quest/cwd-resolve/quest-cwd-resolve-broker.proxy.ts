@@ -1,7 +1,7 @@
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { QuestStub, RepoRootCwdStub } from '@dungeonmaster/shared/contracts';
+import { pathExistsProxy } from '#gateway/node/fs__promises/path-exists/path-exists.proxy';
 
-import { fsIsAccessibleAdapterProxy } from '../../../adapters/fs/is-accessible/fs-is-accessible-adapter.proxy';
 import { questGetBrokerProxy } from '../get/quest-get-broker.proxy';
 import { questRepoRootBrokerProxy } from '../repo-root/quest-repo-root-broker.proxy';
 
@@ -17,27 +17,22 @@ export const questCwdResolveBrokerProxy = (): {
 } => {
   const getProxy = questGetBrokerProxy();
   // Only exercised by setupLegacyQuest below, but constructed here so every scenario shares
-  // the same fsIsAccessibleAdapter/questFindQuestPathBroker mocks this composes internally.
+  // the same pathExists/questFindQuestPathBroker mocks this composes internally.
   const repoRootProxy = questRepoRootBrokerProxy();
-  const accessibleProxy = fsIsAccessibleAdapterProxy();
+  const accessibleProxy = pathExistsProxy();
 
   return {
     setupWorktreePresent: ({ quest }: { quest: Quest }): void => {
       getProxy.setupQuestFound({ quest });
-      accessibleProxy.resolves({ filePath: filePathContract.parse(quest.worktreePath) });
+      accessibleProxy.present({ path: filePathContract.parse(quest.worktreePath) });
     },
 
     setupWorktreeMissing: ({ quest }: { quest: Quest }): void => {
       getProxy.setupQuestFound({ quest });
-      accessibleProxy.rejects({
-        filePath: filePathContract.parse(quest.worktreePath),
-        error: Object.assign(new Error('ENOENT: no such file or directory'), {
-          code: 'ENOENT',
-        }),
-      });
+      accessibleProxy.missing({ path: filePathContract.parse(quest.worktreePath) });
     },
 
-    // Stages the quest read and NOTHING ELSE. The absent fsIsAccessibleAdapter staging is the
+    // Stages the quest read and NOTHING ELSE. The absent pathExists staging is the
     // assertion: a recorded session row is served without the worktree probe, so a broker that
     // probed anyway would hit an unstaged mock and throw rather than pass quietly.
     setupSessionRow: ({ quest }: { quest: Quest }): void => {

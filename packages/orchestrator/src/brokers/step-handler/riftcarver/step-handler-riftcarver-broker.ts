@@ -48,8 +48,8 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import { currentBranch, headSha, push, upstreamSha, verifyRef } from '#gateway/bin/git';
+import { pathExists } from '#gateway/node/fs__promises';
 
-import { fsIsAccessibleAdapter } from '../../../adapters/fs/is-accessible/fs-is-accessible-adapter';
 import { stepHandlerResultContract } from '../../../contracts/step-handler-result/step-handler-result-contract';
 import type { StepHandlerResult } from '../../../contracts/step-handler-result/step-handler-result-contract';
 import { BaseBranchNotFoundError } from '../../../errors/base-branch-not-found/base-branch-not-found-error';
@@ -148,9 +148,7 @@ export const stepHandlerRiftcarverBroker = async ({
       const recordedBranchName = quest.branchName;
       const recordedWorktreePath = quest.worktreePath;
       const recordedPathReachable =
-        recordedWorktreePath === undefined
-          ? false
-          : await fsIsAccessibleAdapter({ filePath: filePathContract.parse(recordedWorktreePath) });
+        recordedWorktreePath === undefined ? false : await pathExists(recordedWorktreePath);
       const recordedHead =
         recordedWorktreePath === undefined || !recordedPathReachable
           ? null
@@ -187,7 +185,7 @@ export const stepHandlerRiftcarverBroker = async ({
           ? null
           : await Promise.all([
               verifyRef({ cwd: repoRoot, ref: branchName }),
-              fsIsAccessibleAdapter({ filePath: filePathContract.parse(worktreePath) }),
+              pathExists(worktreePath),
             ]);
 
       if (collision !== null && (collision[0] || collision[1])) {

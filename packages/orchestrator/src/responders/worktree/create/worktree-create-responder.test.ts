@@ -58,7 +58,9 @@ describe('WorktreeCreateResponder', () => {
       const proxy = WorktreeCreateResponderProxy();
       const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
       proxy.setupRepoRoot({ repoRoot });
-      proxy.setupNoBaseBranch();
+      proxy.setupNoBaseBranch({
+        worktreePath: AbsoluteFilePathStub({ value: '/repo/worktrees/probe' }),
+      });
 
       const error = await WorktreeCreateResponder({ name: 'probe' }).catch(
         (thrown: unknown) => thrown,

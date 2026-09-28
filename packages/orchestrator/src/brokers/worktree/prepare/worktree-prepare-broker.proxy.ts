@@ -31,12 +31,14 @@ const NOT_A_REPO_OUTPUT = 'fatal: not a git repository';
 
 export const worktreePrepareBrokerProxy = (): {
   setupHappyPath: (params: {
+    repoRoot: AbsoluteFilePath;
     worktreePath: AbsoluteFilePath;
     branchName: QuestBranchName;
     baseBranch: BaseBranchName;
     sha: string;
   }) => void;
   setupAttachExistingBranch: (params: {
+    repoRoot: AbsoluteFilePath;
     worktreePath: AbsoluteFilePath;
     branchName: QuestBranchName;
     sha: string;
@@ -85,9 +87,9 @@ export const worktreePrepareBrokerProxy = (): {
   const pruneProxy = worktreePruneProxy();
   const headProxy = headShaProxy();
   const discardProxy = worktreeDiscardBrokerProxy();
-  // These two run REAL from this proxy's point of view, so their own I/O is what gets staged. Both
-  // default to "nothing on disk", which is the honest reading of a scenario that describes neither:
-  // no `packages/` to seed from, and no `node_modules` to audit yet.
+  // These two run REAL from this proxy's point of view, so their own I/O is what gets staged. A
+  // scenario that reaches them and describes neither reads as "nothing on disk": no `packages/` to
+  // seed from, and no `node_modules` to audit yet.
   const seedProxy = worktreeSeedDistBrokerProxy();
   const linksProxy = worktreeVerifyLinksBrokerProxy();
 
@@ -133,19 +135,32 @@ export const worktreePrepareBrokerProxy = (): {
     });
   };
 
+  const stageNothingOnDisk = ({
+    repoRoot,
+    worktreePath,
+  }: {
+    repoRoot: AbsoluteFilePath;
+    worktreePath: AbsoluteFilePath;
+  }): void => {
+    seedProxy.setupPackagesDirAbsent({ repoRoot });
+    linksProxy.setupNodeModulesAbsent({ worktreePath });
+  };
+
   const stageHeadShaFails = (): void => {
     headProxy.setupResult({ exitCode: 128, output: NOT_A_REPO_OUTPUT });
   };
 
   return {
-    setupHappyPath: ({ worktreePath, branchName, baseBranch, sha }): void => {
+    setupHappyPath: ({ repoRoot, worktreePath, branchName, baseBranch, sha }): void => {
+      stageNothingOnDisk({ repoRoot, worktreePath });
       stageAddSucceeds({ worktreePath, branchName, baseBranch });
       headProxy.setupResult({ exitCode: 0, output: `${sha}\n` });
     },
 
     // The recoverable re-carve: the branch already resolves, so the broker prunes git's stale
     // registration and attaches WITHOUT `-b`.
-    setupAttachExistingBranch: ({ worktreePath, branchName, sha }): void => {
+    setupAttachExistingBranch: ({ repoRoot, worktreePath, branchName, sha }): void => {
+      stageNothingOnDisk({ repoRoot, worktreePath });
       stageAttachSucceeds({ worktreePath, branchName });
       headProxy.setupResult({ exitCode: 0, output: `${sha}\n` });
     },

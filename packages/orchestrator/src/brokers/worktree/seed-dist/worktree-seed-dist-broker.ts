@@ -26,7 +26,6 @@
 
 import {
   absoluteFilePathContract,
-  filePathContract,
   type AbsoluteFilePath,
   type AdapterResult,
 } from '@dungeonmaster/shared/contracts';
@@ -35,7 +34,7 @@ import { run, RunNotFoundError } from '#gateway/node/child_process';
 import { readdirEntriesSync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
 
-import { fsIsAccessibleAdapter } from '../../../adapters/fs/is-accessible/fs-is-accessible-adapter';
+import { pathExists } from '#gateway/node/fs__promises';
 import { WorktreePrepareError } from '../../../errors/worktree-prepare/worktree-prepare-error';
 import { worktreePrepareStepStatics } from '../../../statics/worktree-prepare-step/worktree-prepare-step-statics';
 import { worktreeFailureDetailTransformer } from '../../../transformers/worktree-failure-detail/worktree-failure-detail-transformer';
@@ -62,9 +61,7 @@ export const worktreeSeedDistBroker = async ({
   // A repo with no `packages/` is not a monorepo, so nothing was re-pointed at a workspace package
   // and every dependency already carries its own published `dist`. Nothing to seed, and that is a
   // legitimate state rather than a failure.
-  const packagesDirPresent = await fsIsAccessibleAdapter({
-    filePath: filePathContract.parse(sourcePackagesDir),
-  });
+  const packagesDirPresent = await pathExists(sourcePackagesDir);
 
   if (!packagesDirPresent) {
     return { success: true as const };
@@ -82,11 +79,9 @@ export const worktreeSeedDistBroker = async ({
       const targetDist = join(targetPackage, locationsStatics.repoRoot.dist);
 
       const [isPackage, hasSourceDist, hasTargetDist] = await Promise.all([
-        fsIsAccessibleAdapter({
-          filePath: filePathContract.parse(join(sourcePackage, projectMapStatics.packageJsonName)),
-        }),
-        fsIsAccessibleAdapter({ filePath: filePathContract.parse(sourceDist) }),
-        fsIsAccessibleAdapter({ filePath: filePathContract.parse(targetDist) }),
+        pathExists(join(sourcePackage, projectMapStatics.packageJsonName)),
+        pathExists(sourceDist),
+        pathExists(targetDist),
       ]);
 
       return { name: entry.name, isPackage, hasSourceDist, hasTargetDist, sourceDist, targetDist };

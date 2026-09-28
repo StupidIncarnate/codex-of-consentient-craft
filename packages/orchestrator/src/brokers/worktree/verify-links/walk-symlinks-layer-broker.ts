@@ -24,9 +24,8 @@ import {
   type FilePath,
 } from '@dungeonmaster/shared/contracts';
 import { readdirEntriesSync } from '#gateway/node/fs';
+import { readlinkIfLink } from '#gateway/node/fs__promises';
 import { join, resolve } from '#gateway/node/path';
-
-import { fsReadlinkAdapter } from '../../../adapters/fs/readlink/fs-readlink-adapter';
 
 const PATH_SEPARATOR = '/';
 
@@ -52,17 +51,18 @@ export const walkSymlinksLayerBroker = async ({
       const entryPath = absoluteFilePathContract.parse(join(dirPath, entry.name));
 
       if (entry.kind === 'symlink') {
-        const storedTarget = await fsReadlinkAdapter({
-          linkPath: filePathContract.parse(entryPath),
-        });
+        const rawTarget = await readlinkIfLink(entryPath);
+        const parsedTarget = filePathContract.safeParse(rawTarget);
 
-        // `null` is a target `filePathContract` cannot brand, which is exactly one shape: a bare
+        // Nothing readable, or a target `filePathContract` cannot brand — exactly one shape: a bare
         // relative path with no `./` or `../` lead. That shape is relative by construction and a
         // relative path cannot climb out of the tree it starts in without a `../` this one lacks,
         // so it is safe and there is nothing to record.
-        if (storedTarget === null) {
+        if (!parsedTarget.success) {
           return [];
         }
+
+        const storedTarget = parsedTarget.data;
 
         // Resolved against the LINK'S OWN directory, which is what a relative target means on disk.
         const resolvedTarget = absoluteFilePathContract.parse(resolve(dirPath, storedTarget));

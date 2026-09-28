@@ -31,10 +31,8 @@ import type {
 } from '@dungeonmaster/shared/contracts';
 import { packageJsonDependencyNamesTransformer } from '@dungeonmaster/shared/transformers';
 import { readdirSync } from '#gateway/node/fs';
+import { pathExists, readFileIfExists } from '#gateway/node/fs__promises';
 import { dirname, resolve } from '#gateway/node/path';
-
-import { fsIsAccessibleAdapter } from '../../../adapters/fs/is-accessible/fs-is-accessible-adapter';
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 
 type QuestPackageEntry = ReturnType<typeof QuestPackageEntryStub>;
 
@@ -65,7 +63,7 @@ export const resolvePackageEntryFactsLayerBroker = async ({
         location: String(entry.location),
         packageRoot,
         filePath,
-        exists: await fsIsAccessibleAdapter({ filePath }),
+        exists: await pathExists(filePath),
       };
     }),
   );
@@ -160,13 +158,12 @@ export const resolvePackageEntryFactsLayerBroker = async ({
       const manifestPath = filePathContract.parse(
         `${String(sibling.root)}/${String(sibling.dirName)}/package.json`,
       );
-      const readable = await fsIsAccessibleAdapter({ filePath: manifestPath });
-      if (!readable) {
-        return undefined;
-      }
       try {
-        const contents = await fsReadFileAdapter({ filePath: manifestPath });
-        const packageJson = packageJsonContract.parse(JSON.parse(String(contents)) as unknown);
+        const contents = await readFileIfExists(manifestPath);
+        if (contents === null) {
+          return undefined;
+        }
+        const packageJson = packageJsonContract.parse(JSON.parse(contents) as unknown);
         return {
           dirName: String(sibling.dirName),
           npmName: packageJson.name === undefined ? undefined : String(packageJson.name),

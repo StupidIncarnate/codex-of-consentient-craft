@@ -6,8 +6,8 @@ import {
   type FilePath,
 } from '@dungeonmaster/shared/contracts';
 import type { FsError } from '#gateway/node/fs';
+import { pathExistsProxy } from '#gateway/node/fs__promises/path-exists/path-exists.proxy';
 
-import { fsIsAccessibleAdapterProxy } from '../../../adapters/fs/is-accessible/fs-is-accessible-adapter.proxy';
 import { populateOneRootLayerBrokerProxy } from './populate-one-root-layer-broker.proxy';
 
 export const worktreePopulateNodeModulesBrokerProxy = (): {
@@ -47,7 +47,7 @@ export const worktreePopulateNodeModulesBrokerProxy = (): {
   // I/O it eventually reaches (readdir/readlink/symlink/mkdir/access) is what actually gets staged
   // here.
   const layerProxy = populateOneRootLayerBrokerProxy();
-  const isAccessibleProxy = fsIsAccessibleAdapterProxy();
+  const isAccessibleProxy = pathExistsProxy();
   // Wired to satisfy enforce-proxy-child-creation and left unstaged: this proxy computes every
   // per-package node_modules path via template literals instead of calling the real broker, and
   // its own pathJoinAdapter default is a real passthrough anyway, so nothing here needs staging.
@@ -77,7 +77,10 @@ export const worktreePopulateNodeModulesBrokerProxy = (): {
       linkPath: FilePathStub({ value: `${repoRoot}/node_modules/@dungeonmaster/${packageName}` }),
       target: relativeTarget,
     });
-    layerProxy.setupSymlinkSucceeds({ target: FilePathStub({ value: relativeTarget }) });
+    layerProxy.setupSymlinkSucceeds({
+      target: FilePathStub({ value: relativeTarget }),
+      path: FilePathStub({ value: `${worktreePath}/node_modules/@dungeonmaster/${packageName}` }),
+    });
   };
 
   return {
@@ -117,7 +120,7 @@ export const worktreePopulateNodeModulesBrokerProxy = (): {
       const packageNodeModules = FilePathStub({
         value: `${repoRoot}/packages/${packageName}/node_modules`,
       });
-      isAccessibleProxy.resolves({ filePath: packageNodeModules });
+      isAccessibleProxy.present({ path: packageNodeModules });
 
       layerProxy.setupTargetReady({
         targetRoot: AbsoluteFilePathStub({ value: `${worktreePath}/packages/${packageName}` }),
@@ -134,10 +137,7 @@ export const worktreePopulateNodeModulesBrokerProxy = (): {
     setupWorkspacePackageWithoutNodeModules: ({ repoRoot, worktreePath, packageName }): void => {
       stageWorkspaceLink({ repoRoot, worktreePath, packageName });
 
-      isAccessibleProxy.rejects({
-        filePath: FilePathStub({ value: `${repoRoot}/packages/${packageName}/node_modules` }),
-        error: new Error('ENOENT: no such file or directory'),
-      });
+      isAccessibleProxy.missing({ path: `${repoRoot}/packages/${packageName}/node_modules` });
     },
 
     setupWorkspacePackagePopulationRejects: ({
@@ -151,7 +151,7 @@ export const worktreePopulateNodeModulesBrokerProxy = (): {
       const packageNodeModules = FilePathStub({
         value: `${repoRoot}/packages/${packageName}/node_modules`,
       });
-      isAccessibleProxy.resolves({ filePath: packageNodeModules });
+      isAccessibleProxy.present({ path: packageNodeModules });
 
       layerProxy.setupMkdirThrows({
         filepath: FilePathStub({ value: `${worktreePath}/packages/${packageName}/node_modules` }),

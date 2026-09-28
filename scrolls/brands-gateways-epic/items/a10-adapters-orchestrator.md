@@ -299,6 +299,22 @@ Files:
 The adapter moves onto `#gateway/node` are the NEXT chunk: seven adapters, each with its callers, proxies and tests,
 run past the file budget of this one.
 
+### G-CC fs, part 4 (readlink, symlink, append-file)
+
+Scope, all under `packages/orchestrator/src`. Each adapter call moves onto `readlinkIfLink` / `symlink` / `appendFile`
+from `#gateway/node/fs__promises`, staged by exact path. `watch-tail`, `is-accessible` and `read-file` are not touched.
+
+Deleted: `adapters/fs/readlink/**`, `adapters/fs/symlink/**`, `adapters/fs/append-file/**` (adapter, proxy, test each).
+
+Edited (each `.ts` and `.proxy.ts` unless noted):
+- `brokers/worktree/populate-node-modules/populate-one-root-layer-broker` (+ `.test.ts`: `setupSymlinkSucceeds` gains a `path`)
+- `brokers/worktree/populate-node-modules/worktree-populate-node-modules-broker.proxy.ts`
+- `brokers/worktree/verify-links/walk-symlinks-layer-broker` (+ `.test.ts`: the readlink-rejects test stages a code-bearing `FsErrorStub`)
+- `brokers/quest/outbox-append/quest-outbox-append-broker`
+- `brokers/quest/outbox-watch/quest-outbox-watch-broker` (append lines only; `watch-tail` stays)
+- `brokers/chat/subagent-tail/chat-subagent-tail-broker` (append lines only; `watch-tail` stays)
+- `brokers/quest/persist/quest-persist-broker.proxy.ts` (composes the outbox-append proxy; its outbox-failure error gains a `code`)
+
 ### G-CC fs, part 3 (read-jsonl, readdir, watch-tail)
 
 Scope, all under `packages/orchestrator/src` unless a path says otherwise. Chunk 1 moves `read-jsonl` and `readdir`
@@ -356,3 +372,103 @@ Left for the next chunk (each adapter with its callers):
 - `is-accessible` (26 files): `pathExists` rejects on EACCES and probes F_OK where the adapter swallowed every error and probed R_OK; callers need a decision.
 - `read-file` (24 files): the adapter wrapped the error as `Failed to read file at ...`; the wrapper rejects raw.
 - `append-file`: `chat-subagent-tail-broker` (and its proxy) belongs to the other agent; `quest-outbox-append`, `quest-outbox-watch` wait with it.
+
+### G-CC misc, timer, spawn
+
+Seven `adapters/` folders (`child-process/spawn-stream-json`, `net/check-port-free`, `proc/check-alive`, `process/signal`,
+`readline/create-interface`, `timer/set-interval`, `timer/set-timeout`) move off; the `fs/*` folders stay with their own passes.
+All paths are under `packages/orchestrator/src` unless a path says otherwise.
+
+Deleted (adapter, proxy, test each): `adapters/child-process/spawn-stream-json/**`, `adapters/net/check-port-free/**`,
+`adapters/proc/check-alive/**`, `adapters/process/signal/**`, `adapters/readline/create-interface/**`,
+`adapters/timer/set-interval/**`, `adapters/timer/set-timeout/**`.
+
+New:
+- `brokers/timer/interval-start/timer-interval-start-broker.ts`, `.proxy.ts`, `.test.ts` (the `.unref()` + `{ stop }` the adapter carried)
+- `brokers/timer/sleep/timer-sleep-broker.ts`, `.proxy.ts`, `.test.ts` (awaitable `setTimeout`)
+- `brokers/process/is-alive/process-is-alive-broker.ts`, `.proxy.ts`, `.test.ts` (`kill(pid, 0)` probe semantics: ESRCH dead, EPERM alive, else throws)
+- `brokers/agent/spawn-stream-json/agent-spawn-stream-json-broker.ts`, `.proxy.ts`, `.test.ts` (settings read, `--add-dir`, env, stderr tagging over `spawnStreamJson`)
+- `transformers/claude-spawn-command-build/claude-spawn-command-build-transformer.ts`, `.test.ts` (argv and env in one value)
+- `contracts/claude-spawn-command/claude-spawn-command-contract.ts`, `.stub.ts`, `.test.ts`
+
+Edited callers, proxies and tests:
+- `brokers/agent/spawn-unified/agent-spawn-unified-broker.ts` and `.proxy.ts`
+- `brokers/smoketest/run-teardown-checks/smoketest-run-teardown-checks-broker.ts` and `.proxy.ts`
+- `brokers/process/stale-watch/process-stale-watch-broker.ts` and `.proxy.ts`
+- `brokers/rate-limits/watch/rate-limits-watch-broker.ts` and `.proxy.ts`
+- `brokers/quest/monitor-jsonl-watcher/quest-monitor-jsonl-watcher-broker.ts`, `.proxy.ts`, `.test.ts` (comment)
+- `brokers/quest/monitor-watcher-start/quest-monitor-watcher-start-broker.proxy.ts` (comment)
+- `brokers/smoketest/run-teardown-checks/smoketest-run-teardown-checks-broker.test.ts` (ports named to the proxy)
+- `brokers/quest/node-dispatch-loop/spawn-one-agent-layer-broker.ts` and `.proxy.ts`
+- `brokers/quest/get-next-step/quest-get-next-step-broker.ts`, `.proxy.ts`, `.test.ts`
+- `adapters/fs/watch-tail/fs-watch-tail-adapter.proxy.ts` (one comment naming the deleted readline proxy)
+- `statics/claude-cli-argv/claude-cli-argv-statics.ts`, `statics/dumpster-create-prompt/dumpster-create-prompt-statics.test.ts`,
+  `statics/dumpster-hunt-prompt/dumpster-hunt-prompt-statics.test.ts` (comments)
+- `flows/comment-batch/comment-batch-flow.integration.test.ts` (comment), `packages/orchestrator/test/harnesses/orchestration-quest/orchestration-quest.harness.ts` (comment)
+- `packages/orchestrator/CLAUDE.md`, `packages/orchestrator/README.md` (the adapter's file name)
+- `packages/shared/src/brokers/architecture/project-map/architecture-project-map-broker.integration.test.ts` (re-anchor `→ childProcessSpawnStreamJsonAdapter`)
+- `packages/eslint-plugin/src/brokers/rule/enforce-folder-return-types/rule-enforce-folder-return-types-broker.integration.test.ts` (`ADAPTER_FILE` anchor, if it names a deleted adapter)
+
+### G-CC fs, part 5 (is-accessible, read-file)
+
+Scope, all under `packages/orchestrator/src`. Each `fsIsAccessibleAdapter` call moves onto `pathExists` (or a wrapper
+named in the report) and each `fsReadFileAdapter` call onto `readFile` / `readFileIfExists`, both from
+`#gateway/node/fs__promises`, staged by exact path through `pathExistsProxy` / `readFileProxy`. Tests that assert the
+wrapped `Failed to read file at ...` text assert the raw error instead.
+
+Deleted: `adapters/fs/is-accessible/**`, `adapters/fs/read-file/**` (adapter, proxy, test each).
+
+Edited (named files; census by python3 over `packages/orchestrator/src` for imports of either adapter or its proxy, plus the four tests that assert the wrapped text):
+- `brokers/chat/spawn/chat-spawn-broker.proxy.ts`
+- `brokers/chat/spawn/chat-spawn-broker.test.ts`
+- `brokers/dispatch-state/read/dispatch-state-read-broker.proxy.ts`
+- `brokers/dispatch-state/read/dispatch-state-read-broker.ts`
+- `brokers/guild-config/read/guild-config-read-broker.proxy.ts`
+- `brokers/guild-config/read/guild-config-read-broker.test.ts`
+- `brokers/guild-config/read/guild-config-read-broker.ts`
+- `brokers/path/is-accessible/path-is-accessible-broker.proxy.ts`
+- `brokers/path/is-accessible/path-is-accessible-broker.ts`
+- `brokers/planned-work/read/planned-work-read-broker.proxy.ts`
+- `brokers/planned-work/read/planned-work-read-broker.test.ts`
+- `brokers/planned-work/read/planned-work-read-broker.ts`
+- `brokers/quest/cwd-resolve/quest-cwd-resolve-broker.proxy.ts`
+- `brokers/quest/cwd-resolve/quest-cwd-resolve-broker.ts`
+- `brokers/quest/find-quest-path/match-candidates-layer-broker.proxy.ts`
+- `brokers/quest/find-quest-path/match-candidates-layer-broker.ts`
+- `brokers/quest/folder-find/quest-folder-find-broker.proxy.ts`
+- `brokers/quest/folder-find/quest-folder-find-broker.ts`
+- `brokers/quest/get-quest-work/quest-get-quest-work-broker.proxy.ts`
+- `brokers/quest/get-quest-work/ward-rows-layer-broker.proxy.ts`
+- `brokers/quest/get-quest-work/ward-rows-layer-broker.ts`
+- `brokers/quest/get-work-plan/quest-get-work-plan-broker.proxy.ts`
+- `brokers/quest/load/quest-load-broker.proxy.ts`
+- `brokers/quest/load/quest-load-broker.test.ts`
+- `brokers/quest/load/quest-load-broker.ts`
+- `brokers/quest/modify/quest-modify-broker.proxy.ts`
+- `brokers/quest/modify/quest-modify-broker.ts`
+- `brokers/quest/modify/resolve-package-entry-facts-layer-broker.proxy.ts`
+- `brokers/quest/modify/resolve-package-entry-facts-layer-broker.ts`
+- `brokers/quest/orchestration-loop/run-chat-layer-broker.proxy.ts`
+- `brokers/rate-limits/watch/rate-limits-watch-tick-layer-broker.proxy.ts`
+- `brokers/rate-limits/watch/rate-limits-watch-tick-layer-broker.ts`
+- `brokers/step-handler/riftcarver/step-handler-riftcarver-broker.proxy.ts`
+- `brokers/step-handler/riftcarver/step-handler-riftcarver-broker.ts`
+- `brokers/usage-ledger/read/usage-ledger-read-broker.proxy.ts`
+- `brokers/usage-ledger/read/usage-ledger-read-broker.ts`
+- `brokers/worktree/populate-node-modules/populate-one-root-layer-broker.proxy.ts`
+- `brokers/worktree/populate-node-modules/populate-one-root-layer-broker.ts`
+- `brokers/worktree/populate-node-modules/worktree-populate-node-modules-broker.proxy.ts`
+- `brokers/worktree/populate-node-modules/worktree-populate-node-modules-broker.ts`
+- `brokers/worktree/seed-dist/worktree-seed-dist-broker.proxy.ts`
+- `brokers/worktree/seed-dist/worktree-seed-dist-broker.ts`
+- `brokers/worktree/verify-links/worktree-verify-links-broker.proxy.ts`
+- `brokers/worktree/verify-links/worktree-verify-links-broker.ts`
+- `responders/followup-chat/start/followup-chat-start-responder.proxy.ts`
+- `responders/install/repo-scaffold/install-repo-scaffold-responder.proxy.ts`
+- `responders/install/repo-scaffold/install-repo-scaffold-responder.ts`
+- `responders/orchestration/start/prepare-quest-package-graph-layer-responder.proxy.ts`
+- `responders/orchestration/start/prepare-quest-package-graph-layer-responder.ts`
+- `responders/worktree/create/worktree-create-responder.proxy.ts`
+- `responders/worktree/create/worktree-create-responder.ts`
+
+Also touched, found by the scoped ward run (composing proxies and tests whose staging changed): `brokers/rate-limits/watch/rate-limits-watch-tick-layer-broker.test.ts`, `brokers/rate-limits/watch/rate-limits-watch-broker.proxy.ts`, `brokers/path/is-accessible/path-is-accessible-broker.test.ts`, `brokers/guild/list/guild-list-broker.proxy.ts`, `brokers/worktree/populate-node-modules/populate-one-root-layer-broker.test.ts`, `brokers/worktree/verify-links/worktree-verify-links-broker.test.ts`, `brokers/worktree/seed-dist/worktree-seed-dist-broker.test.ts`, `brokers/worktree/prepare/worktree-prepare-broker.test.ts`, `brokers/worktree/provision/worktree-provision-broker.proxy.ts`, `brokers/quest/modify/resolve-package-entry-facts-layer-broker.test.ts`, `responders/worktree/create/worktree-create-responder.test.ts`, `brokers/worktree/prepare/worktree-prepare-broker.proxy.ts`, `packages/orchestrator/CLAUDE.md`, `docs/quest-role-paths.md`, `packages/shared/src/brokers/architecture/project-map/architecture-project-map-broker.integration.test.ts`.

@@ -27,7 +27,7 @@ import {
   packageJsonDependencyNamesTransformer,
 } from '@dungeonmaster/shared/transformers';
 
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
+import { readFile } from '#gateway/node/fs__promises';
 
 export const PrepareQuestPackageGraphLayerResponder = async ({
   quest,
@@ -59,8 +59,8 @@ export const PrepareQuestPackageGraphLayerResponder = async ({
       const manifestPath = filePathContract.parse(`${String(node.location)}/package.json`);
 
       try {
-        const contents = await fsReadFileAdapter({ filePath: manifestPath });
-        const packageJson = packageJsonContract.parse(JSON.parse(String(contents)) as unknown);
+        const contents = await readFile(manifestPath);
+        const packageJson = packageJsonContract.parse(JSON.parse(contents) as unknown);
         return {
           name: node.name,
           npmName: packageJson.name === undefined ? undefined : String(packageJson.name),

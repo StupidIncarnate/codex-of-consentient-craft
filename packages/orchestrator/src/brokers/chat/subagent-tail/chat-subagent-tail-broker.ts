@@ -23,14 +23,10 @@
  * CREATE an empty file at the wrong address and tail that forever.
  */
 
-import { ensureDir } from '#gateway/node/fs__promises';
+import { appendFile, ensureDir } from '#gateway/node/fs__promises';
 import { homedir } from '#gateway/node/os';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
-import {
-  absoluteFilePathContract,
-  fileContentsContract,
-  filePathContract,
-} from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import type { ChatEntry, RepoRootCwd, SessionId } from '@dungeonmaster/shared/contracts';
 import type { ProcessId } from '@dungeonmaster/shared/contracts';
 import {
@@ -38,7 +34,6 @@ import {
   stripJsonlSuffixTransformer,
 } from '@dungeonmaster/shared/transformers';
 
-import { fsAppendFileAdapter } from '../../../adapters/fs/append-file/fs-append-file-adapter';
 import { fsWatchTailAdapter } from '../../../adapters/fs/watch-tail/fs-watch-tail-adapter';
 import type { AgentId } from '../../../contracts/agent-id/agent-id-contract';
 import type { ChatLineProcessor } from '../../../contracts/chat-line-processor/chat-line-processor-contract';
@@ -86,10 +81,7 @@ export const chatSubagentTailBroker = async ({
   // the JSONL within a few hundred milliseconds. mkdir+append('') is a touch — creates
   // an empty file if missing, leaves existing content untouched (no truncate).
   await ensureDir(subagentsDir);
-  await fsAppendFileAdapter({
-    filePath: filePathContract.parse(String(subagentJsonlPath)),
-    contents: fileContentsContract.parse(''),
-  });
+  await appendFile(subagentJsonlPath, '');
 
   const subagentSource = chatLineSourceContract.parse('subagent');
 

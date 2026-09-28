@@ -7,16 +7,12 @@
  */
 
 import { dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
-import {
-  adapterResultContract,
-  fileContentsContract,
-  filePathContract,
-} from '@dungeonmaster/shared/contracts';
+import { adapterResultContract, filePathContract } from '@dungeonmaster/shared/contracts';
 import type { AdapterResult, QuestId } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
+import { appendFile } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
 
-import { fsAppendFileAdapter } from '../../../adapters/fs/append-file/fs-append-file-adapter';
 import { questOutboxLineContract } from '../../../contracts/quest-outbox-line/quest-outbox-line-contract';
 
 export const questOutboxAppendBroker = async ({
@@ -35,8 +31,6 @@ export const questOutboxAppendBroker = async ({
     timestamp: new Date().toISOString(),
   });
 
-  const serialized = fileContentsContract.parse(`${JSON.stringify(outboxLine)}\n`);
-
-  await fsAppendFileAdapter({ filePath: outboxFilePath, contents: serialized });
+  await appendFile(outboxFilePath, `${JSON.stringify(outboxLine)}\n`);
   return adapterResultContract.parse({ success: true });
 };

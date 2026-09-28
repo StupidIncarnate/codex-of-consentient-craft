@@ -11,6 +11,8 @@
  * // Spawns Claude CLI, forwards raw lines, extracts session ID, returns kill handle
  */
 
+import { lineReader } from '#gateway/node/readline';
+import { stderr } from '#gateway/node/process';
 import type {
   AbsoluteFilePath,
   ExitCode,
@@ -20,13 +22,12 @@ import type {
 import { exitCodeContract } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 
-import { childProcessSpawnStreamJsonAdapter } from '../../../adapters/child-process/spawn-stream-json/child-process-spawn-stream-json-adapter';
-import { readlineCreateInterfaceAdapter } from '../../../adapters/readline/create-interface/readline-create-interface-adapter';
 import type { ClaudeModel } from '../../../contracts/claude-model/claude-model-contract';
 import type { ProcessPid } from '../../../contracts/process-pid/process-pid-contract';
 import { processPidContract } from '../../../contracts/process-pid/process-pid-contract';
 import type { PromptText } from '../../../contracts/prompt-text/prompt-text-contract';
 import { sessionIdExtractorTransformer } from '../../../transformers/session-id-extractor/session-id-extractor-transformer';
+import { agentSpawnStreamJsonBroker } from '../spawn-stream-json/agent-spawn-stream-json-broker';
 
 export const agentSpawnUnifiedBroker = ({
   prompt,
@@ -48,16 +49,16 @@ export const agentSpawnUnifiedBroker = ({
   onLine: (params: { line: string }) => void;
   onError?: (params: { error: Error }) => void;
   onComplete: (params: { exitCode: ExitCode | null; sessionId: SessionId | null }) => void;
-  // Forwarded to the spawn adapter. Default behavior (undefined) inherits stderr to the
+  // Forwarded to the spawn broker. Default behavior (undefined) inherits stderr to the
   // parent terminal. The launcher always passes a tagging callback so each subprocess's
   // stderr gets `proc:<id>` attribution in the dev log.
   onStderrLine?: (params: { line: string }) => void;
-  // Forwarded verbatim to the spawn adapter's `--add-dir` grant. See that adapter's header
+  // Forwarded verbatim to the spawn broker's `--add-dir` grant. See that broker's header
   // for why a chat spawn needs this — the quest's images directory sits outside the spawn's
   // cwd, so a pasted-image Read is denied without it.
   addDir?: AbsoluteFilePath;
 }): { kill: () => void; sessionId$: Promise<SessionId | null>; pid: ProcessPid | undefined } => {
-  const spawnParams: Parameters<typeof childProcessSpawnStreamJsonAdapter>[0] = {
+  const spawnParams: Parameters<typeof agentSpawnStreamJsonBroker>[0] = {
     prompt,
     cwd,
     model,
@@ -79,9 +80,9 @@ export const agentSpawnUnifiedBroker = ({
     spawnParams.addDir = addDir;
   }
 
-  const { process: childProcess, stdout } = childProcessSpawnStreamJsonAdapter(spawnParams);
+  const { process: childProcess, stdout } = agentSpawnStreamJsonBroker(spawnParams);
 
-  const rl = readlineCreateInterfaceAdapter({ input: stdout });
+  const rl = lineReader({ input: stdout });
 
   let trackedSessionId: SessionId | null = null;
   const deferred = {
@@ -93,7 +94,7 @@ export const agentSpawnUnifiedBroker = ({
     deferred.resolve = resolve;
   });
 
-  rl.onLine(({ line }) => {
+  rl.onLine((line) => {
     onLine({ line });
 
     if (trackedSessionId === null) {
@@ -104,6 +105,10 @@ export const agentSpawnUnifiedBroker = ({
         deferred.resolve(sessionId);
       }
     }
+  });
+
+  rl.onError((readerError) => {
+    stderr.write(`[agent-spawn] stdout reader failed: ${String(readerError)}\n`);
   });
 
   childProcess.on('error', (error: Error) => {

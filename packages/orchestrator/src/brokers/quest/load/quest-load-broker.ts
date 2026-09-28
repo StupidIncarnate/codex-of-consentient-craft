@@ -6,7 +6,7 @@
  * // Returns parsed Quest object
  */
 
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
+import { readFile } from '#gateway/node/fs__promises';
 import { questContract } from '@dungeonmaster/shared/contracts';
 import { safeJsonParseTransformer } from '@dungeonmaster/shared/transformers';
 import type { FilePath, Quest } from '@dungeonmaster/shared/contracts';
@@ -16,7 +16,7 @@ export const questLoadBroker = async ({
 }: {
   questFilePath: FilePath;
 }): Promise<Quest> => {
-  const fileContents = await fsReadFileAdapter({ filePath: questFilePath });
+  const fileContents = await readFile(questFilePath);
 
   // The reason a load fails — malformed JSON, or the specific contract field that rejected —
   // is appended to the message itself, not just tucked into `cause`, so every log site that

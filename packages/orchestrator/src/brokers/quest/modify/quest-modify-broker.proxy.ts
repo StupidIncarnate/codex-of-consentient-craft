@@ -15,6 +15,8 @@
  * passthrough-by-default behaviour.
  */
 
+import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
+import { pathExistsProxy } from '#gateway/node/fs__promises/path-exists/path-exists.proxy';
 import { join, resolve } from '#gateway/node/path';
 
 import {
@@ -35,7 +37,6 @@ import {
 } from '@dungeonmaster/testing/register-mock';
 
 import { questModifyBroker } from './quest-modify-broker';
-import { fsIsAccessibleAdapterProxy } from '../../../adapters/fs/is-accessible/fs-is-accessible-adapter.proxy';
 import { questFindQuestPathBrokerProxy } from '../find-quest-path/quest-find-quest-path-broker.proxy';
 import { questLoadBrokerProxy } from '../load/quest-load-broker.proxy';
 import { questPersistBrokerProxy } from '../persist/quest-persist-broker.proxy';
@@ -87,12 +88,16 @@ export const questModifyBrokerProxy = (): {
   const persistProxy = questPersistBrokerProxy();
   const lockProxy = questWithModifyLockBrokerProxy();
   lockProxy.setupEmpty();
-  // questModifyBroker calls fsIsAccessibleAdapter once per contract entry to resolve
-  // source paths against disk. Default to "not found" so 'new' contracts (the common
-  // test-stub default) pass the contract-source-resolution validator. Tests that need
-  // a path to appear "existing" can override via the proxy's `resolves()` method.
-  const fsAccessProxy = fsIsAccessibleAdapterProxy();
-  fsAccessProxy.defaultsToNotFound();
+  // questModifyBroker calls pathExists once per contract entry to resolve source paths against
+  // disk, each anchored on PROJECT_ROOT. Every path UNDER that root defaults to "not found" so 'new'
+  // contracts (the common test-stub default) pass the contract-source-resolution validator; the
+  // predicate names the quest's own repo and nothing else. Tests that need a path to appear
+  // "existing" stage the exact address, which outranks the predicate.
+  const fsAccessProxy = pathExistsProxy();
+  fsAccessProxy.throwsMatchingPath({
+    path: (value: unknown): boolean => String(value).startsWith(`${PROJECT_ROOT}/`),
+    error: FsErrorStub({ code: 'ENOENT' }),
+  });
   // Answers the package-entry disk probes: nothing resolves and no workspace root lists siblings
   // until a test says otherwise via setupPackageLocationResolves.
   resolvePackageEntryFactsLayerBrokerProxy();
@@ -191,7 +196,7 @@ export const questModifyBrokerProxy = (): {
     // that source anchored on PROJECT_ROOT; pass the same absolute path here — exactly as
     // setupPackageLocationResolves takes a location's absolute address.
     setupContractSourceResolvesOnce: ({ source }: { source: string }): void => {
-      fsAccessProxy.resolves({ filePath: FilePathStub({ value: source }) });
+      fsAccessProxy.present({ path: source });
     },
 
     // Stages fs.access to succeed for one packagesAffected entry's `location`, so the package-entry
@@ -199,7 +204,7 @@ export const questModifyBrokerProxy = (): {
     // asserts. The entry's `location` is repo-relative to the quest's own repo, so the address the
     // broker probes is that location anchored on PROJECT_ROOT; pass the same absolute path here.
     setupPackageLocationResolves: ({ location }: { location: string }): void => {
-      fsAccessProxy.resolves({ filePath: FilePathStub({ value: location }) });
+      fsAccessProxy.present({ path: location });
     },
 
     getProjectRoot: (): ReturnType<typeof RepoRootCwdStub> => PROJECT_ROOT,

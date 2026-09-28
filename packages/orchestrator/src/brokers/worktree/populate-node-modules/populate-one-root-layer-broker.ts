@@ -51,12 +51,8 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import { run, RunNotFoundError } from '#gateway/node/child_process';
 import { readdirEntriesSync } from '#gateway/node/fs';
-import { ensureDir } from '#gateway/node/fs__promises';
+import { ensureDir, pathExists, readlinkIfLink, symlink } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
-
-import { fsIsAccessibleAdapter } from '../../../adapters/fs/is-accessible/fs-is-accessible-adapter';
-import { fsReadlinkAdapter } from '../../../adapters/fs/readlink/fs-readlink-adapter';
-import { fsSymlinkAdapter } from '../../../adapters/fs/symlink/fs-symlink-adapter';
 
 const NPM_SCOPE_PREFIX = '@';
 const VITE_CACHE_PREFIX = '.vite-';
@@ -96,9 +92,7 @@ export const populateOneRootLayerBroker = async ({
   // no ledger knows about. Existence alone is not enough — `ensureDir` leaves an EMPTY
   // node_modules behind the moment it runs, so an attempt that died right after the mkdir would
   // otherwise look done and mirror nothing.
-  const targetExists = await fsIsAccessibleAdapter({
-    filePath: filePathContract.parse(targetNodeModules),
-  });
+  const targetExists = await pathExists(targetNodeModules);
   const alreadyPopulated = targetExists && readdirEntriesSync(targetNodeModules).length > 0;
 
   onLine(
@@ -170,10 +164,11 @@ export const populateOneRootLayerBroker = async ({
       const inspected = await Promise.all(
         scopeChildren.map(async (child) => {
           const childSourcePath = join(entrySourcePath, child.name);
-          const storedTarget =
-            child.kind === 'symlink'
-              ? await fsReadlinkAdapter({ linkPath: filePathContract.parse(childSourcePath) })
-              : null;
+          const rawTarget = child.kind === 'symlink' ? await readlinkIfLink(childSourcePath) : null;
+          // A stored target `filePathContract` cannot brand (a bare relative path with no `./` or
+          // `../` lead) is not a workspace link; it is hardlinked like any vendored child.
+          const parsedTarget = filePathContract.safeParse(rawTarget);
+          const storedTarget = parsedTarget.success ? parsedTarget.data : null;
 
           return {
             name: child.name,
@@ -198,9 +193,9 @@ export const populateOneRootLayerBroker = async ({
       if (!alreadyPopulated) {
         await Promise.all(
           workspaceChildren.map(async (item) =>
-            fsSymlinkAdapter({
+            symlink({
               target: item.relativeTarget,
-              linkPath: filePathContract.parse(join(entryTargetPath, item.name)),
+              path: join(entryTargetPath, item.name),
             }),
           ),
         );

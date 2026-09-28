@@ -1,7 +1,6 @@
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import {
   AbsoluteFilePathStub,
-  FilePathStub,
   type AbsoluteFilePath,
   type FilePath,
 } from '@dungeonmaster/shared/contracts';
@@ -10,12 +9,11 @@ import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found
 import { runProxy } from '#gateway/node/child_process/run/run.proxy';
 import type { DirEntrySync, FsError } from '#gateway/node/fs';
 import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/readdir-entries-sync.proxy';
+import { pathExistsProxy } from '#gateway/node/fs__promises/path-exists/path-exists.proxy';
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
+import { readlinkIfLinkProxy } from '#gateway/node/fs__promises/readlink-if-link/readlink-if-link.proxy';
+import { symlinkProxy } from '#gateway/node/fs__promises/symlink/symlink.proxy';
 import { join } from '#gateway/node/path';
-
-import { fsIsAccessibleAdapterProxy } from '../../../adapters/fs/is-accessible/fs-is-accessible-adapter.proxy';
-import { fsReadlinkAdapterProxy } from '../../../adapters/fs/readlink/fs-readlink-adapter.proxy';
-import { fsSymlinkAdapterProxy } from '../../../adapters/fs/symlink/fs-symlink-adapter.proxy';
 
 const COPY_COMMAND = 'cp';
 
@@ -53,7 +51,7 @@ export const populateOneRootLayerBrokerProxy = (): {
     scopeNames?: readonly string[];
   }) => void;
   setupMkdirThrows: (params: { filepath: FilePath; error: FsError }) => void;
-  setupSymlinkSucceeds: (params: { target: FilePath }) => void;
+  setupSymlinkSucceeds: (params: { target: FilePath; path: FilePath }) => void;
   setupCopySucceeds: () => void;
   setupCopyFails: (params: { output: string }) => void;
   getAllSymlinks: () => readonly { target: unknown; linkPath: unknown }[];
@@ -64,13 +62,12 @@ export const populateOneRootLayerBrokerProxy = (): {
   // here.
   const readdirProxy = readdirEntriesSyncProxy();
   const ensureDirHandle = ensureDirProxy();
-  const symlinkProxy = fsSymlinkAdapterProxy();
-  const readlinkProxy = fsReadlinkAdapterProxy();
-  const isAccessibleProxy = fsIsAccessibleAdapterProxy();
-  // Every root's done-check asks whether its TARGET node_modules is already there. "Not there" is
-  // the honest default for a fresh worktree, so an undescribed target mirrors; a target described
-  // by setupTargetNodeModulesOnDisk below outranks this catch-all.
-  isAccessibleProxy.defaultsToNotFound();
+  const linkProxy = symlinkProxy();
+  const readlinkProxy = readlinkIfLinkProxy();
+  // Every (target, path) pair a test staged: `getAllSymlinks` reads back the calls at exactly those
+  // addresses, so an unstaged link the broker attempts rejects rather than going unseen.
+  const stagedLinks: { target: FilePath; path: FilePath }[] = [];
+  const isAccessibleProxy = pathExistsProxy();
   const run = runProxy();
   // Created but unstaged: RunNotFoundError is a plain class with nothing to mock — composing its
   // proxy satisfies enforce-proxy-child-creation for the broker's own `instanceof` import.
@@ -111,9 +108,7 @@ export const populateOneRootLayerBrokerProxy = (): {
       targetRoot: AbsoluteFilePath;
       entries: { name: string; isDir: boolean; isSymlink: boolean }[];
     }): void => {
-      isAccessibleProxy.resolves({
-        filePath: FilePathStub({ value: `${targetRoot}/node_modules` }),
-      });
+      isAccessibleProxy.present({ path: `${targetRoot}/node_modules` });
       readdirProxy.returns({
         path: AbsoluteFilePathStub({ value: `${targetRoot}/node_modules` }),
         entries: entries.map(dirEntryFrom),
@@ -121,7 +116,7 @@ export const populateOneRootLayerBrokerProxy = (): {
     },
 
     setupReadlinkTarget: ({ linkPath, target }: { linkPath: FilePath; target: string }): void => {
-      readlinkProxy.returns({ linkPath, target });
+      readlinkProxy.returns({ path: linkPath, target });
     },
     setupTargetReady: ({
       targetRoot,
@@ -131,16 +126,24 @@ export const populateOneRootLayerBrokerProxy = (): {
       scopeNames?: readonly string[];
     }): void => {
       const targetNodeModules = `${targetRoot}/node_modules`;
+      // Every root's done-check asks whether its TARGET node_modules is already there; a fresh
+      // worktree answers "not there". Stage setupTargetNodeModulesOnDisk AFTER this call to describe
+      // a target that is.
+      isAccessibleProxy.missing({ path: targetNodeModules });
       ensureDirHandle.succeeds({ path: targetNodeModules });
       scopeNames.forEach((name) => {
         ensureDirHandle.succeeds({ path: `${targetNodeModules}/${name}` });
       });
     },
     setupMkdirThrows: ({ filepath, error }: { filepath: FilePath; error: FsError }): void => {
+      // The done-check probes the target node_modules before any mkdir runs, and a directory whose
+      // creation fails was not there.
+      isAccessibleProxy.missing({ path: filepath });
       ensureDirHandle.rejects({ path: filepath, error });
     },
-    setupSymlinkSucceeds: ({ target }: { target: FilePath }): void => {
-      symlinkProxy.succeeds({ target });
+    setupSymlinkSucceeds: ({ target, path }: { target: FilePath; path: FilePath }): void => {
+      stagedLinks.push({ target, path });
+      linkProxy.succeeds({ target, path });
     },
     setupCopySucceeds: (): void => {
       run.setupSuccess({ command: COPY_COMMAND, exitCode: 0, stdout: '', stderr: '' });
@@ -149,7 +152,11 @@ export const populateOneRootLayerBrokerProxy = (): {
       run.setupSuccess({ command: COPY_COMMAND, exitCode: 1, stdout: '', stderr: output });
     },
     getAllSymlinks: (): readonly { target: unknown; linkPath: unknown }[] =>
-      symlinkProxy.getAllSymlinks(),
+      stagedLinks.flatMap(({ target, path }) =>
+        linkProxy
+          .getCallsFor({ target, path })
+          .map((call) => ({ target: call[0], linkPath: call[1] })),
+      ),
     getAllCopyArgs: (): readonly unknown[] => run.getCallsFor({ command: COPY_COMMAND }),
   };
 };

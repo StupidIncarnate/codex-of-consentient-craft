@@ -5,14 +5,13 @@ import {
 import {
   BaseBranchNameStub,
   QuestBranchNameStub,
-  filePathContract,
   type AbsoluteFilePath,
 } from '@dungeonmaster/shared/contracts';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
+import { pathExistsProxy } from '#gateway/node/fs__promises/path-exists/path-exists.proxy';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { cwd } from '#gateway/node/process';
 
-import { fsIsAccessibleAdapterProxy } from '../../../adapters/fs/is-accessible/fs-is-accessible-adapter.proxy';
 import { gitDetectBaseBranchBrokerProxy } from '../../../brokers/git/detect-base-branch/git-detect-base-branch-broker.proxy';
 import { worktreePrepareBrokerProxy } from '../../../brokers/worktree/prepare/worktree-prepare-broker.proxy';
 import { worktreeProvisionBrokerProxy } from '../../../brokers/worktree/provision/worktree-provision-broker.proxy';
@@ -26,7 +25,7 @@ export const WorktreeCreateResponderProxy = (): {
     sha: string;
   }) => void;
   setupWorktreeAlreadyOnDisk: (params: { worktreePath: AbsoluteFilePath }) => void;
-  setupNoBaseBranch: () => void;
+  setupNoBaseBranch: (params: { worktreePath: AbsoluteFilePath }) => void;
   setupLeakingLink: (params: {
     repoRoot: AbsoluteFilePath;
     worktreePath: AbsoluteFilePath;
@@ -38,10 +37,7 @@ export const WorktreeCreateResponderProxy = (): {
   cwdProxy();
   const cwdHandle = registerMock({ fn: cwd });
   const cwdResolveProxy = cwdResolveBrokerProxy();
-  const isAccessibleProxy = fsIsAccessibleAdapterProxy();
-  // "Nothing is on disk" is the honest default for a worktree nobody described — which is what
-  // makes a fresh carve the default scenario rather than something a test has to spell out.
-  isAccessibleProxy.defaultsToNotFound();
+  const isAccessibleProxy = pathExistsProxy();
   const detectBaseBranchProxy = gitDetectBaseBranchBrokerProxy();
   const prepareProxy = worktreePrepareBrokerProxy();
   const provisionProxy = worktreeProvisionBrokerProxy();
@@ -59,8 +55,10 @@ export const WorktreeCreateResponderProxy = (): {
 
     setupFreshCarve: ({ repoRoot, worktreePath, name, sha }): void => {
       stageRepoRoot({ repoRoot });
+      isAccessibleProxy.missing({ path: worktreePath });
       detectBaseBranchProxy.setupMainExists();
       prepareProxy.setupHappyPath({
+        repoRoot,
         worktreePath,
         branchName: QuestBranchNameStub({ value: name }),
         baseBranch: BaseBranchNameStub({ value: 'main' }),
@@ -72,10 +70,11 @@ export const WorktreeCreateResponderProxy = (): {
     // Only the DIRECTORY is described, deliberately: the git step is the one gated on it, while the
     // mirror, the seed and the audit each read their own patch of disk and decide for themselves.
     setupWorktreeAlreadyOnDisk: ({ worktreePath }: { worktreePath: AbsoluteFilePath }): void => {
-      isAccessibleProxy.resolves({ filePath: filePathContract.parse(worktreePath) });
+      isAccessibleProxy.present({ path: worktreePath });
     },
 
-    setupNoBaseBranch: (): void => {
+    setupNoBaseBranch: ({ worktreePath }: { worktreePath: AbsoluteFilePath }): void => {
+      isAccessibleProxy.missing({ path: worktreePath });
       detectBaseBranchProxy.setupNeitherExists();
     },
 

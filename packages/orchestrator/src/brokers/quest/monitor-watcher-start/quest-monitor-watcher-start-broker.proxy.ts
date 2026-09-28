@@ -33,7 +33,7 @@ export const questMonitorWatcherStartBrokerProxy = (): {
   // `setupSubagentDirFiles`.
   setupFirstLineRead: (params: { content: string }) => void;
   triggerChange: () => void;
-  // Fires the periodic poll-rescan registered with `timerSetIntervalAdapter` — the retry
+  // Fires the periodic poll-rescan registered with `timerIntervalStartBroker` — the retry
   // that lets a sub-agent file pair once the main tail has since drained its spawning
   // Task line.
   triggerPollTick: () => void;

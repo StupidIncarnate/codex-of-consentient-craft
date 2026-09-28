@@ -1,15 +1,11 @@
 import { locationsNodeModulesPathFindBrokerProxy } from '@dungeonmaster/shared/testing';
-import {
-  FilePathStub,
-  type AbsoluteFilePath,
-  type FilePath,
-} from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, FilePath } from '@dungeonmaster/shared/contracts';
+import { pathExistsProxy } from '#gateway/node/fs__promises/path-exists/path-exists.proxy';
 
-import { fsIsAccessibleAdapterProxy } from '../../../adapters/fs/is-accessible/fs-is-accessible-adapter.proxy';
 import { walkSymlinksLayerBrokerProxy } from './walk-symlinks-layer-broker.proxy';
 
 export const worktreeVerifyLinksBrokerProxy = (): {
-  setupNodeModulesAbsent: () => void;
+  setupNodeModulesAbsent: (params: { worktreePath: AbsoluteFilePath }) => void;
   setupNodeModulesPresent: (params: { worktreePath: AbsoluteFilePath }) => void;
   setupDirectoryEntries: (params: {
     dirPath: AbsoluteFilePath;
@@ -17,24 +13,19 @@ export const worktreeVerifyLinksBrokerProxy = (): {
   }) => void;
   setupReadlinkTarget: (params: { linkPath: FilePath; target: string }) => void;
 } => {
-  const isAccessibleProxy = fsIsAccessibleAdapterProxy();
-  // "Nothing is there" is the honest default for a tree nobody described; a worktree described by
-  // setupNodeModulesPresent below outranks this catch-all.
-  isAccessibleProxy.defaultsToNotFound();
+  const isAccessibleProxy = pathExistsProxy();
   const walkProxy = walkSymlinksLayerBrokerProxy();
   // Wired to satisfy enforce-proxy-child-creation and left UNADDRESSED: it stages nothing of its
   // own, so every node_modules path a test stages must match Node's real path.join output.
   locationsNodeModulesPathFindBrokerProxy();
 
   return {
-    setupNodeModulesAbsent: (): void => {
-      isAccessibleProxy.defaultsToNotFound();
+    setupNodeModulesAbsent: ({ worktreePath }: { worktreePath: AbsoluteFilePath }): void => {
+      isAccessibleProxy.missing({ path: `${String(worktreePath)}/node_modules` });
     },
 
     setupNodeModulesPresent: ({ worktreePath }: { worktreePath: AbsoluteFilePath }): void => {
-      isAccessibleProxy.resolves({
-        filePath: FilePathStub({ value: `${String(worktreePath)}/node_modules` }),
-      });
+      isAccessibleProxy.present({ path: `${String(worktreePath)}/node_modules` });
     },
 
     setupDirectoryEntries: ({

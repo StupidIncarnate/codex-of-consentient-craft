@@ -386,7 +386,7 @@ describe('questMonitorJsonlWatcherBroker', () => {
         ],
       });
 
-      // Fire the periodic poll-rescan registered with `timerSetIntervalAdapter`. The
+      // Fire the periodic poll-rescan registered with `timerIntervalStartBroker`. The
       // broker should: rescan subagents/, see the new `agent-late-1.jsonl` file, pair its
       // first line against the outstanding Task, and start a `fsWatchTailAdapter` on it.
       // The synthetic-change emit from the adapter does not fire the mocked watch

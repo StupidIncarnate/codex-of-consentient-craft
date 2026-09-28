@@ -85,7 +85,7 @@ export const guildListBrokerProxy = (): {
         if (entry === undefined) {
           return;
         }
-        accessibleProxy.setupResult({ result: entry.accessible });
+        accessibleProxy.setupResult({ path: guild.path, result: entry.accessible });
         joinHandle
           .calledWith([
             homePath,

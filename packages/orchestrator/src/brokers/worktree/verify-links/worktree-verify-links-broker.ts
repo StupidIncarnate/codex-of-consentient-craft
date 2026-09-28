@@ -19,13 +19,9 @@
  */
 
 import { locationsNodeModulesPathFindBroker } from '@dungeonmaster/shared/brokers';
-import {
-  filePathContract,
-  type AbsoluteFilePath,
-  type AdapterResult,
-} from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, AdapterResult } from '@dungeonmaster/shared/contracts';
 
-import { fsIsAccessibleAdapter } from '../../../adapters/fs/is-accessible/fs-is-accessible-adapter';
+import { pathExists } from '#gateway/node/fs__promises';
 import { WorktreePrepareError } from '../../../errors/worktree-prepare/worktree-prepare-error';
 import { worktreePrepareStepStatics } from '../../../statics/worktree-prepare-step/worktree-prepare-step-statics';
 import { worktreeVerifyLinksStatics } from '../../../statics/worktree-verify-links/worktree-verify-links-statics';
@@ -41,9 +37,7 @@ export const worktreeVerifyLinksBroker = async ({
 }): Promise<AdapterResult> => {
   const nodeModules = locationsNodeModulesPathFindBroker({ rootPath: worktreePath });
 
-  const nodeModulesPresent = await fsIsAccessibleAdapter({
-    filePath: filePathContract.parse(nodeModules),
-  });
+  const nodeModulesPresent = await pathExists(nodeModules);
 
   // A worktree carved but not yet mirrored holds no links at all. That is a stage, not a leak —
   // the caller's next step is the populate, and this same check runs again after it.

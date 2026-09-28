@@ -19,9 +19,8 @@
 import { existsSync, readFileSync, readdirSync } from 'fs';
 import { join, resolve } from 'path';
 
-import { FilePathStub, QuestPackageEntryStub } from '@dungeonmaster/shared/contracts';
-
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
+import { QuestPackageEntryStub } from '@dungeonmaster/shared/contracts';
+import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 
 // This file lives at packages/orchestrator/src/responders/orchestration/start/, so the workspace
 // root is five directories up. Resolved from __dirname rather than cwd because jest's working
@@ -33,7 +32,7 @@ export const PrepareQuestPackageGraphLayerResponderProxy = (): {
   setupManifestUnreadable: (params: { location: string }) => void;
   setupRealWorkspaceManifests: () => ReturnType<typeof QuestPackageEntryStub>[];
 } => {
-  const readFileProxy = fsReadFileAdapterProxy();
+  const readFileHandle = readFileProxy();
 
   return {
     setupRealWorkspaceManifests: (): ReturnType<typeof QuestPackageEntryStub>[] =>
@@ -42,9 +41,9 @@ export const PrepareQuestPackageGraphLayerResponderProxy = (): {
         .sort((left, right) => left.localeCompare(right))
         .map((entry) => {
           const location = `./packages/${entry}`;
-          readFileProxy.resolves({
-            filePath: FilePathStub({ value: `${location}/package.json` }),
-            content: readFileSync(join(WORKSPACE_ROOT, entry, 'package.json'), 'utf-8'),
+          readFileHandle.returns({
+            path: `${location}/package.json`,
+            contents: readFileSync(join(WORKSPACE_ROOT, entry, 'package.json'), 'utf-8'),
           });
           // `packageType` is not derivable without the on-disk detector and does not enter the
           // depth computation, so every entry declares the same neutral kind.
@@ -63,17 +62,14 @@ export const PrepareQuestPackageGraphLayerResponderProxy = (): {
       location: string;
       packageJson: unknown;
     }): void => {
-      readFileProxy.resolves({
-        filePath: FilePathStub({ value: `${location}/package.json` }),
-        content: JSON.stringify(packageJson),
+      readFileHandle.returns({
+        path: `${location}/package.json`,
+        contents: JSON.stringify(packageJson),
       });
     },
 
     setupManifestUnreadable: ({ location }: { location: string }): void => {
-      readFileProxy.rejects({
-        filePath: FilePathStub({ value: `${location}/package.json` }),
-        error: Object.assign(new Error('ENOENT: no such file or directory'), { code: 'ENOENT' }),
-      });
+      readFileHandle.missing({ path: `${location}/package.json` });
     },
   };
 };

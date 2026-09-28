@@ -31,7 +31,8 @@ export const worktreeProvisionBrokerProxy = (): {
 
   return {
     // The source root holds one third-party entry and no workspace links, and the worktree holds
-    // nothing yet — the shape a first provision meets.
+    // nothing yet — the shape a first provision meets. The source has no `packages/` directory, so the
+    // dist seed has nothing to copy, and no node_modules stands at the worktree for the audit to walk.
     setupBareWorktree: ({
       repoRoot,
       worktreePath,
@@ -40,6 +41,7 @@ export const worktreeProvisionBrokerProxy = (): {
       worktreePath: AbsoluteFilePath;
     }): void => {
       populateProxy.setupNoWorkspaceLinks({ repoRoot, worktreePath, thirdPartyEntry: 'zod' });
+      seedProxy.setupPackagesDirAbsent({ repoRoot });
     },
 
     // A package whose compiled output the MAIN checkout never produced, which is what the seed step

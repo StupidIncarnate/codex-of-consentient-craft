@@ -910,7 +910,7 @@ dispatchable while the wreckage is still in place.
     claim; a reachable directory whose HEAD is still the recorded branch is proof. The spiritmender
     that ran between the two attempts may have deleted, moved, repaired or `npm install`ed things the
     ledger knows nothing about. So: the base branch is re-verified with `gitVerifyRefAdapter` rather
-    than trusted; the worktree is checked with `fsIsAccessibleAdapter` AND `gitCurrentBranchAdapter`;
+    than trusted; the worktree is checked with `pathExists` AND `gitCurrentBranchAdapter`;
     a recorded path that is GONE reads as not-done and is RE-CREATED (attaching to the branch without
     `-b`, after a `git worktree prune`, when the branch itself survived) rather than blocking; the
     `node_modules` mirror done-checks PER ROOT inside `populate-one-root-layer-broker`, because an

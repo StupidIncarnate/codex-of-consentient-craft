@@ -46,7 +46,6 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import { isTerminalWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
 
-import { timerSetTimeoutAdapter } from '../../../adapters/timer/set-timeout/timer-set-timeout-adapter';
 import type { SpawnInstruction } from '../../../contracts/spawn-instruction/spawn-instruction-contract';
 import { isApiOverloadLineGuard } from '../../../guards/is-api-overload-line/is-api-overload-line-guard';
 import { isRateLimitRejectedLineGuard } from '../../../guards/is-rate-limit-rejected-line/is-rate-limit-rejected-line-guard';
@@ -56,6 +55,7 @@ import { apiOverloadRetryDelayTransformer } from '../../../transformers/api-over
 import { roleToModelTransformer } from '../../../transformers/role-to-model/role-to-model-transformer';
 import { agentSpawnUnifiedBroker } from '../../agent/spawn-unified/agent-spawn-unified-broker';
 import { dispatchHoldRejectBroker } from '../../dispatch-hold/reject/dispatch-hold-reject-broker';
+import { timerSleepBroker } from '../../timer/sleep/timer-sleep-broker';
 import { questGetBroker } from '../get/quest-get-broker';
 import { questModifyBroker } from '../modify/quest-modify-broker';
 import { questSessionRecordBroker } from '../session-record/quest-session-record-broker';
@@ -258,7 +258,7 @@ export const spawnOneAgentLayerBroker = async ({
   process.stderr.write(
     `[node-dispatch] ${instruction.role} work item ${instruction.workItemId} died on API overload — retry ${String(nextAttempt)} in ${String(delayMs)}ms\n`,
   );
-  await timerSetTimeoutAdapter({ ms: delayMs });
+  await timerSleepBroker({ ms: delayMs });
 
   // The wait is long enough that the world can change under it: the user can pause dispatch, and
   // the dying child may have signalled back before it lost the API. Re-check both before respawning.

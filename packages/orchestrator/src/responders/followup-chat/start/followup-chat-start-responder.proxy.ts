@@ -83,7 +83,7 @@ export const FollowupChatStartResponderProxy = (): {
   eventsProxy.setupEmpty();
 
   // Stages the spawn adapter (custom stdout lines, exitCode 0) and the worktree-accessibility
-  // check for `worktreePath`. fsIsAccessibleAdapter is addressed by the exact path VALUE, so
+  // check for `worktreePath`. pathExists is addressed by the exact path VALUE, so
   // routing it through chatSpawnBrokerProxy's own setupResumeWithWorktree — despite that method's
   // OWN bundled (unused) quest — still answers THIS responder's real accessibility check.
   // setupResumeSession is staged FIRST so its stdout-lines spawn-emit wins the FIFO queue over

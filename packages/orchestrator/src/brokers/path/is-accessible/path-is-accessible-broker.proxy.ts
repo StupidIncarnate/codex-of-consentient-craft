@@ -1,28 +1,30 @@
 /**
- * PURPOSE: Proxy for path-is-accessible-broker that mocks fs access check
+ * PURPOSE: Proxy for path-is-accessible-broker that stages the fs access probe by exact path
  *
  * USAGE:
  * const proxy = pathIsAccessibleBrokerProxy();
- * proxy.setupResult({ result: true });
+ * proxy.setupResult({ path: GuildPathStub({ value: '/home/user/project' }), result: true });
  */
 
-import { fsIsAccessibleAdapterProxy } from '../../../adapters/fs/is-accessible/fs-is-accessible-adapter.proxy';
+import type { GuildPath } from '@dungeonmaster/shared/contracts';
+import { pathExistsProxy } from '#gateway/node/fs__promises/path-exists/path-exists.proxy';
 
 export const pathIsAccessibleBrokerProxy = (): {
-  setupResult: (params: { result: boolean }) => void;
+  setupResult: (params: { path: GuildPath; result: boolean }) => void;
+  setupUnreadable: (params: { path: GuildPath }) => void;
 } => {
-  const accessProxy = fsIsAccessibleAdapterProxy();
+  const accessProxy = pathExistsProxy();
 
   return {
-    // No path parameter here to address: guildListBrokerProxy (this broker's only caller)
-    // does not carry the underlying guild's real path down to this call — only the boolean
-    // outcome. `defaultsToFound`/`defaultsToNotFound` are the genuinely-addressless fallback.
-    setupResult: ({ result }: { result: boolean }): void => {
+    setupResult: ({ path, result }: { path: GuildPath; result: boolean }): void => {
       if (result) {
-        accessProxy.defaultsToFound();
+        accessProxy.present({ path });
       } else {
-        accessProxy.defaultsToNotFound();
+        accessProxy.missing({ path });
       }
+    },
+    setupUnreadable: ({ path }: { path: GuildPath }): void => {
+      accessProxy.denied({ path });
     },
   };
 };

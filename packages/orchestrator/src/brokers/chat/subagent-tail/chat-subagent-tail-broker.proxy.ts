@@ -1,10 +1,10 @@
-import { ensureDir } from '#gateway/node/fs__promises';
+import { appendFile, ensureDir } from '#gateway/node/fs__promises';
+import { appendFileProxy } from '#gateway/node/fs__promises/append-file/append-file.proxy';
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { homedir } from '#gateway/node/os';
 import { claudeLineNormalizeBrokerProxy } from '@dungeonmaster/shared/testing';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
-import { fsAppendFileAdapterProxy } from '../../../adapters/fs/append-file/fs-append-file-adapter.proxy';
 import { fsWatchTailAdapterProxy } from '../../../adapters/fs/watch-tail/fs-watch-tail-adapter.proxy';
 
 export const chatSubagentTailBrokerProxy = (): {
@@ -25,7 +25,12 @@ export const chatSubagentTailBrokerProxy = (): {
   ensureDirProxy();
   const ensureDirHandle = registerMock({ fn: ensureDir });
   ensureDirHandle.calledWith([(path: string) => path.endsWith('/subagents')]).resolves(undefined);
-  fsAppendFileAdapterProxy();
+  // The touch's path is built inside the broker from session + cwd + agent, so it is addressed by
+  // its shape — a `.jsonl` directly under a `subagents/` directory — rather than by value.
+  appendFileProxy();
+  registerMock({ fn: appendFile })
+    .calledWith([(path: string) => path.includes('/subagents/agent-') && path.endsWith('.jsonl')])
+    .resolves(undefined);
 
   return {
     setupHomeDir: ({ homeDir }: { homeDir: string }): void => {

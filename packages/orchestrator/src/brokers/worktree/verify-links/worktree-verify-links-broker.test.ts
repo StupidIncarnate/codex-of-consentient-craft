@@ -28,7 +28,7 @@ describe('worktreeVerifyLinksBroker', () => {
       const proxy = worktreeVerifyLinksBrokerProxy();
       const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/probe' });
 
-      proxy.setupNodeModulesAbsent();
+      proxy.setupNodeModulesAbsent({ worktreePath });
 
       const result = await worktreeVerifyLinksBroker({ worktreePath });
 

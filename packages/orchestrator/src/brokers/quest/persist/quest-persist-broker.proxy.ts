@@ -106,7 +106,11 @@ export const questPersistBrokerProxy = (): {
       const tmpPath = tmpPathFor({ questFilePath });
       writeHandle.succeeds({ path: tmpPath });
       renameHandle.succeeds({ from: tmpPath, to: questFilePath });
-      outboxProxy.setupAppendFailure({ homePath, outboxFilePath, error });
+      outboxProxy.setupAppendFailure({
+        homePath,
+        outboxFilePath,
+        error: Object.assign(error, { code: 'EIO' }),
+      });
     },
 
     getWrittenContent: ({ questFilePath }: { questFilePath: FilePath }): unknown =>

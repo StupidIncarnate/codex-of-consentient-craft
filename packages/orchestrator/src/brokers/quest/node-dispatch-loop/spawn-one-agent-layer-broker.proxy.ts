@@ -11,11 +11,12 @@ import {
   registerSpyOn,
 } from '@dungeonmaster/testing/register-mock';
 
-import { timerSetTimeoutAdapterProxy } from '../../../adapters/timer/set-timeout/timer-set-timeout-adapter.proxy';
 import type { ElapsedMsStub } from '../../../contracts/elapsed-ms/elapsed-ms.stub';
+import { apiOverloadRetryStatics } from '../../../statics/api-overload-retry/api-overload-retry-statics';
 import { agentSpawnUnifiedBrokerProxy } from '../../agent/spawn-unified/agent-spawn-unified-broker.proxy';
 import { dispatchHoldRejectBroker } from '../../dispatch-hold/reject/dispatch-hold-reject-broker';
 import { dispatchHoldRejectBrokerProxy } from '../../dispatch-hold/reject/dispatch-hold-reject-broker.proxy';
+import { timerSleepBrokerProxy } from '../../timer/sleep/timer-sleep-broker.proxy';
 import { questGetBroker } from '../get/quest-get-broker';
 import { questGetBrokerProxy } from '../get/quest-get-broker.proxy';
 import { questModifyBrokerProxy } from '../modify/quest-modify-broker.proxy';
@@ -71,7 +72,11 @@ export const spawnOneAgentLayerBrokerProxy = (): {
   // sticky passthrough, and the deterministic processId staging has to be the later registration
   // at the same `[]` address to win.
   const modifyProxy = questModifyBrokerProxy();
-  const timerProxy = timerSetTimeoutAdapterProxy();
+  // The backoff is one of two delays the retry schedule declares; each resolves at once and the
+  // delay a test reads back is the one the broker actually asked for.
+  const sleepProxy = timerSleepBrokerProxy();
+  sleepProxy.setupResolvesImmediately({ ms: apiOverloadRetryStatics.fastDelayMs });
+  sleepProxy.setupResolvesImmediately({ ms: apiOverloadRetryStatics.slowDelayMs });
   // Wired to satisfy dependency discovery; the module mocks above supply the return values.
   questGetBrokerProxy();
   questSessionRecordBrokerProxy();
@@ -229,7 +234,7 @@ export const spawnOneAgentLayerBrokerProxy = (): {
 
     getSpawnedCwd: (): unknown => spawnProxy.getSpawnedCwd(),
 
-    getLastBackoffDelay: (): ElapsedMs | undefined => timerProxy.getRegisteredDelay(),
+    getLastBackoffDelay: (): ElapsedMs | undefined => sleepProxy.getRegisteredDelays().at(-1),
 
     getStderrLines: (): readonly unknown[] => [...stderr],
   };

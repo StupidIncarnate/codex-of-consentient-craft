@@ -6,7 +6,7 @@ behaviour, not API, so it can change in any release. Claims were measured agains
 `claude --version` against the version that line was measured at; if it has moved, re-measure. The
 last section says how.
 
-This matters because `child-process-spawn-stream-json-adapter.ts` spawns a headless `claude -p`
+This matters because `agent-spawn-stream-json-broker.ts` spawns a headless `claude -p`
 child for every Node-dispatched role, and a headless child does not behave like the interactive
 session a prompt was probably written in.
 

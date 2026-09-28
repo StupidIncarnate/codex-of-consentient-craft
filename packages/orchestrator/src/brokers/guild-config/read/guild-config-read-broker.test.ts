@@ -4,6 +4,7 @@ import {
   GuildConfigStub,
   GuildStub,
 } from '@dungeonmaster/shared/contracts';
+import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 
 import { guildConfigReadBroker } from './guild-config-read-broker';
 import { guildConfigReadBrokerProxy } from './guild-config-read-broker.proxy';
@@ -149,10 +150,12 @@ describe('guildConfigReadBroker', () => {
         homeDir: '/home/user',
         homePath,
         configFilePath,
-        error: new Error('Permission denied'),
+        error: FsErrorStub({ code: 'EACCES', path: configFilePath }),
       });
 
-      await expect(guildConfigReadBroker()).rejects.toThrow(/Failed to read file/u);
+      await expect(guildConfigReadBroker()).rejects.toThrow(
+        /^EACCES: op '\/home\/user\/\.dungeonmaster\/config\.json'$/u,
+      );
     });
   });
 });

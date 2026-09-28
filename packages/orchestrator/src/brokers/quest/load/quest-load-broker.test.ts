@@ -1,6 +1,7 @@
 import { questLoadBroker } from './quest-load-broker';
 import { questLoadBrokerProxy } from './quest-load-broker.proxy';
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 
 describe('questLoadBroker', () => {
   describe('valid quest loading', () => {
@@ -107,10 +108,12 @@ describe('questLoadBroker', () => {
       const proxy = questLoadBrokerProxy();
       const questFilePath = FilePathStub({ value: '/missing.json' });
 
-      proxy.setupQuestFileReadError({ error: new Error('ENOENT: no such file or directory') });
+      proxy.setupQuestFileReadError({
+        error: FsErrorStub({ code: 'ENOENT', path: '/missing.json' }),
+      });
 
       await expect(questLoadBroker({ questFilePath })).rejects.toThrow(
-        'Failed to read file at /missing.json',
+        /^ENOENT: op '\/missing\.json'$/u,
       );
     });
   });

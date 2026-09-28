@@ -1,4 +1,5 @@
 import { AbsoluteFilePathStub, FilePathStub } from '@dungeonmaster/shared/contracts';
+import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 
 import { walkSymlinksLayerBroker } from './walk-symlinks-layer-broker';
 import { walkSymlinksLayerBrokerProxy } from './walk-symlinks-layer-broker.proxy';
@@ -226,7 +227,7 @@ describe('walkSymlinksLayerBroker', () => {
     });
 
     // `filePathContract` rejects exactly one shape — a bare relative path with no `./` or `../`
-    // lead — and `fsReadlinkAdapter` answers null for it. That shape cannot climb out of the tree
+    // lead — and the broker reads it as no audit row. That shape cannot climb out of the tree
     // it starts in, so there is nothing for the audit to record.
     it('EMPTY: {symlink whose stored target the path contract cannot brand} => returns no audit rows', async () => {
       const proxy = walkSymlinksLayerBrokerProxy();
@@ -249,7 +250,7 @@ describe('walkSymlinksLayerBroker', () => {
       expect(result).toStrictEqual([]);
     });
 
-    it('EMPTY: {readlink rejects} => returns no audit rows', async () => {
+    it('EMPTY: {readlink rejects EINVAL, not a link} => returns no audit rows', async () => {
       const proxy = walkSymlinksLayerBrokerProxy();
       const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/probe' });
 
@@ -259,7 +260,10 @@ describe('walkSymlinksLayerBroker', () => {
       });
       proxy.setupReadlinkThrows({
         linkPath: FilePathStub({ value: '/repo/worktrees/probe/node_modules/broken' }),
-        error: new Error('EINVAL: invalid argument'),
+        error: FsErrorStub({
+          code: 'EINVAL',
+          path: '/repo/worktrees/probe/node_modules/broken',
+        }),
       });
 
       const result = await walkSymlinksLayerBroker({

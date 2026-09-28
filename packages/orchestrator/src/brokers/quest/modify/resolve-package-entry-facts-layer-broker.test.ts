@@ -46,6 +46,9 @@ describe('resolvePackageEntryFactsLayerBroker', () => {
     it('VALID: {one location on disk, one absent} => only the one on disk lands in the set', async () => {
       const proxy = resolvePackageEntryFactsLayerBrokerProxy();
       proxy.setupLocationExists({ packageRoot: '/home/testuser/projects/assayer/packages/web' });
+      proxy.setupLocationMissing({
+        packageRoot: '/home/testuser/projects/assayer/packages/queue-runner',
+      });
       const editEntry = QuestPackageEntryStub({
         name: 'web',
         location: './packages/web',
@@ -74,6 +77,7 @@ describe('resolvePackageEntryFactsLayerBroker', () => {
       const proxy = resolvePackageEntryFactsLayerBrokerProxy();
       // Present under a DIFFERENT repo's root, which this quest does not target.
       proxy.setupLocationExists({ packageRoot: '/home/testuser/projects/other/packages/core' });
+      proxy.setupLocationMissing({ packageRoot: '/home/testuser/projects/assayer/packages/core' });
 
       const facts = await resolvePackageEntryFactsLayerBroker({
         entries: [
@@ -245,6 +249,9 @@ describe('resolvePackageEntryFactsLayerBroker', () => {
 
     it("VALID: {new entry declaring 'frontend-react'} => keeps the declared type, nothing on disk to detect", async () => {
       const proxy = resolvePackageEntryFactsLayerBrokerProxy();
+      proxy.setupLocationMissing({
+        packageRoot: '/home/testuser/projects/assayer/packages/queue-runner',
+      });
       proxy.setupDetectedPackage({
         packageRoot: '/home/testuser/projects/assayer/packages/queue-runner',
         srcDirNames: ['brokers'],
@@ -277,6 +284,9 @@ describe('resolvePackageEntryFactsLayerBroker', () => {
 
     it('EMPTY: {entry carrying no kind set at all} => the declared label becomes the whole set, so nothing downstream reads a package as having no kind', async () => {
       const proxy = resolvePackageEntryFactsLayerBrokerProxy();
+      proxy.setupLocationMissing({
+        packageRoot: '/home/testuser/projects/assayer/packages/legacy',
+      });
       proxy.setupDetectedPackage({
         packageRoot: '/home/testuser/projects/assayer/packages/legacy',
         srcDirNames: ['brokers'],
@@ -308,6 +318,7 @@ describe('resolvePackageEntryFactsLayerBroker', () => {
 
     it('VALID: {edit entry whose location is absent} => no detection runs and the declared type stands', async () => {
       const proxy = resolvePackageEntryFactsLayerBrokerProxy();
+      proxy.setupLocationMissing({ packageRoot: '/home/testuser/projects/assayer/packages/gone' });
       proxy.setupDetectedPackage({
         packageRoot: '/home/testuser/projects/assayer/packages/gone',
         srcDirNames: ['widgets'],

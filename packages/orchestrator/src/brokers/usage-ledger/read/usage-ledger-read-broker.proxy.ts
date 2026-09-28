@@ -1,7 +1,7 @@
 import { locationsUsageLedgerPathFindBrokerProxy } from '@dungeonmaster/shared/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
 
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
+import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 
 export const usageLedgerReadBrokerProxy = (): {
   setupLedgerFile: (params: { json: string }) => void;
@@ -9,7 +9,7 @@ export const usageLedgerReadBrokerProxy = (): {
   setupCorruptFile: () => void;
 } => {
   const pathProxy = locationsUsageLedgerPathFindBrokerProxy();
-  const readFileProxy = fsReadFileAdapterProxy();
+  const readFileHandle = readFileProxy();
 
   const ledgerPath = FilePathStub({ value: '/home/user/.dungeonmaster/usage-ledger.json' });
   const queuePath = (): void => {
@@ -23,20 +23,17 @@ export const usageLedgerReadBrokerProxy = (): {
   return {
     setupLedgerFile: ({ json }: { json: string }): void => {
       queuePath();
-      readFileProxy.resolves({ filePath: ledgerPath, content: json });
+      readFileHandle.returns({ path: ledgerPath, contents: json });
     },
 
     setupMissingFile: (): void => {
       queuePath();
-      readFileProxy.rejects({
-        filePath: ledgerPath,
-        error: new Error('ENOENT: no such file or directory'),
-      });
+      readFileHandle.missing({ path: ledgerPath });
     },
 
     setupCorruptFile: (): void => {
       queuePath();
-      readFileProxy.resolves({ filePath: ledgerPath, content: 'not-valid-json{{{' });
+      readFileHandle.returns({ path: ledgerPath, contents: 'not-valid-json{{{' });
     },
   };
 };

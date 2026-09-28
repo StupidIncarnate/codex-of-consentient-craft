@@ -12,9 +12,8 @@ import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 import { readdirSyncProxy } from '#gateway/node/fs/readdir-sync/readdir-sync.proxy';
+import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { join } from '#gateway/node/path';
-
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 
 export const questFolderFindBrokerProxy = (): {
   setupQuestFolders: (params: {
@@ -39,7 +38,7 @@ export const questFolderFindBrokerProxy = (): {
   }) => void;
 } => {
   const readdirProxy = readdirSyncProxy();
-  const readFileProxy = fsReadFileAdapterProxy();
+  const readFileHandle = readFileProxy();
   const joinHandle: MockHandle = registerMock({ fn: join });
 
   return {
@@ -72,9 +71,9 @@ export const questFolderFindBrokerProxy = (): {
         joinHandle
           .calledWith([questFile.folderPath, locationsStatics.quest.questFile])
           .returns(questFile.questFilePath);
-        readFileProxy.resolves({
-          filePath: questFile.questFilePath,
-          content: questFile.contents,
+        readFileHandle.returns({
+          path: questFile.questFilePath,
+          contents: questFile.contents,
         });
       });
     },
@@ -111,10 +110,7 @@ export const questFolderFindBrokerProxy = (): {
           .calledWith([missingFolderPath, locationsStatics.quest.questFile])
           .returns(missingFileFolder);
       }
-      readFileProxy.rejects({
-        filePath: missingFileFolder,
-        error: new Error('ENOENT: no such file or directory'),
-      });
+      readFileHandle.missing({ path: missingFileFolder });
 
       if (validFolderName !== undefined) {
         joinHandle.calledWith([questsPath, validFolderName]).returns(validQuestFile.folderPath);
@@ -122,9 +118,9 @@ export const questFolderFindBrokerProxy = (): {
           .calledWith([validQuestFile.folderPath, locationsStatics.quest.questFile])
           .returns(validQuestFile.questFilePath);
       }
-      readFileProxy.resolves({
-        filePath: validQuestFile.questFilePath,
-        content: validQuestFile.contents,
+      readFileHandle.returns({
+        path: validQuestFile.questFilePath,
+        contents: validQuestFile.contents,
       });
     },
   };

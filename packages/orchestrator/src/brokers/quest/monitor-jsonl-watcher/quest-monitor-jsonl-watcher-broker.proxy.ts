@@ -6,8 +6,8 @@ import { stripJsonlSuffixTransformer } from '@dungeonmaster/shared/transformers'
 type FileName = ReturnType<typeof FileNameStub>;
 
 import { fsWatchTailAdapterProxy } from '../../../adapters/fs/watch-tail/fs-watch-tail-adapter.proxy';
-import { timerSetIntervalAdapterProxy } from '../../../adapters/timer/set-interval/timer-set-interval-adapter.proxy';
 
+import { timerIntervalStartBrokerProxy } from '../../timer/interval-start/timer-interval-start-broker.proxy';
 import { questGetServerConfigBrokerProxy } from '../get-server-config/quest-get-server-config-broker.proxy';
 import { scanSubagentsDirLayerBrokerProxy } from './scan-subagents-dir-layer-broker.proxy';
 import { startSubagentTailLayerBrokerProxy } from './start-subagent-tail-layer-broker.proxy';
@@ -67,7 +67,7 @@ export const questMonitorJsonlWatcherBrokerProxy = (): {
   const tailProxy = fsWatchTailAdapterProxy();
   // Mirrors the broker's own SUBAGENT_DIR_POLL_INTERVAL_MS constant (1000ms) — not exported,
   // so this address is duplicated here rather than imported.
-  const intervalProxy = timerSetIntervalAdapterProxy({ intervalMs: 1000 });
+  const intervalProxy = timerIntervalStartBrokerProxy({ intervalMs: 1000 });
   // The single file (and its dir) most recently staged via setupSubagentDirFiles — every
   // test that later calls setupFirstLineRead staged exactly one file immediately before it,
   // so this is the real fileName + subagentsDir the broker's prompt-pairing read targets.
@@ -129,7 +129,7 @@ export const questMonitorJsonlWatcherBrokerProxy = (): {
     triggerChange: (): void => {
       tailProxy.triggerChange();
     },
-    // Fires the periodic poll-rescan registered with `timerSetIntervalAdapter`. The
+    // Fires the periodic poll-rescan registered with `timerIntervalStartBroker`. The
     // broker uses this poll to discover sub-agent JSONL files that appear AFTER the
     // initial readdir scan but BEFORE the parent emits the user.tool_result line that
     // produces the `agent-detected` signal (mid-flight sub-agent dispatch).

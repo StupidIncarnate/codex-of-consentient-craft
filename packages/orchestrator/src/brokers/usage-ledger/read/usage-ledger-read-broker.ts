@@ -9,17 +9,18 @@
  */
 
 import type { UsageLedger } from '@dungeonmaster/shared/contracts';
-import { filePathContract, usageLedgerContract } from '@dungeonmaster/shared/contracts';
+import { usageLedgerContract } from '@dungeonmaster/shared/contracts';
 import { locationsUsageLedgerPathFindBroker } from '@dungeonmaster/shared/brokers';
 
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
+import { readFile } from '#gateway/node/fs__promises';
+
 import { usageLedgerDefaultStatics } from '../../../statics/usage-ledger-default/usage-ledger-default-statics';
 
 export const usageLedgerReadBroker = async (): Promise<UsageLedger> => {
   const ledgerPath = locationsUsageLedgerPathFindBroker();
 
   try {
-    const contents = await fsReadFileAdapter({ filePath: filePathContract.parse(ledgerPath) });
+    const contents = await readFile(ledgerPath);
     return usageLedgerContract.parse(JSON.parse(contents));
   } catch {
     // Missing on a first run, or unparseable after an interrupted write. Either way the next scan

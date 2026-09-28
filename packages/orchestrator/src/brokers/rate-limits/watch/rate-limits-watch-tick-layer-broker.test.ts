@@ -1,4 +1,5 @@
 import { FileContentsStub, RateLimitsSnapshotStub } from '@dungeonmaster/shared/contracts';
+import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 
 import { rateLimitsWatchTickLayerBroker } from './rate-limits-watch-tick-layer-broker';
 import { rateLimitsWatchTickLayerBrokerProxy } from './rate-limits-watch-tick-layer-broker.proxy';
@@ -95,7 +96,9 @@ describe('rateLimitsWatchTickLayerBroker', () => {
 
   it('ERROR: {non-ENOENT read failure} => fires onError, returns "error", lastJson unchanged', async () => {
     const proxy = rateLimitsWatchTickLayerBrokerProxy();
-    proxy.setupReadError({ error: new Error('EACCES') });
+    proxy.setupReadError({
+      error: FsErrorStub({ code: 'EACCES', path: '/home/test/.dungeonmaster/rate-limits.json' }),
+    });
 
     const onSnapshot = jest.fn();
     const onError = jest.fn();
@@ -108,6 +111,13 @@ describe('rateLimitsWatchTickLayerBroker', () => {
     });
 
     expect(result).toStrictEqual({ outcome: 'error', lastJson: prior });
-    expect(onError).toHaveBeenCalledTimes(1);
+    expect(onError.mock.calls).toStrictEqual([
+      [
+        {
+          message:
+            "rate-limits-watch read error: EACCES: op '/home/test/.dungeonmaster/rate-limits.json'",
+        },
+      ],
+    ]);
   });
 });

@@ -9,7 +9,7 @@ describe('pathIsAccessibleBroker', () => {
       const proxy = pathIsAccessibleBrokerProxy();
       const path = GuildPathStub({ value: '/home/user/project' });
 
-      proxy.setupResult({ result: true });
+      proxy.setupResult({ path, result: true });
 
       const result = await pathIsAccessibleBroker({ path });
 
@@ -22,7 +22,20 @@ describe('pathIsAccessibleBroker', () => {
       const proxy = pathIsAccessibleBrokerProxy();
       const path = GuildPathStub({ value: '/missing/project' });
 
-      proxy.setupResult({ result: false });
+      proxy.setupResult({ path, result: false });
+
+      const result = await pathIsAccessibleBroker({ path });
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('unreadable paths', () => {
+    it('ERROR: {path: "/root/locked", EACCES} => returns false instead of rejecting', async () => {
+      const proxy = pathIsAccessibleBrokerProxy();
+      const path = GuildPathStub({ value: '/root/locked' });
+
+      proxy.setupUnreadable({ path });
 
       const result = await pathIsAccessibleBroker({ path });
 

@@ -22,15 +22,11 @@
  * written from, and probing would turn a readable transcript into a `missing-worktree` throw.
  */
 
-import {
-  filePathContract,
-  getQuestInputContract,
-  repoRootCwdContract,
-} from '@dungeonmaster/shared/contracts';
+import { getQuestInputContract, repoRootCwdContract } from '@dungeonmaster/shared/contracts';
 import type { QuestId, SessionId } from '@dungeonmaster/shared/contracts';
 import { questSessionCwdTransformer } from '@dungeonmaster/shared/transformers';
 
-import { fsIsAccessibleAdapter } from '../../../adapters/fs/is-accessible/fs-is-accessible-adapter';
+import { pathExists } from '#gateway/node/fs__promises';
 import { questCwdResolutionContract } from '../../../contracts/quest-cwd-resolution/quest-cwd-resolution-contract';
 import type { QuestCwdResolution } from '../../../contracts/quest-cwd-resolution/quest-cwd-resolution-contract';
 import { questGetBroker } from '../get/quest-get-broker';
@@ -71,9 +67,7 @@ export const questCwdResolveBroker = async ({
     });
   }
 
-  const isAccessible = await fsIsAccessibleAdapter({
-    filePath: filePathContract.parse(quest.worktreePath),
-  });
+  const isAccessible = await pathExists(quest.worktreePath);
 
   if (isAccessible) {
     return questCwdResolutionContract.parse({

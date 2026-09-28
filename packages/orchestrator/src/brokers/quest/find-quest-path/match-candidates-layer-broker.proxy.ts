@@ -1,13 +1,17 @@
+import { readFile } from 'fs/promises';
 import type { FileContents, FilePath } from '@dungeonmaster/shared/contracts';
-
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
+import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 
 export const matchCandidatesLayerBrokerProxy = (): {
   setupCandidateFile: (params: { questFilePath: FilePath; contents: FileContents }) => void;
   setupCandidateFileOnce: (params: { questFilePath: FilePath; contents: FileContents }) => void;
   setupUnreadableCandidateFile: (params: { questFilePath: FilePath; error: Error }) => void;
 } => {
-  const readFileProxy = fsReadFileAdapterProxy();
+  // The gateway proxy is composed first, so the raw handle below shares its staging. It has no
+  // addressed one-shot, and the gateway's `readFile` wrapper calls this same raw function.
+  readFileProxy();
+  const readFileHandle = registerMock({ fn: readFile });
 
   return {
     setupCandidateFile: ({
@@ -17,7 +21,7 @@ export const matchCandidatesLayerBrokerProxy = (): {
       questFilePath: FilePath;
       contents: FileContents;
     }): void => {
-      readFileProxy.resolves({ filePath: questFilePath, content: contents });
+      readFileHandle.calledWith([questFilePath]).resolves(contents);
     },
 
     // Queues ONE addressed read of this path instead of answering every read of it. A parent
@@ -30,7 +34,7 @@ export const matchCandidatesLayerBrokerProxy = (): {
       questFilePath: FilePath;
       contents: FileContents;
     }): void => {
-      readFileProxy.resolvesOnceFor({ filePath: questFilePath, content: contents });
+      readFileHandle.onceFor([questFilePath]).resolves(contents);
     },
 
     setupUnreadableCandidateFile: ({
@@ -40,7 +44,7 @@ export const matchCandidatesLayerBrokerProxy = (): {
       questFilePath: FilePath;
       error: Error;
     }): void => {
-      readFileProxy.rejects({ filePath: questFilePath, error });
+      readFileHandle.calledWith([questFilePath]).rejects(error);
     },
   };
 };

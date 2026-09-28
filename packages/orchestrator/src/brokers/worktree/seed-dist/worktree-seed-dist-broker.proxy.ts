@@ -1,20 +1,15 @@
-import {
-  AbsoluteFilePathStub,
-  FilePathStub,
-  type AbsoluteFilePath,
-} from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found.error.proxy';
 import { runProxy } from '#gateway/node/child_process/run/run.proxy';
 import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/readdir-entries-sync.proxy';
+import { pathExistsProxy } from '#gateway/node/fs__promises/path-exists/path-exists.proxy';
 import { join } from '#gateway/node/path';
-
-import { fsIsAccessibleAdapterProxy } from '../../../adapters/fs/is-accessible/fs-is-accessible-adapter.proxy';
 
 const COPY_COMMAND = 'cp';
 
 export const worktreeSeedDistBrokerProxy = (): {
-  setupPackagesDirAbsent: () => void;
+  setupPackagesDirAbsent: (params: { repoRoot: AbsoluteFilePath }) => void;
   setupPackages: (params: {
     repoRoot: AbsoluteFilePath;
     worktreePath: AbsoluteFilePath;
@@ -29,10 +24,7 @@ export const worktreeSeedDistBrokerProxy = (): {
   setupCopyFails: (params: { output: string }) => void;
   getCopyArgs: () => unknown;
 } => {
-  const isAccessibleProxy = fsIsAccessibleAdapterProxy();
-  // "Nothing is there" is the honest default: an undescribed path has not been built, and every
-  // path a test does describe outranks this catch-all.
-  isAccessibleProxy.defaultsToNotFound();
+  const isAccessibleProxy = pathExistsProxy();
   const readdirProxy = readdirEntriesSyncProxy();
   const run = runProxy();
   // Created but unstaged: RunNotFoundError is a plain class with nothing to mock — composing its
@@ -47,8 +39,8 @@ export const worktreeSeedDistBrokerProxy = (): {
     .implement((...segments: never[]) => realPath.join(...segments));
 
   return {
-    setupPackagesDirAbsent: (): void => {
-      isAccessibleProxy.defaultsToNotFound();
+    setupPackagesDirAbsent: ({ repoRoot }: { repoRoot: AbsoluteFilePath }): void => {
+      isAccessibleProxy.missing({ path: `${String(repoRoot)}/packages` });
     },
 
     setupPackages: ({
@@ -65,31 +57,30 @@ export const worktreeSeedDistBrokerProxy = (): {
         hasTargetDist: boolean;
       }[];
     }): void => {
-      isAccessibleProxy.resolves({
-        filePath: FilePathStub({ value: `${String(repoRoot)}/packages` }),
-      });
+      isAccessibleProxy.present({ path: `${String(repoRoot)}/packages` });
       readdirProxy.returns({
         path: AbsoluteFilePathStub({ value: `${String(repoRoot)}/packages` }),
         entries: packages.map(({ name }) => ({ name, kind: 'directory' as const })),
       });
 
       packages.forEach(({ name, isPackage, hasSourceDist, hasTargetDist }) => {
-        if (isPackage !== false) {
-          isAccessibleProxy.resolves({
-            filePath: FilePathStub({ value: `${String(repoRoot)}/packages/${name}/package.json` }),
-          });
+        const manifestPath = `${String(repoRoot)}/packages/${name}/package.json`;
+        const sourceDistPath = `${String(repoRoot)}/packages/${name}/dist`;
+        const targetDistPath = `${String(worktreePath)}/packages/${name}/dist`;
+        if (isPackage === false) {
+          isAccessibleProxy.missing({ path: manifestPath });
+        } else {
+          isAccessibleProxy.present({ path: manifestPath });
         }
         if (hasSourceDist) {
-          isAccessibleProxy.resolves({
-            filePath: FilePathStub({ value: `${String(repoRoot)}/packages/${name}/dist` }),
-          });
+          isAccessibleProxy.present({ path: sourceDistPath });
+        } else {
+          isAccessibleProxy.missing({ path: sourceDistPath });
         }
         if (hasTargetDist) {
-          isAccessibleProxy.resolves({
-            filePath: FilePathStub({
-              value: `${String(worktreePath)}/packages/${name}/dist`,
-            }),
-          });
+          isAccessibleProxy.present({ path: targetDistPath });
+        } else {
+          isAccessibleProxy.missing({ path: targetDistPath });
         }
       });
     },

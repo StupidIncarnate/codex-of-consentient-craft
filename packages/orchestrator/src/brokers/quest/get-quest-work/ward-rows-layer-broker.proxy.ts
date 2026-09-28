@@ -19,10 +19,8 @@ import type {
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
+import { readFileIfExistsProxy } from '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
 import { join } from '#gateway/node/path';
-
-import { fsIsAccessibleAdapterProxy } from '../../../adapters/fs/is-accessible/fs-is-accessible-adapter.proxy';
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 
 type WardResultId = ReturnType<typeof WardResultStub>['id'];
 type RiftcarverResultId = ReturnType<typeof RiftcarverResultStub>['id'];
@@ -42,8 +40,7 @@ export const wardRowsLayerBrokerProxy = (): {
   logPathFor: (params: { questPath: AbsoluteFilePath; carveId: RiftcarverResultId }) => FilePath;
 } => {
   const joinHandle: MockHandle = registerMock({ fn: join });
-  const isAccessibleProxy = fsIsAccessibleAdapterProxy();
-  const readFileProxy = fsReadFileAdapterProxy();
+  const readFileHandle = readFileIfExistsProxy();
 
   const blobPathFor = ({
     questPath,
@@ -80,8 +77,7 @@ export const wardRowsLayerBrokerProxy = (): {
           `${String(wardResultId)}${JSON_EXTENSION}`,
         ])
         .returns(blobPath);
-      isAccessibleProxy.resolves({ filePath: blobPath });
-      readFileProxy.resolves({ filePath: blobPath, content: detailJson });
+      readFileHandle.returns({ path: blobPath, contents: detailJson });
     },
 
     setupBlobMissing: ({ questPath, wardResultId }): void => {
@@ -93,10 +89,7 @@ export const wardRowsLayerBrokerProxy = (): {
           `${String(wardResultId)}${JSON_EXTENSION}`,
         ])
         .returns(blobPath);
-      isAccessibleProxy.rejects({
-        filePath: blobPath,
-        error: Object.assign(new Error('ENOENT: no such file or directory'), { code: 'ENOENT' }),
-      });
+      readFileHandle.missing({ path: blobPath });
     },
 
     setupCarveLog: ({ questPath, carveId }): void => {

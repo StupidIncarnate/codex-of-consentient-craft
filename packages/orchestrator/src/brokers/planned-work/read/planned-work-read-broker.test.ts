@@ -1,4 +1,5 @@
 import { AbsoluteFilePathStub, OperationItemIdStub } from '@dungeonmaster/shared/contracts';
+import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 
 import { WorkPlanStub } from '../../../contracts/work-plan/work-plan.stub';
 import { plannedWorkReadBroker } from './planned-work-read-broker';
@@ -39,7 +40,7 @@ describe('plannedWorkReadBroker', () => {
   });
 
   describe('error cases', () => {
-    it('ERROR: {file accessible but the read itself fails} => throws the read error', async () => {
+    it('ERROR: {file exists but the read itself fails} => throws the raw read error', async () => {
       const proxy = plannedWorkReadBrokerProxy();
       const questFolderPath = AbsoluteFilePathStub({ value: '/quests/read-fails' });
       const operationItemId = OperationItemIdStub({
@@ -49,14 +50,14 @@ describe('plannedWorkReadBroker', () => {
       proxy.setupReadFailure({
         questFolderPath,
         operationItemId,
-        error: new Error('EACCES: permission denied'),
+        error: FsErrorStub({
+          code: 'EACCES',
+          path: '/quests/read-fails/planned-work/c3d4e5f6-58cc-4372-a567-0e02b2c3d479.json',
+        }),
       });
 
-      // fsReadFileAdapter rewraps every failure into its own generic Error — the story's own
-      // "trap" note — so the message this broker's caller actually sees names the file path, not
-      // the underlying EACCES text.
       await expect(plannedWorkReadBroker({ questFolderPath, operationItemId })).rejects.toThrow(
-        /Failed to read file at/u,
+        /^EACCES: op '\/quests\/read-fails\/planned-work\/c3d4e5f6-58cc-4372-a567-0e02b2c3d479\.json'$/u,
       );
     });
   });

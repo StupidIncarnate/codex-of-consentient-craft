@@ -17,10 +17,11 @@
  * `--only <checks>` from those types; handed paths alone it guesses the check set, and a guess that
  * omits the failing check reports green over the red it was sent to fix.
  *
- * A BLOB THAT WILL NOT READ OR WILL NOT PARSE STILL YIELDS THE ROW, with empty lists. The
+ * A BLOB THAT IS ABSENT OR WILL NOT PARSE STILL YIELDS THE ROW, with empty lists. The
  * `wardResultId` and the `blobPath` are the parts a session cannot derive for itself; the lists are
- * a convenience it can rebuild by opening that path. Dropping the whole row over an unreadable file
- * would take the pointer down with the summary.
+ * a convenience it can rebuild by opening that path. Dropping the whole row over a missing file
+ * would take the pointer down with the summary. A blob that exists but cannot be read (EACCES) is a
+ * disk fault, and `readFileIfExists` lets it reject.
  *
  * A CARVE-ONLY FAILURE PRODUCES NO WARD BLOB AT ALL — same session, different graph — so a repair
  * that reads only `ward` gets `null` and has nothing to work from. That is why both rows are served
@@ -30,10 +31,9 @@
 import { filePathContract, wardDetailContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, FilePath, Quest } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
+import { readFileIfExists } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
 
-import { fsIsAccessibleAdapter } from '../../../adapters/fs/is-accessible/fs-is-accessible-adapter';
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { questWorkViewContract } from '../../../contracts/quest-work-view/quest-work-view-contract';
 import type { QuestWorkWard } from '../../../contracts/quest-work-view/quest-work-view-contract';
 import { wardCheckTypeContract } from '../../../contracts/ward-check-type/ward-check-type-contract';
@@ -80,14 +80,8 @@ export const wardRowsLayerBroker = async ({
     ),
   );
 
-  // Existence is probed FIRST because this package's fsReadFileAdapter rewraps every failure —
-  // ENOENT included — into one generic Error, leaving no shape left to tell an absent blob from a
-  // disk fault once it has thrown.
-  const blobIsReadable = await fsIsAccessibleAdapter({ filePath: blobPath });
-  const contents = blobIsReadable ? await fsReadFileAdapter({ filePath: blobPath }) : undefined;
-  const parsed = wardDetailContract.safeParse(
-    contents === undefined ? {} : JSON.parse(String(contents)),
-  );
+  const contents = await readFileIfExists(blobPath);
+  const parsed = wardDetailContract.safeParse(contents === null ? {} : JSON.parse(contents));
 
   const failingChecks = (parsed.success ? (parsed.data.checks ?? []) : []).filter(
     (check) => check.status === 'fail',

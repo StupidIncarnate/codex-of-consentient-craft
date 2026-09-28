@@ -46,7 +46,7 @@ describe('dumpsterCreatePromptStatics', () => {
     expect(dumpsterCreatePromptStatics.prompt.template.length).toBeGreaterThan(30000);
   });
 
-  // childProcessSpawnStreamJsonAdapter passes chatPromptBuildTransformer's composed prompt as ONE
+  // agentSpawnStreamJsonBroker passes chatPromptBuildTransformer's composed prompt as ONE
   // argv element to the Claude CLI, and $ARGUMENTS (the user's own message) is substituted into
   // THIS template at spawn time — so the template's own bytes have to clear the single-argv
   // ceiling with claudeCliArgvStatics.budgets.userMessageBytes still free for that substitution.

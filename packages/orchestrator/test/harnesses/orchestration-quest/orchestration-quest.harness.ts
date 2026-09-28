@@ -162,7 +162,7 @@ export const orchestrationQuestHarness = (): {
   removeGuild: (params: { guildId: GuildId }) => Promise<void>;
   // Points CLAUDE_CLI_PATH at the real (working) fake-Claude-CLI binary and FAKE_CLAUDE_QUEUE_DIR
   // at a fresh, empty temp dir, so a caller that reaches a real spawn (chatSpawnBroker →
-  // agentLaunchBroker → child-process-spawn-stream-json-adapter) exercises a genuine OS process
+  // agentLaunchBroker → agent-spawn-stream-json-broker) exercises a genuine OS process
   // under full control instead of risking the bare `claude` command. Call `restore()` even when
   // the test never reaches a spawn.
   configureFakeClaudeCli: () => { claudeQueueDir: FilePath; restore: () => void };

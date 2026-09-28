@@ -1,15 +1,15 @@
 import { readdirSyncProxy } from '#gateway/node/fs/readdir-sync/readdir-sync.proxy';
+import { pathExistsProxy } from '#gateway/node/fs__promises/path-exists/path-exists.proxy';
+import { readFileIfExistsProxy } from '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
 import { dirname, resolve } from '#gateway/node/path';
 
 import { FileNameStub, FilePathStub } from '@dungeonmaster/shared/contracts';
 import { architecturePackageTypeDetectBrokerProxy } from '@dungeonmaster/shared/testing';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
-import { fsIsAccessibleAdapterProxy } from '../../../adapters/fs/is-accessible/fs-is-accessible-adapter.proxy';
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
-
 export const resolvePackageEntryFactsLayerBrokerProxy = (): {
   setupLocationExists: (params: { packageRoot: string }) => void;
+  setupLocationMissing: (params: { packageRoot: string }) => void;
   setupDetectedPackage: (params: {
     packageRoot: string;
     srcDirNames?: readonly string[];
@@ -23,8 +23,7 @@ export const resolvePackageEntryFactsLayerBrokerProxy = (): {
   }) => void;
   setupUnreadableRoot: (params: { root: string }) => void;
 } => {
-  const accessProxy = fsIsAccessibleAdapterProxy();
-  accessProxy.defaultsToNotFound();
+  const accessProxy = pathExistsProxy();
   // Both left on a real passthrough default: anchoring a declared location on the quest's own
   // project root (`resolve`) and finding a location's own parent workspace root (`dirname`) are the
   // behaviour under test, so the broker computes every address for real and the setups below name
@@ -40,13 +39,18 @@ export const resolvePackageEntryFactsLayerBrokerProxy = (): {
     .implement((...segments: never[]) => realPath.resolve(...segments));
   const detectProxy = architecturePackageTypeDetectBrokerProxy();
   const readdirProxy = readdirSyncProxy();
-  const readFileProxy = fsReadFileAdapterProxy();
+  const readFileHandle = readFileIfExistsProxy();
 
   return {
     // `packageRoot` is the ABSOLUTE root the declared location resolves to under the quest's own
-    // project root — the address fs.access is really handed. Every other address answers "absent".
+    // project root — the address fs.access is really handed. Every location the quest declares needs
+    // its own staging, present or missing: an address nothing describes throws.
     setupLocationExists: ({ packageRoot }: { packageRoot: string }): void => {
-      accessProxy.resolves({ filePath: FilePathStub({ value: packageRoot }) });
+      accessProxy.present({ path: packageRoot });
+    },
+
+    setupLocationMissing: ({ packageRoot }: { packageRoot: string }): void => {
+      accessProxy.missing({ path: packageRoot });
     },
 
     // Describes the on-disk shape the detector's priority table classifies at ONE absolute package
@@ -103,10 +107,10 @@ export const resolvePackageEntryFactsLayerBrokerProxy = (): {
               : JSON.stringify(entry.manifest)
             : entry.raw;
         if (body === undefined) {
+          readFileHandle.missing({ path: manifestPath });
           continue;
         }
-        accessProxy.resolves({ filePath: manifestPath });
-        readFileProxy.resolves({ filePath: manifestPath, content: body });
+        readFileHandle.returns({ path: manifestPath, contents: body });
       }
     },
 

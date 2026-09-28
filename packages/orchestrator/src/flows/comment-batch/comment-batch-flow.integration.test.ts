@@ -150,7 +150,7 @@ describe('CommentBatchFlow', () => {
   // A mocked spawner cannot prove either half of "resumes with --resume <sessionId> and the
   // markdown as -p" — it proves the mock, not the real argv. These drive a REAL guild + REAL
   // chaoswhisperer session through the full chatSpawnBroker -> agentLaunchBroker ->
-  // child-process-spawn-stream-json-adapter chain against the fake-Claude-CLI binary (which
+  // agent-spawn-stream-json-broker chain against the fake-Claude-CLI binary (which
   // records every invocation's real argv to invocations.jsonl BEFORE it even reads its response
   // queue), so both check-resume-uses-session-id and check-markdown-is-prompt are proven against
   // the actual OS process, not a stand-in.

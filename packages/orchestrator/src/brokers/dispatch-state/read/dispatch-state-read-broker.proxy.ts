@@ -1,7 +1,7 @@
 import { locationsDispatchStatePathFindBrokerProxy } from '@dungeonmaster/shared/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
 
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
+import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 
 export const dispatchStateReadBrokerProxy = (): {
   setupStateFile: (params: { json: string }) => void;
@@ -9,7 +9,7 @@ export const dispatchStateReadBrokerProxy = (): {
   setupCorruptFile: () => void;
 } => {
   const pathProxy = locationsDispatchStatePathFindBrokerProxy();
-  const readFileProxy = fsReadFileAdapterProxy();
+  const readFileHandle = readFileProxy();
 
   // Each setup queues one path-resolution chain + one read, so multi-read flows (e.g. the
   // heartbeat read-modify-write) stay aligned with the once-value mock queues. The resolved
@@ -29,20 +29,17 @@ export const dispatchStateReadBrokerProxy = (): {
   return {
     setupStateFile: ({ json }: { json: string }): void => {
       queuePath();
-      readFileProxy.resolves({ filePath: dispatchStatePath, content: json });
+      readFileHandle.returns({ path: dispatchStatePath, contents: json });
     },
 
     setupMissingFile: (): void => {
       queuePath();
-      readFileProxy.rejects({
-        filePath: dispatchStatePath,
-        error: new Error('ENOENT: no such file or directory'),
-      });
+      readFileHandle.missing({ path: dispatchStatePath });
     },
 
     setupCorruptFile: (): void => {
       queuePath();
-      readFileProxy.resolves({ filePath: dispatchStatePath, content: 'not-valid-json{{{' });
+      readFileHandle.returns({ path: dispatchStatePath, contents: 'not-valid-json{{{' });
     },
   };
 };

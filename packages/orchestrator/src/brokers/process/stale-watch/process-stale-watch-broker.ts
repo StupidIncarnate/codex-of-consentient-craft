@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Periodic watchdog that scans registered processes and reports any whose stdout has been silent past a threshold. Caller wires `getProcessIds` + `getActivity` to `orchestrationProcessesState` and `onStale` to a log emitter; the broker owns the tick lifecycle via `timerSetIntervalAdapter` and the OS-level liveness probe via `procCheckAliveAdapter`.
+ * PURPOSE: Periodic watchdog that scans registered processes and reports any whose stdout has been silent past a threshold. Caller wires `getProcessIds` + `getActivity` to `orchestrationProcessesState` and `onStale` to a log emitter; the broker owns the tick lifecycle via `timerIntervalStartBroker` and the OS-level liveness probe via `processIsAliveBroker`.
  *
  * USAGE:
  * const stop = processStaleWatchBroker({
@@ -14,11 +14,11 @@
 
 import type { ProcessId } from '@dungeonmaster/shared/contracts';
 
-import { procCheckAliveAdapter } from '../../../adapters/proc/check-alive/proc-check-alive-adapter';
-import { timerSetIntervalAdapter } from '../../../adapters/timer/set-interval/timer-set-interval-adapter';
 import type { ProcessActivity } from '../../../contracts/process-activity/process-activity-contract';
 import type { ProcessPid } from '../../../contracts/process-pid/process-pid-contract';
 import { processStaleThresholdStatics } from '../../../statics/process-stale-threshold/process-stale-threshold-statics';
+import { timerIntervalStartBroker } from '../../timer/interval-start/timer-interval-start-broker';
+import { processIsAliveBroker } from '../is-alive/process-is-alive-broker';
 
 export const processStaleWatchBroker = ({
   getProcessIds,
@@ -38,7 +38,7 @@ export const processStaleWatchBroker = ({
   intervalMs?: number;
   thresholdMs?: number;
 }): { stop: () => void } =>
-  timerSetIntervalAdapter({
+  timerIntervalStartBroker({
     intervalMs,
     callback: () => {
       const now = Date.now();
@@ -48,7 +48,7 @@ export const processStaleWatchBroker = ({
         const silentForMs = now - activity.lastActivityAt.getTime();
         if (silentForMs < thresholdMs) continue;
         const alive =
-          activity.osPid === undefined ? undefined : procCheckAliveAdapter({ pid: activity.osPid });
+          activity.osPid === undefined ? undefined : processIsAliveBroker({ pid: activity.osPid });
         onStale({ processId, silentForMs, pid: activity.osPid, alive });
       }
     },

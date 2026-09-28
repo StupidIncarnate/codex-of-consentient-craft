@@ -82,7 +82,11 @@ describe('architectureProjectMapBroker (integration with real monorepo)', () => 
     const worktreePrepareChildren = lines.filter((l) => /→ worktree\w+Broker$/u.test(l));
 
     expect(adapterLines.some((l) => l.endsWith('→ fsWatchTailAdapter'))).toBe(true);
-    expect(adapterLines.some((l) => l.endsWith('→ childProcessSpawnStreamJsonAdapter'))).toBe(true);
+    expect(adapterLines.some((l) => l.endsWith('→ fsIsAccessibleAdapter'))).toBe(false);
+    expect(adapterLines.some((l) => l.endsWith('→ fsReadFileAdapter'))).toBe(false);
+    expect(adapterLines.some((l) => l.endsWith('→ childProcessSpawnStreamJsonAdapter'))).toBe(
+      false,
+    );
     expect(adapterLines.some((l) => l.endsWith('→ gitVerifyRefAdapter'))).toBe(false);
     expect(adapterLines.some((l) => l.endsWith('→ gitWorktreePruneAdapter'))).toBe(false);
     expect(adapterLines.some((l) => l.endsWith('→ gitWorktreeAddAdapter'))).toBe(false);

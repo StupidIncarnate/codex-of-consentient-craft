@@ -40,7 +40,7 @@ import {
   isQuestBlockedQuestStatusGuard,
 } from '@dungeonmaster/shared/guards';
 import { questHasValidStatusTransitionGuard } from '../../../guards/quest-has-valid-status-transition/quest-has-valid-status-transition-guard';
-import { fsIsAccessibleAdapter } from '../../../adapters/fs/is-accessible/fs-is-accessible-adapter';
+import { pathExists } from '#gateway/node/fs__promises';
 import { questArrayUpsertTransformer } from '../../../transformers/quest-array-upsert/quest-array-upsert-transformer';
 import { questContractSourceResolutionTransformer } from '../../../transformers/quest-contract-source-resolution/quest-contract-source-resolution-transformer';
 import { questDuplicateIdMessageTransformer } from '../../../transformers/quest-duplicate-id-message/quest-duplicate-id-message-transformer';
@@ -386,8 +386,7 @@ export const questModifyBroker = async ({
             const sourceExistenceChecks = await Promise.all(
               writtenContracts.map(async (entry) => {
                 const sourceStr = String(entry.source);
-                const filePath = filePathContract.parse(resolve(String(projectRoot), sourceStr));
-                const exists = await fsIsAccessibleAdapter({ filePath });
+                const exists = await pathExists(resolve(String(projectRoot), sourceStr));
                 return { source: sourceStr, exists };
               }),
             );

@@ -1,9 +1,8 @@
 /**
  * PURPOSE: Reads one operation item's planned work off disk, or returns null when no planner has
  * run against it yet — a scope with no plan file legitimately has none, never a throw and never
- * `{}`. Existence is checked with fsIsAccessibleAdapter FIRST because this package's
- * fsReadFileAdapter rewraps EVERY failure (ENOENT included) into the same generic Error, leaving
- * no shape left to distinguish "file absent" from "disk failure" once it has thrown.
+ * `{}`. Only ENOENT reads as "no plan": readFileIfExists rejects on EACCES, EISDIR and the rest, so
+ * a plan file that exists but cannot be read surfaces as the disk fault it is.
  *
  * USAGE:
  * await plannedWorkReadBroker({ questFolderPath: AbsoluteFilePathStub(), operationItemId: OperationItemIdStub() });
@@ -13,10 +12,9 @@
 import { locationsPlannedWorkPathFindBroker } from '@dungeonmaster/shared/brokers';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, OperationItemId } from '@dungeonmaster/shared/contracts';
+import { readFileIfExists } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
 
-import { fsIsAccessibleAdapter } from '../../../adapters/fs/is-accessible/fs-is-accessible-adapter';
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { workPlanContract } from '../../../contracts/work-plan/work-plan-contract';
 import type { WorkPlan } from '../../../contracts/work-plan/work-plan-contract';
 
@@ -34,10 +32,10 @@ export const plannedWorkReadBroker = async ({
     join(dirPath, `${String(operationItemId)}${JSON_EXTENSION}`),
   );
 
-  if (!(await fsIsAccessibleAdapter({ filePath }))) {
+  const contents = await readFileIfExists(filePath);
+  if (contents === null) {
     return null;
   }
 
-  const contents = await fsReadFileAdapter({ filePath });
-  return workPlanContract.parse(JSON.parse(String(contents)));
+  return workPlanContract.parse(JSON.parse(contents));
 };

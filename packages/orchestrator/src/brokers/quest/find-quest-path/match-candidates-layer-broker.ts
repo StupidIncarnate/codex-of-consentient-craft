@@ -23,7 +23,7 @@ import type {
   QuestId,
 } from '@dungeonmaster/shared/contracts';
 
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
+import { readFile } from '#gateway/node/fs__promises';
 
 // Derived from questContract so the id's own brand and validation stay in one place. Picking the
 // id ALONE is load-bearing: this fronts every single-quest read and write, so validating the whole
@@ -45,7 +45,7 @@ export const matchCandidatesLayerBroker = async ({
   const results = await Promise.all(
     candidates.map(async (candidate) => {
       try {
-        const contents = await fsReadFileAdapter({ filePath: candidate.questFilePath });
+        const contents = await readFile(candidate.questFilePath);
         const parsed: unknown = JSON.parse(contents);
         const identity = questIdentityContract.safeParse(parsed);
 

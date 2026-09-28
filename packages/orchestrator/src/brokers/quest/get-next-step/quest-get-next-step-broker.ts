@@ -12,9 +12,9 @@
  * WHEN-NOT-TO-USE: Anywhere else — this is the single dispatch decision surface.
  */
 
-import { timerSetTimeoutAdapter } from '../../../adapters/timer/set-timeout/timer-set-timeout-adapter';
 import type { ActiveQuestFacade } from '../../../contracts/active-quest-facade/active-quest-facade-contract';
 import { nextStepContract, type NextStep } from '../../../contracts/next-step/next-step-contract';
+import { timerSleepBroker } from '../../timer/sleep/timer-sleep-broker';
 import { scanOnceLayerBroker } from './scan-once-layer-broker';
 
 const LONG_POLL_TOTAL_MS = 25_000;
@@ -49,7 +49,7 @@ export const questGetNextStepBroker = async ({
   if (Date.now() >= effectiveDeadline) {
     return nextStepContract.parse({ type: 'idle' });
   }
-  await timerSetTimeoutAdapter({ ms: intervalMs });
+  await timerSleepBroker({ ms: intervalMs });
   if (shouldKeepPolling !== undefined && !shouldKeepPolling()) {
     return nextStepContract.parse({ type: 'idle' });
   }

@@ -4,9 +4,8 @@
  * read, then the two layer brokers. The plan-file read is staged against the SAME resolved
  * `questFolderPath` the quest read used — never a separate constant — because
  * `questGetQuestWorkBroker` passes `questPath` straight through to `plannedWorkReadBroker`, whose
- * own `join` call is exact-tuple addressed: a mismatched folder answers nothing,
- * `fsIsAccessibleAdapter` swallows the miss into `false`, and the plan reads back as silently
- * missing.
+ * own `join` call is exact-tuple addressed: a mismatched folder answers nothing, and the plan read
+ * fails on the unmatched staging instead of reading back as silently missing.
  *
  * USAGE:
  * const proxy = questGetQuestWorkBrokerProxy();

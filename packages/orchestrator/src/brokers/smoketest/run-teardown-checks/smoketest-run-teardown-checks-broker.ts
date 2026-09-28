@@ -6,15 +6,14 @@
  * // Returns: { passed: true } when every teardown check matches; otherwise { passed: false, failures: [...] }
  *
  * WHEN-TO-USE: After a siegemaster smoketest case completes, to confirm the dev server released its port and
- * its child process fully exited. Calls real adapters (netCheckPortFreeAdapter, processSignalAdapter).
+ * its child process fully exited. Probes for real through `isPortFree` and `processIsAliveBroker`.
  * WHEN-NOT-TO-USE: For state that cannot be probed without side effects.
  */
 
-import type { SmoketestTeardownCheck } from '../../../contracts/smoketest-teardown-check/smoketest-teardown-check-contract';
-import { netCheckPortFreeAdapter } from '../../../adapters/net/check-port-free/net-check-port-free-adapter';
-import { processSignalAdapter } from '../../../adapters/process/signal/process-signal-adapter';
+import { isPortFree } from '#gateway/node/net';
 
-const LIVENESS_PROBE_SIGNAL = 0;
+import type { SmoketestTeardownCheck } from '../../../contracts/smoketest-teardown-check/smoketest-teardown-check-contract';
+import { processIsAliveBroker } from '../../process/is-alive/process-is-alive-broker';
 
 export const smoketestRunTeardownChecksBroker = async ({
   checks,
@@ -24,11 +23,11 @@ export const smoketestRunTeardownChecksBroker = async ({
   const results = await Promise.all(
     checks.map(async (check) => {
       if (check.kind === 'port-free') {
-        const free = await netCheckPortFreeAdapter({ port: check.port });
+        const free = await isPortFree({ port: check.port });
         return { check, passed: free };
       }
-      // process-gone: signal=0 returns true if pid is alive — inverted for "gone"
-      const alive = processSignalAdapter({ pid: check.pid, signal: LIVENESS_PROBE_SIGNAL });
+      // process-gone: the probe answers true while the pid is alive — inverted for "gone"
+      const alive = processIsAliveBroker({ pid: check.pid });
       return { check, passed: !alive };
     }),
   );

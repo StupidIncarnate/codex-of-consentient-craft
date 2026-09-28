@@ -64,8 +64,8 @@ export const fsWatchTailAdapterProxy = (): {
     return watchEmitter as unknown as FSWatcher;
   });
 
-  // createInterface is a SHARED npm function — readlineCreateInterfaceAdapterProxy also
-  // mocks it (for the live Claude CLI stdout stream). Each proxy keys its staging on the
+  // createInterface is a SHARED npm function — agentSpawnUnifiedBrokerProxy also
+  // stages it (for the live Claude CLI stdout stream). Each proxy keys its staging on the
   // `input` stream's identity/type rather than leaving it an address-less catch-all, so the
   // two calls route independently of construction order. This adapter's own createInterface
   // call always receives the stream ITS OWN mocked createReadStream returned (a bare

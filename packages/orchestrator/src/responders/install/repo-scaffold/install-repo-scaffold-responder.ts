@@ -20,10 +20,8 @@ import {
   packageNameContract,
 } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import { ensureDir, writeFile } from '#gateway/node/fs__promises';
+import { ensureDir, pathExists, readFileIfExists, writeFile } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
-import { fsIsAccessibleAdapter } from '../../../adapters/fs/is-accessible/fs-is-accessible-adapter';
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 
 const PACKAGE_NAME = '@dungeonmaster/orchestrator';
 const GITIGNORE_FILENAME = '.gitignore';
@@ -45,15 +43,14 @@ export const InstallRepoScaffoldResponder = async ({
   );
   const gitignorePath = filePathContract.parse(join(context.targetProjectRoot, GITIGNORE_FILENAME));
 
-  const dirPresent = await fsIsAccessibleAdapter({ filePath: worktreesDir });
+  const dirPresent = await pathExists(worktreesDir);
   if (!dirPresent) {
     await ensureDir(worktreesDir);
   }
 
-  const gitignorePresent = await fsIsAccessibleAdapter({ filePath: gitignorePath });
-  const existingContent = gitignorePresent
-    ? String(await fsReadFileAdapter({ filePath: gitignorePath }))
-    : '';
+  const gitignoreContent = await readFileIfExists(gitignorePath);
+  const gitignorePresent = gitignoreContent !== null;
+  const existingContent = gitignoreContent ?? '';
 
   // trimEnd, never trim: git strips TRAILING pattern whitespace but treats LEADING whitespace as
   // part of the pattern, so `   worktrees/` ignores a directory literally named `   worktrees` and

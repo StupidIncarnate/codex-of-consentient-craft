@@ -1101,7 +1101,7 @@ Two rules qualify it, and both are load-bearing:
 1. **A done-check reads DISK or git, never `quest.json` alone.** A recorded `worktreePath` is a claim; a reachable
    directory whose HEAD is still the recorded branch is proof. The spiritmender that ran between the two attempts may
    have deleted, moved, repaired or `npm install`ed things the ledger knows nothing about. Concretely: the base branch
-   is re-verified with `gitVerifyRefAdapter` rather than trusted; the worktree is checked with `fsIsAccessibleAdapter`
+   is re-verified with `gitVerifyRefAdapter` rather than trusted; the worktree is checked with `pathExists`
    AND `gitCurrentBranchAdapter`; a recorded path that is GONE reads as not-done and is RE-CREATED (attaching to the
    surviving branch without `-b`, after a `git worktree prune`) rather than blocking; and the `node_modules` mirror
    done-checks PER ROOT inside `populate-one-root-layer-broker`, because an attempt may have mirrored six roots of
@@ -1550,7 +1550,7 @@ either way. A static import is transformed when jest requires the test file, bef
 ## Headless spawns get no browser tools
 
 Claude Code attaches the Claude-in-Chrome MCP only when a session passes `--chrome` (or ran the
-interactive `/chrome` flow). `child-process-spawn-stream-json-adapter.ts` passes neither, so every
+interactive `/chrome` flow). `agent-spawn-stream-json-broker.ts` passes neither, so every
 headless `claude -p` child this package spawns starts with ZERO `mcp__claude-in-chrome__*` tools,
 regardless of whether the extension is installed or the user's own interactive session has the
 tools — those are irrelevant to the child.

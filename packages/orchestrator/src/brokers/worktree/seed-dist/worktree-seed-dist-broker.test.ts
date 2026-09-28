@@ -178,7 +178,7 @@ describe('worktreeSeedDistBroker', () => {
       const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
       const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/probe' });
 
-      proxy.setupPackagesDirAbsent();
+      proxy.setupPackagesDirAbsent({ repoRoot });
 
       const result = await worktreeSeedDistBroker({ repoRoot, worktreePath });
 

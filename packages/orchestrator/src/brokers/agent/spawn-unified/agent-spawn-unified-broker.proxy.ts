@@ -1,14 +1,16 @@
+import { stderrProxy } from '#gateway/node/process/stderr/stderr.proxy';
+import { lineReaderProxy } from '#gateway/node/readline/line-reader/line-reader.proxy';
+import { ExitCodeStub } from '@dungeonmaster/shared/contracts';
 import type { RepoRootCwd } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBrokerProxy } from '@dungeonmaster/shared/testing';
+import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
+import { createInterface } from 'readline';
+import { Readable } from 'stream';
 
-import { childProcessSpawnStreamJsonAdapterProxy } from '../../../adapters/child-process/spawn-stream-json/child-process-spawn-stream-json-adapter.proxy';
-import { readlineCreateInterfaceAdapterProxy } from '../../../adapters/readline/create-interface/readline-create-interface-adapter.proxy';
+import { agentSpawnStreamJsonBrokerProxy } from '../spawn-stream-json/agent-spawn-stream-json-broker.proxy';
 
-type MockProcess = ReturnType<
-  ReturnType<typeof childProcessSpawnStreamJsonAdapterProxy>['setupSpawn']
-> & {
-  kill: jest.Mock;
-};
+type SpawnProxy = ReturnType<typeof agentSpawnStreamJsonBrokerProxy>;
+type MockProcess = ReturnType<SpawnProxy['setupSpawn']>['mockProcess'];
 
 export const agentSpawnUnifiedBrokerProxy = (): {
   setupSpawnAndEmitLines: (params: { lines: readonly string[]; exitCode: number | null }) => {
@@ -25,11 +27,7 @@ export const agentSpawnUnifiedBrokerProxy = (): {
   setupSpawnOnceLazy: () => void;
   setupSpawnThrow: (params: { error: Error }) => void;
   setupSpawnThrowOnce: (params: { error: Error }) => void;
-  setupSuccessConfig: (
-    params: Parameters<
-      ReturnType<typeof childProcessSpawnStreamJsonAdapterProxy>['setupSuccess']
-    >[0],
-  ) => void;
+  setupSuccessConfig: (params: Parameters<SpawnProxy['setupSuccess']>[0]) => void;
   setAutoEmitLines: (params: { lines: readonly string[] }) => void;
   emitLines: (params: { lines: readonly string[] }) => void;
   getSpawnedArgs: () => unknown;
@@ -38,8 +36,20 @@ export const agentSpawnUnifiedBrokerProxy = (): {
   getSpawnedCwd: () => RepoRootCwd | undefined;
 } => {
   claudeLineNormalizeBrokerProxy();
-  const readlineProxy = readlineCreateInterfaceAdapterProxy();
-  const spawnProxy = childProcessSpawnStreamJsonAdapterProxy();
+  lineReaderProxy();
+  stderrProxy();
+  const spawnProxy = agentSpawnStreamJsonBrokerProxy();
+
+  // `readline.createInterface` is one shared handle: the file tailer's proxy stages it for its own
+  // fabricated stream. The child's stdout is a real `stream.Readable`, so `input instanceof
+  // Readable` is a self-contained address, and the reader behind it is the real one — the lines a
+  // test pushes onto stdout are what the broker reads.
+  const realReadline = requireActual<{ createInterface: typeof createInterface }>({
+    module: 'readline',
+  });
+  registerMock({ fn: createInterface })
+    .calledWith([{ input: (input: unknown): boolean => input instanceof Readable }])
+    .implement((options: never) => realReadline.createInterface(options));
 
   return {
     setupSpawnAndEmitLines: ({
@@ -49,10 +59,10 @@ export const agentSpawnUnifiedBrokerProxy = (): {
       lines: readonly string[];
       exitCode: number | null;
     }): { mockProcess: MockProcess } => {
-      const mockProcess = spawnProxy.setupSpawn() as MockProcess;
+      const { mockProcess } = spawnProxy.setupSpawn();
 
       setImmediate(() => {
-        readlineProxy.emitLines({ lines });
+        spawnProxy.emitStdoutLines({ lines });
         setImmediate(() => {
           mockProcess.emit('exit', exitCode);
         });
@@ -70,10 +80,10 @@ export const agentSpawnUnifiedBrokerProxy = (): {
       error: Error;
       exitCode: number | null;
     }): { mockProcess: MockProcess } => {
-      const mockProcess = spawnProxy.setupSpawn() as MockProcess;
+      const { mockProcess } = spawnProxy.setupSpawn();
 
       setImmediate(() => {
-        readlineProxy.emitLines({ lines });
+        spawnProxy.emitStdoutLines({ lines });
         mockProcess.emit('error', error);
         setImmediate(() => {
           mockProcess.emit('exit', exitCode);
@@ -90,14 +100,16 @@ export const agentSpawnUnifiedBrokerProxy = (): {
       lines: readonly string[];
       exitCode: number | null;
     }): { mockProcess: MockProcess } => {
-      spawnProxy.setupExitOnKill({ exitCode: exitCode as never });
-      const mockProcess = spawnProxy.setupSpawn() as MockProcess;
+      spawnProxy.setupExitOnKill({
+        exitCode: exitCode === null ? null : ExitCodeStub({ value: exitCode }),
+      });
+      const { mockProcess } = spawnProxy.setupSpawn();
 
-      // Override kill to also emit lines before exit
-      const originalKill = mockProcess.kill;
-      mockProcess.kill = jest.fn().mockImplementation((...args: unknown[]) => {
-        readlineProxy.emitLines({ lines });
-        return originalKill(...args);
+      // Kill also emits the lines before the exit it schedules
+      const exitOnKill = mockProcess.kill.getMockImplementation();
+      mockProcess.kill.mockImplementation((...args: never[]) => {
+        spawnProxy.emitStdoutLines({ lines });
+        return exitOnKill?.(...args);
       });
 
       return { mockProcess };
@@ -105,7 +117,6 @@ export const agentSpawnUnifiedBrokerProxy = (): {
 
     setupSpawnOnceLazy: (): void => {
       spawnProxy.setupSpawnLazy();
-      readlineProxy.skipAutoEmitOnce();
     },
 
     setupSpawnThrow: ({ error }: { error: Error }): void => {
@@ -116,20 +127,16 @@ export const agentSpawnUnifiedBrokerProxy = (): {
       spawnProxy.setupSpawnThrowOnce({ error });
     },
 
-    setupSuccessConfig: ({
-      exitCode,
-    }: Parameters<
-      ReturnType<typeof childProcessSpawnStreamJsonAdapterProxy>['setupSuccess']
-    >[0]): void => {
+    setupSuccessConfig: ({ exitCode }: Parameters<SpawnProxy['setupSuccess']>[0]): void => {
       spawnProxy.setupSuccess({ exitCode });
     },
 
     setAutoEmitLines: ({ lines }: { lines: readonly string[] }): void => {
-      readlineProxy.setAutoEmitLines({ lines });
+      spawnProxy.setupAutoStdoutLines({ lines });
     },
 
     emitLines: ({ lines }: { lines: readonly string[] }): void => {
-      readlineProxy.emitLines({ lines });
+      spawnProxy.emitStdoutLines({ lines });
     },
 
     getSpawnedArgs: (): unknown => spawnProxy.getSpawnedArgs(),

@@ -16,7 +16,7 @@ describe('worktreePrepareBroker', () => {
       const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
       const baseBranch = BaseBranchNameStub({ value: 'main' });
       const sha = '1234567890abcdef1234567890abcdef12345678';
-      proxy.setupHappyPath({ worktreePath, branchName, baseBranch, sha });
+      proxy.setupHappyPath({ repoRoot, worktreePath, branchName, baseBranch, sha });
 
       const result = await worktreePrepareBroker({
         repoRoot,
@@ -44,7 +44,7 @@ describe('worktreePrepareBroker', () => {
       const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
       const baseBranch = BaseBranchNameStub({ value: 'main' });
       const sha = 'fedcba9876543210fedcba9876543210fedcba98';
-      proxy.setupAttachExistingBranch({ worktreePath, branchName, sha });
+      proxy.setupAttachExistingBranch({ repoRoot, worktreePath, branchName, sha });
 
       const result = await worktreePrepareBroker({
         repoRoot,
@@ -197,7 +197,7 @@ describe('worktreePrepareBroker', () => {
       const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
       const baseBranch = BaseBranchNameStub({ value: 'main' });
       const sha = '1234567890abcdef1234567890abcdef12345678';
-      proxy.setupHappyPath({ worktreePath, branchName, baseBranch, sha });
+      proxy.setupHappyPath({ repoRoot, worktreePath, branchName, baseBranch, sha });
       proxy.setupDistSeeded({ repoRoot, worktreePath, packageName: 'ward' });
 
       const result = await worktreePrepareBroker({
@@ -222,7 +222,7 @@ describe('worktreePrepareBroker', () => {
       const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
       const baseBranch = BaseBranchNameStub({ value: 'main' });
       const sha = '1234567890abcdef1234567890abcdef12345678';
-      proxy.setupHappyPath({ worktreePath, branchName, baseBranch, sha });
+      proxy.setupHappyPath({ repoRoot, worktreePath, branchName, baseBranch, sha });
       proxy.setupUnbuiltMainCheckout({ repoRoot, worktreePath, packageName: 'ward' });
 
       const error = await worktreePrepareBroker({
@@ -248,7 +248,7 @@ describe('worktreePrepareBroker', () => {
       const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
       const baseBranch = BaseBranchNameStub({ value: 'main' });
       const sha = '1234567890abcdef1234567890abcdef12345678';
-      proxy.setupHappyPath({ worktreePath, branchName, baseBranch, sha });
+      proxy.setupHappyPath({ repoRoot, worktreePath, branchName, baseBranch, sha });
       proxy.setupLeakingLink({
         worktreePath,
         entryName: '.bin',

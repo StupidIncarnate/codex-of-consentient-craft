@@ -43,7 +43,7 @@ export const runChatLayerBrokerProxy = (): {
   const modifyProxy = questModifyBrokerProxy();
   const launchProxy = agentLaunchBrokerProxy();
   // run-chat-layer-broker reads the resolved quest's cwd via questCwdResolveBroker; loading
-  // its proxy wires up the questGetBroker/questRepoRootBroker/fsIsAccessibleAdapter mocks that
+  // its proxy wires up the questGetBroker/questRepoRootBroker/pathExists mocks that
   // decide the 'worktree' | 'repo-root' | 'missing-worktree' outcome.
   const cwdProxy = questCwdResolveBrokerProxy();
   // The session-cwd row rides the same per-quest lock and quest-file walk as the ledger writes and

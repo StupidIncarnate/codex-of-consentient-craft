@@ -486,6 +486,7 @@ describe('questGetNextStepBroker', () => {
         status: 'in_progress',
         workItems: [WorkItemStub({ id: workItemId, role: 'codeweaver', status: 'pending' })],
       });
+      proxy.setupPollInterval({ ms: 10 });
       // First scan: no guilds — broker will sleep + retry.
       proxy.setupNoGuilds();
       // Second scan: the late quest appears.
@@ -529,6 +530,7 @@ describe('questGetNextStepBroker', () => {
         status: 'in_progress',
         workItems: [WorkItemStub({ role: 'codeweaver', status: 'pending' })],
       });
+      proxy.setupPollInterval({ ms: 10 });
       // First scan: no guilds — the broker sleeps and would retry.
       proxy.setupNoGuilds();
       // What the retry WOULD have found, had the poll been allowed to keep going.
