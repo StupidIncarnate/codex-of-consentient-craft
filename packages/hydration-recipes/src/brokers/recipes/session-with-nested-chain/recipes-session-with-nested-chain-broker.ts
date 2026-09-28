@@ -12,12 +12,21 @@
  * `sessionWithNestedChainInputsContract` to carry it (defaulting to this same statics value) rather
  * than hand-rolling a second recipe.
  *
+ * The session's own first line is a real user turn, not a bare `{"type":"init"}` — DEF-91: the
+ * chain's first Task tool_use (`sessionNestedChainBroker`'s own extra) is appended onto this SAME
+ * file right after, so the file needs a real user message ahead of it for the chat replay to render
+ * a turn at all, matching `session-with-nested-subagent`'s own fidelity-direct main session.
+ *
  * USAGE:
  * const plan = recipesSessionWithNestedChainBroker({ guildPath: someGuildRecord.path });
  * const result = await dmRegistryBroker.run(plan, target);
  */
 
-import { absoluteFilePathContract, streamJsonLineContract } from '@dungeonmaster/shared/contracts';
+import {
+  absoluteFilePathContract,
+  UserTextStringStreamLineStub,
+} from '@dungeonmaster/shared/contracts';
+import { streamLineToJsonLineTransformer } from '@dungeonmaster/shared/transformers';
 
 import { nestedChainArgsContract } from '../../../contracts/nested-chain-args/nested-chain-args-contract';
 import { sessionWithNestedChainInputsContract } from '../../../contracts/session-with-nested-chain-inputs/session-with-nested-chain-inputs-contract';
@@ -39,7 +48,15 @@ export const recipesSessionWithNestedChainBroker = recipe(
     dmRegistryBroker.sessions
       .under({ cwd: absoluteFilePathContract.parse(guildPath) })
       .add(1, (s) => [
-        s[0].set({ lines: [streamJsonLineContract.parse('{"type":"init"}')] }),
+        s[0].set({
+          lines: [
+            streamLineToJsonLineTransformer({
+              streamLine: UserTextStringStreamLineStub({
+                message: { role: 'user', content: 'Dispatch a nested sub-agent chain' },
+              }),
+            }),
+          ],
+        }),
         s[0].withNestedChain({
           depth: nestedChainArgsContract.shape.depth.parse(
             sessionWithNestedChainStatics.counts.depth,

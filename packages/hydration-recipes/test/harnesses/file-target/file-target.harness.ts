@@ -63,8 +63,12 @@ import * as path from 'path';
 
 import { installTestbedCreateBroker, BaseNameStub, RelativePathStub } from '@dungeonmaster/testing';
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import type { GuildStub } from '@dungeonmaster/shared/contracts';
-import { absoluteFilePathContract, QuestStub } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, GuildStub, StreamJsonLine } from '@dungeonmaster/shared/contracts';
+import {
+  absoluteFilePathContract,
+  streamJsonLineContract,
+  QuestStub,
+} from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 
 import type { DmTarget } from '../../../src/contracts/dm-target/dm-target-contract';
@@ -88,6 +92,7 @@ export const fileTargetHarness = (): {
   }) => QuestOperations;
   readQuestByTitle: (params: { title: QuestTitle }) => Quest;
   questFolderExists: (params: { guildId: GuildId; questFolder: QuestFolder }) => boolean;
+  readAbsoluteFileLines: (params: { filePath: AbsoluteFilePath }) => readonly StreamJsonLine[];
   denyWrites: () => void;
   allowWrites: () => void;
 } => {
@@ -215,6 +220,22 @@ export const fileTargetHarness = (): {
         ].join('/'),
       });
       return testbed.listDir({ relativePath }) !== null;
+    },
+    readAbsoluteFileLines: ({
+      filePath,
+    }: {
+      filePath: AbsoluteFilePath;
+    }): readonly StreamJsonLine[] => {
+      if (testbed === undefined) {
+        throw new Error(
+          'fileTargetHarness: readAbsoluteFileLines() called outside beforeEach/afterEach',
+        );
+      }
+      return fs
+        .readFileSync(filePath, 'utf8')
+        .split('\n')
+        .filter((line) => line.length > 0)
+        .map((line) => streamJsonLineContract.parse(line));
     },
     denyWrites: (): void => {
       if (testbed === undefined) {
