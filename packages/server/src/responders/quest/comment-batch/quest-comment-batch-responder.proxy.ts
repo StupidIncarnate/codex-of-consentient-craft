@@ -1,4 +1,3 @@
-import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { questFindQuestPathBrokerProxy } from '@dungeonmaster/orchestrator/brokers/quest/find-quest-path/quest-find-quest-path-broker.proxy';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import type {
@@ -9,7 +8,6 @@ import type {
   QuestStub,
 } from '@dungeonmaster/shared/contracts';
 import { StartEndpointMock } from '@dungeonmaster/testing';
-import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 // From the .stub file, not comment-batch-response-contract directly: @dungeonmaster/enforce-proxy-patterns
 // bans a proxy importing a value from any path ending `-contract` (only `.stub` paths are exempt).
@@ -53,11 +51,6 @@ export const QuestCommentBatchResponderProxy = (): {
   // questListBroker. That proxy also wires the bare `@dungeonmaster/orchestrator` barrel export
   // this responder calls through, so no separate passthrough is needed here.
   const findQuestPathProxy = questFindQuestPathBrokerProxy();
-  // commentBatch has no cross-package getLastCalledArgs/getCalls scenario on StartOrchestratorProxy,
-  // so this second registerMock call on the SAME mocked fn is read-only — it shares the underlying
-  // staged calls with the handle StartOrchestratorProxy already registered (jestRegisterMockAdapter
-  // keys its state by the mock function itself), never calling .calledWith() on it.
-  const commentBatchHandle = registerMock({ fn: StartOrchestrator.commentBatch });
 
   return {
     setupQuestLoad: ({ quest }: { quest: Quest }): void => {
@@ -94,11 +87,12 @@ export const QuestCommentBatchResponderProxy = (): {
       orchestrator.commentBatchThrows({ questId, error: new Error(message) });
     },
     getDeliveredBatch: ({ questId }: { questId: QuestId }): unknown =>
-      commentBatchHandle.callsMatching([{ questId }]).at(-1)?.[0],
+      [...orchestrator.commentBatchGetCalls({ questId })].at(-1)?.[0],
     // Empty array proves no chat process was spawned — the guarantee on the 409 and the
     // persist-failure paths.
-    getDeliveryAttempts: ({ questId }: { questId: QuestId }): unknown[] =>
-      commentBatchHandle.callsMatching([{ questId }]),
+    getDeliveryAttempts: ({ questId }: { questId: QuestId }): unknown[] => [
+      ...orchestrator.commentBatchGetCalls({ questId }),
+    ],
     callResponder: QuestCommentBatchResponder,
     httpEndpoint: (): EndpointControl =>
       StartEndpointMock.listen({

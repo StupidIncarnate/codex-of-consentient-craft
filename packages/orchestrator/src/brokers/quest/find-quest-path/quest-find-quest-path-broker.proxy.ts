@@ -17,10 +17,17 @@ import type {
   QuestId,
 } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics, locationsStatics } from '@dungeonmaster/shared/statics';
-import { registerMock } from '@dungeonmaster/testing/register-mock';
+import {
+  registerMock,
+  registerModuleMock,
+  requireActual,
+} from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 
 import { matchCandidatesLayerBrokerProxy } from './match-candidates-layer-broker.proxy';
+import { questFindQuestPathBroker } from './quest-find-quest-path-broker';
+
+registerModuleMock({ module: './quest-find-quest-path-broker' });
 
 // A `type` alias for the guild shape here is rewritten to an `interface` by lint --fix, and
 // `ban-adhoc-types` then rejects the interface in a brokers/ file. Every use site below spells the
@@ -239,6 +246,14 @@ export const questFindQuestPathBrokerProxy = (): {
     homeDir?: string;
   }) => void;
   setupQuestPathError: (params: { questId: QuestId; homeDir?: string }) => void;
+  // Answers one questId outright, without running the real lookup or staging any fs — for a caller
+  // whose test shares `join` and `homedir` mocks with other real code that setupQuestPath's staging
+  // would corrupt. Any other questId runs the real broker.
+  setupResolves: (params: {
+    questId: QuestId;
+    questPath: AbsoluteFilePath;
+    guildId: GuildId;
+  }) => void;
 } => {
   const homeFindProxy = dungeonmasterHomeFindBrokerProxy();
   const joinHandle: MockHandle = registerMock({ fn: join });
@@ -247,6 +262,13 @@ export const questFindQuestPathBrokerProxy = (): {
   // The quest FILE reads happen inside matchCandidatesLayerBroker, so its proxy — not a raw
   // read-file mock — is what stages their contents. Both phases read through it.
   const layerProxy = matchCandidatesLayerBrokerProxy();
+  const realMod = requireActual<{ questFindQuestPathBroker: typeof questFindQuestPathBroker }>({
+    module: './quest-find-quest-path-broker',
+  });
+  // Real-broker default at `[]`. A proxy that stages its own `[]` answer for this function must
+  // compose this one BEFORE staging: the later `[]` registration at the same address wins.
+  const findMock = registerMock({ fn: questFindQuestPathBroker });
+  findMock.calledWith([]).implement(realMod.questFindQuestPathBroker as never);
 
   const stageGuildsDir = ({
     homePath,
@@ -272,6 +294,18 @@ export const questFindQuestPathBrokerProxy = (): {
   };
 
   return {
+    setupResolves: ({
+      questId,
+      questPath,
+      guildId,
+    }: {
+      questId: QuestId;
+      questPath: AbsoluteFilePath;
+      guildId: GuildId;
+    }): void => {
+      findMock.calledWith([{ questId }]).resolves({ questPath, guildId });
+    },
+
     setupQuestFound: ({
       homeDir,
       homePath,

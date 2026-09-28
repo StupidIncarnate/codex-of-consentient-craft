@@ -1,5 +1,4 @@
 import { join } from '#gateway/node/path';
-import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { questFindQuestPathBrokerProxy } from '@dungeonmaster/orchestrator/brokers/quest/find-quest-path/quest-find-quest-path-broker.proxy';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
@@ -47,11 +46,6 @@ export const QuestFollowupResponderProxy = (): {
   // questListBroker. That proxy also wires the bare `@dungeonmaster/orchestrator` barrel export
   // this responder calls through, so no separate passthrough is needed here.
   const findQuestPathProxy = questFindQuestPathBrokerProxy();
-  // startFollowupChat has no cross-package getLastCalledArgs scenario on StartOrchestratorProxy,
-  // so this second registerMock call on the SAME mocked fn is read-only — it shares the underlying
-  // staged calls with the handle StartOrchestratorProxy already registered (jestRegisterMockAdapter
-  // keys its state by the mock function itself), never calling .calledWith() on it.
-  const startFollowupChatHandle = registerMock({ fn: StartOrchestrator.startFollowupChat });
   // The persist broker is APPLICATION code and runs REAL here — this proxy only mocks the npm
   // boundary underneath it (mkdir, writeFile, randomUUID, homedir). Its methods are re-exposed
   // below under semantic names scoped to "pasted image", never handed back as a raw child proxy.
@@ -115,8 +109,7 @@ export const QuestFollowupResponderProxy = (): {
     },
     // Every call the adapter received, so a rejected-status test can prove it received NONE —
     // not just that the responder's own return value looks right.
-    getStartFollowupChatCalls: (): readonly unknown[] =>
-      startFollowupChatHandle.callsMatching([]).map(([firstArg]: readonly unknown[]) => firstArg),
+    getStartFollowupChatCalls: (): readonly unknown[] => orchestrator.startFollowupChatGetCalls(),
     setupPastedImageHome: ({ homePath }: { homePath: string }): void => {
       pastedImageProxy.setupHome({ homePath });
     },

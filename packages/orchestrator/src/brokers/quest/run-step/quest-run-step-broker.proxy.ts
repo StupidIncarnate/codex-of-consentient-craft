@@ -47,8 +47,10 @@ export const questRunStepBrokerProxy = (): {
   getPersistedQuest: () => Quest;
   getAllPersistedQuests: () => readonly Quest[];
 } => {
-  stepHandlerRunBrokerProxy();
+  // Composed first: the ward handler's proxy stages its own `questFindQuestPathBroker` answer, and
+  // the update proxy's real-broker default for that function would replace it if it came later.
   const updateProxy = questOperationsUpdateBrokerProxy();
+  stepHandlerRunBrokerProxy();
   const handlerHandle = registerMock({ fn: stepHandlerRunBroker });
 
   return {

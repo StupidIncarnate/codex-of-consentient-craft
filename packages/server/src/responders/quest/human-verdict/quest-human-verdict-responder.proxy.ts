@@ -1,7 +1,5 @@
-import { questHumanVerdictRecordBroker } from '@dungeonmaster/orchestrator/brokers';
 import { questHumanVerdictRecordBrokerProxy } from '@dungeonmaster/orchestrator/testing';
 import { QuestStub } from '@dungeonmaster/shared/contracts';
-import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { QuestHumanVerdictResponder } from './quest-human-verdict-responder';
 
@@ -18,22 +16,20 @@ export const QuestHumanVerdictResponderProxy = (): {
   setupThrows: (params: { message: string }) => void;
   callResponder: typeof QuestHumanVerdictResponder;
 } => {
-  // Composed only to satisfy enforce-proxy-child-creation — this responder's own registerMock
-  // below fully replaces questHumanVerdictRecordBroker, so nothing this child proxy stages is
-  // reachable through it.
-  questHumanVerdictRecordBrokerProxy();
-  const handle = registerMock({ fn: questHumanVerdictRecordBroker });
+  const verdictProxy = questHumanVerdictRecordBrokerProxy();
 
   return {
     setupSucceeds: (): void => {
-      handle
-        .calledWith([{ questId: QUEST_ID, unitId: UNIT_ID, outcome: OUTCOME, reason: REASON }])
-        .resolves({ quest: QuestStub() });
+      verdictProxy.setupResolves({
+        input: { questId: QUEST_ID, unitId: UNIT_ID, outcome: OUTCOME, reason: REASON },
+        quest: QuestStub(),
+      });
     },
     setupThrows: ({ message }: { message: string }): void => {
-      handle
-        .calledWith([{ questId: QUEST_ID, unitId: UNIT_ID, outcome: OUTCOME, reason: REASON }])
-        .rejects(new Error(message));
+      verdictProxy.setupRejects({
+        input: { questId: QUEST_ID, unitId: UNIT_ID, outcome: OUTCOME, reason: REASON },
+        error: new Error(message),
+      });
     },
     callResponder: QuestHumanVerdictResponder,
   };

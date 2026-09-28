@@ -18,11 +18,6 @@ import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.pr
 import { join } from '#gateway/node/path';
 import { createNodeWebSocketProxy } from '#gateway/npm/hono__node-ws/node-web-socket/node-web-socket.proxy';
 import { serveProxy } from '#gateway/npm/hono__node-server/server/server.proxy';
-import {
-  StartOrchestrator,
-  questFindQuestPathBroker,
-  questOutboxWatchBroker,
-} from '@dungeonmaster/orchestrator';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import { orchestrationEventsStateProxy } from '@dungeonmaster/orchestrator/state/orchestration-events/orchestration-events-state.proxy';
 import { questFindQuestPathBrokerProxy } from '@dungeonmaster/orchestrator/brokers/quest/find-quest-path/quest-find-quest-path-broker.proxy';
@@ -49,21 +44,16 @@ registerModuleMock({ module: '@hono/node-server' });
 
 type Quest = ReturnType<typeof QuestStub>;
 type EventHandler = (args: { processId: ProcessId; payload: Record<string, unknown> }) => void;
-// questOutboxWatchBroker and questFindQuestPathBroker are specific-broker forwards mocked
-// DIRECTLY here rather than through their own proxy's real-broker-execution scenarios
+// questOutboxWatchBroker and questFindQuestPathBroker are answered DIRECTLY through their own
+// proxies' setupWatchCaptureOnly / setupResolves, not through their real-broker scenarios
 // (setupWatchStarted / setupQuestPath). This responder ALSO composes webBundleResponseBrokerProxy,
-// and every one of these real executions drives the SAME shared, globally-keyed mocks —
+// and every real execution drives the SAME shared, globally-keyed mocks —
 // dungeonmasterHomeFindBrokerProxy's sticky (non-addressed) `os.homedir()` stage and a shared,
 // address-keyed `join` mock (`#gateway/node/path`) — with no way to scope a stage to one caller.
-// Composing any of the real executions here (confirmed for both) corrupts that shared state for
-// whichever OTHER real execution runs in the same test: questFindQuestPathBroker computed a
-// guildsDir with a stray segment and threw QuestNotFoundError even though setupQuestPath had
-// staged a real match, and questOutboxWatchBroker's own path-join call made
-// webBundleResponseBroker's web-bundle-serving tests 500. A direct, argument-addressed
-// registerMock for each sidesteps the shared queue entirely.
-type OutboxWatchParams = Parameters<typeof questOutboxWatchBroker>[0];
-type OnQuestChanged = OutboxWatchParams['onQuestChanged'];
-type OnError = OutboxWatchParams['onError'];
+// Composing a real execution here corrupts that shared state for whichever OTHER real execution
+// runs in the same test: questFindQuestPathBroker computed a guildsDir with a stray segment and
+// threw QuestNotFoundError, and questOutboxWatchBroker's own path-join call made
+// webBundleResponseBroker's web-bundle-serving tests 500.
 
 export const ServerInitResponderProxy = (): {
   callResponder: (params?: { serveWebBundle?: boolean }) => void;
@@ -126,26 +116,14 @@ export const ServerInitResponderProxy = (): {
   const server = serveProxy();
 
   const orchestrator = StartOrchestratorProxy();
-  // Second handle on the SAME mocked StartOrchestrator.replayChatHistory function — shares staged
-  // calls with the handle StartOrchestratorProxy already registered (jestRegisterMockAdapter keys
-  // its state by the mock function itself, the same pattern quest-chat-responder.proxy.ts uses for
-  // startChatHandle). A default success here is what the caller's own async wrapping used to give
-  // an unstaged call for free before A02 deleted the adapter layer: replayChatHistory is called
-  // directly now, so an unstaged call throws SYNCHRONOUSLY (registerMock has no passthrough),
-  // which lands before a `.catch()` chained on that same expression can attach — the throw is only
-  // safely turned into a promise rejection one function boundary up, where none of this responder's
-  // OWN call sites intend it to surface. Every real caller discards the resolved value.
-  const replayChatHistoryHandle = registerMock({ fn: StartOrchestrator.replayChatHistory });
-  replayChatHistoryHandle.calledWith([]).resolves(undefined);
   const eventsProxy = orchestrationEventsStateProxy();
   // Opt-in: this responder's own test drives every captured handler by hand
   // (getCapturedEventHandler + an arbitrary processId/payload), never through a real `.emit()`, so
   // `.on` is stubbed to record the handler instead of running real.
   eventsProxy.captureHandlers();
-  // Instantiated to satisfy enforce-proxy-child-creation; both brokers are mocked directly below
-  // instead (see the shared-mock-state comment above).
-  questFindQuestPathBrokerProxy();
-  questOutboxWatchBrokerProxy();
+  // Both brokers are answered directly (see the shared-mock-state comment above).
+  const findQuestPathProxy = questFindQuestPathBrokerProxy();
+  const outboxWatchProxy = questOutboxWatchBrokerProxy();
   const devLogProxy = processDevLogBrokerProxy();
   const wardResultsPathProxy = locationsWardResultsPathFindBrokerProxy();
   const readProxy = readFileProxy();
@@ -161,29 +139,12 @@ export const ServerInitResponderProxy = (): {
   const portProxy = portResolveBrokerProxy();
   portProxy.setEnvPort({ value: '3737' });
 
-  const findQuestPathHandle = registerMock({ fn: questFindQuestPathBroker });
-
-  const outboxWatchHandle = registerMock({ fn: questOutboxWatchBroker });
-  const outboxCaptured: {
-    onQuestChanged: OnQuestChanged | undefined;
-    onError: OnError | undefined;
-  } = { onQuestChanged: undefined, onError: undefined };
-  // The only call this broker ever receives from this responder is `{ onQuestChanged, onError }`,
-  // a pair of fresh closures built inline on every call — closures never compare equal, so `[]` is
-  // the honest address. This captures whatever callbacks the call received so
-  // getOutboxWatchCallbacks() can hand them back to the test.
-  outboxWatchHandle
-    .calledWith([])
-    .implement(
-      async ({ onQuestChanged, onError }: OutboxWatchParams): Promise<{ stop: () => void }> => {
-        outboxCaptured.onQuestChanged = onQuestChanged;
-        outboxCaptured.onError = onError;
-        return Promise.resolve({ stop: (): void => undefined });
-      },
-    );
-
   return {
     callResponder: ({ serveWebBundle = false }: { serveWebBundle?: boolean } = {}): void => {
+      // The responder always starts the outbox watcher; capture its callbacks without running the
+      // real broker. Staged here rather than at construction, where a child proxy's semantic method
+      // may not be called.
+      outboxWatchProxy.setupWatchCaptureOnly();
       // Clean up leftover signal handlers from previous tests to prevent listener leaks.
       // Each test creates a new ServerInitResponder that registers SIGTERM/SIGINT handlers.
       process.removeAllListeners('SIGTERM');
@@ -264,7 +225,7 @@ export const ServerInitResponderProxy = (): {
     getOutboxWatchCallbacks: (): {
       onQuestChanged: ((args: { questId: QuestId }) => void) | undefined;
       onError: ((args: { error: unknown }) => void) | undefined;
-    } => outboxCaptured,
+    } => outboxWatchProxy.getCapturedCallbacks(),
     enableDevLogs: (): void => {
       devLogProxy.enableVerbose();
     },
@@ -279,7 +240,7 @@ export const ServerInitResponderProxy = (): {
       questPath: AbsoluteFilePath;
       guildId: GuildId;
     }): void => {
-      findQuestPathHandle.calledWith([{ questId }]).resolves({ questPath, guildId });
+      findQuestPathProxy.setupResolves({ questId, questPath, guildId });
     },
     setupWardDetailSuccess: ({
       questId,
@@ -298,7 +259,7 @@ export const ServerInitResponderProxy = (): {
       detailFilePath: FilePath;
       contents: FileContents;
     }): void => {
-      findQuestPathHandle.calledWith([{ questId }]).resolves({ questPath, guildId });
+      findQuestPathProxy.setupResolves({ questId, questPath, guildId });
       wardResultsPathProxy.setupWardResultsPath({ questFolderPath: questPath, wardResultsPath });
       joinHandle.calledWith([wardResultsPath, `${wardResultId}.json`]).returns(detailFilePath);
       readProxy.returns({ path: detailFilePath, contents });

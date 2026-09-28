@@ -16,22 +16,44 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import { registerMock } from '@dungeonmaster/testing/register-mock';
+import {
+  registerMock,
+  registerModuleMock,
+  requireActual,
+} from '@dungeonmaster/testing/register-mock';
 
+import { questGetBroker } from './quest-get-broker';
 import { questFindQuestPathBrokerProxy } from '../find-quest-path/quest-find-quest-path-broker.proxy';
 import { questLoadBrokerProxy } from '../load/quest-load-broker.proxy';
 
 type Quest = ReturnType<typeof QuestStub>;
+type GetInput = Parameters<typeof questGetBroker>[0]['input'];
+type GetResult = Awaited<ReturnType<typeof questGetBroker>>;
+
+registerModuleMock({ module: './quest-get-broker' });
 
 export const questGetBrokerProxy = (): {
   setupQuestFound: (params: { quest: Quest }) => void;
   setupEmptyFolder: () => void;
+  // Answers one exact `input` with a caller-chosen result, without running the lookup — for a
+  // caller asserting on the `error` text of a `{ success: false, error }`. Any other input runs the
+  // real broker.
+  setupResolves: (params: { input: GetInput; result: GetResult }) => void;
 } => {
   const findQuestPathProxy = questFindQuestPathBrokerProxy();
   const joinHandle = registerMock({ fn: join });
   const loadProxy = questLoadBrokerProxy();
+  const realMod = requireActual<{ questGetBroker: typeof questGetBroker }>({
+    module: './quest-get-broker',
+  });
+  const getMock = registerMock({ fn: questGetBroker });
+  getMock.calledWith([]).implement(realMod.questGetBroker as never);
 
   return {
+    setupResolves: ({ input, result }: { input: GetInput; result: GetResult }): void => {
+      getMock.calledWith([{ input }]).resolves(result);
+    },
+
     setupQuestFound: ({ quest }: { quest: Quest }): void => {
       const guildId = GuildIdStub();
       const homePath = FilePathStub({ value: '/home/testuser/.dungeonmaster' });

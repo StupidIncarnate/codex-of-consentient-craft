@@ -12,7 +12,6 @@ import { homedir } from '#gateway/node/os';
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { statProxy } from '#gateway/node/fs__promises/stat/stat.proxy';
 import { globProxy } from '#gateway/npm/glob/glob/glob.proxy';
-import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { globIgnoreStatics } from '../../../statics/glob-ignore/glob-ignore-statics';
@@ -39,20 +38,6 @@ export const sessionListBrokerProxy = (): {
   setupGuildNotFound: (params: { guildId: GuildId }) => void;
 } => {
   const orchestrator = StartOrchestratorProxy();
-  // Second handle on the SAME mocked StartOrchestrator.loadQuest function — shares staged calls
-  // with the handle StartOrchestratorProxy already registered (jestRegisterMockAdapter keys its
-  // state by the mock function itself, the same pattern quest-chat-responder.proxy.ts uses for
-  // startChatHandle). This broker calls loadQuest directly (no wrapping async adapter, since A02
-  // deleted it) with `.catch(() => null)` chained on the call itself for EVERY quest whether or not
-  // a test cares about its workItems — an unstaged call throws SYNCHRONOUSLY (registerMock has no
-  // passthrough), which lands before that `.catch()` can attach and propagates out of the broker
-  // entirely instead of degrading to null. `.rejects(...)` (not `.throws(...)`) is what makes this
-  // a REAL rejected promise the `.catch()` can actually catch — restoring the pre-A02 adapter's own
-  // async-wrapping safety net for every quest a test's own setupLoadQuest/setupLoadQuestError never
-  // addresses.
-  registerMock({ fn: StartOrchestrator.loadQuest })
-    .calledWith([])
-    .rejects(new Error('sessionListBrokerProxy: no loadQuest scenario staged for this questId'));
   const homedirHandle = registerMock({ fn: homedir });
   const globHandle = globProxy();
   const statChildProxy = statProxy();
@@ -161,6 +146,16 @@ export const sessionListBrokerProxy = (): {
     },
     setupQuests: ({ guildId, quests }: { guildId: GuildId; quests: QuestListItem[] }): void => {
       orchestrator.listQuestsReturns({ guildId, quests });
+      // The broker calls loadQuest for EVERY listed quest with `.catch(() => null)` chained on the
+      // call, so an unstaged loadQuest would throw before that `.catch` attaches. Each listed quest
+      // starts as a rejected load (a real rejected promise the `.catch` handles); setupLoadQuest /
+      // setupLoadQuestError, called after this, address the same questId and win.
+      for (const quest of quests) {
+        orchestrator.loadQuestThrows({
+          questId: quest.id,
+          error: new Error(`sessionListBrokerProxy: no loadQuest scenario staged for ${quest.id}`),
+        });
+      }
     },
     setupLoadQuest: ({ quest }: { quest: Quest }): void => {
       orchestrator.loadQuestReturns({ questId: quest.id, quest });

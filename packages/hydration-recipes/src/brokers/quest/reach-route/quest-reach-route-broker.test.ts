@@ -184,7 +184,7 @@ describe('questReachRouteBroker', () => {
       expect(outcome).toStrictEqual(reloadedQuest);
     });
 
-    it('VALID: {extraFields with content, the content call left unstaged} => the walk genuinely attempts that exact modify call, proven by registerMock refusing an address nothing staged', async () => {
+    it('VALID: {extraFields with content, the content call left unstaged} => the walk genuinely attempts that exact modify call, proven by the recorded modify inputs', async () => {
       // Every OTHER call this walk makes is staged; the content-application call at explore_flows
       // deliberately is not. If the broker actually calls questModifyBroker with the gate-content
       // fields (the real, unmutated behaviour), that call has no matching address and registerMock
@@ -203,25 +203,22 @@ describe('questReachRouteBroker', () => {
         result: ModifyQuestResultStub({ success: true }),
       });
 
-      await expect(
-        questReachRouteBroker({
-          from: 'created',
-          to: 'review_flows',
-          target,
-          record,
-          extraFields: {
-            flows: questGateContentDefaultsStatics.flows,
-            packagesAffected: questGateContentDefaultsStatics.packagesAffected,
-          },
-        }),
-        // Anchored on the actual CONTENT payload (packagesAffected naming hydration-recipes-seed,
-        // from questGateContentDefaultsStatics) — not just the generic "nothing set up" prefix
-        // every unmatched call shares, which a DIFFERENT missing stage (the reload, never staged in
-        // this test either) would also throw, and never on the mock's own generic
-        // "mockConstructor" label, which carries no information about which real function it wraps.
-      ).rejects.toThrow(
-        /^registerMock: nothing set up for the call.*"packagesAffected".*hydration-recipes-seed/su,
-      );
+      await questReachRouteBroker({
+        from: 'created',
+        to: 'review_flows',
+        target,
+        record,
+        extraFields: {
+          flows: questGateContentDefaultsStatics.flows,
+          packagesAffected: questGateContentDefaultsStatics.packagesAffected,
+        },
+      }).catch((error: unknown) => error);
+
+      const carriesContent = proxy
+        .getModifyInputs()
+        .map((input) => JSON.stringify(input).includes('hydration-recipes-seed'));
+
+      expect(carriesContent.filter(Boolean)).toStrictEqual([true]);
     });
 
     it('VALID: {extraFields: {flows: []}} => an empty array supplies no content, so no extra modify call happens', async () => {

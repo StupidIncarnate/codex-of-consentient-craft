@@ -33,6 +33,10 @@ export const questOutboxWatchBrokerProxy = (): {
   // the caller PASSED IN, since that argument is the one thing this scenario can observe that the
   // fs-level setupOutboxPath above cannot.
   setupWatchStarted: () => void;
+  // Captures what the caller passed in and resolves `{ stop }` WITHOUT running the real broker, so
+  // no fs, `join` or `homedir` staging is touched — for a caller whose test shares those mocks with
+  // other real code. Overrides the real-broker default above for every later call.
+  setupWatchCaptureOnly: () => void;
   getCapturedResetOnStart: () => boolean | undefined;
   getCapturedCallbacks: () => {
     onQuestChanged: OnQuestChanged | undefined;
@@ -139,6 +143,22 @@ export const questOutboxWatchBrokerProxy = (): {
       // No line is ever staged in this scenario, so the tail's first drain stays open instead of
       // arming a timer that outlives the test.
       watchTailProxy.setupNextDrainNeverCloses({ path: outboxPath });
+    },
+    setupWatchCaptureOnly: (): void => {
+      mocked
+        .calledWith([])
+        .implement(
+          async (params: {
+            onQuestChanged: OnQuestChanged;
+            onError: OnError;
+            resetOnStart?: boolean;
+          }): Promise<{ stop: () => void }> => {
+            captured.resetOnStart = params.resetOnStart;
+            captured.onQuestChanged = params.onQuestChanged;
+            captured.onError = params.onError;
+            return Promise.resolve({ stop: (): void => undefined });
+          },
+        );
     },
     getCapturedResetOnStart: (): boolean | undefined => captured.resetOnStart,
     getCapturedCallbacks: (): {

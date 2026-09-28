@@ -1,6 +1,5 @@
-import { guildAddBroker } from '@dungeonmaster/orchestrator/brokers';
 import { guildAddBrokerProxy } from '@dungeonmaster/orchestrator/testing';
-import { registerMock } from '@dungeonmaster/testing/register-mock';
+import { guildNameContract, guildPathContract } from '@dungeonmaster/shared/contracts';
 
 import { guildDirectoryEnsureBrokerProxy } from '../directory-ensure/guild-directory-ensure-broker.proxy';
 import { guildUniquePathResolveBrokerProxy } from '../unique-path-resolve/guild-unique-path-resolve-broker.proxy';
@@ -43,11 +42,9 @@ export const guildWriteRouteBrokerProxy = (): {
   // invalid-id scenario, where the directory ensure runs before the id validation throws.
   const directoryProxy = guildDirectoryEnsureBrokerProxy();
   const uniquePathProxy = guildUniquePathResolveBrokerProxy();
-  // guildAddBrokerProxy's own setup mints a FIXED id/createdAt via crypto.randomUUID, which does
-  // not let a test stage an arbitrary `guild` fixture — created here only to satisfy
-  // `enforce-proxy-child-creation`; this route's own registerMock below stages the real answer.
-  guildAddBrokerProxy();
-  const addGuildHandle = registerMock({ fn: guildAddBroker });
+  // guildAddBrokerProxy answers one exact input with a caller-chosen guild — its real run mints a
+  // fixed id and createdAt, which the route's tests do not want.
+  const addGuildProxy = guildAddBrokerProxy();
 
   return {
     // `home` is part of the ADDRESS, not a convenience: a route that stopped handing
@@ -66,7 +63,10 @@ export const guildWriteRouteBrokerProxy = (): {
     }): void => {
       directoryProxy.setupDirectoryCreation({ path });
       uniquePathProxy.setupFree({ absolutePaths: [path] });
-      addGuildHandle.calledWith([{ name, path, home }]).resolves(guild);
+      addGuildProxy.setupResolves({
+        input: { name: guildNameContract.parse(name), path: guildPathContract.parse(path), home },
+        guild,
+      });
     },
     // A more specific address than `succeeds` above (it names `id` too) — for a call this route
     // makes WITH an id, so the two scenarios never collide under "most specific wins".
@@ -85,7 +85,15 @@ export const guildWriteRouteBrokerProxy = (): {
     }): void => {
       directoryProxy.setupDirectoryCreation({ path });
       uniquePathProxy.setupFree({ absolutePaths: [path] });
-      addGuildHandle.calledWith([{ name, path, home, id }]).resolves(guild);
+      addGuildProxy.setupResolves({
+        input: {
+          name: guildNameContract.parse(name),
+          path: guildPathContract.parse(path),
+          home,
+          id,
+        },
+        guild,
+      });
     },
     setupDirectoryCreation: ({ path }: { path: string }): void => {
       directoryProxy.setupDirectoryCreation({ path });
@@ -100,7 +108,6 @@ export const guildWriteRouteBrokerProxy = (): {
     pathsTouched: (): readonly unknown[] => directoryProxy.pathsTouched(),
     // The whole argument object of every `guildAddBroker` call, so a test reads back the home the
     // route really handed down rather than inferring it from a mock address that happened to match.
-    registrationsMade: (): readonly unknown[] =>
-      addGuildHandle.callsMatching([]).map((call) => call[0]),
+    registrationsMade: (): readonly unknown[] => addGuildProxy.getCallInputs(),
   };
 };

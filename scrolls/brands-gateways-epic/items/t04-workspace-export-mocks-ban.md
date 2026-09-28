@@ -148,6 +148,30 @@ Remaining, each needs a new method on an orchestrator proxy (not edited here, or
 | server `graph-reachability/check` | `graphReachabilityCheckBrokerProxy` direct result staging (`setupClean`, `setupViolation`) |
 | server `quest/human-verdict` | `questHumanVerdictRecordBrokerProxy` direct staging of the resolved `{ quest }` and the rejection |
 
+## Plan — T04 orchestrator proxies
+
+Re-scan 2026-09-28 (same config): hydration-recipes 5, server 11, every hit in a `.proxy.ts`.
+
+Orchestrator proxies gaining methods (each mocks its broker with a real passthrough default at `[]`, so
+orchestrator's own tests keep running the real broker; an addressed stage outranks it):
+
+- `guild/add/guild-add-broker.proxy.ts`: `setupResolves({ input, guild })`, `getCallInputs()`
+- `quest/modify/quest-modify-broker.proxy.ts`: `setupResolves({ input, result })`
+- `quest/get/quest-get-broker.proxy.ts`: `setupResolves({ input, result })`
+- `quest/find-quest-path/quest-find-quest-path-broker.proxy.ts`: `setupResolves({ questId, questPath, guildId })`
+- `quest/outbox-watch/quest-outbox-watch-broker.proxy.ts`: `setupWatchCaptureOnly()`
+- `graph-reachability/check/graph-reachability-check-broker.proxy.ts`: `setupClean()`, `setupViolation({ message })`
+- `quest/human-verdict-record/quest-human-verdict-record-broker.proxy.ts`: `setupResolves({ input, quest })`, `setupRejects({ input, error })`
+- `startup/start-orchestrator.proxy.ts`: `bootstrapGetCalls()`, `commentBatchGetCalls({ questId })`, `startFollowupChatGetCalls()`, `stopFollowupChatGetCalls()`
+
+Consumers moved onto them:
+
+- hydration-recipes: `guild/write-route`, `quest/reach-route`, `quest/update-route` proxies
+- server: `brokers/session/list` (per-quest loadQuest rejection staged in `setupQuests`, no constructor default),
+  `responders/{graph-reachability/check, orchestration/bootstrap, quest/comment-batch, quest/followup,
+  quest/followup-stop, quest/human-verdict, server/init, tooling/smoketest-state}` proxies, plus the
+  tests of smoketest-state and server/init that now call a named setup (`setupNoActiveRun`, `setupReplaySuccess`)
+
 ## Concessions made while executing
 
 <Empty at the start. The operator fills this and mirrors it into EPIC.md's Concessions table.>

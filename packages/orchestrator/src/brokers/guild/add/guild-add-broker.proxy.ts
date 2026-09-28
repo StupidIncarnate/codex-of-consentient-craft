@@ -1,13 +1,23 @@
 import { dungeonmasterHomeEnsureBrokerProxy } from '@dungeonmaster/shared/testing';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
-import type { FilePath, GuildConfig } from '@dungeonmaster/shared/contracts';
-import { registerMock, registerSpyOn, requireActual } from '@dungeonmaster/testing/register-mock';
+import type { FilePath, Guild, GuildConfig } from '@dungeonmaster/shared/contracts';
+import {
+  registerMock,
+  registerModuleMock,
+  registerSpyOn,
+  requireActual,
+} from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { join } from '#gateway/node/path';
 
+import { guildAddBroker } from './guild-add-broker';
 import { guildConfigReadBrokerProxy } from '../../guild-config/read/guild-config-read-broker.proxy';
 import { guildConfigWriteBrokerProxy } from '../../guild-config/write/guild-config-write-broker.proxy';
+
+registerModuleMock({ module: './guild-add-broker' });
+
+type AddInput = Parameters<typeof guildAddBroker>[0];
 
 const DEFAULT_GENERATED_ID = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
 
@@ -26,6 +36,11 @@ export const guildAddBrokerProxy = (): {
   }) => void;
   setupDuplicatePath: (params: { existingConfig: GuildConfig }) => void;
   stageGeneratedId: (params: { id: string }) => void;
+  // Answers one exact input with a caller-chosen guild, without running the real broker — which
+  // mints its own id and createdAt. Any other input runs the real broker.
+  setupResolves: (params: { input: AddInput; guild: Guild }) => void;
+  // The whole argument object of every guildAddBroker call, whether it ran real or was answered.
+  getCallInputs: () => readonly unknown[];
   dirsCreated: () => readonly unknown[];
   configFilesWritten: () => readonly unknown[];
 } => {
@@ -40,6 +55,11 @@ export const guildAddBrokerProxy = (): {
   // addresses (the supplied-home guildsPath computation) still computes the genuine path.
   const joinHandle: MockHandle = registerMock({ fn: join });
   const realPath = requireActual<{ join: typeof join }>({ module: 'path' });
+  const realMod = requireActual<{ guildAddBroker: typeof guildAddBroker }>({
+    module: './guild-add-broker',
+  });
+  const addMock = registerMock({ fn: guildAddBroker });
+  addMock.calledWith([]).implement(realMod.guildAddBroker as never);
 
   // crypto.randomUUID and Date.prototype.toISOString take no identifying argument — [] is
   // the honest address for both.
@@ -50,6 +70,11 @@ export const guildAddBrokerProxy = (): {
     .returns('2024-01-15T10:00:00.000Z');
 
   return {
+    setupResolves: ({ input, guild }: { input: AddInput; guild: Guild }): void => {
+      addMock.calledWith([input]).resolves(guild);
+    },
+    getCallInputs: (): readonly unknown[] => addMock.callsMatching([]).map((call) => call[0]),
+
     setupAddGuild: ({
       existingConfig,
       homeDir,

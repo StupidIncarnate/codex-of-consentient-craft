@@ -22,9 +22,16 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import {
+  registerMock,
+  registerModuleMock,
+  registerSpyOn,
+  requireActual,
+} from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 import { join } from '#gateway/node/path';
+
+import { questHumanVerdictRecordBroker } from './quest-human-verdict-record-broker';
 
 import { questFindQuestPathBrokerProxy } from '../find-quest-path/quest-find-quest-path-broker.proxy';
 import { questLoadBrokerProxy } from '../load/quest-load-broker.proxy';
@@ -32,7 +39,10 @@ import { questPersistBrokerProxy } from '../persist/quest-persist-broker.proxy';
 import { questWithModifyLockBrokerProxy } from '../with-modify-lock/quest-with-modify-lock-broker.proxy';
 
 type Quest = ReturnType<typeof QuestStub>;
+type VerdictInput = Parameters<typeof questHumanVerdictRecordBroker>[0];
 type Parsed = ReturnType<typeof questContract.parse>;
+
+registerModuleMock({ module: './quest-human-verdict-record-broker' });
 
 const questJsonWrites = ({
   persistProxy,
@@ -48,6 +58,10 @@ export const questHumanVerdictRecordBrokerProxy = (): {
   setupQuestFound: (params: { quest: Quest }) => void;
   getAllPersistedQuests: () => readonly Parsed[];
   getLastPersistedQuest: () => Parsed;
+  // Answers one exact input without running the read-validate-write — for a caller that only
+  // needs the broker's resolved `{ quest }` or its rejection. Any other input runs the real broker.
+  setupResolves: (params: { input: VerdictInput; quest: Quest }) => void;
+  setupRejects: (params: { input: VerdictInput; error: Error }) => void;
 } => {
   const findQuestPathProxy = questFindQuestPathBrokerProxy();
   const joinHandle: MockHandle = registerMock({ fn: join });
@@ -56,11 +70,25 @@ export const questHumanVerdictRecordBrokerProxy = (): {
   const lockProxy = questWithModifyLockBrokerProxy();
   lockProxy.setupEmpty();
 
+  const realMod = requireActual<{
+    questHumanVerdictRecordBroker: typeof questHumanVerdictRecordBroker;
+  }>({ module: './quest-human-verdict-record-broker' });
+  const verdictMock = registerMock({ fn: questHumanVerdictRecordBroker });
+  verdictMock.calledWith([]).implement(realMod.questHumanVerdictRecordBroker as never);
+
   registerSpyOn({ object: Date.prototype, method: 'toISOString' })
     .calledWith([])
     .returns('2024-01-15T10:00:00.000Z');
 
   return {
+    setupResolves: ({ input, quest }: { input: VerdictInput; quest: Quest }): void => {
+      verdictMock.calledWith([input]).resolves({ quest });
+    },
+
+    setupRejects: ({ input, error }: { input: VerdictInput; error: Error }): void => {
+      verdictMock.calledWith([input]).rejects(error);
+    },
+
     setupQuestFound: ({ quest }: { quest: Quest }): void => {
       const guildId = GuildIdStub();
       const homePath = FilePathStub({ value: '/home/testuser/.dungeonmaster' });

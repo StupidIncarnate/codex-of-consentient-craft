@@ -1,6 +1,4 @@
-import { questGetBroker, questModifyBroker } from '@dungeonmaster/orchestrator/brokers';
 import { questGetBrokerProxy, questModifyBrokerProxy } from '@dungeonmaster/orchestrator/testing';
-import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { dmHttpRequestBrokerProxy } from '../../dm/http-request/dm-http-request-broker.proxy';
 import type { DmHttpResponseStub } from '../../../contracts/dm-http-response/dm-http-response.stub';
@@ -27,26 +25,24 @@ export const questReachRouteBrokerProxy = (): {
   }) => void;
   setupStart: ({ url, response }: { url: string; response: DmHttpResponse }) => void;
   setupReload: ({ input, result }: { input: GetQuestInput; result: GetQuestResult }) => void;
+  // The `input` of every questModifyBroker call the walk made, staged or not.
+  getModifyInputs: () => readonly unknown[];
 } => {
-  // questGetBrokerProxy/questModifyBrokerProxy's own setup drives a full fs-lookup simulation
-  // rather than letting a test stage a different result per HOP — created here only to satisfy
-  // `enforce-proxy-child-creation`; this route's own registerMock below stages each hop's answer,
-  // keyed by its own `input` so successive hops don't overwrite each other.
-  questGetBrokerProxy();
-  questModifyBrokerProxy();
-  const modifyHandle = registerMock({ fn: questModifyBroker });
-  const getHandle = registerMock({ fn: questGetBroker });
+  // Each hop's answer is keyed by its own `input`, so successive hops don't overwrite each other.
+  const getProxy = questGetBrokerProxy();
+  const modifyProxy = questModifyBrokerProxy();
   const httpProxy = dmHttpRequestBrokerProxy();
 
   return {
     setupModifyHop: ({ input, result }): void => {
-      modifyHandle.calledWith([{ input }]).resolves(result);
+      modifyProxy.setupResolves({ input, result });
     },
     setupStart: ({ url, response }): void => {
       httpProxy.succeeds({ url, response });
     },
     setupReload: ({ input, result }): void => {
-      getHandle.calledWith([{ input }]).resolves(result);
+      getProxy.setupResolves({ input, result });
     },
+    getModifyInputs: (): readonly unknown[] => modifyProxy.getCallInputs(),
   };
 };

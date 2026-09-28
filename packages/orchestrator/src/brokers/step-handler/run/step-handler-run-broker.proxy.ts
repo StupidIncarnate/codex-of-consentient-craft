@@ -27,12 +27,14 @@ export const stepHandlerRunBrokerProxy = (): {
   setupWardMissingWorktree: (params: { worktreePath: string }) => void;
   setupCleanupDone: () => void;
 } => {
-  const wardProxy = stepHandlerWardBrokerProxy();
   const cleanupProxy = stepHandlerCleanupBrokerProxy();
   // Inert — composed to satisfy enforce-proxy-child-creation against this file's imports. Their
   // own dispatch paths are already proven by their own colocated test suites.
   stepHandlerCommitBrokerProxy();
   stepHandlerRiftcarverBrokerProxy();
+  // Composed last: the ward handler's proxy stages its own `questFindQuestPathBroker` answer, and a
+  // sibling proxy composing the find-quest-path proxy after it would replace that answer.
+  const wardProxy = stepHandlerWardBrokerProxy();
 
   return {
     setupWardDone: (): void => {

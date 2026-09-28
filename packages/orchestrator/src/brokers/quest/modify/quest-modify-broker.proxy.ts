@@ -45,6 +45,8 @@ import { questWithModifyLockBrokerProxy } from '../with-modify-lock/quest-with-m
 import { resolvePackageEntryFactsLayerBrokerProxy } from './resolve-package-entry-facts-layer-broker.proxy';
 
 type Quest = ReturnType<typeof QuestStub>;
+type ModifyInput = Parameters<typeof questModifyBroker>[0]['input'];
+type ModifyResult = Awaited<ReturnType<typeof questModifyBroker>>;
 
 // The repo every quest in this file targets. Package entry locations are repo-relative to it, so a
 // test staging one on disk names `${PROJECT_ROOT}/<location>` — the address the broker really
@@ -60,6 +62,9 @@ export const questModifyBrokerProxy = (): {
   setupReject: (params: { error: Error }) => void;
   setupResolveSuccessOnce: () => void;
   setupResolveFailureOnce: () => void;
+  // Answers one exact `input` with a caller-chosen result, sticky — so two hops with different
+  // inputs each get their own answer. Any other input runs the real broker.
+  setupResolves: (params: { input: ModifyInput; result: ModifyResult }) => void;
   setupContractSourceResolvesOnce: (params: { source: string }) => void;
   setupPackageLocationResolves: (params: { location: string }) => void;
   getProjectRoot: () => ReturnType<typeof RepoRootCwdStub>;
@@ -120,6 +125,10 @@ export const questModifyBrokerProxy = (): {
   modifyMock.calledWith([]).implement(realMod.questModifyBroker as never);
 
   return {
+    setupResolves: ({ input, result }: { input: ModifyInput; result: ModifyResult }): void => {
+      modifyMock.calledWith([{ input }]).resolves(result);
+    },
+
     setupQuestFound: ({ quest }: { quest: Quest }): void => {
       const guildId = GuildIdStub();
       const homePath = FilePathStub({ value: '/home/testuser/.dungeonmaster' });

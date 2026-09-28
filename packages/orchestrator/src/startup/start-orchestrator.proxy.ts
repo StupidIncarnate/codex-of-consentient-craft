@@ -31,6 +31,7 @@
  */
 
 import { registerMock } from '@dungeonmaster/testing/register-mock';
+import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
 import { DispatchStateStub } from '@dungeonmaster/shared/contracts';
 import type {
   AdapterResultStub,
@@ -102,6 +103,9 @@ export const StartOrchestratorProxy = (): {
   // bootstrap — sync, returns void. start-orchestrator.ts:80.
   bootstrapSucceeds: () => void;
   bootstrapThrows: (params: { error: Error }) => void;
+  // Every call StartOrchestrator.bootstrap received, as the raw argument lists — bootstrap takes
+  // none, so `[[]]` is exactly one call.
+  bootstrapGetCalls: () => RecordedCalls;
   // Guild methods — GuildFlow, via guild-*-broker.
   listGuildsReturns: (params: { guilds: GuildListItem[] }) => void;
   listGuildsThrows: (params: { error: Error }) => void;
@@ -227,6 +231,8 @@ export const StartOrchestratorProxy = (): {
     message: string;
   }) => void;
   commentBatchThrows: (params: { questId: QuestId; error: Error }) => void;
+  // Every call StartOrchestrator.commentBatch received for this questId, as the raw argument lists.
+  commentBatchGetCalls: (params: { questId: QuestId }) => RecordedCalls;
   stopAllChatsThrows: (params: { error: Error }) => void;
   stopAllChatsWasCalled: () => boolean;
   replayChatHistorySetupSuccess: () => void;
@@ -237,8 +243,14 @@ export const StartOrchestratorProxy = (): {
   replayChatHistoryGetCalls: () => readonly unknown[];
   startFollowupChatReturns: (params: { questId: QuestId; chatProcessId: ProcessId }) => void;
   startFollowupChatThrows: (params: { questId: QuestId; error: Error }) => void;
+  // Every call StartOrchestrator.startFollowupChat received, first-arg only — mirrors
+  // startChatGetCalls.
+  startFollowupChatGetCalls: () => readonly unknown[];
   stopFollowupChatReturns: (params: { questId: QuestId; stopped: boolean }) => void;
   stopFollowupChatThrows: (params: { questId: QuestId; error: Error }) => void;
+  // Every call StartOrchestrator.stopFollowupChat received, first-arg only — mirrors
+  // startChatGetCalls.
+  stopFollowupChatGetCalls: () => readonly unknown[];
   // Agent prompt — AgentPromptFlow.
   getAgentPromptReturns: (params: {
     agent: string;
@@ -401,6 +413,7 @@ export const StartOrchestratorProxy = (): {
     bootstrapThrows: ({ error }: { error: Error }): void => {
       bootstrapHandle.calledWith([]).throws(error);
     },
+    bootstrapGetCalls: (): RecordedCalls => bootstrapHandle.callsMatching([]),
     listGuildsReturns: ({ guilds }: { guilds: GuildListItem[] }): void => {
       listGuildsHandle.calledWith([]).resolves(guilds);
     },
@@ -750,6 +763,8 @@ export const StartOrchestratorProxy = (): {
     commentBatchThrows: ({ questId, error }: { questId: QuestId; error: Error }): void => {
       commentBatchHandle.calledWith([{ questId }]).rejects(error);
     },
+    commentBatchGetCalls: ({ questId }: { questId: QuestId }): RecordedCalls =>
+      commentBatchHandle.callsMatching([{ questId }]),
     // stopAllChats takes no arguments — calledWith([]) is the honest description of that call.
     stopAllChatsThrows: ({ error }: { error: Error }): void => {
       stopAllChatsHandle.calledWith([]).throws(error);
@@ -778,6 +793,8 @@ export const StartOrchestratorProxy = (): {
     startFollowupChatThrows: ({ questId, error }: { questId: QuestId; error: Error }): void => {
       startFollowupChatHandle.calledWith([{ questId }]).rejects(error);
     },
+    startFollowupChatGetCalls: (): readonly unknown[] =>
+      startFollowupChatHandle.callsMatching([]).map((call) => call[0]),
     stopFollowupChatReturns: ({
       questId,
       stopped,
@@ -790,6 +807,8 @@ export const StartOrchestratorProxy = (): {
     stopFollowupChatThrows: ({ questId, error }: { questId: QuestId; error: Error }): void => {
       stopFollowupChatHandle.calledWith([{ questId }]).rejects(error);
     },
+    stopFollowupChatGetCalls: (): readonly unknown[] =>
+      stopFollowupChatHandle.callsMatching([]).map((call) => call[0]),
     getAgentPromptReturns: ({
       agent,
       questId,
