@@ -8,14 +8,23 @@
  * const harness = scaffoldedTemplateTypecheckHarness();
  * const diagnostics = harness.typecheck({ content: playwrightConfigTemplateStatics.content });
  * // Returns every syntactic and semantic diagnostic as ErrorMessage[], or [] when it typechecks
+ * const diagnostics2 = harness.typecheck({ content, dirPath: testbed.guildPath });
+ * // Same, but a relative import in `content` resolves against a companion file really written
+ * // into dirPath instead of failing to find it
  */
 
 import { typescriptContentDiagnosticsAdapter } from '../../../src/adapters/typescript/content-diagnostics/typescript-content-diagnostics-adapter';
 import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
 
 export const scaffoldedTemplateTypecheckHarness = (): {
-  typecheck: (params: { content: string }) => readonly ErrorMessage[];
+  typecheck: (params: { content: string; dirPath?: string }) => readonly ErrorMessage[];
 } => ({
-  typecheck: ({ content }: { content: string }): readonly ErrorMessage[] =>
-    typescriptContentDiagnosticsAdapter({ content }),
+  typecheck: ({
+    content,
+    dirPath,
+  }: {
+    content: string;
+    dirPath?: string;
+  }): readonly ErrorMessage[] =>
+    typescriptContentDiagnosticsAdapter(dirPath === undefined ? { content } : { content, dirPath }),
 });
