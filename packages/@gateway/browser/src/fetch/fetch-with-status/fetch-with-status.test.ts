@@ -105,5 +105,27 @@ describe('fetchWithStatus', () => {
         proxy.getRequestBodies({ method: 'post', url: '/api/quests' }),
       ).resolves.toStrictEqual([{ name: 'quest-1' }]);
     });
+
+    it('EMPTY: {no call made} => getRequestCount reads 0', () => {
+      const proxy = fetchWithStatusProxy();
+      proxy.setupResponse({ method: 'post', url: '/api/quests', status: 200, bodyText: '{}' });
+
+      expect(proxy.getRequestCount({ method: 'post', url: '/api/quests' })).toBe(0);
+    });
+
+    it('VALID: {two calls to one address, one to another} => getRequestCount is per address', async () => {
+      const proxy = fetchWithStatusProxy();
+      proxy.setupResponse({ method: 'post', url: '/api/quests', status: 200, bodyText: '{}' });
+      proxy.setupResponse({ method: 'post', url: '/api/guilds', status: 200, bodyText: '{}' });
+
+      await fetchWithStatus({ url: '/api/quests', method: 'POST' });
+      await fetchWithStatus({ url: '/api/quests', method: 'POST' });
+      await fetchWithStatus({ url: '/api/guilds', method: 'POST' });
+
+      expect({
+        quests: proxy.getRequestCount({ method: 'post', url: '/api/quests' }),
+        guilds: proxy.getRequestCount({ method: 'post', url: '/api/guilds' }),
+      }).toStrictEqual({ quests: 2, guilds: 1 });
+    });
   });
 });

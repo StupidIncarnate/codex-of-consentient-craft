@@ -1,5 +1,5 @@
 import { StartEndpointMock } from '@dungeonmaster/testing';
-import type { HttpMethod } from '@dungeonmaster/testing';
+import type { HttpMethod, RequestCount } from '@dungeonmaster/testing';
 
 // A raw `registerSpyOn({ object: globalThis, method: 'fetch' })` (this file's own previous shape)
 // replaces the ONE shared `globalThis.fetch` handle for the whole test file, throwing on any call
@@ -21,6 +21,7 @@ export const fetchJsonProxy = (): {
   setupEmptyBody: (params: { method?: HttpMethod; url: string }) => void;
   setupConnectionRefused: (params: { method?: HttpMethod; url: string }) => void;
   getRequestBodies: (params: { method?: HttpMethod; url: string }) => Promise<unknown[]>;
+  getRequestCount: (params: { method?: HttpMethod; url: string }) => RequestCount;
 } => {
   const endpoints = new Map<string, Endpoint>();
 
@@ -100,5 +101,7 @@ export const fetchJsonProxy = (): {
       method?: HttpMethod;
       url: string;
     }): Promise<unknown[]> => endpointFor({ method, url }).getRequestBodies(),
+    getRequestCount: ({ method, url }: { method?: HttpMethod; url: string }): RequestCount =>
+      endpointFor({ method, url }).getRequestCount(),
   };
 };

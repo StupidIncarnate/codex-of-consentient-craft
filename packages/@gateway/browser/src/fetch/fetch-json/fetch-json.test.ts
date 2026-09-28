@@ -83,5 +83,27 @@ describe('fetchJson', () => {
         proxy.getRequestBodies({ method: 'post', url: '/api/guilds' }),
       ).resolves.toStrictEqual([{ name: 'guild-1' }]);
     });
+
+    it('EMPTY: {no call made} => getRequestCount reads 0', () => {
+      const proxy = fetchJsonProxy();
+      proxy.setupSuccess({ method: 'post', url: '/api/guilds', body: { id: 'g1' } });
+
+      expect(proxy.getRequestCount({ method: 'post', url: '/api/guilds' })).toBe(0);
+    });
+
+    it('VALID: {two calls to one address, one to another} => getRequestCount is per address', async () => {
+      const proxy = fetchJsonProxy();
+      proxy.setupSuccess({ method: 'post', url: '/api/guilds', body: { id: 'g1' } });
+      proxy.setupSuccess({ method: 'post', url: '/api/quests', body: { id: 'q1' } });
+
+      await fetchJson({ url: '/api/guilds', method: 'POST' });
+      await fetchJson({ url: '/api/guilds', method: 'POST' });
+      await fetchJson({ url: '/api/quests', method: 'POST' });
+
+      expect({
+        guilds: proxy.getRequestCount({ method: 'post', url: '/api/guilds' }),
+        quests: proxy.getRequestCount({ method: 'post', url: '/api/quests' }),
+      }).toStrictEqual({ guilds: 2, quests: 1 });
+    });
   });
 });

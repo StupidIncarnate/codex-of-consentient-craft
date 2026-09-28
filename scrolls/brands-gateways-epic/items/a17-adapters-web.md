@@ -362,3 +362,15 @@ First batch of Remaining Batch A (fetch/post). The full batch has 10 brokers and
    - `packages/web/src/adapters/fetch/post/fetch-post-adapter.test.ts`
 
 
+
+## Plan — F61
+
+Clears the seven W-POST brokers that assert `getRequestCount()`. `EndpointControl` already exposes
+`getRequestCount(): RequestCount`, so no `packages/testing` change and no `registerSpyOn` on
+`globalThis.fetch`. `fetchWithStatusProxy` already forwards it; `fetchJsonProxy` gains the same
+`getRequestCount({ method, url })`, both delegating to the per-address cached endpoint.
+
+Files (all under `packages/@gateway/browser/src/fetch/`):
+- `fetch-json/fetch-json.proxy.ts` — add `getRequestCount({ method, url })`.
+- `fetch-json/fetch-json.test.ts` — count is per address and counts real requests.
+- `fetch-with-status/fetch-with-status.test.ts` — same tests for its existing read-back.
