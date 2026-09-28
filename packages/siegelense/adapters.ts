@@ -14,7 +14,6 @@ export * from './src/adapters/fs/read-file/fs-read-file-adapter';
 export * from './src/adapters/pixelmatch/compare/pixelmatch-compare-adapter';
 export * from './src/adapters/pngjs/decode/pngjs-decode-adapter';
 
-export * from './src/adapters/fs/readdir/fs-readdir-adapter';
 export * from './src/adapters/fs/stat/fs-stat-adapter';
 export * from './src/adapters/fs/statfs/fs-statfs-adapter';
 export * from './src/adapters/os/info/os-info-adapter';

@@ -27,7 +27,7 @@ import { join } from '#gateway/node/path';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
-import { fsReaddirAdapter } from '../../../adapters/fs/readdir/fs-readdir-adapter';
+import { readdirIfExists } from '#gateway/node/fs__promises';
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import { profileBootContract } from '../../../contracts/profile-boot/profile-boot-contract';
 import type { ProfileBoot } from '../../../contracts/profile-boot/profile-boot-contract';
@@ -55,10 +55,12 @@ export const profileReadBroker = async ({
   const specHash = laneSpecHashBroker({ spec });
   const { samplesDir, bootsDir } = locationsProfileDirsFindBroker({ specHash });
 
-  const [sampleNames, bootNames] = await Promise.all([
-    fsReaddirAdapter({ dirPath: samplesDir }),
-    fsReaddirAdapter({ dirPath: bootsDir }),
+  const [sampleNamesRaw, bootNamesRaw] = await Promise.all([
+    readdirIfExists(samplesDir),
+    readdirIfExists(bootsDir),
   ]);
+  const sampleNames = sampleNamesRaw ?? [];
+  const bootNames = bootNamesRaw ?? [];
 
   const parsedSamples = await Promise.all(
     sampleNames

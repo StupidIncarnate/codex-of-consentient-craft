@@ -35,7 +35,7 @@ import { absoluteFilePathContract, fileNameContract } from '@dungeonmaster/share
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
-import { fsReaddirAdapter } from '../../../adapters/fs/readdir/fs-readdir-adapter';
+import { readdirIfExists } from '#gateway/node/fs__promises';
 import { fsStatAdapter } from '../../../adapters/fs/stat/fs-stat-adapter';
 import { shutdownReasonReadBroker } from '../../shutdown-reason/read/shutdown-reason-read-broker';
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
@@ -82,9 +82,9 @@ export const instanceEntryLayerBroker = async ({
     join(evidenceDir, locationsStatics.siegelense.runsDir),
   );
 
-  const [heartbeat, runsDirEntries, orphans, rssMB, shutdownReasonMarker] = await Promise.all([
+  const [heartbeat, runsDirEntriesRaw, orphans, rssMB, shutdownReasonMarker] = await Promise.all([
     heartbeatPromise,
-    fsReaddirAdapter({ dirPath: runsDirPath }),
+    readdirIfExists(runsDirPath),
     state === 'alive'
       ? Promise.resolve<readonly OrphanReading[]>([])
       : orphanReadBroker({ pgids: entry.pgids }),
@@ -93,6 +93,7 @@ export const instanceEntryLayerBroker = async ({
       ? Promise.resolve(null)
       : shutdownReasonReadBroker({ evidencePath: evidenceDir }),
   ]);
+  const runsDirEntries = runsDirEntriesRaw ?? [];
 
   const {
     runCount: runs,

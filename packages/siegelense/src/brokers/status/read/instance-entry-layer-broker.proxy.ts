@@ -33,7 +33,7 @@ import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
-import { fsReaddirAdapterProxy } from '../../../adapters/fs/readdir/fs-readdir-adapter.proxy';
+import { readdirIfExistsProxy } from '#gateway/node/fs__promises/readdir-if-exists/readdir-if-exists.proxy';
 import { fsStatAdapterProxy } from '../../../adapters/fs/stat/fs-stat-adapter.proxy';
 import type { InstanceHeartbeatStub } from '../../../contracts/instance-heartbeat/instance-heartbeat.stub';
 import type { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
@@ -106,7 +106,7 @@ export const instanceEntryLayerBrokerProxy = (): {
   const profileSoloProxy = profileSoloReadLayerBrokerProxy();
   const directEvidencePathProxy = locationsInstanceEvidencePathFindBrokerProxy();
   const heartbeatProxy = heartbeatReadBrokerProxy();
-  const runsDirProxy = fsReaddirAdapterProxy();
+  const runsDirProxy = readdirIfExistsProxy();
   const rssProxy = machineRssByPgidBrokerProxy();
   const orphanProxy = orphanReadBrokerProxy();
   const apiLogStatProxy = fsStatAdapterProxy();
@@ -152,11 +152,9 @@ export const instanceEntryLayerBrokerProxy = (): {
       evidencePath: FilePath;
       entries: readonly string[];
     }): void => {
-      runsDirProxy.resolves({
-        dirPath: AbsoluteFilePathStub({
-          value: `${evidencePath}/${locationsStatics.siegelense.runsDir}`,
-        }),
-        entries,
+      runsDirProxy.returns({
+        path: `${evidencePath}/${locationsStatics.siegelense.runsDir}`,
+        names: [...entries],
       });
     },
 

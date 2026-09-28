@@ -1,10 +1,10 @@
-import { readdir, stat } from 'fs/promises';
+import { stat } from 'fs/promises';
 
 import { join } from '#gateway/node/path';
 import type { AbsoluteFilePath, FilePath } from '@dungeonmaster/shared/contracts';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
-import { fsReaddirAdapterProxy } from '../../../adapters/fs/readdir/fs-readdir-adapter.proxy';
+import { readdirIfExistsProxy } from '#gateway/node/fs__promises/readdir-if-exists/readdir-if-exists.proxy';
 import { fsStatAdapterProxy } from '../../../adapters/fs/stat/fs-stat-adapter.proxy';
 import { locationsInstanceEvidencePathFindBrokerProxy } from '../../locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker.proxy';
 import { locationsPruneAssetPathsFindBrokerProxy } from '../../locations/prune-asset-paths-find/locations-prune-asset-paths-find-broker.proxy';
@@ -24,7 +24,7 @@ export const pruneAssetsListBrokerProxy = (): {
     modifiedAtMs: number;
   }) => void;
 } => {
-  const readdirProxy = fsReaddirAdapterProxy();
+  const readdirProxy = readdirIfExistsProxy();
   const statProxy = fsStatAdapterProxy();
   const evidencePathProxy = locationsInstanceEvidencePathFindBrokerProxy();
   locationsPruneAssetPathsFindBrokerProxy();
@@ -45,14 +45,6 @@ export const pruneAssetsListBrokerProxy = (): {
     .calledWith([(): boolean => true])
     .rejects(
       Object.assign(new Error('ENOENT: no such file or directory, stat'), { code: 'ENOENT' }),
-    );
-
-  // Same floor for directories, and the same reason: an instance whose evidence tree was never
-  // written has no `runs/` to list, and `fsReaddirAdapter` answers `[]` for exactly that ENOENT.
-  registerMock({ fn: readdir })
-    .calledWith([(): boolean => true])
-    .rejects(
-      Object.assign(new Error('ENOENT: no such file or directory, scandir'), { code: 'ENOENT' }),
     );
 
   return {
@@ -77,7 +69,7 @@ export const pruneAssetsListBrokerProxy = (): {
       dirPath: AbsoluteFilePath;
       entries: readonly string[];
     }): void => {
-      readdirProxy.resolves({ dirPath, entries });
+      readdirProxy.returns({ path: dirPath, names: [...entries] });
     },
 
     setupFile: ({

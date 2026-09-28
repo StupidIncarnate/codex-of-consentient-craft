@@ -21,7 +21,7 @@ import { absoluteFilePathContract, contentTextContract } from '@dungeonmaster/sh
 
 import { errorIsNativeErrorAdapter } from '../../../adapters/error/is-native-error/error-is-native-error-adapter';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
-import { fsReaddirAdapter } from '../../../adapters/fs/readdir/fs-readdir-adapter';
+import { readdirIfExists } from '#gateway/node/fs__promises';
 import { processIsAliveAdapter } from '../../../adapters/process/is-alive/process-is-alive-adapter';
 import { orphanReadingContract } from '../../../contracts/orphan-reading/orphan-reading-contract';
 import type { OrphanReading } from '../../../contracts/orphan-reading/orphan-reading-contract';
@@ -34,7 +34,7 @@ export const orphanReadBroker = async ({
   pgids: readonly ProcessGroupId[];
 }): Promise<readonly OrphanReading[]> => {
   const procRoot = absoluteFilePathContract.parse(machineStatics.procfs.root);
-  const entries = await fsReaddirAdapter({ dirPath: procRoot });
+  const entries = (await readdirIfExists(procRoot)) ?? [];
   // A pid directory is every entry that is purely a positive integer — 'vmstat', 'self', 'uptime'
   // and friends all fail Number.isInteger on their NaN conversion.
   const pidEntries = entries.filter(
@@ -44,7 +44,7 @@ export const orphanReadBroker = async ({
   const statResults = await Promise.all(
     pidEntries.map(async (pidEntry) => {
       const statPath = absoluteFilePathContract.parse(
-        join(procRoot, String(pidEntry), machineStatics.procfs.stat),
+        join(procRoot, pidEntry, machineStatics.procfs.stat),
       );
 
       const statContent = await fsReadFileAdapter({ filePath: statPath }).catch(
@@ -82,7 +82,7 @@ export const orphanReadBroker = async ({
         .split(' ');
       const fields = ['', '', ...remainderFields];
 
-      return { pid: String(pidEntry), pgrp: Number(fields[machineStatics.procfs.pgrpField]) };
+      return { pid: pidEntry, pgrp: Number(fields[machineStatics.procfs.pgrpField]) };
     }),
   );
 

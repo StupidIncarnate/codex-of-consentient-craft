@@ -30,6 +30,9 @@ const ABANDONED_RESERVATION_SOCKET_PATH = AbsoluteFilePathStub({
 const ABANDONED_RESERVATION_HOME_PATH = AbsoluteFilePathStub({
   value: `/tmp/dm-siege-${ABANDONED_RESERVATION_ID}`,
 });
+const ABANDONED_RESERVATION_EVIDENCE_PATH = AbsoluteFilePathStub({
+  value: `/home/user/.dungeonmaster/siegelense/unowned/instances/${ABANDONED_RESERVATION_ID}`,
+});
 
 describe('cleanupRunBroker', () => {
   describe('a mixed fleet', () => {
@@ -65,6 +68,10 @@ describe('cleanupRunBroker', () => {
         homePath: STALE_HOME_PATH,
       });
       proxy.setupShutdownReasonWriteSucceeds({ evidencePath: STALE_EVIDENCE_PATH });
+      proxy.setupDir({
+        dirPath: AbsoluteFilePathStub({ value: `${STALE_EVIDENCE_PATH}/runs` }),
+        entries: [],
+      });
       proxy.setupNoLocks();
 
       const result = await cleanupRunBroker();
@@ -100,6 +107,10 @@ describe('cleanupRunBroker', () => {
       proxy.setupDriverUnreachableNoPgids({
         socketPath: ABANDONED_RESERVATION_SOCKET_PATH,
         homePath: ABANDONED_RESERVATION_HOME_PATH,
+      });
+      proxy.setupDir({
+        dirPath: AbsoluteFilePathStub({ value: `${ABANDONED_RESERVATION_EVIDENCE_PATH}/runs` }),
+        entries: [],
       });
       proxy.setupNoLocks();
 
@@ -164,6 +175,10 @@ describe('cleanupRunBroker', () => {
         homePath: STALE_HOME_PATH,
       });
       proxy.setupShutdownReasonWriteSucceeds({ evidencePath: STALE_EVIDENCE_PATH });
+      proxy.setupDir({
+        dirPath: AbsoluteFilePathStub({ value: `${STALE_EVIDENCE_PATH}/runs` }),
+        entries: [],
+      });
       proxy.setupNoLocks();
 
       await cleanupRunBroker();

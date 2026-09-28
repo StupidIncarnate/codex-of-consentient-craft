@@ -247,3 +247,64 @@ Done: `open-fd`, `readlink`, `realpath` and `rename` adapters deleted (folders g
 - Composing proxies needed no edit; child proxies kept their method names.
 
 Remaining: `readdir` (17 non-adapter files) and `read-file` (61 non-adapter files).
+
+## Plan — SL-FS3
+
+Group SL-FS3: `fs/readdir` adapter in `packages/siegelense`:
+- `packages/siegelense/src/adapters/fs/readdir/` -> `readdirIfExists` from `#gateway/node/fs__promises`, staged via `#gateway/node/fs__promises/readdir-if-exists/readdir-if-exists.proxy` (`readdirIfExistsProxy`)
+- Note: `readdirIfExists` returns `null` where `fsReaddirAdapter` returned `[]`, so callers use `(await readdirIfExists(...)) ?? []`.
+- Delete adapter folder with proxy and test, and remove export from `packages/siegelense/adapters.ts`.
+
+### Full File Scope (35 files)
+
+#### Adapter to delete (3 files)
+- `packages/siegelense/src/adapters/fs/readdir/fs-readdir-adapter.ts`
+- `packages/siegelense/src/adapters/fs/readdir/fs-readdir-adapter.proxy.ts`
+- `packages/siegelense/src/adapters/fs/readdir/fs-readdir-adapter.test.ts`
+
+#### Barrel export to edit (1 file)
+- `packages/siegelense/adapters.ts`
+
+#### Direct callers (8 files)
+- `packages/siegelense/src/brokers/citation/resolve/verified-prelude-layer-broker.ts`
+- `packages/siegelense/src/brokers/machine/rss-by-pgid/machine-rss-by-pgid-broker.ts`
+- `packages/siegelense/src/brokers/orphan/read/orphan-read-broker.ts`
+- `packages/siegelense/src/brokers/profile/read/profile-read-broker.ts`
+- `packages/siegelense/src/brokers/prune/assets-list/prune-assets-list-broker.ts`
+- `packages/siegelense/src/brokers/prune/assets-list/run-shots-layer-broker.ts`
+- `packages/siegelense/src/brokers/results/read/run-list-layer-broker.ts`
+- `packages/siegelense/src/brokers/status/read/instance-entry-layer-broker.ts`
+
+#### Caller proxies (8 files)
+- `packages/siegelense/src/brokers/citation/resolve/verified-prelude-layer-broker.proxy.ts`
+- `packages/siegelense/src/brokers/machine/rss-by-pgid/machine-rss-by-pgid-broker.proxy.ts`
+- `packages/siegelense/src/brokers/orphan/read/orphan-read-broker.proxy.ts`
+- `packages/siegelense/src/brokers/profile/read/profile-read-broker.proxy.ts`
+- `packages/siegelense/src/brokers/prune/assets-list/prune-assets-list-broker.proxy.ts`
+- `packages/siegelense/src/brokers/prune/assets-list/run-shots-layer-broker.proxy.ts`
+- `packages/siegelense/src/brokers/results/read/run-list-layer-broker.proxy.ts`
+- `packages/siegelense/src/brokers/status/read/instance-entry-layer-broker.proxy.ts`
+
+#### Caller tests (8 files)
+- `packages/siegelense/src/brokers/citation/resolve/verified-prelude-layer-broker.test.ts`
+- `packages/siegelense/src/brokers/machine/rss-by-pgid/machine-rss-by-pgid-broker.test.ts`
+- `packages/siegelense/src/brokers/orphan/read/orphan-read-broker.test.ts`
+- `packages/siegelense/src/brokers/profile/read/profile-read-broker.test.ts`
+- `packages/siegelense/src/brokers/prune/assets-list/prune-assets-list-broker.test.ts`
+- `packages/siegelense/src/brokers/prune/assets-list/run-shots-layer-broker.test.ts`
+- `packages/siegelense/src/brokers/results/read/run-list-layer-broker.test.ts`
+- `packages/siegelense/src/brokers/status/read/instance-entry-layer-broker.test.ts`
+
+#### Composing proxies (no edit — child proxies maintain identical public methods and signatures) (6 files)
+- `packages/siegelense/src/brokers/capacity/read/capacity-read-broker.proxy.ts`
+- `packages/siegelense/src/brokers/citation/resolve/citation-resolve-broker.proxy.ts`
+- `packages/siegelense/src/brokers/heartbeat/write/heartbeat-write-broker.proxy.ts`
+- `packages/siegelense/src/brokers/prune/instance-reclaim/prune-instance-reclaim-broker.proxy.ts`
+- `packages/siegelense/src/brokers/results/read/results-read-broker.proxy.ts`
+- `packages/siegelense/src/brokers/status/read/status-read-broker.proxy.ts`
+
+#### Comment-only mention (1 file)
+- `packages/siegelense/src/flows/siegelense/siegelense-status-layer-flow.integration.test.ts`
+
+#### Staging fixes exposed by exact-path readdir mock (1 file)
+- `packages/siegelense/src/brokers/cleanup/run/cleanup-run-broker.test.ts` — exact staging in tests that assert zero aged assets on reaped instances where the old catch-all mock returned `[]`

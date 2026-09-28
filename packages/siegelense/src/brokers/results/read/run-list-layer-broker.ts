@@ -21,7 +21,7 @@ import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
-import { fsReaddirAdapter } from '../../../adapters/fs/readdir/fs-readdir-adapter';
+import { readdirIfExists } from '#gateway/node/fs__promises';
 import type { ReadingCount } from '../../../contracts/reading-count/reading-count-contract';
 import type { RunId } from '../../../contracts/run-id/run-id-contract';
 import { runEvidenceComputeTransformer } from '../../../transformers/run-evidence-compute/run-evidence-compute-transformer';
@@ -35,7 +35,7 @@ export const runListLayerBroker = async ({
     join(evidencePath, locationsStatics.siegelense.runsDir),
   );
 
-  const entries = await fsReaddirAdapter({ dirPath: runsDir });
+  const entries = (await readdirIfExists(runsDir)) ?? [];
 
   return runEvidenceComputeTransformer({ entries });
 };

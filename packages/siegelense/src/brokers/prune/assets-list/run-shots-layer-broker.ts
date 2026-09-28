@@ -14,10 +14,10 @@
  */
 
 import { join } from '#gateway/node/path';
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, fileNameContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
-import { fsReaddirAdapter } from '../../../adapters/fs/readdir/fs-readdir-adapter';
+import { readdirIfExists } from '#gateway/node/fs__promises';
 import { fsStatAdapter } from '../../../adapters/fs/stat/fs-stat-adapter';
 import { pruneAssetContract } from '../../../contracts/prune-asset/prune-asset-contract';
 import type { PruneAsset } from '../../../contracts/prune-asset/prune-asset-contract';
@@ -33,10 +33,11 @@ export const runShotsLayerBroker = async ({
   runId: RunId;
 }): Promise<readonly PruneAsset[]> => {
   const { shotsDir } = locationsRunPathsFindBroker({ evidencePath, runId });
-  const entries = await fsReaddirAdapter({ dirPath: shotsDir });
+  const entries = (await readdirIfExists(shotsDir)) ?? [];
 
   const found = await Promise.all(
-    entries.map(async (fileName) => {
+    entries.map(async (entryName) => {
+      const fileName = fileNameContract.parse(entryName);
       const kind = pruneAssetClassifyTransformer({ fileName });
 
       if (kind === null) {

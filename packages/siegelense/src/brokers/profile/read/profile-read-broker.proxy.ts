@@ -21,7 +21,7 @@ import { registerMock, registerSpyOn, requireActual } from '@dungeonmaster/testi
 import type { DevServerE2eProcess } from '@dungeonmaster/config';
 
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
-import { fsReaddirAdapterProxy } from '../../../adapters/fs/readdir/fs-readdir-adapter.proxy';
+import { readdirIfExistsProxy } from '#gateway/node/fs__promises/readdir-if-exists/readdir-if-exists.proxy';
 import { profileStatics } from '../../../statics/profile/profile-statics';
 import { laneSpecFindBrokerProxy } from '../../lane-spec/find/lane-spec-find-broker.proxy';
 import { laneSpecHashBrokerProxy } from '../../lane-spec/hash/lane-spec-hash-broker.proxy';
@@ -57,7 +57,7 @@ export const profileReadBrokerProxy = (): {
   registerMock({ fn: join })
     .calledWith([])
     .implement((...segments: never[]) => realPath.join(...segments));
-  const readdirProxy = fsReaddirAdapterProxy();
+  const readdirProxy = readdirIfExistsProxy();
   const readProxy = fsReadFileAdapterProxy();
   const stderrHandle = registerSpyOn({ object: process.stderr, method: 'write' });
   stderrHandle.calledWith([]).returns(true);
@@ -79,17 +79,13 @@ export const profileReadBrokerProxy = (): {
         profilesPath,
       });
 
-      readdirProxy.resolves({
-        dirPath: AbsoluteFilePathStub({
-          value: `${String(profilesPath)}/${profileStatics.dirs.samples}`,
-        }),
-        entries: sampleFileNames,
+      readdirProxy.returns({
+        path: `${String(profilesPath)}/${profileStatics.dirs.samples}`,
+        names: [...sampleFileNames],
       });
-      readdirProxy.resolves({
-        dirPath: AbsoluteFilePathStub({
-          value: `${String(profilesPath)}/${profileStatics.dirs.boots}`,
-        }),
-        entries: bootFileNames,
+      readdirProxy.returns({
+        path: `${String(profilesPath)}/${profileStatics.dirs.boots}`,
+        names: [...bootFileNames],
       });
     },
 

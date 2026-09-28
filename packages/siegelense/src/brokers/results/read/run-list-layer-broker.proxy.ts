@@ -3,7 +3,7 @@ import { registerMock, requireActual } from '@dungeonmaster/testing/register-moc
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
-import { fsReaddirAdapterProxy } from '../../../adapters/fs/readdir/fs-readdir-adapter.proxy';
+import { readdirIfExistsProxy } from '#gateway/node/fs__promises/readdir-if-exists/readdir-if-exists.proxy';
 
 export const runListLayerBrokerProxy = (): {
   setupRuns: (params: { evidencePath: AbsoluteFilePath; entries: readonly string[] }) => void;
@@ -16,7 +16,7 @@ export const runListLayerBrokerProxy = (): {
   registerMock({ fn: join })
     .calledWith([])
     .implement((...segments: never[]) => realPath.join(...segments));
-  const readdirProxy = fsReaddirAdapterProxy();
+  const readdirProxy = readdirIfExistsProxy();
 
   return {
     setupRuns: ({
@@ -27,12 +27,12 @@ export const runListLayerBrokerProxy = (): {
       entries: readonly string[];
     }): void => {
       const runsDir = AbsoluteFilePathStub({ value: `${evidencePath}/runs` });
-      readdirProxy.resolves({ dirPath: runsDir, entries });
+      readdirProxy.returns({ path: runsDir, names: [...entries] });
     },
 
     setupRunsDirMissing: ({ evidencePath }: { evidencePath: AbsoluteFilePath }): void => {
       const runsDir = AbsoluteFilePathStub({ value: `${evidencePath}/runs` });
-      readdirProxy.resolves({ dirPath: runsDir, entries: [] });
+      readdirProxy.missing({ path: runsDir });
     },
   };
 };

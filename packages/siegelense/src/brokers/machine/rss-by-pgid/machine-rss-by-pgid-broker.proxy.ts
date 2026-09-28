@@ -4,7 +4,7 @@ import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 
 import { errorIsNativeErrorAdapterProxy } from '../../../adapters/error/is-native-error/error-is-native-error-adapter.proxy';
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
-import { fsReaddirAdapterProxy } from '../../../adapters/fs/readdir/fs-readdir-adapter.proxy';
+import { readdirIfExistsProxy } from '#gateway/node/fs__promises/readdir-if-exists/readdir-if-exists.proxy';
 import { fsStatAdapterProxy } from '../../../adapters/fs/stat/fs-stat-adapter.proxy';
 
 const PROC_ROOT = AbsoluteFilePathStub({ value: '/proc' });
@@ -28,7 +28,7 @@ export const machineRssByPgidBrokerProxy = (): {
     .calledWith([])
     .implement((...segments: never[]) => realPath.join(...segments));
   const statProxy = fsStatAdapterProxy();
-  const readdirProxy = fsReaddirAdapterProxy();
+  const readdirProxy = readdirIfExistsProxy();
   const readFileProxy = fsReadFileAdapterProxy();
 
   return {
@@ -41,9 +41,9 @@ export const machineRssByPgidBrokerProxy = (): {
 
     setupProcListing: ({ pids }: { pids: readonly string[] }): void => {
       statProxy.resolves({ filePath: PROC_ROOT, sizeBytes: 0, modifiedAtMs: 0 });
-      readdirProxy.resolves({
-        dirPath: PROC_ROOT,
-        entries: [...pids, 'vmstat', 'self', 'uptime'],
+      readdirProxy.returns({
+        path: PROC_ROOT,
+        names: [...pids, 'vmstat', 'self', 'uptime'],
       });
     },
 

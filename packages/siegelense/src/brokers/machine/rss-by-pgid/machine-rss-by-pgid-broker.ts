@@ -26,7 +26,7 @@ import { join } from '#gateway/node/path';
 
 import { errorIsNativeErrorAdapter } from '../../../adapters/error/is-native-error/error-is-native-error-adapter';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
-import { fsReaddirAdapter } from '../../../adapters/fs/readdir/fs-readdir-adapter';
+import { readdirIfExists } from '#gateway/node/fs__promises';
 import { fsStatAdapter } from '../../../adapters/fs/stat/fs-stat-adapter';
 import { megabytesContract } from '../../../contracts/megabytes/megabytes-contract';
 import type { Megabytes } from '../../../contracts/megabytes/megabytes-contract';
@@ -45,7 +45,7 @@ export const machineRssByPgidBroker = async ({
     return null;
   }
 
-  const entries = await fsReaddirAdapter({ dirPath: procRoot });
+  const entries = (await readdirIfExists(procRoot)) ?? [];
   // A pid directory is every entry that is purely a positive integer — 'vmstat', 'self', 'uptime'
   // and friends all fail Number.isInteger on their NaN conversion.
   const pidEntries = entries.filter(
@@ -56,7 +56,7 @@ export const machineRssByPgidBroker = async ({
   const residentPagesPerPid = await Promise.all(
     pidEntries.map(async (pidEntry) => {
       const statPath = absoluteFilePathContract.parse(
-        join(procRoot, String(pidEntry), machineStatics.procfs.stat),
+        join(procRoot, pidEntry, machineStatics.procfs.stat),
       );
 
       const statContent = await fsReadFileAdapter({ filePath: statPath }).catch(
@@ -103,7 +103,7 @@ export const machineRssByPgidBroker = async ({
       }
 
       const statmPath = absoluteFilePathContract.parse(
-        join(procRoot, String(pidEntry), machineStatics.procfs.statm),
+        join(procRoot, pidEntry, machineStatics.procfs.statm),
       );
 
       const statmContent = await fsReadFileAdapter({ filePath: statmPath }).catch(

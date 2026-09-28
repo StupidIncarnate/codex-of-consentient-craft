@@ -8,7 +8,7 @@
  * parser-to-responder-to-broker seam those flags cross. Every fabricated instance is `state: 'killed'`
  * with `pgids: []` and no evidence directory on disk: `instanceStateResolveBroker` answers `'killed'`
  * straight off the registry row without touching the heartbeat/reservation staleness checks a live row
- * would need, and every other per-row read (`heartbeatReadBroker`, `fsReaddirAdapter`,
+ * would need, and every other per-row read (`heartbeatReadBroker`, `readdirIfExists`,
  * `orphanReadBroker`, `shutdownReasonReadBroker`) already answers a documented empty/null default for
  * a missing file rather than throwing — so the fixture stays REAL disk I/O through the whole chain
  * while every column except `LAST BEAT` renders a fixed literal. `LAST BEAT` stays deterministic too:

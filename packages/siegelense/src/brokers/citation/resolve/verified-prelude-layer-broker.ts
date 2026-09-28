@@ -20,7 +20,7 @@ import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { errorIsNativeErrorAdapter } from '../../../adapters/error/is-native-error/error-is-native-error-adapter';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
-import { fsReaddirAdapter } from '../../../adapters/fs/readdir/fs-readdir-adapter';
+import { readdirIfExists } from '#gateway/node/fs__promises';
 import { citationKindContract } from '../../../contracts/citation-kind/citation-kind-contract';
 import { citationReferenceContract } from '../../../contracts/citation-reference/citation-reference-contract';
 import type { CitationReference } from '../../../contracts/citation-reference/citation-reference-contract';
@@ -42,11 +42,11 @@ export const verifiedPreludeLayerBroker = async ({
   runIds: readonly RunId[];
 }): Promise<readonly CitationReference[]> => {
   const plansDir = locationsCitationQuestPlansPathFindBroker({ worktreePath });
-  const topEntries = await fsReaddirAdapter({ dirPath: plansDir });
+  const topEntries = (await readdirIfExists(plansDir)) ?? [];
 
   const nested = await Promise.all(
     topEntries.map(async (name) => {
-      if (String(name).endsWith(citationStatics.questPlans.preludeExtension)) {
+      if (name.endsWith(citationStatics.questPlans.preludeExtension)) {
         return [];
       }
 
@@ -56,30 +56,29 @@ export const verifiedPreludeLayerBroker = async ({
       // file this scan has no use for, and ENOTDIR is how the OS says so — every other read
       // failure propagates, because a plan directory that cannot be read is a question this
       // resolver must not answer with silence.
-      const entries = await fsReaddirAdapter({ dirPath: nestedDir }).catch((error: unknown) => {
-        if (
-          error !== null &&
-          typeof error === 'object' &&
-          errorIsNativeErrorAdapter({ value: error }) &&
-          'code' in error &&
-          error.code === 'ENOTDIR'
-        ) {
-          return [];
-        }
-        throw error;
-      });
+      const entries =
+        (await readdirIfExists(nestedDir).catch((error: unknown) => {
+          if (
+            error !== null &&
+            typeof error === 'object' &&
+            errorIsNativeErrorAdapter({ value: error }) &&
+            'code' in error &&
+            error.code === 'ENOTDIR'
+          ) {
+            return [];
+          }
+          throw error;
+        })) ?? [];
 
       return entries
-        .filter((entryName) =>
-          String(entryName).endsWith(citationStatics.questPlans.preludeExtension),
-        )
+        .filter((entryName) => entryName.endsWith(citationStatics.questPlans.preludeExtension))
         .map((entryName) => absoluteFilePathContract.parse(join(nestedDir, entryName)));
     }),
   );
 
   const planFiles = [
     ...topEntries
-      .filter((name) => String(name).endsWith(citationStatics.questPlans.preludeExtension))
+      .filter((name) => name.endsWith(citationStatics.questPlans.preludeExtension))
       .map((name) => absoluteFilePathContract.parse(join(plansDir, name))),
     ...nested.flat(),
   ];

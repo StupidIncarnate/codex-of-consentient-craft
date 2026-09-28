@@ -2,7 +2,7 @@ import { join } from '#gateway/node/path';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
-import { fsReaddirAdapterProxy } from '../../../adapters/fs/readdir/fs-readdir-adapter.proxy';
+import { readdirIfExistsProxy } from '#gateway/node/fs__promises/readdir-if-exists/readdir-if-exists.proxy';
 import { fsStatAdapterProxy } from '../../../adapters/fs/stat/fs-stat-adapter.proxy';
 import { locationsRunPathsFindBrokerProxy } from '../../locations/run-paths-find/locations-run-paths-find-broker.proxy';
 
@@ -15,7 +15,7 @@ export const runShotsLayerBrokerProxy = (): {
   }) => void;
   setupShotFileMissing: (params: { filePath: AbsoluteFilePath }) => void;
 } => {
-  const readdirProxy = fsReaddirAdapterProxy();
+  const readdirProxy = readdirIfExistsProxy();
   const statProxy = fsStatAdapterProxy();
   locationsRunPathsFindBrokerProxy();
   // `join` (from '#gateway/node/path') runs for real, on a sticky passthrough default — a shot
@@ -33,7 +33,7 @@ export const runShotsLayerBrokerProxy = (): {
       shotsDir: AbsoluteFilePath;
       entries: readonly string[];
     }): void => {
-      readdirProxy.resolves({ dirPath: shotsDir, entries });
+      readdirProxy.returns({ path: shotsDir, names: [...entries] });
     },
 
     setupShotFile: ({

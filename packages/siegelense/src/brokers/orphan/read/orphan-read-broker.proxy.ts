@@ -4,7 +4,7 @@ import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 
 import { errorIsNativeErrorAdapterProxy } from '../../../adapters/error/is-native-error/error-is-native-error-adapter.proxy';
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
-import { fsReaddirAdapterProxy } from '../../../adapters/fs/readdir/fs-readdir-adapter.proxy';
+import { readdirIfExistsProxy } from '#gateway/node/fs__promises/readdir-if-exists/readdir-if-exists.proxy';
 import { processIsAliveAdapterProxy } from '../../../adapters/process/is-alive/process-is-alive-adapter.proxy';
 import type { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
 
@@ -31,15 +31,15 @@ export const orphanReadBrokerProxy = (): {
   registerMock({ fn: join })
     .calledWith([])
     .implement((...segments: never[]) => realPath.join(...segments));
-  const readdirProxy = fsReaddirAdapterProxy();
+  const readdirProxy = readdirIfExistsProxy();
   const readFileProxy = fsReadFileAdapterProxy();
   const aliveProxy = processIsAliveAdapterProxy();
 
   return {
     setupProcListing: ({ pids }: { pids: readonly string[] }): void => {
-      readdirProxy.resolves({
-        dirPath: PROC_ROOT,
-        entries: [...pids, 'vmstat', 'self', 'uptime'],
+      readdirProxy.returns({
+        path: PROC_ROOT,
+        names: [...pids, 'vmstat', 'self', 'uptime'],
       });
     },
 

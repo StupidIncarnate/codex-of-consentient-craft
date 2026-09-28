@@ -13,9 +13,9 @@
  */
 
 import { join } from '#gateway/node/path';
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract, fileNameContract } from '@dungeonmaster/shared/contracts';
 
-import { fsReaddirAdapter } from '../../../adapters/fs/readdir/fs-readdir-adapter';
+import { readdirIfExists } from '#gateway/node/fs__promises';
 import { fsStatAdapter } from '../../../adapters/fs/stat/fs-stat-adapter';
 import { pruneAssetContract } from '../../../contracts/prune-asset/prune-asset-contract';
 import type { PruneAsset } from '../../../contracts/prune-asset/prune-asset-contract';
@@ -83,18 +83,19 @@ export const pruneAssetsListBroker = async ({
     }),
   );
 
-  const runsEntries = await fsReaddirAdapter({ dirPath: runsDir });
+  const runsEntries = (await readdirIfExists(runsDir)) ?? [];
 
   const runIdValues = new Set(
     runsEntries.flatMap((fileName) => {
-      const parsed = runIdContract.safeParse(String(fileName).replace(RUN_FILE_SUFFIX, ''));
+      const parsed = runIdContract.safeParse(fileName.replace(RUN_FILE_SUFFIX, ''));
       return parsed.success ? [String(parsed.data)] : [];
     }),
   );
   const runIds = [...runIdValues].sort().map((value) => runIdContract.parse(value));
 
   const runFileRows = await Promise.all(
-    runsEntries.map(async (fileName) => {
+    runsEntries.map(async (entryName) => {
+      const fileName = fileNameContract.parse(entryName);
       const kind = pruneAssetClassifyTransformer({ fileName });
 
       if (kind === null) {

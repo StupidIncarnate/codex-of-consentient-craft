@@ -4,7 +4,7 @@ import { registerMock, requireActual } from '@dungeonmaster/testing/register-moc
 
 import { errorIsNativeErrorAdapterProxy } from '../../../adapters/error/is-native-error/error-is-native-error-adapter.proxy';
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
-import { fsReaddirAdapterProxy } from '../../../adapters/fs/readdir/fs-readdir-adapter.proxy';
+import { readdirIfExistsProxy } from '#gateway/node/fs__promises/readdir-if-exists/readdir-if-exists.proxy';
 import { locationsCitationQuestPlansPathFindBrokerProxy } from '../../locations/citation-quest-plans-path-find/locations-citation-quest-plans-path-find-broker.proxy';
 
 export const verifiedPreludeLayerBrokerProxy = (): {
@@ -12,7 +12,7 @@ export const verifiedPreludeLayerBrokerProxy = (): {
   setupNotADirectory: (params: { dirPath: AbsoluteFilePath }) => void;
   setupPlanFile: (params: { filePath: AbsoluteFilePath; contents: string }) => void;
 } => {
-  const readdirProxy = fsReaddirAdapterProxy();
+  const readdirProxy = readdirIfExistsProxy();
   const readFileProxy = fsReadFileAdapterProxy();
   errorIsNativeErrorAdapterProxy();
   locationsCitationQuestPlansPathFindBrokerProxy();
@@ -33,18 +33,13 @@ export const verifiedPreludeLayerBrokerProxy = (): {
       dirPath: AbsoluteFilePath;
       entries: readonly string[];
     }): void => {
-      readdirProxy.resolves({ dirPath, entries });
+      readdirProxy.returns({ path: dirPath, names: [...entries] });
     },
 
     // An entry the scan tried to descend into that turns out to be an ordinary file. The OS says
     // ENOTDIR, and the layer treats it as "nothing to read here" rather than crashing the prune.
     setupNotADirectory: ({ dirPath }: { dirPath: AbsoluteFilePath }): void => {
-      readdirProxy.rejects({
-        dirPath,
-        error: Object.assign(new Error(`ENOTDIR: not a directory, scandir '${dirPath}'`), {
-          code: 'ENOTDIR',
-        }),
-      });
+      readdirProxy.notADirectory({ path: dirPath });
     },
 
     setupPlanFile: ({
