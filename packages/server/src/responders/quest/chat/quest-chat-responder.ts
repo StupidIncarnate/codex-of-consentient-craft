@@ -18,7 +18,7 @@ import {
   isUserPausedQuestStatusGuard,
 } from '@dungeonmaster/shared/guards';
 
-import { zodFirstFieldErrorMessageAdapter } from '../../../adapters/zod/first-field-error-message/zod-first-field-error-message-adapter';
+import { zodFirstFieldErrorMessageTransformer } from '../../../transformers/zod-first-field-error-message/zod-first-field-error-message-transformer';
 import { pastedImagePersistBroker } from '../../../brokers/pasted-image/persist/pasted-image-persist-broker';
 import { messageBodyContract } from '../../../contracts/message-body/message-body-contract';
 import { questIdParamsContract } from '../../../contracts/quest-id-params/quest-id-params-contract';
@@ -63,7 +63,7 @@ export const QuestChatResponder = async ({
       // mediaType, or over-ceiling byte size) — zod's own message already carries that detail
       // (and, where relevant, the cap/ceiling itself), so it is surfaced verbatim rather than
       // collapsed into the generic message-required reply below.
-      const imagesError = zodFirstFieldErrorMessageAdapter({
+      const imagesError = zodFirstFieldErrorMessageTransformer({
         error: parsedBody.error,
         field: contentTextContract.parse('images'),
       });

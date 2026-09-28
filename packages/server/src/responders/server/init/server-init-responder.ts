@@ -20,17 +20,17 @@ import {
 import { environmentStatics } from '@dungeonmaster/shared/statics';
 import { readFile } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
+import { createNodeWebSocket } from '#gateway/npm/hono__node-ws';
+import { serve } from '#gateway/npm/hono__node-server';
 
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
-import { honoCreateNodeWebSocketAdapter } from '../../../adapters/hono/create-node-web-socket/hono-create-node-web-socket-adapter';
-import { honoServeAdapter } from '../../../adapters/hono/serve/hono-serve-adapter';
 import {
   StartOrchestrator,
   orchestrationEventsState,
   questFindQuestPathBroker,
   questOutboxWatchBroker,
 } from '@dungeonmaster/orchestrator';
-import { processDevLogAdapter } from '../../../adapters/process/dev-log/process-dev-log-adapter';
+import { processDevLogBroker } from '../../../brokers/process/dev-log/process-dev-log-broker';
 import { questWaitForSessionStampBroker } from '../../../brokers/quest/wait-for-session-stamp/quest-wait-for-session-stamp-broker';
 import { webBundleResponseBroker } from '../../../brokers/web-bundle/response/web-bundle-response-broker';
 import { wsEventRelayBroadcastBroker } from '../../../brokers/ws-event-relay/broadcast/ws-event-relay-broadcast-broker';
@@ -52,7 +52,7 @@ import { wsIncomingMessageContract } from '../../../contracts/ws-incoming-messag
 import { chatEntriesExtractQuestIdTransformer } from '../../../transformers/chat-entries-extract-quest-id/chat-entries-extract-quest-id-transformer';
 import { parseChatOutputEntriesTransformer } from '../../../transformers/parse-chat-output-entries/parse-chat-output-entries-transformer';
 
-type HonoApp = Parameters<typeof honoCreateNodeWebSocketAdapter>[0]['app'];
+type HonoApp = Parameters<typeof createNodeWebSocket>[0]['app'];
 
 const FLUSH_INTERVAL_MS = 100;
 
@@ -82,7 +82,7 @@ export const ServerInitResponder = ({
   app: HonoApp;
   serveWebBundle?: boolean;
 }): AdapterResult => {
-  const nodeWebSocket = honoCreateNodeWebSocketAdapter({ app });
+  const nodeWebSocket = createNodeWebSocket({ app });
   const { upgradeWebSocket } = nodeWebSocket;
   // `clients` carries every connected WS so global events
   // (execution-queue-updated, execution-queue-error, phase-change, slot-update,
@@ -165,7 +165,7 @@ export const ServerInitResponder = ({
     upgradeWebSocket(() => ({
       onOpen: (_evt: unknown, ws: unknown) => {
         clients.add(ws as WsClient);
-        processDevLogAdapter({ message: 'WebSocket client connected' });
+        processDevLogBroker({ message: 'WebSocket client connected' });
       },
       onMessage: (evt: unknown, _ws: unknown) => {
         try {
@@ -198,7 +198,7 @@ export const ServerInitResponder = ({
               guildId,
               chatProcessId,
             }).catch(() => {
-              processDevLogAdapter({ message: 'replay-history failed' });
+              processDevLogBroker({ message: 'replay-history failed' });
             });
           }
 
@@ -226,7 +226,7 @@ export const ServerInitResponder = ({
               })
               .catch((error: unknown) => {
                 const reason = errorFormatReasonTransformer({ error });
-                processDevLogAdapter({
+                processDevLogBroker({
                   message: `ward-detail-request failed for quest ${questId}, ward ${wardResultId}: ${reason}`,
                 });
               });
@@ -301,7 +301,7 @@ export const ServerInitResponder = ({
                           guildId: subGuildId,
                           chatProcessId: taggedId,
                         }).catch(() => {
-                          processDevLogAdapter({
+                          processDevLogBroker({
                             message: `replay-quest-history work item ${wi.id} failed`,
                           });
                         });
@@ -311,7 +311,7 @@ export const ServerInitResponder = ({
               })
               .catch((error: unknown) => {
                 const reason = errorFormatReasonTransformer({ error });
-                processDevLogAdapter({
+                processDevLogBroker({
                   message: `subscribe-quest replay failed for ${subQuestId}: ${reason}`,
                 });
                 // The subscribing client is the only consumer that can act on this. Without the
@@ -475,7 +475,7 @@ export const ServerInitResponder = ({
                         guildId: replayGuildId,
                         chatProcessId: taggedId,
                       }).catch(() => {
-                        processDevLogAdapter({
+                        processDevLogBroker({
                           message: `replay-quest-history work item ${wi.id} failed`,
                         });
                       });
@@ -493,14 +493,14 @@ export const ServerInitResponder = ({
               })
               .catch((error: unknown) => {
                 const reason = errorFormatReasonTransformer({ error });
-                processDevLogAdapter({
+                processDevLogBroker({
                   message: `replay-quest-history failed for ${replayQuestId}: ${reason}`,
                 });
               });
           }
         } catch (error: unknown) {
           const reason = errorFormatReasonTransformer({ error });
-          processDevLogAdapter({ message: `WebSocket message parse error: ${reason}` });
+          processDevLogBroker({ message: `WebSocket message parse error: ${reason}` });
         }
       },
       onClose: (_evt: unknown, ws: unknown) => {
@@ -516,7 +516,7 @@ export const ServerInitResponder = ({
         for (const [pid, replayWs] of replayClientByChatProcessId) {
           if (replayWs === closedClient) replayClientByChatProcessId.delete(pid);
         }
-        processDevLogAdapter({ message: 'WebSocket client disconnected' });
+        processDevLogBroker({ message: 'WebSocket client disconnected' });
       },
     })),
   );
@@ -547,14 +547,16 @@ export const ServerInitResponder = ({
     return c.redirect(`http://${serverHost}:${webUiPort}${pathname}${search}`);
   });
 
-  const server = honoServeAdapter({
-    fetch: app.fetch,
-    port: Number(serverPort),
-    hostname: serverHost,
-    onListen: (info) => {
+  const server = serve(
+    {
+      fetch: app.fetch,
+      port: Number(serverPort),
+      hostname: serverHost,
+    },
+    (info) => {
       process.stdout.write(`Server listening on http://${serverHost}:${info.port}\n`);
     },
-  });
+  );
   nodeWebSocket.injectWebSocket(server);
 
   const pipelineChatOutputBuffer: {
@@ -587,7 +589,7 @@ export const ServerInitResponder = ({
           : undefined;
         const payloadWorkItemId = parsedPayload.success ? parsedPayload.data.workItemId : undefined;
 
-        processDevLogAdapter({
+        processDevLogBroker({
           message: devLogEventFormatTransformer({
             type,
             payload: payload as Record<PropertyKey, unknown>,
@@ -627,7 +629,7 @@ export const ServerInitResponder = ({
                 if (looked !== null) workItemQuestIdCache.set(payloadWorkItemId, looked);
               })
               .catch((error: unknown) => {
-                processDevLogAdapter({
+                processDevLogBroker({
                   message: `workItemId→questId lookup failed for ${payloadWorkItemId}: ${String(error)}`,
                 });
               });
@@ -817,7 +819,7 @@ export const ServerInitResponder = ({
     });
   }
 
-  // .unref()-ed: the listening socket honoServeAdapter opened above is what keeps this process
+  // .unref()-ed: the listening socket `serve` opened above is what keeps this process
   // alive, matching timer-set-interval-adapter.ts's precedent — a background flush loop must
   // never be the one thing standing between a caller with no listening socket (a unit test) and
   // a clean exit.
@@ -888,7 +890,7 @@ export const ServerInitResponder = ({
         })
         .catch((error: unknown) => {
           const reason = errorFormatReasonTransformer({ error });
-          processDevLogAdapter({ message: `Outbox quest load failed for ${questId}: ${reason}` });
+          processDevLogBroker({ message: `Outbox quest load failed for ${questId}: ${reason}` });
           // Every subscribed client is otherwise left believing what it last saw is current — this
           // is the same frame subscribe-quest's own initial-load failure sends (see above), reused
           // here for the OTHER load-failure surface: a later outbox firing on an already-subscribed
@@ -914,11 +916,11 @@ export const ServerInitResponder = ({
       outboxLoadChainByQuest.set(questId, chain);
     },
     onError: ({ error }) => {
-      processDevLogAdapter({ message: `Outbox watch error: ${String(error)}` });
+      processDevLogBroker({ message: `Outbox watch error: ${String(error)}` });
     },
   }).catch((error: unknown) => {
     const reason = errorFormatReasonTransformer({ error });
-    processDevLogAdapter({ message: `Outbox watcher failed to start: ${reason}` });
+    processDevLogBroker({ message: `Outbox watcher failed to start: ${reason}` });
   });
 
   // Startup recovery is gated behind first-WS-connect (first flip of web presence to true).
@@ -926,13 +928,13 @@ export const ServerInitResponder = ({
   // without a connected browser don't auto-launch orchestration loops.
 
   process.on('SIGTERM', () => {
-    processDevLogAdapter({ message: 'Shutting down: killing all chat processes (SIGTERM)' });
+    processDevLogBroker({ message: 'Shutting down: killing all chat processes (SIGTERM)' });
     clearInterval(flushIntervalHandle);
     StartOrchestrator.stopAllChats();
     process.exit(0);
   });
   process.on('SIGINT', () => {
-    processDevLogAdapter({ message: 'Shutting down: killing all chat processes (SIGINT)' });
+    processDevLogBroker({ message: 'Shutting down: killing all chat processes (SIGINT)' });
     clearInterval(flushIntervalHandle);
     StartOrchestrator.stopAllChats();
     process.exit(0);

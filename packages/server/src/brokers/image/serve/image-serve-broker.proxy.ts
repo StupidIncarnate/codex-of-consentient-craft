@@ -7,7 +7,7 @@ import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { locationsQuestImagesPathFindBrokerProxy } from '@dungeonmaster/shared/testing';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
-import { processDevLogAdapterProxy } from '../../../adapters/process/dev-log/process-dev-log-adapter.proxy';
+import { processDevLogBrokerProxy } from '../../process/dev-log/process-dev-log-broker.proxy';
 
 export const imageServeBrokerProxy = (): {
   setupFileBytes: (params: { filePath: AbsoluteFilePath; bytes: Uint8Array }) => void;
@@ -20,7 +20,7 @@ export const imageServeBrokerProxy = (): {
   const readProxy = readFileBytesProxy();
   const realpathHandleProxy = realpathProxy();
   const existsProxy = existsSyncProxy();
-  processDevLogAdapterProxy();
+  processDevLogBrokerProxy();
   const joinHandle = registerMock({ fn: join });
   const dirnameHandle = registerMock({ fn: dirname });
   const realPath = requireActual<{ dirname: typeof dirname; join: typeof join }>({

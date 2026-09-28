@@ -12,7 +12,7 @@
  * // → { status: 200, bytes, contentType: 'image/png' } when servable, or the 404 shape otherwise
  */
 
-import { processDevLogAdapter } from '../../../adapters/process/dev-log/process-dev-log-adapter';
+import { processDevLogBroker } from '../../../brokers/process/dev-log/process-dev-log-broker';
 import { imageServeBroker } from '../../../brokers/image/serve/image-serve-broker';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
 import { errorFormatReasonTransformer } from '../../../transformers/error-format-reason/error-format-reason-transformer';
@@ -50,7 +50,7 @@ export const ImageServeResponder = async ({
       contentType: result.contentType,
     };
   } catch (error: unknown) {
-    processDevLogAdapter({
+    processDevLogBroker({
       message: `Image serve failed for ${path}: ${errorFormatReasonTransformer({ error })}`,
     });
     return {

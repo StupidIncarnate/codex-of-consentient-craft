@@ -10,7 +10,7 @@ import { questFindQuestPathBroker, StartOrchestrator } from '@dungeonmaster/orch
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import { isChatWorkItemRoleGuard } from '@dungeonmaster/shared/guards';
 
-import { zodFirstFieldErrorMessageAdapter } from '../../../adapters/zod/first-field-error-message/zod-first-field-error-message-adapter';
+import { zodFirstFieldErrorMessageTransformer } from '../../../transformers/zod-first-field-error-message/zod-first-field-error-message-transformer';
 import { questClarifyBodyContract } from '../../../contracts/quest-clarify-body/quest-clarify-body-contract';
 import { questIdParamsContract } from '../../../contracts/quest-id-params/quest-id-params-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
@@ -52,7 +52,7 @@ export const QuestClarifyResponder = async ({
 
     const parsedBody = questClarifyBodyContract.safeParse(body);
     if (!parsedBody.success) {
-      const answersError = zodFirstFieldErrorMessageAdapter({
+      const answersError = zodFirstFieldErrorMessageTransformer({
         error: parsedBody.error,
         field: contentTextContract.parse('answers'),
       });

@@ -9,7 +9,7 @@
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
 
-import { zodFirstFieldErrorMessageAdapter } from '../../../adapters/zod/first-field-error-message/zod-first-field-error-message-adapter';
+import { zodFirstFieldErrorMessageTransformer } from '../../../transformers/zod-first-field-error-message/zod-first-field-error-message-transformer';
 import { questUserAddBodyContract } from '../../../contracts/quest-user-add-body/quest-user-add-body-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
@@ -30,11 +30,11 @@ export const QuestUserAddResponder = async ({
 
     const parsedBody = questUserAddBodyContract.safeParse(body);
     if (!parsedBody.success) {
-      const titleError = zodFirstFieldErrorMessageAdapter({
+      const titleError = zodFirstFieldErrorMessageTransformer({
         error: parsedBody.error,
         field: contentTextContract.parse('title'),
       });
-      const userRequestError = zodFirstFieldErrorMessageAdapter({
+      const userRequestError = zodFirstFieldErrorMessageTransformer({
         error: parsedBody.error,
         field: contentTextContract.parse('userRequest'),
       });

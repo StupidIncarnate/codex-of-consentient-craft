@@ -19,6 +19,16 @@ import { WsClientStub } from '../../../contracts/ws-client/ws-client.stub';
 import { ServerInitResponderProxy } from './server-init-responder.proxy';
 
 describe('ServerInitResponder', () => {
+  describe('websocket setup', () => {
+    it('VALID: {callResponder} => createNodeWebSocket receives a real Hono app', () => {
+      const proxy = ServerInitResponderProxy();
+
+      proxy.callResponder();
+
+      expect(proxy.getCapturedWebSocketAppIsHono()).toBe(true);
+    });
+  });
+
   describe('websocket onMessage replay-history', () => {
     it('VALID: {type: replay-history} => calls orchestratorReplayChatHistoryAdapter', async () => {
       const proxy = ServerInitResponderProxy();

@@ -1,13 +1,13 @@
-import { processDevLogAdapter } from './process-dev-log-adapter';
-import { processDevLogAdapterProxy } from './process-dev-log-adapter.proxy';
+import { processDevLogBroker } from './process-dev-log-broker';
+import { processDevLogBrokerProxy } from './process-dev-log-broker.proxy';
 
-describe('processDevLogAdapter', () => {
+describe('processDevLogBroker', () => {
   describe('verbose enabled', () => {
     it('VALID: {message: "WebSocket connected"} => writes prefixed line to stdout', () => {
-      const proxy = processDevLogAdapterProxy();
+      const proxy = processDevLogBrokerProxy();
       proxy.enableVerbose();
 
-      processDevLogAdapter({ message: 'WebSocket connected' });
+      processDevLogBroker({ message: 'WebSocket connected' });
 
       proxy.disableVerbose();
 
@@ -17,10 +17,10 @@ describe('processDevLogAdapter', () => {
 
   describe('verbose disabled', () => {
     it('VALID: {message: "WebSocket connected"} => does not write to stdout', () => {
-      const proxy = processDevLogAdapterProxy();
+      const proxy = processDevLogBrokerProxy();
       proxy.disableVerbose();
 
-      processDevLogAdapter({ message: 'WebSocket connected' });
+      processDevLogBroker({ message: 'WebSocket connected' });
 
       expect(proxy.getWrittenLines()).toStrictEqual([]);
     });

@@ -165,3 +165,116 @@ payloads — broken once the persist broker's write moved off that raw path; red
 `writeFileFromBase64` instead, which also drops a pre-existing raw-`fs/promises` import each file carried):
 - `packages/server/src/responders/quest/chat/quest-chat-responder.proxy.ts`
 - `packages/server/src/responders/quest/new/quest-new-responder.proxy.ts`
+
+## Plan — G-D (2026-09-28)
+
+Scope: `packages/server/src/adapters/{glob/find,hono/create-node-web-socket,hono/serve,process/dev-log,web-bundle/dist-path,zod/first-field-error-message}/`
+(batches 3-4, plus the item's undocumented ninth adapter). Package: server only, sequenced after G-C.
+
+Every one of the six has a real gateway route — none is blocked.
+
+**`glob/find`** → `#gateway/npm/glob`'s `glob` (required `ignore`, and `nodir` defaults to `true`
+where the deleted copy's underlying `nodir: false` never changed — passed explicitly to keep
+scan behaviour identical). Sole caller: `session-list-broker.ts`'s two direct/cross-project scans.
+
+**`hono/create-node-web-socket`** and **`hono/serve`** already import their npm calls through
+`#gateway/npm/hono__node-ws` / `#gateway/npm/hono__node-server` internally — the adapter step
+itself is just a redundant forwarder. Neither wrapper subpath ships a `.proxy.ts` (confirmed:
+`packages/@gateway/npm/src/hono__node-ws/node-web-socket/` and
+`.../hono__node-server/server/` hold only `.stub.ts` files), so per the recipe's "or
+`registerMock({ fn: join })` on the `#gateway/*` import where the gateway ships no proxy" clause,
+the sole caller's own proxy (`server-init-responder.proxy.ts`) stages `createNodeWebSocket`/`serve`
+directly via `registerMock` on the gateway import, inlining the deleted adapters' own proxy bodies
+verbatim (including `hono-serve-adapter.proxy.ts`'s `registerModuleMock({ module: '@hono/node-server' })`,
+which blocks the RAW npm package's own module-load side effect — SIGTERM listener registration —
+and must stay pointed at the raw specifier, since that is the module whose load it is suppressing,
+not the gateway barrel). Sole caller: `server-init-responder.ts`.
+
+**`process/dev-log`** splits per the item: `@dungeonmaster/node/process`'s `stdout`/`getEnv` for the
+I/O, a new **broker** (`brokers/process/dev-log/process-dev-log-broker.ts`, export
+`processDevLogBroker`) for the `[dev]`-prefix/`VERBOSE=1` gating logic — an adapter may not compose
+another adapter, but the gating logic has no npm call of its own to wrap, so it is business logic,
+not an I/O boundary. Same `{ message }` shape, same output. Wide caller list (read every call site
+first, confirmed exhaustive via `discover`): `brokers/image/serve/image-serve-broker.ts`,
+`responders/image/serve/image-serve-responder.ts`,
+`responders/quest-driven-watchers/bootstrap/quest-driven-watchers-bootstrap-responder.ts`,
+`responders/quest-driven-watchers/bootstrap/reconcile-watchers-layer-responder.ts`,
+`responders/server/init/server-init-responder.ts` — each with its own `.proxy.ts`. `CLAUDE.md`'s
+own dev-log section is untouched here, per the item (Z04's job).
+
+**`web-bundle/dist-path`** splits per the item: `resolvePackageRoot` (`#gateway/node/module`) +
+`existsSync` (`#gateway/node/fs`) for the I/O, a new **broker**
+(`brokers/web-bundle/dist-path/web-bundle-dist-path-broker.ts`, export `webBundleDistPathBroker`)
+for the resolution logic, alongside its sibling `brokers/web-bundle/response/`. Fixes the F32 note
+in the same move: the deleted adapter's own proxy staged `existsSync` with an address-less
+`calledWith([]).returns(true)` (answers ANY path) and imported raw `fs`'s `existsSync` directly —
+the new broker's proxy addresses `existsSyncProxy()` by the REAL dist path
+`resolvePackageRoot` really resolves for `@dungeonmaster/web` (that resolution has no mocking hook
+— see `resolve-package-root.proxy.ts`'s own header — so it runs for real in the proxy too), and
+imports only `#gateway/node/fs/exists-sync/exists-sync.proxy`. Sole caller:
+`brokers/web-bundle/response/web-bundle-response-broker.ts` (+ `.proxy.ts`, which calls the real
+broker directly the same way it called the real adapter before).
+
+**`zod/first-field-error-message`** (the item's ninth, undocumented adapter — no outside call at
+all) becomes a **transformer**: `transformers/zod-first-field-error-message/zod-first-field-error-message-transformer.ts`,
+export `zodFirstFieldErrorMessageTransformer`. Its body only reads `.issues`/`.message`/`.path` off
+a `z.ZodError`, but `transformers/` may not import `zod` (only `contracts/` may) — so it takes
+`error: unknown` and matches the shape through a new contract,
+`contracts/zod-issue-error/zod-issue-error-contract.ts` (+`.test.ts`+`.stub.ts`), copying
+siegelense's own `zod-issue-error-contract.ts` (`flagContractParseTransformer`'s solution to the
+identical problem). Five callers, each just the import swap (transformers need no proxy, so each
+composing `.proxy.ts` drops its `zodFirstFieldErrorMessageAdapterProxy()` call and import
+entirely — `parseImplementationImportsTransformer` excludes transformer imports from
+`enforce-proxy-child-creation`'s tracked set): `responders/quest/chat/quest-chat-responder.ts`,
+`responders/quest/clarify/quest-clarify-responder.ts`,
+`responders/quest/followup/quest-followup-responder.ts`,
+`responders/quest/new/quest-new-responder.ts`, `responders/quest/user-add/quest-user-add-responder.ts`
+— each with its own `.proxy.ts`.
+
+New files:
+- `packages/server/src/contracts/zod-issue-error/zod-issue-error-contract.ts` (+`.test.ts`+`.stub.ts`)
+- `packages/server/src/transformers/zod-first-field-error-message/zod-first-field-error-message-transformer.ts` (+`.test.ts`)
+- `packages/server/src/statics/glob-ignore/glob-ignore-statics.ts` (+`.test.ts`) — the four ignore
+  patterns the deleted `glob-find-adapter.ts` hard-coded, now required as an explicit caller arg
+- `packages/server/src/brokers/process/dev-log/process-dev-log-broker.ts` (+`.proxy.ts`+`.test.ts`)
+- `packages/server/src/brokers/web-bundle/dist-path/web-bundle-dist-path-broker.ts` (+`.proxy.ts`+`.test.ts`)
+
+Edit (callers, onto the gateway/new files above):
+- `packages/server/src/brokers/session/list/session-list-broker.ts` — glob
+- `packages/server/src/brokers/session/list/session-list-broker.proxy.ts` — glob
+- `packages/server/src/responders/server/init/server-init-responder.ts` — hono create-node-web-socket,
+  hono serve, process-dev-log
+- `packages/server/src/responders/server/init/server-init-responder.proxy.ts` — hono, process-dev-log
+- `packages/server/src/brokers/image/serve/image-serve-broker.ts` — process-dev-log
+- `packages/server/src/brokers/image/serve/image-serve-broker.proxy.ts` — process-dev-log
+- `packages/server/src/responders/image/serve/image-serve-responder.ts` — process-dev-log
+- `packages/server/src/responders/image/serve/image-serve-responder.proxy.ts` — process-dev-log
+- `packages/server/src/responders/quest-driven-watchers/bootstrap/quest-driven-watchers-bootstrap-responder.ts` — process-dev-log
+- `packages/server/src/responders/quest-driven-watchers/bootstrap/quest-driven-watchers-bootstrap-responder.proxy.ts` — process-dev-log
+- `packages/server/src/responders/quest-driven-watchers/bootstrap/reconcile-watchers-layer-responder.ts` — process-dev-log
+- `packages/server/src/responders/quest-driven-watchers/bootstrap/reconcile-watchers-layer-responder.proxy.ts` — process-dev-log
+- `packages/server/src/brokers/web-bundle/response/web-bundle-response-broker.ts` — web-bundle-dist-path
+- `packages/server/src/brokers/web-bundle/response/web-bundle-response-broker.proxy.ts` — web-bundle-dist-path
+- `packages/server/src/responders/quest/chat/quest-chat-responder.ts` — zod transformer
+- `packages/server/src/responders/quest/chat/quest-chat-responder.proxy.ts` — zod transformer
+- `packages/server/src/responders/quest/clarify/quest-clarify-responder.ts` — zod transformer
+- `packages/server/src/responders/quest/clarify/quest-clarify-responder.proxy.ts` — zod transformer
+- `packages/server/src/responders/quest/followup/quest-followup-responder.ts` — zod transformer
+- `packages/server/src/responders/quest/followup/quest-followup-responder.proxy.ts` — zod transformer
+- `packages/server/src/responders/quest/new/quest-new-responder.ts` — zod transformer
+- `packages/server/src/responders/quest/new/quest-new-responder.proxy.ts` — zod transformer (`fs-rm-adapter`
+  and its raw `fs/promises` `rm` import in this same file stay untouched — G-C's blocked `fs/rm`)
+- `packages/server/src/responders/quest/user-add/quest-user-add-responder.ts` — zod transformer
+- `packages/server/src/responders/quest/user-add/quest-user-add-responder.proxy.ts` — zod transformer
+
+Delete (adapter + proxy + test each, folder goes empty):
+- `packages/server/src/adapters/glob/find/glob-find-adapter.ts` (+`.proxy.ts`+`.test.ts`)
+- `packages/server/src/adapters/hono/create-node-web-socket/hono-create-node-web-socket-adapter.ts` (+`.proxy.ts`+`.test.ts`)
+- `packages/server/src/adapters/hono/serve/hono-serve-adapter.ts` (+`.proxy.ts`+`.test.ts`)
+- `packages/server/src/adapters/process/dev-log/process-dev-log-adapter.ts` (+`.proxy.ts`+`.test.ts`)
+- `packages/server/src/adapters/web-bundle/dist-path/web-bundle-dist-path-adapter.ts` (+`.proxy.ts`+`.test.ts`)
+- `packages/server/src/adapters/zod/first-field-error-message/zod-first-field-error-message-adapter.ts` (+`.proxy.ts`+`.test.ts`)
+
+Not touched (blocked, G-C's concession, another agent's gateway fix): `packages/server/src/adapters/fs/{rm,stat}/`
+and their sole callers `quest-new-responder.ts`/`session-list-broker.ts`'s `fsStatAdapter` half.
+`packages/server/src/adapters/` is NOT fully empty after this item lands — those two folders remain.

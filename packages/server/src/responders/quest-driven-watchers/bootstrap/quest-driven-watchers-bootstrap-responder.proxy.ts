@@ -4,7 +4,7 @@ import { questOutboxWatchBrokerProxy } from '@dungeonmaster/orchestrator/brokers
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
 
-import { processDevLogAdapterProxy } from '../../../adapters/process/dev-log/process-dev-log-adapter.proxy';
+import { processDevLogBrokerProxy } from '../../../brokers/process/dev-log/process-dev-log-broker.proxy';
 import { ReconcileWatchersLayerResponderProxy } from './reconcile-watchers-layer-responder.proxy';
 
 // Fixed so a reconcile driven by this proxy never depends on the real machine's directory.
@@ -29,7 +29,7 @@ export const QuestDrivenWatchersBootstrapResponderProxy = (): {
   cwdProxy();
   const cwdHandle = registerMock({ fn: cwd });
   cwdHandle.calledWith([]).returns(BOOTSTRAP_CWD);
-  processDevLogAdapterProxy();
+  processDevLogBrokerProxy();
   ReconcileWatchersLayerResponderProxy();
 
   const outboxWatchProxy = questOutboxWatchBrokerProxy();

@@ -2,7 +2,7 @@ import { questListBrokerProxy } from '@dungeonmaster/orchestrator/brokers/quest/
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import type { GuildId, GuildListItemStub, QuestStub } from '@dungeonmaster/shared/contracts';
 
-import { processDevLogAdapterProxy } from '../../../adapters/process/dev-log/process-dev-log-adapter.proxy';
+import { processDevLogBrokerProxy } from '../../../brokers/process/dev-log/process-dev-log-broker.proxy';
 
 type GuildListItem = ReturnType<typeof GuildListItemStub>;
 type Quest = ReturnType<typeof QuestStub>;
@@ -38,8 +38,8 @@ export const ReconcileWatchersLayerResponderProxy = (): {
 
   // No test in this responder's own colocated .test.ts asserts on a dev-log line — creating the
   // child proxy here only registers its mock, so the responder's real calls into
-  // processDevLogAdapter resolve instead of hitting a real, unmocked I/O call.
-  processDevLogAdapterProxy();
+  // processDevLogBroker resolve instead of hitting a real, unmocked I/O call.
+  processDevLogBrokerProxy();
 
   return {
     guildsProxy: {

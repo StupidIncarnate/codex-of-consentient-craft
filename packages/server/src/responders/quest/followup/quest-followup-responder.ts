@@ -15,7 +15,7 @@ import { questFindQuestPathBroker, StartOrchestrator } from '@dungeonmaster/orch
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import { isFollowupChatableQuestStatusGuard } from '@dungeonmaster/shared/guards';
 
-import { zodFirstFieldErrorMessageAdapter } from '../../../adapters/zod/first-field-error-message/zod-first-field-error-message-adapter';
+import { zodFirstFieldErrorMessageTransformer } from '../../../transformers/zod-first-field-error-message/zod-first-field-error-message-transformer';
 import { pastedImagePersistBroker } from '../../../brokers/pasted-image/persist/pasted-image-persist-broker';
 import { messageBodyContract } from '../../../contracts/message-body/message-body-contract';
 import { questIdParamsContract } from '../../../contracts/quest-id-params/quest-id-params-contract';
@@ -60,7 +60,7 @@ export const QuestFollowupResponder = async ({
       // under the SAME top-level `images` field — so surfacing zod's own first message for that
       // field tells the browser toast what actually failed, instead of blaming the message field
       // for a problem in images.
-      const imagesError = zodFirstFieldErrorMessageAdapter({
+      const imagesError = zodFirstFieldErrorMessageTransformer({
         error: parsedBody.error,
         field: contentTextContract.parse('images'),
       });

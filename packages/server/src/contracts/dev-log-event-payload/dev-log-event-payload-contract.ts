@@ -6,7 +6,7 @@
  * Every field is `.nullish()`, never `.optional()` alone. Orchestration events signal "this value
  * was never captured" with an explicit `null`, not by omitting the key: a chat spawn that dies
  * before its first stream-json init line emits `chat-complete` carrying `sessionId: null`. Since
- * the formatters run on EVERY event — and are evaluated as an argument to `processDevLogAdapter`,
+ * the formatters run on EVERY event — and are evaluated as an argument to `processDevLogBroker`,
  * so ahead of its VERBOSE gate — a schema that rejects null turns that event into an uncaught
  * throw inside `orchestrationEventsState.emit`, which takes the server process down.
  *

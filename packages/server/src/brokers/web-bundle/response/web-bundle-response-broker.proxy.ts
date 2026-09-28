@@ -5,8 +5,8 @@ import type { FileContents } from '@dungeonmaster/shared/contracts';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
 import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
-import { webBundleDistPathAdapter } from '../../../adapters/web-bundle/dist-path/web-bundle-dist-path-adapter';
-import { webBundleDistPathAdapterProxy } from '../../../adapters/web-bundle/dist-path/web-bundle-dist-path-adapter.proxy';
+import { webBundleDistPathBroker } from '../dist-path/web-bundle-dist-path-broker';
+import { webBundleDistPathBrokerProxy } from '../dist-path/web-bundle-dist-path-broker.proxy';
 import { webBundlePackageResolveBrokerProxy } from '../../web-bundle-package/resolve/web-bundle-package-resolve-broker.proxy';
 
 const WEB_PACKAGE_NAME = '@dungeonmaster/web';
@@ -18,7 +18,7 @@ export const webBundleResponseBrokerProxy = (): {
   const packageResolveProxy = webBundlePackageResolveBrokerProxy();
   packageResolveProxy.setupOwnDependencies({ dependencyNames: [WEB_PACKAGE_NAME] });
   packageResolveProxy.setupCandidateReact({ candidateName: WEB_PACKAGE_NAME });
-  const distPathProxy = webBundleDistPathAdapterProxy();
+  const distPathProxy = webBundleDistPathBrokerProxy();
   const readProxy = readFileProxy();
   const joinHandle = registerMock({ fn: join });
   const realPath = requireActual<{ join: typeof join }>({ module: 'path' });
@@ -27,7 +27,7 @@ export const webBundleResponseBrokerProxy = (): {
   return {
     // expectedRelativePath is the SAME relativePath the broker itself computes from its pathname
     // (isStatic ? pathname : '/index.html') — required, not optional, so every scenario stages the
-    // exact filepath readFile will really be called with. webBundleDistPathAdapter runs
+    // exact filepath readFile will really be called with. webBundleDistPathBroker runs
     // for real (require.resolve against this checkout's own @dungeonmaster/web), the same way the
     // broker resolves it, so distPath here is the real one.
     setupFileContents: ({
@@ -37,12 +37,13 @@ export const webBundleResponseBrokerProxy = (): {
       contents: FileContents;
       expectedRelativePath: string;
     }): void => {
-      const distPath = webBundleDistPathAdapter({
+      distPathProxy.bundleExists();
+      const distPath = webBundleDistPathBroker({
         packageName: PackageNameStub({ value: WEB_PACKAGE_NAME }),
       });
       if (distPath === null) {
         throw new Error(
-          'webBundleResponseBrokerProxy.setupFileContents: webBundleDistPathAdapter resolved null — is @dungeonmaster/web built?',
+          'webBundleResponseBrokerProxy.setupFileContents: webBundleDistPathBroker resolved null — is @dungeonmaster/web built?',
         );
       }
       const expectedFilepath = FilePathStub({ value: join(distPath, expectedRelativePath) });

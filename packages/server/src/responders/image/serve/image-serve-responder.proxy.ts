@@ -1,7 +1,7 @@
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
 
-import { processDevLogAdapterProxy } from '../../../adapters/process/dev-log/process-dev-log-adapter.proxy';
+import { processDevLogBrokerProxy } from '../../../brokers/process/dev-log/process-dev-log-broker.proxy';
 import { imageServeBrokerProxy } from '../../../brokers/image/serve/image-serve-broker.proxy';
 import { ImageServeResponder } from './image-serve-responder';
 
@@ -14,7 +14,7 @@ export const ImageServeResponderProxy = (): {
   getDevLogOutput: () => RecordedCalls;
 } => {
   const brokerProxy = imageServeBrokerProxy();
-  const devLogProxy = processDevLogAdapterProxy();
+  const devLogProxy = processDevLogBrokerProxy();
 
   return {
     setupFileBytes: ({ filePath, bytes }): void => {

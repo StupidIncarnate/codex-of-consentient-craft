@@ -13,7 +13,7 @@ import type { FileContents } from '@dungeonmaster/shared/contracts';
 import { readFile } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
 
-import { webBundleDistPathAdapter } from '../../../adapters/web-bundle/dist-path/web-bundle-dist-path-adapter';
+import { webBundleDistPathBroker } from '../dist-path/web-bundle-dist-path-broker';
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
 import { webBundleRootStaticPathsStatics } from '../../../statics/web-bundle-root-static-paths/web-bundle-root-static-paths-statics';
@@ -35,7 +35,7 @@ export const webBundleResponseBroker = async ({
   status: typeof httpStatusStatics.success.ok | typeof httpStatusStatics.serverError.internal;
 }> => {
   const packageName = await webBundlePackageResolveBroker();
-  const distPath = webBundleDistPathAdapter({ packageName });
+  const distPath = webBundleDistPathBroker({ packageName });
 
   if (distPath === null) {
     return {

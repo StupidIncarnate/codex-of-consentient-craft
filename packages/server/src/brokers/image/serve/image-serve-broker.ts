@@ -23,7 +23,7 @@ import { locationsQuestImagesPathFindBroker } from '@dungeonmaster/shared/broker
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
-import { processDevLogAdapter } from '../../../adapters/process/dev-log/process-dev-log-adapter';
+import { processDevLogBroker } from '../../process/dev-log/process-dev-log-broker';
 import { isServableImagePathGuard } from '../../../guards/is-servable-image-path/is-servable-image-path-guard';
 import { errorFormatReasonTransformer } from '../../../transformers/error-format-reason/error-format-reason-transformer';
 import { imageContentTypeTransformer } from '../../../transformers/image-content-type/image-content-type-transformer';
@@ -70,7 +70,7 @@ export const imageServeBroker = async ({
     return { bytes, contentType };
   } catch (error: unknown) {
     const reason = errorFormatReasonTransformer({ error });
-    processDevLogAdapter({ message: `Image read failed for ${filePath}: ${reason}` });
+    processDevLogBroker({ message: `Image read failed for ${filePath}: ${reason}` });
     return null;
   }
 };

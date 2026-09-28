@@ -1,6 +1,6 @@
 /**
  * PURPOSE: Finds which of @dungeonmaster/server's own dependencies is the built frontend bundle
- *   to serve, so webBundleDistPathAdapter never hardcodes a package name a fork or a future split
+ *   to serve, so webBundleDistPathBroker never hardcodes a package name a fork or a future split
  *   could rename, or answer with more than one package. A published install ships no source tree,
  *   so the folder-structure signal `packageBrowserTypeTransformer` reads (a `widgets/` folder) is
  *   unavailable here — this reads the same underlying fact (does the candidate ship as a react

@@ -15,13 +15,14 @@ import {
 import type { GuildId, SessionId } from '@dungeonmaster/shared/contracts';
 import { readFile } from '#gateway/node/fs__promises';
 import { homedir } from '#gateway/node/os';
+import { glob } from '#gateway/npm/glob';
 import { StartOrchestrator, isoTimestampContract } from '@dungeonmaster/orchestrator';
 
-import { globFindAdapter } from '../../../adapters/glob/find/glob-find-adapter';
 import { fsStatAdapter } from '../../../adapters/fs/stat/fs-stat-adapter';
 import { claudeProjectPathEncoderTransformer } from '@dungeonmaster/shared/transformers';
 import { extractSessionFileSummaryTransformer } from '../../../transformers/extract-session-file-summary/extract-session-file-summary-transformer';
 import { hasSessionSummaryGuard } from '../../../guards/has-session-summary/has-session-summary-guard';
+import { globIgnoreStatics } from '../../../statics/glob-ignore/glob-ignore-statics';
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 import { mtimeMsContract } from '../../../contracts/mtime-ms/mtime-ms-contract';
@@ -58,10 +59,13 @@ export const sessionListBroker = async ({
     String(probePath).slice(0, String(probePath).lastIndexOf('/')),
   );
 
-  const directFiles = await globFindAdapter({
-    pattern: globPatternContract.parse('*.jsonl'),
-    cwd: claudeProjectDir,
-  });
+  const directFiles = (
+    await glob(globPatternContract.parse('*.jsonl'), {
+      cwd: claudeProjectDir,
+      nodir: false,
+      ignore: globIgnoreStatics.defaults,
+    })
+  ).map((file) => filePathContract.parse(file));
 
   const quests = await StartOrchestrator.listQuests({ guildId });
 
@@ -103,10 +107,13 @@ export const sessionListBroker = async ({
   );
   const crossProjectFileLists = await Promise.all(
     crossProjectSessionIds.map(async (sessionId) =>
-      globFindAdapter({
-        pattern: globPatternContract.parse(`*/${sessionId}.jsonl`),
-        cwd: crossProjectRoot,
-      }),
+      (
+        await glob(globPatternContract.parse(`*/${sessionId}.jsonl`), {
+          cwd: crossProjectRoot,
+          nodir: false,
+          ignore: globIgnoreStatics.defaults,
+        })
+      ).map((file) => filePathContract.parse(file)),
     ),
   );
   const crossProjectFiles = crossProjectFileLists.flat();

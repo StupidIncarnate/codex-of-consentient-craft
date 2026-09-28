@@ -10,11 +10,12 @@ import type {
 import { claudeProjectPathEncoderTransformer } from '@dungeonmaster/shared/transformers';
 import { homedir } from '#gateway/node/os';
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
+import { globProxy } from '#gateway/npm/glob/glob/glob.proxy';
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-import { globFindAdapterProxy } from '../../../adapters/glob/find/glob-find-adapter.proxy';
 import { fsStatAdapterProxy } from '../../../adapters/fs/stat/fs-stat-adapter.proxy';
+import { globIgnoreStatics } from '../../../statics/glob-ignore/glob-ignore-statics';
 import type { GlobPatternStub } from '@dungeonmaster/shared/contracts';
 import type { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 
@@ -53,7 +54,7 @@ export const sessionListBrokerProxy = (): {
     .calledWith([])
     .rejects(new Error('sessionListBrokerProxy: no loadQuest scenario staged for this questId'));
   const homedirHandle = registerMock({ fn: homedir });
-  const globProxy = globFindAdapterProxy();
+  const globHandle = globProxy();
   const statProxy = fsStatAdapterProxy();
   const readProxy = readFileProxy();
 
@@ -114,10 +115,10 @@ export const sessionListBrokerProxy = (): {
       // an explicit pattern => the cross-project scan (`*/<sessionId>.jsonl`, flat-root cwd) — the
       // same split the broker's own two glob call sites use.
       const cwd = pattern === undefined ? directProjectDirFor() : crossProjectRootFor();
-      globProxy.returns({
+      globHandle.returns({
         pattern: (pattern ?? '*.jsonl') as GlobPattern,
-        cwd,
-        files: filePaths,
+        options: { cwd, nodir: false, ignore: globIgnoreStatics.defaults },
+        matches: [...filePaths],
       });
       pendingStatFilePaths.push(...filePaths);
       pendingReadFilePaths.push(...filePaths);

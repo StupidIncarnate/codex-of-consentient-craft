@@ -19,7 +19,7 @@ import { cwd } from '#gateway/node/process';
 import type { SessionId } from '@dungeonmaster/shared/contracts';
 import { questOutboxWatchBroker } from '@dungeonmaster/orchestrator';
 
-import { processDevLogAdapter } from '../../../adapters/process/dev-log/process-dev-log-adapter';
+import { processDevLogBroker } from '../../../brokers/process/dev-log/process-dev-log-broker';
 import { ReconcileWatchersLayerResponder } from './reconcile-watchers-layer-responder';
 
 const FALLBACK_RECONCILE_INTERVAL_MS = 3000;
@@ -45,13 +45,13 @@ export const QuestDrivenWatchersBootstrapResponder = async (): Promise<{
           ReconcileWatchersLayerResponder({ watchers, projectDir }),
         )
         .catch((error: unknown): void => {
-          processDevLogAdapter({
+          processDevLogBroker({
             message: `quest-driven-watchers: reconcile failed: ${String(error)}`,
           });
         });
     },
     onError: ({ error }: { error: unknown }): void => {
-      processDevLogAdapter({
+      processDevLogBroker({
         message: `quest-driven-watchers: outbox error: ${String(error)}`,
       });
     },
@@ -61,7 +61,7 @@ export const QuestDrivenWatchersBootstrapResponder = async (): Promise<{
   chain.promise = chain.promise
     .then(async (): Promise<unknown> => ReconcileWatchersLayerResponder({ watchers, projectDir }))
     .catch((error: unknown): void => {
-      processDevLogAdapter({
+      processDevLogBroker({
         message: `quest-driven-watchers: initial reconcile failed: ${String(error)}`,
       });
     });
@@ -74,7 +74,7 @@ export const QuestDrivenWatchersBootstrapResponder = async (): Promise<{
     chain.promise = chain.promise
       .then(async (): Promise<unknown> => ReconcileWatchersLayerResponder({ watchers, projectDir }))
       .catch((error: unknown): void => {
-        processDevLogAdapter({
+        processDevLogBroker({
           message: `quest-driven-watchers: poll reconcile failed: ${String(error)}`,
         });
       });

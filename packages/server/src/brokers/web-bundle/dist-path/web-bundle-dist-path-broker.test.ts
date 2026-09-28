@@ -1,13 +1,14 @@
 import { PackageNameStub } from '@dungeonmaster/shared/contracts';
-import { webBundleDistPathAdapter } from './web-bundle-dist-path-adapter';
-import { webBundleDistPathAdapterProxy } from './web-bundle-dist-path-adapter.proxy';
 
-describe('webBundleDistPathAdapter', () => {
+import { webBundleDistPathBroker } from './web-bundle-dist-path-broker';
+import { webBundleDistPathBrokerProxy } from './web-bundle-dist-path-broker.proxy';
+
+describe('webBundleDistPathBroker', () => {
   it('VALID: {@dungeonmaster/web installed, dist present} => returns path ending with web/dist', () => {
-    const proxy = webBundleDistPathAdapterProxy();
+    const proxy = webBundleDistPathBrokerProxy();
     proxy.bundleExists();
 
-    const result = webBundleDistPathAdapter({
+    const result = webBundleDistPathBroker({
       packageName: PackageNameStub({ value: '@dungeonmaster/web' }),
     });
 
@@ -15,10 +16,10 @@ describe('webBundleDistPathAdapter', () => {
   });
 
   it('VALID: {dist directory missing} => returns null', () => {
-    const proxy = webBundleDistPathAdapterProxy();
+    const proxy = webBundleDistPathBrokerProxy();
     proxy.bundleMissing();
 
-    const result = webBundleDistPathAdapter({
+    const result = webBundleDistPathBroker({
       packageName: PackageNameStub({ value: '@dungeonmaster/web' }),
     });
 
@@ -26,10 +27,10 @@ describe('webBundleDistPathAdapter', () => {
   });
 
   it('EDGE: {package cannot be resolved} => returns null', () => {
-    const proxy = webBundleDistPathAdapterProxy();
+    const proxy = webBundleDistPathBrokerProxy();
     proxy.bundleExists();
 
-    const result = webBundleDistPathAdapter({
+    const result = webBundleDistPathBroker({
       packageName: PackageNameStub({ value: '@dungeonmaster/nonexistent-test-package' }),
     });
 

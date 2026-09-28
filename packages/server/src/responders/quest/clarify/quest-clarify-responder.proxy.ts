@@ -8,7 +8,6 @@ import type {
   QuestStub,
 } from '@dungeonmaster/shared/contracts';
 
-import { zodFirstFieldErrorMessageAdapterProxy } from '../../../adapters/zod/first-field-error-message/zod-first-field-error-message-adapter.proxy';
 import { QuestClarifyResponder } from './quest-clarify-responder';
 
 type Quest = ReturnType<typeof QuestStub>;
@@ -35,9 +34,6 @@ export const QuestClarifyResponderProxy = (): {
   // questListBroker. That proxy also wires the bare `@dungeonmaster/orchestrator` barrel export
   // this responder calls through, so no separate passthrough is needed here.
   const findQuestPathProxy = questFindQuestPathBrokerProxy();
-  // The adapter has no I/O to mock (see its own proxy header) — composing it here is what the
-  // proxy-child-creation rule expects of every implementation import, not a stage this test needs.
-  zodFirstFieldErrorMessageAdapterProxy();
 
   return {
     setupQuestLoad: ({ quest }: { quest: Quest }): void => {

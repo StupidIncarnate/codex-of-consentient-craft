@@ -37,7 +37,7 @@ import { isActiveWorkItemStatusGuard } from '@dungeonmaster/shared/guards';
 import { questSessionCwdTransformer } from '@dungeonmaster/shared/transformers';
 import { StartOrchestrator, questListBroker } from '@dungeonmaster/orchestrator';
 
-import { processDevLogAdapter } from '../../../adapters/process/dev-log/process-dev-log-adapter';
+import { processDevLogBroker } from '../../../brokers/process/dev-log/process-dev-log-broker';
 
 export const ReconcileWatchersLayerResponder = async ({
   watchers,
@@ -125,7 +125,7 @@ export const ReconcileWatchersLayerResponder = async ({
     handle.stop();
     watchers.delete(sessionId);
     stopped += 1;
-    processDevLogAdapter({
+    processDevLogBroker({
       message: `quest-driven-watchers: stopped tail for session ${String(sessionId)}`,
     });
   }
@@ -160,7 +160,7 @@ export const ReconcileWatchersLayerResponder = async ({
         });
         return { sessionId, handle };
       } catch (error: unknown) {
-        processDevLogAdapter({
+        processDevLogBroker({
           message: `quest-driven-watchers: failed to start tail for session ${String(sessionId)}: ${String(error)}`,
         });
         return undefined;
@@ -173,7 +173,7 @@ export const ReconcileWatchersLayerResponder = async ({
     if (result === undefined) continue;
     watchers.set(result.sessionId, result.handle);
     started += 1;
-    processDevLogAdapter({
+    processDevLogBroker({
       message: `quest-driven-watchers: started tail for session ${String(result.sessionId)}`,
     });
   }
