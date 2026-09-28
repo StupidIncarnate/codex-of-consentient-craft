@@ -4,17 +4,16 @@
  * `perceptionStatics.blank.sampleStride`-th pixel against the first sampled pixel and answers
  * blank only when EVERY sample stays within `channelTolerance` — full-blank only (line 730), so a
  * page showing chrome with one differing region reports `blank: false` rather than a partial
- * match. Reads with `'latin1'` rather than `fsReadFileAdapter`'s `'utf8'` default: a PNG is
- * binary, and `pngjsDecodeAdapter` only round-trips bytes read that way.
+ * match. Reads raw bytes with `readFileBytes`: a PNG is binary, and a text read corrupts it.
  *
  * USAGE:
  * await shotBlankReadBroker({ shotPath: AbsoluteFilePathStub({ value: '/repo/.../step1.png' }) });
  * // Returns { blank: true, colour: '#0d0907' } or { blank: false, colour: null }
  */
 
+import { readFileBytes } from '#gateway/node/fs__promises';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { pngjsDecodeAdapter } from '../../../adapters/pngjs/decode/pngjs-decode-adapter';
 import { blankReadingContract } from '../../../contracts/blank-reading/blank-reading-contract';
 import type { BlankReading } from '../../../contracts/blank-reading/blank-reading-contract';
@@ -32,7 +31,7 @@ export const shotBlankReadBroker = async ({
 }: {
   shotPath: AbsoluteFilePath;
 }): Promise<BlankReading> => {
-  const bytes = await fsReadFileAdapter({ filePath: shotPath, encoding: 'latin1' });
+  const bytes = await readFileBytes(shotPath);
   const frame = pngjsDecodeAdapter({ bytes });
   const totalPixels = frame.width * frame.height;
 

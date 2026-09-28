@@ -44,7 +44,7 @@ describe('registryReadBroker', () => {
       expect({ name: (error as Error).name, message: (error as Error).message }).toStrictEqual({
         name: 'RegistryUnreadableError',
         message:
-          'Registry at /home/user/.dungeonmaster/siegelense/registry.json exists and could not be parsed: Error: Failed to read file at /home/user/.dungeonmaster/siegelense/registry.json',
+          'Registry at /home/user/.dungeonmaster/siegelense/registry.json exists and could not be parsed: Error: boom',
       });
     });
   });

@@ -112,6 +112,6 @@ describe('machineRssByPgidBroker', () => {
 
     await expect(
       machineRssByPgidBroker({ pgids: [ProcessGroupIdStub({ value: 300 })] }),
-    ).rejects.toThrow('Failed to read file at /proc/107/stat');
+    ).rejects.toThrow('EACCES: permission denied');
   });
 });

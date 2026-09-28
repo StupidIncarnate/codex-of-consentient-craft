@@ -1,10 +1,11 @@
 import { join } from '#gateway/node/path';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
+import type { FsError } from '#gateway/node/fs';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 
 import { errorIsNativeErrorAdapterProxy } from '../../../adapters/error/is-native-error/error-is-native-error-adapter.proxy';
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { readdirIfExistsProxy } from '#gateway/node/fs__promises/readdir-if-exists/readdir-if-exists.proxy';
+import { readFileIfExistsProxy } from '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
 import { processIsAliveAdapterProxy } from '../../../adapters/process/is-alive/process-is-alive-adapter.proxy';
 import type { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
 
@@ -32,7 +33,7 @@ export const orphanReadBrokerProxy = (): {
     .calledWith([])
     .implement((...segments: never[]) => realPath.join(...segments));
   const readdirProxy = readdirIfExistsProxy();
-  const readFileProxy = fsReadFileAdapterProxy();
+  const readFileProxy = readFileIfExistsProxy();
   const aliveProxy = processIsAliveAdapterProxy();
 
   return {
@@ -44,9 +45,9 @@ export const orphanReadBrokerProxy = (): {
     },
 
     setupPidStat: ({ pid, pgrp, comm }: { pid: string; pgrp: number; comm?: string }): void => {
-      readFileProxy.resolves({
-        filePath: AbsoluteFilePathStub({ value: `/proc/${pid}/stat` }),
-        content: `${pid} (${comm ?? 'node'}) S 1 ${pgrp} ${pgrp} 0 -1 4194304 0 0 0 0`,
+      readFileProxy.returns({
+        path: `/proc/${pid}/stat`,
+        contents: `${pid} (${comm ?? 'node'}) S 1 ${pgrp} ${pgrp} 0 -1 4194304 0 0 0 0`,
       });
     },
 
@@ -59,16 +60,22 @@ export const orphanReadBrokerProxy = (): {
       pid: string;
       code?: 'ENOENT' | 'ESRCH';
     }): void => {
-      readFileProxy.rejects({
-        filePath: AbsoluteFilePathStub({ value: `/proc/${pid}/stat` }),
-        error: Object.assign(new Error(`${code}: process vanished mid-read`), { code }),
-      });
+      if (code === 'ENOENT') {
+        readFileProxy.missing({ path: `/proc/${pid}/stat` });
+      } else {
+        readFileProxy.throwsMatchingPath({
+          path: `/proc/${pid}/stat`,
+          error: Object.assign(new Error(`${code}: process vanished mid-read`), {
+            code,
+          }) as FsError,
+        });
+      }
     },
 
     setupPidStatFails: ({ pid, error }: { pid: string; error: Error }): void => {
-      readFileProxy.rejects({
-        filePath: AbsoluteFilePathStub({ value: `/proc/${pid}/stat` }),
-        error,
+      readFileProxy.throwsMatchingPath({
+        path: `/proc/${pid}/stat`,
+        error: error as FsError,
       });
     },
 
@@ -76,9 +83,9 @@ export const orphanReadBrokerProxy = (): {
     // never spaces. A fixture built with spaces would agree with the space-splitting bug instead
     // of catching it.
     setupCmdline: ({ pid, argv }: { pid: string; argv: readonly string[] }): void => {
-      readFileProxy.resolves({
-        filePath: AbsoluteFilePathStub({ value: `/proc/${pid}/cmdline` }),
-        content: `${argv.join(String.fromCharCode(0))}${String.fromCharCode(0)}`,
+      readFileProxy.returns({
+        path: `/proc/${pid}/cmdline`,
+        contents: `${argv.join(String.fromCharCode(0))}${String.fromCharCode(0)}`,
       });
     },
 
@@ -89,10 +96,16 @@ export const orphanReadBrokerProxy = (): {
       pid: string;
       code?: 'ENOENT' | 'ESRCH';
     }): void => {
-      readFileProxy.rejects({
-        filePath: AbsoluteFilePathStub({ value: `/proc/${pid}/cmdline` }),
-        error: Object.assign(new Error(`${code}: process vanished mid-read`), { code }),
-      });
+      if (code === 'ENOENT') {
+        readFileProxy.missing({ path: `/proc/${pid}/cmdline` });
+      } else {
+        readFileProxy.throwsMatchingPath({
+          path: `/proc/${pid}/cmdline`,
+          error: Object.assign(new Error(`${code}: process vanished mid-read`), {
+            code,
+          }) as FsError,
+        });
+      }
     },
 
     setupAlive: ({ pgid }: { pgid: ProcessGroupId }): void => {

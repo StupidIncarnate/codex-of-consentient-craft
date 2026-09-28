@@ -1,7 +1,7 @@
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
+import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { fsStatAdapterProxy } from '../../../adapters/fs/stat/fs-stat-adapter.proxy';
 import { locationsSnapshotPathsFindBrokerProxy } from '../../locations/snapshot-paths-find/locations-snapshot-paths-find-broker.proxy';
 import { snapshotStatics } from '../../../statics/snapshot/snapshot-statics';
@@ -29,7 +29,7 @@ export const snapshotIndexReadBrokerProxy = (): {
   locationsSnapshotPathsFindBrokerProxy();
 
   const statProxy = fsStatAdapterProxy();
-  const readFileProxy = fsReadFileAdapterProxy();
+  const readProxy = readFileProxy();
 
   return {
     indexPathFor: ({ homePath }: { homePath: AbsoluteFilePath }): AbsoluteFilePath =>
@@ -57,9 +57,9 @@ export const snapshotIndexReadBrokerProxy = (): {
         sizeBytes: INDEX_SIZE_BYTES,
         modifiedAtMs: INDEX_MODIFIED_AT_MS,
       });
-      readFileProxy.resolves({
-        filePath: index,
-        content: `${records.map((record) => JSON.stringify(record)).join('\n')}\n`,
+      readProxy.returns({
+        path: index,
+        contents: `${records.map((record) => JSON.stringify(record)).join('\n')}\n`,
       });
     },
 
@@ -78,7 +78,7 @@ export const snapshotIndexReadBrokerProxy = (): {
         sizeBytes: INDEX_SIZE_BYTES,
         modifiedAtMs: INDEX_MODIFIED_AT_MS,
       });
-      readFileProxy.resolves({ filePath: index, content: contents });
+      readProxy.returns({ path: index, contents });
     },
   };
 };

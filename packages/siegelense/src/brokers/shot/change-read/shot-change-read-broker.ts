@@ -16,9 +16,9 @@
  * // Returns '2%' — a branded PixelChange
  */
 
+import { readFileBytes } from '#gateway/node/fs__promises';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { pixelmatchCompareAdapter } from '../../../adapters/pixelmatch/compare/pixelmatch-compare-adapter';
 import { pngjsDecodeAdapter } from '../../../adapters/pngjs/decode/pngjs-decode-adapter';
 import { pixelChangeContract } from '../../../contracts/pixel-change/pixel-change-contract';
@@ -38,8 +38,8 @@ export const shotChangeReadBroker = async ({
   }
 
   const [previousBytes, currentBytes] = await Promise.all([
-    fsReadFileAdapter({ filePath: previousPath, encoding: 'latin1' }),
-    fsReadFileAdapter({ filePath: currentPath, encoding: 'latin1' }),
+    readFileBytes(previousPath),
+    readFileBytes(currentPath),
   ]);
 
   const previousFrame = pngjsDecodeAdapter({ bytes: previousBytes });

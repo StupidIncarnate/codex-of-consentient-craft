@@ -122,7 +122,7 @@ describe('lockReleaseLayerBroker', () => {
       proxy.setupBootLockReadFailsForNonAbsenceReason();
 
       await expect(lockReleaseLayerBroker({ nowMs: NOW_MS })).rejects.toThrow(
-        `Failed to read file at ${proxy.bootLockPath}`,
+        'EMFILE: too many open files',
       );
     });
   });

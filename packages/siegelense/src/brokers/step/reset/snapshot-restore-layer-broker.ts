@@ -19,7 +19,7 @@
  */
 
 import { readdirEntriesSync } from '#gateway/node/fs';
-import { copyDirContents } from '#gateway/node/fs__promises';
+import { copyDirContents, readFile } from '#gateway/node/fs__promises';
 import {
   absoluteFilePathContract,
   contentTextContract,
@@ -28,7 +28,6 @@ import {
 import type { AbsoluteFilePath, RelativeFilePath } from '@dungeonmaster/shared/contracts';
 
 import { cryptoHashAdapter } from '../../../adapters/crypto/hash/crypto-hash-adapter';
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { fsRmAdapter } from '../../../adapters/fs/rm/fs-rm-adapter';
 import { fsStatAdapter } from '../../../adapters/fs/stat/fs-stat-adapter';
 import type { FileStat } from '../../../contracts/file-stat/file-stat-contract';
@@ -139,16 +138,12 @@ export const snapshotRestoreLayerBroker = async ({
   // never decided by mtime, which a capture-then-restore cycle always changes (DEF-81).
   const contentDiffers = await Promise.all(
     sameSizeCandidates.map(async (relPath) => {
-      const homeContent = await fsReadFileAdapter({
-        filePath: absoluteFilePathContract.parse(`${String(homePath)}${String(relPath).slice(1)}`),
-        encoding: 'latin1',
-      });
-      const payloadContent = await fsReadFileAdapter({
-        filePath: absoluteFilePathContract.parse(
-          `${String(payloadPath)}${String(relPath).slice(1)}`,
-        ),
-        encoding: 'latin1',
-      });
+      const homeContent = await readFile(
+        absoluteFilePathContract.parse(`${String(homePath)}${String(relPath).slice(1)}`),
+      );
+      const payloadContent = await readFile(
+        absoluteFilePathContract.parse(`${String(payloadPath)}${String(relPath).slice(1)}`),
+      );
       return (
         cryptoHashAdapter({ content: contentTextContract.parse(homeContent) }) !==
         cryptoHashAdapter({ content: contentTextContract.parse(payloadContent) })

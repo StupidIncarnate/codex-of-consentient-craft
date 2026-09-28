@@ -45,6 +45,7 @@
  * // Throws InstanceUnknownError — no registry row for that id, no file ever touched
  */
 
+import { readFileIfExists } from '#gateway/node/fs__promises';
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
 
 import { compareAnswerContract } from '../../../contracts/compare-answer/compare-answer-contract';
@@ -54,8 +55,6 @@ import { resultsQueryContract } from '../../../contracts/results-query/results-q
 import { resultWhereContract } from '../../../contracts/result-where/result-where-contract';
 import { runResultContract } from '../../../contracts/run-result/run-result-contract';
 import { countDeltaRenderTransformer } from '../../../transformers/count-delta-render/count-delta-render-transformer';
-import { errorIsNativeErrorAdapter } from '../../../adapters/error/is-native-error/error-is-native-error-adapter';
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { InstanceUnknownError } from '../../../errors/instance-unknown/instance-unknown-error';
 import { RunMissingError } from '../../../errors/run-missing/run-missing-error';
 import { readingCountContract } from '../../../contracts/reading-count/reading-count-contract';
@@ -110,39 +109,16 @@ export const compareReadBroker = async ({
   const runBPaths = locationsRunPathsFindBroker({ evidencePath, runId: runB });
 
   const [rawA, rawB] = await Promise.all([
-    fsReadFileAdapter({ filePath: runAPaths.storedReturn }).catch((error: unknown) => {
-      if (
-        error !== null &&
-        typeof error === 'object' &&
-        errorIsNativeErrorAdapter({ value: error }) &&
-        'cause' in error &&
-        error.cause !== null &&
-        typeof error.cause === 'object' &&
-        errorIsNativeErrorAdapter({ value: error.cause }) &&
-        'code' in error.cause &&
-        error.cause.code === 'ENOENT'
-      ) {
-        throw new RunMissingError({ instanceId, runId: runA });
-      }
-      throw error;
-    }),
-    fsReadFileAdapter({ filePath: runBPaths.storedReturn }).catch((error: unknown) => {
-      if (
-        error !== null &&
-        typeof error === 'object' &&
-        errorIsNativeErrorAdapter({ value: error }) &&
-        'cause' in error &&
-        error.cause !== null &&
-        typeof error.cause === 'object' &&
-        errorIsNativeErrorAdapter({ value: error.cause }) &&
-        'code' in error.cause &&
-        error.cause.code === 'ENOENT'
-      ) {
-        throw new RunMissingError({ instanceId, runId: runB });
-      }
-      throw error;
-    }),
+    readFileIfExists(runAPaths.storedReturn),
+    readFileIfExists(runBPaths.storedReturn),
   ]);
+
+  if (rawA === null) {
+    throw new RunMissingError({ instanceId, runId: runA });
+  }
+  if (rawB === null) {
+    throw new RunMissingError({ instanceId, runId: runB });
+  }
 
   const [
     consoleAnswerA,

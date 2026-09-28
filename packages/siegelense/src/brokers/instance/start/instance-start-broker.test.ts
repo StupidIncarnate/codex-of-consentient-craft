@@ -670,7 +670,7 @@ describe('instanceStartBroker', () => {
 
       await expect(
         instanceStartBroker({ specName, questId: null, guildId: null, seed: null }),
-      ).rejects.toThrow('/home/user/.dungeonmaster/siegelense/boot.lock');
+      ).rejects.toThrow('EMFILE: too many open files');
 
       const expectedRegistry = RegistryStub({
         instances: [

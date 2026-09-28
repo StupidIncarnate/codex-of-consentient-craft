@@ -26,11 +26,10 @@
  */
 
 import { existsSync } from '#gateway/node/fs';
-import { ensureDir } from '#gateway/node/fs__promises';
+import { ensureDir, readFile } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
 import { absoluteFilePathContract, fileContentsContract } from '@dungeonmaster/shared/contracts';
 
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import type { EpochMs } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
@@ -79,7 +78,7 @@ export const profileSampleRecordBroker = async ({
 
   let existing: ProfileObservation | null = null;
   if (existsSync(recordPath)) {
-    const contents = await fsReadFileAdapter({ filePath: recordPath });
+    const contents = await readFile(recordPath);
     try {
       existing = profileObservationContract.parse(JSON.parse(contents));
     } catch (error: unknown) {

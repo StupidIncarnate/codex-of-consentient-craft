@@ -44,7 +44,7 @@ describe('bootFailureMarkerReadBroker', () => {
       });
 
       await expect(bootFailureMarkerReadBroker({ evidencePath: EVIDENCE_PATH })).rejects.toThrow(
-        `Failed to read file at ${EVIDENCE_PATH}/boot-failure.json`,
+        'EACCES: permission denied',
       );
     });
   });

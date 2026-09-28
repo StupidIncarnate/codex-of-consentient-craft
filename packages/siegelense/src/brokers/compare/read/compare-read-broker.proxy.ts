@@ -6,8 +6,7 @@ import { RegistryStub } from '../../../contracts/registry/registry.stub';
 import type { RunIdStub } from '../../../contracts/run-id/run-id.stub';
 import type { RunResultStub } from '../../../contracts/run-result/run-result.stub';
 import type { StepReadingStub } from '../../../contracts/step-reading/step-reading.stub';
-import { errorIsNativeErrorAdapterProxy } from '../../../adapters/error/is-native-error/error-is-native-error-adapter.proxy';
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
+import { readFileIfExistsProxy } from '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
 import { instanceStateResolveBrokerProxy } from '../../instance/state-resolve/instance-state-resolve-broker.proxy';
 import { locationsInstanceEvidencePathFindBrokerProxy } from '../../locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker.proxy';
 import { locationsRunPathsFindBrokerProxy } from '../../locations/run-paths-find/locations-run-paths-find-broker.proxy';
@@ -68,8 +67,7 @@ export const compareReadBrokerProxy = (): {
   // for the shared `homedir()` mock's own sticky default, which the MOST RECENT composer wins. These
   // four must come BEFORE `resultsReadBrokerProxy()`, so its own '/home/user' registration (last in
   // ITS constructor) is the one every evidence-path resolution actually gets.
-  fsReadFileAdapterProxy();
-  errorIsNativeErrorAdapterProxy();
+  readFileIfExistsProxy();
   instanceStateResolveBrokerProxy();
   locationsInstanceEvidencePathFindBrokerProxy();
   locationsRunPathsFindBrokerProxy();

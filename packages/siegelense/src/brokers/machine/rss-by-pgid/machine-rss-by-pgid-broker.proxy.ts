@@ -1,10 +1,11 @@
 import { join } from '#gateway/node/path';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
+import type { FsError } from '#gateway/node/fs';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 
 import { errorIsNativeErrorAdapterProxy } from '../../../adapters/error/is-native-error/error-is-native-error-adapter.proxy';
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { readdirIfExistsProxy } from '#gateway/node/fs__promises/readdir-if-exists/readdir-if-exists.proxy';
+import { readFileIfExistsProxy } from '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
 import { fsStatAdapterProxy } from '../../../adapters/fs/stat/fs-stat-adapter.proxy';
 
 const PROC_ROOT = AbsoluteFilePathStub({ value: '/proc' });
@@ -29,7 +30,7 @@ export const machineRssByPgidBrokerProxy = (): {
     .implement((...segments: never[]) => realPath.join(...segments));
   const statProxy = fsStatAdapterProxy();
   const readdirProxy = readdirIfExistsProxy();
-  const readFileProxy = fsReadFileAdapterProxy();
+  const readFileProxy = readFileIfExistsProxy();
 
   return {
     setupProcMissing: (): void => {
@@ -48,9 +49,9 @@ export const machineRssByPgidBrokerProxy = (): {
     },
 
     setupPidStat: ({ pid, pgrp, comm }: { pid: string; pgrp: number; comm?: string }): void => {
-      readFileProxy.resolves({
-        filePath: AbsoluteFilePathStub({ value: `/proc/${pid}/stat` }),
-        content: `${pid} (${comm ?? 'node'}) S 1 ${pgrp} ${pgrp} 0 -1 4194304 0 0 0 0`,
+      readFileProxy.returns({
+        path: `/proc/${pid}/stat`,
+        contents: `${pid} (${comm ?? 'node'}) S 1 ${pgrp} ${pgrp} 0 -1 4194304 0 0 0 0`,
       });
     },
 
@@ -63,23 +64,29 @@ export const machineRssByPgidBrokerProxy = (): {
       pid: string;
       code?: 'ENOENT' | 'ESRCH';
     }): void => {
-      readFileProxy.rejects({
-        filePath: AbsoluteFilePathStub({ value: `/proc/${pid}/stat` }),
-        error: Object.assign(new Error(`${code}: process vanished mid-read`), { code }),
-      });
+      if (code === 'ENOENT') {
+        readFileProxy.missing({ path: `/proc/${pid}/stat` });
+      } else {
+        readFileProxy.throwsMatchingPath({
+          path: `/proc/${pid}/stat`,
+          error: Object.assign(new Error(`${code}: process vanished mid-read`), {
+            code,
+          }) as FsError,
+        });
+      }
     },
 
     setupPidStatFails: ({ pid, error }: { pid: string; error: Error }): void => {
-      readFileProxy.rejects({
-        filePath: AbsoluteFilePathStub({ value: `/proc/${pid}/stat` }),
-        error,
+      readFileProxy.throwsMatchingPath({
+        path: `/proc/${pid}/stat`,
+        error: error as FsError,
       });
     },
 
     setupPidStatm: ({ pid, residentPages }: { pid: string; residentPages: number }): void => {
-      readFileProxy.resolves({
-        filePath: AbsoluteFilePathStub({ value: `/proc/${pid}/statm` }),
-        content: `1000 ${residentPages} 500 100 0 800 0`,
+      readFileProxy.returns({
+        path: `/proc/${pid}/statm`,
+        contents: `1000 ${residentPages} 500 100 0 800 0`,
       });
     },
 
@@ -90,10 +97,16 @@ export const machineRssByPgidBrokerProxy = (): {
       pid: string;
       code?: 'ENOENT' | 'ESRCH';
     }): void => {
-      readFileProxy.rejects({
-        filePath: AbsoluteFilePathStub({ value: `/proc/${pid}/statm` }),
-        error: Object.assign(new Error(`${code}: process vanished mid-read`), { code }),
-      });
+      if (code === 'ENOENT') {
+        readFileProxy.missing({ path: `/proc/${pid}/statm` });
+      } else {
+        readFileProxy.throwsMatchingPath({
+          path: `/proc/${pid}/statm`,
+          error: Object.assign(new Error(`${code}: process vanished mid-read`), {
+            code,
+          }) as FsError,
+        });
+      }
     },
   };
 };

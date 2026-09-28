@@ -90,8 +90,6 @@ describe('orphanReadBroker', () => {
     });
     proxy.setupGone({ pgid });
 
-    await expect(orphanReadBroker({ pgids: [pgid] })).rejects.toThrow(
-      'Failed to read file at /proc/107/stat',
-    );
+    await expect(orphanReadBroker({ pgids: [pgid] })).rejects.toThrow('EACCES: permission denied');
   });
 });

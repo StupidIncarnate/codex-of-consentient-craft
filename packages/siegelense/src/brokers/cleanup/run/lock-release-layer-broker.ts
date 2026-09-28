@@ -15,8 +15,7 @@
  * // Either past its own TTL: unlinks it, { lockReleased: true }.
  */
 
-import { errorIsNativeErrorAdapter } from '../../../adapters/error/is-native-error/error-is-native-error-adapter';
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
+import { readFileIfExists } from '#gateway/node/fs__promises';
 import { fsUnlinkAdapter } from '../../../adapters/fs/unlink/fs-unlink-adapter';
 import { bootLockContract } from '../../../contracts/boot-lock/boot-lock-contract';
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
@@ -33,64 +32,28 @@ export const lockReleaseLayerBroker = async ({
   const bootLockPath = locationsBootLockPathFindBroker();
   let bootLockReleased = false;
 
-  try {
-    const bootLockContents = await fsReadFileAdapter({ filePath: bootLockPath });
+  const bootLockContents = await readFileIfExists(bootLockPath);
+  if (bootLockContents !== null) {
     const { acquiredAtMs } = bootLockContract.parse(JSON.parse(bootLockContents));
 
     if (nowMs - acquiredAtMs > instanceLifecycleStatics.bootLock.ttlMs) {
       await fsUnlinkAdapter({ filePath: bootLockPath });
       bootLockReleased = true;
     }
-  } catch (readError) {
-    // This catch exists to classify exactly ONE thing: whether fsReadFileAdapter's OWN failure
-    // means `boot.lock` is genuinely absent — the common case, since most machines have no boot in
-    // flight. `readError` is usually this broker's own wrapping `new Error(...)`, safely
-    // same-realm, but `.cause` is always a raw `fs/promises` rejection built by Node's own
-    // internals outside Jest's vm realm, where `instanceof Error` reads false even though the
-    // value genuinely is one — `errorIsNativeErrorAdapter` checks the V8-internal error slot
-    // instead. Anything but ENOENT (a real read failure, a corrupt lock file) is rethrown
-    // unchanged rather than silently read as "nothing to release".
-    if (
-      readError === null ||
-      typeof readError !== 'object' ||
-      !errorIsNativeErrorAdapter({ value: readError }) ||
-      !('cause' in readError) ||
-      readError.cause === null ||
-      typeof readError.cause !== 'object' ||
-      !errorIsNativeErrorAdapter({ value: readError.cause }) ||
-      !('code' in readError.cause) ||
-      readError.cause.code !== 'ENOENT'
-    ) {
-      throw readError;
-    }
   }
 
   const registryLockPath = locationsRegistryLockPathFindBroker();
   let registryLockReleased = false;
 
-  try {
-    // registryLockAcquireBroker writes this file as a bare millisecond string, never JSON — see
-    // its own PURPOSE header.
-    const registryLockContents = await fsReadFileAdapter({ filePath: registryLockPath });
+  // registryLockAcquireBroker writes this file as a bare millisecond string, never JSON — see
+  // its own PURPOSE header.
+  const registryLockContents = await readFileIfExists(registryLockPath);
+  if (registryLockContents !== null) {
     const acquiredAtMs = epochMsContract.parse(Number(registryLockContents));
 
     if (nowMs - acquiredAtMs > instanceLifecycleStatics.registryLock.ttlMs) {
       await fsUnlinkAdapter({ filePath: registryLockPath });
       registryLockReleased = true;
-    }
-  } catch (readError) {
-    if (
-      readError === null ||
-      typeof readError !== 'object' ||
-      !errorIsNativeErrorAdapter({ value: readError }) ||
-      !('cause' in readError) ||
-      readError.cause === null ||
-      typeof readError.cause !== 'object' ||
-      !errorIsNativeErrorAdapter({ value: readError.cause }) ||
-      !('code' in readError.cause) ||
-      readError.cause.code !== 'ENOENT'
-    ) {
-      throw readError;
     }
   }
 

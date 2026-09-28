@@ -32,7 +32,7 @@ import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
+import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { readdirIfExistsProxy } from '#gateway/node/fs__promises/readdir-if-exists/readdir-if-exists.proxy';
 import { fsStatAdapterProxy } from '../../../adapters/fs/stat/fs-stat-adapter.proxy';
 import type { InstanceHeartbeatStub } from '../../../contracts/instance-heartbeat/instance-heartbeat.stub';
@@ -113,7 +113,7 @@ export const instanceEntryLayerBrokerProxy = (): {
   const webLogStatProxy = fsStatAdapterProxy();
   const driverLogStatProxy = fsStatAdapterProxy();
   const repoLinkProxy = locationsRepoLinkPathFindBrokerProxy();
-  const transcriptReadProxy = fsReadFileAdapterProxy();
+  const transcriptReadProxy = readFileProxy();
   const shutdownReasonProxy = shutdownReasonReadBrokerProxy();
 
   return {
@@ -284,11 +284,9 @@ export const instanceEntryLayerBrokerProxy = (): {
       runId: string;
       lines: readonly string[];
     }): void => {
-      transcriptReadProxy.resolves({
-        filePath: AbsoluteFilePathStub({
-          value: `${evidencePath}/${locationsStatics.siegelense.runsDir}/${runId}.jsonl`,
-        }),
-        content: lines.length === 0 ? '' : `${lines.join('\n')}\n`,
+      transcriptReadProxy.returns({
+        path: `${evidencePath}/${locationsStatics.siegelense.runsDir}/${runId}.jsonl`,
+        contents: lines.length === 0 ? '' : `${lines.join('\n')}\n`,
       });
     },
   };

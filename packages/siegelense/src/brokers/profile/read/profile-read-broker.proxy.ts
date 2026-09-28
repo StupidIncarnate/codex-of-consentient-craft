@@ -10,17 +10,13 @@
  * proxy.stageSampleRecord({ profilesPath, fileName: 'inst_a.json', json });
  */
 
-import {
-  AbsoluteFilePathStub,
-  ContentTextStub,
-  FilePathStub,
-} from '@dungeonmaster/shared/contracts';
+import { ContentTextStub, FilePathStub } from '@dungeonmaster/shared/contracts';
 import type { ContentText, FilePath } from '@dungeonmaster/shared/contracts';
 import { join } from '#gateway/node/path';
 import { registerMock, registerSpyOn, requireActual } from '@dungeonmaster/testing/register-mock';
 import type { DevServerE2eProcess } from '@dungeonmaster/config';
 
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
+import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { readdirIfExistsProxy } from '#gateway/node/fs__promises/readdir-if-exists/readdir-if-exists.proxy';
 import { profileStatics } from '../../../statics/profile/profile-statics';
 import { laneSpecFindBrokerProxy } from '../../lane-spec/find/lane-spec-find-broker.proxy';
@@ -58,7 +54,7 @@ export const profileReadBrokerProxy = (): {
     .calledWith([])
     .implement((...segments: never[]) => realPath.join(...segments));
   const readdirProxy = readdirIfExistsProxy();
-  const readProxy = fsReadFileAdapterProxy();
+  const readProxy = readFileProxy();
   const stderrHandle = registerSpyOn({ object: process.stderr, method: 'write' });
   stderrHandle.calledWith([]).returns(true);
 
@@ -98,11 +94,9 @@ export const profileReadBrokerProxy = (): {
       fileName: string;
       json: string;
     }): void => {
-      readProxy.resolves({
-        filePath: AbsoluteFilePathStub({
-          value: `${String(profilesPath)}/${profileStatics.dirs.samples}/${fileName}`,
-        }),
-        content: json,
+      readProxy.returns({
+        path: `${String(profilesPath)}/${profileStatics.dirs.samples}/${fileName}`,
+        contents: json,
       });
     },
 
@@ -115,11 +109,9 @@ export const profileReadBrokerProxy = (): {
       fileName: string;
       json: string;
     }): void => {
-      readProxy.resolves({
-        filePath: AbsoluteFilePathStub({
-          value: `${String(profilesPath)}/${profileStatics.dirs.boots}/${fileName}`,
-        }),
-        content: json,
+      readProxy.returns({
+        path: `${String(profilesPath)}/${profileStatics.dirs.boots}/${fileName}`,
+        contents: json,
       });
     },
 

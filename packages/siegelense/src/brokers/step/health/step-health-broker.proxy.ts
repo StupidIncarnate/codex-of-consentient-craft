@@ -20,7 +20,7 @@ export const stepHealthBrokerProxy = (): {
     height: number;
     pixels: Uint8Array;
   }) => void;
-  stagesDefaultShot: (params: { content: string }) => void;
+  stagesDefaultShot: (params: { bytes: Uint8Array }) => void;
   windowStart: (params?: {
     consoleLines?: number;
     networkLines?: number;

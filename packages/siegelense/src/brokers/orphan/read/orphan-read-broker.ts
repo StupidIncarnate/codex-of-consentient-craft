@@ -20,8 +20,7 @@ import { join } from '#gateway/node/path';
 import { absoluteFilePathContract, contentTextContract } from '@dungeonmaster/shared/contracts';
 
 import { errorIsNativeErrorAdapter } from '../../../adapters/error/is-native-error/error-is-native-error-adapter';
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
-import { readdirIfExists } from '#gateway/node/fs__promises';
+import { readdirIfExists, readFileIfExists } from '#gateway/node/fs__promises';
 import { processIsAliveAdapter } from '../../../adapters/process/is-alive/process-is-alive-adapter';
 import { orphanReadingContract } from '../../../contracts/orphan-reading/orphan-reading-contract';
 import type { OrphanReading } from '../../../contracts/orphan-reading/orphan-reading-contract';
@@ -47,26 +46,18 @@ export const orphanReadBroker = async ({
         join(procRoot, pidEntry, machineStatics.procfs.stat),
       );
 
-      const statContent = await fsReadFileAdapter({ filePath: statPath }).catch(
-        (error: unknown) => {
-          if (
-            error !== null &&
-            typeof error === 'object' &&
-            errorIsNativeErrorAdapter({ value: error }) &&
-            'cause' in error &&
-            error.cause !== null &&
-            typeof error.cause === 'object' &&
-            errorIsNativeErrorAdapter({ value: error.cause }) &&
-            'code' in error.cause &&
-            // ENOENT: the directory was already gone when the read opened it. ESRCH: the process
-            // exited between that open succeeding and the read completing. Both mean "vanished".
-            (error.cause.code === 'ENOENT' || error.cause.code === 'ESRCH')
-          ) {
-            return null;
-          }
-          throw error;
-        },
-      );
+      const statContent = await readFileIfExists(statPath).catch((error: unknown) => {
+        if (
+          error !== null &&
+          typeof error === 'object' &&
+          errorIsNativeErrorAdapter({ value: error }) &&
+          'code' in error &&
+          error.code === 'ESRCH'
+        ) {
+          return null;
+        }
+        throw error;
+      });
 
       if (statContent === null) {
         return null;
@@ -101,26 +92,18 @@ export const orphanReadBroker = async ({
         join(procRoot, match.pid, machineStatics.procfs.cmdline),
       );
 
-      const cmdlineContent = await fsReadFileAdapter({ filePath: cmdlinePath }).catch(
-        (error: unknown) => {
-          if (
-            error !== null &&
-            typeof error === 'object' &&
-            errorIsNativeErrorAdapter({ value: error }) &&
-            'cause' in error &&
-            error.cause !== null &&
-            typeof error.cause === 'object' &&
-            errorIsNativeErrorAdapter({ value: error.cause }) &&
-            'code' in error.cause &&
-            // ENOENT: the directory was already gone when the read opened it. ESRCH: the process
-            // exited between that open succeeding and the read completing. Both mean "vanished".
-            (error.cause.code === 'ENOENT' || error.cause.code === 'ESRCH')
-          ) {
-            return null;
-          }
-          throw error;
-        },
-      );
+      const cmdlineContent = await readFileIfExists(cmdlinePath).catch((error: unknown) => {
+        if (
+          error !== null &&
+          typeof error === 'object' &&
+          errorIsNativeErrorAdapter({ value: error }) &&
+          'code' in error &&
+          error.code === 'ESRCH'
+        ) {
+          return null;
+        }
+        throw error;
+      });
 
       // /proc/<pid>/cmdline separates argv entries with NUL bytes, not spaces. Written as the
       // explicit '\u0000' escape rather than a literal control character in source, so the

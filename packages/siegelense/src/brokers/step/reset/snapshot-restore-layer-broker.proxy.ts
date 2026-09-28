@@ -3,8 +3,8 @@ import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/r
 import { copyDirContentsProxy } from '#gateway/node/fs__promises/copy-dir-contents/copy-dir-contents.proxy';
 import type { AbsoluteFilePath, FileName } from '@dungeonmaster/shared/contracts';
 
+import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { cryptoHashAdapterProxy } from '../../../adapters/crypto/hash/crypto-hash-adapter.proxy';
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { fsRmAdapterProxy } from '../../../adapters/fs/rm/fs-rm-adapter.proxy';
 import { fsStatAdapterProxy } from '../../../adapters/fs/stat/fs-stat-adapter.proxy';
 import type { EpochMs } from '../../../contracts/epoch-ms/epoch-ms-contract';
@@ -45,7 +45,7 @@ export const snapshotRestoreLayerBrokerProxy = (): {
   const statProxy = fsStatAdapterProxy();
   const rmProxy = fsRmAdapterProxy();
   const cpProxy = copyDirContentsProxy();
-  const readFileProxy = fsReadFileAdapterProxy();
+  const readProxy = readFileProxy();
   // createHash is deterministic and pure over its input — see the adapter's own proxy — so this is
   // constructed only to satisfy enforce-proxy-child-creation and never addressed further.
   cryptoHashAdapterProxy();
@@ -65,7 +65,7 @@ export const snapshotRestoreLayerBrokerProxy = (): {
 
     setupFileContents: ({ contents }): void => {
       contents.forEach(({ filePath, content }) => {
-        readFileProxy.resolves({ filePath, content });
+        readProxy.returns({ path: filePath, contents: content });
       });
     },
 

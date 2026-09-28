@@ -1,13 +1,13 @@
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
-import { AbsoluteFilePathStub, FilePathStub } from '@dungeonmaster/shared/contracts';
+import type { FsError } from '#gateway/node/fs';
+import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
+import { FilePathStub } from '@dungeonmaster/shared/contracts';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { locationsRegistryPathFindBrokerProxy } from '../../locations/registry-path-find/locations-registry-path-find-broker.proxy';
 
 const REGISTRY_PATH_VALUE = '/home/user/.dungeonmaster/siegelense/registry.json';
 const registryPath = FilePathStub({ value: REGISTRY_PATH_VALUE });
-const registryPathAbs = AbsoluteFilePathStub({ value: REGISTRY_PATH_VALUE });
 
 export const registryReadBrokerProxy = (): {
   setupMissingRegistry: () => void;
@@ -22,7 +22,7 @@ export const registryReadBrokerProxy = (): {
 } => {
   const pathProxy = locationsRegistryPathFindBrokerProxy();
   const existsProxy = existsSyncProxy();
-  const readFileProxy = fsReadFileAdapterProxy();
+  const readProxy = readFileProxy();
 
   const queuePath = (): void => {
     pathProxy.setupRegistryPath({
@@ -42,13 +42,13 @@ export const registryReadBrokerProxy = (): {
     setupPresentRegistry: ({ content }: { content: string }): void => {
       queuePath();
       existsProxy.returns({ path: registryPath, exists: true });
-      readFileProxy.resolves({ filePath: registryPathAbs, content });
+      readProxy.returns({ path: registryPath, contents: content });
     },
 
     setupReadFailure: ({ error }: { error: Error }): void => {
       queuePath();
       existsProxy.returns({ path: registryPath, exists: true });
-      readFileProxy.rejects({ filePath: registryPathAbs, error });
+      readProxy.throwsMatchingPath({ path: registryPath, error: error as FsError });
     },
 
     setupHomeOnly: (params: { homeDir: string; homePath: FilePath }): void => {

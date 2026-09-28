@@ -13,13 +13,12 @@
  * // Returns the parsed BootFailureMarker, or null if boot-failure.json does not exist
  */
 
+import { readFileIfExists } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
-import { errorIsNativeErrorAdapter } from '../../../adapters/error/is-native-error/error-is-native-error-adapter';
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { bootFailureMarkerContract } from '../../../contracts/boot-failure-marker/boot-failure-marker-contract';
 import type { BootFailureMarker } from '../../../contracts/boot-failure-marker/boot-failure-marker-contract';
 
@@ -32,22 +31,7 @@ export const bootFailureMarkerReadBroker = async ({
     join(evidencePath, locationsStatics.siegelense.bootFailure),
   );
 
-  const content = await fsReadFileAdapter({ filePath: markerPath }).catch((error: unknown) => {
-    if (
-      error !== null &&
-      typeof error === 'object' &&
-      errorIsNativeErrorAdapter({ value: error }) &&
-      'cause' in error &&
-      error.cause !== null &&
-      typeof error.cause === 'object' &&
-      errorIsNativeErrorAdapter({ value: error.cause }) &&
-      'code' in error.cause &&
-      error.cause.code === 'ENOENT'
-    ) {
-      return null;
-    }
-    throw error;
-  });
+  const content = await readFileIfExists(markerPath);
 
   if (content === null) {
     return null;

@@ -46,7 +46,7 @@ describe('shutdownReasonReadBroker', () => {
       });
 
       await expect(shutdownReasonReadBroker({ evidencePath: EVIDENCE_PATH })).rejects.toThrow(
-        `Failed to read file at ${EVIDENCE_PATH}/shutdown-reason.json`,
+        'EACCES: permission denied',
       );
     });
   });

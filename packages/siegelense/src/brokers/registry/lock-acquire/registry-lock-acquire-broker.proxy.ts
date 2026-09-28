@@ -1,20 +1,16 @@
-import { readFile } from 'fs/promises';
-import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
-import type { MockHandle, SpyOnHandle } from '@dungeonmaster/testing/register-mock';
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
+import type { FsError } from '#gateway/node/fs';
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
+import { readFileIfExistsProxy } from '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
 import { locationsRegistryLockPathFindBrokerProxy } from '../../locations/registry-lock-path-find/locations-registry-lock-path-find-broker.proxy';
 import { locationsRootPathFindBrokerProxy } from '../../locations/root-path-find/locations-root-path-find-broker.proxy';
 import { errorIsNativeErrorAdapterProxy } from '../../../adapters/error/is-native-error/error-is-native-error-adapter.proxy';
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { fsUnlinkAdapterProxy } from '../../../adapters/fs/unlink/fs-unlink-adapter.proxy';
 import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { instanceLifecycleStatics } from '../../../statics/instance-lifecycle/instance-lifecycle-statics';
-import {
-  AbsoluteFilePathStub,
-  FilePathStub,
-  FileContentsStub,
-} from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub, FilePathStub } from '@dungeonmaster/shared/contracts';
 
 type EpochMs = ReturnType<typeof EpochMsStub>;
 
@@ -101,10 +97,9 @@ export const registryLockAcquireBrokerProxy = (): {
   };
 
   errorIsNativeErrorAdapterProxy();
-  const readProxy = fsReadFileAdapterProxy();
+  const readProxy = readFileIfExistsProxy();
   const writeProxy = fsWriteFileAdapterProxy();
   const unlinkProxy = fsUnlinkAdapterProxy();
-  const readHandle: MockHandle = registerMock({ fn: readFile });
   const dateHandle: SpyOnHandle = registerSpyOn({ object: Date, method: 'now' });
 
   return {
@@ -133,9 +128,9 @@ export const registryLockAcquireBrokerProxy = (): {
           instanceLifecycleStatics.registryLock.pollMs,
       });
       writeProxy.throwsOnce({ filePath: lockPath, error: eexistError() });
-      readProxy.resolves({
-        filePath: lockPath,
-        content: FileContentsStub({ value: String(acquiredAtMs) }),
+      readProxy.returns({
+        path: lockPath,
+        contents: String(acquiredAtMs),
       });
       unlinkProxy.succeeds({ filePath: lockPath });
     },
@@ -152,9 +147,9 @@ export const registryLockAcquireBrokerProxy = (): {
           instanceLifecycleStatics.registryLock.pollMs,
       });
       writeProxy.throwsOnce({ filePath: lockPath, error: eexistError() });
-      readProxy.resolves({
-        filePath: lockPath,
-        content: FileContentsStub({ value: String(acquiredAtMs) }),
+      readProxy.returns({
+        path: lockPath,
+        contents: String(acquiredAtMs),
       });
       unlinkProxy.throws({ filePath: lockPath, error: enoentError() });
     },
@@ -170,9 +165,9 @@ export const registryLockAcquireBrokerProxy = (): {
           instanceLifecycleStatics.registryLock.pollMs,
       });
       writeProxy.throwsOnce({ filePath: lockPath, error: eexistError() });
-      readProxy.resolves({
-        filePath: lockPath,
-        content: FileContentsStub({ value: String(acquiredAtMs) }),
+      readProxy.returns({
+        path: lockPath,
+        contents: String(acquiredAtMs),
       });
       unlinkProxy.throws({ filePath: lockPath, error: eaccesError() });
     },
@@ -190,9 +185,10 @@ export const registryLockAcquireBrokerProxy = (): {
       // The exclusive create loses to this already-fresh file before the read ever runs.
       writeProxy.throws({ filePath: lockPath, error: eexistError() });
 
-      readHandle
-        .onceFor([lockPath])
-        .resolves(FileContentsStub({ value: String(heldAcquiredAtMs) }));
+      readProxy.returns({
+        path: lockPath,
+        contents: String(heldAcquiredAtMs),
+      });
 
       // call 1: startedAtMs (broker entry). call 2: nowMs, already at the wait ceiling.
       dateHandle.onceFor([]).returns(startedAtMs);
@@ -208,7 +204,7 @@ export const registryLockAcquireBrokerProxy = (): {
     setupLockReadFailsForNonAbsenceReason: (): void => {
       stagePathResolution();
       writeProxy.throws({ filePath: lockPath, error: eexistError() });
-      readProxy.rejects({ filePath: lockPath, error: emfileError() });
+      readProxy.throwsMatchingPath({ path: lockPath, error: emfileError() as unknown as FsError });
     },
 
     // FIRST exclusive create fails (a competitor's file was there) → the read that classifies it
@@ -217,7 +213,7 @@ export const registryLockAcquireBrokerProxy = (): {
     setupLockVanishesBeforeRetryRead: (): void => {
       stagePathResolution();
       writeProxy.throwsOnce({ filePath: lockPath, error: eexistError() });
-      readProxy.rejects({ filePath: lockPath, error: enoentError() });
+      readProxy.missing({ path: lockPath });
     },
 
     getLastWriteFlag: (): unknown => writeProxy.getFlagFor({ filePath: lockPath }),

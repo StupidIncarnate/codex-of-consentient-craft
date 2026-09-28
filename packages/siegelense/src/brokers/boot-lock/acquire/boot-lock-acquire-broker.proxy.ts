@@ -1,11 +1,11 @@
-import { readFile } from 'fs/promises';
-import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
-import type { MockHandle, SpyOnHandle } from '@dungeonmaster/testing/register-mock';
+import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
+import { readFileIfExistsProxy } from '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
+import type { FsError } from '#gateway/node/fs';
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 import { locationsBootLockPathFindBrokerProxy } from '../../locations/boot-lock-path-find/locations-boot-lock-path-find-broker.proxy';
 import { locationsRootPathFindBrokerProxy } from '../../locations/root-path-find/locations-root-path-find-broker.proxy';
-import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { errorIsNativeErrorAdapterProxy } from '../../../adapters/error/is-native-error/error-is-native-error-adapter.proxy';
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { fsUnlinkAdapterProxy } from '../../../adapters/fs/unlink/fs-unlink-adapter.proxy';
 import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
 import { BootLockStub } from '../../../contracts/boot-lock/boot-lock.stub';
@@ -13,12 +13,7 @@ import type { InstanceIdStub } from '../../../contracts/instance-id/instance-id.
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { instanceLifecycleStatics } from '../../../statics/instance-lifecycle/instance-lifecycle-statics';
 import { BootLockHeldError } from '../../../errors/boot-lock-held/boot-lock-held-error';
-import {
-  AbsoluteFilePathStub,
-  FilePathStub,
-  FileContentsStub,
-  ProcessIdStub,
-} from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub, FilePathStub, ProcessIdStub } from '@dungeonmaster/shared/contracts';
 
 type InstanceId = ReturnType<typeof InstanceIdStub>;
 type EpochMs = ReturnType<typeof EpochMsStub>;
@@ -120,10 +115,9 @@ export const bootLockAcquireBrokerProxy = (): {
   stageBootLockPathResolution();
 
   errorIsNativeErrorAdapterProxy();
-  const readProxy = fsReadFileAdapterProxy();
+  const readProxy = readFileIfExistsProxy();
   const writeProxy = fsWriteFileAdapterProxy();
   const unlinkProxy = fsUnlinkAdapterProxy();
-  const readHandle: MockHandle = registerMock({ fn: readFile });
   const dateHandle: SpyOnHandle = registerSpyOn({ object: Date, method: 'now' });
 
   return {
@@ -147,9 +141,9 @@ export const bootLockAcquireBrokerProxy = (): {
       // already sits there) is what the idempotent-return branch reads to recognise its own lock.
       writeProxy.throws({ filePath: bootLockPath, error: eexistError() });
       const lock = BootLockStub({ heldBy, heldByPid, acquiredAtMs });
-      readProxy.resolves({
-        filePath: bootLockPath,
-        content: FileContentsStub({ value: JSON.stringify(lock) }),
+      readProxy.returns({
+        path: bootLockPath,
+        contents: JSON.stringify(lock),
       });
     },
 
@@ -174,9 +168,9 @@ export const bootLockAcquireBrokerProxy = (): {
       // FIRST exclusive create fails (the stale file is there) → read → stale → unlink → the
       // RETRY exclusive create (also staged below via setupWriteSucceeds) takes it over.
       writeProxy.throwsOnce({ filePath: bootLockPath, error: eexistError() });
-      readProxy.resolves({
-        filePath: bootLockPath,
-        content: FileContentsStub({ value: JSON.stringify(lock) }),
+      readProxy.returns({
+        path: bootLockPath,
+        contents: JSON.stringify(lock),
       });
       unlinkProxy.succeeds({ filePath: bootLockPath });
     },
@@ -203,9 +197,9 @@ export const bootLockAcquireBrokerProxy = (): {
         acquiredAtMs,
       });
       writeProxy.throwsOnce({ filePath: bootLockPath, error: eexistError() });
-      readProxy.resolves({
-        filePath: bootLockPath,
-        content: FileContentsStub({ value: JSON.stringify(lock) }),
+      readProxy.returns({
+        path: bootLockPath,
+        contents: JSON.stringify(lock),
       });
       unlinkProxy.throws({ filePath: bootLockPath, error: enoentError() });
     },
@@ -231,9 +225,9 @@ export const bootLockAcquireBrokerProxy = (): {
         acquiredAtMs,
       });
       writeProxy.throwsOnce({ filePath: bootLockPath, error: eexistError() });
-      readProxy.resolves({
-        filePath: bootLockPath,
-        content: FileContentsStub({ value: JSON.stringify(lock) }),
+      readProxy.returns({
+        path: bootLockPath,
+        contents: JSON.stringify(lock),
       });
       unlinkProxy.throws({ filePath: bootLockPath, error: eaccesError() });
     },
@@ -248,7 +242,7 @@ export const bootLockAcquireBrokerProxy = (): {
     // this into "absent" keeps failing the same way on every subsequent attempt too.
     setupLockReadFailsForNonAbsenceReason: (): void => {
       writeProxy.throws({ filePath: bootLockPath, error: eexistError() });
-      readProxy.rejects({ filePath: bootLockPath, error: emfileError() });
+      readProxy.throwsMatchingPath({ path: bootLockPath, error: emfileError() as FsError });
     },
 
     // FIRST exclusive create fails (a competitor's file was there) → the read that classifies it
@@ -256,7 +250,7 @@ export const bootLockAcquireBrokerProxy = (): {
     // (staged to succeed via setupWriteSucceeds) takes the now-genuinely-absent path.
     setupLockVanishesBeforeRetryRead: (): void => {
       writeProxy.throwsOnce({ filePath: bootLockPath, error: eexistError() });
-      readProxy.rejects({ filePath: bootLockPath, error: enoentError() });
+      readProxy.missing({ path: bootLockPath });
     },
 
     // Puts the caller's own elapsed wait (startedAtMs -> nowMs) exactly at waitCeilingMs on the
@@ -281,9 +275,10 @@ export const bootLockAcquireBrokerProxy = (): {
       // The exclusive create loses to this already-fresh file before the read ever runs.
       writeProxy.throws({ filePath: bootLockPath, error: eexistError() });
 
-      readHandle
-        .onceFor([bootLockPath])
-        .resolves(FileContentsStub({ value: JSON.stringify(lock) }));
+      readProxy.returns({
+        path: bootLockPath,
+        contents: JSON.stringify(lock),
+      });
 
       // call 1: startedAtMs (broker entry). call 2: nowMs, already at the wait ceiling.
       dateHandle.onceFor([]).returns(startedAtMs);
@@ -327,12 +322,16 @@ export const bootLockAcquireBrokerProxy = (): {
       writeProxy.throws({ filePath: bootLockPath, error: eexistError() });
       unlinkProxy.succeeds({ filePath: bootLockPath });
 
-      readHandle
-        .onceFor([bootLockPath])
-        .resolves(FileContentsStub({ value: JSON.stringify(staleLock) }));
-      readHandle
-        .onceFor([bootLockPath])
-        .resolves(FileContentsStub({ value: JSON.stringify(freshLock) }));
+      readProxy.returnsMatchingPath({
+        path: (p: unknown) =>
+          p === bootLockPath && readProxy.getCallsFor({ path: bootLockPath }).length === 1,
+        contents: JSON.stringify(staleLock),
+      });
+      readProxy.returnsMatchingPath({
+        path: (p: unknown) =>
+          p === bootLockPath && readProxy.getCallsFor({ path: bootLockPath }).length > 1,
+        contents: JSON.stringify(freshLock),
+      });
 
       // call 1: startedAtMs (broker entry). call 2: nowMs for the first (failed) attempt. call 3:
       // nowMs for the retry, already at the wait ceiling.

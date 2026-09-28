@@ -3,14 +3,11 @@
  * files in this package allowed to import `pngjs` or `pixelmatch` (chunk-03-read-path-and-perception.md
  * W6). Pinned to pngjs `^6`, never `^7`: `pixelmatch@5` itself depends on `pngjs@^6`, so a `^7`
  * install would sit alongside pixelmatch's own copy rather than sharing it, and `@types/pngjs` stops
- * publishing types past 6.0.5. `bytes` arrives as a `FileContents` string rather than a `Buffer`
- * because the caller reads the PNG file through the same string-shaped contract every other file
- * read uses; this adapter converts back to bytes via `latin1`, the one string encoding that maps
- * each 8-bit byte to a single code unit and round-trips arbitrary binary data losslessly — as long
- * as the string was produced with that same encoding.
+ * publishing types past 6.0.5. `bytes` is the raw file content as read by `readFileBytes`: a PNG is
+ * binary, and any string round trip (UTF-8 in particular) corrupts it.
  *
  * USAGE:
- * pngjsDecodeAdapter({ bytes: FileContentsStub({ value: pngBuffer.toString('latin1') }) });
+ * pngjsDecodeAdapter({ bytes: await readFileBytes(shotPath) });
  * // Returns a validated DecodedFrame: { width, height, pixels }
  */
 
@@ -19,13 +16,10 @@ import { PNG } from '#gateway/npm/pngjs';
 import { decodedFrameContract } from '../../../contracts/decoded-frame/decoded-frame-contract';
 import { pixelCountContract } from '../../../contracts/pixel-count/pixel-count-contract';
 import type { DecodedFrame } from '../../../contracts/decoded-frame/decoded-frame-contract';
-import type { FileContents } from '@dungeonmaster/shared/contracts';
 
-const BINARY_ENCODING = 'latin1';
-
-export const pngjsDecodeAdapter = ({ bytes }: { bytes: FileContents }): DecodedFrame => {
+export const pngjsDecodeAdapter = ({ bytes }: { bytes: Uint8Array }): DecodedFrame => {
   try {
-    const decoded = PNG.sync.read(Buffer.from(bytes, BINARY_ENCODING));
+    const decoded = PNG.sync.read(Buffer.from(bytes));
 
     return decodedFrameContract.parse({
       width: pixelCountContract.parse(decoded.width),

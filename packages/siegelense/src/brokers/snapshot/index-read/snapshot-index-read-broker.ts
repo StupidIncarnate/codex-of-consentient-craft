@@ -16,9 +16,9 @@
  * // Returns every SnapshotRecord in capture order, or [] when no index exists yet
  */
 
+import { readFile } from '#gateway/node/fs__promises';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { fsStatAdapter } from '../../../adapters/fs/stat/fs-stat-adapter';
 import { snapshotOrdinalContract } from '../../../contracts/snapshot-ordinal/snapshot-ordinal-contract';
 import { snapshotRecordContract } from '../../../contracts/snapshot-record/snapshot-record-contract';
@@ -48,7 +48,7 @@ export const snapshotIndexReadBroker = async ({
     return [];
   }
 
-  const contents = await fsReadFileAdapter({ filePath: index });
+  const contents = await readFile(index);
   const lines = contents.split('\n').filter((line) => line.trim().length > 0);
 
   try {

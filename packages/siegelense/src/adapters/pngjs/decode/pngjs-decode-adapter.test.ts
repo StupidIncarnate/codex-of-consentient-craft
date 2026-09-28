@@ -2,7 +2,6 @@ import { PNG } from 'pngjs';
 
 import { pngjsDecodeAdapter } from './pngjs-decode-adapter';
 import { pngjsDecodeAdapterProxy } from './pngjs-decode-adapter.proxy';
-import { FileContentsStub } from '@dungeonmaster/shared/contracts';
 
 describe('pngjsDecodeAdapter', () => {
   describe('decoding real PNG bytes', () => {
@@ -13,7 +12,7 @@ describe('pngjsDecodeAdapter', () => {
         255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255, 255, 255, 0, 255,
       ]);
       png.data = pixels;
-      const bytes = FileContentsStub({ value: PNG.sync.write(png).toString('latin1') });
+      const bytes = new Uint8Array(PNG.sync.write(png));
 
       const result = pngjsDecodeAdapter({ bytes });
 
@@ -36,7 +35,7 @@ describe('pngjsDecodeAdapter', () => {
         ...backgroundPixel,
         ...backgroundPixel,
       ]);
-      const bytes = FileContentsStub({ value: PNG.sync.write(png).toString('latin1') });
+      const bytes = new Uint8Array(PNG.sync.write(png));
 
       const result = pngjsDecodeAdapter({ bytes });
 
@@ -58,7 +57,7 @@ describe('pngjsDecodeAdapter', () => {
         ...backgroundPixel,
         ...foregroundPixel,
       ]);
-      const bytes = FileContentsStub({ value: PNG.sync.write(png).toString('latin1') });
+      const bytes = new Uint8Array(PNG.sync.write(png));
 
       const result = pngjsDecodeAdapter({ bytes });
 
@@ -77,7 +76,7 @@ describe('pngjsDecodeAdapter', () => {
       // "unrecognised content at end of stream" error instead when leftover bytes remain after a
       // failed signature check, so a clean "Invalid file signature" needs the buffer fully
       // consumed by that first 8-byte read.
-      const bytes = FileContentsStub({ value: 'NOTAPNG!' });
+      const bytes = new Uint8Array(Buffer.from('NOTAPNG!'));
 
       expect(() => pngjsDecodeAdapter({ bytes })).toThrow(
         /^Failed to decode PNG bytes: Invalid file signature$/u,

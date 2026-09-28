@@ -26,8 +26,7 @@
 import { join } from '#gateway/node/path';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
-import { readdirIfExists } from '#gateway/node/fs__promises';
+import { readdirIfExists, readFile } from '#gateway/node/fs__promises';
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import { profileBootContract } from '../../../contracts/profile-boot/profile-boot-contract';
 import type { ProfileBoot } from '../../../contracts/profile-boot/profile-boot-contract';
@@ -67,7 +66,7 @@ export const profileReadBroker = async ({
       .filter((name) => name.endsWith(profileStatics.extensions.record))
       .map(async (name): Promise<ProfileObservation | null> => {
         const recordPath = absoluteFilePathContract.parse(join(samplesDir, name));
-        const contents = await fsReadFileAdapter({ filePath: recordPath });
+        const contents = await readFile(recordPath);
         try {
           return profileObservationContract.parse(JSON.parse(contents));
         } catch (error: unknown) {
@@ -84,7 +83,7 @@ export const profileReadBroker = async ({
       .filter((name) => name.endsWith(profileStatics.extensions.record))
       .map(async (name): Promise<ProfileBoot | null> => {
         const recordPath = absoluteFilePathContract.parse(join(bootsDir, name));
-        const contents = await fsReadFileAdapter({ filePath: recordPath });
+        const contents = await readFile(recordPath);
         try {
           return profileBootContract.parse(JSON.parse(contents));
         } catch (error: unknown) {

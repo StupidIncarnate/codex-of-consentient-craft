@@ -15,12 +15,12 @@
 
 import { join } from '#gateway/node/path';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-import { AbsoluteFilePathStub, FilePathStub } from '@dungeonmaster/shared/contracts';
+import type { FsError } from '#gateway/node/fs';
+import { FilePathStub } from '@dungeonmaster/shared/contracts';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
-import { errorIsNativeErrorAdapterProxy } from '../../../adapters/error/is-native-error/error-is-native-error-adapter.proxy';
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
+import { readFileIfExistsProxy } from '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
 import type { InstanceHeartbeatStub } from '../../../contracts/instance-heartbeat/instance-heartbeat.stub';
 import { locationsInstanceEvidencePathFindBrokerProxy } from '../../locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker.proxy';
 
@@ -48,12 +48,11 @@ export const heartbeatReadBrokerProxy = (): {
     error: Error;
   }) => void;
 } => {
-  errorIsNativeErrorAdapterProxy();
   const evidencePathProxy = locationsInstanceEvidencePathFindBrokerProxy();
   // Shares the same '#gateway/node/path' join handle evidencePathProxy's own constructor registers
   // — addressed here on this file's OWN exact tuple, never a bare `calledWith([])`.
   const joinHandle = registerMock({ fn: join });
-  const readProxy = fsReadFileAdapterProxy();
+  const readProxy = readFileIfExistsProxy();
 
   return {
     setupHeartbeatFound: ({
@@ -74,9 +73,9 @@ export const heartbeatReadBrokerProxy = (): {
       joinHandle
         .calledWith([evidencePath, locationsStatics.siegelense.heartbeat])
         .returns(FilePathStub({ value: heartbeatPathValue }));
-      readProxy.resolves({
-        filePath: AbsoluteFilePathStub({ value: heartbeatPathValue }),
-        content: `${JSON.stringify(heartbeat)}\n`,
+      readProxy.returns({
+        path: heartbeatPathValue,
+        contents: `${JSON.stringify(heartbeat)}\n`,
       });
     },
 
@@ -96,10 +95,7 @@ export const heartbeatReadBrokerProxy = (): {
       joinHandle
         .calledWith([evidencePath, locationsStatics.siegelense.heartbeat])
         .returns(FilePathStub({ value: heartbeatPathValue }));
-      readProxy.rejects({
-        filePath: AbsoluteFilePathStub({ value: heartbeatPathValue }),
-        error: Object.assign(new Error('ENOENT: no such file or directory'), { code: 'ENOENT' }),
-      });
+      readProxy.missing({ path: heartbeatPathValue });
     },
 
     setupHeartbeatReadFails: ({
@@ -120,9 +116,9 @@ export const heartbeatReadBrokerProxy = (): {
       joinHandle
         .calledWith([evidencePath, locationsStatics.siegelense.heartbeat])
         .returns(FilePathStub({ value: heartbeatPathValue }));
-      readProxy.rejects({
-        filePath: AbsoluteFilePathStub({ value: heartbeatPathValue }),
-        error,
+      readProxy.throwsMatchingPath({
+        path: heartbeatPathValue,
+        error: error as FsError,
       });
     },
   };

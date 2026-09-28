@@ -13,12 +13,11 @@
  */
 
 import { join } from '#gateway/node/path';
+import { readFileIfExists } from '#gateway/node/fs__promises';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import type { GuildId } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
-import { errorIsNativeErrorAdapter } from '../../../adapters/error/is-native-error/error-is-native-error-adapter';
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { instanceHeartbeatContract } from '../../../contracts/instance-heartbeat/instance-heartbeat-contract';
 import type { InstanceHeartbeat } from '../../../contracts/instance-heartbeat/instance-heartbeat-contract';
 import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
@@ -36,22 +35,7 @@ export const heartbeatReadBroker = async ({
     join(evidenceDir, locationsStatics.siegelense.heartbeat),
   );
 
-  const content = await fsReadFileAdapter({ filePath: heartbeatPath }).catch((error: unknown) => {
-    if (
-      error !== null &&
-      typeof error === 'object' &&
-      errorIsNativeErrorAdapter({ value: error }) &&
-      'cause' in error &&
-      error.cause !== null &&
-      typeof error.cause === 'object' &&
-      errorIsNativeErrorAdapter({ value: error.cause }) &&
-      'code' in error.cause &&
-      error.cause.code === 'ENOENT'
-    ) {
-      return null;
-    }
-    throw error;
-  });
+  const content = await readFileIfExists(heartbeatPath);
 
   if (content === null) {
     return null;

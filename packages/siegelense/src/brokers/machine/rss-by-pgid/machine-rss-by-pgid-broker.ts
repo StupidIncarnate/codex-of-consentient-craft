@@ -25,8 +25,7 @@ import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import { join } from '#gateway/node/path';
 
 import { errorIsNativeErrorAdapter } from '../../../adapters/error/is-native-error/error-is-native-error-adapter';
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
-import { readdirIfExists } from '#gateway/node/fs__promises';
+import { readdirIfExists, readFileIfExists } from '#gateway/node/fs__promises';
 import { fsStatAdapter } from '../../../adapters/fs/stat/fs-stat-adapter';
 import { megabytesContract } from '../../../contracts/megabytes/megabytes-contract';
 import type { Megabytes } from '../../../contracts/megabytes/megabytes-contract';
@@ -59,26 +58,18 @@ export const machineRssByPgidBroker = async ({
         join(procRoot, pidEntry, machineStatics.procfs.stat),
       );
 
-      const statContent = await fsReadFileAdapter({ filePath: statPath }).catch(
-        (error: unknown) => {
-          if (
-            error !== null &&
-            typeof error === 'object' &&
-            errorIsNativeErrorAdapter({ value: error }) &&
-            'cause' in error &&
-            error.cause !== null &&
-            typeof error.cause === 'object' &&
-            errorIsNativeErrorAdapter({ value: error.cause }) &&
-            'code' in error.cause &&
-            // ENOENT: the directory was already gone when the read opened it. ESRCH: the process
-            // exited between that open succeeding and the read completing. Both mean "vanished".
-            (error.cause.code === 'ENOENT' || error.cause.code === 'ESRCH')
-          ) {
-            return null;
-          }
-          throw error;
-        },
-      );
+      const statContent = await readFileIfExists(statPath).catch((error: unknown) => {
+        if (
+          error !== null &&
+          typeof error === 'object' &&
+          errorIsNativeErrorAdapter({ value: error }) &&
+          'code' in error &&
+          error.code === 'ESRCH'
+        ) {
+          return null;
+        }
+        throw error;
+      });
 
       if (statContent === null) {
         return 0;
@@ -106,26 +97,18 @@ export const machineRssByPgidBroker = async ({
         join(procRoot, pidEntry, machineStatics.procfs.statm),
       );
 
-      const statmContent = await fsReadFileAdapter({ filePath: statmPath }).catch(
-        (error: unknown) => {
-          if (
-            error !== null &&
-            typeof error === 'object' &&
-            errorIsNativeErrorAdapter({ value: error }) &&
-            'cause' in error &&
-            error.cause !== null &&
-            typeof error.cause === 'object' &&
-            errorIsNativeErrorAdapter({ value: error.cause }) &&
-            'code' in error.cause &&
-            // ENOENT: the directory was already gone when the read opened it. ESRCH: the process
-            // exited between that open succeeding and the read completing. Both mean "vanished".
-            (error.cause.code === 'ENOENT' || error.cause.code === 'ESRCH')
-          ) {
-            return null;
-          }
-          throw error;
-        },
-      );
+      const statmContent = await readFileIfExists(statmPath).catch((error: unknown) => {
+        if (
+          error !== null &&
+          typeof error === 'object' &&
+          errorIsNativeErrorAdapter({ value: error }) &&
+          'code' in error &&
+          error.code === 'ESRCH'
+        ) {
+          return null;
+        }
+        throw error;
+      });
 
       if (statmContent === null) {
         return 0;

@@ -47,7 +47,7 @@ const defaultPixelRows = Array.from(
 defaultPixelRows[perceptionStatics.blank.sampleStride] = DIFFERING_PIXEL;
 const defaultPng = new PNG({ width: DEFAULT_SHOT_WIDTH, height: DEFAULT_SHOT_HEIGHT });
 defaultPng.data = Buffer.from(new Uint8Array(defaultPixelRows.flat()));
-const DEFAULT_SHOT_PNG_CONTENT = PNG.sync.write(defaultPng).toString('latin1');
+const DEFAULT_SHOT_PNG_BYTES = new Uint8Array(PNG.sync.write(defaultPng));
 
 export const stepDispatchBrokerProxy = (): {
   browserlessLane: (params: { specName: string }) => LaneSession;
@@ -107,13 +107,13 @@ export const stepDispatchBrokerProxy = (): {
 
   // Composed for the perception measurement `stepDispatchBroker` now performs on every captured
   // shot — `stagesShot` is for a test that cares about a specific pixel pattern, and
-  // `stagesDefaultShot` (called on both — they share the SAME underlying `readFile` mock, so this
+  // `stagesDefaultShot` (called on both — they share the SAME underlying `readFileBytes` mock, so this
   // is belt-and-suspenders rather than two competing registrations) stages the wildcard default for
   // every path neither addresses individually.
   const blankReadProxy = shotBlankReadBrokerProxy();
   const changeReadProxy = shotChangeReadBrokerProxy();
-  blankReadProxy.stagesDefaultShot({ content: DEFAULT_SHOT_PNG_CONTENT });
-  changeReadProxy.stagesDefaultShot({ content: DEFAULT_SHOT_PNG_CONTENT });
+  blankReadProxy.stagesDefaultShot({ bytes: DEFAULT_SHOT_PNG_BYTES });
+  changeReadProxy.stagesDefaultShot({ bytes: DEFAULT_SHOT_PNG_BYTES });
 
   // The INSTANCE's last-capture pointer `pixelChange` compares against — a `const` holder whose
   // FIELD mutates (proxy files may not declare `let`/`var`), standing in for `driverSessionState`:

@@ -89,7 +89,7 @@ describe('bootLockAcquireBroker', () => {
       proxy.setupLockReadFailsForNonAbsenceReason();
 
       await expect(bootLockAcquireBroker({ instanceId })).rejects.toThrow(
-        `Failed to read file at ${proxy.bootLockPath}`,
+        'EMFILE: too many open files',
       );
     }, 1000);
   });

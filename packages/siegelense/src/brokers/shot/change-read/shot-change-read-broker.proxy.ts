@@ -1,7 +1,7 @@
 /**
  * PURPOSE: Stages the two PNG files `shotChangeReadBroker` reads. Builds a real PNG per path with
  * `PNG.sync.write` from the RGBA pixel bytes a test hands in and stages each as
- * `fsReadFileAdapter`'s `'latin1'` read, so the REAL (unmocked) `pngjsDecodeAdapter` decodes each
+ * `readFileBytes`' bytes, so the REAL (unmocked) `pngjsDecodeAdapter` decodes each
  * back exactly and the REAL `pixelmatchCompareAdapter` (via its own real-passthrough proxy)
  * computes a genuinely measured diff — `brokers/` itself may never import `pngjs`, but this
  * `.proxy.ts` file is exempt from that boundary.
@@ -15,7 +15,7 @@
 import { PNG } from 'pngjs';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
+import { readFileBytesProxy } from '#gateway/node/fs__promises/read-file-bytes/read-file-bytes.proxy';
 import { pixelmatchCompareAdapterProxy } from '../../../adapters/pixelmatch/compare/pixelmatch-compare-adapter.proxy';
 import { pngjsDecodeAdapterProxy } from '../../../adapters/pngjs/decode/pngjs-decode-adapter.proxy';
 
@@ -30,9 +30,9 @@ export const shotChangeReadBrokerProxy = (): {
   // which never imports fsReadFileAdapter directly and so may not construct its own proxy for it —
   // enforce-proxy-child-creation) can give every unstaged shot path a real decodable frame. A test's
   // own `stagesShot` for a SPECIFIC path still wins — exact-path matches outrank this wildcard.
-  stagesDefaultShot: (params: { content: string }) => void;
+  stagesDefaultShot: (params: { bytes: Uint8Array }) => void;
 } => {
-  const readProxy = fsReadFileAdapterProxy();
+  const readProxy = readFileBytesProxy();
   pngjsDecodeAdapterProxy();
   pixelmatchCompareAdapterProxy();
 
@@ -50,11 +50,14 @@ export const shotChangeReadBrokerProxy = (): {
     }): void => {
       const png = new PNG({ width, height });
       png.data = Buffer.from(pixels);
-      readProxy.resolves({ filePath: path, content: PNG.sync.write(png).toString('latin1') });
+      readProxy.returns({ path, bytes: new Uint8Array(PNG.sync.write(png)) });
     },
 
-    stagesDefaultShot: ({ content }: { content: string }): void => {
-      readProxy.resolvesAny({ content });
+    stagesDefaultShot: ({ bytes }: { bytes: Uint8Array }): void => {
+      readProxy.returnsMatchingPath({
+        path: (p: unknown) => typeof p === 'string' && p.endsWith('.png'),
+        bytes,
+      });
     },
   };
 };

@@ -9,7 +9,6 @@
 export * from './src/adapters/fs/unlink/fs-unlink-adapter';
 export * from './src/adapters/fs/write-file/fs-write-file-adapter';
 export * from './src/adapters/fs/symlink/fs-symlink-adapter';
-export * from './src/adapters/fs/read-file/fs-read-file-adapter';
 
 export * from './src/adapters/pixelmatch/compare/pixelmatch-compare-adapter';
 export * from './src/adapters/pngjs/decode/pngjs-decode-adapter';

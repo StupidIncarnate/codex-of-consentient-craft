@@ -13,14 +13,13 @@
  * proxy.setupMarkerFound({ evidencePath, marker });
  */
 
+import { readFileIfExistsProxy } from '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
+import type { FsError } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
-import { errorIsNativeErrorAdapterProxy } from '../../../adapters/error/is-native-error/error-is-native-error-adapter.proxy';
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import type { BootFailureMarkerStub } from '../../../contracts/boot-failure-marker/boot-failure-marker.stub';
 
 type BootFailureMarker = ReturnType<typeof BootFailureMarkerStub>;
@@ -28,13 +27,12 @@ type BootFailureMarker = ReturnType<typeof BootFailureMarkerStub>;
 export const bootFailureMarkerReadBrokerProxy = (): {
   setupMarkerFound: (params: { evidencePath: AbsoluteFilePath; marker: BootFailureMarker }) => void;
   setupMarkerMissing: (params: { evidencePath: AbsoluteFilePath }) => void;
-  setupReadFails: (params: { evidencePath: AbsoluteFilePath; error: Error }) => void;
+  setupReadFails: (params: { evidencePath: AbsoluteFilePath; error: FsError }) => void;
 } => {
-  errorIsNativeErrorAdapterProxy();
   const realPath = requireActual<{ join: typeof join }>({ module: 'path' });
   const joinHandle = registerMock({ fn: join });
   joinHandle.calledWith([]).implement((...segments: never[]) => realPath.join(...segments));
-  const readProxy = fsReadFileAdapterProxy();
+  const readProxy = readFileIfExistsProxy();
 
   return {
     setupMarkerFound: ({
@@ -45,17 +43,16 @@ export const bootFailureMarkerReadBrokerProxy = (): {
       marker: BootFailureMarker;
     }): void => {
       const markerPathValue = `${evidencePath}/${locationsStatics.siegelense.bootFailure}`;
-      readProxy.resolves({
-        filePath: AbsoluteFilePathStub({ value: markerPathValue }),
-        content: `${JSON.stringify(marker)}\n`,
+      readProxy.returns({
+        path: markerPathValue,
+        contents: `${JSON.stringify(marker)}\n`,
       });
     },
 
     setupMarkerMissing: ({ evidencePath }: { evidencePath: AbsoluteFilePath }): void => {
       const markerPathValue = `${evidencePath}/${locationsStatics.siegelense.bootFailure}`;
-      readProxy.rejects({
-        filePath: AbsoluteFilePathStub({ value: markerPathValue }),
-        error: Object.assign(new Error('ENOENT: no such file or directory'), { code: 'ENOENT' }),
+      readProxy.missing({
+        path: markerPathValue,
       });
     },
 
@@ -64,11 +61,11 @@ export const bootFailureMarkerReadBrokerProxy = (): {
       error,
     }: {
       evidencePath: AbsoluteFilePath;
-      error: Error;
+      error: FsError;
     }): void => {
       const markerPathValue = `${evidencePath}/${locationsStatics.siegelense.bootFailure}`;
-      readProxy.rejects({
-        filePath: AbsoluteFilePathStub({ value: markerPathValue }),
+      readProxy.throwsMatchingPath({
+        path: markerPathValue,
         error,
       });
     },

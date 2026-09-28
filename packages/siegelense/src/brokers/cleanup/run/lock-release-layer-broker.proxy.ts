@@ -1,11 +1,7 @@
-import {
-  AbsoluteFilePathStub,
-  FileContentsStub,
-  FilePathStub,
-} from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub, FilePathStub } from '@dungeonmaster/shared/contracts';
 
-import { errorIsNativeErrorAdapterProxy } from '../../../adapters/error/is-native-error/error-is-native-error-adapter.proxy';
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
+import { readFileIfExistsProxy } from '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
+import type { FsError } from '#gateway/node/fs';
 import { fsUnlinkAdapterProxy } from '../../../adapters/fs/unlink/fs-unlink-adapter.proxy';
 import { BootLockStub } from '../../../contracts/boot-lock/boot-lock.stub';
 import type { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
@@ -19,9 +15,6 @@ const HOME_PATH_VALUE = `${HOME_DIR}/.dungeonmaster`;
 const HOME_PATH = FilePathStub({ value: HOME_PATH_VALUE });
 const BOOT_LOCK_VALUE = `${HOME_PATH_VALUE}/siegelense/boot.lock`;
 const REGISTRY_LOCK_VALUE = `${HOME_PATH_VALUE}/siegelense/registry.lock`;
-
-const enoentError = (): Error =>
-  Object.assign(new Error('ENOENT: no such file or directory'), { code: 'ENOENT' });
 
 export const lockReleaseLayerBrokerProxy = (): {
   bootLockPath: ReturnType<typeof AbsoluteFilePathStub>;
@@ -46,8 +39,7 @@ export const lockReleaseLayerBrokerProxy = (): {
   const pathProxy = locationsBootLockPathFindBrokerProxy();
   locationsRegistryLockPathFindBrokerProxy();
 
-  errorIsNativeErrorAdapterProxy();
-  const readProxy = fsReadFileAdapterProxy();
+  const readProxy = readFileIfExistsProxy();
   const unlinkProxy = fsUnlinkAdapterProxy();
 
   return {
@@ -56,54 +48,56 @@ export const lockReleaseLayerBrokerProxy = (): {
 
     setupNoLocks: (): void => {
       pathProxy.setupHomeOnly({ homeDir: HOME_DIR, homePath: HOME_PATH });
-      readProxy.rejects({ filePath: bootLockPath, error: enoentError() });
-      readProxy.rejects({ filePath: registryLockPath, error: enoentError() });
+      readProxy.missing({ path: bootLockPath });
+      readProxy.missing({ path: registryLockPath });
     },
 
     setupBootLockFresh: ({ acquiredAtMs }: { acquiredAtMs: EpochMs }): void => {
       pathProxy.setupHomeOnly({ homeDir: HOME_DIR, homePath: HOME_PATH });
       const lock = BootLockStub({ acquiredAtMs });
-      readProxy.resolves({
-        filePath: bootLockPath,
-        content: FileContentsStub({ value: JSON.stringify(lock) }),
+      readProxy.returns({
+        path: bootLockPath,
+        contents: JSON.stringify(lock),
       });
-      readProxy.rejects({ filePath: registryLockPath, error: enoentError() });
+      readProxy.missing({ path: registryLockPath });
     },
 
     setupBootLockStale: ({ acquiredAtMs }: { acquiredAtMs: EpochMs }): void => {
       pathProxy.setupHomeOnly({ homeDir: HOME_DIR, homePath: HOME_PATH });
       const lock = BootLockStub({ acquiredAtMs });
-      readProxy.resolves({
-        filePath: bootLockPath,
-        content: FileContentsStub({ value: JSON.stringify(lock) }),
+      readProxy.returns({
+        path: bootLockPath,
+        contents: JSON.stringify(lock),
       });
       unlinkProxy.succeeds({ filePath: bootLockPath });
-      readProxy.rejects({ filePath: registryLockPath, error: enoentError() });
+      readProxy.missing({ path: registryLockPath });
     },
 
     setupBootLockReadFailsForNonAbsenceReason: (): void => {
       pathProxy.setupHomeOnly({ homeDir: HOME_DIR, homePath: HOME_PATH });
-      readProxy.rejects({
-        filePath: bootLockPath,
-        error: Object.assign(new Error('EMFILE: too many open files'), { code: 'EMFILE' }),
+      readProxy.throwsMatchingPath({
+        path: bootLockPath,
+        error: Object.assign(new Error('EMFILE: too many open files'), {
+          code: 'EMFILE',
+        }) as FsError,
       });
     },
 
     setupRegistryLockFresh: ({ acquiredAtMs }: { acquiredAtMs: EpochMs }): void => {
       pathProxy.setupHomeOnly({ homeDir: HOME_DIR, homePath: HOME_PATH });
-      readProxy.rejects({ filePath: bootLockPath, error: enoentError() });
-      readProxy.resolves({
-        filePath: registryLockPath,
-        content: FileContentsStub({ value: String(acquiredAtMs) }),
+      readProxy.missing({ path: bootLockPath });
+      readProxy.returns({
+        path: registryLockPath,
+        contents: String(acquiredAtMs),
       });
     },
 
     setupRegistryLockStale: ({ acquiredAtMs }: { acquiredAtMs: EpochMs }): void => {
       pathProxy.setupHomeOnly({ homeDir: HOME_DIR, homePath: HOME_PATH });
-      readProxy.rejects({ filePath: bootLockPath, error: enoentError() });
-      readProxy.resolves({
-        filePath: registryLockPath,
-        content: FileContentsStub({ value: String(acquiredAtMs) }),
+      readProxy.missing({ path: bootLockPath });
+      readProxy.returns({
+        path: registryLockPath,
+        contents: String(acquiredAtMs),
       });
       unlinkProxy.succeeds({ filePath: registryLockPath });
     },

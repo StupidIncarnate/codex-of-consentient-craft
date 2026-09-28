@@ -24,7 +24,7 @@ import {
 import type { ContentText, FilePath } from '@dungeonmaster/shared/contracts';
 import { registerMock, registerSpyOn, requireActual } from '@dungeonmaster/testing/register-mock';
 
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
+import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
 import type { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import type { RegistryStub } from '../../../contracts/registry/registry.stub';
@@ -70,7 +70,7 @@ export const profileSampleRecordBrokerProxy = (): {
   const joinHandle = registerMock({ fn: join });
   joinHandle.calledWith([]).implement((...segments: never[]) => realPath.join(...segments));
   const existsProxy = existsSyncProxy();
-  const readProxy = fsReadFileAdapterProxy();
+  const readProxy = readFileProxy();
   const mkdirProxy = ensureDirProxy();
   const writeProxy = fsWriteFileAdapterProxy();
   const stderrHandle = registerSpyOn({ object: process.stderr, method: 'write' });
@@ -135,11 +135,9 @@ export const profileSampleRecordBrokerProxy = (): {
         path: recordPathFor({ profilesPath, instanceId }),
         exists: true,
       });
-      readProxy.resolves({
-        filePath: AbsoluteFilePathStub({
-          value: String(recordPathFor({ profilesPath, instanceId })),
-        }),
-        content: existingRecordJson,
+      readProxy.returns({
+        path: String(recordPathFor({ profilesPath, instanceId })),
+        contents: existingRecordJson,
       });
     },
 

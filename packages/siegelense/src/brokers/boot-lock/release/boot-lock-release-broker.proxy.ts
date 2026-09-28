@@ -1,16 +1,12 @@
+import { readFileIfExistsProxy } from '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
+import type { FsError } from '#gateway/node/fs';
 import { locationsBootLockPathFindBrokerProxy } from '../../locations/boot-lock-path-find/locations-boot-lock-path-find-broker.proxy';
-import { errorIsNativeErrorAdapterProxy } from '../../../adapters/error/is-native-error/error-is-native-error-adapter.proxy';
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { fsUnlinkAdapterProxy } from '../../../adapters/fs/unlink/fs-unlink-adapter.proxy';
 import { BootLockStub } from '../../../contracts/boot-lock/boot-lock.stub';
 import type { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import type { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import type { ProcessIdStub } from '@dungeonmaster/shared/contracts';
-import {
-  AbsoluteFilePathStub,
-  FilePathStub,
-  FileContentsStub,
-} from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub, FilePathStub } from '@dungeonmaster/shared/contracts';
 
 type InstanceId = ReturnType<typeof InstanceIdStub>;
 type EpochMs = ReturnType<typeof EpochMsStub>;
@@ -39,19 +35,15 @@ export const bootLockReleaseBrokerProxy = (): {
     bootLockPath: FilePathStub({ value: BOOT_LOCK_VALUE }),
   });
 
-  errorIsNativeErrorAdapterProxy();
-  const readProxy = fsReadFileAdapterProxy();
+  const readProxy = readFileIfExistsProxy();
   const unlinkProxy = fsUnlinkAdapterProxy();
 
   return {
     bootLockPath,
 
     setupNoLock: (): void => {
-      readProxy.rejects({
-        filePath: bootLockPath,
-        error: Object.assign(new Error('ENOENT: no such file or directory'), {
-          code: 'ENOENT',
-        }),
+      readProxy.missing({
+        path: bootLockPath,
       });
     },
 
@@ -65,9 +57,9 @@ export const bootLockReleaseBrokerProxy = (): {
       acquiredAtMs: EpochMs;
     }): void => {
       const lock = BootLockStub({ heldBy, heldByPid, acquiredAtMs });
-      readProxy.resolves({
-        filePath: bootLockPath,
-        content: FileContentsStub({ value: JSON.stringify(lock) }),
+      readProxy.returns({
+        path: bootLockPath,
+        contents: JSON.stringify(lock),
       });
       // Staged unconditionally: the "held by another instance" scenario never reaches this call,
       // and the "held by this instance" scenario needs it staged to succeed.
@@ -79,9 +71,11 @@ export const bootLockReleaseBrokerProxy = (): {
     // with. The lock may genuinely still be held by this instance; a read failure must not read
     // as "released" and skip the unlink.
     setupLockReadFailsForNonAbsenceReason: (): void => {
-      readProxy.rejects({
-        filePath: bootLockPath,
-        error: Object.assign(new Error('EMFILE: too many open files'), { code: 'EMFILE' }),
+      readProxy.throwsMatchingPath({
+        path: bootLockPath,
+        error: Object.assign(new Error('EMFILE: too many open files'), {
+          code: 'EMFILE',
+        }) as FsError,
       });
     },
 

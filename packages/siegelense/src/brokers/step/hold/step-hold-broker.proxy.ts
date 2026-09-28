@@ -28,7 +28,7 @@ const OPAQUE_WHITE_CHANNEL = 255;
 
 const defaultPng = new PNG({ width: DEFAULT_FRAME_WIDTH, height: DEFAULT_FRAME_HEIGHT });
 defaultPng.data = Buffer.from(new Uint8Array(DEFAULT_TOTAL_PIXEL_BYTES).fill(OPAQUE_WHITE_CHANNEL));
-const DEFAULT_FRAME_PNG = PNG.sync.write(defaultPng).toString('latin1');
+const DEFAULT_FRAME_PNG = new Uint8Array(PNG.sync.write(defaultPng));
 
 export const stepHoldBrokerProxy = (): {
   getRequestedDelay: ReturnType<typeof asyncDelayAdapterProxy>['getRequestedDelay'];
@@ -56,7 +56,7 @@ export const stepHoldBrokerProxy = (): {
   const shotChangeProxy = shotChangeReadBrokerProxy();
   const copyProxy = copyFileProxy();
 
-  shotChangeProxy.stagesDefaultShot({ content: DEFAULT_FRAME_PNG });
+  shotChangeProxy.stagesDefaultShot({ bytes: DEFAULT_FRAME_PNG });
 
   return {
     getRequestedDelay: delayProxy.getRequestedDelay,

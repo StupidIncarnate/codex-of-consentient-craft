@@ -34,8 +34,7 @@ import { join } from '#gateway/node/path';
 import { absoluteFilePathContract, fileNameContract } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
-import { readdirIfExists } from '#gateway/node/fs__promises';
+import { readdirIfExists, readFile } from '#gateway/node/fs__promises';
 import { fsStatAdapter } from '../../../adapters/fs/stat/fs-stat-adapter';
 import { shutdownReasonReadBroker } from '../../shutdown-reason/read/shutdown-reason-read-broker';
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
@@ -212,7 +211,7 @@ export const instanceEntryLayerBroker = async ({
   const transcriptPath = absoluteFilePathContract.parse(
     join(runsDirPath, `${lastRunId}${evidenceFileStatics.extensions.transcript}`),
   );
-  const transcriptContent = await fsReadFileAdapter({ filePath: transcriptPath });
+  const transcriptContent = await readFile(transcriptPath);
   const transcriptLines = transcriptContent.split('\n').filter((line) => line.length > 0);
   const lastLine = transcriptLines[transcriptLines.length - 1];
 

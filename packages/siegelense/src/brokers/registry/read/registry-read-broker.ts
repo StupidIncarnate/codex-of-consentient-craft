@@ -13,8 +13,8 @@
  */
 
 import { existsSync } from '#gateway/node/fs';
+import { readFile } from '#gateway/node/fs__promises';
 
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { registryContract } from '../../../contracts/registry/registry-contract';
 import type { Registry } from '../../../contracts/registry/registry-contract';
 import { RegistryUnreadableError } from '../../../errors/registry-unreadable/registry-unreadable-error';
@@ -28,7 +28,7 @@ export const registryReadBroker = async (): Promise<Registry> => {
   }
 
   try {
-    const contents = await fsReadFileAdapter({ filePath: registryPath });
+    const contents = await readFile(registryPath);
     return registryContract.parse(JSON.parse(contents));
   } catch (error) {
     throw new RegistryUnreadableError({ registryPath, cause: error });

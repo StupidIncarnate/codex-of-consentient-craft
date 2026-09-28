@@ -412,3 +412,112 @@ Barrel export to update in SL-FS5:
 - Proved tests bite via 3 caller mutations breaking exact gateway argument paths, all producing expected red failures and then restored.
 
 
+## Plan — SL-FS5
+
+Group SL-FS5: second half of `fs/read-file` callers in `packages/siegelense` (18 caller units = 54 files: 18 implementations + 18 proxies + 18 tests), plus adapter deletion (3 files) and barrel export update (1 file).
+Callers move onto `readFile` or `readFileIfExists` from `#gateway/node/fs__promises`, staged via `#gateway/node/fs__promises/read-file/read-file.proxy` (`readFileProxy`) or `#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy` (`readFileIfExistsProxy`).
+Once all callers are migrated, delete `packages/siegelense/src/adapters/fs/read-file/` and remove export line 12 from `packages/siegelense/adapters.ts`.
+
+### Full File Scope (58 files)
+
+#### Direct callers to migrate (18 files)
+- `packages/siegelense/src/brokers/boot-failure-marker/read/boot-failure-marker-read-broker.ts`
+- `packages/siegelense/src/brokers/boot-lock/acquire/boot-lock-acquire-broker.ts`
+- `packages/siegelense/src/brokers/boot-lock/release/boot-lock-release-broker.ts`
+- `packages/siegelense/src/brokers/cleanup/run/lock-release-layer-broker.ts`
+- `packages/siegelense/src/brokers/compare/read/compare-read-broker.ts`
+- `packages/siegelense/src/brokers/heartbeat/read/heartbeat-read-broker.ts`
+- `packages/siegelense/src/brokers/machine/rss-by-pgid/machine-rss-by-pgid-broker.ts`
+- `packages/siegelense/src/brokers/orphan/read/orphan-read-broker.ts`
+- `packages/siegelense/src/brokers/profile/read/profile-read-broker.ts`
+- `packages/siegelense/src/brokers/profile/sample-record/profile-sample-record-broker.ts`
+- `packages/siegelense/src/brokers/registry/lock-acquire/registry-lock-acquire-broker.ts`
+- `packages/siegelense/src/brokers/registry/read/registry-read-broker.ts`
+- `packages/siegelense/src/brokers/shot/blank-read/shot-blank-read-broker.ts`
+- `packages/siegelense/src/brokers/shot/change-read/shot-change-read-broker.ts`
+- `packages/siegelense/src/brokers/shutdown-reason/read/shutdown-reason-read-broker.ts`
+- `packages/siegelense/src/brokers/snapshot/index-read/snapshot-index-read-broker.ts`
+- `packages/siegelense/src/brokers/status/read/instance-entry-layer-broker.ts`
+- `packages/siegelense/src/brokers/step/reset/snapshot-restore-layer-broker.ts`
+
+#### Caller proxies to update (18 files)
+- `packages/siegelense/src/brokers/boot-failure-marker/read/boot-failure-marker-read-broker.proxy.ts`
+- `packages/siegelense/src/brokers/boot-lock/acquire/boot-lock-acquire-broker.proxy.ts`
+- `packages/siegelense/src/brokers/boot-lock/release/boot-lock-release-broker.proxy.ts`
+- `packages/siegelense/src/brokers/cleanup/run/lock-release-layer-broker.proxy.ts`
+- `packages/siegelense/src/brokers/compare/read/compare-read-broker.proxy.ts`
+- `packages/siegelense/src/brokers/heartbeat/read/heartbeat-read-broker.proxy.ts`
+- `packages/siegelense/src/brokers/machine/rss-by-pgid/machine-rss-by-pgid-broker.proxy.ts`
+- `packages/siegelense/src/brokers/orphan/read/orphan-read-broker.proxy.ts`
+- `packages/siegelense/src/brokers/profile/read/profile-read-broker.proxy.ts`
+- `packages/siegelense/src/brokers/profile/sample-record/profile-sample-record-broker.proxy.ts`
+- `packages/siegelense/src/brokers/registry/lock-acquire/registry-lock-acquire-broker.proxy.ts`
+- `packages/siegelense/src/brokers/registry/read/registry-read-broker.proxy.ts`
+- `packages/siegelense/src/brokers/shot/blank-read/shot-blank-read-broker.proxy.ts`
+- `packages/siegelense/src/brokers/shot/change-read/shot-change-read-broker.proxy.ts`
+- `packages/siegelense/src/brokers/shutdown-reason/read/shutdown-reason-read-broker.proxy.ts`
+- `packages/siegelense/src/brokers/snapshot/index-read/snapshot-index-read-broker.proxy.ts`
+- `packages/siegelense/src/brokers/status/read/instance-entry-layer-broker.proxy.ts`
+- `packages/siegelense/src/brokers/step/reset/snapshot-restore-layer-broker.proxy.ts`
+
+#### Caller tests to verify/update (18 files)
+- `packages/siegelense/src/brokers/boot-failure-marker/read/boot-failure-marker-read-broker.test.ts`
+- `packages/siegelense/src/brokers/boot-lock/acquire/boot-lock-acquire-broker.test.ts`
+- `packages/siegelense/src/brokers/boot-lock/release/boot-lock-release-broker.test.ts`
+- `packages/siegelense/src/brokers/cleanup/run/lock-release-layer-broker.test.ts`
+- `packages/siegelense/src/brokers/compare/read/compare-read-broker.test.ts`
+- `packages/siegelense/src/brokers/heartbeat/read/heartbeat-read-broker.test.ts`
+- `packages/siegelense/src/brokers/machine/rss-by-pgid/machine-rss-by-pgid-broker.test.ts`
+- `packages/siegelense/src/brokers/orphan/read/orphan-read-broker.test.ts`
+- `packages/siegelense/src/brokers/profile/read/profile-read-broker.test.ts`
+- `packages/siegelense/src/brokers/profile/sample-record/profile-sample-record-broker.test.ts`
+- `packages/siegelense/src/brokers/registry/lock-acquire/registry-lock-acquire-broker.test.ts`
+- `packages/siegelense/src/brokers/registry/read/registry-read-broker.test.ts`
+- `packages/siegelense/src/brokers/shot/blank-read/shot-blank-read-broker.test.ts`
+- `packages/siegelense/src/brokers/shot/change-read/shot-change-read-broker.test.ts`
+- `packages/siegelense/src/brokers/shutdown-reason/read/shutdown-reason-read-broker.test.ts`
+- `packages/siegelense/src/brokers/snapshot/index-read/snapshot-index-read-broker.test.ts`
+- `packages/siegelense/src/brokers/status/read/instance-entry-layer-broker.test.ts`
+- `packages/siegelense/src/brokers/step/reset/snapshot-restore-layer-broker.test.ts`
+
+#### Adapter to delete (3 files)
+- `packages/siegelense/src/adapters/fs/read-file/fs-read-file-adapter.ts`
+- `packages/siegelense/src/adapters/fs/read-file/fs-read-file-adapter.proxy.ts`
+- `packages/siegelense/src/adapters/fs/read-file/fs-read-file-adapter.test.ts`
+
+#### Barrel export to update (1 file)
+- `packages/siegelense/adapters.ts`
+
+#### Composing proxies (no edit needed — child proxies maintain identical public methods and signatures) (18 files)
+- `packages/siegelense/src/brokers/capacity/read/capacity-read-broker.proxy.ts`
+- `packages/siegelense/src/brokers/cleanup/run/cleanup-run-broker.proxy.ts`
+- `packages/siegelense/src/brokers/compare/read/compare-read-broker.proxy.ts`
+- `packages/siegelense/src/brokers/driver/heartbeat-tick/driver-heartbeat-tick-broker.proxy.ts`
+- `packages/siegelense/src/brokers/heartbeat/write/heartbeat-write-broker.proxy.ts`
+- `packages/siegelense/src/brokers/instance/kill/instance-kill-broker.proxy.ts`
+- `packages/siegelense/src/brokers/instance/run/instance-run-broker.proxy.ts`
+- `packages/siegelense/src/brokers/instance/start/instance-start-boot-poll-layer-broker.proxy.ts`
+- `packages/siegelense/src/brokers/instance/start/instance-start-broker.proxy.ts`
+- `packages/siegelense/src/brokers/instance/state-resolve/instance-state-resolve-broker.proxy.ts`
+- `packages/siegelense/src/brokers/lane/boot/lane-boot-broker.proxy.ts`
+- `packages/siegelense/src/brokers/lane-spec/find/lane-spec-find-broker.proxy.ts`
+- `packages/siegelense/src/brokers/prune/run/prune-run-broker.proxy.ts`
+- `packages/siegelense/src/brokers/snapshot/capture/snapshot-capture-broker.proxy.ts`
+- `packages/siegelense/src/brokers/snapshot/list/snapshot-list-broker.proxy.ts`
+- `packages/siegelense/src/brokers/snapshot/resolve/snapshot-resolve-broker.proxy.ts`
+- `packages/siegelense/src/brokers/status/read/profile-solo-read-layer-broker.proxy.ts`
+- `packages/siegelense/src/brokers/status/read/status-read-broker.proxy.ts`
+
+#### Additional caller tests updated due to raw gateway error propagation (1 file)
+- `packages/siegelense/src/brokers/instance/start/instance-start-broker.test.ts` (asserts raw EMFILE error message instead of old wrapped adapter error on bootLockAcquireBroker failure)
+
+### Execution result — SL-FS5
+- All 18 direct callers migrated onto `readFile` or `readFileIfExists` from `#gateway/node/fs__promises`.
+- All 18 caller proxies updated to compose `readFileProxy` or `readFileIfExistsProxy`, staging by exact path.
+- Updated `packages/siegelense/src/brokers/instance/start/instance-start-broker.test.ts` to assert raw EMFILE error message.
+- Zero callers of `fsReadFileAdapter` remain across the entire repository.
+- Deleted `packages/siegelense/src/adapters/fs/read-file/` (3 files: `.ts`, `.proxy.ts`, `.test.ts`).
+- Removed `export * from './src/adapters/fs/read-file/fs-read-file-adapter';` from `packages/siegelense/adapters.ts`.
+- Scoped ward run (`--only lint,typecheck,unit -- <all 56 touched files>`): exit code 0 (`1790634416231-3508`).
+- Full siegelense unit test run (`--only unit -- packages/siegelense`): exit code 0 (`1790634556895-1612`, 525/525 files passed).
+

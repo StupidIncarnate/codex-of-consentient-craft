@@ -94,9 +94,7 @@ describe('registryLockAcquireBroker', () => {
       proxy.setupNow({ nowMs: EpochMsStub() });
       proxy.setupLockReadFailsForNonAbsenceReason();
 
-      await expect(registryLockAcquireBroker({})).rejects.toThrow(
-        `Failed to read file at ${proxy.lockPath}`,
-      );
+      await expect(registryLockAcquireBroker({})).rejects.toThrow('EMFILE: too many open files');
     }, 1000);
   });
 

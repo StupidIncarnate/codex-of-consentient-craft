@@ -15,12 +15,11 @@
  */
 
 import { join } from '#gateway/node/path';
+import { readFileIfExists } from '#gateway/node/fs__promises';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
-import { errorIsNativeErrorAdapter } from '../../../adapters/error/is-native-error/error-is-native-error-adapter';
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { shutdownReasonContract } from '../../../contracts/shutdown-reason/shutdown-reason-contract';
 import type { ShutdownReason } from '../../../contracts/shutdown-reason/shutdown-reason-contract';
 
@@ -33,22 +32,7 @@ export const shutdownReasonReadBroker = async ({
     join(evidencePath, locationsStatics.siegelense.shutdownReason),
   );
 
-  const content = await fsReadFileAdapter({ filePath: markerPath }).catch((error: unknown) => {
-    if (
-      error !== null &&
-      typeof error === 'object' &&
-      errorIsNativeErrorAdapter({ value: error }) &&
-      'cause' in error &&
-      error.cause !== null &&
-      typeof error.cause === 'object' &&
-      errorIsNativeErrorAdapter({ value: error.cause }) &&
-      'code' in error.cause &&
-      error.cause.code === 'ENOENT'
-    ) {
-      return null;
-    }
-    throw error;
-  });
+  const content = await readFileIfExists(markerPath);
 
   if (content === null) {
     return null;

@@ -79,7 +79,7 @@ describe('heartbeatReadBroker', () => {
       });
 
       await expect(heartbeatReadBroker({ instanceId, guildId: null })).rejects.toThrow(
-        `Failed to read file at ${evidencePath}/heartbeat.json`,
+        'EACCES: permission denied',
       );
     });
   });
