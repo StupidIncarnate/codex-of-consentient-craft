@@ -111,7 +111,7 @@ describe('the exports @dungeonmaster/siegelense reads off this package', () => {
         runs: { serverless: true },
         makes: [
           { ingredient: 'quest', count: 1 },
-          { ingredient: 'operation', count: 2 },
+          { ingredient: 'operation', count: 'varies' },
         ],
       },
       {
@@ -123,7 +123,7 @@ describe('the exports @dungeonmaster/siegelense reads off this package', () => {
         makes: [
           { ingredient: 'guild', count: 1 },
           { ingredient: 'quest', count: 1 },
-          { ingredient: 'operation', count: 2 },
+          { ingredient: 'operation', count: 'varies' },
         ],
       },
       {

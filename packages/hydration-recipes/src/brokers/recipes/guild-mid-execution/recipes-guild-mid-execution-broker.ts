@@ -10,6 +10,17 @@
  * mid-execution guild needs two untouched quests sitting in the queue behind the running one, not
  * two more variations on "in progress".
  *
+ * `q[0]`'s `setRaw` also carries `flows`/`packagesAffected` now (`questGateContentDefaultsStatics`)
+ * — on a `write` target these ride into the record exactly as they always could; on a live target
+ * `questApiRouteBroker` carries them into a real modify call as `questReachRouteBroker` walks past
+ * `explore_flows`, which is what lets the walk clear the REAL `flows_approved`/`approved` gates
+ * (DEF-71) instead of being refused for missing content. Reaching `in_progress` for real also seeds
+ * ONE riftcarver operation via the live START route — the same one `questBuildRelayGraphBroker`
+ * always mints at the head of a fresh ledger — so the removal filter below is `expect: 'any'`, not
+ * `'one'`: zero matches on a `write` target (nothing auto-seeds there), one match on a `write`
+ * target's own hand-added riftcarver, or two on a live target (the auto-seeded one plus this
+ * recipe's own) all resolve to the same intended end state — no riftcarver left on the ledger.
+ *
  * USAGE:
  * const plan = recipesGuildMidExecutionBroker();
  * const result = await dmRegistryBroker.run(plan, target);
@@ -18,6 +29,7 @@
 import { guildMidExecutionStatics } from '../../../statics/guild-mid-execution/guild-mid-execution-statics';
 import { operationFieldsContract } from '../../../contracts/operation-fields/operation-fields-contract';
 import { questFieldsContract } from '../../../contracts/quest-fields/quest-fields-contract';
+import { questGateContentDefaultsStatics } from '../../../statics/quest-gate-content-defaults/quest-gate-content-defaults-statics';
 import { dmRegistryBroker } from '../../dm/registry/dm-registry-broker';
 import { recipesHydrationCreateBroker } from '../../recipes-hydration/create/recipes-hydration-create-broker';
 
@@ -38,6 +50,10 @@ export const recipesGuildMidExecutionBroker = recipe(
         q[0].setRaw({
           status: questFieldsContract.shape.status.parse('in_progress'),
           title: questFieldsContract.shape.title.parse('The running one'),
+          flows: questFieldsContract.shape.flows.parse(questGateContentDefaultsStatics.flows),
+          packagesAffected: questFieldsContract.shape.packagesAffected.parse(
+            questGateContentDefaultsStatics.packagesAffected,
+          ),
         }),
         q[0].operations.add(guildMidExecutionStatics.counts.operations, (o) => [
           o[0].set({ role: operationFieldsContract.shape.role.parse('codeweaver') }),
@@ -49,7 +65,7 @@ export const recipesGuildMidExecutionBroker = recipe(
         q[0].operations
           .filter({
             where: { role: operationFieldsContract.shape.role.parse('riftcarver') },
-            expect: 'one',
+            expect: 'any',
           })
           .remove(),
         q[0].saveRecordAs({ name: 'quest1' }),

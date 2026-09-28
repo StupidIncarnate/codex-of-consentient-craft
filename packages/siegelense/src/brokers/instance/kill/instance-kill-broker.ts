@@ -23,6 +23,11 @@
  * `status`'s `likelyCause` reflects that something outside the driver stopped it, rather than a
  * stale idle-timeout reason the driver's own self-reap recorded earlier before this call ever ran.
  *
+ * `reason` lets a caller that already knows WHY it is reaping (cleanup's own staleness detection)
+ * name that cause instead of the generic "reaped N orphaned process groups" wording — so
+ * `likelyCause` says what really ended the instance rather than only how it was torn down. Omitted
+ * by an explicit `kill` call, which has no cause of its own beyond the user's own request.
+ *
  * USAGE:
  * await instanceKillBroker({ instanceId });
  * // Driver reachable: sends `kill`, returns { stopped: true, killed: [...groups the driver actually
@@ -30,10 +35,15 @@
  * // Driver unreachable, row still alive: reaps the registry's own recorded pgids that are still
  * // live, returns { stopped: true, reapedPgids: [...] }
  * // Row already killed/pruned/unusable: no-op, returns { stopped: true, reapedPgids: [] }
+ *
+ * await instanceKillBroker({ instanceId, reason: ContentTextStub({ value: 'reaped by cleanup after its heartbeat went stale' }) });
+ * // Driver unreachable, live pgids reaped: shutdown-reason.json is written with the SUPPLIED reason
+ * // rather than the generic "reaped N orphaned process groups" wording
  */
 
 import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import { absoluteFilePathContract, contentTextContract } from '@dungeonmaster/shared/contracts';
+import type { ContentText } from '@dungeonmaster/shared/contracts';
 
 import { fsRmAdapter } from '../../../adapters/fs/rm/fs-rm-adapter';
 import { netUnixRequestAdapter } from '../../../adapters/net/unix-request/net-unix-request-adapter';
@@ -54,8 +64,10 @@ import { driverStatics } from '../../../statics/driver/driver-statics';
 
 export const instanceKillBroker = async ({
   instanceId,
+  reason,
 }: {
   instanceId: InstanceId;
+  reason?: ContentText;
 }): Promise<KillResult> => {
   const registry = await registryReadBroker();
   const entry = registry.instances.find((candidate) => candidate.id === instanceId);
@@ -143,11 +155,13 @@ export const instanceKillBroker = async ({
       if (candidatePgids.length > 0) {
         await shutdownReasonWriteBroker({
           evidencePath,
-          reason: contentTextContract.parse(
-            `reaped ${candidatePgids.length} orphaned process group${
-              candidatePgids.length === 1 ? '' : 's'
-            } outside the idle timeout`,
-          ),
+          reason:
+            reason ??
+            contentTextContract.parse(
+              `reaped ${candidatePgids.length} orphaned process group${
+                candidatePgids.length === 1 ? '' : 's'
+              } outside the idle timeout`,
+            ),
         });
       }
 

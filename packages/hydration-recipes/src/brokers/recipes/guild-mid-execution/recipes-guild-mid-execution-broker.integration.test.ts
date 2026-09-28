@@ -2,6 +2,7 @@ import type { GuildStub, QuestStub } from '@dungeonmaster/shared/contracts';
 import { SavedRecordNameStub } from '@dungeonmaster/hydration/contracts';
 
 import { fileTargetHarness } from '../../../../test/harnesses/file-target/file-target.harness';
+import { liveQuestTargetHarness } from '../../../../test/harnesses/live-quest-target/live-quest-target.harness';
 import { dmRegistryBroker } from '../../dm/registry/dm-registry-broker';
 import { recipesGuildMidExecutionBroker } from './recipes-guild-mid-execution-broker';
 
@@ -119,6 +120,26 @@ describe('recipesGuildMidExecutionBroker', () => {
         rolesOnDisk2: [],
         rolesOnDisk3: [],
       });
+    });
+  });
+
+  // DEF-71: a live target (`baseUrl` set) picks the quest ingredient's `api` route over `write`,
+  // and `POST /api/quests` never mints anything but `created` — so `q[0]`'s create-time `setRaw`'d
+  // `in_progress` is walked there through the REAL `questReachRouteBroker`, hitting the REAL
+  // `flows_approved`/`approved` gates for real. Before the fix this threw
+  // `Missing required content for transition to flows_approved` because the recipe supplied no
+  // flow content the create wire could carry; this suite proves the walk now clears both gates
+  // (using `liveQuestTargetHarness`'s real `questUserAddBroker`/`questModifyBroker`/`questGetBroker`
+  // dispatch, never `instanceStubHarness`'s canned echo, which persists nothing for the in-process
+  // hops to find) and only stops at the ONE hop this harness cannot honestly serve —
+  // `POST /api/quests/:id/start`, `orchestration-start-responder`'s own logic being unexported.
+  describe('run against a live target (api route, DEF-71)', () => {
+    const liveTarget = liveQuestTargetHarness();
+
+    it('VALID: {} => walks past the flows_approved and approved gates for real, stopping only at the unserved in_progress hop', async () => {
+      await expect(run(recipesGuildMidExecutionBroker(), liveTarget.target())).rejects.toThrow(
+        /^recipe "guild-mid-execution": ingredient "quest"'s "api" route at http:\/\/live-quest-target\.test\/api\/quests\/[0-9a-f-]+\/start refused the connection: .*no in-process dispatch for POST \/api\/quests\/[0-9a-f-]+\/start/u,
+      );
     });
   });
 });

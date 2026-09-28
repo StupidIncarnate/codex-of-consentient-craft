@@ -410,4 +410,19 @@ describe('siegeHappyWalkerStatics', () => {
       }),
     }).toStrictEqual({ outcomeCall: true, signal: true, closesNothing: true });
   });
+
+  it('VALID: served template => lists siegelense run, results, and status as yours from step 3 on', () => {
+    expect({
+      hasWalkingDocs: hasIn({
+        needle: 'Bash: dungeonmaster siegelense docs --for walking     step 2, once',
+      }),
+      hasRunResultsStatus: hasIn({
+        needle:
+          'Bash: dungeonmaster siegelense run / results / status   step 3 on, against YOUR instance only',
+      }),
+    }).toStrictEqual({
+      hasWalkingDocs: true,
+      hasRunResultsStatus: true,
+    });
+  });
 });

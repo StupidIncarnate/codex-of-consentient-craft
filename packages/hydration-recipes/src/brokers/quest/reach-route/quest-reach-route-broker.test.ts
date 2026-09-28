@@ -2,6 +2,7 @@ import { questReachRouteBroker } from './quest-reach-route-broker';
 import { questReachRouteBrokerProxy } from './quest-reach-route-broker.proxy';
 import { DmHttpResponseStub } from '../../../contracts/dm-http-response/dm-http-response.stub';
 import { DmTargetStub } from '../../../contracts/dm-target/dm-target.stub';
+import { questGateContentDefaultsStatics } from '../../../statics/quest-gate-content-defaults/quest-gate-content-defaults-statics';
 import {
   GetQuestInputStub,
   GetQuestResultStub,
@@ -126,6 +127,123 @@ describe('questReachRouteBroker', () => {
         to: 'in_progress',
         target,
         record,
+      });
+
+      expect(outcome).toStrictEqual(reloadedQuest);
+    });
+  });
+
+  describe('extraFields carrying gate content past explore_flows (DEF-71)', () => {
+    it('VALID: {extraFields: {flows, packagesAffected}} => applies them once via a real modify call right after reaching explore_flows, then keeps walking', async () => {
+      const proxy = questReachRouteBrokerProxy();
+      const target = DmTargetStub({});
+      const record = QuestStub({ id: 'add-auth', status: 'created' });
+      proxy.setupModifyHop({
+        input: ModifyQuestInputStub({ questId: 'add-auth', status: 'explore_flows' }),
+        result: ModifyQuestResultStub({ success: true }),
+      });
+      proxy.setupModifyHop({
+        input: ModifyQuestInputStub({
+          questId: 'add-auth',
+          // `questGateContentDefaultsStatics` is declared `as const`, so its arrays are deeply
+          // `readonly` — a JSON round-trip strips that back to the mutable shape the stub's own
+          // argument type expects, the same technique `guild-with-three-quests`'s own integration
+          // test uses for the identical reason.
+          flows: JSON.parse(JSON.stringify(questGateContentDefaultsStatics.flows)),
+          packagesAffected: JSON.parse(
+            JSON.stringify(questGateContentDefaultsStatics.packagesAffected),
+          ),
+        }),
+        result: ModifyQuestResultStub({ success: true }),
+      });
+      proxy.setupModifyHop({
+        input: ModifyQuestInputStub({ questId: 'add-auth', status: 'review_flows' }),
+        result: ModifyQuestResultStub({ success: true }),
+      });
+      proxy.setupModifyHop({
+        input: ModifyQuestInputStub({ questId: 'add-auth', status: 'flows_approved' }),
+        result: ModifyQuestResultStub({ success: true }),
+      });
+      const reloadedQuest = QuestStub({ id: 'add-auth', status: 'flows_approved' });
+      proxy.setupReload({
+        input: GetQuestInputStub({ questId: 'add-auth' }),
+        result: GetQuestResultStub({ success: true, quest: reloadedQuest }),
+      });
+
+      const outcome = await questReachRouteBroker({
+        from: 'created',
+        to: 'flows_approved',
+        target,
+        record,
+        extraFields: {
+          flows: questGateContentDefaultsStatics.flows,
+          packagesAffected: questGateContentDefaultsStatics.packagesAffected,
+        },
+      });
+
+      expect(outcome).toStrictEqual(reloadedQuest);
+    });
+
+    it('VALID: {extraFields with content, the content call left unstaged} => the walk genuinely attempts that exact modify call, proven by registerMock refusing an address nothing staged', async () => {
+      // Every OTHER call this walk makes is staged; the content-application call at explore_flows
+      // deliberately is not. If the broker actually calls questModifyBroker with the gate-content
+      // fields (the real, unmutated behaviour), that call has no matching address and registerMock
+      // throws unconditionally — proving the call was attempted rather than merely leaving the
+      // final outcome unchanged (which a call that never fired would ALSO produce, since every
+      // hop's own status-modify stub is unconditionally staged regardless).
+      const proxy = questReachRouteBrokerProxy();
+      const target = DmTargetStub({});
+      const record = QuestStub({ id: 'add-auth', status: 'created' });
+      proxy.setupModifyHop({
+        input: ModifyQuestInputStub({ questId: 'add-auth', status: 'explore_flows' }),
+        result: ModifyQuestResultStub({ success: true }),
+      });
+      proxy.setupModifyHop({
+        input: ModifyQuestInputStub({ questId: 'add-auth', status: 'review_flows' }),
+        result: ModifyQuestResultStub({ success: true }),
+      });
+
+      await expect(
+        questReachRouteBroker({
+          from: 'created',
+          to: 'review_flows',
+          target,
+          record,
+          extraFields: {
+            flows: questGateContentDefaultsStatics.flows,
+            packagesAffected: questGateContentDefaultsStatics.packagesAffected,
+          },
+        }),
+        // Anchored on the actual CONTENT payload (packagesAffected naming hydration-recipes-seed,
+        // from questGateContentDefaultsStatics) — not just the generic "nothing set up" prefix
+        // every unmatched call shares, which a DIFFERENT missing stage (the reload, never staged in
+        // this test either) would also throw, and never on the mock's own generic
+        // "mockConstructor" label, which carries no information about which real function it wraps.
+      ).rejects.toThrow(
+        /^registerMock: nothing set up for the call.*"packagesAffected".*hydration-recipes-seed/su,
+      );
+    });
+
+    it('VALID: {extraFields: {flows: []}} => an empty array supplies no content, so no extra modify call happens', async () => {
+      const proxy = questReachRouteBrokerProxy();
+      const target = DmTargetStub({});
+      const record = QuestStub({ id: 'add-auth', status: 'created' });
+      proxy.setupModifyHop({
+        input: ModifyQuestInputStub({ questId: 'add-auth', status: 'explore_flows' }),
+        result: ModifyQuestResultStub({ success: true }),
+      });
+      const reloadedQuest = QuestStub({ id: 'add-auth', status: 'explore_flows' });
+      proxy.setupReload({
+        input: GetQuestInputStub({ questId: 'add-auth' }),
+        result: GetQuestResultStub({ success: true, quest: reloadedQuest }),
+      });
+
+      const outcome = await questReachRouteBroker({
+        from: 'created',
+        to: 'explore_flows',
+        target,
+        record,
+        extraFields: { flows: [] },
       });
 
       expect(outcome).toStrictEqual(reloadedQuest);

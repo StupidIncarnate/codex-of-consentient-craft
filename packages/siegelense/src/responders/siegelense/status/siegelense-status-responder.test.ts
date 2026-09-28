@@ -275,10 +275,12 @@ describe('SiegelenseStatusResponder', () => {
           '│ RUNS         │ 3                                                                                       │\n' +
           '│ MEMORY       │ at last beat 1840MB                                                                     │\n' +
           '│ LAST STEP    │ run_2 step 7 click                                                                      │\n' +
-          '│ ORPHANS      │ pgid 33812 (alive), pgid 33840 (dead)                                                   │\n' +
+          '│ ORPHANS      │ pgid 33812 (alive)                                                                      │\n' +
+          '│              │ pgid 33840 (dead)                                                                       │\n' +
           '│ EVIDENCE DIR │ /repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_9b2c             │\n' +
           '│ TRANSCRIPT   │ run_2.jsonl                                                                             │\n' +
-          '│ LOGS         │ api-server.log, web-server.log                                                          │\n' +
+          '│ LOGS         │ api-server.log                                                                          │\n' +
+          '│              │ web-server.log                                                                          │\n' +
           '│ LAST SHOT    │ run_2/step7.png                                                                         │\n' +
           '│ LIKELY CAUSE │ OOM killed — rss climbed to 1840MB before the last beat, 2 kernel OOM events since boot │\n' +
           '└──────────────┴─────────────────────────────────────────────────────────────────────────────────────────┘\n',
