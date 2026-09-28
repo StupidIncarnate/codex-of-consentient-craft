@@ -296,6 +296,71 @@ describe('capacityReadBroker', () => {
       });
     });
 
+    it('EDGE: {a reservation past its own staleAfterMs window} => excluded from the count rather than counted forever', async () => {
+      const proxy = capacityReadBrokerProxy();
+      proxy.setupRegistry({
+        registry: RegistryStub({
+          instances: [
+            RegistryEntryStub({
+              id: InstanceIdStub({ value: 'inst_a620d5f3' }),
+              owner: InstanceOwnerStub({ value: '55555' }),
+              bootedAtMs: null,
+              lastBeatMs: null,
+              // 4.5 hours past NOW_MS's reservedAtMs — well past
+              // instanceLifecycleStatics.reservation.staleAfterMs (300_000ms / 5m), the exact
+              // shape a reservation abandoned before boot.lock or the driver's own ping ever
+              // fired takes. isStaleRegistryEntryGuard alone never catches this row: lastBeatMs
+              // is null, and that guard returns false for a heartbeat that never started.
+              reservedAtMs: EpochMsStub({ value: NOW_MS - 16_200_000 }),
+            }),
+          ],
+        }),
+      });
+      proxy.setupMachineReading({
+        freeMemBytes: 5000 * MB_BYTES,
+        totalMemBytes: 16_000 * MB_BYTES,
+        coreCount: 8,
+        loadAvg: LOAD_AVG,
+        diskBavail: 41_000,
+        diskBsize: MB_BYTES,
+        vmstatContent: VMSTAT_CONTENT,
+      });
+      proxy.setupProfile({
+        profile: SpecProfileStub({
+          specName: 'dungeonmaster-stack',
+          samples: [{ poolSize: 1, steadyMB: 1800, peakMB: 2600, runs: 9 }],
+        }),
+      });
+      proxy.setupNow({ nowMs: NOW_MS });
+
+      const answer = await capacityReadBroker({
+        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        poolSize: ProfilePoolSizeStub({ value: 1 }),
+      });
+
+      expect(answer).toStrictEqual({
+        suggested: 2,
+        ceiling: 3,
+        why:
+          'profile 2600MB peak / 1800MB steady at pool size 1, from 9 runs; ' +
+          'free RAM 5000MB less 512MB headroom; nothing else up',
+        measured: {
+          freeMemMB: 5000,
+          cores: 8,
+          loadAvg1: 4.2,
+          siegeInstances: 0,
+          diskFreeMB: 41_000,
+        },
+        profile: {
+          spec: 'dungeonmaster-stack',
+          poolSize: 1,
+          steadyMB: 1800,
+          peakMB: 2600,
+          fromRuns: 9,
+        },
+      });
+    });
+
     it('EDGE: {killed and pruned tombstones} => neither counts as load', async () => {
       const proxy = capacityReadBrokerProxy();
       proxy.setupRegistry({

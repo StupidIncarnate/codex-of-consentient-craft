@@ -11,9 +11,14 @@
  * every registry row counts. A RESERVATION counts too — that is the thundering-herd cure at line
  * 225, where three sessions each divide free memory by peak and six boot.
  *
- * A row whose heartbeat has gone cold is EXCLUDED rather than reaped. Reaping is `cleanup`'s and
- * `start`'s, and a read that quietly killed things would make "ask before opening a pool" a
- * mutation. `isStaleRegistryEntryGuard` is what tells the two apart, on the same clock `start` uses.
+ * A row whose heartbeat has gone cold is EXCLUDED rather than reaped, and so is a RESERVATION whose
+ * own `reservedAtMs` has outlived `instanceLifecycleStatics.reservation.staleAfterMs` — a reservation
+ * nobody ever booted has no heartbeat to go cold, so `isStaleRegistryEntryGuard` alone (which returns
+ * `false` for `lastBeatMs === null` by design) never catches it, and it counted against `suggested`
+ * forever until `cleanup` next ran. Reaping is `cleanup`'s and `start`'s, and a read that quietly
+ * killed things would make "ask before opening a pool" a mutation. `isStaleRegistryEntryGuard` and
+ * `isStaleReservationRegistryEntryGuard` are what tell the two exclusions apart, on the same clock
+ * `start` uses.
  *
  * Reads run in sequence rather than through one `Promise.all`: `registryReadBroker` and
  * `machineReadBroker` each resolve their own paths through the shared `pathJoinAdapter` queue, and a
@@ -34,6 +39,7 @@ import { readingCountContract } from '../../../contracts/reading-count/reading-c
 import type { SpecName } from '../../../contracts/spec-name/spec-name-contract';
 import { isReservedRegistryEntryGuard } from '../../../guards/is-reserved-registry-entry/is-reserved-registry-entry-guard';
 import { isStaleRegistryEntryGuard } from '../../../guards/is-stale-registry-entry/is-stale-registry-entry-guard';
+import { isStaleReservationRegistryEntryGuard } from '../../../guards/is-stale-reservation-registry-entry/is-stale-reservation-registry-entry-guard';
 import { capacityStatics } from '../../../statics/capacity/capacity-statics';
 import { capacitySampleSelectTransformer } from '../../../transformers/capacity-sample-select/capacity-sample-select-transformer';
 import { capacitySuggestTransformer } from '../../../transformers/capacity-suggest/capacity-suggest-transformer';
@@ -63,7 +69,10 @@ export const capacityReadBroker = async ({
 
   const nowMs = epochMsContract.parse(Date.now());
   const liveEntries = registry.instances.filter(
-    (entry) => entry.state === 'alive' && !isStaleRegistryEntryGuard({ entry, nowMs }),
+    (entry) =>
+      entry.state === 'alive' &&
+      !isStaleRegistryEntryGuard({ entry, nowMs }) &&
+      !isStaleReservationRegistryEntryGuard({ entry, nowMs }),
   );
   const siegeInstances = readingCountContract.parse(liveEntries.length);
   const reservedInstances = readingCountContract.parse(
