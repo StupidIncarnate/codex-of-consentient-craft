@@ -299,3 +299,37 @@ a time), consistent with that header and with the EPIC handoff's own note on thi
 - Whether the orchestrator swap (G22-13) holds empirically. The item's own Traps section already names
   this as the one place a bare `jest.requireActual` exception is acceptable — this plan cannot resolve it
   without a real jest run.
+
+### G22-13 result — recorded exception (resolves the open question above)
+
+Tried empirically on `quest-node-dispatch-loop-broker.proxy.ts` alone, per the item's own Work step 5:
+added `import { requireActual as gatewayRequireActual } from '#gateway/npm/jest__globals';` at the top of
+the file, and swapped both `jest.requireActual('@dungeonmaster/shared/adapters')` /
+`jest.requireActual('@dungeonmaster/shared/brokers')` calls inside its two `registerModuleMock` factories
+for `gatewayRequireActual({ moduleName: '...' })`. Ran
+`npm run ward -- --only unit -- packages/orchestrator/src/brokers/quest/node-dispatch-loop/quest-node-dispatch-loop-broker.proxy.ts packages/orchestrator/src/brokers/quest/node-dispatch-loop/quest-node-dispatch-loop-broker.test.ts packages/orchestrator/src/responders/orchestration-dispatch/bootstrap/orchestration-dispatch-bootstrap-responder.test.ts`
+(run id `1790582159330-f9dd`) — both suites failed to run:
+
+```
+ReferenceError: gatewayRequireActual is not defined
+```
+
+**Cause, read from the mechanism, not guessed:** `typescriptMockCallsToStatementsAdapter`
+(`packages/testing/src/adapters/typescript/mock-calls-to-statements/typescript-mock-calls-to-statements-adapter.ts:226-333`)
+re-parses a `registerModuleMock`'s `factory` as STANDALONE source text (`ts.createSourceFile('temp.ts', mock.factory, ...)`)
+and clones only the AST NODES it recognizes (identifiers, property access, call expressions, object
+literals, …) — it carries no import statements across. `typescriptSourceFileWithPrependedStatementsAdapter`
+then PREPENDS the resulting `jest.mock(module, factory)` call at the very top of whatever file transitively
+imports the proxy (the test file, or a composing proxy like `orchestration-dispatch-bootstrap-responder.proxy.ts`)
+— above that file's OWN imports. A bare `jest.requireActual`/`jest.fn` reference survives this teleport
+because `jest` is a Jest-injected global, resolvable from anywhere with no import. A `gatewayRequireActual`
+reference does not: it is a local alias bound by an `import` statement in the PROXY file, and that binding
+never travels with the cloned AST node into the file the call gets spliced into.
+
+**Reverted the trial edit** (confirmed clean via `git diff --stat`, and re-ran the same three files —
+run id `1790582215759-424b` — PASS) and left all four orchestrator proxy files
+(`quest-route-scope-broker.proxy.ts`, `quest-node-dispatch-loop-broker.proxy.ts`, `quest-run-step-broker.proxy.ts`,
+`step-handler-riftcarver-broker.proxy.ts`) on the bare global `jest.requireActual` inside their
+`registerModuleMock` factories, unedited. This is the one place in the item where the bare global stays, by
+explicit exception — not a design choice available to fix, a hard constraint of the hoister as built. The
+`jest.fn()` calls inside the same four factories were never touched (out of scope per Work step 5).

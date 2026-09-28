@@ -1,5 +1,6 @@
 /**
- * PURPOSE: Mocks child_process.spawn for testing child process interactions
+ * PURPOSE: Mocks child_process.spawn for testing child process interactions, through
+ * #gateway/npm/jest__globals's wrappers rather than the bare jest global.
  *
  * USAGE:
  * const mocker = childProcessMockerAdapter();
@@ -12,6 +13,11 @@
  */
 
 import { EventEmitter } from 'events';
+import {
+  doMock as gatewayDoMock,
+  fn as gatewayFn,
+  resetModules as gatewayResetModules,
+} from '#gateway/npm/jest__globals';
 import type { MockProcessBehavior } from '../../../contracts/mock-process-behavior/mock-process-behavior-contract';
 import type { MockSpawnResult } from '../../../contracts/mock-spawn-result/mock-spawn-result-contract';
 
@@ -19,8 +25,8 @@ type MockChildProcessInstance = EventEmitter & {
   stdout: EventEmitter;
   stderr: EventEmitter;
   stdin: {
-    write: jest.Mock;
-    end: jest.Mock;
+    write: ReturnType<typeof gatewayFn>;
+    end: ReturnType<typeof gatewayFn>;
   };
   behavior: MockProcessBehavior;
   simulateProcess: () => Promise<void>;
@@ -58,13 +64,16 @@ export const childProcessMockerAdapter = (): {
 } => ({
   mockSpawn: ({ behavior }: { behavior: MockProcessBehavior }) => {
     // Reset modules to ensure fresh imports
-    jest.resetModules();
+    gatewayResetModules();
 
     // Mock child_process module
-    const mockSpawn = jest.fn();
-    jest.doMock('child_process', () => ({
-      spawn: mockSpawn,
-    }));
+    const mockSpawn = gatewayFn();
+    gatewayDoMock({
+      moduleName: 'child_process',
+      factory: () => ({
+        spawn: mockSpawn,
+      }),
+    });
 
     mockSpawn.mockImplementation(() => {
       if (behavior.shouldThrow) {
@@ -76,8 +85,8 @@ export const childProcessMockerAdapter = (): {
       mockProcess.stdout = new EventEmitter();
       mockProcess.stderr = new EventEmitter();
       mockProcess.stdin = {
-        write: jest.fn(),
-        end: jest.fn(),
+        write: gatewayFn(),
+        end: gatewayFn(),
       };
       mockProcess.behavior = behavior;
       mockProcess.simulateProcess = async (): Promise<void> => {
@@ -110,7 +119,7 @@ export const childProcessMockerAdapter = (): {
 
     return {
       restore: (): void => {
-        jest.resetModules();
+        gatewayResetModules();
       },
     };
   },
