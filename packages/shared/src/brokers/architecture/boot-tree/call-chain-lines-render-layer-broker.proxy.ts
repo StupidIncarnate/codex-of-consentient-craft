@@ -50,7 +50,7 @@ export const callChainLinesRenderLayerBrokerProxy = (): {
 
     setupFileContentsMap: ({ map }: { map: Record<string, ContentText> }): void => {
       const impl = buildImpl(map);
-      importsProxy.setupImplementation({ fn: impl });
+      importsProxy.setupImplementation({ fn: impl, map });
       exportNameProxy.setupImplementation({ fn: impl });
     },
   };

@@ -35,13 +35,55 @@ export const transcriptResolveBrokerProxy = (): {
     .calledWith([])
     .implement((...segments: never[]) => realPath.join(...segments));
 
-  // existsSync has no catch-all by design; this mirrors the real function's own "false on
-  // anything unresolved" semantics — every exact path staged true below is more specific and wins.
-  existsProxy.returnsMatchingPath({ path: (): boolean => true, exists: false });
+  // existsSync has no catch-all by design: every path it can be asked about here is exactly
+  // staged below, true or false, so a broker that queries the wrong candidate throws instead of
+  // silently reading "not found".
+  existsProxy.returns({ path: FilePathStub({ value: PROJECTS_ROOT }), exists: false });
 
   const projectDirNames: PathSegment[] = [];
   const fileEntryNamesByProjectDir = new Map<PathSegment, PathSegment[]>();
   const sessionDirNamesByProjectDir = new Map<PathSegment, SessionId[]>();
+
+  // Tracks every (projectDir, sessionId) pair a test has described, so every candidate main-session
+  // path the broker could build from a KNOWN projectDir and a KNOWN sessionId gets an exact true or
+  // false answer — not just the one pair the test cares about.
+  const mainSessionIdsByProjectDir = new Map<PathSegment, Set<SessionId>>();
+  const allMainSessionIds = new Set<SessionId>();
+
+  const restageMainSessionExistence = (): void => {
+    for (const projectDir of projectDirNames) {
+      const presentHere = mainSessionIdsByProjectDir.get(projectDir) ?? new Set<SessionId>();
+      for (const sessionId of allMainSessionIds) {
+        existsProxy.returns({
+          path: FilePathStub({ value: `${PROJECTS_ROOT}/${projectDir}/${sessionId}.jsonl` }),
+          exists: presentHere.has(sessionId),
+        });
+      }
+    }
+  };
+
+  // Same idea for sub-agent transcripts, keyed by (projectDir, sessionDir) since that pair, not
+  // just the projectDir, is what the candidate path is built from.
+  const subagentIdsByProjectDirAndSessionDir = new Map<
+    PathSegment,
+    Map<SessionId, Set<SessionId>>
+  >();
+  const allAgentIds = new Set<SessionId>();
+
+  const restageSubagentExistence = (): void => {
+    for (const [projectDir, sessionDirMap] of subagentIdsByProjectDirAndSessionDir) {
+      for (const [sessionDirName, presentAgentIds] of sessionDirMap) {
+        for (const agentId of allAgentIds) {
+          existsProxy.returns({
+            path: FilePathStub({
+              value: `${PROJECTS_ROOT}/${projectDir}/${sessionDirName}/${SUBAGENTS_DIR_NAME}/${agentId}.jsonl`,
+            }),
+            exists: presentAgentIds.has(agentId),
+          });
+        }
+      }
+    }
+  };
 
   const refreshProjectsRootListing = (): void => {
     existsProxy.returns({ path: FilePathStub({ value: PROJECTS_ROOT }), exists: true });
@@ -85,10 +127,11 @@ export const transcriptResolveBrokerProxy = (): {
       fileEntryNamesByProjectDir.set(projectDir, fileNames);
       refreshProjectDirListing({ projectDirName: projectDir });
 
-      existsProxy.returns({
-        path: FilePathStub({ value: `${PROJECTS_ROOT}/${projectDir}/${sessionId}.jsonl` }),
-        exists: true,
-      });
+      const presentHere = mainSessionIdsByProjectDir.get(projectDir) ?? new Set<SessionId>();
+      presentHere.add(sessionId);
+      mainSessionIdsByProjectDir.set(projectDir, presentHere);
+      allMainSessionIds.add(sessionId);
+      restageMainSessionExistence();
     },
     setupSubagentAt: ({
       projectDir,
@@ -108,12 +151,15 @@ export const transcriptResolveBrokerProxy = (): {
       sessionDirNamesByProjectDir.set(projectDir, sessionDirNames);
       refreshProjectDirListing({ projectDirName: projectDir });
 
-      existsProxy.returns({
-        path: FilePathStub({
-          value: `${PROJECTS_ROOT}/${projectDir}/${sessionId}/${SUBAGENTS_DIR_NAME}/${agentId}.jsonl`,
-        }),
-        exists: true,
-      });
+      const sessionDirMap =
+        subagentIdsByProjectDirAndSessionDir.get(projectDir) ??
+        new Map<SessionId, Set<SessionId>>();
+      const presentAgentIds = sessionDirMap.get(sessionId) ?? new Set<SessionId>();
+      presentAgentIds.add(agentId);
+      sessionDirMap.set(sessionId, presentAgentIds);
+      subagentIdsByProjectDirAndSessionDir.set(projectDir, sessionDirMap);
+      allAgentIds.add(agentId);
+      restageSubagentExistence();
     },
     setupNothing: (): void => {
       existsProxy.returns({ path: FilePathStub({ value: PROJECTS_ROOT }), exists: true });

@@ -51,11 +51,6 @@ export const subagentRosterLoadBrokerProxy = (): {
     .calledWith([])
     .implement((...segments: never[]) => realPath.join(...segments));
 
-  // existsSync has no catch-all by design; this mirrors the real function's own "false on
-  // anything unresolved" semantics — the optional transcript-file check relies on it, and every
-  // exact path staged true below is more specific and wins.
-  existsProxy.returnsMatchingPath({ path: (): boolean => true, exists: false });
-
   const subagentsDirFor = ({ sessionFilePath }: { sessionFilePath: AbsoluteFilePath }): FilePath =>
     FilePathStub({
       value: `${sessionFilePath.slice(0, -JSONL_SUFFIX.length)}/${SUBAGENTS_DIR_NAME}`,
@@ -98,11 +93,17 @@ export const subagentRosterLoadBrokerProxy = (): {
           contents: JSON.stringify(agent.meta),
         });
 
+        // Every valid agent's transcript check is staged exactly, true or false — a valid agent
+        // with no transcriptJsonl models "meta exists, transcript file does not", never a path the
+        // broker asks about with no answer staged.
+        const transcriptFilePath = FilePathStub({
+          value: `${subagentsDir}/${agent.agentId}${JSONL_SUFFIX}`,
+        });
+        existsProxy.returns({
+          path: transcriptFilePath,
+          exists: agent.transcriptJsonl !== undefined,
+        });
         if (agent.transcriptJsonl !== undefined) {
-          const transcriptFilePath = FilePathStub({
-            value: `${subagentsDir}/${agent.agentId}${JSONL_SUFFIX}`,
-          });
-          existsProxy.returns({ path: transcriptFilePath, exists: true });
           readFileProxy.returns({ path: transcriptFilePath, contents: agent.transcriptJsonl });
         }
 
