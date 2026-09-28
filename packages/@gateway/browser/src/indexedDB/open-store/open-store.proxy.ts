@@ -1,6 +1,7 @@
 /// <reference lib="dom" />
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
+import { fakeIndexedDb } from '../../gateway-test-support/fake-indexed-db';
 import type { ValueMatcher } from '../../gateway-test-support/value-matcher';
 
 interface FakeOpenRequest {
@@ -18,7 +19,11 @@ export const openStoreProxy = (): {
   seedOpenRefused: (params: { name: string; version: number; message: string }) => void;
   seedExistingDatabaseMatchingName: (params: { name: ValueMatcher; version: number }) => void;
   getCallsFor: (params: { name: ValueMatcher }) => readonly unknown[][];
+  seedRecords: (params: { name: string; storeName: string; records: readonly unknown[] }) => void;
+  getRecords: (params: { name: string; storeName: string }) => unknown[];
 } => {
+  const fake = fakeIndexedDb();
+
   // jsdom does not implement `indexedDB` by default — attach a real method to spy on. Re-typed to
   // an optional shape first because globalThis.indexedDB is declared non-nullable by lib.dom,
   // which leaves the existence check below nothing to narrow.
@@ -33,16 +38,19 @@ export const openStoreProxy = (): {
 
   const handle: SpyOnHandle = registerSpyOn({ object: globalThis.indexedDB, method: 'open' });
 
-  const state: { table: unknown[]; storeCreated: boolean } = { table: [], storeCreated: false };
+  const state: { storeCreated: boolean } = { storeCreated: false };
 
-  const buildOpenedDatabase = ({ version }: { version: number }): unknown => ({
-    version,
-    objectStoreNames: { contains: (): boolean => state.storeCreated },
-    createObjectStore: (): void => {
-      state.storeCreated = true;
-    },
-    close: (): void => undefined,
-  });
+  // The opened database is the fake's: its transactions read and write the store the other
+  // indexedDB proxies in this test share, per database name.
+  const buildOpenedDatabase = ({ name, version }: { name: string; version: number }): unknown =>
+    fake.buildDb({
+      name,
+      version,
+      hasStore: (): boolean => state.storeCreated,
+      createStore: (): void => {
+        state.storeCreated = true;
+      },
+    });
 
   return {
     // A caller opening at the version it already holds, with the store present — resolves
@@ -58,7 +66,7 @@ export const openStoreProxy = (): {
           onerror: null,
         };
         queueMicrotask((): void => {
-          request.result = buildOpenedDatabase({ version });
+          request.result = buildOpenedDatabase({ name, version });
           request.onsuccess?.();
         });
         return request;
@@ -79,7 +87,7 @@ export const openStoreProxy = (): {
           onerror: null,
         };
         queueMicrotask((): void => {
-          request.result = buildOpenedDatabase({ version });
+          request.result = buildOpenedDatabase({ name, version });
           request.onsuccess?.();
         });
         return request;
@@ -94,7 +102,7 @@ export const openStoreProxy = (): {
           onerror: null,
         };
         queueMicrotask((): void => {
-          request.result = buildOpenedDatabase({ version: version + 1 });
+          request.result = buildOpenedDatabase({ name, version: version + 1 });
           request.onupgradeneeded?.();
           request.onsuccess?.();
         });
@@ -131,7 +139,7 @@ export const openStoreProxy = (): {
           onerror: null,
         };
         queueMicrotask((): void => {
-          request.result = buildOpenedDatabase({ version: version + 1 });
+          request.result = buildOpenedDatabase({ name, version: version + 1 });
           request.onsuccess?.();
         });
         return request;
@@ -174,7 +182,7 @@ export const openStoreProxy = (): {
       version: number;
     }): void => {
       state.storeCreated = true;
-      handle.calledWith([name, version]).implement((): FakeOpenRequest => {
+      handle.calledWith([name, version]).implement((openedName: string): FakeOpenRequest => {
         const request: FakeOpenRequest = {
           result: undefined,
           error: null,
@@ -183,7 +191,7 @@ export const openStoreProxy = (): {
           onerror: null,
         };
         queueMicrotask((): void => {
-          request.result = buildOpenedDatabase({ version });
+          request.result = buildOpenedDatabase({ name: openedName, version });
           request.onsuccess?.();
         });
         return request;
@@ -192,5 +200,9 @@ export const openStoreProxy = (): {
 
     getCallsFor: ({ name }: { name: ValueMatcher }): readonly unknown[][] =>
       handle.callsMatching([name]),
+
+    seedRecords: fake.seedRecords,
+
+    getRecords: fake.getRecords,
   };
 };

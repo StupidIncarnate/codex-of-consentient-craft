@@ -1,11 +1,9 @@
-/// <reference lib="dom" />
 /**
- * PURPOSE: Pass-through for the browser global `createImageBitmap`. Code outside the gateway reaches
- * createImageBitmap through here instead of the raw global, so a future guard lands in this one file and
- * reaches every caller.
+ * PURPOSE: Curated entry for the browser global `createImageBitmap`. The wrapper reads the global at
+ * call time, so a harness that installs one after this module loads is seen.
  *
  * USAGE:
  * import { createImageBitmap } from '#gateway/browser/createImageBitmap';
  */
 
-export const { createImageBitmap } = globalThis;
+export { createImageBitmap } from './create-image-bitmap/create-image-bitmap';

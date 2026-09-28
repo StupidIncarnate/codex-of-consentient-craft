@@ -38,6 +38,7 @@ const browserGlobalNamesForTest = [
   'document',
   'fetch',
   'FileReader',
+  'HTMLCanvasElement',
   'indexedDB',
   'localStorage',
   'location',

@@ -1,58 +1,25 @@
 /// <reference lib="dom" />
+import { fakeIndexedDb } from '../../gateway-test-support/fake-indexed-db';
 
-const buildFakeDeleteRequest = ({
-  errorMessage,
-}: {
-  errorMessage: string | null;
-}): IDBRequest<undefined> => {
-  const request: {
-    error: { message: string } | null;
-    onsuccess: (() => void) | null;
-    onerror: (() => void) | null;
-  } = {
-    error: errorMessage === null ? null : { message: errorMessage },
-    onsuccess: null,
-    onerror: null,
-  };
-
-  queueMicrotask((): void => {
-    if (errorMessage !== null) {
-      request.onerror?.();
-      return;
-    }
-    request.onsuccess?.();
-  });
-
-  return request as unknown as IDBRequest<undefined>;
-};
-
+// Every indexedDB proxy in one test shares the fake's store for a database name and store name, so
+// records seeded here are what `openStore`, `getAll`, `put`, `deleteRecord` and `replaceAll` all see.
+// A store nobody seeded is empty, as a fresh store is; nothing is staged by default.
 export const deleteRecordProxy = (): {
-  buildDb: () => IDBDatabase;
-  buildFailingDb: (params: { errorMessage: string }) => IDBDatabase;
+  seedRecords: (params: { name: string; storeName: string; records: readonly unknown[] }) => void;
+  getRecords: (params: { name: string; storeName: string }) => unknown[];
+  buildDb: (params: { name: string }) => IDBDatabase;
+  buildFailingDb: (params: { name: string; errorMessage: string }) => IDBDatabase;
   getCallsFor: () => readonly unknown[][];
 } => {
-  // The fake db this proxy hands out ignores storeName/key entirely — it always succeeds or
-  // always fails, regardless of what deleteRecord passes — so there is nothing to stage a
-  // tolerant address FOR. What a caller test still needs is read-back: which storeName and key
-  // deleteRecord actually called `delete()` with.
-  const calls: unknown[][] = [];
-
-  const buildDb = ({ errorMessage }: { errorMessage: string | null }): IDBDatabase =>
-    ({
-      transaction: (): unknown => ({
-        objectStore: (storeName: string): unknown => ({
-          delete: (key: IDBValidKey): IDBRequest<undefined> => {
-            calls.push([storeName, key]);
-            return buildFakeDeleteRequest({ errorMessage });
-          },
-        }),
-      }),
-    }) as unknown as IDBDatabase;
+  const fake = fakeIndexedDb();
 
   return {
-    buildDb: (): IDBDatabase => buildDb({ errorMessage: null }),
-    buildFailingDb: ({ errorMessage }: { errorMessage: string }): IDBDatabase =>
-      buildDb({ errorMessage }),
-    getCallsFor: (): readonly unknown[][] => calls,
+    seedRecords: fake.seedRecords,
+    getRecords: fake.getRecords,
+    buildDb: ({ name }: { name: string }): IDBDatabase => fake.buildDb({ name }),
+    buildFailingDb: ({ name, errorMessage }: { name: string; errorMessage: string }): IDBDatabase =>
+      fake.buildDb({ name, failure: { message: errorMessage, ops: ['delete'] } }),
+    // [storeName, key] per delete() request issued
+    getCallsFor: (): readonly unknown[][] => fake.getCalls({ op: 'delete' }),
   };
 };

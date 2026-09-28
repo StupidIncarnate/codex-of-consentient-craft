@@ -1,3 +1,5 @@
+import { getAll } from '../get-all/get-all';
+import { put } from '../put/put';
 import { openStore } from './open-store';
 import { openStoreProxy } from './open-store.proxy';
 
@@ -64,6 +66,24 @@ describe('openStore', () => {
       await openStore({ name: 'chat-drafts', version: 1, storeName: 'drafts' });
 
       expect(proxy.getCallsFor({ name: 'chat-drafts' })).toStrictEqual([['chat-drafts', 1]]);
+    });
+  });
+
+  describe('shared store', () => {
+    it('VALID: {records seeded through the proxy} => the opened database reads and writes that same store', async () => {
+      const proxy = openStoreProxy();
+      proxy.seedExistingDatabase({ name: 'chat-drafts', version: 1 });
+      proxy.seedRecords({ name: 'chat-drafts', storeName: 'drafts', records: ['seeded'] });
+
+      const db = await openStore({ name: 'chat-drafts', version: 1, storeName: 'drafts' });
+      await put({ db, storeName: 'drafts', value: 'written' });
+      const read = await getAll({ db, storeName: 'drafts' });
+
+      expect(read).toStrictEqual(['seeded', 'written']);
+      expect(proxy.getRecords({ name: 'chat-drafts', storeName: 'drafts' })).toStrictEqual([
+        'seeded',
+        'written',
+      ]);
     });
   });
 });

@@ -1,7 +1,7 @@
 import { createImageBitmap } from './createImageBitmap';
 
 describe('#gateway/browser/createImageBitmap', () => {
-  it('VALID: {export} => is the same object the environment provides', () => {
-    expect(createImageBitmap).toBe(globalThis.createImageBitmap);
+  it('VALID: {barrel} => re-exports the curated createImageBitmap function', () => {
+    expect(createImageBitmap).toStrictEqual(expect.any(Function));
   });
 });
