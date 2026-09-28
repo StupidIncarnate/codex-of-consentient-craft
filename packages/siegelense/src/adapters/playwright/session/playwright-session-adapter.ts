@@ -28,7 +28,8 @@
 
 import { chromium } from '#gateway/npm/playwright__test';
 import { z } from 'zod';
-import { osUserHomedirAdapter, pathJoinAdapter } from '@dungeonmaster/shared/adapters';
+import { homedir } from '#gateway/node/os';
+import { join } from '#gateway/node/path';
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
 
@@ -140,14 +141,12 @@ export const playwrightSessionAdapter = async ({
   baseUrl: string;
   evidencePath: AbsoluteFilePath;
 }): Promise<BrowserSession> => {
-  process.env.PLAYWRIGHT_BROWSERS_PATH ??= pathJoinAdapter({
-    paths: [osUserHomedirAdapter(), '.cache', 'ms-playwright'],
-  });
+  process.env.PLAYWRIGHT_BROWSERS_PATH ??= join(homedir(), '.cache', 'ms-playwright');
 
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({
     baseURL: baseUrl,
-    recordVideo: { dir: pathJoinAdapter({ paths: [evidencePath, 'video'] }) },
+    recordVideo: { dir: join(evidencePath, 'video') },
   });
   // A real Ctrl+V is the only paste that arrives with isTrusted true, and it needs the clipboard
   // to be readable from the page's own origin.
@@ -604,9 +603,7 @@ export const playwrightSessionAdapter = async ({
 
       videoState.isRecording = false;
       const video = page.video();
-      const videoPath =
-        (video === null ? null : await video.path()) ??
-        pathJoinAdapter({ paths: [evidencePath, 'video'] });
+      const videoPath = (video === null ? null : await video.path()) ?? join(evidencePath, 'video');
 
       return videoResultContract.parse({
         status: 'stopped',

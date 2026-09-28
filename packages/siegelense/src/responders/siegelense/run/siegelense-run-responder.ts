@@ -21,8 +21,12 @@
  * // Writes the human view (or raw JSON if --json is passed) to stdout, or throws first
  */
 
-import { pathResolveAdapter } from '@dungeonmaster/shared/adapters';
-import { adapterResultContract, contentTextContract } from '@dungeonmaster/shared/contracts';
+import { resolve } from '#gateway/node/path';
+import {
+  absoluteFilePathContract,
+  adapterResultContract,
+  contentTextContract,
+} from '@dungeonmaster/shared/contracts';
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
@@ -48,7 +52,7 @@ export const SiegelenseRunResponder = async ({
       ? null
       : contentTextContract.parse(
           await fsReadFileAdapter({
-            filePath: pathResolveAdapter({ paths: [stepsFilePath] }),
+            filePath: absoluteFilePathContract.parse(resolve(stepsFilePath)),
           }).catch((error: unknown) => {
             throw new Error(
               `${STEPS_FILE_FLAG}'s file could not be read: ${

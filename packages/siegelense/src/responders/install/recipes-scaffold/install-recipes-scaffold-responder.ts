@@ -24,21 +24,17 @@
  * // absent; an existing package's contents are neither read nor written
  */
 
-import {
-  fsExistsSyncAdapter,
-  fsMkdirAdapter,
-  pathBasenameAdapter,
-  pathDirnameAdapter,
-  pathResolveAdapter,
-} from '@dungeonmaster/shared/adapters';
+import { existsSync } from '#gateway/node/fs';
+import { ensureDir } from '#gateway/node/fs__promises';
+import { basename, dirname, resolve } from '#gateway/node/path';
 import {
   type InstallContext,
   type InstallResult,
   absoluteFilePathContract,
-  filePathContract,
   installMessageContract,
   packageJsonContract,
   packageNameContract,
+  pathSegmentContract,
 } from '@dungeonmaster/shared/contracts';
 import { workspaceScopeFromRootNameTransformer } from '@dungeonmaster/shared/transformers';
 
@@ -59,12 +55,12 @@ export const InstallRecipesScaffoldResponder = async ({
 }: {
   context: InstallContext;
 }): Promise<InstallResult> => {
-  const recipesPackagePath = pathResolveAdapter({
-    paths: [context.targetProjectRoot, PACKAGES_DIRNAME, RECIPES_PACKAGE_DIRNAME],
-  });
-  const packagePresent = fsExistsSyncAdapter({
-    filePath: filePathContract.parse(recipesPackagePath),
-  });
+  const recipesPackagePath = resolve(
+    context.targetProjectRoot,
+    PACKAGES_DIRNAME,
+    RECIPES_PACKAGE_DIRNAME,
+  );
+  const packagePresent = existsSync(recipesPackagePath);
 
   if (packagePresent) {
     return {
@@ -77,13 +73,9 @@ export const InstallRecipesScaffoldResponder = async ({
     };
   }
 
-  const rootPackageJsonPath = pathResolveAdapter({
-    paths: [context.targetProjectRoot, ROOT_PACKAGE_JSON_FILENAME],
-  });
+  const rootPackageJsonPath = resolve(context.targetProjectRoot, ROOT_PACKAGE_JSON_FILENAME);
 
-  const rootPackageJsonExists = fsExistsSyncAdapter({
-    filePath: filePathContract.parse(rootPackageJsonPath),
-  });
+  const rootPackageJsonExists = existsSync(rootPackageJsonPath);
   // A fallback (this repo's OWN gateway-setup step names it the same way — install-setup-gateway-
   // responder.ts) is only offered once the root package.json is confirmed to exist: an ABSENT root
   // package.json means `dungeonmaster init`'s gateway step never scaffolded `packages/@gateway/*`
@@ -92,9 +84,13 @@ export const InstallRecipesScaffoldResponder = async ({
   const workspaceScope = rootPackageJsonExists
     ? workspaceScopeFromRootNameTransformer({
         rootPackageJsonName: packageJsonContract.parse(
-          JSON.parse(await fsReadFileAdapter({ filePath: rootPackageJsonPath })),
+          JSON.parse(
+            await fsReadFileAdapter({
+              filePath: absoluteFilePathContract.parse(rootPackageJsonPath),
+            }),
+          ),
         ).name,
-        fallbackName: pathBasenameAdapter({ path: context.targetProjectRoot }),
+        fallbackName: pathSegmentContract.parse(basename(context.targetProjectRoot)),
       })
     : undefined;
 
@@ -115,24 +111,16 @@ export const InstallRecipesScaffoldResponder = async ({
   // yet — `fsWriteFileAdapter` is a bare `fs/promises.writeFile`, with no parent-directory creation
   // of its own, so writing straight to those paths throws ENOENT. Every unique directory the
   // scaffold touches (including the package root itself) is created first, deduped through a Set
-  // since `fsMkdirAdapter` is recursive and idempotent but still one real syscall per call.
+  // since `ensureDir` is recursive and idempotent but still one real syscall per call.
   const scaffoldDirs = new Set(
-    scaffoldFiles.map((file) =>
-      pathDirnameAdapter({
-        path: filePathContract.parse(
-          pathResolveAdapter({ paths: [recipesPackagePath, file.relativePath] }),
-        ),
-      }),
-    ),
+    scaffoldFiles.map((file) => dirname(resolve(recipesPackagePath, file.relativePath))),
   );
-  await Promise.all(
-    [...scaffoldDirs].map(async (dirPath) => fsMkdirAdapter({ filepath: dirPath })),
-  );
+  await Promise.all([...scaffoldDirs].map(async (dirPath) => ensureDir(dirPath)));
 
   await Promise.all(
     scaffoldFiles.map(async (file) =>
       fsWriteFileAdapter({
-        filePath: pathResolveAdapter({ paths: [recipesPackagePath, file.relativePath] }),
+        filePath: absoluteFilePathContract.parse(resolve(recipesPackagePath, file.relativePath)),
         contents: file.contents,
       }),
     ),

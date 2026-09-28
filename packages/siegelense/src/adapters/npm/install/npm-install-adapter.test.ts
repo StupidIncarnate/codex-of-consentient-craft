@@ -41,5 +41,20 @@ describe('npmInstallAdapter', () => {
         output: 'npm ERR! network request failed',
       });
     });
+
+    // The old childProcessSpawnCaptureAdapter resolved a missing `npm` as a failed run
+    // ({ exitCode: 1, output: '' }) rather than throwing; `run` instead rejects with
+    // RunNotFoundError, which this adapter catches and folds back into that same failed-run shape.
+    it('ERROR: {npm is not on this machine} => returns exit code 1 with empty output rather than throwing', async () => {
+      const proxy = npmInstallAdapterProxy();
+      proxy.setupNpmNotFound();
+
+      const result = await npmInstallAdapter({ cwd: CWD });
+
+      expect({ exitCode: result.exitCode, output: String(result.output) }).toStrictEqual({
+        exitCode: 1,
+        output: '',
+      });
+    });
   });
 });

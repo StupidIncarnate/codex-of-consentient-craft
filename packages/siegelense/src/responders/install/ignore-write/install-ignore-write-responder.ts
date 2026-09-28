@@ -34,12 +34,13 @@
  * // only when that file already excludes `worktrees` and does not yet exclude `siegelense-assets`
  */
 
-import { fsExistsSyncAdapter, pathResolveAdapter } from '@dungeonmaster/shared/adapters';
+import { existsSync } from '#gateway/node/fs';
+import { resolve } from '#gateway/node/path';
 import {
   type InstallContext,
   type InstallResult,
+  absoluteFilePathContract,
   fileContentsContract,
-  filePathContract,
   installMessageContract,
   packageNameContract,
 } from '@dungeonmaster/shared/contracts';
@@ -103,12 +104,10 @@ export const InstallIgnoreWriteResponder = async ({
 }: {
   context: InstallContext;
 }): Promise<InstallResult> => {
-  const gitignorePath = pathResolveAdapter({
-    paths: [context.targetProjectRoot, GITIGNORE_FILENAME],
-  });
-  const gitignorePresent = fsExistsSyncAdapter({
-    filePath: filePathContract.parse(gitignorePath),
-  });
+  const gitignorePath = absoluteFilePathContract.parse(
+    resolve(context.targetProjectRoot, GITIGNORE_FILENAME),
+  );
+  const gitignorePresent = existsSync(gitignorePath);
   const existingGitignore = gitignorePresent
     ? String(await fsReadFileAdapter({ filePath: gitignorePath }))
     : '';
@@ -158,11 +157,9 @@ export const InstallIgnoreWriteResponder = async ({
   // one this repo actually uses.
   const eslintConfigPath = locationsStatics.repoRoot.eslintConfig
     .map((candidateName) =>
-      pathResolveAdapter({ paths: [context.targetProjectRoot, candidateName] }),
+      absoluteFilePathContract.parse(resolve(context.targetProjectRoot, candidateName)),
     )
-    .find((candidatePath) =>
-      fsExistsSyncAdapter({ filePath: filePathContract.parse(candidatePath) }),
-    );
+    .find((candidatePath) => existsSync(candidatePath));
 
   if (eslintConfigPath !== undefined) {
     const eslintContent = String(await fsReadFileAdapter({ filePath: eslintConfigPath }));
@@ -186,10 +183,10 @@ export const InstallIgnoreWriteResponder = async ({
   }
 
   // tsconfig.json is a SINGLE canonical name — locationsStatics already carries it.
-  const tsconfigPath = pathResolveAdapter({
-    paths: [context.targetProjectRoot, locationsStatics.repoRoot.tsconfig],
-  });
-  const tsconfigPresent = fsExistsSyncAdapter({ filePath: filePathContract.parse(tsconfigPath) });
+  const tsconfigPath = absoluteFilePathContract.parse(
+    resolve(context.targetProjectRoot, locationsStatics.repoRoot.tsconfig),
+  );
+  const tsconfigPresent = existsSync(tsconfigPath);
 
   if (tsconfigPresent) {
     const tsconfigContent = String(await fsReadFileAdapter({ filePath: tsconfigPath }));
@@ -210,11 +207,9 @@ export const InstallIgnoreWriteResponder = async ({
 
   const jestConfigPath = [JEST_CONFIG_JS_FILENAME, JEST_CONFIG_CJS_FILENAME]
     .map((candidateName) =>
-      pathResolveAdapter({ paths: [context.targetProjectRoot, candidateName] }),
+      absoluteFilePathContract.parse(resolve(context.targetProjectRoot, candidateName)),
     )
-    .find((candidatePath) =>
-      fsExistsSyncAdapter({ filePath: filePathContract.parse(candidatePath) }),
-    );
+    .find((candidatePath) => existsSync(candidatePath));
 
   if (jestConfigPath !== undefined) {
     const jestContent = String(await fsReadFileAdapter({ filePath: jestConfigPath }));

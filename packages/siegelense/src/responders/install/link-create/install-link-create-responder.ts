@@ -36,14 +36,11 @@
  * // somewhere else — and removes a legacy flat `.siegelense` symlink if one is still there
  */
 
-import {
-  fsMkdirAdapter,
-  fsExistsSyncAdapter,
-  pathJoinAdapter,
-} from '@dungeonmaster/shared/adapters';
+import { existsSync } from '#gateway/node/fs';
+import { ensureDir } from '#gateway/node/fs__promises';
+import { join } from '#gateway/node/path';
 import {
   absoluteFilePathContract,
-  filePathContract,
   installMessageContract,
   packageNameContract,
 } from '@dungeonmaster/shared/contracts';
@@ -74,16 +71,14 @@ export const InstallLinkCreateResponder = async ({
   context: InstallContext;
 }): Promise<InstallResult> => {
   const targetDir = locationsRootPathFindBroker();
-  const assetsDir = pathJoinAdapter({ paths: [context.targetProjectRoot, ASSETS_DIR_ENTRY] });
-  const linkPath = absoluteFilePathContract.parse(
-    pathJoinAdapter({ paths: [assetsDir, LINK_ENTRY] }),
-  );
+  const assetsDir = join(context.targetProjectRoot, ASSETS_DIR_ENTRY);
+  const linkPath = absoluteFilePathContract.parse(join(assetsDir, LINK_ENTRY));
 
-  await fsMkdirAdapter({ filepath: filePathContract.parse(targetDir) });
-  await fsMkdirAdapter({ filepath: assetsDir });
+  await ensureDir(targetDir);
+  await ensureDir(assetsDir);
 
   const legacyLinkPath = absoluteFilePathContract.parse(
-    pathJoinAdapter({ paths: [context.targetProjectRoot, LEGACY_LINK_ENTRY] }),
+    join(context.targetProjectRoot, LEGACY_LINK_ENTRY),
   );
 
   // '' means "nothing to report" (the legacy path is absent, the ordinary case) — the ENOENT branch
@@ -118,7 +113,7 @@ export const InstallLinkCreateResponder = async ({
     }
   }
 
-  const linkExists = fsExistsSyncAdapter({ filePath: filePathContract.parse(linkPath) });
+  const linkExists = existsSync(linkPath);
 
   if (!linkExists) {
     await fsSymlinkAdapter({ targetPath: targetDir, linkPath });
