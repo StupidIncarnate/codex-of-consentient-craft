@@ -3,48 +3,20 @@
 // registrations (never the low-specificity `setupPackage` catch-all `architecturePackageTypeDetectBrokerProxy`
 // exposes), because a test staging SEVERAL candidate packages at once needs every candidate's
 // registration to coexist rather than the last one shadowing the rest. Paths are built with plain
-// template-literal concatenation, NEVER the mocked `pathJoinAdapter` — that mock is shared with
-// every OTHER composed proxy (`cwdResolveBrokerProxy` included), and a one-shot ANOTHER proxy staged
-// for its own later call is address-blind (`onceFor([])` matches any join call), so this proxy's own
-// join would steal it. `architecturePackageTypeDetectBroker` runs for real against these stages,
-// building the SAME `${packageRoot}/src` shape internally — this mirrors that, not reinvents it.
+// template-literal concatenation; `join` (from '#gateway/node/path') itself runs for real, on a
+// sticky passthrough default, so the broker's own real join output always matches what is staged
+// here. `architecturePackageTypeDetectBroker` runs for real against these stages, building the
+// SAME `${packageRoot}/src` shape internally — this mirrors that, not reinvents it.
 // USAGE: const proxy = laneWorkspaceResolveBrokerProxy();
 //        proxy.setupPackagesDir({ repoRoot, packageNames: ['server', 'web'] });
 //        proxy.setupPackage({ repoRoot, dirName: 'server', packageName: '@dungeonmaster/server', adapterDirNames: ['hono'] });
 
-import type { Dirent } from 'fs';
-import {
-  fsReaddirWithTypesAdapterProxy,
-  fsReadFileSyncAdapterProxy,
-  pathJoinAdapterProxy,
-  architecturePackageTypeDetectBrokerProxy,
-} from '@dungeonmaster/shared/testing';
-import { absoluteFilePathContract, contentTextContract } from '@dungeonmaster/shared/contracts';
+import { join } from '#gateway/node/path';
+import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
+import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/readdir-entries-sync.proxy';
+import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
+import { architecturePackageTypeDetectBrokerProxy } from '@dungeonmaster/shared/testing';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
-
-const makeDirDirent = ({ name }: { name: string }): Dirent =>
-  ({
-    name,
-    isDirectory: () => true,
-    isFile: () => false,
-    isBlockDevice: () => false,
-    isCharacterDevice: () => false,
-    isFIFO: () => false,
-    isSocket: () => false,
-    isSymbolicLink: () => false,
-  }) as Dirent;
-
-const makeFileDirent = ({ name }: { name: string }): Dirent =>
-  ({
-    name,
-    isDirectory: () => false,
-    isFile: () => true,
-    isBlockDevice: () => false,
-    isCharacterDevice: () => false,
-    isFIFO: () => false,
-    isSocket: () => false,
-    isSymbolicLink: () => false,
-  }) as Dirent;
 
 export const laneWorkspaceResolveBrokerProxy = (): {
   setupPackagesDir: (params: {
@@ -61,12 +33,18 @@ export const laneWorkspaceResolveBrokerProxy = (): {
     dependencies?: Record<string, string>;
   }) => void;
 } => {
-  const readdirProxy = fsReaddirWithTypesAdapterProxy();
-  const readFileProxy = fsReadFileSyncAdapterProxy();
-  // Constructed for their own default real-passthrough behavior and only to satisfy
-  // enforce-proxy-child-creation — laneWorkspaceResolveBroker calls both directly, but this proxy
+  const readdirProxy = readdirEntriesSyncProxy();
+  const readFileProxy = readFileSyncProxy();
+  // `join` (from '#gateway/node/path') runs for real, on a sticky passthrough default — every join
+  // this broker makes (`packages`, each candidate dir, `package.json`) resolves to the SAME path
+  // this proxy computes below by template-literal concatenation.
+  const realPath = requireActual<{ join: typeof join }>({ module: 'path' });
+  registerMock({ fn: join })
+    .calledWith([])
+    .implement((...segments: never[]) => realPath.join(...segments));
+  // Constructed for its own default real-passthrough behavior and only to satisfy
+  // enforce-proxy-child-creation — laneWorkspaceResolveBroker calls it directly, but this proxy
   // stages the two fs boundaries at the path-specific level instead (see the header comment).
-  pathJoinAdapterProxy();
   architecturePackageTypeDetectBrokerProxy();
 
   return {
@@ -80,10 +58,10 @@ export const laneWorkspaceResolveBrokerProxy = (): {
       fileNames?: readonly string[];
     }): void => {
       readdirProxy.returns({
-        dirPath: absoluteFilePathContract.parse(`${repoRoot}/packages`),
+        path: `${repoRoot}/packages`,
         entries: [
-          ...packageNames.map((name) => makeDirDirent({ name })),
-          ...fileNames.map((name) => makeFileDirent({ name })),
+          ...packageNames.map((name) => ({ name, kind: 'directory' as const })),
+          ...fileNames.map((name) => ({ name, kind: 'file' as const })),
         ],
       });
     },
@@ -105,16 +83,16 @@ export const laneWorkspaceResolveBrokerProxy = (): {
     }): void => {
       const packageRoot = `${repoRoot}/packages/${dirName}`;
       readFileProxy.returns({
-        filePath: absoluteFilePathContract.parse(`${packageRoot}/package.json`),
-        content: contentTextContract.parse(JSON.stringify({ name: packageName, dependencies })),
+        path: `${packageRoot}/package.json`,
+        contents: JSON.stringify({ name: packageName, dependencies }),
       });
       readdirProxy.returns({
-        dirPath: absoluteFilePathContract.parse(`${packageRoot}/src`),
-        entries: srcDirNames.map((name) => makeDirDirent({ name })),
+        path: `${packageRoot}/src`,
+        entries: srcDirNames.map((name) => ({ name, kind: 'directory' as const })),
       });
       readdirProxy.returns({
-        dirPath: absoluteFilePathContract.parse(`${packageRoot}/src/adapters`),
-        entries: adapterDirNames.map((name) => makeDirDirent({ name })),
+        path: `${packageRoot}/src/adapters`,
+        entries: adapterDirNames.map((name) => ({ name, kind: 'directory' as const })),
       });
     },
   };

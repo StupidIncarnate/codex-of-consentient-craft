@@ -1,13 +1,14 @@
-// PURPOSE: Proxy for server-log-reader-layer-broker — delegates to fsReadFileSyncAdapter's proxy.
+// PURPOSE: Proxy for server-log-reader-layer-broker — delegates to #gateway/node/fs's
+// readFileSync proxy.
 // USAGE: const proxy = serverLogReaderLayerBrokerProxy(); proxy.setupLogContent({ logPath, content });
 
-import { fsReadFileSyncAdapterProxy } from '@dungeonmaster/shared/testing';
+import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
 import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
 
 export const serverLogReaderLayerBrokerProxy = (): {
   setupLogContent: (params: { logPath: AbsoluteFilePath; content: ContentText }) => void;
 } => {
-  const fsProxy = fsReadFileSyncAdapterProxy();
+  const fsProxy = readFileSyncProxy();
 
   return {
     setupLogContent: ({
@@ -17,7 +18,7 @@ export const serverLogReaderLayerBrokerProxy = (): {
       logPath: AbsoluteFilePath;
       content: ContentText;
     }): void => {
-      fsProxy.returns({ filePath: logPath, content });
+      fsProxy.returns({ path: logPath, contents: content });
     },
   };
 };

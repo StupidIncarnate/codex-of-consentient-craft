@@ -1,5 +1,6 @@
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
-import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
+import { join } from '#gateway/node/path';
+import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
 import { errorIsNativeErrorAdapterProxy } from '../../../adapters/error/is-native-error/error-is-native-error-adapter.proxy';
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
@@ -15,7 +16,14 @@ export const verifiedPreludeLayerBrokerProxy = (): {
   const readFileProxy = fsReadFileAdapterProxy();
   errorIsNativeErrorAdapterProxy();
   locationsCitationQuestPlansPathFindBrokerProxy();
-  pathJoinAdapterProxy();
+  // `join` (from '#gateway/node/path') runs for real, on a sticky passthrough default — every
+  // nested/plan-file path this broker joins (plansDir + name, nestedDir + entryName) is already
+  // known at test-setup time, since every scenario below stages `setupPlansDir`/`setupPlanFile`
+  // against the real concatenation of those same segments.
+  const realPath = requireActual<{ join: typeof join }>({ module: 'path' });
+  registerMock({ fn: join })
+    .calledWith([])
+    .implement((...segments: never[]) => realPath.join(...segments));
 
   return {
     setupPlansDir: ({

@@ -12,7 +12,7 @@
  * // Returns { files: 3, added: 1, modified: 1, removed: 1 }
  */
 
-import { fsReaddirWithTypesAdapter } from '@dungeonmaster/shared/adapters';
+import { readdirEntriesSync } from '#gateway/node/fs';
 import {
   absoluteFilePathContract,
   relativeFilePathContract,
@@ -45,13 +45,13 @@ export const snapshotRestoreLayerBroker = async ({
     if (currentDir === undefined) {
       break;
     }
-    const entries = fsReaddirWithTypesAdapter({ dirPath: currentDir });
+    const entries = readdirEntriesSync(currentDir);
     for (const entry of entries) {
       if (currentDir === homePath && entry.name === snapshotStatics.store.dirName) {
         continue;
       }
       const entryPath = absoluteFilePathContract.parse(`${String(currentDir)}/${entry.name}`);
-      if (entry.isDirectory()) {
+      if (entry.kind === 'directory') {
         homeQueue.push(entryPath);
       } else {
         homeFilePaths.push(entryPath);
@@ -81,10 +81,10 @@ export const snapshotRestoreLayerBroker = async ({
     if (currentDir === undefined) {
       break;
     }
-    const entries = fsReaddirWithTypesAdapter({ dirPath: currentDir });
+    const entries = readdirEntriesSync(currentDir);
     for (const entry of entries) {
       const entryPath = absoluteFilePathContract.parse(`${String(currentDir)}/${entry.name}`);
-      if (entry.isDirectory()) {
+      if (entry.kind === 'directory') {
         payloadQueue.push(entryPath);
       } else {
         payloadFilePaths.push(entryPath);

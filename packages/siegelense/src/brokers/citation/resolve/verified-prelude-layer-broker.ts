@@ -14,7 +14,7 @@
  * // Returns one CitationReference per citing plan file, or [] when nothing there names this instance
  */
 
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
+import { join } from '#gateway/node/path';
 import { absoluteFilePathContract, contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
@@ -50,9 +50,7 @@ export const verifiedPreludeLayerBroker = async ({
         return [];
       }
 
-      const nestedDir = absoluteFilePathContract.parse(
-        pathJoinAdapter({ paths: [plansDir, name] }),
-      );
+      const nestedDir = absoluteFilePathContract.parse(join(plansDir, name));
 
       // A plan directory holds markdown files and per-quest subdirectories. Anything else is a
       // file this scan has no use for, and ENOTDIR is how the OS says so — every other read
@@ -75,16 +73,14 @@ export const verifiedPreludeLayerBroker = async ({
         .filter((entryName) =>
           String(entryName).endsWith(citationStatics.questPlans.preludeExtension),
         )
-        .map((entryName) =>
-          absoluteFilePathContract.parse(pathJoinAdapter({ paths: [nestedDir, entryName] })),
-        );
+        .map((entryName) => absoluteFilePathContract.parse(join(nestedDir, entryName)));
     }),
   );
 
   const planFiles = [
     ...topEntries
       .filter((name) => String(name).endsWith(citationStatics.questPlans.preludeExtension))
-      .map((name) => absoluteFilePathContract.parse(pathJoinAdapter({ paths: [plansDir, name] }))),
+      .map((name) => absoluteFilePathContract.parse(join(plansDir, name))),
     ...nested.flat(),
   ];
 

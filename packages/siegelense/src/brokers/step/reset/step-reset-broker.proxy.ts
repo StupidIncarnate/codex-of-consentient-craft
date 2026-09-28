@@ -7,7 +7,7 @@
  * proxy.setupSnapshots({ homePath, records });
  */
 
-import type { fsReaddirWithTypesAdapter } from '@dungeonmaster/shared/adapters';
+import type { DirEntrySync } from '#gateway/node/fs';
 import type {
   AbsoluteFilePath,
   ContentText,
@@ -23,8 +23,6 @@ import { recipeSeedRunBrokerProxy } from '../../recipe/seed-run/recipe-seed-run-
 import { snapshotResolveBrokerProxy } from '../../snapshot/resolve/snapshot-resolve-broker.proxy';
 import { snapshotRestoreLayerBrokerProxy } from './snapshot-restore-layer-broker.proxy';
 
-type Dirent = ReturnType<typeof fsReaddirWithTypesAdapter>[0];
-
 export const stepResetBrokerProxy = (): {
   setupSnapshots: (params: {
     homePath: AbsoluteFilePath;
@@ -32,7 +30,7 @@ export const stepResetBrokerProxy = (): {
   }) => void;
   setupNoSnapshots: (params: { homePath: AbsoluteFilePath }) => void;
   setupRestoreDirectories: (params: {
-    dirs: readonly { dirPath: AbsoluteFilePath; entries: readonly Dirent[] }[];
+    dirs: readonly { dirPath: AbsoluteFilePath; entries: readonly DirEntrySync[] }[];
   }) => void;
   setupRestoreFileStats: (params: {
     stats: readonly {

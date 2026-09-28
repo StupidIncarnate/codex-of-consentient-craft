@@ -1,4 +1,4 @@
-import type { fsReaddirWithTypesAdapter } from '@dungeonmaster/shared/adapters';
+import type { DirEntrySync } from '#gateway/node/fs';
 import {
   AbsoluteFilePathStub,
   ContentTextStub,
@@ -16,22 +16,12 @@ import { SnapshotRecordStub } from '../../../contracts/snapshot-record/snapshot-
 import { stepResetBroker } from './step-reset-broker';
 import { stepResetBrokerProxy } from './step-reset-broker.proxy';
 
-type Dirent = ReturnType<typeof fsReaddirWithTypesAdapter>[0];
 type FileName = ReturnType<typeof FileNameStub>;
 
-const makeFileEntry = ({ name }: { name: FileName }): Dirent =>
-  ({
-    name,
-    parentPath: '/stub',
-    path: '/stub',
-    isDirectory: () => false,
-    isFile: () => true,
-    isBlockDevice: () => false,
-    isCharacterDevice: () => false,
-    isFIFO: () => false,
-    isSocket: () => false,
-    isSymbolicLink: () => false,
-  }) as Dirent;
+const makeFileEntry = ({ name }: { name: FileName }): DirEntrySync => ({
+  name,
+  kind: 'file',
+});
 
 describe('stepResetBroker', () => {
   describe('level: page', () => {

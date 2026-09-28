@@ -1,5 +1,5 @@
-import type { fsReaddirWithTypesAdapter } from '@dungeonmaster/shared/adapters';
-import { fsReaddirWithTypesAdapterProxy } from '@dungeonmaster/shared/testing';
+import type { DirEntrySync } from '#gateway/node/fs';
+import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/readdir-entries-sync.proxy';
 import type { AbsoluteFilePath, FileName } from '@dungeonmaster/shared/contracts';
 
 import { fsCpAdapterProxy } from '../../../adapters/fs/cp/fs-cp-adapter.proxy';
@@ -8,11 +8,9 @@ import { fsStatAdapterProxy } from '../../../adapters/fs/stat/fs-stat-adapter.pr
 import type { EpochMs } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import type { FileSizeBytes } from '../../../contracts/file-size-bytes/file-size-bytes-contract';
 
-type Dirent = ReturnType<typeof fsReaddirWithTypesAdapter>[0];
-
 export const snapshotRestoreLayerBrokerProxy = (): {
   setupDirectories: (params: {
-    dirs: readonly { dirPath: AbsoluteFilePath; entries: readonly Dirent[] }[];
+    dirs: readonly { dirPath: AbsoluteFilePath; entries: readonly DirEntrySync[] }[];
   }) => void;
   setupFileStats: (params: {
     stats: readonly {
@@ -36,7 +34,7 @@ export const snapshotRestoreLayerBrokerProxy = (): {
   getRemovedPaths: () => unknown[];
   getCopiedPairs: () => unknown[][];
 } => {
-  const readdirProxy = fsReaddirWithTypesAdapterProxy();
+  const readdirProxy = readdirEntriesSyncProxy();
   const statProxy = fsStatAdapterProxy();
   const rmProxy = fsRmAdapterProxy();
   const cpProxy = fsCpAdapterProxy();
@@ -44,7 +42,7 @@ export const snapshotRestoreLayerBrokerProxy = (): {
   return {
     setupDirectories: ({ dirs }): void => {
       dirs.forEach(({ dirPath, entries }) => {
-        readdirProxy.returns({ dirPath, entries: entries as Dirent[] });
+        readdirProxy.returns({ path: dirPath, entries });
       });
     },
 

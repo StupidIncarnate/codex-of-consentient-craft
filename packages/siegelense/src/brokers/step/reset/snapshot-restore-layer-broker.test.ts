@@ -1,4 +1,4 @@
-import type { fsReaddirWithTypesAdapter } from '@dungeonmaster/shared/adapters';
+import type { DirEntrySync } from '#gateway/node/fs';
 import { AbsoluteFilePathStub, FileNameStub } from '@dungeonmaster/shared/contracts';
 
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
@@ -6,36 +6,17 @@ import { FileSizeBytesStub } from '../../../contracts/file-size-bytes/file-size-
 import { snapshotRestoreLayerBroker } from './snapshot-restore-layer-broker';
 import { snapshotRestoreLayerBrokerProxy } from './snapshot-restore-layer-broker.proxy';
 
-type Dirent = ReturnType<typeof fsReaddirWithTypesAdapter>[0];
 type FileName = ReturnType<typeof FileNameStub>;
 
-const makeFileEntry = ({ name }: { name: FileName }): Dirent =>
-  ({
-    name,
-    parentPath: '/stub',
-    path: '/stub',
-    isDirectory: () => false,
-    isFile: () => true,
-    isBlockDevice: () => false,
-    isCharacterDevice: () => false,
-    isFIFO: () => false,
-    isSocket: () => false,
-    isSymbolicLink: () => false,
-  }) as Dirent;
+const makeFileEntry = ({ name }: { name: FileName }): DirEntrySync => ({
+  name,
+  kind: 'file',
+});
 
-const makeDirEntry = ({ name }: { name: FileName }): Dirent =>
-  ({
-    name,
-    parentPath: '/stub',
-    path: '/stub',
-    isDirectory: () => true,
-    isFile: () => false,
-    isBlockDevice: () => false,
-    isCharacterDevice: () => false,
-    isFIFO: () => false,
-    isSocket: () => false,
-    isSymbolicLink: () => false,
-  }) as Dirent;
+const makeDirEntry = ({ name }: { name: FileName }): DirEntrySync => ({
+  name,
+  kind: 'directory',
+});
 
 describe('snapshotRestoreLayerBroker', () => {
   const homePath = AbsoluteFilePathStub({ value: '/tmp/instance-home' });

@@ -17,8 +17,8 @@
  */
 
 import { architecturePackageTypeDetectBroker } from '@dungeonmaster/shared/brokers';
-import { fsReaddirWithTypesAdapter, fsReadFileSyncAdapter } from '@dungeonmaster/shared/adapters';
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
+import { readFileSync, readdirEntriesSync } from '#gateway/node/fs';
+import { join } from '#gateway/node/path';
 import {
   absoluteFilePathContract,
   packageJsonContract,
@@ -36,18 +36,14 @@ export const laneWorkspaceResolveBroker = async ({
   repoRoot: AbsoluteFilePath;
   packageType: PackageType;
 }): Promise<PackageName> => {
-  const packagesDirPath = absoluteFilePathContract.parse(
-    pathJoinAdapter({ paths: [repoRoot, 'packages'] }),
-  );
-  const packageDirs = fsReaddirWithTypesAdapter({ dirPath: packagesDirPath }).filter((entry) =>
-    entry.isDirectory(),
+  const packagesDirPath = absoluteFilePathContract.parse(join(repoRoot, 'packages'));
+  const packageDirs = readdirEntriesSync(packagesDirPath).filter(
+    (entry) => entry.kind === 'directory',
   );
 
   const detections = await Promise.all(
     packageDirs.map(async (entry) => {
-      const packageRoot = absoluteFilePathContract.parse(
-        pathJoinAdapter({ paths: [packagesDirPath, entry.name] }),
-      );
+      const packageRoot = absoluteFilePathContract.parse(join(packagesDirPath, entry.name));
       const kinds = await architecturePackageTypeDetectBroker({ packageRoot });
       return { packageRoot, kinds };
     }),
@@ -56,11 +52,9 @@ export const laneWorkspaceResolveBroker = async ({
   const matches = detections
     .filter(({ kinds }) => kinds.includes(packageType))
     .map(({ packageRoot }) => {
-      const packageJsonPath = absoluteFilePathContract.parse(
-        pathJoinAdapter({ paths: [packageRoot, 'package.json'] }),
-      );
+      const packageJsonPath = absoluteFilePathContract.parse(join(packageRoot, 'package.json'));
       const packageJson = packageJsonContract.parse(
-        JSON.parse(fsReadFileSyncAdapter({ filePath: packageJsonPath })) as unknown,
+        JSON.parse(readFileSync(packageJsonPath)) as unknown,
       );
       return packageNameContract.parse(String(packageJson.name));
     });

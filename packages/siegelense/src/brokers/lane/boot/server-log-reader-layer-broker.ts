@@ -16,7 +16,7 @@
  * readServerLogSince({ fromByte: 0 }); // every non-empty line, from the start
  */
 
-import { fsReadFileSyncAdapter } from '@dungeonmaster/shared/adapters';
+import { readFileSync } from '#gateway/node/fs';
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
 
@@ -32,12 +32,12 @@ export const serverLogReaderLayerBroker = ({
   serverLogLength: () => ServerLogByteCount;
 } => ({
   serverLogLength: (): ServerLogByteCount => {
-    const content = fsReadFileSyncAdapter({ filePath: logPath });
+    const content = contentTextContract.parse(readFileSync(logPath));
     return serverLogByteCountContract.parse(Buffer.byteLength(content, 'utf8'));
   },
 
   readServerLogSince: ({ fromByte }: { fromByte: number }): readonly ContentText[] => {
-    const content = fsReadFileSyncAdapter({ filePath: logPath });
+    const content = contentTextContract.parse(readFileSync(logPath));
     const sliced = Buffer.from(content, 'utf8').subarray(fromByte).toString('utf8');
 
     return sliced
