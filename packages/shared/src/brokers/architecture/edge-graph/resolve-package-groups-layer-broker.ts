@@ -17,6 +17,9 @@ import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import { packageJsonContract } from '../../../contracts/package-json/package-json-contract';
 import { hasHonoOrExpressAdapterGuard } from '../../../guards/has-hono-or-express-adapter/has-hono-or-express-adapter-guard';
+import { flowCreatesHonoOrExpressAppGuard } from '../../../guards/flow-creates-hono-or-express-app/flow-creates-hono-or-express-app-guard';
+import { matchesFlowFileNameGuard } from '../../../guards/matches-flow-file-name/matches-flow-file-name-guard';
+import { listTsFilesLayerBroker } from './list-ts-files-layer-broker';
 import { isPackageE2eEligibleGuard } from '../../../guards/is-package-e2e-eligible/is-package-e2e-eligible-guard';
 import { projectMapStatics } from '../../../statics/project-map/project-map-statics';
 import { safeReaddirLayerBroker } from './safe-readdir-layer-broker';
@@ -63,7 +66,22 @@ export const resolvePackageGroupsLayerBroker = ({
       .filter((entry) => entry.kind === 'directory')
       .map((entry) => entry.name);
 
-    if (hasHonoOrExpressAdapterGuard({ adapterDirNames })) {
+    // A package reaching Hono through `#gateway/npm/hono` has no adapters/hono folder; the flow
+    // file that constructs the app is the signal, same as package-type detection.
+    if (
+      hasHonoOrExpressAdapterGuard({ adapterDirNames }) ||
+      listTsFilesLayerBroker({
+        dirPath: absoluteFilePathContract.parse(
+          `${packageRoot}/${projectMapStatics.srcDirName}/flows`,
+        ),
+      }).some(
+        (flowPath) =>
+          matchesFlowFileNameGuard({ name: flowPath }) &&
+          flowCreatesHonoOrExpressAppGuard({
+            flowFileContent: String(readFileLayerBroker({ filePath: flowPath }) ?? ''),
+          }),
+      )
+    ) {
       httpBackendRoots.push(packageRoot);
     }
 

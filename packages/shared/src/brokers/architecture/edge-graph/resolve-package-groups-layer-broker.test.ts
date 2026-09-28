@@ -25,6 +25,37 @@ describe('resolvePackageGroupsLayerBroker', () => {
     });
   });
 
+  describe('a package reaching Hono through the gateway', () => {
+    it('VALID: {no adapters dir, a flow file constructing new Hono()} => buckets into httpBackendRoots', () => {
+      const proxy = resolvePackageGroupsLayerBrokerProxy();
+      proxy.setupPackagesDir({ projectRoot: '/repo', packageDirNames: ['server', 'lib'] });
+      proxy.setupPackage({
+        packageRoot: '/repo/packages/server',
+        srcDirNames: ['flows'],
+        flowFiles: [
+          {
+            name: 'health-flow.ts',
+            content: "import { Hono } from '#gateway/npm/hono';\nconst app = new Hono();",
+          },
+        ],
+      });
+      proxy.setupPackage({
+        packageRoot: '/repo/packages/lib',
+        srcDirNames: ['flows'],
+        flowFiles: [{ name: 'lib-flow.ts', content: 'export const libFlow = () => [];' }],
+      });
+
+      const result = resolvePackageGroupsLayerBroker({
+        projectRoot: AbsoluteFilePathStub({ value: '/repo' }),
+      });
+
+      expect(result).toStrictEqual({
+        httpBackendRoots: [AbsoluteFilePathStub({ value: '/repo/packages/server' })],
+        frontendRoots: [],
+      });
+    });
+  });
+
   describe('a set of two UI packages', () => {
     it('VALID: {frontend-react web, frontend-ink tui} => both land in frontendRoots', () => {
       const proxy = resolvePackageGroupsLayerBrokerProxy();

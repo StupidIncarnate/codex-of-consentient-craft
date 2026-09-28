@@ -158,3 +158,17 @@ Edit (callers, onto `#gateway/*`):
   computes, so prepending again would double it); `setupGrepFilteredEmpty` restaged as ONE sticky glob answer
   (glob genuinely matches the files) plus non-grep-matching real read content, instead of the old adapter's two
   order-dependent (`onceFor`) answers — see DECISIONS
+
+## Plan — F39 and F58
+
+F58 finding: the edge graph did NOT have the content fallback (`resolve-package-groups-layer-broker.ts` decided HTTP backend from `hasHonoOrExpressAdapterGuard({ adapterDirNames })` alone, and `packages/server` has no `src/adapters`). It now also treats a package as HTTP backend when any `src/flows/**/*-flow.ts` constructs a Hono/Express app.
+
+Files (all shared):
+- `packages/shared/src/brokers/architecture/edge-graph/resolve-package-groups-layer-broker.ts` — add the flow-content fallback
+- `packages/shared/src/brokers/architecture/edge-graph/resolve-package-groups-layer-broker.proxy.ts` — `setupPackage` gains `flowFiles`
+- `packages/shared/src/brokers/architecture/edge-graph/resolve-package-groups-layer-broker.test.ts` — gateway-only Hono package case
+- `packages/shared/src/brokers/architecture/edge-graph/resolve-package-groups-layer-broker.integration.test.ts` — new, real tree
+
+Files (mcp), new integration tests reading real disk:
+- `packages/mcp/src/brokers/folder-constraints/init/folder-constraints-init-broker.integration.test.ts` — every constraint file in `folderConstraintsStatics` loads non-empty, keys are folder types in shared's folder config
+- `packages/mcp/src/brokers/file/scanner/file-scanner-broker.integration.test.ts` — real `resolvePackageRoot` ends in `/shared`, and a broad scan surfaces a real shared file as `@dungeonmaster/shared/...`
