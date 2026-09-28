@@ -8,19 +8,19 @@
  * which must be treated as "everything this module exports".
  *
  * USAGE:
- * const edges = typescriptAstToProxyImportsAdapter({sourceFile});
+ * const edges = astProxyImportsTransformer({sourceFile});
  * // Returns e.g. [{kind: 'import', importPath: './test.proxy', names: ['adapterProxy']}]
  */
 
-import * as ts from 'typescript';
-import { isProxyImportGuard } from '../../../guards/is-proxy-import/is-proxy-import-guard';
-import { importPathContract } from '../../../contracts/import-path/import-path-contract';
-import { identifierNameContract } from '../../../contracts/identifier-name/identifier-name-contract';
-import { proxyImportEdgeContract } from '../../../contracts/proxy-import-edge/proxy-import-edge-contract';
-import type { ProxyImportEdge } from '../../../contracts/proxy-import-edge/proxy-import-edge-contract';
-import type { TypescriptSourceFile } from '../../../contracts/typescript-source-file/typescript-source-file-contract';
+import * as ts from '#gateway/npm/typescript';
+import { isProxyImportGuard } from '../../guards/is-proxy-import/is-proxy-import-guard';
+import { importPathContract } from '../../contracts/import-path/import-path-contract';
+import { identifierNameContract } from '../../contracts/identifier-name/identifier-name-contract';
+import { proxyImportEdgeContract } from '../../contracts/proxy-import-edge/proxy-import-edge-contract';
+import type { ProxyImportEdge } from '../../contracts/proxy-import-edge/proxy-import-edge-contract';
+import type { TypescriptSourceFile } from '../../contracts/typescript-source-file/typescript-source-file-contract';
 
-export const typescriptAstToProxyImportsAdapter = ({
+export const astProxyImportsTransformer = ({
   sourceFile,
 }: {
   sourceFile: TypescriptSourceFile;

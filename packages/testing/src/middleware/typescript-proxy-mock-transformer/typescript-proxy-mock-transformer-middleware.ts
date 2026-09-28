@@ -10,9 +10,9 @@
  * // Returns transformed source file with hoisted jest.mock() calls
  */
 
-import { typescriptAstToProxyImportsAdapter } from '../../adapters/typescript/ast-to-proxy-imports/typescript-ast-to-proxy-imports-adapter';
+import { astProxyImportsTransformer } from '../../transformers/ast-proxy-imports/ast-proxy-imports-transformer';
 import { typescriptMockCallsToStatementsAdapter } from '../../adapters/typescript/mock-calls-to-statements/typescript-mock-calls-to-statements-adapter';
-import { typescriptSourceFileWithPrependedStatementsAdapter } from '../../adapters/typescript/source-file-with-prepended-statements/typescript-source-file-with-prepended-statements-adapter';
+import { sourceFilePrependStatementsTransformer } from '../../transformers/source-file-prepend-statements/source-file-prepend-statements-transformer';
 import { importPathResolverMiddleware } from '../import-path-resolver/import-path-resolver-middleware';
 import { proxyMockCollectorMiddleware } from '../proxy-mock-collector/proxy-mock-collector-middleware';
 import { mockCallsMergeByModuleTransformer } from '../../transformers/mock-calls-merge-by-module/mock-calls-merge-by-module-transformer';
@@ -33,7 +33,7 @@ export const typescriptProxyMockTransformerMiddleware = ({
 }): TypescriptSourceFile => {
   const mockCalls: MockCall[] = [];
 
-  const proxyEdges = typescriptAstToProxyImportsAdapter({ sourceFile });
+  const proxyEdges = astProxyImportsTransformer({ sourceFile });
 
   for (const edge of proxyEdges) {
     const sourceFilePath = filePathContract.parse(sourceFile.fileName);
@@ -62,7 +62,7 @@ export const typescriptProxyMockTransformerMiddleware = ({
     nodeFactory,
   });
 
-  return typescriptSourceFileWithPrependedStatementsAdapter({
+  return sourceFilePrependStatementsTransformer({
     sourceFile,
     statements: mockStatements,
     nodeFactory,

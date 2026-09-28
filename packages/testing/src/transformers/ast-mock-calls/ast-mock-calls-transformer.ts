@@ -2,23 +2,23 @@
  * PURPOSE: Extracts jest.mock() and registerMock({ fn }) calls from TypeScript AST
  *
  * USAGE:
- * const mockCalls = typescriptAstToMockCallsAdapter({sourceFile});
+ * const mockCalls = astMockCallsTransformer({sourceFile});
  * // Returns array of MockCall objects with module names and factories
  */
 
-import * as ts from 'typescript';
-import { mockCallContract } from '../../../contracts/mock-call/mock-call-contract';
-import { moduleNameContract } from '../../../contracts/module-name/module-name-contract';
-import { identifierNameContract } from '../../../contracts/identifier-name/identifier-name-contract';
-import { factoryFunctionTextContract } from '../../../contracts/factory-function-text/factory-function-text-contract';
-import { sourceFileNameContract } from '../../../contracts/source-file-name/source-file-name-contract';
-import { mockFnIdentifierNamesTransformer } from '../../../transformers/mock-fn-identifier-names/mock-fn-identifier-names-transformer';
-import type { IdentifierName } from '../../../contracts/identifier-name/identifier-name-contract';
-import type { MockCall } from '../../../contracts/mock-call/mock-call-contract';
-import type { ModuleName } from '../../../contracts/module-name/module-name-contract';
-import type { TypescriptSourceFile } from '../../../contracts/typescript-source-file/typescript-source-file-contract';
+import * as ts from '#gateway/npm/typescript';
+import { mockCallContract } from '../../contracts/mock-call/mock-call-contract';
+import { moduleNameContract } from '../../contracts/module-name/module-name-contract';
+import { identifierNameContract } from '../../contracts/identifier-name/identifier-name-contract';
+import { factoryFunctionTextContract } from '../../contracts/factory-function-text/factory-function-text-contract';
+import { sourceFileNameContract } from '../../contracts/source-file-name/source-file-name-contract';
+import { mockFnIdentifierNamesTransformer } from '../mock-fn-identifier-names/mock-fn-identifier-names-transformer';
+import type { IdentifierName } from '../../contracts/identifier-name/identifier-name-contract';
+import type { MockCall } from '../../contracts/mock-call/mock-call-contract';
+import type { ModuleName } from '../../contracts/module-name/module-name-contract';
+import type { TypescriptSourceFile } from '../../contracts/typescript-source-file/typescript-source-file-contract';
 
-export const typescriptAstToMockCallsAdapter = ({
+export const astMockCallsTransformer = ({
   sourceFile,
 }: {
   sourceFile: TypescriptSourceFile;

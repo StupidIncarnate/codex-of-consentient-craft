@@ -2,7 +2,7 @@
  * PURPOSE: Checks if an import path is a proxy file import (contains '.proxy') or a workspace
  * package's own caller-facing testing-barrel subpath (`@dungeonmaster/shared/testing`,
  * `#foo/bar/testing`, …). Generalized to any scoped-or-unscoped package name, AND to any
- * `#`-prefixed `imports`-map specifier, so the AST walk in typescriptAstToProxyImportsAdapter
+ * `#`-prefixed `imports`-map specifier, so the AST walk in astProxyImportsTransformer
  * follows a cross-package proxy composed through ANY such barrel — whether the caller wrote the
  * package's own name or imported it through its own package.json `imports` map. A gateway import
  * never reaches this second branch: every gateway proxy/stub is imported per file

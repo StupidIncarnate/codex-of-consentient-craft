@@ -11,8 +11,6 @@
  */
 
 import { typescriptSourceFileGetterAdapterProxy } from '../../adapters/typescript/source-file-getter/typescript-source-file-getter-adapter.proxy';
-import { typescriptAstToLocalExportNamesAdapterProxy } from '../../adapters/typescript/ast-to-local-export-names/typescript-ast-to-local-export-names-adapter.proxy';
-import { typescriptAstToProxyImportsAdapterProxy } from '../../adapters/typescript/ast-to-proxy-imports/typescript-ast-to-proxy-imports-adapter.proxy';
 import { importPathResolverMiddlewareProxy } from '../import-path-resolver/import-path-resolver-middleware.proxy';
 
 export const proxyReexportNamesResolveMiddlewareProxy = (): {
@@ -21,8 +19,6 @@ export const proxyReexportNamesResolveMiddlewareProxy = (): {
   setupFilesOnDisk: ({ filePaths }: { filePaths: readonly string[] }) => void;
 } => {
   const sourceFileProxy = typescriptSourceFileGetterAdapterProxy();
-  typescriptAstToLocalExportNamesAdapterProxy();
-  typescriptAstToProxyImportsAdapterProxy();
   const importPathProxy = importPathResolverMiddlewareProxy();
 
   return {

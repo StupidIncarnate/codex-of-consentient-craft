@@ -2,20 +2,20 @@
  * PURPOSE: Extracts registerModuleMock({ module: '...', factory?: ... }) calls from TypeScript AST
  *
  * USAGE:
- * const mockCalls = typescriptAstToModuleMockCallsAdapter({ sourceFile });
+ * const mockCalls = astModuleMockCallsTransformer({ sourceFile });
  * // Returns array of MockCall objects for registerModuleMock() calls
  */
 
-import * as ts from 'typescript';
-import { mockCallContract } from '../../../contracts/mock-call/mock-call-contract';
-import { moduleNameContract } from '../../../contracts/module-name/module-name-contract';
-import { factoryFunctionTextContract } from '../../../contracts/factory-function-text/factory-function-text-contract';
-import { sourceFileNameContract } from '../../../contracts/source-file-name/source-file-name-contract';
-import type { MockCall } from '../../../contracts/mock-call/mock-call-contract';
-import type { ModuleName } from '../../../contracts/module-name/module-name-contract';
-import type { TypescriptSourceFile } from '../../../contracts/typescript-source-file/typescript-source-file-contract';
+import * as ts from '#gateway/npm/typescript';
+import { mockCallContract } from '../../contracts/mock-call/mock-call-contract';
+import { moduleNameContract } from '../../contracts/module-name/module-name-contract';
+import { factoryFunctionTextContract } from '../../contracts/factory-function-text/factory-function-text-contract';
+import { sourceFileNameContract } from '../../contracts/source-file-name/source-file-name-contract';
+import type { MockCall } from '../../contracts/mock-call/mock-call-contract';
+import type { ModuleName } from '../../contracts/module-name/module-name-contract';
+import type { TypescriptSourceFile } from '../../contracts/typescript-source-file/typescript-source-file-contract';
 
-export const typescriptAstToModuleMockCallsAdapter = ({
+export const astModuleMockCallsTransformer = ({
   sourceFile,
 }: {
   sourceFile: TypescriptSourceFile;

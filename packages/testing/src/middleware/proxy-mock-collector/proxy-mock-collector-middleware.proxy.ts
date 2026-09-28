@@ -11,9 +11,6 @@
  */
 
 import { typescriptSourceFileGetterAdapterProxy } from '../../adapters/typescript/source-file-getter/typescript-source-file-getter-adapter.proxy';
-import { typescriptAstToMockCallsAdapterProxy } from '../../adapters/typescript/ast-to-mock-calls/typescript-ast-to-mock-calls-adapter.proxy';
-import { typescriptAstToModuleMockCallsAdapterProxy } from '../../adapters/typescript/ast-to-module-mock-calls/typescript-ast-to-module-mock-calls-adapter.proxy';
-import { typescriptAstToProxyImportsAdapterProxy } from '../../adapters/typescript/ast-to-proxy-imports/typescript-ast-to-proxy-imports-adapter.proxy';
 import { importPathResolverMiddlewareProxy } from '../import-path-resolver/import-path-resolver-middleware.proxy';
 import { proxyReexportNamesResolveMiddlewareProxy } from '../proxy-reexport-names-resolve/proxy-reexport-names-resolve-middleware.proxy';
 
@@ -23,9 +20,6 @@ export const proxyMockCollectorMiddlewareProxy = (): {
   setupFilesOnDisk: ({ filePaths }: { filePaths: readonly string[] }) => void;
 } => {
   const sourceFileProxy = typescriptSourceFileGetterAdapterProxy();
-  typescriptAstToMockCallsAdapterProxy();
-  typescriptAstToModuleMockCallsAdapterProxy();
-  typescriptAstToProxyImportsAdapterProxy();
   const importPathProxy = importPathResolverMiddlewareProxy();
   proxyReexportNamesResolveMiddlewareProxy();
 

@@ -193,3 +193,42 @@ New (real logic keeps a home in `testing`):
 
 Kept: `adapters/mantine/render` is `MantineProvider` composed around the gateway `render`, real logic and not a
 pass-through; its callers are about a hundred web files, outside this scope.
+
+## Plan — G-Y typescript
+
+Agent scope: `packages/testing` only. The pure AST walks become transformers (no proxy) that import
+`* as ts from '#gateway/npm/typescript'`; the one adapter with real I/O (`source-file-getter`: program lookup, then a
+file read) becomes a middleware, since its callers are middleware and middleware cannot import brokers. Its read
+goes through `#gateway/node/fs` `readFileSync` and its proxy. One adapter at a time, each followed by
+`--only unit -- packages/testing` and `--only unit -- packages/hooks`.
+
+New (implementation + test each; the middleware also has a proxy), under `packages/testing/src/`:
+- `transformers/ast-local-export-names/ast-local-export-names-transformer.ts`
+- `transformers/ast-mock-calls/ast-mock-calls-transformer.ts`
+- `transformers/ast-module-mock-calls/ast-module-mock-calls-transformer.ts`
+- `transformers/ast-proxy-imports/ast-proxy-imports-transformer.ts`
+- `transformers/mock-calls-to-statements/mock-calls-to-statements-transformer.ts`
+- `transformers/source-file-prepend-statements/source-file-prepend-statements-transformer.ts`
+- `middleware/typescript-source-file-get/typescript-source-file-get-middleware.ts` + `.proxy.ts` + `.test.ts`
+  (fast: a stub program and staged reads, no real `ts.createProgram` over real files)
+
+Callers moved (implementation + proxy each):
+- `middleware/proxy-mock-collector/proxy-mock-collector-middleware.ts` + `.proxy.ts`
+- `middleware/proxy-reexport-names-resolve/proxy-reexport-names-resolve-middleware.ts` + `.proxy.ts`
+- `middleware/typescript-proxy-mock-transformer/typescript-proxy-mock-transformer-middleware.ts` + `.proxy.ts` +
+  `.test.ts` (takes the two whole-pipeline hoisting tests that lived in the source-file-getter adapter test, staged
+  in memory instead of on a real temp dir)
+
+Other edits: `ts-jest/proxy-mock-transformer.js` (cache-key path names the statements transformer),
+`guards/is-proxy-import/is-proxy-import-guard.ts` (comment names the proxy-imports transformer).
+
+Delete (adapter, proxy, test each): `adapters/typescript/ast-to-local-export-names`, `ast-to-mock-calls`,
+`ast-to-module-mock-calls`, `ast-to-proxy-imports`, `mock-calls-to-statements`, `source-file-getter`,
+`source-file-with-prepended-statements`.
+
+Stopped at a green point on the operator's call. Done: `ast-to-local-export-names`, `ast-to-module-mock-calls`,
+`ast-to-mock-calls`, `ast-to-proxy-imports`, `source-file-with-prepended-statements` (each now a transformer
+above, callers moved, adapter folder deleted). Left: `mock-calls-to-statements` (plus the cache-key path in
+`ts-jest/proxy-mock-transformer.js`, which still names it) and `source-file-getter` (the middleware above). The
+`source-file-getter` adapter test's three real-compile tests now use a stub program and read through the
+adapter's fallback, so they no longer trip the slow-test gate; carry that shape into the middleware test.

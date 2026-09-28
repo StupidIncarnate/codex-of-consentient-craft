@@ -2,7 +2,7 @@
  * PURPOSE: Prepends statements to the beginning of a TypeScript source file
  *
  * USAGE:
- * const newSourceFile = typescriptSourceFileWithPrependedStatementsAdapter({
+ * const newSourceFile = sourceFilePrependStatementsTransformer({
  *   sourceFile,
  *   statements,
  *   nodeFactory
@@ -10,12 +10,12 @@
  * // Returns new source file with statements prepended
  */
 
-import type * as ts from 'typescript';
-import type { TypescriptSourceFile } from '../../../contracts/typescript-source-file/typescript-source-file-contract';
-import type { TypescriptStatement } from '../../../contracts/typescript-statement/typescript-statement-contract';
-import type { TypescriptNodeFactory } from '../../../contracts/typescript-node-factory/typescript-node-factory-contract';
+import type * as ts from '#gateway/npm/typescript';
+import type { TypescriptSourceFile } from '../../contracts/typescript-source-file/typescript-source-file-contract';
+import type { TypescriptStatement } from '../../contracts/typescript-statement/typescript-statement-contract';
+import type { TypescriptNodeFactory } from '../../contracts/typescript-node-factory/typescript-node-factory-contract';
 
-export const typescriptSourceFileWithPrependedStatementsAdapter = ({
+export const sourceFilePrependStatementsTransformer = ({
   sourceFile,
   statements,
   nodeFactory,

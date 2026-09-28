@@ -1,20 +1,20 @@
 /**
  * PURPOSE: Extracts the names a file exports through its OWN top-level declarations — `export const`,
  * `export function`, `export class`, and a bare `export { name }` with no `from` clause. A re-export
- * edge (`export ... from './x'`) is NOT a local name; `typescriptAstToProxyImportsAdapter` reports
+ * edge (`export ... from './x'`) is NOT a local name; `astProxyImportsTransformer` reports
  * those separately, since resolving one means following into `./x` rather than reading a name here.
  *
  * USAGE:
- * const names = typescriptAstToLocalExportNamesAdapter({sourceFile});
+ * const names = astLocalExportNamesTransformer({sourceFile});
  * // Returns e.g. ['pathJoinAdapterProxy']
  */
 
-import * as ts from 'typescript';
-import { identifierNameContract } from '../../../contracts/identifier-name/identifier-name-contract';
-import type { IdentifierName } from '../../../contracts/identifier-name/identifier-name-contract';
-import type { TypescriptSourceFile } from '../../../contracts/typescript-source-file/typescript-source-file-contract';
+import * as ts from '#gateway/npm/typescript';
+import { identifierNameContract } from '../../contracts/identifier-name/identifier-name-contract';
+import type { IdentifierName } from '../../contracts/identifier-name/identifier-name-contract';
+import type { TypescriptSourceFile } from '../../contracts/typescript-source-file/typescript-source-file-contract';
 
-export const typescriptAstToLocalExportNamesAdapter = ({
+export const astLocalExportNamesTransformer = ({
   sourceFile,
 }: {
   sourceFile: TypescriptSourceFile;

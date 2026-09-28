@@ -19,20 +19,19 @@ describe('typescriptSourceFileGetterAdapter', () => {
       // Use this actual test file as input - it's a real .ts file
       const filePath = FilePathStub({ value: __filename });
 
-      // The adapter reads `program.getSourceFile(filePath)` and nothing else, so what this proves
-      // is that a REAL program over a real file on disk answers that lookup — no ambient
-      // declaration takes any part in it. Both options exist to keep those declarations out of the
-      // program: omitting `types` makes TypeScript pull in every package under node_modules/@types
-      // (445 source files, 556ms), and `noLib` drops the default lib chain on top of that
-      // (30 files and 95ms, against 23 files and 31ms). The root file and its own module graph are
-      // what remain, which is the whole fixture.
-      const tsProgram = ts.createProgram([filePath], {
-        skipLibCheck: true,
-        noEmit: true,
-        types: [],
-        noLib: true,
+      // The adapter reads `program.getSourceFile(filePath)` and nothing else, so a program that
+      // answers that one lookup is the whole fixture; a real `ts.createProgram` here costs a compile.
+      const heldSourceFile = ts.createSourceFile(
+        filePath,
+        fs.readFileSync(filePath, 'utf-8'),
+        ts.ScriptTarget.Latest,
+        true,
+      );
+      const program = TypescriptProgramStub({
+        value: {
+          getSourceFile: (): ts.SourceFile => heldSourceFile,
+        },
       });
-      const program = TypescriptProgramStub({ value: tsProgram });
 
       const result = typescriptSourceFileGetterAdapter({ program, filePath });
 
@@ -133,24 +132,23 @@ describe('typescriptSourceFileGetterAdapter', () => {
       );
 
       const entryPath = FilePathStub({ value: path.join(tmpDir, 'entry.test.ts') });
-      const objectAccessProxyPath = path.join(tmpDir, 'object-access.proxy.ts');
-      const bareExportProxyPath = path.join(tmpDir, 'bare-export.proxy.ts');
-      const fixtureModulePath = path.join(tmpDir, 'fixture-module.ts');
       // The hoisted jest.mock() specifier mirrors the RAW import specifier the proxies wrote
       // (`./fixture-module`, no extension) resolved to an absolute path — proxyMockCollectorMiddleware
       // never appends the `.ts` extension it used to find the file on disk.
       const fixtureModuleSpecifier = path.join(tmpDir, 'fixture-module');
 
-      const tsProgram = ts.createProgram(
-        [entryPath, objectAccessProxyPath, bareExportProxyPath, fixtureModulePath],
-        { skipLibCheck: true, noEmit: true, types: [], noLib: true },
+      // No compiled program: every proxy and module is read through the adapter's own fallback,
+      // which is the path cross-package files take, and costs no type-check of the fixture.
+      const entrySourceFile = ts.createSourceFile(
+        entryPath,
+        fs.readFileSync(entryPath, 'utf-8'),
+        ts.ScriptTarget.Latest,
+        true,
       );
-      // A missing entry source file surfaces as a Zod throw from TypescriptSourceFileStub's own
-      // .parse() below — no if/guard needed here (jest/no-conditional-in-test bans those in a
-      // test body, `??` included).
-      const entrySourceFile = tsProgram.getSourceFile(entryPath);
 
-      const program = TypescriptProgramStub({ value: tsProgram });
+      const program = TypescriptProgramStub({
+        value: { getSourceFile: (): undefined => undefined },
+      });
       const sourceFile = TypescriptSourceFileStub({ value: entrySourceFile });
       const nodeFactory = TypescriptNodeFactoryStub({ value: ts.factory });
 
@@ -249,18 +247,17 @@ describe('typescriptSourceFileGetterAdapter', () => {
       );
 
       const entryPath = FilePathStub({ value: path.join(tmpDir, 'entry.test.ts') });
-      const composingProxyPath = path.join(tmpDir, 'composing.proxy.ts');
-      const barrelPath = path.join(tmpDir, 'testing.ts');
-      const pathJoinLikeProxyPath = path.join(tmpDir, 'path-join-like.proxy.ts');
-      const osHomedirLikeProxyPath = path.join(tmpDir, 'os-homedir-like.proxy.ts');
 
-      const tsProgram = ts.createProgram(
-        [entryPath, composingProxyPath, barrelPath, pathJoinLikeProxyPath, osHomedirLikeProxyPath],
-        { skipLibCheck: true, noEmit: true, types: [], noLib: true },
+      const entrySourceFile = ts.createSourceFile(
+        entryPath,
+        fs.readFileSync(entryPath, 'utf-8'),
+        ts.ScriptTarget.Latest,
+        true,
       );
-      const entrySourceFile = tsProgram.getSourceFile(entryPath);
 
-      const program = TypescriptProgramStub({ value: tsProgram });
+      const program = TypescriptProgramStub({
+        value: { getSourceFile: (): undefined => undefined },
+      });
       const sourceFile = TypescriptSourceFileStub({ value: entrySourceFile });
       const nodeFactory = TypescriptNodeFactoryStub({ value: ts.factory });
 

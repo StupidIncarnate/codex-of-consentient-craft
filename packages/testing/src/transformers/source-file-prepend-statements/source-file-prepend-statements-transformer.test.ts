@@ -1,15 +1,12 @@
-import * as ts from 'typescript';
-import { typescriptSourceFileWithPrependedStatementsAdapter } from './typescript-source-file-with-prepended-statements-adapter';
-import { typescriptSourceFileWithPrependedStatementsAdapterProxy } from './typescript-source-file-with-prepended-statements-adapter.proxy';
-import { TypescriptSourceFileStub } from '../../../contracts/typescript-source-file/typescript-source-file.stub';
-import { TypescriptNodeFactoryStub } from '../../../contracts/typescript-node-factory/typescript-node-factory.stub';
-import { TypescriptStatementStub } from '../../../contracts/typescript-statement/typescript-statement.stub';
+import * as ts from '#gateway/npm/typescript';
+import { sourceFilePrependStatementsTransformer } from './source-file-prepend-statements-transformer';
+import { TypescriptSourceFileStub } from '../../contracts/typescript-source-file/typescript-source-file.stub';
+import { TypescriptNodeFactoryStub } from '../../contracts/typescript-node-factory/typescript-node-factory.stub';
+import { TypescriptStatementStub } from '../../contracts/typescript-statement/typescript-statement.stub';
 
-describe('typescriptSourceFileWithPrependedStatementsAdapter', () => {
+describe('sourceFilePrependStatementsTransformer', () => {
   describe('valid statement prepending', () => {
     it('VALID: {sourceFile, statements} => returns source file with prepended statements', () => {
-      typescriptSourceFileWithPrependedStatementsAdapterProxy();
-
       const code = `describe('test', () => {});`;
       const tsSourceFile = ts.createSourceFile('test.ts', code, ts.ScriptTarget.Latest, true);
       const sourceFile = TypescriptSourceFileStub({ value: tsSourceFile });
@@ -28,7 +25,7 @@ describe('typescriptSourceFileWithPrependedStatementsAdapter', () => {
         ),
       });
 
-      const result = typescriptSourceFileWithPrependedStatementsAdapter({
+      const result = sourceFilePrependStatementsTransformer({
         sourceFile,
         statements: [mockStatement],
         nodeFactory,
@@ -41,8 +38,6 @@ describe('typescriptSourceFileWithPrependedStatementsAdapter', () => {
     });
 
     it('VALID: {multiple statements} => prepends all in order', () => {
-      typescriptSourceFileWithPrependedStatementsAdapterProxy();
-
       const code = `const x = 1;`;
       const tsSourceFile = ts.createSourceFile('test.ts', code, ts.ScriptTarget.Latest, true);
       const sourceFile = TypescriptSourceFileStub({ value: tsSourceFile });
@@ -73,7 +68,7 @@ describe('typescriptSourceFileWithPrependedStatementsAdapter', () => {
         ),
       });
 
-      const result = typescriptSourceFileWithPrependedStatementsAdapter({
+      const result = sourceFilePrependStatementsTransformer({
         sourceFile,
         statements: [statement1, statement2],
         nodeFactory,
@@ -88,14 +83,12 @@ describe('typescriptSourceFileWithPrependedStatementsAdapter', () => {
 
   describe('empty statements', () => {
     it('EMPTY: {empty statements array} => returns original source file', () => {
-      typescriptSourceFileWithPrependedStatementsAdapterProxy();
-
       const code = `const x = 1;`;
       const tsSourceFile = ts.createSourceFile('test.ts', code, ts.ScriptTarget.Latest, true);
       const sourceFile = TypescriptSourceFileStub({ value: tsSourceFile });
 
       const nodeFactory = TypescriptNodeFactoryStub({ value: ts.factory });
-      const result = typescriptSourceFileWithPrependedStatementsAdapter({
+      const result = sourceFilePrependStatementsTransformer({
         sourceFile,
         statements: [],
         nodeFactory,

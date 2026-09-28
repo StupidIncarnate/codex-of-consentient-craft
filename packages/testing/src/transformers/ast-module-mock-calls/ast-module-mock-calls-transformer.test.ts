@@ -1,17 +1,14 @@
-import * as ts from 'typescript';
-import { typescriptAstToModuleMockCallsAdapter } from './typescript-ast-to-module-mock-calls-adapter';
-import { typescriptAstToModuleMockCallsAdapterProxy } from './typescript-ast-to-module-mock-calls-adapter.proxy';
-import { TypescriptSourceFileStub } from '../../../contracts/typescript-source-file/typescript-source-file.stub';
+import * as ts from '#gateway/npm/typescript';
+import { astModuleMockCallsTransformer } from './ast-module-mock-calls-transformer';
+import { TypescriptSourceFileStub } from '../../contracts/typescript-source-file/typescript-source-file.stub';
 
-describe('typescriptAstToModuleMockCallsAdapter', () => {
+describe('astModuleMockCallsTransformer', () => {
   it('VALID: {registerModuleMock with module and factory} => returns mock call', () => {
-    typescriptAstToModuleMockCallsAdapterProxy();
-
     const code = `registerModuleMock({ module: 'eslint-plugin-jest', factory: () => ({ default: { rules: {} } }) });`;
     const tsSourceFile = ts.createSourceFile('test.proxy.ts', code, ts.ScriptTarget.Latest, true);
     const sourceFile = TypescriptSourceFileStub({ value: tsSourceFile });
 
-    const result = typescriptAstToModuleMockCallsAdapter({ sourceFile });
+    const result = astModuleMockCallsTransformer({ sourceFile });
 
     expect(result).toStrictEqual([
       {
@@ -25,13 +22,11 @@ describe('typescriptAstToModuleMockCallsAdapter', () => {
   });
 
   it('VALID: {registerModuleMock without factory} => returns mock call with null factory', () => {
-    typescriptAstToModuleMockCallsAdapterProxy();
-
     const code = `registerModuleMock({ module: 'some-module' });`;
     const tsSourceFile = ts.createSourceFile('test.proxy.ts', code, ts.ScriptTarget.Latest, true);
     const sourceFile = TypescriptSourceFileStub({ value: tsSourceFile });
 
-    const result = typescriptAstToModuleMockCallsAdapter({ sourceFile });
+    const result = astModuleMockCallsTransformer({ sourceFile });
 
     expect(result).toStrictEqual([
       {
@@ -45,13 +40,11 @@ describe('typescriptAstToModuleMockCallsAdapter', () => {
   });
 
   it('VALID: {no registerModuleMock calls} => returns empty array', () => {
-    typescriptAstToModuleMockCallsAdapterProxy();
-
     const code = `registerMock({ fn: existsSync });`;
     const tsSourceFile = ts.createSourceFile('test.proxy.ts', code, ts.ScriptTarget.Latest, true);
     const sourceFile = TypescriptSourceFileStub({ value: tsSourceFile });
 
-    const result = typescriptAstToModuleMockCallsAdapter({ sourceFile });
+    const result = astModuleMockCallsTransformer({ sourceFile });
 
     expect(result).toStrictEqual([]);
   });

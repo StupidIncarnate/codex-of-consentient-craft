@@ -17,9 +17,9 @@
  */
 
 import { typescriptSourceFileGetterAdapter } from '../../adapters/typescript/source-file-getter/typescript-source-file-getter-adapter';
-import { typescriptAstToMockCallsAdapter } from '../../adapters/typescript/ast-to-mock-calls/typescript-ast-to-mock-calls-adapter';
-import { typescriptAstToModuleMockCallsAdapter } from '../../adapters/typescript/ast-to-module-mock-calls/typescript-ast-to-module-mock-calls-adapter';
-import { typescriptAstToProxyImportsAdapter } from '../../adapters/typescript/ast-to-proxy-imports/typescript-ast-to-proxy-imports-adapter';
+import { astMockCallsTransformer } from '../../transformers/ast-mock-calls/ast-mock-calls-transformer';
+import { astModuleMockCallsTransformer } from '../../transformers/ast-module-mock-calls/ast-module-mock-calls-transformer';
+import { astProxyImportsTransformer } from '../../transformers/ast-proxy-imports/ast-proxy-imports-transformer';
 import { importPathResolverMiddleware } from '../import-path-resolver/import-path-resolver-middleware';
 import { proxyReexportNamesResolveMiddleware } from '../proxy-reexport-names-resolve/proxy-reexport-names-resolve-middleware';
 import { dirname, resolve } from '#gateway/node/path';
@@ -63,8 +63,8 @@ export const proxyMockCollectorMiddleware = ({
     }
 
     const mocks = [
-      ...typescriptAstToMockCallsAdapter({ sourceFile }),
-      ...typescriptAstToModuleMockCallsAdapter({ sourceFile }),
+      ...astMockCallsTransformer({ sourceFile }),
+      ...astModuleMockCallsTransformer({ sourceFile }),
     ];
 
     // Resolve relative module names to absolute paths so they work when hoisted
@@ -80,7 +80,7 @@ export const proxyMockCollectorMiddleware = ({
 
     mockCalls.push(...resolvedMocks);
 
-    const edges = typescriptAstToProxyImportsAdapter({ sourceFile });
+    const edges = astProxyImportsTransformer({ sourceFile });
     for (const edge of edges) {
       const nextPath = importPathResolverMiddleware({
         sourceFilePath: entry.filePath,

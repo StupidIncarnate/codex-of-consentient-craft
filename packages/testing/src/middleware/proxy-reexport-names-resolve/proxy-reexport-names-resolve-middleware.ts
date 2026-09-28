@@ -16,8 +16,8 @@
  */
 
 import { typescriptSourceFileGetterAdapter } from '../../adapters/typescript/source-file-getter/typescript-source-file-getter-adapter';
-import { typescriptAstToLocalExportNamesAdapter } from '../../adapters/typescript/ast-to-local-export-names/typescript-ast-to-local-export-names-adapter';
-import { typescriptAstToProxyImportsAdapter } from '../../adapters/typescript/ast-to-proxy-imports/typescript-ast-to-proxy-imports-adapter';
+import { astLocalExportNamesTransformer } from '../../transformers/ast-local-export-names/ast-local-export-names-transformer';
+import { astProxyImportsTransformer } from '../../transformers/ast-proxy-imports/ast-proxy-imports-transformer';
 import { importPathResolverMiddleware } from '../import-path-resolver/import-path-resolver-middleware';
 import type { FilePath } from '../../contracts/file-path/file-path-contract';
 import type { IdentifierName } from '../../contracts/identifier-name/identifier-name-contract';
@@ -44,7 +44,7 @@ export const proxyReexportNamesResolveMiddleware = ({
     return [];
   }
 
-  const localNames = new Set(typescriptAstToLocalExportNamesAdapter({ sourceFile }));
+  const localNames = new Set(astLocalExportNamesTransformer({ sourceFile }));
   const found = candidateNames.filter((name) => localNames.has(name));
   const stillRemaining = new Set(candidateNames.filter((name) => !localNames.has(name)));
 
@@ -52,7 +52,7 @@ export const proxyReexportNamesResolveMiddleware = ({
     return found;
   }
 
-  const reexportEdges = typescriptAstToProxyImportsAdapter({ sourceFile }).filter(
+  const reexportEdges = astProxyImportsTransformer({ sourceFile }).filter(
     (edge) => edge.kind === 'reexport',
   );
 
