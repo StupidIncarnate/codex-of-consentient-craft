@@ -89,6 +89,37 @@ shape left to justify.
 - Confirm A01 has actually landed (its two cli deletions) before you start; if the files are still there, this
   item's own scope silently grows by two files that belong to a different item.
 
+## Plan — G-E (batches 1-2: fs append-file/mkdir/read-file/readdir/rename/stat/write-file, process/stdin-read)
+
+Delete (24 files, the 8 adapters this group owns, each with its `.proxy.ts` and `.test.ts`):
+- `packages/cli/src/adapters/fs/append-file/fs-append-file-adapter.ts` (+`.proxy.ts`, `.test.ts`)
+- `packages/cli/src/adapters/fs/mkdir/fs-mkdir-adapter.ts` (+`.proxy.ts`, `.test.ts`)
+- `packages/cli/src/adapters/fs/read-file/fs-read-file-adapter.ts` (+`.proxy.ts`, `.test.ts`)
+- `packages/cli/src/adapters/fs/readdir/fs-readdir-adapter.ts` (+`.proxy.ts`, `.test.ts`)
+- `packages/cli/src/adapters/fs/rename/fs-rename-adapter.ts` (+`.proxy.ts`, `.test.ts`)
+- `packages/cli/src/adapters/fs/stat/fs-stat-adapter.ts` (+`.proxy.ts`, `.test.ts`)
+- `packages/cli/src/adapters/fs/write-file/fs-write-file-adapter.ts` (+`.proxy.ts`, `.test.ts`)
+- `packages/cli/src/adapters/process/stdin-read/process-stdin-read-adapter.ts` (+`.proxy.ts`, `.test.ts`)
+
+Edit (every real caller found by `discover`, scoped to `packages/cli/**`):
+- `packages/cli/src/brokers/rate-limits/history-append/rate-limits-history-append-broker.ts` (+`.proxy.ts`) — append-file, mkdir
+- `packages/cli/src/brokers/package/scaffold-write/package-scaffold-write-broker.ts` (+`.proxy.ts`) — mkdir, write-file
+- `packages/cli/src/brokers/rate-limits/snapshot-write/rate-limits-snapshot-write-broker.ts` (+`.proxy.ts`, `.test.ts`) — mkdir, rename, stat, write-file
+- `packages/cli/src/responders/cli/create-package/cli-create-package-responder.ts` (+`.proxy.ts`, never `.test.ts` — G24) — read-file
+- `packages/cli/src/brokers/gateway/tsconfig-compiler-options-write/gateway-tsconfig-compiler-options-write-broker.ts` (+`.proxy.ts`) — read-file, write-file
+- `packages/cli/src/responders/install/add-dev-deps/install-add-dev-deps-responder.ts` (+`.proxy.ts`) — read-file, write-file
+- `packages/cli/src/responders/install/create-jest/install-create-jest-responder.ts` (+`.proxy.ts`) — read-file, write-file
+- `packages/cli/src/responders/install/setup-gateway/install-setup-gateway-responder.ts` (+`.proxy.ts`) — read-file, write-file
+- `packages/cli/src/brokers/package/register/package-register-broker.ts` (+`.proxy.ts`) — read-file, write-file
+- `packages/cli/src/brokers/gateway/existing-packages-list/gateway-existing-packages-list-broker.ts` (+`.proxy.ts`) — readdir
+- `packages/cli/src/brokers/package/discover/package-discover-broker.ts` (+`.proxy.ts`) — readdir
+- `packages/cli/src/responders/install/create-playwright/install-create-playwright-responder.ts` (+`.proxy.ts`) — write-file
+- `packages/cli/src/responders/install/create-tsconfig/install-create-tsconfig-responder.ts` (+`.proxy.ts`) — write-file
+- `packages/cli/src/responders/cli/statusline-tap/cli-statusline-tap-responder.ts` (+`.proxy.ts`) — stdin-read
+
+Not edited (G24's uncommitted files — reported as LEFT STANDING if a caller lands there; none did):
+`gateway-package-template-statics.ts`, `package-scaffold-config-statics.ts`(+`.test.ts`), `gateway-package-scaffold-files-transformer.test.ts`, `gateway-source-copy-statics.ts`(+`.test.ts`), `gateway-source-copy-broker.test.ts`, `package-seed-frontend-statics.ts`(+`.test.ts`), `package-scaffold-files-transformer.test.ts`, `cli-create-package-responder.test.ts`, `install-flow.integration.test.ts`.
+
 ## Concessions made while executing
 
 <!-- Empty at the start. The operator fills this and mirrors it into EPIC.md's Concessions table. -->

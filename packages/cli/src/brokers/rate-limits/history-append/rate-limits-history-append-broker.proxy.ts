@@ -1,17 +1,16 @@
 import { dirname } from '#gateway/node/path';
+import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
+import { appendFileProxy } from '#gateway/node/fs__promises/append-file/append-file.proxy';
 import { locationsRateLimitsHistoryPathFindBrokerProxy } from '@dungeonmaster/shared/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-
-import { fsAppendFileAdapterProxy } from '../../../adapters/fs/append-file/fs-append-file-adapter.proxy';
-import { fsMkdirAdapterProxy } from '../../../adapters/fs/mkdir/fs-mkdir-adapter.proxy';
 
 export const rateLimitsHistoryAppendBrokerProxy = (): {
   setupAcceptedAppend: () => void;
   getAppendCalls: () => readonly { path: unknown; content: unknown }[];
 } => {
-  const mkdirProxy = fsMkdirAdapterProxy();
-  const appendProxy = fsAppendFileAdapterProxy();
+  const mkdirProxy = ensureDirProxy();
+  const appendProxy = appendFileProxy();
   const dirnameHandle = registerMock({ fn: dirname });
   const historyPathProxy = locationsRateLimitsHistoryPathFindBrokerProxy();
 
@@ -30,10 +29,12 @@ export const rateLimitsHistoryAppendBrokerProxy = (): {
 
   return {
     setupAcceptedAppend: (): void => {
-      mkdirProxy.succeeds({ filePath: FilePathStub({ value: '/home/test/.dungeonmaster' }) });
-      appendProxy.succeeds({ filePath: historyPath });
+      mkdirProxy.succeeds({ path: '/home/test/.dungeonmaster' });
+      appendProxy.succeeds({ path: historyPath });
     },
-    getAppendCalls: (): readonly { path: unknown; content: unknown }[] =>
-      appendProxy.getAppendCalls(),
+    getAppendCalls: (): readonly { path: unknown; content: unknown }[] => {
+      const content = appendProxy.appendedContentsFor({ path: historyPath });
+      return content === undefined ? [] : [{ path: historyPath, content }];
+    },
   };
 };

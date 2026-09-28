@@ -36,10 +36,10 @@ import {
   pathSegmentContract,
 } from '@dungeonmaster/shared/contracts';
 import { existsSync } from '#gateway/node/fs';
+import { readFile } from '#gateway/node/fs__promises';
 import { basename, join } from '#gateway/node/path';
 import { workspaceScopeFromRootNameTransformer } from '@dungeonmaster/shared/transformers';
 
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { createPackageResolveRequestBroker } from '../../../brokers/create-package/resolve-request/create-package-resolve-request-broker';
 import { packageRegisterBroker } from '../../../brokers/package/register/package-register-broker';
 import { packageScaffoldWriteBroker } from '../../../brokers/package/scaffold-write/package-scaffold-write-broker';
@@ -62,7 +62,7 @@ export const CliCreatePackageResponder = async ({
   const rootPackageJsonPath = filePathContract.parse(
     join(context.targetProjectRoot, 'package.json'),
   );
-  const rootPackageJsonContent = await fsReadFileAdapter({ filePath: rootPackageJsonPath });
+  const rootPackageJsonContent = await readFile(rootPackageJsonPath);
   const rootPackageJsonRaw: unknown = JSON.parse(rootPackageJsonContent);
   const rootPackageJson = packageJsonRawContract.parse(rootPackageJsonRaw);
   const nameKey = packageJsonRawContract.keyType.parse('name');

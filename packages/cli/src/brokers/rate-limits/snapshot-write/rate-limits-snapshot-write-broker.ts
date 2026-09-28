@@ -7,6 +7,7 @@
  */
 
 import { dirname } from '#gateway/node/path';
+import { ensureDir, rename, statIfExists, writeFile } from '#gateway/node/fs__promises';
 import {
   fileContentsContract,
   filePathContract,
@@ -17,10 +18,6 @@ import {
   locationsRateLimitsSnapshotTmpPathFindBroker,
 } from '@dungeonmaster/shared/brokers';
 
-import { fsMkdirAdapter } from '../../../adapters/fs/mkdir/fs-mkdir-adapter';
-import { fsRenameAdapter } from '../../../adapters/fs/rename/fs-rename-adapter';
-import { fsStatAdapter } from '../../../adapters/fs/stat/fs-stat-adapter';
-import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import { rateLimitsThrottleStatics } from '../../../statics/rate-limits-throttle/rate-limits-throttle-statics';
 
 export const rateLimitsSnapshotWriteBroker = async ({
@@ -33,20 +30,17 @@ export const rateLimitsSnapshotWriteBroker = async ({
   const snapshotPath = locationsRateLimitsSnapshotPathFindBroker();
   const tmpPath = locationsRateLimitsSnapshotTmpPathFindBroker();
 
-  const stats = await fsStatAdapter({ filePath: filePathContract.parse(snapshotPath) });
-  if (stats !== null && nowMs - stats.mtimeMs < rateLimitsThrottleStatics.minIntervalMs) {
+  const stats = await statIfExists(snapshotPath);
+  if (stats !== null && nowMs - stats.modifiedAtMs < rateLimitsThrottleStatics.minIntervalMs) {
     return { written: false };
   }
 
   const homeDir = filePathContract.parse(dirname(snapshotPath));
-  await fsMkdirAdapter({ filePath: homeDir });
+  await ensureDir(homeDir);
 
   const contents = fileContentsContract.parse(`${JSON.stringify(snapshot)}\n`);
-  await fsWriteFileAdapter({ filePath: filePathContract.parse(tmpPath), contents });
-  await fsRenameAdapter({
-    from: filePathContract.parse(tmpPath),
-    to: filePathContract.parse(snapshotPath),
-  });
+  await writeFile(tmpPath, contents);
+  await rename(tmpPath, snapshotPath);
 
   return { written: true };
 };

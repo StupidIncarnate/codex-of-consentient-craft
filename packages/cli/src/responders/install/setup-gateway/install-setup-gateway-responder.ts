@@ -21,14 +21,13 @@ import {
   pathSegmentContract,
 } from '@dungeonmaster/shared/contracts';
 import { existsSync } from '#gateway/node/fs';
+import { readFile, writeFile } from '#gateway/node/fs__promises';
 import { basename, join } from '#gateway/node/path';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import {
   jsonFileContentsTransformer,
   workspaceScopeFromRootNameTransformer,
 } from '@dungeonmaster/shared/transformers';
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
-import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import { packageJsonRawContract } from '../../../contracts/package-json-raw/package-json-raw-contract';
 import { tsconfigCompilerOptionsContract } from '../../../contracts/tsconfig-compiler-options/tsconfig-compiler-options-contract';
 import { packageScaffoldWriteBroker } from '../../../brokers/package/scaffold-write/package-scaffold-write-broker';
@@ -62,7 +61,7 @@ export const InstallSetupGatewayResponder = async ({
     };
   }
 
-  const rawRootPackageJson = await fsReadFileAdapter({ filePath: rootPackageJsonPath });
+  const rawRootPackageJson = await readFile(rootPackageJsonPath);
   const rootPackageJson = packageJsonRawContract.parse(JSON.parse(rawRootPackageJson));
   const nameKey = packageJsonRawContract.keyType.parse('name');
   const rootNameValue = rootPackageJson[nameKey];
@@ -78,10 +77,10 @@ export const InstallSetupGatewayResponder = async ({
   const updatedRootPackageJson = gatewayWorkspacesMergeTransformer({ rootPackageJson });
   const workspacesChanged = updatedRootPackageJson !== rootPackageJson;
   if (workspacesChanged) {
-    await fsWriteFileAdapter({
-      filePath: rootPackageJsonPath,
-      contents: jsonFileContentsTransformer({ value: updatedRootPackageJson }),
-    });
+    await writeFile(
+      rootPackageJsonPath,
+      jsonFileContentsTransformer({ value: updatedRootPackageJson }),
+    );
   }
 
   const packagesDir = filePathContract.parse(join(context.targetProjectRoot, 'packages'));
@@ -119,7 +118,7 @@ export const InstallSetupGatewayResponder = async ({
   const perPackageOutcomes = await Promise.all(
     existingPackageDirs.map(async (packageDir) => {
       const pkgPackageJsonPath = filePathContract.parse(join(packageDir, 'package.json'));
-      const rawPkgPackageJson = await fsReadFileAdapter({ filePath: pkgPackageJsonPath });
+      const rawPkgPackageJson = await readFile(pkgPackageJsonPath);
       const pkgPackageJson = packageJsonRawContract.parse(JSON.parse(rawPkgPackageJson));
       const importsKey = packageJsonRawContract.keyType.parse('imports');
       const existingImports = pkgPackageJson[importsKey];
@@ -127,12 +126,12 @@ export const InstallSetupGatewayResponder = async ({
       const importsChanged = mergedImports !== existingImports;
 
       if (importsChanged) {
-        await fsWriteFileAdapter({
-          filePath: pkgPackageJsonPath,
-          contents: jsonFileContentsTransformer({
+        await writeFile(
+          pkgPackageJsonPath,
+          jsonFileContentsTransformer({
             value: { ...pkgPackageJson, [importsKey]: mergedImports },
           }),
-        });
+        );
       }
 
       const pkgTsconfigBuildChanged = await gatewayTsconfigCompilerOptionsWriteBroker({

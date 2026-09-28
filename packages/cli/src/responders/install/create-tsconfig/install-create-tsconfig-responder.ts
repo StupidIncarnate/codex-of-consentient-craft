@@ -15,9 +15,9 @@ import {
   filePathContract,
 } from '@dungeonmaster/shared/contracts';
 import { existsSync } from '#gateway/node/fs';
+import { writeFile } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import { tsconfigTemplateStatics } from '../../../statics/tsconfig-template/tsconfig-template-statics';
 
 const PACKAGE_NAME = '@dungeonmaster/cli';
@@ -41,7 +41,7 @@ export const InstallCreateTsconfigResponder = async ({
 
   const contents = fileContentsContract.parse(tsconfigTemplateStatics.content);
 
-  await fsWriteFileAdapter({ filePath: configPath, contents });
+  await writeFile(configPath, contents);
 
   return {
     packageName: packageNameContract.parse(PACKAGE_NAME),

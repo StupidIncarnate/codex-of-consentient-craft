@@ -14,15 +14,15 @@
 
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';
+import { readStdinToEnd } from '#gateway/node/process';
 
-import { processStdinReadAdapter } from '../../../adapters/process/stdin-read/process-stdin-read-adapter';
 import { rateLimitsHistoryAppendBroker } from '../../../brokers/rate-limits/history-append/rate-limits-history-append-broker';
 import { rateLimitsSnapshotWriteBroker } from '../../../brokers/rate-limits/snapshot-write/rate-limits-snapshot-write-broker';
 import { statuslineInputContract } from '../../../contracts/statusline-input/statusline-input-contract';
 import { statuslineToSnapshotTransformer } from '../../../transformers/statusline-to-snapshot/statusline-to-snapshot-transformer';
 
 export const CliStatuslineTapResponder = async (): Promise<AdapterResult> => {
-  const inputData = await processStdinReadAdapter();
+  const inputData = await readStdinToEnd();
   process.stdout.write(inputData);
 
   try {

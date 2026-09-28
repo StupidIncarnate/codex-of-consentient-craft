@@ -1,8 +1,8 @@
 import { join } from '#gateway/node/path';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
+import { readdirSyncProxy } from '#gateway/node/fs/readdir-sync/readdir-sync.proxy';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
-import { fsReaddirAdapterProxy } from '../../../adapters/fs/readdir/fs-readdir-adapter.proxy';
 import type { FilePath, FileName } from '@dungeonmaster/shared/contracts';
 
 export const gatewayExistingPackagesListBrokerProxy = (): {
@@ -15,7 +15,7 @@ export const gatewayExistingPackagesListBrokerProxy = (): {
   }) => void;
   setupNoPackagesDir: (params: { packagesDir: FilePath }) => void;
 } => {
-  const fsReaddirProxy = fsReaddirAdapterProxy();
+  const fsReaddirProxy = readdirSyncProxy();
   const joinHandle = registerMock({ fn: join });
   const realPath = requireActual<{ join: typeof join }>({ module: 'path' });
   joinHandle.calledWith([]).implement((...segments: never[]) => realPath.join(...segments));
@@ -24,13 +24,13 @@ export const gatewayExistingPackagesListBrokerProxy = (): {
   return {
     setupPackages: ({ packagesDir, packages }): void => {
       fsExistsSyncProxy.returns({ path: packagesDir, exists: true });
-      fsReaddirProxy.returns({ dirPath: packagesDir, files: packages.map((pkg) => pkg.name) });
+      fsReaddirProxy.returns({ path: packagesDir, names: packages.map((pkg) => pkg.name) });
 
       for (const pkg of packages) {
         if ('children' in pkg) {
           fsReaddirProxy.returns({
-            dirPath: `${String(packagesDir)}/${String(pkg.name)}`,
-            files: pkg.children.map((child) => child.name),
+            path: `${String(packagesDir)}/${String(pkg.name)}`,
+            names: pkg.children.map((child) => child.name),
           });
         }
       }

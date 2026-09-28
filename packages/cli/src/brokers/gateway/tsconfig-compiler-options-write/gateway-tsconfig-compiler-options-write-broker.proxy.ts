@@ -1,7 +1,7 @@
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
+import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
+import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
-import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
 import { typescriptTsconfigCompilerOptionsLocateAdapterProxy } from '../../../adapters/typescript/tsconfig-compiler-options-locate/typescript-tsconfig-compiler-options-locate-adapter.proxy';
 
 export const gatewayTsconfigCompilerOptionsWriteBrokerProxy = (): {
@@ -10,8 +10,8 @@ export const gatewayTsconfigCompilerOptionsWriteBrokerProxy = (): {
   getWrittenContent: (params: { tsconfigPath: FilePath }) => unknown;
 } => {
   const existsProxy = existsSyncProxy();
-  const readProxy = fsReadFileAdapterProxy();
-  const writeProxy = fsWriteFileAdapterProxy();
+  const readProxy = readFileProxy();
+  const writeProxy = writeFileProxy();
   // Empty proxy: the real TypeScript JSON parse runs for real. Called only to satisfy
   // enforce-proxy-child-creation.
   typescriptTsconfigCompilerOptionsLocateAdapterProxy();
@@ -23,11 +23,11 @@ export const gatewayTsconfigCompilerOptionsWriteBrokerProxy = (): {
 
     setupFileContent: ({ tsconfigPath, content }): void => {
       existsProxy.returns({ path: tsconfigPath, exists: true });
-      readProxy.resolves({ filePath: tsconfigPath, content });
-      writeProxy.succeeds({ filePath: tsconfigPath });
+      readProxy.returns({ path: tsconfigPath, contents: content });
+      writeProxy.succeeds({ path: tsconfigPath });
     },
 
     getWrittenContent: ({ tsconfigPath }): unknown =>
-      writeProxy.getWrittenFor({ filePath: tsconfigPath }),
+      writeProxy.writtenContentsFor({ path: tsconfigPath }),
   };
 };

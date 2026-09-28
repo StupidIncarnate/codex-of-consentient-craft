@@ -25,8 +25,7 @@ import {
 import { architecturePackageE2eEligibleDetectBroker } from '@dungeonmaster/shared/brokers';
 import { existsSync } from '#gateway/node/fs';
 import { join, dirname } from '#gateway/node/path';
-import { ensureDir } from '#gateway/node/fs__promises';
-import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
+import { ensureDir, writeFile } from '#gateway/node/fs__promises';
 import { playwrightConfigTemplateStatics } from '../../../statics/playwright-config-template/playwright-config-template-statics';
 
 const PACKAGE_NAME = '@dungeonmaster/cli';
@@ -68,7 +67,7 @@ export const InstallCreatePlaywrightResponder = async ({
 
   const contents = fileContentsContract.parse(playwrightConfigTemplateStatics.content);
 
-  await fsWriteFileAdapter({ filePath: configPath, contents });
+  await writeFile(configPath, contents);
 
   const unresolvableTokenStaticsPath = filePathContract.parse(
     join(context.targetProjectRoot, UNRESOLVABLE_TOKEN_STATICS_RELATIVE_PATH),
@@ -81,18 +80,14 @@ export const InstallCreatePlaywrightResponder = async ({
   // parent directory first, since a fresh target has no src/statics/e2e-unresolvable-token/
   // directory yet.
   await ensureDir(dirname(unresolvableTokenStaticsPath));
-  await fsWriteFileAdapter({
-    filePath: unresolvableTokenStaticsPath,
-    contents: fileContentsContract.parse(
-      playwrightConfigTemplateStatics.unresolvableTokenStaticsContent,
-    ),
-  });
-  await fsWriteFileAdapter({
-    filePath: unresolvableTokenStaticsTestPath,
-    contents: fileContentsContract.parse(
-      playwrightConfigTemplateStatics.unresolvableTokenStaticsTestContent,
-    ),
-  });
+  await writeFile(
+    unresolvableTokenStaticsPath,
+    fileContentsContract.parse(playwrightConfigTemplateStatics.unresolvableTokenStaticsContent),
+  );
+  await writeFile(
+    unresolvableTokenStaticsTestPath,
+    fileContentsContract.parse(playwrightConfigTemplateStatics.unresolvableTokenStaticsTestContent),
+  );
 
   return {
     packageName: packageNameContract.parse(PACKAGE_NAME),

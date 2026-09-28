@@ -13,11 +13,10 @@
  */
 import { join, dirname } from '#gateway/node/path';
 import { existsSync } from '#gateway/node/fs';
+import { ensureDir, writeFile } from '#gateway/node/fs__promises';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 
-import { fsMkdirAdapter } from '../../../adapters/fs/mkdir/fs-mkdir-adapter';
-import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import type { ScaffoldFile } from '../../../contracts/scaffold-file/scaffold-file-contract';
 
 export const packageScaffoldWriteBroker = async ({
@@ -44,8 +43,8 @@ export const packageScaffoldWriteBroker = async ({
     const absolutePath = filePathContract.parse(join(packageRoot, file.relativePath));
     const parentDir = filePathContract.parse(dirname(absolutePath));
 
-    await fsMkdirAdapter({ filePath: parentDir });
-    await fsWriteFileAdapter({ filePath: absolutePath, contents: file.contents });
+    await ensureDir(parentDir);
+    await writeFile(absolutePath, file.contents);
 
     writtenFiles.push(absolutePath);
   }, Promise.resolve());

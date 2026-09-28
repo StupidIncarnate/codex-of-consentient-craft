@@ -1,7 +1,7 @@
 import { join } from '#gateway/node/path';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
+import { readdirSyncProxy } from '#gateway/node/fs/readdir-sync/readdir-sync.proxy';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
-import { fsReaddirAdapterProxy } from '../../../adapters/fs/readdir/fs-readdir-adapter.proxy';
 import type { FilePath, FileName } from '@dungeonmaster/shared/contracts';
 
 export const packageDiscoverBrokerProxy = (): {
@@ -47,7 +47,7 @@ export const packageDiscoverBrokerProxy = (): {
     )[];
   }) => void;
 } => {
-  const fsReaddirProxy = fsReaddirAdapterProxy();
+  const fsReaddirProxy = readdirSyncProxy();
   const joinHandle = registerMock({ fn: join });
   const realPath = requireActual<{ join: typeof join }>({ module: 'path' });
   joinHandle.calledWith([]).implement((...segments: never[]) => realPath.join(...segments));
@@ -58,10 +58,10 @@ export const packageDiscoverBrokerProxy = (): {
       // The broker checks `<dungeonmasterRoot>/packages` first — in every monorepo/worktree
       // scenario `packagesPath` IS that path, so it exists.
       fsExistsSyncProxy.returns({ path: packagesPath, exists: true });
-      fsReaddirProxy.returns({ dirPath: packagesPath, files: packages.map((pkg) => pkg.name) });
+      fsReaddirProxy.returns({ path: packagesPath, names: packages.map((pkg) => pkg.name) });
 
       // A `@scope` entry in `packages` is a group folder, not a leaf package — the broker recurses
-      // into it via a second `fsReaddirAdapter` call, keyed here by the joined group path, and its
+      // into it via a second `readdirSync` call, keyed here by the joined group path, and its
       // `children` are the leaf entries that actually get an existsSync check below.
       const leafEntries: {
         name: FileName;
@@ -73,8 +73,8 @@ export const packageDiscoverBrokerProxy = (): {
       for (const pkg of packages) {
         if ('children' in pkg) {
           fsReaddirProxy.returns({
-            dirPath: `${String(packagesPath)}/${String(pkg.name)}`,
-            files: pkg.children.map((child) => child.name),
+            path: `${String(packagesPath)}/${String(pkg.name)}`,
+            names: pkg.children.map((child) => child.name),
           });
           leafEntries.push(...pkg.children);
           continue;
@@ -106,7 +106,7 @@ export const packageDiscoverBrokerProxy = (): {
 
     setupEmptyPackagesDirectory: ({ packagesPath }) => {
       fsExistsSyncProxy.returns({ path: packagesPath, exists: true });
-      fsReaddirProxy.returns({ dirPath: packagesPath, files: [] });
+      fsReaddirProxy.returns({ path: packagesPath, names: [] });
     },
 
     // A published install has no monorepo `packages/` folder: `dungeonmasterRoot` resolves to
@@ -117,8 +117,8 @@ export const packageDiscoverBrokerProxy = (): {
       const monorepoPackagesPath = `${String(dungeonmasterRoot)}/packages` as never;
       fsExistsSyncProxy.returns({ path: monorepoPackagesPath, exists: false });
       fsReaddirProxy.returns({
-        dirPath: dungeonmasterRoot,
-        files: packages.map((pkg) => pkg.name),
+        path: dungeonmasterRoot,
+        names: packages.map((pkg) => pkg.name),
       });
 
       const leafEntries: {
@@ -131,8 +131,8 @@ export const packageDiscoverBrokerProxy = (): {
       for (const pkg of packages) {
         if ('children' in pkg) {
           fsReaddirProxy.returns({
-            dirPath: `${String(dungeonmasterRoot)}/${String(pkg.name)}`,
-            files: pkg.children.map((child) => child.name),
+            path: `${String(dungeonmasterRoot)}/${String(pkg.name)}`,
+            names: pkg.children.map((child) => child.name),
           });
           leafEntries.push(...pkg.children);
           continue;

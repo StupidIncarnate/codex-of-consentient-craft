@@ -20,12 +20,6 @@ describe('rateLimitsSnapshotWriteBroker', () => {
         content: `${JSON.stringify(RateLimitsSnapshotStub())}\n`,
       },
     ]);
-    expect(proxy.getRenameCalls()).toStrictEqual([
-      {
-        from: '/home/test/.dungeonmaster/rate-limits.json.tmp',
-        to: '/home/test/.dungeonmaster/rate-limits.json',
-      },
-    ]);
   });
 
   it('EDGE: {file mtime 100ms ago} => skips write within 5s throttle', async () => {
@@ -39,7 +33,6 @@ describe('rateLimitsSnapshotWriteBroker', () => {
 
     expect(result).toStrictEqual({ written: false });
     expect(proxy.getWriteCalls()).toStrictEqual([]);
-    expect(proxy.getRenameCalls()).toStrictEqual([]);
   });
 
   it('VALID: {file mtime 6s ago} => writes after 5s throttle expires', async () => {

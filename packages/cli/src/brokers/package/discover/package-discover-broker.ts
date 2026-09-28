@@ -8,10 +8,13 @@
  * // Returns array of {packageName, installPath} for each package with start-install.js
  */
 
-import { fsReaddirAdapter } from '../../../adapters/fs/readdir/fs-readdir-adapter';
 import { join } from '#gateway/node/path';
-import { existsSync } from '#gateway/node/fs';
-import { packageNameContract, filePathContract } from '@dungeonmaster/shared/contracts';
+import { existsSync, readdirSync } from '#gateway/node/fs';
+import {
+  packageNameContract,
+  filePathContract,
+  fileNameContract,
+} from '@dungeonmaster/shared/contracts';
 import type { FilePath, PackageName, FileName } from '@dungeonmaster/shared/contracts';
 
 // A directory directly under `packages/` whose name starts with `@` is a scope/group folder, not
@@ -34,7 +37,7 @@ export const packageDiscoverBroker = ({
   // shapes: `node_modules/@dungeonmaster` is exactly a "`@`-prefixed group folder" of the kind
   // `packages/@gateway` already is.
   const packagesDir = existsSync(monorepoPackagesDir) ? monorepoPackagesDir : dungeonmasterRoot;
-  const topLevelDirs = fsReaddirAdapter({ dirPath: packagesDir });
+  const topLevelDirs = readdirSync(packagesDir).map((dir) => fileNameContract.parse(dir));
 
   const candidates: { relativeDir: FileName[]; packageDirName: FileName }[] = [];
 
@@ -45,7 +48,7 @@ export const packageDiscoverBroker = ({
     }
 
     const groupDir = join(packagesDir, dir);
-    for (const child of fsReaddirAdapter({ dirPath: groupDir })) {
+    for (const child of readdirSync(groupDir).map((entry) => fileNameContract.parse(entry))) {
       candidates.push({ relativeDir: [dir, child], packageDirName: child });
     }
   }

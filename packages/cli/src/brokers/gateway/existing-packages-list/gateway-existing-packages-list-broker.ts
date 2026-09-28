@@ -13,10 +13,9 @@
  */
 
 import { join } from '#gateway/node/path';
-import { existsSync } from '#gateway/node/fs';
+import { existsSync, readdirSync } from '#gateway/node/fs';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
-import { fsReaddirAdapter } from '../../../adapters/fs/readdir/fs-readdir-adapter';
 
 const GROUP_FOLDER_PREFIX = '@';
 const GATEWAY_GROUP_FOLDER = '@gateway';
@@ -30,7 +29,7 @@ export const gatewayExistingPackagesListBroker = ({
     return [];
   }
 
-  const topLevelDirs = fsReaddirAdapter({ dirPath: packagesDir });
+  const topLevelDirs = readdirSync(packagesDir);
 
   const candidateDirs = topLevelDirs.flatMap((dir) => {
     if (dir === GATEWAY_GROUP_FOLDER) {
@@ -40,7 +39,7 @@ export const gatewayExistingPackagesListBroker = ({
       return [join(packagesDir, dir)];
     }
     const groupDir = join(packagesDir, dir);
-    return fsReaddirAdapter({ dirPath: groupDir }).map((child) => join(groupDir, child));
+    return readdirSync(groupDir).map((child) => join(groupDir, child));
   });
 
   return candidateDirs

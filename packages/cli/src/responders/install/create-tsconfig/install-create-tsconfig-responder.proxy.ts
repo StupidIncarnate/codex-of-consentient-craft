@@ -1,8 +1,8 @@
 import { join } from '#gateway/node/path';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
+import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
-import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
 import { InstallCreateTsconfigResponder } from './install-create-tsconfig-responder';
 
 export const InstallCreateTsconfigResponderProxy = (): {
@@ -12,10 +12,11 @@ export const InstallCreateTsconfigResponderProxy = (): {
   getWrittenFiles: () => readonly { path: unknown; content: unknown }[];
 } => {
   const existsProxy = existsSyncProxy();
-  const writeProxy = fsWriteFileAdapterProxy();
+  const writeProxy = writeFileProxy();
   const realPath = requireActual<{ join: typeof join }>({ module: 'path' });
   const joinHandle = registerMock({ fn: join });
   joinHandle.calledWith([]).implement((...segments: never[]) => realPath.join(...segments));
+  const writtenPaths: FilePath[] = [];
 
   return {
     callResponder: InstallCreateTsconfigResponder,
@@ -26,10 +27,14 @@ export const InstallCreateTsconfigResponderProxy = (): {
 
     setupFileNotExists: ({ filePath }: { filePath: FilePath }): void => {
       existsProxy.returns({ path: filePath, exists: false });
-      writeProxy.succeeds({ filePath });
+      writeProxy.succeeds({ path: filePath });
+      writtenPaths.push(filePath);
     },
 
     getWrittenFiles: (): readonly { path: unknown; content: unknown }[] =>
-      writeProxy.getAllWrittenFiles(),
+      writtenPaths.flatMap((path) => {
+        const content = writeProxy.writtenContentsFor({ path });
+        return content === undefined ? [] : [{ path, content }];
+      }),
   };
 };

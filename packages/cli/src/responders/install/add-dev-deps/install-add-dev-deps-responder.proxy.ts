@@ -1,9 +1,9 @@
 import { join } from '#gateway/node/path';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
+import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
+import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
-import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
 import { InstallAddDevDepsResponder } from './install-add-dev-deps-responder';
 
 export const InstallAddDevDepsResponderProxy = (): {
@@ -14,11 +14,12 @@ export const InstallAddDevDepsResponderProxy = (): {
   getWrittenFiles: () => readonly { path: unknown; content: unknown }[];
 } => {
   const existsProxy = existsSyncProxy();
-  const readProxy = fsReadFileAdapterProxy();
-  const writeProxy = fsWriteFileAdapterProxy();
+  const readProxy = readFileProxy();
+  const writeProxy = writeFileProxy();
   const realPath = requireActual<{ join: typeof join }>({ module: 'path' });
   const joinHandle = registerMock({ fn: join });
   joinHandle.calledWith([]).implement((...segments: never[]) => realPath.join(...segments));
+  const writtenPaths: FilePath[] = [];
 
   return {
     callResponder: InstallAddDevDepsResponder,
@@ -32,11 +33,15 @@ export const InstallAddDevDepsResponderProxy = (): {
     },
 
     setupReadFile: ({ filePath, content }: { filePath: FilePath; content: string }): void => {
-      readProxy.resolves({ filePath, content });
-      writeProxy.succeeds({ filePath });
+      readProxy.returns({ path: filePath, contents: content });
+      writeProxy.succeeds({ path: filePath });
+      writtenPaths.push(filePath);
     },
 
     getWrittenFiles: (): readonly { path: unknown; content: unknown }[] =>
-      writeProxy.getAllWrittenFiles(),
+      writtenPaths.flatMap((path) => {
+        const content = writeProxy.writtenContentsFor({ path });
+        return content === undefined ? [] : [{ path, content }];
+      }),
   };
 };

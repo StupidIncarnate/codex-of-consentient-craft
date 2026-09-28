@@ -9,15 +9,13 @@
  */
 
 import { dirname } from '#gateway/node/path';
+import { appendFile, ensureDir } from '#gateway/node/fs__promises';
 import {
   fileContentsContract,
   filePathContract,
   type RateLimitsHistoryLine,
 } from '@dungeonmaster/shared/contracts';
 import { locationsRateLimitsHistoryPathFindBroker } from '@dungeonmaster/shared/brokers';
-
-import { fsAppendFileAdapter } from '../../../adapters/fs/append-file/fs-append-file-adapter';
-import { fsMkdirAdapter } from '../../../adapters/fs/mkdir/fs-mkdir-adapter';
 
 export const rateLimitsHistoryAppendBroker = async ({
   line,
@@ -27,10 +25,10 @@ export const rateLimitsHistoryAppendBroker = async ({
   const historyPath = locationsRateLimitsHistoryPathFindBroker();
   const homeDir = filePathContract.parse(dirname(historyPath));
 
-  await fsMkdirAdapter({ filePath: homeDir });
+  await ensureDir(homeDir);
 
   const contents = fileContentsContract.parse(`${JSON.stringify(line)}\n`);
-  await fsAppendFileAdapter({ filePath: filePathContract.parse(historyPath), contents });
+  await appendFile(historyPath, contents);
 
   return { appended: true };
 };

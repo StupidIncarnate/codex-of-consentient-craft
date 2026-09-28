@@ -11,10 +11,9 @@
  */
 
 import { join } from '#gateway/node/path';
+import { readFile, writeFile } from '#gateway/node/fs__promises';
 import { filePathContract, type FilePath, type PackageName } from '@dungeonmaster/shared/contracts';
 import { jsonFileContentsTransformer } from '@dungeonmaster/shared/transformers';
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
-import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import { packageJsonRawContract } from '../../../contracts/package-json-raw/package-json-raw-contract';
 import { rootPackageJsonRegisterTransformer } from '../../../transformers/root-package-json-register/root-package-json-register-transformer';
 
@@ -27,11 +26,9 @@ export const packageRegisterBroker = async ({
 }): Promise<boolean> => {
   const packageJsonPath = filePathContract.parse(join(projectRoot, 'package.json'));
 
-  const rawContents = await fsReadFileAdapter({ filePath: packageJsonPath }).catch(
-    (error: unknown) => {
-      throw new Error(`No package.json found at ${packageJsonPath}`, { cause: error });
-    },
-  );
+  const rawContents = await readFile(packageJsonPath).catch((error: unknown) => {
+    throw new Error(`No package.json found at ${packageJsonPath}`, { cause: error });
+  });
 
   const rootPackageJson = packageJsonRawContract.parse(JSON.parse(rawContents));
   const updatedPackageJson = rootPackageJsonRegisterTransformer({ rootPackageJson, packageName });
@@ -42,7 +39,7 @@ export const packageRegisterBroker = async ({
 
   const contents = jsonFileContentsTransformer({ value: updatedPackageJson });
 
-  await fsWriteFileAdapter({ filePath: packageJsonPath, contents });
+  await writeFile(packageJsonPath, contents);
 
   return true;
 };

@@ -14,10 +14,9 @@ import {
   filePathContract,
 } from '@dungeonmaster/shared/contracts';
 import { existsSync } from '#gateway/node/fs';
+import { readFile, writeFile } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
 import { jsonFileContentsTransformer } from '@dungeonmaster/shared/transformers';
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
-import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import { devDependenciesStatics } from '../../../statics/dev-dependencies/dev-dependencies-statics';
 import { extractDevDependenciesTransformer } from '../../../transformers/extract-dev-dependencies/extract-dev-dependencies-transformer';
 import { dependencyMapContract } from '../../../contracts/dependency-map/dependency-map-contract';
@@ -42,7 +41,7 @@ export const InstallAddDevDepsResponder = async ({
     };
   }
 
-  const packageJsonContent = await fsReadFileAdapter({ filePath: packageJsonPath });
+  const packageJsonContent = await readFile(packageJsonPath);
   const rawParsed: unknown = JSON.parse(packageJsonContent);
   const parsedPackageJson = packageJsonContract.safeParse(rawParsed);
 
@@ -89,7 +88,7 @@ export const InstallAddDevDepsResponder = async ({
 
   const contents = jsonFileContentsTransformer({ value: updatedPackageJson });
 
-  await fsWriteFileAdapter({ filePath: packageJsonPath, contents });
+  await writeFile(packageJsonPath, contents);
 
   return {
     packageName: packageNameContract.parse(PACKAGE_NAME),

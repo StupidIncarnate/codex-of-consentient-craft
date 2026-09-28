@@ -1,11 +1,10 @@
 import { join, dirname } from '#gateway/node/path';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
+import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
+import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
 import type { FilePath, PathSegment, FileContents } from '@dungeonmaster/shared/contracts';
-
-import { fsMkdirAdapterProxy } from '../../../adapters/fs/mkdir/fs-mkdir-adapter.proxy';
-import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
 
 export const packageScaffoldWriteBrokerProxy = (): {
   setupTargetMissing: (params: {
@@ -16,8 +15,8 @@ export const packageScaffoldWriteBrokerProxy = (): {
   getWrittenFiles: () => readonly { path: unknown; content: unknown }[];
 } => {
   const existsProxy = existsSyncProxy();
-  const mkdirProxy = fsMkdirAdapterProxy();
-  const writeProxy = fsWriteFileAdapterProxy();
+  const mkdirProxy = ensureDirProxy();
+  const writeProxy = writeFileProxy();
   const realPath = requireActual<{ join: typeof join; dirname: typeof dirname }>({
     module: 'path',
   });
@@ -25,6 +24,7 @@ export const packageScaffoldWriteBrokerProxy = (): {
   const dirnameHandle = registerMock({ fn: dirname });
   joinHandle.calledWith([]).implement((...segments: never[]) => realPath.join(...segments));
   dirnameHandle.calledWith([]).implement((path: never) => realPath.dirname(path));
+  const writtenPaths: FilePath[] = [];
 
   return {
     setupTargetMissing: ({ packageRoot, files }): void => {
@@ -37,8 +37,9 @@ export const packageScaffoldWriteBrokerProxy = (): {
         joinHandle.calledWith([packageRoot, file.relativePath]).returns(absolutePath);
         dirnameHandle.calledWith([absolutePath]).returns(parentDir);
 
-        mkdirProxy.succeeds({ filePath: parentDir });
-        writeProxy.succeeds({ filePath: absolutePath });
+        mkdirProxy.succeeds({ path: parentDir });
+        writeProxy.succeeds({ path: absolutePath });
+        writtenPaths.push(absolutePath);
       }
     },
 
@@ -47,6 +48,9 @@ export const packageScaffoldWriteBrokerProxy = (): {
     },
 
     getWrittenFiles: (): readonly { path: unknown; content: unknown }[] =>
-      writeProxy.getAllWrittenFiles(),
+      writtenPaths.flatMap((path) => {
+        const content = writeProxy.writtenContentsFor({ path });
+        return content === undefined ? [] : [{ path, content }];
+      }),
   };
 };

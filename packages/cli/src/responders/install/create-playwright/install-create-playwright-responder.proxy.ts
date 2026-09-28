@@ -1,11 +1,11 @@
 import { join } from '#gateway/node/path';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
+import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import { architecturePackageE2eEligibleDetectBrokerProxy } from '@dungeonmaster/shared/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
-import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
 import { InstallCreatePlaywrightResponder } from './install-create-playwright-responder';
 
 export const InstallCreatePlaywrightResponderProxy = (): {
@@ -17,12 +17,13 @@ export const InstallCreatePlaywrightResponderProxy = (): {
   getEnsureDirCallsFor: (params: { path: string }) => readonly unknown[][];
 } => {
   const existsProxy = existsSyncProxy();
-  const writeProxy = fsWriteFileAdapterProxy();
+  const writeProxy = writeFileProxy();
   const ensureDirHandle = ensureDirProxy();
   const eligibleProxy = architecturePackageE2eEligibleDetectBrokerProxy();
   const realPath = requireActual<{ join: typeof join }>({ module: 'path' });
   const joinHandle = registerMock({ fn: join });
   joinHandle.calledWith([]).implement((...segments: never[]) => realPath.join(...segments));
+  const writtenPaths: FilePath[] = [];
 
   const markEligible = ({ targetProjectRoot }: { targetProjectRoot: string }): void => {
     eligibleProxy.setupPackage({
@@ -43,19 +44,19 @@ export const InstallCreatePlaywrightResponderProxy = (): {
     setupFileNotExists: ({ filePath }: { filePath: FilePath }): void => {
       markEligible({ targetProjectRoot: '/project' });
       existsProxy.returns({ path: filePath, exists: false });
-      writeProxy.succeeds({ filePath });
+      writeProxy.succeeds({ path: filePath });
+      writtenPaths.push(filePath);
       ensureDirHandle.succeeds({ path: '/project/src/statics/e2e-unresolvable-token' });
-      writeProxy.succeeds({
-        filePath: FilePathStub({
-          value: '/project/src/statics/e2e-unresolvable-token/e2e-unresolvable-token-statics.ts',
-        }),
+      const staticsPath = FilePathStub({
+        value: '/project/src/statics/e2e-unresolvable-token/e2e-unresolvable-token-statics.ts',
       });
-      writeProxy.succeeds({
-        filePath: FilePathStub({
-          value:
-            '/project/src/statics/e2e-unresolvable-token/e2e-unresolvable-token-statics.test.ts',
-        }),
+      const staticsTestPath = FilePathStub({
+        value: '/project/src/statics/e2e-unresolvable-token/e2e-unresolvable-token-statics.test.ts',
       });
+      writeProxy.succeeds({ path: staticsPath });
+      writtenPaths.push(staticsPath);
+      writeProxy.succeeds({ path: staticsTestPath });
+      writtenPaths.push(staticsTestPath);
     },
 
     setupNotE2eEligible: ({ targetProjectRoot }: { targetProjectRoot: string }): void => {
@@ -63,7 +64,10 @@ export const InstallCreatePlaywrightResponderProxy = (): {
     },
 
     getWrittenFiles: (): readonly { path: unknown; content: unknown }[] =>
-      writeProxy.getAllWrittenFiles(),
+      writtenPaths.flatMap((path) => {
+        const content = writeProxy.writtenContentsFor({ path });
+        return content === undefined ? [] : [{ path, content }];
+      }),
 
     getEnsureDirCallsFor: ({ path }: { path: string }): readonly unknown[][] =>
       ensureDirHandle.getCallsFor({ path }),
