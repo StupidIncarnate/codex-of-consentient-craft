@@ -49,6 +49,40 @@ Census of `packages/tooling/src/adapters/**` run 2026-09-26: 3 files, none dead,
   copies drifting apart (`server`, `tooling`, `mcp` each behave differently). Confirm which behaviour the gateway
   wrapper actually kept before assuming `tooling`'s callers see no change.
 
+## Plan (G-H, 2026-09-27)
+
+Current tree check (not the 2026-09-26 census): `packages/tooling/src/adapters/` holds only
+`typescript/parse/typescript-parse-adapter.{ts,proxy.ts,test.ts}`. `fs/read-file` and `glob/find` are
+already gone — commit `7751fb471` ("A01 (part 1): delete adapters that have no callers") deleted both as
+dead code with zero callers anywhere in the repo; `duplicate-detection-detect-broker.ts` already calls
+`glob` from `#gateway/npm/glob` directly with `globIgnoreStatics.defaults` (the same four patterns
+`glob-find-adapter.ts` hard-coded, per that static's own PURPOSE comment) and `readFile` from
+`#gateway/node/fs__promises` directly. So this group's only remaining work is the `typescript/parse`
+split. Only caller of `typescriptParseAdapter`/`typescriptParseAdapterProxy` anywhere in the repo:
+`duplicate-detection-detect-broker.ts` and its `.proxy.ts` (confirmed by a repo-wide `discover` grep).
+
+Files:
+
+- **Create** `packages/tooling/src/brokers/typescript/parse/typescript-parse-broker.ts` — the AST walk and
+  `LiteralOccurrence`/`LiteralValue` contract mapping, moved from the adapter, importing `ts` from
+  `#gateway/npm/typescript` (a pure pass-through with no `.proxy.ts` of its own) instead of raw `typescript`.
+- **Create** `packages/tooling/src/brokers/typescript/parse/typescript-parse-broker.proxy.ts` — empty
+  proxy; nothing to mock, same as the adapter's own proxy today.
+- **Create** `packages/tooling/src/brokers/typescript/parse/typescript-parse-broker.test.ts` — the
+  adapter's existing test suite, renamed onto the broker.
+- **Edit** `packages/tooling/src/brokers/duplicate-detection/detect/duplicate-detection-detect-broker.ts`
+  — import `typescriptParseBroker` from `../../typescript/parse/typescript-parse-broker` in place of the
+  adapter import.
+- **Edit**
+  `packages/tooling/src/brokers/duplicate-detection/detect/duplicate-detection-detect-broker.proxy.ts` —
+  compose `typescriptParseBrokerProxy` from `../../typescript/parse/typescript-parse-broker.proxy` in
+  place of the adapter proxy.
+- **Delete** `packages/tooling/src/adapters/typescript/parse/typescript-parse-adapter.ts`
+- **Delete** `packages/tooling/src/adapters/typescript/parse/typescript-parse-adapter.proxy.ts`
+- **Delete** `packages/tooling/src/adapters/typescript/parse/typescript-parse-adapter.test.ts`
+
+`packages/tooling/src/adapters/` holds no other files after these three deletions, so the folder is empty.
+
 ## Concessions made while executing
 
 <!-- Empty at the start. The operator fills this and mirrors it into EPIC.md's Concessions table. -->

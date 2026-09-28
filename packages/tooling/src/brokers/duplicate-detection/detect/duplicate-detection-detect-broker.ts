@@ -13,7 +13,7 @@ import type { LiteralValue } from '../../../contracts/literal-value/literal-valu
 import type { OccurrenceThreshold } from '../../../contracts/occurrence-threshold/occurrence-threshold-contract';
 import { glob } from '#gateway/npm/glob';
 import { readFile } from '#gateway/node/fs__promises';
-import { typescriptParseAdapter } from '../../../adapters/typescript/parse/typescript-parse-adapter';
+import { typescriptParseBroker } from '../../typescript/parse/typescript-parse-broker';
 import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import { sourceCodeContract } from '../../../contracts/source-code/source-code-contract';
 import { duplicateLiteralReportContract } from '../../../contracts/duplicate-literal-report/duplicate-literal-report-contract';
@@ -52,7 +52,7 @@ export const duplicateDetectionDetectBroker = async ({
     filePaths.map(async (filePath) => {
       const rawSourceCode = await readFile(filePath);
       const sourceCode = sourceCodeContract.parse(rawSourceCode);
-      const fileLiterals = typescriptParseAdapter({
+      const fileLiterals = typescriptParseBroker({
         sourceCode,
         filePath,
         minLength: actualMinLength,

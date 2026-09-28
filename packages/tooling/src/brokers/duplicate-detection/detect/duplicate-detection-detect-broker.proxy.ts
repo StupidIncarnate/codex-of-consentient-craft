@@ -1,6 +1,6 @@
 import { globProxy } from '#gateway/npm/glob/glob/glob.proxy';
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
-import { typescriptParseAdapterProxy } from '../../../adapters/typescript/parse/typescript-parse-adapter.proxy';
+import { typescriptParseBrokerProxy } from '../../typescript/parse/typescript-parse-broker.proxy';
 import { globIgnoreStatics } from '../../../statics/glob-ignore/glob-ignore-statics';
 import type { GlobPattern } from '../../../contracts/glob-pattern/glob-pattern-contract';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
@@ -15,7 +15,7 @@ export const duplicateDetectionDetectBrokerProxy = (): {
 } => {
   const globHandle = globProxy();
   const readFileHandle = readFileProxy();
-  typescriptParseAdapterProxy();
+  typescriptParseBrokerProxy();
 
   return {
     setupFiles: ({

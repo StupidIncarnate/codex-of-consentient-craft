@@ -1,11 +1,13 @@
 /**
  * PURPOSE: Parses TypeScript source code to extract string and regex literals with their locations.
+ * The AST walk and the LiteralOccurrence/LiteralValue contract mapping are business logic, not a
+ * package wrap — the wrap itself is `#gateway/npm/typescript`, so this stays a broker.
  *
  * USAGE:
- * const literals = typescriptParseAdapter({ sourceCode, filePath: '/path/to/file.ts', minLength: 3 });
+ * const literals = typescriptParseBroker({ sourceCode, filePath: '/path/to/file.ts', minLength: 3 });
  * // Returns: ReadonlyMap<LiteralValue, readonly LiteralOccurrence[]> (map of literal values to their occurrences)
  */
-import * as ts from 'typescript';
+import * as ts from '#gateway/npm/typescript';
 import type { SourceCode } from '../../../contracts/source-code/source-code-contract';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { LiteralOccurrence } from '../../../contracts/literal-occurrence/literal-occurrence-contract';
@@ -14,7 +16,7 @@ import { literalOccurrenceContract } from '../../../contracts/literal-occurrence
 import { literalValueContract } from '../../../contracts/literal-value/literal-value-contract';
 import { absoluteFilePathContract } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 
-export const typescriptParseAdapter = ({
+export const typescriptParseBroker = ({
   sourceCode,
   filePath,
   minLength = 3,

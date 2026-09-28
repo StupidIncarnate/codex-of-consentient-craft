@@ -1,16 +1,16 @@
-import { typescriptParseAdapter } from './typescript-parse-adapter';
-import { typescriptParseAdapterProxy } from './typescript-parse-adapter.proxy';
+import { typescriptParseBroker } from './typescript-parse-broker';
+import { typescriptParseBrokerProxy } from './typescript-parse-broker.proxy';
 import { SourceCodeStub } from '../../../contracts/source-code/source-code.stub';
 import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { LiteralValueStub } from '../../../contracts/literal-value/literal-value.stub';
 
-describe('typescriptParseAdapter', () => {
+describe('typescriptParseBroker', () => {
   it('VALID: {sourceCode with string literals} => returns map with literal occurrences', () => {
-    typescriptParseAdapterProxy();
+    typescriptParseBrokerProxy();
     const sourceCode = SourceCodeStub({ value: 'const x = "test"; const y = "test";' });
     const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
 
-    const result = typescriptParseAdapter({ sourceCode, filePath });
+    const result = typescriptParseBroker({ sourceCode, filePath });
 
     const testOccurrences = result.get(LiteralValueStub({ value: 'test' }));
 
@@ -29,11 +29,11 @@ describe('typescriptParseAdapter', () => {
   });
 
   it('VALID: {sourceCode with regex literals} => returns map with regex occurrences', () => {
-    typescriptParseAdapterProxy();
+    typescriptParseBrokerProxy();
     const sourceCode = SourceCodeStub({ value: 'const pattern = /test/g;' });
     const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
 
-    const result = typescriptParseAdapter({ sourceCode, filePath });
+    const result = typescriptParseBroker({ sourceCode, filePath });
 
     const regexOccurrences = result.get(LiteralValueStub({ value: '/test/g' }));
 
@@ -47,30 +47,30 @@ describe('typescriptParseAdapter', () => {
   });
 
   it('VALID: {sourceCode with minLength: 5} => excludes short strings', () => {
-    typescriptParseAdapterProxy();
+    typescriptParseBrokerProxy();
     const sourceCode = SourceCodeStub({
       value: 'const x = "hi"; const y = "hello";',
     });
     const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
 
-    const result = typescriptParseAdapter({ sourceCode, filePath, minLength: 5 });
+    const result = typescriptParseBroker({ sourceCode, filePath, minLength: 5 });
 
     expect(result.has(LiteralValueStub({ value: 'hi' }))).toBe(false);
     expect(result.has(LiteralValueStub({ value: 'hello' }))).toBe(true);
   });
 
   it('EMPTY: {sourceCode without literals} => returns empty map', () => {
-    typescriptParseAdapterProxy();
+    typescriptParseBrokerProxy();
     const sourceCode = SourceCodeStub({ value: 'const x = 123; const y = true;' });
     const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
 
-    const result = typescriptParseAdapter({ sourceCode, filePath });
+    const result = typescriptParseBroker({ sourceCode, filePath });
 
     expect(result.size).toBe(0);
   });
 
   it('VALID: {sourceCode with duplicate across lines} => returns all occurrences', () => {
-    typescriptParseAdapterProxy();
+    typescriptParseBrokerProxy();
     const sourceCode = SourceCodeStub({
       value: `const error = "error";
 const message = "error";
@@ -78,7 +78,7 @@ const type = "error";`,
     });
     const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
 
-    const result = typescriptParseAdapter({ sourceCode, filePath });
+    const result = typescriptParseBroker({ sourceCode, filePath });
 
     const errorOccurrences = result.get(LiteralValueStub({ value: 'error' }));
 
@@ -91,11 +91,11 @@ const type = "error";`,
 
   describe('branch coverage', () => {
     it('VALID: {single occurrence of literal} => creates new map entry', () => {
-      typescriptParseAdapterProxy();
+      typescriptParseBrokerProxy();
       const sourceCode = SourceCodeStub({ value: 'const x = "unique";' });
       const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
 
-      const result = typescriptParseAdapter({ sourceCode, filePath });
+      const result = typescriptParseBroker({ sourceCode, filePath });
 
       const uniqueOccurrences = result.get(LiteralValueStub({ value: 'unique' }));
 
@@ -103,13 +103,13 @@ const type = "error";`,
     });
 
     it('VALID: {multiple occurrences of literal} => updates existing map entry', () => {
-      typescriptParseAdapterProxy();
+      typescriptParseBrokerProxy();
       const sourceCode = SourceCodeStub({
         value: 'const x = "repeat"; const y = "repeat"; const z = "repeat";',
       });
       const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
 
-      const result = typescriptParseAdapter({ sourceCode, filePath });
+      const result = typescriptParseBroker({ sourceCode, filePath });
 
       const repeatOccurrences = result.get(LiteralValueStub({ value: 'repeat' }));
 
@@ -123,48 +123,48 @@ const type = "error";`,
 
   describe('source code edge cases', () => {
     it('EMPTY: {empty source code} => returns empty map', () => {
-      typescriptParseAdapterProxy();
+      typescriptParseBrokerProxy();
       const sourceCode = SourceCodeStub({ value: '' });
       const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
 
-      const result = typescriptParseAdapter({ sourceCode, filePath });
+      const result = typescriptParseBroker({ sourceCode, filePath });
 
       expect(result.size).toBe(0);
     });
 
     it('EMPTY: {only comments} => returns empty map', () => {
-      typescriptParseAdapterProxy();
+      typescriptParseBrokerProxy();
       const sourceCode = SourceCodeStub({
         value: `// This is a comment
 /* This is a block comment */`,
       });
       const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
 
-      const result = typescriptParseAdapter({ sourceCode, filePath });
+      const result = typescriptParseBroker({ sourceCode, filePath });
 
       expect(result.size).toBe(0);
     });
 
     it('VALID: {template literals} => parses string content', () => {
-      typescriptParseAdapterProxy();
+      typescriptParseBrokerProxy();
       const sourceCode = SourceCodeStub({
         value: 'const x = `template`; const y = `template`;',
       });
       const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
 
-      const result = typescriptParseAdapter({ sourceCode, filePath });
+      const result = typescriptParseBroker({ sourceCode, filePath });
 
       expect(result.size).toBe(0);
     });
 
     it('VALID: {nested objects} => parses string literals in objects', () => {
-      typescriptParseAdapterProxy();
+      typescriptParseBrokerProxy();
       const sourceCode = SourceCodeStub({
         value: 'const obj = { nested: { value: "deep" } }; const obj2 = { value: "deep" };',
       });
       const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
 
-      const result = typescriptParseAdapter({ sourceCode, filePath });
+      const result = typescriptParseBroker({ sourceCode, filePath });
 
       const deepOccurrences = result.get(LiteralValueStub({ value: 'deep' }));
 
@@ -175,13 +175,13 @@ const type = "error";`,
     });
 
     it('VALID: {arrays} => parses string literals in arrays', () => {
-      typescriptParseAdapterProxy();
+      typescriptParseBrokerProxy();
       const sourceCode = SourceCodeStub({
         value: 'const arr = ["item", "item", "item"];',
       });
       const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
 
-      const result = typescriptParseAdapter({ sourceCode, filePath });
+      const result = typescriptParseBroker({ sourceCode, filePath });
 
       const itemOccurrences = result.get(LiteralValueStub({ value: 'item' }));
 
@@ -193,13 +193,13 @@ const type = "error";`,
     });
 
     it('VALID: {default arguments} => parses string literals in defaults', () => {
-      typescriptParseAdapterProxy();
+      typescriptParseBrokerProxy();
       const sourceCode = SourceCodeStub({
         value: 'function fn(x = "default", y = "default") {}',
       });
       const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
 
-      const result = typescriptParseAdapter({ sourceCode, filePath });
+      const result = typescriptParseBroker({ sourceCode, filePath });
 
       const defaultOccurrences = result.get(LiteralValueStub({ value: 'default' }));
 
@@ -210,13 +210,13 @@ const type = "error";`,
     });
 
     it('VALID: {JSX elements} => parses string literals in JSX', () => {
-      typescriptParseAdapterProxy();
+      typescriptParseBrokerProxy();
       const sourceCode = SourceCodeStub({
         value: 'const el = <div title="title">{"text"}</div>; const el2 = <span>{"text"}</span>;',
       });
       const filePath = AbsoluteFilePathStub({ value: '/file.tsx' });
 
-      const result = typescriptParseAdapter({ sourceCode, filePath });
+      const result = typescriptParseBroker({ sourceCode, filePath });
 
       const textOccurrences = result.get(LiteralValueStub({ value: 'text' }));
       const titleOccurrences = result.get(LiteralValueStub({ value: 'title' }));
@@ -229,13 +229,13 @@ const type = "error";`,
     });
 
     it('VALID: {import statements} => parses string literals in imports', () => {
-      typescriptParseAdapterProxy();
+      typescriptParseBrokerProxy();
       const sourceCode = SourceCodeStub({
         value: 'import { x } from "module"; import { y } from "module";',
       });
       const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
 
-      const result = typescriptParseAdapter({ sourceCode, filePath });
+      const result = typescriptParseBroker({ sourceCode, filePath });
 
       const moduleOccurrences = result.get(LiteralValueStub({ value: 'module' }));
 
@@ -246,13 +246,13 @@ const type = "error";`,
     });
 
     it('VALID: {type annotations} => parses string literal types', () => {
-      typescriptParseAdapterProxy();
+      typescriptParseBrokerProxy();
       const sourceCode = SourceCodeStub({
         value: 'type Status = "active" | "inactive"; const x: "active" = "active";',
       });
       const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
 
-      const result = typescriptParseAdapter({ sourceCode, filePath });
+      const result = typescriptParseBroker({ sourceCode, filePath });
 
       const activeOccurrences = result.get(LiteralValueStub({ value: 'active' }));
       const inactiveOccurrences = result.get(LiteralValueStub({ value: 'inactive' }));
@@ -266,11 +266,11 @@ const type = "error";`,
     });
 
     it('EDGE: {string exactly at minLength} => includes string', () => {
-      typescriptParseAdapterProxy();
+      typescriptParseBrokerProxy();
       const sourceCode = SourceCodeStub({ value: 'const x = "abc"; const y = "abc";' });
       const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
 
-      const result = typescriptParseAdapter({ sourceCode, filePath, minLength: 3 });
+      const result = typescriptParseBroker({ sourceCode, filePath, minLength: 3 });
 
       const abcOccurrences = result.get(LiteralValueStub({ value: 'abc' }));
 
@@ -281,11 +281,11 @@ const type = "error";`,
     });
 
     it('EDGE: {string one char below minLength} => excludes string', () => {
-      typescriptParseAdapterProxy();
+      typescriptParseBrokerProxy();
       const sourceCode = SourceCodeStub({ value: 'const x = "ab"; const y = "ab";' });
       const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
 
-      const result = typescriptParseAdapter({ sourceCode, filePath, minLength: 3 });
+      const result = typescriptParseBroker({ sourceCode, filePath, minLength: 3 });
 
       expect(result.has(LiteralValueStub({ value: 'ab' }))).toBe(false);
     });
@@ -293,11 +293,11 @@ const type = "error";`,
 
   describe('minLength variations', () => {
     it('VALID: {minLength: 0} => includes empty strings', () => {
-      typescriptParseAdapterProxy();
+      typescriptParseBrokerProxy();
       const sourceCode = SourceCodeStub({ value: 'const x = ""; const y = "";' });
       const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
 
-      const result = typescriptParseAdapter({ sourceCode, filePath, minLength: 0 });
+      const result = typescriptParseBroker({ sourceCode, filePath, minLength: 0 });
 
       const emptyOccurrences = result.get(LiteralValueStub({ value: '' }));
 
@@ -308,11 +308,11 @@ const type = "error";`,
     });
 
     it('VALID: {minLength: 1} => includes single character strings', () => {
-      typescriptParseAdapterProxy();
+      typescriptParseBrokerProxy();
       const sourceCode = SourceCodeStub({ value: 'const x = "a"; const y = "a";' });
       const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
 
-      const result = typescriptParseAdapter({ sourceCode, filePath, minLength: 1 });
+      const result = typescriptParseBroker({ sourceCode, filePath, minLength: 1 });
 
       const aOccurrences = result.get(LiteralValueStub({ value: 'a' }));
 
@@ -323,13 +323,13 @@ const type = "error";`,
     });
 
     it('VALID: {minLength: 1000} => excludes all normal strings', () => {
-      typescriptParseAdapterProxy();
+      typescriptParseBrokerProxy();
       const sourceCode = SourceCodeStub({
         value: 'const x = "short"; const y = "short";',
       });
       const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
 
-      const result = typescriptParseAdapter({ sourceCode, filePath, minLength: 1000 });
+      const result = typescriptParseBroker({ sourceCode, filePath, minLength: 1000 });
 
       expect(result.has(LiteralValueStub({ value: 'short' }))).toBe(false);
     });
@@ -337,13 +337,13 @@ const type = "error";`,
 
   describe('special string content', () => {
     it('VALID: {unicode characters} => handles unicode correctly', () => {
-      typescriptParseAdapterProxy();
+      typescriptParseBrokerProxy();
       const sourceCode = SourceCodeStub({
         value: 'const x = "Hello 👋"; const y = "Hello 👋";',
       });
       const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
 
-      const result = typescriptParseAdapter({ sourceCode, filePath });
+      const result = typescriptParseBroker({ sourceCode, filePath });
 
       const unicodeOccurrences = result.get(LiteralValueStub({ value: 'Hello 👋' }));
 
@@ -354,13 +354,13 @@ const type = "error";`,
     });
 
     it('VALID: {strings with backslashes} => handles escape sequences', () => {
-      typescriptParseAdapterProxy();
+      typescriptParseBrokerProxy();
       const sourceCode = SourceCodeStub({
         value: 'const x = "path\\\\to\\\\file"; const y = "path\\\\to\\\\file";',
       });
       const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
 
-      const result = typescriptParseAdapter({ sourceCode, filePath });
+      const result = typescriptParseBroker({ sourceCode, filePath });
 
       const pathOccurrences = result.get(LiteralValueStub({ value: 'path\\to\\file' }));
 
@@ -371,13 +371,13 @@ const type = "error";`,
     });
 
     it('VALID: {newlines in strings} => handles newline characters correctly', () => {
-      typescriptParseAdapterProxy();
+      typescriptParseBrokerProxy();
       const sourceCode = SourceCodeStub({
         value: 'const x = "line1\\nline2"; const y = "line1\\nline2";',
       });
       const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
 
-      const result = typescriptParseAdapter({ sourceCode, filePath });
+      const result = typescriptParseBroker({ sourceCode, filePath });
 
       const newlineOccurrences = result.get(LiteralValueStub({ value: 'line1\nline2' }));
 
@@ -388,14 +388,14 @@ const type = "error";`,
     });
 
     it('VALID: {very long strings} => handles long strings correctly', () => {
-      typescriptParseAdapterProxy();
+      typescriptParseBrokerProxy();
       const longString = 'a'.repeat(10000);
       const sourceCode = SourceCodeStub({
         value: `const x = "${longString}"; const y = "${longString}";`,
       });
       const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
 
-      const result = typescriptParseAdapter({ sourceCode, filePath });
+      const result = typescriptParseBroker({ sourceCode, filePath });
 
       const longOccurrences = result.get(LiteralValueStub({ value: longString }));
 
@@ -406,13 +406,13 @@ const type = "error";`,
     });
 
     it('VALID: {whitespace-only strings} => handles whitespace strings', () => {
-      typescriptParseAdapterProxy();
+      typescriptParseBrokerProxy();
       const sourceCode = SourceCodeStub({
         value: 'const x = "   "; const y = "   ";',
       });
       const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
 
-      const result = typescriptParseAdapter({ sourceCode, filePath });
+      const result = typescriptParseBroker({ sourceCode, filePath });
 
       const whitespaceOccurrences = result.get(LiteralValueStub({ value: '   ' }));
 
@@ -425,13 +425,13 @@ const type = "error";`,
 
   describe('invalid TypeScript', () => {
     it('VALID: {syntax errors} => parser is resilient to errors', () => {
-      typescriptParseAdapterProxy();
+      typescriptParseBrokerProxy();
       const sourceCode = SourceCodeStub({
         value: 'const x = "error"; const y = "error"; invalid syntax here',
       });
       const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
 
-      const result = typescriptParseAdapter({ sourceCode, filePath });
+      const result = typescriptParseBroker({ sourceCode, filePath });
 
       const errorOccurrences = result.get(LiteralValueStub({ value: 'error' }));
 
@@ -442,13 +442,13 @@ const type = "error";`,
     });
 
     it('VALID: {incomplete tokens} => parses what it can', () => {
-      typescriptParseAdapterProxy();
+      typescriptParseBrokerProxy();
       const sourceCode = SourceCodeStub({
         value: 'const x = "complete"; const y = "complete"; const z = "incom',
       });
       const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
 
-      const result = typescriptParseAdapter({ sourceCode, filePath });
+      const result = typescriptParseBroker({ sourceCode, filePath });
 
       const completeOccurrences = result.get(LiteralValueStub({ value: 'complete' }));
 
@@ -459,13 +459,13 @@ const type = "error";`,
     });
 
     it('VALID: {mixed quotes} => handles single and double quotes', () => {
-      typescriptParseAdapterProxy();
+      typescriptParseBrokerProxy();
       const sourceCode = SourceCodeStub({
         value: "const x = 'single'; const y = \"double\"; const z = 'single';",
       });
       const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
 
-      const result = typescriptParseAdapter({ sourceCode, filePath });
+      const result = typescriptParseBroker({ sourceCode, filePath });
 
       const singleOccurrences = result.get(LiteralValueStub({ value: 'single' }));
       const doubleOccurrences = result.get(LiteralValueStub({ value: 'double' }));
@@ -480,13 +480,13 @@ const type = "error";`,
 
   describe('regex variations', () => {
     it('VALID: {regex with different flags} => handles various flags', () => {
-      typescriptParseAdapterProxy();
+      typescriptParseBrokerProxy();
       const sourceCode = SourceCodeStub({
         value: 'const p1 = /test/gi; const p2 = /test/m; const p3 = /test/gi;',
       });
       const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
 
-      const result = typescriptParseAdapter({ sourceCode, filePath });
+      const result = typescriptParseBroker({ sourceCode, filePath });
 
       const giOccurrences = result.get(LiteralValueStub({ value: '/test/gi' }));
       const mOccurrences = result.get(LiteralValueStub({ value: '/test/m' }));
@@ -499,14 +499,14 @@ const type = "error";`,
     });
 
     it('VALID: {complex regex patterns} => handles complex patterns', () => {
-      typescriptParseAdapterProxy();
+      typescriptParseBrokerProxy();
       const sourceCode = SourceCodeStub({
         value:
           'const email = /^[a-zA-Z0-9]+@[a-zA-Z0-9]+\\.[a-z]{2,}$/; const email2 = /^[a-zA-Z0-9]+@[a-zA-Z0-9]+\\.[a-z]{2,}$/;',
       });
       const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
 
-      const result = typescriptParseAdapter({ sourceCode, filePath });
+      const result = typescriptParseBroker({ sourceCode, filePath });
 
       const emailOccurrences = result.get(
         LiteralValueStub({ value: '/^[a-zA-Z0-9]+@[a-zA-Z0-9]+\\.[a-z]{2,}$/' }),
@@ -519,13 +519,13 @@ const type = "error";`,
     });
 
     it('VALID: {duplicate regex patterns} => tracks regex duplicates', () => {
-      typescriptParseAdapterProxy();
+      typescriptParseBrokerProxy();
       const sourceCode = SourceCodeStub({
         value: 'const p1 = /\\d+/; const p2 = /\\d+/; const p3 = /\\d+/; const p4 = /\\d+/;',
       });
       const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
 
-      const result = typescriptParseAdapter({ sourceCode, filePath });
+      const result = typescriptParseBroker({ sourceCode, filePath });
 
       const digitOccurrences = result.get(LiteralValueStub({ value: '/\\d+/' }));
 
@@ -538,13 +538,13 @@ const type = "error";`,
     });
 
     it('VALID: {escaped characters in regex} => handles escaped chars', () => {
-      typescriptParseAdapterProxy();
+      typescriptParseBrokerProxy();
       const sourceCode = SourceCodeStub({
         value: 'const p1 = /\\d+\\.\\d+/; const p2 = /\\d+\\.\\d+/; const p3 = /\\d+\\.\\d+/;',
       });
       const filePath = AbsoluteFilePathStub({ value: '/file.ts' });
 
-      const result = typescriptParseAdapter({ sourceCode, filePath });
+      const result = typescriptParseBroker({ sourceCode, filePath });
 
       const decimalOccurrences = result.get(LiteralValueStub({ value: '/\\d+\\.\\d+/' }));
 
