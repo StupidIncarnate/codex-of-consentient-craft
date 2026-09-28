@@ -10,7 +10,8 @@
 import { wardDetailContract } from '@dungeonmaster/shared/contracts';
 import type { QuestId, WardDetail, WardResult } from '@dungeonmaster/shared/contracts';
 
-import { fetchGetAdapter } from '../../../adapters/fetch/get/fetch-get-adapter';
+import { fetchJson } from '#gateway/browser/fetch';
+
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
 
 export const questWardDetailBroker = async ({
@@ -24,7 +25,7 @@ export const questWardDetailBroker = async ({
     .replace(':questId', questId)
     .replace(':wardResultId', wardResultId);
 
-  const response = await fetchGetAdapter<unknown>({ url });
+  const response = await fetchJson({ url });
 
   return wardDetailContract.parse(response);
 };

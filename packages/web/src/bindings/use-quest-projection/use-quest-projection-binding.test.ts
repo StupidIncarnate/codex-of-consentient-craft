@@ -86,7 +86,7 @@ describe('useQuestProjectionBinding', () => {
 
       expect(result.current.data).toBe(null);
       expect(String(result.current.error?.message)).toBe(
-        'GET /api/quests/q-projection/projection failed with status 404',
+        'GET /api/quests/q-projection/projection failed with status 404: {"error":"Quest with id \\"q-missing\\" not found in any guild"}',
       );
     });
   });

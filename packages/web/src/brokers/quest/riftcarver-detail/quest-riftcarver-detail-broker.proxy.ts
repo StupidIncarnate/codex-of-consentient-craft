@@ -1,7 +1,10 @@
-import { StartEndpointMock } from '@dungeonmaster/testing';
+// PURPOSE: Proxy for quest-riftcarver-detail-broker providing test control over HTTP responses
+// USAGE: Create proxy in test, use setup methods to configure endpoint behavior
+
 import type { RequestCount } from '@dungeonmaster/testing';
 
-import { fetchGetAdapterProxy } from '../../../adapters/fetch/get/fetch-get-adapter.proxy';
+import { fetchJsonProxy } from '#gateway/browser/fetch/fetch-json/fetch-json.proxy';
+
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
 
 export const questRiftcarverDetailBrokerProxy = (): {
@@ -9,19 +12,23 @@ export const questRiftcarverDetailBrokerProxy = (): {
   setupNotFound: () => void;
   getRequestCount: () => RequestCount;
 } => {
-  fetchGetAdapterProxy();
-  const endpoint = StartEndpointMock.listen({
+  const jsonFetchProxy = fetchJsonProxy();
+  const address = {
     method: 'get',
     url: webConfigStatics.api.routes.questRiftcarverDetail,
-  });
+  } as const;
 
   return {
     setupDetail: ({ detail }: { detail: unknown }): void => {
-      endpoint.resolves({ data: detail });
+      jsonFetchProxy.setupSuccess({ ...address, body: detail });
     },
     setupNotFound: (): void => {
-      endpoint.responds({ status: 404, body: { error: 'Riftcarver detail not available' } });
+      jsonFetchProxy.setupNotOk({
+        ...address,
+        status: 404,
+        bodyText: JSON.stringify({ error: 'Riftcarver detail not available' }),
+      });
     },
-    getRequestCount: (): RequestCount => endpoint.getRequestCount(),
+    getRequestCount: (): RequestCount => jsonFetchProxy.getRequestCount(address),
   };
 };

@@ -8,11 +8,12 @@
 import { guildContract } from '@dungeonmaster/shared/contracts';
 import type { Guild, GuildId } from '@dungeonmaster/shared/contracts';
 
-import { fetchGetAdapter } from '../../../adapters/fetch/get/fetch-get-adapter';
+import { fetchJson } from '#gateway/browser/fetch';
+
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
 
 export const guildDetailBroker = async ({ guildId }: { guildId: GuildId }): Promise<Guild> => {
-  const response = await fetchGetAdapter<unknown>({
+  const response = await fetchJson({
     url: webConfigStatics.api.routes.guildById.replace(':guildId', guildId),
   });
 

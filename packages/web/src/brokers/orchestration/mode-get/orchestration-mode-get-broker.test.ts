@@ -30,7 +30,7 @@ describe('orchestrationModeGetBroker', () => {
 
       proxy.setupError();
 
-      await expect(orchestrationModeGetBroker()).rejects.toThrow(/fetch/iu);
+      await expect(orchestrationModeGetBroker()).rejects.toThrow(/^Failed to fetch$/u);
     });
   });
 

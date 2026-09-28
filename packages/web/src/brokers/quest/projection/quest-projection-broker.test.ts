@@ -56,7 +56,9 @@ describe('questProjectionBroker', () => {
 
       await expect(
         questProjectionBroker({ questId: QuestIdStub({ value: 'q-missing' }) }),
-      ).rejects.toThrow(/^GET \/api\/quests\/q-missing\/projection failed with status 404$/u);
+      ).rejects.toThrow(
+        /^GET \/api\/quests\/q-missing\/projection failed with status 404: \{"error":"Quest with id \\"q-missing\\" not found in any guild"\}$/u,
+      );
     });
   });
 });

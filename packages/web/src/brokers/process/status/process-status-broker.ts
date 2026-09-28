@@ -8,7 +8,8 @@
 import { orchestrationStatusContract } from '@dungeonmaster/shared/contracts';
 import type { OrchestrationStatus, ProcessId } from '@dungeonmaster/shared/contracts';
 
-import { fetchGetAdapter } from '../../../adapters/fetch/get/fetch-get-adapter';
+import { fetchJson } from '#gateway/browser/fetch';
+
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
 
 export const processStatusBroker = async ({
@@ -16,7 +17,7 @@ export const processStatusBroker = async ({
 }: {
   processId: ProcessId;
 }): Promise<OrchestrationStatus> => {
-  const response = await fetchGetAdapter<unknown>({
+  const response = await fetchJson({
     url: webConfigStatics.api.routes.processStatus.replace(':processId', processId),
   });
 

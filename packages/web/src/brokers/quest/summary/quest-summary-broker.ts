@@ -11,7 +11,8 @@
 import type { QuestId, QuestSummary } from '@dungeonmaster/shared/contracts';
 import { questSummaryContract } from '@dungeonmaster/shared/contracts';
 
-import { fetchGetAdapter } from '../../../adapters/fetch/get/fetch-get-adapter';
+import { fetchJson } from '#gateway/browser/fetch';
+
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
 
 export const questSummaryBroker = async ({
@@ -21,7 +22,7 @@ export const questSummaryBroker = async ({
 }): Promise<QuestSummary> => {
   const url = webConfigStatics.api.routes.questSummary.replace(':questId', questId);
 
-  const response = await fetchGetAdapter<unknown>({ url });
+  const response = await fetchJson({ url });
 
   return questSummaryContract.parse(response);
 };

@@ -11,7 +11,8 @@
 import type { QuestId, QuestProjection } from '@dungeonmaster/shared/contracts';
 import { questProjectionContract } from '@dungeonmaster/shared/contracts';
 
-import { fetchGetAdapter } from '../../../adapters/fetch/get/fetch-get-adapter';
+import { fetchJson } from '#gateway/browser/fetch';
+
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
 
 export const questProjectionBroker = async ({
@@ -21,7 +22,7 @@ export const questProjectionBroker = async ({
 }): Promise<QuestProjection> => {
   const url = webConfigStatics.api.routes.questProjection.replace(':questId', questId);
 
-  const response = await fetchGetAdapter<unknown>({ url });
+  const response = await fetchJson({ url });
 
   return questProjectionContract.parse(response);
 };

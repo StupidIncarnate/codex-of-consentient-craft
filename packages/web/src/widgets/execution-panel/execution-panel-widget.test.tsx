@@ -1071,7 +1071,8 @@ describe('ExecutionPanelWidget', () => {
 
   describe('ward results', () => {
     it('VALID: {ward work item with wardResults ref} => shows ward exit code and mode in expanded content', async () => {
-      ExecutionPanelWidgetProxy();
+      const proxy = ExecutionPanelWidgetProxy();
+      proxy.setupWardDetailNotFound();
       const wardResult = WardResultStub({
         id: '3f7c9e4e-ea08-7bad-a78c-fcab0b84eaf6',
         exitCode: 1,
@@ -1119,7 +1120,8 @@ describe('ExecutionPanelWidget', () => {
 
   describe('riftcarver results', () => {
     it('VALID: {riftcarver work item with riftcarverResults ref} => resolves the ref through a real questContract.parse and shows riftcarver exit code and outcome in expanded content', async () => {
-      ExecutionPanelWidgetProxy();
+      const proxy = ExecutionPanelWidgetProxy();
+      proxy.setupRiftcarverDetailNotFound();
       const riftcarverResult = RiftcarverResultStub({
         id: '9f92cf78-df88-8045-8f8b-9d869216ec50',
         exitCode: 1,

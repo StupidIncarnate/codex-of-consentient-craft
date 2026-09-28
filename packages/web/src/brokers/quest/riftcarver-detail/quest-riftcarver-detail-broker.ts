@@ -9,7 +9,8 @@
 
 import type { QuestId, RiftcarverResult } from '@dungeonmaster/shared/contracts';
 
-import { fetchGetAdapter } from '../../../adapters/fetch/get/fetch-get-adapter';
+import { fetchJson } from '#gateway/browser/fetch';
+
 import { riftcarverDetailContract } from '../../../contracts/riftcarver-detail/riftcarver-detail-contract';
 import type { RiftcarverDetail } from '../../../contracts/riftcarver-detail/riftcarver-detail-contract';
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
@@ -25,7 +26,7 @@ export const questRiftcarverDetailBroker = async ({
     .replace(':questId', questId)
     .replace(':riftcarverResultId', riftcarverResultId);
 
-  const response = await fetchGetAdapter<unknown>({ url });
+  const response = await fetchJson({ url });
 
   return riftcarverDetailContract.parse(response);
 };

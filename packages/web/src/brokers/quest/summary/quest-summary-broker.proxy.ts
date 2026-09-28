@@ -1,8 +1,11 @@
-import { StartEndpointMock } from '@dungeonmaster/testing';
+// PURPOSE: Proxy for quest-summary-broker providing test control over HTTP responses
+// USAGE: Create proxy in test, use setup methods to configure endpoint behavior
+
 import type { RequestCount } from '@dungeonmaster/testing';
 import type { QuestSummaryStub } from '@dungeonmaster/shared/contracts';
 
-import { fetchGetAdapterProxy } from '../../../adapters/fetch/get/fetch-get-adapter.proxy';
+import { fetchJsonProxy } from '#gateway/browser/fetch/fetch-json/fetch-json.proxy';
+
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
 
 type QuestSummary = ReturnType<typeof QuestSummaryStub>;
@@ -12,22 +15,20 @@ export const questSummaryBrokerProxy = (): {
   setupNotFound: () => void;
   getRequestCount: () => RequestCount;
 } => {
-  fetchGetAdapterProxy();
-  const endpoint = StartEndpointMock.listen({
-    method: 'get',
-    url: webConfigStatics.api.routes.questSummary,
-  });
+  const jsonFetchProxy = fetchJsonProxy();
+  const address = { method: 'get', url: webConfigStatics.api.routes.questSummary } as const;
 
   return {
     setupSummary: ({ summary }: { summary: QuestSummary }): void => {
-      endpoint.resolves({ data: summary });
+      jsonFetchProxy.setupSuccess({ ...address, body: summary });
     },
     setupNotFound: (): void => {
-      endpoint.responds({
+      jsonFetchProxy.setupNotOk({
+        ...address,
         status: 404,
-        body: { error: 'Quest with id "q-missing" not found in any guild' },
+        bodyText: JSON.stringify({ error: 'Quest with id "q-missing" not found in any guild' }),
       });
     },
-    getRequestCount: (): RequestCount => endpoint.getRequestCount(),
+    getRequestCount: (): RequestCount => jsonFetchProxy.getRequestCount(address),
   };
 };

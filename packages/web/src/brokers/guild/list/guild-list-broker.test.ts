@@ -38,7 +38,7 @@ describe('guildListBroker', () => {
 
       proxy.setupError();
 
-      await expect(guildListBroker()).rejects.toThrow(/fetch/iu);
+      await expect(guildListBroker()).rejects.toThrow(/^Failed to fetch$/u);
     });
   });
 

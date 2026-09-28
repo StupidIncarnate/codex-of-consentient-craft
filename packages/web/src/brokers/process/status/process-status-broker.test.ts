@@ -25,7 +25,7 @@ describe('processStatusBroker', () => {
 
       proxy.setupError();
 
-      await expect(processStatusBroker({ processId })).rejects.toThrow(/fetch/iu);
+      await expect(processStatusBroker({ processId })).rejects.toThrow(/^Failed to fetch$/u);
     });
   });
 

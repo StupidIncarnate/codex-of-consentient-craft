@@ -244,6 +244,7 @@ describe('HomeContentWidget', () => {
       localStorage.setItem(GUILD_STORAGE_KEY, staleGuildId);
 
       proxy.setupGuilds({ guilds: [realGuild] });
+      proxy.setupSessions({ sessions: [] });
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
@@ -594,6 +595,7 @@ describe('HomeContentWidget', () => {
       const consoleErrorSpy = proxy.setupConsoleErrorCapture();
 
       proxy.setupGuilds({ guilds: [] });
+      proxy.setupSessions({ sessions: [] });
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {

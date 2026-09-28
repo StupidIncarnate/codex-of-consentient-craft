@@ -7,16 +7,17 @@
  * const mode = await orchestrationModeGetBroker();
  * // Returns OrchestrationMode ('claude' | 'node')
  */
-import { orchestrationModeContract } from '@dungeonmaster/shared/contracts';
 import type { OrchestrationMode } from '@dungeonmaster/shared/contracts';
 
-import { fetchGetAdapter } from '../../../adapters/fetch/get/fetch-get-adapter';
+import { fetchJson } from '#gateway/browser/fetch';
+
+import { orchestrationModeGetResultContract } from '../../../contracts/orchestration-mode-get-result/orchestration-mode-get-result-contract';
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
 
 export const orchestrationModeGetBroker = async (): Promise<OrchestrationMode> => {
-  const response = await fetchGetAdapter<{ mode: unknown }>({
+  const response = await fetchJson({
     url: webConfigStatics.api.routes.orchestrationMode,
   });
 
-  return orchestrationModeContract.parse(response.mode);
+  return orchestrationModeGetResultContract.parse(response).mode;
 };

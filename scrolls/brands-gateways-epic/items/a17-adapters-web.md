@@ -399,3 +399,61 @@ Files edited (`.ts`, `.proxy.ts`, `.test.ts` each):
 - `packages/web/src/brokers/quest/merge/quest-merge-broker*`
 - `packages/web/src/brokers/quest/pause/quest-pause-broker*`
 - `packages/web/src/brokers/quest/resume/quest-resume-broker*` (parses through the existing `questResumeOutcomeContract`)
+
+### W-GET scope
+
+Remaining Batch B: every caller of `fetchGetAdapter` moves onto `fetchJson` (`#gateway/browser/fetch`), with
+proxies composing `fetchJsonProxy` at the bare route pattern (MSW ignores the query string, as `quest-delete`
+already relies on). Broker method names on the proxies stay, so widget/binding proxies keep working; an unstaged
+mount-time call is no longer answered (was a 500), so widget tests that relied on it are found by running
+`packages/web` and are listed under "Widget staging" once known.
+
+Brokers (`.ts`, `.proxy.ts`, `.test.ts` each), under `packages/web/src/brokers/`:
+- `guild/detail/guild-detail-broker*`
+- `guild/list/guild-list-broker*`
+- `guild/session-list/guild-session-list-broker*`
+- `orchestration/dispatch-get/orchestration-dispatch-get-broker*`
+- `orchestration/mode-get/orchestration-mode-get-broker*`
+- `process/status/process-status-broker*`
+- `quest/list/quest-list-broker*`
+- `quest/projection/quest-projection-broker*`
+- `quest/queue/quest-queue-broker*`
+- `quest/riftcarver-detail/quest-riftcarver-detail-broker*`
+- `quest/summary/quest-summary-broker*`
+- `quest/ward-detail/quest-ward-detail-broker*`
+- `rate-limits/get/rate-limits-get-broker*`
+
+New contracts (`-contract.ts`, `.stub.ts`, `-contract.test.ts` each), under `packages/web/src/contracts/`, for the four
+wrapped bodies (`{state}`, `{mode}`, `{entries}`, `{snapshot}`):
+- `orchestration-dispatch-get-result/`
+- `orchestration-mode-get-result/`
+- `quest-queue-result/`
+- `rate-limits-get-result/`
+
+Deleted once no caller is left: `packages/web/src/adapters/fetch/get/fetch-get-adapter{,.proxy,.test}.ts`.
+
+Widget / binding proxies and tests: none named up front; the proxies keep their method names.
+
+Item file: `scrolls/brands-gateways-epic/items/a17-adapters-web.md`.
+
+#### W-GET scope, as executed
+
+A full `packages/web` unit run with all 13 brokers moved showed which unstaged mount-time calls broke widget
+tests. Four brokers went back to `fetchGetAdapter` because each would need staging in more than a handful of
+widget tests: `quest/list` (app-widget and home-content mount it on every guild select), `quest/queue`
+(`QuestQueueBarWidget` mounts it, 14 tests, plus app-widget), `orchestration/dispatch-get` (queue-bar
+widget, 14 tests), `rate-limits/get` (app-widget, 22 tests). So `adapters/fetch/get/` stays.
+
+Moved (`.ts`, `.proxy.ts`, `.test.ts` each unless noted): `guild/detail`, `guild/list`, `guild/session-list`,
+`orchestration/mode-get`, `process/status`, `quest/projection`, `quest/riftcarver-detail` (no test change),
+`quest/summary`, `quest/ward-detail` (no test change).
+
+New contract: `contracts/orchestration-mode-get-result/` (`-contract.ts`, `.stub.ts`, `-contract.test.ts`).
+The `orchestration-dispatch-get-result`, `quest-queue-result` and `rate-limits-get-result` contracts are not
+created (their brokers stayed).
+
+Widget / binding files edited for staging or the new error text:
+- `bindings/use-quest-projection/use-quest-projection-binding.test.ts`, `bindings/use-quest-summary/use-quest-summary-binding.test.ts`, `widgets/quest-summary/quest-summary-widget.test.tsx` (404 message now carries `: <body>`)
+- `widgets/execution-panel/execution-row-layer-widget.proxy.tsx`, `execution-work-item-row-layer-widget.proxy.tsx`, `execution-panel-widget.proxy.tsx`, and the tests `execution-work-item-row-layer-widget.test.tsx`, `execution-panel-widget.test.tsx` (stage the ward/riftcarver detail an expanded row fetches)
+- `widgets/quest-chat/quest-chat-widget.proxy.tsx`, `quest-chat-widget.test.tsx` (stage the mode the content layer fetches)
+- `widgets/home-content/home-content-widget.test.tsx` (stage the session list two tests left unstaged)

@@ -2,9 +2,9 @@
 // USAGE: Create proxy in test, use setup methods to configure endpoint behavior
 
 import type { GuildListItem } from '@dungeonmaster/shared/contracts';
-import { StartEndpointMock } from '@dungeonmaster/testing';
 
-import { fetchGetAdapterProxy } from '../../../adapters/fetch/get/fetch-get-adapter.proxy';
+import { fetchJsonProxy } from '#gateway/browser/fetch/fetch-json/fetch-json.proxy';
+
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
 
 export const guildListBrokerProxy = (): {
@@ -12,22 +12,18 @@ export const guildListBrokerProxy = (): {
   setupError: () => void;
   setupInvalidResponse: (params: { data: unknown }) => void;
 } => {
-  fetchGetAdapterProxy();
-
-  const endpoint = StartEndpointMock.listen({
-    method: 'get',
-    url: webConfigStatics.api.routes.guilds,
-  });
+  const jsonFetchProxy = fetchJsonProxy();
+  const address = { method: 'get', url: webConfigStatics.api.routes.guilds } as const;
 
   return {
-    setupGuilds: ({ guilds }) => {
-      endpoint.resolves({ data: guilds });
+    setupGuilds: ({ guilds }: { guilds: GuildListItem[] }): void => {
+      jsonFetchProxy.setupSuccess({ ...address, body: guilds });
     },
-    setupError: () => {
-      endpoint.networkError();
+    setupError: (): void => {
+      jsonFetchProxy.setupConnectionRefused(address);
     },
-    setupInvalidResponse: ({ data }) => {
-      endpoint.resolves({ data });
+    setupInvalidResponse: ({ data }: { data: unknown }): void => {
+      jsonFetchProxy.setupSuccess({ ...address, body: data });
     },
   };
 };

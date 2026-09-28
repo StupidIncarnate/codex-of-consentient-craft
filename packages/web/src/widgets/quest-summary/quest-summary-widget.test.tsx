@@ -522,7 +522,7 @@ describe('QuestSummaryWidget', () => {
       });
 
       expect(queryByTestId('QUEST_SUMMARY_ERROR')?.textContent).toBe(
-        'VERIFICATION SUMMARY UNREADABLE — GET /api/quests/q-summary/summary failed with status 404',
+        'VERIFICATION SUMMARY UNREADABLE — GET /api/quests/q-summary/summary failed with status 404: {"error":"Quest with id \\"q-missing\\" not found in any guild"}',
       );
     });
   });

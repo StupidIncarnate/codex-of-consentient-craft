@@ -8,7 +8,8 @@
 import { sessionListItemContract } from '@dungeonmaster/shared/contracts';
 import type { GuildId, SessionListItem } from '@dungeonmaster/shared/contracts';
 
-import { fetchGetAdapter } from '../../../adapters/fetch/get/fetch-get-adapter';
+import { fetchJson } from '#gateway/browser/fetch';
+
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
 
 export const guildSessionListBroker = async ({
@@ -18,7 +19,7 @@ export const guildSessionListBroker = async ({
 }): Promise<SessionListItem[]> => {
   const url = webConfigStatics.api.routes.guildSessions.replace(':guildId', guildId);
 
-  const response = await fetchGetAdapter<unknown[]>({ url });
+  const response = await fetchJson({ url });
 
-  return response.map((item) => sessionListItemContract.parse(item));
+  return sessionListItemContract.array().parse(response);
 };

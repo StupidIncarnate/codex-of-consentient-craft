@@ -55,7 +55,9 @@ describe('questSummaryBroker', () => {
 
       await expect(
         questSummaryBroker({ questId: QuestIdStub({ value: 'q-missing' }) }),
-      ).rejects.toThrow(/^GET \/api\/quests\/q-missing\/summary failed with status 404$/u);
+      ).rejects.toThrow(
+        /^GET \/api\/quests\/q-missing\/summary failed with status 404: \{"error":"Quest with id \\"q-missing\\" not found in any guild"\}$/u,
+      );
     });
   });
 });

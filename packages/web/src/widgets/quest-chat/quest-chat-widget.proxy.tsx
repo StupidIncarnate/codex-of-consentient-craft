@@ -8,7 +8,7 @@
 
 import { screen } from '@testing-library/react';
 
-import type { GuildListItemStub } from '@dungeonmaster/shared/contracts';
+import type { GuildListItemStub, OrchestrationMode } from '@dungeonmaster/shared/contracts';
 
 import { useGuildsBindingProxy } from '../../bindings/use-guilds/use-guilds-binding.proxy';
 import { DumpsterRaccoonWidgetProxy } from '../dumpster-raccoon/dumpster-raccoon-widget.proxy';
@@ -18,17 +18,21 @@ type GuildListItem = ReturnType<typeof GuildListItemStub>;
 
 export const QuestChatWidgetProxy = (): {
   setupGuilds: (params: { guilds: GuildListItem[] }) => void;
+  setupMode: (params: { mode: OrchestrationMode }) => void;
   hasQuestChat: () => boolean;
   hasQuestChatLoading: () => boolean;
   hasNotFound: () => boolean;
 } => {
   const guildsBindingProxy = useGuildsBindingProxy();
-  QuestChatContentLayerWidgetProxy();
+  const contentLayerProxy = QuestChatContentLayerWidgetProxy();
   DumpsterRaccoonWidgetProxy();
 
   return {
     setupGuilds: ({ guilds }: { guilds: GuildListItem[] }): void => {
       guildsBindingProxy.setupGuilds({ guilds });
+    },
+    setupMode: ({ mode }: { mode: OrchestrationMode }): void => {
+      contentLayerProxy.setupMode({ mode });
     },
     hasQuestChat: (): boolean => screen.queryByTestId('QUEST_CHAT') !== null,
     hasQuestChatLoading: (): boolean => screen.queryByTestId('QUEST_CHAT_LOADING') !== null,

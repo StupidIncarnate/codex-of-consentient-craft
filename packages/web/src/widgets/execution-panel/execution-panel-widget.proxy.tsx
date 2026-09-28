@@ -89,6 +89,8 @@ export const ExecutionPanelWidgetProxy = (): {
   getDurationComputeCount: () => TickCallCount;
   setupProjection: (params: { projection: QuestProjection }) => void;
   getProjectionRequestCount: () => RequestCount;
+  setupWardDetailNotFound: () => void;
+  setupRiftcarverDetailNotFound: () => void;
 } => {
   AutoScrollContainerWidgetProxy();
   // Both the unclaimed-operations map (renders ExecutionRowLayerWidget directly) and the
@@ -96,7 +98,7 @@ export const ExecutionPanelWidgetProxy = (): {
   // mocks staged — registerMock/registerSpyOn addresses are shared, so constructing it twice just
   // restages the same behaviour rather than conflicting.
   ExecutionRowLayerWidgetProxy();
-  ExecutionWorkItemRowLayerWidgetProxy();
+  const workItemRowProxy = ExecutionWorkItemRowLayerWidgetProxy();
   ExecutionStatusBarLayerWidgetProxy();
   // Defaults the projection endpoint to 404 — every test that never calls setupProjection() below
   // keeps reading the LEDGER-derived progress figures, so the widget's existing ledger-only
@@ -275,5 +277,11 @@ export const ExecutionPanelWidgetProxy = (): {
       projectionProxy.setupProjection({ projection });
     },
     getProjectionRequestCount: (): RequestCount => projectionProxy.getProjectionRequestCount(),
+    setupWardDetailNotFound: (): void => {
+      workItemRowProxy.setupWardDetailNotFound();
+    },
+    setupRiftcarverDetailNotFound: (): void => {
+      workItemRowProxy.setupRiftcarverDetailNotFound();
+    },
   };
 };

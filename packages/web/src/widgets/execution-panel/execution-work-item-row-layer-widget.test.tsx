@@ -325,7 +325,8 @@ describe('ExecutionWorkItemRowLayerWidget', () => {
 
   describe('ward results', () => {
     it('VALID: {relatedDataItems carries a wardResults ref matching wardResultsById} => expanded row shows the ward exit code', async () => {
-      ExecutionWorkItemRowLayerWidgetProxy();
+      const proxy = ExecutionWorkItemRowLayerWidgetProxy();
+      proxy.setupWardDetailNotFound();
       const workItem = WorkItemStub({
         id: WORK_ITEM_ID,
         role: 'ward',
@@ -369,7 +370,8 @@ describe('ExecutionWorkItemRowLayerWidget', () => {
 
   describe('riftcarver results', () => {
     it('VALID: {relatedDataItems carries a riftcarverResults ref matching riftcarverResultsById} => expanded row shows the riftcarver exit code', async () => {
-      ExecutionWorkItemRowLayerWidgetProxy();
+      const proxy = ExecutionWorkItemRowLayerWidgetProxy();
+      proxy.setupRiftcarverDetailNotFound();
       const workItem = WorkItemStub({
         id: WORK_ITEM_ID,
         role: 'riftcarver',

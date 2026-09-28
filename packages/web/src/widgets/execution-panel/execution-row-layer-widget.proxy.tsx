@@ -15,14 +15,16 @@ import { userEventStatics } from '../../statics/user-event/user-event-statics';
 export const ExecutionRowLayerWidgetProxy = (): {
   clickShowEarlier: () => Promise<void>;
   hasShowEarlierToggle: () => boolean;
+  setupWardDetailNotFound: () => void;
+  setupRiftcarverDetailNotFound: () => void;
 } => {
   ChatEntryListWidgetProxy();
   StreamingBarLayerWidgetProxy();
   // The row renders WardResultRowLayerWidget for ward rows; create its proxy so the
   // ward-detail HTTP endpoint is mocked (no-op for non-ward rows that never fetch).
-  WardResultRowLayerWidgetProxy();
+  const wardRowProxy = WardResultRowLayerWidgetProxy();
   // Same reasoning for riftcarver rows and the riftcarver-detail endpoint.
-  RiftcarverResultRowLayerWidgetProxy();
+  const riftcarverRowProxy = RiftcarverResultRowLayerWidgetProxy();
   // Both are pure/self-contained (no I/O), so their proxies are no-ops — created only to satisfy
   // enforce-proxy-child-creation, matching the pattern above.
   ExecutionRowMintedByBadgeLayerWidgetProxy();
@@ -39,5 +41,13 @@ export const ExecutionRowLayerWidgetProxy = (): {
     },
     hasShowEarlierToggle: (): boolean =>
       screen.queryByTestId('CHAT_LIST_SHOW_EARLIER_TOGGLE') !== null,
+    // An expanded ward/riftcarver row fetches its detail; a test whose subject is the row's own
+    // exit-code line stages the detail as unavailable so that fetch has an answer.
+    setupWardDetailNotFound: (): void => {
+      wardRowProxy.setupNotFound();
+    },
+    setupRiftcarverDetailNotFound: (): void => {
+      riftcarverRowProxy.setupNotFound();
+    },
   };
 };

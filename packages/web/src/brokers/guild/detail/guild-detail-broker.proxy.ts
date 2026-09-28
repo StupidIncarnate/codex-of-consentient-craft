@@ -2,28 +2,24 @@
 // USAGE: Create proxy in test, use setup methods to configure endpoint behavior
 
 import type { Guild } from '@dungeonmaster/shared/contracts';
-import { StartEndpointMock } from '@dungeonmaster/testing';
 
-import { fetchGetAdapterProxy } from '../../../adapters/fetch/get/fetch-get-adapter.proxy';
+import { fetchJsonProxy } from '#gateway/browser/fetch/fetch-json/fetch-json.proxy';
+
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
 
 export const guildDetailBrokerProxy = (): {
   setupGuild: (params: { guild: Guild }) => void;
   setupError: () => void;
 } => {
-  fetchGetAdapterProxy();
-
-  const endpoint = StartEndpointMock.listen({
-    method: 'get',
-    url: webConfigStatics.api.routes.guildById,
-  });
+  const jsonFetchProxy = fetchJsonProxy();
+  const address = { method: 'get', url: webConfigStatics.api.routes.guildById } as const;
 
   return {
-    setupGuild: ({ guild }) => {
-      endpoint.resolves({ data: guild });
+    setupGuild: ({ guild }: { guild: Guild }): void => {
+      jsonFetchProxy.setupSuccess({ ...address, body: guild });
     },
-    setupError: () => {
-      endpoint.networkError();
+    setupError: (): void => {
+      jsonFetchProxy.setupConnectionRefused(address);
     },
   };
 };
