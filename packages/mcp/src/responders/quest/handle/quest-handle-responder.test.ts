@@ -1391,18 +1391,18 @@ describe('QuestHandleResponder', () => {
       });
     });
 
-    it('VALID: {userRequest} with a resolvable Claude Code session on disk => forwards the resolved sessionId to the create-quest adapter', async () => {
+    it('VALID: {userRequest} with a hook-stamped caller in meta => forwards the resolved sessionId to the create-quest adapter', async () => {
       const proxy = QuestHandleResponderProxy();
       const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
       const guildSlug = UrlSlugStub({ value: 'my-guild' });
-      proxy.setupSessionResolved({
-        entries: [{ name: 'resolved-session-abc.jsonl', mtimeMs: 1000 }],
-      });
       proxy.setupCreateQuestReturns({ userRequest: 'Build the login flow', questId, guildSlug });
 
       const result = await proxy.callResponder({
         tool: ToolNameStub({ value: 'create-quest' }),
         args: { userRequest: 'Build the login flow' },
+        meta: {
+          'dungeonmaster/caller': { cwd: '/default/cwd', sessionId: 'resolved-session-abc' },
+        },
       });
 
       expect(result).toStrictEqual({

@@ -59,8 +59,9 @@ export const QuestHandleResponder = async ({
 }: {
   tool: ToolName;
   args: Record<string, unknown>;
-  // Claude Code surfaces `claudecode/toolUseId` here on every MCP call. `create-quest` uses it to
-  // identify the calling session deterministically; every other tool ignores it.
+  // The `dungeonmaster-pre-mcp-caller` hook stamps the caller context here on every MCP call.
+  // `create-quest` reads it, via ResolveCallerSessionLayerResponder, to stamp its intake session
+  // id; every other tool ignores it.
   meta?: Record<string, unknown>;
 }): Promise<ToolResponse> => {
   if (tool === 'modify-quest') {
@@ -289,7 +290,7 @@ export const QuestHandleResponder = async ({
     try {
       // The resolved session is stamped on the quest's intake work item, which is what the HTTP
       // server's watcher reactor tails to stream this conversation into the browser chat panel.
-      const sessionId = await ResolveCallerSessionLayerResponder({ meta });
+      const sessionId = ResolveCallerSessionLayerResponder({ meta });
       const { questId, guildSlug } = await orchestratorCreateQuestAdapter({
         userRequest,
         ...(questType !== undefined && { questType }),

@@ -1,144 +1,35 @@
 import { ResolveCallerSessionLayerResponder } from './resolve-caller-session-layer-responder';
 import { ResolveCallerSessionLayerResponderProxy } from './resolve-caller-session-layer-responder.proxy';
 
-// The responder resolves its own projectDir from processCwdAdapter and its homedir from
-// osUserHomedirAdapter, so the staged readdir/readFile answers must be addressed at the sessions
-// directory encoded from exactly that pair. Both are the adapters' STICKY defaults on purpose:
-// `osUserHomedirAdapterProxy.returns` stages a one-shot, and the scan's retry loop calls
-// homedir() once per pass — an overridden value would be consumed on the first pass and every
-// later pass would encode a different directory than the answers are staged at.
-const HOMEDIR = '/home/default';
 const PROJECT_DIR = '/default/cwd';
-
-const MATCHING_TOOL_USE_ID = 'toolu_01K6qfGEd8bFzkPvY8nHt1Ts';
 const CALLER_SESSION = 'bbbbbbbb-2222-4333-9444-555555555555';
-const NEWEST_SESSION = 'dddddddd-4444-4555-9666-777777777777';
-
-const LINE_WITH_MATCH = JSON.stringify({
-  type: 'assistant',
-  message: {
-    role: 'assistant',
-    content: [
-      {
-        type: 'tool_use',
-        id: MATCHING_TOOL_USE_ID,
-        name: 'mcp__dungeonmaster__create-quest',
-        input: {},
-      },
-    ],
-  },
-});
 
 describe('ResolveCallerSessionLayerResponder', () => {
-  describe('hook strategy', () => {
-    it('VALID: {meta carries a hook caller} => returns its session with no scan at all', async () => {
-      // Nothing staged: an unstaged readdir throws, so a fall-through to either scan fails this test.
-      ResolveCallerSessionLayerResponderProxy();
+  it('VALID: {meta carries a hook-stamped caller} => returns its session id', () => {
+    ResolveCallerSessionLayerResponderProxy();
 
-      const result = await ResolveCallerSessionLayerResponder({
-        meta: {
-          'claudecode/toolUseId': MATCHING_TOOL_USE_ID,
-          'dungeonmaster/caller': { cwd: PROJECT_DIR, sessionId: CALLER_SESSION },
-        },
-      });
-
-      expect(result).toBe(CALLER_SESSION);
+    const result = ResolveCallerSessionLayerResponder({
+      meta: { 'dungeonmaster/caller': { cwd: PROJECT_DIR, sessionId: CALLER_SESSION } },
     });
+
+    expect(result).toBe(CALLER_SESSION);
   });
 
-  describe('deterministic strategy', () => {
-    it('VALID: {meta carries a toolUseId matching an older session} => returns that session, not the newest-mtime one', async () => {
-      // The failure this prevents: two Claude sessions open in one repo, and the quest is stamped
-      // with whichever wrote last rather than the one that ran the slash command.
-      const proxy = ResolveCallerSessionLayerResponderProxy();
+  it('EMPTY: {meta: undefined} => returns undefined', () => {
+    ResolveCallerSessionLayerResponderProxy();
 
-      proxy.setupSessions({
-        homedir: HOMEDIR,
-        projectDir: PROJECT_DIR,
-        sessions: [
-          { name: `${CALLER_SESSION}.jsonl`, contents: LINE_WITH_MATCH },
-          { name: `${NEWEST_SESSION}.jsonl`, contents: '' },
-        ],
-        mtimeEntries: [
-          { name: `${CALLER_SESSION}.jsonl`, mtimeMs: 1000 },
-          { name: `${NEWEST_SESSION}.jsonl`, mtimeMs: 9000 },
-        ],
-      });
+    const result = ResolveCallerSessionLayerResponder({ meta: undefined });
 
-      const result = await ResolveCallerSessionLayerResponder({
-        meta: { 'claudecode/toolUseId': MATCHING_TOOL_USE_ID },
-      });
-
-      expect(result).toBe(CALLER_SESSION);
-    });
+    expect(result).toBe(undefined);
   });
 
-  describe('newest-mtime fallback', () => {
-    it('VALID: {no meta} => falls back to the newest-mtime session', async () => {
-      const proxy = ResolveCallerSessionLayerResponderProxy();
+  it('EMPTY: {meta carries no hook-stamped caller} => returns undefined', () => {
+    ResolveCallerSessionLayerResponderProxy();
 
-      proxy.setupSessions({
-        homedir: HOMEDIR,
-        projectDir: PROJECT_DIR,
-        sessions: [
-          { name: `${CALLER_SESSION}.jsonl`, contents: LINE_WITH_MATCH },
-          { name: `${NEWEST_SESSION}.jsonl`, contents: '' },
-        ],
-        mtimeEntries: [
-          { name: `${CALLER_SESSION}.jsonl`, mtimeMs: 1000 },
-          { name: `${NEWEST_SESSION}.jsonl`, mtimeMs: 9000 },
-        ],
-      });
-
-      const result = await ResolveCallerSessionLayerResponder({ meta: undefined });
-
-      expect(result).toBe(NEWEST_SESSION);
+    const result = ResolveCallerSessionLayerResponder({
+      meta: { 'claudecode/toolUseId': 'toolu_01' },
     });
 
-    // Fake timers virtualize the scan's real flush-race retry budget (claudeSessionScanStatics:
-    // 30 x 100ms): every pass still runs for real, exhausting the full budget, but the ~3s of
-    // setTimeout delay between passes costs no wall-clock time.
-    it('VALID: {meta toolUseId matches no session JSONL} => falls back to the newest-mtime session', async () => {
-      jest.useFakeTimers();
-      const proxy = ResolveCallerSessionLayerResponderProxy();
-
-      proxy.setupSessions({
-        homedir: HOMEDIR,
-        projectDir: PROJECT_DIR,
-        sessions: [
-          { name: `${CALLER_SESSION}.jsonl`, contents: '' },
-          { name: `${NEWEST_SESSION}.jsonl`, contents: '' },
-        ],
-        mtimeEntries: [
-          { name: `${CALLER_SESSION}.jsonl`, mtimeMs: 1000 },
-          { name: `${NEWEST_SESSION}.jsonl`, mtimeMs: 9000 },
-        ],
-      });
-
-      const resultPromise = ResolveCallerSessionLayerResponder({
-        meta: { 'claudecode/toolUseId': MATCHING_TOOL_USE_ID },
-      });
-      await jest.runAllTimersAsync();
-      const result = await resultPromise;
-
-      expect(result).toBe(NEWEST_SESSION);
-    });
-
-    it('VALID: {meta toolUseId is not a string} => falls back to the newest-mtime session', async () => {
-      const proxy = ResolveCallerSessionLayerResponderProxy();
-
-      proxy.setupSessions({
-        homedir: HOMEDIR,
-        projectDir: PROJECT_DIR,
-        sessions: [{ name: `${NEWEST_SESSION}.jsonl`, contents: '' }],
-        mtimeEntries: [{ name: `${NEWEST_SESSION}.jsonl`, mtimeMs: 9000 }],
-      });
-
-      const result = await ResolveCallerSessionLayerResponder({
-        meta: { 'claudecode/toolUseId': 42 },
-      });
-
-      expect(result).toBe(NEWEST_SESSION);
-    });
+    expect(result).toBe(undefined);
   });
 });
