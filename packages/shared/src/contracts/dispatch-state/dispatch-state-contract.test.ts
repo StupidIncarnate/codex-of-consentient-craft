@@ -17,7 +17,7 @@ describe('dispatchStateContract', () => {
       });
     });
 
-    it('VALID: {default stub} => parses paused state without heartbeat', () => {
+    it('VALID: {default stub} => parses paused state', () => {
       const state = DispatchStateStub();
 
       expect(state).toStrictEqual({
@@ -26,15 +26,11 @@ describe('dispatchStateContract', () => {
       });
     });
 
-    it('VALID: {mode: node-playing, mcpHeartbeatAt} => parses playing state with heartbeat', () => {
-      const state = DispatchStateStub({
-        mode: 'node-playing',
-        mcpHeartbeatAt: '2024-01-15T09:59:00.000Z',
-      });
+    it('VALID: {mode: node-playing} => parses playing state', () => {
+      const state = DispatchStateStub({ mode: 'node-playing' });
 
       expect(state).toStrictEqual({
         mode: 'node-playing',
-        mcpHeartbeatAt: '2024-01-15T09:59:00.000Z',
         updatedAt: '2024-01-15T10:00:00.000Z',
       });
     });
@@ -76,12 +72,6 @@ describe('dispatchStateContract', () => {
 
     it('INVALID: {updatedAt: "not-a-date"} => throws validation error', () => {
       expect(() => DispatchStateStub({ updatedAt: 'not-a-date' as never })).toThrow(
-        /Invalid ISO datetime/u,
-      );
-    });
-
-    it('INVALID: {mcpHeartbeatAt: "not-a-date"} => throws validation error', () => {
-      expect(() => DispatchStateStub({ mcpHeartbeatAt: 'not-a-date' as never })).toThrow(
         /Invalid ISO datetime/u,
       );
     });

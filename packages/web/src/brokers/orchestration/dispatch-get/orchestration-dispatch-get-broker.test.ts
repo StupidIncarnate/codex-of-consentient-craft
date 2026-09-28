@@ -16,12 +16,9 @@ describe('orchestrationDispatchGetBroker', () => {
       expect(result).toStrictEqual(state);
     });
 
-    it('VALID: {node-playing state with heartbeat} => returns dispatch state from API', async () => {
+    it('VALID: {node-playing state} => returns dispatch state from API', async () => {
       const proxy = orchestrationDispatchGetBrokerProxy();
-      const state = DispatchStateStub({
-        mode: 'node-playing',
-        mcpHeartbeatAt: '2024-01-15T10:05:00.000Z' as never,
-      });
+      const state = DispatchStateStub({ mode: 'node-playing' });
 
       proxy.setupState({ state });
 

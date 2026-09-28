@@ -36,9 +36,6 @@ starting, and expect these:
 - A tool whose handler needs a broker of its own reaches three more files: `packages/mcp/brokers.ts`
   exports the broker, `packages/mcp/testing.ts` exports its `.proxy`, and the owning responder's own
   `.proxy.ts` calls every broker proxy that responder reaches.
-- `packages/server/src/statics/dispatcher-mcp-tools/dispatcher-mcp-tools-statics.ts` — only when
-  `/dumpster-launch` itself calls the tool for orchestration control. Listing it there keeps the
-  dispatcher's own tool-call chatter out of the web chat panel.
 
 **A tool handled inline in `responders/quest/handle/quest-handle-responder.ts` costs cyclomatic
 complexity**, and that function sits AT the ceiling (`complexity: max 50`). A branch with a
@@ -74,34 +71,21 @@ PreToolUse hook runs before every `mcp__dungeonmaster__*` call and stamps the ca
 `session_id` and — for a Task-dispatched sub-agent only — `agent_id` onto the call. For a sub-agent,
 `sessionId` is the PARENT session and `agentId` is the id in its `subagents/agent-<id>.jsonl`
 filename: the same pair the scan below recovers, measured identical against Claude Code 2.1.283.
-All three resolvers (`callerRepoRootResolveBroker`, `ResolveCallerSessionLayerResponder`,
-`ResolveSubagentIdentityLayerResponder`) take this path when it is present and never scan.
+Both resolvers (`callerRepoRootResolveBroker`, `ResolveCallerSessionLayerResponder`) take this
+path when it is present and never scan.
 
 **The scan below is the fallback for a call no hook touched** — a consumer whose settings predate the
 hook, or a client other than Claude Code. It is slow: Claude Code writes a call's own `tool_use` line
 only when the call finishes or is moved to the background, so during the call every pass misses and
 re-reads the whole transcript directory until the retry budget runs out.
 
-When a sub-agent calls a tool that needs to know its own identity (e.g. `get-agent-prompt`
-stamps work-item `sessionId`/`agentId`) and no hook ran:
-
-1. Read `meta?.['claudecode/toolUseId']` from the handler params — `ToolHandler`
-   (`contracts/tool-registration/tool-registration-contract.ts`) carries `meta` alongside
-   `args`.
-2. Pass it to `claudeCodeParentSessionFindByToolUseIdBroker({projectDir, toolUseId})`
-   (in `packages/mcp/src/brokers/claude-code-parent-session/find-by-tool-use-id/`). It
-   scans every `~/.claude/projects/<encoded-cwd>/<sessionId>/subagents/agent-*.jsonl`
-   file for an assistant line whose `tool_use.id` matches. The matching file's basename
-   yields `realAgentId`; the containing session dir yields `parentSessionId`.
-3. The broker retries on miss (`MAX_SCAN_ATTEMPTS × SCAN_RETRY_DELAY_MS` in that file — ~3 s)
-   to absorb the race where Claude Code dispatches the MCP call before flushing the
-   sub-agent's `tool_use` line to disk.
-4. Returns `{parentSessionId, realAgentId}` — deterministic across any number of
-   parallel Claude sessions in the same cwd.
-
-The sibling `agent-<realAgentId>.meta.json` sidecar does exist (Claude Code writes it at
-Task() spawn time with the **parent's** Task() tool-use-id), but its toolUseId field does
-NOT match `_meta.claudecode/toolUseId` and so cannot be used for this resolution.
+Each resolver reads `meta?.['claudecode/toolUseId']` from the handler params — `ToolHandler`
+(`contracts/tool-registration/tool-registration-contract.ts`) carries `meta` alongside `args` —
+and scans this cwd's own `<sessionId>.jsonl` files for a matching `tool_use.id`:
+`callerRepoRootResolveBroker` via `claudeCodeCallerCwdFindByToolUseIdBroker`, and
+`ResolveCallerSessionLayerResponder` via `claudeCodeSessionFindByToolUseIdBroker`. Each broker
+retries on miss (`maxAttempts` in `claudeSessionScanStatics`) to absorb the race where Claude
+Code dispatches the MCP call before flushing the `tool_use` line to disk.
 
 ## `npm run build` kills the running MCP child
 

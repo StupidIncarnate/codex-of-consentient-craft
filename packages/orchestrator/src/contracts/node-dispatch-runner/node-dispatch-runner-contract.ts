@@ -1,7 +1,7 @@
 /**
  * PURPOSE: Type contracts for the Node dispatch runner — deps shape (wake subscription + loop
- * thunk) and controller shape (start/stop/kick). The runner drives the same get-next-step state
- * machine /dumpster-launch polls, but dispatches by spawning headless Claude CLI children.
+ * thunk) and controller shape (start/stop/kick). The runner drives the get-next-step state
+ * machine and dispatches by spawning headless Claude CLI children.
  *
  * USAGE:
  * const runner: NodeDispatchRunnerController = questNodeDispatchRunnerBroker(deps);

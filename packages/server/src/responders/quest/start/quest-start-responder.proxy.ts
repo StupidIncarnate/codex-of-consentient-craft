@@ -1,6 +1,5 @@
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
-import { DispatchPlayResponseStub } from '@dungeonmaster/orchestrator/testing';
-import { GetQuestResultStub } from '@dungeonmaster/shared/contracts';
+import { DispatchStateStub, GetQuestResultStub } from '@dungeonmaster/shared/contracts';
 import type { ProcessIdStub, QuestId, QuestStub } from '@dungeonmaster/shared/contracts';
 import { QuestStartResponder } from './quest-start-responder';
 
@@ -12,7 +11,6 @@ export const QuestStartResponderProxy = (): {
   setupStartQuest: (params: { questId: QuestId; processId: ProcessId }) => void;
   setupStartQuestError: (params: { questId: QuestId; message: string }) => void;
   setupDispatchPlays: () => void;
-  setupDispatchRefused: (params: { reason: string }) => void;
   setupDispatchError: (params: { message: string }) => void;
   getDispatchPlayCalls: () => readonly unknown[];
   callResponder: typeof QuestStartResponder;
@@ -33,15 +31,9 @@ export const QuestStartResponderProxy = (): {
       orchestrator.startQuestThrows({ questId, error: new Error(message) });
     },
 
-    // The Node dispatcher accepts the play — the ordinary case, where nothing else owns the queue.
+    // The Node dispatcher starts — the ordinary case.
     setupDispatchPlays: (): void => {
-      orchestrator.playDispatchReturns({ response: DispatchPlayResponseStub({ allowed: true }) });
-    },
-    // The exclusivity gate refuses: a live /dumpster-launch loop still owns the queue.
-    setupDispatchRefused: ({ reason }: { reason: string }): void => {
-      orchestrator.playDispatchReturns({
-        response: DispatchPlayResponseStub({ allowed: false, reason: reason as never }),
-      });
+      orchestrator.playDispatchReturns({ state: DispatchStateStub({ mode: 'node-playing' }) });
     },
     setupDispatchError: ({ message }: { message: string }): void => {
       orchestrator.playDispatchThrows({ error: new Error(message) });

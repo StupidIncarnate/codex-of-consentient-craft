@@ -19,27 +19,6 @@ describe('OrchestrationDispatchNormalizeBootResponder', () => {
     ]);
   });
 
-  it('VALID: {persisted node-playing with heartbeat} => preserves the heartbeat in the paused write', async () => {
-    const proxy = OrchestrationDispatchNormalizeBootResponderProxy();
-    proxy.setupCurrentState({
-      state: DispatchStateStub({
-        mode: 'node-playing',
-        mcpHeartbeatAt: '2024-01-15T09:00:00.000Z',
-      }),
-    });
-
-    await OrchestrationDispatchNormalizeBootResponder();
-
-    expect(proxy.getWriteCalls()).toStrictEqual([
-      {
-        dispatchState: DispatchStateStub({
-          mode: 'paused',
-          mcpHeartbeatAt: '2024-01-15T09:00:00.000Z',
-        }),
-      },
-    ]);
-  });
-
   it('VALID: {persisted mode: paused} => no write, returns the current state', async () => {
     const proxy = OrchestrationDispatchNormalizeBootResponderProxy();
     proxy.setupCurrentState({ state: DispatchStateStub() });

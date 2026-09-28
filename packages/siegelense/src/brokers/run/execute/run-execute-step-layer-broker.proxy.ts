@@ -29,7 +29,16 @@ export const runExecuteStepLayerBrokerProxy = (): {
     serverLogLengthSequence: readonly number[];
   }) => LaneSession;
   laneWaitForHitsCeiling: (params: { error: Error }) => LaneSession;
-  laneUntilHitsCeiling: (params: { error: Error }) => LaneSession;
+  laneUntilHitsCeiling: (params: {
+    error: Error;
+    candidates?: readonly {
+      index: number;
+      ref: number | null;
+      within: string | null;
+      text: string;
+      rect: string;
+    }[];
+  }) => LaneSession;
   seedBookPresentAt: (params: { packagePath: FilePath }) => void;
   seedLaneAnswers: (params: {
     apiBaseUrl: ContentText;
@@ -105,10 +114,27 @@ export const runExecuteStepLayerBrokerProxy = (): {
     // No `countMatches` staged, unlike `laneWaitForHitsCeiling` above: `until { visible }` never
     // goes through `stepTargetResolveBroker` at all — pre-resolving is the whole reason `waitFor`
     // cannot wait for an element to appear, and `runVerbLayerBroker` routes `until` to
-    // `session.waitForMatch` directly.
-    laneUntilHitsCeiling: ({ error }: { error: Error }): LaneSession =>
+    // `session.waitForMatch` directly. `candidates` (default `[]`, matching `BrowserSessionStub`'s
+    // own default) only matters for a strict-mode-violation `error` — DEF-92's own repro — since
+    // `stepUntilBroker` calls `describeMatches` ONLY on that path, never on a genuine ceiling.
+    laneUntilHitsCeiling: ({
+      error,
+      candidates = [],
+    }: {
+      error: Error;
+      candidates?: readonly {
+        index: number;
+        ref: number | null;
+        within: string | null;
+        text: string;
+        rect: string;
+      }[];
+    }): LaneSession =>
       LaneSessionStub({
-        browser: { waitForMatch: jest.fn().mockRejectedValue(error) },
+        browser: {
+          waitForMatch: jest.fn().mockRejectedValue(error),
+          describeMatches: jest.fn().mockResolvedValue(candidates),
+        },
       }),
   };
 };

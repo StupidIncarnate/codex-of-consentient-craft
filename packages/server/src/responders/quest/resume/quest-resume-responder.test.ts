@@ -63,7 +63,7 @@ describe('QuestResumeResponder', () => {
   // `paused` on every server boot. Without this, a resumed quest sits at `in_progress` with a ready
   // work item and nothing picks it up.
   describe('resume starts the dispatcher', () => {
-    it('VALID: {paused quest} => plays dispatch exactly once, with no force', async () => {
+    it('VALID: {paused quest} => plays dispatch exactly once', async () => {
       const proxy = QuestResumeResponderProxy();
       const questId = QuestIdStub();
       const quest = QuestStub({
@@ -78,35 +78,7 @@ describe('QuestResumeResponder', () => {
 
       await proxy.callResponder({ params: { questId } });
 
-      expect(proxy.getDispatchPlayCalls()).toStrictEqual([{}]);
-    });
-
-    it('VALID: {launch loop owns the queue} => still resumes, reports the gate refusal instead of failing', async () => {
-      const proxy = QuestResumeResponderProxy();
-      const questId = QuestIdStub();
-      const quest = QuestStub({
-        id: questId,
-        status: 'paused' as never,
-        pausedAtStatus: 'in_progress',
-        workItems: [WorkItemStub({ status: 'pending' })],
-      });
-      proxy.setupQuest({ quest });
-      proxy.setupResumeQuest({ questId, resumed: true, restoredStatus: 'in_progress' });
-      proxy.setupDispatchRefused({ reason: 'a /dumpster-launch loop is driving the queue' });
-
-      const result = await proxy.callResponder({ params: { questId } });
-
-      expect(result).toStrictEqual({
-        status: 200,
-        data: {
-          resumed: true,
-          restoredStatus: 'in_progress',
-          dispatch: {
-            started: false,
-            reason: 'a /dumpster-launch loop is driving the queue',
-          },
-        },
-      });
+      expect(proxy.getDispatchPlayCalls()).toStrictEqual([[]]);
     });
 
     it('ERROR: {play throws} => the resume still succeeds and the play failure rides back on the response', async () => {

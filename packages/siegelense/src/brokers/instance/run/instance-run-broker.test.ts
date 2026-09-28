@@ -10,6 +10,7 @@ import { StepStub } from '../../../contracts/step/step.stub';
 import { StoppedAtStub } from '../../../contracts/stopped-at/stopped-at.stub';
 import { StopOnStub } from '../../../contracts/stop-on/stop-on.stub';
 import { DriverUnreachableError } from '../../../errors/driver-unreachable/driver-unreachable-error';
+import { InstanceKilledError } from '../../../errors/instance-killed/instance-killed-error';
 import { InstanceUnusableError } from '../../../errors/instance-unusable/instance-unusable-error';
 
 const INSTANCE_ID = InstanceIdStub({ value: 'inst_7f3a9c21' });
@@ -89,6 +90,25 @@ describe('instanceRunBroker', () => {
       await expect(
         instanceRunBroker({ instanceId: INSTANCE_ID, steps: [StepStub()], stopOn: StopOnStub() }),
       ).rejects.toStrictEqual(new InstanceUnusableError({ instanceId: INSTANCE_ID }));
+
+      // No socket call was ever attempted — the driver proxy was never staged an answer, so a
+      // real attempt would have thrown an unconfigured-mock error rather than the assertion above.
+    });
+  });
+
+  describe('registry already marks this instance killed (DEF-84)', () => {
+    it('ERROR: {registry row state: killed} => throws InstanceKilledError before touching the socket', async () => {
+      const proxy = instanceRunBrokerProxy();
+      const entry = RegistryEntryStub({
+        id: INSTANCE_ID,
+        socketPath: SOCKET_PATH,
+        state: 'killed',
+      });
+      proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
+
+      await expect(
+        instanceRunBroker({ instanceId: INSTANCE_ID, steps: [StepStub()], stopOn: StopOnStub() }),
+      ).rejects.toStrictEqual(new InstanceKilledError({ instanceId: INSTANCE_ID }));
 
       // No socket call was ever attempted — the driver proxy was never staged an answer, so a
       // real attempt would have thrown an unconfigured-mock error rather than the assertion above.

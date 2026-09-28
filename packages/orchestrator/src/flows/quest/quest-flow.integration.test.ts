@@ -1330,7 +1330,7 @@ describe('QuestFlow', () => {
 
       const afterAdvance = await QuestGetResponder({ questId });
       const flowWorkItem = afterAdvance.quest!.workItems.find((wi) => wi.role === 'flowrider');
-      const nextStep = await QuestFlow.getNextStep();
+      const nextStep = await questHelper.scanNextStep();
 
       testbed.cleanup();
 
@@ -1375,7 +1375,7 @@ describe('QuestFlow', () => {
   });
 
   // A STEPPED scope is the router's, and the signal is only a session-terminal marker on ONE work
-  // item of it. This drives the real dispatch scan (QuestFlow.getNextStep -> scanOnceLayerBroker ->
+  // item of it. This drives the real dispatch scan (questGetNextStepBroker -> scanOnceLayerBroker ->
   // questRouteScopeBroker) against a ledger whose work item carries a `step`, which is the shape
   // every quest seeded since the step graph landed has and the shape no integration test covered.
   describe('operations relay — a stepped scope advances through its step graph', () => {
@@ -1433,7 +1433,7 @@ describe('QuestFlow', () => {
       });
 
       const afterSignal = await questHelper.reload({ questId });
-      const nextStep = await QuestFlow.getNextStep();
+      const nextStep = await questHelper.scanNextStep();
       const afterScan = await questHelper.reload({ questId });
       const mintedWorkItem = afterScan.workItems.find((wi) => wi.id !== planWorkItemId);
 

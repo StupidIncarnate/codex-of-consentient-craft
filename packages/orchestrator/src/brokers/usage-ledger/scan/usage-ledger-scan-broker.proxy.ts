@@ -4,7 +4,7 @@ import {
   UsageLedgerStub,
 } from '@dungeonmaster/shared/contracts';
 import { locationsClaudeProjectsRootFindBrokerProxy } from '@dungeonmaster/shared/testing';
-import { registerModuleMock } from '@dungeonmaster/testing/register-mock';
+import { registerModuleMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import { fsWalkFilesAdapterProxy } from '../../../adapters/fs/walk-files/fs-walk-files-adapter.proxy';
 import { foldBatchLayerBrokerProxy } from './fold-batch-layer-broker.proxy';
@@ -30,12 +30,18 @@ export const usageLedgerScanBrokerProxy = (): {
     files: readonly { name: string; mtimeMs: number; size: number; contents: string }[];
   }) => void;
   getWrittenLedger: () => unknown;
+  getStderrLines: () => readonly unknown[];
+  setupScanEndsAt: (params: { nowMs: number }) => void;
+  getWrittenNowMs: () => unknown;
 } => {
   const rootProxy = locationsClaudeProjectsRootFindBrokerProxy();
   const walkProxy = fsWalkFilesAdapterProxy();
   const foldProxy = foldBatchLayerBrokerProxy();
   usageLedgerReadBrokerProxy();
   usageLedgerWriteBrokerProxy();
+
+  const stderrSpy = registerSpyOn({ object: process.stderr, method: 'write' });
+  stderrSpy.calledWith([]).returns(true);
 
   const readMock = usageLedgerReadBroker as jest.MockedFunction<typeof usageLedgerReadBroker>;
   const writeMock = usageLedgerWriteBroker as jest.MockedFunction<typeof usageLedgerWriteBroker>;
@@ -84,5 +90,13 @@ export const usageLedgerScanBrokerProxy = (): {
     },
 
     getWrittenLedger: (): unknown => writeMock.mock.calls.at(-1)?.[0]?.ledger,
+
+    getStderrLines: (): readonly unknown[] => stderrSpy.callsMatching([]).map((call) => call[0]),
+
+    setupScanEndsAt: ({ nowMs }: { nowMs: number }): void => {
+      registerSpyOn({ object: Date, method: 'now' }).calledWith([]).returns(nowMs);
+    },
+
+    getWrittenNowMs: (): unknown => writeMock.mock.calls.at(-1)?.[0]?.nowMs,
   };
 };

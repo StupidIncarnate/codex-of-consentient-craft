@@ -68,10 +68,11 @@ export const questMonitorJsonlWatcherBrokerProxy = (): {
   // Mirrors the broker's own SUBAGENT_DIR_POLL_INTERVAL_MS constant (1000ms) — not exported,
   // so this address is duplicated here rather than imported.
   const intervalProxy = timerSetIntervalAdapterProxy({ intervalMs: 1000 });
-  // The single file most recently staged via setupSubagentDirFiles — every test that later
-  // calls setupFirstLineRead staged exactly one file immediately before it, so this is the
-  // real fileName the broker's prompt-pairing read targets.
+  // The single file (and its dir) most recently staged via setupSubagentDirFiles — every
+  // test that later calls setupFirstLineRead staged exactly one file immediately before it,
+  // so this is the real fileName + subagentsDir the broker's prompt-pairing read targets.
   const lastStagedFileNamesRef: { value: readonly FileName[] } = { value: [] };
+  const lastStagedSubagentsDirRef: { value: AbsoluteFilePath } = { value: DEFAULT_SUBAGENTS_DIR };
 
   return {
     setupSubagentDirEmpty: (): void => {
@@ -97,18 +98,21 @@ export const questMonitorJsonlWatcherBrokerProxy = (): {
       subagentsDir?: AbsoluteFilePath;
     }): void => {
       lastStagedFileNamesRef.value = files;
+      lastStagedSubagentsDirRef.value = subagentsDir ?? DEFAULT_SUBAGENTS_DIR;
       scanLayerProxy.setupSubagentDirFiles({
         subagentsDir: subagentsDir ?? DEFAULT_SUBAGENTS_DIR,
         files,
       });
     },
-    // Queues the content the scan reads as a non-active sub-agent file's FIRST line. Claude
-    // CLI writes the spawning Task's `input.prompt` verbatim there, so this is what the
-    // prompt-pairing path matches against the processor's outstanding Tasks.
+    // Queues the content the scan reads as a not-yet-paired sub-agent file's FIRST line.
+    // Claude CLI writes the spawning Task's `input.prompt` verbatim there, so this is what
+    // the prompt-pairing path matches against the processor's outstanding Tasks. Targets
+    // the dir most recently staged via setupSubagentDirFiles, so a composing proxy driving
+    // a non-default projectDir/parentSessionId still addresses the real computed path.
     setupFirstLineRead: ({ content }: { content: string }): void => {
       const [fileName] = lastStagedFileNamesRef.value;
       scanLayerProxy.setupFirstLineRead({
-        subagentsDir: DEFAULT_SUBAGENTS_DIR,
+        subagentsDir: lastStagedSubagentsDirRef.value,
         fileName: fileName ?? FileNameStub({ value: 'agent-unset.jsonl' }),
         content,
       });

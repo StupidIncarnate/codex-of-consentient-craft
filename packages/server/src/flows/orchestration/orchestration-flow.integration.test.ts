@@ -26,7 +26,7 @@ describe('OrchestrationFlow', () => {
   });
 
   describe('POST /api/orchestration/dispatch/play', () => {
-    it('VALID: {no launch loop active} => returns 200 allowed and persists node-playing', async () => {
+    it('VALID: {} => returns 200 and persists node-playing', async () => {
       const restore = harness.setupTestHome({ baseName: 'orchestration-flow-play' });
       jest.useFakeTimers().setSystemTime(new Date('2024-01-15T10:00:00.000Z'));
       const app = OrchestrationFlow();
@@ -41,7 +41,6 @@ describe('OrchestrationFlow', () => {
 
       expect(response.status).toBe(200);
       expect(harness.toPlain(body)).toStrictEqual({
-        allowed: true,
         state: {
           mode: 'node-playing',
           updatedAt: '2024-01-15T10:00:00.000Z',

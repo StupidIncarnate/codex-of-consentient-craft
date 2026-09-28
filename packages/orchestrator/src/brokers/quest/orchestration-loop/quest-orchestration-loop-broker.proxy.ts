@@ -62,7 +62,7 @@ export const questOrchestrationLoopBrokerProxy = (): {
   // Chat layer is the only remaining role-specific dispatch in the loop —
   // chaoswhisperer / bughunt still flow through the legacy spawn surface.
   // Every execution role (codeweaver, ward, flowrider, siegemaster, spiritmender)
-  // is dispatched by /dumpster-launch via the MCP `get-next-step` tool.
+  // is dispatched by the Node dispatch loop.
   const chatLayerProxy = runChatLayerBrokerProxy();
 
   registerSpyOn({ object: Date.prototype, method: 'toISOString' })

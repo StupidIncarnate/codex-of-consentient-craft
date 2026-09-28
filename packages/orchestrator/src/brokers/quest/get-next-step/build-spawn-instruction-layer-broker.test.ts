@@ -1,5 +1,4 @@
 import {
-  AgentIdStub,
   OperationItemIdStub,
   OperationItemStub,
   QuestIdStub,
@@ -77,38 +76,6 @@ describe('buildSpawnInstructionLayerBroker', () => {
         workItemId,
         model: 'opus',
         taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "flowrider",\n  workItemId: "${workItemId}",\n  questId: "${questId}"\n}) and follow its instructions exactly.\n\nWhen the work is done, RECORD it through mcp__dungeonmaster__quest-work and signal, in that order.\n\nMark every unit you were assigned — a signal from a session that left one unmarked is refused, naming it:\nmcp__dungeonmaster__quest-work({\n  questId: "${questId}",\n  workItemId: "${workItemId}",\n  payload: { kind: "observations", observations: [{ unitId: "<unit id>", mark: "met" | "cant-meet" | "unmet", evidence: "<what you saw>" }] }\n})\n\nThen name the outcome of this step as a whole — "done", "unmet", "empty" or "wall". A unit you could not settle is "unmet", which mints a successor scoped to exactly those units; "wall" is an environment wall no session of your role can pass, and halts the quest:\nmcp__dungeonmaster__quest-work({\n  questId: "${questId}",\n  workItemId: "${workItemId}",\n  payload: { kind: "outcome", word: "done", reason: "<why this word>" }\n})\n\nThen, as the last action of your turn:\nmcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${workItemId}",\n  signal: "complete",\n  operationItemId: "<your operation item id>"\n})`,
-      });
-    });
-
-    it('VALID: {workItem with sessionId AND agentId} => fresh spawn, because that sessionId is the MCP parent loop session', () => {
-      buildSpawnInstructionLayerBrokerProxy();
-      const questId = QuestIdStub({ value: 'quest-mcp-dispatched' });
-      const workItemId = QuestWorkItemIdStub({
-        value: 'ffffffff-1111-4222-9333-444444444444',
-      });
-      // get-agent-prompt stamps sessionId + agentId TOGETHER on the MCP/Task path, where sessionId
-      // is the user's /dumpster-launch loop session. Resuming it would hand a headless child the
-      // user's own interactive session.
-      const workItem = WorkItemStub({
-        id: workItemId,
-        role: 'siegemaster',
-        status: 'pending',
-        resume: true,
-        sessionId: SessionIdStub({ value: '9c4d8f1c-3e38-48c9-bdec-22b61883b473' }),
-        agentId: AgentIdStub({ value: 'a0a7f82d9619a1800' }),
-      });
-
-      const result = buildSpawnInstructionLayerBroker({
-        quest: QuestStub({ id: questId }),
-        workItem,
-      });
-
-      expect(result).toStrictEqual({
-        questId,
-        role: 'siegemaster',
-        workItemId,
-        model: 'opus',
-        taskPrompt: `Call mcp__dungeonmaster__get-agent-prompt({\n  agent: "siegemaster",\n  workItemId: "${workItemId}",\n  questId: "${questId}"\n}) and follow its instructions exactly.\n\nWhen the work is done, RECORD it through mcp__dungeonmaster__quest-work and signal, in that order.\n\nMark every unit you were assigned — a signal from a session that left one unmarked is refused, naming it:\nmcp__dungeonmaster__quest-work({\n  questId: "${questId}",\n  workItemId: "${workItemId}",\n  payload: { kind: "observations", observations: [{ unitId: "<unit id>", mark: "met" | "cant-meet" | "unmet", evidence: "<what you saw>" }] }\n})\n\nThen name the outcome of this step as a whole — "done", "unmet", "empty" or "wall". A unit you could not settle is "unmet", which mints a successor scoped to exactly those units; "wall" is an environment wall no session of your role can pass, and halts the quest:\nmcp__dungeonmaster__quest-work({\n  questId: "${questId}",\n  workItemId: "${workItemId}",\n  payload: { kind: "outcome", word: "done", reason: "<why this word>" }\n})\n\nThen, as the last action of your turn:\nmcp__dungeonmaster__signal-back({\n  questId: "${questId}",\n  workItemId: "${workItemId}",\n  signal: "complete",\n  operationItemId: "<your operation item id>"\n})`,
       });
     });
   });

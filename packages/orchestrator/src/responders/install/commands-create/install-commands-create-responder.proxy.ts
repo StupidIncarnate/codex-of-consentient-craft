@@ -17,7 +17,7 @@ export const InstallCommandsCreateResponderProxy = (): {
   const writeProxy = fsWriteFileAdapterProxy();
 
   // Every caller exercises targetProjectRoot: '/project', so the exact join tuples below are the
-  // only ones this responder ever composes and the three command files always land here.
+  // only ones this responder ever composes and the two command files always land here.
   const targetProjectRoot = '/project';
   const commandsDir = FilePathStub({ value: `${targetProjectRoot}/.claude/commands` });
   joinHandle
@@ -31,22 +31,15 @@ export const InstallCommandsCreateResponderProxy = (): {
   const huntPath = FilePathStub({
     value: `${commandsDir}/${slashCommandsStatics.dumpsterHunt.fileName}`,
   });
-  const launchPath = FilePathStub({
-    value: `${commandsDir}/${slashCommandsStatics.dumpsterLaunch.fileName}`,
-  });
   joinHandle
     .calledWith([commandsDir, slashCommandsStatics.dumpsterCreate.fileName])
     .returns(createPath);
   joinHandle
     .calledWith([commandsDir, slashCommandsStatics.dumpsterHunt.fileName])
     .returns(huntPath);
-  joinHandle
-    .calledWith([commandsDir, slashCommandsStatics.dumpsterLaunch.fileName])
-    .returns(launchPath);
 
   writeProxy.succeeds({ filePath: createPath });
   writeProxy.succeeds({ filePath: huntPath });
-  writeProxy.succeeds({ filePath: launchPath });
 
   return {
     callResponder: InstallCommandsCreateResponder,

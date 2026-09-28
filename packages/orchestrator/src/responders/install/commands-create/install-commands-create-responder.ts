@@ -1,8 +1,8 @@
 /**
- * PURPOSE: Writes the `/dumpster-create`, `/dumpster-hunt`, and `/dumpster-launch` slash command
- * markdown files into `<targetProjectRoot>/.claude/commands/`. Creates the directory if missing;
- * overwrites existing files (idempotent). Drives the user-facing entry points for the Dumpster
- * orchestration loop (feature spec intake, bug-hunt intake, and the dispatch loop).
+ * PURPOSE: Writes the `/dumpster-create` and `/dumpster-hunt` slash command markdown files into
+ * `<targetProjectRoot>/.claude/commands/`. Creates the directory if missing; overwrites existing
+ * files (idempotent). Drives the user-facing intake entry points (feature spec intake and bug-hunt
+ * intake); dispatch runs from the web UI's /queue page.
  *
  * USAGE:
  * const result = await InstallCommandsCreateResponder({ context });
@@ -43,9 +43,6 @@ export const InstallCommandsCreateResponder = async ({
   const huntPath = filePathContract.parse(
     join(commandsDir, slashCommandsStatics.dumpsterHunt.fileName),
   );
-  const launchPath = filePathContract.parse(
-    join(commandsDir, slashCommandsStatics.dumpsterLaunch.fileName),
-  );
 
   await fsWriteFileAdapter({
     filePath: createPath,
@@ -55,17 +52,13 @@ export const InstallCommandsCreateResponder = async ({
     filePath: huntPath,
     contents: fileContentsContract.parse(slashCommandsStatics.dumpsterHunt.body),
   });
-  await fsWriteFileAdapter({
-    filePath: launchPath,
-    contents: fileContentsContract.parse(slashCommandsStatics.dumpsterLaunch.body),
-  });
 
   return {
     packageName: packageNameContract.parse(PACKAGE_NAME),
     success: true,
     action: 'created',
     message: installMessageContract.parse(
-      'Created .claude/commands/dumpster-create.md, .claude/commands/dumpster-hunt.md, and .claude/commands/dumpster-launch.md',
+      'Created .claude/commands/dumpster-create.md and .claude/commands/dumpster-hunt.md',
     ),
   };
 };

@@ -7,8 +7,8 @@
  * //   throws on failure
  *
  * The endpoint starts the Node dispatcher as part of the resume, so `dispatch.started` says
- * whether the queue is actually moving. It is `false` with a `reason` when the exclusivity gate
- * refused — a live `/dumpster-launch` loop still owns the queue.
+ * whether the queue is actually moving. It is `false` with a `reason` when the play call itself
+ * threw, or when the quest has no dispatchable work.
  */
 
 import type { QuestId } from '@dungeonmaster/shared/contracts';

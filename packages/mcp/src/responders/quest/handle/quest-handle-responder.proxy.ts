@@ -28,7 +28,7 @@ import type {
   QuestListItemStub,
   UrlSlugStub,
 } from '@dungeonmaster/shared/contracts';
-import { NextStepStub, QuestGetServerConfigResultStub } from '@dungeonmaster/orchestrator/testing';
+import { QuestGetServerConfigResultStub } from '@dungeonmaster/orchestrator/testing';
 import { QuestHandleResponder } from './quest-handle-responder';
 
 type GetQuestResult = ReturnType<typeof GetQuestResultStub>;
@@ -38,7 +38,6 @@ type GetPlanningNotesResult = Awaited<ReturnType<typeof StartOrchestrator.getPla
 type GetBlightChecklistResult = Awaited<ReturnType<typeof StartOrchestrator.getBlightChecklist>>;
 type CreateWorktreeResult = Awaited<ReturnType<typeof StartOrchestrator.createWorktree>>;
 type GetQuestSummaryResult = Awaited<ReturnType<typeof StartOrchestrator.getQuestSummary>>;
-type NextStep = ReturnType<typeof NextStepStub>;
 type QuestGetServerConfigResult = ReturnType<typeof QuestGetServerConfigResultStub>;
 type QuestId = ReturnType<typeof QuestIdStub>;
 type UrlSlug = ReturnType<typeof UrlSlugStub>;
@@ -87,34 +86,19 @@ export const QuestHandleResponderProxy = (): {
     guildSlug: UrlSlug;
   }) => void;
   setupCreateQuestThrows: (params: { userRequest: string; error: Error }) => void;
-  // Stages the Claude Code session-resolve broker's "found" path (real fs.readdir/fs.stat
-  // adapters underneath) against the same homedir/projectDir the responder's unstaged
-  // processCwdAdapter/osUserHomedirAdapter defaults resolve to, so a test can prove the
-  // create-quest tool's `resolved !== undefined` branch threads sessionId through.
-  setupSessionResolved: (params: { entries: readonly { name: string; mtimeMs: number }[] }) => void;
   getLastCreateQuestInput: () => unknown;
-  setupGetNextStepReturns: (params: { step: NextStep }) => void;
-  setupGetNextStepThrows: (params: { error: Error }) => void;
   setupGetServerConfigReturns: (params: { result: QuestGetServerConfigResult }) => void;
   setupGetServerConfigThrows: (params: { error: Error }) => void;
   setupCreateWorktreeReturns: (params: { name: string; result: CreateWorktreeResult }) => void;
   setupCreateWorktreeThrows: (params: { name: string; error: Error }) => void;
   getLastCreateWorktreeInput: (params: { name: string }) => unknown;
-  buildIdleNextStep: () => NextStep;
   buildServerConfig: () => QuestGetServerConfigResult;
   getLastModifyInput: (params: { questId: string }) => unknown;
   getLastGetPlanningNotesInput: (params: { questId: string }) => unknown;
 } => {
-  // create-quest resolves the caller's sessionId through this layer; initialize its proxy so the
-  // mocks are registered for every test.
-  const callerSessionProxy = ResolveCallerSessionLayerResponderProxy();
-  // Default: sessions dir is missing so BOTH strategies return undefined (session unstamped).
-  // Nothing in this proxy stages processCwdAdapter or the homedir adapter, so the real calls land
-  // on their unstaged defaults ('/default/cwd', '/home/default') — this address must match those.
-  callerSessionProxy.setupSessionsMissing({
-    homedir: '/home/default',
-    projectDir: '/default/cwd',
-  });
+  // Composed for enforce-proxy-child-creation against the responder's own imports; the session
+  // resolver reads `meta` directly and needs no mocks.
+  ResolveCallerSessionLayerResponderProxy();
 
   const getQuestProxy = GetQuestLayerResponderProxy();
   const orchestrator = StartOrchestratorProxy();
@@ -288,32 +272,9 @@ export const QuestHandleResponderProxy = (): {
       orchestrator.createQuestForMcpThrows({ userRequest, error });
     },
 
-    setupSessionResolved: ({
-      entries,
-    }: {
-      entries: readonly { name: string; mtimeMs: number }[];
-    }): void => {
-      callerSessionProxy.setupSessions({
-        homedir: '/home/default',
-        projectDir: '/default/cwd',
-        // create-quest tests exercise the newest-mtime fallback: they call the tool without
-        // `meta`, so the deterministic toolUseId scan is skipped entirely.
-        sessions: [],
-        mtimeEntries: entries,
-      });
-    },
-
     getLastCreateQuestInput: (): unknown => {
       const calls = orchestrator.createQuestForMcpGetCalls() as CreateQuestForMcpParams[];
       return calls.at(-1);
-    },
-
-    setupGetNextStepReturns: ({ step }: { step: NextStep }): void => {
-      orchestrator.getNextStepReturns({ step });
-    },
-
-    setupGetNextStepThrows: ({ error }: { error: Error }): void => {
-      orchestrator.getNextStepThrows({ error });
     },
 
     setupGetServerConfigReturns: ({ result }: { result: QuestGetServerConfigResult }): void => {
@@ -340,8 +301,6 @@ export const QuestHandleResponderProxy = (): {
 
     getLastCreateWorktreeInput: ({ name }: { name: string }): unknown =>
       createWorktreeProxy.getLastCalledInputFor({ name }),
-
-    buildIdleNextStep: (): NextStep => NextStepStub({ type: 'idle' }),
 
     buildServerConfig: (): QuestGetServerConfigResult => QuestGetServerConfigResultStub(),
 

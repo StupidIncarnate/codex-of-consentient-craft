@@ -1,5 +1,4 @@
 import {
-  AgentIdStub,
   GuildListItemStub,
   QuestIdStub,
   QuestSessionStub,
@@ -24,13 +23,14 @@ describe('ReconcileWatchersLayerResponder', () => {
     expect(result).toStrictEqual({ started: 0, stopped: 0 });
   });
 
-  it('VALID: {active quest with a node-worker item (sessionId, no agentId) + a dispatcher item (sessionId + agentId)} => starts the worker session WITH its workerWorkItemId and the dispatcher session WITHOUT', async () => {
+  it('VALID: {active quest with two node-worker items, each its own sessionId} => starts each session WITH its own workerWorkItemId and the quest workerQuestId', async () => {
     const proxy = ReconcileWatchersLayerResponderProxy();
 
     const questId = QuestIdStub({ value: 'my-quest' });
-    const workerSessionId = '4c78841e-022a-87d0-8928-189580cb01c5';
-    const dispatcherSessionId = '00118165-fbf1-11d4-8940-5ee9492debae';
-    const workerWorkItemId = '38c6cbd2-8bf1-6507-8d07-0980dd1fb595';
+    const firstSessionId = '33333333-3333-3333-3333-333333333333';
+    const secondSessionId = '44444444-4444-4444-4444-444444444444';
+    const firstWorkItemId = '11111111-1111-4111-8111-111111111111';
+    const secondWorkItemId = '22222222-2222-4222-8222-222222222222';
 
     const guild = GuildListItemStub();
     proxy.guildsProxy.returns({ guilds: [guild] });
@@ -41,24 +41,23 @@ describe('ReconcileWatchersLayerResponder', () => {
           id: questId,
           workItems: [
             WorkItemStub({
-              id: QuestWorkItemIdStub({ value: workerWorkItemId }),
+              id: QuestWorkItemIdStub({ value: firstWorkItemId }),
               role: 'codeweaver',
               status: 'in_progress',
-              sessionId: SessionIdStub({ value: workerSessionId }),
+              sessionId: SessionIdStub({ value: firstSessionId }),
             }),
             WorkItemStub({
-              id: QuestWorkItemIdStub({ value: '1c27ba90-c110-14f0-94be-250818fd3443' }),
+              id: QuestWorkItemIdStub({ value: secondWorkItemId }),
               role: 'codeweaver',
               status: 'in_progress',
-              sessionId: SessionIdStub({ value: dispatcherSessionId }),
-              agentId: AgentIdStub({ value: 'a750c8bc' }),
+              sessionId: SessionIdStub({ value: secondSessionId }),
             }),
           ],
         }),
       ],
     });
-    proxy.startWatcherProxy.resolves({ parentSessionId: workerSessionId });
-    proxy.startWatcherProxy.resolves({ parentSessionId: dispatcherSessionId });
+    proxy.startWatcherProxy.resolves({ parentSessionId: firstSessionId });
+    proxy.startWatcherProxy.resolves({ parentSessionId: secondSessionId });
 
     const result = await ReconcileWatchersLayerResponder({
       watchers: new Map(),
@@ -68,19 +67,26 @@ describe('ReconcileWatchersLayerResponder', () => {
     expect(result).toStrictEqual({ started: 2, stopped: 0 });
     expect(
       proxy.startWatcherProxy.startedWithWorkerWorkItemId({
-        parentSessionId: workerSessionId,
-        workerWorkItemId,
+        parentSessionId: firstSessionId,
+        workerWorkItemId: firstWorkItemId,
       }),
     ).toBe(true);
     expect(
       proxy.startWatcherProxy.startedWithWorkerQuestId({
-        parentSessionId: workerSessionId,
+        parentSessionId: firstSessionId,
         workerQuestId: String(questId),
       }),
     ).toBe(true);
     expect(
-      proxy.startWatcherProxy.startedWithoutWorkerWorkItemId({
-        parentSessionId: dispatcherSessionId,
+      proxy.startWatcherProxy.startedWithWorkerWorkItemId({
+        parentSessionId: secondSessionId,
+        workerWorkItemId: secondWorkItemId,
+      }),
+    ).toBe(true);
+    expect(
+      proxy.startWatcherProxy.startedWithWorkerQuestId({
+        parentSessionId: secondSessionId,
+        workerQuestId: String(questId),
       }),
     ).toBe(true);
   });

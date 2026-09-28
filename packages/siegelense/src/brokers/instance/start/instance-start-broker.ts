@@ -100,6 +100,7 @@ import { CapacityRefusedError } from '../../../errors/capacity-refused/capacity-
 import { bootLockReleaseBroker } from '../../boot-lock/release/boot-lock-release-broker';
 import { isReservedRegistryEntryGuard } from '../../../guards/is-reserved-registry-entry/is-reserved-registry-entry-guard';
 import { isStaleRegistryEntryGuard } from '../../../guards/is-stale-registry-entry/is-stale-registry-entry-guard';
+import { isStaleReservationRegistryEntryGuard } from '../../../guards/is-stale-reservation-registry-entry/is-stale-reservation-registry-entry-guard';
 import { instanceKillBroker } from '../kill/instance-kill-broker';
 import { laneReadyWaitBroker } from '../../lane/ready-wait/lane-ready-wait-broker';
 import { locationsInstanceEvidencePathFindBroker } from '../../locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker';
@@ -148,10 +149,21 @@ export const instanceStartBroker = async ({
   // machine whose fleet was empty, against three killed rows that never booted. Both other
   // readers of this guard (`cleanupRunBroker`, `instanceStateResolveBroker`) filter the same way
   // first, which is the shape the guard's own docstring assumes.
+  //
+  // `isStaleReservationRegistryEntryGuard` excludes a SECOND kind of never-comes-down count: a
+  // reservation abandoned before `boot.lock` or the driver's own first `ping` ever fired has no
+  // heartbeat to go cold, so nothing else here ever notices it, and it would count against
+  // `aheadOfMe` forever until `cleanup` next ran. `nowMsForStaleness` is read ONCE, here, and reused
+  // below for the opportunistic reap's own staleness check too — the two checks run close enough in
+  // time that a second `Date.now()` call would buy nothing but an extra call for a composing test's
+  // mock queue to account for.
+  const nowMsForStaleness = epochMsContract.parse(Date.now());
   const aheadOfMe = readingCountContract.parse(
     registryBeforeReserve.instances.filter(
       (candidate) =>
-        candidate.state === 'alive' && isReservedRegistryEntryGuard({ entry: candidate }),
+        candidate.state === 'alive' &&
+        isReservedRegistryEntryGuard({ entry: candidate }) &&
+        !isStaleReservationRegistryEntryGuard({ entry: candidate, nowMs: nowMsForStaleness }),
     ).length,
   );
 
@@ -162,7 +174,6 @@ export const instanceStartBroker = async ({
   // silent, and its orphan-reap branch signals the recorded pgids and releases the row. Never
   // treated as pruning: nothing here removes evidence, only the throwaway home and the tombstoned
   // registry row a dead process left behind.
-  const nowMsForStaleness = epochMsContract.parse(Date.now());
   const staleEntries = registryBeforeReserve.instances.filter(
     (candidate) =>
       candidate.state === 'alive' &&

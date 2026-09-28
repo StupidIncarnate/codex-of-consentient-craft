@@ -487,6 +487,83 @@ describe('statusReadBroker', () => {
       ]);
     });
 
+    it('VALID: {since filter 1h, a reservation reservedAtMs 2h ago} => the reservation still shows, bypassing the since window', async () => {
+      const proxy = statusReadBrokerProxy();
+      const nowMs = 1_700_001_000_000;
+      const idReservation = InstanceIdStub({ value: 'inst_a620d5f3cc1e4431ac7b1b2613d82292' });
+      const entryReservation = RegistryEntryStub({
+        id: idReservation,
+        branch: null,
+        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        state: 'alive',
+        bootedAtMs: null,
+        lastBeatMs: null,
+        // 2h old — outside the 1h --since window AND past
+        // instanceLifecycleStatics.reservation.staleAfterMs (300_000ms/5m), so this resolves as
+        // 'dead' via instanceStateResolveBroker — the exact shape a reservation abandoned before
+        // boot.lock or the driver's own ping ever fired takes.
+        reservedAtMs: EpochMsStub({ value: nowMs - 7_200_000 }),
+      });
+      const registry = RegistryStub({ instances: [entryReservation] });
+
+      proxy.setupNow({ nowMs });
+      proxy.setupRegistryResolution({ registry });
+      proxy.setupInstanceStateResolution({ registry });
+
+      proxy.setupMachineReading({
+        freeMemBytes: 980 * 1_048_576,
+        totalMemBytes: 16_000 * 1_048_576,
+        coreCount: 8,
+        loadAvg: [7.9, 6.2, 4.1],
+        diskBavail: 512_000,
+        diskBsize: 4096,
+        vmstatContent: 'nr_free_pages 100\noom_kill 2\n',
+      });
+
+      const evidencePath = FilePathStub({
+        value: `${ROOT_PATH_VALUE}/unowned/instances/${idReservation}`,
+      });
+      proxy.setupEvidenceDir({
+        homeDir: '/home/user',
+        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
+        rootPath: FilePathStub({ value: ROOT_PATH_VALUE }),
+        evidencePath,
+      });
+      proxy.setupHeartbeatMissing({
+        homeDir: '/home/user',
+        homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
+        rootPath: FilePathStub({ value: ROOT_PATH_VALUE }),
+        evidencePath,
+      });
+      proxy.setupRunsDirEntries({ evidencePath, entries: [] });
+      proxy.setupShutdownReasonMissing({ evidencePath });
+      proxy.setupProfileSolo({
+        profile: SpecProfileStub({ samples: [], fromRuns: 0, measuredAt: null, bootMs: null }),
+      });
+      proxy.setupProcListing({ pids: [] });
+
+      const result = await statusReadBroker({ instanceId: null, since: '1h' });
+
+      expect(result.instances).toStrictEqual([
+        {
+          id: idReservation,
+          state: 'dead',
+          specName: 'dungeonmaster-stack',
+          uptime: null,
+          lastBeat: null,
+          runs: 0,
+          rssMB: null,
+          rssAtLastBeat: null,
+          lastStep: null,
+          orphans: [],
+          evidence: null,
+          likelyCause: 'memory unavailable at last beat; kernel OOM kills since boot: 2',
+          branch: null,
+          evidenceComplete: true,
+        },
+      ]);
+    });
+
     it('VALID: {since filter beginning retains instance active 7h ago} => older instances are not filtered out', async () => {
       const proxy = statusReadBrokerProxy();
       const nowMs = 1_700_001_000_000;

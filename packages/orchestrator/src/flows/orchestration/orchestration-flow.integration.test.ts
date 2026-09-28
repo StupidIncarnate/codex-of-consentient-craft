@@ -2,9 +2,7 @@ import { OrchestrationFlow } from './orchestration-flow';
 
 // The deep role-to-role handoff integration suite is sidelined under tmp/step17-sideline/
 // because Step 16 retired pathseeker dispatch from the orchestration loop. The legacy spawn
-// pipeline that suite drove is replaced by the `/dumpster-launch` model: `get-next-step`
-// returns pathseeker work items directly and the user's interactive Claude session Task()s
-// them in-process. The sidelined suite can be restored or its scenarios re-authored against
+// pipeline that suite drove is replaced by the Node dispatch loop. The sidelined suite can be restored or its scenarios re-authored against
 // the dispatch-loop model once the legacy spawn machinery is fully retired.
 
 describe('OrchestrationFlow', () => {

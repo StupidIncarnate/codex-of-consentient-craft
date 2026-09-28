@@ -1,7 +1,6 @@
 /**
- * PURPOSE: The Node-run orchestration loop — drives the SAME get-next-step state machine that
- * /dumpster-launch polls, but dispatches by spawning headless Claude CLI children instead of
- * Task() sub-agents. One recursion per dispatch decision: spawn-agents → spawn the batch and
+ * PURPOSE: The Node-run orchestration loop — drives the get-next-step state machine and dispatches
+ * by spawning headless Claude CLI children. One recursion per dispatch decision: spawn-agents → spawn the batch and
  * await exits; run-step → run that deterministic step synchronously; idle → return control to the
  * runner (which re-kicks on wake events — no sleep-polling). isPlaying() is read TWICE per
  * iteration — before the scan and again after it, because the scan long-polls and can return work

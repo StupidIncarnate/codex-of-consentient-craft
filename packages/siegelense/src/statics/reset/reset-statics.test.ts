@@ -8,6 +8,9 @@ describe('resetStatics', () => {
         state: ['server memory', 'open websockets'],
         instance: ['server memory', 'open websockets'],
       },
+      storageSkipped: {
+        noOrigin: 'browser storage (page has no origin yet)',
+      },
     });
   });
 

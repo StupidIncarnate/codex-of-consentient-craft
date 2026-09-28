@@ -4,44 +4,16 @@ import { orchestrationDispatchPlayBroker } from './orchestration-dispatch-play-b
 import { orchestrationDispatchPlayBrokerProxy } from './orchestration-dispatch-play-broker.proxy';
 
 describe('orchestrationDispatchPlayBroker', () => {
-  describe('allowed play', () => {
-    it('VALID: {} => returns allowed response with state', async () => {
+  describe('successful play', () => {
+    it('VALID: {} => returns playing dispatch state from API', async () => {
       const proxy = orchestrationDispatchPlayBrokerProxy();
       const state = DispatchStateStub({ mode: 'node-playing' });
 
-      proxy.setupAllowed({ state });
+      proxy.setupState({ state });
 
       const result = await orchestrationDispatchPlayBroker();
 
-      expect(result).toStrictEqual({ allowed: true, state });
-    });
-
-    it('VALID: {force: true} => returns allowed response with state', async () => {
-      const proxy = orchestrationDispatchPlayBrokerProxy();
-      const state = DispatchStateStub({ mode: 'node-playing' });
-
-      proxy.setupAllowed({ state });
-
-      const result = await orchestrationDispatchPlayBroker({ force: true });
-
-      expect(result).toStrictEqual({ allowed: true, state });
-    });
-  });
-
-  describe('denied play (409)', () => {
-    it('VALID: {409 denial} => returns denial body instead of throwing', async () => {
-      const proxy = orchestrationDispatchPlayBrokerProxy();
-      const state = DispatchStateStub({ mode: 'paused' });
-
-      proxy.setupDenied({ reason: 'A /dumpster-launch loop owns the queue', state });
-
-      const result = await orchestrationDispatchPlayBroker();
-
-      expect(result).toStrictEqual({
-        allowed: false,
-        reason: 'A /dumpster-launch loop owns the queue',
-        state,
-      });
+      expect(result).toStrictEqual(state);
     });
   });
 
@@ -59,7 +31,7 @@ describe('orchestrationDispatchPlayBroker', () => {
     it('ERROR: {fetch returns invalid shape} => throws ZodError', async () => {
       const proxy = orchestrationDispatchPlayBrokerProxy();
 
-      proxy.setupInvalidResponse({ data: { bad: 'data' } });
+      proxy.setupInvalidResponse({ data: { state: { bad: 'data' } } });
 
       await expect(orchestrationDispatchPlayBroker()).rejects.toThrow(/invalid_/u);
     });

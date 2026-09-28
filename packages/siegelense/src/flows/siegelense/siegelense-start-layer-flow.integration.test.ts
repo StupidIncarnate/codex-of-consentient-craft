@@ -52,9 +52,9 @@ describe('SiegelenseStartLayerFlow', () => {
   });
 
   describe('--spec present with a badly-shaped value', () => {
-    it('INVALID: {callArgs: --spec ""} => refuses naming --spec and specNameContract\'s own message', async () => {
+    it('INVALID: {callArgs: --spec ""} => refuses saying --spec must name a lane spec, and the known specs', async () => {
       await expect(SiegelenseStartLayerFlow({ callArgs: ['--spec', ''] })).rejects.toThrow(
-        /^--spec: Too small: expected string to have >=1 characters$/u,
+        /^--spec must name a lane spec; got ""\. Known specs: stack, api\.$/u,
       );
     });
   });
@@ -96,7 +96,7 @@ describe('SiegelenseStartLayerFlow', () => {
           callArgs: ['--spec', 'dungeonmaster-stack', '--idle-timeout-ms', 'not-a-number'],
         }),
       ).rejects.toThrow(
-        /^--idle-timeout-ms must be a whole number of 0 or more; got "not-a-number"$/u,
+        /^--idle-timeout-ms must be a whole number of 900000 \(the default\) or more — this flag only raises the ceiling; got "not-a-number"$/u,
       );
     });
   });

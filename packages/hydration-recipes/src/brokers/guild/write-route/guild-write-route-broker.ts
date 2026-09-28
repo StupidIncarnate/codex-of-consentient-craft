@@ -7,7 +7,8 @@
  * subpath re-exports `guildAddBroker` directly from its own file, so importing it pulls in none
  * of that. `copies: 'guildAddBroker'` still names the real code this route's effect traces to.
  *
- * THE MKDIR IS FENCED TO THE TARGET, and both halves of that are decisions. It CREATES the
+ * THE MKDIR IS FENCED TO THE TARGET, through `guildDirectoryEnsureBroker` — shared with the `api`
+ * route (DEF-72) so the two can never disagree about which paths get created. It CREATES the
  * directory because `defaults(index)` mints a relative fragment (`guilds-under-test/guild-<n>`)
  * that exists nowhere until something makes it, and `guildAddBroker` makes a DIFFERENT directory —
  * `<home>/guilds/<id>/quests`, the dungeonmaster-side record — never the one a guild POINTS AT. A
@@ -18,8 +19,8 @@
  * through unchanged for exactly that case — and mkdir'ing it is a write nobody asked for, in a
  * place no `cleanup()` reaches. A path resolving outside `target.home` is therefore registered
  * exactly as given and left uncreated, which is what keeps every path this route touches inside
- * the target it was handed. `resolve` rather than a bare prefix test: a `..` segment in
- * the fragment makes a string that starts with `target.home` and resolves above it.
+ * the target it was handed. See `guild-directory-ensure-broker.ts`'s own header for the resolve-
+ * before-compare / compare-with-the-separator mechanics that make the fence itself correct.
  *
  * THE REGISTRATION IS FENCED THE SAME WAY, by `home: target.home`. `guildAddBroker` resolves its
  * home from `DUNGEONMASTER_HOME` when no caller supplies one, so a route that omitted this would
@@ -35,6 +36,12 @@
  * comparison a hydration recipe drives) passes it as this extra key; every other caller omits it and
  * `guildAddBroker` mints one exactly as before.
  *
+ * `guildUniquePathResolveBroker` runs BEFORE the path is derived absolute — DEF-78 — so composing
+ * two guild recipes into one target (or seeding `guild-empty` twice) never sends the identical
+ * literal `guilds-under-test/guild-1` to `guildAddBroker` twice: the second seed's default fragment
+ * bumps to `guild-2` because `guild-1`'s directory already exists under this same target. See that
+ * broker's own header for why this is a route concern, not an ingredient one.
+ *
  * USAGE:
  * await guildWriteRouteBroker({ target, fields: { name, path } });
  * // Returns a Guild — id, urlSlug and createdAt minted by the real guildAddBroker
@@ -43,11 +50,11 @@
  * // Returns a Guild carrying exactly that id
  */
 import { guildAddBroker } from '@dungeonmaster/orchestrator/brokers';
-import { ensureDir } from '#gateway/node/fs__promises';
-import { resolve } from '#gateway/node/path';
 import { guildIdContract } from '@dungeonmaster/shared/contracts';
 import type { Guild } from '@dungeonmaster/shared/contracts';
 
+import { guildDirectoryEnsureBroker } from '../directory-ensure/guild-directory-ensure-broker';
+import { guildUniquePathResolveBroker } from '../unique-path-resolve/guild-unique-path-resolve-broker';
 import { guildFieldsContract } from '../../../contracts/guild-fields/guild-fields-contract';
 import { guildPathDeriveTransformer } from '../../../transformers/guild-path-derive/guild-path-derive-transformer';
 import type { DmTarget } from '../../../contracts/dm-target/dm-target-contract';
@@ -60,14 +67,10 @@ export const guildWriteRouteBroker = async ({
   fields: Record<string, unknown>;
 }): Promise<Guild> => {
   const parsedFields = guildFieldsContract.parse(fields);
-  const path = guildPathDeriveTransformer({ target, path: parsedFields.path });
+  const uniquePath = guildUniquePathResolveBroker({ target, path: parsedFields.path });
+  const path = guildPathDeriveTransformer({ target, path: uniquePath });
 
-  const targetRoot = resolve(target.home);
-  const guildDir = resolve(path);
-
-  if (guildDir === targetRoot || guildDir.startsWith(`${targetRoot}/`)) {
-    await ensureDir(guildDir);
-  }
+  await guildDirectoryEnsureBroker({ target, path });
 
   const id = guildIdContract.optional().parse(fields.id);
 

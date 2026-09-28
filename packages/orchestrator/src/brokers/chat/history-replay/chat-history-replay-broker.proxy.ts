@@ -34,7 +34,6 @@ import { questCwdResolveBroker } from '../../quest/cwd-resolve/quest-cwd-resolve
 import { questCwdResolveBrokerProxy } from '../../quest/cwd-resolve/quest-cwd-resolve-broker.proxy';
 import { questGetServerConfigBrokerProxy } from '../../quest/get-server-config/quest-get-server-config-broker.proxy';
 import { chatReplayJsonlReadBrokerProxy } from '../replay-jsonl-read/chat-replay-jsonl-read-broker.proxy';
-import { scopeSubagentFilesToDescendantsLayerBrokerProxy } from './scope-subagent-files-to-descendants-layer-broker.proxy';
 
 // The quest-scoped cwd resolution is mocked at the module boundary — questCwdResolveBroker's own
 // worktree / repo-root / missing-worktree branching has its own test suite; here it only supplies
@@ -46,6 +45,7 @@ type GuildConfig = Parameters<ReturnType<typeof guildGetBrokerProxy>['setupConfi
 export const chatHistoryReplayBrokerProxy = (): {
   setupGuild: (params: { config: GuildConfig; homeDir: string; sessionId: SessionId }) => void;
   setupMainSession: (params: { content: string; sessionId?: SessionId }) => void;
+  setupMainSessionMissing: (params?: { sessionId?: SessionId }) => void;
   setupSubagentDir: (params: { files: FileName[]; sessionId?: SessionId }) => void;
   setupSubagentFile: (params: { content: string; sessionId?: SessionId }) => void;
   setupSubagentDirMissing: (params?: { sessionId?: SessionId }) => void;
@@ -78,9 +78,6 @@ export const chatHistoryReplayBrokerProxy = (): {
   // Wired to satisfy enforce-proxy-child-creation; the readJsonlProxy above already
   // mocks the underlying readFile that the replay broker delegates to.
   chatReplayJsonlReadBrokerProxy();
-  // Layer broker that scopes per-work-item replay to a sub-agent's descendant closure. Its
-  // own proxy sets up claudeLineNormalizeBroker for the real edge-extraction normalize.
-  scopeSubagentFilesToDescendantsLayerBrokerProxy();
   // Wired to satisfy enforce-proxy-child-creation; the module mock above supplies the actual
   // return values, so this child's own internal fs/broker mocks are never exercised.
   questCwdResolveBrokerProxy();
@@ -183,6 +180,14 @@ export const chatHistoryReplayBrokerProxy = (): {
       readJsonlProxy.returns({
         filePath: resolveJsonlPath({ sessionId: sessionId ?? sessionIdRef.value }),
         content,
+      });
+    },
+    // A session whose own top-level JSONL was never written (or has since been removed) —
+    // the broker retries briefly, then treats it as no main content rather than throwing.
+    setupMainSessionMissing: ({ sessionId }: { sessionId?: SessionId } = {}): void => {
+      readJsonlProxy.throws({
+        filePath: resolveJsonlPath({ sessionId: sessionId ?? sessionIdRef.value }),
+        error: new Error('ENOENT: no such file or directory'),
       });
     },
     setupSubagentDir: ({

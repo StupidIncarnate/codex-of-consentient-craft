@@ -1,9 +1,9 @@
 /**
  * PURPOSE: Play/pause control for the Node dispatcher. Shows PLAY when the dispatcher is paused
- * and PAUSE when it is playing. Clicking PLAY posts to the play endpoint and surfaces a 409
- * denial reason as a red toast; clicking PAUSE posts to the pause endpoint. While the rate-limit
- * guardrail is holding the queue it also renders the hold notice above the button — the button
- * still reports the user's own lever, which the hold does not change.
+ * and PAUSE when it is playing. Clicking PLAY posts to the play endpoint; clicking PAUSE posts to
+ * the pause endpoint. While the rate-limit guardrail is holding the queue it also renders the hold
+ * notice above the button — the button still reports the user's own lever, which the hold does
+ * not change.
  *
  * A live hold DISABLES the button while it reads PLAY and never while it reads PAUSE. Pressing
  * play into a spent quota cannot help: the queue is refused until `resumeAt` whatever the mode
@@ -16,7 +16,6 @@
  * // Renders nothing while the dispatch state is loading, then a single pixel button.
  */
 
-import { mantineNotificationsShowAdapter } from '../../adapters/mantine/notifications-show/mantine-notifications-show-adapter';
 import { useDispatchStateBinding } from '../../bindings/use-dispatch-state/use-dispatch-state-binding';
 import { orchestrationDispatchPauseBroker } from '../../brokers/orchestration/dispatch-pause/orchestration-dispatch-pause-broker';
 import { orchestrationDispatchPlayBroker } from '../../brokers/orchestration/dispatch-play/orchestration-dispatch-play-broker';
@@ -26,7 +25,6 @@ import { PixelBtnWidget } from '../pixel-btn/pixel-btn-widget';
 
 const PLAY_LABEL = 'PLAY' as ButtonLabel;
 const PAUSE_LABEL = 'PAUSE' as ButtonLabel;
-const PLAY_DENIED_FALLBACK = 'The Node dispatcher could not start playing.';
 
 export const DispatchToggleWidget = (): React.JSX.Element | null => {
   const { state, isLoading } = useDispatchStateBinding();
@@ -53,18 +51,9 @@ export const DispatchToggleWidget = (): React.JSX.Element | null => {
             });
             return;
           }
-          orchestrationDispatchPlayBroker()
-            .then((result) => {
-              if (!result.allowed) {
-                mantineNotificationsShowAdapter({
-                  message: result.reason ?? PLAY_DENIED_FALLBACK,
-                  color: 'red',
-                });
-              }
-            })
-            .catch((error: unknown) => {
-              globalThis.console.error('[dispatch-toggle] play failed', error);
-            });
+          orchestrationDispatchPlayBroker().catch((error: unknown) => {
+            globalThis.console.error('[dispatch-toggle] play failed', error);
+          });
         }}
       />
     </div>

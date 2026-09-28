@@ -42,10 +42,11 @@ export const migrateLegacyRecordsLayerAdapterProxy = (): {
 
   const state: { table: unknown[] } = { table: [] };
 
-  // jsdom does not implement `indexedDB` by default (see clipboard-write-adapter.proxy.ts for the
-  // same shape of workaround), so attach a real method to spy on. Re-typed to an optional shape
-  // first because globalThis.indexedDB is declared non-nullable by lib.dom — without this, the
-  // existence check below has nothing to narrow.
+  // jsdom does not implement `indexedDB` by default (see
+  // indexed-db-draft-images-read-adapter.proxy.ts for the same shape of workaround), so attach a
+  // real method to spy on. Re-typed to an optional shape first because globalThis.indexedDB is
+  // declared non-nullable by lib.dom — without this, the existence check below has nothing to
+  // narrow.
   const globalIndexedDb = globalThis as { indexedDB?: IDBFactory };
   if (!globalIndexedDb.indexedDB) {
     Object.defineProperty(globalThis, 'indexedDB', {

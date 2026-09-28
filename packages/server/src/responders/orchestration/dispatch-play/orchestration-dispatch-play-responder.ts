@@ -1,41 +1,24 @@
 /**
- * PURPOSE: Handles POST /api/orchestration/dispatch/play — validates the optional `force` body,
- * delegates to the orchestrator play adapter, and maps a gate refusal to HTTP 409 with the reason.
+ * PURPOSE: Handles POST /api/orchestration/dispatch/play — starts the Node dispatcher via
+ * `StartOrchestrator.playDispatch` and returns the persisted state.
  *
  * USAGE:
- * const result = await OrchestrationDispatchPlayResponder({ body: { force: false } });
- * // Returns { status: 200, data: response } | { status: 409, data: response } | { status: 400 | 500, data: { error } }
+ * const result = await OrchestrationDispatchPlayResponder();
+ * // Returns { status: 200, data: { state } } or { status: 500, data: { error } }
  */
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 
-import { dispatchPlayBodyContract } from '../../../contracts/dispatch-play-body/dispatch-play-body-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
 import type { ResponderResult } from '../../../contracts/responder-result/responder-result-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
 
-export const OrchestrationDispatchPlayResponder = async ({
-  body,
-}: {
-  body: unknown;
-}): Promise<ResponderResult> => {
-  const validated = dispatchPlayBodyContract.safeParse(body ?? {});
-  if (!validated.success) {
-    return responderResultContract.parse({
-      status: httpStatusStatics.clientError.badRequest,
-      data: { error: validated.error.message },
-    });
-  }
-
+export const OrchestrationDispatchPlayResponder = async (): Promise<ResponderResult> => {
   try {
-    const response = await StartOrchestrator.playDispatch({
-      ...(validated.data.force !== undefined && { force: validated.data.force }),
-    });
+    const state = await StartOrchestrator.playDispatch();
     return responderResultContract.parse({
-      status: response.allowed
-        ? httpStatusStatics.success.ok
-        : httpStatusStatics.clientError.conflict,
-      data: response,
+      status: httpStatusStatics.success.ok,
+      data: { state },
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to play dispatch';

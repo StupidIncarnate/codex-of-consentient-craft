@@ -73,12 +73,10 @@ export const ReconcileWatchersLayerResponder = async ({
   // Tracked separately so "measured beats inferred" holds regardless of the order guilds are walked
   // in — see the comment at the assignment below.
   const recordedProjectDirSessions = new Set<SessionId>();
-  // Sessions whose active work item carries a sessionId but NO agentId are top-level
-  // node-dispatch workers (spawn-batch stamps sessionId, never agentId; /dumpster-launch
-  // get-agent-prompt stamps BOTH). Their own agent (codeweaver/flowrider/…) writes the
-  // MAIN session JSONL, so the watcher must route that content to the work item's row
-  // instead of dropping it as dispatcher chatter. Keyed sessionId → owning workItemId;
-  // dispatcher (/dumpster-launch parent) sessions never appear here.
+  // Every active work item's session is a Node-dispatch worker's own dedicated session:
+  // its agent (codeweaver/flowrider/…) writes the MAIN session JSONL, so the watcher must
+  // route that content to the work item's row rather than treat it as chatter. Keyed
+  // sessionId → owning workItemId.
   const workerWorkItemIdBySessionId = new Map<SessionId, QuestWorkItemId>();
   // The quest each worker session's owning work item belongs to, captured in lockstep with the
   // map above. The tail emits its own terminal event when it stops, and `chat-complete` is a
@@ -101,9 +99,8 @@ export const ReconcileWatchersLayerResponder = async ({
       target.add(wi.sessionId);
       // A recorded row is where the session ACTUALLY ran, so it outranks the guess above — and it
       // must outrank it whichever quest the walk reached first. One sessionId legitimately appears
-      // on work items across SEVERAL quests (a `/dumpster-launch` dispatcher stamps its own session
-      // on every item it dispatches), so a plain first-writer-wins would let the first quest's
-      // guess lock the map and a later quest's real row never land. Two guesses still keep
+      // on work items across SEVERAL quests, so a plain first-writer-wins would let the first
+      // quest's guess lock the map and a later quest's real row never land. Two guesses still keep
       // first-writer-wins, which is the arbitrary tie-break the ledger retires one session at a
       // time.
       const recordedCwd = questSessionCwdTransformer({ quest, sessionId: wi.sessionId });
@@ -115,7 +112,7 @@ export const ReconcileWatchersLayerResponder = async ({
       } else if (questProjectDir !== undefined && !projectDirBySessionId.has(wi.sessionId)) {
         projectDirBySessionId.set(wi.sessionId, questProjectDir);
       }
-      if (wi.agentId === undefined && !workerWorkItemIdBySessionId.has(wi.sessionId)) {
+      if (!workerWorkItemIdBySessionId.has(wi.sessionId)) {
         workerWorkItemIdBySessionId.set(wi.sessionId, wi.id);
         workerQuestIdBySessionId.set(wi.sessionId, quest.id);
       }
@@ -140,21 +137,26 @@ export const ReconcileWatchersLayerResponder = async ({
         const workerWorkItemId = workerWorkItemIdBySessionId.get(sessionId);
         const workerQuestId = workerQuestIdBySessionId.get(sessionId);
         const resolvedProjectDir = projectDirBySessionId.get(sessionId);
-        if (resolvedProjectDir === undefined) {
+        if (
+          resolvedProjectDir === undefined ||
+          workerWorkItemId === undefined ||
+          workerQuestId === undefined
+        ) {
           // Every sessionId in `target` was added by the SAME loop iteration that also records a
-          // projectDirBySessionId entry for it — either the recorded cwd or the quest's own guess,
-          // which is always defined (every quest here came from `guildPathByQuestId`, populated for
-          // that exact quest.id before this loop runs). This branch guards that invariant; it is not
-          // a real fallback, so it names the bootstrap's own cwd only for triage if it ever fires.
+          // projectDirBySessionId entry (the recorded cwd or the quest's own guess, always defined —
+          // every quest here came from `guildPathByQuestId`, populated for that exact quest.id before
+          // this loop runs), a workerWorkItemIdBySessionId entry and a workerQuestIdBySessionId entry
+          // for it. All three are invariants, not real fallbacks, so this branch names the bootstrap's
+          // own cwd only for triage if it ever fires.
           throw new Error(
-            `quest-driven-watchers: no projectDir recorded for session ${String(sessionId)}; bootstrap cwd was ${projectDir}`,
+            `quest-driven-watchers: incomplete session record for ${String(sessionId)}; bootstrap cwd was ${projectDir}`,
           );
         }
         const handle = await StartOrchestrator.startMonitorWatcher({
           parentSessionId: String(sessionId),
           projectDir: resolvedProjectDir,
-          ...(workerWorkItemId === undefined ? {} : { workerWorkItemId: String(workerWorkItemId) }),
-          ...(workerQuestId === undefined ? {} : { workerQuestId: String(workerQuestId) }),
+          workerWorkItemId: String(workerWorkItemId),
+          workerQuestId: String(workerQuestId),
         });
         return { sessionId, handle };
       } catch (error: unknown) {

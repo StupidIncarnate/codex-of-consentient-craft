@@ -24,7 +24,6 @@ export const ReconcileWatchersLayerResponderProxy = (): {
       parentSessionId: string;
       workerWorkItemId: string;
     }) => boolean;
-    startedWithoutWorkerWorkItemId: (params: { parentSessionId: string }) => boolean;
     startedWithWorkerQuestId: (params: {
       parentSessionId: string;
       workerQuestId: string;
@@ -80,8 +79,6 @@ export const ReconcileWatchersLayerResponderProxy = (): {
           parentSessionId,
           workerWorkItemId,
         }),
-      startedWithoutWorkerWorkItemId: ({ parentSessionId }: { parentSessionId: string }): boolean =>
-        orchestrator.startMonitorWatcherStartedWithoutWorkerWorkItemId({ parentSessionId }),
       startedWithWorkerQuestId: ({
         parentSessionId,
         workerQuestId,

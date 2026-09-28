@@ -23,8 +23,8 @@ describe('StartInstall', () => {
       const huntContent = testbed.readFile({
         relativePath: RelativePathStub({ value: '.claude/commands/dumpster-hunt.md' }),
       });
-      const launchContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: '.claude/commands/dumpster-launch.md' }),
+      const commandFiles = testbed.listDir({
+        relativePath: RelativePathStub({ value: '.claude/commands' }),
       });
       const worktreesEntries = testbed.listDir({
         relativePath: RelativePathStub({ value: 'worktrees' }),
@@ -40,12 +40,12 @@ describe('StartInstall', () => {
         success: true,
         action: 'created',
         message:
-          'Created .claude/commands/dumpster-create.md, .claude/commands/dumpster-hunt.md, and .claude/commands/dumpster-launch.md; Created worktrees/; Created .gitignore with worktrees/, .quest-plans/',
+          'Created .claude/commands/dumpster-create.md and .claude/commands/dumpster-hunt.md; Created worktrees/; Created .gitignore with worktrees/, .quest-plans/',
       });
 
       expect(createContent).toBe(slashCommandsStatics.dumpsterCreate.body);
       expect(huntContent).toBe(slashCommandsStatics.dumpsterHunt.body);
-      expect(launchContent).toBe(slashCommandsStatics.dumpsterLaunch.body);
+      expect(commandFiles).toStrictEqual(['dumpster-create.md', 'dumpster-hunt.md']);
       expect(worktreesEntries).toStrictEqual([]);
       expect(gitignoreContent).toBe('worktrees/\n.quest-plans/\n');
     });

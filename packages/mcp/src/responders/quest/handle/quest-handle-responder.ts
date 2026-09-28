@@ -22,7 +22,6 @@ import { toolNameContract } from '../../../contracts/tool-name/tool-name-contrac
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 import { createQuestInputContract } from '../../../contracts/create-quest-input/create-quest-input-contract';
 import { createQuestOutputContract } from '../../../contracts/create-quest-output/create-quest-output-contract';
-import { getNextStepInputContract } from '../../../contracts/get-next-step-input/get-next-step-input-contract';
 import { getQuestPlanningNotesInputContract } from '../../../contracts/get-quest-planning-notes-input/get-quest-planning-notes-input-contract';
 import { getQuestStatusInputContract } from '../../../contracts/get-quest-status-input/get-quest-status-input-contract';
 import { getServerConfigOutputContract } from '../../../contracts/get-server-config-output/get-server-config-output-contract';
@@ -54,8 +53,9 @@ export const QuestHandleResponder = async ({
 }: {
   tool: ToolName;
   args: Record<string, unknown>;
-  // Claude Code surfaces `claudecode/toolUseId` here on every MCP call. `create-quest` uses it to
-  // identify the calling session deterministically; every other tool ignores it.
+  // The `dungeonmaster-pre-mcp-caller` hook stamps the caller context here on every MCP call.
+  // `create-quest` reads it, via ResolveCallerSessionLayerResponder, to stamp its intake session
+  // id; every other tool ignores it.
   meta?: Record<string, unknown>;
 }): Promise<ToolResponse> => {
   if (tool === 'modify-quest') {
@@ -284,7 +284,7 @@ export const QuestHandleResponder = async ({
     try {
       // The resolved session is stamped on the quest's intake work item, which is what the HTTP
       // server's watcher reactor tails to stream this conversation into the browser chat panel.
-      const sessionId = await ResolveCallerSessionLayerResponder({ meta });
+      const sessionId = ResolveCallerSessionLayerResponder({ meta });
       const { questId, guildSlug } = await StartOrchestrator.createQuestForMcp({
         userRequest,
         ...(questType !== undefined && { questType }),
@@ -297,35 +297,6 @@ export const QuestHandleResponder = async ({
           {
             type: 'text',
             text: contentTextContract.parse(JSON.stringify(payload, null, JSON_INDENT_SPACES)),
-          },
-        ],
-      };
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      return {
-        content: [
-          {
-            type: 'text',
-            text: contentTextContract.parse(
-              JSON.stringify({ success: false, error: errorMessage }, null, JSON_INDENT_SPACES),
-            ),
-          },
-        ],
-        isError: true,
-      };
-    }
-  }
-
-  if (tool === 'get-next-step') {
-    getNextStepInputContract.parse(args);
-
-    try {
-      const step = await StartOrchestrator.getNextStep();
-      return {
-        content: [
-          {
-            type: 'text',
-            text: contentTextContract.parse(JSON.stringify(step, null, JSON_INDENT_SPACES)),
           },
         ],
       };

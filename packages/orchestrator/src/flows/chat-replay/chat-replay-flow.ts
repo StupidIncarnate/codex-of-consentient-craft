@@ -13,13 +13,11 @@ type ResponderResult = Awaited<ReturnType<typeof ChatReplayResponder>>;
 
 export const ChatReplayFlow = async ({
   sessionId,
-  agentId,
   guildId,
   chatProcessId,
 }: ResponderParams): Promise<ResponderResult> =>
   ChatReplayResponder({
     sessionId,
     guildId,
-    ...(agentId && { agentId }),
     ...(chatProcessId && { chatProcessId }),
   });

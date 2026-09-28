@@ -1,5 +1,4 @@
 import {
-  AgentIdStub,
   OperationItemIdStub,
   OperationItemStub,
   QuestIdStub,
@@ -136,11 +135,10 @@ describe('recoverOrphanedWorkItemsLayerBroker', () => {
       });
     });
 
-    it('VALID: {orphan carrying sessionId, agentId, startedAt} => persists it as pending KEEPING identity, gaining resume: true and retryCount + 1', async () => {
+    it('VALID: {orphan carrying sessionId, startedAt} => persists it as pending KEEPING identity, gaining resume: true and retryCount + 1', async () => {
       const proxy = recoverOrphanedWorkItemsLayerBrokerProxy();
       const orphanId = QuestWorkItemIdStub({ value: 'ddd22222-1111-4222-9333-444444444444' });
       const sessionId = SessionIdStub({ value: '9c4d8f1c-3e38-48c9-bdec-22b61883b473' });
-      const agentId = AgentIdStub({ value: 'agent-dead' });
       const quest = QuestStub({
         id: QuestIdStub({ value: 'q-orphan-identity' }),
         status: 'in_progress',
@@ -151,7 +149,6 @@ describe('recoverOrphanedWorkItemsLayerBroker', () => {
             status: 'in_progress',
             retryCount: 0,
             sessionId,
-            agentId,
             startedAt: '2026-06-12T10:00:00.000Z',
           }),
         ],
@@ -167,14 +164,12 @@ describe('recoverOrphanedWorkItemsLayerBroker', () => {
         status: persistedItem?.status,
         retryCount: persistedItem?.retryCount,
         sessionId: persistedItem?.sessionId,
-        agentId: persistedItem?.agentId,
         startedAt: persistedItem?.startedAt,
         resume: persistedItem?.resume,
       }).toStrictEqual({
         status: 'pending',
         retryCount: 1,
         sessionId,
-        agentId,
         startedAt: '2026-06-12T10:00:00.000Z',
         resume: true,
       });

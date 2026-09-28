@@ -10,9 +10,9 @@ one shape into another — it goes here.**
 
 The translation pipeline is driven by `quest-monitor-jsonl-watcher-broker`, which tails each
 active session's JSONL plus its `subagents/agent-*.jsonl` siblings as they appear on disk.
-The session is either the user's own `/dumpster-launch` session (MCP dispatch mode) or a
-headless child the Node dispatcher spawned (see "Two dispatchers" below) — in both modes the
-watcher keys on `workItems[].sessionId` and feeds the files through the funnel below. The
+The session is a headless child the Node dispatcher spawned, or an intake chat session (see
+"The dispatcher" below); the watcher keys on `workItems[].sessionId` and feeds the files through
+the funnel below. The
 Node dispatcher deliberately does NOT wire its children's stdout into the chat pipeline;
 the file tail is the single rendering source, so lines are never double-emitted.
 
@@ -86,7 +86,7 @@ Claude CLI emits sub-agent activity in TWO incompatible shapes depending on the 
 | Source                                                 | What links sub-agent to parent Task?   | Where the link lives                                                                  |
 |--------------------------------------------------------|----------------------------------------|---------------------------------------------------------------------------------------|
 | **Streaming (legacy spawn stdout)**                    | `parent_tool_use_id` field (top-level) | On **every** sub-agent line                                                           |
-| **File (JSONL on disk — the `/dumpster-launch` path)** | `agentId` = real internal id           | Sub-agent's JSONL filename (`subagents/agent-<realAgentId>.jsonl`) + inside each line |
+| **File (JSONL on disk — the watcher path)**            | `agentId` = real internal id           | Sub-agent's JSONL filename (`subagents/agent-<realAgentId>.jsonl`) + inside each line |
 
 The translation between the two lives in ONE place: the main session JSONL's `user` tool_result
 line, where `tool_use_result.agentId` (real id) sits alongside the content item's `tool_use_id`
@@ -247,14 +247,14 @@ The four entry points that feed the processor:
 
 | Path                            | Broker                                                | Source                                                         | Start position |
 |---------------------------------|-------------------------------------------------------|----------------------------------------------------------------|----------------|
-| `/dumpster-launch` session tail | `quest-monitor-jsonl-watcher-broker`                  | Registered launch session's `<sessionId>.jsonl` (live append)  | `end`          |
-| Sub-agent tail                  | `chat-subagent-tail-broker`                           | `subagents/agent-<id>.jsonl` written by Task-dispatched agents | `beginning`    |
+| Worker session tail             | `quest-monitor-jsonl-watcher-broker`                  | A work item's `<sessionId>.jsonl` (live append)                | `end`          |
+| Sub-agent tail                  | `chat-subagent-tail-broker`                           | `subagents/agent-<id>.jsonl` written by a session's Task calls | `beginning`    |
 | Parent replay (web reopen)      | `chat-history-replay-broker`                          | `<sessionId>.jsonl` (full read for catch-up of past entries)   | —              |
 | Legacy spawn stdout / tail      | `chat-spawn-broker` + `chat-main-session-tail-broker` | CLI stdout via `spawn-stream-json` + post-exit JSONL tail      | — / `end`      |
 
-The `/dumpster-launch` session tail is the live driver under the dispatch-loop flow. The
-sub-agent tail watches `subagents/agent-*.jsonl` siblings as new files appear (each Task
-the launch session dispatches creates one). The replay path is what hydrates the web UI's
+The worker session tail is the live driver for a dispatched work item. The sub-agent tail
+watches `subagents/agent-*.jsonl` siblings as new files appear (each Task the worker session
+dispatches creates one), paired to their Task by prompt text. The replay path is what hydrates the web UI's
 chat history when a browser reconnects to a quest that's mid-flight. The legacy spawn path
 still backs the interactive chat callers (ChaosWhisperer / BugHunt) of
 `chat-spawn-broker`.
@@ -299,11 +299,10 @@ starts no watcher for those quests and the panel stays empty for the whole conve
 
 - `fsWatchTailAdapter` accepts an optional `startPosition: 'beginning' | 'end'` param.
   Pass `'beginning'` for sub-agent tails — they must drain the JSONL Claude already wrote
-  while the parent blocked on the Task tool. Pass `'end'` for the parent
-  `/dumpster-launch` session tail — only NEW appends from the moment the watcher starts
-  forward should emit.
+  while the parent blocked on the Task tool. Pass `'end'` for the worker session tail — only
+  NEW appends from the moment the watcher starts forward should emit.
 - The watcher captures `sessionId` from the first system/init line it sees and starts the
-  parent tail at `'end'`. As `Task`-dispatched agents create their own
+  parent tail at `'end'`. As the session's own Task calls create their
   `subagents/agent-<id>.jsonl` files, `chatSubagentTailBroker` instances spin up against
   each one at `'beginning'`.
 
@@ -314,10 +313,9 @@ plus its post-exit main-session tail) and this watcher's `proc-worker-<sessionId
 JSONL that same child writes — and the spawn's `chat-complete` speaks only for itself. So
 `questMonitorWatcherStartBroker.stop()` emits a `chat-complete` for its own tail id, once. Without
 it, the drain that lands after the turn ended re-arms the indicator with nothing left to clear it,
-and the follow-up composer holds STOP forever. The emit is scoped to a WORKER tail
-(`workerWorkItemId` + `workerQuestId`, supplied by `reconcile-watchers-layer-responder`): a
-`chat-complete` is a per-quest wire event, and a `/dumpster-launch` dispatcher session tails
-sub-agents belonging to several quests at once, so no single questId would be honest there.
+and the follow-up composer holds STOP forever. Every tail carries `workerWorkItemId` +
+`workerQuestId` (supplied by `reconcile-watchers-layer-responder`), because a `chat-complete` is
+a per-quest wire event and the emit needs the quest to route to.
 
 The legacy `chat-start-responder` still composes its own tail lifecycle for the surviving
 spawn paths, with the same `fsWatchTailAdapter` semantics.
@@ -549,13 +547,13 @@ Web UI "Start Quest" button ──► server orchestration-start-responder
   │   family's entry step (carve), spawnerType: 'command'. Every later family's scopes are minted
   │   when the family graph routes to it.
   │   PURE quest.json bookkeeping: no spawn, no git, no build, so the POST answers in milliseconds.
-  │   Redirects to execute view; banner: "Run /dumpster-launch in your Claude session."
+  │   Redirects to execute view, and plays the Node dispatcher.
   │
   ▼
-User runs /dumpster-launch (long-lived dispatch loop in their session)
-  │   Loop: get-next-step() → Task() for spawn-agents → await → repeat. `run-step` covers every
-  │   deterministic step, including the carve and the wardFull gate — MCP mode has no tool that
-  │   answers one; on a `run-step` response it tells the user and STOPS the loop.
+Node dispatcher (the /queue page's play button; Start and Resume press it too)
+  │   Loop: get-next-step scan → spawn a headless `claude -p` child per `spawn-agents` agent, or run
+  │   the handler in-process for a `run-step` (every deterministic step, including the carve and
+  │   the wardFull gate) → await → repeat.
   │   Each response dispatches ONE work item (= one agent session, or one command run) for the
   │   operation item the relay marked in_progress; on signal-back / command exit the relay advances
   │   to the next pending item.
@@ -585,7 +583,7 @@ User runs /dumpster-launch (long-lived dispatch loop in their session)
   │    re-runs it; a repairable carve red does the same inside the riftcarver family. A spent
   │    `maxVisits` on either blocks the quest, as does any `wall` — see "Failure handling".)
   ▼
-Complete ──► /dumpster-launch's next get-next-step() picks up the next FIFO quest in the queue
+Complete ──► the dispatcher's next scan picks up the next FIFO quest in the queue
 ```
 
 ## Operations Ledger & Work Items
@@ -663,8 +661,8 @@ on, never "there was work and I chose to cut none".
 ### Work item = one dispatched session
 
 `quest.workItems[]` are generic session containers (`role`, `status`, `step`, `dependsOn`,
-`relatedDataItems`, `assignedUnitIds`, `observations`, `pieceId`, `payload`, `mintedBy`, `sessionId`,
-`agentId`). **Every work item carries exactly ONE `operations/<id>` ref, and ONE operation item carries
+`relatedDataItems`, `assignedUnitIds`, `observations`, `pieceId`, `payload`, `mintedBy`,
+`sessionId`). **Every work item carries exactly ONE `operations/<id>` ref, and ONE operation item carries
 MANY work items** — one per step the router mints on that scope, one per piece inside a parallel step.
 `step` is what separates them.
 
@@ -738,12 +736,10 @@ name) onto the `SpawnInstruction` it builds. A work item running NO step graph �
 warpgate dispatch, or a hydrated/legacy quest with no step recorded — has no node to read, and falls back to
 `roleToModelTransformer({ role })` off `roleToModelStatics`, keyed on the resolved AgentRole.
 
-**Both dispatchers read this ONE `SpawnInstruction.model` field, and neither computes its own.** Node dispatch
+**The dispatcher reads this ONE `SpawnInstruction.model` field and computes none of its own.** Node dispatch
 (`spawnOneAgentLayerBroker`) passes `instruction.model ?? roleToModelTransformer({ role: instruction.role })`
 straight to the CLI `--model` flag — the transformer fallback there is now defensive rather than the everyday path,
-since `buildSpawnInstructionLayerBroker` already resolved it. The MCP/Task dispatcher (`/dumpster-launch`) reads the
-identical `NextStep` payload `get-next-step()` returns and is instructed to pass `model: agent.model` to each Task()
-call, so a headless Node child and a Task-dispatched sub-agent run the SAME step on the SAME model.
+since `buildSpawnInstructionLayerBroker` already resolved it.
 
 **`get-agent-prompt`'s REPORTED model agrees with the spawned one, because both read the same step node.**
 `workItemToPromptTransformer` resolves the model it reports the SAME way `buildSpawnInstructionLayerBroker` resolves
@@ -787,7 +783,7 @@ and a reason, refused to any work item but a siegemaster one.
 
 **Work item = one dispatched session.** `quest.workItems[]` are generic session containers (`role`,
 `status`, `step`, `dependsOn`, `relatedDataItems`, `assignedUnitIds`, `observations`, `pieceId`,
-`payload`, `mintedBy`, `sessionId`, `agentId`). Every work item links to exactly ONE operation item via
+`payload`, `mintedBy`, `sessionId`). Every work item links to exactly ONE operation item via
 `relatedDataItems: ['operations/<id>']`, and **ONE operation item carries MANY work items** — one per
 step the router mints on that scope, one per piece inside a parallel step. `step` is what separates them.
 
@@ -853,17 +849,12 @@ step the router mints on that scope, one per piece inside a parallel step. `step
   is every ready item sharing the head's ROLE and its STEP. `scan-once-layer-broker`'s missing-worktree
   halt exempts the carve and only the carve — matched on the `run-step` handler alone, since there is no
   legacy `run-riftcarver` type left to also match.
-- **Session tracking**: each work item carries `sessionId` (parent /dumpster-launch session UUID) AND
-  `agentId` (the sub-agent's realAgentId, used to scope chat replay to one `subagents/agent-<id>.jsonl`
-  file). For chat roles — ChaosWhisperer, BugHunt, matched by the shared
-  `isChatWorkItemRoleGuard` — `sessionId` is captured from the spawned Claude's first stream-json init
-  line via `chat-spawn-broker`'s `onSessionId` callback. For every Task-dispatched sub-agent under
-  `/dumpster-launch`, both fields are stamped MCP-side: when the sub-agent calls `get-agent-prompt`, the
-  responder reads `request.params._meta.claudecode/toolUseId` — the toolUseId of the SUB-AGENT'S OWN MCP
-  call (NOT the parent Task() dispatch id) — and scans every
-  `~/.claude/projects/<encoded-cwd>/<sessionId>/subagents/agent-*.jsonl` file for an assistant line whose
-  `tool_use.id` matches. It retries on miss (~3 s budget) to absorb the
-  Claude-Code-dispatches-MCP-call-before-flushing-JSONL race.
+- **Session tracking**: each work item carries `sessionId` — the id of the Claude session that works
+  it. A Node-dispatched child's is stamped from its first stream-json init line by the spawn-batch layer;
+  for chat roles — ChaosWhisperer, BugHunt, matched by the shared `isChatWorkItemRoleGuard` — it is
+  captured the same way through `chat-spawn-broker`'s `onSessionId` callback. A session's own Task
+  sub-agents get no work-item field: the watcher pairs each `subagents/agent-<id>.jsonl` to its Task by
+  prompt text and routes it to the worker's row.
 - **Deterministic steps** run through `questRunStepBroker` → `stepHandlerRunBroker`, whose dispatch TABLE
   carries `satisfies Record<StepHandlerName, StepHandler>` — a handler named in `agentFlowStatics` with no
   implementation behind it fails the BUILD rather than throwing on the one quest that reaches that step.
@@ -1081,12 +1072,12 @@ take the whole quest.
 |----------------|-------------------------------------------------------------------------------------------------------------------------|------------------------------------------|--------------------------------------------------------------------------------------------------|
 | ChaosWhisperer | `/dumpster-create` (interactive)                                                                                        | N/A (spec)                               | `modify-quest`: full spec surface (flows, observables, contracts, packagesAffected) — never `operations`         |
 | Tavernkeeper   | follow-up chat (interactive, AFTER the quest ends)                                                                      | N/A (chat; no operation item)            | none                                                                                             |
-| riftcarver     | its `carve` step is `kind: 'deterministic'`, so it always reaches it via `run-step` → `stepHandlerRiftcarverBroker` — ALWAYS the ledger's first item, and only the Node dispatcher can run it | exit code (green / repairable / blocked) | none (broker writes `branchName`/`baseBranch`/`worktreePath`/`baseRef` + riftcarverResults + item status) |
-| codeweaver     | `/dumpster-launch` via Task(), ONE SCOPE PER (PACKAGE, FLOW) CELL running its own `plan → work → review → commit → ward` step graph — product code + its unit tests | family done / blocked | `quest-work`: a plan (planner), an `observations[]` mark per unit plus an outcome word (worker, reviewer); `modify-quest` narrowly (`packagesAffected` from the planner, `verifyByHuman` from the worker) |
+| riftcarver     | its `carve` step is `kind: 'deterministic'`, so it always reaches it via `run-step` → `stepHandlerRiftcarverBroker` — ALWAYS the ledger's first item | exit code (green / repairable / blocked) | none (broker writes `branchName`/`baseBranch`/`worktreePath`/`baseRef` + riftcarverResults + item status) |
+| codeweaver     | the Node dispatcher, ONE SCOPE PER (PACKAGE, FLOW) CELL running its own `plan → work → review → commit → ward` step graph — product code + its unit tests | family done / blocked | `quest-work`: a plan (planner), an `observations[]` mark per unit plus an outcome word (worker, reviewer); `modify-quest` narrowly (`packagesAffected` from the planner, `verifyByHuman` from the worker) |
 | ward           | `wardFull`'s `gate` step is `kind: 'deterministic'`, so it always reaches it via `run-step` → `stepHandlerWardBroker`, and only the Node dispatcher can run it                                                                     | exit code (green / red)                  | none (broker writes wardResults + item status)                                                   |
-| flowrider      | `/dumpster-launch` via Task(), ONE SCOPE PER FLOW running the same step graph as codeweaver — the test suites that prove that flow                   | family done / blocked | same shape as codeweaver's row above                                            |
-| siegemaster    | `/dumpster-launch` via Task(), ONE SCOPE PER FLOW running its own `sweepIn → plan → happyWalk ⇄ fixHappy → adversarial ⇄ fixAdversarial → commit → ward → sweepOut` graph — hands-on QA against a running system | family done / blocked | `quest-work`: a plan (planner), an `observations[]` mark per unit the walkers settle plus an outcome word (every step); an `invalidation` payload appends a `walk-reset` note |
-| spiritmender   | `/dumpster-launch` via Task() (inserted on a ward red, or on a REPAIRABLE riftcarver red). Bespoke prompt                | complete (done / partial / blocked)      | none                                                                                             |
+| flowrider      | the Node dispatcher, ONE SCOPE PER FLOW running the same step graph as codeweaver — the test suites that prove that flow                   | family done / blocked | same shape as codeweaver's row above                                            |
+| siegemaster    | the Node dispatcher, ONE SCOPE PER FLOW running its own `sweepIn → plan → happyWalk ⇄ fixHappy → adversarial ⇄ fixAdversarial → commit → ward → sweepOut` graph — hands-on QA against a running system | family done / blocked | `quest-work`: a plan (planner), an `observations[]` mark per unit the walkers settle plus an outcome word (every step); an `invalidation` payload appends a `walk-reset` note |
+| spiritmender   | the Node dispatcher (inserted on a ward red, or on a REPAIRABLE riftcarver red). Bespoke prompt                | complete (done / partial / blocked)      | none                                                                                             |
 | warpgate       | dispatched like any relay role, but its item is appended at MERGE time (see below). Bespoke prompt                       | complete (done / partial / blocked)      | none                                                                                             |
 
 ### Riftcarver — the head of the relay, and re-entrant by design
@@ -1167,7 +1158,7 @@ reading `questFlowStatics` — including the codeweaver items themselves, via `f
 is neither: `OrchestrationMergeResponder`
 appends it when the user presses "Teleport with Booty (Merge)" on a quest that is already `complete` or `blocked`
 (`isMergeableQuestStatusGuard`). Because its family carries no `text`, its text lives in `warpgateOperationStatics`.
-Once appended it dispatches exactly like any other relay role — `get-next-step` → Task ()/headless child →
+Once appended it dispatches exactly like any other relay role — dispatch scan → headless child →
 `get-agent-prompt` → `signal-back`.
 
 **It lands on base with `git merge --squash`, so base gets ONE commit per quest.** A quest branch carries one commit
@@ -1360,22 +1351,20 @@ exceptional condition it does not itself classify throws, and the boundary turns
 
 **Resume, don't restart.** An `in_progress` work item observed during a get-next-step scan is necessarily orphaned
 (the loop holds no dispatch in flight), so `recover-orphaned-work-items-layer-broker` flips it back to `pending`
-KEEPING `sessionId`/`agentId` and adds a `resume` marker; Node/UI dispatch resumes the retained Claude session
+KEEPING `sessionId` and adds a `resume` marker; the dispatcher resumes the retained Claude session
 (`claude --resume`) so partial work survives. A resumed orphan keeps its `step` and its `observations` — the
 observation set freezes at signal, so a resumed session re-marks its assigned units from scratch rather than amending
-a predecessor's set. An early crash with no captured session falls back to a fresh spawn; the MCP-Task path
-re-dispatches fresh. Budget: each recovery bumps `retryCount`; at `slotManagerStatics.orphanRecovery.maxResets` the
+a predecessor's set. An early crash with no captured session falls back to a fresh spawn. Budget: each recovery bumps `retryCount`; at `slotManagerStatics.orphanRecovery.maxResets` the
 crash loop is terminal and the quest blocks. The broker returns `{ quest, blocked }`, and `scan-once-layer-broker`
 STOPS on `blocked: true` — it does not fall through to the router or the advance self-heal, because minting and
 dispatching work against a quest that just halted is exactly the bug that flag exists to prevent.
 
 **Never clobber a retained session.** `buildSpawnInstructionLayerBroker` decides resume-vs-fresh on
-`sessionId !== undefined && agentId === undefined`, and it does NOT consult the `resume` marker. Any dispatchable
+`sessionId !== undefined`, and it does NOT consult the `resume` marker. Any dispatchable
 work item carrying a session resumes it, whatever the role. Gating on the marker instead fresh-spawns an item whose
 session was recorded but never formally reclaimed (a quest that blocked before recovery reached it, a hand-repaired
 quest.json), and the new child's init line then overwrites `sessionId` — silently orphaning a session that still
-holds real work. `agentId` is the ONE exception: `get-agent-prompt` stamps it together with a `sessionId` that is the
-user's `/dumpster-launch` loop session, not the agent's own. The resume prompt opens by telling the agent it was CUT
+holds real work. The resume prompt opens by telling the agent it was CUT
 OFF (killed, not paused) and requires re-establishing real state before any new work, since its last action may never
 have landed. Covered end-to-end by `packages/web/src/flows/quest-chat/dispatch-resumes-retained-session.e2e.ts`.
 
@@ -1463,25 +1452,19 @@ Quest mutations use a **file outbox** for cross-process notification. Transient 
 - NEVER call `fsWriteFileAdapter` directly for quest files — always use `questPersistBroker`
 - Transient chat events stay on in-memory bus (single-process, high-frequency)
 
-## Two dispatchers, one state machine
+## The dispatcher
 
-`quest-get-next-step-broker` is the single dispatch brain. Two dispatchers drive it:
+`quest-get-next-step-broker` is the single dispatch brain, and ONE dispatcher drives it: the server's
+Node dispatch runner (`quest-node-dispatch-runner-broker` + `quest-node-dispatch-loop-broker`,
+bootstrapped by `OrchestrationDispatchBootstrapResponder`), switched on by the `/queue` page's play
+button. It calls the broker in-process and dispatches by spawning headless `claude -p` children (one
+per SpawnInstruction, same `taskPrompt` stub) via `agentSpawnUnifiedBroker`, or by running a
+deterministic step's handler synchronously in-process via `stepHandlerRunBroker`. The spawn-batch
+layer pre-stamps each work item `in_progress` before spawning and stamps `sessionId` from the child's
+init line, which activates the quest-driven watcher tail for live chat. Pause is graceful:
+`isPlaying()` is checked between steps, in-flight children finish.
 
-- **MCP mode (`/dumpster-launch`)** — the user's interactive Claude session polls the
-  `get-next-step` MCP tool and dispatches via Task() sub-agents for `spawn-agents`. It has no tool
-  that can run a `run-step`: on one it tells the user the quest is waiting on the Node dispatcher and
-  stops the loop. Runs under the user's plan.
-- **Node mode (the `/queue` page's play button)** — the server's Node dispatch runner
-  (`quest-node-dispatch-runner-broker` + `quest-node-dispatch-loop-broker`, bootstrapped by
-  `OrchestrationDispatchBootstrapResponder`) calls the same broker in-process and dispatches by
-  spawning headless `claude -p` children (one per SpawnInstruction, same `taskPrompt` stub) via
-  `agentSpawnUnifiedBroker`, or by running a deterministic step's handler synchronously in-process via
-  `stepHandlerRunBroker`. The spawn-batch layer pre-stamps each work item `in_progress`
-  before spawning and stamps `sessionId` from the child's init line (which activates the
-  quest-driven watcher tail for live chat; `agentId` stays unset for top-level sessions).
-  Pause is graceful: `isPlaying()` is checked between steps, in-flight children finish.
-
-**Only the Node dispatcher ever runs a `run-step`, so only it wires the output.**
+**The dispatcher wires every `run-step`'s output.**
 `quest-node-dispatch-loop-broker` takes a single `onStepLine` as a REQUIRED parameter (brokers cannot
 import `state/`, so the bootstrap responder supplies the real `orchestrationEventsState` emit and
 tests inject a stub) — one callback for every deterministic step (`ward`, `carve`, `repair`, `commit`,
@@ -1492,15 +1475,9 @@ key on, and the execution panel's `workItemEntries` lookup groups rows by exactl
 streaming needs no web-side change at all. Dropping the callback means minutes of a dead panel with
 nothing else able to fill it.
 
-**Exclusivity** is file-backed at `<dungeonmasterHome>/dispatch-state.json`
-(`dispatchStateContract`) because the MCP server is a separate OS process: every MCP
-`get-next-step` call writes an `mcpHeartbeatAt` heartbeat; while the file says `node-playing`,
-the MCP responder returns `{ type: 'idle', reason }` so `/dumpster-launch` reports why and
-stops. The play gate (`dispatch-state-play-gate-broker`) refuses to play while the heartbeat
-is fresh OR any active quest has an `in_progress` work item with `agentId` stamped (a
-Task-dispatched agent mid-flight); `force: true` overrides for a crashed launch loop. The
-state normalizes to `paused` on server boot — the Node dispatcher never auto-plays after a
-restart.
+**The play/pause mode** is persisted at `<dungeonmasterHome>/dispatch-state.json`
+(`dispatchStateContract`), beside the rate-limit guardrail's `hold`. Play never refuses. The
+state normalizes to `paused` on server boot — the dispatcher never auto-plays after a restart.
 
 ## Quest Kickoff Surfaces
 
@@ -1508,26 +1485,21 @@ restart.
 |----------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `/dumpster-create` slash command       | Primary entry point (feature). Runs ChaosWhisperer in the user's Claude session; creates the new quest via MCP as its first action.                                       |
 | `/dumpster-hunt` slash command         | Primary entry point (bug-hunt). Runs the BugHunt intake; first action is `create-quest` with `questType: 'bug-hunt'`, then captures the repro flow + expected observable. |
-| `/dumpster-launch` slash command       | MCP dispatch mode. Long-lived dispatch loop in the user's Claude session; calls `get-next-step()` → `Task()` for `spawn-agents` → await → repeat across all approved quests. On a `run-step` it tells the user and stops — only the Node dispatcher runs one. |
-| Web UI `/queue` page play button       | Node dispatch mode. `POST /api/orchestration/dispatch/play` starts the server-side runner (headless `claude -p` children); pause stops new dispatches gracefully.         |
+| Web UI `/queue` page play button       | The dispatcher. `POST /api/orchestration/dispatch/play` starts the server-side runner (headless `claude -p` children); pause stops new dispatches gracefully.         |
 | MCP `create-quest` tool                | Programmatic quest creation (used by ChaosWhisperer/BugHunt). Accepts optional `questType` so `/dumpster-hunt` births a `bug-hunt` quest.                                 |
 | MCP `start-quest` tool                 | Programmatic transition from `approved` to `in_progress` (status mutation only — the active dispatcher picks the quest up on its next pass).                              |
 | Server `orchestration-start-responder` | HTTP endpoint that the Web UI "Start Quest" button calls; mutates status and redirects to execute view. Does NOT spawn anything, and does NOT build anything — it is pure `quest.json` bookkeeping (startable gate, package graph, relay seed, status flip, queue entry) and touches no git, so the POST answers in milliseconds and the WebSocket-driven panel swap is immediate. The branch, worktree, `node_modules` mirror and preflight typecheck are the `riftcarver` item it seeds at the head of the ledger. |
 
 ## Agents (MCP-Delivered)
 
-Agents get their prompts dynamically via the `get-agent-prompt` MCP tool. The dispatch
-surface (`/dumpster-launch`'s Task() invocations) hands each dispatched session a stub prompt that
+Agents get their prompts dynamically via the `get-agent-prompt` MCP tool. The dispatcher
+hands each headless child a stub prompt that
 says "call `get-agent-prompt({agent, workItemId, questId})` and follow its instructions exactly." For a step work
 item, `workItemToPromptTransformer` substitutes FOUR IDS into the returned prompt (quest, work item, operation item,
 and the operation item's own text) — no quest content, which each step fetches for itself through `get-quest-work` /
-`get-quest` — and `agentPromptGetBroker` stamps `workItem.sessionId` (parent UUID) + `workItem.agentId` (sub-agent
-realAgentId) from MCP request metadata: Claude Code surfaces `request.params._meta.claudecode/toolUseId` on every MCP
-call (the toolUseId of the sub-agent's OWN MCP call, not the parent Task() dispatch id). The responder scans every
-session's `subagents/agent-*.jsonl` file for an assistant line whose `tool_use.id` matches — deterministically
-identifying the calling sub-agent race-free even when N sub-agents call in parallel against the same MCP stdio child.
+`get-quest`.
 
-**`agentPromptGetBroker` stamps a third field, `workItem.startRef`** — the quest worktree's HEAD
+**`agentPromptGetBroker` stamps `workItem.startRef`** — the quest worktree's HEAD
 sha, read with `gitHeadShaAdapter` off the checkout `questCwdResolveBroker` resolves. It is written
 the FIRST time an item is served its prompt and NEVER moved, so a re-served prompt (an
 orphan-recovery resume, a redelivered fetch) does not shrink the range it marks: a later HEAD
@@ -1595,7 +1567,7 @@ carries its own permission grant (no `settings.json` entry required) — verifie
 same `defaultMode`. Two things to check before relying on it again: bypass-permissions mode disables
 it (`--dangerously-skip-permissions` + `--chrome` = no browser tools — verify the flag actually took
 effect, do not assume), and a sub-agent may not inherit it — the CLI reports the tool set "was fixed
-before the browser connection completed", relevant to the `/dumpster-launch` Task() dispatch path.
+before the browser connection completed", relevant to any Task() sub-agent a session dispatches.
 
 The general rule holds for every OTHER MCP server: an ungranted MCP tool in a headless `-p` child is
 denied outright, never prompted — which is why `agentGitPermissionsStatics` exists. Chrome would be
@@ -1604,10 +1576,10 @@ the exception, because its CLI flag is itself the grant.
 ## One step of one family at a time
 
 The orchestration does not handle two different families running at once: `signal-back` does not gate on
-readiness and `get-agent-prompt` stamps identity without a dependency check, so dispatching across two
+readiness and `get-agent-prompt` serves a prompt without a dependency check, so dispatching across two
 families concurrently would force-complete them out of order and INVALIDATE the run.
 
-**The dispatch layer now enforces it.** `compute-next-step-from-quest-layer-broker` selects the batch on
+**The dispatch layer enforces it.** `compute-next-step-from-quest-layer-broker` selects the batch on
 the HEAD ready item's ROLE **and** its STEP, so a batch is one step of one family by construction — which
 is what a router mint is. `select-batch-layer-broker` still throws on a batch that mixes either, but that
 throw is a backstop rather than something ordinary traffic reaches.
@@ -1616,6 +1588,5 @@ throw is a backstop rather than something ordinary traffic reaches.
 A deterministic step and a command work item each dispatch ALONE, because each owns the whole tree for
 the length of its run.
 
-When driving the loop by hand: one `get-next-step` → dispatch only the `workItemId`(s) it returned →
-wait → assert `quest.json` on disk → `get-next-step` again. Only ever use ids the tool echoes back, never
-one recalled from a seed array or an earlier turn.
+When checking a dispatch by hand, only ever trust work item ids the scan returned, never one recalled
+from a seed array or an earlier turn.

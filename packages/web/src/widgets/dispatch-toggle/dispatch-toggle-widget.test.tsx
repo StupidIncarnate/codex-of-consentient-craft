@@ -42,10 +42,10 @@ describe('DispatchToggleWidget', () => {
   });
 
   describe('click PLAY', () => {
-    it('VALID: {paused, allowed play} => fires POST to the play endpoint', async () => {
+    it('VALID: {paused} => fires POST to the play endpoint', async () => {
       const proxy = DispatchToggleWidgetProxy();
       proxy.setupDispatchState({ state: DispatchStateStub({ mode: 'paused' }) });
-      proxy.setupPlayAllowed({ state: DispatchStateStub({ mode: 'node-playing' }) });
+      proxy.setupPlay({ state: DispatchStateStub({ mode: 'node-playing' }) });
 
       const { findByTestId } = mantineRenderAdapter({ ui: <DispatchToggleWidget /> });
 
@@ -58,49 +58,6 @@ describe('DispatchToggleWidget', () => {
 
       expect(proxy.getPlayRequestCount()).toBe(1);
       expect(proxy.getPauseRequestCount()).toBe(0);
-    });
-
-    it('VALID: {paused, 409 denial} => shows the denial reason as a red toast', async () => {
-      const proxy = DispatchToggleWidgetProxy();
-      proxy.setupDispatchState({ state: DispatchStateStub({ mode: 'paused' }) });
-      proxy.setupPlayDenied({
-        reason: 'A /dumpster-launch loop owns the queue',
-        state: DispatchStateStub({ mode: 'paused' }),
-      });
-
-      const { findByTestId } = mantineRenderAdapter({ ui: <DispatchToggleWidget /> });
-
-      await findByTestId('DISPATCH_TOGGLE');
-      await proxy.clickToggle();
-
-      await waitFor(() => {
-        expect(proxy.getShownToast()).toStrictEqual({
-          message: 'A /dumpster-launch loop owns the queue',
-          color: 'red',
-        });
-      });
-
-      expect(proxy.getShownToast()).toStrictEqual({
-        message: 'A /dumpster-launch loop owns the queue',
-        color: 'red',
-      });
-    });
-
-    it('VALID: {paused, allowed play} => shows no toast', async () => {
-      const proxy = DispatchToggleWidgetProxy();
-      proxy.setupDispatchState({ state: DispatchStateStub({ mode: 'paused' }) });
-      proxy.setupPlayAllowed({ state: DispatchStateStub({ mode: 'node-playing' }) });
-
-      const { findByTestId } = mantineRenderAdapter({ ui: <DispatchToggleWidget /> });
-
-      await findByTestId('DISPATCH_TOGGLE');
-      await proxy.clickToggle();
-
-      await waitFor(() => {
-        expect(proxy.getPlayRequestCount()).toBe(1);
-      });
-
-      expect(proxy.getShownToast()).toBe(undefined);
     });
   });
 

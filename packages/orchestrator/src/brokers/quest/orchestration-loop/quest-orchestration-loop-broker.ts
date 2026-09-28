@@ -185,8 +185,8 @@ export const questOrchestrationLoopBroker = async ({
   }
 
   // This loop only dispatches chat roles (chaoswhisperer / bughunt). Every execution
-  // role is dispatched by /dumpster-launch via the MCP get-next-step tool, and its work item is
-  // flipped to in_progress only when the sub-agent calls get-agent-prompt. Execution-role
+  // role is dispatched by the Node dispatch loop, which flips its work item to in_progress
+  // itself. Execution-role
   // items are left `pending` here — the loop must not touch their status.
   const chatReady = ready.filter((item) => isChatWorkItemRoleGuard({ role: item.role }));
   if (chatReady.length === 0) {

@@ -22,25 +22,6 @@ describe('dispatchStateWriteBroker', () => {
       );
       expect(proxy.getRenamedTo()).toBe('/home/user/.dungeonmaster/dispatch-state.json');
     });
-
-    it('VALID: {mode: paused, mcpHeartbeatAt} => persists heartbeat alongside mode', async () => {
-      const proxy = dispatchStateWriteBrokerProxy();
-      proxy.setupWriteSuccess();
-      const result = await dispatchStateWriteBroker({
-        dispatchState: DispatchStateStub({
-          mode: 'paused',
-          mcpHeartbeatAt: '2024-01-15T09:59:00.000Z',
-        }),
-      });
-
-      expect(result).toStrictEqual(
-        DispatchStateStub({
-          mode: 'paused',
-          mcpHeartbeatAt: '2024-01-15T09:59:00.000Z',
-          updatedAt: '2024-01-15T10:00:00.000Z',
-        }),
-      );
-    });
   });
 
   describe('the rate-limit hold', () => {
@@ -89,29 +70,6 @@ describe('dispatchStateWriteBroker', () => {
         mode: 'paused',
         updatedAt: '2024-01-15T10:00:00.000Z',
       });
-    });
-
-    it('VALID: {a hold beside a heartbeat} => both survive one write', async () => {
-      const proxy = dispatchStateWriteBrokerProxy();
-      proxy.setupWriteSuccess();
-      const { mcpHeartbeatAt } = DispatchStateStub({ mcpHeartbeatAt: '2024-01-15T09:59:00.000Z' });
-
-      const result = await dispatchStateWriteBroker({
-        dispatchState: DispatchStateStub({
-          mode: 'paused',
-          mcpHeartbeatAt,
-          hold: DispatchHoldStub(),
-        }),
-      });
-
-      expect(result).toStrictEqual(
-        DispatchStateStub({
-          mode: 'paused',
-          mcpHeartbeatAt: '2024-01-15T09:59:00.000Z',
-          hold: DispatchHoldStub(),
-          updatedAt: '2024-01-15T10:00:00.000Z',
-        }),
-      );
     });
   });
 

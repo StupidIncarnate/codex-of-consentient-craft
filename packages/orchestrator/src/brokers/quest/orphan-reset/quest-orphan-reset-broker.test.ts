@@ -1,5 +1,4 @@
 import {
-  AgentIdStub,
   GuildIdStub,
   GuildListItemStub,
   QuestIdStub,
@@ -118,7 +117,7 @@ describe('questOrphanResetBroker', () => {
   });
 
   describe('clears stale per-run identity', () => {
-    it('VALID: {in_progress work item carries sessionId+agentId+startedAt} => orphan reset writes quest.json with those fields removed', async () => {
+    it('VALID: {in_progress work item carries sessionId+startedAt} => orphan reset writes quest.json with those fields removed', async () => {
       const proxy = questOrphanResetBrokerProxy();
       const guildId = GuildIdStub({ value: '091fea1e-ff81-1e02-913e-d87010a1e2ad' });
       const guildItem = GuildListItemStub({ id: guildId, valid: true });
@@ -128,7 +127,6 @@ describe('questOrphanResetBroker', () => {
         id: workItemId,
         status: 'in_progress',
         sessionId: SessionIdStub({ value: 'a552a01482d154100' }),
-        agentId: AgentIdStub({ value: 'a552a01482d154100' }),
         startedAt: IsoTimestampStub({ value: '2026-05-26T18:25:47.328Z' }),
       });
       const quest = QuestStub({
@@ -149,7 +147,6 @@ describe('questOrphanResetBroker', () => {
 
       const {
         sessionId: _droppedSessionId,
-        agentId: _droppedAgentId,
         startedAt: _droppedStartedAt,
         status: _replacedStatus,
         ...orphanWithoutClearedFields

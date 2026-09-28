@@ -8,7 +8,6 @@
 
 import { z } from 'zod';
 
-import { agentIdContract } from '../agent-id/agent-id-contract';
 import { fileNameContract } from '../file-name/file-name-contract';
 import { packageNameContract } from '../package-name/package-name-contract';
 import { pieceIdContract } from '../piece-id/piece-id-contract';
@@ -30,12 +29,6 @@ export const workItemContract = z.object({
   status: workItemStatusContract,
   spawnerType: spawnerTypeContract,
   sessionId: sessionIdContract.optional(),
-  // Set when the work item is a Task-dispatched sub-agent under /dumpster-launch — value is
-  // Claude CLI's realAgentId (the filename in `<sessionId>/subagents/agent-<agentId>.jsonl`).
-  // Combined with `sessionId` (parent /dumpster-launch session) it locates the exact JSONL
-  // file the replay should read. Absent for chat roles (chaoswhisperer) whose
-  // `sessionId` already points at a top-level `<sessionId>.jsonl`.
-  agentId: agentIdContract.optional(),
   // INVARIANT (behavioral, enforced by every seeding path — quest-create, the relay graph
   // builder, and questAdvanceBroker): every work item carries exactly ONE `operations/<id>`
   // ref, linking it to the operation item on the ledger whose SCOPE it works. That link is

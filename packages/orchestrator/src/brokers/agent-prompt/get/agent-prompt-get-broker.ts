@@ -72,7 +72,7 @@ export const agentPromptGetBroker = async ({
 
   // Minion-fetch: a parent-summoned minion has no work item of its own. It fetches with
   // { agent, questId } only, and its parent briefs the context inline. No quest load, no
-  // work-item context block. A ROLE name is dispatched as its own work item by /dumpster-launch and
+  // work-item context block. A ROLE name is dispatched as its own work item by the dispatcher and
   // MUST supply a workItemId — reject one that omits it.
   if (workItemId === undefined) {
     if (!isMinion) {

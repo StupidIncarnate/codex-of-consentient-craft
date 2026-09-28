@@ -7,12 +7,16 @@ import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
 import { questHarness } from '../../../test/harnesses/quest/quest.harness';
 import { navigationHarness } from '../../../test/harnesses/navigation/navigation.harness';
 import { dispatchHarness } from '../../../test/harnesses/dispatch/dispatch.harness';
+import { dispatchPauseHarness } from '../../../test/harnesses/dispatch-pause/dispatch-pause.harness';
 
 const GUILD_PATH = '/tmp/dm-e2e-bughunt-begin-transition';
 const MODAL_TIMEOUT = 5_000;
 const PANEL_TIMEOUT = 10_000;
 const RESPONSE_TIMEOUT = 5_000;
 const IN_PROGRESS_TIMEOUT = 10_000;
+// A real riftcarver carve mirrors node_modules and runs a preflight typecheck against the fixture
+// worktree, which takes longer than the synchronous status-flip IN_PROGRESS_TIMEOUT budgets for.
+const CARVE_DRAIN_TIMEOUT = 30_000;
 const HTTP_OK = 200;
 
 // A bug-hunt quest is born from `/dumpster-hunt` with its intake already on the ledger:
@@ -53,17 +57,19 @@ const sessions = sessionHarness({ guildPath: GUILD_PATH });
 wireHarnessLifecycle({ harness: sessions, testObj: test });
 wireHarnessLifecycle({ harness: environmentHarness({ guildPath: GUILD_PATH }), testObj: test });
 
+// Start plays the dispatcher (QuestStartResponder, mirroring resume) as part of the same request,
+// so the loop wakes on the enqueue that happens inside it and would race a REAL carve against the
+// fixture repo underneath the assertions below. `POST /api/orchestration/dispatch/play` never
+// refuses, so nothing in this package can hold that queue shut for the duration of a test —
+// `beforeEach` only pauses a loop an EARLIER spec left running. Each test below pauses again, right
+// after its own start response lands: the earliest point guaranteed to run after the dispatcher
+// woke, ahead of its slower steps (a real `git worktree add` against the fixture repo). Same
+// pattern as quest-begin-transition.e2e.ts's own tests.
 test.describe('Bug-hunt Begin Quest transition', () => {
   test.beforeEach(async ({ request }) => {
     const dispatch = dispatchHarness({ request, guildPath: GUILD_PATH });
 
-    // POST /start now plays the dispatcher on the user's behalf (mirroring resume), so without a
-    // held queue the Node dispatcher wakes on the enqueue inside the start request and races a REAL
-    // carve against the fixture repo underneath every assertion below — its failure blocks the
-    // quest before the poll ever observes `in_progress`. Same fix as
-    // quest-begin-transition.e2e.ts's own beforeEach, which documents the identical race.
     await dispatch.beforeEach();
-    dispatch.holdQueueWithMcpHeartbeat();
 
     await guildHarness({ request }).cleanGuilds();
     await sessions.cleanSessionDirectory();
@@ -76,6 +82,15 @@ test.describe('Bug-hunt Begin Quest transition', () => {
     const guilds = guildHarness({ request });
     const quests = questHarness({ request });
     const nav = navigationHarness({ page });
+    const dispatch = dispatchHarness({ request, guildPath: GUILD_PATH });
+
+    // The fake ward CLI backs riftcarver's own preflight typecheck too — its queue is root-scoped
+    // (the harness's own header explains why: the carve's cwd is the freshly-minted worktree, not
+    // the guild path, so a cwd-scoped queue would never match). An empty queue makes that typecheck
+    // fail with "queue is empty", which routes `unmet` into a spiritmender repair this spec never
+    // mocks — queuing one green response here is what lets the real carve this Start's own play()
+    // kicks off actually converge instead.
+    dispatch.queueScript({ script: [{ role: 'riftcarver', outcome: 'green' }] });
 
     const guild = await guilds.createGuild({ name: 'Bug Hunt Begin Guild', path: GUILD_PATH });
     const guildId = String(guild.id);
@@ -158,6 +173,10 @@ test.describe('Bug-hunt Begin Quest transition', () => {
 
     expect(startResponse.status()).toBe(HTTP_OK);
 
+    // The response only lands after its own play() call has resolved server-side, so pausing here
+    // is the earliest point guaranteed to run AFTER the dispatcher woke, ahead of its slower steps.
+    await dispatchPauseHarness({ request }).pause();
+
     await expect(page.getByTestId('QUEST_APPROVED_MODAL_TITLE')).not.toBeVisible({
       timeout: MODAL_TIMEOUT,
     });
@@ -232,6 +251,25 @@ test.describe('Bug-hunt Begin Quest transition', () => {
         dependsOn: wi.dependsOn,
       })),
     ).toStrictEqual([{ spawnerType: 'command', dependsOn: [BUGHUNT_WORK_ITEM_ID] }]);
+
+    // Drain the real carve this test's own pause did not stop — it only prevents a FUTURE dispatch
+    // tick, not the git worktree add/typecheck already in flight. Waiting for it to land a
+    // riftcarverResults entry here (rather than leaving it running past this test's own end) is what
+    // keeps it from still touching this guild path's shared .git when the NEXT test's own
+    // environment reset (worktree prune + re-carve) runs concurrently against it.
+    await expect
+      .poll(
+        async () => {
+          const response = await request.get(`/api/quests/${questId}`);
+          if (response.status() !== HTTP_OK) {
+            return 0;
+          }
+          const data = await response.json();
+          return data.quest.riftcarverResults.length;
+        },
+        { timeout: CARVE_DRAIN_TIMEOUT },
+      )
+      .toBeGreaterThan(0);
   });
 
   test('VALID: {Begin Quest pressed again on a quest whose relay a prior Start already seeded} => the second Start mints no second carve and the quest still reaches execution', async ({
@@ -248,6 +286,11 @@ test.describe('Bug-hunt Begin Quest transition', () => {
     const quests = questHarness({ request });
     const nav = navigationHarness({ page });
     const dispatch = dispatchHarness({ request, guildPath: GUILD_PATH });
+
+    // Same reasoning as the sibling test's own comment: queue a green response for riftcarver's own
+    // preflight typecheck before the first real Start below, or its fake-ward call finds an empty
+    // queue and mints a spiritmender repair this spec never mocks.
+    dispatch.queueScript({ script: [{ role: 'riftcarver', outcome: 'green' }] });
 
     const guild = await guilds.createGuild({ name: 'Bug Hunt Restart Guild', path: GUILD_PATH });
     const guildId = String(guild.id);
@@ -297,6 +340,28 @@ test.describe('Bug-hunt Begin Quest transition', () => {
     const firstStart = await dispatch.startQuestViaStartRoute({ questId });
     expect(firstStart.status).toBe(HTTP_OK);
 
+    // Pause right after this response lands, same reasoning as the sibling test: the earliest point
+    // guaranteed to run after the dispatcher woke, before the rewind below races a real carve.
+    await dispatchPauseHarness({ request }).pause();
+
+    // The pause stops a FUTURE dispatch tick, not the carve this one already started — so drain it
+    // to a real riftcarverResults entry before rewinding the status. Same reasoning as the sibling
+    // test's own drain at its end: an in-flight carve must not still be touching this guild path's
+    // git repo once the rewind + second Begin Quest below start mutating it again.
+    await expect
+      .poll(
+        async () => {
+          const response = await request.get(`/api/quests/${questId}`);
+          if (response.status() !== HTTP_OK) {
+            return 0;
+          }
+          const data = await response.json();
+          return data.quest.riftcarverResults.length;
+        },
+        { timeout: CARVE_DRAIN_TIMEOUT },
+      )
+      .toBeGreaterThan(0);
+
     const afterFirstStartResponse = await request.get(`/api/quests/${questId}`);
     const afterFirstStart = await afterFirstStartResponse.json();
 
@@ -341,6 +406,10 @@ test.describe('Bug-hunt Begin Quest transition', () => {
     // user to read — the honest surface is the quest carrying on into execution.
     expect(startResponse.status()).toBe(HTTP_OK);
 
+    // Same reasoning as this test's first start: pause the instant this response lands, ahead of
+    // the dispatcher's slower steps.
+    await dispatchPauseHarness({ request }).pause();
+
     await expect(page.getByTestId('QUEST_APPROVED_MODAL_TITLE')).not.toBeVisible({
       timeout: MODAL_TIMEOUT,
     });
@@ -353,15 +422,30 @@ test.describe('Bug-hunt Begin Quest transition', () => {
     const questResponse = await request.get(`/api/quests/${questId}`);
     const questData = await questResponse.json();
 
-    // Nothing appended and nothing re-minted: the SAME operation items and the SAME work items, by
-    // id, in the same order. Comparing ids rather than roles is what catches a second carve, which
-    // carries the same role name as the first and would slide past a role-list check.
-    expect(questData.quest.operations.map((op: { id: string }) => op.id)).toStrictEqual(
-      seededOperationIds,
-    );
-    expect(questData.quest.workItems.map((wi: { id: string }) => wi.id)).toStrictEqual(
-      seededWorkItemIds,
-    );
+    // The drain above (needed to let the first start's own real carve land rather than race a
+    // rewrite) means riftcarver's scope is genuinely terminal by the time this second Start plays
+    // the dispatcher again — so a fresh scan is free to route the relay on into codeweaver exactly
+    // as it would for any quest whose carve already finished. That forward progress is not a
+    // double-seed; it is what "the quest still reaches execution" (this test's own title) means once
+    // the ledger is no longer artificially frozen. What "no second carve" actually forbids is a
+    // SECOND riftcarver operation/work item minted for the SAME scope — comparing ids rather than
+    // roles catches that, since a re-mint carries the same role name as the first and would slide
+    // past a role-count check alone.
+    const seededOperationIdSet = new Set(seededOperationIds);
+    const seededWorkItemIdSet = new Set(seededWorkItemIds);
+    expect(
+      questData.quest.operations
+        .map((op: { id: string }) => op.id)
+        .filter((id: string) => seededOperationIdSet.has(id)),
+    ).toStrictEqual(seededOperationIds);
+    expect(
+      questData.quest.workItems
+        .map((wi: { id: string }) => wi.id)
+        .filter((id: string) => seededWorkItemIdSet.has(id)),
+    ).toStrictEqual(seededWorkItemIds);
+    expect(
+      questData.quest.workItems.filter((wi: { role: string }) => wi.role === 'riftcarver'),
+    ).toHaveLength(1);
     expect(questData.quest.status).toBe('in_progress');
   });
 });

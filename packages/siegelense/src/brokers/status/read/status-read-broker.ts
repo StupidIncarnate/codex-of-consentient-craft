@@ -12,6 +12,16 @@
  * the resolved state of the NAMED id (`'unknown'` included) for a named query, `null` for a fleet
  * listing where no single id was asked about (siegelense-tooling.md:2317, 2319-2321).
  *
+ * A RESERVATION (`isReservedRegistryEntryGuard`) ALWAYS bypasses the `--since` window, fresh or
+ * stale alike — the default 6h fleet view otherwise hides exactly the row an operator most needs to
+ * notice: one abandoned before `boot.lock` or the driver's own first `ping` ever fired has no
+ * heartbeat and no evidence of its own, so its own age is the only signal anything went wrong, and a
+ * time window built for "how far back do you want to look at real activity" silently swallows it
+ * instead. `instanceStateContract` has no member for "still reserving" — a closed enum, and this
+ * package's ideal fix is one more member on it — so the row still surfaces under whatever
+ * `instanceStateResolveBroker` already resolves it to instead: `alive` while inside
+ * `instanceLifecycleStatics.reservation.staleAfterMs`, `dead` once past it.
+ *
  * USAGE:
  * await statusReadBroker({ instanceId: null });
  * // Returns the whole fleet's StatusAnswer
@@ -28,6 +38,7 @@ import { monitoredMetricContract } from '../../../contracts/monitored-metric/mon
 import type { RegistryEntry } from '../../../contracts/registry-entry/registry-entry-contract';
 import { statusAnswerContract } from '../../../contracts/status-answer/status-answer-contract';
 import type { StatusAnswer } from '../../../contracts/status-answer/status-answer-contract';
+import { isReservedRegistryEntryGuard } from '../../../guards/is-reserved-registry-entry/is-reserved-registry-entry-guard';
 import { instanceStateResolveBroker } from '../../instance/state-resolve/instance-state-resolve-broker';
 import { machineReadBroker } from '../../machine/read/machine-read-broker';
 import { registryReadBroker } from '../../registry/read/registry-read-broker';
@@ -76,6 +87,14 @@ export const statusReadBroker = async ({
   if (since !== null && since !== 'beginning') {
     const windowMs = SINCE_WINDOWS_MS[since];
     entryStatePairs = entryStatePairs.filter((pair) => {
+      // `state === 'alive'` is load-bearing here exactly as it is in capacityReadBroker and
+      // instanceStartBroker's own aheadOfMe count: isReservedRegistryEntryGuard alone answers true
+      // for a `killed`/`pruned` TOMBSTONE that never booted too (its own PURPOSE — "never a sixth
+      // InstanceState" — assumes this check runs first), and a reaped row is exactly what the
+      // --since window exists to age out.
+      if (pair.entry.state === 'alive' && isReservedRegistryEntryGuard({ entry: pair.entry })) {
+        return true;
+      }
       const activityMs = pair.entry.lastBeatMs ?? pair.entry.reservedAtMs;
       return nowMs - activityMs <= windowMs;
     });

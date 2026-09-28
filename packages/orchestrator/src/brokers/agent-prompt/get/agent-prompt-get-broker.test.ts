@@ -99,7 +99,7 @@ describe('agentPromptGetBroker', () => {
     });
   });
 
-  // REFUSAL 2. A role name is dispatched as its own work item by /dumpster-launch; without the id
+  // REFUSAL 2. A role name is dispatched as its own work item by the dispatcher; without the id
   // there is no operation item to resolve and no session for the stop guard to hold open.
   describe('a role must supply its workItemId', () => {
     it.each(ROLE_NAMES)(

@@ -4,7 +4,7 @@
  * USAGE:
  * <QuestChatContentLayerWidget questId={questId} guildId={guildId} guildSlug={guildSlug} />
  * // questId === null → placeholder banner instructing the user to run `/dumpster-create` in their Claude session. Quest creation happens via the ChaosWhisperer slash command, not the web UI.
- * // questId set → live workspace. The binding subscribes, layout transitions to ChatPanel+SpecPanel (spec phase) or full-width ExecutionPanel (execution phase). Execution view shows a `/dumpster-launch` banner.
+ * // questId set → live workspace. The binding subscribes, layout transitions to ChatPanel+SpecPanel (spec phase) or full-width ExecutionPanel (execution phase).
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -52,7 +52,6 @@ import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-
 import { questTypeOptionsStatics } from '../../statics/quest-type-options/quest-type-options-statics';
 import { sortChatEntriesByTimestampTransformer } from '../../transformers/sort-chat-entries-by-timestamp/sort-chat-entries-by-timestamp-transformer';
 import { ChatPanelWidget } from '../chat-panel/chat-panel-widget';
-import { DumpsterCommandBannerWidget } from '../dumpster-command-banner/dumpster-command-banner-widget';
 import { DumpsterRaccoonWidget } from '../dumpster-raccoon/dumpster-raccoon-widget';
 import { ExecutionPanelWidget } from '../execution-panel/execution-panel-widget';
 import { FormDropdownWidget } from '../form-dropdown/form-dropdown-widget';
@@ -339,10 +338,30 @@ export const QuestChatContentLayerWidget = ({
           }}
         >
           <Stack gap="md" data-testid="QUEST_CHAT_NO_QUEST_PLACEHOLDER">
-            <DumpsterCommandBannerWidget
-              message={NO_QUEST_BANNER_MESSAGE}
-              command={DUMPSTER_CREATE_COMMAND}
-            />
+            <Box
+              style={{
+                border: `1px solid ${colors.border}`,
+                backgroundColor: colors['bg-raised'],
+                padding: 8,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                flexShrink: 0,
+              }}
+            >
+              <Text ff="monospace" size="xs" style={{ color: colors['text-dim'], flex: 1 }}>
+                {NO_QUEST_BANNER_MESSAGE}
+              </Text>
+              <Text
+                ff="monospace"
+                size="xs"
+                fw={700}
+                style={{ color: colors['loot-gold'] }}
+                data-testid="DUMPSTER_COMMAND_BANNER_COMMAND"
+              >
+                {DUMPSTER_CREATE_COMMAND}
+              </Text>
+            </Box>
             <Text ff="monospace" size="xs" style={{ color: colors['text-dim'] }}>
               The spec conversation runs in your Claude session. Once the quest is created, this
               page will open to its spec view automatically.

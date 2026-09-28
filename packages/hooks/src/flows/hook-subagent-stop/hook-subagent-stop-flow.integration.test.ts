@@ -31,12 +31,12 @@ const signalBackLine = JSON.stringify({
   },
 });
 
-// A PARENT (/dumpster-launch) session line — no get-agent-prompt-with-workItemId, so reading it
+// A PARENT session line — no get-agent-prompt-with-workItemId, so reading it
 // would NOT trigger a block. Used to prove the hook reads agent_transcript_path, not transcript_path.
 const parentSessionLine = JSON.stringify({
   message: {
     role: 'assistant',
-    content: [{ type: 'tool_use', id: 'p1', name: 'mcp__dungeonmaster__get-next-step', input: {} }],
+    content: [{ type: 'tool_use', id: 'p1', name: 'mcp__dungeonmaster__get-quest', input: {} }],
   },
 });
 

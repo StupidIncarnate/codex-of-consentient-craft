@@ -2805,67 +2805,6 @@ describe('ExecutionPanelWidget', () => {
     });
   });
 
-  describe('/dumpster-launch banner', () => {
-    it('VALID: {status: in_progress} => renders /dumpster-launch banner above the status bar', () => {
-      const proxy = ExecutionPanelWidgetProxy();
-      const quest: Quest = QuestStub({ status: 'in_progress' });
-
-      mantineRenderAdapter({
-        ui: <ExecutionPanelWidget quest={quest} />,
-      });
-
-      expect(proxy.hasDumpsterLaunchBanner()).toBe(true);
-      expect(proxy.getDumpsterLaunchBannerCommand()).toBe('/dumpster-launch');
-    });
-
-    it('VALID: {status: approved} => renders /dumpster-launch banner (pre-execution but non-terminal)', () => {
-      const proxy = ExecutionPanelWidgetProxy();
-      const quest: Quest = QuestStub({ status: 'approved' });
-
-      mantineRenderAdapter({
-        ui: <ExecutionPanelWidget quest={quest} />,
-      });
-
-      expect(proxy.hasDumpsterLaunchBanner()).toBe(true);
-      expect(proxy.getDumpsterLaunchBannerCommand()).toBe('/dumpster-launch');
-    });
-
-    it('VALID: {status: complete} => does NOT render /dumpster-launch banner (terminal)', () => {
-      const proxy = ExecutionPanelWidgetProxy();
-      const quest: Quest = QuestStub({ status: 'complete' });
-
-      mantineRenderAdapter({
-        ui: <ExecutionPanelWidget quest={quest} />,
-      });
-
-      expect(proxy.hasDumpsterLaunchBanner()).toBe(false);
-    });
-
-    it('VALID: {status: abandoned} => does NOT render /dumpster-launch banner (terminal)', () => {
-      const proxy = ExecutionPanelWidgetProxy();
-      const quest: Quest = QuestStub({ status: 'abandoned' });
-
-      mantineRenderAdapter({
-        ui: <ExecutionPanelWidget quest={quest} />,
-      });
-
-      expect(proxy.hasDumpsterLaunchBanner()).toBe(false);
-    });
-
-    it('VALID: {status: in_progress, QUEST SPEC tab} => does NOT render /dumpster-launch banner (banner lives under execution tab only)', async () => {
-      const proxy = ExecutionPanelWidgetProxy();
-      const quest: Quest = QuestStub({ status: 'in_progress' });
-
-      mantineRenderAdapter({
-        ui: <ExecutionPanelWidget quest={quest} />,
-      });
-
-      await proxy.clickTab({ tabId: 'spec' });
-
-      expect(proxy.hasDumpsterLaunchBanner()).toBe(false);
-    });
-  });
-
   describe('FOLLOW-UP tab', () => {
     it('VALID: {press FOLLOW-UP} => tab bar holds FOLLOW-UP then EXECUTION then QUEST SPEC, with FOLLOW-UP active', async () => {
       const proxy = ExecutionPanelWidgetProxy();

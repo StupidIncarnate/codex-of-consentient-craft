@@ -7,7 +7,7 @@
  * // Returns: WorkItemForUpsert with only id required
  *
  * CLEAR SEMANTICS:
- * - `sessionId`, `agentId`, and `startedAt` accept explicit `null` to mean
+ * - `sessionId` and `startedAt` accept explicit `null` to mean
  *   "remove this field from the persisted work item." Used by orphan-reset to
  *   discard stale per-run identity when flipping in_progress → pending.
  * - The MCP `modify-quest` boundary strips `workItems` entirely, so these
@@ -16,7 +16,6 @@
 
 import { z } from 'zod';
 
-import { agentIdContract } from '../agent-id/agent-id-contract';
 import { questWorkItemIdContract } from '../quest-work-item-id/quest-work-item-id-contract';
 import { sessionIdContract } from '../session-id/session-id-contract';
 import { workItemContract } from '../work-item/work-item-contract';
@@ -24,7 +23,6 @@ import { workItemContract } from '../work-item/work-item-contract';
 export const workItemForUpsertContract = workItemContract.partial().extend({
   id: questWorkItemIdContract,
   sessionId: sessionIdContract.nullable().optional(),
-  agentId: agentIdContract.nullable().optional(),
   startedAt: z.iso.datetime().brand<'IsoTimestamp'>().nullable().optional(),
 });
 

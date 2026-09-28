@@ -40,7 +40,6 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import type {
   AdapterResult,
-  AgentId,
   ArrayIndex,
   ChatEntry,
   GuildId,
@@ -70,22 +69,14 @@ import { stripAgentFilenamePrefixTransformer } from '../../../transformers/strip
 import { guildGetBroker } from '../../guild/get/guild-get-broker';
 import { questCwdResolveBroker } from '../../quest/cwd-resolve/quest-cwd-resolve-broker';
 import { questGetServerConfigBroker } from '../../quest/get-server-config/quest-get-server-config-broker';
-import { scopeSubagentFilesToDescendantsLayerBroker } from './scope-subagent-files-to-descendants-layer-broker';
 
 export const chatHistoryReplayBroker = async ({
   sessionId,
-  agentId: filterAgentId,
   guildId,
   questId,
   onEntries,
 }: {
   sessionId: SessionId;
-  // When set, replay only the named sub-agent's JSONL — used by the per-work-item
-  // execution-panel replay. The main session JSONL is still read for the pre-scan that
-  // builds the realAgentId→toolUseId map, but its lines are NOT emitted. Without this
-  // param the broker emits both main session and every subagent file (the chat-replay
-  // session-view path).
-  agentId?: AgentId;
   guildId: GuildId;
   // When set, the JSONL directory is resolved through the quest rather than by walking up from the
   // guild path — and resolved FOR THIS SESSION, since `sessionId` rides along to
@@ -145,12 +136,18 @@ export const chatHistoryReplayBroker = async ({
   // before subscribe are lost AND replay misses the unwritten JSONL, so nothing reaches
   // the client.
   //
-  // Per-work-item replay (`filterAgentId` set) only cares about a single sub-agent's
-  // JSONL — the main session file is irrelevant. Skipping the read avoids the
-  // ENOENT-retry budget when the parent's `<sessionId>.jsonl` was never written (a Task
-  // sub-agent under /dumpster-launch can outlive its parent, and seeded tests omit it).
-  const sessionLines =
-    filterAgentId === undefined ? await chatReplayJsonlReadBroker({ filePath: jsonlPath }) : [];
+  // A main session file that is STILL missing once that budget elapses reads as "no main
+  // content" rather than aborting the whole replay: a sub-agent's own JSONL can exist
+  // (and carry real entries) even when its session's top-level file does not, and letting
+  // the ENOENT propagate here would drop those sub-agent entries along with it.
+  const sessionLines = await chatReplayJsonlReadBroker({ filePath: jsonlPath }).catch(
+    (error: unknown) => {
+      if (error instanceof Error && error.message.includes('ENOENT')) {
+        return [];
+      }
+      throw error;
+    },
+  );
 
   const subagentsDir = `${stripJsonlSuffixTransformer({ filePath: jsonlPath })}/subagents`;
 
@@ -171,22 +168,7 @@ export const chatHistoryReplayBroker = async ({
         }),
       })),
     );
-    // Per-work-item replay scopes to a single sub-agent AND every nested sub-agent it
-    // spawned. A nested sub-agent B (spawned by A) writes its own subagents/agent-<B>.jsonl;
-    // an exact-match filter on A's agentId would drop B's file and the web row would render
-    // the nested chain as '(0 entries)'. The layer broker walks the spawn graph (built from
-    // each file's completion tool_results) and keeps the transitive descendant closure of
-    // filterAgentId; unrelated sibling sub-agents stay excluded.
-    if (filterAgentId === undefined) {
-      subagentFiles.push(...results);
-    } else {
-      subagentFiles.push(
-        ...scopeSubagentFilesToDescendantsLayerBroker({
-          files: results,
-          rootAgentId: agentIdContract.parse(String(filterAgentId)),
-        }),
-      );
-    }
+    subagentFiles.push(...results);
   } catch {
     // subagents directory may not exist
   }
@@ -207,23 +189,16 @@ export const chatHistoryReplayBroker = async ({
 
   let globalIndex = 0;
 
-  // For per-work-item replay (filterAgentId set) the parent session JSONL is irrelevant
-  // — we want ONLY the sub-agent's own entries. Skip taggedLines emission for the parent
-  // here; the pre-scan below still reads `sessionLines` to populate the realAgentId→
-  // toolUseId reverse map so the surviving sub-agent entries get their parent_tool_use_id
-  // stamped correctly.
-  if (filterAgentId === undefined) {
-    for (const line of sessionLines) {
-      const parsed = claudeLineNormalizeBroker({ rawLine: line });
-      const timestamp = extractTimestampFromJsonlLineTransformer({ parsed });
-      taggedLines.push({
-        parsed,
-        source: sessionSource,
-        timestamp,
-        index: arrayIndexContract.parse(globalIndex),
-      });
-      globalIndex += 1;
-    }
+  for (const line of sessionLines) {
+    const parsed = claudeLineNormalizeBroker({ rawLine: line });
+    const timestamp = extractTimestampFromJsonlLineTransformer({ parsed });
+    taggedLines.push({
+      parsed,
+      source: sessionSource,
+      timestamp,
+      index: arrayIndexContract.parse(globalIndex),
+    });
+    globalIndex += 1;
   }
 
   for (const subagentFile of subagentFiles) {

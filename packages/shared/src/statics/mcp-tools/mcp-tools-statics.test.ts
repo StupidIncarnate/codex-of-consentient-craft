@@ -26,7 +26,6 @@ describe('mcpToolsStatics', () => {
           'get-blight-checklist',
           'get-project-inventory',
           'create-quest',
-          'get-next-step',
           'get-server-config',
           'get-quest-summary',
           'create-worktree',

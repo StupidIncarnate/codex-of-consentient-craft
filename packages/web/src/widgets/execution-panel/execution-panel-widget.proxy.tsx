@@ -10,7 +10,6 @@ import { useElapsedTickBindingProxy } from '../../bindings/use-elapsed-tick/use-
 import { useQuestProjectionBindingProxy } from '../../bindings/use-quest-projection/use-quest-projection-binding.proxy';
 import { AutoScrollContainerWidgetProxy } from '../auto-scroll-container/auto-scroll-container-widget.proxy';
 import { ChatPanelWidgetProxy } from '../chat-panel/chat-panel-widget.proxy';
-import { DumpsterCommandBannerWidgetProxy } from '../dumpster-command-banner/dumpster-command-banner-widget.proxy';
 import { PixelBtnWidgetProxy } from '../pixel-btn/pixel-btn-widget.proxy';
 import { QuestSpecPanelWidgetProxy } from '../quest-spec-panel/quest-spec-panel-widget.proxy';
 import { QuestTitleBarWidgetProxy } from '../quest-title-bar/quest-title-bar-widget.proxy';
@@ -51,8 +50,6 @@ export const ExecutionPanelWidgetProxy = (): {
   hasSpecPanel: () => boolean;
   hasActionBar: () => boolean;
   hasAbandonButton: () => boolean;
-  hasDumpsterLaunchBanner: () => boolean;
-  getDumpsterLaunchBannerCommand: () => HTMLElement['textContent'];
   getStepRows: () => HTMLElement[];
   getRowNames: () => (HTMLElement['textContent'] | null)[];
   getRoleBadges: () => (HTMLElement['textContent'] | null)[];
@@ -94,7 +91,6 @@ export const ExecutionPanelWidgetProxy = (): {
   getProjectionRequestCount: () => RequestCount;
 } => {
   AutoScrollContainerWidgetProxy();
-  DumpsterCommandBannerWidgetProxy();
   // Both the unclaimed-operations map (renders ExecutionRowLayerWidget directly) and the
   // visible-work-item map (renders it through ExecutionWorkItemRowLayerWidget) need this row's
   // mocks staged — registerMock/registerSpyOn addresses are shared, so constructing it twice just
@@ -190,12 +186,6 @@ export const ExecutionPanelWidgetProxy = (): {
     hasActionBar: (): boolean => screen.queryByTestId('execution-panel-action-bar') !== null,
     hasAbandonButton: (): boolean =>
       getAbandonBarButtons().some((btn) => btn.textContent === 'ABANDON QUEST'),
-    hasDumpsterLaunchBanner: (): boolean =>
-      screen.queryByTestId('DUMPSTER_COMMAND_BANNER') !== null,
-    getDumpsterLaunchBannerCommand: (): HTMLElement['textContent'] => {
-      const element = screen.queryByTestId('DUMPSTER_COMMAND_BANNER_COMMAND');
-      return element?.textContent ?? null;
-    },
     getStepRows: (): HTMLElement[] => screen.queryAllByTestId('execution-row-layer-widget'),
     getRowNames: (): (HTMLElement['textContent'] | null)[] =>
       screen.queryAllByTestId('execution-row-name').map((el) => el.textContent),

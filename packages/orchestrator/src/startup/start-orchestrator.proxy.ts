@@ -58,8 +58,6 @@ import type {
   UrlSlug,
 } from '@dungeonmaster/shared/contracts';
 
-import type { DispatchPlayResponseStub } from '../contracts/dispatch-play-response/dispatch-play-response.stub';
-import { NextStepStub } from '../contracts/next-step/next-step.stub';
 import { QuestGetServerConfigResultStub } from '../contracts/quest-get-server-config-result/quest-get-server-config-result.stub';
 import { QuestWorkViewStub } from '../contracts/quest-work-view/quest-work-view.stub';
 import { QuestNotFoundError } from '../errors/quest-not-found/quest-not-found-error';
@@ -86,9 +84,7 @@ type QuestSummary = ReturnType<typeof QuestSummaryStub>;
 type QuestWorkView = ReturnType<typeof QuestWorkViewStub>;
 type RateLimitsSnapshot = ReturnType<typeof RateLimitsSnapshotStub>;
 type SkippedQuestFile = ReturnType<typeof SkippedQuestFileStub>;
-type NextStep = ReturnType<typeof NextStepStub>;
 type QuestGetServerConfigResult = ReturnType<typeof QuestGetServerConfigResultStub>;
-type DispatchPlayResponse = ReturnType<typeof DispatchPlayResponseStub>;
 
 type AddQuestResult = Awaited<ReturnType<typeof StartOrchestrator.addQuest>>;
 type GetQuestResult = Awaited<ReturnType<typeof StartOrchestrator.getQuest>>;
@@ -101,7 +97,6 @@ type AgentPromptResult = Awaited<ReturnType<typeof StartOrchestrator.getAgentPro
 type QuestWorkResult = Awaited<ReturnType<typeof StartOrchestrator.questWork>>;
 type RunSmoketestResult = Awaited<ReturnType<typeof StartOrchestrator.runSmoketest>>;
 type GetSmoketestStateResult = ReturnType<typeof StartOrchestrator.getSmoketestState>;
-type StartMonitorWatcherParams = Parameters<typeof StartOrchestrator.startMonitorWatcher>[0];
 
 export const StartOrchestratorProxy = (): {
   // bootstrap — sync, void-ish AdapterResult. start-orchestrator.ts:83.
@@ -207,8 +202,6 @@ export const StartOrchestratorProxy = (): {
   // A caller composing this proxy that needs one field off a specific call (by questId, the input
   // payload) filters/reads this array itself rather than reaching for the jest mock directly.
   modifyQuestGetCalls: () => readonly unknown[];
-  recordQuestSessionReturns: (params: { sessionId?: string }) => void;
-  recordQuestSessionThrows: (params: { sessionId?: string; error: Error }) => void;
   createWorktreeReturns: (params: { name: string; result: CreateWorktreeResult }) => void;
   createWorktreeThrows: (params: { name: string; error: Error }) => void;
   // Every call StartOrchestrator.createWorktree received, first-arg only — mirrors
@@ -240,7 +233,7 @@ export const StartOrchestratorProxy = (): {
   replayChatHistorySetupFailure: (params: { error: Error }) => void;
   // Every call StartOrchestrator.replayChatHistory received, first-arg only — mirrors
   // startChatGetCalls/playDispatchGetCalls. Unaddressed on purpose: a caller needing one field off
-  // a specific call (the sessionId, whether agentId rode along) filters/reads this array itself.
+  // a specific call (the sessionId) filters/reads this array itself.
   replayChatHistoryGetCalls: () => readonly unknown[];
   startFollowupChatReturns: (params: { questId: QuestId; chatProcessId: ProcessId }) => void;
   startFollowupChatThrows: (params: { questId: QuestId; error: Error }) => void;
@@ -267,7 +260,7 @@ export const StartOrchestratorProxy = (): {
   getExecutionQueueThrows: (params: { error: Error }) => void;
   getDispatchStateReturns: (params: { state: DispatchState }) => void;
   getDispatchStateThrows: (params: { error: Error }) => void;
-  playDispatchReturns: (params: { response: DispatchPlayResponse }) => void;
+  playDispatchReturns: (params: { state: DispatchState }) => void;
   playDispatchThrows: (params: { error: Error }) => void;
   playDispatchGetCalls: () => readonly unknown[];
   pauseDispatchReturns: (params: { state: DispatchState }) => void;
@@ -278,7 +271,7 @@ export const StartOrchestratorProxy = (): {
   normalizeDispatchBootThrows: (params: { error: Error }) => void;
   getRateLimitsReturns: (params: { snapshot: RateLimitsSnapshot | null }) => void;
   getRateLimitsThrows: (params: { error: Error }) => void;
-  // MCP-driven surface — QuestFlow.mcpCreate / getNextStep / handleSignalBack / getServerConfig / work.
+  // MCP-driven surface — QuestFlow.mcpCreate / handleSignalBack / getServerConfig / work.
   createQuestForMcpReturns: (params: {
     userRequest: string;
     questId: QuestId;
@@ -289,8 +282,6 @@ export const StartOrchestratorProxy = (): {
   // startChatGetCalls. A caller needing the exact forwarded shape (proving an optional field like
   // questType/sessionId reached the call) filters/reads this array itself.
   createQuestForMcpGetCalls: () => readonly unknown[];
-  getNextStepReturns: (params: { step: NextStep }) => void;
-  getNextStepThrows: (params: { error: Error }) => void;
   handleSignalBackResolves: (params: {
     questId?: QuestId;
     workItemId?: QuestWorkItemId;
@@ -329,9 +320,6 @@ export const StartOrchestratorProxy = (): {
     parentSessionId: string;
     workerWorkItemId: string;
   }) => boolean;
-  startMonitorWatcherStartedWithoutWorkerWorkItemId: (params: {
-    parentSessionId: string;
-  }) => boolean;
   startMonitorWatcherStartedWithWorkerQuestId: (params: {
     parentSessionId: string;
     workerQuestId: string;
@@ -366,7 +354,6 @@ export const StartOrchestratorProxy = (): {
   const deleteQuestHandle = registerMock({ fn: StartOrchestrator.deleteQuest });
   const addQuestHandle = registerMock({ fn: StartOrchestrator.addQuest });
   const modifyQuestHandle = registerMock({ fn: StartOrchestrator.modifyQuest });
-  const recordQuestSessionHandle = registerMock({ fn: StartOrchestrator.recordQuestSession });
   const createWorktreeHandle = registerMock({ fn: StartOrchestrator.createWorktree });
   const startChatHandle = registerMock({ fn: StartOrchestrator.startChat });
   const clarifyAnswerHandle = registerMock({ fn: StartOrchestrator.clarifyAnswer });
@@ -386,7 +373,6 @@ export const StartOrchestratorProxy = (): {
   const normalizeDispatchBootHandle = registerMock({ fn: StartOrchestrator.normalizeDispatchBoot });
   const getRateLimitsHandle = registerMock({ fn: StartOrchestrator.getRateLimits });
   const createQuestForMcpHandle = registerMock({ fn: StartOrchestrator.createQuestForMcp });
-  const getNextStepHandle = registerMock({ fn: StartOrchestrator.getNextStep });
   const handleSignalBackHandle = registerMock({ fn: StartOrchestrator.handleSignalBack });
   const getServerConfigHandle = registerMock({ fn: StartOrchestrator.getServerConfig });
   const questWorkHandle = registerMock({ fn: StartOrchestrator.questWork });
@@ -394,10 +380,9 @@ export const StartOrchestratorProxy = (): {
   const findQuestByWorkItemIdHandle = registerMock({ fn: StartOrchestrator.findQuestByWorkItemId });
   const startMonitorWatcherHandle = registerMock({ fn: StartOrchestrator.startMonitorWatcher });
 
-  // The three real zero-argument defaults every mcp/server caller already relied on — a test that
-  // never sets up its own scenario for one of these still gets the same answer the old per-caller
-  // proxies gave it.
-  getNextStepHandle.calledWith([]).resolves(NextStepStub());
+  // The real zero-argument defaults every mcp/server caller already relied on — a test that never
+  // sets up its own scenario for one of these still gets the same answer the old per-caller proxies
+  // gave it.
   getServerConfigHandle.calledWith([]).returns(QuestGetServerConfigResultStub());
   listGuildsHandle.calledWith([]).resolves([]);
   getRateLimitsHandle.calledWith([]).resolves(null);
@@ -704,22 +689,6 @@ export const StartOrchestratorProxy = (): {
     // specific call (questId, the input payload) filters/reads this itself.
     modifyQuestGetCalls: (): readonly unknown[] =>
       modifyQuestHandle.callsMatching([]).map((call) => call[0]),
-    recordQuestSessionReturns: ({ sessionId }: { sessionId?: string }): void => {
-      recordQuestSessionHandle
-        .calledWith(sessionId === undefined ? [] : [{ sessionId }])
-        .resolves({ success: true as const });
-    },
-    recordQuestSessionThrows: ({
-      sessionId,
-      error,
-    }: {
-      sessionId?: string;
-      error: Error;
-    }): void => {
-      recordQuestSessionHandle
-        .calledWith(sessionId === undefined ? [] : [{ sessionId }])
-        .rejects(error);
-    },
     // The name IS the address: one session can ask for several worktrees.
     createWorktreeReturns: ({
       name,
@@ -877,16 +846,17 @@ export const StartOrchestratorProxy = (): {
     getDispatchStateThrows: ({ error }: { error: Error }): void => {
       getDispatchStateHandle.calledWith([]).rejects(error);
     },
-    // playDispatch takes an optional { force }, but no caller varies the response by it —
-    // getCalls() is what verifies which force value a given call actually forwarded.
-    playDispatchReturns: ({ response }: { response: DispatchPlayResponse }): void => {
-      playDispatchHandle.calledWith([]).resolves(response);
+    // playDispatch takes no arguments — [] is the only possible, exhaustive address.
+    playDispatchReturns: ({ state }: { state: DispatchState }): void => {
+      playDispatchHandle.calledWith([]).resolves(state);
     },
     playDispatchThrows: ({ error }: { error: Error }): void => {
       playDispatchHandle.calledWith([]).rejects(error);
     },
+    // Raw calls, not first-arg: playDispatch takes no arguments, so a first-arg map would read every
+    // call back as `undefined`. One call reads `[[]]`.
     playDispatchGetCalls: (): readonly unknown[] =>
-      playDispatchHandle.callsMatching([]).map((call) => call[0]),
+      playDispatchHandle.callsMatching([]).map((call) => call),
     pauseDispatchReturns: ({ state }: { state: DispatchState }): void => {
       pauseDispatchHandle.calledWith([]).resolves(state);
     },
@@ -933,13 +903,6 @@ export const StartOrchestratorProxy = (): {
     },
     createQuestForMcpGetCalls: (): readonly unknown[] =>
       createQuestForMcpHandle.callsMatching([]).map((call) => call[0]),
-    // getNextStep takes no arguments — [] is the only possible, exhaustive address.
-    getNextStepReturns: ({ step }: { step: NextStep }): void => {
-      getNextStepHandle.calledWith([]).resolves(step);
-    },
-    getNextStepThrows: ({ error }: { error: Error }): void => {
-      getNextStepHandle.calledWith([]).rejects(error);
-    },
     // questId/workItemId optional: a fire-and-forget caller that never reads the result and does
     // not know the address ahead of time can stage a real wildcard via calledWith([]).
     handleSignalBackResolves: ({
@@ -1057,9 +1020,7 @@ export const StartOrchestratorProxy = (): {
       startMonitorWatcherHandle.calledWith([{ parentSessionId }]).rejects(error);
     },
     startMonitorWatcherWasStopCalled: (): boolean => monitorWatcherStopState.called,
-    // A node-dispatch worker session must be started WITH its owning workItemId so the watcher
-    // tails it under the unfiltered proc-worker- prefix; a /dumpster-launch dispatcher session
-    // must be started WITHOUT it.
+    // Every tailed session is a worker session, started WITH its owning workItemId and questId.
     startMonitorWatcherStartedWithWorkerWorkItemId: ({
       parentSessionId,
       workerWorkItemId,
@@ -1068,14 +1029,6 @@ export const StartOrchestratorProxy = (): {
       workerWorkItemId: string;
     }): boolean =>
       startMonitorWatcherHandle.callsMatching([{ parentSessionId, workerWorkItemId }]).length > 0,
-    startMonitorWatcherStartedWithoutWorkerWorkItemId: ({
-      parentSessionId,
-    }: {
-      parentSessionId: string;
-    }): boolean =>
-      startMonitorWatcherHandle
-        .callsMatching([{ parentSessionId }])
-        .some((call) => (call[0] as StartMonitorWatcherParams).workerWorkItemId === undefined),
     startMonitorWatcherStartedWithWorkerQuestId: ({
       parentSessionId,
       workerQuestId,

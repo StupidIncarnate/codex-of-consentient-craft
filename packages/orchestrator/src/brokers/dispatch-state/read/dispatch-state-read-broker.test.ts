@@ -5,25 +5,17 @@ import { dispatchStateReadBrokerProxy } from './dispatch-state-read-broker.proxy
 
 describe('dispatchStateReadBroker', () => {
   describe('valid state file', () => {
-    it('VALID: {file: node-playing with heartbeat} => returns parsed state', async () => {
+    it('VALID: {file: node-playing} => returns parsed state', async () => {
       const proxy = dispatchStateReadBrokerProxy();
-      const state = DispatchStateStub({
-        mode: 'node-playing',
-        mcpHeartbeatAt: '2024-01-15T09:59:00.000Z',
-      });
+      const state = DispatchStateStub({ mode: 'node-playing' });
       proxy.setupStateFile({ json: JSON.stringify(state) });
 
       const result = await dispatchStateReadBroker();
 
-      expect(result).toStrictEqual(
-        DispatchStateStub({
-          mode: 'node-playing',
-          mcpHeartbeatAt: '2024-01-15T09:59:00.000Z',
-        }),
-      );
+      expect(result).toStrictEqual(DispatchStateStub({ mode: 'node-playing' }));
     });
 
-    it('VALID: {file: paused without heartbeat} => returns parsed state', async () => {
+    it('VALID: {file: paused} => returns parsed state', async () => {
       const proxy = dispatchStateReadBrokerProxy();
       proxy.setupStateFile({ json: JSON.stringify(DispatchStateStub()) });
 

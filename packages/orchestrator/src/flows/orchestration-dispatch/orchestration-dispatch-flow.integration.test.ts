@@ -79,7 +79,7 @@ describe('OrchestrationDispatchFlow', () => {
         });
         await harness.seedDispatch({ tempDir, mode: 'paused', hold: standingHold });
 
-        const played = await OrchestrationDispatchFlow.play({});
+        const played = await OrchestrationDispatchFlow.play();
         const persisted = harness.readDispatch({ tempDir });
         const isPlaying = harness.getIsPlaying();
         const isPlayRequested = harness.getIsPlayRequested();
@@ -87,13 +87,13 @@ describe('OrchestrationDispatchFlow', () => {
         await end();
 
         expect({
-          playAllowed: played.allowed,
+          playedMode: played.mode,
           mode: persisted.mode,
           hold: persisted.hold,
           isPlaying,
           isPlayRequested,
         }).toStrictEqual({
-          playAllowed: true,
+          playedMode: 'node-playing',
           mode: 'node-playing',
           hold: standingHold,
           isPlaying: false,
@@ -127,7 +127,7 @@ describe('OrchestrationDispatchFlow', () => {
         });
         await harness.seedDispatch({ tempDir, mode: 'paused', hold: standingHold });
 
-        await OrchestrationDispatchFlow.play({});
+        await OrchestrationDispatchFlow.play();
         const pausedState = await OrchestrationDispatchFlow.pause();
         RateLimitsFlow.bootstrap();
         await harness.awaitHoldCleared({ tempDir });

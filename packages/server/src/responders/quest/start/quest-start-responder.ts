@@ -14,14 +14,11 @@
  * its own `isPlaying()` check — the user pressed the button that says Begin Quest and watched the
  * quest sit at `in_progress` with nothing picking it up.
  *
- * Unconditional here, unlike resume's gate: a START has just seeded the operations ledger and
- * enqueued the quest, so there is dispatchable work by construction. Resume needs the test because
- * it can restore a quest whose ledger is already drained.
+ * Unconditional here, unlike resume's own dispatchable-work test: a START has just seeded the
+ * operations ledger and enqueued the quest, so there is dispatchable work by construction.
  *
- * The exclusivity gate still owns the rest of the decision: a live `/dumpster-launch` loop keeps its
- * claim and dispatch stays paused, which is correct because that loop is already driving the queue.
- * The outcome rides back as `dispatch.started` (+ `dispatch.reason` when refused) rather than
- * failing silently. A play failure never fails the start — the quest IS started at that point.
+ * A play failure never fails the start — the quest IS started at that point — so the outcome rides
+ * back as `dispatch.started` (+ `dispatch.reason` on failure) rather than failing silently.
  */
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
@@ -72,11 +69,8 @@ export const QuestStartResponder = async ({
 
     const processId = await StartOrchestrator.startQuest({ questId });
 
-    const dispatch = await StartOrchestrator.playDispatch({}).then(
-      (played) => ({
-        started: played.allowed,
-        ...(played.reason === undefined ? {} : { reason: played.reason }),
-      }),
+    const dispatch = await StartOrchestrator.playDispatch().then(
+      () => ({ started: true }),
       (error: unknown) => ({
         started: false,
         reason: error instanceof Error ? error.message : 'Failed to start dispatch',

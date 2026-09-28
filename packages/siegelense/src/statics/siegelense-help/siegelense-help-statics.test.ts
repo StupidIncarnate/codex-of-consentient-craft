@@ -48,14 +48,14 @@ describe('siegelenseHelpStatics', () => {
           value: '<recipeName>',
           required: false,
           description:
-            "runs that recipe against the lane once it is up, and returns the ids it made on the manifest's `seeded`. `dungeonmaster siegelense recipes` lists every name with its produces: line. Omitted, the instance starts empty and `seeded` is null.",
+            "runs that recipe against the lane once it is up, and returns the ids it made on the manifest's `seeded`. Takes only a recipe with NO declared inputs — this bare flag has nowhere to carry params, unlike a `run` batch's own `seed` step, so a recipe that declares one refuses before booting rather than failing after. `dungeonmaster siegelense recipes` lists every name with its description. Omitted, the instance starts empty and `seeded` is null.",
         },
         {
           name: '--idle-timeout-ms',
           value: '<ms>',
           required: false,
           description:
-            "raises this instance's idle ceiling above driverStatics.idle.timeoutMs (900000ms) — the length of think-time between runs the served lane survives before reaping itself with no run received. Omitted, the default applies.",
+            "raises this instance's idle ceiling above the 900000ms (15 minute) default — the length of think-time between runs the served lane survives before reaping itself with no run received. Omitted, the default applies.",
         },
         {
           name: '--json',
@@ -69,7 +69,7 @@ describe('siegelenseHelpStatics', () => {
         '--idle-timeout-ms only RAISES the ceiling for this one instance — it never disables the idle timeout or makes it infinite. The timeout is the only backstop against an abandoned lane holding a port pair and a browser open forever.',
       ],
       output:
-        'A human summary by default: instance id, spec, URLs, home and evidence paths, boot time, and one line per seeded binding — since there is no lookup call to recover any of it later. `--json` prints the InstanceManifest unabridged, seeded rows included.',
+        'A human summary by default: instance id, spec, URLs, home and evidence paths, boot time, and one line per seeded binding. `dungeonmaster siegelense status --instance <id>` recovers the evidence paths later. `--json` prints the InstanceManifest unabridged, seeded rows included.',
       example: 'dungeonmaster siegelense start --spec stack',
     });
   });
@@ -122,7 +122,7 @@ describe('siegelenseHelpStatics', () => {
       output:
         "By default, one summary line — run id, status, steps run and duration — plus the failure point when stopped early and any screenshot paths captured. `--json` prints the raw RunResult. Either way, a STATUS — an index and a shot list — never the steps' own payloads; query those afterward with `dungeonmaster siegelense results`.",
       example:
-        'dungeonmaster siegelense run --instance inst_9b2c --steps [{"step":"goto","path":"/"}]',
+        'dungeonmaster siegelense run --instance inst_4f9c2a17b8e6405fa1d4c9e02b7f1a3c --steps \'[{"step":"goto","path":"/"}]\'',
     });
   });
 

@@ -55,4 +55,10 @@ export const domStatics = {
     all: ['own', 'full'] as const,
     default: 'own' as const,
   },
+  notes: {
+    // `{target}` is substituted with the step's own `target` selector — a bare `count: 0` reads as
+    // "nothing happened" while it actually means "nobody matched THIS selector", the same
+    // never-silent-empty rule `instanceStateContract`'s own header states for `pruned`/`unknown`.
+    noMatch: 'no element matched target {target}',
+  },
 } as const;

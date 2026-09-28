@@ -1704,7 +1704,6 @@ describe('McpServerFlow', () => {
       // Dynamic listings / state-driven returns whose size scales with user data
       'list-quests',
       'list-guilds',
-      'get-next-step',
     ] as const;
 
     const sizeCappedTools = mcpToolsStatics.tools.names.filter(

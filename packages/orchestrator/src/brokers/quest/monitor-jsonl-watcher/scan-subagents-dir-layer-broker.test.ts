@@ -6,7 +6,6 @@ import {
   SessionIdStub,
 } from '@dungeonmaster/shared/contracts';
 
-import { AgentIdStub } from '../../../contracts/agent-id/agent-id.stub';
 import { ChatLineSourceStub } from '../../../contracts/chat-line-source/chat-line-source.stub';
 
 import { chatLineProcessTransformer } from '../../../transformers/chat-line-process/chat-line-process-transformer';
@@ -19,8 +18,36 @@ const flushImmediate = async (): Promise<void> =>
     setImmediate(resolve);
   });
 
+// Every file this broker tails is a Task-dispatched sub-agent of the session it belongs to,
+// so pairing it against an outstanding Task's prompt is the ONLY route to a tail — there is
+// no other-eligibility shortcut. `seedOutstandingTask` registers the Task tool_use the
+// pairing below matches against; Claude CLI writes that same prompt verbatim as the
+// sub-agent JSONL's first line.
+const seedOutstandingTask = ({
+  processor,
+  toolUseId,
+  prompt,
+}: {
+  processor: ReturnType<typeof chatLineProcessTransformer>;
+  toolUseId: string;
+  prompt: string;
+}): void => {
+  processor.processLine({
+    parsed: {
+      type: 'assistant',
+      uuid: `${toolUseId}-uuid`,
+      timestamp: '2026-05-13T10:00:00.000Z',
+      message: {
+        role: 'assistant',
+        content: [{ type: 'tool_use', id: toolUseId, name: 'Agent', input: { prompt } }],
+      },
+    },
+    source: ChatLineSourceStub({ value: 'session' }),
+  });
+};
+
 describe('scanSubagentsDirLayerBroker', () => {
-  it('VALID: {one agent-<id>.jsonl in dir} => starts a tail and its lines emit through the shared processor', async () => {
+  it('VALID: {one agent-<id>.jsonl whose first line matches an outstanding Task prompt} => starts a tail and its lines emit through the shared processor', async () => {
     const proxy = scanSubagentsDirLayerBrokerProxy();
     const sessionFilePath = FilePathStub({
       value: '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl',
@@ -28,10 +55,20 @@ describe('scanSubagentsDirLayerBroker', () => {
     const parentSessionId = SessionIdStub({ value: 'abc-123' });
     const chatProcessId = ProcessIdStub({ value: 'scan-proc-1' });
     const activeQuestId = QuestIdStub({ value: 'quest-scan' });
+    const subagentsDir = '/home/user/.claude/projects/-home-user-proj/abc-123/subagents';
+
+    const processor = chatLineProcessTransformer();
+    seedOutstandingTask({ processor, toolUseId: 'toolu_zeta', prompt: 'zeta slice prompt' });
 
     proxy.setupSubagentDirFiles({
-      subagentsDir: '/home/user/.claude/projects/-home-user-proj/abc-123/subagents',
+      subagentsDir,
       files: [FileNameStub({ value: 'agent-zeta.jsonl' })],
+    });
+    proxy.setupFirstLineRead({
+      subagentsDir,
+      fileName: FileNameStub({ value: 'agent-zeta.jsonl' }),
+      content:
+        '{"type":"user","uuid":"zeta-prompt-line","timestamp":"2026-05-13T10:00:01.000Z","message":{"role":"user","content":"zeta slice prompt"}}',
     });
     proxy.setupLines({
       lines: [
@@ -40,21 +77,18 @@ describe('scanSubagentsDirLayerBroker', () => {
     });
 
     const emitted: unknown[] = [];
-    const workItemBackedAgentIds = new Set<ReturnType<typeof AgentIdStub>>();
 
     await scanSubagentsDirLayerBroker({
-      subagentsDir: '/home/user/.claude/projects/-home-user-proj/abc-123/subagents',
+      subagentsDir,
       sessionFilePath,
       parentSessionId,
-      processor: chatLineProcessTransformer(),
+      processor,
       chatProcessId,
       activeQuestIdGetter: () => activeQuestId,
       emit: (call) => {
         emitted.push(call);
       },
-      isAgentIdActive: () => true,
       subagentHandles: new Map(),
-      workItemBackedAgentIds,
     });
 
     proxy.triggerChange();
@@ -69,7 +103,7 @@ describe('scanSubagentsDirLayerBroker', () => {
             type: 'text',
             content: 'from scan',
             source: 'subagent',
-            agentId: 'zeta',
+            agentId: 'toolu_zeta',
             uuid: 'scan-u-1:0',
             timestamp: '2026-05-13T10:00:11.000Z',
           },
@@ -78,8 +112,6 @@ describe('scanSubagentsDirLayerBroker', () => {
         sessionId: parentSessionId,
       },
     ]);
-    // Tailed because it is ACTIVE — so the caller's pruneStaleTails may reclaim it later.
-    expect(workItemBackedAgentIds).toStrictEqual(new Set(['zeta']));
   });
 
   it('EMPTY: {readdir throws ENOENT} => returns success without throwing, emit never called', async () => {
@@ -108,16 +140,14 @@ describe('scanSubagentsDirLayerBroker', () => {
       emit: (call) => {
         emitted.push(call);
       },
-      isAgentIdActive: () => true,
       subagentHandles: new Map(),
-      workItemBackedAgentIds: new Set(),
     });
 
     expect(result).toStrictEqual({ success: true });
     expect(emitted).toStrictEqual([]);
   });
 
-  it('VALID: {non-agent file in dir alongside agent file} => only the agent file gets a tail', async () => {
+  it('VALID: {non-agent file in dir alongside a paired agent file} => only the agent file gets a tail', async () => {
     const proxy = scanSubagentsDirLayerBrokerProxy();
     const sessionFilePath = FilePathStub({
       value: '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl',
@@ -125,14 +155,24 @@ describe('scanSubagentsDirLayerBroker', () => {
     const parentSessionId = SessionIdStub({ value: 'abc-123' });
     const chatProcessId = ProcessIdStub({ value: 'scan-proc-3' });
     const activeQuestId = QuestIdStub({ value: 'quest-scan-mixed' });
+    const subagentsDir = '/home/user/.claude/projects/-home-user-proj/abc-123/subagents';
+
+    const processor = chatLineProcessTransformer();
+    seedOutstandingTask({ processor, toolUseId: 'toolu_omega', prompt: 'omega slice prompt' });
 
     proxy.setupSubagentDirFiles({
-      subagentsDir: '/home/user/.claude/projects/-home-user-proj/abc-123/subagents',
+      subagentsDir,
       files: [
         FileNameStub({ value: 'notes.txt' }),
         FileNameStub({ value: 'agent-omega.jsonl' }),
         FileNameStub({ value: 'agent-no-ext' }),
       ],
+    });
+    proxy.setupFirstLineRead({
+      subagentsDir,
+      fileName: FileNameStub({ value: 'agent-omega.jsonl' }),
+      content:
+        '{"type":"user","uuid":"omega-prompt-line","timestamp":"2026-05-13T10:00:01.000Z","message":{"role":"user","content":"omega slice prompt"}}',
     });
     // Only ONE line batch — only the single `agent-omega.jsonl` should get a tail.
     proxy.setupLines({
@@ -144,18 +184,16 @@ describe('scanSubagentsDirLayerBroker', () => {
     const emitted: unknown[] = [];
 
     await scanSubagentsDirLayerBroker({
-      subagentsDir: '/home/user/.claude/projects/-home-user-proj/abc-123/subagents',
+      subagentsDir,
       sessionFilePath,
       parentSessionId,
-      processor: chatLineProcessTransformer(),
+      processor,
       chatProcessId,
       activeQuestIdGetter: () => activeQuestId,
       emit: (call) => {
         emitted.push(call);
       },
-      isAgentIdActive: () => true,
       subagentHandles: new Map(),
-      workItemBackedAgentIds: new Set(),
     });
 
     proxy.triggerChange();
@@ -170,7 +208,7 @@ describe('scanSubagentsDirLayerBroker', () => {
             type: 'text',
             content: 'only omega',
             source: 'subagent',
-            agentId: 'omega',
+            agentId: 'toolu_omega',
             uuid: 'scan-u-2:0',
             timestamp: '2026-05-13T10:00:12.000Z',
           },
@@ -181,7 +219,7 @@ describe('scanSubagentsDirLayerBroker', () => {
     ]);
   });
 
-  it('VALID: {stale agentId not in active set} => file is skipped, no tail registered, no emit', async () => {
+  it("VALID: {one file's first line matches an outstanding Task, a sibling's does not} => only the matching file is tailed, the stale one stays skipped", async () => {
     const proxy = scanSubagentsDirLayerBrokerProxy();
     const sessionFilePath = FilePathStub({
       value: '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl',
@@ -189,14 +227,35 @@ describe('scanSubagentsDirLayerBroker', () => {
     const parentSessionId = SessionIdStub({ value: 'abc-123' });
     const chatProcessId = ProcessIdStub({ value: 'scan-proc-filter' });
     const activeQuestId = QuestIdStub({ value: 'quest-scan-filter' });
-    const activeAgentId = AgentIdStub({ value: 'live-agent' });
+    const subagentsDir = '/home/user/.claude/projects/-home-user-proj/abc-123/subagents';
+
+    const processor = chatLineProcessTransformer();
+    seedOutstandingTask({
+      processor,
+      toolUseId: 'toolu_live_agent',
+      prompt: 'live agent slice prompt',
+    });
 
     proxy.setupSubagentDirFiles({
-      subagentsDir: '/home/user/.claude/projects/-home-user-proj/abc-123/subagents',
+      subagentsDir,
       files: [
         FileNameStub({ value: 'agent-stale-from-prior-run.jsonl' }),
         FileNameStub({ value: 'agent-live-agent.jsonl' }),
       ],
+    });
+    // The stale leftover's first line matches no outstanding Task prompt — a prior run's
+    // sub-agent, or content this run never spawned.
+    proxy.setupFirstLineRead({
+      subagentsDir,
+      fileName: FileNameStub({ value: 'agent-stale-from-prior-run.jsonl' }),
+      content:
+        '{"type":"user","uuid":"stale-prompt-line","timestamp":"2026-05-13T09:00:00.000Z","message":{"role":"user","content":"a prompt from a run that already ended"}}',
+    });
+    proxy.setupFirstLineRead({
+      subagentsDir,
+      fileName: FileNameStub({ value: 'agent-live-agent.jsonl' }),
+      content:
+        '{"type":"user","uuid":"live-prompt-line","timestamp":"2026-05-13T10:00:01.000Z","message":{"role":"user","content":"live agent slice prompt"}}',
     });
     // One batch — only the live agent's tail should drain it.
     proxy.setupLines({
@@ -207,21 +266,18 @@ describe('scanSubagentsDirLayerBroker', () => {
 
     const emitted: unknown[] = [];
     const handles = new Map();
-    const workItemBackedAgentIds = new Set<ReturnType<typeof AgentIdStub>>();
 
     await scanSubagentsDirLayerBroker({
-      subagentsDir: '/home/user/.claude/projects/-home-user-proj/abc-123/subagents',
+      subagentsDir,
       sessionFilePath,
       parentSessionId,
-      processor: chatLineProcessTransformer(),
+      processor,
       chatProcessId,
       activeQuestIdGetter: () => activeQuestId,
       emit: (call) => {
         emitted.push(call);
       },
-      isAgentIdActive: ({ agentId }) => String(agentId) === String(activeAgentId),
       subagentHandles: handles,
-      workItemBackedAgentIds,
     });
 
     proxy.triggerChange();
@@ -236,7 +292,7 @@ describe('scanSubagentsDirLayerBroker', () => {
             type: 'text',
             content: 'from live agent',
             source: 'subagent',
-            agentId: 'live-agent',
+            agentId: 'toolu_live_agent',
             uuid: 'scan-u-filter:0',
             timestamp: '2026-05-13T10:00:13.000Z',
           },
@@ -246,10 +302,9 @@ describe('scanSubagentsDirLayerBroker', () => {
       },
     ]);
     expect(handles.size).toBe(1);
-    expect(workItemBackedAgentIds).toStrictEqual(new Set(['live-agent']));
   });
 
-  it('VALID: {non-active file whose first-line prompt matches an outstanding Task} => paired and tailed even though isAgentIdActive is false', async () => {
+  it('VALID: {nested sub-agent file whose first-line prompt matches an outstanding Task} => paired and tailed', async () => {
     const proxy = scanSubagentsDirLayerBrokerProxy();
     const sessionFilePath = FilePathStub({
       value: '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl',
@@ -257,40 +312,25 @@ describe('scanSubagentsDirLayerBroker', () => {
     const parentSessionId = SessionIdStub({ value: 'abc-123' });
     const chatProcessId = ProcessIdStub({ value: 'scan-proc-nested' });
     const activeQuestId = QuestIdStub({ value: 'quest-scan-nested' });
+    const subagentsDir = '/home/user/.claude/projects/-home-user-proj/abc-123/subagents';
 
     // Shared processor pre-seeded with an OUTSTANDING Agent Task (a parent sub-agent spawned a
     // nested sub-agent). Its prompt is the byte-equal pairing key the nested file carries.
     const processor = chatLineProcessTransformer();
-    processor.processLine({
-      parsed: {
-        type: 'assistant',
-        uuid: 'nested-parent-task-uuid',
-        timestamp: '2026-05-13T10:00:00.000Z',
-        message: {
-          role: 'assistant',
-          content: [
-            {
-              type: 'tool_use',
-              id: 'toolu_nested_parent',
-              name: 'Agent',
-              input: { prompt: 'nested slice prompt' },
-            },
-          ],
-        },
-      },
-      source: ChatLineSourceStub({ value: 'session' }),
+    seedOutstandingTask({
+      processor,
+      toolUseId: 'toolu_nested_parent',
+      prompt: 'nested slice prompt',
     });
 
-    // The nested sub-agent's realAgentId is NOT a stamped work-item agentId, so the active-set
-    // predicate returns false for it — the OLD gate would skip it entirely.
     proxy.setupSubagentDirFiles({
-      subagentsDir: '/home/user/.claude/projects/-home-user-proj/abc-123/subagents',
+      subagentsDir,
       files: [FileNameStub({ value: 'agent-realnestedb.jsonl' })],
     });
     // First-line read: Claude CLI writes the Task prompt verbatim as the sub-agent JSONL's
     // first user-text line.
     proxy.setupFirstLineRead({
-      subagentsDir: '/home/user/.claude/projects/-home-user-proj/abc-123/subagents',
+      subagentsDir,
       fileName: FileNameStub({ value: 'agent-realnestedb.jsonl' }),
       content:
         '{"type":"user","uuid":"nested-prompt-line","timestamp":"2026-05-13T10:00:01.000Z","message":{"role":"user","content":"nested slice prompt"}}',
@@ -304,10 +344,9 @@ describe('scanSubagentsDirLayerBroker', () => {
 
     const emitted: unknown[] = [];
     const handles = new Map();
-    const workItemBackedAgentIds = new Set<ReturnType<typeof AgentIdStub>>();
 
     await scanSubagentsDirLayerBroker({
-      subagentsDir: '/home/user/.claude/projects/-home-user-proj/abc-123/subagents',
+      subagentsDir,
       sessionFilePath,
       parentSessionId,
       processor,
@@ -316,9 +355,7 @@ describe('scanSubagentsDirLayerBroker', () => {
       emit: (call) => {
         emitted.push(call);
       },
-      isAgentIdActive: () => false,
       subagentHandles: handles,
-      workItemBackedAgentIds,
     });
 
     proxy.triggerChange();
@@ -345,9 +382,5 @@ describe('scanSubagentsDirLayerBroker', () => {
         sessionId: parentSessionId,
       },
     ]);
-    // Tailed via prompt-pairing, NOT because it is active — it owns no work item, so it must
-    // stay out of the prunable set. Pruning it would stop the tail on the next refresh tick,
-    // and the next scan would re-tail the file from byte 0 and replay its whole transcript.
-    expect(workItemBackedAgentIds).toStrictEqual(new Set());
   });
 });

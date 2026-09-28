@@ -1391,18 +1391,18 @@ describe('QuestHandleResponder', () => {
       });
     });
 
-    it('VALID: {userRequest} with a resolvable Claude Code session on disk => forwards the resolved sessionId to the create-quest adapter', async () => {
+    it('VALID: {userRequest} with a hook-stamped caller in meta => forwards the resolved sessionId to the create-quest adapter', async () => {
       const proxy = QuestHandleResponderProxy();
       const questId = QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' });
       const guildSlug = UrlSlugStub({ value: 'my-guild' });
-      proxy.setupSessionResolved({
-        entries: [{ name: 'resolved-session-abc.jsonl', mtimeMs: 1000 }],
-      });
       proxy.setupCreateQuestReturns({ userRequest: 'Build the login flow', questId, guildSlug });
 
       const result = await proxy.callResponder({
         tool: ToolNameStub({ value: 'create-quest' }),
         args: { userRequest: 'Build the login flow' },
+        meta: {
+          'dungeonmaster/caller': { cwd: '/default/cwd', sessionId: 'resolved-session-abc' },
+        },
       });
 
       expect(result).toStrictEqual({
@@ -1437,52 +1437,6 @@ describe('QuestHandleResponder', () => {
             type: 'text',
             text: JSON.stringify(
               { success: false, error: 'No guild available' },
-              null,
-              JSON_INDENT_SPACES,
-            ),
-          },
-        ],
-        isError: true,
-      });
-    });
-  });
-
-  describe('get-next-step', () => {
-    it('VALID: {} => returns NextStep JSON', async () => {
-      const proxy = QuestHandleResponderProxy();
-      const step = proxy.buildIdleNextStep();
-      proxy.setupGetNextStepReturns({ step });
-
-      const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'get-next-step' }),
-        args: {},
-      });
-
-      expect(result).toStrictEqual({
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify(step, null, JSON_INDENT_SPACES),
-          },
-        ],
-      });
-    });
-
-    it('ERROR: {adapter throws} => returns error response', async () => {
-      const proxy = QuestHandleResponderProxy();
-      proxy.setupGetNextStepThrows({ error: new Error('Scan failed') });
-
-      const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'get-next-step' }),
-        args: {},
-      });
-
-      expect(result).toStrictEqual({
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify(
-              { success: false, error: 'Scan failed' },
               null,
               JSON_INDENT_SPACES,
             ),

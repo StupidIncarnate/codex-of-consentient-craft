@@ -44,7 +44,16 @@ export const startAnswerRenderTransformer = ({
               }
 
               const rowEntries = Object.entries(value);
-              const idEntry = rowEntries.find(([key]) => key === 'id');
+              const idEntry = seedRowSummaryStatics.primaryId.fieldOrder.reduce<
+                (typeof rowEntries)[0] | undefined
+              >((found, fieldName) => {
+                if (found !== undefined) {
+                  return found;
+                }
+                return rowEntries.find(
+                  ([key, fieldValue]) => key === fieldName && typeof fieldValue === 'string',
+                );
+              }, undefined);
               const id = idEntry !== undefined && typeof idEntry[1] === 'string' ? idEntry[1] : '-';
 
               const identityEntries = seedRowSummaryStatics.identity.fieldOrder.reduce<

@@ -4,8 +4,11 @@ describe('seedRowSummaryStatics', () => {
   it('VALID: exported value => matches the complete statics shape', () => {
     expect(seedRowSummaryStatics).toStrictEqual({
       identity: {
-        fieldOrder: ['title', 'name', 'label', 'urlSlug', 'slug', 'status', 'state'],
+        fieldOrder: ['title', 'name', 'label', 'urlSlug', 'slug', 'status', 'state', 'filePath'],
         maxFields: 2,
+      },
+      primaryId: {
+        fieldOrder: ['id', 'sessionId', 'agentId'],
       },
     });
   });

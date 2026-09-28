@@ -3,9 +3,8 @@
  * Idempotent — subsequent calls are no-ops. Re-emits every play/pause flip as a
  * `dispatch-state-changed` bus event so the server broadcasts it to WS clients. Boot
  * normalization (node-playing → paused) is deliberately NOT here — it lives in
- * OrchestrationDispatchNormalizeBootResponder, called only by the HTTP server's boot, because
- * this bootstrap also runs inside every MCP stdio child, through `StartOrchestrator.bootstrap()`,
- * and a child spawned mid-play must not flip the shared file back to paused.
+ * OrchestrationDispatchNormalizeBootResponder, which the HTTP server calls once at its own boot,
+ * separately from `StartOrchestrator.bootstrap()`.
  *
  * USAGE:
  * OrchestrationDispatchBootstrapResponder();
