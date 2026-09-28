@@ -34,7 +34,7 @@ describe('pruneArgsParseTransformer', () => {
 
     it('INVALID: {args: [--human]} => --human is refused as an unknown flag', () => {
       expect(() => pruneArgsParseTransformer({ args: ['--human'] })).toThrow(
-        /^Unknown flag: --human\n\nAccepted flags: --instance, --kind, --older-than, --json\n\nUsage: dungeonmaster siegelense prune \[--instance <instanceId>\] \[--kind <kind>\] \[--older-than <window>\] \[--json\]$/u,
+        /^Unknown flag: --human\n\nAccepted flags: --instance, --kind, --older-than, --json, --confirm\n\nUsage: dungeonmaster siegelense prune \[--instance <instanceId>\] \[--kind <kind>\] \[--older-than <window>\] \[--json\] \[--confirm\]$/u,
       );
     });
 
@@ -42,6 +42,13 @@ describe('pruneArgsParseTransformer', () => {
       expect(pruneArgsParseTransformer({ args: ['--json'] })).toStrictEqual({
         query: { instanceId: null, kind: null, olderThan: '7d' },
         isJson: true,
+      });
+    });
+
+    it('VALID: {args: --confirm} => accepted rather than refused as unknown, and the parsed selectors are untouched by it', () => {
+      expect(pruneArgsParseTransformer({ args: ['--confirm'] })).toStrictEqual({
+        query: { instanceId: null, kind: null, olderThan: '7d' },
+        isJson: false,
       });
     });
   });
@@ -67,7 +74,7 @@ describe('pruneArgsParseTransformer', () => {
 
     it('INVALID: {args: --all} => an unknown flag lists the accepted ones', () => {
       expect(() => pruneArgsParseTransformer({ args: ['--all'] })).toThrow(
-        /^Unknown flag: --all\n\nAccepted flags: --instance, --kind, --older-than, --json\n\nUsage: dungeonmaster siegelense prune \[--instance <instanceId>\] \[--kind <kind>\] \[--older-than <window>\] \[--json\]$/u,
+        /^Unknown flag: --all\n\nAccepted flags: --instance, --kind, --older-than, --json, --confirm\n\nUsage: dungeonmaster siegelense prune \[--instance <instanceId>\] \[--kind <kind>\] \[--older-than <window>\] \[--json\] \[--confirm\]$/u,
       );
     });
 

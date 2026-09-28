@@ -42,4 +42,18 @@ describe('pruneStatics', () => {
       expect(pruneStatics.size.bytesPerMegabyte).toBe(1_048_576);
     });
   });
+
+  describe('flags', () => {
+    it('VALID: {flags} => the confirm flag that turns a dry run into a real deletion', () => {
+      expect(pruneStatics.flags).toStrictEqual({ confirm: '--confirm' });
+    });
+  });
+
+  describe('messages', () => {
+    it('VALID: {messages} => the dry-run notice printed whenever --confirm is absent', () => {
+      expect(pruneStatics.messages).toStrictEqual({
+        dryRunNotice: 'DRY RUN — nothing was deleted. Pass --confirm to actually remove these.',
+      });
+    });
+  });
 });
