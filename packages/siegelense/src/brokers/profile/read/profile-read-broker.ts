@@ -94,10 +94,8 @@ export const profileReadBroker = async ({
       }),
   );
 
-  const observations = parsedSamples.filter(
-    (observation): observation is ProfileObservation => observation !== null,
-  );
-  const boots = parsedBoots.filter((boot): boot is ProfileBoot => boot !== null);
+  const observations = parsedSamples.filter((observation) => observation !== null);
+  const boots = parsedBoots.filter((boot) => boot !== null);
 
   const bootMs =
     boots.length === 0

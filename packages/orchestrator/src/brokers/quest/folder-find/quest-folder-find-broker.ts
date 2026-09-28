@@ -8,7 +8,7 @@
  */
 
 import { filePathContract, questContract } from '@dungeonmaster/shared/contracts';
-import type { FilePath, Quest, QuestId } from '@dungeonmaster/shared/contracts';
+import type { FilePath, QuestId } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { join } from '#gateway/node/path';
 
@@ -46,9 +46,7 @@ export const questFolderFindBroker = async ({
     }),
   );
 
-  const validResults = questFileResults.filter(
-    (result): result is { folderPath: FilePath; quest: Quest } => result !== null,
-  );
+  const validResults = questFileResults.filter((result) => result !== null);
 
   const match = validResults.find((result) => result.quest.id === questId);
 

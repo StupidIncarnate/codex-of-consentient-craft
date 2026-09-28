@@ -78,9 +78,7 @@ export const duplicateInstallCheckBroker = async ({
         }),
       );
 
-      const locations = foundLocations.filter(
-        (found): found is DuplicateInstallLocation => found !== undefined,
-      );
+      const locations = foundLocations.filter((found) => found !== undefined);
       if (
         locations.length < duplicateInstallThresholdsStatics.counts.minimumLocationsForViolation
       ) {
@@ -91,7 +89,5 @@ export const duplicateInstallCheckBroker = async ({
     }),
   );
 
-  return violations.filter(
-    (violation): violation is DuplicateInstallViolation => violation !== undefined,
-  );
+  return violations.filter((violation) => violation !== undefined);
 };

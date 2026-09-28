@@ -244,7 +244,7 @@ export const ChatEntryListWidget = ({
     : [];
   const collapsedUnits = collapsedIndices
     .map((idx) => renderUnits[Number(idx)])
-    .filter((u): u is RenderUnit => u !== undefined);
+    .filter((u) => u !== undefined);
 
   // Collapsed minimum-visible bound — at least 1 unit visible when no message anchor, at
   // least 2 (anchor + last) when there is one — applied so the toggle's hidden-count never

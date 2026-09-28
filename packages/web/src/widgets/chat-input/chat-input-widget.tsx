@@ -236,7 +236,7 @@ export const ChatInputWidget = ({
 
       const orderedAttachments = attachmentIds
         .map((attachmentId) => attachmentsRef.current.get(attachmentId))
-        .filter((attachment): attachment is ComposerAttachment => attachment !== undefined);
+        .filter((attachment) => attachment !== undefined);
 
       // The draft that is durable RIGHT NOW — every token in it names bytes IndexedDB already
       // accepted. Read before the write below overwrites it, because it is what the retraction
@@ -398,7 +398,7 @@ export const ChatInputWidget = ({
 
     const orderedAttachments = attachmentIds
       .map((attachmentId) => attachmentsRef.current.get(attachmentId))
-      .filter((attachment): attachment is ComposerAttachment => attachment !== undefined);
+      .filter((attachment) => attachment !== undefined);
 
     const payload = composerSendPayloadContract.parse({
       message: trimmed,
@@ -649,7 +649,7 @@ export const ChatInputWidget = ({
       const attachmentIds = loadedAttachments.map((attachment) => attachment?.attachmentId);
       const segments = composerParseDraftTransformer({ text, attachmentIds });
       const resolvedAttachments = loadedAttachments.filter(
-        (attachment): attachment is ComposerAttachment => attachment !== undefined,
+        (attachment) => attachment !== undefined,
       );
       const map = new Map(
         resolvedAttachments.map((attachment) => [attachment.attachmentId, attachment] as const),

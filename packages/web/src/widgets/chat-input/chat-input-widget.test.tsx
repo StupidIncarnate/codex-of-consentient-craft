@@ -1307,8 +1307,7 @@ describe('ChatInputWidget', () => {
       // tests above use to drive the store directly.
       const storedBeforeEviction = await proxy.getStoredDraftImages();
       const definedBeforeEviction = storedBeforeEviction.filter(
-        (attachment): attachment is ReturnType<typeof ComposerAttachmentStub> =>
-          attachment !== undefined,
+        (attachment) => attachment !== undefined,
       );
       const survivingRecords = definedBeforeEviction.filter(
         (attachment) => attachment.attachmentId === 'e2000000-0000-4000-8000-000000000001',

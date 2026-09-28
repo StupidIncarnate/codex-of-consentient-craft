@@ -99,5 +99,5 @@ export const questListBroker = async ({
     }),
   );
 
-  return loaded.filter((quest): quest is Quest => quest !== null);
+  return loaded.filter((quest) => quest !== null);
 };
