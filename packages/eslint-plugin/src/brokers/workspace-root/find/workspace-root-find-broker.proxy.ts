@@ -1,6 +1,6 @@
-import { FilePathStub, FileContentsStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
-import { fsReadFileSyncAdapterProxy } from '../../../adapters/fs/read-file-sync/fs-read-file-sync-adapter.proxy';
+import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
 import { pathJoinAdapterProxy } from '../../../adapters/path/join/path-join-adapter.proxy';
 import { pathDirnameAdapterProxy } from '../../../adapters/path/dirname/path-dirname-adapter.proxy';
 
@@ -14,7 +14,7 @@ export const workspaceRootFindBrokerProxy = (): {
   setupNoPackageJson: (args: { dir: string }) => void;
 } => {
   const existsProxy = existsSyncProxy();
-  const readProxy = fsReadFileSyncAdapterProxy();
+  const readProxy = readFileSyncProxy();
   // Real passthrough default: no explicit staging.
   pathJoinAdapterProxy();
   pathDirnameAdapterProxy();
@@ -32,13 +32,11 @@ export const workspaceRootFindBrokerProxy = (): {
       const packageJsonPath = FilePathStub({ value: `${rootDir}/package.json` });
       existsProxy.returns({ path: packageJsonPath, exists: true });
       readProxy.returns({
-        filePath: packageJsonPath,
-        contents: FileContentsStub({
-          value: JSON.stringify({
-            name: rootPackageJsonName,
-            workspaces: ['packages/*'],
-            dependencies: Object.fromEntries(packageNames.map((name) => [name, '*'])),
-          }),
+        path: packageJsonPath,
+        contents: JSON.stringify({
+          name: rootPackageJsonName,
+          workspaces: ['packages/*'],
+          dependencies: Object.fromEntries(packageNames.map((name) => [name, '*'])),
         }),
       });
     },
@@ -48,8 +46,8 @@ export const workspaceRootFindBrokerProxy = (): {
       const packageJsonPath = FilePathStub({ value: `${packageDir}/package.json` });
       existsProxy.returns({ path: packageJsonPath, exists: true });
       readProxy.returns({
-        filePath: packageJsonPath,
-        contents: FileContentsStub({ value: JSON.stringify({ name: '@dungeonmaster/some-pkg' }) }),
+        path: packageJsonPath,
+        contents: JSON.stringify({ name: '@dungeonmaster/some-pkg' }),
       });
     },
 

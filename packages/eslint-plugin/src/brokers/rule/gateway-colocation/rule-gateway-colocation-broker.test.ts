@@ -1,4 +1,4 @@
-import { FilePathStub, FileContentsStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts';
 import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter';
 import { FileNameStub } from '../../../contracts/file-name/file-name.stub';
 import { ruleGatewayColocationBroker } from './rule-gateway-colocation-broker';
@@ -136,38 +136,38 @@ beforeEach(() => {
 
   // Source text barrel-completeness reads to learn each target file's exported names.
   proxy.barrelCompleteness.fsReadFileSync.returns({
-    filePath: FilePathStub({
+    path: FilePathStub({
       value: '/repo/packages/@gateway/node/src/fs/is-fs-error/fs-error.ts',
     }),
-    contents: FileContentsStub({ value: 'export interface FsError {\n  code: string;\n}\n' }),
+    contents: 'export interface FsError {\n  code: string;\n}\n',
   });
   proxy.barrelCompleteness.fsReadFileSync.returns({
-    filePath: FilePathStub({
+    path: FilePathStub({
       value: '/repo/packages/@gateway/node/src/fs/is-fs-error/is-fs-error.ts',
     }),
-    contents: FileContentsStub({ value: 'export const isFsError = (): boolean => false;\n' }),
+    contents: 'export const isFsError = (): boolean => false;\n',
   });
   proxy.barrelCompleteness.fsReadFileSync.returns({
-    filePath: FilePathStub({
+    path: FilePathStub({
       value: '/repo/packages/@gateway/node/src/fs/read-file-sync/read-file-sync.ts',
     }),
-    contents: FileContentsStub({ value: 'export const readFileSync = (): string => "";\n' }),
+    contents: 'export const readFileSync = (): string => "";\n',
   });
   proxy.barrelCompleteness.fsReadFileSync.returns({
-    filePath: FilePathStub({ value: '/repo/packages/@gateway/node/src/os/homedir/homedir.ts' }),
-    contents: FileContentsStub({ value: 'export const homedir = (): string => "";\n' }),
+    path: FilePathStub({ value: '/repo/packages/@gateway/node/src/os/homedir/homedir.ts' }),
+    contents: 'export const homedir = (): string => "";\n',
   });
   proxy.barrelCompleteness.fsReadFileSync.returns({
-    filePath: FilePathStub({
+    path: FilePathStub({
       value: '/repo/packages/@gateway/node/src/dns/resolve4/resolve4.ts',
     }),
-    contents: FileContentsStub({ value: 'export const resolve4 = (): string[] => [];\n' }),
+    contents: 'export const resolve4 = (): string[] => [];\n',
   });
   proxy.barrelCompleteness.fsReadFileSync.returns({
-    filePath: FilePathStub({
+    path: FilePathStub({
       value: '/repo/packages/@gateway/node/src/tls/create-server/create-server.ts',
     }),
-    contents: FileContentsStub({ value: 'export const startServer = (): void => {};\n' }),
+    contents: 'export const startServer = (): void => {};\n',
   });
 });
 

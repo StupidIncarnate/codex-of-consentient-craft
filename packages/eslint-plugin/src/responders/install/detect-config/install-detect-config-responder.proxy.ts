@@ -4,7 +4,7 @@ import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { pathJoinAdapterProxy } from '../../../adapters/path/join/path-join-adapter.proxy';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { writeFileSyncProxy } from '#gateway/node/fs/write-file-sync/write-file-sync.proxy';
-import { fsReadFileSyncAdapterProxy } from '../../../adapters/fs/read-file-sync/fs-read-file-sync-adapter.proxy';
+import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
 import { eslintConfigFilesStatics } from '../../../statics/eslint-config-files/eslint-config-files-statics';
 import { InstallDetectConfigResponder } from './install-detect-config-responder';
 
@@ -20,7 +20,7 @@ export const InstallDetectConfigResponderProxy = (): {
 } => {
   const joinProxy = pathJoinAdapterProxy();
   const existsProxy = existsSyncProxy();
-  const readProxy = fsReadFileSyncAdapterProxy();
+  const readProxy = readFileSyncProxy();
   const writeProxy = writeFileSyncProxy();
 
   return {
@@ -62,7 +62,7 @@ export const InstallDetectConfigResponderProxy = (): {
       }
 
       const filePath = filePathContract.parse(`${targetProjectRoot}/${configFileName}`);
-      readProxy.returns({ filePath, contents });
+      readProxy.returns({ path: filePath, contents });
     },
 
     getWrittenConfigContent: ({ targetProjectRoot }: { targetProjectRoot: string }): unknown => {

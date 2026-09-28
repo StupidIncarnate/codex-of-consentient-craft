@@ -1,7 +1,7 @@
-import { FilePathStub, FileContentsStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
-import { fsReadFileSyncAdapterProxy } from '../../../adapters/fs/read-file-sync/fs-read-file-sync-adapter.proxy';
+import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
 import { pathJoinAdapterProxy } from '../../../adapters/path/join/path-join-adapter.proxy';
 import { pathDirnameAdapterProxy } from '../../../adapters/path/dirname/path-dirname-adapter.proxy';
 
@@ -10,7 +10,7 @@ export const configGatewayLintConfigBrokerProxy = (): {
   setupNoDungeonmasterConfigAt: (args: { configDir: string }) => void;
 } => {
   const existsProxy = existsSyncProxy();
-  const readProxy = fsReadFileSyncAdapterProxy();
+  const readProxy = readFileSyncProxy();
   // Real passthrough default: no explicit staging.
   pathJoinAdapterProxy();
   pathDirnameAdapterProxy();
@@ -31,7 +31,7 @@ export const configGatewayLintConfigBrokerProxy = (): {
           : `${configDir}/${locationsStatics.repoRoot.config}`,
       });
       existsProxy.returns({ path: configPath, exists: true });
-      readProxy.returns({ filePath: configPath, contents: FileContentsStub({ value: contents }) });
+      readProxy.returns({ path: configPath, contents });
     },
 
     // existsSyncProxy ships no address-less catch-all by design: a walk-to-root "nothing found"

@@ -28,8 +28,7 @@ import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { fsReaddirSyncAdapter } from '../../../adapters/fs/readdir-sync/fs-readdir-sync-adapter';
-import { existsSync } from '#gateway/node/fs';
-import { fsReadFileSyncAdapter } from '../../../adapters/fs/read-file-sync/fs-read-file-sync-adapter';
+import { existsSync, readFileSync } from '#gateway/node/fs';
 import { isGatewayWrapperImplementationFileGuard } from '../../../guards/is-gateway-wrapper-implementation-file/is-gateway-wrapper-implementation-file-guard';
 import { gatewayWrapperExportedNamesTransformer } from '../../../transformers/gateway-wrapper-exported-names/gateway-wrapper-exported-names-transformer';
 
@@ -63,7 +62,7 @@ export const barrelCompletenessLayerBroker = ({
     for (const wrapperFile of wrapperFiles) {
       const wrapperFilePath = filePathContract.parse(`${wrapperDirectory}${wrapperFile.name}`);
       const { valueNames } = gatewayWrapperExportedNamesTransformer({
-        sourceText: String(fsReadFileSyncAdapter({ filePath: wrapperFilePath })),
+        sourceText: readFileSync(wrapperFilePath),
       });
 
       for (const valueName of valueNames) {
@@ -103,7 +102,7 @@ export const barrelCompletenessLayerBroker = ({
     }
 
     const { valueNames, typeNames } = gatewayWrapperExportedNamesTransformer({
-      sourceText: String(fsReadFileSyncAdapter({ filePath: targetFilePath })),
+      sourceText: readFileSync(targetFilePath),
     });
 
     if (!valueNames.includes(reexport.name) && !typeNames.includes(reexport.name)) {

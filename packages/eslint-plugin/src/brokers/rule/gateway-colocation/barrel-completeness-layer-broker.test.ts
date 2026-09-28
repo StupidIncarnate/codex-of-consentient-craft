@@ -1,9 +1,4 @@
-import {
-  FilePathStub,
-  IdentifierStub,
-  ImportPathStub,
-  FileContentsStub,
-} from '@dungeonmaster/shared/contracts';
+import { FilePathStub, IdentifierStub, ImportPathStub } from '@dungeonmaster/shared/contracts';
 import { barrelCompletenessLayerBroker } from './barrel-completeness-layer-broker';
 import { barrelCompletenessLayerBrokerProxy } from './barrel-completeness-layer-broker.proxy';
 import { EslintContextStub } from '../../../contracts/eslint-context/eslint-context.stub';
@@ -36,16 +31,16 @@ describe('barrelCompletenessLayerBroker', () => {
       ],
     });
     proxy.fsReadFileSync.returns({
-      filePath: FilePathStub({
+      path: FilePathStub({
         value: '/repo/packages/@gateway/node/src/fs/is-fs-error/fs-error.ts',
       }),
-      contents: FileContentsStub({ value: 'export interface FsError {}\n' }),
+      contents: 'export interface FsError {}\n',
     });
     proxy.fsReadFileSync.returns({
-      filePath: FilePathStub({
+      path: FilePathStub({
         value: '/repo/packages/@gateway/node/src/fs/is-fs-error/is-fs-error.ts',
       }),
-      contents: FileContentsStub({ value: 'export const isFsError = (): boolean => false;\n' }),
+      contents: 'export const isFsError = (): boolean => false;\n',
     });
     proxy.fsExistsSync.returns({
       path: FilePathStub({
@@ -100,10 +95,10 @@ describe('barrelCompletenessLayerBroker', () => {
       entries: [{ name: FileNameStub({ value: 'resolve4.ts' }), isDirectory: false }],
     });
     proxy.fsReadFileSync.returns({
-      filePath: FilePathStub({
+      path: FilePathStub({
         value: '/repo/packages/@gateway/node/src/dns/resolve4/resolve4.ts',
       }),
-      contents: FileContentsStub({ value: 'export const resolve4 = (): string[] => [];\n' }),
+      contents: 'export const resolve4 = (): string[] => [];\n',
     });
 
     const result = barrelCompletenessLayerBroker({
@@ -174,10 +169,10 @@ describe('barrelCompletenessLayerBroker', () => {
       exists: true,
     });
     proxy.fsReadFileSync.returns({
-      filePath: FilePathStub({
+      path: FilePathStub({
         value: '/repo/packages/@gateway/node/src/tls/create-server/create-server.ts',
       }),
-      contents: FileContentsStub({ value: 'export const startServer = (): void => {};\n' }),
+      contents: 'export const startServer = (): void => {};\n',
     });
 
     const name = IdentifierStub({ value: 'createServer' });

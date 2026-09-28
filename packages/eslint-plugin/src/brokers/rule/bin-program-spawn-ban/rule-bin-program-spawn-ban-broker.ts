@@ -152,8 +152,8 @@ export const ruleBinProgramSpawnBanBroker = (): EslintRule => ({
 
       CallExpression: (node: Tsestree): void => {
         const { callee } = node;
-        const args = (node.arguments ?? []).filter(
-          (argument): argument is Tsestree => argument !== null,
+        const args = (node.arguments ?? []).flatMap((argument) =>
+          argument === null ? [] : [argument],
         );
 
         if (

@@ -17,8 +17,7 @@
  * // Returns true
  */
 import type { FilePath } from '@dungeonmaster/shared/contracts';
-import { existsSync } from '#gateway/node/fs';
-import { fsReadFileSyncAdapter } from '../../../adapters/fs/read-file-sync/fs-read-file-sync-adapter';
+import { existsSync, readFileSync } from '#gateway/node/fs';
 import { pathDirnameAdapter } from '../../../adapters/path/dirname/path-dirname-adapter';
 import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
 import { gatewayBarrelExportedNamesTransformer } from '../../../transformers/gateway-barrel-exported-names/gateway-barrel-exported-names-transformer';
@@ -30,7 +29,7 @@ export const checkGatewayExportNameExistsLayerBroker = ({
   barrelPath: FilePath;
   name: string;
 }): boolean => {
-  const sourceText = fsReadFileSyncAdapter({ filePath: barrelPath });
+  const sourceText = readFileSync(barrelPath);
   const { directNames, reexportTargets } = gatewayBarrelExportedNamesTransformer({ sourceText });
 
   if (directNames.some((directName) => directName === name)) {
@@ -46,7 +45,7 @@ export const checkGatewayExportNameExistsLayerBroker = ({
       continue;
     }
 
-    const targetText = fsReadFileSyncAdapter({ filePath: candidatePath });
+    const targetText = readFileSync(candidatePath);
     const targetExports = gatewayBarrelExportedNamesTransformer({ sourceText: targetText });
     if (targetExports.directNames.some((directName) => directName === name)) {
       return true;

@@ -1,4 +1,4 @@
-import { FilePathStub, IdentifierStub, FileContentsStub } from '@dungeonmaster/shared/contracts';
+import { FilePathStub, IdentifierStub } from '@dungeonmaster/shared/contracts';
 import { FileNameStub } from '../../../contracts/file-name/file-name.stub';
 import { collectGatewayTypeDeclarationNamesLayerBroker } from './collect-gateway-type-declaration-names-layer-broker';
 import { collectGatewayTypeDeclarationNamesLayerBrokerProxy } from './collect-gateway-type-declaration-names-layer-broker.proxy';
@@ -29,10 +29,8 @@ describe('collectGatewayTypeDeclarationNamesLayerBroker', () => {
         ],
       });
       proxy.fsReadFileSync.returns({
-        filePath: walkedFilePath,
-        contents: FileContentsStub({
-          value: 'export interface WalkedFile {\n  path: unknown;\n}\n',
-        }),
+        path: walkedFilePath,
+        contents: 'export interface WalkedFile {\n  path: unknown;\n}\n',
       });
 
       const index = collectGatewayTypeDeclarationNamesLayerBroker({
@@ -63,12 +61,12 @@ describe('collectGatewayTypeDeclarationNamesLayerBroker', () => {
         ],
       });
       proxy.fsReadFileSync.returns({
-        filePath: firstFile,
-        contents: FileContentsStub({ value: 'export interface Stats {\n  size: unknown;\n}\n' }),
+        path: firstFile,
+        contents: 'export interface Stats {\n  size: unknown;\n}\n',
       });
       proxy.fsReadFileSync.returns({
-        filePath: secondFile,
-        contents: FileContentsStub({ value: 'export interface Stats {\n  size: unknown;\n}\n' }),
+        path: secondFile,
+        contents: 'export interface Stats {\n  size: unknown;\n}\n',
       });
 
       const index = collectGatewayTypeDeclarationNamesLayerBroker({
@@ -99,10 +97,8 @@ describe('collectGatewayTypeDeclarationNamesLayerBroker', () => {
         ],
       });
       proxy.fsReadFileSync.returns({
-        filePath: wrapperFile,
-        contents: FileContentsStub({
-          value: 'export const isPortFree = async (): Promise<boolean> => true;\n',
-        }),
+        path: wrapperFile,
+        contents: 'export const isPortFree = async (): Promise<boolean> => true;\n',
       });
 
       const index = collectGatewayTypeDeclarationNamesLayerBroker({

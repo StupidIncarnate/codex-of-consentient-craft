@@ -15,8 +15,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
-import { existsSync, writeFileSync } from '#gateway/node/fs';
-import { fsReadFileSyncAdapter } from '../../../adapters/fs/read-file-sync/fs-read-file-sync-adapter';
+import { existsSync, readFileSync, writeFileSync } from '#gateway/node/fs';
 import { eslintConfigFilesStatics } from '../../../statics/eslint-config-files/eslint-config-files-statics';
 
 const PACKAGE_NAME = '@dungeonmaster/eslint-plugin';
@@ -104,7 +103,7 @@ export const InstallDetectConfigResponder = ({
     });
 
     if (existsSync(configPath)) {
-      const content = fsReadFileSyncAdapter({ filePath: configPath });
+      const content = readFileSync(configPath);
 
       if (content.includes('@dungeonmaster')) {
         return {

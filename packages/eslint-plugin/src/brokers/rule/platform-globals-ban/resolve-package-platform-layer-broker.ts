@@ -20,8 +20,7 @@ import {
   type FilePath,
 } from '@dungeonmaster/shared/contracts';
 import { packageBrowserTypeTransformer } from '@dungeonmaster/shared/transformers';
-import { existsSync } from '#gateway/node/fs';
-import { fsReadFileSyncAdapter } from '../../../adapters/fs/read-file-sync/fs-read-file-sync-adapter';
+import { existsSync, readFileSync } from '#gateway/node/fs';
 import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
 import { pathDirnameAdapter } from '../../../adapters/path/dirname/path-dirname-adapter';
 import { findAncestorDirectoryLayerBroker } from './find-ancestor-directory-layer-broker';
@@ -50,9 +49,7 @@ export const resolvePackagePlatformLayerBroker = ({
     return cached;
   }
 
-  const packageJsonRaw = fsReadFileSyncAdapter({
-    filePath: pathJoinAdapter({ paths: [packageRoot, 'package.json'] }),
-  });
+  const packageJsonRaw = readFileSync(pathJoinAdapter({ paths: [packageRoot, 'package.json'] }));
   const packageJson = packageJsonContract.parse(JSON.parse(packageJsonRaw));
 
   const srcDirNames = existsSync(pathJoinAdapter({ paths: [packageRoot, 'src', 'widgets'] }))

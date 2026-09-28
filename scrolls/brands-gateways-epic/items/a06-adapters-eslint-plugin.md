@@ -428,6 +428,72 @@ in one group is far past the 30-file budget the dispatching instructions set, so
   this scoped lint run touched the file; replaced with `.flatMap((name) => (name === null ? [] : [name]))`,
   which needs no type predicate on a contracts-imported type.
 
+### G-I-d part 1
+
+The item's own "Part 2 file count" section (above) estimated ~18 broker+proxy pairs for
+`fs-read-file-sync-adapter.ts`. A read-only pass over the actual tree (`discover`, `Read`, 2026-09-28) found only
+**12** real callers of `fsReadFileSyncAdapter` left — most of G-I-b's `existsSync`-only brokers
+(`enforce-hydration-recipes-structure`, `enforce-implementation-colocation`, `enforce-proxy-child-creation`'s exists
+half, `enforce-proxy-patterns`, `enforce-test-colocation`, `rule-gateway-colocation-broker` itself,
+`find-package-json-dir-layer-broker`, `build-gateway-type-declaration-index-layer-broker`'s own exists half,
+`find-ancestor-directory-layer-broker`) never called `fsReadFileSyncAdapter` at all. This group takes **10 of the
+12**, up to the ~25-file budget; the other 2 are left for part 2 below with the reason each was skipped.
+
+**Delete (0 files this round — see "Left for part 2"):** `fs-read-file-sync-adapter.ts`/`.proxy.ts`/`.test.ts` stay,
+because 2 of its 12 real callers are not moved.
+
+**Taken (10 callers, 24 files — impl + proxy, plus 3 test-file edits where the caller's own proxy exposes its
+`fsReadFileSync` child directly rather than a semantic method, and 1 ripple edit in a composing proxy):**
+
+1. `brokers/config/gateway-lint-config/config-gateway-lint-config-broker.ts` (+ `.proxy.ts`)
+2. `brokers/config/workspace-package-names/config-workspace-package-names-broker.ts` (+ `.proxy.ts`)
+3. `brokers/config/workspace-package-names/resolve-workspace-glob-layer-broker.ts` (+ `.proxy.ts`)
+4. `brokers/repo-scope/resolve/repo-scope-resolve-broker.ts` (+ `.proxy.ts`)
+5. `brokers/rule/enforce-gateway-config-names-exist/check-gateway-export-name-exists-layer-broker.ts` (+ `.proxy.ts`)
+6. `brokers/rule/gateway-colocation/barrel-completeness-layer-broker.ts` (+ `.proxy.ts`, + `.test.ts` — its own
+   proxy exposes `fsReadFileSync` as a raw child, so the 4 stagings in its own test rename `filePath`→`path` and
+   drop the `FileContentsStub` wrap the gateway proxy's plain-`string` `contents` no longer needs)
+7. `brokers/rule/gateway-colocation/rule-gateway-colocation-broker.test.ts` — not a direct caller; ripples because
+   this file reaches through `proxy.barrelCompleteness.fsReadFileSync.returns(...)` directly (6 call sites) rather
+   than a semantic method on `ruleGatewayColocationBrokerProxy`, which stays untouched itself (its
+   `barrelCompleteness` field's type is inferred from `barrelCompletenessLayerBrokerProxy`'s own return type)
+8. `brokers/rule/gateway-schema-brand/collect-gateway-type-declaration-names-layer-broker.ts` (+ `.proxy.ts`, +
+   `.test.ts` — same exposed-child-proxy shape as barrel-completeness, 3 stagings renamed)
+9. `brokers/rule/gateway-schema-brand/build-gateway-type-declaration-index-layer-broker.proxy.ts` — not a direct
+   caller (its own `.ts` and `.test.ts` are untouched); ripples because it composes
+   `collectGatewayTypeDeclarationNamesLayerBrokerProxy` and reaches its exposed `fsReadFileSync` child directly in
+   `setupSrcDirWithDeclaration`
+10. `brokers/rule/platform-globals-ban/resolve-package-platform-layer-broker.ts` (+ `.proxy.ts`) — only the
+    `fsReadFileSyncAdapter` half; its `existsSync` half was already on the gateway (G-I-b)
+11. `brokers/workspace-root/find/workspace-root-find-broker.ts` (+ `.proxy.ts`)
+12. `responders/install/detect-config/install-detect-config-responder.ts` (+ `.proxy.ts`) — only the
+    `fsReadFileSyncAdapter` half; its `existsSync`/`writeFileSync` halves were already on the gateway (G-I-b)
+
+Every proxy above composes `readFileSyncProxy` from `#gateway/node/fs/read-file-sync/read-file-sync.proxy`
+(per-file, never the barrel), staged `.returns({path, contents})` at the exact address each caller already used —
+no new scenarios, since the old adapter's own proxy also addressed by path with no catch-all. Every implementation
+file imports `readFileSync` from the `#gateway/node/fs` barrel, alongside the `existsSync`/`writeFileSync` already
+imported there in 8 of these 10 files.
+
+**Left for part 2 (2 callers, not touched this round):**
+
+- `brokers/rule/gateway-dependency-declared/find-nearest-package-json-layer-broker.ts` (+ `.proxy.ts`, +
+  `.test.ts`) — its proxy imports raw `existsSync`/`readFileSync` from `'fs'` directly and stages an
+  address-less `existsHandle.calledWith([]).implement(() => false)` catch-all, instead of composing
+  `findPackageJsonDirLayerBrokerProxy`'s own already-migrated, explicitly-staged `setupPackageJsonAt`/
+  `setupNoPackageJsonAt` methods (composed here only inertly). Swapping just the `readFileSync` half to the
+  gateway proxy would still leave the raw `existsSync` import and its catch-all in the same file — banned in
+  every diff per this session's instructions. Fixing it for real means redesigning this proxy off the raw-fs
+  catch-all entirely (every test gains one explicit `setupNoPackageJsonAt` per ancestor level, the same shape
+  G-I-b gave `find-package-json-dir-layer-broker.test.ts`), which is its own unit of work.
+- `brokers/rule/platform-globals-ban/resolve-gateway-scope-layer-broker.ts` (+ `.proxy.ts`, + `.test.ts`) — same
+  shape and same reason: its proxy raw-imports `existsSync`/`readFileSync` from `'fs'` with an address-less
+  `existsHandle.calledWith([]).implement(() => false)` catch-all, composing `findAncestorDirectoryLayerBrokerProxy`
+  only inertly instead of using its already-migrated explicit staging methods.
+
+Both left-for-part-2 files keep `fsReadFileSyncAdapter`/`fsReadFileSyncAdapterProxy` as real imports, so
+`fs-read-file-sync-adapter.ts`/`.proxy.ts`/`.test.ts` cannot be deleted this round.
+
 ## Plan — F48
 
 Scope: `packages/eslint-plugin/src/dungeonmaster-rule-enforce-on.integration.test.ts` only. No helper file

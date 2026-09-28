@@ -18,7 +18,7 @@ import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { FilePath, Identifier } from '@dungeonmaster/shared/contracts';
 import { gatewayTestSupportSuffixStatics } from '../../../statics/gateway-test-support-suffix/gateway-test-support-suffix-statics';
 import { fsReaddirSyncAdapter } from '../../../adapters/fs/readdir-sync/fs-readdir-sync-adapter';
-import { fsReadFileSyncAdapter } from '../../../adapters/fs/read-file-sync/fs-read-file-sync-adapter';
+import { readFileSync } from '#gateway/node/fs';
 import { gatewayTypeDeclarationNamesTransformer } from '../../../transformers/gateway-type-declaration-names/gateway-type-declaration-names-transformer';
 
 export const collectGatewayTypeDeclarationNamesLayerBroker = ({
@@ -48,7 +48,7 @@ export const collectGatewayTypeDeclarationNamesLayerBroker = ({
       return;
     }
 
-    const sourceText = fsReadFileSyncAdapter({ filePath: entryPath });
+    const sourceText = readFileSync(entryPath);
 
     gatewayTypeDeclarationNamesTransformer({ sourceText }).forEach((name) => {
       const existing = index.get(name) ?? [];

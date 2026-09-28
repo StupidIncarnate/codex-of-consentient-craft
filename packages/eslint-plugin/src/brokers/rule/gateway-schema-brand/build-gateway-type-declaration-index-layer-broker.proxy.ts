@@ -1,4 +1,4 @@
-import { fileContentsContract, type FilePath } from '@dungeonmaster/shared/contracts';
+import type { FilePath } from '@dungeonmaster/shared/contracts';
 import type { FileName } from '../../../contracts/file-name/file-name-contract';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { pathJoinAdapterProxy } from '../../../adapters/path/join/path-join-adapter.proxy';
@@ -44,8 +44,8 @@ export const buildGatewayTypeDeclarationIndexLayerBrokerProxy = (): {
         entries: [{ name: fileName, isDirectory: false }],
       });
       collectProxy.fsReadFileSync.returns({
-        filePath,
-        contents: fileContentsContract.parse(sourceText),
+        path: filePath,
+        contents: sourceText,
       });
     },
   };

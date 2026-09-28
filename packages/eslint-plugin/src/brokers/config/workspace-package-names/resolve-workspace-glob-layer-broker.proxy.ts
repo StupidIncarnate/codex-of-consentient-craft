@@ -1,7 +1,7 @@
-import { filePathContract, fileContentsContract } from '@dungeonmaster/shared/contracts';
+import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { FilePath, PackageName } from '@dungeonmaster/shared/contracts';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
-import { fsReadFileSyncAdapterProxy } from '../../../adapters/fs/read-file-sync/fs-read-file-sync-adapter.proxy';
+import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
 import { fsReaddirSyncAdapterProxy } from '../../../adapters/fs/readdir-sync/fs-readdir-sync-adapter.proxy';
 import { FileNameStub } from '../../../contracts/file-name/file-name.stub';
 
@@ -13,7 +13,7 @@ export const resolveWorkspaceGlobLayerBrokerProxy = (): {
   setupMemberInvalidPackageJson: (args: { memberDir: FilePath; contents: string }) => void;
 } => {
   const existsProxy = existsSyncProxy();
-  const readProxy = fsReadFileSyncAdapterProxy();
+  const readProxy = readFileSyncProxy();
   const readdirProxy = fsReaddirSyncAdapterProxy();
 
   return {
@@ -48,8 +48,8 @@ export const resolveWorkspaceGlobLayerBrokerProxy = (): {
       const packageJsonPath = filePathContract.parse(`${memberDir}/package.json`);
       existsProxy.returns({ path: packageJsonPath, exists: true });
       readProxy.returns({
-        filePath: packageJsonPath,
-        contents: fileContentsContract.parse(JSON.stringify({ name })),
+        path: packageJsonPath,
+        contents: JSON.stringify({ name }),
       });
     },
 
@@ -68,8 +68,8 @@ export const resolveWorkspaceGlobLayerBrokerProxy = (): {
       const packageJsonPath = filePathContract.parse(`${memberDir}/package.json`);
       existsProxy.returns({ path: packageJsonPath, exists: true });
       readProxy.returns({
-        filePath: packageJsonPath,
-        contents: fileContentsContract.parse(contents),
+        path: packageJsonPath,
+        contents,
       });
     },
   };

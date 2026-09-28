@@ -15,7 +15,7 @@
  */
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { FilePath, PackageName } from '@dungeonmaster/shared/contracts';
-import { fsReadFileSyncAdapter } from '../../../adapters/fs/read-file-sync/fs-read-file-sync-adapter';
+import { readFileSync } from '#gateway/node/fs';
 import { workspaceRootFindBroker } from '../../workspace-root/find/workspace-root-find-broker';
 import { workspaceRootPackageJsonContract } from '../../../contracts/workspace-root-package-json/workspace-root-package-json-contract';
 import { resolveWorkspaceGlobLayerBroker } from './resolve-workspace-glob-layer-broker';
@@ -32,7 +32,7 @@ export const configWorkspacePackageNamesBroker = ({
   }
 
   const rootPackageJsonPath = filePathContract.parse(`${workspaceRoot.rootDir}/package.json`);
-  const contents = fsReadFileSyncAdapter({ filePath: rootPackageJsonPath });
+  const contents = readFileSync(rootPackageJsonPath);
   const parsed: unknown = JSON.parse(contents);
   const rootPackageJson = workspaceRootPackageJsonContract.parse(parsed);
 

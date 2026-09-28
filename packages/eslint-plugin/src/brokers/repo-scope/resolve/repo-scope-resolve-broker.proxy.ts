@@ -7,9 +7,9 @@
  * proxy.setupWorkspaceRoot({ dirPath, packageJson: { name: '@acme/app', workspaces: ['packages/*'] } });
  */
 import type { FilePath } from '@dungeonmaster/shared/contracts';
-import { filePathContract, fileContentsContract } from '@dungeonmaster/shared/contracts';
+import { filePathContract } from '@dungeonmaster/shared/contracts';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
-import { fsReadFileSyncAdapterProxy } from '../../../adapters/fs/read-file-sync/fs-read-file-sync-adapter.proxy';
+import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
 
 export const repoScopeResolveBrokerProxy = (): {
   setupWorkspaceRoot: (args: { dirPath: FilePath; packageJson: Record<string, unknown> }) => void;
@@ -20,7 +20,7 @@ export const repoScopeResolveBrokerProxy = (): {
   setupNoPackageJson: (args: { dirPath: FilePath }) => void;
 } => {
   const existsProxy = existsSyncProxy();
-  const readProxy = fsReadFileSyncAdapterProxy();
+  const readProxy = readFileSyncProxy();
 
   return {
     setupWorkspaceRoot: ({
@@ -33,8 +33,8 @@ export const repoScopeResolveBrokerProxy = (): {
       const packageJsonPath = filePathContract.parse(`${dirPath}/package.json`);
       existsProxy.returns({ path: packageJsonPath, exists: true });
       readProxy.returns({
-        filePath: packageJsonPath,
-        contents: fileContentsContract.parse(JSON.stringify(packageJson)),
+        path: packageJsonPath,
+        contents: JSON.stringify(packageJson),
       });
     },
 
@@ -48,8 +48,8 @@ export const repoScopeResolveBrokerProxy = (): {
       const packageJsonPath = filePathContract.parse(`${dirPath}/package.json`);
       existsProxy.returns({ path: packageJsonPath, exists: true });
       readProxy.returns({
-        filePath: packageJsonPath,
-        contents: fileContentsContract.parse(JSON.stringify(packageJson)),
+        path: packageJsonPath,
+        contents: JSON.stringify(packageJson),
       });
     },
 

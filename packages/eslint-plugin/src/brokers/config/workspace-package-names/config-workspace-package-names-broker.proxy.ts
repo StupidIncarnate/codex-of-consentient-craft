@@ -1,7 +1,7 @@
 import type { FilePath, PackageName } from '@dungeonmaster/shared/contracts';
 import { workspaceRootFindBrokerProxy } from '../../workspace-root/find/workspace-root-find-broker.proxy';
 import { resolveWorkspaceGlobLayerBrokerProxy } from './resolve-workspace-glob-layer-broker.proxy';
-import { fsReadFileSyncAdapterProxy } from '../../../adapters/fs/read-file-sync/fs-read-file-sync-adapter.proxy';
+import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
 
 export const configWorkspacePackageNamesBrokerProxy = (): {
   setupWorkspaceRoot: (args: { rootDir: string; rootPackageJsonName: string }) => void;
@@ -15,7 +15,7 @@ export const configWorkspacePackageNamesBrokerProxy = (): {
   // workspaceRootFindBroker does not return); `workspaceRootProxy.setupWorkspaceRoot` already
   // stages that exact path on the shared registerMock handle, so this child proxy exists only to
   // satisfy enforce-proxy-child-creation — nothing here is interacted with directly.
-  fsReadFileSyncAdapterProxy();
+  readFileSyncProxy();
 
   return {
     setupWorkspaceRoot: ({
