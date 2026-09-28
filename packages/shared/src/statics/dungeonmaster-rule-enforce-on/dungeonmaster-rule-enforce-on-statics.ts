@@ -7,7 +7,11 @@
  * // Returns 'pre-edit'
  *
  * WHEN-TO-USE: When determining if a rule should run before or after file write in Claude Code hooks
- * WHEN-NOT-TO-USE: Pre-edit rules must not use file system operations (fsExistsSyncAdapter, etc)
+ * WHEN-NOT-TO-USE: Pre-edit rules must not use file system operations (fsExistsSyncAdapter, etc). A
+ * rule that needs the TYPE CHECKER (parserServices/the TS program) carries no entry here at all — it
+ * cannot run pre-edit (the hook parses one file in isolation, no program) and 'post-edit' would fail
+ * this file's own integration test (which demands every post-edit rule use an fs adapter). It still
+ * runs, through ward's own typecheck-backed lint pass, same as `enforce-folder-return-types`.
  */
 export const dungeonmasterRuleEnforceOnStatics = {
   // Third-party rules - pre-edit (AST only)
@@ -30,7 +34,6 @@ export const dungeonmasterRuleEnforceOnStatics = {
   '@dungeonmaster/ban-jest-mock-in-tests': 'pre-edit',
   '@dungeonmaster/ban-primitives': 'pre-edit',
   '@dungeonmaster/enforce-file-metadata': 'pre-edit',
-  '@dungeonmaster/enforce-folder-return-types': 'pre-edit',
   '@dungeonmaster/require-zod-on-primitives': 'pre-edit',
   '@dungeonmaster/require-contract-validation': 'pre-edit',
   '@dungeonmaster/enforce-object-destructuring-params': 'pre-edit',

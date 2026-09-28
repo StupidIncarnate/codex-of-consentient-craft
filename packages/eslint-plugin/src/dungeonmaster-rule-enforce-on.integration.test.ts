@@ -3,6 +3,16 @@ import { join } from 'path';
 import { dungeonmasterRuleEnforceOnStatics } from '@dungeonmaster/shared/statics';
 import { configDungeonmasterBroker } from './brokers/config/dungeonmaster/config-dungeonmaster-broker';
 
+// Rules registered at 'error' in configDungeonmasterBroker that still carry no
+// dungeonmasterRuleEnforceOnStatics entry — genuinely ward-only. Each needs the TYPE CHECKER (the
+// program `parserServices` expose), so it cannot run pre-edit (the hook parses one file in
+// isolation, no program) and 'post-edit' would fail the fs-operation check below (these rules read
+// no file — they call the type checker, not fsExistsSyncAdapter/fsReadFileSyncAdapter). BR row 2194:
+// `enforce-folder-return-types` "loses its tag" once R1 lands, the same way `ban-primitives` and
+// `require-zod-on-primitives` are slated to "leave the map" later — dropped entirely, not given a
+// third timing value.
+const WARD_ONLY_TYPE_CHECKED_RULES = ['@dungeonmaster/enforce-folder-return-types'];
+
 interface Violation {
   ruleName: unknown;
   pattern: unknown;
@@ -176,6 +186,12 @@ const getMissingRules = (registeredRules: unknown[], staticsRules: unknown[]): u
   });
 };
 
+const excludeWardOnlyTypeCheckedRules = (rules: unknown[]): unknown[] => {
+  return rules.filter((rule) => {
+    return !WARD_ONLY_TYPE_CHECKED_RULES.includes(String(rule));
+  });
+};
+
 const throwErrorIfMissingRules = (missingRules: unknown[]): void => {
   if (missingRules.length > 0) {
     const errorMessage = missingRules.map(String).join('\n');
@@ -240,18 +256,20 @@ describe('dungeonmasterRuleEnforceOnStatics integration', () => {
       expect(totalCount).toBe(Number(preEditCount) + Number(postEditCount));
     });
 
-    it('VALID: pre-edit count => 75 rules (11 third-party + 64 @dungeonmaster)', () => {
+    it('VALID: pre-edit count => 74 rules (11 third-party + 63 @dungeonmaster)', () => {
       const preEditCount = getPreEditRuleCount();
 
-      expect(preEditCount).toBe(75);
+      expect(preEditCount).toBe(74);
     });
   });
 
   describe('completeness validation', () => {
-    it('VALID: all registered @dungeonmaster rules => exist in dungeonmasterRuleEnforceOnStatics', () => {
+    it('VALID: all registered @dungeonmaster rules => exist in dungeonmasterRuleEnforceOnStatics, except ward-only type-checked rules', () => {
       const registeredRules = getRegisteredDungeonmasterRules();
       const staticsRules = getStaticsDungeonmasterRules();
-      const missingRules = getMissingRules(registeredRules, staticsRules);
+      const missingRules = excludeWardOnlyTypeCheckedRules(
+        getMissingRules(registeredRules, staticsRules),
+      );
 
       throwErrorIfMissingRules(missingRules);
 

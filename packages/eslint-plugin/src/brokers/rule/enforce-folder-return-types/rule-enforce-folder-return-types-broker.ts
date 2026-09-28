@@ -1,5 +1,9 @@
 /**
- * PURPOSE: Enforces return type rules on exported functions — annotation is required, no void/Promise<void> in function-exporting folders, guards must return boolean
+ * PURPOSE: Enforces return type rules on exported functions — annotation required everywhere;
+ * void, Promise<void>, or a type that can only ever hold one value (R1) permitted in
+ * function-exporting folders exactly when every gateway or broker call the function discards also
+ * returned void; guards must return boolean. Needs the type checker (to grade each discarded
+ * call's own return type), so it runs through ward's typecheck-backed lint pass, never pre-edit.
  *
  * USAGE:
  * const rule = ruleEnforceFolderReturnTypesBroker();
@@ -20,14 +24,16 @@ export const ruleEnforceFolderReturnTypesBroker = (): EslintRule => ({
       type: 'problem',
       docs: {
         description:
-          'Enforce return type rules on exported functions — annotation required everywhere, no void/Promise<void> in function-exporting folders, guards must return boolean',
+          'Enforce return type rules on exported functions — annotation required everywhere, void/Promise<void>/a single-value type permitted in function-exporting folders exactly when every call the function discards also told it nothing, guards must return boolean',
       },
       messages: {
         missingReturnType: 'Exported functions must have explicit return types',
         folderVoidReturn:
-          'Functions in {{folderType}}/ must not return void — return a meaningful value (e.g., AdapterResult from @dungeonmaster/shared/contracts)',
+          'This function discards a call that returned something real — return that value (or pass it through) instead of void. void is fine here ONLY when every gateway/broker call it discards also returned void.',
         folderPromiseVoidReturn:
-          'Functions in {{folderType}}/ must not return Promise<void> — return Promise<SomeType>',
+          'This function discards a call that returned something real — return Promise<the real value> (or pass it through) instead of Promise<void>. Promise<void> is fine here ONLY when every gateway/broker call it discards also returned void.',
+        folderDisguisedVoidReturn:
+          'This return type can only ever hold one value, which says nothing more than void would — and this function discards a call that returned something real. Return that value instead.',
         folderUnknownReturn:
           'Functions in {{folderType}}/ must not return unknown — narrow to a Zod-validated branded type (only *-contract.ts and *-adapter.ts may return unknown at the I/O boundary)',
         folderObjectReturn:
