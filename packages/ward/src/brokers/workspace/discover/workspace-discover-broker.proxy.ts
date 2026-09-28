@@ -1,6 +1,6 @@
+import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { AbsoluteFilePathStub, filePathContract } from '@dungeonmaster/shared/contracts';
 
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { patternResolveLayerBrokerProxy } from './pattern-resolve-layer-broker.proxy';
 
 export const workspaceDiscoverBrokerProxy = (): {
@@ -12,12 +12,12 @@ export const workspaceDiscoverBrokerProxy = (): {
   setupSinglePackage: () => void;
   setupNoPackageJson: () => void;
 } => {
-  const readProxy = fsReadFileAdapterProxy();
+  const readProxy = readFileProxy();
   const patternProxy = patternResolveLayerBrokerProxy();
 
   // Every caller (workspace-discover-broker.test.ts, command-run-broker.proxy.ts) resolves the
   // root package.json for rootPath '/project'.
-  const filePath = filePathContract.parse(
+  const path = filePathContract.parse(
     `${AbsoluteFilePathStub({ value: '/project' })}/package.json`,
   );
 
@@ -32,21 +32,21 @@ export const workspaceDiscoverBrokerProxy = (): {
       packageNames: string[];
     }): void => {
       readProxy.returns({
-        filePath,
-        content: JSON.stringify({ name: 'root', workspaces: patterns }),
+        path,
+        contents: JSON.stringify({ name: 'root', workspaces: patterns }),
       });
       patternProxy.setupGlobPattern({ dirs, packageNames });
     },
 
     setupSinglePackage: (): void => {
       readProxy.returns({
-        filePath,
-        content: JSON.stringify({ name: 'my-package' }),
+        path,
+        contents: JSON.stringify({ name: 'my-package' }),
       });
     },
 
     setupNoPackageJson: (): void => {
-      readProxy.throws({ filePath, error: new Error('ENOENT') });
+      readProxy.missing({ path });
     },
   };
 };

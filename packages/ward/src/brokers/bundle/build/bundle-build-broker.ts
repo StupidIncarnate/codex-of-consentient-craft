@@ -18,7 +18,7 @@
 
 import { run, RunNotFoundError } from '#gateway/node/child_process';
 import { existsSync } from '#gateway/node/fs';
-import { ensureDir, rename, rm } from '#gateway/node/fs__promises';
+import { ensureDir, readFile, rename, rm } from '#gateway/node/fs__promises';
 import {
   absoluteFilePathContract,
   errorMessageContract,
@@ -29,7 +29,6 @@ import type { AbsoluteFilePath, ErrorMessage } from '@dungeonmaster/shared/contr
 
 import { cryptoHashFilesAdapter } from '../../../adapters/crypto/hash-files/crypto-hash-files-adapter';
 import { packageJsonContract } from '../../../contracts/package-json/package-json-contract';
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { bundleStatics } from '../../../statics/bundle/bundle-statics';
 import { collectInputsLayerBroker } from './collect-inputs-layer-broker';
 
@@ -38,9 +37,9 @@ export const bundleBuildBroker = async ({
 }: {
   packageRoot: AbsoluteFilePath;
 }): Promise<{ bundleDir: AbsoluteFilePath | null; error: ErrorMessage | null }> => {
-  const manifestRaw = await fsReadFileAdapter({
-    filePath: filePathContract.parse(`${String(packageRoot)}/package.json`),
-  }).catch(() => null);
+  const manifestRaw = await readFile(
+    filePathContract.parse(`${String(packageRoot)}/package.json`),
+  ).catch(() => null);
 
   const scripts =
     manifestRaw === null

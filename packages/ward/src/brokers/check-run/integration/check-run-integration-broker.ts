@@ -8,6 +8,7 @@
 
 import { run, RunNotFoundError } from '#gateway/node/child_process';
 import { existsSync } from '#gateway/node/fs';
+import { readFile, unlink } from '#gateway/node/fs__promises';
 import {
   absoluteFilePathContract,
   errorMessageContract,
@@ -46,8 +47,6 @@ import { discoveryDiffTransformer } from '../../../transformers/discovery-diff/d
 import { openHandleReportParseTransformer } from '../../../transformers/open-handle-report-parse/open-handle-report-parse-transformer';
 import { openHandleReportPathTransformer } from '../../../transformers/open-handle-report-path/open-handle-report-path-transformer';
 import { openHandleReportStatics } from '../../../statics/open-handle-report/open-handle-report-statics';
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
-import { fsUnlinkAdapter } from '../../../adapters/fs/unlink/fs-unlink-adapter';
 import { osTmpdirAdapter } from '../../../adapters/os/tmpdir/os-tmpdir-adapter';
 import { binResolveBroker } from '../../bin/resolve/bin-resolve-broker';
 import { sourceConditionSupportedBroker } from '../../source-condition/supported/source-condition-supported-broker';
@@ -315,9 +314,9 @@ export const checkRunIntegrationBroker = async ({
     // above is already assigned by then, so a mangled report costs the leak findings and nothing
     // else. The file exists only when a suite actually left a timer armed.
     if (wantsTimerWatch && existsSync(handleReportPath)) {
-      const reportContent = await fsReadFileAdapter({ filePath: handleReportPath });
-      await fsUnlinkAdapter({ filePath: handleReportPath });
-      openHandles.push(...openHandleReportParseTransformer({ content: String(reportContent) }));
+      const reportContent = await readFile(handleReportPath);
+      await unlink(handleReportPath);
+      openHandles.push(...openHandleReportParseTransformer({ content: reportContent }));
     }
   } catch {
     // non-JSON output, filesCount stays 0

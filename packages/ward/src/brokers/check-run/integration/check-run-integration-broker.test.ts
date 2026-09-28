@@ -845,6 +845,32 @@ describe('checkRunIntegrationBroker', () => {
 
       expect(result.openHandles).toStrictEqual([]);
     });
+
+    it('VALID: {timer-watch report names a leaked interval} => that leak reaches openHandles', async () => {
+      const projectFolder = ProjectFolderStub();
+      const proxy = checkRunIntegrationBrokerProxy();
+      proxy.setupPassWithOutput({
+        projectFolder,
+        stdout: '{"testResults":[],"numTotalTestSuites":0,"success":true}',
+      });
+      proxy.setupHandleReport({
+        content: `${JSON.stringify({
+          kind: 'setInterval',
+          testPath: 'src/poll.test.ts',
+          stack: 'at pollBroker (src/poll-broker.ts:12:3)',
+        })}\n`,
+      });
+
+      const result = await checkRunIntegrationBroker({ projectFolder, fileList: [] });
+
+      expect(result.openHandles).toStrictEqual([
+        OpenHandleStub({
+          name: 'setInterval',
+          message: 'setInterval still armed when src/poll.test.ts finished',
+          stack: 'at pollBroker (src/poll-broker.ts:12:3)',
+        }),
+      ]);
+    });
   });
 
   // Jest refuses `--runInBand` and `--maxWorkers` together and exits non-zero with its usage

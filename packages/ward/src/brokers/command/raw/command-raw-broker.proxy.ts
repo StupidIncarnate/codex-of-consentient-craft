@@ -22,7 +22,7 @@ export const commandRawBrokerProxy = (): {
       storageProxy.setupRunById({ rootPath, runId, content });
     },
     setupNoResult: (): void => {
-      storageProxy.setupReadFail({ rootPath, runId, error: new Error('ENOENT') });
+      storageProxy.setupReadFail({ rootPath, runId });
     },
   };
 };

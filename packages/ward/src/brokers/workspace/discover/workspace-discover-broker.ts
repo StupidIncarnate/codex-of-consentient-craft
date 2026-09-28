@@ -6,11 +6,11 @@
  * // Returns ProjectFolder[] if workspaces field found, null if no workspaces (single-package mode)
  */
 
+import { readFile } from '#gateway/node/fs__promises';
 import { filePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
 import { packageJsonContract } from '../../../contracts/package-json/package-json-contract';
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { patternResolveLayerBroker } from './pattern-resolve-layer-broker';
 
 export const workspaceDiscoverBroker = async ({
@@ -20,7 +20,7 @@ export const workspaceDiscoverBroker = async ({
 }): Promise<ProjectFolder[] | null> => {
   const pkgPath = filePathContract.parse(`${rootPath}/package.json`);
 
-  const raw = await fsReadFileAdapter({ filePath: pkgPath }).catch(() => null);
+  const raw = await readFile(pkgPath).catch(() => null);
   if (raw === null) {
     return null;
   }

@@ -27,7 +27,7 @@ export const commandListBrokerProxy = (): {
       storageProxy.setupRunById({ rootPath, runId, content });
     },
     setupNoResult: (): void => {
-      storageProxy.setupReadFail({ rootPath, runId, error: new Error('ENOENT') });
+      storageProxy.setupReadFail({ rootPath, runId });
     },
     getStdoutCalls: (): RecordedCalls => stdoutSpy.callsMatching([]),
     getStderrCalls: (): RecordedCalls => stderrSpy.callsMatching([]),

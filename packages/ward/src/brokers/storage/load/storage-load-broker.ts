@@ -6,7 +6,7 @@
  * // Returns the most recent WardResult or null if none found
  */
 
-import { readdirIfExists } from '#gateway/node/fs__promises';
+import { readdirIfExists, readFile } from '#gateway/node/fs__promises';
 import { filePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import {
@@ -14,7 +14,6 @@ import {
   type WardResult,
 } from '../../../contracts/ward-result/ward-result-contract';
 import { runIdContract, type RunId } from '../../../contracts/run-id/run-id-contract';
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 
 const RUN_FILE_PREFIX = 'run-';
 const RUN_FILE_SUFFIX = '.json';
@@ -31,7 +30,7 @@ export const storageLoadBroker = async ({
   if (runId) {
     const filePath = filePathContract.parse(`${wardDir}/run-${runId}.json`);
     try {
-      const contents = await fsReadFileAdapter({ filePath });
+      const contents = await readFile(filePath);
       const parsed: unknown = JSON.parse(contents);
       return wardResultContract.parse(parsed);
     } catch {
@@ -62,7 +61,7 @@ export const storageLoadBroker = async ({
 
     const latestFile = runFiles[runFiles.length - 1];
     const filePath = filePathContract.parse(`${wardDir}/${latestFile}`);
-    const contents = await fsReadFileAdapter({ filePath });
+    const contents = await readFile(filePath);
     const parsed: unknown = JSON.parse(contents);
     return wardResultContract.parse(parsed);
   } catch {

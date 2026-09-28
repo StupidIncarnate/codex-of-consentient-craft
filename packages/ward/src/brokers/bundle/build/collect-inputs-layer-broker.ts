@@ -13,6 +13,7 @@
  * // Returns the workspace root plus the workspace-relative path of every input file
  */
 
+import { readFile } from '#gateway/node/fs__promises';
 import {
   absoluteFilePathContract,
   filePathContract,
@@ -30,7 +31,6 @@ import {
 } from '../../../contracts/git-relative-path/git-relative-path-contract';
 import { packageJsonContract } from '../../../contracts/package-json/package-json-contract';
 import { globDiscoverFilesBroker } from '../../glob/discover-files/glob-discover-files-broker';
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { bundleStatics } from '../../../statics/bundle/bundle-statics';
 import { bundleInputsTransformer } from '../../../transformers/bundle-inputs/bundle-inputs-transformer';
 import { workspaceDiscoverBroker } from '../../workspace/discover/workspace-discover-broker';
@@ -60,9 +60,9 @@ export const collectInputsLayerBroker = async ({
 
   const manifests = await Promise.all(
     packagePaths.map(async (packagePath) => {
-      const raw = await fsReadFileAdapter({
-        filePath: filePathContract.parse(`${String(packagePath)}/package.json`),
-      }).catch(() => null);
+      const raw = await readFile(
+        filePathContract.parse(`${String(packagePath)}/package.json`),
+      ).catch(() => null);
 
       const parsed =
         raw === null

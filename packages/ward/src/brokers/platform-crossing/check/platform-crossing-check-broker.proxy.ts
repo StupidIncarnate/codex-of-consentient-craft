@@ -1,8 +1,8 @@
+import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
 import { architecturePackageTypeDetectBrokerProxy } from '@dungeonmaster/shared/testing';
 import { workspaceDiscoverBrokerProxy } from '../../workspace/discover/workspace-discover-broker.proxy';
 import { globDiscoverFilesBrokerProxy } from '../../glob/discover-files/glob-discover-files-broker.proxy';
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { gatewayPackageNamesReadLayerBrokerProxy } from './gateway-package-names-read-layer-broker.proxy';
 import { walkGatewayCrossingsLayerBrokerProxy } from './walk-gateway-crossings-layer-broker.proxy';
 
@@ -18,7 +18,7 @@ export const platformCrossingCheckBrokerProxy = (): {
   // reaches any of these.
   architecturePackageTypeDetectBrokerProxy();
   globDiscoverFilesBrokerProxy();
-  fsReadFileAdapterProxy();
+  readFileProxy();
   // '/project' matches the fixed root `workspaceDiscoverBrokerProxy` itself already assumes.
   gatewayPackageNamesReadLayerBrokerProxy({ rootPath: FilePathStub({ value: '/project' }) });
   walkGatewayCrossingsLayerBrokerProxy();

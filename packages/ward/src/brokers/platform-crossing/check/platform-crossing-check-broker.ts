@@ -11,8 +11,10 @@
  * // Returns: readonly PlatformCrossingViolation[] — empty when nothing crosses
  */
 
+import { readFile } from '#gateway/node/fs__promises';
 import {
   absoluteFilePathContract,
+  fileContentsContract,
   filePathContract,
   packageTypeContract,
   type FilePath,
@@ -33,7 +35,6 @@ import { isImplementationSourceFileGuard } from '../../../guards/is-implementati
 import { dedupePlatformCrossingViolationsTransformer } from '../../../transformers/dedupe-platform-crossing-violations/dedupe-platform-crossing-violations-transformer';
 import { nonImplementationGlobsStatics } from '../../../statics/non-implementation-globs/non-implementation-globs-statics';
 import { globDiscoverFilesBroker } from '../../glob/discover-files/glob-discover-files-broker';
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { gatewayPackageNamesReadLayerBroker } from './gateway-package-names-read-layer-broker';
 import {
   walkGatewayCrossingsLayerBroker,
@@ -95,7 +96,7 @@ export const platformCrossingCheckBroker = async ({
 
       const forbiddenPackageNames: readonly GatewayPackageName[] = (
         platform === 'browser' ? [gatewayNames.node, gatewayNames.bin] : [gatewayNames.browser]
-      ).filter((name): name is GatewayPackageName => name !== undefined);
+      ).filter((name) => name !== undefined);
       if (forbiddenPackageNames.length === 0) {
         return [];
       }
@@ -113,7 +114,7 @@ export const platformCrossingCheckBroker = async ({
             return [];
           }
 
-          const content = await fsReadFileAdapter({ filePath: absoluteFile });
+          const content = fileContentsContract.parse(await readFile(absoluteFile));
 
           const chains = await walkGatewayCrossingsLayerBroker({
             filePath: absoluteFile,

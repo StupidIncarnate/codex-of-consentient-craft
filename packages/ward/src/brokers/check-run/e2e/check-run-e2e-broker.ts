@@ -9,6 +9,7 @@
 
 import { run, RunNotFoundError } from '#gateway/node/child_process';
 import { existsSync } from '#gateway/node/fs';
+import { readFile, unlink } from '#gateway/node/fs__promises';
 import { freePortPair } from '#gateway/node/net';
 import {
   architecturePackageE2eEligibleDetectBroker,
@@ -19,6 +20,7 @@ import {
   absoluteFilePathContract,
   errorMessageContract,
   exitCodeContract,
+  fileContentsContract,
   filePathContract,
   networkPortContract,
 } from '@dungeonmaster/shared/contracts';
@@ -48,8 +50,6 @@ import { binResolveBroker } from '../../bin/resolve/bin-resolve-broker';
 import { bundleBuildBroker } from '../../bundle/build/bundle-build-broker';
 import { e2eArtifactsRemoveBroker } from '../../e2e-artifacts/remove/e2e-artifacts-remove-broker';
 import { globDiscoverFilesBroker } from '../../glob/discover-files/glob-discover-files-broker';
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
-import { fsUnlinkAdapter } from '../../../adapters/fs/unlink/fs-unlink-adapter';
 
 export const checkRunE2eBroker = async ({
   projectFolder,
@@ -236,7 +236,7 @@ export const checkRunE2eBroker = async ({
     ReturnType<typeof playwrightJsonReportToPassingTransformer>
   > => {
     try {
-      const jsonContent = await fsReadFileAdapter({ filePath: jsonReportPath });
+      const jsonContent = fileContentsContract.parse(await readFile(jsonReportPath));
       return playwrightJsonReportToPassingTransformer({ jsonContent });
     } catch {
       return [];
@@ -244,7 +244,7 @@ export const checkRunE2eBroker = async ({
   })();
 
   try {
-    await fsUnlinkAdapter({ filePath: jsonReportPath });
+    await unlink(jsonReportPath);
   } catch {
     // report file may not exist if playwright crashed early; ignore
   }
@@ -255,9 +255,9 @@ export const checkRunE2eBroker = async ({
       return [];
     }
     try {
-      const content = await fsReadFileAdapter({ filePath: handleReportPath });
-      await fsUnlinkAdapter({ filePath: handleReportPath });
-      return openHandleReportParseTransformer({ content: String(content) });
+      const content = await readFile(handleReportPath);
+      await unlink(handleReportPath);
+      return openHandleReportParseTransformer({ content });
     } catch {
       // A half-written line makes JSON.parse throw. Losing the leak findings is a far better
       // outcome than losing the whole e2e result to a parse error.

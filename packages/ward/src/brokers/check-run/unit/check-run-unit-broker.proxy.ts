@@ -1,6 +1,8 @@
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { runProxy } from '#gateway/node/child_process/run/run.proxy';
 import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found.error.proxy';
+import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
+import { unlinkProxy } from '#gateway/node/fs__promises/unlink/unlink.proxy';
 import {
   AbsoluteFilePathStub,
   absoluteFilePathContract,
@@ -9,8 +11,6 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import { globDiscoverFilesBrokerProxy } from '../../glob/discover-files/glob-discover-files-broker.proxy';
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
-import { fsUnlinkAdapterProxy } from '../../../adapters/fs/unlink/fs-unlink-adapter.proxy';
 import { osTmpdirAdapterProxy } from '../../../adapters/os/tmpdir/os-tmpdir-adapter.proxy';
 import { openHandleReportPathTransformer } from '../../../transformers/open-handle-report-path/open-handle-report-path-transformer';
 import { openHandleReportStatics } from '../../../statics/open-handle-report/open-handle-report-statics';
@@ -72,10 +72,12 @@ export const checkRunUnitBrokerProxy = (): {
     checkType: 'unit',
     processId: process.pid,
   });
-  const handleReadProxy = fsReadFileAdapterProxy();
-  handleReadProxy.returns({ filePath: handleReportPath, content: '' });
-  const handleUnlinkProxy = fsUnlinkAdapterProxy();
-  handleUnlinkProxy.succeedsForAnyPath();
+  const handleReadProxy = readFileProxy();
+  handleReadProxy.returns({ path: handleReportPath, contents: '' });
+  // Exact address, not a catch-all: handleReportPath is the only path this broker ever unlinks,
+  // and the gateway's unlinkProxy carries no accept-all stage the way the old adapter proxy did.
+  const handleUnlinkProxy = unlinkProxy();
+  handleUnlinkProxy.succeeds({ path: handleReportPath });
   // Default: the report file is absent, so a test that says nothing about leaks gets none — the
   // broker's own `wantsTimerWatch && existsSync(handleReportPath)` guard short-circuits before ever
   // reading it. `setupHandleReport` below overrides this to present for the tests that stage one.
@@ -248,7 +250,7 @@ export const checkRunUnitBrokerProxy = (): {
 
     setupHandleReport: ({ content }: { content: string }): void => {
       existsProxy.returns({ path: handleReportPath, exists: true });
-      handleReadProxy.returns({ filePath: handleReportPath, content });
+      handleReadProxy.returns({ path: handleReportPath, contents: content });
     },
 
     getSpawnedHandleReportPath: (): unknown =>

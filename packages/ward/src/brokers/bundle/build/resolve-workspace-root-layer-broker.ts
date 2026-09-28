@@ -12,6 +12,7 @@
  * // Returns '/repo', or null when nothing above declares workspaces
  */
 
+import { readFile } from '#gateway/node/fs__promises';
 import {
   absoluteFilePathContract,
   filePathContract,
@@ -19,7 +20,6 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import { packageJsonContract } from '../../../contracts/package-json/package-json-contract';
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 
 export const resolveWorkspaceRootLayerBroker = async ({
   startPath,
@@ -27,7 +27,7 @@ export const resolveWorkspaceRootLayerBroker = async ({
   startPath: AbsoluteFilePath;
 }): Promise<AbsoluteFilePath | null> => {
   const manifestPath = filePathContract.parse(`${String(startPath)}/package.json`);
-  const raw = await fsReadFileAdapter({ filePath: manifestPath }).catch(() => null);
+  const raw = await readFile(manifestPath).catch(() => null);
 
   const workspaces =
     raw === null

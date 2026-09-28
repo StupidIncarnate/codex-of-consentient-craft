@@ -1,7 +1,7 @@
+import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 
 export const gatewayDependencyNamesReadLayerBrokerProxy = (): {
   setupPackageJson: (params: {
@@ -10,7 +10,7 @@ export const gatewayDependencyNamesReadLayerBrokerProxy = (): {
     peerDependencies?: Record<string, string>;
   }) => void;
 } => {
-  const fsProxy = fsReadFileAdapterProxy();
+  const readProxy = readFileProxy();
 
   return {
     setupPackageJson: ({
@@ -22,9 +22,9 @@ export const gatewayDependencyNamesReadLayerBrokerProxy = (): {
       dependencies?: Record<string, string>;
       peerDependencies?: Record<string, string>;
     }): void => {
-      fsProxy.returns({
-        filePath: filePathContract.parse(`${folder.path}/package.json`),
-        content: JSON.stringify({ name: folder.name, dependencies, peerDependencies }),
+      readProxy.returns({
+        path: filePathContract.parse(`${folder.path}/package.json`),
+        contents: JSON.stringify({ name: folder.name, dependencies, peerDependencies }),
       });
     },
   };

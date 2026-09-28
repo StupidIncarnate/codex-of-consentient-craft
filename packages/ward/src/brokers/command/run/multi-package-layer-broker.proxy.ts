@@ -151,7 +151,6 @@ export const multiPackageLayerBrokerProxy = (): {
       loadProxy.setupReadFail({
         rootPath: absoluteFilePathContract.parse(projectFolder.path),
         runId,
-        error: new Error('ENOENT'),
       });
       saveProxy.setupSuccess({ rootPath, runId });
       pruneProxy.setupEmpty({ rootPath });

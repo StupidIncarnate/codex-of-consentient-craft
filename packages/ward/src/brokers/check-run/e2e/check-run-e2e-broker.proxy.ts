@@ -6,6 +6,8 @@ import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy'
 import { runProxy } from '#gateway/node/child_process/run/run.proxy';
 import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found.error.proxy';
 import { freePortPairProxy } from '#gateway/node/net/free-port-pair/free-port-pair.proxy';
+import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
+import { unlinkProxy } from '#gateway/node/fs__promises/unlink/unlink.proxy';
 import {
   filePathContract,
   absoluteFilePathContract,
@@ -15,9 +17,7 @@ import {
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { globDiscoverFilesBrokerProxy } from '../../glob/discover-files/glob-discover-files-broker.proxy';
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { osTmpdirAdapterProxy } from '../../../adapters/os/tmpdir/os-tmpdir-adapter.proxy';
-import { fsUnlinkAdapterProxy } from '../../../adapters/fs/unlink/fs-unlink-adapter.proxy';
 import { e2eArtifactsRemoveBrokerProxy } from '../../e2e-artifacts/remove/e2e-artifacts-remove-broker.proxy';
 import { binResolveBrokerProxy } from '../../bin/resolve/bin-resolve-broker.proxy';
 import { bundleBuildBrokerProxy } from '../../bundle/build/bundle-build-broker.proxy';
@@ -56,13 +56,15 @@ export const checkRunE2eBrokerProxy = (): {
   const globProxy = globDiscoverFilesBrokerProxy();
   globProxy.returnsForPattern({ pattern: '**/*.e2e.ts', files: ['discovered.ts'] });
   const portKillProxy = portKillListenersBrokerProxy();
-  const readFileProxy = fsReadFileAdapterProxy();
+  const readProxy = readFileProxy();
   const tmpdirProxy = osTmpdirAdapterProxy();
   tmpdirProxy.returns({ path: '/tmp' });
-  // Unstaged: fsUnlinkAdapter's return value is discarded by the broker (it deletes the
-  // playwright json report best-effort, under a try/catch that ignores the outcome either way),
-  // so there is no address worth describing here.
-  fsUnlinkAdapterProxy();
+  // Unstaged: unlink's return value is discarded by the broker (it deletes the playwright json
+  // report best-effort, under a try/catch that ignores the outcome either way), so there is no
+  // address worth describing here — the gateway proxy has no catch-all stage, so an unaddressed
+  // call throws "nothing set up for this call" exactly as the old adapter proxy's own unaddressed
+  // mock did, and the broker's own try/catch swallows it either way.
+  unlinkProxy();
   // The broker discards this result and swallows its own errors, so nothing here needs staging for
   // the run to work. It IS staged, because the removal is behaviour worth asserting: the port it
   // deletes under, and that it still fires on the early-return path below.
@@ -217,11 +219,9 @@ export const checkRunE2eBrokerProxy = (): {
         stdout: '',
         stderr: '',
       });
-      readFileProxy.returns({
-        filePath: filePathContract.parse(
-          `${projectFolder.path}/.ward-playwright-report-40000.json`,
-        ),
-        content: jsonContent,
+      readProxy.returns({
+        path: filePathContract.parse(`${projectFolder.path}/.ward-playwright-report-40000.json`),
+        contents: jsonContent,
       });
     },
 

@@ -11,6 +11,7 @@
  * // Returns: readonly DuplicateInstallPackageName[] — deduped, sorted
  */
 
+import { readFile } from '#gateway/node/fs__promises';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 
 import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
@@ -19,7 +20,6 @@ import {
   duplicateInstallPackageNameContract,
   type DuplicateInstallPackageName,
 } from '../../../contracts/duplicate-install-package-name/duplicate-install-package-name-contract';
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 
 export const gatewayDependencyNamesReadLayerBroker = async ({
   gatewayFolders,
@@ -29,7 +29,7 @@ export const gatewayDependencyNamesReadLayerBroker = async ({
   const namesPerFolder = await Promise.all(
     gatewayFolders.map(async (folder) => {
       const packageJsonPath = filePathContract.parse(`${folder.path}/package.json`);
-      const raw = await fsReadFileAdapter({ filePath: packageJsonPath });
+      const raw = await readFile(packageJsonPath);
       const parsed = packageJsonContract.parse(JSON.parse(raw));
 
       return [

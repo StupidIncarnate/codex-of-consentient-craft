@@ -15,12 +15,11 @@
  * // Returns ManifestEntryDeclaration[] — the declared fields whose path does not exist on disk
  */
 
-import { statIfExists } from '#gateway/node/fs__promises';
+import { readFile, statIfExists } from '#gateway/node/fs__promises';
 import { filePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { packageJsonRawContract } from '../../../contracts/package-json-raw/package-json-raw-contract';
 import type { ManifestEntryDeclaration } from '../../../contracts/manifest-entry-declaration/manifest-entry-declaration-contract';
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { packageJsonDeclaredEntriesTransformer } from '../../../transformers/package-json-declared-entries/package-json-declared-entries-transformer';
 
 export const workspaceManifestEntriesVerifyBroker = async ({
@@ -29,7 +28,7 @@ export const workspaceManifestEntriesVerifyBroker = async ({
   packagePath: AbsoluteFilePath;
 }): Promise<ManifestEntryDeclaration[]> => {
   const manifestPath = filePathContract.parse(`${packagePath}/package.json`);
-  const raw = await fsReadFileAdapter({ filePath: manifestPath });
+  const raw = await readFile(manifestPath);
   const manifest = packageJsonRawContract.parse(JSON.parse(raw));
 
   const declarations = packageJsonDeclaredEntriesTransformer({ manifest });

@@ -2,6 +2,7 @@ import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy'
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { runProxy } from '#gateway/node/child_process/run/run.proxy';
 import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found.error.proxy';
+import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { renameProxy } from '#gateway/node/fs__promises/rename/rename.proxy';
 import { rmProxy } from '#gateway/node/fs__promises/rm/rm.proxy';
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
@@ -9,7 +10,6 @@ import { absoluteFilePathContract, filePathContract } from '@dungeonmaster/share
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { cryptoHashFilesAdapterProxy } from '../../../adapters/crypto/hash-files/crypto-hash-files-adapter.proxy';
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { GitRelativePathStub } from '../../../contracts/git-relative-path/git-relative-path.stub';
 import { bundleStatics } from '../../../statics/bundle/bundle-statics';
 import { collectInputsLayerBrokerProxy } from './collect-inputs-layer-broker.proxy';
@@ -49,7 +49,7 @@ export const bundleBuildBrokerProxy = (): {
   const rename = renameProxy();
   const run = runProxy();
   RunNotFoundErrorProxy();
-  const readProxy = fsReadFileAdapterProxy();
+  const readProxy = readFileProxy();
 
   const bundleParent = `${String(WEB_ROOT)}/${bundleStatics.parentDir}`;
   const tempPath = filePathContract.parse(
@@ -113,8 +113,8 @@ export const bundleBuildBrokerProxy = (): {
 
     setupNoBuildScript: (): void => {
       readProxy.returns({
-        filePath: filePathContract.parse(`${String(WEB_ROOT)}/package.json`),
-        content: JSON.stringify({ name: '@dm/web', scripts: { test: 'jest' } }),
+        path: filePathContract.parse(`${String(WEB_ROOT)}/package.json`),
+        contents: JSON.stringify({ name: '@dm/web', scripts: { test: 'jest' } }),
       });
     },
 

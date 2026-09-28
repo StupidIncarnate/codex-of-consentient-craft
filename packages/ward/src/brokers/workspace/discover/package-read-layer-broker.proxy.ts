@@ -1,8 +1,7 @@
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { readdirEntriesProxy } from '#gateway/node/fs__promises/readdir-entries/readdir-entries.proxy';
+import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
-
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 
 export const packageReadLayerBrokerProxy = (): {
   setupReturnsPackage: (params: { fullPath: string; name: string }) => void;
@@ -11,7 +10,7 @@ export const packageReadLayerBrokerProxy = (): {
   setupReturnsNoName: (params: { fullPath: string }) => void;
   getStderrCalls: () => unknown[];
 } => {
-  const readProxy = fsReadFileAdapterProxy();
+  const readProxy = readFileProxy();
   const readdirProxy = readdirEntriesProxy();
 
   const stderrMock = registerSpyOn({ object: process.stderr, method: 'write' });
@@ -22,16 +21,16 @@ export const packageReadLayerBrokerProxy = (): {
 
     setupReturnsPackage: ({ fullPath, name }: { fullPath: string; name: string }): void => {
       readProxy.returns({
-        filePath: filePathContract.parse(`${fullPath}/package.json`),
-        content: JSON.stringify({ name }),
+        path: filePathContract.parse(`${fullPath}/package.json`),
+        contents: JSON.stringify({ name }),
       });
       readdirProxy.returns({ path: fullPath, entries: [{ name: 'src', kind: 'directory' }] });
     },
 
     setupReturnsPackageNoSrc: ({ fullPath, name }: { fullPath: string; name: string }): void => {
       readProxy.returns({
-        filePath: filePathContract.parse(`${fullPath}/package.json`),
-        content: JSON.stringify({ name }),
+        path: filePathContract.parse(`${fullPath}/package.json`),
+        contents: JSON.stringify({ name }),
       });
       readdirProxy.returns({
         path: fullPath,
@@ -43,16 +42,13 @@ export const packageReadLayerBrokerProxy = (): {
     },
 
     setupThrows: ({ fullPath }: { fullPath: string }): void => {
-      readProxy.throws({
-        filePath: filePathContract.parse(`${fullPath}/package.json`),
-        error: new Error('ENOENT'),
-      });
+      readProxy.missing({ path: filePathContract.parse(`${fullPath}/package.json`) });
     },
 
     setupReturnsNoName: ({ fullPath }: { fullPath: string }): void => {
       readProxy.returns({
-        filePath: filePathContract.parse(`${fullPath}/package.json`),
-        content: JSON.stringify({ version: '1.0.0' }),
+        path: filePathContract.parse(`${fullPath}/package.json`),
+        contents: JSON.stringify({ version: '1.0.0' }),
       });
     },
   };

@@ -374,6 +374,54 @@ Left for a follow-up group:
 - `fs/unlink` (`fsUnlinkAdapter` → `unlink`), its 4 caller files (`check-run/e2e`, `check-run/integration`, `check-run/unit`, `storage/prune` unlink half) and their `.proxy.ts` files, plus the adapter's own 3 files.
 - `fs/read-file`, `crypto/hash-files`, `fs/write-file`, `os/tmpdir`, `typescript/module-shape` (other groups).
 
+### G-BB-1e
+
+Takes `fs/unlink`'s last 3 callers (the check-run brokers, which also carry `fsReadFileAdapter` — migrated in the same edit since the file is already open) and 12 more `fs/read-file` callers (13 of the 18 total), staying near the ~30-file budget. Package: ward only.
+
+Files edited:
+
+- `packages/ward/src/brokers/check-run/e2e/check-run-e2e-broker.ts` — `fsUnlinkAdapter`/`fsReadFileAdapter` → `unlink`/`readFile` (`#gateway/node/fs__promises`)
+- `packages/ward/src/brokers/check-run/e2e/check-run-e2e-broker.proxy.ts` — compose `unlinkProxy`/`readFileProxy` (`#gateway/node/fs__promises/unlink/unlink.proxy`, `.../read-file/read-file.proxy`) in place of the old adapter proxies
+- `packages/ward/src/brokers/check-run/integration/check-run-integration-broker.ts` — same swap
+- `packages/ward/src/brokers/check-run/integration/check-run-integration-broker.proxy.ts` — same swap; `handleUnlinkProxy.succeedsForAnyPath()` (an accept-all catch-all the old adapter proxy allowed) becomes `handleUnlinkProxy.succeeds({path: handleReportPath})` — the one real address this broker ever unlinks, since the gateway's `unlinkProxy` has no catch-all method
+- `packages/ward/src/brokers/check-run/unit/check-run-unit-broker.ts` — same swap
+- `packages/ward/src/brokers/check-run/unit/check-run-unit-broker.proxy.ts` — same swap, same `succeeds({path: handleReportPath})` fix
+- `packages/ward/src/adapters/fs/unlink/fs-unlink-adapter.ts` (+ `.proxy.ts`, `.test.ts`) — deleted; the 3 check-run brokers were its last callers
+- `packages/ward/src/brokers/bundle/build/bundle-build-broker.ts` — `fsReadFileAdapter` → `readFile`, added to the file's existing `#gateway/node/fs__promises` import (`ensureDir, rename, rm`)
+- `packages/ward/src/brokers/bundle/build/bundle-build-broker.proxy.ts` — compose `readFileProxy` in place of `fsReadFileAdapterProxy`
+- `packages/ward/src/brokers/bundle/build/collect-inputs-layer-broker.ts` — same swap
+- `packages/ward/src/brokers/bundle/build/collect-inputs-layer-broker.proxy.ts` — same swap
+- `packages/ward/src/brokers/bundle/build/resolve-workspace-root-layer-broker.ts` — same swap
+- `packages/ward/src/brokers/bundle/build/resolve-workspace-root-layer-broker.proxy.ts` — same swap; `hasNoManifest`'s `readProxy.throws({filePath, error: new Error('ENOENT...')})` becomes `readProxy.missing({path})` (the gateway proxy's own ENOENT-shaped stage)
+- `packages/ward/src/brokers/command/run/folder-resolve-layer-broker.ts` — same swap
+- `packages/ward/src/brokers/command/run/folder-resolve-layer-broker.proxy.ts` — same swap; `setupThrows` internals move to `.missing()`
+- `packages/ward/src/brokers/duplicate-install/check/gateway-dependency-names-read-layer-broker.ts` — same swap
+- `packages/ward/src/brokers/duplicate-install/check/gateway-dependency-names-read-layer-broker.proxy.ts` — same swap
+- `packages/ward/src/brokers/platform-crossing/check/platform-crossing-check-broker.ts` — `fsReadFileAdapter` → `readFile`, re-branded through `fileContentsContract.parse` (the composed `walkGatewayCrossingsLayerBroker` still takes branded `FileContents`); also fixes F53's `.filter((name): name is GatewayPackageName => …)` type-predicate at line 98 to a plain `name !== undefined` filter
+- `packages/ward/src/brokers/platform-crossing/check/platform-crossing-check-broker.proxy.ts` — compose `readFileProxy` in place of `fsReadFileAdapterProxy` (inert; never staged, matching the old adapter proxy's own inert composition)
+- `packages/ward/src/brokers/workspace/discover/workspace-discover-broker.ts` — same swap
+- `packages/ward/src/brokers/workspace/discover/workspace-discover-broker.proxy.ts` — same swap; `setupNoPackageJson` internals move to `.missing()`
+- `packages/ward/src/brokers/workspace/discover/package-read-layer-broker.ts` — same swap
+- `packages/ward/src/brokers/workspace/discover/package-read-layer-broker.proxy.ts` — same swap; `setupThrows` internals move to `.missing()`
+- `packages/ward/src/brokers/storage/load/storage-load-broker.ts` — same swap (2 call sites)
+- `packages/ward/src/brokers/storage/load/storage-load-broker.proxy.ts` — same swap; `setupReadFail` drops its now-unused `error` param (matches G-BB-1b's precedent for `setupReaddirFail`), using `.missing()` internally
+- `packages/ward/src/brokers/storage/load/storage-load-broker.test.ts` — `setupReadFail` call site drops the `error` argument
+- `packages/ward/src/brokers/command/detail/command-detail-broker.proxy.ts` — composes `storageLoadBrokerProxy`; `setupReadFail` call site drops the `error` argument (typecheck caught this: `setupReadFail`'s signature changed)
+- `packages/ward/src/brokers/command/list/command-list-broker.proxy.ts` — same drop
+- `packages/ward/src/brokers/command/raw/command-raw-broker.proxy.ts` — same drop
+- `packages/ward/src/brokers/command/run/multi-package-layer-broker.proxy.ts` — same drop
+- `packages/ward/src/brokers/workspace/manifest-entries-verify/workspace-manifest-entries-verify-broker.ts` — `fsReadFileAdapter` → `readFile`, added to the file's existing `#gateway/node/fs__promises` import (`statIfExists`); F53's own filter fix already landed in G-BB-1c, confirmed still in place
+- `packages/ward/src/brokers/workspace/manifest-entries-verify/workspace-manifest-entries-verify-broker.proxy.ts` — compose `readFileProxy` in place of `fsReadFileAdapterProxy`
+
+Left standing (fs/read-file, 5 callers + the adapter itself — not deleted, still imported):
+
+- `packages/ward/src/brokers/duplicate-install/check/installed-package-version-read-optional-layer-broker.ts` (+ `.proxy.ts`)
+- `packages/ward/src/brokers/platform-crossing/check/read-first-existing-candidate-layer-broker.ts` (+ `.proxy.ts`)
+- `packages/ward/src/brokers/platform-crossing/check/read-package-name-optional-layer-broker.ts` (+ `.proxy.ts`)
+- `packages/ward/src/responders/install/write-gitignore/install-write-gitignore-responder.ts` (+ `.proxy.ts`)
+- `packages/ward/src/responders/install/write-scripts/install-write-scripts-responder.ts` (+ `.proxy.ts`)
+- `packages/ward/src/adapters/fs/read-file/fs-read-file-adapter.ts` (+ `.proxy.ts`, `.test.ts`) — undeleted; the 5 callers above still import it
+
 ### F55
 
 Migrates `packages/ward/src/brokers/storage/prune/storage-prune-broker.ts` off ward's `fsUnlinkAdapter` onto `unlink` from `#gateway/node/fs__promises`, after adding `getCallsFor({ path })` call read-back to `@gateway/node`'s `fs__promises/unlink/unlink.proxy.ts`.

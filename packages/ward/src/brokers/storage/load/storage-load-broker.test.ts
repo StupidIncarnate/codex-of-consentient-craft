@@ -28,7 +28,7 @@ describe('storageLoadBroker', () => {
       const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
       const runId = RunIdStub();
       const proxy = storageLoadBrokerProxy();
-      proxy.setupReadFail({ rootPath, runId, error: new Error('ENOENT: no such file') });
+      proxy.setupReadFail({ rootPath, runId });
 
       const result = await storageLoadBroker({ rootPath, runId });
 

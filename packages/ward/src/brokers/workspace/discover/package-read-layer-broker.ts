@@ -6,7 +6,7 @@
  * // Returns ProjectFolder with name and path, or null if package.json missing, has no name, or has no src/ directory
  */
 
-import { readdirEntries } from '#gateway/node/fs__promises';
+import { readdirEntries, readFile } from '#gateway/node/fs__promises';
 import { filePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import {
@@ -14,7 +14,6 @@ import {
   type ProjectFolder,
 } from '../../../contracts/project-folder/project-folder-contract';
 import { packageJsonContract } from '../../../contracts/package-json/package-json-contract';
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 
 export const packageReadLayerBroker = async ({
   fullPath,
@@ -24,7 +23,7 @@ export const packageReadLayerBroker = async ({
 }): Promise<ProjectFolder | null> => {
   const pkgPath = filePathContract.parse(`${fullPath}/package.json`);
   try {
-    const contents = await fsReadFileAdapter({ filePath: pkgPath });
+    const contents = await readFile(pkgPath);
     const parsed = packageJsonContract.parse(JSON.parse(contents));
     const { name } = parsed;
     if (typeof name !== 'string') {
