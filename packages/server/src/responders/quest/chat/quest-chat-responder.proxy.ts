@@ -55,11 +55,6 @@ export const QuestChatResponderProxy = (): {
   // the real questListBroker. That proxy also wires the bare `@dungeonmaster/orchestrator` barrel
   // export this responder calls through, so no separate passthrough is needed here.
   const findQuestPathProxy = questFindQuestPathBrokerProxy();
-  // startChat has no cross-package getLastCalledArgs scenario on StartOrchestratorProxy, so this
-  // second registerMock call on the SAME mocked fn is read-only — it shares the underlying staged
-  // calls with the handle StartOrchestratorProxy already registered (jestRegisterMockAdapter keys
-  // its state by the mock function itself), never calling .calledWith() on it.
-  const startChatHandle = registerMock({ fn: StartOrchestrator.startChat });
   // pastedImagePersistBroker is APPLICATION code — it runs REAL. This proxy only mocks the npm
   // boundary underneath it (mkdir, writeFile, randomUUID, homedir), composed exactly the way the
   // broker's own test does.
@@ -163,7 +158,16 @@ export const QuestChatResponderProxy = (): {
       return resumeOrder < startChatOrder;
     },
     getStartChatCallArgs: ({ guildId }: { guildId: GuildId }): unknown =>
-      startChatHandle.callsMatching([{ guildId }]).at(-1)?.[0],
+      orchestrator
+        .startChatGetCalls()
+        .filter(
+          (args) =>
+            typeof args === 'object' &&
+            args !== null &&
+            'guildId' in args &&
+            args.guildId === guildId,
+        )
+        .at(-1),
     getStartChatCallCount: (): unknown => {
       const startChatFn = StartOrchestrator.startChat as jest.MockedFunction<
         typeof StartOrchestrator.startChat

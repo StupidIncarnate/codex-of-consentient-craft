@@ -108,6 +108,46 @@ Per the T6 doc row (2390 in the testing-patterns table): `mcp/src/brokers/archit
 - The rule's package list must come from `package.json` `workspaces`, never a hard-coded scope prefix —
   this is what keeps the rule working in a consumer repo with a different npm scope.
 
+## Plan — T04 server and hydration-recipes
+
+Scan method that worked: `tmp/t04-scan.config.js` requires the repo `eslint.config.js`, appends a block
+setting `@dungeonmaster/ban-workspace-export-mocks` to `error` with `workspacePackageNames` from
+`configWorkspacePackageNamesBroker`, and runs `node_modules/.bin/eslint -c tmp/t04-scan.config.js -f json
+-o tmp/t04-scan.json packages/server packages/hydration-recipes` (bare `npx eslint` is hook-blocked).
+
+Fresh scan, 2026-09-28: hydration-recipes 17, server 12 (the item's 11 had drifted). Every hit is in a
+`.proxy.ts`.
+
+Fixed by composing orchestrator's own broker proxies (hydration-recipes 12 of 17, server 1 of 12):
+
+| Site | Now stages through |
+|---|---|
+| `guild/query-route` | `guildListBrokerProxy().setupDirectListing` |
+| `guild/remove-route` | `guildRemoveBrokerProxy().setupConfig` (real broker returns `{ success: true }`) |
+| `quest/query-route` | `questListBrokerProxy().setupDirectList` |
+| `quest/owning-guild-find` | `guildListBrokerProxy` + `questListBrokerProxy().setupDirectList` |
+| `quest/remove-route` | owning-guild-find + `questDeleteBrokerProxy().setupQuestFolderPath` |
+| `operation/owning-quest-find` | guildList + questList + `questGetBrokerProxy().setupQuestFound` |
+| `operation/query-route`, `operation/write-route`, `quest/work-item-attach` | `questGetBrokerProxy().setupQuestFound`; the not-found case is `setupEmptyFolder()`, the real `{ success: false }` |
+| server `quest/chat` | `StartOrchestratorProxy().startChatGetCalls()` for the call readback |
+
+Remaining, each needs a new method on an orchestrator proxy (not edited here, orchestrator has agents in it):
+
+| Site | Needs |
+|---|---|
+| hydration `guild/write-route` (`guildAddBroker`) | `guildAddBrokerProxy` cannot hand back a caller-chosen guild; its real run mints id `f47ac10b-...` and createdAt `2024-01-15...`, while 12 tests assert other ids. Needs `setupResolves({ input, guild })` |
+| hydration `quest/reach-route`, `quest/update-route` (`questModifyBroker`, `questGetBroker`) | tests assert the `error` text of a `{ success: false, error }` from modify and from get. `questModifyBrokerProxy` has only `setupResolveSuccessOnce` and `setupResolveFailureOnce` (no error text, no input address); `questGetBrokerProxy` has no arbitrary-result method. Needs `questModifyBrokerProxy().setupResolves({ input, result })` and `questGetBrokerProxy().setupResolves({ input, result })` |
+| server `session/list` | `StartOrchestratorProxy` default for `loadQuest` (rejects for an unstaged questId), set in its constructor |
+| server `orchestration/bootstrap` | `bootstrapGetCalls()` |
+| server `quest/comment-batch` | `commentBatchGetCalls()` |
+| server `quest/followup` | `startFollowupChatGetCalls()` |
+| server `quest/followup-stop` | `stopFollowupChatGetCalls()` |
+| server `tooling/smoketest-state` | constructor default for `getSmoketestState` returning `{ active: null, events: [] }` |
+| server `server/init` (`StartOrchestrator.replayChatHistory`) | constructor default for `replayChatHistory` resolving `undefined` |
+| server `server/init` (`questFindQuestPathBroker`, `questOutboxWatchBroker`) | direct staging on both broker proxies; their real-execution scenarios corrupt the shared `join`/`homedir` mocks that `webBundleResponseBrokerProxy` also uses (see the proxy's own header) |
+| server `graph-reachability/check` | `graphReachabilityCheckBrokerProxy` direct result staging (`setupClean`, `setupViolation`) |
+| server `quest/human-verdict` | `questHumanVerdictRecordBrokerProxy` direct staging of the resolved `{ quest }` and the rejection |
+
 ## Concessions made while executing
 
 <Empty at the start. The operator fills this and mirrors it into EPIC.md's Concessions table.>

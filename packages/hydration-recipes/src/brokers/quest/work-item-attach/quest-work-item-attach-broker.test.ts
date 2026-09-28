@@ -91,7 +91,7 @@ describe('questWorkItemAttachBroker', () => {
       const proxy = questWorkItemAttachBrokerProxy();
       const target = DmTargetStub({ home: '/tmp/dm-home', claudeHome: '/tmp/dm-home' });
       const quest = QuestStub({ id: 'missing-quest', folder: 'missing-quest' });
-      proxy.setupQuestNotFound({ questId: quest.id });
+      proxy.setupQuestNotFound();
 
       await expect(
         questWorkItemAttachBroker({
