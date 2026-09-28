@@ -1,6 +1,6 @@
 import { opFilterApplyLayerBroker } from './op-filter-apply-layer-broker';
 import { apiTargetHarness } from '../../../../test/harnesses/api-target/api-target.harness';
-import { fetchPostAdapter } from '../../../adapters/fetch/post/fetch-post-adapter';
+import { fetchWithStatus } from '#gateway/node/fetch';
 import { OpFilterStub } from '../../../contracts/op-filter/op-filter.stub';
 import { IngredientConfigStub } from '../../../contracts/ingredient-config/ingredient-config.stub';
 import { HydrationTargetStub } from '../../../contracts/hydration-target/hydration-target.stub';
@@ -21,7 +21,13 @@ describe('opFilterApplyLayerBroker (integration — real sockets)', () => {
       name: 'operation',
       routes: {
         write: (): unknown => undefined,
-        query: async (): Promise<unknown> => fetchPostAdapter({ url: refusedUrl, fields: {} }),
+        query: async (): Promise<unknown> =>
+          fetchWithStatus({
+            url: refusedUrl,
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: {},
+          }),
       },
     });
     const op = OpFilterStub({
@@ -40,7 +46,7 @@ describe('opFilterApplyLayerBroker (integration — real sockets)', () => {
       opFilterApplyLayerBroker({ op, target: HydrationTargetStub({}), config, state }),
     ).rejects.toThrow(
       new RegExp(
-        `^recipe "guild-mid-execution": ingredient "operation" filter where \\{"role":"riftcarver"\\} could not query: Error: POST ${escapedUrl} refused: connect ECONNREFUSED 127\\.0\\.0\\.1:\\d+$`,
+        `^recipe "guild-mid-execution": ingredient "operation" filter where \\{"role":"riftcarver"\\} could not query: Error: POST ${escapedUrl} failed: connect ECONNREFUSED 127\\.0\\.0\\.1:\\d+$`,
         'u',
       ),
     );

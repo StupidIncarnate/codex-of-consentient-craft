@@ -1,7 +1,7 @@
 /**
  * PURPOSE: Runs a real `node:http` server on an ephemeral port, so an integration test can drive a
  * genuine refused connection and a genuine non-2xx response with a real body. Reach for this in any
- * `api`-route integration test instead of `fetch-post-adapter.proxy.ts`'s mocked `fetch`: a mock
+ * `api`-route integration test instead of a mocked `fetch`: a mock
  * always answers something, so it cannot refuse a connection the way a closed socket does, and it
  * cannot prove a body a real server wrote survives byte for byte.
  *

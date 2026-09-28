@@ -21,7 +21,6 @@
     "**/*.harness.ts",
     "test/**",
     "src/.test-tmp/**",
-    "src/_lint-testbed/**",
-    "src/adapters/typescript/program-diagnostics/**"
+    "src/_lint-testbed/**"
   ]
 }

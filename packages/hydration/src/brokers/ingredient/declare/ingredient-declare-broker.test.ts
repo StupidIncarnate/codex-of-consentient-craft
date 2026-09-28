@@ -2,7 +2,7 @@ import { ingredientDeclareBroker } from './ingredient-declare-broker';
 import { ingredientDeclareBrokerProxy } from './ingredient-declare-broker.proxy';
 import { IngredientConfigStub } from '../../../contracts/ingredient-config/ingredient-config.stub';
 import { reservedVerbStatics } from '../../../statics/reserved-verb/reserved-verb-statics';
-import { typescriptProgramDiagnosticsAdapter } from '../../../adapters/typescript/program-diagnostics/typescript-program-diagnostics-adapter';
+import { typescriptProgramDiagnostics } from '../../../../test/type-fixtures/typescript-program-diagnostics';
 import { TypeDiagnosticStub } from '../../../contracts/type-diagnostic/type-diagnostic.stub';
 import { RepoRelativePathStub, LineCountStub } from '@dungeonmaster/shared/contracts';
 
@@ -34,7 +34,7 @@ const BAD_DEFAULTS = RepoRelativePathStub({
 const BAD_LINK_FIELD = RepoRelativePathStub({
   value: 'packages/hydration/test/type-fixtures/declaration/bad-link-field.ts',
 });
-const declarationFixtureDiagnostics = typescriptProgramDiagnosticsAdapter({
+const declarationFixtureDiagnostics = typescriptProgramDiagnostics({
   files: [
     BAD_TRANSITION_FIELD,
     BAD_TRANSITION_VALUE,

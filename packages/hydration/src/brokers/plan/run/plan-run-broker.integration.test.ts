@@ -17,9 +17,8 @@ import { IngredientConfigStub } from '../../../contracts/ingredient-config/ingre
 import { LinkSpecStub } from '../../../contracts/link-spec/link-spec.stub';
 import { HydrationTargetStub } from '../../../contracts/hydration-target/hydration-target.stub';
 import type { HydrationOpStub } from '../../../contracts/hydration-op/hydration-op.stub';
-import { fsEnsureWriteAdapter } from '../../../adapters/fs/ensure-write/fs-ensure-write-adapter';
-import { fetchPostAdapter } from '../../../adapters/fetch/post/fetch-post-adapter';
-import { FileContentsStub } from '@dungeonmaster/shared/contracts';
+import { fetchWithStatus } from '#gateway/node/fetch';
+import { writeFileCreatingParent } from '#gateway/node/fs__promises';
 import { HydrationWriteFailedError } from '../../../errors/hydration-write-failed/hydration-write-failed-error';
 import { HydrationRouteFailedError } from '../../../errors/hydration-route-failed/hydration-route-failed-error';
 
@@ -40,12 +39,10 @@ describe('planRunBroker (integration — real disk)', () => {
       name: 'quest',
       routes: {
         write: async (): Promise<unknown> => {
-          await fsEnsureWriteAdapter({
-            filePath: harness.absolutePath({ relativePath: 'guilds/g1/quests/q1/quest.json' }),
-            content: FileContentsStub({
-              value: JSON.stringify({ id: 'q1', title: 'The running one' }),
-            }),
-          });
+          await writeFileCreatingParent(
+            harness.absolutePath({ relativePath: 'guilds/g1/quests/q1/quest.json' }),
+            JSON.stringify({ id: 'q1', title: 'The running one' }),
+          );
           return { id: 'q1', title: 'The running one' };
         },
       },
@@ -72,10 +69,10 @@ describe('planRunBroker (integration — real disk)', () => {
       name: 'quest',
       routes: {
         write: async (): Promise<unknown> => {
-          await fsEnsureWriteAdapter({
-            filePath: lockedQuestJsonPath,
-            content: FileContentsStub({ value: JSON.stringify({ id: 'q1', title: 'Quest 1' }) }),
-          });
+          await writeFileCreatingParent(
+            lockedQuestJsonPath,
+            JSON.stringify({ id: 'q1', title: 'Quest 1' }),
+          );
           return { id: 'q1', title: 'Quest 1' };
         },
       },
@@ -102,10 +99,10 @@ describe('planRunBroker (integration — real disk)', () => {
   });
 
   it('VALID: {two guild creates read-modify-writing ONE config.json} => the file holds both ids', async () => {
-    await fsEnsureWriteAdapter({
-      filePath: harness.absolutePath({ relativePath: 'config.json' }),
-      content: FileContentsStub({ value: JSON.stringify({ guilds: [] }) }),
-    });
+    await writeFileCreatingParent(
+      harness.absolutePath({ relativePath: 'config.json' }),
+      JSON.stringify({ guilds: [] }),
+    );
     const guildConfig = IngredientConfigStub({
       name: 'guild',
       routes: {
@@ -115,12 +112,10 @@ describe('planRunBroker (integration — real disk)', () => {
             unknown
           >;
           const priorGuilds = existing.guilds as string[];
-          await fsEnsureWriteAdapter({
-            filePath: harness.absolutePath({ relativePath: 'config.json' }),
-            content: FileContentsStub({
-              value: JSON.stringify({ guilds: [...priorGuilds, fields.title] }),
-            }),
-          });
+          await writeFileCreatingParent(
+            harness.absolutePath({ relativePath: 'config.json' }),
+            JSON.stringify({ guilds: [...priorGuilds, fields.title] }),
+          );
           return { id: fields.title, title: fields.title };
         },
       },
@@ -160,10 +155,10 @@ describe('planRunBroker (integration — real disk)', () => {
       name: 'guild',
       routes: {
         write: async (): Promise<unknown> => {
-          await fsEnsureWriteAdapter({
-            filePath: harness.absolutePath({ relativePath: 'guilds/g1.json' }),
-            content: FileContentsStub({ value: JSON.stringify({ id: 'g1', title: 'Guild' }) }),
-          });
+          await writeFileCreatingParent(
+            harness.absolutePath({ relativePath: 'guilds/g1.json' }),
+            JSON.stringify({ id: 'g1', title: 'Guild' }),
+          );
           return { id: 'g1', title: 'Guild' };
         },
       },
@@ -173,10 +168,10 @@ describe('planRunBroker (integration — real disk)', () => {
       links: [LinkSpecStub({ of: 'guild', as: 'guildId' })],
       routes: {
         write: async (): Promise<unknown> => {
-          await fsEnsureWriteAdapter({
-            filePath: harness.absolutePath({ relativePath: 'locked/quest.json' }),
-            content: FileContentsStub({ value: JSON.stringify({ id: 'q1', title: 'Quest' }) }),
-          });
+          await writeFileCreatingParent(
+            harness.absolutePath({ relativePath: 'locked/quest.json' }),
+            JSON.stringify({ id: 'q1', title: 'Quest' }),
+          );
           return { id: 'q1', title: 'Quest' };
         },
       },
@@ -225,10 +220,10 @@ describe('planRunBroker (integration — real disk)', () => {
       ],
       routes: {
         write: async ({ fields }: { fields: Record<string, unknown> }): Promise<unknown> => {
-          await fsEnsureWriteAdapter({
-            filePath: harness.absolutePath({ relativePath: 'operation.json' }),
-            content: FileContentsStub({ value: JSON.stringify(fields) }),
-          });
+          await writeFileCreatingParent(
+            harness.absolutePath({ relativePath: 'operation.json' }),
+            JSON.stringify(fields),
+          );
           return { id: 'op1', title: 'Operation 1' };
         },
       },
@@ -269,12 +264,10 @@ describe('planRunBroker (integration — real disk)', () => {
         name: 'guild',
         routes: {
           write: async ({ fields }: { fields: Record<string, unknown> }): Promise<unknown> => {
-            await fsEnsureWriteAdapter({
-              filePath: homeA.absolutePath({ relativePath: 'guilds/g1.json' }),
-              content: FileContentsStub({
-                value: JSON.stringify({ id: fields.title, title: fields.title }),
-              }),
-            });
+            await writeFileCreatingParent(
+              homeA.absolutePath({ relativePath: 'guilds/g1.json' }),
+              JSON.stringify({ id: fields.title, title: fields.title }),
+            );
             return { id: fields.title, title: fields.title };
           },
         },
@@ -283,12 +276,10 @@ describe('planRunBroker (integration — real disk)', () => {
         name: 'guild',
         routes: {
           write: async ({ fields }: { fields: Record<string, unknown> }): Promise<unknown> => {
-            await fsEnsureWriteAdapter({
-              filePath: homeB.absolutePath({ relativePath: 'guilds/g1.json' }),
-              content: FileContentsStub({
-                value: JSON.stringify({ id: fields.title, title: fields.title }),
-              }),
-            });
+            await writeFileCreatingParent(
+              homeB.absolutePath({ relativePath: 'guilds/g1.json' }),
+              JSON.stringify({ id: fields.title, title: fields.title }),
+            );
             return { id: fields.title, title: fields.title };
           },
         },
@@ -348,7 +339,12 @@ describe('planRunBroker (integration — real api routes)', () => {
       name: 'guild',
       routes: {
         api: async ({ fields }: { fields: Record<string, unknown> }): Promise<unknown> => {
-          const response = await fetchPostAdapter({ url, fields });
+          const response = await fetchWithStatus({
+            url,
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: fields,
+          });
           return JSON.parse(response.body) as unknown;
         },
       },
@@ -375,7 +371,12 @@ describe('planRunBroker (integration — real api routes)', () => {
       name: 'guild',
       routes: {
         api: async ({ fields }: { fields: Record<string, unknown> }): Promise<unknown> =>
-          fetchPostAdapter({ url: refusedUrl, fields }),
+          fetchWithStatus({
+            url: refusedUrl,
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: fields,
+          }),
       },
     });
 
@@ -391,7 +392,7 @@ describe('planRunBroker (integration — real api routes)', () => {
       }),
     ).rejects.toThrow(
       new RegExp(
-        `^recipe "guild-mid-execution": ingredient "guild"'s "api" route at ${escapedUrl} refused the connection: Error: POST ${escapedUrl} refused: connect ECONNREFUSED 127\\.0\\.0\\.1:\\d+$`,
+        `^recipe "guild-mid-execution": ingredient "guild"'s "api" route at ${escapedUrl} refused the connection: Error: POST ${escapedUrl} failed: connect ECONNREFUSED 127\\.0\\.0\\.1:\\d+$`,
         'u',
       ),
     );
@@ -404,9 +405,14 @@ describe('planRunBroker (integration — real api routes)', () => {
       name: 'guild',
       routes: {
         api: async ({ fields }: { fields: Record<string, unknown> }): Promise<unknown> => {
-          const response = await fetchPostAdapter({ url, fields });
+          const response = await fetchWithStatus({
+            url,
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: fields,
+          });
           throw Object.assign(new Error(`answered ${String(response.status)}`), {
-            url: response.url,
+            url,
             status: response.status,
             body: response.body,
           });
@@ -444,7 +450,12 @@ describe('planRunBroker (integration — real api routes)', () => {
       name: 'guild',
       routes: {
         api: async ({ fields }: { fields: Record<string, unknown> }): Promise<unknown> => {
-          const response = await fetchPostAdapter({ url, fields });
+          const response = await fetchWithStatus({
+            url,
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: fields,
+          });
           return JSON.parse(response.body) as unknown;
         },
       },

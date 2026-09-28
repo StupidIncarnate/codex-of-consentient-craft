@@ -6,24 +6,24 @@
  * a fixture-subdirectory run fast enough to colocate with the fixture it grades.
  *
  * USAGE:
- * typescriptProgramDiagnosticsAdapter({
+ * typescriptProgramDiagnostics({
  *   files: [repoRelativePathContract.parse('packages/hydration/test/adapter-fixtures/one-error.ts')],
  * });
  * // Returns every syntactic and semantic diagnostic in that program, as TypeDiagnostic[]
  */
 
-import * as ts from 'typescript';
-import { resolve } from 'path';
+import * as ts from '#gateway/npm/typescript';
+import { resolve } from '#gateway/node/path';
 import { repoRelativePathContract, lineCountContract } from '@dungeonmaster/shared/contracts';
 import type { RepoRelativePath } from '@dungeonmaster/shared/contracts';
-import { typeDiagnosticContract } from '../../../contracts/type-diagnostic/type-diagnostic-contract';
-import type { TypeDiagnostic } from '../../../contracts/type-diagnostic/type-diagnostic-contract';
+import { typeDiagnosticContract } from '../../src/contracts/type-diagnostic/type-diagnostic-contract';
+import type { TypeDiagnostic } from '../../src/contracts/type-diagnostic/type-diagnostic-contract';
 
 // Ward spawns this package's jest with `cwd` set to `packages/hydration` itself, not the repo
 // root, so `process.cwd()` cannot resolve a `RepoRelativePath`. This file's own position is a
-// repo-structural constant instead: six directories up from
-// `packages/hydration/src/adapters/typescript/program-diagnostics/` is the repo root.
-const repoRoot = resolve(__dirname, '../../../../../..');
+// repo-structural constant instead: four directories up from
+// `packages/hydration/test/type-fixtures/` is the repo root.
+const repoRoot = resolve(__dirname, '../../../..');
 
 // Fixed for every caller: one blessed strictness level so no fixture can quietly pass under a
 // weaker setting than the rest. Matches this package's own tsconfig strictness (strict,
@@ -43,7 +43,7 @@ const compilerOptions: ts.CompilerOptions = {
   lib: ['lib.es2022.d.ts'],
 };
 
-export const typescriptProgramDiagnosticsAdapter = ({
+export const typescriptProgramDiagnostics = ({
   files,
 }: {
   files: readonly RepoRelativePath[];

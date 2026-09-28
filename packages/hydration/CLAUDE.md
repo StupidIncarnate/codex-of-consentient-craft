@@ -185,24 +185,21 @@ lives in the table below instead.
 
 | `exclude` entry | File | What it is for |
 |---|---|---|
-| `test/adapter-fixtures/**` | `tsconfig.json` | `typescriptProgramDiagnosticsAdapter`'s own test fixtures, carrying a deliberate compiler error the adapter compiles directly. The package's own checking `tsc` must skip them |
-| `test/type-fixtures/declaration/**` | `tsconfig.json` | the declaration half of the negative type suite — nine malformed ingredient declarations (D1-D9), one deliberate error per file, graded by `typescriptProgramDiagnosticsAdapter` in `ingredient-declare-broker.test.ts`. Scoped to this one subdirectory, not the whole `test/type-fixtures/` tree: `dm-target.ts` and `sql-target.ts` are VALID TypeScript and stay under the package's own checking `tsc`. Each sibling case group (`call-site/`, `seed-step/`, `positive/`) adds its own narrow entry the same way |
-| `src/adapters/typescript/program-diagnostics/**` | `tsconfig.build.json` | a test-only adapter that grades the negative type-fixture suite with a real `ts.createProgram`. A package that ships has no business bundling `typescript` as a runtime dependency, so this never reaches `dist` |
+| `test/adapter-fixtures/**` | `tsconfig.json` | test fixtures carrying a deliberate compiler error the compiler helper compiles directly. The package's own checking `tsc` must skip them |
+| `test/type-fixtures/declaration/**` | `tsconfig.json` | the declaration half of the negative type suite — nine malformed ingredient declarations (D1-D9), one deliberate error per file, graded by `typescriptProgramDiagnostics` in `ingredient-declare-broker.test.ts`. Scoped to this one subdirectory, not the whole `test/type-fixtures/` tree: `dm-target.ts` and `sql-target.ts` are VALID TypeScript and stay under the package's own checking `tsc`. Each sibling case group (`call-site/`, `seed-step/`, `positive/`) adds its own narrow entry the same way |
 
 ## Ward runs this package's jest with `cwd` set to the package directory
 
 `process.cwd()` inside a test resolves to `packages/hydration`, never the repo root, under a real
-ward run. Anything owning fixtures resolves paths through the compiler adapter, which walks up from
+ward run. Anything owning fixtures resolves paths through the compiler helper, which walks up from
 `__dirname`, rather than resolving them itself.
 
 ## The `exports` map has no `./adapters` subpath, and that is deliberate
 
 `contracts.ts`, `brokers.ts`, `transformers.ts` and `errors.ts` are the whole public surface.
-`src/adapters/` holds three things and none belongs on it: the TypeScript-diagnostics adapter is
-test-only and already sits outside `tsconfig.build.json`'s emit; `fetchPostAdapter` and
-`fsEnsureWriteAdapter` are route helpers the runner calls internally, not something a recipe or a
-spec ever imports directly. Adding a `./adapters` subpath later is a decision to make deliberately,
-not a gap to fill by matching what `@dungeonmaster/shared` happens to export.
+This package has no adapters folder; route helpers and runner I/O call `#gateway/*` directly.
+Adding a `./adapters` subpath later is a decision to make deliberately, not a gap to fill by
+matching what `@dungeonmaster/shared` happens to export.
 
 `hydrationCreateBroker` returns `{ ingredient, registry, recipe, run, listing }`. `run` is the public
 name a spec tree reaches with no MCP boundary, and it calls `planRunBroker` against whichever

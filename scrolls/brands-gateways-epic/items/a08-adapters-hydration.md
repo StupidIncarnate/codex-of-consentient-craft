@@ -113,3 +113,36 @@ one place it is defined.
 ## Concessions made while executing
 
 <!-- Empty at the start. The operator fills this and mirrors it into EPIC.md's Concessions table. -->
+
+## Plan
+
+### Group G-M (hydration own adapters)
+
+Scope: `packages/hydration` only.
+
+#### Files to delete:
+- `packages/hydration/src/adapters/fetch/post/fetch-post-adapter.ts`
+- `packages/hydration/src/adapters/fetch/post/fetch-post-adapter.proxy.ts`
+- `packages/hydration/src/adapters/fetch/post/fetch-post-adapter.test.ts`
+- `packages/hydration/src/adapters/fetch/post/fetch-post-adapter.integration.test.ts`
+- `packages/hydration/src/adapters/fs/ensure-write/fs-ensure-write-adapter.ts`
+- `packages/hydration/src/adapters/fs/ensure-write/fs-ensure-write-adapter.proxy.ts`
+- `packages/hydration/src/adapters/fs/ensure-write/fs-ensure-write-adapter.test.ts`
+- `packages/hydration/src/adapters/typescript/program-diagnostics/typescript-program-diagnostics-adapter.ts`
+- `packages/hydration/src/adapters/typescript/program-diagnostics/typescript-program-diagnostics-adapter.proxy.ts`
+- `packages/hydration/src/adapters/typescript/program-diagnostics/typescript-program-diagnostics-adapter.test.ts`
+
+#### Files to create:
+- `packages/hydration/test/type-fixtures/typescript-program-diagnostics.ts` (test-only helper placed in `test/type-fixtures/` because `.harness.ts` cannot be imported by unit tests per architecture rules; call-site fixture assertions consolidated into `registry-create-broker.test.ts`)
+
+
+#### Files to edit:
+- `packages/hydration/src/brokers/plan/run/op-filter-apply-layer-broker.integration.test.ts`
+- `packages/hydration/src/brokers/plan/run/plan-run-broker.integration.test.ts`
+- `packages/hydration/src/brokers/ingredient/declare/ingredient-declare-broker.test.ts`
+- `packages/hydration/src/brokers/registry/create/registry-create-broker.test.ts`
+- `packages/hydration/test/harnesses/api-target/api-target.harness.ts`
+- `packages/hydration/tsconfig.build.json`
+- `packages/hydration/CLAUDE.md`
+- `packages/hydration/package.json` (add `@dungeonmaster/node` and `@dungeonmaster/npm` to devDependencies per `gateway-dependency-declared` lint rule)
+
