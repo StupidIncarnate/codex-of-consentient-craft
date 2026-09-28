@@ -101,7 +101,7 @@ A new operator took over from the morning handoff below. Heartbeat cron `13,43 *
 |---|---|---|---|
 | — | Landed this session | — | See `git log`. No `adapters/` left in ward, eslint-plugin, shared, hydration-recipes (plus cli, config, hooks, hydration, mcp, server, tooling from before). Adapters left at ee9b1643e: orchestrator 1 (`watch-tail`), siegelense 25, testing 13, web 8. Web e2e green twice this session (1790632205949-fbf1, 1790635049666-3ffb; 131 files). |
 | planner (opus) | Which remaining work can be scripted | none | done: `scripting-opportunities.md`. **The user tabled all script-making.** S1 (census) landed anyway, 4130e9c6f. |
-| a14-ts (opus) | A14 testing `typescript/*` (feeds the proxy-mock hoister) | `testing` | running, past one hour: sonnet status check says 4 of 7 done, steady, not looping; told to get the testing unit suite green and stop at the next green point if the rest runs long |
+| a14-ts (opus) | A14 testing `typescript/*` | `testing` | past 1h50m: second status check found 4 of 7 done, the last unit run red, steps taking 18 to 28 minutes each. Told to stop now, revert or finish the half-started adapter, get testing unit green, and report. Lesson: an adapter that feeds the proxy-mock hoister is a slow chunk; give the last three to a fresh agent, one or two per chunk |
 | a13-pw (opus) | A13: `playwright/session` | `siegelense` | part done be09f776d (five builders now transformers); the facade and seven layers wait on F73 |
 | f73 (opus) | F73 | `@gateway/npm` | done aae7c9c27 |
 | f75 (sonnet) | F75: shared's edge graph file-bus extractors match the gateway `tailFile(`/`appendFile(` calls | `shared` transformers, contracts, architecture brokers | running |
