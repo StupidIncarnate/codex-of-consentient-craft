@@ -1,3 +1,5 @@
+import type { FsError } from '#gateway/node/fs';
+import { rmProxy } from '#gateway/node/fs__promises/rm/rm.proxy';
 import {
   FileContentsStub,
   FileNameStub,
@@ -6,7 +8,6 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, FilePath, GuildId, QuestId } from '@dungeonmaster/shared/contracts';
 
-import { fsRmAdapterProxy } from '../../../adapters/fs/rm/fs-rm-adapter.proxy';
 import { questFindQuestPathBrokerProxy } from '../../quest/find-quest-path/quest-find-quest-path-broker.proxy';
 
 type Quest = ReturnType<typeof QuestStub>;
@@ -18,11 +19,11 @@ export const smoketestTeardownQuestBrokerProxy = (): {
     questId: QuestId;
   }) => void;
   setupQuestNotFound: () => void;
-  setupRmFailure: (params: { error: Error }) => void;
+  setupRmFailure: (params: { error: FsError }) => void;
   getRmCallArgs: () => readonly unknown[][];
 } => {
   const findProxy = questFindQuestPathBrokerProxy();
-  const rmProxy = fsRmAdapterProxy();
+  const removeProxy = rmProxy();
   const questFolderPathRef: { value: FilePath } = { value: FilePathStub({ value: '/unset' }) };
 
   return {
@@ -66,10 +67,7 @@ export const smoketestTeardownQuestBrokerProxy = (): {
         ],
       });
 
-      // fsRmAdapterProxy no longer has a constructor-level catch-all — this proxy silently
-      // leaned on that removed default for the success path. Stage it explicitly, keyed on
-      // the same path questFindQuestPathBroker resolves to.
-      rmProxy.succeeds({ filePath: questFolderPath });
+      removeProxy.succeeds({ path: questFolderPath });
     },
 
     setupQuestNotFound: (): void => {
@@ -82,11 +80,11 @@ export const smoketestTeardownQuestBrokerProxy = (): {
       });
     },
 
-    setupRmFailure: ({ error }: { error: Error }): void => {
-      rmProxy.throws({ filePath: questFolderPathRef.value, error });
+    setupRmFailure: ({ error }: { error: FsError }): void => {
+      removeProxy.rejects({ path: questFolderPathRef.value, error });
     },
 
     getRmCallArgs: (): readonly unknown[][] =>
-      rmProxy.getCallsFor({ filePath: questFolderPathRef.value }),
+      removeProxy.getCallsFor({ path: questFolderPathRef.value }),
   };
 };

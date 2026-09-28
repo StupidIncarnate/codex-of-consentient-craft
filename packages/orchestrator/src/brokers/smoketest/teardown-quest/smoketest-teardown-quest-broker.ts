@@ -12,10 +12,10 @@
  * responder/flow. Brokers/ may not import state/, so the scenario unregister is performed at the responder layer.
  */
 
+import { rm } from '#gateway/node/fs__promises';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { FilePath, QuestId } from '@dungeonmaster/shared/contracts';
 
-import { fsRmAdapter } from '../../../adapters/fs/rm/fs-rm-adapter';
 import { questFindQuestPathBroker } from '../../quest/find-quest-path/quest-find-quest-path-broker';
 
 export const smoketestTeardownQuestBroker = async ({
@@ -33,11 +33,7 @@ export const smoketestTeardownQuestBroker = async ({
   }
 
   try {
-    await fsRmAdapter({
-      filePath: resolvedQuestPath,
-      recursive: true,
-      force: true,
-    });
+    await rm(resolvedQuestPath, { recursive: true, force: true });
   } catch {
     // Directory already removed or concurrent cleanup — idempotent no-op.
   }

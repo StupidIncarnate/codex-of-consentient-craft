@@ -20,8 +20,9 @@
 import type { UsageLedger } from '@dungeonmaster/shared/contracts';
 import { locationsClaudeProjectsRootFindBroker } from '@dungeonmaster/shared/brokers';
 import { usageAccountingStatics } from '@dungeonmaster/shared/statics';
+import { walkFilesSync } from '#gateway/node/fs';
 
-import { fsWalkFilesAdapter } from '../../../adapters/fs/walk-files/fs-walk-files-adapter';
+import { scannedFileContract } from '../../../contracts/scanned-file/scanned-file-contract';
 import { transcriptReadContract } from '../../../contracts/transcript-read/transcript-read-contract';
 import { usageLedgerReadBroker } from '../read/usage-ledger-read-broker';
 import { usageLedgerWriteBroker } from '../write/usage-ledger-write-broker';
@@ -41,10 +42,18 @@ export const usageLedgerScanBroker = async ({ nowMs }: { nowMs: number }): Promi
 
   const oldestUsefulMs = nowMs - usageAccountingStatics.windows.sevenDayMs;
 
-  const files = fsWalkFilesAdapter({
+  const files = walkFilesSync({
     rootPath: locationsClaudeProjectsRootFindBroker(),
     suffix: TRANSCRIPT_SUFFIX,
-  }).filter((file) => file.mtimeMs >= oldestUsefulMs);
+  })
+    .map((walked) =>
+      scannedFileContract.parse({
+        path: walked.path,
+        mtimeMs: walked.modifiedAtMs,
+        size: walked.sizeBytes,
+      }),
+    )
+    .filter((file) => file.mtimeMs >= oldestUsefulMs);
 
   // A file whose recorded length no longer prefixes what is on disk invalidates every bucket, not
   // just its own — see the header.

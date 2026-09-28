@@ -61,7 +61,15 @@ describe('usageLedgerScanBroker', () => {
         }),
       });
       proxy.setupTranscripts({
-        files: [{ name: 'a.jsonl', mtimeMs: NOW - HOUR, size: contents.length, contents }],
+        files: [
+          {
+            name: 'a.jsonl',
+            mtimeMs: NOW - HOUR,
+            size: contents.length,
+            contents: FIRST_LINE + SECOND_LINE.trimEnd(),
+            readFromByte: FIRST_LINE.length,
+          },
+        ],
       });
 
       await usageLedgerScanBroker({ nowMs: NOW });

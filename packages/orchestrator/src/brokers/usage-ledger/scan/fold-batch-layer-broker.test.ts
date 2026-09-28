@@ -56,7 +56,14 @@ describe('foldBatchLayerBroker', () => {
 
     it('VALID: {fromByte past the first line} => folds only the tail', async () => {
       const proxy = foldBatchLayerBrokerProxy();
-      proxy.setupTranscript({ path: '/a/one.jsonl', contents: LINE_10 + LINE_20 });
+      // The tail carries no trailing newline: a read that ignored `fromByte` would come back
+      // zero-padded past the last line's end, corrupting it, and the sum would fall to zero.
+      const tailLine = LINE_20.trimEnd();
+      proxy.setupTranscript({
+        path: '/a/one.jsonl',
+        contents: LINE_10 + tailLine,
+        fromByte: LINE_10.length,
+      });
 
       const result = await foldBatchLayerBroker({
         pending: [TranscriptReadStub({ path: '/a/one.jsonl', fromByte: LINE_10.length })],

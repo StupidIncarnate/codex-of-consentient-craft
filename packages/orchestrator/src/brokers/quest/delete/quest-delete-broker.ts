@@ -10,9 +10,9 @@ import { dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { GuildId, QuestId } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
+import { rm } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
 
-import { fsRmAdapter } from '../../../adapters/fs/rm/fs-rm-adapter';
 import { questOutboxAppendBroker } from '../outbox-append/quest-outbox-append-broker';
 
 export const questDeleteBroker = async ({
@@ -34,11 +34,7 @@ export const questDeleteBroker = async ({
     ),
   );
 
-  await fsRmAdapter({
-    filePath: questFolderPath,
-    recursive: true,
-    force: true,
-  });
+  await rm(questFolderPath, { recursive: true, force: true });
 
   await questOutboxAppendBroker({ questId });
 

@@ -85,7 +85,7 @@ const primeGuildAndQuestsPath = ({
 
 describe('smoketestClearPriorQuestsBroker', () => {
   describe('no prior quests', () => {
-    it('VALID: {empty quests folder} => returns deletedCount 0 without calling fsRmAdapter', async () => {
+    it('VALID: {empty quests folder} => returns deletedCount 0 without removing any folder', async () => {
       const proxy = smoketestClearPriorQuestsBrokerProxy();
       proxy.setupPassthrough();
 
@@ -205,7 +205,7 @@ describe('smoketestClearPriorQuestsBroker', () => {
       });
     });
 
-    it('VALID: {2 quests, neither matches questSource} => returns deletedCount 0 without calling fsRmAdapter', async () => {
+    it('VALID: {2 quests, neither matches questSource} => returns deletedCount 0 without removing any folder', async () => {
       const proxy = smoketestClearPriorQuestsBrokerProxy();
       proxy.setupPassthrough();
 

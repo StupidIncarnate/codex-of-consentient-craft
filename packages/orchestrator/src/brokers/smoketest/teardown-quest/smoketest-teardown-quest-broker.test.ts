@@ -1,3 +1,4 @@
+import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { AbsoluteFilePathStub, GuildIdStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
 
 import { smoketestTeardownQuestBroker } from './smoketest-teardown-quest-broker';
@@ -54,7 +55,9 @@ describe('smoketestTeardownQuestBroker', () => {
     it('VALID: {quest found but rm throws ENOENT} => swallows error and returns success', async () => {
       const proxy = smoketestTeardownQuestBrokerProxy();
       proxy.setupQuestFound({ questPath: QUEST_PATH, guildId: GUILD_ID, questId: QUEST_ID });
-      proxy.setupRmFailure({ error: new Error('ENOENT: no such file or directory') });
+      proxy.setupRmFailure({
+        error: FsErrorStub({ code: 'ENOENT', path: QUEST_PATH, syscall: 'rm' }),
+      });
 
       const result = await smoketestTeardownQuestBroker({ questId: QUEST_ID });
 

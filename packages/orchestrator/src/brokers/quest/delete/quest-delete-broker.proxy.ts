@@ -1,12 +1,13 @@
+import { rmProxy } from '#gateway/node/fs__promises/rm/rm.proxy';
 import { join } from '#gateway/node/path';
 
+import type { FsError } from '#gateway/node/fs';
 import { dungeonmasterHomeFindBrokerProxy } from '@dungeonmaster/shared/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
 import type { FilePath, GuildId, QuestId } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
-import { fsRmAdapterProxy } from '../../../adapters/fs/rm/fs-rm-adapter.proxy';
 import { questOutboxAppendBrokerProxy } from '../outbox-append/quest-outbox-append-broker.proxy';
 
 export const questDeleteBrokerProxy = (): {
@@ -16,13 +17,13 @@ export const questDeleteBrokerProxy = (): {
     questId: QuestId;
     questFolderPath: FilePath;
   }) => void;
-  setupRmFailure: (params: { error: Error }) => void;
+  setupRmFailure: (params: { error: FsError }) => void;
   getRmCallArgs: () => readonly unknown[][];
   getAppendedContent: () => unknown;
 } => {
   const homeFindProxy = dungeonmasterHomeFindBrokerProxy();
   const joinHandle = registerMock({ fn: join });
-  const rmProxy = fsRmAdapterProxy();
+  const removeProxy = rmProxy();
   const outboxAppendProxy = questOutboxAppendBrokerProxy();
 
   const outboxFilePath = FilePathStub({
@@ -56,19 +57,16 @@ export const questDeleteBrokerProxy = (): {
           questId,
         ])
         .returns(questFolderPath);
-      // fsRmAdapterProxy no longer has a constructor-level catch-all — this proxy silently
-      // leaned on that removed default for the success path. Stage it explicitly, keyed on
-      // the same questFolderPath the broker deletes.
-      rmProxy.succeeds({ filePath: questFolderPath });
+      removeProxy.succeeds({ path: questFolderPath });
       outboxAppendProxy.setupOutboxAppend({ homePath, outboxFilePath });
     },
 
-    setupRmFailure: ({ error }: { error: Error }): void => {
-      rmProxy.throws({ filePath: questFolderPathRef.value, error });
+    setupRmFailure: ({ error }: { error: FsError }): void => {
+      removeProxy.rejects({ path: questFolderPathRef.value, error });
     },
 
     getRmCallArgs: (): readonly unknown[][] =>
-      rmProxy.getCallsFor({ filePath: questFolderPathRef.value }),
+      removeProxy.getCallsFor({ path: questFolderPathRef.value }),
 
     getAppendedContent: (): unknown => outboxAppendProxy.getAppendedContent({ outboxFilePath }),
   };

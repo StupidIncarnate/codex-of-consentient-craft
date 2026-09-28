@@ -209,3 +209,29 @@ Edited callers, proxies and tests:
 - `responders/quest/handle-signal-back/quest-handle-signal-back-responder.integration.test.ts`
 
 Proxies that compose the edited proxies and are covered by the whole-package unit run (not edited): `git-rows-layer-broker`, `quest-get-quest-work-broker`, `quest-node-dispatch-loop-broker`, `quest-run-step-broker`, `step-handler-run-broker`, `orchestration-dispatch-bootstrap-responder`, `quest-get-blight-checklist-responder`, `quest-get-quest-work-responder`, `worktree-create-responder`.
+
+### G-CC fs
+
+Scope, all under `packages/orchestrator/src`. Done in this pass: `rm`, `walk-files`, `read-file-range`. The other ten
+`adapters/fs/*` folders stay (see the gaps below).
+
+Deleted: `adapters/fs/rm/**`, `adapters/fs/walk-files/**`, `adapters/fs/read-file-range/**` (adapter, proxy, test each).
+
+Edited callers, proxies and tests:
+- `brokers/quest/delete/quest-delete-broker.ts` and `.proxy.ts`
+- `brokers/smoketest/teardown-quest/smoketest-teardown-quest-broker.ts`, `.proxy.ts` and `.test.ts`
+- `brokers/smoketest/clear-prior-quests/smoketest-clear-prior-quests-broker.test.ts` (two test titles)
+- `brokers/usage-ledger/scan/usage-ledger-scan-broker.ts`, `.proxy.ts` and `.test.ts`
+- `brokers/usage-ledger/scan/fold-batch-layer-broker.ts`, `.proxy.ts` and `.test.ts`
+
+Gaps that stop the rest:
+- `append-file`, `is-accessible`, `read-file`, `readlink`, `rename`, `symlink`, `write-file`: all seven are mocked wholesale by
+  `registerModuleMock` in `brokers/step-handler/riftcarver/step-handler-riftcarver-broker.proxy.ts` behind address-less
+  `calledWith([])` virtual stores, and again in `quest-route-scope-broker.proxy.ts` and `quest-run-step-broker.proxy.ts`. Moving any
+  one needs those three virtual-fs proxies rebuilt on the gateway proxies' exact addressing.
+- `read-jsonl`: `chat-replay-jsonl-read-broker.test.ts` needs a one-shot rejection (`throwsOnce`), and `readNonEmptyLinesProxy` has
+  none.
+- `readdir`: `fsReaddirAdapterProxy` carries a `calledWith([])` fallback and `returnsOnceFor` that `scan-subagents-dir` and
+  every composing proxy lean on; `readdirIfExistsProxy` has no one-shot, and the adapter is sync where the wrapper is async.
+- `watch-tail`: `tailFile` returns no `initialDrain`, which `chat-subagent-tail-broker` awaits, and `tailFileProxy` stages every
+  call as `calledWith([])`.

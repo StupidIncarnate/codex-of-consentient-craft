@@ -5,8 +5,8 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import { locationsClaudeProjectsRootFindBrokerProxy } from '@dungeonmaster/shared/testing';
 import { registerModuleMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { walkFilesSyncProxy } from '#gateway/node/fs/walk-files-sync/walk-files-sync.proxy';
 
-import { fsWalkFilesAdapterProxy } from '../../../adapters/fs/walk-files/fs-walk-files-adapter.proxy';
 import { foldBatchLayerBrokerProxy } from './fold-batch-layer-broker.proxy';
 import { usageLedgerReadBroker } from '../read/usage-ledger-read-broker';
 import { usageLedgerReadBrokerProxy } from '../read/usage-ledger-read-broker.proxy';
@@ -27,7 +27,13 @@ const PROJECTS_ROOT = AbsoluteFilePathStub({ value: '/home/user/.claude/projects
 export const usageLedgerScanBrokerProxy = (): {
   setupExistingLedger: (params: { ledger: UsageLedger }) => void;
   setupTranscripts: (params: {
-    files: readonly { name: string; mtimeMs: number; size: number; contents: string }[];
+    files: readonly {
+      name: string;
+      mtimeMs: number;
+      size: number;
+      contents: string;
+      readFromByte?: number;
+    }[];
   }) => void;
   getWrittenLedger: () => unknown;
   getStderrLines: () => readonly unknown[];
@@ -35,7 +41,7 @@ export const usageLedgerScanBrokerProxy = (): {
   getWrittenNowMs: () => unknown;
 } => {
   const rootProxy = locationsClaudeProjectsRootFindBrokerProxy();
-  const walkProxy = fsWalkFilesAdapterProxy();
+  const walkProxy = walkFilesSyncProxy();
   const foldProxy = foldBatchLayerBrokerProxy();
   usageLedgerReadBrokerProxy();
   usageLedgerWriteBrokerProxy();
@@ -60,7 +66,13 @@ export const usageLedgerScanBrokerProxy = (): {
     setupTranscripts: ({
       files,
     }: {
-      files: readonly { name: string; mtimeMs: number; size: number; contents: string }[];
+      files: readonly {
+        name: string;
+        mtimeMs: number;
+        size: number;
+        contents: string;
+        readFromByte?: number;
+      }[];
     }): void => {
       // Staged HERE rather than in the constructor. pathJoin's proxy hands out one-shot results in
       // call order across every proxy in the test, so a root staged at construction time sits
@@ -79,12 +91,13 @@ export const usageLedgerScanBrokerProxy = (): {
         const path = AbsoluteFilePathStub({ value: `/home/user/.claude/projects/${file.name}` });
         walkProxy.setupFileStat({
           filePath: path,
-          mtimeMs: file.mtimeMs,
-          size: file.size,
+          modifiedAtMs: file.mtimeMs,
+          sizeBytes: file.size,
         });
         foldProxy.setupTranscript({
           path: `/home/user/.claude/projects/${file.name}`,
           contents: file.contents,
+          ...(file.readFromByte === undefined ? {} : { fromByte: file.readFromByte }),
         });
       }
     },

@@ -11,13 +11,9 @@
  */
 
 import type { UsageLedger } from '@dungeonmaster/shared/contracts';
-import {
-  bucketStartKeyContract,
-  filePathContract,
-  usageBucketContract,
-} from '@dungeonmaster/shared/contracts';
+import { bucketStartKeyContract, usageBucketContract } from '@dungeonmaster/shared/contracts';
+import { readFileFromOffset } from '#gateway/node/fs__promises';
 
-import { fsReadFileRangeAdapter } from '../../../adapters/fs/read-file-range/fs-read-file-range-adapter';
 import type { TranscriptRead } from '../../../contracts/transcript-read/transcript-read-contract';
 import { usageLineToSampleTransformer } from '../../../transformers/usage-line-to-sample/usage-line-to-sample-transformer';
 
@@ -40,10 +36,7 @@ export const foldBatchLayerBroker = async ({
 
   const contents = await Promise.all(
     batch.map(async (entry) =>
-      fsReadFileRangeAdapter({
-        filePath: filePathContract.parse(entry.path),
-        fromByte: entry.fromByte,
-      }).catch(() => null),
+      readFileFromOffset({ path: entry.path, fromByte: entry.fromByte }).catch(() => null),
     ),
   );
 
