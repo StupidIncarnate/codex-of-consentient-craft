@@ -18,13 +18,14 @@ describe('questSessionRecordBroker', () => {
       const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth', sessions: [] });
       proxy.setupQuestFound({ quest });
 
-      await questSessionRecordBroker({
+      const result = await questSessionRecordBroker({
         questId: QuestIdStub({ value: quest.id }),
         sessionId: SessionIdStub({ value: 'e0047cb8-02a2-448f-a1cb-909c9681f999' }),
         cwd: AbsoluteFilePathStub({ value: '/repo' }),
         role: WorkItemRoleStub({ value: 'chaoswhisperer' }),
       });
 
+      expect(result).toBe(true);
       expect(proxy.getLastPersistedQuest().sessions).toStrictEqual([
         {
           sessionId: 'e0047cb8-02a2-448f-a1cb-909c9681f999',
@@ -40,7 +41,7 @@ describe('questSessionRecordBroker', () => {
       const quest = QuestStub({ id: 'add-auth', folder: '001-add-auth', sessions: [] });
       proxy.setupQuestFound({ quest });
 
-      await questSessionRecordBroker({
+      const result = await questSessionRecordBroker({
         questId: QuestIdStub({ value: quest.id }),
         sessionId: SessionIdStub({ value: '8e4e1efe-5619-4d0a-8604-5e92d01423b7' }),
         cwd: AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth' }),
@@ -48,6 +49,7 @@ describe('questSessionRecordBroker', () => {
         workItemId: QuestWorkItemIdStub({ value: '8acf84af-a24b-4d29-9e4e-4819d21a5480' }),
       });
 
+      expect(result).toBe(true);
       expect(proxy.getLastPersistedQuest().sessions).toStrictEqual([
         {
           sessionId: '8e4e1efe-5619-4d0a-8604-5e92d01423b7',
@@ -75,13 +77,14 @@ describe('questSessionRecordBroker', () => {
       });
       proxy.setupQuestFound({ quest });
 
-      await questSessionRecordBroker({
+      const result = await questSessionRecordBroker({
         questId: QuestIdStub({ value: quest.id }),
         sessionId: SessionIdStub({ value: '8e4e1efe-5619-4d0a-8604-5e92d01423b7' }),
         cwd: AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth' }),
         role: WorkItemRoleStub({ value: 'codeweaver' }),
       });
 
+      expect(result).toBe(true);
       expect(proxy.getLastPersistedQuest().sessions).toStrictEqual([
         {
           sessionId: 'e0047cb8-02a2-448f-a1cb-909c9681f999',
@@ -115,13 +118,14 @@ describe('questSessionRecordBroker', () => {
       });
       proxy.setupQuestFound({ quest });
 
-      await questSessionRecordBroker({
+      const result = await questSessionRecordBroker({
         questId: QuestIdStub({ value: quest.id }),
         sessionId: SessionIdStub({ value: 'e0047cb8-02a2-448f-a1cb-909c9681f999' }),
         cwd: AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth' }),
         role: WorkItemRoleStub({ value: 'chaoswhisperer' }),
       });
 
+      expect(result).toBe(false);
       expect(proxy.getAllPersistedQuests()).toStrictEqual([]);
     });
 
@@ -141,13 +145,14 @@ describe('questSessionRecordBroker', () => {
       });
       proxy.setupQuestFound({ quest });
 
-      await questSessionRecordBroker({
+      const result = await questSessionRecordBroker({
         questId: QuestIdStub({ value: quest.id }),
         sessionId: SessionIdStub({ value: 'e0047cb8-02a2-448f-a1cb-909c9681f999' }),
         cwd: AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth' }),
         role: WorkItemRoleStub({ value: 'chaoswhisperer' }),
       });
 
+      expect(result).toBe(false);
       expect(proxy.getAllPersistedQuests()).toStrictEqual([]);
     });
   });

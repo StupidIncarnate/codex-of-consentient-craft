@@ -23,10 +23,8 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import { registerMock, registerModuleMock } from '@dungeonmaster/testing/register-mock';
 
-import { gitAddAllAdapter } from '../../../adapters/git/add-all/git-add-all-adapter';
-import { gitAddAllAdapterProxy } from '../../../adapters/git/add-all/git-add-all-adapter.proxy';
-import { gitCommitAdapter } from '../../../adapters/git/commit/git-commit-adapter';
-import { gitCommitAdapterProxy } from '../../../adapters/git/commit/git-commit-adapter.proxy';
+import { addAllProxy } from '#gateway/bin/git/add-all/add-all.proxy';
+import { commitProxy } from '#gateway/bin/git/commit/commit.proxy';
 import { gitPushAdapter } from '../../../adapters/git/push/git-push-adapter';
 import { gitPushAdapterProxy } from '../../../adapters/git/push/git-push-adapter.proxy';
 import { QuestCwdResolutionStub } from '../../../contracts/quest-cwd-resolution/quest-cwd-resolution.stub';
@@ -38,8 +36,6 @@ import { questGetBroker } from '../../quest/get/quest-get-broker';
 import { questGetBrokerProxy } from '../../quest/get/quest-get-broker.proxy';
 import { questWithModifyLockBrokerProxy } from '../../quest/with-modify-lock/quest-with-modify-lock-broker.proxy';
 
-registerModuleMock({ module: '../../../adapters/git/add-all/git-add-all-adapter' });
-registerModuleMock({ module: '../../../adapters/git/commit/git-commit-adapter' });
 registerModuleMock({ module: '../../../adapters/git/push/git-push-adapter' });
 registerModuleMock({ module: '../../git/working-tree-files/git-working-tree-files-broker' });
 registerModuleMock({ module: '../../quest/cwd-resolve/quest-cwd-resolve-broker' });
@@ -59,20 +55,22 @@ export const stepHandlerCommitBrokerProxy = (): {
 } => {
   // Inert — satisfies enforce-proxy-child-creation. The module mocks above replace every one of
   // these brokers' exports; each proxy's own internal staging is never exercised.
-  gitAddAllAdapterProxy();
-  gitCommitAdapterProxy();
+  const gitAddAllProxy = addAllProxy();
+  const gitCommitProxy = commitProxy();
+  gitAddAllProxy.setupResult({ exitCode: 0, output: '' });
+  gitCommitProxy.returnsMatchingMessage({
+    message: (arg: unknown): boolean => typeof arg === 'string',
+    allowEmpty: true,
+    exitCode: 0,
+    output: '',
+  });
+
   gitPushAdapterProxy();
   gitWorkingTreeFilesBrokerProxy();
   questCwdResolveBrokerProxy();
   questGetBrokerProxy();
   const lockProxy = questWithModifyLockBrokerProxy();
   lockProxy.setupEmpty();
-
-  const addMock = registerMock({ fn: gitAddAllAdapter });
-  addMock.calledWith([]).resolves({ exitCode: ExitCodeStub({ value: 0 }), output: '' as never });
-
-  const commitMock = registerMock({ fn: gitCommitAdapter });
-  commitMock.calledWith([]).resolves({ exitCode: ExitCodeStub({ value: 0 }), output: '' as never });
 
   const pushMock = registerMock({ fn: gitPushAdapter });
   pushMock.calledWith([]).resolves({ exitCode: ExitCodeStub({ value: 0 }), output: '' as never });
@@ -130,9 +128,21 @@ export const stepHandlerCommitBrokerProxy = (): {
     },
 
     getCommitMessage: (): unknown => {
-      const calls = [...commitMock.callsMatching([])];
-      const lastCall = calls[calls.length - 1]?.[0] as { message?: unknown } | undefined;
-      return lastCall?.message;
+      const calls = gitCommitProxy.getCallsFor({
+        message: (arg: unknown): boolean => typeof arg === 'string',
+        allowEmpty: true,
+      });
+      const lastCall = calls.at(-1);
+      if (lastCall === undefined) {
+        return undefined;
+      }
+      const item = lastCall.at(0);
+      if (typeof item === 'object' && item !== null && 'args' in item) {
+        const args = Array.isArray(item.args) ? item.args : [];
+        const messageIndex = 2;
+        return args[messageIndex];
+      }
+      return undefined;
     },
   };
 };

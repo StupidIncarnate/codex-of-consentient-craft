@@ -62,8 +62,8 @@ import { fsReadlinkAdapter } from '../../../adapters/fs/readlink/fs-readlink-ada
 import { fsRenameAdapter } from '../../../adapters/fs/rename/fs-rename-adapter';
 import { fsSymlinkAdapter } from '../../../adapters/fs/symlink/fs-symlink-adapter';
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
-import { gitCurrentBranchAdapterProxy } from '../../../adapters/git/current-branch/git-current-branch-adapter.proxy';
-import { gitHeadShaAdapterProxy } from '../../../adapters/git/head-sha/git-head-sha-adapter.proxy';
+import { currentBranchProxy } from '#gateway/bin/git/current-branch/current-branch.proxy';
+import { headShaProxy } from '#gateway/bin/git/head-sha/head-sha.proxy';
 import { gitPushAdapterProxy } from '../../../adapters/git/push/git-push-adapter.proxy';
 import { gitUpstreamShaAdapterProxy } from '../../../adapters/git/upstream-sha/git-upstream-sha-adapter.proxy';
 import { gitVerifyRefAdapterProxy } from '../../../adapters/git/verify-ref/git-verify-ref-adapter.proxy';
@@ -164,8 +164,8 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
   const typecheckSpawn = streamLinesProxy();
   locationsWorktreePathFindBrokerProxy();
   fsIsAccessibleAdapterProxy();
-  gitCurrentBranchAdapterProxy();
-  gitHeadShaAdapterProxy();
+  const gitCurrentBranchProxy = currentBranchProxy();
+  const gitHeadShaProxy = headShaProxy();
   gitPushAdapterProxy();
   gitUpstreamShaAdapterProxy();
   gitVerifyRefAdapterProxy();
@@ -581,6 +581,8 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
       );
 
       stageTypecheckSpawn();
+      gitCurrentBranchProxy.setupFailure({ exitCode: 128, output: 'fatal: not a git repository' });
+      gitHeadShaProxy.setupResult({ exitCode: 0, output: `${HEAD_SHA}\n` });
     },
 
     setupNoBaseBranch: (): void => {
@@ -610,6 +612,7 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
         fileNameContract.parse(BRANCH_NAME),
       );
       existingRefs.add(fileNameContract.parse(BRANCH_NAME));
+      gitCurrentBranchProxy.setupBranch({ branch: BRANCH_NAME });
     },
 
     setupAlreadyPushed: (): void => {

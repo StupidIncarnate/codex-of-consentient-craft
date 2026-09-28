@@ -201,7 +201,12 @@ export const spawnOneAgentLayerBroker = async ({
 
   await Promise.all(sessionStamps);
   // This attempt's child is gone; drop its registry entry so the stale watchdog stops reporting it.
-  unregisterProcess?.({ processId });
+  // Written as a guarded call rather than `unregisterProcess?.(...)`: an optional-chained call on a
+  // void-returning callback types as `void | undefined`, which enforce-folder-return-types cannot
+  // tell apart from a real informative discard — the guard keeps the call genuinely void.
+  if (unregisterProcess) {
+    unregisterProcess({ processId });
+  }
 
   if (exitCode === null || exitCode === 0) {
     return ok;

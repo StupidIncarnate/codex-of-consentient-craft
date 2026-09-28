@@ -124,3 +124,67 @@ and change each one's check from `=== 'HEAD'` to `=== null`, and from a synchron
 ## Concessions made while executing
 
 <!-- Empty at the start. The operator fills this and mirrors it into EPIC.md's Concessions table. -->
+
+## Plan — G-T
+
+Batch 1 scope: GIT-1 and GIT-2 adapters (8 adapters, 24 files deleted; 29 callers/proxies/tests migrated).
+GIT-3 and GIT-4 adapters remain standing for the follow-up batch per sizing instructions.
+
+### Files to delete (24 files)
+- `packages/orchestrator/src/adapters/git/add-all/git-add-all-adapter.ts`
+- `packages/orchestrator/src/adapters/git/add-all/git-add-all-adapter.proxy.ts`
+- `packages/orchestrator/src/adapters/git/add-all/git-add-all-adapter.test.ts`
+- `packages/orchestrator/src/adapters/git/branch-delete/git-branch-delete-adapter.ts`
+- `packages/orchestrator/src/adapters/git/branch-delete/git-branch-delete-adapter.proxy.ts`
+- `packages/orchestrator/src/adapters/git/branch-delete/git-branch-delete-adapter.test.ts`
+- `packages/orchestrator/src/adapters/git/checkout/git-checkout-adapter.ts`
+- `packages/orchestrator/src/adapters/git/checkout/git-checkout-adapter.proxy.ts`
+- `packages/orchestrator/src/adapters/git/checkout/git-checkout-adapter.test.ts`
+- `packages/orchestrator/src/adapters/git/commit/git-commit-adapter.ts`
+- `packages/orchestrator/src/adapters/git/commit/git-commit-adapter.proxy.ts`
+- `packages/orchestrator/src/adapters/git/commit/git-commit-adapter.test.ts`
+- `packages/orchestrator/src/adapters/git/current-branch/git-current-branch-adapter.ts`
+- `packages/orchestrator/src/adapters/git/current-branch/git-current-branch-adapter.proxy.ts`
+- `packages/orchestrator/src/adapters/git/current-branch/git-current-branch-adapter.test.ts`
+- `packages/orchestrator/src/adapters/git/diff-files/git-diff-files-adapter.ts`
+- `packages/orchestrator/src/adapters/git/diff-files/git-diff-files-adapter.proxy.ts`
+- `packages/orchestrator/src/adapters/git/diff-files/git-diff-files-adapter.test.ts`
+- `packages/orchestrator/src/adapters/git/head-sha/git-head-sha-adapter.ts`
+- `packages/orchestrator/src/adapters/git/head-sha/git-head-sha-adapter.proxy.ts`
+- `packages/orchestrator/src/adapters/git/head-sha/git-head-sha-adapter.test.ts`
+- `packages/orchestrator/src/adapters/git/log-name-only/git-log-name-only-adapter.ts`
+- `packages/orchestrator/src/adapters/git/log-name-only/git-log-name-only-adapter.proxy.ts`
+- `packages/orchestrator/src/adapters/git/log-name-only/git-log-name-only-adapter.test.ts`
+
+### Files to edit (30 files)
+- `packages/orchestrator/package.json` — add `@dungeonmaster/bin` to dependencies per `gateway-dependency-declared` rule
+- `packages/orchestrator/src/brokers/agent-prompt/get/agent-prompt-get-broker.ts`
+- `packages/orchestrator/src/brokers/agent-prompt/get/agent-prompt-get-broker.proxy.ts`
+- `packages/orchestrator/src/brokers/agent-prompt/get/agent-prompt-get-broker.test.ts`
+- `packages/orchestrator/src/brokers/git/working-tree-files/git-working-tree-files-broker.ts`
+- `packages/orchestrator/src/brokers/git/working-tree-files/git-working-tree-files-broker.proxy.ts`
+- `packages/orchestrator/src/brokers/git/working-tree-files/git-working-tree-files-broker.test.ts`
+- `packages/orchestrator/src/brokers/quest/get-blight-checklist/quest-get-blight-checklist-broker.ts`
+- `packages/orchestrator/src/brokers/quest/get-blight-checklist/quest-get-blight-checklist-broker.proxy.ts`
+- `packages/orchestrator/src/brokers/quest/get-blight-checklist/quest-get-blight-checklist-broker.test.ts`
+- `packages/orchestrator/src/brokers/quest/get-quest-work/git-rows-layer-broker.ts`
+- `packages/orchestrator/src/brokers/quest/get-quest-work/git-rows-layer-broker.proxy.ts`
+- `packages/orchestrator/src/brokers/quest/get-quest-work/git-rows-layer-broker.test.ts`
+- `packages/orchestrator/src/brokers/step-handler/commit/step-handler-commit-broker.ts`
+- `packages/orchestrator/src/brokers/step-handler/commit/step-handler-commit-broker.proxy.ts`
+- `packages/orchestrator/src/brokers/step-handler/commit/step-handler-commit-broker.test.ts`
+- `packages/orchestrator/src/brokers/step-handler/riftcarver/step-handler-riftcarver-broker.ts`
+- `packages/orchestrator/src/brokers/step-handler/riftcarver/step-handler-riftcarver-broker.proxy.ts`
+- `packages/orchestrator/src/brokers/step-handler/riftcarver/step-handler-riftcarver-broker.test.ts`
+- `packages/orchestrator/src/brokers/worktree/discard/worktree-discard-broker.ts`
+- `packages/orchestrator/src/brokers/worktree/discard/worktree-discard-broker.proxy.ts`
+- `packages/orchestrator/src/brokers/worktree/discard/worktree-discard-broker.test.ts`
+- `packages/orchestrator/src/brokers/worktree/prepare/worktree-prepare-broker.ts`
+- `packages/orchestrator/src/brokers/worktree/prepare/worktree-prepare-broker.proxy.ts`
+- `packages/orchestrator/src/brokers/worktree/prepare/worktree-prepare-broker.test.ts`
+- `packages/orchestrator/src/brokers/worktree/resume-restore/worktree-resume-restore-broker.ts`
+- `packages/orchestrator/src/brokers/worktree/resume-restore/worktree-resume-restore-broker.proxy.ts`
+- `packages/orchestrator/src/brokers/worktree/resume-restore/worktree-resume-restore-broker.test.ts`
+- `packages/orchestrator/src/brokers/worktree/resume-restore/worktree-resume-restore-broker.integration.test.ts`
+- `packages/orchestrator/test/harnesses/orchestration-quest/orchestration-quest.harness.ts`
+

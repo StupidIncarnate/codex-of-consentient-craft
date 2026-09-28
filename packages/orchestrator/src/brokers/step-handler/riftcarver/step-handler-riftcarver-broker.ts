@@ -35,6 +35,7 @@ import {
   fileContentsContract,
   filePathContract,
   getQuestInputContract,
+  questContract,
   relatedDataItemContract,
   riftcarverResultContract,
   type AbsoluteFilePath,
@@ -46,9 +47,9 @@ import {
   type QuestWorkItemId,
 } from '@dungeonmaster/shared/contracts';
 
+import { currentBranch, headSha } from '#gateway/bin/git';
+
 import { fsIsAccessibleAdapter } from '../../../adapters/fs/is-accessible/fs-is-accessible-adapter';
-import { gitCurrentBranchAdapter } from '../../../adapters/git/current-branch/git-current-branch-adapter';
-import { gitHeadShaAdapter } from '../../../adapters/git/head-sha/git-head-sha-adapter';
 import { gitPushAdapter } from '../../../adapters/git/push/git-push-adapter';
 import { gitUpstreamShaAdapter } from '../../../adapters/git/upstream-sha/git-upstream-sha-adapter';
 import { gitVerifyRefAdapter } from '../../../adapters/git/verify-ref/git-verify-ref-adapter';
@@ -156,12 +157,20 @@ export const stepHandlerRiftcarverBroker = async ({
       const recordedHead =
         recordedWorktreePath === undefined || !recordedPathReachable
           ? null
-          : await gitCurrentBranchAdapter({ cwd: recordedWorktreePath });
+          : await (async () => {
+              try {
+                return await currentBranch({ cwd: recordedWorktreePath });
+              } catch (error) {
+                process.stderr.write(
+                  `[step-handler-riftcarver] currentBranch failed for ${recordedWorktreePath}: ${error instanceof Error ? error.message : String(error)}\n`,
+                );
+                return null;
+              }
+            })();
       const worktreeAlreadyCarved =
         recordedBranchName !== undefined &&
         recordedHead !== null &&
-        recordedHead.exitCode === GREEN_EXIT_CODE &&
-        String(recordedHead.output) === String(recordedBranchName);
+        recordedHead === String(recordedBranchName);
 
       const gitNames = questToGitNamesTransformer({ title: quest.title, questId: quest.id });
       const branchName = recordedBranchName ?? gitNames.branchName;
@@ -195,9 +204,9 @@ export const stepHandlerRiftcarverBroker = async ({
       // BASE REF. Never recomputed once recorded.
       const recordedBaseRef = quest.baseRef;
       const carriedBaseRef = recordedBaseRef ?? created?.baseRef;
-      const baseRef = carriedBaseRef ?? (await gitHeadShaAdapter({ cwd: worktreePath }));
+      const rawBaseRef = carriedBaseRef ?? (await headSha({ cwd: worktreePath }));
 
-      if (baseRef === null) {
+      if (rawBaseRef === null) {
         throw new WorktreePrepareError({
           step: STEPS.create,
           detail: worktreeFailureDetailTransformer({
@@ -206,6 +215,8 @@ export const stepHandlerRiftcarverBroker = async ({
           }),
         });
       }
+
+      const baseRef = questContract.shape.baseRef.unwrap().parse(rawBaseRef);
 
       stream.emit(
         recordedBaseRef === undefined

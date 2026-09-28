@@ -1,60 +1,31 @@
-import { spawn, type ChildProcess } from 'child_process';
-import { EventEmitter, Readable } from 'stream';
-import {
-  ErrorMessageStub,
-  ExitCodeStub,
-  type AbsoluteFilePath,
-  type ErrorMessage,
-  type ExitCode,
-  type QuestBranchName,
-} from '@dungeonmaster/shared/contracts';
-import { registerMock } from '@dungeonmaster/testing/register-mock';
+/**
+ * PURPOSE: Proxy for worktreeDiscardBroker. Composes gitWorktreeRemoveAdapterProxy and
+ * branchDeleteProxy to mock git operations for worktree removal and branch deletion.
+ *
+ * USAGE:
+ * const proxy = worktreeDiscardBrokerProxy();
+ * proxy.setupBothSucceed({ worktreePath, branchName });
+ * const result = await worktreeDiscardBroker({ repoRoot, worktreePath, branchName });
+ */
 
-import { gitBranchDeleteAdapterProxy } from '../../../adapters/git/branch-delete/git-branch-delete-adapter.proxy';
+import type { AbsoluteFilePath, QuestBranchName } from '@dungeonmaster/shared/contracts';
+
+import { branchDeleteProxy } from '#gateway/bin/git/branch-delete/branch-delete.proxy';
 import { gitWorktreeRemoveAdapterProxy } from '../../../adapters/git/worktree-remove/git-worktree-remove-adapter.proxy';
 
-// worktreeDiscardBroker spawns bare `git` for BOTH `git worktree remove` and `git branch -D`, so
-// `command` alone cannot tell the two calls apart under the shared childProcessSpawnCaptureAdapterProxy's
-// command-only addressing — composing gitWorktreeRemoveAdapterProxy + gitBranchDeleteAdapterProxy
-// directly in one test would make the LAST registration answer every call. Addressing on the full
-// args array instead discriminates the two calls directly (args compare elementwise), so both
-// outcomes can be staged independently with no onceFor/FIFO sequencing needed. Pattern verified in
-// git-detect-base-branch-broker.proxy.ts.
-const createGitChild = ({
-  exitCode,
-  stderr,
-}: {
-  exitCode: ExitCode;
-  stderr: ErrorMessage;
-}): ChildProcess => {
-  const child = new EventEmitter() as ChildProcess;
-  child.stdout = new Readable({
-    read(): void {
-      /* noop */
-    },
-  });
-  child.stderr = new Readable({
-    read(): void {
-      /* noop */
-    },
-  });
-
-  const mockStderr = child.stderr;
-
-  setImmediate(() => {
-    if (String(stderr).length > 0) {
-      mockStderr.push(Buffer.from(String(stderr)));
-    }
-    mockStderr.push(null);
-    child.stdout?.push(null);
-    child.emit('exit', Number(exitCode), null);
-  });
-
-  return child;
+const extractArgs = (call: readonly unknown[]): readonly unknown[] => {
+  const [first] = call;
+  if (typeof first === 'object' && first !== null && 'args' in first) {
+    return Array.isArray(first.args) ? first.args : [];
+  }
+  return [];
 };
 
 export const worktreeDiscardBrokerProxy = (): {
-  setupBothSucceed: () => void;
+  setupBothSucceed: (params: {
+    worktreePath: AbsoluteFilePath;
+    branchName: QuestBranchName;
+  }) => void;
   setupRemoveFails: (params: { worktreePath: AbsoluteFilePath; output: string }) => void;
   setupDeleteFails: (params: {
     worktreePath: AbsoluteFilePath;
@@ -63,22 +34,21 @@ export const worktreeDiscardBrokerProxy = (): {
   }) => void;
   getSpawnedArgsList: () => readonly unknown[];
 } => {
-  const handle = registerMock({ fn: spawn });
-  // Created but unstaged to satisfy enforce-proxy-child-creation: this proxy answers `spawn`
-  // directly for every git call (see module comment above), so these adapter proxies' own
-  // constructor-level defaults never fire.
-  gitWorktreeRemoveAdapterProxy();
-  gitBranchDeleteAdapterProxy();
-
-  const successCode = ExitCodeStub({ value: 0 });
-  const failCode = ExitCodeStub({ value: 128 });
-  const emptyMessage = ErrorMessageStub({ value: '' });
+  const removeProxy = gitWorktreeRemoveAdapterProxy();
+  const deleteProxy = branchDeleteProxy();
+  const state: { worktreePath?: AbsoluteFilePath } = {};
 
   return {
-    setupBothSucceed: (): void => {
-      handle
-        .calledWith(['git'])
-        .implement(() => createGitChild({ exitCode: successCode, stderr: emptyMessage }));
+    setupBothSucceed: ({
+      worktreePath,
+      branchName,
+    }: {
+      worktreePath: AbsoluteFilePath;
+      branchName: QuestBranchName;
+    }): void => {
+      state.worktreePath = worktreePath;
+      removeProxy.setupSuccess();
+      deleteProxy.setupResult({ branchName: String(branchName), exitCode: 0, output: '' });
     },
 
     setupRemoveFails: ({
@@ -88,11 +58,8 @@ export const worktreeDiscardBrokerProxy = (): {
       worktreePath: AbsoluteFilePath;
       output: string;
     }): void => {
-      handle
-        .calledWith(['git', ['worktree', 'remove', '--force', worktreePath]])
-        .implement(() =>
-          createGitChild({ exitCode: failCode, stderr: ErrorMessageStub({ value: output }) }),
-        );
+      state.worktreePath = worktreePath;
+      removeProxy.setupFailure({ output });
     },
 
     setupDeleteFails: ({
@@ -104,17 +71,22 @@ export const worktreeDiscardBrokerProxy = (): {
       branchName: QuestBranchName;
       output: string;
     }): void => {
-      handle
-        .calledWith(['git', ['worktree', 'remove', '--force', worktreePath]])
-        .implement(() => createGitChild({ exitCode: successCode, stderr: emptyMessage }));
-      handle
-        .calledWith(['git', ['branch', '-D', branchName]])
-        .implement(() =>
-          createGitChild({ exitCode: failCode, stderr: ErrorMessageStub({ value: output }) }),
-        );
+      state.worktreePath = worktreePath;
+      removeProxy.setupSuccess();
+      deleteProxy.setupResult({ branchName: String(branchName), exitCode: 128, output });
     },
 
-    getSpawnedArgsList: (): readonly unknown[] =>
-      handle.callsMatching(['git']).map((call) => call[1]),
+    getSpawnedArgsList: (): readonly unknown[] => {
+      const deleteCalls = deleteProxy
+        .getCallsFor({ branchName: (arg: unknown): boolean => typeof arg === 'string' })
+        .map(extractArgs);
+
+      if (state.worktreePath === undefined) {
+        return deleteCalls;
+      }
+
+      const removeArgs = ['worktree', 'remove', '--force', state.worktreePath];
+      return [removeArgs, ...deleteCalls];
+    },
   };
 };

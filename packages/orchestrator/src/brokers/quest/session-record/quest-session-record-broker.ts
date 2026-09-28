@@ -7,7 +7,8 @@
  *
  * USAGE:
  * await questSessionRecordBroker({ questId, sessionId, cwd, role, workItemId });
- * // Appends one row, or does nothing when that sessionId already has one
+ * // Appends one row and returns true, or does nothing and returns false when that sessionId
+ * // already has one
  *
  * WRITTEN ONCE, NEVER REWRITTEN. A sessionId is re-stamped routinely — an orphan-recovery resume, a
  * redelivered MCP fetch, an API-overload retry — and each re-serves a session whose cwd has not
@@ -22,10 +23,9 @@
  * itself.
  */
 
-import { adapterResultContract, questSessionContract } from '@dungeonmaster/shared/contracts';
+import { questSessionContract } from '@dungeonmaster/shared/contracts';
 import type {
   AbsoluteFilePath,
-  AdapterResult,
   QuestId,
   QuestWorkItemId,
   SessionId,
@@ -46,8 +46,8 @@ export const questSessionRecordBroker = async ({
   cwd: AbsoluteFilePath;
   role: WorkItemRole;
   workItemId?: QuestWorkItemId;
-}): Promise<AdapterResult> => {
-  await questOperationsUpdateBroker({
+}): Promise<boolean> => {
+  const result = await questOperationsUpdateBroker({
     questId,
     update: ({ quest }) => {
       const alreadyRecorded = quest.sessions.some((row) => row.sessionId === sessionId);
@@ -71,5 +71,8 @@ export const questSessionRecordBroker = async ({
     },
   });
 
-  return adapterResultContract.parse({ success: true });
+  // questOperationsUpdateBroker returns null exactly when the update callback returned null (the
+  // sessionId was already recorded), so this is the honest "did this call append a row" fact,
+  // passed through rather than discarded behind a constant.
+  return result !== null;
 };

@@ -35,13 +35,14 @@ import {
   absoluteFilePathContract,
   fileContentsContract,
   filePathContract,
+  questContract,
 } from '@dungeonmaster/shared/contracts';
 import type { installTestbedCreateBroker } from '@dungeonmaster/testing';
 
 import { GuildAddResponder } from '../../../src/responders/guild/add/guild-add-responder';
 import { GuildRemoveResponder } from '../../../src/responders/guild/remove/guild-remove-responder';
 import { QuestUserAddResponder } from '../../../src/responders/quest/user-add/quest-user-add-responder';
-import { gitHeadShaAdapter } from '../../../src/adapters/git/head-sha/git-head-sha-adapter';
+import { headSha } from '#gateway/bin/git';
 import { questGetNextStepBroker } from '../../../src/brokers/quest/get-next-step/quest-get-next-step-broker';
 import { questFindQuestPathBroker } from '../../../src/brokers/quest/find-quest-path/quest-find-quest-path-broker';
 import { questLoadBroker } from '../../../src/brokers/quest/load/quest-load-broker';
@@ -279,12 +280,13 @@ export const orchestrationQuestHarness = (): {
     writeFileSync(pathNodeJoin(String(repoPath), 'BASE_MARKER.md'), '# base commit\n');
     await runGit({ args: ['add', '-A'], cwd });
     await runGit({ args: ['commit', '-m', 'base'], cwd, env: gitCommitEnv });
-    const baseRef = await gitHeadShaAdapter({ cwd });
-    if (baseRef === null) {
+    const rawSha = await headSha({ cwd });
+    if (rawSha === null) {
       throw new Error(
-        `gitHeadShaAdapter returned null for a freshly-committed test repo at ${String(repoPath)}`,
+        `headSha returned null for a freshly-committed test repo at ${String(repoPath)}`,
       );
     }
+    const baseRef = questContract.shape.baseRef.unwrap().parse(rawSha);
     return { baseRef };
   };
 

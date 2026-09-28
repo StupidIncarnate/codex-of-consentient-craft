@@ -3,13 +3,13 @@
  *
  * USAGE:
  * await questWorkItemInsertBroker({ questId, quest, newWorkItems, replacementMapping });
- * // Modifies workItems in quest with replacement mapping, appends new items, recalculates status, persists
+ * // Modifies workItems in quest with replacement mapping, appends new items, recalculates status,
+ * // persists, and returns questModifyBroker's own result (success, or success: false plus why)
  */
 
-import type { AdapterResult, Quest, QuestId, WorkItem } from '@dungeonmaster/shared/contracts';
-import { adapterResultContract } from '@dungeonmaster/shared/contracts';
+import type { Quest, QuestId, WorkItem } from '@dungeonmaster/shared/contracts';
 
-import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
+import type { ModifyQuestInput, ModifyQuestResult } from '@dungeonmaster/shared/contracts';
 import type { ReplacementEntry } from '../../../contracts/replacement-entry/replacement-entry-contract';
 import { questModifyBroker } from '../modify/quest-modify-broker';
 
@@ -23,7 +23,7 @@ export const questWorkItemInsertBroker = async ({
   quest: Quest;
   newWorkItems: WorkItem[];
   replacementMapping?: ReplacementEntry[];
-}): Promise<AdapterResult> => {
+}): Promise<ModifyQuestResult> => {
   const updatedWorkItems = [...quest.workItems];
 
   if (replacementMapping) {
@@ -40,12 +40,12 @@ export const questWorkItemInsertBroker = async ({
 
   // No explicit status: questModifyBroker re-derives it from the updated work items. A recovery
   // splice adds pending retry items (and rewires deps off the failed item), so the derived status
-  // re-opens the quest to in_progress — which is exactly what the work items now imply.
-  await questModifyBroker({
+  // re-opens the quest to in_progress — which is exactly what the work items now imply. The modify
+  // result is returned rather than discarded, so a caller can tell a failed splice from a real one.
+  return questModifyBroker({
     input: {
       questId,
       workItems: updatedWorkItems,
     } as ModifyQuestInput,
   });
-  return adapterResultContract.parse({ success: true });
 };

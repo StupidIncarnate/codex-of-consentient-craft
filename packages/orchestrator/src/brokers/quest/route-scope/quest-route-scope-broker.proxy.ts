@@ -34,9 +34,7 @@
 import { existsSync, readdirEntriesSync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
 
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import { dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
-import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
 import {
   adapterResultContract,
   fileContentsContract,
@@ -73,13 +71,7 @@ import { mintNextFamilyLayerBrokerProxy } from './mint-next-family-layer-broker.
 import { questRouteScopeBroker } from './quest-route-scope-broker';
 
 registerModuleMock({ module: './quest-route-scope-broker' });
-registerModuleMock({
-  module: '@dungeonmaster/shared/adapters',
-  factory: () => ({
-    ...jest.requireActual('@dungeonmaster/shared/adapters'),
-    pathJoinAdapter: jest.fn(),
-  }),
-});
+
 registerModuleMock({
   module: '@dungeonmaster/shared/brokers',
   factory: () => ({
@@ -130,7 +122,6 @@ export const questRouteScopeBrokerProxy = (): {
 
   // Composed for enforce-proxy-child-creation against the implementation's own imports, and BEFORE
   // the real-implementation defaults below so those outrank anything these staged.
-  pathJoinAdapterProxy();
   plannedWorkReadBrokerProxy();
   questFindQuestPathBrokerProxy();
   questLoadBrokerProxy();
@@ -139,15 +130,10 @@ export const questRouteScopeBrokerProxy = (): {
 
   // Every mocked module, pointed back at the real thing. See this file's header: the mocks are
   // hoisted for any suite that imports this proxy, and these restore the behaviour that suite had.
-  const realAdapters = requireActual<{
-    pathJoinAdapter: typeof pathJoinAdapter;
-  }>({ module: '@dungeonmaster/shared/adapters' });
   const realBrokers = requireActual<{
     dungeonmasterHomeFindBroker: typeof dungeonmasterHomeFindBroker;
   }>({ module: '@dungeonmaster/shared/brokers' });
 
-  const pathJoinHandle = registerMock({ fn: pathJoinAdapter });
-  pathJoinHandle.calledWith([]).implement(realAdapters.pathJoinAdapter as never);
   const homeFindHandle = registerMock({ fn: dungeonmasterHomeFindBroker });
   homeFindHandle.calledWith([]).implement(realBrokers.dungeonmasterHomeFindBroker as never);
 
@@ -229,10 +215,6 @@ export const questRouteScopeBrokerProxy = (): {
 
       // The virtual store takes over. Every implementation is a generic simulator reading the REAL
       // argument it was invoked with out of the shared `files` state.
-      pathJoinHandle
-        .calledWith([])
-        .implement((({ paths }: Parameters<typeof pathJoinAdapter>[0]) =>
-          filePathContract.parse(paths.join('/'))) as never);
 
       homeFindHandle
         .calledWith([])

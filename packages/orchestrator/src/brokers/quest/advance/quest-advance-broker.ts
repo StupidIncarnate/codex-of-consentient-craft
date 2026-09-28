@@ -7,7 +7,8 @@
  *
  * USAGE:
  * await questAdvanceBroker({ questId });
- * // Creates one work item for the first pending operation item (or does nothing).
+ * // Creates one work item for the first pending operation item, returning true — or does nothing
+ * // and returns false (no pending operation, or the pending one is already linked).
  *
  * ONE OPERATION ITEM CARRIES MANY WORK ITEMS, and the resume guard is still correct because of
  * WHERE the rest are minted: the router only mints inside an operation item that is already
@@ -28,13 +29,12 @@
  */
 
 import {
-  adapterResultContract,
   operationItemContract,
   questWorkItemIdContract,
   stepNameContract,
   workItemContract,
 } from '@dungeonmaster/shared/contracts';
-import type { AdapterResult, QuestId, WorkItem } from '@dungeonmaster/shared/contracts';
+import type { QuestId, WorkItem } from '@dungeonmaster/shared/contracts';
 import {
   isCommandWorkItemRoleGuard,
   satisfiesDependencyWorkItemStatusGuard,
@@ -48,12 +48,8 @@ import { questOperationsUpdateBroker } from '../operations-update/quest-operatio
 // retired family still loads, and indexing an `as const` object with one gives no key check.
 const GRAPH_BY_FAMILY = new Map(Object.entries(agentFlowStatics));
 
-export const questAdvanceBroker = async ({
-  questId,
-}: {
-  questId: QuestId;
-}): Promise<AdapterResult> => {
-  await questOperationsUpdateBroker({
+export const questAdvanceBroker = async ({ questId }: { questId: QuestId }): Promise<boolean> => {
+  const result = await questOperationsUpdateBroker({
     questId,
     update: ({ quest }) => {
       const nextOperation = quest.operations.find((operation) => operation.status === 'pending');
@@ -120,5 +116,9 @@ export const questAdvanceBroker = async ({
     },
   });
 
-  return adapterResultContract.parse({ success: true });
+  // questOperationsUpdateBroker returns null exactly when its `update` callback returned null —
+  // both early-return branches above (no pending operation; the pending one is already linked) —
+  // so this is the honest "did advance actually enter a scope" fact, passed through rather than
+  // discarded behind a constant.
+  return result !== null;
 };

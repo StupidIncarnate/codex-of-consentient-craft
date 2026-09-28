@@ -1,6 +1,10 @@
-import { pathJoinAdapterProxy, fsMkdirAdapterProxy } from '@dungeonmaster/shared/testing';
+import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
+import type { FsError } from '#gateway/node/fs';
+import { join } from '#gateway/node/path';
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
+import { locationsStatics } from '@dungeonmaster/shared/statics';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { questPersistBrokerProxy } from '../persist/quest-persist-broker.proxy';
 import { questResolveQuestsPathBrokerProxy } from '../resolve-quests-path/quest-resolve-quests-path-broker.proxy';
@@ -15,9 +19,9 @@ export const questCreateBrokerProxy = (): {
   getWrittenContent: (params: { questFilePath: FilePath }) => unknown;
 } => {
   const resolveQuestsPathProxy = questResolveQuestsPathBrokerProxy();
-  const mkdirProxy = fsMkdirAdapterProxy();
+  const mkdirProxy = ensureDirProxy();
   const persistProxy = questPersistBrokerProxy();
-  const pathJoinProxy = pathJoinAdapterProxy();
+  const joinHandle = registerMock({ fn: join });
 
   return {
     setupQuestCreation: ({
@@ -36,10 +40,13 @@ export const questCreateBrokerProxy = (): {
         questsPath: questsFolderPath,
       });
 
-      mkdirProxy.succeeds({ filepath: questsFolderPath });
-      pathJoinProxy.returns({ result: questFolderPath });
-      pathJoinProxy.returns({ result: questFilePath });
-      mkdirProxy.succeeds({ filepath: questFolderPath });
+      mkdirProxy.succeeds({ path: questsFolderPath });
+      const folderSegment = String(questFolderPath).split('/').filter(Boolean).pop();
+      joinHandle.calledWith([questsFolderPath, folderSegment]).returns(questFolderPath);
+      mkdirProxy.succeeds({ path: questFolderPath });
+      joinHandle
+        .calledWith([questFolderPath, locationsStatics.quest.questFile])
+        .returns(questFilePath);
 
       persistProxy.setupPersist({
         questFilePath,
@@ -62,7 +69,8 @@ export const questCreateBrokerProxy = (): {
         questsPath: questsFolderPath,
       });
 
-      mkdirProxy.throws({ filepath: questsFolderPath, error });
+      const fsError: FsError = Object.assign(error, { code: 'EACCES' });
+      mkdirProxy.rejects({ path: questsFolderPath, error: fsError });
     },
 
     getWrittenContent: ({ questFilePath }: { questFilePath: FilePath }): unknown =>

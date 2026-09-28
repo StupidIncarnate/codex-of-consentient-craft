@@ -13,8 +13,9 @@
  *   questUserAddBroker directly with a known guild.
  */
 
+import { basename } from '#gateway/node/path';
+import { cwd } from '#gateway/node/process';
 import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
-import { pathBasenameAdapter, processCwdAdapter } from '@dungeonmaster/shared/adapters';
 import {
   folderNameToGuildNameTransformer,
   nameToUrlSlugTransformer,
@@ -34,6 +35,7 @@ import {
   addQuestInputContract,
   filePathContract,
   guildPathContract,
+  pathSegmentContract,
   repoRootCwdContract,
   urlSlugContract,
 } from '@dungeonmaster/shared/contracts';
@@ -57,14 +59,17 @@ export const questMcpCreateBroker = async ({
   questId: QuestId;
   guildSlug: UrlSlug;
 }> => {
-  const cwd = processCwdAdapter();
+  const currentWorkingDirectory = cwd();
 
   // Fall back to the literal cwd as the repo root when .dungeonmaster.json is absent
   // (cwdResolveBroker rejects with ProjectRootNotFoundError) so quest creation still
   // succeeds in a repo that has not been through full dungeonmaster init.
-  let repoRoot: RepoRootCwd = repoRootCwdContract.parse(cwd);
+  let repoRoot: RepoRootCwd = repoRootCwdContract.parse(currentWorkingDirectory);
   try {
-    repoRoot = await cwdResolveBroker({ startPath: cwd, kind: 'repo-root' });
+    repoRoot = await cwdResolveBroker({
+      startPath: filePathContract.parse(currentWorkingDirectory),
+      kind: 'repo-root',
+    });
   } catch (error) {
     if (!(error instanceof ProjectRootNotFoundError)) {
       throw error;
@@ -78,7 +83,7 @@ export const questMcpCreateBroker = async ({
     coveringGuild ??
     (await guildAddBroker({
       name: folderNameToGuildNameTransformer({
-        folderName: pathBasenameAdapter({ path: filePathContract.parse(repoRoot) }),
+        folderName: pathSegmentContract.parse(basename(repoRoot)),
       }),
       path: guildPathContract.parse(repoRoot),
     }));

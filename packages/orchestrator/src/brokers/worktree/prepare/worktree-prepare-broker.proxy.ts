@@ -13,7 +13,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
-import { gitHeadShaAdapterProxy } from '../../../adapters/git/head-sha/git-head-sha-adapter.proxy';
+import { headShaProxy } from '#gateway/bin/git/head-sha/head-sha.proxy';
 import { gitVerifyRefAdapterProxy } from '../../../adapters/git/verify-ref/git-verify-ref-adapter.proxy';
 import { gitWorktreeAddAdapterProxy } from '../../../adapters/git/worktree-add/git-worktree-add-adapter.proxy';
 import { gitWorktreePruneAdapterProxy } from '../../../adapters/git/worktree-prune/git-worktree-prune-adapter.proxy';
@@ -119,7 +119,7 @@ export const worktreePrepareBrokerProxy = (): {
   gitWorktreeAddAdapterProxy();
   gitWorktreePruneAdapterProxy();
   gitVerifyRefAdapterProxy();
-  gitHeadShaAdapterProxy();
+  headShaProxy();
   worktreeDiscardBrokerProxy();
   // These two run REAL from this proxy's point of view, so their own I/O is what gets staged. Both
   // default to "nothing on disk", which is the honest reading of a scenario that describes neither:

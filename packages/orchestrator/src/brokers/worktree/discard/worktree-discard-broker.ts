@@ -23,7 +23,7 @@ import {
   type QuestBranchName,
 } from '@dungeonmaster/shared/contracts';
 
-import { gitBranchDeleteAdapter } from '../../../adapters/git/branch-delete/git-branch-delete-adapter';
+import { branchDelete } from '#gateway/bin/git';
 import { gitWorktreeRemoveAdapter } from '../../../adapters/git/worktree-remove/git-worktree-remove-adapter';
 
 export const worktreeDiscardBroker = async ({
@@ -41,10 +41,10 @@ export const worktreeDiscardBroker = async ({
     return { discarded: false, output: removeResult.output };
   }
 
-  const deleteResult = await gitBranchDeleteAdapter({ cwd: repoRoot, branchName });
+  const deleteResult = await branchDelete({ cwd: repoRoot, branchName });
 
   if (deleteResult.exitCode !== 0) {
-    return { discarded: false, output: deleteResult.output };
+    return { discarded: false, output: errorMessageContract.parse(deleteResult.output) };
   }
 
   return { discarded: true, output: errorMessageContract.parse('') };

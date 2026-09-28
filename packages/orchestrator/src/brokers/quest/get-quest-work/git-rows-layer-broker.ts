@@ -31,10 +31,11 @@ import {
   type RepoRelativePath,
 } from '@dungeonmaster/shared/contracts';
 
-import { gitLogNameOnlyAdapter } from '../../../adapters/git/log-name-only/git-log-name-only-adapter';
-import type {
-  QuestWorkCommit,
-  QuestWorkGit,
+import { logNameOnly } from '#gateway/bin/git';
+import {
+  questWorkViewContract,
+  type QuestWorkCommit,
+  type QuestWorkGit,
 } from '../../../contracts/quest-work-view/quest-work-view-contract';
 import { gitWorkingTreeFilesBroker } from '../../git/working-tree-files/git-working-tree-files-broker';
 import { questCwdResolveBroker } from '../cwd-resolve/quest-cwd-resolve-broker';
@@ -71,7 +72,12 @@ export const gitRowsLayerBroker = async ({
     // rather than erroring — so the honest answer is an empty list.
     baseRef === undefined
       ? Promise.resolve<QuestWorkCommit[]>([])
-      : gitLogNameOnlyAdapter({ cwd, baseRef }),
+      : (async (): Promise<QuestWorkCommit[]> => {
+          const rawCommits = await logNameOnly({ cwd, baseRef });
+          return rawCommits.map((commit) =>
+            questWorkViewContract.shape.committedPaths.unwrap().element.parse(commit),
+          );
+        })(),
   ]);
 
   return { git, uncommittedPaths, committedPaths };

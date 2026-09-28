@@ -255,12 +255,17 @@ export const questOrchestrationLoopBroker = async ({
     status: 'in_progress',
     startedAt: now,
   }));
-  await questModifyBroker({
+  const inProgressMarkResult = await questModifyBroker({
     input: {
       questId,
       workItems: workItemStatusUpdates,
     } as ModifyQuestInput,
   });
+  if (!inProgressMarkResult.success) {
+    process.stderr.write(
+      `[orchestration-loop] marking ${roleName} work item(s) in_progress failed for questId=${questId}: ${inProgressMarkResult.error ?? 'unknown error'}\n`,
+    );
+  }
 
   // 8. Dispatch to the chat layer (chaoswhisperer / bughunt — the only roles this loop runs).
   try {

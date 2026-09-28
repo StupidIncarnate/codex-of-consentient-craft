@@ -54,7 +54,7 @@ describe('questAdvanceBroker', () => {
 
       const result = await questAdvanceBroker({ questId: QuestIdStub({ value: 'add-auth' }) });
 
-      expect(result).toStrictEqual({ success: true });
+      expect(result).toBe(true);
 
       const persisted = proxy.getLastPersistedQuest();
 
@@ -112,7 +112,7 @@ describe('questAdvanceBroker', () => {
 
       const result = await questAdvanceBroker({ questId: QuestIdStub({ value: 'add-auth' }) });
 
-      expect(result).toStrictEqual({ success: true });
+      expect(result).toBe(true);
 
       const persisted = proxy.getLastPersistedQuest();
 
@@ -170,7 +170,7 @@ describe('questAdvanceBroker', () => {
 
       const result = await questAdvanceBroker({ questId: QuestIdStub({ value: 'add-auth' }) });
 
-      expect(result).toStrictEqual({ success: true });
+      expect(result).toBe(true);
 
       const persisted = proxy.getLastPersistedQuest();
 
@@ -227,7 +227,7 @@ describe('questAdvanceBroker', () => {
 
       const result = await questAdvanceBroker({ questId: QuestIdStub({ value: 'add-auth' }) });
 
-      expect(result).toStrictEqual({ success: true });
+      expect(result).toBe(true);
 
       const persisted = proxy.getLastPersistedQuest();
 
@@ -286,7 +286,7 @@ describe('questAdvanceBroker', () => {
 
       const result = await questAdvanceBroker({ questId: QuestIdStub({ value: 'add-auth' }) });
 
-      expect(result).toStrictEqual({ success: true });
+      expect(result).toBe(true);
 
       const persisted = proxy.getLastPersistedQuest();
 
@@ -347,7 +347,7 @@ describe('questAdvanceBroker', () => {
 
       const result = await questAdvanceBroker({ questId: QuestIdStub({ value: 'add-auth' }) });
 
-      expect(result).toStrictEqual({ success: true });
+      expect(result).toBe(false);
       expect(proxy.getAllPersistedContents()).toStrictEqual([]);
     });
   });
@@ -375,7 +375,7 @@ describe('questAdvanceBroker', () => {
 
       const result = await questAdvanceBroker({ questId: QuestIdStub({ value: 'add-auth' }) });
 
-      expect(result).toStrictEqual({ success: true });
+      expect(result).toBe(false);
       expect(proxy.getAllPersistedContents()).toStrictEqual([]);
     });
   });
@@ -416,7 +416,7 @@ describe('questAdvanceBroker', () => {
         questId: QuestIdStub({ value: 'add-auth' }),
       });
 
-      expect(secondResult).toStrictEqual({ success: true });
+      expect(secondResult).toBe(false);
       expect(proxy.getAllPersistedContents()).toStrictEqual(persistsBeforeSecondCall);
     });
   });

@@ -14,7 +14,7 @@
  * new Date()) is deterministic.
  */
 
-import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
+import { join } from '#gateway/node/path';
 import {
   FileContentsStub,
   FileNameStub,
@@ -23,7 +23,8 @@ import {
   questContract,
 } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts';
-import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { locationsStatics } from '@dungeonmaster/shared/statics';
+import { registerMock, registerSpyOn, requireActual } from '@dungeonmaster/testing/register-mock';
 
 import { questFindQuestPathBrokerProxy } from '../find-quest-path/quest-find-quest-path-broker.proxy';
 import { questLoadBrokerProxy } from '../load/quest-load-broker.proxy';
@@ -50,7 +51,9 @@ export const questOperationsUpdateBrokerProxy = (): {
   getLastPersistedQuest: () => Parsed;
 } => {
   const findQuestPathProxy = questFindQuestPathBrokerProxy();
-  const pathJoinProxy = pathJoinAdapterProxy();
+  const joinHandle = registerMock({ fn: join });
+  const realPath = requireActual<{ join: typeof join }>({ module: 'path' });
+  joinHandle.calledWith([]).implement((...segments: never[]) => realPath.join(...segments));
   const loadProxy = questLoadBrokerProxy();
   const persistProxy = questPersistBrokerProxy();
   const lockProxy = questWithModifyLockBrokerProxy();
@@ -98,7 +101,9 @@ export const questOperationsUpdateBrokerProxy = (): {
       });
 
       // The broker's own join of questPath + quest.json
-      pathJoinProxy.returns({ result: questFilePath });
+      joinHandle
+        .calledWith([questFolderPath, locationsStatics.quest.questFile])
+        .returns(questFilePath);
 
       // questLoadBroker reads the quest file
       loadProxy.setupQuestFile({ questJson: JSON.stringify(quest) });

@@ -40,6 +40,38 @@ describe('questWorkItemInsertBroker', () => {
         }),
       ).resolves.toStrictEqual({ success: true });
     });
+
+    it('ERROR: {questModifyBroker resolves a failure} => passes that failure through instead of a hardcoded success', async () => {
+      const proxy = questWorkItemInsertBrokerProxy();
+      const existingItem = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }),
+        role: 'codeweaver',
+        status: 'complete',
+      });
+      const quest = QuestStub({
+        id: 'test-quest',
+        folder: '001-test-quest',
+        workItems: [existingItem],
+      });
+
+      proxy.setupQuestModify({ quest });
+      proxy.setupModifyFailure();
+
+      const newItem = WorkItemStub({
+        id: QuestWorkItemIdStub({ value: '03a9d8d8-7d74-4041-981c-977812e6dc45' }),
+        role: 'spiritmender',
+        status: 'pending',
+        dependsOn: [],
+      });
+
+      await expect(
+        questWorkItemInsertBroker({
+          questId: QuestIdStub({ value: 'test-quest' }),
+          quest,
+          newWorkItems: [newItem],
+        }),
+      ).resolves.toStrictEqual({ success: false });
+    });
   });
 
   describe('replacement mapping', () => {

@@ -51,7 +51,9 @@ export const smoketestEnsureGuildBroker = async (): Promise<{ guildId: GuildId }
 
   // Tiebreaker: first match by guild creation order (guildListBroker preserves config order).
   // Multiple guilds resolving to the same repo root is rare but possible; first-wins is deterministic.
-  const matched = candidates.find((g): g is GuildListItem => g !== null);
+  // No explicit `g is GuildListItem` predicate — TypeScript infers the narrowing from the `!== null`
+  // check itself (ban-contract-type-predicates bans a hand-written predicate onto a contract type).
+  const matched = candidates.find((g) => g !== null);
 
   if (matched === undefined) {
     throw new Error(

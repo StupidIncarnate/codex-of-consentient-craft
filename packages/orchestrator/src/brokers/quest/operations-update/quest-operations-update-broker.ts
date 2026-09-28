@@ -25,7 +25,7 @@
  *   runtime write path.
  */
 
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
+import { join } from '#gateway/node/path';
 import {
   fileContentsContract,
   filePathContract,
@@ -75,7 +75,7 @@ export const questOperationsUpdateBroker = async ({
     run: async (): Promise<{ quest: Quest } | null> => {
       const { questPath } = await questFindQuestPathBroker({ questId });
       const questFilePath = filePathContract.parse(
-        pathJoinAdapter({ paths: [questPath, locationsStatics.quest.questFile] }),
+        join(questPath, locationsStatics.quest.questFile),
       );
       const quest = await questLoadBroker({ questFilePath });
 

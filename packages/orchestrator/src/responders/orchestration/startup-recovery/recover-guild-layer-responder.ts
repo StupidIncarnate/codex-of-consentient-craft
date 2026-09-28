@@ -134,7 +134,9 @@ export const RecoverGuildLayerResponder = async ({
       }),
     );
 
-    const recoverableQuests = gatedQuests.filter((quest): quest is Quest => quest !== null);
+    // No explicit `quest is Quest` predicate — TypeScript infers the narrowing from the `!== null`
+    // check itself (ban-contract-type-predicates bans a hand-written predicate onto a contract type).
+    const recoverableQuests = gatedQuests.filter((quest) => quest !== null);
 
     // Reset orphaned active work items to pending across every recoverable quest, keeping
     // sessionId + the resume marker so Node dispatch resumes the interrupted session. A missing

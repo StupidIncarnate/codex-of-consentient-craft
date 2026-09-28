@@ -46,12 +46,16 @@
  * have to guess a layout.
  */
 
-import { filePathContract, questContract } from '@dungeonmaster/shared/contracts';
+import {
+  filePathContract,
+  questContract,
+  repoRelativePathContract,
+} from '@dungeonmaster/shared/contracts';
 import type { BlightChecklist, Quest, QuestId } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { join } from '#gateway/node/path';
+import { diffFiles } from '#gateway/bin/git';
 
-import { gitDiffFilesAdapter } from '../../../adapters/git/diff-files/git-diff-files-adapter';
 import { gitUpstreamShaAdapter } from '../../../adapters/git/upstream-sha/git-upstream-sha-adapter';
 import { blightChecklistBuildTransformer } from '../../../transformers/blight-checklist-build/blight-checklist-build-transformer';
 import { gitWorkingTreeFilesBroker } from '../../git/working-tree-files/git-working-tree-files-broker';
@@ -146,9 +150,12 @@ export const questGetBlightChecklistBroker = async ({
   // a net-new file a session has just written is invisible to it. That reading is unioned with the
   // untracked additions in gitWorkingTreeFilesBroker; measuring this scope with the diff adapter
   // alone would silently skip exactly the files most likely to carry a defect and come back green.
-  const changedFiles = await (scope === 'working-tree'
-    ? gitWorkingTreeFilesBroker({ cwd: resolution.cwd })
-    : gitDiffFilesAdapter({ cwd: resolution.cwd, baseRef: measuredFrom }));
+  const changedFiles =
+    scope === 'working-tree'
+      ? await gitWorkingTreeFilesBroker({ cwd: resolution.cwd })
+      : (await diffFiles({ cwd: resolution.cwd, baseRef: measuredFrom })).map((file) =>
+          repoRelativePathContract.parse(file),
+        );
 
   return blightChecklistBuildTransformer({
     changedFiles,

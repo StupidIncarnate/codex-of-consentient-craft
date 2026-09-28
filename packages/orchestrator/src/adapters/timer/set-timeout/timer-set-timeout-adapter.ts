@@ -2,26 +2,16 @@
  * PURPOSE: Wraps setTimeout as an awaitable promise so callers can sleep for a fixed interval, and proxies can mock the timer for unit tests
  *
  * USAGE:
- * const { elapsedMs } = await timerSetTimeoutAdapter({ ms: 200 });
- * // Resolves after ~200ms with the requested delay echoed back. Under proxy control, resolves immediately.
+ * await timerSetTimeoutAdapter({ ms: 200 });
+ * // Resolves after ~200ms. Under proxy control, resolves immediately. `setTimeout`'s callback
+ * // fires with no arguments, so there is nothing real to report back — the caller already knows
+ * // `ms`, the one thing a naive echo would return (R1: a value that only ever restates its own
+ * // input says nothing more than void would).
  */
 
-import {
-  elapsedMsContract,
-  type ElapsedMs,
-} from '../../../contracts/elapsed-ms/elapsed-ms-contract';
-
-export interface TimerSetTimeoutResult {
-  elapsedMs: ElapsedMs;
-}
-
-export const timerSetTimeoutAdapter = async ({
-  ms,
-}: {
-  ms: number;
-}): Promise<TimerSetTimeoutResult> =>
-  new Promise<TimerSetTimeoutResult>((resolve) => {
+export const timerSetTimeoutAdapter = async ({ ms }: { ms: number }): Promise<void> =>
+  new Promise<void>((resolve) => {
     setTimeout(() => {
-      resolve({ elapsedMs: elapsedMsContract.parse(ms) });
+      resolve();
     }, ms);
   });

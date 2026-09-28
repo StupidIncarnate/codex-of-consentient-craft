@@ -37,14 +37,15 @@
  * // Rejects with WorktreePrepareError, naming the failing step, on any failure
  */
 
-import type {
-  AbsoluteFilePath,
-  BaseBranchName,
-  Quest,
-  QuestBranchName,
+import {
+  questContract,
+  type AbsoluteFilePath,
+  type BaseBranchName,
+  type Quest,
+  type QuestBranchName,
 } from '@dungeonmaster/shared/contracts';
 
-import { gitHeadShaAdapter } from '../../../adapters/git/head-sha/git-head-sha-adapter';
+import { headSha } from '#gateway/bin/git';
 import { gitVerifyRefAdapter } from '../../../adapters/git/verify-ref/git-verify-ref-adapter';
 import { gitWorktreeAddAdapter } from '../../../adapters/git/worktree-add/git-worktree-add-adapter';
 import { gitWorktreePruneAdapter } from '../../../adapters/git/worktree-prune/git-worktree-prune-adapter';
@@ -100,9 +101,10 @@ export const worktreePrepareBroker = async ({
     });
   }
 
-  const baseRef = await gitHeadShaAdapter({ cwd: worktreePath });
+  const rawBaseRef = await headSha({ cwd: worktreePath });
 
-  if (baseRef !== null) {
+  if (rawBaseRef !== null) {
+    const baseRef = questContract.shape.baseRef.unwrap().parse(rawBaseRef);
     // SEED, then VERIFY, and the order is not interchangeable. `git worktree add` checks out
     // TRACKED files, and `dist` is gitignored — so the tree it just made holds source and no
     // compiled output at all, and ward's own entry point IS compiled output. The seed writes into

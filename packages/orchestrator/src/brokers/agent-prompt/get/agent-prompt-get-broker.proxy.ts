@@ -32,7 +32,7 @@ import { join } from '#gateway/node/path';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { registerMock, registerModuleMock } from '@dungeonmaster/testing/register-mock';
 
-import { gitHeadShaAdapterProxy } from '../../../adapters/git/head-sha/git-head-sha-adapter.proxy';
+import { headShaProxy } from '#gateway/bin/git/head-sha/head-sha.proxy';
 import { questCwdResolveBroker } from '../../quest/cwd-resolve/quest-cwd-resolve-broker';
 import { questCwdResolveBrokerProxy } from '../../quest/cwd-resolve/quest-cwd-resolve-broker.proxy';
 import { questFindQuestPathBrokerProxy } from '../../quest/find-quest-path/quest-find-quest-path-broker.proxy';
@@ -68,7 +68,7 @@ export const agentPromptGetBrokerProxy = (): {
   // Runs REAL — its proxy mocks the spawn at the I/O boundary, addressed on the `git` command, so
   // the stamp reads a genuine `git rev-parse HEAD` exit code and stdout. Unstaged, any git call
   // THROWS, which is what proves the repo-root default never reaches git at all.
-  const headShaProxy = gitHeadShaAdapterProxy();
+  const gitHeadShaProxy = headShaProxy();
 
   // Wired to satisfy enforce-proxy-child-creation (the implementation imports both) — never
   // staged. The module mocks above are the real staging mechanism; see the docblock.
@@ -166,14 +166,14 @@ export const agentPromptGetBrokerProxy = (): {
     // The quest owns a real worktree whose HEAD reads back this sha — the shape that stamps.
     setupWorktreeHead: ({ sha }: { sha: string }): void => {
       mockedCwdResolve.mockResolvedValue({ kind: 'worktree', cwd: WORKTREE_CWD });
-      headShaProxy.setupSuccess({ sha });
+      gitHeadShaProxy.setupResult({ exitCode: 0, output: `${sha}\n` });
     },
 
     // A worktree resolves but `git rev-parse HEAD` fails — a checkout with no commits yet, or no
     // git at all. gitHeadShaAdapter answers null and the stamp records nothing.
     setupWorktreeHeadUnreadable: (): void => {
       mockedCwdResolve.mockResolvedValue({ kind: 'worktree', cwd: WORKTREE_CWD });
-      headShaProxy.setupFailure();
+      gitHeadShaProxy.setupResult({ exitCode: 128, output: '' });
     },
 
     // The cwd resolution THROWS — a quest whose guild is not in the registry, a quest.json written
@@ -188,7 +188,18 @@ export const agentPromptGetBrokerProxy = (): {
     getStampedWorkItems: (): readonly unknown[] => stampedWorkItems,
 
     // The git argv the stamp actually spawned, or undefined when it never reached git.
-    getGitSpawnedArgs: (): unknown => headShaProxy.getSpawnedArgs(),
+    getGitSpawnedArgs: (): unknown => {
+      const calls = gitHeadShaProxy.getCallsFor();
+      const call = calls.at(0);
+      if (call === undefined) {
+        return undefined;
+      }
+      const first = call.at(0);
+      if (typeof first === 'object' && first !== null && 'args' in first) {
+        return Array.isArray(first.args) ? first.args : [];
+      }
+      return [];
+    },
 
     // The join(questFolderPath, quest.json) args the broker itself invoked — the ONLY way to prove
     // its own join call resolved this exact folder rather than falling through to some OTHER

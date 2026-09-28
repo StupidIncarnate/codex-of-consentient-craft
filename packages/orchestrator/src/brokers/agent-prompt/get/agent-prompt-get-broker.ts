@@ -46,7 +46,7 @@ import {
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { join } from '#gateway/node/path';
 
-import { gitHeadShaAdapter } from '../../../adapters/git/head-sha/git-head-sha-adapter';
+import { headSha } from '#gateway/bin/git';
 import { agentPromptNameContract } from '../../../contracts/agent-prompt-name/agent-prompt-name-contract';
 import { agentPromptClassificationStatics } from '../../../statics/agent-prompt-classification/agent-prompt-classification-statics';
 import { agentNameToPromptTransformer } from '../../../transformers/agent-name-to-prompt/agent-name-to-prompt-transformer';
@@ -142,7 +142,7 @@ export const agentPromptGetBroker = async ({
     try {
       const resolution = await questCwdResolveBroker({ questId });
       const startRef =
-        resolution.kind === 'worktree' ? await gitHeadShaAdapter({ cwd: resolution.cwd }) : null;
+        resolution.kind === 'worktree' ? await headSha({ cwd: resolution.cwd }) : null;
 
       if (startRef !== null) {
         await questOperationsUpdateBroker({

@@ -1,3 +1,5 @@
+import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
+import { cwd } from '#gateway/node/process';
 import {
   GuildStub,
   QuestIdStub,
@@ -12,11 +14,7 @@ import {
   type SessionId,
 } from '@dungeonmaster/shared/contracts';
 import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
-import {
-  cwdResolveBrokerProxy,
-  pathBasenameAdapterProxy,
-  processCwdAdapterProxy,
-} from '@dungeonmaster/shared/testing';
+import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/testing';
 import {
   registerMock,
   registerModuleMock,
@@ -51,17 +49,17 @@ export const questMcpCreateBrokerProxy = (): {
     sessionId: SessionId | undefined;
   };
 } => {
-  const cwdProxy = processCwdAdapterProxy();
   const listProxy = guildListBrokerProxy();
   // Initializing these proxies registers their companion mocks; we still override the
   // top-level mock per setup case below so this broker resolves through them cleanly.
   // cwdResolveBroker is overridden via registerMock so its underlying fs/path mocks
   // aren't actually exercised; guildAddBroker is module-mocked so its internals never run.
   cwdResolveBrokerProxy();
-  pathBasenameAdapterProxy();
+  cwdProxy();
   guildAddBrokerProxy();
   questUserAddBrokerProxy();
 
+  const cwdHandle: MockHandle = registerMock({ fn: cwd });
   const resolveMock: MockHandle = registerMock({ fn: cwdResolveBroker });
   const listMock: MockHandle = registerMock({ fn: guildListBroker });
   const addGuildMock: MockHandle = registerMock({ fn: guildAddBroker });
@@ -72,21 +70,35 @@ export const questMcpCreateBrokerProxy = (): {
   listMock.calledWith([]).resolves([]);
 
   return {
-    setupResolvedRepoRoot: ({ cwd, repoRoot }: { cwd: string; repoRoot: string }): void => {
-      cwdProxy.returns({ path: cwd });
-      resolveMock.calledWith([{ startPath: cwd }]).resolves(RepoRootCwdStub({ value: repoRoot }));
-    },
-
-    setupResolveFallback: ({ cwd }: { cwd: string }): void => {
-      cwdProxy.returns({ path: cwd });
+    setupResolvedRepoRoot: ({
+      cwd: currentWorkingDirectory,
+      repoRoot,
+    }: {
+      cwd: string;
+      repoRoot: string;
+    }): void => {
+      cwdHandle.calledWith([]).returns(currentWorkingDirectory);
       resolveMock
-        .calledWith([{ startPath: cwd }])
-        .rejects(new ProjectRootNotFoundError({ startPath: cwd }));
+        .calledWith([{ startPath: currentWorkingDirectory }])
+        .resolves(RepoRootCwdStub({ value: repoRoot }));
     },
 
-    setupResolveError: ({ cwd, error }: { cwd: string; error: Error }): void => {
-      cwdProxy.returns({ path: cwd });
-      resolveMock.calledWith([{ startPath: cwd }]).rejects(error);
+    setupResolveFallback: ({ cwd: currentWorkingDirectory }: { cwd: string }): void => {
+      cwdHandle.calledWith([]).returns(currentWorkingDirectory);
+      resolveMock
+        .calledWith([{ startPath: currentWorkingDirectory }])
+        .rejects(new ProjectRootNotFoundError({ startPath: currentWorkingDirectory }));
+    },
+
+    setupResolveError: ({
+      cwd: currentWorkingDirectory,
+      error,
+    }: {
+      cwd: string;
+      error: Error;
+    }): void => {
+      cwdHandle.calledWith([]).returns(currentWorkingDirectory);
+      resolveMock.calledWith([{ startPath: currentWorkingDirectory }]).rejects(error);
     },
 
     setupGuilds: ({ guilds }: { guilds: readonly GuildListItem[] }): void => {

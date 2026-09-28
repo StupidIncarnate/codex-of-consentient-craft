@@ -10,7 +10,7 @@ describe('worktreeDiscardBroker', () => {
       const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
       const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth-7bc217a1' });
       const branchName = QuestBranchNameStub({ value: 'quest/add-auth-7bc217a1' });
-      proxy.setupBothSucceed();
+      proxy.setupBothSucceed({ worktreePath, branchName });
 
       const result = await worktreeDiscardBroker({ repoRoot, worktreePath, branchName });
 

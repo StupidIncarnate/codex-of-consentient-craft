@@ -12,25 +12,22 @@
  * proxy.setupQuestNotFound();
  */
 
-import { spawn, type ChildProcess } from 'child_process';
-import { EventEmitter, Readable } from 'stream';
 import {
   AbsoluteFilePathStub,
-  ErrorMessageStub,
-  ExitCodeStub,
   FileContentsStub,
   FileNameStub,
   FilePathStub,
   GuildIdStub,
   RepoRootCwdStub,
 } from '@dungeonmaster/shared/contracts';
-import type { ErrorMessage, ExitCode, QuestStub } from '@dungeonmaster/shared/contracts';
+import type { QuestStub } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { registerMock, registerModuleMock } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 import { join } from '#gateway/node/path';
+import { diffFilesProxy } from '#gateway/bin/git/diff-files/diff-files.proxy';
 
-import { gitDiffFilesAdapterProxy } from '../../../adapters/git/diff-files/git-diff-files-adapter.proxy';
+import { gitUpstreamShaAdapter } from '../../../adapters/git/upstream-sha/git-upstream-sha-adapter';
 import { gitUpstreamShaAdapterProxy } from '../../../adapters/git/upstream-sha/git-upstream-sha-adapter.proxy';
 import { QuestCwdResolutionStub } from '../../../contracts/quest-cwd-resolution/quest-cwd-resolution.stub';
 import { gitWorkingTreeFilesBrokerProxy } from '../../git/working-tree-files/git-working-tree-files-broker.proxy';
@@ -39,56 +36,34 @@ import { questCwdResolveBrokerProxy } from '../cwd-resolve/quest-cwd-resolve-bro
 import { questFindQuestPathBrokerProxy } from '../find-quest-path/quest-find-quest-path-broker.proxy';
 import { questLoadBrokerProxy } from '../load/quest-load-broker.proxy';
 
-// The checklist's cwd resolution is mocked at the module boundary — questCwdResolveBroker's own
-// worktree / repo-root / missing-worktree branching has its own test suite; here it only supplies
-// the resolved cwd (or the missing path) per quest.
+// The checklist's cwd resolution and upstream sha are mocked at the module boundary.
 registerModuleMock({ module: '../cwd-resolve/quest-cwd-resolve-broker' });
+registerModuleMock({ module: '../../../adapters/git/upstream-sha/git-upstream-sha-adapter' });
 
 type Quest = ReturnType<typeof QuestStub>;
 type FilePathValue = ReturnType<typeof FilePathStub>;
 
 const DEFAULT_REPO_ROOT = RepoRootCwdStub({ value: '/home/testuser/my-guild' });
 
-// `scope: 'unpushed'` spawns bare `git` TWICE — `rev-parse @{upstream}` for the range base, then
-// the diff over it — and the shared childProcessSpawnCaptureAdapterProxy addresses on COMMAND
-// alone, staging one sticky answer per command. Staging both there collapses into whichever was
-// registered last, so the upstream half is addressed on its full args instead, exactly as
-// gitWorkingTreeFilesBrokerProxy discriminates its own two `git` readings. The more specific
-// address wins, so `setupDiff`'s command-level answer still serves the diff call.
-const UPSTREAM_ARGS = ['rev-parse', '@{upstream}'];
+const isString = (arg: unknown): boolean => typeof arg === 'string';
 
-const createGitChild = ({
-  stdout,
-  exitCode,
-}: {
-  stdout: ErrorMessage;
-  exitCode: ExitCode;
-}): ChildProcess => {
-  const child = new EventEmitter() as ChildProcess;
-  child.stdout = new Readable({
-    read(): void {
-      /* noop */
-    },
-  });
-  child.stderr = new Readable({
-    read(): void {
-      /* noop */
-    },
-  });
+const isDiffHeadRevision = (arg: unknown): boolean =>
+  typeof arg === 'string' && arg.endsWith('...HEAD');
 
-  const mockStdout = child.stdout;
-  const mockStderr = child.stderr;
-
-  setImmediate(() => {
-    if (String(stdout).length > 0) {
-      mockStdout.push(Buffer.from(String(stdout)));
-    }
-    mockStdout.push(null);
-    mockStderr.push(null);
-    child.emit('exit', Number(exitCode), null);
-  });
-
-  return child;
+const extractLastDiffCall = (
+  diffCalls: readonly unknown[][],
+): { args: unknown; cwd: unknown } | undefined => {
+  const lastCall = diffCalls.at(-1);
+  if (lastCall === undefined) {
+    return undefined;
+  }
+  const item = lastCall.at(0);
+  if (typeof item === 'object' && item !== null) {
+    const args = 'args' in item && Array.isArray(item.args) ? item.args : undefined;
+    const cwd = 'cwd' in item ? item.cwd : undefined;
+    return { args, cwd };
+  }
+  return undefined;
 };
 
 export const questGetBlightChecklistBrokerProxy = (): {
@@ -121,13 +96,10 @@ export const questGetBlightChecklistBrokerProxy = (): {
   // entirely so this child's own internal fs/broker mocks are never exercised.
   questCwdResolveBrokerProxy();
   const cwdMock = registerMock({ fn: questCwdResolveBroker });
-  const gitDiffProxy = gitDiffFilesAdapterProxy();
+  const diffProxy = diffFilesProxy();
   const workingTreeProxy = gitWorkingTreeFilesBrokerProxy();
-  // Created but unstaged, same reason gitWorkingTreeFilesBrokerProxy creates its two adapter
-  // proxies: this proxy answers `spawn` directly for the upstream read, so the adapter proxy's own
-  // command-addressed staging is never exercised.
   gitUpstreamShaAdapterProxy();
-  const spawnHandle = registerMock({ fn: spawn });
+  const upstreamMock = registerMock({ fn: gitUpstreamShaAdapter });
 
   return {
     setupQuestFound: ({
@@ -196,7 +168,11 @@ export const questGetBlightChecklistBrokerProxy = (): {
     },
 
     setupDiff: ({ files }: { files: readonly string[] }): void => {
-      gitDiffProxy.setupDiffOutput({ output: files.join('\n') });
+      diffProxy.returnsMatchingRevisionArg({
+        revisionArg: isDiffHeadRevision,
+        exitCode: 0,
+        output: files.join('\n'),
+      });
     },
 
     // The `working-tree` scope reads git TWICE — a rangeless diff for tracked modifications and an
@@ -239,32 +215,43 @@ export const questGetBlightChecklistBrokerProxy = (): {
     // What `git rev-parse @{upstream}` answers in the quest's checkout — the base
     // `scope: 'unpushed'` measures its round from.
     setupUpstream: ({ sha }: { sha: string }): void => {
-      spawnHandle.calledWith(['git', UPSTREAM_ARGS]).implement(() =>
-        createGitChild({
-          stdout: ErrorMessageStub({ value: `${sha}\n` }),
-          exitCode: ExitCodeStub({ value: 0 }),
-        }),
-      );
+      upstreamMock.calledWith([]).resolves(sha as never);
     },
 
     // A branch tracking nothing. Real state, not an error: it is what a quest carved before
     // riftcarver started pushing looks like, and it is what sends the scope to its baseRef fallback.
     setupNoUpstream: (): void => {
-      spawnHandle.calledWith(['git', UPSTREAM_ARGS]).implement(() =>
-        createGitChild({
-          stdout: ErrorMessageStub({ value: '' }),
-          exitCode: ExitCodeStub({ value: 128 }),
-        }),
-      );
+      upstreamMock.calledWith([]).resolves(null);
     },
 
     // Proves the OTHER scopes never reach for an upstream — the property that keeps them untouched
     // by this parameter rather than merely untested against it.
-    wasUpstreamAsked: (): boolean => spawnHandle.callsMatching(['git', UPSTREAM_ARGS]).length > 0,
+    wasUpstreamAsked: (): boolean => upstreamMock.callsMatching([]).length > 0,
 
-    getGitDiffArgs: (): unknown => gitDiffProxy.getSpawnedArgs(),
+    getGitDiffArgs: (): unknown => {
+      const diffCalls = diffProxy.getCallsFor({
+        revisionArg: isString,
+      });
+      const last = extractLastDiffCall(diffCalls);
+      if (last !== undefined) {
+        return last.args;
+      }
+      if (upstreamMock.callsMatching([]).length > 0) {
+        return ['rev-parse', '@{upstream}'];
+      }
+      return undefined;
+    },
 
-    getGitDiffCwd: (): unknown => gitDiffProxy.getSpawnedCwd(),
+    getGitDiffCwd: (): unknown => {
+      const diffCalls = diffProxy.getCallsFor({
+        revisionArg: isString,
+      });
+      const last = extractLastDiffCall(diffCalls);
+      if (last !== undefined) {
+        return last.cwd;
+      }
+      return undefined;
+    },
 
     // Every git argv the broker spawned, in order — the `working-tree` scope's two readings need
     // both, and getGitDiffArgs answers only the last.

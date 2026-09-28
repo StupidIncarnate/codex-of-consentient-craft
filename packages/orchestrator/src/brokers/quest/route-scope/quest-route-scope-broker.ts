@@ -25,7 +25,7 @@
  * graph, so each completes on its own signal and this broker never touches it.
  */
 
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
+import { join } from '#gateway/node/path';
 import {
   errorMessageContract,
   filePathContract,
@@ -69,9 +69,7 @@ export const questRouteScopeBroker = async ({
   // The quest folder and the quest itself come off ONE lookup, not two: `questGetBroker` would walk
   // the guilds again for a path this already holds, and the plan file lives beside `quest.json`.
   const { questPath } = await questFindQuestPathBroker({ questId });
-  const questFilePath = filePathContract.parse(
-    pathJoinAdapter({ paths: [questPath, locationsStatics.quest.questFile] }),
-  );
+  const questFilePath = filePathContract.parse(join(questPath, locationsStatics.quest.questFile));
   const scanned: Quest = await questLoadBroker({ questFilePath });
 
   const candidate = scanned.operations.find((operation) => {

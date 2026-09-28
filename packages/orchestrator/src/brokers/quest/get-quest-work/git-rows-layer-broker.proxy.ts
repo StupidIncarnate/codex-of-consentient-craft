@@ -8,9 +8,9 @@
  * const rows = await gitRowsLayerBroker({ questId, quest });
  */
 
+import { logNameOnlyProxy } from '#gateway/bin/git/log-name-only/log-name-only.proxy';
 import type { QuestStub } from '@dungeonmaster/shared/contracts';
 
-import { gitLogNameOnlyAdapterProxy } from '../../../adapters/git/log-name-only/git-log-name-only-adapter.proxy';
 import { gitWorkingTreeFilesBrokerProxy } from '../../git/working-tree-files/git-working-tree-files-broker.proxy';
 import { questCwdResolveBrokerProxy } from '../cwd-resolve/quest-cwd-resolve-broker.proxy';
 
@@ -27,7 +27,7 @@ export const gitRowsLayerBrokerProxy = (): {
 } => {
   const cwdProxy = questCwdResolveBrokerProxy();
   const workingTreeProxy = gitWorkingTreeFilesBrokerProxy();
-  const logProxy = gitLogNameOnlyAdapterProxy();
+  const logProxy = logNameOnlyProxy();
 
   return {
     setupWorktreeMissing: ({ quest }: { quest: Quest }): void => {
@@ -37,7 +37,11 @@ export const gitRowsLayerBrokerProxy = (): {
     setupWorktreePresent: ({ quest, trackedFiles, untrackedFiles, logOutput }): void => {
       cwdProxy.setupWorktreePresent({ quest });
       workingTreeProxy.setupWorkingTree({ trackedFiles, untrackedFiles });
-      logProxy.setupLogOutput({ output: logOutput });
+      logProxy.setupResult({
+        baseRef: quest.baseRef === undefined ? '' : String(quest.baseRef),
+        exitCode: 0,
+        output: logOutput,
+      });
     },
   };
 };

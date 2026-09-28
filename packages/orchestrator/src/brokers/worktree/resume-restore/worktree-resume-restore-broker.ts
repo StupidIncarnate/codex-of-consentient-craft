@@ -21,9 +21,10 @@ import {
   type ErrorMessage,
   type QuestBranchName,
 } from '@dungeonmaster/shared/contracts';
+import { checkout, currentBranch } from '#gateway/bin/git';
 
-import { gitCheckoutAdapter } from '../../../adapters/git/checkout/git-checkout-adapter';
-import { gitCurrentBranchAdapter } from '../../../adapters/git/current-branch/git-current-branch-adapter';
+const COLON_SEPARATOR = ': ';
+const EXIT_CODE_MARKER = 'with exit code ';
 
 export const worktreeResumeRestoreBroker = async ({
   worktreePath,
@@ -32,28 +33,51 @@ export const worktreeResumeRestoreBroker = async ({
   worktreePath: AbsoluteFilePath;
   branchName: QuestBranchName;
 }): Promise<{ restored: boolean; currentBranch: ErrorMessage; output: ErrorMessage }> => {
-  const { exitCode, output } = await gitCurrentBranchAdapter({ cwd: worktreePath });
+  const branchAttempt = await (async () => {
+    try {
+      const result = await currentBranch({ cwd: worktreePath });
+      return { success: true as const, branch: result };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      const markerIndex = message.indexOf(EXIT_CODE_MARKER);
+      const colonIndex = markerIndex === -1 ? -1 : message.indexOf(COLON_SEPARATOR, markerIndex);
+      const output =
+        colonIndex === -1 ? message : message.slice(colonIndex + COLON_SEPARATOR.length);
+      return { success: false as const, error: errorMessageContract.parse(output) };
+    }
+  })();
 
-  const currentBranch = errorMessageContract.parse(
-    output
-      .split('\n')
-      .map((line) => line.trim())
-      .find((line) => line.length > 0) ?? '',
-  );
-
-  if (exitCode !== 0) {
-    return { restored: false, currentBranch, output };
+  if (!branchAttempt.success) {
+    return {
+      restored: false,
+      currentBranch: branchAttempt.error,
+      output: branchAttempt.error,
+    };
   }
 
-  if (currentBranch === errorMessageContract.parse(branchName)) {
-    return { restored: true, currentBranch, output };
+  const { branch: rawBranch } = branchAttempt;
+
+  const branch =
+    rawBranch === null
+      ? null
+      : (rawBranch
+          .split('\n')
+          .map((line) => line.trim())
+          .find((line) => line.length > 0) ?? null);
+
+  if (branch !== null && branch === String(branchName)) {
+    return {
+      restored: true,
+      currentBranch: errorMessageContract.parse(branch),
+      output: errorMessageContract.parse(rawBranch),
+    };
   }
 
-  const checkoutResult = await gitCheckoutAdapter({ cwd: worktreePath, branchName });
+  const checkoutResult = await checkout({ cwd: worktreePath, branchName });
 
   return {
     restored: checkoutResult.exitCode === 0,
-    currentBranch,
-    output: checkoutResult.output,
+    currentBranch: errorMessageContract.parse(branch ?? 'HEAD'),
+    output: errorMessageContract.parse(checkoutResult.output),
   };
 };

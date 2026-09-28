@@ -15,7 +15,7 @@
  * other `quest-work` payload uses is what keeps that read from racing a concurrent mutation.
  */
 
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
+import { join } from '#gateway/node/path';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { OperationItemId, QuestId, QuestWorkItemId } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
@@ -45,7 +45,7 @@ export const questWorkPlanWriteBroker = async ({
     run: async (): Promise<{ operationItemId: OperationItemId }> => {
       const { questPath } = await questFindQuestPathBroker({ questId });
       const questFilePath = filePathContract.parse(
-        pathJoinAdapter({ paths: [questPath, locationsStatics.quest.questFile] }),
+        join(questPath, locationsStatics.quest.questFile),
       );
       const quest = await questLoadBroker({ questFilePath });
 

@@ -76,6 +76,11 @@ describe('questWorkPlanWriteBroker', () => {
         batches: [],
         plannerMarks: [],
       });
+
+      expect(proxy.getQuestFileJoinArgs({ questFolderPath })).toStrictEqual([
+        questFolderPath,
+        'quest.json',
+      ]);
     });
   });
 

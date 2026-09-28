@@ -47,8 +47,8 @@ import {
   type QuestWorkItemId,
 } from '@dungeonmaster/shared/contracts';
 
-import { gitAddAllAdapter } from '../../../adapters/git/add-all/git-add-all-adapter';
-import { gitCommitAdapter } from '../../../adapters/git/commit/git-commit-adapter';
+import { addAll, commit } from '#gateway/bin/git';
+
 import { gitPushAdapter } from '../../../adapters/git/push/git-push-adapter';
 import { stepHandlerResultContract } from '../../../contracts/step-handler-result/step-handler-result-contract';
 import type { StepHandlerResult } from '../../../contracts/step-handler-result/step-handler-result-contract';
@@ -137,10 +137,10 @@ export const stepHandlerCommitBroker = async ({
   const result = await questWithModifyLockBroker({
     questId,
     run: async (): Promise<{ pushFailed: boolean; pushOutput: ErrorMessage }> => {
-      await gitAddAllAdapter({ cwd });
+      await addAll({ cwd });
       onLine('git add -A');
 
-      await gitCommitAdapter({ cwd, message, allowEmpty: true });
+      await commit({ cwd, message, allowEmpty: true });
       onLine(`git commit -m "${message.split('\n')[0]}" --allow-empty`);
 
       const pushResult = await gitPushAdapter({ cwd });

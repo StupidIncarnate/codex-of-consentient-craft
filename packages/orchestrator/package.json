@@ -56,6 +56,7 @@
     "ward": "dungeonmaster-ward"
   },
   "dependencies": {
+    "@dungeonmaster/bin": "*",
     "@dungeonmaster/config": "*",
     "@dungeonmaster/node": "*",
     "@dungeonmaster/npm": "*",

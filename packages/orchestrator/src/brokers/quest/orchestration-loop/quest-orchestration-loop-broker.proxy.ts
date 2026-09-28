@@ -37,6 +37,8 @@ export const questOrchestrationLoopBrokerProxy = (): {
   setupQuestReady: (params: { quest: QuestParam }) => void;
   setupQuestNotFound: () => void;
   setupNoReadyItems: (params: { quest: QuestParam }) => void;
+  setupChatDispatchThrows: (params: { quest: QuestParam }) => void;
+  setupInProgressMarkFails: () => void;
   getSpawnedArgs: () => unknown;
   getAllPersistedContents: () => readonly unknown[];
   getAllPersistedQuests: () => readonly Quest[];
@@ -100,6 +102,22 @@ export const questOrchestrationLoopBrokerProxy = (): {
 
     setupNoReadyItems: ({ quest }: { quest: QuestParam }): void => {
       getProxy.setupQuestFound({ quest });
+    },
+
+    // A dispatch that throws (rather than recursing) is what lets a unit test reach the
+    // dispatch branch at all: questOrchestrationLoopBroker recurses on itself after a
+    // successful dispatch, and this suite's staged quest fixture never changes between
+    // recursive re-fetches, so a successful dispatch would loop forever.
+    setupChatDispatchThrows: ({ quest }: { quest: QuestParam }): void => {
+      getProxy.setupQuestFound({ quest });
+      chatLayerProxy.setupSpawnThrow({ quest });
+    },
+
+    // Stages a one-shot failure for the NEXT real questModifyBroker call — the dispatch
+    // branch's own "mark the work item in_progress" write, which is the first questModifyBroker
+    // call this broker makes in a dispatch scenario.
+    setupInProgressMarkFails: (): void => {
+      modifyProxy.setupResolveFailureOnce();
     },
 
     // The Claude CLI argv the chat layer spawned with, or `undefined` when the loop declined to

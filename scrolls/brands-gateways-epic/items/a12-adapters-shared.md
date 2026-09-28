@@ -357,3 +357,26 @@ Files to edit:
 - `packages/siegelense/src/brokers/instance/start/instance-start-broker.proxy.ts` (not in the original named scope; added because removing `registry-lock-acquire-broker.proxy.ts`'s inherited shared-adapter catch-all broke this file's OWN, separate, already-latent gap — see DECISIONS in the report) — routes the now-unstaged mkdir calls through the child proxies `instanceStartBroker.ts` already legitimately composes (`enforce-proxy-child-creation` refuses a bare `ensureDirProxy()` composed here, since `instance-start-broker.ts` itself never imports `ensureDir`): `reserveProxy.setupEvidenceDir(...)` for the evidence directory (in `stageBoot`, from the real `evidencePath` param, and in `stageBootLockAcquireFailsWithReadError`, against the fixed "unowned" address, since that method takes no `evidencePath`), and `profileBootRecordProxy.setupBootsDirCreated(...)` (new method, see below) for the boot-profile directory, addressed by the default lane spec's real, empirically-observed content hash
 - `packages/siegelense/src/brokers/profile/boot-record/profile-boot-record-broker.proxy.ts` (not in the original named scope; added for the same `enforce-proxy-child-creation` reason) — adds `setupBootsDirCreated({ profilesPath })`, a narrower sibling to the existing `setupBootRecordWrite` that stages ONLY the `ensureDir` call, so `instance-start-broker.proxy.ts` can create the boots directory without also re-triggering `setupBootRecordWrite`'s own sticky `Date.now()` default, which would collide with that file's own call-count-tuned `dateNowHandle` queue
 
+### G-U
+
+Orchestrator's last callers of `@dungeonmaster/shared/adapters` outside the git adapters (6 brokers, their proxies, tests, and composing proxies in orchestrator).
+
+Files to edit:
+- `packages/orchestrator/src/brokers/quest/create/quest-create-broker.ts` — migrate `pathJoinAdapter` and `fsMkdirAdapter` (`@dungeonmaster/shared/adapters`) to `join` (`#gateway/node/path`) and `ensureDir` (`#gateway/node/fs__promises`)
+- `packages/orchestrator/src/brokers/quest/create/quest-create-broker.proxy.ts` — compose `ensureDirProxy` (`#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy`), stage `join` (`#gateway/node/path`) via `registerMock({ fn: join })`, and remove `pathJoinAdapterProxy` and `fsMkdirAdapterProxy`
+- `packages/orchestrator/src/brokers/quest/create/quest-create-broker.test.ts` — verify quest creation and failure scenarios against `ensureDirProxy` and `join`
+- `packages/orchestrator/src/brokers/quest/mcp-create/quest-mcp-create-broker.ts` — migrate `processCwdAdapter` and `pathBasenameAdapter` (`@dungeonmaster/shared/adapters`) to `cwd` (`#gateway/node/process`) and `basename` (`#gateway/node/path`)
+- `packages/orchestrator/src/brokers/quest/mcp-create/quest-mcp-create-broker.proxy.ts` — stage `cwd` on `#gateway/node/process`'s `cwd` via `registerMock({ fn: cwd })`, remove `processCwdAdapterProxy` and `pathBasenameAdapterProxy`
+- `packages/orchestrator/src/brokers/quest/mcp-create/quest-mcp-create-broker.test.ts` — verify quest MCP creation scenarios with staged `cwd` and `basename`
+- `packages/orchestrator/src/brokers/quest/operations-update/quest-operations-update-broker.ts` — migrate `pathJoinAdapter` (`@dungeonmaster/shared/adapters`) to `join` (`#gateway/node/path`)
+- `packages/orchestrator/src/brokers/quest/operations-update/quest-operations-update-broker.proxy.ts` — stage `join` (`#gateway/node/path`) via `registerMock({ fn: join })` with exact tuple addressing, and remove `pathJoinAdapterProxy`
+- `packages/orchestrator/src/brokers/quest/operations-update/quest-operations-update-broker.test.ts` — verify operations update scenarios with staged `join`
+- `packages/orchestrator/src/brokers/quest/route-scope/quest-route-scope-broker.ts` — migrate `pathJoinAdapter` (`@dungeonmaster/shared/adapters`) to `join` (`#gateway/node/path`)
+- `packages/orchestrator/src/brokers/quest/route-scope/quest-route-scope-broker.proxy.ts` — remove `pathJoinAdapter`, `pathJoinAdapterProxy`, and module mock on `@dungeonmaster/shared/adapters`; use existing `#gateway/node/path` `join` mock
+- `packages/orchestrator/src/brokers/quest/route-scope/quest-route-scope-broker.test.ts` — verify route scope scenarios with `#gateway/node/path` `join`
+- `packages/orchestrator/src/brokers/quest/run-step/quest-run-step-broker.proxy.ts` — remove module mock on `@dungeonmaster/shared/adapters` and unused `fsExistsSyncAdapter`/`fsReaddirWithTypesAdapter`/`pathJoinAdapter`/`Dirent`; stage `join` (`#gateway/node/path`) via `registerMock({ fn: join })` with real passthrough
+- `packages/orchestrator/src/brokers/quest/run-step/quest-run-step-broker.test.ts` — verify run step scenarios with `#gateway/node/path` `join`
+- `packages/orchestrator/src/brokers/quest/work-plan-write/quest-work-plan-write-broker.ts` — migrate `pathJoinAdapter` (`@dungeonmaster/shared/adapters`) to `join` (`#gateway/node/path`)
+- `packages/orchestrator/src/brokers/quest/work-plan-write/quest-work-plan-write-broker.proxy.ts` — stage `join` (`#gateway/node/path`) via `registerMock({ fn: join })` with exact tuple addressing, and remove `pathJoinAdapterProxy`
+- `packages/orchestrator/src/brokers/quest/work-plan-write/quest-work-plan-write-broker.test.ts` — verify work plan write scenarios with staged `join`
+

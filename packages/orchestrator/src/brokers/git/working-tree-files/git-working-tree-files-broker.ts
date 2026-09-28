@@ -19,9 +19,9 @@
  */
 
 import type { AbsoluteFilePath, RepoRelativePath } from '@dungeonmaster/shared/contracts';
-import { questContract } from '@dungeonmaster/shared/contracts';
+import { questContract, repoRelativePathContract } from '@dungeonmaster/shared/contracts';
+import { diffFiles } from '#gateway/bin/git';
 
-import { gitDiffFilesAdapter } from '../../../adapters/git/diff-files/git-diff-files-adapter';
 import { gitUntrackedFilesAdapter } from '../../../adapters/git/untracked-files/git-untracked-files-adapter';
 
 export const gitWorkingTreeFilesBroker = async ({
@@ -29,14 +29,16 @@ export const gitWorkingTreeFilesBroker = async ({
 }: {
   cwd: AbsoluteFilePath;
 }): Promise<RepoRelativePath[]> => {
-  const [trackedChanges, untrackedAdditions] = await Promise.all([
-    gitDiffFilesAdapter({
+  const [trackedDiff, untrackedAdditions] = await Promise.all([
+    diffFiles({
       cwd,
       baseRef: questContract.shape.baseRef.unwrap().parse('HEAD'),
       comparison: 'ref-to-working-tree',
     }),
     gitUntrackedFilesAdapter({ cwd }),
   ]);
+
+  const trackedChanges = trackedDiff.map((file) => repoRelativePathContract.parse(file));
 
   const seen = new Set<RepoRelativePath>();
 

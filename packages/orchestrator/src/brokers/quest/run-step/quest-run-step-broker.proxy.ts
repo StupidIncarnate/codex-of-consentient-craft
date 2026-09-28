@@ -12,28 +12,15 @@
  * expect(proxy.getPersistedQuest().workItems[0].declaredWord).toBe('done');
  */
 
-import { Dirent } from 'fs';
-
-import {
-  fsExistsSyncAdapter,
-  fsReaddirWithTypesAdapter,
-  pathJoinAdapter,
-} from '@dungeonmaster/shared/adapters';
+import { join } from '#gateway/node/path';
 import { dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
 import {
   adapterResultContract,
   fileContentsContract,
-  fileNameContract,
   filePathContract,
   questContract,
 } from '@dungeonmaster/shared/contracts';
-import type {
-  FileContents,
-  FileName,
-  FilePath,
-  Quest,
-  QuestStub,
-} from '@dungeonmaster/shared/contracts';
+import type { FileContents, FilePath, Quest, QuestStub } from '@dungeonmaster/shared/contracts';
 import {
   registerMock,
   registerModuleMock,
@@ -50,15 +37,6 @@ import { stepHandlerRunBroker } from '../../step-handler/run/step-handler-run-br
 import { stepHandlerRunBrokerProxy } from '../../step-handler/run/step-handler-run-broker.proxy';
 import { questOperationsUpdateBrokerProxy } from '../operations-update/quest-operations-update-broker.proxy';
 
-registerModuleMock({
-  module: '@dungeonmaster/shared/adapters',
-  factory: () => ({
-    ...jest.requireActual('@dungeonmaster/shared/adapters'),
-    fsExistsSyncAdapter: jest.fn(),
-    fsReaddirWithTypesAdapter: jest.fn(),
-    pathJoinAdapter: jest.fn(),
-  }),
-});
 registerModuleMock({
   module: '@dungeonmaster/shared/brokers',
   factory: () => ({
@@ -110,11 +88,6 @@ export const questRunStepBrokerProxy = (): {
   // file, so these `jest.mock` calls are hoisted for that whole suite; left unstaged they would make
   // `pathJoinAdapter` throw for a caller that never asked for any of this. `setupQuest` is what
   // swaps them for the virtual store.
-  const realAdapters = requireActual<{
-    fsExistsSyncAdapter: typeof fsExistsSyncAdapter;
-    fsReaddirWithTypesAdapter: typeof fsReaddirWithTypesAdapter;
-    pathJoinAdapter: typeof pathJoinAdapter;
-  }>({ module: '@dungeonmaster/shared/adapters' });
   const realBrokers = requireActual<{
     dungeonmasterHomeFindBroker: typeof dungeonmasterHomeFindBroker;
   }>({ module: '@dungeonmaster/shared/brokers' });
@@ -132,37 +105,18 @@ export const questRunStepBrokerProxy = (): {
   });
 
   const files = new Map<FilePath, FileContents>();
-  const dirs = new Map<FilePath, FileName[]>();
   const questWrites: FileContents[] = [];
   const questFilePathRef = { value: filePathContract.parse('/unset/quest.json') };
 
-  const pathJoinHandle = registerMock({ fn: pathJoinAdapter });
-  const pathJoinImpl = ({ paths }: Parameters<typeof pathJoinAdapter>[0]): FilePath =>
-    filePathContract.parse(paths.join('/'));
-  pathJoinHandle.calledWith([]).implement(realAdapters.pathJoinAdapter as never);
+  const realPath = requireActual<{ join: typeof join }>({ module: 'path' });
+  const joinHandle = registerMock({ fn: join });
+  joinHandle.calledWith([]).implement((...segments: never[]) => realPath.join(...segments));
 
   const homeFindHandle = registerMock({ fn: dungeonmasterHomeFindBroker });
   const homeFindImpl = (): { homePath: FilePath } => ({
     homePath: filePathContract.parse(HOME_PATH),
   });
   homeFindHandle.calledWith([]).implement(realBrokers.dungeonmasterHomeFindBroker as never);
-
-  const readdirWithTypesHandle = registerMock({ fn: fsReaddirWithTypesAdapter });
-  const readdirWithTypesImpl = ({
-    dirPath,
-  }: Parameters<typeof fsReaddirWithTypesAdapter>[0]): Dirent[] =>
-    (dirs.get(filePathContract.parse(String(dirPath))) ?? []).map((name) =>
-      Object.assign(Object.create(Dirent.prototype) as Dirent, {
-        name,
-        isDirectory: (): boolean => true,
-      }),
-    );
-  readdirWithTypesHandle.calledWith([]).implement(realAdapters.fsReaddirWithTypesAdapter as never);
-
-  const existsSyncHandle = registerMock({ fn: fsExistsSyncAdapter });
-  const existsSyncImpl = ({ filePath }: Parameters<typeof fsExistsSyncAdapter>[0]): boolean =>
-    files.has(filePathContract.parse(String(filePath)));
-  existsSyncHandle.calledWith([]).implement(realAdapters.fsExistsSyncAdapter as never);
 
   const readFileHandle = registerMock({ fn: fsReadFileAdapter });
   const readFileImpl = async ({
@@ -225,17 +179,12 @@ export const questRunStepBrokerProxy = (): {
       const questFilePath = filePathContract.parse(`${QUESTS_DIR}/${QUEST_FOLDER}/quest.json`);
       const tempFilePath = filePathContract.parse(`${questFilePath}${TEMP_SUFFIX}`);
       // The virtual store takes over here, not at construction — see the block above.
-      pathJoinHandle.calledWith([]).implement(pathJoinImpl as never);
       homeFindHandle.calledWith([]).implement(homeFindImpl as never);
-      readdirWithTypesHandle.calledWith([]).implement(readdirWithTypesImpl as never);
-      existsSyncHandle.calledWith([]).implement(existsSyncImpl as never);
       readFileHandle.calledWith([]).implement(readFileImpl as never);
       writeFileHandle.calledWith([]).implement(writeFileImpl as never);
       renameHandle.calledWith([]).implement(renameImpl as never);
       appendFileHandle.calledWith([]).implement(appendFileImpl as never);
 
-      dirs.set(filePathContract.parse(GUILDS_DIR), [fileNameContract.parse(GUILD_ID)]);
-      dirs.set(filePathContract.parse(QUESTS_DIR), [fileNameContract.parse(QUEST_FOLDER)]);
       files.set(questFilePath, fileContentsContract.parse(JSON.stringify(quest)));
       questFilePathRef.value = questFilePath;
 

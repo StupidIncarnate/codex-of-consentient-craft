@@ -6,6 +6,7 @@ import {
   QuestIdStub,
   QuestStub,
   QuestWorkItemIdStub,
+  UserInputStub,
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
@@ -416,6 +417,53 @@ describe('questOrchestrationLoopBroker', () => {
       expect(loopWrites).toStrictEqual([
         `${expectedSnapshot}\n`,
         '[orchestration-loop] quest=log-blocked decision: no ready items and none in flight -> blocking quest\n',
+      ]);
+    });
+  });
+
+  describe('dispatching a chat role', () => {
+    it('ERROR: {questModifyBroker fails marking the item in_progress} => logs the failure instead of discarding it, then still attempts the dispatch', async () => {
+      const proxy = questOrchestrationLoopBrokerProxy();
+      const questId = QuestIdStub({ value: 'add-auth' });
+      const chatId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
+      const quest = QuestStub({
+        id: questId,
+        status: 'in_progress',
+        workItems: [WorkItemStub({ id: chatId, role: 'chaoswhisperer', status: 'pending' })],
+      });
+      proxy.setupQuestReady({ quest });
+      proxy.setupChatDispatchThrows({ quest });
+      proxy.setupInProgressMarkFails();
+
+      await expect(
+        questOrchestrationLoopBroker({
+          processId: ProcessIdStub({ value: 'proc-test-1' }),
+          questId,
+          startPath: FilePathStub({ value: '/project/src' }),
+          guildId: GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
+          onAgentEntry: jest.fn(),
+          abortSignal: new AbortController().signal,
+          userMessage: UserInputStub(),
+        }),
+      ).rejects.toThrow(/spawn claude ENOENT/u);
+
+      const chatRoles = [WorkItemStub({ role: 'chaoswhisperer' }).role];
+      const { ready } = nextReadyWorkItemsTransformer({ workItems: quest.workItems });
+      const expectedSnapshot = orchestrationLoopSummaryTransformer({
+        questId,
+        questStatus: quest.status,
+        workItems: quest.workItems,
+        ready,
+        chatRoles,
+      });
+      const loopWrites = proxy
+        .getStderrWrites()
+        .filter((write) => String(write).startsWith('[orchestration-loop]'));
+
+      expect(loopWrites).toStrictEqual([
+        `${expectedSnapshot}\n`,
+        `[orchestration-loop] quest=add-auth decision: dispatching chaoswhisperer (${chatId})\n`,
+        '[orchestration-loop] marking chaoswhisperer work item(s) in_progress failed for questId=add-auth: unknown error\n',
       ]);
     });
   });

@@ -19,7 +19,8 @@
  * WHEN-NOT-TO-USE: To modify an existing quest — use questModifyBroker.
  */
 
-import { fsMkdirAdapter, pathJoinAdapter } from '@dungeonmaster/shared/adapters';
+import { ensureDir } from '#gateway/node/fs__promises';
+import { join } from '#gateway/node/path';
 import {
   fileContentsContract,
   filePathContract,
@@ -53,12 +54,10 @@ export const questCreateBroker = async ({
 }): Promise<{ questFilePath: FilePath; questFolderPath: FilePath }> => {
   const { questsPath } = questResolveQuestsPathBroker({ guildId });
   const questsBasePath = filePathContract.parse(questsPath);
-  await fsMkdirAdapter({ filepath: questsBasePath });
+  await ensureDir(questsBasePath);
 
-  const questFolderPath = filePathContract.parse(
-    pathJoinAdapter({ paths: [questsBasePath, questId] }),
-  );
-  await fsMkdirAdapter({ filepath: questFolderPath });
+  const questFolderPath = filePathContract.parse(join(questsBasePath, questId));
+  await ensureDir(questFolderPath);
 
   const { initialWorkItemRole } = questFlowStatics[input.questType ?? 'feature'];
 
@@ -103,7 +102,7 @@ export const questCreateBroker = async ({
   });
 
   const questFilePath = filePathContract.parse(
-    pathJoinAdapter({ paths: [questFolderPath, locationsStatics.quest.questFile] }),
+    join(questFolderPath, locationsStatics.quest.questFile),
   );
   const contents = fileContentsContract.parse(
     JSON.stringify(initialQuest, null, JSON_INDENT_SPACES),

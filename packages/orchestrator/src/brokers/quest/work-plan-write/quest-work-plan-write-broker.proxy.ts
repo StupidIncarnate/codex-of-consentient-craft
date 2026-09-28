@@ -1,6 +1,7 @@
-import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
+import { join } from '#gateway/node/path';
 import { AbsoluteFilePathStub, FilePathStub, GuildIdStub } from '@dungeonmaster/shared/contracts';
 import type { OperationItemIdStub, QuestStub } from '@dungeonmaster/shared/contracts';
+import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import { QuestNotFoundError } from '../../../errors/quest-not-found/quest-not-found-error';
@@ -25,10 +26,13 @@ export const questWorkPlanWriteBrokerProxy = (): {
     questFolderPath: AbsoluteFilePath;
     operationItemId: OperationItemId;
   }) => unknown;
+  getQuestFileJoinArgs: (params: {
+    questFolderPath: AbsoluteFilePath;
+  }) => readonly unknown[] | undefined;
 } => {
   questFindQuestPathBrokerProxy();
   const findQuestPathMock = registerMock({ fn: questFindQuestPathBroker });
-  const pathJoinProxy = pathJoinAdapterProxy();
+  const joinHandle = registerMock({ fn: join });
   const loadProxy = questLoadBrokerProxy();
   const lockProxy = questWithModifyLockBrokerProxy();
   lockProxy.setupEmpty();
@@ -58,7 +62,9 @@ export const questWorkPlanWriteBrokerProxy = (): {
         .calledWith([{ questId: quest.id }])
         .resolves({ questPath: questFolderPath, guildId });
 
-      pathJoinProxy.returns({ result: questFilePath });
+      joinHandle
+        .calledWith([questFolderPath, locationsStatics.quest.questFile])
+        .returns(questFilePath);
 
       loadProxy.setupQuestFile({ questJson: JSON.stringify(quest) });
 
@@ -80,5 +86,11 @@ export const questWorkPlanWriteBrokerProxy = (): {
       questFolderPath: AbsoluteFilePath;
       operationItemId: OperationItemId;
     }): unknown => writeProxy.getWrittenContent({ questFolderPath, operationItemId }),
+
+    getQuestFileJoinArgs: ({
+      questFolderPath,
+    }: {
+      questFolderPath: AbsoluteFilePath;
+    }): readonly unknown[] | undefined => joinHandle.callsMatching([questFolderPath]).at(0),
   };
 };

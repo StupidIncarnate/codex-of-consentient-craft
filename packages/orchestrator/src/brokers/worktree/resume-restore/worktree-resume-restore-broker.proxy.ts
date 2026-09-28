@@ -1,55 +1,13 @@
-import { spawn, type ChildProcess } from 'child_process';
-import { EventEmitter, Readable } from 'stream';
-import { ExitCodeStub, type ExitCode, type QuestBranchName } from '@dungeonmaster/shared/contracts';
-import { registerMock } from '@dungeonmaster/testing/register-mock';
+import { checkoutProxy } from '#gateway/bin/git/checkout/checkout.proxy';
+import { currentBranchProxy } from '#gateway/bin/git/current-branch/current-branch.proxy';
+import type { QuestBranchName } from '@dungeonmaster/shared/contracts';
 
-import { gitCheckoutAdapterProxy } from '../../../adapters/git/checkout/git-checkout-adapter.proxy';
-import { gitCurrentBranchAdapterProxy } from '../../../adapters/git/current-branch/git-current-branch-adapter.proxy';
-
-// worktreeResumeRestoreBroker spawns bare `git` for BOTH `git rev-parse --abbrev-ref HEAD` and
-// `git checkout <branch>`, so `command` alone cannot tell the two calls apart under the shared
-// childProcessSpawnCaptureAdapterProxy's command-only addressing — composing
-// gitCurrentBranchAdapterProxy + gitCheckoutAdapterProxy directly in one test would make the LAST
-// registration answer every call. Addressing on the full args array instead discriminates the two
-// calls directly (args compare elementwise), so both outcomes can be staged independently with no
-// onceFor/FIFO sequencing needed. Pattern verified in worktree-discard-broker.proxy.ts.
-const createGitChild = ({
-  exitCode,
-  stdout,
-  stderr,
-}: {
-  exitCode: ExitCode;
-  stdout: string;
-  stderr: string;
-}): ChildProcess => {
-  const child = new EventEmitter() as ChildProcess;
-  child.stdout = new Readable({
-    read(): void {
-      /* noop */
-    },
-  });
-  child.stderr = new Readable({
-    read(): void {
-      /* noop */
-    },
-  });
-
-  const mockStdout = child.stdout;
-  const mockStderr = child.stderr;
-
-  setImmediate(() => {
-    if (stdout.length > 0) {
-      mockStdout.push(Buffer.from(stdout));
-    }
-    mockStdout.push(null);
-    if (stderr.length > 0) {
-      mockStderr.push(Buffer.from(stderr));
-    }
-    mockStderr.push(null);
-    child.emit('exit', Number(exitCode), null);
-  });
-
-  return child;
+const extractArgs = (call: readonly unknown[]): readonly unknown[] => {
+  const [first] = call;
+  if (typeof first === 'object' && first !== null && 'args' in first) {
+    return Array.isArray(first.args) ? first.args : [];
+  }
+  return [];
 };
 
 export const worktreeResumeRestoreBrokerProxy = (): {
@@ -65,50 +23,28 @@ export const worktreeResumeRestoreBrokerProxy = (): {
   }) => void;
   getSpawnedArgsList: () => readonly unknown[];
 } => {
-  const handle = registerMock({ fn: spawn });
-  // Created but unstaged to satisfy enforce-proxy-child-creation: this proxy answers `spawn`
-  // directly for every git call (see module comment above), so these adapter proxies' own
-  // constructor-level defaults never fire.
-  gitCurrentBranchAdapterProxy();
-  gitCheckoutAdapterProxy();
-
-  const successCode = ExitCodeStub({ value: 0 });
-  const failCode = ExitCodeStub({ value: 128 });
-  const REV_PARSE_ARGS = ['rev-parse', '--abbrev-ref', 'HEAD'];
+  const currentBranch = currentBranchProxy();
+  const checkout = checkoutProxy();
 
   return {
     setupOnBranch: ({ branchName }: { branchName: QuestBranchName }): void => {
-      handle
-        .calledWith(['git', REV_PARSE_ARGS])
-        .implement(() =>
-          createGitChild({ exitCode: successCode, stdout: `${branchName}\n`, stderr: '' }),
-        );
+      currentBranch.setupBranch({ branch: String(branchName) });
     },
 
     setupDrifted: ({ currentBranchName }: { currentBranchName: string }): void => {
-      handle
-        .calledWith(['git', REV_PARSE_ARGS])
-        .implement(() =>
-          createGitChild({ exitCode: successCode, stdout: `${currentBranchName}\n`, stderr: '' }),
-        );
+      currentBranch.setupBranch({ branch: currentBranchName });
     },
 
     setupDetachedHead: (): void => {
-      handle
-        .calledWith(['git', REV_PARSE_ARGS])
-        .implement(() => createGitChild({ exitCode: successCode, stdout: 'HEAD\n', stderr: '' }));
+      currentBranch.setupDetached();
     },
 
     setupRevParseFails: ({ output }: { output: string }): void => {
-      handle
-        .calledWith(['git', REV_PARSE_ARGS])
-        .implement(() => createGitChild({ exitCode: failCode, stdout: '', stderr: output }));
+      currentBranch.setupFailure({ exitCode: 128, output });
     },
 
     setupCheckoutSucceeds: ({ branchName }: { branchName: QuestBranchName }): void => {
-      handle
-        .calledWith(['git', ['checkout', branchName]])
-        .implement(() => createGitChild({ exitCode: successCode, stdout: '', stderr: '' }));
+      checkout.setupResult({ branchName: String(branchName), exitCode: 0, output: '' });
     },
 
     setupCheckoutFails: ({
@@ -118,9 +54,7 @@ export const worktreeResumeRestoreBrokerProxy = (): {
       branchName: QuestBranchName;
       output: string;
     }): void => {
-      handle
-        .calledWith(['git', ['checkout', branchName]])
-        .implement(() => createGitChild({ exitCode: failCode, stdout: '', stderr: output }));
+      checkout.setupResult({ branchName: String(branchName), exitCode: 128, output });
     },
 
     setupBranchWithTrailingWarning: ({
@@ -130,16 +64,12 @@ export const worktreeResumeRestoreBrokerProxy = (): {
       branchName: QuestBranchName;
       warning: string;
     }): void => {
-      handle.calledWith(['git', REV_PARSE_ARGS]).implement(() =>
-        createGitChild({
-          exitCode: successCode,
-          stdout: `${branchName}\n`,
-          stderr: `${warning}\n`,
-        }),
-      );
+      currentBranch.setupBranch({ branch: `${String(branchName)}\n${warning}` });
     },
 
-    getSpawnedArgsList: (): readonly unknown[] =>
-      handle.callsMatching(['git']).map((call) => call[1]),
+    getSpawnedArgsList: (): readonly unknown[] => [
+      ...currentBranch.getCallsFor().map(extractArgs),
+      ...checkout.getCallsFor({ branchName: () => true }).map(extractArgs),
+    ],
   };
 };
