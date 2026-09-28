@@ -250,7 +250,7 @@ describe('SiegelenseSnapshotsLayerFlow', () => {
       process.stdout.write = originalWrite;
 
       expect(writes).toStrictEqual([
-        `INSTANCE: ${KILLED_ID} (killed)\nSNAPSHOTS: none recorded yet\n`,
+        `INSTANCE: ${KILLED_ID} (killed)\nSNAPSHOTS: none — the throwaway home died with the instance at kill\n`,
       ]);
     });
 
