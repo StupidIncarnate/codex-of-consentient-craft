@@ -63,7 +63,7 @@ const bufferLine = ({
   ContentTextStub({ value: `${JSON.stringify({ runId, step, atMs: 1_700_000_000_000, text })}\n` });
 
 describe('resultsReadBroker', () => {
-  it('VALID: {no kind, no step, run named} => storedReturn carries the exact RunResult from disk, rows empty', async () => {
+  it('VALID: {no kind, no step, run named, empty transcript} => storedReturn carries the exact RunResult from disk, rows empty', async () => {
     const proxy = resultsReadBrokerProxy();
     const entry = RegistryEntryStub({ id: INSTANCE_ID, state: 'killed' });
     proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
@@ -71,6 +71,7 @@ describe('resultsReadBroker', () => {
     proxy.setupRuns({ evidencePath, entries: ['run_2.jsonl', 'run_2.json'] });
     const runResult = RunResultStub({ instanceId: INSTANCE_ID, runId: RUN_2 });
     proxy.setupStoredReturn({ evidencePath, runId: RUN_2, result: runResult });
+    proxy.setupTranscript({ evidencePath, runId: RUN_2, content: '' });
 
     const result = await resultsReadBroker({
       query: ResultsQueryStub({ instanceId: INSTANCE_ID, runId: RUN_2 }),
@@ -89,6 +90,43 @@ describe('resultsReadBroker', () => {
       returned: 0,
       truncated: false,
       rows: [],
+      storedReturn: runResult,
+    });
+  });
+
+  it('VALID: {no kind, no step, run named, transcript holds steps} => storedReturn carries the RunResult AND rows carry every step reading, so the default view is never summary-only', async () => {
+    const proxy = resultsReadBrokerProxy();
+    const entry = RegistryEntryStub({ id: INSTANCE_ID, state: 'killed' });
+    proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
+    const evidencePath = proxy.evidencePathFor({ instanceId: INSTANCE_ID });
+    proxy.setupRuns({ evidencePath, entries: ['run_2.jsonl', 'run_2.json'] });
+    const runResult = RunResultStub({ instanceId: INSTANCE_ID, runId: RUN_2 });
+    proxy.setupStoredReturn({ evidencePath, runId: RUN_2, result: runResult });
+    const step1 = StepReadingStub({ step: StepIndexStub({ value: 1 }), verb: 'goto' });
+    const step2 = StepReadingStub({ step: StepIndexStub({ value: 2 }), verb: 'click' });
+    proxy.setupTranscript({
+      evidencePath,
+      runId: RUN_2,
+      content: `${JSON.stringify(step1)}\n${JSON.stringify(step2)}\n`,
+    });
+
+    const result = await resultsReadBroker({
+      query: ResultsQueryStub({ instanceId: INSTANCE_ID, runId: RUN_2 }),
+    });
+
+    expect(result).toStrictEqual({
+      instanceId: INSTANCE_ID,
+      instanceState: 'killed',
+      runId: RUN_2,
+      kind: null,
+      step: null,
+      verb: null,
+      prunedAtMs: null,
+      prunedByRule: null,
+      matched: 2,
+      returned: 2,
+      truncated: false,
+      rows: [JSON.stringify(step1), JSON.stringify(step2)],
       storedReturn: runResult,
     });
   });
@@ -717,6 +755,7 @@ describe('resultsReadBroker', () => {
     });
     const runResult = RunResultStub({ instanceId: INSTANCE_ID, runId: RUN_2 });
     proxy.setupStoredReturn({ evidencePath, runId: RUN_2, result: runResult });
+    proxy.setupTranscript({ evidencePath, runId: RUN_2, content: '' });
 
     const result = await resultsReadBroker({
       query: ResultsQueryStub({ instanceId: INSTANCE_ID }),

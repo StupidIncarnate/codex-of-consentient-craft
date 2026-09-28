@@ -1,7 +1,11 @@
 /**
  * PURPOSE: Renders a `ResultsAnswer` into a concise, token-efficient human view — an instance
- * header, followed by either formatted step readings or a notice when none matched. Pure, keeping
- * human formatting separate from the read broker and the CLI responder.
+ * header, the run summary when the query named no kind and no step (`storedReturn`), and
+ * formatted step readings, or a notice when none matched. Both the summary and the readings print
+ * together for that default query: an agent that reads only the summary line never learns the
+ * readings existed, so the header is followed by whichever of the two the answer actually carries,
+ * concatenated when both do. Pure, keeping human formatting separate from the read broker and the
+ * CLI responder.
  *
  * USAGE:
  * resultsAnswerRenderTransformer({ answer: ResultsAnswerStub() });
@@ -21,16 +25,6 @@ export const resultsAnswerRenderTransformer = ({
   answer: ResultsAnswer;
 }): ContentText => {
   const header = `INSTANCE: ${answer.instanceId} (${answer.instanceState})`;
-
-  if (answer.storedReturn !== null) {
-    return contentTextContract.parse(
-      `${header}\n${runAnswerRenderTransformer({ result: answer.storedReturn })}`,
-    );
-  }
-
-  if (answer.rows.length === 0) {
-    return contentTextContract.parse(`${header}\nREADINGS: none found for query\n`);
-  }
 
   const lines = answer.rows.map((row) => {
     const parsed = safeJsonParseTransformer({ value: row });
@@ -63,6 +57,17 @@ export const resultsAnswerRenderTransformer = ({
     }
     return row;
   });
+
+  if (answer.storedReturn !== null) {
+    const summary = `${header}\n${runAnswerRenderTransformer({ result: answer.storedReturn })}`;
+    return contentTextContract.parse(
+      lines.length === 0 ? summary : `${summary}${lines.join('\n')}\n`,
+    );
+  }
+
+  if (lines.length === 0) {
+    return contentTextContract.parse(`${header}\nREADINGS: none found for query\n`);
+  }
 
   return contentTextContract.parse(`${header}\n${lines.join('\n')}\n`);
 };

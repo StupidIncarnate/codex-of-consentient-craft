@@ -222,6 +222,13 @@ export const resultsReadBroker = async ({
         : runResultContract.parse(JSON.parse(storedReturnContent));
 
     if (query.kind === null) {
+      const readings = await transcriptReadLayerBroker({ transcriptPath: transcript });
+      const rows = readings.map((reading) => contentTextContract.parse(JSON.stringify(reading)));
+      const capped = rows.slice(0, resultsStatics.limits.maxRows);
+      const projectedRows = capped.map((row) =>
+        resultRowProjectTransformer({ row, fields: query.fields }),
+      );
+
       return resultsAnswerContract.parse({
         instanceId: query.instanceId,
         instanceState: state,
@@ -231,10 +238,10 @@ export const resultsReadBroker = async ({
         verb: null,
         prunedAtMs: null,
         prunedByRule: null,
-        matched: 0,
-        returned: 0,
-        truncated: false,
-        rows: [],
+        matched: readingCountContract.parse(rows.length),
+        returned: readingCountContract.parse(capped.length),
+        truncated: rows.length > capped.length,
+        rows: projectedRows,
         storedReturn,
       });
     }

@@ -61,7 +61,7 @@ describe('resultsAnswerRenderTransformer', () => {
   });
 
   describe('stored return present', () => {
-    it('VALID: {storedReturn} => delegates to runAnswerRenderTransformer under instance header', () => {
+    it('VALID: {storedReturn, rows: []} => delegates to runAnswerRenderTransformer under instance header, with no readings appended', () => {
       const runResult = RunResultStub({ shots: [] });
       const answer = ResultsAnswerStub({
         instanceId: InstanceIdStub({ value: 'inst_7f3a9c21' }),
@@ -74,6 +74,30 @@ describe('resultsAnswerRenderTransformer', () => {
 
       expect(result).toBe(
         'INSTANCE: inst_7f3a9c21 (killed)\nRUN: run_1 (status: done, steps: 5, duration: 0ms)\n',
+      );
+    });
+
+    it('VALID: {storedReturn, rows with step readings} => renders the run summary AND every step reading below it', () => {
+      const runResult = RunResultStub({ shots: [] });
+      const answer = ResultsAnswerStub({
+        instanceId: InstanceIdStub({ value: 'inst_7f3a9c21' }),
+        instanceState: InstanceStateStub({ value: 'alive' }),
+        rows: [
+          ContentTextStub({
+            value: JSON.stringify({ step: 1, verb: 'goto', content: 'https://example.com' }),
+          }),
+          ContentTextStub({
+            value: JSON.stringify({ step: 2, verb: 'click', content: '[data-testid="ADD"]' }),
+          }),
+        ],
+        storedReturn: runResult,
+      });
+
+      const result = resultsAnswerRenderTransformer({ answer });
+
+      expect(result).toBe(
+        'INSTANCE: inst_7f3a9c21 (alive)\nRUN: run_1 (status: done, steps: 5, duration: 0ms)\n' +
+          '[step 1] goto: https://example.com\n[step 2] click: [data-testid="ADD"]\n',
       );
     });
   });
