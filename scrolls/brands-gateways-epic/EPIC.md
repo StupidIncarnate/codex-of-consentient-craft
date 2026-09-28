@@ -91,13 +91,12 @@ Each was told never to commit. Commit each one's files, and only its files, when
 | Agent | Scope (files it may edit) | Commit notes |
 |---|---|---|
 | O10 | `packages/orchestrator/src/brokers/worktree/{populate-node-modules,seed-dist,verify-links}`, `brokers/ward/detail`, plus handed-over files: `responders/worktree/create/` (O9's cwd change) and `brokers/step-handler/riftcarver/step-handler-riftcarver-broker.proxy.ts` (O8 left an address-less `mkdirHandle.calledWith([])` catch-all there; O10 must replace it with the exact riftcarver-results path) | Whole orchestrator unit must be green; the worktree, provision and worktree-create reds are this group's. |
-| SL9 | `packages/siegelense/src/adapters/{npm,playwright}`, `packages/siegelense/src/responders/{install,siegelense/run}` | |
 | SL10 | `packages/siegelense/src/brokers/{recipe/seed-run,recipes/read,step/seed}`, `src/adapters/process/is-alive/*.test.ts`, `src/brokers/prune/run/*.integration.test.ts`, `test/harnesses/{driver-fleet,seed-home}` | |
 | G22 | `packages/@gateway/npm` (new `jest__globals` subpath), `packages/testing` | Touches `registerMock`'s foundation: run the wide unit regression before committing, then build `@gateway/npm` and `testing`. |
 
 If an agent's notification never arrives (the operator lost track), look for uncommitted files in its scope with `git status`, send a sonnet sub-agent to review them, and commit what is green.
 
-O12 finished after this handoff was written and is committed (841b050e7).
+O12 (841b050e7) and SL9 (4712d1667) finished after this handoff was written and are committed.
 
 ### Uncommitted state not owned by a running agent
 
