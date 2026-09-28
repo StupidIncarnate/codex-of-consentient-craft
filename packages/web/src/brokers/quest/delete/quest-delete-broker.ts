@@ -8,7 +8,10 @@
 
 import type { GuildId, QuestId } from '@dungeonmaster/shared/contracts';
 
-import { fetchDeleteAdapter } from '../../../adapters/fetch/delete/fetch-delete-adapter';
+import { fetchJson } from '#gateway/browser/fetch';
+
+import { questDeleteResultContract } from '../../../contracts/quest-delete-result/quest-delete-result-contract';
+import type { QuestDeleteResult } from '../../../contracts/quest-delete-result/quest-delete-result-contract';
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
 
 export const questDeleteBroker = async ({
@@ -17,11 +20,12 @@ export const questDeleteBroker = async ({
 }: {
   questId: QuestId;
   guildId: GuildId;
-}): Promise<{ deleted: boolean }> => {
+}): Promise<QuestDeleteResult> => {
   const url = `${webConfigStatics.api.routes.questById.replace(
     ':questId',
     questId,
   )}?guildId=${encodeURIComponent(guildId)}`;
 
-  return fetchDeleteAdapter<{ deleted: boolean }>({ url });
+  const response = await fetchJson({ url, method: 'DELETE' });
+  return questDeleteResultContract.parse(response);
 };

@@ -137,4 +137,182 @@ the example.
 
 ## Concessions made while executing
 
-<!-- Empty at the start. The operator fills this and mirrors it into EPIC.md's Concessions table. -->
+Group Z-W1 (web fetch) found that `@gateway/browser`'s `fetchJsonProxy`/`fetchWithStatusProxy` cannot coexist,
+in one Jest test file, with a not-yet-migrated sibling caller's `StartEndpointMock` (MSW) staging — both spy on
+`globalThis.fetch` with no `passthrough` option, and `registerSpyOn` shares one handle per object+method, so
+constructing either gateway proxy anywhere in a file makes it answer (or throw for) every OTHER proxy's fetch
+call in that same file too. Proven with two real ward runs (`1790612452409-b669` red / `1790612713471-6efa`
+green on `home-content-widget.test.tsx`; `1790612919815-e53f` red / `1790613137577-302b` green across
+`app-widget`, `quest-chat-content-layer-widget`, `quest-chat-widget`), not inferred from reading code. See the
+"Plan — web fetch" section's "Blocking finding" for the full trace. No file in `packages/web` changed; the
+attempts were reverted back to the committed originals. Needs an operator decision: either a gateway-side fix
+(`passthrough` on these two proxies) before any A17 fetch batch proceeds, or an all-at-once migration of every
+web fetch adapter plus every composing widget/binding proxy in one pass wide enough that no migrated/unmigrated
+pair ever shares a test file — which conflicts with the 2-to-4-file agent batch-size rule.
+
+## Plan — web fetch
+
+### Group Z-W1 — BLOCKED. Zero files changed; every attempt reverted after a real ward run proved a regression. See "Blocking finding" below.
+
+An implementer attempted `fetch/delete` (`quest-delete-broker`) and, after that broke an unrelated widget's tests, `fetch/post-with-status`'s `quest-comment-batch-broker` (chosen because it looked composer-free). Both were reverted byte-for-byte back to the committed originals (`git status --porcelain -- packages/web/` is empty). `fetch/patch` and `fetch/post-with-status`'s `quest-start-broker`/`quest-human-verdict-broker` were never written, for the same reason below.
+
+**Blocking finding, proven with two real ward runs (not a read-code guess):**
+
+`fetchJsonProxy` and `fetchWithStatusProxy` (`packages/@gateway/browser/src/fetch/{fetch-json,fetch-with-status}/*.proxy.ts`) each do `registerSpyOn({ object: globalThis, method: 'fetch' })` with **no `passthrough` option** — confirmed by reading both files verbatim. Per `get-testing-patterns`, "Throw-on-unmatched is unconditional, EXCEPT `registerSpyOn({ passthrough: true })`." Every hand-written web fetch proxy this item is meant to replace does the opposite on purpose: `quest-delete-broker.proxy.ts`'s own header said so — "fetchSpy wraps the already-MSW-patched globalThis.fetch, so passthrough still hits the mocked endpoint" — and its spy is `registerSpyOn({ object: globalThis, method: 'fetch', passthrough: true })`. `registerSpyOn`/`registerMock` on one object+method is ONE SHARED HANDLE across every proxy in a test file (`get-testing-patterns`: "Staging is SHARED across every proxy mocking the same function"), so constructing a gateway fetch proxy anywhere in a test file makes IT the handler for every `globalThis.fetch` call any OTHER proxy in that same file makes too — including ones still staged through `StartEndpointMock` (MSW), which relies on the real (or MSW-patched) `globalThis.fetch` running for unmatched calls. Un-passthrough-spied, those calls throw instead, and the widget under test silently renders its empty/error state.
+
+Reproduced twice:
+1. `quest-delete-broker.proxy.ts` composing `fetchJsonProxy()` (zero other change) turned `packages/web/src/widgets/home-content/home-content-widget.test.tsx` from 18/18 green to over a dozen failures — including tests with nothing to do with delete ("guild list view VALID: {guilds loaded} => shows guild items"), because `HomeContentWidgetProxy` constructs `questDeleteBrokerProxy()` unconditionally alongside `useGuildsBindingProxy()`/`useQuestsBindingProxy()`/`useSessionListBindingProxy()`/`guildCreateBrokerProxy()`, all still MSW-based. Reverting `quest-delete-broker.{ts,proxy.ts,test.ts}` and `adapters/fetch/delete/*` to the committed originals (verified via `git show HEAD:<path>`) made the same ward run pass again — run ids `1790612452409-b669` (red, migrated) then `1790612713471-6efa` (green, reverted; ran `--only unit -- packages/web/src/widgets/home-content/home-content-widget.test.tsx` alone).
+2. `quest-comment-batch-broker.proxy.ts` composing `fetchWithStatusProxy()` (chosen because a literal-string `discover` grep for `questCommentBatchBrokerProxy` found no composer — the discover result actually said "— 2 matching lines" for `use-quest-chat-binding.proxy.ts` without printing them, and those 2 lines were exactly this: `packages/web/src/bindings/use-quest-chat/use-quest-chat-binding.proxy.ts:8` imports it, `:60` constructs it as `commentBatchProxy`, alongside `questChatBrokerProxy`/`questClarifyBrokerProxy`/`questFollowupBrokerProxy`/`questFollowupStopBrokerProxy` — all still fetch/XHR+MSW-based) broke `app-widget.test.tsx`, `quest-chat-content-layer-widget.test.tsx` and `quest-chat-widget.test.tsx` the same way (run id `1790612919815-e53f`, 47 errors across 4 files). Reverted the same way; run id `1790613137577-302b` (`--only unit` on all 6 touched-or-adjacent files) is green.
+
+**Why this blocks the whole group, not just these two callers:** `useQuestChatBindingProxy` is the shared binding proxy `web/CLAUDE.md`'s "Every user-message injection goes through `useQuestChatBinding`" section describes — nearly every quest-workspace widget composes it, and it currently composes a mix of migrated-eventually and still-MSW fetch/XHR brokers together by design. `home-content-widget.proxy.tsx` does the same for the home screen. So ANY caller in this item whose proxy is composed — directly or transitively — by a widget/binding proxy that also composes a not-yet-migrated MSW-based fetch caller breaks that widget's tests the moment its own proxy calls `fetchJsonProxy()`/`fetchWithStatusProxy()`, regardless of whether the specific TEST exercises that caller (construction alone poisons the shared `globalThis.fetch` handle for the whole file). Per `EPIC.md`'s own order (Phase 2 runs "operator splits, 2 to 4 files per agent"), web's ~26 outside-call adapters cannot all move in one atomic pass small enough for the batch-size rule, so this collision is not a transient artifact of picking the wrong caller first — it recurs for every batch until fixed.
+
+**What would clear it (not this item's package to fix — `web` only, per this run's scope):** `@gateway/browser`'s `fetchJsonProxy`/`fetchWithStatusProxy` need a `passthrough`-shaped escape hatch (matching `registerSpyOn({ passthrough: true })`, or an unmatched-call fallback to whatever `globalThis.fetch` already was) so a migrated caller's proxy can coexist, in the same test file, with a not-yet-migrated sibling's `StartEndpointMock`-based one. Until then, per this run's brief ("If the web gateway's fetch proxies cannot express what web's tests need, stop on that caller and report the exact gap"), the fetch/delete, fetch/patch and fetch/post-with-status batches stay on their existing adapters.
+
+Two narrower findings surfaced while investigating, still true once the blocker above clears:
+
+(a) `fetchWithStatusProxy` also has no way to stage a response that resolves only once released. `quest-human-verdict-broker.proxy.ts`'s `setupHeld(): { release: () => void }` (MSW's `endpoint.holdsOpen(...)`) needs exactly that, and it is load-bearing: `widgets/quest-summary/human-check-row-layer-widget.test.tsx`'s "VALID: {click MET, held response} => disables both controls in flight, re-enables once released" drives real UI behaviour through it. A second, independent reason `quest-human-verdict-broker` cannot move as planned.
+
+(b) `fetchWithStatus`'s real body is ALWAYS a raw string (`{status, ok, body: string}`, per its own header: "body is the raw response text, never parsed"). The OLD `fetchPostWithStatusAdapter` JSON-parsed with a raw-text fallback before returning. `questCommentBatchBroker`, `questHumanVerdictBroker` and `questStartBroker` all `safeParse` `result.body` against an OBJECT-shaped contract, which always fails against a raw string — a second body-shape drift beyond the `{error}`-message drift the item names. Whichever agent eventually moves these callers needs the same inline try/catch `JSON.parse`-with-fallback the old adapter did centrally.
+
+(c) `fetchJson`'s real connection-refused rejection is the RAW `ConnectionRefusedErrorStub()` result (`NodeJS.ErrnoException`, `code: 'ECONNREFUSED'`), not wrapped — confirmed against the gateway's own `fetch-json.test.ts`. `fetchWithStatus`'s wrapped message is `"<method> <url> failed: <cause.message>"`. Neither contains the substring "fetch", so every migrated broker's "network error" test assertion needs to move from `.rejects.toThrow(/fetch/iu)` to a regex matching the real thrown value (e.g. `/ECONNREFUSED/u`).
+
+---
+
+### Remaining Web Fetch Batches (Exceeds 30-file cap: 75 files left standing for subsequent groups)
+
+#### Remaining Batch A: fetch/post (33 files)
+- `packages/web/src/adapters/fetch/post/fetch-post-adapter.ts` (delete)
+- `packages/web/src/adapters/fetch/post/fetch-post-adapter.proxy.ts` (delete)
+- `packages/web/src/adapters/fetch/post/fetch-post-adapter.test.ts` (delete)
+- `packages/web/src/brokers/directory/browse/directory-browse-broker.ts` (+ proxy, test)
+- `packages/web/src/brokers/guild/create/guild-create-broker.ts` (+ proxy, test)
+- `packages/web/src/brokers/orchestration/dispatch-pause/orchestration-dispatch-pause-broker.ts` (+ proxy, test)
+- `packages/web/src/brokers/orchestration/dispatch-play/orchestration-dispatch-play-broker.ts` (+ proxy, test)
+- `packages/web/src/brokers/quest/abandon/quest-abandon-broker.ts` (+ proxy, test)
+- `packages/web/src/brokers/quest/clarify/quest-clarify-broker.ts` (+ proxy, test)
+- `packages/web/src/brokers/quest/followup-stop/quest-followup-stop-broker.ts` (+ proxy, test)
+- `packages/web/src/brokers/quest/merge/quest-merge-broker.ts` (+ proxy, test)
+- `packages/web/src/brokers/quest/pause/quest-pause-broker.ts` (+ proxy, test)
+- `packages/web/src/brokers/quest/resume/quest-resume-broker.ts` (+ proxy, test)
+
+#### Remaining Batch B: fetch/get (42 files)
+- `packages/web/src/adapters/fetch/get/fetch-get-adapter.ts` (delete)
+- `packages/web/src/adapters/fetch/get/fetch-get-adapter.proxy.ts` (delete)
+- `packages/web/src/adapters/fetch/get/fetch-get-adapter.test.ts` (delete)
+- `packages/web/src/brokers/guild/detail/guild-detail-broker.ts` (+ proxy, test)
+- `packages/web/src/brokers/guild/list/guild-list-broker.ts` (+ proxy, test)
+- `packages/web/src/brokers/guild/session-list/guild-session-list-broker.ts` (+ proxy, test)
+- `packages/web/src/brokers/orchestration/dispatch-get/orchestration-dispatch-get-broker.ts` (+ proxy, test)
+- `packages/web/src/brokers/orchestration/mode-get/orchestration-mode-get-broker.ts` (+ proxy, test)
+- `packages/web/src/brokers/process/status/process-status-broker.ts` (+ proxy, test)
+- `packages/web/src/brokers/quest/list/quest-list-broker.ts` (+ proxy, test)
+- `packages/web/src/brokers/quest/projection/quest-projection-broker.ts` (+ proxy, test)
+- `packages/web/src/brokers/quest/queue/quest-queue-broker.ts` (+ proxy, test)
+- `packages/web/src/brokers/quest/riftcarver-detail/quest-riftcarver-detail-broker.ts` (+ proxy, test)
+- `packages/web/src/brokers/quest/summary/quest-summary-broker.ts` (+ proxy, test)
+- `packages/web/src/brokers/quest/ward-detail/quest-ward-detail-broker.ts` (+ proxy, test)
+- `packages/web/src/brokers/rate-limits/get/rate-limits-get-broker.ts` (+ proxy, test)
+
+## Plan — F56
+
+Clears the Z-W1 blocker: `fetchJsonProxy`/`fetchWithStatusProxy` stop spying on `globalThis.fetch`
+directly (one shared handle per test file, throw-on-unmatched, no `passthrough`) and instead register
+their staged responses as MSW handlers via `StartEndpointMock.listen()` — the same mechanism every
+still-MSW-based sibling proxy in a shared test file (e.g. `useQuestChatBindingProxy`,
+`HomeContentWidgetProxy`) already uses. Two independent MSW handlers coexist in one test file with no
+shared-handle collision, because MSW itself resolves which registered handler answers a given
+request — unlike a single spied function reference.
+
+**Dependency check (no cycle):** `packages/@gateway/browser/package.json` already lists
+`"@dungeonmaster/testing": "*"` under `devDependencies` (confirmed by reading the file) — no edit
+needed. `packages/testing/package.json`'s own `dependencies` are `@dungeonmaster/node`,
+`@dungeonmaster/npm`, `@mantine/core`, `msw`, `tsx`, `undici`, `zod` — no dependency on
+`@dungeonmaster/browser`, direct or transitive (node does not depend on browser either), so
+`browser → testing → node` stays a DAG. Confirmed further: `fetch-json.proxy.ts` already imports
+`@dungeonmaster/testing/register-mock` today, proving this package already resolves from a browser
+gateway proxy file.
+
+**Design:** each proxy keeps a `Map<"<method> <url>", EndpointControl>` in its closure (fresh per
+proxy instance, matching "create fresh proxy per test"). A `endpointFor({method, url})` helper calls
+`StartEndpointMock.listen({method: method ?? 'get', url})` once per distinct address and caches the
+result, so a test that calls one setup method against one address gets exactly one MSW handler. Every
+setup method keeps its old name where reasonable; drops `returnsMatchingUrl`/`getCallsFor`
+(`ValueMatcher`-keyed) since MSW's own path matching already tolerates a query string appended to a
+literal path (proven by the ALREADY-COMMITTED `quest-delete-broker.proxy.ts`, which registers the bare
+`/api/quests/:questId` pattern and already matches real requests carrying `?guildId=...`) — the
+"tolerant addressing" test is rewritten to prove that real MSW behavior instead of a predicate mock.
+Read-back moves from a raw `[url, init]` args tuple to `getRequestBodies({method, url}): Promise<unknown[]>`
+(delegates to `EndpointControl.getRequestBodies()`), matching testing's own contract.
+
+Connection-refused and abort scenarios stop being INVENTED (a hand-built `ConnectionRefusedErrorStub()`
+rejection, or an unconditional AbortError with no real signal check) and become RECORDED: `networkError()`
+is MSW's own real network-failure path, and an abort scenario either pre-aborts the `AbortSignal` before
+calling (the WHATWG fetch spec's own synchronous short-circuit — no staging needed at all) or holds a
+response open via `EndpointControl.holdsOpen()` and aborts mid-flight for real. `fetchWithStatusProxy`
+gains a `setupHeld` passthrough to `holdsOpen()` — cheap, and directly what finding (a) says
+`quest-human-verdict-broker` will need later. Exact thrown-error wording (message, `.cause`, `.code`) is
+observed from a REAL ward run against the rewritten test files, not assumed from the old (invented) mock
+shapes — the old assertions (`/fetch/iu` generic, or an invented ECONNREFUSED shape) are replaced with a
+regex anchored to the value MSW/undici actually produce.
+
+`quest-delete-broker.proxy.ts` registers `fetchJsonProxy().setupSuccess/setupConnectionRefused` at the
+EXACT expected URL (path with the real `questId` interpolated, plus the real `?guildId=...` query
+string) rather than the bare wildcard pattern — if MSW discriminates on a literal query string in the
+handler pattern (to confirm empirically), a broker bug that builds the wrong query param fails the
+whole test via MSW's "unhandled request" throw, which is a STRONGER proof than the old proxy's passive
+`getRequestUrl()`/`getRequestMethod()` read-back (itself removed, since `EndpointControl` exposes no
+URL read-back — only bodies — so a passive read of the exact request URL is not something the testing
+package's public surface offers). If MSW does NOT discriminate on query string in practice, drop back to
+the bare path pattern and record the resulting loss of query-exactness coverage under DECISIONS, per the
+"stop and report the exact gap" rule — not a hard block, since the broker's status/body behavior is
+still fully covered.
+
+`quest-comment-batch-broker.proxy.ts` keeps every existing public method name
+(`setupSent`, `setupSentWithDeliveredMessage`, `setupSentWithoutChatProcessId`,
+`setupSentUnparseableBody`, `setupStaleAnchors`, `setupStaleAnchorsEmpty`, `setupBadRequest`,
+`setupNotFound`, `setupServerError`, `setupServerErrorNoBody`, `setupNetworkError`, `getRequestBody`,
+`getRequestCount`) since its own test file (in scope) calls all of them — only the internals swap from
+a locally-owned `StartEndpointMock.listen()` + a raw `registerSpyOn(globalThis, 'fetch', {passthrough:
+true})` (used only for read-back) onto composing `fetchWithStatusProxy()` from the gateway, which
+removes the raw fetch spy entirely (`getRequestBodies()` replaces it). `getRequestBody` becomes
+`async` (MSW's own body read is a Promise), so `quest-comment-batch-broker.test.ts` adds `await` at
+every call site — the only signature change reaching that test file.
+
+`questCommentBatchBroker` gains the inline `JSON.parse`-with-raw-text-fallback finding (b) says is
+now the caller's job, since `fetchWithStatus`'s `body` is always a raw string (`fetchPostWithStatusAdapter`
+used to do this centrally). `questDeleteBroker` gains a new `contracts/quest-delete-result/` (`+.stub.ts`,
+`+.test.ts`) so `fetchJson`'s `unknown` return is parsed through a contract per R1, replacing the
+previous unbranded inline `Promise<{deleted: boolean}>`.
+
+**Files:**
+
+- `packages/@gateway/browser/src/fetch/fetch-json/fetch-json.proxy.ts` — rewrite onto `StartEndpointMock`
+- `packages/@gateway/browser/src/fetch/fetch-json/fetch-json.test.ts` — rewrite scenarios onto the new proxy API and real (not invented) failure shapes
+- `packages/@gateway/browser/src/fetch/fetch-with-status/fetch-with-status.proxy.ts` — rewrite onto `StartEndpointMock`
+- `packages/@gateway/browser/src/fetch/fetch-with-status/fetch-with-status.test.ts` — rewrite scenarios onto the new proxy API and real failure shapes
+- `packages/web/src/contracts/quest-delete-result/quest-delete-result-contract.ts` — new, `{deleted: boolean}`
+- `packages/web/src/contracts/quest-delete-result/quest-delete-result.stub.ts` — new
+- `packages/web/src/contracts/quest-delete-result/quest-delete-result-contract.test.ts` — new
+- `packages/web/src/brokers/quest/delete/quest-delete-broker.ts` — `fetchDeleteAdapter` → `fetchJson` (`#gateway/browser/fetch/fetch-json/fetch-json`), result parsed through `questDeleteResultContract`
+- `packages/web/src/brokers/quest/delete/quest-delete-broker.proxy.ts` — compose `fetchJsonProxy` (`#gateway/browser/fetch/fetch-json/fetch-json.proxy`) instead of the deleted adapter's no-op proxy + raw fetch spy
+- `packages/web/src/brokers/quest/delete/quest-delete-broker.test.ts` — adjust to the new proxy API and the real network-error message
+- `packages/web/src/brokers/quest/comment-batch/quest-comment-batch-broker.ts` — `fetchPostWithStatusAdapter` → `fetchWithStatus` (`#gateway/browser/fetch/fetch-with-status/fetch-with-status`), inline JSON-parse-with-fallback added
+- `packages/web/src/brokers/quest/comment-batch/quest-comment-batch-broker.proxy.ts` — compose `fetchWithStatusProxy` (`#gateway/browser/fetch/fetch-with-status/fetch-with-status.proxy`) instead of the (still-alive-for-other-callers) adapter's no-op proxy + raw fetch spy
+- `packages/web/src/brokers/quest/comment-batch/quest-comment-batch-broker.test.ts` — `await` added to `getRequestBody()` call sites; real network-error message
+- `packages/web/src/adapters/fetch/delete/fetch-delete-adapter.ts` (delete) — `quest-delete-broker` was its only caller (confirmed via `discover`)
+- `packages/web/src/adapters/fetch/delete/fetch-delete-adapter.proxy.ts` (delete)
+- `packages/web/src/adapters/fetch/delete/fetch-delete-adapter.test.ts` (delete)
+
+**NOT touched:** `packages/web/src/adapters/fetch/post-with-status/*` stays — `quest-human-verdict-broker`
+and `quest-start-broker` still call `fetchPostWithStatusAdapter` (confirmed via `discover`); deleting it
+would break them, and migrating them is a later group's job. `packages/@gateway/node`'s twin fetch
+proxies are out of scope (F56 is `@gateway/browser` only).
+
+**Verification order:** run `npm run ward -- --only unit -- packages/@gateway/browser/src/fetch` first
+(the gateway's own two proxy tests) to nail down the real MSW/undici failure shapes before touching the
+web brokers, then implement the two web brokers, then run
+`packages/web/src/widgets/home-content/home-content-widget.test.tsx`,
+`packages/web/src/widgets/app/app-widget.test.tsx` (or wherever `AppWidget`'s test lives),
+`packages/web/src/widgets/quest-chat-content-layer/quest-chat-content-layer-widget.test.tsx` and
+`packages/web/src/widgets/quest-chat/quest-chat-widget.test.tsx` (paths per `discover`) to prove the
+four files Z-W1 broke now stay green.

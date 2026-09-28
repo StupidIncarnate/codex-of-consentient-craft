@@ -32,28 +32,40 @@ describe('fetchWithStatus', () => {
     expect(result).toStrictEqual({ status: 204, ok: true, body: '' });
   });
 
-  it('ERROR: {connection refused, cause nested under Failed to fetch} => throws naming the url and the root cause code', async () => {
+  it('ERROR: {connection refused} => throws naming the url, wrapping the real fetch failure', async () => {
     const proxy = fetchWithStatusProxy();
-    const rootCause = Object.assign(new Error('net::ERR_CONNECTION_REFUSED'), {
-      code: 'ECONNREFUSED',
-    });
-    proxy.setupRefused({ url: '/api/quests', cause: rootCause });
+    proxy.setupRefused({ url: '/api/quests' });
 
     const caught: unknown = await fetchWithStatus({ url: '/api/quests' }).catch(
       (rejection: unknown) => rejection,
     );
-    const error = caught as Error & { url: string; code: string };
+    const error = caught as Error & { url: string };
 
-    expect({ message: error.message, url: error.url, code: error.code }).toStrictEqual({
-      message: 'GET /api/quests failed: net::ERR_CONNECTION_REFUSED',
+    expect({ url: error.url, message: error.message }).toStrictEqual({
       url: '/api/quests',
-      code: 'ECONNREFUSED',
+      message: 'GET /api/quests failed: Failed to fetch',
     });
   });
 
-  it("ERROR: {caller's own timeout fires the passed-in signal} => throws naming the url", async () => {
+  it('ERROR: {caller-supplied signal is already aborted} => rejects before any request is made', async () => {
+    const controller = new AbortController();
+    controller.abort();
+
+    const caught: unknown = await fetchWithStatus({
+      url: '/api/quests',
+      signal: controller.signal,
+    }).catch((rejection: unknown) => rejection);
+    const error = caught as Error & { url: string };
+
+    expect({ url: error.url, message: error.message }).toStrictEqual({
+      url: '/api/quests',
+      message: 'GET /api/quests failed: The operation was aborted.',
+    });
+  });
+
+  it("ERROR: {caller's own signal fires while the response is held open} => rejects naming the url, once the abort is real", async () => {
     const proxy = fetchWithStatusProxy();
-    proxy.setupAbortsOnSignal({ url: '/api/quests' });
+    proxy.setupHeld({ url: '/api/quests', bodyText: '{"id":"q1"}' });
     const controller = new AbortController();
     setTimeout(() => {
       controller.abort();
@@ -65,36 +77,16 @@ describe('fetchWithStatus', () => {
     }).catch((rejection: unknown) => rejection);
     const error = caught as Error & { url: string };
 
-    expect({ message: error.message, url: error.url }).toStrictEqual({
-      message: 'GET /api/quests failed: The user aborted a request.',
+    expect({ url: error.url, message: error.message }).toStrictEqual({
       url: '/api/quests',
-    });
-  });
-
-  it('ERROR: {fetch rejects with an AbortError outright} => throws naming the url, with no code', async () => {
-    const proxy = fetchWithStatusProxy();
-    proxy.setupAbortImmediate({ url: '/api/quests' });
-
-    const caught: unknown = await fetchWithStatus({ url: '/api/quests' }).catch(
-      (rejection: unknown) => rejection,
-    );
-    const error = caught as Error & { url: string; code?: string };
-
-    expect({ message: error.message, url: error.url, code: error.code }).toStrictEqual({
-      message: 'GET /api/quests failed: The user aborted a request.',
-      url: '/api/quests',
-      code: undefined,
+      message: 'GET /api/quests failed: The operation was aborted.',
     });
   });
 
   describe('tolerant addressing', () => {
-    it('VALID: {returnsMatchingUrl, a predicate} => resolves for a url the predicate accepts', async () => {
+    it('VALID: {url registered without a query string} => still resolves for a call carrying one', async () => {
       const proxy = fetchWithStatusProxy();
-      proxy.returnsMatchingUrl({
-        url: (value) => String(value).startsWith('/api/quests'),
-        status: 200,
-        bodyText: '{"id":"q1"}',
-      });
+      proxy.setupResponse({ url: '/api/quests', status: 200, bodyText: '{"id":"q1"}' });
 
       const result = await fetchWithStatus({ url: '/api/quests?computed-at-runtime=1' });
 
@@ -103,15 +95,15 @@ describe('fetchWithStatus', () => {
   });
 
   describe('call inspection', () => {
-    it('VALID: {a real call already made} => getCallsFor reads it back', async () => {
+    it('VALID: {a real call already made} => getRequestBodies reads its body back', async () => {
       const proxy = fetchWithStatusProxy();
-      proxy.setupResponse({ url: '/api/quests', status: 200, bodyText: '{}' });
+      proxy.setupResponse({ method: 'post', url: '/api/quests', status: 200, bodyText: '{}' });
 
-      await fetchWithStatus({ url: '/api/quests' });
+      await fetchWithStatus({ url: '/api/quests', method: 'POST', body: { name: 'quest-1' } });
 
-      expect(proxy.getCallsFor({ url: '/api/quests' })).toStrictEqual([
-        ['/api/quests', { method: 'GET' }],
-      ]);
+      await expect(
+        proxy.getRequestBodies({ method: 'post', url: '/api/quests' }),
+      ).resolves.toStrictEqual([{ name: 'quest-1' }]);
     });
   });
 });

@@ -22,7 +22,7 @@ describe('questCommentBatchBroker', () => {
 
       await questCommentBatchBroker({ questId, comments: [entry] });
 
-      expect(proxy.getRequestBody()).toStrictEqual({
+      await expect(proxy.getRequestBody()).resolves.toStrictEqual({
         comments: [
           {
             flowId: 'login-flow',
@@ -49,7 +49,7 @@ describe('questCommentBatchBroker', () => {
 
       await questCommentBatchBroker({ questId, comments: [entry] });
 
-      expect(proxy.getRequestBody()).toStrictEqual({
+      await expect(proxy.getRequestBody()).resolves.toStrictEqual({
         comments: [
           {
             flowId: 'login-flow',
@@ -77,7 +77,7 @@ describe('questCommentBatchBroker', () => {
 
       await questCommentBatchBroker({ questId, comments: [entry] });
 
-      const body = proxy.getRequestBody();
+      const body = await proxy.getRequestBody();
 
       // toStrictEqual on the whole posted entry proves the key set is exactly
       // {flowId, nodeId, observableId, text, createdAt} — no flowName/nodeLabel/description keys.
@@ -115,7 +115,7 @@ describe('questCommentBatchBroker', () => {
 
       await questCommentBatchBroker({ questId, comments: [first, second] });
 
-      expect(proxy.getRequestBody()).toStrictEqual({
+      await expect(proxy.getRequestBody()).resolves.toStrictEqual({
         comments: [
           {
             flowId: 'login-flow',
@@ -296,9 +296,12 @@ describe('questCommentBatchBroker', () => {
 
       proxy.setupNetworkError();
 
-      await expect(questCommentBatchBroker({ questId, comments: [entry] })).rejects.toThrow(
-        /fetch/iu,
+      const caught: unknown = await questCommentBatchBroker({ questId, comments: [entry] }).catch(
+        (rejection: unknown) => rejection,
       );
+      const error = caught as Error;
+
+      expect(error.message).toBe('POST /api/quests/add-auth/comments failed: Failed to fetch');
     });
   });
 });

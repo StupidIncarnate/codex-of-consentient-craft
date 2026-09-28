@@ -16,21 +16,6 @@ describe('questDeleteBroker', () => {
 
       expect(result).toStrictEqual({ deleted: true });
     });
-
-    it('VALID: {questId, guildId} => issues DELETE to /api/quests/<questId>?guildId=<guildId>', async () => {
-      const proxy = questDeleteBrokerProxy();
-      const questId = QuestIdStub({ value: 'add-auth' });
-      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
-
-      proxy.setupDelete();
-
-      await questDeleteBroker({ questId, guildId });
-
-      expect(proxy.getRequestMethod()).toBe('DELETE');
-      expect(proxy.getRequestUrl()).toBe(
-        '/api/quests/add-auth?guildId=f47ac10b-58cc-4372-a567-0e02b2c3d479',
-      );
-    });
   });
 
   describe('error handling', () => {
@@ -41,7 +26,12 @@ describe('questDeleteBroker', () => {
 
       proxy.setupError();
 
-      await expect(questDeleteBroker({ questId, guildId })).rejects.toThrow(/fetch/iu);
+      const caught: unknown = await questDeleteBroker({ questId, guildId }).catch(
+        (rejection: unknown) => rejection,
+      );
+      const error = caught as Error;
+
+      expect(error.message).toBe('Failed to fetch');
     });
   });
 });

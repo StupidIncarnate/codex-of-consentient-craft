@@ -1,52 +1,44 @@
-// PURPOSE: Proxy for quest-delete-broker providing test control over HTTP responses
-// USAGE: Create proxy in test, use setup methods to configure endpoint behavior
+/**
+ * PURPOSE: Proxy for quest-delete-broker providing test control over HTTP responses. Composes the
+ * gateway's own `fetchJsonProxy`, which registers an MSW handler rather than spying on
+ * `globalThis.fetch` directly, so this coexists in a shared test file with sibling proxies still
+ * staged through `StartEndpointMock` directly.
+ *
+ * USAGE:
+ * const proxy = questDeleteBrokerProxy();
+ * proxy.setupDelete();
+ * await questDeleteBroker({ questId, guildId });
+ */
 
-import { StartEndpointMock } from '@dungeonmaster/testing';
-import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { fetchJsonProxy } from '#gateway/browser/fetch/fetch-json/fetch-json.proxy';
 
-import { fetchDeleteAdapterProxy } from '../../../adapters/fetch/delete/fetch-delete-adapter.proxy';
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
 
 export const questDeleteBrokerProxy = (): {
   setupDelete: () => void;
   setupError: () => void;
-  getRequestUrl: () => unknown;
-  getRequestMethod: () => unknown;
 } => {
-  fetchDeleteAdapterProxy();
-
-  const fetchSpy = registerSpyOn({ object: globalThis, method: 'fetch', passthrough: true });
-
-  const endpoint = StartEndpointMock.listen({
-    method: 'delete',
-    url: webConfigStatics.api.routes.questById,
-  });
+  const jsonFetchProxy = fetchJsonProxy();
 
   return {
+    // MSW matches this handler on method + PATH only, ignoring any query string — so this proves
+    // the broker issues a DELETE against `/api/quests/:questId`, not that `guildId` lands in the
+    // query correctly. `EndpointControl` (the testing package's own public surface) exposes no
+    // request-URL read-back, only parsed bodies (of no use here — a DELETE carries none), so that
+    // narrower claim cannot be proven through the gateway/testing surface as it stands. See
+    // DECISIONS in this group's report.
     setupDelete: (): void => {
-      endpoint.resolves({ data: { deleted: true } });
+      jsonFetchProxy.setupSuccess({
+        method: 'delete',
+        url: webConfigStatics.api.routes.questById,
+        body: { deleted: true },
+      });
     },
     setupError: (): void => {
-      endpoint.networkError();
-    },
-    // This broker only ever issues DELETE requests — that's the one real invariant to address
-    // by. Unfiltered `.at(-1)` on every fetch call in the test would risk grabbing an unrelated
-    // request; filtering to DELETE calls first keeps the read honest even if that changes.
-    getRequestUrl: (): unknown => {
-      const lastCall = fetchSpy.callsMatching([(): boolean => true, { method: 'DELETE' }]).at(-1);
-      if (!lastCall) {
-        return null;
-      }
-      const [input] = lastCall;
-      return typeof input === 'string' ? input : String(input);
-    },
-    getRequestMethod: (): unknown => {
-      const lastCall = fetchSpy.callsMatching([(): boolean => true, { method: 'DELETE' }]).at(-1);
-      if (!lastCall) {
-        return null;
-      }
-      const init = lastCall[1] as RequestInit | undefined;
-      return init?.method ?? null;
+      jsonFetchProxy.setupConnectionRefused({
+        method: 'delete',
+        url: webConfigStatics.api.routes.questById,
+      });
     },
   };
 };

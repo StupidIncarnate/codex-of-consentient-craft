@@ -11,15 +11,6 @@ describe('fetchJson', () => {
     expect(result).toStrictEqual({ id: 'g1' });
   });
 
-  it('VALID: {relative url} => passed through to fetch unchanged, resolved against the page', async () => {
-    const proxy = fetchJsonProxy();
-    proxy.setupSuccess({ url: '/api/quests', body: { id: 'q1' } });
-
-    const result = await fetchJson({ url: '/api/quests' });
-
-    expect(result).toStrictEqual({ id: 'q1' });
-  });
-
   it('ERROR: {non-2xx response} => throws naming the url, status and body text', async () => {
     const proxy = fetchJsonProxy();
     proxy.setupNotOk({ url: '/api/guilds', status: 404, bodyText: 'not found' });
@@ -47,26 +38,23 @@ describe('fetchJson', () => {
 
   it('ERROR: {browser refuses the connection} => propagates the real fetch failure unchanged', async () => {
     const proxy = fetchJsonProxy();
-    await proxy.setupConnectionRefused({ url: '/api/guilds' });
+    proxy.setupConnectionRefused({ url: '/api/guilds' });
 
     const caught: unknown = await fetchJson({ url: '/api/guilds' }).catch(
       (rejection: unknown) => rejection,
     );
-    const error = caught as NodeJS.ErrnoException;
+    const error = caught as Error;
 
-    expect({ code: error.code, syscall: error.syscall }).toStrictEqual({
-      code: 'ECONNREFUSED',
-      syscall: 'connect',
-    });
+    expect(error.message).toBe('Failed to fetch');
   });
 
-  it('ERROR: {caller-supplied signal is already aborted} => rejects with AbortError', async () => {
-    const proxy = fetchJsonProxy();
-    proxy.setupAborted({ url: '/api/guilds' });
+  it('ERROR: {caller-supplied signal is already aborted} => rejects with AbortError before any request is made', async () => {
+    const controller = new AbortController();
+    controller.abort();
 
     const caught: unknown = await fetchJson({
       url: '/api/guilds',
-      signal: new AbortController().signal,
+      signal: controller.signal,
     }).catch((rejection: unknown) => rejection);
     const error = caught as Error;
 
@@ -74,12 +62,9 @@ describe('fetchJson', () => {
   });
 
   describe('tolerant addressing', () => {
-    it('VALID: {returnsMatchingUrl, a predicate} => resolves for a url the predicate accepts', async () => {
+    it('VALID: {url registered without a query string} => still resolves for a call carrying one', async () => {
       const proxy = fetchJsonProxy();
-      proxy.returnsMatchingUrl({
-        url: (value) => String(value).startsWith('/api/guilds'),
-        body: { id: 'g1' },
-      });
+      proxy.setupSuccess({ url: '/api/guilds', body: { id: 'g1' } });
 
       const result = await fetchJson({ url: '/api/guilds?computed-at-runtime=1' });
 
@@ -88,15 +73,15 @@ describe('fetchJson', () => {
   });
 
   describe('call inspection', () => {
-    it('VALID: {a real call already made} => getCallsFor reads it back', async () => {
+    it('VALID: {a real call already made} => getRequestBodies reads its body back', async () => {
       const proxy = fetchJsonProxy();
-      proxy.setupSuccess({ url: '/api/guilds', body: { id: 'g1' } });
+      proxy.setupSuccess({ method: 'post', url: '/api/guilds', body: { id: 'g1' } });
 
-      await fetchJson({ url: '/api/guilds' });
+      await fetchJson({ url: '/api/guilds', method: 'POST', body: { name: 'guild-1' } });
 
-      expect(proxy.getCallsFor({ url: '/api/guilds' })).toStrictEqual([
-        ['/api/guilds', { method: 'GET', headers: {} }],
-      ]);
+      await expect(
+        proxy.getRequestBodies({ method: 'post', url: '/api/guilds' }),
+      ).resolves.toStrictEqual([{ name: 'guild-1' }]);
     });
   });
 });

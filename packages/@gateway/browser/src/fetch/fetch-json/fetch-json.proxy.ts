@@ -1,75 +1,104 @@
-import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
-import { ConnectionRefusedErrorStub } from '#gateway/node/net/connection-refused-error/connection-refused-error.stub';
-import type { ValueMatcher } from '../../gateway-test-support/value-matcher';
+import { StartEndpointMock } from '@dungeonmaster/testing';
+import type { HttpMethod } from '@dungeonmaster/testing';
 
-const buildResponse = ({
-  ok,
-  status,
-  bodyText,
-}: {
-  ok: boolean;
-  status: number;
-  bodyText: string;
-}): Response =>
-  ({
-    ok,
-    status,
-    text: async () => Promise.resolve(bodyText),
-  }) as never;
+// A raw `registerSpyOn({ object: globalThis, method: 'fetch' })` (this file's own previous shape)
+// replaces the ONE shared `globalThis.fetch` handle for the whole test file, throwing on any call
+// an unrelated, still-MSW-based sibling proxy makes in that same file. Routing through
+// `StartEndpointMock.listen()` instead means this proxy registers its own MSW handler and leaves
+// `globalThis.fetch` itself untouched, so it coexists with any other proxy staging HTTP the same
+// way.
+type Endpoint = ReturnType<typeof StartEndpointMock.listen>;
 
 export const fetchJsonProxy = (): {
-  setupSuccess: (params: { url: string; body: unknown }) => void;
-  setupNotOk: (params: { url: string; status: number; bodyText: string }) => void;
-  setupInvalidJson: (params: { url: string; bodyText: string }) => void;
-  setupEmptyBody: (params: { url: string }) => void;
-  setupConnectionRefused: (params: { url: string }) => Promise<void>;
-  setupAborted: (params: { url: string }) => void;
-  returnsMatchingUrl: (params: { url: ValueMatcher; body: unknown }) => void;
-  getCallsFor: (params: { url: ValueMatcher }) => readonly unknown[][];
+  setupSuccess: (params: { method?: HttpMethod; url: string; body: unknown }) => void;
+  setupNotOk: (params: {
+    method?: HttpMethod;
+    url: string;
+    status: number;
+    bodyText: string;
+  }) => void;
+  setupInvalidJson: (params: { method?: HttpMethod; url: string; bodyText: string }) => void;
+  setupEmptyBody: (params: { method?: HttpMethod; url: string }) => void;
+  setupConnectionRefused: (params: { method?: HttpMethod; url: string }) => void;
+  getRequestBodies: (params: { method?: HttpMethod; url: string }) => Promise<unknown[]>;
 } => {
-  const handle = registerSpyOn({ object: globalThis, method: 'fetch' });
+  const endpoints = new Map<string, Endpoint>();
+
+  // One MSW handler per distinct (method, url) address — a second setup call against the same
+  // address reuses the handler already registered rather than layering a duplicate on top of it.
+  // `method` is a REQUIRED key here, typed `HttpMethod | undefined` rather than `method?:` —
+  // every call site below passes a local var already typed `HttpMethod | undefined` (from an
+  // optional public param), and `exactOptionalPropertyTypes` refuses an explicit `undefined` value
+  // against a truly optional property.
+  const endpointFor = ({
+    method,
+    url,
+  }: {
+    method: HttpMethod | undefined;
+    url: string;
+  }): Endpoint => {
+    const resolvedMethod = method ?? 'get';
+    const key = `${resolvedMethod} ${url}`;
+    const cached = endpoints.get(key);
+    if (cached) {
+      return cached;
+    }
+    const endpoint = StartEndpointMock.listen({ method: resolvedMethod, url });
+    endpoints.set(key, endpoint);
+    return endpoint;
+  };
 
   return {
-    // Keyed on the URL — the first fetch() argument — so two endpoints staged in one test each
-    // answer only their own call.
-    setupSuccess: ({ url, body }: { url: string; body: unknown }): void => {
-      handle
-        .calledWith([url])
-        .resolves(buildResponse({ ok: true, status: 200, bodyText: JSON.stringify(body) }));
+    setupSuccess: ({
+      method,
+      url,
+      body,
+    }: {
+      method?: HttpMethod;
+      url: string;
+      body: unknown;
+    }): void => {
+      endpointFor({ method, url }).resolves({ data: body });
     },
     setupNotOk: ({
+      method,
       url,
       status,
       bodyText,
     }: {
+      method?: HttpMethod;
       url: string;
       status: number;
       bodyText: string;
     }): void => {
-      handle.calledWith([url]).resolves(buildResponse({ ok: false, status, bodyText }));
+      endpointFor({ method, url }).respondRaw({ status, body: bodyText, headers: {} });
     },
-    setupInvalidJson: ({ url, bodyText }: { url: string; bodyText: string }): void => {
-      handle.calledWith([url]).resolves(buildResponse({ ok: true, status: 200, bodyText }));
+    setupInvalidJson: ({
+      method,
+      url,
+      bodyText,
+    }: {
+      method?: HttpMethod;
+      url: string;
+      bodyText: string;
+    }): void => {
+      endpointFor({ method, url }).respondRaw({ status: 200, body: bodyText, headers: {} });
     },
-    setupEmptyBody: ({ url }: { url: string }): void => {
-      handle.calledWith([url]).resolves(buildResponse({ ok: true, status: 200, bodyText: '' }));
+    setupEmptyBody: ({ method, url }: { method?: HttpMethod; url: string }): void => {
+      endpointFor({ method, url }).respondRaw({ status: 200, body: '', headers: {} });
     },
-    setupConnectionRefused: async ({ url }: { url: string }): Promise<void> => {
-      handle.calledWith([url]).rejects(await ConnectionRefusedErrorStub());
+    // MSW's own real network-error path — no invented `Error` shape. `fetchJson` never catches a
+    // rejection from `globalThis.fetch`, so whatever MSW/undici actually throws here propagates to
+    // the caller unwrapped.
+    setupConnectionRefused: ({ method, url }: { method?: HttpMethod; url: string }): void => {
+      endpointFor({ method, url }).networkError();
     },
-    setupAborted: ({ url }: { url: string }): void => {
-      handle
-        .calledWith([url])
-        .rejects(Object.assign(new Error('This operation was aborted'), { name: 'AbortError' }));
-    },
-
-    returnsMatchingUrl: ({ url, body }: { url: ValueMatcher; body: unknown }): void => {
-      handle
-        .calledWith([url])
-        .resolves(buildResponse({ ok: true, status: 200, bodyText: JSON.stringify(body) }));
-    },
-
-    getCallsFor: ({ url }: { url: ValueMatcher }): readonly unknown[][] =>
-      handle.callsMatching([url]),
+    getRequestBodies: async ({
+      method,
+      url,
+    }: {
+      method?: HttpMethod;
+      url: string;
+    }): Promise<unknown[]> => endpointFor({ method, url }).getRequestBodies(),
   };
 };

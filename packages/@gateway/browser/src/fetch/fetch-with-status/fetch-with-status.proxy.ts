@@ -1,98 +1,84 @@
-import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
-import type { ValueMatcher } from '../../gateway-test-support/value-matcher';
+import { StartEndpointMock } from '@dungeonmaster/testing';
+import type { HttpMethod, RequestCount } from '@dungeonmaster/testing';
 
-const HTTP_OK_STATUS_MIN = 200;
-const HTTP_OK_STATUS_MAX_EXCLUSIVE = 300;
-
-const buildResponse = ({
-  ok,
-  status,
-  bodyText,
-}: {
-  ok: boolean;
-  status: number;
-  bodyText: string;
-}): Response =>
-  ({
-    ok,
-    status,
-    text: async () => Promise.resolve(bodyText),
-  }) as never;
+// See fetch-json.proxy.ts's own header for why this no longer spies on `globalThis.fetch` directly.
+type Endpoint = ReturnType<typeof StartEndpointMock.listen>;
 
 export const fetchWithStatusProxy = (): {
-  setupResponse: (params: { url: string; status: number; bodyText: string }) => void;
-  setupRefused: (params: { url: string; cause: Error }) => void;
-  setupAbortImmediate: (params: { url: string }) => void;
-  setupAbortsOnSignal: (params: { url: string }) => void;
-  returnsMatchingUrl: (params: { url: ValueMatcher; status: number; bodyText: string }) => void;
-  getCallsFor: (params: { url: ValueMatcher }) => readonly unknown[][];
+  setupResponse: (params: {
+    method?: HttpMethod;
+    url: string;
+    status: number;
+    bodyText: string;
+  }) => void;
+  // MSW's own real network-error path — no caller-supplied `cause`. Whatever MSW/undici actually
+  // rejects with reaches `fetchWithStatus`'s own catch block, which wraps it; the test asserts the
+  // real wrapped message.
+  setupRefused: (params: { method?: HttpMethod; url: string }) => void;
+  // Answers only once released, so a test can assert in-flight UI state before resolving it, or —
+  // combined with a real `AbortController.abort()` mid-flight — prove a real abort rather than an
+  // invented one.
+  setupHeld: (params: { method?: HttpMethod; url: string; bodyText: string }) => {
+    release: () => void;
+  };
+  getRequestBodies: (params: { method?: HttpMethod; url: string }) => Promise<unknown[]>;
+  getRequestCount: (params: { method?: HttpMethod; url: string }) => RequestCount;
 } => {
-  const handle = registerSpyOn({ object: globalThis, method: 'fetch' });
+  const endpoints = new Map<string, Endpoint>();
+
+  // See fetch-json.proxy.ts's own `endpointFor` comment for why `method` is required-but-optional-typed here.
+  const endpointFor = ({
+    method,
+    url,
+  }: {
+    method: HttpMethod | undefined;
+    url: string;
+  }): Endpoint => {
+    const resolvedMethod = method ?? 'get';
+    const key = `${resolvedMethod} ${url}`;
+    const cached = endpoints.get(key);
+    if (cached) {
+      return cached;
+    }
+    const endpoint = StartEndpointMock.listen({ method: resolvedMethod, url });
+    endpoints.set(key, endpoint);
+    return endpoint;
+  };
 
   return {
-    // Keyed on the URL — the first fetch() argument — so two endpoints staged in one test each
-    // answer only their own call. `ok` is derived from `status`, exactly as the real Response does.
     setupResponse: ({
+      method,
       url,
       status,
       bodyText,
     }: {
+      method?: HttpMethod;
       url: string;
       status: number;
       bodyText: string;
     }): void => {
-      handle.calledWith([url]).resolves(
-        buildResponse({
-          ok: status >= HTTP_OK_STATUS_MIN && status < HTTP_OK_STATUS_MAX_EXCLUSIVE,
-          status,
-          bodyText,
-        }),
-      );
+      endpointFor({ method, url }).respondRaw({ status, body: bodyText, headers: {} });
     },
-    // `cause` carries its own `.cause` chain (a duck-typed error with `.code`), so the rejection
-    // this stages matches what a real refused socket produces.
-    setupRefused: ({ url, cause }: { url: string; cause: Error }): void => {
-      handle.calledWith([url]).rejects(new TypeError('Failed to fetch', { cause }));
+    setupRefused: ({ method, url }: { method?: HttpMethod; url: string }): void => {
+      endpointFor({ method, url }).networkError();
     },
-    setupAbortImmediate: ({ url }: { url: string }): void => {
-      handle
-        .calledWith([url])
-        .rejects(Object.assign(new Error('The user aborted a request.'), { name: 'AbortError' }));
-    },
-    // Only rejects once the caller-supplied `signal` actually fires — proves this adapter forwards
-    // `signal` to the real fetch call rather than merely swallowing an unconditional rejection.
-    setupAbortsOnSignal: ({ url }: { url: string }): void => {
-      handle.calledWith([url]).implement(
-        async (_url: string, init: RequestInit) =>
-          new Promise<Response>((_resolve, reject) => {
-            init.signal?.addEventListener('abort', () => {
-              reject(
-                Object.assign(new Error('The user aborted a request.'), { name: 'AbortError' }),
-              );
-            });
-          }),
-      );
-    },
-
-    returnsMatchingUrl: ({
+    setupHeld: ({
+      method,
       url,
-      status,
       bodyText,
     }: {
-      url: ValueMatcher;
-      status: number;
+      method?: HttpMethod;
+      url: string;
       bodyText: string;
-    }): void => {
-      handle.calledWith([url]).resolves(
-        buildResponse({
-          ok: status >= HTTP_OK_STATUS_MIN && status < HTTP_OK_STATUS_MAX_EXCLUSIVE,
-          status,
-          bodyText,
-        }),
-      );
-    },
-
-    getCallsFor: ({ url }: { url: ValueMatcher }): readonly unknown[][] =>
-      handle.callsMatching([url]),
+    }): { release: () => void } => endpointFor({ method, url }).holdsOpen({ data: bodyText }),
+    getRequestBodies: async ({
+      method,
+      url,
+    }: {
+      method?: HttpMethod;
+      url: string;
+    }): Promise<unknown[]> => endpointFor({ method, url }).getRequestBodies(),
+    getRequestCount: ({ method, url }: { method?: HttpMethod; url: string }): RequestCount =>
+      endpointFor({ method, url }).getRequestCount(),
   };
 };

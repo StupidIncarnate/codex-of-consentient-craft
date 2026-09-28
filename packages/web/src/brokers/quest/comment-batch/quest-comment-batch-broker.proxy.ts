@@ -1,22 +1,24 @@
-// PURPOSE: Proxy for quest-comment-batch-broker providing test control over HTTP responses plus
-// captured-request-body reads (fetchSpy wraps the already-MSW-patched globalThis.fetch, so
-// passthrough still hits the mocked endpoint — see quest-delete-broker.proxy.ts for precedent).
-// USAGE: Create proxy in test, use setup methods to configure endpoint behavior, then
-// getRequestBody() to assert the posted body.
+/**
+ * PURPOSE: Proxy for quest-comment-batch-broker providing test control over HTTP responses plus
+ * read-back of the posted body. Composes the gateway's own `fetchWithStatusProxy`, which registers
+ * an MSW handler rather than spying on `globalThis.fetch` directly, so this coexists in a shared
+ * test file with sibling proxies still staged through `StartEndpointMock` directly.
+ *
+ * USAGE:
+ * Create proxy in test, use setup methods to configure endpoint behavior, then
+ * await getRequestBody() to assert the posted body.
+ */
 
-import { StartEndpointMock } from '@dungeonmaster/testing';
-import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import type { RequestCount } from '@dungeonmaster/testing';
 
-import { fetchPostWithStatusAdapterProxy } from '../../../adapters/fetch/post-with-status/fetch-post-with-status-adapter.proxy';
+import { fetchWithStatusProxy } from '#gateway/browser/fetch/fetch-with-status/fetch-with-status.proxy';
+
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
 
 const BAD_REQUEST_STATUS = 400;
 const NOT_FOUND_STATUS = 404;
 const SERVER_ERROR_STATUS = 500;
-
-type EndpointControl = ReturnType<typeof StartEndpointMock.listen>;
-type RequestCount = ReturnType<EndpointControl['getRequestCount']>;
 
 export const questCommentBatchBrokerProxy = (): {
   setupSent: (params: { chatProcessId: string }) => void;
@@ -33,64 +35,103 @@ export const questCommentBatchBrokerProxy = (): {
   setupServerError: (params: { error: string }) => void;
   setupServerErrorNoBody: () => void;
   setupNetworkError: () => void;
-  getRequestBody: () => unknown;
+  getRequestBody: () => Promise<unknown>;
   getRequestCount: () => RequestCount;
 } => {
-  fetchPostWithStatusAdapterProxy();
-
-  const fetchSpy = registerSpyOn({ object: globalThis, method: 'fetch', passthrough: true });
-
-  const endpoint = StartEndpointMock.listen({
-    method: 'post',
-    url: webConfigStatics.api.routes.questComments,
-  });
+  const statusFetchProxy = fetchWithStatusProxy();
+  const url = webConfigStatics.api.routes.questComments;
 
   return {
-    setupSent: ({ chatProcessId }): void => {
-      endpoint.resolves({ data: { chatProcessId } });
+    setupSent: ({ chatProcessId }: { chatProcessId: string }): void => {
+      statusFetchProxy.setupResponse({
+        method: 'post',
+        url,
+        status: 200,
+        bodyText: JSON.stringify({ chatProcessId }),
+      });
     },
-    setupSentWithDeliveredMessage: ({ chatProcessId, deliveredMessage }): void => {
-      endpoint.resolves({ data: { chatProcessId, deliveredMessage } });
+    setupSentWithDeliveredMessage: ({
+      chatProcessId,
+      deliveredMessage,
+    }: {
+      chatProcessId: string;
+      deliveredMessage: string;
+    }): void => {
+      statusFetchProxy.setupResponse({
+        method: 'post',
+        url,
+        status: 200,
+        bodyText: JSON.stringify({ chatProcessId, deliveredMessage }),
+      });
     },
     setupSentWithoutChatProcessId: (): void => {
-      endpoint.resolves({ data: {} });
+      statusFetchProxy.setupResponse({ method: 'post', url, status: 200, bodyText: '{}' });
     },
     setupSentUnparseableBody: (): void => {
-      endpoint.resolves({ data: 'not-an-object' });
+      statusFetchProxy.setupResponse({
+        method: 'post',
+        url,
+        status: 200,
+        bodyText: 'not-an-object',
+      });
     },
-    setupStaleAnchors: ({ staleAnchors }): void => {
-      endpoint.responds({ status: httpStatusStatics.conflict, body: { staleAnchors } });
+    setupStaleAnchors: ({ staleAnchors }: { staleAnchors: unknown[] }): void => {
+      statusFetchProxy.setupResponse({
+        method: 'post',
+        url,
+        status: httpStatusStatics.conflict,
+        bodyText: JSON.stringify({ staleAnchors }),
+      });
     },
     setupStaleAnchorsEmpty: (): void => {
-      endpoint.responds({ status: httpStatusStatics.conflict, body: { staleAnchors: [] } });
+      statusFetchProxy.setupResponse({
+        method: 'post',
+        url,
+        status: httpStatusStatics.conflict,
+        bodyText: JSON.stringify({ staleAnchors: [] }),
+      });
     },
     setupBadRequest: (): void => {
-      endpoint.responds({ status: BAD_REQUEST_STATUS, body: {} });
+      statusFetchProxy.setupResponse({
+        method: 'post',
+        url,
+        status: BAD_REQUEST_STATUS,
+        bodyText: '{}',
+      });
     },
     setupNotFound: (): void => {
-      endpoint.responds({ status: NOT_FOUND_STATUS, body: {} });
+      statusFetchProxy.setupResponse({
+        method: 'post',
+        url,
+        status: NOT_FOUND_STATUS,
+        bodyText: '{}',
+      });
     },
-    setupServerError: ({ error }): void => {
-      endpoint.responds({ status: SERVER_ERROR_STATUS, body: { error } });
+    setupServerError: ({ error }: { error: string }): void => {
+      statusFetchProxy.setupResponse({
+        method: 'post',
+        url,
+        status: SERVER_ERROR_STATUS,
+        bodyText: JSON.stringify({ error }),
+      });
     },
     setupServerErrorNoBody: (): void => {
-      endpoint.responds({ status: SERVER_ERROR_STATUS });
+      statusFetchProxy.setupResponse({
+        method: 'post',
+        url,
+        status: SERVER_ERROR_STATUS,
+        bodyText: '',
+      });
     },
     setupNetworkError: (): void => {
-      endpoint.networkError();
+      statusFetchProxy.setupRefused({ method: 'post', url });
     },
-    // This broker only ever issues POST requests — that's the one real invariant to address by.
-    getRequestBody: (): unknown => {
-      const lastCall = fetchSpy.callsMatching([(): boolean => true, { method: 'POST' }]).at(-1);
-      if (!lastCall) {
-        return null;
-      }
-      const init = lastCall[1] as RequestInit | undefined;
-      if (typeof init?.body !== 'string') {
-        return null;
-      }
-      return JSON.parse(init.body) as unknown;
+    // This broker only ever issues one POST per call — the last body read back is the one this
+    // call's own request sent.
+    getRequestBody: async (): Promise<unknown> => {
+      const bodies = await statusFetchProxy.getRequestBodies({ method: 'post', url });
+      return bodies.at(-1) ?? null;
     },
-    getRequestCount: (): RequestCount => endpoint.getRequestCount(),
+    getRequestCount: (): RequestCount => statusFetchProxy.getRequestCount({ method: 'post', url }),
   };
 };
