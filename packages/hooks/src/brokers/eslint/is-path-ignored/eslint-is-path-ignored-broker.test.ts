@@ -34,4 +34,24 @@ describe('eslintIsPathIgnoredBroker', () => {
 
     expect(result).toBe(true);
   });
+
+  it('VALID: {cwd, filePath} => asks ESLint about the path resolved against that cwd', async () => {
+    const proxy = eslintIsPathIgnoredBrokerProxy();
+    proxy.setIgnored({ filePath: 'src/checked.ts', ignored: false });
+
+    await eslintIsPathIgnoredBroker({ cwd: '/project', filePath: 'src/checked.ts' });
+
+    expect(proxy.getCheckedPathsFor({ filePath: 'src/checked.ts' })).toStrictEqual([
+      ['src/checked.ts'],
+    ]);
+  });
+
+  it('ERROR: {ESLint throws for a path outside cwd} => returns false so the hook still lints', async () => {
+    const proxy = eslintIsPathIgnoredBrokerProxy();
+    proxy.setLookupThrows({ filePath: '/outside/x.ts', error: new Error('outside of base path') });
+
+    const result = await eslintIsPathIgnoredBroker({ cwd: '/project', filePath: '/outside/x.ts' });
+
+    expect(result).toBe(false);
+  });
 });

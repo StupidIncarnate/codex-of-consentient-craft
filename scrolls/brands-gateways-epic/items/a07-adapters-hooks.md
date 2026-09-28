@@ -241,3 +241,24 @@ Files to delete (6):
 - `packages/hooks/src/adapters/process/hook-lint-ignored-paths/process-hook-lint-ignored-paths-adapter.test.ts`
 
 
+
+## Plan — F45
+
+Give `@gateway/npm`'s `eslint` subpath an `ESLint` proxy (no catch-all; every staged method addressed by argument, each with a read-back) and move hooks' four eslint broker proxies onto it, dropping their `registerModuleMock({ module: '#gateway/npm/eslint' })` and `ESLint.prototype` spies. Gateway `exports` needs no change: the `./*.proxy` glob already reaches `src/eslint/eslint.proxy.ts`, beside the entry, imported as `#gateway/npm/eslint/eslint.proxy`.
+
+Files to create:
+- `packages/@gateway/npm/src/eslint/eslint.proxy.ts`
+
+Files to edit (gateway):
+- `packages/@gateway/npm/src/eslint/eslint.test.ts`
+
+Files to edit (hooks):
+- `packages/hooks/src/brokers/eslint/lint-run-targeted/eslint-lint-run-targeted-broker.proxy.ts`
+- `packages/hooks/src/brokers/eslint/lint-run-targeted/eslint-lint-run-targeted-broker.test.ts`
+- `packages/hooks/src/brokers/eslint/lint-run-with-fix/eslint-lint-run-with-fix-broker.proxy.ts`
+- `packages/hooks/src/brokers/eslint/is-path-ignored/eslint-is-path-ignored-broker.proxy.ts`
+- `packages/hooks/src/brokers/eslint/is-path-ignored/eslint-is-path-ignored-broker.test.ts`
+- `packages/hooks/src/brokers/eslint/load-config/eslint-load-config-broker.proxy.ts`
+- `packages/hooks/src/brokers/eslint/load-config/eslint-load-config-broker.test.ts`
+- `packages/hooks/src/brokers/violations/check-new/violations-check-new-broker.proxy.ts`
+- `packages/hooks/src/brokers/violations/fix-and-report/violations-fix-and-report-broker.proxy.ts`

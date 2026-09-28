@@ -9,4 +9,8 @@ describe('#gateway/npm/eslint', () => {
   it('VALID: {module} => re-exports the same runtime bindings as eslint', () => {
     expect(Object.keys(ourModule).sort()).toStrictEqual(Object.keys(pkgModule).sort());
   });
+
+  it('VALID: {ESLint} => extends the very class eslint exports', () => {
+    expect(Object.getPrototypeOf(ourModule.ESLint)).toBe(pkgModule.ESLint);
+  });
 });

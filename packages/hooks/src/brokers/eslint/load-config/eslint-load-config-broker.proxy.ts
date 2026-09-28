@@ -1,28 +1,28 @@
 /**
- * PURPOSE: Proxy for eslint-load-config-broker that resets cache and delegates to adapter proxy
+ * PURPOSE: Proxy for eslint-load-config-broker that stages the config ESLint calculates per file path
  *
  * USAGE:
  * const proxy = eslintLoadConfigBrokerProxy();
+ * proxy.returnsConfig({ filePath: 'src/file.ts', config: LinterConfigStub() });
  * const config = await eslintLoadConfigBroker({ cwd: '/project/path', filePath: 'src/file.ts' });
  */
 
-import * as eslintGateway from '#gateway/npm/eslint';
-import { ESLint, type Linter } from '#gateway/npm/eslint';
+import { ESLintProxy } from '#gateway/npm/eslint/eslint/eslint.proxy';
 import { resolve } from '#gateway/node/path';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { eslintFallbackPathsBrokerProxy } from '../fallback-paths/eslint-fallback-paths-broker.proxy';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { cwd } from '#gateway/node/process';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import {
-  registerMock,
-  registerModuleMock,
-  registerSpyOn,
-} from '@dungeonmaster/testing/register-mock';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
-registerModuleMock({ module: '#gateway/npm/eslint' });
-
-export const eslintLoadConfigBrokerProxy = (): Record<PropertyKey, never> => {
+export const eslintLoadConfigBrokerProxy = (): {
+  returnsConfig: (params: { filePath: string; config: Record<PropertyKey, unknown> }) => void;
+  returnsNullConfig: (params: { filePath: string }) => void;
+  throwsOnConstruction: (params: { cwd: string; error: Error }) => void;
+  throwsOnCalculate: (params: { filePath: string; error: Error }) => void;
+  getCalculatedFor: (params: { filePath: string }) => readonly unknown[][];
+} => {
   // Create child proxies
   cwdProxy();
   // cwdProxy() itself stages nothing (the gateway wrapper offers no staging surface), so the
@@ -33,20 +33,11 @@ export const eslintLoadConfigBrokerProxy = (): Record<PropertyKey, never> => {
   const resolveHandle = registerMock({ fn: resolve });
   const existsProxy = existsSyncProxy();
   eslintFallbackPathsBrokerProxy();
+  const eslint = ESLintProxy();
 
   for (const configName of locationsStatics.repoRoot.eslintConfig) {
     existsProxy.returns({ path: configName, exists: false });
   }
-
-  const eslintInstanceReturning = (config: Linter.Config | null): ESLint => {
-    const mockCalculateConfigForFile = jest.fn();
-
-    mockCalculateConfigForFile.mockResolvedValue(config);
-
-    return Object.assign(Object.create(ESLint.prototype), {
-      calculateConfigForFile: mockCalculateConfigForFile,
-    }) as ESLint;
-  };
 
   // This broker uses the resolved cwd as a Map cache key across the module-level configCache, so
   // a fixed placeholder here would collapse every test's cwd onto one cache entry and leak
@@ -57,53 +48,28 @@ export const eslintLoadConfigBrokerProxy = (): Record<PropertyKey, never> => {
     .calledWith([])
     .implement((...segments: unknown[]) => segments[segments.length - 1] ?? '');
 
-  const constructorHandle = registerSpyOn({
-    object: eslintGateway,
-    method: 'ESLint',
-  });
+  // Addressed by the file path the broker asks ESLint about; the ESLint instance's own cwd is not
+  // part of that call, so a test that needs two different configs stages two different paths.
+  return {
+    returnsConfig: ({ filePath, config }): void => {
+      eslint.calculateConfigForFileReturns({ filePath, config });
+    },
 
-  // Registered first (lowest priority): any cwd this proxy doesn't special-case, including the
-  // default cwd from cwd(). A function matcher scores the same as the
-  // more specific `{cwd: X}` object matchers below, so registering it FIRST lets the specific
-  // stagings win ties by "later registration wins" — order-independent of what any OTHER eslint
-  // broker proxy registers on eslintEslintAdapterProxy's own `calledWith([])` default, since a
-  // function/object match always outscores an empty-array match regardless of order.
-  constructorHandle
-    .calledWith([(options: unknown) => typeof options === 'object' && options !== null])
-    .implement(() => eslintInstanceReturning({ rules: { 'no-console': 'warn' } } as Linter.Config));
+    // ESLint answers null for a file its config ignores; the broker then walks its fallback paths
+    // ('fallback.ts' under this proxy's last-segment `resolve`), each of which must be staged too.
+    returnsNullConfig: ({ filePath }): void => {
+      eslint.calculateConfigForFileReturns({ filePath, config: null });
+    },
 
-  constructorHandle.calledWith([{ cwd: '/error-test-1' }]).implement(() => {
-    throw new Error('ESLint configuration error');
-  });
-  constructorHandle.calledWith([{ cwd: '/error-test-2' }]).implement(() => {
-    throw new Error('Config calculation failed');
-  });
-  constructorHandle.calledWith([{ cwd: '/error-test-3' }]).implement(() => {
-    throw new Error('Non-Error thrown');
-  });
-  constructorHandle
-    .calledWith([{ cwd: '/null-config-test' }])
-    .implement(() => eslintInstanceReturning(null));
-  constructorHandle
-    .calledWith([{ cwd: '/project' }])
-    .implement(() =>
-      eslintInstanceReturning({ rules: { 'no-unused-vars': 'error' } } as Linter.Config),
-    );
-  constructorHandle
-    .calledWith([{ cwd: '/test' }])
-    .implement(() => eslintInstanceReturning({ rules: { 'no-undef': 'error' } } as Linter.Config));
-  constructorHandle
-    .calledWith([{ cwd: '/test1' }])
-    .implement(() => eslintInstanceReturning({ rules: { 'no-undef': 'error' } } as Linter.Config));
+    throwsOnConstruction: ({ cwd: constructionCwd, error }): void => {
+      eslint.constructionThrows({ cwd: constructionCwd, error });
+    },
 
-  // Keyed on the staged '/default/cwd' address specifically, scoring above the any-object
-  // catch-all above — this is what a caller that omits `cwd` actually constructs ESLint with, so
-  // a broker that stops calling cwd() on that branch fails whatever test asserts on this.
-  constructorHandle
-    .calledWith([{ cwd: '/default/cwd' }])
-    .implement(() =>
-      eslintInstanceReturning({ rules: { 'default-cwd-marker': 'error' } } as Linter.Config),
-    );
+    throwsOnCalculate: ({ filePath, error }): void => {
+      eslint.calculateConfigForFileRejects({ filePath, error });
+    },
 
-  return {};
+    getCalculatedFor: ({ filePath }): readonly unknown[][] =>
+      eslint.getCalculateConfigForFileCallsFor({ filePath }),
+  };
 };

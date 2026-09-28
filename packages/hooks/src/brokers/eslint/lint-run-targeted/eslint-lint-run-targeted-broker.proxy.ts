@@ -7,32 +7,31 @@
  * const results = await eslintLintRunTargetedBroker({ content: 'const x = 1;', filePath, config });
  */
 
-import * as eslintGateway from '#gateway/npm/eslint';
-import { ESLint } from '#gateway/npm/eslint';
+import type { ESLint } from '#gateway/npm/eslint';
+import { ESLintProxy } from '#gateway/npm/eslint/eslint/eslint.proxy';
 import { resolve } from '#gateway/node/path';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { cwd } from '#gateway/node/process';
-import {
-  registerMock,
-  registerModuleMock,
-  registerSpyOn,
-} from '@dungeonmaster/testing/register-mock';
-
-registerModuleMock({ module: '#gateway/npm/eslint' });
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 export const eslintLintRunTargetedBrokerProxy = (): {
   setupLintResults: (params: {
     oldContent: string;
-    oldResults: unknown[];
-    newResults: unknown[];
+    oldResults: readonly Partial<Awaited<ReturnType<ESLint['lintText']>>[number]>[];
+    newResults: readonly Partial<Awaited<ReturnType<ESLint['lintText']>>[number]>[];
   }) => void;
-  returnsLintResults: (params: { content: string; results: unknown[] }) => void;
+  returnsLintResults: (params: {
+    content: string;
+    results: readonly Partial<Awaited<ReturnType<ESLint['lintText']>>[number]>[];
+  }) => void;
   returnsLintResultsForDefaultCwd: (params: {
     content: string;
     filePath: string;
-    results: unknown[];
+    results: readonly Partial<Awaited<ReturnType<ESLint['lintText']>>[number]>[];
   }) => void;
-  throwsOnConstruction: (params: { error: Error }) => void;
+  throwsOnConstruction: (params: { cwd: string; error: Error }) => void;
+  throwsOnLint: (params: { content: string; error: Error }) => void;
+  getLintTextCallsFor: (params: { content: string }) => readonly unknown[][];
 } => {
   cwdProxy();
   // cwdProxy() itself stages nothing (the gateway wrapper offers no staging surface), so the
@@ -46,10 +45,7 @@ export const eslintLintRunTargetedBrokerProxy = (): {
   // this proxy addresses by content, not by filePath — so any non-throwing placeholder is fine.
   resolveHandle.calledWith([]).returns('/resolved/path');
 
-  const lintTextHandle = registerSpyOn({
-    object: ESLint.prototype,
-    method: 'lintText',
-  });
+  const eslint = ESLintProxy();
 
   return {
     // Old and new lint runs share a filePath but differ in content — that's the real signal
@@ -58,14 +54,15 @@ export const eslintLintRunTargetedBrokerProxy = (): {
     // new content comes from whatever edit the caller's test applies, which this proxy cannot
     // predict, so it is addressed as "anything that isn't the known old content."
     setupLintResults: ({ oldContent, oldResults, newResults }): void => {
-      lintTextHandle.calledWith([oldContent]).resolves(oldResults);
-      lintTextHandle
-        .calledWith([(content: unknown) => content !== oldContent])
-        .resolves(newResults);
+      eslint.lintTextReturns({ text: oldContent, results: oldResults });
+      eslint.lintTextReturns({
+        text: (content: unknown) => content !== oldContent,
+        results: newResults,
+      });
     },
 
     returnsLintResults: ({ content, results }): void => {
-      lintTextHandle.calledWith([content]).resolves(results);
+      eslint.lintTextReturns({ text: content, results });
     },
 
     // Addressed by the staged '/default/cwd' (via the resolved absolute path) rather than by
@@ -74,20 +71,20 @@ export const eslintLintRunTargetedBrokerProxy = (): {
     returnsLintResultsForDefaultCwd: ({ content, filePath, results }): void => {
       const absolutePath = `/default/cwd/resolved/${filePath}`;
       resolveHandle.calledWith(['/default/cwd', filePath]).returns(absolutePath);
-      lintTextHandle.calledWith([content, { filePath: absolutePath }]).resolves(results);
+      eslint.lintTextReturns({ text: content, filePath: absolutePath, results });
     },
 
-    // Overrides the constructor with a real throw, so the broker's
-    // try/catch is the thing under test — not a coincidence where the lintText empty-array
-    // default happens to match the error path's return value.
-    throwsOnConstruction: ({ error }): void => {
-      const constructorHandle = registerSpyOn({
-        object: eslintGateway,
-        method: 'ESLint',
-      });
-      constructorHandle
-        .calledWith([(options: unknown) => typeof options === 'object' && options !== null])
-        .throws(error);
+    throwsOnConstruction: ({ cwd: constructionCwd, error }): void => {
+      eslint.constructionThrows({ cwd: constructionCwd, error });
     },
+
+    throwsOnLint: ({ content, error }): void => {
+      eslint.lintTextRejects({ text: content, error });
+    },
+
+    // The full `(text, { filePath })` tuple of every lintText call for that text — the only place
+    // a test sees which path the broker handed ESLint and how many lint passes it made.
+    getLintTextCallsFor: ({ content }): readonly unknown[][] =>
+      eslint.getLintTextCallsFor({ text: content }),
   };
 };

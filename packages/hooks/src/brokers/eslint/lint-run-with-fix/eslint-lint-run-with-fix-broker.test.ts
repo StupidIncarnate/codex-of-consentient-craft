@@ -230,4 +230,36 @@ describe('eslintLintRunWithFixBroker()', () => {
       ]);
     });
   });
+
+  describe('what reaches ESLint', () => {
+    it('VALID: {filePath, cwd} => lints the resolved path and writes the fixes back', async () => {
+      const proxy = eslintLintRunWithFixBrokerProxy();
+      proxy.returnsLintResults({
+        filePath: 'fixed.ts',
+        results: [
+          { filePath: '/home/test/fixed.ts', messages: [], errorCount: 0, warningCount: 0 },
+        ],
+      });
+
+      await eslintLintRunWithFixBroker({
+        filePath: 'fixed.ts',
+        config: LinterConfigStub(),
+        cwd: '/home/test',
+      });
+
+      expect({
+        linted: proxy.getLintedFilesFor({ files: ['fixed.ts'] }),
+        written: proxy.getFixesWrittenFor({
+          results: [
+            { filePath: '/home/test/fixed.ts', messages: [], errorCount: 0, warningCount: 0 },
+          ],
+        }),
+      }).toStrictEqual({
+        linted: [[['fixed.ts']]],
+        written: [
+          [[{ filePath: '/home/test/fixed.ts', messages: [], errorCount: 0, warningCount: 0 }]],
+        ],
+      });
+    });
+  });
 });

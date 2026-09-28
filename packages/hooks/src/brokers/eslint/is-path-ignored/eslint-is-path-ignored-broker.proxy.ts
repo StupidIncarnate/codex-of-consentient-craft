@@ -6,17 +6,11 @@
  * proxy.setIgnored({ filePath: 'x.ts', ignored: true });
  * const ignored = await eslintIsPathIgnoredBroker({ cwd: '/project', filePath: 'x.ts' });
  */
-import { ESLint } from '#gateway/npm/eslint';
+import { ESLintProxy } from '#gateway/npm/eslint/eslint/eslint.proxy';
 import { resolve } from '#gateway/node/path';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { cwd } from '#gateway/node/process';
-import {
-  registerMock,
-  registerModuleMock,
-  registerSpyOn,
-} from '@dungeonmaster/testing/register-mock';
-
-registerModuleMock({ module: '#gateway/npm/eslint' });
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 export const eslintIsPathIgnoredBrokerProxy = (): {
   setIgnored: (params: {
@@ -24,6 +18,8 @@ export const eslintIsPathIgnoredBrokerProxy = (): {
     ignored: boolean;
   }) => void;
   setIgnoredForDefaultCwd: (params: { filePath: string; ignored: boolean }) => void;
+  setLookupThrows: (params: { filePath: string; error: Error }) => void;
+  getCheckedPathsFor: (params: { filePath: string }) => readonly unknown[][];
 } => {
   cwdProxy();
   // cwdProxy() itself stages nothing (the gateway wrapper offers no staging surface), so the
@@ -40,16 +36,13 @@ export const eslintIsPathIgnoredBrokerProxy = (): {
     .calledWith([])
     .implement((...segments: unknown[]) => segments[segments.length - 1] ?? '');
 
-  const isPathIgnoredHandle = registerSpyOn({
-    object: ESLint.prototype,
-    method: 'isPathIgnored',
-  });
+  const eslint = ESLintProxy();
 
   return {
     // Callers that don't know filePath ahead of setup (e.g. a proxy composing this one before its
     // own test constructs a tool input) pass a predicate.
     setIgnored: ({ filePath, ignored }): void => {
-      isPathIgnoredHandle.calledWith([filePath]).resolves(ignored);
+      eslint.isPathIgnoredReturns({ filePath, ignored });
     },
 
     // Addressed by the staged '/default/cwd' rather than the `resolve(...)` catch-all above
@@ -59,7 +52,16 @@ export const eslintIsPathIgnoredBrokerProxy = (): {
     setIgnoredForDefaultCwd: ({ filePath, ignored }): void => {
       const resolvedForDefaultCwd = `/default/cwd/resolved/${filePath}`;
       resolveHandle.calledWith(['/default/cwd', filePath]).returns(resolvedForDefaultCwd);
-      isPathIgnoredHandle.calledWith([resolvedForDefaultCwd]).resolves(ignored);
+      eslint.isPathIgnoredReturns({ filePath: resolvedForDefaultCwd, ignored });
     },
+
+    // ESLint throws for a path outside its cwd; the broker's catch answers "not ignored".
+    setLookupThrows: ({ filePath, error }): void => {
+      eslint.isPathIgnoredRejects({ filePath, error });
+    },
+
+    // What the broker really asked ESLint about: the resolved absolute path it passed.
+    getCheckedPathsFor: ({ filePath }): readonly unknown[][] =>
+      eslint.getIsPathIgnoredCallsFor({ filePath }),
   };
 };

@@ -13,8 +13,12 @@ export const violationsFixAndReportBrokerProxy = (): {
   setupFixAndReport: (params?: { hasViolations?: boolean }) => void;
 } => {
   cwdProxy();
-  eslintLoadConfigBrokerProxy();
+  const loadConfigProxy = eslintLoadConfigBrokerProxy();
   const lintWithFixProxy = eslintLintRunWithFixBrokerProxy();
+  loadConfigProxy.returnsConfig({
+    filePath: '/test/file.ts',
+    config: { rules: { 'no-console': 'warn' } },
+  });
 
   return {
     setupFixAndReport: ({ hasViolations = false }: { hasViolations?: boolean } = {}): void => {

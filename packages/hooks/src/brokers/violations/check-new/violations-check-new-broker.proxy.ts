@@ -22,10 +22,17 @@ export const violationsCheckNewBrokerProxy = (): {
 
   const contentChangesProxy = toolInputGetContentChangesBrokerProxy();
   hookConfigLoadBrokerProxy();
-  eslintLoadConfigBrokerProxy();
+  const loadConfigProxy = eslintLoadConfigBrokerProxy();
   const lintProxy = eslintLintRunTargetedBrokerProxy();
   const isPathIgnoredProxy = eslintIsPathIgnoredBrokerProxy();
   violationsAnalyzeBrokerProxy();
+
+  // Every test in this proxy's family edits '/test/file.ts'; the config ESLint calculates for it
+  // is what the broker filters down to the hook's rules.
+  loadConfigProxy.returnsConfig({
+    filePath: '/test/file.ts',
+    config: { rules: { 'no-console': 'warn' } },
+  });
 
   // The content this proxy configures as the "old" side of a comparison — setupLintResults
   // below addresses old vs new lint runs by this literal, since the new content is whatever

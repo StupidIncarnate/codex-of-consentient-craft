@@ -7,22 +7,27 @@
  * const results = await eslintLintRunWithFixBroker({ filePath, config, cwd });
  */
 
-import { ESLint } from '#gateway/npm/eslint';
+import type { ESLint } from '#gateway/npm/eslint';
+import { ESLintProxy } from '#gateway/npm/eslint/eslint/eslint.proxy';
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { resolve } from '#gateway/node/path';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { cwd } from '#gateway/node/process';
-import {
-  registerMock,
-  registerModuleMock,
-  registerSpyOn,
-} from '@dungeonmaster/testing/register-mock';
-
-registerModuleMock({ module: '#gateway/npm/eslint' });
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 export const eslintLintRunWithFixBrokerProxy = (): {
-  returnsLintResults: (params: { filePath: string; results: unknown[] }) => void;
-  returnsLintResultsForDefaultCwd: (params: { filePath: string; results: unknown[] }) => void;
+  returnsLintResults: (params: {
+    filePath: string;
+    results: readonly Partial<Awaited<ReturnType<ESLint['lintText']>>[number]>[];
+  }) => void;
+  returnsLintResultsForDefaultCwd: (params: {
+    filePath: string;
+    results: readonly Partial<Awaited<ReturnType<ESLint['lintText']>>[number]>[];
+  }) => void;
+  getLintedFilesFor: (params: { files: readonly string[] }) => readonly unknown[][];
+  getFixesWrittenFor: (params: {
+    results: readonly Partial<Awaited<ReturnType<ESLint['lintText']>>[number]>[];
+  }) => readonly unknown[][];
 } => {
   cwdProxy();
   // cwdProxy() itself stages nothing (the gateway wrapper offers no staging surface), so the
@@ -40,23 +45,16 @@ export const eslintLintRunWithFixBrokerProxy = (): {
     .calledWith([])
     .implement((...segments: unknown[]) => segments[segments.length - 1] ?? '');
 
-  const lintFilesHandle = registerSpyOn({
-    object: ESLint.prototype,
-    method: 'lintFiles',
-  });
-  const outputFixesHandle = registerSpyOn({
-    object: ESLint,
-    method: 'outputFixes',
-  });
+  const eslint = ESLintProxy();
 
   return {
     // lintFiles receives a single argument: an array of the (resolved) paths to lint. This
     // broker always lints exactly one file, so the address is that one-element array.
     returnsLintResults: ({ filePath, results }): void => {
-      lintFilesHandle.calledWith([[filePath]]).resolves(results);
+      eslint.lintFilesReturns({ files: [filePath], results });
       // The broker feeds the SAME results array straight into ESLint.outputFixes() next —
       // address it by the exact array lintFiles just resolved so the write step succeeds too.
-      outputFixesHandle.calledWith([results]).resolves(undefined);
+      eslint.outputFixesResolves({ results });
     },
 
     // Addressed by the staged '/default/cwd' (via the resolved absolute path) rather than by the
@@ -66,8 +64,13 @@ export const eslintLintRunWithFixBrokerProxy = (): {
     returnsLintResultsForDefaultCwd: ({ filePath, results }): void => {
       const absolutePath = `/default/cwd/resolved/${filePath}`;
       resolveHandle.calledWith(['/default/cwd', filePath]).returns(absolutePath);
-      lintFilesHandle.calledWith([[absolutePath]]).resolves(results);
-      outputFixesHandle.calledWith([results]).resolves(undefined);
+      eslint.lintFilesReturns({ files: [absolutePath], results });
+      eslint.outputFixesResolves({ results });
     },
+
+    // What the broker really handed lintFiles, and what it wrote back to disk.
+    getLintedFilesFor: ({ files }): readonly unknown[][] => eslint.getLintFilesCallsFor({ files }),
+    getFixesWrittenFor: ({ results }): readonly unknown[][] =>
+      eslint.getOutputFixesCallsFor({ results }),
   };
 };

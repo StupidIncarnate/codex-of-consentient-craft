@@ -390,16 +390,83 @@ describe('eslintLintRunTargetedBroker()', () => {
   describe('error handling', () => {
     it('ERROR: {ESLint constructor throws} => logs error and returns empty array', async () => {
       const proxy = eslintLintRunTargetedBrokerProxy();
-      proxy.throwsOnConstruction({ error: new Error('ESLint config invalid') });
+      proxy.throwsOnConstruction({ cwd: '/broken', error: new Error('ESLint config invalid') });
 
-      const config = LinterConfigStub();
       const results = await eslintLintRunTargetedBroker({
         content: 'const x = 1;',
         filePath: 'error.ts',
-        config,
+        config: LinterConfigStub(),
+        cwd: '/broken',
       });
 
       expect(results).toStrictEqual([]);
+    });
+
+    it('ERROR: {lintText rejects} => logs error and returns empty array', async () => {
+      const proxy = eslintLintRunTargetedBrokerProxy();
+      proxy.throwsOnLint({ content: 'const x = 1;', error: new Error('ESLint config invalid') });
+
+      const results = await eslintLintRunTargetedBroker({
+        content: 'const x = 1;',
+        filePath: 'error.ts',
+        config: LinterConfigStub(),
+        cwd: '/custom',
+      });
+
+      expect(results).toStrictEqual([]);
+    });
+  });
+
+  describe('what reaches ESLint', () => {
+    it('VALID: {content, filePath} => lintText gets the content and the resolved path, once', async () => {
+      const proxy = eslintLintRunTargetedBrokerProxy();
+      proxy.returnsLintResults({ content: 'const seen = 1;', results: [] });
+
+      await eslintLintRunTargetedBroker({
+        content: 'const seen = 1;',
+        filePath: 'seen.ts',
+        config: LinterConfigStub(),
+        cwd: '/custom',
+      });
+
+      expect(proxy.getLintTextCallsFor({ content: 'const seen = 1;' })).toStrictEqual([
+        ['const seen = 1;', { filePath: '/resolved/path' }],
+      ]);
+    });
+
+    it('EDGE: {TSConfig parsing error} => lintText runs a second time on the same content and path', async () => {
+      const proxy = eslintLintRunTargetedBrokerProxy();
+      proxy.returnsLintResults({
+        content: 'const retry = 1;',
+        results: [
+          {
+            filePath: '/test/retry.ts',
+            messages: [
+              {
+                line: 1,
+                column: 1,
+                message: 'Parsing error: parserOptions.project has been set',
+                severity: 2,
+                ruleId: null,
+              },
+            ],
+            errorCount: 1,
+            warningCount: 0,
+          },
+        ],
+      });
+
+      await eslintLintRunTargetedBroker({
+        content: 'const retry = 1;',
+        filePath: 'retry.ts',
+        config: LinterConfigStub(),
+        cwd: '/custom',
+      });
+
+      expect(proxy.getLintTextCallsFor({ content: 'const retry = 1;' })).toStrictEqual([
+        ['const retry = 1;', { filePath: '/resolved/path' }],
+        ['const retry = 1;', { filePath: '/resolved/path' }],
+      ]);
     });
   });
 });

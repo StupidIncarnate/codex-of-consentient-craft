@@ -8,3 +8,4 @@
  */
 
 export * from 'eslint';
+export { ESLint } from './eslint/eslint';
