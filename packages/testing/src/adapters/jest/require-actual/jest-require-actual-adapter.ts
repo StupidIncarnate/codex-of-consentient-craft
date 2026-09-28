@@ -10,11 +10,12 @@
  * WHEN-NOT-TO-USE: When registerMock's dispatcher passthrough is sufficient
  */
 
-import type { resolve } from 'path';
+import { requireActual as gatewayRequireActual } from '#gateway/npm/jest__globals';
+import type * as pathModule from 'path';
 
-// Use jest.requireActual to get the real path module since 'path' may be auto-mocked
+// Use the gateway's requireActual to get the real path module since 'path' may be auto-mocked
 // in test files that transitively mock it through their proxy chain
-const realPathModule: { resolve: typeof resolve } = jest.requireActual('path');
+const realPathModule = gatewayRequireActual({ moduleName: 'path' }) as typeof pathModule;
 
 export const jestRequireActualAdapter = <T = unknown>({
   module: moduleName,
@@ -25,7 +26,7 @@ export const jestRequireActualAdapter = <T = unknown>({
 }): T => {
   // For non-relative paths (npm packages), resolve directly
   if (!moduleName.startsWith('.')) {
-    return jest.requireActual(moduleName) as T;
+    return gatewayRequireActual({ moduleName }) as T;
   }
 
   // For relative paths, resolve from the caller's directory using stack trace.
@@ -53,10 +54,10 @@ export const jestRequireActualAdapter = <T = unknown>({
     if (lastSlash >= 0) {
       const callerDir = pathPart.substring(0, lastSlash);
       const absolutePath = realPathModule.resolve(callerDir, moduleName);
-      return jest.requireActual(absolutePath) as T;
+      return gatewayRequireActual({ moduleName: absolutePath }) as T;
     }
   }
 
   // Fallback: try direct resolution (non-proxy callers or if no proxy frame found)
-  return jest.requireActual(moduleName) as T;
+  return gatewayRequireActual({ moduleName }) as T;
 };

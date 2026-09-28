@@ -10,6 +10,8 @@
  * WHEN-NOT-TO-USE: For module-imported functions — use registerMock({ fn }) instead
  */
 
+import { spyOn as gatewaySpyOn } from '#gateway/npm/jest__globals';
+import type { MethodLikeKeys } from 'jest-mock';
 import { mockFunctionNameContract } from '../../../contracts/mock-function-name/mock-function-name-contract';
 import type { MockHandle } from '../../../contracts/mock-handle/mock-handle-contract';
 import type { MockStaging } from '../../../contracts/mock-staging/mock-staging-contract';
@@ -39,7 +41,7 @@ export const jestRegisterSpyOnAdapter = <T extends object>({
   passthrough?: boolean;
 }): SpyOnHandle => {
   const realBeforeSpy = object[method] as unknown as AnyFunction;
-  const spy = jest.spyOn(object, method as never);
+  const spy = gatewaySpyOn({ object, method: method as MethodLikeKeys<T> });
 
   const currentImpl =
     typeof spy.getMockImplementation === 'function' ? spy.getMockImplementation() : undefined;
@@ -69,7 +71,7 @@ export const jestRegisterSpyOnAdapter = <T extends object>({
 
       if (passthrough) {
         const real = realsBySpy.get(spy);
-        const context = spy.mock.contexts.at(-1) as unknown;
+        const context = spy.mock.contexts.at(-1);
         const receiver = context === null || context === undefined ? object : context;
 
         return real ? real.apply(receiver, args) : undefined;

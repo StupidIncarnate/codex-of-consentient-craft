@@ -6,6 +6,10 @@
  * // Loads entrypoint in an isolated module scope with specified modules mocked
  */
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
+import {
+  doMock as gatewayDoMock,
+  isolateModulesAsync as gatewayIsolateModulesAsync,
+} from '#gateway/npm/jest__globals';
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 
@@ -21,12 +25,14 @@ export const jestIsolateModulesAdapter = async ({
   mocks: IsolateModulesMock[];
   entrypoint: FilePath;
 }): Promise<AdapterResult> => {
-  await jest.isolateModulesAsync(async () => {
-    for (const mock of mocks) {
-      jest.doMock(mock.module, mock.factory);
-    }
+  await gatewayIsolateModulesAsync({
+    fn: async () => {
+      for (const mock of mocks) {
+        gatewayDoMock({ moduleName: mock.module, factory: mock.factory });
+      }
 
-    await import(filePathContract.parse(entrypoint));
+      await import(filePathContract.parse(entrypoint));
+    },
   });
 
   return { success: true as const };

@@ -22,4 +22,25 @@ describe('jestIsolateModulesAdapter', () => {
 
     expect(callCount).toBe(2);
   });
+
+  it('VALID: {mocks: [{module: "path", factory}], entrypoint: "path"} => doMock registers the factory so importing the entrypoint runs it', async () => {
+    jestIsolateModulesAdapterProxy();
+
+    let sawMockedFactory = false;
+
+    await jestIsolateModulesAdapter({
+      mocks: [
+        {
+          module: FilePathStub({ value: 'path' }),
+          factory: () => {
+            sawMockedFactory = true;
+            return { resolve: () => 'mocked-resolve-result' };
+          },
+        },
+      ],
+      entrypoint: FilePathStub({ value: 'path' }),
+    });
+
+    expect(sawMockedFactory).toBe(true);
+  });
 });
