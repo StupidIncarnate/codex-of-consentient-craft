@@ -19,6 +19,13 @@
  * restart the underlying process; that is why `resetStatics.notCleared.instance` lists "server
  * memory" and "open websockets" too, exactly as `state` does.
  *
+ * Every browser storage clear goes through `resetClearStorageLayerBroker` rather than
+ * `lane.browser.clearStorage()` directly (DEF-94): a `reset` step may be the FIRST step of a fresh
+ * instance's first run, whose page is still `about:blank` — no origin for `localStorage`/
+ * `sessionStorage` to scope to, so Playwright throws a SecurityError instead of clearing anything.
+ * That one failure is tolerated and reported by NAME, appended to `NOT_cleared` alongside whatever
+ * the level's own static list already carries, rather than crashing the whole step.
+ *
  * USAGE:
  * await stepResetBroker({
  *   lane,
@@ -46,6 +53,7 @@ import { resetReadingRenderTransformer } from '../../../transformers/reset-readi
 import { recipeSeedRunBroker } from '../../recipe/seed-run/recipe-seed-run-broker';
 import { snapshotIndexReadBroker } from '../../snapshot/index-read/snapshot-index-read-broker';
 import { snapshotResolveBroker } from '../../snapshot/resolve/snapshot-resolve-broker';
+import { resetClearStorageLayerBroker } from './reset-clear-storage-layer-broker';
 import { snapshotRestoreLayerBroker } from './snapshot-restore-layer-broker';
 
 export const stepResetBroker = async ({
@@ -81,12 +89,14 @@ export const stepResetBroker = async ({
         form: 'page',
       });
     }
-    await lane.browser.clearStorage();
+    const { cleared } = await resetClearStorageLayerBroker({ browser: lane.browser });
 
     const reading = resetReadingContract.parse({
       restored: contentTextContract.parse('page'),
       undid: zeroUndid,
-      NOT_cleared: notCleared,
+      NOT_cleared: cleared
+        ? notCleared
+        : [...notCleared, contentTextContract.parse(resetStatics.storageSkipped.noOrigin)],
     });
     return resetReadingRenderTransformer({ reading });
   }
@@ -103,21 +113,27 @@ export const stepResetBroker = async ({
       homePath: lane.homePath,
       payloadPath: record.path,
     });
+    let storageCleared = true;
     if (lane.browser !== null) {
-      await lane.browser.clearStorage();
+      ({ cleared: storageCleared } = await resetClearStorageLayerBroker({ browser: lane.browser }));
     }
 
     const reading = resetReadingContract.parse({
       restored: contentTextContract.parse(to),
       undid,
-      NOT_cleared: notCleared,
+      NOT_cleared: storageCleared
+        ? notCleared
+        : [...notCleared, contentTextContract.parse(resetStatics.storageSkipped.noOrigin)],
     });
     return resetReadingRenderTransformer({ reading });
   }
 
   // level === 'instance'
+  let instanceStorageCleared = true;
   if (lane.browser !== null) {
-    await lane.browser.clearStorage();
+    ({ cleared: instanceStorageCleared } = await resetClearStorageLayerBroker({
+      browser: lane.browser,
+    }));
   }
 
   let undid = zeroUndid;
@@ -155,7 +171,9 @@ export const stepResetBroker = async ({
   const reading = resetReadingContract.parse({
     restored,
     undid,
-    NOT_cleared: notCleared,
+    NOT_cleared: instanceStorageCleared
+      ? notCleared
+      : [...notCleared, contentTextContract.parse(resetStatics.storageSkipped.noOrigin)],
   });
 
   return resetReadingRenderTransformer({ reading });
