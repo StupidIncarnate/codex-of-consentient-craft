@@ -3,22 +3,28 @@ import { hookConfigLoadBrokerProxy } from '../../hook-config/load/hook-config-lo
 import { eslintLoadConfigBrokerProxy } from '../../eslint/load-config/eslint-load-config-broker.proxy';
 import { eslintLintRunTargetedBrokerProxy } from '../../eslint/lint-run-targeted/eslint-lint-run-targeted-broker.proxy';
 import { eslintIsPathIgnoredBrokerProxy } from '../../eslint/is-path-ignored/eslint-is-path-ignored-broker.proxy';
-import { processHookLintIgnoredPathsAdapterProxy } from '../../../adapters/process/hook-lint-ignored-paths/process-hook-lint-ignored-paths-adapter.proxy';
 import { violationsAnalyzeBrokerProxy } from '../analyze/violations-analyze-broker.proxy';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
+import { getEnvProxy } from '#gateway/node/process/get-env/get-env.proxy';
+import { getEnv } from '#gateway/node/process';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 
 export const violationsCheckNewBrokerProxy = (): {
   setupViolationCheck: (params?: { hasViolations?: boolean }) => void;
   setPathIgnored: (params: { ignored: boolean }) => void;
+  setLintIgnoredPaths: (params: { enabled: boolean }) => void;
 } => {
   cwdProxy();
+  getEnvProxy();
+  const getEnvHandle = registerMock({ fn: getEnv });
+  getEnvHandle.calledWith(['DUNGEONMASTER_HOOK_LINT_IGNORED_PATHS']).returns(undefined);
+
   const contentChangesProxy = toolInputGetContentChangesBrokerProxy();
   hookConfigLoadBrokerProxy();
   eslintLoadConfigBrokerProxy();
   const lintProxy = eslintLintRunTargetedBrokerProxy();
   const isPathIgnoredProxy = eslintIsPathIgnoredBrokerProxy();
-  processHookLintIgnoredPathsAdapterProxy();
   violationsAnalyzeBrokerProxy();
 
   // The content this proxy configures as the "old" side of a comparison — setupLintResults
@@ -27,6 +33,11 @@ export const violationsCheckNewBrokerProxy = (): {
   const oldContent = 'const x = old;';
 
   return {
+    setLintIgnoredPaths: ({ enabled }: { enabled: boolean }): void => {
+      getEnvHandle
+        .calledWith(['DUNGEONMASTER_HOOK_LINT_IGNORED_PATHS'])
+        .returns(enabled ? 'true' : undefined);
+    },
     // The filePath isn't known yet when this is called (the test constructs its toolInput
     // afterward), so match any file — this proxy's tests exercise the "ignored path"
     // short-circuit itself, not which specific file was ignored.

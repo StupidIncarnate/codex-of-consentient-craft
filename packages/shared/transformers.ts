@@ -157,3 +157,6 @@ export * from './src/transformers/gateway-imports-field/gateway-imports-field-tr
 // .dungeonmaster.json, .mcp.json, .claude/settings.json, .agents/*.json) gets its on-disk
 // formatting (2-space indent, trailing newline) from, so they cannot drift apart.
 export * from './src/transformers/json-file-contents/json-file-contents-transformer';
+
+// Pre-Edit Rule Names Extract
+export * from './src/transformers/pre-edit-rule-names-extract/pre-edit-rule-names-extract-transformer';

@@ -215,3 +215,29 @@ Composing proxies verified:
 - `packages/hooks/src/brokers/violations/check-new/violations-check-new-broker.proxy.ts`
 - `packages/hooks/src/brokers/violations/fix-and-report/violations-fix-and-report-broker.proxy.ts`
 
+### G-L
+
+Scope: Group G-L (batch D) — migrate `process-hook-lint-ignored-paths-adapter` and `dungeonmaster-eslint-plugin-get-pre-edit-rules-adapter` callers, create `pre-edit-rule-names-extract-transformer` in `shared`, and delete both adapters (leaving zero adapters under `packages/hooks/src/adapters/`).
+
+Files to create (2):
+- `packages/shared/src/transformers/pre-edit-rule-names-extract/pre-edit-rule-names-extract-transformer.ts`
+- `packages/shared/src/transformers/pre-edit-rule-names-extract/pre-edit-rule-names-extract-transformer.test.ts`
+
+Files to edit (7):
+- `packages/shared/transformers.ts`
+- `packages/hooks/src/brokers/hook-config/default/hook-config-default-broker.ts`
+- `packages/hooks/src/brokers/hook-config/default/hook-config-default-broker.proxy.ts`
+- `packages/hooks/src/brokers/hook-config/default/hook-config-default-broker.test.ts`
+- `packages/hooks/src/brokers/violations/check-new/violations-check-new-broker.ts`
+- `packages/hooks/src/brokers/violations/check-new/violations-check-new-broker.proxy.ts`
+- `packages/hooks/src/brokers/violations/check-new/violations-check-new-broker.test.ts`
+
+Files to delete (6):
+- `packages/hooks/src/adapters/dungeonmaster-eslint-plugin/get-pre-edit-rules/dungeonmaster-eslint-plugin-get-pre-edit-rules-adapter.ts`
+- `packages/hooks/src/adapters/dungeonmaster-eslint-plugin/get-pre-edit-rules/dungeonmaster-eslint-plugin-get-pre-edit-rules-adapter.proxy.ts`
+- `packages/hooks/src/adapters/dungeonmaster-eslint-plugin/get-pre-edit-rules/dungeonmaster-eslint-plugin-get-pre-edit-rules-adapter.test.ts`
+- `packages/hooks/src/adapters/process/hook-lint-ignored-paths/process-hook-lint-ignored-paths-adapter.ts`
+- `packages/hooks/src/adapters/process/hook-lint-ignored-paths/process-hook-lint-ignored-paths-adapter.proxy.ts`
+- `packages/hooks/src/adapters/process/hook-lint-ignored-paths/process-hook-lint-ignored-paths-adapter.test.ts`
+
+
