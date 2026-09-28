@@ -278,3 +278,39 @@ Delete (adapter + proxy + test each, folder goes empty):
 Not touched (blocked, G-C's concession, another agent's gateway fix): `packages/server/src/adapters/fs/{rm,stat}/`
 and their sole callers `quest-new-responder.ts`/`session-list-broker.ts`'s `fsStatAdapter` half.
 `packages/server/src/adapters/` is NOT fully empty after this item lands — those two folders remain.
+
+## Plan — F44 callers
+
+Scope: `packages/server/src/adapters/fs/{stat,rm}/` (the two G-C left standing) and their sole
+callers. Package: server only. The gateway gap G-C hit is closed by cbbe03451 (built): `stat`/
+`statIfExists` now return `createdAtMs` (from `birthtimeMs`), and `rmProxy` gained a `getCallsFor`
+read-back of each call's full `[path, options]` tuple. Both adapters migrate now.
+
+Edit (callers, onto `#gateway/node/fs__promises`):
+- `packages/server/src/brokers/session/list/session-list-broker.ts` — `fsStatAdapter` → `stat`;
+  `stats.birthtime.toISOString()` → `new Date(stats.createdAtMs).toISOString()` (same ISO string,
+  since `createdAtMs` is `Math.floor(stats.birthtimeMs)`, the same source `Stats.birthtime` derives
+  from); `stats.mtimeMs` → `stats.modifiedAtMs`
+- `packages/server/src/brokers/session/list/session-list-broker.proxy.ts` — compose `statProxy`
+  (`#gateway/node/fs__promises/stat/stat.proxy`) in place of `fsStatAdapterProxy`; `setupFileStat`
+  stages `returnsFile({path, sizeBytes: 0, modifiedAtMs, createdAtMs: birthtime.getTime()})`;
+  `setupFileStatError` stages `throwsMatchingPath({path, error})` mirroring the file this proxy
+  already does the identical FsError-shaping trick for (`setupFileContentError`'s
+  `Object.assign(error, {code: ...})`)
+- `packages/server/src/responders/quest/new/quest-new-responder.ts` — `fsRmAdapter` → `rm`
+- `packages/server/src/responders/quest/new/quest-new-responder.proxy.ts` — compose `rmProxy`
+  (`#gateway/node/fs__promises/rm/rm.proxy`) in place of `fsRmAdapterProxy`; since the real removal
+  target (`locationsQuestFolderPathFindBroker`'s output) is minted from a guildId/questId this proxy
+  never receives ahead of test setup and `rmProxy`'s own `succeeds`/`rejects` take only an exact
+  literal path, the real call is mocked directly on the gateway `rm` export instead (mirrors
+  `pasted-image-persist-broker.proxy.ts`'s own `ensureDir`/`writeFileFromBase64` pattern), addressed
+  by the one structural fact every such call shares — the path always falls under a guild's `quests`
+  directory; `getRemovedFolderCallsInOrder` reads back through `rmProxy().getCallsFor`, which shares
+  the same underlying mock; drops the raw `import { rm } from 'fs/promises'` entirely
+
+Delete (adapter + proxy + test each, folder goes empty):
+- `packages/server/src/adapters/fs/stat/fs-stat-adapter.ts` (+`.proxy.ts`+`.test.ts`)
+- `packages/server/src/adapters/fs/rm/fs-rm-adapter.ts` (+`.proxy.ts`+`.test.ts`)
+
+After this: `packages/server/src/adapters/` no longer exists (both `fs/stat/` and `fs/rm/` are the
+only folders left standing after G-C/G-D, per the census in "Current state").

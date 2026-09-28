@@ -16,11 +16,11 @@
  * // Returns { status: 200, data: { questId, chatProcessId } } or { status: 400/500, data: { error } }
  */
 
+import { rm } from '#gateway/node/fs__promises';
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { locationsQuestFolderPathFindBroker } from '@dungeonmaster/shared/brokers';
 import { contentTextContract, questIdContract } from '@dungeonmaster/shared/contracts';
 
-import { fsRmAdapter } from '../../../adapters/fs/rm/fs-rm-adapter';
 import { zodFirstFieldErrorMessageTransformer } from '../../../transformers/zod-first-field-error-message/zod-first-field-error-message-transformer';
 import { pastedImagePersistBroker } from '../../../brokers/pasted-image/persist/pasted-image-persist-broker';
 import { guildIdParamsContract } from '../../../contracts/guild-id-params/guild-id-params-contract';
@@ -122,7 +122,7 @@ export const QuestNewResponder = async ({
       if (questId !== undefined) {
         const questFolderPath = locationsQuestFolderPathFindBroker({ guildId, questId });
         try {
-          await fsRmAdapter({ filePath: questFolderPath, recursive: true, force: true });
+          await rm(questFolderPath, { recursive: true, force: true });
         } catch (cleanupError: unknown) {
           // The create failure below is what must reach the caller — a failed cleanup is
           // logged, never thrown, so it can never mask the error that triggered it.

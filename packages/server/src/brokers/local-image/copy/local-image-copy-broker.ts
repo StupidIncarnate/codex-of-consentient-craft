@@ -73,9 +73,5 @@ export const localImageCopyBroker = async ({
     ),
   );
 
-  return new Map(
-    copied.filter(
-      (entry): entry is readonly [PastedImageOrdinal, AbsoluteFilePath] => entry !== undefined,
-    ),
-  );
+  return new Map(copied.filter((entry) => entry !== undefined));
 };

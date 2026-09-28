@@ -50,5 +50,5 @@ export const askQuestionToDesignDecisionsTransformer = ({
         relatedNodeIds: [],
       });
     })
-    .filter((d): d is DesignDecision => d !== null);
+    .filter((d) => d !== null);
 };

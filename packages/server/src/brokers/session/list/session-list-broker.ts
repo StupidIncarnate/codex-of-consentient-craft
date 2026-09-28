@@ -13,12 +13,11 @@ import {
   sessionIdContract,
 } from '@dungeonmaster/shared/contracts';
 import type { GuildId, SessionId } from '@dungeonmaster/shared/contracts';
-import { readFile } from '#gateway/node/fs__promises';
+import { readFile, stat } from '#gateway/node/fs__promises';
 import { homedir } from '#gateway/node/os';
 import { glob } from '#gateway/npm/glob';
 import { StartOrchestrator, isoTimestampContract } from '@dungeonmaster/orchestrator';
 
-import { fsStatAdapter } from '../../../adapters/fs/stat/fs-stat-adapter';
 import { claudeProjectPathEncoderTransformer } from '@dungeonmaster/shared/transformers';
 import { extractSessionFileSummaryTransformer } from '../../../transformers/extract-session-file-summary/extract-session-file-summary-transformer';
 import { hasSessionSummaryGuard } from '../../../guards/has-session-summary/has-session-summary-guard';
@@ -137,10 +136,10 @@ export const sessionListBroker = async ({
       const diskSessionId = sessionIdContract.parse(fileName.replace('.jsonl', ''));
 
       try {
-        const stats = await fsStatAdapter({ filePath });
-        const startedAt = isoTimestampContract.parse(stats.birthtime.toISOString());
+        const stats = await stat(filePath);
+        const startedAt = isoTimestampContract.parse(new Date(stats.createdAtMs).toISOString());
 
-        const mtimeMs = mtimeMsContract.parse(stats.mtimeMs);
+        const mtimeMs = mtimeMsContract.parse(stats.modifiedAtMs);
         mtimeBySessionId.set(diskSessionId, mtimeMs);
         const cached = getCache({ sessionId: diskSessionId, mtimeMs });
         const diskSummary: ReturnType<typeof extractSessionFileSummaryTransformer> =

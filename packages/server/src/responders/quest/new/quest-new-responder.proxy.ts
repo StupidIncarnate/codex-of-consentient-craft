@@ -1,11 +1,10 @@
-import { rm } from 'fs/promises';
-import { writeFileFromBase64 } from '#gateway/node/fs__promises';
+import { rm, writeFileFromBase64 } from '#gateway/node/fs__promises';
+import { rmProxy } from '#gateway/node/fs__promises/rm/rm.proxy';
 import type { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import { locationsQuestFolderPathFindBrokerProxy } from '@dungeonmaster/shared/testing';
 
-import { fsRmAdapterProxy } from '../../../adapters/fs/rm/fs-rm-adapter.proxy';
 import { pastedImagePersistBrokerProxy } from '../../../brokers/pasted-image/persist/pasted-image-persist-broker.proxy';
 import { QuestNewResponder } from './quest-new-responder';
 import type {
@@ -69,14 +68,25 @@ export const QuestNewResponderProxy = (): {
   // Extra READ-ONLY handle on the same gateway `writeFileFromBase64` persistProxy already mocks —
   // mirrors quest-chat-responder.proxy.ts's own writeCallsHandle.
   const writeCallsHandle = registerMock({ fn: writeFileFromBase64 });
-  const rmProxy = fsRmAdapterProxy();
-  // No test here exercises a cleanup failure of its own — that path is covered by
-  // fs-rm-adapter's own test suite — so the removal always succeeds, mirroring persistProxy's own
-  // unconditional mkdir/write success default above.
-  rmProxy.succeeds({ filePath: (): boolean => true });
-  // Extra READ-ONLY handle on the SAME npm `rm` rmProxy already mocks — mirrors writeCallsHandle
-  // above, giving a test the exact path + options passed to fs.rm.
-  const rmCallsHandle = registerMock({ fn: rm });
+  // The removal target is `locationsQuestFolderPathFindBroker`'s output, minted from a
+  // guildId/questId this proxy never receives ahead of test setup — rmProxy's own
+  // succeeds/rejects take only an exact literal path (no matching-path variant), so the real call
+  // is mocked directly on the gateway export instead (mirrors pastedImagePersistBrokerProxy's own
+  // ensureDir/writeFileFromBase64 pattern), addressed by the one structural fact every such call
+  // shares: the path always falls under a guild's `quests` directory. No test here exercises a
+  // cleanup failure of its own — that path is covered by the gateway rm's own test suite — so the
+  // removal always succeeds, mirroring persistProxy's own unconditional mkdir/write success
+  // default above.
+  // rmProxy() itself mocks the RAW `fs/promises` `rm` underneath the gateway wrapper — a different
+  // function object than the barrel `rm` this file's own implementation imports and calls, so its
+  // own succeeds/rejects/getCallsFor never see a call this test drives. Composed here anyway,
+  // unused, to satisfy enforce-proxy-child-creation; the real staging and read-back both go
+  // through one handle on the barrel export below.
+  rmProxy();
+  const removalPathPredicate = (path: unknown): boolean =>
+    typeof path === 'string' && path.includes('/quests/');
+  const removalHandle = registerMock({ fn: rm });
+  removalHandle.calledWith([removalPathPredicate]).resolves(undefined);
   // The implementation calls locationsQuestFolderPathFindBroker directly (not only through
   // pastedImagePersistBroker), so its proxy must be composed here too even though it needs no
   // setup of its own — enforce-proxy-child-creation.
@@ -132,11 +142,11 @@ export const QuestNewResponderProxy = (): {
     },
     getWrittenPayloadsInOrder: (): unknown[] =>
       writeCallsHandle.callsMatching([]).map((call) => call[1]),
-    // The full [filePath, options] pair for every fs.rm call — proves not just THAT the minted
-    // folder was removed but that it was removed recursively/forcefully, from the real address
-    // the responder computed rather than a value the test hands back to itself.
+    // The full [path, options] pair for every rm call — proves not just THAT the minted folder was
+    // removed but that it was removed recursively/forcefully, from the real address the responder
+    // computed rather than a value the test hands back to itself.
     getRemovedFolderCallsInOrder: (): unknown[] =>
-      rmCallsHandle.callsMatching([]).map((call) => call),
+      removalHandle.callsMatching([removalPathPredicate]).map((call) => call),
     // The SAME startChatGetCalls() read above, here with no address, so a test can pull one field
     // off the single call it made without re-describing guildId.
     getLastStartChatMessage: (): unknown => {

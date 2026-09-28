@@ -10,11 +10,11 @@ import type {
 import { claudeProjectPathEncoderTransformer } from '@dungeonmaster/shared/transformers';
 import { homedir } from '#gateway/node/os';
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
+import { statProxy } from '#gateway/node/fs__promises/stat/stat.proxy';
 import { globProxy } from '#gateway/npm/glob/glob/glob.proxy';
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-import { fsStatAdapterProxy } from '../../../adapters/fs/stat/fs-stat-adapter.proxy';
 import { globIgnoreStatics } from '../../../statics/glob-ignore/glob-ignore-statics';
 import type { GlobPatternStub } from '@dungeonmaster/shared/contracts';
 import type { FilePathStub } from '../../../contracts/file-path/file-path.stub';
@@ -55,7 +55,7 @@ export const sessionListBrokerProxy = (): {
     .rejects(new Error('sessionListBrokerProxy: no loadQuest scenario staged for this questId'));
   const homedirHandle = registerMock({ fn: homedir });
   const globHandle = globProxy();
-  const statProxy = fsStatAdapterProxy();
+  const statChildProxy = statProxy();
   const readProxy = readFileProxy();
 
   // sessionListBroker reads each globbed file's contents (and stats it first) in the same order
@@ -125,7 +125,12 @@ export const sessionListBrokerProxy = (): {
     },
     setupFileStat: ({ birthtime, mtimeMs }: { birthtime: Date; mtimeMs: number }): void => {
       const filePath = pendingStatFilePaths.shift() ?? ('' as FilePath);
-      statProxy.returns({ filePath, stats: { birthtime, mtimeMs } });
+      statChildProxy.returnsFile({
+        path: filePath,
+        sizeBytes: 0,
+        modifiedAtMs: mtimeMs,
+        createdAtMs: birthtime.getTime(),
+      });
     },
     setupFileContent: ({ content }: { content: string }): void => {
       const filepath = pendingReadFilePaths.shift() ?? ('' as FilePath);
@@ -146,7 +151,13 @@ export const sessionListBrokerProxy = (): {
     },
     setupFileStatError: ({ error }: { error: Error }): void => {
       const filePath = pendingStatFilePaths.shift() ?? ('' as FilePath);
-      statProxy.throws({ filePath, error });
+      // statProxy has no generic "throws any error" method — throwsMatchingPath demands an FsError
+      // (a coded, recorded failure), stamped from the caller-supplied Error's own message, the same
+      // conversion setupFileContentError does above for readFileProxy.
+      statChildProxy.throwsMatchingPath({
+        path: filePath,
+        error: Object.assign(error, { code: error.message.split(':')[0] ?? 'UNKNOWN' }),
+      });
     },
     setupQuests: ({ guildId, quests }: { guildId: GuildId; quests: QuestListItem[] }): void => {
       orchestrator.listQuestsReturns({ guildId, quests });
