@@ -19,7 +19,6 @@ import {
 } from '@dungeonmaster/hydration-recipes/contracts';
 import type { DmTarget } from '@dungeonmaster/hydration-recipes/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
-import { osHomedirAdapter } from '@dungeonmaster/shared/adapters';
 import {
   AbsoluteFilePathStub,
   AskUserQuestionToolResultStreamLineStub,
@@ -34,6 +33,7 @@ import {
   UserTextStringStreamLineStub,
 } from '@dungeonmaster/shared/contracts';
 import { claudePathSlugEncoderTransformer } from '@dungeonmaster/shared/transformers';
+import { homedir } from '#gateway/node/os';
 
 const { recipe } = recipesHydrationCreateBroker();
 
@@ -275,7 +275,11 @@ export const sessionHarness = ({
     if (target !== undefined) {
       return target;
     }
-    const home = osHomedirAdapter();
+    // Same env-then-homedir precedence osHomedirAdapter used to apply: DUNGEONMASTER_HOME verbatim
+    // when set, else the real OS home. dungeonmasterHomeFindBroker is NOT a substitute here — it
+    // resolves the dungeonmaster DATA dir (home + '/.dungeonmaster'), not the raw home Claude CLI
+    // itself uses for session JSONL.
+    const home = process.env.DUNGEONMASTER_HOME ?? homedir();
     return dmTargetContract.parse({ home, claudeHome: home });
   };
 

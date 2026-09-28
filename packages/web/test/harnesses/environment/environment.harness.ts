@@ -19,9 +19,9 @@ import * as path from 'path';
 
 import type { FileName, FilePath } from '@dungeonmaster/shared/contracts';
 import { AbsoluteFilePathStub, FileNameStub, FilePathStub } from '@dungeonmaster/shared/contracts';
-import { osUserHomedirAdapter } from '@dungeonmaster/shared/adapters';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { claudePathSlugEncoderTransformer } from '@dungeonmaster/shared/transformers';
+import { homedir } from '#gateway/node/os';
 
 // Real committer identity + disabled GPG signing, scoped to the child process env (not `-c` argv
 // flags, not a `git config` write) so these throwaway fixture commits never depend on, or mutate,
@@ -63,7 +63,7 @@ export const environmentHarness = ({
     // written by a prior test with the same guildPath gets replayed into the next test
     // via subscribe-quest before the current fake CLI overwrites it — UI shows stale text.
     const jsonlDir = claudePathSlugEncoderTransformer({
-      homeDir: osUserHomedirAdapter(),
+      homeDir: AbsoluteFilePathStub({ value: homedir() }),
       projectPath: AbsoluteFilePathStub({ value: guildPath }),
     });
     fs.rmSync(jsonlDir, { recursive: true, force: true });
@@ -182,8 +182,8 @@ export const environmentHarness = ({
   };
 
   // The real OS home, not DUNGEONMASTER_HOME — guild-selection.e2e asserts this against the
-  // server's directory-browse default, which reads osUserHomedirAdapter for the same reason.
-  const getHomedir = (): FilePath => FilePathStub({ value: osUserHomedirAdapter() });
+  // server's directory-browse default, which reads the same `#gateway/node/os` homedir directly.
+  const getHomedir = (): FilePath => FilePathStub({ value: homedir() });
 
   // The carve puts a quest's worktree at `<repoRoot>/worktrees/<slug>-<id8>`
   // (locationsWorktreePathFindBroker, over locationsStatics.repoRoot.worktreesDir), and the guild

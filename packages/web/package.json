@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "@dungeonmaster/browser": "*",
+    "@dungeonmaster/node": "*",
     "@dungeonmaster/npm": "*",
     "@dungeonmaster/shared": "*",
     "@mantine/core": "^8.0.0",

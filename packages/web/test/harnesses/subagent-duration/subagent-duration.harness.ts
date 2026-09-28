@@ -41,8 +41,8 @@ import {
   TaskToolResultStreamLineStub,
   UserTextStringStreamLineStub,
 } from '@dungeonmaster/shared/contracts';
-import { osUserHomedirAdapter } from '@dungeonmaster/shared/adapters';
 import { claudePathSlugEncoderTransformer } from '@dungeonmaster/shared/transformers';
+import { homedir } from '#gateway/node/os';
 
 const KICKOFF_LEAD_MS = 1000;
 const COMPLETION_LAG_MS = 1000;
@@ -142,7 +142,7 @@ export const subagentDurationHarness = ({
 } => {
   const getJsonlDir = (): AbsoluteFilePath =>
     claudePathSlugEncoderTransformer({
-      homeDir: osUserHomedirAdapter(),
+      homeDir: AbsoluteFilePathStub({ value: homedir() }),
       projectPath: AbsoluteFilePathStub({ value: guildPath }),
     });
 

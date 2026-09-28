@@ -12,7 +12,7 @@ import { webBundlePackageResolveBrokerProxy } from '../../web-bundle-package/res
 const WEB_PACKAGE_NAME = '@dungeonmaster/web';
 
 export const webBundleResponseBrokerProxy = (): {
-  setupFileContents: (params: { contents: FileContents; expectedRelativePath?: string }) => void;
+  setupFileContents: (params: { contents: FileContents; expectedRelativePath: string }) => void;
   setupMissingBundle: () => void;
 } => {
   const packageResolveProxy = webBundlePackageResolveBrokerProxy();
@@ -25,29 +25,28 @@ export const webBundleResponseBrokerProxy = (): {
   joinHandle.calledWith([]).implement((...segments: never[]) => realPath.join(...segments));
 
   return {
+    // expectedRelativePath is the SAME relativePath the broker itself computes from its pathname
+    // (isStatic ? pathname : '/index.html') — required, not optional, so every scenario stages the
+    // exact filepath fsReadFileAdapter will really be called with. webBundleDistPathAdapter runs
+    // for real (require.resolve against this checkout's own @dungeonmaster/web), the same way the
+    // broker resolves it, so distPath here is the real one.
     setupFileContents: ({
       contents,
       expectedRelativePath,
     }: {
       contents: FileContents;
-      expectedRelativePath?: string;
+      expectedRelativePath: string;
     }): void => {
-      if (expectedRelativePath !== undefined) {
-        const distPath = webBundleDistPathAdapter({
-          packageName: PackageNameStub({ value: WEB_PACKAGE_NAME }),
-        });
-        if (distPath !== null) {
-          const expectedFilepath = FilePathStub({ value: join(distPath, expectedRelativePath) });
-          readProxy.returns({ filepath: expectedFilepath, contents });
-          return;
-        }
+      const distPath = webBundleDistPathAdapter({
+        packageName: PackageNameStub({ value: WEB_PACKAGE_NAME }),
+      });
+      if (distPath === null) {
+        throw new Error(
+          'webBundleResponseBrokerProxy.setupFileContents: webBundleDistPathAdapter resolved null — is @dungeonmaster/web built?',
+        );
       }
-
-      // The real filepath is `${webBundleDistPathAdapter()}/index.html` (or the requested asset
-      // path), and webBundleDistPathAdapter resolves a real, environment-dependent path via
-      // require.resolve — not something this test can construct. Each test exercises exactly one
-      // fsReadFileAdapter call, so a wildcard match carries no pairing risk.
-      readProxy.returns({ filepath: () => true, contents });
+      const expectedFilepath = FilePathStub({ value: join(distPath, expectedRelativePath) });
+      readProxy.returns({ filepath: expectedFilepath, contents });
     },
     setupMissingBundle: (): void => {
       distPathProxy.bundleMissing();
