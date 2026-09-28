@@ -13,9 +13,9 @@
   "exports": {
     ".": {
       "source": "./src/startup/start-cli.ts",
+      "types": "./dist/src/startup/start-cli.d.ts",
       "import": "./dist/src/startup/start-cli.js",
-      "require": "./dist/src/startup/start-cli.js",
-      "types": "./dist/src/startup/start-cli.d.ts"
+      "require": "./dist/src/startup/start-cli.js"
     }
   },
   "bin": {

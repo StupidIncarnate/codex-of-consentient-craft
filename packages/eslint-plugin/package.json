@@ -17,9 +17,9 @@
   "exports": {
     ".": {
       "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
-      "require": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "require": "./dist/index.js"
     },
     "./tsconfig": "./configs/tsconfig.json",
     "./config": "./configs/eslint.dungeonmaster.js"

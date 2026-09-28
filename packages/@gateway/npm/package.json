@@ -17,25 +17,25 @@
       "npm-own-source": "./src/*.proxy.ts",
       "gateway-dist": "./dist/*.proxy.d.ts",
       "source": "./src/*.proxy.ts",
+      "types": "./dist/*.proxy.d.ts",
       "import": "./dist/*.proxy.js",
-      "require": "./dist/*.proxy.js",
-      "types": "./dist/*.proxy.d.ts"
+      "require": "./dist/*.proxy.js"
     },
     "./*.stub": {
       "npm-own-source": "./src/*.stub.ts",
       "gateway-dist": "./dist/*.stub.d.ts",
       "source": "./src/*.stub.ts",
+      "types": "./dist/*.stub.d.ts",
       "import": "./dist/*.stub.js",
-      "require": "./dist/*.stub.js",
-      "types": "./dist/*.stub.d.ts"
+      "require": "./dist/*.stub.js"
     },
     "./*": {
       "npm-own-source": "./src/*/*.ts",
       "gateway-dist": "./dist/*/*.d.ts",
       "source": "./src/*/*.ts",
+      "types": "./dist/*/*.d.ts",
       "import": "./dist/*/*.js",
-      "require": "./dist/*/*.js",
-      "types": "./dist/*/*.d.ts"
+      "require": "./dist/*/*.js"
     }
   },
   "files": [

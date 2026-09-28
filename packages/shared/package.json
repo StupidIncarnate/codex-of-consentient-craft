@@ -11,57 +11,57 @@
   "exports": {
     "./contracts": {
       "source": "./contracts.ts",
+      "types": "./dist/contracts.d.ts",
       "import": "./dist/contracts.js",
-      "require": "./dist/contracts.js",
-      "types": "./dist/contracts.d.ts"
+      "require": "./dist/contracts.js"
     },
     "./guards": {
       "source": "./guards.ts",
+      "types": "./dist/guards.d.ts",
       "import": "./dist/guards.js",
-      "require": "./dist/guards.js",
-      "types": "./dist/guards.d.ts"
+      "require": "./dist/guards.js"
     },
     "./transformers": {
       "source": "./transformers.ts",
+      "types": "./dist/transformers.d.ts",
       "import": "./dist/transformers.js",
-      "require": "./dist/transformers.js",
-      "types": "./dist/transformers.d.ts"
+      "require": "./dist/transformers.js"
     },
     "./@types": {
       "source": "./@types.ts",
+      "types": "./dist/@types.d.ts",
       "import": "./dist/@types.js",
-      "require": "./dist/@types.js",
-      "types": "./dist/@types.d.ts"
+      "require": "./dist/@types.js"
     },
     "./statics": {
       "source": "./statics.ts",
+      "types": "./dist/statics.d.ts",
       "import": "./dist/statics.js",
-      "require": "./dist/statics.js",
-      "types": "./dist/statics.d.ts"
+      "require": "./dist/statics.js"
     },
     "./brokers": {
       "source": "./brokers.ts",
+      "types": "./dist/brokers.d.ts",
       "import": "./dist/brokers.js",
-      "require": "./dist/brokers.js",
-      "types": "./dist/brokers.d.ts"
+      "require": "./dist/brokers.js"
     },
     "./adapters": {
       "source": "./adapters.ts",
+      "types": "./dist/adapters.d.ts",
       "import": "./dist/adapters.js",
-      "require": "./dist/adapters.js",
-      "types": "./dist/adapters.d.ts"
+      "require": "./dist/adapters.js"
     },
     "./errors": {
       "source": "./errors.ts",
+      "types": "./dist/errors.d.ts",
       "import": "./dist/errors.js",
-      "require": "./dist/errors.js",
-      "types": "./dist/errors.d.ts"
+      "require": "./dist/errors.js"
     },
     "./testing": {
       "source": "./testing.ts",
+      "types": "./dist/testing.d.ts",
       "import": "./dist/testing.js",
-      "require": "./dist/testing.js",
-      "types": "./dist/testing.d.ts"
+      "require": "./dist/testing.js"
     }
   },
   "files": [

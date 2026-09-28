@@ -109,14 +109,6 @@ If an agent's notification never arrives (the operator lost track), look for unc
 
 O12 (841b050e7), SL9 (4712d1667) and O10 (c9e2915d9) finished after this handoff was written and are committed. Master merged again (56edcf26a) and hydration-recipes rebuilt. No agent is running. B01 is merged, `npm install` has run, and the four steps below are done.
 
-### Uncommitted state not owned by a running agent
-
-- **The four post-B01 steps are done (2026-09-27).**
-  1. `npm run build:clean` passed. esbuild warned 4 times about `@gateway/node`'s export condition order (F38).
-  2. A full `npm run ward` (1790567188706-0679) reproduced F37 exactly, plus two reds F37 did not list. All of them are fixed; see F37's row. The full regression run afterwards (1790568891949-552e) exited 0 on every check type.
-  3. `gp-b01-zod4` was confirmed an ancestor of `gateway-pivot` with a clean worktree, then its worktree was removed and the branch deleted.
-  4. The MCP was reconnected with `/mcp`.
-  The F37 fixes are not committed yet.
 
 ### A12 (shared adapters) remaining after the running agents
 
@@ -149,7 +141,7 @@ These rows are `todo` or `ready` with every dependency met; the operator never d
 - A far-off passthrough `join` hides wrong paths (the A12 item's "Trap" section has the fix).
 - Agents must not dispatch their own sub-agents (brief rule 6).
 - A migration that removes a shared adapter's catch-all breaks every composing proxy that leaned on it, including ones in other agents' uncommitted folders. O10 spent 34 of its 82 minutes (41%) redesigning `step-handler-riftcarver-broker.proxy.ts` for that reason. Before dispatching, list the proxies that compose the brokers in scope, and give those to the same agent or finish the other agent first.
-- Antigravity (`agy`) is paused until the user says otherwise; when resumed, at most 2 at once (see "Using Antigravity" below).
+- Antigravity (`agy`) is resumed (user, 2026-09-27 night): at most 2 `agy` runs at once, on top of the Claude sub-agents (see "Using Antigravity" below).
 
 ## Converting the next repo
 
@@ -203,7 +195,7 @@ The user can lend Antigravity slots on top of the Claude sub-agents. This sectio
 
 | What | What we learned |
 |---|---|
-| Slot count | Paused: the user said to start no new `agy` runs until they say otherwise; the three already running (SV2, M3, SV3) finish. When resumed, the general cap is 2 at once, because `agy`'s five-hour usage limit is smaller than Claude's. (History: 5 slots at first, then 3 while the user ran `agy` elsewhere.) |
+| Slot count | Resumed on 2026-09-27 night: at most 2 at once, because `agy`'s five-hour usage limit is smaller than Claude's. (History: 5 slots at first, then 3 while the user ran `agy` elsewhere.) |
 | The CLI | `agy` is at `~/.local/bin/agy`. `agy -p "<prompt>"` runs one prompt non-interactively and prints the final answer. `agy models` lists the models. |
 | The model | The user asked for Gemini 3.8 Flash. Pass `--model gemini-3.8-flash-high`. |
 | Permissions | Pass `--dangerously-skip-permissions`, or the run stalls on the first tool prompt, because nobody is there to answer it. |
@@ -443,7 +435,7 @@ Work that execution found and no item file owns. Each runs like an item.
 | F35 | `step-handler-riftcarver-broker.proxy.ts` mocks raw `spawn` for `cp` and adds two `as never` casts on `.implement(...)` (O10, c9e2915d9), because its broker is still on the shared adapters. Migrate `step-handler-riftcarver-broker.ts` itself (streamLines, run, ensureDir, readdirEntriesSync, join) and drop both. | O10 | open | |
 | F36 | Five siegelense install integration tests (`start-install`, `install-flow`) pin the old small recipes scaffold; F20 rewrote it richer and SL9 moved it onto the gateway. Found by the second master merge's resolver. | merge 56edcf26a | done | The richer scaffold is intended; the tests now assert it. |
 | F37 | Reds in B01's full ward run (1790565795209-c4f2), reproduced on the rebuilt tree (1790567188706-0679), plus two it had not listed: lint in `eslint-plugin`'s `gateway-imports-target-transformer.ts` (4) and `testing`'s `workspace-package-{export-source,imports-target}-transformer.ts` (5, `no-unnecessary-condition`); unit in `session-forensics`'s `digest-run-responder.test.ts` (11) and `siegelense`'s `instance-start-broker.test.ts` (1), both a `homedir` stage on `#gateway/node/os` against Jest's sandboxed `$HOME`; unit in `hydration`'s `registry-create-broker.test.ts` (1, new); and a slow test in `cli`'s `start-install.integration.test.ts` (11.2s against the 10s bar, new). | B01 | done, uncommitted | Lint: dropped the `?.` the contract types make dead. `homedir`: `homedir()` takes no argument, so every proxy stages it at one address and the latest wins; `dungeonmasterHomeFindBrokerProxy` stages a real passthrough in its constructor. `transcriptResolveBrokerProxy`'s setup methods and `stageBootLockAcquireFailsWithReadError` now re-stage `/home/user` themselves. Hydration: TypeScript cuts the message off at a length that includes the absolute checkout path, so the regex now matches each truncated type only up to `Ingredient<{`. Slow test: the config-run harness spawns `tsx`'s CLI under `node` instead of `npx tsx`, and the happy-path test starts that child before its in-process typecheck. Run alone, the slowest test fell from 3.1s to 1.7s. Full ward 1790568891949-552e exited 0. |
-| F38 | `npm run build:clean` prints 4 esbuild warnings: `packages/@gateway/node/package.json` lists the `types` export condition after `import` and `require`, so `types` is never used. Move `types` first. | post-B01 build | open | |
+| F38 | `npm run build:clean` prints 4 esbuild warnings: `packages/@gateway/node/package.json` lists the `types` export condition after `import` and `require`, so `types` is never used. Move `types` first. | post-B01 build | done | `types` now precedes `import`/`require` (after `source` and the own-source conditions) in every package's `exports` and in cli's gateway scaffold. `build:clean` prints no esbuild warning; `check:consumer` 88 of 88. |
 | F25 | `@gateway/node`'s `run`: `runProxy()` addresses a call by `command` alone, and `RunNotFoundError` has no proxy, so `enforce-proxy-child-creation` blocks any caller that catches it. W2 (40b6641d5) mocked `run` directly and let a missing `git` reject where the old adapter resolved `exitCode: 1`. F25 fixes the gateway, then restores that fallback in ward's git brokers. Every other `childProcessSpawnCaptureAdapter` group waits for F25. | W2 | done 5b3a16ede | `runProxy` stages by `command`, `args` and `cwd`; `RunNotFoundErrorProxy` exists; ward git brokers restored. `@gateway/node` rebuilt. The `run` recipe is in the A12 item. |
 | F3 | Ward's `typecheck` uses `tsconfig.json`, not `tsconfig.build.json`, so a build-only failure (TS6059 in ed13c2901, TS2379 in G15) passes ward. Consider a build-config `--noEmit` check in ward. | operator | done | a8369332a; ward rebuilt. Typecheck runs a second pass against `tsconfig.build.json`. It found TS2379 in `testing` (F11 fixing) and TS6059 in `@gateway/browser` (G21 fixing). |
 

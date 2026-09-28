@@ -13,45 +13,45 @@
   "exports": {
     ".": {
       "source": "./src/index.ts",
+      "types": "./dist/src/index.d.ts",
       "import": "./dist/src/index.js",
-      "require": "./dist/src/index.js",
-      "types": "./dist/src/index.d.ts"
+      "require": "./dist/src/index.js"
     },
     "./register-mock": {
       "source": "./src/register-mock.ts",
+      "types": "./dist/src/register-mock.d.ts",
       "import": "./dist/src/register-mock.js",
-      "require": "./dist/src/register-mock.js",
-      "types": "./dist/src/register-mock.d.ts"
+      "require": "./dist/src/register-mock.js"
     },
     "./brokers/network-record/playwright": {
       "source": "./src/brokers/network-record/playwright/network-record-playwright-broker.ts",
+      "types": "./dist/src/brokers/network-record/playwright/network-record-playwright-broker.d.ts",
       "import": "./dist/src/brokers/network-record/playwright/network-record-playwright-broker.js",
-      "require": "./dist/src/brokers/network-record/playwright/network-record-playwright-broker.js",
-      "types": "./dist/src/brokers/network-record/playwright/network-record-playwright-broker.d.ts"
+      "require": "./dist/src/brokers/network-record/playwright/network-record-playwright-broker.js"
     },
     "./adapters/fs/queue-metadata-read": {
       "source": "./src/adapters/fs/queue-metadata-read/fs-queue-metadata-read-adapter.ts",
+      "types": "./dist/src/adapters/fs/queue-metadata-read/fs-queue-metadata-read-adapter.d.ts",
       "import": "./dist/src/adapters/fs/queue-metadata-read/fs-queue-metadata-read-adapter.js",
-      "require": "./dist/src/adapters/fs/queue-metadata-read/fs-queue-metadata-read-adapter.js",
-      "types": "./dist/src/adapters/fs/queue-metadata-read/fs-queue-metadata-read-adapter.d.ts"
+      "require": "./dist/src/adapters/fs/queue-metadata-read/fs-queue-metadata-read-adapter.js"
     },
     "./adapters/mantine/render": {
       "source": "./src/adapters/mantine/render/mantine-render-adapter.ts",
+      "types": "./dist/src/adapters/mantine/render/mantine-render-adapter.d.ts",
       "import": "./dist/src/adapters/mantine/render/mantine-render-adapter.js",
-      "require": "./dist/src/adapters/mantine/render/mantine-render-adapter.js",
-      "types": "./dist/src/adapters/mantine/render/mantine-render-adapter.d.ts"
+      "require": "./dist/src/adapters/mantine/render/mantine-render-adapter.js"
     },
     "./transformers/quest-flow-observable-seed": {
       "source": "./src/transformers/quest-flow-observable-seed/quest-flow-observable-seed-transformer.ts",
+      "types": "./dist/src/transformers/quest-flow-observable-seed/quest-flow-observable-seed-transformer.d.ts",
       "import": "./dist/src/transformers/quest-flow-observable-seed/quest-flow-observable-seed-transformer.js",
-      "require": "./dist/src/transformers/quest-flow-observable-seed/quest-flow-observable-seed-transformer.js",
-      "types": "./dist/src/transformers/quest-flow-observable-seed/quest-flow-observable-seed-transformer.d.ts"
+      "require": "./dist/src/transformers/quest-flow-observable-seed/quest-flow-observable-seed-transformer.js"
     },
     "./brokers": {
       "source": "./brokers.ts",
+      "types": "./dist/brokers.d.ts",
       "import": "./dist/brokers.js",
-      "require": "./dist/brokers.js",
-      "types": "./dist/brokers.d.ts"
+      "require": "./dist/brokers.js"
     },
     "./jest-config-base": "./jest-config-base.js"
   },
