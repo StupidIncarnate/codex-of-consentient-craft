@@ -49,9 +49,14 @@ describe('SiegelenseCleanupLayerFlow', () => {
 
       const [wholeOutput] = writes;
 
+      // The stale row's recorded pgid (`tree.fakePgid()`, 999999999) never answers alive on this
+      // machine — instanceKillBroker now probes liveness before it will count a candidate as
+      // reaped (DEF-69: signalling a recorded-but-unverified pgid is how a repeat kill or a fixture
+      // like this one used to risk hitting whatever the OS has since handed that number to), so a
+      // real sweep against this fixture reaps the row itself but names nothing "killed".
       expect(wholeOutput).toMatch(
         new RegExp(
-          `^REAPED: ${staleId} \\(stale \\d+m, killed ${tree.fakePgid()}, home removed\\)\\n` +
+          `^REAPED: ${staleId} \\(stale \\d+m, killed none, home removed\\)\\n` +
             'PORTS RELEASED: 40021, 40022\\n' +
             'LOCK RELEASED: none held\\n' +
             'ASSETS AGED: 0 instances, 0MB\\n' +
@@ -79,12 +84,15 @@ describe('SiegelenseCleanupLayerFlow', () => {
 
       const [wholeOutput] = writes;
 
+      // See the bare-call test above for why `killed` is empty rather than naming the fixture's
+      // fake pgid: it never answers alive, and instanceKillBroker only counts a candidate it has
+      // actually verified is still live.
       expect(JSON.parse(wholeOutput!)).toStrictEqual({
         reaped: [
           {
             id: staleId,
             staleFor: expect.stringMatching(/^\d+m$/u),
-            killed: [tree.fakePgid()],
+            killed: [],
             homeRemoved: true,
           },
         ],

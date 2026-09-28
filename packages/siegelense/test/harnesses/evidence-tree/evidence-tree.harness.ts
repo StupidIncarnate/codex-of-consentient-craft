@@ -23,6 +23,7 @@
  * const answer = await tree.readResults({ query: ResultsQueryStub({ instanceId: tree.killedInstanceId() }) });
  */
 
+import { spawn, type ChildProcess } from 'child_process';
 import { mkdirSync, unlinkSync, writeFileSync } from 'fs';
 
 import { PNG } from 'pngjs';
@@ -82,7 +83,6 @@ const STALE_INSTANCE_ID = InstanceIdStub({ value: 'inst_3333face' });
 const UNKNOWN_INSTANCE_ID = InstanceIdStub({ value: 'inst_deadbeef' });
 const RUN_1 = RunIdStub({ value: 'run_1' });
 const RUN_2 = RunIdStub({ value: 'run_2' });
-const FAKE_PGID = ProcessGroupIdStub({ value: 999_999_999 });
 const BLANK_HEX = '#0d0907';
 const IMAGE_SIDE = 10;
 const DIFF_START_COL = 5;
@@ -209,6 +209,12 @@ export const evidenceTreeHarness = (): {
 } => {
   let testbed: ReturnType<typeof installTestbedCreateBroker> | null = null;
   let originalHome: typeof process.env.DUNGEONMASTER_HOME;
+  // A REAL detached child, spawned once addStaleAliveEntry runs — instanceKillBroker's orphan-reap
+  // path now requires a candidate pgid to answer alive before it signals or reports it (DEF-69), so
+  // proving cleanup's reap actually stops something needs a genuine live process group to point at,
+  // not a bare literal nothing on the machine actually holds.
+  let staleChildProcess: ChildProcess | null = null;
+  let staleChildPgid: ReturnType<typeof ProcessGroupIdStub> | null = null;
 
   const killedInstanceEvidenceDir = (): AbsoluteFilePath =>
     locationsInstanceEvidencePathFindBroker({ instanceId: KILLED_INSTANCE_ID, guildId: null });
@@ -578,7 +584,10 @@ export const evidenceTreeHarness = (): {
       specName: SpecNameStub(),
       specHash: SpecHashStub(),
       pid: ProcessIdStub(),
-      pgids: [],
+      // heartbeatWriteBroker stamps the SAME pgids onto heartbeat.json and this row in one call —
+      // the fixture above (FAKE_PGID in the heartbeat) is a lie unless this row names it too, and
+      // instanceKillBroker's orphan-reap path reads its candidates from THIS field, never the file.
+      pgids: [FAKE_PGID],
       socketPath: `${evidenceDir}/x.sock`,
       ports: PortPairStub({ api: 40_021, web: 40_022 }),
       state: 'alive',
