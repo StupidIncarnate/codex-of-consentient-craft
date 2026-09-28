@@ -1,5 +1,5 @@
 import type { FilePath } from '@dungeonmaster/shared/contracts';
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
+import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { FileContentsStub } from '../../../contracts/file-contents/file-contents.stub';
 
 export const configFileLoadBrokerProxy = (): {
@@ -7,7 +7,7 @@ export const configFileLoadBrokerProxy = (): {
   setupInvalidJson: (params: { configPath: FilePath }) => void;
   setupFileNotFound: (params: { configPath: FilePath }) => void;
 } => {
-  const fsProxy = fsReadFileAdapterProxy();
+  const readFileHandle = readFileProxy();
 
   return {
     setupValidConfig: ({
@@ -17,24 +17,21 @@ export const configFileLoadBrokerProxy = (): {
       configPath: FilePath;
       config: Record<string, unknown>;
     }) => {
-      fsProxy.returns({
-        filePath: configPath,
+      readFileHandle.returns({
+        path: configPath,
         contents: FileContentsStub({ value: JSON.stringify(config) }),
       });
     },
 
     setupInvalidJson: ({ configPath }: { configPath: FilePath }) => {
-      fsProxy.returns({
-        filePath: configPath,
+      readFileHandle.returns({
+        path: configPath,
         contents: FileContentsStub({ value: '{ invalid json }' }),
       });
     },
 
     setupFileNotFound: ({ configPath }: { configPath: FilePath }) => {
-      fsProxy.throws({
-        filePath: configPath,
-        error: new Error('ENOENT: no such file or directory'),
-      });
+      readFileHandle.missing({ path: configPath });
     },
   };
 };

@@ -1,6 +1,5 @@
 import { configFileFindBrokerProxy } from '../../config-file/find/config-file-find-broker.proxy';
 import { configFileLoadBrokerProxy } from '../../config-file/load/config-file-load-broker.proxy';
-import { pathDirnameAdapterProxy } from '../../../adapters/path/dirname/path-dirname-adapter.proxy';
 import type { DungeonmasterConfig } from '../../../contracts/dungeonmaster-config/dungeonmaster-config-contract';
 
 export const findParentConfigsLayerBrokerProxy = (): {
@@ -11,17 +10,17 @@ export const findParentConfigsLayerBrokerProxy = (): {
     parentConfig: DungeonmasterConfig;
   }) => void;
   setupNoParentFound: (params: { currentPath: string }) => void;
-  setupPackageWithParent: (params: {
+  setupPackageWithParentAndMonorepoGrandparent: (params: {
     currentPath: string;
-    originalConfigPath: string;
     parentConfigPath: string;
     parentConfig: DungeonmasterConfig;
     grandparentPath: string;
+    grandConfigPath: string;
+    grandConfig: DungeonmasterConfig;
   }) => void;
 } => {
   const configFileFindProxy = configFileFindBrokerProxy();
   const configFileLoadProxy = configFileLoadBrokerProxy();
-  const pathDirnameProxy = pathDirnameAdapterProxy();
 
   return {
     setupSameConfigFound: ({
@@ -60,20 +59,22 @@ export const findParentConfigsLayerBrokerProxy = (): {
       configFileFindProxy.setupConfigNotFound({ startPath: currentPath });
     },
 
-    setupPackageWithParent: ({
+    setupPackageWithParentAndMonorepoGrandparent: ({
       currentPath,
-      originalConfigPath,
       parentConfigPath,
       parentConfig,
       grandparentPath,
+      grandConfigPath,
+      grandConfig,
     }: {
       currentPath: string;
-      originalConfigPath: string;
       parentConfigPath: string;
       parentConfig: DungeonmasterConfig;
       grandparentPath: string;
+      grandConfigPath: string;
+      grandConfig: DungeonmasterConfig;
     }) => {
-      // First call finds parent
+      // First level: finds a non-monorepo parent, so the broker recurses one level further up.
       configFileFindProxy.setupConfigFound({
         startPath: currentPath,
         configPath: parentConfigPath,
@@ -82,15 +83,19 @@ export const findParentConfigsLayerBrokerProxy = (): {
         configPath: parentConfigPath as never,
         config: parentConfig,
       });
-      // dirname is called on parentConfigPath (the config file just loaded) to compute the
-      // next directory to search from. dirname is call-order-scoped (see THE
-      // JOIN/DIRNAME/BASENAME TRAP in path-dirname-adapter.proxy.ts), so this just answers
-      // "the next dirname() call".
-      pathDirnameProxy.returns({ result: grandparentPath as never });
-      // Recursive call finds same config (stops)
+      // dirname is real here (#gateway/node/path is a plain pass-through with no proxy of its
+      // own), so grandparentPath must be the actual dirname of parentConfigPath — the recursive
+      // call is only reached with the staged startPath below when the broker computes that
+      // argument correctly.
+      // Second level: finds a monorepo config, so recursion stops here with no further dirname
+      // call.
       configFileFindProxy.setupConfigFound({
         startPath: grandparentPath,
-        configPath: originalConfigPath,
+        configPath: grandConfigPath,
+      });
+      configFileLoadProxy.setupValidConfig({
+        configPath: grandConfigPath as never,
+        config: grandConfig,
       });
     },
   };

@@ -66,3 +66,59 @@ expect this to be the main site you touch for that row.
 ## Concessions made while executing
 
 <!-- Empty at the start. The operator fills this and mirrors it into EPIC.md's Concessions table. -->
+
+## Plan (G-G, 2026-09-27)
+
+Current tree check (not the 2026-09-26 census) confirmed A01's two deletions had already landed. The
+remaining 3 adapters have MORE real callers than the item's "Current state" table names — the census names
+`config-resolve-broker.ts` as "the one real caller" of `path-dirname-adapter.ts`, but a fresh read found two
+more: `find-parent-configs-layer-broker.ts` and `config-file-find-broker.ts` (the latter also calls
+`path-join-adapter.ts`, the only caller of that adapter). `fs-read-file-adapter.ts` has exactly one real
+caller, `config-file-load-broker.ts`. This plan supersedes the item's "Current state" table with what the
+code showed. `config-resolve-caller.ts`/`.proxy.ts`/`.test.ts` (F18's caller-facing proxy) mock
+`configResolveBroker` as a black box and touch none of these three adapters, so they are out of scope.
+
+Files:
+
+- **Delete** `packages/config/src/adapters/fs/read-file/fs-read-file-adapter.ts`
+- **Delete** `packages/config/src/adapters/fs/read-file/fs-read-file-adapter.proxy.ts`
+- **Delete** `packages/config/src/adapters/fs/read-file/fs-read-file-adapter.test.ts`
+- **Delete** `packages/config/src/adapters/path/dirname/path-dirname-adapter.ts`
+- **Delete** `packages/config/src/adapters/path/dirname/path-dirname-adapter.proxy.ts`
+- **Delete** `packages/config/src/adapters/path/dirname/path-dirname-adapter.test.ts`
+- **Delete** `packages/config/src/adapters/path/join/path-join-adapter.ts`
+- **Delete** `packages/config/src/adapters/path/join/path-join-adapter.proxy.ts`
+- **Delete** `packages/config/src/adapters/path/join/path-join-adapter.test.ts`
+- **Edit** `packages/config/src/brokers/config/resolve/config-resolve-broker.ts` — `dirname` from
+  `#gateway/node/path` in place of `pathDirnameAdapter`.
+- **Edit** `packages/config/src/brokers/config/resolve/config-resolve-broker.proxy.ts` — drop the
+  `pathDirnameAdapterProxy` composition and the `setupDirname` method; dirname is a real pass-through call
+  now, and every existing test's staged `configPath`/`result` pair already matches what real `dirname`
+  computes.
+- **Edit** `packages/config/src/brokers/config/resolve/config-resolve-broker.test.ts` — remove the
+  `proxy.setupDirname(...)` calls the removed method leaves dangling.
+- **Edit** `packages/config/src/brokers/config/resolve/find-parent-configs-layer-broker.ts` — `dirname` from
+  `#gateway/node/path` in place of `pathDirnameAdapter`.
+- **Edit** `packages/config/src/brokers/config/resolve/find-parent-configs-layer-broker.proxy.ts` — drop the
+  `pathDirnameAdapterProxy` composition; rework the previously-dead `setupPackageWithParent` method (staged
+  by no test) into `setupPackageWithParentAndMonorepoGrandparent`, a shape that actually reaches the
+  migrated `dirname` line and whose outcome differs observably when that call's argument is wrong.
+- **Edit** `packages/config/src/brokers/config/resolve/find-parent-configs-layer-broker.test.ts` — add the
+  test that drives `setupPackageWithParentAndMonorepoGrandparent`, since nothing in the file previously
+  exercised the broker's one `dirname` call at all.
+- **Edit** `packages/config/src/brokers/config-file/find/config-file-find-broker.ts` — `dirname`/`join` from
+  `#gateway/node/path` in place of `pathDirnameAdapter`/`pathJoinAdapter`.
+- **Edit** `packages/config/src/brokers/config-file/find/config-file-find-broker.proxy.ts` — drop
+  `pathDirnameAdapterProxy`/`pathJoinAdapterProxy`; both gateway functions are plain pass-throughs with no
+  proxy of their own (per T2), so the proxy now calls the real `dirname` only to compute the `directory`
+  argument it stages `configRootFindBrokerProxy` (from `@dungeonmaster/shared/testing`) with, and lets the
+  real `join` compute the broker's return value — every existing test's literal `configPath` already
+  matches what real `join` produces.
+- **Edit** `packages/config/src/brokers/config-file/load/config-file-load-broker.ts` — `readFile` from
+  `#gateway/node/fs__promises` in place of `fsReadFileAdapter`.
+- **Edit** `packages/config/src/brokers/config-file/load/config-file-load-broker.proxy.ts` — compose
+  `readFileProxy` from `#gateway/node/fs__promises/read-file/read-file.proxy` in place of
+  `fsReadFileAdapterProxy`.
+
+`packages/config/src/adapters/` holds no other files after these 9 deletions, so the folder itself is
+deleted too.

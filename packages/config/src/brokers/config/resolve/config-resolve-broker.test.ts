@@ -16,11 +16,13 @@ describe('configResolveBroker', () => {
 
       proxy.setupConfigFound({
         startPath: filePath,
-        configPath: '/project/.dungeonmaster',
+        configPath: '/project/src/.dungeonmaster.json',
       });
-      proxy.setupValidConfig({ configPath: '/project/.dungeonmaster', config: packageConfig });
-      proxy.setupDirname({ configPath: '/project/.dungeonmaster', result: '/project' as never });
-      proxy.setupConfigNotFound({ startPath: '/project' });
+      proxy.setupValidConfig({
+        configPath: '/project/src/.dungeonmaster.json',
+        config: packageConfig,
+      });
+      proxy.setupConfigNotFound({ startPath: '/project/src' });
 
       const result = await configResolveBroker({ filePath });
 
@@ -38,9 +40,12 @@ describe('configResolveBroker', () => {
 
       proxy.setupConfigFound({
         startPath: filePath,
-        configPath: '/monorepo/.dungeonmaster',
+        configPath: '/monorepo/src/.dungeonmaster.json',
       });
-      proxy.setupValidConfig({ configPath: '/monorepo/.dungeonmaster', config: monorepoConfig });
+      proxy.setupValidConfig({
+        configPath: '/monorepo/src/.dungeonmaster.json',
+        config: monorepoConfig,
+      });
 
       const result = await configResolveBroker({ filePath });
 
@@ -68,21 +73,20 @@ describe('configResolveBroker', () => {
 
       proxy.setupConfigFound({
         startPath: filePath,
-        configPath: '/monorepo/packages/web/.dungeonmaster',
+        configPath: '/monorepo/packages/web/src/.dungeonmaster.json',
       });
       proxy.setupValidConfig({
-        configPath: '/monorepo/packages/web/.dungeonmaster',
+        configPath: '/monorepo/packages/web/src/.dungeonmaster.json',
         config: packageConfig,
       });
-      proxy.setupDirname({
-        configPath: '/monorepo/packages/web/.dungeonmaster',
-        result: '/monorepo/packages/web' as never,
-      });
       proxy.setupConfigFound({
-        startPath: '/monorepo/packages/web',
-        configPath: '/monorepo/.dungeonmaster',
+        startPath: '/monorepo/packages/web/src',
+        configPath: '/monorepo/packages/web/.dungeonmaster.json',
       });
-      proxy.setupValidConfig({ configPath: '/monorepo/.dungeonmaster', config: rootConfig });
+      proxy.setupValidConfig({
+        configPath: '/monorepo/packages/web/.dungeonmaster.json',
+        config: rootConfig,
+      });
 
       const result = await configResolveBroker({ filePath });
 
@@ -121,33 +125,28 @@ describe('configResolveBroker', () => {
 
       proxy.setupConfigFound({
         startPath: filePath,
-        configPath: '/deep/monorepo/workspace/packages/api/.dungeonmaster',
+        configPath: '/deep/monorepo/workspace/packages/api/src/.dungeonmaster.json',
       });
       proxy.setupValidConfig({
-        configPath: '/deep/monorepo/workspace/packages/api/.dungeonmaster',
+        configPath: '/deep/monorepo/workspace/packages/api/src/.dungeonmaster.json',
         config: packageConfig,
       });
-      proxy.setupDirname({
-        configPath: '/deep/monorepo/workspace/packages/api/.dungeonmaster',
-        result: '/deep/monorepo/workspace/packages/api' as never,
+      proxy.setupConfigFound({
+        startPath: '/deep/monorepo/workspace/packages/api/src',
+        configPath: '/deep/monorepo/workspace/packages/api/.dungeonmaster.json',
+      });
+      proxy.setupValidConfig({
+        configPath: '/deep/monorepo/workspace/packages/api/.dungeonmaster.json',
+        config: workspaceConfig,
       });
       proxy.setupConfigFound({
         startPath: '/deep/monorepo/workspace/packages/api',
-        configPath: '/deep/monorepo/workspace/.dungeonmaster',
+        configPath: '/deep/monorepo/workspace/packages/.dungeonmaster.json',
       });
       proxy.setupValidConfig({
-        configPath: '/deep/monorepo/workspace/.dungeonmaster',
-        config: workspaceConfig,
+        configPath: '/deep/monorepo/workspace/packages/.dungeonmaster.json',
+        config: rootConfig,
       });
-      proxy.setupDirname({
-        configPath: '/deep/monorepo/workspace/.dungeonmaster',
-        result: '/deep/monorepo/workspace' as never,
-      });
-      proxy.setupConfigFound({
-        startPath: '/deep/monorepo/workspace',
-        configPath: '/deep/monorepo/.dungeonmaster',
-      });
-      proxy.setupValidConfig({ configPath: '/deep/monorepo/.dungeonmaster', config: rootConfig });
 
       const result = await configResolveBroker({ filePath });
 
@@ -176,21 +175,20 @@ describe('configResolveBroker', () => {
 
       proxy.setupConfigFound({
         startPath: filePath,
-        configPath: '/monorepo/packages/shared/.dungeonmaster',
+        configPath: '/monorepo/packages/shared/.dungeonmaster.json',
       });
       proxy.setupValidConfig({
-        configPath: '/monorepo/packages/shared/.dungeonmaster',
+        configPath: '/monorepo/packages/shared/.dungeonmaster.json',
         config: packageConfig,
-      });
-      proxy.setupDirname({
-        configPath: '/monorepo/packages/shared/.dungeonmaster',
-        result: '/monorepo/packages/shared' as never,
       });
       proxy.setupConfigFound({
         startPath: '/monorepo/packages/shared',
-        configPath: '/monorepo/.dungeonmaster',
+        configPath: '/monorepo/packages/.dungeonmaster.json',
       });
-      proxy.setupValidConfig({ configPath: '/monorepo/.dungeonmaster', config: rootConfig });
+      proxy.setupValidConfig({
+        configPath: '/monorepo/packages/.dungeonmaster.json',
+        config: rootConfig,
+      });
 
       const result = await configResolveBroker({ filePath });
 
@@ -203,24 +201,26 @@ describe('configResolveBroker', () => {
   });
 
   describe('edge cases', () => {
-    it('EDGE: {filePath: "/project/deeply/nested/file.ts"} => handles same config found twice (no parent)', async () => {
+    it('EDGE: {filePath: "/file.ts"} => handles same config found twice (no parent)', async () => {
       const proxy = configResolveBrokerProxy();
 
-      const filePath = FilePathStub({ value: '/project/deeply/nested/file.ts' });
+      const filePath = FilePathStub({ value: '/file.ts' });
       const packageConfig = DungeonmasterConfigStub({
         framework: 'vue',
         schema: 'zod',
       });
 
+      // dirname('/file.ts') is '/', and dirname('/') is '/' too, so the parent search that
+      // findParentConfigsLayerBroker runs from '/' lands right back on this same config file —
+      // the real self-referential case the original identity check exists for.
       proxy.setupConfigFound({
         startPath: filePath,
-        configPath: '/project/.dungeonmaster',
+        configPath: '/.dungeonmaster.json',
       });
-      proxy.setupValidConfig({ configPath: '/project/.dungeonmaster', config: packageConfig });
-      proxy.setupDirname({ configPath: '/project/.dungeonmaster', result: '/project' as never });
+      proxy.setupValidConfig({ configPath: '/.dungeonmaster.json', config: packageConfig });
       proxy.setupConfigFound({
-        startPath: '/project',
-        configPath: '/project/.dungeonmaster',
+        startPath: '/',
+        configPath: '/.dungeonmaster.json',
       });
 
       const result = await configResolveBroker({ filePath });
@@ -239,17 +239,13 @@ describe('configResolveBroker', () => {
 
       proxy.setupConfigFound({
         startPath: filePath,
-        configPath: '/isolated/project/.dungeonmaster',
+        configPath: '/isolated/project/src/.dungeonmaster.json',
       });
       proxy.setupValidConfig({
-        configPath: '/isolated/project/.dungeonmaster',
+        configPath: '/isolated/project/src/.dungeonmaster.json',
         config: packageConfig,
       });
-      proxy.setupDirname({
-        configPath: '/isolated/project/.dungeonmaster',
-        result: '/isolated/project' as never,
-      });
-      proxy.setupConfigNotFound({ startPath: '/isolated/project' });
+      proxy.setupConfigNotFound({ startPath: '/isolated/project/src' });
 
       const result = await configResolveBroker({ filePath });
 
@@ -267,15 +263,17 @@ describe('configResolveBroker', () => {
 
       proxy.setupConfigFound({
         startPath: filePath,
-        configPath: '/project/.dungeonmaster',
+        configPath: '/project/src/.dungeonmaster.json',
       });
-      proxy.setupValidConfig({ configPath: '/project/.dungeonmaster', config: packageConfig });
-      proxy.setupDirname({ configPath: '/project/.dungeonmaster', result: '/project' as never });
+      proxy.setupValidConfig({
+        configPath: '/project/src/.dungeonmaster.json',
+        config: packageConfig,
+      });
       proxy.setupConfigFound({
-        startPath: '/project',
-        configPath: '/root/.dungeonmaster',
+        startPath: '/project/src',
+        configPath: '/project/.dungeonmaster.json',
       });
-      proxy.setupFileNotFound({ configPath: '/root/.dungeonmaster' });
+      proxy.setupFileNotFound({ configPath: '/project/.dungeonmaster.json' });
 
       const result = await configResolveBroker({ filePath });
 
@@ -293,10 +291,9 @@ describe('configResolveBroker', () => {
 
       proxy.setupConfigFound({
         startPath: filePath,
-        configPath: '/minimal/.dungeonmaster',
+        configPath: '/minimal/.dungeonmaster.json',
       });
-      proxy.setupValidConfig({ configPath: '/minimal/.dungeonmaster', config: packageConfig });
-      proxy.setupDirname({ configPath: '/minimal/.dungeonmaster', result: '/minimal' as never });
+      proxy.setupValidConfig({ configPath: '/minimal/.dungeonmaster.json', config: packageConfig });
       proxy.setupConfigNotFound({ startPath: '/minimal' });
 
       const result = await configResolveBroker({ filePath });

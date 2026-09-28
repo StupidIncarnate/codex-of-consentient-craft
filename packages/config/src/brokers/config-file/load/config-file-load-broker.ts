@@ -6,7 +6,7 @@
  * // Returns validated DungeonmasterConfig object
  */
 
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
+import { readFile } from '#gateway/node/fs__promises';
 import { InvalidConfigError } from '../../../errors/invalid-config/invalid-config-error';
 import { filePathContract, type FilePath } from '@dungeonmaster/shared/contracts';
 import {
@@ -22,7 +22,7 @@ export const configFileLoadBroker = async ({
   try {
     // Read the config file
     const filePath = filePathContract.parse(configPath);
-    const fileContents = await fsReadFileAdapter({ filePath });
+    const fileContents = await readFile(filePath);
 
     // Parse JSON contents
     const configData: unknown = JSON.parse(fileContents);

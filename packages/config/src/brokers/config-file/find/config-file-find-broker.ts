@@ -7,11 +7,10 @@
  */
 
 import { configRootFindBroker } from '@dungeonmaster/shared/brokers';
-import { pathDirnameAdapter } from '../../../adapters/path/dirname/path-dirname-adapter';
-import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
+import { dirname, join } from '#gateway/node/path';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import { ConfigNotFoundError } from '../../../errors/config-not-found/config-not-found-error';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
+import { filePathContract, type FilePath } from '@dungeonmaster/shared/contracts';
 
 export const configFileFindBroker = async ({
   startPath,
@@ -20,14 +19,12 @@ export const configFileFindBroker = async ({
   startPath: FilePath;
   currentPath?: FilePath;
 }): Promise<FilePath> => {
-  const searchPath = currentPath ?? pathDirnameAdapter({ path: startPath });
+  const searchPath = currentPath ?? filePathContract.parse(dirname(startPath));
 
   try {
     const rootDir = await configRootFindBroker({ startPath: searchPath });
 
-    return pathJoinAdapter({
-      paths: [rootDir, dungeonmasterHomeStatics.paths.projectConfigFile],
-    });
+    return filePathContract.parse(join(rootDir, dungeonmasterHomeStatics.paths.projectConfigFile));
   } catch {
     throw new ConfigNotFoundError({ startPath });
   }

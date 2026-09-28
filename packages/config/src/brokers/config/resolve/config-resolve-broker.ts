@@ -10,8 +10,8 @@ import { configFileFindBroker } from '../../config-file/find/config-file-find-br
 import { configFileLoadBroker } from '../../config-file/load/config-file-load-broker';
 import { findParentConfigsLayerBroker } from './find-parent-configs-layer-broker';
 import { mergeConfigsTransformer } from '../../../transformers/merge-configs/merge-configs-transformer';
-import { pathDirnameAdapter } from '../../../adapters/path/dirname/path-dirname-adapter';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
+import { dirname } from '#gateway/node/path';
+import { filePathContract, type FilePath } from '@dungeonmaster/shared/contracts';
 import type { DungeonmasterConfig } from '../../../contracts/dungeonmaster-config/dungeonmaster-config-contract';
 
 export const configResolveBroker = async ({
@@ -30,7 +30,7 @@ export const configResolveBroker = async ({
 
   // If this isn't a monorepo root, look for parent configs
   if (packageConfig.framework !== 'monorepo') {
-    const startPath = pathDirnameAdapter({ path: configPath });
+    const startPath = filePathContract.parse(dirname(configPath));
     await findParentConfigsLayerBroker({
       currentPath: startPath,
       originalConfigPath: configPath,

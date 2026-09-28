@@ -12,9 +12,9 @@
 
 import { configFileFindBroker } from '../../config-file/find/config-file-find-broker';
 import { configFileLoadBroker } from '../../config-file/load/config-file-load-broker';
-import { pathDirnameAdapter } from '../../../adapters/path/dirname/path-dirname-adapter';
+import { dirname } from '#gateway/node/path';
 import type { AdapterResult, FilePath } from '@dungeonmaster/shared/contracts';
-import { adapterResultContract } from '@dungeonmaster/shared/contracts';
+import { adapterResultContract, filePathContract } from '@dungeonmaster/shared/contracts';
 import type { DungeonmasterConfig } from '../../../contracts/dungeonmaster-config/dungeonmaster-config-contract';
 
 export const findParentConfigsLayerBroker = async ({
@@ -44,7 +44,7 @@ export const findParentConfigsLayerBroker = async ({
       return result;
     }
 
-    const nextPath = pathDirnameAdapter({ path: parentConfigPath });
+    const nextPath = filePathContract.parse(dirname(parentConfigPath));
     await findParentConfigsLayerBroker({ currentPath: nextPath, originalConfigPath, configs });
   } catch {
     // No more parent configs found
