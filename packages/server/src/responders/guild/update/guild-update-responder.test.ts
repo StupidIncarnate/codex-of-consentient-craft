@@ -104,5 +104,24 @@ describe('GuildUpdateResponder', () => {
         data: { error: 'Update failed' },
       });
     });
+
+    it('ERROR: {path already registered to another guild} => returns 409 with error message', async () => {
+      const proxy = GuildUpdateResponderProxy();
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      proxy.setupUpdateGuildError({
+        guildId,
+        message: 'A guild with path /tmp/taken already exists',
+      });
+
+      const result = await proxy.callResponder({
+        params: { guildId },
+        body: { path: '/tmp/taken' },
+      });
+
+      expect(result).toStrictEqual({
+        status: 409,
+        data: { error: 'A guild with path /tmp/taken already exists' },
+      });
+    });
   });
 });

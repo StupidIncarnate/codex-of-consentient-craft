@@ -39,6 +39,7 @@ import {
 import type { Guild, GuildName, GuildPath } from '@dungeonmaster/shared/contracts';
 import { nameToUrlSlugTransformer } from '@dungeonmaster/shared/transformers';
 
+import { GuildPathTakenError } from '../../../errors/guild-path-taken/guild-path-taken-error';
 import { guildConfigReadBroker } from '../../guild-config/read/guild-config-read-broker';
 import { guildConfigWriteBroker } from '../../guild-config/write/guild-config-write-broker';
 
@@ -60,7 +61,7 @@ export const guildAddBroker = async ({
 
   const duplicate = config.guilds.find((guild) => guild.path === path);
   if (duplicate) {
-    throw new Error(`A guild with path ${path} already exists`);
+    throw new GuildPathTakenError({ path });
   }
 
   // `fsMkdirAdapter` is recursive, so the quests directory below stands a supplied home and its
