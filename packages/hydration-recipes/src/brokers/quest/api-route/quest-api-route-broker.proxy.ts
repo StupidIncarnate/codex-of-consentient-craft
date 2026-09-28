@@ -1,5 +1,4 @@
-import { dmHttpRequestAdapterProxy } from '../../../adapters/dm-http/request/dm-http-request-adapter.proxy';
-import { dmHttpResponseUnwrapAdapterProxy } from '../../../adapters/dm-http/response-unwrap/dm-http-response-unwrap-adapter.proxy';
+import { dmHttpRequestBrokerProxy } from '../../dm/http-request/dm-http-request-broker.proxy';
 import { questReachRouteBrokerProxy } from '../reach-route/quest-reach-route-broker.proxy';
 import type { DmHttpResponseStub } from '../../../contracts/dm-http-response/dm-http-response.stub';
 import type {
@@ -26,8 +25,7 @@ export const questApiRouteBrokerProxy = (): {
   }) => void;
   succeedsWalkReload: ({ input, result }: { input: GetQuestInput; result: GetQuestResult }) => void;
 } => {
-  const httpProxy = dmHttpRequestAdapterProxy();
-  dmHttpResponseUnwrapAdapterProxy();
+  const httpProxy = dmHttpRequestBrokerProxy();
   // questApiRouteBroker delegates a status walk to the REAL questReachRouteBroker (Proxy
   // Encapsulation Rule — a broker calling a broker runs real, mocked only at its own I/O
   // boundary), so this composes that broker's own proxy rather than re-mocking

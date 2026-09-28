@@ -37,11 +37,11 @@
  * await guildApiRouteBroker({ target, fields: { name, path } });
  * // Returns the created Guild on a success status; throws naming the url, status and body otherwise
  */
-import { dmHttpRequestAdapter } from '../../../adapters/dm-http/request/dm-http-request-adapter';
-import { dmHttpResponseUnwrapAdapter } from '../../../adapters/dm-http/response-unwrap/dm-http-response-unwrap-adapter';
 import { guildDirectoryEnsureBroker } from '../directory-ensure/guild-directory-ensure-broker';
 import { guildUniquePathResolveBroker } from '../unique-path-resolve/guild-unique-path-resolve-broker';
+import { dmHttpRequestBroker } from '../../dm/http-request/dm-http-request-broker';
 import { guildFieldsContract } from '../../../contracts/guild-fields/guild-fields-contract';
+import { dmHttpResponseUnwrapTransformer } from '../../../transformers/dm-http-response-unwrap/dm-http-response-unwrap-transformer';
 import { dmHttpTransportFailureTransformer } from '../../../transformers/dm-http-transport-failure/dm-http-transport-failure-transformer';
 import { guildPathDeriveTransformer } from '../../../transformers/guild-path-derive/guild-path-derive-transformer';
 import type { DmTarget } from '../../../contracts/dm-target/dm-target-contract';
@@ -63,9 +63,9 @@ export const guildApiRouteBroker = async ({
 
   const url = target.baseUrl === undefined ? GUILDS_PATH : `${target.baseUrl}${GUILDS_PATH}`;
 
-  const response = await (async (): ReturnType<typeof dmHttpRequestAdapter> => {
+  const response = await (async (): ReturnType<typeof dmHttpRequestBroker> => {
     try {
-      return await dmHttpRequestAdapter({
+      return await dmHttpRequestBroker({
         target,
         method: 'POST',
         path: GUILDS_PATH,
@@ -76,5 +76,5 @@ export const guildApiRouteBroker = async ({
     }
   })();
 
-  return dmHttpResponseUnwrapAdapter({ response, url });
+  return dmHttpResponseUnwrapTransformer({ response, url });
 };

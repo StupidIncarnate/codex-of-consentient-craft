@@ -2,8 +2,7 @@ import { questGetBroker, questModifyBroker } from '@dungeonmaster/orchestrator/b
 import { questGetBrokerProxy, questModifyBrokerProxy } from '@dungeonmaster/orchestrator/testing';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
-import { dmHttpRequestAdapterProxy } from '../../../adapters/dm-http/request/dm-http-request-adapter.proxy';
-import { dmHttpResponseUnwrapAdapterProxy } from '../../../adapters/dm-http/response-unwrap/dm-http-response-unwrap-adapter.proxy';
+import { dmHttpRequestBrokerProxy } from '../../dm/http-request/dm-http-request-broker.proxy';
 import type { DmHttpResponseStub } from '../../../contracts/dm-http-response/dm-http-response.stub';
 import type {
   GetQuestInputStub,
@@ -37,8 +36,7 @@ export const questReachRouteBrokerProxy = (): {
   questModifyBrokerProxy();
   const modifyHandle = registerMock({ fn: questModifyBroker });
   const getHandle = registerMock({ fn: questGetBroker });
-  const httpProxy = dmHttpRequestAdapterProxy();
-  dmHttpResponseUnwrapAdapterProxy();
+  const httpProxy = dmHttpRequestBrokerProxy();
 
   return {
     setupModifyHop: ({ input, result }): void => {

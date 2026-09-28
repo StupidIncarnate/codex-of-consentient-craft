@@ -1,4 +1,4 @@
-import { dmJsonlAppendAdapterProxy } from '../../../adapters/dm-jsonl/append/dm-jsonl-append-adapter.proxy';
+import { appendLinesCreatingParentProxy } from '#gateway/node/fs__promises/append-lines-creating-parent/append-lines-creating-parent.proxy';
 
 export const subagentWriteRouteBrokerProxy = (): {
   succeeds: ({
@@ -11,7 +11,7 @@ export const subagentWriteRouteBrokerProxy = (): {
   getSubagentContents: ({ subagentFilePath }: { subagentFilePath: string }) => unknown;
   getParentContents: ({ parentFilePath }: { parentFilePath: string }) => unknown;
 } => {
-  const appendProxy = dmJsonlAppendAdapterProxy();
+  const appendProxy = appendLinesCreatingParentProxy();
 
   return {
     succeeds: ({
@@ -21,12 +21,12 @@ export const subagentWriteRouteBrokerProxy = (): {
       subagentFilePath: string;
       parentFilePath: string;
     }): void => {
-      appendProxy.succeeds({ filePath: subagentFilePath });
-      appendProxy.succeeds({ filePath: parentFilePath });
+      appendProxy.succeeds({ path: subagentFilePath });
+      appendProxy.succeeds({ path: parentFilePath });
     },
     getSubagentContents: ({ subagentFilePath }: { subagentFilePath: string }): unknown =>
-      appendProxy.getAppendedContents({ filePath: subagentFilePath }),
+      appendProxy.appendedContentsFor({ path: subagentFilePath }),
     getParentContents: ({ parentFilePath }: { parentFilePath: string }): unknown =>
-      appendProxy.getAppendedContents({ filePath: parentFilePath }),
+      appendProxy.appendedContentsFor({ path: parentFilePath }),
   };
 };

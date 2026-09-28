@@ -17,4 +17,7 @@ export const dmHttpResponseContract = z.object({
   body: z.unknown(),
 });
 
-export type DmHttpResponse = z.infer<typeof dmHttpResponseContract>;
+export interface DmHttpResponse<T = unknown> {
+  status: z.infer<typeof dmHttpResponseContract>['status'];
+  body: T;
+}

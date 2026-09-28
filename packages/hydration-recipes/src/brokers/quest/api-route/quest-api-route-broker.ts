@@ -33,9 +33,9 @@
  * // body otherwise — or, for a `status` other than `created`, whatever `questReachRouteBroker`
  * // threw walking there
  */
-import { dmHttpRequestAdapter } from '../../../adapters/dm-http/request/dm-http-request-adapter';
-import { dmHttpResponseUnwrapAdapter } from '../../../adapters/dm-http/response-unwrap/dm-http-response-unwrap-adapter';
+import { dmHttpRequestBroker } from '../../dm/http-request/dm-http-request-broker';
 import { questFieldsContract } from '../../../contracts/quest-fields/quest-fields-contract';
+import { dmHttpResponseUnwrapTransformer } from '../../../transformers/dm-http-response-unwrap/dm-http-response-unwrap-transformer';
 import { dmHttpTransportFailureTransformer } from '../../../transformers/dm-http-transport-failure/dm-http-transport-failure-transformer';
 import { questReachRouteBroker } from '../reach-route/quest-reach-route-broker';
 import type { DmTarget } from '../../../contracts/dm-target/dm-target-contract';
@@ -53,9 +53,9 @@ export const questApiRouteBroker = async ({
   const parsedFields = questFieldsContract.parse(fields);
   const url = target.baseUrl === undefined ? QUESTS_PATH : `${target.baseUrl}${QUESTS_PATH}`;
 
-  const postResponse = await (async (): ReturnType<typeof dmHttpRequestAdapter> => {
+  const postResponse = await (async (): ReturnType<typeof dmHttpRequestBroker> => {
     try {
-      return await dmHttpRequestAdapter({
+      return await dmHttpRequestBroker({
         target,
         method: 'POST',
         path: QUESTS_PATH,
@@ -70,7 +70,7 @@ export const questApiRouteBroker = async ({
     }
   })();
 
-  const addResult = dmHttpResponseUnwrapAdapter({
+  const addResult = dmHttpResponseUnwrapTransformer({
     response: postResponse,
     url,
   });
@@ -83,9 +83,9 @@ export const questApiRouteBroker = async ({
   const getPath = `${QUESTS_PATH}/${parsedAddResult.questId}`;
   const getUrl = target.baseUrl === undefined ? getPath : `${target.baseUrl}${getPath}`;
 
-  const getResponse = await (async (): ReturnType<typeof dmHttpRequestAdapter> => {
+  const getResponse = await (async (): ReturnType<typeof dmHttpRequestBroker> => {
     try {
-      return await dmHttpRequestAdapter({
+      return await dmHttpRequestBroker({
         target,
         method: 'GET',
         path: getPath,
@@ -95,7 +95,7 @@ export const questApiRouteBroker = async ({
     }
   })();
 
-  const getResult = dmHttpResponseUnwrapAdapter({
+  const getResult = dmHttpResponseUnwrapTransformer({
     response: getResponse,
     url: getUrl,
   });

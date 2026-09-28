@@ -28,7 +28,7 @@ import {
   userToolResultStreamLineContract,
 } from '@dungeonmaster/shared/contracts';
 
-import { dmJsonlAppendAdapter } from '../../../adapters/dm-jsonl/append/dm-jsonl-append-adapter';
+import { appendLinesCreatingParent } from '#gateway/node/fs__promises';
 import { subagentFieldsContract } from '../../../contracts/subagent-fields/subagent-fields-contract';
 import { subagentRecordContract } from '../../../contracts/subagent-record/subagent-record-contract';
 import type { SubagentRecord } from '../../../contracts/subagent-record/subagent-record-contract';
@@ -53,7 +53,7 @@ export const subagentWriteRouteBroker = async ({
     `${sessionsDir}/${parsedFields.sessionId}/subagents/agent-${parsedFields.agentId}.jsonl`,
   );
 
-  await dmJsonlAppendAdapter({ filePath: subagentFilePath, lines: parsedFields.lines });
+  await appendLinesCreatingParent({ path: subagentFilePath, lines: parsedFields.lines });
 
   if (parsedFields.completed) {
     const correlationLine = userToolResultStreamLineContract.parse({
@@ -71,8 +71,8 @@ export const subagentWriteRouteBroker = async ({
       toolUseResult: { agentId: parsedFields.agentId },
     });
 
-    await dmJsonlAppendAdapter({
-      filePath: parentFilePath,
+    await appendLinesCreatingParent({
+      path: parentFilePath,
       lines: [streamJsonLineContract.parse(JSON.stringify(correlationLine))],
     });
   }

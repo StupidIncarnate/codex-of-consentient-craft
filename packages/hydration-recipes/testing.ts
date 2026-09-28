@@ -16,7 +16,5 @@ export * from './src/brokers/recipes/session-with-nested-chain/recipes-session-w
 export * from './src/brokers/recipes/guild-active-suite/recipes-guild-active-suite-broker.proxy';
 export * from './src/brokers/recipes/session-with-nested-subagent/recipes-session-with-nested-subagent-broker.proxy';
 export * from './src/brokers/recipes/catalog/recipes-catalog-broker.proxy';
-export * from './src/adapters/fetch/json/fetch-json-adapter.proxy';
-export * from './src/adapters/fs/write-text/fs-write-text-adapter.proxy';
 export * from './src/responders/recipes/listing/recipes-listing-responder.proxy';
 export * from './src/responders/recipes/seed/recipes-seed-responder.proxy';

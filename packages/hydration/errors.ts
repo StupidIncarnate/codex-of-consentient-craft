@@ -6,6 +6,7 @@
  * import { ... } from '@dungeonmaster/hydration/errors';
  */
 
+export * from './src/errors/http-envelope-failure/http-envelope-failure-error';
 export * from './src/errors/hydration-filter-expectation/hydration-filter-expectation-error';
 export * from './src/errors/hydration-nested-ingredient-unregistered/hydration-nested-ingredient-unregistered-error';
 export * from './src/errors/hydration-query-failed/hydration-query-failed-error';

@@ -10,10 +10,19 @@
  * routeFailureTransformer({ cause: new Error('connect ECONNREFUSED') });
  * // Returns { url: null, status: null, responseBody: null } — no url was ever attached
  */
+import { HttpEnvelopeFailureError } from '../../errors/http-envelope-failure/http-envelope-failure-error';
 import { routeFailureContract } from '../../contracts/route-failure/route-failure-contract';
 import type { RouteFailure } from '../../contracts/route-failure/route-failure-contract';
 
 export const routeFailureTransformer = ({ cause }: { cause: unknown }): RouteFailure => {
+  if (cause instanceof HttpEnvelopeFailureError) {
+    return routeFailureContract.parse({
+      url: cause.url,
+      status: cause.status,
+      responseBody: cause.body,
+    });
+  }
+
   if (
     typeof cause === 'object' &&
     cause !== null &&

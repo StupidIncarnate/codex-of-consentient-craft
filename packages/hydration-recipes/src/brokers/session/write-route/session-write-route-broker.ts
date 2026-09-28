@@ -37,7 +37,7 @@ import {
   sessionIdContract,
 } from '@dungeonmaster/shared/contracts';
 
-import { dmJsonlAppendAdapter } from '../../../adapters/dm-jsonl/append/dm-jsonl-append-adapter';
+import { appendLinesCreatingParent } from '#gateway/node/fs__promises';
 import { sessionUniqueIdResolveBroker } from '../unique-id-resolve/session-unique-id-resolve-broker';
 import { sessionFieldsContract } from '../../../contracts/session-fields/session-fields-contract';
 import { sessionRecordContract } from '../../../contracts/session-record/session-record-contract';
@@ -69,7 +69,7 @@ export const sessionWriteRouteBroker = async ({
     }
   })();
 
-  await dmJsonlAppendAdapter({ filePath, lines: parsedFields.lines });
+  await appendLinesCreatingParent({ path: filePath, lines: parsedFields.lines });
 
   return sessionRecordContract.parse({
     sessionId,

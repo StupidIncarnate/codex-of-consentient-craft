@@ -1,8 +1,8 @@
 import { fileContentsContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
 
-import { fetchJsonAdapterProxy } from '../../../adapters/fetch/json/fetch-json-adapter.proxy';
-import { fsWriteTextAdapterProxy } from '../../../adapters/fs/write-text/fs-write-text-adapter.proxy';
+import { fetchJsonProxy } from '#gateway/node/fetch/fetch-json/fetch-json.proxy';
+import { writeFileCreatingParentProxy } from '#gateway/node/fs__promises/write-file-creating-parent/write-file-creating-parent.proxy';
 import { recipeHttpStatics } from '../../../statics/recipe-http/recipe-http-statics';
 import { transcriptLinesReadTransformer } from '../../../transformers/transcript-lines-read/transcript-lines-read-transformer';
 
@@ -19,8 +19,9 @@ export const recipesSessionWithNestedSubagentBrokerProxy = (): {
   assistantTextsIn: (params: { filePath: AbsoluteFilePath }) => readonly unknown[];
   toolUseIdsIn: (params: { filePath: AbsoluteFilePath }) => readonly unknown[];
 } => {
-  const fetchProxy = fetchJsonAdapterProxy();
-  const writeProxy = fsWriteTextAdapterProxy();
+  const fetchProxy = fetchJsonProxy();
+  const writeProxy = writeFileCreatingParentProxy();
+  const stagedPaths: AbsoluteFilePath[] = [];
 
   return {
     laneAnswers: ({
@@ -32,36 +33,45 @@ export const recipesSessionWithNestedSubagentBrokerProxy = (): {
       guilds: unknown;
       transcriptPaths: readonly AbsoluteFilePath[];
     }): void => {
-      fetchProxy.answers({
+      fetchProxy.setupSuccess({
         url: `${apiBaseUrl}${recipeHttpStatics.routes.guilds}`,
-        method: recipeHttpStatics.methods.get,
         body: guilds,
       });
       transcriptPaths.forEach((filePath) => {
-        writeProxy.succeeds({ filePath });
+        stagedPaths.push(filePath);
+        writeProxy.succeeds({ path: filePath });
       });
     },
 
-    filesWritten: (): readonly unknown[] => writeProxy.pathsWritten(),
+    filesWritten: (): readonly unknown[] =>
+      stagedPaths.filter((path) => writeProxy.writtenContentsFor({ path }) !== undefined),
 
     uuidsIn: ({ filePath }: { filePath: AbsoluteFilePath }): readonly unknown[] =>
       transcriptLinesReadTransformer({
-        contents: fileContentsContract.parse(String(writeProxy.writtenTo({ filePath }))),
+        contents: fileContentsContract.parse(
+          String(writeProxy.writtenContentsFor({ path: filePath })),
+        ),
       }).map((line) => line.uuid),
 
     timestampsIn: ({ filePath }: { filePath: AbsoluteFilePath }): readonly unknown[] =>
       transcriptLinesReadTransformer({
-        contents: fileContentsContract.parse(String(writeProxy.writtenTo({ filePath }))),
+        contents: fileContentsContract.parse(
+          String(writeProxy.writtenContentsFor({ path: filePath })),
+        ),
       }).map((line) => line.timestamp),
 
     completionAgentIdsIn: ({ filePath }: { filePath: AbsoluteFilePath }): readonly unknown[] =>
       transcriptLinesReadTransformer({
-        contents: fileContentsContract.parse(String(writeProxy.writtenTo({ filePath }))),
+        contents: fileContentsContract.parse(
+          String(writeProxy.writtenContentsFor({ path: filePath })),
+        ),
       }).map((line) => line.toolUseResult?.agentId ?? null),
 
     assistantTextsIn: ({ filePath }: { filePath: AbsoluteFilePath }): readonly unknown[] =>
       transcriptLinesReadTransformer({
-        contents: fileContentsContract.parse(String(writeProxy.writtenTo({ filePath }))),
+        contents: fileContentsContract.parse(
+          String(writeProxy.writtenContentsFor({ path: filePath })),
+        ),
       }).flatMap((line): readonly unknown[] =>
         typeof line.message.content === 'string'
           ? [line.message.content]
@@ -70,7 +80,9 @@ export const recipesSessionWithNestedSubagentBrokerProxy = (): {
 
     toolUseIdsIn: ({ filePath }: { filePath: AbsoluteFilePath }): readonly unknown[] =>
       transcriptLinesReadTransformer({
-        contents: fileContentsContract.parse(String(writeProxy.writtenTo({ filePath }))),
+        contents: fileContentsContract.parse(
+          String(writeProxy.writtenContentsFor({ path: filePath })),
+        ),
       }).flatMap((line): readonly unknown[] =>
         typeof line.message.content === 'string'
           ? [null]

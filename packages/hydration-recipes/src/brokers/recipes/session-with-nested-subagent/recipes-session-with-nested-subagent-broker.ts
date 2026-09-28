@@ -27,7 +27,6 @@
 import {
   absoluteFilePathContract,
   contentTextContract,
-  fileContentsContract,
   AssistantTaskToolUseStreamLineStub,
   AssistantTextStreamLineStub,
   TaskToolResultStreamLineStub,
@@ -39,8 +38,8 @@ import {
   streamLineToJsonLineTransformer,
 } from '@dungeonmaster/shared/transformers';
 
-import { fetchJsonAdapter } from '../../../adapters/fetch/json/fetch-json-adapter';
-import { fsWriteTextAdapter } from '../../../adapters/fs/write-text/fs-write-text-adapter';
+import { fetchJson } from '#gateway/node/fetch';
+import { writeFileCreatingParent } from '#gateway/node/fs__promises';
 import { guildListingContract } from '../../../contracts/guild-listing/guild-listing-contract';
 import type { RecipeContext } from '../../../contracts/recipe-context/recipe-context-contract';
 import { recipeResultContract } from '../../../contracts/recipe-result/recipe-result-contract';
@@ -60,9 +59,9 @@ export const recipesSessionWithNestedSubagentBroker = async ({
     `${context.apiBaseUrl}${recipeHttpStatics.routes.guilds}`,
   );
   const listing = guildListingContract.parse({
-    guilds: await fetchJsonAdapter({
+    guilds: await fetchJson({
       url: guildsUrl,
-      method: contentTextContract.parse(recipeHttpStatics.methods.get),
+      method: recipeHttpStatics.methods.get,
     }),
   });
 
@@ -235,22 +234,18 @@ export const recipesSessionWithNestedSubagentBroker = async ({
     }),
   ];
 
-  await fsWriteTextAdapter({
-    filePath: absoluteFilePathContract.parse(`${transcriptDir}/${fixture.sessionId}.jsonl`),
-    contents: fileContentsContract.parse(`${mainLines.join('\n')}\n`),
-  });
-  await fsWriteTextAdapter({
-    filePath: absoluteFilePathContract.parse(
-      `${transcriptDir}/${fixture.sessionId}/subagents/agent-${fixture.outerAgentId}.jsonl`,
-    ),
-    contents: fileContentsContract.parse(`${outerLines.join('\n')}\n`),
-  });
-  await fsWriteTextAdapter({
-    filePath: absoluteFilePathContract.parse(
-      `${transcriptDir}/${fixture.sessionId}/subagents/agent-${fixture.nestedAgentId}.jsonl`,
-    ),
-    contents: fileContentsContract.parse(`${nestedLines.join('\n')}\n`),
-  });
+  await writeFileCreatingParent(
+    `${transcriptDir}/${fixture.sessionId}.jsonl`,
+    `${mainLines.join('\n')}\n`,
+  );
+  await writeFileCreatingParent(
+    `${transcriptDir}/${fixture.sessionId}/subagents/agent-${fixture.outerAgentId}.jsonl`,
+    `${outerLines.join('\n')}\n`,
+  );
+  await writeFileCreatingParent(
+    `${transcriptDir}/${fixture.sessionId}/subagents/agent-${fixture.nestedAgentId}.jsonl`,
+    `${nestedLines.join('\n')}\n`,
+  );
 
   const sessionRoute = `/${urlSlug}/session/${fixture.sessionId}`;
 

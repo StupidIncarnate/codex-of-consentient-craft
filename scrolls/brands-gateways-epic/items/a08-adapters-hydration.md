@@ -187,3 +187,64 @@ None
 - `packages/hydration-recipes/src/brokers/subagent/remove-route/subagent-remove-route-broker.test.ts`
 - `packages/hydration-recipes/src/brokers/quest/write-route/quest-write-route-broker.test.ts`
 
+### Group G-O (hydration-recipes own adapters, batches B and C)
+
+Scope: `packages/hydration-recipes`, and `packages/hydration` (error-shape builder only).
+
+#### Files to delete:
+- `packages/hydration-recipes/src/adapters/fs/write-text/fs-write-text-adapter.ts`
+- `packages/hydration-recipes/src/adapters/fs/write-text/fs-write-text-adapter.proxy.ts`
+- `packages/hydration-recipes/src/adapters/fs/write-text/fs-write-text-adapter.test.ts`
+- `packages/hydration-recipes/src/adapters/fetch/json/fetch-json-adapter.ts`
+- `packages/hydration-recipes/src/adapters/fetch/json/fetch-json-adapter.proxy.ts`
+- `packages/hydration-recipes/src/adapters/fetch/json/fetch-json-adapter.test.ts`
+- `packages/hydration-recipes/src/adapters/dm-http/request/dm-http-request-adapter.ts`
+- `packages/hydration-recipes/src/adapters/dm-http/request/dm-http-request-adapter.proxy.ts`
+- `packages/hydration-recipes/src/adapters/dm-http/request/dm-http-request-adapter.test.ts`
+- `packages/hydration-recipes/src/adapters/dm-http/response-unwrap/dm-http-response-unwrap-adapter.ts`
+- `packages/hydration-recipes/src/adapters/dm-http/response-unwrap/dm-http-response-unwrap-adapter.proxy.ts`
+- `packages/hydration-recipes/src/adapters/dm-http/response-unwrap/dm-http-response-unwrap-adapter.test.ts`
+
+#### Files to create:
+- `packages/hydration/src/errors/http-envelope-failure/http-envelope-failure-error.ts`
+- `packages/hydration/src/errors/http-envelope-failure/http-envelope-failure-error.test.ts`
+- `packages/hydration-recipes/src/brokers/dm/http-request/dm-http-request-broker.ts`
+- `packages/hydration-recipes/src/brokers/dm/http-request/dm-http-request-broker.proxy.ts`
+- `packages/hydration-recipes/src/brokers/dm/http-request/dm-http-request-broker.test.ts`
+- `packages/hydration-recipes/src/transformers/dm-http-response-unwrap/dm-http-response-unwrap-transformer.ts`
+- `packages/hydration-recipes/src/transformers/dm-http-response-unwrap/dm-http-response-unwrap-transformer.test.ts`
+
+#### Files to edit:
+- `packages/hydration/errors.ts`
+- `packages/hydration/src/transformers/route-failure/route-failure-transformer.ts`
+- `packages/hydration/src/transformers/route-failure/route-failure-transformer.test.ts`
+- `packages/hydration-recipes/src/brokers/recipes/session-with-nested-subagent/recipes-session-with-nested-subagent-broker.ts`
+- `packages/hydration-recipes/src/brokers/recipes/session-with-nested-subagent/recipes-session-with-nested-subagent-broker.proxy.ts`
+- `packages/hydration-recipes/src/brokers/session/write-route/session-write-route-broker.ts`
+- `packages/hydration-recipes/src/brokers/session/write-route/session-write-route-broker.proxy.ts`
+- `packages/hydration-recipes/src/brokers/subagent/write-route/subagent-write-route-broker.ts`
+- `packages/hydration-recipes/src/brokers/subagent/write-route/subagent-write-route-broker.proxy.ts`
+- `packages/hydration-recipes/src/brokers/guild/api-route/guild-api-route-broker.ts`
+- `packages/hydration-recipes/src/brokers/guild/api-route/guild-api-route-broker.proxy.ts`
+- `packages/hydration-recipes/src/brokers/guild/remove-route/guild-remove-route-broker.ts`
+- `packages/hydration-recipes/src/brokers/guild/remove-route/guild-remove-route-broker.proxy.ts`
+- `packages/hydration-recipes/src/brokers/quest/api-route/quest-api-route-broker.ts`
+- `packages/hydration-recipes/src/brokers/quest/api-route/quest-api-route-broker.proxy.ts`
+- `packages/hydration-recipes/src/brokers/quest/reach-route/quest-reach-route-broker.ts`
+- `packages/hydration-recipes/src/brokers/quest/reach-route/quest-reach-route-broker.proxy.ts`
+- `packages/hydration-recipes/src/contracts/dm-http-response/dm-http-response-contract.ts` (made DmHttpResponse generic over body type T)
+- `packages/hydration-recipes/testing.ts` (removed obsolete adapter proxy exports)
+
+#### Tests in scope:
+- `packages/hydration/src/errors/http-envelope-failure/http-envelope-failure-error.test.ts`
+- `packages/hydration/src/transformers/route-failure/route-failure-transformer.test.ts`
+- `packages/hydration-recipes/src/brokers/dm/http-request/dm-http-request-broker.test.ts`
+- `packages/hydration-recipes/src/transformers/dm-http-response-unwrap/dm-http-response-unwrap-transformer.test.ts`
+- `packages/hydration-recipes/src/brokers/recipes/session-with-nested-subagent/recipes-session-with-nested-subagent-broker.test.ts`
+- `packages/hydration-recipes/src/brokers/session/write-route/session-write-route-broker.test.ts`
+- `packages/hydration-recipes/src/brokers/subagent/write-route/subagent-write-route-broker.test.ts`
+- `packages/hydration-recipes/src/brokers/guild/api-route/guild-api-route-broker.test.ts`
+- `packages/hydration-recipes/src/brokers/guild/remove-route/guild-remove-route-broker.test.ts`
+- `packages/hydration-recipes/src/brokers/quest/api-route/quest-api-route-broker.test.ts`
+- `packages/hydration-recipes/src/brokers/quest/reach-route/quest-reach-route-broker.test.ts`
+

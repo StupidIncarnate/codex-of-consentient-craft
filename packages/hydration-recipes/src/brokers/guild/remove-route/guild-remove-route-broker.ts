@@ -22,8 +22,8 @@ import { guildRemoveBroker } from '@dungeonmaster/orchestrator/brokers';
 import { adapterResultContract, guildIdContract } from '@dungeonmaster/shared/contracts';
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
-import { dmHttpRequestAdapter } from '../../../adapters/dm-http/request/dm-http-request-adapter';
-import { dmHttpResponseUnwrapAdapter } from '../../../adapters/dm-http/response-unwrap/dm-http-response-unwrap-adapter';
+import { dmHttpRequestBroker } from '../../dm/http-request/dm-http-request-broker';
+import { dmHttpResponseUnwrapTransformer } from '../../../transformers/dm-http-response-unwrap/dm-http-response-unwrap-transformer';
 import type { DmTarget } from '../../../contracts/dm-target/dm-target-contract';
 
 export const guildRemoveRouteBroker = async ({
@@ -40,7 +40,7 @@ export const guildRemoveRouteBroker = async ({
   }
 
   const path = `/api/guilds/${guildId}`;
-  const response = await dmHttpRequestAdapter({ target, method: 'DELETE', path });
-  const body = dmHttpResponseUnwrapAdapter({ response, url: `${target.baseUrl}${path}` });
+  const response = await dmHttpRequestBroker({ target, method: 'DELETE', path });
+  const body = dmHttpResponseUnwrapTransformer({ response, url: `${target.baseUrl}${path}` });
   return adapterResultContract.parse(body);
 };
