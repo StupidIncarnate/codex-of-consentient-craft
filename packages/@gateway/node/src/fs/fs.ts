@@ -17,6 +17,7 @@ export { globSync } from './glob-sync/glob-sync';
 export { isFsError } from './is-fs-error/is-fs-error';
 export type { FsError } from './is-fs-error/fs-error';
 export { openForAppendSync } from './open-for-append-sync/open-for-append-sync';
+export { readFileBytesSync } from './read-file-bytes-sync/read-file-bytes-sync';
 export { readFileSync } from './read-file-sync/read-file-sync';
 export { readFileSyncIfExists } from './read-file-sync-if-exists/read-file-sync-if-exists';
 export { readJsonFileSync } from './read-json-file-sync/read-json-file-sync';

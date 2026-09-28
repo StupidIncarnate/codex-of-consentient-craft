@@ -4,6 +4,7 @@ const EXPORTS = [
   ['isFsError', fsGateway.isFsError],
   ['existsSync', fsGateway.existsSync],
   ['readFileSync', fsGateway.readFileSync],
+  ['readFileBytesSync', fsGateway.readFileBytesSync],
   ['readFileSyncIfExists', fsGateway.readFileSyncIfExists],
   ['readJsonFileSync', fsGateway.readJsonFileSync],
   ['readJsonFileSyncIfExists', fsGateway.readJsonFileSyncIfExists],
