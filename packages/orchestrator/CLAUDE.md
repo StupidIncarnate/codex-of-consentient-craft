@@ -297,7 +297,7 @@ streams an intake conversation into the browser chat panel while the user is sti
 in their terminal. Narrowing the pre-filter to `approved`/`in_progress`
 starts no watcher for those quests and the panel stays empty for the whole conversation.
 
-- `fsWatchTailAdapter` accepts an optional `startPosition: 'beginning' | 'end'` param.
+- `tailFile` (`#gateway/node/fs`) accepts an optional `startPosition: 'beginning' | 'end'` param.
   Pass `'beginning'` for sub-agent tails — they must drain the JSONL Claude already wrote
   while the parent blocked on the Task tool. Pass `'end'` for the worker session tail — only
   NEW appends from the moment the watcher starts forward should emit.
@@ -318,7 +318,7 @@ and the follow-up composer holds STOP forever. Every tail carries `workerWorkIte
 a per-quest wire event and the emit needs the quest to route to.
 
 The legacy `chat-start-responder` still composes its own tail lifecycle for the surviving
-spawn paths, with the same `fsWatchTailAdapter` semantics.
+spawn paths, with the same `tailFile` semantics.
 
 After the processor, `streamJsonToChatEntryTransformer` converts the stamped raw line into
 `ChatEntry[]`. `mapContentItemToChatEntryTransformer`, `mapUsageToChatUsageTransformer`,

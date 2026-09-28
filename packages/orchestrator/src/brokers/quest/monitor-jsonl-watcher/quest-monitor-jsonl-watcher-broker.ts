@@ -29,8 +29,9 @@ import {
   type SessionId,
 } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
+import { tailFile } from '#gateway/node/fs';
+import type { TailFileHandle } from '#gateway/node/fs';
 
-import { fsWatchTailAdapter } from '../../../adapters/fs/watch-tail/fs-watch-tail-adapter';
 import type { AgentId } from '../../../contracts/agent-id/agent-id-contract';
 import { chatLineSourceContract } from '../../../contracts/chat-line-source/chat-line-source-contract';
 import { chatLineProcessTransformer } from '../../../transformers/chat-line-process/chat-line-process-transformer';
@@ -112,7 +113,7 @@ export const questMonitorJsonlWatcherBroker = ({
 
   const sessionSource = chatLineSourceContract.parse('session');
 
-  const subagentHandles = new Map<AgentId, ReturnType<typeof fsWatchTailAdapter>>();
+  const subagentHandles = new Map<AgentId, TailFileHandle>();
 
   // Initial scan of existing sub-agent JSONL files under
   // `<sessionFilePath without .jsonl>/subagents/`. This is the same layout the replay
@@ -172,8 +173,8 @@ export const questMonitorJsonlWatcherBroker = ({
   // the monitor's main JSONL has never been streamed anywhere — every line is new to the
   // web UI from the moment this watcher registers.
   const mainJsonlPath = absoluteFilePathContract.parse(String(sessionFilePath));
-  const mainHandle = fsWatchTailAdapter({
-    filePath: mainJsonlPath,
+  const mainHandle = tailFile({
+    path: mainJsonlPath,
     // The session JSONL may not exist yet: a node-dispatch worker's sessionId reaches the
     // reactor via the child's stdout init line and starts this tail a beat before Claude CLI
     // flushes `<sessionId>.jsonl` to disk. `awaitCreate` watches the parent dir until the

@@ -16,6 +16,7 @@
  */
 
 import { readdirSync } from '#gateway/node/fs';
+import type { TailFileHandle } from '#gateway/node/fs';
 import { readNonEmptyLines } from '#gateway/node/fs__promises';
 import {
   absoluteFilePathContract,
@@ -32,7 +33,6 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 
-import type { fsWatchTailAdapter } from '../../../adapters/fs/watch-tail/fs-watch-tail-adapter';
 import type { AgentId } from '../../../contracts/agent-id/agent-id-contract';
 import type { ChatLineProcessor } from '../../../contracts/chat-line-processor/chat-line-processor-contract';
 import { normalizedStreamLineContract } from '../../../contracts/normalized-stream-line/normalized-stream-line-contract';
@@ -69,7 +69,7 @@ export const scanSubagentsDirLayerBroker = async ({
     sessionId: SessionId;
     workItemId?: QuestWorkItemId;
   }) => void;
-  subagentHandles: Map<AgentId, ReturnType<typeof fsWatchTailAdapter>>;
+  subagentHandles: Map<AgentId, TailFileHandle>;
 }): Promise<AdapterResult> => {
   const tailArgs = {
     sessionFilePath,

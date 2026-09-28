@@ -25,6 +25,7 @@
  * (use `chatHistoryReplayBroker` which reads the whole file).
  */
 
+import { tailFile } from '#gateway/node/fs';
 import { homedir } from '#gateway/node/os';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
@@ -32,7 +33,6 @@ import type { ChatEntry, RepoRootCwd, SessionId } from '@dungeonmaster/shared/co
 import type { ProcessId } from '@dungeonmaster/shared/contracts';
 import { claudeProjectPathEncoderTransformer } from '@dungeonmaster/shared/transformers';
 
-import { fsWatchTailAdapter } from '../../../adapters/fs/watch-tail/fs-watch-tail-adapter';
 import type { ChatLineProcessor } from '../../../contracts/chat-line-processor/chat-line-processor-contract';
 import { chatLineSourceContract } from '../../../contracts/chat-line-source/chat-line-source-contract';
 
@@ -60,8 +60,8 @@ export const chatMainSessionTailBroker = ({
 
   const sessionSource = chatLineSourceContract.parse('session');
 
-  const handle = fsWatchTailAdapter({
-    filePath: jsonlPath,
+  const handle = tailFile({
+    path: jsonlPath,
     // startPosition: 'end' — stdout already streamed every line up to this file size. We
     // only want to catch NEW appends (task-notifications written after the parent exits).
     // Reading from 0 would re-emit the whole session and duplicate what stdout already sent.

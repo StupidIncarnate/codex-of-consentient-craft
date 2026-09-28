@@ -34,6 +34,7 @@ describe('startSubagentTailLayerBroker', () => {
     >();
 
     proxy.setupLines({
+      path: '/home/user/.claude/projects/-home-user-proj/sess/subagents/agent-layer-agent-1.jsonl',
       lines: [
         '{"type":"assistant","uuid":"layer-line-1","timestamp":"2026-05-13T10:00:00.000Z","message":{"content":[{"type":"text","text":"layer entry"}]}}',
       ],
@@ -54,7 +55,6 @@ describe('startSubagentTailLayerBroker', () => {
       subagentHandles: handles,
     });
 
-    proxy.triggerChange();
     await flushImmediate();
 
     expect(emitted).toStrictEqual([
@@ -94,6 +94,7 @@ describe('startSubagentTailLayerBroker', () => {
     handles.set(agentId, { stop: (): void => {}, initialDrain: Promise.resolve() });
 
     proxy.setupLines({
+      path: '/home/user/.claude/projects/-home-user-proj/sess/subagents/agent-layer-agent-2.jsonl',
       lines: [
         '{"type":"assistant","uuid":"layer-noop","timestamp":"2026-05-13T10:00:00.000Z","message":{"content":[{"type":"text","text":"should not fire"}]}}',
       ],
@@ -114,7 +115,6 @@ describe('startSubagentTailLayerBroker', () => {
       subagentHandles: handles,
     });
 
-    proxy.triggerChange();
     await flushImmediate();
 
     expect(emitted).toStrictEqual([]);
@@ -137,6 +137,7 @@ describe('startSubagentTailLayerBroker', () => {
     >();
 
     proxy.setupLines({
+      path: '/home/user/.claude/projects/-home-user-proj/sess/subagents/agent-layer-agent-3.jsonl',
       lines: [
         '{"type":"assistant","uuid":"layer-line-3","timestamp":"2026-05-13T10:00:00.000Z","message":{"content":[{"type":"text","text":"wi entry"}]}}',
       ],
@@ -158,7 +159,6 @@ describe('startSubagentTailLayerBroker', () => {
       subagentHandles: handles,
     });
 
-    proxy.triggerChange();
     await flushImmediate();
 
     expect(emitted).toStrictEqual([
@@ -208,6 +208,15 @@ describe('startSubagentTailLayerBroker', () => {
     const NESTED_TEXT =
       '{"type":"assistant","uuid":"nested-text","timestamp":"2026-05-13T10:00:20.000Z","message":{"content":[{"type":"text","text":"nested output"}]}}';
 
+    proxy.setupLines({
+      path: '/home/user/.claude/projects/-home-user-proj/sess/subagents/agent-layer-agent-4.jsonl',
+      lines: [NESTED_TOOLRESULT],
+    });
+    proxy.setupLines({
+      path: '/home/user/.claude/projects/-home-user-proj/sess/subagents/agent-real-nested.jsonl',
+      lines: [NESTED_TEXT],
+    });
+
     const emitted: unknown[] = [];
 
     startSubagentTailLayerBroker({
@@ -223,24 +232,15 @@ describe('startSubagentTailLayerBroker', () => {
       subagentHandles: handles,
     });
 
-    // Round 1: A-tail processes NESTED_TOOLRESULT — the onLine handler emits a tool_result
-    // entry AND an agent-detected output that triggers the recursive call, registering the
-    // nested tail. The nested tail's watch callback is registered inside the setImmediate
-    // that drives readline, so it is NOT included in this triggerChange's synchronous
-    // for-of loop over watchCallbacks. It becomes visible on the next triggerChange.
-    proxy.setupLines({ lines: [NESTED_TOOLRESULT] });
-    proxy.triggerChange();
+    // Round 1: A-tail drains NESTED_TOOLRESULT as it starts — the onLine handler emits a
+    // tool_result entry AND an agent-detected output that triggers the recursive call,
+    // registering the nested tail.
     await flushImmediate();
 
     // Both the original tail (A) and the newly registered nested tail are in handles.
     expect(handles.size).toBe(2);
 
-    // Round 2: both A-tail and nested-tail fire. A-tail gets empty; nested-tail gets
-    // NESTED_TEXT. Batches are FIFO across all watchers in registration order (A first,
-    // nested second).
-    proxy.setupLines({ lines: [] }); // A-tail: nothing new
-    proxy.setupLines({ lines: [NESTED_TEXT] }); // nested tail: text line
-    proxy.triggerChange();
+    // Round 2: the nested tail drains NESTED_TEXT as it starts.
     await flushImmediate();
 
     expect(emitted).toStrictEqual([

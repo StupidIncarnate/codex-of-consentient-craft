@@ -8,12 +8,13 @@ import { questExecutionQueueStateProxy } from '../../../state/quest-execution-qu
 
 type QueueEntry = ReturnType<typeof QuestQueueEntryStub>;
 
+const OUTBOX_PATH = FilePathStub({ value: '/tmp/sync-listener-test/event-outbox.jsonl' });
+
 export const ExecutionQueueSyncListenerBootstrapResponderProxy = (): {
   reset: () => void;
   // The outbox line a real questOutboxWatchBroker install would tail — see
-  // questOutboxWatchBrokerProxy.setupLines/triggerChange.
+  // questOutboxWatchBrokerProxy.setupLines. Staged before the install: the tail drains once as it starts.
   setupLines: (params: { lines: readonly string[] }) => void;
-  triggerChange: () => void;
   getAllQueueEntries: () => readonly QueueEntry[];
   // processSyncEventLayerBroker is mocked two layers down (createSyncHandlerLayerBrokerProxy);
   // these prove the real install wiring dispatches it with the right shape once the outbox line
@@ -33,15 +34,12 @@ export const ExecutionQueueSyncListenerBootstrapResponderProxy = (): {
       outboxProxy.setupOutboxPath({
         homeDir: '/tmp/sync-listener-test',
         homePath: FilePathStub({ value: '/tmp/sync-listener-test' }),
-        outboxPath: FilePathStub({ value: '/tmp/sync-listener-test/event-outbox.jsonl' }),
+        outboxPath: OUTBOX_PATH,
       });
       queueProxy.setupEmpty();
     },
     setupLines: ({ lines }: { lines: readonly string[] }): void => {
-      outboxProxy.setupLines({ lines });
-    },
-    triggerChange: (): void => {
-      outboxProxy.triggerChange();
+      outboxProxy.setupLines({ path: OUTBOX_PATH, lines });
     },
     getAllQueueEntries: (): readonly QueueEntry[] => queueProxy.getAllEntries(),
     setupProcessSucceeds: (): void => {

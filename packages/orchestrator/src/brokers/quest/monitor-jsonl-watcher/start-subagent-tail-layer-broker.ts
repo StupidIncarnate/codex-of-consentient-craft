@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Layer of `quest-monitor-jsonl-watcher-broker` — starts a single `fsWatchTailAdapter` on `<projectDir>/subagents/agent-<agentId>.jsonl`, wires the tail's onLine through the shared chat-line processor with `source: 'subagent'`, registers the resulting tail handle in the caller-supplied handles map, and recursively starts tails for any nested sub-agents detected via `agent-detected` outputs. Idempotent: if a tail for `agentId` already exists in the map, the call is a no-op.
+ * PURPOSE: Layer of `quest-monitor-jsonl-watcher-broker` — starts a single `tailFile` on `<projectDir>/subagents/agent-<agentId>.jsonl`, wires the tail's onLine through the shared chat-line processor with `source: 'subagent'`, registers the resulting tail handle in the caller-supplied handles map, and recursively starts tails for any nested sub-agents detected via `agent-detected` outputs. Idempotent: if a tail for `agentId` already exists in the map, the call is a no-op.
  *
  * USAGE:
  * startSubagentTailLayerBroker({
@@ -26,9 +26,10 @@ import {
   type SessionId,
 } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
+import { tailFile } from '#gateway/node/fs';
+import type { TailFileHandle } from '#gateway/node/fs';
 import { stripJsonlSuffixTransformer } from '@dungeonmaster/shared/transformers';
 
-import { fsWatchTailAdapter } from '../../../adapters/fs/watch-tail/fs-watch-tail-adapter';
 import type { AgentId } from '../../../contracts/agent-id/agent-id-contract';
 import type { ChatLineProcessor } from '../../../contracts/chat-line-processor/chat-line-processor-contract';
 import { chatLineSourceContract } from '../../../contracts/chat-line-source/chat-line-source-contract';
@@ -68,7 +69,7 @@ export const startSubagentTailLayerBroker = ({
     sessionId: SessionId;
     workItemId?: QuestWorkItemId;
   }) => void;
-  subagentHandles: Map<AgentId, ReturnType<typeof fsWatchTailAdapter>>;
+  subagentHandles: Map<AgentId, TailFileHandle>;
 }): AdapterResult => {
   if (subagentHandles.has(agentId)) {
     return adapterResultContract.parse({ success: true });
@@ -82,8 +83,8 @@ export const startSubagentTailLayerBroker = ({
   );
   const subagentSource = chatLineSourceContract.parse('subagent');
 
-  const handle = fsWatchTailAdapter({
-    filePath: subagentJsonlPath,
+  const handle = tailFile({
+    path: subagentJsonlPath,
     onLine: ({ line }) => {
       const parsed = claudeLineNormalizeBroker({ rawLine: line });
       const outputs = processor.processLine({

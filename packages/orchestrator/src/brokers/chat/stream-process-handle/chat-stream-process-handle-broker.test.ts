@@ -206,6 +206,7 @@ describe('chatStreamProcessHandleBroker', () => {
 
       proxy.setupSubagentHomeDir({ homeDir: '/home/user' });
       proxy.setupSubagentLines({
+        path: '/home/user/.claude/projects/-home-user-my-project/session-sub-xyz/subagents/agent-realagent-internal-id.jsonl',
         lines: [
           streamLineToJsonLineTransformer({
             streamLine: {
@@ -288,12 +289,10 @@ describe('chatStreamProcessHandleBroker', () => {
         }),
       });
 
-      // Let the chatSubagentTailBroker setup (mkdir + appendFile + fs.watch) settle so
-      // the watch listener is captured by the proxy before triggerSubagentChange fires.
+      // Let the chatSubagentTailBroker setup (mkdir + appendFile + tail start) settle; the tail
+      // drains the staged line once as it starts.
       await flushImmediate();
       await flushImmediate();
-
-      proxy.triggerSubagentChange();
       await flushImmediate();
 
       expect(allEntries).toStrictEqual([
@@ -342,7 +341,10 @@ describe('chatStreamProcessHandleBroker', () => {
       const chatProcessId = ProcessIdStub({ value: 'proc-stop' });
 
       proxy.setupSubagentHomeDir({ homeDir: '/home/user' });
-      proxy.setupSubagentLines({ lines: [] });
+      proxy.setupSubagentLines({
+        path: '/home/user/.claude/projects/-home-user-my-project/session-stop/subagents/agent-realagent-stop.jsonl',
+        lines: [],
+      });
 
       const allCapturedEntries: unknown[] = [];
 
@@ -417,6 +419,7 @@ describe('chatStreamProcessHandleBroker', () => {
       handle.stop();
 
       proxy.setupSubagentLines({
+        path: '/home/user/.claude/projects/-home-user-my-project/session-stop/subagents/agent-realagent-stop.jsonl',
         lines: [
           streamLineToJsonLineTransformer({
             streamLine: {
@@ -432,7 +435,9 @@ describe('chatStreamProcessHandleBroker', () => {
           }),
         ],
       });
-      proxy.triggerSubagentChange();
+      proxy.triggerSubagentChange({
+        path: '/home/user/.claude/projects/-home-user-my-project/session-stop/subagents/agent-realagent-stop.jsonl',
+      });
       await flushImmediate();
 
       expect(allCapturedEntries).toStrictEqual(snapshotBeforeStop);

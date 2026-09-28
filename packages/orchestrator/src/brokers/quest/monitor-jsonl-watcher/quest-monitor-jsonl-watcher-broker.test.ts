@@ -17,6 +17,9 @@ const flushImmediate = async (): Promise<void> =>
     setImmediate(resolve);
   });
 
+const MAIN_JSONL = '/home/user/.claude/projects/-home-user-proj/abc-123.jsonl';
+const SUBAGENTS_DIR = '/home/user/.claude/projects/-home-user-proj/abc-123/subagents';
+
 describe('questMonitorJsonlWatcherBroker', () => {
   describe('main JSONL tail', () => {
     it('VALID: {assistant text line on main JSONL, active quest set} => emits tagged ChatEntry with active questId', async () => {
@@ -29,6 +32,7 @@ describe('questMonitorJsonlWatcherBroker', () => {
 
       proxy.setupSubagentDirEmpty();
       proxy.setupLines({
+        path: MAIN_JSONL,
         lines: [
           '{"type":"assistant","uuid":"line-1","timestamp":"2026-05-13T10:00:01.000Z","message":{"content":[{"type":"text","text":"hello from main"}]}}',
         ],
@@ -45,7 +49,6 @@ describe('questMonitorJsonlWatcherBroker', () => {
         },
       });
 
-      proxy.triggerChange();
       await flushImmediate();
 
       expect(emitted).toStrictEqual([
@@ -75,6 +78,7 @@ describe('questMonitorJsonlWatcherBroker', () => {
 
       proxy.setupSubagentDirEmpty();
       proxy.setupLines({
+        path: MAIN_JSONL,
         lines: [
           '{"type":"assistant","uuid":"line-2","timestamp":"2026-05-13T10:00:02.000Z","message":{"content":[{"type":"text","text":"idle chatter"}]}}',
         ],
@@ -91,7 +95,6 @@ describe('questMonitorJsonlWatcherBroker', () => {
         },
       });
 
-      proxy.triggerChange();
       await flushImmediate();
 
       expect(emitted).toStrictEqual([
@@ -121,6 +124,7 @@ describe('questMonitorJsonlWatcherBroker', () => {
 
       proxy.setupSubagentDirEmpty();
       proxy.setupLines({
+        path: MAIN_JSONL,
         lines: [
           '{"type":"assistant","uuid":"worker-line","timestamp":"2026-05-13T10:00:03.000Z","message":{"content":[{"type":"text","text":"pathseeker reading files"}]}}',
         ],
@@ -138,7 +142,6 @@ describe('questMonitorJsonlWatcherBroker', () => {
         mainSessionWorkItemId: QuestWorkItemIdStub(),
       });
 
-      proxy.triggerChange();
       await flushImmediate();
 
       expect(emitted).toStrictEqual([
@@ -174,6 +177,7 @@ describe('questMonitorJsonlWatcherBroker', () => {
 
       proxy.setupSubagentDirEmpty();
       proxy.setupLines({
+        path: MAIN_JSONL,
         lines: [
           '{"type":"assistant","uuid":"line-flip-1","timestamp":"2026-05-13T10:00:03.000Z","message":{"content":[{"type":"text","text":"during A"}]}}',
         ],
@@ -190,18 +194,18 @@ describe('questMonitorJsonlWatcherBroker', () => {
         },
       });
 
-      proxy.triggerChange();
       await flushImmediate();
 
       // Flip the active quest BEFORE the next batch of lines lands.
       activeQuest = questB;
 
       proxy.setupLines({
+        path: MAIN_JSONL,
         lines: [
           '{"type":"assistant","uuid":"line-flip-2","timestamp":"2026-05-13T10:00:04.000Z","message":{"content":[{"type":"text","text":"during B"}]}}',
         ],
       });
-      proxy.triggerChange();
+      proxy.triggerChange({ path: MAIN_JSONL });
       await flushImmediate();
 
       expect(emitted).toStrictEqual([
@@ -249,6 +253,7 @@ describe('questMonitorJsonlWatcherBroker', () => {
         error: new Error('ENOENT: no such directory'),
       });
       proxy.setupLines({
+        path: '/home/user/.claude/projects/-home-user-proj/no-subdir-session.jsonl',
         lines: [
           '{"type":"assistant","uuid":"line-3","timestamp":"2026-05-13T10:00:05.000Z","message":{"content":[{"type":"text","text":"only main"}]}}',
         ],
@@ -265,7 +270,6 @@ describe('questMonitorJsonlWatcherBroker', () => {
         },
       });
 
-      proxy.triggerChange();
       await flushImmediate();
 
       expect(emitted).toStrictEqual([
@@ -296,6 +300,7 @@ describe('questMonitorJsonlWatcherBroker', () => {
 
       proxy.setupSubagentDirEmpty();
       proxy.setupLines({
+        path: MAIN_JSONL,
         lines: [
           '{"type":"user","uuid":"paste-line","timestamp":"2026-05-13T10:00:08.000Z","message":{"role":"user","content":"A![Pasted Image 1](/p/x.png)B"}}',
         ],
@@ -312,7 +317,6 @@ describe('questMonitorJsonlWatcherBroker', () => {
         },
       });
 
-      proxy.triggerChange();
       await flushImmediate();
 
       expect(emitted).toStrictEqual([
@@ -349,6 +353,7 @@ describe('questMonitorJsonlWatcherBroker', () => {
       // Main JSONL tail's initial drain: a Task tool_use line, registering an outstanding
       // Task the poll-tick's prompt-pairing can match the late file against.
       proxy.setupLines({
+        path: MAIN_JSONL,
         lines: [
           '{"type":"assistant","uuid":"late-task","timestamp":"2026-05-13T10:00:09.000Z","message":{"content":[{"type":"tool_use","id":"toolu_late","name":"Agent","input":{"prompt":"late slice prompt"}}]}}',
         ],
@@ -365,9 +370,8 @@ describe('questMonitorJsonlWatcherBroker', () => {
         },
       });
 
-      // Drain the main tail's Task line before the file appears — pairing reads the
-      // processor's outstanding Tasks AS OF the poll tick, so registration must land first.
-      proxy.triggerChange();
+      // The main tail drains its Task line as it starts, before the file appears — pairing reads
+      // the processor's outstanding Tasks AS OF the poll tick, so registration must land first.
       await flushImmediate();
 
       proxy.setupSubagentDirFiles({
@@ -377,10 +381,9 @@ describe('questMonitorJsonlWatcherBroker', () => {
         content:
           '{"type":"user","uuid":"late-prompt-line","timestamp":"2026-05-13T10:00:09.500Z","message":{"role":"user","content":"late slice prompt"}}',
       });
-      // Main tail's second drain: empty. Sub-agent tail's first drain (started by the poll
-      // tick): one assistant-text line.
-      proxy.setupLines({ lines: [] });
+      // The sub-agent tail's first drain (started by the poll tick): one assistant-text line.
       proxy.setupLines({
+        path: `${SUBAGENTS_DIR}/agent-late-1.jsonl`,
         lines: [
           '{"type":"assistant","uuid":"sub-late-1","timestamp":"2026-05-13T10:00:10.000Z","message":{"content":[{"type":"text","text":"late from sub"}]}}',
         ],
@@ -388,13 +391,10 @@ describe('questMonitorJsonlWatcherBroker', () => {
 
       // Fire the periodic poll-rescan registered with `timerIntervalStartBroker`. The
       // broker should: rescan subagents/, see the new `agent-late-1.jsonl` file, pair its
-      // first line against the outstanding Task, and start a `fsWatchTailAdapter` on it.
-      // The synthetic-change emit from the adapter does not fire the mocked watch
-      // callback, so the test fires `triggerChange()` below to drain both watchers in
-      // registration order (main first → empty, subagent second → late-1 line).
+      // first line against the outstanding Task, and start a `tailFile` on it, which drains
+      // its staged line as it starts.
       proxy.triggerPollTick();
       await flushImmediate();
-      proxy.triggerChange();
       await flushImmediate();
 
       expect(emitted).toStrictEqual([
@@ -455,8 +455,17 @@ describe('questMonitorJsonlWatcherBroker', () => {
       // Main tail's first drain: the Task tool_use line whose prompt the pre-existing file's
       // first line matches — this is what the NEXT poll tick's pairing attempt needs.
       proxy.setupLines({
+        path: MAIN_JSONL,
         lines: [
           '{"type":"assistant","uuid":"sub-task","timestamp":"2026-05-13T10:00:05.000Z","message":{"content":[{"type":"tool_use","id":"toolu_real1","name":"Agent","input":{"prompt":"real-1 slice prompt"}}]}}',
+        ],
+      });
+
+      // Sub-agent tail's first drain (started once the poll tick pairs it): one assistant-text line.
+      proxy.setupLines({
+        path: `${SUBAGENTS_DIR}/agent-real-1.jsonl`,
+        lines: [
+          '{"type":"assistant","uuid":"sub-line-1","timestamp":"2026-05-13T10:00:06.000Z","message":{"content":[{"type":"text","text":"from sub"}]}}',
         ],
       });
 
@@ -470,25 +479,12 @@ describe('questMonitorJsonlWatcherBroker', () => {
           emitted.push(call);
         },
       });
+      // The main tail's drain registers the outstanding Task the already-on-disk file could
+      // not have matched at scan time.
       await flushImmediate();
-
-      // Drain the main tail's Task line — this registers the outstanding Task the
-      // already-on-disk file could not have matched at scan time.
-      proxy.triggerChange();
-      await flushImmediate();
-
-      // Main tail's second drain: empty. Sub-agent tail's first drain (started once the
-      // poll tick pairs it): one assistant-text line.
-      proxy.setupLines({ lines: [] });
-      proxy.setupLines({
-        lines: [
-          '{"type":"assistant","uuid":"sub-line-1","timestamp":"2026-05-13T10:00:06.000Z","message":{"content":[{"type":"text","text":"from sub"}]}}',
-        ],
-      });
 
       proxy.triggerPollTick();
       await flushImmediate();
-      proxy.triggerChange();
       await flushImmediate();
 
       expect(emitted).toStrictEqual([
@@ -563,6 +559,10 @@ describe('questMonitorJsonlWatcherBroker', () => {
       const B_TEXT =
         '{"type":"assistant","uuid":"b-text","timestamp":"2026-05-13T10:00:30.000Z","message":{"content":[{"type":"text","text":"nested B output"}]}}';
 
+      proxy.setupLines({ path: MAIN_JSONL, lines: [A_TOOLRESULT] });
+      proxy.setupLines({ path: `${SUBAGENTS_DIR}/agent-real-a.jsonl`, lines: [B_TOOLRESULT] });
+      proxy.setupLines({ path: `${SUBAGENTS_DIR}/agent-real-b.jsonl`, lines: [B_TEXT] });
+
       const emitted: unknown[] = [];
 
       questMonitorJsonlWatcherBroker({
@@ -575,24 +575,10 @@ describe('questMonitorJsonlWatcherBroker', () => {
         },
       });
 
-      // Round 1 — watcher order: [main]. main gets A_TOOLRESULT.
-      proxy.setupLines({ lines: [A_TOOLRESULT] });
-      proxy.triggerChange();
+      // Each tail drains its own file as it starts, and each drain starts the next tail: main
+      // reads A_TOOLRESULT, A's tail reads B_TOOLRESULT, B's tail reads B_TEXT.
       await flushImmediate();
-
-      // Round 2 — watcher order: [main, A-tail].
-      // main gets empty; A-tail gets B_TOOLRESULT.
-      proxy.setupLines({ lines: [] });
-      proxy.setupLines({ lines: [B_TOOLRESULT] });
-      proxy.triggerChange();
       await flushImmediate();
-
-      // Round 3 — watcher order: [main, A-tail, B-tail].
-      // main empty, A-tail empty, B-tail gets B_TEXT.
-      proxy.setupLines({ lines: [] });
-      proxy.setupLines({ lines: [] });
-      proxy.setupLines({ lines: [B_TEXT] });
-      proxy.triggerChange();
       await flushImmediate();
 
       // Three emits in causal order: main's A tool_result (no routing keys), A-tail's B
@@ -674,6 +660,9 @@ describe('questMonitorJsonlWatcherBroker', () => {
       const X_TEXT =
         '{"type":"assistant","uuid":"x-text","timestamp":"2026-05-13T10:00:50.000Z","message":{"content":[{"type":"text","text":"depth1 X output"}]}}';
 
+      proxy.setupLines({ path: MAIN_JSONL, lines: [X_TOOLRESULT] });
+      proxy.setupLines({ path: `${SUBAGENTS_DIR}/agent-real-x.jsonl`, lines: [X_TEXT] });
+
       const emitted: unknown[] = [];
 
       questMonitorJsonlWatcherBroker({
@@ -686,15 +675,9 @@ describe('questMonitorJsonlWatcherBroker', () => {
         },
       });
 
-      // Round 1 — [main]: main gets X_TOOLRESULT → registers real-x→toolu_X, starts X's tail.
-      proxy.setupLines({ lines: [X_TOOLRESULT] });
-      proxy.triggerChange();
+      // main drains X_TOOLRESULT as it starts → registers real-x→toolu_X and starts X's tail,
+      // which drains X_TEXT.
       await flushImmediate();
-
-      // Round 2 — [main, X-tail]: main empty, X-tail gets X_TEXT.
-      proxy.setupLines({ lines: [] });
-      proxy.setupLines({ lines: [X_TEXT] });
-      proxy.triggerChange();
       await flushImmediate();
 
       expect(emitted).toStrictEqual([
@@ -743,6 +726,7 @@ describe('questMonitorJsonlWatcherBroker', () => {
       const activeQuestId = QuestIdStub({ value: 'stop-quest' });
 
       proxy.setupSubagentDirEmpty();
+      proxy.setupFile({ path: MAIN_JSONL });
 
       const emitted: unknown[] = [];
 
@@ -758,11 +742,12 @@ describe('questMonitorJsonlWatcherBroker', () => {
       handle.stop();
 
       proxy.setupLines({
+        path: MAIN_JSONL,
         lines: [
           '{"type":"assistant","uuid":"after-stop","timestamp":"2026-05-13T10:00:07.000Z","message":{"content":[{"type":"text","text":"too late"}]}}',
         ],
       });
-      proxy.triggerChange();
+      proxy.triggerChange({ path: MAIN_JSONL });
       await flushImmediate();
 
       expect(emitted).toStrictEqual([]);
@@ -775,14 +760,24 @@ describe('questMonitorJsonlWatcherBroker', () => {
       });
       const chatProcessId = ProcessIdStub({ value: 'monitor-proc-stop-with-subs' });
       const activeQuestId = QuestIdStub({ value: 'stop-with-subs-quest' });
+      const subagentJsonl = `${SUBAGENTS_DIR}/agent-stop-1.jsonl`;
 
-      // Pre-existing sub-agent so subagentHandles is non-empty when stop() is called,
-      // exercising the for-of loop over subagentHandles.values() in stop().
+      // A pre-existing sub-agent file whose first line pairs with the Task the main tail drains,
+      // so subagentHandles is non-empty when stop() is called.
       proxy.setupSubagentDirFiles({
         files: [FileNameStub({ value: 'agent-stop-1.jsonl' })],
       });
-      proxy.setupLines({ lines: [] }); // sub-agent initial drain
-      proxy.setupLines({ lines: [] }); // main initial drain
+      proxy.setupFirstLineRead({
+        content:
+          '{"type":"user","uuid":"stop-prompt-line","timestamp":"2026-05-13T10:00:06.500Z","message":{"role":"user","content":"stop slice prompt"}}',
+      });
+      proxy.setupLines({
+        path: MAIN_JSONL,
+        lines: [
+          '{"type":"assistant","uuid":"stop-task","timestamp":"2026-05-13T10:00:06.000Z","message":{"content":[{"type":"tool_use","id":"toolu_stop1","name":"Agent","input":{"prompt":"stop slice prompt"}}]}}',
+        ],
+      });
+      proxy.setupLines({ path: subagentJsonl, lines: [] });
 
       const emitted: unknown[] = [];
 
@@ -795,20 +790,53 @@ describe('questMonitorJsonlWatcherBroker', () => {
         },
       });
 
-      // Drain initial empty batches (establishes both watchers are registered).
-      proxy.triggerChange();
+      // The main tail drains the Task line; the poll tick then pairs the sub-agent file and starts
+      // its tail.
+      await flushImmediate();
+      proxy.triggerPollTick();
+      await flushImmediate();
       await flushImmediate();
 
       // Stop all handles: poll + main + every subagentHandles entry.
       handle.stop();
 
-      // After stop, trigger change with no new batches queued. Both the sub-agent and main
-      // callbacks fire but their adapters are stopped, so no createReadStream calls are made
-      // and no lines are consumed or emitted.
-      proxy.triggerChange();
+      // After stop, both tails hear a change with new lines staged, but their watchers are
+      // closed, so no lines are consumed or emitted beyond the Task entry drained before stop.
+      proxy.setupLines({
+        path: MAIN_JSONL,
+        lines: [
+          '{"type":"assistant","uuid":"after-stop-main","timestamp":"2026-05-13T10:00:07.000Z","message":{"content":[{"type":"text","text":"late main"}]}}',
+        ],
+      });
+      proxy.setupLines({
+        path: subagentJsonl,
+        lines: [
+          '{"type":"assistant","uuid":"after-stop-sub","timestamp":"2026-05-13T10:00:07.500Z","message":{"content":[{"type":"text","text":"late sub"}]}}',
+        ],
+      });
+      proxy.triggerChange({ path: MAIN_JSONL });
+      proxy.triggerChange({ path: subagentJsonl });
       await flushImmediate();
 
-      expect(emitted).toStrictEqual([]);
+      expect(emitted).toStrictEqual([
+        {
+          chatProcessId,
+          entries: [
+            {
+              role: 'assistant',
+              type: 'tool_use',
+              toolName: 'Agent',
+              toolInput: '{"prompt":"stop slice prompt"}',
+              toolUseId: 'toolu_stop1',
+              source: 'session',
+              agentId: 'toolu_stop1',
+              uuid: 'stop-task:0',
+              timestamp: '2026-05-13T10:00:06.000Z',
+            },
+          ],
+          questId: activeQuestId,
+        },
+      ]);
     });
   });
 });

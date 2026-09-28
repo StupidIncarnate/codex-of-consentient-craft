@@ -7,9 +7,8 @@ import { chatSubagentTailBrokerProxy } from '../subagent-tail/chat-subagent-tail
 
 export const chatStreamProcessHandleBrokerProxy = (): {
   setupSubagentHomeDir: (params: { homeDir: string }) => void;
-  setupSubagentLines: (params: { lines: readonly string[] }) => void;
-  triggerSubagentChange: () => void;
-  lastSubagentWatchedPath: () => unknown;
+  setupSubagentLines: (params: { path: string; lines: readonly string[] }) => void;
+  triggerSubagentChange: (params: { path: string }) => void;
   setupUuids: (params: {
     uuids: readonly `${string}-${string}-${string}-${string}-${string}`[];
   }) => void;
@@ -33,13 +32,12 @@ export const chatStreamProcessHandleBrokerProxy = (): {
     setupSubagentHomeDir: ({ homeDir }: { homeDir: string }): void => {
       subagentTailProxy.setupHomeDir({ homeDir });
     },
-    setupSubagentLines: ({ lines }: { lines: readonly string[] }): void => {
-      subagentTailProxy.setupLines({ lines });
+    setupSubagentLines: ({ path, lines }: { path: string; lines: readonly string[] }): void => {
+      subagentTailProxy.setupLines({ path, lines });
     },
-    triggerSubagentChange: (): void => {
-      subagentTailProxy.triggerChange();
+    triggerSubagentChange: ({ path }: { path: string }): void => {
+      subagentTailProxy.triggerChange({ path });
     },
-    lastSubagentWatchedPath: (): unknown => subagentTailProxy.lastWatchedPath(),
     setupUuids: ({
       uuids,
     }: {

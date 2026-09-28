@@ -20,6 +20,11 @@ describe('questMonitorWatcherStartBroker', () => {
     it('VALID: {parentSessionId, projectDir, workerWorkItemId, workerQuestId} => returns a handle whose stop is idempotent', async () => {
       const proxy = questMonitorWatcherStartBrokerProxy();
       proxy.setupHomeDir({ path: '/home/user' });
+      proxy.setupSessionFile({
+        homeDir: '/home/user',
+        projectDir: '/home/user/my-project',
+        parentSessionId: '38c6cbd2-8bf1-6507-8d07-0980dd1fb595',
+      });
 
       const handle = await questMonitorWatcherStartBroker({
         parentSessionId: '38c6cbd2-8bf1-6507-8d07-0980dd1fb595',
@@ -56,6 +61,11 @@ describe('questMonitorWatcherStartBroker', () => {
       const parentSessionId = '88888888-8888-8888-8888-888888888888';
       const workerWorkItemId = String(WorkItemStub().id);
       const workerQuestId = String(QuestIdStub({ value: 'a1e884c2-5f67-6af6-97dd-5819484fba4d' }));
+      proxy.setupSessionFile({
+        homeDir: '/home/user',
+        projectDir: '/home/user/p',
+        parentSessionId,
+      });
 
       const emitted: EmitParam[] = [];
 
@@ -90,6 +100,11 @@ describe('questMonitorWatcherStartBroker', () => {
       proxy.setupHomeDir({ path: '/home/user' });
 
       const parentSessionId = 'a979fd6f-6969-1e05-b65b-fd78e7c13ea6';
+      proxy.setupSessionFile({
+        homeDir: '/home/user',
+        projectDir: '/home/user/p',
+        parentSessionId,
+      });
       const emitted: EmitParam[] = [];
 
       const handle = await questMonitorWatcherStartBroker({
@@ -131,8 +146,22 @@ describe('questMonitorWatcherStartBroker', () => {
       // Main tail's first drain: the Task tool_use line the worker's own session emits when
       // it spawns this sub-agent — this is what the poll tick's pairing attempt needs.
       proxy.setupLines({
+        homeDir: '/home/user',
+        projectDir: '/home/user/p',
+        parentSessionId,
         lines: [
           '{"type":"assistant","uuid":"worker-task","timestamp":"2026-05-13T09:59:59.000Z","message":{"content":[{"type":"tool_use","id":"toolu_worker_sub","name":"Agent","input":{"prompt":"worker slice prompt"}}]}}',
+        ],
+      });
+
+      // The sub-agent tail starts once the poll tick pairs its file, and drains this batch as it does.
+      proxy.setupSubagentLines({
+        homeDir: '/home/user',
+        projectDir: '/home/user/p',
+        parentSessionId,
+        fileName: FileNameStub({ value: 'agent-b9d4a2c8f7e6.jsonl' }),
+        lines: [
+          '{"type":"assistant","uuid":"sub-agent-line","timestamp":"2026-05-13T10:00:00.000Z","message":{"content":[{"type":"text","text":"streamed sub-agent text"}]}}',
         ],
       });
 
@@ -149,21 +178,11 @@ describe('questMonitorWatcherStartBroker', () => {
       });
       await flushImmediate();
 
-      // Drain the main tail's Task line — the initial scan (run before this) found the file
-      // but could not pair it yet, since the processor had no outstanding Task at that point.
-      proxy.triggerChange();
-      await flushImmediate();
-
-      proxy.setupLines({ lines: [] });
-      proxy.setupLines({
-        lines: [
-          '{"type":"assistant","uuid":"sub-agent-line","timestamp":"2026-05-13T10:00:00.000Z","message":{"content":[{"type":"text","text":"streamed sub-agent text"}]}}',
-        ],
-      });
-
+      // The main tail's first drain has delivered the Task line — the initial scan (run before
+      // it) found the file but could not pair it yet, since the processor had no outstanding
+      // Task at that point.
       proxy.triggerPollTick();
       await flushImmediate();
-      proxy.triggerChange();
       await flushImmediate();
 
       expect(emitted).toStrictEqual([
@@ -230,6 +249,9 @@ describe('questMonitorWatcherStartBroker', () => {
         files: [],
       });
       proxy.setupLines({
+        homeDir: '/home/user',
+        projectDir: '/home/user/p',
+        parentSessionId,
         lines: [
           '{"type":"assistant","uuid":"worker-line","timestamp":"2026-05-13T10:00:00.000Z","message":{"content":[{"type":"text","text":"pathseeker work"}]}}',
         ],
@@ -247,7 +269,6 @@ describe('questMonitorWatcherStartBroker', () => {
         },
       });
 
-      proxy.triggerChange();
       await flushImmediate();
 
       expect(emitted).toStrictEqual([

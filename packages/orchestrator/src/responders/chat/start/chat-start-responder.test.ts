@@ -403,7 +403,6 @@ describe('ChatStartResponder', () => {
 
       proxy.setupNewSession({ exitCode, stdoutLines: [sessionLine] });
       proxy.setupMainTailHomeDir({ homeDir: '/home/testuser' });
-      proxy.setupMainTailLines({ lines: [] });
       // Resolve the chaoswhisperer work-item lookup immediately so chatWorkItemId is set
       // BEFORE the sessionId$ promise drives onSessionIdExtracted → chat-session-started.
       proxy.setupQuestGetImmediate({ quest: seededQuest });
@@ -524,7 +523,6 @@ describe('ChatStartResponder', () => {
         stdoutLines: [firstAssistantLine, secondAssistantLine],
       });
       proxy.setupMainTailHomeDir({ homeDir: '/home/testuser' });
-      proxy.setupMainTailLines({ lines: [] });
       // Hold the chaoswhisperer work-item lookup unresolved so the stdout-driven
       // chat-output emits arrive while chatWorkItemId is still null and get buffered.
       const deferred = proxy.setupQuestGetDeferred({ quest: seededQuest });
@@ -609,7 +607,6 @@ describe('ChatStartResponder', () => {
 
       proxy.setupNewSession({ exitCode, stdoutLines: [askLine] });
       proxy.setupMainTailHomeDir({ homeDir: '/home/testuser' });
-      proxy.setupMainTailLines({ lines: [] });
       // Hold the chaoswhisperer work-item lookup unresolved so the clarification fires
       // while chatQuestId is still null and gets pushed to clarificationBuffer.
       const deferred = proxy.setupQuestGetDeferred({ quest: seededQuest });

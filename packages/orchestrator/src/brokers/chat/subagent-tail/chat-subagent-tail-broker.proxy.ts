@@ -1,21 +1,21 @@
 import { appendFile, ensureDir } from '#gateway/node/fs__promises';
 import { appendFileProxy } from '#gateway/node/fs__promises/append-file/append-file.proxy';
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
+import { tailFileProxy } from '#gateway/node/fs/tail-file/tail-file.proxy';
 import { homedir } from '#gateway/node/os';
 import { claudeLineNormalizeBrokerProxy } from '@dungeonmaster/shared/testing';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
-import { fsWatchTailAdapterProxy } from '../../../adapters/fs/watch-tail/fs-watch-tail-adapter.proxy';
-
 export const chatSubagentTailBrokerProxy = (): {
   setupHomeDir: (params: { homeDir: string }) => void;
-  setupLines: (params: { lines: readonly string[] }) => void;
-  triggerChange: () => void;
-  lastWatchedPath: () => unknown;
+  setupFile: (params: { path: string }) => void;
+  setupLines: (params: { path: string; lines: readonly string[] }) => void;
+  triggerChange: (params: { path: string }) => void;
+  getWatchCallsFor: (params: { path: string }) => readonly unknown[][];
 } => {
   claudeLineNormalizeBrokerProxy();
   const homedirHandle = registerMock({ fn: homedir });
-  const tailProxy = fsWatchTailAdapterProxy();
+  const tailProxy = tailFileProxy();
   // Wired to satisfy enforce-proxy-child-creation; ensureDirProxy mocks the underlying `mkdir`
   // this composes, which this broker never reaches — it mocks `ensureDir` itself (below) instead,
   // since the exact prefix (home + cwd + sessionId) varies per test but the broker's own
@@ -36,12 +36,16 @@ export const chatSubagentTailBrokerProxy = (): {
     setupHomeDir: ({ homeDir }: { homeDir: string }): void => {
       homedirHandle.calledWith([]).returns(homeDir);
     },
-    setupLines: ({ lines }: { lines: readonly string[] }): void => {
-      tailProxy.setupLines({ lines });
+    setupFile: ({ path }: { path: string }): void => {
+      tailProxy.setupFile({ path });
     },
-    triggerChange: (): void => {
-      tailProxy.triggerChange();
+    setupLines: ({ path, lines }: { path: string; lines: readonly string[] }): void => {
+      tailProxy.setupLines({ path, lines });
     },
-    lastWatchedPath: (): unknown => tailProxy.lastWatchedPath(),
+    triggerChange: ({ path }: { path: string }): void => {
+      tailProxy.triggerChange({ path });
+    },
+    getWatchCallsFor: ({ path }: { path: string }): readonly unknown[][] =>
+      tailProxy.getWatchCallsFor({ path }),
   };
 };

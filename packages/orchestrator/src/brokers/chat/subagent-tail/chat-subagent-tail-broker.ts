@@ -23,6 +23,7 @@
  * CREATE an empty file at the wrong address and tail that forever.
  */
 
+import { tailFile } from '#gateway/node/fs';
 import { appendFile, ensureDir } from '#gateway/node/fs__promises';
 import { homedir } from '#gateway/node/os';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
@@ -34,7 +35,6 @@ import {
   stripJsonlSuffixTransformer,
 } from '@dungeonmaster/shared/transformers';
 
-import { fsWatchTailAdapter } from '../../../adapters/fs/watch-tail/fs-watch-tail-adapter';
 import type { AgentId } from '../../../contracts/agent-id/agent-id-contract';
 import type { ChatLineProcessor } from '../../../contracts/chat-line-processor/chat-line-processor-contract';
 import { chatLineSourceContract } from '../../../contracts/chat-line-source/chat-line-source-contract';
@@ -73,7 +73,7 @@ export const chatSubagentTailBroker = async ({
     `${subagentsDir}/agent-${agentId}.jsonl`,
   );
 
-  // Ensure the directory + file exist before handing the path to fsWatchTailAdapter.
+  // Ensure the directory + file exist before handing the path to tailFile.
   // For a `run_in_background` Task, Claude CLI emits the `async_launched` tool_result on
   // stdout BEFORE it has finished creating `subagents/agent-<realAgentId>.jsonl` on disk.
   // `fs.watch` on a missing path throws ENOENT synchronously and the broker rejects, so
@@ -91,8 +91,8 @@ export const chatSubagentTailBroker = async ({
       `[SUBAGENT-TRACE][SUBAGENT-TAIL-OPEN] agentId=${String(agentId)} path=${String(subagentJsonlPath)}\n`,
     );
   }
-  const handle = fsWatchTailAdapter({
-    filePath: subagentJsonlPath,
+  const handle = tailFile({
+    path: subagentJsonlPath,
     onLine: ({ line }) => {
       if (subagentDebug) {
         process.stderr.write(`[SUBAGENT-TRACE][SUBAGENT-RAW] agentId=${String(agentId)} ${line}\n`);

@@ -33,25 +33,17 @@ export const agentLaunchBrokerProxy = (): {
   getSpawnedArgs: () => unknown;
   getSpawnedOptions: () => unknown;
   setupMainTailHomeDir: (params: MainTailHomeDirParams) => void;
-  setupMainTailLines: (params: { lines: readonly string[] }) => void;
-  triggerMainTailChange: () => void;
-  mainTailWatchedPath: () => unknown;
+  setupMainTailLines: (params: { path: string; lines: readonly string[] }) => void;
   getSpawnedCwd: () => RepoRootCwd | undefined;
 } => {
   const spawnProxy = agentSpawnUnifiedBrokerProxy();
   // The handle-broker proxy mocks `claudeLineNormalizeBroker`, `crypto.randomUUID`,
-  // `Date.prototype.toISOString`, and the sub-agent tail (which uses fsWatchTailAdapter).
-  // Wired BEFORE startMainTailLayerBrokerProxy so the launcher's main-session-tail call
-  // sees the most-recent fsWatchTailAdapter mock closure — which is mainTailLayerProxy's
-  // closure (registered next), not the subagent's. Without this ordering, the launcher's
-  // watch() listener gets pushed into the subagent proxy's closure and `triggerMainTail
-  // Change` (which fires mainTailLayerProxy's closure) finds it empty.
+  // `Date.prototype.toISOString`, and the sub-agent tail. Each tail proxy stages by file path,
+  // so the sub-agent tails and the main-session tail never answer for one another.
   chatStreamProcessHandleBrokerProxy();
   // startMainTailLayerBrokerProxy wires up the chatMainSessionTailBroker proxy chain so
-  // launcher tests can seed the home dir, tail lines, and trigger appends without going
-  // through the underlying main-session-tail broker proxy directly. Registered AFTER
-  // chatStreamProcessHandleBrokerProxy so its fsWatchTailAdapter closure is the active
-  // mock impl when the launcher's main-tail call fires.
+  // launcher tests can seed the home dir and the tail's lines by path without going
+  // through the underlying main-session-tail broker proxy directly.
   const mainTailLayerProxy = startMainTailLayerBrokerProxy();
   // composeKillLayerBroker is a pure function with no I/O; its proxy is empty but is
   // wired here to satisfy enforce-proxy-child-creation.
@@ -94,13 +86,9 @@ export const agentLaunchBrokerProxy = (): {
     setupMainTailHomeDir: (params: MainTailHomeDirParams): void => {
       mainTailLayerProxy.setupHomeDir(params);
     },
-    setupMainTailLines: ({ lines }: { lines: readonly string[] }): void => {
-      mainTailLayerProxy.setupLines({ lines });
+    setupMainTailLines: ({ path, lines }: { path: string; lines: readonly string[] }): void => {
+      mainTailLayerProxy.setupLines({ path, lines });
     },
-    triggerMainTailChange: (): void => {
-      mainTailLayerProxy.triggerChange();
-    },
-    mainTailWatchedPath: (): unknown => mainTailLayerProxy.lastWatchedPath(),
     // Delegates to the underlying spawn proxy so callers (e.g. chatSpawnBrokerProxy tests)
     // can verify that the resolved cwd was forwarded to the launcher's spawn call.
     getSpawnedCwd: (): RepoRootCwd | undefined => spawnProxy.getSpawnedCwd(),

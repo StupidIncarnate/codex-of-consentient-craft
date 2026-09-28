@@ -17,13 +17,12 @@ export const scanSubagentsDirLayerBrokerProxy = (): {
   // after that.
   setupSubagentDirEmpty: (params: { subagentsDir: string }) => void;
   setupSubagentDirMissing: (params: { subagentsDir: string; error: Error }) => void;
-  setupLines: (params: { lines: readonly string[] }) => void;
+  setupLines: (params: { path: string; lines: readonly string[] }) => void;
   setupFirstLineRead: (params: {
     subagentsDir: string;
     fileName: FileName;
     content: string;
   }) => void;
-  triggerChange: () => void;
 } => {
   const readdirProxy = readdirSyncProxy();
   // Passthrough for the real normalize the broker runs on a non-active file's first line.
@@ -32,12 +31,8 @@ export const scanSubagentsDirLayerBrokerProxy = (): {
   // sub-agent file's first line for prompt-pairing. A file no test configures throws on the
   // read, which the broker treats as a non-fatal skip.
   const readLinesProxy = readNonEmptyLinesProxy();
-  // scan-subagents-dir-layer-broker.ts imports startSubagentTailLayerBroker as a value (not
-  // fsWatchTailAdapter directly — that one is type-only, for the subagentHandles Map's value
-  // type), so this call is the sole fsWatchTailAdapter registration this file makes. When
-  // this proxy is composed inside `quest-monitor-jsonl-watcher-broker.proxy.ts`, that
-  // parent's OWN later `fsWatchTailAdapterProxy()` call still wins the registerMock
-  // last-implementation race and takes ownership of the queue + watch callbacks.
+  // scan-subagents-dir-layer-broker.ts starts its tails through startSubagentTailLayerBroker, so
+  // the tail staging lives in that layer's proxy, addressed by each sub-agent file's path.
   const tailProxy = startSubagentTailLayerBrokerProxy();
 
   return {
@@ -62,8 +57,8 @@ export const scanSubagentsDirLayerBrokerProxy = (): {
     }): void => {
       readdirProxy.throws({ path: subagentsDir, error });
     },
-    setupLines: ({ lines }: { lines: readonly string[] }): void => {
-      tailProxy.setupLines({ lines });
+    setupLines: ({ path, lines }: { path: string; lines: readonly string[] }): void => {
+      tailProxy.setupLines({ path, lines });
     },
     setupFirstLineRead: ({
       subagentsDir,
@@ -78,9 +73,6 @@ export const scanSubagentsDirLayerBrokerProxy = (): {
         path: absoluteFilePathContract.parse(`${subagentsDir}/${String(fileName)}`),
         rawContents: content,
       });
-    },
-    triggerChange: (): void => {
-      tailProxy.triggerChange();
     },
   };
 };

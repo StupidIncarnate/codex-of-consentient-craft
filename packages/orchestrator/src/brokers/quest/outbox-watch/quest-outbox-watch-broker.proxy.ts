@@ -8,11 +8,11 @@ import {
   requireActual,
 } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
+import { tailFileProxy } from '#gateway/node/fs/tail-file/tail-file.proxy';
 import { appendFileProxy } from '#gateway/node/fs__promises/append-file/append-file.proxy';
 import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 import { join } from '#gateway/node/path';
 
-import { fsWatchTailAdapterProxy } from '../../../adapters/fs/watch-tail/fs-watch-tail-adapter.proxy';
 import { questOutboxWatchBroker } from './quest-outbox-watch-broker';
 
 registerModuleMock({ module: './quest-outbox-watch-broker' });
@@ -22,9 +22,8 @@ type OnError = (args: { error: unknown }) => void;
 
 export const questOutboxWatchBrokerProxy = (): {
   setupOutboxPath: (params: { homeDir: string; homePath: FilePath; outboxPath: FilePath }) => void;
-  triggerChange: () => void;
-  setupLines: (params: { lines: readonly string[] }) => void;
-  triggerWatchError: (params: { error: Error }) => void;
+  setupLines: (params: { path: FilePath; lines: readonly string[] }) => void;
+  triggerWatchError: (params: { path: FilePath; error: Error }) => void;
   getTruncatedPaths: () => readonly unknown[];
   getCreatedPaths: () => readonly unknown[];
   // Caller-level scenario: stages an invented, self-contained fs layer (a caller reaching this
@@ -51,7 +50,7 @@ export const questOutboxWatchBrokerProxy = (): {
       stagedOutboxPaths.push(entry);
     }
   };
-  const watchTailProxy = fsWatchTailAdapterProxy();
+  const watchTailProxy = tailFileProxy();
 
   const stageOutboxPath = ({
     homeDir,
@@ -73,6 +72,8 @@ export const questOutboxWatchBrokerProxy = (): {
     joinHandle
       .calledWith([homePath, locationsStatics.dungeonmasterHome.eventOutbox])
       .returns(outboxPath);
+    // The tail opens the outbox right after the create/truncate, so its file is staged with it.
+    watchTailProxy.setupFile({ path: outboxPath });
     appendProxy.succeeds({ path: outboxPath });
     stageStagedOutboxPaths(outboxPath);
     writeHandle.succeeds({ path: outboxPath });
@@ -110,16 +111,12 @@ export const questOutboxWatchBrokerProxy = (): {
   return {
     setupOutboxPath: stageOutboxPath,
 
-    triggerChange: (): void => {
-      watchTailProxy.triggerChange();
+    setupLines: ({ path, lines }: { path: FilePath; lines: readonly string[] }): void => {
+      watchTailProxy.setupLines({ path, lines });
     },
 
-    setupLines: ({ lines }: { lines: readonly string[] }): void => {
-      watchTailProxy.setupLines({ lines });
-    },
-
-    triggerWatchError: ({ error }: { error: Error }): void => {
-      watchTailProxy.triggerWatchError({ error });
+    triggerWatchError: ({ path, error }: { path: FilePath; error: Error }): void => {
+      watchTailProxy.triggerWatchError({ path, error });
     },
 
     // `writeFile` is the truncate and `appendFile` the create-if-absent, so which of the two the
@@ -139,6 +136,9 @@ export const questOutboxWatchBrokerProxy = (): {
       const homePath = filePathContract.parse(`${homeDir}/.dungeonmaster`);
       const outboxPath = filePathContract.parse(`${homePath}/event-outbox.jsonl`);
       stageOutboxPath({ homeDir, homePath, outboxPath });
+      // No line is ever staged in this scenario, so the tail's first drain stays open instead of
+      // arming a timer that outlives the test.
+      watchTailProxy.setupNextDrainNeverCloses({ path: outboxPath });
     },
     getCapturedResetOnStart: (): boolean | undefined => captured.resetOnStart,
     getCapturedCallbacks: (): {

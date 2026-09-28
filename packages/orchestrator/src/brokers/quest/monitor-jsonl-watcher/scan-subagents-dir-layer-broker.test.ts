@@ -71,6 +71,7 @@ describe('scanSubagentsDirLayerBroker', () => {
         '{"type":"user","uuid":"zeta-prompt-line","timestamp":"2026-05-13T10:00:01.000Z","message":{"role":"user","content":"zeta slice prompt"}}',
     });
     proxy.setupLines({
+      path: `${subagentsDir}/agent-zeta.jsonl`,
       lines: [
         '{"type":"assistant","uuid":"scan-u-1","timestamp":"2026-05-13T10:00:11.000Z","message":{"content":[{"type":"text","text":"from scan"}]}}',
       ],
@@ -91,7 +92,6 @@ describe('scanSubagentsDirLayerBroker', () => {
       subagentHandles: new Map(),
     });
 
-    proxy.triggerChange();
     await flushImmediate();
 
     expect(emitted).toStrictEqual([
@@ -176,6 +176,7 @@ describe('scanSubagentsDirLayerBroker', () => {
     });
     // Only ONE line batch — only the single `agent-omega.jsonl` should get a tail.
     proxy.setupLines({
+      path: `${subagentsDir}/agent-omega.jsonl`,
       lines: [
         '{"type":"assistant","uuid":"scan-u-2","timestamp":"2026-05-13T10:00:12.000Z","message":{"content":[{"type":"text","text":"only omega"}]}}',
       ],
@@ -196,7 +197,6 @@ describe('scanSubagentsDirLayerBroker', () => {
       subagentHandles: new Map(),
     });
 
-    proxy.triggerChange();
     await flushImmediate();
 
     expect(emitted).toStrictEqual([
@@ -259,6 +259,7 @@ describe('scanSubagentsDirLayerBroker', () => {
     });
     // One batch — only the live agent's tail should drain it.
     proxy.setupLines({
+      path: `${subagentsDir}/agent-live-agent.jsonl`,
       lines: [
         '{"type":"assistant","uuid":"scan-u-filter","timestamp":"2026-05-13T10:00:13.000Z","message":{"content":[{"type":"text","text":"from live agent"}]}}',
       ],
@@ -280,7 +281,6 @@ describe('scanSubagentsDirLayerBroker', () => {
       subagentHandles: handles,
     });
 
-    proxy.triggerChange();
     await flushImmediate();
 
     expect(emitted).toStrictEqual([
@@ -337,6 +337,7 @@ describe('scanSubagentsDirLayerBroker', () => {
     });
     // Tail drain: the nested sub-agent's own activity once tailed.
     proxy.setupLines({
+      path: `${subagentsDir}/agent-realnestedb.jsonl`,
       lines: [
         '{"type":"assistant","uuid":"nested-text-line","timestamp":"2026-05-13T10:00:02.000Z","message":{"content":[{"type":"text","text":"nested activity"}]}}',
       ],
@@ -358,7 +359,6 @@ describe('scanSubagentsDirLayerBroker', () => {
       subagentHandles: handles,
     });
 
-    proxy.triggerChange();
     await flushImmediate();
 
     expect(handles.size).toBe(1);

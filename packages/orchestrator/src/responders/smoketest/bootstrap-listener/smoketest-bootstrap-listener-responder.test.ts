@@ -25,17 +25,14 @@ describe('SmoketestBootstrapListenerResponder', () => {
     const entry = SmoketestListenerEntryStub();
     const scenarioMeta = SmoketestScenarioMetaStub();
     proxy.registerListener({ questId, entry, scenarioMeta });
-    // Queued for the NEXT triggerChange() — fsWatchTailAdapterProxy's mocked fs.watch never wires
-    // its captured listener onto a 'change' event of its own, so the construction-time synthetic
-    // emit is a no-op under this mock; only an explicit triggerChange() drives a read.
+    // Staged before the install: the tail drains the outbox once as it starts, consuming this batch.
     proxy.setupLines({
       lines: [JSON.stringify({ questId, timestamp: '2026-09-13T05:00:00.000Z' })],
     });
 
     SmoketestBootstrapListenerResponder();
     SmoketestBootstrapListenerResponder();
-    await tick(); // dungeonmasterHomeEnsureBroker + fs.append resolve; fs.watch is now registered
-    proxy.triggerChange();
+    await tick(); // dungeonmasterHomeEnsureBroker + fs.append resolve; the tail is now started
     await tick();
     await tick();
     await tick();

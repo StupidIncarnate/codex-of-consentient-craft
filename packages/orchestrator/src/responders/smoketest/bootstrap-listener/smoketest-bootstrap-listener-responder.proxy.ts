@@ -16,12 +16,15 @@ type QuestId = ReturnType<typeof QuestIdStub>;
 type ListenerEntry = ReturnType<typeof SmoketestListenerEntryStub>;
 type ScenarioMeta = ReturnType<typeof SmoketestScenarioMetaStub>;
 
+const OUTBOX_PATH = FilePathStub({
+  value: '/tmp/smoketest-bootstrap-listener-test/event-outbox.jsonl',
+});
+
 export const SmoketestBootstrapListenerResponderProxy = (): {
   reset: () => void;
   // The outbox line a real questOutboxWatchBroker install would tail — see
-  // questOutboxWatchBrokerProxy.setupLines/triggerChange.
+  // questOutboxWatchBrokerProxy.setupLines. Staged before the install: the tail drains once as it starts.
   setupLines: (params: { lines: readonly string[] }) => void;
-  triggerChange: () => void;
   // processTerminalEventLayerBroker is mocked two layers down; this proves the real install
   // wiring dispatches it, without driving that layer's own real fs/state chain (its own test
   // owns that).
@@ -44,9 +47,7 @@ export const SmoketestBootstrapListenerResponderProxy = (): {
   outboxProxy.setupOutboxPath({
     homeDir: '/tmp/smoketest-bootstrap-listener-test',
     homePath: FilePathStub({ value: '/tmp/smoketest-bootstrap-listener-test' }),
-    outboxPath: FilePathStub({
-      value: '/tmp/smoketest-bootstrap-listener-test/event-outbox.jsonl',
-    }),
+    outboxPath: OUTBOX_PATH,
   });
   listenerProxy.setupEmpty();
   metaProxy.setupEmpty();
@@ -56,18 +57,13 @@ export const SmoketestBootstrapListenerResponderProxy = (): {
       outboxProxy.setupOutboxPath({
         homeDir: '/tmp/smoketest-bootstrap-listener-test',
         homePath: FilePathStub({ value: '/tmp/smoketest-bootstrap-listener-test' }),
-        outboxPath: FilePathStub({
-          value: '/tmp/smoketest-bootstrap-listener-test/event-outbox.jsonl',
-        }),
+        outboxPath: OUTBOX_PATH,
       });
       listenerProxy.setupEmpty();
       metaProxy.setupEmpty();
     },
     setupLines: ({ lines }: { lines: readonly string[] }): void => {
-      outboxProxy.setupLines({ lines });
-    },
-    triggerChange: (): void => {
-      outboxProxy.triggerChange();
+      outboxProxy.setupLines({ path: OUTBOX_PATH, lines });
     },
     setupProcessSucceeds: (): void => {
       terminalListenerProxy.setupProcessSucceeds();

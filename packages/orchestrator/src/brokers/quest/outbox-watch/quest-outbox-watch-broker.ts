@@ -15,12 +15,12 @@
 
 import { dungeonmasterHomeEnsureBroker } from '@dungeonmaster/shared/brokers';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, QuestId } from '@dungeonmaster/shared/contracts';
+import type { QuestId } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
+import { tailFile } from '#gateway/node/fs';
 import { appendFile, writeFile } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
 
-import { fsWatchTailAdapter } from '../../../adapters/fs/watch-tail/fs-watch-tail-adapter';
 import { questOutboxLineContract } from '../../../contracts/quest-outbox-line/quest-outbox-line-contract';
 
 export const questOutboxWatchBroker = async ({
@@ -52,10 +52,10 @@ export const questOutboxWatchBroker = async ({
     await appendFile(outboxPath, '');
   }
 
-  const { stop } = fsWatchTailAdapter({
-    filePath: outboxPath as AbsoluteFilePath,
+  const { stop } = tailFile({
+    path: outboxPath,
     // Start where the file currently ends. Nothing empties the bus on a watcher's behalf any more,
-    // so the adapter's default 'beginning' would re-fire `quest-modified` for every event still on
+    // so the tail's default 'beginning' would re-fire `quest-modified` for every event still on
     // disk each time a watcher starts.
     startPosition: 'end',
     onLine: ({ line }) => {

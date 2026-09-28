@@ -21,11 +21,14 @@ describe('chatSubagentTailBroker', () => {
       const proxy = chatSubagentTailBrokerProxy();
       const sessionId = SessionIdStub({ value: 'test-session-1' });
       const agentId = AgentIdStub({ value: 'agent-alpha' });
+      const subagentPath =
+        '/home/user/.claude/projects/-home-user-my-project/test-session-1/subagents/agent-agent-alpha.jsonl';
       const chatProcessId = ProcessIdStub({ value: 'proc-tail-1' });
       const processor = chatLineProcessTransformer();
 
       proxy.setupHomeDir({ homeDir: '/home/user' });
       proxy.setupLines({
+        path: subagentPath,
         lines: [
           '{"type":"assistant","uuid":"line-uuid-subagent-tail","timestamp":"2025-01-01T00:00:00Z","message":{"content":[{"type":"text","text":"hello from subagent"}]}}',
         ],
@@ -44,7 +47,6 @@ describe('chatSubagentTailBroker', () => {
         chatProcessId,
       });
 
-      proxy.triggerChange();
       await flushImmediate();
 
       expect(batches).toStrictEqual([
@@ -69,6 +71,8 @@ describe('chatSubagentTailBroker', () => {
       const proxy = chatSubagentTailBrokerProxy();
       const sessionId = SessionIdStub({ value: 'test-session-args' });
       const agentId = AgentIdStub({ value: 'agent-delta' });
+      const subagentPath =
+        '/home/user/.claude/projects/-home-user-my-project/test-session-args/subagents/agent-agent-delta.jsonl';
       const chatProcessId = ProcessIdStub({ value: 'proc-args-1' });
       const calls: Parameters<ReturnType<typeof ChatLineProcessorStub>['processLine']>[0][] = [];
       const processor = ChatLineProcessorStub({
@@ -83,7 +87,7 @@ describe('chatSubagentTailBroker', () => {
       const expectedParsed = claudeLineNormalizeBroker({ rawLine });
 
       proxy.setupHomeDir({ homeDir: '/home/user' });
-      proxy.setupLines({ lines: [rawLine] });
+      proxy.setupLines({ path: subagentPath, lines: [rawLine] });
 
       await chatSubagentTailBroker({
         sessionId,
@@ -94,7 +98,6 @@ describe('chatSubagentTailBroker', () => {
         chatProcessId,
       });
 
-      proxy.triggerChange();
       await flushImmediate();
 
       expect(calls).toStrictEqual([
@@ -110,11 +113,14 @@ describe('chatSubagentTailBroker', () => {
       const proxy = chatSubagentTailBrokerProxy();
       const sessionId = SessionIdStub({ value: 'test-session-sys' });
       const agentId = AgentIdStub({ value: 'agent-gamma' });
+      const subagentPath =
+        '/home/user/.claude/projects/-home-user-my-project/test-session-sys/subagents/agent-agent-gamma.jsonl';
       const chatProcessId = ProcessIdStub({ value: 'proc-tail-sys' });
       const processor = chatLineProcessTransformer();
 
       proxy.setupHomeDir({ homeDir: '/home/user' });
       proxy.setupLines({
+        path: subagentPath,
         lines: ['{"type":"system","subtype":"init"}'],
       });
 
@@ -131,7 +137,6 @@ describe('chatSubagentTailBroker', () => {
         chatProcessId,
       });
 
-      proxy.triggerChange();
       await flushImmediate();
 
       expect(batches).toStrictEqual([]);
@@ -141,6 +146,8 @@ describe('chatSubagentTailBroker', () => {
       const proxy = chatSubagentTailBrokerProxy();
       const sessionId = SessionIdStub({ value: 'test-session-agent-detected' });
       const agentId = AgentIdStub({ value: 'agent-epsilon' });
+      const subagentPath =
+        '/home/user/.claude/projects/-home-user-my-project/test-session-agent-detected/subagents/agent-agent-epsilon.jsonl';
       const chatProcessId = ProcessIdStub({ value: 'proc-agent-detected' });
       const processor = ChatLineProcessorStub({
         processLine: () => [
@@ -153,6 +160,7 @@ describe('chatSubagentTailBroker', () => {
 
       proxy.setupHomeDir({ homeDir: '/home/user' });
       proxy.setupLines({
+        path: subagentPath,
         lines: ['{"type":"assistant","message":{"content":[{"type":"text","text":"anything"}]}}'],
       });
 
@@ -169,7 +177,6 @@ describe('chatSubagentTailBroker', () => {
         chatProcessId,
       });
 
-      proxy.triggerChange();
       await flushImmediate();
 
       expect(batches).toStrictEqual([]);
@@ -179,10 +186,13 @@ describe('chatSubagentTailBroker', () => {
       const proxy = chatSubagentTailBrokerProxy();
       const sessionId = SessionIdStub({ value: 'test-session-sub-stop' });
       const agentId = AgentIdStub({ value: 'agent-eta' });
+      const subagentPath =
+        '/home/user/.claude/projects/-home-user-my-project/test-session-sub-stop/subagents/agent-agent-eta.jsonl';
       const chatProcessId = ProcessIdStub({ value: 'proc-sub-stop' });
       const processor = chatLineProcessTransformer();
 
       proxy.setupHomeDir({ homeDir: '/home/user' });
+      proxy.setupFile({ path: subagentPath });
 
       const batches: unknown[] = [];
 
@@ -200,9 +210,10 @@ describe('chatSubagentTailBroker', () => {
       stop();
 
       proxy.setupLines({
+        path: subagentPath,
         lines: ['{"type":"assistant","message":{"content":[{"type":"text","text":"after stop"}]}}'],
       });
-      proxy.triggerChange();
+      proxy.triggerChange({ path: subagentPath });
       await flushImmediate();
 
       expect(batches).toStrictEqual([]);
@@ -213,7 +224,11 @@ describe('chatSubagentTailBroker', () => {
     it('VALID: {cwd: repo root} => tails the subagents file under that cwd encoding', async () => {
       const proxy = chatSubagentTailBrokerProxy();
 
+      const subagentPath =
+        '/home/user/.claude/projects/-home-user-my-project/session-at-repo-root/subagents/agent-agent-repo-root.jsonl';
+
       proxy.setupHomeDir({ homeDir: '/home/user' });
+      proxy.setupFile({ path: subagentPath });
 
       await chatSubagentTailBroker({
         sessionId: SessionIdStub({ value: 'session-at-repo-root' }),
@@ -226,15 +241,19 @@ describe('chatSubagentTailBroker', () => {
 
       await flushImmediate();
 
-      expect(proxy.lastWatchedPath()).toBe(
-        '/home/user/.claude/projects/-home-user-my-project/session-at-repo-root/subagents/agent-agent-repo-root.jsonl',
-      );
+      expect(proxy.getWatchCallsFor({ path: subagentPath }).map((call) => call[0])).toStrictEqual([
+        subagentPath,
+      ]);
     });
 
     it("VALID: {cwd: a worktree under the guild path} => tails the WORKTREE's encoding, not the guild's", async () => {
       const proxy = chatSubagentTailBrokerProxy();
 
+      const subagentPath =
+        '/home/user/.claude/projects/-home-user-my-project-worktrees-quest-c8171a64/session-in-worktree/subagents/agent-agent-in-worktree.jsonl';
+
       proxy.setupHomeDir({ homeDir: '/home/user' });
+      proxy.setupFile({ path: subagentPath });
 
       await chatSubagentTailBroker({
         sessionId: SessionIdStub({ value: 'session-in-worktree' }),
@@ -247,9 +266,9 @@ describe('chatSubagentTailBroker', () => {
 
       await flushImmediate();
 
-      expect(proxy.lastWatchedPath()).toBe(
-        '/home/user/.claude/projects/-home-user-my-project-worktrees-quest-c8171a64/session-in-worktree/subagents/agent-agent-in-worktree.jsonl',
-      );
+      expect(proxy.getWatchCallsFor({ path: subagentPath }).map((call) => call[0])).toStrictEqual([
+        subagentPath,
+      ]);
     });
   });
 });

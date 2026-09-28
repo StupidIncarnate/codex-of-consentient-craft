@@ -256,10 +256,11 @@ describe('agentLaunchBroker', () => {
   });
 
   describe('post-exit main-session-tail', () => {
-    it('VALID: {spawn exits with resumeSessionId, tail change triggers} => onEntries fires with task-notification entry from JSONL append', async () => {
+    it('VALID: {spawn exits with resumeSessionId, tail starts} => onEntries fires with task-notification entry from JSONL append', async () => {
       const proxy = agentLaunchBrokerProxy();
       proxy.setupMainTailHomeDir({ homeDir: '/home/testuser' });
       proxy.setupMainTailLines({
+        path: '/home/testuser/.claude/projects/-home-testuser-my-project/session-post-exit.jsonl',
         lines: [
           JSON.stringify({
             type: 'user',
@@ -293,12 +294,8 @@ describe('agentLaunchBroker', () => {
         registerProcess: () => {},
       });
 
-      // Drain spawn → exit → launcher.onComplete → startMainTailLayerBroker async chain so
-      // the watcher is registered before the test triggers the file-change synthesis.
-      await flushImmediateMany();
-
-      proxy.triggerMainTailChange();
-
+      // Drain spawn → exit → launcher.onComplete → startMainTailLayerBroker async chain; the
+      // tail drains the staged lines once as it starts.
       await flushImmediateMany();
 
       expect(onEntries).toHaveBeenCalledWith({

@@ -112,11 +112,9 @@ export const chatSpawnBrokerProxy = (): {
   getSpawnedArgs: () => unknown;
   getSpawnedCwd: () => RepoRootCwd | undefined;
   // Delegated to agentLaunchBrokerProxy so callers (e.g. chat-start-responder tests) can
-  // seed the post-exit main-session-tail mocks the launcher's onComplete starts. The
+  // seed the post-exit main-session-tail home dir the launcher's onComplete starts. The
   // responder no longer touches chatMainSessionTailBroker directly — the launcher owns it.
   setupMainTailHomeDir: AgentLaunchProxy['setupMainTailHomeDir'];
-  setupMainTailLines: AgentLaunchProxy['setupMainTailLines'];
-  triggerMainTailChange: AgentLaunchProxy['triggerMainTailChange'];
   // Exposed for composing proxies (e.g. FollowupChatStartResponderProxy) that drive
   // chatSpawnBroker's own quest resolution directly via resolveChatQuestLayerBrokerProxy /
   // questCwdResolveBrokerProxy rather than through setupNewSession/setupResumeSession —
@@ -314,8 +312,6 @@ export const chatSpawnBrokerProxy = (): {
     getSpawnedCwd: (): RepoRootCwd | undefined => launchProxy.getSpawnedCwd(),
 
     setupMainTailHomeDir: launchProxy.setupMainTailHomeDir,
-    setupMainTailLines: launchProxy.setupMainTailLines,
-    triggerMainTailChange: launchProxy.triggerMainTailChange,
 
     stageAddDirPathJoins,
   };

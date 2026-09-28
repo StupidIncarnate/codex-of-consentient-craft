@@ -1,20 +1,19 @@
 import { claudeLineNormalizeBrokerProxy } from '@dungeonmaster/shared/testing';
-
-import { fsWatchTailAdapterProxy } from '../../../adapters/fs/watch-tail/fs-watch-tail-adapter.proxy';
+import { tailFileProxy } from '#gateway/node/fs/tail-file/tail-file.proxy';
 
 export const startSubagentTailLayerBrokerProxy = (): {
-  setupLines: (params: { lines: readonly string[] }) => void;
-  triggerChange: () => void;
+  setupLines: (params: { path: string; lines: readonly string[] }) => void;
+  triggerChange: (params: { path: string }) => void;
 } => {
   claudeLineNormalizeBrokerProxy();
-  const tailProxy = fsWatchTailAdapterProxy();
+  const tailProxy = tailFileProxy();
 
   return {
-    setupLines: ({ lines }: { lines: readonly string[] }): void => {
-      tailProxy.setupLines({ lines });
+    setupLines: ({ path, lines }: { path: string; lines: readonly string[] }): void => {
+      tailProxy.setupLines({ path, lines });
     },
-    triggerChange: (): void => {
-      tailProxy.triggerChange();
+    triggerChange: ({ path }: { path: string }): void => {
+      tailProxy.triggerChange({ path });
     },
   };
 };

@@ -472,3 +472,56 @@ Edited (named files; census by python3 over `packages/orchestrator/src` for impo
 - `responders/worktree/create/worktree-create-responder.ts`
 
 Also touched, found by the scoped ward run (composing proxies and tests whose staging changed): `brokers/rate-limits/watch/rate-limits-watch-tick-layer-broker.test.ts`, `brokers/rate-limits/watch/rate-limits-watch-broker.proxy.ts`, `brokers/path/is-accessible/path-is-accessible-broker.test.ts`, `brokers/guild/list/guild-list-broker.proxy.ts`, `brokers/worktree/populate-node-modules/populate-one-root-layer-broker.test.ts`, `brokers/worktree/verify-links/worktree-verify-links-broker.test.ts`, `brokers/worktree/seed-dist/worktree-seed-dist-broker.test.ts`, `brokers/worktree/prepare/worktree-prepare-broker.test.ts`, `brokers/worktree/provision/worktree-provision-broker.proxy.ts`, `brokers/quest/modify/resolve-package-entry-facts-layer-broker.test.ts`, `responders/worktree/create/worktree-create-responder.test.ts`, `brokers/worktree/prepare/worktree-prepare-broker.proxy.ts`, `packages/orchestrator/CLAUDE.md`, `docs/quest-role-paths.md`, `packages/shared/src/brokers/architecture/project-map/architecture-project-map-broker.integration.test.ts`.
+
+### G-CC fs, part 6 (watch-tail)
+
+Scope, all under `packages/orchestrator/src` unless a path says otherwise. Every `fsWatchTailAdapter` call moves onto
+`tailFile` from `#gateway/node/fs` (`filePath` becomes `path`; the handle is `TailFileHandle`, `stop` plus
+`initialDrain`), and every proxy stages by path through `tailFileProxy` from
+`#gateway/node/fs/tail-file/tail-file.proxy`. The staged tail drains once at construction, so a test stages its lines
+BEFORE the broker starts; `triggerChange({ path })` drives a later drain. Deleted: `adapters/fs/watch-tail/**`
+(adapter, proxy, test), which leaves `packages/orchestrator/src/adapters/` absent.
+
+Edited, source:
+- `brokers/quest/outbox-watch/quest-outbox-watch-broker.ts`
+- `brokers/quest/monitor-jsonl-watcher/quest-monitor-jsonl-watcher-broker.ts`
+- `brokers/quest/monitor-jsonl-watcher/start-subagent-tail-layer-broker.ts`
+- `brokers/quest/monitor-jsonl-watcher/scan-subagents-dir-layer-broker.ts` (type-only import)
+- `brokers/chat/subagent-tail/chat-subagent-tail-broker.ts`
+- `brokers/chat/main-session-tail/chat-main-session-tail-broker.ts`
+
+Edited, proxies (path-addressed staging passes through each composing proxy):
+- `brokers/quest/outbox-watch/quest-outbox-watch-broker.proxy.ts`
+- `brokers/quest/monitor-jsonl-watcher/quest-monitor-jsonl-watcher-broker.proxy.ts`
+- `brokers/quest/monitor-jsonl-watcher/start-subagent-tail-layer-broker.proxy.ts`
+- `brokers/quest/monitor-jsonl-watcher/scan-subagents-dir-layer-broker.proxy.ts`
+- `brokers/quest/monitor-watcher-start/quest-monitor-watcher-start-broker.proxy.ts`
+- `brokers/chat/subagent-tail/chat-subagent-tail-broker.proxy.ts`
+- `brokers/chat/main-session-tail/chat-main-session-tail-broker.proxy.ts`
+- `brokers/chat/stream-process-handle/chat-stream-process-handle-broker.proxy.ts`
+- `brokers/chat/spawn/chat-spawn-broker.proxy.ts`
+- `brokers/agent/launch/start-main-tail-layer-broker.proxy.ts`
+- `brokers/agent/launch/agent-launch-broker.proxy.ts`
+- `responders/chat/start/chat-start-responder.proxy.ts`
+- `responders/execution-queue/sync-listener-bootstrap/execution-queue-sync-listener-bootstrap-responder.proxy.ts`
+- `responders/smoketest/bootstrap-listener/smoketest-bootstrap-listener-responder.proxy.ts`
+
+Edited, tests (call-site rewrite to path-addressed staging):
+- `brokers/quest/outbox-watch/quest-outbox-watch-broker.test.ts`
+- `brokers/quest/monitor-jsonl-watcher/quest-monitor-jsonl-watcher-broker.test.ts`
+- `brokers/quest/monitor-jsonl-watcher/scan-subagents-dir-layer-broker.test.ts`
+- `brokers/quest/monitor-jsonl-watcher/start-subagent-tail-layer-broker.test.ts`
+- `brokers/quest/monitor-watcher-start/quest-monitor-watcher-start-broker.test.ts`
+- `brokers/chat/subagent-tail/chat-subagent-tail-broker.test.ts`
+- `brokers/chat/main-session-tail/chat-main-session-tail-broker.test.ts`
+- `brokers/chat/stream-process-handle/chat-stream-process-handle-broker.test.ts`
+- `brokers/agent/launch/start-main-tail-layer-broker.test.ts`
+- `brokers/agent/launch/agent-launch-broker.test.ts`
+- `responders/chat/start/chat-start-responder.test.ts`
+- `responders/execution-queue/sync-listener-bootstrap/execution-queue-sync-listener-bootstrap-responder.test.ts` (comment)
+- `responders/smoketest/bootstrap-listener/smoketest-bootstrap-listener-responder.test.ts` (comment)
+
+Also: `packages/orchestrator/CLAUDE.md` (names `fsWatchTailAdapter`),
+`packages/shared/src/brokers/architecture/project-map/architecture-project-map-broker.integration.test.ts` (re-anchor
+`→ fsWatchTailAdapter` on an adapter another package still holds), and whatever the scoped ward run finds composing
+these proxies.

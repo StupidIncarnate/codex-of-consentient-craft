@@ -69,8 +69,6 @@ export const ChatStartResponderProxy = ({
     }[];
   };
   setupMainTailHomeDir: (params: { homeDir: string }) => void;
-  setupMainTailLines: (params: { lines: readonly string[] }) => void;
-  triggerMainTailChange: () => void;
   setupQuestGetImmediate: (params: { quest: Quest }) => void;
   setupQuestGetDeferred: (params: { quest: Quest }) => { resolve: () => void };
   getSpawnedArgs: () => unknown;
@@ -171,8 +169,6 @@ export const ChatStartResponderProxy = ({
       return { getEmittedEvents: () => emittedEvents };
     },
     setupMainTailHomeDir: spawnProxy.setupMainTailHomeDir,
-    setupMainTailLines: spawnProxy.setupMainTailLines,
-    triggerMainTailChange: spawnProxy.triggerMainTailChange,
     // Resolve questGetBroker immediately with the supplied quest. Use when the test wants
     // chatWorkItemId to be set BEFORE any chat-output emits arrive (no buffering race).
     setupQuestGetImmediate: ({ quest }: { quest: Quest }): void => {

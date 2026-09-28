@@ -6,9 +6,9 @@ import { ExecutionQueueSyncListenerBootstrapResponderProxy } from './execution-q
 // One macrotask turn drains every pending microtask chained off it (an `await` on an
 // already-resolving mock never introduces a new macrotask of its own), so each call here flushes
 // one real async boundary in the install chain: dungeonmasterHomeEnsureBroker resolving, the
-// fs.append call resolving, and — after triggerChange() re-enters the watch callback — the
-// readline 'line'/'close' events (queued via a real setImmediate inside fsWatchTailAdapterProxy)
-// plus the handler's own dispatch.
+// fs.append call resolving, and — once the tail has started and drained — the readline
+// 'line'/'close' events (queued via a real setImmediate inside tailFileProxy) plus the handler's
+// own dispatch.
 const tick = async (): Promise<void> =>
   new Promise((resolve) => {
     setImmediate(resolve);
@@ -27,17 +27,14 @@ describe('ExecutionQueueSyncListenerBootstrapResponder', () => {
     proxy.reset();
     proxy.setupProcessSucceeds();
     const questId = QuestIdStub({ value: 'q-sync-listener-bootstrap' });
-    // Queued for the NEXT triggerChange() — fsWatchTailAdapterProxy's mocked fs.watch never wires
-    // its captured listener onto a 'change' event of its own, so the adapter's construction-time
-    // synthetic emit is a no-op under this mock; only an explicit triggerChange() drives a read.
+    // Staged before the install: the tail drains the outbox once as it starts, consuming this batch.
     proxy.setupLines({
       lines: [JSON.stringify({ questId, timestamp: '2026-09-13T05:00:00.000Z' })],
     });
 
     ExecutionQueueSyncListenerBootstrapResponder();
     ExecutionQueueSyncListenerBootstrapResponder();
-    await tick(); // dungeonmasterHomeEnsureBroker + fs.append resolve; fs.watch is now registered
-    proxy.triggerChange();
+    await tick(); // dungeonmasterHomeEnsureBroker + fs.append resolve; the tail is now started
     await tick();
     await tick();
     await tick();

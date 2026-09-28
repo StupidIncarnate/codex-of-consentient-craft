@@ -2,6 +2,7 @@ import { homedir } from '#gateway/node/os';
 import {
   absoluteFilePathContract,
   sessionIdContract,
+  type AbsoluteFilePath,
   type FileName,
 } from '@dungeonmaster/shared/contracts';
 import {
@@ -27,12 +28,34 @@ export const questMonitorWatcherStartBrokerProxy = (): {
     parentSessionId: string;
     files: readonly FileName[];
   }) => void;
-  setupLines: (params: { lines: readonly string[] }) => void;
+  // homeDir/projectDir/parentSessionId of the three methods below must match the values the
+  // test's own questMonitorWatcherStartBroker call uses — the real broker derives every tailed
+  // path from them. `setupSessionFile` stages the worker session's main JSONL: the tail opens it
+  // as the broker starts and drains its lines once, so all three are called BEFORE the broker.
+  setupSessionFile: (params: {
+    homeDir: string;
+    projectDir: string;
+    parentSessionId: string;
+  }) => void;
+  setupLines: (params: {
+    homeDir: string;
+    projectDir: string;
+    parentSessionId: string;
+    lines: readonly string[];
+  }) => void;
+  // Stages one sub-agent JSONL under the session's `subagents/` directory, drained once when its
+  // tail starts.
+  setupSubagentLines: (params: {
+    homeDir: string;
+    projectDir: string;
+    parentSessionId: string;
+    fileName: FileName;
+    lines: readonly string[];
+  }) => void;
   // Queues the content the scan reads as a not-yet-paired sub-agent file's FIRST line —
   // the byte-equal prompt-pairing key. Targets the single file most recently staged via
   // `setupSubagentDirFiles`.
   setupFirstLineRead: (params: { content: string }) => void;
-  triggerChange: () => void;
   // Fires the periodic poll-rescan registered with `timerIntervalStartBroker` — the retry
   // that lets a sub-agent file pair once the main tail has since drained its spawning
   // Task line.
@@ -45,6 +68,20 @@ export const questMonitorWatcherStartBrokerProxy = (): {
   (guildListBroker as jest.MockedFunction<typeof guildListBroker>).mockResolvedValue([]);
 
   const jsonlWatcherProxy = questMonitorJsonlWatcherBrokerProxy();
+  const sessionFilePathOf = ({
+    homeDir,
+    projectDir,
+    parentSessionId,
+  }: {
+    homeDir: string;
+    projectDir: string;
+    parentSessionId: string;
+  }): AbsoluteFilePath =>
+    claudeProjectPathEncoderTransformer({
+      homeDir: absoluteFilePathContract.parse(homeDir),
+      projectPath: absoluteFilePathContract.parse(projectDir),
+      sessionId: sessionIdContract.parse(parentSessionId),
+    });
   // No pre-queued subagent-dir state — the underlying readdir mock defaults to `[]`
   // so the watcher scans no subagent files unless a test calls
   // `setupSubagentDirFiles({...})`. Auto-queueing a throw here would shadow that fallback
@@ -75,14 +112,57 @@ export const questMonitorWatcherStartBrokerProxy = (): {
       );
       jsonlWatcherProxy.setupSubagentDirFiles({ subagentsDir, files });
     },
-    setupLines: ({ lines }: { lines: readonly string[] }): void => {
-      jsonlWatcherProxy.setupLines({ lines });
+    setupSessionFile: ({
+      homeDir,
+      projectDir,
+      parentSessionId,
+    }: {
+      homeDir: string;
+      projectDir: string;
+      parentSessionId: string;
+    }): void => {
+      jsonlWatcherProxy.setupFile({
+        path: sessionFilePathOf({ homeDir, projectDir, parentSessionId }),
+      });
+    },
+    setupLines: ({
+      homeDir,
+      projectDir,
+      parentSessionId,
+      lines,
+    }: {
+      homeDir: string;
+      projectDir: string;
+      parentSessionId: string;
+      lines: readonly string[];
+    }): void => {
+      jsonlWatcherProxy.setupLines({
+        path: sessionFilePathOf({ homeDir, projectDir, parentSessionId }),
+        lines,
+      });
+    },
+    setupSubagentLines: ({
+      homeDir,
+      projectDir,
+      parentSessionId,
+      fileName,
+      lines,
+    }: {
+      homeDir: string;
+      projectDir: string;
+      parentSessionId: string;
+      fileName: FileName;
+      lines: readonly string[];
+    }): void => {
+      jsonlWatcherProxy.setupLines({
+        path: `${stripJsonlSuffixTransformer({
+          filePath: sessionFilePathOf({ homeDir, projectDir, parentSessionId }),
+        })}/subagents/${String(fileName)}`,
+        lines,
+      });
     },
     setupFirstLineRead: ({ content }: { content: string }): void => {
       jsonlWatcherProxy.setupFirstLineRead({ content });
-    },
-    triggerChange: (): void => {
-      jsonlWatcherProxy.triggerChange();
     },
     triggerPollTick: (): void => {
       jsonlWatcherProxy.triggerPollTick();

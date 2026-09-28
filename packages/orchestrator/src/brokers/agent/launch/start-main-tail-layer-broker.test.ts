@@ -11,6 +11,7 @@ describe('startMainTailLayerBroker', () => {
       const proxy = startMainTailLayerBrokerProxy();
       proxy.setupHomeDir({ homeDir: '/home/user' });
       proxy.setupLines({
+        path: '/home/user/.claude/projects/-home-user-my-project/session-tail-test.jsonl',
         lines: [
           JSON.stringify({
             type: 'user',
@@ -36,7 +37,6 @@ describe('startMainTailLayerBroker', () => {
         onEntries,
       });
 
-      proxy.triggerChange();
       await new Promise<void>((resolve) => {
         setImmediate(resolve);
       });

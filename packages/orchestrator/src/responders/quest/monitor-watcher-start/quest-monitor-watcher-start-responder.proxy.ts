@@ -3,6 +3,11 @@ import { orchestrationEventsStateProxy } from '../../../state/orchestration-even
 
 export const QuestMonitorWatcherStartResponderProxy = (): {
   setupHomeDir: (params: { path: string }) => void;
+  setupSessionFile: (params: {
+    homeDir: string;
+    projectDir: string;
+    parentSessionId: string;
+  }) => void;
 } => {
   const brokerProxy = questMonitorWatcherStartBrokerProxy();
   const eventsProxy = orchestrationEventsStateProxy();
@@ -11,6 +16,17 @@ export const QuestMonitorWatcherStartResponderProxy = (): {
   return {
     setupHomeDir: ({ path }: { path: string }): void => {
       brokerProxy.setupHomeDir({ path });
+    },
+    setupSessionFile: ({
+      homeDir,
+      projectDir,
+      parentSessionId,
+    }: {
+      homeDir: string;
+      projectDir: string;
+      parentSessionId: string;
+    }): void => {
+      brokerProxy.setupSessionFile({ homeDir, projectDir, parentSessionId });
     },
   };
 };

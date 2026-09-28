@@ -5,6 +5,13 @@ import { QuestOutboxLineStub } from '../../../contracts/quest-outbox-line/quest-
 import { questOutboxWatchBroker } from './quest-outbox-watch-broker';
 import { questOutboxWatchBrokerProxy } from './quest-outbox-watch-broker.proxy';
 
+const OUTBOX_PATH = FilePathStub({ value: '/home/user/.dungeonmaster/event-outbox.jsonl' });
+
+const flushImmediate = async (): Promise<void> =>
+  new Promise((resolve) => {
+    setImmediate(resolve);
+  });
+
 describe('questOutboxWatchBroker', () => {
   describe('valid quest change events', () => {
     it('VALID: {valid outbox line} => calls onQuestChanged with questId', async () => {
@@ -15,17 +22,15 @@ describe('questOutboxWatchBroker', () => {
       proxy.setupOutboxPath({
         homeDir: '/home/user',
         homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
-        outboxPath: FilePathStub({ value: '/home/user/.dungeonmaster/event-outbox.jsonl' }),
+        outboxPath: OUTBOX_PATH,
       });
 
-      proxy.setupLines({ lines: [JSON.stringify(outboxLine)] });
+      proxy.setupLines({ path: OUTBOX_PATH, lines: [JSON.stringify(outboxLine)] });
 
       const onQuestChanged = jest.fn();
       const onError = jest.fn();
 
       const { stop } = await questOutboxWatchBroker({ onQuestChanged, onError });
-
-      proxy.triggerChange();
 
       await new Promise((resolve) => {
         setImmediate(resolve);
@@ -45,17 +50,15 @@ describe('questOutboxWatchBroker', () => {
       proxy.setupOutboxPath({
         homeDir: '/home/user',
         homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
-        outboxPath: FilePathStub({ value: '/home/user/.dungeonmaster/event-outbox.jsonl' }),
+        outboxPath: OUTBOX_PATH,
       });
 
-      proxy.setupLines({ lines: [JSON.stringify(outboxLine)] });
+      proxy.setupLines({ path: OUTBOX_PATH, lines: [JSON.stringify(outboxLine)] });
 
       const onQuestChanged = jest.fn();
       const onError = jest.fn();
 
       const { stop } = await questOutboxWatchBroker({ onQuestChanged, onError });
-
-      proxy.triggerChange();
 
       await new Promise((resolve) => {
         setImmediate(resolve);
@@ -71,14 +74,11 @@ describe('questOutboxWatchBroker', () => {
   describe('what starting a watcher does to the bus', () => {
     it('VALID: {default} => creates the outbox if absent and truncates nothing', async () => {
       const proxy = questOutboxWatchBrokerProxy();
-      const outboxPath = FilePathStub({
-        value: '/home/user/.dungeonmaster/event-outbox.jsonl',
-      });
 
       proxy.setupOutboxPath({
         homeDir: '/home/user',
         homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
-        outboxPath,
+        outboxPath: OUTBOX_PATH,
       });
 
       const { stop } = await questOutboxWatchBroker({
@@ -86,6 +86,7 @@ describe('questOutboxWatchBroker', () => {
         onError: jest.fn(),
       });
 
+      await flushImmediate();
       stop();
 
       expect(proxy.getCreatedPaths()).toStrictEqual([
@@ -96,14 +97,11 @@ describe('questOutboxWatchBroker', () => {
 
     it('VALID: {resetOnStart: true} => truncates the outbox exactly once', async () => {
       const proxy = questOutboxWatchBrokerProxy();
-      const outboxPath = FilePathStub({
-        value: '/home/user/.dungeonmaster/event-outbox.jsonl',
-      });
 
       proxy.setupOutboxPath({
         homeDir: '/home/user',
         homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
-        outboxPath,
+        outboxPath: OUTBOX_PATH,
       });
 
       const { stop } = await questOutboxWatchBroker({
@@ -112,6 +110,7 @@ describe('questOutboxWatchBroker', () => {
         resetOnStart: true,
       });
 
+      await flushImmediate();
       stop();
 
       expect(proxy.getTruncatedPaths()).toStrictEqual([
@@ -128,17 +127,15 @@ describe('questOutboxWatchBroker', () => {
       proxy.setupOutboxPath({
         homeDir: '/home/user',
         homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
-        outboxPath: FilePathStub({ value: '/home/user/.dungeonmaster/event-outbox.jsonl' }),
+        outboxPath: OUTBOX_PATH,
       });
 
-      proxy.setupLines({ lines: ['not-valid-json'] });
+      proxy.setupLines({ path: OUTBOX_PATH, lines: ['not-valid-json'] });
 
       const onQuestChanged = jest.fn();
       const onError = jest.fn();
 
       const { stop } = await questOutboxWatchBroker({ onQuestChanged, onError });
-
-      proxy.triggerChange();
 
       await new Promise((resolve) => {
         setImmediate(resolve);
@@ -156,17 +153,15 @@ describe('questOutboxWatchBroker', () => {
       proxy.setupOutboxPath({
         homeDir: '/home/user',
         homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
-        outboxPath: FilePathStub({ value: '/home/user/.dungeonmaster/event-outbox.jsonl' }),
+        outboxPath: OUTBOX_PATH,
       });
 
-      proxy.setupLines({ lines: [JSON.stringify({ wrong: 'shape' })] });
+      proxy.setupLines({ path: OUTBOX_PATH, lines: [JSON.stringify({ wrong: 'shape' })] });
 
       const onQuestChanged = jest.fn();
       const onError = jest.fn();
 
       const { stop } = await questOutboxWatchBroker({ onQuestChanged, onError });
-
-      proxy.triggerChange();
 
       await new Promise((resolve) => {
         setImmediate(resolve);
@@ -186,7 +181,7 @@ describe('questOutboxWatchBroker', () => {
       proxy.setupOutboxPath({
         homeDir: '/home/user',
         homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
-        outboxPath: FilePathStub({ value: '/home/user/.dungeonmaster/event-outbox.jsonl' }),
+        outboxPath: OUTBOX_PATH,
       });
 
       const onQuestChanged = jest.fn();
@@ -194,7 +189,8 @@ describe('questOutboxWatchBroker', () => {
 
       const { stop } = await questOutboxWatchBroker({ onQuestChanged, onError });
 
-      proxy.triggerWatchError({ error: new Error('watcher failed') });
+      await flushImmediate();
+      proxy.triggerWatchError({ path: OUTBOX_PATH, error: new Error('watcher failed') });
 
       stop();
 
@@ -210,7 +206,7 @@ describe('questOutboxWatchBroker', () => {
       proxy.setupOutboxPath({
         homeDir: '/home/user',
         homePath: FilePathStub({ value: '/home/user/.dungeonmaster' }),
-        outboxPath: FilePathStub({ value: '/home/user/.dungeonmaster/event-outbox.jsonl' }),
+        outboxPath: OUTBOX_PATH,
       });
 
       const onQuestChanged = jest.fn();
@@ -218,6 +214,7 @@ describe('questOutboxWatchBroker', () => {
 
       const { stop } = await questOutboxWatchBroker({ onQuestChanged, onError });
 
+      await flushImmediate();
       stop();
 
       expect(stop).toStrictEqual(expect.any(Function));

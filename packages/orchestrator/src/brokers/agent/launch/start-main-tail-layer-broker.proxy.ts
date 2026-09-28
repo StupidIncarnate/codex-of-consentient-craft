@@ -6,21 +6,15 @@ type HomeDirParams = Parameters<
 
 export const startMainTailLayerBrokerProxy = (): {
   setupHomeDir: (params: HomeDirParams) => void;
-  setupLines: (params: { lines: readonly string[] }) => void;
-  triggerChange: () => void;
-  lastWatchedPath: () => unknown;
+  setupLines: (params: { path: string; lines: readonly string[] }) => void;
 } => {
   const tailProxy = chatMainSessionTailBrokerProxy();
   return {
     setupHomeDir: (params: HomeDirParams): void => {
       tailProxy.setupHomeDir(params);
     },
-    setupLines: ({ lines }: { lines: readonly string[] }): void => {
-      tailProxy.setupLines({ lines });
+    setupLines: ({ path, lines }: { path: string; lines: readonly string[] }): void => {
+      tailProxy.setupLines({ path, lines });
     },
-    triggerChange: (): void => {
-      tailProxy.triggerChange();
-    },
-    lastWatchedPath: (): unknown => tailProxy.lastWatchedPath(),
   };
 };

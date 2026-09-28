@@ -20,11 +20,14 @@ describe('chatMainSessionTailBroker', () => {
     it('VALID: {task-notification line appended post-exit} => dispatches parsed task_notification entry via onEntries', async () => {
       const proxy = chatMainSessionTailBrokerProxy();
       const sessionId = SessionIdStub({ value: 'test-session-main-tail' });
+      const jsonlPath =
+        '/home/user/.claude/projects/-home-user-my-project/test-session-main-tail.jsonl';
       const chatProcessId = ProcessIdStub({ value: 'proc-main-1' });
       const processor = chatLineProcessTransformer();
 
       proxy.setupHomeDir({ homeDir: '/home/user' });
       proxy.setupLines({
+        path: jsonlPath,
         lines: [
           JSON.stringify({
             type: 'user',
@@ -51,7 +54,6 @@ describe('chatMainSessionTailBroker', () => {
         },
       });
 
-      proxy.triggerChange();
       await flushImmediate();
 
       expect(batches).toStrictEqual([
@@ -77,6 +79,8 @@ describe('chatMainSessionTailBroker', () => {
     it("VALID: {main-session line tailed} => calls processor.processLine with parsed line and source='session' (no agentId)", async () => {
       const proxy = chatMainSessionTailBrokerProxy();
       const sessionId = SessionIdStub({ value: 'test-session-main-args' });
+      const jsonlPath =
+        '/home/user/.claude/projects/-home-user-my-project/test-session-main-args.jsonl';
       const chatProcessId = ProcessIdStub({ value: 'proc-main-args' });
       const calls: Parameters<ReturnType<typeof ChatLineProcessorStub>['processLine']>[0][] = [];
       const processor = ChatLineProcessorStub({
@@ -91,7 +95,7 @@ describe('chatMainSessionTailBroker', () => {
       const expectedParsed = claudeLineNormalizeBroker({ rawLine });
 
       proxy.setupHomeDir({ homeDir: '/home/user' });
-      proxy.setupLines({ lines: [rawLine] });
+      proxy.setupLines({ path: jsonlPath, lines: [rawLine] });
 
       chatMainSessionTailBroker({
         sessionId,
@@ -101,7 +105,6 @@ describe('chatMainSessionTailBroker', () => {
         onEntries: () => {},
       });
 
-      proxy.triggerChange();
       await flushImmediate();
 
       expect(calls).toStrictEqual([
@@ -112,15 +115,18 @@ describe('chatMainSessionTailBroker', () => {
       ]);
     });
 
-    it("VALID: {existing file content} => fsWatchTailAdapter invoked with startPosition: 'end' so existing content is NOT re-emitted", async () => {
+    it("VALID: {existing file content} => tailFile invoked with startPosition: 'end' so existing content is NOT re-emitted", async () => {
       const proxy = chatMainSessionTailBrokerProxy();
       const sessionId = SessionIdStub({ value: 'test-session-main-startpos' });
+      const jsonlPath =
+        '/home/user/.claude/projects/-home-user-my-project/test-session-main-startpos.jsonl';
       const chatProcessId = ProcessIdStub({ value: 'proc-main-startpos' });
       const processor = chatLineProcessTransformer();
 
       proxy.setupHomeDir({ homeDir: '/home/user' });
-      proxy.setupExistingFileWithContent();
+      proxy.setupExistingFileWithContent({ path: jsonlPath });
       proxy.setupLines({
+        path: jsonlPath,
         lines: [
           '{"type":"assistant","message":{"content":[{"type":"text","text":"late append"}]}}',
         ],
@@ -134,20 +140,22 @@ describe('chatMainSessionTailBroker', () => {
         onEntries: () => {},
       });
 
-      proxy.triggerChange();
       await flushImmediate();
 
-      expect(proxy.lastStartPositionWasFromFileEnd()).toBe(true);
+      expect(proxy.lastStartPositionWasFromFileEnd({ path: jsonlPath })).toBe(true);
     });
 
     it('EMPTY: {non user/assistant line} => dispatches nothing', async () => {
       const proxy = chatMainSessionTailBrokerProxy();
       const sessionId = SessionIdStub({ value: 'test-session-main-noise' });
+      const jsonlPath =
+        '/home/user/.claude/projects/-home-user-my-project/test-session-main-noise.jsonl';
       const chatProcessId = ProcessIdStub({ value: 'proc-main-noise' });
       const processor = chatLineProcessTransformer();
 
       proxy.setupHomeDir({ homeDir: '/home/user' });
       proxy.setupLines({
+        path: jsonlPath,
         lines: ['{"type":"system","subtype":"init"}'],
       });
 
@@ -163,7 +171,6 @@ describe('chatMainSessionTailBroker', () => {
         },
       });
 
-      proxy.triggerChange();
       await flushImmediate();
 
       expect(batches).toStrictEqual([]);
@@ -172,6 +179,8 @@ describe('chatMainSessionTailBroker', () => {
     it("EDGE: {processor returns type:'agent-detected'} => silently ignored, onEntries never fires", async () => {
       const proxy = chatMainSessionTailBrokerProxy();
       const sessionId = SessionIdStub({ value: 'test-session-main-agent-detected' });
+      const jsonlPath =
+        '/home/user/.claude/projects/-home-user-my-project/test-session-main-agent-detected.jsonl';
       const chatProcessId = ProcessIdStub({ value: 'proc-main-agent-detected' });
       const processor = ChatLineProcessorStub({
         processLine: () => [
@@ -184,6 +193,7 @@ describe('chatMainSessionTailBroker', () => {
 
       proxy.setupHomeDir({ homeDir: '/home/user' });
       proxy.setupLines({
+        path: jsonlPath,
         lines: ['{"type":"assistant","message":{"content":[{"type":"text","text":"anything"}]}}'],
       });
 
@@ -199,7 +209,6 @@ describe('chatMainSessionTailBroker', () => {
         },
       });
 
-      proxy.triggerChange();
       await flushImmediate();
 
       expect(batches).toStrictEqual([]);
@@ -208,10 +217,13 @@ describe('chatMainSessionTailBroker', () => {
     it('VALID: {stop handle} => returns a function that stops further emissions', async () => {
       const proxy = chatMainSessionTailBrokerProxy();
       const sessionId = SessionIdStub({ value: 'test-session-main-stop' });
+      const jsonlPath =
+        '/home/user/.claude/projects/-home-user-my-project/test-session-main-stop.jsonl';
       const chatProcessId = ProcessIdStub({ value: 'proc-main-stop' });
       const processor = chatLineProcessTransformer();
 
       proxy.setupHomeDir({ homeDir: '/home/user' });
+      proxy.setupFile({ path: jsonlPath });
 
       const batches: unknown[] = [];
 
@@ -227,8 +239,11 @@ describe('chatMainSessionTailBroker', () => {
 
       stop();
 
-      proxy.setupLines({ lines: ['{"type":"user","message":{"role":"user","content":"late"}}'] });
-      proxy.triggerChange();
+      proxy.setupLines({
+        path: jsonlPath,
+        lines: ['{"type":"user","message":{"role":"user","content":"late"}}'],
+      });
+      proxy.triggerChange({ path: jsonlPath });
       await flushImmediate();
 
       expect(batches).toStrictEqual([]);
@@ -239,7 +254,11 @@ describe('chatMainSessionTailBroker', () => {
     it('VALID: {cwd: repo root} => tails the JSONL encoded from that cwd', async () => {
       const proxy = chatMainSessionTailBrokerProxy();
 
+      const jsonlPath =
+        '/home/user/.claude/projects/-home-user-my-project/session-at-repo-root.jsonl';
+
       proxy.setupHomeDir({ homeDir: '/home/user' });
+      proxy.setupFile({ path: jsonlPath });
 
       chatMainSessionTailBroker({
         sessionId: SessionIdStub({ value: 'session-at-repo-root' }),
@@ -251,15 +270,19 @@ describe('chatMainSessionTailBroker', () => {
 
       await flushImmediate();
 
-      expect(proxy.lastWatchedPath()).toBe(
-        '/home/user/.claude/projects/-home-user-my-project/session-at-repo-root.jsonl',
-      );
+      expect(proxy.getWatchCallsFor({ path: jsonlPath }).map((call) => call[0])).toStrictEqual([
+        jsonlPath,
+      ]);
     });
 
     it("VALID: {cwd: a worktree under the guild path} => tails the WORKTREE's encoding, not the guild's", async () => {
       const proxy = chatMainSessionTailBrokerProxy();
 
+      const jsonlPath =
+        '/home/user/.claude/projects/-home-user-my-project-worktrees-quest-c8171a64/session-in-worktree.jsonl';
+
       proxy.setupHomeDir({ homeDir: '/home/user' });
+      proxy.setupFile({ path: jsonlPath });
 
       chatMainSessionTailBroker({
         sessionId: SessionIdStub({ value: 'session-in-worktree' }),
@@ -271,9 +294,9 @@ describe('chatMainSessionTailBroker', () => {
 
       await flushImmediate();
 
-      expect(proxy.lastWatchedPath()).toBe(
-        '/home/user/.claude/projects/-home-user-my-project-worktrees-quest-c8171a64/session-in-worktree.jsonl',
-      );
+      expect(proxy.getWatchCallsFor({ path: jsonlPath }).map((call) => call[0])).toStrictEqual([
+        jsonlPath,
+      ]);
     });
   });
 });

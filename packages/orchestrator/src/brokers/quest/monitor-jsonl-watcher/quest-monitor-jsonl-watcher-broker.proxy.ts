@@ -5,7 +5,7 @@ import { stripJsonlSuffixTransformer } from '@dungeonmaster/shared/transformers'
 
 type FileName = ReturnType<typeof FileNameStub>;
 
-import { fsWatchTailAdapterProxy } from '../../../adapters/fs/watch-tail/fs-watch-tail-adapter.proxy';
+import { tailFileProxy } from '#gateway/node/fs/tail-file/tail-file.proxy';
 
 import { timerIntervalStartBrokerProxy } from '../../timer/interval-start/timer-interval-start-broker.proxy';
 import { questGetServerConfigBrokerProxy } from '../get-server-config/quest-get-server-config-broker.proxy';
@@ -39,8 +39,9 @@ export const questMonitorJsonlWatcherBrokerProxy = (): {
     subagentsDir?: AbsoluteFilePath;
   }) => void;
   setupFirstLineRead: (params: { content: string }) => void;
-  setupLines: (params: { lines: readonly string[] }) => void;
-  triggerChange: () => void;
+  setupFile: (params: { path: string }) => void;
+  setupLines: (params: { path: string; lines: readonly string[] }) => void;
+  triggerChange: (params: { path: string }) => void;
   triggerPollTick: () => void;
   setPort: (params: { value: string }) => void;
 } => {
@@ -52,19 +53,14 @@ export const questMonitorJsonlWatcherBrokerProxy = (): {
   // test in this file red. `setPort` is exposed so a test can pin a different port.
   const serverConfigProxy = questGetServerConfigBrokerProxy();
   serverConfigProxy.setPort({ value: '3737' });
-  // `startSubagentTailLayerBrokerProxy()`, `scanSubagentsDirLayerBrokerProxy()`, and
-  // `fsWatchTailAdapterProxy()` all end up registering against the same registerMock
-  // callerPath for `fsWatchTailAdapter`. The LAST mockImplementation call wins on jest's
-  // mock — so the parent's direct `fsWatchTailAdapterProxy()` (below) takes ownership of
-  // the queue + watch callbacks for every `fsWatchTailAdapter` invocation in this test,
-  // including the ones the layer brokers make for sub-agent tails. The layer proxies are
-  // still instantiated to satisfy `enforce-proxy-child-creation` (the parent broker
-  // imports the layers directly). `scanLayerProxy` is captured so the parent's
-  // `setupSubagentDir*` helpers can forward into its semantic methods — the parent broker
-  // no longer calls `fsReaddirAdapter` directly (the layer broker owns that path).
+  // The layer proxies are instantiated to satisfy `enforce-proxy-child-creation` (the parent
+  // broker imports the layers directly). Every tail this broker starts — the main session file
+  // and each sub-agent file — is staged through this proxy's own `tailFileProxy`, addressed by
+  // that file's path. `scanLayerProxy` is captured so the parent's `setupSubagentDir*` helpers
+  // can forward into its semantic methods.
   startSubagentTailLayerBrokerProxy();
   const scanLayerProxy = scanSubagentsDirLayerBrokerProxy();
-  const tailProxy = fsWatchTailAdapterProxy();
+  const tailProxy = tailFileProxy();
   // Mirrors the broker's own SUBAGENT_DIR_POLL_INTERVAL_MS constant (1000ms) — not exported,
   // so this address is duplicated here rather than imported.
   const intervalProxy = timerIntervalStartBrokerProxy({ intervalMs: 1000 });
@@ -117,17 +113,16 @@ export const questMonitorJsonlWatcherBrokerProxy = (): {
         content,
       });
     },
-    // Lines are dispensed FIFO across every watcher this broker creates. Watchers are
-    // registered in this order: each pre-existing subagent JSONL (in `readdirSync`
-    // return order), then the main JSONL. The first `triggerChange()` fires each watcher
-    // callback once in registration order; each callback shifts one batch off the queue.
-    // Queue batches accordingly: subagent batches first, then main, then any post-change
-    // appends in the same order on subsequent `triggerChange()` calls.
-    setupLines: ({ lines }: { lines: readonly string[] }): void => {
-      tailProxy.setupLines({ lines });
+    setupFile: ({ path }: { path: string }): void => {
+      tailProxy.setupFile({ path });
     },
-    triggerChange: (): void => {
-      tailProxy.triggerChange();
+    // Stages one drain's worth of lines for the file at `path`. The tail drains once as it starts,
+    // so a file's first batch is staged BEFORE its tail exists; `triggerChange` runs a later drain.
+    setupLines: ({ path, lines }: { path: string; lines: readonly string[] }): void => {
+      tailProxy.setupLines({ path, lines });
+    },
+    triggerChange: ({ path }: { path: string }): void => {
+      tailProxy.triggerChange({ path });
     },
     // Fires the periodic poll-rescan registered with `timerIntervalStartBroker`. The
     // broker uses this poll to discover sub-agent JSONL files that appear AFTER the
