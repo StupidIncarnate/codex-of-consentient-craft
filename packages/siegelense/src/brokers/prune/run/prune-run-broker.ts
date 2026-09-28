@@ -10,9 +10,19 @@
  * `cleanupRunBroker`: that one reaps STALE INSTANCES and ages assets as a side effect, while this
  * one is asked for by a caller who wants the space back now.
  *
+ * `dryRun` DEFAULTS to false, matching every existing caller: `assetsAgeLayerBroker` (cleanup's
+ * own age-out) calls `pruneInstanceReclaimBroker` directly and never sees this flag at all, so its
+ * behaviour is untouched by DEF-49. `dryRun: true` still computes and reports exactly what WOULD be
+ * removed — `pruneInstanceReclaimBroker` skips only the unlink — but this broker additionally skips
+ * the registry tombstone write, since nothing on disk actually changed to justify one. The CALLER
+ * that must default `dryRun` to true is `SiegelensePruneResponder`, not here.
+ *
  * USAGE:
  * await pruneRunBroker({ query: PruneQueryStub({ olderThan: '7d' }) });
- * // Returns the PruneAnswer — freedMB/freedBytes, removed[], refused[], unresolved[]
+ * // Deletes and returns the PruneAnswer — freedMB/freedBytes, removed[], refused[], unresolved[]
+ *
+ * await pruneRunBroker({ query: PruneQueryStub({ olderThan: '7d' }), dryRun: true });
+ * // Reports the same shape describing what WOULD be removed; deletes nothing, tombstones nothing
  */
 
 import type { CitationGap } from '../../../contracts/citation-gap/citation-gap-contract';
@@ -34,7 +44,13 @@ import { pruneInstanceReclaimBroker } from '../instance-reclaim/prune-instance-r
 
 const PRUNED_STATE = instanceStateContract.parse('pruned');
 
-export const pruneRunBroker = async ({ query }: { query: PruneQuery }): Promise<PruneAnswer> => {
+export const pruneRunBroker = async ({
+  query,
+  dryRun = false,
+}: {
+  query: PruneQuery;
+  dryRun?: boolean;
+}): Promise<PruneAnswer> => {
   const nowMs = epochMsContract.parse(Date.now());
   const olderThanMs = pruneOlderThanParseTransformer({ olderThan: query.olderThan });
   const registry = await registryReadBroker();
@@ -50,7 +66,7 @@ export const pruneRunBroker = async ({ query }: { query: PruneQuery }): Promise<
 
   const outcomes = await Promise.all(
     candidates.map(async (entry) =>
-      pruneInstanceReclaimBroker({ entry, query, olderThanMs, nowMs }),
+      pruneInstanceReclaimBroker({ entry, query, olderThanMs, nowMs, dryRun }),
     ),
   );
 
@@ -74,7 +90,10 @@ export const pruneRunBroker = async ({ query }: { query: PruneQuery }): Promise<
     removed.filter((removal) => removal.tombstoned).map((removal) => String(removal.id)),
   );
 
-  if (tombstonedIds.size > 0) {
+  // A dry run computes what WOULD be tombstoned so the answer reports it, but must write nothing —
+  // nothing was actually unlinked, so a real tombstone here would be the same defect (DEF-49) from
+  // a different angle: state that says evidence is gone when the evidence never moved.
+  if (!dryRun && tombstonedIds.size > 0) {
     const prunedByRule = pruneTombstoneRuleRenderTransformer({ query });
 
     await registryUpdateBroker({

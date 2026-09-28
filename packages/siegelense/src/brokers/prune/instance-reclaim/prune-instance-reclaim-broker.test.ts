@@ -218,6 +218,50 @@ describe('pruneInstanceReclaimBroker', () => {
       expect(proxy.getDeletedPaths()).toStrictEqual([`${EVIDENCE}/api-server.log`]);
     });
 
+    it('VALID: {dryRun: true, one aged log, no quest} => reports the same removal it would have made, but unlinks nothing (DEF-49)', async () => {
+      const proxy = pruneInstanceReclaimBrokerProxy();
+      proxy.setupEvidenceTree({
+        homeDir: HOME_DIR,
+        homePath: FilePathStub({ value: HOME }),
+        rootPath: FilePathStub({ value: ROOT }),
+        evidencePath: FilePathStub({ value: EVIDENCE }),
+      });
+      proxy.setupFile({
+        filePath: AbsoluteFilePathStub({ value: `${EVIDENCE}/api-server.log` }),
+        sizeBytes: 3_145_728,
+        modifiedAtMs: NOW_MS - SEVEN_DAYS_MS * 2,
+      });
+      proxy.setupDir({ dirPath: AbsoluteFilePathStub({ value: `${EVIDENCE}/runs` }), entries: [] });
+
+      const result = await pruneInstanceReclaimBroker({
+        entry: RegistryEntryStub({
+          id: INSTANCE_ID,
+          state: 'killed',
+          questId: null,
+          guildId: null,
+          bootedAtMs: EpochMsStub({ value: NOW_MS - 120_000 }),
+          lastBeatMs: null,
+        }),
+        query: PruneQueryStub(),
+        olderThanMs: EpochMsStub({ value: SEVEN_DAYS_MS }),
+        nowMs: EpochMsStub({ value: NOW_MS }),
+        dryRun: true,
+      });
+
+      expect(result).toStrictEqual({
+        removal: {
+          id: 'inst_9b2c0001',
+          kind: null,
+          freedBytes: 3_145_728,
+          freedMB: 3,
+          tombstoned: true,
+        },
+        refusal: null,
+        gaps: [OPEN_ISSUE_GAP],
+      });
+      expect(proxy.getDeletedPaths()).toStrictEqual([]);
+    });
+
     it('VALID: {--kind shot with a log and a shot both aged} => only the shot goes, and the row is NOT tombstoned', async () => {
       const proxy = pruneInstanceReclaimBrokerProxy();
       proxy.setupEvidenceTree({

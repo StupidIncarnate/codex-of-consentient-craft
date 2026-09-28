@@ -4,7 +4,11 @@
  * the sibling command. Nothing here reaches disk, which is the point: what this responder decides
  * is which of two renderers it hands the answer to, and a real prune would drag the whole citation
  * resolver into a question about rendering. `pruneRunBrokerProxy` is still constructed (never
- * addressed further) to satisfy `enforce-proxy-child-creation`.
+ * addressed further) to satisfy `enforce-proxy-child-creation`. `getStderrWrites` exists alongside
+ * `getStdoutWrites` because the dry-run notice moves streams with `isJson` (DEF-49) —
+ * `getPruneRunCalls` reads back the whole argument object each `pruneRunBroker` call actually
+ * carried, so a test can prove `confirm` threads through to a real `dryRun` value rather than
+ * merely that a call happened.
  *
  * USAGE:
  * const proxy = SiegelensePruneResponderProxy();
@@ -22,6 +26,8 @@ type PruneAnswer = ReturnType<typeof PruneAnswerStub>;
 export const SiegelensePruneResponderProxy = (): {
   stageAnswer: (params: { answer: PruneAnswer }) => void;
   getStdoutWrites: () => unknown[];
+  getStderrWrites: () => unknown[];
+  getPruneRunCalls: () => unknown[];
 } => {
   // Constructed for enforce-proxy-child-creation only — this proxy stages pruneRunBroker
   // directly below, never through its own setup methods.
@@ -29,7 +35,9 @@ export const SiegelensePruneResponderProxy = (): {
 
   const pruneRunHandle = registerMock({ fn: pruneRunBroker });
   const stdoutHandle = registerSpyOn({ object: process.stdout, method: 'write' });
+  const stderrHandle = registerSpyOn({ object: process.stderr, method: 'write' });
   stdoutHandle.calledWith([]).returns(true);
+  stderrHandle.calledWith([]).returns(true);
 
   return {
     stageAnswer: ({ answer }: { answer: PruneAnswer }): void => {
@@ -37,5 +45,7 @@ export const SiegelensePruneResponderProxy = (): {
     },
 
     getStdoutWrites: (): unknown[] => stdoutHandle.callsMatching([]).map((call) => call[0]),
+    getStderrWrites: (): unknown[] => stderrHandle.callsMatching([]).map((call) => call[0]),
+    getPruneRunCalls: (): unknown[] => pruneRunHandle.callsMatching([]).map((call) => call[0]),
   };
 };

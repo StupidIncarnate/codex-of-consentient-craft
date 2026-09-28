@@ -8,6 +8,10 @@
  * Reach for this over parsing inside the responder: the flow's route table hands argv to a
  * transformer for every other call, and a refusal has to be a clean sentence rather than a ZodError.
  *
+ * `--confirm` is recognised here — so it is never refused as an unknown flag — but never lands on
+ * the returned `PruneArgs`: it carries no selector, only whether the call is allowed to delete, and
+ * `SiegelensePruneLayerFlow` reads it straight off the same argv (DEF-49).
+ *
  * USAGE:
  * pruneArgsParseTransformer({ args: ['--kind', 'video', '--older-than', '2d'] });
  * // Returns { query: { instanceId: null, kind: 'video', olderThan: '2d' }, isJson: false }
@@ -29,10 +33,14 @@ const KIND_FLAG = '--kind';
 const OLDER_THAN_FLAG = '--older-than';
 
 const VALUE_FLAGS = [INSTANCE_FLAG, KIND_FLAG, OLDER_THAN_FLAG];
-const KNOWN_FLAGS = [...VALUE_FLAGS, siegelenseOutputStatics.flags.json];
+const KNOWN_FLAGS = [
+  ...VALUE_FLAGS,
+  siegelenseOutputStatics.flags.json,
+  pruneStatics.flags.confirm,
+];
 const USAGE =
   'Usage: dungeonmaster siegelense prune [--instance <instanceId>] [--kind <kind>] ' +
-  '[--older-than <window>] [--json]';
+  '[--older-than <window>] [--json] [--confirm]';
 
 export const pruneArgsParseTransformer = ({ args }: { args: readonly string[] }): PruneArgs => {
   for (let i = 0; i < args.length; i++) {
@@ -48,7 +56,7 @@ export const pruneArgsParseTransformer = ({ args }: { args: readonly string[] })
       continue;
     }
 
-    if (arg === siegelenseOutputStatics.flags.json) {
+    if (arg === siegelenseOutputStatics.flags.json || arg === pruneStatics.flags.confirm) {
       continue;
     }
 

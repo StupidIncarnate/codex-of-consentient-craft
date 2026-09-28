@@ -5,7 +5,10 @@
  * (siegelense-tooling.md line 248); one shared window would either keep video for a week or take
  * shots after two days. Reach for this over `instanceLifecycleStatics`: that file's clocks all
  * measure a LIVE instance's boot, heartbeat and locks, while every value here measures how long
- * EVIDENCE survives after the instance is gone.
+ * EVIDENCE survives after the instance is gone. `flags.confirm` and `messages.dryRunNotice` are
+ * `prune`'s own safety gate: `cleanup` ages assets out unconditionally (it IS the routine sweep),
+ * but `prune` is a caller reaching for the delete button on purpose, so a bare call must default to
+ * a dry run rather than to deleting everything eligible (DEF-49).
  *
  * USAGE:
  * pruneStatics.window.defaultOlderThan;
@@ -13,6 +16,9 @@
  *
  * pruneStatics.olderThan.unitMs.d;
  * // Returns 86400000
+ *
+ * pruneStatics.flags.confirm;
+ * // Returns '--confirm' — the flag that turns a dry run into a real deletion
  */
 
 export const pruneStatics = {
@@ -45,5 +51,14 @@ export const pruneStatics = {
     // Mebibytes, matching `machineReadBroker`'s own free-memory and free-disk readings, so a
     // `freedMB` and a `freeDiskMB` on the same screen carry the same unit.
     bytesPerMegabyte: 1_048_576,
+  },
+  flags: {
+    // Bare, no value — matches `siegelenseOutputStatics.flags.json`'s own shape.
+    confirm: '--confirm',
+  },
+  messages: {
+    // Printed whenever `--confirm` is absent, so the CLI output itself says plainly that nothing
+    // was deleted and which flag deletes — never only the `--help` text (DEF-49).
+    dryRunNotice: 'DRY RUN — nothing was deleted. Pass --confirm to actually remove these.',
   },
 } as const;

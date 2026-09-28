@@ -9,9 +9,18 @@
  * exactly this reclaim and `enforce-import-dependencies` admits no cross-domain import of a layer
  * file — so the two calls sharing one refusal rule needs one entry file, not two copies.
  *
+ * `dryRun` DEFAULTS to false, so `assetsAgeLayerBroker` (cleanup's own age-out sweep) is unaffected
+ * by DEF-49 — it never passes this param and keeps deleting unconditionally, exactly as before.
+ * `dryRun: true` runs every gate (live, citation, window) and still computes `removal`/`refusal`
+ * exactly as a real sweep would — describing what WOULD happen — but skips the one line that
+ * actually unlinks a file, so the caller decides confirmation, not this broker.
+ *
  * USAGE:
  * await pruneInstanceReclaimBroker({ entry, query, olderThanMs, nowMs });
  * // Returns { removal, refusal, gaps } — both null when nothing was selected; never both set
+ *
+ * await pruneInstanceReclaimBroker({ entry, query, olderThanMs, nowMs, dryRun: true });
+ * // Same shape, describing what WOULD be removed; no file on disk is touched
  */
 
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
@@ -41,11 +50,13 @@ export const pruneInstanceReclaimBroker = async ({
   query,
   olderThanMs,
   nowMs,
+  dryRun = false,
 }: {
   entry: RegistryEntry;
   query: PruneQuery;
   olderThanMs: EpochMs;
   nowMs: EpochMs;
+  dryRun?: boolean;
 }): Promise<{
   removal: PruneRemoval | null;
   refusal: PruneRefusal | null;
@@ -109,8 +120,13 @@ export const pruneInstanceReclaimBroker = async ({
     };
   }
 
-  // The one irreversible step in this tool, and it is reached only past both refusal gates.
-  await Promise.all(selected.map(async (asset) => fsUnlinkAdapter({ filePath: asset.path })));
+  // The one irreversible step in this tool, and it is reached only past both refusal gates — and,
+  // for `prune`, only when the caller confirmed it (DEF-49). A dry run stops here: `removal` below
+  // is still computed from `selected`, so the answer describes exactly what this step would have
+  // done.
+  if (!dryRun) {
+    await Promise.all(selected.map(async (asset) => fsUnlinkAdapter({ filePath: asset.path })));
+  }
 
   const freedBytes = selected.reduce((total, asset) => total + Number(asset.sizeBytes), 0);
 
