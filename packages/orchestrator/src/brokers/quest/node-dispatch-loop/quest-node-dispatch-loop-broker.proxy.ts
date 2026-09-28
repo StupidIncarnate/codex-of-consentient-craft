@@ -15,21 +15,6 @@ import { spawnBatchLayerBrokerProxy } from './spawn-batch-layer-broker.proxy';
 registerModuleMock({ module: '../get-next-step/quest-get-next-step-broker' });
 registerModuleMock({ module: './spawn-batch-layer-broker' });
 
-// The questRunStepBrokerProxy child (instantiated below for the dependency-discovery lint)
-// unconditionally wires its virtual store onto these shared-package functions in its
-// constructor. Its own bare automocks degrade to selective mocks when merged with the
-// identifier-level registerMock calls contributed by the OTHER proxies this file composes, which
-// would leave those functions un-mocked here. Explicit factories always win the hoist merge, so
-// they are guaranteed jest.fn()s in this composition context.
-registerModuleMock({
-  module: '@dungeonmaster/shared/brokers',
-  factory: () => ({
-    ...jest.requireActual('@dungeonmaster/shared/brokers'),
-    cwdResolveBroker: jest.fn(),
-    dungeonmasterHomeFindBroker: jest.fn(),
-  }),
-});
-
 export const questNodeDispatchLoopBrokerProxy = (): {
   queueStep: (params: { step: NextStep }) => void;
   getSpawnBatchCalls: () => readonly unknown[];

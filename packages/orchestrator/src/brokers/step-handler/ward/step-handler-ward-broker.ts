@@ -34,7 +34,6 @@ import {
   absoluteFilePathContract,
   contentTextContract,
   errorMessageContract,
-  fileContentsContract,
   filePathContract,
   relatedDataItemContract,
   wardResultContract,
@@ -44,10 +43,9 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import { locationsStatics, wardExitCodeStatics } from '@dungeonmaster/shared/statics';
 import { streamLines, RunNotFoundError } from '#gateway/node/child_process';
-import { ensureDir } from '#gateway/node/fs__promises';
+import { ensureDir, writeFile } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
 
-import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import { stepHandlerResultContract } from '../../../contracts/step-handler-result/step-handler-result-contract';
 import type { StepHandlerResult } from '../../../contracts/step-handler-result/step-handler-result-contract';
 import { wardOutputToRunIdTransformer } from '../../../transformers/ward-output-to-run-id/ward-output-to-run-id-transformer';
@@ -112,10 +110,7 @@ export const stepHandlerWardBroker = async ({
     );
     await ensureDir(wardResultsDir);
     const detailFilePath = filePathContract.parse(join(wardResultsDir, `${wardResultId}.json`));
-    await fsWriteFileAdapter({
-      filePath: detailFilePath,
-      contents: fileContentsContract.parse(detailJson),
-    });
+    await writeFile(detailFilePath, detailJson);
   }
 
   const wardResult = wardResultContract.parse({

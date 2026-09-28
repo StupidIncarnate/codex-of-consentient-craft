@@ -118,7 +118,7 @@ export const questMonitorJsonlWatcherBrokerProxy = (): {
       });
     },
     // Lines are dispensed FIFO across every watcher this broker creates. Watchers are
-    // registered in this order: each pre-existing subagent JSONL (in `fsReaddirAdapter`
+    // registered in this order: each pre-existing subagent JSONL (in `readdirSync`
     // return order), then the main JSONL. The first `triggerChange()` fires each watcher
     // callback once in registration order; each callback shifts one batch off the queue.
     // Queue batches accordingly: subagent batches first, then main, then any post-change

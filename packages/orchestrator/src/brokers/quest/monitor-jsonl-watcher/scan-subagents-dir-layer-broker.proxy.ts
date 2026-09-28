@@ -1,9 +1,8 @@
+import { readdirSyncProxy } from '#gateway/node/fs/readdir-sync/readdir-sync.proxy';
+import { readNonEmptyLinesProxy } from '#gateway/node/fs__promises/read-non-empty-lines/read-non-empty-lines.proxy';
 import { claudeLineNormalizeBrokerProxy } from '@dungeonmaster/shared/testing';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import type { FileName } from '@dungeonmaster/shared/contracts';
-
-import { fsReadJsonlAdapterProxy } from '../../../adapters/fs/read-jsonl/fs-read-jsonl-adapter.proxy';
-import { fsReaddirAdapterProxy } from '../../../adapters/fs/readdir/fs-readdir-adapter.proxy';
 
 import { startSubagentTailLayerBrokerProxy } from './start-subagent-tail-layer-broker.proxy';
 
@@ -26,13 +25,13 @@ export const scanSubagentsDirLayerBrokerProxy = (): {
   }) => void;
   triggerChange: () => void;
 } => {
-  const readdirProxy = fsReaddirAdapterProxy();
+  const readdirProxy = readdirSyncProxy();
   // Passthrough for the real normalize the broker runs on a non-active file's first line.
   claudeLineNormalizeBrokerProxy();
-  // Mocks the `readFile` the broker uses (via fsReadJsonlAdapter) to read a non-active
-  // sub-agent file's first line for prompt-pairing. Defaults to empty so files no test
-  // configures yield no first line and skip pairing.
-  const readJsonlProxy = fsReadJsonlAdapterProxy();
+  // Mocks the `readFile` the broker uses (via readNonEmptyLines) to read a non-active
+  // sub-agent file's first line for prompt-pairing. A file no test configures throws on the
+  // read, which the broker treats as a non-fatal skip.
+  const readLinesProxy = readNonEmptyLinesProxy();
   // scan-subagents-dir-layer-broker.ts imports startSubagentTailLayerBroker as a value (not
   // fsWatchTailAdapter directly — that one is type-only, for the subagentHandles Map's value
   // type), so this call is the sole fsWatchTailAdapter registration this file makes. When
@@ -49,10 +48,10 @@ export const scanSubagentsDirLayerBrokerProxy = (): {
       subagentsDir: string;
       files: readonly FileName[];
     }): void => {
-      readdirProxy.returns({ dirPath: subagentsDir, files: [...files] });
+      readdirProxy.returns({ path: subagentsDir, names: [...files] });
     },
     setupSubagentDirEmpty: ({ subagentsDir }: { subagentsDir: string }): void => {
-      readdirProxy.returnsOnceFor({ dirPath: subagentsDir, files: [] });
+      readdirProxy.returnsOnce({ path: subagentsDir, names: [] });
     },
     setupSubagentDirMissing: ({
       subagentsDir,
@@ -61,7 +60,7 @@ export const scanSubagentsDirLayerBrokerProxy = (): {
       subagentsDir: string;
       error: Error;
     }): void => {
-      readdirProxy.throws({ dirPath: subagentsDir, error });
+      readdirProxy.throws({ path: subagentsDir, error });
     },
     setupLines: ({ lines }: { lines: readonly string[] }): void => {
       tailProxy.setupLines({ lines });
@@ -75,9 +74,9 @@ export const scanSubagentsDirLayerBrokerProxy = (): {
       fileName: FileName;
       content: string;
     }): void => {
-      readJsonlProxy.returns({
-        filePath: absoluteFilePathContract.parse(`${subagentsDir}/${String(fileName)}`),
-        content,
+      readLinesProxy.returnsRaw({
+        path: absoluteFilePathContract.parse(`${subagentsDir}/${String(fileName)}`),
+        rawContents: content,
       });
     },
     triggerChange: (): void => {

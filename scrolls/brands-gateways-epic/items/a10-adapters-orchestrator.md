@@ -298,3 +298,61 @@ Files:
 
 The adapter moves onto `#gateway/node` are the NEXT chunk: seven adapters, each with its callers, proxies and tests,
 run past the file budget of this one.
+
+### G-CC fs, part 3 (read-jsonl, readdir, watch-tail)
+
+Scope, all under `packages/orchestrator/src` unless a path says otherwise. Chunk 1 moves `read-jsonl` and `readdir`
+and deletes both folders. Chunk 2 is `watch-tail`; it is named here and left for the next pass because path-addressing
+`tailFileProxy` reaches every composing proxy and every test that stages `setupLines` / `triggerChange` (well past the
+file budget of this pass).
+
+Chunk 1, new:
+- `transformers/stream-json-lines-from-raw/stream-json-lines-from-raw-transformer.ts` and `.test.ts` (and `.proxy.ts` if the folder type asks for one)
+
+Chunk 1, edited (adapter call moves to `readNonEmptyLines` / `readdirSync` from `#gateway/node`):
+- `brokers/chat/replay-jsonl-read/chat-replay-jsonl-read-broker.ts`, `.proxy.ts`, `.test.ts`
+- `brokers/signal/from-session-jsonl/signal-from-session-jsonl-broker.ts`, `.proxy.ts`
+- `brokers/chat/history-replay/chat-history-replay-broker.ts`, `.proxy.ts`, `.test.ts` (comment)
+- `responders/chat/replay/chat-replay-responder.test.ts` (comment)
+- `brokers/quest/monitor-jsonl-watcher/scan-subagents-dir-layer-broker.ts`, `.proxy.ts`
+- `brokers/quest/monitor-jsonl-watcher/quest-monitor-jsonl-watcher-broker.proxy.ts` (comment)
+- `brokers/quest/list/quest-list-broker.ts`, `.proxy.ts`
+- `brokers/quest/folder-find/quest-folder-find-broker.ts`, `.proxy.ts`
+- `brokers/quest/modify/resolve-package-entry-facts-layer-broker.ts`, `.proxy.ts`
+- `brokers/quest/node-dispatch-loop/quest-node-dispatch-loop-broker.proxy.ts` (F35 concession 7 removal, tried separately)
+
+Chunk 1, deleted: `adapters/fs/read-jsonl/**`, `adapters/fs/readdir/**` (adapter, proxy, test each).
+
+Tests fixed where the removed `calledWith([])` readdir default or the trimmed-line change shows red, named in the report.
+
+Chunk 2, named and NOT done here: `adapters/fs/watch-tail/**` (deleted with it), `readline/create-interface` proxy (comment),
+`outbox-watch`, `start-subagent-tail`, `monitor-jsonl-watcher`, `chat-subagent-tail`, `chat-main-session-tail`,
+`agent/launch` (`start-main-tail-layer-broker`, `agent-launch-broker`) and every proxy and test composing them, plus
+`packages/shared/.../architecture-project-map-broker.integration.test.ts` (re-anchor `→ fsWatchTailAdapter`).
+
+### G-CC fs, part 2 (seven adapters)
+
+Census (python3, `packages/orchestrator/src`, imports of the seven adapters and their proxies): 79 files across the seven, too many for
+one pass. This pass takes `write-file` and `rename` (they share callers, so they move together). Scope, all under `packages/orchestrator/src`:
+
+Deleted: `adapters/fs/write-file/**`, `adapters/fs/rename/**` (adapter, proxy, test each).
+
+Edited callers and proxies (each `.ts` and `.proxy.ts`):
+- `brokers/dispatch-state/write/dispatch-state-write-broker`
+- `brokers/planned-work/write/planned-work-write-broker`
+- `brokers/quest/persist/quest-persist-broker` (its `.test.ts` comment)
+- `brokers/usage-ledger/write/usage-ledger-write-broker`
+- `brokers/guild-config/write/guild-config-write-broker`
+- `brokers/quest/outbox-watch/quest-outbox-watch-broker` (still imports `append-file` and `watch-tail`)
+- `brokers/riftcarver/persist-result/riftcarver-persist-result-broker`
+- `brokers/step-handler/ward/step-handler-ward-broker`
+- `brokers/ward/persist-result/ward-persist-result-broker`
+- `responders/install/commands-create/install-commands-create-responder`
+- `responders/install/repo-scaffold/install-repo-scaffold-responder` (still imports `is-accessible` and `read-file`)
+- `brokers/smoketest/stamp-override/smoketest-stamp-override-broker.proxy.ts` (comment), `brokers/guild/add/guild-add-broker.integration.test.ts` (comment), `packages/orchestrator/CLAUDE.md`
+
+Left for the next chunk (each adapter with its callers):
+- `readlink` + `symlink`: `worktree/populate-node-modules/populate-one-root-layer-broker` (+ proxy and test, `worktree-populate-node-modules-broker.proxy.ts` and test), `worktree/verify-links/walk-symlinks-layer-broker` (+ proxy and test). `setupSymlinkSucceeds({ target })` needs a `path`, so the populate tests change. `readlinkIfLink` is the wrapper.
+- `is-accessible` (26 files): `pathExists` rejects on EACCES and probes F_OK where the adapter swallowed every error and probed R_OK; callers need a decision.
+- `read-file` (24 files): the adapter wrapped the error as `Failed to read file at ...`; the wrapper rejects raw.
+- `append-file`: `chat-subagent-tail-broker` (and its proxy) belongs to the other agent; `quest-outbox-append`, `quest-outbox-watch` wait with it.

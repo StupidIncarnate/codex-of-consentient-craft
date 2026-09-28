@@ -11,11 +11,10 @@ import type { AbsoluteFilePath, FilePath, OperationItemId } from '@dungeonmaster
 import { locationsPlannedWorkPathFindBrokerProxy } from '@dungeonmaster/shared/testing';
 import type { FsError } from '#gateway/node/fs';
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
+import { renameProxy } from '#gateway/node/fs__promises/rename/rename.proxy';
+import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 import { join } from '#gateway/node/path';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-
-import { fsRenameAdapterProxy } from '../../../adapters/fs/rename/fs-rename-adapter.proxy';
-import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
 
 const JSON_EXTENSION = '.json';
 const TMP_SUFFIX = '.tmp';
@@ -64,8 +63,10 @@ export const plannedWorkWriteBrokerProxy = (): {
   const locationsProxy = locationsPlannedWorkPathFindBrokerProxy();
   const joinHandle = registerMock({ fn: join });
   const ensureDirHandle = ensureDirProxy();
-  const writeProxy = fsWriteFileAdapterProxy();
-  const renameProxy = fsRenameAdapterProxy();
+  const writeHandle = writeFileProxy();
+  const renameHandle = renameProxy();
+  // Every rename this proxy staged, so `getAllRenames` reads back exactly the addresses a test set up.
+  const stagedRenames: { from: FilePath; to: FilePath }[] = [];
 
   const stagePaths = ({
     questFolderPath,
@@ -73,7 +74,7 @@ export const plannedWorkWriteBrokerProxy = (): {
   }: {
     questFolderPath: AbsoluteFilePath;
     operationItemId: OperationItemId;
-  }): { dirPath: FilePath; tmpPath: FilePath } => {
+  }): { dirPath: FilePath; tmpPath: FilePath; filePath: FilePath } => {
     const dirPath = dirPathFor({ questFolderPath });
     locationsProxy.setupPlannedWorkPath({ plannedWorkPath: dirPath });
     const filePath = filePathFor({ questFolderPath, operationItemId });
@@ -81,15 +82,18 @@ export const plannedWorkWriteBrokerProxy = (): {
       .calledWith([dirPath, `${String(operationItemId)}${JSON_EXTENSION}`])
       .returns(filePath);
     const tmpPath = filePathContract.parse(`${filePath}${TMP_SUFFIX}`);
-    return { dirPath, tmpPath };
+    return { dirPath, tmpPath, filePath };
   };
 
   return {
     setupWriteSucceeds: ({ questFolderPath, operationItemId }): void => {
-      const { dirPath, tmpPath } = stagePaths({ questFolderPath, operationItemId });
+      const { dirPath, tmpPath, filePath } = stagePaths({ questFolderPath, operationItemId });
       ensureDirHandle.succeeds({ path: dirPath });
-      writeProxy.succeeds({ filePath: tmpPath });
-      renameProxy.succeeds({ from: tmpPath });
+      writeHandle.succeeds({ path: tmpPath });
+      renameHandle.succeeds({ from: tmpPath, to: filePath });
+      if (!stagedRenames.some((staged) => staged.from === tmpPath)) {
+        stagedRenames.push({ from: tmpPath, to: filePath });
+      }
     },
 
     setupMkdirFailure: ({ questFolderPath, operationItemId, error }): void => {
@@ -100,22 +104,32 @@ export const plannedWorkWriteBrokerProxy = (): {
     setupWriteFailure: ({ questFolderPath, operationItemId, error }): void => {
       const { dirPath, tmpPath } = stagePaths({ questFolderPath, operationItemId });
       ensureDirHandle.succeeds({ path: dirPath });
-      writeProxy.throws({ filePath: tmpPath, error });
+      writeHandle.rejects({ path: tmpPath, error: Object.assign(error, { code: 'EIO' }) });
     },
 
     setupRenameFailure: ({ questFolderPath, operationItemId, error }): void => {
-      const { dirPath, tmpPath } = stagePaths({ questFolderPath, operationItemId });
+      const { dirPath, tmpPath, filePath } = stagePaths({ questFolderPath, operationItemId });
       ensureDirHandle.succeeds({ path: dirPath });
-      writeProxy.succeeds({ filePath: tmpPath });
-      renameProxy.throws({ from: tmpPath, error });
+      writeHandle.succeeds({ path: tmpPath });
+      renameHandle.rejects({
+        from: tmpPath,
+        to: filePath,
+        error: Object.assign(error, { code: 'EIO' }),
+      });
+      if (!stagedRenames.some((staged) => staged.from === tmpPath)) {
+        stagedRenames.push({ from: tmpPath, to: filePath });
+      }
     },
 
     getWrittenContent: ({ questFolderPath, operationItemId }): unknown => {
       const filePath = filePathFor({ questFolderPath, operationItemId });
       const tmpPath = filePathContract.parse(`${filePath}${TMP_SUFFIX}`);
-      return writeProxy.getWrittenFor({ filePath: tmpPath });
+      return writeHandle.writtenContentsFor({ path: tmpPath });
     },
 
-    getAllRenames: (): readonly { from: unknown; to: unknown }[] => renameProxy.getAllRenames(),
+    getAllRenames: (): readonly { from: unknown; to: unknown }[] =>
+      stagedRenames.flatMap(({ from, to }) =>
+        renameHandle.getCallsFor({ from, to }).map((call) => ({ from: call[0], to: call[1] })),
+      ),
   };
 };

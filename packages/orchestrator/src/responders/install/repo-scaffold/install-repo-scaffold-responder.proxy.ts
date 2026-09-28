@@ -1,11 +1,11 @@
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
+import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 import { join } from '#gateway/node/path';
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { fsIsAccessibleAdapterProxy } from '../../../adapters/fs/is-accessible/fs-is-accessible-adapter.proxy';
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
-import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
 import { InstallRepoScaffoldResponder } from './install-repo-scaffold-responder';
 
 // Every caller exercises targetProjectRoot: '/project', so the exact join tuples staged below are
@@ -31,7 +31,7 @@ export const InstallRepoScaffoldResponderProxy = (): {
   const mkdirProxy = ensureDirProxy();
   const isAccessibleProxy = fsIsAccessibleAdapterProxy();
   const readProxy = fsReadFileAdapterProxy();
-  const writeProxy = fsWriteFileAdapterProxy();
+  const writeProxy = writeFileProxy();
 
   joinHandle
     .calledWith([TARGET_PROJECT_ROOT, locationsStatics.repoRoot.worktreesDir])
@@ -46,7 +46,7 @@ export const InstallRepoScaffoldResponderProxy = (): {
       isAccessibleProxy.rejects({ filePath: WORKTREES_DIR, error: NOT_FOUND_ERROR() });
       isAccessibleProxy.rejects({ filePath: GITIGNORE_PATH, error: NOT_FOUND_ERROR() });
       mkdirProxy.succeeds({ path: WORKTREES_DIR });
-      writeProxy.succeeds({ filePath: GITIGNORE_PATH });
+      writeProxy.succeeds({ path: GITIGNORE_PATH });
     },
 
     // worktrees/ already exists; .gitignore exists but is still missing at least one entry, so a
@@ -55,7 +55,7 @@ export const InstallRepoScaffoldResponderProxy = (): {
       isAccessibleProxy.resolves({ filePath: WORKTREES_DIR });
       isAccessibleProxy.resolves({ filePath: GITIGNORE_PATH });
       readProxy.resolves({ filePath: GITIGNORE_PATH, content: gitignoreContent });
-      writeProxy.succeeds({ filePath: GITIGNORE_PATH });
+      writeProxy.succeeds({ path: GITIGNORE_PATH });
     },
 
     // worktrees/ already exists; .gitignore already carries every entry — the fully-scaffolded
@@ -77,8 +77,10 @@ export const InstallRepoScaffoldResponderProxy = (): {
 
     getCreatedDirs: (): readonly unknown[] =>
       mkdirProxy.getCallsFor({ path: WORKTREES_DIR }).map((call) => call[0]),
-    getWrittenGitignore: (): unknown => writeProxy.getWrittenFor({ filePath: GITIGNORE_PATH }),
+    getWrittenGitignore: (): unknown => writeProxy.writtenContentsFor({ path: GITIGNORE_PATH }),
     getAllWrittenFiles: (): readonly { path: unknown; content: unknown }[] =>
-      writeProxy.getAllWrittenFiles(),
+      writeProxy
+        .getCallsFor({ path: GITIGNORE_PATH })
+        .map((call) => ({ path: call[0], content: call[1] })),
   };
 };

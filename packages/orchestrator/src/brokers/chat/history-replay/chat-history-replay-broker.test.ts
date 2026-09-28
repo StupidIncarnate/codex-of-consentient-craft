@@ -351,7 +351,7 @@ describe('chatHistoryReplayBroker', () => {
       });
 
       // The broker still emits the entry from the JSONL it read. The proxy's
-      // fsReadJsonlAdapter mock returns whatever content was set — the assertion that
+      // readNonEmptyLines mock returns whatever content was set — the assertion that
       // the broker walked up vs. used guild.path directly is implicit in the entry
       // emission (without the walk-up, the broker would read the wrong path; the
       // proxy returns the same content regardless, so the test asserts that the
@@ -418,8 +418,8 @@ describe('chatHistoryReplayBroker', () => {
       // Anchors #transcript-replays-after-reload: chat sessions now spawn with the quest's
       // worktree as cwd, so Claude CLI writes the session JSONL under the worktree-encoded
       // directory, not the guild-path-derived one. `setupQuestWorktree` stages the JSONL read
-      // ONLY at the worktree-derived path (fsReadJsonlAdapterProxy addresses by exact
-      // filePath), so if the broker fell back to the guild-path walk-up instead of using
+      // ONLY at the worktree-derived path (readNonEmptyLinesProxy addresses by exact
+      // path), so if the broker fell back to the guild-path walk-up instead of using
       // questCwdResolveBroker, the read would miss its address and reject — the assertion that
       // the broker used the worktree path is implicit in the entry emission succeeding at all.
       const proxy = chatHistoryReplayBrokerProxy();

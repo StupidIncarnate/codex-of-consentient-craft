@@ -4,9 +4,8 @@ import {
   locationsUsageLedgerTmpPathFindBrokerProxy,
 } from '@dungeonmaster/shared/testing';
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
-
-import { fsRenameAdapterProxy } from '../../../adapters/fs/rename/fs-rename-adapter.proxy';
-import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
+import { renameProxy } from '#gateway/node/fs__promises/rename/rename.proxy';
+import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 
 export const usageLedgerWriteBrokerProxy = (): {
   setupWriteSuccess: (params: { nowMs: number }) => void;
@@ -16,10 +15,15 @@ export const usageLedgerWriteBrokerProxy = (): {
   const ensureProxy = dungeonmasterHomeEnsureBrokerProxy();
   const ledgerPathProxy = locationsUsageLedgerPathFindBrokerProxy();
   const tmpPathProxy = locationsUsageLedgerTmpPathFindBrokerProxy();
-  const writeFileProxy = fsWriteFileAdapterProxy();
-  const renameProxy = fsRenameAdapterProxy();
+  const writeHandle = writeFileProxy();
+  const renameHandle = renameProxy();
 
   const homePath = FilePathStub({ value: '/home/user/.dungeonmaster' });
+  const ledgerPath = FilePathStub({ value: '/home/user/.dungeonmaster/usage-ledger.json' });
+  // The tmp path of the last staged write: `getWrittenContent` reads back the write at that address.
+  const lastTmpPath: { value: ReturnType<typeof FilePathStub> | undefined } = {
+    value: undefined,
+  };
 
   // Queued in the broker's own order: ensure-home, then the ledger path, then the tmp path. The
   // broker's tmp-file token is `${process.pid}-${nowMs}` (usage-ledger-write-broker.ts) — reading
@@ -40,7 +44,7 @@ export const usageLedgerWriteBrokerProxy = (): {
     ledgerPathProxy.setupLedgerPath({
       homeDir: '/home/user',
       homePath,
-      ledgerPath: FilePathStub({ value: '/home/user/.dungeonmaster/usage-ledger.json' }),
+      ledgerPath,
     });
     tmpPathProxy.setupLedgerTmpPath({
       homeDir: '/home/user',
@@ -49,21 +53,26 @@ export const usageLedgerWriteBrokerProxy = (): {
       ledgerTmpPath: tmpPath,
     });
 
+    lastTmpPath.value = tmpPath;
+
     return tmpPath;
   };
 
   return {
     setupWriteSuccess: ({ nowMs }: { nowMs: number }): void => {
       const tmpPath = queuePaths({ nowMs });
-      writeFileProxy.succeeds({ filePath: tmpPath });
-      renameProxy.succeeds({ from: tmpPath });
+      writeHandle.succeeds({ path: tmpPath });
+      renameHandle.succeeds({ from: tmpPath, to: ledgerPath });
     },
 
     setupWriteFailure: ({ nowMs, error }: { nowMs: number; error: Error }): void => {
       const tmpPath = queuePaths({ nowMs });
-      writeFileProxy.throws({ filePath: tmpPath, error });
+      writeHandle.rejects({ path: tmpPath, error: Object.assign(error, { code: 'EIO' }) });
     },
 
-    getWrittenContent: (): unknown => writeFileProxy.getAllWrittenFiles().at(-1)?.content,
+    getWrittenContent: (): unknown =>
+      lastTmpPath.value === undefined
+        ? undefined
+        : writeHandle.writtenContentsFor({ path: lastTmpPath.value }),
   };
 };

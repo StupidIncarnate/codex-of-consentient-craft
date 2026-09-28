@@ -13,14 +13,16 @@
  * to recover the agent's signal from the on-disk session JSONL when the live stream parser missed it.
  */
 
+import { readNonEmptyLines } from '#gateway/node/fs__promises';
+import { isFsError } from '#gateway/node/fs';
 import {
   claudeLineNormalizeBroker,
   locationsClaudeSessionFilePathFindBroker,
 } from '@dungeonmaster/shared/brokers';
 import type { AbsoluteFilePath, SessionId } from '@dungeonmaster/shared/contracts';
 
-import { fsReadJsonlAdapter } from '../../../adapters/fs/read-jsonl/fs-read-jsonl-adapter';
 import type { StreamSignal } from '../../../contracts/stream-signal/stream-signal-contract';
+import { streamJsonLinesFromRawTransformer } from '../../../transformers/stream-json-lines-from-raw/stream-json-lines-from-raw-transformer';
 import { signalFromStreamTransformer } from '../../../transformers/signal-from-stream/signal-from-stream-transformer';
 
 export const signalFromSessionJsonlBroker = async ({
@@ -32,16 +34,14 @@ export const signalFromSessionJsonlBroker = async ({
 }): Promise<StreamSignal | null> => {
   const filePath = locationsClaudeSessionFilePathFindBroker({ guildPath, sessionId });
 
-  const lines = await fsReadJsonlAdapter({ filePath }).catch((error: unknown) => {
-    if (
-      error instanceof Error &&
-      'code' in error &&
-      (error as NodeJS.ErrnoException).code === 'ENOENT'
-    ) {
-      return null;
-    }
-    throw error;
-  });
+  const lines = await readNonEmptyLines(filePath)
+    .then((rawLines) => streamJsonLinesFromRawTransformer({ rawLines }))
+    .catch((error: unknown) => {
+      if (isFsError({ error, code: 'ENOENT' })) {
+        return null;
+      }
+      throw error;
+    });
 
   if (lines === null) {
     return null;

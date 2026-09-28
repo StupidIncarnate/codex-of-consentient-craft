@@ -15,17 +15,15 @@
 import {
   type InstallContext,
   type InstallResult,
-  fileContentsContract,
   filePathContract,
   installMessageContract,
   packageNameContract,
 } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import { ensureDir } from '#gateway/node/fs__promises';
+import { ensureDir, writeFile } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
 import { fsIsAccessibleAdapter } from '../../../adapters/fs/is-accessible/fs-is-accessible-adapter';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
-import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 
 const PACKAGE_NAME = '@dungeonmaster/orchestrator';
 const GITIGNORE_FILENAME = '.gitignore';
@@ -76,10 +74,7 @@ export const InstallRepoScaffoldResponder = async ({
   if (missingEntries.length > 0) {
     const appended = `${missingEntries.join('\n')}\n`;
     const newContent = existingContent ? `${existingContent.trimEnd()}\n${appended}` : appended;
-    await fsWriteFileAdapter({
-      filePath: gitignorePath,
-      contents: fileContentsContract.parse(newContent),
-    });
+    await writeFile(gitignorePath, newContent);
   }
 
   let dirClause = `Created ${WORKTREES_ENTRY}`;

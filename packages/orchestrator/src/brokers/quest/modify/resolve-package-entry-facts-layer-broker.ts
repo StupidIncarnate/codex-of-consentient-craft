@@ -30,11 +30,11 @@ import type {
   RepoRootCwd,
 } from '@dungeonmaster/shared/contracts';
 import { packageJsonDependencyNamesTransformer } from '@dungeonmaster/shared/transformers';
+import { readdirSync } from '#gateway/node/fs';
 import { dirname, resolve } from '#gateway/node/path';
 
 import { fsIsAccessibleAdapter } from '../../../adapters/fs/is-accessible/fs-is-accessible-adapter';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
-import { fsReaddirAdapter } from '../../../adapters/fs/readdir/fs-readdir-adapter';
 
 type QuestPackageEntry = ReturnType<typeof QuestPackageEntryStub>;
 
@@ -143,8 +143,8 @@ export const resolvePackageEntryFactsLayerBroker = async ({
   const siblingDirs: { root: unknown; dirName: unknown }[] = [];
   for (const root of workspaceRoots) {
     try {
-      for (const dirName of fsReaddirAdapter({ dirPath: String(root) })) {
-        siblingDirs.push({ root, dirName: String(dirName) });
+      for (const dirName of readdirSync(String(root))) {
+        siblingDirs.push({ root, dirName });
       }
     } catch {
       // A declared location whose parent is not readable contributes no siblings. The location's

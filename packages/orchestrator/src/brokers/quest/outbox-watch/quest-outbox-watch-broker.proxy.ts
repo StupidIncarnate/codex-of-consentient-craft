@@ -8,10 +8,10 @@ import {
   requireActual,
 } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
+import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 import { join } from '#gateway/node/path';
 
 import { fsAppendFileAdapterProxy } from '../../../adapters/fs/append-file/fs-append-file-adapter.proxy';
-import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
 import { fsWatchTailAdapterProxy } from '../../../adapters/fs/watch-tail/fs-watch-tail-adapter.proxy';
 import { questOutboxWatchBroker } from './quest-outbox-watch-broker';
 
@@ -43,7 +43,14 @@ export const questOutboxWatchBrokerProxy = (): {
   const homeEnsureProxy = dungeonmasterHomeEnsureBrokerProxy();
   const joinHandle: MockHandle = registerMock({ fn: join });
   const appendFileProxy = fsAppendFileAdapterProxy();
-  const writeFileProxy = fsWriteFileAdapterProxy();
+  const writeHandle = writeFileProxy();
+  // Every outbox path this proxy staged: `getTruncatedPaths` reads back the writes at those addresses.
+  const stagedOutboxPaths: FilePath[] = [];
+  const stageStagedOutboxPaths = (entry: FilePath): void => {
+    if (!stagedOutboxPaths.includes(entry)) {
+      stagedOutboxPaths.push(entry);
+    }
+  };
   const watchTailProxy = fsWatchTailAdapterProxy();
 
   const stageOutboxPath = ({
@@ -67,7 +74,8 @@ export const questOutboxWatchBrokerProxy = (): {
       .calledWith([homePath, locationsStatics.dungeonmasterHome.eventOutbox])
       .returns(outboxPath);
     appendFileProxy.succeeds({ filePath: outboxPath });
-    writeFileProxy.succeeds({ filePath: outboxPath });
+    stageStagedOutboxPaths(outboxPath);
+    writeHandle.succeeds({ path: outboxPath });
   };
 
   const captured: {
@@ -117,7 +125,9 @@ export const questOutboxWatchBrokerProxy = (): {
     // `writeFile` is the truncate and `appendFile` the create-if-absent, so which of the two the
     // broker reached for IS the observable "did this watcher destroy the bus it came to read".
     getTruncatedPaths: (): readonly unknown[] =>
-      writeFileProxy.getAllWrittenFiles().map((written) => written.path),
+      stagedOutboxPaths.flatMap((outboxPath) =>
+        writeHandle.getCallsFor({ path: outboxPath }).map((call) => call[0]),
+      ),
 
     getCreatedPaths: (): readonly unknown[] =>
       appendFileProxy.getAllAppendedFiles().map((appended) => appended.path),

@@ -12,15 +12,13 @@
 import {
   type InstallContext,
   type InstallResult,
-  fileContentsContract,
   filePathContract,
   installMessageContract,
   packageNameContract,
 } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import { ensureDir } from '#gateway/node/fs__promises';
+import { ensureDir, writeFile } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
-import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import { slashCommandsStatics } from '../../../statics/slash-commands/slash-commands-statics';
 
 const PACKAGE_NAME = '@dungeonmaster/orchestrator';
@@ -44,14 +42,8 @@ export const InstallCommandsCreateResponder = async ({
     join(commandsDir, slashCommandsStatics.dumpsterHunt.fileName),
   );
 
-  await fsWriteFileAdapter({
-    filePath: createPath,
-    contents: fileContentsContract.parse(slashCommandsStatics.dumpsterCreate.body),
-  });
-  await fsWriteFileAdapter({
-    filePath: huntPath,
-    contents: fileContentsContract.parse(slashCommandsStatics.dumpsterHunt.body),
-  });
+  await writeFile(createPath, slashCommandsStatics.dumpsterCreate.body);
+  await writeFile(huntPath, slashCommandsStatics.dumpsterHunt.body);
 
   return {
     packageName: packageNameContract.parse(PACKAGE_NAME),

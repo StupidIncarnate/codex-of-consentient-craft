@@ -11,9 +11,8 @@ import { FilePathStub, type FilePath } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
+import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 import { join } from '#gateway/node/path';
-
-import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
 
 const DEFAULT_HOME_DIR = '/home/user';
 const DEFAULT_HOME_PATH = FilePathStub({ value: '/home/user/.dungeonmaster' });
@@ -42,7 +41,15 @@ export const guildConfigWriteBrokerProxy = (): {
   // so no gateway proxy to compose) — mocked directly here, on the same '#gateway/node/path'
   // specifier the broker imports.
   const joinHandle: MockHandle = registerMock({ fn: join });
-  const writeFileProxy = fsWriteFileAdapterProxy();
+  const writeHandle = writeFileProxy();
+  // Every config path this proxy staged a write for: `configFilesWritten` reads back the calls at
+  // exactly those addresses.
+  const stagedConfigPaths: FilePath[] = [];
+  const stageStagedConfigPaths = (entry: FilePath): void => {
+    if (!stagedConfigPaths.includes(entry)) {
+      stagedConfigPaths.push(entry);
+    }
+  };
 
   return {
     setupSuccess: (): void => {
@@ -53,7 +60,8 @@ export const guildConfigWriteBrokerProxy = (): {
       joinHandle
         .calledWith([DEFAULT_HOME_PATH, dungeonmasterHomeStatics.paths.configFile])
         .returns(DEFAULT_CONFIG_FILE_PATH);
-      writeFileProxy.succeeds({ filePath: DEFAULT_CONFIG_FILE_PATH });
+      stageStagedConfigPaths(DEFAULT_CONFIG_FILE_PATH);
+      writeHandle.succeeds({ path: DEFAULT_CONFIG_FILE_PATH });
     },
 
     // For a caller-supplied home: stages the WRITE alone, at the exact config path, and stages
@@ -62,18 +70,22 @@ export const guildConfigWriteBrokerProxy = (): {
     // the path the broker computes off the supplied home is the genuine one — and a broker falling
     // back to the process-wide home would write a DIFFERENT path and throw on an unmatched call.
     setupSuccessAt: ({ configFilePath }: { configFilePath: FilePath }): void => {
-      writeFileProxy.succeeds({ filePath: configFilePath });
+      stageStagedConfigPaths(configFilePath);
+      writeHandle.succeeds({ path: configFilePath });
     },
 
     // The body written to ONE named config path — the counterpart to `getWrittenContent` below,
     // which is pinned to the default home's path.
     getWrittenAt: ({ configFilePath }: { configFilePath: FilePath }): unknown =>
-      writeFileProxy.getWrittenFor({ filePath: configFilePath }),
+      writeHandle.writtenContentsFor({ path: configFilePath }),
 
-    // Every path this broker handed to `fsWriteFileAdapter`, in call order. Assert an escape
-    // against this — a path list is an observation, where "the supplied path was staged" is not.
+    // Every staged config path this broker wrote to, in staging order. Assert an escape against
+    // this — a path list is an observation, where "the supplied path was staged" is not. A write to
+    // any path nobody staged throws instead of landing here.
     configFilesWritten: (): readonly unknown[] =>
-      writeFileProxy.getAllWrittenFiles().map((written) => written.path),
+      stagedConfigPaths.flatMap((configFilePath) =>
+        writeHandle.getCallsFor({ path: configFilePath }).map((call) => call[0]),
+      ),
 
     setupWriteSuccess: ({
       homeDir,
@@ -88,7 +100,8 @@ export const guildConfigWriteBrokerProxy = (): {
       joinHandle
         .calledWith([homePath, dungeonmasterHomeStatics.paths.configFile])
         .returns(configFilePath);
-      writeFileProxy.succeeds({ filePath: configFilePath });
+      stageStagedConfigPaths(configFilePath);
+      writeHandle.succeeds({ path: configFilePath });
     },
 
     setupWriteFailure: ({
@@ -106,12 +119,16 @@ export const guildConfigWriteBrokerProxy = (): {
       joinHandle
         .calledWith([homePath, dungeonmasterHomeStatics.paths.configFile])
         .returns(configFilePath);
-      writeFileProxy.throws({ filePath: configFilePath, error });
+      stageStagedConfigPaths(configFilePath);
+      writeHandle.rejects({
+        path: configFilePath,
+        error: Object.assign(error, { code: 'EIO' }),
+      });
     },
 
     // Every caller of this proxy's setup methods (default and explicit) uses the same
     // literal config.json path, so the write's address is this fixed constant.
     getWrittenContent: (): unknown =>
-      writeFileProxy.getWrittenFor({ filePath: DEFAULT_CONFIG_FILE_PATH }),
+      writeHandle.writtenContentsFor({ path: DEFAULT_CONFIG_FILE_PATH }),
   };
 };

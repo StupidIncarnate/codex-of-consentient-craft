@@ -5,7 +5,7 @@ import { orchestrationEnvironmentHarness } from '../../../../test/harnesses/orch
 import { guildAddBroker } from './guild-add-broker';
 
 // Real disk, two real homes. `guild-add-broker.test.ts` beside this one asserts which paths the
-// broker hands to fsMkdirAdapter and fsWriteFileAdapter; it cannot prove what a second home on the
+// broker hands to `ensureDir` and `writeFile`; it cannot prove what a second home on the
 // same machine looks like afterwards. Here `setupHome` pins DUNGEONMASTER_HOME at one temp
 // directory and the call supplies the OTHER, so reading both directories back is the observation
 // that settles whether a supplied home confines the write — and a mutation that drops the home and

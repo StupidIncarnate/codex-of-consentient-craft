@@ -99,8 +99,8 @@ describe('questPersistBroker', () => {
     // POINT this pins: killing the API server mid-persist). The broker never calls the
     // underlying fs write with the real questFilePath — only with its `.tmp` derivative — so
     // a kill at any point before rename resolves leaves the real path's on-disk bytes exactly
-    // as they were before this call started. Combined with `fsRenameAdapter`'s own PURPOSE
-    // comment ("POSIX-atomic on same filesystem"), quest.json can only ever be read back in
+    // as they were before this call started. Combined with the gateway `rename`'s own PURPOSE
+    // comment ("atomic when both sides sit on the same filesystem"), quest.json can only ever be read back in
     // the pre-persist state (rename never landed) or the post-persist state (rename landed
     // whole) — never a half-written blend of the two.
     it('ERROR: {rename fails, simulating a kill before rename lands} => the real questFilePath is never a write target — only the tmp path is', async () => {

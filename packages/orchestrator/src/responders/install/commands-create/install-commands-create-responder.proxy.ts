@@ -1,9 +1,9 @@
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
+import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 import { join } from '#gateway/node/path';
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
 import { slashCommandsStatics } from '../../../statics/slash-commands/slash-commands-statics';
 import { InstallCommandsCreateResponder } from './install-commands-create-responder';
 
@@ -14,7 +14,7 @@ export const InstallCommandsCreateResponderProxy = (): {
 } => {
   const joinHandle = registerMock({ fn: join });
   const mkdirProxy = ensureDirProxy();
-  const writeProxy = fsWriteFileAdapterProxy();
+  const writeProxy = writeFileProxy();
 
   // Every caller exercises targetProjectRoot: '/project', so the exact join tuples below are the
   // only ones this responder ever composes and the two command files always land here.
@@ -38,14 +38,16 @@ export const InstallCommandsCreateResponderProxy = (): {
     .calledWith([commandsDir, slashCommandsStatics.dumpsterHunt.fileName])
     .returns(huntPath);
 
-  writeProxy.succeeds({ filePath: createPath });
-  writeProxy.succeeds({ filePath: huntPath });
+  writeProxy.succeeds({ path: createPath });
+  writeProxy.succeeds({ path: huntPath });
 
   return {
     callResponder: InstallCommandsCreateResponder,
     getCreatedDirs: (): readonly unknown[] =>
       mkdirProxy.getCallsFor({ path: commandsDir }).map((call) => call[0]),
     getAllWrittenFiles: (): readonly { path: unknown; content: unknown }[] =>
-      writeProxy.getAllWrittenFiles(),
+      [createPath, huntPath].flatMap((path) =>
+        writeProxy.getCallsFor({ path }).map((call) => ({ path: call[0], content: call[1] })),
+      ),
   };
 };

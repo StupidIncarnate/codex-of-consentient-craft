@@ -1449,7 +1449,7 @@ Quest mutations use a **file outbox** for cross-process notification. Transient 
 
 **Rules:**
 - NEVER emit `quest-modified` or `quest-created` on `orchestrationEventsState` — those go through the outbox only
-- NEVER call `fsWriteFileAdapter` directly for quest files — always use `questPersistBroker`
+- NEVER call `writeFile` directly for quest files — always use `questPersistBroker`
 - Transient chat events stay on in-memory bus (single-process, high-frequency)
 
 ## The dispatcher

@@ -24,6 +24,7 @@
 import { streamLinesProxy } from '#gateway/node/child_process/stream-lines/stream-lines.proxy';
 import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found.error.proxy';
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
+import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 import { join } from '#gateway/node/path';
 import {
   AbsoluteFilePathStub,
@@ -43,7 +44,6 @@ import {
   requireActual,
 } from '@dungeonmaster/testing/register-mock';
 
-import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
 import { QuestCwdResolutionStub } from '../../../contracts/quest-cwd-resolution/quest-cwd-resolution.stub';
 import { wardDetailBrokerProxy } from '../../ward/detail/ward-detail-broker.proxy';
 import { questCwdResolveBroker } from '../../quest/cwd-resolve/quest-cwd-resolve-broker';
@@ -86,11 +86,9 @@ export const stepHandlerWardBrokerProxy = (): {
   fsMkdirProxy.succeeds({
     path: `${QUEST_PATH}/${locationsStatics.quest.wardResultsDir}`,
   });
-  const fsWriteProxy = fsWriteFileAdapterProxy();
+  const fsWriteProxy = writeFileProxy();
   fsWriteProxy.succeeds({
-    filePath: FilePathStub({
-      value: `${QUEST_PATH}/${locationsStatics.quest.wardResultsDir}/${FIXED_WARD_RESULT_UUID}.json`,
-    }),
+    path: `${QUEST_PATH}/${locationsStatics.quest.wardResultsDir}/${FIXED_WARD_RESULT_UUID}.json`,
   });
   const detailProxy = wardDetailBrokerProxy();
   // Inert — satisfies enforce-proxy-child-creation. The module mocks below replace both brokers'

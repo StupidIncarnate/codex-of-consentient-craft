@@ -1,3 +1,4 @@
+import { readdirSyncProxy } from '#gateway/node/fs/readdir-sync/readdir-sync.proxy';
 import { dirname, resolve } from '#gateway/node/path';
 
 import { FileNameStub, FilePathStub } from '@dungeonmaster/shared/contracts';
@@ -6,7 +7,6 @@ import { registerMock, requireActual } from '@dungeonmaster/testing/register-moc
 
 import { fsIsAccessibleAdapterProxy } from '../../../adapters/fs/is-accessible/fs-is-accessible-adapter.proxy';
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
-import { fsReaddirAdapterProxy } from '../../../adapters/fs/readdir/fs-readdir-adapter.proxy';
 
 export const resolvePackageEntryFactsLayerBrokerProxy = (): {
   setupLocationExists: (params: { packageRoot: string }) => void;
@@ -39,7 +39,7 @@ export const resolvePackageEntryFactsLayerBrokerProxy = (): {
     .calledWith([])
     .implement((...segments: never[]) => realPath.resolve(...segments));
   const detectProxy = architecturePackageTypeDetectBrokerProxy();
-  const readdirProxy = fsReaddirAdapterProxy();
+  const readdirProxy = readdirSyncProxy();
   const readFileProxy = fsReadFileAdapterProxy();
 
   return {
@@ -90,8 +90,8 @@ export const resolvePackageEntryFactsLayerBrokerProxy = (): {
       packages: readonly { dirName: string; manifest?: unknown; raw?: string }[];
     }): void => {
       readdirProxy.returns({
-        dirPath: root,
-        files: packages.map(({ dirName }) => FileNameStub({ value: dirName })),
+        path: root,
+        names: packages.map(({ dirName }) => FileNameStub({ value: dirName })),
       });
 
       for (const entry of packages) {
@@ -112,7 +112,7 @@ export const resolvePackageEntryFactsLayerBrokerProxy = (): {
 
     setupUnreadableRoot: ({ root }: { root: string }): void => {
       readdirProxy.throws({
-        dirPath: root,
+        path: root,
         error: Object.assign(new Error('ENOENT: no such file or directory'), { code: 'ENOENT' }),
       });
     },

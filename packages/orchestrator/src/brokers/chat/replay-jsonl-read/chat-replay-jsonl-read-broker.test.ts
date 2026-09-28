@@ -1,3 +1,4 @@
+import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 
 import { chatReplayJsonlReadBroker } from './chat-replay-jsonl-read-broker';
@@ -21,7 +22,10 @@ describe('chatReplayJsonlReadBroker', () => {
       // throwsOnce wins over the sticky `returns` for the SAME filePath on the first call only,
       // so the first read genuinely ENOENTs and the broker's retry loop is what makes the
       // second read (which lands on the sticky `returns`) succeed.
-      proxy.throwsOnce({ filePath, error: new Error('ENOENT: no such file or directory') });
+      proxy.throwsOnce({
+        filePath,
+        error: FsErrorStub({ code: 'ENOENT', path: String(filePath) }),
+      });
       proxy.returns({ filePath, content: '{"type":"system"}\n' });
 
       const result = await chatReplayJsonlReadBroker({ filePath });
@@ -32,7 +36,7 @@ describe('chatReplayJsonlReadBroker', () => {
     it('ERROR: {ENOENT past deadline} => throws ENOENT', async () => {
       const proxy = chatReplayJsonlReadBrokerProxy();
       const filePath = AbsoluteFilePathStub({ value: '/tmp/session.jsonl' });
-      proxy.throws({ filePath, error: new Error('ENOENT: no such file or directory') });
+      proxy.throws({ filePath, error: FsErrorStub({ code: 'ENOENT', path: String(filePath) }) });
 
       await expect(
         chatReplayJsonlReadBroker({
@@ -45,7 +49,7 @@ describe('chatReplayJsonlReadBroker', () => {
     it('ERROR: {non-ENOENT error} => throws immediately without retry', async () => {
       const proxy = chatReplayJsonlReadBrokerProxy();
       const filePath = AbsoluteFilePathStub({ value: '/tmp/session.jsonl' });
-      proxy.throws({ filePath, error: new Error('EACCES: permission denied') });
+      proxy.throws({ filePath, error: FsErrorStub({ code: 'EACCES', path: String(filePath) }) });
 
       await expect(chatReplayJsonlReadBroker({ filePath })).rejects.toThrow(/EACCES/u);
     });

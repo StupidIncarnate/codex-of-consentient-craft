@@ -1,3 +1,4 @@
+import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { AbsoluteFilePathStub, SessionIdStub } from '@dungeonmaster/shared/contracts';
 
 import { signalFromSessionJsonlBroker } from './signal-from-session-jsonl-broker';
@@ -137,8 +138,7 @@ describe('signalFromSessionJsonlBroker', () => {
   describe('non-ENOENT read errors', () => {
     it('ERROR: {file read fails with non-ENOENT error} => rethrows the error', async () => {
       const proxy = signalFromSessionJsonlBrokerProxy();
-      const ioError = new Error('EACCES: permission denied');
-      Object.assign(ioError, { code: 'EACCES' });
+      const ioError = FsErrorStub({ code: 'EACCES', syscall: 'open' });
       proxy.setupReadError({ error: ioError });
 
       await expect(

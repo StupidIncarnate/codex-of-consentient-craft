@@ -10,20 +10,14 @@
  */
 
 import type { UsageLedger } from '@dungeonmaster/shared/contracts';
-import {
-  fileContentsContract,
-  filePathContract,
-  usageLedgerContract,
-} from '@dungeonmaster/shared/contracts';
+import { usageLedgerContract } from '@dungeonmaster/shared/contracts';
 import {
   dungeonmasterHomeEnsureBroker,
   locationsUsageLedgerPathFindBroker,
   locationsUsageLedgerTmpPathFindBroker,
 } from '@dungeonmaster/shared/brokers';
 import { usageAccountingStatics } from '@dungeonmaster/shared/statics';
-
-import { fsRenameAdapter } from '../../../adapters/fs/rename/fs-rename-adapter';
-import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
+import { rename, writeFile } from '#gateway/node/fs__promises';
 
 export const usageLedgerWriteBroker = async ({
   ledger,
@@ -68,12 +62,8 @@ export const usageLedgerWriteBroker = async ({
     token: `${String(process.pid)}-${String(nowMs)}`,
   });
 
-  const contents = fileContentsContract.parse(`${JSON.stringify(persisted)}\n`);
-  await fsWriteFileAdapter({ filePath: filePathContract.parse(tmpPath), contents });
-  await fsRenameAdapter({
-    from: filePathContract.parse(tmpPath),
-    to: filePathContract.parse(ledgerPath),
-  });
+  await writeFile(tmpPath, `${JSON.stringify(persisted)}\n`);
+  await rename(tmpPath, ledgerPath);
 
   return persisted;
 };

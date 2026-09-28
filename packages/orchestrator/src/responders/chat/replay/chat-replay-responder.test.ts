@@ -605,7 +605,7 @@ describe('ChatReplayResponder', () => {
         sessionId,
         homeDir: '/home/testuser',
       });
-      // fsReadJsonlAdapterProxy addresses by the exact worktree-derived path — if the responder
+      // readNonEmptyLinesProxy addresses by the exact worktree-derived path — if the responder
       // stopped spreading questId into the chatHistoryReplayBroker call, the broker would fall
       // back to the guild-path walk-up instead, miss this staged address, and no chat-output
       // event would ever fire.

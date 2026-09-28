@@ -11,9 +11,9 @@ import type { FilePath, FileContents, FileName } from '@dungeonmaster/shared/con
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
+import { readdirSyncProxy } from '#gateway/node/fs/readdir-sync/readdir-sync.proxy';
 import { join } from '#gateway/node/path';
 
-import { fsReaddirAdapterProxy } from '../../../adapters/fs/readdir/fs-readdir-adapter.proxy';
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 
 export const questFolderFindBrokerProxy = (): {
@@ -38,7 +38,7 @@ export const questFolderFindBrokerProxy = (): {
     };
   }) => void;
 } => {
-  const readdirProxy = fsReaddirAdapterProxy();
+  const readdirProxy = readdirSyncProxy();
   const readFileProxy = fsReadFileAdapterProxy();
   const joinHandle: MockHandle = registerMock({ fn: join });
 
@@ -56,7 +56,7 @@ export const questFolderFindBrokerProxy = (): {
         contents: FileContents;
       }[];
     }): void => {
-      readdirProxy.returns({ dirPath: questsPath, files: questFolders });
+      readdirProxy.returns({ path: questsPath, names: questFolders });
 
       // Folder name and quest file are paired by index — questFolders and questFiles are parallel
       // arrays every caller passes in the same order, which is what lets the real folder-name
@@ -80,7 +80,7 @@ export const questFolderFindBrokerProxy = (): {
     },
 
     setupEmptyFolder: ({ questsPath }: { questsPath: FilePath }): void => {
-      readdirProxy.returns({ dirPath: questsPath, files: [] });
+      readdirProxy.returns({ path: questsPath, names: [] });
     },
 
     setupQuestFoldersWithMissingFile: ({
@@ -98,7 +98,7 @@ export const questFolderFindBrokerProxy = (): {
         contents: FileContents;
       };
     }): void => {
-      readdirProxy.returns({ dirPath: questsPath, files: questFolders });
+      readdirProxy.returns({ path: questsPath, names: questFolders });
 
       const [invalidFolderName, validFolderName] = questFolders;
       const missingFolderPath = filePathContract.parse(

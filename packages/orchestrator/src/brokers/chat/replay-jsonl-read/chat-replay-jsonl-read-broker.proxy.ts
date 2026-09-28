@@ -1,22 +1,22 @@
+import { readNonEmptyLinesProxy } from '#gateway/node/fs__promises/read-non-empty-lines/read-non-empty-lines.proxy';
+import type { FsError } from '#gateway/node/fs';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
-
-import { fsReadJsonlAdapterProxy } from '../../../adapters/fs/read-jsonl/fs-read-jsonl-adapter.proxy';
 
 export const chatReplayJsonlReadBrokerProxy = (): {
   returns: (params: { filePath: AbsoluteFilePath; content: string }) => void;
-  throws: (params: { filePath: AbsoluteFilePath; error: Error }) => void;
-  throwsOnce: (params: { filePath: AbsoluteFilePath; error: Error }) => void;
+  throws: (params: { filePath: AbsoluteFilePath; error: FsError }) => void;
+  throwsOnce: (params: { filePath: AbsoluteFilePath; error: FsError }) => void;
 } => {
-  const readJsonlProxy = fsReadJsonlAdapterProxy();
+  const readLinesProxy = readNonEmptyLinesProxy();
   return {
     returns: ({ filePath, content }: { filePath: AbsoluteFilePath; content: string }): void => {
-      readJsonlProxy.returns({ filePath, content });
+      readLinesProxy.returnsRaw({ path: String(filePath), rawContents: content });
     },
-    throws: ({ filePath, error }: { filePath: AbsoluteFilePath; error: Error }): void => {
-      readJsonlProxy.throws({ filePath, error });
+    throws: ({ filePath, error }: { filePath: AbsoluteFilePath; error: FsError }): void => {
+      readLinesProxy.throwsMatchingPath({ path: String(filePath), error });
     },
-    throwsOnce: ({ filePath, error }: { filePath: AbsoluteFilePath; error: Error }): void => {
-      readJsonlProxy.throwsOnce({ filePath, error });
+    throwsOnce: ({ filePath, error }: { filePath: AbsoluteFilePath; error: FsError }): void => {
+      readLinesProxy.throwsOnce({ path: String(filePath), error });
     },
   };
 };

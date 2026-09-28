@@ -4,9 +4,8 @@ import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
+import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 import { join } from '#gateway/node/path';
-
-import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
 
 const LOG_EXTENSION = '.log';
 
@@ -49,7 +48,7 @@ export const riftcarverPersistResultBrokerProxy = (): {
 } => {
   const joinHandle: MockHandle = registerMock({ fn: join });
   const ensureDirHandle = ensureDirProxy();
-  const writeProxy = fsWriteFileAdapterProxy();
+  const writeHandle = writeFileProxy();
 
   return {
     setupSuccess: ({ questFolderPath, riftcarverResultId }): void => {
@@ -61,7 +60,7 @@ export const riftcarverPersistResultBrokerProxy = (): {
       joinHandle
         .calledWith([riftcarverResultsDir, `${String(riftcarverResultId)}${LOG_EXTENSION}`])
         .returns(logFilePathFor({ questFolderPath, riftcarverResultId }));
-      writeProxy.succeeds({ filePath: logFilePathFor({ questFolderPath, riftcarverResultId }) });
+      writeHandle.succeeds({ path: logFilePathFor({ questFolderPath, riftcarverResultId }) });
     },
 
     setupWriteFailure: ({ questFolderPath, riftcarverResultId, error }): void => {
@@ -73,15 +72,15 @@ export const riftcarverPersistResultBrokerProxy = (): {
       joinHandle
         .calledWith([riftcarverResultsDir, `${String(riftcarverResultId)}${LOG_EXTENSION}`])
         .returns(logFilePathFor({ questFolderPath, riftcarverResultId }));
-      writeProxy.throws({
-        filePath: logFilePathFor({ questFolderPath, riftcarverResultId }),
-        error,
+      writeHandle.rejects({
+        path: logFilePathFor({ questFolderPath, riftcarverResultId }),
+        error: Object.assign(error, { code: 'EIO' }),
       });
     },
 
     getWrittenContent: ({ questFolderPath, riftcarverResultId }): unknown =>
-      writeProxy.getWrittenFor({
-        filePath: logFilePathFor({ questFolderPath, riftcarverResultId }),
+      writeHandle.writtenContentsFor({
+        path: logFilePathFor({ questFolderPath, riftcarverResultId }),
       }),
 
     getWrittenPath: ({ questFolderPath, riftcarverResultId }): unknown =>

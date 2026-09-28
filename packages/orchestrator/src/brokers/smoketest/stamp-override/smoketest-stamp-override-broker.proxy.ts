@@ -78,8 +78,8 @@ export const smoketestStampOverrideBrokerProxy = (): {
     },
 
     // Read the `contents` argument straight off every questPersistBroker call this test made,
-    // instead of the underlying fsWriteFileAdapter — persistMock's real body never runs, so
-    // nothing ever reaches that adapter now.
+    // instead of the underlying `writeFile` — persistMock's real body never runs, so
+    // nothing ever reaches it.
     getAllPersistedContents: (): readonly unknown[] =>
       persistMock.callsMatching([]).map((call) => {
         const [params] = call as [Parameters<typeof questPersistBroker>[0]];

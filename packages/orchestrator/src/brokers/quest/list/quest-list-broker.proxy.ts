@@ -1,3 +1,4 @@
+import { readdirSyncProxy } from '#gateway/node/fs/readdir-sync/readdir-sync.proxy';
 import { join } from '#gateway/node/path';
 
 import {
@@ -15,7 +16,6 @@ import {
   requireActual,
 } from '@dungeonmaster/testing/register-mock';
 
-import { fsReaddirAdapterProxy } from '../../../adapters/fs/readdir/fs-readdir-adapter.proxy';
 import { questLoadBrokerProxy } from '../load/quest-load-broker.proxy';
 import { questResolveQuestsPathBrokerProxy } from '../resolve-quests-path/quest-resolve-quests-path-broker.proxy';
 import { questListBroker } from './quest-list-broker';
@@ -36,7 +36,7 @@ export const questListBrokerProxy = (): {
   getSkipReports: () => readonly unknown[];
 } => {
   const resolveQuestsPathProxy = questResolveQuestsPathBrokerProxy();
-  const fsReaddirProxy = fsReaddirAdapterProxy();
+  const readdirProxy = readdirSyncProxy();
   const joinHandle = registerMock({ fn: join });
   const questLoadProxy = questLoadBrokerProxy();
   // The broker reports every skipped quest file on stderr. Capture it so test output stays
@@ -76,10 +76,10 @@ export const questListBrokerProxy = (): {
       });
     },
     setupQuestDirectories: ({ files }: { files: FileName[] }): void => {
-      fsReaddirProxy.returns({ dirPath: String(questsPathRef.value), files });
+      readdirProxy.returns({ path: String(questsPathRef.value), names: files });
     },
     setupQuestDirectoriesFailure: ({ error }: { error: Error }): void => {
-      fsReaddirProxy.throws({ dirPath: String(questsPathRef.value), error });
+      readdirProxy.throws({ path: String(questsPathRef.value), error });
     },
     setupQuestFilePath: ({
       folderName,

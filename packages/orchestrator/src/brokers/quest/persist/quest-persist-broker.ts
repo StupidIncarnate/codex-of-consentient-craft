@@ -13,9 +13,8 @@ import type {
   FilePath,
   QuestId,
 } from '@dungeonmaster/shared/contracts';
+import { rename, writeFile } from '#gateway/node/fs__promises';
 
-import { fsRenameAdapter } from '../../../adapters/fs/rename/fs-rename-adapter';
-import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import { questOutboxAppendBroker } from '../outbox-append/quest-outbox-append-broker';
 
 const TMP_SUFFIX = '.tmp';
@@ -31,8 +30,8 @@ export const questPersistBroker = async ({
 }): Promise<AdapterResult> => {
   const tmpPath = filePathContract.parse(`${questFilePath}${TMP_SUFFIX}`);
 
-  await fsWriteFileAdapter({ filePath: tmpPath, contents });
-  await fsRenameAdapter({ from: tmpPath, to: questFilePath });
+  await writeFile(tmpPath, contents);
+  await rename(tmpPath, questFilePath);
   await questOutboxAppendBroker({ questId });
   return adapterResultContract.parse({ success: true });
 };

@@ -15,6 +15,8 @@
  * // Returns AdapterResult { success: true }
  */
 
+import { readdirSync } from '#gateway/node/fs';
+import { readNonEmptyLines } from '#gateway/node/fs__promises';
 import {
   absoluteFilePathContract,
   adapterResultContract,
@@ -30,13 +32,12 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 
-import { fsReadJsonlAdapter } from '../../../adapters/fs/read-jsonl/fs-read-jsonl-adapter';
-import { fsReaddirAdapter } from '../../../adapters/fs/readdir/fs-readdir-adapter';
 import type { fsWatchTailAdapter } from '../../../adapters/fs/watch-tail/fs-watch-tail-adapter';
 import type { AgentId } from '../../../contracts/agent-id/agent-id-contract';
 import type { ChatLineProcessor } from '../../../contracts/chat-line-processor/chat-line-processor-contract';
 import { normalizedStreamLineContract } from '../../../contracts/normalized-stream-line/normalized-stream-line-contract';
 import { taskAgentToolPromptContract } from '../../../contracts/task-agent-tool-prompt/task-agent-tool-prompt-contract';
+import { streamJsonLinesFromRawTransformer } from '../../../transformers/stream-json-lines-from-raw/stream-json-lines-from-raw-transformer';
 import { stripAgentFilenamePrefixTransformer } from '../../../transformers/strip-agent-filename-prefix/strip-agent-filename-prefix-transformer';
 
 import { startSubagentTailLayerBroker } from './start-subagent-tail-layer-broker';
@@ -85,10 +86,10 @@ export const scanSubagentsDirLayerBroker = async ({
   // poll tick, not a filter on which files are eligible.
   const pendingPairing: { agentId: AgentId; fileName: FileName }[] = [];
   try {
-    const files = fsReaddirAdapter({ dirPath: subagentsDir });
+    const files = readdirSync(subagentsDir);
     for (const file of files) {
-      if (!String(file).startsWith('agent-')) continue;
-      if (!String(file).endsWith('.jsonl')) continue;
+      if (!file.startsWith('agent-')) continue;
+      if (!file.endsWith('.jsonl')) continue;
       const fileName = fileNameContract.parse(file);
       const agentId = stripAgentFilenamePrefixTransformer({ fileName });
       if (subagentHandles.has(agentId)) continue;
@@ -109,8 +110,10 @@ export const scanSubagentsDirLayerBroker = async ({
   await Promise.all(
     pendingPairing.map(async ({ agentId, fileName }) => {
       try {
-        const lines = await fsReadJsonlAdapter({
-          filePath: absoluteFilePathContract.parse(`${subagentsDir}/${String(fileName)}`),
+        const lines = streamJsonLinesFromRawTransformer({
+          rawLines: await readNonEmptyLines(
+            absoluteFilePathContract.parse(`${subagentsDir}/${String(fileName)}`),
+          ),
         });
         const [firstLine] = lines;
         if (firstLine === undefined) return;

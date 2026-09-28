@@ -1,3 +1,6 @@
+import type { FsError } from '#gateway/node/fs';
+import { isFsErrorProxy } from '#gateway/node/fs/is-fs-error/is-fs-error.proxy';
+import { readNonEmptyLinesProxy } from '#gateway/node/fs__promises/read-non-empty-lines/read-non-empty-lines.proxy';
 import {
   claudeLineNormalizeBrokerProxy,
   locationsClaudeSessionFilePathFindBrokerProxy,
@@ -5,19 +8,18 @@ import {
 import { locationsClaudeSessionFilePathFindBroker } from '@dungeonmaster/shared/brokers';
 import { AbsoluteFilePathStub, SessionIdStub } from '@dungeonmaster/shared/contracts';
 
-import { fsReadJsonlAdapterProxy } from '../../../adapters/fs/read-jsonl/fs-read-jsonl-adapter.proxy';
-
 export const signalFromSessionJsonlBrokerProxy = (): {
   setupFileContent: (params: { content: string }) => void;
   setupFileNotFound: () => void;
-  setupReadError: (params: { error: Error }) => void;
+  setupReadError: (params: { error: FsError }) => void;
 } => {
   claudeLineNormalizeBrokerProxy();
   // Wires the locations broker chain (os.homedir + path.join) but leaves it unstaged — its
   // real defaults (osUserHomedirAdapter's mocked '/home/default' + a real path.join
   // passthrough) are exactly what the broker itself resolves through at runtime.
   locationsClaudeSessionFilePathFindBrokerProxy();
-  const readJsonlProxy = fsReadJsonlAdapterProxy();
+  isFsErrorProxy();
+  const readLinesProxy = readNonEmptyLinesProxy();
 
   // Every test in signal-from-session-jsonl-broker.test.ts calls the broker with these same
   // GUILD_PATH/SESSION_ID constants. Computed via the REAL (unmocked) broker function — same
@@ -30,15 +32,13 @@ export const signalFromSessionJsonlBrokerProxy = (): {
 
   return {
     setupFileContent: ({ content }: { content: string }): void => {
-      readJsonlProxy.returns({ filePath, content });
+      readLinesProxy.returnsRaw({ path: String(filePath), rawContents: content });
     },
     setupFileNotFound: (): void => {
-      const enoent = new Error('ENOENT: no such file or directory');
-      Object.assign(enoent, { code: 'ENOENT' });
-      readJsonlProxy.throws({ filePath, error: enoent });
+      readLinesProxy.missing({ path: String(filePath) });
     },
-    setupReadError: ({ error }: { error: Error }): void => {
-      readJsonlProxy.throws({ filePath, error });
+    setupReadError: ({ error }: { error: FsError }): void => {
+      readLinesProxy.throwsMatchingPath({ path: String(filePath), error });
     },
   };
 };

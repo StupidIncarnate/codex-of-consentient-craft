@@ -16,19 +16,13 @@
  */
 
 import type { DispatchState } from '@dungeonmaster/shared/contracts';
-import {
-  dispatchStateContract,
-  fileContentsContract,
-  filePathContract,
-} from '@dungeonmaster/shared/contracts';
+import { dispatchStateContract } from '@dungeonmaster/shared/contracts';
 import {
   dungeonmasterHomeEnsureBroker,
   locationsDispatchStatePathFindBroker,
   locationsDispatchStateTmpPathFindBroker,
 } from '@dungeonmaster/shared/brokers';
-
-import { fsRenameAdapter } from '../../../adapters/fs/rename/fs-rename-adapter';
-import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
+import { rename, writeFile } from '#gateway/node/fs__promises';
 
 export const dispatchStateWriteBroker = async ({
   dispatchState,
@@ -48,12 +42,8 @@ export const dispatchStateWriteBroker = async ({
   const statePath = locationsDispatchStatePathFindBroker();
   const tmpPath = locationsDispatchStateTmpPathFindBroker();
 
-  const contents = fileContentsContract.parse(`${JSON.stringify(state)}\n`);
-  await fsWriteFileAdapter({ filePath: filePathContract.parse(tmpPath), contents });
-  await fsRenameAdapter({
-    from: filePathContract.parse(tmpPath),
-    to: filePathContract.parse(statePath),
-  });
+  await writeFile(tmpPath, `${JSON.stringify(state)}\n`);
+  await rename(tmpPath, statePath);
 
   return state;
 };

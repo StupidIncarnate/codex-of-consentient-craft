@@ -24,10 +24,8 @@ import {
   type RiftcarverResult,
 } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import { ensureDir } from '#gateway/node/fs__promises';
+import { ensureDir, writeFile } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
-
-import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 
 const LOG_EXTENSION = '.log';
 
@@ -50,7 +48,7 @@ export const riftcarverPersistResultBroker = async ({
     join(riftcarverResultsDir, `${String(riftcarverResultId)}${LOG_EXTENSION}`),
   );
 
-  await fsWriteFileAdapter({ filePath, contents: logContents });
+  await writeFile(filePath, logContents);
 
   return adapterResultContract.parse({ success: true });
 };

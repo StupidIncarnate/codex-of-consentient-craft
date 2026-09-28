@@ -1,3 +1,6 @@
+import { readdirSyncProxy } from '#gateway/node/fs/readdir-sync/readdir-sync.proxy';
+import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
+import { readNonEmptyLinesProxy } from '#gateway/node/fs__promises/read-non-empty-lines/read-non-empty-lines.proxy';
 import { homedir } from '#gateway/node/os';
 import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
 import {
@@ -26,8 +29,6 @@ import {
 type FileName = ReturnType<typeof FileNameStub>;
 import { registerMock, registerModuleMock } from '@dungeonmaster/testing/register-mock';
 
-import { fsReadJsonlAdapterProxy } from '../../../adapters/fs/read-jsonl/fs-read-jsonl-adapter.proxy';
-import { fsReaddirAdapterProxy } from '../../../adapters/fs/readdir/fs-readdir-adapter.proxy';
 import { QuestCwdResolutionStub } from '../../../contracts/quest-cwd-resolution/quest-cwd-resolution.stub';
 import { guildGetBrokerProxy } from '../../guild/get/guild-get-broker.proxy';
 import { questCwdResolveBroker } from '../../quest/cwd-resolve/quest-cwd-resolve-broker';
@@ -73,9 +74,9 @@ export const chatHistoryReplayBrokerProxy = (): {
   // replaying two sessions (two `homedir()` calls) gets the same value both times with no
   // extra staging.
   const homedirHandle = registerMock({ fn: homedir });
-  const readJsonlProxy = fsReadJsonlAdapterProxy();
-  const readdirProxy = fsReaddirAdapterProxy();
-  // Wired to satisfy enforce-proxy-child-creation; the readJsonlProxy above already
+  const readLinesProxy = readNonEmptyLinesProxy();
+  const readdirProxy = readdirSyncProxy();
+  // Wired to satisfy enforce-proxy-child-creation; the readLinesProxy above already
   // mocks the underlying readFile that the replay broker delegates to.
   chatReplayJsonlReadBrokerProxy();
   // Wired to satisfy enforce-proxy-child-creation; the module mock above supplies the actual
@@ -177,17 +178,16 @@ export const chatHistoryReplayBrokerProxy = (): {
       content: string;
       sessionId?: SessionId;
     }): void => {
-      readJsonlProxy.returns({
-        filePath: resolveJsonlPath({ sessionId: sessionId ?? sessionIdRef.value }),
-        content,
+      readLinesProxy.returnsRaw({
+        path: String(resolveJsonlPath({ sessionId: sessionId ?? sessionIdRef.value })),
+        rawContents: content,
       });
     },
     // A session whose own top-level JSONL was never written (or has since been removed) —
     // the broker retries briefly, then treats it as no main content rather than throwing.
     setupMainSessionMissing: ({ sessionId }: { sessionId?: SessionId } = {}): void => {
-      readJsonlProxy.throws({
-        filePath: resolveJsonlPath({ sessionId: sessionId ?? sessionIdRef.value }),
-        error: new Error('ENOENT: no such file or directory'),
+      readLinesProxy.missing({
+        path: String(resolveJsonlPath({ sessionId: sessionId ?? sessionIdRef.value })),
       });
     },
     setupSubagentDir: ({
@@ -198,7 +198,10 @@ export const chatHistoryReplayBrokerProxy = (): {
       sessionId?: SessionId;
     }): void => {
       const targetSessionId = sessionId ?? sessionIdRef.value;
-      readdirProxy.returns({ dirPath: resolveSubagentsDir({ sessionId: targetSessionId }), files });
+      readdirProxy.returns({
+        path: String(resolveSubagentsDir({ sessionId: targetSessionId })),
+        names: files,
+      });
       subagentFileQueuesRef.set(targetSessionId, [...files]);
     },
     setupSubagentFile: ({
@@ -213,12 +216,13 @@ export const chatHistoryReplayBrokerProxy = (): {
       const filePath = absoluteFilePathContract.parse(
         `${resolveSubagentsDir({ sessionId: targetSessionId })}/${String(fileName)}`,
       );
-      readJsonlProxy.returns({ filePath, content });
+      readLinesProxy.returnsRaw({ path: String(filePath), rawContents: content });
     },
     setupSubagentDirMissing: ({ sessionId }: { sessionId?: SessionId } = {}): void => {
+      const dirPath = String(resolveSubagentsDir({ sessionId: sessionId ?? sessionIdRef.value }));
       readdirProxy.throws({
-        dirPath: resolveSubagentsDir({ sessionId: sessionId ?? sessionIdRef.value }),
-        error: new Error('ENOENT: no such file or directory'),
+        path: dirPath,
+        error: FsErrorStub({ code: 'ENOENT', path: dirPath }),
       });
     },
     setupCwdResolveSuccess: ({ cwd }: { cwd: string }): void => {

@@ -4,9 +4,8 @@ import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
+import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 import { join } from '#gateway/node/path';
-
-import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
 
 const JSON_EXTENSION = '.json';
 
@@ -40,7 +39,7 @@ export const wardPersistResultBrokerProxy = (): {
 } => {
   const joinHandle: MockHandle = registerMock({ fn: join });
   const ensureDirHandle = ensureDirProxy();
-  const writeProxy = fsWriteFileAdapterProxy();
+  const writeHandle = writeFileProxy();
 
   const stageDirJoins = ({
     questFolderPath,
@@ -68,7 +67,7 @@ export const wardPersistResultBrokerProxy = (): {
       wardResultId: string;
     }): void => {
       stageDirJoins({ questFolderPath, wardResultId });
-      writeProxy.succeeds({ filePath: resultFilePathFor({ questFolderPath, wardResultId }) });
+      writeHandle.succeeds({ path: resultFilePathFor({ questFolderPath, wardResultId }) });
     },
 
     setupWriteFailure: ({
@@ -81,9 +80,9 @@ export const wardPersistResultBrokerProxy = (): {
       error: Error;
     }): void => {
       stageDirJoins({ questFolderPath, wardResultId });
-      writeProxy.throws({
-        filePath: resultFilePathFor({ questFolderPath, wardResultId }),
-        error,
+      writeHandle.rejects({
+        path: resultFilePathFor({ questFolderPath, wardResultId }),
+        error: Object.assign(error, { code: 'EIO' }),
       });
     },
 
@@ -94,7 +93,9 @@ export const wardPersistResultBrokerProxy = (): {
       questFolderPath: FilePath;
       wardResultId: string;
     }): unknown =>
-      writeProxy.getWrittenFor({ filePath: resultFilePathFor({ questFolderPath, wardResultId }) }),
+      writeHandle.writtenContentsFor({
+        path: resultFilePathFor({ questFolderPath, wardResultId }),
+      }),
 
     getWrittenPath: ({
       questFolderPath,

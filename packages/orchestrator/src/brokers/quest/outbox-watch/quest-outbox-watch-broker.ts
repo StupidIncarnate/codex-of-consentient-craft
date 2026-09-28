@@ -17,10 +17,10 @@ import { dungeonmasterHomeEnsureBroker } from '@dungeonmaster/shared/brokers';
 import { fileContentsContract, filePathContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, QuestId } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
+import { writeFile } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
 
 import { fsAppendFileAdapter } from '../../../adapters/fs/append-file/fs-append-file-adapter';
-import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import { fsWatchTailAdapter } from '../../../adapters/fs/watch-tail/fs-watch-tail-adapter';
 import { questOutboxLineContract } from '../../../contracts/quest-outbox-line/quest-outbox-line-contract';
 
@@ -45,10 +45,7 @@ export const questOutboxWatchBroker = async ({
   );
 
   if (resetOnStart) {
-    await fsWriteFileAdapter({
-      filePath: outboxPath,
-      contents: fileContentsContract.parse(''),
-    });
+    await writeFile(outboxPath, '');
   } else {
     // Create-if-absent. Appending nothing makes the file exist for the tail below — `fs.watch`
     // throws on a missing path — without disturbing a byte another process has written and a

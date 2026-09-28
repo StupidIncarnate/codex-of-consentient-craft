@@ -38,13 +38,14 @@ import type {
 } from '@dungeonmaster/shared/contracts';
 import {
   errorMessageContract,
+  fileNameContract,
   filePathContract,
   skippedQuestFileContract,
 } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
+import { readdirSync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
 
-import { fsReaddirAdapter } from '../../../adapters/fs/readdir/fs-readdir-adapter';
 import { isQuestFolderGuard } from '../../../guards/is-quest-folder/is-quest-folder-guard';
 import { questLoadBroker } from '../load/quest-load-broker';
 import { questResolveQuestsPathBroker } from '../resolve-quests-path/quest-resolve-quests-path-broker';
@@ -60,7 +61,7 @@ export const questListBroker = async ({
 }): Promise<Quest[]> => {
   const { questsPath } = questResolveQuestsPathBroker({ guildId });
 
-  const entries = fsReaddirAdapter({ dirPath: questsPath });
+  const entries = readdirSync(questsPath).map((name) => fileNameContract.parse(name));
 
   const questFolders = entries.filter((folderName) => isQuestFolderGuard({ folderName }));
 

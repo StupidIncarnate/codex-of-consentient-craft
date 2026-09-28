@@ -29,6 +29,8 @@
  * base URL.
  */
 
+import { readdirSync } from '#gateway/node/fs';
+import { readNonEmptyLines } from '#gateway/node/fs__promises';
 import { homedir } from '#gateway/node/os';
 import { claudeLineNormalizeBroker, cwdResolveBroker } from '@dungeonmaster/shared/brokers';
 import {
@@ -52,8 +54,6 @@ import {
   stripJsonlSuffixTransformer,
 } from '@dungeonmaster/shared/transformers';
 
-import { fsReadJsonlAdapter } from '../../../adapters/fs/read-jsonl/fs-read-jsonl-adapter';
-import { fsReaddirAdapter } from '../../../adapters/fs/readdir/fs-readdir-adapter';
 import { chatReplayJsonlReadBroker } from '../replay-jsonl-read/chat-replay-jsonl-read-broker';
 import { agentIdContract } from '../../../contracts/agent-id/agent-id-contract';
 import { chatLineSourceContract } from '../../../contracts/chat-line-source/chat-line-source-contract';
@@ -65,6 +65,7 @@ import { taskAgentToolInputContract } from '../../../contracts/task-agent-tool-i
 import { toolUseIdContract } from '../../../contracts/tool-use-id/tool-use-id-contract';
 import { chatLineProcessTransformer } from '../../../transformers/chat-line-process/chat-line-process-transformer';
 import { extractTimestampFromJsonlLineTransformer } from '../../../transformers/extract-timestamp-from-jsonl-line/extract-timestamp-from-jsonl-line-transformer';
+import { streamJsonLinesFromRawTransformer } from '../../../transformers/stream-json-lines-from-raw/stream-json-lines-from-raw-transformer';
 import { stripAgentFilenamePrefixTransformer } from '../../../transformers/strip-agent-filename-prefix/strip-agent-filename-prefix-transformer';
 import { guildGetBroker } from '../../guild/get/guild-get-broker';
 import { questCwdResolveBroker } from '../../quest/cwd-resolve/quest-cwd-resolve-broker';
@@ -157,14 +158,16 @@ export const chatHistoryReplayBroker = async ({
   }[] = [];
 
   try {
-    const files = fsReaddirAdapter({ dirPath: subagentsDir });
+    const files = readdirSync(subagentsDir).map((name) => fileNameContract.parse(name));
     const jsonlFiles = files.filter((f) => f.endsWith('.jsonl'));
 
     const results = await Promise.all(
       jsonlFiles.map(async (file) => ({
         agentId: stripAgentFilenamePrefixTransformer({ fileName: fileNameContract.parse(file) }),
-        lines: await fsReadJsonlAdapter({
-          filePath: absoluteFilePathContract.parse(`${subagentsDir}/${file}`),
+        lines: streamJsonLinesFromRawTransformer({
+          rawLines: await readNonEmptyLines(
+            absoluteFilePathContract.parse(`${subagentsDir}/${file}`),
+          ),
         }),
       })),
     );

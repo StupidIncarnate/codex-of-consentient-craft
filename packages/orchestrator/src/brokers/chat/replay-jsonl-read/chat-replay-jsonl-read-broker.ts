@@ -11,9 +11,10 @@
  * // Returns lines once readable; throws on non-ENOENT errors or after the retry budget elapses.
  */
 
+import { readNonEmptyLines } from '#gateway/node/fs__promises';
 import type { AbsoluteFilePath, StreamJsonLine } from '@dungeonmaster/shared/contracts';
 
-import { fsReadJsonlAdapter } from '../../../adapters/fs/read-jsonl/fs-read-jsonl-adapter';
+import { streamJsonLinesFromRawTransformer } from '../../../transformers/stream-json-lines-from-raw/stream-json-lines-from-raw-transformer';
 
 const READ_RETRY_TOTAL_MS = 200;
 const READ_RETRY_INTERVAL_MS = 20;
@@ -27,7 +28,7 @@ export const chatReplayJsonlReadBroker = async ({
 }): Promise<StreamJsonLine[]> => {
   const effectiveDeadline = deadline ?? Date.now() + READ_RETRY_TOTAL_MS;
   try {
-    return await fsReadJsonlAdapter({ filePath });
+    return streamJsonLinesFromRawTransformer({ rawLines: await readNonEmptyLines(filePath) });
   } catch (err) {
     const isEnoent = err instanceof Error && err.message.includes('ENOENT');
     if (!isEnoent || Date.now() >= effectiveDeadline) {
