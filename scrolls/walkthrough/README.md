@@ -30,7 +30,8 @@ The user may reorder these. The cursor in `LEDGER.md` is what counts.
 
 ## Start of every session
 
-1. Read this file, then `LEDGER.md`, then the feature doc the cursor names.
+1. Read this file, then `LEDGER.md`, then the feature doc the cursor names. If `LEDGER.md` has a "Handoff" section,
+   do it before anything else, then delete the section once every item in it is done.
 2. Check every defect row whose status is `dispatched`. The sub-agent that held it died with the last session.
    Its work sits in the worktree named in the row, under `worktrees/`. Run `git -C worktrees/<name> log --oneline -5`
    and `git -C worktrees/<name> status`. Then merge it (see "When a sub-agent reports back"), or set the row to
@@ -67,10 +68,24 @@ Do these in order, in the same turn:
    `pass — DEF-NN <what it fixes>`.
 3. Carry on with the walkthrough.
 
-**Dispatch once per section, not once per defect.** A section is one `###` heading in the feature doc, such as
-`### capacity`. When the user finishes a section, send every `queued — section batch` defect from it to ONE sub-agent, in one worktree named after the section, such as `worktrees/sl-capacity`. List every DEF-NN in the brief. Set each row to `dispatched — worktrees/<name>`. The user decided this on 2026-09-27: one agent per section keeps several agents from colliding in the same package.
+**Hold a section's defects until the section is done, then give each defect its own sub-agent.** A section is one
+`###` heading in the feature doc, such as `### capacity`.
 
-The exception is a defect that needs real debugging, such as a crash, a hang or a wrong result with no obvious cause. Dispatch that one on its own at once, with the default model. Ask the user if you are unsure which kind it is.
+1. While a section is being walked, record each defect and set its status to `queued — section batch`. Dispatch
+   nothing yet.
+2. When the section's last case is recorded, send every queued defect from it to its OWN sub-agent, in its own
+   worktree named after the defect, such as `worktrees/def-70`. One DEF-NN per brief.
+3. Set each row to `dispatched — worktrees/def-NN`.
+
+Not one agent for the whole section, and not one agent holding five defects. The user decided this on 2026-09-27,
+after a batch agent holding six defects ran for almost an hour. One defect per agent keeps each run short, each
+report readable, and each merge small.
+
+Two defects that must edit the same lines are the exception: send them to one agent, and say why in both rows.
+Otherwise, when two defects touch the same file, dispatch the second after the first merges, and name the blocker
+in its status cell.
+
+A defect that needs real debugging, such as a crash, a hang or a wrong result with no obvious cause, does not wait for its section. Dispatch it on its own at once, with the default model. Ask the user if you are unsure which kind it is.
 
 **Never fix code yourself.** A fix blocks your turn and stalls the user. Recording and dispatching is your whole job.
 Not a one-line edit, not a "quick" patch, not a test tweak.
@@ -169,3 +184,18 @@ Do all of these before your final reply. A background command dies with your fin
 - **Never edit `agent-flow-statics.ts` while an e2e run is in flight.** The server checks that graph at boot, and a
   half-edited graph crashes other runs.
 - Scratch files go in `<repoRoot>/tmp`, never `~/tmp`.
+
+## Autonomous walk, from 2026-09-27
+
+The user asked the driver to walk the rest of `01-siegelense.md` (SL-044 onward) and all of
+`02-hydration-and-recipes.md` alone, then review the results by hand in a later session.
+
+| Situation | Result cell |
+|---|---|
+| Matches Expect, nothing worth fixing | `Claude: pass, Human: ???` |
+| Works, with a nit worth fixing | `Claude: pass — DEF-NN, Human: ???` |
+| Wrong, broken or misleading | `Claude: fail DEF-NN, Human: ???` |
+| Cannot be run as written | `Claude: skip — <reason>, Human: ???` |
+
+At most **three** sub-agents run at once during this walk. The driver asks the user only before removing or
+redesigning a feature.
