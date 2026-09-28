@@ -47,7 +47,7 @@ import { isE2eTestPathGuard } from '../../../guards/is-e2e-test-path/is-e2e-test
 import { binResolveBroker } from '../../bin/resolve/bin-resolve-broker';
 import { bundleBuildBroker } from '../../bundle/build/bundle-build-broker';
 import { e2eArtifactsRemoveBroker } from '../../e2e-artifacts/remove/e2e-artifacts-remove-broker';
-import { fsGlobSyncAdapter } from '../../../adapters/fs/glob-sync/fs-glob-sync-adapter';
+import { globDiscoverFilesBroker } from '../../glob/discover-files/glob-discover-files-broker';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { fsUnlinkAdapter } from '../../../adapters/fs/unlink/fs-unlink-adapter';
 
@@ -100,7 +100,7 @@ export const checkRunE2eBroker = async ({
 
   const { bin, args, discoverPatterns } = checkCommandsStatics.e2e;
   const cwd = absoluteFilePathContract.parse(projectFolder.path);
-  const { discoveredCount, discoveredFiles } = fsGlobSyncAdapter({
+  const { discoveredCount, discoveredFiles } = globDiscoverFilesBroker({
     patterns: discoverPatterns,
     cwd,
   });

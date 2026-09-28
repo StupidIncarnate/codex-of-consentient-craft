@@ -89,6 +89,193 @@ nothing else.
   item still typechecks the whole `ward` package, so a mistake anywhere in `ward` shows up even in a small batch's
   run. That is expected, not a sign your batch grew.
 
+## Plan — G-BB-1
+
+### G-BB-1a
+
+Took the `fsGlobSyncAdapter` row only: `glob-discover-files-broker` (+ `.proxy.ts`, `.test.ts`) created under
+`packages/ward/src/brokers/glob/discover-files/`, all 6 listed callers (and their `.proxy.ts`) moved, `adapters/fs/glob-sync/` deleted; a
+python `os.walk` re-scan of `packages/ward/src` after the moves confirms zero remaining hits for
+`fsGlobSyncAdapter`/`fs-glob-sync-adapter`. The 3 `returnsForAnyPattern` proxy call sites (integration, unit,
+typecheck) were rebuilt as `returnsForPatterns`, staged from the SAME real transformer
+(`jestDiscoverPatternsTransformer`/`tsconfigDiscoverPatternsTransformer`) the broker itself calls, instead of
+porting the old adapter proxy's `typeof pattern === 'string'` predicate — that predicate matches every call
+regardless of pattern or cwd and is the same shape as the banned `path: () => true` accept-all stage.
+
+Scope: FS-1, FS-2 and FS-3 batches only (11 adapters, 2 crypto/fs-sync files plus 9 fs files under
+`adapters/fs/**` and `adapters/crypto/**`). MISC (`fs/write-file`, `os/tmpdir`) and TS-SHAPE
+(`typescript/module-shape/**`) are a later group and are not named below.
+
+A repo-wide caller census (`python3 os.walk` + regex over `packages/ward/src/**/*.ts`, since Bash
+`grep`/`find` are hook-blocked and `discover`'s own index was found stale for this exact folder —
+`packages/ward/src/brokers/bundle/build/*.ts` matched zero results in `discover({grep:
+"cryptoHashFilesAdapter"})` despite `bundle-build-broker.ts` importing it on its own line 29; a direct
+`Read` of that file is what caught it) found **24 unique caller files**, each with its own
+`.proxy.ts` — 48 files — plus one test file needing a comment-only edit
+(`storage-prune-broker.test.ts` line ~142 names `fsStatAdapter` in a comment). That is over the ~30
+file threshold this group's instructions set for stopping after the plan, so no code below has been
+written; see the report this plan is filed under for the split recommendation.
+
+### Adapters to delete (11 adapters × 3 files = 33 files)
+
+- `packages/ward/src/adapters/crypto/hash-files/crypto-hash-files-adapter.ts` (+ `.proxy.ts`, `.test.ts`)
+- `packages/ward/src/adapters/fs/glob-sync/fs-glob-sync-adapter.ts` (+ `.proxy.ts`, `.test.ts`)
+- `packages/ward/src/adapters/fs/mkdir/fs-mkdir-adapter.ts` (+ `.proxy.ts`, `.test.ts`)
+- `packages/ward/src/adapters/fs/read-file/fs-read-file-adapter.ts` (+ `.proxy.ts`, `.test.ts`)
+- `packages/ward/src/adapters/fs/read-json-sync/fs-read-json-sync-adapter.ts` (+ `.proxy.ts`, `.test.ts`)
+- `packages/ward/src/adapters/fs/readdir-dirs/fs-readdir-dirs-adapter.ts` (+ `.proxy.ts`, `.test.ts`)
+- `packages/ward/src/adapters/fs/readdir/fs-readdir-adapter.ts` (+ `.proxy.ts`, `.test.ts`)
+- `packages/ward/src/adapters/fs/rename/fs-rename-adapter.ts` (+ `.proxy.ts`, `.test.ts`)
+- `packages/ward/src/adapters/fs/rm/fs-rm-adapter.ts` (+ `.proxy.ts`, `.test.ts`)
+- `packages/ward/src/adapters/fs/stat/fs-stat-adapter.ts` (+ `.proxy.ts`, `.test.ts`)
+- `packages/ward/src/adapters/fs/unlink/fs-unlink-adapter.ts` (+ `.proxy.ts`, `.test.ts`)
+
+Every one of these folders is left empty once its 3 files are gone and must be removed too.
+
+### New ward-local files (two adapters are not passthroughs; their non-I/O logic needs a home)
+
+- **`packages/ward/src/brokers/bundle/hash-files/bundle-hash-files-broker.ts`** (+ `.proxy.ts`,
+  `.test.ts`) — replaces `cryptoHashFilesAdapter` per the item's own Work step 2. Composes `createHash`
+  from `#gateway/node/crypto` (a bare `export * from 'crypto'`, so it carries no per-function proxy of
+  its own — `createHash`'s output is pure and deterministic, so nothing about it needs mocking) and
+  keeps the sorted-path iteration, the NUL `FIELD_SEPARATOR` framing and the per-file ENOENT/EISDIR
+  skip (everything else rethrown) verbatim from `crypto-hash-files-adapter.ts` lines 33-68.
+  **BLOCKED on the read half — flagged, not solved, here**: the adapter's own proxy
+  (`crypto-hash-files-adapter.proxy.ts`) mocks a single-argument `readFileSync(path)` that returns a
+  raw `Buffer`, and the hash covers those raw bytes AND `String(contents.length)` (the BYTE length).
+  `#gateway/node/fs`'s `readFileSync` (`packages/@gateway/node/src/fs/read-file-sync/read-file-sync.ts`)
+  is called two-argument (`[path, 'utf8']`) and is typed to always return a UTF-8 `string` — there is no
+  synchronous raw-bytes read anywhere in `#gateway/node/fs/**` (the only raw-bytes reader,
+  `readFileBytes`, lives in the ASYNC half, `fs__promises`). Routing this file's read through the
+  gateway's `readFileSync` would silently change the digest for any file whose bytes are not valid
+  UTF-8, and would change `contents.length` from a byte count to a UTF-16 character count for every
+  multi-byte-UTF-8 file already in this repo. Per this group's hard rule ("If the gateway offers no way
+  to do something the recipe needs ... STOP on that file and report it; do not work around it"), this
+  file is not implementable as the item's recipe describes until `@gateway/node` grows a synchronous
+  raw-bytes reader — out of this item's package scope (`ward` only).
+- **`packages/ward/src/brokers/glob/discover-files/glob-discover-files-broker.ts`** (+ `.proxy.ts`,
+  `.test.ts`) — replaces `fsGlobSyncAdapter`. Composes `globSync` from `#gateway/node/fs`
+  (`#gateway/node/fs/glob-sync/glob-sync.proxy`) and keeps the per-pattern iteration, the
+  cross-pattern `Set` de-dup, the `GitRelativePath` re-parse and the `discoveredCount` computation
+  verbatim from `fs-glob-sync-adapter.ts` lines 34-52. No blocker: `globSync`'s signature
+  (`{patterns, cwd, exclude}` → `string[]`) is a straight superset of what the adapter already called.
+
+### Callers to edit (24 files, each with its own `.proxy.ts` — 48 files total)
+
+**`fsGlobSyncAdapter` → `glob-discover-files-broker`** (ward-local, above), composing
+`glob-discover-files-broker.proxy` — no gateway proxy is imported directly by these files:
+1. `packages/ward/src/brokers/check-run/e2e/check-run-e2e-broker.ts` (+ `.proxy.ts`) — also
+   `fsReadFileAdapter`, `fsUnlinkAdapter`
+2. `packages/ward/src/brokers/check-run/integration/check-run-integration-broker.ts` (+ `.proxy.ts`) —
+   also `fsReadFileAdapter`, `fsUnlinkAdapter`
+3. `packages/ward/src/brokers/check-run/typecheck/check-run-typecheck-broker.ts` (+ `.proxy.ts`) — also
+   `fsReadJsonSyncAdapter`
+4. `packages/ward/src/brokers/check-run/unit/check-run-unit-broker.ts` (+ `.proxy.ts`) — also
+   `fsReadFileAdapter`, `fsUnlinkAdapter`
+5. `packages/ward/src/brokers/platform-crossing/check/platform-crossing-check-broker.ts` (+ `.proxy.ts`) —
+   also `fsReadFileAdapter`
+6. `packages/ward/src/brokers/bundle/build/collect-inputs-layer-broker.ts` (+ `.proxy.ts`) — also
+   `fsReadFileAdapter`
+
+**`fsMkdirAdapter` → `ensureDir` from `#gateway/node/fs__promises`**, composing
+`#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy`. `ensureDir` returns `void`; both call sites
+already discard the old `AdapterResult`, so this is a drop-in swap:
+7. `packages/ward/src/brokers/bundle/build/bundle-build-broker.ts` (+ `.proxy.ts`) — also
+   `cryptoHashFilesAdapter` → `bundle-hash-files-broker` (BLOCKED, see above), `fsRenameAdapter`,
+   `fsRmAdapter` (×3 call sites), `fsReadFileAdapter`
+8. `packages/ward/src/brokers/storage/save/storage-save-broker.ts` (+ `.proxy.ts`)
+
+**`fsReadFileAdapter` → `readFile` from `#gateway/node/fs__promises`**, composing
+`#gateway/node/fs__promises/read-file/read-file.proxy`. `readFile` returns a plain `string`, not the
+branded `FileContents` the adapter parsed — every caller already feeds the result straight into
+`JSON.parse` or string concatenation, so this is expected to be behavior-preserving, but confirm on
+each file:
+9. `packages/ward/src/brokers/command/run/folder-resolve-layer-broker.ts` (+ `.proxy.ts`)
+10. `packages/ward/src/brokers/duplicate-install/check/gateway-dependency-names-read-layer-broker.ts`
+    (+ `.proxy.ts`)
+11. `packages/ward/src/brokers/duplicate-install/check/installed-package-version-read-optional-layer-broker.ts`
+    (+ `.proxy.ts`)
+12. `packages/ward/src/brokers/platform-crossing/check/read-first-existing-candidate-layer-broker.ts`
+    (+ `.proxy.ts`)
+13. `packages/ward/src/brokers/platform-crossing/check/read-package-name-optional-layer-broker.ts`
+    (+ `.proxy.ts`)
+14. `packages/ward/src/brokers/storage/load/storage-load-broker.ts` (+ `.proxy.ts`) — also
+    `fsReaddirAdapter`
+15. `packages/ward/src/brokers/workspace/discover/package-read-layer-broker.ts` (+ `.proxy.ts`) — also
+    `fsReaddirDirsAdapter`
+16. `packages/ward/src/brokers/workspace/discover/workspace-discover-broker.ts` (+ `.proxy.ts`)
+17. `packages/ward/src/brokers/workspace/manifest-entries-verify/workspace-manifest-entries-verify-broker.ts`
+    (+ `.proxy.ts`) — also `fsStatAdapter`
+18. `packages/ward/src/responders/install/write-gitignore/install-write-gitignore-responder.ts`
+    (+ `.proxy.ts`)
+19. `packages/ward/src/responders/install/write-scripts/install-write-scripts-responder.ts`
+    (+ `.proxy.ts`)
+20. `packages/ward/src/brokers/bundle/build/resolve-workspace-root-layer-broker.ts` (+ `.proxy.ts`)
+- (also #1-#6 above already list their own `fsReadFileAdapter` usage where it coincides with
+  `fsGlobSyncAdapter`; #7 (`bundle-build-broker.ts`) also reads via `fsReadFileAdapter`)
+
+**`fsReadJsonSyncAdapter` → `readJsonFileSyncIfExists` from `#gateway/node/fs`**, composing
+`#gateway/node/fs/read-json-file-sync-if-exists/read-json-file-sync-if-exists.proxy`. The one caller
+already wraps the call in a bare `try { } catch { tsconfigData stays {} }` that swallows ENOENT and a
+JSON parse failure identically, so answering `null` on ENOENT instead of throwing needs that catch
+turned into (or paired with) a null-check, not a behavior change to the fallback itself:
+21. `packages/ward/src/brokers/check-run/typecheck/check-run-typecheck-broker.ts` — already listed as #3
+
+**`fsReaddirDirsAdapter` → `readdirEntries` from `#gateway/node/fs__promises`**, composing
+`#gateway/node/fs__promises/readdir-entries/readdir-entries.proxy`. The gateway call returns
+`DirEntry[]` (`{name, kind}`) for EVERY entry, not just directories — each caller must add
+`entries.filter((e) => e.kind === 'directory').map((e) => fileNameContract.parse(e.name))` in place of
+the old already-filtered `FileName[]`:
+22. `packages/ward/src/brokers/workspace/discover/package-read-layer-broker.ts` — already listed as #15
+23. `packages/ward/src/brokers/workspace/discover/pattern-resolve-layer-broker.ts` (+ `.proxy.ts`)
+
+**`fsReaddirAdapter` → `readdirIfExists` from `#gateway/node/fs__promises`**, composing
+`#gateway/node/fs__promises/readdir-if-exists/readdir-if-exists.proxy`. Answers `null` on a missing
+directory instead of throwing ENOENT — every caller's existing `.catch(() => [])` / try-catch becomes a
+null-check instead:
+24. `packages/ward/src/brokers/e2e-artifacts/prune/e2e-artifacts-prune-broker.ts` (+ `.proxy.ts`) — also
+    `fsStatAdapter`, `fsRmAdapter`
+25. `packages/ward/src/brokers/storage/load/storage-load-broker.ts` — already listed as #14
+26. `packages/ward/src/brokers/storage/prune/storage-prune-broker.ts` (+ `.proxy.ts`, and
+    `.test.ts` for the comment naming `fsStatAdapter`) — also `fsStatAdapter`, `fsUnlinkAdapter`
+
+**`fsRenameAdapter` → `rename` from `#gateway/node/fs__promises`**, composing
+`#gateway/node/fs__promises/rename/rename.proxy`. Returns `void`; the one caller already discards the
+resolved value and only inspects a thrown error (EEXIST/ENOTEMPTY from a losing publish race):
+27. `packages/ward/src/brokers/bundle/build/bundle-build-broker.ts` — already listed as #7
+
+**`fsRmAdapter` → `rm` from `#gateway/node/fs__promises`**, composing
+`#gateway/node/fs__promises/rm/rm.proxy`. Returns `void`; every call site already discards the old
+`AdapterResult`:
+28. `packages/ward/src/brokers/bundle/build/bundle-build-broker.ts` — already listed as #7 (×3 call sites)
+29. `packages/ward/src/brokers/e2e-artifacts/prune/e2e-artifacts-prune-broker.ts` — already listed as #24
+30. `packages/ward/src/brokers/e2e-artifacts/remove/e2e-artifacts-remove-broker.ts` (+ `.proxy.ts`)
+
+**`fsStatAdapter` → `statIfExists` from `#gateway/node/fs__promises`**, composing
+`#gateway/node/fs__promises/stat-if-exists/stat-if-exists.proxy`. The OLD adapter returned a real Node
+`fs.Stats` (`.mtimeMs`, `.isDirectory()`); the gateway returns a PLAIN `{kind, sizeBytes, modifiedAtMs,
+createdAtMs} | null` — every `.mtimeMs` read becomes `.modifiedAtMs`:
+31. `packages/ward/src/brokers/e2e-artifacts/prune/e2e-artifacts-prune-broker.ts` — already listed as #24
+    (`stats.mtimeMs` at line 73 → `stats.modifiedAtMs`)
+32. `packages/ward/src/brokers/storage/prune/storage-prune-broker.ts` — already listed as #26
+    (`stats.mtimeMs` at line 60 → `stats.modifiedAtMs`)
+33. `packages/ward/src/brokers/workspace/manifest-entries-verify/workspace-manifest-entries-verify-broker.ts`
+    — already listed as #17 (presence-only check, `stats === null`, no field read)
+
+**`fsUnlinkAdapter` → `unlink` from `#gateway/node/fs__promises`**, composing
+`#gateway/node/fs__promises/unlink/unlink.proxy`. Returns `void`; every call site already discards the
+old `AdapterResult`:
+34. `packages/ward/src/brokers/check-run/e2e/check-run-e2e-broker.ts` — already listed as #1 (×2 call sites)
+35. `packages/ward/src/brokers/check-run/integration/check-run-integration-broker.ts` — already listed as #2
+36. `packages/ward/src/brokers/check-run/unit/check-run-unit-broker.ts` — already listed as #4
+37. `packages/ward/src/brokers/storage/prune/storage-prune-broker.ts` — already listed as #26
+
+### Deduplicated file count
+
+24 unique caller implementation files, 24 matching `.proxy.ts` files, 1 test file with a comment-only
+edit, 2 new ward-local broker domains (6 files: impl + proxy + test, ×2) and 33 adapter files deleted.
+Caller `.ts` files plus their composing `.proxy.ts` files alone: 48 — over the ~30 file stop threshold.
+
 ## Concessions made while executing
 
 <!-- Empty at the start. The operator fills this and mirrors it into EPIC.md's Concessions table. -->

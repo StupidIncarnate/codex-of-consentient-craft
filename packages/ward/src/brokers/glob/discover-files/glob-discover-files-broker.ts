@@ -1,12 +1,14 @@
 /**
- * PURPOSE: Discovers files matching glob patterns in a directory using Node's fs.globSync
+ * PURPOSE: Discovers files matching one or more glob patterns under a directory, de-duplicating
+ * matches that more than one pattern reports (two extension-specific patterns can both hit the
+ * same file).
  *
  * USAGE:
- * const { discoveredCount, discoveredFiles } = fsGlobSyncAdapter({patterns: ['src/**\/*.ts'], cwd: absoluteFilePathContract.parse('/project')});
+ * const { discoveredCount, discoveredFiles } = globDiscoverFilesBroker({patterns: ['src/**\/*.ts'], cwd: absoluteFilePathContract.parse('/project')});
  * // Returns: { discoveredCount: DiscoveredCount, discoveredFiles: GitRelativePath[] }
  */
 
-import { globSync } from 'fs';
+import { globSync } from '#gateway/node/fs';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import {
@@ -22,7 +24,7 @@ type DiscoveredCount = ProjectResult['discoveredCount'];
 
 const discoveredCountContract = projectResultContract.shape.discoveredCount;
 
-export const fsGlobSyncAdapter = ({
+export const globDiscoverFilesBroker = ({
   patterns,
   cwd,
   exclude,
@@ -34,7 +36,8 @@ export const fsGlobSyncAdapter = ({
   const seen = new Set<GitRelativePath>();
   const uniqueFiles: GitRelativePath[] = [];
   for (const pattern of patterns) {
-    const matches = globSync(pattern, {
+    const matches = globSync({
+      patterns: pattern,
       cwd,
       ...(exclude === undefined ? {} : { exclude: [...exclude] }),
     });

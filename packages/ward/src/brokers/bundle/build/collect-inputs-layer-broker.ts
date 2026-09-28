@@ -29,7 +29,7 @@ import {
   type GitRelativePath,
 } from '../../../contracts/git-relative-path/git-relative-path-contract';
 import { packageJsonContract } from '../../../contracts/package-json/package-json-contract';
-import { fsGlobSyncAdapter } from '../../../adapters/fs/glob-sync/fs-glob-sync-adapter';
+import { globDiscoverFilesBroker } from '../../glob/discover-files/glob-discover-files-broker';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { bundleStatics } from '../../../statics/bundle/bundle-statics';
 import { bundleInputsTransformer } from '../../../transformers/bundle-inputs/bundle-inputs-transformer';
@@ -119,7 +119,7 @@ export const collectInputsLayerBroker = async ({
 
   for (const folder of closureFolders) {
     const isBundledPackage = String(folder.path) === String(packageRoot);
-    const { discoveredFiles } = fsGlobSyncAdapter({
+    const { discoveredFiles } = globDiscoverFilesBroker({
       patterns: bundleInputsTransformer({ isBundledPackage }),
       cwd: folder.path,
     });

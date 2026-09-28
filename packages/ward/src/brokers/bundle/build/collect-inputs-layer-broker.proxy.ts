@@ -1,7 +1,7 @@
 import { absoluteFilePathContract, filePathContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
-import { fsGlobSyncAdapterProxy } from '../../../adapters/fs/glob-sync/fs-glob-sync-adapter.proxy';
+import { globDiscoverFilesBrokerProxy } from '../../glob/discover-files/glob-discover-files-broker.proxy';
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { bundleInputsTransformer } from '../../../transformers/bundle-inputs/bundle-inputs-transformer';
 import { workspaceDiscoverBrokerProxy } from '../../workspace/discover/workspace-discover-broker.proxy';
@@ -32,7 +32,7 @@ export const collectInputsLayerBrokerProxy = (): {
   const rootProxy = resolveWorkspaceRootLayerBrokerProxy();
   const discoverProxy = workspaceDiscoverBrokerProxy();
   const readProxy = fsReadFileAdapterProxy();
-  const globProxy = fsGlobSyncAdapterProxy();
+  const globProxy = globDiscoverFilesBrokerProxy();
 
   // workspaceDiscoverBrokerProxy resolves everything against this root and this base directory —
   // it is the only workspace layout its own setup describes, so the fixtures here share it.

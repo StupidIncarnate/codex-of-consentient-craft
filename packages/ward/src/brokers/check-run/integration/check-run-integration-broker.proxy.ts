@@ -8,12 +8,13 @@ import {
   type AbsoluteFilePath,
 } from '@dungeonmaster/shared/contracts';
 
-import { fsGlobSyncAdapterProxy } from '../../../adapters/fs/glob-sync/fs-glob-sync-adapter.proxy';
+import { globDiscoverFilesBrokerProxy } from '../../glob/discover-files/glob-discover-files-broker.proxy';
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { fsUnlinkAdapterProxy } from '../../../adapters/fs/unlink/fs-unlink-adapter.proxy';
 import { osTmpdirAdapterProxy } from '../../../adapters/os/tmpdir/os-tmpdir-adapter.proxy';
 import { openHandleReportPathTransformer } from '../../../transformers/open-handle-report-path/open-handle-report-path-transformer';
 import { openHandleReportStatics } from '../../../statics/open-handle-report/open-handle-report-statics';
+import { jestDiscoverPatternsTransformer } from '../../../transformers/jest-discover-patterns/jest-discover-patterns-transformer';
 import { binResolveBrokerProxy } from '../../bin/resolve/bin-resolve-broker.proxy';
 import { sourceConditionSupportedBrokerProxy } from '../../source-condition/supported/source-condition-supported-broker.proxy';
 import { BinCommandStub } from '../../../contracts/bin-command/bin-command.stub';
@@ -49,7 +50,14 @@ export const checkRunIntegrationBrokerProxy = (): {
   RunNotFoundErrorProxy();
   const sourceConditionProxy = sourceConditionSupportedBrokerProxy();
   const existsProxy = existsSyncProxy();
-  const globProxy = fsGlobSyncAdapterProxy();
+  const globProxy = globDiscoverFilesBrokerProxy();
+  // The broker's OWN patterns, computed by the same real transformer it calls — every scenario
+  // here stages `hasPackageJestConfig: true` via stageJestConfigPresent below, so this is the exact
+  // pattern list the broker will query, not a guess.
+  const { patterns: discoverPatterns } = jestDiscoverPatternsTransformer({
+    checkType: 'integration',
+    hasPackageJestConfig: true,
+  });
   // The broker asks the OS for a scratch dir, then reads and deletes the report jest appended to it.
   // Default: an empty report, so a test that says nothing about leaks gets none.
   const tmpdirProxy = osTmpdirAdapterProxy();
@@ -72,10 +80,10 @@ export const checkRunIntegrationBrokerProxy = (): {
   // params) addresses the spawn read against whatever setup last resolved — set here, read there.
   const resolvedCommandRef: { value: BinCommand } = { value: BinCommandStub() };
 
-  // The broker calls globSync once per integration discovery pattern (16 patterns from
-  // jestDiscoverPatternsTransformer). These tests assert on jest output parsing, not which
-  // pattern discovered which file, so the default describes every pattern with one predicate.
-  globProxy.returnsForAnyPattern({ files: ['discovered.ts'] });
+  // The broker calls globSync once per integration discovery pattern. These tests assert on jest
+  // output parsing, not which pattern discovered which file, so the default stages every real
+  // pattern with the same result.
+  globProxy.returnsForPatterns({ patterns: discoverPatterns, files: ['discovered.ts'] });
 
   // `sourceConditionSupportedBroker` (composed inside the broker) walks every ancestor of
   // whichever cwd `stage()` below is given — a composing caller (e.g. `singlePackageLayerBroker`)
@@ -190,11 +198,11 @@ export const checkRunIntegrationBrokerProxy = (): {
 
     setupNoTestFiles: (): void => {
       stageJestConfigPresent({ projectFolder: ProjectFolderStub() });
-      globProxy.returnsForAnyPattern({ files: [] });
+      globProxy.returnsForPatterns({ patterns: discoverPatterns, files: [] });
     },
 
     setDiscoveredFiles: ({ files }: { files: string[] }): void => {
-      globProxy.returnsForAnyPattern({ files });
+      globProxy.returnsForPatterns({ patterns: discoverPatterns, files });
     },
 
     // Models a consumer's install: `@dungeonmaster/shared` packs `dist` only, so no ancestor of the

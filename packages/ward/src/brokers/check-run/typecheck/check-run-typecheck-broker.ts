@@ -48,7 +48,7 @@ import { discoveryDiffTransformer } from '../../../transformers/discovery-diff/d
 import { isFilePathGuard } from '../../../guards/is-file-path/is-file-path-guard';
 import { isPathUnderDirectoryGuard } from '../../../guards/is-path-under-directory/is-path-under-directory-guard';
 import { binResolveBroker } from '../../bin/resolve/bin-resolve-broker';
-import { fsGlobSyncAdapter } from '../../../adapters/fs/glob-sync/fs-glob-sync-adapter';
+import { globDiscoverFilesBroker } from '../../glob/discover-files/glob-discover-files-broker';
 import { fsReadJsonSyncAdapter } from '../../../adapters/fs/read-json-sync/fs-read-json-sync-adapter';
 
 export const checkRunTypecheckBroker = async ({
@@ -87,7 +87,7 @@ export const checkRunTypecheckBroker = async ({
   }
 
   const { patterns, exclude } = tsconfigDiscoverPatternsTransformer({ tsconfigData });
-  const { discoveredCount, discoveredFiles } = fsGlobSyncAdapter({
+  const { discoveredCount, discoveredFiles } = globDiscoverFilesBroker({
     patterns,
     cwd,
     exclude,

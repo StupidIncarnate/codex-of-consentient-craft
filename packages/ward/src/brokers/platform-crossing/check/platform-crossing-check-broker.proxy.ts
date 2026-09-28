@@ -1,7 +1,7 @@
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
 import { architecturePackageTypeDetectBrokerProxy } from '@dungeonmaster/shared/testing';
 import { workspaceDiscoverBrokerProxy } from '../../workspace/discover/workspace-discover-broker.proxy';
-import { fsGlobSyncAdapterProxy } from '../../../adapters/fs/glob-sync/fs-glob-sync-adapter.proxy';
+import { globDiscoverFilesBrokerProxy } from '../../glob/discover-files/glob-discover-files-broker.proxy';
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { gatewayPackageNamesReadLayerBrokerProxy } from './gateway-package-names-read-layer-broker.proxy';
 import { walkGatewayCrossingsLayerBrokerProxy } from './walk-gateway-crossings-layer-broker.proxy';
@@ -17,7 +17,7 @@ export const platformCrossingCheckBrokerProxy = (): {
   // Constructed only to satisfy enforce-proxy-child-creation — the "no workspaces" scenario never
   // reaches any of these.
   architecturePackageTypeDetectBrokerProxy();
-  fsGlobSyncAdapterProxy();
+  globDiscoverFilesBrokerProxy();
   fsReadFileAdapterProxy();
   // '/project' matches the fixed root `workspaceDiscoverBrokerProxy` itself already assumes.
   gatewayPackageNamesReadLayerBrokerProxy({ rootPath: FilePathStub({ value: '/project' }) });

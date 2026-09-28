@@ -32,7 +32,7 @@ import { specifierMatchesPackageGuard } from '../../../guards/specifier-matches-
 import { isImplementationSourceFileGuard } from '../../../guards/is-implementation-source-file/is-implementation-source-file-guard';
 import { dedupePlatformCrossingViolationsTransformer } from '../../../transformers/dedupe-platform-crossing-violations/dedupe-platform-crossing-violations-transformer';
 import { nonImplementationGlobsStatics } from '../../../statics/non-implementation-globs/non-implementation-globs-statics';
-import { fsGlobSyncAdapter } from '../../../adapters/fs/glob-sync/fs-glob-sync-adapter';
+import { globDiscoverFilesBroker } from '../../glob/discover-files/glob-discover-files-broker';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { gatewayPackageNamesReadLayerBroker } from './gateway-package-names-read-layer-broker';
 import {
@@ -100,7 +100,7 @@ export const platformCrossingCheckBroker = async ({
         return [];
       }
 
-      const { discoveredFiles } = fsGlobSyncAdapter({
+      const { discoveredFiles } = globDiscoverFilesBroker({
         patterns: ['src/**/*.ts', 'src/**/*.tsx'],
         cwd: packageRoot,
         exclude: nonImplementationGlobsStatics,

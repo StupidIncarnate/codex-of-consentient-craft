@@ -49,7 +49,7 @@ import { openHandleReportPathTransformer } from '../../../transformers/open-hand
 import { openHandleReportStatics } from '../../../statics/open-handle-report/open-handle-report-statics';
 import { binResolveBroker } from '../../bin/resolve/bin-resolve-broker';
 import { sourceConditionSupportedBroker } from '../../source-condition/supported/source-condition-supported-broker';
-import { fsGlobSyncAdapter } from '../../../adapters/fs/glob-sync/fs-glob-sync-adapter';
+import { globDiscoverFilesBroker } from '../../glob/discover-files/glob-discover-files-broker';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { fsUnlinkAdapter } from '../../../adapters/fs/unlink/fs-unlink-adapter';
 import { osTmpdirAdapter } from '../../../adapters/os/tmpdir/os-tmpdir-adapter';
@@ -70,7 +70,7 @@ export const checkRunUnitBroker = async ({
     checkType: 'unit',
     hasPackageJestConfig,
   });
-  const { discoveredCount, discoveredFiles } = fsGlobSyncAdapter({
+  const { discoveredCount, discoveredFiles } = globDiscoverFilesBroker({
     patterns,
     cwd,
     exclude: excludePatterns,

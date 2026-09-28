@@ -3,8 +3,9 @@ import { runProxy } from '#gateway/node/child_process/run/run.proxy';
 import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found.error.proxy';
 import { filePathContract, absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 
-import { fsGlobSyncAdapterProxy } from '../../../adapters/fs/glob-sync/fs-glob-sync-adapter.proxy';
+import { globDiscoverFilesBrokerProxy } from '../../glob/discover-files/glob-discover-files-broker.proxy';
 import { fsReadJsonSyncAdapterProxy } from '../../../adapters/fs/read-json-sync/fs-read-json-sync-adapter.proxy';
+import { tsconfigDiscoverPatternsTransformer } from '../../../transformers/tsconfig-discover-patterns/tsconfig-discover-patterns-transformer';
 import { binResolveBrokerProxy } from '../../bin/resolve/bin-resolve-broker.proxy';
 import { BinCommandStub } from '../../../contracts/bin-command/bin-command.stub';
 import type { BinCommand } from '../../../contracts/bin-command/bin-command-contract';
@@ -21,9 +22,15 @@ export const checkRunTypecheckBrokerProxy = (): {
   const run = runProxy();
   RunNotFoundErrorProxy();
   const existsProxy = existsSyncProxy();
-  const globProxy = fsGlobSyncAdapterProxy();
+  const globProxy = globDiscoverFilesBrokerProxy();
   const jsonProxy = fsReadJsonSyncAdapterProxy();
   const binProxy = binResolveBrokerProxy();
+  // The exact tsconfigData every scenario below stages through jsonProxy.returns() — computed by
+  // the same real transformer the broker calls, not a guess, so the staged patterns are the ones
+  // the broker will actually query.
+  const { patterns: discoverPatterns } = tsconfigDiscoverPatternsTransformer({
+    tsconfigData: { include: ['src/**/*'] },
+  });
 
   // Tracks the checking pass's own outcome so setupBuildConfigPresent (called AFTER setupPass or
   // setupFail) can stage the SAME outcome under the build pass's own args address. runProxy
@@ -33,8 +40,9 @@ export const checkRunTypecheckBrokerProxy = (): {
   const lastChecking = { command: '', cwd: '', exitCode: 0, stdout: '' };
 
   // tsconfig.json's `include` expands into several extension-specific glob patterns
-  // (expandToTsGlobsTransformer). Tests here assert on tsc output parsing, not on which
-  // pattern discovered which file, so every pattern is described with one predicate.
+  // (expandToTsGlobsTransformer). Tests here assert on tsc output parsing, not on which pattern
+  // discovered which file, so every real pattern (computed above by the same transformer the
+  // broker calls) is staged with the same result.
   //
   // `tsconfig.build.json` defaults to NOT FOUND, so every scenario in this proxy is single-pass
   // unless a test calls `setupBuildConfigPresent` — every test written before that method existed
@@ -48,7 +56,7 @@ export const checkRunTypecheckBrokerProxy = (): {
       filePath: tsconfigPath,
       content: '{"include":["src/**/*"]}',
     });
-    globProxy.returnsForAnyPattern({ files: ['discovered.ts'] });
+    globProxy.returnsForPatterns({ patterns: discoverPatterns, files: ['discovered.ts'] });
     return binProxy.setupFound({
       cwd: absoluteFilePathContract.parse(projectFolder.path),
       binName: BinCommandStub({ value: checkCommandsStatics.typecheck.bin }),

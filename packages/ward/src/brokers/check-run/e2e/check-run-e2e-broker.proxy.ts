@@ -14,7 +14,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
-import { fsGlobSyncAdapterProxy } from '../../../adapters/fs/glob-sync/fs-glob-sync-adapter.proxy';
+import { globDiscoverFilesBrokerProxy } from '../../glob/discover-files/glob-discover-files-broker.proxy';
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { osTmpdirAdapterProxy } from '../../../adapters/os/tmpdir/os-tmpdir-adapter.proxy';
 import { fsUnlinkAdapterProxy } from '../../../adapters/fs/unlink/fs-unlink-adapter.proxy';
@@ -53,7 +53,7 @@ export const checkRunE2eBrokerProxy = (): {
   const freePortProxy = freePortPairProxy();
   // e2e discovery has exactly one static pattern (checkCommandsStatics.e2e.discoverPatterns),
   // unlike unit/integration which loop over a dozen. The pattern is known, so key on it exactly.
-  const globProxy = fsGlobSyncAdapterProxy();
+  const globProxy = globDiscoverFilesBrokerProxy();
   globProxy.returnsForPattern({ pattern: '**/*.e2e.ts', files: ['discovered.ts'] });
   const portKillProxy = portKillListenersBrokerProxy();
   const readFileProxy = fsReadFileAdapterProxy();
