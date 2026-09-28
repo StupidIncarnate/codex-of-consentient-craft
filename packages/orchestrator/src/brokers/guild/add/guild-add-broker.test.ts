@@ -6,6 +6,7 @@ import {
   GuildStub,
 } from '@dungeonmaster/shared/contracts';
 
+import { GuildPathTakenError } from '../../../errors/guild-path-taken/guild-path-taken-error';
 import { guildAddBroker } from './guild-add-broker';
 import { guildAddBrokerProxy } from './guild-add-broker.proxy';
 
@@ -103,6 +104,24 @@ describe('guildAddBroker', () => {
       await expect(guildAddBroker({ name, path })).rejects.toThrow(
         /A guild with path \/home\/user\/my-app already exists/u,
       );
+    });
+
+    it('ERROR: {path already exists in config} => throws a GuildPathTakenError instance', async () => {
+      const proxy = guildAddBrokerProxy();
+      const name = GuildNameStub({ value: 'Duplicate App' });
+      const path = GuildPathStub({ value: '/home/user/my-app' });
+
+      const existingGuild = GuildStub({
+        id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
+        name: 'Existing App',
+        path: '/home/user/my-app',
+      });
+
+      proxy.setupDuplicatePath({
+        existingConfig: GuildConfigStub({ guilds: [existingGuild] }),
+      });
+
+      await expect(guildAddBroker({ name, path })).rejects.toBeInstanceOf(GuildPathTakenError);
     });
   });
 

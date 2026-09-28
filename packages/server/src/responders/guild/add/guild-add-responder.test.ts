@@ -70,13 +70,31 @@ describe('GuildAddResponder', () => {
       const proxy = GuildAddResponderProxy();
       const name = GuildNameStub({ value: 'Test' });
       const path = GuildPathStub({ value: '/tmp/test' });
-      proxy.setupAddGuildError({ name, path, message: 'Duplicate guild' });
+      proxy.setupAddGuildError({ name, path, message: 'Disk unavailable' });
 
       const result = await proxy.callResponder({ body: { name: 'Test', path: '/tmp/test' } });
 
       expect(result).toStrictEqual({
         status: 500,
-        data: { error: 'Duplicate guild' },
+        data: { error: 'Disk unavailable' },
+      });
+    });
+
+    it('ERROR: {path already registered to another guild} => returns 409 with error message', async () => {
+      const proxy = GuildAddResponderProxy();
+      const name = GuildNameStub({ value: 'Test' });
+      const path = GuildPathStub({ value: '/tmp/test' });
+      proxy.setupAddGuildError({
+        name,
+        path,
+        message: 'A guild with path /tmp/test already exists',
+      });
+
+      const result = await proxy.callResponder({ body: { name: 'Test', path: '/tmp/test' } });
+
+      expect(result).toStrictEqual({
+        status: 409,
+        data: { error: 'A guild with path /tmp/test already exists' },
       });
     });
   });
