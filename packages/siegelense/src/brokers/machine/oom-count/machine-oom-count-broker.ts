@@ -16,8 +16,7 @@
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import { join } from '#gateway/node/path';
 
-import { errorIsNativeErrorAdapter } from '../../../adapters/error/is-native-error/error-is-native-error-adapter';
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
+import { readFileIfExists } from '#gateway/node/fs__promises';
 import { readingCountContract } from '../../../contracts/reading-count/reading-count-contract';
 import type { ReadingCount } from '../../../contracts/reading-count/reading-count-contract';
 import { machineStatics } from '../../../statics/machine/machine-statics';
@@ -27,22 +26,7 @@ export const machineOomCountBroker = async (): Promise<ReadingCount | null> => {
     join(machineStatics.procfs.root, machineStatics.procfs.vmstat),
   );
 
-  const content = await fsReadFileAdapter({ filePath: vmstatPath }).catch((error: unknown) => {
-    if (
-      error !== null &&
-      typeof error === 'object' &&
-      errorIsNativeErrorAdapter({ value: error }) &&
-      'cause' in error &&
-      error.cause !== null &&
-      typeof error.cause === 'object' &&
-      errorIsNativeErrorAdapter({ value: error.cause }) &&
-      'code' in error.cause &&
-      error.cause.code === 'ENOENT'
-    ) {
-      return null;
-    }
-    throw error;
-  });
+  const content = await readFileIfExists(vmstatPath);
 
   if (content === null) {
     return null;

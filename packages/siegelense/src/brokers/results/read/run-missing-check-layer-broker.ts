@@ -17,11 +17,10 @@
  * // FileContents (or null, for a run that crashed before its closing write)
  */
 
-import type { FileContents } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+import { fileContentsContract } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath, FileContents } from '@dungeonmaster/shared/contracts';
+import { readFileIfExists } from '#gateway/node/fs__promises';
 
-import { errorIsNativeErrorAdapter } from '../../../adapters/error/is-native-error/error-is-native-error-adapter';
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
 import type { RunId } from '../../../contracts/run-id/run-id-contract';
 import { RunMissingError } from '../../../errors/run-missing/run-missing-error';
@@ -37,48 +36,12 @@ export const runMissingCheckLayerBroker = async ({
   storedReturnPath: AbsoluteFilePath;
   transcriptPath: AbsoluteFilePath;
 }): Promise<{ storedReturnContent: FileContents | null }> => {
-  const storedReturnContent: FileContents | null = await fsReadFileAdapter({
-    filePath: storedReturnPath,
-  }).catch((error: unknown) => {
-    if (
-      error !== null &&
-      typeof error === 'object' &&
-      errorIsNativeErrorAdapter({ value: error }) &&
-      'cause' in error &&
-      error.cause !== null &&
-      typeof error.cause === 'object' &&
-      errorIsNativeErrorAdapter({ value: error.cause }) &&
-      'code' in error.cause &&
-      error.cause.code === 'ENOENT'
-    ) {
-      return null;
-    }
-    throw error;
-  });
-
-  if (storedReturnContent !== null) {
-    return { storedReturnContent };
+  const rawStored = await readFileIfExists(storedReturnPath);
+  if (rawStored !== null) {
+    return { storedReturnContent: fileContentsContract.parse(rawStored) };
   }
 
-  const transcriptContent: FileContents | null = await fsReadFileAdapter({
-    filePath: transcriptPath,
-  }).catch((error: unknown) => {
-    if (
-      error !== null &&
-      typeof error === 'object' &&
-      errorIsNativeErrorAdapter({ value: error }) &&
-      'cause' in error &&
-      error.cause !== null &&
-      typeof error.cause === 'object' &&
-      errorIsNativeErrorAdapter({ value: error.cause }) &&
-      'code' in error.cause &&
-      error.cause.code === 'ENOENT'
-    ) {
-      return null;
-    }
-    throw error;
-  });
-
+  const transcriptContent = await readFileIfExists(transcriptPath);
   if (transcriptContent === null) {
     throw new RunMissingError({ instanceId, runId });
   }

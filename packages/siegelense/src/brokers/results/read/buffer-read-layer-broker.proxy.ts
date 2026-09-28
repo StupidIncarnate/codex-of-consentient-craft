@@ -1,14 +1,11 @@
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
-
-import { errorIsNativeErrorAdapterProxy } from '../../../adapters/error/is-native-error/error-is-native-error-adapter.proxy';
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
+import { readFileIfExistsProxy } from '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
 
 export const bufferReadLayerBrokerProxy = (): {
   setupBuffer: (params: { bufferPath: AbsoluteFilePath; content: string }) => void;
   setupMissingBuffer: (params: { bufferPath: AbsoluteFilePath }) => void;
 } => {
-  errorIsNativeErrorAdapterProxy();
-  const readFileProxy = fsReadFileAdapterProxy();
+  const readFileProxy = readFileIfExistsProxy();
 
   return {
     setupBuffer: ({
@@ -18,14 +15,11 @@ export const bufferReadLayerBrokerProxy = (): {
       bufferPath: AbsoluteFilePath;
       content: string;
     }): void => {
-      readFileProxy.resolves({ filePath: bufferPath, content });
+      readFileProxy.returns({ path: bufferPath, contents: content });
     },
 
     setupMissingBuffer: ({ bufferPath }: { bufferPath: AbsoluteFilePath }): void => {
-      readFileProxy.rejects({
-        filePath: bufferPath,
-        error: Object.assign(new Error('ENOENT: no such file or directory'), { code: 'ENOENT' }),
-      });
+      readFileProxy.missing({ path: bufferPath });
     },
   };
 };

@@ -3,8 +3,7 @@ import { registerMock, requireActual } from '@dungeonmaster/testing/register-moc
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
-import { errorIsNativeErrorAdapterProxy } from '../../../adapters/error/is-native-error/error-is-native-error-adapter.proxy';
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
+import { readFileIfExistsProxy } from '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
 
 export const serverWindowReadLayerBrokerProxy = (): {
   setupServerLog: (params: { evidencePath: AbsoluteFilePath; content: string }) => void;
@@ -16,8 +15,7 @@ export const serverWindowReadLayerBrokerProxy = (): {
   registerMock({ fn: join })
     .calledWith([])
     .implement((...segments: never[]) => realPath.join(...segments));
-  errorIsNativeErrorAdapterProxy();
-  const readFileProxy = fsReadFileAdapterProxy();
+  const readFileProxy = readFileIfExistsProxy();
 
   return {
     setupServerLog: ({
@@ -28,15 +26,12 @@ export const serverWindowReadLayerBrokerProxy = (): {
       content: string;
     }): void => {
       const logPath = AbsoluteFilePathStub({ value: `${evidencePath}/api-server.log` });
-      readFileProxy.resolves({ filePath: logPath, content });
+      readFileProxy.returns({ path: logPath, contents: content });
     },
 
     setupMissingServerLog: ({ evidencePath }: { evidencePath: AbsoluteFilePath }): void => {
       const logPath = AbsoluteFilePathStub({ value: `${evidencePath}/api-server.log` });
-      readFileProxy.rejects({
-        filePath: logPath,
-        error: Object.assign(new Error('ENOENT: no such file or directory'), { code: 'ENOENT' }),
-      });
+      readFileProxy.missing({ path: logPath });
     },
   };
 };

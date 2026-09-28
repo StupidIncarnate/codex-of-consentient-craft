@@ -37,6 +37,6 @@ describe('machineOomCountBroker', () => {
       error: Object.assign(new Error('EACCES: permission denied'), { code: 'EACCES' }),
     });
 
-    await expect(machineOomCountBroker()).rejects.toThrow('Failed to read file at /proc/vmstat');
+    await expect(machineOomCountBroker()).rejects.toThrow('EACCES: permission denied');
   });
 });

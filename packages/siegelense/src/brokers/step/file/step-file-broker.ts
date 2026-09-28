@@ -16,7 +16,7 @@ import { join } from '#gateway/node/path';
 import { absoluteFilePathContract, contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { ContentText } from '@dungeonmaster/shared/contracts';
 
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
+import { readFile } from '#gateway/node/fs__promises';
 import { fsStatAdapter } from '../../../adapters/fs/stat/fs-stat-adapter';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
 import type { StepFilePath } from '../../../contracts/step-file-path/step-file-path-contract';
@@ -33,7 +33,7 @@ export const stepFileBroker = async ({
   const homeStat = await fsStatAdapter({ filePath: homeFilePath });
 
   if (homeStat !== null) {
-    const content = await fsReadFileAdapter({ filePath: homeFilePath, encoding: 'utf8' });
+    const content = await readFile(homeFilePath);
     return contentTextContract.parse(content);
   }
 
@@ -41,7 +41,7 @@ export const stepFileBroker = async ({
   const evidenceStat = await fsStatAdapter({ filePath: evidenceFilePath });
 
   if (evidenceStat !== null) {
-    const content = await fsReadFileAdapter({ filePath: evidenceFilePath, encoding: 'utf8' });
+    const content = await readFile(evidenceFilePath);
     return contentTextContract.parse(content);
   }
 

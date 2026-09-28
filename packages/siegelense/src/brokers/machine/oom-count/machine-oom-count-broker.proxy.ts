@@ -1,18 +1,16 @@
 import { join } from '#gateway/node/path';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
-
-import { errorIsNativeErrorAdapterProxy } from '../../../adapters/error/is-native-error/error-is-native-error-adapter.proxy';
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
+import { readFileIfExistsProxy } from '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
+import type { FsError } from '#gateway/node/fs';
 
 const VMSTAT_PATH = AbsoluteFilePathStub({ value: '/proc/vmstat' });
 
 export const machineOomCountBrokerProxy = (): {
   setupVmstat: (params: { content: string }) => void;
   setupVmstatMissing: () => void;
-  setupVmstatReadFails: (params: { error: Error }) => void;
+  setupVmstatReadFails: (params: { error: FsError }) => void;
 } => {
-  errorIsNativeErrorAdapterProxy();
   // #gateway/node/path is a raw passthrough of the Node 'path' module (no per-function wrapper, so
   // no gateway proxy to compose) — mocked directly here, on the same '#gateway/node/path' specifier
   // the broker imports. '/proc' + 'vmstat' needs no substitution to compute VMSTAT_PATH's real
@@ -22,22 +20,19 @@ export const machineOomCountBrokerProxy = (): {
   registerMock({ fn: join })
     .calledWith([])
     .implement((...segments: never[]) => realPath.join(...segments));
-  const readFileProxy = fsReadFileAdapterProxy();
+  const readFileMock = readFileIfExistsProxy();
 
   return {
     setupVmstat: ({ content }: { content: string }): void => {
-      readFileProxy.resolves({ filePath: VMSTAT_PATH, content });
+      readFileMock.returns({ path: VMSTAT_PATH, contents: content });
     },
 
     setupVmstatMissing: (): void => {
-      readFileProxy.rejects({
-        filePath: VMSTAT_PATH,
-        error: Object.assign(new Error('ENOENT: no such file or directory'), { code: 'ENOENT' }),
-      });
+      readFileMock.missing({ path: VMSTAT_PATH });
     },
 
-    setupVmstatReadFails: ({ error }: { error: Error }): void => {
-      readFileProxy.rejects({ filePath: VMSTAT_PATH, error });
+    setupVmstatReadFails: ({ error }: { error: FsError }): void => {
+      readFileMock.throwsMatchingPath({ path: VMSTAT_PATH, error });
     },
   };
 };

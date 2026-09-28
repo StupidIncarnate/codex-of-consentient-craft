@@ -308,3 +308,107 @@ Group SL-FS3: `fs/readdir` adapter in `packages/siegelense`:
 
 #### Staging fixes exposed by exact-path readdir mock (1 file)
 - `packages/siegelense/src/brokers/cleanup/run/cleanup-run-broker.test.ts` — exact staging in tests that assert zero aged assets on reaped instances where the old catch-all mock returned `[]`
+
+## Plan — SL-FS4
+
+Group SL-FS4: first half of `fs/read-file` callers in `packages/siegelense` (12 caller units = 24 caller files: 12 implementations + 12 proxies).
+Callers move onto `readFile` or `readFileIfExists` from `#gateway/node/fs__promises`, staged via `#gateway/node/fs__promises/read-file/read-file.proxy` (`readFileProxy`) or `#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy` (`readFileIfExistsProxy`).
+The adapter itself (`packages/siegelense/src/adapters/fs/read-file/`) is NOT deleted this run; the remaining 18 caller units follow in SL-FS5.
+
+Grouped to have zero shared composing proxies with callers left for the second half:
+- `results/read/*` (4 callers) is composed only by `results-read-broker.proxy.ts`.
+- `citation/resolve/*` (2 callers) is composed only by `citation-resolve-broker.proxy.ts` and `prune-instance-reclaim-broker.proxy.ts`.
+- `driving-oddity/read/` (1 caller) is composed only by `driving-oddity-append-broker.proxy.ts`.
+- `machine/oom-count/` (1 caller) is composed only by `machine-read-broker.proxy.ts`.
+- `step/file/` (1 caller) is composed only by `run-verb-layer-broker.proxy.ts`.
+- `install/*` and `siegelense/run` (3 callers) have no shared composing proxies.
+
+### Scope for SL-FS4 (36 files)
+
+#### Direct callers to migrate (12 files)
+- `packages/siegelense/src/brokers/results/read/buffer-read-layer-broker.ts`
+- `packages/siegelense/src/brokers/results/read/run-missing-check-layer-broker.ts`
+- `packages/siegelense/src/brokers/results/read/server-window-read-layer-broker.ts`
+- `packages/siegelense/src/brokers/results/read/transcript-read-layer-broker.ts`
+- `packages/siegelense/src/brokers/citation/resolve/verified-prelude-layer-broker.ts`
+- `packages/siegelense/src/brokers/citation/resolve/citation-resolve-broker.ts`
+- `packages/siegelense/src/brokers/driving-oddity/read/driving-oddity-read-broker.ts`
+- `packages/siegelense/src/brokers/machine/oom-count/machine-oom-count-broker.ts`
+- `packages/siegelense/src/brokers/step/file/step-file-broker.ts`
+- `packages/siegelense/src/responders/install/ignore-write/install-ignore-write-responder.ts`
+- `packages/siegelense/src/responders/install/recipes-scaffold/install-recipes-scaffold-responder.ts`
+- `packages/siegelense/src/responders/siegelense/run/siegelense-run-responder.ts`
+
+#### Caller proxies to update (12 files)
+- `packages/siegelense/src/brokers/results/read/buffer-read-layer-broker.proxy.ts`
+- `packages/siegelense/src/brokers/results/read/run-missing-check-layer-broker.proxy.ts`
+- `packages/siegelense/src/brokers/results/read/server-window-read-layer-broker.proxy.ts`
+- `packages/siegelense/src/brokers/results/read/transcript-read-layer-broker.proxy.ts`
+- `packages/siegelense/src/brokers/citation/resolve/verified-prelude-layer-broker.proxy.ts`
+- `packages/siegelense/src/brokers/citation/resolve/citation-resolve-broker.proxy.ts`
+- `packages/siegelense/src/brokers/driving-oddity/read/driving-oddity-read-broker.proxy.ts`
+- `packages/siegelense/src/brokers/machine/oom-count/machine-oom-count-broker.proxy.ts`
+- `packages/siegelense/src/brokers/step/file/step-file-broker.proxy.ts`
+- `packages/siegelense/src/responders/install/ignore-write/install-ignore-write-responder.proxy.ts`
+- `packages/siegelense/src/responders/install/recipes-scaffold/install-recipes-scaffold-responder.proxy.ts`
+- `packages/siegelense/src/responders/siegelense/run/siegelense-run-responder.proxy.ts`
+
+#### Caller tests to verify/update (12 files)
+- `packages/siegelense/src/brokers/results/read/buffer-read-layer-broker.test.ts`
+- `packages/siegelense/src/brokers/results/read/run-missing-check-layer-broker.test.ts`
+- `packages/siegelense/src/brokers/results/read/server-window-read-layer-broker.test.ts`
+- `packages/siegelense/src/brokers/results/read/transcript-read-layer-broker.test.ts`
+- `packages/siegelense/src/brokers/citation/resolve/verified-prelude-layer-broker.test.ts`
+- `packages/siegelense/src/brokers/citation/resolve/citation-resolve-broker.test.ts`
+- `packages/siegelense/src/brokers/driving-oddity/read/driving-oddity-read-broker.test.ts`
+- `packages/siegelense/src/brokers/machine/oom-count/machine-oom-count-broker.test.ts`
+- `packages/siegelense/src/brokers/step/file/step-file-broker.test.ts`
+- `packages/siegelense/src/responders/install/ignore-write/install-ignore-write-responder.test.ts`
+- `packages/siegelense/src/responders/install/recipes-scaffold/install-recipes-scaffold-responder.test.ts`
+- `packages/siegelense/src/responders/siegelense/run/siegelense-run-responder.test.ts`
+
+#### Composing proxies (no edit needed — child proxies maintain identical public methods and signatures) (7 files)
+- `packages/siegelense/src/brokers/results/read/results-read-broker.proxy.ts`
+- `packages/siegelense/src/brokers/prune/instance-reclaim/prune-instance-reclaim-broker.proxy.ts`
+- `packages/siegelense/src/brokers/driving-oddity/append/driving-oddity-append-broker.proxy.ts`
+- `packages/siegelense/src/brokers/machine/read/machine-read-broker.proxy.ts`
+- `packages/siegelense/src/brokers/step/dispatch/run-verb-layer-broker.proxy.ts`
+- `packages/siegelense/src/adapters/npm/install/npm-install-adapter.proxy.ts`
+- `packages/siegelense/src/adapters/npm/run-build/npm-run-build-adapter.proxy.ts`
+
+### Remaining callers left for second half (SL-FS5) (18 caller units = 36 files + adapter files)
+- `packages/siegelense/src/brokers/boot-failure-marker/read/boot-failure-marker-read-broker.ts` & `.proxy.ts`
+- `packages/siegelense/src/brokers/boot-lock/acquire/boot-lock-acquire-broker.ts` & `.proxy.ts`
+- `packages/siegelense/src/brokers/boot-lock/release/boot-lock-release-broker.ts` & `.proxy.ts`
+- `packages/siegelense/src/brokers/cleanup/run/lock-release-layer-broker.ts` & `.proxy.ts`
+- `packages/siegelense/src/brokers/compare/read/compare-read-broker.ts` & `.proxy.ts`
+- `packages/siegelense/src/brokers/heartbeat/read/heartbeat-read-broker.ts` & `.proxy.ts`
+- `packages/siegelense/src/brokers/machine/rss-by-pgid/machine-rss-by-pgid-broker.ts` & `.proxy.ts`
+- `packages/siegelense/src/brokers/orphan/read/orphan-read-broker.ts` & `.proxy.ts`
+- `packages/siegelense/src/brokers/profile/read/profile-read-broker.ts` & `.proxy.ts`
+- `packages/siegelense/src/brokers/profile/sample-record/profile-sample-record-broker.ts` & `.proxy.ts`
+- `packages/siegelense/src/brokers/registry/lock-acquire/registry-lock-acquire-broker.ts` & `.proxy.ts`
+- `packages/siegelense/src/brokers/registry/read/registry-read-broker.ts` & `.proxy.ts`
+- `packages/siegelense/src/brokers/shot/blank-read/shot-blank-read-broker.ts` & `.proxy.ts`
+- `packages/siegelense/src/brokers/shot/change-read/shot-change-read-broker.ts` & `.proxy.ts`
+- `packages/siegelense/src/brokers/shutdown-reason/read/shutdown-reason-read-broker.ts` & `.proxy.ts`
+- `packages/siegelense/src/brokers/snapshot/index-read/snapshot-index-read-broker.ts` & `.proxy.ts`
+- `packages/siegelense/src/brokers/status/read/instance-entry-layer-broker.ts` & `.proxy.ts`
+- `packages/siegelense/src/brokers/step/reset/snapshot-restore-layer-broker.ts` & `.proxy.ts`
+Adapter to delete in SL-FS5:
+- `packages/siegelense/src/adapters/fs/read-file/fs-read-file-adapter.ts`
+- `packages/siegelense/src/adapters/fs/read-file/fs-read-file-adapter.proxy.ts`
+- `packages/siegelense/src/adapters/fs/read-file/fs-read-file-adapter.test.ts`
+Barrel export to update in SL-FS5:
+- `packages/siegelense/adapters.ts`
+
+### Execution result — SL-FS4
+- All 12 direct callers migrated onto `readFile` or `readFileIfExists` from `#gateway/node/fs__promises`.
+- All 12 test proxies updated to compose `readFileProxy` or `readFileIfExistsProxy`, staging by exact path.
+- In `install-ignore-write-responder.proxy.ts`, replaced raw `fs/promises` import with `readProxy.getCallsFor({ path })`.
+- In `machine-oom-count-broker.test.ts` and `siegelense-run-responder.test.ts`, updated error assertions from old adapter wrapper message to raw FsError messages (`EACCES: permission denied`, `ENOENT: no such file or directory...`).
+- Scoped ward run (`--only lint,typecheck,unit -- <all 36 touched files>`): exit code 0 (`1790630605206-4fb6`).
+- Full siegelense unit test run (`--only unit -- packages/siegelense`): exit code 0 (`1790630686705-3d03`, 526/526 files passed).
+- Proved tests bite via 3 caller mutations breaking exact gateway argument paths, all producing expected red failures and then restored.
+
+

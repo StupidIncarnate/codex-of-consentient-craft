@@ -35,6 +35,7 @@
  */
 
 import { existsSync } from '#gateway/node/fs';
+import { readFile } from '#gateway/node/fs__promises';
 import { resolve } from '#gateway/node/path';
 import {
   type InstallContext,
@@ -45,7 +46,6 @@ import {
   packageNameContract,
 } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import { ArrayEntryAnchorInsertLayerResponder } from './array-entry-anchor-insert-layer-responder';
 
@@ -108,9 +108,7 @@ export const InstallIgnoreWriteResponder = async ({
     resolve(context.targetProjectRoot, GITIGNORE_FILENAME),
   );
   const gitignorePresent = existsSync(gitignorePath);
-  const existingGitignore = gitignorePresent
-    ? String(await fsReadFileAdapter({ filePath: gitignorePath }))
-    : '';
+  const existingGitignore = gitignorePresent ? await readFile(gitignorePath) : '';
 
   // trimEnd, never trim — see install-repo-scaffold-responder.ts: git strips TRAILING pattern
   // whitespace but treats LEADING whitespace as part of the pattern.
@@ -162,7 +160,7 @@ export const InstallIgnoreWriteResponder = async ({
     .find((candidatePath) => existsSync(candidatePath));
 
   if (eslintConfigPath !== undefined) {
-    const eslintContent = String(await fsReadFileAdapter({ filePath: eslintConfigPath }));
+    const eslintContent = await readFile(eslintConfigPath);
     const eslintResult = ArrayEntryAnchorInsertLayerResponder({
       content: eslintContent,
       anchorValueCandidates: WORKTREES_GLOB_VALUES,
@@ -189,7 +187,7 @@ export const InstallIgnoreWriteResponder = async ({
   const tsconfigPresent = existsSync(tsconfigPath);
 
   if (tsconfigPresent) {
-    const tsconfigContent = String(await fsReadFileAdapter({ filePath: tsconfigPath }));
+    const tsconfigContent = await readFile(tsconfigPath);
     const tsconfigResult = ArrayEntryAnchorInsertLayerResponder({
       content: tsconfigContent,
       anchorValueCandidates: WORKTREES_GLOB_VALUES,
@@ -212,7 +210,7 @@ export const InstallIgnoreWriteResponder = async ({
     .find((candidatePath) => existsSync(candidatePath));
 
   if (jestConfigPath !== undefined) {
-    const jestContent = String(await fsReadFileAdapter({ filePath: jestConfigPath }));
+    const jestContent = await readFile(jestConfigPath);
     const jestResult = ArrayEntryAnchorInsertLayerResponder({
       content: jestContent,
       anchorValueCandidates: WORKTREES_REGEX_VALUES,

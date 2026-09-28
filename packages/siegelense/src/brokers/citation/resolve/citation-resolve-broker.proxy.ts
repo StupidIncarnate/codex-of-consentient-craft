@@ -1,7 +1,6 @@
 import type { AbsoluteFilePath, FilePath } from '@dungeonmaster/shared/contracts';
 
-import { errorIsNativeErrorAdapterProxy } from '../../../adapters/error/is-native-error/error-is-native-error-adapter.proxy';
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
+import { readFileIfExistsProxy } from '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
 import { locationsCitationQuestFilePathFindBrokerProxy } from '../../locations/citation-quest-file-path-find/locations-citation-quest-file-path-find-broker.proxy';
 import { questRecordParseLayerBrokerProxy } from './quest-record-parse-layer-broker.proxy';
 import { verifiedPreludeLayerBrokerProxy } from './verified-prelude-layer-broker.proxy';
@@ -21,10 +20,9 @@ export const citationResolveBrokerProxy = (): {
   setupPlanFile: (params: { filePath: AbsoluteFilePath; contents: string }) => void;
   setupNotADirectory: (params: { dirPath: AbsoluteFilePath }) => void;
 } => {
-  const readFileProxy = fsReadFileAdapterProxy();
+  const readFileProxy = readFileIfExistsProxy();
   const questFilePathProxy = locationsCitationQuestFilePathFindBrokerProxy();
   const preludeProxy = verifiedPreludeLayerBrokerProxy();
-  errorIsNativeErrorAdapterProxy();
   questRecordParseLayerBrokerProxy();
   walkedNoteLayerBrokerProxy();
 
@@ -38,20 +36,11 @@ export const citationResolveBrokerProxy = (): {
       filePath: AbsoluteFilePath;
       contents: string;
     }): void => {
-      readFileProxy.resolves({ filePath, content: contents });
+      readFileProxy.returns({ path: filePath, contents });
     },
 
-    // The RAW fs error, not a pre-wrapped one: `fsReadFileAdapter` catches whatever `readFile`
-    // throws and re-throws it as `new Error('Failed to read file at …', { cause })`. Staging an
-    // already-wrapped error here buries the ENOENT one level deeper than the broker's own check
-    // looks, and the broker then rethrows instead of answering blocked.
     setupQuestRecordMissing: ({ filePath }: { filePath: AbsoluteFilePath }): void => {
-      readFileProxy.rejects({
-        filePath,
-        error: Object.assign(new Error(`ENOENT: no such file or directory, open '${filePath}'`), {
-          code: 'ENOENT',
-        }),
-      });
+      readFileProxy.missing({ path: filePath });
     },
 
     setupPlansDir: preludeProxy.setupPlansDir,

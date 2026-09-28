@@ -1,6 +1,6 @@
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
+import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { fsStatAdapterProxy } from '../../../adapters/fs/stat/fs-stat-adapter.proxy';
 import type { DrivingOddityStub } from '../../../contracts/driving-oddity/driving-oddity.stub';
 
@@ -15,7 +15,7 @@ export const drivingOddityReadBrokerProxy = (): {
   setupRawFile: (params: { filePath: AbsoluteFilePath; contents: string }) => void;
 } => {
   const statProxy = fsStatAdapterProxy();
-  const readFileProxy = fsReadFileAdapterProxy();
+  const readFileMock = readFileProxy();
 
   return {
     // ENOENT is what fs.stat really raises for an absent file, and fsStatAdapter turns exactly that
@@ -39,9 +39,9 @@ export const drivingOddityReadBrokerProxy = (): {
         sizeBytes: FILE_SIZE_BYTES,
         modifiedAtMs: FILE_MODIFIED_AT_MS,
       });
-      readFileProxy.resolves({
-        filePath,
-        content: `${entries.map((entry) => JSON.stringify(entry)).join('\n')}\n`,
+      readFileMock.returns({
+        path: filePath,
+        contents: `${entries.map((entry) => JSON.stringify(entry)).join('\n')}\n`,
       });
     },
 
@@ -59,7 +59,7 @@ export const drivingOddityReadBrokerProxy = (): {
         sizeBytes: FILE_SIZE_BYTES,
         modifiedAtMs: FILE_MODIFIED_AT_MS,
       });
-      readFileProxy.resolves({ filePath, content: contents });
+      readFileMock.returns({ path: filePath, contents });
     },
   };
 };

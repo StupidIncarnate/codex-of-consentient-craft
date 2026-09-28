@@ -18,10 +18,9 @@
  * // Returns { references, gaps, blocked } — take the evidence only when references is empty AND blocked is null
  */
 
-import { contentTextContract } from '@dungeonmaster/shared/contracts';
+import { contentTextContract, fileContentsContract } from '@dungeonmaster/shared/contracts';
 
-import { errorIsNativeErrorAdapter } from '../../../adapters/error/is-native-error/error-is-native-error-adapter';
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
+import { readFileIfExists } from '#gateway/node/fs__promises';
 import { citationGapContract } from '../../../contracts/citation-gap/citation-gap-contract';
 import { citationKindContract } from '../../../contracts/citation-kind/citation-kind-contract';
 import { citationResolutionContract } from '../../../contracts/citation-resolution/citation-resolution-contract';
@@ -81,22 +80,7 @@ export const citationResolveBroker = async ({
     questId: entry.questId,
   });
 
-  const contents = await fsReadFileAdapter({ filePath: questFilePath }).catch((error: unknown) => {
-    if (
-      error !== null &&
-      typeof error === 'object' &&
-      errorIsNativeErrorAdapter({ value: error }) &&
-      'cause' in error &&
-      error.cause !== null &&
-      typeof error.cause === 'object' &&
-      errorIsNativeErrorAdapter({ value: error.cause }) &&
-      'code' in error.cause &&
-      error.cause.code === 'ENOENT'
-    ) {
-      return null;
-    }
-    throw error;
-  });
+  const contents = await readFileIfExists(questFilePath);
 
   if (contents === null) {
     return citationResolutionContract.parse({
@@ -110,7 +94,7 @@ export const citationResolveBroker = async ({
   }
 
   const { quest, blocked } = questRecordParseLayerBroker({
-    contents,
+    contents: fileContentsContract.parse(contents),
     questFilePath,
     instanceId: entry.id,
   });

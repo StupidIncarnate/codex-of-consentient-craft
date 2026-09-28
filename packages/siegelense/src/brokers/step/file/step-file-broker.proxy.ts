@@ -10,7 +10,7 @@ import { join } from '#gateway/node/path';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
+import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { fsStatAdapterProxy } from '../../../adapters/fs/stat/fs-stat-adapter.proxy';
 
 export const stepFileBrokerProxy = (): {
@@ -28,7 +28,7 @@ export const stepFileBrokerProxy = (): {
     .calledWith([])
     .implement((...segments: never[]) => realPath.join(...segments));
   const statProxy = fsStatAdapterProxy();
-  const readFileProxy = fsReadFileAdapterProxy();
+  const readFileMock = readFileProxy();
 
   return {
     setupFileExists: ({
@@ -39,7 +39,7 @@ export const stepFileBrokerProxy = (): {
       content: string;
     }): void => {
       statProxy.resolves({ filePath, sizeBytes: content.length, modifiedAtMs: 1_700_000_000_000 });
-      readFileProxy.resolves({ filePath, content });
+      readFileMock.returns({ path: filePath, contents: content });
     },
 
     setupFileNotFound: ({

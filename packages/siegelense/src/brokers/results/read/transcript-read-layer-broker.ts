@@ -14,9 +14,8 @@
  */
 
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+import { readFileIfExists } from '#gateway/node/fs__promises';
 
-import { errorIsNativeErrorAdapter } from '../../../adapters/error/is-native-error/error-is-native-error-adapter';
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { stepReadingContract } from '../../../contracts/step-reading/step-reading-contract';
 import type { StepReading } from '../../../contracts/step-reading/step-reading-contract';
 
@@ -25,22 +24,7 @@ export const transcriptReadLayerBroker = async ({
 }: {
   transcriptPath: AbsoluteFilePath;
 }): Promise<readonly StepReading[]> => {
-  const content = await fsReadFileAdapter({ filePath: transcriptPath }).catch((error: unknown) => {
-    if (
-      error !== null &&
-      typeof error === 'object' &&
-      errorIsNativeErrorAdapter({ value: error }) &&
-      'cause' in error &&
-      error.cause !== null &&
-      typeof error.cause === 'object' &&
-      errorIsNativeErrorAdapter({ value: error.cause }) &&
-      'code' in error.cause &&
-      error.cause.code === 'ENOENT'
-    ) {
-      return null;
-    }
-    throw error;
-  });
+  const content = await readFileIfExists(transcriptPath);
 
   if (content === null) {
     return [];

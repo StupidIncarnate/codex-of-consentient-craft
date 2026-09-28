@@ -19,8 +19,7 @@ import { absoluteFilePathContract, contentTextContract } from '@dungeonmaster/sh
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { errorIsNativeErrorAdapter } from '../../../adapters/error/is-native-error/error-is-native-error-adapter';
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
-import { readdirIfExists } from '#gateway/node/fs__promises';
+import { readFile, readdirIfExists } from '#gateway/node/fs__promises';
 import { citationKindContract } from '../../../contracts/citation-kind/citation-kind-contract';
 import { citationReferenceContract } from '../../../contracts/citation-reference/citation-reference-contract';
 import type { CitationReference } from '../../../contracts/citation-reference/citation-reference-contract';
@@ -85,9 +84,9 @@ export const verifiedPreludeLayerBroker = async ({
 
   const found = await Promise.all(
     planFiles.map(async (filePath) => {
-      const contents = await fsReadFileAdapter({ filePath });
+      const contents = await readFile(filePath);
 
-      const citingLine = String(contents)
+      const citingLine = contents
         .split('\n')
         .find(
           (line) =>

@@ -21,15 +21,11 @@
  * // Writes the human view (or raw JSON if --json is passed) to stdout, or throws first
  */
 
+import { readFile } from '#gateway/node/fs__promises';
 import { resolve } from '#gateway/node/path';
-import {
-  absoluteFilePathContract,
-  adapterResultContract,
-  contentTextContract,
-} from '@dungeonmaster/shared/contracts';
+import { adapterResultContract, contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { instanceRunBroker } from '../../../brokers/instance/run/instance-run-broker';
 import { registryReadBroker } from '../../../brokers/registry/read/registry-read-broker';
 import { InstanceUnknownError } from '../../../errors/instance-unknown/instance-unknown-error';
@@ -51,9 +47,7 @@ export const SiegelenseRunResponder = async ({
     stepsFilePath === null
       ? null
       : contentTextContract.parse(
-          await fsReadFileAdapter({
-            filePath: absoluteFilePathContract.parse(resolve(stepsFilePath)),
-          }).catch((error: unknown) => {
+          await readFile(resolve(stepsFilePath)).catch((error: unknown) => {
             throw new Error(
               `${STEPS_FILE_FLAG}'s file could not be read: ${
                 error instanceof Error ? error.message : String(error)

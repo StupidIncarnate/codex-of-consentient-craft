@@ -1,18 +1,16 @@
-import { readFile } from 'fs/promises';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
+import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { resolve } from '#gateway/node/path';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
 import { ArrayEntryAnchorInsertLayerResponderProxy } from './array-entry-anchor-insert-layer-responder.proxy';
 import { InstallIgnoreWriteResponder } from './install-ignore-write-responder';
 
 // Every caller in these tests exercises targetProjectRoot: '/project' (the real, unstaged
 // resolve passthrough resolves it to these exact paths), so every test lands on these files.
-// Two brands per path: `existsSyncProxy` (gateway) takes a raw path, while this package's own
-// `fsReadFileAdapterProxy` / `fsWriteFileAdapterProxy` take `AbsoluteFilePath` — the same string,
-// because the write adapter resolves `Promise<AdapterResult>`, not `void`.
+// Two brands per path: `existsSyncProxy` and `readFileProxy` (gateway) take a raw path, while
+// this package's own `fsWriteFileAdapterProxy` takes `AbsoluteFilePath`.
 const GITIGNORE_PATH_STRING = '/project/.gitignore';
 const GITIGNORE_ABSOLUTE_PATH = AbsoluteFilePathStub({ value: GITIGNORE_PATH_STRING });
 
@@ -58,13 +56,8 @@ export const InstallIgnoreWriteResponderProxy = (): {
     .implement((...segments: never[]) => realPath.resolve(...segments));
   ArrayEntryAnchorInsertLayerResponderProxy();
   const existsProxy = existsSyncProxy();
-  const readProxy = fsReadFileAdapterProxy();
+  const readProxy = readFileProxy();
   const writeProxy = fsWriteFileAdapterProxy();
-  // A second handle on the SAME underlying mock as fsReadFileAdapterProxy — registerMock shares
-  // state per function, so this observes the exact same call history without the adapter proxy
-  // itself needing to expose one. It is what proves a read really fired, distinct from a responder
-  // that merely defaulted to an empty string and never called it at all.
-  const readFileHandle = registerMock({ fn: readFile });
 
   // The responder always probes every candidate for each surface; default every candidate to
   // absent so a test that only cares about one surface need not stage all of them itself.
@@ -82,26 +75,26 @@ export const InstallIgnoreWriteResponderProxy = (): {
     setupGitignore: ({ present, content }: { present: boolean; content?: string }): void => {
       existsProxy.returns({ path: GITIGNORE_PATH_STRING, exists: present });
       if (present) {
-        readProxy.resolves({ filePath: GITIGNORE_ABSOLUTE_PATH, content: content ?? '' });
+        readProxy.returns({ path: GITIGNORE_PATH_STRING, contents: content ?? '' });
       }
       writeProxy.succeeds({ filePath: GITIGNORE_ABSOLUTE_PATH });
     },
 
     setupEslintConfig: ({ content }: { content: string }): void => {
       existsProxy.returns({ path: ESLINT_CONFIG_JS_PATH_STRING, exists: true });
-      readProxy.resolves({ filePath: ESLINT_CONFIG_JS_ABSOLUTE_PATH, content });
+      readProxy.returns({ path: ESLINT_CONFIG_JS_PATH_STRING, contents: content });
       writeProxy.succeeds({ filePath: ESLINT_CONFIG_JS_ABSOLUTE_PATH });
     },
 
     setupTsconfig: ({ content }: { content: string }): void => {
       existsProxy.returns({ path: TSCONFIG_PATH_STRING, exists: true });
-      readProxy.resolves({ filePath: TSCONFIG_ABSOLUTE_PATH, content });
+      readProxy.returns({ path: TSCONFIG_PATH_STRING, contents: content });
       writeProxy.succeeds({ filePath: TSCONFIG_ABSOLUTE_PATH });
     },
 
     setupTestRunnerConfig: ({ content }: { content: string }): void => {
       existsProxy.returns({ path: TEST_RUNNER_CONFIG_JS_PATH_STRING, exists: true });
-      readProxy.resolves({ filePath: TEST_RUNNER_CONFIG_JS_ABSOLUTE_PATH, content });
+      readProxy.returns({ path: TEST_RUNNER_CONFIG_JS_PATH_STRING, contents: content });
       writeProxy.succeeds({ filePath: TEST_RUNNER_CONFIG_JS_ABSOLUTE_PATH });
     },
 
@@ -115,10 +108,10 @@ export const InstallIgnoreWriteResponderProxy = (): {
       writeProxy.getWrittenFor({ filePath: TEST_RUNNER_CONFIG_JS_ABSOLUTE_PATH }),
 
     wasGitignoreRead: (): boolean =>
-      readFileHandle.callsMatching([GITIGNORE_ABSOLUTE_PATH]).length > 0,
+      readProxy.getCallsFor({ path: GITIGNORE_PATH_STRING }).length > 0,
     wasTsconfigRead: (): boolean =>
-      readFileHandle.callsMatching([TSCONFIG_ABSOLUTE_PATH]).length > 0,
+      readProxy.getCallsFor({ path: TSCONFIG_PATH_STRING }).length > 0,
     wasTestRunnerConfigRead: (): boolean =>
-      readFileHandle.callsMatching([TEST_RUNNER_CONFIG_JS_ABSOLUTE_PATH]).length > 0,
+      readProxy.getCallsFor({ path: TEST_RUNNER_CONFIG_JS_PATH_STRING }).length > 0,
   };
 };

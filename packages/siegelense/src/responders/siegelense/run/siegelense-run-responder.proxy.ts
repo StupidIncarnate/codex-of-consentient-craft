@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Test proxy for SiegelenseRunResponder — composes `fsReadFileAdapterProxy` (the
+ * PURPOSE: Test proxy for SiegelenseRunResponder — composes `readFileProxy` (the
  * `--steps-file` disk read this responder owns) and stages a real-passthrough `resolve` (the path
  * that read resolves against), and mocks `registryReadBroker` / `instanceRunBroker` directly rather
  * than composing either broker's own child proxies' staging, matching `SiegelenseKillResponderProxy`'s
@@ -15,12 +15,13 @@
  * proxy.stageStepsFileContent({ filePath, content: '[{"step":"goto","path":"/"}]' });
  */
 
+import type { FsError } from '#gateway/node/fs';
+import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { resolve } from '#gateway/node/path';
 import { registerMock, registerSpyOn, requireActual } from '@dungeonmaster/testing/register-mock';
 import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { instanceRunBroker } from '../../../brokers/instance/run/instance-run-broker';
 import { instanceRunBrokerProxy } from '../../../brokers/instance/run/instance-run-broker.proxy';
 import { registryReadBroker } from '../../../brokers/registry/read/registry-read-broker';
@@ -51,7 +52,7 @@ export const SiegelenseRunResponderProxy = (): {
   registerMock({ fn: resolve })
     .calledWith([])
     .implement((...segments: never[]) => realPath.resolve(...segments));
-  const readFileProxy = fsReadFileAdapterProxy();
+  const readFileMock = readFileProxy();
 
   const registryReadHandle = registerMock({ fn: registryReadBroker });
   const instanceRunHandle = registerMock({ fn: instanceRunBroker });
@@ -78,7 +79,7 @@ export const SiegelenseRunResponderProxy = (): {
       filePath: AbsoluteFilePath;
       content: string;
     }): void => {
-      readFileProxy.resolves({ filePath, content });
+      readFileMock.returns({ path: filePath, contents: content });
     },
 
     stageStepsFileMissing: ({
@@ -88,7 +89,10 @@ export const SiegelenseRunResponderProxy = (): {
       filePath: AbsoluteFilePath;
       error: Error;
     }): void => {
-      readFileProxy.rejects({ filePath, error });
+      const fsError: FsError = Object.assign(error, {
+        code: 'code' in error && typeof error.code === 'string' ? error.code : 'ENOENT',
+      });
+      readFileMock.throwsMatchingPath({ path: filePath, error: fsError });
     },
 
     getStdoutWrites: (): unknown[] => stdoutHandle.callsMatching([]).map((call) => call[0]),

@@ -38,7 +38,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import { workspaceScopeFromRootNameTransformer } from '@dungeonmaster/shared/transformers';
 
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
+import { readFile } from '#gateway/node/fs__promises';
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import { npmInstallAdapter } from '../../../adapters/npm/install/npm-install-adapter';
 import { npmRunBuildAdapter } from '../../../adapters/npm/run-build/npm-run-build-adapter';
@@ -84,11 +84,7 @@ export const InstallRecipesScaffoldResponder = async ({
   const workspaceScope = rootPackageJsonExists
     ? workspaceScopeFromRootNameTransformer({
         rootPackageJsonName: packageJsonContract.parse(
-          JSON.parse(
-            await fsReadFileAdapter({
-              filePath: absoluteFilePathContract.parse(rootPackageJsonPath),
-            }),
-          ),
+          JSON.parse(await readFile(rootPackageJsonPath)),
         ).name,
         fallbackName: pathSegmentContract.parse(basename(context.targetProjectRoot)),
       })

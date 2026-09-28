@@ -10,7 +10,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import type { PathSegment } from '@dungeonmaster/shared/contracts';
 
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
+import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
 import { npmInstallAdapterProxy } from '../../../adapters/npm/install/npm-install-adapter.proxy';
 import { npmRunBuildAdapterProxy } from '../../../adapters/npm/run-build/npm-run-build-adapter.proxy';
@@ -27,7 +27,6 @@ const FALLBACK_SCOPE = '@project';
 // resolve passthrough resolves it to these exact paths), so every test lands on these paths.
 const RECIPES_PACKAGE_PATH = FilePathStub({ value: '/project/packages/hydration-recipes' });
 const ROOT_PACKAGE_JSON_PATH = FilePathStub({ value: '/project/package.json' });
-const ROOT_PACKAGE_JSON_ABSOLUTE_PATH = AbsoluteFilePathStub({ value: '/project/package.json' });
 
 const RECIPES_PACKAGE_ROOT = '/project/packages/hydration-recipes';
 const SCAFFOLD_RELATIVE_PATHS = [
@@ -113,7 +112,7 @@ export const InstallRecipesScaffoldResponderProxy = (): {
   for (const dirPath of SCAFFOLD_DIR_PATHS) {
     mkdirProxy.succeeds({ path: dirPath });
   }
-  const readProxy = fsReadFileAdapterProxy();
+  const readProxy = readFileProxy();
   const writeProxy = fsWriteFileAdapterProxy();
   const installProxy = npmInstallAdapterProxy();
   const buildProxy = npmRunBuildAdapterProxy();
@@ -146,9 +145,9 @@ export const InstallRecipesScaffoldResponderProxy = (): {
         exists: rootPackageJsonExists,
       });
       if (rootPackageJsonExists) {
-        readProxy.resolves({
-          filePath: ROOT_PACKAGE_JSON_ABSOLUTE_PATH,
-          content: JSON.stringify(
+        readProxy.returns({
+          path: ROOT_PACKAGE_JSON_PATH,
+          contents: JSON.stringify(
             rootPackageJsonName === undefined ? {} : { name: rootPackageJsonName },
           ),
         });

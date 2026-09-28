@@ -17,9 +17,9 @@
  * // Returns every DrivingOddity in append order, or [] when the file does not exist yet
  */
 
+import { readFile } from '#gateway/node/fs__promises';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { fsStatAdapter } from '../../../adapters/fs/stat/fs-stat-adapter';
 import { drivingOddityContract } from '../../../contracts/driving-oddity/driving-oddity-contract';
 import type { DrivingOddity } from '../../../contracts/driving-oddity/driving-oddity-contract';
@@ -35,7 +35,7 @@ export const drivingOddityReadBroker = async ({
     return [];
   }
 
-  const contents = await fsReadFileAdapter({ filePath });
+  const contents = await readFile(filePath);
   const lines = contents.split('\n').filter((line) => line.trim().length > 0);
 
   return lines.map((line, index) => {

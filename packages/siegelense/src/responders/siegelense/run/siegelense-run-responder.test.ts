@@ -138,7 +138,7 @@ describe('SiegelenseRunResponder', () => {
           args: ['--instance', instanceId, '--steps-file', filePath],
         }),
       ).rejects.toThrow(
-        /^--steps-file's file could not be read: Failed to read file at \/tmp\/siegelense-run-responder-test\/missing-steps\.json$/u,
+        /^--steps-file's file could not be read: ENOENT: no such file or directory, open '\/tmp\/siegelense-run-responder-test\/missing-steps\.json'$/u,
       );
     });
   });

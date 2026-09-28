@@ -3,7 +3,7 @@ import { join } from '#gateway/node/path';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
 import { errorIsNativeErrorAdapterProxy } from '../../../adapters/error/is-native-error/error-is-native-error-adapter.proxy';
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
+import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { readdirIfExistsProxy } from '#gateway/node/fs__promises/readdir-if-exists/readdir-if-exists.proxy';
 import { locationsCitationQuestPlansPathFindBrokerProxy } from '../../locations/citation-quest-plans-path-find/locations-citation-quest-plans-path-find-broker.proxy';
 
@@ -13,7 +13,7 @@ export const verifiedPreludeLayerBrokerProxy = (): {
   setupPlanFile: (params: { filePath: AbsoluteFilePath; contents: string }) => void;
 } => {
   const readdirProxy = readdirIfExistsProxy();
-  const readFileProxy = fsReadFileAdapterProxy();
+  const readFileMock = readFileProxy();
   errorIsNativeErrorAdapterProxy();
   locationsCitationQuestPlansPathFindBrokerProxy();
   // `join` (from '#gateway/node/path') runs for real, on a sticky passthrough default — every
@@ -49,7 +49,7 @@ export const verifiedPreludeLayerBrokerProxy = (): {
       filePath: AbsoluteFilePath;
       contents: string;
     }): void => {
-      readFileProxy.resolves({ filePath, content: contents });
+      readFileMock.returns({ path: filePath, contents });
     },
   };
 };

@@ -1,7 +1,5 @@
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
-
-import { errorIsNativeErrorAdapterProxy } from '../../../adapters/error/is-native-error/error-is-native-error-adapter.proxy';
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
+import { readFileIfExistsProxy } from '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
 
 export const runMissingCheckLayerBrokerProxy = (): {
   setupStoredReturn: (params: { storedReturnPath: AbsoluteFilePath; content: string }) => void;
@@ -9,8 +7,7 @@ export const runMissingCheckLayerBrokerProxy = (): {
   setupTranscript: (params: { transcriptPath: AbsoluteFilePath; content: string }) => void;
   setupMissingTranscript: (params: { transcriptPath: AbsoluteFilePath }) => void;
 } => {
-  errorIsNativeErrorAdapterProxy();
-  const readFileProxy = fsReadFileAdapterProxy();
+  const readFileProxy = readFileIfExistsProxy();
 
   return {
     setupStoredReturn: ({
@@ -20,7 +17,7 @@ export const runMissingCheckLayerBrokerProxy = (): {
       storedReturnPath: AbsoluteFilePath;
       content: string;
     }): void => {
-      readFileProxy.resolves({ filePath: storedReturnPath, content });
+      readFileProxy.returns({ path: storedReturnPath, contents: content });
     },
 
     setupMissingStoredReturn: ({
@@ -28,10 +25,7 @@ export const runMissingCheckLayerBrokerProxy = (): {
     }: {
       storedReturnPath: AbsoluteFilePath;
     }): void => {
-      readFileProxy.rejects({
-        filePath: storedReturnPath,
-        error: Object.assign(new Error('ENOENT: no such file or directory'), { code: 'ENOENT' }),
-      });
+      readFileProxy.missing({ path: storedReturnPath });
     },
 
     setupTranscript: ({
@@ -41,14 +35,11 @@ export const runMissingCheckLayerBrokerProxy = (): {
       transcriptPath: AbsoluteFilePath;
       content: string;
     }): void => {
-      readFileProxy.resolves({ filePath: transcriptPath, content });
+      readFileProxy.returns({ path: transcriptPath, contents: content });
     },
 
     setupMissingTranscript: ({ transcriptPath }: { transcriptPath: AbsoluteFilePath }): void => {
-      readFileProxy.rejects({
-        filePath: transcriptPath,
-        error: Object.assign(new Error('ENOENT: no such file or directory'), { code: 'ENOENT' }),
-      });
+      readFileProxy.missing({ path: transcriptPath });
     },
   };
 };

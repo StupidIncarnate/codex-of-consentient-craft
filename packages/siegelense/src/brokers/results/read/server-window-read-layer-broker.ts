@@ -24,8 +24,7 @@ import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { absoluteFilePathContract, contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
 
-import { errorIsNativeErrorAdapter } from '../../../adapters/error/is-native-error/error-is-native-error-adapter';
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
+import { readFileIfExists } from '#gateway/node/fs__promises';
 import type { ResultWhere } from '../../../contracts/result-where/result-where-contract';
 import type { StepIndex } from '../../../contracts/step-index/step-index-contract';
 import type { StepReading } from '../../../contracts/step-reading/step-reading-contract';
@@ -67,22 +66,7 @@ export const serverWindowReadLayerBroker = async ({
     join(evidencePath, locationsStatics.siegelense.apiLog),
   );
 
-  const content = await fsReadFileAdapter({ filePath: logPath }).catch((error: unknown) => {
-    if (
-      error !== null &&
-      typeof error === 'object' &&
-      errorIsNativeErrorAdapter({ value: error }) &&
-      'cause' in error &&
-      error.cause !== null &&
-      typeof error.cause === 'object' &&
-      errorIsNativeErrorAdapter({ value: error.cause }) &&
-      'code' in error.cause &&
-      error.cause.code === 'ENOENT'
-    ) {
-      return null;
-    }
-    throw error;
-  });
+  const content = await readFileIfExists(logPath);
 
   if (content === null) {
     return [];

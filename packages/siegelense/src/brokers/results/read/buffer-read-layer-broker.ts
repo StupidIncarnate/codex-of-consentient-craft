@@ -27,8 +27,7 @@
 
 import type { ContentText } from '@dungeonmaster/shared/contracts';
 
-import { errorIsNativeErrorAdapter } from '../../../adapters/error/is-native-error/error-is-native-error-adapter';
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
+import { readFileIfExists } from '#gateway/node/fs__promises';
 import { bufferEntryContract } from '../../../contracts/buffer-entry/buffer-entry-contract';
 import type { BufferEntry } from '../../../contracts/buffer-entry/buffer-entry-contract';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
@@ -51,22 +50,7 @@ export const bufferReadLayerBroker = async ({
   step: StepIndex | null;
   where: ResultWhere | null;
 }): Promise<readonly ContentText[]> => {
-  const content = await fsReadFileAdapter({ filePath: bufferPath }).catch((error: unknown) => {
-    if (
-      error !== null &&
-      typeof error === 'object' &&
-      errorIsNativeErrorAdapter({ value: error }) &&
-      'cause' in error &&
-      error.cause !== null &&
-      typeof error.cause === 'object' &&
-      errorIsNativeErrorAdapter({ value: error.cause }) &&
-      'code' in error.cause &&
-      error.cause.code === 'ENOENT'
-    ) {
-      return null;
-    }
-    throw error;
-  });
+  const content = await readFileIfExists(bufferPath);
 
   if (content === null) {
     return [];
