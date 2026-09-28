@@ -80,6 +80,53 @@ More rules for the operator:
     package publishes, or how a consumer resolves, loads or tests code adds its assertions to the
     consumer suite in the same item. Before committing such an item, the operator runs
     `npm run build:clean`, then `npm run check:consumer`. G27 lists the items known to need this.
+## Handoff (operator, 2026-09-27 late)
+
+The operator stopped dispatching here because its context grew large. A fresh operator picks up from this section. Read it first, then the status table below.
+
+### Agents still running at handoff
+
+Each was told never to commit. Commit each one's files, and only its files, when it reports.
+
+| Agent | Scope (files it may edit) | Commit notes |
+|---|---|---|
+| O10 | `packages/orchestrator/src/brokers/worktree/{populate-node-modules,seed-dist,verify-links}`, `brokers/ward/detail`, plus handed-over files: `responders/worktree/create/` (O9's cwd change) and `brokers/step-handler/riftcarver/step-handler-riftcarver-broker.proxy.ts` (O8 left an address-less `mkdirHandle.calledWith([])` catch-all there; O10 must replace it with the exact riftcarver-results path) | Whole orchestrator unit must be green; the worktree, provision and worktree-create reds are this group's. |
+| O12 | `packages/orchestrator/src/brokers/step-handler/{cleanup,ward}` (move onto `streamLines`) | If `streamLines`' proxy lacks something, it stops and reports the gap, as `run` did before F25. |
+| SL9 | `packages/siegelense/src/adapters/{npm,playwright}`, `packages/siegelense/src/responders/{install,siegelense/run}` | |
+| SL10 | `packages/siegelense/src/brokers/{recipe/seed-run,recipes/read,step/seed}`, `src/adapters/process/is-alive/*.test.ts`, `src/brokers/prune/run/*.integration.test.ts`, `test/harnesses/{driver-fleet,seed-home}` | |
+| G22 | `packages/@gateway/npm` (new `jest__globals` subpath), `packages/testing` | Touches `registerMock`'s foundation: run the wide unit regression before committing, then build `@gateway/npm` and `testing`. |
+
+If an agent's notification never arrives (the operator lost track), look for uncommitted files in its scope with `git status`, send a sonnet sub-agent to review them, and commit what is green.
+
+### Uncommitted state not owned by a running agent
+
+- **B01 (zod v4)** is finished in `worktrees/gp-b01-zod4` (branch `gp-b01-zod4`, last commit a1563960f, its handoff in that worktree's `scrolls/brands-gateways-epic/b01-handoff.md`). To land it: wait until no agent is running; inside the worktree `git merge gateway-pivot` (gateway-pivot has moved a long way since, so expect zod v4 fixes in new contracts); ward every package there; then in this checkout `git merge gp-b01-zod4`, `npm install` (zod ^4.6.5), `npm run build:clean`, a full `npm run ward`, and delete the worktree and branch.
+
+### A12 (shared adapters) remaining after the running agents
+
+- orchestrator: `adapters/git/*` (15 folders; the orchestrator's own git adapters on `childProcessSpawnCaptureAdapter`, which move to `run` or to `@gateway/bin`'s git) and `brokers/step-handler/riftcarver/step-handler-riftcarver-broker.ts` (streamLines; do it with or after O12).
+- shared: three type-only imports in `brokers/architecture/orphan-detect/*.test.ts`.
+- Then phase 3: delete `packages/shared/src/adapters/`, `packages/shared/adapters.ts`, the "Adapter Proxies" block of `packages/shared/testing.ts`, and the `./adapters` export. Re-run the census first (the A12 item's "Phase 2 census" gives the method).
+
+### Ready items nobody has started
+
+These rows are `todo` or `ready` with every dependency met; the operator never dispatched them while A12 filled the slots. G22 was one; the user caught it.
+
+- T03 (`ready`, needs T01).
+- A03 to A08, A13, A15 (each needs only gateway items that are done). A09 (mcp's own adapters), A11 (server's own) and A10 (orchestrator's own, needs A03) overlap A12's phase 2: A12 moved callers of `shared`'s adapters; these items delete each package's OWN adapters. Check each package's `src/adapters/` before dispatching.
+- A14 needs G22 (running). A16 needs A03, A17 needs G13.
+- Items in `review` to close: B01 (above), G24, T04, T05.
+
+### Operator lessons from this stretch
+
+- Stage an agent's own file list only; never `git add` a whole folder that another agent is editing (SH11's commit swept SH12's files).
+- Gate every commit on ward's exit code, not its printed summary.
+- Run the whole unit suite of every package that composes a changed proxy, not only the changed package; most cross-package reds this session came from that.
+- Scan every diff for `as never`, `as unknown as`, `as boolean`, `calledWith([])`, `onceFor([])`, accept-all predicates (`path: () => true` when staging), raw `'fs'`, `'path'`, `'os'` and `'process'` imports, and real `process.cwd()` or `homedir()` in tests.
+- A far-off passthrough `join` hides wrong paths (the A12 item's "Trap" section has the fix).
+- Agents must not dispatch their own sub-agents (brief rule 6).
+- Antigravity (`agy`) is paused until the user says otherwise; when resumed, at most 2 at once (see "Using Antigravity" below).
+
 ## Machine-wide side effects
 
 **`npm link --workspaces` in this worktree moves every global `@dungeonmaster/*` link onto it.** G24's regeneration step (build, `npm link --workspaces`, `npm run init`, per `CLAUDE.md`'s "Regenerating `.claude/settings.json` Here") was run from `worktrees/gateway-pivot` on 2026-09-27 at 02:33 local. After it, the global npm folder resolved `@dungeonmaster/cli`, `ward`, `mcp`, `shared` and every other workspace package to this mid-migration branch, for every repo on the machine. The user pointed the links back to the main checkout. Before running that step again from a worktree, say so to the user, or run `npm link --workspaces` from the main checkout afterwards. Ward and tests here never need the global links; they resolve through the workspace.
