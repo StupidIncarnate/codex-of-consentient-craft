@@ -1,4 +1,4 @@
-import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
+import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 import { questFolderPathResolveBrokerProxy } from '../folder-path-resolve/quest-folder-path-resolve-broker.proxy';
 import type { GuildListItemStub, QuestStub } from '@dungeonmaster/shared/contracts';
 
@@ -18,7 +18,7 @@ export const questCorruptToLegacySchemaBrokerProxy = (): {
   getWrittenContents: ({ questFilePath }: { questFilePath: string }) => unknown;
 } => {
   const findGuildProxy = questFolderPathResolveBrokerProxy();
-  const writeProxy = fsWriteFileAdapterProxy();
+  const writeProxy = writeFileProxy();
 
   return {
     succeeds: ({
@@ -31,9 +31,9 @@ export const questCorruptToLegacySchemaBrokerProxy = (): {
       questFilePath: string;
     }): void => {
       findGuildProxy.succeeds({ guild, quest });
-      writeProxy.succeeds({ filePath: questFilePath });
+      writeProxy.succeeds({ path: questFilePath });
     },
     getWrittenContents: ({ questFilePath }: { questFilePath: string }): unknown =>
-      writeProxy.getWrittenContents({ filePath: questFilePath }),
+      writeProxy.writtenContentsFor({ path: questFilePath }),
   };
 };

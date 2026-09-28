@@ -5,10 +5,10 @@
  * await subagentRemoveRouteBroker({ target, record: subagentRecord });
  * // Deletes <sessionsDir>/<sessionId>/subagents/agent-<agentId>.jsonl
  */
-import { filePathContract } from '@dungeonmaster/shared/contracts';
+import { rm } from '#gateway/node/fs__promises';
+import { adapterResultContract, filePathContract } from '@dungeonmaster/shared/contracts';
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
-import { fsRmAdapter } from '../../../adapters/fs/rm/fs-rm-adapter';
 import type { DmTarget } from '../../../contracts/dm-target/dm-target-contract';
 
 export const subagentRemoveRouteBroker = async ({
@@ -16,4 +16,8 @@ export const subagentRemoveRouteBroker = async ({
 }: {
   target: DmTarget;
   record: Record<string, unknown>;
-}): Promise<AdapterResult> => fsRmAdapter({ filePath: filePathContract.parse(record.filePath) });
+}): Promise<AdapterResult> => {
+  await rm(filePathContract.parse(record.filePath));
+
+  return adapterResultContract.parse({ success: true });
+};

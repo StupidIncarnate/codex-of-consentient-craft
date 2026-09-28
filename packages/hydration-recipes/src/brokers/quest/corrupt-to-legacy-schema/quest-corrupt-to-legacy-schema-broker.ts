@@ -11,11 +11,15 @@
  * await questCorruptToLegacySchemaBroker({ target, record: quest });
  * // Overwrites quest.json with workItems: [{ …no role… }]
  */
+import { writeFile } from '#gateway/node/fs__promises';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
-import { fileContentsContract, filePathContract } from '@dungeonmaster/shared/contracts';
+import {
+  adapterResultContract,
+  fileContentsContract,
+  filePathContract,
+} from '@dungeonmaster/shared/contracts';
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
-import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import { questFolderPathResolveBroker } from '../folder-path-resolve/quest-folder-path-resolve-broker';
 import type { DmTarget } from '../../../contracts/dm-target/dm-target-contract';
 
@@ -42,8 +46,7 @@ export const questCorruptToLegacySchemaBroker = async ({
 
   const corrupted = { ...record, workItems: [CORRUPT_WORK_ITEM] };
 
-  return fsWriteFileAdapter({
-    filePath: questFilePath,
-    contents: fileContentsContract.parse(JSON.stringify(corrupted)),
-  });
+  await writeFile(questFilePath, fileContentsContract.parse(JSON.stringify(corrupted)));
+
+  return adapterResultContract.parse({ success: true });
 };

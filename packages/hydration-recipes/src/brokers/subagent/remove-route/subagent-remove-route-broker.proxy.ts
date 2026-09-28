@@ -1,13 +1,13 @@
-import { fsRmAdapterProxy } from '../../../adapters/fs/rm/fs-rm-adapter.proxy';
+import { rmProxy } from '#gateway/node/fs__promises/rm/rm.proxy';
 
 export const subagentRemoveRouteBrokerProxy = (): {
   succeeds: ({ filePath }: { filePath: string }) => void;
 } => {
-  const rmProxy = fsRmAdapterProxy();
+  const proxy = rmProxy();
 
   return {
     succeeds: ({ filePath }: { filePath: string }): void => {
-      rmProxy.succeeds({ filePath });
+      proxy.succeeds({ path: filePath });
     },
   };
 };

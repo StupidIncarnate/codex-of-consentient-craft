@@ -18,6 +18,7 @@
  * await questPersistDirectBroker({ target, questFilePath, contents, questId });
  * // Writes questFilePath atomically, then appends one line to <target.home>/event-outbox.jsonl
  */
+import { appendFile, rename, writeFile } from '#gateway/node/fs__promises';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import {
   adapterResultContract,
@@ -31,9 +32,6 @@ import type {
   QuestId,
 } from '@dungeonmaster/shared/contracts';
 
-import { fsAppendFileAdapter } from '../../../adapters/fs/append-file/fs-append-file-adapter';
-import { fsRenameAdapter } from '../../../adapters/fs/rename/fs-rename-adapter';
-import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import { dmQuestOutboxLineContract } from '../../../contracts/dm-quest-outbox-line/dm-quest-outbox-line-contract';
 import type { DmTarget } from '../../../contracts/dm-target/dm-target-contract';
 
@@ -52,8 +50,8 @@ export const questPersistDirectBroker = async ({
 }): Promise<AdapterResult> => {
   const tmpPath = filePathContract.parse(`${questFilePath}${TMP_SUFFIX}`);
 
-  await fsWriteFileAdapter({ filePath: tmpPath, contents });
-  await fsRenameAdapter({ from: tmpPath, to: questFilePath });
+  await writeFile(tmpPath, contents);
+  await rename(tmpPath, questFilePath);
 
   const outboxPath = filePathContract.parse(
     `${target.home}/${locationsStatics.dungeonmasterHome.eventOutbox}`,
@@ -63,10 +61,7 @@ export const questPersistDirectBroker = async ({
     timestamp: new Date().toISOString(),
   });
 
-  await fsAppendFileAdapter({
-    filePath: outboxPath,
-    contents: fileContentsContract.parse(`${JSON.stringify(outboxLine)}\n`),
-  });
+  await appendFile(outboxPath, fileContentsContract.parse(`${JSON.stringify(outboxLine)}\n`));
 
   return adapterResultContract.parse({ success: true });
 };

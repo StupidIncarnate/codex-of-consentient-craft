@@ -146,3 +146,44 @@ Scope: `packages/hydration` only.
 - `packages/hydration/CLAUDE.md`
 - `packages/hydration/package.json` (add `@dungeonmaster/node` and `@dungeonmaster/npm` to devDependencies per `gateway-dependency-declared` lint rule)
 
+### Group G-N (hydration-recipes own adapters, batch A)
+
+Scope: `packages/hydration-recipes` only.
+
+#### Files to delete:
+- `packages/hydration-recipes/src/adapters/fs/append-file/fs-append-file-adapter.ts`
+- `packages/hydration-recipes/src/adapters/fs/append-file/fs-append-file-adapter.proxy.ts`
+- `packages/hydration-recipes/src/adapters/fs/append-file/fs-append-file-adapter.test.ts`
+- `packages/hydration-recipes/src/adapters/fs/rename/fs-rename-adapter.ts`
+- `packages/hydration-recipes/src/adapters/fs/rename/fs-rename-adapter.proxy.ts`
+- `packages/hydration-recipes/src/adapters/fs/rename/fs-rename-adapter.test.ts`
+- `packages/hydration-recipes/src/adapters/fs/rm/fs-rm-adapter.ts`
+- `packages/hydration-recipes/src/adapters/fs/rm/fs-rm-adapter.proxy.ts`
+- `packages/hydration-recipes/src/adapters/fs/rm/fs-rm-adapter.test.ts`
+- `packages/hydration-recipes/src/adapters/fs/write-file/fs-write-file-adapter.ts`
+- `packages/hydration-recipes/src/adapters/fs/write-file/fs-write-file-adapter.proxy.ts`
+- `packages/hydration-recipes/src/adapters/fs/write-file/fs-write-file-adapter.test.ts`
+
+#### Files to create:
+None
+
+#### Files to edit:
+- `packages/hydration-recipes/src/brokers/quest/persist-direct/quest-persist-direct-broker.ts`
+- `packages/hydration-recipes/src/brokers/quest/persist-direct/quest-persist-direct-broker.proxy.ts`
+- `packages/hydration-recipes/src/brokers/quest/corrupt-to-legacy-schema/quest-corrupt-to-legacy-schema-broker.ts`
+- `packages/hydration-recipes/src/brokers/quest/corrupt-to-legacy-schema/quest-corrupt-to-legacy-schema-broker.proxy.ts`
+- `packages/hydration-recipes/src/brokers/quest/ward-result-detail-write/quest-ward-result-detail-write-broker.ts`
+- `packages/hydration-recipes/src/brokers/quest/ward-result-detail-write/quest-ward-result-detail-write-broker.proxy.ts`
+- `packages/hydration-recipes/src/brokers/session/remove-route/session-remove-route-broker.ts`
+- `packages/hydration-recipes/src/brokers/session/remove-route/session-remove-route-broker.proxy.ts`
+- `packages/hydration-recipes/src/brokers/subagent/remove-route/subagent-remove-route-broker.ts`
+- `packages/hydration-recipes/src/brokers/subagent/remove-route/subagent-remove-route-broker.proxy.ts`
+
+#### Tests in scope:
+- `packages/hydration-recipes/src/brokers/quest/persist-direct/quest-persist-direct-broker.test.ts`
+- `packages/hydration-recipes/src/brokers/quest/corrupt-to-legacy-schema/quest-corrupt-to-legacy-schema-broker.test.ts`
+- `packages/hydration-recipes/src/brokers/quest/ward-result-detail-write/quest-ward-result-detail-write-broker.test.ts`
+- `packages/hydration-recipes/src/brokers/session/remove-route/session-remove-route-broker.test.ts`
+- `packages/hydration-recipes/src/brokers/subagent/remove-route/subagent-remove-route-broker.test.ts`
+- `packages/hydration-recipes/src/brokers/quest/write-route/quest-write-route-broker.test.ts`
+
