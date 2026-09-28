@@ -1,29 +1,9 @@
-import { Dirent } from 'fs';
-
-import {
-  fsReaddirWithTypesAdapterProxy,
-  osUserHomedirAdapterProxy,
-  pathJoinAdapterProxy,
-} from '@dungeonmaster/shared/testing';
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
+import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/readdir-entries-sync.proxy';
+import { homedir } from '#gateway/node/os';
+import { join } from '#gateway/node/path';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
-
-const createMockDirent = ({
-  name,
-  parentPath,
-  isDirectory,
-}: {
-  name: string;
-  parentPath: string;
-  isDirectory: boolean;
-}): Dirent => {
-  const dirent = Object.assign(Object.create(Dirent.prototype) as Dirent, {
-    name,
-    parentPath,
-    isDirectory: jest.fn().mockReturnValue(isDirectory),
-  });
-  return dirent;
-};
+import { registerMock } from '@dungeonmaster/testing/register-mock';
+import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 
 export const directoryBrowseBrokerProxy = (): {
   setupDirectories: (params: {
@@ -39,9 +19,34 @@ export const directoryBrowseBrokerProxy = (): {
   setupEmpty: (params: { targetPath: string }) => void;
   setupThrows: (params: { targetPath: string; error: Error }) => void;
 } => {
-  const readdirProxy = fsReaddirWithTypesAdapterProxy();
-  const homedirProxy = osUserHomedirAdapterProxy();
-  const pathJoinProxy = pathJoinAdapterProxy();
+  const readdirProxy = readdirEntriesSyncProxy();
+  const homedirHandle = registerMock({ fn: homedir });
+  const joinHandle: MockHandle = registerMock({ fn: join });
+
+  const stageEntries = ({
+    path,
+    directories,
+    files,
+    hiddenDirectories,
+  }: {
+    path: string;
+    directories: { name: string; joinedPath: FilePath }[];
+    files: string[];
+    hiddenDirectories: string[];
+  }): void => {
+    readdirProxy.returns({
+      path,
+      entries: [
+        ...directories.map(({ name }) => ({ name, kind: 'directory' as const })),
+        ...files.map((name) => ({ name, kind: 'file' as const })),
+        ...hiddenDirectories.map((name) => ({ name, kind: 'directory' as const })),
+      ],
+    });
+
+    for (const { name, joinedPath } of directories) {
+      joinHandle.calledWith([path, name]).returns(joinedPath);
+    }
+  };
 
   return {
     setupDirectories: ({
@@ -55,26 +60,7 @@ export const directoryBrowseBrokerProxy = (): {
       files: string[];
       hiddenDirectories: string[];
     }): void => {
-      const allEntries = [
-        ...directories.map(({ name }) =>
-          createMockDirent({ name, parentPath: targetPath, isDirectory: true }),
-        ),
-        ...files.map((name) =>
-          createMockDirent({ name, parentPath: targetPath, isDirectory: false }),
-        ),
-        ...hiddenDirectories.map((name) =>
-          createMockDirent({ name, parentPath: targetPath, isDirectory: true }),
-        ),
-      ];
-
-      readdirProxy.returns({
-        dirPath: absoluteFilePathContract.parse(targetPath),
-        entries: allEntries,
-      });
-
-      for (const { joinedPath } of directories) {
-        pathJoinProxy.returns({ result: joinedPath });
-      }
+      stageEntries({ path: targetPath, directories, files, hiddenDirectories });
     },
 
     setupDefaultHomedir: ({
@@ -84,28 +70,16 @@ export const directoryBrowseBrokerProxy = (): {
       homeDir: string;
       directories: { name: string; joinedPath: FilePath }[];
     }): void => {
-      homedirProxy.returns({ path: homeDir });
-
-      const allEntries = directories.map(({ name }) =>
-        createMockDirent({ name, parentPath: homeDir, isDirectory: true }),
-      );
-
-      readdirProxy.returns({
-        dirPath: absoluteFilePathContract.parse(homeDir),
-        entries: allEntries,
-      });
-
-      for (const { joinedPath } of directories) {
-        pathJoinProxy.returns({ result: joinedPath });
-      }
+      homedirHandle.calledWith([]).returns(homeDir);
+      stageEntries({ path: homeDir, directories, files: [], hiddenDirectories: [] });
     },
 
     setupEmpty: ({ targetPath }: { targetPath: string }): void => {
-      readdirProxy.returns({ dirPath: absoluteFilePathContract.parse(targetPath), entries: [] });
+      readdirProxy.returns({ path: targetPath, entries: [] });
     },
 
     setupThrows: ({ targetPath, error }: { targetPath: string; error: Error }): void => {
-      readdirProxy.throws({ dirPath: absoluteFilePathContract.parse(targetPath), error });
+      readdirProxy.throws({ path: targetPath, error });
     },
   };
 };

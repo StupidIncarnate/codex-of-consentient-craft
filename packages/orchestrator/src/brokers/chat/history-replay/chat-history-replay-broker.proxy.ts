@@ -1,9 +1,8 @@
-import { homedir } from 'os';
+import { homedir } from '#gateway/node/os';
 import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
 import {
   claudeLineNormalizeBrokerProxy,
   cwdResolveBrokerProxy,
-  osUserHomedirAdapterProxy,
 } from '@dungeonmaster/shared/testing';
 import type {
   FileNameStub,
@@ -69,10 +68,9 @@ export const chatHistoryReplayBrokerProxy = (): {
   // `setPort` below so an individual test can pin a different port.
   const serverConfigProxy = questGetServerConfigBrokerProxy();
   serverConfigProxy.setPort({ value: '3737' });
-  // Wired to satisfy enforce-proxy-child-creation; osUserHomedirAdapterProxy's own .returns() is
-  // a one-shot, so a test replaying two sessions (two osUserHomedirAdapter() calls) needs a sticky
-  // stage instead — the direct handle below, on the same shared `homedir`.
-  osUserHomedirAdapterProxy();
+  // `registerMock`'s `calledWith([]).returns(...)` answers every matching call, so a test
+  // replaying two sessions (two `homedir()` calls) gets the same value both times with no
+  // extra staging.
   const homedirHandle = registerMock({ fn: homedir });
   const readJsonlProxy = fsReadJsonlAdapterProxy();
   const readdirProxy = fsReaddirAdapterProxy();

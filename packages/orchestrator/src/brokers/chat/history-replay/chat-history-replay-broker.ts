@@ -29,7 +29,7 @@
  * base URL.
  */
 
-import { osUserHomedirAdapter } from '@dungeonmaster/shared/adapters';
+import { homedir } from '#gateway/node/os';
 import { claudeLineNormalizeBroker, cwdResolveBroker } from '@dungeonmaster/shared/brokers';
 import {
   absoluteFilePathContract,
@@ -131,7 +131,7 @@ export const chatHistoryReplayBroker = async ({
       return absoluteFilePathContract.parse(guild.path);
     }
   })();
-  const homeDir = osUserHomedirAdapter();
+  const homeDir = absoluteFilePathContract.parse(homedir());
 
   const jsonlPath = claudeProjectPathEncoderTransformer({
     homeDir,
