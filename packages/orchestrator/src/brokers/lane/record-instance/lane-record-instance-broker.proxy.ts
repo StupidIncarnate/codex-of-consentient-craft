@@ -1,7 +1,9 @@
 /**
  * PURPOSE: Proxy for lane-record-instance-broker — stages the quest LOAD and PERSIST fs boundary
  * only. `questPath` is a plain parameter now (never resolved via questFindQuestPathBroker inside
- * this broker), so this proxy has none of that resolution's fs mocking to compose.
+ * this broker), so this proxy has none of that resolution's fs mocking to compose. `join` is
+ * mocked directly on the `#gateway/node/path` specifier (no per-function wrapper to compose),
+ * addressed by the EXACT [questPath, quest.json] tuple.
  *
  * USAGE:
  * const proxy = laneRecordInstanceBrokerProxy();
@@ -10,9 +12,11 @@
  * const persisted = proxy.getLastPersistedQuest();
  */
 
-import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
 import { FilePathStub, questContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePathStub, QuestStub } from '@dungeonmaster/shared/contracts';
+import { join } from '#gateway/node/path';
+import { locationsStatics } from '@dungeonmaster/shared/statics';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { questLoadBrokerProxy } from '../../quest/load/quest-load-broker.proxy';
 import { questPersistBrokerProxy } from '../../quest/persist/quest-persist-broker.proxy';
@@ -26,7 +30,7 @@ export const laneRecordInstanceBrokerProxy = (): {
   setupQuestFound: (params: { quest: Quest; questPath: AbsoluteFilePath }) => void;
   getLastPersistedQuest: () => Parsed;
 } => {
-  const pathJoinProxy = pathJoinAdapterProxy();
+  const joinHandle = registerMock({ fn: join });
   const loadProxy = questLoadBrokerProxy();
   const persistProxy = questPersistBrokerProxy();
   const lockProxy = questWithModifyLockBrokerProxy();
@@ -43,7 +47,7 @@ export const laneRecordInstanceBrokerProxy = (): {
       const questFilePath = FilePathStub({ value: `${String(questPath)}/quest.json` });
       const homePath = FilePathStub({ value: '/home/testuser/.dungeonmaster' });
 
-      pathJoinProxy.returns({ result: questFilePath });
+      joinHandle.calledWith([questPath, locationsStatics.quest.questFile]).returns(questFilePath);
       loadProxy.setupQuestFile({ questJson: JSON.stringify(quest) });
       persistProxy.setupPersist({
         questFilePath,

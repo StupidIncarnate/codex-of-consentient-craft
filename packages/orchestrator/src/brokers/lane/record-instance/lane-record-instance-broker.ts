@@ -9,9 +9,9 @@
  * batch, to get the guildId a lane's `start` call needs — a second, independent resolution inside
  * this broker would cost a real fs walk per lane in production, and in a test using this broker
  * alongside that OTHER resolution it gives nothing to key the two calls apart by: both would
- * describe an identical `questFindQuestPathBroker({questId})` call, and
- * `pathJoinAdapterProxy`'s staging is a call-ordered queue, not argument-addressed — two
- * independent resolutions interleaved with unrelated calls desynchronise it.
+ * describe an identical `questFindQuestPathBroker({questId})` call — this broker's own `join`
+ * call is staged on the exact [questPath, quest.json] tuple so it can never answer that other
+ * resolution's join instead.
  *
  * Reads the quest FRESH, inside the lock, the same shape `preStampInProgressLayerBroker` uses for
  * the mirror-image write — never a snapshot taken before the lock, so a concurrent mutation to this
@@ -22,7 +22,6 @@
  * // Persists workItem.payload = { ...workItem.payload, instance } and returns that instance
  */
 
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import {
   fileContentsContract,
   filePathContract,
@@ -31,6 +30,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, QuestId, QuestWorkItemId } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
+import { join } from '#gateway/node/path';
 
 import type { QuestWorkInstance } from '../../../contracts/quest-work-instance/quest-work-instance-contract';
 import { questLoadBroker } from '../../quest/load/quest-load-broker';
@@ -54,7 +54,7 @@ export const laneRecordInstanceBroker = async ({
     questId,
     run: async (): Promise<QuestWorkInstance> => {
       const questFilePath = filePathContract.parse(
-        pathJoinAdapter({ paths: [questPath, locationsStatics.quest.questFile] }),
+        join(questPath, locationsStatics.quest.questFile),
       );
       const quest = await questLoadBroker({ questFilePath });
 

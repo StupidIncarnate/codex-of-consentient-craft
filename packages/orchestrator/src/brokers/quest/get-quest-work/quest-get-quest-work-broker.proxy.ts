@@ -1,7 +1,12 @@
 /**
  * PURPOSE: Proxy for questGetQuestWorkBroker. Stages the I/O boundaries it crosses — the quest path
  * lookup and read (its own `join` call, addressed by the exact folder/file tuple), the plan-file
- * read, then the two layer brokers.
+ * read, then the two layer brokers. The plan-file read is staged against the SAME resolved
+ * `questFolderPath` the quest read used — never a separate constant — because
+ * `questGetQuestWorkBroker` passes `questPath` straight through to `plannedWorkReadBroker`, whose
+ * own `join` call is exact-tuple addressed: a mismatched folder answers nothing,
+ * `fsIsAccessibleAdapter` swallows the miss into `false`, and the plan reads back as silently
+ * missing.
  *
  * USAGE:
  * const proxy = questGetQuestWorkBrokerProxy();
@@ -38,9 +43,6 @@ type WorkPlan = ReturnType<typeof WorkPlanStub>;
 type FilePathValue = ReturnType<typeof FilePathStub>;
 
 const HOME_DIR = '/home/testuser';
-const PLAN_FOLDER_PATH = AbsoluteFilePathStub({
-  value: '/home/testuser/.dungeonmaster/guilds/g1/quests/001-add-auth',
-});
 
 export const questGetQuestWorkBrokerProxy = (): {
   setupQuestWithNoPlan: (params: { quest: Quest; operationItemId: OperationItemId }) => {
@@ -102,8 +104,11 @@ export const questGetQuestWorkBrokerProxy = (): {
   return {
     setupQuestWithNoPlan: ({ quest, operationItemId }): { questFolderPath: FilePathValue } => {
       const { questFolderPath } = stageQuestRead({ quest });
+      // Re-branded from the FilePath the find-quest-path fixture needed to AbsoluteFilePath, the
+      // brand plannedWorkReadBrokerProxy requires — same string value, so the plan-file read is
+      // staged against the SAME folder plannedWorkReadBroker is really called with.
       plannedWorkProxy.setupPlanMissing({
-        questFolderPath: PLAN_FOLDER_PATH,
+        questFolderPath: AbsoluteFilePathStub({ value: String(questFolderPath) }),
         operationItemId,
       });
       gitRowsProxy.setupWorktreeMissing({ quest });
@@ -114,7 +119,7 @@ export const questGetQuestWorkBrokerProxy = (): {
     setupQuestWithPlan: ({ quest, operationItemId, plan }): { questFolderPath: FilePathValue } => {
       const { questFolderPath } = stageQuestRead({ quest });
       plannedWorkProxy.setupPlanFound({
-        questFolderPath: PLAN_FOLDER_PATH,
+        questFolderPath: AbsoluteFilePathStub({ value: String(questFolderPath) }),
         operationItemId,
         plan,
       });

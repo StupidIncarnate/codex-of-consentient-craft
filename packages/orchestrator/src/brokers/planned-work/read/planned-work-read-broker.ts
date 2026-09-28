@@ -10,10 +10,10 @@
  * // Returns WorkPlan, or null when no plan has been written for this operation item yet
  */
 
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import { locationsPlannedWorkPathFindBroker } from '@dungeonmaster/shared/brokers';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, OperationItemId } from '@dungeonmaster/shared/contracts';
+import { join } from '#gateway/node/path';
 
 import { fsIsAccessibleAdapter } from '../../../adapters/fs/is-accessible/fs-is-accessible-adapter';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
@@ -31,7 +31,7 @@ export const plannedWorkReadBroker = async ({
 }): Promise<WorkPlan | null> => {
   const dirPath = locationsPlannedWorkPathFindBroker({ questFolderPath });
   const filePath = filePathContract.parse(
-    pathJoinAdapter({ paths: [dirPath, `${String(operationItemId)}${JSON_EXTENSION}`] }),
+    join(dirPath, `${String(operationItemId)}${JSON_EXTENSION}`),
   );
 
   if (!(await fsIsAccessibleAdapter({ filePath }))) {
