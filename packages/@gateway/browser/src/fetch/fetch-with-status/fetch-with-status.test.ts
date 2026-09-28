@@ -83,6 +83,27 @@ describe('fetchWithStatus', () => {
     });
   });
 
+  describe('held response', () => {
+    it('VALID: {held response released} => resolves the exact body text as staged', async () => {
+      const proxy = fetchWithStatusProxy();
+      const held = proxy.setupHeld({ url: '/api/quests', bodyText: '{"id":"q1","n":[1,2]}' });
+
+      const pending = fetchWithStatus({ url: '/api/quests' });
+      held.release();
+      const result = await pending;
+
+      expect(result).toStrictEqual({ status: 200, ok: true, body: '{"id":"q1","n":[1,2]}' });
+    });
+
+    it('ERROR: {bodyText that is not JSON} => throws at staging naming the text', () => {
+      const proxy = fetchWithStatusProxy();
+
+      expect(() => proxy.setupHeld({ url: '/api/quests', bodyText: 'plain' })).toThrow(
+        /^setupHeld: bodyText must be JSON text, got: plain$/u,
+      );
+    });
+  });
+
   describe('tolerant addressing', () => {
     it('VALID: {url registered without a query string} => still resolves for a call carrying one', async () => {
       const proxy = fetchWithStatusProxy();

@@ -70,7 +70,19 @@ export const fetchWithStatusProxy = (): {
       method?: HttpMethod;
       url: string;
       bodyText: string;
-    }): { release: () => void } => endpointFor({ method, url }).holdsOpen({ data: bodyText }),
+    }): { release: () => void } => {
+      // `holdsOpen` JSON-encodes what it is handed, so the parsed value goes in and the released
+      // body is `bodyText` again (compact JSON round-trips exactly). Text that is not JSON has no
+      // such path and is refused at staging rather than released JSON-quoted.
+      const parsed: unknown = ((): unknown => {
+        try {
+          return JSON.parse(bodyText);
+        } catch (cause) {
+          throw new Error(`setupHeld: bodyText must be JSON text, got: ${bodyText}`, { cause });
+        }
+      })();
+      return endpointFor({ method, url }).holdsOpen({ data: parsed });
+    },
     getRequestBodies: async ({
       method,
       url,
