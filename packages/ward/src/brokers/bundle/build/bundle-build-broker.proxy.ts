@@ -1,11 +1,11 @@
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
+import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { runProxy } from '#gateway/node/child_process/run/run.proxy';
 import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found.error.proxy';
 import { absoluteFilePathContract, filePathContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { cryptoHashFilesAdapterProxy } from '../../../adapters/crypto/hash-files/crypto-hash-files-adapter.proxy';
-import { fsMkdirAdapterProxy } from '../../../adapters/fs/mkdir/fs-mkdir-adapter.proxy';
 import { fsRenameAdapterProxy } from '../../../adapters/fs/rename/fs-rename-adapter.proxy';
 import { fsRmAdapterProxy } from '../../../adapters/fs/rm/fs-rm-adapter.proxy';
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
@@ -43,7 +43,7 @@ export const bundleBuildBrokerProxy = (): {
   const inputsProxy = collectInputsLayerBrokerProxy();
   const hashProxy = cryptoHashFilesAdapterProxy();
   const existsProxy = existsSyncProxy();
-  const mkdirProxy = fsMkdirAdapterProxy();
+  const mkdirProxy = ensureDirProxy();
   const rmProxy = fsRmAdapterProxy();
   const renameProxy = fsRenameAdapterProxy();
   const run = runProxy();
@@ -106,7 +106,7 @@ export const bundleBuildBrokerProxy = (): {
         contents: 'export const App = 1;',
       });
 
-      mkdirProxy.succeeds({ dirPath: filePathContract.parse(bundleParent) });
+      mkdirProxy.succeeds({ path: bundleParent });
       rmProxy.succeeds({ filePath: tempPath });
     },
 

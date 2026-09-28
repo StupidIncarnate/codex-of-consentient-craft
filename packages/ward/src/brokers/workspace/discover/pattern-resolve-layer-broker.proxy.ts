@@ -1,6 +1,6 @@
+import { readdirEntriesProxy } from '#gateway/node/fs__promises/readdir-entries/readdir-entries.proxy';
 import { AbsoluteFilePathStub, filePathContract } from '@dungeonmaster/shared/contracts';
 
-import { fsReaddirDirsAdapterProxy } from '../../../adapters/fs/readdir-dirs/fs-readdir-dirs-adapter.proxy';
 import { packageReadLayerBrokerProxy } from './package-read-layer-broker.proxy';
 
 // Every caller (pattern-resolve-layer-broker.test.ts and
@@ -14,7 +14,7 @@ export const patternResolveLayerBrokerProxy = (): {
   setupDirectPattern: (params: { packageName: string }) => void;
   setupGlobPatternDirFails: () => void;
 } => {
-  const readdirProxy = fsReaddirDirsAdapterProxy();
+  const readdirProxy = readdirEntriesProxy();
   const readProxy = packageReadLayerBrokerProxy();
 
   return {
@@ -25,7 +25,10 @@ export const patternResolveLayerBrokerProxy = (): {
       dirs: string[];
       packageNames: string[];
     }): void => {
-      readdirProxy.returns({ dirPath: PACKAGES_DIR, dirs });
+      readdirProxy.returns({
+        path: String(PACKAGES_DIR),
+        entries: dirs.map((name) => ({ name, kind: 'directory' as const })),
+      });
       dirs.forEach((dir, index) => {
         const name = packageNames[index];
         if (name === undefined) {
@@ -40,7 +43,7 @@ export const patternResolveLayerBrokerProxy = (): {
     },
 
     setupGlobPatternDirFails: (): void => {
-      readdirProxy.throws({ dirPath: PACKAGES_DIR, error: new Error('ENOENT') });
+      readdirProxy.missing({ path: String(PACKAGES_DIR) });
     },
   };
 };

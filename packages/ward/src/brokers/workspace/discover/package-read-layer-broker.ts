@@ -6,6 +6,7 @@
  * // Returns ProjectFolder with name and path, or null if package.json missing, has no name, or has no src/ directory
  */
 
+import { readdirEntries } from '#gateway/node/fs__promises';
 import { filePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import {
@@ -14,7 +15,6 @@ import {
 } from '../../../contracts/project-folder/project-folder-contract';
 import { packageJsonContract } from '../../../contracts/package-json/package-json-contract';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
-import { fsReaddirDirsAdapter } from '../../../adapters/fs/readdir-dirs/fs-readdir-dirs-adapter';
 
 export const packageReadLayerBroker = async ({
   fullPath,
@@ -31,9 +31,8 @@ export const packageReadLayerBroker = async ({
       return null;
     }
 
-    const dirPath = filePathContract.parse(fullPath);
-    const dirs = await fsReaddirDirsAdapter({ dirPath }).catch(() => []);
-    const hasSrc = dirs.some((dir) => String(dir) === 'src');
+    const entries = await readdirEntries(fullPath).catch(() => []);
+    const hasSrc = entries.some((entry) => entry.kind === 'directory' && entry.name === 'src');
 
     if (!hasSrc) {
       process.stderr.write(`ward: skipping ${name} (no src/ directory)\n`);

@@ -18,6 +18,7 @@
 
 import { run, RunNotFoundError } from '#gateway/node/child_process';
 import { existsSync } from '#gateway/node/fs';
+import { ensureDir } from '#gateway/node/fs__promises';
 import {
   absoluteFilePathContract,
   errorMessageContract,
@@ -27,7 +28,6 @@ import {
 import type { AbsoluteFilePath, ErrorMessage } from '@dungeonmaster/shared/contracts';
 
 import { cryptoHashFilesAdapter } from '../../../adapters/crypto/hash-files/crypto-hash-files-adapter';
-import { fsMkdirAdapter } from '../../../adapters/fs/mkdir/fs-mkdir-adapter';
 import { fsRenameAdapter } from '../../../adapters/fs/rename/fs-rename-adapter';
 import { fsRmAdapter } from '../../../adapters/fs/rm/fs-rm-adapter';
 import { packageJsonContract } from '../../../contracts/package-json/package-json-contract';
@@ -73,7 +73,7 @@ export const bundleBuildBroker = async ({
     return { bundleDir, error: null };
   }
 
-  await fsMkdirAdapter({ dirPath: filePathContract.parse(bundleParent) });
+  await ensureDir(bundleParent);
 
   // The pid is what makes this directory this PROCESS's, so two ward runs building the same inputs
   // at once never share a write target. A pid recurs across reboots, so any leftover of the same

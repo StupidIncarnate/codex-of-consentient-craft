@@ -4,7 +4,7 @@ import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found
 import { filePathContract, absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 
 import { globDiscoverFilesBrokerProxy } from '../../glob/discover-files/glob-discover-files-broker.proxy';
-import { fsReadJsonSyncAdapterProxy } from '../../../adapters/fs/read-json-sync/fs-read-json-sync-adapter.proxy';
+import { readJsonFileSyncIfExistsProxy } from '#gateway/node/fs/read-json-file-sync-if-exists/read-json-file-sync-if-exists.proxy';
 import { tsconfigDiscoverPatternsTransformer } from '../../../transformers/tsconfig-discover-patterns/tsconfig-discover-patterns-transformer';
 import { binResolveBrokerProxy } from '../../bin/resolve/bin-resolve-broker.proxy';
 import { BinCommandStub } from '../../../contracts/bin-command/bin-command.stub';
@@ -23,7 +23,7 @@ export const checkRunTypecheckBrokerProxy = (): {
   RunNotFoundErrorProxy();
   const existsProxy = existsSyncProxy();
   const globProxy = globDiscoverFilesBrokerProxy();
-  const jsonProxy = fsReadJsonSyncAdapterProxy();
+  const jsonProxy = readJsonFileSyncIfExistsProxy();
   const binProxy = binResolveBrokerProxy();
   // The exact tsconfigData every scenario below stages through jsonProxy.returns() — computed by
   // the same real transformer the broker calls, not a guess, so the staged patterns are the ones
@@ -53,8 +53,8 @@ export const checkRunTypecheckBrokerProxy = (): {
     existsProxy.returns({ path: tsconfigPath, exists: true });
     existsProxy.returns({ path: buildTsconfigPath, exists: false });
     jsonProxy.returns({
-      filePath: tsconfigPath,
-      content: '{"include":["src/**/*"]}',
+      path: String(tsconfigPath),
+      json: '{"include":["src/**/*"]}',
     });
     globProxy.returnsForPatterns({ patterns: discoverPatterns, files: ['discovered.ts'] });
     return binProxy.setupFound({

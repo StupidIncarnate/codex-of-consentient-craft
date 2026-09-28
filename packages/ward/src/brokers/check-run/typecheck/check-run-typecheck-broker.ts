@@ -23,7 +23,7 @@
  */
 
 import { run, RunNotFoundError } from '#gateway/node/child_process';
-import { existsSync } from '#gateway/node/fs';
+import { existsSync, readJsonFileSyncIfExists } from '#gateway/node/fs';
 import {
   absoluteFilePathContract,
   exitCodeContract,
@@ -49,7 +49,6 @@ import { isFilePathGuard } from '../../../guards/is-file-path/is-file-path-guard
 import { isPathUnderDirectoryGuard } from '../../../guards/is-path-under-directory/is-path-under-directory-guard';
 import { binResolveBroker } from '../../bin/resolve/bin-resolve-broker';
 import { globDiscoverFilesBroker } from '../../glob/discover-files/glob-discover-files-broker';
-import { fsReadJsonSyncAdapter } from '../../../adapters/fs/read-json-sync/fs-read-json-sync-adapter';
 
 export const checkRunTypecheckBroker = async ({
   projectFolder,
@@ -81,7 +80,7 @@ export const checkRunTypecheckBroker = async ({
 
   let tsconfigData: unknown = {};
   try {
-    tsconfigData = fsReadJsonSyncAdapter({ filePath: tsconfigPath });
+    tsconfigData = readJsonFileSyncIfExists(String(tsconfigPath)) ?? {};
   } catch {
     // read failed, tsconfigData stays as empty object (transformer will use fallback)
   }

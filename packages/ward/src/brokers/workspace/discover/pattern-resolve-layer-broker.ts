@@ -6,10 +6,13 @@
  * // Returns ProjectFolder[] for all matching directories that contain a valid package.json with a name
  */
 
+import { readdirEntries } from '#gateway/node/fs__promises';
 import { filePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
-import type { ProjectFolder } from '../../../contracts/project-folder/project-folder-contract';
-import { fsReaddirDirsAdapter } from '../../../adapters/fs/readdir-dirs/fs-readdir-dirs-adapter';
+import {
+  projectFolderContract,
+  type ProjectFolder,
+} from '../../../contracts/project-folder/project-folder-contract';
 import { workspaceGlobStatics } from '../../../statics/workspace-glob/workspace-glob-statics';
 import { packageReadLayerBroker } from './package-read-layer-broker';
 
@@ -24,10 +27,13 @@ export const patternResolveLayerBroker = async ({
     const baseDir = pattern.slice(0, pattern.length - workspaceGlobStatics.wildcardSuffixLength);
     const basePath = filePathContract.parse(`${rootPath}/${baseDir}`);
 
-    const dirNames = await fsReaddirDirsAdapter({ dirPath: basePath }).catch(() => null);
-    if (dirNames === null) {
+    const entries = await readdirEntries(String(basePath)).catch(() => null);
+    if (entries === null) {
       return [];
     }
+    const dirNames = entries
+      .filter((entry) => entry.kind === 'directory')
+      .map((entry) => entry.name);
 
     const folders = await Promise.all(
       dirNames.map(async (entry) => {
@@ -36,7 +42,7 @@ export const patternResolveLayerBroker = async ({
       }),
     );
 
-    return folders.filter((f): f is ProjectFolder => f !== null);
+    return folders.filter((f) => f !== null).map((f) => projectFolderContract.parse(f));
   }
 
   const fullPath = `${rootPath}/${pattern}`;

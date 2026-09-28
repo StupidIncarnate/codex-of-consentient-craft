@@ -276,6 +276,69 @@ old `AdapterResult`:
 edit, 2 new ward-local broker domains (6 files: impl + proxy + test, ×2) and 33 adapter files deleted.
 Caller `.ts` files plus their composing `.proxy.ts` files alone: 48 — over the ~30 file stop threshold.
 
+### G-BB-1b
+
+Takes 4 of the 5 named adapters — `fs/mkdir`, `fs/read-json-sync`, `fs/readdir-dirs`, `fs/readdir` —
+and skips `fs/read-file`, confirmed by a fresh `discover({grep: ...})` caller census (Read wins where
+`discover`'s index is stale — reconfirmed on `bundle-build-broker.ts`, the same folder G-BB-1a already
+found stale) to have 18 distinct caller files (36 edit targets before adapter deletion), which alone
+exceeds the ~30 file budget. The other four adapters total 19 edit targets + 12 adapter-file deletions
+= 31, so this group does those four and reports `fs/read-file` under LEFT STANDING for its own group.
+
+Files taken:
+
+- `packages/ward/src/brokers/bundle/build/bundle-build-broker.ts` — `fsMkdirAdapter` → `ensureDir`
+  (`#gateway/node/fs__promises`); its `fsReadFileAdapter`/`fsRenameAdapter`/`fsRmAdapter`/
+  `cryptoHashFilesAdapter` usages are untouched (other groups)
+- `packages/ward/src/brokers/bundle/build/bundle-build-broker.proxy.ts` — compose
+  `#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy` in place of `fsMkdirAdapterProxy`
+- `packages/ward/src/brokers/storage/save/storage-save-broker.ts` — `fsMkdirAdapter` → `ensureDir`
+- `packages/ward/src/brokers/storage/save/storage-save-broker.proxy.ts` — compose `ensureDirProxy`
+- `packages/ward/src/brokers/storage/save/storage-save-broker.test.ts` — `setupMkdirFail` call site
+  adapts to the new FsError-shaped rejection
+- `packages/ward/src/brokers/check-run/typecheck/check-run-typecheck-broker.ts` —
+  `fsReadJsonSyncAdapter` → `readJsonFileSyncIfExists` (`#gateway/node/fs`)
+- `packages/ward/src/brokers/check-run/typecheck/check-run-typecheck-broker.proxy.ts` — compose
+  `#gateway/node/fs/read-json-file-sync-if-exists/read-json-file-sync-if-exists.proxy`
+- `packages/ward/src/brokers/workspace/discover/package-read-layer-broker.ts` —
+  `fsReaddirDirsAdapter` → `readdirEntries` (`#gateway/node/fs__promises`), filtered to
+  `kind === 'directory'`; its `fsReadFileAdapter` usage is untouched (other group)
+- `packages/ward/src/brokers/workspace/discover/package-read-layer-broker.proxy.ts` — compose
+  `#gateway/node/fs__promises/readdir-entries/readdir-entries.proxy`
+- `packages/ward/src/brokers/workspace/discover/pattern-resolve-layer-broker.ts` —
+  `fsReaddirDirsAdapter` → `readdirEntries`, filtered to `kind === 'directory'`
+- `packages/ward/src/brokers/workspace/discover/pattern-resolve-layer-broker.proxy.ts` — compose
+  `readdirEntriesProxy`
+- `packages/ward/src/brokers/e2e-artifacts/prune/e2e-artifacts-prune-broker.ts` — `fsReaddirAdapter` →
+  `readdirIfExists` (`#gateway/node/fs__promises`); its `fsStatAdapter`/`fsRmAdapter` usages are
+  untouched (other groups)
+- `packages/ward/src/brokers/e2e-artifacts/prune/e2e-artifacts-prune-broker.proxy.ts` — compose
+  `#gateway/node/fs__promises/readdir-if-exists/readdir-if-exists.proxy`
+- `packages/ward/src/brokers/storage/load/storage-load-broker.ts` — `fsReaddirAdapter` →
+  `readdirIfExists`; its `fsReadFileAdapter` usage is untouched (other group)
+- `packages/ward/src/brokers/storage/load/storage-load-broker.proxy.ts` — compose
+  `readdirIfExistsProxy`
+- `packages/ward/src/brokers/storage/load/storage-load-broker.test.ts` — `setupReaddirFail` call site
+  drops its now-unused `error` argument
+- `packages/ward/src/brokers/storage/prune/storage-prune-broker.ts` — `fsReaddirAdapter` →
+  `readdirIfExists`; its `fsStatAdapter`/`fsUnlinkAdapter` usages are untouched (other groups)
+- `packages/ward/src/brokers/storage/prune/storage-prune-broker.proxy.ts` — compose
+  `readdirIfExistsProxy` for the readdir half only
+- `packages/ward/src/brokers/storage/prune/storage-prune-broker.test.ts` — `setupReaddirFail` call
+  site drops its now-unused `error` argument
+
+Adapters deleted (with proxy and test, 4 × 3 = 12 files):
+
+- `packages/ward/src/adapters/fs/mkdir/{fs-mkdir-adapter.ts,fs-mkdir-adapter.proxy.ts,fs-mkdir-adapter.test.ts}`
+- `packages/ward/src/adapters/fs/read-json-sync/{fs-read-json-sync-adapter.ts,fs-read-json-sync-adapter.proxy.ts,fs-read-json-sync-adapter.test.ts}`
+- `packages/ward/src/adapters/fs/readdir-dirs/{fs-readdir-dirs-adapter.ts,fs-readdir-dirs-adapter.proxy.ts,fs-readdir-dirs-adapter.test.ts}`
+- `packages/ward/src/adapters/fs/readdir/{fs-readdir-adapter.ts,fs-readdir-adapter.proxy.ts,fs-readdir-adapter.test.ts}`
+
+Left for a follow-up group: `fs/read-file` (`fsReadFileAdapter` → `readFile`), its 18 caller files
+(including the mkdir/read-json-sync/readdir-dirs/readdir callers above, which keep their
+`fsReadFileAdapter` import untouched until then) and their `.proxy.ts` files, plus the adapter's own
+3 files.
+
 ## Concessions made while executing
 
 <!-- Empty at the start. The operator fills this and mirrors it into EPIC.md's Concessions table. -->

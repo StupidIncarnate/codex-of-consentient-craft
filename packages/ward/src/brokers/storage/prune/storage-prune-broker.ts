@@ -6,6 +6,7 @@
  * // Removes run files older than ttlStatics.runResultTtl from the .ward directory
  */
 
+import { readdirIfExists } from '#gateway/node/fs__promises';
 import {
   adapterResultContract,
   filePathContract,
@@ -14,7 +15,6 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import { ttlStatics } from '../../../statics/ttl/ttl-statics';
-import { fsReaddirAdapter } from '../../../adapters/fs/readdir/fs-readdir-adapter';
 import { fsStatAdapter } from '../../../adapters/fs/stat/fs-stat-adapter';
 import { fsUnlinkAdapter } from '../../../adapters/fs/unlink/fs-unlink-adapter';
 
@@ -29,17 +29,16 @@ export const storagePruneBroker = async ({
   const wardDir = filePathContract.parse(`${rootPath}/.ward`);
 
   try {
-    const entries = await fsReaddirAdapter({ dirPath: wardDir });
+    const entries = await readdirIfExists(String(wardDir));
+    if (entries === null) {
+      return result;
+    }
     const now = Date.now();
 
-    const runFiles = entries.filter((entry) => {
-      const name = String(entry);
-      return name.startsWith('run-') && name.endsWith('.json');
-    });
+    const runFiles = entries.filter((entry) => entry.startsWith('run-') && entry.endsWith('.json'));
 
     const judged = await Promise.all(
-      runFiles.map(async (entry) => {
-        const name = String(entry);
+      runFiles.map(async (name) => {
         const filePath = filePathContract.parse(`${wardDir}/${name}`);
         const timestampStr = name.slice(RUN_PREFIX_LENGTH, name.indexOf('-', RUN_PREFIX_LENGTH));
         const timestamp = Number(timestampStr);

@@ -6,6 +6,7 @@
  * // Returns the most recent WardResult or null if none found
  */
 
+import { readdirIfExists } from '#gateway/node/fs__promises';
 import { filePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import {
@@ -14,7 +15,6 @@ import {
 } from '../../../contracts/ward-result/ward-result-contract';
 import { runIdContract, type RunId } from '../../../contracts/run-id/run-id-contract';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
-import { fsReaddirAdapter } from '../../../adapters/fs/readdir/fs-readdir-adapter';
 
 const RUN_FILE_PREFIX = 'run-';
 const RUN_FILE_SUFFIX = '.json';
@@ -40,12 +40,14 @@ export const storageLoadBroker = async ({
   }
 
   try {
-    const entries = await fsReaddirAdapter({ dirPath: wardDir });
+    const entries = await readdirIfExists(String(wardDir));
+    if (entries === null) {
+      return null;
+    }
     // Only `run-<RunId>.json` files are real runs. Test harnesses that emulate ward write
     // arbitrarily-named run files into the same directory; those sort after the timestamped ones
     // and would otherwise shadow the newest real run.
     const runFiles = entries
-      .map(String)
       .filter((entry) => entry.startsWith(RUN_FILE_PREFIX) && entry.endsWith(RUN_FILE_SUFFIX))
       .filter(
         (entry) =>

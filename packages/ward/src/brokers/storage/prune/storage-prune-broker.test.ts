@@ -83,7 +83,7 @@ describe('storagePruneBroker', () => {
       const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
 
       const proxy = storagePruneBrokerProxy();
-      proxy.setupReaddirFail({ rootPath, error: new Error('ENOENT: no such file or directory') });
+      proxy.setupReaddirFail({ rootPath });
 
       await expect(storagePruneBroker({ rootPath })).resolves.toStrictEqual({ success: true });
     });

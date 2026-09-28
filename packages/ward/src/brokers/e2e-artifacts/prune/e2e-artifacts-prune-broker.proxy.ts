@@ -1,8 +1,8 @@
 import { listeningPidsProxy } from '#gateway/bin/lsof/listening-pids/listening-pids.proxy';
+import { readdirIfExistsProxy } from '#gateway/node/fs__promises/readdir-if-exists/readdir-if-exists.proxy';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
-import { fsReaddirAdapterProxy } from '../../../adapters/fs/readdir/fs-readdir-adapter.proxy';
 import { fsRmAdapterProxy } from '../../../adapters/fs/rm/fs-rm-adapter.proxy';
 import { fsStatAdapterProxy } from '../../../adapters/fs/stat/fs-stat-adapter.proxy';
 import { e2eArtifactsStatics } from '../../../statics/e2e-artifacts/e2e-artifacts-statics';
@@ -48,7 +48,7 @@ export const e2eArtifactsPruneBrokerProxy = (): {
   // that single-package-layer-broker.proxy.ts stages for its deterministic runId.
   const NOW = Date.now();
 
-  const readdirProxy = fsReaddirAdapterProxy();
+  const readdirProxy = readdirIfExistsProxy();
   const statProxy = fsStatAdapterProxy();
   const rmProxy = fsRmAdapterProxy();
   const lsofProxy = listeningPidsProxy();
@@ -81,8 +81,8 @@ export const e2eArtifactsPruneBrokerProxy = (): {
       // nothing.
       for (const dir of e2eArtifactsStatics.artifacts.map((artifact) => artifact.parentDir)) {
         readdirProxy.returns({
-          dirPath: parentPathFor({ packageRoot, parentDir: dir }),
-          entries: dir === parentDir ? entries : [],
+          path: String(parentPathFor({ packageRoot, parentDir: dir })),
+          names: dir === parentDir ? entries : [],
         });
       }
     },

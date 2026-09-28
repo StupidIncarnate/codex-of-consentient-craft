@@ -1,3 +1,4 @@
+import { readdirIfExistsProxy } from '#gateway/node/fs__promises/readdir-if-exists/readdir-if-exists.proxy';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import {
   filePathContract,
@@ -5,7 +6,6 @@ import {
   type FilePath,
 } from '@dungeonmaster/shared/contracts';
 
-import { fsReaddirAdapterProxy } from '../../../adapters/fs/readdir/fs-readdir-adapter.proxy';
 import { fsStatAdapterProxy } from '../../../adapters/fs/stat/fs-stat-adapter.proxy';
 import { fsUnlinkAdapterProxy } from '../../../adapters/fs/unlink/fs-unlink-adapter.proxy';
 
@@ -18,10 +18,10 @@ export const storagePruneBrokerProxy = (): {
     statNullFor?: string[];
   }) => void;
   setupEmpty: (params: { rootPath: AbsoluteFilePath }) => void;
-  setupReaddirFail: (params: { rootPath: AbsoluteFilePath; error: Error }) => void;
+  setupReaddirFail: (params: { rootPath: AbsoluteFilePath }) => void;
   getDeletedPaths: () => unknown[];
 } => {
-  const readdirProxy = fsReaddirAdapterProxy();
+  const readdirProxy = readdirIfExistsProxy();
   const statProxy = fsStatAdapterProxy();
   const unlinkProxy = fsUnlinkAdapterProxy();
 
@@ -55,7 +55,7 @@ export const storagePruneBrokerProxy = (): {
       statNullFor?: string[];
     }): void => {
       registerSpyOn({ object: Date, method: 'now' }).calledWith([]).returns(now);
-      readdirProxy.returns({ dirPath: wardDirFor({ rootPath }), entries });
+      readdirProxy.returns({ path: String(wardDirFor({ rootPath })), names: entries });
 
       for (const [name, mtimeMs] of Object.entries(mtimes)) {
         statProxy.returnsMtime({ filePath: runFilePathFor({ rootPath, name }), mtimeMs });
@@ -65,10 +65,10 @@ export const storagePruneBrokerProxy = (): {
       }
     },
     setupEmpty: ({ rootPath }: { rootPath: AbsoluteFilePath }): void => {
-      readdirProxy.returns({ dirPath: wardDirFor({ rootPath }), entries: [] });
+      readdirProxy.returns({ path: String(wardDirFor({ rootPath })), names: [] });
     },
-    setupReaddirFail: ({ rootPath, error }: { rootPath: AbsoluteFilePath; error: Error }): void => {
-      readdirProxy.throws({ dirPath: wardDirFor({ rootPath }), error });
+    setupReaddirFail: ({ rootPath }: { rootPath: AbsoluteFilePath }): void => {
+      readdirProxy.missing({ path: String(wardDirFor({ rootPath })) });
     },
     getDeletedPaths: (): unknown[] => unlinkProxy.getDeletedPaths(),
   };

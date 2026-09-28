@@ -27,11 +27,11 @@
  */
 
 import { listeningPids } from '#gateway/bin/lsof';
+import { readdirIfExists } from '#gateway/node/fs__promises';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, AdapterResult } from '@dungeonmaster/shared/contracts';
 import { networkPortContract } from '@dungeonmaster/shared/contracts';
 
-import { fsReaddirAdapter } from '../../../adapters/fs/readdir/fs-readdir-adapter';
 import { fsRmAdapter } from '../../../adapters/fs/rm/fs-rm-adapter';
 import { fsStatAdapter } from '../../../adapters/fs/stat/fs-stat-adapter';
 import { isPortSuffixedArtifactGuard } from '../../../guards/is-port-suffixed-artifact/is-port-suffixed-artifact-guard';
@@ -50,13 +50,13 @@ export const e2eArtifactsPruneBroker = async ({
 
       // Per PREFIX, not per sweep. A package with no test-results/ must not stop the vite cache
       // under node_modules/ being swept.
-      const entries = await fsReaddirAdapter({ dirPath: parentPath }).catch(() => []);
+      const entries = (await readdirIfExists(String(parentPath)).catch(() => null)) ?? [];
 
       const candidates = entries.filter(
         (entry) =>
           !artifact.portKeyed ||
           isPortSuffixedArtifactGuard({
-            name: String(entry),
+            name: entry,
             prefix: artifact.prefix,
             suffix: artifact.suffix,
           }),
@@ -64,7 +64,7 @@ export const e2eArtifactsPruneBroker = async ({
 
       await Promise.all(
         candidates.map(async (entry) => {
-          const name = String(entry);
+          const name = entry;
           const entryPath = filePathContract.parse(`${String(parentPath)}/${name}`);
 
           try {

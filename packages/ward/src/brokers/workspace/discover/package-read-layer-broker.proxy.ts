@@ -1,8 +1,8 @@
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { readdirEntriesProxy } from '#gateway/node/fs__promises/readdir-entries/readdir-entries.proxy';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
-import { fsReaddirDirsAdapterProxy } from '../../../adapters/fs/readdir-dirs/fs-readdir-dirs-adapter.proxy';
 
 export const packageReadLayerBrokerProxy = (): {
   setupReturnsPackage: (params: { fullPath: string; name: string }) => void;
@@ -12,7 +12,7 @@ export const packageReadLayerBrokerProxy = (): {
   getStderrCalls: () => unknown[];
 } => {
   const readProxy = fsReadFileAdapterProxy();
-  const readdirProxy = fsReaddirDirsAdapterProxy();
+  const readdirProxy = readdirEntriesProxy();
 
   const stderrMock = registerSpyOn({ object: process.stderr, method: 'write' });
   stderrMock.calledWith([]).returns(true);
@@ -25,7 +25,7 @@ export const packageReadLayerBrokerProxy = (): {
         filePath: filePathContract.parse(`${fullPath}/package.json`),
         content: JSON.stringify({ name }),
       });
-      readdirProxy.returns({ dirPath: filePathContract.parse(fullPath), dirs: ['src'] });
+      readdirProxy.returns({ path: fullPath, entries: [{ name: 'src', kind: 'directory' }] });
     },
 
     setupReturnsPackageNoSrc: ({ fullPath, name }: { fullPath: string; name: string }): void => {
@@ -34,8 +34,11 @@ export const packageReadLayerBrokerProxy = (): {
         content: JSON.stringify({ name }),
       });
       readdirProxy.returns({
-        dirPath: filePathContract.parse(fullPath),
-        dirs: ['define', 'docs'],
+        path: fullPath,
+        entries: [
+          { name: 'define', kind: 'directory' },
+          { name: 'docs', kind: 'directory' },
+        ],
       });
     },
 

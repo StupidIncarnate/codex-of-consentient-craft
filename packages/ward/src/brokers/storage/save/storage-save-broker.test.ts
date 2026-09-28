@@ -52,11 +52,9 @@ describe('storageSaveBroker', () => {
       const wardResult = failingWardResult();
 
       const proxy = storageSaveBrokerProxy();
-      proxy.setupMkdirFail({ rootPath, error: new Error('EACCES: permission denied') });
+      proxy.setupMkdirFail({ rootPath });
 
-      await expect(storageSaveBroker({ rootPath, wardResult })).rejects.toThrow(
-        /EACCES: permission denied/u,
-      );
+      await expect(storageSaveBroker({ rootPath, wardResult })).rejects.toThrow(/EACCES: mkdir/u);
     });
   });
 

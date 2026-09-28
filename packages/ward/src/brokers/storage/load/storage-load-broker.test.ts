@@ -107,7 +107,7 @@ describe('storageLoadBroker', () => {
     it('ERROR: {no runId, readdir fails} => returns null', async () => {
       const rootPath = AbsoluteFilePathStub({ value: '/home/user/project' });
       const proxy = storageLoadBrokerProxy();
-      proxy.setupReaddirFail({ rootPath, error: new Error('ENOENT: no such directory') });
+      proxy.setupReaddirFail({ rootPath });
 
       const result = await storageLoadBroker({ rootPath });
 
