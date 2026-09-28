@@ -11,15 +11,22 @@
 
 import type { QuestId } from '@dungeonmaster/shared/contracts';
 
-import { fetchPostAdapter } from '../../../adapters/fetch/post/fetch-post-adapter';
+import { fetchJson } from '#gateway/browser/fetch';
+
+import { questFollowupStopResultContract } from '../../../contracts/quest-followup-stop-result/quest-followup-stop-result-contract';
+import type { QuestFollowupStopResult } from '../../../contracts/quest-followup-stop-result/quest-followup-stop-result-contract';
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
 
 export const questFollowupStopBroker = async ({
   questId,
 }: {
   questId: QuestId;
-}): Promise<{ stopped: boolean }> =>
-  fetchPostAdapter<{ stopped: boolean }>({
+}): Promise<QuestFollowupStopResult> => {
+  const response = await fetchJson({
     url: webConfigStatics.api.routes.questFollowupStop.replace(':questId', questId),
+    method: 'POST',
     body: undefined,
   });
+
+  return questFollowupStopResultContract.parse(response);
+};

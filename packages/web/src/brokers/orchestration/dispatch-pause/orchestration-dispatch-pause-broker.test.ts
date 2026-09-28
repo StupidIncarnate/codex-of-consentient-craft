@@ -23,7 +23,7 @@ describe('orchestrationDispatchPauseBroker', () => {
 
       proxy.setupError();
 
-      await expect(orchestrationDispatchPauseBroker()).rejects.toThrow(/fetch/iu);
+      await expect(orchestrationDispatchPauseBroker()).rejects.toThrow(/^Failed to fetch$/u);
     });
   });
 

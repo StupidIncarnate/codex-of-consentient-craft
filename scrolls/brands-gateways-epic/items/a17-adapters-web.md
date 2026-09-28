@@ -374,3 +374,28 @@ Files (all under `packages/@gateway/browser/src/fetch/`):
 - `fetch-json/fetch-json.proxy.ts` — add `getRequestCount({ method, url })`.
 - `fetch-json/fetch-json.test.ts` — count is per address and counts real requests.
 - `fetch-with-status/fetch-with-status.test.ts` — same tests for its existing read-back.
+
+### W-POST2 scope
+
+Second batch of fetch/post: the seven brokers W-POST left standing on `getRequestCount`, now unblocked by
+F61. `server/stop` and `shell/session-create` do not exist in `packages/web/src/brokers/`, so nothing there.
+`directory/browse` stays on `fetchPostAdapter` (mounted unstaged by `DirectoryBrowserModalWidget`), so
+`adapters/fetch/post/` stays. The widget/binding proxies that compose these broker proxies
+(`use-quest-chat-binding.proxy.ts`, `dispatch-toggle-widget.proxy.tsx`, `quest-chat-content-layer-widget.proxy.tsx`)
+keep calling the same proxy method names, so they are read and run but not edited unless a run shows otherwise.
+
+Files created:
+- `packages/web/src/contracts/orchestration-dispatch-result/orchestration-dispatch-result-contract.ts` (+ `.stub.ts`, `-contract.test.ts`), shared by pause and play
+- `packages/web/src/contracts/quest-clarify-result/quest-clarify-result-contract.ts` (+ `.stub.ts`, `-contract.test.ts`)
+- `packages/web/src/contracts/quest-followup-stop-result/quest-followup-stop-result-contract.ts` (+ `.stub.ts`, `-contract.test.ts`)
+- `packages/web/src/contracts/quest-merge-result/quest-merge-result-contract.ts` (+ `.stub.ts`, `-contract.test.ts`)
+- `packages/web/src/contracts/quest-pause-result/quest-pause-result-contract.ts` (+ `.stub.ts`, `-contract.test.ts`)
+
+Files edited (`.ts`, `.proxy.ts`, `.test.ts` each):
+- `packages/web/src/brokers/orchestration/dispatch-pause/orchestration-dispatch-pause-broker*`
+- `packages/web/src/brokers/orchestration/dispatch-play/orchestration-dispatch-play-broker*`
+- `packages/web/src/brokers/quest/clarify/quest-clarify-broker*`
+- `packages/web/src/brokers/quest/followup-stop/quest-followup-stop-broker*`
+- `packages/web/src/brokers/quest/merge/quest-merge-broker*`
+- `packages/web/src/brokers/quest/pause/quest-pause-broker*`
+- `packages/web/src/brokers/quest/resume/quest-resume-broker*` (parses through the existing `questResumeOutcomeContract`)

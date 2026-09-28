@@ -37,13 +37,24 @@ describe('questResumeBroker', () => {
   });
 
   describe('error handling', () => {
+    it('ERROR: {server answers 500} => throws naming the method, url, status and body', async () => {
+      const proxy = questResumeBrokerProxy();
+      const questId = QuestIdStub({ value: 'add-auth' });
+
+      proxy.setupServerError();
+
+      await expect(questResumeBroker({ questId })).rejects.toThrow(
+        /^POST \/api\/quests\/add-auth\/resume failed with status 500: Internal Server Error$/u,
+      );
+    });
+
     it('ERROR: {network error} => throws error', async () => {
       const proxy = questResumeBrokerProxy();
       const questId = QuestIdStub({ value: 'add-auth' });
 
       proxy.setupError();
 
-      await expect(questResumeBroker({ questId })).rejects.toThrow(/fetch/iu);
+      await expect(questResumeBroker({ questId })).rejects.toThrow(/^Failed to fetch$/u);
     });
   });
 });

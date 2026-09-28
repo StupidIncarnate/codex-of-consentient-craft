@@ -1568,6 +1568,7 @@ describe('useQuestChatBinding', () => {
       const message = UserInputStub({ value: 'Hello after pause' });
       const pausedQuest = QuestStub({ id: questId, status: 'paused' });
       proxy.setupChat({ chatProcessId: ProcessIdStub({ value: 'proc-pr-2' }) });
+      proxy.setupResumeServerError();
 
       const { result } = testingLibraryRenderHookAdapter({
         renderCallback: () => useQuestChatBinding({ questId }),
@@ -1588,7 +1589,7 @@ describe('useQuestChatBinding', () => {
       await testingLibraryActAsyncAdapter({
         callback: async () => {
           await expect(result.current.sendMessage({ message })).rejects.toThrow(
-            /^POST \/api\/quests\/quest-pause-resume-2\/resume failed with status 500$/u,
+            /^POST \/api\/quests\/quest-pause-resume-2\/resume failed with status 500: Internal Server Error$/u,
           );
         },
       });

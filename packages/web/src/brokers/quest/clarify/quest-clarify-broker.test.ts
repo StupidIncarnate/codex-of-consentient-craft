@@ -87,7 +87,7 @@ describe('questClarifyBroker', () => {
             },
           ],
         }),
-      ).rejects.toThrow(/fetch/iu);
+      ).rejects.toThrow(/^Failed to fetch$/u);
     });
   });
 });

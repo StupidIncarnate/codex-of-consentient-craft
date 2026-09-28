@@ -9,15 +9,22 @@
 
 import type { QuestId } from '@dungeonmaster/shared/contracts';
 
-import { fetchPostAdapter } from '../../../adapters/fetch/post/fetch-post-adapter';
+import { fetchJson } from '#gateway/browser/fetch';
+
+import { questMergeResultContract } from '../../../contracts/quest-merge-result/quest-merge-result-contract';
+import type { QuestMergeResult } from '../../../contracts/quest-merge-result/quest-merge-result-contract';
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
 
 export const questMergeBroker = async ({
   questId,
 }: {
   questId: QuestId;
-}): Promise<{ merging: boolean }> =>
-  fetchPostAdapter<{ merging: boolean }>({
+}): Promise<QuestMergeResult> => {
+  const response = await fetchJson({
     url: webConfigStatics.api.routes.questMerge.replace(':questId', questId),
+    method: 'POST',
     body: undefined,
   });
+
+  return questMergeResultContract.parse(response);
+};

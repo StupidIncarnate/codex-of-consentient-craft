@@ -39,7 +39,7 @@ describe('questPauseBroker', () => {
 
       proxy.setupError();
 
-      await expect(questPauseBroker({ questId })).rejects.toThrow(/fetch/iu);
+      await expect(questPauseBroker({ questId })).rejects.toThrow(/^Failed to fetch$/u);
     });
   });
 });

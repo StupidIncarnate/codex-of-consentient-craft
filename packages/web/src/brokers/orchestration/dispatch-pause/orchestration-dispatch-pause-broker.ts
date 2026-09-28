@@ -5,17 +5,19 @@
  * const state = await orchestrationDispatchPauseBroker();
  * // Returns the updated DispatchState with mode 'paused'
  */
-import { dispatchStateContract } from '@dungeonmaster/shared/contracts';
 import type { DispatchState } from '@dungeonmaster/shared/contracts';
 
-import { fetchPostAdapter } from '../../../adapters/fetch/post/fetch-post-adapter';
+import { fetchJson } from '#gateway/browser/fetch';
+
+import { orchestrationDispatchResultContract } from '../../../contracts/orchestration-dispatch-result/orchestration-dispatch-result-contract';
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
 
 export const orchestrationDispatchPauseBroker = async (): Promise<DispatchState> => {
-  const response = await fetchPostAdapter<{ state: unknown }>({
+  const response = await fetchJson({
     url: webConfigStatics.api.routes.orchestrationDispatchPause,
+    method: 'POST',
     body: {},
   });
 
-  return dispatchStateContract.parse(response.state);
+  return orchestrationDispatchResultContract.parse(response).state;
 };

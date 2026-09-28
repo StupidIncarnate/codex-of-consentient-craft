@@ -2,10 +2,10 @@
 // USAGE: Create proxy in test, use setup methods to configure endpoint behavior
 
 import type { ProcessId } from '@dungeonmaster/shared/contracts';
-import { StartEndpointMock } from '@dungeonmaster/testing';
 import type { RequestCount } from '@dungeonmaster/testing';
 
-import { fetchPostAdapterProxy } from '../../../adapters/fetch/post/fetch-post-adapter.proxy';
+import { fetchJsonProxy } from '#gateway/browser/fetch/fetch-json/fetch-json.proxy';
+
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
 
 export const questClarifyBrokerProxy = (): {
@@ -14,23 +14,19 @@ export const questClarifyBrokerProxy = (): {
   setupError: () => void;
   getRequestCount: () => RequestCount;
 } => {
-  fetchPostAdapterProxy();
-
-  const endpoint = StartEndpointMock.listen({
-    method: 'post',
-    url: webConfigStatics.api.routes.questClarify,
-  });
+  const jsonFetchProxy = fetchJsonProxy();
+  const address = { method: 'post', url: webConfigStatics.api.routes.questClarify } as const;
 
   return {
     setupClarify: ({ chatProcessId }) => {
-      endpoint.resolves({ data: { chatProcessId } });
+      jsonFetchProxy.setupSuccess({ ...address, body: { chatProcessId } });
     },
     setupInvalidResponse: ({ chatProcessId }) => {
-      endpoint.resolves({ data: { chatProcessId } });
+      jsonFetchProxy.setupSuccess({ ...address, body: { chatProcessId } });
     },
     setupError: () => {
-      endpoint.networkError();
+      jsonFetchProxy.setupConnectionRefused(address);
     },
-    getRequestCount: (): RequestCount => endpoint.getRequestCount(),
+    getRequestCount: (): RequestCount => jsonFetchProxy.getRequestCount(address),
   };
 };

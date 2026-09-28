@@ -48,7 +48,7 @@ describe('questFollowupStopBroker', () => {
       const questId = QuestIdStub({ value: 'add-auth' });
       proxy.setupError();
 
-      await expect(questFollowupStopBroker({ questId })).rejects.toThrow(/fetch/iu);
+      await expect(questFollowupStopBroker({ questId })).rejects.toThrow(/^Failed to fetch$/u);
     });
   });
 });

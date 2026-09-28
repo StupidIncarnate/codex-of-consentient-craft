@@ -37,6 +37,7 @@ export const useQuestChatBindingProxy = (): {
   setupFollowupStopError: () => void;
   getFollowupStopRequestCount: () => RequestCount;
   setupResume: (params: { restoredStatus: QuestStatus }) => void;
+  setupResumeServerError: () => void;
   setupUuids: (params: {
     uuids: readonly `${string}-${string}-${string}-${string}-${string}`[];
   }) => void;
@@ -137,6 +138,9 @@ export const useQuestChatBindingProxy = (): {
     getFollowupStopRequestCount: () => followupStopProxy.getRequestCount(),
     setupResume: ({ restoredStatus }) => {
       resumeProxy.setupResume({ restoredStatus });
+    },
+    setupResumeServerError: () => {
+      resumeProxy.setupServerError();
     },
     setupUuids: ({ uuids }) => {
       // randomUUID takes no arguments, so there is no address beyond "the next call" — onceFor

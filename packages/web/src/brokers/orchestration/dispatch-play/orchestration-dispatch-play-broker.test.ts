@@ -23,7 +23,7 @@ describe('orchestrationDispatchPlayBroker', () => {
 
       proxy.setupError();
 
-      await expect(orchestrationDispatchPlayBroker()).rejects.toThrow(/fetch/iu);
+      await expect(orchestrationDispatchPlayBroker()).rejects.toThrow(/^Failed to fetch$/u);
     });
   });
 

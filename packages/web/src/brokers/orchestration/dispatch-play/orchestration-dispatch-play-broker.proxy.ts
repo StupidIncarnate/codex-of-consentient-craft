@@ -1,11 +1,9 @@
 import type { DispatchState } from '@dungeonmaster/shared/contracts';
-import { StartEndpointMock } from '@dungeonmaster/testing';
 
-import { fetchPostAdapterProxy } from '../../../adapters/fetch/post/fetch-post-adapter.proxy';
+import { fetchJsonProxy } from '#gateway/browser/fetch/fetch-json/fetch-json.proxy';
+import type { RequestCount } from '@dungeonmaster/testing';
+
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
-
-type EndpointControl = ReturnType<typeof StartEndpointMock.listen>;
-type RequestCount = ReturnType<EndpointControl['getRequestCount']>;
 
 export const orchestrationDispatchPlayBrokerProxy = (): {
   setupState: (params: { state: DispatchState }) => void;
@@ -13,23 +11,22 @@ export const orchestrationDispatchPlayBrokerProxy = (): {
   setupInvalidResponse: (params: { data: unknown }) => void;
   getRequestCount: () => RequestCount;
 } => {
-  fetchPostAdapterProxy();
-
-  const endpoint = StartEndpointMock.listen({
+  const jsonFetchProxy = fetchJsonProxy();
+  const address = {
     method: 'post',
     url: webConfigStatics.api.routes.orchestrationDispatchPlay,
-  });
+  } as const;
 
   return {
     setupState: ({ state }) => {
-      endpoint.resolves({ data: { state } });
+      jsonFetchProxy.setupSuccess({ ...address, body: { state } });
     },
     setupError: () => {
-      endpoint.networkError();
+      jsonFetchProxy.setupConnectionRefused(address);
     },
     setupInvalidResponse: ({ data }) => {
-      endpoint.resolves({ data });
+      jsonFetchProxy.setupSuccess({ ...address, body: data });
     },
-    getRequestCount: () => endpoint.getRequestCount(),
+    getRequestCount: () => jsonFetchProxy.getRequestCount(address),
   };
 };

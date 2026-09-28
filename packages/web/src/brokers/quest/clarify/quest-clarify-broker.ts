@@ -6,10 +6,11 @@
  * // Returns { chatProcessId: ProcessId }
  */
 
-import { processIdContract } from '@dungeonmaster/shared/contracts';
 import type { AskUserQuestionItem, ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
 
-import { fetchPostAdapter } from '../../../adapters/fetch/post/fetch-post-adapter';
+import { fetchJson } from '#gateway/browser/fetch';
+
+import { questClarifyResultContract } from '../../../contracts/quest-clarify-result/quest-clarify-result-contract';
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
 
 export const questClarifyBroker = async ({
@@ -23,10 +24,11 @@ export const questClarifyBroker = async ({
 }): Promise<{ chatProcessId: ProcessId }> => {
   const url = webConfigStatics.api.routes.questClarify.replace(':questId', questId);
 
-  const response = await fetchPostAdapter<{ chatProcessId: unknown }>({
+  const response = await fetchJson({
     url,
+    method: 'POST',
     body: { answers, questions },
   });
 
-  return { chatProcessId: processIdContract.parse(response.chatProcessId) };
+  return questClarifyResultContract.parse(response);
 };

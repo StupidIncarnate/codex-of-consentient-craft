@@ -40,7 +40,7 @@ describe('questMergeBroker', () => {
 
       proxy.setupError();
 
-      await expect(questMergeBroker({ questId })).rejects.toThrow(/fetch/iu);
+      await expect(questMergeBroker({ questId })).rejects.toThrow(/^Failed to fetch$/u);
     });
   });
 });

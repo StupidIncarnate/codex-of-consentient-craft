@@ -13,7 +13,9 @@
 
 import type { QuestId } from '@dungeonmaster/shared/contracts';
 
-import { fetchPostAdapter } from '../../../adapters/fetch/post/fetch-post-adapter';
+import { fetchJson } from '#gateway/browser/fetch';
+
+import { questResumeOutcomeContract } from '../../../contracts/quest-resume-outcome/quest-resume-outcome-contract';
 import type { QuestResumeOutcome } from '../../../contracts/quest-resume-outcome/quest-resume-outcome-contract';
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
 
@@ -21,8 +23,12 @@ export const questResumeBroker = async ({
   questId,
 }: {
   questId: QuestId;
-}): Promise<QuestResumeOutcome> =>
-  fetchPostAdapter<QuestResumeOutcome>({
+}): Promise<QuestResumeOutcome> => {
+  const response = await fetchJson({
     url: webConfigStatics.api.routes.questResume.replace(':questId', questId),
+    method: 'POST',
     body: undefined,
   });
+
+  return questResumeOutcomeContract.parse(response);
+};
