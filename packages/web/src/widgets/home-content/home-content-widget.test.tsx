@@ -14,7 +14,7 @@ import {
   SkippedQuestFileStub,
 } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { HomeContentWidget } from './home-content-widget';
 import { HomeContentWidgetProxy } from './home-content-widget.proxy';
 

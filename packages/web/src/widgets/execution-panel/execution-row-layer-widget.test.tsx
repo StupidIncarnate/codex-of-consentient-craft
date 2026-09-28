@@ -10,7 +10,7 @@ import {
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import {
   AssistantTextChatEntryStub,
   AssistantThinkingChatEntryStub,

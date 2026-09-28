@@ -17,7 +17,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { act, waitFor } from '#gateway/npm/testing-library__react';
 import { elapsedDisplayConfigStatics } from '../../statics/elapsed-display-config/elapsed-display-config-statics';
 import { ExecutionPanelWidget } from './execution-panel-widget';

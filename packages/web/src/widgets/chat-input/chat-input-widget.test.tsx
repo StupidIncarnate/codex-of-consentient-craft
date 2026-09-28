@@ -6,7 +6,7 @@ import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
 import { composerInsertImageBroker } from '../../brokers/composer/insert-image/composer-insert-image-broker';
 import { composerReadTransformer } from '../../transformers/composer-read/composer-read-transformer';
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { draftImagesSaveBroker } from '../../brokers/draft-images/save/draft-images-save-broker';
 import { ByteLengthStub } from '../../contracts/byte-length/byte-length.stub';
 import { ComposerAttachmentStub } from '../../contracts/composer-attachment/composer-attachment.stub';

@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react';
 
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { UserChatEntryStub } from '@dungeonmaster/shared/contracts';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import type { InjectedPromptLayerWidgetProps } from './injected-prompt-layer-widget';

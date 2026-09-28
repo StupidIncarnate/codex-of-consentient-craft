@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react';
 
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { MarkdownSourceStub } from '../../contracts/markdown-source/markdown-source.stub';
 import { MarkdownTextWidget } from './markdown-text-widget';
 import { MarkdownTextWidgetProxy } from './markdown-text-widget.proxy';

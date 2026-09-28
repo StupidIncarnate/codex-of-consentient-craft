@@ -3,7 +3,7 @@ import { screen, waitFor } from '@testing-library/react';
 import { UserChatEntryStub } from '@dungeonmaster/shared/contracts';
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { ImageDataUrlStub } from '../../contracts/image-data-url/image-data-url.stub';
 import { webConfigStatics } from '../../statics/web-config/web-config-statics';
 import { ImageContentLayerWidget } from './image-content-layer-widget';

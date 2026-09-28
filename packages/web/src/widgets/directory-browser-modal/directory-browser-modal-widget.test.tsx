@@ -2,7 +2,7 @@ import { screen, waitFor } from '@testing-library/react';
 
 import { DirectoryEntryStub } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { act } from '#gateway/npm/testing-library__react';
 import { DirectoryBrowserModalWidget } from './directory-browser-modal-widget';
 import { DirectoryBrowserModalWidgetProxy } from './directory-browser-modal-widget.proxy';

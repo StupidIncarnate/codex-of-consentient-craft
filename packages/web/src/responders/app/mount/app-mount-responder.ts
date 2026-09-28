@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Mounts the React application by calling react-dom mount adapter with AppRootWidget wrapper
+ * PURPOSE: Mounts the React application by calling the react-root mount broker with AppRootWidget wrapper
  *
  * USAGE:
  * AppMountResponder({ content });
@@ -9,14 +9,14 @@
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 
-import { reactDomMountAdapter } from '../../../adapters/react-dom/mount/react-dom-mount-adapter';
+import { reactRootMountBroker } from '../../../brokers/react-root/mount/react-root-mount-broker';
 import { AppRootWidget } from '../../../widgets/app-root/app-root-widget';
 
 export const AppMountResponder = ({
   content,
 }: {
-  content: Parameters<typeof reactDomMountAdapter>[0]['content'];
+  content: Parameters<typeof reactRootMountBroker>[0]['content'];
 }): AdapterResult => {
-  reactDomMountAdapter({ rootElementId: 'root', Wrapper: AppRootWidget, content });
+  reactRootMountBroker({ rootElementId: 'root', Wrapper: AppRootWidget, content });
   return adapterResultContract.parse({ success: true });
 };

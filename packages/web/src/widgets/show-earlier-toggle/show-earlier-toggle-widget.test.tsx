@@ -1,7 +1,7 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { TailStartIndexStub } from '../../contracts/tail-start-index/tail-start-index.stub';
 import { ToggleTestIdStub } from '../../contracts/toggle-test-id/toggle-test-id.stub';
 import { ShowEarlierToggleWidget } from './show-earlier-toggle-widget';

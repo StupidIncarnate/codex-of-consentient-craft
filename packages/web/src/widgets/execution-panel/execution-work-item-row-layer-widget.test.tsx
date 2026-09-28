@@ -12,7 +12,7 @@ import {
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { DisplayLabelStub } from '../../contracts/display-label/display-label.stub';
 import { RowOrderStub } from '../../contracts/row-order/row-order.stub';
 import { userEventStatics } from '../../statics/user-event/user-event-statics';

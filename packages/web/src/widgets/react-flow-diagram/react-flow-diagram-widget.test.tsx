@@ -14,7 +14,7 @@ import {
   QuestPackageEntryStub,
 } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { flowNodeStyleStatics } from '../../statics/flow-node-style/flow-node-style-statics';
 import { ReactFlowDiagramWidget } from './react-flow-diagram-widget';
 import { ReactFlowDiagramWidgetProxy } from './react-flow-diagram-widget.proxy';

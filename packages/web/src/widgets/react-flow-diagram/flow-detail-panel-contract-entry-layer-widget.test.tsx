@@ -1,6 +1,6 @@
 import { QuestContractEntryStub } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { FlowDetailPanelContractEntryLayerWidget } from './flow-detail-panel-contract-entry-layer-widget';
 import { FlowDetailPanelContractEntryLayerWidgetProxy } from './flow-detail-panel-contract-entry-layer-widget.proxy';
 

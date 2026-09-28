@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react';
 
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { CssColorOverrideStub } from '../../contracts/css-color-override/css-color-override.stub';
 import { CssDimensionStub } from '../../contracts/css-dimension/css-dimension.stub';
 import { DropdownOptionStub } from '../../contracts/dropdown-option/dropdown-option.stub';

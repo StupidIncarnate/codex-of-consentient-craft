@@ -7,7 +7,7 @@ import {
   TotalCountStub,
 } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { QueueRowLayerWidget } from './queue-row-layer-widget';
 import { QueueRowLayerWidgetProxy } from './queue-row-layer-widget.proxy';
 

@@ -5,7 +5,7 @@ import {
   QuestIdStub,
 } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { CommentQueueEntryStub } from '../../contracts/comment-queue-entry/comment-queue-entry.stub';
 import { commentQueueStatics } from '../../statics/comment-queue/comment-queue-statics';
 import { iconButtonStatics } from '../../statics/icon-button/icon-button-statics';

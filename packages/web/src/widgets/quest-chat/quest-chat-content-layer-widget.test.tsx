@@ -15,7 +15,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { ComposerAttachmentStub } from '../../contracts/composer-attachment/composer-attachment.stub';
 import { QuestChatContentLayerWidget } from './quest-chat-content-layer-widget';
 import { QuestChatContentLayerWidgetProxy } from './quest-chat-content-layer-widget.proxy';

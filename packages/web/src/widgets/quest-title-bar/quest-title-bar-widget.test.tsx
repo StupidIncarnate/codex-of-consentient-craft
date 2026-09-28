@@ -2,7 +2,7 @@ import { screen } from '@testing-library/react';
 
 import { QuestStub } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { QuestTitleBarWidget } from './quest-title-bar-widget';
 import { QuestTitleBarWidgetProxy } from './quest-title-bar-widget.proxy';
 

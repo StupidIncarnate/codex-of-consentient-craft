@@ -1,6 +1,6 @@
 import { GuildIdStub, GuildListItemStub } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { GuildRowLayerWidget } from './guild-row-layer-widget';
 import { GuildRowLayerWidgetProxy } from './guild-row-layer-widget.proxy';
 

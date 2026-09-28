@@ -1,7 +1,7 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { FormattedTokenLabelStub } from '../../contracts/formatted-token-label/formatted-token-label.stub';
 import {
   AssistantToolResultChatEntryStub,

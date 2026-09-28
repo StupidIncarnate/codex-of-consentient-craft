@@ -1,14 +1,20 @@
+import { waitFor } from '#gateway/npm/testing-library__react';
+
 import { AppMountResponderProxy } from './app-mount-responder.proxy';
 
 describe('AppMountResponder', () => {
   describe('mounting', () => {
-    it('VALID: {content} => calls adapter to render content', () => {
+    it('VALID: {content} => renders content inside AppRootWidget in #root and returns success', async () => {
       const proxy = AppMountResponderProxy();
       proxy.setupRootElement();
 
-      proxy.callResponder({ content: 'test-content' });
+      const result = proxy.callResponder({ content: 'test-content' });
 
-      expect(proxy.renderWasCalled()).toBe(true);
+      await waitFor(() => {
+        expect(proxy.isMountedInsideAppRoot()).toBe(true);
+      });
+
+      expect(result).toStrictEqual({ success: true });
     });
   });
 });

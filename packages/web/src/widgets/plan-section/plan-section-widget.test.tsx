@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react';
 
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { PlanSectionTestItemStub } from '../../contracts/plan-section-test-item/plan-section-test-item.stub';
 import { SectionLabelStub } from '../../contracts/section-label/section-label.stub';
 import { PlanSectionWidget } from './plan-section-widget';

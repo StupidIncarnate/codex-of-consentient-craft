@@ -1,4 +1,4 @@
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { UploadPercentStub } from '../../contracts/upload-percent/upload-percent.stub';
 import { UploadProgressBarWidget } from './upload-progress-bar-widget';
 import { UploadProgressBarWidgetProxy } from './upload-progress-bar-widget.proxy';

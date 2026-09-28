@@ -1,6 +1,6 @@
 import { DispatchHoldStub } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { DispatchHoldNoticeWidget } from './dispatch-hold-notice-widget';
 import { DispatchHoldNoticeWidgetProxy } from './dispatch-hold-notice-widget.proxy';
 

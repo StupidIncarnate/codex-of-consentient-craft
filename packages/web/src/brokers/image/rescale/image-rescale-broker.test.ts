@@ -11,7 +11,11 @@ describe('imageRescaleBroker', () => {
       const proxy = imageRescaleBrokerProxy();
       const dataUrl = ImageDataUrlStub();
       proxy.decodesTo({ dataUrl, widthPx: 6000, heightPx: 4000 });
-      proxy.encodesTo({ dataUrl: 'data:image/png;base64,AAAA' });
+      proxy.encodesTo({
+        dataUrl: 'data:image/png;base64,AAAA',
+        mediaType: 'image/png',
+        quality: 0.82,
+      });
 
       await imageRescaleBroker({
         dataUrl,
@@ -29,7 +33,11 @@ describe('imageRescaleBroker', () => {
       const proxy = imageRescaleBrokerProxy();
       const dataUrl = ImageDataUrlStub();
       proxy.decodesTo({ dataUrl, widthPx: 6000, heightPx: 4000 });
-      proxy.encodesTo({ dataUrl: 'data:image/png;base64,AAAA' });
+      proxy.encodesTo({
+        dataUrl: 'data:image/png;base64,AAAA',
+        mediaType: 'image/png',
+        quality: 0.82,
+      });
 
       const result = await imageRescaleBroker({
         dataUrl,
@@ -47,7 +55,11 @@ describe('imageRescaleBroker', () => {
       const proxy = imageRescaleBrokerProxy();
       const dataUrl = ImageDataUrlStub();
       proxy.decodesTo({ dataUrl, widthPx: 6000, heightPx: 4000 });
-      proxy.encodesTo({ dataUrl: 'data:image/png;base64,AAAA' });
+      proxy.encodesTo({
+        dataUrl: 'data:image/png;base64,AAAA',
+        mediaType: 'image/png',
+        quality: 0.82,
+      });
 
       await imageRescaleBroker({
         dataUrl,

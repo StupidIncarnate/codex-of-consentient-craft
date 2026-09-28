@@ -2,7 +2,7 @@ import { waitFor } from '@testing-library/react';
 
 import { QuestIdStub } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { CommentAnchorStub } from '../../contracts/comment-anchor/comment-anchor.stub';
 import { CommentQueueEntryStub } from '../../contracts/comment-queue-entry/comment-queue-entry.stub';
 

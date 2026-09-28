@@ -1,6 +1,6 @@
 import { FlowRecipeStub } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { FlowRecipeRowLayerWidget } from './flow-recipe-row-layer-widget';
 import { FlowRecipeRowLayerWidgetProxy } from './flow-recipe-row-layer-widget.proxy';
 

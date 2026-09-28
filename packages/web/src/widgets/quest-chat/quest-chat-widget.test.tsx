@@ -7,7 +7,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 import { GuildListItemStub, OrchestrationModeStub } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { act } from '#gateway/npm/testing-library__react';
 import { QuestChatWidget } from './quest-chat-widget';
 import { QuestChatWidgetProxy } from './quest-chat-widget.proxy';

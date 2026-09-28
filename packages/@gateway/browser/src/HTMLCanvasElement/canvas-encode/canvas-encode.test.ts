@@ -58,6 +58,50 @@ describe('canvasEncode', () => {
     ).toThrow(/^canvasEncode: 2d canvas context unavailable$/u);
   });
 
+  describe('one-shot staging', () => {
+    it('VALID: {two one-shot encodes staged for one media type and quality} => each ask gets its own answer, in order', () => {
+      const proxy = canvasEncodeProxy();
+      proxy.stageEncodeOnce({
+        mediaType: 'image/jpeg',
+        quality: 0.82,
+        dataUrl: 'data:image/jpeg;base64,FIRST',
+      });
+      proxy.stageEncodeOnce({
+        mediaType: 'image/jpeg',
+        quality: 0.82,
+        dataUrl: 'data:image/jpeg;base64,SECOND',
+      });
+      const ask = (): string =>
+        canvasEncode({
+          image: ImageBitmapStub(),
+          widthPx: 8,
+          heightPx: 8,
+          mediaType: 'image/jpeg',
+          quality: 0.82,
+        });
+
+      expect([ask(), ask()]).toStrictEqual([
+        'data:image/jpeg;base64,FIRST',
+        'data:image/jpeg;base64,SECOND',
+      ]);
+    });
+
+    it('ERROR: {one-shot context unavailable staged} => the next encode throws naming the missing context', () => {
+      const proxy = canvasEncodeProxy();
+      proxy.stageContextUnavailableOnce();
+
+      expect(() =>
+        canvasEncode({
+          image: ImageBitmapStub(),
+          widthPx: 4,
+          heightPx: 4,
+          mediaType: 'image/png',
+          quality: 1,
+        }),
+      ).toThrow(/^canvasEncode: 2d canvas context unavailable$/u);
+    });
+  });
+
   describe('call inspection', () => {
     it('VALID: {an encode already made} => getDrawCalls reads back the bitmap and the size it was drawn at', () => {
       const proxy = canvasEncodeProxy();

@@ -1,6 +1,6 @@
 import { SessionIdStub, SessionListItemStub } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { SessionRowLayerWidget } from './session-row-layer-widget';
 import { SessionRowLayerWidgetProxy } from './session-row-layer-widget.proxy';
 

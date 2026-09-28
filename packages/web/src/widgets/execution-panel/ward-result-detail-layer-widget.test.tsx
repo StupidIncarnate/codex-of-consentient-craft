@@ -2,7 +2,7 @@ import { screen, waitFor } from '@testing-library/react';
 
 import { QuestIdStub, WardDetailStub, WardResultStub } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 
 import { WardResultDetailLayerWidget } from './ward-result-detail-layer-widget';
 import { WardResultDetailLayerWidgetProxy } from './ward-result-detail-layer-widget.proxy';

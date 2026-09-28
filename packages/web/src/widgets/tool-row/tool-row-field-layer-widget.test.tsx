@@ -1,7 +1,7 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { FormattedToolFieldStub } from '../../contracts/formatted-tool-field/formatted-tool-field.stub';
 import { ToolNameStub } from '../../contracts/tool-name/tool-name.stub';
 import { ToolRowFieldLayerWidget } from './tool-row-field-layer-widget';

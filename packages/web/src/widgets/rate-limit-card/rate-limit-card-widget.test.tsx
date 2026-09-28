@@ -1,6 +1,6 @@
 import { RateLimitWindowStub } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { RateLimitCardWidget } from './rate-limit-card-widget';
 import { RateLimitCardWidgetProxy } from './rate-limit-card-widget.proxy';
 

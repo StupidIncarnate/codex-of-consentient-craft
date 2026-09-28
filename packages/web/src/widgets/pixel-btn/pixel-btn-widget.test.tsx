@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react';
 
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { ButtonLabelStub } from '../../contracts/button-label/button-label.stub';
 import { ButtonVariantStub } from '../../contracts/button-variant/button-variant.stub';
 import { PixelBtnWidget } from './pixel-btn-widget';

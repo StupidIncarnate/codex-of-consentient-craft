@@ -15,7 +15,7 @@ import {
 import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 
 import { AskUserQuestionStub } from '@dungeonmaster/shared/contracts';
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { CommentQueueEntryStub } from '../../contracts/comment-queue-entry/comment-queue-entry.stub';
 import { QuestSpecPanelWidget } from './quest-spec-panel-widget';
 import { QuestSpecPanelWidgetProxy } from './quest-spec-panel-widget.proxy';

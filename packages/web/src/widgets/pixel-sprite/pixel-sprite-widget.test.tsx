@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react';
 
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { PixelCoordinateStub } from '../../contracts/pixel-coordinate/pixel-coordinate.stub';
 import { PixelDimensionStub } from '../../contracts/pixel-dimension/pixel-dimension.stub';
 import { PixelSpriteWidget } from './pixel-sprite-widget';

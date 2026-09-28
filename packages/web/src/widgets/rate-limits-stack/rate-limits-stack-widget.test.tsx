@@ -1,6 +1,6 @@
 import { RateLimitsSnapshotStub, RateLimitWindowStub } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { act, waitFor } from '#gateway/npm/testing-library__react';
 import { RateLimitsStackWidget } from './rate-limits-stack-widget';
 import { RateLimitsStackWidgetProxy } from './rate-limits-stack-widget.proxy';

@@ -4,6 +4,7 @@
 // call the broker, then read back getRescaleCalls() for what the encode was actually asked for.
 
 import { PastedImageMediaTypeStub } from '@dungeonmaster/shared/contracts';
+import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
 import { imageMeasureBrokerProxy } from '../../image/measure/image-measure-broker.proxy';
 import { imageRescaleBrokerProxy } from '../../image/rescale/image-rescale-broker.proxy';
@@ -13,6 +14,12 @@ import { ImageSizeStub } from '../../../contracts/image-size/image-size.stub';
 type SizeLike = ReturnType<typeof ImageSizeStub>;
 type MediaTypeLike = ReturnType<typeof PastedImageMediaTypeStub>;
 type ImageDataUrl = ReturnType<typeof ImageDataUrlStub>;
+
+// A staged encode is addressed by the media type its own data url declares and the quality the
+// ladder asks that type for: png is lossless and asked at 1, jpeg at `jpegQuality`.
+const PNG_MEDIA_TYPE = 'image/png';
+const PNG_ENCODE_QUALITY = 1;
+const DATA_URL_PREFIX = 'data:';
 
 // A named `type RescaleCallRecord = { ... }` object-literal alias gets auto-fixed into an
 // `interface`, which ban-adhoc-types then rejects outright in brokers/ files (named object shapes
@@ -32,6 +39,15 @@ export const pastedImageDownscaleBrokerProxy = (): {
   const measureProxy = imageMeasureBrokerProxy();
   const rescaleProxy = imageRescaleBrokerProxy();
 
+  const stageEncode = ({ dataUrl }: { dataUrl: string }): void => {
+    const mediaType = dataUrl.slice(DATA_URL_PREFIX.length, dataUrl.indexOf(';'));
+    rescaleProxy.encodesTo({
+      dataUrl,
+      mediaType,
+      quality: mediaType === PNG_MEDIA_TYPE ? PNG_ENCODE_QUALITY : pastedImageStatics.jpegQuality,
+    });
+  };
+
   return {
     // The ladder decodes the same original bytes to measure it and again on every re-encode, so the
     // one decode is staged on both.
@@ -40,11 +56,11 @@ export const pastedImageDownscaleBrokerProxy = (): {
       rescaleProxy.decodesTo({ dataUrl, widthPx, heightPx });
     },
     reencodeYields: ({ dataUrl }: { dataUrl: string }): void => {
-      rescaleProxy.encodesTo({ dataUrl });
+      stageEncode({ dataUrl });
     },
     reencodeYieldsInOrder: ({ dataUrls }: { dataUrls: readonly string[] }): void => {
       dataUrls.forEach((dataUrl) => {
-        rescaleProxy.encodesTo({ dataUrl });
+        stageEncode({ dataUrl });
       });
     },
     decodeFails: ({ dataUrl, error }): void => {

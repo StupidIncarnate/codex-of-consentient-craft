@@ -2,7 +2,7 @@ import { screen } from '@testing-library/react';
 
 import { DesignDecisionStub } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { DesignDecisionsLayerWidget } from './design-decisions-layer-widget';
 import { DesignDecisionsLayerWidgetProxy } from './design-decisions-layer-widget.proxy';
 

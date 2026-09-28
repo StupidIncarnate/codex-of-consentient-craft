@@ -8,7 +8,7 @@ import {
   RateLimitWindowStub,
 } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { QueuePageWidget } from './queue-page-widget';
 import { QueuePageWidgetProxy } from './queue-page-widget.proxy';
 

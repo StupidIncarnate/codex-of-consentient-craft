@@ -2,7 +2,7 @@ import { screen } from '@testing-library/react';
 
 import { ArrayIndexStub, FlowStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { CommentQueueEntryStub } from '../../contracts/comment-queue-entry/comment-queue-entry.stub';
 import { FlowTabLayerWidget } from './flow-tab-layer-widget';
 import { FlowTabLayerWidgetProxy } from './flow-tab-layer-widget.proxy';

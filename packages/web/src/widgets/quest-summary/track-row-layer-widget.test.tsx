@@ -3,7 +3,7 @@ import { screen } from '@testing-library/react';
 import { QuestSummaryTrackCountsStub } from '@dungeonmaster/shared/contracts';
 import { verificationTracksStatics } from '@dungeonmaster/shared/statics';
 
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { TrackRowLayerWidget } from './track-row-layer-widget';
 import { TrackRowLayerWidgetProxy } from './track-row-layer-widget.proxy';
 

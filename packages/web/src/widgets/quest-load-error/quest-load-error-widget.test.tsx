@@ -1,6 +1,6 @@
 import { QuestIdStub } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { QuestLoadErrorWidget } from './quest-load-error-widget';
 import { QuestLoadErrorWidgetProxy } from './quest-load-error-widget.proxy';
 

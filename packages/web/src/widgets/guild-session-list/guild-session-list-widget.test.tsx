@@ -8,7 +8,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 import { SessionFilterStub } from '../../contracts/session-filter/session-filter.stub';
 import { GuildSessionListWidget } from './guild-session-list-widget';

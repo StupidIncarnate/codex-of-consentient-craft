@@ -2,7 +2,7 @@ import { screen } from '@testing-library/react';
 
 import { QuestSummaryDebtStub } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { DebtRowLayerWidget } from './debt-row-layer-widget';
 import { DebtRowLayerWidgetProxy } from './debt-row-layer-widget.proxy';
 

@@ -12,7 +12,7 @@ import {
 import { act, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { SessionViewWidget } from './session-view-widget';
 import { SessionViewWidgetProxy } from './session-view-widget.proxy';
 

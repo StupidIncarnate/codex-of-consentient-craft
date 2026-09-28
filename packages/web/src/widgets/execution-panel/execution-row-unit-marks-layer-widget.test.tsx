@@ -2,7 +2,7 @@ import { screen } from '@testing-library/react';
 
 import { UnitObservationStub, WorkItemStub } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { ExecutionRowUnitMarksLayerWidget } from './execution-row-unit-marks-layer-widget';
 import { ExecutionRowUnitMarksLayerWidgetProxy } from './execution-row-unit-marks-layer-widget.proxy';
 

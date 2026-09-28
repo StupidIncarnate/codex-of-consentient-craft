@@ -6,7 +6,7 @@ import {
   QuestSummaryObservableStub,
 } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { HumanCheckRowLayerWidget } from './human-check-row-layer-widget';
 import { HumanCheckRowLayerWidgetProxy } from './human-check-row-layer-widget.proxy';
 

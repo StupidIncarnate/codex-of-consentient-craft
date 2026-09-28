@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react';
 
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { SectionLabelStub } from '../../contracts/section-label/section-label.stub';
 import { TagItemStub } from '../../contracts/tag-item/tag-item.stub';
 import { FormTagListWidget } from './form-tag-list-widget';

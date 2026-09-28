@@ -2,7 +2,7 @@ import { screen } from '@testing-library/react';
 
 import { FlowNodeIdStub } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { CommentCountStub } from '../../contracts/comment-count/comment-count.stub';
 import { ContractCountStub } from '../../contracts/contract-count/contract-count.stub';
 import { ReactFlowNodeDataStub } from '../../contracts/react-flow-node-data/react-flow-node-data.stub';

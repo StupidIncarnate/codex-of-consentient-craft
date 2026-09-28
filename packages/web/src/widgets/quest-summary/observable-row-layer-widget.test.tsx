@@ -2,7 +2,7 @@ import { screen } from '@testing-library/react';
 
 import { QuestSummaryObservableStub } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { ObservableRowLayerWidget } from './observable-row-layer-widget';
 import { ObservableRowLayerWidgetProxy } from './observable-row-layer-widget.proxy';
 

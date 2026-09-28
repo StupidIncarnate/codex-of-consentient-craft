@@ -1,4 +1,4 @@
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { FlowPortalNodeDataStub } from '../../contracts/flow-portal-node-data/flow-portal-node-data.stub';
 import { FlowPortalNodeLayerWidget } from './flow-portal-node-layer-widget';
 import { FlowPortalNodeLayerWidgetProxy } from './flow-portal-node-layer-widget.proxy';

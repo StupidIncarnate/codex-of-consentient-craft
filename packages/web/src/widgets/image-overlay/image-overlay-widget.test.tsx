@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react';
 
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { webConfigStatics } from '../../statics/web-config/web-config-statics';
 import { ImageOverlayWidget } from './image-overlay-widget';
 import { ImageOverlayWidgetProxy } from './image-overlay-widget.proxy';

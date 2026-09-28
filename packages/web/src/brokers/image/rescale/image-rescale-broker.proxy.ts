@@ -1,9 +1,3 @@
-import { z } from 'zod';
-
-import { registerMock } from '@dungeonmaster/testing/register-mock';
-import type { MockHandle } from '@dungeonmaster/testing/register-mock';
-
-import { canvasEncode } from '#gateway/browser/HTMLCanvasElement';
 import { canvasEncodeProxy } from '#gateway/browser/HTMLCanvasElement/canvas-encode/canvas-encode.proxy';
 import { createImageBitmapProxy } from '#gateway/browser/createImageBitmap/create-image-bitmap/create-image-bitmap.proxy';
 
@@ -16,16 +10,9 @@ type ImageSize = ReturnType<typeof ImageSizeStub>;
 
 const BASE64_MARKER = ';base64,';
 
-// The request object `canvasEncode` receives, read back field by field without narrowing any of it.
-const encodeRequestContract = z.object({
-  widthPx: z.unknown(),
-  heightPx: z.unknown(),
-  mediaType: z.unknown(),
-  quality: z.unknown(),
-});
-
-// The encode answers in the order it was staged: a ladder asks for the same (mediaType, quality)
-// several times and each ask gets its own answer. Every ask carries exactly one request object.
+// The encode answers in the order it was staged, each answer addressed by the media type and
+// quality it was staged for: a ladder asks for the same (mediaType, quality) several times and each
+// ask consumes its own answer. An ask nobody staged fails the test from the gateway's spy.
 export const imageRescaleBrokerProxy = (): {
   decodesTo: (params: {
     dataUrl?: ImageDataUrl | undefined;
@@ -33,7 +20,7 @@ export const imageRescaleBrokerProxy = (): {
     heightPx: number;
   }) => void;
   decodeFails: (params: { dataUrl?: ImageDataUrl | undefined; error: Error }) => void;
-  encodesTo: (params: { dataUrl: string }) => void;
+  encodesTo: (params: { dataUrl: string; mediaType: string; quality: number }) => void;
   contextUnavailable: () => void;
   getEncodeRequests: () => readonly {
     widthPx: unknown;
@@ -44,13 +31,7 @@ export const imageRescaleBrokerProxy = (): {
   getClosedBitmapSizes: () => readonly ImageSize[];
 } => {
   const bitmapProxy = createImageBitmapProxy();
-  // Child creation only: every encode is answered by the `canvasEncode` mock below, which is what
-  // lets one media type and quality get a different answer on each ask.
-  canvasEncodeProxy();
-  const encodeHandle: MockHandle = registerMock({ fn: canvasEncode });
-
-  const isEncodeRequest = (request: unknown): boolean =>
-    typeof request === 'object' && request !== null;
+  const encodeProxy = canvasEncodeProxy();
 
   const blobOf = ({
     dataUrl,
@@ -74,23 +55,27 @@ export const imageRescaleBrokerProxy = (): {
     decodeFails: ({ dataUrl, error }): void => {
       bitmapProxy.stageDecodeFails({ input: blobOf({ dataUrl }), error });
     },
-    encodesTo: ({ dataUrl }): void => {
-      encodeHandle.onceFor([isEncodeRequest]).returns(dataUrl);
+    encodesTo: ({ dataUrl, mediaType, quality }): void => {
+      encodeProxy.stageEncodeOnce({ mediaType, quality, dataUrl });
     },
     contextUnavailable: (): void => {
-      encodeHandle
-        .onceFor([isEncodeRequest])
-        .throws(new Error('canvasEncode: 2d canvas context unavailable'));
+      encodeProxy.stageContextUnavailableOnce();
     },
     getEncodeRequests: (): readonly {
       widthPx: unknown;
       heightPx: unknown;
       mediaType: unknown;
       quality: unknown;
-    }[] =>
-      encodeHandle
-        .callsMatching([isEncodeRequest])
-        .map(([request]) => encodeRequestContract.parse(request)),
+    }[] => {
+      const draws = encodeProxy.getDrawCalls();
+
+      return encodeProxy.getEncodeRequests().map(({ mediaType, quality }, index) => ({
+        widthPx: draws[index]?.dWidth,
+        heightPx: draws[index]?.dHeight,
+        mediaType,
+        quality,
+      }));
+    },
     getClosedBitmapSizes: (): readonly ImageSize[] =>
       bitmapProxy
         .getClosedBitmapSizes()

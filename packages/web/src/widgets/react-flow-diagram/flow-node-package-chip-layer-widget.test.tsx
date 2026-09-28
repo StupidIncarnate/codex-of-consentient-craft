@@ -1,5 +1,5 @@
 import { ReactFlowPackageChipStub } from '../../contracts/react-flow-package-chip/react-flow-package-chip.stub';
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { packageTypeStyleStatics } from '../../statics/package-type-style/package-type-style-statics';
 import { FlowNodePackageChipLayerWidget } from './flow-node-package-chip-layer-widget';
 import { FlowNodePackageChipLayerWidgetProxy } from './flow-node-package-chip-layer-widget.proxy';

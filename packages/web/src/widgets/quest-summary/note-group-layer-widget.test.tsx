@@ -2,7 +2,7 @@ import { screen } from '@testing-library/react';
 
 import { QuestNoteStub, QuestSummaryNoteGroupStub } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { NoteGroupLayerWidget } from './note-group-layer-widget';
 import { NoteGroupLayerWidgetProxy } from './note-group-layer-widget.proxy';
 

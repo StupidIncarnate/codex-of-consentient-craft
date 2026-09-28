@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react';
 
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { AssistantThinkingChatEntryStub } from '@dungeonmaster/shared/contracts';
 import type { ThinkingRowWidgetProps } from './thinking-row-widget';
 import { ThinkingRowWidget } from './thinking-row-widget';

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { QuestIdStub, QuestListItemStub } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { QuestRowLayerWidget } from './quest-row-layer-widget';
 import { QuestRowLayerWidgetProxy } from './quest-row-layer-widget.proxy';
 

@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react';
 
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { GuildAddModalWidget } from './guild-add-modal-widget';
 import { GuildAddModalWidgetProxy } from './guild-add-modal-widget.proxy';
 

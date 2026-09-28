@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react';
 
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { ContextTokenCountStub } from '../../contracts/context-token-count/context-token-count.stub';
 import { ContextTokenDeltaStub } from '../../contracts/context-token-delta/context-token-delta.stub';
 import { ContextDividerWidget } from './context-divider-widget';

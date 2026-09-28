@@ -683,3 +683,21 @@ Edited:
 - `widgets/home-content/home-content-widget.tsx`, `.proxy.tsx`
 - `widgets/quest-chat/quest-chat-content-layer-widget.tsx`, `.proxy.tsx`
 - `contracts/notification-message/notification-message-contract.ts` (comment names only)
+
+### W-LAST scope
+
+The last two web adapters and two follow-ups. `packages/web/src/adapters/` no longer exists afterwards.
+
+Deleted: `packages/web/src/adapters/mantine/render/*` (adapter, proxy, test), `packages/web/src/adapters/react-dom/mount/*` (adapter, proxy, test).
+
+Created:
+- `packages/web/src/brokers/react-root/mount/react-root-mount-broker.ts`, `.proxy.ts`, `.test.ts` (`createRoot` through `#gateway/npm/react-dom__client`; the test mounts for real into jsdom)
+
+Edited:
+- every web `.ts`/`.tsx` importing `mantineRenderAdapter` (about 105 files, mostly `widgets/**/*.test.tsx`): the import moves to `@dungeonmaster/testing/adapters/mantine/render`
+- `packages/web/src/responders/app/mount/app-mount-responder.ts`, `.proxy.ts`, `.test.ts`
+- `packages/web/src/main.ts` (F71: the three global stylesheet imports)
+- `packages/web/src/brokers/image/rescale/image-rescale-broker.proxy.ts`, `.test.ts` (F74)
+- `packages/web/src/brokers/pasted-image/downscale/pasted-image-downscale-broker.proxy.ts` (F74)
+- `packages/@gateway/browser/src/HTMLCanvasElement/canvas-encode/canvas-encode.proxy.ts`, `.test.ts` (F74: `stageEncodeOnce`, `stageContextUnavailableOnce`)
+- `packages/shared/src/brokers/architecture/project-map/architecture-project-map-broker.integration.test.ts` (operator's addition: the `reactDomMountAdapter` line is asserted absent)

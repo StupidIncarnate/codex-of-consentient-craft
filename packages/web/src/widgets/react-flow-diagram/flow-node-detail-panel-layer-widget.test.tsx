@@ -9,7 +9,7 @@ import {
   QuestContractEntryStub,
 } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { FlowNodeDetailPanelLayerWidget } from './flow-node-detail-panel-layer-widget';
 import { FlowNodeDetailPanelLayerWidgetProxy } from './flow-node-detail-panel-layer-widget.proxy';
 

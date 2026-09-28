@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react';
 
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { SectionCountStub } from '../../contracts/section-count/section-count.stub';
 import { SectionLabelStub } from '../../contracts/section-label/section-label.stub';
 import { SectionHeaderWidget } from './section-header-widget';

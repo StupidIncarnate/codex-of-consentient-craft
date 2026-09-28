@@ -2,7 +2,7 @@ import { screen } from '@testing-library/react';
 
 import { CssPixelsStub } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { MapFrameWidget } from './map-frame-widget';
 import { MapFrameWidgetProxy } from './map-frame-widget.proxy';
 

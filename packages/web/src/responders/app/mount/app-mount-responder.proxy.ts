@@ -1,13 +1,15 @@
-import { reactDomMountAdapterProxy } from '../../../adapters/react-dom/mount/react-dom-mount-adapter.proxy';
+import { screen } from '#gateway/npm/testing-library__react';
+
+import { reactRootMountBrokerProxy } from '../../../brokers/react-root/mount/react-root-mount-broker.proxy';
 import { AppRootWidgetProxy } from '../../../widgets/app-root/app-root-widget.proxy';
 import { AppMountResponder } from './app-mount-responder';
 
 export const AppMountResponderProxy = (): {
   callResponder: typeof AppMountResponder;
   setupRootElement: () => void;
-  renderWasCalled: () => boolean;
+  isMountedInsideAppRoot: () => boolean;
 } => {
-  const adapterProxy = reactDomMountAdapterProxy();
+  reactRootMountBrokerProxy();
   AppRootWidgetProxy();
 
   return {
@@ -19,6 +21,7 @@ export const AppMountResponderProxy = (): {
       document.body.appendChild(rootElement);
     },
 
-    renderWasCalled: adapterProxy.renderWasCalled,
+    isMountedInsideAppRoot: (): boolean =>
+      screen.queryByTestId('APP_ROOT_BG')?.textContent === 'test-content',
   };
 };

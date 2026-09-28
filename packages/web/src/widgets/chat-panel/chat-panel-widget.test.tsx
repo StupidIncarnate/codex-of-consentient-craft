@@ -1,6 +1,6 @@
 import { screen, waitFor } from '@testing-library/react';
 
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import {
   AssistantTextChatEntryStub,
   AssistantToolUseChatEntryStub,

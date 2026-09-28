@@ -1,6 +1,6 @@
 import { QuestStub } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { webConfigStatics } from '../../statics/web-config/web-config-statics';
 import { UserRequestLayerWidget } from './user-request-layer-widget';
 import { UserRequestLayerWidgetProxy } from './user-request-layer-widget.proxy';

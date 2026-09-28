@@ -1,4 +1,4 @@
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { CommentCountStub } from '../../contracts/comment-count/comment-count.stub';
 import { FlowObservableNodeDataStub } from '../../contracts/flow-observable-node-data/flow-observable-node-data.stub';
 import { packageTypeStyleStatics } from '../../statics/package-type-style/package-type-style-statics';

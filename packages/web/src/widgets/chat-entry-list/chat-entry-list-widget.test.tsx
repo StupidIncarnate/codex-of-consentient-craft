@@ -9,7 +9,7 @@ import {
   TaskToolUseChatEntryStub,
 } from '@dungeonmaster/shared/contracts';
 
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { ExecutionRoleStub } from '../../contracts/execution-role/execution-role.stub';
 import { IsoTimestampStub } from '../../contracts/iso-timestamp/iso-timestamp.stub';
 import { ChatEntryListWidget } from './chat-entry-list-widget';

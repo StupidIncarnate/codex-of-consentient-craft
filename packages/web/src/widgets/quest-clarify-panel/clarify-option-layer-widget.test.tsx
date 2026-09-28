@@ -1,7 +1,7 @@
 import { screen } from '@testing-library/react';
 
 import { AskUserQuestionStub } from '@dungeonmaster/shared/contracts';
-import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
+import { mantineRenderAdapter } from '@dungeonmaster/testing/adapters/mantine/render';
 import { ClarifyOptionLayerWidget } from './clarify-option-layer-widget';
 import { ClarifyOptionLayerWidgetProxy } from './clarify-option-layer-widget.proxy';
 
