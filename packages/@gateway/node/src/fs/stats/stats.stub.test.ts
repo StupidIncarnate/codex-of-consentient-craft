@@ -86,6 +86,22 @@ describe('StatsStub', () => {
     });
   });
 
+  it('VALID: {modifiedAtMs, createdAtMs} => birth fields carry createdAtMs, not modifiedAtMs', () => {
+    const stats = StatsStub({ modifiedAtMs: 1700000000000, createdAtMs: 1600000000000 });
+
+    expect({
+      mtimeMs: stats.mtimeMs,
+      mtime: stats.mtime,
+      birthtimeMs: stats.birthtimeMs,
+      birthtime: stats.birthtime,
+    }).toStrictEqual({
+      mtimeMs: 1700000000000,
+      mtime: new Date(1700000000000),
+      birthtimeMs: 1600000000000,
+      birthtime: new Date(1600000000000),
+    });
+  });
+
   it('VALID: {} => is not instanceof fs.Stats, since it is built by hand, not through the constructor', () => {
     const stats = StatsStub();
 

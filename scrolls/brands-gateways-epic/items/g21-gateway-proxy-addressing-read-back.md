@@ -112,6 +112,50 @@ None.
   missing something a real caller needs, that is a real gap in this item's own work, not a Phase-2
   scope question.
 
+## Plan — gateway gaps F34, F42, F43, F44
+
+Four `@gateway/node` test-support gaps a Phase-2 caller hit while migrating (F34, F42, F43, F44a/b —
+`triage-phase2.md`'s "Gateway gaps blocking work" and EPIC.md's own F-rows). Gateway files only; no
+caller (cli, server, orchestrator) is touched here.
+
+- `packages/@gateway/node/src/child_process/stream-lines/stream-lines.proxy.ts` — add a `getOptionsFor`
+  read-back (F34), same shape as `run.proxy.ts`'s.
+- `packages/@gateway/node/src/child_process/stream-lines/stream-lines.test.ts` — cover it.
+- `packages/@gateway/node/src/process/read-stdin-to-end/read-stdin-to-end.proxy.ts` — add a `returns({
+  contents })` staging method that owns the `process.stdin` swap, plus a `restore()` to undo it (F42).
+- `packages/@gateway/node/src/process/read-stdin-to-end/read-stdin-to-end.test.ts` — rewrite onto the new
+  proxy instead of the test's own local `withFakeStdin` helper.
+- `packages/@gateway/node/src/fs__promises/rename/rename.proxy.ts` — add `getCallsFor` (F43), `ensure-dir`'s
+  shape.
+- `packages/@gateway/node/src/fs__promises/rename/rename.test.ts` — cover it.
+- `packages/@gateway/node/src/fs__promises/rm/rm.proxy.ts` — add `getCallsFor` returning each call's full
+  `[path, options]` tuple (F44a).
+- `packages/@gateway/node/src/fs__promises/rm/rm.test.ts` — cover it, asserting the exact
+  `[path, {recursive, force}]` tuple.
+- `packages/@gateway/node/src/fs__promises/stat/file-stat.ts` — add `createdAtMs` to the `FileStat`
+  interface (F44b).
+- `packages/@gateway/node/src/fs__promises/stat/file-stat.stub.ts` — add a `createdAtMs` param.
+- `packages/@gateway/node/src/fs__promises/stat/file-stat.stub.test.ts` — cover it.
+- `packages/@gateway/node/src/fs__promises/stat/stat.ts` — read `stats.birthtimeMs` into `createdAtMs` on
+  every branch.
+- `packages/@gateway/node/src/fs__promises/stat/stat.proxy.ts` — thread an optional `createdAtMs` through
+  every staging method.
+- `packages/@gateway/node/src/fs__promises/stat/stat.test.ts` — cover it.
+- `packages/@gateway/node/src/fs__promises/stat-if-exists/stat-if-exists.proxy.ts` — same threading.
+- `packages/@gateway/node/src/fs__promises/stat-if-exists/stat-if-exists.test.ts` — cover it.
+- `packages/@gateway/node/src/fs/stats/stats.stub.ts` — add an optional `createdAtMs` param (default
+  `modifiedAtMs`, preserving today's behaviour) backing `birthtimeMs`/`birthtime`.
+- `packages/@gateway/node/src/fs/stats/stats.stub.test.ts` — cover it.
+
+`createdAtMs` is optional everywhere it is a STAGING input (proxy methods, `StatsStub`), defaulting to
+`modifiedAtMs` when omitted — `renameProxy`/`statIfExistsProxy` are already composed outside this package
+(cli's `rate-limits-snapshot-write-broker.proxy.ts`, hydration-recipes' `quest-persist-direct-broker.proxy.ts`),
+and existing calls there must keep compiling unchanged. `createdAtMs` is REQUIRED on the real `FileStat`
+result shape (`file-stat.ts`, `stat.ts`'s return, `FileStatStub`'s output type) since a real `stat()` call
+always has a birth time.
+
+Composing packages to re-run unit tests for (not edited): `cli`, `hydration-recipes`.
+
 ## Concessions made while executing
 
 <Empty at the start. The operator fills this and mirrors it into EPIC.md's Concessions table.>

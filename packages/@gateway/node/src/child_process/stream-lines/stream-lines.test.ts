@@ -166,4 +166,30 @@ describe('streamLines()', () => {
       expect(proxy.getSpawnedArgs({ command: 'npm' })).toStrictEqual(['run', 'ward:all']);
     });
   });
+
+  describe('reading back spawn options', () => {
+    it('VALID: {two calls to the same command with different cwd} => getOptionsFor reads back each call, in order', async () => {
+      const proxy = streamLinesProxy();
+      proxy.setupSuccess({ command: 'npm', exitCode: 0, stdoutLines: [] });
+
+      await streamLines({
+        command: 'npm',
+        args: ['run', 'ward'],
+        cwd: '/project-a',
+        onLine: () => undefined,
+      });
+      await streamLines({
+        command: 'npm',
+        args: ['run', 'ward'],
+        cwd: '/project-b',
+        onLine: () => undefined,
+      });
+
+      const options = proxy.getOptionsFor({ command: 'npm' });
+
+      expect(options[0]?.cwd).toBe('/project-a');
+      expect(options[1]?.cwd).toBe('/project-b');
+      expect(options[2]).toBe(undefined);
+    });
+  });
 });

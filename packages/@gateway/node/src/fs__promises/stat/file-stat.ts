@@ -10,4 +10,5 @@ export interface FileStat {
   kind: 'file' | 'directory' | 'symlink' | 'other';
   sizeBytes: number;
   modifiedAtMs: number;
+  createdAtMs: number;
 }

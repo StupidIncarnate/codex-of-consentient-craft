@@ -18,6 +18,26 @@ describe('statIfExists', () => {
         kind: 'file',
         sizeBytes: 128,
         modifiedAtMs: 1700000000000,
+        createdAtMs: 1700000000000,
+      });
+    });
+
+    it('VALID: {path, createdAtMs staged distinct from modifiedAtMs} => returns its own birth time', async () => {
+      const proxy = statIfExistsProxy();
+      proxy.returnsFile({
+        path: '/repo/.dungeonmaster.json',
+        sizeBytes: 128,
+        modifiedAtMs: 1700000000000,
+        createdAtMs: 1600000000000,
+      });
+
+      const result = await statIfExists('/repo/.dungeonmaster.json');
+
+      expect(result).toStrictEqual({
+        kind: 'file',
+        sizeBytes: 128,
+        modifiedAtMs: 1700000000000,
+        createdAtMs: 1600000000000,
       });
     });
   });
@@ -56,7 +76,12 @@ describe('statIfExists', () => {
 
       const result = await statIfExists('/resolved/at/runtime/.dungeonmaster.json');
 
-      expect(result).toStrictEqual({ kind: 'file', sizeBytes: 128, modifiedAtMs: 1700000000000 });
+      expect(result).toStrictEqual({
+        kind: 'file',
+        sizeBytes: 128,
+        modifiedAtMs: 1700000000000,
+        createdAtMs: 1700000000000,
+      });
     });
 
     it('ERROR: {throwsMatchingPath, a predicate} => rejects with the staged error', async () => {

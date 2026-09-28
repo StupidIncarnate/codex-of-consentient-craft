@@ -1,42 +1,37 @@
-import { Readable } from 'stream';
 import { readStdinToEnd } from './read-stdin-to-end';
-
-const withFakeStdin = async ({
-  fake,
-  run,
-}: {
-  fake: Readable;
-  run: () => Promise<string>;
-}): Promise<string> => {
-  const original = Object.getOwnPropertyDescriptor(process, 'stdin');
-  Object.defineProperty(process, 'stdin', { value: fake, configurable: true });
-
-  const result = await run();
-
-  if (original) {
-    Object.defineProperty(process, 'stdin', original);
-  }
-  return result;
-};
+import { readStdinToEndProxy } from './read-stdin-to-end.proxy';
 
 describe('readStdinToEnd', () => {
   it('VALID: {stdin carrying two Buffer chunks} => resolves the concatenated string', async () => {
-    // process.stdin yields Buffer chunks in production (binary mode unless setEncoding is
-    // called), so the fake stream mirrors that shape rather than plain JS strings.
-    const result = await withFakeStdin({
-      fake: Readable.from([Buffer.from('hello '), Buffer.from('world')]),
-      run: readStdinToEnd,
-    });
+    const proxy = readStdinToEndProxy();
+    proxy.returns({ contents: 'hello world' });
+
+    const result = await readStdinToEnd();
+    proxy.restore();
 
     expect(result).toBe('hello world');
   });
 
   it('EMPTY: {stdin closed immediately} => resolves an empty string', async () => {
-    const result = await withFakeStdin({
-      fake: Readable.from([]),
-      run: readStdinToEnd,
-    });
+    const proxy = readStdinToEndProxy();
+    proxy.returns({ contents: '' });
+
+    const result = await readStdinToEnd();
+    proxy.restore();
 
     expect(result).toBe('');
+  });
+
+  describe('restore', () => {
+    it('VALID: {restore called after a staged read} => puts the original process.stdin descriptor back', async () => {
+      const originalStdin = process.stdin;
+      const proxy = readStdinToEndProxy();
+      proxy.returns({ contents: 'staged' });
+
+      await readStdinToEnd();
+      proxy.restore();
+
+      expect(process.stdin).toBe(originalStdin);
+    });
   });
 });

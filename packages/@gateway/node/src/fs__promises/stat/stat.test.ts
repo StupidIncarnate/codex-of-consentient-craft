@@ -18,6 +18,7 @@ describe('stat', () => {
         kind: 'file',
         sizeBytes: 128,
         modifiedAtMs: 1700000000000,
+        createdAtMs: 1700000000000,
       });
     });
 
@@ -35,6 +36,7 @@ describe('stat', () => {
         kind: 'directory',
         sizeBytes: 4096,
         modifiedAtMs: 1700000000000,
+        createdAtMs: 1700000000000,
       });
     });
 
@@ -52,6 +54,7 @@ describe('stat', () => {
         kind: 'symlink',
         sizeBytes: 0,
         modifiedAtMs: 1700000000000,
+        createdAtMs: 1700000000000,
       });
     });
 
@@ -66,6 +69,25 @@ describe('stat', () => {
       const result = await stat('/repo/.dungeonmaster.json');
 
       expect(result.modifiedAtMs).toBe(1700000000000);
+    });
+
+    it('VALID: {path, createdAtMs staged distinct from modifiedAtMs} => returns its own birth time', async () => {
+      const proxy = statProxy();
+      proxy.returnsFile({
+        path: '/repo/.dungeonmaster.json',
+        sizeBytes: 128,
+        modifiedAtMs: 1700000000000,
+        createdAtMs: 1600000000000,
+      });
+
+      const result = await stat('/repo/.dungeonmaster.json');
+
+      expect(result).toStrictEqual({
+        kind: 'file',
+        sizeBytes: 128,
+        modifiedAtMs: 1700000000000,
+        createdAtMs: 1600000000000,
+      });
     });
   });
 
@@ -101,7 +123,12 @@ describe('stat', () => {
 
       const result = await stat('/resolved/at/runtime/.dungeonmaster.json');
 
-      expect(result).toStrictEqual({ kind: 'file', sizeBytes: 128, modifiedAtMs: 1700000000000 });
+      expect(result).toStrictEqual({
+        kind: 'file',
+        sizeBytes: 128,
+        modifiedAtMs: 1700000000000,
+        createdAtMs: 1700000000000,
+      });
     });
 
     it('ERROR: {throwsMatchingPath, a predicate} => rejects with the staged error', async () => {

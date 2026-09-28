@@ -5,7 +5,8 @@
  *
  * USAGE:
  * await stat('/repo/.dungeonmaster.json');
- * // Returns { kind: 'file', sizeBytes, modifiedAtMs }; rejects on ENOENT and every other failure
+ * // Returns { kind: 'file', sizeBytes, modifiedAtMs, createdAtMs }; rejects on ENOENT and every
+ * // other failure
  */
 
 import { stat as fsStat } from 'fs/promises';
@@ -15,15 +16,16 @@ export const stat = async (path: string): Promise<FileStat> => {
   const stats = await fsStat(path);
   const sizeBytes = stats.size;
   const modifiedAtMs = Math.floor(stats.mtimeMs);
+  const createdAtMs = Math.floor(stats.birthtimeMs);
 
   if (stats.isFile()) {
-    return { kind: 'file', sizeBytes, modifiedAtMs };
+    return { kind: 'file', sizeBytes, modifiedAtMs, createdAtMs };
   }
   if (stats.isDirectory()) {
-    return { kind: 'directory', sizeBytes, modifiedAtMs };
+    return { kind: 'directory', sizeBytes, modifiedAtMs, createdAtMs };
   }
   if (stats.isSymbolicLink()) {
-    return { kind: 'symlink', sizeBytes, modifiedAtMs };
+    return { kind: 'symlink', sizeBytes, modifiedAtMs, createdAtMs };
   }
-  return { kind: 'other', sizeBytes, modifiedAtMs };
+  return { kind: 'other', sizeBytes, modifiedAtMs, createdAtMs };
 };

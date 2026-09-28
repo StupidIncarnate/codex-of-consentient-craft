@@ -27,4 +27,17 @@ describe('rm', () => {
 
     await expect(rm('/readonly/scratch', { recursive: true })).rejects.toBe(error);
   });
+
+  describe('call inspection', () => {
+    it('VALID: {recursive and force both true} => getCallsFor reads back the exact [path, options] tuple', async () => {
+      const proxy = rmProxy();
+      proxy.succeeds({ path: '/repo/tmp/scratch' });
+
+      await rm('/repo/tmp/scratch', { recursive: true, force: true });
+
+      expect(proxy.getCallsFor({ path: '/repo/tmp/scratch' })).toStrictEqual([
+        ['/repo/tmp/scratch', { recursive: true, force: true }],
+      ]);
+    });
+  });
 });

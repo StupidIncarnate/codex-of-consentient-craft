@@ -13,8 +13,10 @@ export const FileStatStub = ({
   kind = 'file',
   sizeBytes = 0,
   modifiedAtMs = 0,
+  createdAtMs = 0,
 }: {
   kind?: FileStat['kind'];
   sizeBytes?: number;
   modifiedAtMs?: number;
-} = {}): FileStat => ({ kind, sizeBytes, modifiedAtMs });
+  createdAtMs?: number;
+} = {}): FileStat => ({ kind, sizeBytes, modifiedAtMs, createdAtMs });

@@ -33,4 +33,34 @@ describe('rename', () => {
 
     await expect(rename('/repo/tmp/other-dir', '/repo/tmp/dir')).rejects.toBe(error);
   });
+
+  describe('call inspection', () => {
+    it('VALID: {a real call already made} => getCallsFor reads it back', async () => {
+      const proxy = renameProxy();
+      proxy.succeeds({ from: '/repo/tmp/registry.json.tmp', to: '/repo/tmp/registry.json' });
+
+      await rename('/repo/tmp/registry.json.tmp', '/repo/tmp/registry.json');
+
+      expect(
+        proxy.getCallsFor({
+          from: '/repo/tmp/registry.json.tmp',
+          to: '/repo/tmp/registry.json',
+        }),
+      ).toStrictEqual([['/repo/tmp/registry.json.tmp', '/repo/tmp/registry.json']]);
+    });
+
+    it('VALID: {a predicate on the destination} => getCallsFor reads back a call the predicate accepts', async () => {
+      const proxy = renameProxy();
+      proxy.succeeds({ from: '/repo/tmp/a.json.tmp', to: '/repo/tmp/a.json' });
+
+      await rename('/repo/tmp/a.json.tmp', '/repo/tmp/a.json');
+
+      expect(
+        proxy.getCallsFor({
+          from: '/repo/tmp/a.json.tmp',
+          to: (value) => String(value).endsWith('a.json'),
+        }),
+      ).toStrictEqual([['/repo/tmp/a.json.tmp', '/repo/tmp/a.json']]);
+    });
+  });
 });

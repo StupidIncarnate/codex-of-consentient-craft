@@ -1,10 +1,14 @@
 import { rm } from 'fs/promises';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { FsError } from '../../fs/is-fs-error/fs-error';
+import type { PathMatcher } from '../../gateway-test-support/path-matcher';
 
 export const rmProxy = (): {
   succeeds: ({ path }: { path: string }) => void;
   rejects: ({ path, error }: { path: string; error: FsError }) => void;
+  // Every call's FULL argument tuple — path and the options object `rm` passed, exactly as
+  // received (`[path, {recursive, force}]`) — for calls whose path matches, in call order.
+  getCallsFor: (params: { path: PathMatcher }) => readonly unknown[][];
 } => {
   const handle = registerMock({ fn: rm });
 
@@ -21,5 +25,7 @@ export const rmProxy = (): {
         return Promise.reject(error);
       });
     },
+    getCallsFor: ({ path }: { path: PathMatcher }): readonly unknown[][] =>
+      handle.callsMatching([path]),
   };
 };

@@ -17,10 +17,15 @@ export const StatsStub = ({
   kind = 'file',
   sizeBytes = 0,
   modifiedAtMs = 0,
+  // Defaults to modifiedAtMs, not a separate literal — a caller that stages only modifiedAtMs (the
+  // shape every proxy offered before F44) still gets a birth time, just one indistinguishable from
+  // the modification time, matching this stub's own behaviour before createdAtMs existed.
+  createdAtMs = modifiedAtMs,
 }: {
   kind?: 'file' | 'directory' | 'symlink' | 'other';
   sizeBytes?: number;
   modifiedAtMs?: number;
+  createdAtMs?: number;
 } = {}): Stats => {
   const isFile = kind === 'file';
   const isDirectory = kind === 'directory';
@@ -40,11 +45,11 @@ export const StatsStub = ({
     atimeMs: modifiedAtMs,
     mtimeMs: modifiedAtMs,
     ctimeMs: modifiedAtMs,
-    birthtimeMs: modifiedAtMs,
+    birthtimeMs: createdAtMs,
     atime: new Date(modifiedAtMs),
     mtime: new Date(modifiedAtMs),
     ctime: new Date(modifiedAtMs),
-    birthtime: new Date(modifiedAtMs),
+    birthtime: new Date(createdAtMs),
     isFile: (): boolean => isFile,
     isDirectory: (): boolean => isDirectory,
     isBlockDevice: (): boolean => false,

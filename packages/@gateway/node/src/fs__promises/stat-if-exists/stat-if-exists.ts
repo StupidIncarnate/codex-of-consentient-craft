@@ -4,7 +4,7 @@
  *
  * USAGE:
  * await statIfExists('/repo/node_modules/.vite-40000');
- * // Returns { kind, sizeBytes, modifiedAtMs }, or null when the path does not exist
+ * // Returns { kind, sizeBytes, modifiedAtMs, createdAtMs }, or null when the path does not exist
  */
 
 import { stat } from '../stat/stat';

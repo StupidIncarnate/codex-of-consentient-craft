@@ -41,6 +41,10 @@ export const streamLinesProxy = (): {
   // Records every process.stderr.write call so a test can prove the wrapper LOGGED a failing
   // onLine rather than letting it crash the process.
   captureStderrWrites: () => string[];
+  // Every call's own OPTIONS (spawn's 3rd positional argument) — `cwd`, exactly what `streamLines`
+  // builds it as — in call order, for calls whose command matches. Mirrors `run.proxy.ts`'s
+  // `getOptionsFor`; unlike `run`, `streamLines` takes no caller-supplied `env` to read back.
+  getOptionsFor: (params: { command: string }) => readonly { cwd: string }[];
 } => {
   const handle = registerMock({ fn: spawn });
   const stderrWriteSpy = registerSpyOn({ object: process.stderr, method: 'write' });
@@ -119,5 +123,8 @@ export const streamLinesProxy = (): {
 
     captureStderrWrites: (): string[] =>
       stderrWriteSpy.callsMatching([]).map((call) => String(call[0])),
+
+    getOptionsFor: ({ command }: { command: string }): readonly { cwd: string }[] =>
+      handle.callsMatching([command]).map((call) => call[2] as { cwd: string }),
   };
 };
