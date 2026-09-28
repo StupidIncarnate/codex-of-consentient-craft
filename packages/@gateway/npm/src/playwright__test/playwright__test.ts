@@ -1,10 +1,10 @@
 /**
- * PURPOSE: Pass-through for the npm package '@playwright/test'. Code outside the gateway imports @playwright/test
- * through here instead of the raw package, so a future guard or override on @playwright/test lands in
- * this one file and reaches every caller.
+ * PURPOSE: Gateway entry for the npm package '@playwright/test'. Every raw export passes through
+ * except `chromium`, which this subpath overrides with OUR wrapped version — see `./chromium/chromium`.
  *
  * USAGE:
- * import { someExport } from '#gateway/npm/playwright__test';
+ * import { chromium, expect } from '#gateway/npm/playwright__test';
  */
 
 export * from '@playwright/test';
+export { chromium } from './chromium/chromium';
