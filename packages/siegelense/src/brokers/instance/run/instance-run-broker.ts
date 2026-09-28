@@ -10,7 +10,11 @@
  * A row already read `unusable` is refused before the socket is ever touched —
  * `InstanceUnusableError` names the instance and points at a fresh `start`, so a walk that keeps
  * calling `run` against an instance an earlier batch already poisoned pays no round trip to learn
- * it should stop. This is also the ONLY place that WRITES `unusable`: once the driver answers, a
+ * it should stop. A row already read `killed` is refused the same way, before the socket is ever
+ * touched — `InstanceKilledError` names the instance and points at a fresh `start` — because the
+ * registry already knows the driver is gone, and dialing its recorded socket anyway only trades
+ * that knowledge for a bare `DriverUnreachableError: connect ENOENT`. This is also the ONLY place
+ * that WRITES `unusable`: once the driver answers, a
  * `RunResult` whose batch stopped on a `seed` step (`stoppedAt.verb === 'seed'`) means the recipe's
  * own plan failed partway through — some rows landed, some did not, and there is nothing to roll
  * back to (scrolls/seigelense/siegelense-recipes.md: "A mid-batch seed that fails HALTS the batch
@@ -21,7 +25,8 @@
  * USAGE:
  * await instanceRunBroker({ instanceId, steps: [StepStub()], stopOn: StopOnStub() });
  * // Returns the RunResult the driver reports, or throws DriverUnreachableError naming instanceId,
- * // or throws InstanceUnusableError when the registry already marked this instance unusable
+ * // or throws InstanceUnusableError when the registry already marked this instance unusable,
+ * // or throws InstanceKilledError when the registry already reads this instance as killed
  */
 
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
@@ -36,6 +41,7 @@ import type { RunResult } from '../../../contracts/run-result/run-result-contrac
 import type { Step } from '../../../contracts/step/step-contract';
 import type { StopOn } from '../../../contracts/stop-on/stop-on-contract';
 import { DriverUnreachableError } from '../../../errors/driver-unreachable/driver-unreachable-error';
+import { InstanceKilledError } from '../../../errors/instance-killed/instance-killed-error';
 import { InstanceUnusableError } from '../../../errors/instance-unusable/instance-unusable-error';
 import { locationsSocketPathFindBroker } from '../../locations/socket-path-find/locations-socket-path-find-broker';
 import { registryReadBroker } from '../../registry/read/registry-read-broker';
@@ -56,6 +62,10 @@ export const instanceRunBroker = async ({
 
   if (entry?.state === 'unusable') {
     throw new InstanceUnusableError({ instanceId });
+  }
+
+  if (entry?.state === 'killed') {
+    throw new InstanceKilledError({ instanceId });
   }
 
   const socketPath = entry?.socketPath ?? locationsSocketPathFindBroker({ instanceId });

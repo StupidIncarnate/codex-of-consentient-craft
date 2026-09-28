@@ -1,4 +1,5 @@
 import { ContentTextStub, FileNameStub, GuildStub } from '@dungeonmaster/shared/contracts';
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import { BufferEntryStub } from '../../../contracts/buffer-entry/buffer-entry.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
@@ -1363,6 +1364,47 @@ describe('runExecuteBroker', () => {
 
       expect(result.status).toBe('done');
       expect(proxy.dispatchedSteps()).toStrictEqual([parsedStep]);
+    });
+  });
+
+  describe('duration', () => {
+    // A one-step batch, on purpose: `readings.at(0)` and `readings.at(-1)` are the SAME reading, so
+    // `durationMs` is exactly that one step's own `endedAtMs - startedAtMs` — the two
+    // `stepDispatchBroker` stamps immediately around the verb, with nothing else between them that
+    // calls `Date.now()`. Staged to tick by exactly 1ms per call (a later, more specific registration
+    // than `stepDispatchBrokerProxy`'s own fixed catch-all, so this one wins for every call in this
+    // test — see the "until { response } against a match from a PREVIOUS run" test above for why the
+    // rest of this file pins the clock instead), this proves the real elapsed figure regardless of
+    // how many OTHER `Date.now()` calls this broker's own tail-flush bookkeeping makes before or
+    // after the one step — DEF-77: every run reported `duration: 0ms` because `durationMs` was never
+    // computed at all.
+    it("VALID: {one step} => durationMs is that step's own endedAtMs minus startedAtMs, never 0", async () => {
+      const proxy = runExecuteBrokerProxy();
+      const runId = RunIdStub({ value: 'run_1' });
+      proxy.stagePaths({ runId });
+      const lane = proxy.cleanLane();
+
+      let tick = 1_700_000_000_000;
+      registerSpyOn({ object: Date, method: 'now' })
+        .calledWith([])
+        .implement(() => {
+          tick += 1;
+          return tick;
+        });
+
+      const result = await runExecuteBroker({
+        lane,
+        instanceId: InstanceIdStub(),
+        runId,
+        steps: gotoBatch({ count: 1 }),
+        stopOn: StopOnStub({ value: 'error' }),
+        flushCursor: proxy.flushCursor,
+        advanceFlushCursor: proxy.advanceFlushCursor,
+        lastShotPath: proxy.lastShotPath,
+        setLastShotPath: proxy.setLastShotPath,
+      });
+
+      expect(result.durationMs).toBe(1);
     });
   });
 });

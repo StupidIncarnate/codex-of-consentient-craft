@@ -48,7 +48,7 @@ describe('stepHoldBroker', () => {
         JSON.stringify({
           frames: 4,
           differing: 0,
-          verdict: 'NOTHING CHANGED across 4.5s',
+          reading: 'NOTHING CHANGED across 4.5s',
           shots: [frame1, frame2, frame3, frame4],
         }),
       );
@@ -92,7 +92,7 @@ describe('stepHoldBroker', () => {
         JSON.stringify({
           frames: 4,
           differing: 2,
-          verdict: 'still changing at 4.5s',
+          reading: 'still changing at 4.5s',
           shots: [frame1, frame2, frame3, frame4],
         }),
       );
@@ -132,7 +132,7 @@ describe('stepHoldBroker', () => {
         JSON.stringify({
           frames: 2,
           differing: 0,
-          verdict: 'NOTHING CHANGED across 1s',
+          reading: 'NOTHING CHANGED across 1s',
           shots: [frame1, frame2],
         }),
       );

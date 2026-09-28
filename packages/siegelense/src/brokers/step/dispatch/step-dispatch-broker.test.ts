@@ -1109,7 +1109,7 @@ describe('stepDispatchBroker', () => {
       });
 
       expect(result.reading).toBe(
-        '{"frames":2,"differing":0,"verdict":"NOTHING CHANGED across 1s","shots":["/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step1_frame1.png","/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step1_frame2.png"]}',
+        '{"frames":2,"differing":0,"reading":"NOTHING CHANGED across 1s","shots":["/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step1_frame1.png","/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step1_frame2.png"]}',
       );
       expect(captureCallArgs()).toStrictEqual([]);
     });

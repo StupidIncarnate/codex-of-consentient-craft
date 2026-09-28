@@ -33,7 +33,9 @@ import type { UntilConsolePattern } from '../../../contracts/until-console-patte
 import type { UntilFilePath } from '../../../contracts/until-file-path/until-file-path-contract';
 import type { UntilResponse } from '../../../contracts/until-response/until-response-contract';
 import { BrowserStepUnsupportedError } from '../../../errors/browser-step-unsupported/browser-step-unsupported-error';
+import { StepAmbiguousError } from '../../../errors/step-ambiguous/step-ambiguous-error';
 import { UntilCeilingHitError } from '../../../errors/until-ceiling-hit/until-ceiling-hit-error';
+import { isPlaywrightStrictModeViolationErrorGuard } from '../../../guards/is-playwright-strict-mode-violation-error/is-playwright-strict-mode-violation-error-guard';
 import { isPlaywrightTimeoutErrorGuard } from '../../../guards/is-playwright-timeout-error/is-playwright-timeout-error-guard';
 import { driverStatics } from '../../../statics/driver/driver-statics';
 import { untilBufferMatchLayerBroker } from './until-buffer-match-layer-broker';
@@ -103,18 +105,24 @@ export const stepUntilBroker = async ({
       // its target — `waitFor` goes through `stepTargetResolveBroker` first, which is exactly why
       // `waitFor` cannot wait for an element to appear and this form can — so Playwright's strict
       // locator is what meets an ambiguous selector here, and it raises a strict-mode violation
-      // rather than a TimeoutError. Rethrowing it unchanged keeps the run's verdict `failed` and
-      // hands the walker Playwright's own message, which names both elements; folding it into a
-      // ceiling would answer `timeout` and advise waiting longer for something already on the
-      // screen twice.
-      if (!isPlaywrightTimeoutErrorGuard({ error })) {
-        throw error;
+      // rather than a TimeoutError. Folding it into a ceiling would answer `timeout` and advise
+      // waiting longer for something already on the screen twice — the package's own rule instead
+      // ("ambiguity throws with the candidates", packages/siegelense/CLAUDE.md), the same shape
+      // `stepTargetResolveBroker` already raises for `click`/`type`/`waitFor`. `describeMatches`
+      // re-queries the page for the same reason `stepTargetResolveBroker` does: the raw Playwright
+      // message alone names the count, not the refs a walker needs to pick one.
+      if (isPlaywrightTimeoutErrorGuard({ error })) {
+        throw new UntilCeilingHitError({
+          descriptor: `visible ${visible}`,
+          timeoutMs: resolvedTimeoutMs,
+          bufferNote: null,
+        });
       }
-      throw new UntilCeilingHitError({
-        descriptor: `visible ${visible}`,
-        timeoutMs: resolvedTimeoutMs,
-        bufferNote: null,
-      });
+      if (isPlaywrightStrictModeViolationErrorGuard({ error })) {
+        const candidates = await session.describeMatches({ target: visible });
+        throw new StepAmbiguousError({ target: visible, within: null, candidates });
+      }
+      throw error;
     }
     const waitedMs = Date.now() - startedAtMs;
     return contentTextContract.parse(`${visible} became visible after ${String(waitedMs)}ms`);

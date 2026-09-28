@@ -86,11 +86,17 @@ export const stepUntilBrokerProxy = (): {
 
     // A selector matching two elements. Playwright's locator is strict, and `until { visible }` is
     // the one wait that never pre-resolves, so this rejection is what an ambiguous target produces
-    // here — and it is NOT a ceiling.
+    // here — and it is NOT a ceiling. `describeMatches` answers the same two candidates the raw
+    // Playwright message names, so a test can assert `StepAmbiguousError` carries them rather than
+    // just the count.
     laneVisibleAmbiguous: (): { lane: LaneSession } =>
       laneOverBrowser(
         BrowserSessionStub({
           waitForMatch: jest.fn().mockRejectedValue(new Error(STRICT_MODE_VIOLATION_MESSAGE)),
+          describeMatches: jest.fn().mockResolvedValue([
+            { index: 0, ref: 16, within: null, text: '+', rect: '(444,348) 27x25' },
+            { index: 1, ref: 23, within: null, text: '+', rect: '(965,348) 27x25' },
+          ]),
         }),
       ),
 

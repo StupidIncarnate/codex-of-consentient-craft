@@ -122,7 +122,7 @@ describe('siegelenseHelpStatics', () => {
       output:
         "By default, one summary line — run id, status, steps run and duration — plus the failure point when stopped early and any screenshot paths captured. `--json` prints the raw RunResult. Either way, a STATUS — an index and a shot list — never the steps' own payloads; query those afterward with `dungeonmaster siegelense results`.",
       example:
-        'dungeonmaster siegelense run --instance inst_9b2c --steps [{"step":"goto","path":"/"}]',
+        'dungeonmaster siegelense run --instance inst_4f9c2a17b8e6405fa1d4c9e02b7f1a3c --steps \'[{"step":"goto","path":"/"}]\'',
     });
   });
 

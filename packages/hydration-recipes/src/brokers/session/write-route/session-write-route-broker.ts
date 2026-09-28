@@ -19,6 +19,13 @@
  * `writeFailureTransformer` mines `.path` off whatever the write threw, and a bare ZodError from the
  * full parse carries none on its own.
  *
+ * `sessionUniqueIdResolveBroker` runs on the raw `sessionId` BEFORE `filePath` is derived — DEF-78
+ * — so composing `session-single-turn` and `session-with-nested-chain` into one target never
+ * appends onto the same `seed-session-1.jsonl` twice: the second seed's default id bumps to
+ * `seed-session-2` because the first one's file already exists under this same target. The
+ * returned `SessionRecord.sessionId` carries the RESOLVED id, never the one the caller asked for,
+ * so a recipe's own `saveRecordAs` sees the id that actually landed on disk.
+ *
  * USAGE:
  * await sessionWriteRouteBroker({ target, fields: { sessionId, cwd, lines } });
  * // Returns a SessionRecord — appends to <claudeHome>/.claude/projects/<encoded-cwd>/<sessionId>.jsonl
@@ -31,6 +38,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import { dmJsonlAppendAdapter } from '../../../adapters/dm-jsonl/append/dm-jsonl-append-adapter';
+import { sessionUniqueIdResolveBroker } from '../unique-id-resolve/session-unique-id-resolve-broker';
 import { sessionFieldsContract } from '../../../contracts/session-fields/session-fields-contract';
 import { sessionRecordContract } from '../../../contracts/session-record/session-record-contract';
 import type { SessionFields } from '../../../contracts/session-fields/session-fields-contract';
@@ -45,7 +53,8 @@ export const sessionWriteRouteBroker = async ({
   fields: Record<string, unknown>;
 }): Promise<SessionRecord> => {
   const cwd = absoluteFilePathContract.parse(fields.cwd);
-  const sessionId = sessionIdContract.parse(fields.sessionId);
+  const requestedSessionId = sessionIdContract.parse(fields.sessionId);
+  const sessionId = sessionUniqueIdResolveBroker({ target, cwd, sessionId: requestedSessionId });
   const sessionsDir = claudePathSlugEncoderTransformer({
     homeDir: target.claudeHome,
     projectPath: cwd,
@@ -63,7 +72,7 @@ export const sessionWriteRouteBroker = async ({
   await dmJsonlAppendAdapter({ filePath, lines: parsedFields.lines });
 
   return sessionRecordContract.parse({
-    sessionId: parsedFields.sessionId,
+    sessionId,
     cwd: parsedFields.cwd,
     filePath,
     lineCount: lineCountContract.parse(parsedFields.lines.length),

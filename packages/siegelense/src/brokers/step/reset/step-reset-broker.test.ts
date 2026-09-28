@@ -344,6 +344,32 @@ describe('stepResetBroker', () => {
       );
     });
 
+    it('EMPTY: {no to, no prior captures, browser page has no origin} => rewinds nothing, but reports storage skipped rather than crashing (DEF-94)', async () => {
+      const proxy = stepResetBrokerProxy();
+      const securityError = new Error(
+        "page.evaluate: SecurityError: Failed to read the 'localStorage' property from " +
+          "'Window': Access is denied for this document.",
+      );
+      const mockClearStorage = jest.fn().mockRejectedValue(securityError);
+      const lane = LaneSessionStub({
+        browser: BrowserSessionStub({ clearStorage: mockClearStorage }),
+      });
+
+      proxy.setupNoSnapshots({ homePath: lane.homePath });
+
+      const result = await stepResetBroker({
+        lane,
+        level: ResetLevelStub({ value: 'instance' }),
+        to: null,
+        reseed: null,
+      });
+
+      expect(result).toBe(
+        '{"restored":"instance","undid":{"files":0,"added":0,"modified":0,"removed":0},' +
+          '"NOT_cleared":["server memory","open websockets","browser storage (page has no origin yet)"]}',
+      );
+    });
+
     // Reseed after a boot-state restore (SL-110) is proven at the CLI level, not here:
     // `recipeSeedRunBrokerProxy`'s `stageEntry()` stages `pathJoinAdapter` (the shared, real
     // `path.join`) through a call-order-scoped, argument-blind one-shot queue — see
