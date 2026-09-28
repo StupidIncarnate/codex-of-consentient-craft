@@ -13,21 +13,20 @@
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { existsSync } from '#gateway/node/fs';
-import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
-import { pathDirnameAdapter } from '../../../adapters/path/dirname/path-dirname-adapter';
+import { dirname, join } from '#gateway/node/path';
 
 export const findPackageJsonDirLayerBroker = ({
   startDir,
 }: {
   startDir: FilePath;
 }): FilePath | undefined => {
-  const packageJsonPath = pathJoinAdapter({ paths: [startDir, 'package.json'] });
+  const packageJsonPath = join(startDir, 'package.json');
 
   if (existsSync(packageJsonPath)) {
     return startDir;
   }
 
-  const parentDir = pathDirnameAdapter({ filePath: startDir });
+  const parentDir = dirname(startDir);
   if (parentDir === startDir) {
     return undefined;
   }

@@ -14,7 +14,7 @@ import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { FilePath, Identifier } from '@dungeonmaster/shared/contracts';
 import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
 import { existsSync } from '#gateway/node/fs';
-import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
+import { join } from '#gateway/node/path';
 import { collectGatewayTypeDeclarationNamesLayerBroker } from './collect-gateway-type-declaration-names-layer-broker';
 
 export const buildGatewayTypeDeclarationIndexLayerBroker = ({
@@ -26,7 +26,7 @@ export const buildGatewayTypeDeclarationIndexLayerBroker = ({
 
   Object.values(gatewayLocationsStatics.folders).forEach((folder) => {
     const srcDir = filePathContract.parse(
-      `${pathJoinAdapter({ paths: [rootDir, 'packages', '@gateway', folder, 'src'] })}/`,
+      `${join(rootDir, 'packages', '@gateway', folder, 'src')}/`,
     );
 
     if (existsSync(srcDir)) {

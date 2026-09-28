@@ -12,9 +12,10 @@
  * // Returns { packageJsonPath: '/repo/packages/hooks/package.json', packageJson: {...} }, or
  * // undefined when no ancestor package.json exists
  */
+import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { readFileSync } from '#gateway/node/fs';
-import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
+import { join } from '#gateway/node/path';
 import { gatewayConsumerPackageJsonContract } from '../../../contracts/gateway-consumer-package-json/gateway-consumer-package-json-contract';
 import type { GatewayConsumerPackageJson } from '../../../contracts/gateway-consumer-package-json/gateway-consumer-package-json-contract';
 import { findPackageJsonDirLayerBroker } from './find-package-json-dir-layer-broker';
@@ -40,7 +41,7 @@ export const findNearestPackageJsonLayerBroker = ({
     return cached;
   }
 
-  const packageJsonPath = pathJoinAdapter({ paths: [packageDir, 'package.json'] });
+  const packageJsonPath = filePathContract.parse(join(packageDir, 'package.json'));
   const contents = readFileSync(packageJsonPath);
   const packageJson = gatewayConsumerPackageJsonContract.parse(JSON.parse(contents));
 

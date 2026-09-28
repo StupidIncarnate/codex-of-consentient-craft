@@ -1,6 +1,4 @@
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
-import { pathJoinAdapterProxy } from '../../../adapters/path/join/path-join-adapter.proxy';
-import { pathDirnameAdapterProxy } from '../../../adapters/path/dirname/path-dirname-adapter.proxy';
 
 export const findAncestorDirectoryLayerBrokerProxy = (): {
   setupMarkerAt: ({ dirPath, markerFileName }: { dirPath: string; markerFileName: string }) => void;
@@ -20,13 +18,9 @@ export const findAncestorDirectoryLayerBrokerProxy = (): {
   }) => void;
 } => {
   const existsProxy = existsSyncProxy();
-  // Real passthrough default: no explicit staging.
-  pathJoinAdapterProxy();
-  pathDirnameAdapterProxy();
 
   return {
-    // Mirrors real path.join's own normalization (the broker joins via pathJoinAdapter, whose
-    // default is a real passthrough): a root dirPath ('/') must not double the leading slash.
+    // Mirrors real path.join's own normalization (the broker joins via the real path.join): a root dirPath ('/') must not double the leading slash.
     setupMarkerAt: ({
       dirPath,
       markerFileName,

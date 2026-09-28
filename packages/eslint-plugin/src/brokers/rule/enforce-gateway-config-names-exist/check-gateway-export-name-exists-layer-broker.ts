@@ -18,8 +18,7 @@
  */
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { existsSync, readFileSync } from '#gateway/node/fs';
-import { pathDirnameAdapter } from '../../../adapters/path/dirname/path-dirname-adapter';
-import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
+import { dirname, join } from '#gateway/node/path';
 import { gatewayBarrelExportedNamesTransformer } from '../../../transformers/gateway-barrel-exported-names/gateway-barrel-exported-names-transformer';
 
 export const checkGatewayExportNameExistsLayerBroker = ({
@@ -36,11 +35,11 @@ export const checkGatewayExportNameExistsLayerBroker = ({
     return true;
   }
 
-  const barrelDir = pathDirnameAdapter({ filePath: barrelPath });
+  const barrelDir = dirname(barrelPath);
   const relativeTargets = reexportTargets.filter((target) => target.startsWith('.'));
 
   for (const target of relativeTargets) {
-    const candidatePath = pathJoinAdapter({ paths: [barrelDir, `${target}.ts`] });
+    const candidatePath = join(barrelDir, `${target}.ts`);
     if (!existsSync(candidatePath)) {
       continue;
     }

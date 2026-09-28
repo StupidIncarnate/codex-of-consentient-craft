@@ -1,8 +1,6 @@
 import { fileCountContract, type FileCount } from '@dungeonmaster/shared/contracts';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
-import { pathJoinAdapterProxy } from '../../../adapters/path/join/path-join-adapter.proxy';
-import { pathDirnameAdapterProxy } from '../../../adapters/path/dirname/path-dirname-adapter.proxy';
 import { findAncestorDirectoryLayerBrokerProxy } from './find-ancestor-directory-layer-broker.proxy';
 
 export const resolvePackagePlatformLayerBrokerProxy = (): {
@@ -20,12 +18,9 @@ export const resolvePackagePlatformLayerBrokerProxy = (): {
   setupNoPackageRoot: ({ dirs }: { dirs: readonly string[] }) => void;
   countPackageJsonReads: ({ packageRoot }: { packageRoot: string }) => FileCount;
 } => {
-  // Constructed for its own default real-passthrough behavior and only to satisfy
-  // enforce-proxy-child-creation — findAncestorDirectoryLayerBroker's real (unmocked) walk
-  // underneath it shares the SAME gateway existsSync mock this proxy's own existsProxy stages
-  // below.
-  pathJoinAdapterProxy();
-  pathDirnameAdapterProxy();
+  // Constructed only to satisfy enforce-proxy-child-creation — findAncestorDirectoryLayerBroker's
+  // real (unmocked) walk underneath it shares the SAME gateway existsSync mock this proxy's own
+  // existsProxy stages below.
   findAncestorDirectoryLayerBrokerProxy();
 
   const existsProxy = existsSyncProxy();

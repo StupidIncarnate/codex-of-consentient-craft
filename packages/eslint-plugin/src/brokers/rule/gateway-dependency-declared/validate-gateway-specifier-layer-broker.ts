@@ -30,7 +30,7 @@ import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { gatewayTestSupportSuffixStatics } from '../../../statics/gateway-test-support-suffix/gateway-test-support-suffix-statics';
 import { gatewayImportsTargetTransformer } from '../../../transformers/gateway-imports-target/gateway-imports-target-transformer';
 import { packageNameFromSpecifierTransformer } from '../../../transformers/package-name-from-specifier/package-name-from-specifier-transformer';
-import { pathDirnameAdapter } from '../../../adapters/path/dirname/path-dirname-adapter';
+import { dirname } from '#gateway/node/path';
 import { findNearestPackageJsonLayerBroker } from './find-nearest-package-json-layer-broker';
 
 export const validateGatewaySpecifierLayerBroker = ({
@@ -45,7 +45,7 @@ export const validateGatewaySpecifierLayerBroker = ({
   specifier: ImportPath;
 }): boolean => {
   const nearestPackageJson = findNearestPackageJsonLayerBroker({
-    startDir: pathDirnameAdapter({ filePath: filePathContract.parse(filename) }),
+    startDir: filePathContract.parse(dirname(filename)),
   });
 
   if (!nearestPackageJson) {

@@ -1,8 +1,6 @@
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
-import { pathJoinAdapterProxy } from '../../../adapters/path/join/path-join-adapter.proxy';
-import { pathDirnameAdapterProxy } from '../../../adapters/path/dirname/path-dirname-adapter.proxy';
 
 export const workspaceRootFindBrokerProxy = (): {
   setupWorkspaceRoot: (args: {
@@ -15,9 +13,6 @@ export const workspaceRootFindBrokerProxy = (): {
 } => {
   const existsProxy = existsSyncProxy();
   const readProxy = readFileSyncProxy();
-  // Real passthrough default: no explicit staging.
-  pathJoinAdapterProxy();
-  pathDirnameAdapterProxy();
 
   return {
     setupWorkspaceRoot: ({
@@ -53,7 +48,7 @@ export const workspaceRootFindBrokerProxy = (): {
 
     // existsSyncProxy ships no address-less catch-all: a walk-to-root "nothing found" test stages
     // every ancestor level explicitly false, one call per level. Mirrors real path.join's own
-    // normalization (the broker joins via pathJoinAdapter, whose default is a real passthrough):
+    // normalization (the broker joins via the real path.join):
     // a root dir ('/') must not double the leading slash.
     setupNoPackageJson: ({ dir }: { dir: string }): void => {
       const packageJsonPath = FilePathStub({

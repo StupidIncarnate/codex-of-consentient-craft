@@ -22,15 +22,14 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { existsSync, readFileSync } from '#gateway/node/fs';
-import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
-import { pathDirnameAdapter } from '../../../adapters/path/dirname/path-dirname-adapter';
+import { dirname, join } from '#gateway/node/path';
 
 export const configGatewayLintConfigBroker = ({
   startDir,
 }: {
   startDir: FilePath;
 }): GatewayLintConfig => {
-  const configPath = pathJoinAdapter({ paths: [startDir, locationsStatics.repoRoot.config] });
+  const configPath = join(startDir, locationsStatics.repoRoot.config);
 
   if (existsSync(configPath)) {
     try {
@@ -43,7 +42,7 @@ export const configGatewayLintConfigBroker = ({
     }
   }
 
-  const parentDir = pathDirnameAdapter({ filePath: startDir });
+  const parentDir = dirname(startDir);
   if (parentDir === startDir) {
     return {};
   }

@@ -1,7 +1,6 @@
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 import type { FileName } from '../../../contracts/file-name/file-name-contract';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
-import { pathJoinAdapterProxy } from '../../../adapters/path/join/path-join-adapter.proxy';
 import { collectGatewayTypeDeclarationNamesLayerBrokerProxy } from './collect-gateway-type-declaration-names-layer-broker.proxy';
 
 export const buildGatewayTypeDeclarationIndexLayerBrokerProxy = (): {
@@ -15,9 +14,6 @@ export const buildGatewayTypeDeclarationIndexLayerBrokerProxy = (): {
 } => {
   const existsProxy = existsSyncProxy();
   const collectProxy = collectGatewayTypeDeclarationNamesLayerBrokerProxy();
-  // Real passthrough default: pathJoinAdapter only joins the srcDir strings this proxy's callers
-  // already stage exact matches for, so no staging of its own is needed here.
-  pathJoinAdapterProxy();
 
   return {
     setupSrcDirMissing: ({ srcDir }: { srcDir: FilePath }): void => {

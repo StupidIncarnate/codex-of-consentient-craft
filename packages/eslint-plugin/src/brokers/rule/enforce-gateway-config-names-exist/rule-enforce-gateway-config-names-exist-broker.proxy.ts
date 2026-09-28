@@ -1,4 +1,3 @@
-import { pathDirnameAdapterProxy } from '../../../adapters/path/dirname/path-dirname-adapter.proxy';
 import { workspaceRootFindBrokerProxy } from '../../workspace-root/find/workspace-root-find-broker.proxy';
 import { checkGatewaySubpathExistsLayerBrokerProxy } from './check-gateway-subpath-exists-layer-broker.proxy';
 import { checkGatewayExportNameExistsLayerBrokerProxy } from './check-gateway-export-name-exists-layer-broker.proxy';
@@ -14,9 +13,6 @@ export const ruleEnforceGatewayConfigNamesExistBrokerProxy = (): {
   setupBarrelExists: (args: { barrelPath: string; sourceText: string }) => void;
   setupBarrelMissing: (args: { barrelPath: string }) => void;
 } => {
-  // Real passthrough default: the rule itself calls pathDirnameAdapter directly (not only through
-  // workspaceRootFindBroker), so this satisfies enforce-proxy-child-creation with no staging.
-  pathDirnameAdapterProxy();
   const workspaceRootProxy = workspaceRootFindBrokerProxy();
   const subpathProxy = checkGatewaySubpathExistsLayerBrokerProxy();
   const exportNameProxy = checkGatewayExportNameExistsLayerBrokerProxy();

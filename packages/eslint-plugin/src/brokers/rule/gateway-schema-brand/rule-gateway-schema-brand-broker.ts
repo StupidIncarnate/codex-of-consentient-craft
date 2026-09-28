@@ -18,13 +18,13 @@
  * // flags a second gateway file exporting `interface WalkedFile` as duplicateTypeName
  */
 import { filePathContract, identifierContract } from '@dungeonmaster/shared/contracts';
+import { dirname } from '#gateway/node/path';
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { isGatewayFileGuard } from '../../../guards/is-gateway-file/is-gateway-file-guard';
 import { dotCountTransformer } from '../../../transformers/dot-count/dot-count-transformer';
-import { pathDirnameAdapter } from '../../../adapters/path/dirname/path-dirname-adapter';
 import { workspaceRootFindBroker } from '../../workspace-root/find/workspace-root-find-broker';
 import { checkSchemaBrandTextLayerBroker } from './check-schema-brand-text-layer-broker';
 import { buildGatewayTypeDeclarationIndexLayerBroker } from './build-gateway-type-declaration-index-layer-broker';
@@ -120,7 +120,7 @@ export const ruleGatewaySchemaBrandBroker = (): EslintRule => ({
         }
 
         const workspaceRoot = workspaceRootFindBroker({
-          startDir: pathDirnameAdapter({ filePath: filePathContract.parse(filename) }),
+          startDir: filePathContract.parse(dirname(filename)),
         });
 
         if (workspaceRoot === undefined) {

@@ -1,6 +1,4 @@
 import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
-import { pathJoinAdapterProxy } from '../../../adapters/path/join/path-join-adapter.proxy';
-import { pathDirnameAdapterProxy } from '../../../adapters/path/dirname/path-dirname-adapter.proxy';
 import { findAncestorDirectoryLayerBrokerProxy } from './find-ancestor-directory-layer-broker.proxy';
 
 const REPO_ROOT_MARKER = '.dungeonmaster.json';
@@ -16,8 +14,6 @@ export const resolveGatewayScopeLayerBrokerProxy = (): {
   setupNoRepoRootAt: ({ dirPath }: { dirPath: string }) => void;
 } => {
   const readProxy = readFileSyncProxy();
-  pathJoinAdapterProxy();
-  pathDirnameAdapterProxy();
   const ancestorProxy = findAncestorDirectoryLayerBrokerProxy();
 
   return {

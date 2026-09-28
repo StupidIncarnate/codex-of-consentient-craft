@@ -17,8 +17,7 @@
 import { filePathContract, packageNameContract } from '@dungeonmaster/shared/contracts';
 import type { FilePath, PackageName } from '@dungeonmaster/shared/contracts';
 import { existsSync, readFileSync } from '#gateway/node/fs';
-import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
-import { pathDirnameAdapter } from '../../../adapters/path/dirname/path-dirname-adapter';
+import { dirname, join } from '#gateway/node/path';
 import { workspaceRootPackageJsonContract } from '../../../contracts/workspace-root-package-json/workspace-root-package-json-contract';
 import { gatewayConsumerPackageJsonContract } from '../../../contracts/gateway-consumer-package-json/gateway-consumer-package-json-contract';
 
@@ -29,7 +28,7 @@ export const workspaceRootFindBroker = ({
 }):
   | { rootDir: FilePath; rootPackageJsonName: PackageName; packageNames: PackageName[] }
   | undefined => {
-  const packageJsonPath = pathJoinAdapter({ paths: [startDir, 'package.json'] });
+  const packageJsonPath = join(startDir, 'package.json');
 
   if (existsSync(packageJsonPath)) {
     const contents = readFileSync(packageJsonPath);
@@ -51,7 +50,7 @@ export const workspaceRootFindBroker = ({
     }
   }
 
-  const parentDir = pathDirnameAdapter({ filePath: startDir });
+  const parentDir = dirname(startDir);
   if (parentDir === startDir) {
     return undefined;
   }

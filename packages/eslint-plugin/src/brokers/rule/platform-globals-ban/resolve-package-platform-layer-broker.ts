@@ -21,8 +21,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import { packageBrowserTypeTransformer } from '@dungeonmaster/shared/transformers';
 import { existsSync, readFileSync } from '#gateway/node/fs';
-import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
-import { pathDirnameAdapter } from '../../../adapters/path/dirname/path-dirname-adapter';
+import { dirname, join } from '#gateway/node/path';
 import { findAncestorDirectoryLayerBroker } from './find-ancestor-directory-layer-broker';
 
 type GatewayPlatform = 'node' | 'browser';
@@ -34,7 +33,7 @@ export const resolvePackagePlatformLayerBroker = ({
 }: {
   filename: string;
 }): GatewayPlatform => {
-  const startDir = pathDirnameAdapter({ filePath: filePathContract.parse(filename) });
+  const startDir = filePathContract.parse(dirname(filename));
   const packageRoot = findAncestorDirectoryLayerBroker({
     startDir,
     markerFileName: 'package.json',
@@ -49,17 +48,11 @@ export const resolvePackagePlatformLayerBroker = ({
     return cached;
   }
 
-  const packageJsonRaw = readFileSync(pathJoinAdapter({ paths: [packageRoot, 'package.json'] }));
+  const packageJsonRaw = readFileSync(join(packageRoot, 'package.json'));
   const packageJson = packageJsonContract.parse(JSON.parse(packageJsonRaw));
 
-  const srcDirNames = existsSync(pathJoinAdapter({ paths: [packageRoot, 'src', 'widgets'] }))
-    ? ['widgets']
-    : [];
-  const adapterDirNames = existsSync(
-    pathJoinAdapter({ paths: [packageRoot, 'src', 'adapters', 'ink'] }),
-  )
-    ? ['ink']
-    : [];
+  const srcDirNames = existsSync(join(packageRoot, 'src', 'widgets')) ? ['widgets'] : [];
+  const adapterDirNames = existsSync(join(packageRoot, 'src', 'adapters', 'ink')) ? ['ink'] : [];
 
   const detectedType = packageBrowserTypeTransformer({ adapterDirNames, srcDirNames, packageJson });
   const platform: GatewayPlatform = detectedType === undefined ? 'node' : 'browser';

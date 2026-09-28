@@ -15,11 +15,11 @@
  * // only reports while linting dungeonmaster-config-contract.ts
  */
 import { filePathContract, gatewayLintConfigContract } from '@dungeonmaster/shared/contracts';
+import { dirname } from '#gateway/node/path';
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
-import { pathDirnameAdapter } from '../../../adapters/path/dirname/path-dirname-adapter';
 import { workspaceRootFindBroker } from '../../workspace-root/find/workspace-root-find-broker';
 import { checkGatewaySubpathExistsLayerBroker } from './check-gateway-subpath-exists-layer-broker';
 import { checkGatewayExportNameExistsLayerBroker } from './check-gateway-export-name-exists-layer-broker';
@@ -64,7 +64,7 @@ export const ruleEnforceGatewayConfigNamesExistBroker = (): EslintRule => ({
     return {
       Program: (node: Tsestree): void => {
         const workspaceRoot = workspaceRootFindBroker({
-          startDir: pathDirnameAdapter({ filePath: filePathContract.parse(filename) }),
+          startDir: filePathContract.parse(dirname(filename)),
         });
 
         if (workspaceRoot === undefined) {

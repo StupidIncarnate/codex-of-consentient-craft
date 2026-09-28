@@ -8,7 +8,6 @@ import { readFileSync } from 'fs';
 import { readFileSyncIfExistsProxy } from '#gateway/node/fs/read-file-sync-if-exists/read-file-sync-if-exists.proxy';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
-import { pathDirnameAdapterProxy } from '../../../adapters/path/dirname/path-dirname-adapter.proxy';
 import { workspaceRootFindBrokerProxy } from '../../workspace-root/find/workspace-root-find-broker.proxy';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
@@ -26,9 +25,6 @@ export const ruleEnforceProxyChildCreationBrokerProxy = (): {
   // existsSync and workspaceRootFindBroker's own walk (below) both call the SAME gateway
   // existsSync, so staging through this one composed proxy drives every caller at once.
   const existsProxy = existsSyncProxy();
-  // Real passthrough default: the rule itself calls pathDirnameAdapter directly (not only through
-  // workspaceRootFindBroker), so this satisfies enforce-proxy-child-creation with no staging.
-  pathDirnameAdapterProxy();
   // workspaceRootFindBroker's own fs walk shares the SAME existsSync/readFileSync mocks
   // `setupFileSystem` below wires — constructing it here only satisfies enforce-proxy-child-creation
   // (it composes no scenario of its own); every test's own `getContents` callback still governs

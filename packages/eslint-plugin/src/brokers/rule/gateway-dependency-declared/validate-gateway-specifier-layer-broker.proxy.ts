@@ -1,4 +1,3 @@
-import { pathDirnameAdapterProxy } from '../../../adapters/path/dirname/path-dirname-adapter.proxy';
 import { findNearestPackageJsonLayerBrokerProxy } from './find-nearest-package-json-layer-broker.proxy';
 
 export const validateGatewaySpecifierLayerBrokerProxy = (): {
@@ -8,12 +7,6 @@ export const validateGatewaySpecifierLayerBrokerProxy = (): {
   }) => void;
   setupNoPackageJsonAt: (args: { dirPath: string }) => void;
 } => {
-  // Constructed for its own default real-passthrough behavior and only to satisfy
-  // enforce-proxy-child-creation — validateGatewaySpecifierLayerBroker imports pathDirnameAdapter
-  // directly, but every test case here stages a real filename/packageDir pair, so the real
-  // dirname computation is exactly what each test wants.
-  pathDirnameAdapterProxy();
-
   const nearestPackageJsonProxy = findNearestPackageJsonLayerBrokerProxy();
 
   return {

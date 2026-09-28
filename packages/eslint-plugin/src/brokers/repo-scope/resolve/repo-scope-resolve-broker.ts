@@ -8,9 +8,9 @@
  * `process.cwd()`, which `@dungeonmaster/no-bare-process-cwd` reserves for CLI entry points and
  * path-resolver brokers) means the same walk finds THIS repo's root when a rule runs from source,
  * and a consumer's own root once this package is installed under their `node_modules`. Directories
- * are joined with a plain "/" rather than `pathJoinAdapter`: every path here is already
+ * are joined with a plain "/" rather than `join`: every path here is already
  * POSIX-absolute (`__dirname` at rule-module load, or a value this same function derived), so no
- * adapter's cross-platform behaviour is needed, and skipping it keeps this broker's only child proxy
+ * cross-platform behaviour is needed, and skipping it keeps this broker's only child proxy
  * the fs one its own test actually stages. Derives the scope via `packageScopeFromNameTransformer`
  * directly, not the tolerant `workspaceScopeFromRootNameTransformer` (F4, in `shared`):
  * `workspaceRootPackageJsonContract` already guarantees `name` is a non-empty string once a

@@ -2,8 +2,6 @@ import { FilePathStub } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
-import { pathJoinAdapterProxy } from '../../../adapters/path/join/path-join-adapter.proxy';
-import { pathDirnameAdapterProxy } from '../../../adapters/path/dirname/path-dirname-adapter.proxy';
 
 export const configGatewayLintConfigBrokerProxy = (): {
   setupDungeonmasterConfig: (args: { configDir: string; contents: string }) => void;
@@ -11,9 +9,6 @@ export const configGatewayLintConfigBrokerProxy = (): {
 } => {
   const existsProxy = existsSyncProxy();
   const readProxy = readFileSyncProxy();
-  // Real passthrough default: no explicit staging.
-  pathJoinAdapterProxy();
-  pathDirnameAdapterProxy();
 
   return {
     setupDungeonmasterConfig: ({
@@ -23,8 +18,7 @@ export const configGatewayLintConfigBrokerProxy = (): {
       configDir: string;
       contents: string;
     }): void => {
-      // Mirrors real path.join's own normalization (the broker joins via pathJoinAdapter, whose
-      // default is a real passthrough): a root configDir ('/') must not double the leading slash.
+      // Mirrors real path.join's own normalization (the broker joins via the real path.join): a root configDir ('/') must not double the leading slash.
       const configPath = FilePathStub({
         value: configDir.endsWith('/')
           ? `${configDir}${locationsStatics.repoRoot.config}`

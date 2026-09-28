@@ -19,8 +19,7 @@ import {
 import { packageScopeFromNameTransformer } from '@dungeonmaster/shared/transformers';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { readFileSync } from '#gateway/node/fs';
-import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
-import { pathDirnameAdapter } from '../../../adapters/path/dirname/path-dirname-adapter';
+import { dirname, join } from '#gateway/node/path';
 import { findAncestorDirectoryLayerBroker } from './find-ancestor-directory-layer-broker';
 
 // A wrapper object, not a bare `let cachedScope: PackageName | undefined`: `no-undef-init`
@@ -38,7 +37,7 @@ export const resolveGatewayScopeLayerBroker = ({
     return scopeCache.value;
   }
 
-  const startDir = pathDirnameAdapter({ filePath: filePathContract.parse(filename) });
+  const startDir = filePathContract.parse(dirname(filename));
   const repoRoot = findAncestorDirectoryLayerBroker({
     startDir,
     markerFileName: locationsStatics.repoRoot.config,
@@ -48,7 +47,7 @@ export const resolveGatewayScopeLayerBroker = ({
     return undefined;
   }
 
-  const packageJsonRaw = readFileSync(pathJoinAdapter({ paths: [repoRoot, 'package.json'] }));
+  const packageJsonRaw = readFileSync(join(repoRoot, 'package.json'));
   const packageJson = packageJsonContract.parse(JSON.parse(packageJsonRaw));
   const rootPackageName = packageJson.name ?? 'dungeonmaster';
 

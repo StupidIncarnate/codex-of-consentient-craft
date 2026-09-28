@@ -1,7 +1,6 @@
 import type { FileContents } from '@dungeonmaster/shared/contracts';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import { pathJoinAdapterProxy } from '../../../adapters/path/join/path-join-adapter.proxy';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { writeFileSyncProxy } from '#gateway/node/fs/write-file-sync/write-file-sync.proxy';
 import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
@@ -18,7 +17,6 @@ export const InstallDetectConfigResponderProxy = (): {
   }) => void;
   getWrittenConfigContent: (params: { targetProjectRoot: string }) => unknown;
 } => {
-  const joinProxy = pathJoinAdapterProxy();
   const existsProxy = existsSyncProxy();
   const readProxy = readFileSyncProxy();
   const writeProxy = writeFileSyncProxy();
@@ -28,18 +26,16 @@ export const InstallDetectConfigResponderProxy = (): {
 
     setupNoConfigExists: ({ targetProjectRoot }: { targetProjectRoot: string }): void => {
       // The responder joins targetProjectRoot onto every candidate config filename before
-      // checking existence, then again onto the new-config filename before writing — stage the
-      // real join result AND an explicit false existsSync answer for each, since existsSyncProxy
-      // ships no address-less catch-all.
+      // checking existence, then again onto the new-config filename before writing — join is
+      // real, so stage an explicit false existsSync answer at each joined path, since
+      // existsSyncProxy ships no address-less catch-all.
       for (const configFile of eslintConfigFilesStatics) {
         const joinedPath = filePathContract.parse(`${targetProjectRoot}/${configFile}`);
-        joinProxy.returns({ paths: [targetProjectRoot, configFile], result: joinedPath });
         existsProxy.returns({ path: joinedPath, exists: false });
       }
 
       const [, newConfigFile] = locationsStatics.repoRoot.eslintConfig;
       const newConfigPath = filePathContract.parse(`${targetProjectRoot}/${newConfigFile}`);
-      joinProxy.returns({ paths: [targetProjectRoot, newConfigFile], result: newConfigPath });
       writeProxy.succeeds({ path: newConfigPath });
     },
 
@@ -52,12 +48,11 @@ export const InstallDetectConfigResponderProxy = (): {
       configFileName: string;
       contents: FileContents;
     }): void => {
-      // The loop joins EVERY candidate filename in order before existence short-circuits on a
-      // match, so every candidate ahead of configFileName needs a staged join AND an explicit
-      // existsSync answer too — not just the one that matches.
+      // The loop probes EVERY candidate filename in order before existence short-circuits on a
+      // match, so every candidate ahead of configFileName needs an explicit existsSync answer
+      // too — not just the one that matches.
       for (const configFile of eslintConfigFilesStatics) {
         const joinedPath = filePathContract.parse(`${targetProjectRoot}/${configFile}`);
-        joinProxy.returns({ paths: [targetProjectRoot, configFile], result: joinedPath });
         existsProxy.returns({ path: joinedPath, exists: configFile === configFileName });
       }
 

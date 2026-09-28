@@ -14,8 +14,8 @@ import {
   fileContentsContract,
 } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
 import { existsSync, readFileSync, writeFileSync } from '#gateway/node/fs';
+import { join } from '#gateway/node/path';
 import { eslintConfigFilesStatics } from '../../../statics/eslint-config-files/eslint-config-files-statics';
 
 const PACKAGE_NAME = '@dungeonmaster/eslint-plugin';
@@ -98,9 +98,7 @@ export const InstallDetectConfigResponder = ({
   context: InstallContext;
 }): InstallResult => {
   for (const configFile of eslintConfigFilesStatics) {
-    const configPath = pathJoinAdapter({
-      paths: [context.targetProjectRoot, configFile],
-    });
+    const configPath = join(context.targetProjectRoot, configFile);
 
     if (existsSync(configPath)) {
       const content = readFileSync(configPath);
@@ -125,9 +123,7 @@ export const InstallDetectConfigResponder = ({
     }
   }
 
-  const newConfigPath = pathJoinAdapter({
-    paths: [context.targetProjectRoot, locationsStatics.repoRoot.eslintConfig[1]],
-  });
+  const newConfigPath = join(context.targetProjectRoot, locationsStatics.repoRoot.eslintConfig[1]);
 
   const contents = fileContentsContract.parse(NEW_CONFIG_TEMPLATE);
 

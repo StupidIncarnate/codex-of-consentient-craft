@@ -584,3 +584,33 @@ Taken (readdir-sync):
 - `brokers/rule/gateway-colocation/rule-gateway-colocation-broker.test.ts` (reaches `gatewaySubpathDirectoryWalk.fsReaddirSync`), `.proxy.ts` (comment only)
 
 Not taken (left): every caller of `adapters/path/dirname/**` and `adapters/path/join/**` (adapter folders stay).
+
+### path adapters, group 1
+
+Scope (2026-09-28), all under `packages/eslint-plugin/src/`. Callers of `adapters/path/dirname` and
+`adapters/path/join` move to `dirname`/`join` from `#gateway/node/path` (pure, run for real in tests, no staging,
+no path-adapter proxy composition). Tests are read and edited only if they depend on a mocked join.
+
+- `brokers/workspace-root/find/workspace-root-find-broker.ts`, `.proxy.ts`, `.test.ts`
+- `brokers/config/gateway-lint-config/config-gateway-lint-config-broker.ts`, `.proxy.ts`, `.test.ts`
+- `brokers/rule/enforce-proxy-child-creation/rule-enforce-proxy-child-creation-broker.ts`, `.proxy.ts`, `.test.ts`
+- `brokers/rule/platform-globals-ban/find-ancestor-directory-layer-broker.ts`, `.proxy.ts`, `.test.ts`
+- `brokers/rule/platform-globals-ban/resolve-package-platform-layer-broker.ts`, `.proxy.ts`, `.test.ts`
+- `brokers/rule/platform-globals-ban/resolve-gateway-scope-layer-broker.ts`, `.proxy.ts`, `.test.ts`
+- `responders/install/detect-config/install-detect-config-responder.ts`, `.proxy.ts`, `.test.ts`
+
+### path adapters, group 2
+
+Scope (2026-09-28), all under `packages/eslint-plugin/src/brokers/rule/`. Callers of `adapters/path/dirname` and
+`adapters/path/join` move onto `dirname`/`join` from `#gateway/node/path`, which run for real in tests (no
+`registerMock` staging); the proxies drop their `pathJoinAdapterProxy`/`pathDirnameAdapterProxy` composition. The
+`adapters/path/*` folders stay; the operator deletes them once both path-adapter groups are done.
+
+- `gateway-dependency-declared/validate-gateway-specifier-layer-broker.ts`, `.proxy.ts`
+- `gateway-dependency-declared/find-nearest-package-json-layer-broker.ts`, `.proxy.ts`
+- `gateway-dependency-declared/find-package-json-dir-layer-broker.ts`, `.proxy.ts` (also: stale `resolveRepoScopeLayerBroker` comment names `repoScopeResolveBroker`)
+- `gateway-schema-brand/build-gateway-type-declaration-index-layer-broker.ts`, `.proxy.ts`
+- `gateway-schema-brand/rule-gateway-schema-brand-broker.ts`, `.proxy.ts`
+- `enforce-gateway-config-names-exist/check-gateway-subpath-exists-layer-broker.ts`, `.proxy.ts`
+- `enforce-gateway-config-names-exist/check-gateway-export-name-exists-layer-broker.ts`, `.proxy.ts`
+- `enforce-gateway-config-names-exist/rule-enforce-gateway-config-names-exist-broker.ts`, `.proxy.ts`

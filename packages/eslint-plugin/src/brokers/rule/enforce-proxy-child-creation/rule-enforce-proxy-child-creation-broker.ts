@@ -33,6 +33,7 @@ import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-cont
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { readFileSyncIfExists, existsSync } from '#gateway/node/fs';
+import { dirname } from '#gateway/node/path';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 import { astGetImportsTransformer } from '../../../transformers/ast-get-imports/ast-get-imports-transformer';
 import { parseImplementationImportsTransformer } from '../../../transformers/parse-implementation-imports/parse-implementation-imports-transformer';
@@ -50,7 +51,6 @@ import { gatewayBarrelWrapperPathsTransformer } from '../../../transformers/gate
 import { packageRootSourcePathTransformer } from '../../../transformers/package-root-source-path/package-root-source-path-transformer';
 import { workspaceScopeFromRootNameTransformer } from '@dungeonmaster/shared/transformers';
 import { workspaceRootFindBroker } from '../../workspace-root/find/workspace-root-find-broker';
-import { pathDirnameAdapter } from '../../../adapters/path/dirname/path-dirname-adapter';
 import { fileExtensionsStatics, gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
 
 export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
@@ -111,7 +111,7 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
     const workspaceScope = filename
       ? workspaceScopeFromRootNameTransformer({
           rootPackageJsonName: workspaceRootFindBroker({
-            startDir: pathDirnameAdapter({ filePath: filePathContract.parse(filename) }),
+            startDir: filePathContract.parse(dirname(filename)),
           })?.rootPackageJsonName,
         })
       : undefined;
