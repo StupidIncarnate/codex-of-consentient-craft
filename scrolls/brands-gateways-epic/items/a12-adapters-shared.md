@@ -249,8 +249,30 @@ Files to edit:
 - `packages/orchestrator/src/brokers/step-handler/riftcarver/step-handler-riftcarver-broker.ts` — `childProcessSpawnStreamLinesAdapter` (`@dungeonmaster/shared/adapters`) → `streamLines` (`#gateway/node/child_process`) for the typecheck spawn
 - `packages/orchestrator/src/brokers/step-handler/riftcarver/step-handler-riftcarver-broker.proxy.ts` — compose `streamLinesProxy` (`#gateway/node/child_process/stream-lines/stream-lines.proxy`) actively (staged in `setupQuest`/`setupTypecheckFails`, never unconditionally, so an inert construction via `stepHandlerRunBrokerProxy` never collides with ward's own `'dungeonmaster-ward'` address); drop the raw `spawn`(`child_process`)/`mkdir`(`fs/promises`) imports and their two `as never` casts — mock the gateway's own `run` (`#gateway/node/child_process`) and `ensureDir` (`#gateway/node/fs__promises`) directly instead (same "mocked at the wrapper" pattern already used here for `readdirEntriesSync`/`existsSync`/`join`, since the implementation file itself never imports `run`/`ensureDir` and `enforce-proxy-child-creation` refuses a nested `runProxy()`/`ensureDirProxy()` composition here); drop the `pathJoinAdapter` mock entirely — `questOperationsUpdateBroker` (real, out of this item's scope) still calls it for real, and leaving it out of the `@dungeonmaster/shared/adapters` module mock's override list lets `jest.requireActual` serve the real, already-correct implementation
 - `packages/orchestrator/src/brokers/step-handler/riftcarver/step-handler-riftcarver-broker.test.ts` — no change; existing scenarios cover the migration
-- `packages/orchestrator/src/brokers/step-handler/cleanup/step-handler-cleanup-broker.proxy.ts` — drop the raw `registerMock({fn: streamLines})` queue-free direct mock; use `streamLinesProxy()` actively (`setupSuccess`/`getSpawnedArgs`/`getOptionsFor`) addressed on `cleanupCliCallStatics.call.bin`
+- `packages/orchestrator/src/brokers/step-handler/cleanup/step-handler-cleanup-broker.proxy.ts` — attempted, reverted: **BLOCKED**, same reason as ward below (see "Trap: ward's `streamLines` and `run` share one address space" — its closing paragraph covers cleanup too).
 - `packages/orchestrator/src/brokers/step-handler/ward/step-handler-ward-broker.proxy.ts` — attempted, reverted: **BLOCKED**, not a file this item can land as planned. See "Trap: ward's `streamLines` and `run` share one address space" below.
+
+### Trap: a shared wrapper function mocked directly replaces it for the WHOLE test file
+
+`registerMock({fn: X})` is keyed on the function REFERENCE `X`, shared across every proxy that mocks it in one test
+file — that is the whole point (`get-testing-patterns`' "one function, one behaviour"). It also means mocking a
+GATEWAY WRAPPER directly (`run`, `streamLines`, `ensureDir` — anything whose own body calls a lower-level primitive,
+as opposed to a near-passthrough like `existsSync`/`readdirEntriesSync`/`join`) replaces that wrapper's REAL
+implementation for every OTHER caller in the same test file too — including one that expected the wrapper's real
+body to run so it could reach a DIFFERENT proxy's OWN lower-level stage (`ensureDirProxy`/`runProxy` mock `mkdir`/
+`spawn`, one level BELOW the wrapper, precisely so the wrapper's own real logic keeps running for everyone). Two
+confirmed instances, both in `step-handler-riftcarver-broker.proxy.ts` during this item, both reproduced and fixed
+the same way (mock the RAW primitive instead, one level below the wrapper — matching the gateway's own
+`run.proxy.ts`/`ensure-dir.proxy.ts` convention):
+- `registerMock({fn: run})` (staged for the `cp` hardlink, addressed `{command: 'cp'}`) made `run` a dispatcher with
+  ONLY that address staged — `wardDetailBroker`'s own REAL call to `run({command: 'dungeonmaster-ward', args:
+  ['detail', ...], ...})` (composed via `wardDetailBrokerProxy` → `runProxy`, expecting `spawn` mocked underneath)
+  then hit this dispatcher instead and threw `nothing set up for this call`. Fixed: mock `spawn` (raw `child_process`
+  — see the next trap for why the GATEWAY import of `spawn` doesn't work either) instead of `run`.
+- `registerMock({fn: ensureDir})` (staged for the node_modules-mirror `mkdir` calls) made `ensureDir` a dispatcher
+  with only THOSE addresses staged — `stepHandlerWardBroker`'s own ward-results directory `ensureDir` call (composed
+  via `step-handler-ward-broker.proxy.ts` → `ensureDirProxy`, expecting `mkdir` mocked underneath) then hit this
+  dispatcher instead and threw the same way. Fixed: mock `mkdir` (raw `fs/promises`) instead of `ensureDir`.
 
 ### Trap: ward's `streamLines` and `run` share one address space
 
@@ -276,4 +298,17 @@ scope): give `streamLinesProxy().setupSuccess` (and its sibling stage methods) t
 staged at different specificities. Until then, `step-handler-ward-broker.proxy.ts` stays on its pre-migration
 design: `streamLinesProxy()` composed INERTLY (satisfies `enforce-proxy-child-creation`) and `streamLines` itself
 mocked directly, exactly as it was before this item.
+
+**This also blocks cleanup, transitively — not from its own address space, but from ward's fix for the trap above.**
+Ward's own `registerMock({fn: streamLines})` (staged `{command: 'dungeonmaster-ward'}`) is itself an instance of the
+PREVIOUS trap ("a shared wrapper function mocked directly replaces it for the WHOLE test file") — it replaces
+`streamLines` globally for every file that composes ward's proxy. `stepHandlerCleanupBrokerProxy`, migrated onto
+`streamLinesProxy()` (spawn-level, needing `streamLines`'s real body to run so it can reach the mocked `spawn`),
+passes on its OWN, standalone test file (nothing else there touches `streamLines`), but fails wherever
+`step-handler-run-broker.proxy.ts` composes it ALONGSIDE ward's: ward's direct mock answers cleanup's own
+`streamLines({command: 'dungeonmaster', ...})` call too (the dispatcher has nothing staged for the `'dungeonmaster'`
+address, only ward's `'dungeonmaster-ward'` one), and throws the same `nothing set up for this call`. Cleanup's own
+migration is sound in isolation; it is ward's forced non-migration that makes it unsafe wherever the two are
+composed together. Both proxies have to agree on ONE strategy (both mock `streamLines` directly) until the gateway
+gap above closes and ward can move too.
 

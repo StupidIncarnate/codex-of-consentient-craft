@@ -18,22 +18,18 @@ import { Dirent } from 'fs';
 import { mkdir } from 'fs/promises';
 import { EventEmitter, Readable } from 'stream';
 
+import { streamLinesProxy } from '#gateway/node/child_process/stream-lines/stream-lines.proxy';
 import { existsSync, readdirEntriesSync } from '#gateway/node/fs';
 import type { DirEntrySync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
 
 import {
   childProcessSpawnCaptureAdapter,
-  childProcessSpawnStreamLinesAdapter,
   fsMkdirAdapter,
   fsReaddirWithTypesAdapter,
-  pathJoinAdapter,
 } from '@dungeonmaster/shared/adapters';
 import { dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
-import {
-  childProcessSpawnStreamLinesAdapterProxy,
-  locationsWorktreePathFindBrokerProxy,
-} from '@dungeonmaster/shared/testing';
+import { locationsWorktreePathFindBrokerProxy } from '@dungeonmaster/shared/testing';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import {
   adapterResultContract,
@@ -71,6 +67,7 @@ import { gitHeadShaAdapterProxy } from '../../../adapters/git/head-sha/git-head-
 import { gitPushAdapterProxy } from '../../../adapters/git/push/git-push-adapter.proxy';
 import { gitUpstreamShaAdapterProxy } from '../../../adapters/git/upstream-sha/git-upstream-sha-adapter.proxy';
 import { gitVerifyRefAdapterProxy } from '../../../adapters/git/verify-ref/git-verify-ref-adapter.proxy';
+import { wardCommandStatics } from '../../../statics/ward-command/ward-command-statics';
 import { gitDetectBaseBranchBrokerProxy } from '../../git/detect-base-branch/git-detect-base-branch-broker.proxy';
 import { riftcarverPersistResultBrokerProxy } from '../../riftcarver/persist-result/riftcarver-persist-result-broker.proxy';
 import { worktreePrepareBrokerProxy } from '../../worktree/prepare/worktree-prepare-broker.proxy';
@@ -88,10 +85,8 @@ registerModuleMock({
   factory: () => ({
     ...jest.requireActual('@dungeonmaster/shared/adapters'),
     childProcessSpawnCaptureAdapter: jest.fn(),
-    childProcessSpawnStreamLinesAdapter: jest.fn(),
     fsMkdirAdapter: jest.fn(),
     fsReaddirWithTypesAdapter: jest.fn(),
-    pathJoinAdapter: jest.fn(),
   }),
 });
 registerModuleMock({
@@ -135,6 +130,13 @@ const FIXED_TIMESTAMP = '2024-01-15T10:00:00.000Z';
 const GIT_SUCCESS = 0;
 const GIT_FAILURE = 128;
 const TYPECHECK_FAILURE = 1;
+// Matches stepHandlerRiftcarverBroker's own typecheck spawn — `wardCommandStatics.bin`, the same
+// command name `step-handler-ward-broker.proxy.ts` stages on the shared `streamLines`/`spawn` mock.
+// Staging stays deferred to `setupQuest`/`setupTypecheckFails` (never unconditional at
+// construction) so an inert composition of this proxy — `stepHandlerRunBrokerProxy` builds one
+// purely to satisfy `enforce-proxy-child-creation` — never registers an address the ward handler
+// proxy's own staging could collide with.
+const TYPECHECK_COMMAND = wardCommandStatics.bin;
 
 const buildDirent = ({ name, isDir, isSymlink }: DirEntry): Dirent =>
   Object.assign(Object.create(Dirent.prototype) as Dirent, {
@@ -159,7 +161,7 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
   getTypecheckSpawns: () => readonly unknown[];
   getRiftcarverLogWrites: () => readonly { path: unknown; contents: unknown }[];
 } => {
-  childProcessSpawnStreamLinesAdapterProxy();
+  const typecheckSpawn = streamLinesProxy();
   locationsWorktreePathFindBrokerProxy();
   fsIsAccessibleAdapterProxy();
   gitCurrentBranchAdapterProxy();
@@ -183,7 +185,6 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
   const readlinkTargets = new Map<FilePath, FilePath>();
   const symlinkCalls: { target: unknown; linkPath: unknown }[] = [];
   const spawnCaptureCalls: SpawnRecord[] = [];
-  const spawnStreamCalls: SpawnRecord[] = [];
   const questFilePathRef = { value: filePathContract.parse('/unset/quest.json') };
 
   const existingRefs = new Set<FileName>([fileNameContract.parse('main')]);
@@ -202,11 +203,12 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
     lines: [errorMessageContract.parse('✓ typecheck')],
   };
 
+  // `pathJoinAdapter` (still called for real by `questOperationsUpdateBroker`, not yet migrated)
+  // needs no mock of its own here: it is left OUT of the `@dungeonmaster/shared/adapters` module
+  // mock's override list above, so `jest.requireActual` spreads in the real, unmocked function — a
+  // pure wrapper over Node's own `path.join`, identical in effect to the real-passthrough this file
+  // used to build by hand.
   const realPath = requireActual<{ join: typeof join }>({ module: 'path' });
-  const pathJoinHandle = registerMock({ fn: pathJoinAdapter });
-  const pathJoinImpl = ({ paths }: Parameters<typeof pathJoinAdapter>[0]): FilePath =>
-    filePathContract.parse(realPath.join(...paths));
-  pathJoinHandle.calledWith([]).implement(pathJoinImpl as never);
 
   // questFindQuestPathBroker and questGetBroker reach `readdirEntriesSync`/`existsSync` through the
   // gateway directly, not through `@dungeonmaster/shared/adapters` — and so, now, do the node_modules
@@ -246,15 +248,37 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
   const gatewayJoinHandle = registerMock({ fn: join });
   gatewayJoinHandle.calledWith([]).implement((...segments: never[]) => realPath.join(...segments));
   // The same brokers now call `ensureDir` (`#gateway/node/fs__promises`) rather than the shared
-  // `fsMkdirAdapter`, reaching raw fs/promises `mkdir` underneath. Staged per-quest below, once
+  // `fsMkdirAdapter`. Mocked at `mkdir` itself (`fs/promises`), one level BELOW `ensureDir` —
+  // never at `ensureDir` directly: `ensureDir`'s own body is real logic (`mkdir(path,
+  // {recursive:true})`) that the GATEWAY's own `ensureDirProxy()` (composed by sibling proxies —
+  // riftcarverPersistResultBrokerProxy, populateOneRootLayerBrokerProxy, ward's own proxy — when
+  // this proxy is combined with theirs) depends on running for real, with `mkdir` mocked beneath
+  // it. A `registerMock({fn: ensureDir})` here replaces `ensureDir`'s implementation FOR THE WHOLE
+  // TEST FILE and starves every sibling proxy's own `mkdir`-level staging of ever running
+  // (confirmed: ward's own `ensureDirProxy().succeeds(...)` stage for its ward-results directory
+  // went unanswered once this mocked `ensureDir` instead). Staged per-quest below, once
   // `setupQuest` knows the real questFolderPath and the real node_modules-mirror targets, on the
   // exact directories those brokers compute — never an address-less default.
   const mkdirHandle = registerMock({ fn: mkdir });
-  // populateOneRootLayerBroker hardlinks third-party node_modules entries by spawning `cp` through
-  // the gateway's `run`, which reaches raw `child_process.spawn` directly — never through the
+  // populateOneRootLayerBroker hardlinks third-party node_modules entries by calling the gateway's
+  // `run` for `cp`, which reaches raw `child_process.spawn` directly — never through the
   // (module-mocked) `childProcessSpawnCaptureAdapter` `spawnCaptureImpl` below answers every git
-  // command by. Addressed by the command alone: this virtual world has no real files for `cp` to
-  // hardlink and no test here reads its argv back.
+  // command by. Mocked at `spawn` itself (raw `child_process`, matching `run.proxy.ts`'s own
+  // convention), one level BELOW `run` — never at `run` directly, and never at the GATEWAY's own
+  // `spawn` re-export either: `run`'s own body is real, substantial logic (event wiring, stream
+  // draining) that OTHER real brokers in this chain depend on running for real, and its wrapper
+  // folder shares one gateway barrel (`#gateway/node/child_process`) with `streamLines` — the
+  // production import this file's own broker.ts makes. `registerMock({fn: run})` here replaces
+  // `run`'s implementation FOR THE WHOLE TEST FILE and starves `wardDetailBroker`'s own real call
+  // to `run` (confirmed: threw "nothing set up for this call" once tried, when combined with
+  // ward's own proxy via `stepHandlerRunBrokerProxy`). Importing `spawn` from the GATEWAY barrel
+  // instead of raw `child_process` was ALSO tried and confirmed broken: it corrupted this file's
+  // OWN `streamLines` import (the two share that one barrel), driving this file's own typecheck
+  // spawn into the same "nothing set up" failure. Raw `child_process` is the only working import
+  // for `spawn` here — see this item's "Trap" entry in a12-adapters-shared.md for the full account.
+  // Addressed by the command alone: this virtual world has no real files for `cp` to hardlink and
+  // no test here reads its argv back.
+  const COPY_COMMAND = 'cp';
   const spawnHandle = registerMock({ fn: spawn });
   const createCpChild = (): ChildProcess => {
     const child = new EventEmitter() as ChildProcess;
@@ -275,7 +299,7 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
     });
     return child;
   };
-  spawnHandle.calledWith(['cp']).implement(createCpChild as never);
+  spawnHandle.calledWith([COPY_COMMAND]).implement(createCpChild as never);
 
   const dungeonmasterHomeFindHandle = registerMock({ fn: dungeonmasterHomeFindBroker });
   const dungeonmasterHomeFindImpl = (): { homePath: FilePath } => ({
@@ -464,26 +488,16 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
   };
   spawnCaptureHandle.calledWith([]).implement(spawnCaptureImpl as never);
 
-  const spawnStreamHandle = registerMock({ fn: childProcessSpawnStreamLinesAdapter });
-  const spawnStreamImpl = async ({
-    command,
-    args,
-    cwd,
-    onLine,
-  }: Parameters<typeof childProcessSpawnStreamLinesAdapter>[0]): Promise<{
-    exitCode: ExitCode;
-    output: ErrorMessage;
-  }> => {
-    spawnStreamCalls.push({ command, args: [...args], cwd: String(cwd) });
-    for (const line of typecheckOutcome.lines) {
-      onLine(String(line));
-    }
-    return Promise.resolve({
-      exitCode: typecheckOutcome.exitCode,
-      output: errorMessageContract.parse(typecheckOutcome.lines.join('\n')),
+  // The typecheck spawn is staged per-quest inside `setupQuest`/`setupTypecheckFails` below, once
+  // `typecheckOutcome` holds the scenario's real values — never staged here with a placeholder, so
+  // there is no moment where an unaddressed default could answer a call this proxy never described.
+  const stageTypecheckSpawn = (): void => {
+    typecheckSpawn.setupSuccess({
+      command: TYPECHECK_COMMAND,
+      exitCode: Number(typecheckOutcome.exitCode),
+      stdoutLines: typecheckOutcome.lines.map((line) => String(line)),
     });
   };
-  spawnStreamHandle.calledWith([]).implement(spawnStreamImpl as never);
 
   const uuidSpy = registerSpyOn({ object: crypto, method: 'randomUUID' });
   uuidSpy
@@ -557,6 +571,8 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
       accessiblePaths.add(
         filePathContract.parse(`${REPO_ROOT}/packages/${WORKSPACE_PACKAGE}/node_modules`),
       );
+
+      stageTypecheckSpawn();
     },
 
     setupNoBaseBranch: (): void => {
@@ -600,6 +616,10 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
     setupTypecheckFails: ({ lines }: { lines: readonly string[] }): void => {
       typecheckOutcome.exitCode = exitCodeContract.parse(TYPECHECK_FAILURE);
       typecheckOutcome.lines = lines.map((line) => errorMessageContract.parse(line));
+      // Re-stages the same address `setupQuest` already staged — the later registration wins (see
+      // `mockStagedBestMatchTransformer`), so this overrides the green default without needing a
+      // fresh proxy or a second construction.
+      stageTypecheckSpawn();
     },
 
     getPersistedQuest: (): Quest => {
@@ -615,8 +635,12 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
         .filter((call) => call.args[0] === 'worktree' && call.args[1] === 'add')
         .map((call) => call.args),
 
-    getTypecheckSpawns: (): readonly unknown[] =>
-      spawnStreamCalls.map((call) => ({ args: call.args, cwd: call.cwd })),
+    getTypecheckSpawns: (): readonly unknown[] => {
+      const args = typecheckSpawn.getSpawnedArgs({ command: TYPECHECK_COMMAND });
+      return typecheckSpawn
+        .getOptionsFor({ command: TYPECHECK_COMMAND })
+        .map((options) => ({ args, cwd: options.cwd }));
+    },
 
     getRiftcarverLogWrites: (): readonly { path: unknown; contents: unknown }[] =>
       [...files.entries()]

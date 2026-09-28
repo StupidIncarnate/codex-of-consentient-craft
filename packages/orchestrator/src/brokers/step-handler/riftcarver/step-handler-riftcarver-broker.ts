@@ -26,8 +26,8 @@
  * // { outcome: 'done' | 'unmet' | 'wall', detail, resultRef: 'riftcarverResults/<id>' }
  */
 
-import { childProcessSpawnStreamLinesAdapter } from '@dungeonmaster/shared/adapters';
 import { locationsWorktreePathFindBroker } from '@dungeonmaster/shared/brokers';
+import { streamLines } from '#gateway/node/child_process';
 import {
   contentTextContract,
   errorMessageContract,
@@ -269,7 +269,7 @@ export const stepHandlerRiftcarverBroker = async ({
 
       // TYPECHECK. Deliberately has NO done-check — this is the VERDICT the repair loop re-runs.
       step.value = STEPS.typecheck;
-      const typecheck = await childProcessSpawnStreamLinesAdapter({
+      const typecheck = await streamLines({
         command: process.env.WARD_CLI_PATH ?? wardCommandStatics.bin,
         args: [...wardCommandStatics.typecheckArgs],
         cwd: worktreePath,
@@ -283,7 +283,7 @@ export const stepHandlerRiftcarverBroker = async ({
           step: STEPS.typecheck,
           detail: worktreeFailureDetailTransformer({
             worktreePath,
-            cause: String(typecheck.output),
+            cause: typecheck.output,
           }),
         });
       }
