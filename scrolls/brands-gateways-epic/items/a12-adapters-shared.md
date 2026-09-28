@@ -299,6 +299,25 @@ staged at different specificities. Until then, `step-handler-ward-broker.proxy.t
 design: `streamLinesProxy()` composed INERTLY (satisfies `enforce-proxy-child-creation`) and `streamLines` itself
 mocked directly, exactly as it was before this item.
 
+### F51
+
+Gives `streamLinesProxy` the `args`/`cwd` match `runProxy` already has, then moves cleanup, ward and riftcarver's
+step-handler proxies off their raw `streamLines`/`spawn`/`mkdir` mocks onto the gateway's own proxies, which is
+what the two Trap sections above were blocked on.
+
+Files to edit:
+- `packages/@gateway/node/src/child_process/stream-lines/stream-lines.proxy.ts` — add a local `SpawnArgsMatcher`
+  type and `buildSpawnAddress` helper (same shape as `run.proxy.ts`'s own, duplicated rather than shared — `run.proxy.ts`'s own comment explains why a matcher type stays local to its own file), so `setupSuccess`/`setupSignalKill`/`setupStderrOnly`/`setupError` each take optional `args`/`cwd` params and address the underlying `spawn` mock the same way `runProxy` does. `getOptionsFor`/`getSpawnedArgs` stay as they are — they already read back `cwd` and the raw args array.
+- `packages/@gateway/node/src/child_process/stream-lines/stream-lines.test.ts` — new tests proving two `setupSuccess` calls for the SAME `command` with different `args` resolve to different staged results, and that a call whose args do not match either falls through as unanswered.
+- `packages/orchestrator/src/brokers/step-handler/ward/step-handler-ward-broker.proxy.ts` — drop the raw `registerMock({fn: streamLines})` queue and its `import { streamLines } from '#gateway/node/child_process'`; stage the handler's own spawn through `streamLinesProxy().setupSuccess({command: WARD_COMMAND, args: <predicate matching the 'run' subcommand>, exitCode, stdoutLines})`, which the real `streamLines` wrapper now runs for real against, discriminating it from `wardDetailBrokerProxy`'s own `runProxy().setupSuccess({command: WARD_COMMAND, ...})` (no args) staged for the `detail` subcommand. `getSpawnedWardArgs`/`getSpawnedWardCwd` move onto `streamLinesProxy`'s own `getSpawnedArgs`/`getOptionsFor`.
+- `packages/orchestrator/src/brokers/step-handler/ward/step-handler-ward-broker.test.ts` — no behavior change expected; re-run to confirm every existing assertion still holds against the new staging.
+- `packages/orchestrator/src/brokers/step-handler/cleanup/step-handler-cleanup-broker.proxy.ts` — drop the raw `registerMock({fn: streamLines})` and its `import { streamLines } from '#gateway/node/child_process'`; stage through `streamLinesProxy().setupSuccess({command: cleanupCliCallStatics.call.bin, exitCode, stdoutLines})` (no `args`/`cwd` needed — cleanup's own command, `'dungeonmaster'`, never collides with ward's `'dungeonmaster-ward'`). `getSpawnedCommand`/`getSpawnedArgs`/`getSpawnedCwd` move onto `streamLinesProxy`'s own read-back.
+- `packages/orchestrator/src/brokers/step-handler/cleanup/step-handler-cleanup-broker.test.ts` — no behavior change expected; re-run to confirm.
+- `packages/orchestrator/src/brokers/step-handler/riftcarver/step-handler-riftcarver-broker.proxy.ts` — drop the raw `registerMock({fn: spawn})` staged for the `cp` hardlink call (and its `createCpChild`/`ChildProcess`/`EventEmitter`/`Readable`/`spawn` imports), replacing it with `runProxy().setupSuccess({command: 'cp', exitCode: 0, stdout: '', stderr: ''})` — `runProxy` and `streamLinesProxy` share the one raw `spawn` mock underneath (same as `wardDetailBrokerProxy`/`stepHandlerWardBrokerProxy` already rely on), and `'cp'` never collides with `wardCommandStatics.bin`. Drop the raw `registerMock({fn: mkdir})` (and its `mkdir` import from `'fs/promises'`) staged for the node_modules-mirror and riftcarver-results directories, replacing each `.calledWith([path]).resolves(undefined)` call with `ensureDirProxy().succeeds({path})` — the same proxy `riftcarverPersistResultBrokerProxy` and `stepHandlerWardBrokerProxy` already compose, safe here because each stages a DIFFERENT path.
+- `packages/orchestrator/src/brokers/step-handler/riftcarver/step-handler-riftcarver-broker.test.ts` — no behavior change expected; re-run to confirm.
+- `packages/orchestrator/src/brokers/step-handler/run/step-handler-run-broker.proxy.ts` — no edit expected (composes the three above unchanged); re-run its whole-file test to prove cleanup, ward and riftcarver's proxies now coexist with no address collision.
+- `packages/orchestrator/src/brokers/step-handler/run/step-handler-run-broker.test.ts` — no behavior change expected; re-run to confirm.
+
 **This also blocks cleanup, transitively — not from its own address space, but from ward's fix for the trap above.**
 Ward's own `registerMock({fn: streamLines})` (staged `{command: 'dungeonmaster-ward'}`) is itself an instance of the
 PREVIOUS trap ("a shared wrapper function mocked directly replaces it for the WHOLE test file") — it replaces
@@ -311,4 +330,29 @@ address, only ward's `'dungeonmaster-ward'` one), and throws the same `nothing s
 migration is sound in isolation; it is ward's forced non-migration that makes it unsafe wherever the two are
 composed together. Both proxies have to agree on ONE strategy (both mock `streamLines` directly) until the gateway
 gap above closes and ward can move too.
+
+### G-S
+
+Siegelense's remaining callers of `@dungeonmaster/shared/adapters` and shared's adapter-proxy barrel
+(`@dungeonmaster/shared/testing`) — SL10's own named scope plus the two `registry/*` extras the Phase 2 triage
+found. Package: siegelense only.
+
+Files to edit:
+- `packages/siegelense/src/brokers/recipe/seed-run/recipe-seed-run-broker.ts` — `runtimeDynamicImportAdapter` (`@dungeonmaster/shared/adapters`) → `dynamicImport` (`#gateway/node/module`)
+- `packages/siegelense/src/brokers/recipe/seed-run/recipe-seed-run-broker.proxy.ts` — compose `dynamicImportProxy` (`#gateway/node/module/dynamic-import/dynamic-import.proxy`, phantom — the gateway proxy stages nothing) and `registerMock({ fn: dynamicImport })` addressed by `{ path }`, matching the established pattern in `packages/cli/src/brokers/install/execute/install-execute-broker.proxy.ts`
+- `packages/siegelense/src/brokers/recipes/read/recipes-read-broker.ts` — same `dynamicImport` swap
+- `packages/siegelense/src/brokers/recipes/read/recipes-read-broker.proxy.ts` — same `dynamicImportProxy` + `registerMock({ fn: dynamicImport })` pattern
+- `packages/siegelense/src/brokers/step/seed/step-seed-broker.ts` — same `dynamicImport` swap
+- `packages/siegelense/src/brokers/step/seed/step-seed-broker.proxy.ts` — same `dynamicImportProxy` + `registerMock({ fn: dynamicImport })` pattern
+- `packages/siegelense/src/brokers/registry/lock-acquire/registry-lock-acquire-broker.ts` — `fsMkdirAdapter` (`@dungeonmaster/shared/adapters`) → `ensureDir` (`#gateway/node/fs__promises`); drops the now-unused `filePathContract` import (`ensureDir` takes a raw string, no re-brand needed)
+- `packages/siegelense/src/brokers/registry/lock-acquire/registry-lock-acquire-broker.proxy.ts` — compose `ensureDirProxy` (`#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy`); the old shared proxy answered every unaddressed call via its own `calledWith([]).resolves(...)` catch-all default, which the gateway proxy carries none of, so `stagePathResolution` now explicitly stages `mkdirProxy.succeeds({ path: rootPath })` (the exact real address every scenario resolves) and `getCreatedDirs` reads back via `mkdirProxy.getCallsFor({ path: rootPath })`
+- `packages/siegelense/src/brokers/registry/read/registry-read-broker.ts` — `fsExistsSyncAdapter` (`@dungeonmaster/shared/adapters`) → `existsSync` (`#gateway/node/fs`); drops the now-unused `filePathContract` import
+- `packages/siegelense/src/brokers/registry/read/registry-read-broker.proxy.ts` — compose `existsSyncProxy` (`#gateway/node/fs/exists-sync/exists-sync.proxy`), renaming staged params (`filePath`→`path`, `result`→`exists`) — every call site already addresses a specific `registryPath`, so no reliance on the deleted catch-all
+- `packages/siegelense/src/brokers/profile/sample-record/profile-sample-record-broker.ts` — `fsExistsSyncAdapter`/`fsMkdirAdapter`/`pathJoinAdapter` (`@dungeonmaster/shared/adapters`) → `existsSync` (`#gateway/node/fs`), `ensureDir` (`#gateway/node/fs__promises`), `join` (`#gateway/node/path`); drops the now-unused `filePathContract` import
+- `packages/siegelense/src/brokers/profile/sample-record/profile-sample-record-broker.proxy.ts` — compose `existsSyncProxy`, `ensureDirProxy`; `join` carries no gateway proxy (a raw passthrough per `#gateway/node/path`), so a sticky real-passthrough default (`requireActual({module:'path'})` + `registerMock({fn: join}).calledWith([]).implement(...)`) is registered directly here, matching `configRootFindBrokerProxy`'s own established pattern — the record-path join stays unaddressed, exactly as it was under the old `pathJoinAdapterProxy`
+- `packages/siegelense/src/brokers/prune/run/prune-run-broker.integration.test.ts` — `fsMkdirAdapter` (`@dungeonmaster/shared/adapters`) → `ensureDir` (`#gateway/node/fs__promises`), real disk calls (this is an integration test with nothing mocked); drops the now-unused `FilePathStub` import (its only use was wrapping `fsMkdirAdapter`'s branded input)
+- `packages/siegelense/src/adapters/process/is-alive/process-is-alive-adapter.test.ts` — drops the dedicated "composed with a cross-package proxy" describe block and its `processCwdAdapterProxy` (`@dungeonmaster/shared/testing`) import — see DECISIONS in the report
+- `packages/siegelense/src/adapters/process/is-alive/process-is-alive-adapter.proxy.ts` (not in the original named scope; added here because `enforce-import-dependencies`'s "a test file may only import its own colocated proxy" rule blocks composing `#gateway/node/process/exit/exit.proxy` directly from the `.test.ts` file) — composes `#gateway/node/process/exit/exit.proxy`'s `exitProxy` unconditionally in its own constructor, BEFORE `registerMock({fn: kill})`, so the cross-package `process`-mock-merge regression the deleted `processCwdAdapterProxy` composition used to guard explicitly is now guarded on every test that constructs this proxy — the gateway's own `cwdProxy` is an intentionally empty, real-only proxy (no staging) and cannot reproduce it, but `exitProxy` spies on `process.exit` via the identical `registerSpyOn({object: process, ...})` mechanism the old `processCwdAdapterProxy` used on `process.cwd`, so the same merge path (`mockCallsMergeByModuleTransformer`) is still exercised
+- `packages/siegelense/test/harnesses/driver-fleet/driver-fleet.harness.ts` — `pathJoinAdapter` (`@dungeonmaster/shared/adapters`) → raw `join` from `'path'`, matching the established harness convention (`test/harnesses/seed-home/seed-home.harness.ts` already imports raw `path`; the testing-patterns' harness import rules allow `node:fs/path/os` directly)
+- `packages/siegelense/test/harnesses/seed-home/seed-home.harness.ts` — `runtimeDynamicImportAdapter` (`@dungeonmaster/shared/adapters`) → `dynamicImport` (`#gateway/node/module`)
 

@@ -7,12 +7,12 @@
  * is computed for real and matched below rather than stubbed, which is what makes the detail-write
  * assertion meaningful.
  *
- * `streamLinesProxy` (composed inertly below, to satisfy `enforce-proxy-child-creation` for the
- * broker's `streamLines` import) addresses the underlying `spawn` by command alone and has no way
- * to read back `cwd` — unlike `runProxy`'s `getOptionsFor`, added in F29 for exactly this need — so
- * the mock below targets `streamLines` itself directly, the same boundary the pre-migration
- * adapter proxy staged, keyed the same way on a queue of runs (one ward invocation per
- * `wardExits*` call).
+ * `streamLinesProxy().setupSuccess` now addresses by `command` AND `args` (F51 gave it the same
+ * `args`/`cwd` refinement `runProxy` already had), so this handler's own spawn — args
+ * `[RUN_SUBCOMMAND, ...]` — stages apart from `wardDetailBrokerProxy`'s `run` call for the SAME
+ * `WARD_COMMAND` with args `['detail', ...]`: both reduce to the one shared raw `spawn` mock, and
+ * the args predicate below matches only a `run`-subcommand call, leaving `wardDetailBrokerProxy`'s
+ * own `{command: WARD_COMMAND}` (no args) stage to answer the `detail` call by elimination.
  *
  * USAGE:
  * const proxy = stepHandlerWardBrokerProxy();
@@ -21,19 +21,16 @@
  * const result = await stepHandlerWardBroker({ args: [], questId, workItemId, onLine });
  */
 
-import { streamLines } from '#gateway/node/child_process';
 import { streamLinesProxy } from '#gateway/node/child_process/stream-lines/stream-lines.proxy';
 import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found.error.proxy';
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { join } from '#gateway/node/path';
 import {
   AbsoluteFilePathStub,
-  ErrorMessageStub,
   FilePathStub,
   GuildIdStub,
   ModifyQuestResultStub,
   RepoRootCwdStub,
-  type ErrorMessage,
   type ExitCode,
   type FileContents,
   type FileName,
@@ -63,10 +60,11 @@ const QUEST_PATH = FilePathStub({
   value: '/home/testuser/.dungeonmaster/guilds/g1/quests/add-auth',
 });
 const FIXED_WARD_RESULT_UUID = 'f0f0f0f0-f0f0-4f0f-bf0f-f0f0f0f0f0f0';
-// Matches stepHandlerWardBroker's own WARD_COMMAND constant — the address this proxy's spawn
-// staging keys on, so it wins over a sibling handler proxy's unaddressed catch-all when both are
-// composed together (stepHandlerRunBrokerProxy).
+// Match stepHandlerWardBroker's own WARD_COMMAND/RUN_SUBCOMMAND constants — RUN_SUBCOMMAND is what
+// the args predicate below keys on to stage this handler's own spawn apart from
+// wardDetailBrokerProxy's `run` call for the same WARD_COMMAND (args `['detail', ...]`).
 const WARD_COMMAND = 'dungeonmaster-ward';
+const RUN_SUBCOMMAND = 'run';
 
 export const stepHandlerWardBrokerProxy = (): {
   setupWorktree: (params: { worktreePath: string }) => void;
@@ -103,12 +101,8 @@ export const stepHandlerWardBrokerProxy = (): {
   // and defaults it to a real-implementation passthrough. The direct staging below (same `[]`
   // address, registered after) overrides that default for this handler's purposes.
   questModifyBrokerProxy();
-  // Inert — this handler stages `streamLines` directly below (see the file header: its exact
-  // output has to replay through the caller's onLine and its `cwd` has to be read back, neither of
-  // which streamLinesProxy's own methods support), but the implementation imports `streamLines`
-  // and `RunNotFoundError`, and the lint rule wants both composed.
-  streamLinesProxy();
   RunNotFoundErrorProxy();
+  const wardSpawn = streamLinesProxy();
 
   const cwdMock = registerMock({ fn: questCwdResolveBroker });
   cwdMock.calledWith([]).resolves(
@@ -131,31 +125,10 @@ export const stepHandlerWardBrokerProxy = (): {
     .calledWith([])
     .returns('2024-01-15T10:00:00.000Z');
 
-  const wardRuns: { exitCode: ExitCode; output: ErrorMessage }[] = [];
-  const spawnHandle = registerMock({ fn: streamLines });
-  const spawnImpl = async ({
-    onLine,
-  }: Parameters<typeof streamLines>[0]): Promise<{
-    exitCode: ExitCode;
-    output: ErrorMessage;
-  }> => {
-    const next = wardRuns.shift();
-    if (next === undefined) {
-      return Promise.reject(new Error('stepHandlerWardBrokerProxy: no ward spawn result queued'));
-    }
-    for (const line of String(next.output)
-      .split('\n')
-      .filter((entry) => entry.length > 0)) {
-      onLine(line);
-    }
-    return Promise.resolve(next);
-  };
-  // Addressed by `command`, not an unaddressed `[]` catch-all: `stepHandlerRunBrokerProxy` composes
-  // this proxy alongside riftcarver's (whose typecheck spawn shares this same adapter), and an
-  // unaddressed sticky registration here would silently answer riftcarver's call too, or lose to
-  // whichever proxy was constructed last. `{command: WARD_COMMAND}` is strictly more specific than
-  // any `[]` staging, so it wins regardless of construction order.
-  spawnHandle.calledWith([{ command: WARD_COMMAND }]).implement(spawnImpl as never);
+  // The args predicate matches only a `run`-subcommand spawn on WARD_COMMAND, so this stage never
+  // answers wardDetailBrokerProxy's own `run` call (args `['detail', ...]`) for the same command —
+  // see the file header.
+  const isRunSubcommand = (value: readonly unknown[]): boolean => value[0] === RUN_SUBCOMMAND;
 
   return {
     setupWorktree: ({ worktreePath }: { worktreePath: string }): void => {
@@ -185,16 +158,21 @@ export const stepHandlerWardBrokerProxy = (): {
       runId: FileName;
       detailJson: FileContents;
     }): void => {
-      wardRuns.push({ exitCode, output: ErrorMessageStub({ value: `run: ${runId}\nlint: PASS` }) });
+      wardSpawn.setupSuccess({
+        command: WARD_COMMAND,
+        args: isRunSubcommand,
+        exitCode: Number(exitCode),
+        stdoutLines: [`run: ${String(runId)}`, 'lint: PASS'],
+      });
       detailProxy.setupSuccess({ output: String(detailJson) });
     },
 
     wardExitsWithoutRunId: ({ exitCode }: { exitCode: ExitCode }): void => {
-      wardRuns.push({
-        exitCode,
-        output: ErrorMessageStub({
-          value: 'ward: the file scope resolved to 0 source files, so NO checks ran',
-        }),
+      wardSpawn.setupSuccess({
+        command: WARD_COMMAND,
+        args: isRunSubcommand,
+        exitCode: Number(exitCode),
+        stdoutLines: ['ward: the file scope resolved to 0 source files, so NO checks ran'],
       });
     },
 
@@ -202,14 +180,9 @@ export const stepHandlerWardBrokerProxy = (): {
       modifyMock.calledWith([]).resolves(ModifyQuestResultStub({ success: false, error }));
     },
 
-    getSpawnedWardArgs: (): unknown => {
-      const [call] = spawnHandle.callsMatching([]);
-      return (call?.[0] as Parameters<typeof streamLines>[0] | undefined)?.args;
-    },
+    getSpawnedWardArgs: (): unknown => wardSpawn.getSpawnedArgs({ command: WARD_COMMAND }),
 
-    getSpawnedWardCwd: (): unknown => {
-      const [call] = spawnHandle.callsMatching([]);
-      return (call?.[0] as Parameters<typeof streamLines>[0] | undefined)?.cwd;
-    },
+    getSpawnedWardCwd: (): unknown =>
+      wardSpawn.getOptionsFor({ command: WARD_COMMAND }).at(-1)?.cwd,
   };
 };

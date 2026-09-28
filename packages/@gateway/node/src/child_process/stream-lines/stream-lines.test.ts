@@ -192,4 +192,112 @@ describe('streamLines()', () => {
       expect(options[2]).toBe(undefined);
     });
   });
+
+  describe('staging by args — two calls to one binary get different results', () => {
+    it('VALID: {same command, args "run"} => resolves the "run" stage, not the "detail" stage', async () => {
+      const proxy = streamLinesProxy();
+      proxy.setupSuccess({
+        command: 'dungeonmaster-ward',
+        args: ['run', '--committed'],
+        exitCode: 0,
+        stdoutLines: ['run: abc123'],
+      });
+      proxy.setupSuccess({
+        command: 'dungeonmaster-ward',
+        args: ['detail', 'abc123'],
+        exitCode: 0,
+        stdoutLines: ['{"checks":[]}'],
+      });
+
+      const result = await streamLines({
+        command: 'dungeonmaster-ward',
+        args: ['run', '--committed'],
+        cwd: '/project',
+        onLine: () => undefined,
+      });
+
+      expect(result).toStrictEqual({ exitCode: 0, output: 'run: abc123', signal: null });
+    });
+
+    it('VALID: {same command, args "detail"} => resolves the "detail" stage, not the "run" stage', async () => {
+      const proxy = streamLinesProxy();
+      proxy.setupSuccess({
+        command: 'dungeonmaster-ward',
+        args: ['run', '--committed'],
+        exitCode: 0,
+        stdoutLines: ['run: abc123'],
+      });
+      proxy.setupSuccess({
+        command: 'dungeonmaster-ward',
+        args: ['detail', 'abc123'],
+        exitCode: 0,
+        stdoutLines: ['{"checks":[]}'],
+      });
+
+      const result = await streamLines({
+        command: 'dungeonmaster-ward',
+        args: ['detail', 'abc123'],
+        cwd: '/project',
+        onLine: () => undefined,
+      });
+
+      expect(result).toStrictEqual({ exitCode: 0, output: '{"checks":[]}', signal: null });
+    });
+
+    it('VALID: {args as a whole-array predicate} => matches only a call whose args satisfy it', async () => {
+      const proxy = streamLinesProxy();
+      proxy.setupSuccess({
+        command: 'dungeonmaster-ward',
+        args: (value) => value[0] === 'run',
+        exitCode: 0,
+        stdoutLines: ['run: xyz'],
+      });
+      proxy.setupSuccess({
+        command: 'dungeonmaster-ward',
+        args: ['detail', 'xyz'],
+        exitCode: 0,
+        stdoutLines: ['{"checks":[]}'],
+      });
+
+      const runResult = await streamLines({
+        command: 'dungeonmaster-ward',
+        args: ['run', '--uncommitted'],
+        cwd: '/project',
+        onLine: () => undefined,
+      });
+      const detailResult = await streamLines({
+        command: 'dungeonmaster-ward',
+        args: ['detail', 'xyz'],
+        cwd: '/project',
+        onLine: () => undefined,
+      });
+
+      expect(runResult).toStrictEqual({ exitCode: 0, output: 'run: xyz', signal: null });
+      expect(detailResult).toStrictEqual({ exitCode: 0, output: '{"checks":[]}', signal: null });
+    });
+
+    it('VALID: {a command-only stage plus a more specific args stage} => the args-specific stage wins for a matching call', async () => {
+      const proxy = streamLinesProxy();
+      proxy.setupSuccess({
+        command: 'dungeonmaster-ward',
+        exitCode: 1,
+        stdoutLines: ['fallback'],
+      });
+      proxy.setupSuccess({
+        command: 'dungeonmaster-ward',
+        args: ['run'],
+        exitCode: 0,
+        stdoutLines: ['run: specific'],
+      });
+
+      const result = await streamLines({
+        command: 'dungeonmaster-ward',
+        args: ['run'],
+        cwd: '/project',
+        onLine: () => undefined,
+      });
+
+      expect(result).toStrictEqual({ exitCode: 0, output: 'run: specific', signal: null });
+    });
+  });
 });

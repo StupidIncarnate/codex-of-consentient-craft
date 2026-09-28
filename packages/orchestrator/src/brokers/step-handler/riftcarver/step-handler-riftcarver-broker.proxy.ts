@@ -249,35 +249,43 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
   gatewayJoinHandle.calledWith([]).implement((...segments: never[]) => realPath.join(...segments));
   // The same brokers now call `ensureDir` (`#gateway/node/fs__promises`) rather than the shared
   // `fsMkdirAdapter`. Mocked at `mkdir` itself (`fs/promises`), one level BELOW `ensureDir` —
-  // never at `ensureDir` directly: `ensureDir`'s own body is real logic (`mkdir(path,
-  // {recursive:true})`) that the GATEWAY's own `ensureDirProxy()` (composed by sibling proxies —
-  // riftcarverPersistResultBrokerProxy, populateOneRootLayerBrokerProxy, ward's own proxy — when
-  // this proxy is combined with theirs) depends on running for real, with `mkdir` mocked beneath
-  // it. A `registerMock({fn: ensureDir})` here replaces `ensureDir`'s implementation FOR THE WHOLE
-  // TEST FILE and starves every sibling proxy's own `mkdir`-level staging of ever running
-  // (confirmed: ward's own `ensureDirProxy().succeeds(...)` stage for its ward-results directory
-  // went unanswered once this mocked `ensureDir` instead). Staged per-quest below, once
-  // `setupQuest` knows the real questFolderPath and the real node_modules-mirror targets, on the
-  // exact directories those brokers compute — never an address-less default.
+  // never at `ensureDir` directly, and never through the gateway's own `ensureDirProxy()` either:
+  // `enforce-proxy-child-creation` refuses that composition HERE, because this file's own
+  // `step-handler-riftcarver-broker.ts` never imports `ensureDir` itself (only
+  // `populateOneRootLayerBroker`, several calls down the chain, does — confirmed by running lint:
+  // "Proxy creates ensureDirProxy but step-handler-riftcarver-broker.ts does not import ensureDir").
+  // `ensureDir`'s own body is real logic (`mkdir(path, {recursive:true})`) that the GATEWAY's own
+  // `ensureDirProxy()` (composed by sibling proxies — riftcarverPersistResultBrokerProxy,
+  // populateOneRootLayerBrokerProxy, ward's own proxy — when this proxy is combined with theirs)
+  // depends on running for real, with `mkdir` mocked beneath it. A `registerMock({fn: ensureDir})`
+  // here replaces `ensureDir`'s implementation FOR THE WHOLE TEST FILE and starves every sibling
+  // proxy's own `mkdir`-level staging of ever running (confirmed: ward's own
+  // `ensureDirProxy().succeeds(...)` stage for its ward-results directory went unanswered once this
+  // mocked `ensureDir` instead). Staged per-quest below, once `setupQuest` knows the real
+  // questFolderPath and the real node_modules-mirror targets, on the exact directories those
+  // brokers compute — never an address-less default.
   const mkdirHandle = registerMock({ fn: mkdir });
   // populateOneRootLayerBroker hardlinks third-party node_modules entries by calling the gateway's
   // `run` for `cp`, which reaches raw `child_process.spawn` directly — never through the
   // (module-mocked) `childProcessSpawnCaptureAdapter` `spawnCaptureImpl` below answers every git
   // command by. Mocked at `spawn` itself (raw `child_process`, matching `run.proxy.ts`'s own
-  // convention), one level BELOW `run` — never at `run` directly, and never at the GATEWAY's own
-  // `spawn` re-export either: `run`'s own body is real, substantial logic (event wiring, stream
-  // draining) that OTHER real brokers in this chain depend on running for real, and its wrapper
-  // folder shares one gateway barrel (`#gateway/node/child_process`) with `streamLines` — the
-  // production import this file's own broker.ts makes. `registerMock({fn: run})` here replaces
-  // `run`'s implementation FOR THE WHOLE TEST FILE and starves `wardDetailBroker`'s own real call
-  // to `run` (confirmed: threw "nothing set up for this call" once tried, when combined with
-  // ward's own proxy via `stepHandlerRunBrokerProxy`). Importing `spawn` from the GATEWAY barrel
-  // instead of raw `child_process` was ALSO tried and confirmed broken: it corrupted this file's
-  // OWN `streamLines` import (the two share that one barrel), driving this file's own typecheck
-  // spawn into the same "nothing set up" failure. Raw `child_process` is the only working import
-  // for `spawn` here — see this item's "Trap" entry in a12-adapters-shared.md for the full account.
-  // Addressed by the command alone: this virtual world has no real files for `cp` to hardlink and
-  // no test here reads its argv back.
+  // convention), one level BELOW `run` — never at `run` directly, and never through the gateway's
+  // own `runProxy()` either, for the identical `enforce-proxy-child-creation` reason as `mkdir`
+  // above: this file's own `step-handler-riftcarver-broker.ts` never imports `run` (confirmed by
+  // running lint: "Proxy creates runProxy but step-handler-riftcarver-broker.ts does not import
+  // run"). `run`'s own body is real, substantial logic (event wiring, stream draining) that OTHER
+  // real brokers in this chain depend on running for real, and its wrapper folder shares one
+  // gateway barrel (`#gateway/node/child_process`) with `streamLines` — the production import this
+  // file's own broker.ts makes. `registerMock({fn: run})` here replaces `run`'s implementation FOR
+  // THE WHOLE TEST FILE and starves `wardDetailBroker`'s own real call to `run` (confirmed: threw
+  // "nothing set up for this call" once tried, when combined with ward's own proxy via
+  // `stepHandlerRunBrokerProxy`). Importing `spawn` from the GATEWAY barrel instead of raw
+  // `child_process` was ALSO tried and confirmed broken: it corrupted this file's OWN `streamLines`
+  // import (the two share that one barrel), driving this file's own typecheck spawn into the same
+  // "nothing set up" failure. Raw `child_process` is the only working import for `spawn` here —
+  // see this item's "Trap" entry in a12-adapters-shared.md for the full account. Addressed by the
+  // command alone: this virtual world has no real files for `cp` to hardlink and no test here reads
+  // its argv back.
   const COPY_COMMAND = 'cp';
   const spawnHandle = registerMock({ fn: spawn });
   const createCpChild = (): ChildProcess => {

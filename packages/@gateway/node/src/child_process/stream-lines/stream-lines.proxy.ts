@@ -5,6 +5,43 @@ import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-moc
 type ErrorCallback = (error: Error) => void;
 type CloseCallback = (code: number | null, signal: NodeJS.Signals | null) => void;
 
+// A caller composing this proxy for a program that takes an argument only known at test-run time
+// needs a tolerant element or a whole-array predicate, not just a literal — the identical shape
+// `run.proxy.ts` declares for its own `SpawnArgsMatcher`. Kept local rather than imported: this
+// file and `run.proxy.ts` are sibling gateway-wrapper folders, and `run.proxy.ts`'s own comment
+// explains why ITS copy stays local (no shared home crosses `@gateway/node`'s wrapper folders);
+// the same reasoning keeps this one local too.
+type SpawnArgsMatcher =
+  readonly (string | ((value: unknown) => boolean))[] | ((args: readonly unknown[]) => boolean);
+
+// `spawn(command, args, options)` is the real call this proxy mocks. Same address-building shape
+// as `run.proxy.ts`'s own `buildSpawnAddress`: `command` alone by default, `args` and/or `cwd`
+// layered in only when a caller passes them — which is what lets two callers of the SAME binary
+// (`streamLines` and `run` share this one raw `spawn` mock) stage apart by whichever they give.
+const buildSpawnAddress = ({
+  command,
+  args,
+  cwd,
+}: {
+  command: string;
+  args?: SpawnArgsMatcher;
+  cwd?: string;
+}): unknown[] => {
+  const address: unknown[] = [command];
+
+  if (args !== undefined) {
+    address.push(args);
+  } else if (cwd !== undefined) {
+    address.push((value: unknown): boolean => Array.isArray(value));
+  }
+
+  if (cwd !== undefined) {
+    address.push({ cwd });
+  }
+
+  return address;
+};
+
 const createMockChild = (): {
   child: ChildProcess;
   stdout: PassThrough;
@@ -33,10 +70,32 @@ const createMockChild = (): {
 };
 
 export const streamLinesProxy = (): {
-  setupSuccess: (params: { command: string; exitCode: number; stdoutLines: string[] }) => void;
-  setupSignalKill: (params: { command: string; signal: NodeJS.Signals }) => void;
-  setupStderrOnly: (params: { command: string; exitCode: number; stderrChunks: string[] }) => void;
-  setupError: (params: { command: string; error: Error }) => void;
+  setupSuccess: (params: {
+    command: string;
+    args?: SpawnArgsMatcher;
+    cwd?: string;
+    exitCode: number;
+    stdoutLines: string[];
+  }) => void;
+  setupSignalKill: (params: {
+    command: string;
+    args?: SpawnArgsMatcher;
+    cwd?: string;
+    signal: NodeJS.Signals;
+  }) => void;
+  setupStderrOnly: (params: {
+    command: string;
+    args?: SpawnArgsMatcher;
+    cwd?: string;
+    exitCode: number;
+    stderrChunks: string[];
+  }) => void;
+  setupError: (params: {
+    command: string;
+    args?: SpawnArgsMatcher;
+    cwd?: string;
+    error: Error;
+  }) => void;
   getSpawnedArgs: (params: { command: string }) => unknown;
   // Records every process.stderr.write call so a test can prove the wrapper LOGGED a failing
   // onLine rather than letting it crash the process.
@@ -53,69 +112,129 @@ export const streamLinesProxy = (): {
   return {
     setupSuccess: ({
       command,
+      args,
+      cwd,
       exitCode,
       stdoutLines,
     }: {
       command: string;
+      args?: SpawnArgsMatcher;
+      cwd?: string;
       exitCode: number;
       stdoutLines: string[];
     }): void => {
-      handle.calledWith([command]).implement(() => {
-        const { child, stdout, listeners } = createMockChild();
-        process.nextTick(() => {
-          for (const line of stdoutLines) {
-            stdout.write(`${line}\n`);
-          }
-          stdout.end();
-          for (const cb of listeners.close) cb(exitCode, null);
+      handle
+        .calledWith(
+          buildSpawnAddress({
+            command,
+            ...(args === undefined ? {} : { args }),
+            ...(cwd === undefined ? {} : { cwd }),
+          }),
+        )
+        .implement(() => {
+          const { child, stdout, listeners } = createMockChild();
+          process.nextTick(() => {
+            for (const line of stdoutLines) {
+              stdout.write(`${line}\n`);
+            }
+            stdout.end();
+            for (const cb of listeners.close) cb(exitCode, null);
+          });
+          return child;
         });
-        return child;
-      });
     },
 
-    setupSignalKill: ({ command, signal }: { command: string; signal: NodeJS.Signals }): void => {
-      handle.calledWith([command]).implement(() => {
-        const { child, stdout, listeners } = createMockChild();
-        process.nextTick(() => {
-          stdout.end();
-          for (const cb of listeners.close) cb(null, signal);
+    setupSignalKill: ({
+      command,
+      args,
+      cwd,
+      signal,
+    }: {
+      command: string;
+      args?: SpawnArgsMatcher;
+      cwd?: string;
+      signal: NodeJS.Signals;
+    }): void => {
+      handle
+        .calledWith(
+          buildSpawnAddress({
+            command,
+            ...(args === undefined ? {} : { args }),
+            ...(cwd === undefined ? {} : { cwd }),
+          }),
+        )
+        .implement(() => {
+          const { child, stdout, listeners } = createMockChild();
+          process.nextTick(() => {
+            stdout.end();
+            for (const cb of listeners.close) cb(null, signal);
+          });
+          return child;
         });
-        return child;
-      });
     },
 
     setupStderrOnly: ({
       command,
+      args,
+      cwd,
       exitCode,
       stderrChunks,
     }: {
       command: string;
+      args?: SpawnArgsMatcher;
+      cwd?: string;
       exitCode: number;
       stderrChunks: string[];
     }): void => {
-      handle.calledWith([command]).implement(() => {
-        const { child, stdout, stderr, listeners } = createMockChild();
-        process.nextTick(() => {
-          stdout.end();
-          for (const chunk of stderrChunks) {
-            stderr.write(chunk);
-          }
-          stderr.end();
-          for (const cb of listeners.close) cb(exitCode, null);
+      handle
+        .calledWith(
+          buildSpawnAddress({
+            command,
+            ...(args === undefined ? {} : { args }),
+            ...(cwd === undefined ? {} : { cwd }),
+          }),
+        )
+        .implement(() => {
+          const { child, stdout, stderr, listeners } = createMockChild();
+          process.nextTick(() => {
+            stdout.end();
+            for (const chunk of stderrChunks) {
+              stderr.write(chunk);
+            }
+            stderr.end();
+            for (const cb of listeners.close) cb(exitCode, null);
+          });
+          return child;
         });
-        return child;
-      });
     },
 
-    setupError: ({ command, error }: { command: string; error: Error }): void => {
-      handle.calledWith([command]).implement(() => {
-        const { child, stdout, listeners } = createMockChild();
-        process.nextTick(() => {
-          stdout.end();
-          for (const cb of listeners.error) cb(error);
+    setupError: ({
+      command,
+      args,
+      cwd,
+      error,
+    }: {
+      command: string;
+      args?: SpawnArgsMatcher;
+      cwd?: string;
+      error: Error;
+    }): void => {
+      handle
+        .calledWith(
+          buildSpawnAddress({
+            command,
+            ...(args === undefined ? {} : { args }),
+            ...(cwd === undefined ? {} : { cwd }),
+          }),
+        )
+        .implement(() => {
+          const { child, stdout, listeners } = createMockChild();
+          process.nextTick(() => {
+            stdout.end();
+            for (const cb of listeners.error) cb(error);
+          });
+          return child;
         });
-        return child;
-      });
     },
 
     getSpawnedArgs: ({ command }: { command: string }): unknown =>
