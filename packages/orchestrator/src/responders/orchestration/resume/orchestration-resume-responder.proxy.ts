@@ -189,6 +189,14 @@ export const OrchestrationResumeResponderProxy = (): {
       });
 
       guildGetProxy.setupConfig({
+        // Forwarded to guildConfigReadBrokerProxy's own setupConfig — this MUST be the SAME
+        // homeDir/homePath findQuestPathProxy.setupQuestFound staged just above: both proxies
+        // compose dungeonmasterHomeFindBrokerProxy, whose homedir()/join() mocks are shared
+        // process-wide, and the exact-tuple address each stages only matches a real call computed
+        // off THIS home. A mismatched pair here leaves questFindQuestPathBroker resolving its
+        // guildsDir off whichever home was staged LAST, against fixtures built for the other one.
+        homeDir: '/home/testuser',
+        homePath,
         config: GuildConfigStub({
           guilds: [
             GuildStub({

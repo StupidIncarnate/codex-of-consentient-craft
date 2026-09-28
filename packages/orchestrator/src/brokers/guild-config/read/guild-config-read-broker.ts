@@ -13,11 +13,11 @@
  * // Reads /tmp/dm-home/config.json, whatever DUNGEONMASTER_HOME says
  */
 
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import { dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
-import { guildConfigContract } from '@dungeonmaster/shared/contracts';
+import { filePathContract, guildConfigContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, GuildConfig } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
+import { join } from '#gateway/node/path';
 
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 
@@ -30,9 +30,9 @@ export const guildConfigReadBroker = async ({
 } = {}): Promise<GuildConfig> => {
   const homePath = home ?? dungeonmasterHomeFindBroker().homePath;
 
-  const configFilePath = pathJoinAdapter({
-    paths: [homePath, dungeonmasterHomeStatics.paths.configFile],
-  });
+  const configFilePath = filePathContract.parse(
+    join(homePath, dungeonmasterHomeStatics.paths.configFile),
+  );
 
   try {
     const contents = await fsReadFileAdapter({ filePath: configFilePath });

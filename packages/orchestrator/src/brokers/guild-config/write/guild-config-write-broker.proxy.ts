@@ -6,11 +6,12 @@
  * proxy.setupWriteSuccess({ homeDir: '/home/user', homePath, configFilePath });
  */
 
-import {
-  dungeonmasterHomeFindBrokerProxy,
-  pathJoinAdapterProxy,
-} from '@dungeonmaster/shared/testing';
+import { dungeonmasterHomeFindBrokerProxy } from '@dungeonmaster/shared/testing';
 import { FilePathStub, type FilePath } from '@dungeonmaster/shared/contracts';
+import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
+import type { MockHandle } from '@dungeonmaster/testing/register-mock';
+import { join } from '#gateway/node/path';
 
 import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
 
@@ -37,7 +38,10 @@ export const guildConfigWriteBrokerProxy = (): {
   getWrittenContent: () => unknown;
 } => {
   const homeFindProxy = dungeonmasterHomeFindBrokerProxy();
-  const pathJoinProxy = pathJoinAdapterProxy();
+  // #gateway/node/path is a raw passthrough of the Node 'path' module (no per-function wrapper,
+  // so no gateway proxy to compose) — mocked directly here, on the same '#gateway/node/path'
+  // specifier the broker imports.
+  const joinHandle: MockHandle = registerMock({ fn: join });
   const writeFileProxy = fsWriteFileAdapterProxy();
 
   return {
@@ -46,15 +50,17 @@ export const guildConfigWriteBrokerProxy = (): {
         homeDir: DEFAULT_HOME_DIR,
         homePath: DEFAULT_HOME_PATH,
       });
-      pathJoinProxy.returns({ result: DEFAULT_CONFIG_FILE_PATH });
+      joinHandle
+        .calledWith([DEFAULT_HOME_PATH, dungeonmasterHomeStatics.paths.configFile])
+        .returns(DEFAULT_CONFIG_FILE_PATH);
       writeFileProxy.succeeds({ filePath: DEFAULT_CONFIG_FILE_PATH });
     },
 
     // For a caller-supplied home: stages the WRITE alone, at the exact config path, and stages
-    // nothing on `dungeonmasterHomeFindBroker` or `pathJoinAdapter`. `pathJoinAdapterProxy`'s own
-    // default is a real passthrough, so the path the broker computes off the supplied home is the
-    // genuine one — and a broker falling back to the process-wide home would write a DIFFERENT
-    // path and throw on an unmatched call.
+    // nothing on `dungeonmasterHomeFindBroker` or `join`. `dungeonmasterHomeFindBrokerProxy`'s own
+    // constructor already stages a real-passthrough default on this SAME shared `join` handle, so
+    // the path the broker computes off the supplied home is the genuine one — and a broker falling
+    // back to the process-wide home would write a DIFFERENT path and throw on an unmatched call.
     setupSuccessAt: ({ configFilePath }: { configFilePath: FilePath }): void => {
       writeFileProxy.succeeds({ filePath: configFilePath });
     },
@@ -79,7 +85,9 @@ export const guildConfigWriteBrokerProxy = (): {
       configFilePath: FilePath;
     }): void => {
       homeFindProxy.setupHomePath({ homeDir, homePath });
-      pathJoinProxy.returns({ result: configFilePath });
+      joinHandle
+        .calledWith([homePath, dungeonmasterHomeStatics.paths.configFile])
+        .returns(configFilePath);
       writeFileProxy.succeeds({ filePath: configFilePath });
     },
 
@@ -95,7 +103,9 @@ export const guildConfigWriteBrokerProxy = (): {
       error: Error;
     }): void => {
       homeFindProxy.setupHomePath({ homeDir, homePath });
-      pathJoinProxy.returns({ result: configFilePath });
+      joinHandle
+        .calledWith([homePath, dungeonmasterHomeStatics.paths.configFile])
+        .returns(configFilePath);
       writeFileProxy.throws({ filePath: configFilePath, error });
     },
 

@@ -6,11 +6,12 @@
  * proxy.setupConfig({ config: GuildConfigStub({ guilds: [] }) });
  */
 
-import {
-  dungeonmasterHomeFindBrokerProxy,
-  pathJoinAdapterProxy,
-} from '@dungeonmaster/shared/testing';
+import { dungeonmasterHomeFindBrokerProxy } from '@dungeonmaster/shared/testing';
 import { FilePathStub, type FilePath, type GuildConfig } from '@dungeonmaster/shared/contracts';
+import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
+import type { MockHandle } from '@dungeonmaster/testing/register-mock';
+import { join } from '#gateway/node/path';
 
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 
@@ -49,7 +50,10 @@ export const guildConfigReadBrokerProxy = (): {
   }) => void;
 } => {
   const homeFindProxy = dungeonmasterHomeFindBrokerProxy();
-  const pathJoinProxy = pathJoinAdapterProxy();
+  // #gateway/node/path is a raw passthrough of the Node 'path' module (no per-function wrapper,
+  // so no gateway proxy to compose) — mocked directly here, on the same '#gateway/node/path'
+  // specifier the broker imports.
+  const joinHandle: MockHandle = registerMock({ fn: join });
   const readFileProxy = fsReadFileAdapterProxy();
 
   return {
@@ -67,7 +71,9 @@ export const guildConfigReadBrokerProxy = (): {
           ? DEFAULT_CONFIG_FILE_PATH
           : FilePathStub({ value: `${String(homePath)}/config.json` });
       homeFindProxy.setupHomePath({ homeDir, homePath });
-      pathJoinProxy.returns({ result: configFilePath });
+      joinHandle
+        .calledWith([homePath, dungeonmasterHomeStatics.paths.configFile])
+        .returns(configFilePath);
       readFileProxy.resolves({
         filePath: configFilePath,
         content: JSON.stringify(config),
@@ -75,11 +81,11 @@ export const guildConfigReadBrokerProxy = (): {
     },
 
     // For a caller-supplied home: stages the READ alone, at the exact config path, and stages
-    // nothing on `dungeonmasterHomeFindBroker` or `pathJoinAdapter`. `pathJoinAdapterProxy`'s own
-    // default is a real passthrough, so the path the broker computes off the supplied home is the
-    // genuine one — which is what lets a test assert that path instead of a staged stand-in, and
-    // what makes a broker that fell back to the process-wide home read a DIFFERENT path and throw
-    // on an unmatched call.
+    // nothing on `dungeonmasterHomeFindBroker` or `join`. `dungeonmasterHomeFindBrokerProxy`'s own
+    // constructor already stages a real-passthrough default on this SAME shared `join` handle, so
+    // the path the broker computes off the supplied home is the genuine one — which is what lets a
+    // test assert that path instead of a staged stand-in, and what makes a broker that fell back to
+    // the process-wide home read a DIFFERENT path and throw on an unmatched call.
     setupConfigAt: ({
       configFilePath,
       config,
@@ -102,7 +108,9 @@ export const guildConfigReadBrokerProxy = (): {
       configJson: string;
     }): void => {
       homeFindProxy.setupHomePath({ homeDir, homePath });
-      pathJoinProxy.returns({ result: configFilePath });
+      joinHandle
+        .calledWith([homePath, dungeonmasterHomeStatics.paths.configFile])
+        .returns(configFilePath);
       readFileProxy.resolves({ filePath: configFilePath, content: configJson });
     },
 
@@ -116,7 +124,9 @@ export const guildConfigReadBrokerProxy = (): {
       configFilePath: FilePath;
     }): void => {
       homeFindProxy.setupHomePath({ homeDir, homePath });
-      pathJoinProxy.returns({ result: configFilePath });
+      joinHandle
+        .calledWith([homePath, dungeonmasterHomeStatics.paths.configFile])
+        .returns(configFilePath);
       const enoentCause = Object.assign(new Error('ENOENT: no such file or directory'), {
         code: 'ENOENT',
       });
@@ -138,7 +148,9 @@ export const guildConfigReadBrokerProxy = (): {
       error: Error;
     }): void => {
       homeFindProxy.setupHomePath({ homeDir, homePath });
-      pathJoinProxy.returns({ result: configFilePath });
+      joinHandle
+        .calledWith([homePath, dungeonmasterHomeStatics.paths.configFile])
+        .returns(configFilePath);
       readFileProxy.rejects({ filePath: configFilePath, error });
     },
   };

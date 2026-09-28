@@ -1,5 +1,5 @@
 import { rm } from 'fs/promises';
-import type { Dirent } from 'fs';
+import type { DirEntrySync } from '#gateway/node/fs';
 import { filePathContract, GuildIdStub, questContract } from '@dungeonmaster/shared/contracts';
 import type {
   FileName,
@@ -32,7 +32,7 @@ export const smoketestClearPriorQuestsBrokerProxy = (): {
     guildEntries: readonly {
       accessible: boolean;
       questsDirPath: FilePath;
-      questDirEntries: Dirent[];
+      questDirEntries: DirEntrySync[];
     }[];
   }) => void;
   setupQuestsPath: (params: { homeDir: string; homePath: FilePath; questsPath: FilePath }) => void;
@@ -92,7 +92,7 @@ export const smoketestClearPriorQuestsBrokerProxy = (): {
       guildEntries: readonly {
         accessible: boolean;
         questsDirPath: FilePath;
-        questDirEntries: Dirent[];
+        questDirEntries: DirEntrySync[];
       }[];
     }): void => {
       homePathRef.value = homePath;

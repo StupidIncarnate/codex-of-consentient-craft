@@ -29,7 +29,6 @@
  */
 
 import { dungeonmasterHomeEnsureBroker } from '@dungeonmaster/shared/brokers';
-import { fsMkdirAdapter, pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import {
   absoluteFilePathContract,
@@ -38,6 +37,8 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import type { Guild, GuildName, GuildPath } from '@dungeonmaster/shared/contracts';
 import { nameToUrlSlugTransformer } from '@dungeonmaster/shared/transformers';
+import { ensureDir } from '#gateway/node/fs__promises';
+import { join } from '#gateway/node/path';
 
 import { guildConfigReadBroker } from '../../guild-config/read/guild-config-read-broker';
 import { guildConfigWriteBroker } from '../../guild-config/write/guild-config-write-broker';
@@ -63,21 +64,19 @@ export const guildAddBroker = async ({
     throw new Error(`A guild with path ${path} already exists`);
   }
 
-  // `fsMkdirAdapter` is recursive, so the quests directory below stands a supplied home and its
+  // `ensureDir` is recursive, so the quests directory below stands a supplied home and its
   // `guilds/` child up unaided. The ensure broker is reached for only when the process-wide home
   // is in play, and it is the one call here that reads DUNGEONMASTER_HOME.
   const guildsPath =
     homePath === undefined
       ? (await dungeonmasterHomeEnsureBroker()).guildsPath
-      : pathJoinAdapter({ paths: [homePath, dungeonmasterHomeStatics.paths.guildsDir] });
+      : join(homePath, dungeonmasterHomeStatics.paths.guildsDir);
 
   const guildId = guildIdContract.parse(id ?? crypto.randomUUID());
 
-  const guildDir = pathJoinAdapter({ paths: [guildsPath, guildId] });
-  const questsDir = pathJoinAdapter({
-    paths: [guildDir, dungeonmasterHomeStatics.paths.questsDir],
-  });
-  await fsMkdirAdapter({ filepath: questsDir });
+  const guildDir = join(guildsPath, guildId);
+  const questsDir = join(guildDir, dungeonmasterHomeStatics.paths.questsDir);
+  await ensureDir(questsDir);
 
   const urlSlug = nameToUrlSlugTransformer({ name });
 

@@ -1,13 +1,15 @@
-import {
-  dungeonmasterHomeEnsureBrokerProxy,
-  fsMkdirAdapterProxy,
-  pathJoinAdapterProxy,
-} from '@dungeonmaster/shared/testing';
+import { dungeonmasterHomeEnsureBrokerProxy } from '@dungeonmaster/shared/testing';
+import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import type { FilePath, GuildConfig } from '@dungeonmaster/shared/contracts';
-import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { registerMock, registerSpyOn, requireActual } from '@dungeonmaster/testing/register-mock';
+import type { MockHandle } from '@dungeonmaster/testing/register-mock';
+import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
+import { join } from '#gateway/node/path';
 
 import { guildConfigReadBrokerProxy } from '../../guild-config/read/guild-config-read-broker.proxy';
 import { guildConfigWriteBrokerProxy } from '../../guild-config/write/guild-config-write-broker.proxy';
+
+const DEFAULT_GENERATED_ID = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
 
 export const guildAddBrokerProxy = (): {
   setupAddGuild: (params: {
@@ -30,13 +32,19 @@ export const guildAddBrokerProxy = (): {
   const configReadProxy = guildConfigReadBrokerProxy();
   const configWriteProxy = guildConfigWriteBrokerProxy();
   const homeEnsureProxy = dungeonmasterHomeEnsureBrokerProxy();
-  const mkdirProxy = fsMkdirAdapterProxy();
-  const pathJoinProxy = pathJoinAdapterProxy();
+  const ensureDirHandle = ensureDirProxy();
+  // #gateway/node/path is a raw passthrough of the Node 'path' module (no per-function wrapper,
+  // so no gateway proxy to compose) — mocked directly here, on the same '#gateway/node/path'
+  // specifier the broker imports. `dungeonmasterHomeEnsureBrokerProxy`'s own constructor already
+  // stages a real-passthrough default on this SAME shared handle, so a join() call this file never
+  // addresses (the supplied-home guildsPath computation) still computes the genuine path.
+  const joinHandle: MockHandle = registerMock({ fn: join });
+  const realPath = requireActual<{ join: typeof join }>({ module: 'path' });
 
   // crypto.randomUUID and Date.prototype.toISOString take no identifying argument — [] is
   // the honest address for both.
   const randomUuidHandle = registerSpyOn({ object: crypto, method: 'randomUUID' });
-  randomUuidHandle.calledWith([]).returns('f47ac10b-58cc-4372-a567-0e02b2c3d479');
+  randomUuidHandle.calledWith([]).returns(DEFAULT_GENERATED_ID);
   registerSpyOn({ object: Date.prototype, method: 'toISOString' })
     .calledWith([])
     .returns('2024-01-15T10:00:00.000Z');
@@ -59,18 +67,27 @@ export const guildAddBrokerProxy = (): {
     }): void => {
       configReadProxy.setupConfig({ config: existingConfig });
       homeEnsureProxy.setupEnsureSuccess({ homeDir, homePath, guildsPath });
-      pathJoinProxy.returns({ result: guildDirPath });
-      pathJoinProxy.returns({ result: questsDirPath });
-      mkdirProxy.succeeds({ filepath: questsDirPath });
+
+      // The id segment is whatever this test staged for crypto.randomUUID (the sticky default
+      // above, or a one-shot from stageGeneratedId) — read back off the caller's own
+      // guildDirPath/guildsPath rather than guessed, so the join address matches the real call
+      // whichever id is in play.
+      const guildId = String(guildDirPath).slice(String(guildsPath).length + 1);
+      joinHandle.calledWith([guildsPath, guildId]).returns(guildDirPath);
+      joinHandle
+        .calledWith([guildDirPath, dungeonmasterHomeStatics.paths.questsDir])
+        .returns(questsDirPath);
+      ensureDirHandle.succeeds({ path: questsDirPath });
       configWriteProxy.setupSuccess();
     },
 
     // The caller-supplied-home scenario. It stages NOTHING on `dungeonmasterHomeFindBroker`,
-    // `dungeonmasterHomeEnsureBroker` or `pathJoinAdapter`: every path the broker touches is
-    // computed for real off the supplied home, so a test asserts genuine paths rather than staged
-    // stand-ins, and code that fell back to the process-wide home would compute a DIFFERENT config
-    // path and throw on an unmatched read. `fsMkdirAdapterProxy`'s own default succeeds for any
-    // directory, which is what leaves `dirsCreated()` free to record the real answer.
+    // `dungeonmasterHomeEnsureBroker` or `join`: every path the broker touches is computed for real
+    // off the supplied home, so a test asserts genuine paths rather than staged stand-ins, and code
+    // that fell back to the process-wide home would compute a DIFFERENT config path and throw on an
+    // unmatched read. `ensureDirProxy` offers no real-passthrough default of its own (unlike
+    // `join`'s, inherited from `dungeonmasterHomeEnsureBrokerProxy` above), so this computes the
+    // SAME real path with the real Node `path.join` and stages exactly that.
     setupAddGuildInSuppliedHome: ({
       existingConfig,
       configFilePath,
@@ -80,6 +97,18 @@ export const guildAddBrokerProxy = (): {
     }): void => {
       configReadProxy.setupConfigAt({ configFilePath, config: existingConfig });
       configWriteProxy.setupSuccessAt({ configFilePath });
+
+      const home = String(configFilePath).replace(
+        `/${dungeonmasterHomeStatics.paths.configFile}`,
+        '',
+      );
+      const questsDir = realPath.join(
+        home,
+        dungeonmasterHomeStatics.paths.guildsDir,
+        DEFAULT_GENERATED_ID,
+        dungeonmasterHomeStatics.paths.questsDir,
+      );
+      ensureDirHandle.succeeds({ path: questsDir });
     },
 
     setupDuplicatePath: ({ existingConfig }: { existingConfig: GuildConfig }): void => {
@@ -88,7 +117,8 @@ export const guildAddBrokerProxy = (): {
 
     // Every directory the broker made, and every config file it wrote — in call order, addressed
     // by nothing. Containment is asserted against these two lists, never against what was staged.
-    dirsCreated: (): readonly unknown[] => mkdirProxy.getCreatedDirs(),
+    dirsCreated: (): readonly unknown[] =>
+      ensureDirHandle.getCallsFor({ path: () => true }).map((call) => call[0]),
     configFilesWritten: (): readonly unknown[] => configWriteProxy.configFilesWritten(),
 
     // Queues ONE further crypto.randomUUID call ahead of the sticky default above — a live
