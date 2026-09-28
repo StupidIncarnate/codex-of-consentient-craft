@@ -99,24 +99,15 @@ A new operator took over from the morning handoff below. Heartbeat cron `13,43 *
 
 | Agent | Chunk | Scope (package) | Status |
 |---|---|---|---|
-| — | Landed this session | — | F59 3b25ecb7a, F60 38bf5031a, F45 2b75def09, F61 c7b81850d, F47 9be54ce7e, F52 71de2788a; A10 596bbd1e3, f231b3550; A16 e43c1c424, 7f79340c8 (ward `adapters/` gone); A06 dbb50d985, 6d116c296, 8e5e7f3ec, 235a64368, f296f59cb (eslint-plugin `adapters/` gone); A12 517f6361b, d743fa187 (shared `adapters/` gone); A13 ba951a330, 16097fbe1, e5d4ca0ae; A14 49d87fc38; A17 b30627b03, e1076c324 |
-| Build | Whole repo, plain `npm run build` after 49d87fc38 | — | done, exit 0. A `build:clean`, then `check:consumer` and `check:published` (concession 8) are still due at a quiet point. |
-| planner (opus) | Read-only: which remaining work can be scripted | none | done: `scripting-opportunities.md` (in ace08af85). **The user tabled all script-making (2026-09-28 afternoon).** S1 (census) was already running and finishes. On the hook question the user's concern is that agents could not edit files with existing violations; the planner's design blocks only violations an edit ADDS (before/after comparison), which avoids that. Decide when scripting is picked back up. |
-| s1 (sonnet) | S1: adapter census command in `@dungeonmaster/tooling` (scripting opportunity 1); item `items/s1-adapter-census-command.md` | `tooling` | running |
-| a17-get (sonnet) | A17 `fetch/get` batch | `web` | part done ace08af85 (nine brokers) |
-| f64 (sonnet) | F64 | `@gateway/node` | done c0b2972f1; orchestrator's read-jsonl, readdir, watch-tail are unblocked (dispatch after F35 leaves orchestrator) |
-| f35 (opus) | F35 widened: riftcarver, route-scope, run-step proxies on exact staging | `orchestrator` | done 63d807fa7 |
-| a10-fs2 (sonnet) | A10: the seven fs adapters F35 unblocked | `orchestrator` (disjoint list) | running |
-| a10-fs3 (sonnet) | A10: read-jsonl, readdir (watch-tail deferred: path-addressing `tailFileProxy` reaches about 40 more files) | `orchestrator` | finished, uncommitted; commits with a10-fs2 once that lands |
-| a14-fs2 (sonnet) | A14 testing: last five `fs`/`path` adapters | `testing` | done dc9c3f4be |
-| agy SL-FS4 | A13 `fs/read-file`, first half | `siegelense` | done f3da1a336 |
-| agy SL-FS5 | A13 `fs/read-file`, second half; delete the adapter (`tmp/agy/sl-fs5.md`) | `siegelense` | running |
-| agy HR-DMJSONL | A08: hydration-recipes' last adapter | `hydration-recipes` | done 0c9ab6e1b; hydration-recipes' `adapters/` is gone |
-| a14-misc (sonnet) | A14 testing misc | `testing` | done 4311d42b4 (`mantine/render` stays: real logic, about 112 web callers) |
+| — | Landed this session | — | See `git log`; per package: ward, eslint-plugin, shared, hydration-recipes have no `adapters/` left. Latest: S1 4130e9c6f, A10 274a2a534, F65 803ecbee3, A08 0c9ab6e1b, A13 f3da1a336, A14 4311d42b4 |
+| planner (opus) | Which remaining work can be scripted | none | done: `scripting-opportunities.md`. **The user tabled all script-making.** S1 (census) landed anyway, 4130e9c6f: `adapter-census` in `@dungeonmaster/tooling`, counted 88 adapters left (orchestrator 13, siegelense 26, testing 17, web 32). On the hook question the user's concern is agents editing files with existing violations; the planner's design blocks only violations an edit ADDS. |
 | a14-ts (opus) | A14 testing `typescript/*` (feeds the proxy-mock hoister) | `testing` | running |
-| f65 (sonnet) | F65 | `web` | done 803ecbee3 |
-| a17-net (sonnet) | A17: fetch/patch, fetch/post-with-status, xhr, websocket | `web` (disjoint list) | running |
-| a17-tlrx (sonnet) | A17: testing-library and rxjs adapters | `web` (disjoint list) | running |
+| a17-tlrx (sonnet) | A17: testing-library and rxjs adapters | `web` | running |
+| a17-net (sonnet) | A17: fetch/patch, fetch/post-with-status, websocket | `web` | finished, uncommitted (commits with a17-tlrx: shared files); xhr waits on F66 |
+| f66-f67 (sonnet) | F66 XHR proxy, F67 `setupHeld` body | `@gateway/browser` | running |
+| a10-fs4 (sonnet) | A10: readlink, symlink, append-file | `orchestrator` (disjoint) | running |
+| a10-misc (sonnet) | A10: spawn-stream-json, net, proc, process, readline, timers; project-map and enforce-folder-return-types anchors | `orchestrator` (disjoint), two anchor tests | running |
+| agy SL-FS5 | A13 `fs/read-file`, second half; delete the adapter | `siegelense` | running |
 
 Still to do in Phase 2: orchestrator misc/timer/spawn (7 adapters), siegelense `read-file` (61 callers), misc singles and playwright session, testing jest/msw/typescript/playwright/misc, web canvas/DOM/IndexedDB/misc/rxjs/testing-library/xyflow and `directory-browse`, hydration-recipes `dm-jsonl/append` (G-J's enforce-folder-return-types test anchors on it). Then A18, A19.
 
@@ -552,6 +543,8 @@ Work that execution found and no item file owns. Each runs like an item.
 | F60 | Intermittent `check:consumer` failure in T03's contract-check probe (`toStrictEqual` "serializes to the same string"). | wrap-up | done (the F60 commit) | Never intermittent, and not the recorder. One run grades the probe twice: the T03 assertion under the consumer's jest 30.5.2 (passes: it compares cross-realm plain objects), and ward's sweep, which found this checkout's jest 30.2.0 first on `PATH` (always fails). `scripts/consumer-check` now strips this checkout's `node_modules/.bin` from `PATH` and puts the consumer's first. |
 | F62 | `packages/ward/src/brokers/bin/resolve/bin-resolve-broker.ts` looks for `jest`, `eslint` and `tsc` only in the package's own `node_modules/.bin`, then falls back to a bare name on `PATH`; it never walks up to the workspace root. A consumer running ward outside `npm run` gets whatever its shell `PATH` holds. Walk up to the root `node_modules/.bin` before the bare fallback. | F60 | open | |
 | F63 | This repo pins jest 30.2.0, whose `toStrictEqual` rejects Node-realm objects such as `response.json()`'s result; consumers get 30.5.2, which accepts them. Bump the repo's jest so repo and consumer grade tests the same way. | F60 | open | |
+| F66 | `#gateway/browser/XMLHttpRequest` exports only the raw global (no wrapper, proxy or stub), so web's `xhr/post-with-progress` (callers quest-chat, quest-followup, quest-new brokers) cannot move. | A17 W-NET | active | agent f66-f67 |
+| F67 | `fetchWithStatusProxy.setupHeld` passes `bodyText` into `holdsOpen({ data })`, so a released held body comes out JSON-encoded as a string; `quest-human-verdict-broker`'s parse fails after release (its widget test only checks the controls re-enable). | A17 W-NET | active | agent f66-f67 |
 | F65 | Five web brokers stay on their fetch adapters because a widget fetches them on mount, and moving them makes every widget test that does not stage that endpoint fail on an unhandled request: `directory/browse` (fetch/post), `quest/list`, `quest/queue`, `orchestration/dispatch-get`, `rate-limits/get` (fetch/get; 14 to 22 tests each in app-widget, home-content, quest-queue-bar). Design the staging: each composing widget proxy stages what its widget fetches on mount through a named setup method the tests call (no constructor default, which would be a catch-all). Then move the five and delete `adapters/fetch/get` and `adapters/fetch/post`. | A17 W-GET | done 803ecbee3 | |
 | F64 | `@gateway/node` gaps that stop orchestrator's `read-jsonl`, `readdir` and `watch-tail` adapters (A10 `### G-CC fs`): `readNonEmptyLinesProxy` has no one-shot rejection; the sync readdir wrapper's proxy has no one-shot; `tailFile` returns no `initialDrain` and `tailFileProxy` stages every call as `calledWith([])`. | A10 G-CC fs | done c0b2972f1 | |
 | F61 | `@gateway/browser`'s `fetchJsonProxy` and `fetchWithStatusProxy` offer no request count, so seven web `fetch/post` brokers whose tests assert `getRequestCount()` cannot move (`orchestration-dispatch-pause`, `orchestration-dispatch-play`, `quest-clarify`, `quest-followup-stop`, `quest-merge`, `quest-pause`, `quest-resume`). Also: `directory-browse-broker` is called on mount by `DirectoryBrowserModalWidget`, so migrating it makes every widget test that does not stage that endpoint fail on an unhandled request. | A17 W-POST | done c7b81850d | Seven brokers moved in e1076c324. `directory-browse` stays open. |
