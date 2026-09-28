@@ -96,6 +96,16 @@ export const startArgsParseTransformer = ({ args }: { args: readonly string[] })
         `Known specs: ${laneSpecConventionStatics.browsered}, ${laneSpecConventionStatics.headless}.`,
     );
   }
+  // Checked here rather than left to specNameContract's own `.min(1)` — that path answers with the
+  // contract's raw Zod issue text ("String must contain at least 1 character(s)") under the flag's
+  // name, which names the RULE rather than what the caller should type. `.min(1)` is the ONLY way
+  // specNameContract can fail, so this check covers its entire failure surface.
+  if (specValue === '') {
+    throw new Error(
+      `${SPEC_FLAG} must name a lane spec; got "". ` +
+        `Known specs: ${laneSpecConventionStatics.browsered}, ${laneSpecConventionStatics.headless}.`,
+    );
+  }
 
   const questValue = flagValueReadTransformer({ args, flag: QUEST_FLAG });
   const guildValue = flagValueReadTransformer({ args, flag: GUILD_FLAG });

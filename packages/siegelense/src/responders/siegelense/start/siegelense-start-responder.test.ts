@@ -8,6 +8,7 @@ import { RecipeNameStub } from '../../../contracts/recipe-name/recipe-name.stub'
 import { RepoLocalPathStub } from '../../../contracts/repo-local-path/repo-local-path.stub';
 import { SeedResultStub } from '../../../contracts/seed-result/seed-result.stub';
 import { SpecNameStub } from '../../../contracts/spec-name/spec-name.stub';
+import { RecipeUnknownError } from '../../../errors/recipe-unknown/recipe-unknown-error';
 import { SeedRecipeNeedsInputError } from '../../../errors/seed-recipe-needs-input/seed-recipe-needs-input-error';
 import { siegelenseOutputStatics } from '../../../statics/siegelense-output/siegelense-output-statics';
 
@@ -171,6 +172,9 @@ describe('SiegelenseStartResponder', () => {
       const seed = RecipeNameStub();
       const seeded = SeedResultStub({ guild: 'a1b2c3d4-5e6f-4890-abcd-ef1234567890' });
       const manifest = InstanceManifestStub({ specName, seeded });
+      proxy.stageRecipeListing({
+        entries: [RecipeListingEntryStub({ recipeName: seed, inputKeys: [] })],
+      });
       proxy.stageManifest({ manifest });
 
       await SiegelenseStartResponder({ specName, questId: null, guildId: null, seed });
@@ -187,6 +191,9 @@ describe('SiegelenseStartResponder', () => {
       const seed = RecipeNameStub();
       const seeded = SeedResultStub({ guild: 'a1b2c3d4-5e6f-4890-abcd-ef1234567890' });
       const manifest = InstanceManifestStub({ specName, seeded });
+      proxy.stageRecipeListing({
+        entries: [RecipeListingEntryStub({ recipeName: seed, inputKeys: [] })],
+      });
       proxy.stageManifest({ manifest });
 
       await SiegelenseStartResponder({
@@ -210,6 +217,9 @@ describe('SiegelenseStartResponder', () => {
       const seed = RecipeNameStub();
       const seeded = SeedResultStub();
       const manifest = InstanceManifestStub({ specName, seeded });
+      proxy.stageRecipeListing({
+        entries: [RecipeListingEntryStub({ recipeName: seed, inputKeys: [] })],
+      });
       proxy.stageManifest({ manifest });
 
       await SiegelenseStartResponder({ specName, questId: null, guildId: null, seed });
@@ -226,6 +236,9 @@ describe('SiegelenseStartResponder', () => {
       const seed = RecipeNameStub();
       const seeded = SeedResultStub();
       const manifest = InstanceManifestStub({ specName, seeded });
+      proxy.stageRecipeListing({
+        entries: [RecipeListingEntryStub({ recipeName: seed, inputKeys: [] })],
+      });
       proxy.stageManifest({ manifest });
 
       await SiegelenseStartResponder({
@@ -275,6 +288,34 @@ describe('SiegelenseStartResponder', () => {
         SiegelenseStartResponder({ specName, questId: null, guildId: null, seed }),
       ).rejects.toStrictEqual(
         new SeedRecipeNeedsInputError({ recipeName: seed, inputKeys: ['guildId'] }),
+      );
+
+      expect(
+        proxy.getStartCallsMatching({ specName, questId: null, guildId: null, seed }),
+      ).toStrictEqual([]);
+      expect(proxy.getStdoutWrites()).toStrictEqual([]);
+    });
+  });
+
+  describe('a --seed recipe the listing does not hold', () => {
+    it("ERROR: {seed: nope, empty listing} => refuses with the run seed step's own wording, naming every known recipe", async () => {
+      const proxy = SiegelenseStartResponderProxy();
+      const specName = SpecNameStub();
+      const seed = RecipeNameStub({ value: 'nope' });
+      proxy.stageRecipeListing({
+        entries: [
+          RecipeListingEntryStub({ recipeName: 'guild-empty' }),
+          RecipeListingEntryStub({ recipeName: 'guild-mid-execution' }),
+        ],
+      });
+
+      await expect(
+        SiegelenseStartResponder({ specName, questId: null, guildId: null, seed }),
+      ).rejects.toStrictEqual(
+        new RecipeUnknownError({
+          recipeName: seed,
+          known: ['guild-empty', 'guild-mid-execution'],
+        }),
       );
 
       expect(

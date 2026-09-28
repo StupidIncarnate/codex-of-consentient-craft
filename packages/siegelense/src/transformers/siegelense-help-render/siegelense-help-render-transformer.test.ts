@@ -131,8 +131,8 @@ describe('siegelenseHelpRenderTransformer', () => {
           '  --spec <specName>       required   the lane spec to boot.\n' +
           "  --quest <questId>                  files the instance's evidence under that quest's guild. Omitted, the instance is unowned.\n" +
           '  --guild <guildId>                  the guild to file evidence under, when there is no quest.\n' +
-          "  --seed <recipeName>                runs that recipe against the lane once it is up, and returns the ids it made on the manifest's `seeded`. Takes only a recipe with NO declared inputs — this bare flag has nowhere to carry params, unlike a `run` batch's own `seed` step, so a recipe that declares one refuses before booting rather than failing after. `dungeonmaster siegelense recipes` lists every name with its produces: line. Omitted, the instance starts empty and `seeded` is null.\n" +
-          "  --idle-timeout-ms <ms>             raises this instance's idle ceiling above driverStatics.idle.timeoutMs (900000ms) — the length of think-time between runs the served lane survives before reaping itself with no run received. Omitted, the default applies.\n" +
+          "  --seed <recipeName>                runs that recipe against the lane once it is up, and returns the ids it made on the manifest's `seeded`. Takes only a recipe with NO declared inputs — this bare flag has nowhere to carry params, unlike a `run` batch's own `seed` step, so a recipe that declares one refuses before booting rather than failing after. `dungeonmaster siegelense recipes` lists every name with its description. Omitted, the instance starts empty and `seeded` is null.\n" +
+          "  --idle-timeout-ms <ms>             raises this instance's idle ceiling above the 900000ms (15 minute) default — the length of think-time between runs the served lane survives before reaping itself with no run received. Omitted, the default applies.\n" +
           '  --json                             print raw JSON output instead of the human-readable view.\n' +
           '\n' +
           'REFUSES\n' +
@@ -140,7 +140,7 @@ describe('siegelenseHelpRenderTransformer', () => {
           '  --idle-timeout-ms only RAISES the ceiling for this one instance — it never disables the idle timeout or makes it infinite. The timeout is the only backstop against an abandoned lane holding a port pair and a browser open forever.\n' +
           '\n' +
           'OUTPUT\n' +
-          '  A human summary by default: instance id, spec, URLs, home and evidence paths, boot time, and one line per seeded binding — since there is no lookup call to recover any of it later. `--json` prints the InstanceManifest unabridged, seeded rows included.\n' +
+          '  A human summary by default: instance id, spec, URLs, home and evidence paths, boot time, and one line per seeded binding. `dungeonmaster siegelense status --instance <id>` recovers the evidence paths later. `--json` prints the InstanceManifest unabridged, seeded rows included.\n' +
           '\n' +
           'EXAMPLE\n' +
           '  dungeonmaster siegelense start --spec stack\n',

@@ -16,11 +16,14 @@
  * running against a different `DUNGEONMASTER_HOME` than whatever resolved the quest id in the first
  * place, and a silent `unowned` evidence path hides that mismatch instead of surfacing it.
  *
- * A `seed` recipe that DECLARES an input is refused here too, also BEFORE `instanceStartBroker` ever
- * runs — `--seed <recipeName>` is a bare flag with nowhere to carry `params`, unlike a `run` batch's
- * own `seed` step, so a recipe with inputs used to boot an instance anyway and fail deep inside
- * `recipesSeedRunBroker` with a raw Zod dump, after paying for a boot the caller never gets to use.
- * `recipesReadBroker`'s own listing carries each recipe's declared `inputKeys` for exactly this check.
+ * A `seed` recipe that DECLARES an input, or that names no recipe the listing holds at all, is
+ * refused here too, also BEFORE `instanceStartBroker` ever runs — `--seed <recipeName>` is a bare
+ * flag with nowhere to carry `params`, unlike a `run` batch's own `seed` step, so either case used to
+ * boot an instance anyway and fail deep inside `recipesSeedRunBroker` with a raw Zod dump or an
+ * internal-broker-named "unknown recipe" message, after paying for a boot the caller never gets to
+ * use. `recipesReadBroker`'s own listing carries each recipe's declared `inputKeys` for exactly this
+ * check, and `RecipeUnknownError` is the same wording a `run` batch's own `seed` step already uses
+ * for the unknown-recipe case.
  *
  * USAGE:
  * await SiegelenseStartResponder({ specName: SpecNameStub(), questId: null, guildId: null, seed: null });
@@ -45,6 +48,7 @@ import { instanceStartBroker } from '../../../brokers/instance/start/instance-st
 import { questOwningGuildFindBroker } from '../../../brokers/quest/owning-guild-find/quest-owning-guild-find-broker';
 import { recipesReadBroker } from '../../../brokers/recipes/read/recipes-read-broker';
 import type { SpecName } from '../../../contracts/spec-name/spec-name-contract';
+import { RecipeUnknownError } from '../../../errors/recipe-unknown/recipe-unknown-error';
 import { SeedRecipeNeedsInputError } from '../../../errors/seed-recipe-needs-input/seed-recipe-needs-input-error';
 import { siegelenseOutputStatics } from '../../../statics/siegelense-output/siegelense-output-statics';
 import { startAnswerRenderTransformer } from '../../../transformers/start-answer-render/start-answer-render-transformer';
@@ -74,7 +78,13 @@ export const SiegelenseStartResponder = async ({
   if (seed !== null) {
     const listing = await recipesReadBroker();
     const seedEntry = listing.find((candidate) => candidate.recipeName === seed);
-    if (seedEntry !== undefined && seedEntry.inputKeys.length > 0) {
+    if (seedEntry === undefined) {
+      throw new RecipeUnknownError({
+        recipeName: seed,
+        known: listing.map((candidate) => candidate.recipeName),
+      });
+    }
+    if (seedEntry.inputKeys.length > 0) {
       throw new SeedRecipeNeedsInputError({
         recipeName: seedEntry.recipeName,
         inputKeys: seedEntry.inputKeys,

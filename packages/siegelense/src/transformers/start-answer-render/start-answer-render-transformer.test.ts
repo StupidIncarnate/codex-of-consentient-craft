@@ -195,6 +195,52 @@ describe('startAnswerRenderTransformer', () => {
     });
   });
 
+  describe('manifest with a seeded session and subagent row (guild-active-suite shape)', () => {
+    it('VALID: {seeded: session/subagent rows with no literal id field} => falls back to sessionId/agentId plus filePath, never a dash', () => {
+      const seed = SeedResultStub({
+        session: {
+          sessionId: 'sess_abc123',
+          cwd: '/repo',
+          filePath: '/home/user/.claude/projects/-repo/sess_abc123.jsonl',
+          lineCount: 2,
+        },
+        subagent: {
+          agentId: 'a1b2c3',
+          toolUseId: 'toolu_01',
+          filePath: '/home/user/.claude/projects/-repo/sess_abc123/subagents/agent-a1b2c3.jsonl',
+          lineCount: 1,
+        },
+      });
+      const manifest = InstanceManifestStub({
+        instanceId: 'inst_7f3a9c21',
+        specName: 'dungeonmaster-stack',
+        baseUrl: 'http://localhost:34173',
+        home: '/tmp/dm-siege-inst_7f3a9c21',
+        evidence: {
+          path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21',
+          linkPresent: true,
+        },
+        bootMs: 15_000,
+        seeded: seed,
+      });
+
+      const result = startAnswerRenderTransformer({ manifest });
+
+      expect(result).toBe(
+        'INSTANCE: inst_7f3a9c21 (dungeonmaster-stack)\n' +
+          'URL: http://localhost:34173\n' +
+          'API: -\n' +
+          'HOME: /tmp/dm-siege-inst_7f3a9c21\n' +
+          'EVIDENCE: /repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a9c21\n' +
+          'BOOT: 15000ms\n' +
+          'SEEDED:\n' +
+          '  guild: 7306b468-0f2d-4a5e-9c3b-2d1e8f0a6b41 (name: Siege Guild, urlSlug: siege-guild)\n' +
+          '  session: sess_abc123 (filePath: /home/user/.claude/projects/-repo/sess_abc123.jsonl)\n' +
+          '  subagent: a1b2c3 (filePath: /home/user/.claude/projects/-repo/sess_abc123/subagents/agent-a1b2c3.jsonl)\n',
+      );
+    });
+  });
+
   describe('browserless manifest', () => {
     it('VALID: {baseUrl: null} => renders URL as -', () => {
       const manifest = InstanceManifestStub({

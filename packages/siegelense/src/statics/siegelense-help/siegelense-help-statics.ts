@@ -78,7 +78,7 @@ export const siegelenseHelpStatics = {
             "manifest's `seeded`. Takes only a recipe with NO declared inputs — this bare flag has " +
             "nowhere to carry params, unlike a `run` batch's own `seed` step, so a recipe that " +
             'declares one refuses before booting rather than failing after. ' +
-            '`dungeonmaster siegelense recipes` lists every name with its produces: line. Omitted, ' +
+            '`dungeonmaster siegelense recipes` lists every name with its description. Omitted, ' +
             'the instance starts empty and `seeded` is null.',
         },
         {
@@ -86,7 +86,7 @@ export const siegelenseHelpStatics = {
           value: '<ms>',
           required: false,
           description:
-            "raises this instance's idle ceiling above driverStatics.idle.timeoutMs (900000ms) — the " +
+            "raises this instance's idle ceiling above the 900000ms (15 minute) default — the " +
             'length of think-time between runs the served lane survives before reaping itself with ' +
             'no run received. Omitted, the default applies.',
         },
@@ -101,7 +101,7 @@ export const siegelenseHelpStatics = {
           'lane holding a port pair and a browser open forever.',
       ],
       output:
-        'A human summary by default: instance id, spec, URLs, home and evidence paths, boot time, and one line per seeded binding — since there is no lookup call to recover any of it later. `--json` prints the InstanceManifest unabridged, seeded rows included.',
+        'A human summary by default: instance id, spec, URLs, home and evidence paths, boot time, and one line per seeded binding. `dungeonmaster siegelense status --instance <id>` recovers the evidence paths later. `--json` prints the InstanceManifest unabridged, seeded rows included.',
       example: 'dungeonmaster siegelense start --spec stack',
     },
     run: {

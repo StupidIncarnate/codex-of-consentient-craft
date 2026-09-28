@@ -52,9 +52,9 @@ describe('SiegelenseStartLayerFlow', () => {
   });
 
   describe('--spec present with a badly-shaped value', () => {
-    it('INVALID: {callArgs: --spec ""} => refuses naming --spec and specNameContract\'s own message', async () => {
+    it('INVALID: {callArgs: --spec ""} => refuses saying --spec must name a lane spec, and the known specs', async () => {
       await expect(SiegelenseStartLayerFlow({ callArgs: ['--spec', ''] })).rejects.toThrow(
-        /^--spec: String must contain at least 1 character\(s\)$/u,
+        /^--spec must name a lane spec; got ""\. Known specs: stack, api\.$/u,
       );
     });
   });

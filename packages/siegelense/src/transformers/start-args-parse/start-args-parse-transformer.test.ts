@@ -77,9 +77,9 @@ describe('startArgsParseTransformer', () => {
   });
 
   describe('an empty --spec', () => {
-    it('INVALID: {--spec ""} => throws naming --spec and specNameContract\'s own message', () => {
+    it('INVALID: {--spec ""} => throws saying --spec must name a lane spec, and the known specs', () => {
       expect(() => startArgsParseTransformer({ args: ['--spec', ''] })).toThrow(
-        /^--spec: String must contain at least 1 character\(s\)$/u,
+        /^--spec must name a lane spec; got ""\. Known specs: stack, api\.$/u,
       );
     });
   });
