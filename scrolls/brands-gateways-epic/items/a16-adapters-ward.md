@@ -436,6 +436,24 @@ Files to edit:
 Adapter deletion check:
 - `packages/ward/src/adapters/fs/unlink/fs-unlink-adapter.ts` (+ `.proxy.ts`, `.test.ts`) — checked with `discover`: 3 callers in other groups (`check-run/e2e`, `check-run/integration`, `check-run/unit`) still import `fsUnlinkAdapter`. Per rule ("delete ... if nothing else imports it"), the adapter is left standing until those callers migrate.
 
+### G-BB-1e and G-BB-1d scope
+
+Code check: `fs/unlink` and its check-run callers were already gone before this chunk; the five `fs/read-file` callers and `crypto/hash-files` remained.
+
+Adapters deleted: `packages/ward/src/adapters/fs/read-file/*` (3 files), `packages/ward/src/adapters/crypto/hash-files/*` (3 files).
+
+Callers edited (each with its `.proxy.ts`), all under `packages/ward/src`:
+- `brokers/platform-crossing/check/read-first-existing-candidate-layer-broker`
+- `brokers/platform-crossing/check/read-package-name-optional-layer-broker`
+- `brokers/duplicate-install/check/installed-package-version-read-optional-layer-broker`
+- `responders/install/write-gitignore/install-write-gitignore-responder`
+- `responders/install/write-scripts/install-write-scripts-responder`
+- `brokers/bundle/build/bundle-build-broker` (`.ts`, `.proxy.ts`): hash call moves to the new broker
+
+New: `brokers/bundle/hash-files/bundle-hash-files-broker` (`.ts`, `.proxy.ts`, `.test.ts`), composing `readFileBytesSyncProxy`.
+
+Proxies composing the callers (tests unchanged, verified by the whole ward unit run): the two platform-crossing layer proxies feed `platform-crossing-check-broker.proxy`; the duplicate-install layer proxy feeds `duplicate-install-check-broker.proxy`; the install responder proxies feed `install-flow`/startup tests; `bundle-build-broker.proxy` feeds `check-run-e2e-broker.proxy`.
+
 ## Concessions made while executing
 
 <!-- Empty at the start. The operator fills this and mirrors it into EPIC.md's Concessions table. -->

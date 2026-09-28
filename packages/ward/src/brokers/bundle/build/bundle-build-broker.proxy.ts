@@ -9,9 +9,9 @@ import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { absoluteFilePathContract, filePathContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
-import { cryptoHashFilesAdapterProxy } from '../../../adapters/crypto/hash-files/crypto-hash-files-adapter.proxy';
 import { GitRelativePathStub } from '../../../contracts/git-relative-path/git-relative-path.stub';
 import { bundleStatics } from '../../../statics/bundle/bundle-statics';
+import { bundleHashFilesBrokerProxy } from '../hash-files/bundle-hash-files-broker.proxy';
 import { collectInputsLayerBrokerProxy } from './collect-inputs-layer-broker.proxy';
 
 // The workspace setupWorkspace describes: web depends on shared, and the four files they
@@ -42,7 +42,7 @@ export const bundleBuildBrokerProxy = (): {
   getPublishCalls: () => readonly unknown[][];
 } => {
   const inputsProxy = collectInputsLayerBrokerProxy();
-  const hashProxy = cryptoHashFilesAdapterProxy();
+  const hashProxy = bundleHashFilesBrokerProxy();
   const existsProxy = existsSyncProxy();
   const mkdirProxy = ensureDirProxy();
   const rm = rmProxy();

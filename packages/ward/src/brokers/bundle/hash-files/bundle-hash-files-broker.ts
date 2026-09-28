@@ -12,12 +12,12 @@
  * renamed without being edited.
  *
  * USAGE:
- * cryptoHashFilesAdapter({ rootPath, relativePaths: [GitRelativePathStub({ value: 'packages/web/src/app.tsx' })] });
+ * bundleHashFilesBroker({ rootPath, relativePaths: [GitRelativePathStub({ value: 'packages/web/src/app.tsx' })] });
  * // Returns a BundleHash over those files' paths and bytes
  */
 
-import { createHash } from 'crypto';
-import { readFileSync } from 'fs';
+import { createHash } from '#gateway/node/crypto';
+import { readFileBytesSync } from '#gateway/node/fs';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import {
@@ -25,6 +25,7 @@ import {
   type BundleHash,
 } from '../../../contracts/bundle-hash/bundle-hash-contract';
 import type { GitRelativePath } from '../../../contracts/git-relative-path/git-relative-path-contract';
+import { isNodeErrorWithCodeGuard } from '../../../guards/is-node-error-with-code/is-node-error-with-code-guard';
 import { bundleStatics } from '../../../statics/bundle/bundle-statics';
 
 // NUL cannot occur in a path, so `a/b` then `c` and `a` then `/bc` cannot feed the digest one
@@ -32,7 +33,7 @@ import { bundleStatics } from '../../../statics/bundle/bundle-statics';
 // reason, since file bytes themselves can contain a NUL.
 const FIELD_SEPARATOR = '\u0000';
 
-export const cryptoHashFilesAdapter = ({
+export const bundleHashFilesBroker = ({
   rootPath,
   relativePaths,
 }: {
@@ -43,7 +44,7 @@ export const cryptoHashFilesAdapter = ({
 
   for (const relativePath of [...relativePaths].map(String).sort()) {
     try {
-      const contents = readFileSync(`${String(rootPath)}/${relativePath}`);
+      const contents = readFileBytesSync(`${String(rootPath)}/${relativePath}`);
 
       hash.update(relativePath);
       hash.update(FIELD_SEPARATOR);
@@ -52,14 +53,14 @@ export const cryptoHashFilesAdapter = ({
       hash.update(contents);
       hash.update(FIELD_SEPARATOR);
     } catch (error: unknown) {
-      const code =
-        error !== null && typeof error === 'object' && 'code' in error ? String(error.code) : '';
-
       // A `src/**` glob matches the directories on the way down, and a path can vanish between the
       // glob and the read. Neither carries content, and neither is a reason to fail the check that
       // asked for the hash. Anything else — a permission error, a filesystem fault — would silently
       // produce a digest for a DIFFERENT set of inputs than the caller asked for, so it is rethrown.
-      if (code !== 'EISDIR' && code !== 'ENOENT') {
+      if (
+        !isNodeErrorWithCodeGuard({ error, code: 'EISDIR' }) &&
+        !isNodeErrorWithCodeGuard({ error, code: 'ENOENT' })
+      ) {
         throw error;
       }
     }

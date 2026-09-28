@@ -10,10 +10,14 @@
  * // Returns: { filePath: '/repo/x.ts', content: '...' } or undefined when every candidate is absent
  */
 
-import type { FilePath, FileContents } from '@dungeonmaster/shared/contracts';
+import { readFile } from '#gateway/node/fs__promises';
+import {
+  fileContentsContract,
+  type FilePath,
+  type FileContents,
+} from '@dungeonmaster/shared/contracts';
 
 import { isNodeErrorWithCodeGuard } from '../../../guards/is-node-error-with-code/is-node-error-with-code-guard';
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 
 export const readFirstExistingCandidateLayerBroker = async ({
   candidates,
@@ -25,14 +29,14 @@ export const readFirstExistingCandidateLayerBroker = async ({
     return undefined;
   }
 
-  const content = await fsReadFileAdapter({ filePath: firstCandidate }).catch((error: unknown) => {
+  const raw = await readFile(firstCandidate).catch((error: unknown) => {
     if (isNodeErrorWithCodeGuard({ error, code: 'ENOENT' })) {
       return undefined;
     }
     throw error;
   });
-  if (content !== undefined) {
-    return { filePath: firstCandidate, content };
+  if (raw !== undefined) {
+    return { filePath: firstCandidate, content: fileContentsContract.parse(raw) };
   }
 
   return readFirstExistingCandidateLayerBroker({ candidates: remainingCandidates });

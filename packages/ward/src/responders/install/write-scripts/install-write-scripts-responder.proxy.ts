@@ -1,6 +1,6 @@
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { FilePathStub, type FilePath } from '@dungeonmaster/shared/contracts';
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
+import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
 import { InstallWriteScriptsResponder } from './install-write-scripts-responder';
 
@@ -13,7 +13,7 @@ export const InstallWriteScriptsResponderProxy = (): {
   getWrittenPath: () => unknown;
 } => {
   const existsProxy = existsSyncProxy();
-  const readProxy = fsReadFileAdapterProxy();
+  const readProxy = readFileProxy();
   const writeProxy = fsWriteFileAdapterProxy();
 
   // Every test in this file targets targetProjectRoot '/project', so the resolved package.json
@@ -38,7 +38,7 @@ export const InstallWriteScriptsResponderProxy = (): {
       filePath: FilePath;
       content: string;
     }): void => {
-      readProxy.returns({ filePath, content });
+      readProxy.returns({ path: filePath, contents: content });
       writeProxy.succeeds({ filePath });
     },
 

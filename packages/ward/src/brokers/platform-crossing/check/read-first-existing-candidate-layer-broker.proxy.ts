@@ -1,22 +1,22 @@
+import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 
 export const readFirstExistingCandidateLayerBrokerProxy = (): {
   setupFile: (params: { filePath: FilePath; content: string }) => void;
   setupMissing: (params: { filePath: FilePath }) => void;
   setupPermissionDenied: (params: { filePath: FilePath }) => void;
 } => {
-  const fsProxy = fsReadFileAdapterProxy();
+  const fsProxy = readFileProxy();
 
   return {
     setupFile: ({ filePath, content }: { filePath: FilePath; content: string }): void => {
-      fsProxy.returns({ filePath, content });
+      fsProxy.returns({ path: filePath, contents: content });
     },
     setupMissing: ({ filePath }: { filePath: FilePath }): void => {
-      fsProxy.throws({ filePath, error: Object.assign(new Error('ENOENT'), { code: 'ENOENT' }) });
+      fsProxy.missing({ path: filePath });
     },
     setupPermissionDenied: ({ filePath }: { filePath: FilePath }): void => {
-      fsProxy.throws({ filePath, error: Object.assign(new Error('EACCES'), { code: 'EACCES' }) });
+      fsProxy.denied({ path: filePath });
     },
   };
 };

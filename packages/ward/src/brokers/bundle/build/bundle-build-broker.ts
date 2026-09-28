@@ -27,9 +27,9 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, ErrorMessage } from '@dungeonmaster/shared/contracts';
 
-import { cryptoHashFilesAdapter } from '../../../adapters/crypto/hash-files/crypto-hash-files-adapter';
 import { packageJsonContract } from '../../../contracts/package-json/package-json-contract';
 import { bundleStatics } from '../../../statics/bundle/bundle-statics';
+import { bundleHashFilesBroker } from '../hash-files/bundle-hash-files-broker';
 import { collectInputsLayerBroker } from './collect-inputs-layer-broker';
 
 export const bundleBuildBroker = async ({
@@ -61,7 +61,7 @@ export const bundleBuildBroker = async ({
   }
 
   const { repoRoot, relativePaths } = await collectInputsLayerBroker({ packageRoot });
-  const hash = cryptoHashFilesAdapter({ rootPath: repoRoot, relativePaths });
+  const hash = bundleHashFilesBroker({ rootPath: repoRoot, relativePaths });
 
   const bundleParent = `${String(packageRoot)}/${bundleStatics.parentDir}`;
   const bundleDir = absoluteFilePathContract.parse(`${bundleParent}/${String(hash)}`);

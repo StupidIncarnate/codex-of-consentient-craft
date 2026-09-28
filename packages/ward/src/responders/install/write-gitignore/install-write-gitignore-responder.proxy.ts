@@ -1,6 +1,6 @@
+import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
 import { InstallWriteGitignoreResponder } from './install-write-gitignore-responder';
 
@@ -11,7 +11,7 @@ export const InstallWriteGitignoreResponderProxy = (): {
   getWrittenContent: (params: { filePath: FilePath }) => unknown;
   getWrittenPath: (params: { filePath: FilePath }) => unknown;
 } => {
-  const readProxy = fsReadFileAdapterProxy();
+  const readProxy = readFileProxy();
   const writeProxy = fsWriteFileAdapterProxy();
 
   return {
@@ -24,12 +24,12 @@ export const InstallWriteGitignoreResponderProxy = (): {
       filePath: FilePath;
       content: string;
     }): void => {
-      readProxy.returns({ filePath, content });
+      readProxy.returns({ path: filePath, contents: content });
       writeProxy.succeeds({ filePath });
     },
 
     setupReadFileThrows: ({ filePath }: { filePath: FilePath }): void => {
-      readProxy.throws({ filePath, error: new Error('ENOENT: no such file or directory') });
+      readProxy.missing({ path: filePath });
       writeProxy.succeeds({ filePath });
     },
 

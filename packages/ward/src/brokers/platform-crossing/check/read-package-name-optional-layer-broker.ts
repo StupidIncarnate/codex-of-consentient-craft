@@ -9,20 +9,20 @@
  * // Returns: '@dungeonmaster/node' as GatewayPackageName, or undefined when the file does not exist
  */
 
+import { readFile } from '#gateway/node/fs__promises';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 import { gatewayPackageNameContract } from '../../../contracts/gateway-package-name/gateway-package-name-contract';
 import type { GatewayPackageName } from '../../../contracts/gateway-package-name/gateway-package-name-contract';
 import { packageJsonContract } from '../../../contracts/package-json/package-json-contract';
 import { isNodeErrorWithCodeGuard } from '../../../guards/is-node-error-with-code/is-node-error-with-code-guard';
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 
 export const readPackageNameOptionalLayerBroker = async ({
   packageJsonPath,
 }: {
   packageJsonPath: FilePath;
 }): Promise<GatewayPackageName | undefined> => {
-  const raw = await fsReadFileAdapter({ filePath: packageJsonPath }).catch((error: unknown) => {
+  const raw = await readFile(packageJsonPath).catch((error: unknown) => {
     if (isNodeErrorWithCodeGuard({ error, code: 'ENOENT' })) {
       return undefined;
     }

@@ -1,7 +1,7 @@
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 
-import { cryptoHashFilesAdapter } from './crypto-hash-files-adapter';
-import { cryptoHashFilesAdapterProxy } from './crypto-hash-files-adapter.proxy';
+import { bundleHashFilesBroker } from './bundle-hash-files-broker';
+import { bundleHashFilesBrokerProxy } from './bundle-hash-files-broker.proxy';
 import { GitRelativePathStub } from '../../../contracts/git-relative-path/git-relative-path.stub';
 
 // sha-256 of nothing at all.
@@ -11,13 +11,13 @@ const TWO_FILE_DIGEST = '51cce8b7e058e0ef43e7a2d4d51a11e8414167a485010e1eb4421f3
 const EDITED_DIGEST = 'd4f3a6cc0afb0453b7aedfdf5750126c86d71c78a72e8f4a55906ab6a6338dd6';
 const RENAMED_DIGEST = 'c06ab6e928e694a9ba07e76fa538db3e14c6c843be905c941af9c13c0f223593';
 
-describe('cryptoHashFilesAdapter', () => {
+describe('bundleHashFilesBroker', () => {
   describe('empty input', () => {
     it('EMPTY: {relativePaths: []} => returns the sha-256 of no bytes', () => {
       const rootPath = AbsoluteFilePathStub({ value: '/repo' });
-      cryptoHashFilesAdapterProxy();
+      bundleHashFilesBrokerProxy();
 
-      const result = cryptoHashFilesAdapter({ rootPath, relativePaths: [] });
+      const result = bundleHashFilesBroker({ rootPath, relativePaths: [] });
 
       expect(result).toBe(EMPTY_DIGEST);
     });
@@ -27,10 +27,10 @@ describe('cryptoHashFilesAdapter', () => {
     it('VALID: {one file} => returns the digest over its path, length and bytes', () => {
       const rootPath = AbsoluteFilePathStub({ value: '/repo' });
       const app = GitRelativePathStub({ value: 'packages/web/src/app.tsx' });
-      const proxy = cryptoHashFilesAdapterProxy();
+      const proxy = bundleHashFilesBrokerProxy();
       proxy.hasFile({ rootPath, relativePath: app, contents: 'export const App = 1;' });
 
-      const result = cryptoHashFilesAdapter({ rootPath, relativePaths: [app] });
+      const result = bundleHashFilesBroker({ rootPath, relativePaths: [app] });
 
       expect(result).toBe(ONE_FILE_DIGEST);
     });
@@ -38,10 +38,10 @@ describe('cryptoHashFilesAdapter', () => {
     it('VALID: {same file, edited contents} => returns a different digest', () => {
       const rootPath = AbsoluteFilePathStub({ value: '/repo' });
       const app = GitRelativePathStub({ value: 'packages/web/src/app.tsx' });
-      const proxy = cryptoHashFilesAdapterProxy();
+      const proxy = bundleHashFilesBrokerProxy();
       proxy.hasFile({ rootPath, relativePath: app, contents: 'export const App = 2;' });
 
-      const result = cryptoHashFilesAdapter({ rootPath, relativePaths: [app] });
+      const result = bundleHashFilesBroker({ rootPath, relativePaths: [app] });
 
       expect(result).toBe(EDITED_DIGEST);
     });
@@ -49,12 +49,25 @@ describe('cryptoHashFilesAdapter', () => {
     it('VALID: {same contents at a different path} => returns a different digest', () => {
       const rootPath = AbsoluteFilePathStub({ value: '/repo' });
       const renamed = GitRelativePathStub({ value: 'packages/web/src/app2.tsx' });
-      const proxy = cryptoHashFilesAdapterProxy();
+      const proxy = bundleHashFilesBrokerProxy();
       proxy.hasFile({ rootPath, relativePath: renamed, contents: 'export const App = 1;' });
 
-      const result = cryptoHashFilesAdapter({ rootPath, relativePaths: [renamed] });
+      const result = bundleHashFilesBroker({ rootPath, relativePaths: [renamed] });
 
       expect(result).toBe(RENAMED_DIGEST);
+    });
+  });
+
+  describe('byte exactness', () => {
+    it('VALID: {a file whose bytes are not valid utf-8} => digests the raw bytes and their byte length', () => {
+      const rootPath = AbsoluteFilePathStub({ value: '/repo' });
+      const binary = GitRelativePathStub({ value: 'a.bin' });
+      const proxy = bundleHashFilesBrokerProxy();
+      proxy.hasBytes({ rootPath, relativePath: binary, bytes: [0xff, 0xe2, 0x82, 0xac] });
+
+      const result = bundleHashFilesBroker({ rootPath, relativePaths: [binary] });
+
+      expect(result).toBe('213700dd41735a9a6798bf5cc6be14a6a4d483a47de1160288972d61397a698e');
     });
   });
 
@@ -63,11 +76,11 @@ describe('cryptoHashFilesAdapter', () => {
       const rootPath = AbsoluteFilePathStub({ value: '/repo' });
       const statics = GitRelativePathStub({ value: 'packages/shared/statics.ts' });
       const app = GitRelativePathStub({ value: 'packages/web/src/app.tsx' });
-      const proxy = cryptoHashFilesAdapterProxy();
+      const proxy = bundleHashFilesBrokerProxy();
       proxy.hasFile({ rootPath, relativePath: statics, contents: 'export const s = 2;' });
       proxy.hasFile({ rootPath, relativePath: app, contents: 'export const App = 1;' });
 
-      const result = cryptoHashFilesAdapter({ rootPath, relativePaths: [statics, app] });
+      const result = bundleHashFilesBroker({ rootPath, relativePaths: [statics, app] });
 
       expect(result).toBe(TWO_FILE_DIGEST);
     });
@@ -76,11 +89,11 @@ describe('cryptoHashFilesAdapter', () => {
       const rootPath = AbsoluteFilePathStub({ value: '/repo' });
       const statics = GitRelativePathStub({ value: 'packages/shared/statics.ts' });
       const app = GitRelativePathStub({ value: 'packages/web/src/app.tsx' });
-      const proxy = cryptoHashFilesAdapterProxy();
+      const proxy = bundleHashFilesBrokerProxy();
       proxy.hasFile({ rootPath, relativePath: statics, contents: 'export const s = 2;' });
       proxy.hasFile({ rootPath, relativePath: app, contents: 'export const App = 1;' });
 
-      const result = cryptoHashFilesAdapter({ rootPath, relativePaths: [app, statics] });
+      const result = bundleHashFilesBroker({ rootPath, relativePaths: [app, statics] });
 
       expect(result).toBe(TWO_FILE_DIGEST);
     });
@@ -91,11 +104,11 @@ describe('cryptoHashFilesAdapter', () => {
       const rootPath = AbsoluteFilePathStub({ value: '/repo' });
       const app = GitRelativePathStub({ value: 'packages/web/src/app.tsx' });
       const directory = GitRelativePathStub({ value: 'packages/web/src' });
-      const proxy = cryptoHashFilesAdapterProxy();
+      const proxy = bundleHashFilesBrokerProxy();
       proxy.hasFile({ rootPath, relativePath: app, contents: 'export const App = 1;' });
       proxy.isDirectory({ rootPath, relativePath: directory });
 
-      const result = cryptoHashFilesAdapter({ rootPath, relativePaths: [app, directory] });
+      const result = bundleHashFilesBroker({ rootPath, relativePaths: [app, directory] });
 
       expect(result).toBe(ONE_FILE_DIGEST);
     });
@@ -104,11 +117,11 @@ describe('cryptoHashFilesAdapter', () => {
       const rootPath = AbsoluteFilePathStub({ value: '/repo' });
       const app = GitRelativePathStub({ value: 'packages/web/src/app.tsx' });
       const gone = GitRelativePathStub({ value: 'packages/web/src/gone.tsx' });
-      const proxy = cryptoHashFilesAdapterProxy();
+      const proxy = bundleHashFilesBrokerProxy();
       proxy.hasFile({ rootPath, relativePath: app, contents: 'export const App = 1;' });
       proxy.isMissing({ rootPath, relativePath: gone });
 
-      const result = cryptoHashFilesAdapter({ rootPath, relativePaths: [app, gone] });
+      const result = bundleHashFilesBroker({ rootPath, relativePaths: [app, gone] });
 
       expect(result).toBe(ONE_FILE_DIGEST);
     });
@@ -118,11 +131,11 @@ describe('cryptoHashFilesAdapter', () => {
     it('ERROR: {a file the process may not read} => rethrows rather than hashing a short set', () => {
       const rootPath = AbsoluteFilePathStub({ value: '/repo' });
       const locked = GitRelativePathStub({ value: 'packages/web/src/locked.tsx' });
-      const proxy = cryptoHashFilesAdapterProxy();
+      const proxy = bundleHashFilesBrokerProxy();
       proxy.failsWith({ rootPath, relativePath: locked, code: 'EACCES' });
 
-      expect(() => cryptoHashFilesAdapter({ rootPath, relativePaths: [locked] })).toThrow(
-        /^EACCES: read failed$/u,
+      expect(() => bundleHashFilesBroker({ rootPath, relativePaths: [locked] })).toThrow(
+        /^EACCES: op '\/repo\/packages\/web\/src\/locked\.tsx'$/u,
       );
     });
   });

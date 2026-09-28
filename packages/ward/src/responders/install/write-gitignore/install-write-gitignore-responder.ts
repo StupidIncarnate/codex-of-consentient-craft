@@ -8,6 +8,7 @@
  * // Appends whichever gitignoreEntriesStatics lines are missing, creating .gitignore if absent
  */
 
+import { readFile } from '#gateway/node/fs__promises';
 import {
   type InstallContext,
   type InstallResult,
@@ -16,7 +17,6 @@ import {
   fileContentsContract,
   filePathContract,
 } from '@dungeonmaster/shared/contracts';
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import { gitignoreEntriesStatics } from '../../../statics/gitignore-entries/gitignore-entries-statics';
 
@@ -35,7 +35,7 @@ export const InstallWriteGitignoreResponder = async ({
   let existingContent = '';
 
   try {
-    existingContent = await fsReadFileAdapter({ filePath: gitignorePath });
+    existingContent = await readFile(gitignorePath);
   } catch {
     // File doesn't exist - will create new .gitignore
   }
