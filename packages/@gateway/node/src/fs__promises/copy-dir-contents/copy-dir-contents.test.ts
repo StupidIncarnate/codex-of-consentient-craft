@@ -56,4 +56,17 @@ describe('copyDirContents', () => {
       ['/tmp/inst_1/.snapshots/1/a.json', { recursive: true, force: true }],
     ]);
   });
+
+  it('VALID: {two copyDirContents calls} => cpCallsFor reads back each cp call in order', async () => {
+    const proxy = copyDirContentsProxy();
+    proxy.succeeds({ from: '/tmp/inst_1', entries: ['x.json'] });
+
+    await copyDirContents({ from: '/tmp/inst_1', to: '/tmp/dest-a', excludeNames: [] });
+    await copyDirContents({ from: '/tmp/inst_1', to: '/tmp/dest-b', excludeNames: [] });
+
+    expect(proxy.cpCallsFor({ source: '/tmp/inst_1/x.json' })).toStrictEqual([
+      ['/tmp/inst_1/x.json', '/tmp/dest-a/x.json', { recursive: true, force: true }],
+      ['/tmp/inst_1/x.json', '/tmp/dest-b/x.json', { recursive: true, force: true }],
+    ]);
+  });
 });

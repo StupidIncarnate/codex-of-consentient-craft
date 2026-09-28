@@ -34,4 +34,21 @@ describe('writeFileCreatingParent', () => {
       error,
     );
   });
+
+  it('VALID: {two calls to the same path} => getCallsFor and mkdirCallsFor read back each call in order', async () => {
+    const proxy = writeFileCreatingParentProxy();
+    proxy.succeeds({ path: '/project/.claude/settings.json' });
+
+    await writeFileCreatingParent('/project/.claude/settings.json', '{"a":1}');
+    await writeFileCreatingParent('/project/.claude/settings.json', '{"a":2}');
+
+    expect(proxy.getCallsFor({ path: '/project/.claude/settings.json' })).toStrictEqual([
+      ['/project/.claude/settings.json', '{"a":1}', 'utf8'],
+      ['/project/.claude/settings.json', '{"a":2}', 'utf8'],
+    ]);
+    expect(proxy.mkdirCallsFor({ path: '/project/.claude/settings.json' })).toStrictEqual([
+      ['/project/.claude', { recursive: true }],
+      ['/project/.claude', { recursive: true }],
+    ]);
+  });
 });

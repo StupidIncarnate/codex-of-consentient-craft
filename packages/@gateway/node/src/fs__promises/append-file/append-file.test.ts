@@ -38,4 +38,17 @@ describe('appendFile', () => {
 
     await expect(appendFile('/repo/.dungeonmaster', '{}\n')).rejects.toBe(error);
   });
+
+  it('VALID: {two appends to the same path} => getCallsFor reads back each call in order', async () => {
+    const proxy = appendFileProxy();
+    proxy.succeeds({ path: '/repo/.dungeonmaster/event-outbox.jsonl' });
+
+    await appendFile('/repo/.dungeonmaster/event-outbox.jsonl', 'first\n');
+    await appendFile('/repo/.dungeonmaster/event-outbox.jsonl', 'second\n');
+
+    expect(proxy.getCallsFor({ path: '/repo/.dungeonmaster/event-outbox.jsonl' })).toStrictEqual([
+      ['/repo/.dungeonmaster/event-outbox.jsonl', 'first\n', 'utf8'],
+      ['/repo/.dungeonmaster/event-outbox.jsonl', 'second\n', 'utf8'],
+    ]);
+  });
 });

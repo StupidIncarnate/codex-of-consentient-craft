@@ -30,4 +30,17 @@ describe('writeFile', () => {
 
     await expect(writeFile('/full/file.json', '{}')).rejects.toBe(error);
   });
+
+  it('VALID: {two writes to the same path} => getCallsFor reads back each call in order', async () => {
+    const proxy = writeFileProxy();
+    proxy.succeeds({ path: '/project/queue.json' });
+
+    await writeFile('/project/queue.json', '{"items":[1]}');
+    await writeFile('/project/queue.json', '{"items":[2]}');
+
+    expect(proxy.getCallsFor({ path: '/project/queue.json' })).toStrictEqual([
+      ['/project/queue.json', '{"items":[1]}', 'utf8'],
+      ['/project/queue.json', '{"items":[2]}', 'utf8'],
+    ]);
+  });
 });

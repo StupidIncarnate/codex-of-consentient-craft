@@ -5,6 +5,7 @@ export const writeFileSyncProxy = (): {
   succeeds: ({ path }: { path: string }) => void;
   throws: ({ path, error }: { path: string; error: NodeJS.ErrnoException }) => void;
   writtenContents: ({ path }: { path: string }) => unknown;
+  calls: ({ path }: { path: string }) => unknown[][];
 } => {
   const handle = registerMock({ fn: writeFileSync });
   handle.calledWith([]).returns(undefined);
@@ -25,5 +26,6 @@ export const writeFileSyncProxy = (): {
     },
     writtenContents: ({ path }: { path: string }): unknown =>
       handle.callsMatching([path]).at(-1)?.[1],
+    calls: ({ path }: { path: string }): unknown[][] => handle.callsMatching([path]),
   };
 };

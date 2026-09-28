@@ -41,4 +41,40 @@ describe('symlink', () => {
       symlink({ target: '../../packages/pkg', path: '/missing/node_modules/pkg' }),
     ).rejects.toBe(error);
   });
+
+  it('VALID: {two calls to the same target and path} => getCallsFor reads back each call in order', async () => {
+    const proxy = symlinkProxy();
+    proxy.succeeds({
+      target: '../../packages/orchestrator',
+      path: '/worktrees/quest-slug/node_modules/@dungeonmaster/orchestrator',
+    });
+
+    await symlink({
+      target: '../../packages/orchestrator',
+      path: '/worktrees/quest-slug/node_modules/@dungeonmaster/orchestrator',
+      type: 'dir',
+    });
+    await symlink({
+      target: '../../packages/orchestrator',
+      path: '/worktrees/quest-slug/node_modules/@dungeonmaster/orchestrator',
+    });
+
+    expect(
+      proxy.getCallsFor({
+        target: '../../packages/orchestrator',
+        path: '/worktrees/quest-slug/node_modules/@dungeonmaster/orchestrator',
+      }),
+    ).toStrictEqual([
+      [
+        '../../packages/orchestrator',
+        '/worktrees/quest-slug/node_modules/@dungeonmaster/orchestrator',
+        'dir',
+      ],
+      [
+        '../../packages/orchestrator',
+        '/worktrees/quest-slug/node_modules/@dungeonmaster/orchestrator',
+        undefined,
+      ],
+    ]);
+  });
 });

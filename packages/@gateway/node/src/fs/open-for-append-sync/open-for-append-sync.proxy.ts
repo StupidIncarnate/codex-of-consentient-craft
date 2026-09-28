@@ -4,6 +4,7 @@ import { registerMock } from '@dungeonmaster/testing/register-mock';
 export const openForAppendSyncProxy = (): {
   returns: ({ path, fd }: { path: string; fd: number }) => void;
   throws: ({ path, error }: { path: string; error: NodeJS.ErrnoException }) => void;
+  calls: ({ path }: { path: string }) => unknown[][];
 } => {
   const handle = registerMock({ fn: openSync });
 
@@ -19,5 +20,6 @@ export const openForAppendSyncProxy = (): {
         throw error;
       });
     },
+    calls: ({ path }: { path: string }): unknown[][] => handle.callsMatching([path]),
   };
 };

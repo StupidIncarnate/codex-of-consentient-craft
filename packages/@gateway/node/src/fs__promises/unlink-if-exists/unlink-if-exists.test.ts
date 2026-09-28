@@ -32,4 +32,17 @@ describe('unlinkIfExists', () => {
 
     await expect(unlinkIfExists('/repo/.dungeonmaster')).rejects.toBe(error);
   });
+
+  it('VALID: {two calls to the same path} => getCallsFor reads back each unlink call in order', async () => {
+    const proxy = unlinkIfExistsProxy();
+    proxy.succeeds({ path: '/repo/.dungeonmaster/boot.lock' });
+
+    await unlinkIfExists('/repo/.dungeonmaster/boot.lock');
+    await unlinkIfExists('/repo/.dungeonmaster/boot.lock');
+
+    expect(proxy.getCallsFor({ path: '/repo/.dungeonmaster/boot.lock' })).toStrictEqual([
+      ['/repo/.dungeonmaster/boot.lock'],
+      ['/repo/.dungeonmaster/boot.lock'],
+    ]);
+  });
 });

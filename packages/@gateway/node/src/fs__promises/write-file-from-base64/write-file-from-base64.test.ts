@@ -22,4 +22,17 @@ describe('writeFileFromBase64', () => {
 
     await expect(writeFileFromBase64('/missing/image.png', 'aGVsbG8=')).rejects.toBe(error);
   });
+
+  it('VALID: {two calls to the same path} => getCallsFor reads back each write call in order', async () => {
+    const proxy = writeFileFromBase64Proxy();
+    proxy.succeeds({ path: '/repo/tmp/image.png' });
+
+    await writeFileFromBase64('/repo/tmp/image.png', Buffer.from('a').toString('base64'));
+    await writeFileFromBase64('/repo/tmp/image.png', Buffer.from('b').toString('base64'));
+
+    expect(proxy.getCallsFor({ path: '/repo/tmp/image.png' })).toStrictEqual([
+      ['/repo/tmp/image.png', Buffer.from('a')],
+      ['/repo/tmp/image.png', Buffer.from('b')],
+    ]);
+  });
 });

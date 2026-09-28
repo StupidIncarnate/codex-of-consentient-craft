@@ -5,6 +5,7 @@ export const appendFileSyncProxy = (): {
   succeeds: ({ path }: { path: string }) => void;
   throws: ({ path, error }: { path: string; error: NodeJS.ErrnoException }) => void;
   appendedContents: ({ path }: { path: string }) => unknown;
+  calls: ({ path }: { path: string }) => unknown[][];
 } => {
   const handle = registerMock({ fn: appendFileSync });
 
@@ -24,5 +25,6 @@ export const appendFileSyncProxy = (): {
     },
     appendedContents: ({ path }: { path: string }): unknown =>
       handle.callsMatching([path]).at(-1)?.[1],
+    calls: ({ path }: { path: string }): unknown[][] => handle.callsMatching([path]),
   };
 };

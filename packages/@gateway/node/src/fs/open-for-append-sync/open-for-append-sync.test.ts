@@ -32,4 +32,17 @@ describe('openForAppendSync', () => {
 
     expect(() => openForAppendSync('/locked/api-server.log')).toThrow(error);
   });
+
+  it('VALID: {two calls to the same path} => calls reads back each open call in order', () => {
+    const proxy = openForAppendSyncProxy();
+    proxy.returns({ path: '/tmp/dm-siege-inst_1/api-server.log', fd: 12 });
+
+    openForAppendSync('/tmp/dm-siege-inst_1/api-server.log');
+    openForAppendSync('/tmp/dm-siege-inst_1/api-server.log');
+
+    expect(proxy.calls({ path: '/tmp/dm-siege-inst_1/api-server.log' })).toStrictEqual([
+      ['/tmp/dm-siege-inst_1/api-server.log', 'a'],
+      ['/tmp/dm-siege-inst_1/api-server.log', 'a'],
+    ]);
+  });
 });

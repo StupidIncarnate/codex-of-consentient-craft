@@ -1,11 +1,16 @@
 import { appendFile } from 'fs/promises';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { FsError } from '../../fs/is-fs-error/fs-error';
+import type { PathMatcher } from '../../gateway-test-support/path-matcher';
 
 export const appendFileProxy = (): {
   succeeds: ({ path }: { path: string }) => void;
   rejects: ({ path, error }: { path: string; error: FsError }) => void;
   appendedContentsFor: ({ path }: { path: string }) => unknown;
+  // Every call's own contents, for calls whose path matches, in call order — `appendedContentsFor`
+  // only ever answers the LAST one, which is not enough for a caller that appends several chunks to
+  // the same path and needs to prove each one landed.
+  getCallsFor: (params: { path: PathMatcher }) => readonly unknown[][];
 } => {
   const handle = registerMock({ fn: appendFile });
 
@@ -24,5 +29,7 @@ export const appendFileProxy = (): {
     },
     appendedContentsFor: ({ path }: { path: string }): unknown =>
       handle.callsMatching([path]).at(-1)?.[1],
+    getCallsFor: ({ path }: { path: PathMatcher }): readonly unknown[][] =>
+      handle.callsMatching([path]),
   };
 };

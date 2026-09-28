@@ -18,6 +18,7 @@ export const copyDirContentsProxy = (): {
     error: FsError;
   }) => void;
   rmCallsFor: ({ path }: { path: string }) => unknown;
+  cpCallsFor: ({ source }: { source: string }) => unknown;
 } => {
   const readdirHandle = registerMock({ fn: readdir });
   const entriesRecurseProxy = copyDirContentsEntriesRecurseProxy();
@@ -51,5 +52,7 @@ export const copyDirContentsProxy = (): {
       entriesRecurseProxy.secondEntryFails({ from, to, entries, error });
     },
     rmCallsFor: ({ path }: { path: string }): unknown => entriesRecurseProxy.rmCallsFor({ path }),
+    cpCallsFor: ({ source }: { source: string }): unknown =>
+      entriesRecurseProxy.cpCallsFor({ source }),
   };
 };

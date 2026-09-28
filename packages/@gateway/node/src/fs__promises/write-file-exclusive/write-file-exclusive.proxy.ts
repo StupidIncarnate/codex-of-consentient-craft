@@ -1,10 +1,12 @@
 import { writeFile } from 'fs/promises';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { FsError } from '../../fs/is-fs-error/fs-error';
+import type { PathMatcher } from '../../gateway-test-support/path-matcher';
 
 export const writeFileExclusiveProxy = (): {
   succeeds: ({ path }: { path: string }) => void;
   rejects: ({ path, error }: { path: string; error: FsError }) => void;
+  getCallsFor: (params: { path: PathMatcher }) => readonly unknown[][];
 } => {
   const handle = registerMock({ fn: writeFile });
 
@@ -21,5 +23,7 @@ export const writeFileExclusiveProxy = (): {
         return Promise.reject(error);
       });
     },
+    getCallsFor: ({ path }: { path: PathMatcher }): readonly unknown[][] =>
+      handle.callsMatching([path]),
   };
 };

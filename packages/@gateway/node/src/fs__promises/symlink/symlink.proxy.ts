@@ -1,10 +1,12 @@
 import { symlink } from 'fs/promises';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { FsError } from '../../fs/is-fs-error/fs-error';
+import type { PathMatcher } from '../../gateway-test-support/path-matcher';
 
 export const symlinkProxy = (): {
   succeeds: ({ target, path }: { target: string; path: string }) => void;
   rejects: ({ target, path, error }: { target: string; path: string; error: FsError }) => void;
+  getCallsFor: (params: { target: PathMatcher; path: PathMatcher }) => readonly unknown[][];
 } => {
   const handle = registerMock({ fn: symlink });
 
@@ -21,5 +23,12 @@ export const symlinkProxy = (): {
         return Promise.reject(error);
       });
     },
+    getCallsFor: ({
+      target,
+      path,
+    }: {
+      target: PathMatcher;
+      path: PathMatcher;
+    }): readonly unknown[][] => handle.callsMatching([target, path]),
   };
 };

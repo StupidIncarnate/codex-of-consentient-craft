@@ -27,4 +27,19 @@ describe('writeFileBytes', () => {
 
     await expect(writeFileBytes('/repo/tmp', new Uint8Array())).rejects.toBe(error);
   });
+
+  it('VALID: {two writes to the same path} => getCallsFor reads back each call in order', async () => {
+    const proxy = writeFileBytesProxy();
+    proxy.succeeds({ path: '/repo/tmp/frame.png' });
+    const first = new Uint8Array([1]);
+    const second = new Uint8Array([2]);
+
+    await writeFileBytes('/repo/tmp/frame.png', first);
+    await writeFileBytes('/repo/tmp/frame.png', second);
+
+    expect(proxy.getCallsFor({ path: '/repo/tmp/frame.png' })).toStrictEqual([
+      ['/repo/tmp/frame.png', first],
+      ['/repo/tmp/frame.png', second],
+    ]);
+  });
 });

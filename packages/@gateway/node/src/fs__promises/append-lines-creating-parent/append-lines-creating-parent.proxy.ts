@@ -2,6 +2,7 @@ import { mkdir, appendFile } from 'fs/promises';
 import { dirname } from 'path';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { FsError } from '../../fs/is-fs-error/fs-error';
+import type { PathMatcher } from '../../gateway-test-support/path-matcher';
 
 export const appendLinesCreatingParentProxy = (): {
   succeeds: ({ path }: { path: string }) => void;
@@ -9,6 +10,9 @@ export const appendLinesCreatingParentProxy = (): {
   appendRejects: ({ path, error }: { path: string; error: FsError }) => void;
   appendedContentsFor: ({ path }: { path: string }) => unknown;
   mkdirCallsFor: ({ path }: { path: string }) => unknown;
+  // Every append call's own lines, for calls whose path matches, in call order —
+  // `appendedContentsFor` only ever answers the LAST one.
+  getCallsFor: (params: { path: PathMatcher }) => readonly unknown[][];
 } => {
   const mkdirHandle = registerMock({ fn: mkdir });
   const appendHandle = registerMock({ fn: appendFile });
@@ -38,5 +42,7 @@ export const appendLinesCreatingParentProxy = (): {
       appendHandle.callsMatching([path]).at(-1)?.[1],
     mkdirCallsFor: ({ path }: { path: string }): unknown =>
       mkdirHandle.callsMatching([dirname(path)]),
+    getCallsFor: ({ path }: { path: PathMatcher }): readonly unknown[][] =>
+      appendHandle.callsMatching([path]),
   };
 };

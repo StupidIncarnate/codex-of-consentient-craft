@@ -50,4 +50,17 @@ describe('writeFileSync', () => {
       writeFileSync('/tmp/adir', '{}');
     }).toThrow(error);
   });
+
+  it('VALID: {two writes to the same path} => calls reads back each call in order', () => {
+    const proxy = writeFileSyncProxy();
+    proxy.succeeds({ path: '/tmp/config.json' });
+
+    writeFileSync('/tmp/config.json', '{"a":1}');
+    writeFileSync('/tmp/config.json', '{"a":2}');
+
+    expect(proxy.calls({ path: '/tmp/config.json' })).toStrictEqual([
+      ['/tmp/config.json', '{"a":1}', 'utf8'],
+      ['/tmp/config.json', '{"a":2}', 'utf8'],
+    ]);
+  });
 });

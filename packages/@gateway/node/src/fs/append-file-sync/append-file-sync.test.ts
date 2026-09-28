@@ -50,4 +50,17 @@ describe('appendFileSync', () => {
       appendFileSync('/repo/tmp/adir', 'x');
     }).toThrow(error);
   });
+
+  it('VALID: {two appends to the same path} => calls reads back each call in order', () => {
+    const proxy = appendFileSyncProxy();
+    proxy.succeeds({ path: '/repo/tmp/scratch.log' });
+
+    appendFileSync('/repo/tmp/scratch.log', 'first\n');
+    appendFileSync('/repo/tmp/scratch.log', 'second\n');
+
+    expect(proxy.calls({ path: '/repo/tmp/scratch.log' })).toStrictEqual([
+      ['/repo/tmp/scratch.log', 'first\n', 'utf8'],
+      ['/repo/tmp/scratch.log', 'second\n', 'utf8'],
+    ]);
+  });
 });

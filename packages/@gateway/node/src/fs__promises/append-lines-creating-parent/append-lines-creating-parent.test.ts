@@ -51,4 +51,23 @@ describe('appendLinesCreatingParent', () => {
       appendLinesCreatingParent({ path: '/repo/.dungeonmaster', lines: ['{}'] }),
     ).rejects.toBe(error);
   });
+
+  it('VALID: {two calls to the same path} => getCallsFor reads back each append call in order', async () => {
+    const proxy = appendLinesCreatingParentProxy();
+    proxy.succeeds({ path: '/repo/.dungeonmaster/event-outbox.jsonl' });
+
+    await appendLinesCreatingParent({
+      path: '/repo/.dungeonmaster/event-outbox.jsonl',
+      lines: ['{"a":1}'],
+    });
+    await appendLinesCreatingParent({
+      path: '/repo/.dungeonmaster/event-outbox.jsonl',
+      lines: ['{"a":2}'],
+    });
+
+    expect(proxy.getCallsFor({ path: '/repo/.dungeonmaster/event-outbox.jsonl' })).toStrictEqual([
+      ['/repo/.dungeonmaster/event-outbox.jsonl', '{"a":1}\n', 'utf8'],
+      ['/repo/.dungeonmaster/event-outbox.jsonl', '{"a":2}\n', 'utf8'],
+    ]);
+  });
 });

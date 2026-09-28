@@ -25,4 +25,20 @@ describe('copyFile', () => {
 
     await expect(copyFile('/repo/tmp/frame.png', '/readonly/shot.png')).rejects.toBe(error);
   });
+
+  it('VALID: {two copies from the same source} => getCallsFor reads back each call in order', async () => {
+    const proxy = copyFileProxy();
+    proxy.succeeds({ from: '/repo/tmp/frame.png', to: '/repo/tmp/shot-1.png' });
+    proxy.succeeds({ from: '/repo/tmp/frame.png', to: '/repo/tmp/shot-2.png' });
+
+    await copyFile('/repo/tmp/frame.png', '/repo/tmp/shot-1.png');
+    await copyFile('/repo/tmp/frame.png', '/repo/tmp/shot-2.png');
+
+    expect(
+      proxy.getCallsFor({ from: '/repo/tmp/frame.png', to: (): boolean => true }),
+    ).toStrictEqual([
+      ['/repo/tmp/frame.png', '/repo/tmp/shot-1.png'],
+      ['/repo/tmp/frame.png', '/repo/tmp/shot-2.png'],
+    ]);
+  });
 });

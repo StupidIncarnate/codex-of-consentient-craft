@@ -27,4 +27,17 @@ describe('writeFileExclusive', () => {
 
     await expect(writeFileExclusive('/missing/boot.lock', '123')).rejects.toBe(error);
   });
+
+  it('VALID: {two calls to the same path} => getCallsFor reads back each write call in order', async () => {
+    const proxy = writeFileExclusiveProxy();
+    proxy.succeeds({ path: '/repo/.dungeonmaster/boot.lock' });
+
+    await writeFileExclusive('/repo/.dungeonmaster/boot.lock', '111');
+    await writeFileExclusive('/repo/.dungeonmaster/boot.lock', '222');
+
+    expect(proxy.getCallsFor({ path: '/repo/.dungeonmaster/boot.lock' })).toStrictEqual([
+      ['/repo/.dungeonmaster/boot.lock', '111', { encoding: 'utf8', flag: 'wx' }],
+      ['/repo/.dungeonmaster/boot.lock', '222', { encoding: 'utf8', flag: 'wx' }],
+    ]);
+  });
 });
