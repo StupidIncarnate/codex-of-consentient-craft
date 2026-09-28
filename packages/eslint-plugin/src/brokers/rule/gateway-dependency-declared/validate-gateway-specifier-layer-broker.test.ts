@@ -209,7 +209,10 @@ describe('validateGatewaySpecifierLayerBroker', () => {
 
   describe('no ancestor package.json', () => {
     it('EMPTY: {no ancestor package.json} => does not report', () => {
-      validateGatewaySpecifierLayerBrokerProxy();
+      const proxy = validateGatewaySpecifierLayerBrokerProxy();
+      proxy.setupNoPackageJsonAt({ dirPath: '/orphan/src' });
+      proxy.setupNoPackageJsonAt({ dirPath: '/orphan' });
+      proxy.setupNoPackageJsonAt({ dirPath: '/' });
       const mockReport = jest.fn();
       const context = EslintContextStub({ report: mockReport });
       const node = TsestreeStub();

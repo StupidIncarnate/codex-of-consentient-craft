@@ -1,7 +1,5 @@
-import { existsSync, readFileSync } from 'fs';
-import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { fileCountContract, type FileCount } from '@dungeonmaster/shared/contracts';
-import { fsReadFileSyncAdapterProxy } from '../../../adapters/fs/read-file-sync/fs-read-file-sync-adapter.proxy';
+import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
 import { pathJoinAdapterProxy } from '../../../adapters/path/join/path-join-adapter.proxy';
 import { findPackageJsonDirLayerBrokerProxy } from './find-package-json-dir-layer-broker.proxy';
 
@@ -10,23 +8,19 @@ export const findNearestPackageJsonLayerBrokerProxy = (): {
     packageDir: string;
     packageJson: Record<PropertyKey, unknown>;
   }) => void;
+  setupNoPackageJsonAt: (args: { dirPath: string }) => void;
   countPackageJsonReads: (args: { packageDir: string }) => FileCount;
 } => {
-  // Constructed for their own default real-passthrough behavior and only to satisfy
-  // enforce-proxy-child-creation — the raw `existsSync` used for the exists+read staging pair
-  // below is reached through findPackageJsonDirLayerBrokerProxy's own child, not directly imported
-  // here, since findNearestPackageJsonLayerBroker itself never calls fsExistsSyncAdapter.
-  fsReadFileSyncAdapterProxy();
+  const readProxy = readFileSyncProxy();
   pathJoinAdapterProxy();
-  findPackageJsonDirLayerBrokerProxy();
-
-  const existsHandle = registerMock({ fn: existsSync });
-  const readHandle = registerMock({ fn: readFileSync });
-  // No single path to key on: the walk probes many candidate directories, so the honest catch-all
-  // is "nothing exists" and each test stages the one package directory that does.
-  existsHandle.calledWith([]).implement(() => false);
+  const dirProxy = findPackageJsonDirLayerBrokerProxy();
 
   return {
+    // Stages the package.json at `packageDir` present and readable, and every package.json in a
+    // directory NESTED under it absent: the walk starts at a file's own directory (however deep)
+    // and probes each level up to `packageDir`, so the levels below it are the stated "nothing
+    // here" half of the same fixture, addressed by "is a descendant of packageDir", not by a
+    // catch-all.
     setupPackageJson: ({
       packageDir,
       packageJson,
@@ -34,10 +28,19 @@ export const findNearestPackageJsonLayerBrokerProxy = (): {
       packageDir: string;
       packageJson: Record<PropertyKey, unknown>;
     }): void => {
-      existsHandle.calledWith([`${packageDir}/package.json`]).returns(true);
-      readHandle.calledWith([`${packageDir}/package.json`]).returns(JSON.stringify(packageJson));
+      const packageJsonPath = `${packageDir}/package.json`;
+      dirProxy.setupNoPackageJsonBelow({ dirPath: packageDir });
+      dirProxy.setupPackageJsonAt({ dirPath: packageDir });
+      readProxy.returns({ path: packageJsonPath, contents: JSON.stringify(packageJson) });
     },
+
+    // existsSyncProxy ships no address-less catch-all: a walk-to-root "nothing found" test stages
+    // every ancestor level explicitly false, one call per level.
+    setupNoPackageJsonAt: ({ dirPath }: { dirPath: string }): void => {
+      dirProxy.setupNoPackageJsonAt({ dirPath });
+    },
+
     countPackageJsonReads: ({ packageDir }: { packageDir: string }): FileCount =>
-      fileCountContract.parse(readHandle.callsMatching([`${packageDir}/package.json`]).length),
+      fileCountContract.parse(readProxy.getCallsFor({ path: `${packageDir}/package.json` }).length),
   };
 };

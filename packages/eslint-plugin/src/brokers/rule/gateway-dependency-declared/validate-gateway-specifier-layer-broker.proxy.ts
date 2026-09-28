@@ -6,6 +6,7 @@ export const validateGatewaySpecifierLayerBrokerProxy = (): {
     packageDir: string;
     packageJson: Record<PropertyKey, unknown>;
   }) => void;
+  setupNoPackageJsonAt: (args: { dirPath: string }) => void;
 } => {
   // Constructed for its own default real-passthrough behavior and only to satisfy
   // enforce-proxy-child-creation — validateGatewaySpecifierLayerBroker imports pathDirnameAdapter
@@ -21,6 +22,9 @@ export const validateGatewaySpecifierLayerBrokerProxy = (): {
       packageJson: Record<PropertyKey, unknown>;
     }): void => {
       nearestPackageJsonProxy.setupPackageJson(args);
+    },
+    setupNoPackageJsonAt: (args: { dirPath: string }): void => {
+      nearestPackageJsonProxy.setupNoPackageJsonAt(args);
     },
   };
 };

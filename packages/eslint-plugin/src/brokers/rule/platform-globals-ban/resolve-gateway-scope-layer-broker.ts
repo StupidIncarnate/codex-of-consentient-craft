@@ -18,7 +18,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import { packageScopeFromNameTransformer } from '@dungeonmaster/shared/transformers';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import { fsReadFileSyncAdapter } from '../../../adapters/fs/read-file-sync/fs-read-file-sync-adapter';
+import { readFileSync } from '#gateway/node/fs';
 import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
 import { pathDirnameAdapter } from '../../../adapters/path/dirname/path-dirname-adapter';
 import { findAncestorDirectoryLayerBroker } from './find-ancestor-directory-layer-broker';
@@ -48,9 +48,7 @@ export const resolveGatewayScopeLayerBroker = ({
     return undefined;
   }
 
-  const packageJsonRaw = fsReadFileSyncAdapter({
-    filePath: pathJoinAdapter({ paths: [repoRoot, 'package.json'] }),
-  });
+  const packageJsonRaw = readFileSync(pathJoinAdapter({ paths: [repoRoot, 'package.json'] }));
   const packageJson = packageJsonContract.parse(JSON.parse(packageJsonRaw));
   const rootPackageName = packageJson.name ?? 'dungeonmaster';
 

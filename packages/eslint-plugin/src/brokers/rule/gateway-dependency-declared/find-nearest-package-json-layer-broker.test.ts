@@ -24,7 +24,10 @@ describe('findNearestPackageJsonLayerBroker', () => {
 
   describe('no ancestor package.json', () => {
     it('EMPTY: {no ancestor holds package.json} => returns undefined', () => {
-      findNearestPackageJsonLayerBrokerProxy();
+      const proxy = findNearestPackageJsonLayerBrokerProxy();
+      proxy.setupNoPackageJsonAt({ dirPath: '/orphan/src' });
+      proxy.setupNoPackageJsonAt({ dirPath: '/orphan' });
+      proxy.setupNoPackageJsonAt({ dirPath: '/' });
 
       const result = findNearestPackageJsonLayerBroker({
         startDir: FilePathStub({ value: '/orphan/src' }),

@@ -13,7 +13,7 @@
  * // undefined when no ancestor package.json exists
  */
 import type { FilePath } from '@dungeonmaster/shared/contracts';
-import { fsReadFileSyncAdapter } from '../../../adapters/fs/read-file-sync/fs-read-file-sync-adapter';
+import { readFileSync } from '#gateway/node/fs';
 import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
 import { gatewayConsumerPackageJsonContract } from '../../../contracts/gateway-consumer-package-json/gateway-consumer-package-json-contract';
 import type { GatewayConsumerPackageJson } from '../../../contracts/gateway-consumer-package-json/gateway-consumer-package-json-contract';
@@ -41,7 +41,7 @@ export const findNearestPackageJsonLayerBroker = ({
   }
 
   const packageJsonPath = pathJoinAdapter({ paths: [packageDir, 'package.json'] });
-  const contents = fsReadFileSyncAdapter({ filePath: packageJsonPath });
+  const contents = readFileSync(packageJsonPath);
   const packageJson = gatewayConsumerPackageJsonContract.parse(JSON.parse(contents));
 
   const result = { packageJsonPath, packageJson };

@@ -494,6 +494,18 @@ imported there in 8 of these 10 files.
 Both left-for-part-2 files keep `fsReadFileSyncAdapter`/`fsReadFileSyncAdapterProxy` as real imports, so
 `fs-read-file-sync-adapter.ts`/`.proxy.ts`/`.test.ts` cannot be deleted this round.
 
+### G-I-d part 2
+
+Scope (2026-09-28). Named files, all under `packages/eslint-plugin/src/`:
+
+- `brokers/rule/gateway-dependency-declared/find-nearest-package-json-layer-broker.ts` (+ `.proxy.ts`, `.test.ts`)
+- `brokers/rule/gateway-dependency-declared/validate-gateway-specifier-layer-broker.proxy.ts` (composes the proxy above; `.test.ts` gains the explicit no-package staging)
+- `brokers/rule/gateway-dependency-declared/validate-gateway-specifier-layer-broker.test.ts`
+- `brokers/rule/platform-globals-ban/resolve-gateway-scope-layer-broker.ts` (+ `.proxy.ts`, `.test.ts`)
+- `brokers/rule/platform-globals-ban/rule-platform-globals-ban-broker.proxy.ts` (composes `resolveGatewayScopeLayerBrokerProxy`; read, edited only if its shape needs it)
+- `brokers/rule/gateway-dependency-declared/find-package-json-dir-layer-broker.proxy.ts` and `brokers/rule/platform-globals-ban/find-ancestor-directory-layer-broker.proxy.ts` (additive: a `setupNoPackageJsonBelow`/`setupNoMarkerBelow` method, because a proxy may only create the gateway proxies its own broker imports)
+- `adapters/fs/read-file-sync/fs-read-file-sync-adapter.ts`, `.proxy.ts`, `.test.ts` (deleted if no caller is left)
+
 ## Plan — F48
 
 Scope: `packages/eslint-plugin/src/dungeonmaster-rule-enforce-on.integration.test.ts` only. No helper file

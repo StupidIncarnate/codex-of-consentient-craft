@@ -5,6 +5,7 @@ import { pathDirnameAdapterProxy } from '../../../adapters/path/dirname/path-dir
 export const findPackageJsonDirLayerBrokerProxy = (): {
   setupPackageJsonAt: (args: { dirPath: string }) => void;
   setupNoPackageJsonAt: (args: { dirPath: string }) => void;
+  setupNoPackageJsonBelow: (args: { dirPath: string }) => void;
 } => {
   const existsProxy = existsSyncProxy();
   // Real passthrough default: no explicit staging.
@@ -26,6 +27,21 @@ export const findPackageJsonDirLayerBrokerProxy = (): {
     setupNoPackageJsonAt: ({ dirPath }: { dirPath: string }): void => {
       existsProxy.returns({
         path: dirPath.endsWith('/') ? `${dirPath}package.json` : `${dirPath}/package.json`,
+        exists: false,
+      });
+    },
+
+    // For a caller whose start directory is arbitrary (a RuleTester filename): every package.json
+    // in a directory NESTED under `dirPath` is absent. Addressed as "descendant of dirPath", which
+    // never overlaps the exact path setupPackageJsonAt stages.
+    setupNoPackageJsonBelow: ({ dirPath }: { dirPath: string }): void => {
+      const own = `${dirPath}/package.json`;
+      existsProxy.returnsMatchingPath({
+        path: (value) =>
+          typeof value === 'string' &&
+          value !== own &&
+          value.startsWith(`${dirPath}/`) &&
+          value.endsWith('/package.json'),
         exists: false,
       });
     },

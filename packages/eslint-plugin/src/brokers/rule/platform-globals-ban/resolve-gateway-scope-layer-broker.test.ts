@@ -6,7 +6,10 @@ import { resolveGatewayScopeLayerBrokerProxy } from './resolve-gateway-scope-lay
 // before anything can populate the cache, and the cached-reuse path last.
 describe('resolveGatewayScopeLayerBroker', () => {
   it('EMPTY: {no ancestor holds .dungeonmaster.json} => returns undefined', () => {
-    resolveGatewayScopeLayerBrokerProxy();
+    const proxy = resolveGatewayScopeLayerBrokerProxy();
+    proxy.setupNoRepoRootAt({ dirPath: '/orphan/src' });
+    proxy.setupNoRepoRootAt({ dirPath: '/orphan' });
+    proxy.setupNoRepoRootAt({ dirPath: '/' });
 
     const result = resolveGatewayScopeLayerBroker({ filename: '/orphan/src/y.ts' });
 
