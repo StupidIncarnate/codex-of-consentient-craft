@@ -81,7 +81,7 @@ beforeEach(() => {
 // Not at setup-file scope either, which is the obvious fix and breaks every test that mocks
 // anything in this graph. A setup file runs BEFORE the test file body, so the modules it requires
 // are already resolved by the time the transformer's hoisted `jest.mock()` calls run, and the
-// mocks then apply to nobody. It cost four `fsAppendFileAdapter` tests, which called the real
+// mocks then apply to nobody. It cost four `openHandleReportBroker` tests, which called the real
 // `appendFileSync` and got ENOENT off a real filesystem.
 //
 // `beforeAll` runs after the test file body and before its first test: outside the measured

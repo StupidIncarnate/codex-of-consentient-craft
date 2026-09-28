@@ -11,8 +11,7 @@
  * // Returns the findings, and appends one JSON line per finding
  */
 
-import { fsAppendFileAdapter } from '../../../adapters/fs/append-file/fs-append-file-adapter';
-import { fileContentContract } from '../../../contracts/file-content/file-content-contract';
+import { appendFileSync } from '#gateway/node/fs';
 import { openHandleFindingContract } from '../../../contracts/open-handle-finding/open-handle-finding-contract';
 import type { OpenHandleFinding } from '../../../contracts/open-handle-finding/open-handle-finding-contract';
 import { openHandleTrackingBroker } from '../tracking/open-handle-tracking-broker';
@@ -44,12 +43,7 @@ export const openHandleReportBroker = ({
     return findings;
   }
 
-  fsAppendFileAdapter({
-    filePath: reportPath,
-    content: fileContentContract.parse(
-      `${findings.map((finding) => JSON.stringify(finding)).join('\n')}\n`,
-    ),
-  });
+  appendFileSync(reportPath, `${findings.map((finding) => JSON.stringify(finding)).join('\n')}\n`);
 
   return findings;
 };

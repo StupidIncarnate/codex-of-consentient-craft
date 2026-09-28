@@ -1,37 +1,78 @@
 /**
- * PURPOSE: Empty proxy for integration-environment-create-broker
+ * PURPOSE: Proxy for integration-environment-create-broker — every fs gateway call the broker
+ * makes is staged: a path answers "does not exist" until a test says otherwise, writes and
+ * directory creation succeed, and each scenario method reads back what the broker asked the
+ * gateway to do.
  *
  * USAGE:
  * const proxy = integrationEnvironmentCreateBrokerProxy();
- * // Empty proxy - broker uses real fs/path/execSync for integration testing
+ * const guild = integrationEnvironmentCreateBroker({ baseName });
+ * proxy.setupPathExists({ path: `${guild.guildPath}/notes.txt` });
+ * proxy.setupUnlinkSucceeds({ path: `${guild.guildPath}/notes.txt` });
+ * guild.deleteFile({ fileName });
+ * proxy.getUnlinkCalls({ path: `${guild.guildPath}/notes.txt` });
+ * // Returns [[`${guild.guildPath}/notes.txt`]]
  */
 
-import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
-import { fsExistsAdapterProxy } from '../../../adapters/fs/exists/fs-exists-adapter.proxy';
-import { fsMkdirAdapterProxy } from '../../../adapters/fs/mkdir/fs-mkdir-adapter.proxy';
-import { fsRmAdapterProxy } from '../../../adapters/fs/rm/fs-rm-adapter.proxy';
-import { fsReaddirAdapterProxy } from '../../../adapters/fs/readdir/fs-readdir-adapter.proxy';
-import { fsUnlinkAdapterProxy } from '../../../adapters/fs/unlink/fs-unlink-adapter.proxy';
-import { pathJoinAdapterProxy } from '../../../adapters/path/join/path-join-adapter.proxy';
-import { pathDirnameAdapterProxy } from '../../../adapters/path/dirname/path-dirname-adapter.proxy';
+import { ensureDirSyncProxy } from '#gateway/node/fs/ensure-dir-sync/ensure-dir-sync.proxy';
+import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
+import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
+import { readdirSyncProxy } from '#gateway/node/fs/readdir-sync/readdir-sync.proxy';
+import { rmSyncProxy } from '#gateway/node/fs/rm-sync/rm-sync.proxy';
+import { unlinkSyncProxy } from '#gateway/node/fs/unlink-sync/unlink-sync.proxy';
+import { writeFileSyncProxy } from '#gateway/node/fs/write-file-sync/write-file-sync.proxy';
 import { cryptoRandomBytesAdapterProxy } from '../../../adapters/crypto/random-bytes/crypto-random-bytes-adapter.proxy';
 import { childProcessExecSyncAdapterProxy } from '../../../adapters/child-process/exec-sync/child-process-exec-sync-adapter.proxy';
 import { integrationEnvironmentTrackingBrokerProxy } from '../tracking/integration-environment-tracking-broker.proxy';
 
-export const integrationEnvironmentCreateBrokerProxy = (): Record<PropertyKey, never> => {
-  fsWriteFileAdapterProxy();
-  fsReadFileAdapterProxy();
-  fsExistsAdapterProxy();
-  fsMkdirAdapterProxy();
-  fsRmAdapterProxy();
-  fsReaddirAdapterProxy();
-  fsUnlinkAdapterProxy();
-  pathJoinAdapterProxy();
-  pathDirnameAdapterProxy();
+const isPath = (candidate: unknown): boolean => typeof candidate === 'string';
+
+export const integrationEnvironmentCreateBrokerProxy = (): {
+  setupPathExists: ({ path }: { path: string }) => void;
+  setupFileContents: ({ path, contents }: { path: string; contents: string }) => void;
+  setupDirEntries: ({ path, names }: { path: string; names: string[] }) => void;
+  setupRemoveSucceeds: ({ path }: { path: string }) => void;
+  setupUnlinkSucceeds: ({ path }: { path: string }) => void;
+  getWrittenContents: ({ path }: { path: string }) => unknown;
+  getUnlinkCalls: ({ path }: { path: string }) => unknown[][];
+  getRemoveCalls: ({ path }: { path: string }) => unknown[][];
+} => {
+  ensureDirSyncProxy();
+  const writeFileProxy = writeFileSyncProxy();
+  const readFileProxy = readFileSyncProxy();
+  const readdirProxy = readdirSyncProxy();
+  const rmProxy = rmSyncProxy();
+  const unlinkProxy = unlinkSyncProxy();
+  const existsProxy = existsSyncProxy();
   cryptoRandomBytesAdapterProxy();
   childProcessExecSyncAdapterProxy();
   integrationEnvironmentTrackingBrokerProxy();
 
-  return {};
+  // Staged before any exact path: a predicate and an exact path score the same and the later
+  // staging wins, so every path a test names outranks this "not there" default.
+  existsProxy.returnsMatchingPath({ path: isPath, exists: false });
+
+  return {
+    setupPathExists: ({ path }: { path: string }): void => {
+      existsProxy.returns({ path, exists: true });
+    },
+    setupFileContents: ({ path, contents }: { path: string; contents: string }): void => {
+      existsProxy.returns({ path, exists: true });
+      readFileProxy.returns({ path, contents });
+    },
+    setupDirEntries: ({ path, names }: { path: string; names: string[] }): void => {
+      existsProxy.returns({ path, exists: true });
+      readdirProxy.returns({ path, names });
+    },
+    setupRemoveSucceeds: ({ path }: { path: string }): void => {
+      rmProxy.succeeds({ path });
+    },
+    setupUnlinkSucceeds: ({ path }: { path: string }): void => {
+      unlinkProxy.succeeds({ path });
+    },
+    getWrittenContents: ({ path }: { path: string }): unknown =>
+      writeFileProxy.writtenContents({ path }),
+    getUnlinkCalls: ({ path }: { path: string }): unknown[][] => unlinkProxy.calls({ path }),
+    getRemoveCalls: ({ path }: { path: string }): unknown[][] => rmProxy.calls({ path }),
+  };
 };

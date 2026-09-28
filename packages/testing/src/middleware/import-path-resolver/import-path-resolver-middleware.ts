@@ -18,9 +18,8 @@
 
 import { fileExtensionsStatics } from '@dungeonmaster/shared/statics';
 
-import { pathDirnameAdapter } from '../../adapters/path/dirname/path-dirname-adapter';
-import { pathResolveAdapter } from '../../adapters/path/resolve/path-resolve-adapter';
-import { fsExistsSyncAdapter } from '../../adapters/fs/exists-sync/fs-exists-sync-adapter';
+import { existsSync } from '#gateway/node/fs';
+import { dirname, resolve } from '#gateway/node/path';
 import { packageImportsSpecifierResolveMiddleware } from '../package-imports-specifier-resolve/package-imports-specifier-resolve-middleware';
 import { workspacePackageImportResolveMiddleware } from '../workspace-package-import-resolve/workspace-package-import-resolve-middleware';
 import { filePathContract } from '../../contracts/file-path/file-path-contract';
@@ -44,20 +43,20 @@ export const importPathResolverMiddleware = ({
     return workspacePackageImportResolveMiddleware({ sourceFilePath, importPath });
   }
 
-  const sourceDir = pathDirnameAdapter({ filePath: sourceFilePath });
-  const resolved = pathResolveAdapter({ paths: [sourceDir, importPath] });
+  const sourceDir = dirname(sourceFilePath);
+  const resolved = resolve(sourceDir, importPath);
 
   // Try extensions in order of likelihood for this codebase
   for (const ext of fileExtensionsStatics.source.all) {
     const withExt = filePathContract.parse(`${resolved}${ext}`);
-    if (fsExistsSyncAdapter({ filePath: withExt })) {
+    if (existsSync(withExt)) {
       return withExt;
     }
   }
 
   // Try without extension (already has extension)
   const asIs = filePathContract.parse(resolved);
-  if (fsExistsSyncAdapter({ filePath: asIs })) {
+  if (existsSync(asIs)) {
     return asIs;
   }
 

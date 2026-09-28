@@ -22,8 +22,7 @@ import { typescriptAstToModuleMockCallsAdapter } from '../../adapters/typescript
 import { typescriptAstToProxyImportsAdapter } from '../../adapters/typescript/ast-to-proxy-imports/typescript-ast-to-proxy-imports-adapter';
 import { importPathResolverMiddleware } from '../import-path-resolver/import-path-resolver-middleware';
 import { proxyReexportNamesResolveMiddleware } from '../proxy-reexport-names-resolve/proxy-reexport-names-resolve-middleware';
-import { pathDirnameAdapter } from '../../adapters/path/dirname/path-dirname-adapter';
-import { pathResolveAdapter } from '../../adapters/path/resolve/path-resolve-adapter';
+import { dirname, resolve } from '#gateway/node/path';
 import { moduleNameContract } from '../../contracts/module-name/module-name-contract';
 import type { FilePath } from '../../contracts/file-path/file-path-contract';
 import type { IdentifierName } from '../../contracts/identifier-name/identifier-name-contract';
@@ -74,8 +73,8 @@ export const proxyMockCollectorMiddleware = ({
       if (!mock.moduleName.startsWith('.')) {
         return mock;
       }
-      const sourceDir = pathDirnameAdapter({ filePath: entry.filePath });
-      const absoluteModuleName = pathResolveAdapter({ paths: [sourceDir, mock.moduleName] });
+      const sourceDir = dirname(entry.filePath);
+      const absoluteModuleName = resolve(sourceDir, mock.moduleName);
       return { ...mock, moduleName: moduleNameContract.parse(absoluteModuleName) };
     });
 

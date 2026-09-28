@@ -10,15 +10,16 @@
  * // Creates isolated test environment with pre-install requirements satisfied
  */
 
-import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
-import { fsSymlinkAdapter } from '../../../adapters/fs/symlink/fs-symlink-adapter';
-import { fsExistsAdapter } from '../../../adapters/fs/exists/fs-exists-adapter';
-import { fsMkdirAdapter } from '../../../adapters/fs/mkdir/fs-mkdir-adapter';
-import { fsRmAdapter } from '../../../adapters/fs/rm/fs-rm-adapter';
-import { fsReaddirAdapter } from '../../../adapters/fs/readdir/fs-readdir-adapter';
-import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
-import { pathDirnameAdapter } from '../../../adapters/path/dirname/path-dirname-adapter';
+import {
+  ensureDirSync,
+  existsSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from '#gateway/node/fs';
+import { dirname, join } from '#gateway/node/path';
 import { cryptoRandomBytesAdapter } from '../../../adapters/crypto/random-bytes/crypto-random-bytes-adapter';
 import { childProcessExecSyncAdapter } from '../../../adapters/child-process/exec-sync/child-process-exec-sync-adapter';
 import { fileContentContract } from '../../../contracts/file-content/file-content-contract';
@@ -36,6 +37,7 @@ import type { FileContent } from '../../../contracts/file-content/file-content-c
 import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 import type { InstallTestbed } from '../../../contracts/install-testbed/install-testbed-contract';
 import type { TestbedConfig } from '../../../contracts/testbed-config/testbed-config-contract';
+import { fileNameContract } from '../../../contracts/file-name/file-name-contract';
 import type { FileName } from '../../../contracts/file-name/file-name-contract';
 
 export const installTestbedCreateBroker = ({
@@ -50,11 +52,11 @@ export const installTestbedCreateBroker = ({
   }).toString('hex');
   const projectName = `${baseName}-${testId}`;
   const resolvedBaseDir = baseDir ?? integrationEnvironmentStatics.paths.baseDir;
-  const projectPath = pathJoinAdapter({ paths: [resolvedBaseDir, projectName] });
+  const projectPath = join(resolvedBaseDir, projectName);
 
   // Create project directory
-  if (!fsExistsAdapter({ filePath: projectPath })) {
-    fsMkdirAdapter({ dirPath: projectPath, recursive: true });
+  if (!existsSync(projectPath)) {
+    ensureDirSync(projectPath);
   }
 
   // Create package.json to satisfy pre-install validation
@@ -63,17 +65,15 @@ export const installTestbedCreateBroker = ({
     version: integrationEnvironmentStatics.packageJson.version,
   };
 
-  fsWriteFileAdapter({
-    filePath: pathJoinAdapter({ paths: [projectPath, 'package.json'] }),
-    content: fileContentContract.parse(
-      JSON.stringify(packageJson, null, integrationEnvironmentStatics.constants.jsonIndentSpaces),
-    ),
-  });
+  writeFileSync(
+    join(projectPath, 'package.json'),
+    JSON.stringify(packageJson, null, integrationEnvironmentStatics.constants.jsonIndentSpaces),
+  );
 
   // Create .claude directory to satisfy pre-install validation
-  const claudeDir = pathJoinAdapter({ paths: [projectPath, locationsStatics.repoRoot.claude.dir] });
-  if (!fsExistsAdapter({ filePath: claudeDir })) {
-    fsMkdirAdapter({ dirPath: claudeDir, recursive: true });
+  const claudeDir = join(projectPath, locationsStatics.repoRoot.claude.dir);
+  if (!existsSync(claudeDir)) {
+    ensureDirSync(claudeDir);
   }
 
   // Walk up from __dirname to the nearest package.json with a `workspaces` field — correct
@@ -88,8 +88,8 @@ export const installTestbedCreateBroker = ({
     dungeonmasterPath: installTestbedContract.shape.dungeonmasterPath.parse(dungeonmasterPath),
 
     cleanup: (): void => {
-      if (fsExistsAdapter({ filePath: projectPath })) {
-        fsRmAdapter({ filePath: projectPath, recursive: true, force: true });
+      if (existsSync(projectPath)) {
+        rmSync(projectPath, { recursive: true, force: true });
       }
     },
 
@@ -100,20 +100,20 @@ export const installTestbedCreateBroker = ({
       relativePath: RelativePath;
       content: FileContent;
     }): void => {
-      const fullPath = pathJoinAdapter({ paths: [projectPath, relativePath] });
-      const dir = pathDirnameAdapter({ filePath: fullPath });
-      if (!fsExistsAdapter({ filePath: dir })) {
-        fsMkdirAdapter({ dirPath: dir, recursive: true });
+      const fullPath = join(projectPath, relativePath);
+      const dir = dirname(fullPath);
+      if (!existsSync(dir)) {
+        ensureDirSync(dir);
       }
-      fsWriteFileAdapter({ filePath: fullPath, content });
+      writeFileSync(fullPath, content);
     },
 
     readFile: ({ relativePath }: { relativePath: RelativePath }): FileContent | null => {
-      const fullPath = pathJoinAdapter({ paths: [projectPath, relativePath] });
-      if (!fsExistsAdapter({ filePath: fullPath })) {
+      const fullPath = join(projectPath, relativePath);
+      if (!existsSync(fullPath)) {
         return null;
       }
-      const content = fsReadFileAdapter({ filePath: fullPath });
+      const content = readFileSync(fullPath);
       return fileContentContract.parse(content);
     },
 
@@ -124,66 +124,61 @@ export const installTestbedCreateBroker = ({
       relativePath: RelativePath;
       targetPath: FilePath;
     }): void => {
-      const fullPath = pathJoinAdapter({ paths: [projectPath, relativePath] });
-      const dir = pathDirnameAdapter({ filePath: fullPath });
-      if (!fsExistsAdapter({ filePath: dir })) {
-        fsMkdirAdapter({ dirPath: dir, recursive: true });
+      const fullPath = join(projectPath, relativePath);
+      const dir = dirname(fullPath);
+      if (!existsSync(dir)) {
+        ensureDirSync(dir);
       }
-      fsSymlinkAdapter({ targetPath, linkPath: fullPath });
+      symlinkSync({ target: targetPath, path: fullPath, type: 'dir' });
     },
 
     listDir: ({ relativePath }: { relativePath: RelativePath }): readonly FileName[] | null => {
-      const fullPath = pathJoinAdapter({ paths: [projectPath, relativePath] });
-      if (!fsExistsAdapter({ filePath: fullPath })) {
+      const fullPath = join(projectPath, relativePath);
+      if (!existsSync(fullPath)) {
         return null;
       }
-      const entries = fsReaddirAdapter({ dirPath: fullPath });
-      return entries.sort();
+      return readdirSync(fullPath)
+        .map((entry) => fileNameContract.parse(entry))
+        .sort();
     },
 
     getClaudeSettings: (): unknown => {
-      const settingsPath = pathJoinAdapter({
-        paths: [
-          projectPath,
-          locationsStatics.repoRoot.claude.dir,
-          locationsStatics.repoRoot.claude.settings,
-        ],
-      });
-      if (!fsExistsAdapter({ filePath: settingsPath })) {
+      const settingsPath = join(
+        projectPath,
+        locationsStatics.repoRoot.claude.dir,
+        locationsStatics.repoRoot.claude.settings,
+      );
+      if (!existsSync(settingsPath)) {
         return null;
       }
-      const content = fsReadFileAdapter({ filePath: settingsPath });
+      const content = readFileSync(settingsPath);
       return JSON.parse(content) as unknown;
     },
 
     getMcpConfig: (): unknown => {
-      const mcpPath = pathJoinAdapter({ paths: [projectPath, locationsStatics.repoRoot.mcpJson] });
-      if (!fsExistsAdapter({ filePath: mcpPath })) {
+      const mcpPath = join(projectPath, locationsStatics.repoRoot.mcpJson);
+      if (!existsSync(mcpPath)) {
         return null;
       }
-      const content = fsReadFileAdapter({ filePath: mcpPath });
+      const content = readFileSync(mcpPath);
       return JSON.parse(content) as unknown;
     },
 
     getDungeonmasterConfig: (): TestbedConfig | null => {
-      const configPath = pathJoinAdapter({
-        paths: [projectPath, locationsStatics.dungeonmasterHome.dir],
-      });
-      if (!fsExistsAdapter({ filePath: configPath })) {
+      const configPath = join(projectPath, locationsStatics.dungeonmasterHome.dir);
+      if (!existsSync(configPath)) {
         return null;
       }
-      const content = fsReadFileAdapter({ filePath: configPath });
+      const content = readFileSync(configPath);
       return testbedConfigContract.parse(JSON.parse(content));
     },
 
     getEslintConfig: (): FileContent | null => {
-      const eslintPath = pathJoinAdapter({
-        paths: [projectPath, locationsStatics.repoRoot.eslintConfig[1]],
-      });
-      if (!fsExistsAdapter({ filePath: eslintPath })) {
+      const eslintPath = join(projectPath, locationsStatics.repoRoot.eslintConfig[1]);
+      if (!existsSync(eslintPath)) {
         return null;
       }
-      const content = fsReadFileAdapter({ filePath: eslintPath });
+      const content = readFileSync(eslintPath);
       return fileContentContract.parse(content);
     },
 

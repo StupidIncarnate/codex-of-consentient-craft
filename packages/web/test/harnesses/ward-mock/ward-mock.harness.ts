@@ -16,7 +16,7 @@ import * as path from 'path';
 
 import type { WardQueueResponse } from '@dungeonmaster/shared/contracts';
 
-import { fsQueueMetadataReadAdapter } from '@dungeonmaster/testing/adapters/fs/queue-metadata-read';
+import { queueMetadataReadBroker } from '@dungeonmaster/testing/brokers/queue-metadata/read';
 
 export { WardQueueResponseStub } from '@dungeonmaster/shared/contracts';
 
@@ -48,7 +48,7 @@ const getMetadataPath = ({ queueDir }: { queueDir: string }) =>
 const getCounter = ({ queueDir }: { queueDir: string }) => {
   const metaPath = getMetadataPath({ queueDir });
   if (fs.existsSync(metaPath)) {
-    return fsQueueMetadataReadAdapter({ metadataPath: metaPath }).counter;
+    return queueMetadataReadBroker({ metadataPath: metaPath }).counter;
   }
   return COUNTER_START;
 };

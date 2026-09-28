@@ -10,10 +10,9 @@
  * // Returns FilePath to the nearest ancestor holding a package.json with a workspaces field
  */
 
-import { fsExistsAdapter } from '../../../adapters/fs/exists/fs-exists-adapter';
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
-import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
-import { pathDirnameAdapter } from '../../../adapters/path/dirname/path-dirname-adapter';
+import { existsSync, readFileSync } from '#gateway/node/fs';
+import { dirname, join } from '#gateway/node/path';
+import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 
 export const findRepoRootLayerBroker = ({
@@ -24,17 +23,17 @@ export const findRepoRootLayerBroker = ({
   currentPath?: FilePath;
 }): FilePath => {
   const searchPath = currentPath ?? startPath;
-  const packageJsonPath = pathJoinAdapter({ paths: [searchPath, 'package.json'] });
+  const packageJsonPath = join(searchPath, 'package.json');
 
-  if (fsExistsAdapter({ filePath: packageJsonPath })) {
-    const raw = fsReadFileAdapter({ filePath: packageJsonPath });
+  if (existsSync(packageJsonPath)) {
+    const raw = readFileSync(packageJsonPath);
     const parsed: unknown = JSON.parse(raw);
     if (typeof parsed === 'object' && parsed !== null && 'workspaces' in parsed) {
       return searchPath;
     }
   }
 
-  const parentPath = pathDirnameAdapter({ filePath: searchPath });
+  const parentPath = filePathContract.parse(dirname(searchPath));
 
   if (parentPath === searchPath) {
     throw new Error(

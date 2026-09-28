@@ -3,21 +3,26 @@
  *
  * USAGE:
  * const proxy = openHandleReportBrokerProxy();
- * proxy.getAppended();
- * // Returns every [filePath, content] pair the broker appended
+ * proxy.setupReportFile({ reportPath: '/tmp/handles.jsonl' });
+ * proxy.getAppended({ reportPath: '/tmp/handles.jsonl' });
+ * // Returns the text of every append made to that path
  */
 
-import { fsAppendFileAdapterProxy } from '../../../adapters/fs/append-file/fs-append-file-adapter.proxy';
+import { appendFileSyncProxy } from '#gateway/node/fs/append-file-sync/append-file-sync.proxy';
 import { openHandleTrackingBrokerProxy } from '../tracking/open-handle-tracking-broker.proxy';
-import type { RecordedCalls } from '../../../register-mock';
 
 export const openHandleReportBrokerProxy = (): {
-  getAppended: () => RecordedCalls;
+  setupReportFile: ({ reportPath }: { reportPath: string }) => void;
+  getAppended: ({ reportPath }: { reportPath: string }) => readonly unknown[];
 } => {
-  const appendProxy = fsAppendFileAdapterProxy();
+  const appendProxy = appendFileSyncProxy();
   openHandleTrackingBrokerProxy();
 
   return {
-    getAppended: (): RecordedCalls => appendProxy.getCallArgs(),
+    setupReportFile: ({ reportPath }: { reportPath: string }): void => {
+      appendProxy.succeeds({ path: reportPath });
+    },
+    getAppended: ({ reportPath }: { reportPath: string }): readonly unknown[] =>
+      appendProxy.calls({ path: reportPath }).map(([, contents]) => contents),
   };
 };

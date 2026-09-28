@@ -16,8 +16,6 @@ import { typescriptAstToModuleMockCallsAdapterProxy } from '../../adapters/types
 import { typescriptAstToProxyImportsAdapterProxy } from '../../adapters/typescript/ast-to-proxy-imports/typescript-ast-to-proxy-imports-adapter.proxy';
 import { importPathResolverMiddlewareProxy } from '../import-path-resolver/import-path-resolver-middleware.proxy';
 import { proxyReexportNamesResolveMiddlewareProxy } from '../proxy-reexport-names-resolve/proxy-reexport-names-resolve-middleware.proxy';
-import { pathDirnameAdapterProxy } from '../../adapters/path/dirname/path-dirname-adapter.proxy';
-import { pathResolveAdapterProxy } from '../../adapters/path/resolve/path-resolve-adapter.proxy';
 
 export const proxyMockCollectorMiddlewareProxy = (): {
   setupProxyFileMissing: ({ proxyFilePath }: { proxyFilePath: string }) => void;
@@ -30,8 +28,6 @@ export const proxyMockCollectorMiddlewareProxy = (): {
   typescriptAstToProxyImportsAdapterProxy();
   const importPathProxy = importPathResolverMiddlewareProxy();
   proxyReexportNamesResolveMiddlewareProxy();
-  pathDirnameAdapterProxy();
-  pathResolveAdapterProxy();
 
   return {
     setupProxyFileMissing: ({ proxyFilePath }: { proxyFilePath: string }): void => {

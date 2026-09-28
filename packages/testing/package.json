@@ -29,11 +29,11 @@
       "import": "./dist/src/brokers/network-record/playwright/network-record-playwright-broker.js",
       "require": "./dist/src/brokers/network-record/playwright/network-record-playwright-broker.js"
     },
-    "./adapters/fs/queue-metadata-read": {
-      "source": "./src/adapters/fs/queue-metadata-read/fs-queue-metadata-read-adapter.ts",
-      "types": "./dist/src/adapters/fs/queue-metadata-read/fs-queue-metadata-read-adapter.d.ts",
-      "import": "./dist/src/adapters/fs/queue-metadata-read/fs-queue-metadata-read-adapter.js",
-      "require": "./dist/src/adapters/fs/queue-metadata-read/fs-queue-metadata-read-adapter.js"
+    "./brokers/queue-metadata/read": {
+      "source": "./src/brokers/queue-metadata/read/queue-metadata-read-broker.ts",
+      "types": "./dist/src/brokers/queue-metadata/read/queue-metadata-read-broker.d.ts",
+      "import": "./dist/src/brokers/queue-metadata/read/queue-metadata-read-broker.js",
+      "require": "./dist/src/brokers/queue-metadata/read/queue-metadata-read-broker.js"
     },
     "./adapters/mantine/render": {
       "source": "./src/adapters/mantine/render/mantine-render-adapter.ts",
@@ -84,8 +84,8 @@
       "brokers/network-record/playwright": [
         "dist/src/brokers/network-record/playwright/network-record-playwright-broker.d.ts"
       ],
-      "adapters/fs/queue-metadata-read": [
-        "dist/src/adapters/fs/queue-metadata-read/fs-queue-metadata-read-adapter.d.ts"
+      "brokers/queue-metadata/read": [
+        "dist/src/brokers/queue-metadata/read/queue-metadata-read-broker.d.ts"
       ],
       "adapters/mantine/render": [
         "dist/src/adapters/mantine/render/mantine-render-adapter.d.ts"

@@ -1,37 +1,75 @@
 /**
- * PURPOSE: Empty proxy for install-testbed-create-broker
+ * PURPOSE: Proxy for install-testbed-create-broker — every fs gateway call the broker makes is
+ * staged: a path answers "does not exist" until a test says otherwise, writes and directory creation
+ * succeed, and each scenario method reads back what the broker asked the gateway to do.
  *
  * USAGE:
  * const proxy = installTestbedCreateBrokerProxy();
- * // Empty proxy - broker uses real fs/path/execSync for integration testing
+ * const testbed = installTestbedCreateBroker({ baseName });
+ * proxy.setupPathExists({ path: testbed.guildPath });
+ * proxy.setupRemoveSucceeds({ path: testbed.guildPath });
+ * testbed.cleanup();
+ * proxy.getRemoveCalls({ path: testbed.guildPath });
+ * // Returns [[guildPath, { recursive: true, force: true }]]
  */
 
-import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
-import { fsSymlinkAdapterProxy } from '../../../adapters/fs/symlink/fs-symlink-adapter.proxy';
-import { fsExistsAdapterProxy } from '../../../adapters/fs/exists/fs-exists-adapter.proxy';
-import { fsMkdirAdapterProxy } from '../../../adapters/fs/mkdir/fs-mkdir-adapter.proxy';
-import { fsRmAdapterProxy } from '../../../adapters/fs/rm/fs-rm-adapter.proxy';
-import { fsReaddirAdapterProxy } from '../../../adapters/fs/readdir/fs-readdir-adapter.proxy';
-import { pathJoinAdapterProxy } from '../../../adapters/path/join/path-join-adapter.proxy';
-import { pathDirnameAdapterProxy } from '../../../adapters/path/dirname/path-dirname-adapter.proxy';
+import { ensureDirSyncProxy } from '#gateway/node/fs/ensure-dir-sync/ensure-dir-sync.proxy';
+import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
+import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
+import { readdirSyncProxy } from '#gateway/node/fs/readdir-sync/readdir-sync.proxy';
+import { rmSyncProxy } from '#gateway/node/fs/rm-sync/rm-sync.proxy';
+import { symlinkSyncProxy } from '#gateway/node/fs/symlink-sync/symlink-sync.proxy';
+import { writeFileSyncProxy } from '#gateway/node/fs/write-file-sync/write-file-sync.proxy';
 import { cryptoRandomBytesAdapterProxy } from '../../../adapters/crypto/random-bytes/crypto-random-bytes-adapter.proxy';
 import { childProcessExecSyncAdapterProxy } from '../../../adapters/child-process/exec-sync/child-process-exec-sync-adapter.proxy';
 import { findRepoRootLayerBrokerProxy } from './find-repo-root-layer-broker.proxy';
 
-export const installTestbedCreateBrokerProxy = (): Record<PropertyKey, never> => {
-  fsWriteFileAdapterProxy();
-  fsReadFileAdapterProxy();
-  fsSymlinkAdapterProxy();
-  fsExistsAdapterProxy();
-  fsMkdirAdapterProxy();
-  fsRmAdapterProxy();
-  fsReaddirAdapterProxy();
-  pathJoinAdapterProxy();
-  pathDirnameAdapterProxy();
+export const installTestbedCreateBrokerProxy = (): {
+  setupPathExists: ({ path }: { path: string }) => void;
+  setupFileContents: ({ path, contents }: { path: string; contents: string }) => void;
+  setupDirEntries: ({ path, names }: { path: string; names: string[] }) => void;
+  setupRemoveSucceeds: ({ path }: { path: string }) => void;
+  setupSymlinkSucceeds: ({ target, path }: { target: string; path: string }) => void;
+  getWrittenContents: ({ path }: { path: string }) => unknown;
+  getEnsuredDirCalls: ({ path }: { path: string }) => unknown[][];
+  getRemoveCalls: ({ path }: { path: string }) => unknown[][];
+  getSymlinkCalls: ({ target, path }: { target: string; path: string }) => unknown[][];
+} => {
+  const ensureDirProxy = ensureDirSyncProxy();
+  const writeFileProxy = writeFileSyncProxy();
+  const readFileProxy = readFileSyncProxy();
+  const readdirProxy = readdirSyncProxy();
+  const rmProxy = rmSyncProxy();
+  const symlinkProxy = symlinkSyncProxy();
   cryptoRandomBytesAdapterProxy();
   childProcessExecSyncAdapterProxy();
+  // Stages the "does not exist" default for every path, plus this package's own repo root.
   findRepoRootLayerBrokerProxy();
+  const existsProxy = existsSyncProxy();
 
-  return {};
+  return {
+    setupPathExists: ({ path }: { path: string }): void => {
+      existsProxy.returns({ path, exists: true });
+    },
+    setupFileContents: ({ path, contents }: { path: string; contents: string }): void => {
+      existsProxy.returns({ path, exists: true });
+      readFileProxy.returns({ path, contents });
+    },
+    setupDirEntries: ({ path, names }: { path: string; names: string[] }): void => {
+      existsProxy.returns({ path, exists: true });
+      readdirProxy.returns({ path, names });
+    },
+    setupRemoveSucceeds: ({ path }: { path: string }): void => {
+      rmProxy.succeeds({ path });
+    },
+    setupSymlinkSucceeds: ({ target, path }: { target: string; path: string }): void => {
+      symlinkProxy.succeeds({ target, path });
+    },
+    getWrittenContents: ({ path }: { path: string }): unknown =>
+      writeFileProxy.writtenContents({ path }),
+    getEnsuredDirCalls: ({ path }: { path: string }): unknown[][] => ensureDirProxy.calls({ path }),
+    getRemoveCalls: ({ path }: { path: string }): unknown[][] => rmProxy.calls({ path }),
+    getSymlinkCalls: ({ target, path }: { target: string; path: string }): unknown[][] =>
+      symlinkProxy.calls({ target, path }),
+  };
 };

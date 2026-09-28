@@ -97,6 +97,10 @@ const COMPILER_TOOLCHAIN_FRAME = /[\\/]node_modules[\\/](tsx|ts-jest|esbuild)[\\
 // may write into the checkout's fixtures.
 const TEST_FIXTURE_PATH = /[\\/]packages[\\/][^\\/]+[\\/]test[\\/]/u;
 const TYPESCRIPT_COMPILER_FRAME = /[\\/]node_modules[\\/]typescript[\\/]/u;
+// A frame inside one of the gateway wrapper packages (`packages/@gateway/*`), in this repo or a
+// consumer's copy of it. Never widened to a bare `@gateway` segment, which would also swallow a
+// path like `packages/foo/src/uses-at-gateway/…`.
+const GATEWAY_WRAPPER_FRAME = /[\\/]packages[\\/]@gateway[\\/]/u;
 const READ_ONLY_FUNCTIONS = new Set([
   'access',
   'accessSync',
@@ -192,6 +196,12 @@ if (!REAL_IO_TEST_FILE.test(testPath) && !GATEWAY_OWN_TEST_FILE.test(testPath)) 
         return true;
       }
       if (frame.includes(`${path.sep}packages${path.sep}`) && !frame.includes(NODE_MODULES_SEGMENT)) {
+        // A gateway wrapper only forwards the call, so whoever called the wrapper decides — a
+        // testing broker reaching `#gateway/node/fs` stays test infrastructure, an application
+        // broker reaching it stays trapped.
+        if (GATEWAY_WRAPPER_FRAME.test(frame)) {
+          continue;
+        }
         return TEST_INFRASTRUCTURE_FRAME.test(frame);
       }
     }

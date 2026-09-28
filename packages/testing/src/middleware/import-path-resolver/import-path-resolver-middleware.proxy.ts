@@ -21,11 +21,11 @@
  * });
  */
 
-import { pathDirnameAdapterProxy } from '../../adapters/path/dirname/path-dirname-adapter.proxy';
-import { pathResolveAdapterProxy } from '../../adapters/path/resolve/path-resolve-adapter.proxy';
-import { fsExistsSyncAdapterProxy } from '../../adapters/fs/exists-sync/fs-exists-sync-adapter.proxy';
+import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { packageImportsSpecifierResolveMiddlewareProxy } from '../package-imports-specifier-resolve/package-imports-specifier-resolve-middleware.proxy';
 import { workspacePackageImportResolveMiddlewareProxy } from '../workspace-package-import-resolve/workspace-package-import-resolve-middleware.proxy';
+
+const isPath = (candidate: unknown): boolean => typeof candidate === 'string';
 
 export const importPathResolverMiddlewareProxy = (): {
   setupFilesOnDisk: ({ filePaths }: { filePaths: readonly string[] }) => void;
@@ -57,18 +57,28 @@ export const importPathResolverMiddlewareProxy = (): {
     packageJson: Record<PropertyKey, unknown>;
   }) => void;
 } => {
-  pathDirnameAdapterProxy();
-  pathResolveAdapterProxy();
-  const existsProxy = fsExistsSyncAdapterProxy();
+  const existsProxy = existsSyncProxy();
   const workspaceImportProxy = workspacePackageImportResolveMiddlewareProxy();
   const importsSpecifierProxy = packageImportsSpecifierResolveMiddlewareProxy();
 
   return {
+    // Every path is answered: false by default, then true for the ones listed. A predicate and an
+    // exact path score the same and the later staging wins, so the listed answer comes second.
     setupFilesOnDisk: ({ filePaths }: { filePaths: readonly string[] }): void => {
-      existsProxy.existsOnlyFor({ filePaths });
+      existsProxy.returnsMatchingPath({ path: isPath, exists: false });
+      existsProxy.returnsMatchingPath({
+        path: (candidate: unknown): boolean =>
+          typeof candidate === 'string' && filePaths.includes(candidate),
+        exists: true,
+      });
     },
     setupFilesOnDiskMatching: ({ pattern }: { pattern: RegExp }): void => {
-      existsProxy.existsWhereMatching({ pattern });
+      existsProxy.returnsMatchingPath({ path: isPath, exists: false });
+      existsProxy.returnsMatchingPath({
+        path: (candidate: unknown): boolean =>
+          typeof candidate === 'string' && pattern.test(candidate),
+        exists: true,
+      });
     },
 
     setupWorkspaceRoot: ({

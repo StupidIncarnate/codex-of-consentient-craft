@@ -96,3 +96,47 @@ That leaves 27 adapters:
 ## Concessions made while executing
 
 <!-- Empty at the start. The operator fills this and mirrors it into EPIC.md's Concessions table. -->
+
+## Plan — G-Y fs and path
+
+Agent scope: `packages/testing/src/adapters/fs/*` and `path/*` (14 folders). The census found 48 files with
+every deletion counted, so this pass does the slice that closes cleanly and leaves the rest for a follow-up.
+
+**Trap finding (read before touching):** `jest.setup-io-trap.js` lets a trapped `fs` call through only when
+the first repo frame under `packages/` is test infrastructure, and `packages/testing/src/` counts as
+infrastructure. Once a call goes through `#gateway/node/fs`, the first repo frame is the gateway wrapper
+(`packages/@gateway/node/src/fs/...`), which is not infrastructure. The one call that runs unstaged inside a unit
+run is `openHandleReportBroker`'s append, made from `jest.setup.js`'s `afterAll` whenever ward sets
+`DUNGEONMASTER_OPEN_HANDLE_REPORT`. The trap therefore skips `packages/@gateway/` frames and lets the next repo
+frame decide (`jest.setup-io-trap.js`, 1 edit).
+
+**This pass (Group A + B1):**
+
+Delete (3 files each: adapter, proxy, test):
+- `adapters/fs/append-file`, `adapters/fs/mkdir`, `adapters/fs/queue-metadata-read`, `adapters/fs/rm`,
+  `adapters/fs/symlink`, `adapters/fs/unlink`, `adapters/fs/write-file`
+- `adapters/fs/exists-sync`, `adapters/path/resolve` (their only callers are the two middlewares below)
+
+Callers moved onto `#gateway/node/fs` and `#gateway/node/path` (each with its proxy; `path` runs real):
+- `brokers/open-handle/report/open-handle-report-broker.ts` + `.proxy.ts` (`appendFileSync`, `appendFileSyncProxy`)
+- `brokers/install-testbed/create/install-testbed-create-broker.ts` + `.proxy.ts` + `.test.ts`
+- `brokers/install-testbed/create/find-repo-root-layer-broker.ts` + `.proxy.ts`
+- `brokers/integration-environment/create/integration-environment-create-broker.ts` + `.proxy.ts`
+- `middleware/import-path-resolver/import-path-resolver-middleware.ts` + `.proxy.ts`
+- `middleware/proxy-mock-collector/proxy-mock-collector-middleware.ts` + `.proxy.ts`
+
+`queue-metadata-read` (real logic: contract parse over a JSON read) becomes a broker:
+- new `brokers/queue-metadata/read/queue-metadata-read-broker.ts` + `.proxy.ts` + `.test.ts`
+- `package.json`: `exports` + `typesVersions` entry `./adapters/fs/queue-metadata-read` becomes
+  `./brokers/queue-metadata/read`
+- callers outside testing (import and call line only): `packages/web/test/harnesses/ward-mock/ward-mock.harness.ts`,
+  `packages/web/test/harnesses/claude-mock/claude-mock.harness.ts`
+
+Other edits: `packages/testing/src/jest.setup-io-trap.js` (frame skip), `packages/testing/src/jest.setup.js` (comment
+naming the deleted adapter).
+
+**Left for a follow-up (need every remaining caller moved together):** adapters `fs/exists`, `fs/read-file`,
+`fs/readdir`, `path/dirname`, `path/join` and their callers `middleware/workspace-root-find`,
+`nearest-package-json-find`, `package-imports-specifier-resolve`, `workspace-package-import-resolve`,
+`workspace-package-json-read` (impl + proxy each), plus the 15 adapter files. `middleware/proxy-reexport-names-resolve`
+only names `pathJoinAdapterProxy` inside a fixture string and needs no change.

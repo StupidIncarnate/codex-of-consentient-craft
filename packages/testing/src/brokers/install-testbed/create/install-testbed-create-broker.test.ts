@@ -1,38 +1,75 @@
+import { locationsStatics } from '@dungeonmaster/shared/statics';
+
 import { installTestbedCreateBroker } from './install-testbed-create-broker';
 import { installTestbedCreateBrokerProxy } from './install-testbed-create-broker.proxy';
 import { BaseNameStub } from '../../../contracts/base-name/base-name.stub';
+import { FileContentStub } from '../../../contracts/file-content/file-content.stub';
 import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 import { RelativePathStub } from '../../../contracts/relative-path/relative-path.stub';
-import { fsMkdirAdapter } from '../../../adapters/fs/mkdir/fs-mkdir-adapter';
-import { fsRmAdapter } from '../../../adapters/fs/rm/fs-rm-adapter';
+import { integrationEnvironmentStatics } from '../../../statics/integration-environment/integration-environment-statics';
 
 describe('installTestbedCreateBroker', () => {
   describe('testbed creation', () => {
     it('VALID: creates testbed with required pre-install files', () => {
-      installTestbedCreateBrokerProxy();
+      const proxy = installTestbedCreateBrokerProxy();
       const baseName = BaseNameStub({ value: 'test-install' });
 
       const testbed = installTestbedCreateBroker({ baseName });
-      testbed.cleanup();
 
-      expect(testbed.guildPath).toMatch(/^\/tmp\/test-install-[a-f0-9]{8}$/u);
+      expect({
+        guildPath: testbed.guildPath,
+        packageJson: proxy.getWrittenContents({ path: `${testbed.guildPath}/package.json` }),
+        projectDirCalls: proxy.getEnsuredDirCalls({ path: testbed.guildPath }),
+        claudeDirCalls: proxy.getEnsuredDirCalls({
+          path: `${testbed.guildPath}/${locationsStatics.repoRoot.claude.dir}`,
+        }),
+      }).toStrictEqual({
+        guildPath: '/tmp/test-install-74657374',
+        packageJson: JSON.stringify(
+          {
+            name: 'test-install-74657374',
+            version: integrationEnvironmentStatics.packageJson.version,
+          },
+          null,
+          integrationEnvironmentStatics.constants.jsonIndentSpaces,
+        ),
+        projectDirCalls: [['/tmp/test-install-74657374', { recursive: true }]],
+        claudeDirCalls: [
+          [
+            `/tmp/test-install-74657374/${locationsStatics.repoRoot.claude.dir}`,
+            { recursive: true },
+          ],
+        ],
+      });
     });
 
     it('VALID: {baseDir: custom path} => creates testbed in custom directory', () => {
-      installTestbedCreateBrokerProxy();
+      const proxy = installTestbedCreateBrokerProxy();
       const customBaseDir = '/tmp/custom-base-test';
-      fsMkdirAdapter({ dirPath: customBaseDir, recursive: true });
 
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'custom-base' }),
         baseDir: FilePathStub({ value: customBaseDir }),
       });
 
-      const { guildPath } = testbed;
-      testbed.cleanup();
-      fsRmAdapter({ filePath: customBaseDir, recursive: true, force: true });
+      expect({
+        guildPath: testbed.guildPath,
+        projectDirCalls: proxy.getEnsuredDirCalls({ path: testbed.guildPath }),
+      }).toStrictEqual({
+        guildPath: '/tmp/custom-base-test/custom-base-74657374',
+        projectDirCalls: [['/tmp/custom-base-test/custom-base-74657374', { recursive: true }]],
+      });
+    });
 
-      expect(guildPath).toMatch(/^\/tmp\/custom-base-test\/custom-base-[a-f0-9]{8}$/u);
+    it('VALID: {project dir already exists} => does not create it again', () => {
+      const proxy = installTestbedCreateBrokerProxy();
+      proxy.setupPathExists({ path: '/tmp/test-existing-74657374' });
+
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'test-existing' }),
+      });
+
+      expect(proxy.getEnsuredDirCalls({ path: testbed.guildPath })).toStrictEqual([]);
     });
   });
 
@@ -44,10 +81,8 @@ describe('installTestbedCreateBroker', () => {
         baseName: BaseNameStub({ value: 'test-write' }),
       });
 
-      testbed.cleanup();
-
       expect(testbed).toStrictEqual({
-        guildPath: expect.stringMatching(/^\/tmp\/test-write-[a-f0-9]{8}$/u),
+        guildPath: '/tmp/test-write-74657374',
         dungeonmasterPath: expect.stringMatching(/^\/[a-zA-Z0-9_./-]+$/u),
         cleanup: expect.any(Function),
         writeFile: expect.any(Function),
@@ -60,6 +95,124 @@ describe('installTestbedCreateBroker', () => {
         getEslintConfig: expect.any(Function),
         runInitCommand: expect.any(Function),
       });
+    });
+
+    it('VALID: {writeFile into a missing subdirectory} => creates the directory, then writes the content', () => {
+      const proxy = installTestbedCreateBrokerProxy();
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'test-write' }),
+      });
+
+      testbed.writeFile({
+        relativePath: RelativePathStub({ value: 'deep/dir/file.txt' }),
+        content: FileContentStub({ value: 'hello' }),
+      });
+
+      expect({
+        dirCalls: proxy.getEnsuredDirCalls({ path: '/tmp/test-write-74657374/deep/dir' }),
+        written: proxy.getWrittenContents({ path: '/tmp/test-write-74657374/deep/dir/file.txt' }),
+      }).toStrictEqual({
+        dirCalls: [['/tmp/test-write-74657374/deep/dir', { recursive: true }]],
+        written: 'hello',
+      });
+    });
+
+    it('VALID: {writeFile into an existing subdirectory} => writes without creating the directory', () => {
+      const proxy = installTestbedCreateBrokerProxy();
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'test-write' }),
+      });
+      proxy.setupPathExists({ path: '/tmp/test-write-74657374/deep/dir' });
+
+      testbed.writeFile({
+        relativePath: RelativePathStub({ value: 'deep/dir/file.txt' }),
+        content: FileContentStub({ value: 'hello' }),
+      });
+
+      expect({
+        dirCalls: proxy.getEnsuredDirCalls({ path: '/tmp/test-write-74657374/deep/dir' }),
+        written: proxy.getWrittenContents({ path: '/tmp/test-write-74657374/deep/dir/file.txt' }),
+      }).toStrictEqual({ dirCalls: [], written: 'hello' });
+    });
+
+    it('VALID: {readFile of an existing file} => returns its content', () => {
+      const proxy = installTestbedCreateBrokerProxy();
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'test-read' }),
+      });
+      proxy.setupFileContents({ path: '/tmp/test-read-74657374/notes.txt', contents: 'on disk' });
+
+      const result = testbed.readFile({ relativePath: RelativePathStub({ value: 'notes.txt' }) });
+
+      expect(result).toBe('on disk');
+    });
+
+    it('EMPTY: {readFile of a missing file} => returns null', () => {
+      installTestbedCreateBrokerProxy();
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'test-read' }),
+      });
+
+      const result = testbed.readFile({ relativePath: RelativePathStub({ value: 'notes.txt' }) });
+
+      expect(result).toBe(null);
+    });
+  });
+
+  describe('createSymlink', () => {
+    it('VALID: {relativePath, targetPath} => creates the parent directory, then a dir symlink at the path', () => {
+      const proxy = installTestbedCreateBrokerProxy();
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'test-link' }),
+      });
+      proxy.setupSymlinkSucceeds({
+        target: '/tmp/target-dir',
+        path: '/tmp/test-link-74657374/nested/.legacy-link',
+      });
+
+      testbed.createSymlink({
+        relativePath: RelativePathStub({ value: 'nested/.legacy-link' }),
+        targetPath: FilePathStub({ value: '/tmp/target-dir' }),
+      });
+
+      expect({
+        dirCalls: proxy.getEnsuredDirCalls({ path: '/tmp/test-link-74657374/nested' }),
+        symlinkCalls: proxy.getSymlinkCalls({
+          target: '/tmp/target-dir',
+          path: '/tmp/test-link-74657374/nested/.legacy-link',
+        }),
+      }).toStrictEqual({
+        dirCalls: [['/tmp/test-link-74657374/nested', { recursive: true }]],
+        symlinkCalls: [['/tmp/target-dir', '/tmp/test-link-74657374/nested/.legacy-link', 'dir']],
+      });
+    });
+  });
+
+  describe('cleanup', () => {
+    it('VALID: {project dir exists} => removes it recursively and forcibly', () => {
+      const proxy = installTestbedCreateBrokerProxy();
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'test-clean' }),
+      });
+      proxy.setupPathExists({ path: testbed.guildPath });
+      proxy.setupRemoveSucceeds({ path: testbed.guildPath });
+
+      testbed.cleanup();
+
+      expect(proxy.getRemoveCalls({ path: testbed.guildPath })).toStrictEqual([
+        ['/tmp/test-clean-74657374', { recursive: true, force: true }],
+      ]);
+    });
+
+    it('EMPTY: {project dir already gone} => removes nothing', () => {
+      const proxy = installTestbedCreateBrokerProxy();
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'test-clean' }),
+      });
+
+      testbed.cleanup();
+
+      expect(proxy.getRemoveCalls({ path: testbed.guildPath })).toStrictEqual([]);
     });
   });
 
@@ -74,13 +227,42 @@ describe('installTestbedCreateBroker', () => {
       const result = testbed.listDir({
         relativePath: RelativePathStub({ value: 'no-such-dir' }),
       });
-      testbed.cleanup();
 
       expect(result).toBe(null);
+    });
+
+    it('VALID: {relativePath: dir with entries} => returns the entry names sorted', () => {
+      const proxy = installTestbedCreateBrokerProxy();
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'test-listdir' }),
+      });
+      proxy.setupDirEntries({
+        path: '/tmp/test-listdir-74657374/src',
+        names: ['b.txt', 'c.txt', 'a.txt'],
+      });
+
+      const result = testbed.listDir({ relativePath: RelativePathStub({ value: 'src' }) });
+
+      expect(result).toStrictEqual(['a.txt', 'b.txt', 'c.txt']);
     });
   });
 
   describe('config file getters', () => {
+    it('VALID: getClaudeSettings returns the parsed settings.json when it exists', () => {
+      const proxy = installTestbedCreateBrokerProxy();
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'test-settings' }),
+      });
+      proxy.setupFileContents({
+        path: `/tmp/test-settings-74657374/${locationsStatics.repoRoot.claude.dir}/${locationsStatics.repoRoot.claude.settings}`,
+        contents: '{"hooks":{}}',
+      });
+
+      const result = testbed.getClaudeSettings();
+
+      expect(result).toStrictEqual({ hooks: {} });
+    });
+
     it('VALID: getClaudeSettings returns null when settings.json does not exist', () => {
       installTestbedCreateBrokerProxy();
 
@@ -89,7 +271,6 @@ describe('installTestbedCreateBroker', () => {
       });
 
       const result = testbed.getClaudeSettings();
-      testbed.cleanup();
 
       expect(result).toBe(null);
     });
@@ -102,7 +283,6 @@ describe('installTestbedCreateBroker', () => {
       });
 
       const result = testbed.getMcpConfig();
-      testbed.cleanup();
 
       expect(result).toBe(null);
     });
@@ -115,7 +295,6 @@ describe('installTestbedCreateBroker', () => {
       });
 
       const result = testbed.getDungeonmasterConfig();
-      testbed.cleanup();
 
       expect(result).toBe(null);
     });
@@ -128,7 +307,6 @@ describe('installTestbedCreateBroker', () => {
       });
 
       const result = testbed.getEslintConfig();
-      testbed.cleanup();
 
       expect(result).toBe(null);
     });

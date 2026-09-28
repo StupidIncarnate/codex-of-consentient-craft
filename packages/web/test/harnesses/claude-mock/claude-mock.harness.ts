@@ -17,7 +17,7 @@ import { z } from 'zod';
 
 import type { ClaudeQueueResponse } from '@dungeonmaster/shared/contracts';
 
-import { fsQueueMetadataReadAdapter } from '@dungeonmaster/testing/adapters/fs/queue-metadata-read';
+import { queueMetadataReadBroker } from '@dungeonmaster/testing/brokers/queue-metadata/read';
 
 // One record per fake-CLI spawn, written by `bin/claude`. `resumeSessionId` is the value the
 // orchestrator passed after `--resume` (null on a fresh spawn) — the only observable proof of
@@ -69,7 +69,7 @@ const getMetadataPath = ({ queueDir }: { queueDir: string }) =>
 const getCounter = ({ queueDir }: { queueDir: string }) => {
   const metaPath = getMetadataPath({ queueDir });
   if (fs.existsSync(metaPath)) {
-    return fsQueueMetadataReadAdapter({ metadataPath: metaPath }).counter;
+    return queueMetadataReadBroker({ metadataPath: metaPath }).counter;
   }
   return COUNTER_START;
 };

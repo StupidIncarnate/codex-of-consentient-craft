@@ -18,15 +18,16 @@
  *   (type-aware rules need files in tsconfig.json include paths)
  */
 
-import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
-import { fsExistsAdapter } from '../../../adapters/fs/exists/fs-exists-adapter';
-import { fsMkdirAdapter } from '../../../adapters/fs/mkdir/fs-mkdir-adapter';
-import { fsRmAdapter } from '../../../adapters/fs/rm/fs-rm-adapter';
-import { fsReaddirAdapter } from '../../../adapters/fs/readdir/fs-readdir-adapter';
-import { fsUnlinkAdapter } from '../../../adapters/fs/unlink/fs-unlink-adapter';
-import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
-import { pathDirnameAdapter } from '../../../adapters/path/dirname/path-dirname-adapter';
+import {
+  ensureDirSync,
+  existsSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  unlinkSync,
+  writeFileSync,
+} from '#gateway/node/fs';
+import { dirname, join } from '#gateway/node/path';
 import { cryptoRandomBytesAdapter } from '../../../adapters/crypto/random-bytes/crypto-random-bytes-adapter';
 import { childProcessExecSyncAdapter } from '../../../adapters/child-process/exec-sync/child-process-exec-sync-adapter';
 import { fileContentContract } from '../../../contracts/file-content/file-content-contract';
@@ -65,11 +66,11 @@ export const integrationEnvironmentCreateBroker = ({
   // Use /tmp to keep test artifacts out of the repo
   // Most integration tests don't need ESLint to run on test files
   const { baseDir } = integrationEnvironmentStatics.paths;
-  const projectPath = pathJoinAdapter({ paths: [baseDir, projectName] });
+  const projectPath = join(baseDir, projectName);
 
   // Create project directory
-  if (!fsExistsAdapter({ filePath: projectPath })) {
-    fsMkdirAdapter({ dirPath: projectPath, recursive: true });
+  if (!existsSync(projectPath)) {
+    ensureDirSync(projectPath);
   }
 
   // Create basic package.json (optional)
@@ -80,12 +81,10 @@ export const integrationEnvironmentCreateBroker = ({
       scripts: integrationEnvironmentStatics.packageJson.scripts,
     };
 
-    fsWriteFileAdapter({
-      filePath: pathJoinAdapter({ paths: [projectPath, 'package.json'] }),
-      content: fileContentContract.parse(
-        JSON.stringify(packageJson, null, integrationEnvironmentStatics.constants.jsonIndentSpaces),
-      ),
-    });
+    writeFileSync(
+      join(projectPath, 'package.json'),
+      JSON.stringify(packageJson, null, integrationEnvironmentStatics.constants.jsonIndentSpaces),
+    );
   }
 
   // Setup ESLint support (optional) - creates tsconfig and eslint config
@@ -93,21 +92,17 @@ export const integrationEnvironmentCreateBroker = ({
   if (options?.setupEslint === true) {
     // Create a minimal tsconfig.json that includes all files in this test env
     const { tsconfig } = integrationEnvironmentStatics;
-    fsWriteFileAdapter({
-      filePath: pathJoinAdapter({ paths: [projectPath, locationsStatics.repoRoot.tsconfig] }),
-      content: fileContentContract.parse(
-        JSON.stringify(tsconfig, null, integrationEnvironmentStatics.constants.jsonIndentSpaces),
-      ),
-    });
+    writeFileSync(
+      join(projectPath, locationsStatics.repoRoot.tsconfig),
+      JSON.stringify(tsconfig, null, integrationEnvironmentStatics.constants.jsonIndentSpaces),
+    );
 
     // Always create a minimal eslint config that uses the local tsconfig
     // This allows type-aware ESLint rules to work on files in /tmp
-    fsWriteFileAdapter({
-      filePath: pathJoinAdapter({
-        paths: [projectPath, locationsStatics.repoRoot.eslintConfig[1]],
-      }),
-      content: fileContentContract.parse(integrationEnvironmentStatics.eslintConfig.template),
-    });
+    writeFileSync(
+      join(projectPath, locationsStatics.repoRoot.eslintConfig[1]),
+      integrationEnvironmentStatics.eslintConfig.template,
+    );
   }
 
   const testProject: TestGuild = {
@@ -139,76 +134,68 @@ export const integrationEnvironmentCreateBroker = ({
     },
 
     hasCommand: ({ command }: { command: CommandName }): boolean => {
-      const packageJsonPath = pathJoinAdapter({ paths: [projectPath, 'package.json'] });
-      if (!fsExistsAdapter({ filePath: packageJsonPath })) {
+      const packageJsonPath = join(projectPath, 'package.json');
+      if (!existsSync(packageJsonPath)) {
         return false;
       }
 
-      const packageJson = JSON.parse(
-        fsReadFileAdapter({ filePath: packageJsonPath }),
-      ) as PackageJson;
+      const packageJson = JSON.parse(readFileSync(packageJsonPath)) as PackageJson;
       return Boolean(packageJson.scripts[scriptNameContract.parse(String(command))]);
     },
 
     fileExists: ({ fileName }: { fileName: FileName }): boolean =>
-      fsExistsAdapter({ filePath: pathJoinAdapter({ paths: [projectPath, fileName] }) }),
+      existsSync(join(projectPath, fileName)),
 
     readFile: ({ fileName }: { fileName: FileName }): FileContent => {
-      const content = fsReadFileAdapter({
-        filePath: pathJoinAdapter({ paths: [projectPath, fileName] }),
-      });
+      const content = readFileSync(join(projectPath, fileName));
       return fileContentContract.parse(content);
     },
 
     writeFile: ({ fileName, content }: { fileName: FileName; content: FileContent }): void => {
-      const filePath = pathJoinAdapter({ paths: [projectPath, fileName] });
-      const dir = pathDirnameAdapter({ filePath });
-      if (!fsExistsAdapter({ filePath: dir })) {
-        fsMkdirAdapter({ dirPath: dir, recursive: true });
+      const filePath = join(projectPath, fileName);
+      const dir = dirname(filePath);
+      if (!existsSync(dir)) {
+        ensureDirSync(dir);
       }
-      fsWriteFileAdapter({ filePath, content });
+      writeFileSync(filePath, content);
     },
 
     deleteFile: ({ fileName }: { fileName: FileName }): void => {
-      const filePath = pathJoinAdapter({ paths: [projectPath, fileName] });
-      if (fsExistsAdapter({ filePath })) {
-        fsUnlinkAdapter({ filePath });
+      const filePath = join(projectPath, fileName);
+      if (existsSync(filePath)) {
+        unlinkSync(filePath);
       }
     },
 
     getConfig: (): TestbedConfig | null => {
-      const configPath = pathJoinAdapter({
-        paths: [projectPath, locationsStatics.dungeonmasterHome.dir],
-      });
-      if (!fsExistsAdapter({ filePath: configPath })) {
+      const configPath = join(projectPath, locationsStatics.dungeonmasterHome.dir);
+      if (!existsSync(configPath)) {
         return null;
       }
-      return JSON.parse(fsReadFileAdapter({ filePath: configPath })) as TestbedConfig;
+      return JSON.parse(readFileSync(configPath)) as TestbedConfig;
     },
 
     getPackageJson: (): PackageJson => {
-      const packageJsonPath = pathJoinAdapter({ paths: [projectPath, 'package.json'] });
-      const content = fsReadFileAdapter({ filePath: packageJsonPath });
+      const packageJsonPath = join(projectPath, 'package.json');
+      const content = readFileSync(packageJsonPath);
       return JSON.parse(content) as PackageJson;
     },
 
     getQuestFiles: ({ subdir }: { subdir?: FileName }): FileName[] => {
       const questDir = subdir
-        ? pathJoinAdapter({ paths: [projectPath, 'dungeonmaster', subdir] })
-        : pathJoinAdapter({ paths: [projectPath, 'dungeonmaster'] });
+        ? join(projectPath, 'dungeonmaster', subdir)
+        : join(projectPath, 'dungeonmaster');
 
-      if (!fsExistsAdapter({ filePath: questDir })) {
+      if (!existsSync(questDir)) {
         return [];
       }
 
       const extension = subdir ? '.json' : '.md';
-      const basePath = subdir
-        ? pathJoinAdapter({ paths: ['dungeonmaster', subdir] })
-        : 'dungeonmaster';
+      const basePath = subdir ? join('dungeonmaster', subdir) : 'dungeonmaster';
 
-      return fsReaddirAdapter({ dirPath: questDir })
+      return readdirSync(questDir)
         .filter((file) => file.endsWith(extension))
-        .map((file) => fileNameContract.parse(pathJoinAdapter({ paths: [basePath, file] })));
+        .map((file) => fileNameContract.parse(join(basePath, file)));
     },
 
     executeCommand: ({ command }: { command: CommandName }): ExecResult => {
@@ -253,8 +240,8 @@ export const integrationEnvironmentCreateBroker = ({
     },
 
     cleanup: (): void => {
-      if (fsExistsAdapter({ filePath: projectPath })) {
-        fsRmAdapter({ filePath: projectPath, recursive: true, force: true });
+      if (existsSync(projectPath)) {
+        rmSync(projectPath, { recursive: true, force: true });
       }
     },
   };

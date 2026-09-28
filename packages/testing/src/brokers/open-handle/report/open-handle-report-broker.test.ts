@@ -49,6 +49,7 @@ describe('openHandleReportBroker', () => {
   describe('the report file', () => {
     it('VALID: {reportPath, one finding} => appends one JSON line to that path', () => {
       const proxy = openHandleReportBrokerProxy();
+      proxy.setupReportFile({ reportPath: '/tmp/handles.jsonl' });
       openHandleTrackingBroker.watch();
       openHandleTrackingBroker.clear();
 
@@ -59,13 +60,14 @@ describe('openHandleReportBroker', () => {
       });
       clearInterval(interval);
 
-      expect(proxy.getAppended()).toStrictEqual([
-        ['/tmp/handles.jsonl', `${JSON.stringify(findings[0])}\n`],
+      expect(proxy.getAppended({ reportPath: '/tmp/handles.jsonl' })).toStrictEqual([
+        `${JSON.stringify(findings[0])}\n`,
       ]);
     });
 
     it('VALID: {reportPath, nothing left running} => writes nothing at all', () => {
       const proxy = openHandleReportBrokerProxy();
+      proxy.setupReportFile({ reportPath: '/tmp/handles.jsonl' });
       openHandleTrackingBroker.watch();
       openHandleTrackingBroker.clear();
 
@@ -75,11 +77,12 @@ describe('openHandleReportBroker', () => {
         reportPath: '/tmp/handles.jsonl',
       });
 
-      expect(proxy.getAppended()).toStrictEqual([]);
+      expect(proxy.getAppended({ reportPath: '/tmp/handles.jsonl' })).toStrictEqual([]);
     });
 
     it('EMPTY: {no reportPath} => writes nothing, and still returns the findings', () => {
       const proxy = openHandleReportBrokerProxy();
+      proxy.setupReportFile({ reportPath: '/tmp/handles.jsonl' });
       openHandleTrackingBroker.watch();
       openHandleTrackingBroker.clear();
 
@@ -87,10 +90,10 @@ describe('openHandleReportBroker', () => {
       const findings = openHandleReportBroker({ testPath: 'packages/a/src/poll.test.ts' });
       clearInterval(interval);
 
-      expect([proxy.getAppended(), findings.map((finding) => finding.kind)]).toStrictEqual([
-        [],
-        ['setInterval'],
-      ]);
+      expect([
+        proxy.getAppended({ reportPath: '/tmp/handles.jsonl' }),
+        findings.map((finding) => finding.kind),
+      ]).toStrictEqual([[], ['setInterval']]);
     });
   });
 
