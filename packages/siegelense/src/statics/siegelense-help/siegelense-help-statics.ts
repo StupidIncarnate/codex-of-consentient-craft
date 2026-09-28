@@ -341,7 +341,7 @@ export const siegelenseHelpStatics = {
           value: '<kind>',
           required: false,
           description:
-            'one class of file: video, shot, transcript or log. Combines with --older-than. Nothing writes a video yet, so --kind video matches nothing today and says so by freeing 0.',
+            'one class of file: video, shot, transcript or log. Combines with --older-than.',
         },
         {
           name: '--older-than',
