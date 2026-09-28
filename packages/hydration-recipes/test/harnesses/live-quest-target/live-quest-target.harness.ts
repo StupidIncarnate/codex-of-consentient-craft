@@ -11,13 +11,19 @@
  * (`recipes-seed-run-broker.integration.test.ts`'s own "needs a live orchestrator HTTP server"
  * comment names exactly this gap, which is what this harness closes for the two creates).
  *
- * `POST /api/quests/:id/start` is deliberately NOT dispatched — `orchestration-start-responder`'s
- * own logic is not exported from `@dungeonmaster/orchestrator`'s barrel (confirmed by
+ * `POST /api/quests/:id/start` is NOT dispatched by default — `orchestration-start-responder`'s own
+ * logic is not exported from `@dungeonmaster/orchestrator`'s barrel (confirmed by
  * `quest-reach-route-broker.ts`'s own header), so a test driving a recipe all the way to
  * `in_progress` observes the SAME named refusal `guild-with-three-quests`'s own integration test
  * already documents for a write-only target ("a write-only target cannot walk a quest to
  * in_progress") — proving every hop BEFORE it landed for real, including the `flows_approved`/
- * `approved` gates DEF-71 is about.
+ * `approved` gates DEF-71 is about. A test that needs to drive a plan PAST `in_progress` — to reach
+ * ops the real recipe declares AFTER its quest creates, such as a session/subagent this same guild
+ * holds — opts in with `simulateStartRoute: true`, which answers that ONE hop with a plain
+ * `questModifyBroker({status: 'in_progress'})` flip instead of throwing. That is NOT the real
+ * responder: it seeds no operations relay, so it is honest only for a test whose claim is about
+ * something OTHER than the ledger `in_progress` itself would seed — the four DEF-71 gate tests never
+ * pass this flag, and still observe the real, named refusal at that hop.
  *
  * Sets and restores `process.env.DUNGEONMASTER_HOME`, and seeds an empty `config.json`, exactly as
  * `fileTargetHarness` does and for the identical reason: `guildAddBroker`'s config read has no
@@ -36,12 +42,18 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-import { guildAddBroker, questGetBroker } from '@dungeonmaster/orchestrator/brokers';
+import {
+  guildAddBroker,
+  questGetBroker,
+  questModifyBroker,
+} from '@dungeonmaster/orchestrator/brokers';
 import {
   absoluteFilePathContract,
   getQuestInputContract,
   guildNameContract,
   guildPathContract,
+  modifyQuestInputContract,
+  questIdContract,
 } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
@@ -57,8 +69,12 @@ const GUILDS_PATH = '/api/guilds';
 const QUESTS_PATH = '/api/quests';
 const EMPTY_GUILD_CONFIG = { guilds: [] };
 const CREATED_STATUS = 'created';
+const IN_PROGRESS_STATUS = 'in_progress';
+const START_PATH_SUFFIX = '/start';
 
-export const liveQuestTargetHarness = (): {
+export const liveQuestTargetHarness = ({
+  simulateStartRoute = false,
+}: { simulateStartRoute?: boolean } = {}): {
   beforeEach: () => void;
   afterEach: () => void;
   target: () => DmTarget;
@@ -144,6 +160,27 @@ export const liveQuestTargetHarness = (): {
               input: getQuestInputContract.parse({ questId }),
             });
             return { status: result.success ? 200 : 404, body: result };
+          }
+
+          if (
+            simulateStartRoute &&
+            method === 'POST' &&
+            requestPath.startsWith(`${QUESTS_PATH}/`) &&
+            requestPath.endsWith(START_PATH_SUFFIX)
+          ) {
+            const questId = requestPath.slice(
+              `${QUESTS_PATH}/`.length,
+              requestPath.length - START_PATH_SUFFIX.length,
+            );
+            const result = await questModifyBroker({
+              input: modifyQuestInputContract.parse({
+                questId: questIdContract.parse(questId),
+                status: IN_PROGRESS_STATUS,
+              }),
+            });
+            return result.success
+              ? { status: 200, body: { success: true } }
+              : { status: 500, body: { success: false, error: result.error } };
           }
 
           throw new Error(
