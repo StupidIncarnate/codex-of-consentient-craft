@@ -8,6 +8,14 @@
  * rather than being caught into a `{success:false}` document here; the CLI entry point turns an
  * uncaught throw into stderr text and exit 1.
  *
+ * A `questId` with no explicit `guildId` is resolved through `questOwningGuildFindBroker` BEFORE
+ * `instanceStartBroker` ever runs — `--quest`'s own `--help` line promises evidence gets filed under
+ * "that quest's guild", and forwarding `guildId: null` straight through (the previous behaviour) filed
+ * every such instance under `unowned` instead, silently, regardless of which guild really held the
+ * quest. A quest the lookup cannot place throws rather than falling back — the operator is very likely
+ * running against a different `DUNGEONMASTER_HOME` than whatever resolved the quest id in the first
+ * place, and a silent `unowned` evidence path hides that mismatch instead of surfacing it.
+ *
  * USAGE:
  * await SiegelenseStartResponder({ specName: SpecNameStub(), questId: null, guildId: null, seed: null });
  * // Writes the human summary to stdout
@@ -28,6 +36,7 @@ import type { AdapterResult, GuildId, QuestId, TimeoutMs } from '@dungeonmaster/
 import type { RecipeName } from '../../../contracts/recipe-name/recipe-name-contract';
 
 import { instanceStartBroker } from '../../../brokers/instance/start/instance-start-broker';
+import { questOwningGuildFindBroker } from '../../../brokers/quest/owning-guild-find/quest-owning-guild-find-broker';
 import type { SpecName } from '../../../contracts/spec-name/spec-name-contract';
 import { siegelenseOutputStatics } from '../../../statics/siegelense-output/siegelense-output-statics';
 import { startAnswerRenderTransformer } from '../../../transformers/start-answer-render/start-answer-render-transformer';
@@ -51,10 +60,13 @@ export const SiegelenseStartResponder = async ({
   idleTimeoutMs?: TimeoutMs | undefined;
   isJson?: boolean | undefined;
 }): Promise<AdapterResult> => {
+  const resolvedGuildId: GuildId | null =
+    guildId !== null || questId === null ? guildId : await questOwningGuildFindBroker({ questId });
+
   const manifest = await instanceStartBroker(
     idleTimeoutMs === undefined
-      ? { specName, questId, guildId, seed }
-      : { specName, questId, guildId, seed, idleTimeoutMs },
+      ? { specName, questId, guildId: resolvedGuildId, seed }
+      : { specName, questId, guildId: resolvedGuildId, seed, idleTimeoutMs },
   );
   process.stdout.write(
     isJson

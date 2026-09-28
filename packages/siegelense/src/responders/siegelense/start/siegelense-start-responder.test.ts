@@ -28,6 +28,22 @@ describe('SiegelenseStartResponder', () => {
       expect(proxy.getStdoutWrites()).toStrictEqual([startAnswerRenderTransformer({ manifest })]);
     });
 
+    it('VALID: {questId, guildId both given} => never calls questOwningGuildFindBroker, the explicit guildId wins', async () => {
+      const proxy = SiegelenseStartResponderProxy();
+      const specName = SpecNameStub();
+      const questId = QuestIdStub();
+      const guildId = GuildIdStub();
+      const manifest = InstanceManifestStub({ specName });
+      proxy.stageManifest({ manifest });
+
+      await SiegelenseStartResponder({ specName, questId, guildId, seed: null });
+
+      expect(proxy.getOwningGuildFindCallsMatching({ questId })).toStrictEqual([]);
+      expect(proxy.getStartCallsMatching({ specName, questId, guildId, seed: null })).toStrictEqual(
+        [[{ specName, questId, guildId, seed: null }]],
+      );
+    });
+
     it('VALID: {isJson: true} => writes the complete InstanceManifest as one JSON document', async () => {
       const proxy = SiegelenseStartResponderProxy();
       const specName = SpecNameStub();
@@ -59,18 +75,21 @@ describe('SiegelenseStartResponder', () => {
     });
   });
 
-  describe('a quest named with no guild', () => {
-    it('VALID: {questId, guildId: null} => forwards guildId null and the evidence path files under unowned', async () => {
+  describe('a quest named with no guild, and the quest resolves to a guild', () => {
+    it('VALID: {questId, guildId: null} => resolves the owning guild and files evidence under it, never unowned', async () => {
       const proxy = SiegelenseStartResponderProxy();
       const specName = SpecNameStub();
       const questId = QuestIdStub();
+      const resolvedGuildId = GuildIdStub();
       const instanceId = InstanceIdStub();
-      // Mirrors locationsInstanceEvidencePathFindBroker's own join order for guildId: null —
-      // [rootPath, unownedDir, instancesDir, instanceId] — built off its real directory constants
-      // rather than a literal, since guildId (not questId) is what that broker partitions on.
+      proxy.stageQuestResolvesToGuild({ questId, guildId: resolvedGuildId });
+      // Same join order as the explicit-guild case below: [rootPath, guildsDir, guildId,
+      // instancesDir, instanceId] — proving the RESOLVED guild, not `unowned`, is what evidence
+      // ends up filed under.
       const evidencePath = [
         `/repo/.${locationsStatics.siegelense.dir}`,
-        locationsStatics.siegelense.unownedDir,
+        locationsStatics.siegelense.guildsDir,
+        resolvedGuildId,
         locationsStatics.siegelense.instancesDir,
         instanceId,
       ].join('/');
@@ -84,9 +103,32 @@ describe('SiegelenseStartResponder', () => {
       await SiegelenseStartResponder({ specName, questId, guildId: null, seed: null });
 
       expect(
-        proxy.getStartCallsMatching({ specName, questId, guildId: null, seed: null }),
-      ).toStrictEqual([[{ specName, questId, guildId: null, seed: null }]]);
+        proxy.getStartCallsMatching({ specName, questId, guildId: resolvedGuildId, seed: null }),
+      ).toStrictEqual([[{ specName, questId, guildId: resolvedGuildId, seed: null }]]);
       expect(proxy.getStdoutWrites()).toStrictEqual([startAnswerRenderTransformer({ manifest })]);
+    });
+  });
+
+  describe('a quest named with no guild, and the quest cannot be resolved to any guild', () => {
+    it('ERROR: {questId not found by any registered guild} => refuses before instanceStartBroker ever runs', async () => {
+      const proxy = SiegelenseStartResponderProxy();
+      const specName = SpecNameStub();
+      const questId = QuestIdStub();
+      const thrown = new Error(
+        `--quest ${questId} could not be resolved to a guild: no registered guild's quest list ` +
+          `contains it. Pass --guild explicitly, or check that DUNGEONMASTER_HOME points at the ` +
+          `home this quest's guild is registered under.`,
+      );
+      proxy.stageQuestUnresolvable({ questId, error: thrown });
+
+      await expect(
+        SiegelenseStartResponder({ specName, questId, guildId: null, seed: null }),
+      ).rejects.toStrictEqual(thrown);
+
+      expect(
+        proxy.getStartCallsMatching({ specName, questId, guildId: null, seed: null }),
+      ).toStrictEqual([]);
+      expect(proxy.getStdoutWrites()).toStrictEqual([]);
     });
   });
 
