@@ -61,7 +61,7 @@ describe('architectureStateWritesBroker', () => {
   });
 
   describe('file writes', () => {
-    it('VALID: {fsAppendFileAdapter with literal path} => included in fileWrites sorted', () => {
+    it('VALID: {appendFile with literal path} => included in fileWrites sorted', () => {
       const proxy = architectureStateWritesBrokerProxy();
       const packageRoot = AbsoluteFilePathStub({ value: '/repo/packages/orchestrator' });
       const srcFile = AbsoluteFilePathStub({
@@ -73,7 +73,7 @@ describe('architectureStateWritesBroker', () => {
         filePaths: [srcFile],
         contents: [
           ContentTextStub({
-            value: `await fsAppendFileAdapter({ filePath: '/data/event-outbox.jsonl', data });`,
+            value: `import { appendFile, writeFile, ensureDir } from '#gateway/node/fs__promises';\nawait appendFile('/data/event-outbox.jsonl', data);`,
           }),
         ],
         stateDirNames: [],
@@ -88,7 +88,7 @@ describe('architectureStateWritesBroker', () => {
       });
     });
 
-    it('VALID: {fsWriteFileAdapter with literal path} => included in fileWrites', () => {
+    it('VALID: {writeFile with literal path} => included in fileWrites', () => {
       const proxy = architectureStateWritesBrokerProxy();
       const packageRoot = AbsoluteFilePathStub({ value: '/repo/packages/orchestrator' });
       const srcFile = AbsoluteFilePathStub({
@@ -100,7 +100,7 @@ describe('architectureStateWritesBroker', () => {
         filePaths: [srcFile],
         contents: [
           ContentTextStub({
-            value: `await fsWriteFileAdapter({ filePath: '/data/quest.json', content });`,
+            value: `import { appendFile, writeFile, ensureDir } from '#gateway/node/fs__promises';\nawait writeFile('/data/quest.json', content);`,
           }),
         ],
         stateDirNames: [],
@@ -115,7 +115,7 @@ describe('architectureStateWritesBroker', () => {
       });
     });
 
-    it('VALID: {fsMkdirAdapter with broker-call arg} => emits computed entry after literals', () => {
+    it('VALID: {ensureDir with broker-call arg} => emits computed entry after literals', () => {
       const proxy = architectureStateWritesBrokerProxy();
       const packageRoot = AbsoluteFilePathStub({ value: '/repo/packages/orchestrator' });
       const srcFile = AbsoluteFilePathStub({
@@ -127,7 +127,7 @@ describe('architectureStateWritesBroker', () => {
         filePaths: [srcFile],
         contents: [
           ContentTextStub({
-            value: `await fsMkdirAdapter({ filePath: questDirBroker(questId) });`,
+            value: `import { appendFile, writeFile, ensureDir } from '#gateway/node/fs__promises';\nawait ensureDir(questDirBroker(questId));`,
           }),
         ],
         stateDirNames: [],
@@ -155,9 +155,10 @@ describe('architectureStateWritesBroker', () => {
         contents: [
           ContentTextStub({
             value: [
-              `await fsWriteFileAdapter({ filePath: '/z-quest.json', content });`,
-              `await fsAppendFileAdapter({ filePath: '/a-outbox.jsonl', data });`,
-              `await fsWriteFileAdapter({ filePath: '/z-quest.json', content });`,
+              "import { appendFile, writeFile } from '#gateway/node/fs__promises';",
+              `await writeFile('/z-quest.json', content);`,
+              `await appendFile('/a-outbox.jsonl', data);`,
+              `await writeFile('/z-quest.json', content);`,
             ].join('\n'),
           }),
         ],

@@ -1,14 +1,15 @@
 /**
- * PURPOSE: Extracts file-write adapter call sites from TypeScript source text using regex
+ * PURPOSE: Extracts file-write gateway call sites (`appendFile`, `writeFile`, `ensureDir` from
+ * `#gateway/node/fs__promises`) from TypeScript source text, matched by IMPORT SOURCE so a
+ * same-named local function is ignored. The path is the first positional argument.
  *
  * USAGE:
  * const calls = fileWriteCallsExtractTransformer({
- *   source: contentTextContract.parse('await fsWriteFileAdapter({ filePath: questPathBroker(id), ... })'),
+ *   source: contentTextContract.parse("import { appendFile } from '#gateway/node/fs__promises';\nawait appendFile('/a.jsonl', line);"),
  * });
- * // Returns [{ adapter: 'fsWriteFileAdapter', filePathArg: '<computed: questPathBroker>' }]
+ * // Returns [{ adapter: 'appendFile', filePathArg: '/a.jsonl' }]
  *
- * WHEN-TO-USE: State-writes broker scanning source files for fsAppendFileAdapter,
- * fsWriteFileAdapter, and fsMkdirAdapter call sites to extract their filePath arguments
+ * WHEN-TO-USE: State-writes and file-bus-edges brokers scanning source files for write call sites
  * WHEN-NOT-TO-USE: When full AST parsing is needed — this is a v1 regex heuristic
  */
 
@@ -18,49 +19,64 @@ import {
 } from '../../contracts/content-text/content-text-contract';
 import type { FileWriteCall } from '../../contracts/file-write-call/file-write-call-contract';
 import { projectMapStatics } from '../../statics/project-map/project-map-statics';
+import { filePathArgResolveTransformer } from '../file-path-arg-resolve/file-path-arg-resolve-transformer';
+import { gatewayImportLocalNameFindTransformer } from '../gateway-import-local-name-find/gateway-import-local-name-find-transformer';
 
-// Matches: fsXxxAdapter({ filePath: 'literal' }) or fsXxxAdapter({ filePath: brokerName(...) })
-// or fsXxxAdapter({ filePath: someVariable, ... })
-// Capture groups: 1=adapterName 2=single-quoted 3=double-quoted 4=backtick-content 5=broker-name (has paren) 6=bare var
-// Adapter names sourced from projectMapStatics.fsWriteAdapterNames
-const adapterAlternation = projectMapStatics.fsWriteAdapterNames.join('|');
+// Capture groups: 1=local name 2=single-quoted 3=double-quoted 4=backtick-content 5=broker-name (has paren) 6=bare var
 const backtickSegment = '`([^`]*)`';
-const FS_WRITE_PATTERN = new RegExp(
-  `\\b(${adapterAlternation})\\s*\\(\\s*\\{[^}]*?filePath\\s*:\\s*(?:'([^']*)'|"([^"]*)"|${backtickSegment}|(\\w+)\\s*\\(|(\\w+)\\b)`,
-  'gu',
-);
 
 export const fileWriteCallsExtractTransformer = ({
   source,
 }: {
   source: ContentText;
 }): FileWriteCall[] => {
-  const results: FileWriteCall[] = [];
-  FS_WRITE_PATTERN.lastIndex = 0;
-  let match = FS_WRITE_PATTERN.exec(String(source));
-  while (match !== null) {
-    const [, adapterName, singleQuoted, doubleQuoted, backticked, brokerName, bareVar] = match;
-    if (adapterName === undefined) {
-      match = FS_WRITE_PATTERN.exec(String(source));
-      continue;
-    }
-
-    const computedName = brokerName ?? bareVar;
-    const computedArg = computedName === undefined ? undefined : `<computed: ${computedName}>`;
-    const rawArg = singleQuoted ?? doubleQuoted ?? backticked ?? computedArg;
-
-    if (rawArg === undefined) {
-      match = FS_WRITE_PATTERN.exec(String(source));
-      continue;
-    }
-
-    const filePathArg = contentTextContract.parse(rawArg);
-
-    results.push({
-      adapter: contentTextContract.parse(adapterName),
-      filePathArg,
+  const { importSource, importedNames } = projectMapStatics.fsWriteGatewayCalls;
+  const importedByLocal = new Map<ContentText, ContentText>();
+  for (const importedName of importedNames) {
+    const imported = contentTextContract.parse(importedName);
+    const localName = gatewayImportLocalNameFindTransformer({
+      source,
+      importSource: contentTextContract.parse(importSource),
+      importedName: imported,
     });
-    match = FS_WRITE_PATTERN.exec(String(source));
+    if (localName !== undefined) {
+      importedByLocal.set(localName, imported);
+    }
+  }
+  if (importedByLocal.size === 0) {
+    return [];
+  }
+
+  const alternation = [...importedByLocal.keys()].join('|');
+  const pattern = new RegExp(
+    `\\b(${alternation})\\s*\\(\\s*(?:'([^']*)'|"([^"]*)"|${backtickSegment}|(\\w+)\\s*\\(|(\\w+)\\b)`,
+    'gu',
+  );
+  const results: FileWriteCall[] = [];
+  for (const match of String(source).matchAll(pattern)) {
+    const [, matchedLocal = '', singleQuoted, doubleQuoted, backticked, brokerName, bareVar] =
+      match;
+    const adapter = importedByLocal.get(contentTextContract.parse(matchedLocal));
+    const literal = singleQuoted ?? doubleQuoted ?? backticked;
+
+    if (adapter !== undefined) {
+      if (literal !== undefined) {
+        results.push({ adapter, filePathArg: contentTextContract.parse(literal) });
+      } else if (brokerName !== undefined) {
+        results.push({
+          adapter,
+          filePathArg: contentTextContract.parse(`<computed: ${brokerName}>`),
+        });
+      } else if (bareVar !== undefined) {
+        results.push({
+          adapter,
+          filePathArg: filePathArgResolveTransformer({
+            source,
+            variableName: contentTextContract.parse(bareVar),
+          }),
+        });
+      }
+    }
   }
   return results;
 };

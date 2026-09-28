@@ -1,10 +1,10 @@
-import { fsWatchTailCallContract } from './fs-watch-tail-call-contract';
+import { tailFileCallContract } from './tail-file-call-contract';
 import { ContentTextStub } from '../content-text/content-text.stub';
 
-describe('fsWatchTailCallContract', () => {
+describe('tailFileCallContract', () => {
   describe('parse', () => {
     it('VALID: {literal filePathArg} => parses successfully', () => {
-      const result = fsWatchTailCallContract.parse({
+      const result = tailFileCallContract.parse({
         filePathArg: ContentTextStub({ value: '/repo/.dungeonmaster/quests/quest.jsonl' }),
       });
 
@@ -14,7 +14,7 @@ describe('fsWatchTailCallContract', () => {
     });
 
     it('VALID: {computed filePathArg} => parses successfully', () => {
-      const result = fsWatchTailCallContract.parse({
+      const result = tailFileCallContract.parse({
         filePathArg: ContentTextStub({ value: '<computed: questPathBroker>' }),
       });
 

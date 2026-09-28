@@ -1,8 +1,9 @@
 /**
- * PURPOSE: Defines a single file-write adapter call site extracted from source text
+ * PURPOSE: Defines a single file-write gateway call site (`appendFile`, `writeFile`, `ensureDir`)
+ * extracted from source text; `adapter` carries the gateway's exported name
  *
  * USAGE:
- * fileWriteCallContract.parse({ adapter: 'fsWriteFileAdapter', filePathArg: '/quest.json' });
+ * fileWriteCallContract.parse({ adapter: 'writeFile', filePathArg: '/quest.json' });
  * // Returns validated FileWriteCall
  */
 

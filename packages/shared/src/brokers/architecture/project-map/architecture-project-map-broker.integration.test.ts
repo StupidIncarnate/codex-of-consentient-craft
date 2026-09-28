@@ -76,12 +76,13 @@ describe('architectureProjectMapBroker (integration with real monorepo)', () => 
 
     // A gateway call (`verifyRef`, `worktreePrune`, `worktreeAdd` from `#gateway/bin/git`) is not a
     // chain node: worktreePrepareBroker renders its child brokers only, so the git steps that moved
-    // onto the gateway leave no adapter line behind. The chain entries this asserts are the
-    // orchestrator-local adapters that are still on disk.
+    // onto the gateway leave no adapter line behind. Web's `reactDomMountAdapter` is gone too: its
+    // `createRoot` call is a web broker over the gateway now.
     const adapterLines = lines.filter((l) => l.endsWith('Adapter'));
     const worktreePrepareChildren = lines.filter((l) => /→ worktree\w+Broker$/u.test(l));
 
-    expect(adapterLines.some((l) => l.endsWith('→ fsWatchTailAdapter'))).toBe(true);
+    expect(adapterLines.some((l) => l.endsWith('→ reactDomMountAdapter'))).toBe(false);
+    expect(adapterLines.some((l) => l.endsWith('→ fsWatchTailAdapter'))).toBe(false);
     expect(adapterLines.some((l) => l.endsWith('→ fsIsAccessibleAdapter'))).toBe(false);
     expect(adapterLines.some((l) => l.endsWith('→ fsReadFileAdapter'))).toBe(false);
     expect(adapterLines.some((l) => l.endsWith('→ childProcessSpawnStreamJsonAdapter'))).toBe(

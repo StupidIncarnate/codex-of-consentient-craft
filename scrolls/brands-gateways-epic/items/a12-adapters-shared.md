@@ -434,3 +434,19 @@ Named files, written before any edit (2026-09-28):
 - `eslint.config.js` — the override for `packages/shared/src/adapters/runtime/dynamic-import/runtime-dynamic-import-adapter.proxy.ts`
 - `packages/eslint-plugin/src/guards/is-npm-package/is-npm-package-guard.ts` and `is-npm-package-guard.test.ts` — the `'@dungeonmaster/shared/adapters'` special case, if dead
 - `packages/mcp/src/transformers/path-to-tree-relative/path-to-tree-relative-transformer.test.ts` — read only, fix if it asserts the real tree
+
+## Plan — F75
+
+Named files, written before any edit (2026-09-28). Finding: the file-bus edge broker (`file-bus-edges-layer-broker`) was deleted in commit 0d0516b95, so the tail transformer and `file-bus-edge` contract had no caller. The write side (`file-write-calls-extract`, live through `architecture-state-writes-broker`) matches `fsAppendFileAdapter`/`fsWriteFileAdapter`/`fsMkdirAdapter`, all deleted. Orchestrator's writer and reader name the path differently (`outboxFilePath` / `outboxPath`), so the bare-variable join can never pair them; both build it from `locationsStatics.dungeonmasterHome.eventOutbox`.
+
+- `packages/shared/src/transformers/gateway-import-local-name-find/*` (new: transformer + test) — resolves the local name a `#gateway/...` import binds, by import source
+- `packages/shared/src/transformers/file-path-arg-resolve/*` (new: transformer + test) — a bare variable arg resolves to its `locationsStatics.<a>.<b>` initializer when it has one
+- `packages/shared/src/transformers/tail-file-calls-extract/*` (new, replaces `fs-watch-tail-calls-extract/*`, which is deleted)
+- `packages/shared/src/contracts/tail-file-call/*` (new, replaces `fs-watch-tail-call/*`, which is deleted)
+- `packages/shared/contracts.ts` — barrel lines for the renamed contract
+- `packages/shared/src/contracts/file-bus-edge/file-bus-edge-contract.ts` — header text only
+- `packages/shared/src/transformers/file-write-calls-extract/*` — match gateway `appendFile`/`writeFile`/`ensureDir` by import source
+- `packages/shared/src/contracts/file-write-call/file-write-call-contract.ts` — header text only
+- `packages/shared/src/statics/project-map/project-map-statics.ts` and `.test.ts` — `fsWriteAdapterNames` becomes gateway import descriptors
+- `packages/shared/src/brokers/architecture/edge-graph/file-bus-edges-layer-broker.ts` + `.proxy.ts` + `.test.ts` + `.integration.test.ts` (new) — the edge broker, with the real-tree assertion
+- `packages/shared/src/brokers/architecture/state-writes/architecture-state-writes-broker.test.ts` — fixtures move to gateway calls

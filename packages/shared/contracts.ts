@@ -745,8 +745,8 @@ export * from './src/contracts/widget-context/widget-context-contract';
 export * from './src/contracts/widget-context/widget-context.stub';
 
 // Fs Watch Tail Call Contracts
-export * from './src/contracts/fs-watch-tail-call/fs-watch-tail-call-contract';
-export * from './src/contracts/fs-watch-tail-call/fs-watch-tail-call.stub';
+export * from './src/contracts/tail-file-call/tail-file-call-contract';
+export * from './src/contracts/tail-file-call/tail-file-call.stub';
 
 // Server Route Call Site Contracts
 export * from './src/contracts/server-route-call-site/server-route-call-site-contract';

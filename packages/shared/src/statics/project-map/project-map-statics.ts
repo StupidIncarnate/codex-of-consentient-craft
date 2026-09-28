@@ -50,7 +50,14 @@ export const projectMapStatics = {
   urlPairingConvention: `**URL pairing convention** (every http-backend route): the literal path is the same string in both \`webConfigStatics.api.routes.<key>\` (web side) and \`apiRoutesStatics.<group>.<key>\` (server side). For example, both resolve to \`'/api/quests/:questId/start'\`. Every row of the route table below is one such pairing — the route table is exhaustive (every endpoint registered by the server is listed).`,
   hookHandlersMinBinCount: 2,
   sourceFileExtensions: ['.ts', '.tsx', '.js', '.jsx'],
-  fsWriteAdapterNames: ['fsAppendFileAdapter', 'fsWriteFileAdapter', 'fsMkdirAdapter'],
+  fsWriteGatewayCalls: {
+    importSource: '#gateway/node/fs__promises',
+    importedNames: ['appendFile', 'writeFile', 'ensureDir'],
+  },
+  fsTailGatewayCall: {
+    importSource: '#gateway/node/fs',
+    importedName: 'tailFile',
+  },
   webFetchAdapterMethods: {
     fetchGetAdapter: 'GET',
     fetchPostAdapter: 'POST',

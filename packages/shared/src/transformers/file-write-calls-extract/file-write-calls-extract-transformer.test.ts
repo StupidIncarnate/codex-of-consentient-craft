@@ -1,81 +1,157 @@
 import { fileWriteCallsExtractTransformer } from './file-write-calls-extract-transformer';
 import { ContentTextStub } from '../../contracts/content-text/content-text.stub';
 
+const PROMISES_IMPORT =
+  "import { appendFile, writeFile, ensureDir } from '#gateway/node/fs__promises';";
+
 describe('fileWriteCallsExtractTransformer', () => {
-  describe('fsAppendFileAdapter', () => {
-    it('VALID: {filePath with single-quoted literal} => returns literal path', () => {
+  describe('appendFile', () => {
+    it('VALID: {single-quoted literal path} => returns literal path', () => {
       const source = ContentTextStub({
-        value: `await fsAppendFileAdapter({ filePath: '/path/to/event-outbox.jsonl', data: line });`,
+        value: `${PROMISES_IMPORT}\nawait appendFile('/path/to/event-outbox.jsonl', line);`,
       });
 
       const result = fileWriteCallsExtractTransformer({ source });
 
       expect(result).toStrictEqual([
-        { adapter: 'fsAppendFileAdapter', filePathArg: '/path/to/event-outbox.jsonl' },
+        { adapter: 'appendFile', filePathArg: '/path/to/event-outbox.jsonl' },
       ]);
     });
 
-    it('VALID: {filePath with double-quoted literal} => returns literal path', () => {
+    it('VALID: {double-quoted literal path} => returns literal path', () => {
       const source = ContentTextStub({
-        value: `await fsAppendFileAdapter({ filePath: "/path/to/quest.jsonl", data: line });`,
+        value: `${PROMISES_IMPORT}\nawait appendFile("/path/to/quest.jsonl", line);`,
       });
 
       const result = fileWriteCallsExtractTransformer({ source });
 
       expect(result).toStrictEqual([
-        { adapter: 'fsAppendFileAdapter', filePathArg: '/path/to/quest.jsonl' },
+        { adapter: 'appendFile', filePathArg: '/path/to/quest.jsonl' },
       ]);
     });
-  });
 
-  describe('fsWriteFileAdapter', () => {
-    it('VALID: {filePath with single-quoted literal} => returns literal path', () => {
-      const source = ContentTextStub({
-        value: `await fsWriteFileAdapter({ filePath: '/repo/quest.json', content });`,
-      });
-
-      const result = fileWriteCallsExtractTransformer({ source });
-
-      expect(result).toStrictEqual([
-        { adapter: 'fsWriteFileAdapter', filePathArg: '/repo/quest.json' },
-      ]);
-    });
-  });
-
-  describe('fsMkdirAdapter', () => {
-    it('VALID: {filePath with broker-call arg} => emits computed entry', () => {
-      const source = ContentTextStub({
-        value: `await fsMkdirAdapter({ filePath: questDirBroker(questId) });`,
-      });
-
-      const result = fileWriteCallsExtractTransformer({ source });
-
-      expect(result).toStrictEqual([
-        { adapter: 'fsMkdirAdapter', filePathArg: '<computed: questDirBroker>' },
-      ]);
-    });
-  });
-
-  describe('multiple calls', () => {
-    it('VALID: {two different adapter calls} => returns both', () => {
+    it('VALID: {variable built from locationsStatics} => returns the statics reference', () => {
       const source = ContentTextStub({
         value: [
-          `await fsAppendFileAdapter({ filePath: '/outbox.jsonl', data });`,
-          `await fsWriteFileAdapter({ filePath: '/quest.json', content });`,
+          PROMISES_IMPORT,
+          'const outboxFilePath = filePathContract.parse(',
+          '  join(homePath, locationsStatics.dungeonmasterHome.eventOutbox),',
+          ');',
+          'await appendFile(outboxFilePath, line);',
         ].join('\n'),
       });
 
       const result = fileWriteCallsExtractTransformer({ source });
 
       expect(result).toStrictEqual([
-        { adapter: 'fsAppendFileAdapter', filePathArg: '/outbox.jsonl' },
-        { adapter: 'fsWriteFileAdapter', filePathArg: '/quest.json' },
+        {
+          adapter: 'appendFile',
+          filePathArg: '<computed: locationsStatics.dungeonmasterHome.eventOutbox>',
+        },
       ]);
     });
   });
 
+  describe('writeFile', () => {
+    it('VALID: {single-quoted literal path} => returns literal path', () => {
+      const source = ContentTextStub({
+        value: `${PROMISES_IMPORT}\nawait writeFile('/repo/quest.json', content);`,
+      });
+
+      const result = fileWriteCallsExtractTransformer({ source });
+
+      expect(result).toStrictEqual([{ adapter: 'writeFile', filePathArg: '/repo/quest.json' }]);
+    });
+
+    it('VALID: {plain variable} => returns computed variable name', () => {
+      const source = ContentTextStub({
+        value: `${PROMISES_IMPORT}\nawait writeFile(tmpPath, content);`,
+      });
+
+      const result = fileWriteCallsExtractTransformer({ source });
+
+      expect(result).toStrictEqual([{ adapter: 'writeFile', filePathArg: '<computed: tmpPath>' }]);
+    });
+  });
+
+  describe('ensureDir', () => {
+    it('VALID: {broker-call arg} => emits computed entry', () => {
+      const source = ContentTextStub({
+        value: `${PROMISES_IMPORT}\nawait ensureDir(questDirBroker(questId));`,
+      });
+
+      const result = fileWriteCallsExtractTransformer({ source });
+
+      expect(result).toStrictEqual([
+        { adapter: 'ensureDir', filePathArg: '<computed: questDirBroker>' },
+      ]);
+    });
+  });
+
+  describe('multiple calls', () => {
+    it('VALID: {two different gateway calls} => returns both', () => {
+      const source = ContentTextStub({
+        value: [
+          PROMISES_IMPORT,
+          `await appendFile('/outbox.jsonl', data);`,
+          `await writeFile('/quest.json', content);`,
+        ].join('\n'),
+      });
+
+      const result = fileWriteCallsExtractTransformer({ source });
+
+      expect(result).toStrictEqual([
+        { adapter: 'appendFile', filePathArg: '/outbox.jsonl' },
+        { adapter: 'writeFile', filePathArg: '/quest.json' },
+      ]);
+    });
+
+    it('VALID: {aliased import} => matches the alias and reports the gateway name', () => {
+      const source = ContentTextStub({
+        value:
+          "import { appendFile as append } from '#gateway/node/fs__promises';\nawait append('/a.jsonl', data);",
+      });
+
+      const result = fileWriteCallsExtractTransformer({ source });
+
+      expect(result).toStrictEqual([{ adapter: 'appendFile', filePathArg: '/a.jsonl' }]);
+    });
+  });
+
+  describe('import source', () => {
+    it('EMPTY: {local writeFile from a relative import} => returns empty array', () => {
+      const source = ContentTextStub({
+        value: "import { writeFile } from './write-file';\nawait writeFile('/a.json', c);",
+      });
+
+      const result = fileWriteCallsExtractTransformer({ source });
+
+      expect(result).toStrictEqual([]);
+    });
+
+    it('EMPTY: {node:fs promises import} => returns empty array', () => {
+      const source = ContentTextStub({
+        value: "import { writeFile } from 'fs/promises';\nawait writeFile('/a.json', c);",
+      });
+
+      const result = fileWriteCallsExtractTransformer({ source });
+
+      expect(result).toStrictEqual([]);
+    });
+
+    it('EMPTY: {removed adapter names} => returns empty array', () => {
+      const source = ContentTextStub({
+        value: `await fsAppendFileAdapter({ filePath: '/outbox.jsonl', data });`,
+      });
+
+      const result = fileWriteCallsExtractTransformer({ source });
+
+      expect(result).toStrictEqual([]);
+    });
+  });
+
   describe('no calls', () => {
-    it('EMPTY: {source with no fs adapter calls} => returns empty array', () => {
+    it('EMPTY: {source with no write calls} => returns empty array', () => {
       const source = ContentTextStub({
         value: `const x = 42;`,
       });

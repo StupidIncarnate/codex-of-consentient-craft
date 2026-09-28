@@ -1,7 +1,7 @@
 /**
- * PURPOSE: Defines the FileBusEdge structure linking a file-write adapter caller
- * (fsAppendFileAdapter or fsWriteFileAdapter) with a file-watcher caller
- * (fsWatchTailAdapter) on the same literal path or computed broker reference.
+ * PURPOSE: Defines the FileBusEdge structure linking a file-write caller (`appendFile` or
+ * `writeFile` from `#gateway/node/fs__promises`) with a file-tail caller (`tailFile` from
+ * `#gateway/node/fs`) on the same literal path or computed path reference.
  *
  * USAGE:
  * fileBusEdgeContract.parse({
