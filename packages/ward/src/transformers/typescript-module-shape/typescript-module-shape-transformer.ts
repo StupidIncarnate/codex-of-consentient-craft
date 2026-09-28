@@ -5,7 +5,7 @@
  * file at a time and never needs a whole-program type-check, only the syntax tree.
  *
  * USAGE:
- * typescriptModuleShapeAdapter({sourceText: FileContentsStub({value: "export * from './x';"}), fileName: 'a.ts'});
+ * typescriptModuleShapeTransformer({sourceText: FileContentsStub({value: "export * from './x';"}), fileName: 'a.ts'});
  * // Returns: { dependencies: [{specifier: './x', kind: 'star', importedNames: []}], localExportNames: [] }
  */
 
@@ -15,14 +15,14 @@ import type { FileContents } from '@dungeonmaster/shared/contracts';
 import {
   typescriptModuleShapeContract,
   type TypescriptModuleShape,
-} from '../../../contracts/typescript-module-shape/typescript-module-shape-contract';
-import type { ModuleDependency } from '../../../contracts/module-dependency/module-dependency-contract';
-import type { ExportedName } from '../../../contracts/exported-name/exported-name-contract';
-import { importDependencyFromDeclarationLayerAdapter } from './import-dependency-from-declaration-layer-adapter';
-import { exportDependencyFromDeclarationLayerAdapter } from './export-dependency-from-declaration-layer-adapter';
-import { localExportNamesFromStatementLayerAdapter } from './local-export-names-from-statement-layer-adapter';
+} from '../../contracts/typescript-module-shape/typescript-module-shape-contract';
+import type { ModuleDependency } from '../../contracts/module-dependency/module-dependency-contract';
+import type { ExportedName } from '../../contracts/exported-name/exported-name-contract';
+import { importDependencyFromDeclarationLayerTransformer } from './import-dependency-from-declaration-layer-transformer';
+import { exportDependencyFromDeclarationLayerTransformer } from './export-dependency-from-declaration-layer-transformer';
+import { localExportNamesFromStatementLayerTransformer } from './local-export-names-from-statement-layer-transformer';
 
-export const typescriptModuleShapeAdapter = ({
+export const typescriptModuleShapeTransformer = ({
   sourceText,
   fileName,
 }: {
@@ -42,7 +42,7 @@ export const typescriptModuleShapeAdapter = ({
 
   for (const statement of sourceFile.statements) {
     if (ts.isImportDeclaration(statement)) {
-      const dependency = importDependencyFromDeclarationLayerAdapter({ node: statement });
+      const dependency = importDependencyFromDeclarationLayerTransformer({ node: statement });
       if (dependency !== undefined) {
         dependencies.push(dependency);
       }
@@ -50,14 +50,14 @@ export const typescriptModuleShapeAdapter = ({
     }
 
     if (ts.isExportDeclaration(statement) && statement.moduleSpecifier !== undefined) {
-      const dependency = exportDependencyFromDeclarationLayerAdapter({ node: statement });
+      const dependency = exportDependencyFromDeclarationLayerTransformer({ node: statement });
       if (dependency !== undefined) {
         dependencies.push(dependency);
       }
       continue;
     }
 
-    localExportNames.push(...localExportNamesFromStatementLayerAdapter({ node: statement }));
+    localExportNames.push(...localExportNamesFromStatementLayerTransformer({ node: statement }));
   }
 
   return typescriptModuleShapeContract.parse({ dependencies, localExportNames });

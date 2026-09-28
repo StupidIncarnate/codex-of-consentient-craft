@@ -6,7 +6,7 @@
  * // Creates .ward/run-1739625600000-a3f1.json with serialized WardResult
  */
 
-import { ensureDir } from '#gateway/node/fs__promises';
+import { ensureDir, writeFile } from '#gateway/node/fs__promises';
 import {
   adapterResultContract,
   fileContentsContract,
@@ -16,7 +16,6 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import type { WardResult } from '../../../contracts/ward-result/ward-result-contract';
-import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 
 export const storageSaveBroker = async ({
   rootPath,
@@ -31,6 +30,6 @@ export const storageSaveBroker = async ({
   const filePath = filePathContract.parse(`${rootPath}/.ward/run-${wardResult.runId}.json`);
   const contents = fileContentsContract.parse(JSON.stringify(wardResult));
 
-  await fsWriteFileAdapter({ filePath, contents });
+  await writeFile(filePath, contents);
   return adapterResultContract.parse({ success: true });
 };

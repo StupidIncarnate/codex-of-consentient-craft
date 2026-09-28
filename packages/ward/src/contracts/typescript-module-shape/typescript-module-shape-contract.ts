@@ -1,6 +1,6 @@
 /**
  * PURPOSE: One source file's dependency edges plus its own top-level exported names, the shape
- * `typescriptModuleShapeAdapter` reduces a parsed file to. `localExportNames` is what lets the
+ * `typescriptModuleShapeTransformer` reduces a parsed file to. `localExportNames` is what lets the
  * platform-crossing walk tell a real implementation file (declares names of its own) apart from a
  * pure re-export barrel (declares none), which decides whether a `star` dependency can be narrowed
  * to the specific names an ancestor import actually asked for.

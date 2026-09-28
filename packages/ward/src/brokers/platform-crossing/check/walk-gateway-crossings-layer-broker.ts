@@ -58,7 +58,7 @@ import { specifierMatchesPackageGuard } from '../../../guards/specifier-matches-
 import { gatewaySpecifierCanonicalizeTransformer } from '../../../transformers/gateway-specifier-canonicalize/gateway-specifier-canonicalize-transformer';
 import { barrelProvidesNameTransformer } from '../../../transformers/barrel-provides-name/barrel-provides-name-transformer';
 import { intersectImportedNamesTransformer } from '../../../transformers/intersect-imported-names/intersect-imported-names-transformer';
-import { typescriptModuleShapeAdapter } from '../../../adapters/typescript/module-shape/typescript-module-shape-adapter';
+import { typescriptModuleShapeTransformer } from '../../../transformers/typescript-module-shape/typescript-module-shape-transformer';
 import {
   resolveSpecifierCachedLayerBroker,
   type ResolveSpecifierCache,
@@ -96,7 +96,7 @@ export const walkGatewayCrossingsLayerBroker = async ({
 }): Promise<readonly PlatformCrossingChainHop[][]> => {
   const cachedShape = moduleShapeCache.get(filePath);
   const moduleShape =
-    cachedShape ?? typescriptModuleShapeAdapter({ sourceText: content, fileName: filePath });
+    cachedShape ?? typescriptModuleShapeTransformer({ sourceText: content, fileName: filePath });
   if (cachedShape === undefined) {
     moduleShapeCache.set(filePath, moduleShape);
   }
@@ -222,7 +222,7 @@ export const walkGatewayCrossingsLayerBroker = async ({
         const cachedTargetShape = moduleShapeCache.get(resolved.filePath);
         const targetShape =
           cachedTargetShape ??
-          typescriptModuleShapeAdapter({
+          typescriptModuleShapeTransformer({
             sourceText: resolved.content,
             fileName: resolved.filePath,
           });

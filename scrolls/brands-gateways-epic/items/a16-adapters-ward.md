@@ -454,6 +454,23 @@ New: `brokers/bundle/hash-files/bundle-hash-files-broker` (`.ts`, `.proxy.ts`, `
 
 Proxies composing the callers (tests unchanged, verified by the whole ward unit run): the two platform-crossing layer proxies feed `platform-crossing-check-broker.proxy`; the duplicate-install layer proxy feeds `duplicate-install-check-broker.proxy`; the install responder proxies feed `install-flow`/startup tests; `bundle-build-broker.proxy` feeds `check-run-e2e-broker.proxy`.
 
+### MISC and TS-SHAPE scope
+
+Deleted (whole folders): `packages/ward/src/adapters/fs/write-file/` (`fs-write-file-adapter.ts`, `.proxy.ts`, `.test.ts`),
+`packages/ward/src/adapters/os/tmpdir/` (`os-tmpdir-adapter.ts`, `.proxy.ts`, `.test.ts`),
+`packages/ward/src/adapters/typescript/module-shape/` (five adapters, each with `.proxy.ts` and `.test.ts`); `packages/ward/src/adapters/` gone.
+
+New: `packages/ward/src/brokers/tmpdir/find/tmpdir-find-broker.{ts,proxy.ts,test.ts}` (the adapter's `absoluteFilePathContract.parse(tmpdir())` is real logic, so it becomes a broker over `#gateway/node/os`);
+`packages/ward/src/transformers/typescript-module-shape/{typescript-module-shape,export-dependency-from-declaration-layer,has-export-modifier-layer,import-dependency-from-declaration-layer,local-export-names-from-statement-layer}-transformer.{ts,test.ts}` (no proxies).
+
+Callers edited (with proxy where named):
+- `brokers/storage/save/storage-save-broker.{ts,proxy.ts,test.ts}`
+- `responders/install/write-gitignore/install-write-gitignore-responder.{ts,proxy.ts}`
+- `responders/install/write-scripts/install-write-scripts-responder.{ts,proxy.ts}`
+- `brokers/check-run/{unit,integration,e2e}/check-run-*-broker.{ts,proxy.ts}` (tmpdir)
+- `brokers/platform-crossing/check/walk-gateway-crossings-layer-broker.{ts,proxy.ts}` (module shape)
+- `contracts/typescript-module-shape/typescript-module-shape-contract.ts` (doc comment names the transformer)
+
 ## Concessions made while executing
 
 <!-- Empty at the start. The operator fills this and mirrors it into EPIC.md's Concessions table. -->

@@ -15,9 +15,8 @@ import {
   filePathContract,
 } from '@dungeonmaster/shared/contracts';
 import { existsSync } from '#gateway/node/fs';
-import { readFile } from '#gateway/node/fs__promises';
+import { readFile, writeFile } from '#gateway/node/fs__promises';
 import { jsonFileContentsTransformer } from '@dungeonmaster/shared/transformers';
-import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import { packageJsonContract } from '../../../contracts/package-json/package-json-contract';
 import { packageJsonRawContract } from '../../../contracts/package-json-raw/package-json-raw-contract';
 import { installScriptsStatics } from '../../../statics/install-scripts/install-scripts-statics';
@@ -79,7 +78,7 @@ export const InstallWriteScriptsResponder = async ({
   const updatedPackageJson = { ...orderedPackageJson, scripts: mergedScripts };
 
   const contents = jsonFileContentsTransformer({ value: updatedPackageJson });
-  await fsWriteFileAdapter({ filePath: packageJsonPath, contents });
+  await writeFile(packageJsonPath, contents);
 
   return {
     packageName: packageNameContract.parse(PACKAGE_NAME),

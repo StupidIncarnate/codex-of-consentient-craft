@@ -8,16 +8,14 @@
  * // Appends whichever gitignoreEntriesStatics lines are missing, creating .gitignore if absent
  */
 
-import { readFile } from '#gateway/node/fs__promises';
+import { readFile, writeFile } from '#gateway/node/fs__promises';
 import {
   type InstallContext,
   type InstallResult,
   installMessageContract,
   packageNameContract,
-  fileContentsContract,
   filePathContract,
 } from '@dungeonmaster/shared/contracts';
-import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import { gitignoreEntriesStatics } from '../../../statics/gitignore-entries/gitignore-entries-statics';
 
 const PACKAGE_NAME = '@dungeonmaster/ward';
@@ -58,10 +56,7 @@ export const InstallWriteGitignoreResponder = async ({
   const appended = `${missing.join('\n')}\n`;
   const newContent = existingContent ? `${existingContent.trimEnd()}\n${appended}` : appended;
 
-  await fsWriteFileAdapter({
-    filePath: gitignorePath,
-    contents: fileContentsContract.parse(newContent),
-  });
+  await writeFile(gitignorePath, newContent);
 
   const action = existingContent ? 'merged' : 'created';
   const message = existingContent

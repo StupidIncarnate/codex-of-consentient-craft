@@ -47,7 +47,7 @@ import { discoveryDiffTransformer } from '../../../transformers/discovery-diff/d
 import { openHandleReportParseTransformer } from '../../../transformers/open-handle-report-parse/open-handle-report-parse-transformer';
 import { openHandleReportPathTransformer } from '../../../transformers/open-handle-report-path/open-handle-report-path-transformer';
 import { openHandleReportStatics } from '../../../statics/open-handle-report/open-handle-report-statics';
-import { osTmpdirAdapter } from '../../../adapters/os/tmpdir/os-tmpdir-adapter';
+import { tmpdirFindBroker } from '../../tmpdir/find/tmpdir-find-broker';
 import { binResolveBroker } from '../../bin/resolve/bin-resolve-broker';
 import { sourceConditionSupportedBroker } from '../../source-condition/supported/source-condition-supported-broker';
 import { globDiscoverFilesBroker } from '../../glob/discover-files/glob-discover-files-broker';
@@ -183,7 +183,7 @@ export const checkRunIntegrationBroker = async ({
   // processes too — and running both would report every leaked timer twice.
   const wantsTimerWatch = !finalArgs.includes('--detectOpenHandles');
   const handleReportPath = openHandleReportPathTransformer({
-    tmpdir: osTmpdirAdapter(),
+    tmpdir: tmpdirFindBroker(),
     checkType: 'integration',
     processId: process.pid,
   });

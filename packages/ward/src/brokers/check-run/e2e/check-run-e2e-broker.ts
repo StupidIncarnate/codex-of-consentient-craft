@@ -42,7 +42,7 @@ import { passingTestsToTimingsTransformer } from '../../../transformers/passing-
 import { openHandleReportParseTransformer } from '../../../transformers/open-handle-report-parse/open-handle-report-parse-transformer';
 import { openHandleReportPathTransformer } from '../../../transformers/open-handle-report-path/open-handle-report-path-transformer';
 import { openHandleReportStatics } from '../../../statics/open-handle-report/open-handle-report-statics';
-import { osTmpdirAdapter } from '../../../adapters/os/tmpdir/os-tmpdir-adapter';
+import { tmpdirFindBroker } from '../../tmpdir/find/tmpdir-find-broker';
 import type { OpenHandle } from '../../../contracts/open-handle/open-handle-contract';
 import { discoveryDiffTransformer } from '../../../transformers/discovery-diff/discovery-diff-transformer';
 import { isE2eTestPathGuard } from '../../../guards/is-e2e-test-path/is-e2e-test-path-guard';
@@ -180,7 +180,7 @@ export const checkRunE2eBroker = async ({
   // variable and append per test. Named by the SERVER PORT, like the report beside it, so two
   // browser walks against one package cannot overwrite each other's findings.
   const handleReportPath = openHandleReportPathTransformer({
-    tmpdir: osTmpdirAdapter(),
+    tmpdir: tmpdirFindBroker(),
     checkType: 'e2e',
     processId: serverPort,
   });

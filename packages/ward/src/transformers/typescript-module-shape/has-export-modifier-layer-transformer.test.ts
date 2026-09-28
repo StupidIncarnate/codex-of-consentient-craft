@@ -1,6 +1,5 @@
-import * as ts from 'typescript';
-import { hasExportModifierLayerAdapter } from './has-export-modifier-layer-adapter';
-import { hasExportModifierLayerAdapterProxy } from './has-export-modifier-layer-adapter.proxy';
+import * as ts from '#gateway/npm/typescript';
+import { hasExportModifierLayerTransformer } from './has-export-modifier-layer-transformer';
 
 const firstStatement = ({ sourceText }: { sourceText: string }): ts.Statement => {
   const sourceFile = ts.createSourceFile('a.ts', sourceText, ts.ScriptTarget.ES2022, true);
@@ -11,13 +10,12 @@ const firstStatement = ({ sourceText }: { sourceText: string }): ts.Statement =>
   return statement;
 };
 
-describe('hasExportModifierLayerAdapter', () => {
+describe('hasExportModifierLayerTransformer', () => {
   describe('valid inputs', () => {
     it('VALID: {export const} => returns true', () => {
-      hasExportModifierLayerAdapterProxy();
       const node = firstStatement({ sourceText: 'export const x = 1;' });
 
-      const result = hasExportModifierLayerAdapter({ node });
+      const result = hasExportModifierLayerTransformer({ node });
 
       expect(result).toBe(true);
     });
@@ -25,10 +23,9 @@ describe('hasExportModifierLayerAdapter', () => {
 
   describe('invalid inputs', () => {
     it('INVALID: {const with no export modifier} => returns false', () => {
-      hasExportModifierLayerAdapterProxy();
       const node = firstStatement({ sourceText: 'const x = 1;' });
 
-      const result = hasExportModifierLayerAdapter({ node });
+      const result = hasExportModifierLayerTransformer({ node });
 
       expect(result).toBe(false);
     });

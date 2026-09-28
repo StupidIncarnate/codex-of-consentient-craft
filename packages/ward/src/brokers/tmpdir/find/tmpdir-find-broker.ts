@@ -4,12 +4,12 @@
  * so a scratch file left in the repo by a killed run becomes a file the next run tries to lint.
  *
  * USAGE:
- * osTmpdirAdapter();
+ * tmpdirFindBroker();
  * // Returns the OS scratch directory, e.g. '/tmp'
  */
 
-import { tmpdir } from 'os';
+import { tmpdir } from '#gateway/node/os';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
-export const osTmpdirAdapter = (): AbsoluteFilePath => absoluteFilePathContract.parse(tmpdir());
+export const tmpdirFindBroker = (): AbsoluteFilePath => absoluteFilePathContract.parse(tmpdir());

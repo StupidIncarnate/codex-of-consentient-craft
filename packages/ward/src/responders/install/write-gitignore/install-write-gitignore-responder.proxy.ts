@@ -1,7 +1,7 @@
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
+import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 
-import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
 import { InstallWriteGitignoreResponder } from './install-write-gitignore-responder';
 
 export const InstallWriteGitignoreResponderProxy = (): {
@@ -12,7 +12,7 @@ export const InstallWriteGitignoreResponderProxy = (): {
   getWrittenPath: (params: { filePath: FilePath }) => unknown;
 } => {
   const readProxy = readFileProxy();
-  const writeProxy = fsWriteFileAdapterProxy();
+  const writeProxy = writeFileProxy();
 
   return {
     callResponder: InstallWriteGitignoreResponder,
@@ -25,16 +25,16 @@ export const InstallWriteGitignoreResponderProxy = (): {
       content: string;
     }): void => {
       readProxy.returns({ path: filePath, contents: content });
-      writeProxy.succeeds({ filePath });
+      writeProxy.succeeds({ path: filePath });
     },
 
     setupReadFileThrows: ({ filePath }: { filePath: FilePath }): void => {
       readProxy.missing({ path: filePath });
-      writeProxy.succeeds({ filePath });
+      writeProxy.succeeds({ path: filePath });
     },
 
     getWrittenContent: ({ filePath }: { filePath: FilePath }): unknown =>
-      writeProxy.getWrittenContent({ filePath }),
+      writeProxy.writtenContentsFor({ path: filePath }),
 
     // Trivial echo of the known address — the write having actually landed there is proven by
     // getWrittenContent returning a value; a caller that only wants the path back doesn't need

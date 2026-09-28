@@ -29,6 +29,10 @@ describe('storageSaveBroker', () => {
       await expect(storageSaveBroker({ rootPath, wardResult })).resolves.toStrictEqual({
         success: true,
       });
+
+      expect(proxy.getWrittenContent({ rootPath, runId: wardResult.runId })).toBe(
+        JSON.stringify(wardResult),
+      );
     });
   });
 
@@ -64,15 +68,9 @@ describe('storageSaveBroker', () => {
       const wardResult = failingWardResult();
 
       const proxy = storageSaveBrokerProxy();
-      proxy.setupWriteFail({
-        rootPath,
-        runId: wardResult.runId,
-        error: new Error('ENOSPC: no space left'),
-      });
+      proxy.setupWriteFail({ rootPath, runId: wardResult.runId });
 
-      await expect(storageSaveBroker({ rootPath, wardResult })).rejects.toThrow(
-        /ENOSPC: no space left/u,
-      );
+      await expect(storageSaveBroker({ rootPath, wardResult })).rejects.toThrow(/ENOSPC: write/u);
     });
   });
 });

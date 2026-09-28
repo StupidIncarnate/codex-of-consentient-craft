@@ -51,7 +51,7 @@ import { openHandleReportStatics } from '../../../statics/open-handle-report/ope
 import { binResolveBroker } from '../../bin/resolve/bin-resolve-broker';
 import { sourceConditionSupportedBroker } from '../../source-condition/supported/source-condition-supported-broker';
 import { globDiscoverFilesBroker } from '../../glob/discover-files/glob-discover-files-broker';
-import { osTmpdirAdapter } from '../../../adapters/os/tmpdir/os-tmpdir-adapter';
+import { tmpdirFindBroker } from '../../tmpdir/find/tmpdir-find-broker';
 
 export const checkRunUnitBroker = async ({
   projectFolder,
@@ -194,7 +194,7 @@ export const checkRunUnitBroker = async ({
   // file left in the repo by a killed run becomes a file the next run tries to lint.
   const wantsTimerWatch = !finalArgs.includes('--detectOpenHandles');
   const handleReportPath = openHandleReportPathTransformer({
-    tmpdir: osTmpdirAdapter(),
+    tmpdir: tmpdirFindBroker(),
     checkType: 'unit',
     processId: process.pid,
   });

@@ -1,22 +1,22 @@
-import { osTmpdirAdapter } from './os-tmpdir-adapter';
-import { osTmpdirAdapterProxy } from './os-tmpdir-adapter.proxy';
+import { tmpdirFindBroker } from './tmpdir-find-broker';
+import { tmpdirFindBrokerProxy } from './tmpdir-find-broker.proxy';
 
-describe('osTmpdirAdapter', () => {
+describe('tmpdirFindBroker', () => {
   describe('the path it answers with', () => {
     it('VALID: {os reports /tmp} => returns /tmp', () => {
-      const proxy = osTmpdirAdapterProxy();
+      const proxy = tmpdirFindBrokerProxy();
       proxy.returns({ path: '/tmp' });
 
-      const result = osTmpdirAdapter();
+      const result = tmpdirFindBroker();
 
       expect(result).toBe('/tmp');
     });
 
     it('VALID: {os reports a per-user scratch dir} => returns that path', () => {
-      const proxy = osTmpdirAdapterProxy();
+      const proxy = tmpdirFindBrokerProxy();
       proxy.returns({ path: '/var/folders/9k/T' });
 
-      const result = osTmpdirAdapter();
+      const result = tmpdirFindBroker();
 
       expect(result).toBe('/var/folders/9k/T');
     });
@@ -24,10 +24,10 @@ describe('osTmpdirAdapter', () => {
 
   describe('what it rejects', () => {
     it('INVALID: {os reports a relative path} => throws', () => {
-      const proxy = osTmpdirAdapterProxy();
+      const proxy = tmpdirFindBrokerProxy();
       proxy.returns({ path: 'tmp' });
 
-      expect(() => osTmpdirAdapter()).toThrow(/absolute/u);
+      expect(() => tmpdirFindBroker()).toThrow(/absolute/u);
     });
   });
 });

@@ -4,17 +4,17 @@
  * namespace import, or a bare side-effect import, since none of those name which bindings are used.
  *
  * USAGE:
- * importDependencyFromDeclarationLayerAdapter({ node: someImportDeclaration });
+ * importDependencyFromDeclarationLayerTransformer({ node: someImportDeclaration });
  * // Returns: { specifier: 'x', kind: 'named', importedNames: ['a', 'b'] } or undefined for a non-string-literal specifier
  */
 
-import * as ts from 'typescript';
+import * as ts from '#gateway/npm/typescript';
 import {
   moduleDependencyContract,
   type ModuleDependency,
-} from '../../../contracts/module-dependency/module-dependency-contract';
+} from '../../contracts/module-dependency/module-dependency-contract';
 
-export const importDependencyFromDeclarationLayerAdapter = ({
+export const importDependencyFromDeclarationLayerTransformer = ({
   node,
 }: {
   node: ts.ImportDeclaration;

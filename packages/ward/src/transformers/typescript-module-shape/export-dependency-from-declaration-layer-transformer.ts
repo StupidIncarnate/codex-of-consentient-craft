@@ -5,17 +5,17 @@
  * nothing specific).
  *
  * USAGE:
- * exportDependencyFromDeclarationLayerAdapter({ node: someExportDeclaration });
+ * exportDependencyFromDeclarationLayerTransformer({ node: someExportDeclaration });
  * // Returns: { specifier: 'x', kind: 'star', importedNames: [] } or undefined for a non-string-literal specifier
  */
 
-import * as ts from 'typescript';
+import * as ts from '#gateway/npm/typescript';
 import {
   moduleDependencyContract,
   type ModuleDependency,
-} from '../../../contracts/module-dependency/module-dependency-contract';
+} from '../../contracts/module-dependency/module-dependency-contract';
 
-export const exportDependencyFromDeclarationLayerAdapter = ({
+export const exportDependencyFromDeclarationLayerTransformer = ({
   node,
 }: {
   node: ts.ExportDeclaration;

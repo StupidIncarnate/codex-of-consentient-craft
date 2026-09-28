@@ -11,7 +11,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import { globDiscoverFilesBrokerProxy } from '../../glob/discover-files/glob-discover-files-broker.proxy';
-import { osTmpdirAdapterProxy } from '../../../adapters/os/tmpdir/os-tmpdir-adapter.proxy';
+import { tmpdirFindBrokerProxy } from '../../tmpdir/find/tmpdir-find-broker.proxy';
 import { openHandleReportPathTransformer } from '../../../transformers/open-handle-report-path/open-handle-report-path-transformer';
 import { openHandleReportStatics } from '../../../statics/open-handle-report/open-handle-report-statics';
 import { jestDiscoverPatternsTransformer } from '../../../transformers/jest-discover-patterns/jest-discover-patterns-transformer';
@@ -60,7 +60,7 @@ export const checkRunIntegrationBrokerProxy = (): {
   });
   // The broker asks the OS for a scratch dir, then reads and deletes the report jest appended to it.
   // Default: an empty report, so a test that says nothing about leaks gets none.
-  const tmpdirProxy = osTmpdirAdapterProxy();
+  const tmpdirProxy = tmpdirFindBrokerProxy();
   tmpdirProxy.returns({ path: '/tmp' });
   const handleReportPath = openHandleReportPathTransformer({
     tmpdir: AbsoluteFilePathStub({ value: '/tmp' }),

@@ -1,7 +1,7 @@
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { FilePathStub, type FilePath } from '@dungeonmaster/shared/contracts';
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
-import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
+import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 import { InstallWriteScriptsResponder } from './install-write-scripts-responder';
 
 export const InstallWriteScriptsResponderProxy = (): {
@@ -14,7 +14,7 @@ export const InstallWriteScriptsResponderProxy = (): {
 } => {
   const existsProxy = existsSyncProxy();
   const readProxy = readFileProxy();
-  const writeProxy = fsWriteFileAdapterProxy();
+  const writeProxy = writeFileProxy();
 
   // Every test in this file targets targetProjectRoot '/project', so the resolved package.json
   // path is the same for every scenario.
@@ -39,11 +39,11 @@ export const InstallWriteScriptsResponderProxy = (): {
       content: string;
     }): void => {
       readProxy.returns({ path: filePath, contents: content });
-      writeProxy.succeeds({ filePath });
+      writeProxy.succeeds({ path: filePath });
     },
 
     getWrittenContent: ({ filePath }: { filePath: FilePath }): unknown =>
-      writeProxy.getWrittenContent({ filePath }),
+      writeProxy.writtenContentsFor({ path: filePath }),
 
     // Trivial echo of the known address — the write having actually landed there is proven by
     // getWrittenContent returning a value; a caller that only wants the path back doesn't need

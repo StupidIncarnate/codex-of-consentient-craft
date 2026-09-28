@@ -5,23 +5,23 @@
  * declares no export at all.
  *
  * USAGE:
- * localExportNamesFromStatementLayerAdapter({ node: someExportedVariableStatement });
+ * localExportNamesFromStatementLayerTransformer({ node: someExportedVariableStatement });
  * // Returns: ['userFetchBroker']
  */
 
-import * as ts from 'typescript';
+import * as ts from '#gateway/npm/typescript';
 import {
   exportedNameContract,
   type ExportedName,
-} from '../../../contracts/exported-name/exported-name-contract';
-import { hasExportModifierLayerAdapter } from './has-export-modifier-layer-adapter';
+} from '../../contracts/exported-name/exported-name-contract';
+import { hasExportModifierLayerTransformer } from './has-export-modifier-layer-transformer';
 
-export const localExportNamesFromStatementLayerAdapter = ({
+export const localExportNamesFromStatementLayerTransformer = ({
   node,
 }: {
   node: ts.Statement;
 }): readonly ExportedName[] => {
-  if (!hasExportModifierLayerAdapter({ node })) {
+  if (!hasExportModifierLayerTransformer({ node })) {
     if (
       ts.isExportDeclaration(node) &&
       node.moduleSpecifier === undefined &&
