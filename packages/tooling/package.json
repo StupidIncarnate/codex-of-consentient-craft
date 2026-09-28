@@ -19,7 +19,8 @@
     }
   },
   "bin": {
-    "detect-duplicate-primitives": "./dist/bin/detect-duplicate-primitives.js"
+    "detect-duplicate-primitives": "./dist/bin/detect-duplicate-primitives.js",
+    "adapter-census": "./dist/bin/adapter-census.js"
   },
   "files": [
     "dist"
@@ -33,7 +34,8 @@
     "typecheck": "dungeonmaster-ward --only typecheck",
     "lint": "dungeonmaster-ward --only lint",
     "ward": "dungeonmaster-ward",
-    "detect-duplicates": "tsx src/index.ts"
+    "detect-duplicates": "tsx src/index.ts",
+    "adapter-census": "tsx --conditions=source bin/adapter-census.ts"
   },
   "dependencies": {
     "@dungeonmaster/node": "*",
