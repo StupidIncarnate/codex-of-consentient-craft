@@ -1,9 +1,9 @@
 /**
  * PURPOSE: Bans `Date.now()`, `Math.random()` and `crypto.randomUUID()` from ingredient
- * declaration files. The recipe-book specification's whole argument for this rule is that the
- * chain already hands each row its own index, so reaching for one of these three global calls is
- * the only way left to break byte-identical output across two runs of the same plan. Fires on a
- * file matching one of three signals, none of them sufficient alone: `isIngredientDeclarationFileGuard`
+ * declaration files. The chain already hands each row its own index, so reaching for one of these
+ * three global calls is the only way left to break byte-identical output across two runs of the
+ * same plan. Fires on a file matching one of three signals, none of them sufficient alone:
+ * `isIngredientDeclarationFileGuard`
  * (a bare `<name>-ingredient.ts(x)` filename, or this repo's real `<name>-ingredient-broker.ts(x)`
  * inside an `ingredient/` folder of a `*-recipes` package), OR the file itself calling the
  * framework's `ingredient({...})` declaration function anywhere in its body — checked as the file
