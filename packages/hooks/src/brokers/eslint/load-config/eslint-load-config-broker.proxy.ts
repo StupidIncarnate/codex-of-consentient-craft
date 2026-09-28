@@ -8,11 +8,12 @@
 
 import * as eslintGateway from '#gateway/npm/eslint';
 import { ESLint, type Linter } from '#gateway/npm/eslint';
-import { pathResolveAdapterProxy } from '../../../adapters/path/resolve/path-resolve-adapter.proxy';
-import { fsExistsSyncAdapterProxy } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter.proxy';
+import { resolve } from '#gateway/node/path';
+import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { eslintFallbackPathsBrokerProxy } from '../fallback-paths/eslint-fallback-paths-broker.proxy';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { cwd } from '#gateway/node/process';
+import { locationsStatics } from '@dungeonmaster/shared/statics';
 import {
   registerMock,
   registerModuleMock,
@@ -29,9 +30,13 @@ export const eslintLoadConfigBrokerProxy = (): Record<PropertyKey, never> => {
   // the real process.cwd(), so this test's outcome never depends on where jest runs.
   const cwdHandle = registerMock({ fn: cwd });
   cwdHandle.calledWith([]).returns('/default/cwd');
-  const resolveProxy = pathResolveAdapterProxy();
-  fsExistsSyncAdapterProxy();
+  const resolveHandle = registerMock({ fn: resolve });
+  const existsProxy = existsSyncProxy();
   eslintFallbackPathsBrokerProxy();
+
+  for (const configName of locationsStatics.repoRoot.eslintConfig) {
+    existsProxy.returns({ path: configName, exists: false });
+  }
 
   const eslintInstanceReturning = (config: Linter.Config | null): ESLint => {
     const mockCalculateConfigForFile = jest.fn();
@@ -43,14 +48,12 @@ export const eslintLoadConfigBrokerProxy = (): Record<PropertyKey, never> => {
     }) as ESLint;
   };
 
-  // pathResolveAdapterProxy no longer carries a global default (it's argument-addressed now).
   // This broker uses the resolved cwd as a Map cache key across the module-level configCache, so
   // a fixed placeholder here would collapse every test's cwd onto one cache entry and leak
   // results between tests. Restore "return the last segment" — i.e. resolve(cwd) => cwd, and
   // resolve(dir, configName) => configName — locally, scoped to this proxy, so each test's cwd
   // still produces its own cache key.
-  resolveProxy
-    .getHandle()
+  resolveHandle
     .calledWith([])
     .implement((...segments: unknown[]) => segments[segments.length - 1] ?? '');
 

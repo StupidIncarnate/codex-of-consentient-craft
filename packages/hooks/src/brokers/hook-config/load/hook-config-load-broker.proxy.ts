@@ -1,9 +1,10 @@
-import { pathResolveAdapterProxy } from '../../../adapters/path/resolve/path-resolve-adapter.proxy';
+import { resolve } from '#gateway/node/path';
+import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
-import { fsExistsSyncAdapterProxy } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter.proxy';
-import { moduleRequireFreshAdapterProxy } from '../../../adapters/module/require-fresh/module-require-fresh-adapter.proxy';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { hookConfigDefaultBrokerProxy } from '../default/hook-config-default-broker.proxy';
 import { hookConfigMergeBrokerProxy } from '../merge/hook-config-merge-broker.proxy';
+import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 
@@ -12,20 +13,20 @@ export const hookConfigLoadBrokerProxy = (): {
   setupConfigExists: (params: { filePath: FilePath; exists: boolean }) => void;
 } => {
   cwdProxy();
-  const pathProxy = pathResolveAdapterProxy();
-  const fsProxy = fsExistsSyncAdapterProxy();
-  moduleRequireFreshAdapterProxy();
+  const resolveHandle = registerMock({ fn: resolve });
+  const fsProxy = existsSyncProxy();
   hookConfigDefaultBrokerProxy();
   hookConfigMergeBrokerProxy();
 
   // hookConfigLoadBroker resolves every candidate config filename before checking existence.
-  // pathResolveAdapterProxy no longer has a global default, so a candidate a test hasn't
-  // addressed via setupConfigPath would otherwise throw — give every other call a real-ish
-  // placeholder instead (its value only matters for a candidate a test explicitly wires up).
-  pathProxy
-    .getHandle()
-    .calledWith([])
-    .returns(FilePathStub({ value: '/unused/config/path' }));
+  // resolve has an address-less default here because tests don't specify cwd/candidate combinations.
+  const unusedConfigPath = FilePathStub({ value: '/unused/config/path' });
+  resolveHandle.calledWith([]).returns(unusedConfigPath);
+  fsProxy.returns({ path: unusedConfigPath, exists: false });
+
+  for (const filename of locationsStatics.hooks.configFiles) {
+    fsProxy.returns({ path: filename, exists: false });
+  }
 
   return {
     setupConfigPath: ({
@@ -37,10 +38,10 @@ export const hookConfigLoadBrokerProxy = (): {
       filename: string;
       path: FilePath;
     }): void => {
-      pathProxy.returns({ paths: [workingDir, filename], path });
+      resolveHandle.calledWith([workingDir, filename]).returns(path);
     },
     setupConfigExists: ({ filePath, exists }: { filePath: FilePath; exists: boolean }): void => {
-      fsProxy.returns({ filePath, exists });
+      fsProxy.returns({ path: filePath, exists });
     },
   };
 };

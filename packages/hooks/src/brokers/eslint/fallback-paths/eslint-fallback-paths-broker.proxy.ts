@@ -5,7 +5,8 @@
  * const proxy = eslintFallbackPathsBrokerProxy();
  * const paths = eslintFallbackPathsBroker({ cwd: '/project/.test-tmp/foo' });
  */
-import { pathResolveAdapterProxy } from '../../../adapters/path/resolve/path-resolve-adapter.proxy';
+import { resolve } from '#gateway/node/path';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 // Extracted to avoid inline type assertion in broker file
 const segmentToText = (segment: never): [boolean, unknown] => {
@@ -15,10 +16,9 @@ const segmentToText = (segment: never): [boolean, unknown] => {
 };
 
 export const eslintFallbackPathsBrokerProxy = (): Record<PropertyKey, never> => {
-  const resolveProxy = pathResolveAdapterProxy();
+  const handle = registerMock({ fn: resolve });
 
   // Restore real path.resolve behavior since this broker depends on actual path traversal
-  const handle = resolveProxy.getHandle();
   handle.calledWith([]).implement((...segments) => {
     const parts = [] as never[];
     for (const segment of segments) {

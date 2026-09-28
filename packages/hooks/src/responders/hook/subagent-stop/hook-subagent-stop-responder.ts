@@ -10,7 +10,7 @@
 import { execResultContract, type ExecResult } from '@dungeonmaster/shared/contracts';
 import { subagentStopHookDataContract } from '../../../contracts/subagent-stop-hook-data/subagent-stop-hook-data-contract';
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
+import { readFile } from '#gateway/node/fs__promises';
 import { transcriptToolInvocationsExtractTransformer } from '../../../transformers/transcript-tool-invocations-extract/transcript-tool-invocations-extract-transformer';
 import { subagentStopNeedsBlockGuard } from '../../../guards/subagent-stop-needs-block/subagent-stop-needs-block-guard';
 import { hasRunningBackgroundTaskGuard } from '../../../guards/has-running-background-task/has-running-background-task-guard';
@@ -36,7 +36,7 @@ export const HookSubagentStopResponder = async ({
     parseResult.data.agent_transcript_path ?? parseResult.data.transcript_path,
   );
 
-  const transcript = await fsReadFileAdapter({ filePath: transcriptPath }).catch(() => null);
+  const transcript = await readFile(transcriptPath).catch(() => null);
 
   // `background_tasks` is SESSION-wide and names no owner, so the array carries every sibling's,
   // every child's and the top-level session's commands alongside this agent's own. Scoping it to

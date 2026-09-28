@@ -6,7 +6,7 @@
  * // Returns array of LintResult with violations found
  */
 import { ESLint, type Linter } from '#gateway/npm/eslint';
-import { pathResolveAdapter } from '../../../adapters/path/resolve/path-resolve-adapter';
+import { resolve } from '#gateway/node/path';
 import { cwd } from '#gateway/node/process';
 import type { LintResult } from '../../../contracts/lint-result/lint-result-contract';
 import { eslintResultToLintResultTransformer } from '../../../transformers/eslint-result-to-lint-result/eslint-result-to-lint-result-transformer';
@@ -57,7 +57,7 @@ export const eslintLintRunTargetedBroker = async ({
     // - File extension detection (.ts, .tsx, etc.)
     // - Rule pattern matching
     // It doesn't actually read from disk since we're using lintText()
-    const absolutePath = pathResolveAdapter({ paths: [resolvedWorkingDir, filePath] });
+    const absolutePath = resolve(resolvedWorkingDir, filePath);
     let results = await eslint.lintText(content, { filePath: absolutePath });
 
     // If we get any TypeScript project parsing error, try again without project reference.

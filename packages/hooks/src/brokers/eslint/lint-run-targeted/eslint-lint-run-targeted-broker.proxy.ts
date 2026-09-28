@@ -9,7 +9,7 @@
 
 import * as eslintGateway from '#gateway/npm/eslint';
 import { ESLint } from '#gateway/npm/eslint';
-import { pathResolveAdapterProxy } from '../../../adapters/path/resolve/path-resolve-adapter.proxy';
+import { resolve } from '#gateway/node/path';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { cwd } from '#gateway/node/process';
 import {
@@ -40,12 +40,11 @@ export const eslintLintRunTargetedBrokerProxy = (): {
   // the real process.cwd(), so a test built on it never depends on where jest runs.
   const cwdHandle = registerMock({ fn: cwd });
   cwdHandle.calledWith([]).returns('/default/cwd');
-  const resolveProxy = pathResolveAdapterProxy();
+  const resolveHandle = registerMock({ fn: resolve });
 
-  // pathResolveAdapterProxy no longer has a global default (converted to argument-addressed
-  // staging). The resolved absolute path only reaches the already-mocked lintText call, which
+  // The resolved absolute path only reaches the already-mocked lintText call, which
   // this proxy addresses by content, not by filePath — so any non-throwing placeholder is fine.
-  resolveProxy.getHandle().calledWith([]).returns('/resolved/path');
+  resolveHandle.calledWith([]).returns('/resolved/path');
 
   const lintTextHandle = registerSpyOn({
     object: ESLint.prototype,
@@ -74,7 +73,7 @@ export const eslintLintRunTargetedBrokerProxy = (): {
     // so a broker that stops calling cwd() on that branch fails whatever test stages this.
     returnsLintResultsForDefaultCwd: ({ content, filePath, results }): void => {
       const absolutePath = `/default/cwd/resolved/${filePath}`;
-      resolveProxy.getHandle().calledWith(['/default/cwd', filePath]).returns(absolutePath);
+      resolveHandle.calledWith(['/default/cwd', filePath]).returns(absolutePath);
       lintTextHandle.calledWith([content, { filePath: absolutePath }]).resolves(results);
     },
 

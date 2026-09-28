@@ -10,9 +10,9 @@
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import { locationsStatics, mcpToolsStatics } from '@dungeonmaster/shared/statics';
 import { jsonFileContentsTransformer } from '@dungeonmaster/shared/transformers';
-import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
-import { fsEnsureWriteAdapter } from '../../../adapters/fs/ensure-write/fs-ensure-write-adapter';
-import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter';
+import { join } from '#gateway/node/path';
+import { writeFileCreatingParent } from '#gateway/node/fs__promises';
+import { existsSync } from '#gateway/node/fs';
 import { agentsHooksCreatorTransformer } from '../../../transformers/agents-hooks-creator/agents-hooks-creator-transformer';
 import { agentsSkillsCreatorTransformer } from '../../../transformers/agents-skills-creator/agents-skills-creator-transformer';
 import { agentsRulesCreatorTransformer } from '../../../transformers/agents-rules-creator/agents-rules-creator-transformer';
@@ -25,67 +25,45 @@ export const installAgentsSetupBroker = async ({
   targetProjectRoot: FilePath;
 }): Promise<AdapterResult> => {
   // 1. .agents/hooks.json
-  const hooksPath = pathJoinAdapter({
-    paths: [
-      targetProjectRoot,
-      locationsStatics.repoRoot.agents.dir,
-      locationsStatics.repoRoot.agents.hooksJson,
-    ],
-  });
+  const hooksPath = join(
+    targetProjectRoot,
+    locationsStatics.repoRoot.agents.dir,
+    locationsStatics.repoRoot.agents.hooksJson,
+  );
   const hooksConfig = agentsHooksCreatorTransformer();
-  await fsEnsureWriteAdapter({
-    filepath: hooksPath,
-    contents: jsonFileContentsTransformer({ value: hooksConfig }),
-  });
+  await writeFileCreatingParent(hooksPath, jsonFileContentsTransformer({ value: hooksConfig }));
 
   // 2. .agents/skills.json
-  const skillsPath = pathJoinAdapter({
-    paths: [
-      targetProjectRoot,
-      locationsStatics.repoRoot.agents.dir,
-      locationsStatics.repoRoot.agents.skillsJson,
-    ],
-  });
+  const skillsPath = join(
+    targetProjectRoot,
+    locationsStatics.repoRoot.agents.dir,
+    locationsStatics.repoRoot.agents.skillsJson,
+  );
   const skillsConfig = agentsSkillsCreatorTransformer();
-  await fsEnsureWriteAdapter({
-    filepath: skillsPath,
-    contents: jsonFileContentsTransformer({ value: skillsConfig }),
-  });
+  await writeFileCreatingParent(skillsPath, jsonFileContentsTransformer({ value: skillsConfig }));
 
   // 3. .agents/plugins/dungeonmaster/rules/AGENTS.md
-  const rulesPath = pathJoinAdapter({
-    paths: [
-      targetProjectRoot,
-      locationsStatics.repoRoot.agents.dir,
-      locationsStatics.repoRoot.agents.pluginsDir,
-      mcpToolsStatics.server.name,
-      locationsStatics.repoRoot.agents.rulesDir,
-      locationsStatics.repoRoot.agentsMd,
-    ],
-  });
+  const rulesPath = join(
+    targetProjectRoot,
+    locationsStatics.repoRoot.agents.dir,
+    locationsStatics.repoRoot.agents.pluginsDir,
+    mcpToolsStatics.server.name,
+    locationsStatics.repoRoot.agents.rulesDir,
+    locationsStatics.repoRoot.agentsMd,
+  );
   const rulesContent = agentsRulesCreatorTransformer();
-  await fsEnsureWriteAdapter({
-    filepath: rulesPath,
-    contents: rulesContent,
-  });
+  await writeFileCreatingParent(rulesPath, rulesContent);
 
   // 4. AGENTS.md
-  const claudeMdPath = pathJoinAdapter({
-    paths: [targetProjectRoot, locationsStatics.repoRoot.claudeMd],
-  });
-  const agentsMdPath = pathJoinAdapter({
-    paths: [targetProjectRoot, locationsStatics.repoRoot.agentsMd],
-  });
+  const claudeMdPath = join(targetProjectRoot, locationsStatics.repoRoot.claudeMd);
+  const agentsMdPath = join(targetProjectRoot, locationsStatics.repoRoot.agentsMd);
 
-  const claudeMdExists = fsExistsSyncAdapter({ filePath: claudeMdPath });
-  const agentsMdExists = fsExistsSyncAdapter({ filePath: agentsMdPath });
+  const claudeMdExists = existsSync(claudeMdPath);
+  const agentsMdExists = existsSync(agentsMdPath);
 
   if (claudeMdExists && !agentsMdExists) {
     const agentsMdContent = agentsMdCreatorTransformer();
-    await fsEnsureWriteAdapter({
-      filepath: agentsMdPath,
-      contents: agentsMdContent,
-    });
+    await writeFileCreatingParent(agentsMdPath, agentsMdContent);
   }
 
   return { success: true };

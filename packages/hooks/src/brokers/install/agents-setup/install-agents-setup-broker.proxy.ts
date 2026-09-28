@@ -1,11 +1,10 @@
-import type { join } from 'path';
-import { requireActual } from '@dungeonmaster/testing/register-mock';
+import { join } from '#gateway/node/path';
+import { writeFileCreatingParentProxy } from '#gateway/node/fs__promises/write-file-creating-parent/write-file-creating-parent.proxy';
+import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
+import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import { locationsStatics, mcpToolsStatics } from '@dungeonmaster/shared/statics';
-import { pathJoinAdapterProxy } from '../../../adapters/path/join/path-join-adapter.proxy';
-import { fsEnsureWriteAdapterProxy } from '../../../adapters/fs/ensure-write/fs-ensure-write-adapter.proxy';
-import { fsExistsSyncAdapterProxy } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter.proxy';
 import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
-import { FileContentsStub } from '../../../contracts/file-contents/file-contents.stub';
+import type { FileContentsStub } from '../../../contracts/file-contents/file-contents.stub';
 
 type FileContents = ReturnType<typeof FileContentsStub>;
 type FilePath = ReturnType<typeof FilePathStub>;
@@ -16,15 +15,12 @@ export const installAgentsSetupBrokerProxy = (): {
   setupFileExists: (params: { filePath: FilePath; exists: boolean }) => void;
   getWrittenFor: (params: { filepath: FilePath }) => unknown;
 } => {
-  const joinProxy = pathJoinAdapterProxy();
-  const writeProxy = fsEnsureWriteAdapterProxy();
-  const existsProxy = fsExistsSyncAdapterProxy();
+  const joinHandle = registerMock({ fn: join });
+  const writeProxy = writeFileCreatingParentProxy();
+  const existsProxy = existsSyncProxy();
   const { join: realJoin } = requireActual<{ join: typeof join }>({ module: 'path' });
 
-  joinProxy
-    .getHandle()
-    .calledWith([])
-    .implement((...segments) => realJoin(...segments));
+  joinHandle.calledWith([]).implement((...segments) => realJoin(...segments));
 
   const setupSuccess = ({ targetProjectRoot }: { targetProjectRoot: FilePath }): void => {
     const hooksPath = FilePathStub({
@@ -51,31 +47,37 @@ export const installAgentsSetupBrokerProxy = (): {
         locationsStatics.repoRoot.agentsMd,
       ),
     });
+    const claudeMdPath = FilePathStub({
+      value: realJoin(targetProjectRoot, locationsStatics.repoRoot.claudeMd),
+    });
     const agentsMdPath = FilePathStub({
       value: realJoin(targetProjectRoot, locationsStatics.repoRoot.agentsMd),
     });
 
-    writeProxy.succeeds({ filepath: hooksPath, contents: FileContentsStub() });
-    writeProxy.succeeds({ filepath: skillsPath, contents: FileContentsStub() });
-    writeProxy.succeeds({ filepath: rulesPath, contents: FileContentsStub() });
-    writeProxy.succeeds({ filepath: agentsMdPath, contents: FileContentsStub() });
+    writeProxy.succeeds({ path: hooksPath });
+    writeProxy.succeeds({ path: skillsPath });
+    writeProxy.succeeds({ path: rulesPath });
+    writeProxy.succeeds({ path: agentsMdPath });
+
+    existsProxy.returns({ path: claudeMdPath, exists: false });
+    existsProxy.returns({ path: agentsMdPath, exists: false });
   };
 
   return {
     setupSuccess,
     setupWriteSuccess: ({
       filepath,
-      contents,
+      contents: _contents,
     }: {
       filepath: FilePath;
       contents: FileContents;
     }): void => {
-      writeProxy.succeeds({ filepath, contents });
+      writeProxy.succeeds({ path: filepath });
     },
     setupFileExists: ({ filePath, exists }: { filePath: FilePath; exists: boolean }): void => {
-      existsProxy.returns({ filePath, exists });
+      existsProxy.returns({ path: filePath, exists });
     },
     getWrittenFor: ({ filepath }: { filepath: FilePath }): unknown =>
-      writeProxy.getWrittenFor({ filepath }),
+      writeProxy.writtenContentsFor({ path: filepath }),
   };
 };

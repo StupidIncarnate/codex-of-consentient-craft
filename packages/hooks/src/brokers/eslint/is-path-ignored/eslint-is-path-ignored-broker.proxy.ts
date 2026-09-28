@@ -7,7 +7,7 @@
  * const ignored = await eslintIsPathIgnoredBroker({ cwd: '/project', filePath: 'x.ts' });
  */
 import { ESLint } from '#gateway/npm/eslint';
-import { pathResolveAdapterProxy } from '../../../adapters/path/resolve/path-resolve-adapter.proxy';
+import { resolve } from '#gateway/node/path';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { cwd } from '#gateway/node/process';
 import {
@@ -31,14 +31,12 @@ export const eslintIsPathIgnoredBrokerProxy = (): {
   // the real process.cwd(), so a test built on it never depends on where jest runs.
   const cwdHandle = registerMock({ fn: cwd });
   cwdHandle.calledWith([]).returns('/default/cwd');
-  const resolveProxy = pathResolveAdapterProxy();
+  const resolveHandle = registerMock({ fn: resolve });
 
-  // pathResolveAdapterProxy no longer has a global default (converted to argument-addressed
-  // staging), so this broker's own pathResolveAdapter call needs an explicit fallback. Restore
+  // This broker's own resolve call needs an explicit fallback. Restore
   // "return the last segment" — i.e. resolve(cwd, filePath) => filePath — locally, scoped to this
   // proxy, so the raw filePath the broker was called with is what isPathIgnored actually receives.
-  resolveProxy
-    .getHandle()
+  resolveHandle
     .calledWith([])
     .implement((...segments: unknown[]) => segments[segments.length - 1] ?? '');
 
@@ -60,10 +58,7 @@ export const eslintIsPathIgnoredBrokerProxy = (): {
     // whatever test stages this.
     setIgnoredForDefaultCwd: ({ filePath, ignored }): void => {
       const resolvedForDefaultCwd = `/default/cwd/resolved/${filePath}`;
-      resolveProxy
-        .getHandle()
-        .calledWith(['/default/cwd', filePath])
-        .returns(resolvedForDefaultCwd);
+      resolveHandle.calledWith(['/default/cwd', filePath]).returns(resolvedForDefaultCwd);
       isPathIgnoredHandle.calledWith([resolvedForDefaultCwd]).resolves(ignored);
     },
   };

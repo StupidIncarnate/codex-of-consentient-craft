@@ -55,7 +55,10 @@ describe('transcriptResolveForHookBroker', () => {
       const proxy = transcriptResolveForHookBrokerProxy();
       const transcriptPath = '/home/user/.claude/projects/-repo/session789.jsonl';
       const agentId = 'xyz789';
+      const firstCandidate =
+        '/home/user/.claude/projects/-repo/session789/subagents/agent-xyz789.jsonl';
       const laterCandidate = '/home/user/.claude/projects/-repo/agent-xyz789.jsonl';
+      proxy.setupExists({ path: firstCandidate, exists: false });
       proxy.setupExists({ path: laterCandidate, exists: true });
 
       const result = transcriptResolveForHookBroker({ transcriptPath, agentId });
@@ -67,6 +70,14 @@ describe('transcriptResolveForHookBroker', () => {
       const proxy = transcriptResolveForHookBrokerProxy();
       const transcriptPath = '/home/user/.claude/projects/-repo/session999.jsonl';
       const agentId = 'never-fallback';
+      proxy.setupExists({
+        path: '/home/user/.claude/projects/-repo/session999/subagents/agent-never-fallback.jsonl',
+        exists: false,
+      });
+      proxy.setupExists({
+        path: '/home/user/.claude/projects/-repo/agent-never-fallback.jsonl',
+        exists: false,
+      });
       proxy.setupExists({ path: transcriptPath, exists: true });
 
       const result = transcriptResolveForHookBroker({ transcriptPath, agentId });

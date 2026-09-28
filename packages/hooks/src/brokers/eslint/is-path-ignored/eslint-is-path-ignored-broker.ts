@@ -7,7 +7,7 @@
  * // Returns true when the resolved config ignores the file; false on any lookup error
  */
 import { ESLint } from '#gateway/npm/eslint';
-import { pathResolveAdapter } from '../../../adapters/path/resolve/path-resolve-adapter';
+import { resolve } from '#gateway/node/path';
 import { cwd } from '#gateway/node/process';
 
 export const eslintIsPathIgnoredBroker = async ({
@@ -20,7 +20,7 @@ export const eslintIsPathIgnoredBroker = async ({
   try {
     const resolvedWorkingDir = customCwd ?? cwd();
     const eslint = new ESLint({ cwd: resolvedWorkingDir });
-    const absolutePath = pathResolveAdapter({ paths: [resolvedWorkingDir, filePath] });
+    const absolutePath = resolve(resolvedWorkingDir, filePath);
     return await eslint.isPathIgnored(absolutePath);
   } catch {
     // isPathIgnored throws for paths outside cwd; treat as "not ignored" so the hook still lints.

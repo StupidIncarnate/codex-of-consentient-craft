@@ -1,4 +1,4 @@
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
+import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import type { FileContents } from '../../../contracts/file-contents/file-contents-contract';
 import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 
@@ -13,21 +13,24 @@ export const toolInputGetFullContentBrokerProxy = (): {
   setupReadFileNotFound: ({ filePath }: { filePath: FilePath }) => void;
   setupReadFileError: ({ filePath, error }: { filePath: FilePath; error: Error }) => void;
 } => {
-  const fsProxy = fsReadFileAdapterProxy();
+  const fsProxy = readFileProxy();
 
   return {
-    setupReadFileSuccess: ({ filePath, contents }) => {
-      fsProxy.returns({ filePath, contents });
+    setupReadFileSuccess: ({ filePath, contents }): void => {
+      fsProxy.returns({ path: filePath, contents });
     },
 
-    setupReadFileNotFound: ({ filePath }) => {
-      const error = new Error('File not found') as NodeJS.ErrnoException;
-      error.code = 'ENOENT';
-      fsProxy.throws({ filePath, error });
+    setupReadFileNotFound: ({ filePath }): void => {
+      fsProxy.missing({ path: filePath });
     },
 
-    setupReadFileError: ({ filePath, error }) => {
-      fsProxy.throws({ filePath, error });
+    setupReadFileError: ({ filePath, error }): void => {
+      fsProxy.throwsMatchingPath({
+        path: filePath,
+        error: Object.assign(error, {
+          code: (error as NodeJS.ErrnoException).code ?? 'EACCES',
+        }),
+      });
     },
   };
 };

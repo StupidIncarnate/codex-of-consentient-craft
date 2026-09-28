@@ -1,5 +1,4 @@
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
-import { FileContentsStub } from '../../../contracts/file-contents/file-contents.stub';
+import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 
 export const folderDetailWasCalledBrokerProxy = (): {
@@ -12,7 +11,7 @@ export const folderDetailWasCalledBrokerProxy = (): {
   }) => void;
   setupReadError: ({ transcriptFilePath }: { transcriptFilePath: FilePath }) => void;
 } => {
-  const fsProxy = fsReadFileAdapterProxy();
+  const fsProxy = readFileProxy();
 
   return {
     setupTranscript: ({
@@ -23,12 +22,15 @@ export const folderDetailWasCalledBrokerProxy = (): {
       contents: string;
     }): void => {
       fsProxy.returns({
-        filePath: transcriptFilePath,
-        contents: FileContentsStub({ value: contents }),
+        path: transcriptFilePath,
+        contents,
       });
     },
     setupReadError: ({ transcriptFilePath }: { transcriptFilePath: FilePath }): void => {
-      fsProxy.throws({ filePath: transcriptFilePath, error: new Error('read failed') });
+      fsProxy.throwsMatchingPath({
+        path: transcriptFilePath,
+        error: Object.assign(new Error('read failed'), { code: 'EACCES' }),
+      });
     },
   };
 };

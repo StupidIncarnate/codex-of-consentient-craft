@@ -22,8 +22,7 @@ import { askUserQuestionResponseContract } from '@dungeonmaster/shared/contracts
 import { execResultContract, type ExecResult } from '@dungeonmaster/shared/contracts';
 import { postToolUseHookDataContract } from '../../../contracts/post-tool-use-hook-data/post-tool-use-hook-data-contract';
 import { questBySessionResponseContract } from '../../../contracts/quest-by-session-response/quest-by-session-response-contract';
-import { fetchGetWithStatusAdapter } from '../../../adapters/fetch/get-with-status/fetch-get-with-status-adapter';
-import { fetchPatchAdapter } from '../../../adapters/fetch/patch/fetch-patch-adapter';
+import { fetchJson, fetchWithStatus } from '#gateway/node/fetch';
 import { hookExitCodeStatics } from '../../../statics/hook-exit-code/hook-exit-code-statics';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
 import { askQuestionToDesignDecisionsTransformer } from '../../../transformers/ask-question-to-design-decisions/ask-question-to-design-decisions-transformer';
@@ -72,7 +71,7 @@ export const HookPostAskQuestionResponder = async ({
 
   // Connection-level failure (server not running) is silent no-op — this session is not
   // Chaos. Chaos sub-agents only run while the orchestrator+server are alive together.
-  const lookupResult = await fetchGetWithStatusAdapter({ url }).catch((): null => null);
+  const lookupResult = await fetchWithStatus({ url }).catch((): null => null);
   if (lookupResult === null) {
     return okResult;
   }
@@ -92,7 +91,16 @@ export const HookPostAskQuestionResponder = async ({
     });
   }
 
-  const sessionParsed = questBySessionResponseContract.safeParse(lookupResult.body);
+  let parsedBody: unknown = null;
+  if (lookupResult.body.length > 0) {
+    try {
+      parsedBody = JSON.parse(lookupResult.body);
+    } catch {
+      parsedBody = lookupResult.body;
+    }
+  }
+
+  const sessionParsed = questBySessionResponseContract.safeParse(parsedBody);
   if (!sessionParsed.success) {
     const message = `quest lookup at ${url} returned invalid shape: ${sessionParsed.error.message}`;
     process.stderr.write(`[post-ask-question] ${message}\n`);
@@ -121,8 +129,9 @@ export const HookPostAskQuestionResponder = async ({
   }
 
   try {
-    await fetchPatchAdapter({
+    await fetchJson({
       url: `${baseUrl}/api/quests/${String(questId)}`,
+      method: 'PATCH',
       body: { designDecisions },
     });
   } catch (error: unknown) {

@@ -5,9 +5,9 @@
  * const config = hookConfigLoadBroker({ cwd: '/project/path' });
  * // Returns PreEditLintConfig from config file or defaults
  */
-import { pathResolveAdapter } from '../../../adapters/path/resolve/path-resolve-adapter';
-import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter';
-import { moduleRequireFreshAdapter } from '../../../adapters/module/require-fresh/module-require-fresh-adapter';
+import { resolve } from '#gateway/node/path';
+import { existsSync } from '#gateway/node/fs';
+import { createRequire } from '#gateway/node/module';
 import type { PreEditLintConfig } from '../../../contracts/pre-edit-lint-config/pre-edit-lint-config-contract';
 import { hookConfigDefaultBroker } from '../default/hook-config-default-broker';
 import { hookConfigMergeBroker } from '../merge/hook-config-merge-broker';
@@ -16,6 +16,8 @@ import { filePathContract } from '../../../contracts/file-path/file-path-contrac
 import { dungeonmasterHooksConfigContract } from '../../../contracts/dungeonmaster-hooks-config/dungeonmaster-hooks-config-contract';
 import { cwd } from '#gateway/node/process';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
+
+const req = createRequire(__filename);
 
 export const hookConfigLoadBroker = ({
   cwd: cwdParam,
@@ -26,14 +28,13 @@ export const hookConfigLoadBroker = ({
   // Skip the .ts variant (index 0) — require() cannot load TypeScript without a transpiler.
   const configPaths = locationsStatics.hooks.configFiles
     .filter((f) => !f.endsWith('.ts'))
-    .map((filename) => pathResolveAdapter({ paths: [workingDir, filename] }));
+    .map((filename) => resolve(workingDir, filename));
 
   for (const configPath of configPaths) {
-    if (fsExistsSyncAdapter({ filePath: configPath })) {
+    if (existsSync(configPath)) {
       try {
-        const loadedModule: unknown = moduleRequireFreshAdapter({
-          filePath: filePathContract.parse(configPath),
-        });
+        Reflect.deleteProperty(req.cache, configPath);
+        const loadedModule: unknown = req(configPath);
 
         const parseResult = dungeonmasterHooksConfigContract.safeParse(loadedModule);
         if (!parseResult.success) {

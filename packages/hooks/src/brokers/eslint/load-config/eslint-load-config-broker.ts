@@ -6,9 +6,9 @@
  * // Returns config object for the specified file path
  */
 import { ESLint } from '#gateway/npm/eslint';
-import { pathResolveAdapter } from '../../../adapters/path/resolve/path-resolve-adapter';
-import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter';
-import type { FilePath } from '../../../contracts/file-path/file-path-contract';
+import { resolve } from '#gateway/node/path';
+import { existsSync } from '#gateway/node/fs';
+import { filePathContract, type FilePath } from '../../../contracts/file-path/file-path-contract';
 import { hasEslintRulesConfigGuard } from '../../../guards/has-eslint-rules-config/has-eslint-rules-config-guard';
 import { eslintFallbackPathsBroker } from '../fallback-paths/eslint-fallback-paths-broker';
 import { cwd } from '#gateway/node/process';
@@ -28,21 +28,21 @@ export const eslintLoadConfigBroker = async ({
   filePath: string;
 }): Promise<unknown> => {
   const targetCwd = customCwd ?? cwd();
-  const resolvedCwd = pathResolveAdapter({ paths: [targetCwd] });
+  const resolvedCwd = filePathContract.parse(resolve(targetCwd));
 
   let cacheKey: FilePath = resolvedCwd;
   let walkDir: FilePath = resolvedCwd;
   for (let depth = 0; depth < MAX_WALK_UP_DEPTH; depth++) {
     const currentDir = walkDir;
     const candidates = locationsStatics.repoRoot.eslintConfig.map((name) =>
-      pathResolveAdapter({ paths: [currentDir, name] }),
+      filePathContract.parse(resolve(currentDir, name)),
     );
-    const found = candidates.find((candidate) => fsExistsSyncAdapter({ filePath: candidate }));
+    const found = candidates.find((candidate) => existsSync(candidate));
     if (found !== undefined) {
       cacheKey = found;
       break;
     }
-    const parentDir = pathResolveAdapter({ paths: [walkDir, '..'] });
+    const parentDir = filePathContract.parse(resolve(walkDir, '..'));
     if (parentDir === walkDir) {
       break;
     }

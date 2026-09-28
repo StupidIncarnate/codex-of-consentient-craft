@@ -1,14 +1,13 @@
-import { fsExistsSyncAdapterProxy } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter.proxy';
-import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
+import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 
 export const transcriptResolveForHookBrokerProxy = (): {
   setupExists: ({ path, exists }: { path: string; exists: boolean }) => void;
 } => {
-  const fsProxy = fsExistsSyncAdapterProxy();
+  const fsProxy = existsSyncProxy();
 
   return {
     setupExists: ({ path, exists }: { path: string; exists: boolean }): void => {
-      fsProxy.returns({ filePath: FilePathStub({ value: path }), exists });
+      fsProxy.returns({ path, exists });
     },
   };
 };

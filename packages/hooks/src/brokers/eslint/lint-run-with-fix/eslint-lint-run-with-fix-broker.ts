@@ -5,9 +5,9 @@
  * const results = await eslintLintRunWithFixBroker({ filePath: '/path/file.ts', config: eslintConfig, cwd: '/project' });
  * // Returns array of LintResult with only error-level violations after auto-fixing
  */
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
+import { readFile } from '#gateway/node/fs__promises';
 import { ESLint } from '#gateway/npm/eslint';
-import { pathResolveAdapter } from '../../../adapters/path/resolve/path-resolve-adapter';
+import { resolve } from '#gateway/node/path';
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import { cwd } from '#gateway/node/process';
 import type { LintResult } from '../../../contracts/lint-result/lint-result-contract';
@@ -40,13 +40,13 @@ export const eslintLintRunWithFixBroker = async ({
   try {
     const resolvedWorkingDir = customCwd ?? cwd();
     // Ensure we have an absolute path for ESLint
-    const absolutePath = pathResolveAdapter({ paths: [resolvedWorkingDir, filePath] });
+    const absolutePath = resolve(resolvedWorkingDir, filePath);
     const absoluteFilePath = filePathContract.parse(absolutePath);
 
     // Verify file is readable before linting (prevents race condition with file writes)
     // This ensures the file system has flushed any pending writes before ESLint reads it
     try {
-      await fsReadFileAdapter({ filePath: absoluteFilePath });
+      await readFile(absoluteFilePath);
     } catch (_readError) {
       // File not readable yet - continue anyway, ESLint will handle if still unavailable
     }

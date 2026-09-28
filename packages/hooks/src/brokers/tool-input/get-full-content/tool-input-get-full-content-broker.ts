@@ -5,11 +5,10 @@
  * const newContent = await toolInputGetFullContentBroker({ toolInput: editToolInput });
  * // Returns full file content string after applying edits, or null if not applicable
  */
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
+import { readFile } from '#gateway/node/fs__promises';
 import type { ToolInput } from '../../../contracts/tool-input/tool-input-contract';
 import { regexEscapeTransformer } from '../../../transformers/regex-escape/regex-escape-transformer';
 import { isNodeErrorContract } from '../../../contracts/is-node-error/is-node-error-contract';
-import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import { fileContentsContract } from '../../../contracts/file-contents/file-contents-contract';
 import type { FileContents } from '../../../contracts/file-contents/file-contents-contract';
 import { multiEditToolInputContract } from '../../../contracts/multi-edit-tool-input/multi-edit-tool-input-contract';
@@ -31,8 +30,9 @@ export const toolInputGetFullContentBroker = async ({
   }
 
   // Read file content - return null if file doesn't exist
-  const readResult = await fsReadFileAdapter({ filePath: filePathContract.parse(filePath) }).catch(
-    (error: unknown) => {
+  const readResult = await readFile(filePath)
+    .then((contents) => fileContentsContract.parse(contents))
+    .catch((error: unknown) => {
       const isNodeError = isNodeErrorContract({ error });
       if (isNodeError) {
         const nodeError = error as NodeJS.ErrnoException;
@@ -41,8 +41,7 @@ export const toolInputGetFullContentBroker = async ({
         }
       }
       throw error;
-    },
-  );
+    });
 
   if (readResult === null) {
     return null;

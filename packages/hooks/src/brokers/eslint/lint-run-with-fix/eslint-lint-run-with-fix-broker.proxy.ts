@@ -8,8 +8,8 @@
  */
 
 import { ESLint } from '#gateway/npm/eslint';
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
-import { pathResolveAdapterProxy } from '../../../adapters/path/resolve/path-resolve-adapter.proxy';
+import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
+import { resolve } from '#gateway/node/path';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { cwd } from '#gateway/node/process';
 import {
@@ -30,15 +30,13 @@ export const eslintLintRunWithFixBrokerProxy = (): {
   // the real process.cwd(), so a test built on it never depends on where jest runs.
   const cwdHandle = registerMock({ fn: cwd });
   cwdHandle.calledWith([]).returns('/default/cwd');
-  fsReadFileAdapterProxy();
-  const resolveProxy = pathResolveAdapterProxy();
+  readFileProxy();
+  const resolveHandle = registerMock({ fn: resolve });
 
-  // pathResolveAdapterProxy no longer carries a global default (it's argument-addressed now), so
-  // this broker's own pathResolveAdapter call needs an explicit fallback. Restore "return the
+  // This broker's own resolve call needs an explicit fallback. Restore "return the
   // last segment" — i.e. resolve(cwd, filePath) => filePath — locally, scoped to this proxy, so
   // the raw filePath the broker was called with is what lintFiles actually receives.
-  resolveProxy
-    .getHandle()
+  resolveHandle
     .calledWith([])
     .implement((...segments: unknown[]) => segments[segments.length - 1] ?? '');
 
@@ -67,7 +65,7 @@ export const eslintLintRunWithFixBrokerProxy = (): {
     // this.
     returnsLintResultsForDefaultCwd: ({ filePath, results }): void => {
       const absolutePath = `/default/cwd/resolved/${filePath}`;
-      resolveProxy.getHandle().calledWith(['/default/cwd', filePath]).returns(absolutePath);
+      resolveHandle.calledWith(['/default/cwd', filePath]).returns(absolutePath);
       lintFilesHandle.calledWith([[absolutePath]]).resolves(results);
       outputFixesHandle.calledWith([results]).resolves(undefined);
     },

@@ -11,7 +11,7 @@
  */
 import { safeJsonParseTransformer } from '@dungeonmaster/shared/transformers';
 import type { FolderType } from '@dungeonmaster/shared/contracts';
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
+import { readFile } from '#gateway/node/fs__promises';
 import { transcriptLineContract } from '../../../contracts/transcript-line/transcript-line-contract';
 import { toolInputParamNameContract } from '../../../contracts/tool-input-param-name/tool-input-param-name-contract';
 import { folderDetailCallLookupContract } from '../../../contracts/folder-detail-call-lookup/folder-detail-call-lookup-contract';
@@ -30,7 +30,7 @@ export const folderDetailWasCalledBroker = async ({
   transcriptFilePath: FilePath;
   folderType: FolderType;
 }): Promise<FolderDetailCallLookup> => {
-  const transcript = await fsReadFileAdapter({ filePath: transcriptFilePath }).catch(() => null);
+  const transcript = await readFile(transcriptFilePath).catch((): null => null);
 
   if (transcript === null) {
     return folderDetailCallLookupContract.parse('undetermined');

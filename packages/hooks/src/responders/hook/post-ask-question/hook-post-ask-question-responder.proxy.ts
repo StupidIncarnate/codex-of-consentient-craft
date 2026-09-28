@@ -12,8 +12,8 @@ import { environmentStatics } from '@dungeonmaster/shared/statics';
 import { portResolveBrokerProxy } from '@dungeonmaster/shared/testing';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
-import { fetchGetWithStatusAdapterProxy } from '../../../adapters/fetch/get-with-status/fetch-get-with-status-adapter.proxy';
-import { fetchPatchAdapterProxy } from '../../../adapters/fetch/patch/fetch-patch-adapter.proxy';
+import { fetchWithStatusProxy } from '#gateway/node/fetch/fetch-with-status/fetch-with-status.proxy';
+import { fetchJsonProxy } from '#gateway/node/fetch/fetch-json/fetch-json.proxy';
 
 const DEFAULT_NOW_MS = 0;
 const MOCK_PORT = '3737';
@@ -51,8 +51,8 @@ export const HookPostAskQuestionResponderProxy = (): {
   // Child proxies required by enforce-proxy-child-creation; they no longer stage any behaviour
   // of their own (each mocked call must now be described explicitly), so they contribute nothing
   // to the shared fetch spy below — only the direct registration in this file stages responses.
-  fetchGetWithStatusAdapterProxy();
-  fetchPatchAdapterProxy();
+  fetchWithStatusProxy();
+  fetchJsonProxy();
 
   const fetchHandle = registerSpyOn({ object: globalThis, method: 'fetch' });
 
@@ -76,7 +76,7 @@ export const HookPostAskQuestionResponderProxy = (): {
         .resolves(buildResponse({ ok: true, status: 200, bodyText: JSON.stringify({ questId }) }));
       fetchHandle
         .calledWith([patchUrl])
-        .resolves(buildResponse({ ok: true, status: 200, bodyText: '' }));
+        .resolves(buildResponse({ ok: true, status: 200, bodyText: '{}' }));
     },
     setupQuestNotFound: ({ sessionId }: { sessionId: string }): void => {
       const lookupUrl = `${MOCK_BASE_URL}/api/quests/by-session/${sessionId}`;

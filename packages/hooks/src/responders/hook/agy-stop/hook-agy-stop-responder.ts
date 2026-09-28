@@ -8,7 +8,7 @@
  * // Returns AgyStopDecision indicating continue or stop
  */
 
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
+import { readFile } from '#gateway/node/fs__promises';
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import { agyTranscriptToolInvocationsExtractTransformer } from '../../../transformers/agy-transcript-tool-invocations-extract/agy-transcript-tool-invocations-extract-transformer';
 import { subagentStopNeedsBlockGuard } from '../../../guards/subagent-stop-needs-block/subagent-stop-needs-block-guard';
@@ -42,9 +42,7 @@ export const HookAgyStopResponder = async ({
     return agyStopDecisionContract.parse({ decision: 'stop' });
   }
 
-  const transcript = await fsReadFileAdapter({
-    filePath: filePathContract.parse(transcriptPath),
-  }).catch(() => null);
+  const transcript = await readFile(filePathContract.parse(transcriptPath)).catch(() => null);
 
   if (transcript === null) {
     if (fullyIdle === false) {

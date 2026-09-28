@@ -131,3 +131,87 @@ Files to edit (12):
 Composing proxies verified:
 - `packages/hooks/src/brokers/violations/check-new/violations-check-new-broker.proxy.ts`
 - `packages/hooks/src/brokers/violations/fix-and-report/violations-fix-and-report-broker.proxy.ts`
+
+### G-K2
+
+Scope: Group G-K2 (batches B and C) — migrate fetch, fs, module, and path adapter callers to `#gateway/*` and delete the eight adapters.
+
+Files to delete (24):
+- `packages/hooks/src/adapters/fetch/get-with-status/fetch-get-with-status-adapter.ts`
+- `packages/hooks/src/adapters/fetch/get-with-status/fetch-get-with-status-adapter.proxy.ts`
+- `packages/hooks/src/adapters/fetch/get-with-status/fetch-get-with-status-adapter.test.ts`
+- `packages/hooks/src/adapters/fetch/patch/fetch-patch-adapter.ts`
+- `packages/hooks/src/adapters/fetch/patch/fetch-patch-adapter.proxy.ts`
+- `packages/hooks/src/adapters/fetch/patch/fetch-patch-adapter.test.ts`
+- `packages/hooks/src/adapters/fs/ensure-write/fs-ensure-write-adapter.ts`
+- `packages/hooks/src/adapters/fs/ensure-write/fs-ensure-write-adapter.proxy.ts`
+- `packages/hooks/src/adapters/fs/ensure-write/fs-ensure-write-adapter.test.ts`
+- `packages/hooks/src/adapters/fs/exists-sync/fs-exists-sync-adapter.ts`
+- `packages/hooks/src/adapters/fs/exists-sync/fs-exists-sync-adapter.proxy.ts`
+- `packages/hooks/src/adapters/fs/exists-sync/fs-exists-sync-adapter.test.ts`
+- `packages/hooks/src/adapters/fs/read-file/fs-read-file-adapter.ts`
+- `packages/hooks/src/adapters/fs/read-file/fs-read-file-adapter.proxy.ts`
+- `packages/hooks/src/adapters/fs/read-file/fs-read-file-adapter.test.ts`
+- `packages/hooks/src/adapters/module/require-fresh/module-require-fresh-adapter.ts`
+- `packages/hooks/src/adapters/module/require-fresh/module-require-fresh-adapter.proxy.ts`
+- `packages/hooks/src/adapters/module/require-fresh/module-require-fresh-adapter.test.ts`
+- `packages/hooks/src/adapters/path/join/path-join-adapter.ts`
+- `packages/hooks/src/adapters/path/join/path-join-adapter.proxy.ts`
+- `packages/hooks/src/adapters/path/join/path-join-adapter.test.ts`
+- `packages/hooks/src/adapters/path/resolve/path-resolve-adapter.ts`
+- `packages/hooks/src/adapters/path/resolve/path-resolve-adapter.proxy.ts`
+- `packages/hooks/src/adapters/path/resolve/path-resolve-adapter.test.ts`
+
+Files to edit (28):
+- `packages/hooks/src/responders/hook/post-ask-question/hook-post-ask-question-responder.ts`
+- `packages/hooks/src/responders/hook/post-ask-question/hook-post-ask-question-responder.proxy.ts`
+- `packages/hooks/src/brokers/install/agents-setup/install-agents-setup-broker.ts`
+- `packages/hooks/src/brokers/install/agents-setup/install-agents-setup-broker.proxy.ts`
+- `packages/hooks/src/brokers/eslint/load-config/eslint-load-config-broker.ts`
+- `packages/hooks/src/brokers/eslint/load-config/eslint-load-config-broker.proxy.ts`
+- `packages/hooks/src/brokers/hook-config/load/hook-config-load-broker.ts`
+- `packages/hooks/src/brokers/hook-config/load/hook-config-load-broker.proxy.ts`
+- `packages/hooks/src/brokers/transcript/resolve-for-hook/transcript-resolve-for-hook-broker.ts`
+- `packages/hooks/src/brokers/transcript/resolve-for-hook/transcript-resolve-for-hook-broker.proxy.ts`
+- `packages/hooks/src/brokers/eslint/lint-run-with-fix/eslint-lint-run-with-fix-broker.ts`
+- `packages/hooks/src/brokers/eslint/lint-run-with-fix/eslint-lint-run-with-fix-broker.proxy.ts`
+- `packages/hooks/src/brokers/file/read-or-empty/file-read-or-empty-broker.ts`
+- `packages/hooks/src/brokers/file/read-or-empty/file-read-or-empty-broker.proxy.ts`
+- `packages/hooks/src/brokers/folder-detail/was-called/folder-detail-was-called-broker.ts`
+- `packages/hooks/src/brokers/folder-detail/was-called/folder-detail-was-called-broker.proxy.ts`
+- `packages/hooks/src/brokers/tool-input/get-full-content/tool-input-get-full-content-broker.ts`
+- `packages/hooks/src/brokers/tool-input/get-full-content/tool-input-get-full-content-broker.proxy.ts`
+- `packages/hooks/src/responders/hook/agy-stop/hook-agy-stop-responder.ts`
+- `packages/hooks/src/responders/hook/agy-stop/hook-agy-stop-responder.proxy.ts`
+- `packages/hooks/src/responders/hook/subagent-stop/hook-subagent-stop-responder.ts`
+- `packages/hooks/src/responders/hook/subagent-stop/hook-subagent-stop-responder.proxy.ts`
+- `packages/hooks/src/brokers/eslint/fallback-paths/eslint-fallback-paths-broker.ts`
+- `packages/hooks/src/brokers/eslint/fallback-paths/eslint-fallback-paths-broker.proxy.ts`
+- `packages/hooks/src/brokers/eslint/is-path-ignored/eslint-is-path-ignored-broker.ts`
+- `packages/hooks/src/brokers/eslint/is-path-ignored/eslint-is-path-ignored-broker.proxy.ts`
+- `packages/hooks/src/brokers/eslint/lint-run-targeted/eslint-lint-run-targeted-broker.ts`
+- `packages/hooks/src/brokers/eslint/lint-run-targeted/eslint-lint-run-targeted-broker.proxy.ts`
+
+Tests to verify (14):
+- `packages/hooks/src/responders/hook/post-ask-question/hook-post-ask-question-responder.test.ts`
+- `packages/hooks/src/brokers/install/agents-setup/install-agents-setup-broker.test.ts`
+- `packages/hooks/src/brokers/eslint/load-config/eslint-load-config-broker.test.ts`
+- `packages/hooks/src/brokers/hook-config/load/hook-config-load-broker.test.ts`
+- `packages/hooks/src/brokers/transcript/resolve-for-hook/transcript-resolve-for-hook-broker.test.ts`
+- `packages/hooks/src/brokers/eslint/lint-run-with-fix/eslint-lint-run-with-fix-broker.test.ts`
+- `packages/hooks/src/brokers/file/read-or-empty/file-read-or-empty-broker.test.ts`
+- `packages/hooks/src/brokers/folder-detail/was-called/folder-detail-was-called-broker.test.ts`
+- `packages/hooks/src/brokers/tool-input/get-full-content/tool-input-get-full-content-broker.test.ts`
+- `packages/hooks/src/responders/hook/agy-stop/hook-agy-stop-responder.test.ts`
+- `packages/hooks/src/responders/hook/subagent-stop/hook-subagent-stop-responder.test.ts`
+- `packages/hooks/src/brokers/eslint/fallback-paths/eslint-fallback-paths-broker.test.ts`
+- `packages/hooks/src/brokers/eslint/is-path-ignored/eslint-is-path-ignored-broker.test.ts`
+- `packages/hooks/src/brokers/eslint/lint-run-targeted/eslint-lint-run-targeted-broker.test.ts`
+
+Composing proxies verified:
+- `packages/hooks/src/responders/install/create-settings/install-create-settings-responder.proxy.ts`
+- `packages/hooks/src/responders/hook/pre-folder-detail/hook-pre-folder-detail-responder.proxy.ts`
+- `packages/hooks/src/brokers/tool-input/get-content-changes/tool-input-get-content-changes-broker.proxy.ts`
+- `packages/hooks/src/brokers/violations/check-new/violations-check-new-broker.proxy.ts`
+- `packages/hooks/src/brokers/violations/fix-and-report/violations-fix-and-report-broker.proxy.ts`
+
