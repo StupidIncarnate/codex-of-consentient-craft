@@ -137,6 +137,11 @@ describe('createPackageResolveRequestBroker', () => {
         description: 'Custom description',
         packagesDir: 'packages',
       });
+      expect(proxy.getPromptsAsked()).toStrictEqual([
+        'Package name: ',
+        'Package type: ',
+        'Description: ',
+      ]);
     });
 
     it('EMPTY: {packageType answer: ""} => lands on the default packageType "library"', async () => {
@@ -158,6 +163,7 @@ describe('createPackageResolveRequestBroker', () => {
         description: 'A widget package',
         packagesDir: 'packages',
       });
+      expect(proxy.getPromptsAsked()).toStrictEqual(['Package type: ']);
     });
 
     it('INVALID: {name answer: "@gateway/foo"} => refuses the @gateway scope and points at the session snippet', async () => {
@@ -171,6 +177,7 @@ describe('createPackageResolveRequestBroker', () => {
       ).rejects.toThrow(
         /^create-package does not scaffold a package under the @gateway scope: a gateway wrapper is not a create-package-scaffolded package\. See the session snippet for adding an npm or bin gateway wrapper\.$/u,
       );
+      expect(proxy.getPromptsAsked()).toStrictEqual(['Package name: ']);
     });
 
     it('EMPTY: {name answer: ""} => throws because the name is still empty', async () => {
@@ -182,6 +189,7 @@ describe('createPackageResolveRequestBroker', () => {
       await expect(
         createPackageResolveRequestBroker({ args, scope, interactive: true }),
       ).rejects.toThrow(/^Package name is required\.$/u);
+      expect(proxy.getPromptsAsked()).toStrictEqual(['Package name: ']);
     });
 
     it('INVALID: {packageType answer: "not-a-real-type"} => throws listing every valid packageType', async () => {
@@ -203,6 +211,7 @@ describe('createPackageResolveRequestBroker', () => {
           'u',
         ),
       );
+      expect(proxy.getPromptsAsked()).toStrictEqual(['Package type: ']);
     });
   });
 });

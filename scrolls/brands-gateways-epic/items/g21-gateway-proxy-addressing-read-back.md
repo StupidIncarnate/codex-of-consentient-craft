@@ -159,3 +159,34 @@ Composing packages to re-run unit tests for (not edited): `cli`, `hydration-reci
 ## Concessions made while executing
 
 <Empty at the start. The operator fills this and mirrors it into EPIC.md's Concessions table.>
+
+## Plan — F46
+
+Follow-up F46: Two `@gateway/node` proxies stage nothing and read nothing back (`readline`'s `questionProxy` and `child_process`'s `runFireAndForgetProxy`). Give both a staging method and a read-back, then move cli's two callers/proxies onto them.
+
+Files to edit:
+- `packages/@gateway/node/src/readline/question/question.proxy.ts` — implement `answers({ prompt, answer })` keyed by prompt text, and `getPromptsAsked()` / `getCallsFor()` read-back
+- `packages/@gateway/node/src/readline/question/question.test.ts` — cover `answers` staging (trimmed answer, empty/whitespace fallback) and read-back
+- `packages/@gateway/node/src/readline/question/question.ts` — unmodified; questionProxy handles input stream cleanup on close without altering production code
+- `packages/@gateway/node/src/child_process/run-fire-and-forget/run-fire-and-forget.proxy.ts` — add `getCallsFor({ command })` returning each call's arguments
+- `packages/@gateway/node/src/child_process/run-fire-and-forget/run-fire-and-forget.test.ts` — cover `getCallsFor({ command })`
+- `packages/cli/src/brokers/create-package/resolve-request/create-package-resolve-request-broker.proxy.ts` — move onto `questionProxy().answers(...)` and expose `getPromptsAsked()`
+- `packages/cli/src/brokers/create-package/resolve-request/create-package-resolve-request-broker.test.ts` — assert prompts asked via `proxy.getPromptsAsked()`
+- `packages/cli/src/responders/cli/serve/cli-serve-responder.proxy.ts` — expose `getBrowserOpenCalls` delegating to `runFireAndForgetProxy().getCallsFor`
+- `packages/cli/src/responders/cli/serve/cli-serve-responder.test.ts` — restore assertions on the exact command executed for browser open across platforms (darwin, win32, linux)
+
+## Plan — F50
+
+Follow-up F50: Add synchronous raw-bytes read `readFileBytesSync(path): Buffer` to `@gateway/node/fs` with its proxy, stub and test, mirroring async `fs__promises/read-file-bytes/`, and export it from the `fs` barrel.
+
+Files to create:
+- `packages/@gateway/node/src/fs/read-file-bytes-sync/read-file-bytes-sync.ts` — wrapper calling `readFileSync(path)` without encoding and returning `Buffer`
+- `packages/@gateway/node/src/fs/read-file-bytes-sync/read-file-bytes-sync.proxy.ts` — proxy with `returns({ path, bytes })`, `missing({ path })`, `denied({ path })`, `isDirectory({ path })`, `notADirectory({ path })`, `throws({ path, error })`, `returnsMatchingPath({ path, bytes })`, `throwsMatchingPath({ path, error })`, and `getCallsFor({ path })`
+- `packages/@gateway/node/src/fs/read-file-bytes-sync/read-file-bytes-sync.test.ts` — unit test for `readFileBytesSync` covering success, empty buffer, sad paths (`ENOENT`, `EACCES`, `EISDIR`, `ENOTDIR`), tolerant addressing via predicate, and call inspection
+- `packages/@gateway/node/src/fs/read-file-bytes-sync/read-file-bytes-sync.stub.ts` — `ReadFileBytesSyncStub` returning a `Buffer`
+- `packages/@gateway/node/src/fs/read-file-bytes-sync/read-file-bytes-sync.stub.test.ts` — unit test for `ReadFileBytesSyncStub`
+
+Files to edit:
+- `packages/@gateway/node/src/fs/fs.ts` — export `readFileBytesSync` from `./read-file-bytes-sync/read-file-bytes-sync`
+- `packages/@gateway/node/src/fs/fs.test.ts` — assert `readFileBytesSync` is re-exported from `#gateway/node/fs`
+

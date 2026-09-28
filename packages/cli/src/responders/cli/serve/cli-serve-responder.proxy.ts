@@ -19,6 +19,9 @@ export const CliServeResponderProxy = ({
   callResponder: typeof CliServeResponder;
   setupPlatform: (params: { platform: NodeJS.Platform }) => void;
   getStdoutOutput: () => readonly unknown[];
+  getBrowserOpenCalls: (params: {
+    command: string | ((command: unknown) => boolean);
+  }) => readonly unknown[][];
 } => {
   const execProxy = runFireAndForgetProxy();
 
@@ -66,5 +69,11 @@ export const CliServeResponderProxy = ({
     },
 
     getStdoutOutput: (): readonly unknown[] => stdoutWrite.callsMatching([]).map((call) => call[0]),
+
+    getBrowserOpenCalls: ({
+      command,
+    }: {
+      command: string | ((command: unknown) => boolean);
+    }): readonly unknown[][] => execProxy.getCallsFor({ command }),
   };
 };

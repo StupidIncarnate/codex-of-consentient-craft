@@ -38,9 +38,6 @@ describe('CliServeResponder', () => {
   });
 
   describe('browser open', () => {
-    // runFireAndForgetProxy addresses its mock by the exact command staged (setupSuccess), so a
-    // response other than {success: true} below means the responder built a different command
-    // than this platform's — the mock throws unconditionally on an unaddressed call.
     it('VALID: {platform: darwin} => opens browser with the open command', async () => {
       const StartServer = jest.fn();
       const proxy = CliServeResponderProxy({ StartServer });
@@ -49,6 +46,9 @@ describe('CliServeResponder', () => {
       const result = await proxy.callResponder();
 
       expect(result).toStrictEqual({ success: true });
+      expect(proxy.getBrowserOpenCalls({ command: `open ${SERVER_URL}` })).toStrictEqual([
+        [`open ${SERVER_URL}`],
+      ]);
     });
 
     it('VALID: {platform: win32} => opens browser with the start command', async () => {
@@ -59,6 +59,9 @@ describe('CliServeResponder', () => {
       const result = await proxy.callResponder();
 
       expect(result).toStrictEqual({ success: true });
+      expect(proxy.getBrowserOpenCalls({ command: `start ${SERVER_URL}` })).toStrictEqual([
+        [`start ${SERVER_URL}`],
+      ]);
     });
 
     it('VALID: {platform: linux} => opens browser with the xdg-open command', async () => {
@@ -69,6 +72,9 @@ describe('CliServeResponder', () => {
       const result = await proxy.callResponder();
 
       expect(result).toStrictEqual({ success: true });
+      expect(proxy.getBrowserOpenCalls({ command: `xdg-open ${SERVER_URL}` })).toStrictEqual([
+        [`xdg-open ${SERVER_URL}`],
+      ]);
     });
   });
 });

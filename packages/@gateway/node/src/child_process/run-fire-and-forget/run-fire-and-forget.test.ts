@@ -35,4 +35,39 @@ describe('runFireAndForget()', () => {
       ).toBe(true);
     });
   });
+
+  describe('getCallsFor', () => {
+    it('VALID: {exact command} => reads back arguments of the matching call', () => {
+      const proxy = runFireAndForgetProxy();
+      proxy.setupSuccess({ command: 'open http://localhost:3737' });
+
+      runFireAndForget({ command: 'open http://localhost:3737' });
+
+      expect(proxy.getCallsFor({ command: 'open http://localhost:3737' })).toStrictEqual([
+        ['open http://localhost:3737'],
+      ]);
+    });
+
+    it('VALID: {predicate command} => reads back arguments matching the predicate', () => {
+      const proxy = runFireAndForgetProxy();
+      proxy.setupSuccess({ command: 'open http://localhost:3737' });
+
+      runFireAndForget({ command: 'open http://localhost:3737' });
+
+      expect(
+        proxy.getCallsFor({
+          command: (cmd: unknown) => String(cmd).startsWith('open'),
+        }),
+      ).toStrictEqual([['open http://localhost:3737']]);
+    });
+
+    it('EMPTY: {unmatched command} => returns empty array', () => {
+      const proxy = runFireAndForgetProxy();
+      proxy.setupSuccess({ command: 'open http://localhost:3737' });
+
+      runFireAndForget({ command: 'open http://localhost:3737' });
+
+      expect(proxy.getCallsFor({ command: 'xdg-open http://localhost:3737' })).toStrictEqual([]);
+    });
+  });
 });
