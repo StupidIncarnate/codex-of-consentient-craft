@@ -6,7 +6,7 @@
  */
 
 import { join } from 'node:path';
-import { run } from './proc.mjs';
+import { consumerEnv, run } from './proc.mjs';
 
 const DEFAULT_TIMEOUT_MS = 5 * 60 * 1000;
 
@@ -17,6 +17,7 @@ export const runDungeonmasterInit = ({ consumerRoot }) =>
     command: binPath({ consumerRoot, name: 'dungeonmaster' }),
     args: ['init'],
     cwd: consumerRoot,
+    env: consumerEnv({ consumerRoot }),
     timeoutMs: DEFAULT_TIMEOUT_MS,
   });
 
@@ -25,6 +26,7 @@ export const runWard = ({ consumerRoot, args = [], cwd }) =>
     command: binPath({ consumerRoot, name: 'dungeonmaster-ward' }),
     args,
     cwd: cwd ?? consumerRoot,
+    env: consumerEnv({ consumerRoot }),
     timeoutMs: DEFAULT_TIMEOUT_MS,
   });
 
@@ -38,6 +40,7 @@ export const runEslint = ({ consumerRoot, cwd, args = ['.'] }) =>
     command: binPath({ consumerRoot, name: 'eslint' }),
     args: [...args, '--fix', '--format', 'json'],
     cwd,
+    env: consumerEnv({ consumerRoot }),
     timeoutMs: DEFAULT_TIMEOUT_MS,
   });
 
@@ -46,6 +49,7 @@ export const runTsc = ({ consumerRoot, cwd, args = ['-p', 'tsconfig.json', '--no
     command: binPath({ consumerRoot, name: 'tsc' }),
     args,
     cwd,
+    env: consumerEnv({ consumerRoot }),
     timeoutMs: DEFAULT_TIMEOUT_MS,
   });
 
@@ -54,6 +58,7 @@ export const runJest = ({ consumerRoot, cwd, args = [] }) =>
     command: binPath({ consumerRoot, name: 'jest' }),
     args,
     cwd,
+    env: consumerEnv({ consumerRoot }),
     timeoutMs: DEFAULT_TIMEOUT_MS,
   });
 
@@ -62,5 +67,6 @@ export const runNpm = ({ consumerRoot, cwd, args }) =>
     command: 'npm',
     args,
     cwd: cwd ?? consumerRoot,
+    env: consumerEnv({ consumerRoot }),
     timeoutMs: DEFAULT_TIMEOUT_MS,
   });

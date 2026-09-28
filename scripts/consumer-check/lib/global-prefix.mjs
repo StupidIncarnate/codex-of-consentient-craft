@@ -9,7 +9,7 @@
  */
 
 import { join } from 'node:path';
-import { run } from './proc.mjs';
+import { hermeticEnv, run } from './proc.mjs';
 
 const NPM_INSTALL_TIMEOUT_MS = 5 * 60 * 1000;
 
@@ -43,7 +43,7 @@ export const globalDungeonmasterBin = ({ globalPrefixDir }) =>
 // prefix's globally-installed packages, exactly like the real global-install scenario, without
 // ever touching the operator's actual global npm root.
 export const envWithGlobalPrefix = ({ globalPrefixDir }) => ({
-  ...process.env,
+  ...hermeticEnv,
   NPM_CONFIG_PREFIX: globalPrefixDir,
-  PATH: `${globalBinDir({ globalPrefixDir })}${':'}${process.env.PATH ?? ''}`,
+  PATH: `${globalBinDir({ globalPrefixDir })}${':'}${hermeticEnv.PATH}`,
 });
