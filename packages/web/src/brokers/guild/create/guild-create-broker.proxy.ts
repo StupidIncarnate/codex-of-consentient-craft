@@ -1,10 +1,18 @@
-// PURPOSE: Proxy for guild-create-broker providing test control over HTTP responses
-// USAGE: Create proxy in test, use setup methods to configure endpoint behavior
+/**
+ * PURPOSE: Proxy for guild-create-broker providing test control over HTTP responses. Composes
+ * the gateway's own `fetchJsonProxy`, which registers an MSW handler rather than spying on
+ * `globalThis.fetch` directly.
+ *
+ * USAGE:
+ * const proxy = guildCreateBrokerProxy();
+ * proxy.setupCreate({ id });
+ * await guildCreateBroker({ name: 'My Guild', path: '/home/user/my-guild' });
+ */
 
 import type { GuildId } from '@dungeonmaster/shared/contracts';
-import { StartEndpointMock } from '@dungeonmaster/testing';
 
-import { fetchPostAdapterProxy } from '../../../adapters/fetch/post/fetch-post-adapter.proxy';
+import { fetchJsonProxy } from '#gateway/browser/fetch/fetch-json/fetch-json.proxy';
+
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
 
 export const guildCreateBrokerProxy = (): {
@@ -12,22 +20,28 @@ export const guildCreateBrokerProxy = (): {
   setupError: () => void;
   setupInvalidResponse: (params: { data: unknown }) => void;
 } => {
-  fetchPostAdapterProxy();
-
-  const endpoint = StartEndpointMock.listen({
-    method: 'post',
-    url: webConfigStatics.api.routes.guilds,
-  });
+  const jsonFetchProxy = fetchJsonProxy();
 
   return {
-    setupCreate: ({ id }) => {
-      endpoint.resolves({ data: { id } });
+    setupCreate: ({ id }: { id: GuildId }): void => {
+      jsonFetchProxy.setupSuccess({
+        method: 'post',
+        url: webConfigStatics.api.routes.guilds,
+        body: { id },
+      });
     },
-    setupError: () => {
-      endpoint.networkError();
+    setupError: (): void => {
+      jsonFetchProxy.setupConnectionRefused({
+        method: 'post',
+        url: webConfigStatics.api.routes.guilds,
+      });
     },
-    setupInvalidResponse: ({ data }) => {
-      endpoint.resolves({ data });
+    setupInvalidResponse: ({ data }: { data: unknown }): void => {
+      jsonFetchProxy.setupSuccess({
+        method: 'post',
+        url: webConfigStatics.api.routes.guilds,
+        body: data,
+      });
     },
   };
 };

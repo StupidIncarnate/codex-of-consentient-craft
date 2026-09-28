@@ -316,3 +316,49 @@ web brokers, then implement the two web brokers, then run
 `packages/web/src/widgets/quest-chat-content-layer/quest-chat-content-layer-widget.test.tsx` and
 `packages/web/src/widgets/quest-chat/quest-chat-widget.test.tsx` (paths per `discover`) to prove the
 four files Z-W1 broke now stay green.
+
+---
+
+### W-POST scope
+
+First batch of Remaining Batch A (fetch/post). The full batch has 10 brokers and would touch 51 files (exceeding the ~35 file threshold).
+- 7 of the 10 brokers require `getRequestCount` on `fetchJsonProxy` (which currently lacks it, unlike `fetchWithStatusProxy`).
+- 1 broker (`directory-browse-broker`) is called on mount by `useDirectoryBrowserBinding` in multiple widgets (`GuildEmptyStateWidget`, `DirectoryBrowserModalWidget`, `HomeContentWidget`) without explicit test staging. In `fetchJsonProxy`, MSW handlers are registered lazily on `setup*` (unlike the old proxy's immediate `StartEndpointMock.listen`), and made-up default values in proxy constructors are banned.
+- The remaining 2 brokers (`guild-create-broker` and `quest-abandon-broker`) are migrated cleanly onto `fetchJson` and `fetchJsonProxy`, with new contracts/stubs/tests for their response shapes.
+- `fetch-post-adapter.*` is preserved until the remaining brokers are migrated.
+
+#### Files created:
+- `packages/web/src/contracts/guild-create-result/guild-create-result-contract.ts`
+- `packages/web/src/contracts/guild-create-result/guild-create-result.stub.ts`
+- `packages/web/src/contracts/guild-create-result/guild-create-result-contract.test.ts`
+- `packages/web/src/contracts/quest-abandon-result/quest-abandon-result-contract.ts`
+- `packages/web/src/contracts/quest-abandon-result/quest-abandon-result.stub.ts`
+- `packages/web/src/contracts/quest-abandon-result/quest-abandon-result-contract.test.ts`
+
+#### Files edited:
+- `scrolls/brands-gateways-epic/items/a17-adapters-web.md`
+- `packages/web/src/brokers/guild/create/guild-create-broker.ts`
+- `packages/web/src/brokers/guild/create/guild-create-broker.proxy.ts`
+- `packages/web/src/brokers/guild/create/guild-create-broker.test.ts`
+- `packages/web/src/brokers/quest/abandon/quest-abandon-broker.ts`
+- `packages/web/src/brokers/quest/abandon/quest-abandon-broker.proxy.ts`
+- `packages/web/src/brokers/quest/abandon/quest-abandon-broker.test.ts`
+- `packages/web/src/widgets/app/app-widget.proxy.tsx` (expose setupCreateGuildError needed when exact staging exposed unstaged guild create in app-widget test)
+- `packages/web/src/widgets/app/app-widget.test.tsx` (fix test calling setupGuildsError instead of setupCreateGuildError)
+
+#### Left standing:
+1. `packages/web/src/brokers/directory/browse/directory-browse-broker.ts` (+ proxy, test): called on mount without staging in several widget tests; needs gateway/proxy coordination for unstaged mount calls.
+2. Awaiting gateway `getRequestCount` on `fetchJsonProxy`:
+   - `packages/web/src/brokers/orchestration/dispatch-pause/orchestration-dispatch-pause-broker.ts` (+ proxy, test)
+   - `packages/web/src/brokers/orchestration/dispatch-play/orchestration-dispatch-play-broker.ts` (+ proxy, test)
+   - `packages/web/src/brokers/quest/clarify/quest-clarify-broker.ts` (+ proxy, test)
+   - `packages/web/src/brokers/quest/followup-stop/quest-followup-stop-broker.ts` (+ proxy, test)
+   - `packages/web/src/brokers/quest/merge/quest-merge-broker.ts` (+ proxy, test)
+   - `packages/web/src/brokers/quest/pause/quest-pause-broker.ts` (+ proxy, test)
+   - `packages/web/src/brokers/quest/resume/quest-resume-broker.ts` (+ proxy, test)
+3. Adapter preserved while callers remain:
+   - `packages/web/src/adapters/fetch/post/fetch-post-adapter.ts`
+   - `packages/web/src/adapters/fetch/post/fetch-post-adapter.proxy.ts`
+   - `packages/web/src/adapters/fetch/post/fetch-post-adapter.test.ts`
+
+

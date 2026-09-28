@@ -42,6 +42,7 @@ export const AppWidgetProxy = (): {
   setupGuilds: (params: { guilds: GuildListItem[] }) => void;
   setupGuildsError: () => void;
   setupCreateGuild: (params: { id: GuildId }) => void;
+  setupCreateGuildError: () => void;
   setupSessions: (params: { sessions: SessionListItem[] }) => void;
   setupSessionsError: () => void;
   setupQuestQueue: (params: { entries: readonly QuestQueueEntry[] }) => void;
@@ -82,6 +83,9 @@ export const AppWidgetProxy = (): {
     },
     setupCreateGuild: ({ id }: { id: GuildId }): void => {
       homeProxy.setupCreateGuild({ id });
+    },
+    setupCreateGuildError: (): void => {
+      homeProxy.setupCreateGuildError();
     },
     setupSessions: ({ sessions }: { sessions: SessionListItem[] }): void => {
       homeProxy.setupSessions({ sessions });

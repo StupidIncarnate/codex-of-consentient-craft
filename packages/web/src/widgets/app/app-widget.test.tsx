@@ -443,7 +443,7 @@ describe('AppWidget', () => {
         },
       });
 
-      proxy.setupGuildsError();
+      proxy.setupCreateGuildError();
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {

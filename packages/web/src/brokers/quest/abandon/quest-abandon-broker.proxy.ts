@@ -1,9 +1,16 @@
-// PURPOSE: Proxy for quest-abandon-broker providing test control over HTTP responses
-// USAGE: Create proxy in test, use setup methods to configure endpoint behavior
+/**
+ * PURPOSE: Proxy for quest-abandon-broker providing test control over HTTP responses. Composes
+ * the gateway's own `fetchJsonProxy`, which registers an MSW handler rather than spying on
+ * `globalThis.fetch` directly.
+ *
+ * USAGE:
+ * const proxy = questAbandonBrokerProxy();
+ * proxy.setupAbandon();
+ * await questAbandonBroker({ questId });
+ */
 
-import { StartEndpointMock } from '@dungeonmaster/testing';
+import { fetchJsonProxy } from '#gateway/browser/fetch/fetch-json/fetch-json.proxy';
 
-import { fetchPostAdapterProxy } from '../../../adapters/fetch/post/fetch-post-adapter.proxy';
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
 
 export const questAbandonBrokerProxy = (): {
@@ -11,23 +18,29 @@ export const questAbandonBrokerProxy = (): {
   setupError: () => void;
   getRequestBodies: () => Promise<unknown[]>;
 } => {
-  fetchPostAdapterProxy();
-
-  const endpoint = StartEndpointMock.listen({
-    method: 'post',
-    url: webConfigStatics.api.routes.questAbandon,
-  });
+  const jsonFetchProxy = fetchJsonProxy();
 
   return {
     setupAbandon: (): void => {
-      endpoint.resolves({ data: { abandoned: true } });
+      jsonFetchProxy.setupSuccess({
+        method: 'post',
+        url: webConfigStatics.api.routes.questAbandon,
+        body: { abandoned: true },
+      });
     },
     setupError: (): void => {
-      endpoint.networkError();
+      jsonFetchProxy.setupConnectionRefused({
+        method: 'post',
+        url: webConfigStatics.api.routes.questAbandon,
+      });
     },
     // What each received request actually carried, so a test can prove the POST is bodyless rather
     // than only that it happened. A bodyless request has no JSON to parse and is recorded as its
     // parse error; a `{}` on the wire records as `{}`, which is what this distinguishes.
-    getRequestBodies: async (): Promise<unknown[]> => endpoint.getRequestBodies(),
+    getRequestBodies: async (): Promise<unknown[]> =>
+      jsonFetchProxy.getRequestBodies({
+        method: 'post',
+        url: webConfigStatics.api.routes.questAbandon,
+      }),
   };
 };

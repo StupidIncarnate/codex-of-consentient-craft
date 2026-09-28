@@ -39,7 +39,12 @@ describe('questAbandonBroker', () => {
 
       proxy.setupError();
 
-      await expect(questAbandonBroker({ questId })).rejects.toThrow(/fetch/iu);
+      const caught: unknown = await questAbandonBroker({ questId }).catch(
+        (rejection: unknown) => rejection,
+      );
+      const error = caught as Error;
+
+      expect(error.message).toBe('Failed to fetch');
     });
   });
 });

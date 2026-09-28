@@ -26,12 +26,13 @@ describe('guildCreateBroker', () => {
 
       proxy.setupError();
 
-      await expect(
-        guildCreateBroker({
-          name: 'My Guild',
-          path: '/home/user/my-guild',
-        }),
-      ).rejects.toThrow(/fetch/iu);
+      const caught: unknown = await guildCreateBroker({
+        name: 'My Guild',
+        path: '/home/user/my-guild',
+      }).catch((rejection: unknown) => rejection);
+      const error = caught as Error;
+
+      expect(error.message).toBe('Failed to fetch');
     });
   });
 

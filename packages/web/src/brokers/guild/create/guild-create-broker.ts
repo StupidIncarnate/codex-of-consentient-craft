@@ -5,10 +5,11 @@
  * const result = await guildCreateBroker({name: 'My Guild', path: '/home/user/my-guild'});
  * // Returns {id: GuildId}
  */
-import { guildIdContract } from '@dungeonmaster/shared/contracts';
-import type { GuildId } from '@dungeonmaster/shared/contracts';
 
-import { fetchPostAdapter } from '../../../adapters/fetch/post/fetch-post-adapter';
+import { fetchJson } from '#gateway/browser/fetch';
+
+import { guildCreateResultContract } from '../../../contracts/guild-create-result/guild-create-result-contract';
+import type { GuildCreateResult } from '../../../contracts/guild-create-result/guild-create-result-contract';
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
 
 export const guildCreateBroker = async ({
@@ -17,11 +18,12 @@ export const guildCreateBroker = async ({
 }: {
   name: string;
   path: string;
-}): Promise<{ id: GuildId }> => {
-  const response = await fetchPostAdapter<{ id: unknown }>({
+}): Promise<GuildCreateResult> => {
+  const response = await fetchJson({
     url: webConfigStatics.api.routes.guilds,
+    method: 'POST',
     body: { name, path },
   });
 
-  return { id: guildIdContract.parse(response.id) };
+  return guildCreateResultContract.parse(response);
 };
