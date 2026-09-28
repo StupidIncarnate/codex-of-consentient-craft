@@ -471,6 +471,23 @@ Callers edited (with proxy where named):
 - `brokers/platform-crossing/check/walk-gateway-crossings-layer-broker.{ts,proxy.ts}` (module shape)
 - `contracts/typescript-module-shape/typescript-module-shape-contract.ts` (doc comment names the transformer)
 
+## Plan — F62
+
+`binResolveBroker` checks the package's own `node_modules/.bin`, then each ancestor's up to and including the
+workspace root (the nearest ancestor whose `package.json` has `workspaces`), then the bare name. No workspace-root
+finder exists in ward or shared that answers this synchronously (`workspaceDiscoverBroker` is async and returns
+folders; `projectRootFindBroker` stops at the nearest `package.json`), so the "has `workspaces`" test is one small
+layer predicate over `#gateway/node/fs` `readFileSyncIfExists`.
+
+Files, all under `packages/ward`:
+- `src/brokers/bin/resolve/bin-resolve-broker.ts` (edit: delegate to the walk layer)
+- `src/brokers/bin/resolve/bin-resolve-broker.proxy.ts` (edit: `setupFound`/`setupNotFound` keep their signatures; add `setupWalk`; `setupNotFound` stages every ancestor)
+- `src/brokers/bin/resolve/bin-resolve-broker.test.ts` (edit: own `.bin`, parent `.bin`, root `.bin` through intermediates, stop at root, not found)
+- `src/brokers/bin/resolve/bin-walk-up-layer-broker.{ts,proxy.ts,test.ts}` (new: the recursive walk)
+- `src/brokers/bin/resolve/bin-workspace-root-layer-broker.{ts,proxy.ts,test.ts}` (new: does `<dir>/package.json` declare `workspaces`)
+- `src/brokers/bin/resolve/bin-resolve-broker.integration.test.ts` (new: real temp tree, root `.bin` beats a decoy on `PATH`)
+- `test/harnesses/bin-resolve/bin-resolve.harness.ts` (new: seeds files, prepends a decoy to `PATH`, restores it)
+
 ## Concessions made while executing
 
 <!-- Empty at the start. The operator fills this and mirrors it into EPIC.md's Concessions table. -->

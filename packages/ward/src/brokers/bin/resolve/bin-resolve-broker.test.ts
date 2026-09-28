@@ -19,6 +19,20 @@ describe('binResolveBroker', () => {
     });
   });
 
+  describe('binary only in the workspace root', () => {
+    it('VALID: {jest in /repo/node_modules/.bin, cwd /repo/packages/ward} => returns the root path', () => {
+      const proxy = binResolveBrokerProxy();
+      const cwd = AbsoluteFilePathStub({ value: '/repo/packages/ward' });
+      const root = AbsoluteFilePathStub({ value: '/repo' });
+      const binName = BinCommandStub({ value: 'jest' });
+      proxy.setupFoundAt({ cwd, binName, binDir: root, workspaceRoot: root });
+
+      const result = binResolveBroker({ binName, cwd });
+
+      expect(String(result)).toBe('/repo/node_modules/.bin/jest');
+    });
+  });
+
   describe('binary not found in node_modules/.bin', () => {
     it('VALID: {eslint not in .bin} => returns bare binary name', () => {
       const proxy = binResolveBrokerProxy();

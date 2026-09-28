@@ -1,18 +1,18 @@
 /**
- * PURPOSE: Resolves a binary name to its absolute path in node_modules/.bin/, falling back to bare name
+ * PURPOSE: Resolves a binary name to its absolute path in the nearest node_modules/.bin/ walking up
+ * from cwd through the workspace root, falling back to the bare name (which defers to PATH). Reach
+ * for this rather than a bare name so a consumer's ward runs the consumer's own jest, eslint and
+ * tsc whatever its shell PATH holds.
  *
  * USAGE:
  * const command = binResolveBroker({ binName: BinCommandStub({ value: 'eslint' }), cwd: absoluteFilePathContract.parse('/project') });
- * // Returns BinCommand('/project/node_modules/.bin/eslint') if it exists, otherwise BinCommand('eslint')
+ * // Returns BinCommand('/project/node_modules/.bin/eslint') if it exists, else the nearest ancestor's up to the workspace root, else BinCommand('eslint')
  */
 
-import { existsSync } from '#gateway/node/fs';
-import { filePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
+import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
-import {
-  binCommandContract,
-  type BinCommand,
-} from '../../../contracts/bin-command/bin-command-contract';
+import type { BinCommand } from '../../../contracts/bin-command/bin-command-contract';
+import { binWalkUpLayerBroker } from './bin-walk-up-layer-broker';
 
 export const binResolveBroker = ({
   binName,
@@ -20,8 +20,4 @@ export const binResolveBroker = ({
 }: {
   binName: BinCommand;
   cwd: AbsoluteFilePath;
-}): BinCommand => {
-  const binPath = filePathContract.parse(`${String(cwd)}/node_modules/.bin/${String(binName)}`);
-  const exists = existsSync(binPath);
-  return exists ? binCommandContract.parse(String(binPath)) : binName;
-};
+}): BinCommand => binWalkUpLayerBroker({ binName, dir: cwd });
