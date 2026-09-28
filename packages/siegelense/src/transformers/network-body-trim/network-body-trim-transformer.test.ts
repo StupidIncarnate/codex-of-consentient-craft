@@ -35,4 +35,31 @@ describe('networkBodyTrimTransformer', () => {
       expect(result).toBe(`${longBody.slice(0, resultsStatics.render.bodyTrimChars)}…`);
     });
   });
+
+  describe('body with whitespace runs', () => {
+    it('VALID: {body: "a\\nb\\tc  d"} => collapses every whitespace run to a single space', () => {
+      const body = ContentTextStub({ value: 'a\nb\tc  d' });
+
+      const result = networkBodyTrimTransformer({ body });
+
+      expect(result).toBe('a b c d');
+    });
+
+    it('VALID: {body: "<!doctype html>\\n<html lang=\\"en\\">\\n</html>"} => renders as one line', () => {
+      const body = ContentTextStub({ value: '<!doctype html>\n<html lang="en">\n</html>' });
+
+      const result = networkBodyTrimTransformer({ body });
+
+      expect(result).toBe('<!doctype html> <html lang="en"> </html>');
+    });
+
+    it('VALID: {body: whitespace run long enough alone to exceed bodyTrimChars} => collapses BEFORE trimming, so the trim budget is spent on content, not whitespace', () => {
+      const raw = `a${'\n'.repeat(resultsStatics.render.bodyTrimChars + 50)}b`;
+      const body = ContentTextStub({ value: raw });
+
+      const result = networkBodyTrimTransformer({ body });
+
+      expect(result).toBe('a b');
+    });
+  });
 });

@@ -51,6 +51,7 @@ import { registryUpdateBroker } from '../../../brokers/registry/update/registry-
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import type { InstanceId } from '../../../contracts/instance-id/instance-id-contract';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
+import { InstanceUnknownError } from '../../../errors/instance-unknown/instance-unknown-error';
 import { DriverServeLayerResponder } from './driver-serve-layer-responder';
 
 export const SiegelenseDriverResponder = async ({
@@ -64,7 +65,7 @@ export const SiegelenseDriverResponder = async ({
   const entry = registry.instances.find((row) => row.id === instanceId);
 
   if (entry === undefined) {
-    throw new Error(`SiegelenseDriverResponder: instance ${instanceId} not found in the registry`);
+    throw new InstanceUnknownError({ instanceId });
   }
 
   if (await driverLiveCheckBroker({ entry })) {
