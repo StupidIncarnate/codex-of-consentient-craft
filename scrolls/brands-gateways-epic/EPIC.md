@@ -108,6 +108,7 @@ A new operator took over from the morning handoff below. Heartbeat cron `13,43 *
 | a17-misc (sonnet) | A17: elk (now a broker), xyflow (now widgets), mantine/notifications | `web` | finished, uncommitted (commits with a17-xhrdom: shared typecheck). Left: canvas (F69), indexed-db (F70), file/read-data-url, notifications-show, react-dom/mount |
 | f69-f70 (sonnet) | F69, F70 | `@gateway/browser` | done 403c3e76e; web's canvas and indexed-db adapters are unblocked (dispatch after a17-xhrdom) |
 | f40 (sonnet) | F40 | eslint-plugin rule, hydration | done 6643c2062 (lockfile refreshed) |
+| t05-ward (sonnet) | T05 fix sweep: ward (rules stay off) | `ward` tests and proxies | running |
 | t04-sv-hr (sonnet) | T04 fix sweep: server and hydration-recipes (rule stays off) | `server`, `hydration-recipes` tests and proxies | running |
 | f39-f58 (sonnet) | F39, F58 | `mcp`, `shared` | done (the F58 commit). F58 was real: `server` has no adapters, so the edge graph missed it |
 | a10-fs4 (sonnet) | A10: readlink, symlink, append-file | `orchestrator` | finished, uncommitted (commits with a10-misc). For T05: `quest-outbox-append-broker.proxy.ts` answers any unstaged path ending `outbox.jsonl` (about 40 responder and loop tests leaned on the old catch-all through quest persist); `chat-subagent-tail-broker.proxy.ts` stages the touch by path shape |
