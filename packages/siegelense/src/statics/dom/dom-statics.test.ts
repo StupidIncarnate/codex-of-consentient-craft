@@ -42,6 +42,9 @@ describe('domStatics', () => {
         all: ['own', 'full'],
         default: 'own',
       },
+      notes: {
+        noMatch: 'no element matched target {target}',
+      },
     });
   });
 

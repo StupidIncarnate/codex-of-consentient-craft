@@ -1,4 +1,5 @@
 import { DomReadingStub } from '../../../contracts/dom-reading/dom-reading.stub';
+import { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
 import { stepDomBroker } from './step-dom-broker';
 import { stepDomBrokerProxy } from './step-dom-broker.proxy';
 
@@ -21,5 +22,30 @@ describe('stepDomBroker', () => {
     expect(result).toBe(
       '{"count":1,"showing":1,"capped":false,"note":null,"nodes":[{"tagName":"button","testId":"SUBMIT_BTN","className":"btn primary","childCount":0,"display":"inline-block","visibility":"visible","opacity":"1","rect":{"x":10,"y":20,"width":100,"height":50},"text":"Submit","attrs":[],"value":null}]}',
     );
+  });
+
+  describe('DEF-83: a target that matches nothing', () => {
+    it('EMPTY: {session answers count: 0, note: null} => fills note naming the target rather than leaving it null', async () => {
+      const proxy = stepDomBrokerProxy();
+      const reading = DomReadingStub({
+        count: ReadingCountStub({ value: 0 }),
+        showing: ReadingCountStub({ value: 0 }),
+        capped: false,
+        note: null,
+        nodes: [],
+      });
+      const { session } = proxy.session({ reading });
+
+      const result = await stepDomBroker({
+        session,
+        target: '[data-testid="MISSING"]',
+        fields: null,
+        text: null,
+      });
+
+      expect(result).toBe(
+        '{"count":0,"showing":0,"capped":false,"note":"no element matched target [data-testid=\\"MISSING\\"]","nodes":[]}',
+      );
+    });
   });
 });
