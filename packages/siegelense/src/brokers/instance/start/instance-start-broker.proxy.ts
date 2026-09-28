@@ -190,8 +190,8 @@ export const instanceStartBrokerProxy = (): {
   recipeSeedRunBrokerProxy();
   // instanceStartBroker's opportunistic stale-reap calls instanceKillBroker directly (chunk-2
   // plan: "cleanup will call the same broker" — kill IS the reap primitive), so its proxy is a
-  // real child-proxy composition, not a phantom one, and its OWN setupDriverUnreachableNoHeartbeat
-  // is what setupStaleReap below reaches for instead of hand-building the socket/heartbeat/rm
+  // real child-proxy composition, not a phantom one, and its OWN setupDriverUnreachableNoPgids
+  // is what setupStaleReap below reaches for instead of hand-building the socket/registry-pgids/rm
   // mocks a second time.
   const killProxy = instanceKillBrokerProxy();
 
@@ -508,17 +508,12 @@ export const instanceStartBrokerProxy = (): {
       const staleSocketPath = AbsoluteFilePathStub({
         value: `${TMP_DIR_VALUE}/dm-siege-sockets/${staleInstanceId}.sock`,
       });
-      const staleEvidencePath = `${ROOT_PATH_VALUE}/unowned/instances/${staleInstanceId}`;
-      const staleHeartbeatPath = AbsoluteFilePathStub({
-        value: `${staleEvidencePath}/heartbeat.json`,
-      });
       const staleHomePath = AbsoluteFilePathStub({
         value: `${TMP_DIR_VALUE}/dm-siege-${staleInstanceId}`,
       });
 
-      killProxy.setupDriverUnreachableNoHeartbeat({
+      killProxy.setupDriverUnreachableNoPgids({
         socketPath: staleSocketPath,
-        heartbeatPath: staleHeartbeatPath,
         homePath: staleHomePath,
       });
     },

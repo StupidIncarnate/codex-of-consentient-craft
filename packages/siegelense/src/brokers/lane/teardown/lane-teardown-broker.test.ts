@@ -49,6 +49,7 @@ describe('laneTeardownBroker', () => {
             linkPresent: true,
           }),
           reapedPgids: [],
+          killed: [pgidA, pgidB, pgidC],
         }),
       );
     });
@@ -73,10 +74,11 @@ describe('laneTeardownBroker', () => {
         pgids: [deadPgid, livePgid],
       });
 
-      await laneTeardownBroker({ session, instanceId });
+      const result = await laneTeardownBroker({ session, instanceId });
 
       expect(proxy.getKillCallsFor({ pgid: deadPgid })).toStrictEqual([]);
       expect(proxy.getKillCallsFor({ pgid: livePgid })).toStrictEqual(['SIGTERM', 'SIGKILL']);
+      expect(result.killed).toStrictEqual([livePgid]);
     });
   });
 
@@ -97,9 +99,12 @@ describe('laneTeardownBroker', () => {
         pgids: [pgid],
       });
 
-      await laneTeardownBroker({ session, instanceId });
+      const result = await laneTeardownBroker({ session, instanceId });
 
       expect(proxy.getKillCallsFor({ pgid })).toStrictEqual(['SIGTERM']);
+      // Counted in `killed` regardless — it WAS live when the SIGTERM pass signalled it. Whether it
+      // exited on its own during the grace wait or was SIGKILLed after, this call is what stopped it.
+      expect(result.killed).toStrictEqual([pgid]);
     });
   });
 
