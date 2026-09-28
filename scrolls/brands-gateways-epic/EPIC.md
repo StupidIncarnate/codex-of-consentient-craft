@@ -117,6 +117,11 @@ These rows are `todo` or `ready` with every dependency met; the operator never d
 - G22 (todo; its needs are done). A14 needs G22. A16 needs A03, A17 needs G13.
 - Items in `review` to close: B01 (above), G24, T04, T05.
 
+### Before the next operator dispatches anything
+
+- **Do not trust the status table's order as the order of work.** The rows and their "Needs" columns are not granular enough to rely on, and things changed during this session that the table does not show (A12's phase 2 ran across every package and overlapped A09 to A13; G22 sat at `todo` with its needs met; new follow-ups F21 to F35 appeared). Send one or two planner agents first, read-only, to check each open row against the code: what is really done, what is really blocked, what the next small chunks are, and which rows overlap. Rebuild the dispatch order from their findings.
+- **Watch every sub-agent's run time. Anything past one hour needs attention.** This work is meant to come in small chunks, so an hour-long run means the chunk was too big or the agent is off track. Check its status through a sonnet sub-agent (never by reading the transcript yourself), and split, redirect or stop it. O10 ran 82 minutes and B01's first agent about 6.5 hours; both should have been caught sooner.
+
 ### Operator lessons from this stretch
 
 - Stage an agent's own file list only; never `git add` a whole folder that another agent is editing (SH11's commit swept SH12's files).
@@ -125,7 +130,42 @@ These rows are `todo` or `ready` with every dependency met; the operator never d
 - Scan every diff for `as never`, `as unknown as`, `as boolean`, `calledWith([])`, `onceFor([])`, accept-all predicates (`path: () => true` when staging), raw `'fs'`, `'path'`, `'os'` and `'process'` imports, and real `process.cwd()` or `homedir()` in tests.
 - A far-off passthrough `join` hides wrong paths (the A12 item's "Trap" section has the fix).
 - Agents must not dispatch their own sub-agents (brief rule 6).
+- A migration that removes a shared adapter's catch-all breaks every composing proxy that leaned on it, including ones in other agents' uncommitted folders. O10 spent 34 of its 82 minutes (41%) redesigning `step-handler-riftcarver-broker.proxy.ts` for that reason. Before dispatching, list the proxies that compose the brokers in scope, and give those to the same agent or finish the other agent first.
 - Antigravity (`agy`) is paused until the user says otherwise; when resumed, at most 2 at once (see "Using Antigravity" below).
+
+## Converting the next repo
+
+One other repo needs the same adapter-to-gateway and brand pivot. It is a consumer: it gets every lint rule this epic ships and everything `dungeonmaster init` scaffolds, so it does not rebuild the tooling. It does have to move its own code. This is the operator's plan for that run. Everything in "How to operate" and the handoff's lessons applies there too.
+
+### What the consumer gets for free, and what it must do itself
+
+| Comes from dungeonmaster | The consumer's operator does |
+|---|---|
+| The lint rules (gateway rules, `ban-workspace-export-mocks`, `ban-proxy-catch-all-defaults`, `ban-invented-failures`, `ban-proxy-empty-called-with`, and the rest), tagged `pre-edit` and off until switched on | Move its own callers so the rules can be switched on |
+| `init` scaffolding: `packages/@gateway/{node,browser}` with real source, empty `packages/@gateway/{npm,bin}`, the `#gateway/*` imports map, node16 tsconfig, per-package jest configs, the I/O trap | Write its own `npm` and `bin` wrappers (the `<dungeonmaster-consumerGatewayWrapper>` snippet says how) |
+| The `testing` package: `registerMock`, the proxy-mock hoister, stubs | Replace its own `jest.mock` and adapter proxies with gateway proxies |
+| The recipes and traps in `items/a12-adapters-shared.md` | Follow them |
+
+This epic's items that build tooling (the G items that write rules and scaffolding, T01, T02, T04, T05's rule-writing half, F2 to F20's tooling fixes) do not repeat there. Its items that move code (A, B, and T05's fix sweeps) do, in the consumer's own packages.
+
+### Execution plan
+
+1. **Precheck.** The repo must be an npm-workspaces monorepo with packages under `packages/*`. Upgrade `dungeonmaster` to a release carrying this epic, run `dungeonmaster init`, and commit what it writes. Record a baseline full `ward` and keep it: it is the "was it already red" answer later.
+2. **Plan with planner agents, read-only, before any edit.** One planner per few packages writes a census like A12's "Phase 2 census": every import of an npm package, a Node builtin and a program (`child_process` calls) per package, every `adapters/` folder, every `jest.mock` and `as never` or `as unknown as`, and what each outside call maps to. Its output is a split into small groups (2 to 6 caller files each) with a dependency order, including which proxies compose which (see the O10 lesson). The operator turns that into an EPIC.md-style status table in the consumer's own `scrolls/`.
+3. **Wrappers first.** One small group per outside dependency writes the consumer's `packages/@gateway/npm/src/<package>/` or `packages/@gateway/bin/src/<program>/` folder: wrapper, `.proxy.ts`, `.stub.ts`, with read-back and exact staging in the proxy from the start (so the F25, F29 and F34 gaps never appear). Build the gateway packages after each group lands; other packages typecheck against their compiled output.
+4. **Move callers, package by package, in small groups.** Same recipe as A12: gateway call in the code, gateway proxy composed and staged by exact argument tuple in the `.proxy.ts`, mutations proving each migrated line. After each group, run the whole unit suite of every package that composes a changed proxy. Scan every diff for the banned shapes listed in the handoff.
+5. **Delete the consumer's adapters** once a census shows no caller left (the equivalent of A03 to A17 and A12's phase 3).
+6. **Brands.** Follow this epic's B items as they close here (B01 zod v4 first; then B02 onward once A19 lands here). Their item files describe the rules and the order; re-plan them against the consumer's own contracts with a planner agent.
+7. **Switch the rules on.** Turn each `pre-edit` rule from off to error one at a time, run its scan, and send the reds out in small fix groups (this epic's T04 and T05 sweeps are the pattern).
+8. **Prove it.** A full `ward` green, and the consumer's own e2e run (the browser is the verdict, per CLAUDE.md).
+
+### Operating rules carried over
+
+- At most five sub-agents, small chunks, and any sub-agent past one hour gets checked through a sonnet sub-agent and split or redirected.
+- Planner agents before dispatch, again whenever the table and the code disagree.
+- Stage only an agent's own files; commit only on ward's exit code; the operator owns builds and commits.
+- A migration that removes a catch-all breaks every proxy that leaned on it: give composing proxies to the same agent.
+- Agents never dispatch sub-agents of their own.
 
 ## Machine-wide side effects
 
