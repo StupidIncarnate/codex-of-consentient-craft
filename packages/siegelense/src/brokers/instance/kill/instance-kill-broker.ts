@@ -12,14 +12,24 @@
  * outside the driver stopped it, rather than a stale idle-timeout reason the driver's own self-reap
  * recorded earlier before this call ever ran.
  *
+ * `reason` lets a caller that already knows WHY it is reaping (cleanup's own staleness detection)
+ * name that cause instead of the generic "reaped N orphaned process groups" wording — so
+ * `likelyCause` says what really ended the instance rather than only how it was torn down. Omitted
+ * by an explicit `kill` call, which has no cause of its own beyond the user's own request.
+ *
  * USAGE:
  * await instanceKillBroker({ instanceId });
  * // Driver reachable: sends `kill`, returns { stopped: true, reapedPgids: [], ... }
  * // Driver unreachable: reaps the heartbeat's pgids, returns { stopped: true, reapedPgids: [...] }
+ *
+ * await instanceKillBroker({ instanceId, reason: ContentTextStub({ value: 'reaped by cleanup after its heartbeat went stale' }) });
+ * // Driver unreachable, pgids reaped: shutdown-reason.json is written with the SUPPLIED reason
+ * // rather than the generic "reaped N orphaned process groups" wording
  */
 
 import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import { absoluteFilePathContract, contentTextContract } from '@dungeonmaster/shared/contracts';
+import type { ContentText } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { errorIsNativeErrorAdapter } from '../../../adapters/error/is-native-error/error-is-native-error-adapter';
@@ -44,8 +54,10 @@ import { driverStatics } from '../../../statics/driver/driver-statics';
 
 export const instanceKillBroker = async ({
   instanceId,
+  reason,
 }: {
   instanceId: InstanceId;
+  reason?: ContentText;
 }): Promise<KillResult> => {
   const registry = await registryReadBroker();
   const entry = registry.instances.find((candidate) => candidate.id === instanceId);
@@ -132,11 +144,13 @@ export const instanceKillBroker = async ({
       if (reapedPgids.length > 0) {
         await shutdownReasonWriteBroker({
           evidencePath,
-          reason: contentTextContract.parse(
-            `reaped ${reapedPgids.length} orphaned process group${
-              reapedPgids.length === 1 ? '' : 's'
-            } outside the idle timeout`,
-          ),
+          reason:
+            reason ??
+            contentTextContract.parse(
+              `reaped ${reapedPgids.length} orphaned process group${
+                reapedPgids.length === 1 ? '' : 's'
+              } outside the idle timeout`,
+            ),
         });
       }
 

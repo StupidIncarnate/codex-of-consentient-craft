@@ -195,7 +195,7 @@ describe('docsStatics', () => {
   describe('the remaining scopes carry their own headline rule', () => {
     it('VALID: {fixing} => states that the first four reads start nothing', () => {
       expect(docsStatics.scopes.fixing.sections[0].lines[1]).toBe(
-        'Steps 1 through 4 below do not require a running instance. They only read files from disk. They are completely free and work perfectly even if the instance was shut down hours ago. You only need to start a new instance for Step 5, when you actually reproduce the bug.',
+        'Steps 1 through 4 below do not require a running instance. They only read files from disk. They are completely free and work perfectly even if the instance was shut down hours ago. When debugging manually, Step 5 reproduces on a fresh instance; an orchestrated fixer skips Step 5 entirely.',
       );
     });
 
@@ -212,13 +212,14 @@ describe('docsStatics', () => {
       ]);
     });
 
-    it('VALID: {attacking} => states the fresh instance rule for state-changing attacks', () => {
-      expect(docsStatics.scopes.attacking.sections[0].lines[0]).toBe(
+    it('VALID: {attacking} => distinguishes orchestrated run instance lifecycle from manual run in READ THIS FIRST', () => {
+      expect(docsStatics.scopes.attacking.sections[0].lines).toStrictEqual([
         'If an attack changes the application state, you must start a fresh instance for it: boot the instance, run the attack, read the results, and close the instance. If you run a second attack on the same instance, you will be testing the damaged state left by the first attack.',
-      );
+        'In an orchestrated run, the router boots a fresh instance for your piece and closes it when done; use reset steps between probes rather than starting instances yourself.',
+      ]);
     });
 
-    it('VALID: {attacking} => gives the callable stand-in for the unbuilt health reading', () => {
+    it('VALID: {attacking} => gives the manual queries matching the health reading', () => {
       expect(docsStatics.scopes.attacking.sections[1].lines[4]).toBe(
         'You can perform this exact health check manually using existing commands: check results --kind console for browser errors, results --kind network for failed requests, results --kind server --where-steps a-b --where-level error for server logs, and check the blank status on your screenshots.',
       );

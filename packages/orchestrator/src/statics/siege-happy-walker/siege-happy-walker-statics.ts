@@ -94,7 +94,7 @@ YOURS
   get-quest-work                              step 1, your brief and your instance's id
   get-quest                                   step 1, fallback only — see below
   Bash: dungeonmaster siegelense docs --for walking     step 2, once
-  Bash: dungeonmaster siegelense run / results          step 6 on, against YOUR instance only
+  Bash: dungeonmaster siegelense run / results / status   step 3 on, against YOUR instance only
   Read                                        evidence your manual points you at — a screenshot, a
                                                results file. Never a source file, never a test file
   quest-work                                  observations, request, amendment, outcome

@@ -144,4 +144,41 @@ describe('siege-adversarial-walker-statics', () => {
       observationsBeforeSignal: true,
     });
   });
+
+  it('VALID: served template => lists siegelense docs, run/results/status, get-quest-work, get-quest, Write, quest-work, modify-quest and signal-back as yours', () => {
+    expect({
+      hasYours: hasIn({ needle: 'YOURS' }),
+      docsInYours: hasIn({
+        needle: 'Bash: dungeonmaster siegelense docs --for walking / attacking   step 1, once',
+      }),
+      instanceToolsInYours: hasIn({
+        needle:
+          'Bash: dungeonmaster siegelense run / results / status   driving and reading your instance —',
+      }),
+      getQuestWorkInYours: hasIn({
+        needle: "get-quest-work                 step 1, once — your instance's id and addresses",
+      }),
+      getQuestInYours: hasIn({
+        needle: 'get-quest                      step 1, your flow whole',
+      }),
+      writeInYours: hasIn({
+        needle: 'Write                          your PLAN: path. Nothing else.',
+      }),
+      questWorkInYours: hasIn({
+        needle: 'quest-work                     observations, amendment, outcome',
+      }),
+      modifyQuestInYours: hasIn({
+        needle: 'modify-quest                   step 3, your one family, once',
+      }),
+    }).toStrictEqual({
+      hasYours: true,
+      docsInYours: true,
+      instanceToolsInYours: true,
+      getQuestWorkInYours: true,
+      getQuestInYours: true,
+      writeInYours: true,
+      questWorkInYours: true,
+      modifyQuestInYours: true,
+    });
+  });
 });
