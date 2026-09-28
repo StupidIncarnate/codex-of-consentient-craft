@@ -40,7 +40,10 @@ export const shotBlankReadBroker = async ({
   const referenceGreen = frame.pixels[GREEN_BYTE_OFFSET];
   const referenceBlue = frame.pixels[BLUE_BYTE_OFFSET];
   if (referenceRed === undefined || referenceGreen === undefined || referenceBlue === undefined) {
-    throw new Error(`shotBlankReadBroker: decoded frame at ${shotPath} has no pixels to sample`);
+    throw new Error(
+      `The screenshot at ${shotPath} decoded with no pixels to sample — the capture is likely ` +
+        `corrupt; retake it.`,
+    );
   }
 
   for (
@@ -54,7 +57,8 @@ export const shotBlankReadBroker = async ({
     const sampleBlue = frame.pixels[offset + BLUE_BYTE_OFFSET];
     if (sampleRed === undefined || sampleGreen === undefined || sampleBlue === undefined) {
       throw new Error(
-        `shotBlankReadBroker: decoded frame at ${shotPath} ended before pixel offset ${String(offset)}`,
+        `The screenshot at ${shotPath} decoded short of pixel offset ${String(offset)} — the ` +
+          `capture is likely corrupt; retake it.`,
       );
     }
 

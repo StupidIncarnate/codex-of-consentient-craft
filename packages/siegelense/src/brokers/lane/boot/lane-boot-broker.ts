@@ -250,7 +250,10 @@ export const laneBootBroker = async ({
   // only here to satisfy noUncheckedIndexedAccess, never a real "empty spec" path.
   const [firstProcess] = booted;
   if (firstProcess === undefined) {
-    throw new Error(`laneBootBroker: spec ${spec.name} declared no processes`);
+    throw new Error(
+      `Spec ${spec.name} declares no processes to boot — add at least one process to it before ` +
+        `starting an instance.`,
+    );
   }
   const { readServerLogSince, serverLogLength } = serverLogReaderLayerBroker({
     logPath: firstProcess.logPath,

@@ -54,7 +54,11 @@ describe('instanceRunBroker', () => {
 
       await expect(
         instanceRunBroker({ instanceId: INSTANCE_ID, steps: [StepStub()], stopOn: StopOnStub() }),
-      ).rejects.toThrow(/malformed run request/u);
+      ).rejects.toStrictEqual(
+        new Error(
+          `The driver for instance ${INSTANCE_ID} reported a failure: malformed run request`,
+        ),
+      );
     });
   });
 

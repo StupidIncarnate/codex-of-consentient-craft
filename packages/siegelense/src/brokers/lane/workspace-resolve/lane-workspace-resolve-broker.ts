@@ -74,7 +74,10 @@ export const laneWorkspaceResolveBroker = async ({
 
   const [match] = matches;
   if (match === undefined) {
-    throw new Error(`laneWorkspaceResolveBroker: impossible empty match set for "${packageType}"`);
+    throw new Error(
+      `Package type "${packageType}" matched exactly one workspace but it could not be read ` +
+        `back — rerun the command, and report this if it happens again.`,
+    );
   }
   return match;
 };

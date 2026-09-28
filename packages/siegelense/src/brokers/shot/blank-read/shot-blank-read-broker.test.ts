@@ -81,4 +81,22 @@ describe('shotBlankReadBroker', () => {
       expect(result).toStrictEqual({ blank: true, colour: '#0d0907' });
     });
   });
+
+  describe('a real PNG that decodes to zero pixels', () => {
+    it('ERROR: {a 0x1 frame — a real, legitimately round-tripped PNG.sync.write/read pair} => throws the plain sentence naming the shot path', async () => {
+      const proxy = shotBlankReadBrokerProxy();
+      const shotPath = AbsoluteFilePathStub({
+        value:
+          '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step5.png',
+      });
+
+      proxy.stagesShot({ shotPath, width: 0, height: 1, pixels: new Uint8Array([]) });
+
+      await expect(shotBlankReadBroker({ shotPath })).rejects.toStrictEqual(
+        new Error(
+          `The screenshot at ${shotPath} decoded with no pixels to sample — the capture is likely corrupt; retake it.`,
+        ),
+      );
+    });
+  });
 });

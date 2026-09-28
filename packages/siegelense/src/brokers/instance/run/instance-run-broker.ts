@@ -87,7 +87,7 @@ export const instanceRunBroker = async ({
 
   if (!response.ok) {
     throw new Error(
-      `instanceRunBroker: driver for instance ${instanceId} reported a failure: ${response.error ?? 'no error message'}`,
+      `The driver for instance ${instanceId} reported a failure: ${response.error ?? 'no error message'}`,
     );
   }
 
