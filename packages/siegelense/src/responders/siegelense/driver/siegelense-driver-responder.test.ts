@@ -5,6 +5,7 @@ import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.st
 import { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
 import { SpecNameStub } from '../../../contracts/spec-name/spec-name.stub';
+import { InstanceUnknownError } from '../../../errors/instance-unknown/instance-unknown-error';
 import { LaneBootFailedError } from '../../../errors/lane-boot-failed/lane-boot-failed-error';
 
 import { SiegelenseDriverResponder } from './siegelense-driver-responder';
@@ -123,13 +124,13 @@ describe('SiegelenseDriverResponder', () => {
   });
 
   describe('the registry has no row for this instance', () => {
-    it('ERROR: {instance not reserved} => throws naming the instance', async () => {
+    it('ERROR: {instance not reserved} => rejects with InstanceUnknownError, the same shared message every other call throws', async () => {
       const proxy = SiegelenseDriverResponderProxy();
       const instanceId = InstanceIdStub({ value: 'inst_dead0000' });
       proxy.stageEmptyRegistry();
 
-      await expect(SiegelenseDriverResponder({ instanceId })).rejects.toThrow(
-        /inst_dead0000 not found in the registry/u,
+      await expect(SiegelenseDriverResponder({ instanceId })).rejects.toStrictEqual(
+        new InstanceUnknownError({ instanceId }),
       );
     });
   });

@@ -1,5 +1,6 @@
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
 
+import { InstanceUnknownError } from '../errors/instance-unknown/instance-unknown-error';
 import { StartSiegelenseDriver } from './start-siegelense-driver';
 
 describe('StartSiegelenseDriver', () => {
@@ -18,9 +19,9 @@ describe('StartSiegelenseDriver', () => {
   });
 
   describe('a well-formed id with no reservation', () => {
-    it('ERROR: {a fresh, isolated registry} => parses the id and delegates to DriverFlow, which rejects naming it', async () => {
+    it('ERROR: {a fresh, isolated registry} => parses the id and delegates to DriverFlow, which rejects with InstanceUnknownError', async () => {
       await expect(StartSiegelenseDriver({ instanceId: 'inst_00000000' })).rejects.toThrow(
-        /inst_00000000 not found in the registry/u,
+        new InstanceUnknownError({ instanceId: 'inst_00000000' }),
       );
     });
   });
