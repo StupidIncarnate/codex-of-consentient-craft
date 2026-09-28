@@ -25,12 +25,14 @@ describe('cssFontFamilyContract', () => {
   describe('invalid font families', () => {
     it('ERROR: "" => throws for empty string', () => {
       expect(() => cssFontFamilyContract.parse('')).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
 
     it('ERROR: 123 => throws for non-string', () => {
-      expect(() => cssFontFamilyContract.parse(123)).toThrow(/Expected string, received number/u);
+      expect(() => cssFontFamilyContract.parse(123)).toThrow(
+        /Invalid input: expected string, received number/u,
+      );
     });
   });
 

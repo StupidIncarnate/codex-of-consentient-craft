@@ -20,12 +20,12 @@ describe('riftcarverDetailContract', () => {
 
   describe('invalid input', () => {
     it('INVALID: {missing log} => throws', () => {
-      expect(() => riftcarverDetailContract.parse({})).toThrow(/Required/u);
+      expect(() => riftcarverDetailContract.parse({})).toThrow(/received undefined/u);
     });
 
     it('INVALID: {log: number} => throws', () => {
       expect(() => riftcarverDetailContract.parse({ log: 123 as never })).toThrow(
-        /Expected string/u,
+        /expected string/u,
       );
     });
   });

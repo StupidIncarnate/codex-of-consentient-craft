@@ -30,7 +30,7 @@ describe('routeFailureContract', () => {
     it('INVALID: {status: 99} => throws', () => {
       expect(() =>
         routeFailureContract.parse({ url: null, status: 99, responseBody: null }),
-      ).toThrow(/Number must be greater than or equal to 100/u);
+      ).toThrow(/expected number to be >=100/u);
     });
   });
 });

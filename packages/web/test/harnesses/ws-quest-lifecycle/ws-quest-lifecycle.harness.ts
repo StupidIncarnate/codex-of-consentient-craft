@@ -19,9 +19,9 @@ const wsQuestLifecycleFrameContract = z
       .object({
         questId: z.unknown().optional(),
       })
-      .passthrough(),
+      .loose(),
   })
-  .passthrough();
+  .loose();
 
 interface CapturedLifecycleFrame {
   type: 'quest-paused' | 'quest-resumed';

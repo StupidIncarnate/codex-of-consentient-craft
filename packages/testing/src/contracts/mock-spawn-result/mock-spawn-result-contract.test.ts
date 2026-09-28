@@ -101,7 +101,7 @@ describe('mockSpawnResultContract', () => {
           stdout: '',
           stderr: '',
         });
-      }).toThrow(/Expected integer/u);
+      }).toThrow(/expected int/u);
     });
 
     it('INVALID: {code: "0"} => throws validation error for string code', () => {
@@ -111,7 +111,7 @@ describe('mockSpawnResultContract', () => {
           stdout: '',
           stderr: '',
         });
-      }).toThrow(/Expected number/u);
+      }).toThrow(/expected number/u);
     });
 
     it('INVALID: {stdout: 123} => throws validation error for non-string stdout', () => {
@@ -121,7 +121,7 @@ describe('mockSpawnResultContract', () => {
           stdout: 123 as never,
           stderr: '',
         });
-      }).toThrow(/Expected string/u);
+      }).toThrow(/expected string/u);
     });
 
     it('INVALID: {stderr: null} => throws validation error for null stderr', () => {
@@ -131,7 +131,7 @@ describe('mockSpawnResultContract', () => {
           stdout: '',
           stderr: null as never,
         });
-      }).toThrow(/Expected string/u);
+      }).toThrow(/expected string/u);
     });
 
     it('INVALID: {missing code and stdout} => throws validation error', () => {
@@ -139,13 +139,13 @@ describe('mockSpawnResultContract', () => {
         return mockSpawnResultContract.parse({
           stderr: '',
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {empty object} => throws validation error for all fields', () => {
       expect(() => {
         return mockSpawnResultContract.parse({});
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

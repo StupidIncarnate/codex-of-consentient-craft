@@ -1,13 +1,16 @@
 import { monitorableProcessContract } from './monitorable-process-contract';
+import type { MonitorableProcess } from './monitorable-process-contract';
 import { MonitorableProcessStub } from './monitorable-process.stub';
 
 describe('monitorableProcessContract', () => {
   describe('valid processes', () => {
     it('VALID: {kill, on} => parses successfully', () => {
+      // `.loose()` infers `{[x: string]: unknown}` — `kill`/`on` live outside the schema (see the
+      // contract's own header), so this cast asserts what this test itself supplied above.
       const result = monitorableProcessContract.parse({
         kill: () => true,
         on: () => undefined,
-      });
+      }) as MonitorableProcess;
 
       expect(result.kill()).toBe(true);
     });
@@ -30,21 +33,21 @@ describe('monitorableProcessContract', () => {
     });
   });
 
-  describe('invalid inputs', () => {
-    it('INVALID: {missing kill} => throws error', () => {
-      expect(() =>
-        monitorableProcessContract.parse({
-          on: () => undefined,
-        }),
-      ).toThrow(/Required/u);
+  describe('partial inputs', () => {
+    it('VALID: {missing kill} => the contract carries no required data of its own', () => {
+      const result = monitorableProcessContract.parse({
+        on: () => undefined,
+      });
+
+      expect(result).toStrictEqual({ on: expect.any(Function) });
     });
 
-    it('INVALID: {missing on} => throws error', () => {
-      expect(() =>
-        monitorableProcessContract.parse({
-          kill: () => true,
-        }),
-      ).toThrow(/Required/u);
+    it('VALID: {missing on} => the contract carries no required data of its own', () => {
+      const result = monitorableProcessContract.parse({
+        kill: () => true,
+      });
+
+      expect(result).toStrictEqual({ kill: expect.any(Function) });
     });
   });
 });

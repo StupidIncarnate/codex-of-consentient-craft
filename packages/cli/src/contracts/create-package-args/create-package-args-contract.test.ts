@@ -45,7 +45,7 @@ describe('createPackageArgsContract', () => {
     it('INVALID: {packageType: "not-a-real-type"} => throws validation error', () => {
       expect(() =>
         createPackageArgsContract.parse({ packageType: 'not-a-real-type' as never }),
-      ).toThrow(/Invalid enum value/u);
+      ).toThrow(/Invalid option/u);
     });
   });
 

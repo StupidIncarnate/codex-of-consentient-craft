@@ -15,13 +15,13 @@ describe('hydrationRouteContract', () => {
   describe('invalid routes', () => {
     it('INVALID: {value: "socket"} => throws naming the valid routes', () => {
       expect(() => hydrationRouteContract.parse('socket')).toThrow(
-        /Invalid enum value\. Expected 'api' \| 'write', received 'socket'/u,
+        /Invalid option: expected one of \\"api\\"\|\\"write\\"/u,
       );
     });
 
     it('INVALID: {value: "recording"} => throws naming the valid routes', () => {
       expect(() => hydrationRouteContract.parse('recording')).toThrow(
-        /Invalid enum value\. Expected 'api' \| 'write', received 'recording'/u,
+        /Invalid option: expected one of \\"api\\"\|\\"write\\"/u,
       );
     });
   });

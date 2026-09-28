@@ -50,13 +50,13 @@ describe('rateLimitsSnapshotContract', () => {
           sevenDay: null,
           updatedAt: 'not-a-timestamp',
         });
-      }).toThrow(/Invalid datetime/u);
+      }).toThrow(/Invalid ISO datetime/u);
     });
 
     it('INVALID: missing required fields => throws validation error', () => {
       expect(() => {
         rateLimitsSnapshotContract.parse({});
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {fiveHour: invalid window} => throws validation error', () => {

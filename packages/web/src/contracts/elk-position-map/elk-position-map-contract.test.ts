@@ -38,13 +38,13 @@ describe('elkPositionMapContract', () => {
     it('INVALID: {entry missing x} => throws validation error', () => {
       expect(() => {
         elkPositionMapContract.parse({ 'bad-node': { y: 10 } });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {x is string} => throws validation error', () => {
       expect(() => {
         elkPositionMapContract.parse({ 'bad-node': { x: 'not-a-number', y: 10 } });
-      }).toThrow(/Expected number/u);
+      }).toThrow(/expected number/u);
     });
   });
 });

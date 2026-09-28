@@ -35,12 +35,14 @@ export const operationPlanContract = z.object({
     'The work item that ran the planner sub-agent and produced this plan — the session whose ' +
       'output this is.',
   ),
+  // `.default()` before `.brand()` — zod v4 checks a `.default()` literal against the schema's
+  // own output type, and a bare number can never satisfy a branded type.
   round: z
     .number()
     .int()
     .positive()
-    .brand<'OperationPlanRound'>()
     .default(1)
+    .brand<'OperationPlanRound'>()
     .describe(
       'Which plan/work/review round produced this plan. Starts at 1; a rejected round (see ' +
         'operationPlanPieceContract status) that gets re-planned bumps this, so two plans for the ' +
@@ -72,8 +74,7 @@ export const operationPlanContract = z.object({
       'The ordered units of work this plan breaks into. Empty is valid for a plan whose spike ' +
         'concluded no further work is needed — see summary for why.',
     ),
-  at: z
-    .string()
+  at: z.iso
     .datetime()
     .brand<'IsoTimestamp'>()
     .describe(

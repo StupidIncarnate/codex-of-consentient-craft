@@ -18,7 +18,7 @@ describe('fileStemContract', () => {
 
   describe('invalid stems', () => {
     it('INVALID: {value: ""} => throws "String must contain at least 1 character"', () => {
-      expect(() => fileStemContract.parse('')).toThrow(/String must contain at least 1 character/u);
+      expect(() => fileStemContract.parse('')).toThrow(/expected string to have >=1 characters/u);
     });
   });
 });

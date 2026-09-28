@@ -64,7 +64,7 @@ describe('gatewayConsumerPackageJsonContract', () => {
 
   describe('invalid package.json shapes', () => {
     it('INVALID: {missing name} => throws validation error', () => {
-      expect(() => gatewayConsumerPackageJsonContract.parse({})).toThrow(/Required/u);
+      expect(() => gatewayConsumerPackageJsonContract.parse({})).toThrow(/received undefined/u);
     });
   });
 });

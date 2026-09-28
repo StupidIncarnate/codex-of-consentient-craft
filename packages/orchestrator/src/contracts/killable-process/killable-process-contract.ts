@@ -10,9 +10,12 @@
 
 import { z } from 'zod';
 
-export const killableProcessContract = z.object({
-  kill: z.function().args().returns(z.boolean()),
-  waitForExit: z.function().args().returns(z.promise(z.void())),
-});
+// `kill` and `waitForExit` are functions — a Zod object schema cannot check callability, so both
+// stay out of the parse and are attached only through the type intersection below.
+// `.loose()` carries them through `.parse()` unvalidated when a real caller supplies one.
+export const killableProcessContract = z.object({}).loose();
 
-export type KillableProcess = z.infer<typeof killableProcessContract>;
+export type KillableProcess = z.infer<typeof killableProcessContract> & {
+  kill: () => boolean;
+  waitForExit: () => Promise<void>;
+};

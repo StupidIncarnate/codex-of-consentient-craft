@@ -14,7 +14,7 @@ describe('toolingSmoketestRunBodyContract', () => {
     it('INVALID: {suite: "bogus"} => throws validation error', () => {
       expect(() => {
         toolingSmoketestRunBodyContract.parse({ suite: 'bogus' });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
   });
 });

@@ -25,20 +25,20 @@ describe('formattedTokenLabelContract', () => {
   describe('invalid inputs', () => {
     it('INVALID: {value: ""} => throws for empty string', () => {
       expect(() => formattedTokenLabelContract.parse('')).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
 
     it('INVALID: {value: 123} => throws for number', () => {
-      expect(() => formattedTokenLabelContract.parse(123)).toThrow(/Expected string/u);
+      expect(() => formattedTokenLabelContract.parse(123)).toThrow(/expected string/u);
     });
 
     it('EMPTY: {value: null} => throws for null', () => {
-      expect(() => formattedTokenLabelContract.parse(null)).toThrow(/Expected string/u);
+      expect(() => formattedTokenLabelContract.parse(null)).toThrow(/expected string/u);
     });
 
     it('EMPTY: {value: undefined} => throws for undefined', () => {
-      expect(() => formattedTokenLabelContract.parse(undefined)).toThrow(/Required/u);
+      expect(() => formattedTokenLabelContract.parse(undefined)).toThrow(/received undefined/u);
     });
   });
 

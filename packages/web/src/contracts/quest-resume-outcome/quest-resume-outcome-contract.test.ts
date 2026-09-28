@@ -46,7 +46,7 @@ describe('questResumeOutcomeContract', () => {
     it('INVALID: {dispatch missing} => throws because a resume must report whether the queue started', () => {
       expect(() =>
         questResumeOutcomeContract.parse({ resumed: true, restoredStatus: 'in_progress' }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {restoredStatus: not-a-status} => throws', () => {
@@ -56,7 +56,7 @@ describe('questResumeOutcomeContract', () => {
           restoredStatus: 'nonsense',
           dispatch: { started: true },
         }),
-      ).toThrow(/Invalid enum value/u);
+      ).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {dispatch.started: "yes"} => throws Expected boolean', () => {
@@ -66,7 +66,7 @@ describe('questResumeOutcomeContract', () => {
           restoredStatus: 'in_progress',
           dispatch: { started: 'yes' },
         }),
-      ).toThrow(/Expected boolean/u);
+      ).toThrow(/expected boolean/u);
     });
   });
 });

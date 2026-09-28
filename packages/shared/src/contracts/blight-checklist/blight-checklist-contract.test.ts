@@ -32,13 +32,13 @@ describe('blightChecklistContract', () => {
   describe('invalid input', () => {
     it('EMPTY: {baseRef: ""} => throws', () => {
       expect(() => BlightChecklistStub({ baseRef: '' as never })).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
 
     it('INVALID: {remaining id not a string} => throws', () => {
       expect(() => BlightChecklistStub({ remainingItemIds: [1 as never] })).toThrow(
-        /Expected string/u,
+        /expected string/u,
       );
     });
   });

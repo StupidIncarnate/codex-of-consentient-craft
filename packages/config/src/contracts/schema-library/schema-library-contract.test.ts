@@ -36,19 +36,19 @@ describe('schemaLibraryContract', () => {
     it('INVALID: "invalid" => throws validation error', () => {
       expect(() => {
         return schemaLibraryContract.parse('invalid');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: 123 => throws validation error', () => {
       expect(() => {
         return schemaLibraryContract.parse(123);
-      }).toThrow(/Expected/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: undefined => throws validation error', () => {
       expect(() => {
         return schemaLibraryContract.parse(undefined);
-      }).toThrow(/Required/u);
+      }).toThrow(/Invalid option/u);
     });
   });
 });

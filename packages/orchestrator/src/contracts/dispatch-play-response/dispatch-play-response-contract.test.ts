@@ -30,6 +30,8 @@ describe('dispatchPlayResponseContract', () => {
   });
 
   it('INVALID: {state missing} => throws Required', () => {
-    expect(() => dispatchPlayResponseContract.parse({ allowed: true })).toThrow(/Required/u);
+    expect(() => dispatchPlayResponseContract.parse({ allowed: true })).toThrow(
+      /received undefined/u,
+    );
   });
 });

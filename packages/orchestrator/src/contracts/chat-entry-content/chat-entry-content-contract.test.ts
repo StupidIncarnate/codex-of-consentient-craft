@@ -37,6 +37,6 @@ You are a helpful assistant.
   it('INVALID: {value: 123} => throws validation error', () => {
     expect(() => {
       return chatEntryContentContract.parse(123 as never);
-    }).toThrow(/Expected string/u);
+    }).toThrow(/expected string/u);
   });
 });

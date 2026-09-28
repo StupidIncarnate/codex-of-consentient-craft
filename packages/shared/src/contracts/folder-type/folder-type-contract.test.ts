@@ -23,6 +23,6 @@ describe('FolderTypeStub', () => {
   it('INVALID: {value: "invalid-folder"} => throws ZodError', () => {
     expect(() => {
       FolderTypeStub({ value: 'invalid-folder' });
-    }).toThrow('Invalid enum value');
+    }).toThrow('Invalid option');
   });
 });

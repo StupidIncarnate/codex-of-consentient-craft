@@ -53,29 +53,29 @@ describe('dispatchHoldContract', () => {
 
   describe('invalid input', () => {
     it('INVALID: {reason: "throttled"} => throws on a reason outside the enum', () => {
-      expect(() => DispatchHoldStub({ reason: 'throttled' as never })).toThrow(
-        /Invalid enum value/u,
-      );
+      expect(() => DispatchHoldStub({ reason: 'throttled' as never })).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {window: "one-hour"} => throws on a window outside the enum', () => {
-      expect(() => DispatchHoldStub({ window: 'one-hour' as never })).toThrow(
-        /Invalid enum value/u,
-      );
+      expect(() => DispatchHoldStub({ window: 'one-hour' as never })).toThrow(/Invalid option/u);
     });
 
     it('EMPTY: {detail: ""} => throws, because the queue UI renders this string verbatim', () => {
       expect(() => DispatchHoldStub({ detail: '' as never })).toThrow(
-        /String must contain at least 1/u,
+        /expected string to have >=1 characters/u,
       );
     });
 
     it('INVALID: {resumeAt: "soon"} => throws on a non-ISO resumeAt', () => {
-      expect(() => DispatchHoldStub({ resumeAt: 'soon' as never })).toThrow(/Invalid datetime/u);
+      expect(() => DispatchHoldStub({ resumeAt: 'soon' as never })).toThrow(
+        /Invalid ISO datetime/u,
+      );
     });
 
     it('INVALID: {heldAt: "yesterday"} => throws on a non-ISO heldAt', () => {
-      expect(() => DispatchHoldStub({ heldAt: 'yesterday' as never })).toThrow(/Invalid datetime/u);
+      expect(() => DispatchHoldStub({ heldAt: 'yesterday' as never })).toThrow(
+        /Invalid ISO datetime/u,
+      );
     });
   });
 });

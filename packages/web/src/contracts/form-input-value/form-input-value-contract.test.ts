@@ -18,11 +18,11 @@ describe('formInputValueContract', () => {
 
   describe('invalid inputs', () => {
     it('EMPTY: {value: null} => throws for null', () => {
-      expect(() => formInputValueContract.parse(null)).toThrow(/Expected string/u);
+      expect(() => formInputValueContract.parse(null)).toThrow(/expected string/u);
     });
 
     it('EMPTY: {value: undefined} => throws for undefined', () => {
-      expect(() => formInputValueContract.parse(undefined)).toThrow(/Required/u);
+      expect(() => formInputValueContract.parse(undefined)).toThrow(/received undefined/u);
     });
   });
 

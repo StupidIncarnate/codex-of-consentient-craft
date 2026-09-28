@@ -52,7 +52,7 @@ describe('wsLogEntryContract', () => {
           data: 'test',
           elapsedMs: 0,
         });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {data: number} => throws validation error', () => {
@@ -62,7 +62,7 @@ describe('wsLogEntryContract', () => {
           data: 123 as never,
           elapsedMs: 0,
         });
-      }).toThrow(/Expected string/u);
+      }).toThrow(/expected string/u);
     });
 
     it('INVALID: {elapsedMs: -1} => throws validation error', () => {
@@ -72,13 +72,13 @@ describe('wsLogEntryContract', () => {
           data: 'test',
           elapsedMs: -1,
         });
-      }).toThrow(/Number must be greater than or equal to 0/u);
+      }).toThrow(/expected number to be >=0/u);
     });
 
     it('INVALID: {missing all fields} => throws validation error', () => {
       expect(() => {
         return wsLogEntryContract.parse({});
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

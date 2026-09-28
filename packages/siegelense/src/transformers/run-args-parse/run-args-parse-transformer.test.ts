@@ -144,7 +144,7 @@ describe('runArgsParseTransformer', () => {
           ],
           stepsFileContent: null,
         }),
-      ).toThrow(/^--steps: steps\.0: Unrecognized key\(s\) in object: 'bogus'$/u);
+      ).toThrow(/^--steps: steps\.0: Unrecognized key: "bogus"$/u);
     });
   });
 
@@ -168,7 +168,7 @@ describe('runArgsParseTransformer', () => {
           args: ['--instance', 'inst_7f3a9c21', '--steps', '[]', '--stop-on', 'maybe'],
           stepsFileContent: null,
         }),
-      ).toThrow(/^--stop-on: Invalid enum value\. Expected 'error' \| 'never', received 'maybe'$/u);
+      ).toThrow(/^--stop-on: Invalid option: expected one of "error"\|"never"$/u);
     });
   });
 
@@ -188,7 +188,7 @@ describe('runArgsParseTransformer', () => {
           stepsFileContent: null,
         }),
       ).toThrow(
-        /^--steps: steps\.0: Unrecognized key\(s\) in object: 'bogus'; steps\.1: Unrecognized key\(s\) in object: 'evil'$/u,
+        /^--steps: steps\.0: Unrecognized key: "bogus"; steps\.1: Unrecognized key: "evil"$/u,
       );
     });
   });

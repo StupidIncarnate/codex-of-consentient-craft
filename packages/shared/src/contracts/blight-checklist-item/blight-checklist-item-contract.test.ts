@@ -48,7 +48,7 @@ describe('blightChecklistItemContract', () => {
 
     it('EMPTY: {packageName: ""} => throws, because an empty name names no package', () => {
       expect(() => BlightChecklistItemStub({ packageName: '' as never })).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
 
@@ -70,19 +70,19 @@ describe('blightChecklistItemContract', () => {
   describe('invalid input', () => {
     it('INVALID: {concern: "novel"} => throws', () => {
       expect(() => BlightChecklistItemStub({ concern: 'novel' as never })).toThrow(
-        /Invalid enum value/u,
+        /Invalid option/u,
       );
     });
 
     it('EMPTY: {label: ""} => throws, because a unit with no text tells a reviewer nothing to confirm', () => {
       expect(() => BlightChecklistItemStub({ label: '' as never })).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
 
     it('EMPTY: {implPath: ""} => throws', () => {
       expect(() => BlightChecklistItemStub({ implPath: '' as never })).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
 
@@ -94,7 +94,7 @@ describe('blightChecklistItemContract', () => {
 
     it('EMPTY: {id: ""} => throws', () => {
       expect(() => BlightChecklistItemStub({ id: '' as never })).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
 

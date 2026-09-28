@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Resolves an Identifier reference inside a z.discriminatedUnion variant property to the initializer of its same-file VariableDeclarator binding (top-level Program scope), so the variant predicate can inspect schemas defined as `const fooSchema = z.record(...)` and referenced as `payload: fooSchema`.
+ * PURPOSE: Resolves an Identifier reference inside a z.discriminatedUnion variant property to the initializer of its same-file VariableDeclarator binding (top-level Program scope), so the variant predicate can inspect schemas defined as `const fooSchema = z.record(z.string(), ...)` and referenced as `payload: fooSchema`.
  *
  * USAGE:
  * const init = checkResolveSchemaBindingLayerBroker({ identifierNode });

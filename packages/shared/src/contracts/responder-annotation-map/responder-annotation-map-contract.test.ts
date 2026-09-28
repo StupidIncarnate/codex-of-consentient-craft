@@ -38,7 +38,9 @@ describe('responderAnnotationMapContract', () => {
 
   describe('invalid inputs', () => {
     it('INVALID: {plain object} => throws ZodError', () => {
-      expect(() => responderAnnotationMapContract.parse({})).toThrow(/Expected map/u);
+      expect(() => responderAnnotationMapContract.parse({})).toThrow(
+        /Invalid input: expected map, received object/u,
+      );
     });
   });
 });

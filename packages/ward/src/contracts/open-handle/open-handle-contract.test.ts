@@ -36,7 +36,7 @@ describe('openHandleContract', () => {
         openHandleContract.parse({
           message: 'TCPSERVERWRAP',
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {missing message} => throws validation error', () => {
@@ -44,11 +44,11 @@ describe('openHandleContract', () => {
         openHandleContract.parse({
           name: 'Error',
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {missing name and message} => throws validation error', () => {
-      expect(() => openHandleContract.parse({})).toThrow(/Required/u);
+      expect(() => openHandleContract.parse({})).toThrow(/received undefined/u);
     });
   });
 

@@ -18,6 +18,6 @@ describe('smoketestCaseResultContract', () => {
         name: 'x',
         passed: true,
       }),
-    ).toThrow(/String must contain at least 1/u);
+    ).toThrow(/Too small: expected string to have >=1 characters/u);
   });
 });

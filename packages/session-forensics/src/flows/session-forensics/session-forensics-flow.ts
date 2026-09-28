@@ -30,7 +30,7 @@ const FLOOR_SECONDS_FLAG = '--floor-seconds';
 const USAGE_BLOCK = contentTextContract.parse(
   [
     'usage: session-forensics <command> <target>',
-    ...digestCommandContract.unwrap().options,
+    ...digestCommandContract.options,
     'buckets --minutes <n>',
     'gaps --floor-seconds <n>',
   ].join('\n'),

@@ -13,6 +13,6 @@ export const toolResponseContract = z
     success: z.boolean().optional(),
     // Additional fields depend on the specific tool
   })
-  .passthrough();
+  .loose();
 
 export type ToolResponse = z.infer<typeof toolResponseContract>;

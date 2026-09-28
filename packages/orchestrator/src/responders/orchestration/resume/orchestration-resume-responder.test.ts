@@ -11,6 +11,7 @@ import {
   WorkItemStub,
 } from '@dungeonmaster/shared/contracts';
 
+import { OrchestrationEventPayloadKeyStub } from '../../../contracts/orchestration-event-payload-key/orchestration-event-payload-key.stub';
 import { slotManagerStatics } from '../../../statics/slot-manager/slot-manager-statics';
 import { OrchestrationResumeResponderProxy } from './orchestration-resume-responder.proxy';
 
@@ -87,9 +88,10 @@ describe('OrchestrationResumeResponder', () => {
 
       await proxy.callResponder({ questId });
 
+      const questIdKey = OrchestrationEventPayloadKeyStub({ value: 'questId' });
       const emittedQuestIds = proxy
         .getEmittedResumeEvents()
-        .map((emit) => String(emit.payload.questId));
+        .map((emit) => String(emit.payload[questIdKey]));
 
       expect(emittedQuestIds).toStrictEqual([String(questId)]);
     });

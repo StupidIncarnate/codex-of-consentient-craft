@@ -27,13 +27,13 @@ describe('commentStaleAnchorContract', () => {
     it('INVALID: {flowId: "Login Flow"} => throws validation error', () => {
       expect(() => {
         commentStaleAnchorContract.parse({ flowId: 'Login Flow', nodeId: 'start' });
-      }).toThrow(/invalid_string/u);
+      }).toThrow(/invalid_format/u);
     });
 
     it('INVALID: {nodeId: "Start Node"} => throws validation error', () => {
       expect(() => {
         commentStaleAnchorContract.parse({ flowId: 'login-flow', nodeId: 'Start Node' });
-      }).toThrow(/invalid_string/u);
+      }).toThrow(/invalid_format/u);
     });
 
     it('INVALID: {observableId: "Login Redirects"} => throws validation error', () => {
@@ -43,13 +43,13 @@ describe('commentStaleAnchorContract', () => {
           nodeId: 'start',
           observableId: 'Login Redirects',
         });
-      }).toThrow(/invalid_string/u);
+      }).toThrow(/invalid_format/u);
     });
 
     it('INVALID: {missing nodeId} => throws validation error', () => {
       expect(() => {
         commentStaleAnchorContract.parse({ flowId: 'login-flow' });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

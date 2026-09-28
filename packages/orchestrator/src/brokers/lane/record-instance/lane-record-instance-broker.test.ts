@@ -19,7 +19,7 @@ describe('laneRecordInstanceBroker', () => {
     it('VALID: {needsLane item, no payload} => persists payload.instance and returns the instance', async () => {
       const proxy = laneRecordInstanceBrokerProxy();
       const questId = QuestIdStub({ value: 'lane-record-happy' });
-      const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-0000-0000-0000-000000000010' });
+      const workItemId = QuestWorkItemIdStub({ value: '2f6a4505-1ac4-6d00-96f1-2d4744cbd924' });
       const workItem = WorkItemStub({
         id: workItemId,
         role: 'siegemaster',
@@ -59,7 +59,7 @@ describe('laneRecordInstanceBroker', () => {
     it("VALID: {payload already carries a brief} => merges instance in, keeping the brief's other keys", async () => {
       const proxy = laneRecordInstanceBrokerProxy();
       const questId = QuestIdStub({ value: 'lane-record-merge' });
-      const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-0000-0000-0000-000000000011' });
+      const workItemId = QuestWorkItemIdStub({ value: '712e633e-8523-4a1c-a1d8-fa6941df90dc' });
       const workItem = WorkItemStub({
         id: workItemId,
         role: 'siegemaster',

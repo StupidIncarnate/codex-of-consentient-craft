@@ -32,7 +32,7 @@ describe('getQuestResultContract', () => {
     it('INVALID: {missing success} => throws validation error', () => {
       expect(() => {
         return getQuestResultContract.parse({});
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

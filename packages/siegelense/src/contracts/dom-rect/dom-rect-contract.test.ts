@@ -31,6 +31,6 @@ describe('domRectContract', () => {
   it('INVALID: {negative width} => throws validation error', () => {
     expect(() => {
       domRectContract.parse({ x: 0, y: 0, width: -10, height: 50 });
-    }).toThrow(/Number must be greater than or equal to 0/u);
+    }).toThrow(/expected number to be >=0/u);
   });
 });

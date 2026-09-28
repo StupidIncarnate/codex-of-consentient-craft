@@ -20,13 +20,13 @@ describe('sessionIdParamsContract', () => {
     it('INVALID: {sessionId: ""} => throws validation error', () => {
       expect(() => {
         sessionIdParamsContract.parse({ sessionId: '' });
-      }).toThrow(/at least 1/u);
+      }).toThrow(/>=1/u);
     });
 
     it('INVALID: {missing sessionId} => throws validation error', () => {
       expect(() => {
         sessionIdParamsContract.parse({});
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

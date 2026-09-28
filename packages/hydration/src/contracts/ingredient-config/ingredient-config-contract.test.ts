@@ -72,7 +72,7 @@ describe('ingredientConfigContract', () => {
           routes: { write: (): unknown => undefined },
           copies: 'questPersistBroker',
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {extras: {set: {args, apply}}} => throws naming the reserved verb', () => {

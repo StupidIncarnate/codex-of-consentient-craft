@@ -75,7 +75,7 @@ describe('nextActionContract', () => {
           step: 'adversarial',
           batch: [],
         }),
-      ).toThrow(/at least 1 element/u);
+      ).toThrow(/Too small: expected array to have >=1 items/u);
     });
   });
 
@@ -126,7 +126,7 @@ describe('nextActionContract', () => {
           reason: 'exploded',
           message: 'boom',
         }),
-      ).toThrow(/Invalid enum value/u);
+      ).toThrow(/Invalid option/u);
     });
   });
 

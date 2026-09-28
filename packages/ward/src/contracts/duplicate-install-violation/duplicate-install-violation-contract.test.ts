@@ -43,13 +43,13 @@ describe('duplicateInstallViolationContract', () => {
           packageName: '@mantine/core',
           locations: [{ location: 'packages/web/node_modules/@mantine/core', version: '8.3.14' }],
         }),
-      ).toThrow(/Array must contain at least 2 element/u);
+      ).toThrow(/Too small: expected array to have >=2 items/u);
     });
 
     it('INVALID: {locations: empty array} => throws', () => {
       expect(() =>
         duplicateInstallViolationContract.parse({ packageName: '@mantine/core', locations: [] }),
-      ).toThrow(/Array must contain at least 2 element/u);
+      ).toThrow(/Too small: expected array to have >=2 items/u);
     });
 
     it('INVALID: {missing packageName} => throws', () => {
@@ -60,7 +60,7 @@ describe('duplicateInstallViolationContract', () => {
             { location: 'b/node_modules/x', version: '1.0.1' },
           ],
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 });

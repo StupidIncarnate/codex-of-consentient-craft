@@ -21,7 +21,7 @@ export const gatewayWorkspacesMergeTransformer = ({
 }: {
   rootPackageJson: PackageJsonRaw;
 }): PackageJsonRaw => {
-  const workspacesKey = packageJsonRawContract.keySchema.parse('workspaces');
+  const workspacesKey = packageJsonRawContract.keyType.parse('workspaces');
   const existingValue = rootPackageJson[workspacesKey];
   const existingWorkspaces = Array.isArray(existingValue)
     ? existingValue.filter((entry) => typeof entry === 'string')

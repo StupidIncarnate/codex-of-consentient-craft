@@ -26,20 +26,20 @@ describe('questResolveQuestsPathBroker', () => {
 
     it('VALID: {different guildId} => returns quests path for different guild', () => {
       const proxy = questResolveQuestsPathBrokerProxy();
-      const guildId = GuildIdStub({ value: '12345678-1234-1234-1234-123456789abc' });
+      const guildId = GuildIdStub({ value: '7a33141f-192d-204d-847e-9918b4840d56' });
 
       proxy.setupQuestsPath({
         homeDir: '/home/other',
         homePath: FilePathStub({ value: '/home/other/.dungeonmaster' }),
         questsPath: FilePathStub({
-          value: '/home/other/.dungeonmaster/guilds/12345678-1234-1234-1234-123456789abc/quests',
+          value: '/home/other/.dungeonmaster/guilds/7a33141f-192d-204d-847e-9918b4840d56/quests',
         }),
       });
 
       const result = questResolveQuestsPathBroker({ guildId });
 
       expect(result.questsPath).toBe(
-        '/home/other/.dungeonmaster/guilds/12345678-1234-1234-1234-123456789abc/quests',
+        '/home/other/.dungeonmaster/guilds/7a33141f-192d-204d-847e-9918b4840d56/quests',
       );
     });
   });

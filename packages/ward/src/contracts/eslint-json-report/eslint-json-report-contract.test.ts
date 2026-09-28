@@ -40,7 +40,7 @@ describe('eslintJsonReportContract', () => {
         eslintJsonReportContract.parse({
           filePath: '/x',
         }),
-      ).toThrow(/Expected array/u);
+      ).toThrow(/expected array/u);
     });
   });
 

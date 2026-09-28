@@ -22,18 +22,18 @@ describe('duplicateInstallLocationContract', () => {
     it('INVALID: {location: ""} => throws', () => {
       expect(() =>
         duplicateInstallLocationContract.parse({ location: '', version: '8.3.18' }),
-      ).toThrow(/String must contain at least 1 character/u);
+      ).toThrow(/expected string to have >=1 characters/u);
     });
 
     it('INVALID: {version: ""} => throws', () => {
       expect(() =>
         duplicateInstallLocationContract.parse({ location: 'packages/web', version: '' }),
-      ).toThrow(/String must contain at least 1 character/u);
+      ).toThrow(/expected string to have >=1 characters/u);
     });
 
     it('INVALID: {missing location} => throws', () => {
       expect(() => duplicateInstallLocationContract.parse({ version: '8.3.18' })).toThrow(
-        /Required/u,
+        /received undefined/u,
       );
     });
   });

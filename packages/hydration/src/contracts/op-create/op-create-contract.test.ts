@@ -39,11 +39,11 @@ describe('opCreateContract', () => {
   });
 
   describe('invalid create ops', () => {
-    it.each(REQUIRED_FIELDS)('INVALID: {no %s} => throws "Required"', (field) => {
+    it.each(REQUIRED_FIELDS)('INVALID: {no %s} => throws "received undefined"', (field) => {
       const incomplete: Record<string, unknown> = { ...OpCreateStub() };
       Reflect.deleteProperty(incomplete, field);
 
-      expect(() => opCreateContract.parse(incomplete)).toThrow(/Required/u);
+      expect(() => opCreateContract.parse(incomplete)).toThrow(/received undefined/u);
     });
 
     it('INVALID: {op: "nope"} => throws naming the expected literal', () => {
@@ -56,7 +56,7 @@ describe('opCreateContract', () => {
           ancestors: ['guild[0:0]'],
           fields: {},
         }),
-      ).toThrow(/Invalid literal value/u);
+      ).toThrow(/Invalid input: expected/u);
     });
   });
 });

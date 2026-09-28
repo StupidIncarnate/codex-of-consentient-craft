@@ -26,7 +26,9 @@ describe('processSignalContract', () => {
     });
 
     it('INVALID: {value: 9} => throws validation error', () => {
-      expect(() => processSignalContract.parse(9)).toThrow(/Expected string, received number/u);
+      expect(() => processSignalContract.parse(9)).toThrow(
+        /Invalid input: expected string, received number/u,
+      );
     });
   });
 });

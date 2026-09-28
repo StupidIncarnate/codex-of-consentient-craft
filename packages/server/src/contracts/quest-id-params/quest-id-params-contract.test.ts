@@ -20,13 +20,13 @@ describe('questIdParamsContract', () => {
     it('INVALID: {questId: ""} => throws validation error', () => {
       expect(() => {
         questIdParamsContract.parse({ questId: '' });
-      }).toThrow(/at least 1/u);
+      }).toThrow(/>=1/u);
     });
 
     it('INVALID: {missing questId} => throws validation error', () => {
       expect(() => {
         questIdParamsContract.parse({});
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

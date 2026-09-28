@@ -32,11 +32,11 @@ describe('opSetContract', () => {
   });
 
   describe('invalid set ops', () => {
-    it.each(REQUIRED_FIELDS)('INVALID: {no %s} => throws "Required"', (field) => {
+    it.each(REQUIRED_FIELDS)('INVALID: {no %s} => throws "received undefined"', (field) => {
       const incomplete: Record<string, unknown> = { ...OpSetStub() };
       Reflect.deleteProperty(incomplete, field);
 
-      expect(() => opSetContract.parse(incomplete)).toThrow(/Required/u);
+      expect(() => opSetContract.parse(incomplete)).toThrow(/received undefined/u);
     });
 
     it('INVALID: {op: "nope"} => throws naming the expected literal', () => {
@@ -46,7 +46,7 @@ describe('opSetContract', () => {
           ref: 'guild[0:0]/quest[0:2]',
           written: {},
         }),
-      ).toThrow(/Invalid literal value/u);
+      ).toThrow(/Invalid input: expected/u);
     });
   });
 });

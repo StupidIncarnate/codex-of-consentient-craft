@@ -557,7 +557,7 @@ describe('QuestHandleResponder', () => {
                 disposition: 'reviewed',
                 evidence: 'handleSubmit rethrows with the request url attached',
                 observedBy: 'reviewer',
-                workItemId: '9c4e1a2b-3d4e-5f6a-7b8c-9d0e1f2a3b4c',
+                workItemId: 'b9f6feda-fc23-8ab8-b207-6209edd00f5f',
                 createdAt: '2024-01-15T10:00:00.000Z',
               },
             ],
@@ -577,7 +577,7 @@ describe('QuestHandleResponder', () => {
               disposition: 'reviewed',
               evidence: 'handleSubmit rethrows with the request url attached',
               observedBy: 'reviewer',
-              workItemId: '9c4e1a2b-3d4e-5f6a-7b8c-9d0e1f2a3b4c',
+              workItemId: 'b9f6feda-fc23-8ab8-b207-6209edd00f5f',
               createdAt: '2024-01-15T10:00:00.000Z',
             },
           ],
@@ -1055,7 +1055,7 @@ describe('QuestHandleResponder', () => {
           tool: ToolNameStub({ value: 'get-quest-planning-notes' }),
           args: { questId: 'test-quest-id', section: 'blight' },
         }),
-      ).rejects.toThrow(/Unrecognized key\(s\) in object: 'section'/u);
+      ).rejects.toThrow(/Unrecognized key: \\"section\\"/u);
     });
 
     it('VALID: {unsuccessful result} => returns isError true', async () => {

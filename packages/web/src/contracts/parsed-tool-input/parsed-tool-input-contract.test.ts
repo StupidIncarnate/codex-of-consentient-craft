@@ -24,7 +24,7 @@ describe('parsedToolInputContract', () => {
     it('INVALID: {non-object} => throws validation error', () => {
       expect(() => {
         parsedToolInputContract.parse('not an object');
-      }).toThrow(/Expected object/u);
+      }).toThrow(/expected record/u);
     });
   });
 });

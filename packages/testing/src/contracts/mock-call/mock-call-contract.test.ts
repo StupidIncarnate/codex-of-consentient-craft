@@ -89,7 +89,7 @@ describe('mockCallContract', () => {
           factory: null,
           sourceFile: 'test.proxy.ts',
         });
-      }).toThrow(/String must contain at least 1 character/u);
+      }).toThrow(/expected string to have >=1 characters/u);
     });
 
     it('INVALID: {missing sourceFile} => throws validation error', () => {
@@ -98,7 +98,7 @@ describe('mockCallContract', () => {
           moduleName: 'axios',
           factory: null,
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

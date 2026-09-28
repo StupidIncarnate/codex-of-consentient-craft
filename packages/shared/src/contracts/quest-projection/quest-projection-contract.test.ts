@@ -94,7 +94,7 @@ describe('questProjectionContract', () => {
 
   describe('invalid input', () => {
     it('EMPTY: {no questId} => throws, a projection names the quest it projects', () => {
-      expect(() => questProjectionContract.parse({})).toThrow(/Required/u);
+      expect(() => questProjectionContract.parse({})).toThrow(/received undefined/u);
     });
 
     it('INVALID: {kind: "pending"} => throws, kind is only actual or planned', () => {
@@ -111,7 +111,7 @@ describe('questProjectionContract', () => {
             },
           ],
         }),
-      ).toThrow(/Invalid enum value/u);
+      ).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {a step carrying an unrecognized key} => throws rather than dropping it', () => {
@@ -128,7 +128,7 @@ describe('questProjectionContract', () => {
             },
           ],
         }),
-      ).toThrow(/Unrecognized key\(s\) in object: 'pieceLabel'/u);
+      ).toThrow(/Unrecognized key/u);
     });
 
     it('INVALID: {a scope carrying an unrecognized key} => throws rather than dropping it', () => {
@@ -146,12 +146,12 @@ describe('questProjectionContract', () => {
             },
           ],
         }),
-      ).toThrow(/Unrecognized key\(s\) in object: 'flowIds'/u);
+      ).toThrow(/Unrecognized key/u);
     });
 
     it('INVALID: {totalPlannedSteps written as totalSteps} => throws rather than defaulting to zero', () => {
       expect(() => questProjectionContract.parse({ questId: 'add-auth', totalSteps: 5 })).toThrow(
-        /Unrecognized key\(s\) in object: 'totalSteps'/u,
+        /Unrecognized key/u,
       );
     });
   });

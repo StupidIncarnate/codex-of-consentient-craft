@@ -6,6 +6,7 @@ import {
   operationIngredient,
   operationFieldsContract,
   sessionIngredient,
+  nestedChainArgsContract,
 } from '../../../test/type-fixtures/dm-target';
 import type { IngredientConfigStub } from '../../contracts/ingredient-config/ingredient-config.stub';
 import type { HydrationOpStub } from '../../contracts/hydration-op/hydration-op.stub';
@@ -189,7 +190,9 @@ describe('rowHandleChainTransformer', () => {
       ancestorNames: ['guild'] as never,
     });
 
-    const result = handle.withNestedChain({ depth: 2 }) as unknown as HydrationOp[];
+    const result = handle.withNestedChain({
+      depth: nestedChainArgsContract.shape.depth.parse(2),
+    }) as unknown as HydrationOp[];
 
     expect(result).toStrictEqual([
       { op: 'extra', ref: 'guild[0:0]/session[0:0]', verb: 'withNestedChain', args: { depth: 2 } },

@@ -71,7 +71,7 @@ describe('jestJsonReportContract', () => {
         jestJsonReportContract.parse({
           testResults: 'oops',
         }),
-      ).toThrow(/Expected array/u);
+      ).toThrow(/expected array/u);
     });
 
     it('INVALID: {numPassedTests: "ten"} => throws validation error', () => {
@@ -79,7 +79,7 @@ describe('jestJsonReportContract', () => {
         jestJsonReportContract.parse({
           numPassedTests: 'ten',
         }),
-      ).toThrow(/Expected number/u);
+      ).toThrow(/expected number/u);
     });
   });
 

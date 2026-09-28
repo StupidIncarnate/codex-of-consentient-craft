@@ -37,13 +37,13 @@ describe('widgetEdgesContract', () => {
     it('INVALID: {missing childWidgetPaths} => throws validation error', () => {
       expect(() => {
         return widgetEdgesContract.parse({ bindingNames: [] });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {missing bindingNames} => throws validation error', () => {
       expect(() => {
         return widgetEdgesContract.parse({ childWidgetPaths: [] });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

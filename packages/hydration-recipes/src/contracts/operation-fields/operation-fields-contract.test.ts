@@ -56,14 +56,14 @@ describe('operationFieldsContract', () => {
   });
 
   describe('invalid operation fields', () => {
-    it('INVALID: {text, role, status — no questId or guildId} => throws "Required"', () => {
+    it('INVALID: {text, role, status — no questId or guildId} => throws "received undefined"', () => {
       expect(() =>
         operationFieldsContract.parse({
           text: 'Seeded operation 1',
           role: 'codeweaver',
           status: 'pending',
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {role: "not-a-role"} => throws "Invalid enum value"', () => {
@@ -75,13 +75,13 @@ describe('operationFieldsContract', () => {
           questId: 'add-auth',
           guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         }),
-      ).toThrow(/Invalid enum value/u);
+      ).toThrow(/Invalid option/u);
     });
   });
 
   describe('empty operation fields', () => {
-    it('EMPTY: {} => throws "Required"', () => {
-      expect(() => operationFieldsContract.parse({})).toThrow(/Required/u);
+    it('EMPTY: {} => throws "received undefined"', () => {
+      expect(() => operationFieldsContract.parse({})).toThrow(/received undefined/u);
     });
   });
 });

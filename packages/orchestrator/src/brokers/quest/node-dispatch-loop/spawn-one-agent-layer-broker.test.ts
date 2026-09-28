@@ -29,7 +29,19 @@ describe('spawnOneAgentLayerBroker', () => {
       expect(proxy.getModifyCallInputs()).toStrictEqual([
         {
           questId: instruction.questId,
-          workItems: [{ id: instruction.workItemId, sessionId: SESSION_ID }],
+          workItems: [
+            {
+              id: instruction.workItemId,
+              sessionId: SESSION_ID,
+              assignedUnitIds: [],
+              attempt: 0,
+              dependsOn: [],
+              maxAttempts: 1,
+              observations: [],
+              relatedDataItems: [],
+              retryCount: 0,
+            },
+          ],
         },
       ]);
       expect(proxy.getAllSpawnedArgs()).toStrictEqual([

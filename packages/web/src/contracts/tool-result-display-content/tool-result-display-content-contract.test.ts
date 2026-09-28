@@ -28,7 +28,7 @@ describe('toolResultDisplayContentContract', () => {
     it('INVALID: {non-string} => throws validation error', () => {
       expect(() => {
         toolResultDisplayContentContract.parse(42);
-      }).toThrow(/Expected string/u);
+      }).toThrow(/expected string/u);
     });
   });
 });

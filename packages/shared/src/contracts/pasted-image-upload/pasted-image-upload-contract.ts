@@ -54,9 +54,10 @@ const base64ImageDataContract = z
     })();
 
     if (!isValidCharset) {
+      // `custom`, not `invalid_string` — zod v4 dropped that code (string-format issues report as
+      // `invalid_format` now), and this check is hand-rolled, not a real `.regex()` validator.
       ctx.addIssue({
-        code: z.ZodIssueCode.invalid_string,
-        validation: 'regex',
+        code: 'custom',
         message: 'Invalid base64 image data',
       });
       return;
@@ -68,7 +69,7 @@ const base64ImageDataContract = z
 
     if (decodedBytes > pastedImageStatics.maxBytesPerImage) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         message: `Decoded image exceeds ${String(pastedImageStatics.maxBytesPerImage)} bytes`,
       });
     }

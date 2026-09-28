@@ -13,6 +13,6 @@ import { installedPackageVersionContract } from '../installed-package-version/in
 
 export const installedPackageManifestContract = z
   .object({ version: installedPackageVersionContract.optional() })
-  .passthrough();
+  .loose();
 
 export type InstalledPackageManifest = z.infer<typeof installedPackageManifestContract>;

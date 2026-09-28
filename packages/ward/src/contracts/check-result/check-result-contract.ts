@@ -16,7 +16,7 @@ export const checkResultContract = z.object({
   checkType: checkTypeContract,
   status: checkStatusContract,
   projectResults: z.array(projectResultContract),
-  durationMs: durationMsContract.default(0),
+  durationMs: durationMsContract.default(durationMsContract.parse(0)),
 });
 
 export type CheckResult = z.infer<typeof checkResultContract>;

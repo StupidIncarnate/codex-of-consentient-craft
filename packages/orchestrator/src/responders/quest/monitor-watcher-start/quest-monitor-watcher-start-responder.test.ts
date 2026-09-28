@@ -8,7 +8,7 @@ describe('QuestMonitorWatcherStartResponder', () => {
       proxy.setupHomeDir({ path: '/home/user' });
 
       const handle = await QuestMonitorWatcherStartResponder({
-        parentSessionId: '44444444-4444-4444-4444-444444444444',
+        parentSessionId: '00118165-fbf1-11d4-8940-5ee9492debae',
         projectDir: '/home/user/proj',
       });
 

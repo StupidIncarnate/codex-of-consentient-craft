@@ -12,7 +12,7 @@ describe('gatewayPackageNameContract', () => {
 
   describe('invalid inputs', () => {
     it('INVALID: {value: ""} => throws validation error', () => {
-      expect(() => gatewayPackageNameContract.parse('')).toThrow(/at least 1/u);
+      expect(() => gatewayPackageNameContract.parse('')).toThrow(/>=1/u);
     });
   });
 

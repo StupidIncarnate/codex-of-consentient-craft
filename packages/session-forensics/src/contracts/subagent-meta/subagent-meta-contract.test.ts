@@ -65,16 +65,18 @@ describe('subagentMetaContract', () => {
   describe('invalid input', () => {
     it('INVALID: {spawnDepth: -1} => throws', () => {
       expect(() => SubagentMetaStub({ spawnDepth: -1 })).toThrow(
-        /greater than or equal to 0|Number must be/u,
+        /Too small: expected number to be >=0/u,
       );
     });
 
     it('INVALID: {spawnDepth: 1.5} => throws', () => {
-      expect(() => SubagentMetaStub({ spawnDepth: 1.5 })).toThrow(/integer/u);
+      expect(() => SubagentMetaStub({ spawnDepth: 1.5 })).toThrow(
+        /Invalid input: expected int, received number/u,
+      );
     });
 
     it('INVALID: {agentType: number} => throws', () => {
-      expect(() => SubagentMetaStub({ agentType: 42 as never })).toThrow(/Expected string/u);
+      expect(() => SubagentMetaStub({ agentType: 42 as never })).toThrow(/expected string/u);
     });
   });
 
@@ -86,7 +88,7 @@ describe('subagentMetaContract', () => {
           description: 'Add pasted-image upload contract',
           spawnDepth: 1,
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 });

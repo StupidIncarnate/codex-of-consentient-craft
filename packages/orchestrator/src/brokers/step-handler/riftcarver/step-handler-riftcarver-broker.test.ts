@@ -11,7 +11,7 @@ import { stepHandlerRiftcarverBrokerProxy } from './step-handler-riftcarver-brok
 type ContentText = ReturnType<typeof ContentTextStub>;
 
 const RIFTCARVER_RESULT_ID = 'f0f0f0f0-f0f0-4f0f-bf0f-f0f0f0f0f0f0';
-const WORK_ITEM_ID = QuestWorkItemIdStub({ value: 'a1a1a1a1-b2b2-c3c3-d4d4-e5e5e5e5e5e5' });
+const WORK_ITEM_ID = QuestWorkItemIdStub({ value: '54abb935-7a96-3e73-83b3-3d46fdc6f046' });
 
 describe('stepHandlerRiftcarverBroker', () => {
   describe('GREEN — a first carve on a quest with no git context', () => {

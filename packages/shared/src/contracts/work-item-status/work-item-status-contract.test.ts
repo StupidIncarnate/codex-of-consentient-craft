@@ -54,7 +54,7 @@ describe('workItemStatusContract', () => {
     it('INVALID: unknown status => throws validation error', () => {
       expect(() => {
         workItemStatusContract.parse('invalid_status');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('VALID: skipped => parses successfully', () => {

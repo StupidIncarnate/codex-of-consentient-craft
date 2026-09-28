@@ -33,10 +33,10 @@ describe('questSourceContract', () => {
   });
 
   it('INVALID: {value: "invalid"} => throws', () => {
-    expect(() => questSourceContract.parse('invalid')).toThrow(/Invalid enum value/u);
+    expect(() => questSourceContract.parse('invalid')).toThrow(/Invalid option/u);
   });
 
   it('INVALID: {value: ""} => throws', () => {
-    expect(() => questSourceContract.parse('')).toThrow(/Invalid enum value/u);
+    expect(() => questSourceContract.parse('')).toThrow(/Invalid option/u);
   });
 });

@@ -54,11 +54,15 @@ describe('capacityMeasuredContract', () => {
 
   describe('invalid readings', () => {
     it('INVALID: {loadAvg1: -1} => throws, a load average is never negative', () => {
-      expect(() => CapacityMeasuredStub({ loadAvg1: -1 })).toThrow(/greater than or equal to 0/iu);
+      expect(() => CapacityMeasuredStub({ loadAvg1: -1 })).toThrow(
+        /Too small: expected number to be >=0/iu,
+      );
     });
 
     it('INVALID: {freeMemMB: 1.5} => throws, megabytes are whole', () => {
-      expect(() => CapacityMeasuredStub({ freeMemMB: 1.5 })).toThrow(/integer/iu);
+      expect(() => CapacityMeasuredStub({ freeMemMB: 1.5 })).toThrow(
+        /Invalid input: expected int, received number/iu,
+      );
     });
 
     it('INVALID: {an extra totalMemMB key} => throws, the block is strict', () => {

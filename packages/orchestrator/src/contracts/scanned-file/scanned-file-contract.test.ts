@@ -30,7 +30,7 @@ describe('scannedFileContract', () => {
     });
 
     it('INVALID: {size: -1} => throws', () => {
-      expect(() => ScannedFileStub({ size: -1 as never })).toThrow(/greater than or equal to 0/u);
+      expect(() => ScannedFileStub({ size: -1 as never })).toThrow(/to be >=0/u);
     });
   });
 });

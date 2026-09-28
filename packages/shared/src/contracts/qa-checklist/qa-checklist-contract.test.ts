@@ -52,13 +52,13 @@ describe('qaChecklistContract', () => {
   describe('invalid input', () => {
     it('EMPTY: {flowName: ""} => throws', () => {
       expect(() => QaChecklistStub({ flowName: '' as never })).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
 
     it('EMPTY: {entryPoint: ""} => throws', () => {
       expect(() => QaChecklistStub({ entryPoint: '' as never })).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
 

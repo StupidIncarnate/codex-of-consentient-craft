@@ -68,8 +68,7 @@ const deleteMarker = z.literal(true);
 
 // One spelling of "the server owns this field", reused at every attachment point below so the
 // instruction an agent reads is identical wherever it meets a timestamp.
-const serverStampedTimestamp = z
-  .string()
+const serverStampedTimestamp = z.iso
   .datetime()
   .brand<'IsoTimestamp'>()
   .optional()
@@ -95,7 +94,7 @@ const questNoteForUpsertContract = questNoteContract
 
     if (value.kind !== 'human-verdict' && hasNoWorkItemId) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         path: ['workItemId'],
         message: `workItemId is required on a "${value.kind}" note — only a human-verdict note may omit it.`,
       });

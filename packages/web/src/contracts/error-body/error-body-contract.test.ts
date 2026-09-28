@@ -16,25 +16,25 @@ describe('errorBodyContract', () => {
     it('INVALID: {missing error} => throws validation error', () => {
       expect(() => {
         errorBodyContract.parse({});
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {error: empty string} => throws validation error', () => {
       expect(() => {
         errorBodyContract.parse({ error: '' });
-      }).toThrow(/at least 1/u);
+      }).toThrow(/>=1/u);
     });
 
     it('INVALID: {error: non-string} => throws validation error', () => {
       expect(() => {
         errorBodyContract.parse({ error: 42 });
-      }).toThrow(/Expected string/u);
+      }).toThrow(/expected string/u);
     });
 
     it('EMPTY: {null} => throws validation error', () => {
       expect(() => {
         errorBodyContract.parse(null);
-      }).toThrow(/Expected object/u);
+      }).toThrow(/expected object/u);
     });
   });
 });

@@ -73,13 +73,13 @@ describe('questNewBodyContract', () => {
 
     it('INVALID: {message: ""} (empty string) => throws min length error', () => {
       expect(() => questNewBodyContract.parse({ message: '' })).toThrow(
-        /String must contain at least 1/u,
+        /Too small: expected string to have >=1 characters/u,
       );
     });
 
     it('INVALID: {message, questType: "bogus"} => throws Invalid enum value', () => {
       expect(() => questNewBodyContract.parse({ message: 'Add auth', questType: 'bogus' })).toThrow(
-        /Invalid enum value/u,
+        /Invalid option/u,
       );
     });
 

@@ -19,7 +19,7 @@ describe('callerCwdScanCursorContract', () => {
         filepath: '/home/tester/.claude/projects/-x/session.jsonl',
         offsetBytes: -1,
       }),
-    ).toThrow(/greater than or equal to 0/u);
+    ).toThrow(/to be >=0/u);
   });
 
   it('INVALID: {offsetBytes: 1.5} => throws', () => {
@@ -28,6 +28,6 @@ describe('callerCwdScanCursorContract', () => {
         filepath: '/home/tester/.claude/projects/-x/session.jsonl',
         offsetBytes: 1.5,
       }),
-    ).toThrow(/integer/u);
+    ).toThrow(/Invalid input: expected int, received number/u);
   });
 });

@@ -26,7 +26,7 @@ describe('httpResponseContract', () => {
           status: 99,
           body: '{}',
         }),
-      ).toThrow(/Number must be greater than or equal to 100/u);
+      ).toThrow(/expected number to be >=100/u);
     });
   });
 });

@@ -22,19 +22,19 @@ describe('streamSignalKindContract', () => {
     it('INVALID: failed => throws validation error (there is no failure signal)', () => {
       expect(() => {
         streamSignalKindContract.parse('failed');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid input: expected/u);
     });
 
     it('INVALID: failed-replan => throws validation error (there is no failure signal)', () => {
       expect(() => {
         streamSignalKindContract.parse('failed-replan');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid input: expected/u);
     });
 
     it('INVALID: unknown signal kind => throws validation error', () => {
       expect(() => {
         streamSignalKindContract.parse('bogus');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid input: expected/u);
     });
   });
 });

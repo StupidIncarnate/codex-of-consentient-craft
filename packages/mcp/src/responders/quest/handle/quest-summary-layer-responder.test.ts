@@ -156,7 +156,7 @@ describe('QuestSummaryLayerResponder', () => {
     it('INVALID: {missing questId} => throws before any adapter call', async () => {
       QuestSummaryLayerResponderProxy();
 
-      await expect(QuestSummaryLayerResponder({ args: {} })).rejects.toThrow(/Required/u);
+      await expect(QuestSummaryLayerResponder({ args: {} })).rejects.toThrow(/received undefined/u);
     });
 
     it('INVALID: {flowId} => throws on the strict contract, the summary is whole-quest by design', async () => {

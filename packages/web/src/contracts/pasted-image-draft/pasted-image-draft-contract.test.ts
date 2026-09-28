@@ -25,19 +25,19 @@ describe('pastedImageDraftContract', () => {
   describe('invalid inputs', () => {
     it('INVALID: {attachmentId: "not-a-uuid"} => throws for non-uuid attachmentId', () => {
       expect(() => PastedImageDraftStub({ attachmentId: 'not-a-uuid' as never })).toThrow(
-        /Invalid uuid/u,
+        /Invalid UUID/u,
       );
     });
 
     it('INVALID: {mediaType: "image/bmp"} => throws for unsupported mediaType', () => {
       expect(() => PastedImageDraftStub({ mediaType: 'image/bmp' as never })).toThrow(
-        /Invalid enum value/u,
+        /Invalid option/u,
       );
     });
 
     it('INVALID: {dataBase64: "not base64!"} => throws for malformed dataBase64', () => {
       expect(() => PastedImageDraftStub({ dataBase64: 'not base64!' as never })).toThrow(
-        /invalid_string/u,
+        /Invalid base64 image data/u,
       );
     });
 
@@ -54,7 +54,7 @@ describe('pastedImageDraftContract', () => {
 
     it('INVALID: {scopeKey: ""} => throws for empty scopeKey', () => {
       expect(() => PastedImageDraftStub({ scopeKey: '' as never })).toThrow(
-        /String must contain at least 1/u,
+        /expected string to have >=1 characters/u,
       );
     });
   });

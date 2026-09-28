@@ -15,7 +15,7 @@ describe('wardCheckTypeContract', () => {
   describe('invalid input', () => {
     it('EMPTY: {empty string} => throws', () => {
       expect(() => WardCheckTypeStub({ value: '' })).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
   });

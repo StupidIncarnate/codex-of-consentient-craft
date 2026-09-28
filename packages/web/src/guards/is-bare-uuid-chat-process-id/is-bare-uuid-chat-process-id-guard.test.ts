@@ -13,7 +13,7 @@ describe('isBareUuidChatProcessIdGuard', () => {
     it('VALID: {bare hex uuid with leading numeric segment} => true', () => {
       expect(
         isBareUuidChatProcessIdGuard({
-          chatProcessId: '0000aaaa-1111-2222-3333-bbbbccccdddd',
+          chatProcessId: '44b57451-7d2f-5b0f-9992-87d8eb93c49b',
         }),
       ).toBe(true);
     });

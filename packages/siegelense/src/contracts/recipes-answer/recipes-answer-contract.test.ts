@@ -32,9 +32,8 @@ describe('recipesAnswerContract', () => {
         {
           code: 'invalid_type',
           expected: 'array',
-          received: 'undefined',
           path: ['recipes'],
-          message: 'Required',
+          message: 'Invalid input: expected array, received undefined',
         },
       ]);
     });

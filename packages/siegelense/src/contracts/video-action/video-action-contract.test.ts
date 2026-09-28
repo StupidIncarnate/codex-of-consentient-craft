@@ -17,7 +17,7 @@ describe('videoActionContract', () => {
     it('INVALID: {value: "pause"} => an unlisted string throws validation error', () => {
       expect(() => {
         VideoActionStub({ value: 'pause' as never });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
   });
 
@@ -25,7 +25,7 @@ describe('videoActionContract', () => {
     it('EDGE: {value: "START"} => an uppercase variant of a valid member throws validation error', () => {
       expect(() => {
         videoActionContract.parse('START');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
   });
 });

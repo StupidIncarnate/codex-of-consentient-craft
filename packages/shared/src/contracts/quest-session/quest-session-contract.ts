@@ -32,7 +32,7 @@ export const questSessionContract = z.object({
   cwd: absoluteFilePathContract,
   role: workItemRoleContract,
   workItemId: questWorkItemIdContract.optional(),
-  startedAt: z.string().datetime().brand<'IsoTimestamp'>(),
+  startedAt: z.iso.datetime().brand<'IsoTimestamp'>(),
 });
 
 export type QuestSession = z.infer<typeof questSessionContract>;

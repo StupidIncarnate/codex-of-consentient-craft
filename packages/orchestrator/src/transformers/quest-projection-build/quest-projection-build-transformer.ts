@@ -34,6 +34,7 @@ import type {
 import {
   questProjectionContract,
   routedGraphNodeKeyContract,
+  routedGraphOutcomeWordContract,
   stepNameContract,
 } from '@dungeonmaster/shared/contracts';
 import { workItemStatusMetadataStatics } from '@dungeonmaster/shared/statics';
@@ -78,7 +79,9 @@ export const questProjectionBuildTransformer = ({ quest }: { quest: Quest }): Qu
     // `'@done'` / `'@blocked'` check: `agentFlowPlannedStepsWalkTransformer` already stops the moment
     // a cursor names no declared node, which is what either terminal marker resolves to.
     const plannedStart: RoutedGraphNodeKey | undefined =
-      actualSteps.length === 0 ? graph.entry : graph.nodes[currentStepKey]?.routes.done;
+      actualSteps.length === 0
+        ? graph.entry
+        : graph.nodes[currentStepKey]?.routes[routedGraphOutcomeWordContract.parse('done')];
 
     const plannedSteps = agentFlowPlannedStepsWalkTransformer({ graph, cursor: plannedStart }).map(
       (step) => ({

@@ -44,7 +44,7 @@ describe('commentBatchEntryContract', () => {
           nodeId: 'start',
           text: 'This assertion looks wrong',
         });
-      }).toThrow(/invalid_string/u);
+      }).toThrow(/invalid_format/u);
     });
 
     it('INVALID: {nodeId: "Start Node"} => throws validation error', () => {
@@ -54,7 +54,7 @@ describe('commentBatchEntryContract', () => {
           nodeId: 'Start Node',
           text: 'This assertion looks wrong',
         });
-      }).toThrow(/invalid_string/u);
+      }).toThrow(/invalid_format/u);
     });
 
     it('INVALID: {observableId: "Login Redirects"} => throws validation error', () => {
@@ -65,7 +65,7 @@ describe('commentBatchEntryContract', () => {
           observableId: 'Login Redirects',
           text: 'This assertion looks wrong',
         });
-      }).toThrow(/invalid_string/u);
+      }).toThrow(/invalid_format/u);
     });
 
     it('EMPTY: {text: ""} => throws validation error', () => {
@@ -75,7 +75,7 @@ describe('commentBatchEntryContract', () => {
           nodeId: 'start',
           text: '',
         });
-      }).toThrow(/String must contain at least 1 character/u);
+      }).toThrow(/expected string to have >=1 characters/u);
     });
 
     it('INVALID: {createdAt: "not-a-date"} => throws validation error', () => {
@@ -86,7 +86,7 @@ describe('commentBatchEntryContract', () => {
           text: 'This assertion looks wrong',
           createdAt: 'not-a-date',
         });
-      }).toThrow(/Invalid datetime/u);
+      }).toThrow(/Invalid ISO datetime/u);
     });
 
     it('INVALID: {missing nodeId} => throws validation error', () => {
@@ -95,7 +95,7 @@ describe('commentBatchEntryContract', () => {
           flowId: 'login-flow',
           text: 'This assertion looks wrong',
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

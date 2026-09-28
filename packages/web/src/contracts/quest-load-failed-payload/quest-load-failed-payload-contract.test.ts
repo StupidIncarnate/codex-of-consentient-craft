@@ -20,19 +20,19 @@ describe('questLoadFailedPayloadContract', () => {
     it('INVALID: {missing questId} => throws validation error', () => {
       expect(() => {
         questLoadFailedPayloadContract.parse({ error: 'boom' });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {missing error} => throws validation error', () => {
       expect(() => {
         questLoadFailedPayloadContract.parse({ questId: 'add-auth' });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('EMPTY: {error: ""} => throws validation error', () => {
       expect(() => {
         questLoadFailedPayloadContract.parse({ questId: 'add-auth', error: '' });
-      }).toThrow(/at least 1/u);
+      }).toThrow(/>=1/u);
     });
   });
 });

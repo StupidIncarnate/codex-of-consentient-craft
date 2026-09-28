@@ -25,17 +25,17 @@ describe('textBlockParamContract', () => {
   describe('invalid input', () => {
     it('INVALID: {type: "image"} => throws wrong discriminator', () => {
       expect(() => textBlockParamContract.parse({ type: 'image', text: 'Hello' })).toThrow(
-        /Invalid literal value/u,
+        /Invalid input: expected/u,
       );
     });
 
     it('INVALID: {type: "text", text: missing} => throws on missing required field', () => {
-      expect(() => textBlockParamContract.parse({ type: 'text' })).toThrow(/Required/u);
+      expect(() => textBlockParamContract.parse({ type: 'text' })).toThrow(/received undefined/u);
     });
 
     it('INVALID: {type: "text", text: 123} => throws on non-string text', () => {
       expect(() => textBlockParamContract.parse({ type: 'text', text: 123 as never })).toThrow(
-        /Expected string/u,
+        /expected string/u,
       );
     });
   });

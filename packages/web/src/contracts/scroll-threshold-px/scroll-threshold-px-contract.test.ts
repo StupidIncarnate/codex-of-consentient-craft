@@ -22,7 +22,7 @@ describe('scrollThresholdPxContract', () => {
     });
 
     it('INVALID: {value: 1.5} => throws for non-integer', () => {
-      expect(() => scrollThresholdPxContract.parse(1.5)).toThrow(/Expected integer/u);
+      expect(() => scrollThresholdPxContract.parse(1.5)).toThrow(/expected int/u);
     });
   });
 

@@ -44,7 +44,7 @@ describe('wardConfigContract', () => {
 
   describe('invalid inputs', () => {
     it('INVALID: {only: ["bad"]} => throws for invalid check type', () => {
-      expect(() => wardConfigContract.parse({ only: ['bad'] })).toThrow(/Invalid enum value/u);
+      expect(() => wardConfigContract.parse({ only: ['bad'] })).toThrow(/Invalid option/u);
     });
 
     it('VALID: {only: ["e2e"]} => parses e2e check type', () => {

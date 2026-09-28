@@ -24,11 +24,11 @@ describe('bounceOffsetPxContract', () => {
 
   describe('invalid inputs', () => {
     it('INVALID: {value: 1.5} => throws for non-integer', () => {
-      expect(() => bounceOffsetPxContract.parse(1.5)).toThrow(/Expected integer/u);
+      expect(() => bounceOffsetPxContract.parse(1.5)).toThrow(/expected int/u);
     });
 
     it('INVALID: {value: "0"} => throws for string', () => {
-      expect(() => bounceOffsetPxContract.parse('0')).toThrow(/Expected number/u);
+      expect(() => bounceOffsetPxContract.parse('0')).toThrow(/expected number/u);
     });
   });
 

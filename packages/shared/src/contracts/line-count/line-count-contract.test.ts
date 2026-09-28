@@ -24,19 +24,19 @@ describe('lineCountContract', () => {
 
   describe('invalid line counts', () => {
     it('ERROR: 0 => throws for zero', () => {
-      expect(() => lineCountContract.parse(0)).toThrow(/Number must be greater than 0/u);
+      expect(() => lineCountContract.parse(0)).toThrow(/expected number to be >0/u);
     });
 
     it('ERROR: -1 => throws for negative number', () => {
-      expect(() => lineCountContract.parse(-1)).toThrow(/Number must be greater than 0/u);
+      expect(() => lineCountContract.parse(-1)).toThrow(/expected number to be >0/u);
     });
 
     it('ERROR: 1.5 => throws for non-integer', () => {
-      expect(() => lineCountContract.parse(1.5)).toThrow(/Expected integer, received float/u);
+      expect(() => lineCountContract.parse(1.5)).toThrow(/expected int, received number/u);
     });
 
     it('ERROR: "500" => throws for string', () => {
-      expect(() => lineCountContract.parse('500')).toThrow(/Expected number, received string/u);
+      expect(() => lineCountContract.parse('500')).toThrow(/expected number, received string/u);
     });
   });
 

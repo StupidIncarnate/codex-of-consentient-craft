@@ -11,12 +11,14 @@
  */
 
 import { questFindQuestPathBroker, StartOrchestrator } from '@dungeonmaster/orchestrator';
+import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import {
   isChatWorkItemRoleGuard,
   isPostQuestChatWorkItemRoleGuard,
   isUserPausedQuestStatusGuard,
 } from '@dungeonmaster/shared/guards';
 
+import { zodFirstFieldErrorMessageAdapter } from '../../../adapters/zod/first-field-error-message/zod-first-field-error-message-adapter';
 import { pastedImagePersistBroker } from '../../../brokers/pasted-image/persist/pasted-image-persist-broker';
 import { messageBodyContract } from '../../../contracts/message-body/message-body-contract';
 import { questIdParamsContract } from '../../../contracts/quest-id-params/quest-id-params-contract';
@@ -61,8 +63,10 @@ export const QuestChatResponder = async ({
       // mediaType, or over-ceiling byte size) — zod's own message already carries that detail
       // (and, where relevant, the cap/ceiling itself), so it is surfaced verbatim rather than
       // collapsed into the generic message-required reply below.
-      const { fieldErrors } = parsedBody.error.flatten();
-      const [imagesError] = fieldErrors.images ?? [];
+      const imagesError = zodFirstFieldErrorMessageAdapter({
+        error: parsedBody.error,
+        field: contentTextContract.parse('images'),
+      });
       if (imagesError !== undefined) {
         return responderResultContract.parse({
           status: httpStatusStatics.clientError.badRequest,

@@ -92,7 +92,7 @@ describe('agentSpawnStreamingResultContract', () => {
           exitCode: ExitCodeStub({ value: 0 }),
           signal: null,
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 });

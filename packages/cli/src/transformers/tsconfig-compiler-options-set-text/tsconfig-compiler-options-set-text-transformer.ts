@@ -35,7 +35,7 @@ export const tsconfigCompilerOptionsSetTextTransformer = ({
     text:
       typeof value === 'string'
         ? JSON.stringify(value)
-        : `[${(value ?? []).map((item) => JSON.stringify(item)).join(', ')}]`,
+        : `[${value.map((item) => JSON.stringify(item)).join(', ')}]`,
   }));
 
   const replacements = entries.flatMap((entry) => {

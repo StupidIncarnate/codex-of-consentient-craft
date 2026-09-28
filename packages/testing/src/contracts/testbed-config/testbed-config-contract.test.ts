@@ -111,7 +111,7 @@ describe('testbedConfigContract', () => {
           questFolder: 123 as never,
           wardCommands: {},
         });
-      }).toThrow(/Expected string/u);
+      }).toThrow(/expected string/u);
     });
 
     it('INVALID: {questFolder: null} => throws validation error for null', () => {
@@ -120,7 +120,7 @@ describe('testbedConfigContract', () => {
           questFolder: null as never,
           wardCommands: {},
         });
-      }).toThrow(/Expected string/u);
+      }).toThrow(/expected string/u);
     });
 
     it('INVALID: {wardCommands: "commands"} => throws validation error for non-object', () => {
@@ -129,7 +129,7 @@ describe('testbedConfigContract', () => {
           questFolder: 'quest',
           wardCommands: 'commands' as never,
         });
-      }).toThrow(/Expected object/u);
+      }).toThrow(/expected record/u);
     });
 
     it('INVALID: {wardCommands: null} => throws validation error for null', () => {
@@ -138,7 +138,7 @@ describe('testbedConfigContract', () => {
           questFolder: 'quest',
           wardCommands: null as never,
         });
-      }).toThrow(/Expected object/u);
+      }).toThrow(/expected record/u);
     });
 
     it('INVALID: {wardCommands: []} => throws validation error for array', () => {
@@ -147,7 +147,7 @@ describe('testbedConfigContract', () => {
           questFolder: 'quest',
           wardCommands: [] as never,
         });
-      }).toThrow(/Expected object/u);
+      }).toThrow(/expected record/u);
     });
 
     it('INVALID: {missing questFolder} => throws validation error', () => {
@@ -155,7 +155,7 @@ describe('testbedConfigContract', () => {
         return testbedConfigContract.parse({
           wardCommands: {},
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {missing wardCommands} => throws validation error', () => {
@@ -163,13 +163,13 @@ describe('testbedConfigContract', () => {
         return testbedConfigContract.parse({
           questFolder: 'quest',
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {empty object} => throws validation error for all fields', () => {
       expect(() => {
         return testbedConfigContract.parse({});
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

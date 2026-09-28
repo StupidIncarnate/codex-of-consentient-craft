@@ -23,13 +23,13 @@ describe('transitionSpecContract', () => {
     it('INVALID: {field: "status", to: []} => throws "Array must contain at least 1 element(s)"', () => {
       expect(() =>
         transitionSpecContract.parse({ field: 'status', to: [], reach: (): unknown => undefined }),
-      ).toThrow(/Array must contain at least 1 element\(s\)/u);
+      ).toThrow(/expected array to have >=1 items/u);
     });
 
-    it('INVALID: {to: ["created"]} => throws "Required"', () => {
+    it('INVALID: {to: ["created"]} => throws "received undefined"', () => {
       expect(() =>
         transitionSpecContract.parse({ to: ['created'], reach: (): unknown => undefined }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {field: "status", to: ["created"], no reach} => throws "Expected a reach function"', () => {

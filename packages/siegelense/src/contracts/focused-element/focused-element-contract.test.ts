@@ -45,7 +45,7 @@ describe('focusedElementContract', () => {
         text: null,
         ref: null,
       } as never),
-    ).toThrow(/Required/u);
+    ).toThrow(/received undefined/u);
   });
 
   it('INVALID: unrecognized extra key => throws because strict()', () => {

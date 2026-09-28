@@ -22,13 +22,13 @@ export const isLaneSpecTokenReferencedGuard = ({
   if (spec === undefined || token === undefined) {
     return false;
   }
-  if (Object.values(spec.env).some((value) => value?.includes(token) ?? false)) {
+  if (Object.values(spec.env).some((value) => value.includes(token))) {
     return true;
   }
   return spec.processes.some(
     (laneProcess) =>
       laneProcess.args.some((arg) => arg.includes(token)) ||
-      Object.values(laneProcess.env).some((value) => value?.includes(token) ?? false) ||
+      Object.values(laneProcess.env).some((value) => value.includes(token)) ||
       (laneProcess.readyPath?.includes(token) ?? false),
   );
 };

@@ -59,7 +59,7 @@ describe('EslintRuleStub', () => {
           },
         },
       });
-    }).toThrow('Invalid enum value');
+    }).toThrow('Invalid option');
   });
 
   it('INVALID: {meta: {docs: {description: ""}}} => throws ZodError', () => {
@@ -72,6 +72,6 @@ describe('EslintRuleStub', () => {
           },
         },
       });
-    }).toThrow('String must contain at least 1 character(s)');
+    }).toThrow('expected string to have >=1 characters');
   });
 });

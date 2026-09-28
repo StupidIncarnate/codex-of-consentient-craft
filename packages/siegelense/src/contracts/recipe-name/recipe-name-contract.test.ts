@@ -10,9 +10,7 @@ describe('recipeNameContract', () => {
 
   describe('invalid recipe names', () => {
     it('INVALID: {value: ""} => throws "String must contain at least 1 character(s)"', () => {
-      expect(() => recipeNameContract.parse('')).toThrow(
-        /String must contain at least 1 character\(s\)/u,
-      );
+      expect(() => recipeNameContract.parse('')).toThrow(/expected string to have >=1 characters/u);
     });
   });
 });

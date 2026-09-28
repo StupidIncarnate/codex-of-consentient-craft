@@ -42,7 +42,7 @@ describe('hookDataContract', () => {
     it('INVALID: {invalid data} => throws validation error', () => {
       expect(() => {
         return hookDataContract.parse({} as never);
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

@@ -10,43 +10,43 @@ describe('chatEntriesExtractQuestIdTransformer', () => {
   it('VALID: {tool_use with questId in input} => returns that questId', () => {
     const entry = AssistantToolUseChatEntryStub({
       toolName: 'mcp__dungeonmaster__modify-quest' as never,
-      toolInput: JSON.stringify({ questId: 'aabbccdd-eeff-0011-2233-445566778899' }) as never,
+      toolInput: JSON.stringify({ questId: '205d9f78-af8e-7d61-84c8-46f1c26c690d' }) as never,
     });
 
     const result = chatEntriesExtractQuestIdTransformer({ entries: [entry] });
 
-    expect(result).toBe('aabbccdd-eeff-0011-2233-445566778899');
+    expect(result).toBe('205d9f78-af8e-7d61-84c8-46f1c26c690d');
   });
 
   it('VALID: {user tool_result content with questId} => returns that questId', () => {
     const entry = UserChatEntryStub({
       content: JSON.stringify({
-        questId: '11112222-3333-4444-5555-666677778888',
+        questId: '96ed7a48-e073-7b87-8718-aa6a3ee1f9a1',
         extra: 'x',
       }) as never,
     });
 
     const result = chatEntriesExtractQuestIdTransformer({ entries: [entry] });
 
-    expect(result).toBe('11112222-3333-4444-5555-666677778888');
+    expect(result).toBe('96ed7a48-e073-7b87-8718-aa6a3ee1f9a1');
   });
 
   it('VALID: {multiple entries, latest has questId} => returns latest', () => {
     const earlier = AssistantToolUseChatEntryStub({
-      toolInput: JSON.stringify({ questId: '00000000-0000-0000-0000-000000000001' }) as never,
+      toolInput: JSON.stringify({ questId: 'c96589ee-fb08-28c0-b179-095bcd0cef5f' }) as never,
     });
     const later = AssistantToolUseChatEntryStub({
-      toolInput: JSON.stringify({ questId: '00000000-0000-0000-0000-000000000002' }) as never,
+      toolInput: JSON.stringify({ questId: '81f426e0-1386-5542-a1f6-e46a94b91dd3' }) as never,
     });
 
     const result = chatEntriesExtractQuestIdTransformer({ entries: [earlier, later] });
 
-    expect(result).toBe('00000000-0000-0000-0000-000000000002');
+    expect(result).toBe('81f426e0-1386-5542-a1f6-e46a94b91dd3');
   });
 
   it('VALID: {latest entry has no questId, earlier does} => returns earlier', () => {
     const earlier = AssistantToolUseChatEntryStub({
-      toolInput: JSON.stringify({ questId: '00000000-0000-0000-0000-000000000003' }) as never,
+      toolInput: JSON.stringify({ questId: 'ba584060-c8f2-4b59-8ce3-f17766ba76d3' }) as never,
     });
     const later = AssistantToolUseChatEntryStub({
       toolInput: JSON.stringify({ questions: [] }) as never,
@@ -54,7 +54,7 @@ describe('chatEntriesExtractQuestIdTransformer', () => {
 
     const result = chatEntriesExtractQuestIdTransformer({ entries: [earlier, later] });
 
-    expect(result).toBe('00000000-0000-0000-0000-000000000003');
+    expect(result).toBe('ba584060-c8f2-4b59-8ce3-f17766ba76d3');
   });
 
   it('EMPTY: {no entries reference questId} => returns undefined', () => {
@@ -75,12 +75,12 @@ describe('chatEntriesExtractQuestIdTransformer', () => {
   it('VALID: {questId nested under outer object} => returns it', () => {
     const entry = AssistantToolUseChatEntryStub({
       toolInput: JSON.stringify({
-        wrapper: { questId: 'deadbeef-cafe-babe-face-feedfacefeed' },
+        wrapper: { questId: '0e896730-9476-1282-aaf8-3d6cae5c146e' },
       }) as never,
     });
 
     const result = chatEntriesExtractQuestIdTransformer({ entries: [entry] });
 
-    expect(result).toBe('deadbeef-cafe-babe-face-feedfacefeed');
+    expect(result).toBe('0e896730-9476-1282-aaf8-3d6cae5c146e');
   });
 });

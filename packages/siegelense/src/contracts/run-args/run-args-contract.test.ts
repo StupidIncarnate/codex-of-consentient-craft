@@ -66,11 +66,10 @@ describe('runArgsContract', () => {
       expect(result.success).toBe(false);
       expect(result.error?.issues).toStrictEqual([
         {
-          code: 'invalid_type',
-          expected: "'error' | 'never'",
-          received: 'undefined',
+          code: 'invalid_value',
+          values: ['error', 'never'],
           path: ['stopOn'],
-          message: 'Required',
+          message: 'Invalid option: expected one of "error"|"never"',
         },
       ]);
     });
@@ -87,9 +86,8 @@ describe('runArgsContract', () => {
         {
           code: 'invalid_type',
           expected: 'string',
-          received: 'undefined',
           path: ['instanceId'],
-          message: 'Required',
+          message: 'Invalid input: expected string, received undefined',
         },
       ]);
     });
@@ -106,9 +104,8 @@ describe('runArgsContract', () => {
         {
           code: 'invalid_type',
           expected: 'boolean',
-          received: 'undefined',
           path: ['isJson'],
-          message: 'Required',
+          message: 'Invalid input: expected boolean, received undefined',
         },
       ]);
     });
@@ -121,7 +118,7 @@ describe('runArgsContract', () => {
           stopOn: 'error',
           runId: 'run_2',
         } as never),
-      ).toThrow(/Unrecognized key\(s\) in object: 'runId'/u);
+      ).toThrow(/"message": "Unrecognized key: \\"runId\\""/u);
     });
   });
 

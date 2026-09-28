@@ -22,13 +22,13 @@ describe('laneCapacityContract', () => {
 
   describe('invalid capacity', () => {
     it('INVALID: {suggested: -1} => throws on a negative count', () => {
-      expect(() => laneCapacityContract.parse({ suggested: -1 })).toThrow(
-        /greater than or equal to 0/u,
-      );
+      expect(() => laneCapacityContract.parse({ suggested: -1 })).toThrow(/to be >=0/u);
     });
 
     it('INVALID: {suggested: 1.5} => throws on a non-integer count', () => {
-      expect(() => laneCapacityContract.parse({ suggested: 1.5 })).toThrow(/integer/u);
+      expect(() => laneCapacityContract.parse({ suggested: 1.5 })).toThrow(
+        /Invalid input: expected int, received number/u,
+      );
     });
   });
 });

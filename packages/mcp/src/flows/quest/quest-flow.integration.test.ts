@@ -104,7 +104,7 @@ describe('QuestFlow', () => {
       const registration = registrations.find(({ name }) => name === 'get-blight-checklist');
 
       // The exact match proves the registration wired the get-blight-checklist input contract
-      // (not some other contract, and not a hand-written stand-in schema) through zodToJsonSchema.
+      // (not some other contract, and not a hand-written stand-in schema) through zod's own toJSONSchema.
       // `scope` reaching the PUBLISHED schema is what makes the tool usable by the caller it exists
       // for: the contract is `.strict()`, and a reviewer-minion passes `scope: 'working-tree'` on
       // every call — so a schema without the property rejects every one of those calls outright.
@@ -132,7 +132,7 @@ describe('QuestFlow', () => {
         },
         required: ['questId'],
         additionalProperties: false,
-        $schema: 'http://json-schema.org/draft-07/schema#',
+        $schema: 'https://json-schema.org/draft/2020-12/schema',
       });
     });
 
@@ -156,7 +156,7 @@ describe('QuestFlow', () => {
         },
         required: ['questId'],
         additionalProperties: false,
-        $schema: 'http://json-schema.org/draft-07/schema#',
+        $schema: 'https://json-schema.org/draft/2020-12/schema',
       });
     });
   });

@@ -92,7 +92,7 @@ describe('guildUpdateBroker', () => {
 
     it('VALID: {guildId among multiple guilds} => updates only matching guild', async () => {
       const proxy = guildUpdateBrokerProxy();
-      const guildId = GuildIdStub({ value: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee' });
+      const guildId = GuildIdStub({ value: 'a99ef0d8-6ae0-1972-9617-694d449a8242' });
       const guild1 = GuildStub({
         id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         name: 'First Guild',
@@ -113,7 +113,7 @@ describe('guildUpdateBroker', () => {
       const result = await guildUpdateBroker({ guildId, name: newName });
 
       expect(result).toStrictEqual({
-        id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
+        id: 'a99ef0d8-6ae0-1972-9617-694d449a8242',
         name: 'Updated Second',
         path: '/home/user/second',
         urlSlug: 'my-guild',
@@ -125,7 +125,7 @@ describe('guildUpdateBroker', () => {
   describe('error cases', () => {
     it('ERROR: {guildId not in config} => throws guild not found', async () => {
       const proxy = guildUpdateBrokerProxy();
-      const guildId = GuildIdStub({ value: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee' });
+      const guildId = GuildIdStub({ value: 'a99ef0d8-6ae0-1972-9617-694d449a8242' });
       const newName = GuildNameStub({ value: 'New Name' });
 
       proxy.setupConfig({
@@ -133,13 +133,13 @@ describe('guildUpdateBroker', () => {
       });
 
       await expect(guildUpdateBroker({ guildId, name: newName })).rejects.toThrow(
-        /Guild not found: aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee/u,
+        /Guild not found: a99ef0d8-6ae0-1972-9617-694d449a8242/u,
       );
     });
 
     it('ERROR: {path already used by another guild} => throws duplicate path error', async () => {
       const proxy = guildUpdateBrokerProxy();
-      const guildId = GuildIdStub({ value: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee' });
+      const guildId = GuildIdStub({ value: 'a99ef0d8-6ae0-1972-9617-694d449a8242' });
       const guild1 = GuildStub({
         id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         name: 'First Guild',

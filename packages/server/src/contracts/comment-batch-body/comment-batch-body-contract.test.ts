@@ -58,7 +58,7 @@ describe('commentBatchBodyContract', () => {
     it('EMPTY: {comments: []} => throws validation error', () => {
       expect(() => {
         commentBatchBodyContract.parse({ comments: [] });
-      }).toThrow(/Array must contain at least 1 element/u);
+      }).toThrow(/Too small: expected array to have >=1 items/u);
     });
 
     it('INVALID: {comment with malformed flowId} => throws validation error', () => {
@@ -66,7 +66,7 @@ describe('commentBatchBodyContract', () => {
         commentBatchBodyContract.parse({
           comments: [{ flowId: 'Login Flow', nodeId: 'start', text: 'x' }],
         });
-      }).toThrow(/invalid_string/u);
+      }).toThrow(/invalid_format/u);
     });
 
     // check-malformed-entry-400 names a bad flowId as its example; nodeId and observableId are the
@@ -78,7 +78,7 @@ describe('commentBatchBodyContract', () => {
         commentBatchBodyContract.parse({
           comments: [{ flowId: 'login-flow', nodeId: 'Start Node', text: 'x' }],
         });
-      }).toThrow(/invalid_string/u);
+      }).toThrow(/invalid_format/u);
     });
 
     it('INVALID: {comment with malformed observableId} => throws validation error', () => {
@@ -88,7 +88,7 @@ describe('commentBatchBodyContract', () => {
             { flowId: 'login-flow', nodeId: 'start', observableId: 'Login Redirects', text: 'x' },
           ],
         });
-      }).toThrow(/invalid_string/u);
+      }).toThrow(/invalid_format/u);
     });
 
     // A queue corrupted by hand (or by a future bug) is more likely to carry ONE bad entry among
@@ -103,13 +103,13 @@ describe('commentBatchBodyContract', () => {
             { flowId: 'Login Flow', nodeId: 'submit', text: 'malformed flowId' },
           ],
         });
-      }).toThrow(/invalid_string/u);
+      }).toThrow(/invalid_format/u);
     });
 
     it('INVALID: {missing comments} => throws validation error', () => {
       expect(() => {
         commentBatchBodyContract.parse({});
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     // The compose editor already refuses to queue whitespace-only text client-side (Enter on blank

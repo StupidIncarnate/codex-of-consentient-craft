@@ -461,7 +461,7 @@ describe('planRunBroker (integration — real api routes)', () => {
         ingredients: [guildConfig],
       }),
     ).rejects.toThrow(
-      /^recipe "guild-mid-execution": ingredient "guild"'s "api" route answered 2xx with a record that field "id" rejects: Required$/u,
+      /^recipe "guild-mid-execution": ingredient "guild"'s "api" route answered 2xx with a record that field "id" rejects: Invalid input: expected string, received undefined$/u,
     );
   });
 });

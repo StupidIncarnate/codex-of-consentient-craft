@@ -60,7 +60,7 @@ describe('instanceEvidenceListingContract', () => {
           logs: [],
           lastShot: null,
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {missing lastShot} => throws Required, because .nullable() is not .optional()', () => {
@@ -73,7 +73,7 @@ describe('instanceEvidenceListingContract', () => {
           transcript: null,
           logs: [],
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 });

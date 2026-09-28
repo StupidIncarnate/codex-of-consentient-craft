@@ -38,7 +38,7 @@ describe('toolResultPartContract', () => {
     it('INVALID: {kind: markdown, no source} => throws on the missing document', () => {
       expect(() => {
         toolResultPartContract.parse({ kind: 'markdown' });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

@@ -9,7 +9,7 @@
  * const c = inflatedTaskNotificationContentContract.parse(message.content);
  * if (c.taskNotification) { ... }
  *
- * `.passthrough()` so any non-task-notification keys (e.g., other XML siblings) survive.
+ * `.loose()` so any non-task-notification keys (e.g., other XML siblings) survive.
  */
 import { z } from 'zod';
 
@@ -17,7 +17,7 @@ export const inflatedTaskNotificationContentContract = z
   .object({
     taskNotification: z.unknown().optional(),
   })
-  .passthrough();
+  .loose();
 
 export type InflatedTaskNotificationContent = z.infer<
   typeof inflatedTaskNotificationContentContract

@@ -17,21 +17,24 @@ import { z } from 'zod';
 import { contentTextContract } from '../content-text/content-text-contract';
 import { absoluteFilePathContract } from '../absolute-file-path/absolute-file-path-contract';
 
-const baseWidgetNodeContract = z.object({
+const widgetNodeFields = z.object({
   widgetName: contentTextContract,
   filePath: absoluteFilePathContract,
   bindingsAttached: z.array(contentTextContract),
 });
 
-export type WidgetNode = z.infer<typeof baseWidgetNodeContract> & {
-  children: WidgetNode[];
+type WidgetNodeSelf = z.infer<typeof widgetNodeFields> & {
+  children: WidgetNodeSelf[];
 };
 
-type WidgetNodeInput = z.input<typeof baseWidgetNodeContract> & {
-  children: WidgetNodeInput[];
-};
+// A getter, not `z.lazy` + a cast — the getter's return type wraps `z.core.$ZodType`, which is
+// the only self-reference form `contracts/` allows (zod v4 dropped the old `z.ZodTypeDef` type
+// param `z.lazy` needed here).
+export const widgetNodeContract = z.object({
+  ...widgetNodeFields.shape,
+  get children(): z.ZodArray<z.core.$ZodType<WidgetNodeSelf>> {
+    return z.array(widgetNodeContract);
+  },
+});
 
-export const widgetNodeContract: z.ZodType<WidgetNode, z.ZodTypeDef, WidgetNodeInput> =
-  baseWidgetNodeContract.extend({
-    children: z.lazy(() => z.array(widgetNodeContract)),
-  }) as unknown as z.ZodType<WidgetNode, z.ZodTypeDef, WidgetNodeInput>;
+export type WidgetNode = z.infer<typeof widgetNodeContract>;

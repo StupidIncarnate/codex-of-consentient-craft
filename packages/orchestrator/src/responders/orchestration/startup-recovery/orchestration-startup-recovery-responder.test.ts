@@ -13,7 +13,7 @@ import { OrchestrationStartupRecoveryResponderProxy } from './orchestration-star
 describe('OrchestrationStartupRecoveryResponder', () => {
   describe('quest recovery', () => {
     it('VALID: {guild with in_progress quest} => registers process and returns quest id', async () => {
-      const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+      const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
       const guildPath = GuildPathStub({ value: '/home/user/test-guild' });
       const questId = QuestIdStub({ value: 'active-quest' });
       const quest = QuestStub({ id: questId, folder: '001-active-quest', status: 'in_progress' });
@@ -28,7 +28,7 @@ describe('OrchestrationStartupRecoveryResponder', () => {
     });
 
     it('VALID: {guild with created quest} => recovers created quest', async () => {
-      const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+      const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
       const guildPath = GuildPathStub({ value: '/home/user/test-guild' });
       const questId = QuestIdStub({ value: 'created-quest' });
       const quest = QuestStub({ id: questId, folder: '001-created-quest', status: 'created' });
@@ -43,7 +43,7 @@ describe('OrchestrationStartupRecoveryResponder', () => {
     });
 
     it('VALID: {guild with complete quest} => skips non-recoverable quest', async () => {
-      const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+      const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
       const guildPath = GuildPathStub({ value: '/home/user/test-guild' });
       const quest = QuestStub({
         id: QuestIdStub({ value: 'done-quest' }),
@@ -81,7 +81,7 @@ describe('OrchestrationStartupRecoveryResponder', () => {
 
   describe('orchestration loop launch', () => {
     it('VALID: {recoverable quest} => registers process with abort-capable kill handle', async () => {
-      const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+      const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
       const guildPath = GuildPathStub({ value: '/home/user/test-guild' });
       const questId = QuestIdStub({ value: 'progress-quest' });
       const quest = QuestStub({ id: questId, folder: '001-progress-quest', status: 'in_progress' });

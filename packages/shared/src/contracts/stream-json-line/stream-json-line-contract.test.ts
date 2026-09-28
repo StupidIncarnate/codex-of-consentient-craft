@@ -50,19 +50,19 @@ describe('streamJsonLineContract', () => {
     });
 
     it('INVALID: {value: number} => throws for non-string type', () => {
-      expect(() => streamJsonLineContract.parse(123 as never)).toThrow(/Expected string/u);
+      expect(() => streamJsonLineContract.parse(123 as never)).toThrow(/expected string/u);
     });
 
     it('INVALID: {value: null} => throws for null', () => {
-      expect(() => streamJsonLineContract.parse(null as never)).toThrow(/Expected string/u);
+      expect(() => streamJsonLineContract.parse(null as never)).toThrow(/expected string/u);
     });
 
     it('INVALID: {value: undefined} => throws for undefined', () => {
-      expect(() => streamJsonLineContract.parse(undefined as never)).toThrow(/Required/u);
+      expect(() => streamJsonLineContract.parse(undefined as never)).toThrow(/received undefined/u);
     });
 
     it('INVALID: {value: object} => throws for object', () => {
-      expect(() => streamJsonLineContract.parse({} as never)).toThrow(/Expected string/u);
+      expect(() => streamJsonLineContract.parse({} as never)).toThrow(/expected string/u);
     });
   });
 });

@@ -16,7 +16,7 @@ describe('dispatchPlayBodyContract', () => {
 
   it('INVALID: {force: "yes"} => throws type error', () => {
     expect(() => DispatchPlayBodyStub({ force: 'yes' as never })).toThrow(
-      /Expected boolean, received string/u,
+      /Invalid input: expected boolean, received string/u,
     );
   });
 });

@@ -58,13 +58,13 @@ describe('rateLimitWindowContract', () => {
           usedPercentage: 42,
           resetsAt: 'not-a-timestamp',
         });
-      }).toThrow(/Invalid datetime/u);
+      }).toThrow(/Invalid ISO datetime/u);
     });
 
     it('INVALID: missing required fields => throws validation error', () => {
       expect(() => {
         rateLimitWindowContract.parse({});
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

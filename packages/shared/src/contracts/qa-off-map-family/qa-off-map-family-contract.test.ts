@@ -28,11 +28,11 @@ describe('qaOffMapFamilyContract', () => {
 
   describe('invalid input', () => {
     it('INVALID: {family: "performance"} => throws', () => {
-      expect(() => QaOffMapFamilyStub({ value: 'performance' })).toThrow(/Invalid enum value/u);
+      expect(() => QaOffMapFamilyStub({ value: 'performance' })).toThrow(/Invalid option/u);
     });
 
     it('EMPTY: {family: ""} => throws', () => {
-      expect(() => QaOffMapFamilyStub({ value: '' })).toThrow(/Invalid enum value/u);
+      expect(() => QaOffMapFamilyStub({ value: '' })).toThrow(/Invalid option/u);
     });
   });
 });

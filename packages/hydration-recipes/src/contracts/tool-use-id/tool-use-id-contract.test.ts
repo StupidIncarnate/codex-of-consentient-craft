@@ -16,7 +16,7 @@ describe('toolUseIdContract', () => {
     });
 
     it('INVALID: {value: 123} => throws on non-string', () => {
-      expect(() => toolUseIdContract.parse(123 as never)).toThrow(/Expected string/u);
+      expect(() => toolUseIdContract.parse(123 as never)).toThrow(/expected string/u);
     });
   });
 });

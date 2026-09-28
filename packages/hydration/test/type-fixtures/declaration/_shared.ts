@@ -40,7 +40,6 @@ export type SampleFields = z.infer<typeof sampleFieldsContract>;
 // two independently-inferred sites.
 export const sampleFields: z.ZodType<
   SampleFields,
-  z.ZodTypeDef,
   z.input<typeof sampleFieldsContract>
 > = sampleFieldsContract;
 

@@ -76,7 +76,7 @@ describe('capacitySuggestionContract', () => {
   describe('invalid arithmetic', () => {
     it('INVALID: {availableMB: -100} => throws, the caller clamps at zero rather than reporting a deficit', () => {
       expect(() => CapacitySuggestionStub({ availableMB: -100 })).toThrow(
-        /greater than or equal to 0/iu,
+        /Too small: expected number to be >=0/u,
       );
     });
 

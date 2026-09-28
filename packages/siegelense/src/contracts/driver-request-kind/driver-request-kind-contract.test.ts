@@ -3,7 +3,7 @@ import { DriverRequestKindStub } from './driver-request-kind.stub';
 
 describe('driverRequestKindContract', () => {
   describe('valid members', () => {
-    it.each(driverRequestKindContract.unwrap().options)(
+    it.each(driverRequestKindContract.options)(
       'VALID: {value: %s} => parses to itself',
       (value) => {
         const kind = DriverRequestKindStub({ value });
@@ -19,7 +19,7 @@ describe('driverRequestKindContract', () => {
     it('INVALID: {value: "status"} => an unlisted string throws validation error', () => {
       expect(() => {
         DriverRequestKindStub({ value: 'status' as never });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
   });
 });

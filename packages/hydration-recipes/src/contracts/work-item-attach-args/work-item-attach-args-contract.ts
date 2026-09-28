@@ -32,7 +32,7 @@ export const workItemAttachArgsContract = z.object({
   role: workItemRoleContract,
   status: workItemStatusContract,
   spawnerType: spawnerTypeContract,
-  createdAt: z.string().datetime().brand<'IsoTimestamp'>(),
+  createdAt: z.iso.datetime().brand<'IsoTimestamp'>(),
   operationId: z.union([operationItemIdContract, savedRefContract]),
 });
 

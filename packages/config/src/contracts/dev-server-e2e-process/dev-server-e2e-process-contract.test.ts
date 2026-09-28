@@ -93,13 +93,13 @@ describe('devServerE2eProcessContract', () => {
           portRole: 'db',
           readyPath: '/',
         });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {missing name, command, portRole and readyPath} => throws validation error', () => {
       expect(() => {
         return devServerE2eProcessContract.parse({});
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

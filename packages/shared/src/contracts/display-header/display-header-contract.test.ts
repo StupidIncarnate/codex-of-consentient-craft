@@ -24,11 +24,13 @@ describe('displayHeaderContract', () => {
 
   describe('invalid display headers', () => {
     it('ERROR: 123 => throws validation error for number', () => {
-      expect(() => displayHeaderContract.parse(123)).toThrow('Expected string, received number');
+      expect(() => displayHeaderContract.parse(123)).toThrow(
+        'Invalid input: expected string, received number',
+      );
     });
 
     it('ERROR: undefined => throws validation error for undefined', () => {
-      expect(() => displayHeaderContract.parse(undefined)).toThrow('Required');
+      expect(() => displayHeaderContract.parse(undefined)).toThrow('received undefined');
     });
   });
 

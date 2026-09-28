@@ -49,7 +49,7 @@ describe('subagentWindowContract', () => {
 
     it('INVALID: {endedAt: number} => throws', () => {
       expect(() => SubagentWindowStub({ endedAt: 1_788_491_226 as never })).toThrow(
-        /Expected string/u,
+        /expected string/u,
       );
     });
   });
@@ -61,7 +61,7 @@ describe('subagentWindowContract', () => {
           agentId: 'agent-abc',
           startedAt: '2026-09-01T19:00:00.000Z',
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 });

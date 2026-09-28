@@ -67,7 +67,7 @@ describe('wardResultContract', () => {
           createdAt: '2024-01-15T10:00:00.000Z',
           exitCode: 1,
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: non-uuid id => throws validation error', () => {
@@ -77,7 +77,7 @@ describe('wardResultContract', () => {
           createdAt: '2024-01-15T10:00:00.000Z',
           exitCode: 1,
         });
-      }).toThrow(/Invalid uuid/u);
+      }).toThrow(/Invalid UUID/u);
     });
 
     it('INVALID: invalid timestamp => throws validation error', () => {
@@ -87,7 +87,7 @@ describe('wardResultContract', () => {
           createdAt: 'not-a-timestamp',
           exitCode: 1,
         });
-      }).toThrow(/Invalid datetime/u);
+      }).toThrow(/Invalid ISO datetime/u);
     });
 
     it('INVALID: missing exitCode => throws validation error', () => {
@@ -96,7 +96,7 @@ describe('wardResultContract', () => {
           id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
           createdAt: '2024-01-15T10:00:00.000Z',
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: invalid wardMode => throws validation error', () => {
@@ -107,7 +107,7 @@ describe('wardResultContract', () => {
           exitCode: 1,
           wardMode: 'invalid',
         });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: non-integer exitCode => throws validation error', () => {
@@ -117,7 +117,7 @@ describe('wardResultContract', () => {
           createdAt: '2024-01-15T10:00:00.000Z',
           exitCode: 1.5,
         });
-      }).toThrow(/Expected integer/u);
+      }).toThrow(/expected int/u);
     });
 
     it('INVALID: string exitCode => throws validation error', () => {
@@ -127,7 +127,7 @@ describe('wardResultContract', () => {
           createdAt: '2024-01-15T10:00:00.000Z',
           exitCode: 'not-a-number',
         });
-      }).toThrow(/Expected number/u);
+      }).toThrow(/expected number/u);
     });
 
     it('INVALID: missing createdAt => throws validation error', () => {
@@ -136,7 +136,7 @@ describe('wardResultContract', () => {
           id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
           exitCode: 1,
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

@@ -58,7 +58,9 @@ describe('capacityAnswerContract', () => {
 
   describe('invalid answers', () => {
     it('INVALID: {suggested: -1} => throws, a suggestion is never negative', () => {
-      expect(() => CapacityAnswerStub({ suggested: -1 })).toThrow(/greater than or equal to 0/iu);
+      expect(() => CapacityAnswerStub({ suggested: -1 })).toThrow(
+        /Too small: expected number to be >=0/iu,
+      );
     });
 
     it('INVALID: {an extra reserved key} => throws, the answer is strict', () => {

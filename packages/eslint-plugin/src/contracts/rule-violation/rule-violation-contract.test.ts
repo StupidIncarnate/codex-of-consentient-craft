@@ -57,6 +57,6 @@ describe('RuleViolationStub', () => {
   it('INVALID: {message: ""} => throws ZodError for empty message', () => {
     expect(() => {
       ruleViolationContract.parse({ message: '' });
-    }).toThrow('String must contain at least 1 character(s)');
+    }).toThrow('expected string to have >=1 characters');
   });
 });

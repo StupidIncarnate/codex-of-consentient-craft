@@ -66,7 +66,7 @@ describe('nextReadyWorkItemsTransformer', () => {
       const depId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const dep = WorkItemStub({ id: depId, status: 'complete' });
       const item = WorkItemStub({
-        id: QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e' }),
+        id: QuestWorkItemIdStub({ value: '03a9d8d8-7d74-4041-981c-977812e6dc45' }),
         status: 'pending',
         dependsOn: [depId],
       });
@@ -87,7 +87,7 @@ describe('nextReadyWorkItemsTransformer', () => {
         dependsOn: [],
       });
       const item2 = WorkItemStub({
-        id: QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e' }),
+        id: QuestWorkItemIdStub({ value: '03a9d8d8-7d74-4041-981c-977812e6dc45' }),
         status: 'pending',
         dependsOn: [],
       });
@@ -107,7 +107,7 @@ describe('nextReadyWorkItemsTransformer', () => {
       const depId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const dep = WorkItemStub({ id: depId, status: 'failed' });
       const item = WorkItemStub({
-        id: QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e' }),
+        id: QuestWorkItemIdStub({ value: '03a9d8d8-7d74-4041-981c-977812e6dc45' }),
         status: 'pending',
         dependsOn: [depId],
       });
@@ -125,7 +125,7 @@ describe('nextReadyWorkItemsTransformer', () => {
       const depId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const dep = WorkItemStub({ id: depId, status: 'skipped' });
       const item = WorkItemStub({
-        id: QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e' }),
+        id: QuestWorkItemIdStub({ value: '03a9d8d8-7d74-4041-981c-977812e6dc45' }),
         status: 'pending',
         dependsOn: [depId],
       });
@@ -162,11 +162,11 @@ describe('nextReadyWorkItemsTransformer', () => {
         status: 'complete',
       });
       const item2 = WorkItemStub({
-        id: QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e' }),
+        id: QuestWorkItemIdStub({ value: '03a9d8d8-7d74-4041-981c-977812e6dc45' }),
         status: 'failed',
       });
       const item3 = WorkItemStub({
-        id: QuestWorkItemIdStub({ value: 'c3d4e5f6-a7b8-9c0d-1e2f-3a4b5c6d7e8f' }),
+        id: QuestWorkItemIdStub({ value: '2063553f-9f1c-6c33-8d24-05ca15a4f935' }),
         status: 'skipped',
       });
 
@@ -183,11 +183,11 @@ describe('nextReadyWorkItemsTransformer', () => {
   describe('mixed dependency states', () => {
     it('VALID: {depends on complete + failed} => ready (both satisfy dependsOn)', () => {
       const completeId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
-      const failedId = QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e' });
+      const failedId = QuestWorkItemIdStub({ value: '03a9d8d8-7d74-4041-981c-977812e6dc45' });
       const completeDep = WorkItemStub({ id: completeId, status: 'complete' });
       const failedDep = WorkItemStub({ id: failedId, status: 'failed' });
       const item = WorkItemStub({
-        id: QuestWorkItemIdStub({ value: 'c3d4e5f6-a7b8-9c0d-1e2f-3a4b5c6d7e8f' }),
+        id: QuestWorkItemIdStub({ value: '2063553f-9f1c-6c33-8d24-05ca15a4f935' }),
         status: 'pending',
         dependsOn: [completeId, failedId],
       });
@@ -205,7 +205,7 @@ describe('nextReadyWorkItemsTransformer', () => {
 
     it('VALID: {depends on complete + pending} => NOT ready (pending does not satisfy)', () => {
       const completeId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
-      const pendingId = QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e' });
+      const pendingId = QuestWorkItemIdStub({ value: '03a9d8d8-7d74-4041-981c-977812e6dc45' });
       const completeDep = WorkItemStub({ id: completeId, status: 'complete' });
       const pendingDep = WorkItemStub({
         id: pendingId,
@@ -213,7 +213,7 @@ describe('nextReadyWorkItemsTransformer', () => {
         dependsOn: [],
       });
       const item = WorkItemStub({
-        id: QuestWorkItemIdStub({ value: 'c3d4e5f6-a7b8-9c0d-1e2f-3a4b5c6d7e8f' }),
+        id: QuestWorkItemIdStub({ value: '2063553f-9f1c-6c33-8d24-05ca15a4f935' }),
         status: 'pending',
         dependsOn: [completeId, pendingId],
       });
@@ -235,7 +235,7 @@ describe('nextReadyWorkItemsTransformer', () => {
       const depId = QuestWorkItemIdStub({ value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' });
       const dep = WorkItemStub({ id: depId, status: 'in_progress' });
       const item = WorkItemStub({
-        id: QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e' }),
+        id: QuestWorkItemIdStub({ value: '03a9d8d8-7d74-4041-981c-977812e6dc45' }),
         status: 'pending',
         dependsOn: [depId],
       });

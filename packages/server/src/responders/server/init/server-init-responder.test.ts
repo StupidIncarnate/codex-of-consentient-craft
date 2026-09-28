@@ -1376,7 +1376,7 @@ describe('ServerInitResponder', () => {
       const proxy = ServerInitResponderProxy();
       const questId = QuestIdStub({ value: 'quest-replay-only' });
       const workItemAId = QuestWorkItemIdStub({
-        value: 'cccccccc-cccc-4ccc-cccc-cccccccccccc',
+        value: '73517cb3-bfda-1974-8514-32d9631f1b33',
       });
       const sessionA = SessionIdStub({ value: 'session-replay-A' });
       const guildId = GuildIdStub();

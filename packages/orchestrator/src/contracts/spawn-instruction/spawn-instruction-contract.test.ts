@@ -78,7 +78,7 @@ describe('spawnInstructionContract', () => {
           workItemId: QuestWorkItemIdStub({ value: 'bbbbbbbb-1111-4222-9333-444444444444' }),
           taskPrompt: PromptTextStub({ value: 'work' }),
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {missing workItemId} => throws Required', () => {
@@ -88,7 +88,7 @@ describe('spawnInstructionContract', () => {
           role: 'codeweaver',
           taskPrompt: PromptTextStub({ value: 'work' }),
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {missing taskPrompt} => throws Required', () => {
@@ -98,7 +98,7 @@ describe('spawnInstructionContract', () => {
           role: 'codeweaver',
           workItemId: QuestWorkItemIdStub({ value: 'bbbbbbbb-1111-4222-9333-444444444444' }),
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {unknown role} => throws enum error', () => {
@@ -109,7 +109,7 @@ describe('spawnInstructionContract', () => {
           workItemId: QuestWorkItemIdStub({ value: 'bbbbbbbb-1111-4222-9333-444444444444' }),
           taskPrompt: PromptTextStub({ value: 'work' }),
         }),
-      ).toThrow(/Invalid enum value/u);
+      ).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {unknown model} => throws enum error', () => {
@@ -121,7 +121,7 @@ describe('spawnInstructionContract', () => {
           taskPrompt: PromptTextStub({ value: 'work' }),
           model: 'gpt',
         }),
-      ).toThrow(/Invalid enum value/u);
+      ).toThrow(/Invalid option/u);
     });
   });
 });

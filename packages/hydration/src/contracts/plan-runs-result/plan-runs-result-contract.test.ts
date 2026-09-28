@@ -17,8 +17,10 @@ describe('planRunsResultContract', () => {
   });
 
   describe('invalid results', () => {
-    it('INVALID: {serverless: false, no needsServerFor} => throws "Required"', () => {
-      expect(() => planRunsResultContract.parse({ serverless: false })).toThrow(/Required/u);
+    it('INVALID: {serverless: false, no needsServerFor} => throws "received undefined"', () => {
+      expect(() => planRunsResultContract.parse({ serverless: false })).toThrow(
+        /received undefined/u,
+      );
     });
 
     it('INVALID: {serverless: "nope"} => throws naming the invalid discriminator', () => {

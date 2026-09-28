@@ -17,13 +17,13 @@ describe('pastedImageMediaTypeContract', () => {
   describe('invalid media types', () => {
     it('INVALID: "image/svg+xml" => throws validation error', () => {
       expect(() => pastedImageMediaTypeContract.parse('image/svg+xml')).toThrow(
-        "Invalid enum value. Expected 'image/png' | 'image/jpeg' | 'image/gif' | 'image/webp', received 'image/svg+xml'",
+        'Invalid option: expected one of',
       );
     });
 
     it('INVALID: 123 => throws validation error for non-string', () => {
       expect(() => pastedImageMediaTypeContract.parse(123 as never)).toThrow(
-        "Expected 'image/png' | 'image/jpeg' | 'image/gif' | 'image/webp', received number",
+        'Invalid option: expected one of',
       );
     });
   });

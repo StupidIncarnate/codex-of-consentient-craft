@@ -111,7 +111,7 @@ describe('guildListBroker', () => {
         createdAt: '2024-01-15T10:00:00.000Z',
       });
       const guild2 = GuildStub({
-        id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
+        id: 'a99ef0d8-6ae0-1972-9617-694d449a8242',
         name: 'Second App',
         path: '/home/user/second-app',
         createdAt: '2024-02-20T12:00:00.000Z',
@@ -120,7 +120,7 @@ describe('guildListBroker', () => {
         value: '/home/user/.dungeonmaster/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/quests',
       });
       const questsDirPath2 = FilePathStub({
-        value: '/home/user/.dungeonmaster/guilds/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee/quests',
+        value: '/home/user/.dungeonmaster/guilds/a99ef0d8-6ae0-1972-9617-694d449a8242/quests',
       });
 
       proxy.setupGuildList({
@@ -159,7 +159,7 @@ describe('guildListBroker', () => {
           questCount: 1,
         },
         {
-          id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
+          id: 'a99ef0d8-6ae0-1972-9617-694d449a8242',
           name: 'Second App',
           path: '/home/user/second-app',
           urlSlug: 'my-guild',

@@ -20,7 +20,9 @@ describe('idleReasonContract', () => {
 
   describe('invalid input', () => {
     it('EMPTY: {""} => throws, because an idle with a blank reason reads as an organic idle', () => {
-      expect(() => IdleReasonStub({ value: '' })).toThrow(/String must contain at least 1/u);
+      expect(() => IdleReasonStub({ value: '' })).toThrow(
+        /Too small: expected string to have >=1 characters/u,
+      );
     });
   });
 });

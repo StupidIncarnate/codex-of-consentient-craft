@@ -29,12 +29,12 @@ describe('capturedOrchestrationEmitContract', () => {
 
     expect(() => {
       return capturedOrchestrationEmitContract.parse({ processId });
-    }).toThrow(/Required/u);
+    }).toThrow(/received undefined/u);
   });
 
   it('INVALID: {processId missing} => throws validation error', () => {
     expect(() => {
       return capturedOrchestrationEmitContract.parse({ payload: {} });
-    }).toThrow(/Required/u);
+    }).toThrow(/received undefined/u);
   });
 });

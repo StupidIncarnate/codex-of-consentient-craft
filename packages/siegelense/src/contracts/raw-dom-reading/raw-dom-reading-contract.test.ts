@@ -35,6 +35,6 @@ describe('rawDomReadingContract', () => {
   it('INVALID: {count: -1} => throws validation error for negative count', () => {
     expect(() => {
       rawDomReadingContract.parse({ count: -1, nodes: [] });
-    }).toThrow(/Number must be greater than or equal to 0/u);
+    }).toThrow(/expected number to be >=0/u);
   });
 });

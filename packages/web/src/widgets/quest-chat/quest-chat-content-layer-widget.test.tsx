@@ -30,7 +30,7 @@ describe('QuestChatContentLayerWidget', () => {
     it('VALID: {claude mode, questId null} => renders the /dumpster-create placeholder banner', async () => {
       const proxy = QuestChatContentLayerWidgetProxy();
       proxy.setupMode({ mode: 'claude' });
-      const guildId = GuildIdStub({ value: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee' });
+      const guildId = GuildIdStub({ value: 'a99ef0d8-6ae0-1972-9617-694d449a8242' });
 
       const { queryByTestId, findByTestId } = mantineRenderAdapter({
         ui: (
@@ -54,7 +54,7 @@ describe('QuestChatContentLayerWidget', () => {
     it('VALID: {claude mode, questId null} => does NOT mount the chat panel, divider, or activity column (Create-Quest entry point moved to /dumpster-create)', async () => {
       const proxy = QuestChatContentLayerWidgetProxy();
       proxy.setupMode({ mode: 'claude' });
-      const guildId = GuildIdStub({ value: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee' });
+      const guildId = GuildIdStub({ value: 'a99ef0d8-6ae0-1972-9617-694d449a8242' });
 
       const { queryByTestId, findByTestId } = mantineRenderAdapter({
         ui: (
@@ -80,7 +80,7 @@ describe('QuestChatContentLayerWidget', () => {
     it('VALID: {node mode, questId null} => renders chat panel + an activity column settled on the empty state, not the /dumpster-create banner', async () => {
       const proxy = QuestChatContentLayerWidgetProxy();
       proxy.setupMode({ mode: 'node' });
-      const guildId = GuildIdStub({ value: '44444444-5555-6666-7777-888888888888' });
+      const guildId = GuildIdStub({ value: '08ad6f48-0b73-7dd8-bf07-7504fecea684' });
 
       const { queryByTestId, findByTestId } = mantineRenderAdapter({
         ui: (
@@ -173,7 +173,7 @@ describe('QuestChatContentLayerWidget', () => {
     it('VALID: {node mode, questId null} => renders the quest type picker on the create surface', async () => {
       const proxy = QuestChatContentLayerWidgetProxy();
       proxy.setupMode({ mode: 'node' });
-      const guildId = GuildIdStub({ value: '11111111-2222-3333-4444-555555555555' });
+      const guildId = GuildIdStub({ value: 'c6426b96-020d-8c0c-ac3a-dc1cf3952797' });
 
       const { findByTestId } = mantineRenderAdapter({
         ui: (
@@ -201,7 +201,7 @@ describe('QuestChatContentLayerWidget', () => {
         questId: QuestIdStub({ value: 'q-feature' }),
         chatProcessId: ProcessIdStub({ value: 'proc-feature' }),
       });
-      const guildId = GuildIdStub({ value: '22222222-3333-4444-5555-666666666666' });
+      const guildId = GuildIdStub({ value: '6b47438c-b99d-7f75-98d2-6a577c26bc59' });
 
       mantineRenderAdapter({
         ui: (
@@ -238,7 +238,7 @@ describe('QuestChatContentLayerWidget', () => {
         questId: QuestIdStub({ value: 'q-bug' }),
         chatProcessId: ProcessIdStub({ value: 'proc-bug' }),
       });
-      const guildId = GuildIdStub({ value: '33333333-4444-5555-6666-777777777777' });
+      const guildId = GuildIdStub({ value: 'efb6d98d-378a-183f-b291-9e1679effb0e' });
 
       mantineRenderAdapter({
         ui: (
@@ -269,7 +269,7 @@ describe('QuestChatContentLayerWidget', () => {
     it('EMPTY: {questId set} => renders no quest type picker, since the type is already settled', async () => {
       const proxy = QuestChatContentLayerWidgetProxy();
       proxy.setupMode({ mode: 'node' });
-      const guildId = GuildIdStub({ value: '44444444-5555-6666-7777-999999999999' });
+      const guildId = GuildIdStub({ value: 'cb492421-7f9c-5655-8dae-f823411faa2c' });
 
       const { queryByTestId, findByTestId } = mantineRenderAdapter({
         ui: (
@@ -293,7 +293,7 @@ describe('QuestChatContentLayerWidget', () => {
     it('VALID: {claude mode, no quest yet from binding} => renders new-chat-style awaiting surface', async () => {
       const proxy = QuestChatContentLayerWidgetProxy();
       proxy.setupMode({ mode: 'claude' });
-      const guildId = GuildIdStub({ value: 'cccccccc-dddd-eeee-ffff-aaaaaaaaaaaa' });
+      const guildId = GuildIdStub({ value: '68f80191-a1da-26da-83e1-b8ea81b06110' });
 
       const { queryByTestId, findByTestId } = mantineRenderAdapter({
         ui: (
@@ -319,7 +319,7 @@ describe('QuestChatContentLayerWidget', () => {
       const proxy = QuestChatContentLayerWidgetProxy();
       proxy.setupConnectedChannel();
       proxy.setupMode({ mode: 'claude' });
-      const guildId = GuildIdStub({ value: 'dddddddd-eeee-ffff-aaaa-bbbbbbbbbbbb' });
+      const guildId = GuildIdStub({ value: '0a659f69-afb3-5337-8cd5-036dfec0a53a' });
       const quest = QuestStub({
         id: 'q-pre',
         status: 'review_flows',
@@ -359,7 +359,7 @@ describe('QuestChatContentLayerWidget', () => {
       proxy.setupConnectedChannel();
       proxy.setupMode({ mode: 'claude' });
       proxy.setupQuestSummary({ summary: QuestSummaryStub({ questId: 'q-exec' }) });
-      const guildId = GuildIdStub({ value: 'eeeeeeee-ffff-aaaa-bbbb-cccccccccccc' });
+      const guildId = GuildIdStub({ value: '81dec362-4475-25d3-baee-95a446578276' });
       const quest = QuestStub({
         id: 'q-exec',
         status: 'in_progress',
@@ -425,7 +425,7 @@ describe('QuestChatContentLayerWidget', () => {
           ],
         }),
       });
-      const guildId = GuildIdStub({ value: 'eeeeeeee-ffff-aaaa-bbbb-dddddddddddd' });
+      const guildId = GuildIdStub({ value: '25416336-e944-4f42-b3e5-e44ee517fdff' });
       const quest = QuestStub({
         id: 'q-exec-summary',
         status: 'in_progress',
@@ -478,7 +478,7 @@ describe('QuestChatContentLayerWidget', () => {
       const proxy = QuestChatContentLayerWidgetProxy();
       proxy.setupConnectedChannel();
       proxy.setupMode({ mode: 'claude' });
-      const guildId = GuildIdStub({ value: 'ffffffff-aaaa-bbbb-cccc-dddddddddddd' });
+      const guildId = GuildIdStub({ value: '273d7f9c-bd74-5e5d-be5c-44153ab8473c' });
       const quest = QuestStub({ id: 'q-clarify', status: 'review_flows' });
       const chatProcessId = ProcessIdStub({ value: 'proc-clarify' });
       proxy.setupClarify({ chatProcessId });
@@ -540,7 +540,7 @@ describe('QuestChatContentLayerWidget', () => {
       const proxy = QuestChatContentLayerWidgetProxy();
       proxy.setupConnectedChannel();
       proxy.setupMode({ mode: 'claude' });
-      const guildId = GuildIdStub({ value: '11111111-2222-3333-4444-555555555555' });
+      const guildId = GuildIdStub({ value: 'c6426b96-020d-8c0c-ac3a-dc1cf3952797' });
       const quest = QuestStub({ id: 'q-hidden', status: 'review_flows' });
 
       const { queryByTestId, findByTestId } = mantineRenderAdapter({
@@ -582,7 +582,7 @@ describe('QuestChatContentLayerWidget', () => {
     it('VALID: {claude mode, ?chat=hidden, no quest yet (loading)} => CHAT_PANEL not in DOM, awaiting activity column still renders', async () => {
       const proxy = QuestChatContentLayerWidgetProxy();
       proxy.setupMode({ mode: 'claude' });
-      const guildId = GuildIdStub({ value: '22222222-3333-4444-5555-666666666666' });
+      const guildId = GuildIdStub({ value: '6b47438c-b99d-7f75-98d2-6a577c26bc59' });
 
       const { queryByTestId, findByTestId } = mantineRenderAdapter({
         ui: (
@@ -616,7 +616,7 @@ describe('QuestChatContentLayerWidget', () => {
       const proxy = QuestChatContentLayerWidgetProxy();
       proxy.setupConnectedChannel();
       proxy.setupMode({ mode: 'claude' });
-      const guildId = GuildIdStub({ value: '33333333-4444-5555-6666-777777777777' });
+      const guildId = GuildIdStub({ value: 'efb6d98d-378a-183f-b291-9e1679effb0e' });
       const quest = QuestStub({ id: 'q-visible', status: 'review_flows' });
 
       const { queryByTestId } = mantineRenderAdapter({
@@ -659,7 +659,7 @@ describe('QuestChatContentLayerWidget', () => {
       const proxy = QuestChatContentLayerWidgetProxy();
       proxy.setupConnectedChannel();
       proxy.setupMode({ mode: 'claude' });
-      const guildId = GuildIdStub({ value: '99999999-aaaa-bbbb-cccc-dddddddddddd' });
+      const guildId = GuildIdStub({ value: '5dc553d4-b2df-6c6a-8a03-1c81bae7fa67' });
       const quest = QuestStub({ id: 'q-clarify-order', status: 'review_flows' });
       const chatProcessId = ProcessIdStub({ value: 'proc-clarify-order' });
       proxy.setupClarify({ chatProcessId });
@@ -797,7 +797,7 @@ describe('QuestChatContentLayerWidget', () => {
       proxy.setupConnectedChannel();
       proxy.setupMode({ mode: 'claude' });
       proxy.setupQuestSummary({ summary: QuestSummaryStub({ questId: 'q-complete-summary' }) });
-      const guildId = GuildIdStub({ value: 'aaaaaaa1-1111-2222-3333-444444444444' });
+      const guildId = GuildIdStub({ value: '3ccdd847-717d-635b-a085-21ec23b3b48c' });
       const quest = QuestStub({ id: 'q-complete-summary', status: 'complete' });
 
       const { findByTestId, getByTestId } = mantineRenderAdapter({
@@ -834,7 +834,7 @@ describe('QuestChatContentLayerWidget', () => {
       proxy.setupConnectedChannel();
       proxy.setupMode({ mode: 'claude' });
       proxy.setupQuestSummary({ summary: QuestSummaryStub({ questId: 'q-followup-chat-panel' }) });
-      const guildId = GuildIdStub({ value: 'aaaaaaa2-1111-2222-3333-444444444444' });
+      const guildId = GuildIdStub({ value: '96e2df2b-14e1-8fe2-b12d-b75330714a90' });
       const quest = QuestStub({ id: 'q-followup-chat-panel', status: 'complete' });
 
       const { findByTestId, getByTestId } = mantineRenderAdapter({
@@ -874,7 +874,7 @@ describe('QuestChatContentLayerWidget', () => {
       proxy.setupMode({ mode: 'claude' });
       proxy.setupQuestSummary({ summary: QuestSummaryStub({ questId: 'q-followup-post' }) });
       proxy.setupFollowup({ chatProcessId: ProcessIdStub({ value: 'proc-followup-post' }) });
-      const guildId = GuildIdStub({ value: 'aaaaaaa3-1111-2222-3333-444444444444' });
+      const guildId = GuildIdStub({ value: '9eadb744-387f-851c-8c16-f756689ab5da' });
       const quest = QuestStub({ id: 'q-followup-post', status: 'complete' });
 
       mantineRenderAdapter({
@@ -920,7 +920,7 @@ describe('QuestChatContentLayerWidget', () => {
       proxy.setupFollowupRejected({
         error: 'Quest must be blocked, complete or merged for follow-up',
       });
-      const guildId = GuildIdStub({ value: 'aaaaaaa4-1111-2222-3333-444444444444' });
+      const guildId = GuildIdStub({ value: 'eec9453b-b09d-8cf1-bfa3-2fc67d7e88c0' });
       const quest = QuestStub({ id: 'q-followup-rejected', status: 'complete' });
 
       mantineRenderAdapter({
@@ -975,7 +975,7 @@ describe('QuestChatContentLayerWidget', () => {
       proxy.setupConnectedChannel();
       proxy.setupMode({ mode: 'claude' });
       proxy.setupQuestSummary({ summary: QuestSummaryStub({ questId: 'q-followup-scope' }) });
-      const guildId = GuildIdStub({ value: 'aaaaaaa6-1111-2222-3333-444444444444' });
+      const guildId = GuildIdStub({ value: '213bfad8-a920-3e62-80c3-c9f0a4148160' });
       const codeweaverWorkItemId = QuestWorkItemIdStub({
         value: '00000000-0000-4000-8000-0000000000d2',
       });
@@ -1057,7 +1057,7 @@ describe('QuestChatContentLayerWidget', () => {
       proxy.setupFollowup({ chatProcessId: ProcessIdStub({ value: 'proc-followup-stop' }) });
       proxy.setupFollowupStop({ stopped: true });
       proxy.setupPause();
-      const guildId = GuildIdStub({ value: 'aaaaaaa7-1111-2222-3333-444444444444' });
+      const guildId = GuildIdStub({ value: '40c0a194-6a9c-3b24-a174-685cff60330b' });
       const quest = QuestStub({ id: 'q-followup-stop', status: 'complete' });
 
       mantineRenderAdapter({
@@ -1110,7 +1110,7 @@ describe('QuestChatContentLayerWidget', () => {
       proxy.setupMode({ mode: 'claude' });
       proxy.setupQuestSummary({ summary: QuestSummaryStub({ questId: 'q-merge' }) });
       proxy.setupMerge({ merging: true });
-      const guildId = GuildIdStub({ value: 'aaaaaaa5-1111-2222-3333-444444444444' });
+      const guildId = GuildIdStub({ value: '6443ae45-0a94-3efa-9452-75bc2256b8ed' });
       const quest = QuestStub({ id: 'q-merge', status: 'complete' });
 
       mantineRenderAdapter({
@@ -1150,7 +1150,7 @@ describe('QuestChatContentLayerWidget', () => {
       proxy.setupConnectedChannel();
       proxy.setupMode({ mode: 'claude' });
       proxy.setupQuestSummary({ summary: QuestSummaryStub({ questId: 'q-merging' }) });
-      const guildId = GuildIdStub({ value: 'aaaaaaa6-1111-2222-3333-444444444444' });
+      const guildId = GuildIdStub({ value: '213bfad8-a920-3e62-80c3-c9f0a4148160' });
       const quest = QuestStub({ id: 'q-merging', status: 'merging' });
 
       mantineRenderAdapter({
@@ -1197,7 +1197,7 @@ describe('QuestChatContentLayerWidget', () => {
       proxy.setupStartRejected({
         error: 'quest/add-auth-7bc217a1 already exists — name is in use by other work',
       });
-      const guildId = GuildIdStub({ value: 'aaaaaaa7-1111-2222-3333-444444444444' });
+      const guildId = GuildIdStub({ value: '40c0a194-6a9c-3b24-a174-685cff60330b' });
       const quest = QuestStub({ id: 'q-begin-rejected', status: 'approved' });
 
       mantineRenderAdapter({
@@ -1241,7 +1241,7 @@ describe('QuestChatContentLayerWidget', () => {
       proxy.setupConnectedChannel();
       proxy.setupMode({ mode: 'claude' });
       proxy.setupStart({ processId: 'proc-begin-ok' });
-      const guildId = GuildIdStub({ value: 'aaaaaaa8-1111-2222-3333-444444444444' });
+      const guildId = GuildIdStub({ value: 'c41588d6-b0ca-67a9-80ea-bc7bd1d1fd6d' });
       const quest = QuestStub({ id: 'q-begin-ok', status: 'approved' });
 
       mantineRenderAdapter({
@@ -1285,7 +1285,7 @@ describe('QuestChatContentLayerWidget', () => {
       proxy.setupConnectedChannel();
       proxy.setupMode({ mode: 'claude' });
       proxy.setupStart({ processId: 'proc-begin-double-click' });
-      const guildId = GuildIdStub({ value: 'aaaaaaa9-1111-2222-3333-444444444444' });
+      const guildId = GuildIdStub({ value: '5dfad671-b74b-4b8e-bc94-5be4fbe466b3' });
       const quest = QuestStub({ id: 'q-begin-double-click', status: 'approved' });
 
       mantineRenderAdapter({
@@ -1327,7 +1327,7 @@ describe('QuestChatContentLayerWidget', () => {
       const proxy = QuestChatContentLayerWidgetProxy();
       proxy.setupConnectedChannel();
       proxy.setupMode({ mode: 'claude' });
-      const guildId = GuildIdStub({ value: '77777777-8888-9999-aaaa-bbbbbbbbbbbb' });
+      const guildId = GuildIdStub({ value: 'fc536acd-f13f-3c6a-9e11-3b4f3883ca28' });
 
       const { queryByTestId, findByTestId } = mantineRenderAdapter({
         ui: (
@@ -1366,7 +1366,7 @@ describe('QuestChatContentLayerWidget', () => {
       const proxy = QuestChatContentLayerWidgetProxy();
       proxy.setupConnectedChannel();
       proxy.setupMode({ mode: 'claude' });
-      const guildId = GuildIdStub({ value: '88888888-9999-aaaa-bbbb-cccccccccccc' });
+      const guildId = GuildIdStub({ value: '56cbc703-8711-29e9-b78d-d68f836d0049' });
 
       const { queryByTestId, findByTestId } = mantineRenderAdapter({
         ui: (
@@ -1399,7 +1399,7 @@ describe('QuestChatContentLayerWidget', () => {
       const proxy = QuestChatContentLayerWidgetProxy();
       proxy.setupConnectedChannel();
       proxy.setupMode({ mode: 'claude' });
-      const guildId = GuildIdStub({ value: '99999999-aaaa-bbbb-cccc-dddddddddd11' });
+      const guildId = GuildIdStub({ value: 'a2da4d64-2b11-58ea-b29a-61a31f3f4d27' });
       const quest = QuestStub({ id: 'q-repaired', status: 'review_flows' });
 
       const { queryByTestId, findByTestId } = mantineRenderAdapter({
@@ -1445,7 +1445,7 @@ describe('QuestChatContentLayerWidget', () => {
       const proxy = QuestChatContentLayerWidgetProxy();
       proxy.setupConnectedChannel();
       proxy.setupMode({ mode: 'claude' });
-      const guildId = GuildIdStub({ value: 'aaaaaaaa-0000-1111-2222-333333333333' });
+      const guildId = GuildIdStub({ value: 'f504ced8-953c-276f-9837-8845ae12a7a3' });
       const quest = QuestStub({ id: 'q-goes-stale', status: 'review_flows' });
 
       const { queryByTestId, findByTestId } = mantineRenderAdapter({
@@ -1502,7 +1502,7 @@ describe('QuestChatContentLayerWidget', () => {
         questId: QuestIdStub({ value: 'q-image-create' }),
         chatProcessId: ProcessIdStub({ value: 'proc-image-create' }),
       });
-      const guildId = GuildIdStub({ value: 'aaaaaaa0-1111-2222-3333-444444444444' });
+      const guildId = GuildIdStub({ value: '4943d44a-c991-2928-80b6-7ef4334d84bb' });
 
       mantineRenderAdapter({
         ui: (
@@ -1559,7 +1559,7 @@ describe('QuestChatContentLayerWidget', () => {
         chatProcessId: ProcessIdStub({ value: 'proc-shape-create' }),
       });
       proxy.setupChat({ chatProcessId: ProcessIdStub({ value: 'proc-shape-chat' }) });
-      const guildId = GuildIdStub({ value: 'bbbbbbb0-1111-2222-3333-444444444444' });
+      const guildId = GuildIdStub({ value: 'adf0453a-ee64-84b2-b92c-1ad541b192ce' });
       const sharedMessage = 'Same request, twice';
       // Both surfaces paste the image before typing, so both embed the SAME `[Pasted Image 1]`
       // marker at the front of the wire message — see check-first-message-takes-image-path above
@@ -1670,7 +1670,7 @@ describe('QuestChatContentLayerWidget', () => {
       proxy.setupConnectedChannel();
       proxy.setupMode({ mode: 'node' });
       proxy.setupChat({ chatProcessId: ProcessIdStub({ value: 'proc-dedupe-image' }) });
-      const guildId = GuildIdStub({ value: 'dddddddd-1111-2222-3333-444444444444' });
+      const guildId = GuildIdStub({ value: 'f0299cc2-1a09-8219-a48d-1f4555df225f' });
 
       mantineRenderAdapter({
         ui: (
@@ -1786,7 +1786,7 @@ describe('QuestChatContentLayerWidget', () => {
         questId: newQuestId,
         chatProcessId: ProcessIdStub({ value: 'proc-screenshot' }),
       });
-      const guildId = GuildIdStub({ value: 'eeeeeee6-1111-2222-3333-444444444444' });
+      const guildId = GuildIdStub({ value: '88430dc1-49c7-3b3a-9d48-13bc6c85826f' });
 
       const rendered = mantineRenderAdapter({
         ui: (
@@ -1905,7 +1905,7 @@ describe('QuestChatContentLayerWidget', () => {
       const proxy = QuestChatContentLayerWidgetProxy();
       proxy.setupMode({ mode: 'node' });
       proxy.setupNewQuestError();
-      const guildId = GuildIdStub({ value: 'cccccc90-1111-2222-3333-444444444444' });
+      const guildId = GuildIdStub({ value: 'ad38f4e0-5875-5db5-88f6-0514ab5e55dd' });
 
       mantineRenderAdapter({
         ui: (

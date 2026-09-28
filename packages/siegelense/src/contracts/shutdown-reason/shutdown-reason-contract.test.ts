@@ -28,13 +28,13 @@ describe('shutdownReasonContract', () => {
   describe('invalid markers', () => {
     it('INVALID: {reason: 123} => throws validation error', () => {
       expect(() => shutdownReasonContract.parse({ reason: 123, atMs: 1_700_000_000_000 })).toThrow(
-        /Expected string/u,
+        /expected string/u,
       );
     });
 
     it('INVALID: {missing atMs} => throws validation error', () => {
       expect(() => shutdownReasonContract.parse({ reason: 'reaped by idle timeout' })).toThrow(
-        /Required/u,
+        /received undefined/u,
       );
     });
   });

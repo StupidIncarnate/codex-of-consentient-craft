@@ -85,7 +85,7 @@ describe('questNoteContract', () => {
           detail: '6 units signed.',
           at: '2026-09-14T00:00:00.000Z',
         }),
-      ).toThrow(/invalid_string/u);
+      ).toThrow(/invalid_format/u);
     });
 
     it('INVALID: {kind: walked, runId: "not-a-run-id"} => throws, naming the run id shape', () => {
@@ -101,7 +101,7 @@ describe('questNoteContract', () => {
           detail: '6 units signed.',
           at: '2026-09-14T00:00:00.000Z',
         }),
-      ).toThrow(/invalid_string/u);
+      ).toThrow(/invalid_format/u);
     });
 
     it('VALID: {instanceId: null, runId: null} => parses, so a note reloaded off disk with a cleared pair still validates', () => {
@@ -219,7 +219,7 @@ describe('questNoteContract', () => {
           unitId: 'motion-feels-smooth',
           outcome: 'confirmed' as never,
         }),
-      ).toThrow(/Invalid enum value/u);
+      ).toThrow(/Invalid option/u);
     });
   });
 
@@ -252,22 +252,22 @@ describe('questNoteContract', () => {
   describe('invalid input', () => {
     it('INVALID: {summary: ""} => throws, so no note lands without the line a reader scans', () => {
       expect(() => QuestNoteStub({ summary: '' as never })).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
 
     it('INVALID: {kind: "blocked"} => throws, because the note kinds are a closed set', () => {
-      expect(() => QuestNoteStub({ kind: 'blocked' as never })).toThrow(/Invalid enum value/u);
+      expect(() => QuestNoteStub({ kind: 'blocked' as never })).toThrow(/Invalid option/u);
     });
 
     it('EMPTY: {id: ""} => throws, because an un-addressable note would make every write replace the array', () => {
       expect(() => QuestNoteStub({ id: '' as never })).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
 
     it('INVALID: {at: "2026-01-01"} => throws', () => {
-      expect(() => QuestNoteStub({ at: '2026-01-01' as never })).toThrow(/Invalid datetime/u);
+      expect(() => QuestNoteStub({ at: '2026-01-01' as never })).toThrow(/Invalid ISO datetime/u);
     });
   });
 });

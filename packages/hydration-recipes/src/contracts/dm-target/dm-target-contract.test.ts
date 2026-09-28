@@ -46,7 +46,7 @@ describe('dmTargetContract', () => {
     it('INVALID: {baseUrl: "not-a-url"} => throws "Invalid url"', () => {
       expect(() =>
         dmTargetContract.parse({ home: '/tmp/a', claudeHome: '/tmp/a', baseUrl: 'not-a-url' }),
-      ).toThrow(/Invalid url/u);
+      ).toThrow(/Invalid URL/u);
     });
 
     it('INVALID: {request: "nope"} => throws "Expected a request function"', () => {
@@ -70,8 +70,8 @@ describe('dmTargetContract', () => {
   });
 
   describe('empty target', () => {
-    it('EMPTY: {} => throws "Required" for both home and claudeHome', () => {
-      expect(() => dmTargetContract.parse({})).toThrow(/Required/u);
+    it('EMPTY: {} => throws "received undefined" for both home and claudeHome', () => {
+      expect(() => dmTargetContract.parse({})).toThrow(/received undefined/u);
     });
   });
 });

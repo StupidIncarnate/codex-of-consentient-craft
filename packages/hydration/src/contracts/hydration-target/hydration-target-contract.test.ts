@@ -16,7 +16,7 @@ describe('hydrationTargetContract', () => {
 
   describe('invalid targets', () => {
     it('INVALID: {baseUrl: "not-a-url"} => throws "Invalid url"', () => {
-      expect(() => hydrationTargetContract.parse({ baseUrl: 'not-a-url' })).toThrow(/Invalid url/u);
+      expect(() => hydrationTargetContract.parse({ baseUrl: 'not-a-url' })).toThrow(/Invalid URL/u);
     });
   });
 });

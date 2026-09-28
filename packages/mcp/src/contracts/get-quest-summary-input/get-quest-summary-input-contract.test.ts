@@ -16,7 +16,7 @@ describe('getQuestSummaryInputContract', () => {
     });
 
     it('INVALID: {missing questId} => throws validation error', () => {
-      expect(() => getQuestSummaryInputContract.parse({})).toThrow(/Required/u);
+      expect(() => getQuestSummaryInputContract.parse({})).toThrow(/received undefined/u);
     });
 
     it('INVALID: {flowId} => throws Unrecognized key, the summary is whole-quest by design', () => {

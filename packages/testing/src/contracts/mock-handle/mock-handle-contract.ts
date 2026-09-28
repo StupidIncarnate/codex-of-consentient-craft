@@ -10,7 +10,9 @@ import { z } from 'zod';
 import type { MockStaging } from '../mock-staging/mock-staging-contract';
 import type { RecordedCalls } from '../recorded-calls/recorded-calls-contract';
 
-export const mockHandleContract = z.object({});
+// `.loose()` keeps `z.infer` of the empty shape from narrowing to `Record<string, never>` (zod
+// v4), which the function-carrying intersection below could never satisfy.
+export const mockHandleContract = z.object({}).loose();
 
 export type MockHandle = z.infer<typeof mockHandleContract> & {
   calledWith: (args: readonly unknown[]) => MockStaging;

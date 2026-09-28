@@ -98,13 +98,13 @@ describe('stepCandidateContract', () => {
           text: '+',
           rect: '(0,0) 1x1',
         }),
-      ).toThrow(/Number must be greater than or equal to 0/u);
+      ).toThrow(/expected number to be >=0/u);
     });
 
     it('INVALID: {missing text} => throws Required', () => {
       expect(() =>
         stepCandidateContract.parse({ index: 0, ref: null, within: null, rect: '(0,0) 1x1' }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {ref: 0} => throws, because a ref names one element and zero names none', () => {
@@ -116,7 +116,7 @@ describe('stepCandidateContract', () => {
           text: '+',
           rect: '(0,0) 1x1',
         }),
-      ).toThrow(/Number must be greater than 0/u);
+      ).toThrow(/expected number to be >0/u);
     });
   });
 });

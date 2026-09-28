@@ -16,7 +16,11 @@
  * the session fixes what the message names and calls again.
  */
 
-import { filePathContract, unitObservationContract } from '@dungeonmaster/shared/contracts';
+import {
+  filePathContract,
+  unitObservationContract,
+  workItemPayloadKeyContract,
+} from '@dungeonmaster/shared/contracts';
 import type { QuestId, QuestWorkItemId } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { join } from '#gateway/node/path';
@@ -109,7 +113,9 @@ export const questWorkRecordBroker = async ({
         // instance id at all, because a continuation is a FRESH work item with its own `start` call
         // and its own instance.
         if (workItem.needsLane === true) {
-          const parsedInstance = questWorkInstanceContract.safeParse(workItem.payload?.instance);
+          const parsedInstance = questWorkInstanceContract.safeParse(
+            workItem.payload?.[workItemPayloadKeyContract.parse('instance')],
+          );
           if (parsedInstance.success) {
             await laneKillBroker({ instanceId: parsedInstance.data.instanceId });
           }

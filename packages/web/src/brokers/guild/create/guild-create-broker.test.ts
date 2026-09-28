@@ -46,7 +46,7 @@ describe('guildCreateBroker', () => {
           name: 'My Guild',
           path: '/home/user/my-guild',
         }),
-      ).rejects.toThrow(/invalid_string/u);
+      ).rejects.toThrow(/invalid_format/u);
     });
   });
 });

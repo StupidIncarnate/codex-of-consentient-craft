@@ -37,22 +37,26 @@ const baseSubagentChainGroupContract = z.object({
 });
 
 export type SingleGroup = z.infer<typeof singleGroupContract>;
-export type SubagentChainGroup = z.infer<typeof baseSubagentChainGroupContract> & {
-  innerGroups: ChatEntryGroup[];
-};
-export type ChatEntryGroup = SingleGroup | SubagentChainGroup;
 
-type SubagentChainGroupInput = z.input<typeof baseSubagentChainGroupContract> & {
-  innerGroups: ChatEntryGroupInput[];
+type SubagentChainGroupSelf = z.infer<typeof baseSubagentChainGroupContract> & {
+  innerGroups: ChatEntryGroupSelf[];
 };
-type ChatEntryGroupInput = z.input<typeof singleGroupContract> | SubagentChainGroupInput;
+type ChatEntryGroupSelf = SingleGroup | SubagentChainGroupSelf;
 
-export const chatEntryGroupContract: z.ZodType<ChatEntryGroup, z.ZodTypeDef, ChatEntryGroupInput> =
-  z.lazy(() =>
-    z.union([
-      singleGroupContract,
-      baseSubagentChainGroupContract.extend({
-        innerGroups: z.array(chatEntryGroupContract),
-      }),
-    ]),
-  ) as unknown as z.ZodType<ChatEntryGroup, z.ZodTypeDef, ChatEntryGroupInput>;
+// A getter, not `z.lazy` + a cast — the getter's return type wraps `z.core.$ZodType`, which is
+// the only self-reference form `contracts/` allows (zod v4 dropped the old `z.ZodTypeDef` type
+// param `z.lazy` needed here). The getter rebuilds the union rather than reading the exported
+// `chatEntryGroupContract` below — referencing a binding declared later triggers
+// `no-use-before-define` even though the getter defers evaluation until after module init;
+// self-reference to `subagentChainGroupContract` (this same const) is the exempted case.
+const subagentChainGroupContract = z.object({
+  ...baseSubagentChainGroupContract.shape,
+  get innerGroups(): z.ZodArray<z.core.$ZodType<ChatEntryGroupSelf>> {
+    return z.array(z.union([singleGroupContract, subagentChainGroupContract]));
+  },
+});
+
+export const chatEntryGroupContract = z.union([singleGroupContract, subagentChainGroupContract]);
+
+export type SubagentChainGroup = z.infer<typeof subagentChainGroupContract>;
+export type ChatEntryGroup = z.infer<typeof chatEntryGroupContract>;

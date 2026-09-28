@@ -74,7 +74,7 @@ describe('streamSignalContract', () => {
         streamSignalContract.parse({
           signal: 'failed',
         }),
-      ).toThrow(/Invalid literal value/u);
+      ).toThrow(/Invalid input: expected/u);
     });
 
     it('INVALID: {signal: "failed-replan"} => throws for the removed replan signal', () => {
@@ -82,7 +82,7 @@ describe('streamSignalContract', () => {
         streamSignalContract.parse({
           signal: 'failed-replan',
         }),
-      ).toThrow(/Invalid literal value/u);
+      ).toThrow(/Invalid input: expected/u);
     });
 
     it('INVALID: {signal: "partially-complete"} => throws for removed signal type', () => {
@@ -90,11 +90,11 @@ describe('streamSignalContract', () => {
         streamSignalContract.parse({
           signal: 'partially-complete',
         }),
-      ).toThrow(/Invalid literal value/u);
+      ).toThrow(/Invalid input: expected/u);
     });
 
     it('INVALID: {signal: missing} => throws (the complete literal is required)', () => {
-      expect(() => streamSignalContract.parse({})).toThrow(/Invalid literal value/u);
+      expect(() => streamSignalContract.parse({})).toThrow(/Invalid input: expected/u);
     });
 
     it('INVALID: {operationStatus: "bogus"} => throws for an unknown operation status', () => {
@@ -103,7 +103,7 @@ describe('streamSignalContract', () => {
           signal: 'complete',
           operationStatus: 'bogus',
         }),
-      ).toThrow(/Invalid enum value/u);
+      ).toThrow(/Invalid option/u);
     });
   });
 });

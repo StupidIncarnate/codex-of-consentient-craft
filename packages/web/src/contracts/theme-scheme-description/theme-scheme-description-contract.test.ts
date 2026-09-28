@@ -30,22 +30,22 @@ describe('themeSchemeDescriptionContract', () => {
   describe('invalid inputs', () => {
     it('INVALID: {value: ""} => throws for empty string', () => {
       expect(() => themeSchemeDescriptionContract.parse('')).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
 
     it('INVALID: {value: exceeds max} => throws for exceeding max length', () => {
       expect(() =>
         themeSchemeDescriptionContract.parse('A'.repeat(MAX_THEME_SCHEME_DESCRIPTION_LENGTH + 1)),
-      ).toThrow(/String must contain at most 200 character/u);
+      ).toThrow(/expected string to have <=200 characters/u);
     });
 
     it('EMPTY: {value: null} => throws for null', () => {
-      expect(() => themeSchemeDescriptionContract.parse(null)).toThrow(/Expected string/u);
+      expect(() => themeSchemeDescriptionContract.parse(null)).toThrow(/expected string/u);
     });
 
     it('EMPTY: {value: undefined} => throws for undefined', () => {
-      expect(() => themeSchemeDescriptionContract.parse(undefined)).toThrow(/Required/u);
+      expect(() => themeSchemeDescriptionContract.parse(undefined)).toThrow(/received undefined/u);
     });
   });
 

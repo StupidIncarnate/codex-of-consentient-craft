@@ -72,12 +72,12 @@ describe('gapReportContract', () => {
   describe('invalid input', () => {
     it('INVALID: {blockedSeconds: -1} => throws', () => {
       expect(() => GapReportStub({ blockedSeconds: -1 })).toThrow(
-        /greater than or equal to 0|Number must be/u,
+        /Too small: expected number to be >=0/u,
       );
     });
 
     it('INVALID: {gaps: bare object} => throws', () => {
-      expect(() => GapReportStub({ gaps: { gapSeconds: 5 } as never })).toThrow(/Expected array/u);
+      expect(() => GapReportStub({ gaps: { gapSeconds: 5 } as never })).toThrow(/expected array/u);
     });
   });
 
@@ -89,7 +89,7 @@ describe('gapReportContract', () => {
           wallClockSeconds: 0,
           blockedSeconds: 0,
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 });

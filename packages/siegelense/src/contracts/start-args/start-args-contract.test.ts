@@ -112,9 +112,8 @@ describe('startArgsContract', () => {
         {
           code: 'invalid_type',
           expected: 'string',
-          received: 'undefined',
           path: ['questId'],
-          message: 'Required',
+          message: 'Invalid input: expected string, received undefined',
         },
       ]);
     });
@@ -131,9 +130,8 @@ describe('startArgsContract', () => {
         {
           code: 'invalid_type',
           expected: 'string',
-          received: 'undefined',
           path: ['guildId'],
-          message: 'Required',
+          message: 'Invalid input: expected string, received undefined',
         },
       ]);
     });

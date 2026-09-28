@@ -17,7 +17,7 @@ describe('resultKindContract', () => {
     it("INVALID: {value: 'dom'} => a kind that does not exist yet throws validation error", () => {
       expect(() => {
         ResultKindStub({ value: 'dom' as never });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
   });
 });

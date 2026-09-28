@@ -26,15 +26,15 @@ describe('asciiArtContract', () => {
 
   describe('invalid inputs', () => {
     it('INVALID: {value: ""} => throws for empty string', () => {
-      expect(() => asciiArtContract.parse('')).toThrow(/String must contain at least 1 character/u);
+      expect(() => asciiArtContract.parse('')).toThrow(/expected string to have >=1 characters/u);
     });
 
     it('EMPTY: {value: null} => throws for null', () => {
-      expect(() => asciiArtContract.parse(null)).toThrow(/Expected string/u);
+      expect(() => asciiArtContract.parse(null)).toThrow(/expected string/u);
     });
 
     it('EMPTY: {value: undefined} => throws for undefined', () => {
-      expect(() => asciiArtContract.parse(undefined)).toThrow(/Required/u);
+      expect(() => asciiArtContract.parse(undefined)).toThrow(/received undefined/u);
     });
   });
 

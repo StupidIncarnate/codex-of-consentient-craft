@@ -20,6 +20,6 @@ describe('mcpToolInputContract', () => {
   });
 
   it('INVALID: {a string} => throws', () => {
-    expect(() => mcpToolInputContract.parse('glob')).toThrow(/Expected object/u);
+    expect(() => mcpToolInputContract.parse('glob')).toThrow(/expected record/u);
   });
 });

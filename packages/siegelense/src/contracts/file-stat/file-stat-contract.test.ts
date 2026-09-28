@@ -22,13 +22,13 @@ describe('fileStatContract', () => {
 
   describe('invalid readings', () => {
     it('INVALID: {missing modifiedAtMs} => throws Required', () => {
-      expect(() => fileStatContract.parse({ sizeBytes: 2048 })).toThrow(/Required/u);
+      expect(() => fileStatContract.parse({ sizeBytes: 2048 })).toThrow(/received undefined/u);
     });
 
     it('INVALID: {sizeBytes: -1} => throws for a negative size', () => {
       expect(() =>
         fileStatContract.parse({ sizeBytes: -1, modifiedAtMs: 1_700_000_000_000 }),
-      ).toThrow(/Number must be greater than or equal to 0/u);
+      ).toThrow(/expected number to be >=0/u);
     });
   });
 });

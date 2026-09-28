@@ -5,11 +5,12 @@ import { GuildIdStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
 import { dmRegistryBroker } from '../../dm/registry/dm-registry-broker';
 import { recipesHydrationCreateBroker } from '../../recipes-hydration/create/recipes-hydration-create-broker';
 import { QuestFieldsStub } from '../../../contracts/quest-fields/quest-fields.stub';
+import { WorkItemAttachArgsStub } from '../../../contracts/work-item-attach-args/work-item-attach-args.stub';
 import { fileTargetHarness } from '../../../../test/harnesses/file-target/file-target.harness';
 
 const { recipe } = recipesHydrationCreateBroker();
 const RENAMED_TITLE = QuestFieldsStub({ title: 'Renamed through the update route' }).title;
-const CROSS_PLAN_WORK_ITEM_CREATED_AT = '2024-01-01T00:00:00.000Z';
+const CROSS_PLAN_WORK_ITEM_CREATED_AT = WorkItemAttachArgsStub().createdAt;
 const NEW_OPERATION_SAVED_NAME = SavedRecordNameStub({ value: 'newOperation' });
 const OPERATION_ID_FIELD = FieldNameStub({ value: 'id' });
 

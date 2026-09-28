@@ -3,7 +3,7 @@ import { IconButtonSizeStub } from './icon-button-size.stub';
 
 describe('iconButtonSizeContract', () => {
   describe('valid input', () => {
-    it.each(iconButtonSizeContract.unwrap().options)(
+    it.each([...iconButtonSizeContract.options])(
       'VALID: {value: %s} => returns the branded size',
       (value) => {
         expect(String(IconButtonSizeStub({ value }))).toBe(value);
@@ -13,15 +13,15 @@ describe('iconButtonSizeContract', () => {
 
   describe('invalid input', () => {
     it('INVALID: {value: "small"} => throws an enum error', () => {
-      expect(() => IconButtonSizeStub({ value: 'small' })).toThrow(/Invalid enum value/u);
+      expect(() => IconButtonSizeStub({ value: 'small' })).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {value: 20} => throws a type error', () => {
-      expect(() => IconButtonSizeStub({ value: 20 as never })).toThrow(/Expected 'xs' \| 'sm'/u);
+      expect(() => IconButtonSizeStub({ value: 20 as never })).toThrow(/Invalid option/u);
     });
 
     it('EMPTY: {value: ""} => throws an enum error', () => {
-      expect(() => IconButtonSizeStub({ value: '' })).toThrow(/Invalid enum value/u);
+      expect(() => IconButtonSizeStub({ value: '' })).toThrow(/Invalid option/u);
     });
   });
 });

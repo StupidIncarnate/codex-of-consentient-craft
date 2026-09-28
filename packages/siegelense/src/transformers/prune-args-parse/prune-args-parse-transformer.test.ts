@@ -55,7 +55,7 @@ describe('pruneArgsParseTransformer', () => {
 
     it("INVALID: {args: --kind screenshot} => refuses under the flag's own name rather than as a ZodError", () => {
       expect(() => pruneArgsParseTransformer({ args: ['--kind', 'screenshot'] })).toThrow(
-        /^--kind: Invalid enum value/u,
+        /^--kind: Invalid option: expected one of "video"\|"shot"\|"transcript"\|"log"$/u,
       );
     });
 

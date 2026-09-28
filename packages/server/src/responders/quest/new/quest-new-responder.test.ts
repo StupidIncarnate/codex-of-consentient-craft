@@ -380,7 +380,7 @@ describe('QuestNewResponder', () => {
       expect(result).toStrictEqual({
         status: 400,
         data: {
-          error: `Array must contain at most ${String(pastedImageStatics.maxImagesPerMessage)} element(s)`,
+          error: `Too big: expected array to have <=${String(pastedImageStatics.maxImagesPerMessage)} items`,
         },
       });
       expect(proxy.getWrittenPayloadsInOrder()).toStrictEqual([]);
@@ -390,8 +390,8 @@ describe('QuestNewResponder', () => {
       const proxy = QuestNewResponderProxy();
       const guildId = GuildIdStub();
       const allowedMediaTypesList = pastedImageStatics.allowedMediaTypes
-        .map((mediaType) => `'${mediaType}'`)
-        .join(' | ');
+        .map((mediaType) => `"${mediaType}"`)
+        .join('|');
 
       const result = await proxy.callResponder({
         params: { guildId },
@@ -404,7 +404,7 @@ describe('QuestNewResponder', () => {
       expect(result).toStrictEqual({
         status: 400,
         data: {
-          error: `Invalid enum value. Expected ${allowedMediaTypesList}, received 'image/svg+xml'`,
+          error: `Invalid option: expected one of ${allowedMediaTypesList}`,
         },
       });
       expect(proxy.getWrittenPayloadsInOrder()).toStrictEqual([]);

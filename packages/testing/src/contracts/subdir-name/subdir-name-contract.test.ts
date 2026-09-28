@@ -24,7 +24,7 @@ describe('subdirNameContract', () => {
     it('INVALID: {value: number} => throws validation error', () => {
       expect(() => {
         return subdirNameContract.parse(123 as never);
-      }).toThrow(/Expected string/u);
+      }).toThrow(/expected string/u);
     });
   });
 });

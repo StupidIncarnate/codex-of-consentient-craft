@@ -2,7 +2,7 @@ import { questPackageEntryContract } from './quest-package-entry-contract';
 import { QuestPackageEntryStub } from './quest-package-entry.stub';
 
 const CHANGE_TYPES = questPackageEntryContract.shape.changeType.options;
-const PACKAGE_TYPES = questPackageEntryContract.shape.packageType.unwrap().options;
+const PACKAGE_TYPES = questPackageEntryContract.shape.packageType.options;
 
 describe('questPackageEntryContract', () => {
   describe('valid entries', () => {
@@ -115,12 +115,12 @@ describe('questPackageEntryContract', () => {
     });
 
     it('INVALID: {changeType: "rename"} => throws validation error', () => {
-      expect(() => QuestPackageEntryStub({ changeType: 'rename' })).toThrow(/Invalid enum value/u);
+      expect(() => QuestPackageEntryStub({ changeType: 'rename' })).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {packageType: "frontend-vue"} => throws validation error', () => {
       expect(() => QuestPackageEntryStub({ packageType: 'frontend-vue' })).toThrow(
-        /Invalid enum value/u,
+        /Invalid option/u,
       );
     });
 
@@ -130,12 +130,12 @@ describe('questPackageEntryContract', () => {
 
     it('INVALID: {packageTypes: ["frontend-vue"]} => throws, the set is closed over the same kinds as the label', () => {
       expect(() => QuestPackageEntryStub({ packageTypes: ['frontend-vue'] })).toThrow(
-        /Invalid enum value/u,
+        /Invalid option/u,
       );
     });
 
     it('EMPTY: {} => throws validation error', () => {
-      expect(() => questPackageEntryContract.parse({})).toThrow(/Required/u);
+      expect(() => questPackageEntryContract.parse({})).toThrow(/received undefined/u);
     });
   });
 });

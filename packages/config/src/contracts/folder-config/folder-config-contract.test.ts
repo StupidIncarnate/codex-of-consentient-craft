@@ -123,7 +123,7 @@ describe('folderConfigContract', () => {
           adapters: ['*'],
           startup: ['*'],
         });
-      }).toThrow(/Expected array/u);
+      }).toThrow(/expected array/u);
     });
 
     it('INVALID: {contracts: null} => throws validation error', () => {
@@ -142,7 +142,7 @@ describe('folderConfigContract', () => {
           adapters: ['*'],
           startup: ['*'],
         });
-      }).toThrow(/Expected array/u);
+      }).toThrow(/expected array/u);
     });
 
     it('INVALID: {missing required field} => throws validation error', () => {
@@ -160,7 +160,7 @@ describe('folderConfigContract', () => {
           middleware: [],
           adapters: ['*'],
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

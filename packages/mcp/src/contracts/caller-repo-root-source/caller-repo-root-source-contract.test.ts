@@ -19,6 +19,6 @@ describe('callerRepoRootSourceContract', () => {
   });
 
   it('INVALID: {value: "unknown"} => throws', () => {
-    expect(() => callerRepoRootSourceContract.parse('unknown')).toThrow(/Invalid enum value/u);
+    expect(() => callerRepoRootSourceContract.parse('unknown')).toThrow(/Invalid option/u);
   });
 });

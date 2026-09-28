@@ -39,7 +39,7 @@ describe('unitObservationFieldsContract', () => {
           evidence: 'evidence text',
           at: '2026-01-01T00:00:00.000Z',
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {missing mark} => throws', () => {
@@ -49,7 +49,7 @@ describe('unitObservationFieldsContract', () => {
           evidence: 'evidence text',
           at: '2026-01-01T00:00:00.000Z',
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/Invalid option: expected one of/u);
     });
 
     it('INVALID: {missing evidence} => throws', () => {
@@ -59,7 +59,7 @@ describe('unitObservationFieldsContract', () => {
           mark: 'met',
           at: '2026-01-01T00:00:00.000Z',
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {missing at} => throws', () => {
@@ -69,7 +69,7 @@ describe('unitObservationFieldsContract', () => {
           mark: 'met',
           evidence: 'evidence text',
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 

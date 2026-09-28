@@ -20,7 +20,7 @@ describe('questGetQueryContract', () => {
     it('INVALID: {stage: "bogus"} => throws validation error', () => {
       expect(() => {
         questGetQueryContract.parse({ stage: 'bogus' });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
   });
 });

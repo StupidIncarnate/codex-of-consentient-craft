@@ -138,7 +138,7 @@ describe('commentBatchToMarkdownTransformer', () => {
   describe('empty batch', () => {
     it('EMPTY: {comments: []} => throws rather than returning an empty PromptText', () => {
       expect(() => commentBatchToMarkdownTransformer({ comments: [], flows: [] })).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
   });

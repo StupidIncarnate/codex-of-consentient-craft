@@ -132,7 +132,7 @@ describe('questWorkInputContract', () => {
     it('EMPTY: {kind: observations, observations: []} => throws — an empty call should say so through outcome', () => {
       expect(() =>
         QuestWorkInputStub({ payload: { kind: 'observations', observations: [] } }),
-      ).toThrow(/at least 1/iu);
+      ).toThrow(/>=1 items/iu);
     });
   });
 

@@ -18,7 +18,7 @@ describe('notificationMessageContract', () => {
 
   describe('invalid inputs', () => {
     it('INVALID: {value: 123} => throws for number', () => {
-      expect(() => notificationMessageContract.parse(123)).toThrow(/Expected string/u);
+      expect(() => notificationMessageContract.parse(123)).toThrow(/expected string/u);
     });
   });
 

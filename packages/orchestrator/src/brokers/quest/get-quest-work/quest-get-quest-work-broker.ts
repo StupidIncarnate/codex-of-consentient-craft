@@ -30,7 +30,11 @@
  * SERIALIZED string, so nothing can decide whether a section fits until the whole object exists.
  */
 
-import { filePathContract, stepNameContract } from '@dungeonmaster/shared/contracts';
+import {
+  filePathContract,
+  stepNameContract,
+  workItemPayloadKeyContract,
+} from '@dungeonmaster/shared/contracts';
 import type { Quest, QuestId, QuestWorkItemId } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { questFlowSliceTransformer } from '@dungeonmaster/shared/transformers';
@@ -206,7 +210,7 @@ export const questGetQuestWorkBroker = async ({
   // The ROUTER records the instance it started on the work item's payload and this serves what is
   // recorded — it starts nothing. `null` on every step that does not declare `needsLane`.
   const recordedInstance = questWorkViewContract.shape.instance.safeParse(
-    workItem.payload?.instance ?? null,
+    workItem.payload?.[workItemPayloadKeyContract.parse('instance')] ?? null,
   );
 
   // A baseline is the happy walk's own run, resolved from the attacking piece's `baselineFor`

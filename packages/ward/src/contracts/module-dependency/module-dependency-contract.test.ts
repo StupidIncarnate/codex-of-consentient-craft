@@ -28,12 +28,12 @@ describe('moduleDependencyContract', () => {
     it('INVALID: {kind: "unknown"} => throws validation error', () => {
       expect(() =>
         moduleDependencyContract.parse(ModuleDependencyStub({ kind: 'unknown' as never })),
-      ).toThrow(/Invalid enum value/u);
+      ).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {missing specifier} => throws validation error', () => {
       expect(() => moduleDependencyContract.parse({ kind: 'named', importedNames: [] })).toThrow(
-        /Required/u,
+        /received undefined/u,
       );
     });
   });

@@ -41,7 +41,9 @@ describe('capacityArgsContract', () => {
     });
 
     it('INVALID: {poolSize: 0} => throws, a pool the caller is about to open holds at least one', () => {
-      expect(() => CapacityArgsStub({ poolSize: 0 })).toThrow(/greater than 0/iu);
+      expect(() => CapacityArgsStub({ poolSize: 0 })).toThrow(
+        /Too small: expected number to be >0/iu,
+      );
     });
 
     it('INVALID: {an extra key} => throws, the args block is strict', () => {

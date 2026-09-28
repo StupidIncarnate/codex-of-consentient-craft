@@ -26,7 +26,7 @@ describe('holdReadingContract', () => {
         verdict: 'NOTHING CHANGED across 1.5s',
         shots: [],
       });
-    }).toThrow(/Number must be greater than or equal to 2/u);
+    }).toThrow(/expected number to be >=2/u);
   });
 
   it('INVALID: {differing < 0} => throws validation error', () => {
@@ -37,7 +37,7 @@ describe('holdReadingContract', () => {
         verdict: 'NOTHING CHANGED across 4.5s',
         shots: [],
       });
-    }).toThrow(/Number must be greater than or equal to 0/u);
+    }).toThrow(/expected number to be >=0/u);
   });
 
   it('INVALID: {unrecognized key} => throws strict validation error', () => {

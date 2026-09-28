@@ -20,6 +20,6 @@ describe('toolCallParamsContract', () => {
   });
 
   it('INVALID: {args missing} => throws', () => {
-    expect(() => toolCallParamsContract.parse({})).toThrow(/Required/u);
+    expect(() => toolCallParamsContract.parse({})).toThrow(/received undefined/u);
   });
 });

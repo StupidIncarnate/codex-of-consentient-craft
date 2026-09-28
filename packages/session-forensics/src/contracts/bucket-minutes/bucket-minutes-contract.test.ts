@@ -18,19 +18,19 @@ describe('bucketMinutesContract', () => {
 
   describe('invalid values', () => {
     it('INVALID: "0" => throws, a zero-width window is not a window', () => {
-      expect(() => bucketMinutesContract.parse('0')).toThrow(/Number must be greater than 0/u);
+      expect(() => bucketMinutesContract.parse('0')).toThrow(/expected number to be >0/u);
     });
 
     it('INVALID: "-5" => throws for a negative width', () => {
-      expect(() => bucketMinutesContract.parse('-5')).toThrow(/Number must be greater than 0/u);
+      expect(() => bucketMinutesContract.parse('-5')).toThrow(/expected number to be >0/u);
     });
 
     it('INVALID: "2.5" => throws for a non-integer width', () => {
-      expect(() => bucketMinutesContract.parse('2.5')).toThrow(/Expected integer, received float/u);
+      expect(() => bucketMinutesContract.parse('2.5')).toThrow(/expected int, received number/u);
     });
 
     it('INVALID: "abc" => throws for a non-numeric string', () => {
-      expect(() => bucketMinutesContract.parse('abc')).toThrow(/Expected number, received nan/u);
+      expect(() => bucketMinutesContract.parse('abc')).toThrow(/expected number, received NaN/u);
     });
   });
 

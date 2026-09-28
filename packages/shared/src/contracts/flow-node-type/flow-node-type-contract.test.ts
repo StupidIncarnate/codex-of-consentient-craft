@@ -32,7 +32,7 @@ describe('flowNodeTypeContract', () => {
     it('INVALID: unknown type => throws validation error', () => {
       expect(() => {
         flowNodeTypeContract.parse('invalid');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
   });
 });

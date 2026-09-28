@@ -41,11 +41,11 @@ describe('passingTestContract', () => {
           testName: 'test',
           durationMs: 0,
         }),
-      ).toThrow(/Expected string/u);
+      ).toThrow(/expected string/u);
     });
 
     it('INVALID: {missing suitePath and testName} => throws validation error', () => {
-      expect(() => passingTestContract.parse({})).toThrow(/Required/u);
+      expect(() => passingTestContract.parse({})).toThrow(/received undefined/u);
     });
   });
 

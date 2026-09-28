@@ -19,14 +19,14 @@ describe('dmHttpResponseContract', () => {
   describe('invalid responses', () => {
     it('INVALID: {status: "201"} => throws "Expected number"', () => {
       expect(() => dmHttpResponseContract.parse({ status: '201', body: {} })).toThrow(
-        /Expected number/u,
+        /expected number/u,
       );
     });
   });
 
   describe('empty responses', () => {
-    it('EMPTY: {} => throws "Required" for status', () => {
-      expect(() => dmHttpResponseContract.parse({})).toThrow(/Required/u);
+    it('EMPTY: {} => throws "received undefined" for status', () => {
+      expect(() => dmHttpResponseContract.parse({})).toThrow(/received undefined/u);
     });
   });
 });

@@ -11,7 +11,7 @@ describe('smoketestScenarioMetaContract', () => {
   });
 
   it('INVALID: {empty caseId} => throws', () => {
-    expect(() => SmoketestScenarioMetaStub({ caseId: '' as never })).toThrow(/at least 1/u);
+    expect(() => SmoketestScenarioMetaStub({ caseId: '' as never })).toThrow(/>=1/u);
   });
 
   it('INVALID: {negative startedAt} => throws', () => {
@@ -21,6 +21,6 @@ describe('smoketestScenarioMetaContract', () => {
         name: 'n',
         startedAt: -1,
       }),
-    ).toThrow(/greater than or equal/u);
+    ).toThrow(/Too small: expected number to be >=0/u);
   });
 });

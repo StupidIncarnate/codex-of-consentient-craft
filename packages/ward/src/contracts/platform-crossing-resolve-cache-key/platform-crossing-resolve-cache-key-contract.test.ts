@@ -14,7 +14,7 @@ describe('platformCrossingResolveCacheKeyContract', () => {
 
   describe('invalid inputs', () => {
     it('INVALID: {value: ""} => throws validation error', () => {
-      expect(() => platformCrossingResolveCacheKeyContract.parse('')).toThrow(/at least 1/u);
+      expect(() => platformCrossingResolveCacheKeyContract.parse('')).toThrow(/>=1/u);
     });
   });
 

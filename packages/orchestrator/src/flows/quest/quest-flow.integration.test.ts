@@ -394,7 +394,7 @@ describe('QuestFlow', () => {
         nodeIdsOnDisk: ['press-warp'],
       });
       expect(String(result.error)).toBe(
-        '[\n  {\n    "code": "invalid_type",\n    "expected": "array",\n    "received": "undefined",\n    "path": [\n      "flows",\n      0,\n      "nodes",\n      1,\n      "packages"\n    ],\n    "message": "Required"\n  }\n]',
+        '[\n  {\n    "expected": "array",\n    "code": "invalid_type",\n    "path": [\n      "flows",\n      0,\n      "nodes",\n      1,\n      "packages"\n    ],\n    "message": "Invalid input: expected array, received undefined"\n  }\n]',
       );
     }, 30_000);
 

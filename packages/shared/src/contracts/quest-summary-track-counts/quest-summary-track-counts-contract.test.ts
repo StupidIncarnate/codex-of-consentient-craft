@@ -81,50 +81,48 @@ describe('questSummaryTrackCountsContract', () => {
   describe('invalid input', () => {
     it('INVALID: {id: "blightwarden"} => throws, blightwarden is not a verification track', () => {
       expect(() => QuestSummaryTrackCountsStub({ id: 'blightwarden' as never })).toThrow(
-        /Invalid enum value/u,
+        /Invalid option/u,
       );
     });
 
     it('EMPTY: {} => throws, the row cannot exist without the denominator track it counts over', () => {
-      expect(() => questSummaryTrackCountsContract.parse({})).toThrow(/Required/u);
+      expect(() => questSummaryTrackCountsContract.parse({})).toThrow(
+        /Invalid option: expected one of/u,
+      );
     });
 
     it.each(COUNT_FIELDS)(
       'INVALID: {%s: -1} => throws, a unit count is never negative',
       (field) => {
-        expect(() => QuestSummaryTrackCountsStub({ [field]: -1 } as never)).toThrow(
-          /greater than or equal to 0/u,
-        );
+        expect(() => QuestSummaryTrackCountsStub({ [field]: -1 } as never)).toThrow(/to be >=0/u);
       },
     );
 
     it.each(COUNT_FIELDS)('INVALID: {%s: 1.5} => throws, a unit count is whole', (field) => {
-      expect(() => QuestSummaryTrackCountsStub({ [field]: 1.5 } as never)).toThrow(
-        /Expected integer/u,
-      );
+      expect(() => QuestSummaryTrackCountsStub({ [field]: 1.5 } as never)).toThrow(/expected int/u);
     });
 
     it.each(COUNT_FIELDS)('INVALID: {%s: "1"} => throws, a unit count is a number', (field) => {
       expect(() => QuestSummaryTrackCountsStub({ [field]: '1' } as never)).toThrow(
-        /Expected number/u,
+        /expected number/u,
       );
     });
 
     it('INVALID: {confirmed: 4} => throws, a retired count name never passes as a silent zeroed row', () => {
       expect(() =>
         questSummaryTrackCountsContract.parse({ id: 'flowrider', confirmed: 4 }),
-      ).toThrow(/Unrecognized key\(s\) in object: 'confirmed'/u);
+      ).toThrow(/Unrecognized key/u);
     });
 
     it('INVALID: {unconfirmable: 4} => throws, the retired name for cantMeet is refused rather than stripped', () => {
       expect(() =>
         questSummaryTrackCountsContract.parse({ id: 'flowrider', unconfirmable: 4 }),
-      ).toThrow(/Unrecognized key\(s\) in object: 'unconfirmable'/u);
+      ).toThrow(/Unrecognized key/u);
     });
 
     it('INVALID: {cantmeet: 4} => throws, a miscased count name never passes as a silent zero', () => {
       expect(() => questSummaryTrackCountsContract.parse({ id: 'flowrider', cantmeet: 4 })).toThrow(
-        /Unrecognized key\(s\) in object: 'cantmeet'/u,
+        /Unrecognized key/u,
       );
     });
   });

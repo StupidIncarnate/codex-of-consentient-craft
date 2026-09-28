@@ -120,8 +120,7 @@ export const questNoteContract = z.object({
     .min(1)
     .brand<'QuestNoteDetail'>()
     .describe('What the next session needs in order to act on the note without re-deriving it.'),
-  at: z
-    .string()
+  at: z.iso
     .datetime()
     .brand<'IsoTimestamp'>()
     .describe(

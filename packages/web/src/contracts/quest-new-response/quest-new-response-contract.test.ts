@@ -30,19 +30,19 @@ describe('questNewResponseContract', () => {
   describe('invalid bodies', () => {
     it('INVALID: {questId: ""} => throws validation error', () => {
       expect(() => questNewResponseContract.parse({ questId: '' })).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
 
     it('INVALID: {chatProcessId: 42} => throws validation error', () => {
       expect(() => questNewResponseContract.parse({ chatProcessId: 42 })).toThrow(
-        /Expected string/u,
+        /expected string/u,
       );
     });
 
     it('INVALID: {error: ""} => throws validation error', () => {
       expect(() => questNewResponseContract.parse({ error: '' })).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
   });

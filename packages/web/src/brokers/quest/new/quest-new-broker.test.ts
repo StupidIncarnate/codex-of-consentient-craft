@@ -74,14 +74,14 @@ describe('questNewBroker', () => {
 
     it('EDGE: {500 with no usable error body} => throws a generic status message', async () => {
       const proxy = questNewBrokerProxy();
-      const guildId = GuildIdStub({ value: '11111111-1111-1111-1111-111111111111' });
+      const guildId = GuildIdStub({ value: '38c6cbd2-8bf1-6507-8d07-0980dd1fb595' });
 
       proxy.setupRejected({ status: 500, error: '' });
 
       await expect(
         questNewBroker({ guildId, message: UserInputStub({ value: 'Hi' }) }),
       ).rejects.toThrow(
-        /^POST \/api\/guilds\/11111111-1111-1111-1111-111111111111\/quests failed with status 500$/u,
+        /^POST \/api\/guilds\/38c6cbd2-8bf1-6507-8d07-0980dd1fb595\/quests failed with status 500$/u,
       );
     });
   });
@@ -89,14 +89,14 @@ describe('questNewBroker', () => {
   describe('network failure', () => {
     it('ERROR: {network error} => throws network error naming the url', async () => {
       const proxy = questNewBrokerProxy();
-      const guildId = GuildIdStub({ value: '22222222-2222-2222-2222-222222222222' });
+      const guildId = GuildIdStub({ value: '1c27ba90-c110-14f0-94be-250818fd3443' });
 
       proxy.setupError();
 
       await expect(
         questNewBroker({ guildId, message: UserInputStub({ value: 'Hi' }) }),
       ).rejects.toThrow(
-        /network error posting to \/api\/guilds\/22222222-2222-2222-2222-222222222222\/quests/u,
+        /network error posting to \/api\/guilds\/1c27ba90-c110-14f0-94be-250818fd3443\/quests/u,
       );
     });
   });
@@ -119,7 +119,7 @@ describe('questNewBroker', () => {
   describe('request body shape', () => {
     it('VALID: {questType: bug-hunt} => posts body carrying questType', async () => {
       const proxy = questNewBrokerProxy();
-      const guildId = GuildIdStub({ value: '33333333-3333-3333-3333-333333333333' });
+      const guildId = GuildIdStub({ value: '4c78841e-022a-87d0-8928-189580cb01c5' });
       const message = UserInputStub({ value: 'Investigate crash' });
 
       proxy.setupNew({ questId: QuestIdStub(), chatProcessId: ProcessIdStub() });
@@ -134,7 +134,7 @@ describe('questNewBroker', () => {
 
     it('VALID: {text-only create, no questType or images} => posts body with no images key', async () => {
       const proxy = questNewBrokerProxy();
-      const guildId = GuildIdStub({ value: '44444444-4444-4444-4444-444444444444' });
+      const guildId = GuildIdStub({ value: '00118165-fbf1-11d4-8940-5ee9492debae' });
       const message = UserInputStub({ value: 'Just text' });
 
       proxy.setupNew({ questId: QuestIdStub(), chatProcessId: ProcessIdStub() });
@@ -148,7 +148,7 @@ describe('questNewBroker', () => {
 
     it('EDGE: {images: []} => posts body with no images key', async () => {
       const proxy = questNewBrokerProxy();
-      const guildId = GuildIdStub({ value: '55555555-5555-5555-5555-555555555555' });
+      const guildId = GuildIdStub({ value: '35fd5b8f-551b-8baf-b8fb-a5c4702e7b71' });
       const message = UserInputStub({ value: 'No attachments' });
 
       proxy.setupNew({ questId: QuestIdStub(), chatProcessId: ProcessIdStub() });
@@ -162,7 +162,7 @@ describe('questNewBroker', () => {
 
     it('VALID: #check-create-post-carries-images {message with two pasted-image tokens, two images} => posts the message plus both images in order at the resolved create route', async () => {
       const proxy = questNewBrokerProxy();
-      const guildId = GuildIdStub({ value: '66666666-6666-6666-6666-666666666666' });
+      const guildId = GuildIdStub({ value: '97241aaa-ae56-6f58-b9ec-a952ee85b407' });
       const message = UserInputStub({ value: 'See [Pasted Image 1] and [Pasted Image 2]' });
       const firstImage = PastedImageUploadStub({
         mediaType: 'image/png',
@@ -184,7 +184,7 @@ describe('questNewBroker', () => {
           { mediaType: 'image/jpeg', dataBase64: 'd29ybGQ=' },
         ],
       });
-      expect(proxy.getRequestUrl()).toBe('/api/guilds/66666666-6666-6666-6666-666666666666/quests');
+      expect(proxy.getRequestUrl()).toBe('/api/guilds/97241aaa-ae56-6f58-b9ec-a952ee85b407/quests');
     });
   });
 });

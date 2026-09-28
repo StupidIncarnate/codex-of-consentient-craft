@@ -3,23 +3,20 @@ import { RunStatusStub } from './run-status.stub';
 
 describe('runStatusContract', () => {
   describe('valid members', () => {
-    it.each(runStatusContract.unwrap().options)(
-      'VALID: {value: %s} => parses to itself',
-      (value) => {
-        const runStatus = RunStatusStub({ value });
+    it.each(runStatusContract.options)('VALID: {value: %s} => parses to itself', (value) => {
+      const runStatus = RunStatusStub({ value });
 
-        const result = runStatusContract.parse(runStatus);
+      const result = runStatusContract.parse(runStatus);
 
-        expect(result).toBe(value);
-      },
-    );
+      expect(result).toBe(value);
+    });
   });
 
   describe('invalid members', () => {
     it('INVALID: {value: "running"} => an unlisted string throws validation error', () => {
       expect(() => {
         RunStatusStub({ value: 'running' as never });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
   });
 
@@ -27,7 +24,7 @@ describe('runStatusContract', () => {
     it('EDGE: {value: "DONE"} => an uppercase variant of a valid member throws validation error', () => {
       expect(() => {
         runStatusContract.parse('DONE');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
   });
 });

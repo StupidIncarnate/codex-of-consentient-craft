@@ -27,7 +27,7 @@ describe('compareQueryContract', () => {
           instanceA: 'inst_7f3a9c21',
           instanceB: 'inst_9b2c1234',
         } as never),
-      ).toThrow(/Unrecognized key\(s\) in object: 'instanceA', 'instanceB'/u);
+      ).toThrow(/Unrecognized keys: \\"instanceA\\", \\"instanceB\\"/u);
     });
   });
 
@@ -38,7 +38,7 @@ describe('compareQueryContract', () => {
           instanceId: 'inst_7f3a9c21',
           runA: 'run_4',
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 });

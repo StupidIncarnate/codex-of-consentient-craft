@@ -252,13 +252,13 @@ describe('ExecutionPanelWidget', () => {
         ],
         workItems: [
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
+            id: '235be74a-c2e6-687c-a91c-7169625c0e54',
             role: 'codeweaver',
             status: 'complete',
             relatedDataItems: [`operations/${OP_ID_1}`],
           }),
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000002',
+            id: '7d42a5b3-83e0-4dd4-b874-900390937194',
             role: 'codeweaver',
             status: 'complete',
             relatedDataItems: [`operations/${OP_ID_2}`],
@@ -287,7 +287,7 @@ describe('ExecutionPanelWidget', () => {
         ],
         workItems: [
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
+            id: '235be74a-c2e6-687c-a91c-7169625c0e54',
             role: 'codeweaver',
             status: 'in_progress',
             relatedDataItems: [`operations/${OP_ID_1}`],
@@ -313,13 +313,13 @@ describe('ExecutionPanelWidget', () => {
         ],
         workItems: [
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
+            id: '235be74a-c2e6-687c-a91c-7169625c0e54',
             role: 'codeweaver',
             status: 'complete',
             relatedDataItems: [`operations/${OP_ID_1}`],
           }),
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000002',
+            id: '7d42a5b3-83e0-4dd4-b874-900390937194',
             role: 'codeweaver',
             status: 'pending',
             relatedDataItems: [`operations/${OP_ID_2}`],
@@ -347,13 +347,13 @@ describe('ExecutionPanelWidget', () => {
         ],
         workItems: [
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
+            id: '235be74a-c2e6-687c-a91c-7169625c0e54',
             role: 'codeweaver',
             status: 'skipped',
             relatedDataItems: [`operations/${OP_ID_1}`],
           }),
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000002',
+            id: '7d42a5b3-83e0-4dd4-b874-900390937194',
             role: 'ward',
             status: 'complete',
           }),
@@ -377,7 +377,7 @@ describe('ExecutionPanelWidget', () => {
         operations: [],
         workItems: [
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
+            id: '235be74a-c2e6-687c-a91c-7169625c0e54',
             role: 'chaoswhisperer',
             status: 'complete',
           }),
@@ -405,18 +405,18 @@ describe('ExecutionPanelWidget', () => {
         ],
         workItems: [
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
+            id: '235be74a-c2e6-687c-a91c-7169625c0e54',
             role: 'chaoswhisperer',
             status: 'complete',
           }),
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000002',
+            id: '7d42a5b3-83e0-4dd4-b874-900390937194',
             role: 'codeweaver',
             status: 'complete',
             relatedDataItems: [`operations/${OP_ID_1}`],
           }),
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000003',
+            id: '0c478f2e-447c-8816-a9f9-24a2987ea557',
             role: 'codeweaver',
             status: 'pending',
             relatedDataItems: [`operations/${OP_ID_2}`],
@@ -446,7 +446,7 @@ describe('ExecutionPanelWidget', () => {
         ],
         workItems: [
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
+            id: '235be74a-c2e6-687c-a91c-7169625c0e54',
             role: 'codeweaver',
             status: 'complete',
             relatedDataItems: [`operations/${OP_ID_2}`],
@@ -473,13 +473,13 @@ describe('ExecutionPanelWidget', () => {
         ],
         workItems: [
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
+            id: '235be74a-c2e6-687c-a91c-7169625c0e54',
             role: 'codeweaver',
             status: 'skipped',
             relatedDataItems: [`operations/${OP_ID_1}`],
           }),
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000002',
+            id: '7d42a5b3-83e0-4dd4-b874-900390937194',
             role: 'ward',
             status: 'complete',
           }),
@@ -502,7 +502,7 @@ describe('ExecutionPanelWidget', () => {
         ],
         workItems: [
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
+            id: '235be74a-c2e6-687c-a91c-7169625c0e54',
             role: 'codeweaver',
             status: 'complete',
             relatedDataItems: [`operations/${OP_ID_1}`],
@@ -572,14 +572,14 @@ describe('ExecutionPanelWidget', () => {
         ],
         workItems: [
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
+            id: '235be74a-c2e6-687c-a91c-7169625c0e54',
             role: 'codeweaver',
             status: 'complete',
             step: 'plan',
             relatedDataItems: [`operations/${OP_ID_1}`],
           }),
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000002',
+            id: '7d42a5b3-83e0-4dd4-b874-900390937194',
             role: 'codeweaver',
             status: 'complete',
             step: 'work',
@@ -588,7 +588,7 @@ describe('ExecutionPanelWidget', () => {
             relatedDataItems: [`operations/${OP_ID_1}`],
           }),
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000003',
+            id: '0c478f2e-447c-8816-a9f9-24a2987ea557',
             role: 'codeweaver',
             status: 'complete',
             step: 'work',
@@ -596,35 +596,35 @@ describe('ExecutionPanelWidget', () => {
             relatedDataItems: [`operations/${OP_ID_1}`],
           }),
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000004',
+            id: '04505e0a-98ac-385a-9f80-a7e573adb589',
             role: 'codeweaver',
             status: 'complete',
             step: 'review',
             relatedDataItems: [`operations/${OP_ID_1}`],
           }),
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000005',
+            id: '086a7fe7-7bb1-4312-8857-8da2fd202117',
             role: 'codeweaver',
             status: 'complete',
             step: 'ward',
             relatedDataItems: [`operations/${OP_ID_1}`],
           }),
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000006',
+            id: '1291c5a5-b6da-6f31-aa5c-0976ed51b98e',
             role: 'flowrider',
             status: 'complete',
             step: 'plan',
             relatedDataItems: [`operations/${OP_ID_2}`],
           }),
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000007',
+            id: '3d654ede-019c-4be8-bb91-c9c5e80ec944',
             role: 'flowrider',
             status: 'complete',
             step: 'work',
             relatedDataItems: [`operations/${OP_ID_2}`],
           }),
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000008',
+            id: '44c932f4-5152-6630-af51-7bd79203e550',
             role: 'flowrider',
             status: 'in_progress',
             step: 'work',
@@ -711,13 +711,13 @@ describe('ExecutionPanelWidget', () => {
         ],
         workItems: [
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
+            id: '235be74a-c2e6-687c-a91c-7169625c0e54',
             role: 'codeweaver',
             status: 'complete',
             relatedDataItems: [`operations/${OP_ID_1}`],
           }),
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000002',
+            id: '7d42a5b3-83e0-4dd4-b874-900390937194',
             role: 'codeweaver',
             status: 'pending',
             relatedDataItems: [`operations/${OP_ID_2}`],
@@ -748,7 +748,7 @@ describe('ExecutionPanelWidget', () => {
         ],
         workItems: [
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
+            id: '235be74a-c2e6-687c-a91c-7169625c0e54',
             role: 'codeweaver',
             status: 'complete',
             step: 'work',
@@ -762,7 +762,7 @@ describe('ExecutionPanelWidget', () => {
             ],
           }),
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000002',
+            id: '7d42a5b3-83e0-4dd4-b874-900390937194',
             role: 'codeweaver',
             status: 'complete',
             step: 'review',
@@ -801,7 +801,7 @@ describe('ExecutionPanelWidget', () => {
         ],
         workItems: [
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
+            id: '235be74a-c2e6-687c-a91c-7169625c0e54',
             role: 'codeweaver',
             status: 'complete',
             relatedDataItems: [`operations/${OP_ID_1}`],
@@ -833,15 +833,15 @@ describe('ExecutionPanelWidget', () => {
         status: 'in_progress',
         workItems: [
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
+            id: '235be74a-c2e6-687c-a91c-7169625c0e54',
             role: 'codeweaver',
             status: 'complete',
           }),
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000002',
+            id: '7d42a5b3-83e0-4dd4-b874-900390937194',
             role: 'ward',
             status: 'pending',
-            mintedBy: 'a0000000-0000-0000-0000-000000000001',
+            mintedBy: '235be74a-c2e6-687c-a91c-7169625c0e54',
           }),
         ],
       });
@@ -870,19 +870,19 @@ describe('ExecutionPanelWidget', () => {
         ],
         workItems: [
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
+            id: '235be74a-c2e6-687c-a91c-7169625c0e54',
             role: 'codeweaver',
             status: 'complete',
             step: 'plan',
             relatedDataItems: [`operations/${OP_ID_1}`],
           }),
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000002',
+            id: '7d42a5b3-83e0-4dd4-b874-900390937194',
             role: 'codeweaver',
             status: 'pending',
             step: 'work',
             relatedDataItems: [`operations/${OP_ID_1}`],
-            mintedBy: 'a0000000-0000-0000-0000-000000000001',
+            mintedBy: '235be74a-c2e6-687c-a91c-7169625c0e54',
           }),
         ],
       });
@@ -900,7 +900,7 @@ describe('ExecutionPanelWidget', () => {
         status: 'in_progress',
         workItems: [
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
+            id: '235be74a-c2e6-687c-a91c-7169625c0e54',
             role: 'codeweaver',
             status: 'complete',
           }),
@@ -922,15 +922,15 @@ describe('ExecutionPanelWidget', () => {
         status: 'in_progress',
         workItems: [
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
+            id: '235be74a-c2e6-687c-a91c-7169625c0e54',
             role: 'chaoswhisperer',
             status: 'complete',
           }),
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000002',
+            id: '7d42a5b3-83e0-4dd4-b874-900390937194',
             role: 'codeweaver',
             status: 'pending',
-            dependsOn: ['a0000000-0000-0000-0000-000000000001'],
+            dependsOn: ['235be74a-c2e6-687c-a91c-7169625c0e54'],
           }),
         ],
       });
@@ -949,7 +949,7 @@ describe('ExecutionPanelWidget', () => {
 
     it('VALID: {scope A (plan, work x2) complete; scope B pending, dependsOn A’s last item} => B’s subtitle carries the cross-scope prefix "<A text> › work pt: 2"', () => {
       ExecutionPanelWidgetProxy();
-      const aLastWorkItemId = 'a0000000-0000-0000-0000-000000000003';
+      const aLastWorkItemId = '0c478f2e-447c-8816-a9f9-24a2987ea557';
       const quest: Quest = QuestStub({
         status: 'in_progress',
         operations: [
@@ -962,14 +962,14 @@ describe('ExecutionPanelWidget', () => {
         ],
         workItems: [
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
+            id: '235be74a-c2e6-687c-a91c-7169625c0e54',
             role: 'codeweaver',
             status: 'complete',
             step: 'plan',
             relatedDataItems: [`operations/${OP_ID_1}`],
           }),
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000002',
+            id: '7d42a5b3-83e0-4dd4-b874-900390937194',
             role: 'codeweaver',
             status: 'complete',
             step: 'work',
@@ -983,7 +983,7 @@ describe('ExecutionPanelWidget', () => {
             relatedDataItems: [`operations/${OP_ID_1}`],
           }),
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000004',
+            id: '04505e0a-98ac-385a-9f80-a7e573adb589',
             role: 'flowrider',
             status: 'pending',
             dependsOn: [aLastWorkItemId],
@@ -1006,8 +1006,8 @@ describe('ExecutionPanelWidget', () => {
   describe('running-row auto-expand focus (T2-9a)', () => {
     it('VALID: {two in_progress work items with entries, same scope} => only the FIRST (render order) auto-expands; rerender with the first complete hands focus to the second', () => {
       ExecutionPanelWidgetProxy();
-      const wi1Id = QuestWorkItemIdStub({ value: 'a0000000-0000-0000-0000-000000000001' });
-      const wi2Id = QuestWorkItemIdStub({ value: 'a0000000-0000-0000-0000-000000000002' });
+      const wi1Id = QuestWorkItemIdStub({ value: '235be74a-c2e6-687c-a91c-7169625c0e54' });
+      const wi2Id = QuestWorkItemIdStub({ value: '7d42a5b3-83e0-4dd4-b874-900390937194' });
       const workItemEntries = new Map([
         [wi1Id, [AssistantTextChatEntryStub({ content: 'first row output' })]],
         [wi2Id, [AssistantTextChatEntryStub({ content: 'second row output' })]],
@@ -1073,7 +1073,7 @@ describe('ExecutionPanelWidget', () => {
     it('VALID: {ward work item with wardResults ref} => shows ward exit code and mode in expanded content', async () => {
       ExecutionPanelWidgetProxy();
       const wardResult = WardResultStub({
-        id: 'b0000000-0000-0000-0000-000000000001',
+        id: '3f7c9e4e-ea08-7bad-a78c-fcab0b84eaf6',
         exitCode: 1,
         wardMode: 'committed',
       });
@@ -1089,12 +1089,12 @@ describe('ExecutionPanelWidget', () => {
         ],
         workItems: [
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
+            id: '235be74a-c2e6-687c-a91c-7169625c0e54',
             role: 'ward',
             status: 'failed',
             relatedDataItems: [
               `operations/${OP_ID_1}`,
-              'wardResults/b0000000-0000-0000-0000-000000000001',
+              'wardResults/3f7c9e4e-ea08-7bad-a78c-fcab0b84eaf6',
             ],
           }),
         ],
@@ -1121,7 +1121,7 @@ describe('ExecutionPanelWidget', () => {
     it('VALID: {riftcarver work item with riftcarverResults ref} => resolves the ref through a real questContract.parse and shows riftcarver exit code and outcome in expanded content', async () => {
       ExecutionPanelWidgetProxy();
       const riftcarverResult = RiftcarverResultStub({
-        id: 'c0000000-0000-0000-0000-000000000001',
+        id: '9f92cf78-df88-8045-8f8b-9d869216ec50',
         exitCode: 1,
         outcome: 'repairable',
       });
@@ -1137,12 +1137,12 @@ describe('ExecutionPanelWidget', () => {
         ],
         workItems: [
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
+            id: '235be74a-c2e6-687c-a91c-7169625c0e54',
             role: 'riftcarver',
             status: 'failed',
             relatedDataItems: [
               `operations/${OP_ID_1}`,
-              'riftcarverResults/c0000000-0000-0000-0000-000000000001',
+              'riftcarverResults/9f92cf78-df88-8045-8f8b-9d869216ec50',
             ],
           }),
         ],
@@ -1178,12 +1178,12 @@ describe('ExecutionPanelWidget', () => {
         ],
         workItems: [
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
+            id: '235be74a-c2e6-687c-a91c-7169625c0e54',
             role: 'riftcarver',
             status: 'in_progress',
             relatedDataItems: [
               `operations/${OP_ID_1}`,
-              'riftcarverResults/d0000000-0000-0000-0000-000000000099',
+              'riftcarverResults/523ae22c-e91a-6b0a-adc3-fc9e64c2c47b',
             ],
           }),
         ],
@@ -1215,7 +1215,7 @@ describe('ExecutionPanelWidget', () => {
         operations: [],
         workItems: [
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
+            id: '235be74a-c2e6-687c-a91c-7169625c0e54',
             role: 'chaoswhisperer',
             status: 'skipped',
             sessionId,
@@ -1247,13 +1247,13 @@ describe('ExecutionPanelWidget', () => {
         ],
         workItems: [
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
+            id: '235be74a-c2e6-687c-a91c-7169625c0e54',
             role: 'codeweaver',
             status: 'complete',
             relatedDataItems: [`operations/${OP_ID_1}`],
           }),
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000002',
+            id: '7d42a5b3-83e0-4dd4-b874-900390937194',
             role: 'ward',
             status: 'skipped',
           }),
@@ -1274,13 +1274,13 @@ describe('ExecutionPanelWidget', () => {
     it('VALID: {work item has insertedBy} => renders row with AD-HOC indicator', () => {
       ExecutionPanelWidgetProxy();
       const insertedById = QuestWorkItemIdStub({
-        value: 'b0000000-0000-0000-0000-000000000001',
+        value: '3f7c9e4e-ea08-7bad-a78c-fcab0b84eaf6',
       });
       const quest: Quest = QuestStub({
         status: 'in_progress',
         workItems: [
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
+            id: '235be74a-c2e6-687c-a91c-7169625c0e54',
             role: 'spiritmender',
             status: 'in_progress',
             insertedBy: insertedById,
@@ -1301,7 +1301,7 @@ describe('ExecutionPanelWidget', () => {
         status: 'in_progress',
         workItems: [
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
+            id: '235be74a-c2e6-687c-a91c-7169625c0e54',
             role: 'codeweaver',
             status: 'in_progress',
           }),
@@ -1327,7 +1327,7 @@ describe('ExecutionPanelWidget', () => {
         operations: [],
         workItems: [
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
+            id: '235be74a-c2e6-687c-a91c-7169625c0e54',
             role: 'chaoswhisperer',
             status: 'complete',
             sessionId,
@@ -1352,7 +1352,7 @@ describe('ExecutionPanelWidget', () => {
         operations: [],
         workItems: [
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
+            id: '235be74a-c2e6-687c-a91c-7169625c0e54',
             role: 'chaoswhisperer',
             status: 'complete',
           }),
@@ -1368,7 +1368,7 @@ describe('ExecutionPanelWidget', () => {
 
     it('VALID: {in_progress work item with sessionId and entries} => row auto-expands with streaming entries', () => {
       const proxy = ExecutionPanelWidgetProxy();
-      const sessionId = SessionIdStub({ value: 'c0000000-0000-0000-0000-000000000001' });
+      const sessionId = SessionIdStub({ value: '9f92cf78-df88-8045-8f8b-9d869216ec50' });
       const entry = AssistantTextChatEntryStub({ content: 'Writing auth-login-broker.ts' });
       const sessionEntries = new Map([[sessionId, [entry]]]);
       const quest: Quest = QuestStub({
@@ -1378,7 +1378,7 @@ describe('ExecutionPanelWidget', () => {
         ],
         workItems: [
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
+            id: '235be74a-c2e6-687c-a91c-7169625c0e54',
             role: 'codeweaver',
             status: 'in_progress',
             relatedDataItems: [`operations/${OP_ID_1}`],
@@ -1402,9 +1402,9 @@ describe('ExecutionPanelWidget', () => {
   describe('nested sub-agent entries', () => {
     it('VALID: {parent row whose transcript spawns a nested sub-agent whose own entries live only in the session pool} => nested chain shows its real entry count and renders its entries', () => {
       const proxy = ExecutionPanelWidgetProxy();
-      const sessionId = SessionIdStub({ value: '5e5510a4-0000-0000-0000-000000000abc' });
+      const sessionId = SessionIdStub({ value: '66931186-6b84-6a76-82e2-77c7f1c1181c' });
       const parentWorkItemId = QuestWorkItemIdStub({
-        value: 'b0000000-0000-0000-0000-0000000000aa',
+        value: '28fd5996-b0a1-5319-96f2-5a07a64a93ae',
       });
 
       // The parent transcript: a Task tool_use line that spawned the nested sub-agent.
@@ -1480,7 +1480,7 @@ describe('ExecutionPanelWidget', () => {
         status: 'in_progress',
         workItems: [
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
+            id: '235be74a-c2e6-687c-a91c-7169625c0e54',
             role: 'codeweaver',
             status: 'in_progress',
             attempt: 1,
@@ -1502,7 +1502,7 @@ describe('ExecutionPanelWidget', () => {
         status: 'in_progress',
         workItems: [
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
+            id: '235be74a-c2e6-687c-a91c-7169625c0e54',
             role: 'codeweaver',
             status: 'complete',
             startedAt: '2024-01-15T10:00:00.000Z',
@@ -1533,7 +1533,7 @@ describe('ExecutionPanelWidget', () => {
         status: 'in_progress',
         workItems: [
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
+            id: '235be74a-c2e6-687c-a91c-7169625c0e54',
             role: 'codeweaver',
             status: 'in_progress',
             startedAt,
@@ -1563,19 +1563,19 @@ describe('ExecutionPanelWidget', () => {
         status: 'in_progress',
         workItems: [
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
+            id: '235be74a-c2e6-687c-a91c-7169625c0e54',
             role: 'codeweaver',
             status: 'in_progress',
             startedAt,
           }),
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000002',
+            id: '7d42a5b3-83e0-4dd4-b874-900390937194',
             role: 'spiritmender',
             status: 'in_progress',
             startedAt,
           }),
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000003',
+            id: '0c478f2e-447c-8816-a9f9-24a2987ea557',
             role: 'flowrider',
             status: 'in_progress',
             startedAt,
@@ -1629,13 +1629,13 @@ describe('ExecutionPanelWidget', () => {
         status: 'in_progress',
         workItems: [
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
+            id: '235be74a-c2e6-687c-a91c-7169625c0e54',
             role: 'codeweaver',
             status: 'in_progress',
             startedAt,
           }),
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000002',
+            id: '7d42a5b3-83e0-4dd4-b874-900390937194',
             role: 'spiritmender',
             status: 'in_progress',
             startedAt,
@@ -1668,13 +1668,13 @@ describe('ExecutionPanelWidget', () => {
         status: 'in_progress',
         workItems: [
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
+            id: '235be74a-c2e6-687c-a91c-7169625c0e54',
             role: 'codeweaver',
             status: 'in_progress',
             startedAt,
           }),
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000002',
+            id: '7d42a5b3-83e0-4dd4-b874-900390937194',
             role: 'spiritmender',
             status: 'in_progress',
             startedAt,
@@ -1690,14 +1690,14 @@ describe('ExecutionPanelWidget', () => {
         status: 'in_progress',
         workItems: [
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
+            id: '235be74a-c2e6-687c-a91c-7169625c0e54',
             role: 'codeweaver',
             status: 'complete',
             startedAt,
             completedAt: '1970-01-01T00:10:00.000Z',
           }),
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000002',
+            id: '7d42a5b3-83e0-4dd4-b874-900390937194',
             role: 'spiritmender',
             status: 'in_progress',
             startedAt,
@@ -1723,7 +1723,7 @@ describe('ExecutionPanelWidget', () => {
         status: 'in_progress',
         workItems: [
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
+            id: '235be74a-c2e6-687c-a91c-7169625c0e54',
             role: 'codeweaver',
             status: 'in_progress',
             startedAt,
@@ -1746,7 +1746,7 @@ describe('ExecutionPanelWidget', () => {
         status: 'in_progress',
         workItems: [
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
+            id: '235be74a-c2e6-687c-a91c-7169625c0e54',
             role: 'codeweaver',
             status: 'queued',
             startedAt: '1970-01-01T00:06:00.000Z',
@@ -1771,7 +1771,7 @@ describe('ExecutionPanelWidget', () => {
         status: 'in_progress',
         workItems: [
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
+            id: '235be74a-c2e6-687c-a91c-7169625c0e54',
             role: 'codeweaver',
             status: 'in_progress',
             startedAt,
@@ -1787,7 +1787,7 @@ describe('ExecutionPanelWidget', () => {
         status: 'in_progress',
         workItems: [
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
+            id: '235be74a-c2e6-687c-a91c-7169625c0e54',
             role: 'codeweaver',
             status: 'complete',
             startedAt,
@@ -1914,7 +1914,7 @@ describe('ExecutionPanelWidget', () => {
         status: 'in_progress',
         workItems: [
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
+            id: '235be74a-c2e6-687c-a91c-7169625c0e54',
             role: 'codeweaver',
             status: 'in_progress',
             startedAt,
@@ -1932,7 +1932,7 @@ describe('ExecutionPanelWidget', () => {
         status: 'in_progress',
         workItems: [
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
+            id: '235be74a-c2e6-687c-a91c-7169625c0e54',
             role: 'codeweaver',
             status: 'pending',
             startedAt,
@@ -1983,7 +1983,7 @@ describe('ExecutionPanelWidget', () => {
         status: 'in_progress',
         workItems: [
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
+            id: '235be74a-c2e6-687c-a91c-7169625c0e54',
             role: 'codeweaver',
             status: 'in_progress',
             startedAt,
@@ -2005,7 +2005,7 @@ describe('ExecutionPanelWidget', () => {
         status: 'complete',
         workItems: [
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
+            id: '235be74a-c2e6-687c-a91c-7169625c0e54',
             role: 'codeweaver',
             status: 'complete',
             startedAt,
@@ -2031,7 +2031,7 @@ describe('ExecutionPanelWidget', () => {
         status: 'in_progress',
         workItems: [
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
+            id: '235be74a-c2e6-687c-a91c-7169625c0e54',
             role: 'codeweaver',
             status: 'in_progress',
             startedAt,
@@ -2053,7 +2053,7 @@ describe('ExecutionPanelWidget', () => {
         status: 'complete',
         workItems: [
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
+            id: '235be74a-c2e6-687c-a91c-7169625c0e54',
             role: 'codeweaver',
             status: 'complete',
             startedAt,
@@ -2082,7 +2082,7 @@ describe('ExecutionPanelWidget', () => {
       // tool use's own timestamp, since a chain's duration measures from ITS OWN start, not the
       // work item's.
       const taskStartedAt = '1970-01-01T00:09:00.000Z';
-      const workItemId = QuestWorkItemIdStub({ value: 'a0000000-0000-0000-0000-000000000001' });
+      const workItemId = QuestWorkItemIdStub({ value: '235be74a-c2e6-687c-a91c-7169625c0e54' });
       const workItemEntries = new Map([
         [
           workItemId,
@@ -2119,7 +2119,7 @@ describe('ExecutionPanelWidget', () => {
       proxy.setClockMs({ ms: clockMs });
       // clockMs is 600,000ms (00:10:00 past epoch); three tick periods earlier is 00:07:00.
       const taskStartedAt = '1970-01-01T00:07:00.000Z';
-      const workItemId = QuestWorkItemIdStub({ value: 'a0000000-0000-0000-0000-000000000002' });
+      const workItemId = QuestWorkItemIdStub({ value: '7d42a5b3-83e0-4dd4-b874-900390937194' });
       const workItemEntries = new Map([
         [
           workItemId,
@@ -2156,7 +2156,7 @@ describe('ExecutionPanelWidget', () => {
       proxy.setClockMs({ ms: clockMs });
       const taskStartedAt = '1970-01-01T00:00:00.000Z';
       const notificationEndedAt = '1970-01-01T00:05:00.000Z';
-      const workItemId = QuestWorkItemIdStub({ value: 'a0000000-0000-0000-0000-000000000003' });
+      const workItemId = QuestWorkItemIdStub({ value: '0c478f2e-447c-8816-a9f9-24a2987ea557' });
       const workItemEntries = new Map([
         [
           workItemId,
@@ -2198,7 +2198,7 @@ describe('ExecutionPanelWidget', () => {
       proxy.setClockMs({ ms: clockMs });
       // clockMs is 600,000ms (00:10:00 past epoch); one tick period earlier is 00:09:00.
       const taskStartedAt = '1970-01-01T00:09:00.000Z';
-      const workItemId = QuestWorkItemIdStub({ value: 'a0000000-0000-0000-0000-000000000004' });
+      const workItemId = QuestWorkItemIdStub({ value: '04505e0a-98ac-385a-9f80-a7e573adb589' });
       const workItemEntries = new Map([
         [
           workItemId,
@@ -2241,7 +2241,7 @@ describe('ExecutionPanelWidget', () => {
       const clockMs = 10 * elapsedDisplayConfigStatics.refresh.tickMs;
       proxy.setClockMs({ ms: clockMs });
       const startedAt = '1970-01-01T00:06:00.000Z';
-      const workItemId = QuestWorkItemIdStub({ value: 'a0000000-0000-0000-0000-000000000007' });
+      const workItemId = QuestWorkItemIdStub({ value: '3d654ede-019c-4be8-bb91-c9c5e80ec944' });
       const workItemEntries = new Map([
         [
           workItemId,
@@ -2288,7 +2288,7 @@ describe('ExecutionPanelWidget', () => {
       const clockMs = 10 * elapsedDisplayConfigStatics.refresh.tickMs;
       proxy.setClockMs({ ms: clockMs });
       const startedAt = '1970-01-01T00:06:00.000Z';
-      const workItemId = QuestWorkItemIdStub({ value: 'a0000000-0000-0000-0000-000000000008' });
+      const workItemId = QuestWorkItemIdStub({ value: '44c932f4-5152-6630-af51-7bd79203e550' });
       const workItemEntries = new Map([
         [
           workItemId,
@@ -3244,7 +3244,7 @@ describe('ExecutionPanelWidget', () => {
         status: 'merging',
         workItems: [
           WorkItemStub({
-            id: 'a0000000-0000-0000-0000-000000000001',
+            id: '235be74a-c2e6-687c-a91c-7169625c0e54',
             role: 'warpgate',
             status: 'in_progress',
           }),

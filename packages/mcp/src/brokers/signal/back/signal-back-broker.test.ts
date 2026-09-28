@@ -59,7 +59,7 @@ describe('signalBackBroker', () => {
         signalBackBroker({
           input: { questId, workItemId, signal: 'unknown' } as never,
         }),
-      ).toThrow(/Invalid literal value/u);
+      ).toThrow(/Invalid input: expected/u);
     });
 
     it('VALID: {signal + ids only, no operation fields} => succeeds because operationItemId/operationStatus are optional', () => {
@@ -86,7 +86,7 @@ describe('signalBackBroker', () => {
         signalBackBroker({
           input: { questId, workItemId, signal: 'failed' } as never,
         }),
-      ).toThrow(/Invalid literal value/u);
+      ).toThrow(/Invalid input: expected/u);
     });
 
     it('ERROR: {removed signal type failed-replan} => throws validation error because failed-replan is no longer a supported signal', () => {
@@ -96,7 +96,7 @@ describe('signalBackBroker', () => {
         signalBackBroker({
           input: { questId, workItemId, signal: 'failed-replan' } as never,
         }),
-      ).toThrow(/Invalid literal value/u);
+      ).toThrow(/Invalid input: expected/u);
     });
 
     it('ERROR: {removed field summary} => throws Unrecognized key error because summary no longer exists on the contract', () => {
@@ -137,7 +137,7 @@ describe('signalBackBroker', () => {
         signalBackBroker({
           input: { workItemId, signal: 'complete' } as never,
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('ERROR: {missing workItemId} => throws validation error', () => {
@@ -147,7 +147,7 @@ describe('signalBackBroker', () => {
         signalBackBroker({
           input: { questId, signal: 'complete' } as never,
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 });

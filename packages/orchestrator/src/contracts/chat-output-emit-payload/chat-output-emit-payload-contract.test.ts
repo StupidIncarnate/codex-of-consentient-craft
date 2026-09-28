@@ -67,7 +67,7 @@ describe('chatOutputEmitPayloadContract', () => {
 
     expect(() =>
       chatOutputEmitPayloadContract.parse({ processId, slotIndex, entries, workItemId }),
-    ).toThrow(/Required/u);
+    ).toThrow(/received undefined/u);
   });
 
   it('INVALID: {missing workItemId} => throws Required error', () => {
@@ -78,7 +78,7 @@ describe('chatOutputEmitPayloadContract', () => {
 
     expect(() =>
       chatOutputEmitPayloadContract.parse({ processId, slotIndex, entries, questId }),
-    ).toThrow(/Required/u);
+    ).toThrow(/received undefined/u);
   });
 
   it('VALID: {stub defaults} => parses to the stub payload', () => {

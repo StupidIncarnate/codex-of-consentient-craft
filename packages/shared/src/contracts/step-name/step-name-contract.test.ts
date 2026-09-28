@@ -18,7 +18,9 @@ describe('stepNameContract', () => {
 
   describe('invalid step names', () => {
     it('EMPTY: {value: ""} => throws', () => {
-      expect(() => stepNameContract.parse('')).toThrow(/String must contain at least 1/u);
+      expect(() => stepNameContract.parse('')).toThrow(
+        /Too small: expected string to have >=1 characters/u,
+      );
     });
   });
 });

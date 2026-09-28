@@ -3,16 +3,13 @@ import { CitationKindStub } from './citation-kind.stub';
 
 describe('citationKindContract', () => {
   describe('valid members', () => {
-    it.each(citationKindContract.unwrap().options)(
-      'VALID: {value: %s} => parses to itself',
-      (value) => {
-        const citationKind = CitationKindStub({ value });
+    it.each(citationKindContract.options)('VALID: {value: %s} => parses to itself', (value) => {
+      const citationKind = CitationKindStub({ value });
 
-        const result = citationKindContract.parse(citationKind);
+      const result = citationKindContract.parse(citationKind);
 
-        expect(result).toBe(value);
-      },
-    );
+      expect(result).toBe(value);
+    });
 
     it('VALID: {no argument} => defaults to walked-note', () => {
       expect(CitationKindStub()).toBe('walked-note');
@@ -21,7 +18,7 @@ describe('citationKindContract', () => {
 
   describe('the closed set', () => {
     it('VALID: {options} => exactly the things the spec says hold evidence', () => {
-      expect(citationKindContract.unwrap().options).toStrictEqual([
+      expect(citationKindContract.options).toStrictEqual([
         'verified-prelude',
         'open-issue',
         'walked-note',
@@ -33,25 +30,29 @@ describe('citationKindContract', () => {
     it('INVALID: {value: "prelude"} => an unlisted string throws validation error', () => {
       expect(() => {
         CitationKindStub({ value: 'prelude' as never });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('EMPTY: {value: ""} => throws validation error', () => {
       expect(() => {
         citationKindContract.parse('');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('EMPTY: {value: null} => throws, rather than accepting an absent kind as a member', () => {
       expect(() => {
         citationKindContract.parse(null);
-      }).toThrow(/Expected 'verified-prelude' \| 'open-issue' \| 'walked-note', received null/u);
+      }).toThrow(
+        /Invalid option: expected one of \\"verified-prelude\\"\|\\"open-issue\\"\|\\"walked-note\\"/u,
+      );
     });
 
     it('INVALID: {value: 4} => a number throws, rather than being coerced to a member', () => {
       expect(() => {
         citationKindContract.parse(4);
-      }).toThrow(/received number/u);
+      }).toThrow(
+        /Invalid option: expected one of \\"verified-prelude\\"\|\\"open-issue\\"\|\\"walked-note\\"/u,
+      );
     });
   });
 });

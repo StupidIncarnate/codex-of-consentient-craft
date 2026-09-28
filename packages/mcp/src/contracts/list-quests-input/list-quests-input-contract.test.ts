@@ -28,13 +28,13 @@ describe('listQuestsInputContract', () => {
     it('INVALID: {guildId: "not-a-uuid"} => throws validation error', () => {
       expect(() => {
         listQuestsInputContract.parse({ guildId: 'not-a-uuid' });
-      }).toThrow(/Invalid uuid/u);
+      }).toThrow(/Invalid UUID/u);
     });
 
     it('INVALID: {guildId: missing} => throws validation error', () => {
       expect(() => {
         listQuestsInputContract.parse({});
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {unknown key} => throws Unrecognized key error', () => {

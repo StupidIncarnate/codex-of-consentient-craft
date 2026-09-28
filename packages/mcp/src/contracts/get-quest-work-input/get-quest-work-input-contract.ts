@@ -47,7 +47,7 @@ export const getQuestWorkInputContract = z
   .superRefine((value, ctx) => {
     if (value.workItemId !== undefined && value.operationItemId !== undefined) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         path: ['operationItemId'],
         message:
           'operationItemId cannot be combined with workItemId — a work item asks what THIS session runs and an operation item asks whether the plan for the whole scope is sound. Pass exactly one.',
@@ -56,7 +56,7 @@ export const getQuestWorkInputContract = z
 
     if (value.workItemId === undefined && value.operationItemId === undefined) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         path: ['workItemId'],
         message:
           'pass either workItemId (everything this session needs to start) or operationItemId (the whole plan as markdown). There is no whole-quest browse form.',

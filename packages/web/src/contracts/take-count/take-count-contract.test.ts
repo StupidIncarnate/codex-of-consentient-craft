@@ -11,14 +11,14 @@ describe('takeCountContract', () => {
   });
 
   it('INVALID: {0} => throws', () => {
-    expect(() => takeCountContract.parse(0)).toThrow(/greater than 0/u);
+    expect(() => takeCountContract.parse(0)).toThrow(/to be >0/u);
   });
 
   it('INVALID: {-1} => throws', () => {
-    expect(() => takeCountContract.parse(-1)).toThrow(/greater than 0/u);
+    expect(() => takeCountContract.parse(-1)).toThrow(/to be >0/u);
   });
 
   it('INVALID: {1.5} => throws', () => {
-    expect(() => takeCountContract.parse(1.5)).toThrow(/integer/u);
+    expect(() => takeCountContract.parse(1.5)).toThrow(/expected int, received number/u);
   });
 });

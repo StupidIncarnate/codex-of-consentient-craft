@@ -38,7 +38,7 @@ describe('contractNameContract', () => {
     it('INVALID: {value: number} => throws validation error', () => {
       expect(() => {
         return contractNameContract.parse(123 as never);
-      }).toThrow(/Expected string/u);
+      }).toThrow(/expected string/u);
     });
   });
 });

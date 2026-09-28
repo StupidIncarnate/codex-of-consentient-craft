@@ -17,7 +17,7 @@ describe('mcpDiscoverBroker', () => {
       // Force invalid context value (negative) to trigger zod parse failure
       await expect(
         mcpDiscoverBroker({ input: { ...input, context: -1 as never } }),
-      ).rejects.toThrow('Number must be greater than or equal to 0');
+      ).rejects.toThrow('expected number to be >=0');
     });
   });
 

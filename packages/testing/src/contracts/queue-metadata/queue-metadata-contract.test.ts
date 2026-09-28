@@ -36,13 +36,13 @@ describe('queueMetadataContract', () => {
     it('INVALID: {counter: 1.5} => throws for non-integer counter', () => {
       expect(() => {
         return queueMetadataContract.parse({ counter: 1.5 });
-      }).toThrow(/integer/iu);
+      }).toThrow(/expected int, received number/iu);
     });
 
     it('INVALID: {} => throws for missing counter field', () => {
       expect(() => {
         return queueMetadataContract.parse({});
-      }).toThrow(/required/iu);
+      }).toThrow(/expected number, received undefined/iu);
     });
   });
 });

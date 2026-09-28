@@ -42,13 +42,13 @@ describe('askUserQuestionBroker', () => {
     it('INVALID: {questions: []} => throws (at least 1 required)', () => {
       askUserQuestionBrokerProxy();
 
-      expect(() => askUserQuestionBroker({ input: { questions: [] } })).toThrow(/at least 1/u);
+      expect(() => askUserQuestionBroker({ input: { questions: [] } })).toThrow(/>=1/u);
     });
 
     it('EMPTY: {} => throws (questions required)', () => {
       askUserQuestionBrokerProxy();
 
-      expect(() => askUserQuestionBroker({ input: {} })).toThrow(/Required/u);
+      expect(() => askUserQuestionBroker({ input: {} })).toThrow(/received undefined/u);
     });
   });
 });

@@ -53,7 +53,7 @@ describe('pastedImageUploadListContract', () => {
         pastedImageUploadListContract.parse([
           { mediaType: 'image/svg+xml', dataBase64: 'iVBORw0KGgo=' },
         ] as never),
-      ).toThrow(/Invalid enum value/u);
+      ).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {images: [{dataBase64: over byte ceiling}]} => throws validation error', () => {

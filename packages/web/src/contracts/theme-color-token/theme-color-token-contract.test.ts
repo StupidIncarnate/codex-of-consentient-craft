@@ -30,23 +30,23 @@ describe('themeColorTokenContract', () => {
 
   describe('invalid inputs', () => {
     it('INVALID: {value: "invalid"} => throws for unknown token', () => {
-      expect(() => themeColorTokenContract.parse('invalid')).toThrow(/Invalid enum value/u);
+      expect(() => themeColorTokenContract.parse('invalid')).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {value: "PRIMARY"} => throws for wrong case', () => {
-      expect(() => themeColorTokenContract.parse('PRIMARY')).toThrow(/Invalid enum value/u);
+      expect(() => themeColorTokenContract.parse('PRIMARY')).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {value: ""} => throws for empty string', () => {
-      expect(() => themeColorTokenContract.parse('')).toThrow(/Invalid enum value/u);
+      expect(() => themeColorTokenContract.parse('')).toThrow(/Invalid option/u);
     });
 
     it('EMPTY: {value: null} => throws for null', () => {
-      expect(() => themeColorTokenContract.parse(null)).toThrow(/received null/u);
+      expect(() => themeColorTokenContract.parse(null)).toThrow(/Invalid option/u);
     });
 
     it('EMPTY: {value: undefined} => throws for undefined', () => {
-      expect(() => themeColorTokenContract.parse(undefined)).toThrow(/Required/u);
+      expect(() => themeColorTokenContract.parse(undefined)).toThrow(/Invalid option/u);
     });
   });
 

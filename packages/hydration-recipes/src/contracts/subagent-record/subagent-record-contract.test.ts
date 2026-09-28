@@ -27,14 +27,14 @@ describe('subagentRecordContract', () => {
   });
 
   describe('invalid subagent records', () => {
-    it('INVALID: {toolUseId, filePath, lineCount — no agentId} => throws "Required"', () => {
+    it('INVALID: {toolUseId, filePath, lineCount — no agentId} => throws "received undefined"', () => {
       expect(() =>
         subagentRecordContract.parse({
           toolUseId: 'toolu_seed1',
           filePath: '/tmp/guilds-under-test/guild-1/subagents/agent-seed-agent-1.jsonl',
           lineCount: 1,
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {filePath: "relative/path"} => throws "Path must be absolute"', () => {
@@ -56,13 +56,13 @@ describe('subagentRecordContract', () => {
           filePath: '/tmp/guilds-under-test/guild-1/subagents/agent-seed-agent-1.jsonl',
           lineCount: -1,
         }),
-      ).toThrow(/Number must be greater than 0/u);
+      ).toThrow(/expected number to be >0/u);
     });
   });
 
   describe('empty subagent records', () => {
-    it('EMPTY: {} => throws "Required"', () => {
-      expect(() => subagentRecordContract.parse({})).toThrow(/Required/u);
+    it('EMPTY: {} => throws "received undefined"', () => {
+      expect(() => subagentRecordContract.parse({})).toThrow(/received undefined/u);
     });
   });
 });

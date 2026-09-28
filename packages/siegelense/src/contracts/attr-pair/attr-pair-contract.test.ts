@@ -30,12 +30,12 @@ describe('attrPairContract', () => {
 
   describe('invalid values', () => {
     it('INVALID: {missing value} => throws Required', () => {
-      expect(() => attrPairContract.parse({ name: 'href' })).toThrow(/Required/u);
+      expect(() => attrPairContract.parse({ name: 'href' })).toThrow(/received undefined/u);
     });
 
     it('INVALID: {name: 42} => throws, because an attribute name is text', () => {
       expect(() => attrPairContract.parse({ name: 42, value: 'failed' })).toThrow(
-        /Expected string/u,
+        /expected string/u,
       );
     });
   });

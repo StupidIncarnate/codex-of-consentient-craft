@@ -11,8 +11,8 @@ describe('subagentElapsedInputContract', () => {
       expect(result).toStrictEqual({ startedAt: '2026-09-10T10:00:00.000Z' });
     });
 
-    it('INVALID: {missing startedAt} => throws "Required"', () => {
-      expect(() => subagentElapsedInputContract.parse({})).toThrow('Required');
+    it('INVALID: {missing startedAt} => throws "received undefined"', () => {
+      expect(() => subagentElapsedInputContract.parse({})).toThrow('received undefined');
     });
   });
 
@@ -69,7 +69,7 @@ describe('subagentElapsedInputContract', () => {
           startedAt: '2026-09-10T10:00:00.000Z',
           reportedDurationMs: -1,
         }),
-      ).toThrow('Number must be greater than or equal to 0');
+      ).toThrow('expected number to be >=0');
     });
 
     it('INVALID: {reportedDurationMs: 1.5} => throws "Expected integer, received float"', () => {
@@ -78,7 +78,7 @@ describe('subagentElapsedInputContract', () => {
           startedAt: '2026-09-10T10:00:00.000Z',
           reportedDurationMs: 1.5,
         }),
-      ).toThrow('Expected integer, received float');
+      ).toThrow('Invalid input: expected int, received number');
     });
   });
 

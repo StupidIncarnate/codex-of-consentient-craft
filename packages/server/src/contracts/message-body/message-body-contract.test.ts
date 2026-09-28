@@ -44,13 +44,13 @@ describe('messageBodyContract', () => {
     it('INVALID: {message: ""} => throws validation error', () => {
       expect(() => {
         messageBodyContract.parse({ message: '' });
-      }).toThrow(/at least 1 character/u);
+      }).toThrow(/>=1 characters/u);
     });
 
     it('INVALID: {} => throws validation error', () => {
       expect(() => {
         messageBodyContract.parse({});
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {images: maxImagesPerMessage + 1} => throws validation error', () => {

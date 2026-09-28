@@ -35,10 +35,10 @@ describe('sessionFieldsContract', () => {
   });
 
   describe('invalid session fields', () => {
-    it('INVALID: {cwd, lines — no sessionId} => throws "Required"', () => {
+    it('INVALID: {cwd, lines — no sessionId} => throws "received undefined"', () => {
       expect(() =>
         sessionFieldsContract.parse({ cwd: '/tmp/guilds-under-test/guild-1', lines: [] }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {cwd: "relative/path"} => throws "Path must be absolute"', () => {
@@ -63,8 +63,8 @@ describe('sessionFieldsContract', () => {
   });
 
   describe('empty session fields', () => {
-    it('EMPTY: {} => throws "Required"', () => {
-      expect(() => sessionFieldsContract.parse({})).toThrow(/Required/u);
+    it('EMPTY: {} => throws "received undefined"', () => {
+      expect(() => sessionFieldsContract.parse({})).toThrow(/received undefined/u);
     });
   });
 });

@@ -25,7 +25,7 @@ describe('hydrationPlanContract', () => {
 
   describe('invalid plans', () => {
     it('INVALID: {no recipeName} => throws Required', () => {
-      expect(() => hydrationPlanContract.parse({ ops: [] })).toThrow(/Required/u);
+      expect(() => hydrationPlanContract.parse({ ops: [] })).toThrow(/received undefined/u);
     });
   });
 });

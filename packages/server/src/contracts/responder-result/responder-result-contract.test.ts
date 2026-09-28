@@ -23,6 +23,6 @@ describe('responderResultContract', () => {
   it('INVALID: {missing status} => throws validation error', () => {
     expect(() => {
       responderResultContract.parse({ data: 'test' });
-    }).toThrow(/Required/u);
+    }).toThrow(/received undefined/u);
   });
 });

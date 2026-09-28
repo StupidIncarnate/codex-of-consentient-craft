@@ -14,7 +14,7 @@ describe('questUserAddBodyContract', () => {
     it('INVALID: {missing title} => throws validation error', () => {
       expect(() => {
         questUserAddBodyContract.parse({ userRequest: 'x', guildId: 'abc' });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

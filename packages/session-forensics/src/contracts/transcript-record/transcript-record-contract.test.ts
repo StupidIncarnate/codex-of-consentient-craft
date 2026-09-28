@@ -110,11 +110,15 @@ describe('transcriptRecordContract', () => {
 
   describe('invalid input', () => {
     it('INVALID: {missing type} => throws', () => {
-      expect(() => transcriptRecordContract.parse({})).toThrow(/Required/u);
+      expect(() => transcriptRecordContract.parse({})).toThrow(
+        /Invalid option: expected one of \\"assistant\\"\|\\"user\\"\|\\"attachment\\"\|\\"queue-operation\\"\|\\"last-prompt\\"\|\\"atis-latch\\"/u,
+      );
     });
 
     it('INVALID: {type: number} => throws', () => {
-      expect(() => TranscriptRecordStub({ type: 123 as never })).toThrow(/received number/u);
+      expect(() => TranscriptRecordStub({ type: 123 as never })).toThrow(
+        /Invalid option: expected one of \\"assistant\\"\|\\"user\\"\|\\"attachment\\"\|\\"queue-operation\\"\|\\"last-prompt\\"\|\\"atis-latch\\"/u,
+      );
     });
   });
 });

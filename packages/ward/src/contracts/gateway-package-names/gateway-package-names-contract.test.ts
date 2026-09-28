@@ -26,7 +26,7 @@ describe('gatewayPackageNamesContract', () => {
     it('INVALID: {node: ""} => throws validation error', () => {
       expect(() =>
         gatewayPackageNamesContract.parse(GatewayPackageNamesStub({ node: '' })),
-      ).toThrow(/at least 1/u);
+      ).toThrow(/>=1/u);
     });
   });
 

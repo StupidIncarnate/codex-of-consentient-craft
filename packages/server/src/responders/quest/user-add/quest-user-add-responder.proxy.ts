@@ -1,6 +1,7 @@
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import { AddQuestResultStub } from '@dungeonmaster/shared/contracts';
 import type { GuildId } from '@dungeonmaster/shared/contracts';
+import { zodFirstFieldErrorMessageAdapterProxy } from '../../../adapters/zod/first-field-error-message/zod-first-field-error-message-adapter.proxy';
 import { QuestUserAddResponder } from './quest-user-add-responder';
 
 export const QuestUserAddResponderProxy = (): {
@@ -9,6 +10,9 @@ export const QuestUserAddResponderProxy = (): {
   callResponder: typeof QuestUserAddResponder;
 } => {
   const orchestrator = StartOrchestratorProxy();
+  // The adapter has no I/O to mock (see its own proxy header) — composing it here is what the
+  // proxy-child-creation rule expects of every implementation import, not a stage this test needs.
+  zodFirstFieldErrorMessageAdapterProxy();
 
   return {
     setupAddQuest: ({ guildId }: { guildId: GuildId }): { expectedData: unknown } => {

@@ -24,17 +24,15 @@ describe('fileCountContract', () => {
 
   describe('invalid file counts', () => {
     it('ERROR: -1 => throws for negative number', () => {
-      expect(() => fileCountContract.parse(-1)).toThrow(
-        /Number must be greater than or equal to 0/u,
-      );
+      expect(() => fileCountContract.parse(-1)).toThrow(/expected number to be >=0/u);
     });
 
     it('ERROR: 1.5 => throws for non-integer', () => {
-      expect(() => fileCountContract.parse(1.5)).toThrow(/Expected integer, received float/u);
+      expect(() => fileCountContract.parse(1.5)).toThrow(/expected int, received number/u);
     });
 
     it('ERROR: "42" => throws for string', () => {
-      expect(() => fileCountContract.parse('42')).toThrow(/Expected number, received string/u);
+      expect(() => fileCountContract.parse('42')).toThrow(/expected number, received string/u);
     });
   });
 

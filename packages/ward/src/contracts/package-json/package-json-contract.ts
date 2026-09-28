@@ -23,6 +23,6 @@ export const packageJsonContract = z
       .record(z.string().brand<'DepName'>(), z.string().brand<'DepVersion'>())
       .optional(),
   })
-  .passthrough();
+  .loose();
 
 export type PackageJson = z.infer<typeof packageJsonContract>;

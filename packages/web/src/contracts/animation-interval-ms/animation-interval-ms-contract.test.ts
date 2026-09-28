@@ -18,17 +18,15 @@ describe('animationIntervalMsContract', () => {
 
   describe('invalid inputs', () => {
     it('INVALID: {value: 0} => throws for zero', () => {
-      expect(() => animationIntervalMsContract.parse(0)).toThrow(/Number must be greater than 0/u);
+      expect(() => animationIntervalMsContract.parse(0)).toThrow(/expected number to be >0/u);
     });
 
     it('INVALID: {value: -100} => throws for negative', () => {
-      expect(() => animationIntervalMsContract.parse(-100)).toThrow(
-        /Number must be greater than 0/u,
-      );
+      expect(() => animationIntervalMsContract.parse(-100)).toThrow(/expected number to be >0/u);
     });
 
     it('INVALID: {value: 1.5} => throws for non-integer', () => {
-      expect(() => animationIntervalMsContract.parse(1.5)).toThrow(/Expected integer/u);
+      expect(() => animationIntervalMsContract.parse(1.5)).toThrow(/expected int/u);
     });
   });
 

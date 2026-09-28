@@ -24,15 +24,15 @@ describe('markdownSourceContract', () => {
 
   describe('invalid inputs', () => {
     it('INVALID: {value: 123} => throws for number', () => {
-      expect(() => markdownSourceContract.parse(123)).toThrow(/Expected string/u);
+      expect(() => markdownSourceContract.parse(123)).toThrow(/expected string/u);
     });
 
     it('EMPTY: {value: null} => throws for null', () => {
-      expect(() => markdownSourceContract.parse(null)).toThrow(/Expected string/u);
+      expect(() => markdownSourceContract.parse(null)).toThrow(/expected string/u);
     });
 
     it('EMPTY: {value: undefined} => throws for undefined', () => {
-      expect(() => markdownSourceContract.parse(undefined)).toThrow(/Required/u);
+      expect(() => markdownSourceContract.parse(undefined)).toThrow(/received undefined/u);
     });
   });
 

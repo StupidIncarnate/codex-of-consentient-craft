@@ -29,14 +29,14 @@ describe('sessionRecordContract', () => {
   });
 
   describe('invalid session records', () => {
-    it('INVALID: {cwd, filePath, lineCount — no sessionId} => throws "Required"', () => {
+    it('INVALID: {cwd, filePath, lineCount — no sessionId} => throws "received undefined"', () => {
       expect(() =>
         sessionRecordContract.parse({
           cwd: '/tmp/guilds-under-test/guild-1',
           filePath: '/tmp/guilds-under-test/guild-1/seed-session-1.jsonl',
           lineCount: 1,
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {filePath: "relative/path"} => throws "Path must be absolute"', () => {
@@ -58,13 +58,13 @@ describe('sessionRecordContract', () => {
           filePath: '/tmp/guilds-under-test/guild-1/seed-session-1.jsonl',
           lineCount: 0,
         }),
-      ).toThrow(/Number must be greater than 0/u);
+      ).toThrow(/expected number to be >0/u);
     });
   });
 
   describe('empty session records', () => {
-    it('EMPTY: {} => throws "Required"', () => {
-      expect(() => sessionRecordContract.parse({})).toThrow(/Required/u);
+    it('EMPTY: {} => throws "received undefined"', () => {
+      expect(() => sessionRecordContract.parse({})).toThrow(/received undefined/u);
     });
   });
 });

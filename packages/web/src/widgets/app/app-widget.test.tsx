@@ -314,10 +314,10 @@ describe('AppWidget', () => {
     it('VALID: {main view, click +} => shows NEW GUILD form => CREATE => returns to main', async () => {
       const proxy = AppWidgetProxy();
       const existingGuild = GuildListItemStub({
-        id: 'c3d4e5f6-a7b8-9012-cdef-123456789012',
+        id: 'da28ff7b-045c-84bf-aa90-88331cb5c35c',
         name: 'Existing Guild',
       });
-      const newGuildId = GuildIdStub({ value: 'd4e5f6a7-b8c9-0123-defa-234567890123' });
+      const newGuildId = GuildIdStub({ value: 'b034edce-fe58-61fe-82ce-8edb6d42d8c6' });
       const newGuild = GuildListItemStub({
         id: newGuildId,
         name: 'new-guild',
@@ -377,7 +377,7 @@ describe('AppWidget', () => {
     it('VALID: {main view, click +, cancel} => returns to main, no change', async () => {
       const proxy = AppWidgetProxy();
       const guild = GuildListItemStub({
-        id: 'e5f6a7b8-c9d0-1234-efab-345678901234',
+        id: '28f58fe9-e6c5-7750-879f-d96162cf916c',
         name: 'My Guild',
       });
 
@@ -464,7 +464,7 @@ describe('AppWidget', () => {
     it('VALID: {click guild item} => session list renders for that guild', async () => {
       const proxy = AppWidgetProxy();
       const guild = GuildListItemStub({
-        id: 'f6a7b8c9-d0e1-2345-fabc-456789012345',
+        id: '2cf4bbf1-0a31-3d8a-adb9-113bb32c69c5',
         name: 'Guild Alpha',
       });
       const sessions = [SessionListItemStub({ sessionId: 'session-1' })];
@@ -537,7 +537,7 @@ describe('AppWidget', () => {
     it('VALID: {click guild, session list error} => error state', async () => {
       const proxy = AppWidgetProxy();
       const guild = GuildListItemStub({
-        id: 'd0e1f2a3-b4c5-6789-defa-890123456789',
+        id: 'a40faea2-026e-45c5-8e86-7668de10b44e',
         name: 'Error Guild',
       });
 
@@ -575,7 +575,7 @@ describe('AppWidget', () => {
     it('VALID: {main, click session} => shows readonly session view', async () => {
       const proxy = AppWidgetProxy();
       const guild = GuildListItemStub({
-        id: 'e1f2a3b4-c5d6-7890-efab-901234567890',
+        id: '48a4b30a-6cfa-699d-a176-b5df8974d64d',
         name: 'Nav Guild',
       });
       const sessions = [SessionListItemStub({ sessionId: 'nav-s1', questId: 'quest-nav' })];
@@ -625,7 +625,7 @@ describe('AppWidget', () => {
 
     it('VALID: {empty state, create guild} => auto-transitions to main', async () => {
       const proxy = AppWidgetProxy();
-      const guildId = GuildIdStub({ value: 'f2a3b4c5-d6e7-8901-fabc-012345678901' });
+      const guildId = GuildIdStub({ value: 'af549d80-9334-57cd-b11f-a917419f8361' });
       const guild = GuildListItemStub({ id: guildId, name: 'auto-guild' });
 
       proxy.setupGuilds({ guilds: [] });
@@ -670,11 +670,11 @@ describe('AppWidget', () => {
     it('VALID: {multiple guilds, select one} => gold highlight visible', async () => {
       const proxy = AppWidgetProxy();
       const guildA = GuildListItemStub({
-        id: 'a3b4c5d6-e7f8-9012-abcd-123456789abc',
+        id: '5abe6461-5231-558d-9d81-42c94e32bad3',
         name: 'Guild Alpha',
       });
       const guildB = GuildListItemStub({
-        id: 'b4c5d6e7-f8a9-0123-bcde-23456789abcd',
+        id: '1734d78c-3482-3e5c-bada-773bfc9ecbdf',
         name: 'Guild Beta',
       });
 
@@ -817,15 +817,15 @@ describe('AppWidget', () => {
     it('VALID: {load 3 guilds} => all visible in left column', async () => {
       const proxy = AppWidgetProxy();
       const guildA = GuildListItemStub({
-        id: 'c5d6e7f8-a9b0-1234-cdef-3456789abcde',
+        id: '78f29cbd-2d13-8067-9049-3b335a501617',
         name: 'Guild One',
       });
       const guildB = GuildListItemStub({
-        id: 'd6e7f8a9-b0c1-2345-defa-456789abcdef',
+        id: 'c8ee51e4-ff3f-1161-85da-669f5458106b',
         name: 'Guild Two',
       });
       const guildC = GuildListItemStub({
-        id: 'e7f8a9b0-c1d2-3456-efab-56789abcdef0',
+        id: '0e8e054d-b95d-6c34-907f-698ac185ba7e',
         name: 'Guild Three',
       });
 

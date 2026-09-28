@@ -95,7 +95,7 @@ describe('compareArgsParseTransformer', () => {
         compareArgsParseTransformer({
           args: ['--instance', 'inst_7f3a9c21', '--run-a', 'bogus', '--run-b', 'run_5'],
         }),
-      ).toThrow(/^--run-a: Invalid$/u);
+      ).toThrow(/^--run-a: Invalid string: must match pattern \/\^run_\[1-9\]\[0-9\]\*\$\/u$/u);
     });
   });
 
@@ -105,7 +105,7 @@ describe('compareArgsParseTransformer', () => {
         compareArgsParseTransformer({
           args: ['--instance', 'inst_7f3a9c21', '--run-a', 'run_4', '--run-b', 'bogus'],
         }),
-      ).toThrow(/^--run-b: Invalid$/u);
+      ).toThrow(/^--run-b: Invalid string: must match pattern \/\^run_\[1-9\]\[0-9\]\*\$\/u$/u);
     });
   });
 

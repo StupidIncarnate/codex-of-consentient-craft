@@ -113,7 +113,7 @@ describe('recipeManifestContract', () => {
           parameters: [],
           returns: [],
         }),
-      ).toThrow(/String must contain at least 1 character/u);
+      ).toThrow(/expected string to have >=1 characters/u);
     });
 
     it('INVALID: {missing produces} => raises exactly one issue, scoped to produces', () => {
@@ -130,9 +130,8 @@ describe('recipeManifestContract', () => {
         {
           code: 'invalid_type',
           expected: 'string',
-          received: 'undefined',
           path: ['produces'],
-          message: 'Required',
+          message: 'Invalid input: expected string, received undefined',
         },
       ]);
     });
@@ -166,9 +165,8 @@ describe('recipeManifestContract', () => {
         {
           code: 'invalid_type',
           expected: 'boolean',
-          received: 'undefined',
           path: ['parameters', 0, 'required'],
-          message: 'Required',
+          message: 'Invalid input: expected boolean, received undefined',
         },
       ]);
     });

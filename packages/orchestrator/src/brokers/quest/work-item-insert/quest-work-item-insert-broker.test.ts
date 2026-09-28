@@ -26,7 +26,7 @@ describe('questWorkItemInsertBroker', () => {
       proxy.setupQuestModify({ quest });
 
       const newItem = WorkItemStub({
-        id: QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e' }),
+        id: QuestWorkItemIdStub({ value: '03a9d8d8-7d74-4041-981c-977812e6dc45' }),
         role: 'spiritmender',
         status: 'pending',
         dependsOn: [],
@@ -49,7 +49,7 @@ describe('questWorkItemInsertBroker', () => {
         value: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
       });
       const downstreamItem = WorkItemStub({
-        id: QuestWorkItemIdStub({ value: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e' }),
+        id: QuestWorkItemIdStub({ value: '03a9d8d8-7d74-4041-981c-977812e6dc45' }),
         role: 'flowrider',
         status: 'pending',
         dependsOn: [oldItemId],
@@ -66,7 +66,7 @@ describe('questWorkItemInsertBroker', () => {
       proxy.setupQuestModify({ quest });
 
       const newSiegeId = QuestWorkItemIdStub({
-        value: 'c3d4e5f6-a7b8-9c0d-1e2f-3a4b5c6d7e8f',
+        value: '2063553f-9f1c-6c33-8d24-05ca15a4f935',
       });
       const newItem = WorkItemStub({
         id: newSiegeId,

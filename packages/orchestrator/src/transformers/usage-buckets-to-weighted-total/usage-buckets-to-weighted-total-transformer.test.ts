@@ -1,4 +1,4 @@
-import { UsageBucketStub } from '@dungeonmaster/shared/contracts';
+import { BucketStartKeyStub, UsageBucketStub } from '@dungeonmaster/shared/contracts';
 
 import { usageBucketsToWeightedTotalTransformer } from './usage-buckets-to-weighted-total-transformer';
 
@@ -112,9 +112,13 @@ describe('usageBucketsToWeightedTotalTransformer', () => {
     });
 
     it('EDGE: {a non-numeric bucket key} => is skipped rather than poisoning the total', () => {
+      // The branded stub, not a literal property name — `BucketStartKeyStub` enforces no numeric
+      // shape (see that contract's own header), so 'corrupt' parses through it exactly as any other
+      // string does, and the RESULT is what a non-numeric-but-branded key looks like on the wire.
+      const corruptKey = BucketStartKeyStub({ value: 'corrupt' });
       const result = usageBucketsToWeightedTotalTransformer({
         buckets: {
-          corrupt: UsageBucketStub({ input: 0, cacheCreation: 0, cacheRead: 0, output: 9 }),
+          [corruptKey]: UsageBucketStub({ input: 0, cacheCreation: 0, cacheRead: 0, output: 9 }),
           [String(NOW - HOUR)]: UsageBucketStub({
             input: 0,
             cacheCreation: 0,

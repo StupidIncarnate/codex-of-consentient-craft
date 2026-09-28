@@ -31,8 +31,16 @@ const fieldValueContract = z.unknown().superRefine((value, ctx) => {
     return;
   }
 
+  // Reconstructed as a `'custom'` issue rather than forwarded as-is: `savedRefContract`'s own
+  // issues carry zod v4's exact per-code shape, which is narrower than what `ctx.addIssue()`
+  // accepts as INPUT here — the path and message are what this outer context needs, not the
+  // original issue's own code.
   result.error.issues.forEach((issue) => {
-    ctx.addIssue(issue);
+    ctx.addIssue({
+      code: 'custom',
+      message: issue.message,
+      path: issue.path,
+    });
   });
 });
 

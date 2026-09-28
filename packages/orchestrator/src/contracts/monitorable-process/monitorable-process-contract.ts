@@ -10,12 +10,12 @@
 
 import { z } from 'zod';
 
-export const monitorableProcessContract = z.object({
-  kill: z.function(),
-  on: z.function(),
-});
+// `kill` and `on` are functions — a Zod object schema cannot check callability, so both stay out
+// of the parse and are attached only through the `MonitorableProcess` interface below.
+// `.loose()` carries them through `.parse()` unvalidated when a real caller supplies one.
+export const monitorableProcessContract = z.object({}).loose();
 
-export interface MonitorableProcess {
+export type MonitorableProcess = z.infer<typeof monitorableProcessContract> & {
   kill: () => boolean;
   on: (event: 'exit', listener: (code: number | null) => void) => void;
-}
+};

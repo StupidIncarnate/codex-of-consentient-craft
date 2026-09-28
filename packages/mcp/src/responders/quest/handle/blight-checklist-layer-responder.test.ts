@@ -125,7 +125,9 @@ describe('BlightChecklistLayerResponder', () => {
     it('INVALID: {missing questId} => throws before any adapter call', async () => {
       BlightChecklistLayerResponderProxy();
 
-      await expect(BlightChecklistLayerResponder({ args: {} })).rejects.toThrow(/Required/u);
+      await expect(BlightChecklistLayerResponder({ args: {} })).rejects.toThrow(
+        /received undefined/u,
+      );
     });
 
     it('INVALID: {unknown key} => throws on the strict contract, no flowId sub-scope exists', async () => {

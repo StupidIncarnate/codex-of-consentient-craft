@@ -77,14 +77,14 @@ describe('questFieldsContract', () => {
   });
 
   describe('invalid quest fields', () => {
-    it('INVALID: {title, status, userRequest — no guildId} => throws "Required"', () => {
+    it('INVALID: {title, status, userRequest — no guildId} => throws "received undefined"', () => {
       expect(() =>
         questFieldsContract.parse({
           title: 'Quest 1',
           status: 'created',
           userRequest: 'seeded quest 1',
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {status: "not-a-status"} => throws "Invalid enum value"', () => {
@@ -95,13 +95,13 @@ describe('questFieldsContract', () => {
           userRequest: 'seeded quest 1',
           guildId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         }),
-      ).toThrow(/Invalid enum value/u);
+      ).toThrow(/Invalid option/u);
     });
   });
 
   describe('empty quest fields', () => {
-    it('EMPTY: {} => throws "Required"', () => {
-      expect(() => questFieldsContract.parse({})).toThrow(/Required/u);
+    it('EMPTY: {} => throws "received undefined"', () => {
+      expect(() => questFieldsContract.parse({})).toThrow(/received undefined/u);
     });
   });
 });

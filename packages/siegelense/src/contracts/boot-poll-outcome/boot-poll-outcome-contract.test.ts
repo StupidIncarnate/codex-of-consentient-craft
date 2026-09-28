@@ -41,7 +41,9 @@ describe('bootPollOutcomeContract', () => {
 
   describe('invalid outcomes', () => {
     it('INVALID: {status: failed, no message} => throws validation error', () => {
-      expect(() => bootPollOutcomeContract.parse({ status: 'failed' })).toThrow(/Required/u);
+      expect(() => bootPollOutcomeContract.parse({ status: 'failed' })).toThrow(
+        /received undefined/u,
+      );
     });
 
     it('INVALID: {status: ready, extra message} => throws for an unrecognized key', () => {

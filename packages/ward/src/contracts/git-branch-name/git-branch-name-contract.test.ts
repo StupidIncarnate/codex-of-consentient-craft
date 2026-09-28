@@ -31,7 +31,7 @@ describe('gitBranchNameContract', () => {
   describe('invalid branch names', () => {
     it('INVALID: {empty string} => throws error', () => {
       expect(() => gitBranchNameContract.parse('')).toThrow(
-        'String must contain at least 1 character(s)',
+        'expected string to have >=1 characters',
       );
     });
   });

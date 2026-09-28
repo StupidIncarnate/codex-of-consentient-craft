@@ -12,11 +12,11 @@ describe('attachmentIdContract', () => {
 
   describe('invalid inputs', () => {
     it('INVALID: {value: "not-a-uuid"} => throws for non-uuid string', () => {
-      expect(() => attachmentIdContract.parse('not-a-uuid')).toThrow(/Invalid uuid/u);
+      expect(() => attachmentIdContract.parse('not-a-uuid')).toThrow(/Invalid UUID/u);
     });
 
     it('INVALID: {value: 123} => throws for number', () => {
-      expect(() => attachmentIdContract.parse(123 as never)).toThrow(/Expected string/u);
+      expect(() => attachmentIdContract.parse(123 as never)).toThrow(/expected string/u);
     });
   });
 

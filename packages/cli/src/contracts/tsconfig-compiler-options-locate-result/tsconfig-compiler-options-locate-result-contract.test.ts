@@ -37,7 +37,7 @@ describe('tsconfigCompilerOptionsLocateResultContract', () => {
         needsLeadingComma: false,
         existing: [],
       }),
-    ).toThrow(/greater than or equal to 0/iu);
+    ).toThrow(/Too small: expected number to be >=0/u);
   });
 
   it('VALID: {} => the stub defaults to hasCompilerOptions with no existing options', () => {

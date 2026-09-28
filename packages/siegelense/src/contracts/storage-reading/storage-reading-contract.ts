@@ -17,8 +17,14 @@ import { z } from 'zod';
 export const storageReadingContract = z
   .object({
     origin: z.string().brand<'StorageOrigin'>(),
-    local: z.record(z.string().brand<'StorageValue'>().nullable()),
-    session: z.record(z.string().brand<'StorageValue'>().nullable()),
+    local: z.record(
+      z.string().brand<'StorageKey'>(),
+      z.string().brand<'StorageValue'>().nullable(),
+    ),
+    session: z.record(
+      z.string().brand<'StorageKey'>(),
+      z.string().brand<'StorageValue'>().nullable(),
+    ),
   })
   .strict();
 

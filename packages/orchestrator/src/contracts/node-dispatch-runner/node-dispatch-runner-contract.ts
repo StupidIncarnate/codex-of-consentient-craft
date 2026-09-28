@@ -26,10 +26,7 @@ export interface NodeDispatchRunnerController {
   kick: () => Promise<AdapterResult>;
 }
 
-// Runtime marker contract — callable function shapes cannot be fully Zod-validated,
-// so this schema just asserts the controller has start/stop/kick functions.
-export const nodeDispatchRunnerContract = z.object({
-  start: z.function(),
-  stop: z.function(),
-  kick: z.function(),
-});
+// Runtime marker contract — a Zod object schema cannot check callability, so `start`/`stop`/`kick`
+// stay out of the parse and are attached only through `NodeDispatchRunnerController` above.
+// `.loose()` carries them through `.parse()` unvalidated when a real caller supplies one.
+export const nodeDispatchRunnerContract = z.object({}).loose();

@@ -44,7 +44,7 @@ describe('routeMetadataContract', () => {
         routeMetadataContract.parse({
           path: '/',
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 });

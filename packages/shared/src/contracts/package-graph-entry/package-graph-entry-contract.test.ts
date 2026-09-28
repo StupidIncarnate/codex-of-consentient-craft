@@ -67,11 +67,11 @@ describe('packageGraphEntryContract', () => {
     });
 
     it('INVALID: {depth: -1} => throws validation error', () => {
-      expect(() => PackageGraphEntryStub({ depth: -1 })).toThrow(/greater than or equal to 0/u);
+      expect(() => PackageGraphEntryStub({ depth: -1 })).toThrow(/to be >=0/u);
     });
 
     it('INVALID: {depth: 1.5} => throws validation error', () => {
-      expect(() => PackageGraphEntryStub({ depth: 1.5 })).toThrow(/Expected integer/u);
+      expect(() => PackageGraphEntryStub({ depth: 1.5 })).toThrow(/expected int/u);
     });
 
     it('INVALID: {dependsOn: [""]} => throws validation error', () => {
@@ -80,16 +80,16 @@ describe('packageGraphEntryContract', () => {
 
     it('INVALID: {packageType: "frontend-vue"} => throws validation error', () => {
       expect(() => PackageGraphEntryStub({ packageType: 'frontend-vue' })).toThrow(
-        /Invalid enum value/u,
+        /Invalid option/u,
       );
     });
 
     it('INVALID: {changeType: "rename"} => throws validation error', () => {
-      expect(() => PackageGraphEntryStub({ changeType: 'rename' })).toThrow(/Invalid enum value/u);
+      expect(() => PackageGraphEntryStub({ changeType: 'rename' })).toThrow(/Invalid option/u);
     });
 
     it('EMPTY: {} => throws validation error', () => {
-      expect(() => packageGraphEntryContract.parse({})).toThrow(/Required/u);
+      expect(() => packageGraphEntryContract.parse({})).toThrow(/received undefined/u);
     });
   });
 });

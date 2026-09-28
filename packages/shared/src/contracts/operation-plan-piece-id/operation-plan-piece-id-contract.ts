@@ -11,6 +11,6 @@
 
 import { z } from 'zod';
 
-export const operationPlanPieceIdContract = z.string().uuid().brand<'OperationPlanPieceId'>();
+export const operationPlanPieceIdContract = z.uuid().brand<'OperationPlanPieceId'>();
 
 export type OperationPlanPieceId = z.infer<typeof operationPlanPieceIdContract>;

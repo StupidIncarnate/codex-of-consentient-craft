@@ -90,7 +90,7 @@ describe('folderConfigContract', () => {
           testType: 'unknown',
         });
 
-      expect(parseInvalidTestType).toThrow(/Invalid enum value/u);
+      expect(parseInvalidTestType).toThrow(/Invalid option/u);
     });
   });
 });

@@ -43,7 +43,7 @@ describe('orphanReadingContract', () => {
           pgid: 33_812,
           alive: true,
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {pgid: 0} => throws for a non-positive pgid', () => {

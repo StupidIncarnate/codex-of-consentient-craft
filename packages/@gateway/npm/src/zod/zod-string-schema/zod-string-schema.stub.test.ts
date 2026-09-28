@@ -7,7 +7,7 @@ describe('ZodStringSchemaStub', () => {
 
   it('INVALID: {} => a real schema that throws for a non-string', () => {
     expect(() => ZodStringSchemaStub().parse(123)).toThrow(
-      /"message": "Expected string, received number"/u,
+      /"message": "Invalid input: expected string, received number"/u,
     );
   });
 });

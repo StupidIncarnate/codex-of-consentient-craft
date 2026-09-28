@@ -17,7 +17,7 @@ describe('guildNameContract', () => {
   it('INVALID: {value: ""} => throws validation error', () => {
     expect(() => {
       return guildNameContract.parse('');
-    }).toThrow(/String must contain at least 1 character/u);
+    }).toThrow(/expected string to have >=1 characters/u);
   });
 
   it('INVALID: {value: 101 chars} => throws validation error', () => {
@@ -25,6 +25,6 @@ describe('guildNameContract', () => {
 
     expect(() => {
       return guildNameContract.parse(tooLong);
-    }).toThrow(/String must contain at most 100 character/u);
+    }).toThrow(/Too big: expected string to have <=100 characters/u);
   });
 });

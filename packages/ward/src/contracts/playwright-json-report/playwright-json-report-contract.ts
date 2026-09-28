@@ -13,13 +13,13 @@ const playwrightTestResultContract = z
     status: z.string().brand<'PlaywrightResultStatus'>().optional(),
     duration: z.number().brand<'PlaywrightResultDuration'>().optional(),
   })
-  .passthrough();
+  .loose();
 
 const playwrightTestNodeContract = z
   .object({
     results: z.array(playwrightTestResultContract).optional(),
   })
-  .passthrough();
+  .loose();
 
 const playwrightSpecContract = z
   .object({
@@ -27,39 +27,35 @@ const playwrightSpecContract = z
     file: z.string().brand<'PlaywrightSpecFile'>().optional(),
     tests: z.array(playwrightTestNodeContract).optional(),
   })
-  .passthrough();
+  .loose();
 
-const playwrightSuiteBaseContract = z
+const playwrightSuiteFields = z.object({
+  title: z.string().brand<'PlaywrightSuiteTitle'>().optional(),
+  specs: z.array(playwrightSpecContract).optional(),
+});
+
+type PlaywrightSuiteSelf = z.infer<typeof playwrightSuiteFields> & {
+  suites?: PlaywrightSuiteSelf[] | undefined;
+};
+
+// A getter, not `z.lazy` + `.and()` — the getter's return type wraps `z.core.$ZodType`, which is
+// the only self-reference form `contracts/` allows (zod v4 dropped the old `z.ZodTypeDef` type
+// param `z.lazy` needed here).
+const playwrightSuiteContract = z
   .object({
-    title: z.string().brand<'PlaywrightSuiteTitle'>().optional(),
-    specs: z.array(playwrightSpecContract).optional(),
+    ...playwrightSuiteFields.shape,
+    get suites(): z.ZodOptional<z.ZodArray<z.core.$ZodType<PlaywrightSuiteSelf>>> {
+      return z.array(playwrightSuiteContract).optional();
+    },
   })
-  .passthrough();
+  .loose();
 
-type PlaywrightSuiteBase = z.infer<typeof playwrightSuiteBaseContract>;
-type PlaywrightSuiteBaseInput = z.input<typeof playwrightSuiteBaseContract>;
-
-export type PlaywrightSuite = PlaywrightSuiteBase & {
-  suites?: PlaywrightSuite[] | undefined;
-};
-
-type PlaywrightSuiteInput = PlaywrightSuiteBaseInput & {
-  suites?: PlaywrightSuiteInput[] | undefined;
-};
-
-const playwrightSuiteContract: z.ZodType<PlaywrightSuite, z.ZodTypeDef, PlaywrightSuiteInput> =
-  z.lazy(() =>
-    playwrightSuiteBaseContract.and(
-      z.object({
-        suites: z.array(playwrightSuiteContract).optional(),
-      }),
-    ),
-  );
+export type PlaywrightSuite = z.infer<typeof playwrightSuiteContract>;
 
 export const playwrightJsonReportContract = z
   .object({
     suites: z.array(playwrightSuiteContract).optional(),
   })
-  .passthrough();
+  .loose();
 
 export type PlaywrightJsonReport = z.infer<typeof playwrightJsonReportContract>;

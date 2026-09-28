@@ -24,19 +24,19 @@ describe('mtimeMsContract', () => {
 
   describe('invalid inputs', () => {
     it('INVALID: {value: -1} => throws for negative number', () => {
-      expect(() => mtimeMsContract.parse(-1)).toThrow(/Number must be greater than or equal to 0/u);
+      expect(() => mtimeMsContract.parse(-1)).toThrow(/expected number to be >=0/u);
     });
 
     it('INVALID: {value: "0"} => throws for string', () => {
-      expect(() => mtimeMsContract.parse('0')).toThrow(/Expected number/u);
+      expect(() => mtimeMsContract.parse('0')).toThrow(/expected number/u);
     });
 
     it('EMPTY: {value: null} => throws for null', () => {
-      expect(() => mtimeMsContract.parse(null)).toThrow(/Expected number/u);
+      expect(() => mtimeMsContract.parse(null)).toThrow(/expected number/u);
     });
 
     it('EMPTY: {value: undefined} => throws for undefined', () => {
-      expect(() => mtimeMsContract.parse(undefined)).toThrow(/Required/u);
+      expect(() => mtimeMsContract.parse(undefined)).toThrow(/received undefined/u);
     });
   });
 

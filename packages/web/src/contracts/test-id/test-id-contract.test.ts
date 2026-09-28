@@ -18,7 +18,7 @@ describe('testIdContract', () => {
 
   describe('invalid inputs', () => {
     it('INVALID: {value: 123} => throws for number', () => {
-      expect(() => testIdContract.parse(123)).toThrow(/Expected string/u);
+      expect(() => testIdContract.parse(123)).toThrow(/expected string/u);
     });
   });
 

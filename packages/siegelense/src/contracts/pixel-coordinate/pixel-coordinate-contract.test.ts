@@ -21,6 +21,6 @@ describe('pixelCoordinateContract', () => {
   });
 
   it('INVALID: {value: 1.5} => throws for a non-integer float', () => {
-    expect(() => pixelCoordinateContract.parse(1.5)).toThrow(/Expected integer, received float/u);
+    expect(() => pixelCoordinateContract.parse(1.5)).toThrow(/expected int, received number/u);
   });
 });

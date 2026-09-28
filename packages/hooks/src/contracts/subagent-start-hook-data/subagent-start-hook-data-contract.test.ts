@@ -31,7 +31,7 @@ describe('subagentStartHookDataContract', () => {
     it('INVALID: {empty object} => throws validation error', () => {
       expect(() => {
         return subagentStartHookDataContract.parse({} as never);
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {wrong hook_event_name} => throws validation error', () => {
@@ -44,7 +44,7 @@ describe('subagentStartHookDataContract', () => {
           agent_id: 'agent-1',
           agent_type: 'Explore',
         } as never);
-      }).toThrow(/Invalid literal value/u);
+      }).toThrow(/Invalid input: expected/u);
     });
   });
 });

@@ -24,13 +24,13 @@ describe('epochTimestampContract', () => {
     it('INVALID: {value: string} => throws validation error', () => {
       expect(() => {
         return epochTimestampContract.parse('not-a-number' as never);
-      }).toThrow(/Expected number/u);
+      }).toThrow(/expected number/u);
     });
 
     it('INVALID: {value: -1} => throws validation error', () => {
       expect(() => {
         return epochTimestampContract.parse(-1);
-      }).toThrow(/Number must be greater than or equal to 0/u);
+      }).toThrow(/expected number to be >=0/u);
     });
   });
 });

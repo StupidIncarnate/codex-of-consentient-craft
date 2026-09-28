@@ -26,25 +26,25 @@ describe('packageNameContract', () => {
     it('INVALID: {name: ""} => throws ZodError', () => {
       expect(() => {
         return packageNameContract.parse('');
-      }).toThrow('String must contain at least 1 character');
+      }).toThrow('expected string to have >=1 characters');
     });
 
     it('INVALID: {name: 123} => throws ZodError', () => {
       expect(() => {
         return packageNameContract.parse(123);
-      }).toThrow('Expected string');
+      }).toThrow('expected string');
     });
 
     it('INVALID: {name: null} => throws ZodError', () => {
       expect(() => {
         return packageNameContract.parse(null);
-      }).toThrow('Expected string');
+      }).toThrow('expected string');
     });
 
     it('INVALID: {name: undefined} => throws ZodError', () => {
       expect(() => {
         return packageNameContract.parse(undefined);
-      }).toThrow('Required');
+      }).toThrow('received undefined');
     });
   });
 });

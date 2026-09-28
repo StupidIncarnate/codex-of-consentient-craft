@@ -104,7 +104,7 @@ export const questMonitorWatcherStartBrokerProxy = (): {
       // carries in_progress work items stamped with the supplied agentIds. Used by
       // tests that need the watcher's `isAgentIdActive` predicate to admit specific
       // realAgentIds (otherwise the new quest-driven filter rejects every file).
-      const guildId = GuildIdStub({ value: '11111111-aaaa-bbbb-cccc-111111111111' });
+      const guildId = GuildIdStub({ value: '787093e7-1906-1194-8299-9ec402ef2c7e' });
       (guildListBroker as jest.MockedFunction<typeof guildListBroker>).mockResolvedValue([
         GuildListItemStub({ id: guildId, valid: true }),
       ]);

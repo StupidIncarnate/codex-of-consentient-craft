@@ -7,13 +7,15 @@
  */
 import { z } from 'zod';
 
+import { toolInputParamNameContract } from '../tool-input-param-name/tool-input-param-name-contract';
+
 const transcriptContentItemContract = z
   .object({
     type: z.string().brand<'TranscriptContentType'>(),
     name: z.string().min(1).brand<'TranscriptToolName'>().optional(),
-    input: z.record(z.unknown()).optional(),
+    input: z.record(toolInputParamNameContract, z.unknown()).optional(),
   })
-  .passthrough();
+  .loose();
 
 export const transcriptLineContract = z
   .object({
@@ -24,8 +26,8 @@ export const transcriptLineContract = z
           z.array(transcriptContentItemContract),
         ]),
       })
-      .passthrough(),
+      .loose(),
   })
-  .passthrough();
+  .loose();
 
 export type TranscriptLine = z.infer<typeof transcriptLineContract>;

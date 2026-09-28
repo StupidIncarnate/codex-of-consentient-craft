@@ -21,7 +21,7 @@ describe('laneProcessNameContract', () => {
   describe('invalid names', () => {
     it('INVALID: {value: ""} => throws for an empty string', () => {
       expect(() => laneProcessNameContract.parse('' as never)).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
   });

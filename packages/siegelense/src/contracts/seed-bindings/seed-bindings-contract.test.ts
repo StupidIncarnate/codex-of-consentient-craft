@@ -38,7 +38,7 @@ describe('seedBindingsContract', () => {
     });
 
     it('INVALID: {a non-string id} => throws', () => {
-      expect(() => seedBindingsContract.parse({ g: { guildSlug: 3 } })).toThrow(/Expected string/u);
+      expect(() => seedBindingsContract.parse({ g: { guildSlug: 3 } })).toThrow(/expected string/u);
     });
   });
 });

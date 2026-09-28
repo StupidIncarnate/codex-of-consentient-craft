@@ -12,7 +12,11 @@ describe('isTimerHoldingLoopGuard', () => {
     });
 
     it('VALID: {handle without hasRef} => returns true', () => {
-      const handle = TimerHandleStub({ hasRef: undefined });
+      // Destructuring `hasRef` back OFF the stub's own always-present default is what produces a
+      // handle genuinely missing the key — `exactOptionalPropertyTypes` refuses
+      // `TimerHandleStub({ hasRef: undefined })` (an explicit `undefined` is not an absent key), and
+      // this is the real jsdom shape the contract's own header names: no method at all.
+      const { hasRef: _hasRef, ...handle } = TimerHandleStub({ hasRef: (): boolean => true });
 
       const result = isTimerHoldingLoopGuard({ handle });
 

@@ -32,7 +32,7 @@ describe('guildGetBroker', () => {
 
     it('VALID: {guildId among multiple guilds} => returns matching guild', async () => {
       const proxy = guildGetBrokerProxy();
-      const guildId = GuildIdStub({ value: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee' });
+      const guildId = GuildIdStub({ value: 'a99ef0d8-6ae0-1972-9617-694d449a8242' });
       const guild1 = GuildStub({
         id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         name: 'First Guild',
@@ -52,7 +52,7 @@ describe('guildGetBroker', () => {
       const result = await guildGetBroker({ guildId });
 
       expect(result).toStrictEqual({
-        id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
+        id: 'a99ef0d8-6ae0-1972-9617-694d449a8242',
         name: 'Second Guild',
         path: '/home/user/second',
         urlSlug: 'my-guild',
@@ -92,20 +92,20 @@ describe('guildGetBroker', () => {
   describe('error cases', () => {
     it('ERROR: {guildId not in config} => throws guild not found', async () => {
       const proxy = guildGetBrokerProxy();
-      const guildId = GuildIdStub({ value: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee' });
+      const guildId = GuildIdStub({ value: 'a99ef0d8-6ae0-1972-9617-694d449a8242' });
 
       proxy.setupConfig({
         config: GuildConfigStub({ guilds: [] }),
       });
 
       await expect(guildGetBroker({ guildId })).rejects.toThrow(
-        /Guild not found: aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee/u,
+        /Guild not found: a99ef0d8-6ae0-1972-9617-694d449a8242/u,
       );
     });
 
     it('ERROR: {guildId not matching any guild} => throws guild not found', async () => {
       const proxy = guildGetBrokerProxy();
-      const guildId = GuildIdStub({ value: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee' });
+      const guildId = GuildIdStub({ value: 'a99ef0d8-6ae0-1972-9617-694d449a8242' });
       const otherGuild = GuildStub({
         id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         name: 'Other Guild',
@@ -117,7 +117,7 @@ describe('guildGetBroker', () => {
       });
 
       await expect(guildGetBroker({ guildId })).rejects.toThrow(
-        /Guild not found: aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee/u,
+        /Guild not found: a99ef0d8-6ae0-1972-9617-694d449a8242/u,
       );
     });
   });

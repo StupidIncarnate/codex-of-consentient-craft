@@ -28,19 +28,19 @@ describe('refContract', () => {
 
   describe('invalid refs', () => {
     it('INVALID: {value: 0} => throws, because a ref is index + 1 and zero names no element', () => {
-      expect(() => refContract.parse(0)).toThrow(/Number must be greater than 0/u);
+      expect(() => refContract.parse(0)).toThrow(/expected number to be >0/u);
     });
 
     it('INVALID: {value: -1} => throws for a negative ref', () => {
-      expect(() => refContract.parse(-1)).toThrow(/Number must be greater than 0/u);
+      expect(() => refContract.parse(-1)).toThrow(/expected number to be >0/u);
     });
 
     it('INVALID: {value: 2.5} => throws, because a ref indexes an array', () => {
-      expect(() => refContract.parse(2.5)).toThrow(/Expected integer/u);
+      expect(() => refContract.parse(2.5)).toThrow(/expected int/u);
     });
 
     it('INVALID: {value: "23"} => throws, because a ref is a number and never its rendering', () => {
-      expect(() => refContract.parse('23')).toThrow(/Expected number/u);
+      expect(() => refContract.parse('23')).toThrow(/expected number/u);
     });
   });
 });

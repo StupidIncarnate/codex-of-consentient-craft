@@ -21,11 +21,11 @@ import { ExecutionWorkItemRowLayerWidgetProxy } from './execution-work-item-row-
 
 type WorkItem = ReturnType<typeof WorkItemStub>;
 
-const WORK_ITEM_ID = 'a0000000-0000-0000-0000-000000000001';
-const OTHER_WORK_ITEM_ID = 'a0000000-0000-0000-0000-000000000002';
-const OPERATION_ID = 'b0000000-0000-0000-0000-000000000001';
-const WARD_RESULT_ID = 'c0000000-0000-0000-0000-000000000001';
-const RIFTCARVER_RESULT_ID = 'd0000000-0000-0000-0000-000000000001';
+const WORK_ITEM_ID = '235be74a-c2e6-687c-a91c-7169625c0e54';
+const OTHER_WORK_ITEM_ID = '7d42a5b3-83e0-4dd4-b874-900390937194';
+const OPERATION_ID = '3f7c9e4e-ea08-7bad-a78c-fcab0b84eaf6';
+const WARD_RESULT_ID = '9f92cf78-df88-8045-8f8b-9d869216ec50';
+const RIFTCARVER_RESULT_ID = '8db58781-279c-7bd0-a752-efcc1eab8df0';
 
 const defaultParams = ({ workItem }: { workItem: WorkItem }) => ({
   order: RowOrderStub({ value: 1 }),
@@ -289,7 +289,7 @@ describe('ExecutionWorkItemRowLayerWidget', () => {
       ExecutionWorkItemRowLayerWidgetProxy();
       const dep1Id = QuestWorkItemIdStub({ value: WORK_ITEM_ID });
       const dep2Id = QuestWorkItemIdStub({ value: OTHER_WORK_ITEM_ID });
-      const thisWorkItemId = 'a0000000-0000-0000-0000-000000000003';
+      const thisWorkItemId = '0c478f2e-447c-8816-a9f9-24a2987ea557';
       const workItem = WorkItemStub({
         id: thisWorkItemId,
         role: 'codeweaver',

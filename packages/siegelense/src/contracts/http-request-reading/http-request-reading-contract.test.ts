@@ -46,7 +46,7 @@ describe('httpRequestReadingContract', () => {
           headers: {},
           body: null,
         } as never);
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {non-integer status} => throws validation error', () => {
@@ -57,7 +57,7 @@ describe('httpRequestReadingContract', () => {
           headers: {},
           body: null,
         } as never);
-      }).toThrow(/Expected integer/u);
+      }).toThrow(/expected int/u);
     });
 
     it('INVALID: {extra unknown field} => throws strict validation error', () => {

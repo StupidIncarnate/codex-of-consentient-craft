@@ -33,7 +33,7 @@ const workspacePackageExportEntryContract = z
   .object({
     source: workspacePackageExportSourcePathContract.optional(),
   })
-  .passthrough();
+  .loose();
 
 // Node's own `exports` map allows a bare string value too (`"./jest-config-base": "./jest-config-base.js"`,
 // this repo's own `@dungeonmaster/testing` package.json) — every condition resolves to that one path,
@@ -57,7 +57,7 @@ const workspacePackageImportConditionsContract = z
     require: importPathContract.optional(),
     default: importPathContract.optional(),
   })
-  .passthrough();
+  .loose();
 
 export const workspacePackageJsonContract = z
   .object({
@@ -78,6 +78,6 @@ export const workspacePackageJsonContract = z
       )
       .optional(),
   })
-  .passthrough();
+  .loose();
 
 export type WorkspacePackageJson = z.infer<typeof workspacePackageJsonContract>;

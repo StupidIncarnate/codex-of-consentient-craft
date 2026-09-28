@@ -80,7 +80,7 @@ describe('killResultContract', () => {
           },
           reapedPgids: [],
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 });

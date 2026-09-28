@@ -42,7 +42,7 @@ describe('chatCompletePayloadContract', () => {
     it('INVALID: {missing chatProcessId} => throws validation error', () => {
       expect(() => {
         chatCompletePayloadContract.parse({});
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

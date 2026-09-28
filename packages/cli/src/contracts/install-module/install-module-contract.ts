@@ -22,6 +22,6 @@ export const installModuleContract = z
   .object({
     StartInstall: startInstallFnContract,
   })
-  .passthrough();
+  .loose();
 
 export type InstallModule = z.infer<typeof installModuleContract>;

@@ -24,7 +24,7 @@ export const stepRefContract = z
     const match = STEP_REF_SHAPE.exec(raw);
     if (match === null) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         message: `"${raw}" is not a step reference — a reference is wrapped in braces: {step.row.field}.`,
       });
       return z.NEVER;
@@ -36,7 +36,7 @@ export const stepRefContract = z
       segments.some((segment) => segment.length === 0)
     ) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         message: `Step reference "${raw}" has ${String(segments.length)} segment(s) (${segments.join('.')}) — a step reference always has three: {step.row.field}.`,
       });
       return z.NEVER;

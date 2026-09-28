@@ -27,6 +27,6 @@ describe('askUserQuestionToolInputContract', (): void => {
   });
 
   it('ERROR: {non-object} => throws', (): void => {
-    expect((): unknown => askUserQuestionToolInputContract.parse(42)).toThrow(/Expected object/u);
+    expect((): unknown => askUserQuestionToolInputContract.parse(42)).toThrow(/expected object/u);
   });
 });

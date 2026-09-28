@@ -17,6 +17,6 @@ describe('questTitleContract', () => {
   it('INVALID: {value: ""} => throws validation error', () => {
     expect(() => {
       return questTitleContract.parse('');
-    }).toThrow(/String must contain at least 1 character/u);
+    }).toThrow(/expected string to have >=1 characters/u);
   });
 });

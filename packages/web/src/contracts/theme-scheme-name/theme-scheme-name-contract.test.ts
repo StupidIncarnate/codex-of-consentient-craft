@@ -28,22 +28,22 @@ describe('themeSchemeNameContract', () => {
   describe('invalid inputs', () => {
     it('INVALID: {value: ""} => throws for empty string', () => {
       expect(() => themeSchemeNameContract.parse('')).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
 
     it('INVALID: {value: exceeds max} => throws for exceeding max length', () => {
       expect(() =>
         themeSchemeNameContract.parse('A'.repeat(MAX_THEME_SCHEME_NAME_LENGTH + 1)),
-      ).toThrow(/String must contain at most 50 character/u);
+      ).toThrow(/expected string to have <=50 characters/u);
     });
 
     it('EMPTY: {value: null} => throws for null', () => {
-      expect(() => themeSchemeNameContract.parse(null)).toThrow(/Expected string/u);
+      expect(() => themeSchemeNameContract.parse(null)).toThrow(/expected string/u);
     });
 
     it('EMPTY: {value: undefined} => throws for undefined', () => {
-      expect(() => themeSchemeNameContract.parse(undefined)).toThrow(/Required/u);
+      expect(() => themeSchemeNameContract.parse(undefined)).toThrow(/received undefined/u);
     });
   });
 

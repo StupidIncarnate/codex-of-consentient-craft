@@ -45,7 +45,7 @@ describe('questOutboxLineContract', () => {
           questId: 'add-auth',
           timestamp: 'not-a-date',
         }),
-      ).toThrow(/Invalid datetime/u);
+      ).toThrow(/Invalid ISO datetime/u);
     });
 
     it('INVALID: {timestamp: ""} => throws error', () => {
@@ -54,11 +54,11 @@ describe('questOutboxLineContract', () => {
           questId: 'add-auth',
           timestamp: '',
         }),
-      ).toThrow(/Invalid datetime/u);
+      ).toThrow(/Invalid ISO datetime/u);
     });
 
     it('INVALID: {missing both fields} => throws error', () => {
-      expect(() => questOutboxLineContract.parse({})).toThrow(/Required/u);
+      expect(() => questOutboxLineContract.parse({})).toThrow(/received undefined/u);
     });
 
     it('INVALID: {questId: number} => throws error', () => {
@@ -67,7 +67,7 @@ describe('questOutboxLineContract', () => {
           questId: 123,
           timestamp: '2024-01-15T10:00:00.000Z',
         }),
-      ).toThrow(/Expected string/u);
+      ).toThrow(/expected string/u);
     });
   });
 

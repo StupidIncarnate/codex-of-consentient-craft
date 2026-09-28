@@ -24,7 +24,7 @@ describe('recipeResultContract', () => {
 
   describe('invalid results', () => {
     it('INVALID: {value: 3} => throws', () => {
-      expect(() => recipeResultContract.parse({ guildId: 3 })).toThrow(/Expected string/u);
+      expect(() => recipeResultContract.parse({ guildId: 3 })).toThrow(/expected string/u);
     });
 
     it('INVALID: {key: "has space"} => throws naming the segment rule', () => {

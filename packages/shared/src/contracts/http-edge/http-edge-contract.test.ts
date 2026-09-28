@@ -97,7 +97,7 @@ describe('httpEdgeContract', () => {
           webBrokerFile: null,
           paired: false,
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {missing paired} => throws ZodError', () => {
@@ -109,7 +109,7 @@ describe('httpEdgeContract', () => {
           serverResponderFile: null,
           webBrokerFile: null,
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 });

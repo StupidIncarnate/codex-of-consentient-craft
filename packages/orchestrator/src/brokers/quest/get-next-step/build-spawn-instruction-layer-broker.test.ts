@@ -496,7 +496,7 @@ describe('buildSpawnInstructionLayerBroker', () => {
 
       expect(() =>
         buildSpawnInstructionLayerBroker({ quest: QuestStub({ id: questId }), workItem }),
-      ).toThrow(/Invalid enum value/u);
+      ).toThrow(/Invalid option/u);
     });
 
     // The other member of `workItemRoleStatics.command`, and the reason
@@ -517,7 +517,7 @@ describe('buildSpawnInstructionLayerBroker', () => {
 
       expect(() =>
         buildSpawnInstructionLayerBroker({ quest: QuestStub({ id: questId }), workItem }),
-      ).toThrow(/Invalid enum value/u);
+      ).toThrow(/Invalid option/u);
     });
   });
 });

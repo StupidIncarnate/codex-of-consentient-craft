@@ -105,7 +105,7 @@ describe('qaChecklistItemContract', () => {
 
   describe('invalid input', () => {
     it('INVALID: {kind: "node"} => throws', () => {
-      expect(() => QaChecklistItemStub({ kind: 'node' as never })).toThrow(/Invalid enum value/u);
+      expect(() => QaChecklistItemStub({ kind: 'node' as never })).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {malformed id} => throws', () => {
@@ -114,13 +114,13 @@ describe('qaChecklistItemContract', () => {
 
     it('EMPTY: {label: ""} => throws, because a unit with no text tells a walker nothing to confirm', () => {
       expect(() => QaChecklistItemStub({ label: '' as never })).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
 
     it('EMPTY: {checkSurface: ""} => throws, because a unit with no surface is unverifiable', () => {
       expect(() => QaChecklistItemStub({ checkSurface: '' as never })).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
 

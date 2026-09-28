@@ -25,7 +25,7 @@ export const rootPackageJsonRegisterTransformer = ({
   rootPackageJson: PackageJsonRaw;
   packageName: PackageName;
 }): PackageJsonRaw => {
-  const dependenciesKey = packageJsonRawContract.keySchema.parse('dependencies');
+  const dependenciesKey = packageJsonRawContract.keyType.parse('dependencies');
   const parsedExisting = dependencyMapContract.safeParse(rootPackageJson[dependenciesKey]);
   const existingDependencies = parsedExisting.success
     ? parsedExisting.data

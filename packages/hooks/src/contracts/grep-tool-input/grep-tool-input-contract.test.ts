@@ -74,13 +74,13 @@ describe('grepToolInputContract', () => {
     it('INVALID: {no pattern} => throws validation error', () => {
       expect(() => {
         return grepToolInputContract.parse({});
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {output_mode: "invalid"} => throws validation error', () => {
       expect(() => {
         return grepToolInputContract.parse({ pattern: 'test', output_mode: 'invalid' });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
   });
 });

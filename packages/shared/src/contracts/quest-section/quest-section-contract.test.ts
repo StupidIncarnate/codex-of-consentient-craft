@@ -62,37 +62,37 @@ describe('questSectionContract', () => {
     it('INVALID: {value: "invalid"} => throws validation error', () => {
       expect(() => {
         return questSectionContract.parse('invalid');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {value: ""} => throws validation error', () => {
       expect(() => {
         return questSectionContract.parse('');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {value: "requirements"} => throws validation error (removed section)', () => {
       expect(() => {
         return questSectionContract.parse('requirements');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {value: "contexts"} => throws validation error (removed section)', () => {
       expect(() => {
         return questSectionContract.parse('contexts');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {value: "observables"} => throws validation error (removed section)', () => {
       expect(() => {
         return questSectionContract.parse('observables');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {value: "steps"} => throws validation error (removed section)', () => {
       expect(() => {
         return questSectionContract.parse('steps');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
   });
 });

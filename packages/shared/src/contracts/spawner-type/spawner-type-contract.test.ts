@@ -30,7 +30,7 @@ describe('spawnerTypeContract', () => {
     it('INVALID: unknown type => throws validation error', () => {
       expect(() => {
         spawnerTypeContract.parse('unknown_type');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
   });
 });

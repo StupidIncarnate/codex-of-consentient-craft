@@ -62,7 +62,7 @@ describe('questRecordParseLayerBroker', () => {
         quest: null,
         blocked:
           `the quest record at ${QUEST_FILE} did not parse, so whether it still cites ` +
-          'inst_9b2c0001 cannot be established: Required; Required; Required; Required; Required',
+          'inst_9b2c0001 cannot be established: Invalid input: expected string, received undefined; Invalid input: expected string, received undefined; Invalid option: expected one of "created"|"pending"|"explore_flows"|"review_flows"|"flows_approved"|"explore_observables"|"review_observables"|"approved"|"in_progress"|"paused"|"blocked"|"complete"|"merging"|"merged"|"abandoned"; Invalid input: expected string, received undefined; Invalid input: expected string, received undefined',
       });
     });
   });

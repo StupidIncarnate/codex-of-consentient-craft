@@ -24,17 +24,15 @@ describe('cssPixelsContract', () => {
 
   describe('invalid pixel values', () => {
     it('ERROR: -1 => throws for negative number', () => {
-      expect(() => cssPixelsContract.parse(-1)).toThrow(
-        /Number must be greater than or equal to 0/u,
-      );
+      expect(() => cssPixelsContract.parse(-1)).toThrow(/expected number to be >=0/u);
     });
 
     it('ERROR: 1.5 => throws for non-integer', () => {
-      expect(() => cssPixelsContract.parse(1.5)).toThrow(/Expected integer, received float/u);
+      expect(() => cssPixelsContract.parse(1.5)).toThrow(/expected int, received number/u);
     });
 
     it('ERROR: "16" => throws for string', () => {
-      expect(() => cssPixelsContract.parse('16')).toThrow(/Expected number, received string/u);
+      expect(() => cssPixelsContract.parse('16')).toThrow(/expected number, received string/u);
     });
   });
 

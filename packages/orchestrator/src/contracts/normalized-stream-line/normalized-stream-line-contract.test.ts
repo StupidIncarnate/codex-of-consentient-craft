@@ -36,7 +36,7 @@ describe('normalizedStreamLineContract', (): void => {
 
   it('ERROR: {non-object root} => parse throws', (): void => {
     expect((): unknown => normalizedStreamLineContract.parse('not-an-object')).toThrow(
-      /Expected object/u,
+      /expected object/u,
     );
   });
 });

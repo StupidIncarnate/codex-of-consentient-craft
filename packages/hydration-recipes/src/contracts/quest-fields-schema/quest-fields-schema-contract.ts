@@ -27,6 +27,5 @@ import type { QuestFields } from '../quest-fields/quest-fields-contract';
 
 export const questFieldsSchemaContract: z.ZodType<
   QuestFields,
-  z.ZodTypeDef,
   z.input<typeof questFieldsContract>
 > = questFieldsContract;

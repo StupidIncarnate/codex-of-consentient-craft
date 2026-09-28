@@ -8,7 +8,7 @@ describe('stepOutputNameContract', () => {
 
   it('INVALID: {value: ""} => throws "String must contain at least 1 character(s)"', () => {
     expect(() => stepOutputNameContract.parse('')).toThrow(
-      /String must contain at least 1 character\(s\)/u,
+      /expected string to have >=1 characters/u,
     );
   });
 });

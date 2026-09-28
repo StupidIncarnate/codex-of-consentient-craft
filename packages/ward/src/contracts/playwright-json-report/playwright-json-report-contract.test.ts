@@ -57,7 +57,7 @@ describe('playwrightJsonReportContract', () => {
         playwrightJsonReportContract.parse({
           suites: 'oops',
         }),
-      ).toThrow(/Expected array/u);
+      ).toThrow(/expected array/u);
     });
 
     it('INVALID: {suite.specs: 5} => throws validation error', () => {
@@ -65,7 +65,7 @@ describe('playwrightJsonReportContract', () => {
         playwrightJsonReportContract.parse({
           suites: [{ title: 't', specs: 5 }],
         }),
-      ).toThrow(/Expected array/u);
+      ).toThrow(/expected array/u);
     });
   });
 

@@ -42,8 +42,10 @@ export const questBlueprintContract = questContract
     skipRoles: z.array(workItemRoleContract).default([]),
     fixedQuestId: questIdContract.optional(),
     fixedWorkItemId: questWorkItemIdContract.optional(),
+    // `z.partialRecord`, not `z.record` — zod v4 made an enum-keyed `z.record` exhaustive (every
+    // role required), and a real caller overrides at most a few roles' prompts.
     rolePromptOverrides: z
-      .record(workItemRoleContract, z.string().min(1).brand<'PromptText'>())
+      .partialRecord(workItemRoleContract, z.string().min(1).brand<'PromptText'>())
       .default({}),
   });
 

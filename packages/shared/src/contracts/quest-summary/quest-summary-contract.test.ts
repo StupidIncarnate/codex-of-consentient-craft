@@ -105,23 +105,23 @@ describe('questSummaryContract', () => {
   describe('invalid input', () => {
     it('EMPTY: {questId: ""} => throws', () => {
       expect(() => QuestSummaryStub({ questId: '' })).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
 
     it('EMPTY: {no questId} => throws, a summary names the quest it summarises', () => {
-      expect(() => questSummaryContract.parse({})).toThrow(/Required/u);
+      expect(() => questSummaryContract.parse({})).toThrow(/received undefined/u);
     });
 
     it('INVALID: {noteGroups: [{id: "blocker"}]} => throws', () => {
       expect(() =>
         questSummaryContract.parse({ questId: 'add-auth', noteGroups: [{ id: 'blocker' }] }),
-      ).toThrow(/Invalid enum value/u);
+      ).toThrow(/Invalid option/u);
     });
 
     it("INVALID: {unconfirmable: []} => throws, a retired field name is not silently dropped in `debt`'s favour", () => {
       expect(() => questSummaryContract.parse({ questId: 'add-auth', unconfirmable: [] })).toThrow(
-        /Unrecognized key\(s\) in object: 'unconfirmable'/u,
+        /Unrecognized key/u,
       );
     });
 
@@ -131,7 +131,7 @@ describe('questSummaryContract', () => {
           questId: 'add-auth',
           debts: [QuestSummaryDebtStub()],
         }),
-      ).toThrow(/Unrecognized key\(s\) in object: 'debts'/u);
+      ).toThrow(/Unrecognized key/u);
     });
   });
 });

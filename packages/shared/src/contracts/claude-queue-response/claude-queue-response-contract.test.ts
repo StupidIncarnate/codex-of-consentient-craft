@@ -168,7 +168,7 @@ describe('claudeQueueResponseContract', () => {
           lines: [],
           signalBack: { operationStatus: 'done' },
         });
-      }).toThrow(/Expected boolean/u);
+      }).toThrow(/expected boolean/u);
     });
   });
 

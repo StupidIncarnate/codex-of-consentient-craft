@@ -117,9 +117,9 @@ describe('QuestModifyResponder', () => {
 
   describe('resume from paused with work items', () => {
     it('VALID: {paused quest with pending items, status→in_progress} => registers orchestration process', async () => {
-      const planId = QuestWorkItemIdStub({ value: '00000000-0000-0000-0000-000000000001' });
-      const cw1Id = QuestWorkItemIdStub({ value: '00000000-0000-0000-0000-000000000002' });
-      const cw2Id = QuestWorkItemIdStub({ value: '00000000-0000-0000-0000-000000000003' });
+      const planId = QuestWorkItemIdStub({ value: 'c96589ee-fb08-28c0-b179-095bcd0cef5f' });
+      const cw1Id = QuestWorkItemIdStub({ value: '81f426e0-1386-5542-a1f6-e46a94b91dd3' });
+      const cw2Id = QuestWorkItemIdStub({ value: 'ba584060-c8f2-4b59-8ce3-f17766ba76d3' });
 
       const quest = QuestStub({
         id: 'add-auth',
@@ -156,10 +156,10 @@ describe('QuestModifyResponder', () => {
     });
 
     it('VALID: {paused quest with mixed complete/failed/pending, status→in_progress} => registers orchestration process', async () => {
-      const planId = QuestWorkItemIdStub({ value: '00000000-0000-0000-0000-000000000001' });
-      const cw1Id = QuestWorkItemIdStub({ value: '00000000-0000-0000-0000-000000000002' });
-      const cw2Id = QuestWorkItemIdStub({ value: '00000000-0000-0000-0000-000000000003' });
-      const scout1Id = QuestWorkItemIdStub({ value: '00000000-0000-0000-0000-000000000004' });
+      const planId = QuestWorkItemIdStub({ value: 'c96589ee-fb08-28c0-b179-095bcd0cef5f' });
+      const cw1Id = QuestWorkItemIdStub({ value: '81f426e0-1386-5542-a1f6-e46a94b91dd3' });
+      const cw2Id = QuestWorkItemIdStub({ value: 'ba584060-c8f2-4b59-8ce3-f17766ba76d3' });
+      const scout1Id = QuestWorkItemIdStub({ value: 'f9057c2c-1e0a-8041-93c0-77bb4a16a8d2' });
 
       const quest = QuestStub({
         id: 'add-auth',

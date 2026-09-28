@@ -16,7 +16,7 @@ describe('createQuestInputContract', () => {
 
   it('INVALID: {userRequest: ""} (empty string) => throws min length error', () => {
     expect(() => createQuestInputContract.parse({ userRequest: '' })).toThrow(
-      /String must contain at least 1/u,
+      /Too small: expected string to have >=1 characters/u,
     );
   });
 
@@ -38,7 +38,7 @@ describe('createQuestInputContract', () => {
         userRequest: 'valid',
         questType: 'bogus',
       } as never),
-    ).toThrow(/Invalid enum value/u);
+    ).toThrow(/Invalid option/u);
   });
 
   it('INVALID: {userRequest, questId: "anything"} => throws Unrecognized key error', () => {

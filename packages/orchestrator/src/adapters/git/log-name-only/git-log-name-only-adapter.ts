@@ -77,7 +77,7 @@ export const gitLogNameOnlyAdapter = async ({
 
       const scope = scopeLine?.slice(SCOPE_LINE_PREFIX.length).trim() ?? '';
 
-      return questWorkViewContract.shape.committedPaths.removeDefault().element.parse({
+      return questWorkViewContract.shape.committedPaths.unwrap().element.parse({
         sha: commitShaContract.parse(fields[SHA_INDEX]?.trim() ?? ''),
         scope: scope.length > 0 ? scope : null,
         subject: fields[SUBJECT_INDEX]?.trim() ?? '',

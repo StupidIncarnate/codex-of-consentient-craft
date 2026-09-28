@@ -63,7 +63,7 @@ describe('postToolUseHookDataContract', () => {
           cwd: '/cwd',
           hook_event_name: 'PostToolUse',
         } as never);
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

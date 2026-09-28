@@ -8,7 +8,7 @@
 
 import { z } from 'zod';
 
-const baseQuestContractPropertyContract = z.object({
+const questContractPropertyFields = z.object({
   name: z
     .string()
     .min(1)
@@ -50,18 +50,18 @@ const baseQuestContractPropertyContract = z.object({
     ),
 });
 
-export type QuestContractProperty = z.infer<typeof baseQuestContractPropertyContract> & {
-  properties?: QuestContractProperty[] | undefined;
+type QuestContractPropertySelf = z.infer<typeof questContractPropertyFields> & {
+  properties?: QuestContractPropertySelf[] | undefined;
 };
 
-type QuestContractPropertyInput = z.input<typeof baseQuestContractPropertyContract> & {
-  properties?: QuestContractPropertyInput[] | undefined;
-};
+// A getter, not `z.lazy` + a cast — the getter's return type wraps `z.core.$ZodType`, which is
+// the only self-reference form `contracts/` allows (zod v4 dropped the old `z.ZodTypeDef` type
+// param `z.lazy` needed here).
+export const questContractPropertyContract = z.object({
+  ...questContractPropertyFields.shape,
+  get properties(): z.ZodOptional<z.ZodArray<z.core.$ZodType<QuestContractPropertySelf>>> {
+    return z.array(questContractPropertyContract).optional();
+  },
+});
 
-export const questContractPropertyContract: z.ZodType<
-  QuestContractProperty,
-  z.ZodTypeDef,
-  QuestContractPropertyInput
-> = baseQuestContractPropertyContract.extend({
-  properties: z.lazy(() => z.array(questContractPropertyContract)).optional(),
-}) as unknown as z.ZodType<QuestContractProperty, z.ZodTypeDef, QuestContractPropertyInput>;
+export type QuestContractProperty = z.infer<typeof questContractPropertyContract>;

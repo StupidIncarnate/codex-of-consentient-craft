@@ -62,12 +62,12 @@ describe('markdownSpanContract', () => {
 
     it('INVALID: {kind: "link", no href} => throws when a link omits its target', () => {
       expect(() => markdownSpanContract.parse({ kind: 'link', text: 'the docs' })).toThrow(
-        /Required/u,
+        /received undefined/u,
       );
     });
 
     it('EMPTY: {value: undefined} => throws for undefined', () => {
-      expect(() => markdownSpanContract.parse(undefined)).toThrow(/Required/u);
+      expect(() => markdownSpanContract.parse(undefined)).toThrow(/received undefined/u);
     });
   });
 

@@ -18,19 +18,19 @@ describe('sessionFilterContract', () => {
 
   describe('invalid inputs', () => {
     it('INVALID: {value: "sessions-only"} => throws for unknown filter', () => {
-      expect(() => sessionFilterContract.parse('sessions-only')).toThrow(/Invalid enum value/u);
+      expect(() => sessionFilterContract.parse('sessions-only')).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {value: ""} => throws for empty string', () => {
-      expect(() => sessionFilterContract.parse('')).toThrow(/Invalid enum value/u);
+      expect(() => sessionFilterContract.parse('')).toThrow(/Invalid option/u);
     });
 
     it('EMPTY: {value: null} => throws for null', () => {
-      expect(() => sessionFilterContract.parse(null)).toThrow(/received null/u);
+      expect(() => sessionFilterContract.parse(null)).toThrow(/Invalid option/u);
     });
 
     it('EMPTY: {value: undefined} => throws for undefined', () => {
-      expect(() => sessionFilterContract.parse(undefined)).toThrow(/Required/u);
+      expect(() => sessionFilterContract.parse(undefined)).toThrow(/Invalid option/u);
     });
   });
 

@@ -18,7 +18,7 @@ describe('displayLabelContract', () => {
 
   describe('invalid inputs', () => {
     it('INVALID: {value: 123} => throws for number', () => {
-      expect(() => displayLabelContract.parse(123)).toThrow(/Expected string/u);
+      expect(() => displayLabelContract.parse(123)).toThrow(/expected string/u);
     });
   });
 

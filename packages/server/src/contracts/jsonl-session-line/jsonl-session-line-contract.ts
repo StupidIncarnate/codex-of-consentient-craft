@@ -18,9 +18,9 @@ export const jsonlSessionLineContract = z
       .object({
         content: z.string().min(1).brand<'JsonlMessageContent'>().optional(),
       })
-      .passthrough()
+      .loose()
       .optional(),
   })
-  .passthrough();
+  .loose();
 
 export type JsonlSessionLine = z.infer<typeof jsonlSessionLineContract>;

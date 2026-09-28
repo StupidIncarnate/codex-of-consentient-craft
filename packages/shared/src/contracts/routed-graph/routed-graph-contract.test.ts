@@ -55,19 +55,19 @@ describe('routedGraphContract', () => {
   describe('invalid graphs', () => {
     it('INVALID: {graphName: ""} => throws validation error', () => {
       expect(() => routedGraphContract.parse({ graphName: '', entry: 'plan', nodes: {} })).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
 
     it('INVALID: {entry: ""} => throws validation error', () => {
       expect(() =>
         routedGraphContract.parse({ graphName: 'codeweaver', entry: '', nodes: {} }),
-      ).toThrow(/String must contain at least 1 character/u);
+      ).toThrow(/expected string to have >=1 characters/u);
     });
 
     it('INVALID: {missing nodes} => throws validation error', () => {
       expect(() => routedGraphContract.parse({ graphName: 'codeweaver', entry: 'plan' })).toThrow(
-        /Required/u,
+        /received undefined/u,
       );
     });
 
@@ -78,7 +78,7 @@ describe('routedGraphContract', () => {
           entry: 'plan',
           nodes: { plan: { routes: {}, maxVisits: 0 } },
         }),
-      ).toThrow(/greater than 0/u);
+      ).toThrow(/to be >0/u);
     });
   });
 });

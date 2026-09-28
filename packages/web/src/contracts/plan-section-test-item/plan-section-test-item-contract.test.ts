@@ -13,12 +13,12 @@ describe('planSectionTestItemContract', () => {
   describe('invalid inputs', () => {
     it('INVALID: {text: ""} => throws for empty text', () => {
       expect(() => planSectionTestItemContract.parse({ text: '' })).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
 
     it('EMPTY: {value: null} => throws for null', () => {
-      expect(() => planSectionTestItemContract.parse(null)).toThrow(/Expected object/u);
+      expect(() => planSectionTestItemContract.parse(null)).toThrow(/expected object/u);
     });
   });
 

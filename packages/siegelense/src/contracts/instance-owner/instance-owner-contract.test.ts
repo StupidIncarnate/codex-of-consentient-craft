@@ -13,7 +13,7 @@ describe('instanceOwnerContract', () => {
   it('INVALID: {value: ""} => throws validation error', () => {
     expect(() => {
       instanceOwnerContract.parse('');
-    }).toThrow(/String must contain at least 1 character/u);
+    }).toThrow(/expected string to have >=1 characters/u);
   });
 
   it('EDGE: {value: "1"} => a single-character owner id parses successfully', () => {

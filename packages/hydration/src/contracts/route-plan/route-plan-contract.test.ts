@@ -21,7 +21,7 @@ describe('routePlanContract', () => {
   describe('a route this contract does not recognise', () => {
     it('INVALID: {guild: "socket"} => throws naming the valid routes', () => {
       expect(() => routePlanContract.parse({ guild: 'socket' })).toThrow(
-        /Invalid enum value\. Expected 'api' \| 'write', received 'socket'/u,
+        /Invalid option: expected one of \\"api\\"\|\\"write\\"/u,
       );
     });
   });

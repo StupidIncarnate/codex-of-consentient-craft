@@ -182,7 +182,7 @@ describe('instanceStatusContract', () => {
           branch: null,
           evidenceComplete: true,
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {missing rssAtLastBeat} => throws Required, because .nullable() is not .optional()', () => {
@@ -202,7 +202,7 @@ describe('instanceStatusContract', () => {
           branch: null,
           evidenceComplete: true,
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {missing evidenceComplete} => throws Required', () => {
@@ -222,7 +222,7 @@ describe('instanceStatusContract', () => {
           likelyCause: null,
           branch: null,
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {state: "starting"} => throws for an unlisted InstanceState', () => {
@@ -243,7 +243,7 @@ describe('instanceStatusContract', () => {
           branch: null,
           evidenceComplete: true,
         }),
-      ).toThrow(/Invalid enum value/u);
+      ).toThrow(/Invalid option/u);
     });
   });
 });

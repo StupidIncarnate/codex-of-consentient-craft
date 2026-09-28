@@ -15,6 +15,7 @@ import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { pastedImagePersistBrokerProxy } from '../../../brokers/pasted-image/persist/pasted-image-persist-broker.proxy';
+import { zodFirstFieldErrorMessageAdapterProxy } from '../../../adapters/zod/first-field-error-message/zod-first-field-error-message-adapter.proxy';
 import { QuestChatResponder } from './quest-chat-responder';
 
 type Quest = ReturnType<typeof QuestStub>;
@@ -65,6 +66,9 @@ export const QuestChatResponderProxy = (): {
   // boundary underneath it (mkdir, writeFile, randomUUID, homedir), composed exactly the way the
   // broker's own test does.
   const persistProxy = pastedImagePersistBrokerProxy();
+  // The adapter has no I/O to mock (see its own proxy header) — composing it here is what the
+  // proxy-child-creation rule expects of every implementation import, not a stage this test needs.
+  zodFirstFieldErrorMessageAdapterProxy();
   // pastedImagePersistBroker's own chain resolves `join(homePath, 'guilds', guildId)` — 3 real
   // args — through `#gateway/node/path`'s real-passthrough default that broker's own proxy
   // stages. That default is address-less (0 args), so it loses to findQuestPathProxy's own

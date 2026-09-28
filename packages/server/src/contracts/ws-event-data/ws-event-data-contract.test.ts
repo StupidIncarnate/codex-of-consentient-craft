@@ -14,7 +14,7 @@ describe('wsEventDataContract', () => {
     it('INVALID: not an object => throws validation error', () => {
       expect(() => {
         wsEventDataContract.parse('hello');
-      }).toThrow(/Expected object/u);
+      }).toThrow(/expected object/u);
     });
   });
 });

@@ -15,15 +15,15 @@ describe('elementFlagContract', () => {
 
   describe('invalid members', () => {
     it('INVALID: {value: "className"} => throws, because a class is a mechanism and never a condition', () => {
-      expect(() => elementFlagContract.parse('className')).toThrow(/Invalid enum value/u);
+      expect(() => elementFlagContract.parse('className')).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {value: "has-listener"} => throws, because nothing infers a dead control from a listener', () => {
-      expect(() => elementFlagContract.parse('has-listener')).toThrow(/Invalid enum value/u);
+      expect(() => elementFlagContract.parse('has-listener')).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {value: ""} => throws', () => {
-      expect(() => elementFlagContract.parse('')).toThrow(/Invalid enum value/u);
+      expect(() => elementFlagContract.parse('')).toThrow(/Invalid option/u);
     });
   });
 });

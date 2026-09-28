@@ -58,13 +58,13 @@ describe('keyListingContract', () => {
     it('INVALID: {map: "shots/step4-map.png"} => throws naming the stray key, because the map ships later and the field is ABSENT', () => {
       expect(() =>
         keyListingContract.parse({ ...KeyListingStub(), map: 'shots/step4-map.png' }),
-      ).toThrow(/Unrecognized key\(s\) in object: 'map'/u);
+      ).toThrow(/Unrecognized key: \\"map\\"/u);
     });
 
     it('INVALID: {missing rendered} => throws Required, because the key IS the navigation surface', () => {
       expect(() =>
         keyListingContract.parse({ within: null, rows: [], duplicates: [], truncated: [] }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 });

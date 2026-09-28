@@ -32,7 +32,7 @@ describe('binEntryContract', () => {
         binEntryContract.parse({
           binPath: './dist/src/startup/start-pre-edit-hook.js',
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {missing binPath} => throws ZodError', () => {
@@ -40,7 +40,7 @@ describe('binEntryContract', () => {
         binEntryContract.parse({
           binName: 'dungeonmaster-pre-edit-lint',
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 });

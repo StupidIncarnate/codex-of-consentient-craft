@@ -30,7 +30,7 @@ describe('untilConsolePatternContract', () => {
   describe('an empty string', () => {
     it('EMPTY: {value: ""} => throws for failing the minimum length', () => {
       expect(() => untilConsolePatternContract.parse('')).toThrow(
-        /String must contain at least 1/u,
+        /Too small: expected string to have >=1 characters/u,
       );
     });
   });

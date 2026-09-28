@@ -57,7 +57,7 @@ describe('widgetNodeContract', () => {
           bindingsAttached: [],
           children: [],
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {missing filePath} => throws validation error', () => {
@@ -67,7 +67,7 @@ describe('widgetNodeContract', () => {
           bindingsAttached: [],
           children: [],
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

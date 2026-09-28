@@ -42,19 +42,19 @@ describe('violationComparisonMessageContract', () => {
     it('INVALID: {value: number} => throws validation error', () => {
       expect(() => {
         return violationComparisonMessageContract.parse(123);
-      }).toThrow('Expected string');
+      }).toThrow('expected string');
     });
 
     it('INVALID: {value: null} => throws validation error', () => {
       expect(() => {
         return violationComparisonMessageContract.parse(null);
-      }).toThrow('Expected string');
+      }).toThrow('expected string');
     });
 
     it('INVALID: {value: object} => throws validation error', () => {
       expect(() => {
         return violationComparisonMessageContract.parse({ message: 'test' });
-      }).toThrow('Expected string');
+      }).toThrow('expected string');
     });
   });
 });

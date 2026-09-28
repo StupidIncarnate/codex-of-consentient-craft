@@ -5,9 +5,12 @@ describe('endpointMockLifecycleContract', () => {
   describe('valid lifecycle', () => {
     it('VALID: {default stub} => creates lifecycle with listen, resetHandlers, close', () => {
       const lifecycle = EndpointMockLifecycleStub();
+      // `.loose()` carries an already-built lifecycle's functions through `.parse()` UNVALIDATED
+      // (see the contract's own header) — a real caller's functions pass through unchanged, they are
+      // never stripped.
       const parsed = endpointMockLifecycleContract.parse(lifecycle);
 
-      expect(parsed).toStrictEqual({});
+      expect(parsed).toStrictEqual(lifecycle);
       expect(lifecycle).toStrictEqual({
         listen: expect.any(Function),
         resetHandlers: expect.any(Function),

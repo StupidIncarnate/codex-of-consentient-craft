@@ -52,25 +52,25 @@ describe('filePathContract', () => {
     it('INVALID: {path: ""} => throws ZodError', () => {
       expect(() => {
         return filePathContract.parse('');
-      }).toThrow('String must contain at least 1 character');
+      }).toThrow('expected string to have >=1 characters');
     });
 
     it('INVALID: {path: 123} => throws ZodError', () => {
       expect(() => {
         return filePathContract.parse(123);
-      }).toThrow('Expected string');
+      }).toThrow('expected string');
     });
 
     it('INVALID: {path: null} => throws ZodError', () => {
       expect(() => {
         return filePathContract.parse(null);
-      }).toThrow('Expected string');
+      }).toThrow('expected string');
     });
 
     it('INVALID: {path: undefined} => throws ZodError', () => {
       expect(() => {
         return filePathContract.parse(undefined);
-      }).toThrow('Required');
+      }).toThrow('received undefined');
     });
   });
 });

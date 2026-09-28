@@ -41,7 +41,7 @@ describe('subagentFieldsContract', () => {
   });
 
   describe('invalid subagent fields', () => {
-    it('INVALID: {no agentId} => throws "Required"', () => {
+    it('INVALID: {no agentId} => throws "received undefined"', () => {
       expect(() =>
         subagentFieldsContract.parse({
           toolUseId: 'toolu_seed1',
@@ -52,7 +52,7 @@ describe('subagentFieldsContract', () => {
           sessionId: 'seed-session-1',
           cwd: '/tmp/guilds-under-test/guild-1',
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {completed: "yes"} => throws "Expected boolean"', () => {
@@ -67,7 +67,7 @@ describe('subagentFieldsContract', () => {
           sessionId: 'seed-session-1',
           cwd: '/tmp/guilds-under-test/guild-1',
         }),
-      ).toThrow(/Expected boolean/u);
+      ).toThrow(/expected boolean/u);
     });
 
     it('INVALID: {taskDescription: ""} => throws on empty string', () => {
@@ -87,8 +87,8 @@ describe('subagentFieldsContract', () => {
   });
 
   describe('empty subagent fields', () => {
-    it('EMPTY: {} => throws "Required"', () => {
-      expect(() => subagentFieldsContract.parse({})).toThrow(/Required/u);
+    it('EMPTY: {} => throws "received undefined"', () => {
+      expect(() => subagentFieldsContract.parse({})).toThrow(/received undefined/u);
     });
   });
 });

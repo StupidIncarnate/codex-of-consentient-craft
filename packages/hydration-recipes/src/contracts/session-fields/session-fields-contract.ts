@@ -41,6 +41,5 @@ export type SessionFields = z.infer<typeof sessionFieldsShape>;
 
 export const sessionFieldsContract: z.ZodType<
   SessionFields,
-  z.ZodTypeDef,
   z.input<typeof sessionFieldsShape>
 > = sessionFieldsShape;

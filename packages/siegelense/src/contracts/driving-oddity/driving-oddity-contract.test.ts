@@ -32,7 +32,7 @@ describe('drivingOddityContract', () => {
     it('INVALID: {kind: "broken"} => an unlisted kind throws validation error', () => {
       expect(() => {
         DrivingOddityStub({ kind: 'broken' as never });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {missing key} => throws validation error', () => {
@@ -41,7 +41,7 @@ describe('drivingOddityContract', () => {
           line: 'Something odd about this screen.',
           kind: 'quirk',
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {extra field} => throws validation error, the closed shape rejects drift', () => {
@@ -52,7 +52,7 @@ describe('drivingOddityContract', () => {
           kind: 'quirk',
           route: '/guilds',
         } as never);
-      }).toThrow(/Unrecognized key\(s\) in object: 'route'/u);
+      }).toThrow(/Unrecognized key: \\"route\\"/u);
     });
   });
 
@@ -60,13 +60,13 @@ describe('drivingOddityContract', () => {
     it('EMPTY: {key: ""} => throws validation error', () => {
       expect(() => {
         DrivingOddityStub({ key: '' as never });
-      }).toThrow(/at least 1 character/u);
+      }).toThrow(/>=1 characters/u);
     });
 
     it('EMPTY: {line: ""} => throws validation error', () => {
       expect(() => {
         DrivingOddityStub({ line: '' as never });
-      }).toThrow(/at least 1 character/u);
+      }).toThrow(/>=1 characters/u);
     });
   });
 });

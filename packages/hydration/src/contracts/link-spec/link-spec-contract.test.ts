@@ -20,8 +20,8 @@ describe('linkSpecContract', () => {
   });
 
   describe('invalid link specs', () => {
-    it('INVALID: {of: "guild"} => throws "Required"', () => {
-      expect(() => linkSpecContract.parse({ of: 'guild' })).toThrow(/Required/u);
+    it('INVALID: {of: "guild"} => throws "received undefined"', () => {
+      expect(() => linkSpecContract.parse({ of: 'guild' })).toThrow(/received undefined/u);
     });
   });
 });

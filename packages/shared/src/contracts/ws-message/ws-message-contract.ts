@@ -13,7 +13,7 @@ import { orchestrationEventTypeContract } from '../orchestration-event-type/orch
 export const wsMessageContract = z.object({
   type: orchestrationEventTypeContract,
   payload: z.record(z.string().brand<'PayloadKey'>(), z.unknown()),
-  timestamp: z.string().datetime().brand<'IsoTimestamp'>(),
+  timestamp: z.iso.datetime().brand<'IsoTimestamp'>(),
 });
 
 export type WsMessage = z.infer<typeof wsMessageContract>;

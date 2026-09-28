@@ -22,12 +22,14 @@ describe('recipesScaffoldFileContract', () => {
 
   describe('invalid scaffold files', () => {
     it('INVALID: {relativePath missing} => throws validation error', () => {
-      expect(() => recipesScaffoldFileContract.parse({ contents: '{}\n' })).toThrow(/Required/u);
+      expect(() => recipesScaffoldFileContract.parse({ contents: '{}\n' })).toThrow(
+        /received undefined/u,
+      );
     });
 
     it('INVALID: {contents missing} => throws validation error', () => {
       expect(() => recipesScaffoldFileContract.parse({ relativePath: 'package.json' })).toThrow(
-        /Required/u,
+        /received undefined/u,
       );
     });
   });

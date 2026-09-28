@@ -14,7 +14,9 @@ describe('questCwdResolutionContract', () => {
     });
 
     it('INVALID: {kind: session, missing cwd} => throws Required', () => {
-      expect(() => questCwdResolutionContract.parse({ kind: 'session' })).toThrow(/Required/u);
+      expect(() => questCwdResolutionContract.parse({ kind: 'session' })).toThrow(
+        /received undefined/u,
+      );
     });
 
     it('INVALID: {kind: session, cwd: relative path} => throws absolute-path error', () => {
@@ -34,7 +36,9 @@ describe('questCwdResolutionContract', () => {
     });
 
     it('INVALID: {kind: worktree, missing cwd} => throws Required', () => {
-      expect(() => questCwdResolutionContract.parse({ kind: 'worktree' })).toThrow(/Required/u);
+      expect(() => questCwdResolutionContract.parse({ kind: 'worktree' })).toThrow(
+        /received undefined/u,
+      );
     });
 
     it('INVALID: {kind: worktree, cwd: relative path} => throws absolute-path error', () => {
@@ -54,7 +58,9 @@ describe('questCwdResolutionContract', () => {
     });
 
     it('INVALID: {kind: repo-root, missing cwd} => throws Required', () => {
-      expect(() => questCwdResolutionContract.parse({ kind: 'repo-root' })).toThrow(/Required/u);
+      expect(() => questCwdResolutionContract.parse({ kind: 'repo-root' })).toThrow(
+        /received undefined/u,
+      );
     });
   });
 
@@ -72,7 +78,7 @@ describe('questCwdResolutionContract', () => {
 
     it('INVALID: {kind: missing-worktree, missing worktreePath} => throws Required', () => {
       expect(() => questCwdResolutionContract.parse({ kind: 'missing-worktree' })).toThrow(
-        /Required/u,
+        /received undefined/u,
       );
     });
 

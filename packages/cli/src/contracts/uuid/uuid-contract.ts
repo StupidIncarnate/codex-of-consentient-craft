@@ -8,6 +8,6 @@
 
 import { z } from 'zod';
 
-export const uuidContract = z.string().uuid().brand<'Uuid'>();
+export const uuidContract = z.uuid().brand<'Uuid'>();
 
 export type Uuid = z.infer<typeof uuidContract>;

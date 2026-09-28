@@ -51,7 +51,7 @@ describe('usageLedgerContract', () => {
     it('INVALID: {a negative ceiling} => throws, because spend never goes backwards', () => {
       expect(() =>
         UsageLedgerStub({ ceilings: { fiveHour: null, sevenDay: -1 as never } }),
-      ).toThrow(/greater than or equal to 0/u);
+      ).toThrow(/to be >=0/u);
     });
 
     it('INVALID: {a negative cursor size} => throws', () => {
@@ -59,7 +59,7 @@ describe('usageLedgerContract', () => {
         UsageLedgerStub({
           cursors: { '/a/b.jsonl': { mtimeMs: 1 as never, size: -1 as never } },
         }),
-      ).toThrow(/greater than or equal to 0/u);
+      ).toThrow(/to be >=0/u);
     });
 
     it('INVALID: {a bucket with a negative count} => throws', () => {
@@ -74,7 +74,7 @@ describe('usageLedgerContract', () => {
             },
           },
         }),
-      ).toThrow(/greater than or equal to 0/u);
+      ).toThrow(/to be >=0/u);
     });
   });
 });

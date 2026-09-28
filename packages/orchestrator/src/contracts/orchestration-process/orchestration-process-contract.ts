@@ -17,11 +17,17 @@ import {
   questWorkItemIdContract,
 } from '@dungeonmaster/shared/contracts';
 
-export const orchestrationProcessContract = z.object({
-  processId: processIdContract,
-  questId: questIdContract,
-  questWorkItemId: questWorkItemIdContract.optional(),
-  kill: z.function().args().returns(z.void()),
-});
+// `kill` is a function — a Zod object schema cannot check callability, so it stays out of the
+// parse and is attached only through the type intersection below. `.loose()` carries it
+// through `.parse()` unvalidated when a real caller supplies one.
+export const orchestrationProcessContract = z
+  .object({
+    processId: processIdContract,
+    questId: questIdContract,
+    questWorkItemId: questWorkItemIdContract.optional(),
+  })
+  .loose();
 
-export type OrchestrationProcess = z.infer<typeof orchestrationProcessContract>;
+export type OrchestrationProcess = z.infer<typeof orchestrationProcessContract> & {
+  kill: () => void;
+};

@@ -38,7 +38,7 @@ describe('formattedToolInputContract', () => {
 
   describe('invalid inputs', () => {
     it('INVALID: {missing fields} => throws', () => {
-      expect(() => formattedToolInputContract.parse({})).toThrow(/Required/u);
+      expect(() => formattedToolInputContract.parse({})).toThrow(/received undefined/u);
     });
 
     it('INVALID: {field missing key} => throws', () => {
@@ -46,7 +46,7 @@ describe('formattedToolInputContract', () => {
         formattedToolInputContract.parse({
           fields: [{ value: 'test', isLong: false }],
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 

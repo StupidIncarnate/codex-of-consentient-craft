@@ -34,25 +34,25 @@ describe('fileContentsContract', () => {
     it('INVALID: {content: 123} => throws ZodError', () => {
       expect(() => {
         return fileContentsContract.parse(123);
-      }).toThrow('Expected string');
+      }).toThrow('expected string');
     });
 
     it('INVALID: {content: null} => throws ZodError', () => {
       expect(() => {
         return fileContentsContract.parse(null);
-      }).toThrow('Expected string');
+      }).toThrow('expected string');
     });
 
     it('INVALID: {content: undefined} => throws ZodError', () => {
       expect(() => {
         return fileContentsContract.parse(undefined);
-      }).toThrow('Required');
+      }).toThrow('received undefined');
     });
 
     it('INVALID: {content: {}} => throws ZodError', () => {
       expect(() => {
         return fileContentsContract.parse({});
-      }).toThrow('Expected string');
+      }).toThrow('expected string');
     });
   });
 });

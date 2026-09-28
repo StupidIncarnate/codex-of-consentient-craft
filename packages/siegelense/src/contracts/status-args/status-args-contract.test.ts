@@ -63,9 +63,8 @@ describe('statusArgsContract', () => {
         {
           code: 'invalid_type',
           expected: 'string',
-          received: 'undefined',
           path: ['instanceId'],
-          message: 'Required',
+          message: 'Invalid input: expected string, received undefined',
         },
       ]);
     });
@@ -78,9 +77,8 @@ describe('statusArgsContract', () => {
         {
           code: 'invalid_type',
           expected: 'boolean',
-          received: 'undefined',
           path: ['isJson'],
-          message: 'Required',
+          message: 'Invalid input: expected boolean, received undefined',
         },
       ]);
     });
@@ -98,7 +96,7 @@ describe('statusArgsContract', () => {
           since: '2h' as never,
           isJson: true,
         }),
-      ).toThrow(/Invalid enum value/u);
+      ).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {extra key "verbose"} => throws Unrecognized key, no extra field is accepted', () => {

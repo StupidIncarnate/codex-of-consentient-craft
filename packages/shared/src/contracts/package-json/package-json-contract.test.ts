@@ -56,7 +56,7 @@ describe('packageJsonContract', () => {
     it('INVALID: non-object input => throws validation error', () => {
       expect(() => {
         packageJsonContract.parse('not-an-object');
-      }).toThrow(/Expected object/u);
+      }).toThrow(/expected object/u);
     });
   });
 });

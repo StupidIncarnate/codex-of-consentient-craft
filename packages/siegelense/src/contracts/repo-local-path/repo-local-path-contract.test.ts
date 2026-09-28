@@ -50,7 +50,9 @@ describe('repoLocalPathContract', () => {
     });
 
     it('INVALID: {missing linkPresent} => throws Required', () => {
-      expect(() => repoLocalPathContract.parse({ path: '/repo/.siegelense' })).toThrow(/Required/u);
+      expect(() => repoLocalPathContract.parse({ path: '/repo/.siegelense' })).toThrow(
+        /received undefined/u,
+      );
     });
   });
 });

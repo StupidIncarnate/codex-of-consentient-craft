@@ -10,11 +10,13 @@ describe('stepHandlerNameContract', () => {
 
   describe('invalid names', () => {
     it('INVALID: {value: "wardFull"} => throws — a family name is not a handler name', () => {
-      expect(() => stepHandlerNameContract.parse('wardFull')).toThrow(/wardFull/u);
+      expect(() => stepHandlerNameContract.parse('wardFull')).toThrow(
+        /Invalid option: expected one of/u,
+      );
     });
 
     it('INVALID: {value: ""} => throws', () => {
-      expect(() => stepHandlerNameContract.parse('')).toThrow(/Invalid enum value/u);
+      expect(() => stepHandlerNameContract.parse('')).toThrow(/Invalid option/u);
     });
   });
 

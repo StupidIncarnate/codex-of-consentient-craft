@@ -26,7 +26,7 @@ describe('questStageContract', () => {
     it('INVALID: {value: "invalid"} => throws validation error', () => {
       expect(() => {
         return questStageContract.parse('invalid');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
   });
 });

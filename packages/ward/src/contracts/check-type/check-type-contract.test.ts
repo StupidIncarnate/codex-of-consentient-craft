@@ -36,19 +36,23 @@ describe('checkTypeContract', () => {
 
   describe('invalid inputs', () => {
     it('INVALID: {value: "unknown"} => throws for unknown check type', () => {
-      expect(() => checkTypeContract.parse('unknown')).toThrow(/Invalid enum value/u);
+      expect(() => checkTypeContract.parse('unknown')).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {value: ""} => throws for empty string', () => {
-      expect(() => checkTypeContract.parse('')).toThrow(/Invalid enum value/u);
+      expect(() => checkTypeContract.parse('')).toThrow(/Invalid option/u);
     });
 
     it('EMPTY: {value: null} => throws for null', () => {
-      expect(() => checkTypeContract.parse(null)).toThrow(/received null/u);
+      expect(() => checkTypeContract.parse(null)).toThrow(
+        /Invalid option: expected one of \\"lint\\"\|\\"typecheck\\"\|\\"unit\\"\|\\"integration\\"\|\\"e2e\\"/u,
+      );
     });
 
     it('EMPTY: {value: undefined} => throws for undefined', () => {
-      expect(() => checkTypeContract.parse(undefined)).toThrow(/Required/u);
+      expect(() => checkTypeContract.parse(undefined)).toThrow(
+        /Invalid option: expected one of \\"lint\\"\|\\"typecheck\\"\|\\"unit\\"\|\\"integration\\"\|\\"e2e\\"/u,
+      );
     });
   });
 

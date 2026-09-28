@@ -24,7 +24,7 @@ describe('scrollOffsetPxContract', () => {
     it('INVALID: {non-number} => throws validation error', () => {
       expect(() => {
         scrollOffsetPxContract.parse('60');
-      }).toThrow(/Expected number/u);
+      }).toThrow(/expected number/u);
     });
   });
 });

@@ -15,12 +15,10 @@ describe('questNoteIdContract', () => {
   });
 
   it('EMPTY: {value: ""} => throws, so a note can never be appended without an upsert key', () => {
-    expect(() => QuestNoteIdStub({ value: '' })).toThrow(
-      /String must contain at least 1 character/u,
-    );
+    expect(() => QuestNoteIdStub({ value: '' })).toThrow(/expected string to have >=1 characters/u);
   });
 
   it('INVALID: {value: 42} => throws', () => {
-    expect(() => questNoteIdContract.parse(42)).toThrow(/Expected string/u);
+    expect(() => questNoteIdContract.parse(42)).toThrow(/expected string/u);
   });
 });

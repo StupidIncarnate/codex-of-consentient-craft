@@ -11,7 +11,7 @@ describe('recipeInputKeyContract', () => {
   describe('invalid input keys', () => {
     it('INVALID: empty string => throws validation error', () => {
       expect(() => recipeInputKeyContract.parse('')).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
   });

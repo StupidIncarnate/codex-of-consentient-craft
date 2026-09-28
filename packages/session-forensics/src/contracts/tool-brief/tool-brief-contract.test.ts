@@ -36,11 +36,11 @@ describe('toolBriefContract', () => {
 
   describe('invalid input', () => {
     it('INVALID: {name: number} => throws', () => {
-      expect(() => ToolBriefStub({ name: 42 as never })).toThrow(/Expected string/u);
+      expect(() => ToolBriefStub({ name: 42 as never })).toThrow(/expected string/u);
     });
 
     it('INVALID: {brief: number} => throws', () => {
-      expect(() => ToolBriefStub({ brief: 42 as never })).toThrow(/Expected string/u);
+      expect(() => ToolBriefStub({ brief: 42 as never })).toThrow(/expected string/u);
     });
   });
 
@@ -50,7 +50,7 @@ describe('toolBriefContract', () => {
         toolBriefContract.parse({
           name: 'Read',
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('EMPTY: {no name} => throws', () => {
@@ -58,7 +58,7 @@ describe('toolBriefContract', () => {
         toolBriefContract.parse({
           brief: 'file_path=/tmp/x.ts',
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 });

@@ -58,8 +58,8 @@ describe('questFindQuestPathBroker', () => {
       const questId = QuestIdStub({ value: 'fix-bug' });
       const quest1 = QuestStub({ id: 'add-auth', folder: '001-add-auth' });
       const quest2 = QuestStub({ id: 'fix-bug', folder: '001-fix-bug' });
-      const guildId1 = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
-      const guildId2 = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
+      const guildId1 = 'e4a1c2fd-8bcf-83b0-ba4b-1818d51fc09c';
+      const guildId2 = '9febc069-b4e3-2f38-bd80-34df765c3b3e';
 
       proxy.setupQuestFound({
         homeDir: '/home/user',

@@ -73,7 +73,7 @@ describe('installResultContract', () => {
           success: true,
           action: 'created',
         });
-      }).toThrow('Required');
+      }).toThrow('received undefined');
     });
 
     it('INVALID: {missing success} => throws ZodError', () => {
@@ -82,7 +82,7 @@ describe('installResultContract', () => {
           packageName: '@dungeonmaster/eslint',
           action: 'created',
         });
-      }).toThrow('Required');
+      }).toThrow('received undefined');
     });
 
     it('INVALID: {missing action} => throws ZodError', () => {
@@ -91,7 +91,7 @@ describe('installResultContract', () => {
           packageName: '@dungeonmaster/eslint',
           success: true,
         });
-      }).toThrow('Required');
+      }).toThrow('Invalid option: expected one of');
     });
 
     it('INVALID: {invalid action} => throws ZodError', () => {
@@ -101,7 +101,7 @@ describe('installResultContract', () => {
           success: true,
           action: 'unknown',
         });
-      }).toThrow('Invalid enum value');
+      }).toThrow('Invalid option');
     });
 
     it('INVALID: {success not boolean} => throws ZodError', () => {
@@ -111,13 +111,13 @@ describe('installResultContract', () => {
           success: 'true',
           action: 'created',
         });
-      }).toThrow('Expected boolean');
+      }).toThrow('Invalid input: expected boolean, received string');
     });
 
     it('INVALID: {empty object} => throws ZodError', () => {
       expect(() => {
         return installResultContract.parse({});
-      }).toThrow('Required');
+      }).toThrow('received undefined');
     });
   });
 });

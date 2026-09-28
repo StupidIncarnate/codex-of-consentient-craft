@@ -56,7 +56,7 @@ describe('cleanupAnswerContract', () => {
           lockReleased: false,
           assetsAged: { instances: -1 },
         }),
-      ).toThrow(/greater than or equal to 0/u);
+      ).toThrow(/to be >=0/u);
     });
 
     it('INVALID: {missing lockReleased} => throws', () => {
@@ -66,7 +66,7 @@ describe('cleanupAnswerContract', () => {
           portsReleased: [],
           assetsAged: { instances: 0 },
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 });

@@ -2,6 +2,7 @@ import { collectionChainTransformer } from './collection-chain-transformer';
 import {
   questIngredient,
   questFieldsContract,
+  questIdContract,
   operationIngredient,
 } from '../../../test/type-fixtures/dm-target';
 import type { IngredientConfigStub } from '../../contracts/ingredient-config/ingredient-config.stub';
@@ -193,7 +194,7 @@ describe('collectionChainTransformer', () => {
       ancestorNames: [],
     });
 
-    const result = collection.attach({ id: 'q1' }, (row) => [
+    const result = collection.attach({ id: questIdContract.parse('q1') }, (row) => [
       row.saveRecordAs({ name: 'attached' }),
     ]) as unknown as HydrationOp[];
 
@@ -214,7 +215,7 @@ describe('collectionChainTransformer', () => {
     const added = collection.add(1, (q) => [
       q[0].saveRecordAs({ name: 'minted' }),
     ]) as unknown as HydrationOp[];
-    const attached = collection.attach({ id: 'q1' }, (row) => [
+    const attached = collection.attach({ id: questIdContract.parse('q1') }, (row) => [
       row.saveRecordAs({ name: 'attached' }),
     ]) as unknown as HydrationOp[];
 

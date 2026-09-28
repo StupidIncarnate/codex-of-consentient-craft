@@ -71,8 +71,39 @@ describe('StubArgument', () => {
     });
   });
 
+  describe('Promise preservation', () => {
+    const testContract = z.object({
+      name: z.string().brand<'Name'>(),
+    });
+    type TestType = z.infer<typeof testContract> & {
+      ready: Promise<number>;
+    };
+
+    const TestStub = ({ ...props }: StubArgument<TestType> = {}): TestType => {
+      const { ready, ...dataProps } = props;
+
+      return {
+        ...testContract.parse({ name: 'default', ...dataProps }),
+        ready: ready ?? Promise.resolve(0),
+      };
+    };
+
+    it('VALID: {} => returns stub with default resolved Promise', async () => {
+      const result = TestStub();
+
+      await expect(result.ready).resolves.toBe(0);
+    });
+
+    it('VALID: {ready: customPromise} => preserves custom Promise reference', () => {
+      const customPromise = Promise.resolve(42);
+      const result = TestStub({ ready: customPromise });
+
+      expect(result.ready).toBe(customPromise);
+    });
+  });
+
   describe('branded type unwrapping', () => {
-    const userIdContract = z.string().uuid().brand<'UserId'>();
+    const userIdContract = z.uuid().brand<'UserId'>();
     type UserId = z.infer<typeof userIdContract>;
 
     const UserIdStub = (
@@ -209,7 +240,7 @@ describe('StubArgument', () => {
   });
 
   describe('edge cases: nested structures', () => {
-    const userIdContract = z.string().uuid().brand<'UserId'>();
+    const userIdContract = z.uuid().brand<'UserId'>();
     const addressIdContract = z.string().brand<'AddressId'>();
     const cityNameContract = z.string().brand<'CityName'>();
 
@@ -273,7 +304,7 @@ describe('StubArgument', () => {
   });
 
   describe('edge cases: Records with branded values', () => {
-    const userIdContract = z.string().uuid().brand<'UserId'>();
+    const userIdContract = z.uuid().brand<'UserId'>();
     const roleContract = z.string().brand<'Role'>();
     const userRolesContract = z.record(userIdContract, roleContract);
 
@@ -301,7 +332,7 @@ describe('StubArgument', () => {
   });
 
   describe('edge cases: union types with branded types', () => {
-    const userIdContract = z.string().uuid().brand<'UserId'>();
+    const userIdContract = z.uuid().brand<'UserId'>();
     const optionalUserIdContract = userIdContract.optional();
 
     type OptionalUserId = z.infer<typeof optionalUserIdContract>;

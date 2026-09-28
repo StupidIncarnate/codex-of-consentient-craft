@@ -49,16 +49,18 @@ describe('tokenUsageContract', () => {
   describe('invalid input', () => {
     it('INVALID: {outputTokens: -1} => throws', () => {
       expect(() => TokenUsageStub({ outputTokens: -1 })).toThrow(
-        /greater than or equal to 0|Number must be/u,
+        /Too small: expected number to be >=0/u,
       );
     });
 
     it('INVALID: {inputTokens: 1.5} => throws', () => {
-      expect(() => TokenUsageStub({ inputTokens: 1.5 })).toThrow(/integer/u);
+      expect(() => TokenUsageStub({ inputTokens: 1.5 })).toThrow(
+        /Invalid input: expected int, received number/u,
+      );
     });
 
     it('INVALID: {cacheReadTokens: string} => throws', () => {
-      expect(() => TokenUsageStub({ cacheReadTokens: '5' as never })).toThrow(/Expected number/u);
+      expect(() => TokenUsageStub({ cacheReadTokens: '5' as never })).toThrow(/expected number/u);
     });
   });
 
@@ -71,7 +73,7 @@ describe('tokenUsageContract', () => {
           cacheReadTokens: 0,
           thinkingTokens: 0,
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 });

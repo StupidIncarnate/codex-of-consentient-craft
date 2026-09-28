@@ -10,7 +10,7 @@ import { z } from 'zod';
 
 export const wardDetailResponseContract = z.object({
   type: z.literal('ward-detail-response'),
-  wardResultId: z.string().uuid().brand<'WardResultId'>(),
+  wardResultId: z.uuid().brand<'WardResultId'>(),
   detail: z.unknown(),
 });
 

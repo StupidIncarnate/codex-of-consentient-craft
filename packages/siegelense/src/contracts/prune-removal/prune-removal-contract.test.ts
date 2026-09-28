@@ -53,7 +53,7 @@ describe('pruneRemovalContract', () => {
     it('INVALID: {freedMB: 4100.5} => a fractional megabyte throws', () => {
       expect(() => {
         PruneRemovalStub({ freedMB: 4100.5 as never });
-      }).toThrow(/integer/u);
+      }).toThrow(/expected int, received number/u);
     });
 
     it('INVALID: {tombstoned omitted} => throws, so a removal can never be silent about whether the row was flipped', () => {
@@ -64,7 +64,7 @@ describe('pruneRemovalContract', () => {
           freedBytes: 1,
           freedMB: 0,
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

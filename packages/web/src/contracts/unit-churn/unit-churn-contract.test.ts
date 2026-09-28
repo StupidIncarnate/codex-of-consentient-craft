@@ -35,7 +35,7 @@ describe('unitChurnContract', () => {
           unitId: 'send-flow:observable:scan-finds-every-path',
           marks: [{ mark: 'unmet', workItemLabel: 'work' }],
         }),
-      ).toThrow(/at least 2/u);
+      ).toThrow(/>=2/u);
     });
 
     it('EMPTY: {marks: []} => throws', () => {
@@ -44,7 +44,7 @@ describe('unitChurnContract', () => {
           unitId: 'send-flow:observable:scan-finds-every-path',
           marks: [],
         }),
-      ).toThrow(/at least 2/u);
+      ).toThrow(/>=2/u);
     });
   });
 });

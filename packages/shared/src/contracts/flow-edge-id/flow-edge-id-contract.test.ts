@@ -23,7 +23,7 @@ describe('flowEdgeIdContract', () => {
   it('INVALID: {value: "Not-Kebab"} => throws validation error', () => {
     expect(() => {
       return flowEdgeIdContract.parse('Not-Kebab');
-    }).toThrow(/invalid_string/u);
+    }).toThrow(/invalid_format/u);
   });
 
   it('INVALID: {value: ""} => throws validation error', () => {

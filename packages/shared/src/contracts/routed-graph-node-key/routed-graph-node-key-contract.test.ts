@@ -22,7 +22,7 @@ describe('routedGraphNodeKeyContract', () => {
 
   describe('invalid keys', () => {
     it('INVALID: {value: 123} => throws validation error', () => {
-      expect(() => routedGraphNodeKeyContract.parse(123 as never)).toThrow(/Expected string/u);
+      expect(() => routedGraphNodeKeyContract.parse(123 as never)).toThrow(/expected string/u);
     });
   });
 });

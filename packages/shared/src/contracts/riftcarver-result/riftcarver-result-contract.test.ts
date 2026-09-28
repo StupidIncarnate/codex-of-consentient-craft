@@ -80,7 +80,7 @@ describe('riftcarverResultContract', () => {
           exitCode: 0,
           outcome: 'green',
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: non-uuid id => throws validation error', () => {
@@ -91,7 +91,7 @@ describe('riftcarverResultContract', () => {
           exitCode: 0,
           outcome: 'green',
         });
-      }).toThrow(/Invalid uuid/u);
+      }).toThrow(/Invalid UUID/u);
     });
 
     it('INVALID: invalid timestamp => throws validation error', () => {
@@ -102,7 +102,7 @@ describe('riftcarverResultContract', () => {
           exitCode: 0,
           outcome: 'green',
         });
-      }).toThrow(/Invalid datetime/u);
+      }).toThrow(/Invalid ISO datetime/u);
     });
 
     it('INVALID: missing createdAt => throws validation error', () => {
@@ -112,7 +112,7 @@ describe('riftcarverResultContract', () => {
           exitCode: 0,
           outcome: 'green',
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: missing exitCode => throws validation error', () => {
@@ -122,7 +122,7 @@ describe('riftcarverResultContract', () => {
           createdAt: '2024-01-15T10:00:00.000Z',
           outcome: 'green',
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: non-integer exitCode => throws validation error', () => {
@@ -133,7 +133,7 @@ describe('riftcarverResultContract', () => {
           exitCode: 1.5,
           outcome: 'green',
         });
-      }).toThrow(/Expected integer/u);
+      }).toThrow(/expected int/u);
     });
 
     it('INVALID: string exitCode => throws validation error', () => {
@@ -144,7 +144,7 @@ describe('riftcarverResultContract', () => {
           exitCode: 'not-a-number',
           outcome: 'green',
         });
-      }).toThrow(/Expected number/u);
+      }).toThrow(/expected number/u);
     });
 
     it('INVALID: missing outcome => throws validation error', () => {
@@ -154,7 +154,7 @@ describe('riftcarverResultContract', () => {
           createdAt: '2024-01-15T10:00:00.000Z',
           exitCode: 0,
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/Invalid option: expected one of/u);
     });
 
     it('INVALID: unknown outcome => throws validation error', () => {
@@ -165,7 +165,7 @@ describe('riftcarverResultContract', () => {
           exitCode: 0,
           outcome: 'failed',
         });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('EMPTY: empty failedStep => throws validation error', () => {
@@ -177,7 +177,7 @@ describe('riftcarverResultContract', () => {
           failedStep: '',
           outcome: 'repairable',
         });
-      }).toThrow(/at least 1 character/u);
+      }).toThrow(/>=1 characters/u);
     });
   });
 });

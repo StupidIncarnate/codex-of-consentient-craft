@@ -61,7 +61,7 @@ describe('questWorkInstanceContract', () => {
       const instance = QuestWorkInstanceStub();
 
       expect(() => questWorkInstanceContract.parse({ ...instance, home: undefined })).toThrow(
-        /Required/u,
+        /received undefined/u,
       );
     });
   });

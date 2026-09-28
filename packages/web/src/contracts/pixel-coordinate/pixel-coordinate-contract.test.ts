@@ -44,11 +44,11 @@ describe('pixelCoordinateContract', () => {
     });
 
     it('EMPTY: {value: null} => throws for null', () => {
-      expect(() => pixelCoordinateContract.parse(null)).toThrow(/Expected string/u);
+      expect(() => pixelCoordinateContract.parse(null)).toThrow(/expected string/u);
     });
 
     it('EMPTY: {value: undefined} => throws for undefined', () => {
-      expect(() => pixelCoordinateContract.parse(undefined)).toThrow(/Required/u);
+      expect(() => pixelCoordinateContract.parse(undefined)).toThrow(/received undefined/u);
     });
   });
 

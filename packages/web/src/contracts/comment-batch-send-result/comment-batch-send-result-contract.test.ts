@@ -38,16 +38,18 @@ describe('commentBatchSendResultContract', () => {
     it('INVALID: {outcome: stale, staleAnchors: []} => throws validation error', () => {
       expect(() =>
         commentBatchSendResultContract.parse({ outcome: 'stale', staleAnchors: [] }),
-      ).toThrow(/Array must contain at least 1/u);
+      ).toThrow(/expected array to have >=1 items/u);
     });
 
     it('INVALID: {outcome: sent, missing chatProcessId} => throws validation error', () => {
-      expect(() => commentBatchSendResultContract.parse({ outcome: 'sent' })).toThrow(/Required/u);
+      expect(() => commentBatchSendResultContract.parse({ outcome: 'sent' })).toThrow(
+        /received undefined/u,
+      );
     });
 
     it('INVALID: {outcome: failed, error: ""} => throws validation error', () => {
       expect(() => commentBatchSendResultContract.parse({ outcome: 'failed', error: '' })).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
   });

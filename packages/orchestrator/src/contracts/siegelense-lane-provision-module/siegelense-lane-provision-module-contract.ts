@@ -39,6 +39,6 @@ export const siegelenseLaneProvisionModuleContract = z
     capacityReadBroker: capacityReadBrokerFnContract,
     instanceStartBroker: instanceStartBrokerFnContract,
   })
-  .passthrough();
+  .loose();
 
 export type SiegelenseLaneProvisionModule = z.infer<typeof siegelenseLaneProvisionModuleContract>;

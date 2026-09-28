@@ -31,7 +31,7 @@ describe('questRiftcarverDetailParamsContract', () => {
         questRiftcarverDetailParamsContract.parse({
           questId: '11111111-1111-4111-8111-111111111111',
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 });

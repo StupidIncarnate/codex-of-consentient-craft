@@ -43,7 +43,7 @@ describe('keyReadingContract', () => {
       keyReadingContract.parse({
         focused: null,
       } as never),
-    ).toThrow(/Required/u);
+    ).toThrow(/received undefined/u);
   });
 
   it('INVALID: extra field => throws because strict()', () => {

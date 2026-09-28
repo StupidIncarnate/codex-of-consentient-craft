@@ -61,7 +61,7 @@ describe('orchestrationSlotDataContract', () => {
     it('INVALID: {missing status} => throws validation error', () => {
       expect(() => {
         orchestrationSlotDataContract.parse({ slotIndex: 0 });
-      }).toThrow(/Required/u);
+      }).toThrow(/Invalid option: expected one of/u);
     });
 
     it('INVALID: {invalid slotIndex} => throws validation error', () => {

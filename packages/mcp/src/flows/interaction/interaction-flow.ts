@@ -8,7 +8,7 @@
  */
 
 import { askUserQuestionContract } from '@dungeonmaster/shared/contracts';
-import { zodToJsonSchema } from 'zod-to-json-schema';
+import { toJSONSchema } from '#gateway/npm/zod';
 
 import { getAgentPromptInputContract } from '../../contracts/get-agent-prompt-input/get-agent-prompt-input-contract';
 import { signalBackInputContract } from '../../contracts/signal-back-input/signal-back-input-contract';
@@ -16,13 +16,13 @@ import type { ToolRegistration } from '../../contracts/tool-registration/tool-re
 import type { ToolResponse } from '../../contracts/tool-response/tool-response-contract';
 import { InteractionHandleResponder } from '../../responders/interaction/handle/interaction-handle-responder';
 
-const jsonSchemaOptions = { $refStrategy: 'none' as const };
-const signalBackSchema = zodToJsonSchema(signalBackInputContract as never, jsonSchemaOptions);
-const askUserQuestionSchema = zodToJsonSchema(askUserQuestionContract as never, jsonSchemaOptions);
-const getAgentPromptSchema = zodToJsonSchema(
-  getAgentPromptInputContract as never,
-  jsonSchemaOptions,
-);
+// `reused: 'inline'` is zod v4's native replacement for the deprecated `zod-to-json-schema`
+// package's `$refStrategy: 'none'` (see quest-flow.ts's own comment on this same constant for why
+// the npm package itself no longer converts a real v4 schema at all).
+const jsonSchemaOptions = { reused: 'inline' as const };
+const signalBackSchema = toJSONSchema(signalBackInputContract, jsonSchemaOptions);
+const askUserQuestionSchema = toJSONSchema(askUserQuestionContract, jsonSchemaOptions);
+const getAgentPromptSchema = toJSONSchema(getAgentPromptInputContract, jsonSchemaOptions);
 
 export const InteractionFlow = (): ToolRegistration[] => [
   {

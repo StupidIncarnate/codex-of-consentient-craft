@@ -70,7 +70,7 @@ describe('execResultContract', () => {
           stderr: '',
           exitCode: 1.5,
         });
-      }).toThrow(/Expected integer/u);
+      }).toThrow(/expected int/u);
     });
 
     it('INVALID: {stdout: number} => throws validation error', () => {
@@ -80,7 +80,7 @@ describe('execResultContract', () => {
           stderr: '',
           exitCode: 0,
         });
-      }).toThrow(/Expected string/u);
+      }).toThrow(/expected string/u);
     });
 
     it('INVALID: {missing stdout} => throws validation error', () => {
@@ -89,7 +89,7 @@ describe('execResultContract', () => {
           stderr: '',
           exitCode: 0,
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {missing stderr} => throws validation error', () => {
@@ -98,7 +98,7 @@ describe('execResultContract', () => {
           stdout: 'output',
           exitCode: 0,
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {missing exitCode} => throws validation error', () => {
@@ -107,13 +107,13 @@ describe('execResultContract', () => {
           stdout: 'output',
           stderr: '',
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('EMPTY: {missing all fields} => throws validation error', () => {
       expect(() => {
         return execResultContract.parse({});
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

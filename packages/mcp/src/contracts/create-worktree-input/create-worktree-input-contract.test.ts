@@ -18,7 +18,7 @@ describe('createWorktreeInputContract', () => {
 
   describe('invalid inputs', () => {
     it('INVALID: {missing name} => throws, there is no default worktree', () => {
-      expect(() => createWorktreeInputContract.parse({})).toThrow(/Required/u);
+      expect(() => createWorktreeInputContract.parse({})).toThrow(/received undefined/u);
     });
 
     it('EMPTY: {name: ""} => throws validation error', () => {
@@ -33,7 +33,7 @@ describe('createWorktreeInputContract', () => {
 
     it('INVALID: {name: 7} => throws, the name is a string', () => {
       expect(() => createWorktreeInputContract.parse({ name: 7 as never })).toThrow(
-        /Expected string/u,
+        /expected string/u,
       );
     });
   });

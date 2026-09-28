@@ -47,7 +47,7 @@ describe('questFolderFindResultContract', () => {
           found: true,
           quest: QuestStub(),
         }),
-      ).toThrow(/required/iu);
+      ).toThrow(/Invalid input: expected string, received undefined/iu);
     });
 
     it('INVALID: {found: true without quest} => throws', () => {
@@ -56,7 +56,7 @@ describe('questFolderFindResultContract', () => {
           found: true,
           folderPath: FilePathStub({ value: '/path' }),
         }),
-      ).toThrow(/required/iu);
+      ).toThrow(/Invalid input: expected object, received undefined/iu);
     });
   });
 });

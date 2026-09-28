@@ -25,7 +25,7 @@ describe('createPackageRequestContract', () => {
           description: 'Widgets package',
           packagesDir: 'packages',
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {directoryName missing} => throws', () => {
@@ -36,7 +36,7 @@ describe('createPackageRequestContract', () => {
           description: 'Widgets package',
           packagesDir: 'packages',
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {packageType missing} => throws', () => {
@@ -47,7 +47,7 @@ describe('createPackageRequestContract', () => {
           description: 'Widgets package',
           packagesDir: 'packages',
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/Invalid option: expected one of/u);
     });
 
     it('INVALID: {description missing} => throws', () => {
@@ -58,7 +58,7 @@ describe('createPackageRequestContract', () => {
           packageType: 'library',
           packagesDir: 'packages',
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {packagesDir missing} => throws', () => {
@@ -69,13 +69,13 @@ describe('createPackageRequestContract', () => {
           packageType: 'library',
           description: 'Widgets package',
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {packageType: "not-a-real-type"} => throws', () => {
       expect(() => {
         return CreatePackageRequestStub({ packageType: 'not-a-real-type' as never });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
   });
 });

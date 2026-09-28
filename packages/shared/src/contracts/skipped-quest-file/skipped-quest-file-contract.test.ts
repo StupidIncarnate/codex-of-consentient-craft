@@ -48,13 +48,13 @@ describe('skippedQuestFileContract', () => {
   describe('invalid skipped files', () => {
     it('INVALID: {questFolder: ""} => throws validation error', () => {
       expect(() => SkippedQuestFileStub({ questFolder: '' as never })).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
 
     it('INVALID: {reason: ""} => throws validation error', () => {
       expect(() => SkippedQuestFileStub({ reason: '' as never })).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
 
@@ -64,11 +64,11 @@ describe('skippedQuestFileContract', () => {
           questFolder: '001-add-auth',
           reason: 'file contents are not valid JSON',
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {reason: 42} => throws validation error', () => {
-      expect(() => SkippedQuestFileStub({ reason: 42 as never })).toThrow(/Expected string/u);
+      expect(() => SkippedQuestFileStub({ reason: 42 as never })).toThrow(/expected string/u);
     });
   });
 });

@@ -8,6 +8,6 @@
 
 import { z } from 'zod';
 
-export const guildIdContract = z.string().uuid().brand<'GuildId'>();
+export const guildIdContract = z.uuid().brand<'GuildId'>();
 
 export type GuildId = z.infer<typeof guildIdContract>;

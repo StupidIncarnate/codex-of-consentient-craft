@@ -21,6 +21,7 @@ import {
   eslintConfigContract,
   type EslintConfig,
 } from '../../../contracts/eslint-config/eslint-config-contract';
+import { eslintPluginNameContract } from '../../../contracts/eslint-plugin-name/eslint-plugin-name-contract';
 import { eslintRuleStatics } from '../../../statics/eslint-rule/eslint-rule-statics';
 import { typescriptEslintRuleStatics } from '../../../statics/typescript-eslint-rule/typescript-eslint-rule-statics';
 import { jestRuleStatics } from '../../../statics/jest-rule/jest-rule-statics';
@@ -69,7 +70,10 @@ export const configDungeonmasterBroker = ({
   };
 
   const baseTypescriptConfig: EslintConfig = {
-    plugins: { '@typescript-eslint': typescriptEslintEslintPluginLoadAdapter() },
+    plugins: {
+      [eslintPluginNameContract.parse('@typescript-eslint')]:
+        typescriptEslintEslintPluginLoadAdapter(),
+    },
     rules: {
       ...(typescriptEslintRuleStatics.rules as unknown as DeepWritable<
         typeof typescriptEslintRuleStatics.rules

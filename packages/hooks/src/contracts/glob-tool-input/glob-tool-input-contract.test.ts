@@ -36,7 +36,7 @@ describe('globToolInputContract', () => {
     it('INVALID: {no pattern} => throws validation error', () => {
       expect(() => {
         return globToolInputContract.parse({});
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

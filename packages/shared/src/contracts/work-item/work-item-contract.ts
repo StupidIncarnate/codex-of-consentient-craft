@@ -20,6 +20,7 @@ import { stepNameContract } from '../step-name/step-name-contract';
 import { streamSignalKindContract } from '../stream-signal-kind/stream-signal-kind-contract';
 import { unitIdContract } from '../unit-id/unit-id-contract';
 import { unitObservationContract } from '../unit-observation/unit-observation-contract';
+import { workItemPayloadKeyContract } from '../work-item-payload-key/work-item-payload-key-contract';
 import { workItemRoleContract } from '../work-item-role/work-item-role-contract';
 import { workItemStatusContract } from '../work-item-status/work-item-status-contract';
 
@@ -44,17 +45,20 @@ export const workItemContract = z.object({
   // `step` is what separates them. Ward items may additionally carry a `wardResults/<id>` ref.
   relatedDataItems: z.array(relatedDataItemContract).default([]),
   dependsOn: z.array(questWorkItemIdContract).default([]),
-  attempt: z.number().int().nonnegative().brand<'Attempt'>().default(0),
-  maxAttempts: z.number().int().positive().brand<'MaxAttempts'>().default(1),
-  retryCount: z.number().int().nonnegative().brand<'FailCount'>().default(0),
+  // `.default()` before `.brand()` — zod v4 checks a `.default()` literal against the schema's
+  // OWN output type, and a bare number can never satisfy a branded type; putting the brand last
+  // keeps the literal checked against plain `number` while the branded type still flows through.
+  attempt: z.number().int().nonnegative().default(0).brand<'Attempt'>(),
+  maxAttempts: z.number().int().positive().default(1).brand<'MaxAttempts'>(),
+  retryCount: z.number().int().nonnegative().default(0).brand<'FailCount'>(),
   lastWardRunId: fileNameContract.optional(),
-  createdAt: z.string().datetime().brand<'IsoTimestamp'>(),
+  createdAt: z.iso.datetime().brand<'IsoTimestamp'>(),
   // `.nullish()`, not `.optional()` — a quest.json written before this field existed, or a
   // producer that stamps `null` instead of omitting the key, sends an explicit `null` here.
   // `.optional()` accepts an omitted key but rejects `null` outright, and this field sits inside
   // `questContract`'s `workItems` array, so that rejection fails the WHOLE quest.json parse, not
   // just this one row.
-  startedAt: z.string().datetime().brand<'IsoTimestamp'>().nullish(),
+  startedAt: z.iso.datetime().brand<'IsoTimestamp'>().nullish(),
   startRef: z
     .string()
     .min(1)
@@ -65,7 +69,7 @@ export const workItemContract = z.object({
     ),
   // Same reasoning as `startedAt` above — `.nullish()` so an explicit `null` doesn't fail the
   // whole quest.json parse.
-  completedAt: z.string().datetime().brand<'IsoTimestamp'>().nullish(),
+  completedAt: z.iso.datetime().brand<'IsoTimestamp'>().nullish(),
   errorMessage: z.string().brand<'ErrorMessage'>().optional(),
   summary: z.string().brand<'SignalSummary'>().optional(),
   insertedBy: questWorkItemIdContract.optional(),
@@ -103,12 +107,14 @@ export const workItemContract = z.object({
   // quest completion; reusing it here would make an ordinary mark-minted rework loop read as a
   // resolved failure.
   mintedBy: questWorkItemIdContract.optional(),
-  // The typed, per-family half of a brief — deliberately `z.record(z.unknown())`: the
-  // per-family shapes live on the plan-file contract (story 07), and duplicating them here would
-  // make `shared` depend on a shape only the orchestrator cares about. The router copies the
-  // originating piece's payload onto what it mints, so a later plan amendment cannot rewrite
-  // what a session already ran against.
-  payload: z.record(z.unknown()).optional(),
+  // The typed, per-family half of a brief — deliberately `z.record(workItemPayloadKeyContract,
+  // z.unknown())`: the per-family shapes live on the plan-file contract (story 07), and
+  // duplicating them here would make `shared` depend on a shape only the orchestrator cares
+  // about. The router copies the originating piece's payload onto what it mints, so a later plan
+  // amendment cannot rewrite what a session already ran against. A reader of a known key (e.g.
+  // `'instance'`) re-parses it through the exported `workItemPayloadKeyContract` to index this
+  // branded Record — see that contract's own header.
+  payload: z.record(workItemPayloadKeyContract, z.unknown()).optional(),
   // Set by `quest-work`'s `outcome` payload — legal ONLY on a work item holding no assigned units,
   // where there is nothing for the record to derive an outcome FROM. `nextActionTransformer` takes
   // this as its `declaredWord`/`hitWall` arguments rather than deriving them, because it is pure and

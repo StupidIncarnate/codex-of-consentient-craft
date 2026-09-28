@@ -32,7 +32,7 @@ describe('parsedToolResultContract', () => {
     it('INVALID: {non-object} => throws validation error', () => {
       expect(() => {
         parsedToolResultContract.parse('not an object');
-      }).toThrow(/Expected object/u);
+      }).toThrow(/expected record/u);
     });
   });
 });

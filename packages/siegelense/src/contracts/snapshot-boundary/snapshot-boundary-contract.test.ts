@@ -14,11 +14,11 @@ describe('snapshotBoundaryContract', () => {
 
   describe('invalid boundaries', () => {
     it('INVALID: {value: "middle"} => throws, because a run has exactly two boundaries', () => {
-      expect(() => snapshotBoundaryContract.parse('middle')).toThrow(/invalid_enum_value/u);
+      expect(() => snapshotBoundaryContract.parse('middle')).toThrow(/invalid_value/u);
     });
 
     it('EMPTY: {value: ""} => throws an invalid-enum error', () => {
-      expect(() => snapshotBoundaryContract.parse('')).toThrow(/invalid_enum_value/u);
+      expect(() => snapshotBoundaryContract.parse('')).toThrow(/invalid_value/u);
     });
   });
 });

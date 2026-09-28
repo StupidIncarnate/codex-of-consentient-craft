@@ -41,6 +41,7 @@ import type { ProcessOutput } from '../../../contracts/process-output/process-ou
 import type { FileName } from '../../../contracts/file-name/file-name-contract';
 import type { FileContent } from '../../../contracts/file-content/file-content-contract';
 import type { CommandName } from '../../../contracts/command-name/command-name-contract';
+import { scriptNameContract } from '../../../contracts/script-name/script-name-contract';
 import type { ExecResult } from '@dungeonmaster/shared/contracts';
 import type { PackageJson } from '../../../contracts/package-json/package-json-contract';
 import type { TestbedConfig } from '../../../contracts/testbed-config/testbed-config-contract';
@@ -146,7 +147,7 @@ export const integrationEnvironmentCreateBroker = ({
       const packageJson = JSON.parse(
         fsReadFileAdapter({ filePath: packageJsonPath }),
       ) as PackageJson;
-      return Boolean(packageJson.scripts[command]);
+      return Boolean(packageJson.scripts[scriptNameContract.parse(String(command))]);
     },
 
     fileExists: ({ fileName }: { fileName: FileName }): boolean =>

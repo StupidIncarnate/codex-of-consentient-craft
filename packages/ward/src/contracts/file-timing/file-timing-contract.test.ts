@@ -55,7 +55,7 @@ describe('fileTimingContract', () => {
     });
 
     it('INVALID: {missing all fields} => throws validation error', () => {
-      expect(() => fileTimingContract.parse({})).toThrow(/Required/u);
+      expect(() => fileTimingContract.parse({})).toThrow(/received undefined/u);
     });
   });
 
@@ -195,7 +195,7 @@ describe('fileTimingContract', () => {
           durationMs: 150,
           testCount: 1.5,
         }),
-      ).toThrow(/Expected integer/u);
+      ).toThrow(/expected int/u);
     });
   });
 });

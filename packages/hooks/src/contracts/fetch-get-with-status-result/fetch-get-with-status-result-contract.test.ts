@@ -44,21 +44,17 @@ describe('fetchGetWithStatusResultContract', () => {
 
   describe('invalid inputs', () => {
     it('INVALID: {status: 99} => throws (below minimum)', () => {
-      expect(() => FetchGetWithStatusResultStub({ status: 99 })).toThrow(
-        /greater than or equal to 100/u,
-      );
+      expect(() => FetchGetWithStatusResultStub({ status: 99 })).toThrow(/to be >=100/u);
     });
 
     it('INVALID: {status: 600} => throws (above maximum)', () => {
-      expect(() => FetchGetWithStatusResultStub({ status: 600 })).toThrow(
-        /less than or equal to 599/u,
-      );
+      expect(() => FetchGetWithStatusResultStub({ status: 600 })).toThrow(/to be <=599/u);
     });
 
     it('INVALID: {ok: "true" string} => throws (not boolean)', () => {
       expect(() =>
         fetchGetWithStatusResultContract.parse({ status: 200, ok: 'true' as never, body: null }),
-      ).toThrow(/Expected boolean/u);
+      ).toThrow(/expected boolean/u);
     });
   });
 });

@@ -63,7 +63,7 @@ test.describe('Malformed quest.json is reported on the quest route', () => {
     // that only checks the status treat an unreadable quest as a readable one.
     expect(readResponse.status()).toBe(404);
     expect(String(readBody.error).split(': ').slice(-2).join(': ')).toBe(
-      'comments.0.createdAt: Invalid datetime',
+      'comments.0.createdAt: Invalid ISO datetime',
     );
 
     await navigationHarness({ page }).navigateToQuest({
@@ -77,7 +77,7 @@ test.describe('Malformed quest.json is reported on the quest route', () => {
     await expect(loadError).toContainText('UNREADABLE');
     // The reader is told WHICH field rejected, so the repair is a one-line edit rather than a hunt.
     await expect(page.getByTestId('QUEST_LOAD_ERROR_REASON')).toContainText(
-      'comments.0.createdAt: Invalid datetime',
+      'comments.0.createdAt: Invalid ISO datetime',
     );
     // The surfaces that read as "still loading" must be gone — that ambiguity is the whole bug.
     await expect(page.getByTestId('QUEST_CHAT_ACTIVITY')).toHaveCount(0);

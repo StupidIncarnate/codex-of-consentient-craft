@@ -15,6 +15,6 @@ describe('claudeModelContract', () => {
   });
 
   it('INVALID: {unknown value} => throws invalid enum error', () => {
-    expect(() => claudeModelContract.parse('gpt-4')).toThrow(/Invalid enum value/u);
+    expect(() => claudeModelContract.parse('gpt-4')).toThrow(/Invalid option/u);
   });
 });

@@ -26,7 +26,7 @@ describe('isoTimestampContract', () => {
     });
 
     it('INVALID: {number} => throws', () => {
-      expect(() => IsoTimestampStub({ value: 1_788_491_226 as never })).toThrow(/Expected string/u);
+      expect(() => IsoTimestampStub({ value: 1_788_491_226 as never })).toThrow(/expected string/u);
     });
   });
 

@@ -25,13 +25,13 @@ describe('reactFlowPackageChipContract', () => {
   describe('invalid inputs', () => {
     it('INVALID: {name: ""} => throws for an empty package name', () => {
       expect(() => ReactFlowPackageChipStub({ name: '' as never })).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
 
     it('INVALID: {packageType: "frontend-vue"} => throws for a kind outside the closed enum', () => {
       expect(() => ReactFlowPackageChipStub({ packageType: 'frontend-vue' as never })).toThrow(
-        /Invalid enum value/u,
+        /Invalid option/u,
       );
     });
   });

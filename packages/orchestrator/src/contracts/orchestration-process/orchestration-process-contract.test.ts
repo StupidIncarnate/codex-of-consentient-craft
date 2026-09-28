@@ -39,7 +39,7 @@ describe('orchestrationProcessContract', () => {
           questId: 'add-auth',
           kill: () => undefined,
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {missing questId} => throws validation error', () => {
@@ -48,7 +48,7 @@ describe('orchestrationProcessContract', () => {
           processId: 'proc-123',
           kill: () => undefined,
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

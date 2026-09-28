@@ -31,13 +31,13 @@ describe('humanVerdictResponseContract', () => {
   describe('invalid bodies', () => {
     it('INVALID: {ok: false} => throws validation error', () => {
       expect(() => humanVerdictResponseContract.parse({ ok: false })).toThrow(
-        /Invalid literal value/u,
+        /Invalid input: expected/u,
       );
     });
 
     it('INVALID: {error: ""} => throws validation error', () => {
       expect(() => humanVerdictResponseContract.parse({ error: '' })).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
   });

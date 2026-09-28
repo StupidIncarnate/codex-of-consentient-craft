@@ -15,13 +15,13 @@ describe('installedPackageVersionContract', () => {
   describe('invalid inputs', () => {
     it('INVALID: {value: ""} => throws', () => {
       expect(() => installedPackageVersionContract.parse('')).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
 
     it('INVALID: {value: 123} => throws', () => {
       expect(() => installedPackageVersionContract.parse(123 as never)).toThrow(
-        /Expected string, received number/u,
+        /Invalid input: expected string, received number/u,
       );
     });
   });

@@ -34,13 +34,13 @@ describe('rateLimitsHistoryLineContract', () => {
           fiveHour: null,
           sevenDay: null,
         });
-      }).toThrow(/Invalid datetime/u);
+      }).toThrow(/Invalid ISO datetime/u);
     });
 
     it('INVALID: missing required fields => throws validation error', () => {
       expect(() => {
         rateLimitsHistoryLineContract.parse({});
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

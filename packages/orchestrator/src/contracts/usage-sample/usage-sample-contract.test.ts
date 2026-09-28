@@ -17,13 +17,11 @@ describe('usageSampleContract', () => {
 
   describe('invalid input', () => {
     it('INVALID: {bucketStartMs: -1} => throws', () => {
-      expect(() => UsageSampleStub({ bucketStartMs: -1 as never })).toThrow(
-        /greater than or equal to 0/u,
-      );
+      expect(() => UsageSampleStub({ bucketStartMs: -1 as never })).toThrow(/to be >=0/u);
     });
 
     it('INVALID: {tokens missing} => throws', () => {
-      expect(() => usageSampleContract.parse({ bucketStartMs: 0 })).toThrow(/Required/u);
+      expect(() => usageSampleContract.parse({ bucketStartMs: 0 })).toThrow(/received undefined/u);
     });
   });
 });

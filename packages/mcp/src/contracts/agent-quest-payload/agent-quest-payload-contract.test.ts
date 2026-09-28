@@ -47,12 +47,14 @@ describe('agentQuestPayloadContract', () => {
 
   describe('invalid payloads', () => {
     it('INVALID: {missing success} => throws Required', () => {
-      expect(() => agentQuestPayloadContract.parse({ quest: QuestStub() })).toThrow(/Required/u);
+      expect(() => agentQuestPayloadContract.parse({ quest: QuestStub() })).toThrow(
+        /received undefined/u,
+      );
     });
 
     it('INVALID: {success: "yes"} => throws Expected boolean error', () => {
       expect(() => agentQuestPayloadContract.parse({ success: 'yes' })).toThrow(
-        /Expected boolean/u,
+        /expected boolean/u,
       );
     });
   });

@@ -40,7 +40,9 @@ describe('capacityProfileContract', () => {
 
   describe('invalid groups', () => {
     it('INVALID: {poolSize: 0} => throws, the instance that produced the reading is itself one', () => {
-      expect(() => CapacityProfileStub({ poolSize: 0 })).toThrow(/greater than 0/iu);
+      expect(() => CapacityProfileStub({ poolSize: 0 })).toThrow(
+        /Too small: expected number to be >0/u,
+      );
     });
 
     it('INVALID: {an extra runs key} => throws, the block is strict', () => {

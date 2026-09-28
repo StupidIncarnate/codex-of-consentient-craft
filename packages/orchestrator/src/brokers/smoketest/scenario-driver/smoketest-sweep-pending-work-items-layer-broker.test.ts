@@ -18,8 +18,8 @@ import { smoketestSweepPendingWorkItemsLayerBroker } from './smoketest-sweep-pen
 import { smoketestSweepPendingWorkItemsLayerBrokerProxy } from './smoketest-sweep-pending-work-items-layer-broker.proxy';
 
 const QUEST_ID = QuestIdStub({ value: 'sweep-layer-quest' });
-const WI_PENDING = QuestWorkItemIdStub({ value: 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeee01' });
-const WI_PENDING_TWO = QuestWorkItemIdStub({ value: 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeee02' });
+const WI_PENDING = QuestWorkItemIdStub({ value: '928fbe8b-2d1f-66b0-9f18-a0a552a0400a' });
+const WI_PENDING_TWO = QuestWorkItemIdStub({ value: '35d68034-9fe7-7b90-b8d4-3f275d8de0d8' });
 const CODEWEAVER_ROLE = WorkItemRoleStub({ value: 'codeweaver' });
 const SIEGEMASTER_ROLE = WorkItemRoleStub({ value: 'siegemaster' });
 // Unique substring from smoketestPromptsStatics.signalComplete that survives JSON escaping.

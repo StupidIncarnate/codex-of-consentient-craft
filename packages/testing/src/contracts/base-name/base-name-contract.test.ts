@@ -32,19 +32,19 @@ describe('baseNameContract', () => {
     it('INVALID: "" => throws validation error', () => {
       expect(() => {
         return baseNameContract.parse('');
-      }).toThrow(/String must contain at least 1 character/u);
+      }).toThrow(/expected string to have >=1 characters/u);
     });
 
     it('INVALID: null => throws validation error', () => {
       expect(() => {
         return baseNameContract.parse(null);
-      }).toThrow(/Expected string/u);
+      }).toThrow(/expected string/u);
     });
 
     it('INVALID: undefined => throws validation error', () => {
       expect(() => {
         return baseNameContract.parse(undefined);
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

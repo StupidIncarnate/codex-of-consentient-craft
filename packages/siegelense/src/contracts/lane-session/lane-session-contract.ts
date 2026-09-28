@@ -34,7 +34,9 @@ import type { ProcessGroupId } from '../process-group-id/process-group-id-contra
 import type { ServerLogByteCount } from '../server-log-byte-count/server-log-byte-count-contract';
 import type { SpecName } from '../spec-name/spec-name-contract';
 
-export const laneSessionContract = z.object({});
+// `.loose()` keeps `z.infer` of the empty shape from narrowing to `Record<string, never>` (zod
+// v4), which the field-carrying intersection below could never satisfy.
+export const laneSessionContract = z.object({}).loose();
 
 export type LaneSession = z.infer<typeof laneSessionContract> & {
   specName: SpecName;

@@ -145,7 +145,7 @@ describe('opAttachApplyLayerBroker', () => {
       await expect(
         opAttachApplyLayerBroker({ op, target: HydrationTargetStub({}), config, state }),
       ).rejects.toThrow(
-        /^recipe "guild-mid-execution": ingredient "quest"'s "query" route answered 2xx with a record that field "title" rejects: Required$/u,
+        /^recipe "guild-mid-execution": ingredient "quest"'s "query" route answered 2xx with a record that field "title" rejects: Invalid input: expected string, received undefined$/u,
       );
     });
   });

@@ -16,7 +16,7 @@ describe('guildIdBodyContract', () => {
     it('INVALID: {missing guildId} => throws validation error', () => {
       expect(() => {
         guildIdBodyContract.parse({});
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

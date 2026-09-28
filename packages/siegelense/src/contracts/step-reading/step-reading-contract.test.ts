@@ -206,7 +206,7 @@ describe('stepReadingContract', () => {
           startedAtMs: 1_700_000_000_000,
           endedAtMs: 1_700_000_000_210,
         } as never),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {missing endedAtMs} => throws validation error', () => {
@@ -225,7 +225,7 @@ describe('stepReadingContract', () => {
           serverWindow: { fromByte: 0, toByte: 0 },
           startedAtMs: 1_700_000_000_000,
         } as never),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {missing serverWindow} => throws validation error', () => {
@@ -244,7 +244,7 @@ describe('stepReadingContract', () => {
           startedAtMs: 1_700_000_000_000,
           endedAtMs: 1_700_000_000_210,
         } as never),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 

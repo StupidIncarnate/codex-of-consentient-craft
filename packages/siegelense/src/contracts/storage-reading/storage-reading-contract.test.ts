@@ -40,7 +40,7 @@ describe('storageReadingContract', () => {
           local: {},
           session: {},
         });
-      }).toThrow(/Expected string/u);
+      }).toThrow(/expected string/u);
     });
 
     it('INVALID: {local: "not an object"} => throws validation error on non-record local', () => {
@@ -50,7 +50,7 @@ describe('storageReadingContract', () => {
           local: 'not an object' as never,
           session: {},
         });
-      }).toThrow(/Expected object/u);
+      }).toThrow(/Invalid input: expected record/u);
     });
 
     it('INVALID: {session: { key: 123 }} => throws validation error on non-string/non-null value', () => {
@@ -60,7 +60,7 @@ describe('storageReadingContract', () => {
           local: {},
           session: { key: 123 as never },
         });
-      }).toThrow(/Expected string/u);
+      }).toThrow(/expected string/u);
     });
 
     it('INVALID: {extraField: true} => throws validation error due to strict object', () => {

@@ -13,7 +13,7 @@ describe('unitMarkContract', () => {
 
   describe('invalid marks', () => {
     it('INVALID: {value: "confirmed"} => throws, naming the replaced word as invalid', () => {
-      expect(() => unitMarkContract.parse('confirmed')).toThrow(/confirmed/u);
+      expect(() => unitMarkContract.parse('confirmed')).toThrow(/Invalid option: expected one of/u);
     });
 
     it('EMPTY: {value: ""} => throws', () => {

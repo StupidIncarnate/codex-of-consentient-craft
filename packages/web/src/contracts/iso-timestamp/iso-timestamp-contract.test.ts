@@ -31,36 +31,36 @@ describe('isoTimestampContract', () => {
   describe('invalid inputs', () => {
     it('INVALID: {timezone offset instead of Z} => throws error', () => {
       expect(() => isoTimestampContract.parse('2024-01-15T10:00:00+05:30')).toThrow(
-        /Invalid datetime/u,
+        /Invalid ISO datetime/u,
       );
     });
 
     it('INVALID: {not a datetime} => throws error', () => {
-      expect(() => isoTimestampContract.parse('not-a-date')).toThrow(/Invalid datetime/u);
+      expect(() => isoTimestampContract.parse('not-a-date')).toThrow(/Invalid ISO datetime/u);
     });
 
     it('INVALID: {date only} => throws error', () => {
-      expect(() => isoTimestampContract.parse('2024-01-15')).toThrow(/Invalid datetime/u);
+      expect(() => isoTimestampContract.parse('2024-01-15')).toThrow(/Invalid ISO datetime/u);
     });
 
     it('EMPTY: {empty string} => throws error', () => {
-      expect(() => isoTimestampContract.parse('')).toThrow(/Invalid datetime/u);
+      expect(() => isoTimestampContract.parse('')).toThrow(/Invalid ISO datetime/u);
     });
 
     it('INVALID: {time only} => throws error', () => {
-      expect(() => isoTimestampContract.parse('10:00:00Z')).toThrow(/Invalid datetime/u);
+      expect(() => isoTimestampContract.parse('10:00:00Z')).toThrow(/Invalid ISO datetime/u);
     });
 
     it('INVALID: {number} => throws error', () => {
-      expect(() => isoTimestampContract.parse(1705312800000)).toThrow(/Expected string/u);
+      expect(() => isoTimestampContract.parse(1705312800000)).toThrow(/expected string/u);
     });
 
     it('EMPTY: {null} => throws error', () => {
-      expect(() => isoTimestampContract.parse(null)).toThrow(/Expected string/u);
+      expect(() => isoTimestampContract.parse(null)).toThrow(/expected string/u);
     });
 
     it('EMPTY: {undefined} => throws error', () => {
-      expect(() => isoTimestampContract.parse(undefined)).toThrow(/Required/u);
+      expect(() => isoTimestampContract.parse(undefined)).toThrow(/received undefined/u);
     });
   });
 
@@ -78,7 +78,9 @@ describe('isoTimestampContract', () => {
     });
 
     it('ERROR: {invalid custom value} => throws error', () => {
-      expect(() => IsoTimestampStub({ value: 'invalid-timestamp' })).toThrow(/Invalid datetime/u);
+      expect(() => IsoTimestampStub({ value: 'invalid-timestamp' })).toThrow(
+        /Invalid ISO datetime/u,
+      );
     });
   });
 });

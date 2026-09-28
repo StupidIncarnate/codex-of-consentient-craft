@@ -33,7 +33,7 @@ describe('getServerConfigOutputContract', () => {
         baseUrl: 'not a url',
         port: NetworkPortStub({ value: 3737 }),
       }),
-    ).toThrow(/Invalid url/u);
+    ).toThrow(/Invalid URL/u);
   });
 
   it('INVALID: {port: 0} => throws min error', () => {
@@ -48,12 +48,12 @@ describe('getServerConfigOutputContract', () => {
   it('INVALID: {missing baseUrl} => throws Required', () => {
     expect(() =>
       getServerConfigOutputContract.parse({ port: NetworkPortStub({ value: 3737 }) }),
-    ).toThrow(/Required/u);
+    ).toThrow(/received undefined/u);
   });
 
   it('INVALID: {missing port} => throws Required', () => {
     expect(() => getServerConfigOutputContract.parse({ baseUrl: 'http://localhost:3737' })).toThrow(
-      /Required/u,
+      /received undefined/u,
     );
   });
 

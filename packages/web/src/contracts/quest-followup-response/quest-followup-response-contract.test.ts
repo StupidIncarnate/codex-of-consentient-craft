@@ -31,13 +31,13 @@ describe('questFollowupResponseContract', () => {
   describe('invalid bodies', () => {
     it('INVALID: {chatProcessId: ""} => throws validation error', () => {
       expect(() => questFollowupResponseContract.parse({ chatProcessId: '' })).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
 
     it('INVALID: {error: ""} => throws validation error', () => {
       expect(() => questFollowupResponseContract.parse({ error: '' })).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
   });

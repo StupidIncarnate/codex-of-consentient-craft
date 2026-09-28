@@ -23,6 +23,6 @@ describe('rateLimitsWatchTickResultContract', () => {
   it('INVALID: {outcome: "bogus"} => throws', () => {
     expect(() =>
       rateLimitsWatchTickResultContract.parse({ outcome: 'bogus', lastJson: null }),
-    ).toThrow(/Invalid enum value/u);
+    ).toThrow(/Invalid option/u);
   });
 });

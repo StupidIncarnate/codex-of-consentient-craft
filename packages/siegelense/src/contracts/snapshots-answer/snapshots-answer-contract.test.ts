@@ -62,7 +62,7 @@ describe('snapshotsAnswerContract', () => {
           instanceState: 'sleeping',
           snapshots: [],
         }),
-      ).toThrow(/invalid_enum_value/u);
+      ).toThrow(/invalid_value/u);
     });
 
     it('INVALID: {a stray homePath key} => throws, because the contract is strict', () => {

@@ -18,12 +18,12 @@ describe('hydrationCollectionContract', () => {
 
   describe('invalid collections', () => {
     it('INVALID: {no ingredient} => throws Required', () => {
-      expect(() => hydrationCollectionContract.parse({})).toThrow(/Required/u);
+      expect(() => hydrationCollectionContract.parse({})).toThrow(/received undefined/u);
     });
 
     it('INVALID: {ingredient: \'\'} => throws "String must contain at least 1 character(s)"', () => {
       expect(() => hydrationCollectionContract.parse({ ingredient: '' })).toThrow(
-        /String must contain at least 1 character\(s\)/u,
+        /expected string to have >=1 characters/u,
       );
     });
   });

@@ -16,6 +16,6 @@ export const packageJsonContract = z
     devDependencies: z.record(packageJsonKeyContract, z.unknown()).optional(),
     workspaces: z.array(z.string().brand<'PackageJsonWorkspace'>()).optional(),
   })
-  .passthrough();
+  .loose();
 
 export type PackageJson = z.infer<typeof packageJsonContract>;

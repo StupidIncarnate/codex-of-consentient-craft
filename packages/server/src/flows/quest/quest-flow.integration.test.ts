@@ -1098,7 +1098,7 @@ describe('QuestFlow', () => {
 
       expect(overCapResponse.status).toBe(400);
       expect(harness.toPlain(overCapBody)).toStrictEqual({
-        error: `Array must contain at most ${String(pastedImageStatics.maxImagesPerMessage)} element(s)`,
+        error: `Too big: expected array to have <=${String(pastedImageStatics.maxImagesPerMessage)} items`,
       });
       expect(dirAfterOverCap.exists).toBe(false);
       expect(atCapResponse.status).toBe(200);

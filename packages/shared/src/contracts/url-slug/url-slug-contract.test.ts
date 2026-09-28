@@ -46,37 +46,37 @@ describe('urlSlugContract', () => {
     it('INVALID: uppercase letters => throws validation error', () => {
       expect(() => {
         urlSlugContract.parse('My-Guild');
-      }).toThrow(/invalid_string/u);
+      }).toThrow(/invalid_format/u);
     });
 
     it('INVALID: spaces => throws validation error', () => {
       expect(() => {
         urlSlugContract.parse('my guild');
-      }).toThrow(/invalid_string/u);
+      }).toThrow(/invalid_format/u);
     });
 
     it('INVALID: leading hyphen => throws validation error', () => {
       expect(() => {
         urlSlugContract.parse('-my-guild');
-      }).toThrow(/invalid_string/u);
+      }).toThrow(/invalid_format/u);
     });
 
     it('INVALID: trailing hyphen => throws validation error', () => {
       expect(() => {
         urlSlugContract.parse('my-guild-');
-      }).toThrow(/invalid_string/u);
+      }).toThrow(/invalid_format/u);
     });
 
     it('INVALID: consecutive hyphens => throws validation error', () => {
       expect(() => {
         urlSlugContract.parse('my--guild');
-      }).toThrow(/invalid_string/u);
+      }).toThrow(/invalid_format/u);
     });
 
     it('INVALID: special characters => throws validation error', () => {
       expect(() => {
         urlSlugContract.parse('my_guild');
-      }).toThrow(/invalid_string/u);
+      }).toThrow(/invalid_format/u);
     });
   });
 });

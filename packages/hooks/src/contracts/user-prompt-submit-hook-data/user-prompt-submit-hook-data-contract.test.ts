@@ -26,7 +26,7 @@ describe('userPromptSubmitHookDataContract', () => {
     it('INVALID: {invalid data} => throws validation error', () => {
       expect(() => {
         return userPromptSubmitHookDataContract.parse({} as never);
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

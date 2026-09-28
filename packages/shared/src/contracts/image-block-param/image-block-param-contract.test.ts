@@ -67,11 +67,11 @@ describe('imageBlockParamContract', () => {
           type: 'text',
           source: { type: 'url', url: 'https://example.com/img.png' },
         }),
-      ).toThrow(/Invalid literal value/u);
+      ).toThrow(/Invalid input: expected/u);
     });
 
     it('INVALID: {source missing} => throws on missing required field', () => {
-      expect(() => imageBlockParamContract.parse({ type: 'image' })).toThrow(/Required/u);
+      expect(() => imageBlockParamContract.parse({ type: 'image' })).toThrow(/received undefined/u);
     });
 
     it('INVALID: {source.type: "file"} => throws unknown discriminator value', () => {
@@ -89,7 +89,7 @@ describe('imageBlockParamContract', () => {
           type: 'image',
           source: { type: 'base64', media_type: 'application/pdf', data: 'abc' },
         }),
-      ).toThrow(/Invalid enum value/u);
+      ).toThrow(/Invalid option/u);
     });
   });
 });

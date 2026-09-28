@@ -345,7 +345,7 @@ describe('assistantStreamLineContract', () => {
           type: 'user',
           message: { role: 'assistant', content: [] },
         });
-      }).toThrow(/Invalid literal value/u);
+      }).toThrow(/Invalid input: expected/u);
     });
 
     it('INVALID: {no message field} => throws validation error', () => {
@@ -353,7 +353,7 @@ describe('assistantStreamLineContract', () => {
         assistantStreamLineContract.parse({
           type: 'assistant',
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {message without content array} => throws validation error', () => {
@@ -362,7 +362,7 @@ describe('assistantStreamLineContract', () => {
           type: 'assistant',
           message: { role: 'assistant' },
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {content item with unknown type "server_tool_use"} => throws invalid discriminator', () => {
@@ -386,7 +386,7 @@ describe('assistantStreamLineContract', () => {
             content: [{ type: 'thinking' }],
           },
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {tool_use block missing id} => throws validation error for missing id', () => {
@@ -398,7 +398,7 @@ describe('assistantStreamLineContract', () => {
             content: [{ type: 'tool_use', name: 'Bash', input: {} }],
           },
         });
-      }).toThrow(/Required|too_small/u);
+      }).toThrow(/Invalid input: expected string, received undefined/u);
     });
 
     it('INVALID: {tool_result block missing tool_use_id} => throws validation error for missing tool_use_id', () => {
@@ -410,7 +410,7 @@ describe('assistantStreamLineContract', () => {
             content: [{ type: 'tool_result', content: 'some output' }],
           },
         });
-      }).toThrow(/Required|too_small/u);
+      }).toThrow(/Invalid input: expected string, received undefined/u);
     });
 
     it('INVALID: {redacted_thinking block missing data field} => throws required error', () => {
@@ -422,7 +422,7 @@ describe('assistantStreamLineContract', () => {
             content: [{ type: 'redacted_thinking' }],
           },
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {text block missing text field} => throws required error', () => {
@@ -434,7 +434,7 @@ describe('assistantStreamLineContract', () => {
             content: [{ type: 'text' }],
           },
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

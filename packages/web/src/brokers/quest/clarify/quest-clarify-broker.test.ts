@@ -65,7 +65,7 @@ describe('questClarifyBroker', () => {
             },
           ],
         }),
-      ).rejects.toThrow(/Expected string/u);
+      ).rejects.toThrow(/expected string/u);
     });
   });
 

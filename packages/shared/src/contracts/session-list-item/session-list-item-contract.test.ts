@@ -52,7 +52,7 @@ describe('sessionListItemContract', () => {
     it('INVALID: missing required fields => throws validation error', () => {
       expect(() => {
         sessionListItemContract.parse({});
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: empty sessionId => throws validation error', () => {
@@ -74,7 +74,7 @@ describe('sessionListItemContract', () => {
           ...base,
           startedAt: 'not-a-timestamp',
         });
-      }).toThrow(/Invalid datetime/u);
+      }).toThrow(/Invalid ISO datetime/u);
     });
 
     it('INVALID: empty questId => throws validation error', () => {

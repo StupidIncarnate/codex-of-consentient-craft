@@ -30,11 +30,11 @@ describe('observableOriginContract', () => {
 
   describe('invalid input', () => {
     it('INVALID: {origin: "blightwarden"} => throws, because only roles that author observables are origins', () => {
-      expect(() => ObservableOriginStub({ value: 'blightwarden' })).toThrow(/Invalid enum value/u);
+      expect(() => ObservableOriginStub({ value: 'blightwarden' })).toThrow(/Invalid option/u);
     });
 
     it('EMPTY: {origin: ""} => throws', () => {
-      expect(() => ObservableOriginStub({ value: '' })).toThrow(/Invalid enum value/u);
+      expect(() => ObservableOriginStub({ value: '' })).toThrow(/Invalid option/u);
     });
   });
 });

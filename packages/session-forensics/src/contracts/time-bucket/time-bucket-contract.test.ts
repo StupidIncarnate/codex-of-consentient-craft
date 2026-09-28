@@ -96,12 +96,14 @@ describe('timeBucketContract', () => {
   describe('invalid input', () => {
     it('INVALID: {outputTokens: -1} => throws', () => {
       expect(() => TimeBucketStub({ outputTokens: -1 })).toThrow(
-        /greater than or equal to 0|Number must be/u,
+        /Too small: expected number to be >=0/u,
       );
     });
 
     it('INVALID: {topTools entry missing count} => throws', () => {
-      expect(() => TimeBucketStub({ topTools: [{ name: 'Read' }] as never })).toThrow(/Required/u);
+      expect(() => TimeBucketStub({ topTools: [{ name: 'Read' }] as never })).toThrow(
+        /received undefined/u,
+      );
     });
   });
 
@@ -116,7 +118,7 @@ describe('timeBucketContract', () => {
           contextInTokens: 0,
           toolResultBytes: 0,
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 });

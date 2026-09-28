@@ -26,7 +26,7 @@ describe('operationFlowLabelContract', () => {
     it('INVALID: {value: 42} => throws an expected-string error', () => {
       expect(() => {
         return operationFlowLabelContract.parse(42);
-      }).toThrow(/Expected string/u);
+      }).toThrow(/expected string/u);
     });
   });
 });

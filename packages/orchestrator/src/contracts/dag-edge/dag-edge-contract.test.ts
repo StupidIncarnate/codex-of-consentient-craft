@@ -39,7 +39,7 @@ describe('dagEdgeContract', () => {
     it('INVALID: {missing fields} => throws validation error', () => {
       expect(() => {
         return dagEdgeContract.parse({});
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

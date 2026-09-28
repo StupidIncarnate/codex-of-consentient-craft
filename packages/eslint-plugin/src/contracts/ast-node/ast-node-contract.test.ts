@@ -48,13 +48,13 @@ describe('AstNodeStub', () => {
         range: [0, 10],
         loc: { start: { line: 1, column: 0 }, end: { line: 1, column: 10 } },
       });
-    }).toThrow('String must contain at least 1 character(s)');
+    }).toThrow('expected string to have >=1 characters');
   });
 
   it('INVALID: {range: [-1, 10]} => throws ZodError for negative range', () => {
     expect(() => {
       AstNodeStub({ range: [-1, 10] });
-    }).toThrow('Number must be greater than or equal to 0');
+    }).toThrow('expected number to be >=0');
   });
 
   it('INVALID: {loc: {start: {line: 0}}} => throws ZodError for non-positive line', () => {
@@ -65,7 +65,7 @@ describe('AstNodeStub', () => {
           end: { line: 1, column: 10 },
         },
       });
-    }).toThrow('Number must be greater than 0');
+    }).toThrow('Too small: expected number to be >0');
   });
 
   it('INVALID: {loc: {start: {column: -1}}} => throws ZodError for negative column', () => {
@@ -76,6 +76,6 @@ describe('AstNodeStub', () => {
           end: { line: 1, column: 10 },
         },
       });
-    }).toThrow('Number must be greater than or equal to 0');
+    }).toThrow('expected number to be >=0');
   });
 });

@@ -88,7 +88,7 @@ describe('commitMessageBuildTransformer', () => {
   describe('several work items covered by one commit', () => {
     it('VALID: {two work items} => joins both ids on the work items line', () => {
       const secondWorkItemId = QuestWorkItemIdStub({
-        value: '12345678-1234-1234-1234-123456789abc',
+        value: '7a33141f-192d-204d-847e-9918b4840d56',
       });
 
       const result = commitMessageBuildTransformer({

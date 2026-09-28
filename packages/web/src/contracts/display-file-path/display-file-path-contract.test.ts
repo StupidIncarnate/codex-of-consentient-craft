@@ -12,7 +12,9 @@ describe('displayFilePathContract', () => {
 
   describe('invalid inputs', () => {
     it('INVALID: {value: ""} => throws for empty string', () => {
-      expect(() => displayFilePathContract.parse('')).toThrow(/String must contain at least 1/u);
+      expect(() => displayFilePathContract.parse('')).toThrow(
+        /expected string to have >=1 characters/u,
+      );
     });
   });
 

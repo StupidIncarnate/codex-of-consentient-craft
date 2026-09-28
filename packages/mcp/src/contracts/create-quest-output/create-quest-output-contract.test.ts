@@ -25,13 +25,13 @@ describe('createQuestOutputContract', () => {
   it('INVALID: {missing questId} => throws Required', () => {
     expect(() =>
       createQuestOutputContract.parse({ guildSlug: UrlSlugStub({ value: 'g' }) }),
-    ).toThrow(/Required/u);
+    ).toThrow(/received undefined/u);
   });
 
   it('INVALID: {missing guildSlug} => throws Required', () => {
     expect(() =>
       createQuestOutputContract.parse({ questId: QuestIdStub({ value: 'q1' }) }),
-    ).toThrow(/Required/u);
+    ).toThrow(/received undefined/u);
   });
 
   it('INVALID: {guildSlug with spaces} => throws regex error', () => {

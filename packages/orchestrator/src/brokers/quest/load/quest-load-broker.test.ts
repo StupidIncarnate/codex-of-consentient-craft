@@ -99,7 +99,7 @@ describe('questLoadBroker', () => {
       proxy.setupQuestFile({ questJson });
 
       await expect(questLoadBroker({ questFilePath })).rejects.toThrow(
-        /^Failed to parse quest file at \/quests\/bad-status\.json: status: Invalid enum value/u,
+        /^Failed to parse quest file at \/quests\/bad-status\.json: status: Invalid option: expected one of/u,
       );
     });
 

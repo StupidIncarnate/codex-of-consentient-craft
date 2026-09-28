@@ -18,9 +18,10 @@
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { locationsQuestFolderPathFindBroker } from '@dungeonmaster/shared/brokers';
-import { questIdContract } from '@dungeonmaster/shared/contracts';
+import { contentTextContract, questIdContract } from '@dungeonmaster/shared/contracts';
 
 import { fsRmAdapter } from '../../../adapters/fs/rm/fs-rm-adapter';
+import { zodFirstFieldErrorMessageAdapter } from '../../../adapters/zod/first-field-error-message/zod-first-field-error-message-adapter';
 import { pastedImagePersistBroker } from '../../../brokers/pasted-image/persist/pasted-image-persist-broker';
 import { guildIdParamsContract } from '../../../contracts/guild-id-params/guild-id-params-contract';
 import { questNewBodyContract } from '../../../contracts/quest-new-body/quest-new-body-contract';
@@ -66,7 +67,10 @@ export const QuestNewResponder = async ({
       // mediaType, or over-ceiling byte size) — zod's own message already carries that detail —
       // so it is surfaced verbatim rather than collapsed into the generic message-required reply
       // below, mirroring the chat and follow-up routes' own body validation.
-      const imagesError = parsedBody.error.flatten().fieldErrors.images?.[0];
+      const imagesError = zodFirstFieldErrorMessageAdapter({
+        error: parsedBody.error,
+        field: contentTextContract.parse('images'),
+      });
       if (imagesError !== undefined) {
         return responderResultContract.parse({
           status: httpStatusStatics.clientError.badRequest,

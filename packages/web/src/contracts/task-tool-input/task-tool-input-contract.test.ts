@@ -27,11 +27,11 @@ describe('taskToolInputContract', () => {
 
   describe('invalid inputs', () => {
     it('INVALID: {missing description} => throws', () => {
-      expect(() => taskToolInputContract.parse({})).toThrow(/Required/u);
+      expect(() => taskToolInputContract.parse({})).toThrow(/received undefined/u);
     });
 
     it('INVALID: {description: null} => throws', () => {
-      expect(() => taskToolInputContract.parse({ description: null })).toThrow(/Expected string/u);
+      expect(() => taskToolInputContract.parse({ description: null })).toThrow(/expected string/u);
     });
   });
 

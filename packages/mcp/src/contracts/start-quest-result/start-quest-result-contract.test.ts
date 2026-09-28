@@ -31,7 +31,7 @@ describe('startQuestResultContract', () => {
     it('INVALID: {success: missing} => throws validation error', () => {
       expect(() => {
         startQuestResultContract.parse({});
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

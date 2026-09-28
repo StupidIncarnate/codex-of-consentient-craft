@@ -18,8 +18,8 @@
 import { z } from 'zod';
 
 export const riftcarverResultContract = z.object({
-  id: z.string().uuid().brand<'RiftcarverResultId'>(),
-  createdAt: z.string().datetime().brand<'IsoTimestamp'>(),
+  id: z.uuid().brand<'RiftcarverResultId'>(),
+  createdAt: z.iso.datetime().brand<'IsoTimestamp'>(),
   exitCode: z.number().int().brand<'ExitCode'>(),
   failedStep: z.string().min(1).brand<'WorktreePrepareStep'>().optional(),
   outcome: z.enum(['green', 'repairable', 'blocked']),

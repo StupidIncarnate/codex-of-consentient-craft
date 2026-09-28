@@ -25,32 +25,32 @@ describe('nestedChainArgsContract', () => {
   describe('invalid nested chain args', () => {
     it('INVALID: {depth: 0} => throws "Number must be greater than 0"', () => {
       expect(() => nestedChainArgsContract.parse({ depth: 0 })).toThrow(
-        /Number must be greater than 0/u,
+        /expected number to be >0/u,
       );
     });
 
     it('INVALID: {depth: -1} => throws "Number must be greater than 0"', () => {
       expect(() => nestedChainArgsContract.parse({ depth: -1 })).toThrow(
-        /Number must be greater than 0/u,
+        /expected number to be >0/u,
       );
     });
 
     it('INVALID: {depth: 1.5} => throws "Expected integer, received float"', () => {
       expect(() => nestedChainArgsContract.parse({ depth: 1.5 })).toThrow(
-        /Expected integer, received float/u,
+        /expected int, received number/u,
       );
     });
 
     it('INVALID: {depth: "2"} => throws "Expected number, received string"', () => {
       expect(() => nestedChainArgsContract.parse({ depth: '2' as never })).toThrow(
-        /Expected number, received string/u,
+        /expected number, received string/u,
       );
     });
   });
 
   describe('empty nested chain args', () => {
-    it('EMPTY: {} => throws "Required"', () => {
-      expect(() => nestedChainArgsContract.parse({})).toThrow(/Required/u);
+    it('EMPTY: {} => throws "received undefined"', () => {
+      expect(() => nestedChainArgsContract.parse({})).toThrow(/received undefined/u);
     });
   });
 });

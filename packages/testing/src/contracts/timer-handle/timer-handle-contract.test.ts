@@ -39,7 +39,7 @@ describe('timerHandleContract', () => {
     });
 
     it('INVALID: {null} => throws', () => {
-      expect(() => timerHandleContract.parse(null)).toThrow(/Expected object/u);
+      expect(() => timerHandleContract.parse(null)).toThrow(/expected object/u);
     });
   });
 });

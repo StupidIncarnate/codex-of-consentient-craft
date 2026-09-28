@@ -22,6 +22,6 @@ export const packageJsonContract = z
       .optional(),
     exports: z.record(z.string().brand<'ExportKey'>(), z.unknown()).optional(),
   })
-  .passthrough();
+  .loose();
 
 export type PackageJson = z.infer<typeof packageJsonContract>;

@@ -30,19 +30,19 @@ describe('gateSectionKeyContract', () => {
 
   describe('invalid inputs', () => {
     it('INVALID: {value: "unknown"} => throws for invalid key', () => {
-      expect(() => gateSectionKeyContract.parse('unknown')).toThrow(/Invalid enum value/u);
+      expect(() => gateSectionKeyContract.parse('unknown')).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {value: "requirements"} => throws for removed key', () => {
-      expect(() => gateSectionKeyContract.parse('requirements')).toThrow(/Invalid enum value/u);
+      expect(() => gateSectionKeyContract.parse('requirements')).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {value: "observables"} => throws for removed key', () => {
-      expect(() => gateSectionKeyContract.parse('observables')).toThrow(/Invalid enum value/u);
+      expect(() => gateSectionKeyContract.parse('observables')).toThrow(/Invalid option/u);
     });
 
     it('EMPTY: {value: null} => throws for null', () => {
-      expect(() => gateSectionKeyContract.parse(null)).toThrow(/received null/u);
+      expect(() => gateSectionKeyContract.parse(null)).toThrow(/Invalid option/u);
     });
   });
 

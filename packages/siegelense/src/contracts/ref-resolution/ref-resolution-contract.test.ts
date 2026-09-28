@@ -48,13 +48,13 @@ describe('refResolutionContract', () => {
     it('INVALID: {state: "missing"} => throws, because a ref has exactly three fates', () => {
       expect(() =>
         refResolutionContract.parse({ state: 'missing', boundary: null, highestMinted: 0 }),
-      ).toThrow(/Invalid enum value/u);
+      ).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {highestMinted: -1} => throws', () => {
       expect(() =>
         refResolutionContract.parse({ state: 'live', boundary: null, highestMinted: -1 }),
-      ).toThrow(/Number must be greater than or equal to 0/u);
+      ).toThrow(/expected number to be >=0/u);
     });
   });
 });

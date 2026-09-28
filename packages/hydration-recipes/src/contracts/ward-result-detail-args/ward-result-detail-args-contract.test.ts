@@ -23,14 +23,16 @@ describe('wardResultDetailArgsContract', () => {
   });
 
   describe('invalid ward result detail args', () => {
-    it('INVALID: {detail only} => throws "Required"', () => {
-      expect(() => wardResultDetailArgsContract.parse({ detail: {} })).toThrow(/Required/u);
+    it('INVALID: {detail only} => throws "received undefined"', () => {
+      expect(() => wardResultDetailArgsContract.parse({ detail: {} })).toThrow(
+        /received undefined/u,
+      );
     });
 
-    it('INVALID: {wardResultId: "not-a-uuid"} => throws "Invalid uuid"', () => {
+    it('INVALID: {wardResultId: "not-a-uuid"} => throws "Invalid UUID"', () => {
       expect(() =>
         wardResultDetailArgsContract.parse({ wardResultId: 'not-a-uuid', detail: {} }),
-      ).toThrow(/Invalid uuid/u);
+      ).toThrow(/Invalid UUID/u);
     });
 
     it('INVALID: {detail: "not-an-object"} => throws "Expected object, received string"', () => {
@@ -39,13 +41,13 @@ describe('wardResultDetailArgsContract', () => {
           wardResultId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
           detail: 'not-an-object',
         }),
-      ).toThrow(/Expected object, received string/u);
+      ).toThrow(/Invalid input: expected record, received string/u);
     });
   });
 
   describe('empty ward result detail args', () => {
-    it('EMPTY: {} => throws "Required"', () => {
-      expect(() => wardResultDetailArgsContract.parse({})).toThrow(/Required/u);
+    it('EMPTY: {} => throws "received undefined"', () => {
+      expect(() => wardResultDetailArgsContract.parse({})).toThrow(/received undefined/u);
     });
   });
 });

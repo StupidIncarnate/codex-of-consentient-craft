@@ -68,7 +68,7 @@ describe('questPauseBroker', () => {
       proxy.setupPassthrough();
       const questId = QuestIdStub({ value: 'pause-reset-wi' });
       const guildId = GuildIdStub();
-      const wiId = QuestWorkItemIdStub({ value: 'aaaaaaaa-0000-0000-0000-000000000001' });
+      const wiId = QuestWorkItemIdStub({ value: '03048909-e478-200e-95e2-05df152332fb' });
       const workItem = WorkItemStub({ id: wiId, role: 'codeweaver', status: 'in_progress' });
       const quest = QuestStub({ id: questId, status: 'in_progress', workItems: [workItem] });
       proxy.setupQuestFound({ quest });

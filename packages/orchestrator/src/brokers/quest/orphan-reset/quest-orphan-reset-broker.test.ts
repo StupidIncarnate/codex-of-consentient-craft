@@ -26,7 +26,7 @@ describe('questOrphanResetBroker', () => {
 
     it('VALID: {approved quest with all pending work items} => returns orphansReset: 0', async () => {
       const proxy = questOrphanResetBrokerProxy();
-      const guildId = GuildIdStub({ value: 'cccccccc-cccc-cccc-cccc-000000000001' });
+      const guildId = GuildIdStub({ value: 'b40d0abc-a4d7-14a5-8b00-8253b9550b34' });
       const guildItem = GuildListItemStub({ id: guildId, valid: true });
       const questId = QuestIdStub({ value: 'q-noorphan' });
       const quest = QuestStub({
@@ -48,7 +48,7 @@ describe('questOrphanResetBroker', () => {
   describe('orphans present', () => {
     it('VALID: {in_progress quest with one in_progress work item} => resets and returns orphansReset: 1', async () => {
       const proxy = questOrphanResetBrokerProxy();
-      const guildId = GuildIdStub({ value: 'cccccccc-cccc-cccc-cccc-000000000002' });
+      const guildId = GuildIdStub({ value: '58ee9f9c-1f9a-8433-b8d5-1bceaac7c5f8' });
       const guildItem = GuildListItemStub({ id: guildId, valid: true });
       const questId = QuestIdStub({ value: 'q-orphan-1' });
       const workItemId = QuestWorkItemIdStub({ value: '88888888-8888-8888-8888-000000000001' });
@@ -71,7 +71,7 @@ describe('questOrphanResetBroker', () => {
 
     it('VALID: {one quest with two orphans, one quest with none} => returns orphansReset: 2 and writes both resets', async () => {
       const proxy = questOrphanResetBrokerProxy();
-      const guildId = GuildIdStub({ value: 'cccccccc-cccc-cccc-cccc-000000000003' });
+      const guildId = GuildIdStub({ value: '2483cf00-9822-1f0a-bb52-9675c6078d3e' });
       const guildItem = GuildListItemStub({ id: guildId, valid: true });
       // Two orphans on the quest that HAS them, and a second quest alongside it whose items
       // are all at rest: the count is per reset work item, and the sweep spans every quest in
@@ -82,11 +82,11 @@ describe('questOrphanResetBroker', () => {
         status: 'in_progress',
         workItems: [
           WorkItemStub({
-            id: QuestWorkItemIdStub({ value: '44444444-4444-4444-4444-000000000001' }),
+            id: QuestWorkItemIdStub({ value: 'c9f09068-2dc7-7b19-8458-93c4e88a56fc' }),
             status: 'in_progress',
           }),
           WorkItemStub({
-            id: QuestWorkItemIdStub({ value: '44444444-4444-4444-4444-000000000002' }),
+            id: QuestWorkItemIdStub({ value: '1a764190-6546-2fca-918d-12c3cd3cbe68' }),
             status: 'in_progress',
           }),
         ],
@@ -97,7 +97,7 @@ describe('questOrphanResetBroker', () => {
         status: 'in_progress',
         workItems: [
           WorkItemStub({
-            id: QuestWorkItemIdStub({ value: '44444444-4444-4444-4444-000000000003' }),
+            id: QuestWorkItemIdStub({ value: '5be68fa8-eb1e-59ff-a4f9-6fe83ccd819f' }),
             status: 'pending',
           }),
         ],
@@ -120,10 +120,10 @@ describe('questOrphanResetBroker', () => {
   describe('clears stale per-run identity', () => {
     it('VALID: {in_progress work item carries sessionId+agentId+startedAt} => orphan reset writes quest.json with those fields removed', async () => {
       const proxy = questOrphanResetBrokerProxy();
-      const guildId = GuildIdStub({ value: 'cccccccc-cccc-cccc-cccc-000000000005' });
+      const guildId = GuildIdStub({ value: '091fea1e-ff81-1e02-913e-d87010a1e2ad' });
       const guildItem = GuildListItemStub({ id: guildId, valid: true });
       const questId = QuestIdStub({ value: 'q-clear-fields' });
-      const workItemId = QuestWorkItemIdStub({ value: '99999999-9999-9999-9999-000000000001' });
+      const workItemId = QuestWorkItemIdStub({ value: '3b80b06d-9fd3-8724-b5ba-4ec4aac6ca06' });
       const orphan = WorkItemStub({
         id: workItemId,
         status: 'in_progress',
@@ -170,7 +170,7 @@ describe('questOrphanResetBroker', () => {
       // verdict puts that finished item back to `pending` with its session cleared, and the
       // dispatcher re-runs a session that already signalled.
       const proxy = questOrphanResetBrokerProxy();
-      const guildId = GuildIdStub({ value: 'cccccccc-cccc-cccc-cccc-000000000008' });
+      const guildId = GuildIdStub({ value: '0b5d933d-2c15-51c6-89dc-0a735edeea25' });
       const guildItem = GuildListItemStub({ id: guildId, valid: true });
       const questId = QuestIdStub({ value: 'q-stale-walk' });
       const workItemId = QuestWorkItemIdStub({ value: '55555555-5555-4555-8555-000000000001' });
@@ -215,7 +215,7 @@ describe('questOrphanResetBroker', () => {
   describe('invalid guild handling', () => {
     it('VALID: {invalid guild} => skipped, returns 0', async () => {
       const proxy = questOrphanResetBrokerProxy();
-      const guildId = GuildIdStub({ value: 'cccccccc-cccc-cccc-cccc-000000000004' });
+      const guildId = GuildIdStub({ value: 'c7c99610-f0cf-4e5e-88a8-06d14b70528b' });
       const guildItem = GuildListItemStub({ id: guildId, valid: false });
       proxy.setupGuildsAndQuests({
         guildItems: [guildItem],
@@ -235,7 +235,7 @@ describe('questOrphanResetBroker', () => {
       // in_progress. The reset must NOT clear that stamp, or the reactor oscillates
       // start→reset→stop→start indefinitely.
       const proxy = questOrphanResetBrokerProxy();
-      const guildId = GuildIdStub({ value: 'cccccccc-cccc-cccc-cccc-000000000006' });
+      const guildId = GuildIdStub({ value: '2157feba-0ec5-7477-a847-c2dd8eb96ebe' });
       const guildItem = GuildListItemStub({ id: guildId, valid: true });
       const liveSessionId = SessionIdStub({ value: 'b1b1b1b1-b1b1-4b1b-8b1b-b1b1b1b1b1b1' });
       const livePresentItem = WorkItemStub({
@@ -260,7 +260,7 @@ describe('questOrphanResetBroker', () => {
 
     it('VALID: {one excluded live item + one orphan with different sessionId} => only the orphan is reset', async () => {
       const proxy = questOrphanResetBrokerProxy();
-      const guildId = GuildIdStub({ value: 'cccccccc-cccc-cccc-cccc-000000000007' });
+      const guildId = GuildIdStub({ value: '32f3d493-3e51-4b9d-ae74-f0183b6c1376' });
       const guildItem = GuildListItemStub({ id: guildId, valid: true });
       const liveSessionId = SessionIdStub({ value: 'c2c2c2c2-c2c2-4c2c-8c2c-c2c2c2c2c2c2' });
       const orphanSessionId = SessionIdStub({ value: 'd3d3d3d3-d3d3-4d3d-8d3d-d3d3d3d3d3d3' });
@@ -299,7 +299,7 @@ describe('questOrphanResetBroker', () => {
       // the session Claude CLI minted for this run. The item is RUNNING with a live child, so a
       // sessionId-only exclusion resets an agent that is still working.
       const proxy = questOrphanResetBrokerProxy();
-      const guildId = GuildIdStub({ value: 'cccccccc-cccc-cccc-cccc-00000000000a' });
+      const guildId = GuildIdStub({ value: '4f237639-9535-3767-8a33-4237205d5c9f' });
       const guildItem = GuildListItemStub({ id: guildId, valid: true });
       const watchedSessionId = SessionIdStub({ value: 'e4e4e4e4-e4e4-4e4e-8e4e-e4e4e4e4e4e4' });
       const respawnedSessionId = SessionIdStub({ value: 'f5f5f5f5-f5f5-4f5f-8f5f-f5f5f5f5f5f5' });
@@ -333,7 +333,7 @@ describe('questOrphanResetBroker', () => {
 
     it('VALID: {excluded work item plus a genuine orphan} => only the orphan is reset', async () => {
       const proxy = questOrphanResetBrokerProxy();
-      const guildId = GuildIdStub({ value: 'cccccccc-cccc-cccc-cccc-00000000000b' });
+      const guildId = GuildIdStub({ value: 'ed4035a4-dbec-687f-a0d4-c90379925aad' });
       const guildItem = GuildListItemStub({ id: guildId, valid: true });
       const watchedSessionId = SessionIdStub({ value: 'a6a6a6a6-a6a6-4a6a-8a6a-a6a6a6a6a6a6' });
       const liveWorkItemId = QuestWorkItemIdStub({ value: '44444444-4444-4444-8444-000000000001' });

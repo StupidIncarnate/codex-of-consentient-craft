@@ -82,13 +82,13 @@ describe('packageTypeContract', () => {
     it('INVALID: unknown type string => throws validation error', () => {
       expect(() => {
         packageTypeContract.parse('not-a-valid-type');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: empty string => throws validation error', () => {
       expect(() => {
         packageTypeContract.parse('');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
   });
 });
@@ -103,7 +103,7 @@ describe('packageTypeContract', () => {
 // operationsCodeweaverOrderTransformer and schedule its package's session after every consumer of
 // it.
 describe('cross-check against packageBuildOrderStatics', () => {
-  it.each(packageTypeContract.unwrap().options)(
+  it.each(packageTypeContract.options)(
     'VALID: {packageType: %s} => has exactly one tier in packageBuildOrderStatics',
     (packageType) => {
       const tierCount = packageBuildOrderStatics.tiers.filter((tier) =>

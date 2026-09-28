@@ -179,7 +179,7 @@ describe('claudeSettingsContract', () => {
             ],
           },
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: hook entry without command field => throws ZodError', () => {
@@ -193,7 +193,7 @@ describe('claudeSettingsContract', () => {
             ],
           },
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: PreToolUse entry without hooks array => throws ZodError', () => {
@@ -207,7 +207,7 @@ describe('claudeSettingsContract', () => {
             ],
           },
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 });

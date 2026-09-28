@@ -25,7 +25,7 @@ export const applyOverridesTransformer = ({
 
   // Apply each override
   for (const [folder, override] of Object.entries(config.architecture.overrides)) {
-    if (!override?.add || !isFrameworkPresetKeyGuard(folder)) {
+    if (!override.add || !isFrameworkPresetKeyGuard(folder)) {
       continue;
     }
 

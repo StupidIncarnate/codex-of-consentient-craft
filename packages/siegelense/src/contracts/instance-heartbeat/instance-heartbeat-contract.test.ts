@@ -91,7 +91,7 @@ describe('instanceHeartbeatContract', () => {
           pgids: [4821],
           beatAtMs: 1_700_000_000_000,
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {pgids: [-1]} => throws for a non-positive process-group id', () => {

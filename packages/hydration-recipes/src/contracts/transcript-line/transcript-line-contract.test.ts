@@ -40,12 +40,12 @@ describe('transcriptLineContract', () => {
           timestamp: '2026-01-01T00:00:00.000Z',
           message: { content: 'x' },
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {no timestamp} => throws', () => {
       expect(() => transcriptLineContract.parse({ uuid: 'u', message: { content: 'x' } })).toThrow(
-        /Required/u,
+        /received undefined/u,
       );
     });
   });

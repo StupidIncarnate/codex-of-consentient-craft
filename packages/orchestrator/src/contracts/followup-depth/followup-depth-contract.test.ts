@@ -34,11 +34,13 @@ describe('followupDepthContract', () => {
     });
 
     it('INVALID: {value: 1.5} => throws validation error', () => {
-      expect(() => followupDepthContract.parse(1.5)).toThrow(/integer/u);
+      expect(() => followupDepthContract.parse(1.5)).toThrow(
+        /Invalid input: expected int, received number/u,
+      );
     });
 
     it('INVALID: {value: "not-a-number"} => throws validation error', () => {
-      expect(() => followupDepthContract.parse('not-a-number')).toThrow(/Expected number/u);
+      expect(() => followupDepthContract.parse('not-a-number')).toThrow(/expected number/u);
     });
   });
 });

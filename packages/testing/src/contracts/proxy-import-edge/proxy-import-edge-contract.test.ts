@@ -46,7 +46,7 @@ describe('proxyImportEdgeContract', () => {
           importPath: './x.proxy',
           names: null,
         });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {missing importPath} => throws validation error', () => {
@@ -55,7 +55,7 @@ describe('proxyImportEdgeContract', () => {
           kind: 'import',
           names: null,
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

@@ -33,7 +33,7 @@ describe('fileReadDataUrlAdapter', () => {
       fileReadDataUrlAdapterProxy();
       const blob = new Blob([], { type: 'image/png' });
 
-      await expect(fileReadDataUrlAdapter({ blob })).rejects.toThrow(/invalid_string/u);
+      await expect(fileReadDataUrlAdapter({ blob })).rejects.toThrow(/Invalid image data URL/u);
     });
   });
 
@@ -43,7 +43,7 @@ describe('fileReadDataUrlAdapter', () => {
       const bytes = new Uint8Array([1, 2, 3, 4]);
       const blob = new Blob([bytes], { type: 'image/bmp' });
 
-      await expect(fileReadDataUrlAdapter({ blob })).rejects.toThrow(/invalid_string/u);
+      await expect(fileReadDataUrlAdapter({ blob })).rejects.toThrow(/Invalid image data URL/u);
     });
 
     it('INVALID: {blob: no type at all} => rejects because the data url carries no media type', async () => {
@@ -51,7 +51,7 @@ describe('fileReadDataUrlAdapter', () => {
       const bytes = new Uint8Array([1, 2, 3, 4]);
       const blob = new Blob([bytes]);
 
-      await expect(fileReadDataUrlAdapter({ blob })).rejects.toThrow(/invalid_string/u);
+      await expect(fileReadDataUrlAdapter({ blob })).rejects.toThrow(/Invalid image data URL/u);
     });
   });
 });

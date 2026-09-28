@@ -38,7 +38,7 @@ describe('reapedInstanceContract', () => {
           staleFor: '9h',
           killed: [33_812],
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 });

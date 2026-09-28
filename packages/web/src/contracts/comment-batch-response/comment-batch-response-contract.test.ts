@@ -37,20 +37,20 @@ describe('commentBatchResponseContract', () => {
   describe('invalid bodies', () => {
     it('INVALID: {chatProcessId: ""} => throws validation error', () => {
       expect(() => commentBatchResponseContract.parse({ chatProcessId: '' })).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
 
     it('INVALID: {error: ""} => throws validation error', () => {
       expect(() => commentBatchResponseContract.parse({ error: '' })).toThrow(
-        /String must contain at least 1 character/u,
+        /expected string to have >=1 characters/u,
       );
     });
 
     it('INVALID: {staleAnchors: [{nodeId only}]} => throws validation error', () => {
       expect(() =>
         commentBatchResponseContract.parse({ staleAnchors: [{ nodeId: 'start' }] }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 });

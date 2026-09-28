@@ -219,15 +219,11 @@ describe('verificationUnitContract', () => {
 
   describe('invalid input', () => {
     it('INVALID: {kind: nonsense} => throws', () => {
-      expect(() => VerificationUnitStub({ kind: 'nonsense' as never })).toThrow(
-        /Invalid enum value/u,
-      );
+      expect(() => VerificationUnitStub({ kind: 'nonsense' as never })).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {addedBy: nobody} => throws', () => {
-      expect(() => VerificationUnitStub({ addedBy: 'nobody' as never })).toThrow(
-        /Invalid enum value/u,
-      );
+      expect(() => VerificationUnitStub({ addedBy: 'nobody' as never })).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {trackMarks.codeweaver: nonsense} => throws', () => {
@@ -235,7 +231,7 @@ describe('verificationUnitContract', () => {
         VerificationUnitStub({
           trackMarks: { codeweaver: 'nonsense' as never },
         }),
-      ).toThrow(/Invalid enum value/u);
+      ).toThrow(/Invalid option/u);
     });
   });
 });

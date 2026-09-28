@@ -43,7 +43,7 @@ describe('resultStreamLineContract', () => {
           type: 'system',
           session_id: 'session-123',
         });
-      }).toThrow(/Invalid literal value/u);
+      }).toThrow(/Invalid input: expected/u);
     });
 
     it('INVALID: {missing session_id} => throws validation error', () => {
@@ -51,7 +51,7 @@ describe('resultStreamLineContract', () => {
         resultStreamLineContract.parse({
           type: 'result',
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

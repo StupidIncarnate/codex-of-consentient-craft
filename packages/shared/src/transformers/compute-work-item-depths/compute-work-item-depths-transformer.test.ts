@@ -8,19 +8,19 @@ describe('computeWorkItemDepthsTransformer', () => {
   describe('linear chain', () => {
     it('VALID: {A→B→C linear chain} => depths 0, 1, 2', () => {
       const a = WorkItemStub({
-        id: 'a0000000-0000-0000-0000-000000000001',
+        id: '235be74a-c2e6-687c-a91c-7169625c0e54',
         role: 'chaoswhisperer',
         status: 'complete',
         dependsOn: [],
       });
       const b = WorkItemStub({
-        id: 'a0000000-0000-0000-0000-000000000002',
+        id: '7d42a5b3-83e0-4dd4-b874-900390937194',
         role: 'codeweaver',
         status: 'complete',
         dependsOn: [a.id],
       });
       const c = WorkItemStub({
-        id: 'a0000000-0000-0000-0000-000000000003',
+        id: '0c478f2e-447c-8816-a9f9-24a2987ea557',
         role: 'ward',
         status: 'pending',
         dependsOn: [b.id],
@@ -39,13 +39,13 @@ describe('computeWorkItemDepthsTransformer', () => {
   describe('no dependencies', () => {
     it('VALID: {items with no deps} => all depth 0', () => {
       const a = WorkItemStub({
-        id: 'a0000000-0000-0000-0000-000000000001',
+        id: '235be74a-c2e6-687c-a91c-7169625c0e54',
         role: 'codeweaver',
         status: 'complete',
         dependsOn: [],
       });
       const b = WorkItemStub({
-        id: 'a0000000-0000-0000-0000-000000000002',
+        id: '7d42a5b3-83e0-4dd4-b874-900390937194',
         role: 'codeweaver',
         status: 'complete',
         dependsOn: [],
@@ -63,10 +63,10 @@ describe('computeWorkItemDepthsTransformer', () => {
   describe('deps outside filtered set', () => {
     it('EDGE: {item depends on ID not in itemMap} => depth 0', () => {
       const a = WorkItemStub({
-        id: 'a0000000-0000-0000-0000-000000000001',
+        id: '235be74a-c2e6-687c-a91c-7169625c0e54',
         role: 'codeweaver',
         status: 'pending',
-        dependsOn: ['b0000000-0000-0000-0000-999999999999'],
+        dependsOn: ['d11dfd4a-2d77-109b-91c4-cf61f1c5a934'],
       });
 
       const items = [a];
@@ -84,37 +84,37 @@ describe('computeWorkItemDepthsTransformer', () => {
       // Cycle-breaking longest-path skips back-edges, so every node gets a finite depth and the
       // downstream chain stays below the cycle.
       const root = WorkItemStub({
-        id: 'a0000000-0000-0000-0000-000000000001',
+        id: '235be74a-c2e6-687c-a91c-7169625c0e54',
         role: 'chaoswhisperer',
         status: 'complete',
         dependsOn: [],
       });
       const x = WorkItemStub({
-        id: 'a0000000-0000-0000-0000-000000000002',
+        id: '7d42a5b3-83e0-4dd4-b874-900390937194',
         role: 'codeweaver',
         status: 'pending',
-        dependsOn: [root.id, 'a0000000-0000-0000-0000-000000000004'],
+        dependsOn: [root.id, '04505e0a-98ac-385a-9f80-a7e573adb589'],
       });
       const y = WorkItemStub({
-        id: 'a0000000-0000-0000-0000-000000000003',
+        id: '0c478f2e-447c-8816-a9f9-24a2987ea557',
         role: 'codeweaver',
         status: 'pending',
         dependsOn: [root.id, x.id],
       });
       const z = WorkItemStub({
-        id: 'a0000000-0000-0000-0000-000000000004',
+        id: '04505e0a-98ac-385a-9f80-a7e573adb589',
         role: 'codeweaver',
         status: 'pending',
         dependsOn: [root.id, y.id],
       });
       const downstream = WorkItemStub({
-        id: 'a0000000-0000-0000-0000-000000000005',
+        id: '086a7fe7-7bb1-4312-8857-8da2fd202117',
         role: 'ward',
         status: 'pending',
         dependsOn: [x.id, y.id, z.id],
       });
       const tail = WorkItemStub({
-        id: 'a0000000-0000-0000-0000-000000000006',
+        id: '1291c5a5-b6da-6f31-aa5c-0976ed51b98e',
         role: 'flowrider',
         status: 'pending',
         dependsOn: [downstream.id],
@@ -138,13 +138,13 @@ describe('computeWorkItemDepthsTransformer', () => {
 
     it('EDGE: {2-item cycle with no other deps} => resolves to finite depths (no infinite recursion)', () => {
       const p = WorkItemStub({
-        id: 'a0000000-0000-0000-0000-000000000001',
+        id: '235be74a-c2e6-687c-a91c-7169625c0e54',
         role: 'codeweaver',
         status: 'pending',
-        dependsOn: ['a0000000-0000-0000-0000-000000000002'],
+        dependsOn: ['7d42a5b3-83e0-4dd4-b874-900390937194'],
       });
       const qItem = WorkItemStub({
-        id: 'a0000000-0000-0000-0000-000000000002',
+        id: '7d42a5b3-83e0-4dd4-b874-900390937194',
         role: 'codeweaver',
         status: 'pending',
         dependsOn: [p.id],
@@ -162,25 +162,25 @@ describe('computeWorkItemDepthsTransformer', () => {
   describe('diamond dependency', () => {
     it('VALID: {A→B, A→C, B→D, C→D diamond} => D has depth 2', () => {
       const a = WorkItemStub({
-        id: 'a0000000-0000-0000-0000-000000000001',
+        id: '235be74a-c2e6-687c-a91c-7169625c0e54',
         role: 'chaoswhisperer',
         status: 'complete',
         dependsOn: [],
       });
       const b = WorkItemStub({
-        id: 'a0000000-0000-0000-0000-000000000002',
+        id: '7d42a5b3-83e0-4dd4-b874-900390937194',
         role: 'codeweaver',
         status: 'complete',
         dependsOn: [a.id],
       });
       const c = WorkItemStub({
-        id: 'a0000000-0000-0000-0000-000000000003',
+        id: '0c478f2e-447c-8816-a9f9-24a2987ea557',
         role: 'codeweaver',
         status: 'complete',
         dependsOn: [a.id],
       });
       const d = WorkItemStub({
-        id: 'a0000000-0000-0000-0000-000000000004',
+        id: '04505e0a-98ac-385a-9f80-a7e573adb589',
         role: 'ward',
         status: 'pending',
         dependsOn: [b.id, c.id],

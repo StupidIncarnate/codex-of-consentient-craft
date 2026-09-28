@@ -37,7 +37,7 @@ describe('gitRelativePathContract', () => {
   describe('invalid paths', () => {
     it('INVALID: {empty string} => throws error', () => {
       expect(() => gitRelativePathContract.parse('')).toThrow(
-        'String must contain at least 1 character(s)',
+        'expected string to have >=1 characters',
       );
     });
   });

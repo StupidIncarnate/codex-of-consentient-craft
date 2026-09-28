@@ -14,7 +14,7 @@ import { questIdContract } from '@dungeonmaster/shared/contracts';
 
 export const questRiftcarverDetailParamsContract = z.object({
   questId: questIdContract,
-  riftcarverResultId: z.string().uuid().brand<'RiftcarverResultId'>(),
+  riftcarverResultId: z.uuid().brand<'RiftcarverResultId'>(),
 });
 
 export type QuestRiftcarverDetailParams = z.infer<typeof questRiftcarverDetailParamsContract>;

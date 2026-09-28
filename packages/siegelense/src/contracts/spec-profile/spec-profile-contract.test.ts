@@ -68,7 +68,7 @@ describe('specProfileContract', () => {
           bootMs: null,
           samples: [{ poolSize: 0, steadyMB: 1800, peakMB: 2600, runs: 1 }],
         });
-      }).toThrow(/greater than 0/u);
+      }).toThrow(/to be >0/u);
     });
 
     it('INVALID: {a sample with no poolSize} => throws, a reading without its condition is not a reading', () => {
@@ -82,7 +82,7 @@ describe('specProfileContract', () => {
           bootMs: null,
           samples: [{ steadyMB: 1800, peakMB: 2600, runs: 1 }],
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

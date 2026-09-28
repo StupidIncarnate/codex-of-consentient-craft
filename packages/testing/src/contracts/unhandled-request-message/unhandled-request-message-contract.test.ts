@@ -22,7 +22,7 @@ describe('unhandledRequestMessageContract', () => {
 
   describe('invalid messages', () => {
     it('INVALID: {value: 123} => throws validation error', () => {
-      expect(() => unhandledRequestMessageContract.parse(123 as never)).toThrow(/Expected string/u);
+      expect(() => unhandledRequestMessageContract.parse(123 as never)).toThrow(/expected string/u);
     });
   });
 });

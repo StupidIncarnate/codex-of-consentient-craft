@@ -96,11 +96,25 @@ type StubArgumentBase<T> = T extends any // Distributive - handles union members
         // `(...args: any[]) => any` matches all possible function types
         T extends (...args: any[]) => any
         ? T // Preserve functions as-is
-        : [keyof T] extends [never]
-          ? T // keyof is never (some primitives/functions), preserve as-is
-          : T extends object
-            ? UnbrandRecord<T> // Transform Record keys or map object properties
-            : T
+        : // A Promise's `keyof` is a union of method names (`then`/`catch`/`finally`), so without this
+          // branch `UnbrandRecord` would map it to `{ then?, catch?, finally? }` — a value with no
+          // `then` at all satisfies that shape, which is not a Promise. Preserve it whole, like a
+          // function: it is a live async value, not deep-partialable data.
+          T extends Promise<any>
+          ? T
+          : // A zod schema instance's `keyof` is a union of its own method names (`parse`/
+            // `safeParse`/…), so without this branch `UnbrandRecord` would map it the same broken
+            // way a Promise would be mapped — a plain object with a few optional methods, not a real
+            // schema. Detected structurally (`parse`+`safeParse` together) rather than by importing
+            // zod's own class, so this file stays dependency-free. Preserve it whole: a schema is a
+            // live, opaque value a stub carries through unvalidated, never data to unbrand.
+            T extends { parse: (...args: any[]) => any; safeParse: (...args: any[]) => any }
+            ? T
+            : [keyof T] extends [never]
+              ? T // keyof is never (some primitives/functions), preserve as-is
+              : T extends object
+                ? UnbrandRecord<T> // Transform Record keys or map object properties
+                : T
     : UnbrandPrimitive<T> // T is a branded primitive, return unbranded version
   : never; // Should never reach here
 

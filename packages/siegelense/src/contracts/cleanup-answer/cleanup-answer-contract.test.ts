@@ -89,7 +89,7 @@ describe('cleanupAnswerContract', () => {
           lockReleased: true,
           leftAlone: [],
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {assetsAged: {instances: 3}} => a count with no size throws, so a caller can never read one without the other', () => {
@@ -101,7 +101,7 @@ describe('cleanupAnswerContract', () => {
           assetsAged: { instances: 3 },
           leftAlone: [],
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {assetsAged carrying videoFirst} => throws naming the stray key, because no built step writes a video', () => {
@@ -113,7 +113,7 @@ describe('cleanupAnswerContract', () => {
           assetsAged: { instances: 3, freedMB: 1840, videoFirst: true },
           leftAlone: [],
         }),
-      ).toThrow(/Unrecognized key\(s\) in object: 'videoFirst'/u);
+      ).toThrow(/Unrecognized key: \\"videoFirst\\"/u);
     });
   });
 
@@ -126,7 +126,7 @@ describe('cleanupAnswerContract', () => {
           assetsAged: { instances: 0, freedMB: 0 },
           leftAlone: [],
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 });

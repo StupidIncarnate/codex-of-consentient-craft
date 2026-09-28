@@ -27,6 +27,6 @@ describe('wardDetailJsonContract', (): void => {
   });
 
   it('ERROR: {non-object} => throws', (): void => {
-    expect((): unknown => wardDetailJsonContract.parse('foo')).toThrow(/Expected object/u);
+    expect((): unknown => wardDetailJsonContract.parse('foo')).toThrow(/expected object/u);
   });
 });

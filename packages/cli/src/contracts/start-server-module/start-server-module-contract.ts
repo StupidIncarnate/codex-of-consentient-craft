@@ -22,6 +22,6 @@ export const startServerModuleContract = z
   .object({
     StartServer: startServerFnContract,
   })
-  .passthrough();
+  .loose();
 
 export type StartServerModule = z.infer<typeof startServerModuleContract>;

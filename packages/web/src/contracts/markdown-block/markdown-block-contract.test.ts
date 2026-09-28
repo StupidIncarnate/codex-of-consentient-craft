@@ -97,30 +97,30 @@ describe('markdownBlockContract', () => {
 
     it('INVALID: {kind: "heading", level: 7} => throws past the deepest heading', () => {
       expect(() => markdownBlockContract.parse({ kind: 'heading', level: 7, spans: [] })).toThrow(
-        /less than or equal to 6/u,
+        /to be <=6/u,
       );
     });
 
     it('INVALID: {kind: "heading", level: 0} => throws below the shallowest heading', () => {
       expect(() => markdownBlockContract.parse({ kind: 'heading', level: 0, spans: [] })).toThrow(
-        /greater than or equal to 1/u,
+        /to be >=1/u,
       );
     });
 
     it('INVALID: {kind: "list-item", depth: 4} => throws past the indent clamp', () => {
       expect(() =>
         markdownBlockContract.parse({ kind: 'list-item', marker: '•', depth: 4, spans: [] }),
-      ).toThrow(/less than or equal to 3/u);
+      ).toThrow(/to be <=3/u);
     });
 
     it('INVALID: {kind: "list-item", marker: ""} => throws for a markerless item', () => {
       expect(() =>
         markdownBlockContract.parse({ kind: 'list-item', marker: '', depth: 0, spans: [] }),
-      ).toThrow(/String must contain at least 1 character/u);
+      ).toThrow(/expected string to have >=1 characters/u);
     });
 
     it('EMPTY: {value: undefined} => throws for undefined', () => {
-      expect(() => markdownBlockContract.parse(undefined)).toThrow(/Required/u);
+      expect(() => markdownBlockContract.parse(undefined)).toThrow(/received undefined/u);
     });
   });
 

@@ -31,9 +31,7 @@ describe('runStepContract', () => {
 
   describe('a handler name naming no code', () => {
     it('INVALID: {handler: "spiritmender"} => throws, because the handler set is closed', () => {
-      expect(() => RunStepStub({ handler: 'spiritmender' as never })).toThrow(
-        /Invalid enum value/u,
-      );
+      expect(() => RunStepStub({ handler: 'spiritmender' as never })).toThrow(/Invalid option/u);
     });
   });
 });

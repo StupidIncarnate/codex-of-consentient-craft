@@ -43,19 +43,19 @@ describe('orchestrationSlotContract', () => {
     it('INVALID: {slotId: -1} => throws validation error', () => {
       expect(() => {
         orchestrationSlotContract.parse({ slotId: -1, status: 'idle' });
-      }).toThrow(/Number must be greater than or equal to 0/u);
+      }).toThrow(/expected number to be >=0/u);
     });
 
     it('INVALID: {status: "unknown"} => throws validation error', () => {
       expect(() => {
         orchestrationSlotContract.parse({ slotId: 0, status: 'unknown' });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {slotId: 0} => throws validation error', () => {
       expect(() => {
         orchestrationSlotContract.parse({ slotId: 0 });
-      }).toThrow(/Required/u);
+      }).toThrow(/Invalid option: expected one of/u);
     });
   });
 });

@@ -51,7 +51,7 @@ describe('listQuestsResultContract', () => {
     it('INVALID: {success: missing} => throws validation error', () => {
       expect(() => {
         listQuestsResultContract.parse({});
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

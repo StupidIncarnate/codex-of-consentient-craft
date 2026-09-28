@@ -7,7 +7,7 @@
  * const item = normalizedStreamLineContentItemContract.parse(rawItem);
  * if (item.type === 'tool_use') { ... }
  *
- * `.passthrough()` so unread fields (e.g., MCP-injected metadata) survive validation.
+ * `.loose()` so unread fields (e.g., MCP-injected metadata) survive validation.
  */
 import { z } from 'zod';
 
@@ -28,7 +28,7 @@ export const normalizedStreamLineContentItemContract = z
     source: z.string().brand<'StreamContentSource'>().optional(),
     agentId: z.string().brand<'StreamContentAgentId'>().optional(),
   })
-  .passthrough();
+  .loose();
 
 export type NormalizedStreamLineContentItem = z.infer<
   typeof normalizedStreamLineContentItemContract

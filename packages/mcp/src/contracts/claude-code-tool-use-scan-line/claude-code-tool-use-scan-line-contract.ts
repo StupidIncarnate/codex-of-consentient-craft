@@ -6,7 +6,7 @@
  * that same line. `cwd` is what makes the caller's real (possibly worktree-pinned) location
  * resolvable at all — if a future Claude CLI stops writing it, every caller falls back to the
  * MCP server's own startup cwd, loudly (see callerRepoRootResolveBroker). Every other field
- * passes through via `.passthrough()` so future Claude CLI shape additions don't reject the
+ * passes through via `.loose()` so future Claude CLI shape additions don't reject the
  * line.
  *
  * USAGE:
@@ -32,13 +32,13 @@ export const claudeCodeToolUseScanLineContract = z
                 type: z.string().brand<'ToolUseScanContentItemType'>(),
                 id: z.string().brand<'ToolUseScanContentItemId'>().optional(),
               })
-              .passthrough(),
+              .loose(),
           )
           .optional(),
       })
-      .passthrough()
+      .loose()
       .optional(),
   })
-  .passthrough();
+  .loose();
 
 export type ClaudeCodeToolUseScanLine = z.infer<typeof claudeCodeToolUseScanLineContract>;

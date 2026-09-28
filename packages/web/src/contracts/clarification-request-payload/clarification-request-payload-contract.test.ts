@@ -19,7 +19,7 @@ describe('clarificationRequestPayloadContract', () => {
     it('INVALID: {missing chatProcessId} => throws validation error', () => {
       expect(() => {
         clarificationRequestPayloadContract.parse({ questions: [] });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

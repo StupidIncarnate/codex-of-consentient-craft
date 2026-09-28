@@ -61,7 +61,7 @@ describe('getAgentPromptInputContract', () => {
         questId: QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' }),
         workItemId: QuestWorkItemIdStub({ value: 'bbbbbbbb-1111-4222-9333-444444444444' }),
       });
-    }).toThrow(/Required/u);
+    }).toThrow(/received undefined/u);
   });
 
   it('INVALID: {missing questId} => throws validation error', () => {
@@ -70,7 +70,7 @@ describe('getAgentPromptInputContract', () => {
         agent: 'codeweaver',
         workItemId: QuestWorkItemIdStub({ value: 'bbbbbbbb-1111-4222-9333-444444444444' }),
       });
-    }).toThrow(/Required/u);
+    }).toThrow(/received undefined/u);
   });
 
   it('VALID: {missing workItemId} => parses (a parent-summoned minion omits it)', () => {
@@ -94,7 +94,7 @@ describe('getAgentPromptInputContract', () => {
         questId: QuestIdStub({ value: 'aaaaaaaa-1111-4222-9333-444444444444' }),
         workItemId: 'not-a-uuid',
       });
-    }).toThrow(/Invalid uuid/u);
+    }).toThrow(/Invalid UUID/u);
   });
 
   it('INVALID: {questId: ""} => throws validation error', () => {

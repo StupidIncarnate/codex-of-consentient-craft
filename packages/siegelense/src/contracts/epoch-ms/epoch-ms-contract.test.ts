@@ -9,11 +9,11 @@ describe('epochMsContract', () => {
   });
 
   it('INVALID: {value: -1} => throws for a negative number', () => {
-    expect(() => epochMsContract.parse(-1)).toThrow(/Number must be greater than or equal to 0/u);
+    expect(() => epochMsContract.parse(-1)).toThrow(/expected number to be >=0/u);
   });
 
   it('INVALID: {value: 1.5} => throws for a non-integer', () => {
-    expect(() => epochMsContract.parse(1.5)).toThrow(/Expected integer, received float/u);
+    expect(() => epochMsContract.parse(1.5)).toThrow(/expected int, received number/u);
   });
 
   it('EDGE: {value: 0} => parses the zero boundary', () => {

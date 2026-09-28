@@ -100,7 +100,7 @@ describe('statusAnswerContract', () => {
           instances: [],
           queriedInstanceState: null,
         }),
-      ).toThrow(/Invalid enum value/u);
+      ).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {missing machine} => throws Required', () => {
@@ -110,7 +110,7 @@ describe('statusAnswerContract', () => {
           instances: [],
           queriedInstanceState: null,
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {missing queriedInstanceState} => throws Required', () => {
@@ -128,7 +128,9 @@ describe('statusAnswerContract', () => {
           },
           instances: [],
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(
+        /Invalid option: expected one of \\"alive\\"\|\\"killed\\"\|\\"dead\\"\|\\"pruned\\"\|\\"unknown\\"\|\\"unusable\\"/u,
+      );
     });
   });
 });

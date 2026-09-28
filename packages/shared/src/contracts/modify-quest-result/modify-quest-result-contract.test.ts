@@ -50,7 +50,7 @@ describe('modifyQuestResultContract', () => {
     it('INVALID: {missing success} => throws validation error', () => {
       expect(() => {
         return modifyQuestResultContract.parse({});
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

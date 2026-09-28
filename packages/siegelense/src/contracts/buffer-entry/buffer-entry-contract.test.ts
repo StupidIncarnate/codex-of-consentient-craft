@@ -44,7 +44,7 @@ describe('bufferEntryContract', () => {
     it('INVALID: {missing atMs} => throws Required', () => {
       expect(() =>
         bufferEntryContract.parse({ runId: null, step: null, text: '{"status":204}' }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 });

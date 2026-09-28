@@ -14,7 +14,7 @@ import * as path from 'path';
 import type { QuestStub } from '@dungeonmaster/shared/contracts';
 
 const JSON_INDENT_SPACES = 2;
-const GUILD_ID = '00000000-0000-0000-0000-000000000001';
+const GUILD_ID = 'c96589ee-fb08-28c0-b179-095bcd0cef5f';
 
 export const questSeedHarness = (): {
   seed: (params: {

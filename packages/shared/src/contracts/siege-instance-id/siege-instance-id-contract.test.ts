@@ -15,18 +15,18 @@ describe('siegeInstanceIdContract', () => {
   });
 
   it('INVALID: {value: "run_7f3a9c21"} => throws for the wrong prefix', () => {
-    expect(() => siegeInstanceIdContract.parse('run_7f3a9c21')).toThrow(/invalid_string/u);
+    expect(() => siegeInstanceIdContract.parse('run_7f3a9c21')).toThrow(/invalid_format/u);
   });
 
   it('INVALID: {value: "inst_7F3A"} => throws for uppercase hex', () => {
-    expect(() => siegeInstanceIdContract.parse('inst_7F3A')).toThrow(/invalid_string/u);
+    expect(() => siegeInstanceIdContract.parse('inst_7F3A')).toThrow(/invalid_format/u);
   });
 
   it('INVALID: {value: "inst_abc"} => throws for fewer than 4 hex characters', () => {
-    expect(() => siegeInstanceIdContract.parse('inst_abc')).toThrow(/invalid_string/u);
+    expect(() => siegeInstanceIdContract.parse('inst_abc')).toThrow(/invalid_format/u);
   });
 
   it('EMPTY: {value: ""} => throws', () => {
-    expect(() => siegeInstanceIdContract.parse('')).toThrow(/invalid_string/u);
+    expect(() => siegeInstanceIdContract.parse('')).toThrow(/invalid_format/u);
   });
 });

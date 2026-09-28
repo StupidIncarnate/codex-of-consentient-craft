@@ -116,7 +116,7 @@ describe('stoppedAtContract', () => {
           verb: 'click',
           candidates: [],
         } as never),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {missing candidates} => throws validation error', () => {
@@ -126,7 +126,7 @@ describe('stoppedAtContract', () => {
           verb: 'click',
           error: 'AMBIGUOUS: 2 elements match [data-testid="PIXEL_BTN"]',
         } as never),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 

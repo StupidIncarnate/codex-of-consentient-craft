@@ -22,7 +22,7 @@ describe('statusQueryContract', () => {
 
   describe('invalid queries', () => {
     it('INVALID: {missing instanceId} => throws Required, because .nullable() is not .optional()', () => {
-      expect(() => statusQueryContract.parse({})).toThrow(/Required/u);
+      expect(() => statusQueryContract.parse({})).toThrow(/received undefined/u);
     });
 
     it('INVALID: {instanceId: "not-an-instance-id"} => throws for a malformed instance id', () => {

@@ -11,9 +11,9 @@ import { laneProvisionBatchBroker } from './lane-provision-batch-broker';
 import { laneProvisionBatchBrokerProxy } from './lane-provision-batch-broker.proxy';
 
 const questId = QuestIdStub({ value: 'lane-provision' });
-const workItemIdOne = QuestWorkItemIdStub({ value: 'aaaaaaaa-0000-0000-0000-000000000021' });
-const workItemIdTwo = QuestWorkItemIdStub({ value: 'aaaaaaaa-0000-0000-0000-000000000022' });
-const workItemIdThree = QuestWorkItemIdStub({ value: 'aaaaaaaa-0000-0000-0000-000000000023' });
+const workItemIdOne = QuestWorkItemIdStub({ value: '499a524d-fc90-6bcf-b5ad-412dc5f7faa4' });
+const workItemIdTwo = QuestWorkItemIdStub({ value: 'f83e2f7b-d08a-11ed-9bcd-34a8a90cf602' });
+const workItemIdThree = QuestWorkItemIdStub({ value: '61a948fb-b88a-1e0f-ac0e-616e37d0a1b6' });
 
 describe('laneProvisionBatchBroker', () => {
   describe('a step that is not spawn-agents', () => {
@@ -69,7 +69,7 @@ describe('laneProvisionBatchBroker', () => {
         workItemIdOne,
         workItemIdTwo,
         workItemIdThree,
-        QuestWorkItemIdStub({ value: 'aaaaaaaa-0000-0000-0000-000000000024' }),
+        QuestWorkItemIdStub({ value: '46615aef-e57b-6796-92ae-4b743b0b04e3' }),
       ];
       const flowriderWorkItems = flowriderWorkItemIds.map((id) =>
         WorkItemStub({ id, role: 'flowrider', status: 'pending', step: 'work' }),

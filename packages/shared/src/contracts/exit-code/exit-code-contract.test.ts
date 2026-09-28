@@ -30,19 +30,23 @@ describe('exitCodeContract', () => {
 
   describe('invalid exit codes', () => {
     it('ERROR: -1 => throws validation error', () => {
-      expect(() => exitCodeContract.parse(-1)).toThrow('Number must be greater than or equal to 0');
+      expect(() => exitCodeContract.parse(-1)).toThrow('expected number to be >=0');
     });
 
     it('ERROR: 256 => throws validation error', () => {
-      expect(() => exitCodeContract.parse(256)).toThrow('Number must be less than or equal to 255');
+      expect(() => exitCodeContract.parse(256)).toThrow('Too big: expected number to be <=255');
     });
 
     it('ERROR: 1.5 => throws validation error for non-integer', () => {
-      expect(() => exitCodeContract.parse(1.5)).toThrow('Expected integer, received float');
+      expect(() => exitCodeContract.parse(1.5)).toThrow(
+        'Invalid input: expected int, received number',
+      );
     });
 
     it('ERROR: "0" => throws validation error for string', () => {
-      expect(() => exitCodeContract.parse('0')).toThrow('Expected number, received string');
+      expect(() => exitCodeContract.parse('0')).toThrow(
+        'Invalid input: expected number, received string',
+      );
     });
   });
 

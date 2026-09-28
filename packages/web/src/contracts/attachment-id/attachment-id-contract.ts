@@ -10,6 +10,6 @@
 
 import { z } from 'zod';
 
-export const attachmentIdContract = z.string().uuid().brand<'AttachmentId'>();
+export const attachmentIdContract = z.uuid().brand<'AttachmentId'>();
 
 export type AttachmentId = z.infer<typeof attachmentIdContract>;

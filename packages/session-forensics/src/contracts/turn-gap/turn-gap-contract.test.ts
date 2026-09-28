@@ -79,7 +79,7 @@ describe('turnGapContract', () => {
   describe('invalid input', () => {
     it('INVALID: {gapSeconds: -1} => throws', () => {
       expect(() => TurnGapStub({ gapSeconds: -1 })).toThrow(
-        /greater than or equal to 0|Number must be/u,
+        /Too small: expected number to be >=0/u,
       );
     });
 
@@ -89,12 +89,12 @@ describe('turnGapContract', () => {
           elapsedMinutes: 5,
           gapSeconds: 30,
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {liveSubagentIds: bare string} => throws', () => {
       expect(() => TurnGapStub({ liveSubagentIds: 'agent-abc' as never })).toThrow(
-        /Expected array/u,
+        /expected array/u,
       );
     });
   });

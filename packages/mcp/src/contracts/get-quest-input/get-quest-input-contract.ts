@@ -6,19 +6,19 @@
  * const input: GetQuestInput = getQuestInputContract.parse({ questId: 'add-auth' });
  * // Returns validated GetQuestInput with questId and default format='text'
  *
- * IT REBUILDS THE OBJECT RATHER THAN WRAPPING IT. The shared contract ends in a `superRefine` that
- * rejects `stage` alongside `flowId` / `packageName`, and a `ZodEffects` cannot be `.extend()`ed —
- * so this reaches the object through `.innerType()` and re-applies the same rejection afterwards.
- * Both copies read their wording from `getQuestInputConflictsStatics`, which is what keeps the two
- * from drifting into different explanations of one refusal: an agent only ever reads ONE of them.
+ * IT EXTENDS THE SHARED SCHEMA DIRECTLY. Zod v4's `.superRefine()`/`.brand()` attach in place
+ * rather than wrapping the schema in a separate class, so `.extend()` here both adds `format` AND
+ * carries the shared schema's own `stage`/`flowId`/`packageName` refinement forward unchanged. This
+ * file's own `.superRefine()` below re-applies the identical rejection anyway — a harmless,
+ * redundant second check now rather than the load-bearing re-application it used to be — so the
+ * two copies still read their wording from ONE place, `getQuestInputConflictsStatics`, and an agent
+ * only ever reads ONE of them regardless of which check actually fired.
  */
 import { getQuestInputContract as sharedGetQuestInputContract } from '@dungeonmaster/shared/contracts';
 import { getQuestInputConflictsStatics } from '@dungeonmaster/shared/statics';
 import { z } from 'zod';
 
 export const getQuestInputContract = sharedGetQuestInputContract
-  .unwrap()
-  .innerType()
   .extend({
     format: z
       .enum(['json', 'text'])
@@ -31,14 +31,14 @@ export const getQuestInputContract = sharedGetQuestInputContract
   .superRefine((value, ctx) => {
     if (value.stage !== undefined && value.flowId !== undefined) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         path: ['flowId'],
         message: getQuestInputConflictsStatics.flowIdWithStage,
       });
     }
     if (value.stage !== undefined && value.packageName !== undefined) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         path: ['packageName'],
         message: getQuestInputConflictsStatics.packageNameWithStage,
       });

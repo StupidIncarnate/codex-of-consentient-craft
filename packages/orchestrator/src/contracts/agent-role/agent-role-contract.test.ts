@@ -48,43 +48,43 @@ describe('agentRoleContract', () => {
     it('INVALID: {unknown role} => throws validation error', () => {
       expect(() => {
         agentRoleContract.parse('unknown_role');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: pathseeker => throws validation error (removed role)', () => {
       expect(() => {
         agentRoleContract.parse('pathseeker');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: pathseeker-surface => throws validation error (removed role)', () => {
       expect(() => {
         agentRoleContract.parse('pathseeker-surface');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: pathseeker-dedup => throws validation error (removed role)', () => {
       expect(() => {
         agentRoleContract.parse('pathseeker-dedup');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: pathseeker-assertion-correctness => throws validation error (removed role)', () => {
       expect(() => {
         agentRoleContract.parse('pathseeker-assertion-correctness');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: lawbringer => throws validation error (removed role)', () => {
       expect(() => {
         agentRoleContract.parse('lawbringer');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: blightscout => throws validation error (removed role)', () => {
       expect(() => {
         agentRoleContract.parse('blightscout');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it.each(['groundstomper', 'pesteater'])(
@@ -92,7 +92,7 @@ describe('agentRoleContract', () => {
       (value) => {
         expect(() => {
           agentRoleContract.parse(value);
-        }).toThrow(/Invalid enum value/u);
+        }).toThrow(/Invalid option/u);
       },
     );
 
@@ -111,7 +111,7 @@ describe('agentRoleContract', () => {
       (value) => {
         expect(() => {
           agentRoleContract.parse(value);
-        }).toThrow(/Invalid enum value/u);
+        }).toThrow(/Invalid option/u);
       },
     );
 
@@ -124,25 +124,25 @@ describe('agentRoleContract', () => {
     it('INVALID: {number} => throws validation error', () => {
       expect(() => {
         agentRoleContract.parse(123 as never);
-      }).toThrow(/Expected/u);
+      }).toThrow(/Invalid option: expected one of/u);
     });
 
     it('INVALID: {null} => throws validation error', () => {
       expect(() => {
         agentRoleContract.parse(null as never);
-      }).toThrow(/Expected/u);
+      }).toThrow(/Invalid option: expected one of/u);
     });
 
     it('INVALID: {undefined} => throws validation error', () => {
       expect(() => {
         agentRoleContract.parse(undefined as never);
-      }).toThrow(/Required/u);
+      }).toThrow(/Invalid option: expected one of/u);
     });
 
     it('INVALID: {object} => throws validation error', () => {
       expect(() => {
         agentRoleContract.parse({} as never);
-      }).toThrow(/Expected/u);
+      }).toThrow(/Invalid option: expected one of/u);
     });
   });
 });

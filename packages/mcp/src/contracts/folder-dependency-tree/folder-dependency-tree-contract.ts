@@ -17,7 +17,7 @@ import { importPathContract } from '../import-path/import-path-contract';
 
 export const folderDependencyTreeContract = z.object({
   hierarchy: contentTextContract,
-  graph: z.record(folderTypeContract, z.array(importPathContract).readonly()),
+  graph: z.partialRecord(folderTypeContract, z.array(importPathContract).readonly()),
   matrix: contentTextContract,
 });
 

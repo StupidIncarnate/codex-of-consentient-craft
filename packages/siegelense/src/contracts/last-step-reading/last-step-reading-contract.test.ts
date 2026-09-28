@@ -19,7 +19,7 @@ describe('lastStepReadingContract', () => {
           run: 'run_2',
           step: 7,
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/Invalid option: expected one of/u);
     });
 
     it('INVALID: {verb: "hover"} => throws for a verb outside the six', () => {
@@ -29,7 +29,7 @@ describe('lastStepReadingContract', () => {
           step: 7,
           verb: 'hover',
         }),
-      ).toThrow(/Invalid enum value/u);
+      ).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {run: "step_2"} => throws for a run id outside the run prefix', () => {
@@ -39,7 +39,7 @@ describe('lastStepReadingContract', () => {
           step: 7,
           verb: 'click',
         }),
-      ).toThrow(/invalid_string/u);
+      ).toThrow(/invalid_format/u);
     });
   });
 });

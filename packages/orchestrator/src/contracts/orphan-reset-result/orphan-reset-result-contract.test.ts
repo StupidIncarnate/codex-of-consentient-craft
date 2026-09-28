@@ -18,18 +18,18 @@ describe('orphanResetResultContract', () => {
 
   describe('invalid input', () => {
     it('INVALID: {orphansReset: -1} => throws', () => {
-      expect(() => orphanResetResultContract.parse({ orphansReset: -1 })).toThrow(
-        /greater than or equal to 0/u,
-      );
+      expect(() => orphanResetResultContract.parse({ orphansReset: -1 })).toThrow(/to be >=0/u);
     });
 
     it('INVALID: {orphansReset: 1.5} => throws', () => {
-      expect(() => orphanResetResultContract.parse({ orphansReset: 1.5 })).toThrow(/integer/u);
+      expect(() => orphanResetResultContract.parse({ orphansReset: 1.5 })).toThrow(
+        /Invalid input: expected int, received number/u,
+      );
     });
 
     it('INVALID: {orphansReset: "five"} => throws', () => {
       expect(() => orphanResetResultContract.parse({ orphansReset: 'five' })).toThrow(
-        /Expected number/u,
+        /expected number/u,
       );
     });
   });

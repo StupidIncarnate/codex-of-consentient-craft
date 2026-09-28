@@ -39,13 +39,13 @@ describe('questSummaryObservableContract', () => {
 
     it('INVALID: {addedBy: "blightwarden"} => throws', () => {
       expect(() => QuestSummaryObservableStub({ addedBy: 'blightwarden' as never })).toThrow(
-        /Invalid enum value/u,
+        /Invalid option/u,
       );
     });
 
     it('INVALID: {observableType: "vibes"} => throws', () => {
       expect(() => QuestSummaryObservableStub({ observableType: 'vibes' as never })).toThrow(
-        /Invalid enum value/u,
+        /Invalid option/u,
       );
     });
 
@@ -56,7 +56,7 @@ describe('questSummaryObservableContract', () => {
     });
 
     it('EMPTY: {no fields} => throws, every anchor is required', () => {
-      expect(() => questSummaryObservableContract.parse({})).toThrow(/Required/u);
+      expect(() => questSummaryObservableContract.parse({})).toThrow(/received undefined/u);
     });
   });
 });

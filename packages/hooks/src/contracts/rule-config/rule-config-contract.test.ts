@@ -25,7 +25,7 @@ describe('ruleConfigContract', () => {
     it('INVALID: {invalid data} => throws validation error', () => {
       expect(() => {
         return ruleConfigContract.parse({} as never);
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

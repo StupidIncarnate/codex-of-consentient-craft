@@ -58,7 +58,7 @@ describe('preSearchHookDataContract', () => {
           tool_name: 'Grep',
           tool_input: {},
         });
-      }).toThrow(/Invalid literal/u);
+      }).toThrow(/Invalid input: expected \\"PreToolUse\\"/u);
     });
 
     it('INVALID: {session_id: ""} => throws validation error', () => {

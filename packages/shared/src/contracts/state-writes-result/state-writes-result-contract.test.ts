@@ -44,7 +44,7 @@ describe('stateWritesResultContract', () => {
           fileWrites: [],
           browserStorageWrites: [],
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {missing fileWrites} => throws validation error', () => {
@@ -53,7 +53,7 @@ describe('stateWritesResultContract', () => {
           inMemoryStores: [],
           browserStorageWrites: [],
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {missing browserStorageWrites} => throws validation error', () => {
@@ -62,7 +62,7 @@ describe('stateWritesResultContract', () => {
           inMemoryStores: [],
           fileWrites: [],
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

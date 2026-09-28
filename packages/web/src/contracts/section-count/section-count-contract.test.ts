@@ -18,17 +18,15 @@ describe('sectionCountContract', () => {
 
   describe('invalid inputs', () => {
     it('INVALID: {value: -1} => throws for negative number', () => {
-      expect(() => sectionCountContract.parse(-1)).toThrow(
-        /Number must be greater than or equal to 0/u,
-      );
+      expect(() => sectionCountContract.parse(-1)).toThrow(/expected number to be >=0/u);
     });
 
     it('INVALID: {value: 1.5} => throws for non-integer', () => {
-      expect(() => sectionCountContract.parse(1.5)).toThrow(/Expected integer/u);
+      expect(() => sectionCountContract.parse(1.5)).toThrow(/expected int/u);
     });
 
     it('EMPTY: {value: null} => throws for null', () => {
-      expect(() => sectionCountContract.parse(null)).toThrow(/Expected number/u);
+      expect(() => sectionCountContract.parse(null)).toThrow(/expected number/u);
     });
   });
 

@@ -38,7 +38,7 @@ describe('guildContract', () => {
     it('INVALID: missing required fields => throws validation error', () => {
       expect(() => {
         guildContract.parse({});
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: invalid id => throws validation error', () => {
@@ -49,7 +49,7 @@ describe('guildContract', () => {
           ...baseGuild,
           id: 'not-a-uuid',
         });
-      }).toThrow(/Invalid uuid/u);
+      }).toThrow(/Invalid UUID/u);
     });
 
     it('INVALID: invalid createdAt => throws validation error', () => {
@@ -60,7 +60,7 @@ describe('guildContract', () => {
           ...baseGuild,
           createdAt: 'not-a-timestamp',
         });
-      }).toThrow(/Invalid datetime/u);
+      }).toThrow(/Invalid ISO datetime/u);
     });
   });
 });

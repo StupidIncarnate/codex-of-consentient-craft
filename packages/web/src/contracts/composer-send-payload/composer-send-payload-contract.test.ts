@@ -47,7 +47,7 @@ describe('composerSendPayloadContract', () => {
           message: '[Pasted Image 1]',
           attachments: [{ ...ComposerAttachmentStub(), widthPx: 0 } as never],
         }),
-      ).toThrow(/Number must be greater than 0/u);
+      ).toThrow(/expected number to be >0/u);
     });
   });
 

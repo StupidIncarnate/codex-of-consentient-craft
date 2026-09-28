@@ -18,7 +18,7 @@ describe('healthVerdictContract', () => {
     it('INVALID: {value: "UNKNOWN"} => an unlisted string throws validation error', () => {
       expect(() => {
         HealthVerdictStub({ value: 'UNKNOWN' as never });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
   });
 
@@ -26,7 +26,7 @@ describe('healthVerdictContract', () => {
     it('EDGE: {value: "healthy"} => lowercase variant of valid member throws validation error', () => {
       expect(() => {
         healthVerdictContract.parse('healthy');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
   });
 });

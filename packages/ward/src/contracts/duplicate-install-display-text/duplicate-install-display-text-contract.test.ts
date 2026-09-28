@@ -21,7 +21,7 @@ describe('duplicateInstallDisplayTextContract', () => {
   describe('invalid inputs', () => {
     it('INVALID: {value: 123} => throws', () => {
       expect(() => duplicateInstallDisplayTextContract.parse(123 as never)).toThrow(
-        /Expected string, received number/u,
+        /Invalid input: expected string, received number/u,
       );
     });
   });

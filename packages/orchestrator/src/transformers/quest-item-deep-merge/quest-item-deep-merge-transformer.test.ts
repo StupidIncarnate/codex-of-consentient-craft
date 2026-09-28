@@ -294,7 +294,7 @@ describe('questItemDeepMergeTransformer', () => {
 
   describe('null-as-clear (key removal)', () => {
     it('VALID: {update sets sessionId to null} => removes sessionId from merged work item', () => {
-      const id = QuestWorkItemIdStub({ value: '11111111-1111-1111-1111-111111111111' });
+      const id = QuestWorkItemIdStub({ value: '38c6cbd2-8bf1-6507-8d07-0980dd1fb595' });
       const existing = WorkItemStub({
         id,
         status: 'in_progress',
@@ -314,7 +314,7 @@ describe('questItemDeepMergeTransformer', () => {
     });
 
     it('VALID: {update clears sessionId, agentId, and startedAt} => removes all three fields', () => {
-      const id = QuestWorkItemIdStub({ value: '22222222-2222-2222-2222-222222222222' });
+      const id = QuestWorkItemIdStub({ value: '1c27ba90-c110-14f0-94be-250818fd3443' });
       const existing = WorkItemStub({
         id,
         status: 'in_progress',

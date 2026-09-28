@@ -24,19 +24,23 @@ describe('checkStatusContract', () => {
 
   describe('invalid inputs', () => {
     it('INVALID: {value: "error"} => throws for unknown status', () => {
-      expect(() => checkStatusContract.parse('error')).toThrow(/Invalid enum value/u);
+      expect(() => checkStatusContract.parse('error')).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {value: ""} => throws for empty string', () => {
-      expect(() => checkStatusContract.parse('')).toThrow(/Invalid enum value/u);
+      expect(() => checkStatusContract.parse('')).toThrow(/Invalid option/u);
     });
 
     it('EMPTY: {value: null} => throws for null', () => {
-      expect(() => checkStatusContract.parse(null)).toThrow(/received null/u);
+      expect(() => checkStatusContract.parse(null)).toThrow(
+        /Invalid option: expected one of \\"pass\\"\|\\"fail\\"\|\\"skip\\"/u,
+      );
     });
 
     it('EMPTY: {value: undefined} => throws for undefined', () => {
-      expect(() => checkStatusContract.parse(undefined)).toThrow(/Required/u);
+      expect(() => checkStatusContract.parse(undefined)).toThrow(
+        /Invalid option: expected one of \\"pass\\"\|\\"fail\\"\|\\"skip\\"/u,
+      );
     });
   });
 

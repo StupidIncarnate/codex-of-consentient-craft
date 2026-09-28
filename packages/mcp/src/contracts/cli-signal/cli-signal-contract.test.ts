@@ -36,7 +36,7 @@ describe('cliSignalContract', () => {
           screen: 'list',
           timestamp: '2024-01-01T00:00:00.000Z',
         });
-      }).toThrow(/Invalid literal value/u);
+      }).toThrow(/Invalid input: expected/u);
     });
 
     it('INVALID: {screen: "invalid"} => throws validation error', () => {
@@ -46,7 +46,7 @@ describe('cliSignalContract', () => {
           screen: 'invalid',
           timestamp: '2024-01-01T00:00:00.000Z',
         });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {timestamp: "not-a-date"} => throws validation error', () => {
@@ -56,13 +56,13 @@ describe('cliSignalContract', () => {
           screen: 'list',
           timestamp: 'not-a-date',
         });
-      }).toThrow(/Invalid datetime/u);
+      }).toThrow(/Invalid ISO datetime/u);
     });
 
     it('INVALID: {missing all fields} => throws validation error', () => {
       expect(() => {
         cliSignalContract.parse({});
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

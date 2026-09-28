@@ -20,19 +20,19 @@ describe('profilePoolSizeContract', () => {
     it('INVALID: {value: 0} => throws, because the beating instance is itself in the pool', () => {
       expect(() => {
         profilePoolSizeContract.parse(0);
-      }).toThrow(/greater than 0/u);
+      }).toThrow(/to be >0/u);
     });
 
     it('INVALID: {value: -1} => throws', () => {
       expect(() => {
         profilePoolSizeContract.parse(-1);
-      }).toThrow(/greater than 0/u);
+      }).toThrow(/to be >0/u);
     });
 
     it('INVALID: {value: 1.5} => throws, a pool holds whole instances', () => {
       expect(() => {
         profilePoolSizeContract.parse(1.5);
-      }).toThrow(/integer/u);
+      }).toThrow(/Invalid input: expected int, received number/u);
     });
   });
 });

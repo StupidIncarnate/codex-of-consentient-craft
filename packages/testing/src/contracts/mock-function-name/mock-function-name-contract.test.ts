@@ -24,19 +24,19 @@ describe('mockFunctionNameContract', () => {
     it('INVALID: "" => throws validation error', () => {
       expect(() => {
         return mockFunctionNameContract.parse('');
-      }).toThrow(/String must contain at least 1 character/u);
+      }).toThrow(/expected string to have >=1 characters/u);
     });
 
     it('INVALID: null => throws validation error', () => {
       expect(() => {
         return mockFunctionNameContract.parse(null);
-      }).toThrow(/Expected string/u);
+      }).toThrow(/expected string/u);
     });
 
     it('INVALID: undefined => throws validation error', () => {
       expect(() => {
         return mockFunctionNameContract.parse(undefined);
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

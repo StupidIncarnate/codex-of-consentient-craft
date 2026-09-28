@@ -18,7 +18,7 @@ describe('weightedTokensContract', () => {
 
   describe('invalid input', () => {
     it('INVALID: {-1} => throws, because spend never goes backwards', () => {
-      expect(() => WeightedTokensStub({ value: -1 })).toThrow(/greater than or equal to 0/u);
+      expect(() => WeightedTokensStub({ value: -1 })).toThrow(/to be >=0/u);
     });
   });
 });

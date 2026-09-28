@@ -14,15 +14,15 @@ describe('flowRecipeNameContract', () => {
 
   describe('invalid recipe names', () => {
     it('INVALID: {value: "PcWalk1"} => throws for a non-kebab-case value', () => {
-      expect(() => flowRecipeNameContract.parse('PcWalk1')).toThrow(/invalid_string/u);
+      expect(() => flowRecipeNameContract.parse('PcWalk1')).toThrow(/invalid_format/u);
     });
 
     it('INVALID: {value: "pc_walk_1"} => throws for underscores', () => {
-      expect(() => flowRecipeNameContract.parse('pc_walk_1')).toThrow(/invalid_string/u);
+      expect(() => flowRecipeNameContract.parse('pc_walk_1')).toThrow(/invalid_format/u);
     });
 
     it('EMPTY: {value: ""} => throws', () => {
-      expect(() => flowRecipeNameContract.parse('')).toThrow(/invalid_string/u);
+      expect(() => flowRecipeNameContract.parse('')).toThrow(/invalid_format/u);
     });
   });
 });

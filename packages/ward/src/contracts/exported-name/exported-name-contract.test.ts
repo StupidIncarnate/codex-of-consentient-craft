@@ -12,7 +12,7 @@ describe('exportedNameContract', () => {
 
   describe('invalid inputs', () => {
     it('INVALID: {value: ""} => throws validation error', () => {
-      expect(() => exportedNameContract.parse('')).toThrow(/at least 1/u);
+      expect(() => exportedNameContract.parse('')).toThrow(/>=1/u);
     });
   });
 

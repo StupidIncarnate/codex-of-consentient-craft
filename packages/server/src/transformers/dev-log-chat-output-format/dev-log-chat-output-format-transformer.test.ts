@@ -4,7 +4,7 @@ describe('devLogChatOutputFormatTransformer', () => {
   it('VALID: {chat event with assistant text entries} => formats summary', () => {
     const result = devLogChatOutputFormatTransformer({
       payload: {
-        chatProcessId: 'proc-abc12345-1111-2222-3333-444444444444',
+        chatProcessId: 'proc-99cf9441-9852-5274-a073-30f5c2eb07be',
         entries: [
           {
             role: 'assistant',
@@ -17,7 +17,7 @@ describe('devLogChatOutputFormatTransformer', () => {
       },
     });
 
-    expect(result).toBe('proc:abc12345  assistant/text  "Hello world"');
+    expect(result).toBe('proc:99cf9441  assistant/text  "Hello world"');
   });
 
   it('VALID: {pipeline event with slotIndex and tool_use entries} => shows slot and tool', () => {
@@ -44,28 +44,28 @@ describe('devLogChatOutputFormatTransformer', () => {
   it('EDGE: {no entries field} => shows (no entries)', () => {
     const result = devLogChatOutputFormatTransformer({
       payload: {
-        chatProcessId: 'proc-abc12345-1111-2222-3333-444444444444',
+        chatProcessId: 'proc-99cf9441-9852-5274-a073-30f5c2eb07be',
       },
     });
 
-    expect(result).toBe('proc:abc12345  (no entries)');
+    expect(result).toBe('proc:99cf9441  (no entries)');
   });
 
   it('EDGE: {empty entries array} => shows (no entries)', () => {
     const result = devLogChatOutputFormatTransformer({
       payload: {
-        chatProcessId: 'proc-abc12345-1111-2222-3333-444444444444',
+        chatProcessId: 'proc-99cf9441-9852-5274-a073-30f5c2eb07be',
         entries: [],
       },
     });
 
-    expect(result).toBe('proc:abc12345  (no entries)');
+    expect(result).toBe('proc:99cf9441  (no entries)');
   });
 
   it('VALID: {multiple entries} => joins with " | "', () => {
     const result = devLogChatOutputFormatTransformer({
       payload: {
-        chatProcessId: 'proc-abc12345-1111-2222-3333-444444444444',
+        chatProcessId: 'proc-99cf9441-9852-5274-a073-30f5c2eb07be',
         entries: [
           {
             role: 'assistant',
@@ -85,6 +85,6 @@ describe('devLogChatOutputFormatTransformer', () => {
       },
     });
 
-    expect(result).toBe('proc:abc12345  assistant/text  "hello" | assistant/thinking');
+    expect(result).toBe('proc:99cf9441  assistant/text  "hello" | assistant/thinking');
   });
 });

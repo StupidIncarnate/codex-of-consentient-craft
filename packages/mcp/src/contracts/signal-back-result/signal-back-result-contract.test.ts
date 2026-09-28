@@ -86,7 +86,7 @@ describe('signalBackResultContract', () => {
           success: 'yes',
           signal: SignalBackInputStub(),
         });
-      }).toThrow(/Expected boolean/u);
+      }).toThrow(/expected boolean/u);
     });
 
     it('INVALID: {signal: null} => throws validation error', () => {
@@ -95,7 +95,7 @@ describe('signalBackResultContract', () => {
           success: true,
           signal: null,
         });
-      }).toThrow(/Expected object/u);
+      }).toThrow(/expected object/u);
     });
 
     it('INVALID: {signal: missing} => throws validation error', () => {
@@ -103,7 +103,7 @@ describe('signalBackResultContract', () => {
         signalBackResultContract.parse({
           success: true,
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {success: missing} => throws validation error', () => {
@@ -111,7 +111,7 @@ describe('signalBackResultContract', () => {
         signalBackResultContract.parse({
           signal: SignalBackInputStub(),
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {signal: {signal: "failed"}} => throws validation error because failed is no longer a supported inner signal', () => {
@@ -124,7 +124,7 @@ describe('signalBackResultContract', () => {
             signal: 'failed',
           },
         });
-      }).toThrow(/Invalid literal value/u);
+      }).toThrow(/Invalid input: expected/u);
     });
 
     it('INVALID: {signal: {summary: "removed field"}} => throws Unrecognized key error because summary no longer exists on the inner signal', () => {

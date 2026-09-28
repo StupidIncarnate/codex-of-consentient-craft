@@ -34,7 +34,9 @@ describe('linkedQuestInfoContract', () => {
 
   describe('invalid input', () => {
     it('INVALID: {missing questId} => throws', () => {
-      expect(() => linkedQuestInfoContract.parse({})).toThrow(/required/iu);
+      expect(() => linkedQuestInfoContract.parse({})).toThrow(
+        /Invalid input: expected string, received undefined/iu,
+      );
     });
   });
 });

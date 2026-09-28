@@ -410,7 +410,9 @@ describe('keyReadLayerAdapter', () => {
       keyReadLayerAdapterProxy();
       const key = keyReadLayerAdapter();
 
-      expect(() => key.toListing({ raw: { rows: [] }, within: null })).toThrow(/Required/u);
+      expect(() => key.toListing({ raw: { rows: [] }, within: null })).toThrow(
+        /received undefined/u,
+      );
     });
   });
 });

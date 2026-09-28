@@ -34,7 +34,9 @@ export const smoketestScenarioContract = z.object({
   caseId: z.string().min(1).brand<'SmoketestCaseId'>(),
   name: z.string().min(1).brand<'SmoketestScenarioName'>(),
   blueprint: questBlueprintContract,
-  scripts: z.record(workItemRoleContract, z.array(smoketestPromptNameContract).readonly()),
+  // `z.partialRecord`, not `z.record` — zod v4 made an enum-keyed `z.record` exhaustive (every
+  // role required), and a real scenario only ever scripts the roles it dispatches.
+  scripts: z.partialRecord(workItemRoleContract, z.array(smoketestPromptNameContract).readonly()),
   assertions: z.array(smoketestAssertionContract),
   postTeardownChecks: z.array(smoketestTeardownCheckContract).optional(),
 });

@@ -135,7 +135,7 @@ describe('resultsAnswerContract', () => {
           rows: [],
           storedReturn: null,
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
   });
 });

@@ -44,7 +44,7 @@ describe('runIdContract', () => {
     });
 
     it('EMPTY: {undefined} => throws validation error', () => {
-      expect(() => runIdContract.parse(undefined)).toThrow(/Required/u);
+      expect(() => runIdContract.parse(undefined)).toThrow(/received undefined/u);
     });
   });
 

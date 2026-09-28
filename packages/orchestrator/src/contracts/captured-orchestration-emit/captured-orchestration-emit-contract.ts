@@ -16,9 +16,11 @@
 import { z } from 'zod';
 import { processIdContract } from '@dungeonmaster/shared/contracts';
 
+import { orchestrationEventPayloadKeyContract } from '../orchestration-event-payload-key/orchestration-event-payload-key-contract';
+
 export const capturedOrchestrationEmitContract = z.object({
   processId: processIdContract,
-  payload: z.record(z.unknown()),
+  payload: z.record(orchestrationEventPayloadKeyContract, z.unknown()),
 });
 
 export type CapturedOrchestrationEmit = z.infer<typeof capturedOrchestrationEmitContract>;

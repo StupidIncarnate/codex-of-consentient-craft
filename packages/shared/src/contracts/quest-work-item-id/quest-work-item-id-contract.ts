@@ -11,6 +11,6 @@
 
 import { z } from 'zod';
 
-export const questWorkItemIdContract = z.string().uuid().brand<'QuestWorkItemId'>();
+export const questWorkItemIdContract = z.uuid().brand<'QuestWorkItemId'>();
 
 export type QuestWorkItemId = z.infer<typeof questWorkItemIdContract>;

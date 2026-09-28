@@ -32,7 +32,7 @@ describe('hookSessionStartResponderResultContract', () => {
         return hookSessionStartResponderResultContract.parse({
           shouldOutput: 'not a boolean' as never,
         });
-      }).toThrow(/Expected boolean/u);
+      }).toThrow(/expected boolean/u);
     });
 
     it('INVALID: {content: not a string} => throws validation error', () => {
@@ -41,7 +41,7 @@ describe('hookSessionStartResponderResultContract', () => {
           shouldOutput: false,
           content: 123 as never,
         });
-      }).toThrow(/Expected string/u);
+      }).toThrow(/expected string/u);
     });
   });
 });

@@ -12,7 +12,7 @@ describe('moduleSpecifierContract', () => {
 
   describe('invalid inputs', () => {
     it('INVALID: {value: ""} => throws validation error', () => {
-      expect(() => moduleSpecifierContract.parse('')).toThrow(/at least 1/u);
+      expect(() => moduleSpecifierContract.parse('')).toThrow(/>=1/u);
     });
   });
 

@@ -24,13 +24,11 @@ describe('trailingThinkingIndexContract', () => {
 
   describe('invalid inputs', () => {
     it('INVALID: {value: -2} => throws', () => {
-      expect(() => trailingThinkingIndexContract.parse(-2)).toThrow(
-        /Number must be greater than or equal to -1/u,
-      );
+      expect(() => trailingThinkingIndexContract.parse(-2)).toThrow(/expected number to be >=-1/u);
     });
 
     it('INVALID: {value: 1.5} => throws for non-integer', () => {
-      expect(() => trailingThinkingIndexContract.parse(1.5)).toThrow(/Expected integer/u);
+      expect(() => trailingThinkingIndexContract.parse(1.5)).toThrow(/expected int/u);
     });
   });
 

@@ -34,7 +34,7 @@ export const recipesListingContract = z
         return;
       }
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         message: `recipes at index ${firstPosition} and ${position} both declare the name '${entry.recipeName}'`,
         path: [index, 'recipeName'],
       });

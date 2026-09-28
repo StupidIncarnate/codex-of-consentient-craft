@@ -33,6 +33,8 @@ describe('mcpCallerContextContract', () => {
   });
 
   it('INVALID: {sessionId missing} => throws', () => {
-    expect(() => mcpCallerContextContract.parse({ cwd: '/home/user/repo' })).toThrow(/Required/u);
+    expect(() => mcpCallerContextContract.parse({ cwd: '/home/user/repo' })).toThrow(
+      /received undefined/u,
+    );
   });
 });

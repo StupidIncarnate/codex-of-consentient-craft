@@ -17,7 +17,7 @@ describe('elapsedTextContract', () => {
   it('INVALID: {value: ""} => throws validation error', () => {
     expect(() => {
       elapsedTextContract.parse('');
-    }).toThrow(/String must contain at least 1 character/u);
+    }).toThrow(/expected string to have >=1 characters/u);
   });
 
   it('EDGE: {value: "9h"} => a single-unit reading parses successfully', () => {

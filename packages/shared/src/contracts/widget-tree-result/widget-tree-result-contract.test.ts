@@ -47,7 +47,7 @@ describe('widgetTreeResultContract', () => {
         return widgetTreeResultContract.parse({
           hubs: [],
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {missing hubs} => throws validation error', () => {
@@ -55,7 +55,7 @@ describe('widgetTreeResultContract', () => {
         return widgetTreeResultContract.parse({
           roots: [],
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

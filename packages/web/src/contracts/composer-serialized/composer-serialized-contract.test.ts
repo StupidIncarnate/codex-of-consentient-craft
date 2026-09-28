@@ -53,7 +53,7 @@ describe('composerSerializedContract', () => {
           text: 'A[Pasted Image 1]B',
           attachmentIds: ['not-a-uuid'],
         } as never),
-      ).toThrow(/Invalid uuid/u);
+      ).toThrow(/Invalid UUID/u);
     });
 
     it('INVALID: {attachmentIds: "not-an-array"} => throws for non-array attachmentIds', () => {
@@ -62,7 +62,7 @@ describe('composerSerializedContract', () => {
           text: 'A[Pasted Image 1]B',
           attachmentIds: 'not-an-array',
         } as never),
-      ).toThrow(/Expected array/u);
+      ).toThrow(/expected array/u);
     });
   });
 

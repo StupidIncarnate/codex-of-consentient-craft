@@ -34,7 +34,7 @@ describe('questGetNextStepBroker', () => {
 
     it('VALID: {one quest, all work items complete} => returns idle and clears active quest', async () => {
       const proxy = questGetNextStepBrokerProxy();
-      const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+      const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
       const guildItem = GuildListItemStub({ id: guildId, valid: true });
       const quest = QuestStub({
         id: QuestIdStub({ value: 'quest-finished' }),
@@ -60,7 +60,7 @@ describe('questGetNextStepBroker', () => {
 
     it('VALID: {pre-execution quest (approved status)} => skipped, returns idle', async () => {
       const proxy = questGetNextStepBrokerProxy();
-      const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+      const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
       const guildItem = GuildListItemStub({ id: guildId, valid: true });
       const quest = QuestStub({
         id: QuestIdStub({ value: 'quest-spec' }),
@@ -88,7 +88,7 @@ describe('questGetNextStepBroker', () => {
   describe('single-agent spawn-agents', () => {
     it('VALID: {one in_progress quest with single ready codeweaver} => spawn-agents with one codeweaver instruction', async () => {
       const proxy = questGetNextStepBrokerProxy();
-      const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+      const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
       const guildItem = GuildListItemStub({ id: guildId, valid: true });
       const questId = QuestIdStub({ value: 'quest-codeweaver' });
       const workItemId = QuestWorkItemIdStub({
@@ -130,7 +130,7 @@ describe('questGetNextStepBroker', () => {
     // not reachable from ordinary traffic: the spiritmender item waits for a scan of its own.
     it('VALID: {ready codeweaver + ready spiritmender with no deps} => dispatches the head role ALONE', async () => {
       const proxy = questGetNextStepBrokerProxy();
-      const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+      const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
       const guildItem = GuildListItemStub({ id: guildId, valid: true });
       const questId = QuestIdStub({ value: 'quest-mixed' });
       const cwId = QuestWorkItemIdStub({ value: 'cccccccc-1111-4222-9333-444444444444' });
@@ -167,7 +167,7 @@ describe('questGetNextStepBroker', () => {
 
     it('VALID: {ready spiritmender} => single spawn-agents', async () => {
       const proxy = questGetNextStepBrokerProxy();
-      const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+      const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
       const guildItem = GuildListItemStub({ id: guildId, valid: true });
       const questId = QuestIdStub({ value: 'quest-bw' });
       const bwId = QuestWorkItemIdStub({ value: 'eeeeeeee-1111-4222-9333-444444444444' });
@@ -205,7 +205,7 @@ describe('questGetNextStepBroker', () => {
   describe('run-step path (ward gate)', () => {
     it('VALID: {ready ward gate step} => run-step naming the ward handler and no args', async () => {
       const proxy = questGetNextStepBrokerProxy();
-      const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+      const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
       const guildItem = GuildListItemStub({ id: guildId, valid: true });
       const questId = QuestIdStub({ value: 'quest-ward' });
       const wardId = QuestWorkItemIdStub({
@@ -253,7 +253,7 @@ describe('questGetNextStepBroker', () => {
   describe('FIFO ordering across multiple quests', () => {
     it('VALID: {two in_progress quests, older has incomplete work} => returns work from older quest', async () => {
       const proxy = questGetNextStepBrokerProxy();
-      const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+      const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
       const guildItem = GuildListItemStub({ id: guildId, valid: true });
       const olderQuestId = QuestIdStub({ value: 'quest-older' });
       const newerQuestId = QuestIdStub({ value: 'quest-newer' });
@@ -316,7 +316,7 @@ describe('questGetNextStepBroker', () => {
 
     it('VALID: {two in_progress quests, older is fully complete} => returns work from newer quest', async () => {
       const proxy = questGetNextStepBrokerProxy();
-      const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+      const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
       const guildItem = GuildListItemStub({ id: guildId, valid: true });
       const olderQuestId = QuestIdStub({ value: 'quest-older-done' });
       const newerQuestId = QuestIdStub({ value: 'quest-newer-running' });
@@ -372,7 +372,7 @@ describe('questGetNextStepBroker', () => {
   describe('dependency gating', () => {
     it('VALID: {orphaned in_progress item blocking a pending dependent} => resets the orphan and re-dispatches it, leaving the dependent gated', async () => {
       const proxy = questGetNextStepBrokerProxy();
-      const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+      const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
       const guildItem = GuildListItemStub({ id: guildId, valid: true });
       const questId = QuestIdStub({ value: 'quest-blocked-by-dep' });
       const orphanId = QuestWorkItemIdStub({
@@ -424,7 +424,7 @@ describe('questGetNextStepBroker', () => {
 
     it('VALID: {ready item with satisfied dep (complete)} => returns the dependent in spawn-agents', async () => {
       const proxy = questGetNextStepBrokerProxy();
-      const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+      const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
       const guildItem = GuildListItemStub({ id: guildId, valid: true });
       const questId = QuestIdStub({ value: 'quest-chain' });
       const doneId = QuestWorkItemIdStub({
@@ -475,7 +475,7 @@ describe('questGetNextStepBroker', () => {
   describe('long-poll', () => {
     it('VALID: {scan returns nothing, then quest appears} => returns the quest on the retry', async () => {
       const proxy = questGetNextStepBrokerProxy();
-      const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+      const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
       const guildItem = GuildListItemStub({ id: guildId, valid: true });
       const questId = QuestIdStub({ value: 'quest-late' });
       const workItemId = QuestWorkItemIdStub({
@@ -521,7 +521,7 @@ describe('questGetNextStepBroker', () => {
     // the dispatcher was paused writes to quests the user just stopped it for.
     it('VALID: {shouldKeepPolling flips false during the wait} => stops scanning and returns idle even though a quest appeared', async () => {
       const proxy = questGetNextStepBrokerProxy();
-      const guildId = GuildIdStub({ value: 'aaaaaaaa-1111-2222-3333-444444444444' });
+      const guildId = GuildIdStub({ value: '16692911-4a9a-799a-9c35-e3ad9a3e2ab9' });
       const guildItem = GuildListItemStub({ id: guildId, valid: true });
       const questId = QuestIdStub({ value: 'quest-after-pause' });
       const quest = QuestStub({

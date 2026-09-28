@@ -42,19 +42,19 @@ describe('frameworkContract', () => {
     it('INVALID: "invalid" => throws validation error', () => {
       expect(() => {
         return frameworkContract.parse('invalid');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: 123 => throws validation error', () => {
       expect(() => {
         return frameworkContract.parse(123);
-      }).toThrow(/Expected/u);
+      }).toThrow(/Invalid option/u);
     });
 
     it('INVALID: undefined => throws validation error', () => {
       expect(() => {
         return frameworkContract.parse(undefined);
-      }).toThrow(/Required/u);
+      }).toThrow(/Invalid option/u);
     });
   });
 });

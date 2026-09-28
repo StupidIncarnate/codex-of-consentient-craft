@@ -32,7 +32,7 @@ describe('systemInitStreamLineContract', () => {
           subtype: 'init',
           session_id: 'abc-123',
         });
-      }).toThrow(/Invalid literal value/u);
+      }).toThrow(/Invalid input: expected/u);
     });
 
     it('INVALID: {subtype: "close"} => throws validation error', () => {
@@ -42,7 +42,7 @@ describe('systemInitStreamLineContract', () => {
           subtype: 'close',
           session_id: 'abc-123',
         });
-      }).toThrow(/Invalid literal value/u);
+      }).toThrow(/Invalid input: expected/u);
     });
 
     it('INVALID: {missing session_id} => throws validation error', () => {
@@ -51,7 +51,7 @@ describe('systemInitStreamLineContract', () => {
           type: 'system',
           subtype: 'init',
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

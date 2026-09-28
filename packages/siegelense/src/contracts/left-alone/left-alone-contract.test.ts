@@ -25,7 +25,7 @@ describe('leftAloneContract', () => {
 
   describe('invalid rows', () => {
     it('INVALID: {missing why} => throws Required', () => {
-      expect(() => leftAloneContract.parse({ id: 'inst_7f3a' })).toThrow(/Required/u);
+      expect(() => leftAloneContract.parse({ id: 'inst_7f3a' })).toThrow(/received undefined/u);
     });
   });
 });

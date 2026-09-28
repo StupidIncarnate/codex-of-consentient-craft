@@ -67,11 +67,13 @@ describe('opFilterContract', () => {
   });
 
   describe('invalid filter ops', () => {
-    it.each(REQUIRED_FIELDS)('INVALID: {no %s} => throws "Required"', (field) => {
+    it.each(REQUIRED_FIELDS)('INVALID: {no %s} => throws "received undefined"', (field) => {
       const incomplete: Record<string, unknown> = { ...OpFilterStub() };
       Reflect.deleteProperty(incomplete, field);
 
-      expect(() => opFilterContract.parse(incomplete)).toThrow(/Required/u);
+      expect(() => opFilterContract.parse(incomplete)).toThrow(
+        /received undefined|Invalid option: expected one of/u,
+      );
     });
 
     it('INVALID: {ops: [a malformed nested op]} => throws naming every branch it failed', () => {
@@ -97,7 +99,7 @@ describe('opFilterContract', () => {
           matchedRef: 'operation[match]',
           ops: [],
         }),
-      ).toThrow(/Invalid literal value/u);
+      ).toThrow(/expected \\"filter\\"/u);
     });
   });
 });

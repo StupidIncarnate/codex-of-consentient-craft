@@ -96,7 +96,7 @@ describe('eslintJsonReportEntryContract', () => {
         eslintJsonReportEntryContract.parse({
           messages: 'not an array',
         }),
-      ).toThrow(/Expected array/u);
+      ).toThrow(/expected array/u);
     });
 
     it('INVALID: {filePath: 99} => throws validation error', () => {
@@ -104,7 +104,7 @@ describe('eslintJsonReportEntryContract', () => {
         eslintJsonReportEntryContract.parse({
           filePath: 99,
         }),
-      ).toThrow(/Expected string/u);
+      ).toThrow(/expected string/u);
     });
   });
 

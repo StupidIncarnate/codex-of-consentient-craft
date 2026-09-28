@@ -29,9 +29,8 @@ describe('recipesArgsContract', () => {
         {
           code: 'invalid_type',
           expected: 'boolean',
-          received: 'undefined',
           path: ['isJson'],
-          message: 'Required',
+          message: 'Invalid input: expected boolean, received undefined',
         },
       ]);
     });

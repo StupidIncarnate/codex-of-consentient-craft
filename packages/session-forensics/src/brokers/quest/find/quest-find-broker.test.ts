@@ -21,7 +21,7 @@ describe('questFindBroker', () => {
     it('VALID: {quest under .dungeonmaster-dev, repo-local has an unrelated guild} => returns the dev quest.json path', () => {
       const proxy = questFindBrokerProxy();
       const questId = QuestIdStub({ value: 'fix-bug' });
-      const guildId = 'a1111111-1111-1111-1111-111111111111';
+      const guildId = 'bb31df1a-53e9-7497-9c56-d3e719f494dd';
 
       proxy.setupGuildsWithoutQuest({
         root: 'repoLocal',
@@ -33,35 +33,35 @@ describe('questFindBroker', () => {
       const result = questFindBroker({ questId });
 
       expect(result).toBe(
-        '/repo/.dungeonmaster-dev/guilds/a1111111-1111-1111-1111-111111111111/quests/fix-bug/quest.json',
+        '/repo/.dungeonmaster-dev/guilds/bb31df1a-53e9-7497-9c56-d3e719f494dd/quests/fix-bug/quest.json',
       );
     });
 
     it('VALID: {quest under DUNGEONMASTER_HOME, repo-local and dev miss} => returns the env-home quest.json path', () => {
       const proxy = questFindBrokerProxy();
       const questId = QuestIdStub({ value: 'refactor-auth' });
-      const guildId = 'c3333333-3333-3333-3333-333333333333';
+      const guildId = '27a2b0ed-7dfc-24b9-a7b9-eea7daeda4f4';
 
       proxy.setupQuestAt({ root: 'envHome', guildId, questId });
 
       const result = questFindBroker({ questId });
 
       expect(result).toBe(
-        '/env/dungeonmaster-home/guilds/c3333333-3333-3333-3333-333333333333/quests/refactor-auth/quest.json',
+        '/env/dungeonmaster-home/guilds/27a2b0ed-7dfc-24b9-a7b9-eea7daeda4f4/quests/refactor-auth/quest.json',
       );
     });
 
     it('VALID: {quest under ~/.dungeonmaster, first three roots miss} => returns the user-global quest.json path', () => {
       const proxy = questFindBrokerProxy();
       const questId = QuestIdStub({ value: 'add-logging' });
-      const guildId = 'd4444444-4444-4444-4444-444444444444';
+      const guildId = 'c8fe9bf4-8af5-5022-9935-53917347c017';
 
       proxy.setupQuestAt({ root: 'userGlobal', guildId, questId });
 
       const result = questFindBroker({ questId });
 
       expect(result).toBe(
-        '/home/testuser/.dungeonmaster/guilds/d4444444-4444-4444-4444-444444444444/quests/add-logging/quest.json',
+        '/home/testuser/.dungeonmaster/guilds/c8fe9bf4-8af5-5022-9935-53917347c017/quests/add-logging/quest.json',
       );
     });
   });
@@ -73,33 +73,33 @@ describe('questFindBroker', () => {
 
       proxy.setupQuestAt({
         root: 'repoLocal',
-        guildId: 'e5555555-5555-5555-5555-555555555555',
+        guildId: '5835facb-dad2-2910-81e6-934f831a086a',
         questId,
       });
       proxy.setupQuestAt({
         root: 'userGlobal',
-        guildId: 'f6666666-6666-6666-6666-666666666666',
+        guildId: '690af1a3-bece-75a4-96db-4203a4c95524',
         questId,
       });
 
       const result = questFindBroker({ questId });
 
       expect(result).toBe(
-        '/repo/.dungeonmaster/guilds/e5555555-5555-5555-5555-555555555555/quests/shared-id/quest.json',
+        '/repo/.dungeonmaster/guilds/5835facb-dad2-2910-81e6-934f831a086a/quests/shared-id/quest.json',
       );
     });
 
     it('EDGE: {repo-local root does not exist on disk} => skipped without throwing, dev root still found', () => {
       const proxy = questFindBrokerProxy();
       const questId = QuestIdStub({ value: 'missing-root-quest' });
-      const guildId = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
+      const guildId = 'e4a1c2fd-8bcf-83b0-ba4b-1818d51fc09c';
 
       proxy.setupQuestAt({ root: 'dev', guildId, questId });
 
       const result = questFindBroker({ questId });
 
       expect(result).toBe(
-        '/repo/.dungeonmaster-dev/guilds/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa/quests/missing-root-quest/quest.json',
+        '/repo/.dungeonmaster-dev/guilds/e4a1c2fd-8bcf-83b0-ba4b-1818d51fc09c/quests/missing-root-quest/quest.json',
       );
     });
   });
@@ -111,18 +111,18 @@ describe('questFindBroker', () => {
 
       proxy.setupQuestAt({
         root: 'repoLocal',
-        guildId: '99999999-9999-9999-9999-999999999999',
+        guildId: 'a979fd6f-6969-1e05-b65b-fd78e7c13ea6',
         questId,
         decoyGuildIds: [
-          '11111111-1111-1111-1111-111111111111',
-          '22222222-2222-2222-2222-222222222222',
+          '38c6cbd2-8bf1-6507-8d07-0980dd1fb595',
+          '1c27ba90-c110-14f0-94be-250818fd3443',
         ],
       });
 
       const result = questFindBroker({ questId });
 
       expect(result).toBe(
-        '/repo/.dungeonmaster/guilds/99999999-9999-9999-9999-999999999999/quests/third-guild-quest/quest.json',
+        '/repo/.dungeonmaster/guilds/a979fd6f-6969-1e05-b65b-fd78e7c13ea6/quests/third-guild-quest/quest.json',
       );
     });
   });

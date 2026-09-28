@@ -52,7 +52,7 @@ describe('searchResultBlockParamContract', () => {
           title: 'Title',
           content: [],
         }),
-      ).toThrow(/Invalid literal value/u);
+      ).toThrow(/Invalid input: expected/u);
     });
 
     it('INVALID: {source missing} => throws on missing required field', () => {
@@ -62,7 +62,7 @@ describe('searchResultBlockParamContract', () => {
           title: 'Title',
           content: [],
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {title missing} => throws on missing required field', () => {
@@ -72,7 +72,7 @@ describe('searchResultBlockParamContract', () => {
           source: 'https://example.com',
           content: [],
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('INVALID: {content: 123} => throws on non-array content', () => {
@@ -83,7 +83,7 @@ describe('searchResultBlockParamContract', () => {
           title: 'Title',
           content: 123 as never,
         }),
-      ).toThrow(/Expected array/u);
+      ).toThrow(/expected array/u);
     });
   });
 });

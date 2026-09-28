@@ -36,7 +36,7 @@ describe('workPlanValidationCheckContract', () => {
     it('INVALID: {value: 1.5} => throws validation error', () => {
       expect(() => {
         workPlanValidationCheckContract.parse(1.5);
-      }).toThrow(/integer/u);
+      }).toThrow(/Invalid input: expected int, received number/u);
     });
   });
 });

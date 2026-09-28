@@ -56,7 +56,7 @@ describe('wsIncomingMessageContract', () => {
           guildId: GuildIdStub(),
           chatProcessId: 'proc-1',
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('ERROR: ward-detail-request without questId => throws validation error', () => {
@@ -65,7 +65,7 @@ describe('wsIncomingMessageContract', () => {
           type: 'ward-detail-request',
           wardResultId: 'ward-result-1',
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('ERROR: bogus type => throws validation error', () => {
@@ -278,7 +278,7 @@ describe('wsIncomingMessageContract', () => {
       const [issue] = error.issues;
 
       expect(result.success).toBe(false);
-      expect(issue?.code).toBe('invalid_union_discriminator');
+      expect(issue?.code).toBe('invalid_union');
     });
 
     it('ERROR: unsubscribe-quest type misspelled => safeParse fails with invalid discriminator', () => {
@@ -290,7 +290,7 @@ describe('wsIncomingMessageContract', () => {
       const [issue] = error.issues;
 
       expect(result.success).toBe(false);
-      expect(issue?.code).toBe('invalid_union_discriminator');
+      expect(issue?.code).toBe('invalid_union');
     });
 
     it('ERROR: replay-quest-history type misspelled => safeParse fails with invalid discriminator', () => {
@@ -302,7 +302,7 @@ describe('wsIncomingMessageContract', () => {
       const [issue] = error.issues;
 
       expect(result.success).toBe(false);
-      expect(issue?.code).toBe('invalid_union_discriminator');
+      expect(issue?.code).toBe('invalid_union');
     });
   });
 });

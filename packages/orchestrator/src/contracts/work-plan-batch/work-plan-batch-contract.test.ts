@@ -29,15 +29,11 @@ describe('workPlanBatchContract', () => {
 
   describe('invalid batches', () => {
     it('EMPTY: {pieces: []} => refused, since an empty batch forecasts nothing', () => {
-      expect(() => WorkPlanBatchStub({ pieces: [] })).toThrow(
-        /Array must contain at least 1 element/u,
-      );
+      expect(() => WorkPlanBatchStub({ pieces: [] })).toThrow(/expected array to have >=1 items/u);
     });
 
     it('INVALID: {mode: concurrent} => refused', () => {
-      expect(() => WorkPlanBatchStub({ mode: 'concurrent' as never })).toThrow(
-        /Invalid enum value/u,
-      );
+      expect(() => WorkPlanBatchStub({ mode: 'concurrent' as never })).toThrow(/Invalid option/u);
     });
 
     it('EMPTY: {empty object} => refused', () => {

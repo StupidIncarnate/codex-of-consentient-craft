@@ -37,7 +37,7 @@
  * piece ever written.
  */
 
-import { z } from 'zod';
+import type { z } from 'zod';
 
 import { workPlanFieldsContract } from '../work-plan-fields/work-plan-fields-contract';
 import { workPlanPayloadCodeweaverContract } from '../work-plan-payload-codeweaver/work-plan-payload-codeweaver-contract';
@@ -52,7 +52,7 @@ export const workPlanContract = workPlanFieldsContract.superRefine((plan, ctx) =
   plan.plannerMarks.forEach((mark, index) => {
     if (mark.mark !== 'cant-meet') {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         path: ['plannerMarks', index, 'mark'],
         message:
           `plannerMarks[${index}]: a planner may only write 'cant-meet', never '${mark.mark}'. A ` +
@@ -63,7 +63,7 @@ export const workPlanContract = workPlanFieldsContract.superRefine((plan, ctx) =
 
     if (claimedUnitIds.has(mark.unitId)) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         path: ['plannerMarks', index, 'unitId'],
         message:
           `plannerMarks[${index}]: unit '${String(mark.unitId)}' is claimed by a piece in this ` +
@@ -86,7 +86,7 @@ export const workPlanContract = workPlanFieldsContract.superRefine((plan, ctx) =
 
       if (!parsed.success) {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: 'custom',
           path: [...path],
           message: `piece '${String(piece.id)}': payload does not match the ${plan.family} shape — ${parsed.error.issues
             .map((issue) => issue.message)
@@ -105,7 +105,7 @@ export const workPlanContract = workPlanFieldsContract.superRefine((plan, ctx) =
 
         if (missingFromUnits.length > 0 || extraInUnits.length > 0) {
           ctx.addIssue({
-            code: z.ZodIssueCode.custom,
+            code: 'custom',
             path: [...path, 'units'],
             message:
               `piece '${String(piece.id)}': payload.units[] holds ${payloadUnits.length} ` +

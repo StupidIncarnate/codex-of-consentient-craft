@@ -16,12 +16,13 @@
 import { z } from 'zod';
 
 import { routedGraphNodeKeyContract } from '../routed-graph-node-key/routed-graph-node-key-contract';
+import { routedGraphOutcomeWordContract } from '../routed-graph-outcome-word/routed-graph-outcome-word-contract';
 
 const routedGraphNodeContract = z.object({
-  // DELIBERATELY z.record(z.string()) and NOT the four outcome words. Rule 5 exists to catch
+  // DELIBERATELY a bare branded string and NOT the four outcome words. Rule 5 exists to catch
   // `pass:` / `green:` / `rework:`. Narrow this to the union and the bad key is refused before
   // the check runs, so rule 5 could only ever fire on a fixture — never on a real graph.
-  routes: z.record(routedGraphNodeKeyContract),
+  routes: z.record(routedGraphOutcomeWordContract, routedGraphNodeKeyContract),
   maxVisits: z.number().int().positive().brand<'RoutedGraphMaxVisits'>().optional(),
   prompt: z.string().brand<'RoutedGraphPromptName'>().optional(),
   handler: z.string().brand<'RoutedGraphHandlerName'>().optional(),
@@ -32,7 +33,7 @@ const routedGraphNodeContract = z.object({
 export const routedGraphContract = z.object({
   graphName: z.string().min(1).brand<'RoutedGraphName'>(),
   entry: routedGraphNodeKeyContract,
-  nodes: z.record(routedGraphNodeContract),
+  nodes: z.record(routedGraphNodeKeyContract, routedGraphNodeContract),
 });
 
 export type RoutedGraph = z.infer<typeof routedGraphContract>;

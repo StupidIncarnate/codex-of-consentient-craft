@@ -26,7 +26,7 @@ describe('replayHistoryMessageContract', () => {
           guildId: 'guild-1',
           chatProcessId: 'proc-1',
         });
-      }).toThrow(/invalid_literal/u);
+      }).toThrow(/Invalid input: expected \\"replay-history\\"/u);
     });
   });
 });

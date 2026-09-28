@@ -57,6 +57,6 @@ describe('mcpPreToolUseHookDataContract', () => {
         tool_name: 'mcp__dungeonmaster__discover',
         tool_input: {},
       }),
-    ).toThrow(/Invalid literal value/u);
+    ).toThrow(/Invalid input: expected \\"PreToolUse\\"/u);
   });
 });

@@ -40,7 +40,7 @@ describe('slotStatusContract', () => {
     it('INVALID: {unknown status} => throws validation error', () => {
       expect(() => {
         slotStatusContract.parse('unknown');
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
   });
 });

@@ -17,13 +17,13 @@ describe('questClarifyBodyContract', () => {
     it('INVALID: {answers: []} => throws validation error', () => {
       expect(() => {
         questClarifyBodyContract.parse({ answers: [], questions: [] });
-      }).toThrow(/at least 1/u);
+      }).toThrow(/>=1/u);
     });
 
     it('INVALID: {} => throws validation error', () => {
       expect(() => {
         questClarifyBodyContract.parse({});
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

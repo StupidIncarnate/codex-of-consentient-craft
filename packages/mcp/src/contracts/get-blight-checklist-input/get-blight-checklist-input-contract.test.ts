@@ -1,8 +1,7 @@
 import { getBlightChecklistInputContract } from './get-blight-checklist-input-contract';
 import { GetBlightChecklistInputStub } from './get-blight-checklist-input.stub';
 
-const scopeDescription =
-  getBlightChecklistInputContract.unwrap().shape.scope.unwrap().description ?? '';
+const scopeDescription = getBlightChecklistInputContract.shape.scope.unwrap().description ?? '';
 
 const hasIn = ({ text, needle }: { text: string; needle: string }): boolean =>
   text.includes(needle);
@@ -91,13 +90,13 @@ describe('getBlightChecklistInputContract', () => {
     });
 
     it('INVALID: {missing questId} => throws validation error', () => {
-      expect(() => getBlightChecklistInputContract.parse({})).toThrow(/Required/u);
+      expect(() => getBlightChecklistInputContract.parse({})).toThrow(/received undefined/u);
     });
 
     it("INVALID: {scope: 'branch'} => throws, the only four diffs are the quest's, the last commit's, the unpushed round's, and the working tree's", () => {
       expect(() =>
         getBlightChecklistInputContract.parse({ questId: 'add-auth', scope: 'branch' } as never),
-      ).toThrow(/Invalid enum value/u);
+      ).toThrow(/Invalid option/u);
     });
 
     // `since-ref` is deliberately server-side only: its single caller is the signal-back
@@ -106,7 +105,7 @@ describe('getBlightChecklistInputContract', () => {
     it("INVALID: {scope: 'since-ref'} => throws, that scope is not part of the agent-facing surface", () => {
       expect(() =>
         getBlightChecklistInputContract.parse({ questId: 'add-auth', scope: 'since-ref' } as never),
-      ).toThrow(/Invalid enum value/u);
+      ).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {planId} => throws Unrecognized key, because no scope takes an id argument', () => {

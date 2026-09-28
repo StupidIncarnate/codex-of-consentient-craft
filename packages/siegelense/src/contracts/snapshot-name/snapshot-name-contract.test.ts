@@ -33,15 +33,15 @@ describe('snapshotNameContract', () => {
     });
 
     it('INVALID: {value: "after cycle"} => throws, because a space is not in the character class', () => {
-      expect(() => snapshotNameContract.parse('after cycle')).toThrow(/invalid_string/u);
+      expect(() => snapshotNameContract.parse('after cycle')).toThrow(/invalid_format/u);
     });
 
     it('INVALID: {value: "a/b"} => throws, so a name can never reach out of the store directory', () => {
-      expect(() => snapshotNameContract.parse('a/b')).toThrow(/invalid_string/u);
+      expect(() => snapshotNameContract.parse('a/b')).toThrow(/invalid_format/u);
     });
 
     it('INVALID: {value: ".."} => throws, so a name can never climb out of the store directory', () => {
-      expect(() => snapshotNameContract.parse('../escape')).toThrow(/invalid_string/u);
+      expect(() => snapshotNameContract.parse('../escape')).toThrow(/invalid_format/u);
     });
 
     it('EDGE: {value: 65 characters} => throws a too-big validation error', () => {

@@ -13,7 +13,7 @@ import { createDriverHandlerLayerBrokerProxy } from './create-driver-handler-lay
 
 const QUEST_ID = QuestIdStub({ value: 'layer-handler-quest' });
 const OTHER_QUEST_ID = QuestIdStub({ value: 'other-layer-quest' });
-const WI_PENDING = QuestWorkItemIdStub({ value: 'dddddddd-dddd-dddd-dddd-dddddddddd01' });
+const WI_PENDING = QuestWorkItemIdStub({ value: 'e59cd261-9611-1e18-9d70-6c8ab7d46bd2' });
 const CODEWEAVER_ROLE = WorkItemRoleStub({ value: 'codeweaver' });
 const EMITTED_PROCESS_ID = ProcessIdStub({ value: 'layer-handler-proc' });
 // Unique substring from smoketestPromptsStatics.signalComplete that survives JSON escaping.

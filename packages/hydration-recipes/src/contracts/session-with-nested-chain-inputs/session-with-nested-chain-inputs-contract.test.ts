@@ -27,8 +27,8 @@ describe('sessionWithNestedChainInputsContract', () => {
   });
 
   describe('empty inputs', () => {
-    it('EMPTY: {} => throws "Required"', () => {
-      expect(() => sessionWithNestedChainInputsContract.parse({})).toThrow(/Required/u);
+    it('EMPTY: {} => throws "received undefined"', () => {
+      expect(() => sessionWithNestedChainInputsContract.parse({})).toThrow(/received undefined/u);
     });
   });
 });

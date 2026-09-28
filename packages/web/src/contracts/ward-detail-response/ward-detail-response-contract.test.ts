@@ -24,7 +24,7 @@ describe('wardDetailResponseContract', () => {
           wardResultId: 'r-1',
           detail: {},
         });
-      }).toThrow(/invalid_literal/u);
+      }).toThrow(/Invalid input: expected \\"ward-detail-response\\"/u);
     });
   });
 });

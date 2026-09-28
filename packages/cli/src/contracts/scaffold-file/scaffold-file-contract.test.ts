@@ -20,25 +20,25 @@ describe('scaffoldFileContract', () => {
     it('INVALID: {missing relativePath} => throws validation error', () => {
       expect(() => {
         return scaffoldFileContract.parse({ contents: '{}\n' });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {missing contents} => throws validation error', () => {
       expect(() => {
         return scaffoldFileContract.parse({ relativePath: 'package.json' });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {relativePath: 123} => throws validation error', () => {
       expect(() => {
         return scaffoldFileContract.parse({ relativePath: 123 as never, contents: '{}\n' });
-      }).toThrow(/Expected string/u);
+      }).toThrow(/expected string/u);
     });
 
     it('INVALID: {contents: 123} => throws validation error', () => {
       expect(() => {
         return scaffoldFileContract.parse({ relativePath: 'package.json', contents: 123 as never });
-      }).toThrow(/Expected string/u);
+      }).toThrow(/expected string/u);
     });
   });
 

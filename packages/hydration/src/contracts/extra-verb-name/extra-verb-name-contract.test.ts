@@ -12,7 +12,7 @@ describe('extraVerbNameContract', () => {
   describe('invalid extra verb names', () => {
     it('INVALID: {value: ""} => throws "String must contain at least 1 character(s)"', () => {
       expect(() => extraVerbNameContract.parse('')).toThrow(
-        /String must contain at least 1 character\(s\)/u,
+        /expected string to have >=1 characters/u,
       );
     });
 

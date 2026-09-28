@@ -10,9 +10,7 @@ describe('fieldNameContract', () => {
 
   describe('invalid field names', () => {
     it('INVALID: {value: ""} => throws "String must contain at least 1 character(s)"', () => {
-      expect(() => fieldNameContract.parse('')).toThrow(
-        /String must contain at least 1 character\(s\)/u,
-      );
+      expect(() => fieldNameContract.parse('')).toThrow(/expected string to have >=1 characters/u);
     });
   });
 });

@@ -18,9 +18,14 @@ export const dungeonmasterHomeFindBrokerProxy = (): {
   // different file never reaches that already-captured reference, so the broker's calls would
   // silently see the real function while every stage here goes unused.
   const realPath = requireActual<{ join: typeof join }>({ module: 'path' });
+  const realOs = requireActual<{ homedir: typeof homedir }>({ module: 'os' });
   const homedirHandle = registerMock({ fn: homedir });
   const joinHandle = registerMock({ fn: join });
-  // Sticky real-passthrough default for every OTHER join() call this test never describes.
+  // Sticky real-passthrough default for every call neither of these ever describes.
+  // `dungeonmasterHomeFindBroker` runs unconditionally at the top of every `questFindBroker`
+  // (and sibling) call, whichever candidate root a test is actually about, so a scenario that
+  // never calls `setupHomePath` still needs `homedir()` to answer something rather than throw.
+  homedirHandle.calledWith([]).implement(() => realOs.homedir());
   joinHandle.calledWith([]).implement((...segments: never[]) => realPath.join(...segments));
 
   return {

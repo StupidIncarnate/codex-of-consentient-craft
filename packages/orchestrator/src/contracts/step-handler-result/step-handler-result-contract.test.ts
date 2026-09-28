@@ -30,7 +30,7 @@ describe('stepHandlerResultContract', () => {
   describe('invalid results', () => {
     it('INVALID: {outcome: "confirmed"} => throws — not one of the four Outcome words', () => {
       expect(() => stepHandlerResultContract.parse({ outcome: 'confirmed', detail: 'x' })).toThrow(
-        /confirmed/u,
+        /Invalid option: expected one of/u,
       );
     });
 

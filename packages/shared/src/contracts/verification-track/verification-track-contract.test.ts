@@ -25,17 +25,15 @@ describe('verificationTrackContract', () => {
 
   describe('invalid tracks', () => {
     it('INVALID: {value: "blightwarden"} => throws, blightwarden signs no verification unit', () => {
-      expect(() => VerificationTrackStub({ value: 'blightwarden' })).toThrow(/Invalid enum value/u);
+      expect(() => VerificationTrackStub({ value: 'blightwarden' })).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {value: "flowriderSignoff"} => throws, a retired field name is not a track name', () => {
-      expect(() => VerificationTrackStub({ value: 'flowriderSignoff' })).toThrow(
-        /Invalid enum value/u,
-      );
+      expect(() => VerificationTrackStub({ value: 'flowriderSignoff' })).toThrow(/Invalid option/u);
     });
 
     it('EMPTY: {value: ""} => throws', () => {
-      expect(() => VerificationTrackStub({ value: '' })).toThrow(/Invalid enum value/u);
+      expect(() => VerificationTrackStub({ value: '' })).toThrow(/Invalid option/u);
     });
   });
 });

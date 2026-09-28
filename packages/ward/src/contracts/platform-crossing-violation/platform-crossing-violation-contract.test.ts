@@ -41,7 +41,7 @@ describe('platformCrossingViolationContract', () => {
     it('INVALID: {chain: []} => throws validation error', () => {
       expect(() =>
         platformCrossingViolationContract.parse(PlatformCrossingViolationStub({ chain: [] })),
-      ).toThrow(/at least 1/u);
+      ).toThrow(/>=1/u);
     });
 
     it('INVALID: {platform: "server"} => throws validation error', () => {
@@ -49,13 +49,15 @@ describe('platformCrossingViolationContract', () => {
         platformCrossingViolationContract.parse(
           PlatformCrossingViolationStub({ platform: 'server' as never }),
         ),
-      ).toThrow(/Invalid enum value/u);
+      ).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {missing crossedGatewayPackage} => throws validation error', () => {
       const { crossedGatewayPackage: _omit, ...withoutField } = PlatformCrossingViolationStub();
 
-      expect(() => platformCrossingViolationContract.parse(withoutField)).toThrow(/Required/u);
+      expect(() => platformCrossingViolationContract.parse(withoutField)).toThrow(
+        /received undefined/u,
+      );
     });
   });
 

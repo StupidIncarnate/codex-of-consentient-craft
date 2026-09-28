@@ -15,18 +15,18 @@ describe('siegeRunIdContract', () => {
   });
 
   it('INVALID: {value: "inst_1"} => throws for the wrong prefix', () => {
-    expect(() => siegeRunIdContract.parse('inst_1')).toThrow(/invalid_string/u);
+    expect(() => siegeRunIdContract.parse('inst_1')).toThrow(/invalid_format/u);
   });
 
   it('INVALID: {value: "run_01"} => throws for a leading zero', () => {
-    expect(() => siegeRunIdContract.parse('run_01')).toThrow(/invalid_string/u);
+    expect(() => siegeRunIdContract.parse('run_01')).toThrow(/invalid_format/u);
   });
 
   it('INVALID: {value: "run_0"} => throws for zero', () => {
-    expect(() => siegeRunIdContract.parse('run_0')).toThrow(/invalid_string/u);
+    expect(() => siegeRunIdContract.parse('run_0')).toThrow(/invalid_format/u);
   });
 
   it('EMPTY: {value: ""} => throws', () => {
-    expect(() => siegeRunIdContract.parse('')).toThrow(/invalid_string/u);
+    expect(() => siegeRunIdContract.parse('')).toThrow(/invalid_format/u);
   });
 });

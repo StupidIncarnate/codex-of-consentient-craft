@@ -18,11 +18,11 @@ describe('openHandleDisplayContract', () => {
 
   describe('invalid displays', () => {
     it('INVALID: {42} => throws', () => {
-      expect(() => openHandleDisplayContract.parse(42)).toThrow(/Expected string/u);
+      expect(() => openHandleDisplayContract.parse(42)).toThrow(/expected string/u);
     });
 
     it('EMPTY: {undefined} => throws', () => {
-      expect(() => openHandleDisplayContract.parse(undefined)).toThrow(/Required/u);
+      expect(() => openHandleDisplayContract.parse(undefined)).toThrow(/received undefined/u);
     });
   });
 });

@@ -21,11 +21,11 @@ describe('folderDetailCallLookupContract', () => {
 
   describe('invalid input', () => {
     it('INVALID: {value: "maybe"} => throws', () => {
-      expect(() => FolderDetailCallLookupStub({ value: 'maybe' })).toThrow(/Invalid enum value/u);
+      expect(() => FolderDetailCallLookupStub({ value: 'maybe' })).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {value: 1} => throws', () => {
-      expect(() => folderDetailCallLookupContract.parse(1 as never)).toThrow(/received number/u);
+      expect(() => folderDetailCallLookupContract.parse(1 as never)).toThrow(/Invalid option/u);
     });
   });
 });

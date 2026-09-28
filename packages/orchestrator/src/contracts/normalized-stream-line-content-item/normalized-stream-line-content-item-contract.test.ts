@@ -44,7 +44,7 @@ describe('normalizedStreamLineContentItemContract', (): void => {
 
   it('ERROR: {non-object} => throws', (): void => {
     expect((): unknown => normalizedStreamLineContentItemContract.parse(42)).toThrow(
-      /Expected object/u,
+      /expected object/u,
     );
   });
 });

@@ -46,7 +46,7 @@ describe('workItemAttachArgsContract', () => {
           createdAt: '2024-01-01T00:00:00.000Z',
           operationId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/Invalid option: expected one of/u);
     });
 
     it('INVALID: {operationId: neither an OperationItemId nor a SavedRef} => throws', () => {

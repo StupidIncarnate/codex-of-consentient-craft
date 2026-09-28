@@ -108,7 +108,7 @@ describe('testGuildContract', () => {
           guildName: 'test',
           rootDir: '/tmp',
         });
-      }).toThrow(/Expected string/u);
+      }).toThrow(/expected string/u);
     });
 
     it('INVALID: {guildPath: null} => throws validation error for null', () => {
@@ -118,7 +118,7 @@ describe('testGuildContract', () => {
           guildName: 'test',
           rootDir: '/tmp',
         });
-      }).toThrow(/Expected string/u);
+      }).toThrow(/expected string/u);
     });
 
     it('INVALID: {guildName: 123} => throws validation error for non-string', () => {
@@ -128,7 +128,7 @@ describe('testGuildContract', () => {
           guildName: 123 as never,
           rootDir: '/tmp',
         });
-      }).toThrow(/Expected string/u);
+      }).toThrow(/expected string/u);
     });
 
     it('INVALID: {rootDir: []} => throws validation error for array', () => {
@@ -138,7 +138,7 @@ describe('testGuildContract', () => {
           guildName: 'test',
           rootDir: [] as never,
         });
-      }).toThrow(/Expected string/u);
+      }).toThrow(/expected string/u);
     });
 
     it('INVALID: {missing guildPath and guildName} => throws validation error', () => {
@@ -146,13 +146,13 @@ describe('testGuildContract', () => {
         return testGuildContract.parse({
           rootDir: '/tmp',
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {missing all fields} => throws validation error for empty object', () => {
       expect(() => {
         return testGuildContract.parse({});
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: {only guildPath} => throws validation error for missing fields', () => {
@@ -160,7 +160,7 @@ describe('testGuildContract', () => {
         return testGuildContract.parse({
           guildPath: '/tmp/test',
         });
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
   });
 });

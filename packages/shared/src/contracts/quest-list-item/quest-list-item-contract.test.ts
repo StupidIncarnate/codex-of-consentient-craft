@@ -122,7 +122,7 @@ describe('questListItemContract', () => {
           ...QuestListItemStub(),
           createdAt: 'not-a-timestamp',
         });
-      }).toThrow(/Invalid datetime/u);
+      }).toThrow(/Invalid ISO datetime/u);
     });
 
     it('INVALID: {activeSessionId: empty string} => throws validation error', () => {
@@ -137,7 +137,7 @@ describe('questListItemContract', () => {
     it('INVALID: missing required fields => throws validation error', () => {
       expect(() => {
         questListItemContract.parse({});
-      }).toThrow(/Required/u);
+      }).toThrow(/received undefined/u);
     });
 
     it('INVALID: invalid status => throws validation error', () => {
@@ -148,7 +148,7 @@ describe('questListItemContract', () => {
           ...baseItem,
           status: 'invalid',
         });
-      }).toThrow(/Invalid enum value/u);
+      }).toThrow(/Invalid option/u);
     });
   });
 });

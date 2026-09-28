@@ -10,7 +10,7 @@ import { createDriverPollTickLayerBroker } from './create-driver-poll-tick-layer
 import { createDriverPollTickLayerBrokerProxy } from './create-driver-poll-tick-layer-broker.proxy';
 
 const QUEST_ID = QuestIdStub({ value: 'poll-tick-quest' });
-const WI_PENDING = QuestWorkItemIdStub({ value: 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeee01' });
+const WI_PENDING = QuestWorkItemIdStub({ value: '928fbe8b-2d1f-66b0-9f18-a0a552a0400a' });
 const CODEWEAVER_ROLE = WorkItemRoleStub({ value: 'codeweaver' });
 
 const questWithPendingCodeweaver = QuestStub({

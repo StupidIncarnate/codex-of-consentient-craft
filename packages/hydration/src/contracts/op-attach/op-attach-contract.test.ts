@@ -40,11 +40,11 @@ describe('opAttachContract', () => {
   });
 
   describe('invalid attach ops', () => {
-    it.each(REQUIRED_FIELDS)('INVALID: {no %s} => throws "Required"', (field) => {
+    it.each(REQUIRED_FIELDS)('INVALID: {no %s} => throws "received undefined"', (field) => {
       const incomplete: Record<string, unknown> = { ...OpAttachStub() };
       Reflect.deleteProperty(incomplete, field);
 
-      expect(() => opAttachContract.parse(incomplete)).toThrow(/Required/u);
+      expect(() => opAttachContract.parse(incomplete)).toThrow(/received undefined/u);
     });
 
     it('INVALID: {op: "nope"} => throws naming the expected literal', () => {
@@ -56,7 +56,7 @@ describe('opAttachContract', () => {
           ancestors: [],
           where: {},
         }),
-      ).toThrow(/Invalid literal value/u);
+      ).toThrow(/Invalid input: expected/u);
     });
   });
 });

@@ -54,19 +54,19 @@ describe('repoRelativePathContract', () => {
     it('INVALID: {path: ""} => throws ZodError', () => {
       expect(() => {
         return repoRelativePathContract.parse('');
-      }).toThrow('String must contain at least 1 character');
+      }).toThrow('expected string to have >=1 characters');
     });
 
     it('INVALID: {path: 123} => throws ZodError', () => {
       expect(() => {
         return repoRelativePathContract.parse(123);
-      }).toThrow('Expected string');
+      }).toThrow('expected string');
     });
 
     it('INVALID: {path: null} => throws ZodError', () => {
       expect(() => {
         return repoRelativePathContract.parse(null);
-      }).toThrow('Expected string');
+      }).toThrow('expected string');
     });
   });
 });

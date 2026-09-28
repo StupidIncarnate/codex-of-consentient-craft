@@ -57,7 +57,7 @@ describe('humanVerdictInputContract', () => {
           outcome: 'confirmed',
           reason: 'Watched it.',
         }),
-      ).toThrow(/Invalid enum value/u);
+      ).toThrow(/Invalid option/u);
     });
 
     it('INVALID: {missing questId} => throws validation error', () => {
@@ -67,7 +67,7 @@ describe('humanVerdictInputContract', () => {
           outcome: 'met',
           reason: 'Watched it.',
         }),
-      ).toThrow(/Required/u);
+      ).toThrow(/received undefined/u);
     });
 
     it('EMPTY: {unitId: ""} => throws because an empty unitId names no observable', () => {
@@ -78,7 +78,7 @@ describe('humanVerdictInputContract', () => {
           outcome: 'met',
           reason: 'Watched it.',
         }),
-      ).toThrow(/String must contain at least 1 character/u);
+      ).toThrow(/expected string to have >=1 characters/u);
     });
 
     it('EMPTY: {reason: ""} => throws because an empty reason explains nothing', () => {
@@ -89,7 +89,7 @@ describe('humanVerdictInputContract', () => {
           outcome: 'met',
           reason: '',
         }),
-      ).toThrow(/String must contain at least 1 character/u);
+      ).toThrow(/expected string to have >=1 characters/u);
     });
 
     it('INVALID: {unknown key} => throws Unrecognized key error because the contract is strict', () => {

@@ -52,11 +52,13 @@ describe('driverResponseContract', () => {
     it('INVALID: {ok: "yes"} => a non-boolean ok throws validation error rather than something unrecognisable', () => {
       expect(() =>
         driverResponseContract.parse({ ok: 'yes' as never, payload: '', error: null }),
-      ).toThrow(/Expected boolean/u);
+      ).toThrow(/expected boolean/u);
     });
 
     it('INVALID: {missing error} => throws Required, because .nullable() is not .optional()', () => {
-      expect(() => driverResponseContract.parse({ ok: true, payload: '' })).toThrow(/Required/u);
+      expect(() => driverResponseContract.parse({ ok: true, payload: '' })).toThrow(
+        /received undefined/u,
+      );
     });
   });
 });

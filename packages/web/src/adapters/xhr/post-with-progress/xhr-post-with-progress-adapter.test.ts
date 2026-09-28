@@ -159,7 +159,7 @@ describe('xhrPostWithProgressAdapter', () => {
         body: {},
         onProgress: (): void => undefined,
       }),
-    ).rejects.toThrow(/Number must be greater than or equal to 100/u);
+    ).rejects.toThrow(/expected number to be >=100/u);
   });
 
   it('EDGE: {status 204} => resolves ok: true with body null', async () => {
@@ -253,7 +253,7 @@ describe('xhrPostWithProgressAdapter', () => {
         body: {},
         onProgress: (): void => undefined,
       }),
-    ).rejects.toThrow(/String must contain at least 1 character/u);
+    ).rejects.toThrow(/expected string to have >=1 characters/u);
 
     expect(proxy.getRequestCount()).toBe(0);
   });

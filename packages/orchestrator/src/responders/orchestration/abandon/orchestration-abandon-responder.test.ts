@@ -77,7 +77,7 @@ describe('OrchestrationAbandonResponder', () => {
       'VALID: {work item status: %s} => terminal item unchanged after abandon',
       async (wiStatus) => {
         const questId = QuestIdStub({ value: 'abandon-terminal-wi' });
-        const wiId = QuestWorkItemIdStub({ value: 'a0000000-0000-0000-0000-000000000001' });
+        const wiId = QuestWorkItemIdStub({ value: '235be74a-c2e6-687c-a91c-7169625c0e54' });
         const workItem = WorkItemStub({ id: wiId, role: 'codeweaver', status: wiStatus });
         const quest = QuestStub({
           id: questId,
@@ -108,7 +108,7 @@ describe('OrchestrationAbandonResponder', () => {
       'VALID: {work item status: %s} => non-terminal item becomes skipped after abandon',
       async (wiStatus) => {
         const questId = QuestIdStub({ value: 'abandon-nonterminal-wi' });
-        const wiId = QuestWorkItemIdStub({ value: 'a0000000-0000-0000-0000-000000000002' });
+        const wiId = QuestWorkItemIdStub({ value: '7d42a5b3-83e0-4dd4-b874-900390937194' });
         const workItem = WorkItemStub({ id: wiId, role: 'codeweaver', status: wiStatus });
         const quest = QuestStub({
           id: questId,

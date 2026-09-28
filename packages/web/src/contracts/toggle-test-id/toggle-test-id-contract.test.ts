@@ -18,7 +18,7 @@ describe('toggleTestIdContract', () => {
 
   describe('invalid inputs', () => {
     it('INVALID: {value: arbitrary string} => throws', () => {
-      expect(() => toggleTestIdContract.parse('OTHER_TOGGLE')).toThrow(/Invalid enum value/u);
+      expect(() => toggleTestIdContract.parse('OTHER_TOGGLE')).toThrow(/Invalid option/u);
     });
   });
 
