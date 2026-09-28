@@ -19,7 +19,8 @@ The operator owns these. Doing any of them breaks another agent's work:
    `--only`. See the `<dungeonmaster-ward>` snippet.
 4. Never `npm install`, `npm ci`, `npm link` or `npm rebuild`. If a dependency is missing, report it.
 5. Never edit `.claude/settings.json`, `.mcp.json` or any `.env*` file.
-6. Never edit files outside your item's scope. When you find a problem outside it, report it under LEFT
+6. Never dispatch sub-agents or forks of your own. A fork edits the same checkout in parallel with you, and SL7's forks re-did its whole migration beside it. Do every step yourself.
+7. Never edit files outside your item's scope. When you find a problem outside it, report it under LEFT
    STANDING. Do not fix it yourself.
 
 ## Before you write code
