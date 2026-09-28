@@ -11,19 +11,35 @@
  * (`recipes-seed-run-broker.integration.test.ts`'s own "needs a live orchestrator HTTP server"
  * comment names exactly this gap, which is what this harness closes for the two creates).
  *
- * `POST /api/quests/:id/start` is deliberately NOT dispatched — `orchestration-start-responder`'s
- * own logic is not exported from `@dungeonmaster/orchestrator`'s barrel (confirmed by
+ * `POST /api/quests/:id/start` is NOT dispatched by default — `orchestration-start-responder`'s own
+ * logic is not exported from `@dungeonmaster/orchestrator`'s barrel (confirmed by
  * `quest-reach-route-broker.ts`'s own header), so a test driving a recipe all the way to
  * `in_progress` observes the SAME named refusal `guild-with-three-quests`'s own integration test
  * already documents for a write-only target ("a write-only target cannot walk a quest to
  * in_progress") — proving every hop BEFORE it landed for real, including the `flows_approved`/
- * `approved` gates DEF-71 is about.
+ * `approved` gates DEF-71 is about. A test that needs to drive a plan PAST `in_progress` — to reach
+ * ops the real recipe declares AFTER its quest creates, such as a session/subagent this same guild
+ * holds — opts in with `simulateStartRoute: true`, which answers that ONE hop with a plain
+ * `questModifyBroker({status: 'in_progress'})` flip instead of throwing. That is NOT the real
+ * responder: it seeds no operations relay, so it is honest only for a test whose claim is about
+ * something OTHER than the ledger `in_progress` itself would seed — the four DEF-71 gate tests never
+ * pass this flag, and still observe the real, named refusal at that hop.
  *
  * Sets and restores `process.env.DUNGEONMASTER_HOME`, and seeds an empty `config.json`, exactly as
  * `fileTargetHarness` does and for the identical reason: `guildAddBroker`'s config read has no
  * ENOENT fallback under jest, and `questModifyBroker`/`questGetBroker` both resolve the quest file
  * off that GLOBAL env var, never off `target.home` (`packages/hydration-recipes/CLAUDE.md`'s own
  * finding).
+ *
+ * A third opt-in, `simulateRelaySeed: true`, is a SEPARATE code path from `simulateStartRoute` —
+ * neither test suite using the plain flip is affected by this one existing. It makes BOTH the
+ * create and the `/start` handlers production-plausible for the ONE thing DEF-71's guild-mid-
+ * execution fix needs proved: `questCreateBroker` seeds EVERY quest, real or seeded, with one
+ * locked `{role: chaoswhisperer, status: in_progress}` operation at create time (verified by
+ * reading `quest-create-broker.ts` directly), and a real Start (`questBuildRelayGraphBroker`)
+ * force-completes that item and mints one `riftcarver` scope `in_progress` — never a bare status
+ * flip. `simulateStartRoute` stays the cheap, honest-for-its-own-tests plain flip for every
+ * caller that only needs to drive a plan PAST `in_progress`, not prove what the ledger holds there.
  *
  * USAGE:
  * describe('...', () => {
@@ -36,14 +52,23 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-import { guildAddBroker, questGetBroker } from '@dungeonmaster/orchestrator/brokers';
+import {
+  guildAddBroker,
+  questGetBroker,
+  questModifyBroker,
+} from '@dungeonmaster/orchestrator/brokers';
 import {
   absoluteFilePathContract,
   getQuestInputContract,
+  guildIdContract,
   guildNameContract,
   guildPathContract,
+  modifyQuestInputContract,
+  operationItemContract,
+  questIdContract,
 } from '@dungeonmaster/shared/contracts';
-import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
+import type { GuildId, QuestId } from '@dungeonmaster/shared/contracts';
+import { dungeonmasterHomeStatics, questFlowStatics } from '@dungeonmaster/shared/statics';
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
 
 import { questWriteRouteBroker } from '../../../src/brokers/quest/write-route/quest-write-route-broker';
@@ -57,8 +82,19 @@ const GUILDS_PATH = '/api/guilds';
 const QUESTS_PATH = '/api/quests';
 const EMPTY_GUILD_CONFIG = { guilds: [] };
 const CREATED_STATUS = 'created';
+const IN_PROGRESS_STATUS = 'in_progress';
+const COMPLETE_STATUS = 'complete';
+const START_PATH_SUFFIX = '/start';
+const FEATURE_QUEST_TYPE = 'feature';
+const { initialWorkItemRole, entry, families } = questFlowStatics[FEATURE_QUEST_TYPE];
+const ENTRY_FAMILY_ROLE = families[entry].role;
+const INTAKE_OPERATION_TEXT = 'Author spec + implementation plan';
+const ENTRY_OPERATION_TEXT = 'Carve the quest branch, worktree and preflight typecheck';
 
-export const liveQuestTargetHarness = (): {
+export const liveQuestTargetHarness = ({
+  simulateStartRoute = false,
+  simulateRelaySeed = false,
+}: { simulateStartRoute?: boolean; simulateRelaySeed?: boolean } = {}): {
   beforeEach: () => void;
   afterEach: () => void;
   target: () => DmTarget;
@@ -93,6 +129,11 @@ export const liveQuestTargetHarness = (): {
       }
       const home = absoluteFilePathContract.parse(testbed.guildPath);
       const innerTarget = DmTargetStub({ home, claudeHome: home });
+      // `questContract` carries no `guildId` field (a quest's parent is its FOLDER on disk, never a
+      // field on the record — `quest-fields-contract.ts`'s own header) so a later `/start` rewrite
+      // through `questWriteRouteBroker`, which REQUIRES `guildId`, cannot recover it by spreading a
+      // reloaded `Quest`. Recorded here at create time instead, scoped to this one `target()` call.
+      const questGuildIds = new Map<QuestId, GuildId>();
 
       return DmTargetStub({
         home,
@@ -110,6 +151,13 @@ export const liveQuestTargetHarness = (): {
 
           if (method === 'POST' && requestPath === QUESTS_PATH) {
             const fields = body as Record<PropertyKey, unknown>;
+            const intakeOperation = operationItemContract.parse({
+              id: crypto.randomUUID(),
+              role: initialWorkItemRole,
+              text: INTAKE_OPERATION_TEXT,
+              status: IN_PROGRESS_STATUS,
+              locked: true,
+            });
             const quest = await questWriteRouteBroker({
               target: innerTarget,
               fields: {
@@ -117,8 +165,10 @@ export const liveQuestTargetHarness = (): {
                 title: fields.title,
                 userRequest: fields.userRequest,
                 status: CREATED_STATUS,
+                ...(simulateRelaySeed ? { operations: [intakeOperation] } : {}),
               },
             });
+            questGuildIds.set(quest.id, guildIdContract.parse(fields.guildId));
             const filePath = [
               home,
               dungeonmasterHomeStatics.paths.guildsDir,
@@ -144,6 +194,76 @@ export const liveQuestTargetHarness = (): {
               input: getQuestInputContract.parse({ questId }),
             });
             return { status: result.success ? 200 : 404, body: result };
+          }
+
+          if (
+            simulateRelaySeed &&
+            method === 'POST' &&
+            requestPath.startsWith(`${QUESTS_PATH}/`) &&
+            requestPath.endsWith(START_PATH_SUFFIX)
+          ) {
+            const questId = requestPath.slice(
+              `${QUESTS_PATH}/`.length,
+              requestPath.length - START_PATH_SUFFIX.length,
+            );
+            const loaded = await questGetBroker({
+              input: getQuestInputContract.parse({ questId }),
+            });
+            if (!loaded.success) {
+              return { status: 404, body: loaded };
+            }
+            const quest = loaded.quest!;
+            const guildId = questGuildIds.get(quest.id);
+            if (guildId === undefined) {
+              throw new Error(
+                `liveQuestTargetHarness: no guildId recorded for quest "${String(quest.id)}" — ` +
+                  'this target never created it through the POST /api/quests handler above',
+              );
+            }
+            const seededOperations = [
+              ...quest.operations.map((operation) =>
+                operation.role === initialWorkItemRole
+                  ? { ...operation, status: COMPLETE_STATUS }
+                  : operation,
+              ),
+              operationItemContract.parse({
+                id: crypto.randomUUID(),
+                role: ENTRY_FAMILY_ROLE,
+                text: ENTRY_OPERATION_TEXT,
+                status: IN_PROGRESS_STATUS,
+              }),
+            ];
+            await questWriteRouteBroker({
+              target: innerTarget,
+              fields: {
+                ...quest,
+                guildId,
+                status: IN_PROGRESS_STATUS,
+                operations: seededOperations,
+              },
+            });
+            return { status: 200, body: { success: true } };
+          }
+
+          if (
+            simulateStartRoute &&
+            method === 'POST' &&
+            requestPath.startsWith(`${QUESTS_PATH}/`) &&
+            requestPath.endsWith(START_PATH_SUFFIX)
+          ) {
+            const questId = requestPath.slice(
+              `${QUESTS_PATH}/`.length,
+              requestPath.length - START_PATH_SUFFIX.length,
+            );
+            const result = await questModifyBroker({
+              input: modifyQuestInputContract.parse({
+                questId: questIdContract.parse(questId),
+                status: IN_PROGRESS_STATUS,
+              }),
+            });
+            return result.success
+              ? { status: 200, body: { success: true } }
+              : { status: 500, body: { success: false, error: result.error } };
           }
 
           throw new Error(

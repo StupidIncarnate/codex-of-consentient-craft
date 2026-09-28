@@ -30,4 +30,24 @@ describe('sessionWriteRouteBroker', () => {
       );
     });
   });
+
+  describe('a caller that never supplied lines', () => {
+    it('ERROR: {sessionId, cwd, no lines} => throws naming the REAL resolved path, not "(unknown path)"', async () => {
+      sessionWriteRouteBrokerProxy();
+      const target = DmTargetStub({ claudeHome: '/tmp/guild-1' });
+
+      const thrown = (await sessionWriteRouteBroker({
+        target,
+        fields: { sessionId: 'seed-session-1', cwd: '/tmp/guild-1' },
+      }).catch((error: unknown) => error)) as Record<PropertyKey, unknown>;
+
+      expect({
+        path: thrown.path,
+        messageNamesLines: String(thrown.message).includes('"lines"'),
+      }).toStrictEqual({
+        path: '/tmp/guild-1/.claude/projects/-tmp-guild-1/seed-session-1.jsonl',
+        messageNamesLines: true,
+      });
+    });
+  });
 });
