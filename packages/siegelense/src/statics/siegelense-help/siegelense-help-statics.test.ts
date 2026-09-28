@@ -48,7 +48,7 @@ describe('siegelenseHelpStatics', () => {
           value: '<recipeName>',
           required: false,
           description:
-            "runs that recipe against the lane once it is up, and returns the ids it made on the manifest's `seeded`. `dungeonmaster siegelense recipes` lists every name with its produces: line. Omitted, the instance starts empty and `seeded` is null.",
+            "runs that recipe against the lane once it is up, and returns the ids it made on the manifest's `seeded`. Takes only a recipe with NO declared inputs — this bare flag has nowhere to carry params, unlike a `run` batch's own `seed` step, so a recipe that declares one refuses before booting rather than failing after. `dungeonmaster siegelense recipes` lists every name with its produces: line. Omitted, the instance starts empty and `seeded` is null.",
         },
         {
           name: '--idle-timeout-ms',

@@ -131,7 +131,7 @@ describe('siegelenseHelpRenderTransformer', () => {
           '  --spec <specName>       required   the lane spec to boot.\n' +
           "  --quest <questId>                  files the instance's evidence under that quest's guild. Omitted, the instance is unowned.\n" +
           '  --guild <guildId>                  the guild to file evidence under, when there is no quest.\n' +
-          "  --seed <recipeName>                runs that recipe against the lane once it is up, and returns the ids it made on the manifest's `seeded`. `dungeonmaster siegelense recipes` lists every name with its produces: line. Omitted, the instance starts empty and `seeded` is null.\n" +
+          "  --seed <recipeName>                runs that recipe against the lane once it is up, and returns the ids it made on the manifest's `seeded`. Takes only a recipe with NO declared inputs — this bare flag has nowhere to carry params, unlike a `run` batch's own `seed` step, so a recipe that declares one refuses before booting rather than failing after. `dungeonmaster siegelense recipes` lists every name with its produces: line. Omitted, the instance starts empty and `seeded` is null.\n" +
           "  --idle-timeout-ms <ms>             raises this instance's idle ceiling above driverStatics.idle.timeoutMs (900000ms) — the length of think-time between runs the served lane survives before reaping itself with no run received. Omitted, the default applies.\n" +
           '  --json                             print raw JSON output instead of the human-readable view.\n' +
           '\n' +

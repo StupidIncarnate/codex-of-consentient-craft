@@ -3,10 +3,12 @@ import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { InstanceManifestStub } from '../../../contracts/instance-manifest/instance-manifest.stub';
+import { RecipeListingEntryStub } from '../../../contracts/recipe-listing-entry/recipe-listing-entry.stub';
 import { RecipeNameStub } from '../../../contracts/recipe-name/recipe-name.stub';
 import { RepoLocalPathStub } from '../../../contracts/repo-local-path/repo-local-path.stub';
 import { SeedResultStub } from '../../../contracts/seed-result/seed-result.stub';
 import { SpecNameStub } from '../../../contracts/spec-name/spec-name.stub';
+import { SeedRecipeNeedsInputError } from '../../../errors/seed-recipe-needs-input/seed-recipe-needs-input-error';
 import { siegelenseOutputStatics } from '../../../statics/siegelense-output/siegelense-output-statics';
 
 import { startAnswerRenderTransformer } from '../../../transformers/start-answer-render/start-answer-render-transformer';
@@ -237,6 +239,48 @@ describe('SiegelenseStartResponder', () => {
       expect(proxy.getStdoutWrites()).toStrictEqual([
         `${JSON.stringify(manifest, null, siegelenseOutputStatics.json.indentSpaces)}\n`,
       ]);
+    });
+  });
+
+  describe('a seed recipe whose listing entry declares no inputs', () => {
+    it('VALID: {seed, listing entry present with inputKeys: []} => proceeds and forwards seed unchanged', async () => {
+      const proxy = SiegelenseStartResponderProxy();
+      const specName = SpecNameStub();
+      const seed = RecipeNameStub();
+      const seeded = SeedResultStub();
+      const manifest = InstanceManifestStub({ specName, seeded });
+      proxy.stageRecipeListing({
+        entries: [RecipeListingEntryStub({ recipeName: seed, inputKeys: [] })],
+      });
+      proxy.stageManifest({ manifest });
+
+      await SiegelenseStartResponder({ specName, questId: null, guildId: null, seed });
+
+      expect(
+        proxy.getStartCallsMatching({ specName, questId: null, guildId: null, seed }),
+      ).toStrictEqual([[{ specName, questId: null, guildId: null, seed }]]);
+    });
+  });
+
+  describe('a seed recipe whose listing entry declares an input', () => {
+    it('ERROR: {seed, listing entry present with inputKeys: [guildId]} => refuses before instanceStartBroker ever runs', async () => {
+      const proxy = SiegelenseStartResponderProxy();
+      const specName = SpecNameStub();
+      const seed = RecipeNameStub({ value: 'quest-advances-one-step' });
+      proxy.stageRecipeListing({
+        entries: [RecipeListingEntryStub({ recipeName: seed, inputKeys: ['guildId'] })],
+      });
+
+      await expect(
+        SiegelenseStartResponder({ specName, questId: null, guildId: null, seed }),
+      ).rejects.toStrictEqual(
+        new SeedRecipeNeedsInputError({ recipeName: seed, inputKeys: ['guildId'] }),
+      );
+
+      expect(
+        proxy.getStartCallsMatching({ specName, questId: null, guildId: null, seed }),
+      ).toStrictEqual([]);
+      expect(proxy.getStdoutWrites()).toStrictEqual([]);
     });
   });
 
