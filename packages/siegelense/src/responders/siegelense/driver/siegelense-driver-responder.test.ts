@@ -1,4 +1,4 @@
-import { GuildIdStub } from '@dungeonmaster/shared/contracts';
+import { GuildIdStub, ProcessIdStub } from '@dungeonmaster/shared/contracts';
 
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { LaneSessionStub } from '../../../contracts/lane-session/lane-session.stub';
@@ -131,6 +131,24 @@ describe('SiegelenseDriverResponder', () => {
       await expect(SiegelenseDriverResponder({ instanceId })).rejects.toThrow(
         /inst_dead0000 not found in the registry/u,
       );
+    });
+  });
+
+  describe('the registry row already has a live driver', () => {
+    it('ERROR: {row has a live driver} => throws naming the pid and never boots a lane', async () => {
+      const proxy = SiegelenseDriverResponderProxy();
+      const instanceId = InstanceIdStub({ value: 'inst_11fe0001' });
+      const livePid = ProcessIdStub({ value: '108019' });
+      const entry = RegistryEntryStub({ id: instanceId, specName: SPEC_NAME, pid: livePid });
+      proxy.stageRegistryRow({ entry });
+      proxy.stageDriverAlreadyLive();
+
+      await expect(SiegelenseDriverResponder({ instanceId })).rejects.toThrow(
+        `Instance ${instanceId} already has a running driver (pid ${livePid}); driver is started by start and is not typed by hand.`,
+      );
+
+      expect(proxy.getServeCallArgs()).toBe(undefined);
+      expect(proxy.getRegistryUpdateCallCount()).toStrictEqual(ReadingCountStub({ value: 0 }));
     });
   });
 });
