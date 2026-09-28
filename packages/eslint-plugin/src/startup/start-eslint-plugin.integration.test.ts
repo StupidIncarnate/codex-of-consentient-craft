@@ -47,6 +47,7 @@ describe('StartEslintPlugin', () => {
         'enforce-folder-return-types',
         'enforce-gateway-config-names-exist',
         'enforce-gateway-restricted-to',
+        'enforce-gateway-schema-fields',
         'enforce-harness-patterns',
         'enforce-hydration-recipes-structure',
         'enforce-implementation-colocation',

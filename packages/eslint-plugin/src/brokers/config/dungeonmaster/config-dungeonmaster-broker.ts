@@ -167,6 +167,10 @@ export const configDungeonmasterBroker = ({
     '@dungeonmaster/ban-dom-handles-in-ingredients': 'error',
     '@dungeonmaster/ban-nondeterminism-in-ingredients': 'error',
     '@dungeonmaster/gateway-dependency-declared': 'error',
+    // BR C9: a z.object(...) field holding an outside package's type reuses the gateway's
+    // #Gateway-branded schema, never a direct z.custom/z.instanceof — registered at 'error'
+    // directly (not 'off'-then-scan): the whole-repo scan this item ran found nothing to migrate.
+    '@dungeonmaster/enforce-gateway-schema-fields': 'error',
     // The three gateway config-key rules share ONE rule option — the `gatewayLintConfig` parameter
     // the CALLER read once from `.dungeonmaster.json`, so a rule itself never reads a file for it.
     '@dungeonmaster/ban-gateway-export': ['error', gatewayLintConfig],

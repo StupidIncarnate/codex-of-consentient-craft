@@ -91,6 +91,7 @@ import { ruleBanWorkspaceExportMocksBrokerProxy } from '../../../brokers/rule/ba
 import { ruleBanProxyCatchAllDefaultsBrokerProxy } from '../../../brokers/rule/ban-proxy-catch-all-defaults/rule-ban-proxy-catch-all-defaults-broker.proxy';
 import { ruleBanProxyEmptyCalledWithBrokerProxy } from '../../../brokers/rule/ban-proxy-empty-called-with/rule-ban-proxy-empty-called-with-broker.proxy';
 import { ruleBanInventedFailuresBrokerProxy } from '../../../brokers/rule/ban-invented-failures/rule-ban-invented-failures-broker.proxy';
+import { ruleEnforceGatewaySchemaFieldsBrokerProxy } from '../../../brokers/rule/enforce-gateway-schema-fields/rule-enforce-gateway-schema-fields-broker.proxy';
 import { configDungeonmasterBrokerProxy } from '../../../brokers/config/dungeonmaster/config-dungeonmaster-broker.proxy';
 import { EslintPluginCreateResponder } from './eslint-plugin-create-responder';
 
@@ -176,6 +177,7 @@ export const EslintPluginCreateResponderProxy = (): {
   ruleBanProxyCatchAllDefaultsBrokerProxy();
   ruleBanProxyEmptyCalledWithBrokerProxy();
   ruleBanInventedFailuresBrokerProxy();
+  ruleEnforceGatewaySchemaFieldsBrokerProxy();
   configDungeonmasterBrokerProxy();
 
   return {

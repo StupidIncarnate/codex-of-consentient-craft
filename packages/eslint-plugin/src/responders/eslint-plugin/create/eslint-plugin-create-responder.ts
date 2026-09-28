@@ -80,6 +80,7 @@ import { ruleGatewaySchemaBrandBroker } from '../../../brokers/rule/gateway-sche
 import { ruleBanGatewayExportBroker } from '../../../brokers/rule/ban-gateway-export/rule-ban-gateway-export-broker';
 import { ruleEnforceGatewayRestrictedToBroker } from '../../../brokers/rule/enforce-gateway-restricted-to/rule-enforce-gateway-restricted-to-broker';
 import { ruleEnforceGatewayConfigNamesExistBroker } from '../../../brokers/rule/enforce-gateway-config-names-exist/rule-enforce-gateway-config-names-exist-broker';
+import { ruleEnforceGatewaySchemaFieldsBroker } from '../../../brokers/rule/enforce-gateway-schema-fields/rule-enforce-gateway-schema-fields-broker';
 import { ruleBanWorkspaceExportMocksBroker } from '../../../brokers/rule/ban-workspace-export-mocks/rule-ban-workspace-export-mocks-broker';
 import { ruleBanProxyCatchAllDefaultsBroker } from '../../../brokers/rule/ban-proxy-catch-all-defaults/rule-ban-proxy-catch-all-defaults-broker';
 import { ruleBanProxyEmptyCalledWithBroker } from '../../../brokers/rule/ban-proxy-empty-called-with/rule-ban-proxy-empty-called-with-broker';
@@ -168,6 +169,7 @@ export const EslintPluginCreateResponder = (): {
     readonly 'ban-proxy-catch-all-defaults': EslintRule;
     readonly 'ban-proxy-empty-called-with': EslintRule;
     readonly 'ban-invented-failures': EslintRule;
+    readonly 'enforce-gateway-schema-fields': EslintRule;
   };
   readonly configs: {
     readonly dungeonmaster: ReturnType<typeof configDungeonmasterBroker>;
@@ -257,6 +259,7 @@ export const EslintPluginCreateResponder = (): {
       'ban-proxy-catch-all-defaults': ruleBanProxyCatchAllDefaultsBroker(),
       'ban-proxy-empty-called-with': ruleBanProxyEmptyCalledWithBroker(),
       'ban-invented-failures': ruleBanInventedFailuresBroker(),
+      'enforce-gateway-schema-fields': ruleEnforceGatewaySchemaFieldsBroker(),
     },
     configs: {
       dungeonmaster: configDungeonmasterBroker(),

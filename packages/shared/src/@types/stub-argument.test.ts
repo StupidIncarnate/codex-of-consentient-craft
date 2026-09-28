@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import type { childProcessSchema } from '#gateway/node/child_process';
+import { ChildProcessStub } from '#gateway/node/child_process/child-process/child-process.stub';
 import type { StubArgument } from './stub-argument.type';
 
 describe('StubArgument', () => {
@@ -347,6 +349,33 @@ describe('StubArgument', () => {
 
       expect(result1).toBe('a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d');
       expect(result2).toBe(undefined);
+    });
+  });
+
+  describe('#Gateway-branded fields (B06)', () => {
+    type ChildProcessSchemaType = ReturnType<typeof childProcessSchema.parse>;
+    type ScanArgument = StubArgument<{ proc: ChildProcessSchemaType }>;
+
+    // Type-level proof (BR C9's "How a machine checks it": "StubArgument's change is a type-level
+    // test"). A partial fake must NOT satisfy a #Gateway-branded field's type — checked here via
+    // assignability rather than writing the rejected shape directly, since `@ts-expect-error` is
+    // banned outright and there is no runtime code path that would otherwise surface this. If
+    // StubArgumentBase's #Gateway arm is reverted, `proc` widens back to an all-optional
+    // UnbrandRecord shape, `{ pid: number }` becomes assignable, this type becomes `true`, and the
+    // line below fails to compile (assigning `false` to a `true` type) — the same way `npm run ward
+    // -- --only typecheck` would catch a reintroduced bug.
+    type PartialFakeAssignableToProc = { pid: number } extends ScanArgument['proc'] ? true : false;
+    const partialFakeAssignableToProc: PartialFakeAssignableToProc = false;
+
+    it("VALID: {proc: ChildProcessStub()} => the gateway's own stub satisfies a #Gateway-branded field", () => {
+      const childProcess = ChildProcessStub();
+      const scanArgument = { proc: childProcess } satisfies ScanArgument;
+
+      expect(scanArgument.proc).toBe(childProcess);
+    });
+
+    it('VALID: {pid: number} => is not assignable to a #Gateway-branded field', () => {
+      expect(partialFakeAssignableToProc).toBe(false);
     });
   });
 

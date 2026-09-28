@@ -17,7 +17,7 @@ When creating a new ESLint rule, you MUST update these files:
 
 1. **Create rule broker**: `src/brokers/rule/{rule-name}/{rule-name}-rule-broker.ts`
 2. **Create rule tests**: `src/brokers/rule/{rule-name}/{rule-name}-rule-broker.test.ts`
-3. **Register rule**: `src/startup/start-eslint-plugin.ts`
+3. **Register rule**: `src/responders/eslint-plugin/create/eslint-plugin-create-responder.ts`
     - Import the rule broker
     - Add to the `rules` type definition
     - Add to the `rules` object

@@ -21,6 +21,8 @@
  * ```
  */
 
+import type { BRAND } from 'zod';
+
 // ============================================================================
 // Helper Types
 // ============================================================================
@@ -55,6 +57,18 @@ type UnbrandPrimitive<T> =
       : IsBranded<T, boolean> extends true
         ? boolean
         : T;
+
+/**
+ * Detects a Zod v4 brand whose literal starts with `'#Gateway'` — the marker a gateway schema
+ * carries (`childProcessSchema`, `walkedFileSchema`, …), one check shared by every contract field
+ * that holds that outside type (BR C9). `zod`'s own `BRAND<K>` type is `{[$brand]: {[k in K]: true}}`
+ * (`node_modules/zod/v4/classic/compat.d.ts`), so matching `T extends BRAND<infer K>` structurally
+ * recovers the brand literal(s) regardless of what T is otherwise shaped like — a real dependency on
+ * `zod`, unlike the Promise/zod-schema-instance checks below, because there is no structural way to
+ * name a `unique symbol`-keyed property without importing the symbol that keys it.
+ */
+type IsGatewayBrand<T> =
+  T extends BRAND<infer K> ? (K extends `#Gateway${string}` ? true : false) : false;
 
 /**
  * Transforms Record types with branded keys to use plain string/number keys.
@@ -110,11 +124,20 @@ type StubArgumentBase<T> = T extends any // Distributive - handles union members
             // live, opaque value a stub carries through unvalidated, never data to unbrand.
             T extends { parse: (...args: any[]) => any; safeParse: (...args: any[]) => any }
             ? T
-            : [keyof T] extends [never]
-              ? T // keyof is never (some primitives/functions), preserve as-is
-              : T extends object
-                ? UnbrandRecord<T> // Transform Record keys or map object properties
-                : T
+            : // A `#Gateway`-branded field (B06/BR C9) holds a value the GATEWAY owns — a class
+              // instance like `ChildProcess`, or plain data like `WalkedFile`. `UnbrandRecord`
+              // would map either one to an all-optional shape (`{pid: 5}` compiling where a whole
+              // `ChildProcess` is required), and `Omit`-based stripping was already tried and
+              // rejected: it rebuilds the type and breaks `this`-returning methods such as
+              // `addListener`. Preserve it whole instead — the gateway's own stub is the only value
+              // that satisfies it.
+              IsGatewayBrand<T> extends true
+              ? T
+              : [keyof T] extends [never]
+                ? T // keyof is never (some primitives/functions), preserve as-is
+                : T extends object
+                  ? UnbrandRecord<T> // Transform Record keys or map object properties
+                  : T
     : UnbrandPrimitive<T> // T is a branded primitive, return unbranded version
   : never; // Should never reach here
 

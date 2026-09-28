@@ -182,6 +182,62 @@ and note it in your report so the Z-phase agent does not duplicate the edit.
 
 ## Concessions made while executing
 
+**The "whole-repo scan is already clean" premise behind switching `enforce-gateway-schema-fields`
+straight to `'error'` did not hold on the first pass.** Running the built rule (not the planning
+pass's `discover` grep census) as a scoped `npm run ward -- --only lint` over all 1125
+`*-contract.ts` files in the repo (run `1790578031004-dfb3`) found 6 violations across 5 files. The
+operator's follow-up decision (2026-09-28) was: narrow the rule to its actual purpose (an OUTSIDE
+type — an npm package or Node builtin — never a language global or our own workspace type), delete
+the two contracts the scan's own census had already flagged as dead, and re-scan. Result:
+
+- **Narrowed the rule** (`rule-enforce-gateway-schema-fields-broker.ts`): it now records every
+  `ImportDeclaration`'s local-name → source-specifier mapping per file, and only reports
+  `z.custom<T>(...)`/`z.instanceof(X)` when `T`/`X` resolves to an identifier imported from a
+  specifier that is neither relative (`.`/`..`) nor `@dungeonmaster/*`. This alone cleared 3 of the
+  6 original hits without touching the flagged files: `eslint-context-contract.ts:34`
+  (`z.custom<Identifier>()`, where `Identifier` comes from `@dungeonmaster/shared/contracts` — a
+  workspace import), `decoded-frame-contract.ts:21` (`z.instanceof(Uint8Array)`, a language global,
+  never imported) and `mock-process-behavior-contract.ts:14` (`z.instanceof(Error)`, same). The
+  message was updated to name the resolved type and its import source, and the RuleTester test
+  gained the three cases the operator asked for (a global builtin, a relative-import type, plus a
+  fourth `@dungeonmaster/*` case) and one npm-package invalid case.
+- **Both "dead contract" classifications this item and `triage-other.md`'s B02 row carried turn out
+  to be wrong — neither was deleted.** Both were traced with `discover` and both have a real caller;
+  both had already been independently cleared by the narrowing above, so the scan reaches 0 with no
+  deletion needed:
+  - `packages/eslint-plugin/src/contracts/eslint-context/eslint-context-contract.ts` — `discover`
+    for `EslintContext` found roughly 80 rule-broker files across `src/brokers/rule/**` that
+    `import type { EslintContext }` from this exact file, in every rule's
+    `create: (context: EslintContext) => …` signature. Deleting it breaks the whole package's
+    typecheck. The earlier classification checked only whether the SCHEMA VALUE is `.parse()`d in
+    production, never whether the file's TYPE EXPORT is imported.
+  - `packages/tooling/src/contracts/exec-error/exec-error-contract.ts` — first read as dead from a
+    `discover` grep for `ExecError\b` (a word-boundary pattern that cannot match inside
+    `ExecErrorStub`, so the actual import line never showed), then genuinely **deleted** along with
+    its `.test.ts` and `.stub.ts`, which immediately broke
+    `packages/tooling/test/harnesses/tooling-runner/tooling-runner.harness.ts` at typecheck
+    (`TS2307: Cannot find module '.../exec-error.stub'`) — caught only by running
+    `npm run ward -- --only typecheck -- packages/tooling` per this task's own step 4, not by the
+    `discover` census. The harness imports `ExecErrorStub` as a VALUE and derives its own
+    `type ExecError = ReturnType<typeof ExecErrorStub>` rather than importing the TYPE directly —
+    the exact "tests get types from stubs" pattern `get-testing-patterns` teaches, which is why a
+    plain identifier-name grep missed it. **Restored all three files from `git show HEAD:<path>`**
+    (confirmed byte-identical via `git diff --stat`, zero output) per the operator's own stop
+    condition ("if either has a real caller, stop on it and report") — not deleted.
+  - **B02's planner should drop both files from its dead-contract list** — both are alive, and
+    neither needs a `z.custom`/`z.instanceof` fix: `eslint-context-contract.ts:34`'s `Identifier` is
+    `@dungeonmaster/*`-imported (workspace), and `exec-error-contract.ts`'s `stdout`/`stderr` fields
+    use `Buffer`, a Node global never imported in that file — both already pass the narrowed rule
+    without any change.
+- `packages/web/src/contracts/upload-progress-post/upload-progress-post-contract.ts:27` — also
+  cleared by the narrowing, for a different reason: `UploadProgressHandler` is declared in the SAME
+  FILE (`type UploadProgressHandler = (params: {...}) => void;`, line 19), never imported at all, so
+  it resolves to nothing in the per-file import map and is treated the same as a language global.
+
+**Final whole-repo re-scan (run `1790579686530-a53b`), after restoring the two contracts: 1125/1125
+`*-contract.ts` files pass, 0 violations, exit 0.** Registered at `'error'` and tagged `'pre-edit'`,
+both live and both clean, with no contract deleted.
+
 ## Plan
 
 Checked against code on 2026-09-27:
@@ -267,8 +323,14 @@ rule's real wiring, confirmed by `discover`, is the responder below):
 - `packages/eslint-plugin/src/brokers/config/dungeonmaster/config-dungeonmaster-broker.ts` (edit — register `'@dungeonmaster/enforce-gateway-schema-fields'`, see "Open questions" for `'off'` vs `'error'`)
 - `packages/shared/src/statics/dungeonmaster-rule-enforce-on/dungeonmaster-rule-enforce-on-statics.ts` (edit — tag `'pre-edit'`, modeled on `'@dungeonmaster/ban-proxy-catch-all-defaults': 'pre-edit'` at :88)
 - `packages/shared/src/statics/dungeonmaster-rule-enforce-on/dungeonmaster-rule-enforce-on-statics.test.ts` (edit — mirror the tag)
+- `packages/eslint-plugin/CLAUDE.md` (edit — its own "Adding New Rules" step 3 names `src/startup/start-eslint-plugin.ts` as the registration point; confirmed stale by reading that file in full (a 2-line delegator to `EslintPluginFlow`, no `rules` object) — repoint the sentence at `src/responders/eslint-plugin/create/eslint-plugin-create-responder.ts`)
 
-Not edited but must pass and gates the batch: `packages/eslint-plugin/src/dungeonmaster-rule-enforce-on.integration.test.ts` (a completeness meta-test the eslint-plugin `CLAUDE.md` names — fails if the rule is registered in `config-dungeonmaster-broker.ts` but missing from `dungeonmasterRuleEnforceOnStatics`, or vice versa).
+Added during implementation: `packages/eslint-plugin/src/dungeonmaster-rule-enforce-on.integration.test.ts` — the plan called this file "not edited", but it also hardcodes the total pre-edit rule count (`expect(preEditCount).toBe(74)`, comment "11 third-party + 63 @dungeonmaster"); adding one pre-edit `@dungeonmaster` rule makes that assertion stale, so it needs the two numbers bumped by one, alongside the completeness checks it already ran (fails if the rule is registered in `config-dungeonmaster-broker.ts` but missing from `dungeonmasterRuleEnforceOnStatics`, or vice versa).
+
+Added during implementation (operator instruction, 2026-09-28 — narrow the rule and clear the scan):
+
+- `packages/eslint-plugin/src/brokers/rule/enforce-gateway-schema-fields/rule-enforce-gateway-schema-fields-broker.ts` and `.test.ts` (edited again, replacing the batch's original version) — narrowed to only flag `z.custom<T>(...)`/`z.instanceof(X)` when `T`/`X` resolves, via the file's own `ImportDeclaration`s, to an identifier imported from a non-relative, non-`@dungeonmaster/*` source. See "Concessions made while executing" for the full before/after and why neither `packages/eslint-plugin/src/contracts/eslint-context/eslint-context-contract.ts` nor `packages/tooling/src/contracts/exec-error/exec-error-contract.ts` needed deleting — both were briefly touched (the latter genuinely deleted, then restored byte-identical from `git show HEAD:<path>` after breaking a real caller) but neither is part of this item's final diff.
+- `packages/eslint-plugin/src/brokers/rule/enforce-gateway-schema-fields/rule-enforce-gateway-schema-fields-broker.ts` and its `.test.ts` (edited again) — narrowed per the operator's decision: only flags `z.custom<T>(...)`/`z.instanceof(X)` when `T`/`X` resolves (via the file's own `ImportDeclaration`s) to an identifier imported from a non-relative, non-`@dungeonmaster/*` source. A language global (unimported — `Error`, `Uint8Array`) or our own type (relative or workspace import) passes.
 
 **B06-2 files:**
 
