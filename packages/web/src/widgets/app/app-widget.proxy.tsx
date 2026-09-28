@@ -10,9 +10,12 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import type {
+  DirectoryEntryStub,
+  DispatchStateStub,
   GuildIdStub,
   GuildListItemStub,
   QuestQueueEntryStub,
+  RateLimitsSnapshotStub,
   SessionListItemStub,
 } from '@dungeonmaster/shared/contracts';
 
@@ -29,6 +32,9 @@ import { userEventStatics } from '../../statics/user-event/user-event-statics';
 type SessionListItem = ReturnType<typeof SessionListItemStub>;
 type GuildListItem = ReturnType<typeof GuildListItemStub>;
 type GuildId = ReturnType<typeof GuildIdStub>;
+type DirectoryEntry = ReturnType<typeof DirectoryEntryStub>;
+type DispatchState = ReturnType<typeof DispatchStateStub>;
+type RateLimitsSnapshot = ReturnType<typeof RateLimitsSnapshotStub>;
 type QuestQueueEntry = ReturnType<typeof QuestQueueEntryStub>;
 
 // Aliased calls to avoid enforce-proxy-child-creation phantom detection
@@ -46,6 +52,10 @@ export const AppWidgetProxy = (): {
   setupSessions: (params: { sessions: SessionListItem[] }) => void;
   setupSessionsError: () => void;
   setupQuestQueue: (params: { entries: readonly QuestQueueEntry[] }) => void;
+  setupDirectoryBrowse: (params: { entries: DirectoryEntry[] }) => void;
+  setupRateLimits: (params: { snapshot: RateLimitsSnapshot | null }) => void;
+  setupDispatchState: (params: { state: DispatchState }) => void;
+  setupMountDefaults: () => void;
   clickGuildItem: (params: { testId: string }) => Promise<void>;
   isGuildItemVisible: (params: { testId: string }) => boolean;
   isGuildItemSelected: (params: { testId: string }) => boolean;
@@ -72,7 +82,7 @@ export const AppWidgetProxy = (): {
   setupSessionView();
   const homeProxy = setupHomeContent();
   const queueBar = QuestQueueBarWidgetProxy();
-  RateLimitsStackWidgetProxy();
+  const rateLimits = RateLimitsStackWidgetProxy();
 
   return {
     setupGuilds: ({ guilds }: { guilds: GuildListItem[] }): void => {
@@ -95,6 +105,24 @@ export const AppWidgetProxy = (): {
     },
     setupQuestQueue: ({ entries }: { entries: readonly QuestQueueEntry[] }): void => {
       queueBar.setupEntries({ entries });
+    },
+    setupDirectoryBrowse: ({ entries }: { entries: DirectoryEntry[] }): void => {
+      homeProxy.setupDirectoryBrowse({ entries });
+    },
+    setupRateLimits: ({ snapshot }: { snapshot: RateLimitsSnapshot | null }): void => {
+      rateLimits.setupSnapshot({ snapshot });
+    },
+    setupDispatchState: ({ state }: { state: DispatchState }): void => {
+      queueBar.setupDispatchState({ state });
+    },
+    // What the shell fetches on mount, each answered with its empty case: no directory entries, no
+    // rate-limits snapshot, an empty queue, no quests. A test calls it first and stages over it
+    // whatever the test means; nothing answers unless the test calls it.
+    setupMountDefaults: (): void => {
+      homeProxy.setupDirectoryBrowse({ entries: [] });
+      homeProxy.setupQuests({ quests: [] });
+      queueBar.setupEntries({ entries: [] });
+      rateLimits.setupSnapshot({ snapshot: null });
     },
     clickGuildItem: async ({ testId }: { testId: string }): Promise<void> => {
       await homeProxy.clickGuildItem({ testId });

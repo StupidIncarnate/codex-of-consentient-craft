@@ -13,6 +13,7 @@ import type { RecordedCalls, SpyOnHandle } from '@dungeonmaster/testing/register
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
 import type {
+  DirectoryEntryStub,
   GuildIdStub,
   GuildListItemStub,
   QuestIdStub,
@@ -36,6 +37,7 @@ import { GuildSessionListWidgetProxy } from '../guild-session-list/guild-session
 
 import { userEventStatics } from '../../statics/user-event/user-event-statics';
 
+type DirectoryEntry = ReturnType<typeof DirectoryEntryStub>;
 type SessionListItem = ReturnType<typeof SessionListItemStub>;
 type GuildListItem = ReturnType<typeof GuildListItemStub>;
 type GuildId = ReturnType<typeof GuildIdStub>;
@@ -45,6 +47,7 @@ type SkippedQuestFile = ReturnType<typeof SkippedQuestFileStub>;
 
 export const HomeContentWidgetProxy = (): {
   setupGuilds: (params: { guilds: GuildListItem[] }) => void;
+  setupDirectoryBrowse: (params: { entries: DirectoryEntry[] }) => void;
   setupGuildsError: () => void;
   setupCreateGuild: (params: { id: GuildId }) => void;
   setupSessions: (params: { sessions: SessionListItem[] }) => void;
@@ -100,7 +103,7 @@ export const HomeContentWidgetProxy = (): {
   const guildList = GuildListWidgetProxy();
   const sessionList = GuildSessionListWidgetProxy();
   const emptyState = GuildEmptyStateWidgetProxy();
-  GuildAddModalWidgetProxy();
+  const addModal = GuildAddModalWidgetProxy();
   // Staged unconditionally (not just when a test calls setupConsoleErrorCapture): any test that
   // exercises the guild-create-fails or navigate-fails catch handlers hits these regardless of
   // whether that specific test cares about reading the logged call. passthrough: true — console.error
@@ -115,6 +118,12 @@ export const HomeContentWidgetProxy = (): {
   consoleErrorHandle.calledWith(['[home-content] navigation failed']).returns(undefined);
 
   return {
+    // The empty-state form and the add-guild modal each mount a directory browser that lists a
+    // directory on mount; both share one endpoint, so one staged listing answers them.
+    setupDirectoryBrowse: ({ entries }: { entries: DirectoryEntry[] }): void => {
+      emptyState.setupDirectoryBrowse({ entries });
+      addModal.setupDirectoryBrowse({ entries });
+    },
     setupGuilds: ({ guilds }: { guilds: GuildListItem[] }): void => {
       guildsProxy.setupGuilds({ guilds });
     },

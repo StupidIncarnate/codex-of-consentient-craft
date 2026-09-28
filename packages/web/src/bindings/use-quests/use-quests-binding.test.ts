@@ -322,7 +322,7 @@ describe('useQuestsBinding', () => {
 
     it('ERROR: {broker resolves with an empty body} => does not crash', async () => {
       const proxy = useQuestsBindingProxy();
-      proxy.setupInvalidResponse({ data: undefined });
+      proxy.setupEmptyBody();
 
       const { result } = testingLibraryRenderHookAdapter({
         renderCallback: () => useQuestsBinding({ guildId }),
@@ -338,7 +338,9 @@ describe('useQuestsBinding', () => {
 
       const { error } = result.current;
 
-      expect(error).toBeInstanceOf(SyntaxError);
+      expect(error?.message).toBe(
+        `GET /api/quests?guildId=${guildId} returned invalid JSON: Unexpected end of JSON input (body: )`,
+      );
 
       expect(result.current).toStrictEqual({
         data: [],

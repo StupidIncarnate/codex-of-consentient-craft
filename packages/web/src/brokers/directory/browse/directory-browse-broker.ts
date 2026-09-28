@@ -8,7 +8,8 @@
 import { directoryEntryContract } from '@dungeonmaster/shared/contracts';
 import type { DirectoryEntry } from '@dungeonmaster/shared/contracts';
 
-import { fetchPostAdapter } from '../../../adapters/fetch/post/fetch-post-adapter';
+import { fetchJson } from '#gateway/browser/fetch';
+
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
 
 export const directoryBrowseBroker = async ({
@@ -16,8 +17,9 @@ export const directoryBrowseBroker = async ({
 }: {
   path?: string;
 }): Promise<DirectoryEntry[]> => {
-  const response = await fetchPostAdapter<unknown[]>({
+  const response = await fetchJson({
     url: webConfigStatics.api.routes.directoriesBrowse,
+    method: 'POST',
     body: { path },
   });
 

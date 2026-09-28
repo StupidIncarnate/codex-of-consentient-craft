@@ -7,7 +7,9 @@ import { GuildAddModalWidgetProxy } from './guild-add-modal-widget.proxy';
 describe('GuildAddModalWidget', () => {
   describe('rendering', () => {
     it('VALID: {opened: true} => renders modal with Add Guild title', () => {
-      GuildAddModalWidgetProxy();
+      const proxy = GuildAddModalWidgetProxy();
+
+      proxy.setupDirectoryBrowse({ entries: [] });
 
       mantineRenderAdapter({
         ui: <GuildAddModalWidget opened={true} onClose={jest.fn()} onSubmit={jest.fn()} />,
@@ -17,7 +19,9 @@ describe('GuildAddModalWidget', () => {
     });
 
     it('VALID: {opened: true} => renders guild name input', () => {
-      GuildAddModalWidgetProxy();
+      const proxy = GuildAddModalWidgetProxy();
+
+      proxy.setupDirectoryBrowse({ entries: [] });
 
       mantineRenderAdapter({
         ui: <GuildAddModalWidget opened={true} onClose={jest.fn()} onSubmit={jest.fn()} />,
@@ -27,7 +31,9 @@ describe('GuildAddModalWidget', () => {
     });
 
     it('VALID: {opened: true} => renders Browse button', () => {
-      GuildAddModalWidgetProxy();
+      const proxy = GuildAddModalWidgetProxy();
+
+      proxy.setupDirectoryBrowse({ entries: [] });
 
       mantineRenderAdapter({
         ui: <GuildAddModalWidget opened={true} onClose={jest.fn()} onSubmit={jest.fn()} />,
@@ -39,6 +45,8 @@ describe('GuildAddModalWidget', () => {
     it('VALID: {opened: true} => renders path input with empty value', () => {
       const proxy = GuildAddModalWidgetProxy();
 
+      proxy.setupDirectoryBrowse({ entries: [] });
+
       mantineRenderAdapter({
         ui: <GuildAddModalWidget opened={true} onClose={jest.fn()} onSubmit={jest.fn()} />,
       });
@@ -48,6 +56,8 @@ describe('GuildAddModalWidget', () => {
 
     it('VALID: {opened: true} => renders Create button disabled initially', () => {
       const proxy = GuildAddModalWidgetProxy();
+
+      proxy.setupDirectoryBrowse({ entries: [] });
 
       mantineRenderAdapter({
         ui: <GuildAddModalWidget opened={true} onClose={jest.fn()} onSubmit={jest.fn()} />,
@@ -61,6 +71,8 @@ describe('GuildAddModalWidget', () => {
     it('VALID: {type name only} => Create button remains disabled', async () => {
       const proxy = GuildAddModalWidgetProxy();
 
+      proxy.setupDirectoryBrowse({ entries: [] });
+
       mantineRenderAdapter({
         ui: <GuildAddModalWidget opened={true} onClose={jest.fn()} onSubmit={jest.fn()} />,
       });
@@ -72,6 +84,8 @@ describe('GuildAddModalWidget', () => {
 
     it('VALID: {click cancel} => calls onClose', async () => {
       const proxy = GuildAddModalWidgetProxy();
+
+      proxy.setupDirectoryBrowse({ entries: [] });
       const onClose = jest.fn();
 
       mantineRenderAdapter({

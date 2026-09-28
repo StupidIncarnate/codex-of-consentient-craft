@@ -9,6 +9,8 @@ describe('GuildEmptyStateWidget', () => {
     it('VALID: {} => renders NEW GUILD title', () => {
       const proxy = GuildEmptyStateWidgetProxy();
 
+      proxy.setupDirectoryBrowse({ entries: [] });
+
       mantineRenderAdapter({
         ui: <GuildEmptyStateWidget onAddGuild={jest.fn()} />,
       });
@@ -17,7 +19,9 @@ describe('GuildEmptyStateWidget', () => {
     });
 
     it('VALID: {} => renders name input', () => {
-      GuildEmptyStateWidgetProxy();
+      const proxy = GuildEmptyStateWidgetProxy();
+
+      proxy.setupDirectoryBrowse({ entries: [] });
 
       mantineRenderAdapter({
         ui: <GuildEmptyStateWidget onAddGuild={jest.fn()} />,
@@ -27,7 +31,9 @@ describe('GuildEmptyStateWidget', () => {
     });
 
     it('VALID: {} => renders path input', () => {
-      GuildEmptyStateWidgetProxy();
+      const proxy = GuildEmptyStateWidgetProxy();
+
+      proxy.setupDirectoryBrowse({ entries: [] });
 
       mantineRenderAdapter({
         ui: <GuildEmptyStateWidget onAddGuild={jest.fn()} />,
@@ -39,6 +45,8 @@ describe('GuildEmptyStateWidget', () => {
     it('VALID: {no onCancel} => does not render CANCEL button', () => {
       const proxy = GuildEmptyStateWidgetProxy();
 
+      proxy.setupDirectoryBrowse({ entries: [] });
+
       mantineRenderAdapter({
         ui: <GuildEmptyStateWidget onAddGuild={jest.fn()} />,
       });
@@ -48,6 +56,8 @@ describe('GuildEmptyStateWidget', () => {
 
     it('VALID: {onCancel provided} => renders CANCEL button', () => {
       const proxy = GuildEmptyStateWidgetProxy();
+
+      proxy.setupDirectoryBrowse({ entries: [] });
 
       mantineRenderAdapter({
         ui: <GuildEmptyStateWidget onAddGuild={jest.fn()} onCancel={jest.fn()} />,
@@ -59,6 +69,8 @@ describe('GuildEmptyStateWidget', () => {
     it('VALID: {} => renders BROWSE button', () => {
       const proxy = GuildEmptyStateWidgetProxy();
 
+      proxy.setupDirectoryBrowse({ entries: [] });
+
       mantineRenderAdapter({
         ui: <GuildEmptyStateWidget onAddGuild={jest.fn()} />,
       });
@@ -67,7 +79,9 @@ describe('GuildEmptyStateWidget', () => {
     });
 
     it('VALID: {} => the name input and the path input sit in sibling rows of one alignment container', () => {
-      GuildEmptyStateWidgetProxy();
+      const proxy = GuildEmptyStateWidgetProxy();
+
+      proxy.setupDirectoryBrowse({ entries: [] });
 
       mantineRenderAdapter({
         ui: <GuildEmptyStateWidget onAddGuild={jest.fn()} />,
@@ -87,6 +101,8 @@ describe('GuildEmptyStateWidget', () => {
   describe('interactions', () => {
     it('VALID: {click CANCEL} => calls onCancel', async () => {
       const proxy = GuildEmptyStateWidgetProxy();
+
+      proxy.setupDirectoryBrowse({ entries: [] });
       const onCancel = jest.fn();
 
       mantineRenderAdapter({

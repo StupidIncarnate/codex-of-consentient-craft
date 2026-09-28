@@ -10,7 +10,9 @@ import { DirectoryBrowserModalWidgetProxy } from './directory-browser-modal-widg
 describe('DirectoryBrowserModalWidget', () => {
   describe('rendering', () => {
     it('VALID: {opened: true} => renders modal with Browse Directory title', async () => {
-      DirectoryBrowserModalWidgetProxy();
+      const proxy = DirectoryBrowserModalWidgetProxy();
+
+      proxy.setupEntries({ entries: [] });
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
@@ -29,6 +31,8 @@ describe('DirectoryBrowserModalWidget', () => {
     it('VALID: {opened: true} => renders current path display', async () => {
       const proxy = DirectoryBrowserModalWidgetProxy();
 
+      proxy.setupEntries({ entries: [] });
+
       await testingLibraryActAsyncAdapter({
         callback: async () => {
           mantineRenderAdapter({
@@ -44,7 +48,9 @@ describe('DirectoryBrowserModalWidget', () => {
     });
 
     it('VALID: {opened: true} => renders Go Up button', async () => {
-      DirectoryBrowserModalWidgetProxy();
+      const proxy = DirectoryBrowserModalWidgetProxy();
+
+      proxy.setupEntries({ entries: [] });
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
@@ -61,7 +67,9 @@ describe('DirectoryBrowserModalWidget', () => {
     });
 
     it('VALID: {opened: true} => renders Select button', async () => {
-      DirectoryBrowserModalWidgetProxy();
+      const proxy = DirectoryBrowserModalWidgetProxy();
+
+      proxy.setupEntries({ entries: [] });
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
@@ -78,7 +86,9 @@ describe('DirectoryBrowserModalWidget', () => {
     });
 
     it('EMPTY: {no entries} => renders empty directory message', async () => {
-      DirectoryBrowserModalWidgetProxy();
+      const proxy = DirectoryBrowserModalWidgetProxy();
+
+      proxy.setupEntries({ entries: [] });
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {
@@ -126,7 +136,10 @@ describe('DirectoryBrowserModalWidget', () => {
 
     it('VALID: {click Cancel} => calls onClose', async () => {
       const proxy = DirectoryBrowserModalWidgetProxy();
+
       const onClose = jest.fn();
+
+      proxy.setupEntries({ entries: [] });
 
       await testingLibraryActAsyncAdapter({
         callback: async () => {

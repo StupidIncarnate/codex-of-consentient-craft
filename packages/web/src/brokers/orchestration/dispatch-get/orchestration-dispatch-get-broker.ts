@@ -5,16 +5,17 @@
  * const state = await orchestrationDispatchGetBroker();
  * // Returns DispatchState { mode: 'node-playing' | 'paused', updatedAt }
  */
-import { dispatchStateContract } from '@dungeonmaster/shared/contracts';
 import type { DispatchState } from '@dungeonmaster/shared/contracts';
 
-import { fetchGetAdapter } from '../../../adapters/fetch/get/fetch-get-adapter';
+import { fetchJson } from '#gateway/browser/fetch';
+
+import { orchestrationDispatchResultContract } from '../../../contracts/orchestration-dispatch-result/orchestration-dispatch-result-contract';
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
 
 export const orchestrationDispatchGetBroker = async (): Promise<DispatchState> => {
-  const response = await fetchGetAdapter<{ state: unknown }>({
+  const response = await fetchJson({
     url: webConfigStatics.api.routes.orchestrationDispatch,
   });
 
-  return dispatchStateContract.parse(response.state);
+  return orchestrationDispatchResultContract.parse(response).state;
 };

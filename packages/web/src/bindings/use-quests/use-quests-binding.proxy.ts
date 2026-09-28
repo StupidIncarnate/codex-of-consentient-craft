@@ -30,6 +30,7 @@ export const useQuestsBindingProxy = (): {
   setupQuests: (params: { quests: QuestListItem[] }) => void;
   setupQuestsWithSkips: (params: { quests: QuestListItem[]; skipped: SkippedQuestFile[] }) => void;
   setupError: () => void;
+  setupEmptyBody: () => void;
   setupInvalidResponse: (params: { data: unknown }) => void;
   setupOuterCatchTrigger: (params: { guildId: string }) => void;
   getConsoleErrorCalls: () => unknown[][];
@@ -61,6 +62,9 @@ export const useQuestsBindingProxy = (): {
     },
     setupError: (): void => {
       brokerProxy.setupError();
+    },
+    setupEmptyBody: (): void => {
+      brokerProxy.setupEmptyBody();
     },
     setupInvalidResponse: ({ data }: { data: unknown }): void => {
       brokerProxy.setupInvalidResponse({ data });

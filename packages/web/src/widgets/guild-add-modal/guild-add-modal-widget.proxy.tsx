@@ -1,11 +1,16 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
+import type { DirectoryEntryStub } from '@dungeonmaster/shared/contracts';
+
 import { DirectoryBrowserModalWidgetProxy } from '../directory-browser-modal/directory-browser-modal-widget.proxy';
 
 import { userEventStatics } from '../../statics/user-event/user-event-statics';
 
+type DirectoryEntry = ReturnType<typeof DirectoryEntryStub>;
+
 export const GuildAddModalWidgetProxy = (): {
+  setupDirectoryBrowse: (params: { entries: DirectoryEntry[] }) => void;
   typeName: (params: { name: string }) => Promise<void>;
   clickBrowse: () => Promise<void>;
   clickCreate: () => Promise<void>;
@@ -20,6 +25,9 @@ export const GuildAddModalWidgetProxy = (): {
   const directoryBrowserProxy = DirectoryBrowserModalWidgetProxy();
 
   return {
+    setupDirectoryBrowse: ({ entries }: { entries: DirectoryEntry[] }): void => {
+      directoryBrowserProxy.setupEntries({ entries });
+    },
     typeName: async ({ name }: { name: string }): Promise<void> => {
       const input = screen.getByTestId('GUILD_NAME_INPUT');
       await userEvent.clear(input);

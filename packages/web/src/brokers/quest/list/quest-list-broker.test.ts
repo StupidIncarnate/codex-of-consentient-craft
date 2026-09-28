@@ -64,6 +64,17 @@ describe('questListBroker', () => {
     });
   });
 
+  describe('empty body', () => {
+    it('ERROR: {server answers with an empty body} => throws naming the invalid JSON', async () => {
+      const proxy = questListBrokerProxy();
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+
+      proxy.setupEmptyBody();
+
+      await expect(questListBroker({ guildId })).rejects.toThrow(/returned invalid JSON/u);
+    });
+  });
+
   describe('zod validation', () => {
     it('ERROR: {fetch returns invalid shape} => throws ZodError', async () => {
       const proxy = questListBrokerProxy();

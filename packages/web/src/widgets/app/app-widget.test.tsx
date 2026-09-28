@@ -5,6 +5,7 @@
 import { waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import {
+  DispatchStateStub,
   GuildIdStub,
   GuildListItemStub,
   QuestQueueEntryStub,
@@ -41,6 +42,9 @@ describe('AppWidget', () => {
     it('VALID: {queue has entries} => QuestQueueBarWidget is mounted and visible', async () => {
       const proxy = AppWidgetProxy();
 
+      proxy.setupDirectoryBrowse({ entries: [] });
+      proxy.setupRateLimits({ snapshot: null });
+      proxy.setupDispatchState({ state: DispatchStateStub() });
       proxy.setupGuilds({ guilds: [] });
       proxy.setupQuestQueue({
         entries: [QuestQueueEntryStub({ questId: 'q-head', questTitle: 'Head Quest' })],
@@ -65,6 +69,7 @@ describe('AppWidget', () => {
     it('VALID: {no guilds} => shows NEW GUILD form', async () => {
       const proxy = AppWidgetProxy();
 
+      proxy.setupMountDefaults();
       proxy.setupGuilds({ guilds: [] });
 
       await testingLibraryActAsyncAdapter({
@@ -85,6 +90,8 @@ describe('AppWidget', () => {
   describe('guild list view', () => {
     it('VALID: {guilds loaded} => shows guild items', async () => {
       const proxy = AppWidgetProxy();
+
+      proxy.setupMountDefaults();
       const guild = GuildListItemStub({ name: 'Guild One' });
       const guilds = [guild];
 
@@ -106,6 +113,8 @@ describe('AppWidget', () => {
 
     it('VALID: {no guild selected} => shows select a guild message', async () => {
       const proxy = AppWidgetProxy();
+
+      proxy.setupMountDefaults();
       const guilds = [GuildListItemStub({ name: 'My Guild' })];
 
       proxy.setupGuilds({ guilds });
@@ -128,6 +137,8 @@ describe('AppWidget', () => {
   describe('session list view', () => {
     it('VALID: {guild selected, sessions loaded} => shows session list', async () => {
       const proxy = AppWidgetProxy();
+
+      proxy.setupMountDefaults();
       const guild = GuildListItemStub({ name: 'My Guild' });
       const guilds = [guild];
       const sessions = [
@@ -168,6 +179,8 @@ describe('AppWidget', () => {
   describe('session view route', () => {
     it('VALID: {click session} => navigates to readonly session view route', async () => {
       const proxy = AppWidgetProxy();
+
+      proxy.setupMountDefaults();
       const guild = GuildListItemStub({ name: 'My Guild' });
       const guilds = [guild];
       const sessions = [SessionListItemStub({ sessionId: 'session-1', questId: 'quest-1' })];
@@ -219,6 +232,8 @@ describe('AppWidget', () => {
   describe('guild creation flow', () => {
     it('VALID: {empty state, type name, CREATE} => guild appears and is auto-selected', async () => {
       const proxy = AppWidgetProxy();
+
+      proxy.setupMountDefaults();
       const guildId = GuildIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
       const createdGuild = GuildListItemStub({
         id: guildId,
@@ -266,6 +281,8 @@ describe('AppWidget', () => {
 
     it('VALID: {empty state, CREATE succeeds} => transitions to main view with guild in left column', async () => {
       const proxy = AppWidgetProxy();
+
+      proxy.setupMountDefaults();
       const guildId = GuildIdStub({ value: 'b2c3d4e5-f6a7-8901-bcde-f12345678901' });
       const createdGuild = GuildListItemStub({
         id: guildId,
@@ -313,6 +330,8 @@ describe('AppWidget', () => {
 
     it('VALID: {main view, click +} => shows NEW GUILD form => CREATE => returns to main', async () => {
       const proxy = AppWidgetProxy();
+
+      proxy.setupMountDefaults();
       const existingGuild = GuildListItemStub({
         id: 'da28ff7b-045c-84bf-aa90-88331cb5c35c',
         name: 'Existing Guild',
@@ -376,6 +395,8 @@ describe('AppWidget', () => {
 
     it('VALID: {main view, click +, cancel} => returns to main, no change', async () => {
       const proxy = AppWidgetProxy();
+
+      proxy.setupMountDefaults();
       const guild = GuildListItemStub({
         id: '28f58fe9-e6c5-7750-879f-d96162cf916c',
         name: 'My Guild',
@@ -422,6 +443,7 @@ describe('AppWidget', () => {
     it('VALID: {create guild, API error} => stays on form (error swallowed)', async () => {
       const proxy = AppWidgetProxy();
 
+      proxy.setupMountDefaults();
       proxy.setupGuilds({ guilds: [] });
 
       await testingLibraryActAsyncAdapter({
@@ -463,6 +485,8 @@ describe('AppWidget', () => {
   describe('guild selection and session loading', () => {
     it('VALID: {click guild item} => session list renders for that guild', async () => {
       const proxy = AppWidgetProxy();
+
+      proxy.setupMountDefaults();
       const guild = GuildListItemStub({
         id: '2cf4bbf1-0a31-3d8a-adb9-113bb32c69c5',
         name: 'Guild Alpha',
@@ -500,6 +524,8 @@ describe('AppWidget', () => {
 
     it('VALID: {click guild with no sessions} => shows empty state', async () => {
       const proxy = AppWidgetProxy();
+
+      proxy.setupMountDefaults();
       const guild = GuildListItemStub({
         id: 'a7b8c9d0-e1f2-3456-abcd-567890123456',
         name: 'Empty Guild',
@@ -536,6 +562,8 @@ describe('AppWidget', () => {
 
     it('VALID: {click guild, session list error} => error state', async () => {
       const proxy = AppWidgetProxy();
+
+      proxy.setupMountDefaults();
       const guild = GuildListItemStub({
         id: 'a40faea2-026e-45c5-8e86-7668de10b44e',
         name: 'Error Guild',
@@ -574,6 +602,8 @@ describe('AppWidget', () => {
   describe('navigation between views', () => {
     it('VALID: {main, click session} => shows readonly session view', async () => {
       const proxy = AppWidgetProxy();
+
+      proxy.setupMountDefaults();
       const guild = GuildListItemStub({
         id: '48a4b30a-6cfa-699d-a176-b5df8974d64d',
         name: 'Nav Guild',
@@ -625,6 +655,8 @@ describe('AppWidget', () => {
 
     it('VALID: {empty state, create guild} => auto-transitions to main', async () => {
       const proxy = AppWidgetProxy();
+
+      proxy.setupMountDefaults();
       const guildId = GuildIdStub({ value: 'af549d80-9334-57cd-b11f-a917419f8361' });
       const guild = GuildListItemStub({ id: guildId, name: 'auto-guild' });
 
@@ -669,6 +701,8 @@ describe('AppWidget', () => {
 
     it('VALID: {multiple guilds, select one} => gold highlight visible', async () => {
       const proxy = AppWidgetProxy();
+
+      proxy.setupMountDefaults();
       const guildA = GuildListItemStub({
         id: '5abe6461-5231-558d-9d81-42c94e32bad3',
         name: 'Guild Alpha',
@@ -712,6 +746,7 @@ describe('AppWidget', () => {
     it('VALID: {} => logo link is visible', async () => {
       const proxy = AppWidgetProxy();
 
+      proxy.setupMountDefaults();
       proxy.setupGuilds({ guilds: [] });
 
       await testingLibraryActAsyncAdapter({
@@ -730,6 +765,8 @@ describe('AppWidget', () => {
 
     it('VALID: {on session view route, click logo} => navigates back to home', async () => {
       const proxy = AppWidgetProxy();
+
+      proxy.setupMountDefaults();
       const guild = GuildListItemStub({
         id: 'b0c1d2e3-f4a5-6789-bcde-f01234567890',
         name: 'Logo Nav Guild',
@@ -798,6 +835,7 @@ describe('AppWidget', () => {
     it('VALID: {guilds API error} => empty state form shown (graceful degradation)', async () => {
       const proxy = AppWidgetProxy();
 
+      proxy.setupMountDefaults();
       proxy.setupGuildsError();
 
       await testingLibraryActAsyncAdapter({
@@ -816,6 +854,8 @@ describe('AppWidget', () => {
 
     it('VALID: {load 3 guilds} => all visible in left column', async () => {
       const proxy = AppWidgetProxy();
+
+      proxy.setupMountDefaults();
       const guildA = GuildListItemStub({
         id: '78f29cbd-2d13-8067-9049-3b335a501617',
         name: 'Guild One',
@@ -848,6 +888,8 @@ describe('AppWidget', () => {
 
     it('VALID: {click session} => renders readonly session view instead of quest detail tabs', async () => {
       const proxy = AppWidgetProxy();
+
+      proxy.setupMountDefaults();
       const guild = GuildListItemStub({
         id: 'a9b0c1d2-e3f4-5678-abcd-789abcdef012',
         name: 'Tab Guild',

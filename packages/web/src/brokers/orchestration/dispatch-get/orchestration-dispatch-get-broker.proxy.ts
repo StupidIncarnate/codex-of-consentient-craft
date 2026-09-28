@@ -1,7 +1,10 @@
-import type { DispatchState } from '@dungeonmaster/shared/contracts';
-import { StartEndpointMock } from '@dungeonmaster/testing';
+// PURPOSE: Proxy for the broker providing test control over HTTP responses
+// USAGE: Create proxy in test, use setup methods to configure endpoint behavior
 
-import { fetchGetAdapterProxy } from '../../../adapters/fetch/get/fetch-get-adapter.proxy';
+import type { DispatchState } from '@dungeonmaster/shared/contracts';
+
+import { fetchJsonProxy } from '#gateway/browser/fetch/fetch-json/fetch-json.proxy';
+
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
 
 export const orchestrationDispatchGetBrokerProxy = (): {
@@ -9,22 +12,21 @@ export const orchestrationDispatchGetBrokerProxy = (): {
   setupError: () => void;
   setupInvalidResponse: (params: { data: unknown }) => void;
 } => {
-  fetchGetAdapterProxy();
-
-  const endpoint = StartEndpointMock.listen({
+  const jsonFetchProxy = fetchJsonProxy();
+  const address = {
     method: 'get',
     url: webConfigStatics.api.routes.orchestrationDispatch,
-  });
+  } as const;
 
   return {
-    setupState: ({ state }) => {
-      endpoint.resolves({ data: { state } });
+    setupState: ({ state }: { state: DispatchState }): void => {
+      jsonFetchProxy.setupSuccess({ ...address, body: { state } });
     },
-    setupError: () => {
-      endpoint.networkError();
+    setupError: (): void => {
+      jsonFetchProxy.setupConnectionRefused(address);
     },
-    setupInvalidResponse: ({ data }) => {
-      endpoint.resolves({ data });
+    setupInvalidResponse: ({ data }: { data: unknown }): void => {
+      jsonFetchProxy.setupSuccess({ ...address, body: data });
     },
   };
 };

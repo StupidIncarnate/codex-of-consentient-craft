@@ -8,7 +8,8 @@
 import { questListResultContract } from '@dungeonmaster/shared/contracts';
 import type { GuildId, QuestListResult } from '@dungeonmaster/shared/contracts';
 
-import { fetchGetAdapter } from '../../../adapters/fetch/get/fetch-get-adapter';
+import { fetchJson } from '#gateway/browser/fetch';
+
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
 
 export const questListBroker = async ({
@@ -17,7 +18,7 @@ export const questListBroker = async ({
   guildId: GuildId;
 }): Promise<QuestListResult> => {
   const url = `${webConfigStatics.api.routes.quests}?guildId=${encodeURIComponent(guildId)}`;
-  const response = await fetchGetAdapter<unknown>({ url });
+  const response = await fetchJson({ url });
 
   return questListResultContract.parse(response);
 };

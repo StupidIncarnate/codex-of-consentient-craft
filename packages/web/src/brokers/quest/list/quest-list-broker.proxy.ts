@@ -1,37 +1,43 @@
-// PURPOSE: Proxy for quest-list-broker providing test control over HTTP responses
+// PURPOSE: Proxy for the broker providing test control over HTTP responses
 // USAGE: Create proxy in test, use setup methods to configure endpoint behavior
 
 import type { QuestListItem, SkippedQuestFile } from '@dungeonmaster/shared/contracts';
-import { StartEndpointMock } from '@dungeonmaster/testing';
 
-import { fetchGetAdapterProxy } from '../../../adapters/fetch/get/fetch-get-adapter.proxy';
+import { fetchJsonProxy } from '#gateway/browser/fetch/fetch-json/fetch-json.proxy';
+
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
 
 export const questListBrokerProxy = (): {
   setupQuests: (params: { quests: QuestListItem[] }) => void;
   setupQuestsWithSkips: (params: { quests: QuestListItem[]; skipped: SkippedQuestFile[] }) => void;
   setupError: () => void;
+  setupEmptyBody: () => void;
   setupInvalidResponse: (params: { data: unknown }) => void;
 } => {
-  fetchGetAdapterProxy();
-
-  const endpoint = StartEndpointMock.listen({
-    method: 'get',
-    url: webConfigStatics.api.routes.quests,
-  });
+  const jsonFetchProxy = fetchJsonProxy();
+  const address = { method: 'get', url: webConfigStatics.api.routes.quests } as const;
 
   return {
-    setupQuests: ({ quests }) => {
-      endpoint.resolves({ data: { quests, skipped: [] } });
+    setupQuests: ({ quests }: { quests: QuestListItem[] }): void => {
+      jsonFetchProxy.setupSuccess({ ...address, body: { quests, skipped: [] } });
     },
-    setupQuestsWithSkips: ({ quests, skipped }) => {
-      endpoint.resolves({ data: { quests, skipped } });
+    setupQuestsWithSkips: ({
+      quests,
+      skipped,
+    }: {
+      quests: QuestListItem[];
+      skipped: SkippedQuestFile[];
+    }): void => {
+      jsonFetchProxy.setupSuccess({ ...address, body: { quests, skipped } });
     },
-    setupError: () => {
-      endpoint.networkError();
+    setupError: (): void => {
+      jsonFetchProxy.setupConnectionRefused(address);
     },
-    setupInvalidResponse: ({ data }) => {
-      endpoint.resolves({ data });
+    setupEmptyBody: (): void => {
+      jsonFetchProxy.setupEmptyBody(address);
+    },
+    setupInvalidResponse: ({ data }: { data: unknown }): void => {
+      jsonFetchProxy.setupSuccess({ ...address, body: data });
     },
   };
 };

@@ -5,16 +5,17 @@
  * const entries = await questQueueBroker();
  * // Returns QuestQueueEntry[] ordered head-first
  */
-import { questQueueEntryContract } from '@dungeonmaster/shared/contracts';
 import type { QuestQueueEntry } from '@dungeonmaster/shared/contracts';
 
-import { fetchGetAdapter } from '../../../adapters/fetch/get/fetch-get-adapter';
+import { fetchJson } from '#gateway/browser/fetch';
+
+import { questQueueResultContract } from '../../../contracts/quest-queue-result/quest-queue-result-contract';
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
 
 export const questQueueBroker = async (): Promise<QuestQueueEntry[]> => {
-  const response = await fetchGetAdapter<{ entries: unknown[] }>({
+  const response = await fetchJson({
     url: webConfigStatics.api.routes.questsQueue,
   });
 
-  return questQueueEntryContract.array().parse(response.entries);
+  return questQueueResultContract.parse(response).entries;
 };

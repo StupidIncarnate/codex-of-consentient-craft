@@ -457,3 +457,57 @@ Widget / binding files edited for staging or the new error text:
 - `widgets/execution-panel/execution-row-layer-widget.proxy.tsx`, `execution-work-item-row-layer-widget.proxy.tsx`, `execution-panel-widget.proxy.tsx`, and the tests `execution-work-item-row-layer-widget.test.tsx`, `execution-panel-widget.test.tsx` (stage the ward/riftcarver detail an expanded row fetches)
 - `widgets/quest-chat/quest-chat-widget.proxy.tsx`, `quest-chat-widget.test.tsx` (stage the mode the content layer fetches)
 - `widgets/home-content/home-content-widget.test.tsx` (stage the session list two tests left unstaged)
+
+### F65 scope
+
+The five brokers W-GET and W-POST left on `adapters/fetch/{get,post}` move onto `fetchJson` (`#gateway/browser/fetch`).
+Their broker proxies compose `fetchJsonProxy` and keep their method names.
+
+Staging design: `fetchJsonProxy` registers an MSW handler only when a `setup*` call runs, so a widget that fetches on
+mount gets an unhandled request in every test that never staged it. Each composing widget proxy (the first proxy in
+the chain that owns the widget) gains a named method for what its widget fetches on mount, and each affected test calls
+that method with the data it means. No constructor default. Where a whole file needs one mount answer, a named
+`setupMountDefaults`-style method that the tests call explicitly.
+
+Contracts: `orchestration-dispatch-get` returns `{state}`, the same wire body as the existing
+`orchestrationDispatchResultContract`, so it is reused, not duplicated. New: `quest-queue-result/` (`{entries}`),
+`rate-limits-get-result/` (`{snapshot}`, nullable). `directory/browse` returns a bare array, parsed through
+`directoryEntryContract.array()`; `quest/list` through the existing `questListResultContract`.
+
+Brokers (`.ts`, `.proxy.ts`, `.test.ts`), `packages/web/src/brokers/`: `directory/browse`, `quest/list`, `quest/queue`,
+`orchestration/dispatch-get`, `rate-limits/get`.
+New contracts (`-contract.ts`, `.stub.ts`, `-contract.test.ts`): `quest-queue-result`, `rate-limits-get-result`.
+Deleted: `packages/web/src/adapters/fetch/get/*`, `packages/web/src/adapters/fetch/post/*`.
+
+Widget/binding proxies and tests that compose these (named from a read; the exact set is confirmed by the
+`packages/web` unit run and appended under "as executed" below): bindings `use-directory-browser`, `use-dispatch-state`,
+`use-quest-queue`, `use-quests`, `use-rate-limits` (proxy + test each); widgets `app`, `home-content`, `quest-queue-bar`,
+`guild-empty-state`, `directory-browser-modal`, `dispatch-toggle`, `queue-page`, `rate-limits-stack` (proxy + test each,
+where the run shows fallout).
+
+#### F65 scope, as executed
+
+All five brokers moved onto `fetchJson`; `packages/web/src/adapters/fetch/get/` and `fetch/post/` are deleted. No
+`orchestration-dispatch-get-result` contract: the dispatch-get body is `{state}`, the wire body
+`orchestrationDispatchResultContract` already validates, so the broker parses through that one.
+
+A `packages/web` unit run with the brokers moved failed 76 tests in seven files, every one an unstaged mount fetch.
+Staging, by widget (each a named method; nothing answers unless a test calls it):
+- `directory-browser-modal` (binding browses on mount): its `setupEntries` was already named; the six tests that never
+  called it now do, with an empty listing. `guild-empty-state` tests call its existing `setupDirectoryBrowse`;
+  `guild-add-modal` proxy gains `setupDirectoryBrowse` and its tests call it.
+- `home-content` proxy gains `setupDirectoryBrowse` (stages the empty-state form's browser and the add-guild modal's
+  browser, which share one endpoint); its 18 tests call it, and the eight that select a guild also call the existing
+  `setupQuests({ quests: [] })`.
+- `quest-queue-bar` proxy gains `setupDispatchState` (the embedded dispatch toggle fetches it when the bar has
+  entries); the 13 non-empty-queue tests call it.
+- `app` proxy gains `setupDirectoryBrowse`, `setupRateLimits`, `setupDispatchState` and `setupMountDefaults` (empty
+  directory, empty quests, empty queue, null rate-limits snapshot). The queue-bar test names its three fetches
+  individually; the other 21 call `setupMountDefaults()` first and stage over it what they mean.
+- `use-quests` binding: the empty-body test moved to a new `setupEmptyBody` (broker and binding proxies); the error is
+  now the gateway's `returned invalid JSON` message, not a bare `SyntaxError`.
+
+Files touched: the five `brokers/**` `.ts` + `.proxy.ts`; `contracts/quest-queue-result/` and
+`contracts/rate-limits-get-result/` (3 files each); `brokers/quest/list/quest-list-broker.test.ts`;
+`bindings/use-quests/use-quests-binding.{proxy.ts,test.ts}`; widgets `app`, `home-content`, `quest-queue-bar`,
+`guild-add-modal`, `guild-empty-state`, `directory-browser-modal` (proxy where named above, plus test).

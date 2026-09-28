@@ -1,7 +1,10 @@
-import type { QuestQueueEntry } from '@dungeonmaster/shared/contracts';
-import { StartEndpointMock } from '@dungeonmaster/testing';
+// PURPOSE: Proxy for the broker providing test control over HTTP responses
+// USAGE: Create proxy in test, use setup methods to configure endpoint behavior
 
-import { fetchGetAdapterProxy } from '../../../adapters/fetch/get/fetch-get-adapter.proxy';
+import type { QuestQueueEntry } from '@dungeonmaster/shared/contracts';
+
+import { fetchJsonProxy } from '#gateway/browser/fetch/fetch-json/fetch-json.proxy';
+
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
 
 export const questQueueBrokerProxy = (): {
@@ -9,22 +12,18 @@ export const questQueueBrokerProxy = (): {
   setupError: () => void;
   setupInvalidResponse: (params: { data: unknown }) => void;
 } => {
-  fetchGetAdapterProxy();
-
-  const endpoint = StartEndpointMock.listen({
-    method: 'get',
-    url: webConfigStatics.api.routes.questsQueue,
-  });
+  const jsonFetchProxy = fetchJsonProxy();
+  const address = { method: 'get', url: webConfigStatics.api.routes.questsQueue } as const;
 
   return {
-    setupEntries: ({ entries }) => {
-      endpoint.resolves({ data: { entries } });
+    setupEntries: ({ entries }: { entries: readonly QuestQueueEntry[] }): void => {
+      jsonFetchProxy.setupSuccess({ ...address, body: { entries } });
     },
-    setupError: () => {
-      endpoint.networkError();
+    setupError: (): void => {
+      jsonFetchProxy.setupConnectionRefused(address);
     },
-    setupInvalidResponse: ({ data }) => {
-      endpoint.resolves({ data });
+    setupInvalidResponse: ({ data }: { data: unknown }): void => {
+      jsonFetchProxy.setupSuccess({ ...address, body: data });
     },
   };
 };

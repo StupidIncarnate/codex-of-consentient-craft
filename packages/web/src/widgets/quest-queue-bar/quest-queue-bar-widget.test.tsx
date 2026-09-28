@@ -2,7 +2,11 @@ import { waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 
-import { QuestQueueEntryStub, SessionIdStub } from '@dungeonmaster/shared/contracts';
+import {
+  DispatchStateStub,
+  QuestQueueEntryStub,
+  SessionIdStub,
+} from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
 import { testingLibraryActAdapter } from '../../adapters/testing-library/act/testing-library-act-adapter';
@@ -34,6 +38,7 @@ describe('QuestQueueBarWidget', () => {
   describe('layout', () => {
     it('VALID: {1 entry} => bar is sticky and unshrinkable, so it reserves its own height', async () => {
       const proxy = QuestQueueBarWidgetProxy();
+      proxy.setupDispatchState({ state: DispatchStateStub() });
       proxy.setupEntries({
         entries: [QuestQueueEntryStub({ questId: 'q-1', questTitle: 'Alpha' })],
       });
@@ -59,6 +64,7 @@ describe('QuestQueueBarWidget', () => {
     it('VALID: {1 entry} => renders Quest 1/1 — title', async () => {
       const proxy = QuestQueueBarWidgetProxy();
       const entries = [QuestQueueEntryStub({ questId: 'q-1', questTitle: 'Alpha' })];
+      proxy.setupDispatchState({ state: DispatchStateStub() });
       proxy.setupEntries({ entries });
 
       const { findByTestId } = mantineRenderAdapter({
@@ -80,6 +86,7 @@ describe('QuestQueueBarWidget', () => {
         QuestQueueEntryStub({ questId: 'q-a', questTitle: 'Head Title' }),
         QuestQueueEntryStub({ questId: 'q-b', questTitle: 'Tail Title' }),
       ];
+      proxy.setupDispatchState({ state: DispatchStateStub() });
       proxy.setupEntries({ entries });
 
       const { findByTestId } = mantineRenderAdapter({
@@ -107,6 +114,7 @@ describe('QuestQueueBarWidget', () => {
           },
         }),
       ];
+      proxy.setupDispatchState({ state: DispatchStateStub() });
       proxy.setupEntries({ entries });
 
       const { findByTestId } = mantineRenderAdapter({
@@ -125,6 +133,7 @@ describe('QuestQueueBarWidget', () => {
     it('VALID: {head has no error} => does NOT render error badge', async () => {
       const proxy = QuestQueueBarWidgetProxy();
       const entries = [QuestQueueEntryStub({ questId: 'q-ok', questTitle: 'Healthy' })];
+      proxy.setupDispatchState({ state: DispatchStateStub() });
       proxy.setupEntries({ entries });
 
       const { findByTestId, queryByTestId } = mantineRenderAdapter({
@@ -145,6 +154,7 @@ describe('QuestQueueBarWidget', () => {
     it('VALID: {1 entry} => QUEUE link href targets /queue', async () => {
       const proxy = QuestQueueBarWidgetProxy();
       const entries = [QuestQueueEntryStub({ questId: 'q-1', questTitle: 'Alpha' })];
+      proxy.setupDispatchState({ state: DispatchStateStub() });
       proxy.setupEntries({ entries });
 
       const { findByTestId } = mantineRenderAdapter({
@@ -171,6 +181,7 @@ describe('QuestQueueBarWidget', () => {
         guildSlug: 'open-guild' as never,
         activeSessionId: SessionIdStub({ value: 'sess-open' }),
       });
+      proxy.setupDispatchState({ state: DispatchStateStub() });
       proxy.setupEntries({ entries: [head] });
 
       const { findByTestId } = mantineRenderAdapter({
@@ -193,6 +204,7 @@ describe('QuestQueueBarWidget', () => {
         questTitle: 'Planning',
         guildSlug: 'guild-x' as never,
       });
+      proxy.setupDispatchState({ state: DispatchStateStub() });
       proxy.setupEntries({ entries: [head] });
 
       const { findByTestId } = mantineRenderAdapter({
@@ -213,6 +225,7 @@ describe('QuestQueueBarWidget', () => {
     it('VALID: {execution-queue-updated WS} => widget re-renders with new entries', async () => {
       const proxy = QuestQueueBarWidgetProxy();
       proxy.setupConnectedChannel();
+      proxy.setupDispatchState({ state: DispatchStateStub() });
       proxy.setupEntries({
         entries: [QuestQueueEntryStub({ questId: 'q-1', questTitle: 'First' })],
       });
@@ -260,6 +273,7 @@ describe('QuestQueueBarWidget', () => {
     it('VALID: {execution-queue-error WS} => widget re-renders with error badge', async () => {
       const proxy = QuestQueueBarWidgetProxy();
       proxy.setupConnectedChannel();
+      proxy.setupDispatchState({ state: DispatchStateStub() });
       proxy.setupEntries({
         entries: [QuestQueueEntryStub({ questId: 'q-1', questTitle: 'First' })],
       });
@@ -320,6 +334,7 @@ describe('QuestQueueBarWidget', () => {
         guildSlug: 'guild-two' as never,
         activeSessionId: SessionIdStub({ value: 'sess-b' }),
       });
+      proxy.setupDispatchState({ state: DispatchStateStub() });
       proxy.setupEntries({ entries: [head, tail] });
 
       const { findByTestId } = mantineRenderAdapter({
@@ -347,6 +362,7 @@ describe('QuestQueueBarWidget', () => {
         questTitle: 'Planning',
         guildSlug: 'guild-foo' as never,
       });
+      proxy.setupDispatchState({ state: DispatchStateStub() });
       proxy.setupEntries({ entries: [head] });
 
       const { findByTestId } = mantineRenderAdapter({
@@ -368,6 +384,7 @@ describe('QuestQueueBarWidget', () => {
     it('VALID: {toggle twice} => collapses list again', async () => {
       const proxy = QuestQueueBarWidgetProxy();
       const entries = [QuestQueueEntryStub({ questId: 'q-a', questTitle: 'Alpha' })];
+      proxy.setupDispatchState({ state: DispatchStateStub() });
       proxy.setupEntries({ entries });
 
       const { findByTestId, queryByTestId } = mantineRenderAdapter({
@@ -398,6 +415,7 @@ describe('QuestQueueBarWidget', () => {
           },
         }),
       ];
+      proxy.setupDispatchState({ state: DispatchStateStub() });
       proxy.setupEntries({ entries });
 
       const { findByTestId } = mantineRenderAdapter({

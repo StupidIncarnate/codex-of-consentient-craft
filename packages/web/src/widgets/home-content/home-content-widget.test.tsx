@@ -31,6 +31,8 @@ describe('HomeContentWidget', () => {
     it('VALID: {no guilds} => shows NEW GUILD form', async () => {
       const proxy = HomeContentWidgetProxy();
 
+      proxy.setupDirectoryBrowse({ entries: [] });
+
       proxy.setupGuilds({ guilds: [] });
 
       await testingLibraryActAsyncAdapter({
@@ -57,6 +59,8 @@ describe('HomeContentWidget', () => {
   describe('guild list view', () => {
     it('VALID: {guilds loaded} => shows guild items', async () => {
       const proxy = HomeContentWidgetProxy();
+
+      proxy.setupDirectoryBrowse({ entries: [] });
       const guild = GuildListItemStub({ name: 'Guild One' });
       const guilds = [guild];
 
@@ -84,6 +88,8 @@ describe('HomeContentWidget', () => {
 
     it('VALID: {no guild selected} => shows select a guild message', async () => {
       const proxy = HomeContentWidgetProxy();
+
+      proxy.setupDirectoryBrowse({ entries: [] });
       const guilds = [GuildListItemStub({ name: 'My Guild' })];
 
       proxy.setupGuilds({ guilds });
@@ -112,6 +118,9 @@ describe('HomeContentWidget', () => {
   describe('guild creation', () => {
     it('VALID: {empty state, type name, CREATE} => guild appears', async () => {
       const proxy = HomeContentWidgetProxy();
+
+      proxy.setupDirectoryBrowse({ entries: [] });
+      proxy.setupQuests({ quests: [] });
       const guildId = GuildIdStub({ value: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' });
       const createdGuild = GuildListItemStub({
         id: guildId,
@@ -167,6 +176,9 @@ describe('HomeContentWidget', () => {
   describe('localStorage guild persistence', () => {
     it('VALID: {click guild} => saves guild ID to localStorage', async () => {
       const proxy = HomeContentWidgetProxy();
+
+      proxy.setupDirectoryBrowse({ entries: [] });
+      proxy.setupQuests({ quests: [] });
       proxy.clearStorage();
       const guild = GuildListItemStub({ name: 'Persist Guild' });
 
@@ -207,6 +219,9 @@ describe('HomeContentWidget', () => {
 
     it('VALID: {stored guild in localStorage, guild exists} => auto-selects guild on mount', async () => {
       const proxy = HomeContentWidgetProxy();
+
+      proxy.setupDirectoryBrowse({ entries: [] });
+      proxy.setupQuests({ quests: [] });
       proxy.clearStorage();
       const guild = GuildListItemStub({ name: 'Stored Guild' });
 
@@ -237,6 +252,9 @@ describe('HomeContentWidget', () => {
 
     it('VALID: {stored guild in localStorage, guild not in list} => clears localStorage', async () => {
       const proxy = HomeContentWidgetProxy();
+
+      proxy.setupDirectoryBrowse({ entries: [] });
+      proxy.setupQuests({ quests: [] });
       proxy.clearStorage();
       const staleGuildId = GuildIdStub({ value: 'a99ef0d8-6ae0-1972-9617-694d449a8242' });
       const realGuild = GuildListItemStub({ name: 'Real Guild' });
@@ -269,6 +287,8 @@ describe('HomeContentWidget', () => {
 
     it('EMPTY: {no stored guild} => shows select a guild message', async () => {
       const proxy = HomeContentWidgetProxy();
+
+      proxy.setupDirectoryBrowse({ entries: [] });
       proxy.clearStorage();
       const guilds = [GuildListItemStub({ name: 'Some Guild' })];
 
@@ -299,6 +319,8 @@ describe('HomeContentWidget', () => {
   describe('navigation', () => {
     it('VALID: {click queue link} => navigates to /queue', async () => {
       const proxy = HomeContentWidgetProxy();
+
+      proxy.setupDirectoryBrowse({ entries: [] });
       proxy.clearStorage();
       const guild = GuildListItemStub({ name: 'Queue Guild' });
 
@@ -352,6 +374,9 @@ describe('HomeContentWidget', () => {
 
     it('VALID: {click session add button} => navigates to /:guildSlug/quest (no session)', async () => {
       const proxy = HomeContentWidgetProxy();
+
+      proxy.setupDirectoryBrowse({ entries: [] });
+      proxy.setupQuests({ quests: [] });
       proxy.clearStorage();
       const guild = GuildListItemStub({
         id: GuildIdStub({ value: 'b1b2c3d4-e5f6-7890-abcd-ef1234567890' }),
@@ -418,6 +443,9 @@ describe('HomeContentWidget', () => {
 
     it('VALID: {click quest-linked session row} => navigates to /:guildSlug/quest/:questId', async () => {
       const proxy = HomeContentWidgetProxy();
+
+      proxy.setupDirectoryBrowse({ entries: [] });
+      proxy.setupQuests({ quests: [] });
       proxy.clearStorage();
       const guild = GuildListItemStub({
         id: GuildIdStub({ value: 'c1b2c3d4-e5f6-7890-abcd-ef1234567890' }),
@@ -507,6 +535,9 @@ describe('HomeContentWidget', () => {
 
     it('VALID: {click orphan session row (no quest)} => navigates to /:guildSlug/session/:sessionId', async () => {
       const proxy = HomeContentWidgetProxy();
+
+      proxy.setupDirectoryBrowse({ entries: [] });
+      proxy.setupQuests({ quests: [] });
       proxy.clearStorage();
       const guild = GuildListItemStub({
         id: GuildIdStub({ value: 'c1b2c3d4-e5f6-7890-abcd-ef1234567891' }),
@@ -592,6 +623,9 @@ describe('HomeContentWidget', () => {
   describe('error logging in catch handlers', () => {
     it('ERROR: {guildCreateBroker rejects} => logs error to console.error', async () => {
       const proxy = HomeContentWidgetProxy();
+
+      proxy.setupDirectoryBrowse({ entries: [] });
+      proxy.setupQuests({ quests: [] });
       const consoleErrorSpy = proxy.setupConsoleErrorCapture();
 
       proxy.setupGuilds({ guilds: [] });
@@ -656,6 +690,8 @@ describe('HomeContentWidget', () => {
   describe('quest delete from root page', () => {
     it('VALID: {click skull, Banish, delete resolves} => broker called once with questId+guildId, row removed, popover hidden', async () => {
       const proxy = HomeContentWidgetProxy();
+
+      proxy.setupDirectoryBrowse({ entries: [] });
       proxy.clearStorage();
       const guildId = GuildIdStub({ value: 'f1b2c3d4-e5f6-7890-abcd-ef1234567890' });
       const guild = GuildListItemStub({ id: guildId, name: 'Delete Guild' });
@@ -716,6 +752,8 @@ describe('HomeContentWidget', () => {
 
     it("ERROR: {delete rejects with 'Quest is currently running'} => red toast with that message, row remains, popover hidden", async () => {
       const proxy = HomeContentWidgetProxy();
+
+      proxy.setupDirectoryBrowse({ entries: [] });
       proxy.clearStorage();
       const guildId = GuildIdStub({ value: 'a2b2c3d4-e5f6-7890-abcd-ef1234567890' });
       const guild = GuildListItemStub({ id: guildId, name: 'Err Guild' });
@@ -784,6 +822,8 @@ describe('HomeContentWidget', () => {
 
     it('ERROR: {delete rejects with empty-message error} => red toast with fallback message, row remains', async () => {
       const proxy = HomeContentWidgetProxy();
+
+      proxy.setupDirectoryBrowse({ entries: [] });
       proxy.clearStorage();
       const guildId = GuildIdStub({ value: 'b2b2c3d4-e5f6-7890-abcd-ef1234567890' });
       const guild = GuildListItemStub({ id: guildId, name: 'Fallback Guild' });
@@ -849,6 +889,8 @@ describe('HomeContentWidget', () => {
   describe('unreadable quest files', () => {
     it('VALID: {list reports one unreadable quest file} => raises a red toast and renders the unreadable row', async () => {
       const proxy = HomeContentWidgetProxy();
+
+      proxy.setupDirectoryBrowse({ entries: [] });
       const guildId = GuildIdStub({ value: 'c3c3c3d4-e5f6-7890-abcd-ef1234567890' });
       const guild = GuildListItemStub({ id: guildId, name: 'Unreadable Guild' });
       localStorage.setItem(GUILD_STORAGE_KEY, guildId);
@@ -892,6 +934,8 @@ describe('HomeContentWidget', () => {
 
     it('EMPTY: {list reports no unreadable quest files} => raises no toast and renders no unreadable row', async () => {
       const proxy = HomeContentWidgetProxy();
+
+      proxy.setupDirectoryBrowse({ entries: [] });
       const guildId = GuildIdStub({ value: 'c4c4c3d4-e5f6-7890-abcd-ef1234567890' });
       const guild = GuildListItemStub({ id: guildId, name: 'Healthy Guild' });
       localStorage.setItem(GUILD_STORAGE_KEY, guildId);
