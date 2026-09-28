@@ -10,9 +10,7 @@
  * proxy.setupMissingAt({ dirPath: '/repo/packages/mcp/src' });
  */
 
-import { join } from 'path';
-import { pathDirnameAdapterProxy } from '../../adapters/path/dirname/path-dirname-adapter.proxy';
-import { pathJoinAdapterProxy } from '../../adapters/path/join/path-join-adapter.proxy';
+import { join } from '#gateway/node/path';
 import { workspacePackageJsonReadMiddlewareProxy } from '../workspace-package-json-read/workspace-package-json-read-middleware.proxy';
 
 export const nearestPackageJsonFindMiddlewareProxy = (): {
@@ -25,8 +23,6 @@ export const nearestPackageJsonFindMiddlewareProxy = (): {
   }) => void;
   setupMissingAt: ({ dirPath }: { dirPath: string }) => void;
 } => {
-  pathDirnameAdapterProxy();
-  pathJoinAdapterProxy();
   const readProxy = workspacePackageJsonReadMiddlewareProxy();
 
   return {

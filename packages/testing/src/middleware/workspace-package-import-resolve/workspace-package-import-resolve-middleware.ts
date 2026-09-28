@@ -15,15 +15,14 @@
  * // Returns FilePath ('/repo/packages/bin/testing.ts') or null
  */
 
-import { fsExistsAdapter } from '../../adapters/fs/exists/fs-exists-adapter';
-import { fsReaddirAdapter } from '../../adapters/fs/readdir/fs-readdir-adapter';
-import { pathDirnameAdapter } from '../../adapters/path/dirname/path-dirname-adapter';
-import { pathJoinAdapter } from '../../adapters/path/join/path-join-adapter';
+import { existsSync, readdirSync } from '#gateway/node/fs';
+import { dirname, join } from '#gateway/node/path';
 import { packageSpecifierSplitTransformer } from '../../transformers/package-specifier-split/package-specifier-split-transformer';
 import { workspaceGlobBaseDirsTransformer } from '../../transformers/workspace-glob-base-dirs/workspace-glob-base-dirs-transformer';
 import { workspacePackageExportSourceTransformer } from '../../transformers/workspace-package-export-source/workspace-package-export-source-transformer';
 import { workspacePackageJsonReadMiddleware } from '../workspace-package-json-read/workspace-package-json-read-middleware';
 import { workspaceRootFindMiddleware } from '../workspace-root-find/workspace-root-find-middleware';
+import { filePathContract } from '../../contracts/file-path/file-path-contract';
 import type { FilePath } from '../../contracts/file-path/file-path-contract';
 import type { ImportPath } from '../../contracts/import-path/import-path-contract';
 
@@ -40,26 +39,26 @@ export const workspacePackageImportResolveMiddleware = ({
   }
 
   const workspaceRoot = workspaceRootFindMiddleware({
-    dirPath: pathDirnameAdapter({ filePath: sourceFilePath }),
+    dirPath: filePathContract.parse(dirname(sourceFilePath)),
   });
   if (!workspaceRoot) {
     return null;
   }
 
   const rootPackageJson = workspacePackageJsonReadMiddleware({
-    packageJsonPath: pathJoinAdapter({ paths: [workspaceRoot, 'package.json'] }),
+    packageJsonPath: filePathContract.parse(join(workspaceRoot, 'package.json')),
   });
   const packagesBaseDirs = workspaceGlobBaseDirsTransformer({
     workspaces: rootPackageJson?.workspaces,
   });
 
   for (const packagesBaseDir of packagesBaseDirs) {
-    const packagesDirPath = pathJoinAdapter({ paths: [workspaceRoot, packagesBaseDir] });
+    const packagesDirPath = join(workspaceRoot, packagesBaseDir);
 
-    for (const folderName of fsReaddirAdapter({ dirPath: packagesDirPath })) {
-      const packageDirPath = pathJoinAdapter({ paths: [packagesDirPath, folderName] });
+    for (const folderName of readdirSync(packagesDirPath)) {
+      const packageDirPath = join(packagesDirPath, folderName);
       const packageJson = workspacePackageJsonReadMiddleware({
-        packageJsonPath: pathJoinAdapter({ paths: [packageDirPath, 'package.json'] }),
+        packageJsonPath: filePathContract.parse(join(packageDirPath, 'package.json')),
       });
       if (!packageJson || packageJson.name !== specifierParts.packageName) {
         continue;
@@ -73,8 +72,8 @@ export const workspacePackageImportResolveMiddleware = ({
         continue;
       }
 
-      const resolvedSourcePath = pathJoinAdapter({ paths: [packageDirPath, source] });
-      return fsExistsAdapter({ filePath: resolvedSourcePath }) ? resolvedSourcePath : null;
+      const resolvedSourcePath = filePathContract.parse(join(packageDirPath, source));
+      return existsSync(resolvedSourcePath) ? resolvedSourcePath : null;
     }
   }
 

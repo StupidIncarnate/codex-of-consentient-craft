@@ -10,9 +10,9 @@
  * // Returns FilePath ('/repo') or null
  */
 
-import { pathDirnameAdapter } from '../../adapters/path/dirname/path-dirname-adapter';
-import { pathJoinAdapter } from '../../adapters/path/join/path-join-adapter';
+import { dirname, join } from '#gateway/node/path';
 import { workspacePackageJsonReadMiddleware } from '../workspace-package-json-read/workspace-package-json-read-middleware';
+import { filePathContract } from '../../contracts/file-path/file-path-contract';
 import type { FilePath } from '../../contracts/file-path/file-path-contract';
 
 export const workspaceRootFindMiddleware = ({
@@ -20,13 +20,13 @@ export const workspaceRootFindMiddleware = ({
 }: {
   dirPath: FilePath;
 }): FilePath | null => {
-  const packageJsonPath = pathJoinAdapter({ paths: [dirPath, 'package.json'] });
+  const packageJsonPath = filePathContract.parse(join(dirPath, 'package.json'));
   const packageJson = workspacePackageJsonReadMiddleware({ packageJsonPath });
   if (packageJson?.workspaces) {
     return dirPath;
   }
 
-  const parentPath = pathDirnameAdapter({ filePath: dirPath });
+  const parentPath = filePathContract.parse(dirname(dirPath));
   if (parentPath === dirPath) {
     return null;
   }

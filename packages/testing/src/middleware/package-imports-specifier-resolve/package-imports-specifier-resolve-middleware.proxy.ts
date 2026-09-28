@@ -19,7 +19,6 @@
  * proxy.setupSourceFileExists({ filePath: '/repo/packages/@gateway/npm/src/glob/glob/glob.proxy.ts' });
  */
 
-import { pathDirnameAdapterProxy } from '../../adapters/path/dirname/path-dirname-adapter.proxy';
 import { nearestPackageJsonFindMiddlewareProxy } from '../nearest-package-json-find/nearest-package-json-find-middleware.proxy';
 import { workspacePackageImportResolveMiddlewareProxy } from '../workspace-package-import-resolve/workspace-package-import-resolve-middleware.proxy';
 
@@ -51,7 +50,6 @@ export const packageImportsSpecifierResolveMiddlewareProxy = (): {
   }) => void;
   setupSourceFileExists: ({ filePath }: { filePath: string }) => void;
 } => {
-  pathDirnameAdapterProxy();
   const nearestProxy = nearestPackageJsonFindMiddlewareProxy();
   const resolveProxy = workspacePackageImportResolveMiddlewareProxy();
 

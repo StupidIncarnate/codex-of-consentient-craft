@@ -140,3 +140,24 @@ naming the deleted adapter).
 `nearest-package-json-find`, `package-imports-specifier-resolve`, `workspace-package-import-resolve`,
 `workspace-package-json-read` (impl + proxy each), plus the 15 adapter files. `middleware/proxy-reexport-names-resolve`
 only names `pathJoinAdapterProxy` inside a fixture string and needs no change.
+
+## Plan — G-Y fs and path, part 2
+
+Agent scope: `packages/testing` only. `path` functions run for real (`#gateway/node/path`); fs goes through
+`#gateway/node/fs` (`existsSync`, `readFileSync`, `readdirSync`) and its proxies. Each unstaged path answers
+"does not exist" through `returnsMatchingPath({ path: isPath, exists: false })` staged BEFORE exact paths, and an
+unstaged directory answers `[]`, which the deleted adapter proxies did by default.
+
+Callers moved (implementation + proxy each), under `packages/testing/src/middleware/`:
+- `workspace-package-json-read/workspace-package-json-read-middleware.ts` + `.proxy.ts` (`existsSync`, `readFileSync`)
+- `workspace-root-find/workspace-root-find-middleware.ts` + `.proxy.ts` (`join`, `dirname`)
+- `nearest-package-json-find/nearest-package-json-find-middleware.ts` + `.proxy.ts` (`join`, `dirname`)
+- `package-imports-specifier-resolve/package-imports-specifier-resolve-middleware.ts` + `.proxy.ts` (`dirname`)
+- `workspace-package-import-resolve/workspace-package-import-resolve-middleware.ts` + `.proxy.ts` (`existsSync`, `readdirSync`, `join`, `dirname`)
+
+Delete (adapter, proxy, test each): `adapters/fs/exists`, `adapters/fs/read-file`, `adapters/fs/readdir`,
+`adapters/path/dirname`, `adapters/path/join`.
+
+Tests of the five middlewares are edited only where they name a deleted adapter.
+`proxy-reexport-names-resolve` and `proxy-mock-collector` only name `pathJoinAdapterProxy` inside fixture strings and
+need no change.

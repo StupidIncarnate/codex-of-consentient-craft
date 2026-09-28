@@ -8,9 +8,10 @@
  * proxy.setupMissingAt({ packageJsonPath: '/repo/packages/ghost/package.json' });
  */
 
-import { fsExistsAdapterProxy } from '../../adapters/fs/exists/fs-exists-adapter.proxy';
-import { fsReadFileAdapterProxy } from '../../adapters/fs/read-file/fs-read-file-adapter.proxy';
-import { FileContentStub } from '../../contracts/file-content/file-content.stub';
+import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
+import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
+
+const isPath = (candidate: unknown): boolean => typeof candidate === 'string';
 
 export const workspacePackageJsonReadMiddlewareProxy = (): {
   setupPackageJsonAt: ({
@@ -22,8 +23,12 @@ export const workspacePackageJsonReadMiddlewareProxy = (): {
   }) => void;
   setupMissingAt: ({ packageJsonPath }: { packageJsonPath: string }) => void;
 } => {
-  const existsProxy = fsExistsAdapterProxy();
-  const readFileProxy = fsReadFileAdapterProxy();
+  const existsProxy = existsSyncProxy();
+  const readFileProxy = readFileSyncProxy();
+
+  // Staged FIRST: a predicate and an exact path score the same and the later staging wins, so
+  // every exact path staged below outranks this "not there" default.
+  existsProxy.returnsMatchingPath({ path: isPath, exists: false });
 
   return {
     setupPackageJsonAt: ({
@@ -33,14 +38,11 @@ export const workspacePackageJsonReadMiddlewareProxy = (): {
       packageJsonPath: string;
       packageJson: Record<PropertyKey, unknown>;
     }): void => {
-      existsProxy.returns({ filePath: packageJsonPath, exists: true });
-      readFileProxy.returns({
-        filePath: packageJsonPath,
-        content: FileContentStub({ value: JSON.stringify(packageJson) }),
-      });
+      existsProxy.returns({ path: packageJsonPath, exists: true });
+      readFileProxy.returns({ path: packageJsonPath, contents: JSON.stringify(packageJson) });
     },
     setupMissingAt: ({ packageJsonPath }: { packageJsonPath: string }): void => {
-      existsProxy.returns({ filePath: packageJsonPath, exists: false });
+      existsProxy.returns({ path: packageJsonPath, exists: false });
     },
   };
 };

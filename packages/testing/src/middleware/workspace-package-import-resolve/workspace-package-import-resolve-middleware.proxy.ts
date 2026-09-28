@@ -24,16 +24,16 @@
  * });
  */
 
-import { join } from 'path';
-import { fsExistsAdapterProxy } from '../../adapters/fs/exists/fs-exists-adapter.proxy';
-import { fsReaddirAdapterProxy } from '../../adapters/fs/readdir/fs-readdir-adapter.proxy';
-import { pathDirnameAdapterProxy } from '../../adapters/path/dirname/path-dirname-adapter.proxy';
-import { pathJoinAdapterProxy } from '../../adapters/path/join/path-join-adapter.proxy';
+import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
+import { readdirSyncProxy } from '#gateway/node/fs/readdir-sync/readdir-sync.proxy';
+import { join } from '#gateway/node/path';
 import { workspacePackageJsonReadMiddlewareProxy } from '../workspace-package-json-read/workspace-package-json-read-middleware.proxy';
 import { workspaceRootFindMiddlewareProxy } from '../workspace-root-find/workspace-root-find-middleware.proxy';
 import { FileNameStub } from '../../contracts/file-name/file-name.stub';
 
 type FileName = ReturnType<typeof FileNameStub>;
+
+const isPath = (candidate: unknown): boolean => typeof candidate === 'string';
 
 const DEFAULT_PACKAGES_BASE_DIR = 'packages';
 
@@ -58,12 +58,14 @@ export const workspacePackageImportResolveMiddlewareProxy = (): {
   }) => void;
   setupSourceFileExists: ({ filePath }: { filePath: string }) => void;
 } => {
-  pathDirnameAdapterProxy();
-  pathJoinAdapterProxy();
   const rootProxy = workspaceRootFindMiddlewareProxy();
   const readProxy = workspacePackageJsonReadMiddlewareProxy();
-  const readdirProxy = fsReaddirAdapterProxy();
-  const existsProxy = fsExistsAdapterProxy();
+  const readdirProxy = readdirSyncProxy();
+  const existsProxy = existsSyncProxy();
+
+  // Staged FIRST so every exact path staged below outranks these defaults: an undescribed
+  // directory is empty.
+  readdirProxy.returnsMatchingPath({ path: isPath, names: [] });
 
   const folderNamesByPackagesDir = new Map<PropertyKey, FileName[]>();
 
@@ -99,7 +101,7 @@ export const workspacePackageImportResolveMiddlewareProxy = (): {
         FileNameStub({ value: packageFolderName }),
       ];
       folderNamesByPackagesDir.set(packagesDirPath, folderNames);
-      readdirProxy.returns({ dirPath: packagesDirPath, files: folderNames });
+      readdirProxy.returns({ path: packagesDirPath, names: folderNames });
 
       readProxy.setupPackageJsonAt({
         packageJsonPath: join(packagesDirPath, packageFolderName, 'package.json'),
@@ -108,7 +110,7 @@ export const workspacePackageImportResolveMiddlewareProxy = (): {
     },
 
     setupSourceFileExists: ({ filePath }: { filePath: string }): void => {
-      existsProxy.returns({ filePath, exists: true });
+      existsProxy.returns({ path: filePath, exists: true });
     },
   };
 };

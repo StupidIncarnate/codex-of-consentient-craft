@@ -14,10 +14,11 @@
  * // Returns FilePath ('/repo/packages/@gateway/npm/src/glob/glob/glob.proxy.ts') or null
  */
 
-import { pathDirnameAdapter } from '../../adapters/path/dirname/path-dirname-adapter';
+import { dirname } from '#gateway/node/path';
 import { nearestPackageJsonFindMiddleware } from '../nearest-package-json-find/nearest-package-json-find-middleware';
 import { workspacePackageImportResolveMiddleware } from '../workspace-package-import-resolve/workspace-package-import-resolve-middleware';
 import { workspacePackageImportsTargetTransformer } from '../../transformers/workspace-package-imports-target/workspace-package-imports-target-transformer';
+import { filePathContract } from '../../contracts/file-path/file-path-contract';
 import type { FilePath } from '../../contracts/file-path/file-path-contract';
 import type { ImportPath } from '../../contracts/import-path/import-path-contract';
 
@@ -29,7 +30,7 @@ export const packageImportsSpecifierResolveMiddleware = ({
   importPath: ImportPath;
 }): FilePath | null => {
   const packageJson = nearestPackageJsonFindMiddleware({
-    dirPath: pathDirnameAdapter({ filePath: sourceFilePath }),
+    dirPath: filePathContract.parse(dirname(sourceFilePath)),
   });
   if (!packageJson) {
     return null;

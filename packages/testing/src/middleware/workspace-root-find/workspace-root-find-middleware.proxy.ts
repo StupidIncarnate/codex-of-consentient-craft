@@ -10,9 +10,7 @@
  * proxy.setupWorkspaceRootAt({ dirPath: '/repo', workspaces: ['packages/*', 'packages/@gateway/*'] });
  */
 
-import { join } from 'path';
-import { pathDirnameAdapterProxy } from '../../adapters/path/dirname/path-dirname-adapter.proxy';
-import { pathJoinAdapterProxy } from '../../adapters/path/join/path-join-adapter.proxy';
+import { join } from '#gateway/node/path';
 import { workspacePackageJsonReadMiddlewareProxy } from '../workspace-package-json-read/workspace-package-json-read-middleware.proxy';
 
 const DEFAULT_WORKSPACE_GLOBS = ['packages/*'];
@@ -27,8 +25,6 @@ export const workspaceRootFindMiddlewareProxy = (): {
   }) => void;
   setupPlainPackageAt: ({ dirPath }: { dirPath: string }) => void;
 } => {
-  pathDirnameAdapterProxy();
-  pathJoinAdapterProxy();
   const readProxy = workspacePackageJsonReadMiddlewareProxy();
 
   return {
