@@ -37,7 +37,7 @@ import { locationsRepoLinkPathFindBrokerProxy } from '../../locations/repo-link-
 import { locationsSocketPathFindBrokerProxy } from '../../locations/socket-path-find/locations-socket-path-find-broker.proxy';
 import { laneSpecFindBrokerProxy } from '../../lane-spec/find/lane-spec-find-broker.proxy';
 import { laneSpecHashBrokerProxy } from '../../lane-spec/hash/lane-spec-hash-broker.proxy';
-import { fsOpenFdAdapterProxy } from '../../../adapters/fs/open-fd/fs-open-fd-adapter.proxy';
+import { openForAppendSyncProxy } from '#gateway/node/fs/open-for-append-sync/open-for-append-sync.proxy';
 import { childProcessSpawnDetachedAdapterProxy } from '../../../adapters/child-process/spawn-detached/child-process-spawn-detached-adapter.proxy';
 import { cliPackageBinResolveAdapterProxy } from '../../../adapters/cli-package/bin-resolve/cli-package-bin-resolve-adapter.proxy';
 import { osTmpdirAdapterProxy } from '../../../adapters/os/tmpdir/os-tmpdir-adapter.proxy';
@@ -238,7 +238,7 @@ export const instanceStartBrokerProxy = (): {
   // mocks a second time.
   const killProxy = instanceKillBrokerProxy();
 
-  const openFdProxy = fsOpenFdAdapterProxy();
+  const openFdProxy = openForAppendSyncProxy();
   const spawnProxy = childProcessSpawnDetachedAdapterProxy();
   const cliBinProxy = cliPackageBinResolveAdapterProxy();
   cliBinProxy.manifestDeclaresBin({ binRelative: CLI_BIN_RELATIVE_VALUE });
@@ -395,7 +395,7 @@ export const instanceStartBrokerProxy = (): {
       .rejects(Object.assign(new Error('ENOENT: no such file or directory'), { code: 'ENOENT' }));
 
     const driverLogPath = AbsoluteFilePathStub({ value: `${String(evidencePath)}/driver.log` });
-    openFdProxy.returns({ filePath: driverLogPath, fd: FileDescriptorStub({ value: 17 }) });
+    openFdProxy.returns({ path: driverLogPath, fd: FileDescriptorStub({ value: 17 }) });
 
     spawnProxy.succeeds({
       command: process.execPath,

@@ -2,13 +2,13 @@ import { join } from '#gateway/node/path';
 import { cwd } from '#gateway/node/process';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
+import { realpathProxy } from '#gateway/node/fs__promises/realpath/realpath.proxy';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/testing';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 
 import { locationsRootPathFindBrokerProxy } from '../root-path-find/locations-root-path-find-broker.proxy';
-import { fsRealpathAdapterProxy } from '../../../adapters/fs/realpath/fs-realpath-adapter.proxy';
 
 export const locationsRepoLinkPathFindBrokerProxy = (): {
   setupLinkResolvesToRoot: (params: {
@@ -62,7 +62,7 @@ export const locationsRepoLinkPathFindBrokerProxy = (): {
   const joinHandle = registerMock({ fn: join });
   const existsProxy = existsSyncProxy();
   const rootPathProxy = locationsRootPathFindBrokerProxy();
-  const realpathProxy = fsRealpathAdapterProxy();
+  const linkRealpath = realpathProxy();
 
   const stageOuterJoin = ({ cwdPath, linkPath }: { cwdPath: string; linkPath: FilePath }): void => {
     cwdHandle.calledWith([]).returns(cwdPath);
@@ -93,7 +93,7 @@ export const locationsRepoLinkPathFindBrokerProxy = (): {
       stageOuterJoin({ cwdPath, linkPath });
       existsProxy.returns({ path: linkPath, exists: true });
       rootPathProxy.setupRootPath({ homeDir, homePath, rootPath });
-      realpathProxy.resolves({ filePath: linkPath, resolvedPath: rootPath });
+      linkRealpath.returns({ path: linkPath, resolved: rootPath });
     },
 
     setupLinkAbsent: ({ cwdPath, linkPath }: { cwdPath: string; linkPath: FilePath }): void => {
@@ -119,7 +119,7 @@ export const locationsRepoLinkPathFindBrokerProxy = (): {
       stageOuterJoin({ cwdPath, linkPath });
       existsProxy.returns({ path: linkPath, exists: true });
       rootPathProxy.setupRootPath({ homeDir, homePath, rootPath });
-      realpathProxy.resolves({ filePath: linkPath, resolvedPath: elsewhereTarget });
+      linkRealpath.returns({ path: linkPath, resolved: elsewhereTarget });
     },
 
     // callsMatching([]) hands back a RecordedCalls with no `.at()` (see mock-handle-contract.ts) —

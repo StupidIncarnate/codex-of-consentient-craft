@@ -14,14 +14,14 @@
  * assets` itself is never created empty-then-abandoned or removed — a committed oddities file lives
  * directly inside it — this responder only ever touches the `siegelense-assets` child it owns.
  * Idempotent in the sense that matters in practice: a link left over from another checkout still
- * resolves to something real, so this compares the link's STORED target (via fsReadlinkAdapter)
+ * resolves to something real, so this compares the link's STORED target (via readlink)
  * rather than trusting its mere presence, and only replaces it when that stored target is wrong.
  *
  * Also clears the FLAT `<targetProjectRoot>/.siegelense` symlink a pre-nesting install left behind
  * (install-ignore-write-responder.ts repoints the same legacy name's `.gitignore` line) — a
  * consumer who re-runs `dungeonmaster init` after the nested path shipped would otherwise keep that
  * dead link forever, since nothing else on the install path ever revisits it. Checked with
- * fsReadlinkAdapter alone, never fsExistsSyncAdapter — existsSync FOLLOWS a symlink to its target,
+ * readlink alone, never fsExistsSyncAdapter — existsSync FOLLOWS a symlink to its target,
  * so it would read a dangling legacy link as "missing" and a live one as indistinguishable from a
  * real directory. readlink instead answers three ways without ever following the link: it resolves
  * (the path IS a symlink — unlinked via fsUnlinkAdapter), it rejects EINVAL (readlink's own answer
@@ -37,7 +37,7 @@
  */
 
 import { existsSync } from '#gateway/node/fs';
-import { ensureDir } from '#gateway/node/fs__promises';
+import { ensureDir, readlink } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
 import {
   absoluteFilePathContract,
@@ -49,7 +49,6 @@ import { locationsStatics } from '@dungeonmaster/shared/statics';
 
 import { locationsRootPathFindBroker } from '../../../brokers/locations/root-path-find/locations-root-path-find-broker';
 import { errorIsNativeErrorAdapter } from '../../../adapters/error/is-native-error/error-is-native-error-adapter';
-import { fsReadlinkAdapter } from '../../../adapters/fs/readlink/fs-readlink-adapter';
 import { fsSymlinkAdapter } from '../../../adapters/fs/symlink/fs-symlink-adapter';
 import { fsUnlinkAdapter } from '../../../adapters/fs/unlink/fs-unlink-adapter';
 
@@ -88,7 +87,7 @@ export const InstallLinkCreateResponder = async ({
   let legacySuffix = '';
 
   try {
-    await fsReadlinkAdapter({ linkPath: legacyLinkPath });
+    await readlink(legacyLinkPath);
     await fsUnlinkAdapter({ filePath: legacyLinkPath });
     legacySuffix = `; removed legacy ${LEGACY_LINK_ENTRY} symlink`;
   } catch (legacyReadError) {
@@ -128,7 +127,7 @@ export const InstallLinkCreateResponder = async ({
     };
   }
 
-  const currentTarget = await fsReadlinkAdapter({ linkPath });
+  const currentTarget = await readlink(linkPath);
 
   if (currentTarget === targetDir) {
     return {

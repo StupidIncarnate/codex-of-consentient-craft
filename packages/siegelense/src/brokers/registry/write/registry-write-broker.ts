@@ -7,26 +7,20 @@
  *
  * USAGE:
  * await registryWriteBroker({ registry: RegistryStub() });
- * // Writes registry.json.tmp, renames it over registry.json, returns { success: true }
+ * // Writes registry.json.tmp, renames it over registry.json, resolves once the rename lands
  */
 
-import { ensureDir } from '#gateway/node/fs__promises';
+import { ensureDir, rename } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
 import { absoluteFilePathContract, fileContentsContract } from '@dungeonmaster/shared/contracts';
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
-import { fsRenameAdapter } from '../../../adapters/fs/rename/fs-rename-adapter';
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import type { Registry } from '../../../contracts/registry/registry-contract';
 import { locationsRegistryPathFindBroker } from '../../locations/registry-path-find/locations-registry-path-find-broker';
 import { locationsRootPathFindBroker } from '../../locations/root-path-find/locations-root-path-find-broker';
 
-export const registryWriteBroker = async ({
-  registry,
-}: {
-  registry: Registry;
-}): Promise<AdapterResult> => {
+export const registryWriteBroker = async ({ registry }: { registry: Registry }): Promise<void> => {
   const rootPath = locationsRootPathFindBroker();
   const registryPath = locationsRegistryPathFindBroker();
   const tmpPath = absoluteFilePathContract.parse(
@@ -38,5 +32,5 @@ export const registryWriteBroker = async ({
   const contents = fileContentsContract.parse(`${JSON.stringify(registry)}\n`);
   await fsWriteFileAdapter({ filePath: tmpPath, contents });
 
-  return fsRenameAdapter({ fromPath: tmpPath, toPath: registryPath });
+  await rename(tmpPath, registryPath);
 };

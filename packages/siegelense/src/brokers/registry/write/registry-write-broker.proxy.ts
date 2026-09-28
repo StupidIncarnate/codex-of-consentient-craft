@@ -1,10 +1,10 @@
 import { join } from '#gateway/node/path';
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
+import { renameProxy } from '#gateway/node/fs__promises/rename/rename.proxy';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { AbsoluteFilePathStub, FilePathStub } from '@dungeonmaster/shared/contracts';
 
-import { fsRenameAdapterProxy } from '../../../adapters/fs/rename/fs-rename-adapter.proxy';
 import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
 import { locationsRegistryPathFindBrokerProxy } from '../../locations/registry-path-find/locations-registry-path-find-broker.proxy';
 import { locationsRootPathFindBrokerProxy } from '../../locations/root-path-find/locations-root-path-find-broker.proxy';
@@ -41,7 +41,7 @@ export const registryWriteBrokerProxy = (): {
   const joinHandle = registerMock({ fn: join });
   const ensureDirHandle = ensureDirProxy();
   const writeProxy = fsWriteFileAdapterProxy();
-  const renameProxy = fsRenameAdapterProxy();
+  const registryRename = renameProxy();
 
   const queuePaths = (): void => {
     rootPathProxy.setupRootPath({ homeDir: HOME_DIR, homePath, rootPath });
@@ -54,7 +54,7 @@ export const registryWriteBrokerProxy = (): {
     setupWriteSuccess: (): void => {
       queuePaths();
       writeProxy.succeeds({ filePath: tmpPathAbs });
-      renameProxy.succeeds({ fromPath: tmpPathAbs });
+      registryRename.succeeds({ from: TMP_PATH_VALUE, to: REGISTRY_PATH_VALUE });
     },
 
     setupWriteFailure: ({ error }: { error: Error }): void => {
@@ -66,8 +66,10 @@ export const registryWriteBrokerProxy = (): {
 
     getWrittenContent: (): unknown => writeProxy.getWrittenFor({ filePath: tmpPathAbs }),
 
-    getRenamedFrom: (): unknown => TMP_PATH_VALUE,
+    getRenamedFrom: (): unknown =>
+      registryRename.getCallsFor({ from: TMP_PATH_VALUE, to: REGISTRY_PATH_VALUE }).at(-1)?.[0],
 
-    getRenamedTo: (): unknown => renameProxy.getToPathFor({ fromPath: tmpPathAbs }),
+    getRenamedTo: (): unknown =>
+      registryRename.getCallsFor({ from: TMP_PATH_VALUE, to: REGISTRY_PATH_VALUE }).at(-1)?.[1],
   };
 };

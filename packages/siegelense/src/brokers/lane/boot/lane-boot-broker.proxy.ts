@@ -8,6 +8,7 @@ import { chromium } from '@playwright/test';
 import { join } from '#gateway/node/path';
 import { cwd } from '#gateway/node/process';
 import { closeSyncProxy } from '#gateway/node/fs/close-sync/close-sync.proxy';
+import { openForAppendSyncProxy } from '#gateway/node/fs/open-for-append-sync/open-for-append-sync.proxy';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
@@ -16,7 +17,6 @@ import { absoluteFilePathContract, contentTextContract } from '@dungeonmaster/sh
 import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
 
 import { childProcessSpawnDetachedAdapterProxy } from '../../../adapters/child-process/spawn-detached/child-process-spawn-detached-adapter.proxy';
-import { fsOpenFdAdapterProxy } from '../../../adapters/fs/open-fd/fs-open-fd-adapter.proxy';
 import { fsRmAdapterProxy } from '../../../adapters/fs/rm/fs-rm-adapter.proxy';
 import { playwrightSessionAdapterProxy } from '../../../adapters/playwright/session/playwright-session-adapter.proxy';
 import { processKillGroupAdapterProxy } from '../../../adapters/process/kill-group/process-kill-group-adapter.proxy';
@@ -87,7 +87,7 @@ export const laneBootBrokerProxy = (): {
   // `join` (from '#gateway/node/path') runs for real, on a sticky passthrough default — every
   // join this broker makes (claudeQueueDir, wardQueueDir, each process's logPath) is already known
   // at test-setup time (HOME_PATH_VALUE/EVIDENCE_PATH_VALUE plus a literal segment), so the real
-  // computed path always matches what setupProcessBoot stages on fsOpenFdAdapter.
+  // computed path always matches what setupProcessBoot stages on openForAppendSync.
   const realPath = requireActual<{ join: typeof join }>({ module: 'path' });
   registerMock({ fn: join })
     .calledWith([])
@@ -103,7 +103,7 @@ export const laneBootBrokerProxy = (): {
   const cwdHandle = registerMock({ fn: cwd });
   cwdHandle.calledWith([]).returns(CWD_PATH_VALUE);
   const spawnProxy = childProcessSpawnDetachedAdapterProxy();
-  const openFdProxy = fsOpenFdAdapterProxy();
+  const openFdProxy = openForAppendSyncProxy();
   const closeFdProxy = closeSyncProxy();
   const rmProxy = fsRmAdapterProxy();
   const killProxy = processKillGroupAdapterProxy();
@@ -135,7 +135,7 @@ export const laneBootBrokerProxy = (): {
       args: readonly string[];
       pid: number;
     }): void => {
-      openFdProxy.returns({ filePath: logPath, fd });
+      openFdProxy.returns({ path: logPath, fd });
       spawnProxy.succeeds({ command, args: [...args], pid });
       // A boot-failure path SIGKILLs and closes every group it spawned, regardless of which
       // process(es) triggered the failure — every booted process needs its kill/close pre-staged,

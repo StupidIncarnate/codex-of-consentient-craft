@@ -1,5 +1,6 @@
-import { mkdir, symlink } from 'fs/promises';
+import { mkdir, readlink, symlink } from 'fs/promises';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
+import { readlinkProxy } from '#gateway/node/fs__promises/readlink/readlink.proxy';
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { join } from '#gateway/node/path';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
@@ -7,7 +8,6 @@ import { AbsoluteFilePathStub, FilePathStub } from '@dungeonmaster/shared/contra
 
 import { locationsRootPathFindBrokerProxy } from '../../../brokers/locations/root-path-find/locations-root-path-find-broker.proxy';
 import { errorIsNativeErrorAdapterProxy } from '../../../adapters/error/is-native-error/error-is-native-error-adapter.proxy';
-import { fsReadlinkAdapterProxy } from '../../../adapters/fs/readlink/fs-readlink-adapter.proxy';
 import { fsSymlinkAdapterProxy } from '../../../adapters/fs/symlink/fs-symlink-adapter.proxy';
 import { fsUnlinkAdapterProxy } from '../../../adapters/fs/unlink/fs-unlink-adapter.proxy';
 import { InstallLinkCreateResponder } from './install-link-create-responder';
@@ -28,15 +28,6 @@ const targetDirAbs = AbsoluteFilePathStub({ value: TARGET_DIR_VALUE });
 const targetDirFp = FilePathStub({ value: TARGET_DIR_VALUE });
 const linkPathAbs = AbsoluteFilePathStub({ value: LINK_PATH_VALUE });
 const legacyLinkPathAbs = AbsoluteFilePathStub({ value: LEGACY_LINK_PATH_VALUE });
-
-// readlink's own answer for "this path exists and is not a symlink" — the code the responder reads
-// as "a real directory or file lives here, leave it alone".
-const legacyIsRealDirectoryError = (): Error =>
-  Object.assign(new Error('EINVAL: invalid argument'), { code: 'EINVAL' });
-
-// The ordinary case: no pre-nesting install ever ran here, so the legacy path was never there.
-const legacyAbsentError = (): Error =>
-  Object.assign(new Error('ENOENT: no such file or directory'), { code: 'ENOENT' });
 
 export const InstallLinkCreateResponderProxy = (): {
   callResponder: typeof InstallLinkCreateResponder;
@@ -66,7 +57,7 @@ export const InstallLinkCreateResponderProxy = (): {
   const mkdirProxy = ensureDirProxy();
   const existsProxy = existsSyncProxy();
   const symlinkProxy = fsSymlinkAdapterProxy();
-  const readlinkProxy = fsReadlinkAdapterProxy();
+  const linkReadlink = readlinkProxy();
   const unlinkProxy = fsUnlinkAdapterProxy();
 
   // The responder resolves targetDir first (locationsRootPathFindBroker's own join, staged inside
@@ -97,7 +88,7 @@ export const InstallLinkCreateResponderProxy = (): {
   // OVERRIDE this default by re-staging the same address, since registerMock's most-recently-
   // registered same-specificity address wins.
   const setupLegacyAbsent = (): void => {
-    readlinkProxy.rejects({ linkPath: legacyLinkPathAbs, error: legacyAbsentError() });
+    linkReadlink.missing({ path: LEGACY_LINK_PATH_VALUE });
   };
 
   return {
@@ -121,7 +112,7 @@ export const InstallLinkCreateResponderProxy = (): {
       joinHandle.onceFor([]).returns(LINK_PATH_VALUE);
       setupBothMkdirs();
       existsProxy.returns({ path: LINK_PATH_VALUE, exists: true });
-      readlinkProxy.resolves({ linkPath: linkPathAbs, resolvedTarget: targetDirAbs });
+      linkReadlink.returns({ path: LINK_PATH_VALUE, target: TARGET_DIR_VALUE });
       setupLegacyAbsent();
     },
 
@@ -132,7 +123,7 @@ export const InstallLinkCreateResponderProxy = (): {
       joinHandle.onceFor([]).returns(LINK_PATH_VALUE);
       setupBothMkdirs();
       existsProxy.returns({ path: LINK_PATH_VALUE, exists: true });
-      readlinkProxy.resolves({ linkPath: linkPathAbs, resolvedTarget: wrongTarget });
+      linkReadlink.returns({ path: LINK_PATH_VALUE, target: wrongTarget });
       unlinkProxy.succeeds({ filePath: linkPathAbs });
       symlinkProxy.succeeds({ targetPath: targetDirAbs, linkPath: linkPathAbs });
       setupLegacyAbsent();
@@ -146,8 +137,8 @@ export const InstallLinkCreateResponderProxy = (): {
       joinHandle.onceFor([]).returns(LINK_PATH_VALUE);
       setupBothMkdirs();
       existsProxy.returns({ path: LINK_PATH_VALUE, exists: true });
-      readlinkProxy.resolves({ linkPath: linkPathAbs, resolvedTarget: targetDirAbs });
-      readlinkProxy.resolves({ linkPath: legacyLinkPathAbs, resolvedTarget: targetDirAbs });
+      linkReadlink.returns({ path: LINK_PATH_VALUE, target: TARGET_DIR_VALUE });
+      linkReadlink.returns({ path: LEGACY_LINK_PATH_VALUE, target: TARGET_DIR_VALUE });
       unlinkProxy.succeeds({ filePath: legacyLinkPathAbs });
     },
 
@@ -159,14 +150,15 @@ export const InstallLinkCreateResponderProxy = (): {
       joinHandle.onceFor([]).returns(LINK_PATH_VALUE);
       setupBothMkdirs();
       existsProxy.returns({ path: LINK_PATH_VALUE, exists: true });
-      readlinkProxy.resolves({ linkPath: linkPathAbs, resolvedTarget: targetDirAbs });
-      readlinkProxy.rejects({ linkPath: legacyLinkPathAbs, error: legacyIsRealDirectoryError() });
+      linkReadlink.returns({ path: LINK_PATH_VALUE, target: TARGET_DIR_VALUE });
+      linkReadlink.notALink({ path: LEGACY_LINK_PATH_VALUE });
     },
 
     getSymlinkCalls: (): readonly { targetPath: unknown; linkPath: unknown; type: unknown }[] =>
       symlinkProxy.getCalls(),
 
-    getReadlinkCalls: (): readonly unknown[] => readlinkProxy.getCalls(),
+    getReadlinkCalls: (): readonly unknown[] =>
+      (readlink as jest.MockedFunction<typeof readlink>).mock.calls.map(([path]) => path),
 
     getUnlinkedPaths: (): readonly unknown[] => unlinkProxy.getDeletedPaths(),
 

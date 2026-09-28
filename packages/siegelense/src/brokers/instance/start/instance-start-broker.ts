@@ -74,6 +74,7 @@
  */
 
 import { join } from '#gateway/node/path';
+import { openForAppendSync } from '#gateway/node/fs';
 import { cwd } from '#gateway/node/process';
 import {
   absoluteFilePathContract,
@@ -91,7 +92,7 @@ import type { RecipeName } from '../../../contracts/recipe-name/recipe-name-cont
 
 import { childProcessSpawnDetachedAdapter } from '../../../adapters/child-process/spawn-detached/child-process-spawn-detached-adapter';
 import { cliPackageBinResolveAdapter } from '../../../adapters/cli-package/bin-resolve/cli-package-bin-resolve-adapter';
-import { fsOpenFdAdapter } from '../../../adapters/fs/open-fd/fs-open-fd-adapter';
+import { fileDescriptorContract } from '../../../contracts/file-descriptor/file-descriptor-contract';
 import { osTmpdirAdapter } from '../../../adapters/os/tmpdir/os-tmpdir-adapter';
 import { instanceStartBootPollLayerBroker } from './instance-start-boot-poll-layer-broker';
 import { bootLockAcquireBroker } from '../../boot-lock/acquire/boot-lock-acquire-broker';
@@ -242,7 +243,7 @@ export const instanceStartBroker = async ({
     const driverLogPath = absoluteFilePathContract.parse(
       join(evidencePath, locationsStatics.siegelense.driverLog),
     );
-    const driverLogFd = fsOpenFdAdapter({ filePath: driverLogPath });
+    const driverLogFd = fileDescriptorContract.parse(openForAppendSync(driverLogPath));
 
     const cwdSeed = filePathContract.parse(cwd());
     const repoRoot = await cwdResolveBroker({ startPath: cwdSeed, kind: 'repo-root' });

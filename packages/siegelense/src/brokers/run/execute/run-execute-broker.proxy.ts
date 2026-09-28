@@ -191,7 +191,7 @@ export const runExecuteBrokerProxy = (): {
   snapshotCaptureHandle.calledWith([]).resolves(SnapshotRecordStub());
 
   // Captured (not composed bare) so its own setupHomeOnly can stage the addressed home. Not
-  // composed as fsAccessAdapterProxy/fsExistsSyncAdapterProxy/fsRealpathAdapterProxy — this
+  // composed as fsAccessAdapterProxy/fsExistsSyncAdapterProxy/realpathProxy — this
   // implementation never imports any of those directly, locationsRepoLinkPathFindBroker uses them
   // transitively — so the underlying node primitives are mocked here instead, the same convention
   // instance-kill-broker.proxy.ts uses for the identical broker.

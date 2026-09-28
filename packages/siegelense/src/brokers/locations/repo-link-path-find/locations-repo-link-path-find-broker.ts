@@ -16,6 +16,7 @@ import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
 import { cwd } from '#gateway/node/process';
 import { join } from '#gateway/node/path';
 import { existsSync } from '#gateway/node/fs';
+import { realpath } from '#gateway/node/fs__promises';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import {
   absoluteFilePathContract,
@@ -24,7 +25,6 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import { locationsRootPathFindBroker } from '../root-path-find/locations-root-path-find-broker';
-import { fsRealpathAdapter } from '../../../adapters/fs/realpath/fs-realpath-adapter';
 import {
   repoLocalPathContract,
   type RepoLocalPath,
@@ -53,7 +53,7 @@ export const locationsRepoLinkPathFindBroker = async ({
   }
 
   const rootPath = locationsRootPathFindBroker();
-  const resolvedTarget = await fsRealpathAdapter({ filePath: linkPath });
+  const resolvedTarget = await realpath(linkPath);
 
   if (resolvedTarget !== rootPath) {
     return repoLocalPathContract.parse({ path: homePath, linkPresent: false });

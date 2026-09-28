@@ -4,7 +4,7 @@
  * process at index 0, and a process list is never empty (`laneSpecContract` refines on it), so this
  * needs no portRole lookup to stay well-defined for any spec. Reads happen by BYTE offset off disk
  * rather than from an in-memory buffer: a spawned process's stdout/stderr is redirected straight to
- * a raw OS fd (`fsOpenFdAdapter`), so nothing in this process ever sees the bytes it writes — unlike
+ * a raw OS fd (`openForAppendSync`), so nothing in this process ever sees the bytes it writes — unlike
  * `BrowserSession`'s console/network/websocket lines, which arrive over Playwright's own event
  * stream.
  *

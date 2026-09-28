@@ -33,7 +33,7 @@
  */
 
 import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
-import { closeSync } from '#gateway/node/fs';
+import { closeSync, openForAppendSync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
 import { cwd } from '#gateway/node/process';
 import { ensureDir } from '#gateway/node/fs__promises';
@@ -47,7 +47,7 @@ import {
 import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
 
 import { childProcessSpawnDetachedAdapter } from '../../../adapters/child-process/spawn-detached/child-process-spawn-detached-adapter';
-import { fsOpenFdAdapter } from '../../../adapters/fs/open-fd/fs-open-fd-adapter';
+import { fileDescriptorContract } from '../../../contracts/file-descriptor/file-descriptor-contract';
 import { fsRmAdapter } from '../../../adapters/fs/rm/fs-rm-adapter';
 import { playwrightSessionAdapter } from '../../../adapters/playwright/session/playwright-session-adapter';
 import { processKillGroupAdapter } from '../../../adapters/process/kill-group/process-kill-group-adapter';
@@ -138,7 +138,7 @@ export const laneBootBroker = async ({
 
   const booted = spec.processes.map((laneProcess) => {
     const logPath = absoluteFilePathContract.parse(join(evidencePath, laneProcess.logFileName));
-    const fd = fsOpenFdAdapter({ filePath: logPath });
+    const fd = fileDescriptorContract.parse(openForAppendSync(logPath));
 
     const substitutedArgs = laneProcess.args.map((arg) =>
       lanePlaceholderSubstituteTransformer({

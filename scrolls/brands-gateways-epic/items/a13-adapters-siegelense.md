@@ -202,3 +202,48 @@ Remaining:
 - `lane-teardown-broker` (with its proxy, test and the three composing driver proxies) stays on `fsCloseFdAdapter`. Its test `the fd closes happen after the SIGTERM/SIGKILL signals` asserts cross-function order between `kill` and `closeSync`, which `closeSyncProxy` cannot read back; per-call content does not prove order. Once the gateway offers ordering, move it and delete `adapters/fs/close-fd/`.
 - Every other adapter in this item (`open-fd` onward, misc singles, `playwright/session/*`) is untouched.
 
+
+## Plan — SL-FS2
+
+Six adapters were named: `open-fd`, `readdir`, `read-file`, `readlink`, `realpath`, `rename`. Census of callers (2026-09-28, code wins): `read-file` has 61 caller files, `readdir` has 17 non-adapter files, so the full six is far past the ~40-file bound. This pass does the four that fit; `readdir` and `read-file` are left for a follow-up chunk. Composing proxies keep their child proxy method names, so none of them needs an edit (the SL-FS1 approach).
+
+All paths below are under `packages/siegelense/`. Direct callers move onto the gateway; child proxies keep their method names.
+
+### open-fd -> `openForAppendSync` from `#gateway/node/fs` (11 files)
+- Adapter, deleted: `src/adapters/fs/open-fd/fs-open-fd-adapter.ts`, `.proxy.ts`, `.test.ts`
+- Callers: `src/brokers/instance/start/instance-start-broker.ts`, `.proxy.ts`, `.test.ts`; `src/brokers/lane/boot/lane-boot-broker.ts`, `.proxy.ts`, `.test.ts`
+- Comment-only mentions: `src/brokers/lane/boot/server-log-reader-layer-broker.ts`, `src/contracts/file-descriptor/file-descriptor-contract.ts`
+- Composing proxies (no edit): `src/responders/siegelense/start/siegelense-start-responder.proxy.ts`, `src/responders/siegelense/driver/siegelense-driver-responder.proxy.ts`
+
+### readlink -> `readlinkIfLink` from `#gateway/node/fs__promises` (6 files)
+- Adapter, deleted: `src/adapters/fs/readlink/fs-readlink-adapter.ts`, `.proxy.ts`, `.test.ts`
+- Caller: `src/responders/install/link-create/install-link-create-responder.ts`, `.proxy.ts`, `.test.ts`
+- Composing (no edit): `src/flows/install/install-flow.ts` imports the responder only
+
+### realpath -> `realpath` from `#gateway/node/fs__promises` (7 files)
+- Adapter, deleted: `src/adapters/fs/realpath/fs-realpath-adapter.ts`, `.proxy.ts`, `.test.ts`
+- Caller: `src/brokers/locations/repo-link-path-find/locations-repo-link-path-find-broker.ts`, `.proxy.ts`, `.test.ts`
+- Direct adapter-proxy user: `src/brokers/run/execute/run-execute-broker.proxy.ts`
+- Composing (no edit): step-video, instance-start, instance-kill, lane-teardown, run-execute, instance-entry-layer broker proxies
+
+### rename -> `rename` from `#gateway/node/fs__promises` (6 files)
+- Adapter, deleted: `src/adapters/fs/rename/fs-rename-adapter.ts`, `.proxy.ts`, `.test.ts`
+- Caller: `src/brokers/registry/write/registry-write-broker.ts`, `.proxy.ts`, `.test.ts`
+- Composing (no edit): `src/brokers/registry/update/registry-update-broker.proxy.ts`
+- Barrel: remove the `fs-readlink`, `fs-realpath`, `fs-rename` lines from `adapters.ts`
+
+About 30 files. `adapters.ts` also edited.
+
+### Left for a later chunk
+- `readdir` (17 files besides the adapter) and `read-file` (61 files besides the adapter).
+
+### Execution result (SL-FS2)
+
+Done: `open-fd`, `readlink`, `realpath` and `rename` adapters deleted (folders gone), and their `adapters.ts` barrel lines for `readlink`, `realpath`, `rename`.
+- `instance-start-broker` and `lane-boot-broker` open the log through `openForAppendSync` from `#gateway/node/fs` and brand the descriptor with `fileDescriptorContract.parse` at the call site.
+- `locations-repo-link-path-find-broker` calls `realpath` from `#gateway/node/fs__promises`.
+- `registry-write-broker` calls `rename` and returns `Promise<void>` (R1); every caller ignored the old `{ success: true }`. Its proxy now reads the renamed pair back from the gateway proxy by exact `from`/`to`.
+- `install-link-create-responder` calls plain `readlink`, not `readlinkIfLink`: the responder needs ENOENT and EINVAL kept apart (EINVAL reports "real directory or file; left untouched"), and `readlinkIfLink` folds both into `null`. Its `getReadlinkCalls` reads jest's own call list off `fs/promises` `readlink`, in real order.
+- Composing proxies needed no edit; child proxies kept their method names.
+
+Remaining: `readdir` (17 non-adapter files) and `read-file` (61 non-adapter files).
