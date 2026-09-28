@@ -96,7 +96,7 @@ describe('questNewBroker', () => {
       await expect(
         questNewBroker({ guildId, message: UserInputStub({ value: 'Hi' }) }),
       ).rejects.toThrow(
-        /network error posting to \/api\/guilds\/1c27ba90-c110-14f0-94be-250818fd3443\/quests/u,
+        /^POST \/api\/guilds\/1c27ba90-c110-14f0-94be-250818fd3443\/quests failed: network error$/u,
       );
     });
   });
@@ -161,7 +161,9 @@ describe('questNewBroker', () => {
     });
 
     it('VALID: #check-create-post-carries-images {message with two pasted-image tokens, two images} => posts the message plus both images in order at the resolved create route', async () => {
-      const proxy = questNewBrokerProxy();
+      const proxy = questNewBrokerProxy({
+        url: '/api/guilds/97241aaa-ae56-6f58-b9ec-a952ee85b407/quests',
+      });
       const guildId = GuildIdStub({ value: '97241aaa-ae56-6f58-b9ec-a952ee85b407' });
       const message = UserInputStub({ value: 'See [Pasted Image 1] and [Pasted Image 2]' });
       const firstImage = PastedImageUploadStub({
@@ -184,7 +186,6 @@ describe('questNewBroker', () => {
           { mediaType: 'image/jpeg', dataBase64: 'd29ybGQ=' },
         ],
       });
-      expect(proxy.getRequestUrl()).toBe('/api/guilds/97241aaa-ae56-6f58-b9ec-a952ee85b407/quests');
     });
   });
 });

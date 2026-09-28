@@ -327,7 +327,7 @@ test.describe('Composer paste — inserts a thumbnail', () => {
     await page.keyboard.type(' b');
 
     // Real Chromium splits ' ' and 'b' into two separate sibling text nodes here —
-    // domComposerInsertTextAdapter always calls document.createTextNode for an intercepted keystroke
+    // composerInsertTextBroker always calls document.createTextNode for an intercepted keystroke
     // and never merges into a non-empty adjacent text node. That split is not a product defect: the
     // composer's own reader merges adjacent text nodes, so the user-visible and serialised text are
     // both ' b' with the leading space intact. Assert the SERIALISED text (readComposerTextContent

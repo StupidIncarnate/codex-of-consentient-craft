@@ -718,7 +718,7 @@ test.describe('Composer send — images ride the chat route', () => {
   });
 
   // An aborted /chat POST used to leave the composer stuck non-editable until a full page reload:
-  // xhrPostWithProgressAdapter listened for 'load'/'error'/'timeout' but never 'abort', so an
+  // the XHR wrapper listened for 'load'/'error'/'timeout' but never 'abort', so an
   // aborted XHR's wrapping promise never settled — handleSend's own `.finally` (which resets
   // isSending, and with it CHAT_INPUT's contenteditable) never ran, and no error ever surfaced.
   // `abortXhrAfterSend` reproduces the walker's exact repro: the real send() runs (the request
@@ -790,9 +790,7 @@ test.describe('Composer send — images ride the chat route', () => {
 
     // A user whose send died deserves to know.
     const toasts = await send.readToastTexts();
-    expect(toasts).toStrictEqual([
-      `xhrPostWithProgressAdapter: request to /api/quests/${questId}/chat was aborted`,
-    ]);
+    expect(toasts).toStrictEqual([`POST /api/quests/${questId}/chat failed: aborted`]);
 
     // The lock/unlock recording proves the composer actually PASSED THROUGH a locked state before
     // recovering, rather than this being a composer that was never locked in the first place —

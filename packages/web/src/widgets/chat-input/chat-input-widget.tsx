@@ -2,7 +2,7 @@
  * PURPOSE: Chat composer with send/stop buttons. The editor is a `contenteditable` div rather than
  * a `<textarea>` so a pasted image can render as an inline thumbnail at the caret — React never owns
  * its children (that would reset the caret on every paste), so all content lives in the live DOM and
- * is read back out through `domComposerReadAdapter` whenever something needs to know what the
+ * is read back out through `composerReadTransformer` whenever something needs to know what the
  * composer currently holds. Text drafts persist to localStorage; pasted-image bytes persist to
  * IndexedDB, both across tab close/reopen, and both keyed by composerScopeKeyTransformer's
  * questId+surface scope so one composer's draft can never overwrite or restore into another's. A
@@ -25,11 +25,11 @@ import type { PastedImageUpload, QuestId, UserInput } from '@dungeonmaster/share
 import { pastedImageMediaTypeContract } from '@dungeonmaster/shared/contracts';
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
-import { domComposerDeleteThumbnailAdapter } from '../../adapters/dom/composer-delete-thumbnail/dom-composer-delete-thumbnail-adapter';
-import { domComposerInsertImageAdapter } from '../../adapters/dom/composer-insert-image/dom-composer-insert-image-adapter';
-import { domComposerInsertTextAdapter } from '../../adapters/dom/composer-insert-text/dom-composer-insert-text-adapter';
-import { domComposerReadAdapter } from '../../adapters/dom/composer-read/dom-composer-read-adapter';
-import { domComposerWriteAdapter } from '../../adapters/dom/composer-write/dom-composer-write-adapter';
+import { composerDeleteThumbnailBroker } from '../../brokers/composer/delete-thumbnail/composer-delete-thumbnail-broker';
+import { composerInsertImageBroker } from '../../brokers/composer/insert-image/composer-insert-image-broker';
+import { composerInsertTextBroker } from '../../brokers/composer/insert-text/composer-insert-text-broker';
+import { composerReadTransformer } from '../../transformers/composer-read/composer-read-transformer';
+import { composerWriteBroker } from '../../brokers/composer/write/composer-write-broker';
 import { fileReadDataUrlAdapter } from '../../adapters/file/read-data-url/file-read-data-url-adapter';
 import { mantineNotificationsShowAdapter } from '../../adapters/mantine/notifications-show/mantine-notifications-show-adapter';
 import { draftImagesLoadBroker } from '../../brokers/draft-images/load/draft-images-load-broker';
@@ -196,7 +196,7 @@ export const ChatInputWidget = ({
       const editor = editorRef.current;
       if (editor === null) return;
 
-      const segments = domComposerReadAdapter({ editor });
+      const segments = composerReadTransformer({ editor });
       const { text, attachmentIds } = composerSerializeTransformer({ segments });
 
       setIsEmpty(text.length === 0);
@@ -298,7 +298,7 @@ export const ChatInputWidget = ({
 
       if (imageItem === undefined) {
         event.preventDefault();
-        domComposerInsertTextAdapter({ editor, text: event.clipboardData.getData('text/plain') });
+        composerInsertTextBroker({ editor, text: event.clipboardData.getData('text/plain') });
         handleContentChanged({ force: false });
         return;
       }
@@ -365,7 +365,7 @@ export const ChatInputWidget = ({
           return;
         }
 
-        domComposerInsertImageAdapter({ editor, attachment });
+        composerInsertImageBroker({ editor, attachment });
         attachmentsRef.current.set(attachment.attachmentId, attachment);
         handleContentChanged({ force: false });
       } catch {
@@ -391,7 +391,7 @@ export const ChatInputWidget = ({
     // second call in the same synchronous burst needs a synchronous read here.
     if (isSendingRef.current) return;
 
-    const segments = domComposerReadAdapter({ editor });
+    const segments = composerReadTransformer({ editor });
     const { text, attachmentIds } = composerSerializeTransformer({ segments });
     const trimmed = text.trim();
     if (trimmed.length === 0) return;
@@ -489,7 +489,7 @@ export const ChatInputWidget = ({
       // inserts exactly one '\n', deliberately, rather than inheriting whatever the browser does.
       if (event.key === 'Enter' && event.shiftKey) {
         event.preventDefault();
-        domComposerInsertTextAdapter({ editor, text: '\n' });
+        composerInsertTextBroker({ editor, text: '\n' });
         handleContentChanged({ force: false });
         return;
       }
@@ -527,7 +527,7 @@ export const ChatInputWidget = ({
         event.inputType === 'deleteContentBackward' ||
         event.inputType === 'deleteContentForward'
       ) {
-        const removedAttachmentId = domComposerDeleteThumbnailAdapter({
+        const removedAttachmentId = composerDeleteThumbnailBroker({
           editor,
           direction: event.inputType === 'deleteContentBackward' ? 'backward' : 'forward',
         });
@@ -550,7 +550,7 @@ export const ChatInputWidget = ({
         const hasThumbnail = editor.querySelector(THUMBNAIL_SELECTOR) !== null;
         if (hasThumbnail) {
           event.preventDefault();
-          domComposerInsertTextAdapter({ editor, text: event.data ?? '' });
+          composerInsertTextBroker({ editor, text: event.data ?? '' });
           handleContentChanged({ force: false });
         }
       }
@@ -585,7 +585,7 @@ export const ChatInputWidget = ({
       attachmentsRef.current = new Map();
       lastSavedAttachmentIdsRef.current = [];
       if (previousEditor !== null) {
-        domComposerWriteAdapter({ editor: previousEditor, segments: [], attachments: new Map() });
+        composerWriteBroker({ editor: previousEditor, segments: [], attachments: new Map() });
       }
       setIsEmpty(true);
     }
@@ -670,7 +670,7 @@ export const ChatInputWidget = ({
 
       const editor = editorRef.current;
       if (editor !== null) {
-        domComposerWriteAdapter({ editor, segments, attachments: map });
+        composerWriteBroker({ editor, segments, attachments: map });
       }
     } catch (error) {
       globalThis.console.error('[chat-input] failed to restore draft', error);

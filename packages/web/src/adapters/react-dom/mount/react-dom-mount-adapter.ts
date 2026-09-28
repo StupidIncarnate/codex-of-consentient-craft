@@ -6,6 +6,8 @@
  * // Mounts content wrapped in Wrapper into the DOM element with given ID
  */
 import '@mantine/core/styles.css';
+import '@mantine/notifications/styles.css';
+import '@xyflow/react/dist/style.css';
 
 import { type ComponentType, createElement, type ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';

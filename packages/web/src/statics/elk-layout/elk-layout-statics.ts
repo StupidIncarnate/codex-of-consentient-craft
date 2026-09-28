@@ -8,7 +8,7 @@
  *
  * An assertion column is NOT an ELK child — it is painted at `node.width + observable.gap` from its
  * card — so ELK reserves its space along both axes indirectly, and each axis has its own mechanism:
- *   - HEIGHT: the owning node's ELK box is inflated to the column's full height (elkLayoutAdapter),
+ *   - HEIGHT: the owning node's ELK box is inflated to the column's full height (elkLayoutBroker),
  *     so a column never reaches a lower layer.
  *   - WIDTH: `spacing.nodeNode` AND `spacing.edgeNode`, which must BOTH exceed the column's span.
  *     See the note on `spacing` — a same-layer neighbour is held off by one or the other depending
@@ -99,7 +99,7 @@ export const elkLayoutStatics = {
   //
   // nodeNodeBetweenLayers gives a wrapped multi-line label vertical room between layers; the column
   // needs nothing from it, because a column's HEIGHT is reserved on its own node's ELK box (see
-  // elkLayoutAdapter) and so never leaves that node's layer. edgeEdge is the clearance ELK keeps
+  // elkLayoutBroker) and so never leaves that node's layer. edgeEdge is the clearance ELK keeps
   // between two routed edges. Each edge is drawn along ELK's routed bend points (see
   // xyflowEdgeAdapter), so ELK's own clearances also keep the edges themselves off the cards.
   spacing: {

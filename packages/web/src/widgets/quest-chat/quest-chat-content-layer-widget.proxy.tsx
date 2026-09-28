@@ -64,8 +64,8 @@ export const QuestChatContentLayerWidgetProxy = (): {
   // prove an image survives handleSend on both the create surface and the live-quest composer.
   // pasteImageIntoComposer drives a SECOND, independently-constructed ChatInputWidgetProxy's
   // pasteImage()/attachYields() against the SAME rendered CHAT_INPUT node — the same "shared spy,
-  // multiple registrations" mechanism this package already relies on elsewhere (see
-  // use-quest-chat-binding.proxy.ts's getChatRequestBody note), not a second, disconnected composer.
+  // multiple registrations" mechanism this package already relies on elsewhere, not a second,
+  // disconnected composer.
   pasteImageIntoComposer: (params: {
     attachment: ReturnType<typeof ComposerAttachmentStub>;
     bytes: Uint8Array;
@@ -74,7 +74,7 @@ export const QuestChatContentLayerWidgetProxy = (): {
   // Mirrors getFollowupRequestBody below, for the MAIN composer's mid-quest send — reaches through to
   // useQuestChatBindingProxy's own getChatRequestBody(), which this proxy already constructs (as
   // `binding`) but did not previously surface.
-  getChatRequestBody: () => unknown;
+  getChatRequestBody: () => Promise<unknown>;
   getChatRequestCount: () => RequestCount;
   getClarifyRequestCount: () => RequestCount;
   getPauseRequestCount: () => RequestCount;
@@ -84,7 +84,7 @@ export const QuestChatContentLayerWidgetProxy = (): {
   setupFollowup: (params: { chatProcessId: ProcessId }) => void;
   setupFollowupRejected: (params: { error: string }) => void;
   setupMerge: (params: { merging: boolean }) => void;
-  getFollowupRequestBody: () => unknown;
+  getFollowupRequestBody: () => Promise<unknown>;
   getFollowupRequestCount: () => RequestCount;
   getMergeRequestCount: () => RequestCount;
   clickFollowupButton: () => Promise<void>;
@@ -202,7 +202,7 @@ export const QuestChatContentLayerWidgetProxy = (): {
       });
     },
     getComposerThumbnailAttachmentIds: () => chatInput.getThumbnailAttachmentIds(),
-    getChatRequestBody: () => binding.getChatRequestBody(),
+    getChatRequestBody: async () => binding.getChatRequestBody(),
     getChatRequestCount: () => binding.getChatRequestCount(),
     getClarifyRequestCount: () => binding.getClarifyRequestCount(),
     getPauseRequestCount: () => binding.getPauseRequestCount(),
@@ -215,7 +215,7 @@ export const QuestChatContentLayerWidgetProxy = (): {
     setupMerge: ({ merging }) => {
       merge.setupMerge({ merging });
     },
-    getFollowupRequestBody: () => binding.getFollowupRequestBody(),
+    getFollowupRequestBody: async () => binding.getFollowupRequestBody(),
     getFollowupRequestCount: () => binding.getFollowupRequestCount(),
     getMergeRequestCount: () => merge.getRequestCount(),
     clickFollowupButton: async () => {

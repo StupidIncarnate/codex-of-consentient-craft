@@ -9,7 +9,7 @@
  * // Renders a FLOW_PORTAL_NODE card showing the cross-flow target label.
  */
 
-import { xyflowNodeHandlesAdapter } from '../../adapters/xyflow/node-handles/xyflow-node-handles-adapter';
+import { FlowNodeHandlesWidget } from '../flow-node-handles/flow-node-handles-widget';
 import type { FlowPortalNodeData } from '../../contracts/flow-portal-node-data/flow-portal-node-data-contract';
 import { elkLayoutStatics } from '../../statics/elk-layout/elk-layout-statics';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
@@ -46,7 +46,7 @@ export const FlowPortalNodeLayerWidget = ({
         overflowWrap: 'break-word',
       }}
     >
-      {xyflowNodeHandlesAdapter()}
+      {FlowNodeHandlesWidget()}
       <div data-testid="FLOW_PORTAL_NODE_LABEL">{label}</div>
     </div>
   );

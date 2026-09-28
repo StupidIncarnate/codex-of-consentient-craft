@@ -10,7 +10,7 @@
 import { createTheme, MantineProvider } from '@mantine/core';
 import { BrowserRouter } from 'react-router-dom';
 
-import { mantineNotificationsAdapter } from '../../adapters/mantine/notifications/mantine-notifications-adapter';
+import { Notifications } from '#gateway/npm/mantine__notifications';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
 
 const theme = createTheme({ fontFamily: 'monospace', defaultRadius: 2 });
@@ -33,8 +33,6 @@ const ATTRIBUTION_CSS = `.react-flow__attribution { background: transparent; pad
 
 const GLOBAL_CSS = `${SELECTION_CSS} ${ATTRIBUTION_CSS}`;
 
-const NotificationsComponent = mantineNotificationsAdapter();
-
 export interface AppRootWidgetProps {
   children: React.ReactNode;
 }
@@ -50,7 +48,7 @@ export const AppRootWidget = ({ children }: AppRootWidgetProps): React.JSX.Eleme
           minHeight: '100vh',
         }}
       >
-        <NotificationsComponent />
+        <Notifications />
         {children}
       </div>
     </MantineProvider>

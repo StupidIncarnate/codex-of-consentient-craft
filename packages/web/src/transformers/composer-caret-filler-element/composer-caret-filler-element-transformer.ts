@@ -1,5 +1,5 @@
 /**
- * PURPOSE: domComposerInsertTextAdapter (the live per-keystroke path) and domComposerWriteAdapter
+ * PURPOSE: composerInsertTextBroker (the live per-keystroke path) and composerWriteBroker
  * (the RESTORE path, rebuilding a persisted draft after a reload) both have to hand the browser a
  * renderable position after a trailing newline that would otherwise have nothing following it — see
  * chatComposerStatics.caretFiller for the underlying contenteditable quirk. Reach for this rather

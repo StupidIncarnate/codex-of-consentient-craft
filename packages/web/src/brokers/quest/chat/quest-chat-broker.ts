@@ -18,7 +18,9 @@ import type {
   UserInput,
 } from '@dungeonmaster/shared/contracts';
 
-import { xhrPostWithProgressAdapter } from '../../../adapters/xhr/post-with-progress/xhr-post-with-progress-adapter';
+import { xhrPostWithProgress } from '#gateway/browser/XMLHttpRequest';
+
+import { byteLengthContract } from '../../../contracts/byte-length/byte-length-contract';
 import { errorBodyContract } from '../../../contracts/error-body/error-body-contract';
 import type { UploadProgressHandler } from '../../../contracts/upload-progress-post/upload-progress-post-contract';
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
@@ -36,17 +38,32 @@ export const questChatBroker = async ({
 }): Promise<{ chatProcessId: ProcessId }> => {
   const url = webConfigStatics.api.routes.questChat.replace(':questId', questId);
 
-  const result = await xhrPostWithProgressAdapter({
+  const result = await xhrPostWithProgress({
     url,
     body: { message, ...(images === undefined || images.length === 0 ? {} : { images }) },
-    onProgress: onProgress ?? ((): void => undefined),
+    onProgress: ({ bytesSent, bytesTotal }): void => {
+      onProgress?.({
+        bytesSent: byteLengthContract.parse(bytesSent),
+        bytesTotal: byteLengthContract.parse(bytesTotal),
+      });
+    },
   });
 
+  // `xhrPostWithProgress` hands back the raw response text; a body that is not JSON parses as
+  // itself, which the contracts below then reject.
+  let parsedBody: unknown = null;
+  if (result.body.length > 0) {
+    try {
+      parsedBody = JSON.parse(result.body) as unknown;
+    } catch {
+      parsedBody = result.body;
+    }
+  }
+
   if (result.ok) {
-    const { body } = result;
     const chatProcessIdValue =
-      typeof body === 'object' && body !== null && 'chatProcessId' in body
-        ? body.chatProcessId
+      typeof parsedBody === 'object' && parsedBody !== null && 'chatProcessId' in parsedBody
+        ? parsedBody.chatProcessId
         : undefined;
     const parsed = processIdContract.safeParse(chatProcessIdValue);
     if (parsed.success) {
@@ -56,7 +73,7 @@ export const questChatBroker = async ({
     throw new Error(`POST ${url} returned 200 with no chatProcessId`);
   }
 
-  const errorParsed = errorBodyContract.safeParse(result.body);
+  const errorParsed = errorBodyContract.safeParse(parsedBody);
   if (errorParsed.success) {
     throw new Error(errorParsed.data.error);
   }

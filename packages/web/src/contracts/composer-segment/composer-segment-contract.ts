@@ -20,3 +20,7 @@ export const composerSegmentContract = z.discriminatedUnion('kind', [
 ]);
 
 export type ComposerSegment = z.infer<typeof composerSegmentContract>;
+
+// The pre-parse shape: what a DOM read holds before it merges adjacent text runs and parses each
+// one through the contract.
+export type ComposerSegmentInput = z.input<typeof composerSegmentContract>;

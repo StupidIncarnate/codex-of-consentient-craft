@@ -541,7 +541,7 @@ test.describe('Composer paste — draft persists across reload and restores into
   // PAINTED GEOMETRY — jsdom has no layout engine and reports 0 for every box, so this is provable
   // only in a real browser. composer-paste-inserts-thumbnail.e2e.ts proves the PASTE path bounds a
   // large image's rendered thumbnail; this proves the RESTORE path (a page reload rebuilding the
-  // <img> from the persisted draft, in dom-composer-write-adapter.ts) applies the SAME bound rather
+  // <img> from the persisted draft, in composer-write-broker.ts) applies the SAME bound rather
   // than rendering the attachment at its own downscaled-but-still-huge intrinsic pixel size.
   test('EDGE: {paste a 6000x4000 PNG downscaled to 2000x1333, reload} => the RESTORED thumbnail paints at a bounded thumbnail size and SEND_BUTTON stays inside the viewport', async ({
     page,

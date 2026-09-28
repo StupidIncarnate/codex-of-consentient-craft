@@ -71,7 +71,7 @@ describe('questChatBroker', () => {
           questId: QuestIdStub({ value: 'quest-1' }),
           message: UserInputStub({ value: 'Hi' }),
         }),
-      ).rejects.toThrow(/network error posting to/u);
+      ).rejects.toThrow(/^POST \/api\/quests\/quest-1\/chat failed: network error$/u);
     });
   });
 
@@ -99,7 +99,7 @@ describe('questChatBroker', () => {
 
   describe('image attachments', () => {
     it('VALID: #check-chat-post-carries-images {message with two placeholders, two images} => POST body carries the tokenised message and both images in order', async () => {
-      const proxy = questChatBrokerProxy();
+      const proxy = questChatBrokerProxy({ url: '/api/quests/quest-images-1/chat' });
       const questId = QuestIdStub({ value: 'quest-images-1' });
       const message = UserInputStub({ value: 'A[Pasted Image 1]B[Pasted Image 2]C' });
       const chatProcessId = ProcessIdStub({ value: 'proc-images-1' });
@@ -110,11 +110,10 @@ describe('questChatBroker', () => {
 
       await questChatBroker({ questId, message, images: [imageOne, imageTwo] });
 
-      expect(proxy.getRequestBody()).toStrictEqual({
+      await expect(proxy.getRequestBody()).resolves.toStrictEqual({
         message: 'A[Pasted Image 1]B[Pasted Image 2]C',
         images: [imageOne, imageTwo],
       });
-      expect(proxy.getRequestUrl()).toBe('/api/quests/quest-images-1/chat');
     });
   });
 
@@ -129,7 +128,7 @@ describe('questChatBroker', () => {
 
       await questChatBroker({ questId, message });
 
-      expect(proxy.getRequestBody()).toStrictEqual({ message: 'Just words' });
+      await expect(proxy.getRequestBody()).resolves.toStrictEqual({ message: 'Just words' });
     });
 
     it('EMPTY: #check-text-only-body-has-no-images-key {images: []} => POSTs body { message } with no images key', async () => {
@@ -142,7 +141,9 @@ describe('questChatBroker', () => {
 
       await questChatBroker({ questId, message, images: [] });
 
-      expect(proxy.getRequestBody()).toStrictEqual({ message: 'Still just words' });
+      await expect(proxy.getRequestBody()).resolves.toStrictEqual({
+        message: 'Still just words',
+      });
     });
   });
 });

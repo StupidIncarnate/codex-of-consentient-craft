@@ -1,50 +1,59 @@
-// PURPOSE: Proxy for quest-followup-broker providing test control over HTTP responses plus
+// PURPOSE: Proxy for quest-followup-broker providing test control over XHR responses plus
+// inspection of the exact posted body. Composes the gateway's own xhrPostWithProgressProxy.
 // USAGE: Create proxy in test, use setup methods to configure endpoint behavior, then
-// getRequestBody() to assert the posted body.
+// getRequestBody() to assert the posted body. Pass `url` to stage one concrete request url instead
+// of the route template, so a test proves the questId was substituted into it.
 
-import { RequestCountStub } from '@dungeonmaster/testing';
 import type { RequestCount } from '@dungeonmaster/testing';
 
-import { xhrPostWithProgressAdapterProxy } from '../../../adapters/xhr/post-with-progress/xhr-post-with-progress-adapter.proxy';
+import { xhrPostWithProgressProxy } from '#gateway/browser/XMLHttpRequest/xhr-post-with-progress/xhr-post-with-progress.proxy';
+
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
 
+const OK_STATUS = 200;
 const BAD_REQUEST_STATUS = 400;
 
-export const questFollowupBrokerProxy = (): {
+export const questFollowupBrokerProxy = ({
+  url = webConfigStatics.api.routes.questFollowup,
+}: { url?: string } = {}): {
   setupFollowup: (params: { chatProcessId: string }) => void;
   setupFollowupWithoutChatProcessId: () => void;
   setupRejected: (params: { error: string }) => void;
   setupRejectedNoBody: () => void;
   setupError: () => void;
-  getRequestBody: () => unknown;
-  getRequestUrl: () => unknown;
+  getRequestBody: () => Promise<unknown>;
   getRequestCount: () => RequestCount;
 } => {
-  const xhrProxy = xhrPostWithProgressAdapterProxy({
-    route: webConfigStatics.api.routes.questFollowup,
-  });
+  const xhrProxy = xhrPostWithProgressProxy();
 
   return {
     setupFollowup: ({ chatProcessId }): void => {
-      xhrProxy.respondsWith({ status: 200, body: { chatProcessId } });
+      xhrProxy.setupResponse({
+        url,
+        status: OK_STATUS,
+        bodyText: JSON.stringify({ chatProcessId }),
+      });
     },
     setupFollowupWithoutChatProcessId: (): void => {
-      xhrProxy.respondsWith({ status: 200, body: {} });
+      xhrProxy.setupResponse({ url, status: OK_STATUS, bodyText: '{}' });
     },
     setupRejected: ({ error }): void => {
-      xhrProxy.respondsWith({ status: BAD_REQUEST_STATUS, body: { error } });
+      xhrProxy.setupResponse({
+        url,
+        status: BAD_REQUEST_STATUS,
+        bodyText: JSON.stringify({ error }),
+      });
     },
     setupRejectedNoBody: (): void => {
-      xhrProxy.respondsWith({ status: BAD_REQUEST_STATUS, body: {} });
+      xhrProxy.setupResponse({ url, status: BAD_REQUEST_STATUS, bodyText: '{}' });
     },
     setupError: (): void => {
-      xhrProxy.networkError();
+      xhrProxy.setupRefused({ url });
     },
-    getRequestBody: (): unknown => xhrProxy.getSentBody(),
-    getRequestUrl: (): unknown => xhrProxy.getSentUrl(),
-    // The XHR proxy's own count is an unbranded internal tally — this broker's callers assert on
-    // the branded RequestCount the rest of the codebase's endpoint mocks hand back.
-    getRequestCount: (): RequestCount =>
-      RequestCountStub({ value: Number(xhrProxy.getRequestCount()) }),
+    getRequestBody: async (): Promise<unknown> => {
+      const bodies = await xhrProxy.getRequestBodies({ url });
+      return bodies.at(-1);
+    },
+    getRequestCount: (): RequestCount => xhrProxy.getRequestCount({ url }),
   };
 };

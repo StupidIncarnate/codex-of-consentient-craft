@@ -3,9 +3,9 @@ import userEvent from '@testing-library/user-event';
 
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
-import { elkLayoutAdapterProxy } from '../../adapters/elk/layout/elk-layout-adapter.proxy';
-import { xyflowEdgeAdapterProxy } from '../../adapters/xyflow/edge/xyflow-edge-adapter.proxy';
-import { xyflowReactFlowAdapterProxy } from '../../adapters/xyflow/react-flow/xyflow-react-flow-adapter.proxy';
+import { elkLayoutBrokerProxy } from '../../brokers/elk/layout/elk-layout-broker.proxy';
+import { FlowEdgeWidgetProxy } from '../flow-edge/flow-edge-widget.proxy';
+import { ReactFlowWidgetProxy } from '../react-flow/react-flow-widget.proxy';
 import { IconButtonWidgetProxy } from '../icon-button/icon-button-widget.proxy';
 import { FlowNodeCardLayerWidgetProxy } from './flow-node-card-layer-widget.proxy';
 import { FlowNodeDetailPanelLayerWidgetProxy } from './flow-node-detail-panel-layer-widget.proxy';
@@ -15,7 +15,7 @@ import { FlowRecipeCalloutLayerWidgetProxy } from './flow-recipe-callout-layer-w
 
 import { userEventStatics } from '../../statics/user-event/user-event-statics';
 
-type ProxyInstance = ReturnType<typeof elkLayoutAdapterProxy>;
+type ProxyInstance = ReturnType<typeof elkLayoutBrokerProxy>;
 type ReturnsPositionsArgs = Parameters<ProxyInstance['returnsPositions']>[0];
 
 interface ReactFlowDiagramWidgetProxyResult {
@@ -56,9 +56,9 @@ interface ReactFlowDiagramWidgetProxyResult {
 }
 
 export const ReactFlowDiagramWidgetProxy = (): ReactFlowDiagramWidgetProxyResult => {
-  const elkProxy = elkLayoutAdapterProxy();
-  xyflowReactFlowAdapterProxy();
-  xyflowEdgeAdapterProxy();
+  const elkProxy = elkLayoutBrokerProxy();
+  ReactFlowWidgetProxy();
+  FlowEdgeWidgetProxy();
   // The canvas controls are IconButtonWidgets. Its proxy mocks nothing, so this constructs it for
   // the child-proxy rule only — the controls are addressed here by their own testids.
   IconButtonWidgetProxy();

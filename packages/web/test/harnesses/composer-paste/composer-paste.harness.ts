@@ -1016,7 +1016,7 @@ export const composerPasteHarness = ({
 
   // The identical-clipboard-twice scenarios need to tell two thumbnails' minted ids apart without
   // going through readComposerChildren's mixed text/image shape — this is the direct DOM-order
-  // parallel to readThumbnailSrcs, reading the attribute domComposerInsertImageAdapter stamps rather
+  // parallel to readThumbnailSrcs, reading the attribute composerInsertImageBroker stamps rather
   // than the pixel data.
   readThumbnailAttachmentIds: async (): Promise<readonly unknown[]> =>
     page

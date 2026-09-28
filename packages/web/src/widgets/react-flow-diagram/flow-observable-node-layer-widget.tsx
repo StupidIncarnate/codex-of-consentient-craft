@@ -13,7 +13,7 @@
  * // Renders a FLOW_OBSERVABLE_NODE card with a type tag and wrapped description text.
  */
 
-import { xyflowNodeHandlesAdapter } from '../../adapters/xyflow/node-handles/xyflow-node-handles-adapter';
+import { FlowNodeHandlesWidget } from '../flow-node-handles/flow-node-handles-widget';
 import type { FlowObservableNodeData } from '../../contracts/flow-observable-node-data/flow-observable-node-data-contract';
 import { elkLayoutStatics } from '../../statics/elk-layout/elk-layout-statics';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
@@ -64,7 +64,7 @@ export const FlowObservableNodeLayerWidget = ({
         fontSize: 11,
       }}
     >
-      {xyflowNodeHandlesAdapter({ variant: 'observable' })}
+      {FlowNodeHandlesWidget({ variant: 'observable' })}
       {/* The type tag and the package chip share ONE row, wrapping together when the names are long
           (elkLayoutStatics.observable.labelEstimate.chromeHeight reserves the second line). Putting
           the package here rather than under the description is what lets a reviewer read a glue

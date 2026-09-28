@@ -30,9 +30,9 @@ import type {
   QuestPackageEntry,
 } from '@dungeonmaster/shared/contracts';
 
-import { elkLayoutAdapter } from '../../adapters/elk/layout/elk-layout-adapter';
-import { xyflowEdgeAdapter } from '../../adapters/xyflow/edge/xyflow-edge-adapter';
-import { xyflowReactFlowAdapter } from '../../adapters/xyflow/react-flow/xyflow-react-flow-adapter';
+import { elkLayoutBroker } from '../../brokers/elk/layout/elk-layout-broker';
+import { FlowEdgeWidget } from '../flow-edge/flow-edge-widget';
+import { ReactFlowWidget } from '../react-flow/react-flow-widget';
 import type { CommentAnchor } from '../../contracts/comment-anchor/comment-anchor-contract';
 import { commentCountContract } from '../../contracts/comment-count/comment-count-contract';
 import type { CommentCount } from '../../contracts/comment-count/comment-count-contract';
@@ -111,9 +111,9 @@ const NODE_TYPES = {
 };
 
 // Single custom edge type: renders the full branch label as a wrapping HTML box (see
-// xyflowEdgeAdapter) instead of React Flow's truncation-prone single-line SVG label.
+// FlowEdgeWidget) instead of React Flow's truncation-prone single-line SVG label.
 const EDGE_TYPES = {
-  flow: xyflowEdgeAdapter as React.ComponentType<never>,
+  flow: FlowEdgeWidget as React.ComponentType<never>,
 };
 
 const { colors } = emberDepthsThemeStatics;
@@ -171,7 +171,7 @@ export const ReactFlowDiagramWidget = ({
     // Portals stand in for edges whose endpoint lives in another flow — ELK needs them as graph
     // children or it throws on the unresolvable endpoint.
     const portals = flowCrossFlowPortalsTransformer({ nodes: flow.nodes, edges: flow.edges });
-    elkLayoutAdapter({ nodes: flow.nodes, edges: flow.edges, portals })
+    elkLayoutBroker({ nodes: flow.nodes, edges: flow.edges, portals })
       .then((layout) => {
         // A newer edit already started its own pass, so this result is for a flow the reviewer has
         // moved past. Dropping it is what stops a slow older layout landing on top of a newer one.
@@ -222,7 +222,7 @@ export const ReactFlowDiagramWidget = ({
   //
   // `initialWidth`/`initialHeight` is the OTHER half and does not replace this one: it stops React
   // Flow painting the card `visibility: hidden` while unmeasured, so the cards show either way. The
-  // box is the SAME estimate `elkLayoutAdapter` laid the graph out with, so the pre-measurement size
+  // box is the SAME estimate `elkLayoutBroker` laid the graph out with, so the pre-measurement size
   // matches the rectangle ELK reserved.
   const nodes = useMemo(() => {
     if (laidOutFlow === null || positions === null) {
@@ -277,7 +277,7 @@ export const ReactFlowDiagramWidget = ({
         1,
         Math.ceil(String(n.label).length / labelEstimate.charsPerLine),
       );
-      // The SAME package-row estimate elkLayoutAdapter reserved the box with, so the card React
+      // The SAME package-row estimate elkLayoutBroker reserved the box with, so the card React
       // Flow paints before its own measurement lands matches the rectangle ELK laid out for it.
       const packageChipChars = n.packages.reduce(
         (sum, packageName) =>
@@ -421,7 +421,7 @@ export const ReactFlowDiagramWidget = ({
     }
 
     const flowEdges = laidOutFlow.edges.map((e) => {
-      // type 'flow' selects the custom edge (xyflowEdgeAdapter). `data.route` is the ELK-computed
+      // type 'flow' selects the custom edge (FlowEdgeWidget). `data.route` is the ELK-computed
       // path the edge draws itself along (routed clear of the cards); `data.label` is the wrapping
       // label box. The top-level `label` is kept only so the jsdom test mock (which renders
       // FLOW_EDGE_LABEL from `edge.label`) still works.
@@ -453,7 +453,7 @@ export const ReactFlowDiagramWidget = ({
     // Connector edges attach from the flow card's RIGHT source handle to each assertion card, so
     // the column reads as branching off that node. No label, so the jsdom mock (label-only) skips
     // them. These are the ONE edge kind that stays on React Flow's built-in edge component rather
-    // than xyflowEdgeAdapter, so they need the palette stroke applied here or they alone paint in
+    // than FlowEdgeWidget, so they need the palette stroke applied here or they alone paint in
     // the library's cool default grey while every flow edge is warm.
     const observableEdges = laidOutFlow.nodes.flatMap((n) =>
       n.observables.map((obs) => ({
@@ -553,7 +553,7 @@ export const ReactFlowDiagramWidget = ({
         }}
       >
         {React.createElement(
-          xyflowReactFlowAdapter as unknown as React.ComponentType<Record<PropertyKey, unknown>>,
+          ReactFlowWidget as unknown as React.ComponentType<Record<PropertyKey, unknown>>,
           {
             nodes,
             edges,

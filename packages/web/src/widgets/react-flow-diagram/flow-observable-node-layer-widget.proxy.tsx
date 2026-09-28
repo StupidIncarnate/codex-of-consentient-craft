@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react';
 
-import { xyflowNodeHandlesAdapterProxy } from '../../adapters/xyflow/node-handles/xyflow-node-handles-adapter.proxy';
+import { FlowNodeHandlesWidgetProxy } from '../flow-node-handles/flow-node-handles-widget.proxy';
 import { CommentPopoverWidgetProxy } from '../comment-popover/comment-popover-widget.proxy';
 
 interface FlowObservableNodeLayerWidgetProxyResult {
@@ -19,7 +19,7 @@ interface FlowObservableNodeLayerWidgetProxyResult {
 }
 
 export const FlowObservableNodeLayerWidgetProxy = (): FlowObservableNodeLayerWidgetProxyResult => {
-  xyflowNodeHandlesAdapterProxy();
+  FlowNodeHandlesWidgetProxy();
   const commentProxy = CommentPopoverWidgetProxy();
 
   return {

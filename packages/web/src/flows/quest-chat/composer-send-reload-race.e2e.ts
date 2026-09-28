@@ -125,7 +125,7 @@ test.describe('Composer send — a page reload racing an accepted response must 
     await page.keyboard.press('Enter');
 
     // A REAL response, observed at the network layer — unaffected by this test's own client-side
-    // delivery delay, which only defers the browser handing that response to xhrPostWithProgressAdapter's
+    // delivery delay, which only defers the browser handing that response to xhrPostWithProgress's
     // JS listener. This is what proves the server genuinely accepted the message before the reload
     // below, matching the brief's own repro ("the request itself was real and really reached the
     // server").

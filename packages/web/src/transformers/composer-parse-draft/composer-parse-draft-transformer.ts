@@ -54,7 +54,7 @@ export const composerParseDraftTransformer = ({
     // IndexedDB record is gone, evicted independently of localStorage, or the list ran short). The
     // token is DROPPED rather than kept as literal text — a raw "[Pasted Image N]" left sitting in
     // the composer is indistinguishable from a word the user actually typed, and sendable as
-    // ordinary text with no image behind it. This mirrors domComposerWriteAdapter's own handling of
+    // ordinary text with no image behind it. This mirrors composerWriteBroker's own handling of
     // an image segment whose attachment fell out of the map: skip the one broken piece, keep
     // everything around it.
     if (attachmentId !== undefined) {

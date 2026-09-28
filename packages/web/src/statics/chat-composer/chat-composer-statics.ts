@@ -52,8 +52,8 @@ export const chatComposerStatics = {
   // A contenteditable cannot render (or reliably hold) a caret positioned AFTER a trailing newline
   // that has nothing following it — the browser collapses that position back to BEFORE the newline,
   // so a keystroke typed right after an end-of-content Shift+Enter lands before it instead of after.
-  // domComposerInsertTextAdapter appends a marked, empty <br> right after a trailing newline to give
-  // the browser a renderable position to rest the caret on; domComposerReadAdapter recognises the
+  // composerInsertTextBroker appends a marked, empty <br> right after a trailing newline to give
+  // the browser a renderable position to rest the caret on; composerReadTransformer recognises the
   // marker and excludes it from the serialised text, so it never surfaces as an extra '\n'.
   caretFiller: {
     attributeName: 'data-composer-caret-filler',

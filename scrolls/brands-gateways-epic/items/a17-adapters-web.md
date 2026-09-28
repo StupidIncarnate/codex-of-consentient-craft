@@ -590,3 +590,73 @@ Named files:
 - `.../xhr-post-with-progress/xhr-post-with-progress.test.ts` (new).
 - `packages/@gateway/browser/src/XMLHttpRequest/XMLHttpRequest.ts` and `XMLHttpRequest.test.ts`: the raw-global re-export becomes the curated entry exporting `xhrPostWithProgress` (no caller imports the raw export).
 - `packages/@gateway/browser/src/fetch/fetch-with-status/fetch-with-status.proxy.ts` and `fetch-with-status.test.ts` (F67): `setupHeld` hands `holdsOpen` the parsed JSON so the released body is the staged text; non-JSON text throws at staging. Test releases a held response and reads the exact body.
+
+### W-MISC scope
+
+Chunk: `elk/layout`, the four `xyflow/*` files, and `mantine/notifications`. Not attempted, gateway gaps
+(see the report): `canvas/image-measure`, `canvas/image-rescale` (`@gateway/browser/createImageBitmap` has no
+proxy and is `undefined` in jsdom at import), `indexed-db/*` (no `clear` wrapper, `getAll` returns no keys, and
+the four gateway proxies hand out separate fakes that do not compose into one store). Not attempted, over the
+file cap: `file/read-data-url`, `mantine/notifications-show`, `react-dom/mount`.
+
+Created (all under `packages/web/src/`):
+- `widgets/flow-edge/flow-edge-widget.tsx`, `.proxy.tsx`, `.test.tsx`
+- `widgets/flow-node-handles/flow-node-handles-widget.tsx`, `.proxy.tsx`, `.test.tsx`
+- `widgets/react-flow/react-flow-widget.tsx`, `.proxy.tsx`, `.test.tsx`
+- `widgets/react-flow/node-measure-layer-widget.tsx`, `.proxy.tsx`, `.test.tsx`
+- `brokers/elk/layout/elk-layout-broker.ts`, `.proxy.ts`, `.test.ts`
+
+Edited:
+- `widgets/react-flow-diagram/react-flow-diagram-widget.tsx`, `.proxy.tsx`
+- `widgets/react-flow-diagram/flow-portal-node-layer-widget.tsx`, `.proxy.tsx`
+- `widgets/react-flow-diagram/flow-node-card-layer-widget.tsx`, `.proxy.tsx`
+- `widgets/react-flow-diagram/flow-observable-node-layer-widget.tsx`, `.proxy.tsx`
+- `widgets/app-root/app-root-widget.tsx`, `.proxy.tsx`
+- `statics/elk-layout/elk-layout-statics.ts` (comment names only, if it names a deleted file)
+
+Deleted: `adapters/elk/layout/*`, `adapters/xyflow/{edge,node-handles,react-flow}/*`,
+`adapters/mantine/notifications/*`.
+
+## Plan — F69 and F70
+
+Scope: `packages/@gateway/browser/**` only. Web's callers are not migrated here.
+
+F69 (canvas), all under `packages/@gateway/browser/src/`:
+- `createImageBitmap/createImageBitmap.ts` (rewritten to a call-time wrapper over `globalThis.createImageBitmap`),
+  `createImageBitmap.test.ts` (rewritten), `createImageBitmap.proxy.ts` (new: stage a bitmap's width/height by input,
+  stage a decode failure, read back requested inputs and closed bitmaps).
+- `HTMLCanvasElement/HTMLCanvasElement.ts` and `.test.ts` (new barrel), `HTMLCanvasElement/canvas-encode/canvas-encode.ts`,
+  `.proxy.ts`, `.test.ts` (new: create a canvas, draw a bitmap at a size, `toDataURL(mediaType, quality)`).
+- `gateway-browser-globals.integration.test.ts` (add `HTMLCanvasElement` to the maintained global list).
+
+F70 (IndexedDB), all under `packages/@gateway/browser/src/`:
+- `gateway-test-support/fake-indexed-db.ts` and `.test.ts` (new: one in-memory store per database/store name per test,
+  shared by every indexedDB proxy; transactions, requests, failure staging, read-back).
+- `indexedDB/replace-all/replace-all.ts`, `.proxy.ts`, `.test.ts` (new: read, transform, clear and re-add in one transaction).
+- `indexedDB/indexedDB.ts` and `.test.ts` (export `replaceAll`).
+- `indexedDB/open-store/open-store.proxy.ts`, `indexedDB/get-all/get-all.proxy.ts`, `indexedDB/put/put.proxy.ts`,
+  `indexedDB/delete-record/delete-record.proxy.ts` (reworked onto the shared store) and their `.test.ts` files.
+
+Plan amendment (gateway-colocation lint): the `createImageBitmap` wrapper, proxy and test live in
+`createImageBitmap/create-image-bitmap/` behind a re-export barrel; `HTMLCanvasElement/` also holds
+`canvas-2d-context.stub.ts` and `.test.ts`; `gateway-test-support/fake-indexed-db.proxy.ts` (empty) is added.
+
+### W-XHR-DOM scope
+
+All under `packages/web/`. Deleted: `src/adapters/xhr/post-with-progress/*` (adapter, proxy, test), `src/adapters/dom/composer-*/*` (five adapters, each with proxy and test).
+
+XHR callers:
+- `src/brokers/quest/chat/quest-chat-broker.ts`, `.proxy.ts`, `.test.ts`
+- `src/brokers/quest/followup/quest-followup-broker.ts`, `.proxy.ts`, `.test.ts`
+- `src/brokers/quest/new/quest-new-broker.ts`, `.proxy.ts`, `.test.ts`
+- `src/bindings/use-quest-chat/use-quest-chat-binding.proxy.ts`, `.test.ts`
+- `src/widgets/quest-chat/quest-chat-content-layer-widget.proxy.tsx`, `.test.tsx`
+- `src/flows/quest-chat/send-images-chat-route.e2e.ts`, `composer-send-reload-race.e2e.ts` (comment)
+- `test/harnesses/composer-send/composer-send.harness.ts` (comments)
+
+DOM composer, decided per adapter. None wraps an npm package or a gateway global: each mutates or reads the `HTMLElement` the widget hands it, and the only true global touched was `document` in the write adapter, now `editor.ownerDocument`. The logic is ours, so none stays an adapter.
+- read: `src/transformers/composer-read/composer-read-transformer.ts`, `.test.ts` (a DOM-in, `ComposerSegment[]`-out derivation with no mutation)
+- write, insert-text, insert-image, delete-thumbnail: `src/brokers/composer/<name>/composer-<name>-broker.ts`, `.proxy.ts`, `.test.ts` (each mutates the editor)
+- callers: `src/widgets/chat-input/chat-input-widget.tsx`, `.proxy.tsx`, `.test.tsx`
+- comment renames: `src/statics/chat-composer/chat-composer-statics.ts`, `src/transformers/composer-parse-draft/composer-parse-draft-transformer.ts`, `src/transformers/composer-caret-filler-element/composer-caret-filler-element-transformer.ts`, `src/flows/quest-chat/composer-paste-draft-reload.e2e.ts`, `send-text-only-and-newline.e2e.ts`, `composer-paste-inserts-thumbnail.e2e.ts`, `test/harnesses/composer-paste/composer-paste.harness.ts`
+- `src/contracts/composer-segment/composer-segment-contract.ts`: gains `ComposerSegmentInput`, the pre-parse type the read transformer needs (a transformer may not import zod).

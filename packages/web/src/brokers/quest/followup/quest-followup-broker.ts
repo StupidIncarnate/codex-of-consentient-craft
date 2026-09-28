@@ -17,7 +17,9 @@ import type {
   UserInput,
 } from '@dungeonmaster/shared/contracts';
 
-import { xhrPostWithProgressAdapter } from '../../../adapters/xhr/post-with-progress/xhr-post-with-progress-adapter';
+import { xhrPostWithProgress } from '#gateway/browser/XMLHttpRequest';
+
+import { byteLengthContract } from '../../../contracts/byte-length/byte-length-contract';
 import { questFollowupResponseContract } from '../../../contracts/quest-followup-response/quest-followup-response-contract';
 import type { UploadProgressHandler } from '../../../contracts/upload-progress-post/upload-progress-post-contract';
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
@@ -35,12 +37,28 @@ export const questFollowupBroker = async ({
 }): Promise<{ chatProcessId: ProcessId }> => {
   const url = webConfigStatics.api.routes.questFollowup.replace(':questId', questId);
 
-  const result = await xhrPostWithProgressAdapter({
+  const result = await xhrPostWithProgress({
     url,
     body: { message, ...(images === undefined || images.length === 0 ? {} : { images }) },
-    onProgress: onProgress ?? ((): void => undefined),
+    onProgress: ({ bytesSent, bytesTotal }): void => {
+      onProgress?.({
+        bytesSent: byteLengthContract.parse(bytesSent),
+        bytesTotal: byteLengthContract.parse(bytesTotal),
+      });
+    },
   });
-  const parsed = questFollowupResponseContract.safeParse(result.body);
+
+  // `xhrPostWithProgress` hands back the raw response text; a body that is not JSON parses as
+  // itself, which the contract then rejects.
+  let parsedBody: unknown = null;
+  if (result.body.length > 0) {
+    try {
+      parsedBody = JSON.parse(result.body) as unknown;
+    } catch {
+      parsedBody = result.body;
+    }
+  }
+  const parsed = questFollowupResponseContract.safeParse(parsedBody);
 
   if (result.ok) {
     if (parsed.success && parsed.data.chatProcessId !== undefined) {

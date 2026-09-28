@@ -214,7 +214,7 @@ const CLICK_SEND_BUTTON_TWICE_BROWSER_FN = (params: { sendButtonTestId: string }
 // the network until `delayMs` after `.send()` is called — every other request (including a
 // text-only chat send that never goes through this XHR path, and any WebSocket traffic) is
 // untouched. Installed via `page.addInitScript`, which runs before the app's own bundle constructs
-// its first XHR, so the override is in place before `xhrPostWithProgressAdapter` ever opens one.
+// its first XHR, so the override is in place before `xhrPostWithProgress` ever opens one.
 // This is NOT `page.route`: nothing about the request or response is faked or intercepted — the same
 // real body reaches the same real server, only later than it otherwise would, which is what turns a
 // race that a fast loopback round trip would normally win before a test script can act into a
@@ -288,7 +288,7 @@ const ABORT_XHR_AFTER_SEND_BROWSER_FN = (params: { urlSuffix: string }): void =>
 // 'readystatechange', ...)` on a matching request wraps the listener so its invocation is deferred
 // by `delayMs` from whenever the browser would naturally have called it. This is what reproduces
 // the walker's own repro shape — "the request itself was real and really reached the server", only
-// the browser's notification of that to `xhrPostWithProgressAdapter`'s `load` listener (the one
+// the browser's notification of that to `xhrPostWithProgress`'s `load` listener (the one
 // thing standing between a real 200 and this document's `.then()` running) arrives late — widening
 // a race that a fast loopback round trip would otherwise win before a test script can act into a
 // window a `page.reload()` can reliably land inside. This is NOT `page.route`: nothing about the

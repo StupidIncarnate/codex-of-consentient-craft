@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react';
 
-import { xyflowNodeHandlesAdapterProxy } from '../../adapters/xyflow/node-handles/xyflow-node-handles-adapter.proxy';
+import { FlowNodeHandlesWidgetProxy } from '../flow-node-handles/flow-node-handles-widget.proxy';
 import { CommentPopoverWidgetProxy } from '../comment-popover/comment-popover-widget.proxy';
 import { FlowNodePackageChipLayerWidgetProxy } from './flow-node-package-chip-layer-widget.proxy';
 
@@ -19,7 +19,7 @@ interface FlowNodeCardLayerWidgetProxyResult {
 }
 
 export const FlowNodeCardLayerWidgetProxy = (): FlowNodeCardLayerWidgetProxyResult => {
-  xyflowNodeHandlesAdapterProxy();
+  FlowNodeHandlesWidgetProxy();
   const commentProxy = CommentPopoverWidgetProxy();
   // FlowNodePackageChipLayerWidget has no dependencies of its own to mock; constructed here only
   // for the child-proxy rule, and addressed in tests by its own testid.

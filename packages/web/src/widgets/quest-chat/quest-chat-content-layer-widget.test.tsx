@@ -909,7 +909,9 @@ describe('QuestChatContentLayerWidget', () => {
         expect(proxy.getFollowupRequestCount()).toBe(1);
       });
 
-      expect(proxy.getFollowupRequestBody()).toStrictEqual({ message: 'What broke?' });
+      await expect(proxy.getFollowupRequestBody()).resolves.toStrictEqual({
+        message: 'What broke?',
+      });
     });
 
     it('ERROR: {followup POST rejected with 400} => renders the exact server error text inside the FOLLOW-UP tab', async () => {
@@ -1651,7 +1653,7 @@ describe('QuestChatContentLayerWidget', () => {
       // ride along in the same object so a regression back to POSTing the SAME route twice (instead
       // of one-each) fails here too.
       expect({
-        chatBody: proxy.getChatRequestBody(),
+        chatBody: await proxy.getChatRequestBody(),
         createBody: createBodies.at(-1),
         newQuestRouteCount: proxy.getNewQuestRequestCount(),
         chatRouteCount: proxy.getChatRequestCount(),
@@ -1930,13 +1932,13 @@ describe('QuestChatContentLayerWidget', () => {
 
       await waitFor(() => {
         expect(proxy.getShownNotification()).toStrictEqual({
-          message: `xhrPostWithProgressAdapter: network error posting to /api/guilds/${guildId}/quests`,
+          message: `POST /api/guilds/${guildId}/quests failed: network error`,
           color: 'red',
         });
       });
 
       expect(proxy.getShownNotification()).toStrictEqual({
-        message: `xhrPostWithProgressAdapter: network error posting to /api/guilds/${guildId}/quests`,
+        message: `POST /api/guilds/${guildId}/quests failed: network error`,
         color: 'red',
       });
     });

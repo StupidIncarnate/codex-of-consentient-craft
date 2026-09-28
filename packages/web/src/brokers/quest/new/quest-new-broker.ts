@@ -1,9 +1,8 @@
 /**
  * PURPOSE: Reach for this over questChatBroker for the very first message of a quest — no questId
  * exists yet to scope an upload to, so any pasted screenshots ride along in this one POST instead
- * of a separate per-quest upload call. Posts through the progress-reporting XHR adapter rather than
- * fetchPostAdapter because msw/node 2.12 cannot intercept XMLHttpRequest and only that adapter can
- * observe upload progress for a multi-image create.
+ * of a separate per-quest upload call. Posts through the progress-reporting XHR gateway rather than
+ * fetch because only XMLHttpRequest can observe upload progress for a multi-image create.
  *
  * USAGE:
  * const { questId, chatProcessId } = await questNewBroker({ guildId, message, questType, images, onProgress });
@@ -20,7 +19,9 @@ import type {
   UserInput,
 } from '@dungeonmaster/shared/contracts';
 
-import { xhrPostWithProgressAdapter } from '../../../adapters/xhr/post-with-progress/xhr-post-with-progress-adapter';
+import { xhrPostWithProgress } from '#gateway/browser/XMLHttpRequest';
+
+import { byteLengthContract } from '../../../contracts/byte-length/byte-length-contract';
 import { questNewResponseContract } from '../../../contracts/quest-new-response/quest-new-response-contract';
 import type { UploadProgressHandler } from '../../../contracts/upload-progress-post/upload-progress-post-contract';
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
@@ -42,16 +43,32 @@ export const questNewBroker = async ({
 }): Promise<{ questId: QuestId; chatProcessId: ProcessId }> => {
   const url = webConfigStatics.api.routes.questNew.replace(':guildId', guildId);
 
-  const result = await xhrPostWithProgressAdapter({
+  const result = await xhrPostWithProgress({
     url,
     body: {
       message,
       ...(questType === undefined ? {} : { questType }),
       ...(images === undefined || images.length === 0 ? {} : { images }),
     },
-    onProgress: onProgress ?? ((): void => undefined),
+    onProgress: ({ bytesSent, bytesTotal }): void => {
+      onProgress?.({
+        bytesSent: byteLengthContract.parse(bytesSent),
+        bytesTotal: byteLengthContract.parse(bytesTotal),
+      });
+    },
   });
-  const parsed = questNewResponseContract.safeParse(result.body);
+
+  // `xhrPostWithProgress` hands back the raw response text; a body that is not JSON parses as
+  // itself, which the contract then rejects.
+  let parsedBody: unknown = null;
+  if (result.body.length > 0) {
+    try {
+      parsedBody = JSON.parse(result.body) as unknown;
+    } catch {
+      parsedBody = result.body;
+    }
+  }
+  const parsed = questNewResponseContract.safeParse(parsedBody);
 
   if (result.ok) {
     if (

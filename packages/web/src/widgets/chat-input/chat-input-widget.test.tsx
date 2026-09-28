@@ -4,8 +4,8 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { PastedImageUploadStub } from '@dungeonmaster/shared/contracts';
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
-import { domComposerInsertImageAdapter } from '../../adapters/dom/composer-insert-image/dom-composer-insert-image-adapter';
-import { domComposerReadAdapter } from '../../adapters/dom/composer-read/dom-composer-read-adapter';
+import { composerInsertImageBroker } from '../../brokers/composer/insert-image/composer-insert-image-broker';
+import { composerReadTransformer } from '../../transformers/composer-read/composer-read-transformer';
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
 import { draftImagesSaveBroker } from '../../brokers/draft-images/save/draft-images-save-broker';
 import { ByteLengthStub } from '../../contracts/byte-length/byte-length.stub';
@@ -239,7 +239,7 @@ describe('ChatInputWidget', () => {
           dataUrl: `data:image/png;base64,SEED${String(index)}AAAAAAAA`,
         }),
       ).forEach((attachment) => {
-        domComposerInsertImageAdapter({ editor, attachment });
+        composerInsertImageBroker({ editor, attachment });
       });
 
       const clipboardData = proxy.pasteImage({
@@ -275,7 +275,7 @@ describe('ChatInputWidget', () => {
           dataUrl: `data:image/png;base64,SEED${String(index)}AAAAAAAA`,
         }),
       ).forEach((attachment) => {
-        domComposerInsertImageAdapter({ editor, attachment });
+        composerInsertImageBroker({ editor, attachment });
       });
 
       const before = proxy.getThumbnailSrcs();
@@ -309,7 +309,7 @@ describe('ChatInputWidget', () => {
           dataUrl: `data:image/png;base64,SEED${String(index)}AAAAAAAA`,
         }),
       ).forEach((attachment) => {
-        domComposerInsertImageAdapter({ editor, attachment });
+        composerInsertImageBroker({ editor, attachment });
       });
 
       const before = proxy.getThumbnailSrcs();
@@ -645,10 +645,10 @@ describe('ChatInputWidget', () => {
 
       // Two back-to-back inserts each collapse the caret via Range#setStartAfter, a PARENT-relative
       // boundary — so the browser leaves the space and "b" as two sibling text nodes, not one. Only
-      // domComposerReadAdapter's own merge (same one handleContentChanged relies on) reports them as
+      // composerReadTransformer's own merge (same one handleContentChanged relies on) reports them as
       // a single logical run; a raw child-node snapshot here would see three siblings, not two, and
       // assert something this widget never promised.
-      const segments = domComposerReadAdapter({ editor });
+      const segments = composerReadTransformer({ editor });
 
       expect(segments.map((segment) => segment.kind)).toStrictEqual(['image', 'text']);
       expect(editor.textContent).toBe(' b');
@@ -926,8 +926,8 @@ describe('ChatInputWidget', () => {
     // browser's own storage survives a real page reload.
     //
     // This is also the only place the write and read halves of the draft-images round trip meet.
-    // domComposerWriteAdapter's own test cannot import domComposerReadAdapter's test (or vice
-    // versa) — enforce-import-dependencies forbids one adapter's test importing a sibling adapter —
+    // composerWriteBroker's own test cannot import composerReadTransformer's test (or vice
+    // versa) — enforce-import-dependencies forbids one broker's test importing a sibling broker —
     // but this widget mounts both, so remounting it after a real paste IS that round trip.
     it('VALID: {reload after a draft with text "A", an image, and text "B"} => #check-reload-rebuilds-thumbnail restores text, thumbnail, text in order', async () => {
       const proxy = ChatInputWidgetProxy();
@@ -1643,7 +1643,7 @@ describe('ChatInputWidget', () => {
       fireEvent.paste(editor, { clipboardData: proxy.pasteText({ text: 'b' }) });
 
       // Caret directly after the thumbnail — the same setStart(editor, 2) technique
-      // dom-composer-delete-thumbnail-adapter.test.ts uses for its own "surrounding text survives"
+      // composer-delete-thumbnail-broker.test.ts uses for its own "surrounding text survives"
       // case — so the backward delete below targets the thumbnail, not a character of "b".
       const selection = document.getSelection();
       const range = document.createRange();

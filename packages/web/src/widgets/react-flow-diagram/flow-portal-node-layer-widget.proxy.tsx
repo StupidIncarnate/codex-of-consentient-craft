@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react';
 
-import { xyflowNodeHandlesAdapterProxy } from '../../adapters/xyflow/node-handles/xyflow-node-handles-adapter.proxy';
+import { FlowNodeHandlesWidgetProxy } from '../flow-node-handles/flow-node-handles-widget.proxy';
 
 interface FlowPortalNodeLayerWidgetProxyResult {
   getNode: () => HTMLElement | null;
@@ -9,7 +9,7 @@ interface FlowPortalNodeLayerWidgetProxyResult {
 }
 
 export const FlowPortalNodeLayerWidgetProxy = (): FlowPortalNodeLayerWidgetProxyResult => {
-  xyflowNodeHandlesAdapterProxy();
+  FlowNodeHandlesWidgetProxy();
 
   return {
     getNode: (): HTMLElement | null => screen.queryByTestId('FLOW_PORTAL_NODE'),

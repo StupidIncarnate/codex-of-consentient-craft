@@ -11,7 +11,7 @@ import { IconCircle, IconDiamond, IconPlayerPlay, IconSquare } from '@tabler/ico
 
 import type { FlowNodeType } from '@dungeonmaster/shared/contracts';
 
-import { xyflowNodeHandlesAdapter } from '../../adapters/xyflow/node-handles/xyflow-node-handles-adapter';
+import { FlowNodeHandlesWidget } from '../flow-node-handles/flow-node-handles-widget';
 import type { ReactFlowNodeData } from '../../contracts/react-flow-node-data/react-flow-node-data-contract';
 import { elkLayoutStatics } from '../../statics/elk-layout/elk-layout-statics';
 import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-depths-theme-statics';
@@ -70,7 +70,7 @@ export const FlowNodeCardLayerWidget = ({
         ...ringStyle,
       }}
     >
-      {xyflowNodeHandlesAdapter()}
+      {FlowNodeHandlesWidget()}
       <div data-testid="FLOW_NODE_TYPE_ICON" style={{ color: accentColor, marginBottom: 4 }}>
         <TypeIcon size={14} />
       </div>

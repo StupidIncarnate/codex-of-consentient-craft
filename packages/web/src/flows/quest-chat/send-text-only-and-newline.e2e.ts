@@ -280,8 +280,8 @@ test.describe('Composer send — text-only sends and Shift+Enter newline', () =>
     expect(await composer.readComposerTextContent()).toBe('one\n');
 
     // send-text-only-and-newline:observable:check-restored-trailing-newline-then-type — the RESTORE
-    // path (domComposerWriteAdapter, rebuilding a persisted draft after a real page reload) hits the
-    // identical browser quirk the INSERT path (domComposerInsertTextAdapter, proven above) already
+    // path (composerWriteBroker, rebuilding a persisted draft after a real page reload) hits the
+    // identical browser quirk the INSERT path (composerInsertTextBroker, proven above) already
     // guards against: a contenteditable cannot render or reliably hold a caret positioned AFTER a
     // trailing newline with nothing following it, so a real click after reload collapses to BEFORE
     // the restored newline and the next keystroke lands there instead: 'one' + 'two' + '\n' =

@@ -1,10 +1,9 @@
 import { screen } from '@testing-library/react';
 
-import { domComposerDeleteThumbnailAdapterProxy } from '../../adapters/dom/composer-delete-thumbnail/dom-composer-delete-thumbnail-adapter.proxy';
-import { domComposerInsertImageAdapterProxy } from '../../adapters/dom/composer-insert-image/dom-composer-insert-image-adapter.proxy';
-import { domComposerInsertTextAdapterProxy } from '../../adapters/dom/composer-insert-text/dom-composer-insert-text-adapter.proxy';
-import { domComposerReadAdapterProxy } from '../../adapters/dom/composer-read/dom-composer-read-adapter.proxy';
-import { domComposerWriteAdapterProxy } from '../../adapters/dom/composer-write/dom-composer-write-adapter.proxy';
+import { composerDeleteThumbnailBrokerProxy } from '../../brokers/composer/delete-thumbnail/composer-delete-thumbnail-broker.proxy';
+import { composerInsertImageBrokerProxy } from '../../brokers/composer/insert-image/composer-insert-image-broker.proxy';
+import { composerInsertTextBrokerProxy } from '../../brokers/composer/insert-text/composer-insert-text-broker.proxy';
+import { composerWriteBrokerProxy } from '../../brokers/composer/write/composer-write-broker.proxy';
 import { fileReadDataUrlAdapterProxy } from '../../adapters/file/read-data-url/file-read-data-url-adapter.proxy';
 import { mantineNotificationsShowAdapterProxy } from '../../adapters/mantine/notifications-show/mantine-notifications-show-adapter.proxy';
 import { draftImagesLoadBroker } from '../../brokers/draft-images/load/draft-images-load-broker';
@@ -63,13 +62,12 @@ export const ChatInputWidgetProxy = (): {
 } => {
   // Child creation only, per enforce-proxy-child-creation — the widget imports every one of these
   // directly (no binding layer sits between the composer and its adapters/brokers). The DOM
-  // composer adapters and fileReadDataUrlAdapter are pure — no I/O to mock — so their proxies are
+  // composer brokers and fileReadDataUrlAdapter are pure — no I/O to mock — so their proxies are
   // instantiated for the rule and never touched again.
-  domComposerReadAdapterProxy();
-  domComposerWriteAdapterProxy();
-  domComposerInsertTextAdapterProxy();
-  domComposerInsertImageAdapterProxy();
-  domComposerDeleteThumbnailAdapterProxy();
+  composerWriteBrokerProxy();
+  composerInsertTextBrokerProxy();
+  composerInsertImageBrokerProxy();
+  composerDeleteThumbnailBrokerProxy();
   fileReadDataUrlAdapterProxy();
   // Composed so the widget's REAL draftImagesSaveBroker/draftImagesLoadBroker calls (on every
   // paste/delete, and on mount) land on a fake IndexedDB instead of jsdom's missing one — jsdom has

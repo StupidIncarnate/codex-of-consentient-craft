@@ -1161,7 +1161,7 @@ describe('useQuestChatBinding', () => {
 
       // The wrong value this turns red against: the binding dropping `images` on the way to the
       // broker, which posts { message } alone and loses the attachment entirely.
-      expect(proxy.getChatRequestBody()).toStrictEqual({
+      await expect(proxy.getChatRequestBody()).resolves.toStrictEqual({
         message: 'Look at this [Pasted Image 1]',
         images: [image],
       });
@@ -1188,7 +1188,7 @@ describe('useQuestChatBinding', () => {
 
       await act(async () => {
         await expect(result.current.sendMessage({ message })).rejects.toThrow(
-          /^xhrPostWithProgressAdapter: network error posting to \/api\/quests\/quest-send-error-1\/chat$/u,
+          /^POST \/api\/quests\/quest-send-error-1\/chat failed: network error$/u,
         );
       });
 
@@ -1199,8 +1199,7 @@ describe('useQuestChatBinding', () => {
         {
           role: 'system',
           type: 'error',
-          content:
-            'xhrPostWithProgressAdapter: network error posting to /api/quests/quest-send-error-1/chat',
+          content: 'POST /api/quests/quest-send-error-1/chat failed: network error',
           uuid: errorUuid,
           timestamp: errorTs,
         },
@@ -2222,7 +2221,7 @@ describe('useQuestChatBinding', () => {
       // The FOLLOW-UP turn arms the FOLLOW-UP flag and leaves the main composer's alone: the two
       // are separate conversations, and the main composer must not report a turn it does not own.
       expect({
-        requestBody: proxy.getFollowupRequestBody(),
+        requestBody: await proxy.getFollowupRequestBody(),
         followupEntries: result.current.followupEntries,
         isFollowupStreaming: result.current.isFollowupStreaming,
         isStreaming: result.current.isStreaming,

@@ -14,13 +14,13 @@ describe('questFollowupBroker', () => {
 
       await questFollowupBroker({ questId, message });
 
-      expect(proxy.getRequestBody()).toStrictEqual({
+      await expect(proxy.getRequestBody()).resolves.toStrictEqual({
         message: 'What is the status of this quest?',
       });
     });
 
     it('VALID: #check-followup-post-carries-images {message with two pasted-image tokens, two images} => posts the message plus both images in order at the followup route', async () => {
-      const proxy = questFollowupBrokerProxy();
+      const proxy = questFollowupBrokerProxy({ url: '/api/quests/add-auth/followup' });
       const questId = QuestIdStub({ value: 'add-auth' });
       const message = UserInputStub({ value: 'See [Pasted Image 1] and [Pasted Image 2]' });
       const firstImage = PastedImageUploadStub({
@@ -36,14 +36,13 @@ describe('questFollowupBroker', () => {
 
       await questFollowupBroker({ questId, message, images: [firstImage, secondImage] });
 
-      expect(proxy.getRequestBody()).toStrictEqual({
+      await expect(proxy.getRequestBody()).resolves.toStrictEqual({
         message: 'See [Pasted Image 1] and [Pasted Image 2]',
         images: [
           { mediaType: 'image/png', dataBase64: 'aGVsbG8=' },
           { mediaType: 'image/jpeg', dataBase64: 'd29ybGQ=' },
         ],
       });
-      expect(proxy.getRequestUrl()).toBe('/api/quests/add-auth/followup');
     });
 
     it('VALID: {text-only follow-up, no images passed} => posts body with no images key', async () => {
@@ -55,7 +54,9 @@ describe('questFollowupBroker', () => {
 
       await questFollowupBroker({ questId, message });
 
-      expect(proxy.getRequestBody()).toStrictEqual({ message: 'Are we still on track?' });
+      await expect(proxy.getRequestBody()).resolves.toStrictEqual({
+        message: 'Are we still on track?',
+      });
     });
   });
 
@@ -122,7 +123,7 @@ describe('questFollowupBroker', () => {
       proxy.setupError();
 
       await expect(questFollowupBroker({ questId, message })).rejects.toThrow(
-        /network error posting to \/api\/quests\/add-auth\/followup/u,
+        /^POST \/api\/quests\/add-auth\/followup failed: network error$/u,
       );
     });
   });
