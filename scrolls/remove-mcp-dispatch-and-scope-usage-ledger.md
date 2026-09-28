@@ -1,7 +1,7 @@
 # Remove MCP-mode dispatch, and give the usage ledger back to the orchestrator
 
-Status: planned, not started. **Blocked until the gateway-pivot refactor
-lands** — most files named here are in that refactor's path.
+Status: Parts 1, 2, 3.1, 3.3 and 4 are done and merged to master (see "Done" at the end). **Only 3.2
+is open**, and it waits on data from a running server — steps under "Part 3.2: what to do next".
 
 This doc replaces `scrolls/mcp-caller-cwd-via-hook.md` and `scrolls/usage-ledger-scan-pileup.md`. What those two fixed is committed on master (listed at the end); what they left open is carried here.
 
@@ -100,3 +100,37 @@ Measured after both, 2026-09-27, 14:18 to 18:28, five MCP servers sampled every 
 | MCP server memory                         | 4.0 GB (5 days old), 5.1 GB (13 hours old) | Level at 100 to 270 MB over 4 hours |
 | Open transcript files per server          | Up to about 2,000                          | 0 at every sample                   |
 | Usage-ledger `updatedAt` behind the clock | About 37 minutes                           | 60 s at most                        |
+
+## Part 3.2: what to do next
+
+The scan now logs every full rebuild to stderr, one line per rebuild:
+
+```
+[usage-ledger] full rebuild: <transcript path> <shrank | mtime moved at an unchanged size> (counted size=… mtimeMs=…; on disk size=… mtimeMs=…)
+```
+
+1. Run a server on a build that includes commit `94803b8a5` or later — `npm run prod` (after `npm run build`)
+   or `npm run dev`. Only the HTTP server runs the poller; MCP children run none.
+2. Leave it up at least an hour of normal use. The bursts came roughly every 15 minutes.
+3. Collect every `[usage-ledger] full rebuild` line from its log.
+4. Decide the fix from what the lines show:
+   - The same few paths, `mtime moved at an unchanged size` → tolerate an mtime change when size is
+     unchanged (treat the file as unchanged, keep its cursor).
+   - `shrank` on real rotations → rebuild only that file's contribution rather than the whole ledger;
+     this needs per-file bucket attribution in the ledger, which it does not carry today.
+   - No lines at all after an hour → the bursts came from the per-MCP-server pollers Part 2 removed;
+     close 3.2 with that evidence.
+5. The fix lives in `packages/orchestrator/src/brokers/usage-ledger/scan/usage-ledger-scan-broker.ts`;
+   its test pins the log line and both rebuild conditions.
+
+## Done (2026-09-27)
+
+| Commit | What |
+|---|---|
+| `94803b8a5` | Parts 1, 2, 3.1, 3.3: MCP-mode dispatch removed (tool, slash command, exclusivity, agentId chain, chatter filter, banner); MCP child starts no watchers; rebuild trigger logged; throttle stamped at scan end |
+| `e4a521835`, `4c9fc4931`, `1182feb70` | Part 4: caller repo-root and session transcript-scan fallbacks deleted; banner warning names the missing hook |
+| `1daf1f774` | e2e: a Node worker's own Task sub-agent reaches its execution row |
+
+Part 3.3 was built to its stated GOAL rather than its wording: the throttle is stamped with the scan's
+END time, because a start-time stamp is what let a scan longer than `minIntervalMs` be followed
+straight away by another.
