@@ -18,7 +18,11 @@
  * ever has ONE stop condition to check. `status` reads whether the run's first stop carries
  * `timedOut` — set only when the underlying step threw `WaitForCeilingHitError` or its `until`
  * counterpart `UntilCeilingHitError` — rather than sniffing `stoppedAt.error` text for the word
- * "timeout", so a driver rewording its own message never flips the run's own verdict. Each shot listing carries the SAME `pixelChange`, `blank` and
+ * "timeout", so a driver rewording its own message never flips the run's own verdict. `durationMs` is
+ * the last reading's `endedAtMs` minus the first reading's `startedAtMs` — real wall clock off the
+ * timestamps `stepDispatchBroker` already stamps onto every reading, never a fresh `Date.now()` call
+ * of this broker's own — and is omitted (never a fabricated `0`) when the batch produced no readings
+ * at all. Each shot listing carries the SAME `pixelChange`, `blank` and
  * `blankColour` its source `StepReading` carries, rather than re-deriving them — a `ShotListing` is a
  * projection of the step that captured it, and the two must never disagree about whether that
  * capture was blank. At run start the console/network/websocket lines that arrived SINCE the last
@@ -370,6 +374,18 @@ export const runExecuteBroker = async ({
       ? runStatusContract.parse('done')
       : runStatusContract.parse(firstStop.timedOut ? 'timeout' : 'failed');
 
+  // First step's own start to last step's own end — real wall clock, off the SAME
+  // `startedAtMs`/`endedAtMs` pair `stepDispatchBroker` already stamps onto every reading, never a
+  // separate `Date.now()` call of this broker's own. `readings` empty (a zero-step batch reaches
+  // here only when a caller bypasses argv parsing's own refusal) omits the field rather than
+  // reporting a fabricated 0 — `runResultContract`'s `durationMs` is `.optional()` for exactly this.
+  const firstReading = readings.at(0);
+  const lastReading = readings.at(-1);
+  const durationMs =
+    firstReading === undefined || lastReading === undefined
+      ? undefined
+      : lastReading.endedAtMs - firstReading.startedAtMs;
+
   const result = runResultContract.parse({
     instanceId,
     runId,
@@ -378,6 +394,7 @@ export const runExecuteBroker = async ({
     stoppedAt,
     index,
     shots,
+    ...(durationMs === undefined ? {} : { durationMs }),
   });
 
   await runReturnWriteBroker({ storedReturnPath: storedReturn, result });

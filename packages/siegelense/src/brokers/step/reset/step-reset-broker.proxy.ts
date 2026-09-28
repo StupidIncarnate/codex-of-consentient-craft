@@ -25,6 +25,7 @@ import { recipeSeedRunBrokerProxy } from '../../recipe/seed-run/recipe-seed-run-
 import { snapshotIndexReadBroker } from '../../snapshot/index-read/snapshot-index-read-broker';
 import { snapshotIndexReadBrokerProxy } from '../../snapshot/index-read/snapshot-index-read-broker.proxy';
 import { snapshotResolveBrokerProxy } from '../../snapshot/resolve/snapshot-resolve-broker.proxy';
+import { resetClearStorageLayerBrokerProxy } from './reset-clear-storage-layer-broker.proxy';
 import { snapshotRestoreLayerBrokerProxy } from './snapshot-restore-layer-broker.proxy';
 
 type Dirent = ReturnType<typeof fsReaddirWithTypesAdapter>[0];
@@ -64,6 +65,10 @@ export const stepResetBrokerProxy = (): {
   // snapshotResolveBroker directly for its `to !== null` path) — its own internals now run through
   // the directly-mocked snapshotIndexReadBroker below, never their real fsStat/fsReadFile chain.
   snapshotResolveBrokerProxy();
+  // Constructed for enforce-proxy-child-creation only — resetClearStorageLayerBroker takes an
+  // already-built BrowserSession and has no adapter of its own; every scenario below builds
+  // `clearStorage` directly on the `BrowserSessionStub` it hands `stepResetBroker`.
+  resetClearStorageLayerBrokerProxy();
   const restoreProxy = snapshotRestoreLayerBrokerProxy();
   const recipeProxy = recipeSeedRunBrokerProxy();
   // Constructed for enforce-proxy-child-creation only — the REAL implementation is mocked directly

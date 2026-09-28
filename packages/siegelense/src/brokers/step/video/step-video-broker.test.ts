@@ -36,4 +36,26 @@ describe('stepVideoBroker', () => {
     expect(getVideoActionCalls()).toStrictEqual([[{ action: 'stop' }]]);
     expect(result).toBe('video recording stopped — saved to /tmp/test-video.webm');
   });
+
+  describe('DEF-80: the repo-local alias', () => {
+    it('VALID: {action: "stop", the repo symlink exists} => reports the repo-local path, not the resolved home path', async () => {
+      const proxy = stepVideoBrokerProxy();
+      proxy.stageRepoLinkPresent();
+      const { session } = proxy.session({
+        result: VideoResultStub({
+          status: 'stopped',
+          path: '/home/default/.dungeonmaster/siegelense/guilds/g1/instances/inst_1/video/abc.webm',
+        }),
+      });
+
+      const result = await stepVideoBroker({
+        session,
+        action: VideoActionStub({ value: 'stop' }),
+      });
+
+      expect(result).toBe(
+        'video recording stopped — saved to /default/cwd/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/video/abc.webm',
+      );
+    });
+  });
 });

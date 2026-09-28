@@ -18,4 +18,10 @@ export const resetStatics = {
     // process itself exactly as untouched as `state` does.
     instance: ['server memory', 'open websockets'],
   },
+  storageSkipped: {
+    // Appended to NOT_cleared (never one of the three lists above) when the page has no origin yet
+    // (DEF-94: `about:blank`, a fresh instance's first step) — `localStorage`/`sessionStorage` throw
+    // rather than clearing, so this says so instead of crashing the whole `reset` step.
+    noOrigin: 'browser storage (page has no origin yet)',
+  },
 } as const;

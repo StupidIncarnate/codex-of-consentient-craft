@@ -6,7 +6,7 @@ import { snapshotsAnswerRenderTransformer } from './snapshots-answer-render-tran
 
 describe('snapshotsAnswerRenderTransformer', () => {
   describe('an instance with no snapshots', () => {
-    it('EMPTY: {snapshots: []} => renders none recorded yet sentence', () => {
+    it('EMPTY: {snapshots: [], instanceState: alive} => renders none recorded yet sentence', () => {
       const answer = SnapshotsAnswerStub({
         instanceId: InstanceIdStub({ value: 'inst_7f3a9c21' }),
         instanceState: 'alive',
@@ -16,6 +16,20 @@ describe('snapshotsAnswerRenderTransformer', () => {
       const result = snapshotsAnswerRenderTransformer({ answer });
 
       expect(result).toBe('INSTANCE: inst_7f3a9c21 (alive)\nSNAPSHOTS: none recorded yet\n');
+    });
+
+    it('EMPTY: {snapshots: [], instanceState: killed} => renders the throwaway-home-died sentence, never the ambiguous none-recorded-yet one', () => {
+      const answer = SnapshotsAnswerStub({
+        instanceId: InstanceIdStub({ value: 'inst_7f3a9c21' }),
+        instanceState: 'killed',
+        snapshots: [],
+      });
+
+      const result = snapshotsAnswerRenderTransformer({ answer });
+
+      expect(result).toBe(
+        'INSTANCE: inst_7f3a9c21 (killed)\nSNAPSHOTS: none — the throwaway home died with the instance at kill\n',
+      );
     });
   });
 

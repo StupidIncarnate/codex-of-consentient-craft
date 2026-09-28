@@ -32,7 +32,7 @@ describe('compareAnswerRenderTransformer', () => {
       const rendered = compareAnswerRenderTransformer({ answer });
 
       expect(rendered).toBe(
-        'INSTANCE: inst_7f3a9c21\nCOMPARING: run_4 -> run_5\nCONSOLE ERRORS: +2\nSERVER ERRORS: +0\nNETWORK NON-2XX: +1\nPIXEL DELTA: last capture differs 12%\nELEMENTS RUN A: none\nELEMENTS RUN B: none\n',
+        'INSTANCE: inst_7f3a9c21\nCOMPARING: run_4 -> run_5\nCONSOLE ERRORS: +2\nSERVER ERRORS: +0\nNETWORK NON-2XX: +1\nPIXEL DELTA: last capture differs 12%\nELEMENTS WITHIN RUN A: none\nELEMENTS WITHIN RUN B: none\n',
       );
     });
   });
@@ -50,7 +50,7 @@ describe('compareAnswerRenderTransformer', () => {
       const rendered = compareAnswerRenderTransformer({ answer });
 
       expect(rendered).toBe(
-        'INSTANCE: inst_7f3a9c21\nCOMPARING: run_4 -> run_5\nCONSOLE ERRORS: +2\nSERVER ERRORS: +0\nNETWORK NON-2XX: +1\nPIXEL DELTA: none\nELEMENTS RUN A: none\nELEMENTS RUN B: none\n',
+        'INSTANCE: inst_7f3a9c21\nCOMPARING: run_4 -> run_5\nCONSOLE ERRORS: +2\nSERVER ERRORS: +0\nNETWORK NON-2XX: +1\nPIXEL DELTA: none\nELEMENTS WITHIN RUN A: none\nELEMENTS WITHIN RUN B: none\n',
       );
     });
   });
@@ -68,7 +68,7 @@ describe('compareAnswerRenderTransformer', () => {
       const rendered = compareAnswerRenderTransformer({ answer });
 
       expect(rendered).toBe(
-        'INSTANCE: inst_7f3a9c21\nCOMPARING: run_4 -> run_5\nCONSOLE ERRORS: +2\nSERVER ERRORS: +0\nNETWORK NON-2XX: +1\nPIXEL DELTA: 42 pixels changed\nELEMENTS RUN A: none\nELEMENTS RUN B: none\n',
+        'INSTANCE: inst_7f3a9c21\nCOMPARING: run_4 -> run_5\nCONSOLE ERRORS: +2\nSERVER ERRORS: +0\nNETWORK NON-2XX: +1\nPIXEL DELTA: 42 pixels changed\nELEMENTS WITHIN RUN A: none\nELEMENTS WITHIN RUN B: none\n',
       );
     });
   });
@@ -89,7 +89,7 @@ describe('compareAnswerRenderTransformer', () => {
       const rendered = compareAnswerRenderTransformer({ answer });
 
       expect(rendered).toBe(
-        'INSTANCE: inst_7f3a9c21\nCOMPARING: run_4 -> run_5\nCONSOLE ERRORS: +3\nSERVER ERRORS: -1\nNETWORK NON-2XX: +0\nPIXEL DELTA: none\nELEMENTS RUN A: none\nELEMENTS RUN B: none\n',
+        'INSTANCE: inst_7f3a9c21\nCOMPARING: run_4 -> run_5\nCONSOLE ERRORS: +3\nSERVER ERRORS: -1\nNETWORK NON-2XX: +0\nPIXEL DELTA: none\nELEMENTS WITHIN RUN A: none\nELEMENTS WITHIN RUN B: none\n',
       );
     });
   });
@@ -119,7 +119,32 @@ describe('compareAnswerRenderTransformer', () => {
       const rendered = compareAnswerRenderTransformer({ answer });
 
       expect(rendered).toBe(
-        'INSTANCE: inst_7f3a9c21\nCOMPARING: run_4 -> run_5\nCONSOLE ERRORS: +2\nSERVER ERRORS: +0\nNETWORK NON-2XX: +1\nPIXEL DELTA: none\nELEMENTS RUN A: none\nELEMENTS RUN B: +2 -0 ~1\n',
+        'INSTANCE: inst_7f3a9c21\nCOMPARING: run_4 -> run_5\nCONSOLE ERRORS: +2\nSERVER ERRORS: +0\nNETWORK NON-2XX: +1\nPIXEL DELTA: none\nELEMENTS WITHIN RUN A: none\nELEMENTS WITHIN RUN B: +2 -0 ~1\n',
+      );
+    });
+
+    it('VALID: {runA recorded 22 appeared, runB recorded none} => labels both lines WITHIN its own run, never as a diff against the other run', () => {
+      const answer = CompareAnswerStub({
+        instanceId: InstanceIdStub({ value: 'inst_7f3a9c21' }),
+        runA: RunIdStub({ value: 'run_1' }),
+        runB: RunIdStub({ value: 'run_2' }),
+        pixels: null,
+        elements: {
+          runA: ElementDeltaStub({
+            appeared: Array.from({ length: 22 }, (_unused, index) =>
+              KeyRowStub({ testId: `E${String(index)}` }),
+            ),
+            disappeared: [],
+            changed: [],
+          }),
+          runB: null,
+        },
+      });
+
+      const rendered = compareAnswerRenderTransformer({ answer });
+
+      expect(rendered).toBe(
+        'INSTANCE: inst_7f3a9c21\nCOMPARING: run_1 -> run_2\nCONSOLE ERRORS: +2\nSERVER ERRORS: +0\nNETWORK NON-2XX: +1\nPIXEL DELTA: none\nELEMENTS WITHIN RUN A: +22 -0 ~0\nELEMENTS WITHIN RUN B: none\n',
       );
     });
   });

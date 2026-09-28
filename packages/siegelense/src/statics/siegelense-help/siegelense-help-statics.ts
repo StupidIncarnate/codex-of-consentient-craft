@@ -143,7 +143,7 @@ export const siegelenseHelpStatics = {
       output:
         "By default, one summary line — run id, status, steps run and duration — plus the failure point when stopped early and any screenshot paths captured. `--json` prints the raw RunResult. Either way, a STATUS — an index and a shot list — never the steps' own payloads; query those afterward with `dungeonmaster siegelense results`.",
       example:
-        'dungeonmaster siegelense run --instance inst_9b2c --steps [{"step":"goto","path":"/"}]',
+        'dungeonmaster siegelense run --instance inst_4f9c2a17b8e6405fa1d4c9e02b7f1a3c --steps \'[{"step":"goto","path":"/"}]\'',
     },
     results: {
       summary: 'siegelense results — read evidence off disk for one instance. Starts nothing.',
@@ -224,7 +224,7 @@ export const siegelenseHelpStatics = {
         'An --instance id with no record in the registry is refused rather than answered.',
       ],
       output:
-        'By default, an instance header followed by formatted step readings, or a notice when none matched. `--json` prints the raw ResultsAnswer. Every answer for a known instance carries instanceState; an id with no record in the registry refuses instead.',
+        'By default, an instance header, the run summary when the query names no --step and no --kind, and formatted step readings, or a notice when none matched. `--json` prints the raw ResultsAnswer. Every answer for a known instance carries instanceState; an id with no record in the registry refuses instead.',
       example: 'dungeonmaster siegelense results --instance inst_9b2c --run run_2 --step 7',
     },
     kill: {
@@ -378,7 +378,7 @@ export const siegelenseHelpStatics = {
         'There is no cross-instance form: name one --instance and two runs (--run-a, --run-b) inside its own timeline — two different instances share nothing but a spec.',
       ],
       output:
-        'By default, instance id, the runs compared, console/server/network error deltas, and the pixel diff summary. `--json` prints the raw CompareAnswer. Either way, a READING, never a verdict on whether a unit passes.',
+        "By default, instance id, the runs compared, console/server/network error deltas, the pixel diff summary, and each run's own element churn (ELEMENTS WITHIN RUN A/B — appeared/disappeared/changed inside that run's own steps, never a diff between run A and run B: compare reads stored evidence only and never re-drives a page to compute one). `--json` prints the raw CompareAnswer. Either way, a READING, never a verdict on whether a unit passes.",
       example: 'dungeonmaster siegelense compare --instance inst_9b2c --run-a run_1 --run-b run_2',
     },
     snapshots: {
@@ -401,7 +401,7 @@ export const siegelenseHelpStatics = {
         'An --instance id with no record in the registry is refused rather than answered.',
       ],
       output:
-        "By default, instance id and state, then either 'none recorded yet' or a box-drawing table of restore points — name, age and manual flag, oldest first. `--json` prints the raw SnapshotsAnswer — instanceId, instanceState, and one row per restore point with its name, atMs and manual flag.",
+        "By default, instance id and state, then a box-drawing table of restore points (name, age and manual flag, oldest first), or — when there are none — 'none recorded yet' against a live instance and a sentence naming the throwaway home as gone against a killed one, since the two mean different things. `--json` prints the raw SnapshotsAnswer — instanceId, instanceState, and one row per restore point with its name, atMs and manual flag.",
       example: 'dungeonmaster siegelense snapshots --instance inst_9b2c',
     },
     recipes: {

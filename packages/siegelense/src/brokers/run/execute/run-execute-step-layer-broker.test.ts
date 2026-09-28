@@ -3,6 +3,7 @@ import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 import { UrlPathStub } from '../../../contracts/url-path/url-path.stub';
 import { SelectorStub } from '../../../contracts/selector/selector.stub';
 import { LocatorStateStub } from '../../../contracts/locator-state/locator-state.stub';
+import { StepCandidateStub } from '../../../contracts/step-candidate/step-candidate.stub';
 import { StepIndexStub } from '../../../contracts/step-index/step-index.stub';
 import { StepStub } from '../../../contracts/step/step.stub';
 
@@ -356,11 +357,15 @@ describe('runExecuteStepLayerBroker', () => {
       });
     });
 
-    it('ERROR: {until visible matches two elements} => timedOut false, so the run answers failed and the message names both', async () => {
+    it("ERROR: {until visible matches two elements} => timedOut false, and the message is StepAmbiguousError's own words, listing both candidates (DEF-92)", async () => {
       const proxy = runExecuteStepLayerBrokerProxy();
       const ambiguityMessage =
         'strict mode violation: locator(\'[data-testid="PIXEL_BTN"]\') resolved to 2 elements';
-      const lane = proxy.laneUntilHitsCeiling({ error: new Error(ambiguityMessage) });
+      const candidates = [
+        StepCandidateStub({ index: 0, ref: 16, within: null, text: '+', rect: '(444,348) 27x25' }),
+        StepCandidateStub({ index: 1, ref: 23, within: null, text: '+', rect: '(965,348) 27x25' }),
+      ];
+      const lane = proxy.laneUntilHitsCeiling({ error: new Error(ambiguityMessage), candidates });
       const step = StepStub({
         step: 'until',
         visible: SelectorStub({ value: '[data-testid="PIXEL_BTN"]' }),
@@ -381,10 +386,21 @@ describe('runExecuteStepLayerBroker', () => {
 
       // The other half of R9. A ceiling is the only thing that may answer `timeout`; an ambiguity
       // reaching this branch as `timedOut: true` would tell a walker to wait longer for an element
-      // already on the screen twice, and would bury Playwright's own message naming both.
-      expect({ timedOut: outcome.timedOut, reading: outcome.reading.reading }).toStrictEqual({
+      // already on the screen twice. The message is siegelense's OWN words, listing the candidates —
+      // never Playwright's raw strict-mode-violation text with its `Call log:` and ANSI colour codes.
+      expect({
+        timedOut: outcome.timedOut,
+        reading: outcome.reading.reading,
+        stoppedAtCandidates: outcome.stoppedAt?.candidates,
+      }).toStrictEqual({
         timedOut: false,
-        reading: ambiguityMessage,
+        reading:
+          'AMBIGUOUS: 2 elements match target [data-testid="PIXEL_BTN"].\n' +
+          '  [0] ref=16 within=(document root) text="+" rect=(444,348) 27x25\n' +
+          '  [1] ref=23 within=(document root) text="+" rect=(965,348) 27x25\n' +
+          'Pick one by ref — { "step": "click", "ref": N } — or narrow with `within`. Two candidates ' +
+          'sharing a `within` can only be told apart by ref; run `look` for the current key.',
+        stoppedAtCandidates: candidates,
       });
     });
   });
