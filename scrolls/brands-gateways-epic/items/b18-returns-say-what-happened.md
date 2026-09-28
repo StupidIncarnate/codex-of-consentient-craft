@@ -174,3 +174,224 @@ accurate wording.
 
 ## Concessions made while executing
 
+## Plan
+
+Checked against code on 2026-09-27:
+- `packages/orchestrator/src/startup/start-orchestrator.ts:80-96`: Item notes `StartOrchestrator.bootstrap()` return shape was not independently re-verified; verified it returns `AdapterResult` via `ProcessStaleWatchFlow.bootstrap()`. Phase 2 forwarder adapters (item A02) were deleted in commit `3747a95c0`, so the only external caller is `packages/server/src/responders/orchestration/bootstrap/orchestration-bootstrap-responder.ts:14`.
+- `packages/eslint-plugin/src/brokers/rule/enforce-folder-return-types/rule-enforce-folder-return-types-broker.ts:17` and `packages/eslint-plugin/src/brokers/rule/enforce-folder-return-types/check-folder-return-type-layer-broker.ts:13`: Item notes rule folder was unlocated; located and verified active.
+- `packages/shared/src/statics/dungeonmaster-rule-enforce-on/dungeonmaster-rule-enforce-on-statics.ts:33`: Item notes pre-edit tag content was not independently re-checked; verified `'@dungeonmaster/enforce-folder-return-types': 'pre-edit'` is active and covered by `packages/shared/src/statics/dungeonmaster-rule-enforce-on/dungeonmaster-rule-enforce-on-statics.test.ts:22`.
+- `packages/orchestrator/src/startup/start-orchestrator.proxy.ts:101-104,398-403`: Cross-package proxy was already added in A00 and is composed by `packages/server/src/responders/orchestration/bootstrap/orchestration-bootstrap-responder.proxy.ts:12-14`.
+- `packages/shared/src/contracts/adapter-result/adapter-result-contract.ts:1-20`: Item lists deleting `adapterResultContract` upon finishing split (a); verified ~143 usages across 11 packages (e.g. `cli`, `config`, `mcp`, `server`, `ward`), so contract deletion must be deferred to the final batch of split (b).
+
+### Split (a): Files Created, Edited, or Deleted
+
+#### Orchestrator
+- `packages/orchestrator/src/flows/execution-queue/execution-queue-flow.ts` (edit)
+- `packages/orchestrator/src/responders/execution-queue/bootstrap/execution-queue-bootstrap-responder.ts` (edit)
+- `packages/orchestrator/src/responders/execution-queue/bootstrap/execution-queue-bootstrap-responder.test.ts` (edit)
+- `packages/orchestrator/src/responders/execution-queue/sync-listener-bootstrap/execution-queue-sync-listener-bootstrap-responder.ts` (edit)
+- `packages/orchestrator/src/responders/execution-queue/sync-listener-bootstrap/execution-queue-sync-listener-bootstrap-responder.test.ts` (edit)
+- `packages/orchestrator/src/flows/orchestration-dispatch/orchestration-dispatch-flow.ts` (edit)
+- `packages/orchestrator/src/responders/orchestration-dispatch/bootstrap/orchestration-dispatch-bootstrap-responder.ts` (edit)
+- `packages/orchestrator/src/responders/orchestration-dispatch/bootstrap/orchestration-dispatch-bootstrap-responder.test.ts` (edit)
+- `packages/orchestrator/src/flows/process-stale-watch/process-stale-watch-flow.ts` (edit)
+- `packages/orchestrator/src/responders/process-stale-watch/bootstrap/process-stale-watch-bootstrap-responder.ts` (edit)
+- `packages/orchestrator/src/responders/process-stale-watch/bootstrap/process-stale-watch-bootstrap-responder.test.ts` (edit)
+- `packages/orchestrator/src/flows/smoketest/smoketest-flow.ts` (edit)
+- `packages/orchestrator/src/responders/smoketest/bootstrap-listener/smoketest-bootstrap-listener-responder.ts` (edit)
+- `packages/orchestrator/src/responders/smoketest/bootstrap-listener/smoketest-bootstrap-listener-responder.test.ts` (edit)
+- `packages/orchestrator/src/responders/smoketest/bootstrap-listener/drain-listener-layer-responder.ts` (edit)
+- `packages/orchestrator/src/responders/smoketest/bootstrap-listener/drain-listener-layer-responder.test.ts` (edit)
+- `packages/orchestrator/src/flows/rate-limits/rate-limits-flow.ts` (edit)
+- `packages/orchestrator/src/responders/rate-limits/bootstrap/rate-limits-bootstrap-responder.ts` (edit)
+- `packages/orchestrator/src/responders/rate-limits/bootstrap/rate-limits-bootstrap-responder.proxy.ts` (edit)
+- `packages/orchestrator/src/responders/rate-limits/bootstrap/rate-limits-bootstrap-responder.test.ts` (edit)
+- `packages/orchestrator/src/responders/rate-limits/bootstrap/evaluate-hold-layer-responder.ts` (edit)
+- `packages/orchestrator/src/responders/rate-limits/bootstrap/evaluate-hold-layer-responder.test.ts` (edit)
+- `packages/orchestrator/src/startup/start-orchestrator.ts` (edit)
+- `packages/orchestrator/src/startup/start-orchestrator.proxy.ts` (edit)
+- `packages/orchestrator/src/startup/start-orchestrator.integration.test.ts` (edit)
+
+#### Server
+- `packages/server/src/responders/orchestration/bootstrap/orchestration-bootstrap-responder.ts` (edit)
+- `packages/server/src/responders/orchestration/bootstrap/orchestration-bootstrap-responder.proxy.ts` (edit)
+- `packages/server/src/responders/orchestration/bootstrap/orchestration-bootstrap-responder.test.ts` (edit)
+
+#### Shared
+- `packages/shared/src/statics/dungeonmaster-rule-enforce-on/dungeonmaster-rule-enforce-on-statics.ts` (edit)
+- `packages/shared/src/statics/dungeonmaster-rule-enforce-on/dungeonmaster-rule-enforce-on-statics.test.ts` (edit)
+
+#### ESLint Plugin
+- `packages/eslint-plugin/src/brokers/rule/enforce-folder-return-types/check-folder-return-type-layer-broker.ts` (edit)
+- `packages/eslint-plugin/src/brokers/rule/enforce-folder-return-types/check-folder-return-type-layer-broker.test.ts` (edit)
+- `packages/eslint-plugin/src/brokers/rule/enforce-folder-return-types/rule-enforce-folder-return-types-broker.ts` (edit)
+- `packages/eslint-plugin/src/brokers/rule/enforce-folder-return-types/rule-enforce-folder-return-types-broker.test.ts` (edit)
+- `packages/eslint-plugin/src/dungeonmaster-rule-enforce-on.integration.test.ts` (edit)
+
+### Split (a): Batches
+
+| Batch ID | Files | Action | Depends On | Runs Beside |
+|---|---|---|---|---|
+| B18-1 | `packages/orchestrator/src/responders/execution-queue/bootstrap/execution-queue-bootstrap-responder.ts`<br>`packages/orchestrator/src/responders/execution-queue/bootstrap/execution-queue-bootstrap-responder.test.ts` | Change return type to `void` and assert `toBeUndefined()`. | None | B18-3, B18-4, B18-5, B18-6, B18-7, B18-8, B18-11, B18-12 |
+| B18-2 | `packages/orchestrator/src/flows/execution-queue/execution-queue-flow.ts`<br>`packages/orchestrator/src/responders/execution-queue/sync-listener-bootstrap/execution-queue-sync-listener-bootstrap-responder.ts`<br>`packages/orchestrator/src/responders/execution-queue/sync-listener-bootstrap/execution-queue-sync-listener-bootstrap-responder.test.ts` | Change `bootstrap()` and `bootstrapSyncListener()` to return `void`. | B18-1 | B18-3, B18-4, B18-5, B18-6, B18-7, B18-8, B18-11, B18-12 |
+| B18-3 | `packages/orchestrator/src/flows/orchestration-dispatch/orchestration-dispatch-flow.ts`<br>`packages/orchestrator/src/responders/orchestration-dispatch/bootstrap/orchestration-dispatch-bootstrap-responder.ts`<br>`packages/orchestrator/src/responders/orchestration-dispatch/bootstrap/orchestration-dispatch-bootstrap-responder.test.ts` | Change dispatch bootstrap flow and responder to return `void`. | None | B18-1, B18-2, B18-4, B18-5, B18-6, B18-7, B18-8, B18-11, B18-12 |
+| B18-4 | `packages/orchestrator/src/flows/process-stale-watch/process-stale-watch-flow.ts`<br>`packages/orchestrator/src/responders/process-stale-watch/bootstrap/process-stale-watch-bootstrap-responder.ts`<br>`packages/orchestrator/src/responders/process-stale-watch/bootstrap/process-stale-watch-bootstrap-responder.test.ts` | Change stale-watch bootstrap flow and responder to return `void`. | None | B18-1, B18-2, B18-3, B18-5, B18-6, B18-7, B18-8, B18-11, B18-12 |
+| B18-5 | `packages/orchestrator/src/flows/smoketest/smoketest-flow.ts`<br>`packages/orchestrator/src/responders/smoketest/bootstrap-listener/smoketest-bootstrap-listener-responder.ts`<br>`packages/orchestrator/src/responders/smoketest/bootstrap-listener/smoketest-bootstrap-listener-responder.test.ts` | Change smoketest bootstrap flow and listener responder to return `void`. | None | B18-1, B18-2, B18-3, B18-4, B18-6, B18-7, B18-8, B18-11, B18-12 |
+| B18-6 | `packages/orchestrator/src/responders/smoketest/bootstrap-listener/drain-listener-layer-responder.ts`<br>`packages/orchestrator/src/responders/smoketest/bootstrap-listener/drain-listener-layer-responder.test.ts` | Change drain listener layer responder and test to return `void`. | None | B18-1, B18-2, B18-3, B18-4, B18-5, B18-7, B18-8, B18-11, B18-12 |
+| B18-7 | `packages/orchestrator/src/flows/rate-limits/rate-limits-flow.ts`<br>`packages/orchestrator/src/responders/rate-limits/bootstrap/rate-limits-bootstrap-responder.ts`<br>`packages/orchestrator/src/responders/rate-limits/bootstrap/rate-limits-bootstrap-responder.proxy.ts`<br>`packages/orchestrator/src/responders/rate-limits/bootstrap/rate-limits-bootstrap-responder.test.ts` | Change rate-limits bootstrap flow, responder, proxy and test to return `void`. | B18-8 | B18-1, B18-2, B18-3, B18-4, B18-5, B18-6, B18-11, B18-12 |
+| B18-8 | `packages/orchestrator/src/responders/rate-limits/bootstrap/evaluate-hold-layer-responder.ts`<br>`packages/orchestrator/src/responders/rate-limits/bootstrap/evaluate-hold-layer-responder.test.ts` | Change evaluate-hold layer responder and test to return `void`. | None | B18-1, B18-2, B18-3, B18-4, B18-5, B18-6, B18-7, B18-11, B18-12 |
+| B18-9 | `packages/orchestrator/src/startup/start-orchestrator.ts`<br>`packages/orchestrator/src/startup/start-orchestrator.proxy.ts`<br>`packages/orchestrator/src/startup/start-orchestrator.integration.test.ts` | Change `StartOrchestrator.bootstrap()` to return `void`, proxy returns `undefined`, test asserts `toBeUndefined()`. | B18-1, B18-2, B18-3, B18-4, B18-5, B18-6, B18-7, B18-8 | B18-11, B18-12 |
+| B18-10 | `packages/server/src/responders/orchestration/bootstrap/orchestration-bootstrap-responder.ts`<br>`packages/server/src/responders/orchestration/bootstrap/orchestration-bootstrap-responder.proxy.ts`<br>`packages/server/src/responders/orchestration/bootstrap/orchestration-bootstrap-responder.test.ts` | Change server orchestration bootstrap responder to return `void`, proxy returns `undefined`, test asserts `toBeUndefined()`. | B18-9 | B18-11, B18-12, B18-13 |
+| B18-11 | `packages/shared/src/statics/dungeonmaster-rule-enforce-on/dungeonmaster-rule-enforce-on-statics.ts`<br>`packages/shared/src/statics/dungeonmaster-rule-enforce-on/dungeonmaster-rule-enforce-on-statics.test.ts` | Remove `'pre-edit'` tag for `@dungeonmaster/enforce-folder-return-types`. | None | B18-1 through B18-10, B18-12 |
+| B18-12 | `packages/eslint-plugin/src/brokers/rule/enforce-folder-return-types/check-folder-return-type-layer-broker.ts`<br>`packages/eslint-plugin/src/brokers/rule/enforce-folder-return-types/check-folder-return-type-layer-broker.test.ts` | Rewrite layer broker to inspect discarded call types via type checker adapter and permit `void` only when discarded calls return `void`. | None | B18-1 through B18-11 |
+| B18-13 | `packages/eslint-plugin/src/brokers/rule/enforce-folder-return-types/rule-enforce-folder-return-types-broker.ts`<br>`packages/eslint-plugin/src/brokers/rule/enforce-folder-return-types/rule-enforce-folder-return-types-broker.test.ts`<br>`packages/eslint-plugin/src/dungeonmaster-rule-enforce-on.integration.test.ts` | Update rule broker description/messages and update integration test counts/checks for ward-only rule timing. | B18-11, B18-12 | B18-10 |
+
+### Verification per Batch
+
+- **B18-1**: `npm run ward -- --only lint,typecheck,unit -- packages/orchestrator/src/responders/execution-queue/bootstrap/execution-queue-bootstrap-responder.ts packages/orchestrator/src/responders/execution-queue/bootstrap/execution-queue-bootstrap-responder.test.ts`
+- **B18-2**: `npm run ward -- --only lint,typecheck,unit -- packages/orchestrator/src/flows/execution-queue/execution-queue-flow.ts packages/orchestrator/src/responders/execution-queue/sync-listener-bootstrap/execution-queue-sync-listener-bootstrap-responder.ts packages/orchestrator/src/responders/execution-queue/sync-listener-bootstrap/execution-queue-sync-listener-bootstrap-responder.test.ts`
+- **B18-3**: `npm run ward -- --only lint,typecheck,unit -- packages/orchestrator/src/flows/orchestration-dispatch/orchestration-dispatch-flow.ts packages/orchestrator/src/responders/orchestration-dispatch/bootstrap/orchestration-dispatch-bootstrap-responder.ts packages/orchestrator/src/responders/orchestration-dispatch/bootstrap/orchestration-dispatch-bootstrap-responder.test.ts`
+- **B18-4**: `npm run ward -- --only lint,typecheck,unit -- packages/orchestrator/src/flows/process-stale-watch/process-stale-watch-flow.ts packages/orchestrator/src/responders/process-stale-watch/bootstrap/process-stale-watch-bootstrap-responder.ts packages/orchestrator/src/responders/process-stale-watch/bootstrap/process-stale-watch-bootstrap-responder.test.ts`
+- **B18-5**: `npm run ward -- --only lint,typecheck,unit -- packages/orchestrator/src/flows/smoketest/smoketest-flow.ts packages/orchestrator/src/responders/smoketest/bootstrap-listener/smoketest-bootstrap-listener-responder.ts packages/orchestrator/src/responders/smoketest/bootstrap-listener/smoketest-bootstrap-listener-responder.test.ts`
+- **B18-6**: `npm run ward -- --only lint,typecheck,unit -- packages/orchestrator/src/responders/smoketest/bootstrap-listener/drain-listener-layer-responder.ts packages/orchestrator/src/responders/smoketest/bootstrap-listener/drain-listener-layer-responder.test.ts`
+- **B18-7**: `npm run ward -- --only lint,typecheck,unit -- packages/orchestrator/src/flows/rate-limits/rate-limits-flow.ts packages/orchestrator/src/responders/rate-limits/bootstrap/rate-limits-bootstrap-responder.ts packages/orchestrator/src/responders/rate-limits/bootstrap/rate-limits-bootstrap-responder.proxy.ts packages/orchestrator/src/responders/rate-limits/bootstrap/rate-limits-bootstrap-responder.test.ts`
+- **B18-8**: `npm run ward -- --only lint,typecheck,unit -- packages/orchestrator/src/responders/rate-limits/bootstrap/evaluate-hold-layer-responder.ts packages/orchestrator/src/responders/rate-limits/bootstrap/evaluate-hold-layer-responder.test.ts`
+- **B18-9**: `npm run ward -- --only lint,typecheck,unit,integration -- packages/orchestrator/src/startup/start-orchestrator.ts packages/orchestrator/src/startup/start-orchestrator.proxy.ts packages/orchestrator/src/startup/start-orchestrator.integration.test.ts`
+  - Cross-package unit suite: `StartOrchestratorProxy` is composed by `packages/server/src/responders/orchestration/bootstrap/orchestration-bootstrap-responder.proxy.ts`. Both `packages/orchestrator` and `packages/server` whole unit suites must run: `npm run ward -- --only unit -- packages/orchestrator packages/server`.
+- **B18-10**: `npm run ward -- --only lint,typecheck,unit -- packages/server/src/responders/orchestration/bootstrap/orchestration-bootstrap-responder.ts packages/server/src/responders/orchestration/bootstrap/orchestration-bootstrap-responder.proxy.ts packages/server/src/responders/orchestration/bootstrap/orchestration-bootstrap-responder.test.ts`
+  - Package unit suite: `npm run ward -- --only unit -- packages/server`.
+- **B18-11**: `npm run ward -- --only lint,typecheck,unit -- packages/shared/src/statics/dungeonmaster-rule-enforce-on/dungeonmaster-rule-enforce-on-statics.ts packages/shared/src/statics/dungeonmaster-rule-enforce-on/dungeonmaster-rule-enforce-on-statics.test.ts`
+- **B18-12**: `npm run ward -- --only lint,typecheck,unit -- packages/eslint-plugin/src/brokers/rule/enforce-folder-return-types/check-folder-return-type-layer-broker.ts packages/eslint-plugin/src/brokers/rule/enforce-folder-return-types/check-folder-return-type-layer-broker.test.ts`
+- **B18-13**: `npm run ward -- --only lint,typecheck,unit,integration -- packages/eslint-plugin/src/brokers/rule/enforce-folder-return-types/rule-enforce-folder-return-types-broker.ts packages/eslint-plugin/src/brokers/rule/enforce-folder-return-types/rule-enforce-folder-return-types-broker.test.ts packages/eslint-plugin/src/dungeonmaster-rule-enforce-on.integration.test.ts`
+
+### Build and Consumer Discipline
+
+- **Build requirements**:
+  - `packages/shared`: If any process runs compiled output during testing, build with `npm run build --workspace=@dungeonmaster/shared`.
+  - `packages/orchestrator`: If compiled output is executed by server/mcp or init tests, build with `npm run build --workspace=@dungeonmaster/orchestrator`.
+  - `packages/eslint-plugin`: If plugin is run via external eslint loader, build with `npm run build --workspace=@dungeonmaster/eslint-plugin`.
+- **Consumer impact**:
+  - Split (a) does NOT change any template files or files written by `dungeonmaster init`.
+  - No consumer export contracts or public bindings change in split (a). `check:consumer` is not required until split (b) deletes `adapterResultContract`.
+
+### Split (b): Broad Census per Package
+
+#### Non-Deferred Packages (`src/adapters/` does not exist)
+- **`session-forensics`**:
+  - `packages/session-forensics/src/startup/start-session-forensics.ts` (`init()` returns `AdapterResult`)
+  - `packages/session-forensics/src/startup/start-session-forensics.proxy.ts`
+  - `packages/session-forensics/src/startup/start-session-forensics.test.ts`
+  - `packages/session-forensics/src/responders/session-forensics/init/session-forensics-init-responder.ts`
+  - `packages/session-forensics/src/responders/session-forensics/init/session-forensics-init-responder.test.ts`
+
+#### Deferred Packages (`src/adapters/` still exists)
+- **`cli` (deferred: `src/adapters/` still exists)**:
+  - `packages/cli/src/adapters/siegelense/run/siegelense-run-adapter.ts`
+  - `packages/cli/src/adapters/siegelense/run/siegelense-run-adapter.test.ts`
+  - `packages/cli/src/brokers/command/execute-command/command-execute-command-broker.ts`
+  - `packages/cli/src/brokers/command/execute-command/command-execute-command-broker.test.ts`
+- **`config` (deferred: `src/adapters/` still exists)**:
+  - `packages/config/src/adapters/fs/ensure-file/fs-ensure-file-adapter.ts`
+  - `packages/config/src/adapters/fs/ensure-file/fs-ensure-file-adapter.test.ts`
+  - `packages/config/src/adapters/fs/write-file-atomic/fs-write-file-atomic-adapter.ts`
+  - `packages/config/src/adapters/fs/write-file-atomic/fs-write-file-atomic-adapter.test.ts`
+  - `packages/config/src/responders/install/create-config/install-create-config-responder.ts`
+  - `packages/config/src/responders/install/create-config/install-create-config-responder.test.ts`
+- **`eslint-plugin` (deferred: `src/adapters/` still exists)**:
+  - `packages/eslint-plugin/src/brokers/rule/enforce-folder-return-types/check-folder-return-type-layer-broker.ts` (handled in split a)
+  - `packages/eslint-plugin/src/brokers/rule/enforce-folder-return-types/check-folder-return-type-layer-broker.test.ts` (handled in split a)
+- **`hooks` (deferred: `src/adapters/` still exists)**:
+  - `packages/hooks/src/adapters/fs/append-file-sync/fs-append-file-sync-adapter.ts`
+  - `packages/hooks/src/adapters/fs/append-file-sync/fs-append-file-sync-adapter.test.ts`
+  - `packages/hooks/src/adapters/fs/ensure-dir-sync/fs-ensure-dir-sync-adapter.ts`
+  - `packages/hooks/src/adapters/fs/ensure-dir-sync/fs-ensure-dir-sync-adapter.test.ts`
+  - `packages/hooks/src/adapters/fs/write-file-sync/fs-write-file-sync-adapter.ts`
+  - `packages/hooks/src/adapters/fs/write-file-sync/fs-write-file-sync-adapter.test.ts`
+  - `packages/hooks/src/responders/install/create-settings/install-create-settings-responder.ts`
+  - `packages/hooks/src/responders/install/create-settings/install-create-settings-responder.test.ts`
+- **`hydration` (deferred: `src/adapters/` still exists)**:
+  - `packages/hydration/src/adapters/fs/create-dir/fs-create-dir-adapter.ts`
+  - `packages/hydration/src/adapters/fs/create-dir/fs-create-dir-adapter.test.ts`
+  - `packages/hydration/src/adapters/fs/write-file/fs-write-file-adapter.ts`
+  - `packages/hydration/src/adapters/fs/write-file/fs-write-file-adapter.test.ts`
+- **`hydration-recipes` (deferred: `src/adapters/` still exists)**:
+  - `packages/hydration-recipes/src/adapters/recipe/mcp/tool-recipe-mcp-adapter.ts`
+  - `packages/hydration-recipes/src/adapters/recipe/mcp/tool-recipe-mcp-adapter.test.ts`
+  - `packages/hydration-recipes/src/adapters/recipe/signals/tool-recipe-signals-adapter.ts`
+  - `packages/hydration-recipes/src/adapters/recipe/signals/tool-recipe-signals-adapter.test.ts`
+- **`mcp` (deferred: `src/adapters/` still exists)**:
+  - `packages/mcp/src/adapters/file/rm/file-rm-adapter.ts`
+  - `packages/mcp/src/adapters/file/rm/file-rm-adapter.test.ts`
+  - `packages/mcp/src/adapters/file/write/file-write-adapter.ts`
+  - `packages/mcp/src/adapters/file/write/file-write-adapter.test.ts`
+  - `packages/mcp/src/brokers/settings/permissions-add/settings-permissions-add-broker.ts`
+  - `packages/mcp/src/brokers/settings/permissions-add/settings-permissions-add-broker.test.ts`
+  - `packages/mcp/src/responders/install/config-create/install-config-create-responder.ts`
+  - `packages/mcp/src/responders/install/config-create/install-config-create-responder.test.ts`
+- **`orchestrator` (deferred: `src/adapters/` still exists — non-split-(a) callers)**:
+  - `packages/orchestrator/src/brokers/quest/node-dispatch-loop/quest-node-dispatch-loop-broker.ts`
+  - `packages/orchestrator/src/brokers/quest/node-dispatch-loop/spawn-batch-layer-broker.ts`
+  - `packages/orchestrator/src/brokers/quest/node-dispatch-runner/quest-node-dispatch-runner-broker.ts`
+  - `packages/orchestrator/src/responders/clarify/answer/clarify-answer-responder.ts`
+  - `packages/orchestrator/src/responders/clarify/answer/clarify-answer-responder.test.ts`
+  - `packages/orchestrator/src/responders/comment/batch/comment-batch-responder.ts`
+  - `packages/orchestrator/src/responders/comment/batch/comment-batch-responder.test.ts`
+  - `packages/orchestrator/src/responders/guild/remove/guild-remove-responder.ts`
+  - `packages/orchestrator/src/responders/guild/remove/guild-remove-responder.test.ts`
+  - `packages/orchestrator/src/responders/install/commands-create/install-commands-create-responder.ts`
+  - `packages/orchestrator/src/responders/install/commands-create/install-commands-create-responder.test.ts`
+  - `packages/orchestrator/src/responders/install/repo-scaffold/install-repo-scaffold-responder.ts`
+  - `packages/orchestrator/src/responders/install/repo-scaffold/install-repo-scaffold-responder.test.ts`
+  - `packages/orchestrator/src/responders/orchestration/delete/orchestration-delete-responder.ts`
+  - `packages/orchestrator/src/responders/orchestration/delete/orchestration-delete-responder.test.ts`
+  - `packages/orchestrator/src/responders/orchestration/merge/orchestration-merge-responder.ts`
+  - `packages/orchestrator/src/responders/orchestration/merge/orchestration-merge-responder.test.ts`
+  - `packages/orchestrator/src/responders/orchestration/resume/orchestration-resume-responder.ts`
+  - `packages/orchestrator/src/responders/orchestration/resume/orchestration-resume-responder.test.ts`
+  - `packages/orchestrator/src/responders/orchestration/start/orchestration-start-responder.ts`
+  - `packages/orchestrator/src/responders/orchestration/start/orchestration-start-responder.test.ts`
+  - `packages/orchestrator/src/responders/orchestration-dispatch/pause/orchestration-dispatch-pause-responder.ts`
+  - `packages/orchestrator/src/responders/orchestration-dispatch/pause/orchestration-dispatch-pause-responder.test.ts`
+  - `packages/orchestrator/src/responders/orchestration-dispatch/play/orchestration-dispatch-play-responder.ts`
+  - `packages/orchestrator/src/responders/orchestration-dispatch/play/orchestration-dispatch-play-responder.test.ts`
+  - `packages/orchestrator/src/responders/worktree/create/worktree-create-responder.ts`
+  - `packages/orchestrator/src/responders/worktree/create/worktree-create-responder.test.ts`
+- **`server` (deferred: `src/adapters/` still exists — non-split-(a) callers)**:
+  - `packages/server/src/responders/install/scaffold-repo/install-scaffold-repo-responder.ts`
+  - `packages/server/src/responders/install/scaffold-repo/install-scaffold-repo-responder.test.ts`
+- **`shared` (deferred: `src/adapters/` still exists — contract deletion in final batch)**:
+  - `packages/shared/src/contracts/adapter-result/adapter-result-contract.ts` (delete)
+  - `packages/shared/src/contracts/adapter-result/adapter-result-contract.test.ts` (delete)
+  - `packages/shared/src/contracts/adapter-result/adapter-result.stub.ts` (delete)
+  - `packages/shared/src/contracts/adapter-result/adapter-result.stub.test.ts` (delete)
+- **`siegelense` (deferred: `src/adapters/` still exists)**:
+  - `packages/siegelense/src/adapters/fs/write-file-sync/fs-write-file-sync-adapter.ts`
+  - `packages/siegelense/src/adapters/fs/write-file-sync/fs-write-file-sync-adapter.test.ts`
+  - `packages/siegelense/src/adapters/fs/ensure-dir-sync/fs-ensure-dir-sync-adapter.ts`
+  - `packages/siegelense/src/adapters/fs/ensure-dir-sync/fs-ensure-dir-sync-adapter.test.ts`
+- **`testing` (deferred: `src/adapters/` still exists)**:
+  - `packages/testing/src/adapters/fs/ensure-dir/fs-ensure-dir-adapter.ts`
+  - `packages/testing/src/adapters/fs/ensure-dir/fs-ensure-dir-adapter.test.ts`
+  - `packages/testing/src/adapters/fs/write-file/fs-write-file-adapter.ts`
+  - `packages/testing/src/adapters/fs/write-file/fs-write-file-adapter.test.ts`
+  - `packages/testing/src/adapters/fs/rm/fs-rm-adapter.ts`
+  - `packages/testing/src/adapters/fs/rm/fs-rm-adapter.test.ts`
+- **`tooling` (deferred: `src/adapters/` still exists)**:
+  - `packages/tooling/src/adapters/fs/ensure-dir/fs-ensure-dir-adapter.ts`
+  - `packages/tooling/src/adapters/fs/ensure-dir/fs-ensure-dir-adapter.test.ts`
+  - `packages/tooling/src/adapters/fs/write-file/fs-write-file-adapter.ts`
+  - `packages/tooling/src/adapters/fs/write-file/fs-write-file-adapter.test.ts`
+- **`ward` (deferred: `src/adapters/` still exists)**:
+  - `packages/ward/src/adapters/fs/write-file/fs-write-file-adapter.ts`
+  - `packages/ward/src/adapters/fs/write-file/fs-write-file-adapter.test.ts`
+  - `packages/ward/src/adapters/process/exit/process-exit-adapter.ts`
+  - `packages/ward/src/adapters/process/exit/process-exit-adapter.test.ts`
+- **`web` (deferred: `src/adapters/` still exists)**:
+  - `packages/web/src/adapters/storage/local-storage-adapter.ts`
+  - `packages/web/src/adapters/storage/local-storage-adapter.test.ts`
+
+### Open Questions
+
+1. **Handling Ward-Only Timing in `dungeonmaster-rule-enforce-on.integration.test.ts`**: The test at line 251 asserts that every registered `@dungeonmaster/*` rule in `configDungeonmasterBroker` exists in `dungeonmasterRuleEnforceOnStatics`. Untagging `@dungeonmaster/enforce-folder-return-types` from `dungeonmasterRuleEnforceOnStatics` causes this test to fail unless the test explicitly exempts ward-only typed rules (following `ban-proxy-empty-called-with`) or `dungeonmasterRuleEnforceOnStatics` introduces a `'ward-only'` timing entry.
+2. **Encapsulated Watcher Handles in Responders**: `ProcessStaleWatchBootstrapResponder` and `RateLimitsBootstrapResponder` store their returned timer/watcher handles in private module state (`processStaleWatchBootstrapState.setHandle`, `rateLimitsBootstrapState.setHandle`) and currently return `{ success: true as const }` solely to satisfy the legacy no-void rule. Confirm that both responders should return `void`, keeping the handles strictly encapsulated.
+

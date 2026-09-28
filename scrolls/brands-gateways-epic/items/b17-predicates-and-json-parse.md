@@ -166,3 +166,213 @@ this item should leave the example above verified against real code before that 
 
 ## Concessions made while executing
 
+None yet.
+
+## Plan
+
+Checked against code on 2026-09-27:
+- `packages/hooks/src/guards/is-dungeonmaster-hooks-config/is-dungeonmaster-hooks-config-guard.ts:15`: confirmed present with type predicate `(value: unknown): value is DungeonmasterHooksConfig`; has no callers outside its companion test (`is-dungeonmaster-hooks-config-guard.test.ts:9,19`).
+- `packages/cli/src/guards/has-dev-dependencies/has-dev-dependencies-guard.ts:14`: confirmed present with type predicate `(params): params is { obj: { devDependencies: DependencyMap } }`; has no callers outside its companion test (`has-dev-dependencies-guard.test.ts:6,12`).
+- `packages/eslint-plugin/src/brokers/rule/require-validation-on-untyped-property-access/rule-require-validation-on-untyped-property-access-broker.ts:17`: located (item listed location unconfirmed); line 46 retains the dead `filenameStr.endsWith('-adapter.ts')` exemption; rule currently flags only `Reflect.get` and `JSON.parse(...).field` property accesses, not raw/stored `JSON.parse` or `.json()` calls.
+- `packages/orchestrator/src/guards/is-array-of-items-with-id/is-array-of-items-with-id-guard.ts:13`: unlisted third guard exists predicating `params is { value: ItemWithId[] }` where `ItemWithId` is a shared contract type, called by 2 guards and 3 transformers in `orchestrator`.
+- `packages/shared/src/brokers/architecture/overview/architecture-overview-broker.ts:336`: confirmed line 336 holds the stale teaching comment `const data = JSON.parse(response) as ApiResponse;  // ✅ you know what the compiler cannot`.
+- `packages/eslint-plugin/src/responders/eslint-plugin/create/eslint-plugin-create-responder.ts:65`: confirmed neither `ban-contract-type-predicates` nor `require-gateway-unknown-parse` exists yet in `eslint-plugin`.
+
+### Files touched
+
+#### Created (6 files)
+- `packages/eslint-plugin/src/brokers/rule/ban-contract-type-predicates/rule-ban-contract-type-predicates-broker.proxy.ts`
+- `packages/eslint-plugin/src/brokers/rule/ban-contract-type-predicates/rule-ban-contract-type-predicates-broker.test.ts`
+- `packages/eslint-plugin/src/brokers/rule/ban-contract-type-predicates/rule-ban-contract-type-predicates-broker.ts`
+- `packages/eslint-plugin/src/brokers/rule/require-gateway-unknown-parse/rule-require-gateway-unknown-parse-broker.proxy.ts`
+- `packages/eslint-plugin/src/brokers/rule/require-gateway-unknown-parse/rule-require-gateway-unknown-parse-broker.test.ts`
+- `packages/eslint-plugin/src/brokers/rule/require-gateway-unknown-parse/rule-require-gateway-unknown-parse-broker.ts`
+
+#### Edited (84 files)
+- `packages/cli/src/brokers/http-backend-package/resolve/http-backend-package-resolve-broker.test.ts`
+- `packages/cli/src/brokers/http-backend-package/resolve/http-backend-package-resolve-broker.ts`
+- `packages/cli/src/guards/has-dev-dependencies/has-dev-dependencies-guard.test.ts`
+- `packages/cli/src/guards/has-dev-dependencies/has-dev-dependencies-guard.ts`
+- `packages/cli/src/responders/cli/create-package/cli-create-package-responder.test.ts`
+- `packages/cli/src/responders/cli/create-package/cli-create-package-responder.ts`
+- `packages/cli/src/responders/cli/statusline-tap/cli-statusline-tap-responder.test.ts`
+- `packages/cli/src/responders/cli/statusline-tap/cli-statusline-tap-responder.ts`
+- `packages/config/src/brokers/config-file/load/config-file-load-broker.test.ts`
+- `packages/config/src/brokers/config-file/load/config-file-load-broker.ts`
+- `packages/eslint-plugin/src/brokers/config/dungeonmaster/config-dungeonmaster-broker.test.ts`
+- `packages/eslint-plugin/src/brokers/config/dungeonmaster/config-dungeonmaster-broker.ts`
+- `packages/eslint-plugin/src/brokers/config/gateway-lint-config/config-gateway-lint-config-broker.test.ts`
+- `packages/eslint-plugin/src/brokers/config/gateway-lint-config/config-gateway-lint-config-broker.ts`
+- `packages/eslint-plugin/src/brokers/config/workspace-package-names/config-workspace-package-names-broker.test.ts`
+- `packages/eslint-plugin/src/brokers/config/workspace-package-names/config-workspace-package-names-broker.ts`
+- `packages/eslint-plugin/src/brokers/repo-scope/resolve/repo-scope-resolve-broker.test.ts`
+- `packages/eslint-plugin/src/brokers/repo-scope/resolve/repo-scope-resolve-broker.ts`
+- `packages/eslint-plugin/src/brokers/rule/require-validation-on-untyped-property-access/check-is-json-parse-call-layer-broker.test.ts`
+- `packages/eslint-plugin/src/brokers/rule/require-validation-on-untyped-property-access/check-is-json-parse-call-layer-broker.ts`
+- `packages/eslint-plugin/src/brokers/rule/require-validation-on-untyped-property-access/rule-require-validation-on-untyped-property-access-broker.test.ts`
+- `packages/eslint-plugin/src/brokers/rule/require-validation-on-untyped-property-access/rule-require-validation-on-untyped-property-access-broker.ts`
+- `packages/eslint-plugin/src/brokers/workspace-root/find/workspace-root-find-broker.test.ts`
+- `packages/eslint-plugin/src/brokers/workspace-root/find/workspace-root-find-broker.ts`
+- `packages/eslint-plugin/src/flows/eslint-plugin/eslint-plugin-flow.integration.test.ts`
+- `packages/eslint-plugin/src/responders/eslint-plugin/create/eslint-plugin-create-responder.proxy.ts`
+- `packages/eslint-plugin/src/responders/eslint-plugin/create/eslint-plugin-create-responder.test.ts`
+- `packages/eslint-plugin/src/responders/eslint-plugin/create/eslint-plugin-create-responder.ts`
+- `packages/eslint-plugin/src/startup/start-eslint-plugin.integration.test.ts`
+- `packages/hooks/src/flows/hook-post-edit/hook-post-edit-flow.integration.test.ts`
+- `packages/hooks/src/flows/hook-post-edit/hook-post-edit-flow.ts`
+- `packages/hooks/src/flows/hook-pre-bash/hook-pre-bash-flow.integration.test.ts`
+- `packages/hooks/src/flows/hook-pre-bash/hook-pre-bash-flow.ts`
+- `packages/hooks/src/flows/hook-pre-edit/hook-pre-edit-flow.integration.test.ts`
+- `packages/hooks/src/flows/hook-pre-edit/hook-pre-edit-flow.ts`
+- `packages/hooks/src/flows/hook-pre-folder-detail/hook-pre-folder-detail-flow.integration.test.ts`
+- `packages/hooks/src/flows/hook-pre-folder-detail/hook-pre-folder-detail-flow.ts`
+- `packages/hooks/src/flows/hook-pre-mcp-caller/hook-pre-mcp-caller-flow.integration.test.ts`
+- `packages/hooks/src/flows/hook-pre-mcp-caller/hook-pre-mcp-caller-flow.ts`
+- `packages/hooks/src/flows/hook-pre-search/hook-pre-search-flow.integration.test.ts`
+- `packages/hooks/src/flows/hook-pre-search/hook-pre-search-flow.ts`
+- `packages/hooks/src/flows/hook-subagent-stop/hook-subagent-stop-flow.integration.test.ts`
+- `packages/hooks/src/flows/hook-subagent-stop/hook-subagent-stop-flow.ts`
+- `packages/hooks/src/flows/hook-worktree-create/hook-worktree-create-flow.integration.test.ts`
+- `packages/hooks/src/flows/hook-worktree-create/hook-worktree-create-flow.ts`
+- `packages/hooks/src/guards/is-dungeonmaster-hooks-config/is-dungeonmaster-hooks-config-guard.test.ts`
+- `packages/hooks/src/guards/is-dungeonmaster-hooks-config/is-dungeonmaster-hooks-config-guard.ts`
+- `packages/hooks/src/transformers/ask-question-to-design-decisions/ask-question-to-design-decisions-transformer.test.ts`
+- `packages/hooks/src/transformers/ask-question-to-design-decisions/ask-question-to-design-decisions-transformer.ts`
+- `packages/hydration-recipes/src/brokers/package-json/read/package-json-read-broker.test.ts`
+- `packages/hydration-recipes/src/brokers/package-json/read/package-json-read-broker.ts`
+- `packages/orchestrator/src/brokers/guild-config/read/guild-config-read-broker.test.ts`
+- `packages/orchestrator/src/brokers/guild-config/read/guild-config-read-broker.ts`
+- `packages/orchestrator/src/brokers/quest/find-quest-path/match-candidates-layer-broker.test.ts`
+- `packages/orchestrator/src/brokers/quest/find-quest-path/match-candidates-layer-broker.ts`
+- `packages/orchestrator/src/brokers/quest/folder-find/quest-folder-find-broker.test.ts`
+- `packages/orchestrator/src/brokers/quest/folder-find/quest-folder-find-broker.ts`
+- `packages/orchestrator/src/brokers/quest/list/quest-list-broker.test.ts`
+- `packages/orchestrator/src/brokers/quest/list/quest-list-broker.ts`
+- `packages/orchestrator/src/brokers/quest/modify/resolve-package-entry-facts-layer-broker.test.ts`
+- `packages/orchestrator/src/brokers/quest/modify/resolve-package-entry-facts-layer-broker.ts`
+- `packages/orchestrator/src/brokers/rate-limits/watch/rate-limits-watch-tick-layer-broker.test.ts`
+- `packages/orchestrator/src/brokers/rate-limits/watch/rate-limits-watch-tick-layer-broker.ts`
+- `packages/orchestrator/src/guards/has-duplicate-id-in-array/has-duplicate-id-in-array-guard.test.ts`
+- `packages/orchestrator/src/guards/has-duplicate-id-in-array/has-duplicate-id-in-array-guard.ts`
+- `packages/orchestrator/src/guards/is-array-of-items-with-id/is-array-of-items-with-id-guard.test.ts`
+- `packages/orchestrator/src/guards/is-array-of-items-with-id/is-array-of-items-with-id-guard.ts`
+- `packages/orchestrator/src/guards/quest-has-unique-sibling-ids/quest-has-unique-sibling-ids-guard.test.ts`
+- `packages/orchestrator/src/guards/quest-has-unique-sibling-ids/quest-has-unique-sibling-ids-guard.ts`
+- `packages/orchestrator/src/transformers/normalize-ask-user-question-input/normalize-ask-user-question-input-transformer.test.ts`
+- `packages/orchestrator/src/transformers/normalize-ask-user-question-input/normalize-ask-user-question-input-transformer.ts`
+- `packages/orchestrator/src/transformers/quest-duplicate-id-message/quest-duplicate-id-message-transformer.test.ts`
+- `packages/orchestrator/src/transformers/quest-duplicate-id-message/quest-duplicate-id-message-transformer.ts`
+- `packages/orchestrator/src/transformers/quest-find-duplicate-id/quest-find-duplicate-id-transformer.test.ts`
+- `packages/orchestrator/src/transformers/quest-find-duplicate-id/quest-find-duplicate-id-transformer.ts`
+- `packages/orchestrator/src/transformers/quest-item-deep-merge/quest-item-deep-merge-transformer.test.ts`
+- `packages/orchestrator/src/transformers/quest-item-deep-merge/quest-item-deep-merge-transformer.ts`
+- `packages/orchestrator/src/transformers/stream-json-to-clarification/stream-json-to-clarification-transformer.test.ts`
+- `packages/orchestrator/src/transformers/stream-json-to-clarification/stream-json-to-clarification-transformer.ts`
+- `packages/server/src/brokers/local-image/copy/local-image-copy-broker.test.ts`
+- `packages/server/src/brokers/local-image/copy/local-image-copy-broker.ts`
+- `packages/server/src/brokers/web-bundle-package/resolve/web-bundle-package-resolve-broker.test.ts`
+- `packages/server/src/brokers/web-bundle-package/resolve/web-bundle-package-resolve-broker.ts`
+- `packages/session-forensics/src/brokers/quest/index-load/quest-index-load-broker.test.ts`
+- `packages/session-forensics/src/brokers/quest/index-load/quest-index-load-broker.ts`
+- `packages/session-forensics/src/brokers/quest/load/quest-load-broker.test.ts`
+- `packages/session-forensics/src/brokers/quest/load/quest-load-broker.ts`
+- `packages/shared/src/brokers/architecture/overview/architecture-overview-broker.test.ts`
+- `packages/shared/src/brokers/architecture/overview/architecture-overview-broker.ts`
+- `packages/shared/src/statics/dungeonmaster-rule-enforce-on/dungeonmaster-rule-enforce-on-statics.test.ts`
+- `packages/shared/src/statics/dungeonmaster-rule-enforce-on/dungeonmaster-rule-enforce-on-statics.ts`
+- `packages/siegelense/src/adapters/cli-package/bin-resolve/cli-package-bin-resolve-adapter.test.ts`
+- `packages/siegelense/src/adapters/cli-package/bin-resolve/cli-package-bin-resolve-adapter.ts`
+- `packages/siegelense/src/brokers/boot-lock/release/boot-lock-release-broker.test.ts`
+- `packages/siegelense/src/brokers/boot-lock/release/boot-lock-release-broker.ts`
+- `packages/siegelense/src/brokers/driver/handle-request/driver-handle-request-broker.test.ts`
+- `packages/siegelense/src/brokers/driver/handle-request/driver-handle-request-broker.ts`
+- `packages/siegelense/src/brokers/lane/workspace-resolve/lane-workspace-resolve-broker.test.ts`
+- `packages/siegelense/src/brokers/lane/workspace-resolve/lane-workspace-resolve-broker.ts`
+- `packages/siegelense/src/brokers/profile/read/profile-read-broker.test.ts`
+- `packages/siegelense/src/brokers/profile/read/profile-read-broker.ts`
+- `packages/siegelense/src/brokers/results/read/buffer-read-layer-broker.test.ts`
+- `packages/siegelense/src/brokers/results/read/buffer-read-layer-broker.ts`
+- `packages/ward/src/brokers/check-run/lint/check-run-lint-broker.test.ts`
+- `packages/ward/src/brokers/check-run/lint/check-run-lint-broker.ts`
+- `packages/ward/src/brokers/duplicate-install/check/duplicate-install-check-broker.test.ts`
+- `packages/ward/src/brokers/duplicate-install/check/duplicate-install-check-broker.ts`
+- `packages/ward/src/brokers/storage/load/storage-load-broker.test.ts`
+- `packages/ward/src/brokers/storage/load/storage-load-broker.ts`
+- `packages/ward/src/responders/install/write-scripts/install-write-scripts-responder.test.ts`
+- `packages/ward/src/responders/install/write-scripts/install-write-scripts-responder.ts`
+- `packages/ward/src/transformers/open-handle-report-parse/open-handle-report-parse-transformer.test.ts`
+- `packages/ward/src/transformers/open-handle-report-parse/open-handle-report-parse-transformer.ts`
+- `packages/web/src/adapters/fetch/delete/fetch-delete-adapter.test.ts`
+- `packages/web/src/adapters/fetch/delete/fetch-delete-adapter.ts`
+- `packages/web/src/adapters/fetch/get/fetch-get-adapter.test.ts`
+- `packages/web/src/adapters/fetch/get/fetch-get-adapter.ts`
+- `packages/web/src/adapters/fetch/patch/fetch-patch-adapter.test.ts`
+- `packages/web/src/adapters/fetch/patch/fetch-patch-adapter.ts`
+- `packages/web/src/adapters/fetch/post/fetch-post-adapter.test.ts`
+- `packages/web/src/adapters/fetch/post/fetch-post-adapter.ts`
+- `packages/web/src/state/comment-queue/comment-queue-state.test.ts`
+- `packages/web/src/state/comment-queue/comment-queue-state.ts`
+- `packages/web/src/widgets/chat-entry-list/chat-entry-list-widget.test.tsx`
+- `packages/web/src/widgets/chat-entry-list/chat-entry-list-widget.tsx`
+- `packages/web/src/widgets/chat-input/chat-input-widget.test.tsx`
+- `packages/web/src/widgets/chat-input/chat-input-widget.tsx`
+
+#### Deleted (0 files)
+None.
+
+---
+
+### Batches
+
+| Batch ID | Files | Description | Dependencies | Runs beside | Verification |
+|---|---|---|---|---|---|
+| **B17-1** | `packages/eslint-plugin/src/brokers/rule/ban-contract-type-predicates/rule-ban-contract-type-predicates-broker.ts`<br/>`packages/eslint-plugin/src/brokers/rule/ban-contract-type-predicates/rule-ban-contract-type-predicates-broker.proxy.ts`<br/>`packages/eslint-plugin/src/brokers/rule/ban-contract-type-predicates/rule-ban-contract-type-predicates-broker.test.ts`<br/>`packages/shared/src/statics/dungeonmaster-rule-enforce-on/dungeonmaster-rule-enforce-on-statics.ts`<br/>`packages/shared/src/statics/dungeonmaster-rule-enforce-on/dungeonmaster-rule-enforce-on-statics.test.ts`<br/>`packages/eslint-plugin/src/responders/eslint-plugin/create/eslint-plugin-create-responder.ts`<br/>`packages/eslint-plugin/src/responders/eslint-plugin/create/eslint-plugin-create-responder.proxy.ts`<br/>`packages/eslint-plugin/src/responders/eslint-plugin/create/eslint-plugin-create-responder.test.ts`<br/>`packages/eslint-plugin/src/flows/eslint-plugin/eslint-plugin-flow.integration.test.ts`<br/>`packages/eslint-plugin/src/startup/start-eslint-plugin.integration.test.ts`<br/>`packages/eslint-plugin/src/brokers/config/dungeonmaster/config-dungeonmaster-broker.ts`<br/>`packages/eslint-plugin/src/brokers/config/dungeonmaster/config-dungeonmaster-broker.test.ts` | Builds C3 rule `ban-contract-type-predicates` (syntax, pre-edit), registering it in plugin create responder, statics, and config. | None | B17-2 through B17-9 | `npm run ward -- --only lint,typecheck,unit -- packages/eslint-plugin packages/shared/src/statics/dungeonmaster-rule-enforce-on/dungeonmaster-rule-enforce-on-statics.ts packages/shared/src/statics/dungeonmaster-rule-enforce-on/dungeonmaster-rule-enforce-on-statics.test.ts` |
+| **B17-2** | `packages/hooks/src/guards/is-dungeonmaster-hooks-config/is-dungeonmaster-hooks-config-guard.ts`<br/>`packages/hooks/src/guards/is-dungeonmaster-hooks-config/is-dungeonmaster-hooks-config-guard.test.ts`<br/>`packages/cli/src/guards/has-dev-dependencies/has-dev-dependencies-guard.ts`<br/>`packages/cli/src/guards/has-dev-dependencies/has-dev-dependencies-guard.test.ts` | Migrates `isDungeonmasterHooksConfigGuard` and `hasDevDependenciesGuard` to validate through contracts instead of type predicates. | None | B17-1, B17-3 through B17-9 | `npm run ward -- --only lint,typecheck,unit -- packages/hooks/src/guards/is-dungeonmaster-hooks-config packages/cli/src/guards/has-dev-dependencies` |
+| **B17-3** | `packages/orchestrator/src/guards/is-array-of-items-with-id/is-array-of-items-with-id-guard.ts`<br/>`packages/orchestrator/src/guards/is-array-of-items-with-id/is-array-of-items-with-id-guard.test.ts`<br/>`packages/orchestrator/src/guards/has-duplicate-id-in-array/has-duplicate-id-in-array-guard.ts`<br/>`packages/orchestrator/src/guards/has-duplicate-id-in-array/has-duplicate-id-in-array-guard.test.ts` | Rewrites `isArrayOfItemsWithIdGuard` to return boolean (non-predicating) and updates caller `hasDuplicateIdInArrayGuard` to parse via `itemWithIdContract`. | None | B17-1, B17-2, B17-6, B17-8, B17-9 | `npm run ward -- --only lint,typecheck,unit -- packages/orchestrator/src/guards/is-array-of-items-with-id packages/orchestrator/src/guards/has-duplicate-id-in-array` |
+| **B17-4** | `packages/orchestrator/src/guards/quest-has-unique-sibling-ids/quest-has-unique-sibling-ids-guard.ts`<br/>`packages/orchestrator/src/guards/quest-has-unique-sibling-ids/quest-has-unique-sibling-ids-guard.test.ts`<br/>`packages/orchestrator/src/transformers/quest-duplicate-id-message/quest-duplicate-id-message-transformer.ts`<br/>`packages/orchestrator/src/transformers/quest-duplicate-id-message/quest-duplicate-id-message-transformer.test.ts` | Updates callers of `isArrayOfItemsWithIdGuard` in orchestrator guards/transformers to parse via `itemWithIdContract`. | B17-3 | B17-1, B17-2, B17-6, B17-8, B17-9 | `npm run ward -- --only lint,typecheck,unit -- packages/orchestrator/src/guards/quest-has-unique-sibling-ids packages/orchestrator/src/transformers/quest-duplicate-id-message` |
+| **B17-5** | `packages/orchestrator/src/transformers/quest-find-duplicate-id/quest-find-duplicate-id-transformer.ts`<br/>`packages/orchestrator/src/transformers/quest-find-duplicate-id/quest-find-duplicate-id-transformer.test.ts`<br/>`packages/orchestrator/src/transformers/quest-item-deep-merge/quest-item-deep-merge-transformer.ts`<br/>`packages/orchestrator/src/transformers/quest-item-deep-merge/quest-item-deep-merge-transformer.test.ts` | Updates remaining callers of `isArrayOfItemsWithIdGuard` in orchestrator deep merge / duplicate finder to validate via `itemWithIdContract`. | B17-3 | B17-1, B17-2, B17-6, B17-8, B17-9 | `npm run ward -- --only lint,typecheck,unit -- packages/orchestrator/src/transformers/quest-find-duplicate-id packages/orchestrator/src/transformers/quest-item-deep-merge` |
+| **B17-6** | `packages/hooks/src/transformers/ask-question-to-design-decisions/ask-question-to-design-decisions-transformer.ts`<br/>`packages/hooks/src/transformers/ask-question-to-design-decisions/ask-question-to-design-decisions-transformer.test.ts`<br/>`packages/server/src/brokers/local-image/copy/local-image-copy-broker.ts`<br/>`packages/server/src/brokers/local-image/copy/local-image-copy-broker.test.ts` | Replaces inline `.filter()` contract type predicates with `NonNullable<typeof x>` in hooks and server. | None | B17-1, B17-2, B17-3, B17-7, B17-8, B17-9 | `npm run ward -- --only lint,typecheck,unit -- packages/hooks/src/transformers/ask-question-to-design-decisions packages/server/src/brokers/local-image/copy` |
+| **B17-7** | `packages/orchestrator/src/brokers/quest/list/quest-list-broker.ts`<br/>`packages/orchestrator/src/brokers/quest/list/quest-list-broker.test.ts`<br/>`packages/orchestrator/src/brokers/quest/folder-find/quest-folder-find-broker.ts`<br/>`packages/orchestrator/src/brokers/quest/folder-find/quest-folder-find-broker.test.ts` | Replaces inline `.filter()` contract type predicates with `NonNullable<typeof x>` in orchestrator quest brokers. | None | B17-1, B17-2, B17-6, B17-8, B17-9 | `npm run ward -- --only lint,typecheck,unit -- packages/orchestrator/src/brokers/quest/list packages/orchestrator/src/brokers/quest/folder-find` |
+| **B17-8** | `packages/siegelense/src/brokers/profile/read/profile-read-broker.ts`<br/>`packages/siegelense/src/brokers/profile/read/profile-read-broker.test.ts`<br/>`packages/ward/src/brokers/duplicate-install/check/duplicate-install-check-broker.ts`<br/>`packages/ward/src/brokers/duplicate-install/check/duplicate-install-check-broker.test.ts` | Replaces inline `.filter()` contract type predicates with `NonNullable<typeof x>` in siegelense and ward. | None | B17-1, B17-2, B17-6, B17-7, B17-9 | `npm run ward -- --only lint,typecheck,unit -- packages/siegelense/src/brokers/profile/read packages/ward/src/brokers/duplicate-install/check` |
+| **B17-9** | `packages/web/src/widgets/chat-entry-list/chat-entry-list-widget.tsx`<br/>`packages/web/src/widgets/chat-entry-list/chat-entry-list-widget.test.tsx`<br/>`packages/web/src/widgets/chat-input/chat-input-widget.tsx`<br/>`packages/web/src/widgets/chat-input/chat-input-widget.test.tsx` | Replaces inline `.filter()` contract type predicates with `NonNullable<typeof x>` in web chat widgets. | None | B17-1 through B17-8 | `npm run ward -- --only lint,typecheck,unit -- packages/web/src/widgets/chat-entry-list packages/web/src/widgets/chat-input` |
+| **B17-10** | `packages/eslint-plugin/src/brokers/rule/require-validation-on-untyped-property-access/check-is-json-parse-call-layer-broker.ts`<br/>`packages/eslint-plugin/src/brokers/rule/require-validation-on-untyped-property-access/check-is-json-parse-call-layer-broker.test.ts`<br/>`packages/eslint-plugin/src/brokers/rule/require-validation-on-untyped-property-access/rule-require-validation-on-untyped-property-access-broker.ts`<br/>`packages/eslint-plugin/src/brokers/rule/require-validation-on-untyped-property-access/rule-require-validation-on-untyped-property-access-broker.test.ts` | Extends C4 syntax rule: removes dead `-adapter.ts` exemption, skips gateway files, flags `JSON.parse` and `.json()` calls not immediately consumed by `.parse()` / `.safeParse()`. | None | B17-2 through B17-9, B17-12, B17-13 | `npm run ward -- --only lint,typecheck,unit -- packages/eslint-plugin/src/brokers/rule/require-validation-on-untyped-property-access` |
+| **B17-11** | `packages/eslint-plugin/src/brokers/rule/require-gateway-unknown-parse/rule-require-gateway-unknown-parse-broker.ts`<br/>`packages/eslint-plugin/src/brokers/rule/require-gateway-unknown-parse/rule-require-gateway-unknown-parse-broker.proxy.ts`<br/>`packages/eslint-plugin/src/brokers/rule/require-gateway-unknown-parse/rule-require-gateway-unknown-parse-broker.test.ts`<br/>`packages/eslint-plugin/src/responders/eslint-plugin/create/eslint-plugin-create-responder.ts`<br/>`packages/eslint-plugin/src/responders/eslint-plugin/create/eslint-plugin-create-responder.proxy.ts`<br/>`packages/eslint-plugin/src/responders/eslint-plugin/create/eslint-plugin-create-responder.test.ts`<br/>`packages/eslint-plugin/src/flows/eslint-plugin/eslint-plugin-flow.integration.test.ts`<br/>`packages/eslint-plugin/src/startup/start-eslint-plugin.integration.test.ts`<br/>`packages/eslint-plugin/src/brokers/config/dungeonmaster/config-dungeonmaster-broker.ts`<br/>`packages/eslint-plugin/src/brokers/config/dungeonmaster/config-dungeonmaster-broker.test.ts` | Builds C4 typechecker rule `require-gateway-unknown-parse` (ward-only, typed config), requiring `#gateway` functions returning `unknown` to feed directly into a parse. | B17-1 | B17-2 through B17-9, B17-12, B17-13 | `npm run ward -- --only lint,typecheck,unit -- packages/eslint-plugin` |
+| **B17-12** | `packages/cli/src/responders/cli/create-package/cli-create-package-responder.ts`<br/>`packages/cli/src/responders/cli/create-package/cli-create-package-responder.test.ts`<br/>`packages/cli/src/responders/cli/statusline-tap/cli-statusline-tap-responder.ts`<br/>`packages/cli/src/responders/cli/statusline-tap/cli-statusline-tap-responder.test.ts` | Fixes C4 raw `JSON.parse` call sites in CLI responders (pipes parse directly into contract). | None | B17-1, B17-10, B17-11, B17-13 to B17-32 | `npm run ward -- --only lint,typecheck,unit -- packages/cli/src/responders/cli/create-package packages/cli/src/responders/cli/statusline-tap` |
+| **B17-13** | `packages/cli/src/brokers/http-backend-package/resolve/http-backend-package-resolve-broker.ts`<br/>`packages/cli/src/brokers/http-backend-package/resolve/http-backend-package-resolve-broker.test.ts`<br/>`packages/config/src/brokers/config-file/load/config-file-load-broker.ts`<br/>`packages/config/src/brokers/config-file/load/config-file-load-broker.test.ts` | Fixes C4 raw `JSON.parse` call sites in CLI and config load brokers. | None | B17-1, B17-10, B17-11, B17-12, B17-14 to B17-32 | `npm run ward -- --only lint,typecheck,unit -- packages/cli/src/brokers/http-backend-package/resolve packages/config/src/brokers/config-file/load` |
+| **B17-14** | `packages/eslint-plugin/src/brokers/config/gateway-lint-config/config-gateway-lint-config-broker.ts`<br/>`packages/eslint-plugin/src/brokers/config/gateway-lint-config/config-gateway-lint-config-broker.test.ts`<br/>`packages/eslint-plugin/src/brokers/config/workspace-package-names/config-workspace-package-names-broker.ts`<br/>`packages/eslint-plugin/src/brokers/config/workspace-package-names/config-workspace-package-names-broker.test.ts` | Fixes C4 raw `JSON.parse` calls in eslint-plugin config brokers (pipes directly into contracts). | None | B17-12, B17-13, B17-16 to B17-32 | `npm run ward -- --only lint,typecheck,unit -- packages/eslint-plugin/src/brokers/config/gateway-lint-config packages/eslint-plugin/src/brokers/config/workspace-package-names` |
+| **B17-15** | `packages/eslint-plugin/src/brokers/repo-scope/resolve/repo-scope-resolve-broker.ts`<br/>`packages/eslint-plugin/src/brokers/repo-scope/resolve/repo-scope-resolve-broker.test.ts`<br/>`packages/eslint-plugin/src/brokers/workspace-root/find/workspace-root-find-broker.ts`<br/>`packages/eslint-plugin/src/brokers/workspace-root/find/workspace-root-find-broker.test.ts` | Fixes C4 raw `JSON.parse` calls in eslint-plugin repo-scope and workspace-root brokers. | None | B17-12, B17-13, B17-16 to B17-32 | `npm run ward -- --only lint,typecheck,unit -- packages/eslint-plugin/src/brokers/repo-scope/resolve packages/eslint-plugin/src/brokers/workspace-root/find` |
+| **B17-16** | `packages/hooks/src/flows/hook-post-edit/hook-post-edit-flow.ts`<br/>`packages/hooks/src/flows/hook-post-edit/hook-post-edit-flow.integration.test.ts`<br/>`packages/hooks/src/flows/hook-pre-bash/hook-pre-bash-flow.ts`<br/>`packages/hooks/src/flows/hook-pre-bash/hook-pre-bash-flow.integration.test.ts` | Fixes C4 raw `JSON.parse` in hook post-edit and pre-bash flows. | None | B17-10, B17-11, B17-12 to B17-15, B17-20 to B17-32 | `npm run ward -- --only lint,typecheck,unit -- packages/hooks/src/flows/hook-post-edit packages/hooks/src/flows/hook-pre-bash` |
+| **B17-17** | `packages/hooks/src/flows/hook-pre-edit/hook-pre-edit-flow.ts`<br/>`packages/hooks/src/flows/hook-pre-edit/hook-pre-edit-flow.integration.test.ts`<br/>`packages/hooks/src/flows/hook-pre-folder-detail/hook-pre-folder-detail-flow.ts`<br/>`packages/hooks/src/flows/hook-pre-folder-detail/hook-pre-folder-detail-flow.integration.test.ts` | Fixes C4 raw `JSON.parse` in hook pre-edit and pre-folder-detail flows. | None | B17-10, B17-11, B17-12 to B17-15, B17-20 to B17-32 | `npm run ward -- --only lint,typecheck,unit -- packages/hooks/src/flows/hook-pre-edit packages/hooks/src/flows/hook-pre-folder-detail` |
+| **B17-18** | `packages/hooks/src/flows/hook-pre-mcp-caller/hook-pre-mcp-caller-flow.ts`<br/>`packages/hooks/src/flows/hook-pre-mcp-caller/hook-pre-mcp-caller-flow.integration.test.ts`<br/>`packages/hooks/src/flows/hook-pre-search/hook-pre-search-flow.ts`<br/>`packages/hooks/src/flows/hook-pre-search/hook-pre-search-flow.integration.test.ts` | Fixes C4 raw `JSON.parse` in hook pre-mcp-caller and pre-search flows. | None | B17-10, B17-11, B17-12 to B17-15, B17-20 to B17-32 | `npm run ward -- --only lint,typecheck,unit -- packages/hooks/src/flows/hook-pre-mcp-caller packages/hooks/src/flows/hook-pre-search` |
+| **B17-19** | `packages/hooks/src/flows/hook-subagent-stop/hook-subagent-stop-flow.ts`<br/>`packages/hooks/src/flows/hook-subagent-stop/hook-subagent-stop-flow.integration.test.ts`<br/>`packages/hooks/src/flows/hook-worktree-create/hook-worktree-create-flow.ts`<br/>`packages/hooks/src/flows/hook-worktree-create/hook-worktree-create-flow.integration.test.ts` | Fixes C4 raw `JSON.parse` in hook subagent-stop and worktree-create flows. | None | B17-10, B17-11, B17-12 to B17-15, B17-20 to B17-32 | `npm run ward -- --only lint,typecheck,unit -- packages/hooks/src/flows/hook-subagent-stop packages/hooks/src/flows/hook-worktree-create` |
+| **B17-20** | `packages/hydration-recipes/src/brokers/package-json/read/package-json-read-broker.ts`<br/>`packages/hydration-recipes/src/brokers/package-json/read/package-json-read-broker.test.ts`<br/>`packages/orchestrator/src/brokers/guild-config/read/guild-config-read-broker.ts`<br/>`packages/orchestrator/src/brokers/guild-config/read/guild-config-read-broker.test.ts` | Fixes C4 raw `JSON.parse` in hydration-recipes manifest reader and orchestrator guild config reader. | None | B17-10, B17-11, B17-12 to B17-19, B17-24 to B17-32 | `npm run ward -- --only lint,typecheck,unit -- packages/hydration-recipes/src/brokers/package-json/read packages/orchestrator/src/brokers/guild-config/read` |
+| **B17-21** | `packages/orchestrator/src/brokers/quest/find-quest-path/match-candidates-layer-broker.ts`<br/>`packages/orchestrator/src/brokers/quest/find-quest-path/match-candidates-layer-broker.test.ts`<br/>`packages/orchestrator/src/brokers/rate-limits/watch/rate-limits-watch-tick-layer-broker.ts`<br/>`packages/orchestrator/src/brokers/rate-limits/watch/rate-limits-watch-tick-layer-broker.test.ts` | Fixes C4 raw `JSON.parse` in orchestrator quest matching and rate limit tick brokers. | None | B17-10, B17-11, B17-12 to B17-19, B17-24 to B17-32 | `npm run ward -- --only lint,typecheck,unit -- packages/orchestrator/src/brokers/quest/find-quest-path packages/orchestrator/src/brokers/rate-limits/watch` |
+| **B17-22** | `packages/orchestrator/src/brokers/quest/modify/resolve-package-entry-facts-layer-broker.ts`<br/>`packages/orchestrator/src/brokers/quest/modify/resolve-package-entry-facts-layer-broker.test.ts`<br/>`packages/orchestrator/src/transformers/normalize-ask-user-question-input/normalize-ask-user-question-input-transformer.ts`<br/>`packages/orchestrator/src/transformers/normalize-ask-user-question-input/normalize-ask-user-question-input-transformer.test.ts` | Fixes C4 raw `JSON.parse` in orchestrator modify broker and ask-user-question normalizer. | None | B17-10, B17-11, B17-12 to B17-19, B17-24 to B17-32 | `npm run ward -- --only lint,typecheck,unit -- packages/orchestrator/src/brokers/quest/modify packages/orchestrator/src/transformers/normalize-ask-user-question-input` |
+| **B17-23** | `packages/orchestrator/src/transformers/stream-json-to-clarification/stream-json-to-clarification-transformer.ts`<br/>`packages/orchestrator/src/transformers/stream-json-to-clarification/stream-json-to-clarification-transformer.test.ts`<br/>`packages/server/src/brokers/web-bundle-package/resolve/web-bundle-package-resolve-broker.ts`<br/>`packages/server/src/brokers/web-bundle-package/resolve/web-bundle-package-resolve-broker.test.ts` | Fixes C4 raw `JSON.parse` in orchestrator clarification stream transformer and server bundle resolver. | None | B17-10, B17-11, B17-12 to B17-19, B17-24 to B17-32 | `npm run ward -- --only lint,typecheck,unit -- packages/orchestrator/src/transformers/stream-json-to-clarification packages/server/src/brokers/web-bundle-package/resolve` |
+| **B17-24** | `packages/session-forensics/src/brokers/quest/index-load/quest-index-load-broker.ts`<br/>`packages/session-forensics/src/brokers/quest/index-load/quest-index-load-broker.test.ts`<br/>`packages/session-forensics/src/brokers/quest/load/quest-load-broker.ts`<br/>`packages/session-forensics/src/brokers/quest/load/quest-load-broker.test.ts` | Fixes untyped property access on `safeJsonParseTransformer` in session-forensics quest loaders (parses via contract). | None | B17-10, B17-11, B17-12 to B17-23, B17-25 to B17-32 | `npm run ward -- --only lint,typecheck,unit -- packages/session-forensics/src/brokers/quest/index-load packages/session-forensics/src/brokers/quest/load` |
+| **B17-25** | `packages/siegelense/src/adapters/cli-package/bin-resolve/cli-package-bin-resolve-adapter.ts`<br/>`packages/siegelense/src/adapters/cli-package/bin-resolve/cli-package-bin-resolve-adapter.test.ts`<br/>`packages/siegelense/src/brokers/boot-lock/release/boot-lock-release-broker.ts`<br/>`packages/siegelense/src/brokers/boot-lock/release/boot-lock-release-broker.test.ts` | Fixes C4 raw `JSON.parse` in siegelense bin-resolve adapter and boot-lock release broker. | None | B17-10, B17-11, B17-12 to B17-24, B17-27 to B17-32 | `npm run ward -- --only lint,typecheck,unit -- packages/siegelense/src/adapters/cli-package/bin-resolve packages/siegelense/src/brokers/boot-lock/release` |
+| **B17-26** | `packages/siegelense/src/brokers/driver/handle-request/driver-handle-request-broker.ts`<br/>`packages/siegelense/src/brokers/driver/handle-request/driver-handle-request-broker.test.ts`<br/>`packages/siegelense/src/brokers/results/read/buffer-read-layer-broker.ts`<br/>`packages/siegelense/src/brokers/results/read/buffer-read-layer-broker.test.ts` | Fixes C4 raw `JSON.parse` in siegelense driver request handler and results buffer reader. | None | B17-10, B17-11, B17-12 to B17-24, B17-27 to B17-32 | `npm run ward -- --only lint,typecheck,unit -- packages/siegelense/src/brokers/driver/handle-request packages/siegelense/src/brokers/results/read` |
+| **B17-27** | `packages/siegelense/src/brokers/lane/workspace-resolve/lane-workspace-resolve-broker.ts`<br/>`packages/siegelense/src/brokers/lane/workspace-resolve/lane-workspace-resolve-broker.test.ts`<br/>`packages/ward/src/brokers/check-run/lint/check-run-lint-broker.ts`<br/>`packages/ward/src/brokers/check-run/lint/check-run-lint-broker.test.ts` | Fixes C4 raw `JSON.parse` in siegelense workspace resolver and ward lint broker. | None | B17-10, B17-11, B17-12 to B17-26, B17-28 to B17-32 | `npm run ward -- --only lint,typecheck,unit -- packages/siegelense/src/brokers/lane/workspace-resolve packages/ward/src/brokers/check-run/lint` |
+| **B17-28** | `packages/ward/src/brokers/storage/load/storage-load-broker.ts`<br/>`packages/ward/src/brokers/storage/load/storage-load-broker.test.ts`<br/>`packages/ward/src/responders/install/write-scripts/install-write-scripts-responder.ts`<br/>`packages/ward/src/responders/install/write-scripts/install-write-scripts-responder.test.ts` | Fixes C4 raw `JSON.parse` in ward storage loader and write-scripts responder. | None | B17-10, B17-11, B17-12 to B17-27, B17-30 to B17-32 | `npm run ward -- --only lint,typecheck,unit -- packages/ward/src/brokers/storage/load packages/ward/src/responders/install/write-scripts` |
+| **B17-29** | `packages/ward/src/transformers/open-handle-report-parse/open-handle-report-parse-transformer.ts`<br/>`packages/ward/src/transformers/open-handle-report-parse/open-handle-report-parse-transformer.test.ts`<br/>`packages/web/src/state/comment-queue/comment-queue-state.ts`<br/>`packages/web/src/state/comment-queue/comment-queue-state.test.ts` | Fixes C4 raw `JSON.parse` in ward open-handle transformer and web comment queue state. | None | B17-10, B17-11, B17-12 to B17-28, B17-30 to B17-32 | `npm run ward -- --only lint,typecheck,unit -- packages/ward/src/transformers/open-handle-report-parse packages/web/src/state/comment-queue` |
+| **B17-30** | `packages/web/src/adapters/fetch/get/fetch-get-adapter.ts`<br/>`packages/web/src/adapters/fetch/get/fetch-get-adapter.test.ts`<br/>`packages/web/src/adapters/fetch/post/fetch-post-adapter.ts`<br/>`packages/web/src/adapters/fetch/post/fetch-post-adapter.test.ts` | Replaces unvalidated `(await response.json()) as TResponse` in web GET and POST adapters with direct contract validation. | None | B17-10, B17-11, B17-12 to B17-29, B17-32 | `npm run ward -- --only lint,typecheck,unit -- packages/web/src/adapters/fetch/get packages/web/src/adapters/fetch/post` |
+| **B17-31** | `packages/web/src/adapters/fetch/patch/fetch-patch-adapter.ts`<br/>`packages/web/src/adapters/fetch/patch/fetch-patch-adapter.test.ts`<br/>`packages/web/src/adapters/fetch/delete/fetch-delete-adapter.ts`<br/>`packages/web/src/adapters/fetch/delete/fetch-delete-adapter.test.ts` | Replaces unvalidated `(await response.json()) as TResponse` in web PATCH and DELETE adapters with direct contract validation. | None | B17-10, B17-11, B17-12 to B17-29, B17-32 | `npm run ward -- --only lint,typecheck,unit -- packages/web/src/adapters/fetch/patch packages/web/src/adapters/fetch/delete` |
+| **B17-32** | `packages/shared/src/brokers/architecture/overview/architecture-overview-broker.ts`<br/>`packages/shared/src/brokers/architecture/overview/architecture-overview-broker.test.ts` | Updates architecture overview teaching text at line 336 from `JSON.parse(x) as ApiResponse` to `apiResponseContract.parse(JSON.parse(x))`. | None | B17-10 through B17-31 | `npm run ward -- --only lint,typecheck,unit -- packages/shared/src/brokers/architecture/overview` |
+
+---
+
+### Builds and consumer checks
+
+- **Builds required**:
+  - `packages/eslint-plugin`: needs build (`npm run build --workspace=@dungeonmaster/eslint-plugin`) after B17-1, B17-10, and B17-11 so eslint rules take effect during subsequent passes.
+  - `packages/shared`: needs build (`npm run build --workspace=@dungeonmaster/shared`) after B17-1 because `dungeonmasterRuleEnforceOnStatics` was updated.
+- **Consumer check**:
+  - Neither rule changes `init` output or consumer file templates. Run `npm run check:consumer` after B17-11 and building `@dungeonmaster/eslint-plugin` to verify consumer projects typecheck and lint cleanly under the new rules.
+
+---
+
+### Open questions
+
+1. **`safeJsonParseTransformer` in `shared`**: `packages/shared/src/transformers/safe-json-parse/safe-json-parse-transformer.ts` wraps `JSON.parse` in a try/catch and returns `{ ok: true, value: unknown } | { ok: false }`. Should `safeJsonParseTransformer` be exempt from C4 since it acts as a low-level parsing helper, or should it take a contract schema parameter `safeJsonParseTransformer({ value, contract })`?
+2. **Web `fetch-*-adapter.ts` response parsing**: The browser fetch adapters (`web/src/adapters/fetch/*`) currently accept a generic `TResponse` and cast `(await response.json()) as TResponse`. To strictly satisfy C4, should these adapters require a `contract: z.ZodType<TResponse>` parameter, or will Phase 2/gateway migration deprecate these adapters in favor of `#gateway/browser/fetch`?
+3. **Refactoring `isArrayOfItemsWithIdGuard`**: Callers of this guard in `orchestrator` perform duplicate checking or deep merging. Is it preferred to rewrite the guard to return a plain `boolean` and have callers run `z.array(itemWithIdContract).safeParse(...)`, or to convert it directly into a parsing transformer?
