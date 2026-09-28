@@ -51,6 +51,13 @@ describe('staleReapLayerBroker', () => {
       });
       expect(proxy.getKillGroupCallsFor({ pgid: pgidOne })).toStrictEqual(['SIGTERM', 0]);
       expect(proxy.getKillGroupCallsFor({ pgid: pgidTwo })).toStrictEqual(['SIGTERM', 0]);
+      // status's likelyCause reads this file verbatim when it exists — naming the CAUSE (cleanup's
+      // own staleness detection) rather than the instance-kill-broker's generic orphan-reap wording,
+      // so a reader of `status` sees what actually ended the instance.
+      expect(proxy.getWrittenShutdownReason({ evidencePath: EVIDENCE_PATH })).toStrictEqual({
+        reason: 'reaped by cleanup after its heartbeat went stale',
+        atMs: EpochMsStub().valueOf(),
+      });
     });
   });
 

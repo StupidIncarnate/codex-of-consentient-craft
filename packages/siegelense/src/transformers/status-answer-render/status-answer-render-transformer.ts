@@ -19,6 +19,11 @@
  * whether any instance matched. Pure, so this text is provable without stdout, the same split
  * `fleetTableRenderTransformer` already uses for the bare fleet listing.
  *
+ * ORPHANS and LOGS each render ONE ROW PER ITEM, with a blank FIELD on every continuation row,
+ * never a comma-joined list on one row — that join is what pushed a real terminal table to roughly
+ * 500 characters wide when an instance carried several evidence log paths. EVIDENCE DIR stays a
+ * single row: it is always exactly one path, so it cannot blow the width the same way.
+ *
  * USAGE:
  * statusAnswerRenderTransformer({
  *   answer: StatusAnswerStub({ instances: [] }),
@@ -82,12 +87,21 @@ export const statusAnswerRenderTransformer = ({
 
   if (answer.instances.length === 1 && onlyInstance !== undefined && namedEvidence !== null) {
     const evidence = namedEvidence;
-    const orphansText =
+    // One row per orphan/log, with a blank FIELD on every continuation row — never a comma-joined
+    // list on one row. That join is what pushed a real terminal table to roughly 500 characters
+    // wide: several evidence paths (or orphan readings) sharing one row make the WHOLE table as
+    // wide as their sum, where EVIDENCE DIR alone (one path, one row) stays readable.
+    const orphanRows =
       onlyInstance.orphans.length === 0
-        ? 'none'
-        : onlyInstance.orphans
-            .map((orphan) => `pgid ${orphan.pgid} (${orphan.alive ? 'alive' : 'dead'})`)
-            .join(', ');
+        ? [['ORPHANS', 'none']]
+        : onlyInstance.orphans.map((orphan, index) => [
+            index === 0 ? 'ORPHANS' : '',
+            `pgid ${orphan.pgid} (${orphan.alive ? 'alive' : 'dead'})`,
+          ]);
+    const logRows =
+      evidence.logs.length === 0
+        ? [['LOGS', 'none']]
+        : evidence.logs.map((log, index) => [index === 0 ? 'LOGS' : '', log]);
     const lastStepText =
       onlyInstance.lastStep === null
         ? '-'
@@ -110,10 +124,10 @@ export const statusAnswerRenderTransformer = ({
       ['RUNS', String(onlyInstance.runs)],
       ['MEMORY', rssText],
       ['LAST STEP', lastStepText],
-      ['ORPHANS', orphansText],
+      ...orphanRows,
       ['EVIDENCE DIR', evidence.dir.path],
       ['TRANSCRIPT', evidence.transcript ?? '-'],
-      ['LOGS', evidence.logs.length === 0 ? 'none' : evidence.logs.join(', ')],
+      ...logRows,
       ['LAST SHOT', evidence.lastShot ?? '-'],
       ['LIKELY CAUSE', onlyInstance.likelyCause ?? '-'],
     ];

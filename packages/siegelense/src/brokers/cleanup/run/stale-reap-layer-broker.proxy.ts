@@ -9,6 +9,7 @@ export const staleReapLayerBrokerProxy = (): {
   setupShutdownReasonWriteSucceeds: ReturnType<
     typeof instanceKillBrokerProxy
   >['setupShutdownReasonWriteSucceeds'];
+  getWrittenShutdownReason: ReturnType<typeof instanceKillBrokerProxy>['getWrittenShutdownReason'];
   getKillGroupCallsFor: ReturnType<typeof instanceKillBrokerProxy>['getKillGroupCallsFor'];
   getReleasedRegistry: ReturnType<typeof instanceKillBrokerProxy>['getReleasedRegistry'];
 } => {
@@ -19,6 +20,7 @@ export const staleReapLayerBrokerProxy = (): {
     setupDriverUnreachable: killProxy.setupDriverUnreachable,
     setupDriverUnreachableNoHeartbeat: killProxy.setupDriverUnreachableNoHeartbeat,
     setupShutdownReasonWriteSucceeds: killProxy.setupShutdownReasonWriteSucceeds,
+    getWrittenShutdownReason: killProxy.getWrittenShutdownReason,
     getKillGroupCallsFor: killProxy.getKillGroupCallsFor,
     getReleasedRegistry: killProxy.getReleasedRegistry,
   };

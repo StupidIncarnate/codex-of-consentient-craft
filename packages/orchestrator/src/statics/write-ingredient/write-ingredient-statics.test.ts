@@ -91,6 +91,19 @@ describe('writeIngredientStatics', () => {
     });
   });
 
+  it('VALID: served template => names the real recipe declaration as not-yours, never the retired recipe book', () => {
+    expect({
+      namesCatalogBroker: hasIn({
+        needle:
+          '`packages/hydration-recipes/src/brokers/recipes/catalog/recipes-catalog-broker.ts`, and every\n  file under `brokers/recipes/`',
+      }),
+      namesRetiredBook: TEMPLATE.includes('recipe-book-statics.ts'),
+    }).toStrictEqual({
+      namesCatalogBroker: true,
+      namesRetiredBook: false,
+    });
+  });
+
   it('VALID: served template => scopes its writes and declares no forward route', () => {
     expect({
       scopedWrites: hasIn({

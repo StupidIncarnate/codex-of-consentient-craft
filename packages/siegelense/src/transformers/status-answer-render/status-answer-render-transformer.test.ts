@@ -238,14 +238,83 @@ describe('statusAnswerRenderTransformer', () => {
           '│ RUNS         │ 3                                                                                       │\n' +
           '│ MEMORY       │ at last beat 1840MB                                                                     │\n' +
           '│ LAST STEP    │ run_2 step 7 click                                                                      │\n' +
-          '│ ORPHANS      │ pgid 33812 (alive), pgid 33840 (dead)                                                   │\n' +
+          '│ ORPHANS      │ pgid 33812 (alive)                                                                      │\n' +
+          '│              │ pgid 33840 (dead)                                                                       │\n' +
           '│ EVIDENCE DIR │ /repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_9b2c             │\n' +
           '│ TRANSCRIPT   │ run_2.jsonl                                                                             │\n' +
-          '│ LOGS         │ api-server.log, web-server.log                                                          │\n' +
+          '│ LOGS         │ api-server.log                                                                          │\n' +
+          '│              │ web-server.log                                                                          │\n' +
           '│ LAST SHOT    │ run_2/step7.png                                                                         │\n' +
           '│ LIKELY CAUSE │ OOM killed — rss climbed to 1840MB before the last beat, 2 kernel OOM events since boot │\n' +
           '└──────────────┴─────────────────────────────────────────────────────────────────────────────────────────┘\n',
       );
+    });
+  });
+
+  describe('a named dead instance with several logs and orphans', () => {
+    it('VALID: {3 logs, 2 orphans} => each log and each orphan gets its own row, so EVIDENCE DIR alone sets the table width', () => {
+      const answer = StatusAnswerStub({
+        instances: [
+          InstanceStatusStub({
+            id: 'inst_e3dd',
+            state: 'dead',
+            specName: 'stack',
+            uptime: null,
+            lastBeat: '9h ago',
+            runs: 1,
+            rssMB: null,
+            rssAtLastBeat: 609,
+            lastStep: null,
+            orphans: [
+              { pgid: 33_812, cmd: null, alive: false },
+              { pgid: 33_840, cmd: null, alive: false },
+            ],
+            evidence: {
+              dir: {
+                path: '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_e3dd',
+                linkPresent: true,
+              },
+              transcript: null,
+              logs: ['api-server.log', 'web-server.log', 'driver.log'],
+              lastShot: null,
+            },
+            likelyCause: null,
+          }),
+        ],
+      });
+      const instanceId = InstanceIdStub({ value: 'inst_e3dd' });
+
+      const result = statusAnswerRenderTransformer({ answer, instanceId });
+
+      expect(result).toBe(
+        '┌──────────────┬───────────────────────────────────────────────────────────────────────────┐\n' +
+          '│ FIELD        │ VALUE                                                                     │\n' +
+          '├──────────────┼───────────────────────────────────────────────────────────────────────────┤\n' +
+          '│ INSTANCE     │ inst_e3dd — dead                                                          │\n' +
+          '│ SPEC         │ stack                                                                     │\n' +
+          '│ UPTIME       │ -                                                                         │\n' +
+          '│ LAST BEAT    │ 9h ago                                                                    │\n' +
+          '│ RUNS         │ 1                                                                         │\n' +
+          '│ MEMORY       │ at last beat 609MB                                                        │\n' +
+          '│ LAST STEP    │ -                                                                         │\n' +
+          '│ ORPHANS      │ pgid 33812 (dead)                                                         │\n' +
+          '│              │ pgid 33840 (dead)                                                         │\n' +
+          '│ EVIDENCE DIR │ /repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_e3dd │\n' +
+          '│ TRANSCRIPT   │ -                                                                         │\n' +
+          '│ LOGS         │ api-server.log                                                            │\n' +
+          '│              │ web-server.log                                                            │\n' +
+          '│              │ driver.log                                                                │\n' +
+          '│ LAST SHOT    │ -                                                                         │\n' +
+          '│ LIKELY CAUSE │ -                                                                         │\n' +
+          '└──────────────┴───────────────────────────────────────────────────────────────────────────┘\n',
+      );
+
+      // The defect this guards: three log paths joined onto ONE row with commas pushed a real
+      // terminal table to roughly 500 characters wide. With one row per item, every line in the
+      // rendered table stays no wider than the longest single cell (EVIDENCE DIR here).
+      const widestLine = Math.max(...result.split('\n').map((line) => line.length));
+
+      expect(widestLine).toBe(92);
     });
   });
 
