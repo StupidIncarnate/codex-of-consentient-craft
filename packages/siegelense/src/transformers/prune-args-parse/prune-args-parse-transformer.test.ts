@@ -60,9 +60,15 @@ describe('pruneArgsParseTransformer', () => {
       );
     });
 
-    it("INVALID: {args: --kind screenshot} => refuses under the flag's own name rather than as a ZodError", () => {
-      expect(() => pruneArgsParseTransformer({ args: ['--kind', 'screenshot'] })).toThrow(
-        /^--kind: Invalid enum value/u,
+    it('INVALID: {args: --kind nope} => refuses naming every accepted kind and the exact text typed, never as a ZodError', () => {
+      expect(() => pruneArgsParseTransformer({ args: ['--kind', 'nope'] })).toThrow(
+        /^--kind must be one of video, shot, transcript, log; got "nope"$/u,
+      );
+    });
+
+    it('INVALID: {args: --older-than soon} => refuses naming the window rule, never as a ZodError', () => {
+      expect(() => pruneArgsParseTransformer({ args: ['--older-than', 'soon'] })).toThrow(
+        /^Unreadable window: soon\. A window is a whole number followed by one of d, h, m, s — for example 7d\.$/u,
       );
     });
 
