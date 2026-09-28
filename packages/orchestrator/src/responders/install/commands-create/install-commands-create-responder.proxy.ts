@@ -1,5 +1,8 @@
-import { fsMkdirAdapterProxy, pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
+import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
+import { join } from '#gateway/node/path';
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { locationsStatics } from '@dungeonmaster/shared/statics';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
 import { slashCommandsStatics } from '../../../statics/slash-commands/slash-commands-statics';
 import { InstallCommandsCreateResponder } from './install-commands-create-responder';
@@ -9,33 +12,46 @@ export const InstallCommandsCreateResponderProxy = (): {
   getCreatedDirs: () => readonly unknown[];
   getAllWrittenFiles: () => readonly { path: unknown; content: unknown }[];
 } => {
-  pathJoinAdapterProxy();
-  const mkdirProxy = fsMkdirAdapterProxy();
+  const joinHandle = registerMock({ fn: join });
+  const mkdirProxy = ensureDirProxy();
   const writeProxy = fsWriteFileAdapterProxy();
 
-  // Every caller exercises targetProjectRoot: '/project' (the real, unstaged pathJoin
-  // passthrough resolves it to this exact commands dir), so the three command files this
-  // responder writes always land at these fixed paths.
-  const commandsDir = '/project/.claude/commands';
-  writeProxy.succeeds({
-    filePath: FilePathStub({
-      value: `${commandsDir}/${slashCommandsStatics.dumpsterCreate.fileName}`,
-    }),
+  // Every caller exercises targetProjectRoot: '/project', so the exact join tuples below are the
+  // only ones this responder ever composes and the three command files always land here.
+  const targetProjectRoot = '/project';
+  const commandsDir = FilePathStub({ value: `${targetProjectRoot}/.claude/commands` });
+  joinHandle
+    .calledWith([targetProjectRoot, locationsStatics.repoRoot.claude.dir, 'commands'])
+    .returns(commandsDir);
+  mkdirProxy.succeeds({ path: commandsDir });
+
+  const createPath = FilePathStub({
+    value: `${commandsDir}/${slashCommandsStatics.dumpsterCreate.fileName}`,
   });
-  writeProxy.succeeds({
-    filePath: FilePathStub({
-      value: `${commandsDir}/${slashCommandsStatics.dumpsterHunt.fileName}`,
-    }),
+  const huntPath = FilePathStub({
+    value: `${commandsDir}/${slashCommandsStatics.dumpsterHunt.fileName}`,
   });
-  writeProxy.succeeds({
-    filePath: FilePathStub({
-      value: `${commandsDir}/${slashCommandsStatics.dumpsterLaunch.fileName}`,
-    }),
+  const launchPath = FilePathStub({
+    value: `${commandsDir}/${slashCommandsStatics.dumpsterLaunch.fileName}`,
   });
+  joinHandle
+    .calledWith([commandsDir, slashCommandsStatics.dumpsterCreate.fileName])
+    .returns(createPath);
+  joinHandle
+    .calledWith([commandsDir, slashCommandsStatics.dumpsterHunt.fileName])
+    .returns(huntPath);
+  joinHandle
+    .calledWith([commandsDir, slashCommandsStatics.dumpsterLaunch.fileName])
+    .returns(launchPath);
+
+  writeProxy.succeeds({ filePath: createPath });
+  writeProxy.succeeds({ filePath: huntPath });
+  writeProxy.succeeds({ filePath: launchPath });
 
   return {
     callResponder: InstallCommandsCreateResponder,
-    getCreatedDirs: (): readonly unknown[] => mkdirProxy.getCreatedDirs(),
+    getCreatedDirs: (): readonly unknown[] =>
+      mkdirProxy.getCallsFor({ path: commandsDir }).map((call) => call[0]),
     getAllWrittenFiles: (): readonly { path: unknown; content: unknown }[] =>
       writeProxy.getAllWrittenFiles(),
   };

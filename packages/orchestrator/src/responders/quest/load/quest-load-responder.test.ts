@@ -45,7 +45,7 @@ describe('QuestLoadResponder', () => {
           },
         ],
       });
-      proxy.setupPathJoin({ result: questFilePath });
+      proxy.setupQuestFileJoin({ questPath: questFolderPath, questFilePath });
       proxy.setupQuestFile({ questJson: JSON.stringify(quest) });
 
       const result = await proxy.callResponder({ questId: quest.id });
@@ -54,6 +54,13 @@ describe('QuestLoadResponder', () => {
 
       expect(id).toBe(quest.id);
       expect(title).toBe(quest.title);
+      // Pins the exact tuple this responder's OWN join call is addressed by — a wrong second
+      // segment would still resolve via questFindQuestPathBroker's own real-passthrough default
+      // and read the right quest file for the wrong reason (see the "passthrough join composed
+      // from far away" trap).
+      expect(proxy.getQuestFileJoinArgs({ questPath: questFolderPath })).toStrictEqual([
+        [questFolderPath, 'quest.json'],
+      ]);
     });
   });
 });
