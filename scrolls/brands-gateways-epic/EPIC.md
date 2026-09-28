@@ -99,23 +99,15 @@ A new operator took over from the morning handoff below. Heartbeat cron `13,43 *
 
 | Agent | Chunk | Scope (package) | Status |
 |---|---|---|---|
-| — | Landed this session | — | See `git log`; per package: ward, eslint-plugin, shared, hydration-recipes have no `adapters/` left. Latest: S1 4130e9c6f, A10 274a2a534, F65 803ecbee3, A08 0c9ab6e1b, A13 f3da1a336, A14 4311d42b4 |
-| planner (opus) | Which remaining work can be scripted | none | done: `scripting-opportunities.md`. **The user tabled all script-making.** S1 (census) landed anyway, 4130e9c6f: `adapter-census` in `@dungeonmaster/tooling`, counted 88 adapters left (orchestrator 13, siegelense 26, testing 17, web 32). On the hook question the user's concern is agents editing files with existing violations; the planner's design blocks only violations an edit ADDS. |
-| a14-ts (opus) | A14 testing `typescript/*` (feeds the proxy-mock hoister) | `testing` | running |
-| a17-net, a17-tlrx (sonnet) | A17: fetch/patch, post-with-status, websocket, testing-library, rxjs | `web` | done cdd59573b; web unit green 1790632049109-b0a4 and **web e2e green 1790632205949-fbf1 (131 files)** |
-| f66-f67 (sonnet) | F66 XHR proxy, F67 `setupHeld` body | `@gateway/browser` | done 9ade01d86 |
-| a17-xhrdom (sonnet) | A17: xhr/post-with-progress, dom/composer-* | `web` (disjoint) | running |
-| a17-misc (sonnet) | A17: elk (now a broker), xyflow (now widgets), mantine/notifications | `web` | finished, uncommitted (commits with a17-xhrdom: shared typecheck). Left: canvas (F69), indexed-db (F70), file/read-data-url, notifications-show, react-dom/mount |
-| f69-f70 (sonnet) | F69, F70 | `@gateway/browser` | done 403c3e76e; web's canvas and indexed-db adapters are unblocked (dispatch after a17-xhrdom) |
-| f40 (sonnet) | F40 | eslint-plugin rule, hydration | done 6643c2062 (lockfile refreshed) |
-| t05-ward (sonnet) | T05 fix sweep: ward (rules stay off) | `ward` tests and proxies | running |
-| t04-sv-hr (sonnet) | T04 fix sweep: server and hydration-recipes (rule stays off) | `server`, `hydration-recipes` tests and proxies | running |
-| f39-f58 (sonnet) | F39, F58 | `mcp`, `shared` | done (the F58 commit). F58 was real: `server` has no adapters, so the edge graph missed it |
-| a10-fs4 (sonnet) | A10: readlink, symlink, append-file | `orchestrator` | finished, uncommitted (commits with a10-misc). For T05: `quest-outbox-append-broker.proxy.ts` answers any unstaged path ending `outbox.jsonl` (about 40 responder and loop tests leaned on the old catch-all through quest persist); `chat-subagent-tail-broker.proxy.ts` stages the touch by path shape |
-| a10-misc (sonnet) | A10: spawn-stream-json, net, proc, process, readline, timers | `orchestrator` | finished, uncommitted (commits with a10-fs4 and a10-p5). enforce-folder-return-types now anchors on web's `mantine/render` |
-| a10-p5 (sonnet) | A10: is-accessible, read-file; re-anchor project-map test on `fsWatchTailAdapter` | `orchestrator` | running |
-| f62 (sonnet) | F62 | `ward` | done (the F62 commit); ward build pending |
-| agy SL-FS5 | A13 `fs/read-file`, second half; delete the adapter | `siegelense` | running |
+| — | Landed this session | — | See `git log`. No `adapters/` left in ward, eslint-plugin, shared, hydration-recipes (plus cli, config, hooks, hydration, mcp, server, tooling from before). Adapters left at ee9b1643e: orchestrator 1 (`watch-tail`), siegelense 25, testing 13, web 8. Web e2e green twice this session (1790632205949-fbf1, 1790635049666-3ffb; 131 files). |
+| planner (opus) | Which remaining work can be scripted | none | done: `scripting-opportunities.md`. **The user tabled all script-making.** S1 (census) landed anyway, 4130e9c6f. |
+| a14-ts (opus) | A14 testing `typescript/*` (feeds the proxy-mock hoister) | `testing` | running, past one hour: sonnet status check says 4 of 7 done, steady, not looping; told to get the testing unit suite green and stop at the next green point if the rest runs long |
+| a13-pw (opus) | A13: `playwright/session` facade | `siegelense` (disjoint) | running |
+| agy SL-MISC | A13: every other siegelense adapter (`tmp/agy/sl-misc.md`) | `siegelense` (disjoint) | running |
+| a17-misc2 (sonnet) | A17: canvas, indexed-db, file/read-data-url, notifications-show | `web` | running |
+| a10-tail (sonnet) | A10: `fs/watch-tail`, orchestrator's last adapter; re-anchor project-map test | `orchestrator`, shared project-map test | running |
+
+Open follow-ups found this session and not yet dispatched: F68 (testing `holdsOpen` raw body), F71 (web stylesheet home, with A19), F72 (T05 rules ignore `registerSpyOn`), F63 (repo jest bump), F10, F30, F47-style checks; T04 remainder (hydration-recipes 5, server 11) needs new orchestrator proxy methods (table in the T04 item); T05 sweeps per package (ward done 46c51491c; a combined scan of many packages ran out of memory, so scan one package at a time with `node tmp/t05-scan-pkgs.js <pkg>`).
 
 Still to do in Phase 2: orchestrator misc/timer/spawn (7 adapters), siegelense `read-file` (61 callers), misc singles and playwright session, testing jest/msw/typescript/playwright/misc, web canvas/DOM/IndexedDB/misc/rxjs/testing-library/xyflow and `directory-browse`, hydration-recipes `dm-jsonl/append` (G-J's enforce-folder-return-types test anchors on it). Then A18, A19.
 
@@ -554,6 +546,7 @@ Work that execution found and no item file owns. Each runs like an item.
 | F69 | `#gateway/browser/createImageBitmap` is a load-time global read with no proxy (undefined in jsdom), and canvas `getContext`/`toDataURL` have no gateway proxy, so web's `canvas/image-measure` and `canvas/image-rescale` cannot move. | A17 W-MISC | done 403c3e76e | |
 | F70 | `@gateway/browser/indexedDB` has no clear-and-replace in one transaction, `getAll` returns no keys, and the `openStore`/`getAll`/`put` proxies each hand out a separate fake database. Web's `indexed-db/*` adapters cannot move. | A17 W-MISC | done 403c3e76e | |
 | F71 | Web's global stylesheet imports (`@mantine/core/styles.css`, `@mantine/notifications/styles.css`, `@xyflow/react/dist/style.css`) live in `adapters/react-dom/mount/react-dom-mount-adapter.ts`, because lint refuses external package imports in `widgets/`, `startup/` and `responders/`. When that adapter goes, they need a sanctioned home (for example the Vite entry or a statics/asset file the lint allows). Decide with A19. | A17 W-MISC | open | |
+| F72 | T05's rules (`ban-proxy-catch-all-defaults`, `ban-proxy-empty-called-with`) inspect only `registerMock({ fn })` handles, not `registerSpyOn`, so a `registerSpyOn(...).calledWith([])` on a method that takes arguments (ward's `process.stderr.write` spy) is not flagged. | T05 ward | open | |
 | F68 | `packages/testing/src/responders/endpoint-mock/listen/endpoint-mock-listen-responder.ts`: `holdsOpen` always answers with `HttpResponse.json(data)`, so a held response cannot carry raw text. F67 works around it in `@gateway/browser` (JSON text only). Give `holdsOpen` a raw-body option, then drop the workaround. | F66/F67 | open | |
 | F66 | `#gateway/browser/XMLHttpRequest` exports only the raw global (no wrapper, proxy or stub), so web's `xhr/post-with-progress` (callers quest-chat, quest-followup, quest-new brokers) cannot move. | A17 W-NET | done (the F66 commit) | Web's three xhr brokers move next. |
 | F67 | `fetchWithStatusProxy.setupHeld` passes `bodyText` into `holdsOpen({ data })`, so a released held body comes out JSON-encoded as a string; `quest-human-verdict-broker`'s parse fails after release (its widget test only checks the controls re-enable). | A17 W-NET | done (the F66 commit) | Works around F68. |
