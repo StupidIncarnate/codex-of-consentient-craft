@@ -8,7 +8,11 @@
  * `indexOf` dance, and its own value parses through `flagContractParseTransformer` so a badly-shaped
  * id or ceiling answers with the contract's own message under its own flag rather than a raw
  * ZodError. `--idle-timeout-ms` is OPTIONAL here exactly as it is on `start` — `start` only carries
- * it through to this same flag when a caller named one. Every other built call goes
+ * it through to this same flag when a caller named one. Before either read, `callArgs` is scanned
+ * against `DRIVER_KNOWN_FLAGS` (DEF-50) so a mistyped flag is refused BY NAME — the same "Unknown
+ * flag: X\n\nAccepted flags: Y" shape every built call's own args-parse transformer throws, reusing
+ * this file's own `USAGE` line rather than a driver-specific one — instead of falling through to
+ * `--instance is required`, which named the wrong problem. Every other built call goes
  * through `CALL_ROUTES`, a `Map` keyed by the same names `siegelenseHelpStatics.calls` holds.
  * **A `CALL_ROUTES` entry names ONE layer flow and does nothing else.** One file per call, each
  * owning that call's whole argument surface and carrying its own `.integration.test.ts` beside it —
@@ -76,6 +80,7 @@ const HELP_SHORT_FLAG = siegelenseOutputStatics.flags.helpShort;
 const DRIVER_CALL_NAME = 'driver';
 const INSTANCE_FLAG = '--instance';
 const IDLE_TIMEOUT_MS_FLAG = '--idle-timeout-ms';
+const DRIVER_KNOWN_FLAGS = [INSTANCE_FLAG, IDLE_TIMEOUT_MS_FLAG] as const;
 const USAGE =
   'Usage: dungeonmaster siegelense [--help | start | run | results | kill | capacity | status | ' +
   'cleanup | prune | compare | snapshots | recipes | docs | driver --instance <instanceId>]';
@@ -124,6 +129,28 @@ export const SiegelenseFlow = async ({
   }
 
   if (callName === DRIVER_CALL_NAME) {
+    for (let i = 0; i < callArgs.length; i++) {
+      const arg = callArgs[i];
+
+      if (arg === INSTANCE_FLAG || arg === IDLE_TIMEOUT_MS_FLAG) {
+        // A following token that looks like a flag is not this flag's value — leave it for the
+        // next iteration, so a missing value is refused naming THIS flag, never a token further
+        // on (same shape as every built call's own args-parse transformer, e.g.
+        // statusArgsParseTransformer).
+        const nextToken = callArgs[i + 1];
+        if (nextToken !== undefined && !nextToken.startsWith('--')) {
+          i++;
+        }
+        continue;
+      }
+
+      if (arg?.startsWith('--')) {
+        throw new Error(
+          `Unknown flag: ${arg}\n\nAccepted flags: ${DRIVER_KNOWN_FLAGS.join(', ')}\n\n${USAGE}`,
+        );
+      }
+    }
+
     const rawInstanceId = flagValueReadTransformer({ args: callArgs, flag: INSTANCE_FLAG });
     if (rawInstanceId === null) {
       throw new Error(`${INSTANCE_FLAG} is required: name the instance to drive.`);

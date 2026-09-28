@@ -142,6 +142,20 @@ describe('SiegelenseFlow', () => {
         /^--instance: Instance id must look like "inst_" followed by 4 or more lowercase hex characters, e\.g\. "inst_7f3a9c21"$/u,
       );
     });
+
+    it('INVALID: {args: driver --bogus} => refuses --bogus as an unknown flag before ever checking --instance is present', async () => {
+      await expect(SiegelenseFlow({ args: ['driver', '--bogus'] })).rejects.toThrow(
+        /^Unknown flag: --bogus\n\nAccepted flags: --instance, --idle-timeout-ms\n\nUsage: dungeonmaster siegelense \[--help \| start \| run \| results \| kill \| capacity \| status \| cleanup \| prune \| compare \| snapshots \| recipes \| docs \| driver --instance <instanceId>\]$/u,
+      );
+    });
+
+    it('VALID: {args: driver --instance <unreserved id> --idle-timeout-ms 5000} => --idle-timeout-ms is not refused as unknown, and parsing reaches the registry lookup', async () => {
+      await expect(
+        SiegelenseFlow({
+          args: ['driver', '--instance', 'inst_dead0000', '--idle-timeout-ms', '5000'],
+        }),
+      ).rejects.toThrow(/inst_dead0000 not found in the registry/u);
+    });
   });
 
   describe('the EPIPE guard on process.stdout', () => {
