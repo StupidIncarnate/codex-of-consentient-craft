@@ -7,7 +7,7 @@
  */
 
 import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
-import { errorMessageContract } from '@dungeonmaster/shared/contracts';
+import { errorMessageContract, itemWithIdContract } from '@dungeonmaster/shared/contracts';
 
 import { isArrayOfItemsWithIdGuard } from '../../guards/is-array-of-items-with-id/is-array-of-items-with-id-guard';
 import { questFindDuplicateIdTransformer } from '../quest-find-duplicate-id/quest-find-duplicate-id-transformer';
@@ -18,10 +18,11 @@ export const questDuplicateIdMessageTransformer = ({
   updates: Record<PropertyKey, unknown>;
 }): ErrorMessage | undefined => {
   for (const key of Object.keys(updates)) {
-    const valueParams = { value: updates[key] };
-    if (isArrayOfItemsWithIdGuard(valueParams)) {
+    const propertyValue = updates[key];
+    if (isArrayOfItemsWithIdGuard({ value: propertyValue }) && Array.isArray(propertyValue)) {
+      const items = propertyValue.map((entry) => itemWithIdContract.parse(entry));
       const duplicate = questFindDuplicateIdTransformer({
-        items: valueParams.value,
+        items,
         context: errorMessageContract.parse(key),
       });
       if (duplicate) {

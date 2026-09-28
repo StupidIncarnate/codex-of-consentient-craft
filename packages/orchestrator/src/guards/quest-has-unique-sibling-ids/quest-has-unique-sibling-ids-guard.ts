@@ -6,6 +6,8 @@
  * // Returns true if all sibling arrays contain unique IDs
  */
 
+import { itemWithIdContract } from '@dungeonmaster/shared/contracts';
+
 import { isArrayOfItemsWithIdGuard } from '../is-array-of-items-with-id/is-array-of-items-with-id-guard';
 import { hasDuplicateIdInArrayGuard } from '../has-duplicate-id-in-array/has-duplicate-id-in-array-guard';
 
@@ -19,9 +21,10 @@ export const questHasUniqueSiblingIdsGuard = ({
   }
 
   for (const key of Object.keys(updates)) {
-    const valueParams = { value: updates[key] };
-    if (isArrayOfItemsWithIdGuard(valueParams)) {
-      if (hasDuplicateIdInArrayGuard({ items: valueParams.value })) {
+    const propertyValue = updates[key];
+    if (isArrayOfItemsWithIdGuard({ value: propertyValue }) && Array.isArray(propertyValue)) {
+      const items = propertyValue.map((entry) => itemWithIdContract.parse(entry));
+      if (hasDuplicateIdInArrayGuard({ items })) {
         return false;
       }
     }

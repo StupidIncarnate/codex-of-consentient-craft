@@ -7,7 +7,7 @@
  */
 
 import type { ErrorMessage, ItemWithId } from '@dungeonmaster/shared/contracts';
-import { errorMessageContract } from '@dungeonmaster/shared/contracts';
+import { errorMessageContract, itemWithIdContract } from '@dungeonmaster/shared/contracts';
 
 import { isArrayOfItemsWithIdGuard } from '../../guards/is-array-of-items-with-id/is-array-of-items-with-id-guard';
 
@@ -29,11 +29,12 @@ export const questFindDuplicateIdTransformer = ({
     seen.add(item.id);
 
     for (const key of Object.keys(item)) {
-      const valueParams = { value: item[key] };
-      if (isArrayOfItemsWithIdGuard(valueParams)) {
+      const propertyValue = item[key];
+      if (isArrayOfItemsWithIdGuard({ value: propertyValue }) && Array.isArray(propertyValue)) {
+        const nestedItems = propertyValue.map((entry) => itemWithIdContract.parse(entry));
         const nestedContext = errorMessageContract.parse(`${context}[${String(item.id)}].${key}`);
         const nested = questFindDuplicateIdTransformer({
-          items: valueParams.value,
+          items: nestedItems,
           context: nestedContext,
         });
         if (nested) {

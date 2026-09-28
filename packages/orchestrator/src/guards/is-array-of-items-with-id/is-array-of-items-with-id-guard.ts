@@ -6,13 +6,7 @@
  * // Returns true if all items are objects with an `id` property
  */
 
-import type { ItemWithId } from '@dungeonmaster/shared/contracts';
-
-export const isArrayOfItemsWithIdGuard = (params: {
-  value?: unknown;
-}): params is { value: ItemWithId[] } => {
-  const { value } = params;
-
+export const isArrayOfItemsWithIdGuard = ({ value }: { value?: unknown }): boolean => {
   if (!value) {
     return false;
   }

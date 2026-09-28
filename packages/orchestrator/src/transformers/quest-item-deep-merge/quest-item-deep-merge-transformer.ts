@@ -18,6 +18,7 @@
  */
 
 import type { ItemWithId } from '@dungeonmaster/shared/contracts';
+import { itemWithIdContract } from '@dungeonmaster/shared/contracts';
 
 import { isArrayOfItemsWithIdGuard } from '../../guards/is-array-of-items-with-id/is-array-of-items-with-id-guard';
 import { questArrayUpsertTransformer } from '../quest-array-upsert/quest-array-upsert-transformer';
@@ -32,29 +33,30 @@ export const questItemDeepMergeTransformer = ({
   const merged: ItemWithId = { ...existing };
 
   for (const key of Object.keys(update)) {
-    if (
-      update[key] === undefined ||
-      (Array.isArray(update[key]) && (update[key] as unknown[]).length === 0)
-    ) {
+    const updateValue = update[key];
+    if (updateValue === undefined || (Array.isArray(updateValue) && updateValue.length === 0)) {
       continue;
     }
 
-    if (update[key] === null) {
+    if (updateValue === null) {
       Reflect.deleteProperty(merged, key);
       continue;
     }
 
-    const updateParams = { value: update[key] };
-    const existingParams = { value: existing[key] };
+    const existingValue = existing[key];
 
-    if (isArrayOfItemsWithIdGuard(updateParams)) {
-      const existingArray = isArrayOfItemsWithIdGuard(existingParams) ? existingParams.value : [];
+    if (isArrayOfItemsWithIdGuard({ value: updateValue }) && Array.isArray(updateValue)) {
+      const updates = updateValue.map((entry) => itemWithIdContract.parse(entry));
+      const existingArray =
+        isArrayOfItemsWithIdGuard({ value: existingValue }) && Array.isArray(existingValue)
+          ? existingValue.map((entry) => itemWithIdContract.parse(entry))
+          : [];
       merged[key] = questArrayUpsertTransformer({
         existing: existingArray,
-        updates: updateParams.value,
+        updates,
       });
     } else {
-      merged[key] = updateParams.value;
+      merged[key] = updateValue;
     }
   }
 
