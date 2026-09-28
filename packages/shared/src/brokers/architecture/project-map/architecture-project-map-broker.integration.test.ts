@@ -74,15 +74,19 @@ describe('architectureProjectMapBroker (integration with real monorepo)', () => 
   it('VALID: {real monorepo, packages: [all]} => renders adapter chain entries by their export name', async () => {
     const lines = String(await allPackagesMap).split('\n');
 
-    // orchestrator's worktreePrepareBroker calls these three git adapters in sequence — verify the
-    // branch exists, prune a stale worktree registration for it, then add the worktree — a real
-    // adapter chain still on disk. This test used to point at stepHandlerCommitBroker's
-    // add/commit/push chain; A10's GIT-3/GIT-4 batch moved `git add` and `git commit` off adapters
-    // onto `#gateway/bin/git` directly, so only `git push` remains an adapter there and the chain
-    // this test asserts moved to a sequence A10 has not reached yet.
-    expect(lines.some((l) => l.endsWith('→ gitVerifyRefAdapter'))).toBe(true);
-    expect(lines.some((l) => l.endsWith('→ gitWorktreePruneAdapter'))).toBe(true);
-    expect(lines.some((l) => l.endsWith('→ gitWorktreeAddAdapter'))).toBe(true);
+    // A gateway call (`verifyRef`, `worktreePrune`, `worktreeAdd` from `#gateway/bin/git`) is not a
+    // chain node: worktreePrepareBroker renders its child brokers only, so the git steps that moved
+    // onto the gateway leave no adapter line behind. The chain entries this asserts are the
+    // orchestrator-local adapters that are still on disk.
+    const adapterLines = lines.filter((l) => l.endsWith('Adapter'));
+    const worktreePrepareChildren = lines.filter((l) => /→ worktree\w+Broker$/u.test(l));
+
+    expect(adapterLines.some((l) => l.endsWith('→ fsWatchTailAdapter'))).toBe(true);
+    expect(adapterLines.some((l) => l.endsWith('→ childProcessSpawnStreamJsonAdapter'))).toBe(true);
+    expect(adapterLines.some((l) => l.endsWith('→ gitVerifyRefAdapter'))).toBe(false);
+    expect(adapterLines.some((l) => l.endsWith('→ gitWorktreePruneAdapter'))).toBe(false);
+    expect(adapterLines.some((l) => l.endsWith('→ gitWorktreeAddAdapter'))).toBe(false);
+    expect(worktreePrepareChildren.some((l) => l.endsWith('→ worktreeDiscardBroker'))).toBe(true);
   });
 
   it('VALID: {real monorepo, packages: [all]} => emits exactly one --- separator after URL pairing block before first package', async () => {

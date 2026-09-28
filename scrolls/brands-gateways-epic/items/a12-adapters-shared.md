@@ -380,3 +380,43 @@ Files to edit:
 - `packages/orchestrator/src/brokers/quest/work-plan-write/quest-work-plan-write-broker.proxy.ts` — stage `join` (`#gateway/node/path`) via `registerMock({ fn: join })` with exact tuple addressing, and remove `pathJoinAdapterProxy`
 - `packages/orchestrator/src/brokers/quest/work-plan-write/quest-work-plan-write-broker.test.ts` — verify work plan write scenarios with staged `join`
 
+
+### Phase 3 census (2026-09-28)
+
+Method: `python3` os.walk over every `packages/*/` and `packages/@gateway/*/` `.ts`/`.tsx`/`.js`/`.mjs` file plus `scripts/` (skipping `node_modules`, `dist`, `.ward`), matching the literal `shared/adapters`, any of the 19 adapter names or their `...Proxy` names imported through `@dungeonmaster/shared/testing`, and any relative path into `packages/shared/src/adapters/`. Root JSON, CJS and YAML configs were searched too.
+
+Nothing outside `packages/shared` imports a shared adapter proxy through `@dungeonmaster/shared/testing`. `web`, `cli`, `server`, `siegelense`, `session-forensics`, `hydration-recipes`, `hooks`, `ward`, `tooling`, `config`, `testing`, every `@gateway/*` package and `scripts/` are clean.
+
+**Importers of `@dungeonmaster/shared/adapters` (orchestrator, 3 files, the third comment-only). Phase 3 cannot delete the barrel until the first two move.**
+
+| File | What it references |
+|---|---|
+| `packages/orchestrator/src/brokers/quest/node-dispatch-loop/quest-node-dispatch-loop-broker.proxy.ts` | `registerModuleMock` on `@dungeonmaster/shared/adapters` with `childProcessSpawnCaptureAdapter`, `childProcessSpawnStreamLinesAdapter`, `fsMkdirAdapter`, `fsReaddirWithTypesAdapter`, `pathJoinAdapter`, `processCwdAdapter` set to `jest.fn()` over `jest.requireActual` |
+| `packages/orchestrator/src/brokers/step-handler/riftcarver/step-handler-riftcarver-broker.proxy.ts` | line 26 `import { fsMkdirAdapter, fsReaddirWithTypesAdapter } from '@dungeonmaster/shared/adapters'`, a `registerModuleMock` on the same module (lines 82-89), and `registerMock({ fn: fsReaddirWithTypesAdapter })` / `registerMock({ fn: fsMkdirAdapter })` at lines 310 and 389 |
+| `packages/orchestrator/src/brokers/quest/route-scope/quest-route-scope-broker.proxy.ts` | `pathJoinAdapter` / `shared/adapters` matched by the scan; only a comment at line 28 names `pathJoinAdapter`, and the file's own line 142 says it no longer reaches the adapters, so re-read it before editing (the scan matched the string `shared/adapters` in a comment) |
+
+`step-handler-riftcarver-broker.proxy.ts`: the broker chain no longer reaches `fsMkdirAdapter` or `fsReaddirWithTypesAdapter`. A scan of every `.ts`/`.tsx` under `packages/` outside `shared/src/adapters/` for those two names finds, in orchestrator, only this proxy, `quest-node-dispatch-loop-broker.proxy.ts` (also a dead mock), `adapters/fs/append-file/fs-append-file-adapter.proxy.ts` and `guild-add-broker.integration.test.ts` (both orchestrator-local matches to check by name); no non-proxy orchestrator broker source imports them from shared. The riftcarver proxy's own comments say `populateOneRootLayerBroker` and `worktreeSeedDistBroker` moved to `readdirEntriesSync` and `ensureDir`. So both module-mock overrides are dead and can be dropped, along with the two `registerMock` handles and the `Dirent`-typed `buildDirent` if nothing else uses it. The `node-dispatch-loop` proxy is the same shape and needs the same check.
+
+**Matches that are string fixtures or path strings, not imports (no fix needed for deletion, but a rule may still care).**
+
+| File | What it holds |
+|---|---|
+| `packages/eslint-plugin/src/guards/is-npm-package/is-npm-package-guard.ts` (line 42) | production code special-casing the specifier `'@dungeonmaster/shared/adapters'` as "not an npm package"; once the export is gone the special case is dead, decide whether to keep it |
+| `packages/eslint-plugin/src/guards/is-npm-package/is-npm-package-guard.test.ts` (49-50) | the same specifier as input |
+| `packages/eslint-plugin/src/brokers/rule/enforce-import-dependencies/validate-external-import-layer-broker.ts` (59) | comment naming the specifier |
+| `packages/eslint-plugin/src/brokers/rule/enforce-import-dependencies/rule-enforce-import-dependencies-broker.test.ts` (308, 318) | rule fixture string `import { processCwdAdapter } from "@dungeonmaster/shared/adapters"` |
+| `packages/eslint-plugin/src/brokers/rule/gateway-import-boundary/rule-gateway-import-boundary-broker.test.ts` (159, 165) | rule fixture `require('@dungeonmaster/shared/adapters')` and `importSource` data |
+| `packages/eslint-plugin/src/transformers/folder-config/folder-config-transformer.test.ts` (35, 48) | specifier in an allowed-imports list |
+| `packages/eslint-plugin/src/transformers/parse-implementation-imports/parse-implementation-imports-transformer.test.ts` (245-270) | source-text fixtures |
+| `packages/mcp/src/transformers/path-to-tree-relative/path-to-tree-relative-transformer.test.ts` (38) | expected path string `shared/adapters/fs/write-file/fs-write-file-adapter.ts`, no import |
+| `eslint.config.js` (318) | an ignore/override entry naming `packages/shared/src/adapters/runtime/dynamic-import/runtime-dynamic-import-adapter.proxy.ts`; delete the entry with the adapter |
+
+**Inside `packages/shared`.** The three type-only imports named in G-Q are already gone: the three `orphan-detect/*.test.ts` files import `type { Dirent } from '#gateway/node/fs'`. The scan finds no other file in `packages/shared` outside `src/adapters/` that imports from `src/adapters/`. What it does find is `packages/shared/adapters.ts` (the barrel itself), `packages/shared/testing.ts` (the "Adapter Proxies" block, lines 10-29), `packages/shared/package.json` (`exports['./adapters']`), and fixture strings in `brokers/architecture/{binding-flow-trace,boot-tree,event-bus,orchestrator-method-extract,ws-gateway,orphan-detect}/*.test.ts` that spell `../../../adapters/...` inside sample source text.
+
+Counts by package: orchestrator 2 real plus 1 comment-only, eslint-plugin 0 real (7 fixture or special-case files), mcp 0 real (1 path string), every other package 0. `packages/shared` outside `src/adapters/`: 0 importers.
+
+**Phase 3 status.** Not started: two orchestrator proxy files still import the barrel and a third mentions it in a comment. Delete `packages/shared/src/adapters/`, `adapters.ts`, the `testing.ts` block, the `./adapters` export and the `eslint.config.js` entry once orchestrator's files are clean and the `is-npm-package-guard` question is decided.
+
+**Project-map integration test.** `architecture-project-map-broker.integration.test.ts` asserted `→ gitVerifyRefAdapter`, `→ gitWorktreePruneAdapter` and `→ gitWorktreeAddAdapter`. The real tree now renders `worktreePrepareBroker` with only broker children (`worktreeDiscardBroker`, `worktreeSeedDistBroker`, `worktreeVerifyLinksBroker`); a `#gateway/*` call is not a chain node, so those three git steps leave no line. The test now asserts that the three deleted adapter names are absent, and that `→ fsWatchTailAdapter` and `→ childProcessSpawnStreamJsonAdapter` (orchestrator-local adapters still on disk) and `→ worktreeDiscardBroker` render. When those local adapters go, this test needs a new anchor.
+
+**F58 check.** The real project map buckets `server` correctly: the header line is `# server [http-backend]`. That is the package-type detector, which has the content fallback. The edge-graph grouping in `resolve-package-groups-layer-broker.ts` is a separate code path and this pass did not exercise it; F58 stays open.
