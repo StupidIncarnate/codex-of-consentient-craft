@@ -108,7 +108,8 @@ A new operator took over from the morning handoff below. Heartbeat cron `13,43 *
 | t04-orch (sonnet) | T04: new orchestrator proxy methods; finish server and hydration-recipes (target 0) | `orchestrator`, `server`, `hydration-recipes`, `mcp` scan | running |
 | a17-last (sonnet) | A17: `mantine/render`, `react-dom/mount`, F71, F74 | `web`, `@gateway/browser` | finished: **web has no `adapters/` left**; commit waits on F75 (web's start-app integration test loads a shared contract F75 is renaming), then web e2e. Web now imports `@dungeonmaster/testing/adapters/mantine/render`, which moves when testing's adapter does |
 | a13-pw2 (opus) | A13: the session facade and seven page layers onto `chromiumProxy` | `siegelense` (disjoint) | running |
-| agy SL-MISC | A13: every other siegelense adapter (`tmp/agy/sl-misc.md`) | `siegelense` (disjoint) | running |
+| agy SL-MISC | A13: siegelense misc adapters, part 1 (crypto, error, pixelmatch and more) | `siegelense` | finished, uncommitted (commits with a13-pw2: their typecheck overlaps) |
+| agy SL-MISC2 | A13: the 19 siegelense adapters left outside playwright (`tmp/agy/sl-misc2.md`) | `siegelense` (disjoint) | running |
 | a17-misc2 (sonnet) | A17: canvas, indexed-db, file, notifications-show | `web` | done 5b5019790 (e2e green); only `mantine/render` and `react-dom/mount` left in web |
 | a10-tail (sonnet) | A10: `fs/watch-tail` | `orchestrator` | done (the part 6 commit): **orchestrator has no `adapters/` left**. `@gateway/node` rebuilt. Left for later: shared's `fs-watch-tail-calls-extract` transformer and `fs-watch-tail-call`/`file-bus-edge` contracts still match the literal `fsWatchTailAdapter(` text, which no longer exists |
 
