@@ -4,8 +4,7 @@
  * why. `LEFT ALONE` is printed even when empty: a cleanup that only ever shows what it removed
  * cannot be told from one that removed the wrong thing (siegelense-tooling.md line 1412). `ASSETS
  * AGED` prints its zero for the same reason — a call that ages nothing and a call that says nothing
- * about ageing read identically otherwise. Pure, so this text is provable without stdout, the same
- * split `fleetTableRenderTransformer` already uses for the fleet listing.
+ * about ageing read identically otherwise. Pure, so this text is provable without stdout.
  *
  * USAGE:
  * cleanupAnswerRenderTransformer({ answer: CleanupAnswerStub() });

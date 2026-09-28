@@ -57,6 +57,10 @@ export const cliBinHarness = (): {
   }>;
   runInit: () => Promise<{ exitCode: ReturnType<typeof ExitCodeStub> }>;
   requireWithoutAutorun: () => Promise<{ exitedCleanly: boolean; servedLineSeen: boolean }>;
+  runWithClosedStdoutReader: ({ args }: { args: readonly string[] }) => Promise<{
+    cliExitCode: ReturnType<typeof ExitCodeStub>;
+    cliStderr: ErrorMessage;
+  }>;
 } => {
   // Spawns bin/cli-entry.ts under tsx with the given argv, capturing BOTH stdio streams (never
   // discarding either — every assertion above the CLI gate depends on reading them back exactly)
@@ -125,6 +129,70 @@ export const cliBinHarness = (): {
     return result;
   };
 
+  // `head -n 0` exits the instant it starts, before ever reading — so its read end of the pipe is
+  // already closed by the time the CLI's own tsx boot (RUN_COMMAND_TIMEOUT_MS's own comment: 3.7s
+  // to 4.7s) finishes and attempts its first process.stdout.write. That reproduces a closed-stdout
+  // write deterministically for ANY call's output, however small, rather than racing a real reader
+  // against a real writer over `head -n 3` — a race that only resolves the way a person piping to
+  // `head` expects when the output is large enough to force more than one write() syscall. A real
+  // shell pipeline is required (not a Node .pipe() relay through this harness's own process): only
+  // a direct OS pipe between the CLI and `head` closes the CLI's OWN write end when `head` exits.
+  // PIPESTATUS[0] is the CLI's own exit code, distinct from `head`'s — bash writes it to a file
+  // rather than mixing it into the stdout `head` already consumed.
+  const runWithClosedStdoutReader = async ({
+    args,
+  }: {
+    args: readonly string[];
+  }): Promise<{
+    cliExitCode: ReturnType<typeof ExitCodeStub>;
+    cliStderr: ErrorMessage;
+  }> => {
+    const tempDir = mkdtempSync(join(tmpdir(), 'dungeonmaster-e2e-'));
+    const dungeonmasterHome = mkdtempSync(join(tmpdir(), 'dungeonmaster-e2e-home-'));
+    const exitCodeFile = join(tempDir, 'cli-exit-code.txt');
+    const shellCommand =
+      `npx tsx --conditions=source ${SOURCE_ENTRY_PATH} ${args.join(' ')} | head -n 0; ` +
+      `echo -n "\${PIPESTATUS[0]}" > ${exitCodeFile}`;
+
+    const cliStderr = await new Promise<ErrorMessage>((promiseResolve, promiseReject) => {
+      const child = spawn('bash', ['-c', shellCommand], {
+        stdio: ['ignore', 'ignore', 'pipe'],
+        env: { ...process.env, FORCE_COLOR: '0', DUNGEONMASTER_HOME: dungeonmasterHome },
+        cwd: tempDir,
+      });
+
+      let stderrBuffer = '';
+
+      const timer = setTimeout(() => {
+        child.kill();
+        promiseReject(
+          new Error(`cli-bin runWithClosedStdoutReader timed out on args: ${args.join(' ')}`),
+        );
+      }, RUN_COMMAND_TIMEOUT_MS);
+
+      child.stderr.on('data', (chunk: Buffer) => {
+        stderrBuffer += chunk.toString();
+      });
+
+      child.on('close', () => {
+        clearTimeout(timer);
+        promiseResolve(errorMessageContract.parse(stderrBuffer));
+      });
+
+      child.on('error', (err) => {
+        clearTimeout(timer);
+        promiseReject(err);
+      });
+    });
+
+    const cliExitCode = ExitCodeStub({ value: Number(readFileSync(exitCodeFile, 'utf-8')) });
+
+    rmSync(tempDir, { recursive: true, force: true });
+    rmSync(dungeonmasterHome, { recursive: true, force: true });
+
+    return { cliExitCode, cliStderr };
+  };
+
   return {
     binPath: BIN_PATH,
 
@@ -142,6 +210,8 @@ export const cliBinHarness = (): {
     readBinContent: (): FileContents => fileContentsContract.parse(readFileSync(BIN_PATH, 'utf-8')),
 
     runCommand,
+
+    runWithClosedStdoutReader,
 
     runInit: async (): Promise<{ exitCode: ReturnType<typeof ExitCodeStub> }> => {
       const { exitCode } = await runCommand({ args: ['init'] });

@@ -149,11 +149,11 @@ describe('siegelenseHelpRenderTransformer', () => {
   });
 
   describe('the index, call: null', () => {
-    it('VALID: {call: null} => the index listing every built call and the not-built names, with a derived headline count', () => {
+    it('VALID: {call: null} => the index listing every built call, with no build-progress count', () => {
       const result = siegelenseHelpRenderTransformer({ call: null });
 
       expect(result).toBe(
-        'dungeonmaster siegelense — every built call reachable without installing anything. 12 of 12 calls are built.\n' +
+        'dungeonmaster siegelense — every built call reachable without installing anything.\n' +
           '\n' +
           'CALLS\n' +
           '  siegelense start — boot one instance for a lane spec and block until the driver answers or the boot deadline passes.\n' +

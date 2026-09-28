@@ -1,11 +1,11 @@
 /**
  * PURPOSE: The `--help` text for every `dungeonmaster siegelense <call>` — one entry per built
  * call under `calls`, keyed exactly to `siegelenseCallStatics.calls.names`, plus the index page's
- * headline. `index.headline` carries only the fixed prose; `siegelenseHelpRenderTransformer`
- * appends the built-versus-total call count at render time, off `Object.keys(calls).length` and
- * `siegelenseCallStatics.calls.names.length`, so landing a call here can never leave a stale tally
- * behind. `refusals` carries prose lifted verbatim from the MCP tool description each call is
- * replacing, unchanged except for renaming a JSON field to the flag that now carries it —
+ * headline. `index.headline` carries the whole fixed prose `siegelenseHelpRenderTransformer` prints
+ * verbatim — no build-progress count appended at render time, so the index never reads like a
+ * checklist with items still outstanding. `refusals` carries prose lifted verbatim from the MCP
+ * tool description each call is replacing, unchanged except for renaming a JSON field to the flag
+ * that now carries it —
  * smoothing that wording is how a refusal stops refusing. `internal.driver` documents the driver
  * process `start` spawns; it sits outside `calls` because nobody types `driver` at a terminal.
  * Reach for this over `siegelenseCallStatics` when you need the prose a caller reads — flags,

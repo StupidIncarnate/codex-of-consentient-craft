@@ -16,8 +16,9 @@
  * passed straight through from the responder — because a `status` fleet listing filters by age and
  * branch, never by alive, so "no instances running" was never an accurate reason for an empty table.
  * `MONITORED`/`MACHINE` still print on an empty fleet: the host reading is useful independent of
- * whether any instance matched. Pure, so this text is provable without stdout, the same split
- * `fleetTableRenderTransformer` already uses for the bare fleet listing.
+ * whether any instance matched. Pure, so this text is provable without stdout. `SiegelenseFlow`
+ * routes a bare `dungeonmaster siegelense` (no subcommand) to the same `SiegelenseStatusResponder`
+ * call `status` with no flags reaches, so this is the ONLY fleet-table renderer in the package.
  *
  * ORPHANS and LOGS each render ONE ROW PER ITEM, with a blank FIELD on every continuation row,
  * never a comma-joined list on one row — that join is what pushed a real terminal table to roughly

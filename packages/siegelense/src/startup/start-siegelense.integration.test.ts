@@ -1,6 +1,7 @@
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
 import { ContentTextStub } from '@dungeonmaster/shared/contracts';
 
+import { machineStatics } from '../statics/machine/machine-statics';
 import { StartSiegelense } from './start-siegelense';
 
 describe('StartSiegelense', () => {
@@ -11,7 +12,7 @@ describe('StartSiegelense', () => {
   process.env.DUNGEONMASTER_HOME = testbed.guildPath;
 
   describe('the bare invocation', () => {
-    it('VALID: {args: []} => delegates to the fleet responder and reports an empty fleet', async () => {
+    it('VALID: {args: []} => delegates to the status responder and reports the reworded empty-fleet sentence naming the default --since window', async () => {
       const writes: ReturnType<typeof ContentTextStub>[] = [];
       const originalWrite = process.stdout.write.bind(process.stdout);
       process.stdout.write = ((chunk: string): boolean => {
@@ -23,7 +24,15 @@ describe('StartSiegelense', () => {
 
       process.stdout.write = originalWrite;
 
-      expect(writes).toStrictEqual(['No siegelense instances running.\n']);
+      // MACHINE reads live statfs/loadavg, stripped the same way siegelense-flow.integration.test.ts
+      // strips it from the equivalent assertion, so this stays deterministic.
+      const [wholeOutput] = writes;
+      const withoutLiveMachineLine = wholeOutput!.replace(/^MACHINE: .*\n/mu, '');
+
+      expect(withoutLiveMachineLine).toBe(
+        `MONITORED: ${machineStatics.monitored.join(', ')}\n` +
+          'No siegelense instances created in the last 6hr. Widen with --since beginning.\n',
+      );
     });
   });
 

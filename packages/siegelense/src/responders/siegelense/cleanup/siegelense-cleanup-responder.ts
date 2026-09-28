@@ -2,9 +2,9 @@
  * PURPOSE: The surface `dungeonmaster siegelense cleanup` serves — the operator's bookend table
  * through `cleanupAnswerRenderTransformer` by default (when `isJson` is false or omitted), or one
  * JSON document on stdout (the raw `CleanupAnswer`) when `isJson` is true (opted into with
- * `--json`). Writes through `process.stdout.write`, never `console.log`, matching `SiegelenseFleetResponder`.
- * The whole parameter defaults to `{ isJson: false }`: calling this responder with zero arguments
- * outputs the human table by default.
+ * `--json`). Writes through `process.stdout.write`, never `console.log`, matching every other CLI
+ * surface in this repo. The whole parameter defaults to `{ isJson: false }`: calling this
+ * responder with zero arguments outputs the human table by default.
  *
  * USAGE:
  * await SiegelenseCleanupResponder();
