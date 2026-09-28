@@ -21,27 +21,6 @@ describe('OrchestrationDispatchPauseResponder', () => {
     expect(proxy.getIsPlaying()).toBe(false);
   });
 
-  it('VALID: {current state has heartbeat} => preserves the heartbeat in the write', async () => {
-    const proxy = OrchestrationDispatchPauseResponderProxy();
-    proxy.setupCurrentState({
-      state: DispatchStateStub({
-        mode: 'node-playing',
-        mcpHeartbeatAt: '2024-01-15T09:00:00.000Z',
-      }),
-    });
-
-    await OrchestrationDispatchPauseResponder();
-
-    expect(proxy.getWriteCalls()).toStrictEqual([
-      {
-        dispatchState: DispatchStateStub({
-          mode: 'paused',
-          mcpHeartbeatAt: '2024-01-15T09:00:00.000Z',
-        }),
-      },
-    ]);
-  });
-
   it('VALID: {a live rate-limit hold} => survives the pause, because only its own resumeAt ends it', async () => {
     const proxy = OrchestrationDispatchPauseResponderProxy();
     proxy.setupCurrentState({

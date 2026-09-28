@@ -1,26 +1,25 @@
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
-import type { DispatchPlayResponseStub } from '@dungeonmaster/orchestrator/testing';
+import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
+import type { DispatchStateStub } from '@dungeonmaster/shared/contracts';
 
-type DispatchPlayResponse = ReturnType<typeof DispatchPlayResponseStub>;
+type DispatchState = ReturnType<typeof DispatchStateStub>;
 
 export const orchestratorPlayDispatchAdapterProxy = (): {
-  returns: (params: { response: DispatchPlayResponse }) => void;
+  returns: (params: { state: DispatchState }) => void;
   throws: (params: { error: Error }) => void;
-  getCalls: () => readonly unknown[];
+  getCalls: () => RecordedCalls;
 } => {
   const mock = registerMock({ fn: StartOrchestrator.playDispatch });
 
   return {
-    // playDispatch takes an optional { force } — but the response never varies by force in any
-    // caller, so [] (match every call) is the honest address for the return value. getCalls()
-    // below is what actually verifies which force value was forwarded per call.
-    returns: ({ response }: { response: DispatchPlayResponse }): void => {
-      mock.calledWith([]).resolves(response);
+    // playDispatch takes no argument — [] is the honest, non-catch-all address.
+    returns: ({ state }: { state: DispatchState }): void => {
+      mock.calledWith([]).resolves(state);
     },
     throws: ({ error }: { error: Error }): void => {
       mock.calledWith([]).rejects(error);
     },
-    getCalls: (): readonly unknown[] => mock.callsMatching([]).map((call) => call[0]),
+    getCalls: (): RecordedCalls => mock.callsMatching([]),
   };
 };

@@ -6,8 +6,7 @@
  * means to change. Ensures the home dir exists first so a fresh install can flip play/pause before
  * anything else touched the home.
  *
- * This writes the WHOLE state, so `mcpHeartbeatAt` and `hold` are dropped by any call that omits
- * them. Every caller therefore reads first and forwards what it is not changing — a pause press
+ * This writes the WHOLE state, so `hold` is dropped by any call that omits it. Every caller therefore reads first and forwards what it is not changing — a pause press
  * that forgot to carry `hold` would silently lift a rate-limit hold and hand the queue back its
  * spent quota.
  *

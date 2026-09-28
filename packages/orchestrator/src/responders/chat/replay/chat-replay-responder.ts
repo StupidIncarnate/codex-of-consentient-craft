@@ -6,13 +6,7 @@
  * // Replays JSONL history via callbacks and emits quest-session-linked if a quest is found
  */
 
-import type {
-  AdapterResult,
-  AgentId,
-  GuildId,
-  ProcessId,
-  SessionId,
-} from '@dungeonmaster/shared/contracts';
+import type { AdapterResult, GuildId, ProcessId, SessionId } from '@dungeonmaster/shared/contracts';
 import { adapterResultContract, processIdContract } from '@dungeonmaster/shared/contracts';
 
 import { chatHistoryReplayBroker } from '../../../brokers/chat/history-replay/chat-history-replay-broker';
@@ -22,14 +16,10 @@ import { orchestrationEventsState } from '../../../state/orchestration-events/or
 
 export const ChatReplayResponder = async ({
   sessionId,
-  agentId,
   guildId,
   chatProcessId: clientChatProcessId,
 }: {
   sessionId: SessionId;
-  // When set, scopes the replay to a single Task-dispatched sub-agent's JSONL — used by
-  // the per-work-item execution-panel replay path. Maps to `wi.agentId` on the work item.
-  agentId?: AgentId;
   guildId: GuildId;
   chatProcessId?: ProcessId;
 }): Promise<AdapterResult> => {
@@ -41,24 +31,18 @@ export const ChatReplayResponder = async ({
   // chat-output frames without those fields — the server filters them out of per-quest
   // broadcasts and routes them only to the requesting readonly viewer client.
   //
-  // Work item match: sessionId alone is enough for chat roles (chaos — their
-  // sessionId is the unique top-level UUID). For Task-dispatched sub-agents multiple work
-  // items can share the same parent sessionId, so the match also gates on agentId when
-  // the caller supplied one.
+  // `sessionId` alone identifies the work item: every dispatched session (Node child, chat
+  // role) is its own dedicated top-level session, so no two work items on a quest share one.
   const linked = await (async (): Promise<LinkedQuestInfo | null> => {
     try {
       const quests = await questListBroker({ guildId });
       const linkedQuest = quests.find((quest) =>
-        quest.workItems.some(
-          (wi) => wi.sessionId === sessionId && (agentId === undefined || wi.agentId === agentId),
-        ),
+        quest.workItems.some((wi) => wi.sessionId === sessionId),
       );
       if (linkedQuest === undefined) {
         return null;
       }
-      const matchedWorkItem = linkedQuest.workItems.find(
-        (wi) => wi.sessionId === sessionId && (agentId === undefined || wi.agentId === agentId),
-      );
+      const matchedWorkItem = linkedQuest.workItems.find((wi) => wi.sessionId === sessionId);
       return {
         questId: linkedQuest.id,
         ...(matchedWorkItem ? { workItemId: matchedWorkItem.id, role: matchedWorkItem.role } : {}),
@@ -80,7 +64,6 @@ export const ChatReplayResponder = async ({
   try {
     await chatHistoryReplayBroker({
       sessionId,
-      ...(agentId === undefined ? {} : { agentId }),
       guildId,
       // A linked quest's sessions were spawned with its worktree as cwd, so their JSONL lives
       // under the worktree-derived session directory. Handing the questId down is what lets

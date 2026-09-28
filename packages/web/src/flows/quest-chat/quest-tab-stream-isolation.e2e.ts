@@ -38,9 +38,8 @@ test.describe('Two tabs on one guild each see only their own quest stream', () =
   //
   // The frame that matters is one the relay cannot attribute AND that arrives while both tabs are
   // already subscribed. A sub-agent is exactly that shape: its JSONL appears mid-run, and until its
-  // agentId is stamped onto a work item the emit carries neither questId nor workItemId. Seeding it
-  // BEFORE the tabs subscribe proves nothing — the fan-out loop has no clients to reach, so the bug
-  // cannot show.
+  // parent session's quest is resolved the emit carries no questId. Seeding it BEFORE the tabs
+  // subscribe proves nothing — the fan-out loop has no clients to reach, so the bug cannot show.
   test('VALID: {a sub-agent starts on quest A while both tabs are subscribed} => its lines render in tab A only', async ({
     page,
     request,

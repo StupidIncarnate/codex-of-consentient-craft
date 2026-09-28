@@ -68,9 +68,8 @@ export const test = base.extend<AutoFixtures>({
   // BOTH sides are load-bearing, and they buy different things. Playwright sets test-scoped
   // fixtures up before any `beforeEach` hook and tears them down after every `afterEach` hook, so
   // the SETUP pause protects the spec about to run whatever the previous one did — including a
-  // spec whose only defence is `holdQueueWithMcpHeartbeat`, which refuses every future play but
-  // cannot stop a loop already running. The TEARDOWN pause stops that loop chewing on a guild
-  // directory during the gap between specs.
+  // spec whose own `beforeEach` never re-pauses after a play call some earlier test made. The
+  // TEARDOWN pause stops that loop chewing on a guild directory during the gap between specs.
   //
   // Guarded by `src/flows/app/dispatch-pause-between-specs.e2e.ts`, which stages the leak in one
   // test and measures the state the next one inherits.

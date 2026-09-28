@@ -1,32 +1,31 @@
-import { DispatchPlayResponseStub } from '@dungeonmaster/orchestrator/testing';
+import { DispatchStateStub } from '@dungeonmaster/shared/contracts';
 
 import { orchestratorPlayDispatchAdapter } from './orchestrator-play-dispatch-adapter';
 import { orchestratorPlayDispatchAdapterProxy } from './orchestrator-play-dispatch-adapter.proxy';
 
 describe('orchestratorPlayDispatchAdapter', () => {
-  it('VALID: {force: true} => forwards force and returns the response', async () => {
+  it('VALID: {} => returns the DispatchState', async () => {
     const proxy = orchestratorPlayDispatchAdapterProxy();
-    proxy.returns({ response: DispatchPlayResponseStub() });
+    proxy.returns({ state: DispatchStateStub() });
 
-    const result = await orchestratorPlayDispatchAdapter({ force: true });
+    const result = await orchestratorPlayDispatchAdapter();
 
-    expect(result).toStrictEqual(DispatchPlayResponseStub());
-    expect(proxy.getCalls()).toStrictEqual([{ force: true }]);
+    expect(result).toStrictEqual(DispatchStateStub());
   });
 
-  it('VALID: {no force} => forwards empty options', async () => {
+  it('VALID: {} => calls playDispatch with no arguments', async () => {
     const proxy = orchestratorPlayDispatchAdapterProxy();
-    proxy.returns({ response: DispatchPlayResponseStub() });
+    proxy.returns({ state: DispatchStateStub() });
 
-    await orchestratorPlayDispatchAdapter({});
+    await orchestratorPlayDispatchAdapter();
 
-    expect(proxy.getCalls()).toStrictEqual([{}]);
+    expect(proxy.getCalls()).toStrictEqual([[]]);
   });
 
   it('ERROR: {orchestrator throws} => throws error', async () => {
     const proxy = orchestratorPlayDispatchAdapterProxy();
     proxy.throws({ error: new Error('play failed') });
 
-    await expect(orchestratorPlayDispatchAdapter({})).rejects.toThrow(/^play failed$/u);
+    await expect(orchestratorPlayDispatchAdapter()).rejects.toThrow(/^play failed$/u);
   });
 });

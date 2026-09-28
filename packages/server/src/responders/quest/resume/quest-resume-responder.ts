@@ -19,11 +19,9 @@
  * while reaching across every other one. `dispatch.started: false` with a `no dispatchable work`
  * reason is the honest answer there.
  *
- * The exclusivity gate still owns the rest of the decision: a live `/dumpster-launch` loop (fresh
- * MCP heartbeat, or an in-flight Task agent) keeps its claim and dispatch stays paused — correct,
- * because that loop is already driving the queue. Either way the outcome rides back on the
- * response as `dispatch.started` (+ `dispatch.reason` when refused) rather than failing silently.
- * A play failure never fails the resume — the quest IS resumed at that point.
+ * A play failure never fails the resume — the quest IS resumed at that point — so the outcome
+ * rides back on the response as `dispatch.started` (+ `dispatch.reason` on failure) rather than
+ * failing silently.
  */
 
 import {
@@ -94,11 +92,8 @@ export const QuestResumeResponder = async ({
       });
 
     const dispatch = isDispatchable
-      ? await orchestratorPlayDispatchAdapter({}).then(
-          (played) => ({
-            started: played.allowed,
-            ...(played.reason === undefined ? {} : { reason: played.reason }),
-          }),
+      ? await orchestratorPlayDispatchAdapter().then(
+          () => ({ started: true }),
           (error: unknown) => ({
             started: false,
             reason: error instanceof Error ? error.message : 'Failed to start dispatch',

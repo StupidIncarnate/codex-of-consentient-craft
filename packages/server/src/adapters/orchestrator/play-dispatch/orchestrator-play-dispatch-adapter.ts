@@ -1,18 +1,14 @@
 /**
  * PURPOSE: Adapter for StartOrchestrator.playDispatch that wraps the orchestrator package —
- * attempts to start the Node dispatcher (the exclusivity gate may refuse)
+ * starts the Node dispatcher.
  *
  * USAGE:
- * const response = await orchestratorPlayDispatchAdapter({ force: false });
- * // Returns: DispatchPlayResponse — { allowed, reason?, state }
+ * const state = await orchestratorPlayDispatchAdapter();
+ * // Returns: DispatchState
  */
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
-import type { DispatchPlayResponse } from '@dungeonmaster/orchestrator';
+import type { DispatchState } from '@dungeonmaster/shared/contracts';
 
-export const orchestratorPlayDispatchAdapter = async ({
-  force,
-}: {
-  force?: boolean;
-}): Promise<DispatchPlayResponse> =>
-  StartOrchestrator.playDispatch({ ...(force !== undefined && { force }) });
+export const orchestratorPlayDispatchAdapter = async (): Promise<DispatchState> =>
+  StartOrchestrator.playDispatch();

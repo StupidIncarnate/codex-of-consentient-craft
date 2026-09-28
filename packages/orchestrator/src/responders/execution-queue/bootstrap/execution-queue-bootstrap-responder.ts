@@ -1,8 +1,7 @@
 /**
  * PURPOSE: Wires the cross-guild execution-queue change broadcast on orchestrator startup.
- * Idempotent — subsequent calls are no-ops. Dispatch is owned by /dumpster-launch (via the MCP
- * get-next-step tool) or the Node dispatch runner (via OrchestrationDispatchBootstrapResponder);
- * this bootstrap only keeps WS clients in sync with queue mutations.
+ * Idempotent — subsequent calls are no-ops. Dispatch is owned by the Node dispatch runner (via
+ * OrchestrationDispatchBootstrapResponder); this bootstrap only keeps WS clients in sync with queue mutations.
  *
  * USAGE:
  * ExecutionQueueBootstrapResponder();

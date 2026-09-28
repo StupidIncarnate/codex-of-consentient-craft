@@ -20,9 +20,9 @@
  * file's lines from the tail backwards and stops at the first match. A naive "read every file,
  * scan every line forward" pass measured 3.66s on a real 1.6GB/283-file project directory; this
  * ordering is what turns the common case into "one file, a handful of lines" without changing the
- * worst case. toolUseIds are unique across Claude Code's lifetime (the same assumption
- * claudeCodeParentSessionFindByToolUseIdBroker already makes), so stopping at the first file hit
- * can never return a STALE cwd from the wrong file — there is only ever one file that can match.
+ * worst case. toolUseIds are unique across Claude Code's lifetime, so stopping at the first file
+ * hit can never return a STALE cwd from the wrong file — there is only ever one file that can
+ * match.
  *
  * USAGE:
  * const hit = await claudeCodeCallerCwdFindByToolUseIdBroker({ projectDir, toolUseId });

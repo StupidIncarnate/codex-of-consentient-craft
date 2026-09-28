@@ -15,10 +15,9 @@
  * A work item running no step graph at all — a role-keyed spiritmender or warpgate dispatch, or a
  * hydrated/legacy quest with no step recorded — has no node to read, so `model` falls back to
  * `roleToModelTransformer({ role })`, the resolved AgentRole above. This is the ONE place a
- * `SpawnInstruction.model` is set: `spawnOneAgentLayerBroker` (Node dispatch) passes it straight to
- * the CLI `--model` flag, and the `/dumpster-launch` slash command (MCP/Task dispatch) is instructed
- * to pass the same `agent.model` to each Task() call — so both dispatchers run a step on the model
- * `agentFlowStatics` declares for it, uniformly.
+ * `SpawnInstruction.model` is set: `spawnOneAgentLayerBroker` (the Node dispatcher) passes it
+ * straight to the CLI `--model` flag, so every dispatched session runs a step on the model
+ * `agentFlowStatics` declares for it.
  *
  * NEVER CLOBBER A SESSION. A retained `sessionId` is work already done, so ANY work item that has
  * one is re-dispatched as a resume (`resumeSessionId` + the resume-variant prompt) regardless of
@@ -27,21 +26,12 @@
  * recovery reached it) fresh-spawned instead, and the new child's init line overwrote the old
  * `sessionId` — silently orphaning a session that still held real work.
  *
- * THE ONE EXCEPTION is a work item carrying `agentId`. `agentId` and `sessionId` are stamped
- * together, and only by the MCP `get-agent-prompt` path, where `sessionId` is the PARENT
- * `/dumpster-launch` loop session — not the agent's own. Resuming that would hand a headless child
- * the user's interactive session. Node dispatch stamps `sessionId` alone (`agentId` stays unset for
- * top-level sessions), so `agentId === undefined` is exactly "this session is mine to resume".
- *
- * `taskPrompt` stays the FRESH variant either way: the MCP/Task dispatcher cannot resume and always
- * re-dispatches from it.
- *
  * A `smoketestPromptOverride` on the work item REPLACES BOTH prompts, and `taskPrompt` is the one
  * that matters most: a smoketest work item is freshly minted and carries no `sessionId`, so the
  * fresh branch is the branch every scripted agent is actually dispatched down. This is the only
- * point where that canned script can reach the child — both dispatchers, the MCP/Task loop and the
- * Node headless spawner, read their prompt from the SpawnInstruction, and a scripted agent never
- * calls `get-agent-prompt`, so nothing downstream could substitute it. Overriding `resumePrompt`
+ * point where that canned script can reach the child — the Node headless spawner reads its prompt
+ * from the SpawnInstruction, and a scripted agent never calls `get-agent-prompt`, so nothing
+ * downstream could substitute it. Overriding `resumePrompt`
  * alone leaves the whole suite dispatching REAL role sessions against the working tree: the
  * scripted child gets the interpolated codeweaver brief, reads the repo and starts editing it, and
  * the run reports on work nobody asked for. It wins on the resume path too, because the resume
@@ -82,7 +72,7 @@ export const buildSpawnInstructionLayerBroker = ({
 
   const model = stepModel ?? roleToModelTransformer({ role });
 
-  const canResume = workItem.sessionId !== undefined && workItem.agentId === undefined;
+  const canResume = workItem.sessionId !== undefined;
   const override = workItem.smoketestPromptOverride;
   return {
     questId,

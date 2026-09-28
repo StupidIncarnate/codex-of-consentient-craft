@@ -1,8 +1,6 @@
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
-type StartWatcherParams = Parameters<typeof StartOrchestrator.startMonitorWatcher>[0];
-
 export const orchestratorStartMonitorWatcherAdapterProxy = (): {
   resolves: (params: { parentSessionId: string }) => void;
   throws: (params: { parentSessionId: string; error: Error }) => void;
@@ -11,7 +9,6 @@ export const orchestratorStartMonitorWatcherAdapterProxy = (): {
     parentSessionId: string;
     workerWorkItemId: string;
   }) => boolean;
-  startedWithoutWorkerWorkItemId: (params: { parentSessionId: string }) => boolean;
   startedWithWorkerQuestId: (params: { parentSessionId: string; workerQuestId: string }) => boolean;
   // Claude CLI encodes the JSONL directory from the child's cwd, so this is the value that decides
   // whether the tail watches the file the agent is actually writing or one that never appears.
@@ -34,9 +31,9 @@ export const orchestratorStartMonitorWatcherAdapterProxy = (): {
       mock.calledWith([{ parentSessionId }]).rejects(error);
     },
     wasStopCalled: (): boolean => stopState.called,
-    // A node-dispatch worker session must be started WITH its owning workItemId so the
-    // watcher tails it under the unfiltered `proc-worker-` prefix and routes content to
-    // the row. A /dumpster-launch dispatcher session must be started WITHOUT it.
+    // Every session tailed is a node-dispatch worker's own session, started WITH its owning
+    // workItemId so the watcher tails it under the `proc-worker-` prefix and routes content
+    // to the row.
     startedWithWorkerWorkItemId: ({
       parentSessionId,
       workerWorkItemId,
@@ -44,10 +41,6 @@ export const orchestratorStartMonitorWatcherAdapterProxy = (): {
       parentSessionId: string;
       workerWorkItemId: string;
     }): boolean => mock.callsMatching([{ parentSessionId, workerWorkItemId }]).length > 0,
-    startedWithoutWorkerWorkItemId: ({ parentSessionId }: { parentSessionId: string }): boolean =>
-      mock
-        .callsMatching([{ parentSessionId }])
-        .some((call) => (call[0] as StartWatcherParams).workerWorkItemId === undefined),
     // The tail's stop-time terminal event is a per-quest wire event, so a worker session started
     // without its owning questId emits a frame no subscriber receives.
     startedWithWorkerQuestId: ({

@@ -1,5 +1,5 @@
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
-import { dispatchHarness } from '../../../test/harnesses/dispatch/dispatch.harness';
+import { dispatchPauseHarness } from '../../../test/harnesses/dispatch-pause/dispatch-pause.harness';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { sessionHarness } from '../../../test/harnesses/session/session.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
@@ -25,12 +25,14 @@ const sessions = wireHarnessLifecycle({
 });
 
 // This spec measures the queue BAR, so its quests are here to be COUNTED in the queue, never run
-// out of it. Start now PLAYS the dispatcher (QuestStartResponder, mirroring resume), so the queue
-// is held shut with the production play gate's own signal — a pause after the fact cannot win the
-// race against a loop that woke on the enqueue inside the start request.
+// out of it. Start plays the dispatcher (QuestStartResponder, mirroring resume) as part of the same
+// request, so the loop wakes on the enqueue inside it — and `POST /api/orchestration/dispatch/play`
+// never refuses, so nothing can hold the queue shut for the whole test. Instead, each `startQuest`
+// call below is followed immediately by a real pause: the earliest point guaranteed to land after
+// the dispatcher woke, ahead of its slower steps, so it never gets far enough to spawn an agent
+// against the empty mock queue this spec never populates.
 test.describe('Execution Queue Streaming', () => {
   test.beforeEach(async ({ request }) => {
-    dispatchHarness({ request, guildPath: GUILD_PATH }).holdQueueWithMcpHeartbeat();
     await guildHarness({ request }).cleanGuilds();
   });
 
@@ -93,6 +95,9 @@ test.describe('Execution Queue Streaming', () => {
     //    server relays as a global WS broadcast; useQuestQueueBinding re-fetches
     //    GET /api/quests/queue and updates the DOM.
     await quests.startQuest({ questId: questId1 });
+    // The response only lands after its own play() call has resolved server-side, so pausing here
+    // is the earliest point guaranteed to run after the dispatcher woke, ahead of its slower steps.
+    await dispatchPauseHarness({ request }).pause();
 
     // 4b. Pause quest 1 so it stays in the execution queue for the duration of the test. Pause
     //     restores pausedAtStatus and keeps the QueueEntry in place, pinning a stable status while
@@ -164,6 +169,8 @@ test.describe('Execution Queue Streaming', () => {
     });
 
     await quests.startQuest({ questId: questId2 });
+    // Same reasoning as quest 1's own start: pause the instant this response lands.
+    await dispatchPauseHarness({ request }).pause();
 
     // 7. Label updates to 1/2 — active entry is still quest-one (head of queue)
     //    but total is now two.

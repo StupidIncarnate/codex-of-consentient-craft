@@ -6,17 +6,11 @@
  * // Returns ToolResponse with interaction result
  */
 
-import { workItemRoleContract } from '@dungeonmaster/shared/contracts';
-import type { ModifyQuestInput } from '@dungeonmaster/shared/contracts';
-
 import { askUserQuestionBroker } from '../../../brokers/ask/user-question/ask-user-question-broker';
 import { signalBackBroker } from '../../../brokers/signal/back/signal-back-broker';
 import { orchestratorGetAgentPromptAdapter } from '../../../adapters/orchestrator/get-agent-prompt/orchestrator-get-agent-prompt-adapter';
 import { orchestratorHandleSignalBackAdapter } from '../../../adapters/orchestrator/handle-signal-back/orchestrator-handle-signal-back-adapter';
-import { orchestratorModifyQuestAdapter } from '../../../adapters/orchestrator/modify-quest/orchestrator-modify-quest-adapter';
-import { orchestratorRecordQuestSessionAdapter } from '../../../adapters/orchestrator/record-quest-session/orchestrator-record-quest-session-adapter';
 import { getAgentPromptInputContract } from '../../../contracts/get-agent-prompt-input/get-agent-prompt-input-contract';
-import { ResolveSubagentIdentityLayerResponder } from './resolve-subagent-identity-layer-responder';
 import type { ToolResponse } from '../../../contracts/tool-response/tool-response-contract';
 import type { ToolName } from '../../../contracts/tool-name/tool-name-contract';
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
@@ -26,11 +20,9 @@ const JSON_INDENT_SPACES = 2;
 export const InteractionHandleResponder = async ({
   tool,
   args,
-  meta,
 }: {
   tool: ToolName;
   args: Record<string, unknown>;
-  meta?: Record<string, unknown>;
 }): Promise<ToolResponse> => {
   if (tool === 'signal-back') {
     const result = signalBackBroker({
@@ -86,60 +78,6 @@ export const InteractionHandleResponder = async ({
     }
 
     const { workItemId } = parsed.data;
-
-    // Stamp the calling sub-agent's identity AND flip status to in_progress. ONLY when a
-    // workItemId is present — a summoned minion fetches with { agent, questId } and has no work
-    // item to stamp (it is observable as a sub-agent under its parent's chain via wire-level
-    // toolUseId correlation, not via work-item identity). The MCP call itself is direct proof the
-    // sub-agent is alive — file presence alone cannot prove liveness because Claude CLI never
-    // deletes subagent JSONLs. `sessionId` is the parent /dumpster-launch session UUID and
-    // `agentId` is the realAgentId Claude CLI assigned to this Task. The layer responder uses
-    // `_meta.claudecode/toolUseId` paired with a cross-session JSONL scan for a matching
-    // tool_use.id — deterministic, no mtime races. Best-effort: any resolution failure is logged
-    // and skipped so the prompt response still flows.
-    if (workItemId !== undefined) {
-      try {
-        const identity = await ResolveSubagentIdentityLayerResponder({
-          ...(meta !== undefined && { meta }),
-        });
-        if (identity !== undefined) {
-          await orchestratorModifyQuestAdapter({
-            questId: String(parsed.data.questId),
-            input: {
-              questId: parsed.data.questId,
-              workItems: [
-                {
-                  id: workItemId,
-                  sessionId: identity.sessionId,
-                  agentId: identity.agentId,
-                  status: 'in_progress',
-                  startedAt: new Date().toISOString(),
-                },
-              ],
-            } as ModifyQuestInput,
-          });
-          // Record WHERE that session runs, from the MCP child's own cwd — see the layer
-          // responder's header for why the quest's `worktreePath` is the wrong answer here.
-          // `safeParse` rather than `parse`: `chaoswhisperer-gap-minion` is the one minion served
-          // WITH a workItemId, and a minion name is not a work-item role, so it simply gets no row
-          // instead of throwing past the stamp above.
-          const role = workItemRoleContract.safeParse(parsed.data.agent);
-          if (role.success) {
-            await orchestratorRecordQuestSessionAdapter({
-              questId: parsed.data.questId,
-              sessionId: identity.sessionId,
-              cwd: identity.cwd,
-              role: role.data,
-              workItemId,
-            });
-          }
-        }
-      } catch (error: unknown) {
-        process.stderr.write(
-          `[get-agent-prompt] session-id stamp failed: ${error instanceof Error ? error.message : String(error)}\n`,
-        );
-      }
-    }
 
     const result = await orchestratorGetAgentPromptAdapter({
       agent: parsed.data.agent,

@@ -48,7 +48,7 @@ describe('QuestStartResponder', () => {
   // a responder that reported `started: true` without ever playing would pass a response-only check.
   describe('dispatch is played', () => {
     it.each(QUEST_START_ALLOWED_STATUSES)(
-      'VALID: {status: %s} => plays dispatch exactly once with no force',
+      'VALID: {status: %s} => plays dispatch exactly once',
       async (status) => {
         const proxy = QuestStartResponderProxy();
         const questId = QuestIdStub();
@@ -60,7 +60,7 @@ describe('QuestStartResponder', () => {
 
         await proxy.callResponder({ params: { questId } });
 
-        expect(proxy.getDispatchPlayCalls()).toStrictEqual([{}]);
+        expect(proxy.getDispatchPlayCalls()).toStrictEqual([[]]);
       },
     );
 
@@ -80,27 +80,7 @@ describe('QuestStartResponder', () => {
     );
   });
 
-  describe('dispatch refusals never fail the start', () => {
-    it('VALID: {exclusivity gate refuses} => returns 200 carrying the refusal reason', async () => {
-      const proxy = QuestStartResponderProxy();
-      const questId = QuestIdStub();
-      const processId = ProcessIdStub();
-      const quest = QuestStub({ id: questId, status: 'approved' as never });
-      proxy.setupQuest({ quest });
-      proxy.setupStartQuest({ questId, processId });
-      proxy.setupDispatchRefused({ reason: 'a dumpster-launch loop owns the queue' });
-
-      const result = await proxy.callResponder({ params: { questId } });
-
-      expect(result).toStrictEqual({
-        status: 200,
-        data: {
-          processId,
-          dispatch: { started: false, reason: 'a dumpster-launch loop owns the queue' },
-        },
-      });
-    });
-
+  describe('dispatch failures never fail the start', () => {
     it('ERROR: {playDispatch throws} => returns 200 with the error as the dispatch reason', async () => {
       const proxy = QuestStartResponderProxy();
       const questId = QuestIdStub();

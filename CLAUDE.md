@@ -216,6 +216,16 @@ writing the fix — a test that only checks per-row text is not a regression gua
 - **Use `model: "sonnet"` for large mechanical fan-outs** (lint cascades, mass refactors). These can
   spawn 30-50 agents across waves; opus is overkill for apply-the-contract work. Reserve opus for the
   orchestrator and genuinely hard debugging.
+- **Never fork after a long exploration.** A `fork` sub-agent copies the parent's WHOLE transcript,
+  so each child starts at the parent's context size and only grows from there. One agent explored
+  for 35 minutes, reached about 571k tokens, then forked two children; one of them finished at 863k.
+  Write what the exploration found into a short note and brief a FRESH agent from it instead.
+- **Keep an agent's own context small.**
+  - Scope `discover` narrowly. A `context: 15` or `verbose: true` search returned 15k to 42k
+    characters per call.
+  - Never load a file through both Bash (`cat`) and `Read`.
+  - A file read more than twice belongs in a note.
+  - Pipe ward output through `tail`.
 
 ## Searching From a Session Launched In This Repo
 

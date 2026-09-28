@@ -1,39 +1,22 @@
 /**
- * PURPOSE: Attempts to start the Node dispatcher — runs the exclusivity gate (fresh MCP
- * heartbeat / in-flight Task-dispatched agents refuse; `force` overrides), persists
- * mode 'node-playing' on success, and flips the in-memory mirror (which kicks the runner via
- * the bootstrap's wake subscription).
+ * PURPOSE: Starts the Node dispatcher — persists mode 'node-playing' and flips the in-memory
+ * mirror, which kicks the runner via the bootstrap's wake subscription. The mirror of
+ * OrchestrationDispatchPauseResponder, and like it never refuses: the Node dispatcher is the only
+ * dispatcher, so nothing else can hold a claim on the queue.
  *
  * USAGE:
- * const response = await OrchestrationDispatchPlayResponder({});
- * // Returns { allowed: true, state } or { allowed: false, reason, state (unchanged) }
+ * const state = await OrchestrationDispatchPlayResponder();
+ * // Returns the persisted DispatchState with mode 'node-playing'
  */
 
-import { dispatchStatePlayGateBroker } from '../../../brokers/dispatch-state/play-gate/dispatch-state-play-gate-broker';
+import type { DispatchState } from '@dungeonmaster/shared/contracts';
+
 import { dispatchStateReadBroker } from '../../../brokers/dispatch-state/read/dispatch-state-read-broker';
 import { dispatchStateWriteBroker } from '../../../brokers/dispatch-state/write/dispatch-state-write-broker';
-import type { DispatchPlayResponse } from '../../../contracts/dispatch-play-response/dispatch-play-response-contract';
-import { dispatchPlayResponseContract } from '../../../contracts/dispatch-play-response/dispatch-play-response-contract';
 import { orchestrationDispatchState } from '../../../state/orchestration-dispatch/orchestration-dispatch-state';
 
-export const OrchestrationDispatchPlayResponder = async ({
-  force,
-}: {
-  force?: boolean;
-}): Promise<DispatchPlayResponse> => {
-  const gate = await dispatchStatePlayGateBroker({
-    ...(force === undefined ? {} : { force }),
-  });
-
+export const OrchestrationDispatchPlayResponder = async (): Promise<DispatchState> => {
   const current = await dispatchStateReadBroker();
-
-  if (!gate.allowed) {
-    return dispatchPlayResponseContract.parse({
-      allowed: false,
-      ...(gate.reason === undefined ? {} : { reason: gate.reason }),
-      state: current,
-    });
-  }
 
   const state = await dispatchStateWriteBroker({
     // Play sets the user's intent and nothing more, so the spread keeps `hold`. A live hold still
@@ -44,5 +27,5 @@ export const OrchestrationDispatchPlayResponder = async ({
   orchestrationDispatchState.setPlaying({ isPlaying: true });
   orchestrationDispatchState.setHold({ hold: state.hold ?? null });
 
-  return dispatchPlayResponseContract.parse({ allowed: true, state });
+  return state;
 };

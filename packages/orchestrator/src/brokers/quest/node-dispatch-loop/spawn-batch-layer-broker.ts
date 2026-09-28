@@ -2,9 +2,8 @@
  * PURPOSE: Dispatches one spawn-agents batch by spawning headless Claude CLI children — one per
  * SpawnInstruction, all in parallel. Resolves each quest's cwd once via `questCwdResolveBroker`
  * (the quest's own worktree, or the legacy repo root for a quest recorded before worktrees
- * existed), pre-stamps each work item `in_progress` BEFORE spawning (the MCP-side identity stamp
- * is skipped for top-level sessions, and the stamp is what keeps a concurrently-polling
- * /dumpster-launch from double-dispatching the item), then hands each instruction to
+ * existed), pre-stamps each work item `in_progress` BEFORE spawning (so a concurrent
+ * get-next-step scan cannot return the same item again), then hands each instruction to
  * `spawnOneAgentLayerBroker`, which owns the spawn, the sessionId stamp, and the API-overload
  * retry. Terminal work-item status is owned by the child's own signal-back MCP call; a child that
  * dies silently is reclaimed by orphan recovery on a later scan.
@@ -83,8 +82,7 @@ export const spawnBatchLayerBroker = async ({
         }
 
         // Pre-stamp BEFORE spawning: marks the item taken (so a concurrent get-next-step scan
-        // cannot return it again) and records startedAt. In /dumpster-launch mode this stamp
-        // comes from get-agent-prompt's identity resolution, which misses for top-level sessions.
+        // cannot return it again) and records startedAt.
         await questModifyBroker({
           input: {
             questId: instruction.questId,

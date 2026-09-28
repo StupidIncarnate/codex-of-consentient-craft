@@ -7,7 +7,7 @@
  * // Returns ['mcp__claude-in-chrome'] — the settings.json allow entry
  *
  * A dispatched agent has no interactive approver: the Node dispatcher's headless `claude -p`
- * children (and Task sub-agents under `/dumpster-launch`) get a hard "you haven't granted it
+ * children (and any Task sub-agent they dispatch) get a hard "you haven't granted it
  * yet" denial for any MCP tool outside `permissions.allow`, never a prompt. Siegemaster drives
  * the real browser to confirm every `ui-state` observable, so the grant is stated here rather
  * than left resting on the `--chrome` spawn flag authorising its own tools.

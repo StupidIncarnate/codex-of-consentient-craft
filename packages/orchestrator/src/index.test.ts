@@ -21,7 +21,6 @@ describe('orchestrator', () => {
       'addQuestResultContract',
       'agentPromptResultContract',
       'agentRoleContract',
-      'dispatchPlayResponseContract',
       'dumpsterCreatePromptStatics',
       'followupDepthContract',
       'getQuestInputContract',

@@ -24,14 +24,13 @@ type StackProxy = ReturnType<typeof RateLimitsStackWidgetProxy>;
 
 export const QueuePageWidgetProxy = (): ReturnType<typeof useQuestQueueBindingProxy> & {
   setupDispatchState: (params: { state: DispatchState }) => void;
-  setupPlayAllowed: (params: { state: DispatchState }) => void;
+  setupPlay: (params: { state: DispatchState }) => void;
   setupPause: (params: { state: DispatchState }) => void;
   setupRateLimits: StackProxy['setupSnapshot'];
   hasToggleLabel: (params: { text: string }) => boolean;
   isToggleDisabled: () => boolean;
   holdNoticeText: () => unknown;
   rateLimitCardText: (params: { testId: string }) => unknown;
-  getShownToast: () => unknown;
 } => {
   const queue = useQuestQueueBindingProxy();
   const toggle = DispatchToggleWidgetProxy();
@@ -48,8 +47,8 @@ export const QueuePageWidgetProxy = (): ReturnType<typeof useQuestQueueBindingPr
     setupDispatchState: ({ state }: { state: DispatchState }): void => {
       toggle.setupDispatchState({ state });
     },
-    setupPlayAllowed: ({ state }: { state: DispatchState }): void => {
-      toggle.setupPlayAllowed({ state });
+    setupPlay: ({ state }: { state: DispatchState }): void => {
+      toggle.setupPlay({ state });
     },
     setupPause: ({ state }: { state: DispatchState }): void => {
       toggle.setupPause({ state });
@@ -64,6 +63,5 @@ export const QueuePageWidgetProxy = (): ReturnType<typeof useQuestQueueBindingPr
       const host = screen.queryByTestId('QUEUE_PAGE_RATE_LIMITS');
       return host === null ? null : (within(host).queryByTestId(testId)?.textContent ?? null);
     },
-    getShownToast: (): unknown => toggle.getShownToast(),
   };
 };

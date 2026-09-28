@@ -117,7 +117,7 @@ scoped. Agents that could not clear an unscoped block went hunting the process t
 lane a sibling was still driving.
 
 An interactive session behaves differently — it keeps the task alive and re-enters the sub-agent when
-it exits — so a rule written from a `/dumpster-launch` observation does not transfer to the Node
+it exits — so a rule written from an interactive-session observation does not transfer to the Node
 dispatch path.
 
 **All of this is undocumented harness behaviour pinned to one CLI version, so re-measure after an

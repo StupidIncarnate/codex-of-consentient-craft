@@ -1,5 +1,6 @@
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { dispatchHarness } from '../../../test/harnesses/dispatch/dispatch.harness';
+import { dispatchPauseHarness } from '../../../test/harnesses/dispatch-pause/dispatch-pause.harness';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { sessionHarness } from '../../../test/harnesses/session/session.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
@@ -18,12 +19,13 @@ const sessions = wireHarnessLifecycle({
 });
 
 // This spec only wants its quests ENQUEUED so the bar can list them — quest B is rewritten to
-// `blocked` on the line after its start. Start now PLAYS the dispatcher (QuestStartResponder,
-// mirroring resume), which would spawn a codeweaver against an empty mock queue underneath that
-// rewrite, so the queue is held shut with the production play gate's own signal.
+// `blocked` on the line after its start. Start plays the dispatcher (QuestStartResponder, mirroring
+// resume) as part of the same request, and `POST /api/orchestration/dispatch/play` never refuses, so
+// nothing can hold the queue shut for the rest of the test. Instead, quest B's own start is followed
+// immediately by a real pause, before the rewrite to `blocked` — otherwise the dispatcher would
+// spawn a codeweaver against the empty mock queue underneath that rewrite.
 test.describe('A merging quest is listed in the cross-guild execution queue', () => {
   test.beforeEach(async ({ request }) => {
-    dispatchHarness({ request, guildPath: GUILD_PATH }).holdQueueWithMcpHeartbeat();
     await guildHarness({ request }).cleanGuilds();
   });
 
@@ -119,6 +121,10 @@ test.describe('A merging quest is listed in the cross-guild execution queue', ()
     await dispatchHarness({ request, guildPath: GUILD_PATH }).startQuestViaStartRoute({
       questId: questIdB,
     });
+    // The response only lands after its own play() call has resolved server-side, so pausing here
+    // is the earliest point guaranteed to run after the dispatcher woke, before the rewrite to
+    // `blocked` below races a real spawn against the empty mock queue.
+    await dispatchPauseHarness({ request }).pause();
 
     await quests.writeQuestFile({
       questId: questIdB,

@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Layer of `quest-monitor-jsonl-watcher-broker` — reads the parent session's `subagents/` directory and starts a tail for every `agent-*.jsonl` file that belongs to the live run. ACTIVE files (whose agentId is stamped on an in-progress work item per `isAgentIdActive`) tail directly. NON-active files are either a nested sub-agent (spawned by a sub-agent, so it never gets its own work item) or a stale leftover from a prior run; the broker reads the file's first line — Claude CLI writes the spawning Task's prompt there verbatim — and pairs it against the processor's outstanding Tasks. A match registers the correlation and tails the nested sub-agent live (so it streams BEFORE finishing); a stale file matches nothing and stays skipped. ENOENT and other readdir failures are silently swallowed (the directory may not exist yet during fresh sessions). Idempotent: re-invoking on every poll tick is safe — a file this watcher already tailed is skipped, including one whose tail has since been stopped, because a fresh tail reads from byte 0 and would replay the whole transcript.
+ * PURPOSE: Layer of `quest-monitor-jsonl-watcher-broker` — reads the parent session's `subagents/` directory and starts a tail for every `agent-*.jsonl` file the run has written. Each file is either a NESTED sub-agent (spawned by a sub-agent, so it never gets its own work item) or a stale leftover from a prior run; the broker reads the file's first line — Claude CLI writes the spawning Task's prompt there verbatim — and pairs it against the processor's outstanding Tasks. A match registers the correlation and tails the sub-agent live (so it streams BEFORE finishing); a stale file matches nothing and stays skipped. ENOENT and other readdir failures are silently swallowed (the directory may not exist yet during fresh sessions). Idempotent: re-invoking on every poll tick is safe — a file this watcher already tailed is skipped, including one whose tail has since been stopped, because a fresh tail reads from byte 0 and would replay the whole transcript.
  *
  * USAGE:
  * await scanSubagentsDirLayerBroker({
@@ -10,7 +10,6 @@
  *   chatProcessId,
  *   activeQuestIdGetter,
  *   emit,
- *   isAgentIdActive,
  *   subagentHandles,
  * });
  * // Returns AdapterResult { success: true }
@@ -51,9 +50,7 @@ export const scanSubagentsDirLayerBroker = async ({
   activeQuestIdGetter,
   workItemIdForAgent,
   emit,
-  isAgentIdActive,
   subagentHandles,
-  workItemBackedAgentIds,
 }: {
   subagentsDir: string;
   sessionFilePath: FilePath;
@@ -71,15 +68,7 @@ export const scanSubagentsDirLayerBroker = async ({
     sessionId: SessionId;
     workItemId?: QuestWorkItemId;
   }) => void;
-  // Returns true iff a file's agentId matches an in-progress work item stamped via
-  // get-agent-prompt. Such files tail directly. Non-active files fall through to the
-  // prompt-pairing path so a nested sub-agent (no work item of its own) is still tailed.
-  isAgentIdActive: (params: { agentId: AgentId }) => boolean;
   subagentHandles: Map<AgentId, ReturnType<typeof fsWatchTailAdapter>>;
-  // Records which tails this scan started because the agentId was ACTIVE. The caller's
-  // `pruneStaleTails` prunes only those — a prompt-paired file has no work item, so it would
-  // otherwise be stopped on the next refresh tick and re-tailed (from byte 0) on the next scan.
-  workItemBackedAgentIds: Set<AgentId>;
 }): Promise<AdapterResult> => {
   const tailArgs = {
     sessionFilePath,
@@ -92,9 +81,8 @@ export const scanSubagentsDirLayerBroker = async ({
     subagentHandles,
   };
 
-  // PHASE 1 (synchronous, before any await): active sub-agents tail directly — keeping their
-  // registration synchronous for callers that trigger a change immediately. Non-active files
-  // are deferred to phase 2's prompt-pairing.
+  // Collect every candidate file not already tailed — idempotency against a re-invoked
+  // poll tick, not a filter on which files are eligible.
   const pendingPairing: { agentId: AgentId; fileName: FileName }[] = [];
   try {
     const files = fsReaddirAdapter({ dirPath: subagentsDir });
@@ -104,11 +92,6 @@ export const scanSubagentsDirLayerBroker = async ({
       const fileName = fileNameContract.parse(file);
       const agentId = stripAgentFilenamePrefixTransformer({ fileName });
       if (subagentHandles.has(agentId)) continue;
-      if (isAgentIdActive({ agentId })) {
-        workItemBackedAgentIds.add(agentId);
-        startSubagentTailLayerBroker({ agentId, ...tailArgs });
-        continue;
-      }
       pendingPairing.push({ agentId, fileName });
     }
   } catch {
@@ -116,13 +99,13 @@ export const scanSubagentsDirLayerBroker = async ({
     return adapterResultContract.parse({ success: true });
   }
 
-  // PHASE 2: a non-active file is a NESTED sub-agent (spawned by a sub-agent, so it never gets
-  // its own work item) OR a stale leftover from a prior run. Read its first line — Claude CLI
-  // writes the spawning Task's prompt there verbatim — and pair it against the processor's
-  // outstanding Tasks. A match registers the realAgentId->toolUseId translation (and parent-chain
-  // link) and tails it live; a stale file matches no outstanding Task and stays skipped. Reads run
-  // concurrently; each pairSubagentByPrompt call runs to completion synchronously, so claiming a
-  // Task never races even when two files resolve at once.
+  // Every candidate file is either a NESTED sub-agent (spawned by a sub-agent, so it never
+  // gets its own work item) OR a stale leftover from a prior run. Read its first line —
+  // Claude CLI writes the spawning Task's prompt there verbatim — and pair it against the
+  // processor's outstanding Tasks. A match registers the realAgentId->toolUseId translation
+  // (and parent-chain link) and tails it live; a stale file matches no outstanding Task and
+  // stays skipped. Reads run concurrently; each pairSubagentByPrompt call runs to completion
+  // synchronously, so claiming a Task never races even when two files resolve at once.
   await Promise.all(
     pendingPairing.map(async ({ agentId, fileName }) => {
       try {

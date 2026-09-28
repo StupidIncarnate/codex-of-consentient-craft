@@ -17,17 +17,17 @@ describe('questResumeOutcomeContract', () => {
       });
     });
 
-    it('VALID: {dispatch refused with a reason} => parses so the UI can say why nothing is running', () => {
+    it('VALID: {dispatch not started, with a reason} => parses so the UI can say why nothing is running', () => {
       const result = questResumeOutcomeContract.parse({
         resumed: true,
         restoredStatus: 'in_progress',
-        dispatch: { started: false, reason: 'a /dumpster-launch loop is driving the queue' },
+        dispatch: { started: false, reason: 'the quest has no dispatchable work' },
       });
 
       expect(result).toStrictEqual({
         resumed: true,
         restoredStatus: 'in_progress',
-        dispatch: { started: false, reason: 'a /dumpster-launch loop is driving the queue' },
+        dispatch: { started: false, reason: 'the quest has no dispatchable work' },
       });
     });
 

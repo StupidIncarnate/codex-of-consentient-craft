@@ -74,35 +74,6 @@ describe('workItemContract', () => {
       });
     });
 
-    it('VALID: sub-agent work item with agentId => parses successfully', () => {
-      const item = WorkItemStub({
-        id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-        role: 'codeweaver',
-        status: 'in_progress',
-        sessionId: '18eb0c1b-5b9e-4ff0-aaea-9f9fe0bb6402',
-        agentId: 'acd35f7b7763e33e8',
-      });
-
-      const result = workItemContract.parse(item);
-
-      expect(result).toStrictEqual({
-        id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-        role: 'codeweaver',
-        status: 'in_progress',
-        spawnerType: 'agent',
-        sessionId: '18eb0c1b-5b9e-4ff0-aaea-9f9fe0bb6402',
-        agentId: 'acd35f7b7763e33e8',
-        relatedDataItems: [],
-        dependsOn: [],
-        observations: [],
-        assignedUnitIds: [],
-        attempt: 0,
-        maxAttempts: 1,
-        retryCount: 0,
-        createdAt: '2024-01-15T10:00:00.000Z',
-      });
-    });
-
     it('VALID: ward item => parses successfully', () => {
       const item = WorkItemStub({
         role: 'ward',
@@ -461,17 +432,35 @@ describe('workItemContract', () => {
       }).toThrow(/Invalid enum value/u);
     });
 
-    it('INVALID: {empty agentId} => throws validation error', () => {
-      expect(() => {
-        workItemContract.parse({
-          id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-          role: 'codeweaver',
-          status: 'pending',
-          spawnerType: 'agent',
-          createdAt: '2024-01-15T10:00:00.000Z',
-          agentId: '',
-        });
-      }).toThrow(/too_small|String must contain at least 1/u);
+    // `agentId` is not a declared key: a quest.json a Task-dispatched sub-agent stamped before this
+    // field was removed still carries it on disk, and zod strips an unrecognized key rather than
+    // throwing — no migration needed for the greenfield rule.
+    it('VALID: {legacy agentId key} => parses successfully, key stripped', () => {
+      const result = workItemContract.parse({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        role: 'codeweaver',
+        status: 'in_progress',
+        spawnerType: 'agent',
+        sessionId: '18eb0c1b-5b9e-4ff0-aaea-9f9fe0bb6402',
+        createdAt: '2024-01-15T10:00:00.000Z',
+        agentId: 'acd35f7b7763e33e8',
+      });
+
+      expect(result).toStrictEqual({
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        role: 'codeweaver',
+        status: 'in_progress',
+        spawnerType: 'agent',
+        sessionId: '18eb0c1b-5b9e-4ff0-aaea-9f9fe0bb6402',
+        relatedDataItems: [],
+        dependsOn: [],
+        observations: [],
+        assignedUnitIds: [],
+        attempt: 0,
+        maxAttempts: 1,
+        retryCount: 0,
+        createdAt: '2024-01-15T10:00:00.000Z',
+      });
     });
 
     it('INVALID: {empty startRef} => throws validation error', () => {

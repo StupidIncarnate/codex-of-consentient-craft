@@ -16,8 +16,9 @@
  *   has no `subagents/agent-*.jsonl` file and the sub-agent resolver finds nothing. This is the
  *   top-level counterpart, and it is exact: it identifies the calling session even when several
  *   Claude sessions are open in the same repo, which a newest-mtime heuristic cannot.
- * WHEN-NOT-TO-USE: For a Task-dispatched sub-agent — use
- *   `claudeCodeParentSessionFindByToolUseIdBroker`, which also returns the realAgentId.
+ * WHEN-NOT-TO-USE: For a Task-dispatched sub-agent, whose own MCP calls never appear in a
+ *   top-level `<sessionId>.jsonl` of their own — nothing here resolves that case; the
+ *   hook-stamped `dungeonmaster/caller` context is what covers it when present.
  */
 
 import {

@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Discriminated union returned by quest-get-next-step-broker telling the /dumpster-launch loop what to do next
+ * PURPOSE: Discriminated union returned by quest-get-next-step-broker telling the Node dispatch loop what to do next
  *
  * USAGE:
  * nextStepContract.parse({ type: 'idle' });
@@ -10,7 +10,6 @@
 
 import { z } from 'zod';
 
-import { idleReasonContract } from '../idle-reason/idle-reason-contract';
 import { runStepContract } from '../run-step/run-step-contract';
 import { spawnInstructionContract } from '../spawn-instruction/spawn-instruction-contract';
 
@@ -27,10 +26,6 @@ export const nextStepContract = z.discriminatedUnion('type', [
   runStepContract,
   z.object({
     type: z.literal('idle'),
-    // Set when idle is forced rather than organic — the Node dispatcher owns the queue, or the
-    // rate-limit guardrail is holding it — so /dumpster-launch's poll is told why nothing will be
-    // returned instead of polling on.
-    reason: idleReasonContract.optional(),
   }),
 ]);
 

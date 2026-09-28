@@ -77,6 +77,21 @@ export const environmentHarness = ({
     });
   };
 
+  // Riftcarver pushes the quest branch to `origin` right after carving (`git push -u origin
+  // <branchName>`), and a repo with no remote configured fails that with "'origin' does not appear
+  // to be a git repository" — classified `unmet` (repairable), which mints a spiritmender work item
+  // no e2e mock ever answers. A bare sibling repo gives the fixture something real to push to,
+  // outside `guildPath` so `clearWorktrees`/`ensureFixtureRepo` (which only ever touch the guild
+  // path itself) never disturb it across runs.
+  const remotePath = `${guildPath}-origin.git`;
+
+  const ensureRemote = (): void => {
+    if (!fs.existsSync(remotePath)) {
+      execFileSync('git', ['init', '--bare', '-b', 'main', remotePath], { stdio: 'ignore' });
+    }
+    runGit(['remote', 'add', 'origin', remotePath]);
+  };
+
   // The dispatcher's deterministic `carve` step (packages/orchestrator's stepHandlerRiftcarverBroker)
   // resolves the quest's repo root by walking UP from the guild path looking for `.dungeonmaster.json`, then
   // probes that root for a local `main`/`master` branch and — once found — runs `git worktree add`,
@@ -101,6 +116,7 @@ export const environmentHarness = ({
     }
 
     runGit(['init', '-b', 'main']);
+    ensureRemote();
 
     fs.writeFileSync(
       path.join(guildPath, '.dungeonmaster.json'),
@@ -133,6 +149,18 @@ export const environmentHarness = ({
     fs.appendFileSync(path.join(guildPath, 'README.md'), 'second commit\n');
     runGit(['add', '-A']);
     runGit(['commit', '-m', 'e2e fixture: second commit']);
+
+    // `dist/` is real but untracked (gitignored in production, so `git worktree add` never checks
+    // one out), created AFTER the commits for the same reason as `node_modules` below.
+    // `worktreeSeedDistBroker` refuses to carve a worktree while any workspace package's `dist/` is
+    // missing on the MAIN checkout — `WorktreePrepareError` at `create`, classified `wall`, which
+    // blocks the quest instantly with no repair step to run. Without this, letting a real carve run
+    // to completion (rather than merely observing its first moments) always fails this way.
+    fs.mkdirSync(path.join(packageDir, 'dist'), { recursive: true });
+    fs.writeFileSync(
+      path.join(packageDir, 'dist', 'index.js'),
+      '// e2e fixture: compiled output\n',
+    );
 
     // node_modules is real but untracked (exactly as in production — it is never a git commit),
     // which is why it is created AFTER the commits above rather than added to them.

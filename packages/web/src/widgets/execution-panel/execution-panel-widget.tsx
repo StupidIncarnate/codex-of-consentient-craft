@@ -64,7 +64,6 @@ import { emberDepthsThemeStatics } from '../../statics/ember-depths-theme/ember-
 import { unclaimedOperationsTransformer } from '../../transformers/unclaimed-operations/unclaimed-operations-transformer';
 import { AutoScrollContainerWidget } from '../auto-scroll-container/auto-scroll-container-widget';
 import { ChatPanelWidget } from '../chat-panel/chat-panel-widget';
-import { DumpsterCommandBannerWidget } from '../dumpster-command-banner/dumpster-command-banner-widget';
 import { PixelBtnWidget } from '../pixel-btn/pixel-btn-widget';
 import { QuestSpecPanelWidget } from '../quest-spec-panel/quest-spec-panel-widget';
 import { QuestTitleBarWidget } from '../quest-title-bar/quest-title-bar-widget';
@@ -72,10 +71,6 @@ import { ExecutionRowLayerWidget } from './execution-row-layer-widget';
 import { ExecutionStatusBarLayerWidget } from './execution-status-bar-layer-widget';
 import { ExecutionWorkItemRowLayerWidget } from './execution-work-item-row-layer-widget';
 
-const DUMPSTER_LAUNCH_BANNER_MESSAGE = displayLabelContract.parse(
-  "Run this in your Claude session — it'll pick this quest up on its next pass.",
-);
-const DUMPSTER_LAUNCH_COMMAND = displayLabelContract.parse('/dumpster-launch');
 // The FOLLOW-UP tab's ChatPanelWidget always carries the tavernkeeper's own conversation — it is
 // the one role isPostQuestChatWorkItemRoleGuard admits — so the label is a constant, not derived
 // per-render from a work item.
@@ -598,12 +593,6 @@ export const ExecutionPanelWidget = ({
       ) : (
         <Box style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
           <QuestTitleBarWidget title={quest.title} {...(onAbandon ? { onAbandon } : {})} />
-          {isTerminalQuestStatus ? null : (
-            <DumpsterCommandBannerWidget
-              message={DUMPSTER_LAUNCH_BANNER_MESSAGE}
-              command={DUMPSTER_LAUNCH_COMMAND}
-            />
-          )}
           {shouldRenderStatusBanner ? (
             <Box
               data-testid="execution-panel-status-banner"

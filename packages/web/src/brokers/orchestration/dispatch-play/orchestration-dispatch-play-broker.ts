@@ -1,26 +1,21 @@
 /**
- * PURPOSE: Requests the Node dispatcher to start playing via POST /api/orchestration/dispatch/play.
- * Surfaces the 409 denial body ({allowed: false, reason, state}) to callers instead of throwing,
- * so the UI can show the human-readable reason when a /dumpster-launch loop owns the queue.
+ * PURPOSE: Requests the Node dispatcher to start playing via POST /api/orchestration/dispatch/play
  *
  * USAGE:
- * const result = await orchestrationDispatchPlayBroker();
- * // Returns DispatchPlayResponse { allowed, reason?, state }
+ * const state = await orchestrationDispatchPlayBroker();
+ * // Returns the updated DispatchState with mode 'node-playing'
  */
-import { fetchPostWithStatusAdapter } from '../../../adapters/fetch/post-with-status/fetch-post-with-status-adapter';
-import { dispatchPlayResponseContract } from '../../../contracts/dispatch-play-response/dispatch-play-response-contract';
-import type { DispatchPlayResponse } from '../../../contracts/dispatch-play-response/dispatch-play-response-contract';
+import { dispatchStateContract } from '@dungeonmaster/shared/contracts';
+import type { DispatchState } from '@dungeonmaster/shared/contracts';
+
+import { fetchPostAdapter } from '../../../adapters/fetch/post/fetch-post-adapter';
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
 
-export const orchestrationDispatchPlayBroker = async ({
-  force,
-}: {
-  force?: boolean;
-} = {}): Promise<DispatchPlayResponse> => {
-  const result = await fetchPostWithStatusAdapter({
+export const orchestrationDispatchPlayBroker = async (): Promise<DispatchState> => {
+  const response = await fetchPostAdapter<{ state: unknown }>({
     url: webConfigStatics.api.routes.orchestrationDispatchPlay,
-    body: force === undefined ? {} : { force },
+    body: {},
   });
 
-  return dispatchPlayResponseContract.parse(result.body);
+  return dispatchStateContract.parse(response.state);
 };

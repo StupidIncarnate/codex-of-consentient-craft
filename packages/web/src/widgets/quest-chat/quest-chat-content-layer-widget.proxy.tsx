@@ -32,7 +32,6 @@ import { ChatPanelWidgetProxy } from '../chat-panel/chat-panel-widget.proxy';
 // implementation file doesn't directly import.
 const setupAutoScrollContainer = autoScrollProxyImpl;
 const setupChatEntryList = chatEntryListProxyImpl;
-import { DumpsterCommandBannerWidgetProxy } from '../dumpster-command-banner/dumpster-command-banner-widget.proxy';
 import { DumpsterRaccoonWidgetProxy } from '../dumpster-raccoon/dumpster-raccoon-widget.proxy';
 import { ExecutionPanelWidgetProxy } from '../execution-panel/execution-panel-widget.proxy';
 import { FormDropdownWidgetProxy } from '../form-dropdown/form-dropdown-widget.proxy';
@@ -141,7 +140,6 @@ export const QuestChatContentLayerWidgetProxy = (): {
   setupChatEntryList();
   const merge = questMergeBrokerProxy();
   FormDropdownWidgetProxy();
-  DumpsterCommandBannerWidgetProxy();
   DumpsterRaccoonWidgetProxy();
   const approvedModal = QuestApprovedModalWidgetProxy();
   QuestLoadErrorWidgetProxy();

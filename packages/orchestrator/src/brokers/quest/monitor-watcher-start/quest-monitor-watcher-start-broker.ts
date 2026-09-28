@@ -1,10 +1,16 @@
 /**
- * PURPOSE: Starts the JSONL watcher against a parent Claude Code session — encodes the JSONL path from projectDir + parentSessionId, runs orphan-reset on the first call per server lifetime, then tails the parent + subagent JSONLs via questMonitorJsonlWatcherBroker. Returns a handle the caller stops when the session is no longer referenced by any active workItem.
+ * PURPOSE: Starts the JSONL watcher against a Node-dispatch worker's own session — encodes
+ * the JSONL path from projectDir + parentSessionId, runs orphan-reset on the first call per
+ * server lifetime, then tails the session + its subagent JSONLs via
+ * questMonitorJsonlWatcherBroker. Returns a handle the caller stops when the session is no
+ * longer referenced by any active workItem.
  *
  * USAGE:
  * const handle = await questMonitorWatcherStartBroker({
  *   parentSessionId,
  *   projectDir,
+ *   workerWorkItemId,
+ *   workerQuestId,
  *   emit: ({ type, processId, payload }) => orchestrationEventsState.emit({ type, processId, payload }),
  * });
  * // handle.stop() — tears down the tail
@@ -17,12 +23,11 @@
  * WHEN-NOT-TO-USE: Anywhere expecting single-launcher semantics — multiple instances of
  *   this watcher coexist (one per active parent session in the quest graph).
  *
- * `workerWorkItemId` distinguishes the two session kinds this watcher tails: pass it for a
- * top-level node-dispatch worker (its own agent writes the MAIN session — content, not
- * chatter) so the tail uses a `proc-worker-` chatProcessId and stamps the work item on its
- * main-session emits; omit it for a /dumpster-launch dispatcher session, whose main-session
- * lines are chatter that the server's parent-source filter drops. `workerQuestId` names the
- * quest that work item belongs to, so the tail's own terminal event can be routed per-quest.
+ * Every tailed session is a Node-dispatch worker's own dedicated session: `workerWorkItemId`
+ * names the work item whose agent writes the MAIN session JSONL (content, not chatter), and
+ * the tail uses a `proc-worker-` chatProcessId and stamps that work item on its main-session
+ * emits. `workerQuestId` names the quest that work item belongs to, so the tail's own
+ * terminal event can be routed per-quest.
  */
 
 import { osUserHomedirAdapter } from '@dungeonmaster/shared/adapters';
@@ -42,14 +47,8 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import { claudeProjectPathEncoderTransformer } from '@dungeonmaster/shared/transformers';
 
-import type { AgentId } from '../../../contracts/agent-id/agent-id-contract';
-
-import { timerSetIntervalAdapter } from '../../../adapters/timer/set-interval/timer-set-interval-adapter';
-
-const ACTIVE_AGENT_IDS_REFRESH_INTERVAL_MS = 1000;
 import { questMonitorJsonlWatcherBroker } from '../monitor-jsonl-watcher/quest-monitor-jsonl-watcher-broker';
 import { questOrphanResetBroker } from '../orphan-reset/quest-orphan-reset-broker';
-import { refreshActiveAgentIdsLayerBroker } from './refresh-active-agent-ids-layer-broker';
 
 export const questMonitorWatcherStartBroker = async ({
   parentSessionId,
@@ -65,37 +64,28 @@ export const questMonitorWatcherStartBroker = async ({
     processId: ProcessId;
     payload: Record<string, unknown>;
   }) => void;
-  // Set when the tailed session is a top-level node-dispatch worker (spawn-batch stamps
-  // `sessionId` on the work item but NOT `agentId`). The worker's own output lives in the
-  // MAIN session JSONL, so it must NOT be filtered as dispatcher chatter and must route to
-  // this work item's execution row. Omitted for /dumpster-launch dispatcher sessions.
-  workerWorkItemId?: string;
-  // The quest owning `workerWorkItemId`. Carried ONLY so the stop-time terminal event below
-  // can be routed by the server's per-quest subscription filter — the per-line chat-output
-  // emits deliberately carry no questId (a /dumpster-launch dispatcher session tails
-  // sub-agents belonging to several quests at once, so no single id is honest there; the
-  // server resolves those from `workItemId`, which a terminal event carrying no entries
-  // cannot rely on being cached yet).
-  workerQuestId?: string;
+  // The work item whose agent writes this session's MAIN JSONL — its own output, not
+  // chatter. Names the tail's `proc-worker-` chatProcessId and is stamped on every
+  // main-session emit so the web routes them to this work item's execution row.
+  workerWorkItemId: string;
+  // The quest owning `workerWorkItemId`, so the tail's stop-time terminal event can be
+  // routed by the server's per-quest subscription filter.
+  workerQuestId: string;
 }): Promise<{ stop: () => void }> => {
   const homeDir = osUserHomedirAdapter();
   const projectPath = absoluteFilePathContract.parse(projectDir);
   const sessionId = sessionIdContract.parse(parentSessionId);
 
-  // A top-level node-dispatch worker session uses a `proc-worker-` chatProcessId so the
-  // server's parent-source dispatcher-chatter filter (gated on the `proc-monitor-` prefix)
-  // leaves its main-session content intact — that content is the worker's actual output,
-  // not dispatcher chatter. Dispatcher (/dumpster-launch) sessions keep `proc-monitor-`.
   // Resolved BEFORE the orphan reset below, which needs it as an exclusion key.
-  const mainSessionWorkItemId: QuestWorkItemId | undefined =
-    workerWorkItemId === undefined ? undefined : questWorkItemIdContract.parse(workerWorkItemId);
+  const mainSessionWorkItemId: QuestWorkItemId = questWorkItemIdContract.parse(workerWorkItemId);
+  const mainSessionQuestId: QuestId = questIdContract.parse(workerQuestId);
 
-  // Orphan reset re-runs whenever a parent session is observed — if the prior launcher
-  // died mid-flight, in_progress work items still carry the old session's metadata and
+  // Orphan reset re-runs whenever a session is observed — if the prior dispatch died
+  // mid-flight, in_progress work items still carry the old session's metadata and
   // get-next-step would skip them. We pass `excludeSessionId: sessionId` so the very
-  // workItem that triggered this watcher (stamped with parentSessionId by get-agent-prompt
-  // moments ago) is preserved — otherwise the reactor falls into a stamp → start → reset
-  // → stop oscillation on every dispatch.
+  // workItem that triggered this watcher (just stamped with this sessionId) is preserved —
+  // otherwise the reactor falls into a stamp → start → reset → stop oscillation on every
+  // dispatch.
   //
   // `excludeWorkItemId` protects the SAME item by an id that cannot move under the sweep's
   // feet. A node-dispatch worker is dispatched under whatever sessionId its work item already
@@ -108,19 +98,8 @@ export const questMonitorWatcherStartBroker = async ({
   // there.
   await questOrphanResetBroker({
     excludeSessionId: sessionId,
-    ...(mainSessionWorkItemId === undefined ? {} : { excludeWorkItemId: mainSessionWorkItemId }),
+    excludeWorkItemId: mainSessionWorkItemId,
   });
-
-  // Quest-driven subscription state: per-quest sets of agentIds currently stamped on
-  // in-progress work items. The watcher only tails subagent JSONLs whose agentId is in
-  // one of these sets — stale leftover files from prior runs never match.
-  const activeAgentIdsByQuest = new Map<QuestId, Set<AgentId>>();
-  // Reverse map rebuilt in lockstep with `activeAgentIdsByQuest` on every refresh: each
-  // active sub-agent's realAgentId → its work item id. The watcher reads it to stamp
-  // `workItemId` on each sub-agent chat-output emit so the web routes the transcript to
-  // its own execution row (sibling sub-agents share the parent sessionId).
-  const agentIdToWorkItemId = new Map<AgentId, QuestWorkItemId>();
-  await refreshActiveAgentIdsLayerBroker({ activeAgentIdsByQuest, agentIdToWorkItemId });
 
   const sessionFilePath = claudeProjectPathEncoderTransformer({
     homeDir,
@@ -128,11 +107,7 @@ export const questMonitorWatcherStartBroker = async ({
     sessionId,
   });
 
-  const mainSessionQuestId: QuestId | undefined =
-    workerQuestId === undefined ? undefined : questIdContract.parse(workerQuestId);
-  const chatProcessId: ProcessId = processIdContract.parse(
-    `${mainSessionWorkItemId === undefined ? 'proc-monitor' : 'proc-worker'}-${parentSessionId}`,
-  );
+  const chatProcessId: ProcessId = processIdContract.parse(`proc-worker-${parentSessionId}`);
   // Sized 0 (running) or 1 (stopped). The terminal emit below must fire exactly once: the
   // reactor stops a watcher when its work item leaves the active set, and the server-wide
   // teardown stops every watcher it still holds, so both can reach the same handle.
@@ -143,15 +118,11 @@ export const questMonitorWatcherStartBroker = async ({
     activeQuestIdGetter: (): QuestId | null => null,
     chatProcessId,
     // A sub-agent that carries no work item of its own — a parent-summoned minion, or a
-    // Task-dispatched agent in the window before `get-agent-prompt` stamps it — still belongs to
-    // the work item whose session spawned it. Falling back to that owner is what lets the relay
-    // name a quest for the emit; without it the frame is attributable to nobody, and a frame with
-    // no owner cannot be delivered to one quest's subscribers rather than all of them.
-    // A /dumpster-launch dispatcher session has no main work item, so it stays null there: that
-    // session serves several quests at once, and guessing one of them would move the misrouting
-    // rather than remove it.
-    workItemIdForAgent: ({ agentId }: { agentId: AgentId }): QuestWorkItemId | null =>
-      agentIdToWorkItemId.get(agentId) ?? mainSessionWorkItemId ?? null,
+    // Task-dispatched helper — still belongs to the work item whose session spawned it.
+    // Falling back to that owner is what lets the relay name a quest for the emit; without
+    // it the frame is attributable to nobody, and a frame with no owner cannot be delivered
+    // to one quest's subscribers rather than all of them.
+    workItemIdForAgent: (): QuestWorkItemId => mainSessionWorkItemId,
     emit: ({
       chatProcessId: emittedChatProcessId,
       entries,
@@ -177,40 +148,12 @@ export const questMonitorWatcherStartBroker = async ({
         },
       });
     },
-    isAgentIdActive: ({ agentId }: { agentId: AgentId }): boolean => {
-      for (const set of activeAgentIdsByQuest.values()) {
-        if (set.has(agentId)) return true;
-      }
-      return false;
-    },
-    ...(mainSessionWorkItemId === undefined ? {} : { mainSessionWorkItemId }),
-  });
-
-  // Periodic refresh keeps the active-agentId set current. Once per second, walk every
-  // active quest and rebuild the per-quest agentId Map, then prune tails whose agentId
-  // left the set (work item reached terminal). New agentIds added by get-agent-prompt
-  // become visible on the very next tick, in time for the JSONL watcher's own poll to
-  // start tailing the matching subagent JSONL.
-  const refreshHandle = timerSetIntervalAdapter({
-    callback: (): void => {
-      refreshActiveAgentIdsLayerBroker({ activeAgentIdsByQuest, agentIdToWorkItemId })
-        .then((): void => {
-          watcherHandle.pruneStaleTails();
-        })
-        .catch((error: unknown): void => {
-          process.stderr.write(
-            `[monitor-watcher] active-agent-id refresh failed: ${String(error)}\n`,
-          );
-        });
-    },
-    intervalMs: ACTIVE_AGENT_IDS_REFRESH_INTERVAL_MS,
+    mainSessionWorkItemId,
   });
 
   return {
     stop: (): void => {
-      refreshHandle.stop();
       watcherHandle.stop();
-      activeAgentIdsByQuest.clear();
       if (stoppedStateSet.has('stopped')) return;
       stoppedStateSet.add('stopped');
       // A tail is a delivery identity, and every delivery identity on the wire owes the web a
@@ -220,9 +163,7 @@ export const questMonitorWatcherStartBroker = async ({
       // session JSONL the same child writes — and the spawn's `chat-complete` speaks only for
       // itself, so without this the tail's post-exit drain re-arms a turn that has already
       // ended and nothing is left to clear it: the composer holds STOP forever and the user
-      // cannot send again. Scoped to a worker tail because that is the one shape with a single
-      // owning work item + quest to name; a dispatcher session serves several quests at once.
-      if (mainSessionWorkItemId === undefined || mainSessionQuestId === undefined) return;
+      // cannot send again.
       emit({
         type: 'chat-complete',
         processId: chatProcessId,

@@ -9,7 +9,6 @@
 import { questIdContract } from '@dungeonmaster/shared/contracts';
 import { ResolveCallerSessionLayerResponder } from './resolve-caller-session-layer-responder';
 import { orchestratorCreateQuestAdapter } from '../../../adapters/orchestrator/create-quest/orchestrator-create-quest-adapter';
-import { orchestratorGetNextStepAdapter } from '../../../adapters/orchestrator/get-next-step/orchestrator-get-next-step-adapter';
 import { orchestratorGetQuestPlanningNotesAdapter } from '../../../adapters/orchestrator/get-quest-planning-notes/orchestrator-get-quest-planning-notes-adapter';
 import { orchestratorGetServerConfigAdapter } from '../../../adapters/orchestrator/get-server-config/orchestrator-get-server-config-adapter';
 import { orchestratorModifyQuestAdapter } from '../../../adapters/orchestrator/modify-quest/orchestrator-modify-quest-adapter';
@@ -29,7 +28,6 @@ import { toolNameContract } from '../../../contracts/tool-name/tool-name-contrac
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 import { createQuestInputContract } from '../../../contracts/create-quest-input/create-quest-input-contract';
 import { createQuestOutputContract } from '../../../contracts/create-quest-output/create-quest-output-contract';
-import { getNextStepInputContract } from '../../../contracts/get-next-step-input/get-next-step-input-contract';
 import { getQuestPlanningNotesInputContract } from '../../../contracts/get-quest-planning-notes-input/get-quest-planning-notes-input-contract';
 import { getQuestStatusInputContract } from '../../../contracts/get-quest-status-input/get-quest-status-input-contract';
 import { getServerConfigOutputContract } from '../../../contracts/get-server-config-output/get-server-config-output-contract';
@@ -304,35 +302,6 @@ export const QuestHandleResponder = async ({
           {
             type: 'text',
             text: contentTextContract.parse(JSON.stringify(payload, null, JSON_INDENT_SPACES)),
-          },
-        ],
-      };
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      return {
-        content: [
-          {
-            type: 'text',
-            text: contentTextContract.parse(
-              JSON.stringify({ success: false, error: errorMessage }, null, JSON_INDENT_SPACES),
-            ),
-          },
-        ],
-        isError: true,
-      };
-    }
-  }
-
-  if (tool === 'get-next-step') {
-    getNextStepInputContract.parse(args);
-
-    try {
-      const step = await orchestratorGetNextStepAdapter();
-      return {
-        content: [
-          {
-            type: 'text',
-            text: contentTextContract.parse(JSON.stringify(step, null, JSON_INDENT_SPACES)),
           },
         ],
       };

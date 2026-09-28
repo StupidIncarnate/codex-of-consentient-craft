@@ -14,7 +14,7 @@ export const InstallCommandsCreateResponderProxy = (): {
   const writeProxy = fsWriteFileAdapterProxy();
 
   // Every caller exercises targetProjectRoot: '/project' (the real, unstaged pathJoin
-  // passthrough resolves it to this exact commands dir), so the three command files this
+  // passthrough resolves it to this exact commands dir), so the two command files this
   // responder writes always land at these fixed paths.
   const commandsDir = '/project/.claude/commands';
   writeProxy.succeeds({
@@ -25,11 +25,6 @@ export const InstallCommandsCreateResponderProxy = (): {
   writeProxy.succeeds({
     filePath: FilePathStub({
       value: `${commandsDir}/${slashCommandsStatics.dumpsterHunt.fileName}`,
-    }),
-  });
-  writeProxy.succeeds({
-    filePath: FilePathStub({
-      value: `${commandsDir}/${slashCommandsStatics.dumpsterLaunch.fileName}`,
     }),
   });
 

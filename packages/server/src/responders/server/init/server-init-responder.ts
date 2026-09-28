@@ -48,11 +48,9 @@ import type {
 import { orchestratorFindQuestByWorkItemIdAdapter } from '../../../adapters/orchestrator/find-quest-by-work-item-id/orchestrator-find-quest-by-work-item-id-adapter';
 import type { WsClient } from '../../../contracts/ws-client/ws-client-contract';
 import { chatOutputPayloadContract } from '../../../contracts/chat-output-payload/chat-output-payload-contract';
-import type { ToolName } from '../../../contracts/tool-name/tool-name-contract';
 import { wsEventDataContract } from '../../../contracts/ws-event-data/ws-event-data-contract';
 import { wsIncomingMessageContract } from '../../../contracts/ws-incoming-message/ws-incoming-message-contract';
 import { chatEntriesExtractQuestIdTransformer } from '../../../transformers/chat-entries-extract-quest-id/chat-entries-extract-quest-id-transformer';
-import { monitorSessionFilterChatOutputTransformer } from '../../../transformers/monitor-session-filter-chat-output/monitor-session-filter-chat-output-transformer';
 import { parseChatOutputEntriesTransformer } from '../../../transformers/parse-chat-output-entries/parse-chat-output-entries-transformer';
 
 type HonoApp = Parameters<typeof honoCreateNodeWebSocketAdapter>[0]['app'];
@@ -305,7 +303,6 @@ export const ServerInitResponder = ({
                         replayClientByChatProcessId.set(taggedId, subWs);
                         await orchestratorReplayChatHistoryAdapter({
                           sessionId: wi.sessionId,
-                          ...(wi.agentId === undefined ? {} : { agentId: wi.agentId }),
                           guildId: subGuildId,
                           chatProcessId: taggedId,
                         }).catch(() => {
@@ -480,7 +477,6 @@ export const ServerInitResponder = ({
                       );
                       await orchestratorReplayChatHistoryAdapter({
                         sessionId: wi.sessionId,
-                        ...(wi.agentId === undefined ? {} : { agentId: wi.agentId }),
                         guildId: replayGuildId,
                         chatProcessId: taggedId,
                       }).catch(() => {
@@ -571,12 +567,6 @@ export const ServerInitResponder = ({
     payload: Record<PropertyKey, unknown>;
   }[] = [];
 
-  // Parent /dumpster-launch session is a dispatcher, not a speaker. Track Task tool_use
-  // ids we've seen on session-source entries so the matching user.tool_result entries
-  // (whose `toolName` field carries the original tool_use_id under the converged wire
-  // shape) can pass through; everything else session-sourced is dropped.
-  const monitorTaskToolUseIds = new Set<ToolName>();
-
   // Per-chatProcessId latched questId. The /dumpster-create monitor-session path emits
   // chat-output with no workItemId — ChaosWhisperer runs inside the user's own Claude Code
   // session, not a Task-dispatched sub-agent. To route those emits to the right per-quest
@@ -614,23 +604,10 @@ export const ServerInitResponder = ({
           return;
         }
 
-        // Filter parent-source dispatcher chatter from chat-output entries — but ONLY
-        // for the /dumpster-launch monitor session (chatProcessId prefix `proc-monitor-`).
-        // Legacy chat-spawn-broker, replay paths, and orchestration-loop agents emit
-        // session-source text/user-message entries that ARE the user-facing content.
         let effectivePayload: Record<PropertyKey, unknown> = payload as Record<
           PropertyKey,
           unknown
         >;
-        if (type === 'chat-output') {
-          const filterResult = monitorSessionFilterChatOutputTransformer({
-            payload: payload as Record<PropertyKey, unknown>,
-            payloadChatProcessId,
-            monitorTaskToolUseIds,
-          });
-          if (filterResult === null) return;
-          effectivePayload = filterResult.payload;
-        }
 
         // Stamp the owning quest onto a payload that carries only a workItemId — the shape
         // every quest-driven watcher emit has. A hit stamps synchronously, which is the

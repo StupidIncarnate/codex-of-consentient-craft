@@ -27,8 +27,7 @@ export const OrchestrationFlow = (): Hono => {
   });
 
   app.post(apiRoutesStatics.orchestration.dispatchPlay, async (c) => {
-    const body: unknown = await c.req.json().catch(() => ({}));
-    const result = await OrchestrationDispatchPlayResponder({ body });
+    const result = await OrchestrationDispatchPlayResponder();
     return c.json(result.data as object, result.status as ContentfulStatusCode);
   });
 
