@@ -1,5 +1,4 @@
 import { FilePathStub, IdentifierStub } from '@dungeonmaster/shared/contracts';
-import { FileNameStub } from '../../../contracts/file-name/file-name.stub';
 import { collectGatewayTypeDeclarationNamesLayerBroker } from './collect-gateway-type-declaration-names-layer-broker';
 import { collectGatewayTypeDeclarationNamesLayerBrokerProxy } from './collect-gateway-type-declaration-names-layer-broker.proxy';
 
@@ -18,14 +17,14 @@ describe('collectGatewayTypeDeclarationNamesLayerBroker', () => {
       });
 
       proxy.fsReaddirSync.returns({
-        dirPath: subpathDirectory,
-        entries: [{ name: FileNameStub({ value: 'walk-files-sync' }), isDirectory: true }],
+        path: subpathDirectory,
+        entries: [{ name: 'walk-files-sync', kind: 'directory' }],
       });
       proxy.fsReaddirSync.returns({
-        dirPath: wrapperDirectory,
+        path: wrapperDirectory,
         entries: [
-          { name: FileNameStub({ value: 'walked-file.ts' }), isDirectory: false },
-          { name: FileNameStub({ value: 'walked-file.test.ts' }), isDirectory: false },
+          { name: 'walked-file.ts', kind: 'file' },
+          { name: 'walked-file.test.ts', kind: 'file' },
         ],
       });
       proxy.fsReadFileSync.returns({
@@ -54,10 +53,10 @@ describe('collectGatewayTypeDeclarationNamesLayerBroker', () => {
       });
 
       proxy.fsReaddirSync.returns({
-        dirPath: subpathDirectory,
+        path: subpathDirectory,
         entries: [
-          { name: FileNameStub({ value: 'stats-a.ts' }), isDirectory: false },
-          { name: FileNameStub({ value: 'stats-b.ts' }), isDirectory: false },
+          { name: 'stats-a.ts', kind: 'file' },
+          { name: 'stats-b.ts', kind: 'file' },
         ],
       });
       proxy.fsReadFileSync.returns({
@@ -89,11 +88,11 @@ describe('collectGatewayTypeDeclarationNamesLayerBroker', () => {
       });
 
       proxy.fsReaddirSync.returns({
-        dirPath: wrapperDirectory,
+        path: wrapperDirectory,
         entries: [
-          { name: FileNameStub({ value: 'is-port-free.ts' }), isDirectory: false },
-          { name: FileNameStub({ value: 'is-port-free.proxy.ts' }), isDirectory: false },
-          { name: FileNameStub({ value: 'is-port-free.test.ts' }), isDirectory: false },
+          { name: 'is-port-free.ts', kind: 'file' },
+          { name: 'is-port-free.proxy.ts', kind: 'file' },
+          { name: 'is-port-free.test.ts', kind: 'file' },
         ],
       });
       proxy.fsReadFileSync.returns({

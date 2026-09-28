@@ -13,8 +13,7 @@
  */
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { FilePath, PackageName } from '@dungeonmaster/shared/contracts';
-import { existsSync, readFileSync } from '#gateway/node/fs';
-import { fsReaddirSyncAdapter } from '../../../adapters/fs/readdir-sync/fs-readdir-sync-adapter';
+import { existsSync, readFileSync, readdirEntriesSync } from '#gateway/node/fs';
 import { gatewayConsumerPackageJsonContract } from '../../../contracts/gateway-consumer-package-json/gateway-consumer-package-json-contract';
 
 const WILDCARD_SUFFIX = '/*';
@@ -35,8 +34,8 @@ export const resolveWorkspaceGlobLayerBroker = ({
           return [];
         }
 
-        return fsReaddirSyncAdapter({ dirPath: basePath })
-          .filter((entry) => entry.isDirectory)
+        return readdirEntriesSync(basePath)
+          .filter((entry) => entry.kind === 'directory')
           .map((entry) => filePathContract.parse(`${basePath}/${entry.name}`));
       })()
     : [filePathContract.parse(`${rootDir}/${glob}`)];

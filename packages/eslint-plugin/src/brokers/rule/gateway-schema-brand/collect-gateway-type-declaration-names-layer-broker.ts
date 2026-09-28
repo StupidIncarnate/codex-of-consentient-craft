@@ -17,8 +17,7 @@
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { FilePath, Identifier } from '@dungeonmaster/shared/contracts';
 import { gatewayTestSupportSuffixStatics } from '../../../statics/gateway-test-support-suffix/gateway-test-support-suffix-statics';
-import { fsReaddirSyncAdapter } from '../../../adapters/fs/readdir-sync/fs-readdir-sync-adapter';
-import { readFileSync } from '#gateway/node/fs';
+import { readFileSync, readdirEntriesSync } from '#gateway/node/fs';
 import { gatewayTypeDeclarationNamesTransformer } from '../../../transformers/gateway-type-declaration-names/gateway-type-declaration-names-transformer';
 
 export const collectGatewayTypeDeclarationNamesLayerBroker = ({
@@ -28,12 +27,11 @@ export const collectGatewayTypeDeclarationNamesLayerBroker = ({
   dirPath: FilePath;
   index: Map<Identifier, FilePath[]>;
 }): Map<Identifier, FilePath[]> => {
-  fsReaddirSyncAdapter({ dirPath }).forEach((entry) => {
-    const entryPath = filePathContract.parse(
-      `${dirPath}${entry.name}${entry.isDirectory ? '/' : ''}`,
-    );
+  readdirEntriesSync(dirPath).forEach((entry) => {
+    const isDirectory = entry.kind === 'directory';
+    const entryPath = filePathContract.parse(`${dirPath}${entry.name}${isDirectory ? '/' : ''}`);
 
-    if (entry.isDirectory) {
+    if (isDirectory) {
       collectGatewayTypeDeclarationNamesLayerBroker({ dirPath: entryPath, index });
       return;
     }

@@ -16,7 +16,7 @@ import { isProcessCwdCallGuard } from '../../../guards/is-process-cwd-call/is-pr
 import { isHarnessOrProxyFileGuard } from '../../../guards/is-harness-or-proxy-file/is-harness-or-proxy-file-guard';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
 import { filePathToCwdRelativeTransformer } from '../../../transformers/file-path-to-cwd-relative/file-path-to-cwd-relative-transformer';
-import { minimatchMatchAdapter } from '../../../adapters/minimatch/match/minimatch-match-adapter';
+import { minimatch } from '#gateway/npm/minimatch';
 import { noBareProcessCwdStatics } from '../../../statics/no-bare-process-cwd/no-bare-process-cwd-statics';
 
 export const ruleNoBareProcessCwdBroker = (): EslintRule => ({
@@ -91,8 +91,8 @@ export const ruleNoBareProcessCwdBroker = (): EslintRule => ({
     const allMatchPatterns = [...allowedFiles, ...allowedFolders];
     const isAllowed = allMatchPatterns.some(
       (pattern) =>
-        minimatchMatchAdapter({ filePath: String(relativePath), pattern: String(pattern) }) ||
-        minimatchMatchAdapter({ filePath: filename, pattern: String(pattern) }),
+        minimatch(String(relativePath), String(pattern), { dot: true }) ||
+        minimatch(filename, String(pattern), { dot: true }),
     );
     if (isAllowed) {
       return {};

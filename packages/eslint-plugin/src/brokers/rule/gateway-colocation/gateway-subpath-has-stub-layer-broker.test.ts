@@ -1,5 +1,4 @@
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
-import { FileNameStub } from '../../../contracts/file-name/file-name.stub';
 import { gatewaySubpathHasStubLayerBroker } from './gateway-subpath-has-stub-layer-broker';
 import { gatewaySubpathHasStubLayerBrokerProxy } from './gateway-subpath-has-stub-layer-broker.proxy';
 
@@ -10,11 +9,11 @@ describe('gatewaySubpathHasStubLayerBroker', () => {
       value: '/repo/packages/@gateway/node/src/setTimeout/',
     });
     proxy.fsReaddirSync.returns({
-      dirPath: subpathDirectory,
+      path: subpathDirectory,
       entries: [
-        { name: FileNameStub({ value: 'setTimeout.ts' }), isDirectory: false },
-        { name: FileNameStub({ value: 'setTimeout.test.ts' }), isDirectory: false },
-        { name: FileNameStub({ value: 'timeout.stub.ts' }), isDirectory: false },
+        { name: 'setTimeout.ts', kind: 'file' },
+        { name: 'setTimeout.test.ts', kind: 'file' },
+        { name: 'timeout.stub.ts', kind: 'file' },
       ],
     });
 
@@ -28,18 +27,18 @@ describe('gatewaySubpathHasStubLayerBroker', () => {
       value: '/repo/packages/@gateway/node/src/fs/is-fs-error/',
     });
     proxy.fsReaddirSync.returns({
-      dirPath: subpathDirectory,
+      path: subpathDirectory,
       entries: [
-        { name: FileNameStub({ value: 'is-fs-error' }), isDirectory: true },
-        { name: FileNameStub({ value: 'fs.ts' }), isDirectory: false },
+        { name: 'is-fs-error', kind: 'directory' },
+        { name: 'fs.ts', kind: 'file' },
       ],
     });
     proxy.fsReaddirSync.returns({
-      dirPath: wrapperDirectory,
+      path: wrapperDirectory,
       entries: [
-        { name: FileNameStub({ value: 'fs-error.ts' }), isDirectory: false },
-        { name: FileNameStub({ value: 'fs-error.stub.ts' }), isDirectory: false },
-        { name: FileNameStub({ value: 'is-fs-error.ts' }), isDirectory: false },
+        { name: 'fs-error.ts', kind: 'file' },
+        { name: 'fs-error.stub.ts', kind: 'file' },
+        { name: 'is-fs-error.ts', kind: 'file' },
       ],
     });
 
@@ -53,18 +52,18 @@ describe('gatewaySubpathHasStubLayerBroker', () => {
       value: '/repo/packages/@gateway/node/src/os/homedir/',
     });
     proxy.fsReaddirSync.returns({
-      dirPath: subpathDirectory,
+      path: subpathDirectory,
       entries: [
-        { name: FileNameStub({ value: 'homedir' }), isDirectory: true },
-        { name: FileNameStub({ value: 'os.ts' }), isDirectory: false },
+        { name: 'homedir', kind: 'directory' },
+        { name: 'os.ts', kind: 'file' },
       ],
     });
     proxy.fsReaddirSync.returns({
-      dirPath: wrapperDirectory,
+      path: wrapperDirectory,
       entries: [
-        { name: FileNameStub({ value: 'homedir.ts' }), isDirectory: false },
-        { name: FileNameStub({ value: 'homedir.proxy.ts' }), isDirectory: false },
-        { name: FileNameStub({ value: 'homedir.test.ts' }), isDirectory: false },
+        { name: 'homedir.ts', kind: 'file' },
+        { name: 'homedir.proxy.ts', kind: 'file' },
+        { name: 'homedir.test.ts', kind: 'file' },
       ],
     });
 

@@ -9,11 +9,9 @@
  * proxies below satisfy enforce-proxy-child-creation; this file is never imported by the rule's own
  * RuleTester test, so mocking `minimatch`/the scope walk here never reaches it.
  */
-import { minimatchMatchAdapterProxy } from '../../../adapters/minimatch/match/minimatch-match-adapter.proxy';
 import { repoScopeResolveBrokerProxy } from '../../repo-scope/resolve/repo-scope-resolve-broker.proxy';
 
 export const ruleGatewayImportBoundaryBrokerProxy = (): Record<PropertyKey, never> => {
-  minimatchMatchAdapterProxy();
   repoScopeResolveBrokerProxy();
 
   return {};

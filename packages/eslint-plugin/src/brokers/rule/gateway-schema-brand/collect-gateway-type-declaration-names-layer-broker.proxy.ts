@@ -1,10 +1,10 @@
-import { fsReaddirSyncAdapterProxy } from '../../../adapters/fs/readdir-sync/fs-readdir-sync-adapter.proxy';
+import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/readdir-entries-sync.proxy';
 import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
 
 export const collectGatewayTypeDeclarationNamesLayerBrokerProxy = (): {
-  fsReaddirSync: ReturnType<typeof fsReaddirSyncAdapterProxy>;
+  fsReaddirSync: ReturnType<typeof readdirEntriesSyncProxy>;
   fsReadFileSync: ReturnType<typeof readFileSyncProxy>;
 } => ({
-  fsReaddirSync: fsReaddirSyncAdapterProxy(),
+  fsReaddirSync: readdirEntriesSyncProxy(),
   fsReadFileSync: readFileSyncProxy(),
 });

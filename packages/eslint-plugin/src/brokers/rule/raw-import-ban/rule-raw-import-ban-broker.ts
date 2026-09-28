@@ -24,7 +24,7 @@ import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-c
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
-import { minimatchMatchAdapter } from '../../../adapters/minimatch/match/minimatch-match-adapter';
+import { minimatch } from '#gateway/npm/minimatch';
 import { repoScopeResolveBroker } from '../../repo-scope/resolve/repo-scope-resolve-broker';
 
 // Resolved lazily, on the first file linted with no `scope` option, and cached from then on.
@@ -67,7 +67,7 @@ export const ruleRawImportBanBroker = (): EslintRule => ({
     const filename = ctx.filename ?? ctx.getFilename?.() ?? '';
 
     const isGatewayFile = gatewayLocationsStatics.packageGlobs.some((glob) =>
-      minimatchMatchAdapter({ filePath: filename, pattern: `**/${glob}` }),
+      minimatch(filename, `**/${glob}`, { dot: true }),
     );
 
     if (filename.length === 0 || isGatewayFile) {

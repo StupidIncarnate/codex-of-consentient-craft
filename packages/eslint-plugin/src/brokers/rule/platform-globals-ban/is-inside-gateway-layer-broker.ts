@@ -7,9 +7,9 @@
  * // Returns true
  */
 import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
-import { minimatchMatchAdapter } from '../../../adapters/minimatch/match/minimatch-match-adapter';
+import { minimatch } from '#gateway/npm/minimatch';
 
 export const isInsideGatewayLayerBroker = ({ filename }: { filename: string }): boolean =>
   gatewayLocationsStatics.packageGlobs.some((glob) =>
-    minimatchMatchAdapter({ filePath: filename, pattern: `**/${glob}` }),
+    minimatch(filename, `**/${glob}`, { dot: true }),
   );

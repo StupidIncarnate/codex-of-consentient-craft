@@ -553,3 +553,34 @@ rule's own fs work lives entirely in its layer files (`find-nearest-package-json
 it is the sharpest proof that folder-wide scanning (not just the one guessed filename) is what makes the
 check real. Run only the pre-edit describe block, confirm it fails with a readable message naming the rule,
 the fs specifier and the file:line, then revert the statics file.
+
+### small adapters (readdir-sync, minimatch, dirname, join)
+
+Scope (2026-09-28), all under `packages/eslint-plugin/src/`. Census by walking the tree: `readdir-sync` has 5
+callers, `minimatch/match` has 4, `path/dirname` and `path/join` together have about 20 (each with a proxy, and
+several with tests that reach the exposed child proxy). That is past the 35-file cap, so this run takes
+**minimatch and readdir-sync** and leaves `dirname` and `join` for the next dispatch.
+
+`#gateway/npm/minimatch` ships no proxy (a pure `export * from 'minimatch'`), so minimatch runs for real; the
+adapter's `{ dot: true }` option moves to the call sites. `#gateway/node/fs`'s `readdirEntriesSync` has
+`readdirEntriesSyncProxy` (`returns({path, entries: {name, kind}[]})`), staged by exact path.
+
+Taken (minimatch):
+- `adapters/minimatch/match/minimatch-match-adapter.ts`, `.proxy.ts`, `.test.ts` (deleted)
+- `brokers/rule/no-bare-process-cwd/rule-no-bare-process-cwd-broker.ts`, `.proxy.ts`
+- `brokers/rule/platform-globals-ban/is-inside-gateway-layer-broker.ts`, `.proxy.ts`, `.test.ts`
+- `brokers/rule/raw-import-ban/rule-raw-import-ban-broker.ts`, `.proxy.ts`
+- `brokers/rule/gateway-import-boundary/rule-gateway-import-boundary-broker.ts`, `.proxy.ts`
+- (`rule-platform-globals-ban-broker.proxy.ts` composes `isInsideGatewayLayerBrokerProxy`; read, unchanged)
+
+Taken (readdir-sync):
+- `adapters/fs/readdir-sync/fs-readdir-sync-adapter.ts`, `.proxy.ts`, `.test.ts` (deleted)
+- `brokers/config/workspace-package-names/resolve-workspace-glob-layer-broker.ts`, `.proxy.ts`
+- `brokers/rule/gateway-layout/rule-gateway-layout-broker.ts`, `.proxy.ts`, `.test.ts`
+- `brokers/rule/gateway-schema-brand/collect-gateway-type-declaration-names-layer-broker.ts`, `.proxy.ts`, `.test.ts`
+- `brokers/rule/gateway-schema-brand/build-gateway-type-declaration-index-layer-broker.proxy.ts` (reaches `collectProxy.fsReaddirSync`)
+- `brokers/rule/gateway-colocation/gateway-subpath-has-stub-layer-broker.ts`, `.proxy.ts`, `.test.ts`
+- `brokers/rule/gateway-colocation/barrel-completeness-layer-broker.ts`, `.proxy.ts`, `.test.ts`
+- `brokers/rule/gateway-colocation/rule-gateway-colocation-broker.test.ts` (reaches `gatewaySubpathDirectoryWalk.fsReaddirSync`), `.proxy.ts` (comment only)
+
+Not taken (left): every caller of `adapters/path/dirname/**` and `adapters/path/join/**` (adapter folders stay).

@@ -2,7 +2,6 @@ import { eslintRuleTesterAdapter } from '../../../adapters/eslint/rule-tester/es
 import { ruleGatewayLayoutBroker } from './rule-gateway-layout-broker';
 import { ruleGatewayLayoutBrokerProxy } from './rule-gateway-layout-broker.proxy';
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
-import { FileNameStub } from '../../../contracts/file-name/file-name.stub';
 
 const ruleTester = eslintRuleTesterAdapter();
 
@@ -10,25 +9,25 @@ beforeEach(() => {
   const proxy = ruleGatewayLayoutBrokerProxy();
 
   proxy.fsReaddirSync.returns({
-    dirPath: FilePathStub({ value: '/repo/packages/@gateway/node/src' }),
+    path: FilePathStub({ value: '/repo/packages/@gateway/node/src' }),
     entries: [
-      { name: FileNameStub({ value: 'fs' }), isDirectory: true },
-      { name: FileNameStub({ value: 'fs__promises' }), isDirectory: true },
-      { name: FileNameStub({ value: 'buffer' }), isDirectory: true },
-      { name: FileNameStub({ value: 'process' }), isDirectory: true },
-      { name: FileNameStub({ value: 'jest.config.js' }), isDirectory: false },
+      { name: 'fs', kind: 'directory' },
+      { name: 'fs__promises', kind: 'directory' },
+      { name: 'buffer', kind: 'directory' },
+      { name: 'process', kind: 'directory' },
+      { name: 'jest.config.js', kind: 'file' },
     ],
   });
   proxy.fsReaddirSync.returns({
-    dirPath: FilePathStub({ value: '/repo/packages/@gateway/browser/src' }),
+    path: FilePathStub({ value: '/repo/packages/@gateway/browser/src' }),
     entries: [
-      { name: FileNameStub({ value: 'URL' }), isDirectory: true },
-      { name: FileNameStub({ value: 'url' }), isDirectory: true },
+      { name: 'URL', kind: 'directory' },
+      { name: 'url', kind: 'directory' },
     ],
   });
   proxy.fsReaddirSync.returns({
-    dirPath: FilePathStub({ value: '/repo/packages/@gateway/bin/src' }),
-    entries: [{ name: FileNameStub({ value: 'git' }), isDirectory: true }],
+    path: FilePathStub({ value: '/repo/packages/@gateway/bin/src' }),
+    entries: [{ name: 'git', kind: 'directory' }],
   });
 });
 

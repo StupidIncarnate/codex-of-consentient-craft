@@ -27,8 +27,7 @@ import type { FilePath, Identifier, ImportPath } from '@dungeonmaster/shared/con
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
-import { fsReaddirSyncAdapter } from '../../../adapters/fs/readdir-sync/fs-readdir-sync-adapter';
-import { existsSync, readFileSync } from '#gateway/node/fs';
+import { existsSync, readFileSync, readdirEntriesSync } from '#gateway/node/fs';
 import { isGatewayWrapperImplementationFileGuard } from '../../../guards/is-gateway-wrapper-implementation-file/is-gateway-wrapper-implementation-file-guard';
 import { gatewayWrapperExportedNamesTransformer } from '../../../transformers/gateway-wrapper-exported-names/gateway-wrapper-exported-names-transformer';
 
@@ -48,15 +47,16 @@ export const barrelCompletenessLayerBroker = ({
   let complete = true;
   const reexportedNames = new Set(reexports.map((reexport) => reexport.name));
 
-  const wrapperFolders = fsReaddirSyncAdapter({ dirPath: subpathDirectory }).filter(
-    (entry) => entry.isDirectory,
+  const wrapperFolders = readdirEntriesSync(subpathDirectory).filter(
+    (entry) => entry.kind === 'directory',
   );
 
   for (const wrapperFolder of wrapperFolders) {
     const wrapperDirectory = filePathContract.parse(`${subpathDirectory}${wrapperFolder.name}/`);
-    const wrapperFiles = fsReaddirSyncAdapter({ dirPath: wrapperDirectory }).filter(
+    const wrapperFiles = readdirEntriesSync(wrapperDirectory).filter(
       (entry) =>
-        !entry.isDirectory && isGatewayWrapperImplementationFileGuard({ fileName: entry.name }),
+        entry.kind !== 'directory' &&
+        isGatewayWrapperImplementationFileGuard({ fileName: entry.name }),
     );
 
     for (const wrapperFile of wrapperFiles) {

@@ -11,7 +11,7 @@
  */
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
-import { fsReaddirSyncAdapter } from '../../../adapters/fs/readdir-sync/fs-readdir-sync-adapter';
+import { readdirEntriesSync } from '#gateway/node/fs';
 
 const STUB_FILE_SUFFIX = '.stub.ts';
 
@@ -20,8 +20,8 @@ export const gatewaySubpathHasStubLayerBroker = ({
 }: {
   subpathDirectory: FilePath;
 }): boolean =>
-  fsReaddirSyncAdapter({ dirPath: subpathDirectory }).some((entry) =>
-    entry.isDirectory
+  readdirEntriesSync(subpathDirectory).some((entry) =>
+    entry.kind === 'directory'
       ? gatewaySubpathHasStubLayerBroker({
           subpathDirectory: filePathContract.parse(`${subpathDirectory}${entry.name}/`),
         })

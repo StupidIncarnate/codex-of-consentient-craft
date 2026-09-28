@@ -2,8 +2,7 @@ import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { FilePath, PackageName } from '@dungeonmaster/shared/contracts';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
-import { fsReaddirSyncAdapterProxy } from '../../../adapters/fs/readdir-sync/fs-readdir-sync-adapter.proxy';
-import { FileNameStub } from '../../../contracts/file-name/file-name.stub';
+import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/readdir-entries-sync.proxy';
 
 export const resolveWorkspaceGlobLayerBrokerProxy = (): {
   setupGlobDirectories: (args: { basePath: FilePath; dirNames: string[] }) => void;
@@ -14,7 +13,7 @@ export const resolveWorkspaceGlobLayerBrokerProxy = (): {
 } => {
   const existsProxy = existsSyncProxy();
   const readProxy = readFileSyncProxy();
-  const readdirProxy = fsReaddirSyncAdapterProxy();
+  const readdirProxy = readdirEntriesSyncProxy();
 
   return {
     setupGlobDirectories: ({
@@ -26,11 +25,8 @@ export const resolveWorkspaceGlobLayerBrokerProxy = (): {
     }): void => {
       existsProxy.returns({ path: basePath, exists: true });
       readdirProxy.returns({
-        dirPath: basePath,
-        entries: dirNames.map((name) => ({
-          name: FileNameStub({ value: name }),
-          isDirectory: true,
-        })),
+        path: basePath,
+        entries: dirNames.map((name) => ({ name, kind: 'directory' as const })),
       });
     },
 

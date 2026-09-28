@@ -16,14 +16,13 @@
  * const rule = ruleGatewayLayoutBroker();
  * // Flags packages/@gateway/node/src/URL/URL.ts if a sibling packages/@gateway/node/src/url/ also exists
  */
-import { filePathContract } from '@dungeonmaster/shared/contracts';
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { isGatewayFileGuard } from '../../../guards/is-gateway-file/is-gateway-file-guard';
 import { isGatewayBarrelFileGuard } from '../../../guards/is-gateway-barrel-file/is-gateway-barrel-file-guard';
-import { fsReaddirSyncAdapter } from '../../../adapters/fs/readdir-sync/fs-readdir-sync-adapter';
+import { readdirEntriesSync } from '#gateway/node/fs';
 
 export const ruleGatewayLayoutBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -62,9 +61,9 @@ export const ruleGatewayLayoutBroker = (): EslintRule => ({
         const ownFolderName = ownFolderPath.split('/').pop() ?? '';
         const parentDir = ownFolderPath.slice(0, ownFolderPath.length - ownFolderName.length - 1);
 
-        const siblingEntries = fsReaddirSyncAdapter({
-          dirPath: filePathContract.parse(parentDir),
-        }).filter((entry) => entry.isDirectory);
+        const siblingEntries = readdirEntriesSync(parentDir).filter(
+          (entry) => entry.kind === 'directory',
+        );
 
         const collidingSibling = siblingEntries.find(
           (entry) =>

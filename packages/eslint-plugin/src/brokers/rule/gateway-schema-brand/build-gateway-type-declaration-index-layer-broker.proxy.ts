@@ -40,8 +40,8 @@ export const buildGatewayTypeDeclarationIndexLayerBrokerProxy = (): {
     }): void => {
       existsProxy.returns({ path: srcDir, exists: true });
       collectProxy.fsReaddirSync.returns({
-        dirPath: srcDir,
-        entries: [{ name: fileName, isDirectory: false }],
+        path: srcDir,
+        entries: [{ name: fileName, kind: 'file' }],
       });
       collectProxy.fsReadFileSync.returns({
         path: filePath,

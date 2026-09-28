@@ -3,7 +3,6 @@ import { barrelCompletenessLayerBroker } from './barrel-completeness-layer-broke
 import { barrelCompletenessLayerBrokerProxy } from './barrel-completeness-layer-broker.proxy';
 import { EslintContextStub } from '../../../contracts/eslint-context/eslint-context.stub';
 import { TsestreeStub, TsestreeNodeType } from '../../../contracts/tsestree/tsestree.stub';
-import { FileNameStub } from '../../../contracts/file-name/file-name.stub';
 
 describe('barrelCompletenessLayerBroker', () => {
   it('VALID: {every wrapper export re-exported, a type-only sibling needs none} => reports nothing and returns true', () => {
@@ -14,20 +13,20 @@ describe('barrelCompletenessLayerBroker', () => {
     const subpathDirectory = FilePathStub({ value: '/repo/packages/@gateway/node/src/fs/' });
 
     proxy.fsReaddirSync.returns({
-      dirPath: subpathDirectory,
+      path: subpathDirectory,
       entries: [
-        { name: FileNameStub({ value: 'is-fs-error' }), isDirectory: true },
-        { name: FileNameStub({ value: 'fs.ts' }), isDirectory: false },
+        { name: 'is-fs-error', kind: 'directory' },
+        { name: 'fs.ts', kind: 'file' },
       ],
     });
     proxy.fsReaddirSync.returns({
-      dirPath: FilePathStub({ value: '/repo/packages/@gateway/node/src/fs/is-fs-error/' }),
+      path: FilePathStub({ value: '/repo/packages/@gateway/node/src/fs/is-fs-error/' }),
       entries: [
-        { name: FileNameStub({ value: 'fs-error.ts' }), isDirectory: false },
-        { name: FileNameStub({ value: 'fs-error.stub.ts' }), isDirectory: false },
-        { name: FileNameStub({ value: 'is-fs-error.ts' }), isDirectory: false },
-        { name: FileNameStub({ value: 'is-fs-error.proxy.ts' }), isDirectory: false },
-        { name: FileNameStub({ value: 'is-fs-error.test.ts' }), isDirectory: false },
+        { name: 'fs-error.ts', kind: 'file' },
+        { name: 'fs-error.stub.ts', kind: 'file' },
+        { name: 'is-fs-error.ts', kind: 'file' },
+        { name: 'is-fs-error.proxy.ts', kind: 'file' },
+        { name: 'is-fs-error.test.ts', kind: 'file' },
       ],
     });
     proxy.fsReadFileSync.returns({
@@ -84,15 +83,15 @@ describe('barrelCompletenessLayerBroker', () => {
     const subpathDirectory = FilePathStub({ value: '/repo/packages/@gateway/node/src/dns/' });
 
     proxy.fsReaddirSync.returns({
-      dirPath: subpathDirectory,
+      path: subpathDirectory,
       entries: [
-        { name: FileNameStub({ value: 'resolve4' }), isDirectory: true },
-        { name: FileNameStub({ value: 'dns.ts' }), isDirectory: false },
+        { name: 'resolve4', kind: 'directory' },
+        { name: 'dns.ts', kind: 'file' },
       ],
     });
     proxy.fsReaddirSync.returns({
-      dirPath: FilePathStub({ value: '/repo/packages/@gateway/node/src/dns/resolve4/' }),
-      entries: [{ name: FileNameStub({ value: 'resolve4.ts' }), isDirectory: false }],
+      path: FilePathStub({ value: '/repo/packages/@gateway/node/src/dns/resolve4/' }),
+      entries: [{ name: 'resolve4.ts', kind: 'file' }],
     });
     proxy.fsReadFileSync.returns({
       path: FilePathStub({
@@ -125,7 +124,7 @@ describe('barrelCompletenessLayerBroker', () => {
     const node = TsestreeStub({ type: TsestreeNodeType.Program });
     const subpathDirectory = FilePathStub({ value: '/repo/packages/@gateway/node/src/dgram/' });
 
-    proxy.fsReaddirSync.returns({ dirPath: subpathDirectory, entries: [] });
+    proxy.fsReaddirSync.returns({ path: subpathDirectory, entries: [] });
 
     const name = IdentifierStub({ value: 'createSocket' });
     const source = ImportPathStub({ value: './create-socket/create-socket' });
@@ -161,7 +160,7 @@ describe('barrelCompletenessLayerBroker', () => {
     const node = TsestreeStub({ type: TsestreeNodeType.Program });
     const subpathDirectory = FilePathStub({ value: '/repo/packages/@gateway/node/src/tls/' });
 
-    proxy.fsReaddirSync.returns({ dirPath: subpathDirectory, entries: [] });
+    proxy.fsReaddirSync.returns({ path: subpathDirectory, entries: [] });
     proxy.fsExistsSync.returns({
       path: FilePathStub({
         value: '/repo/packages/@gateway/node/src/tls/create-server/create-server.ts',
@@ -202,7 +201,7 @@ describe('barrelCompletenessLayerBroker', () => {
     const node = TsestreeStub({ type: TsestreeNodeType.Program });
     const subpathDirectory = FilePathStub({ value: '/repo/packages/@gateway/node/src/vm/' });
 
-    proxy.fsReaddirSync.returns({ dirPath: subpathDirectory, entries: [] });
+    proxy.fsReaddirSync.returns({ path: subpathDirectory, entries: [] });
 
     const result = barrelCompletenessLayerBroker({
       node,
@@ -230,7 +229,7 @@ describe('barrelCompletenessLayerBroker', () => {
       value: '/repo/packages/@gateway/node/src/perf_hooks/',
     });
 
-    proxy.fsReaddirSync.returns({ dirPath: subpathDirectory, entries: [] });
+    proxy.fsReaddirSync.returns({ path: subpathDirectory, entries: [] });
 
     const result = barrelCompletenessLayerBroker({
       node,
@@ -256,7 +255,7 @@ describe('barrelCompletenessLayerBroker', () => {
     const node = TsestreeStub({ type: TsestreeNodeType.Program });
     const subpathDirectory = FilePathStub({ value: '/repo/packages/@gateway/node/src/os/' });
 
-    proxy.fsReaddirSync.returns({ dirPath: subpathDirectory, entries: [] });
+    proxy.fsReaddirSync.returns({ path: subpathDirectory, entries: [] });
 
     const result = barrelCompletenessLayerBroker({
       node,
