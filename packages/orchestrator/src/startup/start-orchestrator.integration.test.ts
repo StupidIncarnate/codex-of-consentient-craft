@@ -9,19 +9,26 @@ describe('StartOrchestrator', () => {
   const envHarness = orchestrationEnvironmentHarness();
 
   describe('bootstrap wiring', () => {
-    it('VALID: {called twice} => starts the passive watchers and returns success both times', () => {
+    // StartOrchestrator.bootstrap() returns void (a synchronous void expression cannot be
+    // captured into a variable or passed to expect() — @typescript-eslint/no-confusing-void-expression
+    // refuses both), and startup/ cannot import state/ to observe the watchers it wires directly.
+    // The deep real-effect proofs (each listener actually fires) live in every migrated bootstrap
+    // responder's own unit test. This proves the call is reached twice without throwing and leaves
+    // a sibling method (getExecutionQueue) working, the same way this file's own stopAllChats test
+    // proves that void call via its sibling stopChat.
+    it('VALID: {called twice} => starts the passive watchers; getExecutionQueue still resolves', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'start-orch-bootstrap' }),
       });
       const { restore } = envHarness.setupHome({ tempDir: testbed.guildPath });
 
-      const first = StartOrchestrator.bootstrap();
-      const second = StartOrchestrator.bootstrap();
+      StartOrchestrator.bootstrap();
+      StartOrchestrator.bootstrap();
+      const queue = await StartOrchestrator.getExecutionQueue();
 
       restore();
 
-      expect(first).toStrictEqual({ success: true });
-      expect(second).toStrictEqual({ success: true });
+      expect(queue).toStrictEqual([]);
     });
   });
 

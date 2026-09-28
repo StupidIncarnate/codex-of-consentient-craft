@@ -352,11 +352,29 @@ describe('EvaluateHoldLayerResponder', () => {
   });
 
   describe('the caller is a timer tick', () => {
-    it('VALID: {any call} => returns success synchronously, before the scan resolves', () => {
+    it('VALID: {any call} => returns before the scan resolves, so the hold is still unset synchronously', () => {
       const proxy = EvaluateHoldLayerResponderProxy();
       proxy.setupNoHeldState();
+      proxy.setupLedger({
+        ledger: UsageLedgerStub({
+          buckets: {
+            [String(NOW - HOUR)]: UsageBucketStub({
+              input: 0,
+              cacheCreation: 0,
+              cacheRead: 0,
+              output: 186,
+            }),
+          },
+          cursors: {},
+          ceilings: { fiveHour: null, sevenDay: 1_000 },
+        }),
+      });
 
-      expect(EvaluateHoldLayerResponder()).toStrictEqual({ success: true });
+      EvaluateHoldLayerResponder();
+
+      // The scan is fire-and-forget: the call above returned before its promise chain settled, so
+      // the hold this ledger would raise (93% of the ceiling) has not landed yet.
+      expect(orchestrationDispatchState.getHold()).toBe(null);
     });
 
     it('ERROR: {the state write fails} => logs and leaves the poller alive rather than throwing', async () => {

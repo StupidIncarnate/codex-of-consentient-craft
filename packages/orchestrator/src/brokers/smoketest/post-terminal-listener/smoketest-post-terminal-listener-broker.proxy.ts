@@ -1,8 +1,14 @@
+import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
+
 import { createTerminalHandlerLayerBrokerProxy } from './create-terminal-handler-layer-broker.proxy';
 
 export const smoketestPostTerminalListenerBrokerProxy = (): {
   reset: () => void;
   setupProcessSucceeds: () => void;
+  // Forwarded from the dispatched handler's own mocked boundary — a caller composing THIS proxy
+  // needs this to prove the real install wiring reaches processTerminalEventLayerBroker with the
+  // right shape, without reaching past this proxy into its child.
+  getProcessCallArgs: () => RecordedCalls;
 } => {
   const handlerProxy = createTerminalHandlerLayerBrokerProxy();
 
@@ -17,5 +23,6 @@ export const smoketestPostTerminalListenerBrokerProxy = (): {
     setupProcessSucceeds: (): void => {
       handlerProxy.setupProcessSucceeds();
     },
+    getProcessCallArgs: (): RecordedCalls => handlerProxy.getProcessCallArgs(),
   };
 };

@@ -1,19 +1,21 @@
 import { OrchestrationBootstrapResponderProxy } from './orchestration-bootstrap-responder.proxy';
 
 describe('OrchestrationBootstrapResponder', () => {
-  it('VALID: {} => returns the orchestrator bootstrap result', () => {
+  it('VALID: {} => delegates once to the orchestrator bootstrap', () => {
     const proxy = OrchestrationBootstrapResponderProxy();
     proxy.setupSuccess();
 
-    const result = proxy.callResponder();
+    proxy.callResponder();
 
-    expect(result).toStrictEqual({ success: true });
+    expect(proxy.getBootstrapCalls()).toStrictEqual([[]]);
   });
 
   it('ERROR: {adapter throws} => propagates error', () => {
     const proxy = OrchestrationBootstrapResponderProxy();
     proxy.setupError({ message: 'bootstrap failed' });
 
-    expect(() => proxy.callResponder()).toThrow(/^bootstrap failed$/u);
+    expect(() => {
+      proxy.callResponder();
+    }).toThrow(/^bootstrap failed$/u);
   });
 });

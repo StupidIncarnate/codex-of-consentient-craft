@@ -16,14 +16,8 @@
  * the outbox to see natural terminal transitions the orchestration loop persists in-process.
  */
 
-import type {
-  AdapterResult,
-  Quest,
-  QuestId,
-  QuestStatus,
-  SessionId,
-} from '@dungeonmaster/shared/contracts';
-import { adapterResultContract, getQuestInputContract } from '@dungeonmaster/shared/contracts';
+import type { Quest, QuestId, QuestStatus, SessionId } from '@dungeonmaster/shared/contracts';
+import { getQuestInputContract } from '@dungeonmaster/shared/contracts';
 
 import { questGetBroker } from '../../../brokers/quest/get/quest-get-broker';
 import { questOutboxWatchBroker } from '../../../brokers/quest/outbox-watch/quest-outbox-watch-broker';
@@ -35,10 +29,9 @@ const state: { installed: { stop: () => void } | null; installing: boolean } = {
   installing: false,
 };
 
-export const ExecutionQueueSyncListenerBootstrapResponder = (): AdapterResult => {
-  const ok = adapterResultContract.parse({ success: true });
+export const ExecutionQueueSyncListenerBootstrapResponder = (): void => {
   if (state.installed !== null || state.installing) {
-    return ok;
+    return;
   }
   state.installing = true;
   questQueueSyncListenerBroker({
@@ -88,5 +81,4 @@ export const ExecutionQueueSyncListenerBootstrapResponder = (): AdapterResult =>
         `[ExecutionQueueSyncListenerBootstrapResponder] install failed: ${String(error)}\n`,
       );
     });
-  return ok;
 };

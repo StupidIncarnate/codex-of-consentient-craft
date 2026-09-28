@@ -3,10 +3,8 @@
  *
  * USAGE:
  * ProcessStaleWatchBootstrapResponder();
- * // Returns { success: true } once the watchdog is registered. Subsequent calls are no-ops.
+ * // Registers the watchdog. Subsequent calls are no-ops.
  */
-
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 import { processStaleWatchBroker } from '../../../brokers/process/stale-watch/process-stale-watch-broker';
 import { orchestrationProcessesState } from '../../../state/orchestration-processes/orchestration-processes-state';
@@ -14,9 +12,9 @@ import { processStaleWatchBootstrapState } from '../../../state/process-stale-wa
 
 const MS_PER_SEC = 1000;
 
-export const ProcessStaleWatchBootstrapResponder = (): AdapterResult => {
+export const ProcessStaleWatchBootstrapResponder = (): void => {
   if (processStaleWatchBootstrapState.getHandle() !== null) {
-    return { success: true as const };
+    return;
   }
 
   const handle = processStaleWatchBroker({
@@ -35,5 +33,4 @@ export const ProcessStaleWatchBootstrapResponder = (): AdapterResult => {
   });
 
   processStaleWatchBootstrapState.setHandle({ handle });
-  return { success: true as const };
 };

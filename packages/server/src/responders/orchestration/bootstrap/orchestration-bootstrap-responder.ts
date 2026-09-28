@@ -5,10 +5,11 @@
  *
  * USAGE:
  * OrchestrationBootstrapResponder();
- * // Returns { success: true }; a repeat call is a no-op
+ * // A repeat call is a no-op
  */
 
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
-export const OrchestrationBootstrapResponder = (): AdapterResult => StartOrchestrator.bootstrap();
+export const OrchestrationBootstrapResponder = (): void => {
+  StartOrchestrator.bootstrap();
+};

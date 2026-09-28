@@ -15,7 +15,7 @@
  */
 
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
-import { adapterResultContract, processIdContract } from '@dungeonmaster/shared/contracts';
+import { processIdContract } from '@dungeonmaster/shared/contracts';
 
 import { questNodeDispatchLoopBroker } from '../../../brokers/quest/node-dispatch-loop/quest-node-dispatch-loop-broker';
 import { commandChatOutputEmitTransformer } from '../../../transformers/command-chat-output-emit/command-chat-output-emit-transformer';
@@ -34,9 +34,9 @@ const state: {
   runner: null,
 };
 
-export const OrchestrationDispatchBootstrapResponder = (): AdapterResult => {
+export const OrchestrationDispatchBootstrapResponder = (): void => {
   if (state.runner !== null) {
-    return adapterResultContract.parse({ success: true });
+    return;
   }
 
   const runner = questNodeDispatchRunnerBroker({
@@ -88,6 +88,4 @@ export const OrchestrationDispatchBootstrapResponder = (): AdapterResult => {
       payload: {},
     });
   });
-
-  return adapterResultContract.parse({ success: true });
 };

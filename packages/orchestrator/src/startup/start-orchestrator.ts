@@ -77,7 +77,7 @@ export const StartOrchestrator = {
   // The passive watchers, started by each host process's own startup — never at import, because
   // they start real timers and file watchers that a module import cannot undo: importing this file
   // must do no I/O. Every bootstrap is idempotent, so a second call is a no-op.
-  bootstrap: (): AdapterResult => {
+  bootstrap: (): void => {
     // The cross-guild execution-queue change broadcast.
     ExecutionQueueFlow.bootstrap();
     // Keeps queue entries in sync with quest file changes (abandon/complete/delete) so the
@@ -92,7 +92,7 @@ export const StartOrchestrator = {
     RateLimitsFlow.bootstrap();
     // Scans the orchestration-processes registry every 30s and emits a [dev] WARN line to stderr
     // for any registered process whose stdout has been silent past the 60s threshold.
-    return ProcessStaleWatchFlow.bootstrap();
+    ProcessStaleWatchFlow.bootstrap();
   },
 
   // Guild methods

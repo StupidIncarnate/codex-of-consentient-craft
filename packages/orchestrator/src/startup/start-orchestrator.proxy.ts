@@ -99,7 +99,7 @@ type RunSmoketestResult = Awaited<ReturnType<typeof StartOrchestrator.runSmokete
 type GetSmoketestStateResult = ReturnType<typeof StartOrchestrator.getSmoketestState>;
 
 export const StartOrchestratorProxy = (): {
-  // bootstrap — sync, void-ish AdapterResult. start-orchestrator.ts:83.
+  // bootstrap — sync, returns void. start-orchestrator.ts:80.
   bootstrapSucceeds: () => void;
   bootstrapThrows: (params: { error: Error }) => void;
   // Guild methods — GuildFlow, via guild-*-broker.
@@ -396,7 +396,7 @@ export const StartOrchestratorProxy = (): {
 
   return {
     bootstrapSucceeds: (): void => {
-      bootstrapHandle.calledWith([]).returns({ success: true });
+      bootstrapHandle.calledWith([]).returns(undefined);
     },
     bootstrapThrows: ({ error }: { error: Error }): void => {
       bootstrapHandle.calledWith([]).throws(error);

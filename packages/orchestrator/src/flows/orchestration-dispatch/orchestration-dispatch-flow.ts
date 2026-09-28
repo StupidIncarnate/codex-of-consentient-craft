@@ -12,11 +12,7 @@
  * const mode = await OrchestrationDispatchFlow.getMode();
  */
 
-import type {
-  AdapterResult,
-  DispatchState,
-  OrchestrationMode,
-} from '@dungeonmaster/shared/contracts';
+import type { DispatchState, OrchestrationMode } from '@dungeonmaster/shared/contracts';
 
 import { OrchestrationDispatchBootstrapResponder } from '../../responders/orchestration-dispatch/bootstrap/orchestration-dispatch-bootstrap-responder';
 import { OrchestrationDispatchGetResponder } from '../../responders/orchestration-dispatch/get/orchestration-dispatch-get-responder';
@@ -26,7 +22,9 @@ import { OrchestrationDispatchPlayResponder } from '../../responders/orchestrati
 import { OrchestrationModeGetResponder } from '../../responders/orchestration-mode/get/orchestration-mode-get-responder';
 
 export const OrchestrationDispatchFlow = {
-  bootstrap: (): AdapterResult => OrchestrationDispatchBootstrapResponder(),
+  bootstrap: (): void => {
+    OrchestrationDispatchBootstrapResponder();
+  },
 
   normalizeBoot: async (): Promise<DispatchState> => OrchestrationDispatchNormalizeBootResponder(),
 

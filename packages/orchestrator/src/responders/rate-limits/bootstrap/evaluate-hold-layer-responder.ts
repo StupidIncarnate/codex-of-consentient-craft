@@ -25,8 +25,7 @@
  * // Returns immediately; the hold lands in orchestrationDispatchState once the scan resolves
  */
 
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
-import { adapterResultContract, processIdContract } from '@dungeonmaster/shared/contracts';
+import { processIdContract } from '@dungeonmaster/shared/contracts';
 
 import { dispatchHoldEvaluateBroker } from '../../../brokers/dispatch-hold/evaluate/dispatch-hold-evaluate-broker';
 import { usageLedgerScanBroker } from '../../../brokers/usage-ledger/scan/usage-ledger-scan-broker';
@@ -39,7 +38,7 @@ import { usageLedgerToSnapshotTransformer } from '../../../transformers/usage-le
 
 const MEASURE_PROCESS_ID = processIdContract.parse('rate-limits-measure');
 
-export const EvaluateHoldLayerResponder = (): AdapterResult => {
+export const EvaluateHoldLayerResponder = (): void => {
   const nowMs = Date.now();
 
   // At most one scan per process. A tick that lands while one is running evaluates the hold on the
@@ -85,8 +84,4 @@ export const EvaluateHoldLayerResponder = (): AdapterResult => {
         `[rate-limits] dispatch hold evaluation failed: ${error instanceof Error ? error.message : String(error)}\n`,
       );
     });
-
-  // Reports that the pass was STARTED, not what it decided — the caller is a timer tick with
-  // nothing to await. The decision reaches the world through orchestrationDispatchState above.
-  return adapterResultContract.parse({ success: true });
 };

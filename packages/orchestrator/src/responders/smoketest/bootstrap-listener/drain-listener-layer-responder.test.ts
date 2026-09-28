@@ -14,7 +14,7 @@ import { DrainListenerLayerResponderProxy } from './drain-listener-layer-respond
 
 describe('DrainListenerLayerResponder', () => {
   describe('last quest drains — clears active-run flag', () => {
-    it('VALID: {single registered listener, active run started, drain last one} => run state ends, registries empty, returns success', () => {
+    it('VALID: {single registered listener, active run started, drain last one} => run state ends, registries empty', () => {
       DrainListenerLayerResponderProxy();
       const questId = QuestIdStub({ value: 'q-drain-last' });
       smoketestListenerState.register({ questId, entry: SmoketestListenerEntryStub() });
@@ -24,15 +24,13 @@ describe('DrainListenerLayerResponder', () => {
         suite: SmoketestSuiteStub({ value: 'mcp' }),
       });
 
-      const result = DrainListenerLayerResponder({ questId });
+      DrainListenerLayerResponder({ questId });
 
       expect({
-        result,
         active: smoketestRunState.isActive(),
         listenerIds: smoketestListenerState.getAllQuestIds(),
         scenarioEntry: smoketestScenarioMetaState.get({ questId }),
       }).toStrictEqual({
-        result: { success: true },
         active: false,
         listenerIds: [],
         scenarioEntry: undefined,
@@ -79,17 +77,16 @@ describe('DrainListenerLayerResponder', () => {
   });
 
   describe('draining when registry already empty', () => {
-    it('VALID: {no listeners registered, no active run} => no-op, returns success', () => {
+    it('VALID: {no listeners registered, no active run} => no-op', () => {
       DrainListenerLayerResponderProxy();
       const questId = QuestIdStub({ value: 'q-nothing-registered' });
 
-      const result = DrainListenerLayerResponder({ questId });
+      DrainListenerLayerResponder({ questId });
 
       expect({
-        result,
         active: smoketestRunState.isActive(),
         listenerIds: smoketestListenerState.getAllQuestIds(),
-      }).toStrictEqual({ result: { success: true }, active: false, listenerIds: [] });
+      }).toStrictEqual({ active: false, listenerIds: [] });
     });
   });
 });

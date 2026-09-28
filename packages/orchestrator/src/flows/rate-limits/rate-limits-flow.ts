@@ -7,13 +7,15 @@
  * // Returns: RateLimitsSnapshot | null
  */
 
-import type { AdapterResult, RateLimitsSnapshot } from '@dungeonmaster/shared/contracts';
+import type { RateLimitsSnapshot } from '@dungeonmaster/shared/contracts';
 
 import { RateLimitsBootstrapResponder } from '../../responders/rate-limits/bootstrap/rate-limits-bootstrap-responder';
 import { RateLimitsGetResponder } from '../../responders/rate-limits/get/rate-limits-get-responder';
 
 export const RateLimitsFlow = {
-  bootstrap: (): AdapterResult => RateLimitsBootstrapResponder(),
+  bootstrap: (): void => {
+    RateLimitsBootstrapResponder();
+  },
 
   get: async (): Promise<RateLimitsSnapshot | null> => RateLimitsGetResponder(),
 };

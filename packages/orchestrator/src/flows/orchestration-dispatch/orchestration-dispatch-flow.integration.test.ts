@@ -14,27 +14,35 @@ const NO_SPEND = 0;
 
 describe('OrchestrationDispatchFlow', () => {
   describe('bootstrap', () => {
-    it('VALID: {first call} => returns success', () => {
+    // OrchestrationDispatchFlow.bootstrap() returns void (a synchronous void expression cannot be
+    // captured into a variable or passed to expect() — @typescript-eslint/no-confusing-void-expression
+    // refuses both). The deep real-effect proof (the listener broadcasts dispatch-state-changed on a
+    // play/pause flip) lives in OrchestrationDispatchBootstrapResponder's own unit test. This
+    // flow-level test proves the call is reached and leaves the flow's other surface (get()) working,
+    // the same way start-orchestrator.integration.test.ts proves stopAllChats via its sibling stopChat.
+    it('VALID: {first call} => wires the runner; get() still resolves the paused default', async () => {
       // Point the home at a nonexistent dir so boot normalization reads the paused default
       // and never touches the developer's real ~/.dungeonmaster.
       process.env.DUNGEONMASTER_HOME = '/tmp/dm-dispatch-flow-integration-nonexistent';
 
-      const result = OrchestrationDispatchFlow.bootstrap();
+      OrchestrationDispatchFlow.bootstrap();
+      const state = await OrchestrationDispatchFlow.get();
 
       Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
 
-      expect(result).toStrictEqual({ success: true });
+      expect(state).toStrictEqual({ mode: 'paused', updatedAt: '1970-01-01T00:00:00.000Z' });
     });
 
-    it('VALID: {second call} => idempotent, returns success', () => {
+    it('VALID: {second call} => idempotent; get() still resolves the paused default', async () => {
       process.env.DUNGEONMASTER_HOME = '/tmp/dm-dispatch-flow-integration-nonexistent';
       OrchestrationDispatchFlow.bootstrap();
 
-      const result = OrchestrationDispatchFlow.bootstrap();
+      OrchestrationDispatchFlow.bootstrap();
+      const state = await OrchestrationDispatchFlow.get();
 
       Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
 
-      expect(result).toStrictEqual({ success: true });
+      expect(state).toStrictEqual({ mode: 'paused', updatedAt: '1970-01-01T00:00:00.000Z' });
     });
   });
 

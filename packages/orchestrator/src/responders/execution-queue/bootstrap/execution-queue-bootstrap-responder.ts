@@ -11,8 +11,7 @@
  * WHEN-NOT-TO-USE: Not for request-scoped invocation.
  */
 
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
-import { adapterResultContract, processIdContract } from '@dungeonmaster/shared/contracts';
+import { processIdContract } from '@dungeonmaster/shared/contracts';
 
 import { orchestrationEventsState } from '../../../state/orchestration-events/orchestration-events-state';
 import { questExecutionQueueState } from '../../../state/quest-execution-queue/quest-execution-queue-state';
@@ -25,9 +24,9 @@ const state: {
   installed: false,
 };
 
-export const ExecutionQueueBootstrapResponder = (): AdapterResult => {
+export const ExecutionQueueBootstrapResponder = (): void => {
   if (state.installed) {
-    return adapterResultContract.parse({ success: true });
+    return;
   }
   state.installed = true;
 
@@ -42,6 +41,4 @@ export const ExecutionQueueBootstrapResponder = (): AdapterResult => {
       payload: {},
     });
   });
-
-  return adapterResultContract.parse({ success: true });
 };

@@ -29,7 +29,7 @@ export const RateLimitsBootstrapResponderProxy = (): {
   const evaluateMock = EvaluateHoldLayerResponder as jest.MockedFunction<
     typeof EvaluateHoldLayerResponder
   >;
-  evaluateMock.mockReturnValue({ success: true });
+  evaluateMock.mockReturnValue(undefined);
 
   return {
     setupReadSucceeds: watchProxy.setupReadSucceeds,

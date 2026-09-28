@@ -28,15 +28,16 @@ describe('RateLimitsBootstrapResponder', () => {
     expect([rateLimitsState.get(), handler.mock.calls]).toStrictEqual([null, []]);
   });
 
-  it('VALID: {idempotent calls} => second call returns success without re-bootstrapping', () => {
+  it('VALID: {idempotent calls} => second call does not re-bootstrap or re-evaluate', () => {
     const proxy = RateLimitsBootstrapResponderProxy();
     proxy.reset();
 
-    const first = RateLimitsBootstrapResponder();
-    const second = RateLimitsBootstrapResponder();
+    RateLimitsBootstrapResponder();
+    RateLimitsBootstrapResponder();
 
-    expect(first).toStrictEqual({ success: true });
-    expect(second).toStrictEqual({ success: true });
+    // Still just the ONE boot-time evaluate call — a second real bootstrap would have polled
+    // again and evaluated a second time.
+    expect(proxy.evaluationCalls()).toStrictEqual([[]]);
   });
 
   describe('rate-limit guardrail', () => {

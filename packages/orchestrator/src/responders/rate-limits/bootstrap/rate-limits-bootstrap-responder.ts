@@ -16,11 +16,9 @@
  *
  * USAGE:
  * RateLimitsBootstrapResponder();
- * // Idempotent — subsequent calls return the existing handle. Polls every 5s, measuring usage and
- * // raising or lifting the dispatch hold.
+ * // Idempotent — a repeat call is a no-op. Polls every 5s, measuring usage and raising or
+ * // lifting the dispatch hold.
  */
-
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 import { rateLimitsWatchBroker } from '../../../brokers/rate-limits/watch/rate-limits-watch-broker';
 import { rateLimitsBootstrapState } from '../../../state/rate-limits-bootstrap/rate-limits-bootstrap-state';
@@ -29,9 +27,9 @@ import { EvaluateHoldLayerResponder } from './evaluate-hold-layer-responder';
 
 const DEFAULT_POLL_INTERVAL_MS = 5000;
 
-export const RateLimitsBootstrapResponder = (): AdapterResult => {
+export const RateLimitsBootstrapResponder = (): void => {
   if (rateLimitsBootstrapState.getHandle() !== null) {
-    return { success: true as const };
+    return;
   }
 
   const overrideMs = Number(process.env.DUNGEONMASTER_RATE_LIMITS_POLL_MS);
@@ -64,6 +62,4 @@ export const RateLimitsBootstrapResponder = (): AdapterResult => {
   // read getIsPlaying(). Without it the first play press after a reboot dispatches into a window
   // the guardrail had already closed.
   EvaluateHoldLayerResponder();
-
-  return { success: true as const };
 };

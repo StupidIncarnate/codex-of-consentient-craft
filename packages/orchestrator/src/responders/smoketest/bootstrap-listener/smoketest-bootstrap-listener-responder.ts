@@ -17,8 +17,7 @@
  * the outbox to see natural terminal transitions the orchestration loop persists in-process.
  */
 
-import type { AdapterResult, QuestId } from '@dungeonmaster/shared/contracts';
-import { adapterResultContract } from '@dungeonmaster/shared/contracts';
+import type { QuestId } from '@dungeonmaster/shared/contracts';
 
 import { questOutboxWatchBroker } from '../../../brokers/quest/outbox-watch/quest-outbox-watch-broker';
 import { smoketestPostTerminalListenerBroker } from '../../../brokers/smoketest/post-terminal-listener/smoketest-post-terminal-listener-broker';
@@ -31,10 +30,9 @@ const state: { installed: { stop: () => void } | null; installing: boolean } = {
   installing: false,
 };
 
-export const SmoketestBootstrapListenerResponder = (): AdapterResult => {
-  const ok = adapterResultContract.parse({ success: true });
+export const SmoketestBootstrapListenerResponder = (): void => {
   if (state.installed !== null || state.installing) {
-    return ok;
+    return;
   }
   state.installing = true;
   smoketestPostTerminalListenerBroker({
@@ -69,5 +67,4 @@ export const SmoketestBootstrapListenerResponder = (): AdapterResult => {
         `[SmoketestBootstrapListenerResponder] install failed: ${String(error)}\n`,
       );
     });
-  return ok;
 };
