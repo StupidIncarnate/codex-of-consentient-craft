@@ -192,3 +192,7 @@ Never `registerMock({ fn: run })` in a caller's proxy: `runProxy()` now addresse
 | cli | 1 | `bin/cli-entry.ts` |
 
 Phase 3 deletes `packages/shared/src/adapters/`, `packages/shared/adapters.ts`, the "Adapter Proxies" block of `packages/shared/testing.ts` and the `./adapters` export, once this census is empty.
+
+### Trap: a passthrough join composed from far away (O3, O7)
+
+`configRootFindBrokerProxy`, `dungeonmasterHomeFindBrokerProxy` and their kin give the shared `#gateway/node/path` `join` mock a real-passthrough default. A broker whose proxy reaches them transitively (through `questFindQuestPathBrokerProxy`, `questCwdResolveBrokerProxy`, `questRepoRootBrokerProxy` or `cwdResolveBrokerProxy`) can build a wrong path and still pass, because the wrong join is answered for real and a loader proxy that reads by call order serves the right content anyway. Such a broker's proxy exposes `getQuestFileJoinArgs` (read back with `joinHandle.callsMatching([folderPath]).at(0)`), and its test asserts the exact join tuple. Prove it: mutate the join and watch that test fail.
