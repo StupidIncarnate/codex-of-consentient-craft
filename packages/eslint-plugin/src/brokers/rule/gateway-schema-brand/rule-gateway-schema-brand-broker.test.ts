@@ -27,6 +27,18 @@ const OTHER_WALKED_FILE_DECLARATION_FILE = FilePathStub({
 beforeEach(() => {
   const proxy = ruleGatewaySchemaBrandBrokerProxy();
 
+  // existsSyncProxy (composed inside workspaceRootFindBrokerProxy) ships no address-less
+  // catch-all: every ancestor level between each interface-declaring file's directory and the
+  // real workspace root needs an explicit false stage.
+  proxy.workspaceRoot.setupNoPackageJson({ dir: '/repo/packages/@gateway/node/src' });
+  proxy.workspaceRoot.setupNoPackageJson({ dir: '/repo/packages/@gateway/node' });
+  proxy.workspaceRoot.setupNoPackageJson({
+    dir: '/repo/packages/@gateway/browser/src/some-subpath',
+  });
+  proxy.workspaceRoot.setupNoPackageJson({ dir: '/repo/packages/@gateway/browser/src' });
+  proxy.workspaceRoot.setupNoPackageJson({ dir: '/repo/packages/@gateway/browser' });
+  proxy.workspaceRoot.setupNoPackageJson({ dir: '/repo/packages/@gateway' });
+  proxy.workspaceRoot.setupNoPackageJson({ dir: '/repo/packages' });
   proxy.workspaceRoot.setupWorkspaceRoot({
     rootDir: '/repo',
     rootPackageJsonName: 'dungeonmaster',

@@ -1,6 +1,6 @@
 import { fileContentsContract, type FilePath } from '@dungeonmaster/shared/contracts';
 import type { FileName } from '../../../contracts/file-name/file-name-contract';
-import { fsExistsSyncAdapterProxy } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter.proxy';
+import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { pathJoinAdapterProxy } from '../../../adapters/path/join/path-join-adapter.proxy';
 import { collectGatewayTypeDeclarationNamesLayerBrokerProxy } from './collect-gateway-type-declaration-names-layer-broker.proxy';
 
@@ -13,7 +13,7 @@ export const buildGatewayTypeDeclarationIndexLayerBrokerProxy = (): {
     sourceText: string;
   }) => void;
 } => {
-  const existsProxy = fsExistsSyncAdapterProxy();
+  const existsProxy = existsSyncProxy();
   const collectProxy = collectGatewayTypeDeclarationNamesLayerBrokerProxy();
   // Real passthrough default: pathJoinAdapter only joins the srcDir strings this proxy's callers
   // already stage exact matches for, so no staging of its own is needed here.
@@ -21,7 +21,7 @@ export const buildGatewayTypeDeclarationIndexLayerBrokerProxy = (): {
 
   return {
     setupSrcDirMissing: ({ srcDir }: { srcDir: FilePath }): void => {
-      existsProxy.returns({ filePath: srcDir, exists: false });
+      existsProxy.returns({ path: srcDir, exists: false });
     },
 
     // One declaration file directly inside `srcDir` — enough to prove the index walk fires for a
@@ -38,7 +38,7 @@ export const buildGatewayTypeDeclarationIndexLayerBrokerProxy = (): {
       filePath: FilePath;
       sourceText: string;
     }): void => {
-      existsProxy.returns({ filePath: srcDir, exists: true });
+      existsProxy.returns({ path: srcDir, exists: true });
       collectProxy.fsReaddirSync.returns({
         dirPath: srcDir,
         entries: [{ name: fileName, isDirectory: false }],

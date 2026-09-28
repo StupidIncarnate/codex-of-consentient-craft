@@ -1,5 +1,5 @@
 import { fsReaddirSyncAdapterProxy } from '../../../adapters/fs/readdir-sync/fs-readdir-sync-adapter.proxy';
-import { fsExistsSyncAdapterProxy } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter.proxy';
+import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { fsReadFileSyncAdapterProxy } from '../../../adapters/fs/read-file-sync/fs-read-file-sync-adapter.proxy';
 
 /**
@@ -8,10 +8,10 @@ import { fsReadFileSyncAdapterProxy } from '../../../adapters/fs/read-file-sync/
  */
 export const barrelCompletenessLayerBrokerProxy = (): {
   fsReaddirSync: ReturnType<typeof fsReaddirSyncAdapterProxy>;
-  fsExistsSync: ReturnType<typeof fsExistsSyncAdapterProxy>;
+  fsExistsSync: ReturnType<typeof existsSyncProxy>;
   fsReadFileSync: ReturnType<typeof fsReadFileSyncAdapterProxy>;
 } => ({
   fsReaddirSync: fsReaddirSyncAdapterProxy(),
-  fsExistsSync: fsExistsSyncAdapterProxy(),
+  fsExistsSync: existsSyncProxy(),
   fsReadFileSync: fsReadFileSyncAdapterProxy(),
 });

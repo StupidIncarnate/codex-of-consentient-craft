@@ -1,7 +1,7 @@
-import { existsSync, readFileSync } from 'fs';
+import { readFileSync } from 'fs';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { fileCountContract, type FileCount } from '@dungeonmaster/shared/contracts';
-import { fsExistsSyncAdapterProxy } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter.proxy';
+import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { fsReadFileSyncAdapterProxy } from '../../../adapters/fs/read-file-sync/fs-read-file-sync-adapter.proxy';
 import { pathJoinAdapterProxy } from '../../../adapters/path/join/path-join-adapter.proxy';
 import { pathDirnameAdapterProxy } from '../../../adapters/path/dirname/path-dirname-adapter.proxy';
@@ -19,22 +19,20 @@ export const resolvePackagePlatformLayerBrokerProxy = (): {
     hasWidgetsFolder?: boolean;
     hasInkAdapter?: boolean;
   }) => void;
+  setupNoPackageRoot: ({ dirs }: { dirs: readonly string[] }) => void;
   countPackageJsonReads: ({ packageRoot }: { packageRoot: string }) => FileCount;
 } => {
-  // Constructed for their own default real-passthrough behavior and only to satisfy
-  // enforce-proxy-child-creation — resolvePackagePlatformLayerBroker mocks the raw fs functions
-  // below directly, since the walk probes many candidate paths no single adapter proxy addresses.
-  fsExistsSyncAdapterProxy();
+  // Constructed for its own default real-passthrough behavior and only to satisfy
+  // enforce-proxy-child-creation — resolvePackagePlatformLayerBroker's own existsSync calls, and
+  // findAncestorDirectoryLayerBroker's real (unmocked) walk underneath it, share the SAME gateway
+  // existsSync mock this proxy's own existsProxy stages below.
   fsReadFileSyncAdapterProxy();
   pathJoinAdapterProxy();
   pathDirnameAdapterProxy();
   findAncestorDirectoryLayerBrokerProxy();
 
-  const existsHandle = registerMock({ fn: existsSync });
+  const existsProxy = existsSyncProxy();
   const readHandle = registerMock({ fn: readFileSync });
-  // No single path to key on: platform detection probes several candidate paths per package, so
-  // the honest catch-all is "nothing exists" and each test stages the one package that does.
-  existsHandle.calledWith([]).implement(() => false);
 
   return {
     setupPackageRoot: ({
@@ -48,15 +46,26 @@ export const resolvePackagePlatformLayerBrokerProxy = (): {
       hasWidgetsFolder?: boolean;
       hasInkAdapter?: boolean;
     }): void => {
-      existsHandle.calledWith([`${packageRoot}/package.json`]).returns(true);
+      existsProxy.returns({ path: `${packageRoot}/package.json`, exists: true });
       readHandle.calledWith([`${packageRoot}/package.json`]).returns(JSON.stringify(packageJson));
-      if (hasWidgetsFolder) {
-        existsHandle.calledWith([`${packageRoot}/src/widgets`]).returns(true);
-      }
-      if (hasInkAdapter) {
-        existsHandle.calledWith([`${packageRoot}/src/adapters/ink`]).returns(true);
-      }
+      // Both checks run unconditionally in production, so both need an explicit answer here
+      // regardless of which flag is set — never only the "found" half.
+      existsProxy.returns({ path: `${packageRoot}/src/widgets`, exists: hasWidgetsFolder });
+      existsProxy.returns({ path: `${packageRoot}/src/adapters/ink`, exists: hasInkAdapter });
     },
+
+    // existsSyncProxy ships no address-less catch-all: a walk-to-root "nothing found" test stages
+    // every ancestor level's package.json explicitly false, one call per level. Mirrors real
+    // path.join's own normalization: a root dir ('/') must not double the leading slash.
+    setupNoPackageRoot: ({ dirs }: { dirs: readonly string[] }): void => {
+      dirs.forEach((dir) => {
+        existsProxy.returns({
+          path: dir.endsWith('/') ? `${dir}package.json` : `${dir}/package.json`,
+          exists: false,
+        });
+      });
+    },
+
     countPackageJsonReads: ({ packageRoot }: { packageRoot: string }): FileCount =>
       fileCountContract.parse(readHandle.callsMatching([`${packageRoot}/package.json`]).length),
   };

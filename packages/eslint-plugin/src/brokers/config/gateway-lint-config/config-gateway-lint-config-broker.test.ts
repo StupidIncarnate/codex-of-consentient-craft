@@ -5,7 +5,10 @@ import { configGatewayLintConfigBrokerProxy } from './config-gateway-lint-config
 describe('configGatewayLintConfigBroker', () => {
   describe('no .dungeonmaster.json anywhere', () => {
     it('EMPTY: {no ancestor holds .dungeonmaster.json} => returns an empty config', () => {
-      configGatewayLintConfigBrokerProxy();
+      const proxy = configGatewayLintConfigBrokerProxy();
+      proxy.setupNoDungeonmasterConfigAt({ configDir: '/orphan/src' });
+      proxy.setupNoDungeonmasterConfigAt({ configDir: '/orphan' });
+      proxy.setupNoDungeonmasterConfigAt({ configDir: '/' });
 
       const result = configGatewayLintConfigBroker({
         startDir: FilePathStub({ value: '/orphan/src' }),
@@ -32,6 +35,13 @@ describe('configGatewayLintConfigBroker', () => {
   describe('.dungeonmaster.json found by walking up from a nested directory', () => {
     it('VALID: {startDir nested under the repo root} => climbs up and returns the parsed gateway key', () => {
       const proxy = configGatewayLintConfigBrokerProxy();
+      proxy.setupNoDungeonmasterConfigAt({
+        configDir: '/repo/packages/eslint-plugin/src/brokers/config',
+      });
+      proxy.setupNoDungeonmasterConfigAt({ configDir: '/repo/packages/eslint-plugin/src/brokers' });
+      proxy.setupNoDungeonmasterConfigAt({ configDir: '/repo/packages/eslint-plugin/src' });
+      proxy.setupNoDungeonmasterConfigAt({ configDir: '/repo/packages/eslint-plugin' });
+      proxy.setupNoDungeonmasterConfigAt({ configDir: '/repo/packages' });
       proxy.setupDungeonmasterConfig({
         configDir: '/repo',
         contents: JSON.stringify({

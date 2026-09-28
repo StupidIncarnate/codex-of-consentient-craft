@@ -12,6 +12,14 @@ const OTHER_FILE = '/repo/packages/hooks/src/brokers/x/x-broker.ts';
 beforeEach(() => {
   const proxy = ruleEnforceGatewayConfigNamesExistBrokerProxy();
 
+  // The anchor file's own directory sits five levels below the workspace root — each ancestor
+  // in between needs an explicit false stage, since existsSyncProxy ships no address-less
+  // catch-all.
+  proxy.setupNoPackageJson({ dir: '/repo/packages/config/src/contracts/dungeonmaster-config' });
+  proxy.setupNoPackageJson({ dir: '/repo/packages/config/src/contracts' });
+  proxy.setupNoPackageJson({ dir: '/repo/packages/config/src' });
+  proxy.setupNoPackageJson({ dir: '/repo/packages/config' });
+  proxy.setupNoPackageJson({ dir: '/repo/packages' });
   proxy.setupWorkspaceRoot({
     rootDir: '/repo',
     packageNames: ['@dungeonmaster/orchestrator', '@dungeonmaster/hooks'],
@@ -19,6 +27,9 @@ beforeEach(() => {
   proxy.setupBarrelExists({
     barrelPath: '/repo/packages/@gateway/node/src/fs/fs.ts',
     sourceText: "export { readFileSync } from './read-file-sync/read-file-sync';\n",
+  });
+  proxy.setupBarrelMissing({
+    barrelPath: '/repo/packages/@gateway/node/src/renamed-away/renamed-away.ts',
   });
 });
 

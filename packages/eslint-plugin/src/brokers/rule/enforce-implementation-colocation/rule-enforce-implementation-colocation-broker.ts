@@ -15,7 +15,7 @@ import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-c
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
-import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter';
+import { existsSync } from '#gateway/node/fs';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import { isFileInFolderTypeGuard } from '../../../guards/is-file-in-folder-type/is-file-in-folder-type-guard';
 import { testFilePathVariantsTransformer } from '../../../transformers/test-file-path-variants/test-file-path-variants-transformer';
@@ -126,7 +126,7 @@ export const ruleEnforceImplementationColocationBroker = (): EslintRule => ({
           );
           const hasIntegrationTest = integrationTestPaths.some((testFilePath) => {
             const parsedPath = filePathContract.parse(testFilePath);
-            return fsExistsSyncAdapter({ filePath: parsedPath });
+            return existsSync(parsedPath);
           });
 
           // Check for forbidden unit test files
@@ -135,7 +135,7 @@ export const ruleEnforceImplementationColocationBroker = (): EslintRule => ({
           );
           const existingUnitTestPath = unitTestPaths.find((testFilePath) => {
             const parsedPath = filePathContract.parse(testFilePath);
-            return fsExistsSyncAdapter({ filePath: parsedPath });
+            return existsSync(parsedPath);
           });
 
           if (existingUnitTestPath) {
@@ -175,7 +175,7 @@ export const ruleEnforceImplementationColocationBroker = (): EslintRule => ({
             const proxyFilePath = filePathContract.parse(
               proxyDir ? `${proxyDir}/${proxyBaseName}` : proxyBaseName,
             );
-            const hasForbiddenProxy = fsExistsSyncAdapter({ filePath: proxyFilePath });
+            const hasForbiddenProxy = existsSync(proxyFilePath);
 
             if (hasForbiddenProxy) {
               ctx.report({
@@ -198,7 +198,7 @@ export const ruleEnforceImplementationColocationBroker = (): EslintRule => ({
             // Check if any test file exists
             const hasTestFile = testFilePaths.some((testFilePath) => {
               const parsedPath = filePathContract.parse(testFilePath);
-              return fsExistsSyncAdapter({ filePath: parsedPath });
+              return existsSync(parsedPath);
             });
 
             if (!hasTestFile) {
@@ -229,7 +229,7 @@ export const ruleEnforceImplementationColocationBroker = (): EslintRule => ({
           const stubBaseName = `${stubBaseNameWithoutExtension}.ts`;
           const stubFileName = directory ? `${directory}/${stubBaseName}` : stubBaseName;
           const stubFilePath = filePathContract.parse(stubFileName);
-          const hasStubFile = fsExistsSyncAdapter({ filePath: stubFilePath });
+          const hasStubFile = existsSync(stubFilePath);
 
           if (!hasStubFile) {
             ctx.report({
@@ -257,7 +257,7 @@ export const ruleEnforceImplementationColocationBroker = (): EslintRule => ({
           const directory = filenameParts.join('/');
           const proxyFileName = directory ? `${directory}/${proxyBaseName}` : proxyBaseName;
           const proxyFilePath = filePathContract.parse(proxyFileName);
-          const hasProxyFile = fsExistsSyncAdapter({ filePath: proxyFilePath });
+          const hasProxyFile = existsSync(proxyFilePath);
 
           if (!hasProxyFile) {
             // Check if an incorrectly named proxy file might exist
@@ -277,9 +277,7 @@ export const ruleEnforceImplementationColocationBroker = (): EslintRule => ({
               const invalidProxyFileName = `${firstPart}.proxy.${ext}`;
               const invalidProxyFilePath = filename.replace(fileBaseName, invalidProxyFileName);
               const invalidProxyFilePathContract = filePathContract.parse(invalidProxyFilePath);
-              const hasInvalidProxyFile = fsExistsSyncAdapter({
-                filePath: invalidProxyFilePathContract,
-              });
+              const hasInvalidProxyFile = existsSync(invalidProxyFilePathContract);
 
               if (hasInvalidProxyFile) {
                 ctx.report({

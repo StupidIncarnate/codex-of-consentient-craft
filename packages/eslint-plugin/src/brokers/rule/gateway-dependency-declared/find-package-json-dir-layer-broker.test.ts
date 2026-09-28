@@ -17,6 +17,8 @@ describe('findPackageJsonDirLayerBroker', () => {
 
     it('VALID: {package.json several levels up} => returns the ancestor holding it', () => {
       const proxy = findPackageJsonDirLayerBrokerProxy();
+      proxy.setupNoPackageJsonAt({ dirPath: '/repo/packages/node/src/fs' });
+      proxy.setupNoPackageJsonAt({ dirPath: '/repo/packages/node/src' });
       proxy.setupPackageJsonAt({ dirPath: '/repo/packages/node' });
 
       const result = findPackageJsonDirLayerBroker({
@@ -29,7 +31,13 @@ describe('findPackageJsonDirLayerBroker', () => {
 
   describe('package.json not found', () => {
     it('EMPTY: {no ancestor holds package.json} => returns undefined', () => {
-      findPackageJsonDirLayerBrokerProxy();
+      const proxy = findPackageJsonDirLayerBrokerProxy();
+      proxy.setupNoPackageJsonAt({ dirPath: '/repo/packages/node/src/fs' });
+      proxy.setupNoPackageJsonAt({ dirPath: '/repo/packages/node/src' });
+      proxy.setupNoPackageJsonAt({ dirPath: '/repo/packages/node' });
+      proxy.setupNoPackageJsonAt({ dirPath: '/repo/packages' });
+      proxy.setupNoPackageJsonAt({ dirPath: '/repo' });
+      proxy.setupNoPackageJsonAt({ dirPath: '/' });
 
       const result = findPackageJsonDirLayerBroker({
         startDir: FilePathStub({ value: '/repo/packages/node/src/fs' }),

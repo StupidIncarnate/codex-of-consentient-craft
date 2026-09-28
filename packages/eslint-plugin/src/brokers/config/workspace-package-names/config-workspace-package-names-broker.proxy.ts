@@ -5,6 +5,7 @@ import { fsReadFileSyncAdapterProxy } from '../../../adapters/fs/read-file-sync/
 
 export const configWorkspacePackageNamesBrokerProxy = (): {
   setupWorkspaceRoot: (args: { rootDir: string; rootPackageJsonName: string }) => void;
+  setupNoPackageJson: (args: { dir: string }) => void;
   setupGlobDirectories: (args: { basePath: FilePath; dirNames: string[] }) => void;
   setupMemberPackageJson: (args: { memberDir: FilePath; name: PackageName }) => void;
 } => {
@@ -25,6 +26,13 @@ export const configWorkspacePackageNamesBrokerProxy = (): {
       rootPackageJsonName: string;
     }): void => {
       workspaceRootProxy.setupWorkspaceRoot({ rootDir, rootPackageJsonName, packageNames: [] });
+    },
+
+    // existsSyncProxy (composed inside workspaceRootFindBrokerProxy) ships no address-less
+    // catch-all: every ancestor level between startDir and the real workspace root needs an
+    // explicit false stage too.
+    setupNoPackageJson: ({ dir }: { dir: string }): void => {
+      workspaceRootProxy.setupNoPackageJson({ dir });
     },
 
     setupGlobDirectories: ({

@@ -12,7 +12,7 @@
  */
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
-import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter';
+import { existsSync } from '#gateway/node/fs';
 import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
 
 export const checkGatewaySubpathExistsLayerBroker = ({
@@ -44,5 +44,5 @@ export const checkGatewaySubpathExistsLayerBroker = ({
     paths: [rootDir, 'packages', '@gateway', folder, 'src', ...rest, `${lastSegment}.ts`],
   });
 
-  return fsExistsSyncAdapter({ filePath: barrelPath }) ? barrelPath : undefined;
+  return existsSync(barrelPath) ? barrelPath : undefined;
 };

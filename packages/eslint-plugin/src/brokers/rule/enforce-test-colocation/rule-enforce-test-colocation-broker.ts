@@ -11,7 +11,7 @@ import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-c
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
-import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter';
+import { existsSync } from '#gateway/node/fs';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
 import { isE2eTestFileGuard } from '../../../guards/is-e2e-test-file/is-e2e-test-file-guard';
@@ -55,11 +55,11 @@ export const ruleEnforceTestColocationBroker = (): EslintRule => ({
         const basePath = testFilePathToImplementationPathTransformer({ testFilePath });
 
         // Check for standard implementation file (e.g., user-broker.ts)
-        const hasStandardImpl = fsExistsSyncAdapter({ filePath: basePath });
+        const hasStandardImpl = existsSync(basePath);
 
         // Check for .type implementation file (e.g., stub-argument.type.ts)
         const typeImplPath = filePathWithTypeInfixTransformer({ filePath: basePath });
-        const hasTypeImpl = fsExistsSyncAdapter({ filePath: typeImplPath });
+        const hasTypeImpl = existsSync(typeImplPath);
 
         if (!hasStandardImpl && !hasTypeImpl) {
           ctx.report({

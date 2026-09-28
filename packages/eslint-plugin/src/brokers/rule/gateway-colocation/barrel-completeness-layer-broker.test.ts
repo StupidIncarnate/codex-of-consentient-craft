@@ -48,13 +48,13 @@ describe('barrelCompletenessLayerBroker', () => {
       contents: FileContentsStub({ value: 'export const isFsError = (): boolean => false;\n' }),
     });
     proxy.fsExistsSync.returns({
-      filePath: FilePathStub({
+      path: FilePathStub({
         value: '/repo/packages/@gateway/node/src/fs/is-fs-error/is-fs-error.ts',
       }),
       exists: true,
     });
     proxy.fsExistsSync.returns({
-      filePath: FilePathStub({
+      path: FilePathStub({
         value: '/repo/packages/@gateway/node/src/fs/is-fs-error/fs-error.ts',
       }),
       exists: true,
@@ -136,7 +136,7 @@ describe('barrelCompletenessLayerBroker', () => {
     const source = ImportPathStub({ value: './create-socket/create-socket' });
 
     proxy.fsExistsSync.returns({
-      filePath: FilePathStub({
+      path: FilePathStub({
         value: '/repo/packages/@gateway/node/src/dgram/create-socket/create-socket.ts',
       }),
       exists: false,
@@ -168,7 +168,7 @@ describe('barrelCompletenessLayerBroker', () => {
 
     proxy.fsReaddirSync.returns({ dirPath: subpathDirectory, entries: [] });
     proxy.fsExistsSync.returns({
-      filePath: FilePathStub({
+      path: FilePathStub({
         value: '/repo/packages/@gateway/node/src/tls/create-server/create-server.ts',
       }),
       exists: true,

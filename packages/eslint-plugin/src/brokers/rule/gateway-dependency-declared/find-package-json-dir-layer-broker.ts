@@ -12,7 +12,7 @@
  */
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
-import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter';
+import { existsSync } from '#gateway/node/fs';
 import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
 import { pathDirnameAdapter } from '../../../adapters/path/dirname/path-dirname-adapter';
 
@@ -23,7 +23,7 @@ export const findPackageJsonDirLayerBroker = ({
 }): FilePath | undefined => {
   const packageJsonPath = pathJoinAdapter({ paths: [startDir, 'package.json'] });
 
-  if (fsExistsSyncAdapter({ filePath: packageJsonPath })) {
+  if (existsSync(packageJsonPath)) {
     return startDir;
   }
 

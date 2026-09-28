@@ -46,7 +46,11 @@ describe('workspaceRootFindBroker', () => {
   describe('workspaces root found by walking up past an ordinary package.json', () => {
     it('VALID: {startDir under a nested package} => climbs past it to the real workspaces root', () => {
       const proxy = workspaceRootFindBrokerProxy();
+      proxy.setupNoPackageJson({ dir: '/repo/packages/eslint-plugin/src/brokers/x' });
+      proxy.setupNoPackageJson({ dir: '/repo/packages/eslint-plugin/src/brokers' });
+      proxy.setupNoPackageJson({ dir: '/repo/packages/eslint-plugin/src' });
       proxy.setupNonRootPackageJson({ packageDir: '/repo/packages/eslint-plugin' });
+      proxy.setupNoPackageJson({ dir: '/repo/packages' });
       proxy.setupWorkspaceRoot({
         rootDir: '/repo',
         rootPackageJsonName: 'dungeonmaster',
@@ -67,7 +71,10 @@ describe('workspaceRootFindBroker', () => {
 
   describe('no ancestor workspaces root', () => {
     it('EMPTY: {no ancestor package.json carries workspaces} => returns undefined', () => {
-      workspaceRootFindBrokerProxy();
+      const proxy = workspaceRootFindBrokerProxy();
+      proxy.setupNoPackageJson({ dir: '/orphan/src' });
+      proxy.setupNoPackageJson({ dir: '/orphan' });
+      proxy.setupNoPackageJson({ dir: '/' });
 
       const result = workspaceRootFindBroker({
         startDir: FilePathStub({ value: '/orphan/src' }),

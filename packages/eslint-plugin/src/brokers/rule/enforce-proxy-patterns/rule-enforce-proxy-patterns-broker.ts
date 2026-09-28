@@ -9,7 +9,7 @@ import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-c
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
-import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter';
+import { existsSync } from '#gateway/node/fs';
 import { filePathContract, identifierContract } from '@dungeonmaster/shared/contracts';
 import type { Identifier } from '@dungeonmaster/shared/contracts';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
@@ -101,8 +101,8 @@ export const ruleEnforceProxyPatternsBroker = (): EslintRule => ({
         const implementationPathTsx = tsToTsxPathTransformer({ tsPath: implementationPathTs });
 
         // Check if implementation file exists (either .ts or .tsx)
-        const tsExists = fsExistsSyncAdapter({ filePath: implementationPathTs });
-        const tsxExists = fsExistsSyncAdapter({ filePath: implementationPathTsx });
+        const tsExists = existsSync(implementationPathTs);
+        const tsxExists = existsSync(implementationPathTsx);
 
         if (!tsExists && !tsxExists) {
           ctx.report({

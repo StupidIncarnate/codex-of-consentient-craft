@@ -11,7 +11,7 @@
  * // Returns '/repo/packages/@gateway/node' as FilePath, or undefined if no ancestor holds the marker
  */
 import { filePathContract, type FilePath } from '@dungeonmaster/shared/contracts';
-import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter';
+import { existsSync } from '#gateway/node/fs';
 import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
 import { pathDirnameAdapter } from '../../../adapters/path/dirname/path-dirname-adapter';
 
@@ -23,7 +23,7 @@ export const findAncestorDirectoryLayerBroker = ({
   markerFileName: string;
 }): FilePath | undefined => {
   const markerPath = pathJoinAdapter({ paths: [startDir, markerFileName] });
-  if (fsExistsSyncAdapter({ filePath: markerPath })) {
+  if (existsSync(markerPath)) {
     return startDir;
   }
 

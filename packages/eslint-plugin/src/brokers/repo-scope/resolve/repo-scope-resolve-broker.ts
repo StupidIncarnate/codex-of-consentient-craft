@@ -25,14 +25,14 @@
 import type { FilePath, PackageName } from '@dungeonmaster/shared/contracts';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import { packageScopeFromNameTransformer } from '@dungeonmaster/shared/transformers';
-import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter';
+import { existsSync } from '#gateway/node/fs';
 import { fsReadFileSyncAdapter } from '../../../adapters/fs/read-file-sync/fs-read-file-sync-adapter';
 import { workspaceRootPackageJsonContract } from '../../../contracts/workspace-root-package-json/workspace-root-package-json-contract';
 
 export const repoScopeResolveBroker = ({ startDir }: { startDir: FilePath }): PackageName => {
   const packageJsonPath = filePathContract.parse(`${startDir}/package.json`);
 
-  if (fsExistsSyncAdapter({ filePath: packageJsonPath })) {
+  if (existsSync(packageJsonPath)) {
     const contents = fsReadFileSyncAdapter({ filePath: packageJsonPath });
     const parsedPackageJson: unknown = JSON.parse(contents);
     const workspaceRoot = workspaceRootPackageJsonContract.safeParse(parsedPackageJson);

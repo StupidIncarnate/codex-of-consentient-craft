@@ -7,10 +7,9 @@ const ruleTester = eslintRuleTesterAdapter();
 // Mock setup: return true only for specific existing files
 beforeEach(() => {
   const proxy = ruleEnforceImplementationColocationBrokerProxy();
-  const adapterProxy = proxy.fsExistsSync;
 
-  adapterProxy.setupFileSystem((filePath) => {
-    const path = String(filePath);
+  proxy.setupFileSystem((filePath) => {
+    const path = filePath;
 
     // Test files that exist (for valid cases)
     const existingTestFiles = [

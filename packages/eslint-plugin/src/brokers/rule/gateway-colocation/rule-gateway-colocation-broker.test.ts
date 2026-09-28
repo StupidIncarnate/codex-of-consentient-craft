@@ -9,7 +9,7 @@ const ruleTester = eslintRuleTesterAdapter();
 beforeEach(() => {
   const proxy = ruleGatewayColocationBrokerProxy();
 
-  proxy.fsExistsSync.setupFileSystem((filePath) => {
+  proxy.setupFileSystem((filePath) => {
     const existingFiles = [
       '/repo/packages/@gateway/node/src/fs/read-file-sync/read-file-sync.test.ts',
       '/repo/packages/@gateway/node/src/fs/read-file-sync/read-file-sync.proxy.ts',
@@ -37,7 +37,7 @@ beforeEach(() => {
       '/repo/packages/@gateway/node/src/perf_hooks/perf_hooks.test.ts',
     ];
 
-    return existingFiles.includes(String(filePath));
+    return existingFiles.includes(filePath);
   });
 
   // requireStub's directory walk, and (shared — registerMock keys by function reference, not by

@@ -13,7 +13,7 @@
  */
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { FilePath, PackageName } from '@dungeonmaster/shared/contracts';
-import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter';
+import { existsSync } from '#gateway/node/fs';
 import { fsReadFileSyncAdapter } from '../../../adapters/fs/read-file-sync/fs-read-file-sync-adapter';
 import { fsReaddirSyncAdapter } from '../../../adapters/fs/readdir-sync/fs-readdir-sync-adapter';
 import { gatewayConsumerPackageJsonContract } from '../../../contracts/gateway-consumer-package-json/gateway-consumer-package-json-contract';
@@ -32,7 +32,7 @@ export const resolveWorkspaceGlobLayerBroker = ({
         const baseDir = glob.slice(0, glob.length - WILDCARD_SUFFIX.length);
         const basePath = filePathContract.parse(`${rootDir}/${baseDir}`);
 
-        if (!fsExistsSyncAdapter({ filePath: basePath })) {
+        if (!existsSync(basePath)) {
           return [];
         }
 
@@ -46,7 +46,7 @@ export const resolveWorkspaceGlobLayerBroker = ({
     .map((memberDir): PackageName | null => {
       const memberPackageJsonPath = filePathContract.parse(`${memberDir}/package.json`);
 
-      if (!fsExistsSyncAdapter({ filePath: memberPackageJsonPath })) {
+      if (!existsSync(memberPackageJsonPath)) {
         return null;
       }
 
@@ -59,5 +59,5 @@ export const resolveWorkspaceGlobLayerBroker = ({
         return null;
       }
     })
-    .filter((name): name is PackageName => name !== null);
+    .flatMap((name) => (name === null ? [] : [name]));
 };

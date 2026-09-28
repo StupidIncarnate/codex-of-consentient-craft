@@ -10,7 +10,9 @@ const PLACEHOLDER_ROOT_PACKAGE_JSON_NAME = 'dungeonmaster';
 
 export const ruleEnforceGatewayConfigNamesExistBrokerProxy = (): {
   setupWorkspaceRoot: (args: { rootDir: string; packageNames: string[] }) => void;
+  setupNoPackageJson: (args: { dir: string }) => void;
   setupBarrelExists: (args: { barrelPath: string; sourceText: string }) => void;
+  setupBarrelMissing: (args: { barrelPath: string }) => void;
 } => {
   // Real passthrough default: the rule itself calls pathDirnameAdapter directly (not only through
   // workspaceRootFindBroker), so this satisfies enforce-proxy-child-creation with no staging.
@@ -34,6 +36,13 @@ export const ruleEnforceGatewayConfigNamesExistBrokerProxy = (): {
       });
     },
 
+    // existsSyncProxy (composed inside workspaceRootFindBrokerProxy) ships no address-less
+    // catch-all: the anchor file's own directory sits several levels below the workspace root, so
+    // every intermediate ancestor's package.json needs an explicit false stage too.
+    setupNoPackageJson: ({ dir }: { dir: string }): void => {
+      workspaceRootProxy.setupNoPackageJson({ dir });
+    },
+
     // Stages a barrel that exists AND carries `sourceText` as its content, so both the subpath
     // check and the export-name check resolve through one call.
     setupBarrelExists: ({
@@ -45,6 +54,13 @@ export const ruleEnforceGatewayConfigNamesExistBrokerProxy = (): {
     }): void => {
       subpathProxy.setupBarrelExists({ barrelPath });
       exportNameProxy.setupBarrelSource({ barrelPath, sourceText });
+    },
+
+    // existsSyncProxy (composed inside checkGatewaySubpathExistsLayerBrokerProxy) ships no
+    // address-less catch-all: a "not a real gateway subpath" scenario stages its own computed
+    // barrel path explicitly false.
+    setupBarrelMissing: ({ barrelPath }: { barrelPath: string }): void => {
+      subpathProxy.setupBarrelMissing({ barrelPath });
     },
   };
 };

@@ -6,8 +6,8 @@
 // shared/brokers/architecture/boot-tree/read-file-contents-layer-broker.proxy.ts already uses.
 import { readFileSync } from 'fs';
 import { readFileSyncIfExistsProxy } from '#gateway/node/fs/read-file-sync-if-exists/read-file-sync-if-exists.proxy';
+import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
-import { fsExistsSyncAdapterProxy } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter.proxy';
 import { pathDirnameAdapterProxy } from '../../../adapters/path/dirname/path-dirname-adapter.proxy';
 import { workspaceRootFindBrokerProxy } from '../../workspace-root/find/workspace-root-find-broker.proxy';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
@@ -23,18 +23,16 @@ export const ruleEnforceProxyChildCreationBrokerProxy = (): {
   // cannot express.
   readFileSyncIfExistsProxy();
   const readHandle = registerMock({ fn: readFileSync });
-  // fsExistsSyncAdapter (untouched) and workspaceRootFindBroker's own walk (below) both call the
-  // SAME raw existsSync this adapter wraps, so staging through its own setupFileSystem method
-  // drives every caller at once.
-  const existsProxy = fsExistsSyncAdapterProxy();
+  // existsSync and workspaceRootFindBroker's own walk (below) both call the SAME gateway
+  // existsSync, so staging through this one composed proxy drives every caller at once.
+  const existsProxy = existsSyncProxy();
   // Real passthrough default: the rule itself calls pathDirnameAdapter directly (not only through
   // workspaceRootFindBroker), so this satisfies enforce-proxy-child-creation with no staging.
   pathDirnameAdapterProxy();
   // workspaceRootFindBroker's own fs walk shares the SAME existsSync/readFileSync mocks
   // `setupFileSystem` below wires — constructing it here only satisfies enforce-proxy-child-creation
   // (it composes no scenario of its own); every test's own `getContents` callback still governs
-  // every fs probe, including the ones this broker's walk makes, because `setupFileSystem` below
-  // runs AFTER this constructor and its `[]`-addressed staging wins as the most recent registration.
+  // every fs probe, including the ones this broker's walk makes.
   workspaceRootFindBrokerProxy();
 
   return {
@@ -43,9 +41,15 @@ export const ruleEnforceProxyChildCreationBrokerProxy = (): {
     }: {
       getContents: (filePath: FilePath) => FileContents | null;
     }): void => {
-      existsProxy.setupFileSystem((path): boolean => {
-        const filePath = filePathContract.parse(String(path));
-        return getContents(filePath) !== null;
+      // existsSyncProxy ships no address-less catch-all: the caller's own getContents decision is
+      // staged as two complementary predicates, so exactly one ever answers a given call.
+      existsProxy.returnsMatchingPath({
+        path: (value) => getContents(filePathContract.parse(String(value))) !== null,
+        exists: true,
+      });
+      existsProxy.returnsMatchingPath({
+        path: (value) => getContents(filePathContract.parse(String(value))) === null,
+        exists: false,
       });
 
       readHandle.calledWith([]).implement((path) => {

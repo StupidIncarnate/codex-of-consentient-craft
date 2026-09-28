@@ -59,7 +59,10 @@ describe('checkGatewaySubpathExistsLayerBroker', () => {
 
   describe('barrel missing on disk', () => {
     it('INVALID: {subpath: well-formed but the barrel was never staged} => returns undefined', () => {
-      checkGatewaySubpathExistsLayerBrokerProxy();
+      const proxy = checkGatewaySubpathExistsLayerBrokerProxy();
+      proxy.setupBarrelMissing({
+        barrelPath: '/repo/packages/@gateway/node/src/renamed-away/renamed-away.ts',
+      });
 
       const result = checkGatewaySubpathExistsLayerBroker({
         rootDir: FilePathStub({ value: '/repo' }),

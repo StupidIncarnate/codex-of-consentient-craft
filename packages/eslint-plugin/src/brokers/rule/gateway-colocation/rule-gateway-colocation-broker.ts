@@ -51,7 +51,7 @@ import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-c
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
-import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter';
+import { existsSync } from '#gateway/node/fs';
 import { isGatewayFileGuard } from '../../../guards/is-gateway-file/is-gateway-file-guard';
 import { isGatewayBarrelFileGuard } from '../../../guards/is-gateway-barrel-file/is-gateway-barrel-file-guard';
 import { dotCountTransformer } from '../../../transformers/dot-count/dot-count-transformer';
@@ -207,12 +207,8 @@ export const ruleGatewayColocationBroker = (): EslintRule => ({
         const proxyFileName = `${baseNameWithoutExtension}.proxy${extension}`;
 
         const hasTestFile =
-          fsExistsSyncAdapter({
-            filePath: filePathContract.parse(`${directory}${testFileName}`),
-          }) ||
-          fsExistsSyncAdapter({
-            filePath: filePathContract.parse(`${directory}${integrationTestFileName}`),
-          });
+          existsSync(filePathContract.parse(`${directory}${testFileName}`)) ||
+          existsSync(filePathContract.parse(`${directory}${integrationTestFileName}`));
 
         if (!isBarrelFile) {
           statements.forEach((statement) => {
@@ -262,9 +258,7 @@ export const ruleGatewayColocationBroker = (): EslintRule => ({
             });
           }
 
-          const hasProxyFile = fsExistsSyncAdapter({
-            filePath: filePathContract.parse(`${directory}${proxyFileName}`),
-          });
+          const hasProxyFile = existsSync(filePathContract.parse(`${directory}${proxyFileName}`));
 
           if (!hasProxyFile) {
             ctx.report({

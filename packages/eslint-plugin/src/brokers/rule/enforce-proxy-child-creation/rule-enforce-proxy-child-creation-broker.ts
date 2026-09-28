@@ -32,8 +32,7 @@ import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-c
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
-import { readFileSyncIfExists } from '#gateway/node/fs';
-import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter';
+import { readFileSyncIfExists, existsSync } from '#gateway/node/fs';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 import { astGetImportsTransformer } from '../../../transformers/ast-get-imports/ast-get-imports-transformer';
 import { parseImplementationImportsTransformer } from '../../../transformers/parse-implementation-imports/parse-implementation-imports-transformer';
@@ -336,8 +335,7 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
                 packageName,
                 relativePath: `${relativeWrapperPath}.proxy.ts`,
               });
-              const hasWrapperProxy =
-                wrapperProxyPath !== null && fsExistsSyncAdapter({ filePath: wrapperProxyPath });
+              const hasWrapperProxy = wrapperProxyPath !== null && existsSync(wrapperProxyPath);
               if (!hasWrapperProxy) {
                 return null;
               }

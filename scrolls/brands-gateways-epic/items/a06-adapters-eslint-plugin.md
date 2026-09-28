@@ -308,9 +308,125 @@ Not touched (other groups' scope): `adapters/eslint/rule-tester/**`, `adapters/f
 Found while implementing, added here per EPIC rule 14 (same package, so edited rather than reported):
 - `packages/eslint-plugin/package.json` — `gateway-dependency-declared` requires `@dungeonmaster/node` in `dependencies` once the broker imports `#gateway/node/fs` directly; only `@dungeonmaster/npm` was listed before.
 
-## Concessions made while executing
+### G-I-b
 
-<!-- Empty at the start. The operator fills this and mirrors it into EPIC.md's Concessions table. -->
+Scope (2026-09-28), written by a read-only pass over the actual tree (`discover`, `Read`). G-I-a already landed
+(the three plugin-load adapters and `fs/ensure-read-file-sync` are gone). This group covers `fs/exists-sync` and
+`fs/write-file-sync` and **every real caller of each**, confirmed by reading each candidate file — the item's own
+"batch 2" caller table (lines 216-234) undercounts the real `fsExistsSyncAdapter` callers: `resolve-workspace-glob-layer-broker.ts`,
+`workspace-root-find-broker.ts`, `resolve-package-platform-layer-broker.ts`, `repo-scope-resolve-broker.ts`, and six
+rule brokers that check file existence for their own colocation/pattern logic (`rule-enforce-hydration-recipes-structure-broker.ts`,
+`rule-enforce-implementation-colocation-broker.ts`, `rule-enforce-proxy-child-creation-broker.ts`,
+`rule-enforce-proxy-patterns-broker.ts`, `rule-enforce-test-colocation-broker.ts`, `rule-gateway-colocation-broker.ts`
+plus its `barrel-completeness-layer-broker.ts` layer) were not named there. All are real production callers, not
+test fixtures (`rule-enforce-import-dependencies-broker.test.ts:161`'s one hit IS fixture text, per the a12 item's own
+Trap about rule fixtures — left untouched).
+
+Part 1 (`exists-sync` + `write-file-sync`, every caller) alone is already ~50 files with proxies and tests, so per
+the dispatching instructions part 2 (`fs/read-file-sync`) does NOT run in this group — see "Part 2 file count" below.
+
+**Delete (6 files) once nothing imports them:**
+- `packages/eslint-plugin/src/adapters/fs/exists-sync/fs-exists-sync-adapter.ts` (+`.proxy.ts`, +`.test.ts`)
+- `packages/eslint-plugin/src/adapters/fs/write-file-sync/fs-write-file-sync-adapter.ts` (+`.proxy.ts`, +`.test.ts`)
+
+**Edit — every real caller (impl + proxy, 18 pairs = 36 files), onto `existsSync`/`existsSyncProxy` from
+`#gateway/node/fs`(`/exists-sync/exists-sync.proxy`), and `writeFileSync`/`writeFileSyncProxy` for the one write
+caller:**
+1. `brokers/config/gateway-lint-config/config-gateway-lint-config-broker.ts` (+`.proxy.ts`)
+2. `brokers/config/workspace-package-names/resolve-workspace-glob-layer-broker.ts` (+`.proxy.ts`)
+3. `brokers/repo-scope/resolve/repo-scope-resolve-broker.ts` (+`.proxy.ts`)
+4. `brokers/rule/enforce-gateway-config-names-exist/check-gateway-export-name-exists-layer-broker.ts` (+`.proxy.ts`)
+5. `brokers/rule/enforce-gateway-config-names-exist/check-gateway-subpath-exists-layer-broker.ts` (+`.proxy.ts`)
+6. `brokers/rule/enforce-hydration-recipes-structure/rule-enforce-hydration-recipes-structure-broker.ts` (+`.proxy.ts`)
+7. `brokers/rule/enforce-implementation-colocation/rule-enforce-implementation-colocation-broker.ts` (+`.proxy.ts`)
+8. `brokers/rule/enforce-proxy-child-creation/rule-enforce-proxy-child-creation-broker.ts` (+`.proxy.ts`) — only the
+   `fsExistsSyncAdapter` half; the `readFileSyncIfExists`/gateway-read half already landed
+9. `brokers/rule/enforce-proxy-patterns/rule-enforce-proxy-patterns-broker.ts` (+`.proxy.ts`)
+10. `brokers/rule/enforce-test-colocation/rule-enforce-test-colocation-broker.ts` (+`.proxy.ts`)
+11. `brokers/rule/gateway-colocation/barrel-completeness-layer-broker.ts` (+`.proxy.ts`)
+12. `brokers/rule/gateway-colocation/rule-gateway-colocation-broker.ts` (+`.proxy.ts`)
+13. `brokers/rule/gateway-dependency-declared/find-package-json-dir-layer-broker.ts` (+`.proxy.ts`)
+14. `brokers/rule/gateway-schema-brand/build-gateway-type-declaration-index-layer-broker.ts` (+`.proxy.ts`)
+15. `brokers/rule/platform-globals-ban/find-ancestor-directory-layer-broker.ts` (+`.proxy.ts`)
+16. `brokers/rule/platform-globals-ban/resolve-package-platform-layer-broker.ts` (+`.proxy.ts`) — exists half only;
+    `fsReadFileSyncAdapter` half stays (read-file-sync out of scope)
+17. `brokers/workspace-root/find/workspace-root-find-broker.ts` (+`.proxy.ts`)
+18. `responders/install/detect-config/install-detect-config-responder.ts` (+`.proxy.ts`) — exists AND write; the
+    `fsReadFileSyncAdapter` half stays
+
+**Edit — test files needing explicit staging added, because `existsSyncProxy` ships no address-less catch-all
+"by design" (confirmed precedent: `packages/session-forensics/src/brokers/quest/find/quest-find-broker.proxy.ts:64`,
+`packages/ward/src/brokers/check-run/source-condition/source-condition-supported-broker.proxy.ts:11`), unlike the old
+adapter's `setupFileSystem`. Every walk-to-filesystem-root broker's "nothing found anywhere" test currently relies on
+that removed catch-all and needs each level staged `exists:false` by hand — the same shape
+`repo-scope-resolve-broker.test.ts` (unaffected, already explicit) already uses:**
+- `config-gateway-lint-config-broker.test.ts` — 3 explicit `false` stages for `/orphan/src`, `/orphan`, `/`
+- `check-gateway-subpath-exists-layer-broker.test.ts` — 1 explicit `false` stage for the "barrel missing on disk" case
+- `find-package-json-dir-layer-broker.test.ts` — 6 explicit `false` stages walking `/repo/packages/node/src/fs` to `/`
+- `find-ancestor-directory-layer-broker.test.ts` — 6 explicit `false` stages, same walk as above
+- `resolve-package-platform-layer-broker.test.ts` — 3 explicit `false` stages for `/orphan/src`, `/orphan`, `/`
+- `workspace-root-find-broker.test.ts` — 3 explicit `false` stages for `/orphan/src`, `/orphan`, `/`
+
+**Edit — test files whose call sites change shape only (property rename or exposed-child-to-wrapper-method), no
+new scenarios:**
+- `barrel-completeness-layer-broker.test.ts` — `proxy.fsExistsSync.returns({filePath, exists})` → `{path, exists}`
+- `rule-enforce-implementation-colocation-broker.test.ts` — `proxy.fsExistsSync.setupFileSystem(fn)` →
+  `proxy.setupFileSystem(fn)` (the broker's own proxy stops exposing the child proxy directly, matching the
+  encapsulation rule, and translates internally to two complementary `returnsMatchingPath` predicates)
+- `rule-gateway-colocation-broker.test.ts` — `proxy.fsExistsSync.setupFileSystem(fn)` → `proxy.setupFileSystem(fn)`,
+  same reason (its `barrelCompleteness.fsReadFileSync`/`gatewaySubpathDirectoryWalk.fsReaddirSync` calls are
+  untouched — different subpaths, out of this group's scope)
+
+Not touched (other groups' scope): `adapters/eslint/rule-tester/**` (G-I-c), `adapters/fs/read-file-sync/**` and
+its callers (part 2, not run here), `adapters/fs/readdir-sync/**`, `adapters/minimatch/**`, `adapters/path/**`,
+`adapters/eslint/typed-*/**` (G-J).
+
+Found while implementing, added here per EPIC rule 14 (same package, so edited rather than reported):
+- `brokers/rule/enforce-gateway-config-names-exist/rule-enforce-gateway-config-names-exist-broker.proxy.ts` (+
+  `.test.ts`) — not a direct `fsExistsSyncAdapter` caller, but composes `workspaceRootFindBrokerProxy`, whose
+  catch-all removal (see below) broke its own "walk several levels to the workspace root" scenario.
+- `brokers/config/workspace-package-names/config-workspace-package-names-broker.proxy.ts` (+ `.test.ts`) — same
+  reason: composes `workspaceRootFindBrokerProxy`, and its own "startDir nested under the repo root" and "no
+  ancestor" tests each walk several levels the removed catch-all used to answer.
+- `brokers/rule/gateway-schema-brand/rule-gateway-schema-brand-broker.test.ts` — same reason: its own proxy
+  exposes `workspaceRootFindBrokerProxy` directly, and two RuleTester cases (the unique-interface valid case,
+  the duplicate-interface invalid case) each walk several levels from a `packages/@gateway/**` file up to the
+  workspace root.
+
+### Part 2 file count (read-file-sync, not implemented this group)
+
+Nearly every one of the 18 brokers above also imports `fsReadFileSyncAdapter` (confirmed while reading each file for
+this group). Migrating it would touch the same ~18 broker+proxy pairs (36 files) plus its own adapter's 3 files
+(`fs-read-file-sync-adapter.ts`/`.proxy.ts`/`.test.ts`) — roughly 39-40 files. Combined with part 1's ~50, doing both
+in one group is far past the 30-file budget the dispatching instructions set, so part 2 is left for a fresh group.
+
+## Concessions made while executing (G-I-b)
+
+- `#gateway/node/fs`'s `existsSyncProxy` ships no address-less catch-all "by design" (confirmed precedent:
+  `packages/session-forensics/.../quest-find-broker.proxy.ts:64`, `packages/ward/.../source-condition-supported-broker.proxy.ts:11`).
+  Every walk-to-filesystem-root test (`configGatewayLintConfigBroker`, `workspaceRootFindBroker`,
+  `findPackageJsonDirLayerBroker`, `findAncestorDirectoryLayerBroker`, `resolvePackagePlatformLayerBroker`, plus
+  three transitively-affected consumers) needed EVERY intermediate ancestor level staged `exists: false`
+  explicitly, not just the terminal "nothing found" case — a "climbs several levels then finds it" test needs
+  the intermediate levels staged too. For RuleTester-driven proxies exposing an arbitrary caller decision
+  function (`setupFileSystem((path) => boolean)`), translated to two complementary `returnsMatchingPath` calls
+  (one for the predicate's true branch, one for its false branch) rather than an address-less default — exactly
+  one of the two ever matches a given call, so there is no ordering ambiguity.
+- Several proxies (`config-gateway-lint-config-broker`, `workspace-root-find-broker`,
+  `find-package-json-dir-layer-broker`, `find-ancestor-directory-layer-broker`,
+  `resolve-package-platform-layer-broker`) staged their computed path via naive string concatenation
+  (`` `${dir}/${suffix}` ``), which double-slashes when `dir` is the filesystem root (`/`) — production code
+  joins via the gateway's real `pathJoinAdapter`/`path.join`, which normalizes. Fixed with a
+  `dir.endsWith('/') ? ... : ...` guard at each staging site; caught by a real crash, not by inspection.
+- `ruleEnforceImplementationColocationBrokerProxy` and `ruleGatewayColocationBrokerProxy` stopped exposing
+  their composed `existsSyncProxy()` child directly (the old adapter's `fsExistsSyncAdapterProxy` had a
+  `.setupFileSystem` method the caller reached through `proxy.fsExistsSync.setupFileSystem(...)`; the gateway
+  proxy has no such method) — each now wraps it in its own `setupFileSystem` method instead, which also drops
+  the pre-existing "exposed child proxy" pattern the testing docs discourage.
+- `resolve-workspace-glob-layer-broker.ts`'s pre-existing `.filter((name): name is PackageName => ...)` tripped
+  the newly-landed `@dungeonmaster/ban-contract-type-predicates` rule (a different, concurrent item's work) once
+  this scoped lint run touched the file; replaced with `.flatMap((name) => (name === null ? [] : [name]))`,
+  which needs no type predicate on a contracts-imported type.
 
 ## Plan — F48
 

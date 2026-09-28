@@ -8,7 +8,7 @@ beforeEach(() => {
   const proxy = ruleEnforceHydrationRecipesStructureBrokerProxy();
 
   proxy.setupFileSystem((filePath) => {
-    const path = String(filePath);
+    const path = filePath;
 
     if (path.startsWith('/no-hydration-project')) {
       return false;

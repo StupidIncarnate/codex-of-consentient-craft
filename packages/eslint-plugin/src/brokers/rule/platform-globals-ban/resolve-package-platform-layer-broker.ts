@@ -20,7 +20,7 @@ import {
   type FilePath,
 } from '@dungeonmaster/shared/contracts';
 import { packageBrowserTypeTransformer } from '@dungeonmaster/shared/transformers';
-import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter';
+import { existsSync } from '#gateway/node/fs';
 import { fsReadFileSyncAdapter } from '../../../adapters/fs/read-file-sync/fs-read-file-sync-adapter';
 import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
 import { pathDirnameAdapter } from '../../../adapters/path/dirname/path-dirname-adapter';
@@ -55,14 +55,12 @@ export const resolvePackagePlatformLayerBroker = ({
   });
   const packageJson = packageJsonContract.parse(JSON.parse(packageJsonRaw));
 
-  const srcDirNames = fsExistsSyncAdapter({
-    filePath: pathJoinAdapter({ paths: [packageRoot, 'src', 'widgets'] }),
-  })
+  const srcDirNames = existsSync(pathJoinAdapter({ paths: [packageRoot, 'src', 'widgets'] }))
     ? ['widgets']
     : [];
-  const adapterDirNames = fsExistsSyncAdapter({
-    filePath: pathJoinAdapter({ paths: [packageRoot, 'src', 'adapters', 'ink'] }),
-  })
+  const adapterDirNames = existsSync(
+    pathJoinAdapter({ paths: [packageRoot, 'src', 'adapters', 'ink'] }),
+  )
     ? ['ink']
     : [];
 

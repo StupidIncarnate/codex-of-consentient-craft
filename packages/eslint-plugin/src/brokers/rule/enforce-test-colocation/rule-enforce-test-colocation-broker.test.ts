@@ -8,7 +8,7 @@ beforeEach(() => {
   const proxy = ruleEnforceTestColocationBrokerProxy();
 
   proxy.setupFileSystem((filePath) => {
-    const path = String(filePath);
+    const path = filePath;
 
     // Implementation files that exist
     const existingFiles = [

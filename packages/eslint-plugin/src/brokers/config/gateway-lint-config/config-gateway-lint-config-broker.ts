@@ -21,7 +21,7 @@ import {
   type GatewayLintConfig,
 } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter';
+import { existsSync } from '#gateway/node/fs';
 import { fsReadFileSyncAdapter } from '../../../adapters/fs/read-file-sync/fs-read-file-sync-adapter';
 import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
 import { pathDirnameAdapter } from '../../../adapters/path/dirname/path-dirname-adapter';
@@ -33,7 +33,7 @@ export const configGatewayLintConfigBroker = ({
 }): GatewayLintConfig => {
   const configPath = pathJoinAdapter({ paths: [startDir, locationsStatics.repoRoot.config] });
 
-  if (fsExistsSyncAdapter({ filePath: configPath })) {
+  if (existsSync(configPath)) {
     try {
       const contents = fsReadFileSyncAdapter({ filePath: configPath });
       const parsed = JSON.parse(contents) as Record<PropertyKey, unknown>;

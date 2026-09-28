@@ -20,7 +20,7 @@ beforeEach(() => {
       '/project/src/brokers/env/env-broker.ts',
       '/project/packages/@gateway/node/src/fs/read-file-sync.ts',
     ];
-    return existingFiles.includes(String(filePath));
+    return existingFiles.includes(filePath);
   });
 });
 

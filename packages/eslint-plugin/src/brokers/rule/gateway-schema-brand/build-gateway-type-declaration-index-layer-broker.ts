@@ -13,7 +13,7 @@
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { FilePath, Identifier } from '@dungeonmaster/shared/contracts';
 import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
-import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter';
+import { existsSync } from '#gateway/node/fs';
 import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
 import { collectGatewayTypeDeclarationNamesLayerBroker } from './collect-gateway-type-declaration-names-layer-broker';
 
@@ -29,7 +29,7 @@ export const buildGatewayTypeDeclarationIndexLayerBroker = ({
       `${pathJoinAdapter({ paths: [rootDir, 'packages', '@gateway', folder, 'src'] })}/`,
     );
 
-    if (fsExistsSyncAdapter({ filePath: srcDir })) {
+    if (existsSync(srcDir)) {
       collectGatewayTypeDeclarationNamesLayerBroker({ dirPath: srcDir, index });
     }
   });

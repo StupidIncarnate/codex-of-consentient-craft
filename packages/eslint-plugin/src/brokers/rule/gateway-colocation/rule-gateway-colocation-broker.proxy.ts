@@ -1,4 +1,4 @@
-import { fsExistsSyncAdapterProxy } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter.proxy';
+import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { gatewaySubpathHasStubLayerBrokerProxy } from './gateway-subpath-has-stub-layer-broker.proxy';
 import { barrelCompletenessLayerBrokerProxy } from './barrel-completeness-layer-broker.proxy';
 import { barrelNamedReexportsLayerBrokerProxy } from './barrel-named-reexports-layer-broker.proxy';
@@ -23,16 +23,28 @@ import { barrelNoTestSupportReexportLayerBrokerProxy } from './barrel-no-test-su
  * exposing a child proxy field at all.
  */
 export const ruleGatewayColocationBrokerProxy = (): {
-  fsExistsSync: ReturnType<typeof fsExistsSyncAdapterProxy>;
+  setupFileSystem: (fileSystemCheck: (path: string) => boolean) => void;
   gatewaySubpathDirectoryWalk: ReturnType<typeof gatewaySubpathHasStubLayerBrokerProxy>;
   barrelCompleteness: ReturnType<typeof barrelCompletenessLayerBrokerProxy>;
 } => {
+  const existsProxy = existsSyncProxy();
   barrelNamedReexportsLayerBrokerProxy();
   barrelSingleHomeLayerBrokerProxy();
   barrelNoTestSupportReexportLayerBrokerProxy();
 
   return {
-    fsExistsSync: fsExistsSyncAdapterProxy(),
+    // existsSyncProxy ships no address-less catch-all: the caller's own decision function is
+    // staged as two complementary predicates, so exactly one ever answers a given call.
+    setupFileSystem: (fileSystemCheck: (path: string) => boolean): void => {
+      existsProxy.returnsMatchingPath({
+        path: (value) => fileSystemCheck(String(value)),
+        exists: true,
+      });
+      existsProxy.returnsMatchingPath({
+        path: (value) => !fileSystemCheck(String(value)),
+        exists: false,
+      });
+    },
     gatewaySubpathDirectoryWalk: gatewaySubpathHasStubLayerBrokerProxy(),
     barrelCompleteness: barrelCompletenessLayerBrokerProxy(),
   };

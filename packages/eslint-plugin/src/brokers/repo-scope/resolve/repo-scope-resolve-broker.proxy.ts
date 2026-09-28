@@ -8,7 +8,7 @@
  */
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { filePathContract, fileContentsContract } from '@dungeonmaster/shared/contracts';
-import { fsExistsSyncAdapterProxy } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter.proxy';
+import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { fsReadFileSyncAdapterProxy } from '../../../adapters/fs/read-file-sync/fs-read-file-sync-adapter.proxy';
 
 export const repoScopeResolveBrokerProxy = (): {
@@ -19,7 +19,7 @@ export const repoScopeResolveBrokerProxy = (): {
   }) => void;
   setupNoPackageJson: (args: { dirPath: FilePath }) => void;
 } => {
-  const existsProxy = fsExistsSyncAdapterProxy();
+  const existsProxy = existsSyncProxy();
   const readProxy = fsReadFileSyncAdapterProxy();
 
   return {
@@ -31,7 +31,7 @@ export const repoScopeResolveBrokerProxy = (): {
       packageJson: Record<string, unknown>;
     }): void => {
       const packageJsonPath = filePathContract.parse(`${dirPath}/package.json`);
-      existsProxy.returns({ filePath: packageJsonPath, exists: true });
+      existsProxy.returns({ path: packageJsonPath, exists: true });
       readProxy.returns({
         filePath: packageJsonPath,
         contents: fileContentsContract.parse(JSON.stringify(packageJson)),
@@ -46,7 +46,7 @@ export const repoScopeResolveBrokerProxy = (): {
       packageJson: Record<string, unknown>;
     }): void => {
       const packageJsonPath = filePathContract.parse(`${dirPath}/package.json`);
-      existsProxy.returns({ filePath: packageJsonPath, exists: true });
+      existsProxy.returns({ path: packageJsonPath, exists: true });
       readProxy.returns({
         filePath: packageJsonPath,
         contents: fileContentsContract.parse(JSON.stringify(packageJson)),
@@ -55,7 +55,7 @@ export const repoScopeResolveBrokerProxy = (): {
 
     setupNoPackageJson: ({ dirPath }: { dirPath: FilePath }): void => {
       const packageJsonPath = filePathContract.parse(`${dirPath}/package.json`);
-      existsProxy.returns({ filePath: packageJsonPath, exists: false });
+      existsProxy.returns({ path: packageJsonPath, exists: false });
     },
   };
 };

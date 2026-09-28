@@ -10,7 +10,7 @@ import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-cont
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
-import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter';
+import { existsSync } from '#gateway/node/fs';
 import { filepathResolveRelativeImportTransformer } from '../../../transformers/filepath-resolve-relative-import/filepath-resolve-relative-import-transformer';
 import { hydrationRecipesStructureStatics } from '../../../statics/hydration-recipes-structure/hydration-recipes-structure-statics';
 
@@ -50,7 +50,7 @@ export const ruleEnforceHydrationRecipesStructureBroker = (): EslintRule => ({
         ? filePathContract.parse(filename.slice(0, packagesIndex))
         : packagesIndex === 0 || filename.startsWith('packages/')
           ? filePathContract.parse('')
-          : fallbackCandidate && fsExistsSyncAdapter({ filePath: fallbackCandidate })
+          : fallbackCandidate && existsSync(fallbackCandidate)
             ? filePathContract.parse(fallbackDir)
             : undefined;
 
@@ -65,7 +65,7 @@ export const ruleEnforceHydrationRecipesStructureBroker = (): EslintRule => ({
           ? filePathContract.parse('/packages/hydration-recipes')
           : filePathContract.parse('packages/hydration-recipes');
 
-    if (!fsExistsSyncAdapter({ filePath: hydrationRecipesDir })) {
+    if (!existsSync(hydrationRecipesDir)) {
       return {};
     }
 
@@ -124,7 +124,7 @@ export const ruleEnforceHydrationRecipesStructureBroker = (): EslintRule => ({
 
         for (const requiredFile of requiredFiles) {
           const fullPath = filePathContract.parse(`${hydrationRecipesDir}/${requiredFile}`);
-          if (!fsExistsSyncAdapter({ filePath: fullPath })) {
+          if (!existsSync(fullPath)) {
             context.report({
               node,
               messageId: 'missingStructure',

@@ -15,9 +15,8 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
-import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter';
+import { existsSync, writeFileSync } from '#gateway/node/fs';
 import { fsReadFileSyncAdapter } from '../../../adapters/fs/read-file-sync/fs-read-file-sync-adapter';
-import { fsWriteFileSyncAdapter } from '../../../adapters/fs/write-file-sync/fs-write-file-sync-adapter';
 import { eslintConfigFilesStatics } from '../../../statics/eslint-config-files/eslint-config-files-statics';
 
 const PACKAGE_NAME = '@dungeonmaster/eslint-plugin';
@@ -104,7 +103,7 @@ export const InstallDetectConfigResponder = ({
       paths: [context.targetProjectRoot, configFile],
     });
 
-    if (fsExistsSyncAdapter({ filePath: configPath })) {
+    if (existsSync(configPath)) {
       const content = fsReadFileSyncAdapter({ filePath: configPath });
 
       if (content.includes('@dungeonmaster')) {
@@ -133,7 +132,7 @@ export const InstallDetectConfigResponder = ({
 
   const contents = fileContentsContract.parse(NEW_CONFIG_TEMPLATE);
 
-  fsWriteFileSyncAdapter({ filePath: newConfigPath, contents });
+  writeFileSync(newConfigPath, contents);
 
   return {
     packageName: packageNameContract.parse(PACKAGE_NAME),
