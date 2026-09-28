@@ -149,3 +149,13 @@ Not edited (G24's uncommitted files — none of this group's callers land there)
 ## Concessions made while executing
 
 <!-- Empty at the start. The operator fills this and mirrors it into EPIC.md's Concessions table. -->
+
+## Plan — F42, F43 cli callers
+
+Edit (3 files):
+- `packages/cli/src/responders/cli/statusline-tap/cli-statusline-tap-responder.proxy.ts` — compose `readStdinToEndProxy()` from `#gateway/node/process/read-stdin-to-end/read-stdin-to-end.proxy` and stage via `returns({ contents })` and `restore()`; remove direct access to `process.stdin` and `Object.defineProperty`
+- `packages/cli/src/brokers/rate-limits/snapshot-write/rate-limits-snapshot-write-broker.proxy.ts` — add `getRenameCalls()` read-back delegating to `snapshotRenameProxy.getCallsFor`
+- `packages/cli/src/brokers/rate-limits/snapshot-write/rate-limits-snapshot-write-broker.test.ts` — assert that rename moved tmp file to snapshot path via `proxy.getRenameCalls()`
+
+Create: None
+Delete: None

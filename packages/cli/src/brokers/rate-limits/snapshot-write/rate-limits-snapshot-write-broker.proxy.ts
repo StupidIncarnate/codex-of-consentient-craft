@@ -14,6 +14,7 @@ export const rateLimitsSnapshotWriteBrokerProxy = (): {
   setupAcceptedWrite: () => void;
   setupThrottledWrite: ({ mtimeMs }: { mtimeMs: number }) => void;
   getWriteCalls: () => readonly { path: unknown; content: unknown }[];
+  getRenameCalls: () => readonly { from: unknown; to: unknown }[];
 } => {
   const statProxy = statIfExistsProxy();
   const mkdirProxy = ensureDirProxy();
@@ -45,9 +46,6 @@ export const rateLimitsSnapshotWriteBrokerProxy = (): {
       statProxy.missing({ path: snapshotPath });
       mkdirProxy.succeeds({ path: '/home/test/.dungeonmaster' });
       writeProxy.succeeds({ path: tmpPath });
-      // Exact tuple, not `from`-only: the gateway's rename proxy exposes no call read-back
-      // (F-style gap — every sibling fs__promises proxy does), so this address IS the proof —
-      // a swapped `from`/`to` argument mismatches the stage and throws, failing the awaiting test.
       snapshotRenameProxy.succeeds({ from: tmpPath, to: snapshotPath });
     },
     setupThrottledWrite: ({ mtimeMs }: { mtimeMs: number }): void => {
@@ -63,5 +61,9 @@ export const rateLimitsSnapshotWriteBrokerProxy = (): {
       const content = writeProxy.writtenContentsFor({ path: tmpPath });
       return content === undefined ? [] : [{ path: tmpPath, content }];
     },
+    getRenameCalls: (): readonly { from: unknown; to: unknown }[] =>
+      snapshotRenameProxy
+        .getCallsFor({ from: () => true, to: () => true })
+        .map((call) => ({ from: call[0], to: call[1] })),
   };
 };
