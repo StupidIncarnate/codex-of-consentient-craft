@@ -36,6 +36,12 @@
  * comparison a hydration recipe drives) passes it as this extra key; every other caller omits it and
  * `guildAddBroker` mints one exactly as before.
  *
+ * `guildUniquePathResolveBroker` runs BEFORE the path is derived absolute — DEF-78 — so composing
+ * two guild recipes into one target (or seeding `guild-empty` twice) never sends the identical
+ * literal `guilds-under-test/guild-1` to `guildAddBroker` twice: the second seed's default fragment
+ * bumps to `guild-2` because `guild-1`'s directory already exists under this same target. See that
+ * broker's own header for why this is a route concern, not an ingredient one.
+ *
  * USAGE:
  * await guildWriteRouteBroker({ target, fields: { name, path } });
  * // Returns a Guild — id, urlSlug and createdAt minted by the real guildAddBroker
@@ -48,6 +54,7 @@ import { guildIdContract } from '@dungeonmaster/shared/contracts';
 import type { Guild } from '@dungeonmaster/shared/contracts';
 
 import { guildDirectoryEnsureBroker } from '../directory-ensure/guild-directory-ensure-broker';
+import { guildUniquePathResolveBroker } from '../unique-path-resolve/guild-unique-path-resolve-broker';
 import { guildFieldsContract } from '../../../contracts/guild-fields/guild-fields-contract';
 import { guildPathDeriveTransformer } from '../../../transformers/guild-path-derive/guild-path-derive-transformer';
 import type { DmTarget } from '../../../contracts/dm-target/dm-target-contract';
@@ -60,7 +67,8 @@ export const guildWriteRouteBroker = async ({
   fields: Record<string, unknown>;
 }): Promise<Guild> => {
   const parsedFields = guildFieldsContract.parse(fields);
-  const path = guildPathDeriveTransformer({ target, path: parsedFields.path });
+  const uniquePath = guildUniquePathResolveBroker({ target, path: parsedFields.path });
+  const path = guildPathDeriveTransformer({ target, path: uniquePath });
 
   await guildDirectoryEnsureBroker({ target, path });
 

@@ -1,4 +1,5 @@
 import { guildDirectoryEnsureBrokerProxy } from '../directory-ensure/guild-directory-ensure-broker.proxy';
+import { guildUniquePathResolveBrokerProxy } from '../unique-path-resolve/guild-unique-path-resolve-broker.proxy';
 import { dmHttpRequestAdapterProxy } from '../../../adapters/dm-http/request/dm-http-request-adapter.proxy';
 import { dmHttpResponseUnwrapAdapterProxy } from '../../../adapters/dm-http/response-unwrap/dm-http-response-unwrap-adapter.proxy';
 import type { DmHttpResponseStub } from '../../../contracts/dm-http-response/dm-http-response.stub';
@@ -12,6 +13,9 @@ export const guildApiRouteBrokerProxy = (): {
   const httpProxy = dmHttpRequestAdapterProxy();
   dmHttpResponseUnwrapAdapterProxy();
   const directoryProxy = guildDirectoryEnsureBrokerProxy();
+  // guildUniquePathResolveBrokerProxy's own default leaves every scenario's default fragment
+  // untouched — every existing test here never stages a collision.
+  guildUniquePathResolveBrokerProxy();
 
   return {
     succeeds: ({ url, response }: { url: string; response: DmHttpResponse }): void => {

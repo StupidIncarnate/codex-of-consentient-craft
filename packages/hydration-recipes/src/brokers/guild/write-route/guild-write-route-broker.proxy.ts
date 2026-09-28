@@ -3,6 +3,7 @@ import { guildAddBrokerProxy } from '@dungeonmaster/orchestrator/testing';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { guildDirectoryEnsureBrokerProxy } from '../directory-ensure/guild-directory-ensure-broker.proxy';
+import { guildUniquePathResolveBrokerProxy } from '../unique-path-resolve/guild-unique-path-resolve-broker.proxy';
 import type { GuildStub } from '@dungeonmaster/shared/contracts';
 
 type Guild = ReturnType<typeof GuildStub>;
@@ -39,6 +40,10 @@ export const guildWriteRouteBrokerProxy = (): {
   // fencing needs — shared with the api route's proxy so both stay in sync. It also covers the
   // invalid-id scenario, where the directory ensure runs before the id validation throws.
   const directoryProxy = guildDirectoryEnsureBrokerProxy();
+  // guildUniquePathResolveBrokerProxy's own default (fsExistsSyncAdapterProxy's "any unaddressed
+  // path is non-existent") is all this route needs for every scenario that never stages a
+  // collision — the DEF-78 dedup then leaves the default fragment untouched.
+  guildUniquePathResolveBrokerProxy();
   // guildAddBrokerProxy's own setup mints a FIXED id/createdAt via crypto.randomUUID, which does
   // not let a test stage an arbitrary `guild` fixture — created here only to satisfy
   // `enforce-proxy-child-creation`; this route's own registerMock below stages the real answer.
