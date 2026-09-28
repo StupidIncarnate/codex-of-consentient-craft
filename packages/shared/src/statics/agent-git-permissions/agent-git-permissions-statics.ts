@@ -7,7 +7,7 @@
  * // Returns ['Bash(git status:*)', 'Bash(git log:*)', ...] — the settings.json allow entries
  *
  * A dispatched agent has no interactive approver: the Node dispatcher's headless `claude -p`
- * children (and Task sub-agents under `/dumpster-launch`) get a hard "This command requires
+ * children (and any Task sub-agent they dispatch) get a hard "This command requires
  * approval" denial for anything outside `permissions.allow`, never a prompt. The relay's ONLY
  * handoff channel between sessions is the git commit, so without these entries every
  * file-changing role hits a wall at its commit step.

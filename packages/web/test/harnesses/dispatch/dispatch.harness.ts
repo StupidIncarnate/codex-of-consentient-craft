@@ -17,8 +17,8 @@
  * The pause BETWEEN specs is not this harness's job. `e2e-fixtures` pauses on both sides of every
  * test through an auto-fixture, so a spec that never imports this file cannot leak a running loop
  * into the next one. What `beforeEach` adds on top is the part no fixture can guess: it clears
- * both mock queues and drops a previous spec's `mcpHeartbeatAt`, leaving the dispatcher paused but
- * PLAYABLE.
+ * both mock queues and rewrites `dispatch-state.json` to a clean `paused` state, leaving the
+ * dispatcher paused but PLAYABLE.
  */
 
 import * as fs from 'fs';
@@ -128,7 +128,6 @@ export const dispatchHarness = ({
     }[];
     agentLineDelayMs?: number;
   }) => Promise<void>;
-  holdQueueWithMcpHeartbeat: () => void;
   isDispatchPlaying: () => Promise<boolean>;
   // Every fake-CLI spawn this spec caused, oldest first — carries the `--resume <sessionId>` the
   // orchestrator passed (null on a fresh spawn) and the verbatim prompt it dispatched.
@@ -158,8 +157,8 @@ export const dispatchHarness = ({
   const quests = questHarness({ request });
   const { pause } = dispatchPauseHarness({ request });
 
-  // Drops any `mcpHeartbeatAt` a previous spec's queue hold left behind, leaving the dispatcher
-  // paused but PLAYABLE.
+  // Rewrites dispatch-state.json to a clean `paused` state, dropping any extra fields a previous
+  // spec wrote to it, and leaving the dispatcher paused but PLAYABLE.
   const releaseQueueHold = (): void => {
     const home = process.env.DUNGEONMASTER_HOME;
     if (home === undefined) {
@@ -229,12 +228,10 @@ export const dispatchHarness = ({
     // Clear both queues + pause the shared runner. ONE runner scans every active quest on each wake,
     // so a leftover playing loop from a prior test would consume this test's queued responses.
     //
-    // The MCP heartbeat is cleared for the mirror-image reason. `holdQueueWithMcpHeartbeat` writes
-    // it into `dispatch-state.json`, which is ONE file shared by every spec in the run, and the
-    // heartbeat stays fresh for its whole TTL — so a hold taken by a spec that wants the queue shut
-    // would go on refusing the play for the next spec that wants it open. Every spec that drives the
-    // queue calls this hook, so clearing it here is what keeps the two kinds of spec from
-    // contradicting each other.
+    // `releaseQueueHold` rewrites `dispatch-state.json` to a clean `paused` state for the
+    // mirror-image reason: it is ONE file shared by every spec in the run, so a prior spec's write
+    // to it — however that spec used it — must not leak forward as a stale `mode` this spec never
+    // asked for.
     beforeEach: async (): Promise<void> => {
       claudeMock.clearQueue();
       wardMock.clearQueue();
@@ -278,33 +275,9 @@ export const dispatchHarness = ({
     playAndDrive: async ({ script, agentLineDelayMs }) => {
       queueScript({ script, ...(agentLineDelayMs === undefined ? {} : { agentLineDelayMs }) });
 
-      // force: true overrides the play gate for e2e (no MCP heartbeat, no in-flight Task agent).
-      await request.post(DISPATCH_PLAY_ROUTE, { data: { force: true } });
-    },
-    // Writes a FRESH MCP heartbeat into dispatch-state.json, which is the production signal that a
-    // `/dumpster-launch` loop already owns the queue. `dispatchStatePlayGateBroker` refuses to play
-    // while that heartbeat is fresh, so every UNFORCED play — including the one `POST /start` now
-    // makes on the user's behalf — is declined and the dispatcher provably never wakes.
-    //
-    // Reach for this in a spec that is about what an endpoint WRITES rather than about what the
-    // queue then does with it. Pausing after the fact cannot do that job: the enqueue happens
-    // inside the start request, so the loop can pick the quest up before any later pause lands, and
-    // the spec's own assertions then race a real carve. `playAndDrive` passes `force: true`, which
-    // skips the gate — so a spec can still drive the queue deliberately after taking this hold.
-    holdQueueWithMcpHeartbeat: (): void => {
-      const home = process.env.DUNGEONMASTER_HOME;
-      if (home === undefined) {
-        throw new Error('DUNGEONMASTER_HOME env var is not set');
-      }
-
-      fs.writeFileSync(
-        path.join(home, DISPATCH_STATE_FILE),
-        JSON.stringify({
-          mode: 'paused',
-          mcpHeartbeatAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        }),
-      );
+      // POST /api/orchestration/dispatch/play takes no body and never refuses — the Node dispatcher
+      // is the only dispatcher, so there is no exclusivity gate left to satisfy.
+      await request.post(DISPATCH_PLAY_ROUTE);
     },
     // True when the Node dispatcher is actively driving the queue. Read back from the server
     // rather than trusted from a response body, so a spec can prove the switch really flipped.
@@ -342,11 +315,11 @@ export const dispatchHarness = ({
     // RAW ON PURPOSE — no domain record models "the dispatcher is playing": it is a live
     // orchestration toggle, not a guild/quest/session/operation row, so no dmRegistryBroker
     // ingredient carries a verb for it (the same gap `dispatchPauseHarness.pause` already
-    // documents for the pause route's own construction site). Reaches the play route directly,
-    // the same force:true POST `playAndDrive` makes internally, standalone — for a spec that
-    // plays the dispatcher with no quest seeded at all and needs the raw response status back.
+    // documents for the pause route's own construction site). Reaches the play route directly, the
+    // same no-body POST `playAndDrive` makes internally, standalone — for a spec that plays the
+    // dispatcher with no quest seeded at all and needs the raw response status back.
     forcePlayDispatcher: async (): Promise<{ status: DmHttpResponse['status'] }> => {
-      const response = await request.post(DISPATCH_PLAY_ROUTE, { data: { force: true } });
+      const response = await request.post(DISPATCH_PLAY_ROUTE);
       return { status: dmHttpResponseContract.shape.status.parse(response.status()) };
     },
     // RAW ON PURPOSE — the quest ingredient's `transitions.reach` (questReachRouteBroker in

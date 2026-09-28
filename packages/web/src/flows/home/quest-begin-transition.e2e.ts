@@ -1,5 +1,6 @@
 import { test, expect, wireHarnessLifecycle } from '../../../test/harnesses/e2e-fixtures';
 import { dispatchHarness } from '../../../test/harnesses/dispatch/dispatch.harness';
+import { dispatchPauseHarness } from '../../../test/harnesses/dispatch-pause/dispatch-pause.harness';
 import { environmentHarness } from '../../../test/harnesses/environment/environment.harness';
 import { sessionHarness } from '../../../test/harnesses/session/session.harness';
 import { guildHarness } from '../../../test/harnesses/guild/guild.harness';
@@ -28,27 +29,19 @@ wireHarnessLifecycle({ harness: environment, testObj: test });
 
 // EVERY test here measures what `POST /api/quests/:questId/start` WRITES — the status flip, the
 // relay seed, the work item it mints, and the fact that it carves nothing inside its own request.
-// None of them is about what the queue then does with that, so all of them hold the queue shut.
+// None of them is about what the queue then does with that.
 //
-// The hold is needed because start now PLAYS the dispatcher (QuestStartResponder, mirroring
-// resume): without it, Begin Quest enqueues a quest nothing ever picks up. With it, the loop wakes
-// on the enqueue that happens INSIDE the start request and begins the riftcarver carve underneath
-// every assertion below — a real carve, against the fixture repo, whose failure blocks the quest
-// and turns these into a coin flip. Pausing after the response cannot close that window; refusing
-// the play outright can.
+// Start plays the dispatcher (QuestStartResponder, mirroring resume) as part of the same request,
+// so the loop wakes on the enqueue that happens inside it and begins working the riftcarver carve
+// concurrently with every assertion below. `POST /api/orchestration/dispatch/play` never refuses,
+// so nothing in this package can hold that queue shut for the duration of one test — `beforeEach`
+// only pauses a loop an EARLIER spec left running, via the real pause route (the loop reads an
+// in-memory mirror, so writing dispatch-state.json alone would not reach it).
 test.describe('Quest Begin Transition', () => {
   test.beforeEach(async ({ request }) => {
     const dispatch = dispatchHarness({ request, guildPath: GUILD_PATH });
 
-    // The heartbeat hold refuses every LATER play, but it cannot stop a loop that is ALREADY
-    // running — and under a whole-package sweep an earlier spec leaves one running. The mode that
-    // loop reads is an in-memory mirror, so writing the state file does not reach it either; only
-    // the pause route does. Without this, the running loop reaches this fixture's quest, orphan
-    // recovery resets its work item to the retry ceiling, and the quest lands on `blocked` while
-    // the assertion below is waiting for `in_progress`. Reproduced on master (104-spec sweep,
-    // commit 32a43c61e) as well as here, so it predates the session-cwd work.
     await dispatch.beforeEach();
-    dispatch.holdQueueWithMcpHeartbeat();
 
     await guildHarness({ request }).cleanGuilds();
     await sessions.cleanSessionDirectory();
@@ -117,6 +110,11 @@ test.describe('Quest Begin Transition', () => {
       (req) => req.method() === 'POST' && req.url().includes(`/api/quests/${questId}/start`),
       { timeout: REQUEST_TIMEOUT },
     );
+    const startResponsePromise = page.waitForResponse(
+      (res) =>
+        res.request().method() === 'POST' && res.url().includes(`/api/quests/${questId}/start`),
+      { timeout: REQUEST_TIMEOUT },
+    );
 
     await page.getByTestId('PIXEL_BTN').filter({ hasText: 'Begin Quest' }).click();
 
@@ -126,6 +124,14 @@ test.describe('Quest Begin Transition', () => {
     expect(startRequest.url()).toContain(`/api/quests/${questId}/start`);
     // start-post-fired: BEGIN QUEST sends no request body — the questId travels in the URL only.
     expect(startRequest.postData()).toBe(null);
+
+    // The start response only lands after its own play() call has resolved server-side, so pausing
+    // here is the earliest point this spec can reach that is guaranteed to run AFTER the dispatcher
+    // woke — before its slower steps (a real `git worktree add` against the fixture repo) have had
+    // time to run. `POST /api/orchestration/dispatch/play` never refuses, so nothing else in this
+    // package can hold the queue shut for the rest of this test.
+    await startResponsePromise;
+    await dispatchPauseHarness({ request }).pause();
 
     // The modal is held open across the POST with its Begin Quest button disabled, and closes on
     // success — so its disappearance is the request resolving, not the click.
@@ -224,19 +230,28 @@ test.describe('Quest Begin Transition', () => {
       (req) => req.method() === 'POST' && req.url().includes(`/api/quests/${questId}/start`),
       { timeout: REQUEST_TIMEOUT },
     );
+    const startResponsePromise = page.waitForResponse(
+      (res) =>
+        res.request().method() === 'POST' && res.url().includes(`/api/quests/${questId}/start`),
+      { timeout: REQUEST_TIMEOUT },
+    );
 
     await page.getByTestId('PIXEL_BTN').filter({ hasText: 'Begin Quest' }).click();
 
     await startPromise;
+    await startResponsePromise;
+    // See the sibling test's own comment: pausing here is the earliest point guaranteed to land
+    // after the dispatcher's own play() call, ahead of its slower steps.
+    await dispatchPauseHarness({ request }).pause();
 
     // Modal should close
     await expect(page.getByText('Shall we go dumpster diving for some code?')).not.toBeVisible({
       timeout: MODAL_TIMEOUT,
     });
 
-    // start-quest transitions the approved feature quest to in_progress and seeds the relay
-    // (no dispatcher runs in e2e). We assert three OrchestrationStartResponder effects on the
-    // persisted quest:
+    // start-quest transitions the approved feature quest to in_progress and seeds the relay,
+    // asserted immediately off the start response. We assert three OrchestrationStartResponder
+    // effects on the persisted quest:
     //   1. status is set to in_progress
     //   2. the pending chaoswhisperer work item is promoted to complete
     //   3. the operations relay is seeded, with the riftcarver carve at its head and exactly one
@@ -289,14 +304,13 @@ test.describe('Quest Begin Transition', () => {
     page,
     request,
   }) => {
-    // Under the `/dumpster-launch` model, Begin Quest mutates quest state only —
+    // Begin Quest mutates quest state and plays the dispatcher in one request:
     // OrchestrationStartResponder calls questBuildRelayGraphBroker to seed the operations relay
     // (the riftcarver carve, the derived codeweaver items and the fixed verify tail), promotes the
     // chaoswhisperer chat item to complete, creates the FIRST work item for the first actionable
-    // operation, and transitions the quest approved → in_progress. The orchestrator does NOT spawn
-    // anything; `/dumpster-launch` running in the user's Claude session calls get-next-step() to
-    // pick the work up on its next pass. This test exercises the post-Begin-Quest persisted graph
-    // shape (the seeded ledger + its first work item).
+    // operation, transitions the quest approved → in_progress, and starts the Node dispatcher. This
+    // test exercises the post-Begin-Quest persisted graph shape (the seeded ledger + its first work
+    // item), asserted immediately off the start response rather than after any dispatch runs.
     const guild = await guildHarness({ request }).createGuild({
       name: 'Relay Graph Begin Guild',
       path: GUILD_PATH,
@@ -349,10 +363,19 @@ test.describe('Quest Begin Transition', () => {
       (req) => req.method() === 'POST' && req.url().includes(`/api/quests/${questId}/start`),
       { timeout: REQUEST_TIMEOUT },
     );
+    const startResponsePromise = page.waitForResponse(
+      (res) =>
+        res.request().method() === 'POST' && res.url().includes(`/api/quests/${questId}/start`),
+      { timeout: REQUEST_TIMEOUT },
+    );
 
     await page.getByTestId('PIXEL_BTN').filter({ hasText: 'Begin Quest' }).click();
 
     await startPromise;
+    await startResponsePromise;
+    // See the first test's own comment: pausing here is the earliest point guaranteed to land after
+    // the dispatcher's own play() call, ahead of its slower steps.
+    await dispatchPauseHarness({ request }).pause();
 
     // Wait for in_progress — proves OrchestrationStartResponder finished its relay seed + status
     // transition (approved → in_progress). Start spawns nothing; the active dispatcher picks it up.
@@ -370,16 +393,36 @@ test.describe('Quest Begin Transition', () => {
       )
       .toBe('in_progress');
 
+    // `POST /api/orchestration/dispatch/play` never refuses, so the dispatcher is already carving
+    // for real against the fixture repo by this point. Poll for its attempt ref rather than reading
+    // once, so this test's own timing never races the carve's.
+    await expect
+      .poll(
+        async () => {
+          const response = await request.get(`/api/quests/${questId}`);
+          if (response.status() !== HTTP_OK) {
+            return 0;
+          }
+          const data = await response.json();
+          return data.quest.riftcarverResults.length;
+        },
+        { timeout: IN_PROGRESS_TIMEOUT },
+      )
+      .toBeGreaterThan(0);
+
     // Inspect the persisted work-item graph. The relay seed creates a single first work item, for
     // the riftcarver operation item at the head of the ledger; it depends on the prior chat work
     // item (chaoswhisperer here) and links 1:1 to its operation item via
-    // relatedDataItems: ['operations/<id>'].
+    // relatedDataItems: ['operations/<id>']. The dispatcher's own carve attempt ref
+    // (`riftcarverResults/<id>`) lands in the SAME field, read back off the quest rather than
+    // asserted as a literal so this stays exact without hardcoding a generated id.
     const questResponse = await request.get(`/api/quests/${questId}`);
     const questData = await questResponse.json();
     const riftcarverItems = questData.quest.workItems.filter(
       (wi: { role: string }) => wi.role === 'riftcarver',
     );
     const [headOperation] = questData.quest.operations;
+    const [riftcarverResult] = questData.quest.riftcarverResults;
 
     expect(headOperation.role).toBe('riftcarver');
     // The 1:1 link is asserted against the head operation's OWN id, so a work item pointing at some
@@ -395,7 +438,10 @@ test.describe('Quest Begin Transition', () => {
     ).toStrictEqual([
       {
         dependsOn: [CHAOSWHISPERER_WORK_ITEM_ID],
-        relatedDataItems: [`operations/${String(headOperation.id)}`],
+        relatedDataItems: [
+          `operations/${String(headOperation.id)}`,
+          `riftcarverResults/${String(riftcarverResult.id)}`,
+        ],
         spawnerType: 'command',
       },
     ]);
@@ -407,16 +453,19 @@ test.describe('Quest Begin Transition', () => {
     await expect(page.getByTestId('QUEST_SPEC_PANEL')).not.toBeVisible();
   });
 
-  test('VALID: {Begin Quest clicked} => the execution panel replaces the spec panel while the repo still holds no worktree', async ({
+  test('VALID: {Begin Quest clicked} => the execution panel replaces the spec panel promptly, without waiting for the dispatcher to carve', async ({
     page,
     request,
   }) => {
     // THE REPORTED SYMPTOM THIS GUARDS: clicking Begin Quest looked like nothing happened — the
     // spec panel kept rendering for minutes while POST /start sat pending, because the request
-    // carried the whole git lifecycle (worktree add, node_modules mirror, preflight typecheck) and the
-    // quest-modified WS event that drives the panel swap cannot fire until that lands. The sibling
-    // tests above prove the swap is WS-driven; this one proves it happens BEFORE any carving,
-    // which is the half that was broken.
+    // carried the whole git lifecycle (worktree add, node_modules mirror, preflight typecheck) and
+    // the quest-modified WS event that drives the panel swap cannot fire until that lands. Start
+    // hands the carve to the dispatcher instead of running it inline, so the swap arrives within
+    // PANEL_TIMEOUT — a real multi-minute inline carve would still blow that timeout outright.
+    // `POST /api/orchestration/dispatch/play` never refuses, so this test does not try to catch the
+    // ledger in a not-yet-carved state — see the sibling relay-graph test for that assertion, taken
+    // after polling for the dispatcher's own attempt ref instead of racing it.
     const guild = await guildHarness({ request }).createGuild({
       name: 'Carve On Relay Guild',
       path: GUILD_PATH,
@@ -460,8 +509,7 @@ test.describe('Quest Begin Transition', () => {
     await expect(specPanel).toBeVisible({ timeout: PANEL_TIMEOUT });
 
     // The guild path is a real git repo (environmentHarness builds it), so `worktrees/` is a
-    // directory a carve genuinely can create here. Reading it before the click is what makes the
-    // reading after the click mean something: the two together say the click created none.
+    // directory a carve genuinely can create here — empty before Begin Quest is even clicked.
     expect(environment.listWorktreeDirNames()).toStrictEqual([]);
 
     await page.getByTestId('PIXEL_BTN').filter({ hasText: 'APPROVE' }).click();
@@ -473,39 +521,12 @@ test.describe('Quest Begin Transition', () => {
     await page.getByTestId('PIXEL_BTN').filter({ hasText: 'Begin Quest' }).click();
 
     // Promptly, off the quest-modified WS event, with no reload: POST /start is pure quest.json
-    // bookkeeping, so it answers in milliseconds. A carve back inside the request blows this
-    // timeout outright — `git worktree add` plus the node_modules mirror plus the preflight typecheck
-    // take minutes on a real repo.
+    // bookkeeping plus handing the carve to the dispatcher, so it answers well inside this timeout.
+    // A carve run back INSIDE the request — the historical bug — blows this timeout outright:
+    // `git worktree add` plus the node_modules mirror plus the preflight typecheck take real time.
     await expect(page.getByTestId('execution-panel-widget')).toBeVisible({
       timeout: PANEL_TIMEOUT,
     });
-
-    // THE POINT OF THIS TEST, read at the moment the execution panel is up. `worktrees/` is the
-    // ENTIRE surface a carve can land on in this repo, so an empty list here says the panel swapped
-    // before anything was carved — which is exactly what the reported symptom got backwards.
-    expect(environment.listWorktreeDirNames()).toStrictEqual([]);
-
     await expect(specPanel).not.toBeVisible();
-
-    // ...and the carve is QUEUED rather than gone. Paired with the empty listing above, this is
-    // what separates "the carve moved onto the relay" from "the carve was deleted": the ledger's
-    // head is the riftcarver item, marked actionable, with its own command work item waiting for a
-    // dispatcher that has not run yet.
-    const questResponse = await request.get(`/api/quests/${questId}`);
-    const questData = await questResponse.json();
-
-    expect(
-      questData.quest.operations
-        .slice(0, 1)
-        .map((op: { role: string; status: string }) => ({ role: op.role, status: op.status })),
-    ).toStrictEqual([{ role: 'riftcarver', status: 'in_progress' }]);
-    expect(
-      questData.quest.workItems
-        .filter((wi: { role: string }) => wi.role === 'riftcarver')
-        .map((wi: { status: string; spawnerType: string }) => ({
-          status: wi.status,
-          spawnerType: wi.spawnerType,
-        })),
-    ).toStrictEqual([{ status: 'pending', spawnerType: 'command' }]);
   });
 });

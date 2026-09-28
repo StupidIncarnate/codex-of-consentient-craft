@@ -9,7 +9,7 @@
  *   Left alone, the orphan satisfies no dependency and get-next-step returns idle forever.
  *
  *   RESUME, DON'T RESTART: each orphan flips back to `pending` (so compute-ready selects it) but
- *   KEEPS `sessionId`/`agentId` and gains the `resume` marker — Node dispatch resumes the retained
+ *   KEEPS `sessionId` and gains the `resume` marker — Node dispatch resumes the retained
  *   Claude session (`claude --resume`) so work in the orphaned session is preserved instead of
  *   re-running from scratch. An early-crash orphan with NO captured sessionId falls back to a
  *   fresh spawn (no marker). Budget: each recovery bumps `retryCount`; once it reaches
@@ -65,7 +65,7 @@ export const recoverOrphanedWorkItemsLayerBroker = async ({
   );
   const toReset = toRecover.filter((item) => item.id !== escalated?.id);
 
-  // Flip back to pending KEEPING sessionId/agentId, and mark for resume when a session was
+  // Flip back to pending KEEPING sessionId, and mark for resume when a session was
   // captured — dispatch resumes that Claude session instead of fresh-spawning. An item with no
   // sessionId (child died before its init line) resets without the marker → fresh spawn.
   if (toReset.length > 0) {

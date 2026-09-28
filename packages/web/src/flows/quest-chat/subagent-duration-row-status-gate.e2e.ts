@@ -199,12 +199,12 @@ test.describe('Sub-agent chain duration is gated by the owning row status, not b
     const guildId = guilds.extractGuildId({ guild });
 
     // No main session file at all — only the sub-agent's own JSONL, with no Task tool-use line
-    // anywhere in it. Pairing the work item's sessionId with an agentId scopes replay to ONLY
-    // `<sessionId>/subagents/agent-<agentId>.jsonl` (chat-history-replay-broker skips the main
-    // session file entirely once filterAgentId is set), so this is the nearest REAL condition to
-    // "a chain with no Task tool-use entry" the browser can actually reach — see
-    // collect-subagent-chains-transformer.ts:137, which always stamps taskToolUse on any chain it
-    // builds, so no browser-reachable chain ever carries a null one.
+    // anywhere in it. With no main session file to pre-scan, PASS 1a/1b never register a
+    // realAgentId → toolUseId translation for this sub-agent, so its lines emit as orphaned entries
+    // with no chain — the nearest REAL condition to "a chain with no Task tool-use entry" the
+    // browser can actually reach — see collect-subagent-chains-transformer.ts:137, which always
+    // stamps taskToolUse on any chain it builds, so no browser-reachable chain ever carries a null
+    // one.
     await sessions.createSubagentTailOnly({
       sessionId: NO_START_SESSION_ID,
       agentId: NO_START_AGENT_ID,
@@ -230,7 +230,6 @@ test.describe('Sub-agent chain duration is gated by the owning row status, not b
           role: 'codeweaver',
           status: 'in_progress',
           sessionId: NO_START_SESSION_ID,
-          agentId: NO_START_AGENT_ID,
           relatedDataItems: [`operations/${NO_START_OP}`],
         },
       ],

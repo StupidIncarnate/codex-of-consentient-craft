@@ -2,7 +2,7 @@ import { QuestFlow } from './quest-flow';
 
 describe('QuestFlow', () => {
   describe('tool registrations', () => {
-    it('VALID: returns 15 registrations with correct tool names', () => {
+    it('VALID: returns 14 registrations with correct tool names', () => {
       const registrations = QuestFlow();
 
       const names = registrations.map(({ name }) => name);
@@ -17,7 +17,6 @@ describe('QuestFlow', () => {
         'get-quest-planning-notes',
         'get-blight-checklist',
         'create-quest',
-        'get-next-step',
         'get-server-config',
         'get-quest-summary',
         'create-worktree',
@@ -32,7 +31,6 @@ describe('QuestFlow', () => {
       const handlerTypes = registrations.map(({ handler }) => typeof handler);
 
       expect(handlerTypes).toStrictEqual([
-        'function',
         'function',
         'function',
         'function',
@@ -65,7 +63,6 @@ describe('QuestFlow', () => {
         "Returns a quest's `planningNotes`: the `operationPlans` a planning sub-agent persisted, the per-unit `blightLedger` a reviewer writes, and the durable `questNotes` side channel. An operator calls this to read a plan back off the quest — a sub-agent returns a short pointer, never the plan body, so this is the only place the pieces themselves exist.",
         "Returns a quest's COMPLETE blight review surface, computed deterministically from a git diff: every changed file crossed with each applicable standards concern, paired with its per-unit disposition in quest.planningNotes.blightLedger — and which units still carry no disposition. The `scope` parameter chooses WHICH changes are measured — the uncommitted working tree, what is committed here but not yet pushed, the last commit alone, or the whole quest from its pinned baseRef. Those four are NOT interchangeable and answer four different questions: read `scope`'s own description for what each one measures, and pass the one YOUR prompt names. A quest with no pinned baseRef, or an empty diff, states that plainly rather than erroring.",
         'Creates a new quest seeded with the supplied userRequest and returns { questId, guildSlug }. ChaosWhisperer at /dumpster-create startup calls this as its first action; the user never types a quest id, but the caller MUST pass the original user request text so it is captured on the quest from the moment of creation.',
-        'Returns the next dispatch instruction for /dumpster-launch: spawn-agents | idle. Long-polls internally up to ~25s.',
         'Returns the dungeonmaster server config { baseUrl, port } so slash commands can point the browser at the running server.',
         "Returns what ACTUALLY happened on a quest, which `get-quest` and a status do not answer: per-flow, per-track coverage (`met` / `cant-meet` / `unmet` / `outstanding`, one row per track that measures a flow); every observable added AFTER the user approved the spec, with the role that added it; the DEBT list — every unit settled without proof (`cant-meet`) or still left open (`unmet`), each with its evidence, its `toSettle` action where one exists, and the work item that raised it; every `verifyByHuman` criterion no track's denominator can ever carry; and the durable `noteGroups`, grouped by kind with open questions first. A quest reaches `complete` when its operations ledger drains, not when every unit is marked `met` — a `cant-meet` settles a unit without proving it and an `unmet` leaves the work open, and neither one holds that ledger — so a complete quest can still carry real holes, real unapproved scope and real unanswered questions, and this is the only surface that shows them. Call it when picking up a quest someone else worked, before a review, or before deciding what is left to do.",
         "Creates an isolated git worktree at `worktrees/<name>` and returns its absolute path. This is the ONLY sanctioned way to get a worktree, and the tree it returns has four properties a hand-rolled `git worktree add` silently lacks: it sits under the repo's own `worktrees/`, its `node_modules` is mirrored so every command inside it resolves the worktree's OWN packages, its compiled output is seeded so ward, the hooks and the CLI can run there at all, and every link in it is audited to prove none resolves back into the main checkout. A worktree missing any of those looks completely normal until a run comes back green against code it never saw. IDEMPOTENT: asking twice for one name verifies and hands back the same tree rather than carving a second, which also makes this the call that REPAIRS a half-built one. Claude Code's own worktree command is blocked in this repo and names this tool.",
@@ -80,7 +77,6 @@ describe('QuestFlow', () => {
       const schemaTypes = registrations.map(({ inputSchema }) => typeof inputSchema);
 
       expect(schemaTypes).toStrictEqual([
-        'object',
         'object',
         'object',
         'object',

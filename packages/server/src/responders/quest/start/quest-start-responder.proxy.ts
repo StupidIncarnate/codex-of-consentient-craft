@@ -18,7 +18,8 @@ registerModuleMock({
   }),
 });
 
-import { DispatchPlayResponseStub } from '@dungeonmaster/orchestrator/testing';
+import { DispatchStateStub } from '@dungeonmaster/shared/contracts';
+import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
 import { orchestratorGetQuestAdapterProxy } from '../../../adapters/orchestrator/get-quest/orchestrator-get-quest-adapter.proxy';
 import { orchestratorPlayDispatchAdapterProxy } from '../../../adapters/orchestrator/play-dispatch/orchestrator-play-dispatch-adapter.proxy';
 import { orchestratorStartQuestAdapterProxy } from '../../../adapters/orchestrator/start-quest/orchestrator-start-quest-adapter.proxy';
@@ -32,9 +33,8 @@ export const QuestStartResponderProxy = (): {
   setupStartQuest: (params: { questId: QuestId; processId: ProcessId }) => void;
   setupStartQuestError: (params: { questId: QuestId; message: string }) => void;
   setupDispatchPlays: () => void;
-  setupDispatchRefused: (params: { reason: string }) => void;
   setupDispatchError: (params: { message: string }) => void;
-  getDispatchPlayCalls: () => readonly unknown[];
+  getDispatchPlayCalls: () => RecordedCalls;
   callResponder: typeof QuestStartResponder;
 } => {
   const questProxy = orchestratorGetQuestAdapterProxy();
@@ -52,20 +52,14 @@ export const QuestStartResponderProxy = (): {
       adapterProxy.throws({ questId, error: new Error(message) });
     },
 
-    // The Node dispatcher accepts the play — the ordinary case, where nothing else owns the queue.
+    // The Node dispatcher starts — the ordinary case.
     setupDispatchPlays: (): void => {
-      playProxy.returns({ response: DispatchPlayResponseStub({ allowed: true }) });
-    },
-    // The exclusivity gate refuses: a live /dumpster-launch loop still owns the queue.
-    setupDispatchRefused: ({ reason }: { reason: string }): void => {
-      playProxy.returns({
-        response: DispatchPlayResponseStub({ allowed: false, reason: reason as never }),
-      });
+      playProxy.returns({ state: DispatchStateStub({ mode: 'node-playing' }) });
     },
     setupDispatchError: ({ message }: { message: string }): void => {
       playProxy.throws({ error: new Error(message) });
     },
-    getDispatchPlayCalls: (): readonly unknown[] => playProxy.getCalls(),
+    getDispatchPlayCalls: (): RecordedCalls => playProxy.getCalls(),
 
     callResponder: QuestStartResponder,
   };

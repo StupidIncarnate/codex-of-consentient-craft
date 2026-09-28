@@ -18,7 +18,6 @@ import type {
   AdapterResult,
   AddQuestInput,
   AddQuestResult,
-  AgentId,
   AgentPromptResult,
   BlockedReason,
   CommentBatchEntry,
@@ -49,8 +48,6 @@ import type {
   UrlSlug,
 } from '@dungeonmaster/shared/contracts';
 
-import type { DispatchPlayResponse } from '../contracts/dispatch-play-response/dispatch-play-response-contract';
-import type { NextStep } from '../contracts/next-step/next-step-contract';
 import type { PromptText } from '../contracts/prompt-text/prompt-text-contract';
 import type { QuestGetServerConfigResult } from '../contracts/quest-get-server-config-result/quest-get-server-config-result-contract';
 
@@ -263,17 +260,6 @@ export const StartOrchestrator = {
     input: ModifyQuestInput;
   }): Promise<ModifyQuestResult> => QuestFlow.modify({ questId, input }),
 
-  // Appends one row to `quest.sessions`, recording the cwd a session ran in. Deliberately NOT part
-  // of `modifyQuest`: `sessions` is absent from `modifyQuestInputContract`, so no agent-facing tool
-  // can reach it. The MCP child is the caller that needs this — Claude CLI encodes a transcript's
-  // directory from the session's own cwd, and only the MCP process (one per Claude session) knows
-  // what that is. Deriving it from the quest instead records the worktree for a `/dumpster-launch`
-  // dispatcher that actually ran at the repo root.
-  recordQuestSession: async (
-    params: Parameters<typeof QuestFlow.recordSession>[0],
-  ): Promise<Awaited<ReturnType<typeof QuestFlow.recordSession>>> =>
-    QuestFlow.recordSession(params),
-
   // The ONE sanctioned way to get a worktree, for every caller — an MCP tool, a riftcarver carve, a
   // session asking for one by name. A hand-rolled `git worktree add` produces a tree with no
   // compiled output (so nothing in it runs) or one whose `node_modules` links point back at the main
@@ -354,19 +340,16 @@ export const StartOrchestrator = {
 
   replayChatHistory: async ({
     sessionId,
-    agentId,
     guildId,
     chatProcessId,
   }: {
     sessionId: SessionId;
-    agentId?: AgentId;
     guildId: GuildId;
     chatProcessId?: ProcessId;
   }): Promise<AdapterResult> =>
     ChatReplayFlow({
       sessionId,
       guildId,
-      ...(agentId && { agentId }),
       ...(chatProcessId && { chatProcessId }),
     }),
 
@@ -430,8 +413,7 @@ export const StartOrchestrator = {
   // Node dispatcher play/pause (the /queue page's control surface)
   getDispatchState: async (): Promise<DispatchState> => OrchestrationDispatchFlow.get(),
 
-  playDispatch: async ({ force }: { force?: boolean }): Promise<DispatchPlayResponse> =>
-    OrchestrationDispatchFlow.play({ ...(force !== undefined && { force }) }),
+  playDispatch: async (): Promise<DispatchState> => OrchestrationDispatchFlow.play(),
 
   pauseDispatch: async (): Promise<DispatchState> => OrchestrationDispatchFlow.pause(),
 
@@ -464,9 +446,6 @@ export const StartOrchestrator = {
       ...(questType !== undefined && { questType }),
       ...(sessionId !== undefined && { sessionId }),
     }),
-
-  // MCP-driven get-next-step (/dumpster-launch dispatch loop)
-  getNextStep: async (): Promise<NextStep> => QuestFlow.getNextStep(),
 
   // MCP-driven signal-back post-processing — applies the session's operation outcome
   // (done/blocked) to the ledger atomically, then advances the relay.
@@ -514,22 +493,23 @@ export const StartOrchestrator = {
     workItemId: QuestWorkItemId;
   }): Promise<QuestId | null> => QuestFlow.findByWorkItemId({ workItemId }),
 
-  // Start a JSONL watcher against a parent Claude Code session whose id is stamped on
-  // an in-progress workItem. Called by the server's quest-driven watcher reactor for
-  // each distinct sessionId in the active workItem set; multiple instances coexist.
+  // Start a JSONL watcher against a Node-dispatch worker's own session, whose id is
+  // stamped on an in-progress workItem. Called by the server's quest-driven watcher
+  // reactor for each distinct sessionId in the active workItem set; multiple instances
+  // coexist.
   startMonitorWatcher: async ({
     parentSessionId,
     projectDir,
-    ...workerParams
+    workerWorkItemId,
+    workerQuestId,
   }: {
     parentSessionId: string;
     projectDir: string;
-    // Present when the tailed session is a top-level node-dispatch worker (work item has
-    // a sessionId but no agentId). Routes its main-session output to the work item's row
-    // instead of dropping it as /dumpster-launch dispatcher chatter.
-    workerWorkItemId?: string;
+    // The work item whose agent writes this session's MAIN JSONL. Routes its
+    // main-session output to that work item's execution row.
+    workerWorkItemId: string;
     // The quest owning that work item — routes the tail's own terminal event.
-    workerQuestId?: string;
+    workerQuestId: string;
   }): Promise<{ stop: () => void }> =>
-    QuestFlow.startMonitorWatcher({ parentSessionId, projectDir, ...workerParams }),
+    QuestFlow.startMonitorWatcher({ parentSessionId, projectDir, workerWorkItemId, workerQuestId }),
 };

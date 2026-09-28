@@ -37,7 +37,6 @@ type DispatchState = ReturnType<typeof DispatchStateStub>;
 interface PersistedDispatchState {
   mode: DispatchState['mode'];
   hold: DispatchHold | null | undefined;
-  mcpHeartbeatAt: DispatchState['mcpHeartbeatAt'];
   updatedAt: DispatchState['updatedAt'];
 }
 
@@ -176,13 +175,11 @@ export const rateLimitsWatcherHarness = (): {
       const parsed = JSON.parse(raw) as {
         mode: DispatchState['mode'];
         hold?: DispatchHold | null;
-        mcpHeartbeatAt?: DispatchState['mcpHeartbeatAt'];
         updatedAt: DispatchState['updatedAt'];
       };
       return {
         mode: parsed.mode,
         hold: parsed.hold,
-        mcpHeartbeatAt: parsed.mcpHeartbeatAt,
         updatedAt: parsed.updatedAt,
       };
     },

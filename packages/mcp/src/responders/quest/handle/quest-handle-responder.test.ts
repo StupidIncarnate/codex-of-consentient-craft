@@ -1447,52 +1447,6 @@ describe('QuestHandleResponder', () => {
     });
   });
 
-  describe('get-next-step', () => {
-    it('VALID: {} => returns NextStep JSON', async () => {
-      const proxy = QuestHandleResponderProxy();
-      const step = proxy.buildIdleNextStep();
-      proxy.setupGetNextStepReturns({ step });
-
-      const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'get-next-step' }),
-        args: {},
-      });
-
-      expect(result).toStrictEqual({
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify(step, null, JSON_INDENT_SPACES),
-          },
-        ],
-      });
-    });
-
-    it('ERROR: {adapter throws} => returns error response', async () => {
-      const proxy = QuestHandleResponderProxy();
-      proxy.setupGetNextStepThrows({ error: new Error('Scan failed') });
-
-      const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'get-next-step' }),
-        args: {},
-      });
-
-      expect(result).toStrictEqual({
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify(
-              { success: false, error: 'Scan failed' },
-              null,
-              JSON_INDENT_SPACES,
-            ),
-          },
-        ],
-        isError: true,
-      });
-    });
-  });
-
   describe('get-server-config', () => {
     it('VALID: {} => returns { baseUrl, port } JSON', async () => {
       const proxy = QuestHandleResponderProxy();

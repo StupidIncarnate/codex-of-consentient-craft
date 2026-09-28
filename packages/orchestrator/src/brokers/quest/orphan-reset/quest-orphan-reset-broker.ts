@@ -6,9 +6,9 @@
  * // Returns: { orphansReset: OrphansResetCount } — total work items reset across all guilds/quests
  *
  * WHEN-TO-USE: From `questMonitorWatcherStartBroker` whenever the quest-driven watcher
- *   reactor first observes a parent sessionId on an active workItem. The prior
- *   /dumpster-launch may have died mid-flight, leaving `in_progress` items that need to
- *   drop back to `pending` so the new launcher's `get-next-step` re-dispatches them.
+ *   reactor first observes a parent sessionId on an active workItem. A prior
+ *   dispatcher run may have died mid-flight, leaving `in_progress` items that need to
+ *   drop back to `pending` so the next dispatch scan re-dispatches them.
  *   Idempotent: subsequent calls find nothing to reset.
  * WHEN-NOT-TO-USE: From any per-quest path — this walks every guild every call. For a
  *   single-quest reset prefer `quest-pause-broker` / `quest-resume-broker`.
@@ -25,7 +25,7 @@
  *   retained id, and then the child's own init line re-stamps the item with the id Claude
  *   CLI just minted. Between those two writes the item is genuinely running under a session
  *   this sweep was not told about, and a sessionId-only exclusion resets it — clearing
- *   sessionId/agentId/startedAt on a live agent, which the execution row renders as RUNNING
+ *   sessionId/startedAt on a live agent, which the execution row renders as RUNNING
  *   dropping back to PENDING mid-run. A work item's id is fixed for its whole life, so it is
  *   the only handle that survives the window.
  *
@@ -127,12 +127,11 @@ export const questOrphanResetBroker = async ({
                 if (!orphanedIds.has(wi.id)) {
                   return wi;
                 }
-                // Clear per-run identity. Stale realAgentId/parentSessionId stamped from a
-                // prior /dumpster-launch attempt is misleading once the item is pending
-                // again; the next dispatch's get-agent-prompt call re-stamps fresh values.
+                // Clear per-run identity. A stale sessionId stamped from a prior dispatch attempt
+                // is misleading once the item is pending again; the next dispatch stamps a fresh
+                // value from the new child's init line.
                 const reset: Record<PropertyKey, unknown> = { ...wi, status: 'pending' };
                 Reflect.deleteProperty(reset, 'sessionId');
-                Reflect.deleteProperty(reset, 'agentId');
                 Reflect.deleteProperty(reset, 'startedAt');
                 return workItemContract.parse(reset);
               }),

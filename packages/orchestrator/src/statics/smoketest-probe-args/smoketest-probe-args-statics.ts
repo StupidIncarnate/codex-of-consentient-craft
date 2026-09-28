@@ -116,11 +116,6 @@ export const smoketestProbeArgsStatics = {
     summary: 'mcp-create-quest-not-in-mcp-suite',
     note: 'create-quest spawns a real quest via guildList state — covered end-to-end in the /dumpster-create flow, not here.',
   },
-  'get-next-step': {
-    mode: 'skip-from-suite',
-    summary: 'mcp-get-next-step-not-in-mcp-suite',
-    note: 'get-next-step long-polls quest state and belongs to the orchestration smoketest suite.',
-  },
   'get-server-config': {
     mode: 'call',
     args: {},

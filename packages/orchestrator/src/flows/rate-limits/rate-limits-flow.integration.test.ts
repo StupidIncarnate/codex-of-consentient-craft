@@ -3,7 +3,6 @@ import { DispatchHoldStub, RateLimitsSnapshotStub } from '@dungeonmaster/shared/
 
 import { rateLimitsWatcherHarness } from '../../../test/harnesses/rate-limits-watcher/rate-limits-watcher.harness';
 import { OrchestrationDispatchFlow } from '../orchestration-dispatch/orchestration-dispatch-flow';
-import { QuestFlow } from '../quest/quest-flow';
 
 import { RateLimitsFlow } from './rate-limits-flow';
 
@@ -140,7 +139,7 @@ describe('RateLimitsFlow', () => {
         });
         await harness.seedDispatch({ tempDir, mode: 'paused' });
 
-        const played = await OrchestrationDispatchFlow.play({});
+        const played = await OrchestrationDispatchFlow.play();
         const playedAtMs = Date.now();
         RateLimitsFlow.bootstrap();
         await harness.awaitHoldDetail({ tempDir, detail: DETAIL_90 });
@@ -153,7 +152,7 @@ describe('RateLimitsFlow', () => {
         await end();
 
         expect({
-          playAllowed: played.allowed,
+          playedMode: played.mode,
           mode: persisted.mode,
           reason: persisted.hold?.reason,
           window: persisted.hold?.window,
@@ -162,7 +161,7 @@ describe('RateLimitsFlow', () => {
           isPlaying,
           isPlayRequested,
         }).toStrictEqual({
-          playAllowed: true,
+          playedMode: 'node-playing',
           mode: 'node-playing',
           reason: 'approaching-limit',
           window: 'seven-day',
@@ -191,7 +190,7 @@ describe('RateLimitsFlow', () => {
         });
         await harness.seedDispatch({ tempDir, mode: 'paused' });
 
-        await OrchestrationDispatchFlow.play({});
+        await OrchestrationDispatchFlow.play();
         RateLimitsFlow.bootstrap();
         await harness.awaitQuiet();
 
@@ -226,7 +225,7 @@ describe('RateLimitsFlow', () => {
         });
         await harness.seedDispatch({ tempDir, mode: 'paused' });
 
-        await OrchestrationDispatchFlow.play({});
+        await OrchestrationDispatchFlow.play();
         RateLimitsFlow.bootstrap();
         await harness.awaitQuiet();
 
@@ -283,39 +282,6 @@ describe('RateLimitsFlow', () => {
       },
       TEST_TIMEOUT_MS,
     );
-
-    it(
-      'VALID: {a hold standing and get-next-step polled} => returns idle naming the window and the resume time, and writes no mcp heartbeat',
-      async () => {
-        const { tempDir, end } = harness.begin({ name: BaseNameStub({ value: 'rl-idle' }) });
-        await harness.seedDispatch({
-          tempDir,
-          mode: 'paused',
-          hold: DispatchHoldStub({
-            reason: 'approaching-limit',
-            window: 'seven-day',
-            detail: '7d window at 93% — dispatch holds until it resets',
-            heldAt: '2026-09-13T04:49:29.242Z',
-            resumeAt: '2099-01-01T00:00:00.000Z',
-          }),
-        });
-
-        const step = await QuestFlow.getNextStep();
-        const persisted = harness.readDispatch({ tempDir });
-
-        await end();
-
-        expect({ step, mcpHeartbeatAt: persisted.mcpHeartbeatAt }).toStrictEqual({
-          step: {
-            type: 'idle',
-            reason:
-              'rate-limit guardrail: 7d window at 93% — dispatch holds until it resets. Dispatch resumes at 2099-01-01T00:00:00.000Z.',
-          },
-          mcpHeartbeatAt: undefined,
-        });
-      },
-      TEST_TIMEOUT_MS,
-    );
   });
 
   describe('the guardrail resumes the queue on its own', () => {
@@ -346,7 +312,7 @@ describe('RateLimitsFlow', () => {
           }),
         });
 
-        await OrchestrationDispatchFlow.play({});
+        await OrchestrationDispatchFlow.play();
         RateLimitsFlow.bootstrap();
         await harness.awaitHoldCleared({ tempDir });
 
@@ -496,7 +462,6 @@ describe('RateLimitsFlow', () => {
         expect(persisted).toStrictEqual({
           mode: 'node-playing',
           hold: standingHold,
-          mcpHeartbeatAt: undefined,
           updatedAt: before.updatedAt,
         });
       },

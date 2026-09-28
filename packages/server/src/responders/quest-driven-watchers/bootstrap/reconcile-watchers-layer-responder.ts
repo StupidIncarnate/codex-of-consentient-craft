@@ -75,12 +75,10 @@ export const ReconcileWatchersLayerResponder = async ({
   // Tracked separately so "measured beats inferred" holds regardless of the order guilds are walked
   // in — see the comment at the assignment below.
   const recordedProjectDirSessions = new Set<SessionId>();
-  // Sessions whose active work item carries a sessionId but NO agentId are top-level
-  // node-dispatch workers (spawn-batch stamps sessionId, never agentId; /dumpster-launch
-  // get-agent-prompt stamps BOTH). Their own agent (codeweaver/flowrider/…) writes the
-  // MAIN session JSONL, so the watcher must route that content to the work item's row
-  // instead of dropping it as dispatcher chatter. Keyed sessionId → owning workItemId;
-  // dispatcher (/dumpster-launch parent) sessions never appear here.
+  // Every active work item's session is a Node-dispatch worker's own dedicated session:
+  // its agent (codeweaver/flowrider/…) writes the MAIN session JSONL, so the watcher must
+  // route that content to the work item's row rather than treat it as chatter. Keyed
+  // sessionId → owning workItemId.
   const workerWorkItemIdBySessionId = new Map<SessionId, QuestWorkItemId>();
   // The quest each worker session's owning work item belongs to, captured in lockstep with the
   // map above. The tail emits its own terminal event when it stops, and `chat-complete` is a
@@ -103,9 +101,8 @@ export const ReconcileWatchersLayerResponder = async ({
       target.add(wi.sessionId);
       // A recorded row is where the session ACTUALLY ran, so it outranks the guess above — and it
       // must outrank it whichever quest the walk reached first. One sessionId legitimately appears
-      // on work items across SEVERAL quests (a `/dumpster-launch` dispatcher stamps its own session
-      // on every item it dispatches), so a plain first-writer-wins would let the first quest's
-      // guess lock the map and a later quest's real row never land. Two guesses still keep
+      // on work items across SEVERAL quests, so a plain first-writer-wins would let the first
+      // quest's guess lock the map and a later quest's real row never land. Two guesses still keep
       // first-writer-wins, which is the arbitrary tie-break the ledger retires one session at a
       // time.
       const recordedCwd = questSessionCwdTransformer({ quest, sessionId: wi.sessionId });
@@ -117,7 +114,7 @@ export const ReconcileWatchersLayerResponder = async ({
       } else if (questProjectDir !== undefined && !projectDirBySessionId.has(wi.sessionId)) {
         projectDirBySessionId.set(wi.sessionId, questProjectDir);
       }
-      if (wi.agentId === undefined && !workerWorkItemIdBySessionId.has(wi.sessionId)) {
+      if (!workerWorkItemIdBySessionId.has(wi.sessionId)) {
         workerWorkItemIdBySessionId.set(wi.sessionId, wi.id);
         workerQuestIdBySessionId.set(wi.sessionId, quest.id);
       }
@@ -141,11 +138,14 @@ export const ReconcileWatchersLayerResponder = async ({
       try {
         const workerWorkItemId = workerWorkItemIdBySessionId.get(sessionId);
         const workerQuestId = workerQuestIdBySessionId.get(sessionId);
+        if (workerWorkItemId === undefined || workerQuestId === undefined) {
+          throw new Error(`no owning work item recorded for session ${String(sessionId)}`);
+        }
         const handle = await orchestratorStartMonitorWatcherAdapter({
           parentSessionId: String(sessionId),
           projectDir: projectDirBySessionId.get(sessionId) ?? projectDir,
-          ...(workerWorkItemId === undefined ? {} : { workerWorkItemId: String(workerWorkItemId) }),
-          ...(workerQuestId === undefined ? {} : { workerQuestId: String(workerQuestId) }),
+          workerWorkItemId: String(workerWorkItemId),
+          workerQuestId: String(workerQuestId),
         });
         return { sessionId, handle };
       } catch (error: unknown) {

@@ -4,9 +4,8 @@
  *
  * The route is the only thing that reaches a RUNNING loop. That loop reads an in-memory mirror
  * (`orchestrationDispatchState`), not `<DUNGEONMASTER_HOME>/dispatch-state.json`, so writing the
- * state file — what `dispatchHarness.releaseQueueHold` and `holdQueueWithMcpHeartbeat` do — leaves
- * a loop that has already woken running. The responder preserves any `mcpHeartbeatAt` it reads, so
- * pausing never releases a queue hold a spec is relying on.
+ * state file — what `dispatchHarness.releaseQueueHold` does — leaves a loop that has already woken
+ * running.
  *
  * USAGE:
  * await dispatchPauseHarness({ request }).pause();

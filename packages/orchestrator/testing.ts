@@ -43,4 +43,3 @@ export { QuestGetServerConfigResultStub } from './src/contracts/quest-get-server
 // and that branch cannot be exercised without a real view.
 export { QuestWorkViewStub } from './src/contracts/quest-work-view/quest-work-view.stub';
 export { SpawnInstructionStub } from './src/contracts/spawn-instruction/spawn-instruction.stub';
-export { DispatchPlayResponseStub } from './src/contracts/dispatch-play-response/dispatch-play-response.stub';

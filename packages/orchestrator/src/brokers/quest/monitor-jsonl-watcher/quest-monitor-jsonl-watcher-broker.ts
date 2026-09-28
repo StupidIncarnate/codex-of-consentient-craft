@@ -3,9 +3,10 @@
  *
  * USAGE:
  * const handle = questMonitorJsonlWatcherBroker({
- *   monitorSession: { projectDir, sessionFilePath, registeredAt },
+ *   sessionFilePath,
  *   activeQuestIdGetter: () => null,
  *   chatProcessId,
+ *   mainSessionWorkItemId,
  *   emit: ({ chatProcessId, entries }) => orchestrationEventsState.emit({ ... }),
  * });
  * handle.stop();
@@ -54,24 +55,20 @@ export const questMonitorJsonlWatcherBroker = ({
   chatProcessId,
   workItemIdForAgent,
   emit,
-  isAgentIdActive,
   mainSessionWorkItemId,
 }: {
   sessionFilePath: FilePath;
   activeQuestIdGetter: () => QuestId | null;
   // Resolves the owning work item id for a sub-agent's realAgentId. Forwarded to each
   // sub-agent tail so its emits carry `workItemId`, letting the web route the transcript
-  // to its own execution row instead of the merged parent-session bucket. A null OR
-  // undefined return both mean "no work item for this agent". Optional: omitted by tests.
+  // to its own execution row instead of the merged parent-session bucket. Optional:
+  // omitted by tests.
   workItemIdForAgent?: (params: { agentId: AgentId }) => QuestWorkItemId | null | undefined;
   chatProcessId: ProcessId;
   // Emits from sub-agent tails carry `sessionId: parentSessionId` so the web binding
   // buckets them under the same key that `wi.sessionId` resolves to via
-  // chat-replay-responder + the MCP get-agent-prompt stamp. Main-session tail emits
-  // for a /dumpster-launch DISPATCHER session omit `sessionId` — those frames are
-  // dispatcher chatter, not per-row content. For a node-dispatch WORKER session (see
-  // `mainSessionWorkItemId` below) the main session IS the per-row content, so those
-  // emits DO carry `sessionId` + `workItemId`.
+  // chat-replay-responder. The main-session tail IS the per-row content for the worker
+  // session this watcher tails, so its emits carry `sessionId` + `mainSessionWorkItemId` too.
   emit: (params: {
     chatProcessId: ProcessId;
     entries: ChatEntry[];
@@ -79,19 +76,13 @@ export const questMonitorJsonlWatcherBroker = ({
     sessionId?: SessionId;
     workItemId?: QuestWorkItemId;
   }) => void;
-  // Predicate driving the quest-driven subscription: returns true only when the
-  // agentId corresponds to an in-progress work item stamped via get-agent-prompt.
-  // Stale subagent JSONLs left on disk from prior /dumpster-launch runs return
-  // false and are never tailed.
-  isAgentIdActive: (params: { agentId: AgentId }) => boolean;
-  // Set when the tailed session is a top-level node-dispatch worker: its own agent
-  // (codeweaver/siegemaster/…) writes its work to the MAIN session JSONL — there is no
-  // dispatcher above it. Main-session tail emits then carry `sessionId: parentSessionId`
-  // + this `workItemId`, so the web routes them to the worker's execution row exactly as
-  // the replay path does. Omitted for /dumpster-launch dispatcher sessions, whose
-  // main-session lines are dispatcher chatter dropped by the server's parent-source filter.
+  // Set when the tailed session is a Node-dispatch worker's own session: its agent writes
+  // its work to the MAIN session JSONL, so main-session tail emits carry `sessionId:
+  // parentSessionId` + this `workItemId`, routing them to the worker's execution row exactly
+  // as the replay path does. Every production caller (`questMonitorWatcherStartBroker`)
+  // supplies one; optional here only for tests exercising the tail mechanics on their own.
   mainSessionWorkItemId?: QuestWorkItemId;
-}): { stop: () => void; pruneStaleTails: () => void } => {
+}): { stop: () => void } => {
   // ONE processor instance is shared across the main JSONL tail AND every sub-agent JSONL
   // tail this broker spawns, mirroring the architecture invariant documented in
   // packages/orchestrator/CLAUDE.md. The processor's realAgentId↔toolUseId reverse map
@@ -124,13 +115,6 @@ export const questMonitorJsonlWatcherBroker = ({
 
   const subagentHandles = new Map<AgentId, ReturnType<typeof fsWatchTailAdapter>>();
 
-  // Sub-agents whose tail exists because their realAgentId is stamped on an in-progress work
-  // item. ONLY these are eligible for pruning. A parent-summoned sub-agent (a `<role>-reviewer`,
-  // `siegemaster-walker`, `chaoswhisperer-gap-minion`) and any nested sub-agent own no work
-  // item, so `isAgentIdActive` is false for them from the moment their tail starts — pruning on that
-  // predicate alone would stop them on the very next refresh tick.
-  const workItemBackedAgentIds = new Set<AgentId>();
-
   // Initial scan of existing sub-agent JSONL files under
   // `<sessionFilePath without .jsonl>/subagents/`. This is the same layout the replay
   // broker reads — Claude CLI keys sub-agent files by the parent session's path. Files
@@ -140,12 +124,10 @@ export const questMonitorJsonlWatcherBroker = ({
   const sessionFilePathAbsolute = absoluteFilePathContract.parse(String(sessionFilePath));
   const sessionFileNoSuffix = stripJsonlSuffixTransformer({ filePath: sessionFilePathAbsolute });
   const subagentsDir = `${sessionFileNoSuffix}/subagents`;
-  // The parent /dumpster-launch session UUID — the basename of the session JSONL minus
-  // `.jsonl`. Forwarded to every sub-agent tail so each emit carries `sessionId:
-  // parentSessionId`, matching what `wi.sessionId` is stamped to by the MCP
-  // get-agent-prompt handler (interaction-handle-responder) and what chat-replay-responder
-  // emits on the replay path. Keeps the web binding's bucket key in lockstep across
-  // streaming + replay.
+  // The worker session's own UUID — the basename of the session JSONL minus `.jsonl`.
+  // Forwarded to every sub-agent tail so each emit carries `sessionId: parentSessionId`,
+  // matching what `wi.sessionId` holds and what chat-replay-responder emits on the replay
+  // path. Keeps the web binding's bucket key in lockstep across streaming + replay.
   const lastSlash = sessionFileNoSuffix.lastIndexOf('/');
   const parentSessionId = sessionIdContract.parse(
     lastSlash === -1 ? sessionFileNoSuffix : sessionFileNoSuffix.slice(lastSlash + 1),
@@ -161,24 +143,22 @@ export const questMonitorJsonlWatcherBroker = ({
       ? {}
       : { workItemIdForAgent: resolveAncestorWorkItemId }),
     emit,
-    isAgentIdActive,
     subagentHandles,
-    workItemBackedAgentIds,
   };
 
-  // Fire-and-forget: the scan tails active sub-agents synchronously (before its first await)
-  // and prompt-pairs non-active nested sub-agents asynchronously; the watcher does not await it.
+  // Fire-and-forget: the scan pairs and tails sub-agents asynchronously; the watcher does
+  // not await it.
   scanSubagentsDirLayerBroker(scanArgs).catch((error: unknown) => {
     process.stderr.write(`[monitor-watcher] subagent scan failed: ${String(error)}\n`);
   });
 
   // Periodic re-scan so sub-agent JSONL files created AFTER startup get a tail before the
-  // parent's `user.tool_result` line fires `agent-detected`. Real-world flow: /dumpster-launch
-  // Task()s codeweaver; Claude CLI starts writing `subagents/agent-<id>.jsonl`
-  // immediately; the completion `user.tool_result` only lands minutes later. Without this
-  // poll, the sub-agent's live activity is invisible to the web until the user refreshes
-  // (replay path reads the full JSONL from disk). The poll also re-reads not-yet-paired
-  // nested sub-agent files until their spawning Task is observed.
+  // parent's `user.tool_result` line fires `agent-detected`. Real-world flow: the worker
+  // Task()s a helper; Claude CLI starts writing `subagents/agent-<id>.jsonl` immediately;
+  // the completion `user.tool_result` only lands minutes later. Without this poll, the
+  // sub-agent's live activity is invisible to the web until the user refreshes (replay path
+  // reads the full JSONL from disk). The poll also re-reads not-yet-paired sub-agent files
+  // until their spawning Task is observed.
   const pollHandle = timerSetIntervalAdapter({
     callback: (): void => {
       scanSubagentsDirLayerBroker(scanArgs).catch((error: unknown) => {
@@ -191,7 +171,7 @@ export const questMonitorJsonlWatcherBroker = ({
   // Tail the main session JSONL from the beginning. Unlike `chat-main-session-tail-broker`
   // (which uses startPosition: 'end' because stdout streaming already emitted everything),
   // the monitor's main JSONL has never been streamed anywhere — every line is new to the
-  // web UI from the moment /dumpster-launch registers.
+  // web UI from the moment this watcher registers.
   const mainJsonlPath = absoluteFilePathContract.parse(String(sessionFilePath));
   const mainHandle = fsWatchTailAdapter({
     filePath: mainJsonlPath,
@@ -214,8 +194,7 @@ export const questMonitorJsonlWatcherBroker = ({
               entries: output.entries,
               questId: activeQuestIdGetter(),
               // Worker session: stamp sessionId + workItemId so the web routes the main
-              // session's own transcript to the worker's execution row. Dispatcher session:
-              // omit both — these are filtered as parent-source chatter server-side.
+              // session's own transcript to the worker's execution row.
               ...(mainSessionWorkItemId === undefined
                 ? {}
                 : { sessionId: parentSessionId, workItemId: mainSessionWorkItemId }),
@@ -224,12 +203,8 @@ export const questMonitorJsonlWatcherBroker = ({
           continue;
         }
         // `agent-detected` — the processor learned a new realAgentId↔toolUseId mapping
-        // from a user tool_result. Start tailing only if the agentId is recorded on
-        // a current in-progress work item; stale leftovers are skipped.
-        if (!isAgentIdActive({ agentId: output.agentId })) {
-          continue;
-        }
-        workItemBackedAgentIds.add(output.agentId);
+        // from a user tool_result. Start tailing it: every sub-agent the main session's own
+        // Task tool spawns belongs to this run, so there is no further eligibility check.
         startSubagentTailLayerBroker({
           agentId: output.agentId,
           sessionFilePath,
@@ -258,26 +233,6 @@ export const questMonitorJsonlWatcherBroker = ({
         handle.stop();
       }
       subagentHandles.clear();
-      workItemBackedAgentIds.clear();
-    },
-    // Stops any WORK-ITEM-BACKED tail whose agentId is no longer in the active set. Caller
-    // invokes this after refreshing the active-agentId state in response to a quest-modified
-    // outbox event — when a work item transitions to a terminal status, the corresponding
-    // tail can release its fs handle. Tails with no work item behind them (parent-summoned
-    // minions, nested sub-agents) are never pruned; they live until `stop()`.
-    pruneStaleTails: (): void => {
-      for (const [agentId, handle] of subagentHandles) {
-        if (!workItemBackedAgentIds.has(agentId)) continue;
-        if (isAgentIdActive({ agentId })) continue;
-        handle.stop();
-        // Dropping it here also makes this a one-shot: the next tick skips the stopped tail
-        // instead of re-calling stop() on it every second.
-        workItemBackedAgentIds.delete(agentId);
-        // The handle deliberately STAYS in `subagentHandles`. That map is what stops the 1s
-        // dir re-scan from starting a SECOND tail on the same file — and a fresh tail reads
-        // from byte 0, so restarting one replays the whole transcript through the processor
-        // and re-emits every entry to the web.
-      }
     },
   };
 };

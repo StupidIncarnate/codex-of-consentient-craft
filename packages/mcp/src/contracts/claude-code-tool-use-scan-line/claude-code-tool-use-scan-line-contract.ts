@@ -1,8 +1,9 @@
 /**
  * PURPOSE: Loose schema for assistant-message JSONL lines from a Claude CLI session or
- * sub-agent transcript. Used by claudeCodeParentSessionFindByToolUseIdBroker and
- * claudeCodeCallerCwdFindByToolUseIdBroker to match a `_meta.claudecode/toolUseId` against
- * the tool_use ids a session recorded, and to read the top-level `cwd` Claude Code stamps on
+ * sub-agent transcript. Used by the caller-cwd and session scan brokers
+ * (`claudeCodeCallerCwdFindByToolUseIdBroker`, `claudeCodeSessionFindByToolUseIdBroker`) to match
+ * a `_meta.claudecode/toolUseId` against the tool_use ids a session recorded, and to read the
+ * top-level `cwd` Claude Code stamps on
  * that same line. `cwd` is what makes the caller's real (possibly worktree-pinned) location
  * resolvable at all — if a future Claude CLI stops writing it, every caller falls back to the
  * MCP server's own startup cwd, loudly (see callerRepoRootResolveBroker). Every other field

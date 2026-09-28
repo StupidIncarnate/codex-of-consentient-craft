@@ -99,14 +99,13 @@ test.describe('A carved quest renders the transcripts on both sides of its carve
   // RESUME QUEST.
   //
   // `beforeEach` pauses a loop an earlier spec left playing (the mode the loop reads is an in-memory
-  // mirror, so writing the state file alone does not stop one); the heartbeat hold is the production
-  // play gate's own signal and refuses every later unforced play, including the one `POST /start`
-  // makes on a user's behalf.
+  // mirror, so writing the state file alone does not stop one). This test's own body never plays the
+  // dispatcher again — it seeds the quest straight to `in_progress` via writeQuestFile rather than
+  // through POST /start — so that one pause holds for the whole test.
   test.beforeEach(async ({ request }) => {
     const dispatch = dispatchHarness({ request, guildPath: GUILD_PATH });
 
     await dispatch.beforeEach();
-    dispatch.holdQueueWithMcpHeartbeat();
 
     await guildHarness({ request }).cleanGuilds();
   });

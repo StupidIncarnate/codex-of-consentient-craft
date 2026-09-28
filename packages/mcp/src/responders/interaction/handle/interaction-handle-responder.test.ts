@@ -107,134 +107,6 @@ describe('InteractionHandleResponder', () => {
       });
     });
 
-    it('VALID: {_meta.claudecode/toolUseId + matching tool_use line in sub-agent JSONL} => stamps work item via JSONL scan', async () => {
-      const proxy = InteractionHandleResponderProxy();
-      const expectedResult = AgentPromptResultStub({
-        name: 'pathseeker-dedup',
-        prompt: 'You are pathseeker-dedup.',
-      });
-
-      const questId = QuestIdStub({ value: '3df2f4be-20b8-4517-8f08-69d570db7421' });
-      const workItemId = QuestWorkItemIdStub({
-        value: 'c6afab8f-ebdd-4e23-99cd-ea9aa67a5026',
-      });
-      proxy.setupAgentPromptReturns({ agent: 'pathseeker-dedup', questId, result: expectedResult });
-      const parentSessionId = 'c2f964f7-31b7-4ac6-88f7-e7a985d8c671';
-      const realAgentId = 'ad0775d7695b4d4eb';
-      const toolUseId = 'toolu_011pw36EFwmLorR7MdaSDEQG';
-
-      proxy.setupCwd({ path: '/home/user/proj' });
-      proxy.setupSessionsDir({
-        homedir: '/home/user',
-        projectDir: '/home/user/proj',
-        sessionIds: [parentSessionId],
-      });
-      proxy.setupSubagentsDir({
-        homedir: '/home/user',
-        projectDir: '/home/user/proj',
-        sessionId: parentSessionId,
-        agentFilenames: [`agent-${realAgentId}.jsonl`],
-      });
-      proxy.setupAgentFile({
-        homedir: '/home/user',
-        projectDir: '/home/user/proj',
-        sessionId: parentSessionId,
-        agentFilename: `agent-${realAgentId}.jsonl`,
-        contents: JSON.stringify({
-          type: 'assistant',
-          message: {
-            role: 'assistant',
-            content: [
-              {
-                type: 'tool_use',
-                id: toolUseId,
-                name: 'mcp__dungeonmaster__get-agent-prompt',
-                input: {},
-              },
-            ],
-          },
-        }),
-      });
-
-      await proxy.callResponder({
-        tool: ToolNameStub({ value: 'get-agent-prompt' }),
-        args: { agent: 'pathseeker-dedup', questId, workItemId },
-        meta: { 'claudecode/toolUseId': toolUseId, progressToken: 3 },
-      });
-
-      expect(proxy.getLastModifyQuestInput({ questId })).toStrictEqual({
-        questId,
-        workItems: [
-          {
-            id: workItemId,
-            sessionId: parentSessionId,
-            agentId: realAgentId,
-            status: 'in_progress',
-            startedAt: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/u),
-          },
-        ],
-      });
-    });
-
-    it('VALID: {meta absent} => skips work item stamp, still returns prompt', async () => {
-      const proxy = InteractionHandleResponderProxy();
-      const expectedResult = AgentPromptResultStub({
-        name: 'pathseeker-surface',
-        prompt: 'You are pathseeker-surface.',
-      });
-      const questId = QuestIdStub({ value: '6e8fdc8b-4fb4-4536-bd99-b43b20764932' });
-      const workItemId = QuestWorkItemIdStub({
-        value: '875c3364-2d64-4606-b9e3-25dd365c7792',
-      });
-      proxy.setupAgentPromptReturns({
-        agent: 'pathseeker-surface',
-        questId,
-        result: expectedResult,
-      });
-
-      const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'get-agent-prompt' }),
-        args: { agent: 'pathseeker-surface', questId, workItemId },
-      });
-
-      expect(proxy.getLastModifyQuestInput({ questId })).toBe(undefined);
-      expect(result).toStrictEqual({
-        content: [{ type: 'text', text: JSON.stringify(expectedResult, null, 2) }],
-      });
-    });
-
-    it('VALID: {meta has toolUseId but no matching JSONL anywhere} => skips work item stamp, still returns prompt', async () => {
-      const proxy = InteractionHandleResponderProxy();
-      const expectedResult = AgentPromptResultStub({
-        name: 'pathseeker-surface',
-        prompt: 'You are pathseeker-surface.',
-      });
-      const questId = QuestIdStub({ value: '6e8fdc8b-4fb4-4536-bd99-b43b20764932' });
-      const workItemId = QuestWorkItemIdStub({
-        value: '875c3364-2d64-4606-b9e3-25dd365c7792',
-      });
-      proxy.setupAgentPromptReturns({
-        agent: 'pathseeker-surface',
-        questId,
-        result: expectedResult,
-      });
-
-      proxy.setupCwd({ path: '/home/user/proj' });
-      proxy.setupSessionsDirMissing({ homedir: '/home/user', projectDir: '/home/user/proj' });
-      // (No setupDungeonmasterHome — no announce happens in this flow)
-
-      const result = await proxy.callResponder({
-        tool: ToolNameStub({ value: 'get-agent-prompt' }),
-        args: { agent: 'pathseeker-surface', questId, workItemId },
-        meta: { 'claudecode/toolUseId': 'toolu_01KfM8kWZATagwS33eTq5fZS' },
-      });
-
-      expect(proxy.getLastModifyQuestInput({ questId })).toBe(undefined);
-      expect(result).toStrictEqual({
-        content: [{ type: 'text', text: JSON.stringify(expectedResult, null, 2) }],
-      });
-    });
-
     // A minion's name is the whole selection — there is no `discipline` to forward. What
     // the responder must NOT forward is a workItemId: that is what `subagentStopNeedsBlockGuard`
     // reads as proof the caller owes a signal-back, and the only item a minion could signal on is
@@ -266,7 +138,7 @@ describe('InteractionHandleResponder', () => {
       });
     });
 
-    it('VALID: {minion agent, questId, no workItemId} => returns served prompt without stamping (minion-fetch)', async () => {
+    it('VALID: {minion agent, questId, no workItemId} => returns served prompt (minion-fetch)', async () => {
       const proxy = InteractionHandleResponderProxy();
       const expectedResult = AgentPromptResultStub({
         name: 'chaoswhisperer-gap-minion',
@@ -284,7 +156,6 @@ describe('InteractionHandleResponder', () => {
         args: { agent: 'chaoswhisperer-gap-minion', questId },
       });
 
-      expect(proxy.getLastModifyQuestInput({ questId })).toBe(undefined);
       expect(result).toStrictEqual({
         content: [{ type: 'text', text: JSON.stringify(expectedResult, null, 2) }],
       });

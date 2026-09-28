@@ -7,7 +7,7 @@
  * OrchestrationDispatchFlow.bootstrap();
  * const effective = await OrchestrationDispatchFlow.normalizeBoot(); // HTTP server boot ONLY
  * const state = await OrchestrationDispatchFlow.get();
- * const response = await OrchestrationDispatchFlow.play({ force: false });
+ * const playing = await OrchestrationDispatchFlow.play();
  * const paused = await OrchestrationDispatchFlow.pause();
  * const mode = await OrchestrationDispatchFlow.getMode();
  */
@@ -18,7 +18,6 @@ import type {
   OrchestrationMode,
 } from '@dungeonmaster/shared/contracts';
 
-import type { DispatchPlayResponse } from '../../contracts/dispatch-play-response/dispatch-play-response-contract';
 import { OrchestrationDispatchBootstrapResponder } from '../../responders/orchestration-dispatch/bootstrap/orchestration-dispatch-bootstrap-responder';
 import { OrchestrationDispatchGetResponder } from '../../responders/orchestration-dispatch/get/orchestration-dispatch-get-responder';
 import { OrchestrationDispatchNormalizeBootResponder } from '../../responders/orchestration-dispatch/normalize-boot/orchestration-dispatch-normalize-boot-responder';
@@ -33,8 +32,7 @@ export const OrchestrationDispatchFlow = {
 
   get: async (): Promise<DispatchState> => OrchestrationDispatchGetResponder(),
 
-  play: async ({ force }: { force?: boolean }): Promise<DispatchPlayResponse> =>
-    OrchestrationDispatchPlayResponder({ ...(force === undefined ? {} : { force }) }),
+  play: async (): Promise<DispatchState> => OrchestrationDispatchPlayResponder(),
 
   pause: async (): Promise<DispatchState> => OrchestrationDispatchPauseResponder(),
 

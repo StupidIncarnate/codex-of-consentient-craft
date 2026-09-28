@@ -1,9 +1,4 @@
-import {
-  AgentIdStub,
-  GuildIdStub,
-  ProcessIdStub,
-  SessionIdStub,
-} from '@dungeonmaster/shared/contracts';
+import { GuildIdStub, ProcessIdStub, SessionIdStub } from '@dungeonmaster/shared/contracts';
 
 import { orchestratorReplayChatHistoryAdapter } from './orchestrator-replay-chat-history-adapter';
 import { orchestratorReplayChatHistoryAdapterProxy } from './orchestrator-replay-chat-history-adapter.proxy';
@@ -21,44 +16,6 @@ describe('orchestratorReplayChatHistoryAdapter', () => {
           chatProcessId: ProcessIdStub(),
         }),
       ).resolves.toStrictEqual({ success: true });
-    });
-  });
-
-  describe('agentId forwarding', () => {
-    it('VALID: {agentId param} => forwards agentId to StartOrchestrator.replayChatHistory', async () => {
-      const proxy = orchestratorReplayChatHistoryAdapterProxy();
-      proxy.setupSuccess();
-      const sessionId = SessionIdStub({ value: '18eb0c1b-5b9e-4ff0-aaea-9f9fe0bb6402' });
-      const agentId = AgentIdStub({ value: 'acd35f7b7763e33e8' });
-      const guildId = GuildIdStub();
-      const chatProcessId = ProcessIdStub({ value: 'replay-agent' });
-
-      await orchestratorReplayChatHistoryAdapter({
-        sessionId,
-        agentId,
-        guildId,
-        chatProcessId,
-      });
-
-      expect(proxy.getAllCalledArgs()).toStrictEqual([
-        { sessionId, agentId, guildId, chatProcessId },
-      ]);
-    });
-
-    it('VALID: {no agentId} => omits agentId from orchestrator call', async () => {
-      const proxy = orchestratorReplayChatHistoryAdapterProxy();
-      proxy.setupSuccess();
-      const sessionId = SessionIdStub({ value: 'session-no-agent' });
-      const guildId = GuildIdStub();
-      const chatProcessId = ProcessIdStub({ value: 'replay-no-agent' });
-
-      await orchestratorReplayChatHistoryAdapter({
-        sessionId,
-        guildId,
-        chatProcessId,
-      });
-
-      expect(proxy.getAllCalledArgs()).toStrictEqual([{ sessionId, guildId, chatProcessId }]);
     });
   });
 

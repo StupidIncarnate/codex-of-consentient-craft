@@ -1,5 +1,4 @@
 import {
-  AgentIdStub,
   FlowEdgeStub,
   FlowNodeStub,
   FlowObservableStub,
@@ -313,19 +312,17 @@ describe('questItemDeepMergeTransformer', () => {
       expect(result).toStrictEqual({ ...withoutSessionId, status: 'pending' });
     });
 
-    it('VALID: {update clears sessionId, agentId, and startedAt} => removes all three fields', () => {
+    it('VALID: {update clears sessionId and startedAt} => removes both fields', () => {
       const id = QuestWorkItemIdStub({ value: '22222222-2222-2222-2222-222222222222' });
       const existing = WorkItemStub({
         id,
         status: 'in_progress',
         sessionId: SessionIdStub({ value: 'sess-2' }),
-        agentId: AgentIdStub({ value: 'agent-2' }),
         startedAt: IsoTimestampStub({ value: '2026-01-01T00:00:00.000Z' }),
       });
       const update = WorkItemForUpsertStub({
         id,
         sessionId: null,
-        agentId: null,
         startedAt: null,
         status: 'pending',
       });
@@ -334,7 +331,6 @@ describe('questItemDeepMergeTransformer', () => {
 
       const {
         sessionId: _droppedSessionId,
-        agentId: _droppedAgentId,
         startedAt: _droppedStartedAt,
         ...withoutClearedFields
       } = existing;

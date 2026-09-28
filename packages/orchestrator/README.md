@@ -23,7 +23,7 @@ command. The command is killed part-way and the session still reports success.
 Measured three ways with the same result: a child spawned by this package's own adapter, a child
 spawned by hand with identical argv, and a chat child the running server spawned from a prompt
 pasted into the web UI. The interactive case differs — there the harness re-enters the sub-agent
-when the command exits — so **a rule inferred from a `/dumpster-launch` run does not transfer to Node
+when the command exits — so **a rule inferred from an interactive-session run does not transfer to Node
 dispatch.**
 
 The harness says so itself, in the Bash tool result, and only in the headless case:

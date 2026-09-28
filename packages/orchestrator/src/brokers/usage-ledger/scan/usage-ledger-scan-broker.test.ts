@@ -111,6 +111,29 @@ describe('usageLedgerScanBroker', () => {
         ceilings: { fiveHour: null, sevenDay: 2_751_372_486 },
         updatedAt: '2026-09-13T04:49:29.242Z',
       });
+      expect(proxy.getStderrLines()).toStrictEqual([]);
+    });
+  });
+
+  describe('the throttle stamp', () => {
+    it('VALID: {a scan that ends after it started} => stamps the ledger with the END time, so the next tick is throttled', async () => {
+      const proxy = usageLedgerScanBrokerProxy();
+      proxy.setupTranscripts({ files: [] });
+      proxy.setupScanEndsAt({ nowMs: NOW + 90_000 });
+
+      await usageLedgerScanBroker({ nowMs: NOW });
+
+      expect(proxy.getWrittenNowMs()).toBe(NOW + 90_000);
+    });
+
+    it('EDGE: {a clock reading earlier than the scan start} => keeps the start time', async () => {
+      const proxy = usageLedgerScanBrokerProxy();
+      proxy.setupTranscripts({ files: [] });
+      proxy.setupScanEndsAt({ nowMs: NOW - 1 });
+
+      await usageLedgerScanBroker({ nowMs: NOW });
+
+      expect(proxy.getWrittenNowMs()).toBe(NOW);
     });
   });
 
@@ -148,6 +171,9 @@ describe('usageLedgerScanBroker', () => {
         ceilings: { fiveHour: null, sevenDay: 2_751_372_486 },
         updatedAt: '2026-09-13T04:49:29.242Z',
       });
+      expect(proxy.getStderrLines()).toStrictEqual([
+        `[usage-ledger] full rebuild: /home/user/.claude/projects/a.jsonl shrank (counted size=${String(contents.length + 500)} mtimeMs=${String(NOW - 2 * HOUR)}; on disk size=${String(contents.length)} mtimeMs=${String(NOW - HOUR)})\n`,
+      ]);
     });
 
     it('VALID: {same length but a newer mtime} => also rebuilds, because the bytes were replaced', async () => {
@@ -181,6 +207,9 @@ describe('usageLedgerScanBroker', () => {
         ceilings: { fiveHour: null, sevenDay: 2_751_372_486 },
         updatedAt: '2026-09-13T04:49:29.242Z',
       });
+      expect(proxy.getStderrLines()).toStrictEqual([
+        `[usage-ledger] full rebuild: /home/user/.claude/projects/a.jsonl mtime moved at an unchanged size (counted size=${String(contents.length)} mtimeMs=${String(NOW - 2 * HOUR)}; on disk size=${String(contents.length)} mtimeMs=${String(NOW - HOUR)})\n`,
+      ]);
     });
   });
 

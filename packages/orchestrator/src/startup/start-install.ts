@@ -1,7 +1,7 @@
 /**
  * PURPOSE: Install orchestrator package by delegating to the install flow — writes the
- * `/dumpster-create` and `/dumpster-launch` slash command markdown files into
- * `<targetProjectRoot>/.claude/commands/` so users can launch the Dumpster orchestration loop
+ * `/dumpster-create` and `/dumpster-hunt` slash command markdown files into
+ * `<targetProjectRoot>/.claude/commands/` so users can run the Dumpster intake conversations
  * from their interactive Claude session, and scaffolds the git-ignored `worktrees/` directory
  * each quest later checks its own branch out into.
  *

@@ -6,6 +6,7 @@
  * const quest = orchestrationQuestHarness();
  * const { guild, questId } = await quest.createGuildAndQuest({ testbed });
  * await quest.seedInProgressRelay({ questId, operations, workItems });
+ * const step = await quest.scanNextStep();
  */
 import { randomUUID } from 'crypto';
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'fs';
@@ -40,6 +41,7 @@ import { GuildAddResponder } from '../../../src/responders/guild/add/guild-add-r
 import { GuildRemoveResponder } from '../../../src/responders/guild/remove/guild-remove-responder';
 import { QuestUserAddResponder } from '../../../src/responders/quest/user-add/quest-user-add-responder';
 import { gitHeadShaAdapter } from '../../../src/adapters/git/head-sha/git-head-sha-adapter';
+import { questGetNextStepBroker } from '../../../src/brokers/quest/get-next-step/quest-get-next-step-broker';
 import { questFindQuestPathBroker } from '../../../src/brokers/quest/find-quest-path/quest-find-quest-path-broker';
 import { questLoadBroker } from '../../../src/brokers/quest/load/quest-load-broker';
 import { questPersistBroker } from '../../../src/brokers/quest/persist/quest-persist-broker';
@@ -70,6 +72,7 @@ type QuestComment = ReturnType<typeof QuestCommentStub>;
 type QuestPackageEntry = ReturnType<typeof QuestPackageEntryStub>;
 type QuestContractEntry = ReturnType<typeof QuestContractEntryStub>;
 type Quest = ReturnType<typeof QuestStub>;
+type NextStep = Awaited<ReturnType<typeof questGetNextStepBroker>>;
 type GitBaseRef = NonNullable<Quest['baseRef']>;
 type PlanningNotes = Quest['planningNotes'];
 type QuestStatus = Quest['status'];
@@ -79,6 +82,9 @@ type BranchName = NonNullable<Quest['branchName']>;
 
 export const orchestrationQuestHarness = (): {
   afterEach: () => Promise<void>;
+  // One pass of the real dispatch scan the Node dispatch loop runs — orphan recovery, the router,
+  // the advance self-heal — returning the NextStep it decided, without spawning anything.
+  scanNextStep: () => Promise<NextStep>;
   createGuildAndQuest: (params: {
     testbed: ReturnType<typeof installTestbedCreateBroker>;
     title?: string;
@@ -379,6 +385,12 @@ export const orchestrationQuestHarness = (): {
   };
 
   return {
+    scanNextStep: async (): Promise<NextStep> =>
+      questGetNextStepBroker({
+        activeQuest: { setActive: (): void => undefined, clear: (): void => undefined },
+        longPollTotalMs: 0,
+      }),
+
     afterEach: async (): Promise<void> => {
       const idsToRemove = [...createdGuildIds];
       createdGuildIds.length = 0;

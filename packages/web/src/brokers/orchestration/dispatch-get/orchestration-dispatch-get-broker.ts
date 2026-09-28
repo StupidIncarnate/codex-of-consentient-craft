@@ -3,7 +3,7 @@
  *
  * USAGE:
  * const state = await orchestrationDispatchGetBroker();
- * // Returns DispatchState { mode: 'node-playing' | 'paused', mcpHeartbeatAt?, updatedAt }
+ * // Returns DispatchState { mode: 'node-playing' | 'paused', updatedAt }
  */
 import { dispatchStateContract } from '@dungeonmaster/shared/contracts';
 import type { DispatchState } from '@dungeonmaster/shared/contracts';

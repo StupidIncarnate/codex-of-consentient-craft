@@ -48,7 +48,7 @@ export const usageLedgerScanBroker = async ({ nowMs }: { nowMs: number }): Promi
 
   // A file whose recorded length no longer prefixes what is on disk invalidates every bucket, not
   // just its own — see the header.
-  const needsRebuild = files.some((file) => {
+  const rebuildTrigger = files.find((file) => {
     const cursor = ledger.cursors[file.path];
     if (cursor === undefined) {
       return false;
@@ -57,6 +57,18 @@ export const usageLedgerScanBroker = async ({ nowMs }: { nowMs: number }): Promi
       file.size < cursor.size || (file.size === cursor.size && file.mtimeMs !== cursor.mtimeMs)
     );
   });
+  const needsRebuild = rebuildTrigger !== undefined;
+
+  // A rebuild re-reads every transcript of the last week, so each one is logged with the file and
+  // the condition that forced it — the line is what tells a real rotation from a transient stat.
+  if (rebuildTrigger !== undefined) {
+    const cursor = ledger.cursors[rebuildTrigger.path];
+    const condition =
+      rebuildTrigger.size < (cursor?.size ?? 0) ? 'shrank' : 'mtime moved at an unchanged size';
+    process.stderr.write(
+      `[usage-ledger] full rebuild: ${rebuildTrigger.path} ${condition} (counted size=${String(cursor?.size)} mtimeMs=${String(cursor?.mtimeMs)}; on disk size=${String(rebuildTrigger.size)} mtimeMs=${String(rebuildTrigger.mtimeMs)})\n`,
+    );
+  }
 
   const buckets: UsageLedger['buckets'] = needsRebuild ? {} : { ...ledger.buckets };
 
@@ -90,6 +102,9 @@ export const usageLedgerScanBroker = async ({ nowMs }: { nowMs: number }): Promi
       ceilings: ledger.ceilings,
       updatedAt: ledger.updatedAt,
     },
-    nowMs,
+    // Stamped with the clock at the END of the scan, not `nowMs` from its start: `updatedAt` is
+    // what the throttle above measures from, and a scan that outlived `minIntervalMs` stamped with
+    // its start time would let the very next tick begin another full walk straight after it.
+    nowMs: Math.max(nowMs, Date.now()),
   });
 };

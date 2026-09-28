@@ -14,7 +14,6 @@
  * const projection = await QuestFlow.getProjection({ questId });
  * const blightChecklist = await QuestFlow.getBlightChecklist({ questId });
  * const created = await QuestFlow.mcpCreate({ userRequest });
- * const next = await QuestFlow.getNextStep();
  * const config = QuestFlow.getServerConfig();
  */
 
@@ -23,7 +22,6 @@ import { QuestFindBySessionIdResponder } from '../../responders/quest/find-by-se
 import { QuestFindByWorkItemIdResponder } from '../../responders/quest/find-by-work-item-id/quest-find-by-work-item-id-responder';
 import { QuestGetResponder } from '../../responders/quest/get/quest-get-responder';
 import { QuestGetBlightChecklistResponder } from '../../responders/quest/get-blight-checklist/quest-get-blight-checklist-responder';
-import { QuestGetNextStepResponder } from '../../responders/quest/get-next-step/quest-get-next-step-responder';
 import { QuestGetPlanningNotesResponder } from '../../responders/quest/get-planning-notes/quest-get-planning-notes-responder';
 import { QuestGetQuestWorkResponder } from '../../responders/quest/get-quest-work/quest-get-quest-work-responder';
 import { QuestGetServerConfigResponder } from '../../responders/quest/get-server-config/quest-get-server-config-responder';
@@ -35,7 +33,6 @@ import { QuestListWithSkipsResponder } from '../../responders/quest/list-with-sk
 import { QuestLoadResponder } from '../../responders/quest/load/quest-load-responder';
 import { QuestMcpCreateResponder } from '../../responders/quest/mcp-create/quest-mcp-create-responder';
 import { QuestModifyResponder } from '../../responders/quest/modify/quest-modify-responder';
-import { QuestRecordSessionResponder } from '../../responders/quest/record-session/quest-record-session-responder';
 import { QuestMonitorWatcherStartResponder } from '../../responders/quest/monitor-watcher-start/quest-monitor-watcher-start-responder';
 import { QuestWorkResponder } from '../../responders/quest/work/quest-work-responder';
 
@@ -60,9 +57,6 @@ type GetQuestWorkResult = Awaited<ReturnType<typeof QuestGetQuestWorkResponder>>
 type GetBlightChecklistParams = Parameters<typeof QuestGetBlightChecklistResponder>[0];
 type GetBlightChecklistResult = Awaited<ReturnType<typeof QuestGetBlightChecklistResponder>>;
 
-type RecordSessionParams = Parameters<typeof QuestRecordSessionResponder>[0];
-type RecordSessionResult = Awaited<ReturnType<typeof QuestRecordSessionResponder>>;
-
 type ListParams = Parameters<typeof QuestListResponder>[0];
 type ListResult = Awaited<ReturnType<typeof QuestListResponder>>;
 
@@ -77,8 +71,6 @@ type ModifyResult = Awaited<ReturnType<typeof QuestModifyResponder>>;
 
 type McpCreateParams = Parameters<typeof QuestMcpCreateResponder>[0];
 type McpCreateResult = Awaited<ReturnType<typeof QuestMcpCreateResponder>>;
-
-type GetNextStepResult = Awaited<ReturnType<typeof QuestGetNextStepResponder>>;
 
 type HandleSignalBackParams = Parameters<typeof QuestHandleSignalBackResponder>[0];
 type HandleSignalBackResult = Awaited<ReturnType<typeof QuestHandleSignalBackResponder>>;
@@ -145,24 +137,6 @@ export const QuestFlow = {
   modify: async ({ questId, input }: ModifyParams): Promise<ModifyResult> =>
     QuestModifyResponder({ questId, input }),
 
-  // Separate from `modify` on purpose: `sessions` is absent from `modifyQuestInputContract`, so no
-  // agent-facing tool can reach it. This is the only route an out-of-process caller has to append a
-  // row, and the MCP child is the one that needs it — it alone knows the calling session's real cwd.
-  recordSession: async ({
-    questId,
-    sessionId,
-    cwd,
-    role,
-    workItemId,
-  }: RecordSessionParams): Promise<RecordSessionResult> =>
-    QuestRecordSessionResponder({
-      questId,
-      sessionId,
-      cwd,
-      role,
-      ...(workItemId === undefined ? {} : { workItemId }),
-    }),
-
   mcpCreate: async ({
     userRequest,
     questType,
@@ -173,8 +147,6 @@ export const QuestFlow = {
       ...(questType !== undefined && { questType }),
       ...(sessionId !== undefined && { sessionId }),
     }),
-
-  getNextStep: async (): Promise<GetNextStepResult> => QuestGetNextStepResponder(),
 
   handleSignalBack: async ({
     questId,
@@ -213,7 +185,7 @@ export const QuestFlow = {
     QuestMonitorWatcherStartResponder({
       parentSessionId,
       projectDir,
-      ...(workerWorkItemId === undefined ? {} : { workerWorkItemId }),
-      ...(workerQuestId === undefined ? {} : { workerQuestId }),
+      workerWorkItemId,
+      workerQuestId,
     }),
 };

@@ -28,8 +28,8 @@ describe('InstallFlow', () => {
       const huntContent = testbed.readFile({
         relativePath: RelativePathStub({ value: '.claude/commands/dumpster-hunt.md' }),
       });
-      const launchContent = testbed.readFile({
-        relativePath: RelativePathStub({ value: '.claude/commands/dumpster-launch.md' }),
+      const commandFiles = testbed.listDir({
+        relativePath: RelativePathStub({ value: '.claude/commands' }),
       });
 
       testbed.cleanup();
@@ -39,12 +39,12 @@ describe('InstallFlow', () => {
         success: true,
         action: 'created',
         message:
-          'Created .claude/commands/dumpster-create.md, .claude/commands/dumpster-hunt.md, and .claude/commands/dumpster-launch.md; Created worktrees/; Created .gitignore with worktrees/, .quest-plans/',
+          'Created .claude/commands/dumpster-create.md and .claude/commands/dumpster-hunt.md; Created worktrees/; Created .gitignore with worktrees/, .quest-plans/',
       });
 
       expect(createContent).toBe(slashCommandsStatics.dumpsterCreate.body);
       expect(huntContent).toBe(slashCommandsStatics.dumpsterHunt.body);
-      expect(launchContent).toBe(slashCommandsStatics.dumpsterLaunch.body);
+      expect(commandFiles).toStrictEqual(['dumpster-create.md', 'dumpster-hunt.md']);
     });
   });
 
@@ -114,7 +114,7 @@ describe('InstallFlow', () => {
       testbed.cleanup();
 
       expect(result.message).toBe(
-        'Created .claude/commands/dumpster-create.md, .claude/commands/dumpster-hunt.md, and .claude/commands/dumpster-launch.md; worktrees/ already present; Added worktrees/, .quest-plans/ to existing .gitignore',
+        'Created .claude/commands/dumpster-create.md and .claude/commands/dumpster-hunt.md; worktrees/ already present; Added worktrees/, .quest-plans/ to existing .gitignore',
       );
       expect(worktreesEntries).toStrictEqual([
         'quest-add-auth-7bc217a1',
@@ -161,7 +161,7 @@ describe('InstallFlow', () => {
       expect(afterFirstRun).toBe('node_modules/\nworktrees/\n.quest-plans/\n');
       expect(afterSecondRun).toBe('node_modules/\nworktrees/\n.quest-plans/\n');
       expect(secondResult.message).toBe(
-        'Created .claude/commands/dumpster-create.md, .claude/commands/dumpster-hunt.md, and .claude/commands/dumpster-launch.md; worktrees/ already present; worktrees/, .quest-plans/ already in .gitignore',
+        'Created .claude/commands/dumpster-create.md and .claude/commands/dumpster-hunt.md; worktrees/ already present; worktrees/, .quest-plans/ already in .gitignore',
       );
     });
   });

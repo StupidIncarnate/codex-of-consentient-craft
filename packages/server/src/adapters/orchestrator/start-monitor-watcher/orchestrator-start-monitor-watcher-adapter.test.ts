@@ -3,13 +3,15 @@ import { orchestratorStartMonitorWatcherAdapterProxy } from './orchestrator-star
 
 describe('orchestratorStartMonitorWatcherAdapter', () => {
   describe('valid passthrough', () => {
-    it('VALID: {parentSessionId, projectDir} => returns handle with stop()', async () => {
+    it('VALID: {parentSessionId, projectDir, workerWorkItemId, workerQuestId} => returns handle with stop()', async () => {
       const proxy = orchestratorStartMonitorWatcherAdapterProxy();
       proxy.resolves({ parentSessionId: 'sess-123' });
 
       const handle = await orchestratorStartMonitorWatcherAdapter({
         parentSessionId: 'sess-123',
         projectDir: '/home/user/p',
+        workerWorkItemId: 'work-item-uuid',
+        workerQuestId: 'quest-uuid',
       });
 
       expect(proxy.wasStopCalled()).toBe(false);
@@ -29,6 +31,8 @@ describe('orchestratorStartMonitorWatcherAdapter', () => {
         orchestratorStartMonitorWatcherAdapter({
           parentSessionId: 'sess-456',
           projectDir: '/home/user/p',
+          workerWorkItemId: 'work-item-uuid',
+          workerQuestId: 'quest-uuid',
         }),
       ).rejects.toThrow(/start failed/u);
     });

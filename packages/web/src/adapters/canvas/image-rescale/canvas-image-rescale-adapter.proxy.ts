@@ -13,10 +13,9 @@ export const canvasImageRescaleAdapterProxy = (): {
   getDrawnSize: () => ImageSizeLike | undefined;
   getEncodeArguments: () => readonly unknown[] | undefined;
 } => {
-  // jsdom does not implement `createImageBitmap` at all, so attach a real function to spy on —
-  // the same reason clipboardWriteAdapterProxy defines `navigator.clipboard` before spying on it.
-  // The cast to an optional field is what the clipboard proxy does too: the DOM lib types
-  // `createImageBitmap` as always present, so an unwidened check reads as provably-always-falsy.
+  // jsdom does not implement `createImageBitmap` at all, so attach a real function to spy on.
+  // The cast to an optional field is required because the DOM lib types `createImageBitmap` as
+  // always present, so an unwidened check reads as provably-always-falsy.
   const globalWithBitmap = globalThis as {
     createImageBitmap?: typeof globalThis.createImageBitmap;
   };

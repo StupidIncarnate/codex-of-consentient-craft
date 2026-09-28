@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Returns ToolRegistration[] for quest-related MCP tools (get-quest, modify-quest, start-quest, get-quest-status, list-quests, list-guilds, get-quest-planning-notes, get-blight-checklist, create-quest, get-next-step, get-server-config, get-quest-summary, create-worktree, quest-work)
+ * PURPOSE: Returns ToolRegistration[] for quest-related MCP tools (get-quest, modify-quest, start-quest, get-quest-status, list-quests, list-guilds, get-quest-planning-notes, get-blight-checklist, create-quest, get-server-config, get-quest-summary, create-worktree, quest-work)
  *
  * USAGE:
  * const registrations = QuestFlow();
@@ -11,7 +11,6 @@ import { zodToJsonSchema } from 'zod-to-json-schema';
 import { createQuestInputContract } from '../../contracts/create-quest-input/create-quest-input-contract';
 import { createWorktreeInputContract } from '../../contracts/create-worktree-input/create-worktree-input-contract';
 import { getBlightChecklistInputContract } from '../../contracts/get-blight-checklist-input/get-blight-checklist-input-contract';
-import { getNextStepInputContract } from '../../contracts/get-next-step-input/get-next-step-input-contract';
 import { getQuestPlanningNotesInputContract } from '../../contracts/get-quest-planning-notes-input/get-quest-planning-notes-input-contract';
 import { getQuestWorkInputContract } from '../../contracts/get-quest-work-input/get-quest-work-input-contract';
 // The MCP-local get-quest contract, NOT the shared one: it adds `format`, which QuestHandleResponder
@@ -47,7 +46,6 @@ const getBlightChecklistSchema = zodToJsonSchema(
   jsonSchemaOptions,
 );
 const createQuestSchema = zodToJsonSchema(createQuestInputContract as never, jsonSchemaOptions);
-const getNextStepSchema = zodToJsonSchema(getNextStepInputContract as never, jsonSchemaOptions);
 const getQuestSummarySchema = zodToJsonSchema(
   getQuestSummaryInputContract as never,
   jsonSchemaOptions,
@@ -127,13 +125,6 @@ export const QuestFlow = (): ToolRegistration[] => [
         args,
         ...(meta !== undefined && { meta }),
       }),
-  },
-  {
-    name: 'get-next-step' as never,
-    description:
-      'Returns the next dispatch instruction for /dumpster-launch: spawn-agents | idle. Long-polls internally up to ~25s.' as never,
-    inputSchema: getNextStepSchema as never,
-    handler: async ({ args }) => QuestHandleResponder({ tool: 'get-next-step' as never, args }),
   },
   {
     name: 'get-server-config' as never,

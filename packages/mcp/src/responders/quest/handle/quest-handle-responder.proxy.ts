@@ -9,7 +9,6 @@
 
 import { orchestratorCreateQuestAdapterProxy } from '../../../adapters/orchestrator/create-quest/orchestrator-create-quest-adapter.proxy';
 import { ResolveCallerSessionLayerResponderProxy } from './resolve-caller-session-layer-responder.proxy';
-import { orchestratorGetNextStepAdapterProxy } from '../../../adapters/orchestrator/get-next-step/orchestrator-get-next-step-adapter.proxy';
 import { orchestratorGetQuestPlanningNotesAdapterProxy } from '../../../adapters/orchestrator/get-quest-planning-notes/orchestrator-get-quest-planning-notes-adapter.proxy';
 import { BlightChecklistLayerResponderProxy } from './blight-checklist-layer-responder.proxy';
 import { CreateWorktreeLayerResponderProxy } from './create-worktree-layer-responder.proxy';
@@ -35,7 +34,7 @@ import type {
   QuestListItemStub,
   UrlSlugStub,
 } from '@dungeonmaster/shared/contracts';
-import { NextStepStub, QuestGetServerConfigResultStub } from '@dungeonmaster/orchestrator/testing';
+import { QuestGetServerConfigResultStub } from '@dungeonmaster/orchestrator/testing';
 import { QuestHandleResponder } from './quest-handle-responder';
 
 type GetQuestResult = ReturnType<typeof GetQuestResultStub>;
@@ -45,7 +44,6 @@ type GetPlanningNotesResult = Awaited<ReturnType<typeof StartOrchestrator.getPla
 type GetBlightChecklistResult = Awaited<ReturnType<typeof StartOrchestrator.getBlightChecklist>>;
 type CreateWorktreeResult = Awaited<ReturnType<typeof StartOrchestrator.createWorktree>>;
 type GetQuestSummaryResult = Awaited<ReturnType<typeof StartOrchestrator.getQuestSummary>>;
-type NextStep = ReturnType<typeof NextStepStub>;
 type QuestGetServerConfigResult = ReturnType<typeof QuestGetServerConfigResultStub>;
 type QuestId = ReturnType<typeof QuestIdStub>;
 type UrlSlug = ReturnType<typeof UrlSlugStub>;
@@ -95,14 +93,11 @@ export const QuestHandleResponderProxy = (): {
   // create-quest tool's `resolved !== undefined` branch threads sessionId through.
   setupSessionResolved: (params: { entries: readonly { name: string; mtimeMs: number }[] }) => void;
   getLastCreateQuestInput: () => unknown;
-  setupGetNextStepReturns: (params: { step: NextStep }) => void;
-  setupGetNextStepThrows: (params: { error: Error }) => void;
   setupGetServerConfigReturns: (params: { result: QuestGetServerConfigResult }) => void;
   setupGetServerConfigThrows: (params: { error: Error }) => void;
   setupCreateWorktreeReturns: (params: { name: string; result: CreateWorktreeResult }) => void;
   setupCreateWorktreeThrows: (params: { name: string; error: Error }) => void;
   getLastCreateWorktreeInput: (params: { name: string }) => unknown;
-  buildIdleNextStep: () => NextStep;
   buildServerConfig: () => QuestGetServerConfigResult;
   getLastModifyInput: (params: { questId: string }) => unknown;
   getLastGetPlanningNotesInput: (params: { questId: string }) => unknown;
@@ -132,7 +127,6 @@ export const QuestHandleResponderProxy = (): {
   const blightChecklistProxy = BlightChecklistLayerResponderProxy();
   const questSummaryProxy = QuestSummaryLayerResponderProxy();
   const createQuestProxy = orchestratorCreateQuestAdapterProxy();
-  const getNextStepProxy = orchestratorGetNextStepAdapterProxy();
   const getServerConfigProxy = orchestratorGetServerConfigAdapterProxy();
   const createWorktreeProxy = CreateWorktreeLayerResponderProxy();
 
@@ -314,14 +308,6 @@ export const QuestHandleResponderProxy = (): {
 
     getLastCreateQuestInput: (): unknown => createQuestProxy.getLastCallInput(),
 
-    setupGetNextStepReturns: ({ step }: { step: NextStep }): void => {
-      getNextStepProxy.returns({ step });
-    },
-
-    setupGetNextStepThrows: ({ error }: { error: Error }): void => {
-      getNextStepProxy.throws({ error });
-    },
-
     setupGetServerConfigReturns: ({ result }: { result: QuestGetServerConfigResult }): void => {
       getServerConfigProxy.returns({ result });
     },
@@ -346,8 +332,6 @@ export const QuestHandleResponderProxy = (): {
 
     getLastCreateWorktreeInput: ({ name }: { name: string }): unknown =>
       createWorktreeProxy.getLastCalledInputFor({ name }),
-
-    buildIdleNextStep: (): NextStep => NextStepStub({ type: 'idle' }),
 
     buildServerConfig: (): QuestGetServerConfigResult => QuestGetServerConfigResultStub(),
 

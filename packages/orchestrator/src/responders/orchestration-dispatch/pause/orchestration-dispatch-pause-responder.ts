@@ -1,6 +1,6 @@
 /**
- * PURPOSE: Pauses the Node dispatcher gracefully — persists mode 'paused' (preserving the MCP
- * heartbeat) and flips the in-memory mirror. The loop checks isPlaying() between steps, so
+ * PURPOSE: Pauses the Node dispatcher gracefully — persists mode 'paused' (preserving any
+ * rate-limit hold) and flips the in-memory mirror. The loop checks isPlaying() between steps, so
  * in-flight children finish and signal-back normally; nothing new dispatches.
  *
  * USAGE:
