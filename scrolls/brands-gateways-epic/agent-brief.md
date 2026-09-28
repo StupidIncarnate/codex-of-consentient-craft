@@ -37,9 +37,9 @@ The operator owns these. Doing any of them breaks another agent's work:
 
 - Write tests that assert real values: states, content, payloads. A test that only checks "was called"
   or "rendered" does not count.
-- **Prove your tests bite.** After they pass, break the code on purpose and confirm a test goes red. If
-  the mutation passes, you have found a missing test: write it, re-run green, re-apply the mutation,
-  confirm red. Report which test caught which mutation.
+- Do not run mutation checks (breaking the code on purpose to see a test go red). The user dropped that
+  step for this epic on 2026-09-28: most of the work is swapping one call for another, and the extra
+  runs cost more than they caught. Tests still assert real values.
 - Fix every failure your scoped ward run shows, including ones you did not cause, as long as the failing
   file is inside your item's scope. Outside your scope, report it.
 - When a design in the item does not work (a type error, a resolution failure, a Jest or Node
@@ -56,7 +56,6 @@ End with exactly these sections, in this order:
 ```
 CHANGED — one line per file: path, then what changed. Quote one verbatim line from each file you
   wrote, so the operator can check it.
-MUTATIONS — each mutation you made, and the test that went red.
 WARD — the exact ward command you ran last, its run id, and its result.
 LEFT STANDING — every failure or problem you saw and did not fix, with path and reason. "None" if none.
 DECISIONS — every place you departed from the item file, and why. "None" if none.

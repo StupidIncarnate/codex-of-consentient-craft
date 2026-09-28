@@ -101,7 +101,7 @@ A new operator took over from the morning handoff below. Heartbeat cron `13,43 *
 |---|---|---|---|
 | — | Landed this session | — | F59 3b25ecb7a, F60 38bf5031a, F45 2b75def09, F61 c7b81850d, F47 9be54ce7e, F52 71de2788a; A10 596bbd1e3, f231b3550; A16 e43c1c424, 7f79340c8 (ward `adapters/` gone); A06 dbb50d985, 6d116c296, 8e5e7f3ec, 235a64368, f296f59cb (eslint-plugin `adapters/` gone); A12 517f6361b, d743fa187 (shared `adapters/` gone); A13 ba951a330, 16097fbe1, e5d4ca0ae; A14 49d87fc38; A17 b30627b03, e1076c324 |
 | Build | Whole repo, plain `npm run build` after 49d87fc38 | — | done, exit 0. A `build:clean`, then `check:consumer` and `check:published` (concession 8) are still due at a quiet point. |
-| planner (opus) | Read-only: which remaining work can be scripted | none | done: `scripting-opportunities.md` (in ace08af85). Two decisions put to the user: should the pre-edit hook block new violations of rules still `off`; may codemod output be proved by sampled mutations |
+| planner (opus) | Read-only: which remaining work can be scripted | none | done: `scripting-opportunities.md` (in ace08af85). **The user tabled all script-making (2026-09-28 afternoon).** S1 (census) was already running and finishes. On the hook question the user's concern is that agents could not edit files with existing violations; the planner's design blocks only violations an edit ADDS (before/after comparison), which avoids that. Decide when scripting is picked back up. |
 | s1 (sonnet) | S1: adapter census command in `@dungeonmaster/tooling` (scripting opportunity 1); item `items/s1-adapter-census-command.md` | `tooling` | running |
 | a17-get (sonnet) | A17 `fetch/get` batch | `web` | part done ace08af85 (nine brokers) |
 | f65 (sonnet) | F65: widget proxies stage mount fetches; last five fetch brokers; delete `fetch/get` and `fetch/post` | `web` | running |
@@ -115,6 +115,8 @@ A new operator took over from the morning handoff below. Heartbeat cron `13,43 *
 | agy HR-DMJSONL | A08: hydration-recipes' last adapter, `dm-jsonl/append`; re-point eslint-plugin's enforce-folder-return-types test anchor (`tmp/agy/hr-dmjsonl.md`) | `hydration-recipes`, one eslint-plugin test | running |
 
 Still to do in Phase 2: orchestrator misc/timer/spawn (7 adapters), siegelense `read-file` (61 callers), misc singles and playwright session, testing jest/msw/typescript/playwright/misc, web canvas/DOM/IndexedDB/misc/rxjs/testing-library/xyflow and `directory-browse`, hydration-recipes `dm-jsonl/append` (G-J's enforce-folder-return-types test anchors on it). Then A18, A19.
+
+**User decision, 2026-09-28 afternoon: no mutation checks.** Agents no longer break code on purpose to prove a test goes red; the step and the MUTATIONS report section are gone from `agent-brief.md` and `tmp/agy/impl-common.md`. Tests must still assert real values. Script-making (the scripting-opportunities scroll) is tabled.
 
 ## Handoff (operator, 2026-09-28 morning) — START HERE
 
