@@ -104,15 +104,17 @@ A new operator took over from the morning handoff below. Heartbeat cron `13,43 *
 | planner (opus) | Read-only: which remaining work can be scripted | none | done: `scripting-opportunities.md` (in ace08af85). **The user tabled all script-making (2026-09-28 afternoon).** S1 (census) was already running and finishes. On the hook question the user's concern is that agents could not edit files with existing violations; the planner's design blocks only violations an edit ADDS (before/after comparison), which avoids that. Decide when scripting is picked back up. |
 | s1 (sonnet) | S1: adapter census command in `@dungeonmaster/tooling` (scripting opportunity 1); item `items/s1-adapter-census-command.md` | `tooling` | running |
 | a17-get (sonnet) | A17 `fetch/get` batch | `web` | part done ace08af85 (nine brokers) |
-| f65 (sonnet) | F65: widget proxies stage mount fetches; last five fetch brokers; delete `fetch/get` and `fetch/post` | `web` | running |
 | f64 (sonnet) | F64 | `@gateway/node` | done c0b2972f1; orchestrator's read-jsonl, readdir, watch-tail are unblocked (dispatch after F35 leaves orchestrator) |
 | f35 (opus) | F35 widened: riftcarver, route-scope, run-step proxies on exact staging | `orchestrator` | done 63d807fa7 |
 | a10-fs2 (sonnet) | A10: the seven fs adapters F35 unblocked | `orchestrator` (disjoint list) | running |
 | a10-fs3 (sonnet) | A10: read-jsonl, readdir, watch-tail; project-map test; node-dispatch-loop concession-7 mock | `orchestrator` (disjoint list), shared project-map test | running |
 | a14-fs2 (sonnet) | A14 testing: last five `fs`/`path` adapters | `testing` | done dc9c3f4be |
-| a14-misc (sonnet) | A14 testing: crypto, child-process, error, timers, playwright, mantine | `testing` | running |
-| agy SL-FS4 | A13 `fs/read-file`, first half (`tmp/agy/sl-fs4.md`) | `siegelense` | running |
+| agy SL-FS4 | A13 `fs/read-file`, first half | `siegelense` | done f3da1a336 |
+| agy SL-FS5 | A13 `fs/read-file`, second half; delete the adapter (`tmp/agy/sl-fs5.md`) | `siegelense` | running |
 | agy HR-DMJSONL | A08: hydration-recipes' last adapter, `dm-jsonl/append`; re-point eslint-plugin's enforce-folder-return-types test anchor (`tmp/agy/hr-dmjsonl.md`) | `hydration-recipes`, one eslint-plugin test | running |
+| a14-misc (sonnet) | A14 testing misc | `testing` | done 4311d42b4 (`mantine/render` stays: real logic, about 112 web callers) |
+| a14-ts (opus) | A14 testing `typescript/*` (feeds the proxy-mock hoister) | `testing` | running |
+| f65 (sonnet) | F65: web mount-fetched brokers; `fetch/get` and `fetch/post` adapters deleted | `web` | finished; commit waits on HR-DMJSONL (web's typecheck reaches hydration-recipes' half-edited file) |
 
 Still to do in Phase 2: orchestrator misc/timer/spawn (7 adapters), siegelense `read-file` (61 callers), misc singles and playwright session, testing jest/msw/typescript/playwright/misc, web canvas/DOM/IndexedDB/misc/rxjs/testing-library/xyflow and `directory-browse`, hydration-recipes `dm-jsonl/append` (G-J's enforce-folder-return-types test anchors on it). Then A18, A19.
 
