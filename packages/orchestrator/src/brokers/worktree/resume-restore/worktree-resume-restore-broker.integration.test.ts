@@ -9,7 +9,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import { worktreeResumeRestoreBroker } from './worktree-resume-restore-broker';
-import { gitWorktreeAddAdapter } from '../../../adapters/git/worktree-add/git-worktree-add-adapter';
+import { worktreeAdd } from '#gateway/bin/git';
 import { gitWorktreeFixtureHarness } from '../../../../test/harnesses/git-worktree-fixture/git-worktree-fixture.harness';
 
 // Real git throughout. worktree-resume-restore-broker.test.ts mocks gitCurrentBranchAdapter /
@@ -35,7 +35,7 @@ describe('worktreeResumeRestoreBroker (integration) — real drift restore + unc
       value: `${testbed.guildPath}/worktrees/drift-22223333`,
     });
     const branchName = QuestBranchNameStub({ value: 'quest/drift-22223333' });
-    await gitWorktreeAddAdapter({
+    await worktreeAdd({
       cwd: repoPath,
       worktreePath,
       branchName,
@@ -84,7 +84,7 @@ describe('worktreeResumeRestoreBroker (integration) — real drift restore + unc
     // `git worktree add -b <branch>` checks the new branch out in the worktree immediately, so
     // this worktree starts ALREADY on its own quest branch — the interrupted-edits case, where
     // nothing drifted and restore's only job is to leave the dirty file alone.
-    await gitWorktreeAddAdapter({
+    await worktreeAdd({
       cwd: repoPath,
       worktreePath,
       branchName,

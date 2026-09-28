@@ -1,6 +1,6 @@
 /**
- * PURPOSE: Proxy for stepHandlerCommitBroker — module-mocks the three git adapters,
- * gitWorkingTreeFilesBroker, questCwdResolveBroker and questGetBroker directly, each of which
+ * PURPOSE: Proxy for stepHandlerCommitBroker — stages the git gateway calls through their own proxies
+ * and module-mocks gitWorkingTreeFilesBroker, questCwdResolveBroker and questGetBroker directly, each of which
  * carries its own dedicated test suite, exactly as the ward and riftcarver handler proxies treat
  * their own sibling brokers. `questWithModifyLockBroker` runs REAL (a plain in-memory mutex, reset
  * between tests via its own proxy) so the lock's real behaviour is exercised rather than assumed.
@@ -15,18 +15,15 @@
 
 import {
   AbsoluteFilePathStub,
-  ExitCodeStub,
   GetQuestResultStub,
   RepoRootCwdStub,
   RepoRelativePathStub,
-  type ExitCode,
 } from '@dungeonmaster/shared/contracts';
 import { registerMock, registerModuleMock } from '@dungeonmaster/testing/register-mock';
 
 import { addAllProxy } from '#gateway/bin/git/add-all/add-all.proxy';
 import { commitProxy } from '#gateway/bin/git/commit/commit.proxy';
-import { gitPushAdapter } from '../../../adapters/git/push/git-push-adapter';
-import { gitPushAdapterProxy } from '../../../adapters/git/push/git-push-adapter.proxy';
+import { pushProxy } from '#gateway/bin/git/push/push.proxy';
 import { QuestCwdResolutionStub } from '../../../contracts/quest-cwd-resolution/quest-cwd-resolution.stub';
 import { gitWorkingTreeFilesBroker } from '../../git/working-tree-files/git-working-tree-files-broker';
 import { gitWorkingTreeFilesBrokerProxy } from '../../git/working-tree-files/git-working-tree-files-broker.proxy';
@@ -36,7 +33,6 @@ import { questGetBroker } from '../../quest/get/quest-get-broker';
 import { questGetBrokerProxy } from '../../quest/get/quest-get-broker.proxy';
 import { questWithModifyLockBrokerProxy } from '../../quest/with-modify-lock/quest-with-modify-lock-broker.proxy';
 
-registerModuleMock({ module: '../../../adapters/git/push/git-push-adapter' });
 registerModuleMock({ module: '../../git/working-tree-files/git-working-tree-files-broker' });
 registerModuleMock({ module: '../../quest/cwd-resolve/quest-cwd-resolve-broker' });
 registerModuleMock({ module: '../../quest/get/quest-get-broker' });
@@ -50,7 +46,7 @@ export const stepHandlerCommitBrokerProxy = (): {
   setupQuest: (params: { quest: Quest }) => void;
   setupWorkingTreeFiles: (params: { files: readonly string[] }) => void;
   setupPushFails: (params: { output: string }) => void;
-  getPushCallArgs: () => unknown;
+  getPushCall: () => unknown;
   getCommitMessage: () => unknown;
 } => {
   // Inert — satisfies enforce-proxy-child-creation. The module mocks above replace every one of
@@ -65,15 +61,13 @@ export const stepHandlerCommitBrokerProxy = (): {
     output: '',
   });
 
-  gitPushAdapterProxy();
+  const gitPushProxy = pushProxy();
+  gitPushProxy.setupPlainPush({ exitCode: 0, output: '' });
   gitWorkingTreeFilesBrokerProxy();
   questCwdResolveBrokerProxy();
   questGetBrokerProxy();
   const lockProxy = questWithModifyLockBrokerProxy();
   lockProxy.setupEmpty();
-
-  const pushMock = registerMock({ fn: gitPushAdapter });
-  pushMock.calledWith([]).resolves({ exitCode: ExitCodeStub({ value: 0 }), output: '' as never });
 
   const workingTreeMock = registerMock({ fn: gitWorkingTreeFilesBroker });
   workingTreeMock.calledWith([]).resolves([]);
@@ -118,14 +112,10 @@ export const stepHandlerCommitBrokerProxy = (): {
     },
 
     setupPushFails: ({ output }: { output: string }): void => {
-      const failingExitCode: ExitCode = ExitCodeStub({ value: 1 });
-      pushMock.calledWith([]).resolves({ exitCode: failingExitCode, output: output as never });
+      gitPushProxy.setupPlainPush({ exitCode: 1, output });
     },
 
-    getPushCallArgs: (): unknown => {
-      const calls = [...pushMock.callsMatching([])];
-      return calls[calls.length - 1]?.[0];
-    },
+    getPushCall: (): unknown => gitPushProxy.getCallsFor().at(-1)?.at(0),
 
     getCommitMessage: (): unknown => {
       const calls = gitCommitProxy.getCallsFor({

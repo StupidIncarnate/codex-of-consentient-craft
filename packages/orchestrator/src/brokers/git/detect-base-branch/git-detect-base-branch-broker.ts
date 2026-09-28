@@ -1,7 +1,7 @@
 /**
  * PURPOSE: Reach for this over ward's own git-detect-default-branch-broker when the caller needs
  * Start's worktree-lifecycle answer — the shared BaseBranchName enum brand, resolved through the
- * orchestrator's gitVerifyRefAdapter — rather than ward's lint-scoping GitBranchName brand and its
+ * the gateway's verifyRef — rather than ward's lint-scoping GitBranchName brand and its
  * own spawn call.
  *
  * USAGE:
@@ -13,7 +13,7 @@ import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { baseBranchNameContract, type BaseBranchName } from '@dungeonmaster/shared/contracts';
 import { baseBranchStatics } from '@dungeonmaster/shared/statics';
 
-import { gitVerifyRefAdapter } from '../../../adapters/git/verify-ref/git-verify-ref-adapter';
+import { verifyRef } from '#gateway/bin/git';
 
 export const gitDetectBaseBranchBroker = async ({
   cwd,
@@ -30,7 +30,7 @@ export const gitDetectBaseBranchBroker = async ({
     return null;
   }
 
-  const exists = await gitVerifyRefAdapter({ cwd, ref: candidate });
+  const exists = await verifyRef({ cwd, ref: candidate });
 
   if (exists) {
     return baseBranchNameContract.parse(candidate);

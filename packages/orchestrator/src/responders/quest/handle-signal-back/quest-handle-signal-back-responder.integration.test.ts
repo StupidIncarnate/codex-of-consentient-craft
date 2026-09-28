@@ -20,7 +20,7 @@ import {
 import { qaOffMapProbeStatics } from '@dungeonmaster/shared/statics';
 
 import { QuestHandleSignalBackResponder } from './quest-handle-signal-back-responder';
-import { gitWorktreeAddAdapter } from '../../../adapters/git/worktree-add/git-worktree-add-adapter';
+import { worktreeAdd } from '#gateway/bin/git';
 import { blightChecklistBuildTransformer } from '../../../transformers/blight-checklist-build/blight-checklist-build-transformer';
 import { orchestrationEnvironmentHarness } from '../../../../test/harnesses/orchestration-environment/orchestration-environment.harness';
 import { orchestrationQuestHarness } from '../../../../test/harnesses/orchestration-quest/orchestration-quest.harness';
@@ -78,7 +78,7 @@ describe('QuestHandleSignalBackResponder (integration) — review coverage no lo
       value: `${testbed.guildPath}/worktrees/review-clear-a1b2c3d4`,
     });
     const branchName = QuestBranchNameStub({ value: 'quest/review-clear-a1b2c3d4' });
-    await gitWorktreeAddAdapter({
+    await worktreeAdd({
       cwd: repoPath,
       worktreePath,
       branchName,
@@ -202,7 +202,7 @@ describe('QuestHandleSignalBackResponder (integration) — review coverage no lo
         value: `${testbed.guildPath}/worktrees/review-${disposition}-a1b2c3d4`,
       });
       const branchName = QuestBranchNameStub({ value: `quest/review-${disposition}-a1b2c3d4` });
-      await gitWorktreeAddAdapter({
+      await worktreeAdd({
         cwd: repoPath,
         worktreePath,
         branchName,
@@ -373,7 +373,7 @@ describe('QuestHandleSignalBackResponder (integration) — review coverage no lo
       value: `${testbed.guildPath}/worktrees/review-empty-a1b2c3d4`,
     });
     const branchName = QuestBranchNameStub({ value: 'quest/review-empty-a1b2c3d4' });
-    await gitWorktreeAddAdapter({
+    await worktreeAdd({
       cwd: repoPath,
       worktreePath,
       branchName,
@@ -471,7 +471,7 @@ describe('QuestHandleSignalBackResponder (integration) — a dirty worktree no l
       value: `${testbed.guildPath}/worktrees/dirty-tree-a1b2c3d4`,
     });
     const branchName = QuestBranchNameStub({ value: 'quest/dirty-tree-a1b2c3d4' });
-    await gitWorktreeAddAdapter({
+    await worktreeAdd({
       cwd: repoPath,
       worktreePath,
       branchName,
@@ -569,7 +569,7 @@ describe('QuestHandleSignalBackResponder (integration) — a dirty worktree no l
       value: `${testbed.guildPath}/worktrees/clean-tree-a1b2c3d4`,
     });
     const branchName = QuestBranchNameStub({ value: 'quest/clean-tree-a1b2c3d4' });
-    await gitWorktreeAddAdapter({
+    await worktreeAdd({
       cwd: repoPath,
       worktreePath,
       branchName,
@@ -924,7 +924,7 @@ describe('QuestHandleSignalBackResponder (integration) — warpgate merge comple
       value: `${testbed.guildPath}/worktrees/warpgate-survives-a1b2c3d4`,
     });
     const branchName = QuestBranchNameStub({ value: 'quest/warpgate-survives-a1b2c3d4' });
-    await gitWorktreeAddAdapter({
+    await worktreeAdd({
       cwd: repoPath,
       worktreePath,
       branchName,

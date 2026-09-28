@@ -40,6 +40,7 @@
 import {
   absoluteFilePathContract,
   contentTextContract,
+  errorMessageContract,
   getQuestInputContract,
   stepNameContract,
   type ErrorMessage,
@@ -47,9 +48,8 @@ import {
   type QuestWorkItemId,
 } from '@dungeonmaster/shared/contracts';
 
-import { addAll, commit } from '#gateway/bin/git';
+import { addAll, commit, push } from '#gateway/bin/git';
 
-import { gitPushAdapter } from '../../../adapters/git/push/git-push-adapter';
 import { stepHandlerResultContract } from '../../../contracts/step-handler-result/step-handler-result-contract';
 import type { StepHandlerResult } from '../../../contracts/step-handler-result/step-handler-result-contract';
 import { commitMessageBuildTransformer } from '../../../transformers/commit-message-build/commit-message-build-transformer';
@@ -143,10 +143,13 @@ export const stepHandlerCommitBroker = async ({
       await commit({ cwd, message, allowEmpty: true });
       onLine(`git commit -m "${message.split('\n')[0]}" --allow-empty`);
 
-      const pushResult = await gitPushAdapter({ cwd });
+      const pushResult = await push({ cwd });
       onLine(pushResult.exitCode === 0 ? 'git push' : `git push failed: ${pushResult.output}`);
 
-      return { pushFailed: pushResult.exitCode !== 0, pushOutput: pushResult.output };
+      return {
+        pushFailed: pushResult.exitCode !== 0,
+        pushOutput: errorMessageContract.parse(pushResult.output),
+      };
     },
   });
 

@@ -1,65 +1,33 @@
-import { spawn, type ChildProcess } from 'child_process';
-import { EventEmitter, Readable } from 'stream';
 import {
-  ErrorMessageStub,
-  ExitCodeStub,
   absoluteFilePathContract,
   filePathContract,
   type AbsoluteFilePath,
   type BaseBranchName,
-  type ErrorMessage,
-  type ExitCode,
   type QuestBranchName,
 } from '@dungeonmaster/shared/contracts';
-import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { headShaProxy } from '#gateway/bin/git/head-sha/head-sha.proxy';
-import { gitVerifyRefAdapterProxy } from '../../../adapters/git/verify-ref/git-verify-ref-adapter.proxy';
-import { gitWorktreeAddAdapterProxy } from '../../../adapters/git/worktree-add/git-worktree-add-adapter.proxy';
-import { gitWorktreePruneAdapterProxy } from '../../../adapters/git/worktree-prune/git-worktree-prune-adapter.proxy';
+import { verifyRefProxy } from '#gateway/bin/git/verify-ref/verify-ref.proxy';
+import { worktreeAddProxy } from '#gateway/bin/git/worktree-add/worktree-add.proxy';
+import { worktreePruneProxy } from '#gateway/bin/git/worktree-prune/worktree-prune.proxy';
 import { worktreeDiscardBrokerProxy } from '../discard/worktree-discard-broker.proxy';
 import { worktreeSeedDistBrokerProxy } from '../seed-dist/worktree-seed-dist-broker.proxy';
 import { worktreeVerifyLinksBrokerProxy } from '../verify-links/worktree-verify-links-broker.proxy';
 
-// worktreePrepareBroker spawns bare `git` for FOUR distinct invocations — `worktree add`,
-// `rev-parse HEAD`, and, on a discard path, `worktree remove` + `branch -D` — so `command` alone
-// cannot tell them apart under the shared childProcessSpawnCaptureAdapterProxy's command-only
-// addressing (composing all four adapters' own `.proxy.ts` files in one test would make the LAST
-// registration answer every call). Addressing on the full args array instead discriminates every
-// call directly (args compare elementwise), so every outcome can be staged independently with no
-// onceFor/FIFO sequencing needed. Pattern verified in git-detect-base-branch-broker.proxy.ts.
-const createGitChild = ({
-  exitCode,
-  stderr,
-}: {
-  exitCode: ExitCode;
-  stderr: ErrorMessage;
-}): ChildProcess => {
-  const child = new EventEmitter() as ChildProcess;
-  child.stdout = new Readable({
-    read(): void {
-      /* noop */
-    },
-  });
-  child.stderr = new Readable({
-    read(): void {
-      /* noop */
-    },
-  });
-
-  const mockStderr = child.stderr;
-
-  setImmediate(() => {
-    if (String(stderr).length > 0) {
-      mockStderr.push(Buffer.from(String(stderr)));
-    }
-    mockStderr.push(null);
-    child.stdout?.push(null);
-    child.emit('exit', Number(exitCode), null);
-  });
-
-  return child;
+// Every git call is staged by its exact argv through the gateway's own proxies, so each outcome is
+// independent of the others with no call-order sequencing. The read-back concatenates each proxy's
+// own calls in the order the broker makes them.
+const extractArgs = (call: readonly unknown[]): readonly unknown[] => {
+  const [first] = call;
+  if (typeof first === 'object' && first !== null && 'args' in first) {
+    return Array.isArray(first.args) ? first.args : [];
+  }
+  return [];
 };
+
+const isString = (arg: unknown): boolean => typeof arg === 'string';
+
+const NOT_A_REPO_OUTPUT = 'fatal: not a git repository';
 
 export const worktreePrepareBrokerProxy = (): {
   setupHappyPath: (params: {
@@ -112,45 +80,21 @@ export const worktreePrepareBrokerProxy = (): {
   getSeedCopyArgs: () => unknown;
   getSpawnedArgsList: () => readonly unknown[];
 } => {
-  const handle = registerMock({ fn: spawn });
-  // Created but unstaged to satisfy enforce-proxy-child-creation: this proxy answers `spawn`
-  // directly for every git call (see module comment above), so these adapter/broker proxies' own
-  // constructor-level defaults never fire.
-  gitWorktreeAddAdapterProxy();
-  gitWorktreePruneAdapterProxy();
-  gitVerifyRefAdapterProxy();
-  headShaProxy();
-  worktreeDiscardBrokerProxy();
+  const verifyProxy = verifyRefProxy();
+  const addProxy = worktreeAddProxy();
+  const pruneProxy = worktreePruneProxy();
+  const headProxy = headShaProxy();
+  const discardProxy = worktreeDiscardBrokerProxy();
   // These two run REAL from this proxy's point of view, so their own I/O is what gets staged. Both
   // default to "nothing on disk", which is the honest reading of a scenario that describes neither:
   // no `packages/` to seed from, and no `node_modules` to audit yet.
   const seedProxy = worktreeSeedDistBrokerProxy();
-  const verifyProxy = worktreeVerifyLinksBrokerProxy();
+  const linksProxy = worktreeVerifyLinksBrokerProxy();
 
-  const successCode = ExitCodeStub({ value: 0 });
-  const failCode = ExitCodeStub({ value: 128 });
-  const emptyMessage = ErrorMessageStub({ value: '' });
-
-  // The create-vs-attach mode probe. Staged per scenario rather than once in the constructor: a
-  // nested args ARRAY compares elementwise in full (the prefix rule applies to the argument LIST,
-  // not inside it), so `['rev-parse', '--verify']` matches no real 3-element call and the ref has to
-  // be named — which is only knowable once a setup method hands its branchName over.
+  // The create-vs-attach mode probe, staged per scenario because the ref it names is only known
+  // once a setup method hands its branchName over.
   const stageBranchMissing = ({ branchName }: { branchName: QuestBranchName }): void => {
-    handle.calledWith(['git', ['rev-parse', '--verify', branchName]]).implement(() =>
-      createGitChild({
-        exitCode: failCode,
-        stderr: ErrorMessageStub({ value: 'fatal: Needed a single revision' }),
-      }),
-    );
-  };
-
-  const stageBranchExists = ({ branchName }: { branchName: QuestBranchName }): void => {
-    handle
-      .calledWith(['git', ['rev-parse', '--verify', branchName]])
-      .implement(() => createGitChild({ exitCode: successCode, stderr: emptyMessage }));
-    handle
-      .calledWith(['git', ['worktree', 'prune']])
-      .implement(() => createGitChild({ exitCode: successCode, stderr: emptyMessage }));
+    verifyProxy.setupResult({ ref: String(branchName), exitCode: 128 });
   };
 
   const stageAddSucceeds = ({
@@ -163,72 +107,69 @@ export const worktreePrepareBrokerProxy = (): {
     baseBranch: BaseBranchName;
   }): void => {
     stageBranchMissing({ branchName });
-    handle
-      .calledWith(['git', ['worktree', 'add', worktreePath, '-b', branchName, baseBranch]])
-      .implement(() => createGitChild({ exitCode: successCode, stderr: emptyMessage }));
+    addProxy.setupCreateBranch({
+      worktreePath: String(worktreePath),
+      branchName: String(branchName),
+      baseBranch: String(baseBranch),
+      exitCode: 0,
+      output: '',
+    });
+  };
+
+  const stageAttachSucceeds = ({
+    worktreePath,
+    branchName,
+  }: {
+    worktreePath: AbsoluteFilePath;
+    branchName: QuestBranchName;
+  }): void => {
+    verifyProxy.setupResult({ ref: String(branchName), exitCode: 0 });
+    pruneProxy.setupResult({ exitCode: 0, output: '' });
+    addProxy.setupAttachExisting({
+      worktreePath: String(worktreePath),
+      branchName: String(branchName),
+      exitCode: 0,
+      output: '',
+    });
   };
 
   const stageHeadShaFails = (): void => {
-    handle.calledWith(['git', ['rev-parse', 'HEAD']]).implement(() =>
-      createGitChild({
-        exitCode: failCode,
-        stderr: ErrorMessageStub({ value: 'fatal: not a git repository' }),
-      }),
-    );
+    headProxy.setupResult({ exitCode: 128, output: NOT_A_REPO_OUTPUT });
   };
 
   return {
     setupHappyPath: ({ worktreePath, branchName, baseBranch, sha }): void => {
       stageAddSucceeds({ worktreePath, branchName, baseBranch });
-      handle.calledWith(['git', ['rev-parse', 'HEAD']]).implement(() =>
-        createGitChild({
-          exitCode: successCode,
-          stderr: ErrorMessageStub({ value: `${sha}\n` }),
-        }),
-      );
+      headProxy.setupResult({ exitCode: 0, output: `${sha}\n` });
     },
 
     // The recoverable re-carve: the branch already resolves, so the broker prunes git's stale
     // registration and attaches WITHOUT `-b`.
     setupAttachExistingBranch: ({ worktreePath, branchName, sha }): void => {
-      stageBranchExists({ branchName });
-      handle
-        .calledWith(['git', ['worktree', 'add', worktreePath, branchName]])
-        .implement(() => createGitChild({ exitCode: successCode, stderr: emptyMessage }));
-      handle.calledWith(['git', ['rev-parse', 'HEAD']]).implement(() =>
-        createGitChild({
-          exitCode: successCode,
-          stderr: ErrorMessageStub({ value: `${sha}\n` }),
-        }),
-      );
+      stageAttachSucceeds({ worktreePath, branchName });
+      headProxy.setupResult({ exitCode: 0, output: `${sha}\n` });
     },
 
     setupAttachExistingBranchHeadShaFails: ({ worktreePath, branchName }): void => {
-      stageBranchExists({ branchName });
-      handle
-        .calledWith(['git', ['worktree', 'add', worktreePath, branchName]])
-        .implement(() => createGitChild({ exitCode: successCode, stderr: emptyMessage }));
+      stageAttachSucceeds({ worktreePath, branchName });
       stageHeadShaFails();
     },
 
     setupWorktreeAddFails: ({ worktreePath, branchName, baseBranch, output }): void => {
       stageBranchMissing({ branchName });
-      handle
-        .calledWith(['git', ['worktree', 'add', worktreePath, '-b', branchName, baseBranch]])
-        .implement(() =>
-          createGitChild({ exitCode: failCode, stderr: ErrorMessageStub({ value: output }) }),
-        );
+      addProxy.setupCreateBranch({
+        worktreePath: String(worktreePath),
+        branchName: String(branchName),
+        baseBranch: String(baseBranch),
+        exitCode: 128,
+        output,
+      });
     },
 
     setupHeadShaFailsDiscardSucceeds: ({ worktreePath, branchName, baseBranch }): void => {
       stageAddSucceeds({ worktreePath, branchName, baseBranch });
       stageHeadShaFails();
-      handle
-        .calledWith(['git', ['worktree', 'remove', '--force', worktreePath]])
-        .implement(() => createGitChild({ exitCode: successCode, stderr: emptyMessage }));
-      handle
-        .calledWith(['git', ['branch', '-D', branchName]])
-        .implement(() => createGitChild({ exitCode: successCode, stderr: emptyMessage }));
+      discardProxy.setupBothSucceed({ worktreePath, branchName });
     },
 
     setupHeadShaFailsDiscardAlsoFails: ({
@@ -239,12 +180,7 @@ export const worktreePrepareBrokerProxy = (): {
     }): void => {
       stageAddSucceeds({ worktreePath, branchName, baseBranch });
       stageHeadShaFails();
-      handle.calledWith(['git', ['worktree', 'remove', '--force', worktreePath]]).implement(() =>
-        createGitChild({
-          exitCode: failCode,
-          stderr: ErrorMessageStub({ value: removeFailureOutput }),
-        }),
-      );
+      discardProxy.setupRemoveFails({ worktreePath, output: removeFailureOutput });
     },
 
     setupUnbuiltMainCheckout: ({ repoRoot, worktreePath, packageName }): void => {
@@ -265,12 +201,12 @@ export const worktreePrepareBrokerProxy = (): {
     },
 
     setupLeakingLink: ({ worktreePath, entryName, storedTarget }): void => {
-      verifyProxy.setupNodeModulesPresent({ worktreePath });
-      verifyProxy.setupDirectoryEntries({
+      linksProxy.setupNodeModulesPresent({ worktreePath });
+      linksProxy.setupDirectoryEntries({
         dirPath: absoluteFilePathContract.parse(`${String(worktreePath)}/node_modules`),
         entries: [{ name: entryName, isDir: false, isSymlink: true }],
       });
-      verifyProxy.setupReadlinkTarget({
+      linksProxy.setupReadlinkTarget({
         linkPath: filePathContract.parse(`${String(worktreePath)}/node_modules/${entryName}`),
         target: storedTarget,
       });
@@ -278,7 +214,12 @@ export const worktreePrepareBrokerProxy = (): {
 
     getSeedCopyArgs: (): unknown => seedProxy.getCopyArgs(),
 
-    getSpawnedArgsList: (): readonly unknown[] =>
-      handle.callsMatching(['git']).map((call) => call[1]),
+    getSpawnedArgsList: (): readonly unknown[] => [
+      ...verifyProxy.getCallsFor({ ref: isString }).map(extractArgs),
+      ...pruneProxy.getCallsFor().map(extractArgs),
+      ...addProxy.getCallsFor().map(extractArgs),
+      ...headProxy.getCallsFor().map(extractArgs),
+      ...discardProxy.getSpawnedArgsList(),
+    ],
   };
 };

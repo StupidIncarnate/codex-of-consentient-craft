@@ -1,5 +1,4 @@
 import {
-  AbsoluteFilePathStub,
   ContentTextStub,
   OperationItemStub,
   QuestIdStub,
@@ -91,7 +90,7 @@ describe('stepHandlerCommitBroker', () => {
   });
 
   describe('the push', () => {
-    it('VALID: {commit completes} => gitPushAdapter is called with no setUpstream key', async () => {
+    it('VALID: {commit completes} => pushes with the bare `git push` in the worktree', async () => {
       const questId = QuestIdStub();
       const proxy = stepHandlerCommitBrokerProxy();
       proxy.setupQuest({ quest: buildQuest({ questId }) });
@@ -105,8 +104,10 @@ describe('stepHandlerCommitBroker', () => {
         onLine: () => undefined,
       });
 
-      expect(proxy.getPushCallArgs()).toStrictEqual({
-        cwd: AbsoluteFilePathStub({ value: '/repo/worktrees/add-auth' }),
+      expect(proxy.getPushCall()).toStrictEqual({
+        command: 'git',
+        args: ['push'],
+        cwd: '/repo/worktrees/add-auth',
       });
     });
 

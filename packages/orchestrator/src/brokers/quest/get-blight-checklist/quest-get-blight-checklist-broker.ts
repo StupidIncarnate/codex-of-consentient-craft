@@ -54,9 +54,8 @@ import {
 import type { BlightChecklist, Quest, QuestId } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { join } from '#gateway/node/path';
-import { diffFiles } from '#gateway/bin/git';
+import { diffFiles, upstreamSha } from '#gateway/bin/git';
 
-import { gitUpstreamShaAdapter } from '../../../adapters/git/upstream-sha/git-upstream-sha-adapter';
 import { blightChecklistBuildTransformer } from '../../../transformers/blight-checklist-build/blight-checklist-build-transformer';
 import { gitWorkingTreeFilesBroker } from '../../git/working-tree-files/git-working-tree-files-broker';
 import { questCwdResolveBroker } from '../cwd-resolve/quest-cwd-resolve-broker';
@@ -137,9 +136,12 @@ export const questGetBlightChecklistBroker = async ({
   // it as "nothing to review" and dispositions nothing, which is the one outcome this scope exists
   // to prevent, while a reviewer handed the whole quest re-reads files that already carry a
   // disposition — a wasted pass rather than an unreviewed one.
+  const upstream = scope === 'unpushed' ? await upstreamSha({ cwd: resolution.cwd }) : null;
   const measuredFrom =
     scope === 'unpushed'
-      ? ((await gitUpstreamShaAdapter({ cwd: resolution.cwd })) ?? baseRef)
+      ? upstream === null
+        ? baseRef
+        : questContract.shape.baseRef.unwrap().parse(upstream)
       : recordedBase;
 
   if (measuredFrom === undefined) {

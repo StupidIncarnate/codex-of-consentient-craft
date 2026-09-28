@@ -47,12 +47,9 @@ import {
   type QuestWorkItemId,
 } from '@dungeonmaster/shared/contracts';
 
-import { currentBranch, headSha } from '#gateway/bin/git';
+import { currentBranch, headSha, push, upstreamSha, verifyRef } from '#gateway/bin/git';
 
 import { fsIsAccessibleAdapter } from '../../../adapters/fs/is-accessible/fs-is-accessible-adapter';
-import { gitPushAdapter } from '../../../adapters/git/push/git-push-adapter';
-import { gitUpstreamShaAdapter } from '../../../adapters/git/upstream-sha/git-upstream-sha-adapter';
-import { gitVerifyRefAdapter } from '../../../adapters/git/verify-ref/git-verify-ref-adapter';
 import { stepHandlerResultContract } from '../../../contracts/step-handler-result/step-handler-result-contract';
 import type { StepHandlerResult } from '../../../contracts/step-handler-result/step-handler-result-contract';
 import { BaseBranchNotFoundError } from '../../../errors/base-branch-not-found/base-branch-not-found-error';
@@ -130,7 +127,7 @@ export const stepHandlerRiftcarverBroker = async ({
       const recordedBaseBranchResolves =
         recordedBaseBranch === undefined
           ? false
-          : await gitVerifyRefAdapter({ cwd: repoRoot, ref: recordedBaseBranch });
+          : await verifyRef({ cwd: repoRoot, ref: recordedBaseBranch });
       const detectedBaseBranch = recordedBaseBranchResolves
         ? null
         : await gitDetectBaseBranchBroker({ cwd: repoRoot });
@@ -189,7 +186,7 @@ export const stepHandlerRiftcarverBroker = async ({
         worktreeAlreadyCarved || recordedBranchName !== undefined
           ? null
           : await Promise.all([
-              gitVerifyRefAdapter({ cwd: repoRoot, ref: branchName }),
+              verifyRef({ cwd: repoRoot, ref: branchName }),
               fsIsAccessibleAdapter({ filePath: filePathContract.parse(worktreePath) }),
             ]);
 
@@ -243,10 +240,10 @@ export const stepHandlerRiftcarverBroker = async ({
 
       // PUSH. Establishes the branch's upstream, once, right after the git context is recorded.
       step.value = STEPS.push;
-      const existingUpstream = await gitUpstreamShaAdapter({ cwd: worktreePath });
+      const existingUpstream = await upstreamSha({ cwd: worktreePath });
 
       if (existingUpstream === null) {
-        const pushResult = await gitPushAdapter({ cwd: worktreePath, setUpstream: { branchName } });
+        const pushResult = await push({ cwd: worktreePath, setUpstream: { branchName } });
 
         stream.emit(`— git push -u origin ${branchName} —`);
 
@@ -255,7 +252,7 @@ export const stepHandlerRiftcarverBroker = async ({
             step: STEPS.push,
             detail: worktreeFailureDetailTransformer({
               worktreePath,
-              cause: String(pushResult.output),
+              cause: pushResult.output,
             }),
           });
         }

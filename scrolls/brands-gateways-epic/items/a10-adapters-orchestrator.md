@@ -188,3 +188,24 @@ GIT-3 and GIT-4 adapters remain standing for the follow-up batch per sizing inst
 - `packages/orchestrator/src/brokers/worktree/resume-restore/worktree-resume-restore-broker.integration.test.ts`
 - `packages/orchestrator/test/harnesses/orchestration-quest/orchestration-quest.harness.ts`
 
+
+### G-T remaining
+
+The last seven `adapters/git/*` folders (push, untracked-files, upstream-sha, verify-ref, worktree-add, worktree-prune, worktree-remove; each with its proxy and test, `worktree-add` also its integration test) move onto `#gateway/bin/git`. The Plan section above already named GIT-1 and GIT-2 as done; the code matched. Scope, all under `packages/orchestrator/src`:
+
+Deleted: `adapters/git/**` (the seven folders and the now-empty `git/` folder).
+
+Edited callers, proxies and tests:
+- `brokers/git/working-tree-files/git-working-tree-files-broker.ts` and `.proxy.ts`
+- `brokers/quest/get-blight-checklist/quest-get-blight-checklist-broker.ts` and `.proxy.ts`
+- `brokers/worktree/discard/worktree-discard-broker.ts` and `.proxy.ts`
+- `brokers/worktree/prepare/worktree-prepare-broker.ts` and `.proxy.ts`
+- `brokers/git/detect-base-branch/git-detect-base-branch-broker.ts` and `.proxy.ts`
+- `brokers/step-handler/commit/step-handler-commit-broker.ts`, `.proxy.ts` and `.test.ts`
+- `brokers/step-handler/riftcarver/step-handler-riftcarver-broker.ts` and `.proxy.ts`
+- `brokers/worktree/ensure-quest-branch/worktree-ensure-quest-branch-broker.integration.test.ts`
+- `brokers/worktree/resume-restore/worktree-resume-restore-broker.integration.test.ts`
+- `brokers/worktree/prepare/worktree-prepare-broker.integration.test.ts` (comment only)
+- `responders/quest/handle-signal-back/quest-handle-signal-back-responder.integration.test.ts`
+
+Proxies that compose the edited proxies and are covered by the whole-package unit run (not edited): `git-rows-layer-broker`, `quest-get-quest-work-broker`, `quest-node-dispatch-loop-broker`, `quest-run-step-broker`, `step-handler-run-broker`, `orchestration-dispatch-bootstrap-responder`, `quest-get-blight-checklist-responder`, `quest-get-quest-work-responder`, `worktree-create-responder`.

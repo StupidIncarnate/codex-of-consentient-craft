@@ -23,21 +23,20 @@ import { existsSync, readdirEntriesSync } from '#gateway/node/fs';
 import type { DirEntrySync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
 
-import {
-  childProcessSpawnCaptureAdapter,
-  fsMkdirAdapter,
-  fsReaddirWithTypesAdapter,
-} from '@dungeonmaster/shared/adapters';
+import { fsMkdirAdapter, fsReaddirWithTypesAdapter } from '@dungeonmaster/shared/adapters';
 import { dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
 import { locationsWorktreePathFindBrokerProxy } from '@dungeonmaster/shared/testing';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import {
+  absoluteFilePathContract,
   adapterResultContract,
+  baseBranchNameContract,
   errorMessageContract,
   exitCodeContract,
   fileContentsContract,
   fileNameContract,
   filePathContract,
+  questBranchNameContract,
   questContract,
   type ErrorMessage,
   type ExitCode,
@@ -64,9 +63,9 @@ import { fsSymlinkAdapter } from '../../../adapters/fs/symlink/fs-symlink-adapte
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import { currentBranchProxy } from '#gateway/bin/git/current-branch/current-branch.proxy';
 import { headShaProxy } from '#gateway/bin/git/head-sha/head-sha.proxy';
-import { gitPushAdapterProxy } from '../../../adapters/git/push/git-push-adapter.proxy';
-import { gitUpstreamShaAdapterProxy } from '../../../adapters/git/upstream-sha/git-upstream-sha-adapter.proxy';
-import { gitVerifyRefAdapterProxy } from '../../../adapters/git/verify-ref/git-verify-ref-adapter.proxy';
+import { pushProxy } from '#gateway/bin/git/push/push.proxy';
+import { upstreamShaProxy } from '#gateway/bin/git/upstream-sha/upstream-sha.proxy';
+import { verifyRefProxy } from '#gateway/bin/git/verify-ref/verify-ref.proxy';
 import { wardCommandStatics } from '../../../statics/ward-command/ward-command-statics';
 import { gitDetectBaseBranchBrokerProxy } from '../../git/detect-base-branch/git-detect-base-branch-broker.proxy';
 import { riftcarverPersistResultBrokerProxy } from '../../riftcarver/persist-result/riftcarver-persist-result-broker.proxy';
@@ -84,7 +83,6 @@ registerModuleMock({
   module: '@dungeonmaster/shared/adapters',
   factory: () => ({
     ...jest.requireActual('@dungeonmaster/shared/adapters'),
-    childProcessSpawnCaptureAdapter: jest.fn(),
     fsMkdirAdapter: jest.fn(),
     fsReaddirWithTypesAdapter: jest.fn(),
   }),
@@ -108,7 +106,6 @@ type QuestInput = ReturnType<typeof QuestStub>;
 // Wrapped in Readonly<> (rather than a bare object literal) so consistent-type-definitions does not
 // autofix these into interfaces, which ban-adhoc-types then bans in brokers/ files.
 type DirEntry = Readonly<{ name: FileName; isDir: boolean; isSymlink: boolean }>;
-type SpawnRecord = Readonly<{ command: unknown; args: readonly unknown[]; cwd: unknown }>;
 
 const HOME_PATH = '/home/testuser/.dungeonmaster';
 const GUILD_ID = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
@@ -166,12 +163,12 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
   fsIsAccessibleAdapterProxy();
   const gitCurrentBranchProxy = currentBranchProxy();
   const gitHeadShaProxy = headShaProxy();
-  gitPushAdapterProxy();
-  gitUpstreamShaAdapterProxy();
-  gitVerifyRefAdapterProxy();
+  const gitPushProxy = pushProxy();
+  const gitUpstreamProxy = upstreamShaProxy();
+  const gitVerifyProxy = verifyRefProxy();
   gitDetectBaseBranchBrokerProxy();
   riftcarverPersistResultBrokerProxy();
-  worktreePrepareBrokerProxy();
+  const prepareProxy = worktreePrepareBrokerProxy();
   worktreeProvisionBrokerProxy();
   questFindQuestPathBrokerProxy();
   questGetBrokerProxy();
@@ -184,19 +181,14 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
   const accessiblePaths = new Set<FilePath>();
   const readlinkTargets = new Map<FilePath, FilePath>();
   const symlinkCalls: { target: unknown; linkPath: unknown }[] = [];
-  const spawnCaptureCalls: SpawnRecord[] = [];
   const questFilePathRef = { value: filePathContract.parse('/unset/quest.json') };
 
   const existingRefs = new Set<FileName>([fileNameContract.parse('main')]);
-  const worktreeBranches = new Map<FilePath, FileName>();
-  const worktreeAddOutcome: { exitCode: ExitCode; output: ErrorMessage } = {
-    exitCode: exitCodeContract.parse(GIT_SUCCESS),
-    output: errorMessageContract.parse(''),
-  };
-  const upstreamSha: { value: ErrorMessage | null } = { value: null };
-  const pushOutcome: { exitCode: ExitCode; output: ErrorMessage } = {
-    exitCode: exitCodeContract.parse(GIT_SUCCESS),
-    output: errorMessageContract.parse(''),
+  // Whether the quest's own branch already resolves in git: decides whether the carve is a create
+  // (`-b`) or an attach, and both are staged from this one flag.
+  const questBranch: { exists: boolean; addFailureOutput: ErrorMessage | null } = {
+    exists: false,
+    addFailureOutput: null,
   };
   const typecheckOutcome: { exitCode: ExitCode; lines: readonly ErrorMessage[] } = {
     exitCode: exitCodeContract.parse(GIT_SUCCESS),
@@ -324,13 +316,6 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
     );
   fsReaddirWithTypesHandle.calledWith([]).implement(fsReaddirWithTypesImpl as never);
 
-  const fsIsAccessibleHandle = registerMock({ fn: fsIsAccessibleAdapter });
-  const fsIsAccessibleImpl = async ({
-    filePath,
-  }: Parameters<typeof fsIsAccessibleAdapter>[0]): Promise<boolean> =>
-    Promise.resolve(accessiblePaths.has(filePathContract.parse(String(filePath))));
-  fsIsAccessibleHandle.calledWith([]).implement(fsIsAccessibleImpl as never);
-
   const fsReadlinkHandle = registerMock({ fn: fsReadlinkAdapter });
   const fsReadlinkImpl = async ({
     linkPath,
@@ -406,95 +391,66 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
     Promise.resolve(adapterResultContract.parse({ success: true }));
   fsMkdirHandle.calledWith([]).implement(fsMkdirImpl as never);
 
-  const spawnCaptureHandle = registerMock({ fn: childProcessSpawnCaptureAdapter });
-  const spawnCaptureImpl = async ({
-    command,
-    args,
-    cwd,
-  }: Parameters<typeof childProcessSpawnCaptureAdapter>[0]): Promise<{
-    exitCode: ExitCode;
-    output: ErrorMessage;
-  }> => {
-    spawnCaptureCalls.push({ command, args: [...args], cwd: String(cwd) });
-    const [first, second, third] = args;
-
-    if (first === 'rev-parse' && second === '--verify') {
-      const exists = existingRefs.has(fileNameContract.parse(String(third)));
-      return Promise.resolve({
-        exitCode: exitCodeContract.parse(exists ? GIT_SUCCESS : GIT_FAILURE),
-        output: errorMessageContract.parse(''),
-      });
-    }
-
-    if (first === 'rev-parse' && second === '--abbrev-ref') {
-      const branch = worktreeBranches.get(filePathContract.parse(String(cwd)));
-      return Promise.resolve(
-        branch === undefined
-          ? {
-              exitCode: exitCodeContract.parse(GIT_FAILURE),
-              output: errorMessageContract.parse('fatal: not a git repository'),
-            }
-          : {
-              exitCode: exitCodeContract.parse(GIT_SUCCESS),
-              output: errorMessageContract.parse(`${String(branch)}\n`),
-            },
-      );
-    }
-
-    if (first === 'rev-parse' && second === 'HEAD') {
-      return Promise.resolve({
-        exitCode: exitCodeContract.parse(GIT_SUCCESS),
-        output: errorMessageContract.parse(`${HEAD_SHA}\n`),
-      });
-    }
-
-    if (first === 'rev-parse' && second === '@{upstream}') {
-      const tracked = upstreamSha.value;
-      return Promise.resolve(
-        tracked === null
-          ? {
-              exitCode: exitCodeContract.parse(GIT_FAILURE),
-              output: errorMessageContract.parse('fatal: no upstream configured'),
-            }
-          : {
-              exitCode: exitCodeContract.parse(GIT_SUCCESS),
-              output: errorMessageContract.parse(`${String(tracked)}\n`),
-            },
-      );
-    }
-
-    if (first === 'push') {
-      return Promise.resolve({ exitCode: pushOutcome.exitCode, output: pushOutcome.output });
-    }
-
-    if (first === 'worktree' && second === 'prune') {
-      return Promise.resolve({
-        exitCode: exitCodeContract.parse(GIT_SUCCESS),
-        output: errorMessageContract.parse(''),
-      });
-    }
-
-    if (first === 'worktree' && second === 'add') {
-      if (Number(worktreeAddOutcome.exitCode) === GIT_SUCCESS) {
-        const addedBranch = args[3] === '-b' ? args[4] : args[3];
-        accessiblePaths.add(filePathContract.parse(String(third)));
-        worktreeBranches.set(
-          filePathContract.parse(String(third)),
-          fileNameContract.parse(String(addedBranch)),
-        );
-      }
-      return Promise.resolve({
-        exitCode: worktreeAddOutcome.exitCode,
-        output: worktreeAddOutcome.output,
-      });
-    }
-
-    return Promise.resolve({
-      exitCode: exitCodeContract.parse(GIT_SUCCESS),
-      output: errorMessageContract.parse(''),
-    });
+  // The virtual git world is staged through the gateway's own proxies, by the exact argv each call
+  // sends. A ref probe answers from `existingRefs` at call time; the carve itself (probe, prune,
+  // add, head sha) is staged by `worktreePrepareBrokerProxy`, the one proxy that owns those calls.
+  gitVerifyProxy.returnsMatchingRef({
+    ref: (ref: unknown): boolean => existingRefs.has(fileNameContract.parse(String(ref))),
+    exitCode: GIT_SUCCESS,
+  });
+  gitVerifyProxy.returnsMatchingRef({
+    ref: (ref: unknown): boolean => !existingRefs.has(fileNameContract.parse(String(ref))),
+    exitCode: GIT_FAILURE,
+  });
+  const stageUpstream = ({ tracked }: { tracked: boolean }): void => {
+    gitUpstreamProxy.setupResult(
+      tracked
+        ? { exitCode: GIT_SUCCESS, output: `${HEAD_SHA}\n` }
+        : { exitCode: GIT_FAILURE, output: 'fatal: no upstream configured' },
+    );
   };
-  spawnCaptureHandle.calledWith([]).implement(spawnCaptureImpl as never);
+  stageUpstream({ tracked: false });
+  const stagePush = ({ exitCode, output }: { exitCode: number; output: string }): void => {
+    gitPushProxy.setupUpstreamPush({ branchName: BRANCH_NAME, exitCode, output });
+  };
+  stagePush({ exitCode: GIT_SUCCESS, output: '' });
+  const stageCarve = (): void => {
+    const worktreePath = absoluteFilePathContract.parse(WORKTREE_PATH);
+    const branchName = questBranchNameContract.parse(BRANCH_NAME);
+    const baseBranch = baseBranchNameContract.parse('main');
+    if (questBranch.addFailureOutput !== null) {
+      prepareProxy.setupWorktreeAddFails({
+        worktreePath,
+        branchName,
+        baseBranch,
+        output: String(questBranch.addFailureOutput),
+      });
+      return;
+    }
+    if (questBranch.exists) {
+      prepareProxy.setupAttachExistingBranch({ worktreePath, branchName, sha: HEAD_SHA });
+      return;
+    }
+    prepareProxy.setupHappyPath({ worktreePath, branchName, baseBranch, sha: HEAD_SHA });
+  };
+  const worktreeWasAdded = (): boolean =>
+    questBranch.addFailureOutput === null &&
+    prepareProxy
+      .getSpawnedArgsList()
+      .some((args) => Array.isArray(args) && args[0] === 'worktree' && args[1] === 'add');
+
+  // A worktree the carve just added is reachable from then on, the way a real `git worktree add`
+  // leaves it.
+  const fsIsAccessibleHandle = registerMock({ fn: fsIsAccessibleAdapter });
+  const fsIsAccessibleImpl = async ({
+    filePath,
+  }: Parameters<typeof fsIsAccessibleAdapter>[0]): Promise<boolean> => {
+    const path = filePathContract.parse(String(filePath));
+    return Promise.resolve(
+      accessiblePaths.has(path) || (String(path) === WORKTREE_PATH && worktreeWasAdded()),
+    );
+  };
+  fsIsAccessibleHandle.calledWith([]).implement(fsIsAccessibleImpl as never);
 
   // The typecheck spawn is staged per-quest inside `setupQuest`/`setupTypecheckFails` below, once
   // `typecheckOutcome` holds the scenario's real values — never staged here with a placeholder, so
@@ -581,6 +537,7 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
       );
 
       stageTypecheckSpawn();
+      stageCarve();
       gitCurrentBranchProxy.setupFailure({ exitCode: 128, output: 'fatal: not a git repository' });
       gitHeadShaProxy.setupResult({ exitCode: 0, output: `${HEAD_SHA}\n` });
     },
@@ -591,37 +548,36 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
 
     setupBranchExistsInGit: (): void => {
       existingRefs.add(fileNameContract.parse(BRANCH_NAME));
+      questBranch.exists = true;
+      stageCarve();
     },
 
     setupWorktreeAddFails: ({ output }: { output: string }): void => {
-      worktreeAddOutcome.exitCode = exitCodeContract.parse(GIT_FAILURE);
-      worktreeAddOutcome.output = errorMessageContract.parse(output);
+      questBranch.addFailureOutput = errorMessageContract.parse(output);
+      stageCarve();
     },
 
     setupWorktreeAddPermissionDenied: (): void => {
-      worktreeAddOutcome.exitCode = exitCodeContract.parse(GIT_FAILURE);
-      worktreeAddOutcome.output = errorMessageContract.parse(
+      questBranch.addFailureOutput = errorMessageContract.parse(
         `fatal: cannot mkdir ${WORKTREE_PATH}: Permission denied`,
       );
+      stageCarve();
     },
 
     setupExistingWorktree: (): void => {
       accessiblePaths.add(filePathContract.parse(WORKTREE_PATH));
-      worktreeBranches.set(
-        filePathContract.parse(WORKTREE_PATH),
-        fileNameContract.parse(BRANCH_NAME),
-      );
       existingRefs.add(fileNameContract.parse(BRANCH_NAME));
+      questBranch.exists = true;
+      stageCarve();
       gitCurrentBranchProxy.setupBranch({ branch: BRANCH_NAME });
     },
 
     setupAlreadyPushed: (): void => {
-      upstreamSha.value = errorMessageContract.parse(HEAD_SHA);
+      stageUpstream({ tracked: true });
     },
 
     setupPushFails: ({ output }: { output: string }): void => {
-      pushOutcome.exitCode = exitCodeContract.parse(GIT_FAILURE);
-      pushOutcome.output = errorMessageContract.parse(output);
+      stagePush({ exitCode: GIT_FAILURE, output });
     },
 
     setupTypecheckFails: ({ lines }: { lines: readonly string[] }): void => {
@@ -642,9 +598,9 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
     },
 
     getWorktreeAddSpawns: (): readonly unknown[] =>
-      spawnCaptureCalls
-        .filter((call) => call.args[0] === 'worktree' && call.args[1] === 'add')
-        .map((call) => call.args),
+      prepareProxy
+        .getSpawnedArgsList()
+        .filter((args) => Array.isArray(args) && args[0] === 'worktree' && args[1] === 'add'),
 
     getTypecheckSpawns: (): readonly unknown[] => {
       const args = typecheckSpawn.getSpawnedArgs({ command: TYPECHECK_COMMAND });

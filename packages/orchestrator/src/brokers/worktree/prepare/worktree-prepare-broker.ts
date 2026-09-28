@@ -1,7 +1,7 @@
 /**
  * PURPOSE: Carves the quest's worktree, stamps its fork point, seeds the compiled output `git` could
  * not bring across, and refuses the tree if any of its links leave it. Reach for this over calling
- * `gitWorktreeAddAdapter` yourself — a hand-rolled carve produces a tree with no `dist`, so nothing
+ * `worktreeAdd` yourself — a hand-rolled carve produces a tree with no `dist`, so nothing
  * in it can run, or one whose links point back at the main checkout, so everything in it runs and
  * grades the wrong tree while reporting green. The sha is read in
  * the same breath as creation, before node_modules or a build can touch the tree, because that is
@@ -38,6 +38,7 @@
  */
 
 import {
+  errorMessageContract,
   questContract,
   type AbsoluteFilePath,
   type BaseBranchName,
@@ -45,10 +46,7 @@ import {
   type QuestBranchName,
 } from '@dungeonmaster/shared/contracts';
 
-import { headSha } from '#gateway/bin/git';
-import { gitVerifyRefAdapter } from '../../../adapters/git/verify-ref/git-verify-ref-adapter';
-import { gitWorktreeAddAdapter } from '../../../adapters/git/worktree-add/git-worktree-add-adapter';
-import { gitWorktreePruneAdapter } from '../../../adapters/git/worktree-prune/git-worktree-prune-adapter';
+import { headSha, verifyRef, worktreeAdd, worktreePrune } from '#gateway/bin/git';
 import { WorktreePrepareError } from '../../../errors/worktree-prepare/worktree-prepare-error';
 import { worktreePrepareStepStatics } from '../../../statics/worktree-prepare-step/worktree-prepare-step-statics';
 import { worktreeFailureDetailTransformer } from '../../../transformers/worktree-failure-detail/worktree-failure-detail-transformer';
@@ -73,13 +71,13 @@ export const worktreePrepareBroker = async ({
 }): Promise<{ baseRef: GitBaseRef }> => {
   // The REAL probe, not the quest record: git is the only authority on whether this branch exists
   // right now, and the answer decides the mode below.
-  const branchExists = await gitVerifyRefAdapter({ cwd: repoRoot, ref: branchName });
+  const branchExists = await verifyRef({ cwd: repoRoot, ref: branchName });
 
   // A directory deleted out from under a worktree leaves git's registration behind, and both the
   // add and the branch stay refused until it is dropped. Only the attach path can meet that state.
-  const pruned = branchExists ? await gitWorktreePruneAdapter({ cwd: repoRoot }) : null;
+  const pruned = branchExists ? await worktreePrune({ cwd: repoRoot }) : null;
 
-  const addResult = await gitWorktreeAddAdapter({
+  const addResult = await worktreeAdd({
     cwd: repoRoot,
     worktreePath,
     branchName,
@@ -95,8 +93,10 @@ export const worktreePrepareBroker = async ({
       step: STEPS.create,
       detail: worktreeFailureDetailTransformer({
         worktreePath,
-        cause: String(addResult.output),
-        ...(pruned === null || pruned.exitCode === 0 ? {} : { cleanupOutput: pruned.output }),
+        cause: addResult.output,
+        ...(pruned === null || pruned.exitCode === 0
+          ? {}
+          : { cleanupOutput: errorMessageContract.parse(pruned.output) }),
       }),
     });
   }

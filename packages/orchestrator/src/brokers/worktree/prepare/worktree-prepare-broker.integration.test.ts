@@ -13,7 +13,7 @@ import { worktreePrepareBroker } from './worktree-prepare-broker';
 import { gitWorktreeFixtureHarness } from '../../../../test/harnesses/git-worktree-fixture/git-worktree-fixture.harness';
 
 // Real git + real fs throughout — no adapter is mocked. `worktreePrepareBroker` composes
-// gitWorktreeAddAdapter and gitHeadShaAdapter; the existing worktree-prepare-broker.test.ts proves
+// worktreeAdd and headSha; the existing worktree-prepare-broker.test.ts proves
 // each of those was CALLED WITH the right args, never that the real git state it produces is
 // correct. These three tests drive the actual broker against a throwaway repo built by
 // gitWorktreeFixtureHarness and read the resulting git/fs state back. The node_modules mirror and

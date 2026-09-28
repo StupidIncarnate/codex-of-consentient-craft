@@ -9,7 +9,7 @@ import {
   RepoRootCwdStub,
 } from '@dungeonmaster/shared/contracts';
 
-import { gitWorktreeAddAdapter } from '../../../adapters/git/worktree-add/git-worktree-add-adapter';
+import { worktreeAdd } from '#gateway/bin/git';
 import { QuestCwdResolutionStub } from '../../../contracts/quest-cwd-resolution/quest-cwd-resolution.stub';
 import { QuestResumeTriggerStub } from '../../../contracts/quest-resume-trigger/quest-resume-trigger.stub';
 import { gitWorktreeFixtureHarness } from '../../../../test/harnesses/git-worktree-fixture/git-worktree-fixture.harness';
@@ -37,7 +37,7 @@ describe('worktreeEnsureQuestBranchBroker (integration) — real drift restore a
     const worktreeValue = `${testbed.guildPath}/worktrees/weqb-drift-11112222`;
     const worktreePath = AbsoluteFilePathStub({ value: worktreeValue });
     const branchName = QuestBranchNameStub({ value: 'quest/weqb-drift-11112222' });
-    await gitWorktreeAddAdapter({
+    await worktreeAdd({
       cwd: repoPath,
       worktreePath,
       branchName,
@@ -92,7 +92,7 @@ describe('worktreeEnsureQuestBranchBroker (integration) — real drift restore a
     const worktreeValue = `${testbed.guildPath}/worktrees/weqb-skip-33334444`;
     const worktreePath = AbsoluteFilePathStub({ value: worktreeValue });
     const branchName = QuestBranchNameStub({ value: 'quest/weqb-skip-33334444' });
-    await gitWorktreeAddAdapter({
+    await worktreeAdd({
       cwd: repoPath,
       worktreePath,
       branchName,
@@ -146,7 +146,7 @@ describe('worktreeEnsureQuestBranchBroker (integration) — real drift restore a
     const branchName = QuestBranchNameStub({
       value: 'quest/ütf8-ünïcode+dots.and_underscores-55556666',
     });
-    await gitWorktreeAddAdapter({
+    await worktreeAdd({
       cwd: repoPath,
       worktreePath,
       branchName,

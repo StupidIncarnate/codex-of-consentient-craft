@@ -26,9 +26,8 @@ import { registerMock, registerModuleMock } from '@dungeonmaster/testing/registe
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 import { join } from '#gateway/node/path';
 import { diffFilesProxy } from '#gateway/bin/git/diff-files/diff-files.proxy';
+import { upstreamShaProxy } from '#gateway/bin/git/upstream-sha/upstream-sha.proxy';
 
-import { gitUpstreamShaAdapter } from '../../../adapters/git/upstream-sha/git-upstream-sha-adapter';
-import { gitUpstreamShaAdapterProxy } from '../../../adapters/git/upstream-sha/git-upstream-sha-adapter.proxy';
 import { QuestCwdResolutionStub } from '../../../contracts/quest-cwd-resolution/quest-cwd-resolution.stub';
 import { gitWorkingTreeFilesBrokerProxy } from '../../git/working-tree-files/git-working-tree-files-broker.proxy';
 import { questCwdResolveBroker } from '../cwd-resolve/quest-cwd-resolve-broker';
@@ -36,9 +35,8 @@ import { questCwdResolveBrokerProxy } from '../cwd-resolve/quest-cwd-resolve-bro
 import { questFindQuestPathBrokerProxy } from '../find-quest-path/quest-find-quest-path-broker.proxy';
 import { questLoadBrokerProxy } from '../load/quest-load-broker.proxy';
 
-// The checklist's cwd resolution and upstream sha are mocked at the module boundary.
+// The checklist's cwd resolution is mocked at the module boundary.
 registerModuleMock({ module: '../cwd-resolve/quest-cwd-resolve-broker' });
-registerModuleMock({ module: '../../../adapters/git/upstream-sha/git-upstream-sha-adapter' });
 
 type Quest = ReturnType<typeof QuestStub>;
 type FilePathValue = ReturnType<typeof FilePathStub>;
@@ -98,8 +96,7 @@ export const questGetBlightChecklistBrokerProxy = (): {
   const cwdMock = registerMock({ fn: questCwdResolveBroker });
   const diffProxy = diffFilesProxy();
   const workingTreeProxy = gitWorkingTreeFilesBrokerProxy();
-  gitUpstreamShaAdapterProxy();
-  const upstreamMock = registerMock({ fn: gitUpstreamShaAdapter });
+  const upstreamProxy = upstreamShaProxy();
 
   return {
     setupQuestFound: ({
@@ -215,18 +212,18 @@ export const questGetBlightChecklistBrokerProxy = (): {
     // What `git rev-parse @{upstream}` answers in the quest's checkout — the base
     // `scope: 'unpushed'` measures its round from.
     setupUpstream: ({ sha }: { sha: string }): void => {
-      upstreamMock.calledWith([]).resolves(sha as never);
+      upstreamProxy.setupResult({ exitCode: 0, output: sha });
     },
 
     // A branch tracking nothing. Real state, not an error: it is what a quest carved before
     // riftcarver started pushing looks like, and it is what sends the scope to its baseRef fallback.
     setupNoUpstream: (): void => {
-      upstreamMock.calledWith([]).resolves(null);
+      upstreamProxy.setupResult({ exitCode: 128, output: 'fatal: no upstream configured' });
     },
 
     // Proves the OTHER scopes never reach for an upstream — the property that keeps them untouched
     // by this parameter rather than merely untested against it.
-    wasUpstreamAsked: (): boolean => upstreamMock.callsMatching([]).length > 0,
+    wasUpstreamAsked: (): boolean => upstreamProxy.getCallsFor().length > 0,
 
     getGitDiffArgs: (): unknown => {
       const diffCalls = diffProxy.getCallsFor({
@@ -236,7 +233,7 @@ export const questGetBlightChecklistBrokerProxy = (): {
       if (last !== undefined) {
         return last.args;
       }
-      if (upstreamMock.callsMatching([]).length > 0) {
+      if (upstreamProxy.getCallsFor().length > 0) {
         return ['rev-parse', '@{upstream}'];
       }
       return undefined;
