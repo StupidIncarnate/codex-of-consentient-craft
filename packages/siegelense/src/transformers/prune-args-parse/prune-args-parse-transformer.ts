@@ -24,6 +24,7 @@ import type { PruneArgs } from '../../contracts/prune-args/prune-args-contract';
 import { pruneAssetKindContract } from '../../contracts/prune-asset-kind/prune-asset-kind-contract';
 import { pruneStatics } from '../../statics/prune/prune-statics';
 import { siegelenseOutputStatics } from '../../statics/siegelense-output/siegelense-output-statics';
+import { enumFlagParseTransformer } from '../enum-flag-parse/enum-flag-parse-transformer';
 import { flagContractParseTransformer } from '../flag-contract-parse/flag-contract-parse-transformer';
 import { flagValueReadTransformer } from '../flag-value-read/flag-value-read-transformer';
 import { pruneOlderThanParseTransformer } from '../prune-older-than-parse/prune-older-than-parse-transformer';
@@ -97,9 +98,11 @@ export const pruneArgsParseTransformer = ({ args }: { args: readonly string[] })
       kind:
         kindValue === null
           ? null
-          : flagContractParseTransformer({
+          : enumFlagParseTransformer({
               flag: KIND_FLAG,
-              parse: () => pruneAssetKindContract.parse(kindValue),
+              raw: kindValue,
+              options: pruneAssetKindContract.unwrap().options,
+              parse: (value) => pruneAssetKindContract.parse(value),
             }),
       olderThan,
     },
