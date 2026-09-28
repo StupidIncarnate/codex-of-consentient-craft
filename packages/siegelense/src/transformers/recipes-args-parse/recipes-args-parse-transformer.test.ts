@@ -18,15 +18,15 @@ describe('recipesArgsParseTransformer', () => {
   });
 
   describe('the flag --human', () => {
-    it('INVALID: {args: [--human]} => throws naming --human as an unknown flag', () => {
+    it('INVALID: {args: [--human]} => throws naming --human, with no --instance explanation', () => {
       expect(() => recipesArgsParseTransformer({ args: ['--human'] })).toThrow(
-        /^Unknown flag: --human\n\nTakes no instance\. `recipes` lists what states can be created, not what a running instance is doing — no instance is needed to answer it\.\n\nAccepted flags: --json\n\nUsage: dungeonmaster siegelense recipes \[--json\]$/u,
+        /^Unknown flag: --human\n\nAccepted flags: --json\n\nUsage: dungeonmaster siegelense recipes \[--json\]$/u,
       );
     });
   });
 
   describe('the flag --instance specifically', () => {
-    it('INVALID: {args: [--instance, inst_x]} => throws naming --instance and listing the accepted flags', () => {
+    it('INVALID: {args: [--instance, inst_x]} => throws naming --instance AND explaining recipes needs none', () => {
       expect(() => recipesArgsParseTransformer({ args: ['--instance', 'inst_x'] })).toThrow(
         /^Unknown flag: --instance\n\nTakes no instance\. `recipes` lists what states can be created, not what a running instance is doing — no instance is needed to answer it\.\n\nAccepted flags: --json\n\nUsage: dungeonmaster siegelense recipes \[--json\]$/u,
       );
@@ -34,9 +34,9 @@ describe('recipesArgsParseTransformer', () => {
   });
 
   describe('an unknown flag', () => {
-    it('INVALID: {args: [--bogus]} => throws naming the flag and listing the accepted ones', () => {
+    it('INVALID: {args: [--bogus]} => throws naming the flag and the accepted ones, with no --instance explanation', () => {
       expect(() => recipesArgsParseTransformer({ args: ['--bogus'] })).toThrow(
-        /^Unknown flag: --bogus\n\nTakes no instance\. `recipes` lists what states can be created, not what a running instance is doing — no instance is needed to answer it\.\n\nAccepted flags: --json\n\nUsage: dungeonmaster siegelense recipes \[--json\]$/u,
+        /^Unknown flag: --bogus\n\nAccepted flags: --json\n\nUsage: dungeonmaster siegelense recipes \[--json\]$/u,
       );
     });
   });

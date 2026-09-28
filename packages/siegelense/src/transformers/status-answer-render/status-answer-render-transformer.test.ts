@@ -6,23 +6,85 @@ import { statusAnswerRenderTransformer } from './status-answer-render-transforme
 
 describe('statusAnswerRenderTransformer', () => {
   describe('no instances, no instance named', () => {
-    it('EMPTY: {instanceId: null, instances: []} => the plain fleet-empty sentence, never an error', () => {
+    it('EMPTY: {branch: null, since: 6h, instances: []} => names the since window, keeps MONITORED/MACHINE, and suggests widening --since', () => {
       const answer = StatusAnswerStub({ instances: [] });
 
-      const result = statusAnswerRenderTransformer({ answer, instanceId: null });
+      const result = statusAnswerRenderTransformer({
+        answer,
+        instanceId: null,
+        branch: null,
+        since: '6h',
+      });
 
-      expect(result).toBe('No siegelense instances running.\n');
+      expect(result).toBe(
+        'MONITORED: rss per process group, free memory, free disk, load average, kernel OOM events\n' +
+          'MACHINE: free 980MB/16000MB mem, free disk 2100MB, 8 cores, load 7.9/6.2/4.1, OOM kills 2 (last 20:11:04)\n' +
+          'No siegelense instances created in the last 6hr. Widen with --since beginning.\n',
+      );
+    });
+
+    it('EMPTY: {branch: "main", since: 6h, instances: []} => names the branch AND the since window together', () => {
+      const answer = StatusAnswerStub({ instances: [] });
+
+      const result = statusAnswerRenderTransformer({
+        answer,
+        instanceId: null,
+        branch: 'main',
+        since: '6h',
+      });
+
+      expect(result).toBe(
+        'MONITORED: rss per process group, free memory, free disk, load average, kernel OOM events\n' +
+          'MACHINE: free 980MB/16000MB mem, free disk 2100MB, 8 cores, load 7.9/6.2/4.1, OOM kills 2 (last 20:11:04)\n' +
+          'No siegelense instances created on branch "main" in the last 6hr. Widen with --since beginning.\n',
+      );
+    });
+
+    it('EMPTY: {branch: "main", since: beginning, instances: []} => already the widest window, suggests dropping --branch instead', () => {
+      const answer = StatusAnswerStub({ instances: [] });
+
+      const result = statusAnswerRenderTransformer({
+        answer,
+        instanceId: null,
+        branch: 'main',
+        since: 'beginning',
+      });
+
+      expect(result).toBe(
+        'MONITORED: rss per process group, free memory, free disk, load average, kernel OOM events\n' +
+          'MACHINE: free 980MB/16000MB mem, free disk 2100MB, 8 cores, load 7.9/6.2/4.1, OOM kills 2 (last 20:11:04)\n' +
+          'No siegelense instances created on branch "main". Widen by dropping --branch.\n',
+      );
+    });
+
+    it('EMPTY: {branch: null, since: beginning, instances: []} => the widest window already, and no branch to drop => no widen clause', () => {
+      const answer = StatusAnswerStub({ instances: [] });
+
+      const result = statusAnswerRenderTransformer({
+        answer,
+        instanceId: null,
+        branch: null,
+        since: 'beginning',
+      });
+
+      expect(result).toBe(
+        'MONITORED: rss per process group, free memory, free disk, load average, kernel OOM events\n' +
+          'MACHINE: free 980MB/16000MB mem, free disk 2100MB, 8 cores, load 7.9/6.2/4.1, OOM kills 2 (last 20:11:04)\n' +
+          'No siegelense instances created.\n',
+      );
     });
   });
 
   describe('no instances, an instance named', () => {
-    it('EMPTY: {instanceId: inst_deadbeef, instances: []} => a sentence naming that id as unknown, distinguishable from the fleet-empty sentence', () => {
+    it('EMPTY: {instanceId: inst_deadbeef, instances: []} => a sentence saying siegelense has no record of the id, distinguishable from the fleet-empty sentence', () => {
       const answer = StatusAnswerStub({ instances: [] });
       const instanceId = InstanceIdStub({ value: 'inst_deadbeef' });
 
       const result = statusAnswerRenderTransformer({ answer, instanceId });
 
-      expect(result).toBe('No instance by the id "inst_deadbeef" — unknown, never existed.\n');
+      expect(result).toBe(
+        'No record of the instance id "inst_deadbeef". Check the id dungeonmaster siegelense start returned.\n',
+      );
     });
   });
 
@@ -62,7 +124,7 @@ describe('statusAnswerRenderTransformer', () => {
         'MONITORED: rss per process group, free memory, free disk, load average, kernel OOM events\n' +
           'MACHINE: free 980MB/16000MB mem, free disk -MB, 8 cores, load 7.9/6.2/4.1, OOM kills - (last -)\n' +
           '┌───────────┬───────┬─────────────────────┬────────┬────────┬───────────┬──────┬────────┬─────────┐\n' +
-          '│ ID        │ STATE │ SPEC                │ BRANCH │ UPTIME │ LAST BEAT │ RUNS │ RSS    │ ORPHANS │\n' +
+          '│ ID        │ STATE │ SPEC                │ BRANCH │ UPTIME │ LAST BEAT │ RUNS │ MEMORY │ ORPHANS │\n' +
           '├───────────┼───────┼─────────────────────┼────────┼────────┼───────────┼──────┼────────┼─────────┤\n' +
           '│ inst_7f3a │ alive │ dungeonmaster-stack │ -      │ 14m    │ 2s ago    │ 3    │ 1840MB │ 0       │\n' +
           '└───────────┴───────┴─────────────────────┴────────┴────────┴───────────┴──────┴────────┴─────────┘\n',
@@ -120,7 +182,7 @@ describe('statusAnswerRenderTransformer', () => {
         'MONITORED: rss per process group, free memory, free disk, load average, kernel OOM events\n' +
           'MACHINE: free 980MB/16000MB mem, free disk 2100MB, 8 cores, load 7.9/6.2/4.1, OOM kills 2 (last 20:11:04)\n' +
           '┌───────────┬───────┬─────────────────────┬────────┬────────┬───────────┬──────┬────────┬─────────┐\n' +
-          '│ ID        │ STATE │ SPEC                │ BRANCH │ UPTIME │ LAST BEAT │ RUNS │ RSS    │ ORPHANS │\n' +
+          '│ ID        │ STATE │ SPEC                │ BRANCH │ UPTIME │ LAST BEAT │ RUNS │ MEMORY │ ORPHANS │\n' +
           '├───────────┼───────┼─────────────────────┼────────┼────────┼───────────┼──────┼────────┼─────────┤\n' +
           '│ inst_7f3a │ alive │ dungeonmaster-stack │ -      │ 14m    │ 2s ago    │ 3    │ 1840MB │ 0       │\n' +
           '│ inst_9b2c │ dead  │ dungeonmaster-api   │ -      │ -      │ 9h ago    │ 5    │ 1200MB │ 1       │\n' +
@@ -166,19 +228,23 @@ describe('statusAnswerRenderTransformer', () => {
       const result = statusAnswerRenderTransformer({ answer, instanceId });
 
       expect(result).toBe(
-        'INSTANCE inst_9b2c — dead\n' +
-          'SPEC: dungeonmaster-stack\n' +
-          'UPTIME: -\n' +
-          'LAST BEAT: 9h ago\n' +
-          'RUNS: 3\n' +
-          'RSS: at last beat 1840MB\n' +
-          'LAST STEP: run_2 step 7 click\n' +
-          'ORPHANS: pgid 33812 (alive), pgid 33840 (dead)\n' +
-          'EVIDENCE DIR: /repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_9b2c\n' +
-          'TRANSCRIPT: run_2.jsonl\n' +
-          'LOGS: api-server.log, web-server.log\n' +
-          'LAST SHOT: run_2/step7.png\n' +
-          'LIKELY CAUSE: OOM killed — rss climbed to 1840MB before the last beat, 2 kernel OOM events since boot\n',
+        '┌──────────────┬─────────────────────────────────────────────────────────────────────────────────────────┐\n' +
+          '│ FIELD        │ VALUE                                                                                   │\n' +
+          '├──────────────┼─────────────────────────────────────────────────────────────────────────────────────────┤\n' +
+          '│ INSTANCE     │ inst_9b2c — dead                                                                        │\n' +
+          '│ SPEC         │ dungeonmaster-stack                                                                     │\n' +
+          '│ UPTIME       │ -                                                                                       │\n' +
+          '│ LAST BEAT    │ 9h ago                                                                                  │\n' +
+          '│ RUNS         │ 3                                                                                       │\n' +
+          '│ MEMORY       │ at last beat 1840MB                                                                     │\n' +
+          '│ LAST STEP    │ run_2 step 7 click                                                                      │\n' +
+          '│ ORPHANS      │ pgid 33812 (alive), pgid 33840 (dead)                                                   │\n' +
+          '│ EVIDENCE DIR │ /repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_9b2c             │\n' +
+          '│ TRANSCRIPT   │ run_2.jsonl                                                                             │\n' +
+          '│ LOGS         │ api-server.log, web-server.log                                                          │\n' +
+          '│ LAST SHOT    │ run_2/step7.png                                                                         │\n' +
+          '│ LIKELY CAUSE │ OOM killed — rss climbed to 1840MB before the last beat, 2 kernel OOM events since boot │\n' +
+          '└──────────────┴─────────────────────────────────────────────────────────────────────────────────────────┘\n',
       );
     });
   });
@@ -216,19 +282,23 @@ describe('statusAnswerRenderTransformer', () => {
       const result = statusAnswerRenderTransformer({ answer, instanceId });
 
       expect(result).toBe(
-        'INSTANCE inst_7f3a — alive\n' +
-          'SPEC: dungeonmaster-stack\n' +
-          'UPTIME: 14m\n' +
-          'LAST BEAT: 2s ago\n' +
-          'RUNS: 0\n' +
-          'RSS: 512MB\n' +
-          'LAST STEP: -\n' +
-          'ORPHANS: none\n' +
-          'EVIDENCE DIR: /repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a\n' +
-          'TRANSCRIPT: -\n' +
-          'LOGS: none\n' +
-          'LAST SHOT: -\n' +
-          'LIKELY CAUSE: -\n',
+        '┌──────────────┬─────────────────────────────────────────────────────────────────────────────┐\n' +
+          '│ FIELD        │ VALUE                                                                       │\n' +
+          '├──────────────┼─────────────────────────────────────────────────────────────────────────────┤\n' +
+          '│ INSTANCE     │ inst_7f3a — alive                                                           │\n' +
+          '│ SPEC         │ dungeonmaster-stack                                                         │\n' +
+          '│ UPTIME       │ 14m                                                                         │\n' +
+          '│ LAST BEAT    │ 2s ago                                                                      │\n' +
+          '│ RUNS         │ 0                                                                           │\n' +
+          '│ MEMORY       │ 512MB                                                                       │\n' +
+          '│ LAST STEP    │ -                                                                           │\n' +
+          '│ ORPHANS      │ none                                                                        │\n' +
+          '│ EVIDENCE DIR │ /repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_7f3a │\n' +
+          '│ TRANSCRIPT   │ -                                                                           │\n' +
+          '│ LOGS         │ none                                                                        │\n' +
+          '│ LAST SHOT    │ -                                                                           │\n' +
+          '│ LIKELY CAUSE │ -                                                                           │\n' +
+          '└──────────────┴─────────────────────────────────────────────────────────────────────────────┘\n',
       );
     });
   });

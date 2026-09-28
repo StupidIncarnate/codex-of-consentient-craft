@@ -138,7 +138,7 @@ export const instanceEntryLayerBroker = async ({
     });
   }
 
-  const [apiLogStat, webLogStat, repoLocalDir] = await Promise.all([
+  const [apiLogStat, webLogStat, driverLogStat, repoLocalDir] = await Promise.all([
     fsStatAdapter({
       filePath: absoluteFilePathContract.parse(
         join(evidenceDir, locationsStatics.siegelense.apiLog),
@@ -149,12 +149,29 @@ export const instanceEntryLayerBroker = async ({
         join(evidenceDir, locationsStatics.siegelense.webLog),
       ),
     }),
+    fsStatAdapter({
+      filePath: absoluteFilePathContract.parse(
+        join(evidenceDir, locationsStatics.siegelense.driverLog),
+      ),
+    }),
     locationsRepoLinkPathFindBroker({ homePath: evidenceDir }),
   ]);
 
+  // Full repo-local paths, not bare names — a bare "api-server.log" gives a reader nothing to
+  // `Read`. `fileNameContract` is an unbranded-format string brand (no path-shape constraint), so a
+  // full path parses through it cleanly; reusing it here — rather than widening the
+  // `instanceEvidenceListingContract.logs` element type to something path-shaped — is what keeps
+  // this a broker-only change.
   const logs = [
-    ...(apiLogStat === null ? [] : [fileNameContract.parse(locationsStatics.siegelense.apiLog)]),
-    ...(webLogStat === null ? [] : [fileNameContract.parse(locationsStatics.siegelense.webLog)]),
+    ...(apiLogStat === null
+      ? []
+      : [fileNameContract.parse(join(repoLocalDir.path, locationsStatics.siegelense.apiLog))]),
+    ...(webLogStat === null
+      ? []
+      : [fileNameContract.parse(join(repoLocalDir.path, locationsStatics.siegelense.webLog))]),
+    ...(driverLogStat === null
+      ? []
+      : [fileNameContract.parse(join(repoLocalDir.path, locationsStatics.siegelense.driverLog))]),
   ];
 
   if (lastRunId === null) {

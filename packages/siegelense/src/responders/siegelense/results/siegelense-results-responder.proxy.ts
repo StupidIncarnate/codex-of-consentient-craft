@@ -1,24 +1,31 @@
 /**
- * PURPOSE: Test proxy for SiegelenseResultsResponder — mocks `resultsReadBroker` directly rather
- * than composing its own child proxies' staging, matching `SiegelenseStartResponderProxy`'s shape
- * for the sibling command. `resultsReadBrokerProxy` is still constructed (never addressed further)
- * to satisfy `enforce-proxy-child-creation`. `getWrittenAnswer` parses the captured write itself, so
- * a test asserting "the parsed document" never needs its own `unknown`-to-`string` narrowing.
+ * PURPOSE: Test proxy for SiegelenseResultsResponder — mocks `registryReadBroker` and
+ * `resultsReadBroker` directly rather than composing either's own child proxies' staging, matching
+ * `SiegelenseKillResponderProxy`'s shape for the registry-miss check. `resultsReadBrokerProxy` is
+ * still constructed (never addressed further) to satisfy `enforce-proxy-child-creation`.
+ * `getWrittenAnswer` parses the captured write itself, so a test asserting "the parsed document"
+ * never needs its own `unknown`-to-`string` narrowing.
  *
  * USAGE:
  * const proxy = SiegelenseResultsResponderProxy();
+ * proxy.stageRegistry({ registry });
  * proxy.stageAnswer({ answer });
  */
 
 import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
+import { registryReadBroker } from '../../../brokers/registry/read/registry-read-broker';
+import { registryReadBrokerProxy } from '../../../brokers/registry/read/registry-read-broker.proxy';
 import { resultsReadBroker } from '../../../brokers/results/read/results-read-broker';
 import { resultsReadBrokerProxy } from '../../../brokers/results/read/results-read-broker.proxy';
 import type { ResultsAnswerStub } from '../../../contracts/results-answer/results-answer.stub';
+import type { RegistryStub } from '../../../contracts/registry/registry.stub';
 
 type ResultsAnswer = ReturnType<typeof ResultsAnswerStub>;
+type Registry = ReturnType<typeof RegistryStub>;
 
 export const SiegelenseResultsResponderProxy = (): {
+  stageRegistry: (params: { registry: Registry }) => void;
   stageAnswer: (params: { answer: ResultsAnswer }) => void;
   stageError: (params: { error: Error }) => void;
   getStdoutWrites: () => unknown[];
@@ -27,12 +34,18 @@ export const SiegelenseResultsResponderProxy = (): {
   // Constructed for enforce-proxy-child-creation only — this proxy stages resultsReadBroker
   // directly below, never through its own setup methods.
   resultsReadBrokerProxy();
+  registryReadBrokerProxy();
 
+  const registryReadHandle = registerMock({ fn: registryReadBroker });
   const resultsReadHandle = registerMock({ fn: resultsReadBroker });
   const stdoutHandle = registerSpyOn({ object: process.stdout, method: 'write' });
   stdoutHandle.calledWith([]).returns(true);
 
   return {
+    stageRegistry: ({ registry }: { registry: Registry }): void => {
+      registryReadHandle.calledWith([]).resolves(registry);
+    },
+
     stageAnswer: ({ answer }: { answer: ResultsAnswer }): void => {
       resultsReadHandle.calledWith([]).resolves(answer);
     },

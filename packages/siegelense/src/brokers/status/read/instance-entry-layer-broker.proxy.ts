@@ -1,10 +1,11 @@
 /**
  * PURPOSE: Composes every child proxy `instanceEntryLayerBroker` reaches through — the evidence-path
  * resolution (twice: once directly, once inside `heartbeatReadBroker`), the runs-directory listing,
- * `/proc` for orphans and rss, the two known log files, the repo-local symlink, and the last run's
- * transcript. Every one of those, and this broker's own four joins (`runs`, `api-server.log`,
- * `web-server.log`, the last run's transcript), now resolve on the SAME shared `#gateway/node/path`
- * `join` mock — this broker's own four through the sticky real-passthrough default
+ * `/proc` for orphans and rss, the three known log files (api, web, driver), the repo-local symlink,
+ * and the last run's transcript. Every one of those, and this broker's own joins (`runs`,
+ * `api-server.log`, `web-server.log`, `driver.log`, one repo-local full path per log that passed its
+ * presence check, and the last run's transcript), now resolve on the SAME shared `#gateway/node/path`
+ * `join` mock — this broker's own joins through the sticky real-passthrough default
  * `locationsInstanceEvidencePathFindBrokerProxy` installs transitively (via
  * `locationsRootPathFindBrokerProxy`'s own `dungeonmasterHomeFindBrokerProxy`), the rest through
  * their own proxy's exact-tuple addressing — so no scenario method here stages a join, and none of
@@ -77,6 +78,8 @@ export const instanceEntryLayerBrokerProxy = (): {
   setupApiLogAbsent: (params: { evidencePath: FilePath }) => void;
   setupWebLogPresent: (params: { evidencePath: FilePath }) => void;
   setupWebLogAbsent: (params: { evidencePath: FilePath }) => void;
+  setupDriverLogPresent: (params: { evidencePath: FilePath }) => void;
+  setupDriverLogAbsent: (params: { evidencePath: FilePath }) => void;
   setupRepoLinkResolves: (params: {
     cwdPath: string;
     linkPath: FilePath;
@@ -98,6 +101,7 @@ export const instanceEntryLayerBrokerProxy = (): {
   const orphanProxy = orphanReadBrokerProxy();
   const apiLogStatProxy = fsStatAdapterProxy();
   const webLogStatProxy = fsStatAdapterProxy();
+  const driverLogStatProxy = fsStatAdapterProxy();
   const repoLinkProxy = locationsRepoLinkPathFindBrokerProxy();
   const transcriptReadProxy = fsReadFileAdapterProxy();
   const shutdownReasonProxy = shutdownReasonReadBrokerProxy();
@@ -225,6 +229,25 @@ export const instanceEntryLayerBrokerProxy = (): {
       webLogStatProxy.rejects({
         filePath: AbsoluteFilePathStub({
           value: `${evidencePath}/${locationsStatics.siegelense.webLog}`,
+        }),
+        error: Object.assign(new Error('ENOENT: no such file or directory'), { code: 'ENOENT' }),
+      });
+    },
+
+    setupDriverLogPresent: ({ evidencePath }: { evidencePath: FilePath }): void => {
+      driverLogStatProxy.resolves({
+        filePath: AbsoluteFilePathStub({
+          value: `${evidencePath}/${locationsStatics.siegelense.driverLog}`,
+        }),
+        sizeBytes: 1,
+        modifiedAtMs: 0,
+      });
+    },
+
+    setupDriverLogAbsent: ({ evidencePath }: { evidencePath: FilePath }): void => {
+      driverLogStatProxy.rejects({
+        filePath: AbsoluteFilePathStub({
+          value: `${evidencePath}/${locationsStatics.siegelense.driverLog}`,
         }),
         error: Object.assign(new Error('ENOENT: no such file or directory'), { code: 'ENOENT' }),
       });

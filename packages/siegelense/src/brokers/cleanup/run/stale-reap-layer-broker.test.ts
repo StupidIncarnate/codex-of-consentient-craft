@@ -41,6 +41,7 @@ describe('staleReapLayerBroker', () => {
         heartbeat,
         homePath: HOME_PATH,
       });
+      proxy.setupShutdownReasonWriteSucceeds({ evidencePath: EVIDENCE_PATH });
 
       const result = await staleReapLayerBroker({ entry, nowMs: NOW_MS });
 

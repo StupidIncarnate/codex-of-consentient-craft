@@ -209,9 +209,10 @@ describe('siegelenseHelpStatics', () => {
       ],
       refusals: [
         'Against a finished instance you must name --run (or --since boot); omit both and the call refuses rather than guessing which run you meant.',
+        'An --instance id with no record in the registry is refused rather than answered.',
       ],
       output:
-        'By default, an instance header followed by formatted step readings, or a notice when none matched. `--json` prints the raw ResultsAnswer. Every answer carries instanceState.',
+        'By default, an instance header followed by formatted step readings, or a notice when none matched. `--json` prints the raw ResultsAnswer. Every answer for a known instance carries instanceState; an id with no record in the registry refuses instead.',
       example: 'dungeonmaster siegelense results --instance inst_9b2c --run run_2 --step 7',
     });
   });
@@ -253,7 +254,7 @@ describe('siegelenseHelpStatics', () => {
           value: '<id>',
           required: false,
           description:
-            'report that one instance in full — last beat, last step, RSS, orphans, evidence paths, likelyCause — instead of the fleet.',
+            'report that one instance in full — last beat, last step, MEMORY, orphans, evidence paths, likelyCause — instead of the fleet.',
         },
         {
           name: '--branch',
@@ -275,10 +276,13 @@ describe('siegelenseHelpStatics', () => {
           description: 'print raw JSON output instead of the human-readable view.',
         },
       ],
-      refusals: ["Never lists another instance's runs or evidence unless you name it."],
+      refusals: [
+        'A --since value outside 1hr, 6hr, 1day or beginning is refused, naming the four accepted windows.',
+        'An --instance id with no record in the registry is refused rather than answered.',
+      ],
       output:
-        'By default, the fleet as a box-drawing table (monitored vocabulary, machine reading, one row per instance), or the full single-instance form — last beat, last step, RSS, orphans, evidence paths, likelyCause — when --instance names one. `--json` prints the raw StatusAnswer instead.',
-      example: 'dungeonmaster siegelense status --instance inst_9b2c',
+        "The fleet view lists instances but not their evidence paths or runs. Name one with --instance to get those. By default, the fleet prints as a box-drawing table (monitored vocabulary, machine reading, one row per instance); naming --instance prints that one instance in full as its own box-drawing table (last beat, last step, MEMORY, orphans, evidence paths, likelyCause) instead of the fleet. MEMORY is the last measured memory of the instance's processes; for a killed instance, it is the instance's footprint at the moment it ended, not a current reading. `--json` prints the raw StatusAnswer either way.",
+      example: 'dungeonmaster siegelense status --instance inst_4f9c2a17b8e6405fa1d4c9e02b7f1a3c',
     });
   });
 
@@ -333,36 +337,6 @@ describe('siegelenseHelpStatics', () => {
     });
   });
 
-  it('VALID: {calls.profile} => toStrictEqual its summary, synopsis, flags, refusals, output and example', () => {
-    expect(siegelenseHelpStatics.calls.profile).toStrictEqual({
-      summary:
-        'siegelense profile — what one instance of a lane spec costs, measured. Starts nothing.',
-      synopsis: 'dungeonmaster siegelense profile --spec <specName> [--json]',
-      flags: [
-        {
-          name: '--spec',
-          value: '<specName>',
-          required: true,
-          description:
-            "the lane spec to report on. A profile is keyed by that spec's content hash, so there is no fleet-wide form.",
-        },
-        {
-          name: '--json',
-          value: null,
-          required: false,
-          description: 'print raw JSON output instead of the human-readable view.',
-        },
-      ],
-      refusals: [
-        'Reads what was measured and never measures on demand — a spec nothing has run yet answers samples: [] and bootMs: null rather than booting an instance to find out.',
-        'Samples are grouped by pool size and never averaged across them: a solo reading and a contended one describe different worlds, so read the group matching the pool you are about to open.',
-      ],
-      output:
-        "By default, spec name, process count, content hash, measuredAt/boot/runs, and a box-drawing table of samples by pool size (or 'none measured yet'). `--json` prints the raw SpecProfile.",
-      example: 'dungeonmaster siegelense profile --spec stack',
-    });
-  });
-
   it('VALID: {calls.snapshots} => toStrictEqual its summary, synopsis, flags, refusals, output and example', () => {
     expect(siegelenseHelpStatics.calls.snapshots).toStrictEqual({
       summary:
@@ -386,6 +360,7 @@ describe('siegelenseHelpStatics', () => {
       refusals: [
         'Snapshots die with the instance. `kill` removes the throwaway home the store lives inside, so a killed or pruned instance answers an empty list — the instanceState on the answer is what tells that apart from a live instance that has captured nothing yet.',
         'Every run mints its own `run_N:start` and `run_N:end`; a name ending in either suffix is refused at capture, so the automatic namespace can never be taken by a typed name.',
+        'An --instance id with no record in the registry is refused rather than answered.',
       ],
       output:
         "By default, instance id and state, then either 'none recorded yet' or a box-drawing table of restore points — name, age and manual flag, oldest first. `--json` prints the raw SnapshotsAnswer — instanceId, instanceState, and one row per restore point with its name, atMs and manual flag.",
@@ -553,9 +528,10 @@ describe('siegelenseHelpStatics', () => {
     expect(namesWithoutARoute).toStrictEqual([]);
   });
 
-  it('VALID: {calls.results.refusals} => toStrictEqual the run-id sentence, carried verbatim off the deleted MCP tool description', () => {
+  it('VALID: {calls.results.refusals} => toStrictEqual the run-id sentence, carried verbatim off the deleted MCP tool description, plus the unknown-id refusal', () => {
     expect(siegelenseHelpStatics.calls.results.refusals).toStrictEqual([
       'Against a finished instance you must name --run (or --since boot); omit both and the call refuses rather than guessing which run you meant.',
+      'An --instance id with no record in the registry is refused rather than answered.',
     ]);
   });
 });

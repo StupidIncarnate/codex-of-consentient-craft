@@ -24,6 +24,7 @@ import type { InstanceHeartbeatStub } from '../../../contracts/instance-heartbea
 import type { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
 import { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
 import type { RegistryStub } from '../../../contracts/registry/registry.stub';
+import { shutdownReasonWriteBrokerProxy } from '../../shutdown-reason/write/shutdown-reason-write-broker.proxy';
 import { driverStatics } from '../../../statics/driver/driver-statics';
 
 type Registry = ReturnType<typeof RegistryStub>;
@@ -71,6 +72,12 @@ export const instanceKillBrokerProxy = (): {
     socketPath: ReturnType<typeof AbsoluteFilePathStub>;
     heartbeatPath: ReturnType<typeof AbsoluteFilePathStub>;
   }) => void;
+  setupShutdownReasonWriteSucceeds: (params: {
+    evidencePath: ReturnType<typeof AbsoluteFilePathStub>;
+  }) => void;
+  getWrittenShutdownReason: (params: {
+    evidencePath: ReturnType<typeof AbsoluteFilePathStub>;
+  }) => unknown;
   getRemovedPaths: () => unknown[];
   getKillGroupCallsFor: (params: { pgid: ProcessGroupId }) => unknown[];
   getReleasedRegistry: () => unknown;
@@ -91,6 +98,7 @@ export const instanceKillBrokerProxy = (): {
   repoLinkProxy.setupCwd({ cwdPath: CWD_PATH_VALUE });
   locationsSocketPathFindBrokerProxy();
   const releaseProxy = instanceReleaseBrokerProxy();
+  const shutdownReasonProxy = shutdownReasonWriteBrokerProxy();
   const socketProxy = netUnixRequestAdapterProxy();
   fsReadFileAdapterProxy();
   const rmProxy = fsRmAdapterProxy();
@@ -215,6 +223,27 @@ export const instanceKillBrokerProxy = (): {
       readHandle
         .calledWith([heartbeatPath])
         .rejects(Object.assign(new Error('EMFILE: too many open files'), { code: 'EMFILE' }));
+    },
+
+    // Delegates to shutdownReasonWriteBrokerProxy's own `writeFile` mock — the SAME shared mock
+    // `writeHandle` above already answers for the registry's own writes, addressed here by the
+    // shutdown-reason path instead. `nowMs` matches this proxy's own `Date.now` stub so re-staging
+    // it through `setupWriteSucceeds` is a no-op collision, not a silent override.
+    setupShutdownReasonWriteSucceeds: ({
+      evidencePath,
+    }: {
+      evidencePath: ReturnType<typeof AbsoluteFilePathStub>;
+    }): void => {
+      shutdownReasonProxy.setupWriteSucceeds({ evidencePath, nowMs: EpochMsStub().valueOf() });
+    },
+
+    getWrittenShutdownReason: ({
+      evidencePath,
+    }: {
+      evidencePath: ReturnType<typeof AbsoluteFilePathStub>;
+    }): unknown => {
+      const written = shutdownReasonProxy.getWrittenMarkerContent({ evidencePath });
+      return typeof written === 'string' ? JSON.parse(written) : null;
     },
 
     getRemovedPaths: (): unknown[] => rmProxy.getRemovedPaths(),

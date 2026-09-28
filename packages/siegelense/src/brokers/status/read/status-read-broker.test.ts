@@ -214,6 +214,7 @@ describe('statusReadBroker', () => {
       proxy.setupOrphanAlive({ pgid });
       proxy.setupApiLogPresent({ evidencePath });
       proxy.setupWebLogPresent({ evidencePath });
+      proxy.setupDriverLogAbsent({ evidencePath });
       proxy.setupRepoLinkResolves({
         cwdPath: '/repo',
         linkPath: FilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets' }),
@@ -267,7 +268,10 @@ describe('statusReadBroker', () => {
                   linkPresent: true,
                 },
                 transcript: 'run_2.jsonl',
-                logs: ['api-server.log', 'web-server.log'],
+                logs: [
+                  `/repo/.dungeonmaster-assets/siegelense-assets/guilds/${guildId}/instances/${instanceId}/api-server.log`,
+                  `/repo/.dungeonmaster-assets/siegelense-assets/guilds/${guildId}/instances/${instanceId}/web-server.log`,
+                ],
                 lastShot: 'run_2/step7.png',
               },
               likelyCause:

@@ -1,6 +1,10 @@
 import { RunIdStub } from '../../../contracts/run-id/run-id.stub';
+import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
+import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
+import { RegistryStub } from '../../../contracts/registry/registry.stub';
 import { ResultsAnswerStub } from '../../../contracts/results-answer/results-answer.stub';
 import { ResultsQueryStub } from '../../../contracts/results-query/results-query.stub';
+import { InstanceUnknownError } from '../../../errors/instance-unknown/instance-unknown-error';
 import { RunIdRequiredError } from '../../../errors/run-id-required/run-id-required-error';
 import { siegelenseOutputStatics } from '../../../statics/siegelense-output/siegelense-output-statics';
 import { resultsAnswerRenderTransformer } from '../../../transformers/results-answer-render/results-answer-render-transformer';
@@ -14,6 +18,9 @@ describe('SiegelenseResultsResponder', () => {
       const proxy = SiegelenseResultsResponderProxy();
       const query = ResultsQueryStub({ runId: RunIdStub({ value: 'run_2' }) });
       const answer = ResultsAnswerStub({ instanceId: query.instanceId, runId: query.runId });
+      proxy.stageRegistry({
+        registry: RegistryStub({ instances: [RegistryEntryStub({ id: query.instanceId })] }),
+      });
       proxy.stageAnswer({ answer });
 
       await SiegelenseResultsResponder({ query });
@@ -25,6 +32,9 @@ describe('SiegelenseResultsResponder', () => {
       const proxy = SiegelenseResultsResponderProxy();
       const query = ResultsQueryStub({ runId: RunIdStub({ value: 'run_2' }) });
       const answer = ResultsAnswerStub({ instanceId: query.instanceId, runId: query.runId });
+      proxy.stageRegistry({
+        registry: RegistryStub({ instances: [RegistryEntryStub({ id: query.instanceId })] }),
+      });
       proxy.stageAnswer({ answer });
 
       await SiegelenseResultsResponder({ query, isJson: true });
@@ -36,19 +46,16 @@ describe('SiegelenseResultsResponder', () => {
   });
 
   describe('an unknown instance id', () => {
-    it("VALID: {an unknown instance id} => writes instanceState 'unknown' and returns rather than throws", async () => {
+    it('ERROR: {an unknown instance id} => throws InstanceUnknownError and resultsReadBroker is never reached', async () => {
       const proxy = SiegelenseResultsResponderProxy();
-      const query = ResultsQueryStub();
-      const answer = ResultsAnswerStub({
-        instanceId: query.instanceId,
-        instanceState: 'unknown',
-        rows: [],
-      });
-      proxy.stageAnswer({ answer });
+      const instanceId = InstanceIdStub({ value: 'inst_deadbeef' });
+      const query = ResultsQueryStub({ instanceId });
+      proxy.stageRegistry({ registry: RegistryStub({ instances: [] }) });
 
-      await SiegelenseResultsResponder({ query, isJson: true });
-
-      expect(proxy.getWrittenAnswer()).toStrictEqual(answer);
+      await expect(SiegelenseResultsResponder({ query })).rejects.toStrictEqual(
+        new InstanceUnknownError({ instanceId }),
+      );
+      expect(proxy.getStdoutWrites()).toStrictEqual([]);
     });
   });
 
@@ -56,6 +63,9 @@ describe('SiegelenseResultsResponder', () => {
     it('ERROR: {a finished instance with no run and no since} => RunIdRequiredError propagates and stdout stays empty', async () => {
       const proxy = SiegelenseResultsResponderProxy();
       const query = ResultsQueryStub();
+      proxy.stageRegistry({
+        registry: RegistryStub({ instances: [RegistryEntryStub({ id: query.instanceId })] }),
+      });
       const error = new RunIdRequiredError({
         instanceId: 'inst_7f3a9c21',
         instanceState: 'killed',

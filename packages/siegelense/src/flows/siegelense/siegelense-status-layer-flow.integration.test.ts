@@ -41,6 +41,7 @@ import { InstanceIdStub } from '../../contracts/instance-id/instance-id.stub';
 import { RegistryEntryStub } from '../../contracts/registry-entry/registry-entry.stub';
 import { RegistryStub } from '../../contracts/registry/registry.stub';
 import { SpecNameStub } from '../../contracts/spec-name/spec-name.stub';
+import { InstanceUnknownError } from '../../errors/instance-unknown/instance-unknown-error';
 import { machineStatics } from '../../statics/machine/machine-statics';
 import { siegelenseOutputStatics } from '../../statics/siegelense-output/siegelense-output-statics';
 
@@ -56,17 +57,16 @@ const UNKNOWN_INSTANCE_ID = InstanceIdStub({ value: 'inst_deadbeef01' });
 const SPEC_NAME = SpecNameStub({ value: 'dungeonmaster-stack' });
 
 const MACHINE_BLOCK_PATTERN = / {2}"machine": \{[\s\S]*?\n {2}\},\n/u;
-const LIKELY_CAUSE_PATTERN =
-  /^LIKELY CAUSE: rss unavailable at last beat; kernel OOM (?:kills since boot: \d+|events unavailable)$/mu;
+// Matches the LIKELY CAUSE cell's own trimmed VALUE (no "LIKELY CAUSE:" prefix, no box-drawing
+// padding) — the single-instance view now renders as a box-drawing table whose VALUE column width
+// depends on the live evidence-dir path length, so the row is parsed into a plain field/value
+// object before this pattern normalises the one host-dependent cell, rather than pattern-matching
+// the raw padded table text.
+const LIKELY_CAUSE_VALUE_PATTERN =
+  /^rss unavailable at last beat; kernel OOM (?:kills since boot: \d+|events unavailable)$/u;
 
 const EMPTY_BRANCH_STATUS_JSON = `${JSON.stringify(
   { monitored: machineStatics.monitored, instances: [], queriedInstanceState: null },
-  null,
-  siegelenseOutputStatics.json.indentSpaces,
-)}\n`;
-
-const UNKNOWN_NAMED_STATUS_JSON = `${JSON.stringify(
-  { monitored: machineStatics.monitored, instances: [], queriedInstanceState: 'unknown' },
   null,
   siegelenseOutputStatics.json.indentSpaces,
 )}\n`;
@@ -75,19 +75,19 @@ const UNKNOWN_NAMED_STATUS_JSON = `${JSON.stringify(
 // BRANCH values are the same length across every fixture row, and every other column's widest cell
 // is its own header. The trailing '' matches the split artifact of the render's own trailing '\n'.
 const TABLE_TOP =
-  '┌───────────────┬────────┬─────────────────────┬────────┬────────┬───────────┬──────┬─────┬─────────┐';
+  '┌───────────────┬────────┬─────────────────────┬────────┬────────┬───────────┬──────┬────────┬─────────┐';
 const TABLE_HEADER =
-  '│ ID            │ STATE  │ SPEC                │ BRANCH │ UPTIME │ LAST BEAT │ RUNS │ RSS │ ORPHANS │';
+  '│ ID            │ STATE  │ SPEC                │ BRANCH │ UPTIME │ LAST BEAT │ RUNS │ MEMORY │ ORPHANS │';
 const TABLE_SEPARATOR =
-  '├───────────────┼────────┼─────────────────────┼────────┼────────┼───────────┼──────┼─────┼─────────┤';
+  '├───────────────┼────────┼─────────────────────┼────────┼────────┼───────────┼──────┼────────┼─────────┤';
 const TABLE_BOTTOM =
-  '└───────────────┴────────┴─────────────────────┴────────┴────────┴───────────┴──────┴─────┴─────────┘';
+  '└───────────────┴────────┴─────────────────────┴────────┴────────┴───────────┴──────┴────────┴─────────┘';
 const MAIN_RECENT_ROW =
-  '│ inst_00001aaa │ killed │ dungeonmaster-stack │ main   │ -      │ 20m       │ 0    │ -   │ 0       │';
+  '│ inst_00001aaa │ killed │ dungeonmaster-stack │ main   │ -      │ 20m       │ 0    │ -      │ 0       │';
 const FEATURE_MID_ROW =
-  '│ inst_00002bbb │ killed │ dungeonmaster-stack │ beta   │ -      │ 1h        │ 0    │ -   │ 0       │';
+  '│ inst_00002bbb │ killed │ dungeonmaster-stack │ beta   │ -      │ 1h        │ 0    │ -      │ 0       │';
 const MAIN_OLD_ROW =
-  '│ inst_00003ccc │ killed │ dungeonmaster-stack │ main   │ -      │ 7h        │ 0    │ -   │ 0       │';
+  '│ inst_00003ccc │ killed │ dungeonmaster-stack │ main   │ -      │ 7h        │ 0    │ -      │ 0       │';
 
 const SINCE_1H_TABLE_LINES = [
   TABLE_TOP,
@@ -285,7 +285,7 @@ describe('SiegelenseStatusLayerFlow', () => {
   });
 
   describe('the --branch filter matching no instance', () => {
-    it('EMPTY: {callArgs: [--branch, nonexistent-branch]} => renders the empty-fleet message, not a table', async () => {
+    it('EMPTY: {callArgs: [--branch, nonexistent-branch]} => renders the reworded empty-fleet message naming the branch and the default --since window, not a table', async () => {
       const writes: ReturnType<typeof ContentTextStub>[] = [];
       const originalWrite = process.stdout.write.bind(process.stdout);
       process.stdout.write = ((chunk: string): boolean => {
@@ -297,7 +297,12 @@ describe('SiegelenseStatusLayerFlow', () => {
 
       process.stdout.write = originalWrite;
 
-      expect(writes).toStrictEqual(['No siegelense instances running.\n']);
+      const [wholeOutput] = writes;
+
+      expect(wholeOutput!.split('\n').slice(2)).toStrictEqual([
+        'No siegelense instances created on branch "nonexistent-branch" in the last 6hr. Widen with --since beginning.',
+        '',
+      ]);
     });
 
     it('EMPTY: {callArgs: [--branch, nonexistent-branch, --json]} => writes the empty StatusAnswer as one JSON document', async () => {
@@ -332,32 +337,47 @@ describe('SiegelenseStatusLayerFlow', () => {
 
       process.stdout.write = originalWrite;
 
+      // The table's VALUE column pads to the widest cell — the live evidence-dir path under
+      // `testbed.guildPath` — so rows are parsed into a plain field/value object instead of
+      // asserting the raw padded text, keeping the assertion independent of that live width.
       const [wholeOutput] = writes;
-      const normalized = wholeOutput!.replace(
-        LIKELY_CAUSE_PATTERN,
-        'LIKELY CAUSE: <host-dependent OOM reading, normalised>',
+      const renderedFields = Object.fromEntries(
+        wholeOutput!
+          .trim()
+          .split('\n')
+          .slice(3, -1)
+          .map((line) =>
+            line
+              .slice(1, -1)
+              .split('│')
+              .map((cell) => cell.trim()),
+          ),
+      );
+      const normalizedLikelyCause = String(renderedFields['LIKELY CAUSE']).replace(
+        LIKELY_CAUSE_VALUE_PATTERN,
+        '<host-dependent OOM reading, normalised>',
       );
 
-      expect(normalized).toBe(
-        `INSTANCE ${MAIN_RECENT_ID} — killed\n` +
-          'SPEC: dungeonmaster-stack\n' +
-          'UPTIME: -\n' +
-          'LAST BEAT: 20m\n' +
-          'RUNS: 0\n' +
-          'RSS: -\n' +
-          'LAST STEP: -\n' +
-          'ORPHANS: none\n' +
-          `EVIDENCE DIR: ${testbed.guildPath}/siegelense/unowned/instances/${MAIN_RECENT_ID}\n` +
-          'TRANSCRIPT: -\n' +
-          'LOGS: none\n' +
-          'LAST SHOT: -\n' +
-          'LIKELY CAUSE: <host-dependent OOM reading, normalised>\n',
-      );
+      expect({ ...renderedFields, 'LIKELY CAUSE': normalizedLikelyCause }).toStrictEqual({
+        INSTANCE: `${MAIN_RECENT_ID} — killed`,
+        SPEC: 'dungeonmaster-stack',
+        UPTIME: '-',
+        'LAST BEAT': '20m',
+        RUNS: '0',
+        MEMORY: '-',
+        'LAST STEP': '-',
+        ORPHANS: 'none',
+        'EVIDENCE DIR': `${testbed.guildPath}/siegelense/unowned/instances/${MAIN_RECENT_ID}`,
+        TRANSCRIPT: '-',
+        LOGS: 'none',
+        'LAST SHOT': '-',
+        'LIKELY CAUSE': '<host-dependent OOM reading, normalised>',
+      });
     });
   });
 
   describe('the --instance flag naming an id the registry never held', () => {
-    it('VALID: {callArgs: [--instance, <unknown id>]} => names the id as unknown, never existed', async () => {
+    it('ERROR: {callArgs: [--instance, <unknown id>]} => rejects with InstanceUnknownError before writing anything', async () => {
       const writes: ReturnType<typeof ContentTextStub>[] = [];
       const originalWrite = process.stdout.write.bind(process.stdout);
       process.stdout.write = ((chunk: string): boolean => {
@@ -365,16 +385,16 @@ describe('SiegelenseStatusLayerFlow', () => {
         return true;
       }) as unknown as typeof process.stdout.write;
 
-      await SiegelenseStatusLayerFlow({ callArgs: ['--instance', UNKNOWN_INSTANCE_ID] });
+      await expect(
+        SiegelenseStatusLayerFlow({ callArgs: ['--instance', UNKNOWN_INSTANCE_ID] }),
+      ).rejects.toStrictEqual(new InstanceUnknownError({ instanceId: UNKNOWN_INSTANCE_ID }));
 
       process.stdout.write = originalWrite;
 
-      expect(writes).toStrictEqual([
-        `No instance by the id "${UNKNOWN_INSTANCE_ID}" — unknown, never existed.\n`,
-      ]);
+      expect(writes).toStrictEqual([]);
     });
 
-    it('VALID: {callArgs: [--instance, <unknown id>, --json]} => the JSON names it "unknown", distinct from an empty fleet', async () => {
+    it('ERROR: {callArgs: [--instance, <unknown id>, --json]} => rejects the same way even with --json, since the registry check runs first', async () => {
       const writes: ReturnType<typeof ContentTextStub>[] = [];
       const originalWrite = process.stdout.write.bind(process.stdout);
       process.stdout.write = ((chunk: string): boolean => {
@@ -382,14 +402,13 @@ describe('SiegelenseStatusLayerFlow', () => {
         return true;
       }) as unknown as typeof process.stdout.write;
 
-      await SiegelenseStatusLayerFlow({ callArgs: ['--instance', UNKNOWN_INSTANCE_ID, '--json'] });
+      await expect(
+        SiegelenseStatusLayerFlow({ callArgs: ['--instance', UNKNOWN_INSTANCE_ID, '--json'] }),
+      ).rejects.toStrictEqual(new InstanceUnknownError({ instanceId: UNKNOWN_INSTANCE_ID }));
 
       process.stdout.write = originalWrite;
 
-      const [wholeOutput] = writes;
-      const withoutLiveMachineBlock = wholeOutput!.replace(MACHINE_BLOCK_PATTERN, '');
-
-      expect(withoutLiveMachineBlock).toBe(UNKNOWN_NAMED_STATUS_JSON);
+      expect(writes).toStrictEqual([]);
     });
   });
 

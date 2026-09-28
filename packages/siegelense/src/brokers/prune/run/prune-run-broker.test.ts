@@ -101,7 +101,7 @@ describe('pruneRunBroker', () => {
           query: PruneQueryStub({ instanceId: InstanceIdStub({ value: 'inst_deadbeef' }) }),
         }),
       ).rejects.toThrow(
-        /^No instance by the id "inst_deadbeef" — unknown, never existed\. Check the id dungeonmaster siegelense start returned\.$/u,
+        /^No record of the instance id "inst_deadbeef"\. Check the id dungeonmaster siegelense start returned\.$/u,
       );
     });
   });

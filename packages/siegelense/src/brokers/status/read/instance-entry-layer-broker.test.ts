@@ -171,6 +171,7 @@ describe('instanceEntryLayerBroker', () => {
       proxy.setupProcListing({ pids: [] });
       proxy.setupApiLogAbsent({ evidencePath });
       proxy.setupWebLogAbsent({ evidencePath });
+      proxy.setupDriverLogAbsent({ evidencePath });
       proxy.setupRepoLinkResolves({
         cwdPath: '/repo',
         linkPath: FilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets' }),
@@ -206,6 +207,85 @@ describe('instanceEntryLayerBroker', () => {
             },
             transcript: null,
             logs: [],
+            lastShot: null,
+          },
+          likelyCause: 'rss unavailable at last beat; kernel OOM events unavailable',
+        }),
+      );
+    });
+
+    it('VALID: {dead, named, driver.log present, api/web absent} => evidence.logs carries driver.log as a full repo-local path', async () => {
+      const proxy = instanceEntryLayerBrokerProxy();
+      const instanceId = InstanceIdStub({ value: 'inst_9b2c0005' });
+      const guildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
+      const nowMs = EpochMsStub({ value: 1_700_001_000_000 });
+      const evidencePath = FilePathStub({
+        value:
+          '/home/user/.dungeonmaster/siegelense/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_9b2c0005',
+      });
+      const entry = RegistryEntryStub({
+        id: instanceId,
+        guildId,
+        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        pgids: [],
+        lastBeatMs: EpochMsStub({ value: 1_700_000_760_000 }),
+      });
+
+      proxy.setupEvidenceDir({
+        homeDir: HOME_DIR,
+        homePath: HOME_PATH,
+        rootPath: ROOT_PATH,
+        evidencePath,
+      });
+      proxy.setupHeartbeatMissing({
+        homeDir: HOME_DIR,
+        homePath: HOME_PATH,
+        rootPath: ROOT_PATH,
+        evidencePath,
+      });
+      proxy.setupRunsDirEntries({ evidencePath, entries: [] });
+      proxy.setupShutdownReasonMissing({ evidencePath });
+      proxy.setupProcListing({ pids: [] });
+      proxy.setupApiLogAbsent({ evidencePath });
+      proxy.setupWebLogAbsent({ evidencePath });
+      proxy.setupDriverLogPresent({ evidencePath });
+      proxy.setupRepoLinkResolves({
+        cwdPath: '/repo',
+        linkPath: FilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets' }),
+        homeDir: HOME_DIR,
+        homePath: HOME_PATH,
+        rootPath: ROOT_PATH,
+      });
+
+      const result = await instanceEntryLayerBroker({
+        entry,
+        state: InstanceStateStub({ value: 'dead' }),
+        named: true,
+        nowMs,
+        oomKillsSinceBoot: null,
+      });
+
+      expect(result).toStrictEqual(
+        InstanceStatusStub({
+          id: instanceId,
+          state: 'dead',
+          specName: 'dungeonmaster-stack',
+          uptime: null,
+          lastBeat: '4m',
+          runs: 0,
+          rssMB: null,
+          rssAtLastBeat: null,
+          lastStep: null,
+          orphans: [],
+          evidence: {
+            dir: {
+              path: '/repo/.dungeonmaster-assets/siegelense-assets/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_9b2c0005',
+              linkPresent: true,
+            },
+            transcript: null,
+            logs: [
+              '/repo/.dungeonmaster-assets/siegelense-assets/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_9b2c0005/driver.log',
+            ],
             lastShot: null,
           },
           likelyCause: 'rss unavailable at last beat; kernel OOM events unavailable',
@@ -256,6 +336,7 @@ describe('instanceEntryLayerBroker', () => {
       proxy.setupProcListing({ pids: [] });
       proxy.setupApiLogAbsent({ evidencePath });
       proxy.setupWebLogAbsent({ evidencePath });
+      proxy.setupDriverLogAbsent({ evidencePath });
       proxy.setupRepoLinkResolves({
         cwdPath: '/repo',
         linkPath: FilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets' }),
@@ -347,6 +428,7 @@ describe('instanceEntryLayerBroker', () => {
       proxy.setupOrphanAlive({ pgid });
       proxy.setupApiLogPresent({ evidencePath });
       proxy.setupWebLogPresent({ evidencePath });
+      proxy.setupDriverLogAbsent({ evidencePath });
       proxy.setupRepoLinkResolves({
         cwdPath: '/repo',
         linkPath: FilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets' }),
@@ -394,7 +476,10 @@ describe('instanceEntryLayerBroker', () => {
               linkPresent: true,
             },
             transcript: 'run_2.jsonl',
-            logs: ['api-server.log', 'web-server.log'],
+            logs: [
+              '/repo/.dungeonmaster-assets/siegelense-assets/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_9b2c0000/api-server.log',
+              '/repo/.dungeonmaster-assets/siegelense-assets/guilds/f47ac10b-58cc-4372-a567-0e02b2c3d479/instances/inst_9b2c0000/web-server.log',
+            ],
             lastShot: 'run_2/step7.png',
           },
           likelyCause:
@@ -440,6 +525,7 @@ describe('instanceEntryLayerBroker', () => {
       proxy.setupProcListing({ pids: [] });
       proxy.setupApiLogAbsent({ evidencePath });
       proxy.setupWebLogAbsent({ evidencePath });
+      proxy.setupDriverLogAbsent({ evidencePath });
       proxy.setupRepoLinkResolves({
         cwdPath: '/repo',
         linkPath: FilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets' }),
@@ -525,6 +611,7 @@ describe('instanceEntryLayerBroker', () => {
       proxy.setupProcListing({ pids: [] });
       proxy.setupApiLogAbsent({ evidencePath });
       proxy.setupWebLogAbsent({ evidencePath });
+      proxy.setupDriverLogAbsent({ evidencePath });
       proxy.setupRepoLinkResolves({
         cwdPath: '/repo',
         linkPath: FilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets' }),

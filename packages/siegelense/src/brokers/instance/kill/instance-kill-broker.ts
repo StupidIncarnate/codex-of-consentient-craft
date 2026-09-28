@@ -6,7 +6,11 @@
  * removes ONLY the throwaway home and never the evidence directory (packages/siegelense/CLAUDE.md
  * — logs, captures and the transcript are evidence and outlive the instance), and either path
  * accepts an already-dead instance's id, since that is how a session reaps an orphan it can see in
- * `status` (spec line 1172).
+ * `status` (spec line 1172). This broker is the SAME reap path `staleReapLayerBroker` (cleanup) calls
+ * for a stale row, so the orphan-reap branch also (re)writes `shutdown-reason.json` once it actually
+ * reaps a process group — for either caller — so `status`'s `likelyCause` reflects that something
+ * outside the driver stopped it, rather than a stale idle-timeout reason the driver's own self-reap
+ * recorded earlier before this call ever ran.
  *
  * USAGE:
  * await instanceKillBroker({ instanceId });
@@ -35,6 +39,7 @@ import { locationsInstanceEvidencePathFindBroker } from '../../locations/instanc
 import { locationsRepoLinkPathFindBroker } from '../../locations/repo-link-path-find/locations-repo-link-path-find-broker';
 import { locationsSocketPathFindBroker } from '../../locations/socket-path-find/locations-socket-path-find-broker';
 import { registryReadBroker } from '../../registry/read/registry-read-broker';
+import { shutdownReasonWriteBroker } from '../../shutdown-reason/write/shutdown-reason-write-broker';
 import { driverStatics } from '../../../statics/driver/driver-statics';
 
 export const instanceKillBroker = async ({
@@ -116,6 +121,23 @@ export const instanceKillBroker = async ({
           }
         }),
       );
+
+      // An idle-reap self-teardown already wrote its own shutdown-reason.json before this instance
+      // ever needed reaping (driver-serve-layer-responder.ts's own idle path) — that record is stale
+      // the moment THIS call finds live process groups still needing a signal, because an explicit
+      // kill, not the idle timeout, is what actually ended them. Overwriting it is the only way
+      // status's likelyCause (which reads this file verbatim) reflects what really happened; nothing
+      // here touches the reap sequence above or how status derives the reading from this file.
+      if (reapedPgids.length > 0) {
+        await shutdownReasonWriteBroker({
+          evidencePath,
+          reason: contentTextContract.parse(
+            `reaped ${reapedPgids.length} orphaned process group${
+              reapedPgids.length === 1 ? '' : 's'
+            } outside the idle timeout`,
+          ),
+        });
+      }
 
       const homePath = absoluteFilePathContract.parse(
         pathJoinAdapter({ paths: [osTmpdirAdapter(), `dm-siege-${instanceId}`] }),

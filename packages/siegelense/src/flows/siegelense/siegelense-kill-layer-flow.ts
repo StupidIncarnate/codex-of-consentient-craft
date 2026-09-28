@@ -1,7 +1,7 @@
 /**
  * PURPOSE: The `kill` entry point lifted out of `siegelense-flow.ts`'s `CALL_ROUTES` map into its
  * own layer file, so `dungeonmaster siegelense kill`'s whole argv-to-responder wiring has one home
- * rather than one line inside a router thirteen calls wide. Parses argv through
+ * rather than one line inside a router twelve calls wide. Parses argv through
  * `killArgsParseTransformer` — the one place that owns `kill`'s known-flag set (`--instance`,
  * `--json`) and every one of its refusals (missing id, badly-shaped id) — then hands the typed
  * `KillArgs` straight to `SiegelenseKillResponder`. Carries no branching of its own: the

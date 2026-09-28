@@ -1,6 +1,6 @@
 /**
  * PURPOSE: Drives `SiegelenseResultsLayerFlow` through `results`'s whole argv surface — the widest
- * flag set of the thirteen calls — against a real `evidenceTreeHarness` tree, the same evidence-on-
+ * flag set of the twelve calls — against a real `evidenceTreeHarness` tree, the same evidence-on-
  * disk substrate `siegelense-flow.integration.test.ts`'s own `results` cases use (`results` starts
  * nothing and reads only from disk, per `siegelense/CLAUDE.md`'s "Evidence reads go to DISK" rule).
  * `flows/` may import neither a `.proxy.ts` file (`enforce-test-proxy-imports`) nor `brokers/`

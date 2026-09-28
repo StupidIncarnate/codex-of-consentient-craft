@@ -19,7 +19,13 @@ const BUILT_CALL_NAMES = Object.keys(siegelenseHelpStatics.calls) as readonly Bu
 const UNKNOWN_SUBCOMMAND_STDERR =
   'Error: Unknown siegelense subcommand: statuss\n\n' +
   'Usage: dungeonmaster siegelense [--help | start | run | results | kill | capacity | status | ' +
-  'cleanup | prune | compare | profile | snapshots | recipes | docs | driver --instance <instanceId>]\n';
+  'cleanup | prune | compare | snapshots | recipes | docs | driver --instance <instanceId>]\n';
+// DEF-63: `profile` is no longer a built call — this pins it to the SAME unknown-subcommand
+// refusal any other unrecognised name gets, off the usage line above with `profile` gone from it.
+const PROFILE_UNKNOWN_SUBCOMMAND_STDERR =
+  'Error: Unknown siegelense subcommand: profile\n\n' +
+  'Usage: dungeonmaster siegelense [--help | start | run | results | kill | capacity | status | ' +
+  'cleanup | prune | compare | snapshots | recipes | docs | driver --instance <instanceId>]\n';
 // Same two lists and the same arithmetic siegelenseHelpRenderTransformer performs over them, so
 // landing a call updates this alongside the renderer instead of leaving a literal behind for the
 // next one to go stale against.
@@ -96,18 +102,21 @@ describe('dungeonmaster siegelense subcommand seam', () => {
   let helpResults: Record<BuiltSiegelenseCall, Awaited<ReturnType<typeof harness.runCommand>>>;
   let bareHelp: Awaited<ReturnType<typeof harness.runCommand>>;
   let unknownSubcommand: Awaited<ReturnType<typeof harness.runCommand>>;
+  let profileSubcommand: Awaited<ReturnType<typeof harness.runCommand>>;
 
   beforeAll(async () => {
-    const [helpEntries, bareHelpResult, unknownSubcommandResult] = await Promise.all([
-      Promise.all(
-        BUILT_CALL_NAMES.map(
-          async (call) =>
-            [call, await harness.runCommand({ args: ['siegelense', call, '--help'] })] as const,
+    const [helpEntries, bareHelpResult, unknownSubcommandResult, profileSubcommandResult] =
+      await Promise.all([
+        Promise.all(
+          BUILT_CALL_NAMES.map(
+            async (call) =>
+              [call, await harness.runCommand({ args: ['siegelense', call, '--help'] })] as const,
+          ),
         ),
-      ),
-      harness.runCommand({ args: ['siegelense', '--help'] }),
-      harness.runCommand({ args: ['siegelense', 'statuss'] }),
-    ]);
+        harness.runCommand({ args: ['siegelense', '--help'] }),
+        harness.runCommand({ args: ['siegelense', 'statuss'] }),
+        harness.runCommand({ args: ['siegelense', 'profile'] }),
+      ]);
 
     helpResults = helpEntries.reduce<
       Record<BuiltSiegelenseCall, Awaited<ReturnType<typeof harness.runCommand>>>
@@ -117,6 +126,7 @@ describe('dungeonmaster siegelense subcommand seam', () => {
     );
     bareHelp = bareHelpResult;
     unknownSubcommand = unknownSubcommandResult;
+    profileSubcommand = profileSubcommandResult;
   }, SIEGELENSE_SEAM_TIMEOUT_MS);
 
   // The failure this catches: a call that is built, helped and routed in SiegelenseFlow but
@@ -144,6 +154,17 @@ describe('dungeonmaster siegelense subcommand seam', () => {
       exitCode: ExitCodeStub({ value: 1 }),
       stdout: '',
       stderr: UNKNOWN_SUBCOMMAND_STDERR,
+    });
+  });
+
+  // DEF-63: `profile` carried no reader anywhere — `capacity` already prints the profile group it
+  // divided by and `status`'s likelyCause quotes the peak inline — so it is refused as an unknown
+  // subcommand no longer in the usage line, exactly like any other unrecognised name.
+  it('INVALID: {dungeonmaster siegelense profile} => exits 1, refused as an unknown subcommand no longer in the usage line', () => {
+    expect(profileSubcommand).toStrictEqual({
+      exitCode: ExitCodeStub({ value: 1 }),
+      stdout: '',
+      stderr: PROFILE_UNKNOWN_SUBCOMMAND_STDERR,
     });
   });
 });

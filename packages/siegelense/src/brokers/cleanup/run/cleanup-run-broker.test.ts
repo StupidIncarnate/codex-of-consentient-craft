@@ -75,6 +75,7 @@ describe('cleanupRunBroker', () => {
         heartbeat,
         homePath: STALE_HOME_PATH,
       });
+      proxy.setupShutdownReasonWriteSucceeds({ evidencePath: STALE_EVIDENCE_PATH });
       proxy.setupNoLocks();
 
       const result = await cleanupRunBroker();
@@ -175,6 +176,7 @@ describe('cleanupRunBroker', () => {
         heartbeat,
         homePath: STALE_HOME_PATH,
       });
+      proxy.setupShutdownReasonWriteSucceeds({ evidencePath: STALE_EVIDENCE_PATH });
       proxy.setupNoLocks();
 
       await cleanupRunBroker();

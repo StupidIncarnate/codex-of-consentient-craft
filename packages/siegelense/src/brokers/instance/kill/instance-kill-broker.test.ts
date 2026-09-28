@@ -2,6 +2,7 @@ import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 
 import { instanceKillBroker } from './instance-kill-broker';
 import { instanceKillBrokerProxy } from './instance-kill-broker.proxy';
+import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { InstanceHeartbeatStub } from '../../../contracts/instance-heartbeat/instance-heartbeat.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
@@ -66,6 +67,7 @@ describe('instanceKillBroker', () => {
         heartbeat,
         homePath: HOME_PATH,
       });
+      proxy.setupShutdownReasonWriteSucceeds({ evidencePath: EVIDENCE_PATH });
 
       const result = await instanceKillBroker({ instanceId: INSTANCE_ID });
 
@@ -76,6 +78,55 @@ describe('instanceKillBroker', () => {
       // sent, found gone on the probe, and SIGKILL correctly never escalated to.
       expect(proxy.getKillGroupCallsFor({ pgid: pgidOne })).toStrictEqual(['SIGTERM', 0]);
       expect(proxy.getKillGroupCallsFor({ pgid: pgidTwo })).toStrictEqual(['SIGTERM', 0]);
+    });
+
+    it('VALID: {kill, socket refused, two live pgids reaped} => overwrites shutdown-reason.json so status shows the explicit kill, not a stale idle-reap reason', async () => {
+      const proxy = instanceKillBrokerProxy();
+      const entry = RegistryEntryStub({ id: INSTANCE_ID, socketPath: SOCKET_PATH });
+      proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
+
+      const pgidOne = ProcessGroupIdStub({ value: 4821 });
+      const pgidTwo = ProcessGroupIdStub({ value: 4822 });
+      const heartbeat = InstanceHeartbeatStub({
+        instanceId: INSTANCE_ID,
+        pgids: [pgidOne, pgidTwo],
+      });
+      const heartbeatPath = AbsoluteFilePathStub({
+        value: `${String(EVIDENCE_PATH)}/heartbeat.json`,
+      });
+      proxy.setupDriverUnreachable({
+        socketPath: SOCKET_PATH,
+        heartbeatPath,
+        heartbeat,
+        homePath: HOME_PATH,
+      });
+      proxy.setupShutdownReasonWriteSucceeds({ evidencePath: EVIDENCE_PATH });
+
+      await instanceKillBroker({ instanceId: INSTANCE_ID });
+
+      expect(proxy.getWrittenShutdownReason({ evidencePath: EVIDENCE_PATH })).toStrictEqual({
+        reason: 'reaped 2 orphaned process groups outside the idle timeout',
+        atMs: EpochMsStub().valueOf(),
+      });
+    });
+
+    it('VALID: {kill, socket refused, no heartbeat pgids} => never writes shutdown-reason.json, since nothing was reaped', async () => {
+      const proxy = instanceKillBrokerProxy();
+      const entry = RegistryEntryStub({ id: INSTANCE_ID, socketPath: SOCKET_PATH });
+      proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
+
+      const heartbeatPath = AbsoluteFilePathStub({
+        value: `${String(EVIDENCE_PATH)}/heartbeat.json`,
+      });
+      proxy.setupDriverUnreachableNoHeartbeat({
+        socketPath: SOCKET_PATH,
+        heartbeatPath,
+        homePath: HOME_PATH,
+      });
+
+      await instanceKillBroker({ instanceId: INSTANCE_ID });
+
+      expect(proxy.getWrittenShutdownReason({ evidencePath: EVIDENCE_PATH })).toBe(null);
     });
 
     it('VALID: {kill, socket refused} => removes the throwaway home, never the evidence directory', async () => {
