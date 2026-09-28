@@ -9,7 +9,11 @@
  * Returns the created `Guild` record itself on a success status, never `dmHttpRequestAdapter`'s
  * `{ status, body }` envelope — the runner parses whatever this route returns straight through
  * `guildContract`, and that contract can never accept an envelope. `dmHttpResponseUnwrapAdapter` is
- * what makes a failure status hold too, by throwing instead of handing the envelope onward.
+ * what makes a failure status hold too, by throwing instead of handing the envelope onward. A
+ * transport failure — `dmHttpRequestAdapter`'s own `fetch` rejecting before any status exists — is
+ * caught and re-thrown through `dmHttpTransportFailureTransformer` so `routeFailureTransformer` can
+ * still mine a `url` off it: `dmHttpRequestAdapter` attaches none itself (its raw `fetch` call has no
+ * try/catch), unlike the framework's own `fetchPostAdapter`, which this repo's routes do not call.
  *
  * USAGE:
  * await guildApiRouteBroker({ target, fields: { name, path } });
@@ -18,6 +22,7 @@
 import { dmHttpRequestAdapter } from '../../../adapters/dm-http/request/dm-http-request-adapter';
 import { dmHttpResponseUnwrapAdapter } from '../../../adapters/dm-http/response-unwrap/dm-http-response-unwrap-adapter';
 import { guildFieldsContract } from '../../../contracts/guild-fields/guild-fields-contract';
+import { dmHttpTransportFailureTransformer } from '../../../transformers/dm-http-transport-failure/dm-http-transport-failure-transformer';
 import { guildPathDeriveTransformer } from '../../../transformers/guild-path-derive/guild-path-derive-transformer';
 import type { DmTarget } from '../../../contracts/dm-target/dm-target-contract';
 
@@ -32,16 +37,20 @@ export const guildApiRouteBroker = async ({
 }): Promise<unknown> => {
   const parsedFields = guildFieldsContract.parse(fields);
   const path = guildPathDeriveTransformer({ target, path: parsedFields.path });
+  const url = target.baseUrl === undefined ? GUILDS_PATH : `${target.baseUrl}${GUILDS_PATH}`;
 
-  const response = await dmHttpRequestAdapter({
-    target,
-    method: 'POST',
-    path: GUILDS_PATH,
-    body: { name: parsedFields.name, path },
-  });
+  const response = await (async (): ReturnType<typeof dmHttpRequestAdapter> => {
+    try {
+      return await dmHttpRequestAdapter({
+        target,
+        method: 'POST',
+        path: GUILDS_PATH,
+        body: { name: parsedFields.name, path },
+      });
+    } catch (cause) {
+      throw dmHttpTransportFailureTransformer({ cause, url });
+    }
+  })();
 
-  return dmHttpResponseUnwrapAdapter({
-    response,
-    url: target.baseUrl === undefined ? GUILDS_PATH : `${target.baseUrl}${GUILDS_PATH}`,
-  });
+  return dmHttpResponseUnwrapAdapter({ response, url });
 };

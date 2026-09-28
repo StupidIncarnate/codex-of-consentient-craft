@@ -63,7 +63,7 @@ describe('recipesListingBuildBroker', () => {
           runs: { serverless: true },
           makes: [
             { ingredient: 'quest', count: 1 },
-            { ingredient: 'operation', count: 2 },
+            { ingredient: 'operation', count: 'varies' },
           ],
         },
       );

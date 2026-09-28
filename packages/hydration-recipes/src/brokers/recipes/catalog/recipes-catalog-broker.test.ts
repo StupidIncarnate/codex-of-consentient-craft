@@ -140,7 +140,7 @@ describe('recipesCatalogBroker', () => {
           runs: { serverless: true },
           makes: [
             { ingredient: 'quest', count: 1 },
-            { ingredient: 'operation', count: 2 },
+            { ingredient: 'operation', count: 'varies' },
           ],
           inputKeys: ['guildId'],
         },
@@ -176,7 +176,7 @@ describe('recipesCatalogBroker', () => {
         makes: [
           { ingredient: 'guild', count: 1 },
           { ingredient: 'quest', count: 1 },
-          { ingredient: 'operation', count: 2 },
+          { ingredient: 'operation', count: 'varies' },
         ],
         inputKeys: [],
       });
