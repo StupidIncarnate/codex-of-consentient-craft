@@ -1,9 +1,12 @@
 /**
  * PURPOSE: Test proxy for SiegelenseDriverResponder — mocks every broker it composes directly
  * (registryReadBroker, laneBootBroker, registryUpdateBroker, bootLockReleaseBroker,
- * bootFailureMarkerWriteBroker) plus its sibling DriverServeLayerResponder, since each already
- * carries its own dedicated test suite. This proxy only proves the boot SEQUENCE and the values
- * handed from one step to the next. laneSpecFindBroker runs real against its own proxy's sticky
+ * bootFailureMarkerWriteBroker, driverLiveCheckBroker) plus its sibling DriverServeLayerResponder,
+ * since each already carries its own dedicated test suite. driverLiveCheckBroker defaults to
+ * `false` (no live driver) so every existing boot-sequence test keeps working unchanged;
+ * `stageDriverAlreadyLive` is the one method that flips it, for the DEF-89 guard's own test. This
+ * proxy only proves the boot SEQUENCE and the values handed from one step to the next.
+ * laneSpecFindBroker runs real against its own proxy's sticky
  * default config (a single headless api process) — every test here passes `specName: 'api'`, which
  * matches it. The three locations resolvers share ONE underlying `pathJoinAdapter` mock, which
  * queues each `.returns()` call as a ONE-SHOT for the NEXT real invocation
@@ -35,6 +38,8 @@ import { bootFailureMarkerWriteBroker } from '../../../brokers/boot-failure-mark
 import { bootFailureMarkerWriteBrokerProxy } from '../../../brokers/boot-failure-marker/write/boot-failure-marker-write-broker.proxy';
 import { bootLockReleaseBroker } from '../../../brokers/boot-lock/release/boot-lock-release-broker';
 import { bootLockReleaseBrokerProxy } from '../../../brokers/boot-lock/release/boot-lock-release-broker.proxy';
+import { driverLiveCheckBroker } from '../../../brokers/driver/live-check/driver-live-check-broker';
+import { driverLiveCheckBrokerProxy } from '../../../brokers/driver/live-check/driver-live-check-broker.proxy';
 import { laneBootBroker } from '../../../brokers/lane/boot/lane-boot-broker';
 import { laneBootBrokerProxy } from '../../../brokers/lane/boot/lane-boot-broker.proxy';
 import { laneSpecFindBrokerProxy } from '../../../brokers/lane-spec/find/lane-spec-find-broker.proxy';
@@ -61,6 +66,7 @@ const SOCKET_PATH = AbsoluteFilePathStub({ value: SHARED_PATH_VALUE });
 export const SiegelenseDriverResponderProxy = (): {
   stageRegistryRow: (params: { entry: RegistryEntry }) => void;
   stageEmptyRegistry: () => void;
+  stageDriverAlreadyLive: () => void;
   stageBootSucceeds: (params: { lane: LaneSession }) => void;
   stageBootFails: (params: { error: Error }) => void;
   stageBootFailsAndMarkerWriteFails: (params: { error: Error; markerWriteError: Error }) => void;
@@ -79,6 +85,10 @@ export const SiegelenseDriverResponderProxy = (): {
   registryReadBrokerProxy();
   registryUpdateBrokerProxy();
   bootFailureMarkerWriteBrokerProxy();
+  // Unassigned — driverLiveCheckBroker is mocked directly below (registerMock), not through this
+  // proxy's own semantic setup methods, same as laneBootBrokerProxy() above. Present only to satisfy
+  // enforce-proxy-child-creation.
+  driverLiveCheckBrokerProxy();
 
   // Drains the exactly 6 one-shot pathJoin entries queued before this line, on the SAME shared
   // pathJoinAdapter mock: 1 from `DriverServeLayerResponderProxy()`'s own unconditional
@@ -136,6 +146,11 @@ export const SiegelenseDriverResponderProxy = (): {
   const serveHandle = registerMock({ fn: DriverServeLayerResponder });
   serveHandle.calledWith([]).resolves({ success: true });
 
+  // Sticky default: no live driver, so every boot-sequence test above keeps proceeding to
+  // laneBootBroker exactly as it did before this broker existed.
+  const driverLiveCheckHandle = registerMock({ fn: driverLiveCheckBroker });
+  driverLiveCheckHandle.calledWith([]).resolves(false);
+
   return {
     stageRegistryRow: ({ entry }: { entry: RegistryEntry }): void => {
       registryReadHandle.calledWith([]).resolves({ instances: [entry] });
@@ -143,6 +158,10 @@ export const SiegelenseDriverResponderProxy = (): {
 
     stageEmptyRegistry: (): void => {
       registryReadHandle.calledWith([]).resolves({ instances: [] });
+    },
+
+    stageDriverAlreadyLive: (): void => {
+      driverLiveCheckHandle.calledWith([]).resolves(true);
     },
 
     stageBootSucceeds: ({ lane }: { lane: LaneSession }): void => {

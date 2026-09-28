@@ -17,6 +17,14 @@
  * ping from the OTHER process, so that caller learns THIS error's own message within one poll
  * interval instead of only after its full deadline elapses.
  *
+ * DEF-89: `driver` is spawned by `start` and never typed by hand, but nothing at either entry point
+ * this responder converges on stops someone from typing it anyway against an id copied out of
+ * `status` — the row's `state` reads `alive` for both a fresh reservation and an already-running
+ * instance, so it alone cannot tell a legitimate boot apart from a hijack. `driverLiveCheckBroker`
+ * runs FIRST, right after the row is found and before `laneSpecFindBroker` or `laneBootBroker` ever
+ * touch anything, so a hijack attempt against a live instance never boots a second lane onto the
+ * same ports and never rebinds the first driver's own control socket out from under it.
+ *
  * USAGE:
  * await SiegelenseDriverResponder({ instanceId: InstanceIdStub() });
  * // Boots the registry row's lane, stamps it, releases boot.lock, and blocks for the driver's life
@@ -32,6 +40,7 @@ import type { AdapterResult, TimeoutMs } from '@dungeonmaster/shared/contracts';
 
 import { bootFailureMarkerWriteBroker } from '../../../brokers/boot-failure-marker/write/boot-failure-marker-write-broker';
 import { bootLockReleaseBroker } from '../../../brokers/boot-lock/release/boot-lock-release-broker';
+import { driverLiveCheckBroker } from '../../../brokers/driver/live-check/driver-live-check-broker';
 import { laneBootBroker } from '../../../brokers/lane/boot/lane-boot-broker';
 import { laneSpecFindBroker } from '../../../brokers/lane-spec/find/lane-spec-find-broker';
 import { locationsInstanceEvidencePathFindBroker } from '../../../brokers/locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker';
@@ -56,6 +65,12 @@ export const SiegelenseDriverResponder = async ({
 
   if (entry === undefined) {
     throw new Error(`SiegelenseDriverResponder: instance ${instanceId} not found in the registry`);
+  }
+
+  if (await driverLiveCheckBroker({ entry })) {
+    throw new Error(
+      `Instance ${instanceId} already has a running driver (pid ${String(entry.pid)}); driver is started by start and is not typed by hand.`,
+    );
   }
 
   const spec = await laneSpecFindBroker({ specName: entry.specName });
