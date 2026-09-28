@@ -17,7 +17,22 @@
  * own args-parse transformer owns its known-flag set (`KNOWN_FLAGS`) and refuses anything outside
  * it — this flow routes `callArgs` straight through without inspecting or refusing any flag itself.
  * `args[0]` outside `CALL_ROUTES` falls through a two-way refusal: a name answers "unknown
- * subcommand" with the usage line; absent routes to the bare fleet listing.
+ * subcommand" with the usage line; absent routes to `SiegelenseStatusLayerFlow` with an empty
+ * `callArgs` — the SAME call `status` with no flags reaches, so a bare invocation prints the
+ * identical table (columns, `--since` window) rather than a second fleet view of its own. Also
+ * registers ONE listener for `process.stdout`'s `error` event here, before any routing, guarded by
+ * a module-level flag this function alone sets — never `process.stdout.listenerCount('error') ===
+ * 0`, which measured 2 even before this function ever ran (Node's own internal pipe-cleanup
+ * listeners from an unrelated `.pipe(process.stdout)` upstream), so that count can never tell
+ * whether THIS listener is the one missing. The flag keeps a repeat call (every test in this
+ * file, chiefly) from stacking a second listener. A caller piping any siegelense output into a
+ * command that exits early — `head`, chiefly, and agents reach for it constantly — closes the read
+ * end of that pipe; Node's default for an unhandled `error` event is to throw and crash the process
+ * with a raw stack trace, even though nothing the CLI did failed. An `EPIPE` there means the reader
+ * is gone, so it is swallowed; any other code still throws, same as before this listener existed.
+ * Lives here, in the flow every call funnels through, rather than in `start-siegelense.ts` — a
+ * startup file must not branch, and this needs an `if` both to guard the flag and to tell EPIPE
+ * apart from everything else.
  *
  * USAGE:
  * await SiegelenseFlow({ args: ['--help'] });
@@ -30,7 +45,7 @@
  * // Routes to SiegelenseDriverResponder
  *
  * await SiegelenseFlow({ args: [] });
- * // Routes to SiegelenseFleetResponder
+ * // Routes to SiegelenseStatusLayerFlow with no flags — the same table `status` prints
  */
 
 import { adapterResultContract, timeoutMsContract } from '@dungeonmaster/shared/contracts';
@@ -38,7 +53,6 @@ import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 import { instanceIdContract } from '../../contracts/instance-id/instance-id-contract';
 import { SiegelenseDriverResponder } from '../../responders/siegelense/driver/siegelense-driver-responder';
-import { SiegelenseFleetResponder } from '../../responders/siegelense/fleet/siegelense-fleet-responder';
 import { siegelenseOutputStatics } from '../../statics/siegelense-output/siegelense-output-statics';
 import { flagContractParseTransformer } from '../../transformers/flag-contract-parse/flag-contract-parse-transformer';
 import { flagValueReadTransformer } from '../../transformers/flag-value-read/flag-value-read-transformer';
@@ -65,6 +79,10 @@ const IDLE_TIMEOUT_MS_FLAG = '--idle-timeout-ms';
 const USAGE =
   'Usage: dungeonmaster siegelense [--help | start | run | results | kill | capacity | status | ' +
   'cleanup | prune | compare | snapshots | recipes | docs | driver --instance <instanceId>]';
+const STDOUT_ERROR_EVENT = 'error';
+const EPIPE_ERROR_CODE = 'EPIPE';
+
+let isEpipeGuardInstalled = false;
 
 const CALL_ROUTES = new Map<
   SiegelenseCall,
@@ -89,6 +107,15 @@ export const SiegelenseFlow = async ({
 }: {
   args: readonly string[];
 }): Promise<AdapterResult> => {
+  if (!isEpipeGuardInstalled) {
+    isEpipeGuardInstalled = true;
+    process.stdout.on(STDOUT_ERROR_EVENT, (error: NodeJS.ErrnoException) => {
+      if (error.code !== EPIPE_ERROR_CODE) {
+        throw error;
+      }
+    });
+  }
+
   const [callName, ...callArgs] = args;
 
   if (callName === HELP_FLAG || callName === HELP_SHORT_FLAG) {
@@ -136,5 +163,5 @@ export const SiegelenseFlow = async ({
     throw new Error(`Unknown siegelense subcommand: ${callName}\n\n${USAGE}`);
   }
 
-  return SiegelenseFleetResponder();
+  return SiegelenseStatusLayerFlow({ callArgs: [] });
 };

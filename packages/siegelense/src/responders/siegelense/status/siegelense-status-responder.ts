@@ -1,9 +1,11 @@
 /**
- * PURPOSE: The surface `dungeonmaster siegelense status [--instance <id>]` serves — the fleet or
- * one-instance table through `statusAnswerRenderTransformer` by default (when `isJson` is false or
- * omitted), or one JSON document on stdout (the raw `StatusAnswer`) when `isJson` is true (opted
- * into with `--json`). Writes through `process.stdout.write`, never `console.log`, matching
- * `SiegelenseFleetResponder`. Never fetches per-row detail for a fleet listing itself —
+ * PURPOSE: The surface `dungeonmaster siegelense status [--instance <id>]` serves — and what a
+ * bare `dungeonmaster siegelense` (no subcommand) serves too, since `SiegelenseFlow` routes the
+ * empty case here with no flags rather than to a fleet view of its own — the fleet or one-instance
+ * table through `statusAnswerRenderTransformer` by default (when `isJson` is false or omitted), or
+ * one JSON document on stdout (the raw `StatusAnswer`) when `isJson` is true (opted into with
+ * `--json`). Writes through `process.stdout.write`, never `console.log`, matching every other CLI
+ * surface in this repo. Never fetches per-row detail for a fleet listing itself —
  * `statusReadBroker`'s own no-browsing rule already withholds evidence and `lastStep` for every row
  * except a named instance, and this responder passes `instanceId` straight through rather than making
  * N extra calls to fill in a prettier table. Also passes `instanceId` through to the RENDERER —
