@@ -440,7 +440,7 @@ describe('SiegelensePruneLayerFlow', () => {
   });
 
   describe('--kind filters to exactly that kind', () => {
-    it('VALID: {kind: log} => removes only the log asset, leaving shot, transcript and video on disk', () => {
+    it('VALID: {kind: log} => removes the process log AND the capture buffer, since both classify as log, leaving shot and video on disk', () => {
       const logAfter = testbed.readFile({
         relativePath: RelativePathStub({ value: LOG_KIND_LOG_PATH }),
       });
@@ -456,7 +456,9 @@ describe('SiegelensePruneLayerFlow', () => {
 
       expect(logKindResult).toStrictEqual({ success: true });
       expect(logAfter).toBe(null);
-      expect(transcriptAfter).toBe(KIND_TRANSCRIPT_BODY);
+      // console.jsonl is a per-instance capture buffer, not a Claude-style session transcript — it
+      // classifies as `log`, the same as api-server.log, and goes with it.
+      expect(transcriptAfter).toBe(null);
       expect(shotAfter).toBe(KIND_SHOT_BODY);
       expect(videoAfter).toBe(KIND_VIDEO_BODY);
     });
@@ -482,7 +484,7 @@ describe('SiegelensePruneLayerFlow', () => {
       expect(videoAfter).toBe(KIND_VIDEO_BODY);
     });
 
-    it('VALID: {kind: transcript} => removes only the transcript asset, leaving log, shot and video on disk', () => {
+    it('VALID: {kind: transcript} => matches nothing today, since no Claude-style session transcript is tracked yet — the log, buffer, shot and video all survive', () => {
       const logAfter = testbed.readFile({
         relativePath: RelativePathStub({ value: TRANSCRIPT_KIND_LOG_PATH }),
       });
@@ -498,7 +500,7 @@ describe('SiegelensePruneLayerFlow', () => {
 
       expect(transcriptKindResult).toStrictEqual({ success: true });
       expect(logAfter).toBe(KIND_LOG_BODY);
-      expect(transcriptAfter).toBe(null);
+      expect(transcriptAfter).toBe(KIND_TRANSCRIPT_BODY);
       expect(shotAfter).toBe(KIND_SHOT_BODY);
       expect(videoAfter).toBe(KIND_VIDEO_BODY);
     });
@@ -563,7 +565,7 @@ describe('SiegelensePruneLayerFlow', () => {
           },
         ],
         refused: [],
-        unresolved: [],
+        unresolved: [{ kind: 'open-issue', why: OPEN_ISSUE_GAP_WHY }],
       });
     });
 
@@ -655,7 +657,7 @@ describe('SiegelensePruneLayerFlow', () => {
           { id: String(BOUNDARY_ID), kind: null, freedBytes: 64, freedMB: 0, tombstoned: true },
         ],
         refused: [],
-        unresolved: [],
+        unresolved: [{ kind: 'open-issue', why: OPEN_ISSUE_GAP_WHY }],
       });
       expect(after).toBe(null);
     });

@@ -42,7 +42,11 @@ export const pruneAssetClassifyTransformer = ({
     name.endsWith(evidenceFileStatics.extensions.transcript) ||
     name.endsWith(evidenceFileStatics.extensions.runReturn)
   ) {
-    return pruneAssetKindContract.parse('transcript');
+    // A run's own `.jsonl`/`.json` pair is a RUN READING (`results --run` reads the `.json` back),
+    // never a Claude-style session transcript — those live under `.claude/projects/`, which this
+    // package does not list. Classifying the pair as `log` (the instance's own record, alongside
+    // the process logs) keeps `--kind transcript` from taking the evidence `results` still needs.
+    return pruneAssetKindContract.parse('log');
   }
 
   return null;

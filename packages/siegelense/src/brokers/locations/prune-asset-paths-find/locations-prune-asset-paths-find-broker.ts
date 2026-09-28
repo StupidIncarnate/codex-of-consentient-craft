@@ -10,7 +10,7 @@
  *
  * USAGE:
  * locationsPruneAssetPathsFindBroker({ evidencePath });
- * // Returns { runsDir, logs, transcripts } — absolute paths, none guaranteed to exist
+ * // Returns { runsDir, videoDir, logs, transcripts } — absolute paths, none guaranteed to exist
  */
 
 import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
@@ -18,6 +18,7 @@ import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
+import { evidenceFileStatics } from '../../../statics/evidence-file/evidence-file-statics';
 import { locationsBufferPathsFindBroker } from '../buffer-paths-find/locations-buffer-paths-find-broker';
 
 export const locationsPruneAssetPathsFindBroker = ({
@@ -26,6 +27,7 @@ export const locationsPruneAssetPathsFindBroker = ({
   evidencePath: AbsoluteFilePath;
 }): {
   runsDir: AbsoluteFilePath;
+  videoDir: AbsoluteFilePath;
   logs: readonly AbsoluteFilePath[];
   transcripts: readonly AbsoluteFilePath[];
 } => {
@@ -43,6 +45,11 @@ export const locationsPruneAssetPathsFindBroker = ({
   return {
     runsDir: absoluteFilePathContract.parse(
       pathJoinAdapter({ paths: [evidencePath, locationsStatics.siegelense.runsDir] }),
+    ),
+    // Where `playwrightSessionAdapter`'s `recordVideo.dir` writes — `--kind video` has to list this
+    // directory to have anything to match at all.
+    videoDir: absoluteFilePathContract.parse(
+      pathJoinAdapter({ paths: [evidencePath, evidenceFileStatics.naming.videoDir] }),
     ),
     // The process's own record of what it did — the two server logs, the driver log, and the three
     // small state files a post-mortem reads for WHY an instance stopped.

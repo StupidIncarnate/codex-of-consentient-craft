@@ -95,7 +95,22 @@ describe('assetsAgeLayerBroker', () => {
         nowMs: EpochMsStub({ value: NOW_MS }),
       });
 
-      expect(result).toStrictEqual({ instances: 1, freedMB: 100, refusals: [], gaps: [] });
+      expect(result).toStrictEqual({
+        instances: 1,
+        freedMB: 100,
+        refusals: [],
+        gaps: [
+          {
+            kind: 'open-issue',
+            why:
+              'not checked: no issue record exists to check. Nothing in this repo stores an issue ' +
+              "carrying a typed instanceId/runId — a workItem's own observation carries neither field and " +
+              'questNoteKindContract has no issue member — so a walker records a defect as a ' +
+              'failing test or as prose in a note, neither of which a resolver can match an ' +
+              'instance against.',
+          },
+        ],
+      });
       expect(proxy.getDeletedPaths()).toStrictEqual([`${UNOWNED_EVIDENCE}/runs/run_1/walk.webm`]);
     });
   });
