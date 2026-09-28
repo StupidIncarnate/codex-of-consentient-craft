@@ -92,9 +92,9 @@ describe('the exports @dungeonmaster/siegelense reads off this package', () => {
       {
         recipeName: 'guild-mid-execution',
         description:
-          'one guild holding three quests — the first running with its riftcarver item dropped, ' +
-          'the second and third both freshly created and told apart only by their seeded title ' +
-          'and request text ("Quest 2"/"Quest 3")',
+          'one guild holding three quests — the first running with codeweaver actually in progress ' +
+          'and its riftcarver item dropped, the second and third both freshly created and told ' +
+          'apart only by their seeded title and request text ("Quest 2"/"Quest 3")',
         inputKeys: [],
         runs: { serverless: true },
         makes: [
@@ -192,9 +192,9 @@ describe('the exports @dungeonmaster/siegelense reads off this package', () => {
       {
         recipeName: 'guild-mid-execution',
         description:
-          'one guild holding three quests — the first running with its riftcarver item dropped, ' +
-          'the second and third both freshly created and told apart only by their seeded title ' +
-          'and request text ("Quest 2"/"Quest 3")',
+          'one guild holding three quests — the first running with codeweaver actually in progress ' +
+          'and its riftcarver item dropped, the second and third both freshly created and told ' +
+          'apart only by their seeded title and request text ("Quest 2"/"Quest 3")',
       },
       {
         recipeName: 'quest-advances-one-step',
