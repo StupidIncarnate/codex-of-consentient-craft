@@ -16,6 +16,13 @@
  * known specs off the same `laneSpecConventionStatics` `laneSpecFindBroker`'s own unknown-spec
  * refusal reads, never hard-coded here.
  *
+ * `--idle-timeout-ms` also refuses a value BELOW `driverStatics.idle.timeoutMs` — `--help`'s own
+ * line for this flag says it "raises this instance's idle ceiling above" that default, and a value
+ * under it would LOWER the ceiling instead, the opposite of what the flag documents. The bound is
+ * checked in the SAME `numericFlagParseTransformer` call as the rest of this flag's own parsing
+ * (`timeoutMsContract.refine`), so a too-low value gets the identical
+ * `--idle-timeout-ms must be <accepts>; got "<raw>"` wording every other numeric flag refusal uses.
+ *
  * USAGE:
  * startArgsParseTransformer({ args: ['--spec', 'dungeonmaster-stack'] });
  * // Returns StartArgs { specName: 'dungeonmaster-stack', questId: null, guildId: null, seed: null }
@@ -34,6 +41,7 @@ import { recipeNameContract } from '../../contracts/recipe-name/recipe-name-cont
 import { specNameContract } from '../../contracts/spec-name/spec-name-contract';
 import { startArgsContract } from '../../contracts/start-args/start-args-contract';
 import type { StartArgs } from '../../contracts/start-args/start-args-contract';
+import { driverStatics } from '../../statics/driver/driver-statics';
 import { laneSpecConventionStatics } from '../../statics/lane-spec-convention/lane-spec-convention-statics';
 import { siegelenseOutputStatics } from '../../statics/siegelense-output/siegelense-output-statics';
 import { flagContractParseTransformer } from '../flag-contract-parse/flag-contract-parse-transformer';
@@ -130,8 +138,11 @@ export const startArgsParseTransformer = ({ args }: { args: readonly string[] })
           idleTimeoutMs: numericFlagParseTransformer({
             flag: IDLE_TIMEOUT_MS_FLAG,
             raw: idleTimeoutValue,
-            accepts: 'a whole number of 0 or more',
-            parse: (value) => timeoutMsContract.parse(value),
+            accepts: `a whole number of ${driverStatics.idle.timeoutMs} (the default) or more — this flag only raises the ceiling`,
+            parse: (value) =>
+              timeoutMsContract
+                .refine((parsed) => parsed >= driverStatics.idle.timeoutMs)
+                .parse(value),
           }),
         }),
     isJson: args.includes(siegelenseOutputStatics.flags.json),

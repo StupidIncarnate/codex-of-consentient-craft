@@ -146,9 +146,24 @@ describe('startArgsParseTransformer', () => {
       });
     });
 
+    it('VALID: {--idle-timeout-ms 900000} => the default itself is accepted, the boundary is inclusive', () => {
+      const result = startArgsParseTransformer({
+        args: ['--spec', 'dungeonmaster-stack', '--idle-timeout-ms', '900000'],
+      });
+
+      expect(result).toStrictEqual({
+        specName: 'dungeonmaster-stack',
+        questId: null,
+        guildId: null,
+        seed: null,
+        idleTimeoutMs: 900_000,
+        isJson: false,
+      });
+    });
+
     describe('a --idle-timeout-ms value the contract refuses', () => {
       it.each(['not-a-number', '-1'])(
-        'INVALID: {--idle-timeout-ms %s} => refuses saying --idle-timeout-ms must be a whole number of 0 or more, and what was typed',
+        'INVALID: {--idle-timeout-ms %s} => refuses saying --idle-timeout-ms must be at least the 900000ms default, and what was typed',
         (idleTimeoutValue) => {
           expect(() =>
             startArgsParseTransformer({
@@ -156,12 +171,24 @@ describe('startArgsParseTransformer', () => {
             }),
           ).toThrow(
             new RegExp(
-              `^--idle-timeout-ms must be a whole number of 0 or more; got "${idleTimeoutValue}"$`,
+              `^--idle-timeout-ms must be a whole number of 900000 \\(the default\\) or more — this flag only raises the ceiling; got "${idleTimeoutValue}"$`,
               'u',
             ),
           );
         },
       );
+    });
+
+    describe('a --idle-timeout-ms value below the default, that would LOWER the ceiling instead of raising it', () => {
+      it('INVALID: {--idle-timeout-ms 1000} => refuses rather than booting a lane that reaps itself in 1 second', () => {
+        expect(() =>
+          startArgsParseTransformer({
+            args: ['--spec', 'dungeonmaster-stack', '--idle-timeout-ms', '1000'],
+          }),
+        ).toThrow(
+          /^--idle-timeout-ms must be a whole number of 900000 \(the default\) or more — this flag only raises the ceiling; got "1000"$/u,
+        );
+      });
     });
   });
 
