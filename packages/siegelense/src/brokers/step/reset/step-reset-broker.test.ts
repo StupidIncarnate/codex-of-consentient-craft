@@ -1,10 +1,5 @@
 import type { fsReaddirWithTypesAdapter } from '@dungeonmaster/shared/adapters';
-import {
-  AbsoluteFilePathStub,
-  ContentTextStub,
-  FileNameStub,
-  GuildStub,
-} from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub, FileNameStub } from '@dungeonmaster/shared/contracts';
 
 import { BrowserSessionStub } from '../../../contracts/browser-session/browser-session.stub';
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
@@ -120,6 +115,12 @@ describe('stepResetBroker', () => {
             sizeBytes: FileSizeBytesStub({ value: 100 }),
             modifiedAtMs: EpochMsStub({ value: 1000 }),
           },
+        ],
+      });
+      proxy.setupRestoreFileContents({
+        contents: [
+          { filePath: homeFile, content: '{"guilds":[]}' },
+          { filePath: payloadFile, content: '{"guilds":[]}' },
         ],
       });
       proxy.setupRestoreCpSucceeds({
@@ -256,40 +257,102 @@ describe('stepResetBroker', () => {
 
       expect(mockClearStorage).toHaveBeenCalledTimes(1);
       expect(result).toBe(
-        '{"restored":"clean","undid":{"files":0,"added":0,"modified":0,"removed":0},"NOT_cleared":[]}',
+        '{"restored":"clean","undid":{"files":0,"added":0,"modified":0,"removed":0},"NOT_cleared":["server memory","open websockets"]}',
       );
     });
 
-    it('VALID: with reseed => runs recipe and returns reading with reseed name', async () => {
+    it('VALID: with no to and no prior captures => stays at boot state — nothing to undo', async () => {
       const proxy = stepResetBrokerProxy();
       const lane = LaneSessionStub({ browser: null });
-      const reseedRecipe = ContentTextStub({ value: 'guild-with-three-quests' });
 
-      proxy.setupReseed({
-        apiBaseUrl: lane.apiBaseUrl,
-        guild: GuildStub({
-          id: '7306b468-0f2d-4a5e-9c3b-2d1e8f0a6b41',
-          name: 'Siege Guild',
-          path: `${String(lane.homePath)}/siege-repo`,
-          urlSlug: 'siege-guild',
-        }),
-        questIds: [
-          ContentTextStub({ value: 'aaaaaaaa-1111-4111-8111-111111111111' }),
-          ContentTextStub({ value: 'bbbbbbbb-2222-4222-8222-222222222222' }),
-          ContentTextStub({ value: 'cccccccc-3333-4333-8333-333333333333' }),
+      proxy.setupNoSnapshots({ homePath: lane.homePath });
+
+      const result = await stepResetBroker({
+        lane,
+        level: ResetLevelStub({ value: 'instance' }),
+        to: null,
+        reseed: null,
+      });
+
+      expect(result).toBe(
+        '{"restored":"instance","undid":{"files":0,"added":0,"modified":0,"removed":0},"NOT_cleared":["server memory","open websockets"]}',
+      );
+    });
+
+    it('VALID: with no to and an earlier boot capture => restores the earliest snapshot and reports what it undid (DEF-82)', async () => {
+      const proxy = stepResetBrokerProxy();
+      const lane = LaneSessionStub({ browser: null });
+      const bootPayloadPath = AbsoluteFilePathStub({
+        value: `${String(lane.homePath)}/.siegelense-snapshots/1`,
+      });
+      const laterPayloadPath = AbsoluteFilePathStub({
+        value: `${String(lane.homePath)}/.siegelense-snapshots/2`,
+      });
+
+      // The index in RAW capture order: run_1:start is the earliest — the boot state — and
+      // run_1:end postdates the seed step that ran between them.
+      proxy.setupSnapshots({
+        homePath: lane.homePath,
+        records: [
+          SnapshotRecordStub({
+            name: SnapshotNameStub({ value: 'run_1:start' }),
+            path: bootPayloadPath,
+          }),
+          SnapshotRecordStub({
+            name: SnapshotNameStub({ value: 'run_1:end' }),
+            path: laterPayloadPath,
+          }),
         ],
+      });
+
+      const seededFileName = FileNameStub({ value: 'guild-1.json' });
+      const seededFilePath = AbsoluteFilePathStub({
+        value: `${String(lane.homePath)}/${String(seededFileName)}`,
+      });
+
+      proxy.setupRestoreDirectories({
+        dirs: [
+          { dirPath: lane.homePath, entries: [makeFileEntry({ name: seededFileName })] },
+          { dirPath: bootPayloadPath, entries: [] },
+        ],
+      });
+      proxy.setupRestoreFileStats({
+        stats: [
+          {
+            filePath: seededFilePath,
+            sizeBytes: FileSizeBytesStub({ value: 42 }),
+            modifiedAtMs: EpochMsStub({ value: 1700000000000 }),
+          },
+        ],
+      });
+      proxy.setupRestoreRmSucceeds({ filePaths: [seededFilePath] });
+      proxy.setupRestoreCpSucceeds({
+        sourcePath: bootPayloadPath,
+        destinationPath: lane.homePath,
+        entries: [],
       });
 
       const result = await stepResetBroker({
         lane,
         level: ResetLevelStub({ value: 'instance' }),
         to: null,
-        reseed: reseedRecipe,
+        reseed: null,
       });
 
       expect(result).toBe(
-        '{"restored":"guild-with-three-quests","undid":{"files":0,"added":0,"modified":0,"removed":0},"NOT_cleared":[]}',
+        '{"restored":"instance","undid":{"files":1,"added":1,"modified":0,"removed":0},"NOT_cleared":["server memory","open websockets"]}',
       );
     });
+
+    // Reseed after a boot-state restore (SL-110) is proven at the CLI level, not here:
+    // `recipeSeedRunBrokerProxy`'s `stageEntry()` stages `pathJoinAdapter` (the shared, real
+    // `path.join`) through a call-order-scoped, argument-blind one-shot queue — see
+    // `locations-snapshot-paths-find-broker.proxy.ts`'s own comment on why THIS broker's joins are
+    // deliberately left unstaged (a real passthrough, so nothing else's queue can answer them by
+    // mistake). Every `level: 'instance'` reset now consults the snapshot index first (the fix
+    // above), so combining it with `setupReseed` in one unit test lets that queue answer the
+    // location broker's joins instead of `recipesLocateBroker`'s. There is no address on
+    // `pathJoinAdapterProxy` narrow enough to fix this without touching an adapter proxy, which is
+    // out of scope here. See POST-BUILD CHECK for the real-process repro.
   });
 });

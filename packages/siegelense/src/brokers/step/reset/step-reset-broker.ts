@@ -7,7 +7,17 @@
  * with BrowserStepUnsupportedError).
  * `level: 'state'` rewinds disk files to a named snapshot and clears browser storage if present,
  * running identically browserless.
- * `level: 'instance'` resets process/disk state and optionally reseeds with a recipe.
+ * `level: 'instance'` with an explicit `to` rewinds to that named snapshot, same mechanism as
+ * `state`. With no `to` it rewinds to the instance's BOOT state instead: the earliest record in the
+ * snapshot index. `run-execute-broker` always captures `run_N:start` before that run's own first
+ * step dispatches (siegelense-tooling.md line 2630), so for the very first run against an instance
+ * that capture IS the disk state `start` left behind — and every later capture postdates some
+ * mutation — so the index's first entry (it is append-only, in capture order) is always that boot
+ * state, for as long as the instance has run anything at all. An instance with no captures yet has
+ * made no mutation to undo. This step runs inside a live `run` batch against the SAME driver
+ * connection that dispatched it, so — unlike an operator's own `kill` then `start` — it can never
+ * restart the underlying process; that is why `resetStatics.notCleared.instance` lists "server
+ * memory" and "open websockets" too, exactly as `state` does.
  *
  * USAGE:
  * await stepResetBroker({
@@ -34,6 +44,7 @@ import { BrowserStepUnsupportedError } from '../../../errors/browser-step-unsupp
 import { resetStatics } from '../../../statics/reset/reset-statics';
 import { resetReadingRenderTransformer } from '../../../transformers/reset-reading-render/reset-reading-render-transformer';
 import { recipeSeedRunBroker } from '../../recipe/seed-run/recipe-seed-run-broker';
+import { snapshotIndexReadBroker } from '../../snapshot/index-read/snapshot-index-read-broker';
 import { snapshotResolveBroker } from '../../snapshot/resolve/snapshot-resolve-broker';
 import { snapshotRestoreLayerBroker } from './snapshot-restore-layer-broker';
 
@@ -60,7 +71,7 @@ export const stepResetBroker = async ({
       ? resetStatics.notCleared.page.map((item) => contentTextContract.parse(item))
       : level === 'state'
         ? resetStatics.notCleared.state.map((item) => contentTextContract.parse(item))
-        : [];
+        : resetStatics.notCleared.instance.map((item) => contentTextContract.parse(item));
 
   if (level === 'page') {
     if (lane.browser === null) {
@@ -109,13 +120,21 @@ export const stepResetBroker = async ({
     await lane.browser.clearStorage();
   }
 
-  const undid =
-    to === null
-      ? zeroUndid
-      : await snapshotRestoreLayerBroker({
-          homePath: lane.homePath,
-          payloadPath: (await snapshotResolveBroker({ homePath: lane.homePath, name: to })).path,
-        });
+  let undid = zeroUndid;
+  if (to === null) {
+    // No explicit target: rewind to the instance's BOOT state — the earliest capture on record.
+    const records = await snapshotIndexReadBroker({ homePath: lane.homePath });
+    const [bootRecord] = records;
+    if (bootRecord !== undefined) {
+      undid = await snapshotRestoreLayerBroker({
+        homePath: lane.homePath,
+        payloadPath: bootRecord.path,
+      });
+    }
+  } else {
+    const record = await snapshotResolveBroker({ homePath: lane.homePath, name: to });
+    undid = await snapshotRestoreLayerBroker({ homePath: lane.homePath, payloadPath: record.path });
+  }
 
   if (reseed !== null) {
     await recipeSeedRunBroker({
