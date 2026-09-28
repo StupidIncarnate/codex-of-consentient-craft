@@ -221,7 +221,7 @@ describe('docsStatics', () => {
 
     it('VALID: {attacking} => gives the manual queries matching the health reading', () => {
       expect(docsStatics.scopes.attacking.sections[1].lines[4]).toBe(
-        'You can perform this exact health check manually using existing commands: check results --kind console for browser errors, results --kind network for failed requests, results --kind server --where-steps a-b --where-level error for server logs, and check the blank status on your screenshots.',
+        'You can perform this exact health check manually using existing commands: check results --kind console for browser errors, results --kind network for failed requests, results --kind server --step <n> --where-level error for server logs — --step narrows the read to that one exact step; --where-steps takes a range like a-b but does not narrow the output by itself, so do not rely on it alone — and check the blank status on your screenshots.',
       );
     });
 
