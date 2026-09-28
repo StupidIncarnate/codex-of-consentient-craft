@@ -313,6 +313,12 @@ describe('prune, against a real evidence tree', () => {
     it('VALID: {--instance the neighbour} => the CITED instance next door still has its log too', () => {
       expect(citedLogAfterScopedSweep?.sizeBytes).toBe(LOG_BYTES);
     });
+
+    it('VALID: {--instance the neighbour, no quest at all} => the answer still names open-issue as unchecked, because that gap is permanent, not conditioned on quest ownership', () => {
+      expect(neighbourSweep?.unresolved.map((gap) => String(gap.kind))).toStrictEqual([
+        'open-issue',
+      ]);
+    });
   });
 
   describe('a fleet sweep past the window', () => {

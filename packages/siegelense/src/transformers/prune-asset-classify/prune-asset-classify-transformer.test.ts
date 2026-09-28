@@ -16,16 +16,16 @@ describe('pruneAssetClassifyTransformer', () => {
       ).toBe('video');
     });
 
-    it('VALID: {fileName: "run_2.jsonl"} => returns transcript', () => {
+    it('VALID: {fileName: "run_2.jsonl"} => returns log, not transcript — a run reading is never a Claude-style session transcript', () => {
       expect(
         pruneAssetClassifyTransformer({ fileName: FileNameStub({ value: 'run_2.jsonl' }) }),
-      ).toBe('transcript');
+      ).toBe('log');
     });
 
-    it('VALID: {fileName: "run_2.json"} => the stored return is a transcript too, so a kind selector never splits a run in half', () => {
+    it('VALID: {fileName: "run_2.json"} => the stored return pairs with it under the same kind, so a kind selector never splits a run in half', () => {
       expect(
         pruneAssetClassifyTransformer({ fileName: FileNameStub({ value: 'run_2.json' }) }),
-      ).toBe('transcript');
+      ).toBe('log');
     });
   });
 

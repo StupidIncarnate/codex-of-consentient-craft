@@ -39,7 +39,7 @@ const NO_PRELUDE_WHY =
 
 describe('citationResolveBroker', () => {
   describe('an instance nobody orchestrated', () => {
-    it('EMPTY: {questId: null} => nothing cites it, nothing went unchecked, and it is not blocked — the unowned case working as intended', async () => {
+    it('EMPTY: {questId: null} => nothing cites it, not blocked, and open-issue still reads as unchecked — the unowned case working as intended', async () => {
       citationResolveBrokerProxy();
 
       const result = await citationResolveBroker({
@@ -51,7 +51,11 @@ describe('citationResolveBroker', () => {
         runIds: [],
       });
 
-      expect(result).toStrictEqual({ references: [], gaps: [], blocked: null });
+      expect(result).toStrictEqual({
+        references: [],
+        gaps: [{ kind: 'open-issue', why: OPEN_ISSUE_WHY }],
+        blocked: null,
+      });
     });
   });
 
@@ -70,7 +74,7 @@ describe('citationResolveBroker', () => {
 
       expect(result).toStrictEqual({
         references: [],
-        gaps: [],
+        gaps: [{ kind: 'open-issue', why: OPEN_ISSUE_WHY }],
         blocked:
           'quest add-auth is recorded on inst_9b2c0001 but no guild is, and a quest record ' +
           'resolves through its guild — refusing rather than treating an unreachable record as uncited.',
@@ -101,7 +105,7 @@ describe('citationResolveBroker', () => {
 
       expect(result).toStrictEqual({
         references: [],
-        gaps: [],
+        gaps: [{ kind: 'open-issue', why: OPEN_ISSUE_WHY }],
         blocked:
           `quest add-auth is recorded on inst_9b2c0001 but no quest record exists at ${QUEST_FILE} ` +
           '— refusing rather than treating an unreadable record as uncited.',

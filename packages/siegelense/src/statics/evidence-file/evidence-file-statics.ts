@@ -13,6 +13,9 @@
  *
  * evidenceFileStatics.naming.shotPrefix;
  * // Returns 'step'
+ *
+ * evidenceFileStatics.naming.videoDir;
+ * // Returns 'video'
  */
 
 export const evidenceFileStatics = {
@@ -24,5 +27,9 @@ export const evidenceFileStatics = {
   },
   naming: {
     shotPrefix: 'step',
+    // `playwrightSessionAdapter` records into `<evidencePath>/video/` (recordVideo.dir) — adapters/
+    // may not import the locations/ brokers that walk the repo root, so it writes the bare literal
+    // 'video' directly. This is the same fragment, named once, for the broker side that lists it.
+    videoDir: 'video',
   },
 } as const;

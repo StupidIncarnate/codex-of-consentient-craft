@@ -16,6 +16,7 @@ describe('locationsPruneAssetPathsFindBroker', () => {
 
       expect(result).toStrictEqual({
         runsDir: AbsoluteFilePathStub({ value: `${EVIDENCE_DIR}/runs` }),
+        videoDir: AbsoluteFilePathStub({ value: `${EVIDENCE_DIR}/video` }),
         logs: [
           AbsoluteFilePathStub({ value: `${EVIDENCE_DIR}/api-server.log` }),
           AbsoluteFilePathStub({ value: `${EVIDENCE_DIR}/web-server.log` }),
@@ -40,9 +41,12 @@ describe('locationsPruneAssetPathsFindBroker', () => {
 
       const result = locationsPruneAssetPathsFindBroker({ evidencePath });
 
-      expect(result.runsDir).toBe(
-        '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_9b2c0001/runs',
-      );
+      expect({ runsDir: result.runsDir, videoDir: result.videoDir }).toStrictEqual({
+        runsDir:
+          '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_9b2c0001/runs',
+        videoDir:
+          '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_9b2c0001/video',
+      });
     });
   });
 });
