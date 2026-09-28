@@ -1,11 +1,12 @@
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
+import type { FsError } from '#gateway/node/fs';
+import { appendFileProxy } from '#gateway/node/fs__promises/append-file/append-file.proxy';
+import { copyDirContentsProxy } from '#gateway/node/fs__promises/copy-dir-contents/copy-dir-contents.proxy';
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
-import { fsAppendFileAdapterProxy } from '../../../adapters/fs/append-file/fs-append-file-adapter.proxy';
-import { fsCpAdapterProxy } from '../../../adapters/fs/cp/fs-cp-adapter.proxy';
 import { locationsSnapshotPathsFindBrokerProxy } from '../../locations/snapshot-paths-find/locations-snapshot-paths-find-broker.proxy';
 import { snapshotIndexReadBrokerProxy } from '../index-read/snapshot-index-read-broker.proxy';
 import { snapshotStatics } from '../../../statics/snapshot/snapshot-statics';
@@ -19,8 +20,10 @@ const CAPTURE_AT_MS = 1735689600000;
 // at test-setup time is a hazard in this package.
 const STORE_DIR_NAME = snapshotStatics.store.dirName;
 // What a staged home holds, alongside the store itself. The store name is deliberately in the list:
-// it is what the exclusion has to drop, and `copiedPairs()` never showing it is the proof.
+// it is what the exclusion has to drop, and `copiedFor` showing no copy of it is the proof.
 const HOME_ENTRIES = ['guilds', STORE_DIR_NAME] as const;
+// A failing copy needs two entries the exclusion keeps: the first lands, the second fails.
+const FAILING_HOME_ENTRIES = ['guilds', 'claude-queue'] as const;
 
 export const snapshotCaptureBrokerProxy = (): {
   setupClock: (params: { nowMs: number }) => void;
@@ -29,12 +32,12 @@ export const snapshotCaptureBrokerProxy = (): {
     homePath: AbsoluteFilePath;
     records: readonly SnapshotRecord[];
   }) => void;
-  setupCopyFails: (params: { homePath: AbsoluteFilePath; error: Error }) => void;
+  setupCopyFails: (params: { homePath: AbsoluteFilePath; error: FsError }) => void;
   payloadPathFor: (params: { homePath: AbsoluteFilePath; ordinal: number }) => AbsoluteFilePath;
   storeDirFor: (params: { homePath: AbsoluteFilePath }) => AbsoluteFilePath;
   indexPathFor: (params: { homePath: AbsoluteFilePath }) => AbsoluteFilePath;
   appendedRecordsFor: (params: { homePath: AbsoluteFilePath }) => unknown[];
-  copiedPairs: () => unknown[][];
+  copiedFor: (params: { homePath: AbsoluteFilePath; entry: string }) => unknown;
 } => {
   // Pure — runs real. Constructed for enforce-proxy-child-creation.
   locationsSnapshotPathsFindBrokerProxy();
@@ -43,8 +46,8 @@ export const snapshotCaptureBrokerProxy = (): {
   const mkdirProxy = ensureDirProxy();
 
   const indexReadProxy = snapshotIndexReadBrokerProxy();
-  const cpProxy = fsCpAdapterProxy();
-  const appendProxy = fsAppendFileAdapterProxy();
+  const cpProxy = copyDirContentsProxy();
+  const appendProxy = appendFileProxy();
 
   // `Date.now` takes no argument, so `calledWith([])` is the honest address rather than a lazy
   // catch-all. The default is staged by each setup method below rather than by this constructor: a
@@ -62,15 +65,11 @@ export const snapshotCaptureBrokerProxy = (): {
     setupEmptyStore: ({ homePath }: { homePath: AbsoluteFilePath }): void => {
       nowHandle.calledWith([]).returns(CAPTURE_AT_MS);
       indexReadProxy.setupNoIndex({ homePath });
-      appendProxy.succeeds({ filePath: indexReadProxy.indexPathFor({ homePath }) });
+      appendProxy.succeeds({ path: indexReadProxy.indexPathFor({ homePath }) });
       const payloadValue = `${String(homePath)}/${STORE_DIR_NAME}/${String(snapshotStatics.numbering.firstPayload)}`;
       mkdirProxy.succeeds({ path: `${String(homePath)}/${STORE_DIR_NAME}` });
       mkdirProxy.succeeds({ path: payloadValue });
-      cpProxy.succeeds({
-        sourcePath: homePath,
-        destinationPath: AbsoluteFilePathStub({ value: payloadValue }),
-        entries: HOME_ENTRIES,
-      });
+      cpProxy.succeeds({ from: homePath, entries: HOME_ENTRIES });
     },
 
     // An index already holding N records: the next payload directory is N + 1.
@@ -83,29 +82,25 @@ export const snapshotCaptureBrokerProxy = (): {
     }): void => {
       nowHandle.calledWith([]).returns(CAPTURE_AT_MS);
       indexReadProxy.setupIndex({ homePath, records });
-      appendProxy.succeeds({ filePath: indexReadProxy.indexPathFor({ homePath }) });
+      appendProxy.succeeds({ path: indexReadProxy.indexPathFor({ homePath }) });
       const payloadValue = `${String(homePath)}/${STORE_DIR_NAME}/${String(records.length + snapshotStatics.numbering.firstPayload)}`;
       mkdirProxy.succeeds({ path: `${String(homePath)}/${STORE_DIR_NAME}` });
       mkdirProxy.succeeds({ path: payloadValue });
-      cpProxy.succeeds({
-        sourcePath: homePath,
-        destinationPath: AbsoluteFilePathStub({ value: payloadValue }),
-        entries: HOME_ENTRIES,
-      });
+      cpProxy.succeeds({ from: homePath, entries: HOME_ENTRIES });
     },
 
     // The copy into an EMPTY store fails — so a test can prove no index line is appended.
-    setupCopyFails: ({ homePath, error }: { homePath: AbsoluteFilePath; error: Error }): void => {
+    setupCopyFails: ({ homePath, error }: { homePath: AbsoluteFilePath; error: FsError }): void => {
       nowHandle.calledWith([]).returns(CAPTURE_AT_MS);
       indexReadProxy.setupNoIndex({ homePath });
-      appendProxy.succeeds({ filePath: indexReadProxy.indexPathFor({ homePath }) });
+      appendProxy.succeeds({ path: indexReadProxy.indexPathFor({ homePath }) });
       const payloadValue = `${String(homePath)}/${STORE_DIR_NAME}/${String(snapshotStatics.numbering.firstPayload)}`;
       mkdirProxy.succeeds({ path: `${String(homePath)}/${STORE_DIR_NAME}` });
       mkdirProxy.succeeds({ path: payloadValue });
-      cpProxy.throws({
-        sourcePath: homePath,
-        destinationPath: AbsoluteFilePathStub({ value: payloadValue }),
-        entries: HOME_ENTRIES,
+      cpProxy.secondEntryFails({
+        from: homePath,
+        to: payloadValue,
+        entries: FAILING_HOME_ENTRIES,
         error,
       });
     },
@@ -131,9 +126,11 @@ export const snapshotCaptureBrokerProxy = (): {
     // asserts the RECORD rather than a string it has to re-encode by hand.
     appendedRecordsFor: ({ homePath }: { homePath: AbsoluteFilePath }): unknown[] =>
       appendProxy
-        .getAppendedFor({ filePath: indexReadProxy.indexPathFor({ homePath }) })
-        .map((line) => JSON.parse(String(line))),
+        .getCallsFor({ path: indexReadProxy.indexPathFor({ homePath }) })
+        .map((call) => JSON.parse(String(call[1]))),
 
-    copiedPairs: (): unknown[][] => cpProxy.getCopiedPairs(),
+    // Every cp of one child of the home, in call order, as [source, destination, options].
+    copiedFor: ({ homePath, entry }: { homePath: AbsoluteFilePath; entry: string }): unknown =>
+      cpProxy.cpCallsFor({ source: `${String(homePath)}/${entry}` }),
   };
 };

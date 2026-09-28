@@ -1,3 +1,4 @@
+import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 
 import { StepReadingStub } from '../../../contracts/step-reading/step-reading.stub';
@@ -7,7 +8,7 @@ import { runTranscriptAppendBrokerProxy } from './run-transcript-append-broker.p
 
 describe('runTranscriptAppendBroker', () => {
   describe('a step reading', () => {
-    it('VALID: {reading} => appends one JSON line and returns success', async () => {
+    it('VALID: {reading} => appends the reading as one newline-terminated JSON line', async () => {
       const proxy = runTranscriptAppendBrokerProxy();
       const transcriptPath = AbsoluteFilePathStub({
         value:
@@ -16,9 +17,11 @@ describe('runTranscriptAppendBroker', () => {
       const reading = StepReadingStub();
       proxy.succeeds({ transcriptPath });
 
-      const result = await runTranscriptAppendBroker({ transcriptPath, reading });
+      await expect(runTranscriptAppendBroker({ transcriptPath, reading })).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual({ success: true });
+      expect(proxy.appendedLinesFor({ transcriptPath })).toStrictEqual([
+        `${JSON.stringify(reading)}\n`,
+      ]);
     });
 
     it('VALID: {two readings} => each is appended as its own line, in order', async () => {
@@ -41,26 +44,19 @@ describe('runTranscriptAppendBroker', () => {
     });
   });
 
-  describe('the adapter rejects', () => {
+  describe('the append rejects', () => {
     it('ERROR: {disk write fails} => the append broker rejects with the same error', async () => {
       const proxy = runTranscriptAppendBrokerProxy();
       const transcriptPath = AbsoluteFilePathStub({
         value:
           '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_2.jsonl',
       });
-      proxy.throws({ transcriptPath, error: new Error('ENOSPC') });
+      const error = FsErrorStub({ code: 'ENOSPC', path: String(transcriptPath) });
+      proxy.throws({ transcriptPath, error });
 
-      const error = await runTranscriptAppendBroker({
-        transcriptPath,
-        reading: StepReadingStub(),
-      }).then(
-        (): never => {
-          throw new Error('Expected runTranscriptAppendBroker to reject');
-        },
-        (caught: unknown): Error => caught as Error,
-      );
-
-      expect(error.message).toBe('ENOSPC');
+      await expect(
+        runTranscriptAppendBroker({ transcriptPath, reading: StepReadingStub() }),
+      ).rejects.toBe(error);
     });
   });
 });

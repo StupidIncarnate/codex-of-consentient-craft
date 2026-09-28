@@ -1,6 +1,6 @@
+import { appendFileProxy } from '#gateway/node/fs__promises/append-file/append-file.proxy';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
-import { fsAppendFileAdapterProxy } from '../../../adapters/fs/append-file/fs-append-file-adapter.proxy';
 import type { DrivingOddityStub } from '../../../contracts/driving-oddity/driving-oddity.stub';
 import { drivingOddityReadBrokerProxy } from '../read/driving-oddity-read-broker.proxy';
 
@@ -15,12 +15,12 @@ export const drivingOddityAppendBrokerProxy = (): {
   appendedLinesFor: (params: { filePath: AbsoluteFilePath }) => readonly unknown[];
 } => {
   const readProxy = drivingOddityReadBrokerProxy();
-  const appendProxy = fsAppendFileAdapterProxy();
+  const appendProxy = appendFileProxy();
 
   return {
     setupEmptyFile: ({ filePath }: { filePath: AbsoluteFilePath }): void => {
       readProxy.setupNoFile({ filePath });
-      appendProxy.succeeds({ filePath });
+      appendProxy.succeeds({ path: filePath });
     },
 
     setupExistingEntries: ({
@@ -31,12 +31,12 @@ export const drivingOddityAppendBrokerProxy = (): {
       entries: readonly DrivingOddity[];
     }): void => {
       readProxy.setupFile({ filePath, entries });
-      appendProxy.succeeds({ filePath });
+      appendProxy.succeeds({ path: filePath });
     },
 
     // Every line appended for this path, in call order — the proof a duplicate refusal never
-    // reaches the adapter is that this list stays empty after a rejected call.
+    // reaches `appendFile` is that this list stays empty after a rejected call.
     appendedLinesFor: ({ filePath }: { filePath: AbsoluteFilePath }): readonly unknown[] =>
-      appendProxy.getAppendedFor({ filePath }),
+      appendProxy.getCallsFor({ path: filePath }).map((call) => call[1]),
   };
 };

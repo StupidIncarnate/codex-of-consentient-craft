@@ -12,7 +12,7 @@ const FILE_PATH = AbsoluteFilePathStub({
 
 describe('drivingOddityAppendBroker', () => {
   describe('an empty file', () => {
-    it('VALID: {one entry} => appends one JSON line and returns success', async () => {
+    it('VALID: {one entry} => appends one JSON line and resolves', async () => {
       const proxy = drivingOddityAppendBrokerProxy();
       proxy.setupEmptyFile({ filePath: FILE_PATH });
       const entry = DrivingOddityStub({
@@ -21,9 +21,9 @@ describe('drivingOddityAppendBroker', () => {
         kind: 'quirk',
       });
 
-      const result = await drivingOddityAppendBroker({ filePath: FILE_PATH, entry });
-
-      expect(result).toStrictEqual({ success: true });
+      await expect(drivingOddityAppendBroker({ filePath: FILE_PATH, entry })).resolves.toBe(
+        undefined,
+      );
     });
 
     it('VALID: {one entry} => the appended line is the entry as newline-terminated JSON', async () => {
@@ -44,7 +44,7 @@ describe('drivingOddityAppendBroker', () => {
   });
 
   describe('a file already holding entries', () => {
-    it('VALID: {a new key} => appends beside the existing entry and returns success', async () => {
+    it('VALID: {a new key} => appends beside the existing entry, leaving it untouched', async () => {
       const proxy = drivingOddityAppendBrokerProxy();
       const existing = DrivingOddityStub({ key: 'GUILD_ADD_MODAL' });
       proxy.setupExistingEntries({ filePath: FILE_PATH, entries: [existing] });
@@ -54,9 +54,11 @@ describe('drivingOddityAppendBroker', () => {
         kind: 'defect',
       });
 
-      const result = await drivingOddityAppendBroker({ filePath: FILE_PATH, entry });
+      await drivingOddityAppendBroker({ filePath: FILE_PATH, entry });
 
-      expect(result).toStrictEqual({ success: true });
+      expect(proxy.appendedLinesFor({ filePath: FILE_PATH })).toStrictEqual([
+        `${JSON.stringify(entry)}\n`,
+      ]);
     });
 
     it('ERROR: {a key already in the file} => refuses rather than rewriting the existing entry', async () => {
@@ -88,7 +90,7 @@ describe('drivingOddityAppendBroker', () => {
       });
     });
 
-    it('ERROR: {a duplicate key} => never reaches the append adapter', async () => {
+    it('ERROR: {a duplicate key} => never appends', async () => {
       const proxy = drivingOddityAppendBrokerProxy();
       const existing = DrivingOddityStub({ key: 'GUILD_ADD_MODAL' });
       proxy.setupExistingEntries({ filePath: FILE_PATH, entries: [existing] });

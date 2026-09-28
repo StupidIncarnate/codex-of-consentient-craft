@@ -187,11 +187,18 @@ The 43 files exceed the ~25 file threshold for a single agent pass. Once gateway
 - Batch B (15 files): `cp` adapter (3) + `snapshot-capture-broker` (3) + `step-snapshot-broker.proxy.ts` (1) + `buffer-append-broker` (3) + `driving-oddity-append-broker` (3) + `run-execute-broker.proxy.ts` (2)
 - Batch C (18 files): `append-file` adapter (3) + `close-fd` adapter (3) + `run-transcript-append-broker` (3) + `lane-boot-broker` (3) + `lane-teardown-broker` (3) + 3 driver proxies
 
-### Gateway Gaps Blocking Execution
-Per the standing brief: "If the gateway offers no way to do something the recipe needs (no proxy, no read-back), STOP on that file and report it; do not work around it."
-All four gateway proxies lack read-backs required by callers' existing tests:
-1. `copyFileProxy` (`#gateway/node/fs__promises/copy-file/copy-file.proxy`): Has no read-back method (e.g. `getDestinationPathFor: ({ sourcePath })`). `step-hold-broker.test.ts:46,130` requires inspecting destination path.
-2. `copyDirContentsProxy` (`#gateway/node/fs__promises/copy-dir-contents/copy-dir-contents.proxy`): Has no read-back for copied pairs (`copiedPairs` / `callsMatching`). `snapshot-capture-broker.test.ts:61` requires verifying copied child paths and exclusion of snapshot directories.
-3. `appendFileProxy` (`#gateway/node/fs__promises/append-file/append-file.proxy`): `appendedContentsFor` returns only the last appended chunk (`at(-1)?.[1]`). `run-transcript-append-broker.test.ts:37` and `run-execute-broker.test.ts` require all appended lines in call order.
-4. `closeSyncProxy` (`#gateway/node/fs/close-sync/close-sync.proxy`): `calls: ({ fd })` requires an explicit fd; has no read-back of all closed FDs across invocations. `lane-boot-broker.test.ts:618,732` and `lane-teardown-broker.test.ts:260,303,338` assert `getClosedFds()` returns all closed FDs in order. `lane-teardown-broker.proxy.ts:143` also requires cross-function call ordering (`invocationCallOrder`).
-Execution is halted pending follow-up gateway items in `@gateway/node`.
+### Execution result (SL-FS1)
+
+The gaps listed under the old heading are closed: F57 gave `appendFileProxy.getCallsFor`, `copyFileProxy.getCallsFor`, `copyDirContentsProxy.cpCallsFor`/`rmCallsFor` and `closeSyncProxy.calls` their read-back. All batches were done in one pass; the folder names in the file scope drifted (`step/reset/snapshot-restore-layer-broker`, `driving-oddity/append`), and the code won.
+
+Done:
+- `append-file`, `copy-file` and `cp` adapters deleted (folders gone), plus their `siegelense/adapters.ts` barrel line for `copy-file`.
+- Callers moved to `#gateway/node/fs__promises` (`appendFile`, `copyFile`, `copyDirContents`): `buffer-append`, `driving-oddity-append`, `run-transcript-append`, `snapshot-capture`, `step-hold`, `snapshot-restore-layer`. The append brokers now return `Promise<void>` (R1); their callers ignored the old `{ success: true }`.
+- `lane-boot-broker` moved to `closeSync` from `#gateway/node/fs`.
+- Composing proxies gained the staging the deleted adapter proxies used to give for free: `run-verb-layer-broker.proxy.ts` (`setupHoldCopy`), `step-dispatch-broker.proxy.ts` (`stagesHoldCopy`), `step-reset-broker.proxy.ts` (`setupRestoreCpSucceeds` no longer takes `destinationPath`; `copyDirContents` stages by source only).
+- `run-execute-broker.proxy.ts`, `step-snapshot-broker.proxy.ts` and the driver proxies needed no edit: the child proxies kept their method names.
+
+Remaining:
+- `lane-teardown-broker` (with its proxy, test and the three composing driver proxies) stays on `fsCloseFdAdapter`. Its test `the fd closes happen after the SIGTERM/SIGKILL signals` asserts cross-function order between `kill` and `closeSync`, which `closeSyncProxy` cannot read back; per-call content does not prove order. Once the gateway offers ordering, move it and delete `adapters/fs/close-fd/`.
+- Every other adapter in this item (`open-fd` onward, misc singles, `playwright/session/*`) is untouched.
+

@@ -3,7 +3,7 @@
  * screenshot frame diffing, and final file copying. `dirname`/`join` (from '#gateway/node/path') are
  * mocked directly, each on a sticky real-passthrough default: a shot path's own dirname, and a
  * frame's dir plus its generated filename, are both already-known segments, so the real computed
- * path always matches what the test asserts against `captureLive`'s and `getDestinationPathFor`'s
+ * path always matches what the test asserts against `captureLive`'s and `getCopiesFrom`'s
  * own call args.
  *
  * USAGE:
@@ -12,12 +12,12 @@
  */
 
 import { PNG } from 'pngjs';
+import { copyFileProxy } from '#gateway/node/fs__promises/copy-file/copy-file.proxy';
 import { dirname, join } from '#gateway/node/path';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { asyncDelayAdapterProxy } from '../../../adapters/async/delay/async-delay-adapter.proxy';
-import { fsCopyFileAdapterProxy } from '../../../adapters/fs/copy-file/fs-copy-file-adapter.proxy';
 import { shotChangeReadBrokerProxy } from '../../shot/change-read/shot-change-read-broker.proxy';
 
 const DEFAULT_FRAME_WIDTH = 2;
@@ -34,8 +34,11 @@ export const stepHoldBrokerProxy = (): {
   getRequestedDelay: ReturnType<typeof asyncDelayAdapterProxy>['getRequestedDelay'];
   stagesShot: ReturnType<typeof shotChangeReadBrokerProxy>['stagesShot'];
   stagesDefaultShot: ReturnType<typeof shotChangeReadBrokerProxy>['stagesDefaultShot'];
-  succeedsCopy: (params: { sourcePath: AbsoluteFilePath }) => void;
-  getDestinationPathFor: (params: { sourcePath: AbsoluteFilePath }) => unknown;
+  succeedsCopy: (params: {
+    sourcePath: AbsoluteFilePath;
+    destinationPath: AbsoluteFilePath;
+  }) => void;
+  getCopiesFrom: (params: { sourcePath: AbsoluteFilePath }) => readonly unknown[][];
 } => {
   // #gateway/node/path is a raw passthrough of the Node 'path' module (no per-function wrapper, so
   // no gateway proxy to compose) — mocked directly here, on the same '#gateway/node/path' specifier
@@ -51,7 +54,7 @@ export const stepHoldBrokerProxy = (): {
     .implement((...segments: never[]) => realPath.join(...segments));
   const delayProxy = asyncDelayAdapterProxy();
   const shotChangeProxy = shotChangeReadBrokerProxy();
-  const copyProxy = fsCopyFileAdapterProxy();
+  const copyProxy = copyFileProxy();
 
   shotChangeProxy.stagesDefaultShot({ content: DEFAULT_FRAME_PNG });
 
@@ -59,7 +62,14 @@ export const stepHoldBrokerProxy = (): {
     getRequestedDelay: delayProxy.getRequestedDelay,
     stagesShot: shotChangeProxy.stagesShot,
     stagesDefaultShot: shotChangeProxy.stagesDefaultShot,
-    succeedsCopy: copyProxy.succeeds,
-    getDestinationPathFor: copyProxy.getDestinationPathFor,
+    succeedsCopy: ({ sourcePath, destinationPath }): void => {
+      copyProxy.succeeds({ from: sourcePath, to: destinationPath });
+    },
+    // Every copy of this source, whatever its destination, as [from, to] pairs in call order.
+    getCopiesFrom: ({ sourcePath }): readonly unknown[][] =>
+      copyProxy.getCallsFor({
+        from: sourcePath,
+        to: (destination: unknown): boolean => typeof destination === 'string',
+      }),
   };
 };

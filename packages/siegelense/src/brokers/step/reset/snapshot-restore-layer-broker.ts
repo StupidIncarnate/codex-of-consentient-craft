@@ -19,6 +19,7 @@
  */
 
 import { readdirEntriesSync } from '#gateway/node/fs';
+import { copyDirContents } from '#gateway/node/fs__promises';
 import {
   absoluteFilePathContract,
   contentTextContract,
@@ -27,7 +28,6 @@ import {
 import type { AbsoluteFilePath, RelativeFilePath } from '@dungeonmaster/shared/contracts';
 
 import { cryptoHashAdapter } from '../../../adapters/crypto/hash/crypto-hash-adapter';
-import { fsCpAdapter } from '../../../adapters/fs/cp/fs-cp-adapter';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { fsRmAdapter } from '../../../adapters/fs/rm/fs-rm-adapter';
 import { fsStatAdapter } from '../../../adapters/fs/stat/fs-stat-adapter';
@@ -157,11 +157,7 @@ export const snapshotRestoreLayerBroker = async ({
   );
   modifiedCount += contentDiffers.filter(Boolean).length;
 
-  await fsCpAdapter({
-    sourcePath: payloadPath,
-    destinationPath: homePath,
-    excludeName: null,
-  });
+  await copyDirContents({ from: payloadPath, to: homePath, excludeNames: [] });
 
   const addedCount = addedPaths.length;
   const totalFiles = addedCount + modifiedCount + removedCount;

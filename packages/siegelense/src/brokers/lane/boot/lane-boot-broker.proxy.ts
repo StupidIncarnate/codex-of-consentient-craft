@@ -7,6 +7,7 @@
 import { chromium } from '@playwright/test';
 import { join } from '#gateway/node/path';
 import { cwd } from '#gateway/node/process';
+import { closeSyncProxy } from '#gateway/node/fs/close-sync/close-sync.proxy';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
@@ -15,7 +16,6 @@ import { absoluteFilePathContract, contentTextContract } from '@dungeonmaster/sh
 import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
 
 import { childProcessSpawnDetachedAdapterProxy } from '../../../adapters/child-process/spawn-detached/child-process-spawn-detached-adapter.proxy';
-import { fsCloseFdAdapterProxy } from '../../../adapters/fs/close-fd/fs-close-fd-adapter.proxy';
 import { fsOpenFdAdapterProxy } from '../../../adapters/fs/open-fd/fs-open-fd-adapter.proxy';
 import { fsRmAdapterProxy } from '../../../adapters/fs/rm/fs-rm-adapter.proxy';
 import { playwrightSessionAdapterProxy } from '../../../adapters/playwright/session/playwright-session-adapter.proxy';
@@ -104,7 +104,7 @@ export const laneBootBrokerProxy = (): {
   cwdHandle.calledWith([]).returns(CWD_PATH_VALUE);
   const spawnProxy = childProcessSpawnDetachedAdapterProxy();
   const openFdProxy = fsOpenFdAdapterProxy();
-  const closeFdProxy = fsCloseFdAdapterProxy();
+  const closeFdProxy = closeSyncProxy();
   const rmProxy = fsRmAdapterProxy();
   const killProxy = processKillGroupAdapterProxy();
   playwrightSessionAdapterProxy();
@@ -210,7 +210,12 @@ export const laneBootBrokerProxy = (): {
     getKillSignalsFor: ({ pgid }: { pgid: ProcessGroupId }): readonly unknown[] =>
       killProxy.getCallsFor({ pgid }),
 
-    getClosedFds: (): readonly unknown[] => closeFdProxy.getClosedFds(),
+    // Every descriptor closed, in call order. The predicate reads back any fd, because which ones a
+    // boot opens is what the test asserts.
+    getClosedFds: (): readonly unknown[] =>
+      closeFdProxy
+        .calls({ fd: (value: unknown): boolean => typeof value === 'number' })
+        .map((call) => call[0]),
 
     getRemovedHomePaths: (): readonly unknown[] => rmProxy.getRemovedPaths(),
 

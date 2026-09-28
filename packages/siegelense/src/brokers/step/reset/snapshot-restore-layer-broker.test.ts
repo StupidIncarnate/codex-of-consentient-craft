@@ -1,4 +1,5 @@
 import type { DirEntrySync } from '#gateway/node/fs';
+import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { AbsoluteFilePathStub, FileNameStub } from '@dungeonmaster/shared/contracts';
 
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
@@ -54,7 +55,6 @@ describe('snapshotRestoreLayerBroker', () => {
     });
     proxy.setupCpSucceeds({
       sourcePath: payloadPath,
-      destinationPath: homePath,
       entries: [fileName],
     });
 
@@ -105,7 +105,6 @@ describe('snapshotRestoreLayerBroker', () => {
     });
     proxy.setupCpSucceeds({
       sourcePath: payloadPath,
-      destinationPath: homePath,
       entries: [fileName],
     });
 
@@ -152,7 +151,6 @@ describe('snapshotRestoreLayerBroker', () => {
     });
     proxy.setupCpSucceeds({
       sourcePath: payloadPath,
-      destinationPath: homePath,
       entries: [fileName],
     });
 
@@ -210,7 +208,6 @@ describe('snapshotRestoreLayerBroker', () => {
     proxy.setupRmSucceeds({ filePaths: [addedFilePath] });
     proxy.setupCpSucceeds({
       sourcePath: payloadPath,
-      destinationPath: homePath,
       entries: [existingFileName],
     });
 
@@ -272,7 +269,6 @@ describe('snapshotRestoreLayerBroker', () => {
     });
     proxy.setupCpSucceeds({
       sourcePath: payloadPath,
-      destinationPath: homePath,
       entries: [modifiedFileName, removedFileName],
     });
 
@@ -320,7 +316,6 @@ describe('snapshotRestoreLayerBroker', () => {
     });
     proxy.setupCpSucceeds({
       sourcePath: payloadPath,
-      destinationPath: homePath,
       entries: [fileName],
     });
 
@@ -334,20 +329,22 @@ describe('snapshotRestoreLayerBroker', () => {
     });
   });
 
-  it('ERROR: {cp failure} => propagates copy error', async () => {
+  it('ERROR: {second cp fails} => rejects with the copy error and removes the first copied entry', async () => {
     const proxy = snapshotRestoreLayerBrokerProxy();
-    const fileName = FileNameStub({ value: 'data.txt' });
+    const firstName = FileNameStub({ value: 'data.txt' });
+    const secondName = FileNameStub({ value: 'more.txt' });
+    const error = FsErrorStub({ code: 'ENOSPC', path: `${String(homePath)}/more.txt` });
 
     proxy.setupDirectories({
       dirs: [
         { dirPath: homePath, entries: [] },
-        { dirPath: payloadPath, entries: [makeFileEntry({ name: fileName })] },
+        { dirPath: payloadPath, entries: [makeFileEntry({ name: firstName })] },
       ],
     });
     proxy.setupFileStats({
       stats: [
         {
-          filePath: AbsoluteFilePathStub({ value: `${String(payloadPath)}/${String(fileName)}` }),
+          filePath: AbsoluteFilePathStub({ value: `${String(payloadPath)}/${String(firstName)}` }),
           sizeBytes: FileSizeBytesStub({ value: 100 }),
           modifiedAtMs: EpochMsStub({ value: 1700000000000 }),
         },
@@ -356,12 +353,38 @@ describe('snapshotRestoreLayerBroker', () => {
     proxy.setupCpThrows({
       sourcePath: payloadPath,
       destinationPath: homePath,
-      entries: [fileName],
-      error: new Error('Disk full'),
+      entries: [firstName, secondName],
+      error,
     });
 
-    await expect(snapshotRestoreLayerBroker({ homePath, payloadPath })).rejects.toThrow(
-      /Disk full/u,
-    );
+    await expect(snapshotRestoreLayerBroker({ homePath, payloadPath })).rejects.toBe(error);
+    expect(
+      proxy.getRolledBackFor({
+        path: AbsoluteFilePathStub({ value: `${String(homePath)}/${String(firstName)}` }),
+      }),
+    ).toStrictEqual([[`${String(homePath)}/data.txt`, { recursive: true, force: true }]]);
+  });
+
+  it('VALID: {payload holds one entry} => copies that entry from the payload into home', async () => {
+    const proxy = snapshotRestoreLayerBrokerProxy();
+    const fileName = FileNameStub({ value: 'config.json' });
+
+    proxy.setupDirectories({
+      dirs: [
+        { dirPath: homePath, entries: [] },
+        { dirPath: payloadPath, entries: [] },
+      ],
+    });
+    proxy.setupCpSucceeds({ sourcePath: payloadPath, entries: [fileName] });
+
+    await snapshotRestoreLayerBroker({ homePath, payloadPath });
+
+    expect(proxy.getCopiedFor({ sourcePath: payloadPath, entry: fileName })).toStrictEqual([
+      [
+        '/tmp/instance-home/.siegelense-snapshots/1/config.json',
+        '/tmp/instance-home/config.json',
+        { recursive: true, force: true },
+      ],
+    ]);
   });
 });

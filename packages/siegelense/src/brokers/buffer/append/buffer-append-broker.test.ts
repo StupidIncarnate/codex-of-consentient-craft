@@ -1,3 +1,4 @@
+import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 
 import { BufferEntryStub } from '../../../contracts/buffer-entry/buffer-entry.stub';
@@ -34,15 +35,16 @@ describe('bufferAppendBroker', () => {
       const second = BufferEntryStub({});
       proxy.succeeds({ bufferPath });
 
-      const result = await bufferAppendBroker({ bufferPath, entries: [first, second] });
+      await expect(bufferAppendBroker({ bufferPath, entries: [first, second] })).resolves.toBe(
+        undefined,
+      );
 
-      expect(result).toStrictEqual({ success: true });
       expect(proxy.writtenEntriesFor({ bufferPath })).toStrictEqual([first, second]);
     });
   });
 
   describe('an empty batch', () => {
-    it('EMPTY: {entries: []} => appends nothing and still returns success', async () => {
+    it('EMPTY: {entries: []} => appends nothing and resolves', async () => {
       const proxy = bufferAppendBrokerProxy();
       const bufferPath = AbsoluteFilePathStub({
         value:
@@ -50,9 +52,8 @@ describe('bufferAppendBroker', () => {
       });
       proxy.succeeds({ bufferPath });
 
-      const result = await bufferAppendBroker({ bufferPath, entries: [] });
+      await expect(bufferAppendBroker({ bufferPath, entries: [] })).resolves.toBe(undefined);
 
-      expect(result).toStrictEqual({ success: true });
       expect(proxy.appendCallsFor({ bufferPath })).toStrictEqual([]);
     });
   });
@@ -64,19 +65,12 @@ describe('bufferAppendBroker', () => {
         value:
           '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/network.jsonl',
       });
-      proxy.throws({ bufferPath, error: new Error('ENOSPC') });
+      const error = FsErrorStub({ code: 'ENOSPC', path: String(bufferPath) });
+      proxy.throws({ bufferPath, error });
 
-      const error = await bufferAppendBroker({
-        bufferPath,
-        entries: [BufferEntryStub({})],
-      }).then(
-        (): never => {
-          throw new Error('Expected bufferAppendBroker to reject');
-        },
-        (caught: unknown): Error => caught as Error,
+      await expect(bufferAppendBroker({ bufferPath, entries: [BufferEntryStub({})] })).rejects.toBe(
+        error,
       );
-
-      expect(error.message).toBe('ENOSPC');
     });
   });
 });

@@ -115,7 +115,6 @@ describe('stepResetBroker', () => {
       });
       proxy.setupRestoreCpSucceeds({
         sourcePath: payloadPath,
-        destinationPath: lane.homePath,
         entries: [fileName],
       });
 
@@ -157,7 +156,6 @@ describe('stepResetBroker', () => {
       });
       proxy.setupRestoreCpSucceeds({
         sourcePath: payloadPath,
-        destinationPath: lane.homePath,
         entries: [],
       });
 
@@ -234,7 +232,6 @@ describe('stepResetBroker', () => {
       });
       proxy.setupRestoreCpSucceeds({
         sourcePath: payloadPath,
-        destinationPath: lane.homePath,
         entries: [],
       });
 
@@ -318,7 +315,6 @@ describe('stepResetBroker', () => {
       proxy.setupRestoreRmSucceeds({ filePaths: [seededFilePath] });
       proxy.setupRestoreCpSucceeds({
         sourcePath: bootPayloadPath,
-        destinationPath: lane.homePath,
         entries: [],
       });
 

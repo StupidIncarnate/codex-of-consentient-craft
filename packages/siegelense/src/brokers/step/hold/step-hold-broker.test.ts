@@ -26,7 +26,7 @@ describe('stepHoldBroker', () => {
       proxy.stagesShot({ path: frame2, width: 10, height: 10, pixels: whitePixels });
       proxy.stagesShot({ path: frame3, width: 10, height: 10, pixels: whitePixels });
       proxy.stagesShot({ path: frame4, width: 10, height: 10, pixels: whitePixels });
-      proxy.succeedsCopy({ sourcePath: frame4 });
+      proxy.succeedsCopy({ sourcePath: frame4, destinationPath: shotPath });
 
       const result = await stepHoldBroker({
         lane,
@@ -43,7 +43,7 @@ describe('stepHoldBroker', () => {
         [{ filePath: frame3 }],
         [{ filePath: frame4 }],
       ]);
-      expect(proxy.getDestinationPathFor({ sourcePath: frame4 })).toBe(shotPath);
+      expect(proxy.getCopiesFrom({ sourcePath: frame4 })).toStrictEqual([[frame4, shotPath]]);
       expect(result).toBe(
         JSON.stringify({
           frames: 4,
@@ -77,7 +77,7 @@ describe('stepHoldBroker', () => {
       proxy.stagesShot({ path: frame2, width: 10, height: 10, pixels: changedPixels });
       proxy.stagesShot({ path: frame3, width: 10, height: 10, pixels: changedPixels });
       proxy.stagesShot({ path: frame4, width: 10, height: 10, pixels: whitePixels });
-      proxy.succeedsCopy({ sourcePath: frame4 });
+      proxy.succeedsCopy({ sourcePath: frame4, destinationPath: shotPath });
 
       const result = await stepHoldBroker({
         lane,
@@ -127,7 +127,7 @@ describe('stepHoldBroker', () => {
         [{ filePath: frame1 }],
         [{ filePath: frame2 }],
       ]);
-      expect(proxy.getDestinationPathFor({ sourcePath: frame2 })).toBe(undefined);
+      expect(proxy.getCopiesFrom({ sourcePath: frame2 })).toStrictEqual([]);
       expect(result).toBe(
         JSON.stringify({
           frames: 2,

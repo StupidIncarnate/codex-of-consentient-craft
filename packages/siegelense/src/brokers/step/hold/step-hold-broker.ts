@@ -16,12 +16,12 @@
  * // Returns ContentText JSON representing the HoldReading
  */
 
+import { copyFile } from '#gateway/node/fs__promises';
 import { dirname, join } from '#gateway/node/path';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
 
 import { asyncDelayAdapter } from '../../../adapters/async/delay/async-delay-adapter';
-import { fsCopyFileAdapter } from '../../../adapters/fs/copy-file/fs-copy-file-adapter';
 import type { BrowserSession } from '../../../contracts/browser-session/browser-session-contract';
 import { holdReadingContract } from '../../../contracts/hold-reading/hold-reading-contract';
 import type { LaneSession } from '../../../contracts/lane-session/lane-session-contract';
@@ -87,7 +87,7 @@ export const stepHoldBroker = async ({
   if (shotPath !== null) {
     const lastFramePath = framePaths.at(-1);
     if (lastFramePath !== undefined) {
-      await fsCopyFileAdapter({ sourcePath: lastFramePath, destinationPath: shotPath });
+      await copyFile(lastFramePath, shotPath);
     }
   }
 

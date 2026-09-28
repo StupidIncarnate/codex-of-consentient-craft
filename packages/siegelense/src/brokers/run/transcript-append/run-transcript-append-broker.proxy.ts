@@ -1,17 +1,17 @@
+import type { FsError } from '#gateway/node/fs';
+import { appendFileProxy } from '#gateway/node/fs__promises/append-file/append-file.proxy';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
-
-import { fsAppendFileAdapterProxy } from '../../../adapters/fs/append-file/fs-append-file-adapter.proxy';
 
 export const runTranscriptAppendBrokerProxy = (): {
   succeeds: (params: { transcriptPath: AbsoluteFilePath }) => void;
-  throws: (params: { transcriptPath: AbsoluteFilePath; error: Error }) => void;
+  throws: (params: { transcriptPath: AbsoluteFilePath; error: FsError }) => void;
   appendedLinesFor: (params: { transcriptPath: AbsoluteFilePath }) => readonly unknown[];
 } => {
-  const appendProxy = fsAppendFileAdapterProxy();
+  const appendProxy = appendFileProxy();
 
   return {
     succeeds: ({ transcriptPath }: { transcriptPath: AbsoluteFilePath }): void => {
-      appendProxy.succeeds({ filePath: transcriptPath });
+      appendProxy.succeeds({ path: transcriptPath });
     },
 
     throws: ({
@@ -19,9 +19,9 @@ export const runTranscriptAppendBrokerProxy = (): {
       error,
     }: {
       transcriptPath: AbsoluteFilePath;
-      error: Error;
+      error: FsError;
     }): void => {
-      appendProxy.throws({ filePath: transcriptPath, error });
+      appendProxy.rejects({ path: transcriptPath, error });
     },
 
     // Every line appended for this path, IN CALL ORDER — the proof a transcript is flushed per
@@ -31,6 +31,7 @@ export const runTranscriptAppendBrokerProxy = (): {
       transcriptPath,
     }: {
       transcriptPath: AbsoluteFilePath;
-    }): readonly unknown[] => appendProxy.getAppendedFor({ filePath: transcriptPath }),
+    }): readonly unknown[] =>
+      appendProxy.getCallsFor({ path: transcriptPath }).map((call) => call[1]),
   };
 };

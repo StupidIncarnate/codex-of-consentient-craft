@@ -1,9 +1,9 @@
-import type { DirEntrySync } from '#gateway/node/fs';
+import type { DirEntrySync, FsError } from '#gateway/node/fs';
 import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/readdir-entries-sync.proxy';
+import { copyDirContentsProxy } from '#gateway/node/fs__promises/copy-dir-contents/copy-dir-contents.proxy';
 import type { AbsoluteFilePath, FileName } from '@dungeonmaster/shared/contracts';
 
 import { cryptoHashAdapterProxy } from '../../../adapters/crypto/hash/crypto-hash-adapter.proxy';
-import { fsCpAdapterProxy } from '../../../adapters/fs/cp/fs-cp-adapter.proxy';
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { fsRmAdapterProxy } from '../../../adapters/fs/rm/fs-rm-adapter.proxy';
 import { fsStatAdapterProxy } from '../../../adapters/fs/stat/fs-stat-adapter.proxy';
@@ -28,24 +28,23 @@ export const snapshotRestoreLayerBrokerProxy = (): {
     contents: readonly { filePath: AbsoluteFilePath; content: string }[];
   }) => void;
   setupRmSucceeds: (params: { filePaths: readonly AbsoluteFilePath[] }) => void;
-  setupCpSucceeds: (params: {
-    sourcePath: AbsoluteFilePath;
-    destinationPath: AbsoluteFilePath;
-    entries: readonly FileName[];
-  }) => void;
+  setupCpSucceeds: (params: { sourcePath: AbsoluteFilePath; entries: readonly FileName[] }) => void;
+  // The copy is entry by entry, so the failure is staged on the SECOND entry: the first lands, then
+  // the gateway removes it from the destination before rethrowing.
   setupCpThrows: (params: {
     sourcePath: AbsoluteFilePath;
     destinationPath: AbsoluteFilePath;
-    entries: readonly FileName[];
-    error: Error;
+    entries: readonly [FileName, FileName];
+    error: FsError;
   }) => void;
   getRemovedPaths: () => unknown[];
-  getCopiedPairs: () => unknown[][];
+  getCopiedFor: (params: { sourcePath: AbsoluteFilePath; entry: FileName }) => unknown;
+  getRolledBackFor: (params: { path: AbsoluteFilePath }) => unknown;
 } => {
   const readdirProxy = readdirEntriesSyncProxy();
   const statProxy = fsStatAdapterProxy();
   const rmProxy = fsRmAdapterProxy();
-  const cpProxy = fsCpAdapterProxy();
+  const cpProxy = copyDirContentsProxy();
   const readFileProxy = fsReadFileAdapterProxy();
   // createHash is deterministic and pure over its input — see the adapter's own proxy — so this is
   // constructed only to satisfy enforce-proxy-child-creation and never addressed further.
@@ -76,25 +75,25 @@ export const snapshotRestoreLayerBrokerProxy = (): {
       });
     },
 
-    setupCpSucceeds: ({ sourcePath, destinationPath, entries }): void => {
-      cpProxy.succeeds({
-        sourcePath,
-        destinationPath,
-        entries: entries.map(String),
-      });
+    setupCpSucceeds: ({ sourcePath, entries }): void => {
+      cpProxy.succeeds({ from: sourcePath, entries: entries.map(String) });
     },
 
     setupCpThrows: ({ sourcePath, destinationPath, entries, error }): void => {
-      cpProxy.throws({
-        sourcePath,
-        destinationPath,
-        entries: entries.map(String),
+      const [first, second] = entries;
+      cpProxy.secondEntryFails({
+        from: sourcePath,
+        to: destinationPath,
+        entries: [String(first), String(second)],
         error,
       });
     },
 
     getRemovedPaths: (): unknown[] => rmProxy.getRemovedPaths(),
 
-    getCopiedPairs: (): unknown[][] => cpProxy.getCopiedPairs(),
+    getCopiedFor: ({ sourcePath, entry }): unknown =>
+      cpProxy.cpCallsFor({ source: `${String(sourcePath)}/${String(entry)}` }),
+
+    getRolledBackFor: ({ path }): unknown => cpProxy.rmCallsFor({ path }),
   };
 };

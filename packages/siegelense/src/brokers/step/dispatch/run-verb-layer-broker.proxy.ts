@@ -74,6 +74,10 @@ export const runVerbLayerBrokerProxy = (): {
   setupFileExists: (params: { filePath: AbsoluteFilePath; content: string }) => void;
   setupFileNotFound: (params: { filePath: AbsoluteFilePath }) => void;
   setupSnapshotEmptyStore: (params: { homePath: AbsoluteFilePath }) => void;
+  setupHoldCopy: (params: {
+    sourcePath: AbsoluteFilePath;
+    destinationPath: AbsoluteFilePath;
+  }) => void;
 } => {
   // Constructed for their own default behavior only to satisfy enforce-proxy-child-creation — this
   // proxy builds its own BrowserSession scenarios directly (the real boundary every child broker
@@ -87,7 +91,7 @@ export const runVerbLayerBrokerProxy = (): {
   stepEvalSourceBrokerProxy();
   stepGotoBrokerProxy();
   stepHealthBrokerProxy();
-  stepHoldBrokerProxy();
+  const holdProxy = stepHoldBrokerProxy();
   stepKeyBrokerProxy();
   stepLookBrokerProxy();
   stepResizeBrokerProxy();
@@ -283,6 +287,16 @@ export const runVerbLayerBrokerProxy = (): {
 
     setupSnapshotEmptyStore: ({ homePath }: { homePath: AbsoluteFilePath }): void => {
       snapshotProxy.setupEmptyStore({ homePath });
+    },
+
+    setupHoldCopy: ({
+      sourcePath,
+      destinationPath,
+    }: {
+      sourcePath: AbsoluteFilePath;
+      destinationPath: AbsoluteFilePath;
+    }): void => {
+      holdProxy.succeedsCopy({ sourcePath, destinationPath });
     },
   };
 };

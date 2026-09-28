@@ -1,3 +1,4 @@
+import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 
 import { snapshotCaptureBroker } from './snapshot-capture-broker';
@@ -58,12 +59,16 @@ describe('snapshotCaptureBroker', () => {
         manual: true,
       });
 
-      expect(proxy.copiedPairs()).toStrictEqual([
+      expect(proxy.copiedFor({ homePath: HOME_PATH, entry: 'guilds' })).toStrictEqual([
         [
           '/tmp/dm-siege-inst_7f3a9c21/guilds',
           '/tmp/dm-siege-inst_7f3a9c21/.siegelense-snapshots/1/guilds',
+          { recursive: true, force: true },
         ],
       ]);
+      expect(
+        proxy.copiedFor({ homePath: HOME_PATH, entry: '.siegelense-snapshots' }),
+      ).toStrictEqual([]);
     });
   });
 
@@ -195,10 +200,8 @@ describe('snapshotCaptureBroker', () => {
   describe('a copy that fails', () => {
     it('ERROR: {fs.cp rejects} => propagates the failure', async () => {
       const proxy = snapshotCaptureBrokerProxy();
-      proxy.setupCopyFails({
-        homePath: HOME_PATH,
-        error: new Error('ENOSPC: no space left on device'),
-      });
+      const error = FsErrorStub({ code: 'ENOSPC', path: String(HOME_PATH) });
+      proxy.setupCopyFails({ homePath: HOME_PATH, error });
 
       await expect(
         snapshotCaptureBroker({
@@ -206,15 +209,13 @@ describe('snapshotCaptureBroker', () => {
           name: SnapshotNameStub({ value: 'clean' }),
           manual: true,
         }),
-      ).rejects.toThrow(/ENOSPC/u);
+      ).rejects.toBe(error);
     });
 
     it('ERROR: {fs.cp rejects} => appends NO index line, so the list never advertises a restore point that is not on disk', async () => {
       const proxy = snapshotCaptureBrokerProxy();
-      proxy.setupCopyFails({
-        homePath: HOME_PATH,
-        error: new Error('ENOSPC: no space left on device'),
-      });
+      const error = FsErrorStub({ code: 'ENOSPC', path: String(HOME_PATH) });
+      proxy.setupCopyFails({ homePath: HOME_PATH, error });
 
       await expect(
         snapshotCaptureBroker({
@@ -222,7 +223,7 @@ describe('snapshotCaptureBroker', () => {
           name: SnapshotNameStub({ value: 'clean' }),
           manual: true,
         }),
-      ).rejects.toThrow(/ENOSPC/u);
+      ).rejects.toBe(error);
 
       expect(proxy.appendedRecordsFor({ homePath: HOME_PATH })).toStrictEqual([]);
     });

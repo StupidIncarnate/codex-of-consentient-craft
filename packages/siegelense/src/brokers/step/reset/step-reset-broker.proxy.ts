@@ -50,7 +50,6 @@ export const stepResetBrokerProxy = (): {
   setupRestoreRmSucceeds: (params: { filePaths: readonly AbsoluteFilePath[] }) => void;
   setupRestoreCpSucceeds: (params: {
     sourcePath: AbsoluteFilePath;
-    destinationPath: AbsoluteFilePath;
     entries: readonly FileName[];
   }) => void;
   setupReseed: (params: {
@@ -118,8 +117,8 @@ export const stepResetBrokerProxy = (): {
       restoreProxy.setupRmSucceeds({ filePaths });
     },
 
-    setupRestoreCpSucceeds: ({ sourcePath, destinationPath, entries }): void => {
-      restoreProxy.setupCpSucceeds({ sourcePath, destinationPath, entries });
+    setupRestoreCpSucceeds: ({ sourcePath, entries }): void => {
+      restoreProxy.setupCpSucceeds({ sourcePath, entries });
     },
 
     // `apiBaseUrl` stays in this method's own signature to match the real seam

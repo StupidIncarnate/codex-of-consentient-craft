@@ -11,13 +11,12 @@
  *   transcriptPath: AbsoluteFilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets/.../runs/run_2.jsonl' }),
  *   reading: StepReadingStub(),
  * });
- * // Appends one JSON line, then returns { success: true }
+ * // Appends one JSON line
  */
 
-import { fileContentsContract } from '@dungeonmaster/shared/contracts';
-import type { AbsoluteFilePath, AdapterResult } from '@dungeonmaster/shared/contracts';
+import { appendFile } from '#gateway/node/fs__promises';
+import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
-import { fsAppendFileAdapter } from '../../../adapters/fs/append-file/fs-append-file-adapter';
 import type { StepReading } from '../../../contracts/step-reading/step-reading-contract';
 
 export const runTranscriptAppendBroker = async ({
@@ -26,8 +25,4 @@ export const runTranscriptAppendBroker = async ({
 }: {
   transcriptPath: AbsoluteFilePath;
   reading: StepReading;
-}): Promise<AdapterResult> =>
-  fsAppendFileAdapter({
-    filePath: transcriptPath,
-    contents: fileContentsContract.parse(`${JSON.stringify(reading)}\n`),
-  });
+}): Promise<void> => appendFile(transcriptPath, `${JSON.stringify(reading)}\n`);

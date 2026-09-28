@@ -1096,6 +1096,13 @@ describe('stepDispatchBroker', () => {
       const backgroundPixel = [0x0d, 0x09, 0x07, 255];
       const pixels = new Uint8Array(Array.from({ length: 8 }, () => backgroundPixel).flat());
       proxy.stagesShotFrame({ shotPath, width: 4, height: 2, pixels });
+      proxy.stagesHoldCopy({
+        sourcePath: AbsoluteFilePathStub({
+          value:
+            '/repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_1/runs/run_1/step1_frame2.png',
+        }),
+        destinationPath: shotPath,
+      });
 
       const result = await stepDispatchBroker({
         lane,

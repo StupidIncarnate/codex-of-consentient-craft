@@ -33,6 +33,7 @@
  */
 
 import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
+import { closeSync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
 import { cwd } from '#gateway/node/process';
 import { ensureDir } from '#gateway/node/fs__promises';
@@ -46,7 +47,6 @@ import {
 import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
 
 import { childProcessSpawnDetachedAdapter } from '../../../adapters/child-process/spawn-detached/child-process-spawn-detached-adapter';
-import { fsCloseFdAdapter } from '../../../adapters/fs/close-fd/fs-close-fd-adapter';
 import { fsOpenFdAdapter } from '../../../adapters/fs/open-fd/fs-open-fd-adapter';
 import { fsRmAdapter } from '../../../adapters/fs/rm/fs-rm-adapter';
 import { playwrightSessionAdapter } from '../../../adapters/playwright/session/playwright-session-adapter';
@@ -224,7 +224,7 @@ export const laneBootBroker = async ({
       processKillGroupAdapter({ pgid: entry.pgid, signal: 'SIGKILL' });
     });
     booted.forEach((entry) => {
-      fsCloseFdAdapter({ fd: entry.fd });
+      closeSync(entry.fd);
     });
     // homePath only — never evidencePath. Evidence (the logs `unready` names) is the one record of
     // why this boot failed, and outlives the instance; see packages/siegelense/CLAUDE.md.

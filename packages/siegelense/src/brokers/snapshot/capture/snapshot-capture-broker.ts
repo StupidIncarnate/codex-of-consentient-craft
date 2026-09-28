@@ -24,12 +24,9 @@
  * // Copies the home, appends one index line, and returns the SnapshotRecord it wrote
  */
 
-import { ensureDir } from '#gateway/node/fs__promises';
-import { fileContentsContract } from '@dungeonmaster/shared/contracts';
+import { appendFile, copyDirContents, ensureDir } from '#gateway/node/fs__promises';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
-import { fsAppendFileAdapter } from '../../../adapters/fs/append-file/fs-append-file-adapter';
-import { fsCpAdapter } from '../../../adapters/fs/cp/fs-cp-adapter';
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import type { SnapshotName } from '../../../contracts/snapshot-name/snapshot-name-contract';
 import { snapshotOrdinalContract } from '../../../contracts/snapshot-ordinal/snapshot-ordinal-contract';
@@ -75,12 +72,12 @@ export const snapshotCaptureBroker = async ({
   await ensureDir(storeDir);
   await ensureDir(payload);
 
-  // `excludeName` is the store's own directory name: the payload sits INSIDE the home being copied,
-  // so without it the copy would contain the previous captures and grow with every snapshot.
-  await fsCpAdapter({
-    sourcePath: homePath,
-    destinationPath: payload,
-    excludeName: snapshotStatics.store.dirName,
+  // `excludeNames` holds the store's own directory name: the payload sits INSIDE the home being
+  // copied, so without it the copy would contain the previous captures and grow with every snapshot.
+  await copyDirContents({
+    from: homePath,
+    to: payload,
+    excludeNames: [snapshotStatics.store.dirName],
   });
 
   const record = snapshotRecordContract.parse({
@@ -90,10 +87,7 @@ export const snapshotCaptureBroker = async ({
     path: payload,
   });
 
-  await fsAppendFileAdapter({
-    filePath: index,
-    contents: fileContentsContract.parse(`${JSON.stringify(record)}\n`),
-  });
+  await appendFile(index, `${JSON.stringify(record)}\n`);
 
   return record;
 };
