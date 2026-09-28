@@ -2,6 +2,9 @@ import { rm } from './rm';
 import { rmProxy } from './rm.proxy';
 import { FsErrorStub } from '../../fs/is-fs-error/fs-error.stub';
 
+const underQuests = (value: unknown): boolean =>
+  typeof value === 'string' && value.includes('/quests/');
+
 describe('rm', () => {
   it('VALID: {path, recursive: true, force: true} => removes the tree and resolves', async () => {
     const proxy = rmProxy();
@@ -38,6 +41,40 @@ describe('rm', () => {
       expect(proxy.getCallsFor({ path: '/repo/tmp/scratch' })).toStrictEqual([
         ['/repo/tmp/scratch', { recursive: true, force: true }],
       ]);
+    });
+  });
+
+  describe('predicate addressing', () => {
+    it('VALID: {predicate on a quests folder} => a computed path under it resolves and reads back', async () => {
+      const proxy = rmProxy();
+      proxy.succeedsMatchingPath({ path: underQuests });
+
+      await expect(
+        rm('/home/x/guilds/g1/quests/q1', { recursive: true, force: true }),
+      ).resolves.toBe(undefined);
+      expect(proxy.getCallsFor({ path: underQuests })).toStrictEqual([
+        ['/home/x/guilds/g1/quests/q1', { recursive: true, force: true }],
+      ]);
+    });
+
+    it('ERROR: {predicate rejects} => a matching path rejects with the raw error', async () => {
+      const proxy = rmProxy();
+      const error = FsErrorStub({ code: 'EACCES', path: '/home/x/guilds/g1/quests/q1' });
+      proxy.rejectsMatchingPath({
+        path: underQuests,
+        error,
+      });
+
+      await expect(rm('/home/x/guilds/g1/quests/q1', { recursive: true })).rejects.toBe(error);
+    });
+
+    it('ERROR: {predicate does not match, nothing else staged} => the call throws unstaged', async () => {
+      const proxy = rmProxy();
+      proxy.succeedsMatchingPath({
+        path: underQuests,
+      });
+
+      await expect(rm('/home/x/elsewhere')).rejects.toThrow(/./u);
     });
   });
 });

@@ -6,6 +6,7 @@ import type { PathMatcher } from '../../gateway-test-support/path-matcher';
 export const writeFileBytesProxy = (): {
   succeeds: ({ path }: { path: string }) => void;
   rejects: ({ path, error }: { path: string; error: FsError }) => void;
+  succeedsMatchingPath: ({ path }: { path: PathMatcher }) => void;
   writtenBytesFor: ({ path }: { path: string }) => unknown;
   getCallsFor: (params: { path: PathMatcher }) => readonly unknown[][];
 } => {
@@ -23,6 +24,11 @@ export const writeFileBytesProxy = (): {
         await Promise.resolve();
         return Promise.reject(error);
       });
+    },
+    // For a destination the test cannot know exactly. The predicate must describe a real
+    // structural fact of the address; an accept-all predicate is a banned catch-all default.
+    succeedsMatchingPath: ({ path }: { path: PathMatcher }): void => {
+      handle.calledWith([path]).resolves(undefined);
     },
     writtenBytesFor: ({ path }: { path: string }): unknown =>
       handle.callsMatching([path]).at(-1)?.[1],

@@ -2,6 +2,9 @@ import { ensureDir } from './ensure-dir';
 import { ensureDirProxy } from './ensure-dir.proxy';
 import { FsErrorStub } from '../../fs/is-fs-error/fs-error.stub';
 
+const isImagesDir = (value: unknown): boolean =>
+  typeof value === 'string' && value.endsWith('/images');
+
 describe('ensureDir', () => {
   it('VALID: {path does not exist yet} => creates every missing ancestor and resolves', async () => {
     const proxy = ensureDirProxy();
@@ -41,6 +44,27 @@ describe('ensureDir', () => {
       expect(proxy.getCallsFor({ path: '/project/settings' })).toStrictEqual([
         ['/project/settings', { recursive: true }],
       ]);
+    });
+  });
+
+  describe('predicate addressing', () => {
+    it('VALID: {predicate on an images folder} => a computed path ending in /images resolves', async () => {
+      const proxy = ensureDirProxy();
+      proxy.succeedsMatchingPath({ path: isImagesDir });
+
+      await expect(ensureDir('/home/x/quests/q1/images')).resolves.toBe(undefined);
+      expect(proxy.getCallsFor({ path: isImagesDir })).toStrictEqual([
+        ['/home/x/quests/q1/images', { recursive: true }],
+      ]);
+    });
+
+    it('ERROR: {predicate does not match, nothing else staged} => the call throws unstaged', async () => {
+      const proxy = ensureDirProxy();
+      proxy.succeedsMatchingPath({
+        path: isImagesDir,
+      });
+
+      await expect(ensureDir('/home/x/quests/q1/other')).rejects.toThrow(/./u);
     });
   });
 });

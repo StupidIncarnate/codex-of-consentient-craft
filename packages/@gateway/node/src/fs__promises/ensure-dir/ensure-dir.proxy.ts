@@ -6,6 +6,7 @@ import type { PathMatcher } from '../../gateway-test-support/path-matcher';
 export const ensureDirProxy = (): {
   succeeds: ({ path }: { path: string }) => void;
   rejects: ({ path, error }: { path: string; error: FsError }) => void;
+  succeedsMatchingPath: ({ path }: { path: PathMatcher }) => void;
   getCallsFor: (params: { path: PathMatcher }) => readonly unknown[][];
 } => {
   const handle = registerMock({ fn: mkdir });
@@ -22,6 +23,11 @@ export const ensureDirProxy = (): {
         await Promise.resolve();
         return Promise.reject(error);
       });
+    },
+    // For a directory the test cannot know exactly. The predicate must describe a real structural
+    // fact of the address; an accept-all predicate is a banned catch-all default.
+    succeedsMatchingPath: ({ path }: { path: PathMatcher }): void => {
+      handle.calledWith([path]).resolves(undefined);
     },
     getCallsFor: ({ path }: { path: PathMatcher }): readonly unknown[][] =>
       handle.callsMatching([path]),

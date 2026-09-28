@@ -1,4 +1,3 @@
-import { ensureDir, writeFileFromBase64 } from '#gateway/node/fs__promises';
 import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { writeFileFromBase64Proxy } from '#gateway/node/fs__promises/write-file-from-base64/write-file-from-base64.proxy';
 import { homedir } from '#gateway/node/os';
@@ -12,11 +11,20 @@ import {
 
 import { localImageCopyBrokerProxy } from '../../local-image/copy/local-image-copy-broker.proxy';
 
+const imagesDirPredicate = (path: unknown): boolean =>
+  typeof path === 'string' && path.endsWith('/images');
+const uploadPathPredicate = (path: unknown): boolean =>
+  typeof path === 'string' && path.includes('/images/');
+
+const base64Of = ({ bytes }: { bytes: unknown }): unknown =>
+  Buffer.isBuffer(bytes) ? bytes.toString('base64') : bytes;
+
 export const pastedImagePersistBrokerProxy = (): {
   setupHome: (params: { homePath: string }) => void;
   stageImageIds: (params: { ids: readonly string[] }) => void;
   mkdirRequestedDirPaths: () => unknown[];
   writtenPayloadFor: (params: { filePath: string }) => unknown;
+  writtenPayloadsInOrder: () => unknown[];
   writeCallCount: () => unknown;
   writtenImagePaths: () => unknown[];
   sourceReadAttemptedPaths: () => unknown[];
@@ -27,10 +35,8 @@ export const pastedImagePersistBrokerProxy = (): {
   writtenDestinations: () => AbsoluteFilePath[];
   writtenBytesFor: (params: { filePath: AbsoluteFilePath }) => unknown;
 } => {
-  ensureDirProxy(); // satisfies enforce-proxy-child-creation; this broker's real ensureDir calls
-  // are mocked directly on `ensureDir` below, not through this child proxy's own exact-path-only
-  // `succeeds`/`rejects`.
-  writeFileFromBase64Proxy(); // same reason, for `writeFileFromBase64` below.
+  const ensureDirChild = ensureDirProxy();
+  const writeFileChild = writeFileFromBase64Proxy();
   const copyProxy = localImageCopyBrokerProxy();
   const joinHandle = registerMock({ fn: join });
   const realPath = requireActual<{ join: typeof join }>({ module: 'path' });
@@ -51,22 +57,18 @@ export const pastedImagePersistBrokerProxy = (): {
   // construct dungeonmasterHomeFindBrokerProxy transitively, which is what registers its join()
   // real-passthrough default, so every join() beneath the resolved home dir still runs REAL.
   const homedirHandle = registerMock({ fn: homedir });
-  // Every dirPath this broker ensures, and every upload destination it writes to, is computed at
-  // call time from a guildId/questId/uuid this proxy never receives — ensureDirProxy's and
-  // writeFileFromBase64Proxy's own succeeds/rejects take only an exact literal path (no
-  // matching-path variant), so both are mocked directly on their gateway export instead, each
-  // addressed by the one real structural fact every such call shares.
-  const ensureDirHandle = registerMock({ fn: ensureDir });
-  ensureDirHandle
-    .calledWith([(path: unknown) => typeof path === 'string' && path.endsWith('/images')])
-    .resolves(undefined);
-  const writeFileFromBase64Handle = registerMock({ fn: writeFileFromBase64 });
-  // Every upload lands under a quest's images directory, whatever id the test stages for it (a
-  // real uuid in some tests, a descriptive stub id like "first-image-id" in others) — so the
-  // address is the directory invariant, not the minted name's own shape.
-  writeFileFromBase64Handle
-    .calledWith([(path: unknown): boolean => typeof path === 'string' && path.includes('/images/')])
-    .resolves(undefined);
+  // Every images directory this broker ensures, and every upload destination it writes to, is
+  // computed at call time from a guildId/questId/uuid this proxy never receives, so the gateway
+  // proxies are addressed by the one structural fact every such path shares: the directory ends in
+  // `/images`, and an upload lands under `/images/` whatever id the test stages for it (a real uuid
+  // in some tests, a descriptive stub id like "first-image-id" in others).
+  // Staged from every entry a test uses to drive an image through the broker (home, uploads, local
+  // copies), since a proxy constructor may only create children and register handles. Restaging
+  // the same predicate is harmless.
+  const stageImagesFolder = (): void => {
+    ensureDirChild.succeedsMatchingPath({ path: imagesDirPredicate });
+    writeFileChild.succeedsMatchingPath({ path: uploadPathPredicate });
+  };
 
   return {
     setupHome: ({ homePath }: { homePath: string }): void => {
@@ -81,8 +83,10 @@ export const pastedImagePersistBrokerProxy = (): {
       // only a one-shot for its own single call, never a sticky override, precisely so this
       // registration — whenever it runs — is what every LATER call to homedir() answers to).
       homedirHandle.calledWith([]).returns(homePath);
+      stageImagesFolder();
     },
     stageImageIds: ({ ids }: { ids: readonly string[] }): void => {
+      stageImagesFolder();
       // Each id answers ONE call, consumed in the order staged. images.map() invokes
       // crypto.randomUUID() synchronously per image before any write starts, so staging order
       // lines up with input order. Registered on the SAME shared crypto.randomUUID queue the
@@ -93,25 +97,34 @@ export const pastedImagePersistBrokerProxy = (): {
       }
     },
     mkdirRequestedDirPaths: (): unknown[] =>
-      ensureDirHandle.callsMatching([]).map((call) => String(call[0])),
+      ensureDirChild.getCallsFor({ path: imagesDirPredicate }).map((call) => String(call[0])),
+    // The gateway writes the decoded bytes; tests read the base64 the responder was handed.
     writtenPayloadFor: ({ filePath }: { filePath: string }): unknown =>
-      writeFileFromBase64Handle.callsMatching([filePath]).at(-1)?.[1],
+      base64Of({ bytes: writeFileChild.getCallsFor({ path: filePath }).at(-1)?.[1] }),
+    writtenPayloadsInOrder: (): unknown[] =>
+      writeFileChild
+        .getCallsFor({ path: uploadPathPredicate })
+        .map((call) => base64Of({ bytes: call[1] })),
     writeCallCount: (): unknown =>
-      writeFileFromBase64Handle.callsMatching([]).length + copyProxy.writtenDestinations().length,
+      writeFileChild.getCallsFor({ path: uploadPathPredicate }).length +
+      copyProxy.writtenDestinations().length,
     // Both the base64 upload write and the raw-bytes copy write are complete sets of paths this
     // broker actually wrote to disk, upload and copy alike, in that order.
     writtenImagePaths: (): unknown[] => [
-      ...writeFileFromBase64Handle.callsMatching([]).map((call) => String(call[0])),
+      ...writeFileChild.getCallsFor({ path: uploadPathPredicate }).map((call) => String(call[0])),
       ...copyProxy.writtenDestinations().map((path) => String(path)),
     ],
     sourceReadAttemptedPaths: (): unknown[] => copyProxy.sourceReadAttemptedPaths(),
     stageCopyIds: ({ ids }: { ids: readonly string[] }): void => {
+      stageImagesFolder();
       copyProxy.stageCopyIds({ ids });
     },
     sourceReads: ({ filePath, bytes }: { filePath: AbsoluteFilePath; bytes: Uint8Array }): void => {
+      stageImagesFolder();
       copyProxy.sourceReads({ filePath, bytes });
     },
     sourceReadFails: ({ filePath, error }: { filePath: AbsoluteFilePath; error: Error }): void => {
+      stageImagesFolder();
       copyProxy.sourceReadFails({ filePath, error });
     },
     destinationWriteFails: ({
@@ -121,6 +134,7 @@ export const pastedImagePersistBrokerProxy = (): {
       filePath: AbsoluteFilePath;
       error: Error;
     }): void => {
+      stageImagesFolder();
       copyProxy.destinationWriteFails({ filePath, error });
     },
     writtenDestinations: (): AbsoluteFilePath[] => copyProxy.writtenDestinations(),

@@ -2,6 +2,9 @@ import { writeFileBytes } from './write-file-bytes';
 import { writeFileBytesProxy } from './write-file-bytes.proxy';
 import { FsErrorStub } from '../../fs/is-fs-error/fs-error.stub';
 
+const underImages = (value: unknown): boolean =>
+  typeof value === 'string' && value.includes('/images/');
+
 describe('writeFileBytes', () => {
   it('VALID: {path, bytes} => writes the bytes as-is and resolves', async () => {
     const proxy = writeFileBytesProxy();
@@ -41,5 +44,18 @@ describe('writeFileBytes', () => {
       ['/repo/tmp/frame.png', first],
       ['/repo/tmp/frame.png', second],
     ]);
+  });
+
+  describe('predicate addressing', () => {
+    it('VALID: {predicate on an images folder} => a computed destination resolves and reads back its bytes', async () => {
+      const proxy = writeFileBytesProxy();
+      proxy.succeedsMatchingPath({ path: underImages });
+      const bytes = new Uint8Array([9]);
+
+      await expect(writeFileBytes('/home/x/images/abc.png', bytes)).resolves.toBe(undefined);
+      expect(proxy.getCallsFor({ path: underImages })).toStrictEqual([
+        ['/home/x/images/abc.png', bytes],
+      ]);
+    });
   });
 });

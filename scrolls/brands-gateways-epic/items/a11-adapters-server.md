@@ -376,3 +376,24 @@ Edit (existing files):
 Not touched: `server-init-responder.ts` (production code) — it already imports `serve` and
 `createNodeWebSocket` by the same names from the same `#gateway/npm/*` specifiers, so the barrel
 override means zero changes there.
+
+## Plan — F52
+
+Give `rmProxy`, `ensureDirProxy` and `writeFileFromBase64Proxy` (through `writeFileBytesProxy`) a
+`succeedsMatchingPath({ path: PathMatcher })` method beside the exact-path ones (`rmProxy` also gets
+`rejectsMatchingPath`), then move server's proxies onto them so no proxy registers a mock on a
+gateway export. No catch-all default: an unstaged call still throws. Predicates address a path the
+test cannot know exactly; none is accept-all. Because the persist broker no longer mocks the
+barrel `writeFileFromBase64`, the read-only `registerMock({ fn: writeFileFromBase64 })` handles in
+the chat and new-quest proxies would become the only mock on it, so they read through a new
+`writtenPayloadsInOrder` on the persist proxy instead (raw `writeFile` receives a Buffer, the
+persist proxy hands back the base64 string tests already assert).
+
+Files:
+- `packages/@gateway/node/src/fs__promises/rm/rm.proxy.ts`, `rm.test.ts`
+- `packages/@gateway/node/src/fs__promises/ensure-dir/ensure-dir.proxy.ts`, `ensure-dir.test.ts`
+- `packages/@gateway/node/src/fs__promises/write-file-bytes/write-file-bytes.proxy.ts`, `write-file-bytes.test.ts`
+- `packages/@gateway/node/src/fs__promises/write-file-from-base64/write-file-from-base64.proxy.ts`, `write-file-from-base64.test.ts`
+- `packages/server/src/responders/quest/new/quest-new-responder.proxy.ts`
+- `packages/server/src/brokers/pasted-image/persist/pasted-image-persist-broker.proxy.ts`
+- `packages/server/src/responders/quest/chat/quest-chat-responder.proxy.ts`
