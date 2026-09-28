@@ -711,7 +711,7 @@ describe('playwrightSessionAdapter', () => {
   });
 
   describe('readDom()', () => {
-    it('VALID: {target, fields: null, text: null} => returns DomReading from page evaluate and domReadLayerAdapter', async () => {
+    it('VALID: {target, fields: null, text: null} => returns DomReading from page evaluate and domReadTransformer', async () => {
       const proxy = playwrightSessionAdapterProxy();
       proxy.setDomReadResult({
         raw: RawDomReadingStub(),

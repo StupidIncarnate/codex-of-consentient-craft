@@ -1,30 +1,27 @@
 import { ContentTextStub } from '@dungeonmaster/shared/contracts';
 
-import { DomFieldStub } from '../../../contracts/dom-field/dom-field.stub';
-import { DomRectStub } from '../../../contracts/dom-rect/dom-rect.stub';
-import { DomTextModeStub } from '../../../contracts/dom-text-mode/dom-text-mode.stub';
-import { RawDomReadingStub } from '../../../contracts/raw-dom-reading/raw-dom-reading.stub';
-import { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
-import { domReadLayerAdapter } from './dom-read-layer-adapter';
-import { domReadLayerAdapterProxy } from './dom-read-layer-adapter.proxy';
+import { DomFieldStub } from '../../contracts/dom-field/dom-field.stub';
+import { DomRectStub } from '../../contracts/dom-rect/dom-rect.stub';
+import { DomTextModeStub } from '../../contracts/dom-text-mode/dom-text-mode.stub';
+import { RawDomReadingStub } from '../../contracts/raw-dom-reading/raw-dom-reading.stub';
+import { ReadingCountStub } from '../../contracts/reading-count/reading-count.stub';
+import { domReadTransformer } from './dom-read-transformer';
 
-describe('domReadLayerAdapter', () => {
+describe('domReadTransformer', () => {
   describe('readSource()', () => {
     it('VALID: {readSource} => uses querySelectorAll and never querySelector', () => {
-      domReadLayerAdapterProxy();
-      const adapter = domReadLayerAdapter();
+      const domRead = domReadTransformer();
 
-      const source = adapter.readSource({ target: '[data-testid="BTN"]', text: null });
+      const source = domRead.readSource({ target: '[data-testid="BTN"]', text: null });
 
       expect(source.indexOf('querySelectorAll(')).toBeGreaterThanOrEqual(0);
       expect(source.indexOf('querySelector(')).toBe(-1);
     });
 
     it('VALID: {text: "full"} => enables textContent read', () => {
-      domReadLayerAdapterProxy();
-      const adapter = domReadLayerAdapter();
+      const domRead = domReadTransformer();
 
-      const source = adapter.readSource({
+      const source = domRead.readSource({
         target: '[data-testid="BTN"]',
         text: DomTextModeStub({ value: 'full' }),
       });
@@ -33,10 +30,9 @@ describe('domReadLayerAdapter', () => {
     });
 
     it('VALID: {text: "own"} => reads own text nodes via nodeType 3', () => {
-      domReadLayerAdapterProxy();
-      const adapter = domReadLayerAdapter();
+      const domRead = domReadTransformer();
 
-      const source = adapter.readSource({
+      const source = domRead.readSource({
         target: '[data-testid="BTN"]',
         text: DomTextModeStub({ value: 'own' }),
       });
@@ -45,10 +41,9 @@ describe('domReadLayerAdapter', () => {
     });
 
     it('VALID: {target embedding} => embeds target as JSON string', () => {
-      domReadLayerAdapterProxy();
-      const adapter = domReadLayerAdapter();
+      const domRead = domReadTransformer();
 
-      const source = adapter.readSource({
+      const source = domRead.readSource({
         target: '[data-testid="BTN"]',
         text: null,
       });
@@ -59,12 +54,11 @@ describe('domReadLayerAdapter', () => {
 
   describe('toReading()', () => {
     it('VALID: {raw matches within cap} => returns un-capped reading with full nodes', () => {
-      domReadLayerAdapterProxy();
-      const adapter = domReadLayerAdapter();
+      const domRead = domReadTransformer();
 
       const raw = RawDomReadingStub();
 
-      const result = adapter.toReading({ raw, fields: null });
+      const result = domRead.toReading({ raw, fields: null });
 
       expect(result).toStrictEqual({
         count: 1,
@@ -95,15 +89,14 @@ describe('domReadLayerAdapter', () => {
     });
 
     it('VALID: {fields: ["count"]} => returns pure count reading without nodes', () => {
-      domReadLayerAdapterProxy();
-      const adapter = domReadLayerAdapter();
+      const domRead = domReadTransformer();
 
       const raw = RawDomReadingStub({
         count: ReadingCountStub({ value: 42 }),
         nodes: [],
       });
 
-      const result = adapter.toReading({
+      const result = domRead.toReading({
         raw,
         fields: [DomFieldStub({ value: 'count' })],
       });
@@ -114,12 +107,11 @@ describe('domReadLayerAdapter', () => {
     });
 
     it('VALID: {fields: ["text", "rect"]} => projects nodes to only text and rect', () => {
-      domReadLayerAdapterProxy();
-      const adapter = domReadLayerAdapter();
+      const domRead = domReadTransformer();
 
       const raw = RawDomReadingStub();
 
-      const result = adapter.toReading({
+      const result = domRead.toReading({
         raw,
         fields: [DomFieldStub({ value: 'text' }), DomFieldStub({ value: 'rect' })],
       });
@@ -144,8 +136,7 @@ describe('domReadLayerAdapter', () => {
     });
 
     it('VALID: {count > showing} => sets capped true with warning note', () => {
-      domReadLayerAdapterProxy();
-      const adapter = domReadLayerAdapter();
+      const domRead = domReadTransformer();
 
       const raw = RawDomReadingStub({
         count: ReadingCountStub({ value: 58 }),
@@ -166,7 +157,7 @@ describe('domReadLayerAdapter', () => {
         ],
       });
 
-      const result = adapter.toReading({ raw, fields: null });
+      const result = domRead.toReading({ raw, fields: null });
 
       expect(result).toStrictEqual({
         count: 58,

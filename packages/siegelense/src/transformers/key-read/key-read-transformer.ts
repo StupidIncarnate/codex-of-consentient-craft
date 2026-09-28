@@ -31,7 +31,7 @@
  * so the indentation IS scope.
  *
  * USAGE:
- * const key = keyReadLayerAdapter();
+ * const key = keyReadTransformer();
  * const raw = await page.evaluate(key.readSource({ within: null }));
  * key.toListing({ raw, within: null });
  * // Returns a KeyListing whose `rendered` is the text tree a session reads
@@ -40,16 +40,16 @@
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { ContentText } from '@dungeonmaster/shared/contracts';
 
-import { keyListingContract } from '../../../contracts/key-listing/key-listing-contract';
-import type { KeyListing } from '../../../contracts/key-listing/key-listing-contract';
-import { keyRowContract } from '../../../contracts/key-row/key-row-contract';
-import { rawKeyReadingContract } from '../../../contracts/raw-key-reading/raw-key-reading-contract';
-import type { ReadingCount } from '../../../contracts/reading-count/reading-count-contract';
-import type { Selector } from '../../../contracts/selector/selector-contract';
-import { keyStatics } from '../../../statics/key/key-statics';
-import { refStatics } from '../../../statics/ref/ref-statics';
-import { attrsBudgetTransformer } from '../../../transformers/attrs-budget/attrs-budget-transformer';
-import { keyRenderTransformer } from '../../../transformers/key-render/key-render-transformer';
+import { keyListingContract } from '../../contracts/key-listing/key-listing-contract';
+import type { KeyListing } from '../../contracts/key-listing/key-listing-contract';
+import { keyRowContract } from '../../contracts/key-row/key-row-contract';
+import { rawKeyReadingContract } from '../../contracts/raw-key-reading/raw-key-reading-contract';
+import type { ReadingCount } from '../../contracts/reading-count/reading-count-contract';
+import type { Selector } from '../../contracts/selector/selector-contract';
+import { keyStatics } from '../../statics/key/key-statics';
+import { refStatics } from '../../statics/ref/ref-statics';
+import { attrsBudgetTransformer } from '../attrs-budget/attrs-budget-transformer';
+import { keyRenderTransformer } from '../key-render/key-render-transformer';
 
 const DOCUMENT_ROOT_LABEL = '(document root)';
 // `closest` against this answers "can a keyboard reach this, or anything it sits inside" — which is
@@ -275,7 +275,7 @@ const READ_SOURCE_BODY = `(params) => {
   return { rows: rows, highestRef: registry.length, skipped: skipped };
 }`;
 
-export const keyReadLayerAdapter = (): {
+export const keyReadTransformer = (): {
   readSource: (params: { within: Selector | null }) => ContentText;
   highestRefOf: (params: { raw: unknown }) => ReadingCount;
   toListing: (params: { raw: unknown; within: Selector | null }) => KeyListing;

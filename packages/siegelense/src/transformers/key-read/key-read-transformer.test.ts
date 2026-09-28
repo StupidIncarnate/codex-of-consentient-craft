@@ -1,13 +1,11 @@
-import { RawKeyReadingStub } from '../../../contracts/raw-key-reading/raw-key-reading.stub';
-import { SelectorStub } from '../../../contracts/selector/selector.stub';
-import { keyReadLayerAdapter } from './key-read-layer-adapter';
-import { keyReadLayerAdapterProxy } from './key-read-layer-adapter.proxy';
+import { RawKeyReadingStub } from '../../contracts/raw-key-reading/raw-key-reading.stub';
+import { SelectorStub } from '../../contracts/selector/selector.stub';
+import { keyReadTransformer } from './key-read-transformer';
 
-describe('keyReadLayerAdapter', () => {
+describe('keyReadTransformer', () => {
   describe('readSource()', () => {
     it('VALID: {the source} => never reads through querySelector, which silently returns match one', () => {
-      keyReadLayerAdapterProxy();
-      const key = keyReadLayerAdapter();
+      const key = keyReadTransformer();
 
       const singularQueryAt = key.readSource({ within: null }).indexOf('querySelector(');
 
@@ -15,8 +13,7 @@ describe('keyReadLayerAdapter', () => {
     });
 
     it('VALID: {the source} => never reads textContent, which once pulled a whole stylesheet into one reading', () => {
-      keyReadLayerAdapterProxy();
-      const key = keyReadLayerAdapter();
+      const key = keyReadTransformer();
 
       const textContentAt = key.readSource({ within: null }).indexOf('textContent');
 
@@ -24,8 +21,7 @@ describe('keyReadLayerAdapter', () => {
     });
 
     it('VALID: {the source} => reads own text off child nodes of type 3, through nodeValue', () => {
-      keyReadLayerAdapterProxy();
-      const key = keyReadLayerAdapter();
+      const key = keyReadTransformer();
 
       const ownTextReadAt = key
         .readSource({ within: null })
@@ -35,8 +31,7 @@ describe('keyReadLayerAdapter', () => {
     });
 
     it('VALID: {within: null} => the embedded scope is null, so the walk starts at the body', () => {
-      keyReadLayerAdapterProxy();
-      const key = keyReadLayerAdapter();
+      const key = keyReadTransformer();
 
       const scopeAt = key.readSource({ within: null }).indexOf('"within":null');
 
@@ -44,8 +39,7 @@ describe('keyReadLayerAdapter', () => {
     });
 
     it('VALID: {within: a selector} => the scope is embedded as JSON for the querySelectorAll roots', () => {
-      keyReadLayerAdapterProxy();
-      const key = keyReadLayerAdapter();
+      const key = keyReadTransformer();
 
       const scopeAt = key
         .readSource({ within: SelectorStub({ value: '[data-testid="MAP_FRAME"]' }) })
@@ -55,8 +49,7 @@ describe('keyReadLayerAdapter', () => {
     });
 
     it('VALID: {the source} => is a self-invoking call, because Playwright never CALLS a source string', () => {
-      keyReadLayerAdapterProxy();
-      const key = keyReadLayerAdapter();
+      const key = keyReadTransformer();
 
       const source = key.readSource({ within: null });
 
@@ -66,8 +59,7 @@ describe('keyReadLayerAdapter', () => {
 
   describe('highestRefOf()', () => {
     it("VALID: {a reading} => returns the registry's length, which is what tells a navigation from another instance", () => {
-      keyReadLayerAdapterProxy();
-      const key = keyReadLayerAdapter();
+      const key = keyReadTransformer();
 
       const result = key.highestRefOf({ raw: RawKeyReadingStub({ highestRef: 41 }) });
 
@@ -77,8 +69,7 @@ describe('keyReadLayerAdapter', () => {
 
   describe('toListing()', () => {
     it('VALID: {two rows} => each becomes a KeyRow with its budgeted attrs, and the listing renders', () => {
-      keyReadLayerAdapterProxy();
-      const key = keyReadLayerAdapter();
+      const key = keyReadTransformer();
 
       const result = key.toListing({
         raw: RawKeyReadingStub({
@@ -168,8 +159,7 @@ describe('keyReadLayerAdapter', () => {
     });
 
     it('VALID: {two siblings sharing a testId under one parent} => each gets its nth marker, which is how the two are told apart', () => {
-      keyReadLayerAdapterProxy();
-      const key = keyReadLayerAdapter();
+      const key = keyReadTransformer();
 
       const result = key.toListing({
         raw: RawKeyReadingStub({
@@ -229,8 +219,7 @@ describe('keyReadLayerAdapter', () => {
     });
 
     it('VALID: {a testId under two different parents} => a duplicate line names both parents, which is the case the nth marker cannot catch', () => {
-      keyReadLayerAdapterProxy();
-      const key = keyReadLayerAdapter();
+      const key = keyReadTransformer();
 
       const result = key.toListing({
         raw: RawKeyReadingStub({
@@ -307,8 +296,7 @@ describe('keyReadLayerAdapter', () => {
     });
 
     it('VALID: {a per-mount generated DOM id} => dropped, because a key carrying one differs between two readings of the same state', () => {
-      keyReadLayerAdapterProxy();
-      const key = keyReadLayerAdapter();
+      const key = keyReadTransformer();
 
       const result = key.toListing({
         raw: RawKeyReadingStub({
@@ -338,8 +326,7 @@ describe('keyReadLayerAdapter', () => {
     });
 
     it('VALID: {a stable DOM id} => kept, because it is the app speaking and not a mint', () => {
-      keyReadLayerAdapterProxy();
-      const key = keyReadLayerAdapter();
+      const key = keyReadTransformer();
 
       const result = key.toListing({
         raw: RawKeyReadingStub({
@@ -369,8 +356,7 @@ describe('keyReadLayerAdapter', () => {
     });
 
     it('VALID: {a skipped group} => a truncation line names the count and the container, so the key never quietly stops', () => {
-      keyReadLayerAdapterProxy();
-      const key = keyReadLayerAdapter();
+      const key = keyReadTransformer();
 
       const result = key.toListing({
         raw: RawKeyReadingStub({ skipped: [{ under: 'CHAT_MESSAGES_AREA', count: 12 }] }),
@@ -381,8 +367,7 @@ describe('keyReadLayerAdapter', () => {
     });
 
     it('VALID: {within} => the scope rides the listing and its summary line', () => {
-      keyReadLayerAdapterProxy();
-      const key = keyReadLayerAdapter();
+      const key = keyReadTransformer();
 
       const result = key.toListing({
         raw: RawKeyReadingStub(),
@@ -393,8 +378,7 @@ describe('keyReadLayerAdapter', () => {
     });
 
     it('EMPTY: {no rows} => the rendered reading SAYS it is empty rather than coming back blank', () => {
-      keyReadLayerAdapterProxy();
-      const key = keyReadLayerAdapter();
+      const key = keyReadTransformer();
 
       const result = key.toListing({ raw: RawKeyReadingStub(), within: null });
 
@@ -407,8 +391,7 @@ describe('keyReadLayerAdapter', () => {
     });
 
     it('ERROR: {raw: a shape the page never produces} => throws rather than handing back a half-built key', () => {
-      keyReadLayerAdapterProxy();
-      const key = keyReadLayerAdapter();
+      const key = keyReadTransformer();
 
       expect(() => key.toListing({ raw: { rows: [] }, within: null })).toThrow(
         /received undefined/u,

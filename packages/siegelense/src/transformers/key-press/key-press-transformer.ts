@@ -5,19 +5,19 @@
  * into a validated `KeyReading`.
  *
  * USAGE:
- * const adapter = keyPressLayerAdapter();
- * const source = adapter.focusReadSource();
+ * const keyPress = keyPressTransformer();
+ * const source = keyPress.focusReadSource();
  * const raw = await page.evaluate(source);
- * const reading = adapter.toReading({ press: 'Enter', rawFocused: raw });
+ * const reading = keyPress.toReading({ press: 'Enter', rawFocused: raw });
  */
 
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { ContentText } from '@dungeonmaster/shared/contracts';
 
-import { focusedElementContract } from '../../../contracts/focused-element/focused-element-contract';
-import { keyReadingContract } from '../../../contracts/key-reading/key-reading-contract';
-import type { KeyReading } from '../../../contracts/key-reading/key-reading-contract';
-import { refStatics } from '../../../statics/ref/ref-statics';
+import { focusedElementContract } from '../../contracts/focused-element/focused-element-contract';
+import { keyReadingContract } from '../../contracts/key-reading/key-reading-contract';
+import type { KeyReading } from '../../contracts/key-reading/key-reading-contract';
+import { refStatics } from '../../statics/ref/ref-statics';
 
 const FOCUS_READ_SOURCE = `(() => {
   const element = document.activeElement;
@@ -62,7 +62,7 @@ const FOCUS_READ_SOURCE = `(() => {
   };
 })()`;
 
-export const keyPressLayerAdapter = (): {
+export const keyPressTransformer = (): {
   focusReadSource: () => ContentText;
   toReading: (params: { press: string; rawFocused: unknown }) => KeyReading;
 } => ({

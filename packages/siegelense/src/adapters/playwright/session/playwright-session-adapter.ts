@@ -3,7 +3,7 @@
  * `BrowserSession` facade every step-running broker drives — the ONLY file in this package allowed
  * to import `@playwright/test`, so every `Page`/`Browser`/`Locator` type it touches stays inside
  * this one folder. `packages/web/test/siege-driver/siege-lane.ts` lines 204-341 is the measured
- * shape for the launch and every listener; `listenersLayerAdapter` builds the JSON line for each one
+ * shape for the launch and every listener; `listenerLinesTransformer` builds the JSON line for each one
  * from plain values this file extracts, so the npm boundary stays in exactly one place. Targeting
  * methods (`countMatches`, `clickMatch`, `fillMatch`, `waitForMatch`) never call `.first()`/`.last()`
  * — `within` and `target` compose into ONE CSS descendant selector Playwright resolves in strict
@@ -57,12 +57,12 @@ import type { StorageReading } from '../../../contracts/storage-reading/storage-
 import { videoResultContract } from '../../../contracts/video-result/video-result-contract';
 import type { VideoResult } from '../../../contracts/video-result/video-result-contract';
 import type { VideoAction } from '../../../contracts/video-action/video-action-contract';
-import { domReadLayerAdapter } from './dom-read-layer-adapter';
-import { keyPressLayerAdapter } from './key-press-layer-adapter';
-import { keyReadLayerAdapter } from './key-read-layer-adapter';
-import { listenersLayerAdapter } from './listeners-layer-adapter';
+import { domReadTransformer } from '../../../transformers/dom-read/dom-read-transformer';
+import { keyPressTransformer } from '../../../transformers/key-press/key-press-transformer';
+import { keyReadTransformer } from '../../../transformers/key-read/key-read-transformer';
+import { listenerLinesTransformer } from '../../../transformers/listener-lines/listener-lines-transformer';
 import { refRegistryLayerAdapter } from './ref-registry-layer-adapter';
-import { rootCheckLayerAdapter } from './root-check-layer-adapter';
+import { rootCheckTransformer } from '../../../transformers/root-check/root-check-transformer';
 import { settleWaitLayerAdapter } from './settle-wait-layer-adapter';
 import { viewportSetLayerAdapter } from './viewport-set-layer-adapter';
 import { initScriptAddLayerAdapter } from './init-script-add-layer-adapter';
@@ -156,12 +156,12 @@ export const playwrightSessionAdapter = async ({
   const consoleLines: ContentText[] = [];
   const networkLines: ContentText[] = [];
   const websocketLines: ContentText[] = [];
-  const linesBuild = listenersLayerAdapter();
+  const linesBuild = listenerLinesTransformer();
   const refRegistry = refRegistryLayerAdapter();
-  const keyReader = keyReadLayerAdapter();
-  const domReader = domReadLayerAdapter();
-  const keyPress = keyPressLayerAdapter();
-  const rootChecker = rootCheckLayerAdapter();
+  const keyReader = keyReadTransformer();
+  const domReader = domReadTransformer();
+  const keyPress = keyPressTransformer();
+  const rootChecker = rootCheckTransformer();
   // `pollerRepeatThreshold` at CONSTRUCTION, from `driverStatics.settle` — not the layer's own
   // built-in default, which happens to carry the same number today but would silently drift from
   // this static the moment either one changed without the other.

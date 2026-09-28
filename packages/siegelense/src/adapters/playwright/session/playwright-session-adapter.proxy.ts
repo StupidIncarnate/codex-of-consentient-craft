@@ -10,12 +10,7 @@ import {
   requireActual,
 } from '@dungeonmaster/testing/register-mock';
 
-import { domReadLayerAdapterProxy } from './dom-read-layer-adapter.proxy';
-import { keyPressLayerAdapterProxy } from './key-press-layer-adapter.proxy';
-import { keyReadLayerAdapterProxy } from './key-read-layer-adapter.proxy';
-import { listenersLayerAdapterProxy } from './listeners-layer-adapter.proxy';
 import { refRegistryLayerAdapterProxy } from './ref-registry-layer-adapter.proxy';
-import { rootCheckLayerAdapterProxy } from './root-check-layer-adapter.proxy';
 import { settleWaitLayerAdapterProxy } from './settle-wait-layer-adapter.proxy';
 import { viewportSetLayerAdapterProxy } from './viewport-set-layer-adapter.proxy';
 import { initScriptAddLayerAdapterProxy } from './init-script-add-layer-adapter.proxy';
@@ -123,15 +118,9 @@ export const playwrightSessionAdapterProxy = (): {
     .calledWith([])
     .implement((...segments: never[]) => realPath.join(...segments));
 
-  // Each of these three layer adapters is pure (no npm boundary of its own), so its proxy is empty
-  // — called here only to satisfy enforce-proxy-child-creation, since this file's implementation
-  // imports all three.
-  listenersLayerAdapterProxy();
-  keyPressLayerAdapterProxy();
-  keyReadLayerAdapterProxy();
+  // Called to satisfy enforce-proxy-child-creation, since this file's implementation imports every
+  // one of these layers.
   refRegistryLayerAdapterProxy();
-  domReadLayerAdapterProxy();
-  rootCheckLayerAdapterProxy();
   settleWaitLayerAdapterProxy();
   viewportSetLayerAdapterProxy();
   initScriptAddLayerAdapterProxy();

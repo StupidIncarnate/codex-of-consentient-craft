@@ -4,18 +4,18 @@
  * the raw evaluation result into a boolean.
  *
  * USAGE:
- * const adapter = rootCheckLayerAdapter();
- * const source = adapter.checkSource();
+ * const rootCheck = rootCheckTransformer();
+ * const source = rootCheck.checkSource();
  * const raw = await page.evaluate(source);
- * const isPresent = adapter.toResult({ raw });
+ * const isPresent = rootCheck.toResult({ raw });
  */
 
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { ContentText } from '@dungeonmaster/shared/contracts';
 
-import { healthStatics } from '../../../statics/health/health-statics';
+import { healthStatics } from '../../statics/health/health-statics';
 
-export const rootCheckLayerAdapter = (): {
+export const rootCheckTransformer = (): {
   checkSource: () => ContentText;
   toResult: (params: { raw: unknown }) => boolean;
 } => ({

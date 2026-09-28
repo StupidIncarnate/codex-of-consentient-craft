@@ -5,25 +5,25 @@
  * raw return into a validated `DomReading` with field projection and self-reporting cap warnings.
  *
  * USAGE:
- * const adapter = domReadLayerAdapter();
- * const source = adapter.readSource({ target: '[data-testid="QUEST_ROW"]', text: 'own' });
+ * const domRead = domReadTransformer();
+ * const source = domRead.readSource({ target: '[data-testid="QUEST_ROW"]', text: 'own' });
  * const raw = await page.evaluate(source);
- * const reading = adapter.toReading({ raw, fields: ['text', 'rect'] });
+ * const reading = domRead.toReading({ raw, fields: ['text', 'rect'] });
  */
 
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { ContentText } from '@dungeonmaster/shared/contracts';
 
-import type { DomField } from '../../../contracts/dom-field/dom-field-contract';
-import { domNodeContract } from '../../../contracts/dom-node/dom-node-contract';
-import { domReadingContract } from '../../../contracts/dom-reading/dom-reading-contract';
-import type { DomReading } from '../../../contracts/dom-reading/dom-reading-contract';
-import type { DomTextMode } from '../../../contracts/dom-text-mode/dom-text-mode-contract';
-import { rawDomReadingContract } from '../../../contracts/raw-dom-reading/raw-dom-reading-contract';
-import { readingCountContract } from '../../../contracts/reading-count/reading-count-contract';
-import { domStatics } from '../../../statics/dom/dom-statics';
+import type { DomField } from '../../contracts/dom-field/dom-field-contract';
+import { domNodeContract } from '../../contracts/dom-node/dom-node-contract';
+import { domReadingContract } from '../../contracts/dom-reading/dom-reading-contract';
+import type { DomReading } from '../../contracts/dom-reading/dom-reading-contract';
+import type { DomTextMode } from '../../contracts/dom-text-mode/dom-text-mode-contract';
+import { rawDomReadingContract } from '../../contracts/raw-dom-reading/raw-dom-reading-contract';
+import { readingCountContract } from '../../contracts/reading-count/reading-count-contract';
+import { domStatics } from '../../statics/dom/dom-statics';
 
-export const domReadLayerAdapter = (): {
+export const domReadTransformer = (): {
   readSource: (params: { target: string; text: DomTextMode | null }) => ContentText;
   toReading: (params: { raw: unknown; fields: readonly DomField[] | null }) => DomReading;
 } => ({

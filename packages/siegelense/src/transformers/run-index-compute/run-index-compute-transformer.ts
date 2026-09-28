@@ -3,7 +3,7 @@
  * since this run's own start, and server log lines read from the same byte offset — never the
  * instance's running total (siegelense-tooling.md line 90: "A run's index counts its OWN window,
  * never the running total... Otherwise run 5 reports 47 console errors that are mostly run 1's").
- * Each console line is the JSON `listenersLayerAdapter` builds — `"kind":"pageerror"` for an uncaught
+ * Each console line is the JSON `listenerLinesTransformer` builds — `"kind":"pageerror"` for an uncaught
  * exception, `"kind":"console","type":"error"|"warning"` for a console message — and JSON.stringify's
  * fixed key order (`at`, `kind`, `type`, ...) is what makes a plain substring match safe rather than a
  * full parse. Network lines are classified by `isNetworkLineNon2xxGuard` — the literal [200, 300)

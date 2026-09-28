@@ -1,12 +1,10 @@
-import { listenersLayerAdapter } from './listeners-layer-adapter';
-import { listenersLayerAdapterProxy } from './listeners-layer-adapter.proxy';
-import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
+import { listenerLinesTransformer } from './listener-lines-transformer';
+import { EpochMsStub } from '../../contracts/epoch-ms/epoch-ms.stub';
 
-describe('listenersLayerAdapter', () => {
+describe('listenerLinesTransformer', () => {
   describe('isBodySkippedResourceType()', () => {
     it('VALID: {resourceType: "script"} => returns true', () => {
-      listenersLayerAdapterProxy();
-      const linesBuild = listenersLayerAdapter();
+      const linesBuild = listenerLinesTransformer();
 
       const result = linesBuild.isBodySkippedResourceType({ resourceType: 'script' });
 
@@ -14,8 +12,7 @@ describe('listenersLayerAdapter', () => {
     });
 
     it('VALID: {resourceType: "xhr"} => returns false', () => {
-      listenersLayerAdapterProxy();
-      const linesBuild = listenersLayerAdapter();
+      const linesBuild = listenerLinesTransformer();
 
       const result = linesBuild.isBodySkippedResourceType({ resourceType: 'xhr' });
 
@@ -25,8 +22,7 @@ describe('listenersLayerAdapter', () => {
 
   describe('skippedBodyPlaceholder()', () => {
     it('VALID: {} => says the body was not captured for this resource type', () => {
-      listenersLayerAdapterProxy();
-      const linesBuild = listenersLayerAdapter();
+      const linesBuild = listenerLinesTransformer();
 
       const result = linesBuild.skippedBodyPlaceholder();
 
@@ -36,8 +32,7 @@ describe('listenersLayerAdapter', () => {
 
   describe('unavailableBodyPlaceholder()', () => {
     it('VALID: {error: Error("boom")} => embeds the error string', () => {
-      listenersLayerAdapterProxy();
-      const linesBuild = listenersLayerAdapter();
+      const linesBuild = listenerLinesTransformer();
 
       const result = linesBuild.unavailableBodyPlaceholder({ error: new Error('boom') });
 
@@ -47,8 +42,7 @@ describe('listenersLayerAdapter', () => {
 
   describe('truncatedBody()', () => {
     it('VALID: {text: "hello"} => returns it unchanged', () => {
-      listenersLayerAdapterProxy();
-      const linesBuild = listenersLayerAdapter();
+      const linesBuild = listenerLinesTransformer();
 
       const result = linesBuild.truncatedBody({ text: 'hello' });
 
@@ -56,8 +50,7 @@ describe('listenersLayerAdapter', () => {
     });
 
     it('EDGE: {text: 200,001 chars} => caps at 200,000 chars', () => {
-      listenersLayerAdapterProxy();
-      const linesBuild = listenersLayerAdapter();
+      const linesBuild = listenerLinesTransformer();
 
       const result = linesBuild.truncatedBody({ text: 'x'.repeat(200_001) });
 
@@ -67,8 +60,7 @@ describe('listenersLayerAdapter', () => {
 
   describe('truncatePayload()', () => {
     it('VALID: {text: "hello"} => returns it unchanged', () => {
-      listenersLayerAdapterProxy();
-      const linesBuild = listenersLayerAdapter();
+      const linesBuild = listenerLinesTransformer();
 
       const result = linesBuild.truncatePayload({ text: 'hello' });
 
@@ -76,8 +68,7 @@ describe('listenersLayerAdapter', () => {
     });
 
     it('EDGE: {text: 200,001 chars} => caps at 200,000 chars', () => {
-      listenersLayerAdapterProxy();
-      const linesBuild = listenersLayerAdapter();
+      const linesBuild = listenerLinesTransformer();
 
       const result = linesBuild.truncatePayload({ text: 'x'.repeat(200_001) });
 
@@ -87,8 +78,7 @@ describe('listenersLayerAdapter', () => {
 
   describe('consoleLine()', () => {
     it('VALID: {console fields} => returns the exact JSON line', () => {
-      listenersLayerAdapterProxy();
-      const linesBuild = listenersLayerAdapter();
+      const linesBuild = listenerLinesTransformer();
 
       const result = linesBuild.consoleLine({
         at: EpochMsStub({ value: 1_700_000_000_000 }),
@@ -106,8 +96,7 @@ describe('listenersLayerAdapter', () => {
 
   describe('pageErrorLine()', () => {
     it('VALID: {pageerror fields} => returns the exact JSON line', () => {
-      listenersLayerAdapterProxy();
-      const linesBuild = listenersLayerAdapter();
+      const linesBuild = listenerLinesTransformer();
 
       const result = linesBuild.pageErrorLine({
         at: EpochMsStub({ value: 1_700_000_000_000 }),
@@ -124,8 +113,7 @@ describe('listenersLayerAdapter', () => {
 
   describe('networkLine()', () => {
     it('VALID: {network fields} => returns the exact JSON line', () => {
-      listenersLayerAdapterProxy();
-      const linesBuild = listenersLayerAdapter();
+      const linesBuild = listenerLinesTransformer();
 
       const result = linesBuild.networkLine({
         at: EpochMsStub({ value: 1_700_000_000_000 }),
@@ -145,8 +133,7 @@ describe('listenersLayerAdapter', () => {
 
   describe('requestFailedLine()', () => {
     it('VALID: {requestfailed fields} => returns the exact JSON line naming the failure', () => {
-      listenersLayerAdapterProxy();
-      const linesBuild = listenersLayerAdapter();
+      const linesBuild = listenerLinesTransformer();
 
       const result = linesBuild.requestFailedLine({
         at: EpochMsStub({ value: 1_700_000_000_000 }),
@@ -165,8 +152,7 @@ describe('listenersLayerAdapter', () => {
 
   describe('websocketFrameLine()', () => {
     it('VALID: {sent frame} => returns the exact JSON line', () => {
-      listenersLayerAdapterProxy();
-      const linesBuild = listenersLayerAdapter();
+      const linesBuild = listenerLinesTransformer();
 
       const result = linesBuild.websocketFrameLine({
         at: EpochMsStub({ value: 1_700_000_000_000 }),
@@ -183,8 +169,7 @@ describe('listenersLayerAdapter', () => {
 
   describe('websocketCloseLine()', () => {
     it('VALID: {url} => returns the exact JSON close line', () => {
-      listenersLayerAdapterProxy();
-      const linesBuild = listenersLayerAdapter();
+      const linesBuild = listenerLinesTransformer();
 
       const result = linesBuild.websocketCloseLine({
         at: EpochMsStub({ value: 1_700_000_000_000 }),

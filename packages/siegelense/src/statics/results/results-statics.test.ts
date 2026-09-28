@@ -19,7 +19,7 @@ describe('resultsStatics', () => {
   });
 
   describe('patterns.consoleError', () => {
-    it('VALID: {listenersLayerAdapter console error line} => matches', () => {
+    it('VALID: {listenerLinesTransformer console error line} => matches', () => {
       const { source, flags } = resultsStatics.patterns.consoleError;
       const line = JSON.stringify({
         at: 1,
@@ -33,7 +33,7 @@ describe('resultsStatics', () => {
       expect(new RegExp(source, flags).test(line)).toBe(true);
     });
 
-    it('VALID: {listenersLayerAdapter pageerror line} => matches', () => {
+    it('VALID: {listenerLinesTransformer pageerror line} => matches', () => {
       const { source, flags } = resultsStatics.patterns.consoleError;
       const line = JSON.stringify({
         at: 1,
@@ -46,7 +46,7 @@ describe('resultsStatics', () => {
       expect(new RegExp(source, flags).test(line)).toBe(true);
     });
 
-    it('VALID: {listenersLayerAdapter console warning line} => does not match', () => {
+    it('VALID: {listenerLinesTransformer console warning line} => does not match', () => {
       const { source, flags } = resultsStatics.patterns.consoleError;
       const line = JSON.stringify({
         at: 1,
@@ -62,7 +62,7 @@ describe('resultsStatics', () => {
   });
 
   describe('patterns.consoleWarning', () => {
-    it('VALID: {listenersLayerAdapter console warning line} => matches', () => {
+    it('VALID: {listenerLinesTransformer console warning line} => matches', () => {
       const { source, flags } = resultsStatics.patterns.consoleWarning;
       const line = JSON.stringify({
         at: 1,
@@ -76,7 +76,7 @@ describe('resultsStatics', () => {
       expect(new RegExp(source, flags).test(line)).toBe(true);
     });
 
-    it('VALID: {listenersLayerAdapter console error line} => does not match', () => {
+    it('VALID: {listenerLinesTransformer console error line} => does not match', () => {
       const { source, flags } = resultsStatics.patterns.consoleWarning;
       const line = JSON.stringify({
         at: 1,
@@ -108,7 +108,7 @@ describe('resultsStatics', () => {
   });
 
   describe('patterns.networkStatus', () => {
-    it('VALID: {listenersLayerAdapter network line with a 500 status} => captures "500"', () => {
+    it('VALID: {listenerLinesTransformer network line with a 500 status} => captures "500"', () => {
       const { source, flags } = resultsStatics.patterns.networkStatus;
       const line = JSON.stringify({
         at: 1,
@@ -123,7 +123,7 @@ describe('resultsStatics', () => {
       expect(new RegExp(source, flags).exec(line)?.[1]).toBe('500');
     });
 
-    it('VALID: {listenersLayerAdapter requestfailed line} => captures "null"', () => {
+    it('VALID: {listenerLinesTransformer requestfailed line} => captures "null"', () => {
       const { source, flags } = resultsStatics.patterns.networkStatus;
       const line = JSON.stringify({
         at: 1,

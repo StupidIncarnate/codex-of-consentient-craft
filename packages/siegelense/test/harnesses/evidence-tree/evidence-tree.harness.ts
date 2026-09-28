@@ -95,7 +95,7 @@ const RGBA_CHANNELS = 4;
 const OPAQUE_ALPHA = 255;
 const STALE_LAST_BEAT_MS_AGO = 10 * 60 * 1000;
 
-// listenersLayerAdapter's own console/network line shapes — the exact substrings
+// listenerLinesTransformer's own console/network line shapes — the exact substrings
 // resultsStatics.patterns matches against, so these fixture lines classify the same way a real
 // browser capture would.
 const CONSOLE_STEP1_LOG = ContentTextStub({

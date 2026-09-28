@@ -1,14 +1,12 @@
 /**
  * PURPOSE: Pure JSON-line builders for the console, pageerror, network (response + requestfailed)
  * and websocket events `playwright-session-adapter` listens for. This file touches no Playwright
- * object and imports nothing from `@playwright/test` — the parent is the ONLY file in the package
- * allowed to do that, arms every `page.on(...)` listener itself, extracts each event's fields with
- * its own calls into the npm package, and hands this layer plain values to shape into the
- * `ContentText` line it pushes onto a buffer. That split is what keeps this adapter's own proxy
- * mocking nothing — there is no npm boundary left in this file for a proxy to mock.
+ * object and imports nothing from `@playwright/test` — the session arms every `page.on(...)`
+ * listener itself, extracts each event's fields, and hands this transformer plain values to shape
+ * into the `ContentText` line it pushes onto a buffer.
  *
  * USAGE:
- * const linesBuild = listenersLayerAdapter();
+ * const linesBuild = listenerLinesTransformer();
  * linesBuild.consoleLine({ at: EpochMsStub({}), type: 'log', text: 'hi', url: 'http://x', line: 1 });
  * // Returns a ContentText JSON line, ready to push onto the console buffer
  */
@@ -16,7 +14,7 @@
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { ContentText } from '@dungeonmaster/shared/contracts';
 
-import type { EpochMs } from '../../../contracts/epoch-ms/epoch-ms-contract';
+import type { EpochMs } from '../../contracts/epoch-ms/epoch-ms-contract';
 
 // Reading a response body costs a round trip to the browser, and a bundle's body answers no
 // question a siege asks. Matches `siege-lane.ts`'s own BODY_SKIP_RESOURCE_TYPES.
@@ -26,7 +24,7 @@ const BODY_SKIP_RESOURCE_TYPES = new Set(['script', 'stylesheet', 'image', 'font
 const MAX_BODY_CHARS = 200_000;
 const SKIPPED_BODY_TEXT = '<body not captured for this resource type>';
 
-export const listenersLayerAdapter = (): {
+export const listenerLinesTransformer = (): {
   isBodySkippedResourceType: (params: { resourceType: string }) => boolean;
   skippedBodyPlaceholder: () => ContentText;
   unavailableBodyPlaceholder: (params: { error: unknown }) => ContentText;

@@ -1,6 +1,6 @@
 /**
  * PURPOSE: What the page hands back from the `dom` step's one `page.evaluate` — carrying `count`
- * and unprojected raw DOM node objects, before `domReadLayerAdapter` applies field projection,
+ * and unprojected raw DOM node objects, before `domReadTransformer` applies field projection,
  * match cap reporting, and warning note formatting.
  *
  * USAGE:

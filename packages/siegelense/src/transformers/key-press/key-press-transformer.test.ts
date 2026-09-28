@@ -1,13 +1,11 @@
-import { FocusedElementStub } from '../../../contracts/focused-element/focused-element.stub';
-import { keyPressLayerAdapter } from './key-press-layer-adapter';
-import { keyPressLayerAdapterProxy } from './key-press-layer-adapter.proxy';
+import { FocusedElementStub } from '../../contracts/focused-element/focused-element.stub';
+import { keyPressTransformer } from './key-press-transformer';
 
-describe('keyPressLayerAdapter', () => {
+describe('keyPressTransformer', () => {
   describe('focusReadSource()', () => {
     it('VALID: {focusReadSource} => generates page script inspecting activeElement', () => {
-      keyPressLayerAdapterProxy();
-      const adapter = keyPressLayerAdapter();
-      const source = adapter.focusReadSource();
+      const keyPress = keyPressTransformer();
+      const source = keyPress.focusReadSource();
 
       const activeElementIndex = source.indexOf('document.activeElement');
       const siegeIndex = source.indexOf('__siege');
@@ -21,9 +19,8 @@ describe('keyPressLayerAdapter', () => {
 
   describe('toReading()', () => {
     it('VALID: {rawFocused: null} => returns reading with focused: null', () => {
-      keyPressLayerAdapterProxy();
-      const adapter = keyPressLayerAdapter();
-      const result = adapter.toReading({ press: 'Enter', rawFocused: null });
+      const keyPress = keyPressTransformer();
+      const result = keyPress.toReading({ press: 'Enter', rawFocused: null });
 
       expect(result).toStrictEqual({
         press: 'Enter',
@@ -32,15 +29,14 @@ describe('keyPressLayerAdapter', () => {
     });
 
     it('VALID: {rawFocused: element} => returns reading with focused element parsed', () => {
-      keyPressLayerAdapterProxy();
-      const adapter = keyPressLayerAdapter();
+      const keyPress = keyPressTransformer();
       const rawElement = FocusedElementStub({
         tag: 'input',
         testId: 'NAME_INPUT',
         text: 'alice',
         ref: 14,
       });
-      const result = adapter.toReading({ press: 'Tab', rawFocused: rawElement });
+      const result = keyPress.toReading({ press: 'Tab', rawFocused: rawElement });
 
       expect(result).toStrictEqual({
         press: 'Tab',
@@ -56,10 +52,9 @@ describe('keyPressLayerAdapter', () => {
     });
 
     it('INVALID: {invalid rawFocused shape} => throws parsing error', () => {
-      keyPressLayerAdapterProxy();
-      const adapter = keyPressLayerAdapter();
+      const keyPress = keyPressTransformer();
 
-      expect(() => adapter.toReading({ press: 'Enter', rawFocused: 'not-an-element' })).toThrow(
+      expect(() => keyPress.toReading({ press: 'Enter', rawFocused: 'not-an-element' })).toThrow(
         /expected object/u,
       );
     });
