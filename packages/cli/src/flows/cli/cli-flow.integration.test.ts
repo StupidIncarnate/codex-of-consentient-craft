@@ -5,7 +5,7 @@ import {
   FileContentStub,
 } from '@dungeonmaster/testing';
 import { FileContentsStub, FilePathStub } from '@dungeonmaster/shared/contracts';
-import { siegelenseHelpStatics } from '@dungeonmaster/siegelense/statics';
+import { machineStatics, siegelenseHelpStatics } from '@dungeonmaster/siegelense/statics';
 
 import { cliStatuslineHarness } from '../../../test/harnesses/cli-statusline/cli-statusline.harness';
 import { npmCommandFakeHarness } from '../../../test/harnesses/npm-command-fake/npm-command-fake.harness';
@@ -306,7 +306,7 @@ describe('CliFlow', () => {
       stdout.restore();
     });
 
-    it('VALID: {command: "siegelense", args: []} => routes through the real dynamic import to the fleet responder and reports an empty registry', async () => {
+    it('VALID: {command: "siegelense", args: []} => routes through the real dynamic import to the status responder and reports the reworded empty-fleet sentence naming the default --since window', async () => {
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'cli-flow-siegelense-bare' }),
       });
@@ -328,7 +328,20 @@ describe('CliFlow', () => {
       env.restore();
       testbed.cleanup();
 
-      expect(stdoutOutput).toStrictEqual(['No siegelense instances running.\n']);
+      // MACHINE reads live statfs/loadavg, asserted by shape only — the same way
+      // start-siegelense.integration.test.ts keeps its equivalent assertion deterministic.
+      const [wholeOutput] = stdoutOutput;
+      const [monitoredLine, machineLine, emptyFleetLine, trailingLine] =
+        String(wholeOutput).split('\n');
+
+      expect([monitoredLine, emptyFleetLine, trailingLine]).toStrictEqual([
+        `MONITORED: ${machineStatics.monitored.join(', ')}`,
+        'No siegelense instances created in the last 6hr. Widen with --since beginning.',
+        '',
+      ]);
+      expect(machineLine).toMatch(
+        /^MACHINE: free \d+MB\/\d+MB mem, free disk \d+MB, \d+ cores, load [\d.]+\/[\d.]+\/[\d.]+, OOM kills \d+ \(last (?:-|\d{2}:\d{2}:\d{2})\)$/u,
+      );
     });
 
     // Beside the bare-invocation test above, driving the same real dynamic import — the cheaper
