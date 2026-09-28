@@ -876,8 +876,8 @@ describe('multiPackageLayerBroker', () => {
       const config = WardConfigStub({ only: ['lint'] });
 
       const proxy = multiPackageLayerBrokerProxy();
-      proxy.setupWardConcurrency({ rootPath, concurrency: 1 });
       proxy.setupSpawnAndLoad({ rootPath, projectFolders, subResultContent: subResult });
+      proxy.setupWardConcurrency({ rootPath, concurrency: 1 });
 
       const result = await multiPackageLayerBroker({ config, projectFolders, rootPath });
 

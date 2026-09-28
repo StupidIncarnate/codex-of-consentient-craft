@@ -69,12 +69,22 @@ export const multiPackageLayerBrokerProxy = (): {
   // addresses the spawn read against whatever setup last resolved — set here, read there.
   const resolvedCommandRef: { value: BinCommand } = { value: BinCommandStub() };
 
-  // Default: a resolved config carrying no `ward` key at all, matching what a consumer who has
-  // never heard of this key gets back for real (see P14) — the broker under test falls back to
-  // configDefaultsStatics.ward.concurrency.default on its own, so this default answer is what
-  // keeps every OTHER test in this file's observable behaviour unchanged.
   const configResolveHandle = registerMock({ fn: configResolveBroker });
-  configResolveHandle.calledWith([]).resolves(DungeonmasterConfigStub());
+  // A resolved config carrying no `ward` key at all, matching what a consumer who has never heard
+  // of this key gets back for real (see P14) — the broker under test falls back to
+  // configDefaultsStatics.ward.concurrency.default on its own. Staged per rootPath by every
+  // setup method below, addressed by the exact `{filePath}` the broker builds.
+  const stageConfigForRoot = ({
+    rootPath,
+    config,
+  }: {
+    rootPath: AbsoluteFilePath;
+    config: ReturnType<typeof DungeonmasterConfigStub>;
+  }): void => {
+    configResolveHandle
+      .calledWith([{ filePath: filePathContract.parse(`${String(rootPath)}/package.json`) }])
+      .resolves(config);
+  };
 
   // Every child ward process embeds its own runId in the printed summary line, and this level's
   // own storageSaveBroker/storagePruneBroker calls generate a runId the same way — both read the
@@ -90,6 +100,7 @@ export const multiPackageLayerBrokerProxy = (): {
       binName: BinCommandStub({ value: wardSpawnCommandStatics.bin }),
     });
     resolvedCommandRef.value = command;
+    stageConfigForRoot({ rootPath, config: DungeonmasterConfigStub() });
     return command;
   };
 
@@ -189,8 +200,8 @@ export const multiPackageLayerBrokerProxy = (): {
       pruneProxy.setupEmpty({ rootPath });
     },
 
-    // Addressed by the exact filePath the broker under test builds (rootPath's own package.json),
-    // which out-specifies the catch-all default staged above.
+    // Call AFTER the setupSpawn*/setupNoSpawns method: each of those stages the default config
+    // for the same rootPath address, and the later staging wins.
     setupWardConcurrency: ({
       rootPath,
       concurrency,
@@ -198,9 +209,7 @@ export const multiPackageLayerBrokerProxy = (): {
       rootPath: AbsoluteFilePath;
       concurrency: number;
     }): void => {
-      configResolveHandle
-        .calledWith([{ filePath: filePathContract.parse(`${String(rootPath)}/package.json`) }])
-        .resolves(DungeonmasterConfigStub({ ward: { concurrency } }));
+      stageConfigForRoot({ rootPath, config: DungeonmasterConfigStub({ ward: { concurrency } }) });
     },
 
     getStderrCalls: (): unknown[] => stderrSpy.callsMatching([]).map((call) => call[0]),

@@ -142,3 +142,19 @@ Z03, which owns `get-testing-patterns` text, so the wording lands once, not once
 ## Concessions made while executing
 
 <Empty at the start. The operator fills this and mirrors it into EPIC.md's Concessions table.>
+
+## Plan — T05 ward
+
+Scanned `packages/ward/**/*.ts` with all three rules on, through a temporary config
+(`tmp/t05-ward.config.js`, extends `eslint.config.js`) driven by the ESLint Node API
+(`tmp/t05-scan.js`; bare `npx eslint` is hook-blocked). One violation, before any edit:
+
+- `packages/ward/src/brokers/command/run/multi-package-layer-broker.proxy.ts:77`
+  `ban-proxy-empty-called-with` — `configResolveHandle.calledWith([])` on `configResolveBroker`,
+  which takes `{ filePath }`.
+
+`ban-proxy-catch-all-defaults` and `ban-invented-failures` flag nothing in ward. Fix: the proxy
+stages the default config per rootPath, addressed by the exact `{ filePath }`, from the shared
+`resolveWardBin` step every setup method already calls; the one test that calls
+`setupWardConcurrency` now calls it after `setupSpawnAndLoad`, since the later staging wins.
+Rescanned after the edit: 0 violations across the three rules.
