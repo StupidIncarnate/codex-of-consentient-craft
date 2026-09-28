@@ -1,6 +1,6 @@
 /**
  * PURPOSE: Cuts a raw `Error.stack` down to the frames that name whoever armed a timer. Reach for
- * this rather than storing the stack whole: the top frames are the watch adapter's own wrappers and
+ * this rather than storing the stack whole: the top frames are the watch broker's own wrappers and
  * node's timer plumbing, which name no caller, and the tail is jest's runtime, which names the same
  * runtime for every finding in the run.
  *

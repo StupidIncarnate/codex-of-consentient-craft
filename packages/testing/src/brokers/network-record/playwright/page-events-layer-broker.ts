@@ -1,16 +1,17 @@
 /**
- * PURPOSE: Wraps Playwright Page event subscription for network traffic and WebSocket monitoring
+ * PURPOSE: Subscribes to a Playwright Page's request, response, requestfailed and websocket events and
+ * hands each one to the caller as plain values. A response counts as capturable when its content-type
+ * is JSON or text, so the caller never reads the body of an image or a font.
  *
  * USAGE:
- * playwrightPageEventsAdapter({ page, onRequest, onResponse, onRequestFailed, onWebSocketFrame });
- * // Subscribes to Playwright Page events using provided callbacks
+ * pageEventsLayerBroker({ page, onRequest, onResponse, onRequestFailed, onWebSocketFrame });
+ * // Every later page event calls the matching callback
  */
 
-import type { Page, Request as PlaywrightRequest } from '@playwright/test';
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
+import type { Page, Request as PlaywrightRequest } from '#gateway/npm/playwright__test';
 import type { NetworkLogEntry } from '../../../contracts/network-log-entry/network-log-entry-contract';
 
-export const playwrightPageEventsAdapter = ({
+export const pageEventsLayerBroker = ({
   page,
   onRequest,
   onResponse,
@@ -39,7 +40,7 @@ export const playwrightPageEventsAdapter = ({
     requestIdentity: PlaywrightRequest;
   }) => void;
   onWebSocketFrame: (args: { direction: 'sent' | 'received'; payload: string | Buffer }) => void;
-}): AdapterResult => {
+}): void => {
   page.on('request', (request) => {
     onRequest({
       url: request.url(),
@@ -84,6 +85,4 @@ export const playwrightPageEventsAdapter = ({
       onWebSocketFrame({ direction: 'sent', payload: data.payload });
     });
   });
-
-  return { success: true as const };
 };

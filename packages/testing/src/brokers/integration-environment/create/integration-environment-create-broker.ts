@@ -28,8 +28,8 @@ import {
   writeFileSync,
 } from '#gateway/node/fs';
 import { dirname, join } from '#gateway/node/path';
-import { cryptoRandomBytesAdapter } from '../../../adapters/crypto/random-bytes/crypto-random-bytes-adapter';
-import { childProcessExecSyncAdapter } from '../../../adapters/child-process/exec-sync/child-process-exec-sync-adapter';
+import { runSync } from '#gateway/node/child_process';
+import { randomBytes } from '#gateway/node/crypto';
 import { fileContentContract } from '../../../contracts/file-content/file-content-contract';
 import { processOutputContract } from '../../../contracts/process-output/process-output-contract';
 import { fileNameContract } from '../../../contracts/file-name/file-name-contract';
@@ -59,9 +59,9 @@ export const integrationEnvironmentCreateBroker = ({
     setupEslint?: boolean; // Copy tsconfig/eslint from project for type-aware linting
   };
 }): TestGuild => {
-  const testId = cryptoRandomBytesAdapter({
-    length: integrationEnvironmentStatics.constants.randomBytesLength,
-  }).toString('hex');
+  const testId = randomBytes(integrationEnvironmentStatics.constants.randomBytesLength).toString(
+    'hex',
+  );
   const projectName = `${baseName}-${testId}`;
   // Use /tmp to keep test artifacts out of the repo
   // Most integration tests don't need ESLint to run on test files
@@ -112,22 +112,13 @@ export const integrationEnvironmentCreateBroker = ({
 
     installDungeonmaster: (): ProcessOutput => {
       try {
-        const result = childProcessExecSyncAdapter({
-          command: 'npm run install-dungeonmaster',
-          options: {
-            cwd: projectPath,
-            encoding: 'utf-8',
-            stdio: 'pipe',
-          },
+        const { output } = runSync({
+          command: 'npm',
+          args: ['run', 'install-dungeonmaster'],
+          cwd: projectPath,
         });
-        const output = Buffer.isBuffer(result) ? result.toString('utf-8') : result;
         return processOutputContract.parse(output);
       } catch (error) {
-        if (error instanceof Error && 'stdout' in error) {
-          const execError = error as Error & { stdout?: unknown };
-          const output = execError.stdout?.toString() || error.message || 'Installation failed';
-          return processOutputContract.parse(output);
-        }
         const output = error instanceof Error ? error.message : 'Installation failed';
         return processOutputContract.parse(output);
       }
@@ -200,42 +191,21 @@ export const integrationEnvironmentCreateBroker = ({
 
     executeCommand: ({ command }: { command: CommandName }): ExecResult => {
       try {
-        const result = childProcessExecSyncAdapter({
-          command,
-          options: {
-            cwd: projectPath,
-            encoding: 'utf-8',
-            stdio: 'pipe',
-          },
+        // A shell, because a CommandName is a whole command line that may carry pipes or `&&`.
+        // runSync folds stderr into `output`, so a failed run reports it whole as stderr.
+        const { exitCode, output } = runSync({
+          command: 'sh',
+          args: ['-c', command],
+          cwd: projectPath,
         });
-        const stdout = Buffer.isBuffer(result) ? result.toString('utf-8') : result;
         return execResultContract.parse({
-          stdout,
-          stderr: '',
-          exitCode: 0,
+          stdout: exitCode === 0 ? output : '',
+          stderr: exitCode === 0 ? '' : output,
+          exitCode,
         });
       } catch (error) {
-        if (error instanceof Error && 'stdout' in error && 'stderr' in error && 'status' in error) {
-          const execError = error as Error & {
-            stdout?: unknown;
-            stderr?: unknown;
-            status?: unknown;
-          };
-          const stdout = execError.stdout?.toString() || '';
-          const stderr = execError.stderr?.toString() || error.message || '';
-          const exitCode = typeof execError.status === 'number' ? execError.status : 1;
-          return execResultContract.parse({
-            stdout,
-            stderr,
-            exitCode,
-          });
-        }
         const stderr = error instanceof Error ? error.message : 'Unknown error';
-        return execResultContract.parse({
-          stdout: '',
-          stderr,
-          exitCode: 1,
-        });
+        return execResultContract.parse({ stdout: '', stderr, exitCode: 1 });
       }
     },
 

@@ -20,8 +20,8 @@ import {
   writeFileSync,
 } from '#gateway/node/fs';
 import { dirname, join } from '#gateway/node/path';
-import { cryptoRandomBytesAdapter } from '../../../adapters/crypto/random-bytes/crypto-random-bytes-adapter';
-import { childProcessExecSyncAdapter } from '../../../adapters/child-process/exec-sync/child-process-exec-sync-adapter';
+import { runSync } from '#gateway/node/child_process';
+import { randomBytes } from '#gateway/node/crypto';
 import { fileContentContract } from '../../../contracts/file-content/file-content-contract';
 import { exitCodeContract } from '../../../contracts/exit-code/exit-code-contract';
 import { processOutputContract } from '../../../contracts/process-output/process-output-contract';
@@ -47,9 +47,9 @@ export const installTestbedCreateBroker = ({
   baseName: BaseName;
   baseDir?: FilePath;
 }): InstallTestbed => {
-  const testId = cryptoRandomBytesAdapter({
-    length: integrationEnvironmentStatics.constants.randomBytesLength,
-  }).toString('hex');
+  const testId = randomBytes(integrationEnvironmentStatics.constants.randomBytesLength).toString(
+    'hex',
+  );
   const projectName = `${baseName}-${testId}`;
   const resolvedBaseDir = baseDir ?? integrationEnvironmentStatics.paths.baseDir;
   const projectPath = join(resolvedBaseDir, projectName);
@@ -184,36 +184,18 @@ export const installTestbedCreateBroker = ({
 
     runInitCommand: (): ReturnType<InstallTestbed['runInitCommand']> => {
       try {
-        const result = childProcessExecSyncAdapter({
-          command: 'dungeonmaster init',
-          options: {
-            cwd: projectPath,
-            encoding: 'utf-8',
-            stdio: 'pipe',
-          },
+        const { exitCode, output } = runSync({
+          command: 'dungeonmaster',
+          args: ['init'],
+          cwd: projectPath,
         });
-        const stdout = Buffer.isBuffer(result) ? result.toString('utf-8') : result;
+        // runSync folds stderr into `output`, so a failed run reports it whole as stderr.
         return {
-          exitCode: exitCodeContract.parse(0),
-          stdout: processOutputContract.parse(stdout),
-          stderr: processOutputContract.parse(''),
+          exitCode: exitCodeContract.parse(exitCode),
+          stdout: processOutputContract.parse(exitCode === 0 ? output : ''),
+          stderr: processOutputContract.parse(exitCode === 0 ? '' : output),
         };
       } catch (error) {
-        if (error instanceof Error && 'stdout' in error && 'stderr' in error && 'status' in error) {
-          const execError = error as Error & {
-            stdout?: unknown;
-            stderr?: unknown;
-            status?: unknown;
-          };
-          const stdout = execError.stdout?.toString() || '';
-          const stderr = execError.stderr?.toString() || error.message || '';
-          const exitCode = typeof execError.status === 'number' ? execError.status : 1;
-          return {
-            exitCode: exitCodeContract.parse(exitCode),
-            stdout: processOutputContract.parse(stdout),
-            stderr: processOutputContract.parse(stderr),
-          };
-        }
         const stderr = error instanceof Error ? error.message : 'Unknown error';
         return {
           exitCode: exitCodeContract.parse(1),

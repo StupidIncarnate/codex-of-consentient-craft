@@ -161,3 +161,35 @@ Delete (adapter, proxy, test each): `adapters/fs/exists`, `adapters/fs/read-file
 Tests of the five middlewares are edited only where they name a deleted adapter.
 `proxy-reexport-names-resolve` and `proxy-mock-collector` only name `pathJoinAdapterProxy` inside fixture strings and
 need no change.
+
+## Plan — G-Y misc
+
+Agent scope: `packages/testing` only (no web import line moves; no playwright adapter is exported through
+`package.json`). Every gateway call is staged through its proxy; the `crypto` gateway has no wrapper proxy, so the
+two testbed proxies register the `randomBytes` mock themselves behind a named `setupRandomBytes`.
+
+Delete (adapter, proxy, test each): `adapters/crypto/random-bytes`, `adapters/child-process/exec-sync`,
+`adapters/error/is-native-error`, `adapters/timers/watch`, `adapters/playwright/page-events`,
+`adapters/playwright/test-info-attach`.
+
+Callers moved:
+- `brokers/install-testbed/create/install-testbed-create-broker.ts` + `.proxy.ts` + `.test.ts`
+  (`randomBytes` from `#gateway/node/crypto`; `runSync` from `#gateway/node/child_process`; the
+  `74657374` staging becomes `proxy.setupRandomBytes({ bytes })`, called by each test)
+- `brokers/integration-environment/create/integration-environment-create-broker.ts` + `.proxy.ts` + `.test.ts` (same)
+- `middleware/mock-staging-create/mock-staging-create-middleware.ts` + `.proxy.ts` (`isNativeError` from
+  `#gateway/node/util__types`, proxy from `is-native-error.proxy`)
+- `brokers/open-handle/tracking/open-handle-tracking-broker.ts` + `.proxy.ts` (calls the new timers-watch broker)
+- `brokers/network-record/playwright/network-record-playwright-broker.ts` + `.proxy.ts` (types from
+  `#gateway/npm/playwright__test`; `testInfo.attach` inlined; page-event wiring moves to a layer broker)
+
+New (real logic keeps a home in `testing`):
+- `brokers/timers/watch/timers-watch-broker.ts` + `.proxy.ts` + `.test.ts` (patches the timer globals; returns void)
+- `brokers/network-record/playwright/page-events-layer-broker.ts` + `.proxy.ts` + `.test.ts` (the `page.on` wiring and
+  the `NetworkLogEntry` shaping)
+- `statics/open-handle/open-handle-statics.ts` + `.test.ts` (`selfFrames` names the broker file)
+- `transformers/timer-arm-stack/timer-arm-stack-transformer.test.ts` (fixture stack lines name the broker file);
+  comment-only touches in `transformers/mock-staging-create/mock-staging-create-transformer.ts` + `.test.ts`
+
+Kept: `adapters/mantine/render` is `MantineProvider` composed around the gateway `render`, real logic and not a
+pass-through; its callers are about a hundred web files, outside this scope.

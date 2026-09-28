@@ -9,15 +9,14 @@
  * `isPending` on each announced ArmedTimer answers with both applied, so the node handle itself
  * never has to cross out of this file.
  *
- * A second call re-points the listener and patches nothing further. Wrapping this adapter's own
+ * A second call re-points the listener and patches nothing further. Wrapping this broker's own
  * wrappers would announce every timer twice.
  *
  * USAGE:
- * timersWatchAdapter({onArm: ({armed}) => armedTimers.push(armed)});
- * // Returns {success: true}; every later setTimeout/setInterval/setImmediate calls onArm
+ * timersWatchBroker({onArm: ({armed}) => armedTimers.push(armed)});
+ * // Every later setTimeout/setInterval/setImmediate calls onArm
  */
 
-import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import { armedTimerContract } from '../../../contracts/armed-timer/armed-timer-contract';
 import type { ArmedTimer } from '../../../contracts/armed-timer/armed-timer-contract';
 import type { TimerHandle } from '../../../contracts/timer-handle/timer-handle-contract';
@@ -34,15 +33,15 @@ const pendingHandles = new Set<TimerHandle>();
 const armListeners: (({ armed }: { armed: ArmedTimer }) => void)[] = [];
 let isWatching = false;
 
-export const timersWatchAdapter = ({
+export const timersWatchBroker = ({
   onArm,
 }: {
   onArm: ({ armed }: { armed: ArmedTimer }) => void;
-}): AdapterResult => {
+}): void => {
   armListeners.splice(0, armListeners.length, onArm);
 
   if (isWatching) {
-    return { success: true as const };
+    return;
   }
   isWatching = true;
 
@@ -154,6 +153,4 @@ export const timersWatchAdapter = ({
     pendingHandles.delete(handle ?? {});
     realClearImmediate(handle as Parameters<typeof realClearImmediate>[0]);
   }) as typeof globalThis.clearImmediate;
-
-  return { success: true as const };
 };

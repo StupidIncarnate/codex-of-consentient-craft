@@ -89,6 +89,44 @@ describe('networkRecordPlaywrightBroker', () => {
     });
   });
 
+  describe('dump of a failed test', () => {
+    it('VALID: {failed test with an api request} => attaches the network log as text/plain', async () => {
+      const proxy = networkRecordPlaywrightBrokerProxy();
+      proxy.setupStderrCapture();
+      const recorder = networkRecordPlaywrightBroker({ page: proxy.getPage() as never });
+      proxy.fireRequest({
+        url: 'http://localhost/api/test',
+        method: 'GET',
+        postData: null,
+        requestIdentity: jest.fn() as never,
+      });
+
+      await recorder.dump({ testInfo: proxy.getTestInfo({ status: 'failed' }) });
+
+      const [call] = proxy.getAttachCalls();
+
+      expect(call).toStrictEqual([
+        'network-log',
+        { body: String(proxy.getStderrWrites()[0]).trim(), contentType: 'text/plain' },
+      ]);
+    });
+
+    it('VALID: {passed test} => attaches nothing', async () => {
+      const proxy = networkRecordPlaywrightBrokerProxy();
+      const recorder = networkRecordPlaywrightBroker({ page: proxy.getPage() as never });
+      proxy.fireRequest({
+        url: 'http://localhost/api/test',
+        method: 'GET',
+        postData: null,
+        requestIdentity: jest.fn() as never,
+      });
+
+      await recorder.dump({ testInfo: proxy.getTestInfo({ status: 'passed' }) });
+
+      expect(proxy.getAttachCalls()).toStrictEqual([]);
+    });
+  });
+
   describe('initialization', () => {
     it('VALID: {page} => returns recorder with dump, getEntries, getWsEntries', () => {
       networkRecordPlaywrightBrokerProxy();

@@ -24,8 +24,8 @@ export const openHandleStatics = {
     // BOTH extensions, because the same frame appears twice over: jest resolves this package to
     // TypeScript source, while Playwright resolves it to the build. Matching only `.ts:` left the
     // adapter's own frame at the top of every finding a browser run produced.
-    // The colon is what keeps `timers-watch-adapter.test.ts` — a legitimate caller — out of this.
-    selfFrames: ['timers-watch-adapter.ts:', 'timers-watch-adapter.js:'],
+    // The colon is what keeps `timers-watch-broker.test.ts` — a legitimate caller — out of this.
+    selfFrames: ['timers-watch-broker.ts:', 'timers-watch-broker.js:'],
     // A timer armed entirely inside node's plumbing or a dependency is not ours to fix, and
     // Playwright arms them constantly: a clean five-spec browser batch reported 74 of them, every
     // one a `setTimeout` its own waiting machinery had outstanding. Dropping these is what makes a

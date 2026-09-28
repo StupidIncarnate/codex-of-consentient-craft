@@ -21,7 +21,7 @@ describe('timerArmStackTransformer', () => {
     it('VALID: {stack naming the watch adapter} => drops that frame', () => {
       const stack = [
         'Error: armed',
-        '    at timersWatchAdapter (/repo/packages/testing/src/adapters/timers/watch/timers-watch-adapter.ts:70:5)',
+        '    at timersWatchBroker (/repo/packages/testing/src/brokers/timers/watch/timers-watch-broker.ts:70:5)',
         '    at pollBroker (/repo/packages/a/src/poll-broker.ts:12:3)',
       ].join('\n');
 
@@ -33,7 +33,7 @@ describe('timerArmStackTransformer', () => {
     it('VALID: {the adapter built to .js} => drops that frame too', () => {
       const stack = [
         'Error: armed',
-        '    at globalThis.setTimeout (/repo/packages/testing/dist/src/adapters/timers/watch/timers-watch-adapter.js:60:93)',
+        '    at globalThis.setTimeout (/repo/packages/testing/dist/src/brokers/timers/watch/timers-watch-broker.js:60:93)',
         '    at pollBroker (/repo/packages/a/src/poll-broker.ts:12:3)',
       ].join('\n');
 

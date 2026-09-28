@@ -8,7 +8,8 @@ import { integrationEnvironmentStatics } from '../../../statics/integration-envi
 describe('integrationEnvironmentCreateBroker', () => {
   describe('project creation', () => {
     it('VALID: {baseName} => creates test project with tracking', () => {
-      integrationEnvironmentCreateBrokerProxy();
+      const proxy = integrationEnvironmentCreateBrokerProxy();
+      proxy.setupRandomBytes({ bytes: Buffer.from('test') });
       const baseName = BaseNameStub({ value: 'test-project' });
 
       const guild = integrationEnvironmentCreateBroker({ baseName });
@@ -19,6 +20,7 @@ describe('integrationEnvironmentCreateBroker', () => {
 
     it('VALID: {baseName} => writes a package.json carrying the project name and placeholder scripts', () => {
       const proxy = integrationEnvironmentCreateBrokerProxy();
+      proxy.setupRandomBytes({ bytes: Buffer.from('test') });
 
       const guild = integrationEnvironmentCreateBroker({
         baseName: BaseNameStub({ value: 'test-project' }),
@@ -39,6 +41,7 @@ describe('integrationEnvironmentCreateBroker', () => {
 
     it('EMPTY: {options: {createPackageJson: false}} => writes no package.json', () => {
       const proxy = integrationEnvironmentCreateBrokerProxy();
+      proxy.setupRandomBytes({ bytes: Buffer.from('test') });
 
       const guild = integrationEnvironmentCreateBroker({
         baseName: BaseNameStub({ value: 'test-project' }),
@@ -52,6 +55,7 @@ describe('integrationEnvironmentCreateBroker', () => {
   describe('deleteFile', () => {
     it('VALID: {fileName exists} => unlinks the file inside the project', () => {
       const proxy = integrationEnvironmentCreateBrokerProxy();
+      proxy.setupRandomBytes({ bytes: Buffer.from('test') });
       const guild = integrationEnvironmentCreateBroker({
         baseName: BaseNameStub({ value: 'test-project' }),
       });
@@ -67,6 +71,7 @@ describe('integrationEnvironmentCreateBroker', () => {
 
     it('EMPTY: {fileName missing} => unlinks nothing', () => {
       const proxy = integrationEnvironmentCreateBrokerProxy();
+      proxy.setupRandomBytes({ bytes: Buffer.from('test') });
       const guild = integrationEnvironmentCreateBroker({
         baseName: BaseNameStub({ value: 'test-project' }),
       });
@@ -82,6 +87,7 @@ describe('integrationEnvironmentCreateBroker', () => {
   describe('reading', () => {
     it('VALID: {fileName exists} => readFile returns its content and fileExists is true', () => {
       const proxy = integrationEnvironmentCreateBrokerProxy();
+      proxy.setupRandomBytes({ bytes: Buffer.from('test') });
       const guild = integrationEnvironmentCreateBroker({
         baseName: BaseNameStub({ value: 'test-project' }),
       });
@@ -99,6 +105,7 @@ describe('integrationEnvironmentCreateBroker', () => {
 
     it('VALID: {package.json declares the script} => hasCommand returns true, and false for an absent script', () => {
       const proxy = integrationEnvironmentCreateBrokerProxy();
+      proxy.setupRandomBytes({ bytes: Buffer.from('test') });
       const guild = integrationEnvironmentCreateBroker({
         baseName: BaseNameStub({ value: 'test-project' }),
       });
@@ -117,6 +124,7 @@ describe('integrationEnvironmentCreateBroker', () => {
   describe('cleanup', () => {
     it('VALID: {project dir exists} => removes it recursively and forcibly', () => {
       const proxy = integrationEnvironmentCreateBrokerProxy();
+      proxy.setupRandomBytes({ bytes: Buffer.from('test') });
       const guild = integrationEnvironmentCreateBroker({
         baseName: BaseNameStub({ value: 'test-project' }),
       });
@@ -132,6 +140,7 @@ describe('integrationEnvironmentCreateBroker', () => {
 
     it('EMPTY: {project dir already gone} => removes nothing', () => {
       const proxy = integrationEnvironmentCreateBrokerProxy();
+      proxy.setupRandomBytes({ bytes: Buffer.from('test') });
       const guild = integrationEnvironmentCreateBroker({
         baseName: BaseNameStub({ value: 'test-project' }),
       });
@@ -145,6 +154,7 @@ describe('integrationEnvironmentCreateBroker', () => {
   describe('getQuestFiles', () => {
     it('VALID: {no subdir} => returns the markdown files under dungeonmaster/', () => {
       const proxy = integrationEnvironmentCreateBrokerProxy();
+      proxy.setupRandomBytes({ bytes: Buffer.from('test') });
       const guild = integrationEnvironmentCreateBroker({
         baseName: BaseNameStub({ value: 'test-project' }),
       });
@@ -160,6 +170,7 @@ describe('integrationEnvironmentCreateBroker', () => {
 
     it('VALID: {subdir} => returns the json files under dungeonmaster/<subdir>', () => {
       const proxy = integrationEnvironmentCreateBrokerProxy();
+      proxy.setupRandomBytes({ bytes: Buffer.from('test') });
       const guild = integrationEnvironmentCreateBroker({
         baseName: BaseNameStub({ value: 'test-project' }),
       });
@@ -174,7 +185,8 @@ describe('integrationEnvironmentCreateBroker', () => {
     });
 
     it('EMPTY: {dungeonmaster/ missing} => returns no files', () => {
-      integrationEnvironmentCreateBrokerProxy();
+      const proxy = integrationEnvironmentCreateBrokerProxy();
+      proxy.setupRandomBytes({ bytes: Buffer.from('test') });
       const guild = integrationEnvironmentCreateBroker({
         baseName: BaseNameStub({ value: 'test-project' }),
       });
@@ -182,6 +194,66 @@ describe('integrationEnvironmentCreateBroker', () => {
       const result = guild.getQuestFiles({});
 
       expect(result).toStrictEqual([]);
+    });
+  });
+
+  describe('executeCommand', () => {
+    it('VALID: {command exits 0} => stdout carries its output, exitCode 0', () => {
+      const proxy = integrationEnvironmentCreateBrokerProxy();
+      proxy.setupRandomBytes({ bytes: Buffer.from('test') });
+      proxy.setupCommandSucceeds({ command: 'sh', stdout: 'all good' });
+      const guild = integrationEnvironmentCreateBroker({
+        baseName: BaseNameStub({ value: 'test-project' }),
+      });
+
+      expect(
+        guild.executeCommand({ command: CommandNameStub({ value: 'npm test' }) }),
+      ).toStrictEqual({
+        stdout: 'all good',
+        stderr: '',
+        exitCode: 0,
+      });
+    });
+
+    it('ERROR: {command exits 3} => its combined output is stderr, exitCode 3', () => {
+      const proxy = integrationEnvironmentCreateBrokerProxy();
+      proxy.setupRandomBytes({ bytes: Buffer.from('test') });
+      proxy.setupCommandExits({ command: 'sh', status: 3, stdout: 'out ', stderr: 'err' });
+      const guild = integrationEnvironmentCreateBroker({
+        baseName: BaseNameStub({ value: 'test-project' }),
+      });
+
+      expect(
+        guild.executeCommand({ command: CommandNameStub({ value: 'npm test' }) }),
+      ).toStrictEqual({
+        stdout: '',
+        stderr: 'out err',
+        exitCode: 3,
+      });
+    });
+  });
+
+  describe('installDungeonmaster', () => {
+    it('VALID: {npm run install-dungeonmaster exits 0} => returns its output', () => {
+      const proxy = integrationEnvironmentCreateBrokerProxy();
+      proxy.setupRandomBytes({ bytes: Buffer.from('test') });
+      proxy.setupCommandSucceeds({ command: 'npm', stdout: 'installed' });
+      const guild = integrationEnvironmentCreateBroker({
+        baseName: BaseNameStub({ value: 'test-project' }),
+      });
+
+      expect(guild.installDungeonmaster()).toBe('installed');
+    });
+
+    it('ERROR: {npm not found} => returns the spawn failure message', () => {
+      const proxy = integrationEnvironmentCreateBrokerProxy();
+      proxy.setupRandomBytes({ bytes: Buffer.from('test') });
+      proxy.setupCommandNotFound({ command: 'npm', code: 'ENOENT' });
+      const guild = integrationEnvironmentCreateBroker({
+        baseName: BaseNameStub({ value: 'test-project' }),
+      });
+
+      expect(guild.installDungeonmaster()).toBe('"npm" never started: spawn npm ENOENT');
     });
   });
 });

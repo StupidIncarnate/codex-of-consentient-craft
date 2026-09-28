@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Captures browser network traffic for test diagnostics via Playwright event adapters
+ * PURPOSE: Captures browser network traffic for test diagnostics via Playwright page events
  *
  * USAGE:
  * const recorder = networkRecordPlaywrightBroker({ page });
@@ -9,8 +9,8 @@
  * const wsEntries = recorder.getWsEntries();
  */
 
-import { playwrightPageEventsAdapter } from '../../../adapters/playwright/page-events/playwright-page-events-adapter';
-import { playwrightTestInfoAttachAdapter } from '../../../adapters/playwright/test-info-attach/playwright-test-info-attach-adapter';
+import type { Page, TestInfo } from '#gateway/npm/playwright__test';
+import { pageEventsLayerBroker } from './page-events-layer-broker';
 import { networkLogEntryContract } from '../../../contracts/network-log-entry/network-log-entry-contract';
 import { wsLogEntryContract } from '../../../contracts/ws-log-entry/ws-log-entry-contract';
 import { epochTimestampContract } from '../../../contracts/epoch-timestamp/epoch-timestamp-contract';
@@ -20,10 +20,10 @@ import type { NetworkLogEntry } from '../../../contracts/network-log-entry/netwo
 import type { WsLogEntry } from '../../../contracts/ws-log-entry/ws-log-entry-contract';
 import type { EpochTimestamp } from '../../../contracts/epoch-timestamp/epoch-timestamp-contract';
 
-type PageParam = Parameters<typeof playwrightPageEventsAdapter>[0]['page'];
-type TestInfoParam = Parameters<typeof playwrightTestInfoAttachAdapter>[0]['testInfo'];
+type PageParam = Page;
+type TestInfoParam = TestInfo;
 type RequestIdentity = Parameters<
-  Parameters<typeof playwrightPageEventsAdapter>[0]['onRequest']
+  Parameters<typeof pageEventsLayerBroker>[0]['onRequest']
 >[0]['requestIdentity'];
 
 export const networkRecordPlaywrightBroker = ({
@@ -46,7 +46,7 @@ export const networkRecordPlaywrightBroker = ({
   // as `setImmediate still armed`, naming `Response.text`'s caller.
   const inFlightReads: Promise<void>[] = [];
 
-  playwrightPageEventsAdapter({
+  pageEventsLayerBroker({
     page,
     onRequest: ({ url, method, postData, requestIdentity }) => {
       if (!url.includes(networkLogStatics.filters.apiPathFilter)) {
@@ -181,11 +181,7 @@ export const networkRecordPlaywrightBroker = ({
       // Write to stderr so ward can extract it from rawOutput (attachment content gets truncated by Playwright's line reporter)
       process.stderr.write(`\n${logContent}\n`);
 
-      await playwrightTestInfoAttachAdapter({
-        testInfo,
-        name: 'network-log',
-        body: logContent,
-      });
+      await testInfo.attach('network-log', { body: logContent, contentType: 'text/plain' });
     },
 
     getEntries: (): NetworkLogEntry[] => [...entries],

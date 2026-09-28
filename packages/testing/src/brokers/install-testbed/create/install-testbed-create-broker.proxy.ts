@@ -20,11 +20,27 @@ import { readdirSyncProxy } from '#gateway/node/fs/readdir-sync/readdir-sync.pro
 import { rmSyncProxy } from '#gateway/node/fs/rm-sync/rm-sync.proxy';
 import { symlinkSyncProxy } from '#gateway/node/fs/symlink-sync/symlink-sync.proxy';
 import { writeFileSyncProxy } from '#gateway/node/fs/write-file-sync/write-file-sync.proxy';
-import { cryptoRandomBytesAdapterProxy } from '../../../adapters/crypto/random-bytes/crypto-random-bytes-adapter.proxy';
-import { childProcessExecSyncAdapterProxy } from '../../../adapters/child-process/exec-sync/child-process-exec-sync-adapter.proxy';
+import { randomBytes } from 'crypto';
+import { runSyncProxy } from '#gateway/node/child_process/run-sync/run-sync.proxy';
+import { registerMock } from '../../../register-mock';
+import { integrationEnvironmentStatics } from '../../../statics/integration-environment/integration-environment-statics';
 import { findRepoRootLayerBrokerProxy } from './find-repo-root-layer-broker.proxy';
 
 export const installTestbedCreateBrokerProxy = (): {
+  setupRandomBytes: ({ bytes }: { bytes: Buffer }) => void;
+  setupCommandSucceeds: ({ command, stdout }: { command: string; stdout: string }) => void;
+  setupCommandExits: ({
+    command,
+    status,
+    stdout,
+    stderr,
+  }: {
+    command: string;
+    status: number;
+    stdout: string;
+    stderr: string;
+  }) => void;
+  setupCommandNotFound: ({ command, code }: { command: string; code: string }) => void;
   setupPathExists: ({ path }: { path: string }) => void;
   setupFileContents: ({ path, contents }: { path: string; contents: string }) => void;
   setupDirEntries: ({ path, names }: { path: string; names: string[] }) => void;
@@ -41,13 +57,37 @@ export const installTestbedCreateBrokerProxy = (): {
   const readdirProxy = readdirSyncProxy();
   const rmProxy = rmSyncProxy();
   const symlinkProxy = symlinkSyncProxy();
-  cryptoRandomBytesAdapterProxy();
-  childProcessExecSyncAdapterProxy();
+  const randomBytesHandle = registerMock({ fn: randomBytes });
+  const commandProxy = runSyncProxy();
   // Stages the "does not exist" default for every path, plus this package's own repo root.
   findRepoRootLayerBrokerProxy();
   const existsProxy = existsSyncProxy();
 
   return {
+    setupRandomBytes: ({ bytes }: { bytes: Buffer }): void => {
+      randomBytesHandle
+        .calledWith([integrationEnvironmentStatics.constants.randomBytesLength])
+        .returns(bytes);
+    },
+    setupCommandSucceeds: ({ command, stdout }: { command: string; stdout: string }): void => {
+      commandProxy.setupSuccess({ command, stdout });
+    },
+    setupCommandExits: ({
+      command,
+      status,
+      stdout,
+      stderr,
+    }: {
+      command: string;
+      status: number;
+      stdout: string;
+      stderr: string;
+    }): void => {
+      commandProxy.setupNonZeroExit({ command, status, stdout, stderr });
+    },
+    setupCommandNotFound: ({ command, code }: { command: string; code: string }): void => {
+      commandProxy.setupNotFound({ command, code, message: `spawn ${command} ${code}` });
+    },
     setupPathExists: ({ path }: { path: string }): void => {
       existsProxy.returns({ path, exists: true });
     },

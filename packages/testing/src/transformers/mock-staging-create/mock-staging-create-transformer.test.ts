@@ -47,7 +47,7 @@ describe('mockStagingCreateTransformer', () => {
     });
 
     // Proves the transformer trusts an injected isNativeError over `instanceof Error` — the real
-    // predicate (errorIsNativeErrorAdapter, wired in by mockStagingCreateMiddleware) answers true
+    // predicate (isNativeError, wired in by mockStagingCreateMiddleware) answers true
     // for a cross-realm Error that `instanceof Error` here would answer false for. This test stays
     // at the pure-logic level with a fake predicate and a plain (non-Error) value; the real
     // cross-realm value (built with `vm.runInNewContext`) is exercised in

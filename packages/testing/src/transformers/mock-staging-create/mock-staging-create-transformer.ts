@@ -19,7 +19,7 @@ export const mockStagingCreateTransformer = ({
   record: StagedCall;
   // Realm-safe check for a genuine, engine-constructed Error, injected rather than imported —
   // this file is a transformer and may not import util/types itself. mockStagingCreateMiddleware
-  // is the caller that wires in errorIsNativeErrorAdapter.
+  // is the caller that wires in isNativeError.
   isNativeError: (value: unknown) => value is Error;
 }): MockStaging => ({
   returns: (val: unknown): void => {

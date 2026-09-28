@@ -7,13 +7,11 @@
  * proxy.fireResponse({ ... });
  */
 
-import type { playwrightPageEventsAdapter } from '../../../adapters/playwright/page-events/playwright-page-events-adapter';
-
-import { playwrightPageEventsAdapterProxy } from '../../../adapters/playwright/page-events/playwright-page-events-adapter.proxy';
-import { playwrightTestInfoAttachAdapterProxy } from '../../../adapters/playwright/test-info-attach/playwright-test-info-attach-adapter.proxy';
+import type { pageEventsLayerBroker } from './page-events-layer-broker';
 import { registerSpyOn } from '../../../register-mock';
+import { pageEventsLayerBrokerProxy } from './page-events-layer-broker.proxy';
 
-type AdapterParams = Parameters<typeof playwrightPageEventsAdapter>[0];
+type AdapterParams = Parameters<typeof pageEventsLayerBroker>[0];
 type OnResponseArgs = Parameters<AdapterParams['onResponse']>[0];
 type OnRequestArgs = Parameters<AdapterParams['onRequest']>[0];
 type PageHandler = (...args: readonly unknown[]) => void;
@@ -24,10 +22,11 @@ export const networkRecordPlaywrightBrokerProxy = (): {
   fireRequest: (args: OnRequestArgs) => void;
   setupStderrCapture: () => void;
   getStderrWrites: () => readonly unknown[];
+  getTestInfo: (args: { status: 'passed' | 'failed' }) => never;
+  getAttachCalls: () => readonly unknown[][];
 } => {
-  playwrightPageEventsAdapterProxy();
-  playwrightTestInfoAttachAdapterProxy();
-
+  pageEventsLayerBrokerProxy();
+  const attachCalls: unknown[][] = [];
   const stderrSpy: { current: ReturnType<typeof registerSpyOn> | null } = { current: null };
   const capturedResponseHandler: { current: PageHandler | null } = { current: null };
   const capturedRequestHandler: { current: PageHandler | null } = { current: null };
@@ -45,12 +44,24 @@ export const networkRecordPlaywrightBrokerProxy = (): {
   return {
     getPage: (): { on: jest.Mock } => mockPage,
 
+    getTestInfo: ({ status }: { status: 'passed' | 'failed' }): never =>
+      ({
+        status,
+        expectedStatus: 'passed',
+        attach: async (...args: unknown[]): Promise<void> => {
+          attachCalls.push(args);
+          return Promise.resolve();
+        },
+      }) as never,
+
+    getAttachCalls: (): readonly unknown[][] => attachCalls,
+
     fireResponse: (args: OnResponseArgs): void => {
       const handler = capturedResponseHandler.current;
       if (!handler) {
         throw new Error('No response handler registered on page');
       }
-      // Simulate Playwright Response shape that the adapter wraps
+      // Simulate Playwright Response shape that the page-events layer reads
       const mockRequest = {
         url: () => args.url,
         method: () => args.method,

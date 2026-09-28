@@ -12,6 +12,7 @@ describe('installTestbedCreateBroker', () => {
   describe('testbed creation', () => {
     it('VALID: creates testbed with required pre-install files', () => {
       const proxy = installTestbedCreateBrokerProxy();
+      proxy.setupRandomBytes({ bytes: Buffer.from('test') });
       const baseName = BaseNameStub({ value: 'test-install' });
 
       const testbed = installTestbedCreateBroker({ baseName });
@@ -45,6 +46,7 @@ describe('installTestbedCreateBroker', () => {
 
     it('VALID: {baseDir: custom path} => creates testbed in custom directory', () => {
       const proxy = installTestbedCreateBrokerProxy();
+      proxy.setupRandomBytes({ bytes: Buffer.from('test') });
       const customBaseDir = '/tmp/custom-base-test';
 
       const testbed = installTestbedCreateBroker({
@@ -63,6 +65,7 @@ describe('installTestbedCreateBroker', () => {
 
     it('VALID: {project dir already exists} => does not create it again', () => {
       const proxy = installTestbedCreateBrokerProxy();
+      proxy.setupRandomBytes({ bytes: Buffer.from('test') });
       proxy.setupPathExists({ path: '/tmp/test-existing-74657374' });
 
       const testbed = installTestbedCreateBroker({
@@ -75,7 +78,8 @@ describe('installTestbedCreateBroker', () => {
 
   describe('file operations', () => {
     it('VALID: testbed has writeFile and readFile methods', () => {
-      installTestbedCreateBrokerProxy();
+      const proxy = installTestbedCreateBrokerProxy();
+      proxy.setupRandomBytes({ bytes: Buffer.from('test') });
 
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'test-write' }),
@@ -99,6 +103,7 @@ describe('installTestbedCreateBroker', () => {
 
     it('VALID: {writeFile into a missing subdirectory} => creates the directory, then writes the content', () => {
       const proxy = installTestbedCreateBrokerProxy();
+      proxy.setupRandomBytes({ bytes: Buffer.from('test') });
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'test-write' }),
       });
@@ -119,6 +124,7 @@ describe('installTestbedCreateBroker', () => {
 
     it('VALID: {writeFile into an existing subdirectory} => writes without creating the directory', () => {
       const proxy = installTestbedCreateBrokerProxy();
+      proxy.setupRandomBytes({ bytes: Buffer.from('test') });
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'test-write' }),
       });
@@ -137,6 +143,7 @@ describe('installTestbedCreateBroker', () => {
 
     it('VALID: {readFile of an existing file} => returns its content', () => {
       const proxy = installTestbedCreateBrokerProxy();
+      proxy.setupRandomBytes({ bytes: Buffer.from('test') });
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'test-read' }),
       });
@@ -148,7 +155,8 @@ describe('installTestbedCreateBroker', () => {
     });
 
     it('EMPTY: {readFile of a missing file} => returns null', () => {
-      installTestbedCreateBrokerProxy();
+      const proxy = installTestbedCreateBrokerProxy();
+      proxy.setupRandomBytes({ bytes: Buffer.from('test') });
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'test-read' }),
       });
@@ -162,6 +170,7 @@ describe('installTestbedCreateBroker', () => {
   describe('createSymlink', () => {
     it('VALID: {relativePath, targetPath} => creates the parent directory, then a dir symlink at the path', () => {
       const proxy = installTestbedCreateBrokerProxy();
+      proxy.setupRandomBytes({ bytes: Buffer.from('test') });
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'test-link' }),
       });
@@ -191,6 +200,7 @@ describe('installTestbedCreateBroker', () => {
   describe('cleanup', () => {
     it('VALID: {project dir exists} => removes it recursively and forcibly', () => {
       const proxy = installTestbedCreateBrokerProxy();
+      proxy.setupRandomBytes({ bytes: Buffer.from('test') });
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'test-clean' }),
       });
@@ -206,6 +216,7 @@ describe('installTestbedCreateBroker', () => {
 
     it('EMPTY: {project dir already gone} => removes nothing', () => {
       const proxy = installTestbedCreateBrokerProxy();
+      proxy.setupRandomBytes({ bytes: Buffer.from('test') });
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'test-clean' }),
       });
@@ -218,7 +229,8 @@ describe('installTestbedCreateBroker', () => {
 
   describe('listDir', () => {
     it('EMPTY: {relativePath: does not exist} => returns null', () => {
-      installTestbedCreateBrokerProxy();
+      const proxy = installTestbedCreateBrokerProxy();
+      proxy.setupRandomBytes({ bytes: Buffer.from('test') });
 
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'test-listdir' }),
@@ -233,6 +245,7 @@ describe('installTestbedCreateBroker', () => {
 
     it('VALID: {relativePath: dir with entries} => returns the entry names sorted', () => {
       const proxy = installTestbedCreateBrokerProxy();
+      proxy.setupRandomBytes({ bytes: Buffer.from('test') });
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'test-listdir' }),
       });
@@ -250,6 +263,7 @@ describe('installTestbedCreateBroker', () => {
   describe('config file getters', () => {
     it('VALID: getClaudeSettings returns the parsed settings.json when it exists', () => {
       const proxy = installTestbedCreateBrokerProxy();
+      proxy.setupRandomBytes({ bytes: Buffer.from('test') });
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'test-settings' }),
       });
@@ -264,7 +278,8 @@ describe('installTestbedCreateBroker', () => {
     });
 
     it('VALID: getClaudeSettings returns null when settings.json does not exist', () => {
-      installTestbedCreateBrokerProxy();
+      const proxy = installTestbedCreateBrokerProxy();
+      proxy.setupRandomBytes({ bytes: Buffer.from('test') });
 
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'test-settings' }),
@@ -276,7 +291,8 @@ describe('installTestbedCreateBroker', () => {
     });
 
     it('VALID: getMcpConfig returns null when .mcp.json does not exist', () => {
-      installTestbedCreateBrokerProxy();
+      const proxy = installTestbedCreateBrokerProxy();
+      proxy.setupRandomBytes({ bytes: Buffer.from('test') });
 
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'test-mcp' }),
@@ -288,7 +304,8 @@ describe('installTestbedCreateBroker', () => {
     });
 
     it('VALID: getDungeonmasterConfig returns null when .dungeonmaster does not exist', () => {
-      installTestbedCreateBrokerProxy();
+      const proxy = installTestbedCreateBrokerProxy();
+      proxy.setupRandomBytes({ bytes: Buffer.from('test') });
 
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'test-config' }),
@@ -300,7 +317,8 @@ describe('installTestbedCreateBroker', () => {
     });
 
     it('VALID: getEslintConfig returns null when eslint.config.js does not exist', () => {
-      installTestbedCreateBrokerProxy();
+      const proxy = installTestbedCreateBrokerProxy();
+      proxy.setupRandomBytes({ bytes: Buffer.from('test') });
 
       const testbed = installTestbedCreateBroker({
         baseName: BaseNameStub({ value: 'test-eslint' }),
@@ -309,6 +327,58 @@ describe('installTestbedCreateBroker', () => {
       const result = testbed.getEslintConfig();
 
       expect(result).toBe(null);
+    });
+  });
+
+  describe('runInitCommand', () => {
+    it('VALID: {dungeonmaster init exits 0} => exitCode 0 and its output as stdout', () => {
+      const proxy = installTestbedCreateBrokerProxy();
+      proxy.setupRandomBytes({ bytes: Buffer.from('test') });
+      proxy.setupCommandSucceeds({ command: 'dungeonmaster', stdout: 'initialised' });
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'test-init' }),
+      });
+
+      expect(testbed.runInitCommand()).toStrictEqual({
+        exitCode: 0,
+        stdout: 'initialised',
+        stderr: '',
+      });
+    });
+
+    it('ERROR: {dungeonmaster init exits 2} => exitCode 2 and its output as stderr', () => {
+      const proxy = installTestbedCreateBrokerProxy();
+      proxy.setupRandomBytes({ bytes: Buffer.from('test') });
+      proxy.setupCommandExits({
+        command: 'dungeonmaster',
+        status: 2,
+        stdout: 'partial ',
+        stderr: 'boom',
+      });
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'test-init' }),
+      });
+
+      expect(testbed.runInitCommand()).toStrictEqual({
+        exitCode: 2,
+        stdout: '',
+        stderr: 'partial boom',
+      });
+    });
+
+    it('ERROR: {dungeonmaster not installed} => exitCode 1 and the spawn failure as stderr', () => {
+      const proxy = installTestbedCreateBrokerProxy();
+      proxy.setupRandomBytes({ bytes: Buffer.from('test') });
+      proxy.setupCommandNotFound({ command: 'dungeonmaster', code: 'ENOENT' });
+      const testbed = installTestbedCreateBroker({
+        baseName: BaseNameStub({ value: 'test-init' }),
+      });
+
+      expect(testbed.runInitCommand()).toStrictEqual({
+        exitCode: 1,
+        stdout: '',
+        stderr: '"dungeonmaster" never started: spawn dungeonmaster ENOENT',
+      });
     });
   });
 });

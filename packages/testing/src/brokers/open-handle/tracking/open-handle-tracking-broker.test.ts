@@ -3,13 +3,17 @@ import { openHandleTrackingBrokerProxy } from './open-handle-tracking-broker.pro
 
 describe('openHandleTrackingBroker', () => {
   describe('watch', () => {
-    it('VALID: {called} => returns success', () => {
+    it('VALID: {watch, then a timeout armed} => the timeout is announced as setTimeout', () => {
       openHandleTrackingBrokerProxy();
+      openHandleTrackingBroker.watch();
       openHandleTrackingBroker.clear();
 
-      const result = openHandleTrackingBroker.watch();
+      const timeout = setTimeout(() => undefined, 60_000);
+      const kinds = openHandleTrackingBroker.pending().map((armed) => armed.kind);
+      clearTimeout(timeout);
+      openHandleTrackingBroker.clear();
 
-      expect(result).toStrictEqual({ success: true });
+      expect(kinds).toStrictEqual(['setTimeout']);
     });
   });
 

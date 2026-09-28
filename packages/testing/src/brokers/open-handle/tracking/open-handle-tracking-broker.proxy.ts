@@ -3,14 +3,14 @@
  *
  * USAGE:
  * openHandleTrackingBrokerProxy();
- * // The broker composes the timers watch adapter, which wraps language primitives and so runs
+ * // The broker composes the timers watch broker, which wraps language primitives and so runs
  * // REAL — mocking it would leave the test asserting against the mock rather than node's handles
  */
 
-import { timersWatchAdapterProxy } from '../../../adapters/timers/watch/timers-watch-adapter.proxy';
+import { timersWatchBrokerProxy } from '../../timers/watch/timers-watch-broker.proxy';
 
 export const openHandleTrackingBrokerProxy = (): Record<PropertyKey, never> => {
-  timersWatchAdapterProxy();
+  timersWatchBrokerProxy();
 
   return {};
 };
