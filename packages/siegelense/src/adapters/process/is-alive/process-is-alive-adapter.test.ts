@@ -1,31 +1,20 @@
 import { runInNewContext } from 'vm';
 
-import { processCwdAdapterProxy } from '@dungeonmaster/shared/testing';
 import { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
 import { processIsAliveAdapter } from './process-is-alive-adapter';
 import { processIsAliveAdapterProxy } from './process-is-alive-adapter.proxy';
 
 describe('processIsAliveAdapter', () => {
-  // Regression guard: `kill` here and `@dungeonmaster/shared`'s processCwdAdapter both wrap
-  // `process`. Jest's mock registry resolves the bare specifier and the `node:`-prefixed one to
-  // the SAME module, so two proxies mocking it under different specifier strings must merge into
-  // one factory or the losing proxy's calls fall through to the real syscall with no error.
-  // `mockCallsMergeByModuleTransformer` (in `@dungeonmaster/testing`) is what keeps this
-  // composition safe, whichever specifier either adapter imports from.
-  describe('composed with a cross-package proxy that also mocks process', () => {
-    it('VALID: {cwd proxy registered before isAlive proxy} => isAlive mock still intercepts kill', () => {
-      const cwdProxy = processCwdAdapterProxy();
-      cwdProxy.returns({ path: '/tmp/repro' });
-      const proxy = processIsAliveAdapterProxy();
-      const pgid = ProcessGroupIdStub({ value: 999_999 });
-      proxy.setupAlive({ pgid });
-
-      const result = processIsAliveAdapter({ pgid });
-
-      expect(result).toBe(true);
-    });
-  });
-
+  // This file used to guard a cross-package process-mock regression explicitly (composing a proxy
+  // that mocked `process.cwd`, from `@dungeonmaster/shared/testing`, alongside this one's own
+  // `kill` mock). `enforce-import-dependencies` refuses a test file composing any proxy but its
+  // own colocated one, and `enforce-proxy-child-creation` refuses `processIsAliveAdapterProxy`
+  // composing a gateway proxy `process-is-alive-adapter.ts` never imports — so that reproduction
+  // is no longer expressible here under either rule. The underlying mechanism it proved
+  // (`mockCallsMergeByModuleTransformer` merging a `registerSpyOn` on the raw `process` global with
+  // a specifier-based `registerMock` of the same module) is still covered directly, at the
+  // transformer level, by `mock-calls-merge-by-module-transformer.test.ts`'s own "the process
+  // cwd/kill collision" case.
   describe('a live group', () => {
     it('VALID: {alive group} => returns true', () => {
       const proxy = processIsAliveAdapterProxy();

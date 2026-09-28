@@ -25,16 +25,10 @@
  * // Writes profiles/<specHash>/samples/<instanceId>.json, or returns null when rssMB was null
  */
 
-import {
-  fsExistsSyncAdapter,
-  fsMkdirAdapter,
-  pathJoinAdapter,
-} from '@dungeonmaster/shared/adapters';
-import {
-  absoluteFilePathContract,
-  fileContentsContract,
-  filePathContract,
-} from '@dungeonmaster/shared/contracts';
+import { existsSync } from '#gateway/node/fs';
+import { ensureDir } from '#gateway/node/fs__promises';
+import { join } from '#gateway/node/path';
+import { absoluteFilePathContract, fileContentsContract } from '@dungeonmaster/shared/contracts';
 
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
@@ -80,11 +74,11 @@ export const profileSampleRecordBroker = async ({
 
   const { samplesDir } = locationsProfileDirsFindBroker({ specHash });
   const recordPath = absoluteFilePathContract.parse(
-    pathJoinAdapter({ paths: [samplesDir, `${instanceId}${profileStatics.extensions.record}`] }),
+    join(samplesDir, `${instanceId}${profileStatics.extensions.record}`),
   );
 
   let existing: ProfileObservation | null = null;
-  if (fsExistsSyncAdapter({ filePath: filePathContract.parse(recordPath) })) {
+  if (existsSync(recordPath)) {
     const contents = await fsReadFileAdapter({ filePath: recordPath });
     try {
       existing = profileObservationContract.parse(JSON.parse(contents));
@@ -107,7 +101,7 @@ export const profileSampleRecordBroker = async ({
     beatAtMs,
   });
 
-  await fsMkdirAdapter({ filepath: filePathContract.parse(samplesDir) });
+  await ensureDir(samplesDir);
   await fsWriteFileAdapter({
     filePath: recordPath,
     contents: fileContentsContract.parse(`${JSON.stringify(merged)}\n`),

@@ -11,7 +11,7 @@
  * await recipeSeedRunBroker({ recipe, apiBaseUrl, homePath, parameters });
  */
 
-import { runtimeDynamicImportAdapter } from '@dungeonmaster/shared/adapters';
+import { dynamicImport } from '#gateway/node/module';
 import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
 import { recipesConventionStatics } from '@dungeonmaster/shared/statics';
 
@@ -36,7 +36,7 @@ export const recipeSeedRunBroker = async ({
   parameters: Record<string, ContentText>;
 }): Promise<SeedResult> => {
   const entryPath = await recipesLocateBroker();
-  const recipesModule = await runtimeDynamicImportAdapter({ path: entryPath });
+  const recipesModule = await dynamicImport({ path: entryPath });
   const seedRunExportName = recipesConventionStatics.exports.seed;
   const seedRunExport =
     typeof recipesModule === 'object' && recipesModule !== null

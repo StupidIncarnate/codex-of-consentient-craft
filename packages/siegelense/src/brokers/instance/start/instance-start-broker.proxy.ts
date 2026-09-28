@@ -87,6 +87,14 @@ const TMP_DIR_VALUE = '/tmp';
 // require.resolve() call (never mocked — see cliPackageBinResolveAdapterProxy's own comment).
 const CLI_BIN_RELATIVE_VALUE = './dist/bin/dungeonmaster.js';
 const MINTED_UUID_VALUE = '7f3a9c21-58cc-4372-a567-0e02b2c3d479';
+// The minted instance's evidence directory when reserved with no owning quest or guild
+// (`questId: null, guildId: null`) — every scenario in this file reserves that way except the
+// quest/guild-partitioning tests, which pass their own `evidencePath` into stageBoot() instead.
+const UNOWNED_EVIDENCE_PATH_VALUE = `${ROOT_PATH_VALUE}/unowned/instances/inst_${MINTED_UUID_VALUE.split('-').join('')}`;
+// laneSpecHashBroker's real sha256 digest of laneSpecFindBrokerProxy's own sticky default spec
+// (the single headless api process staged above) — every test in this file that never calls
+// stageLaneSpec resolves the SAME real hash here, since the hash is pure content addressing.
+const DEFAULT_SPEC_HASH_VALUE = 'd710f23b94181fa9168a01db4dfc9a25bd0a4dd95887c301d34ca3bb51931583';
 const FIRST_PORT_VALUE = 40_000;
 const SECOND_PORT_VALUE = 40_001;
 // boot-lock-acquire-broker.proxy.ts and boot-lock-release-broker.proxy.ts each pre-stage their
@@ -109,6 +117,7 @@ const DATE_NOW_CALLS_BEFORE_POLL_CHECK = 9;
 // and the poll's own check) — the position queuedMs's second bracket (lockWaitEndedAtMs) lands on.
 const DATE_NOW_CALLS_BEFORE_QUEUED_MS_END = 7;
 
+const ROOT_PATH_FILE = FilePathStub({ value: ROOT_PATH_VALUE });
 const REGISTRY_PATH_FILE = FilePathStub({ value: REGISTRY_PATH_VALUE });
 const REGISTRY_PATH_ABS = AbsoluteFilePathStub({ value: REGISTRY_PATH_VALUE });
 const REGISTRY_TMP_PATH_ABS = AbsoluteFilePathStub({ value: REGISTRY_TMP_PATH_VALUE });
@@ -203,10 +212,13 @@ export const instanceStartBrokerProxy = (): {
   registerMock({ fn: join })
     .calledWith([])
     .implement((...segments: never[]) => realPath.join(...segments));
-  // Constructed for enforce-proxy-child-creation. Its own setup methods are never called here: the
-  // boot record's path is keyed by the spec's REAL content hash, which no test in this file names,
-  // so the write below is addressed by a predicate on the boots directory instead.
-  profileBootRecordBrokerProxy();
+  // setupBootRecordWrite is never called here: the boot record's path is keyed by the spec's REAL
+  // content hash, which no test in this file names by way of laneSpecFindBrokerProxy's own default
+  // spec, so the write below is addressed by a predicate on the boots directory instead — captured
+  // (not composed bare) so its own narrower setupBootsDirCreated can stage the mkdir alone, without
+  // setupBootRecordWrite's bundled Date.now() default colliding with this file's own call-count-
+  // tuned dateNowHandle queue.
+  const profileBootRecordProxy = profileBootRecordBrokerProxy();
   // Constructed for enforce-proxy-child-creation: instanceStartBroker now calls
   // shutdownReasonWriteBroker directly too (a seed failure's own reason), even though every actual
   // write in this file's tests still goes through killProxy's own composed instance of this same
@@ -328,6 +340,27 @@ export const instanceStartBrokerProxy = (): {
     // own git-branch lookup shares this same '#gateway/node/process' cwd() mock — staged here so
     // neither ever reads the real working directory.
     repoLinkProxy.setupCwd({ cwdPath: CWD_PATH_VALUE });
+    // instanceReserveBroker's own reserve step creates the instance's evidence directory before
+    // this broker ever reaches a boot attempt — routed through reserveProxy's own semantic method
+    // (not a bare ensureDirProxy() composed here) since instanceStartBroker.ts itself never imports
+    // ensureDir; only instanceReserveBroker does.
+    reserveProxy.setupEvidenceDir({
+      homeDir: HOME_DIR_VALUE,
+      homePath: HOME_PATH,
+      rootPath: ROOT_PATH_FILE,
+      evidencePath,
+    });
+    // A successful boot's own profileBootRecordBroker call creates the boots directory under the
+    // default spec's real hash before writing to it; the write itself is already staged on
+    // writeHandle via the boots-dir predicate above. Routed through profileBootRecordProxy's own
+    // narrow setupBootsDirCreated (not a bare ensureDirProxy() here, for the same
+    // enforce-proxy-child-creation reason as reserveProxy.setupEvidenceDir above) — every test in
+    // this file that never calls stageLaneSpec resolves this same real hash.
+    profileBootRecordProxy.setupBootsDirCreated({
+      profilesPath: FilePathStub({
+        value: `${ROOT_PATH_VALUE}/profiles/${DEFAULT_SPEC_HASH_VALUE}`,
+      }),
+    });
 
     // Drains the onceFor entries boot-lock-acquire-broker.proxy.ts and
     // boot-lock-release-broker.proxy.ts queued unconditionally at construction time (see the note
@@ -590,6 +623,16 @@ export const instanceStartBrokerProxy = (): {
       // Staged explicitly, as `stageBoot` does: this scenario reaches registryReadBroker's
       // homedir() fallback with no other setup method having pinned it.
       repoLinkProxy.setupHomeOnly({ homeDir: HOME_DIR_VALUE, homePath: HOME_PATH });
+      // Same reasoning as stageBoot's own evidence-dir stage: reserve creates the instance's
+      // evidence directory before boot-lock-acquire ever runs. This scenario takes no
+      // evidencePath param (it never reaches a boot attempt), so it addresses the one fixed
+      // "unowned" value every caller of this method reserves against.
+      reserveProxy.setupEvidenceDir({
+        homeDir: HOME_DIR_VALUE,
+        homePath: HOME_PATH,
+        rootPath: ROOT_PATH_FILE,
+        evidencePath: FilePathStub({ value: UNOWNED_EVIDENCE_PATH_VALUE }),
+      });
       // Same drain `stageBoot` runs, for the same reason (see PATH_JOIN_DRAIN_COUNT above):
       // bootLockAcquireBrokerProxy/bootLockReleaseBrokerProxy each queue one-shot pathJoin
       // resolutions unconditionally at construction, and this scenario reaches registryReadBroker's

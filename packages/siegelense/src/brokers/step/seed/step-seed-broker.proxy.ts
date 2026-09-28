@@ -2,7 +2,7 @@
  * PURPOSE: Composes the recipes-locate + dynamic-import boundary `stepSeedBroker` drives TWICE per
  * successful seed — once inside `recipesReadBroker`'s own listing read, once again for this
  * broker's own import of the recipe's `recipesSeedRunBroker` export — and exposes a semantic stage
- * per export a test needs to control. `processCwdAdapter`/`pathJoinAdapter` are ONE-SHOT mocks
+ * per export a test needs to control. `#gateway/node/process`'s `cwd` is a ONE-SHOT mock there
  * (`recipes-locate-broker.proxy.ts`'s own `setupPresentAndBuilt` queues one answer per call), so
  * `stageEntry` re-stages the SAME resolution twice — enough for both real invocations a successful
  * seed makes, and harmless surplus for a scenario that only reaches the first.
@@ -14,10 +14,12 @@
  * // seedRun.getCallArgs() reads back what the recipe's own seed export was called with
  */
 
+import { dynamicImport } from '#gateway/node/module';
+import { dynamicImportProxy } from '#gateway/node/module/dynamic-import/dynamic-import.proxy';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
 import { recipesConventionStatics } from '@dungeonmaster/shared/statics';
-import { runtimeDynamicImportAdapterProxy } from '@dungeonmaster/shared/testing';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { recipesLocateBrokerProxy } from '../../recipes/locate/recipes-locate-broker.proxy';
 import { recipesReadBrokerProxy } from '../../recipes/read/recipes-read-broker.proxy';
@@ -36,10 +38,14 @@ export const stepSeedBrokerProxy = (): {
   bookPresentAt: (params: { packagePath: FilePath }) => void;
 } => {
   const locateProxy = recipesLocateBrokerProxy();
-  const importProxy = runtimeDynamicImportAdapterProxy();
-  // Unaddressed further — this proxy stages recipesLocateBroker/runtimeDynamicImportAdapter
-  // itself, the same shared mocks recipesReadBrokerProxy composes, so constructing it here only
-  // satisfies enforce-proxy-child-creation for stepSeedBroker's own import of recipesReadBroker.
+  // dynamicImportProxy() offers no staging of its own (a language primitive, meant to be driven
+  // for real) — the phantom call satisfies enforce-proxy-child-creation, and the real staging
+  // below addresses dynamicImport itself directly, keyed on the module specifier. It also
+  // covers stepSeedBroker's own import of recipesReadBroker, the same shared mock
+  // recipesReadBrokerProxy composes, so constructing that proxy here only satisfies
+  // enforce-proxy-child-creation for that composition.
+  dynamicImportProxy();
+  const importHandle = registerMock({ fn: dynamicImport });
   recipesReadBrokerProxy();
   const moduleExports: Record<PropertyKey, unknown> = {};
   const state: { packagePath: FilePath | null } = { packagePath: null };
@@ -54,7 +60,7 @@ export const stepSeedBrokerProxy = (): {
         packagePath: pkgPath,
         entryPath,
       });
-      importProxy.succeeds({ path: entryPath, module: moduleExports });
+      importHandle.calledWith([{ path: entryPath }]).resolves(moduleExports);
       return;
     }
     Array.from({ length: LOCATE_REPEAT_COUNT }).forEach(() => {
@@ -64,7 +70,7 @@ export const stepSeedBrokerProxy = (): {
         entryPath: ENTRY_PATH,
       });
     });
-    importProxy.succeeds({ path: ENTRY_PATH, module: moduleExports });
+    importHandle.calledWith([{ path: ENTRY_PATH }]).resolves(moduleExports);
   };
 
   return {

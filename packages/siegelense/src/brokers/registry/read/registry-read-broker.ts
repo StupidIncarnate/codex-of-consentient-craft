@@ -12,8 +12,7 @@
  * // Returns Registry — { instances: [] } when registry.json does not exist yet
  */
 
-import { fsExistsSyncAdapter } from '@dungeonmaster/shared/adapters';
-import { filePathContract } from '@dungeonmaster/shared/contracts';
+import { existsSync } from '#gateway/node/fs';
 
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { registryContract } from '../../../contracts/registry/registry-contract';
@@ -24,7 +23,7 @@ import { locationsRegistryPathFindBroker } from '../../locations/registry-path-f
 export const registryReadBroker = async (): Promise<Registry> => {
   const registryPath = locationsRegistryPathFindBroker();
 
-  if (!fsExistsSyncAdapter({ filePath: filePathContract.parse(registryPath) })) {
+  if (!existsSync(registryPath)) {
     return registryContract.parse({ instances: [] });
   }
 

@@ -1,6 +1,6 @@
 /**
- * PURPOSE: Proxy for recipeSeedRunBroker — composes recipesLocateBrokerProxy and
- * runtimeDynamicImportAdapterProxy so callers can stage recipes execution.
+ * PURPOSE: Proxy for recipeSeedRunBroker — composes recipesLocateBrokerProxy and stages
+ * `#gateway/node/module`'s `dynamicImport` so callers can stage recipes execution.
  *
  * USAGE:
  * const proxy = recipeSeedRunBrokerProxy();
@@ -8,10 +8,12 @@
  * proxy.guildWithThreeQuestsAnswers({ guild, quests });
  */
 
+import { dynamicImport } from '#gateway/node/module';
+import { dynamicImportProxy } from '#gateway/node/module/dynamic-import/dynamic-import.proxy';
 import type { FilePath, Guild, Quest } from '@dungeonmaster/shared/contracts';
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
 import { recipesConventionStatics } from '@dungeonmaster/shared/statics';
-import { runtimeDynamicImportAdapterProxy } from '@dungeonmaster/shared/testing';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { SeedResultStub } from '../../../contracts/seed-result/seed-result.stub';
 import { recipesLocateBrokerProxy } from '../../recipes/locate/recipes-locate-broker.proxy';
@@ -36,7 +38,12 @@ export const recipeSeedRunBrokerProxy = (): {
   malformedAnswer: () => void;
 } => {
   const locateProxy = recipesLocateBrokerProxy();
-  const importProxy = runtimeDynamicImportAdapterProxy();
+  // dynamicImportProxy() offers no staging of its own (a language primitive, meant to be driven
+  // for real) — the phantom call satisfies enforce-proxy-child-creation, and the real staging
+  // below addresses dynamicImport itself directly, keyed on the module specifier, the same way
+  // the pre-gateway runtimeDynamicImportAdapter's own proxy self-mocked for the same reason.
+  dynamicImportProxy();
+  const importHandle = registerMock({ fn: dynamicImport });
   const moduleExports: Record<PropertyKey, unknown> = {};
 
   const stageEntry = (): void => {
@@ -50,7 +57,7 @@ export const recipeSeedRunBrokerProxy = (): {
       packagePath: PACKAGE_PATH,
       entryPath: ENTRY_PATH,
     });
-    importProxy.succeeds({ path: ENTRY_PATH, module: moduleExports });
+    importHandle.calledWith([{ path: ENTRY_PATH }]).resolves(moduleExports);
   };
 
   return {

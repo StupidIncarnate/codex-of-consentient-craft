@@ -14,7 +14,7 @@
  * // problem
  */
 
-import { runtimeDynamicImportAdapter } from '@dungeonmaster/shared/adapters';
+import { dynamicImport } from '#gateway/node/module';
 import { recipesConventionStatics } from '@dungeonmaster/shared/statics';
 
 import { recipesLocateBroker } from '../locate/recipes-locate-broker';
@@ -26,7 +26,7 @@ import { RecipesListingExportInvalidError } from '../../../errors/recipes-listin
 
 export const recipesReadBroker = async (): Promise<RecipesListing> => {
   const entryPath = await recipesLocateBroker();
-  const recipesModule = await runtimeDynamicImportAdapter({ path: entryPath });
+  const recipesModule = await dynamicImport({ path: entryPath });
 
   const listingExportName = recipesConventionStatics.exports.listing;
   const listingBuildExport =

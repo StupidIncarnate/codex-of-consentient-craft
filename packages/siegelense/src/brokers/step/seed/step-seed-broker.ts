@@ -15,7 +15,7 @@
  * // Returns a ContentText — the JSON rendering of every saveRecordAs row the recipe's plan made
  */
 
-import { runtimeDynamicImportAdapter } from '@dungeonmaster/shared/adapters';
+import { dynamicImport } from '#gateway/node/module';
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { ContentText } from '@dungeonmaster/shared/contracts';
 import { recipesConventionStatics } from '@dungeonmaster/shared/statics';
@@ -78,7 +78,7 @@ export const stepSeedBroker = async ({
   }
 
   const entryPath = await recipesLocateBroker();
-  const recipesModule = await runtimeDynamicImportAdapter({ path: entryPath });
+  const recipesModule = await dynamicImport({ path: entryPath });
   const seedRunExportName = recipesConventionStatics.exports.seed;
   const seedRunExport =
     typeof recipesModule === 'object' && recipesModule !== null

@@ -1,7 +1,7 @@
 import { readFile } from 'fs/promises';
 import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle, SpyOnHandle } from '@dungeonmaster/testing/register-mock';
-import { fsMkdirAdapterProxy } from '@dungeonmaster/shared/testing';
+import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { locationsRegistryLockPathFindBrokerProxy } from '../../locations/registry-lock-path-find/locations-registry-lock-path-find-broker.proxy';
 import { locationsRootPathFindBrokerProxy } from '../../locations/root-path-find/locations-root-path-find-broker.proxy';
 import { errorIsNativeErrorAdapterProxy } from '../../../adapters/error/is-native-error/error-is-native-error-adapter.proxy';
@@ -75,7 +75,14 @@ export const registryLockAcquireBrokerProxy = (): {
 
   const rootPathProxy = locationsRootPathFindBrokerProxy();
   const pathProxy = locationsRegistryLockPathFindBrokerProxy();
-  const mkdirProxy = fsMkdirAdapterProxy();
+  const mkdirProxy = ensureDirProxy();
+  // `ensureDirProxy` carries no unaddressed catch-all default. `rootPath` is a fixed constant here
+  // (not scenario-dependent — every real invocation of `registryLockAcquireBroker` calls
+  // `ensureDir` with this exact value, since `locationsRootPathFindBroker`'s own join resolves it
+  // for real via a sticky passthrough even when `setupRootPath` below is never called), so this
+  // stages it unconditionally at construction, addressed to the one real value — active regardless
+  // of which setup method below a caller ends up invoking.
+  mkdirProxy.succeeds({ path: rootPath });
   // pathJoinAdapterProxy's `returns()` is call-order-scoped and shared across every composed
   // proxy in a test, so this stages EXACTLY one path resolution per real invocation of a
   // locations broker the calling scenario will trigger — never upfront, and never more than that
@@ -217,6 +224,7 @@ export const registryLockAcquireBrokerProxy = (): {
 
     getDeletedPaths: (): unknown[] => unlinkProxy.getDeletedPaths(),
 
-    getCreatedDirs: (): readonly unknown[] => mkdirProxy.getCreatedDirs(),
+    getCreatedDirs: (): readonly unknown[] =>
+      mkdirProxy.getCallsFor({ path: rootPath }).map((call) => call[0]),
   };
 };

@@ -1,4 +1,4 @@
-import { fsExistsSyncAdapterProxy } from '@dungeonmaster/shared/testing';
+import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { AbsoluteFilePathStub, FilePathStub } from '@dungeonmaster/shared/contracts';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
 
@@ -21,7 +21,7 @@ export const registryReadBrokerProxy = (): {
   setupHomeOnly: (params: { homeDir: string; homePath: FilePath }) => void;
 } => {
   const pathProxy = locationsRegistryPathFindBrokerProxy();
-  const existsProxy = fsExistsSyncAdapterProxy();
+  const existsProxy = existsSyncProxy();
   const readFileProxy = fsReadFileAdapterProxy();
 
   const queuePath = (): void => {
@@ -36,18 +36,18 @@ export const registryReadBrokerProxy = (): {
   return {
     setupMissingRegistry: (): void => {
       queuePath();
-      existsProxy.returns({ filePath: registryPath, result: false });
+      existsProxy.returns({ path: registryPath, exists: false });
     },
 
     setupPresentRegistry: ({ content }: { content: string }): void => {
       queuePath();
-      existsProxy.returns({ filePath: registryPath, result: true });
+      existsProxy.returns({ path: registryPath, exists: true });
       readFileProxy.resolves({ filePath: registryPathAbs, content });
     },
 
     setupReadFailure: ({ error }: { error: Error }): void => {
       queuePath();
-      existsProxy.returns({ filePath: registryPath, result: true });
+      existsProxy.returns({ path: registryPath, exists: true });
       readFileProxy.rejects({ filePath: registryPathAbs, error });
     },
 

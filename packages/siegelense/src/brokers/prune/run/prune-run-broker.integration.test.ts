@@ -13,11 +13,10 @@
  */
 
 import { installTestbedCreateBroker, BaseNameStub } from '@dungeonmaster/testing';
-import { fsMkdirAdapter } from '@dungeonmaster/shared/adapters';
+import { ensureDir } from '#gateway/node/fs__promises';
 import {
   AbsoluteFilePathStub,
   FileContentsStub,
-  FilePathStub,
   GuildIdStub,
   QuestIdStub,
   QuestNoteStub,
@@ -82,7 +81,7 @@ describe('prune, against a real evidence tree', () => {
 
   beforeAll(async () => {
     process.env.DUNGEONMASTER_HOME = testbed.guildPath;
-    await fsMkdirAdapter({ filepath: FilePathStub({ value: `${testbed.guildPath}/siegelense` }) });
+    await ensureDir(`${testbed.guildPath}/siegelense`);
 
     await registryWriteBroker({
       registry: {
@@ -181,7 +180,7 @@ describe('prune, against a real evidence tree', () => {
 
     await Promise.all(
       [citedEvidence, uncitedEvidence, neighbourEvidence, liveEvidence].map(async (evidenceDir) => {
-        await fsMkdirAdapter({ filepath: FilePathStub({ value: `${evidenceDir}/runs/run_2` }) });
+        await ensureDir(`${evidenceDir}/runs/run_2`);
         await fsWriteFileAdapter({
           filePath: AbsoluteFilePathStub({ value: `${evidenceDir}/api-server.log` }),
           contents: body,
@@ -199,8 +198,8 @@ describe('prune, against a real evidence tree', () => {
 
     // The quest the cited instance was started for: OPEN, with a walked note naming it and run_2,
     // and a worktree holding a prelude whose VERIFIED line names run_2 too.
-    await fsMkdirAdapter({ filepath: FilePathStub({ value: questFolder }) });
-    await fsMkdirAdapter({ filepath: FilePathStub({ value: plansDir }) });
+    await ensureDir(questFolder);
+    await ensureDir(plansDir);
     await fsWriteFileAdapter({
       filePath: AbsoluteFilePathStub({ value: questFile }),
       contents: FileContentsStub({

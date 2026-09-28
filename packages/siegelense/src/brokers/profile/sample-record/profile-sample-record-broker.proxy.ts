@@ -13,18 +13,16 @@
  * proxy.getWrittenRecord({ profilesPath, instanceId });
  */
 
-import {
-  fsExistsSyncAdapterProxy,
-  fsMkdirAdapterProxy,
-  pathJoinAdapterProxy,
-} from '@dungeonmaster/shared/testing';
+import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
+import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
+import { join } from '#gateway/node/path';
 import {
   AbsoluteFilePathStub,
   ContentTextStub,
   FilePathStub,
 } from '@dungeonmaster/shared/contracts';
 import type { ContentText, FilePath } from '@dungeonmaster/shared/contracts';
-import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { registerMock, registerSpyOn, requireActual } from '@dungeonmaster/testing/register-mock';
 
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
@@ -65,11 +63,15 @@ export const profileSampleRecordBrokerProxy = (): {
 
   const registryProxy = registryReadBrokerProxy();
   const dirsProxy = locationsProfileDirsFindBrokerProxy();
-  // Constructed, never staged: the record-path join runs through the real passthrough.
-  pathJoinAdapterProxy();
-  const existsProxy = fsExistsSyncAdapterProxy();
+  // join carries no gateway proxy of its own (#gateway/node/path is a raw passthrough), so a
+  // real-passthrough default is registered directly here — the record-path join is never
+  // explicitly staged, only ever computed for real.
+  const realPath = requireActual<{ join: typeof join }>({ module: 'path' });
+  const joinHandle = registerMock({ fn: join });
+  joinHandle.calledWith([]).implement((...segments: never[]) => realPath.join(...segments));
+  const existsProxy = existsSyncProxy();
   const readProxy = fsReadFileAdapterProxy();
-  const mkdirProxy = fsMkdirAdapterProxy();
+  const mkdirProxy = ensureDirProxy();
   const writeProxy = fsWriteFileAdapterProxy();
   const stderrHandle = registerSpyOn({ object: process.stderr, method: 'write' });
   // Record-and-swallow: what stderr does with the write is nobody's assertion, only what was
@@ -100,8 +102,8 @@ export const profileSampleRecordBrokerProxy = (): {
     registry: Registry;
   }): void => {
     // Call order: the registry read resolves its own path chain first, then the profiles chain.
-    // pathJoinAdapter's mock is one call-ordered queue shared by both, so staging them the other
-    // way round would hand the registry's resolution the profiles path.
+    // The gateway `join` mock's real-passthrough default is shared by both, so staging them the
+    // other way round would hand the registry's resolution the profiles path.
     registryProxy.setupPresentRegistry({ content: JSON.stringify(registry) });
     dirsProxy.setupProfilesPath({
       homeDir: HOME_DIR,
@@ -110,7 +112,7 @@ export const profileSampleRecordBrokerProxy = (): {
       profilesPath,
     });
 
-    mkdirProxy.succeeds({ filepath: samplesDirFor({ profilesPath }) });
+    mkdirProxy.succeeds({ path: samplesDirFor({ profilesPath }) });
     writeProxy.succeeds({
       filePath: AbsoluteFilePathStub({
         value: String(recordPathFor({ profilesPath, instanceId })),
@@ -122,16 +124,16 @@ export const profileSampleRecordBrokerProxy = (): {
     setupFirstBeat: ({ profilesPath, instanceId, registry }): void => {
       stageChain({ profilesPath, instanceId, registry });
       existsProxy.returns({
-        filePath: recordPathFor({ profilesPath, instanceId }),
-        result: false,
+        path: recordPathFor({ profilesPath, instanceId }),
+        exists: false,
       });
     },
 
     setupLaterBeat: ({ profilesPath, instanceId, registry, existingRecordJson }): void => {
       stageChain({ profilesPath, instanceId, registry });
       existsProxy.returns({
-        filePath: recordPathFor({ profilesPath, instanceId }),
-        result: true,
+        path: recordPathFor({ profilesPath, instanceId }),
+        exists: true,
       });
       readProxy.resolves({
         filePath: AbsoluteFilePathStub({

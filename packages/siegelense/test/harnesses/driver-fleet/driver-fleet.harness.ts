@@ -21,9 +21,8 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { createServer } from 'net';
 import { kill } from 'process';
-import { resolve as resolvePath } from 'path';
+import { join, resolve as resolvePath } from 'path';
 
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import type {
   AbsoluteFilePath,
   NetworkPort,
@@ -255,9 +254,7 @@ export const driverFleetHarness = (): {
   }: {
     instanceId: InstanceId;
   }): readonly ProcessGroupId[] => {
-    const heartbeatPath = pathJoinAdapter({
-      paths: [evidenceDir({ instanceId }), locationsStatics.siegelense.heartbeat],
-    });
+    const heartbeatPath = join(evidenceDir({ instanceId }), locationsStatics.siegelense.heartbeat);
 
     if (!existsSync(heartbeatPath)) {
       return [];
@@ -275,11 +272,7 @@ export const driverFleetHarness = (): {
   };
 
   const heartbeatExists = ({ instanceId }: { instanceId: InstanceId }): boolean =>
-    existsSync(
-      pathJoinAdapter({
-        paths: [evidenceDir({ instanceId }), locationsStatics.siegelense.heartbeat],
-      }),
-    );
+    existsSync(join(evidenceDir({ instanceId }), locationsStatics.siegelense.heartbeat));
 
   const waitForHeartbeatPgids = async ({
     instanceId,
@@ -386,11 +379,7 @@ export const driverFleetHarness = (): {
     existsSync(evidenceDir({ instanceId }));
 
   const apiLogExists = ({ instanceId }: { instanceId: InstanceId }): boolean =>
-    existsSync(
-      pathJoinAdapter({
-        paths: [evidenceDir({ instanceId }), locationsStatics.siegelense.apiLog],
-      }),
-    );
+    existsSync(join(evidenceDir({ instanceId }), locationsStatics.siegelense.apiLog));
 
   const homeDirExists = ({ instanceId }: { instanceId: InstanceId }): boolean =>
     existsSync(locationsInstanceHomePathFindBroker({ instanceId }));

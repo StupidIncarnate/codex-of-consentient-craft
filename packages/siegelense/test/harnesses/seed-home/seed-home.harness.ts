@@ -1,7 +1,7 @@
 /**
  * PURPOSE: Runs a REAL recipe from the compiled `@dungeonmaster/hydration-recipes` package
  * against a real, empty `DUNGEONMASTER_HOME` directory — the exact two calls `recipeSeedRunBroker`
- * itself makes (`recipesLocateBroker`, then `runtimeDynamicImportAdapter`), but omitting `baseUrl`
+ * itself makes (`recipesLocateBroker`, then `#gateway/node/module`'s `dynamicImport`), but omitting `baseUrl`
  * so `routeSelectTransformer` (in `@dungeonmaster/hydration`) picks the `write` route rather than
  * `api`: `guild` and `quest` both declare an `api` route, and that transformer prefers it the
  * instant a target carries ANY `baseUrl` string, which would force a real HTTP call this harness
@@ -35,8 +35,8 @@
 import { writeFileSync } from 'fs';
 import { join } from 'path';
 
+import { dynamicImport } from '#gateway/node/module';
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import { runtimeDynamicImportAdapter } from '@dungeonmaster/shared/adapters';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics, recipesConventionStatics } from '@dungeonmaster/shared/statics';
@@ -83,7 +83,7 @@ export const seedHomeHarness = (): {
     homePath,
     runRecipe: async ({ recipeName }: { recipeName: RecipeName }): Promise<SeedResult> => {
       const entryPath = await recipesLocateBroker();
-      const recipesModule = await runtimeDynamicImportAdapter({ path: entryPath });
+      const recipesModule = await dynamicImport({ path: entryPath });
       const seedRun = (recipesModule as Record<PropertyKey, unknown>)[
         recipesConventionStatics.exports.seed
       ] as (params: unknown) => Promise<unknown>;

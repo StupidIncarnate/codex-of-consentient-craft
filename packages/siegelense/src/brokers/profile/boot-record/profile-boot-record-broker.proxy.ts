@@ -31,6 +31,11 @@ export const profileBootRecordBrokerProxy = (): {
     instanceId: InstanceId;
     nowMs: number;
   }) => void;
+  // mkdir only — for a caller that stages the write and Date.now() through its own means (a
+  // shared writeHandle predicate, a call-count-tuned dateNowHandle queue) and only needs the
+  // boots directory itself created, without setupBootRecordWrite's own sticky Date.now() default
+  // colliding with that queue.
+  setupBootsDirCreated: (params: { profilesPath: FilePath }) => void;
   getWrittenRecord: (params: { profilesPath: FilePath; instanceId: InstanceId }) => unknown;
 } => {
   // Constructed, never staged: the record-path join runs through the real passthrough default
@@ -66,6 +71,12 @@ export const profileBootRecordBrokerProxy = (): {
         }),
       });
       dateHandle.calledWith([]).returns(nowMs);
+    },
+
+    setupBootsDirCreated: ({ profilesPath }: { profilesPath: FilePath }): void => {
+      mkdirProxy.succeeds({
+        path: `${String(profilesPath)}/${profileStatics.dirs.boots}`,
+      });
     },
 
     getWrittenRecord: ({

@@ -31,8 +31,8 @@ import { locationsRootPathFindBroker } from '../../locations/root-path-find/loca
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import type { EpochMs } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import { instanceLifecycleStatics } from '../../../statics/instance-lifecycle/instance-lifecycle-statics';
-import { fsMkdirAdapter } from '@dungeonmaster/shared/adapters';
-import { fileContentsContract, filePathContract } from '@dungeonmaster/shared/contracts';
+import { ensureDir } from '#gateway/node/fs__promises';
+import { fileContentsContract } from '@dungeonmaster/shared/contracts';
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
 export const registryLockAcquireBroker = async ({
@@ -45,7 +45,7 @@ export const registryLockAcquireBroker = async ({
   const lockPath = locationsRegistryLockPathFindBroker();
   const nowMs = epochMsContract.parse(Date.now());
 
-  await fsMkdirAdapter({ filepath: filePathContract.parse(rootPath) });
+  await ensureDir(rootPath);
 
   try {
     await fsWriteFileAdapter({
