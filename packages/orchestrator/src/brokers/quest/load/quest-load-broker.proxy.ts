@@ -1,8 +1,11 @@
+import type { FilePath } from '@dungeonmaster/shared/contracts';
+
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 
 export const questLoadBrokerProxy = (): {
   setupQuestFile: (params: { questJson: string }) => void;
   setupQuestFileReadError: (params: { error: Error }) => void;
+  setupQuestFileAt: (params: { questFilePath: FilePath; questJson: string }) => void;
 } => {
   const fsReadFileProxy = fsReadFileAdapterProxy();
 
@@ -16,6 +19,17 @@ export const questLoadBrokerProxy = (): {
     },
     setupQuestFileReadError: ({ error }: { error: Error }): void => {
       fsReadFileProxy.rejectsNext({ error });
+    },
+    // Sticky and addressed: answers EVERY read of this one path, for a caller whose broker reads the
+    // same quest file several times in one call (a scan, then again inside the modify lock).
+    setupQuestFileAt: ({
+      questFilePath,
+      questJson,
+    }: {
+      questFilePath: FilePath;
+      questJson: string;
+    }): void => {
+      fsReadFileProxy.resolves({ filePath: questFilePath, content: questJson });
     },
   };
 };

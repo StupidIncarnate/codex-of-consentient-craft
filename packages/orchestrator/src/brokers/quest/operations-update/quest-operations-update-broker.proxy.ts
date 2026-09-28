@@ -46,6 +46,7 @@ const questJsonWrites = ({
 
 export const questOperationsUpdateBrokerProxy = (): {
   setupQuestFound: (params: { quest: Quest }) => void;
+  setupQuestOnDisk: (params: { quest: Quest; guildDirName?: string; folderName?: string }) => void;
   getAllPersistedContents: () => readonly unknown[];
   getAllPersistedQuests: () => readonly Parsed[];
   getLastPersistedQuest: () => Parsed;
@@ -107,6 +108,73 @@ export const questOperationsUpdateBrokerProxy = (): {
 
       // questLoadBroker reads the quest file
       loadProxy.setupQuestFile({ questJson: JSON.stringify(quest) });
+
+      // Mock persist (write + rename + outbox)
+      persistProxy.setupPersist({
+        questFilePath,
+        homePath,
+        outboxFilePath: FilePathStub({ value: '/home/testuser/.dungeonmaster/outbox.jsonl' }),
+      });
+    },
+
+    // The same layout as setupQuestFound, with every read of the quest file answered by its exact
+    // path rather than by a one-shot any path consumes. For a caller whose broker reads that one
+    // file an unknown number of times — a scan, a lock, a second update — and must never have a
+    // read of some other path answered with quest content.
+    //
+    // `guildDirName` and `folderName` default to the stub guild and the quest's own folder. A suite
+    // where a sibling proxy module-mocks `questFindQuestPathBroker` to a fixed path passes that
+    // path's two segments, so the reads and the persist land where the mocked lookup points.
+    setupQuestOnDisk: ({
+      quest,
+      guildDirName = GuildIdStub(),
+      folderName = quest.folder,
+    }: {
+      quest: Quest;
+      guildDirName?: string;
+      folderName?: string;
+    }): void => {
+      const guildId = guildDirName;
+      const homePath = FilePathStub({ value: '/home/testuser/.dungeonmaster' });
+      const guildsDir = FilePathStub({
+        value: '/home/testuser/.dungeonmaster/guilds',
+      });
+      const questsDirPath = FilePathStub({
+        value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
+      });
+      const questFolderPath = FilePathStub({
+        value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/${folderName}`,
+      });
+      const questFilePath = FilePathStub({
+        value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests/${folderName}/quest.json`,
+      });
+
+      findQuestPathProxy.setupQuestFound({
+        homeDir: '/home/testuser',
+        homePath,
+        guildsDir,
+        guilds: [
+          {
+            dirName: FileNameStub({ value: guildId }),
+            questsDirPath,
+            questFolders: [
+              {
+                folderName: FileNameStub({ value: folderName }),
+                questFilePath,
+                questFolderPath,
+                contents: FileContentsStub({ value: JSON.stringify(quest) }),
+              },
+            ],
+          },
+        ],
+      });
+
+      // The broker's own join of questPath + quest.json
+      joinHandle
+        .calledWith([questFolderPath, locationsStatics.quest.questFile])
+        .returns(questFilePath);
+
+      loadProxy.setupQuestFileAt({ questFilePath, questJson: JSON.stringify(quest) });
 
       // Mock persist (write + rename + outbox)
       persistProxy.setupPersist({
