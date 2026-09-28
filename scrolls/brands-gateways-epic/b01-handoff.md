@@ -453,3 +453,114 @@ fallout) is fixed, the version resolves to one `4.6.5` repo-wide, and the branch
 `gateway-pivot`'s tip pending the operator's commit. What's left is entirely OUT of B01's scope
 (items C, E, the A02/A11 project-map test, the two pre-existing lint files, the siegelense docs
 content, and the `@gateway/node` rebuild) and is each named above for its owning item.
+
+## Session 3 — branch is READY TO LAND
+
+Merged `gateway-pivot` again: it had moved from `2a9fa97e8` (session 2's merge point) to `71fd1df1a`
+(97 more commits, ~400 files — the A12 gateway-direct-call migration continuing, more siegelense
+DEF fixes, the hydration-recipes old-recipe-book retirement). `git merge --no-edit gateway-pivot`
+conflicted in 5 files this time:
+
+- `packages/hydration-recipes/src/brokers/recipes/quest-completed/recipes-quest-completed-broker.ts`
+  — gateway-pivot added a `flows`/`packagesAffected` seed plus a riftcarver-operation removal filter
+  (DEF-71); this branch had wrapped `SEEDED_WORK_ITEM_CREATED_AT` in
+  `workItemAttachArgsContract.shape.createdAt.parse(...)`. Kept both.
+- `packages/orchestrator/src/brokers/quest/get-quest-work/quest-get-quest-work-broker.ts` and
+  `.../quest-work-record/quest-work-record-broker.ts` — same shape both times: gateway-pivot's own
+  A12 item (O2/O3) had already moved the `join(...)` call from `pathJoinAdapter` to
+  `#gateway/node/path`'s `join` directly (git's 3-way merge took that side cleanly, no conflict, since
+  this branch never touched that line); the CONFLICT was only the import statement, where this
+  branch had separately added `workItemPayloadKeyContract` for the branded-record-key read. Fix:
+  drop the now-dead `pathJoinAdapter` import, keep `workItemPayloadKeyContract`.
+- `packages/session-forensics/src/brokers/quest/find/quest-find-broker.test.ts` — gateway-pivot added
+  a `questId` param to `setupGuildsWithoutQuest` calls and used sequential-digit fake UUIDs
+  (`'44444444-...'` etc). This branch had minted "real-format" UUID literals for the same lines from
+  the 451-literal zod sweep. Checked `quest-find-broker.ts` and its proxy: `guildId`/`guildIds` are
+  plain `string`, never parsed through `.uuid()`/`z.guid()` anywhere in this path — they are only
+  directory names in a mocked filesystem. So no zod fix was actually needed here; took gateway-pivot's
+  values and `questId` param as-is.
+- `packages/siegelense/src/flows/siegelense/siegelense-profile-layer-flow.integration.test.ts`
+  (modify/delete) — gateway-pivot deleted the whole `siegelense profile` command (commit `0eee342f9`,
+  DEF-63); this branch had it modified. Took the deletion (`git rm`), same for its sibling
+  `siegelense-profile-layer-flow.ts`.
+
+`npm install` afterward reconciled the lockfile cleanly (`node_modules/@dungeonmaster/node` gained a
+`package.json` dependency entry two packages needed; zod stayed the single `4.6.5` resolution,
+confirmed via a python scan of every `package.json` plus `package-lock.json`'s one
+`node_modules/zod` entry).
+
+**Two new zod v4 breaks the merge itself introduced** (found via `npm run ward -- --uncommitted`,
+scoped to every file the merge touched):
+
+1. `packages/orchestrator/src/contracts/siegelense-instance-kill-module/siegelense-instance-kill-module-contract.ts`
+   and `siegelense-lane-provision-module/siegelense-lane-provision-module-contract.ts` (both new
+   files from gateway-pivot's A12 work) — `.passthrough()` is deprecated in v4
+   (`@typescript-eslint/no-deprecated`, lint-fails, not just a warning). Both already used
+   `z.custom<Fn>()` for their function fields (the settled pattern), just needed `.passthrough()` →
+   `.loose()`.
+2. `packages/web/src/flows/quest-chat/malformed-quest-file-reported.e2e.ts` — two assertions
+   (HTTP error body at line 66, and the rendered `QUEST_LOAD_ERROR_REASON` text at line 80) checked
+   for the literal string `'Invalid datetime'`. Real v4 wording for a `.datetime()` failure is
+   `'Invalid ISO datetime'` (captured from a real Playwright run's failure diff, not guessed — see
+   pattern 10 in this handoff's own wording-remap list, which didn't have this exact one yet: add
+   `Invalid datetime → Invalid ISO datetime` to it). This is the first time this specific e2e file
+   ran since the zod bump landed; nothing in sessions 1-2 covered `e2e` at all.
+
+Also rebuilt `@dungeonmaster/hydration-recipes` (`npm run build --workspace=@dungeonmaster/hydration-recipes`,
+allowed inside this worktree) — `packages/siegelense/src/flows/siegelense/siegelense-recipes-layer-flow.integration.test.ts`
+reads the package's COMPILED `dist/index.js` listing (per that package's own CLAUDE.md, "Build before
+a listing is honest"), and the merge's new recipe content wasn't reflected in the stale `dist/` yet.
+Not a zod issue on its own, just a build the merge's own content change needed to verify clean.
+
+**Full `npm run ward` result** (run id `1790565795209-c4f2`, 953.7s, from the worktree root):
+lint, typecheck, integration and e2e are effectively clean (see below); the only two rungs with
+reds:
+
+| Check | Packages | Count |
+|---|---|---|
+| lint | `@dungeonmaster/eslint-plugin` | 4 (all `gateway-imports-target-transformer.ts`, `no-unnecessary-condition`) |
+| lint | `@dungeonmaster/testing` | 5 (`workspace-package-export-source-transformer.ts` + `workspace-package-imports-target-transformer.ts`, same rule) |
+| unit | `@dungeonmaster/session-forensics` | 11 (`digest-run-responder.test.ts`, every case) |
+| unit | `@dungeonmaster/siegelense` | 1 (`instance-start-broker.test.ts`, one boot-lock case) |
+
+**None of these four are zod's** — each confirmed by diffing the failing file against
+`gateway-pivot`'s own tip (`git diff gateway-pivot -- <path>`): every one comes back EMPTY, meaning
+the file in this branch is byte-identical to what gateway-pivot already ships. So whatever is wrong
+was already wrong before this merge touched anything, and is not something a zod v3→v4 bump could
+have caused or fixed:
+
+- The two lint files were already named as pre-existing in this same handoff's session 2 ("Confirmed
+  NOT zod, left standing" list above) — they predate the merge-base entirely.
+- The two unit failures are NEW findings this session, but the same shape: both
+  `digest-run-responder.test.ts` and `instance-start-broker.test.ts` are gateway-pivot's own A12
+  gateway-migration test files (moved off `@dungeonmaster/shared/testing`'s adapter proxies onto
+  `#gateway/node/os`'s raw `homedir` + `registerMock({fn: homedir})`, per
+  `git diff 2a9fa97e8..gateway-pivot --stat` on that whole file cluster). The failure itself:
+  `existsSync` gets called with the REAL jest-sandbox `$HOME` path
+  (`/tmp/dungeonmaster-jest-sandbox-<pid>/.claude/projects`) instead of the proxy's hardcoded
+  `/home/user`, meaning `homedir()` is not staying mocked for at least one of the two call sites that
+  independently `registerMock({fn: homedir})` it (`transcriptResolveBrokerProxy` gets constructed
+  twice per test — once directly by `DigestRunResponderProxy`, once again inside
+  `transcriptLoadBrokerProxy`'s own composition — "mocks are shared by function identity, not by
+  proxy instance" per that proxy file's own comment, so this may be a real gap in that sharing).
+  `instance-start-broker.test.ts` fails the same way (a real registry read against the sandbox HOME
+  instead of the mocked one). Neither file has ANY zod contract or `.parse()` anywhere near the
+  failure. **This belongs to whichever epic item owns the A12 `#gateway/node/os`/`homedir` test-proxy
+  pattern — flag it there, not here.**
+- A one-off `npm run cli` slow-file threshold breach (`packages/cli/src/startup/start-install.integration.test.ts`,
+  12.0s over the integration slow-test threshold) appeared on the FIRST full run of this session but
+  did NOT reappear on the second, final run — almost certainly timing noise from running two ward
+  sweeps back to back on the same machine, not a real regression. Worth a re-check if it recurs, but
+  not treated as a finding here.
+
+**What the operator runs to land this:**
+
+```bash
+git log --oneline -3 gp-b01-zod4   # confirm 811b3de05 is the tip
+npm run ward                       # expect exactly the 4 pre-existing reds named above, nothing else
+git merge gp-b01-zod4              # from wherever gateway-pivot's own integration branch lives
+```
+
+If the operator wants those 4 reds actually gone before landing, they are NOT B01's to fix (confirmed
+non-zod, above) — route them to whoever owns the A12 gateway-migration test-proxy pattern
+(session-forensics/siegelense `homedir` mocking) and the two named pre-existing lint files.
