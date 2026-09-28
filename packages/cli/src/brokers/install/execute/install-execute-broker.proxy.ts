@@ -9,8 +9,8 @@ export const installExecuteBrokerProxy = (): {
 } => {
   // dynamicImportProxy() offers no staging of its own (a language primitive, meant to be driven
   // for real) — the phantom call satisfies enforce-proxy-child-creation, and the real staging
-  // below addresses dynamicImport itself directly, keyed on the module specifier, the same way
-  // the pre-gateway runtimeDynamicImportAdapter's own proxy self-mocked for the same reason.
+  // below addresses the #gateway/node/module dynamicImport itself directly, keyed on the
+  // module specifier.
   dynamicImportProxy();
   const importHandle = registerMock({ fn: dynamicImport });
 

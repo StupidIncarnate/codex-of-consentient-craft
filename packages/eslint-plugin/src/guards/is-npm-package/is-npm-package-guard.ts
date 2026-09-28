@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Checks if an import source is an npm package, returning false for relative paths, absolute paths, and @dungeonmaster workspace packages. A gateway subpath (`@dungeonmaster/node/fs`, `@dungeonmaster/npm/zod`, `#gateway/node/fs`, …) counts as mockable too — its whole job is wrapping an outside thing, so a caller's proxy mocking it directly is mocking the real I/O boundary, the same as mocking `@dungeonmaster/shared/adapters`. The `#gateway/<folder>` import-alias form (gatewayLocationsStatics.importPrefix) gets its own branch rather than falling into the generic npm-package default at the bottom — it is never a real npm package, so it must resolve through the gateway carve-out or return false, the same as an unrecognized `@dungeonmaster/*` workspace path does.
+ * PURPOSE: Checks if an import source is an npm package, returning false for relative paths, absolute paths, and @dungeonmaster workspace packages. A gateway subpath (`@dungeonmaster/node/fs`, `@dungeonmaster/npm/zod`, `#gateway/node/fs`, …) counts as mockable too — its whole job is wrapping an outside thing, so a caller's proxy mocking it directly is mocking the real I/O boundary. The `#gateway/<folder>` import-alias form (gatewayLocationsStatics.importPrefix) gets its own branch rather than falling into the generic npm-package default at the bottom — it is never a real npm package, so it must resolve through the gateway carve-out or return false, the same as an unrecognized `@dungeonmaster/*` workspace path does.
  *
  * USAGE:
  * isNpmPackageGuard({ importSource: 'eslint' })
@@ -35,14 +35,9 @@ export const isNpmPackageGuard = ({ importSource }: { importSource?: string }): 
   }
 
   // @dungeonmaster workspace packages are not npm packages for mocking purposes.
-  // EXCEPTIONS: @dungeonmaster/shared/adapters (language primitives like import()), and any
-  // subpath of a gateway package — the gateway IS the I/O boundary, so mocking its subpath
-  // directly is exactly what a caller's proxy is supposed to do.
+  // EXCEPTION: any subpath of a gateway package — the gateway IS the I/O boundary, so mocking its
+  // subpath directly is exactly what a caller's proxy is supposed to do.
   if (importSource.startsWith('@dungeonmaster')) {
-    if (importSource === '@dungeonmaster/shared/adapters') {
-      return true;
-    }
-
     const afterScope = importSource.slice('@dungeonmaster/'.length);
     const [gatewayFolder] = afterScope.split('/');
 

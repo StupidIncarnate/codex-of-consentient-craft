@@ -43,11 +43,9 @@ describe('isNpmPackageGuard', () => {
     it('INVALID: {importSource: "@dungeonmaster/shared/contracts"} => returns false', () => {
       expect(isNpmPackageGuard({ importSource: '@dungeonmaster/shared/contracts' })).toBe(false);
     });
-  });
 
-  describe('valid - shared adapters exception', () => {
-    it('VALID: {importSource: "@dungeonmaster/shared/adapters"} => returns true', () => {
-      expect(isNpmPackageGuard({ importSource: '@dungeonmaster/shared/adapters' })).toBe(true);
+    it('INVALID: {importSource: "@dungeonmaster/shared/adapters"} => returns false', () => {
+      expect(isNpmPackageGuard({ importSource: '@dungeonmaster/shared/adapters' })).toBe(false);
     });
   });
 

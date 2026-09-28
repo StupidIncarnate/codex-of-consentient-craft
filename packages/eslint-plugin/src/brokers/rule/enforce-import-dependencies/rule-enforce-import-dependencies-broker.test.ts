@@ -305,7 +305,7 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
       filename: '/project/src/contracts/user/user.stub.ts',
     },
 
-    // Startup can import flows, contracts, statics, errors, and @dungeonmaster/shared/adapters
+    // Startup can import flows, contracts, statics, errors, and @dungeonmaster/shared/contracts
     {
       code: 'import { userFlow } from "../flows/user/user-flow";',
       filename: '/project/src/startup/index.ts',
@@ -315,7 +315,7 @@ ruleTester.run('enforce-import-dependencies', ruleEnforceImportDependenciesBroke
       filename: '/project/src/startup/app.ts',
     },
     {
-      code: 'import { processCwdAdapter } from "@dungeonmaster/shared/adapters";',
+      code: 'import { filePathContract } from "@dungeonmaster/shared/contracts";',
       filename: '/project/src/startup/start-ward.ts',
     },
 

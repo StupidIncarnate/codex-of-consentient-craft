@@ -7,27 +7,6 @@
 
 // Subpath export entry for @dungeonmaster/shared/testing
 
-// Adapter Proxies
-export * from './src/adapters/fs/access/fs-access-adapter.proxy';
-export * from './src/adapters/fs/exists-sync/fs-exists-sync-adapter.proxy';
-export * from './src/adapters/fs/mkdir/fs-mkdir-adapter.proxy';
-export * from './src/adapters/fs/read-file-sync/fs-read-file-sync-adapter.proxy';
-export * from './src/adapters/fs/readdir-with-types/fs-readdir-with-types-adapter.proxy';
-export * from './src/adapters/path/basename/path-basename-adapter.proxy';
-export * from './src/adapters/path/dirname/path-dirname-adapter.proxy';
-export * from './src/adapters/path/join/path-join-adapter.proxy';
-export * from './src/adapters/path/resolve/path-resolve-adapter.proxy';
-export * from './src/adapters/os/homedir/os-homedir-adapter.proxy';
-export * from './src/adapters/os/user-homedir/os-user-homedir-adapter.proxy';
-export * from './src/adapters/process/cwd/process-cwd-adapter.proxy';
-export * from './src/adapters/runtime/dynamic-import/runtime-dynamic-import-adapter.proxy';
-export * from './src/adapters/child-process/spawn-capture/child-process-spawn-capture-adapter.proxy';
-export * from './src/adapters/child-process/spawn-stream/child-process-spawn-stream-adapter.proxy';
-export * from './src/adapters/child-process/spawn-stream-lines/child-process-spawn-stream-lines-adapter.proxy';
-export * from './src/adapters/net/free-port-pair/net-free-port-pair-adapter.proxy';
-export * from './src/adapters/fast-xml-parser/parse/fast-xml-parser-parse-adapter.proxy';
-export * from './src/adapters/fetch/get/fetch-get-adapter.proxy';
-
 // Broker Proxies
 export * from './src/brokers/architecture/overview/architecture-overview-broker.proxy';
 export * from './src/brokers/architecture/project-map/architecture-project-map-broker.proxy';

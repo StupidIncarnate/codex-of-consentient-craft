@@ -420,3 +420,17 @@ Counts by package: orchestrator 2 real plus 1 comment-only, eslint-plugin 0 real
 **Project-map integration test.** `architecture-project-map-broker.integration.test.ts` asserted `→ gitVerifyRefAdapter`, `→ gitWorktreePruneAdapter` and `→ gitWorktreeAddAdapter`. The real tree now renders `worktreePrepareBroker` with only broker children (`worktreeDiscardBroker`, `worktreeSeedDistBroker`, `worktreeVerifyLinksBroker`); a `#gateway/*` call is not a chain node, so those three git steps leave no line. The test now asserts that the three deleted adapter names are absent, and that `→ fsWatchTailAdapter` and `→ childProcessSpawnStreamJsonAdapter` (orchestrator-local adapters still on disk) and `→ worktreeDiscardBroker` render. When those local adapters go, this test needs a new anchor.
 
 **F58 check.** The real project map buckets `server` correctly: the header line is `# server [http-backend]`. That is the package-type detector, which has the content fallback. The edge-graph grouping in `resolve-package-groups-layer-broker.ts` is a separate code path and this pass did not exercise it; F58 stays open.
+
+### Phase 3 deletion
+
+Named files, written before any edit (2026-09-28):
+
+- `packages/orchestrator/src/brokers/quest/node-dispatch-loop/quest-node-dispatch-loop-broker.proxy.ts` — drop the `@dungeonmaster/shared/adapters` `registerModuleMock`; the `@dungeonmaster/shared/brokers` mock stays
+- `packages/orchestrator/src/brokers/step-handler/riftcarver/step-handler-riftcarver-broker.proxy.ts` — drop the `fsMkdirAdapter`/`fsReaddirWithTypesAdapter` import, the `@dungeonmaster/shared/adapters` `registerModuleMock`, both `registerMock` handles, `buildDirent` and the `Dirent` import; fix the comments that name the adapters. The raw `spawn`/`mkdir` mocks stay (F35)
+- `packages/orchestrator/src/brokers/quest/route-scope/quest-route-scope-broker.proxy.ts` — fix the comments naming `pathJoinAdapter` and `@dungeonmaster/shared/adapters`
+- `packages/shared/src/adapters/` (whole folder), `packages/shared/adapters.ts`
+- `packages/shared/testing.ts` — the "Adapter Proxies" block
+- `packages/shared/package.json` — `exports['./adapters']`
+- `eslint.config.js` — the override for `packages/shared/src/adapters/runtime/dynamic-import/runtime-dynamic-import-adapter.proxy.ts`
+- `packages/eslint-plugin/src/guards/is-npm-package/is-npm-package-guard.ts` and `is-npm-package-guard.test.ts` — the `'@dungeonmaster/shared/adapters'` special case, if dead
+- `packages/mcp/src/transformers/path-to-tree-relative/path-to-tree-relative-transformer.test.ts` — read only, fix if it asserts the real tree

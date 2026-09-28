@@ -25,8 +25,8 @@
  *
  * EVERY MODULE THIS FILE MOCKS IS POINTED BACK AT ITS REAL IMPLEMENTATION AT CONSTRUCTION, and that
  * is load-bearing. A caller's proxy IMPORTS this file, so these `jest.mock` calls are hoisted for
- * that whole suite; left unstaged they would make `pathJoinAdapter` throw for a caller that never
- * asked for any of this. Pointed at the real thing, each adapter still resolves through whatever the
+ * that whole suite; left unstaged they would make the mocked wrappers throw for a caller that never
+ * asked for any of this. Pointed at the real thing, each one still resolves through whatever the
  * caller staged at the npm boundary — exactly as if this file were not there. `setupPassthrough` is
  * what swaps them for the virtual store.
  */
@@ -139,7 +139,7 @@ export const questRouteScopeBrokerProxy = (): {
 
   // questFindQuestPathBroker (composed above via questFindQuestPathBrokerProxy for
   // enforce-proxy-child-creation, but discarded — its OWN scenarios build a fs layout this file
-  // does not need) reaches these three directly now, not through `@dungeonmaster/shared/adapters`.
+  // does not need) reaches these three through the gateway.
   // Mocked at the WRAPPER, not through the dedicated `exists-sync.proxy`/`readdir-entries-sync.proxy`
   // gateway proxies: those compose only for the file that IMPORTS the gateway name directly
   // (`quest-find-quest-path-broker.ts`), and `enforce-proxy-child-creation` refuses them here, where

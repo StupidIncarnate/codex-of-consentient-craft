@@ -14,7 +14,6 @@
  */
 
 import { spawn, type ChildProcess } from 'child_process';
-import { Dirent } from 'fs';
 import { mkdir } from 'fs/promises';
 import { EventEmitter, Readable } from 'stream';
 
@@ -23,7 +22,6 @@ import { existsSync, readdirEntriesSync } from '#gateway/node/fs';
 import type { DirEntrySync } from '#gateway/node/fs';
 import { join } from '#gateway/node/path';
 
-import { fsMkdirAdapter, fsReaddirWithTypesAdapter } from '@dungeonmaster/shared/adapters';
 import { dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
 import { locationsWorktreePathFindBrokerProxy } from '@dungeonmaster/shared/testing';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
@@ -76,17 +74,9 @@ import { questGetBrokerProxy } from '../../quest/get/quest-get-broker.proxy';
 import { questOperationsUpdateBrokerProxy } from '../../quest/operations-update/quest-operations-update-broker.proxy';
 import { questRepoRootBrokerProxy } from '../../quest/repo-root/quest-repo-root-broker.proxy';
 
-// Module-level mocks (hoisted as jest.mock by the AST transformer). Adapter-level mocking is
+// Module-level mocks (hoisted as jest.mock by the AST transformer). Boundary-level mocking is
 // deliberate: routing is registry-global, so the virtual stores below serve EVERY broker in the
 // chain regardless of which async tick a call lands on.
-registerModuleMock({
-  module: '@dungeonmaster/shared/adapters',
-  factory: () => ({
-    ...jest.requireActual('@dungeonmaster/shared/adapters'),
-    fsMkdirAdapter: jest.fn(),
-    fsReaddirWithTypesAdapter: jest.fn(),
-  }),
-});
 registerModuleMock({
   module: '@dungeonmaster/shared/brokers',
   factory: () => ({
@@ -134,14 +124,6 @@ const TYPECHECK_FAILURE = 1;
 // purely to satisfy `enforce-proxy-child-creation` — never registers an address the ward handler
 // proxy's own staging could collide with.
 const TYPECHECK_COMMAND = wardCommandStatics.bin;
-
-const buildDirent = ({ name, isDir, isSymlink }: DirEntry): Dirent =>
-  Object.assign(Object.create(Dirent.prototype) as Dirent, {
-    name: String(name),
-    isDirectory: (): boolean => isDir,
-    isFile: (): boolean => !isDir && !isSymlink,
-    isSymbolicLink: (): boolean => isSymlink,
-  });
 
 export const stepHandlerRiftcarverBrokerProxy = (): {
   setupQuest: (params: { quest: QuestInput }) => void;
@@ -195,18 +177,11 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
     lines: [errorMessageContract.parse('✓ typecheck')],
   };
 
-  // `pathJoinAdapter` (still called for real by `questOperationsUpdateBroker`, not yet migrated)
-  // needs no mock of its own here: it is left OUT of the `@dungeonmaster/shared/adapters` module
-  // mock's override list above, so `jest.requireActual` spreads in the real, unmocked function — a
-  // pure wrapper over Node's own `path.join`, identical in effect to the real-passthrough this file
-  // used to build by hand.
   const realPath = requireActual<{ join: typeof join }>({ module: 'path' });
 
   // questFindQuestPathBroker and questGetBroker reach `readdirEntriesSync`/`existsSync` through the
-  // gateway directly, not through `@dungeonmaster/shared/adapters` — and so, now, do the node_modules
-  // mirror brokers (populateOneRootLayerBroker, worktreeSeedDistBroker), which used to reach them
-  // through the shared `fsReaddirWithTypesAdapter` this file still mocks below for whatever in this
-  // chain has not moved yet. Mocked at the WRAPPER rather than through `#gateway/node/fs`'s dedicated
+  // gateway directly, and so do the node_modules mirror brokers (populateOneRootLayerBroker,
+  // worktreeSeedDistBroker). Mocked at the WRAPPER rather than through `#gateway/node/fs`'s dedicated
   // `readdir-entries-sync.proxy` / `exists-sync.proxy`: those compose only for a proxy whose OWN
   // implementation imports the gateway name directly, and `enforce-proxy-child-creation` refuses them
   // here, where the implementation is `step-handler-riftcarver-broker.ts`.
@@ -222,10 +197,10 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
   const realGatewayFs = requireActual<{
     existsSync: typeof existsSync;
   }>({ module: '#gateway/node/fs' });
-  // The node_modules-mirror brokers (populateOneRootLayerBroker, worktreeSeedDistBroker) now call
-  // `readdirEntriesSync` from `#gateway/node/fs` directly rather than the shared
-  // `fsReaddirWithTypesAdapter`, so this virtual world backs it with the SAME `dirEntries` store —
-  // never a real disk read, which would ENOENT on every one of this test's fake paths.
+  // The node_modules-mirror brokers (populateOneRootLayerBroker, worktreeSeedDistBroker) call
+  // `readdirEntriesSync` from `#gateway/node/fs`, so this virtual world backs it with the
+  // `dirEntries` store — never a real disk read, which would ENOENT on every one of this test's
+  // fake paths.
   const gatewayReaddirHandle = registerMock({ fn: readdirEntriesSync });
   const gatewayReaddirImpl = (dirPath: string): DirEntrySync[] =>
     (dirEntries.get(filePathContract.parse(dirPath)) ?? []).map((entry) => ({
@@ -235,12 +210,10 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
   gatewayReaddirHandle.calledWith([]).implement(gatewayReaddirImpl as never);
   const gatewayExistsHandle = registerMock({ fn: existsSync });
   gatewayExistsHandle.calledWith([]).implement(realGatewayFs.existsSync as never);
-  // `join` is pure with nothing to virtualize — real passthrough by default, same as
-  // pathJoinAdapter's own above, since `#gateway/node/path`'s `join` is the identical function.
+  // `join` is pure with nothing to virtualize — real passthrough by default.
   const gatewayJoinHandle = registerMock({ fn: join });
   gatewayJoinHandle.calledWith([]).implement((...segments: never[]) => realPath.join(...segments));
-  // The same brokers now call `ensureDir` (`#gateway/node/fs__promises`) rather than the shared
-  // `fsMkdirAdapter`. Mocked at `mkdir` itself (`fs/promises`), one level BELOW `ensureDir` —
+  // The same brokers call `ensureDir` (`#gateway/node/fs__promises`). Mocked at `mkdir` itself (`fs/promises`), one level BELOW `ensureDir` —
   // never at `ensureDir` directly, and never through the gateway's own `ensureDirProxy()` either:
   // `enforce-proxy-child-creation` refuses that composition HERE, because this file's own
   // `step-handler-riftcarver-broker.ts` never imports `ensureDir` itself (only
@@ -306,15 +279,6 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
     homePath: filePathContract.parse(HOME_PATH),
   });
   dungeonmasterHomeFindHandle.calledWith([]).implement(dungeonmasterHomeFindImpl as never);
-
-  const fsReaddirWithTypesHandle = registerMock({ fn: fsReaddirWithTypesAdapter });
-  const fsReaddirWithTypesImpl = ({
-    dirPath,
-  }: Parameters<typeof fsReaddirWithTypesAdapter>[0]): Dirent[] =>
-    (dirEntries.get(filePathContract.parse(String(dirPath))) ?? []).map((entry) =>
-      buildDirent(entry),
-    );
-  fsReaddirWithTypesHandle.calledWith([]).implement(fsReaddirWithTypesImpl as never);
 
   const fsReadlinkHandle = registerMock({ fn: fsReadlinkAdapter });
   const fsReadlinkImpl = async ({
@@ -385,11 +349,6 @@ export const stepHandlerRiftcarverBrokerProxy = (): {
   const fsAppendFileImpl = async (): Promise<ReturnType<typeof adapterResultContract.parse>> =>
     Promise.resolve(adapterResultContract.parse({ success: true }));
   fsAppendFileHandle.calledWith([]).implement(fsAppendFileImpl as never);
-
-  const fsMkdirHandle = registerMock({ fn: fsMkdirAdapter });
-  const fsMkdirImpl = async (): Promise<ReturnType<typeof adapterResultContract.parse>> =>
-    Promise.resolve(adapterResultContract.parse({ success: true }));
-  fsMkdirHandle.calledWith([]).implement(fsMkdirImpl as never);
 
   // The virtual git world is staged through the gateway's own proxies, by the exact argv each call
   // sends. A ref probe answers from `existingRefs` at call time; the carve itself (probe, prune,

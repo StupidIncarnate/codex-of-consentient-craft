@@ -28,14 +28,14 @@ describe('pathToTreeRelativeTransformer', () => {
         value: 'packages/hooks/src/adapters/fs/write-file/fs-write-file-adapter.ts',
       });
       const shared = PathSegmentStub({
-        value: 'packages/shared/src/adapters/fs/write-file/fs-write-file-adapter.ts',
+        value: 'packages/orchestrator/src/adapters/fs/write-file/fs-write-file-adapter.ts',
       });
 
       const resultHooks = pathToTreeRelativeTransformer({ filepath: hooks });
       const resultShared = pathToTreeRelativeTransformer({ filepath: shared });
 
       expect(resultHooks).toBe('hooks/adapters/fs/write-file/fs-write-file-adapter.ts');
-      expect(resultShared).toBe('shared/adapters/fs/write-file/fs-write-file-adapter.ts');
+      expect(resultShared).toBe('orchestrator/adapters/fs/write-file/fs-write-file-adapter.ts');
     });
   });
 

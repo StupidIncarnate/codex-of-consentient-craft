@@ -184,14 +184,14 @@ describe('McpServerFlow', () => {
       expect(count).toBe(0);
     });
 
-    it('VALID: {glob: **/*-adapter.*} => returns adapters from @dungeonmaster/shared', async () => {
+    it('VALID: {glob: **/cwd-resolve-broker.*} => groups brokers from @dungeonmaster/shared', async () => {
       const request = JsonRpcRequestStub({
         id: RpcIdStub({ value: 5 }),
         method: RpcMethodStub({ value: 'tools/call' }),
         params: {
           name: 'discover',
           arguments: {
-            glob: '**/*-adapter.*',
+            glob: '**/cwd-resolve-broker.*',
           },
         },
       });
@@ -206,17 +206,17 @@ describe('McpServerFlow', () => {
       const parsedData: unknown = JSON.parse(String(firstContent!.text));
       const data = DiscoverTreeResultStub(parsedData as never);
 
-      expect(data.results).toMatch(/^@dungeonmaster\/\n {2}shared\/\n {4}adapters\/\n[\s\S]+$/u);
+      expect(data.results).toMatch(/^@dungeonmaster\/\n {2}shared\/\n {4}brokers\/\n[\s\S]+$/u);
     });
 
-    it('VALID: {glob: **/*-adapter.*} => shared package includes fs-access-adapter', async () => {
+    it('VALID: {glob: **/cwd-resolve-broker.*} => shared package includes cwd-resolve-broker', async () => {
       const request = JsonRpcRequestStub({
         id: RpcIdStub({ value: 6 }),
         method: RpcMethodStub({ value: 'tools/call' }),
         params: {
           name: 'discover',
           arguments: {
-            glob: '**/*-adapter.*',
+            glob: '**/cwd-resolve-broker.*',
           },
         },
       });
@@ -231,7 +231,7 @@ describe('McpServerFlow', () => {
       const parsedData: unknown = JSON.parse(String(firstContent!.text));
       const data = DiscoverTreeResultStub(parsedData as never);
 
-      expect(data.results).toMatch(/^ {10}fs-access-adapter \(adapter\) - .+$/mu);
+      expect(data.results).toMatch(/^ {10}cwd-resolve-broker \(broker\) - .+$/mu);
     });
   });
 

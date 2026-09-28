@@ -45,12 +45,6 @@
       "import": "./dist/brokers.js",
       "require": "./dist/brokers.js"
     },
-    "./adapters": {
-      "source": "./adapters.ts",
-      "types": "./dist/adapters.d.ts",
-      "import": "./dist/adapters.js",
-      "require": "./dist/adapters.js"
-    },
     "./errors": {
       "source": "./errors.ts",
       "types": "./dist/errors.d.ts",

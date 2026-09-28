@@ -310,17 +310,6 @@ module.exports = [
       '@typescript-eslint/no-unnecessary-type-parameters': 'off',
     },
   },
-  /**
-   * We have to mock outside the function because import()/require() has weird hoisting rules.
-   */
-  {
-    files: [
-      'packages/shared/src/adapters/runtime/dynamic-import/runtime-dynamic-import-adapter.proxy.ts',
-    ],
-    rules: {
-      '@dungeonmaster/enforce-proxy-patterns': 'off',
-    },
-  },
   // {
   //   files: ['packages/hooks/src/utils/hook-config/*.ts'],
   //   rules: {
