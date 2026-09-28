@@ -10,12 +10,9 @@
  * // Returns the AbsoluteFilePath to that quest's quest.json. Returns undefined when no candidate
  * // root holds it.
  */
-import {
-  processCwdAdapter,
-  pathJoinAdapter,
-  fsExistsSyncAdapter,
-  fsReaddirWithTypesAdapter,
-} from '@dungeonmaster/shared/adapters';
+import { existsSync, readdirEntriesSync } from '#gateway/node/fs';
+import { cwd } from '#gateway/node/process';
+import { join } from '#gateway/node/path';
 import { dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { absoluteFilePathContract, type AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
@@ -27,42 +24,34 @@ export const questFindBroker = ({
   questId: QuestId;
 }): AbsoluteFilePath | undefined => {
   const { homePath: fallbackHomePath } = dungeonmasterHomeFindBroker();
-  const cwd = processCwdAdapter();
+  const currentDir = cwd();
 
   const candidateRoots = [
-    pathJoinAdapter({ paths: [cwd, locationsStatics.dungeonmasterHome.dir] }),
-    pathJoinAdapter({ paths: [cwd, locationsStatics.repoRoot.dungeonmasterDevHome] }),
+    join(currentDir, locationsStatics.dungeonmasterHome.dir),
+    join(currentDir, locationsStatics.repoRoot.dungeonmasterDevHome),
     fallbackHomePath,
   ];
 
   for (const rootPath of candidateRoots) {
-    const guildsPath = pathJoinAdapter({
-      paths: [rootPath, locationsStatics.dungeonmasterHome.guildsDir],
-    });
+    const guildsPath = join(rootPath, locationsStatics.dungeonmasterHome.guildsDir);
 
-    if (!fsExistsSyncAdapter({ filePath: guildsPath })) {
+    if (!existsSync(guildsPath)) {
       continue;
     }
 
-    const guildEntries = fsReaddirWithTypesAdapter({
-      dirPath: absoluteFilePathContract.parse(guildsPath),
-    });
+    const guildEntries = readdirEntriesSync(guildsPath);
 
     const candidatePaths = guildEntries.map((entry) =>
-      pathJoinAdapter({
-        paths: [
-          guildsPath,
-          entry.name,
-          locationsStatics.guild.questsDir,
-          questId,
-          locationsStatics.quest.questFile,
-        ],
-      }),
+      join(
+        guildsPath,
+        entry.name,
+        locationsStatics.guild.questsDir,
+        questId,
+        locationsStatics.quest.questFile,
+      ),
     );
 
-    const matchedPath = candidatePaths.find((candidate) =>
-      fsExistsSyncAdapter({ filePath: candidate }),
-    );
+    const matchedPath = candidatePaths.find((candidate) => existsSync(candidate));
 
     if (matchedPath !== undefined) {
       return absoluteFilePathContract.parse(matchedPath);

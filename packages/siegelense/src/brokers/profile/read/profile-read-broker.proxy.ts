@@ -16,8 +16,8 @@ import {
   FilePathStub,
 } from '@dungeonmaster/shared/contracts';
 import type { ContentText, FilePath } from '@dungeonmaster/shared/contracts';
-import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
-import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { join } from '#gateway/node/path';
+import { registerMock, registerSpyOn, requireActual } from '@dungeonmaster/testing/register-mock';
 import type { DevServerE2eProcess } from '@dungeonmaster/config';
 
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
@@ -50,9 +50,13 @@ export const profileReadBrokerProxy = (): {
   laneSpecHashBrokerProxy();
 
   const dirsProxy = locationsProfileDirsFindBrokerProxy();
-  // Constructed, never staged: every per-record join runs through the real passthrough, so the
-  // paths a test stages reads against are the ones the broker genuinely computes.
-  pathJoinAdapterProxy();
+  // #gateway/node/path is a raw passthrough of the Node 'path' module (no per-function wrapper, so
+  // no gateway proxy to compose) — mocked directly here. Every per-record join runs through the real
+  // passthrough, so the paths a test stages reads against are the ones the broker genuinely computes.
+  const realPath = requireActual<{ join: typeof join }>({ module: 'path' });
+  registerMock({ fn: join })
+    .calledWith([])
+    .implement((...segments: never[]) => realPath.join(...segments));
   const readdirProxy = fsReaddirAdapterProxy();
   const readProxy = fsReadFileAdapterProxy();
   const stderrHandle = registerSpyOn({ object: process.stderr, method: 'write' });

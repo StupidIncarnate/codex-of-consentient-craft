@@ -1,16 +1,17 @@
-import { processCwdAdapter } from '@dungeonmaster/shared/adapters';
+import { cwd } from '#gateway/node/process';
+import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
-import { processCwdAdapterProxy } from '@dungeonmaster/shared/testing';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import { DungeonmasterConfigStub } from '@dungeonmaster/config';
 import type { DevServerE2eProcess } from '@dungeonmaster/config';
 import { configResolveBrokerProxy } from '@dungeonmaster/config/config-resolve-caller.proxy';
 
-// The broker builds startPath as a template string, `${processCwdAdapter()}/${projectConfigFile}`
-// — never `pathJoinAdapter`, whose mock is a call-ordered queue several OTHER proxies in this
-// package already share for their own path joins (see the broker's own header). Reading
-// processCwdAdapter() here, after processCwdAdapterProxy()'s sticky real-passthrough default is
-// staged, reaches the exact, real address configResolveBroker is called with.
+// The broker builds startPath as a template string, `${cwd()}/${projectConfigFile}` — never
+// `join`. `cwdProxy()` is an empty gateway proxy (`cwd()` takes no argument to fake), so the fixed
+// value this file's every resolution needs to agree on is staged directly on the shared `cwd`
+// mock, addressed by `[]` (no args to key on — the honest catch-all) — and this proxy computes
+// `startPath` from that SAME literal directly, never by calling the (mocked) `cwd()` a second time.
 //
 // Composes config's own black-box caller proxy (F18) rather than mocking configResolveBroker
 // directly here, and rather than composing config's colocated config-resolve-broker.proxy: that
@@ -26,11 +27,14 @@ export const laneSpecFindBrokerProxy = (): {
   setupE2eAbsent: () => void;
   setupDevServerAbsent: () => void;
 } => {
-  processCwdAdapterProxy();
+  cwdProxy();
+  const cwdHandle = registerMock({ fn: cwd });
+  const CWD_PATH_VALUE = '/default/cwd';
+  cwdHandle.calledWith([]).returns(CWD_PATH_VALUE);
   const configProxy = configResolveBrokerProxy();
 
   const startPath = filePathContract.parse(
-    `${processCwdAdapter()}/${dungeonmasterHomeStatics.paths.projectConfigFile}`,
+    `${CWD_PATH_VALUE}/${dungeonmasterHomeStatics.paths.projectConfigFile}`,
   );
 
   // Sticky default: a single headless api process, so any caller composing this proxy without

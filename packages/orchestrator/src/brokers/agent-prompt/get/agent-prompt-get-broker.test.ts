@@ -290,6 +290,43 @@ describe('agentPromptGetBroker', () => {
     });
   });
 
+  describe('the quest file path it reads', () => {
+    it('VALID: {a codeweaver work step} => joins the found folder with quest.json, not any other name', async () => {
+      const proxy = agentPromptGetBrokerProxy();
+      const workItemId = QuestWorkItemIdStub({ value: 'aaaaaaaa-6060-4222-9333-444444444444' });
+      const operationId = OperationItemIdStub({ value: 'bbbbbbbb-6060-4222-9333-444444444444' });
+      const operation = OperationItemStub({
+        id: operationId,
+        role: 'codeweaver',
+        text: 'core: config load+validate adapter',
+        status: 'pending',
+      });
+      const workItem = WorkItemStub({
+        id: workItemId,
+        role: 'codeweaver',
+        step: 'plan',
+        relatedDataItems: [RelatedDataItemStub({ value: `operations/${String(operationId)}` })],
+      });
+      const quest = QuestStub({
+        id: QuestIdStub({ value: 'add-auth' }),
+        operations: [operation],
+        workItems: [workItem],
+      });
+      const { questFolderPath } = proxy.setupQuestFound({ quest });
+
+      await agentPromptGetBroker({
+        agent: 'codeweaver-planner',
+        questId: quest.id,
+        workItemId,
+      });
+
+      expect(proxy.getQuestFileJoinArgs({ questFolderPath })).toStrictEqual([
+        questFolderPath,
+        'quest.json',
+      ]);
+    });
+  });
+
   // `startRef` is the fork point of ONE work item's output. `signal-back` rebuilds the standards
   // review checklist over `<startRef>..HEAD`, so a stamp that never lands, or one that moves,
   // silently shrinks what gets reviewed.

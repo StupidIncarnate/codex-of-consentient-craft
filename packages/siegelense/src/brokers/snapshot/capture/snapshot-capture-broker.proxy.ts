@@ -1,6 +1,6 @@
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
-import { fsMkdirAdapterProxy } from '@dungeonmaster/shared/testing';
+import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
@@ -38,8 +38,9 @@ export const snapshotCaptureBrokerProxy = (): {
 } => {
   // Pure — runs real. Constructed for enforce-proxy-child-creation.
   locationsSnapshotPathsFindBrokerProxy();
-  // Its own constructor resolves ANY filepath, so there is nothing to address here.
-  fsMkdirAdapterProxy();
+  // Unlike the old shared fsMkdirAdapter, ensureDirProxy has no permissive default — each setup
+  // method below addresses it at the exact storeDir and payload paths it already computes for cp.
+  const mkdirProxy = ensureDirProxy();
 
   const indexReadProxy = snapshotIndexReadBrokerProxy();
   const cpProxy = fsCpAdapterProxy();
@@ -62,11 +63,12 @@ export const snapshotCaptureBrokerProxy = (): {
       nowHandle.calledWith([]).returns(CAPTURE_AT_MS);
       indexReadProxy.setupNoIndex({ homePath });
       appendProxy.succeeds({ filePath: indexReadProxy.indexPathFor({ homePath }) });
+      const payloadValue = `${String(homePath)}/${STORE_DIR_NAME}/${String(snapshotStatics.numbering.firstPayload)}`;
+      mkdirProxy.succeeds({ path: `${String(homePath)}/${STORE_DIR_NAME}` });
+      mkdirProxy.succeeds({ path: payloadValue });
       cpProxy.succeeds({
         sourcePath: homePath,
-        destinationPath: AbsoluteFilePathStub({
-          value: `${String(homePath)}/${STORE_DIR_NAME}/${String(snapshotStatics.numbering.firstPayload)}`,
-        }),
+        destinationPath: AbsoluteFilePathStub({ value: payloadValue }),
         entries: HOME_ENTRIES,
       });
     },
@@ -82,11 +84,12 @@ export const snapshotCaptureBrokerProxy = (): {
       nowHandle.calledWith([]).returns(CAPTURE_AT_MS);
       indexReadProxy.setupIndex({ homePath, records });
       appendProxy.succeeds({ filePath: indexReadProxy.indexPathFor({ homePath }) });
+      const payloadValue = `${String(homePath)}/${STORE_DIR_NAME}/${String(records.length + snapshotStatics.numbering.firstPayload)}`;
+      mkdirProxy.succeeds({ path: `${String(homePath)}/${STORE_DIR_NAME}` });
+      mkdirProxy.succeeds({ path: payloadValue });
       cpProxy.succeeds({
         sourcePath: homePath,
-        destinationPath: AbsoluteFilePathStub({
-          value: `${String(homePath)}/${STORE_DIR_NAME}/${String(records.length + snapshotStatics.numbering.firstPayload)}`,
-        }),
+        destinationPath: AbsoluteFilePathStub({ value: payloadValue }),
         entries: HOME_ENTRIES,
       });
     },
@@ -96,11 +99,12 @@ export const snapshotCaptureBrokerProxy = (): {
       nowHandle.calledWith([]).returns(CAPTURE_AT_MS);
       indexReadProxy.setupNoIndex({ homePath });
       appendProxy.succeeds({ filePath: indexReadProxy.indexPathFor({ homePath }) });
+      const payloadValue = `${String(homePath)}/${STORE_DIR_NAME}/${String(snapshotStatics.numbering.firstPayload)}`;
+      mkdirProxy.succeeds({ path: `${String(homePath)}/${STORE_DIR_NAME}` });
+      mkdirProxy.succeeds({ path: payloadValue });
       cpProxy.throws({
         sourcePath: homePath,
-        destinationPath: AbsoluteFilePathStub({
-          value: `${String(homePath)}/${STORE_DIR_NAME}/${String(snapshotStatics.numbering.firstPayload)}`,
-        }),
+        destinationPath: AbsoluteFilePathStub({ value: payloadValue }),
         entries: HOME_ENTRIES,
         error,
       });

@@ -13,6 +13,7 @@ import { tmpdir } from 'os';
 import { dirname as pathNodeDirname, resolve as pathResolve, join as pathNodeJoin } from 'path';
 
 import type {
+  AbsoluteFilePath,
   FileContents,
   GuildId,
   GuildPath,
@@ -43,7 +44,8 @@ import { gitHeadShaAdapter } from '../../../src/adapters/git/head-sha/git-head-s
 import { questFindQuestPathBroker } from '../../../src/brokers/quest/find-quest-path/quest-find-quest-path-broker';
 import { questLoadBroker } from '../../../src/brokers/quest/load/quest-load-broker';
 import { questPersistBroker } from '../../../src/brokers/quest/persist/quest-persist-broker';
-import { childProcessSpawnCaptureAdapter, pathJoinAdapter } from '@dungeonmaster/shared/adapters';
+import { run } from '#gateway/node/child_process';
+import { join } from '#gateway/node/path';
 
 // The real fake-Claude-CLI binary lives in the web package's e2e harness (it records every
 // invocation's argv to prove --resume/-p mechanics for Playwright specs). Referencing its
@@ -203,9 +205,7 @@ export const orchestrationQuestHarness = (): {
     branchName?: BranchName;
   }): Promise<void> => {
     const { questPath } = await questFindQuestPathBroker({ questId });
-    const questFilePath = filePathContract.parse(
-      pathJoinAdapter({ paths: [questPath, QUEST_FILE_NAME] }),
-    );
+    const questFilePath = filePathContract.parse(join(questPath, QUEST_FILE_NAME));
     const loadedQuest = await questLoadBroker({ questFilePath });
 
     const seededQuest = {
@@ -243,21 +243,36 @@ export const orchestrationQuestHarness = (): {
     GIT_CONFIG_VALUE_0: 'false',
   };
 
+  // Real git is expected on the machine running these integration tests, so a missing binary
+  // (RunNotFoundError) is left to throw rather than folded into a fake result — the same choice
+  // gitWorktreeFixtureHarness's own runGit makes for the identical wrapper.
+  const runGit = async ({
+    args,
+    cwd,
+    env,
+  }: {
+    args: readonly string[];
+    cwd: AbsoluteFilePath;
+    env?: Record<string, string>;
+  }): Promise<void> => {
+    await run({
+      command: 'git',
+      args: [...args],
+      cwd,
+      ...(env === undefined ? {} : { env }),
+    });
+  };
+
   const initGitRepoAndCommitBase = async ({
     repoPath,
   }: {
     repoPath: GuildPath;
   }): Promise<{ baseRef: GitBaseRef }> => {
     const cwd = absoluteFilePathContract.parse(String(repoPath));
-    await childProcessSpawnCaptureAdapter({ command: 'git', args: ['init'], cwd });
+    await runGit({ args: ['init'], cwd });
     writeFileSync(pathNodeJoin(String(repoPath), 'BASE_MARKER.md'), '# base commit\n');
-    await childProcessSpawnCaptureAdapter({ command: 'git', args: ['add', '-A'], cwd });
-    await childProcessSpawnCaptureAdapter({
-      command: 'git',
-      args: ['commit', '-m', 'base'],
-      cwd,
-      env: gitCommitEnv,
-    });
+    await runGit({ args: ['add', '-A'], cwd });
+    await runGit({ args: ['commit', '-m', 'base'], cwd, env: gitCommitEnv });
     const baseRef = await gitHeadShaAdapter({ cwd });
     if (baseRef === null) {
       throw new Error(
@@ -280,29 +295,20 @@ export const orchestrationQuestHarness = (): {
       mkdirSync(pathNodeDirname(fullPath), { recursive: true });
       writeFileSync(fullPath, String(file.content));
     }
-    await childProcessSpawnCaptureAdapter({ command: 'git', args: ['add', '-A'], cwd });
-    await childProcessSpawnCaptureAdapter({
-      command: 'git',
-      args: ['commit', '-m', 'changed files'],
-      cwd,
-      env: gitCommitEnv,
-    });
+    await runGit({ args: ['add', '-A'], cwd });
+    await runGit({ args: ['commit', '-m', 'changed files'], cwd, env: gitCommitEnv });
   };
 
   const readQuestFileRaw = async ({ questId }: { questId: QuestId }): Promise<FileContents> => {
     const { questPath } = await questFindQuestPathBroker({ questId });
-    const questFilePath = filePathContract.parse(
-      pathJoinAdapter({ paths: [questPath, QUEST_FILE_NAME] }),
-    );
+    const questFilePath = filePathContract.parse(join(questPath, QUEST_FILE_NAME));
     return fileContentsContract.parse(readFileSync(questFilePath, 'utf-8'));
   };
 
   const loadByQuestId = async (params: { questId: QuestId }): Promise<Quest> => {
     const { questId } = params;
     const { questPath } = await questFindQuestPathBroker({ questId });
-    const questFilePath = filePathContract.parse(
-      pathJoinAdapter({ paths: [questPath, QUEST_FILE_NAME] }),
-    );
+    const questFilePath = filePathContract.parse(join(questPath, QUEST_FILE_NAME));
     return questLoadBroker({ questFilePath });
   };
 
@@ -434,9 +440,7 @@ export const orchestrationQuestHarness = (): {
       comments: readonly QuestComment[];
     }): Promise<void> => {
       const { questPath } = await questFindQuestPathBroker({ questId });
-      const questFilePath = filePathContract.parse(
-        pathJoinAdapter({ paths: [questPath, QUEST_FILE_NAME] }),
-      );
+      const questFilePath = filePathContract.parse(join(questPath, QUEST_FILE_NAME));
       const loadedQuest = await questLoadBroker({ questFilePath });
 
       const seededQuest = {

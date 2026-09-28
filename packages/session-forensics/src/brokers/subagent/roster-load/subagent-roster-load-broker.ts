@@ -9,19 +9,11 @@
  * // Returns every sub-agent row under that session's subagents dir, sorted by start time ascending
  */
 
-import {
-  fsExistsSyncAdapter,
-  fsReaddirWithTypesAdapter,
-  fsReadFileSyncAdapter,
-  pathJoinAdapter,
-} from '@dungeonmaster/shared/adapters';
+import { existsSync, readdirEntriesSync, readFileSync } from '#gateway/node/fs';
+import { join } from '#gateway/node/path';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { safeJsonParseTransformer } from '@dungeonmaster/shared/transformers';
-import {
-  absoluteFilePathContract,
-  filePathContract,
-  agentIdContract,
-} from '@dungeonmaster/shared/contracts';
+import { agentIdContract, contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { subagentMetaContract } from '../../../contracts/subagent-meta/subagent-meta-contract';
 import { isoTimestampContract } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
@@ -40,24 +32,20 @@ export const subagentRosterLoadBroker = ({
   sessionFilePath: AbsoluteFilePath;
 }): readonly SubagentRosterRow[] => {
   const sessionDirBase = sessionFilePath.slice(0, -JSONL_FILE_SUFFIX.length);
-  const subagentsDir = absoluteFilePathContract.parse(
-    pathJoinAdapter({ paths: [sessionDirBase, locationsStatics.userHome.claude.subagentsDir] }),
-  );
+  const subagentsDir = join(sessionDirBase, locationsStatics.userHome.claude.subagentsDir);
 
-  if (!fsExistsSyncAdapter({ filePath: filePathContract.parse(subagentsDir) })) {
+  if (!existsSync(subagentsDir)) {
     return [];
   }
 
-  const metaEntries = fsReaddirWithTypesAdapter({ dirPath: subagentsDir }).filter(
-    (entry) => entry.isFile() && entry.name.endsWith(META_FILE_SUFFIX),
+  const metaEntries = readdirEntriesSync(subagentsDir).filter(
+    (entry) => entry.kind === 'file' && entry.name.endsWith(META_FILE_SUFFIX),
   );
 
   const rows = metaEntries.flatMap((entry): SubagentRosterRow[] => {
     const agentIdValue = entry.name.slice(0, -META_FILE_SUFFIX.length);
-    const metaFilePath = absoluteFilePathContract.parse(
-      pathJoinAdapter({ paths: [subagentsDir, entry.name] }),
-    );
-    const metaContents = fsReadFileSyncAdapter({ filePath: metaFilePath });
+    const metaFilePath = join(subagentsDir, entry.name);
+    const metaContents = contentTextContract.parse(readFileSync(metaFilePath));
 
     const parsedMetaJson = safeJsonParseTransformer({ value: metaContents });
     if (!parsedMetaJson.ok) {
@@ -69,13 +57,11 @@ export const subagentRosterLoadBroker = ({
       return [];
     }
 
-    const transcriptFilePath = absoluteFilePathContract.parse(
-      pathJoinAdapter({ paths: [subagentsDir, `${agentIdValue}${JSONL_FILE_SUFFIX}`] }),
-    );
+    const transcriptFilePath = join(subagentsDir, `${agentIdValue}${JSONL_FILE_SUFFIX}`);
 
-    const records = fsExistsSyncAdapter({ filePath: filePathContract.parse(transcriptFilePath) })
+    const records = existsSync(transcriptFilePath)
       ? jsonlToRecordsTransformer({
-          contents: fsReadFileSyncAdapter({ filePath: transcriptFilePath }),
+          contents: contentTextContract.parse(readFileSync(transcriptFilePath)),
         })
       : [];
 

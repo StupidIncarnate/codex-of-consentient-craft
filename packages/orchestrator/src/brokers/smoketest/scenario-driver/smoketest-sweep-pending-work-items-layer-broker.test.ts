@@ -205,6 +205,25 @@ describe('smoketestSweepPendingWorkItemsLayerBroker', () => {
     });
   });
 
+  describe('the quest file path it reads', () => {
+    it('VALID: {pending roles} => joins the found quest path with quest.json, not any other name', async () => {
+      const proxy = smoketestSweepPendingWorkItemsLayerBrokerProxy();
+      const { questFolderPath } = proxy.setupQuestFound({ quest: questWithTwoPendingRoles });
+      const controller = new AbortController();
+
+      await smoketestSweepPendingWorkItemsLayerBroker({
+        questId: QUEST_ID,
+        abortSignal: controller.signal,
+        dispense: dispenseAlwaysNull,
+      });
+
+      expect(proxy.getQuestFileJoinArgs({ questFolderPath })).toStrictEqual([
+        questFolderPath,
+        'quest.json',
+      ]);
+    });
+  });
+
   describe('stamps pending items with no override', () => {
     it('VALID: {pending codeweaver, dispense returns signalComplete} => persists quest.json with the dispensed prompt', async () => {
       const proxy = smoketestSweepPendingWorkItemsLayerBrokerProxy();

@@ -1,4 +1,4 @@
-import { fsReadFileSyncAdapterProxy } from '@dungeonmaster/shared/testing';
+import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 import type {
   SessionIdStub,
@@ -33,7 +33,7 @@ export const transcriptLoadBrokerProxy = (): {
   setupMissing: () => void;
 } => {
   const resolveProxy = transcriptResolveBrokerProxy();
-  const readFileProxy = fsReadFileSyncAdapterProxy();
+  const readFileProxy = readFileSyncProxy();
 
   return {
     setupTranscript: ({
@@ -49,7 +49,7 @@ export const transcriptLoadBrokerProxy = (): {
       const filePath = AbsoluteFilePathStub({
         value: `${PROJECTS_ROOT}/${projectDir}/${target}.jsonl`,
       });
-      readFileProxy.returns({ filePath, content: contents });
+      readFileProxy.returns({ path: filePath, contents });
     },
     setupSubagentTranscript: ({
       target,
@@ -66,7 +66,7 @@ export const transcriptLoadBrokerProxy = (): {
       const filePath = AbsoluteFilePathStub({
         value: `${PROJECTS_ROOT}/${projectDir}/${parentSessionId}/${SUBAGENTS_DIR_NAME}/${target}.jsonl`,
       });
-      readFileProxy.returns({ filePath, content: contents });
+      readFileProxy.returns({ path: filePath, contents });
     },
     setupMissing: (): void => {
       resolveProxy.setupNothing();

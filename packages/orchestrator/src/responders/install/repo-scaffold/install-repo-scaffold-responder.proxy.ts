@@ -1,14 +1,19 @@
-import { fsMkdirAdapterProxy, pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
+import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
+import { join } from '#gateway/node/path';
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
+import { locationsStatics } from '@dungeonmaster/shared/statics';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { fsIsAccessibleAdapterProxy } from '../../../adapters/fs/is-accessible/fs-is-accessible-adapter.proxy';
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
 import { InstallRepoScaffoldResponder } from './install-repo-scaffold-responder';
 
-// Every caller exercises targetProjectRoot: '/project' (the real, unstaged pathJoin passthrough
-// resolves it to these two exact paths), so both files this responder checks always land here.
+// Every caller exercises targetProjectRoot: '/project', so the exact join tuples staged below are
+// the only ones this responder ever composes and both files it checks always land at these paths.
+const TARGET_PROJECT_ROOT = '/project';
 const WORKTREES_DIR = FilePathStub({ value: '/project/worktrees' });
 const GITIGNORE_PATH = FilePathStub({ value: '/project/.gitignore' });
+const GITIGNORE_FILENAME = '.gitignore';
 const NOT_FOUND_ERROR = (): Error =>
   Object.assign(new Error('ENOENT: no such file or directory'), { code: 'ENOENT' });
 
@@ -22,11 +27,16 @@ export const InstallRepoScaffoldResponderProxy = (): {
   getWrittenGitignore: () => unknown;
   getAllWrittenFiles: () => readonly { path: unknown; content: unknown }[];
 } => {
-  pathJoinAdapterProxy();
-  const mkdirProxy = fsMkdirAdapterProxy();
+  const joinHandle = registerMock({ fn: join });
+  const mkdirProxy = ensureDirProxy();
   const isAccessibleProxy = fsIsAccessibleAdapterProxy();
   const readProxy = fsReadFileAdapterProxy();
   const writeProxy = fsWriteFileAdapterProxy();
+
+  joinHandle
+    .calledWith([TARGET_PROJECT_ROOT, locationsStatics.repoRoot.worktreesDir])
+    .returns(WORKTREES_DIR);
+  joinHandle.calledWith([TARGET_PROJECT_ROOT, GITIGNORE_FILENAME]).returns(GITIGNORE_PATH);
 
   return {
     callResponder: InstallRepoScaffoldResponder,
@@ -35,7 +45,7 @@ export const InstallRepoScaffoldResponderProxy = (): {
     setupFreshRepo: (): void => {
       isAccessibleProxy.rejects({ filePath: WORKTREES_DIR, error: NOT_FOUND_ERROR() });
       isAccessibleProxy.rejects({ filePath: GITIGNORE_PATH, error: NOT_FOUND_ERROR() });
-      mkdirProxy.succeeds({ filepath: WORKTREES_DIR });
+      mkdirProxy.succeeds({ path: WORKTREES_DIR });
       writeProxy.succeeds({ filePath: GITIGNORE_PATH });
     },
 
@@ -62,10 +72,11 @@ export const InstallRepoScaffoldResponderProxy = (): {
       isAccessibleProxy.rejects({ filePath: WORKTREES_DIR, error: NOT_FOUND_ERROR() });
       isAccessibleProxy.resolves({ filePath: GITIGNORE_PATH });
       readProxy.resolves({ filePath: GITIGNORE_PATH, content: gitignoreContent });
-      mkdirProxy.succeeds({ filepath: WORKTREES_DIR });
+      mkdirProxy.succeeds({ path: WORKTREES_DIR });
     },
 
-    getCreatedDirs: (): readonly unknown[] => mkdirProxy.getCreatedDirs(),
+    getCreatedDirs: (): readonly unknown[] =>
+      mkdirProxy.getCallsFor({ path: WORKTREES_DIR }).map((call) => call[0]),
     getWrittenGitignore: (): unknown => writeProxy.getWrittenFor({ filePath: GITIGNORE_PATH }),
     getAllWrittenFiles: (): readonly { path: unknown; content: unknown }[] =>
       writeProxy.getAllWrittenFiles(),

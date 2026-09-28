@@ -29,6 +29,18 @@ describe('laneKillBroker', () => {
     });
   });
 
+  describe('the instance id reaching the loaded module', () => {
+    it('VALID: {instanceId} => calls instanceKillBroker with the stringified id', async () => {
+      const proxy = laneKillBrokerProxy();
+      proxy.setupStopped({ stopped: true });
+      const instanceId = SiegeInstanceIdStub();
+
+      await proxy.callBroker({ instanceId });
+
+      expect(proxy.getKilledInstanceIds()).toStrictEqual([String(instanceId)]);
+    });
+  });
+
   describe('module resolution failure', () => {
     it('ERROR: {module not found} => the error names the package rather than the specifier', async () => {
       const proxy = laneKillBrokerProxy();

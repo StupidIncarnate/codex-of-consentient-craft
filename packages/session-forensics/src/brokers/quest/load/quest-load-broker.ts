@@ -14,9 +14,13 @@
  * // JSON at all.
  */
 
-import { fsReadFileSyncAdapter } from '@dungeonmaster/shared/adapters';
+import { readFileSync } from '#gateway/node/fs';
 import { safeJsonParseTransformer } from '@dungeonmaster/shared/transformers';
-import { flowContract, workItemContract } from '@dungeonmaster/shared/contracts';
+import {
+  contentTextContract,
+  flowContract,
+  workItemContract,
+} from '@dungeonmaster/shared/contracts';
 import type { QuestId, Flow, WorkItem } from '@dungeonmaster/shared/contracts';
 import { questFindBroker } from '../find/quest-find-broker';
 
@@ -32,7 +36,7 @@ export const questLoadBroker = ({
     return empty;
   }
 
-  const contents = fsReadFileSyncAdapter({ filePath: questPath });
+  const contents = contentTextContract.parse(readFileSync(questPath));
   const parsed = safeJsonParseTransformer({ value: contents });
 
   if (!parsed.ok) {

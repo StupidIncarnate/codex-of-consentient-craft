@@ -35,7 +35,6 @@
  * // Returns AgentPromptResult whose `prompt` has $ARGUMENTS substituted with operation context
  */
 
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import {
   agentPromptResultContract,
   filePathContract,
@@ -45,6 +44,7 @@ import {
   type QuestWorkItemId,
 } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
+import { join } from '#gateway/node/path';
 
 import { gitHeadShaAdapter } from '../../../adapters/git/head-sha/git-head-sha-adapter';
 import { agentPromptNameContract } from '../../../contracts/agent-prompt-name/agent-prompt-name-contract';
@@ -107,9 +107,7 @@ export const agentPromptGetBroker = async ({
   const base = agentNameToPromptTransformer({ agent: parsedAgent });
 
   const { questPath } = await questFindQuestPathBroker({ questId });
-  const questFilePath = filePathContract.parse(
-    pathJoinAdapter({ paths: [questPath, locationsStatics.quest.questFile] }),
-  );
+  const questFilePath = filePathContract.parse(join(questPath, locationsStatics.quest.questFile));
   const quest = await questLoadBroker({ questFilePath });
 
   const workItem = quest.workItems.find((item) => item.id === workItemId);

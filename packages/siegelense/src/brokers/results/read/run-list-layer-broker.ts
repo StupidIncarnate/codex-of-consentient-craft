@@ -16,7 +16,7 @@
  * // run_1.jsonl + run_1.json + run_2.jsonl + run_2.json
  */
 
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
+import { join } from '#gateway/node/path';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
@@ -32,7 +32,7 @@ export const runListLayerBroker = async ({
   evidencePath: AbsoluteFilePath;
 }): Promise<{ runCount: ReadingCount; latestRunId: RunId | null; evidenceComplete: boolean }> => {
   const runsDir = absoluteFilePathContract.parse(
-    pathJoinAdapter({ paths: [evidencePath, locationsStatics.siegelense.runsDir] }),
+    join(evidencePath, locationsStatics.siegelense.runsDir),
   );
 
   const entries = await fsReaddirAdapter({ dirPath: runsDir });

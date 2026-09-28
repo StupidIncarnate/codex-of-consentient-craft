@@ -25,8 +25,10 @@ import {
   RepoRootCwdStub,
 } from '@dungeonmaster/shared/contracts';
 import type { ErrorMessage, ExitCode, QuestStub } from '@dungeonmaster/shared/contracts';
-import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
+import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { registerMock, registerModuleMock } from '@dungeonmaster/testing/register-mock';
+import type { MockHandle } from '@dungeonmaster/testing/register-mock';
+import { join } from '#gateway/node/path';
 
 import { gitDiffFilesAdapterProxy } from '../../../adapters/git/diff-files/git-diff-files-adapter.proxy';
 import { gitUpstreamShaAdapterProxy } from '../../../adapters/git/upstream-sha/git-upstream-sha-adapter.proxy';
@@ -43,6 +45,7 @@ import { questLoadBrokerProxy } from '../load/quest-load-broker.proxy';
 registerModuleMock({ module: '../cwd-resolve/quest-cwd-resolve-broker' });
 
 type Quest = ReturnType<typeof QuestStub>;
+type FilePathValue = ReturnType<typeof FilePathStub>;
 
 const DEFAULT_REPO_ROOT = RepoRootCwdStub({ value: '/home/testuser/my-guild' });
 
@@ -89,8 +92,14 @@ const createGitChild = ({
 };
 
 export const questGetBlightChecklistBrokerProxy = (): {
-  setupQuestFound: (params: { quest: Quest }) => void;
+  setupQuestFound: (params: { quest: Quest }) => {
+    questFolderPath: FilePathValue;
+    questFilePath: FilePathValue;
+  };
   setupQuestNotFound: () => void;
+  getQuestFileJoinArgs: (params: {
+    questFolderPath: FilePathValue;
+  }) => readonly unknown[] | undefined;
   setupDiff: (params: { files: readonly string[] }) => void;
   setupWorkingTreeDiff: (params: {
     trackedFiles: readonly string[];
@@ -106,7 +115,7 @@ export const questGetBlightChecklistBrokerProxy = (): {
   getGitArgsList: () => readonly unknown[];
 } => {
   const findQuestPathProxy = questFindQuestPathBrokerProxy();
-  const pathJoinProxy = pathJoinAdapterProxy();
+  const joinHandle: MockHandle = registerMock({ fn: join });
   const loadProxy = questLoadBrokerProxy();
   // Wired to satisfy enforce-proxy-child-creation; the registerMock below replaces the broker
   // entirely so this child's own internal fs/broker mocks are never exercised.
@@ -121,7 +130,11 @@ export const questGetBlightChecklistBrokerProxy = (): {
   const spawnHandle = registerMock({ fn: spawn });
 
   return {
-    setupQuestFound: ({ quest }: { quest: Quest }): void => {
+    setupQuestFound: ({
+      quest,
+    }: {
+      quest: Quest;
+    }): { questFolderPath: FilePathValue; questFilePath: FilePathValue } => {
       const guildId = GuildIdStub();
       const homePath = FilePathStub({ value: '/home/testuser/.dungeonmaster' });
       const guildsDir = FilePathStub({ value: '/home/testuser/.dungeonmaster/guilds' });
@@ -155,7 +168,9 @@ export const questGetBlightChecklistBrokerProxy = (): {
         ],
       });
 
-      pathJoinProxy.returns({ result: questFilePath });
+      joinHandle
+        .calledWith([questFolderPath, locationsStatics.quest.questFile])
+        .returns(questFilePath);
       loadProxy.setupQuestFile({ questJson: JSON.stringify(quest) });
 
       // Sensible default: the repo-root resolution, matching the shape every QuestStub (no
@@ -165,6 +180,8 @@ export const questGetBlightChecklistBrokerProxy = (): {
       cwdMock
         .calledWith([{ questId: quest.id }])
         .resolves(QuestCwdResolutionStub({ kind: 'repo-root', cwd: DEFAULT_REPO_ROOT }));
+
+      return { questFolderPath, questFilePath };
     },
 
     setupQuestNotFound: (): void => {
@@ -252,5 +269,11 @@ export const questGetBlightChecklistBrokerProxy = (): {
     // Every git argv the broker spawned, in order — the `working-tree` scope's two readings need
     // both, and getGitDiffArgs answers only the last.
     getGitArgsList: (): readonly unknown[] => workingTreeProxy.getSpawnedArgsList(),
+
+    getQuestFileJoinArgs: ({
+      questFolderPath,
+    }: {
+      questFolderPath: FilePathValue;
+    }): readonly unknown[] | undefined => joinHandle.callsMatching([questFolderPath]).at(-1),
   };
 };

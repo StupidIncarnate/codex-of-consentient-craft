@@ -55,8 +55,7 @@
  * // Runs the batch, writes runs/run_1.jsonl and runs/run_1.json, flushes the buffers, and returns the RunResult
  */
 
-import { fsMkdirAdapter } from '@dungeonmaster/shared/adapters';
-import { filePathContract } from '@dungeonmaster/shared/contracts';
+import { ensureDir } from '#gateway/node/fs__promises';
 import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
 
 import { bufferEntryContract } from '../../../contracts/buffer-entry/buffer-entry-contract';
@@ -130,7 +129,7 @@ export const runExecuteBroker = async ({
     evidencePath: lane.evidencePath,
     runId,
   });
-  await fsMkdirAdapter({ filepath: filePathContract.parse(shotsDir) });
+  await ensureDir(shotsDir);
 
   // packages/siegelense/CLAUDE.md: "every path handed back is repo-local, through
   // <repoRoot>/.dungeonmaster-assets/siegelense-assets" — `start`, `status` and `kill` already resolve their evidence path

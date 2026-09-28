@@ -1,4 +1,5 @@
-import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
+import { join } from '#gateway/node/path';
+import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 
 import { errorIsNativeErrorAdapterProxy } from '../../../adapters/error/is-native-error/error-is-native-error-adapter.proxy';
@@ -18,9 +19,14 @@ export const machineRssByPgidBrokerProxy = (): {
   setupPidStatmVanished: (params: { pid: string; code?: 'ENOENT' | 'ESRCH' }) => void;
 } => {
   errorIsNativeErrorAdapterProxy();
-  // pathJoinAdapter has no override staged here — its default is a real path.join passthrough,
-  // and joining '/proc', a pid and a leaf name needs no substitution to compute a real path.
-  pathJoinAdapterProxy();
+  // #gateway/node/path is a raw passthrough of the Node 'path' module (no per-function wrapper, so
+  // no gateway proxy to compose) — mocked directly here, on the same '#gateway/node/path' specifier
+  // the broker imports. Joining '/proc', a pid and a leaf name needs no substitution to compute a
+  // real path, so only the sticky real-passthrough default is installed.
+  const realPath = requireActual<{ join: typeof join }>({ module: 'path' });
+  registerMock({ fn: join })
+    .calledWith([])
+    .implement((...segments: never[]) => realPath.join(...segments));
   const statProxy = fsStatAdapterProxy();
   const readdirProxy = fsReaddirAdapterProxy();
   const readFileProxy = fsReadFileAdapterProxy();

@@ -10,8 +10,11 @@
  * `runIndexComputeTransformer` classifies a console line with — so a `where: { level: 'error' }`
  * filter and the run index can never disagree about what an error line is; `level: 'info'` has no
  * dedicated pattern and passes every line through unfiltered, since no console-info classification
- * exists in this codebase. `where.nth` selects the row at that position AFTER every other filter has
- * already narrowed the set.
+ * exists in this codebase. `where.steps` narrows to entries whose own `step` falls inside that range
+ * (via `stepRangeExpandTransformer`) — an entry recorded with a null `step` (the untagged
+ * between-runs case `since: 'boot'` reads) never matches a range, the same way it never matches a
+ * bare `--step`. `where.nth` selects the row at that position AFTER every other filter has already
+ * narrowed the set.
  *
  * USAGE:
  * await bufferReadLayerBroker({
@@ -33,6 +36,7 @@ import type { ResultWhere } from '../../../contracts/result-where/result-where-c
 import type { RunId } from '../../../contracts/run-id/run-id-contract';
 import type { StepIndex } from '../../../contracts/step-index/step-index-contract';
 import { resultsStatics } from '../../../statics/results/results-statics';
+import { stepRangeExpandTransformer } from '../../../transformers/step-range-expand/step-range-expand-transformer';
 
 export const bufferReadLayerBroker = async ({
   bufferPath,
@@ -84,11 +88,21 @@ export const bufferReadLayerBroker = async ({
   const stepFiltered =
     step === null ? runFiltered : runFiltered.filter((entry) => entry.step === step);
 
+  const stepRange = where?.steps ?? null;
+  const stepRangeFiltered =
+    stepRange === null
+      ? stepFiltered
+      : stepFiltered.filter(
+          (entry) =>
+            entry.step !== null &&
+            stepRangeExpandTransformer({ range: stepRange }).includes(entry.step),
+        );
+
   const level = where?.level ?? null;
   const levelFiltered =
     level === null
-      ? stepFiltered
-      : stepFiltered.filter((entry) => {
+      ? stepRangeFiltered
+      : stepRangeFiltered.filter((entry) => {
           const patternStatic =
             level === 'error'
               ? resultsStatics.patterns.consoleError

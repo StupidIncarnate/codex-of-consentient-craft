@@ -23,7 +23,7 @@
  * // Returns the SpecProfile — samples: [] and bootMs: null for a spec nothing has ever run
  */
 
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
+import { join } from '#gateway/node/path';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
@@ -64,9 +64,7 @@ export const profileReadBroker = async ({
     sampleNames
       .filter((name) => name.endsWith(profileStatics.extensions.record))
       .map(async (name): Promise<ProfileObservation | null> => {
-        const recordPath = absoluteFilePathContract.parse(
-          pathJoinAdapter({ paths: [samplesDir, name] }),
-        );
+        const recordPath = absoluteFilePathContract.parse(join(samplesDir, name));
         const contents = await fsReadFileAdapter({ filePath: recordPath });
         try {
           return profileObservationContract.parse(JSON.parse(contents));
@@ -83,9 +81,7 @@ export const profileReadBroker = async ({
     bootNames
       .filter((name) => name.endsWith(profileStatics.extensions.record))
       .map(async (name): Promise<ProfileBoot | null> => {
-        const recordPath = absoluteFilePathContract.parse(
-          pathJoinAdapter({ paths: [bootsDir, name] }),
-        );
+        const recordPath = absoluteFilePathContract.parse(join(bootsDir, name));
         const contents = await fsReadFileAdapter({ filePath: recordPath });
         try {
           return profileBootContract.parse(JSON.parse(contents));

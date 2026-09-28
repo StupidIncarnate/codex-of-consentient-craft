@@ -1,4 +1,4 @@
-import type { fsReaddirWithTypesAdapter } from '@dungeonmaster/shared/adapters';
+import type { DirEntrySync } from '#gateway/node/fs';
 import { AbsoluteFilePathStub, FileNameStub } from '@dungeonmaster/shared/contracts';
 
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
@@ -6,36 +6,17 @@ import { FileSizeBytesStub } from '../../../contracts/file-size-bytes/file-size-
 import { snapshotRestoreLayerBroker } from './snapshot-restore-layer-broker';
 import { snapshotRestoreLayerBrokerProxy } from './snapshot-restore-layer-broker.proxy';
 
-type Dirent = ReturnType<typeof fsReaddirWithTypesAdapter>[0];
 type FileName = ReturnType<typeof FileNameStub>;
 
-const makeFileEntry = ({ name }: { name: FileName }): Dirent =>
-  ({
-    name,
-    parentPath: '/stub',
-    path: '/stub',
-    isDirectory: () => false,
-    isFile: () => true,
-    isBlockDevice: () => false,
-    isCharacterDevice: () => false,
-    isFIFO: () => false,
-    isSocket: () => false,
-    isSymbolicLink: () => false,
-  }) as Dirent;
+const makeFileEntry = ({ name }: { name: FileName }): DirEntrySync => ({
+  name,
+  kind: 'file',
+});
 
-const makeDirEntry = ({ name }: { name: FileName }): Dirent =>
-  ({
-    name,
-    parentPath: '/stub',
-    path: '/stub',
-    isDirectory: () => true,
-    isFile: () => false,
-    isBlockDevice: () => false,
-    isCharacterDevice: () => false,
-    isFIFO: () => false,
-    isSocket: () => false,
-    isSymbolicLink: () => false,
-  }) as Dirent;
+const makeDirEntry = ({ name }: { name: FileName }): DirEntrySync => ({
+  name,
+  kind: 'directory',
+});
 
 describe('snapshotRestoreLayerBroker', () => {
   const homePath = AbsoluteFilePathStub({ value: '/tmp/instance-home' });
@@ -65,6 +46,12 @@ describe('snapshotRestoreLayerBroker', () => {
         { filePath: filePathPayload, sizeBytes, modifiedAtMs },
       ],
     });
+    proxy.setupFileContents({
+      contents: [
+        { filePath: filePathHome, content: '{"a":1}' },
+        { filePath: filePathPayload, content: '{"a":1}' },
+      ],
+    });
     proxy.setupCpSucceeds({
       sourcePath: payloadPath,
       destinationPath: homePath,
@@ -77,6 +64,104 @@ describe('snapshotRestoreLayerBroker', () => {
       files: 0,
       added: 0,
       modified: 0,
+      removed: 0,
+    });
+  });
+
+  it('VALID: {same size, different mtime, identical content} => does not count the file as modified (DEF-81)', async () => {
+    const proxy = snapshotRestoreLayerBrokerProxy();
+    const fileName = FileNameStub({ value: 'seeded.json' });
+    const filePathHome = AbsoluteFilePathStub({ value: `${String(homePath)}/${String(fileName)}` });
+    const filePathPayload = AbsoluteFilePathStub({
+      value: `${String(payloadPath)}/${String(fileName)}`,
+    });
+    const sizeBytes = FileSizeBytesStub({ value: 64 });
+    const content = '{"seeded":true}';
+
+    proxy.setupDirectories({
+      dirs: [
+        { dirPath: homePath, entries: [makeFileEntry({ name: fileName })] },
+        { dirPath: payloadPath, entries: [makeFileEntry({ name: fileName })] },
+      ],
+    });
+    // `snapshotCaptureBroker`'s own copy stamps a fresh `modifiedAtMs` on every payload file, so
+    // the two mtimes below are deliberately different even though the content is not — this is
+    // exactly the shape `snapshot` immediately followed by `reset level: 'state'` produces on disk.
+    proxy.setupFileStats({
+      stats: [
+        { filePath: filePathHome, sizeBytes, modifiedAtMs: EpochMsStub({ value: 1700000000000 }) },
+        {
+          filePath: filePathPayload,
+          sizeBytes,
+          modifiedAtMs: EpochMsStub({ value: 1700000005000 }),
+        },
+      ],
+    });
+    proxy.setupFileContents({
+      contents: [
+        { filePath: filePathHome, content },
+        { filePath: filePathPayload, content },
+      ],
+    });
+    proxy.setupCpSucceeds({
+      sourcePath: payloadPath,
+      destinationPath: homePath,
+      entries: [fileName],
+    });
+
+    const result = await snapshotRestoreLayerBroker({ homePath, payloadPath });
+
+    expect(result).toStrictEqual({
+      files: 0,
+      added: 0,
+      modified: 0,
+      removed: 0,
+    });
+  });
+
+  it('VALID: {same size, different content} => counts the file as modified', async () => {
+    const proxy = snapshotRestoreLayerBrokerProxy();
+    const fileName = FileNameStub({ value: 'seeded.json' });
+    const filePathHome = AbsoluteFilePathStub({ value: `${String(homePath)}/${String(fileName)}` });
+    const filePathPayload = AbsoluteFilePathStub({
+      value: `${String(payloadPath)}/${String(fileName)}`,
+    });
+    const sizeBytes = FileSizeBytesStub({ value: 15 });
+
+    proxy.setupDirectories({
+      dirs: [
+        { dirPath: homePath, entries: [makeFileEntry({ name: fileName })] },
+        { dirPath: payloadPath, entries: [makeFileEntry({ name: fileName })] },
+      ],
+    });
+    proxy.setupFileStats({
+      stats: [
+        { filePath: filePathHome, sizeBytes, modifiedAtMs: EpochMsStub({ value: 1700000000000 }) },
+        {
+          filePath: filePathPayload,
+          sizeBytes,
+          modifiedAtMs: EpochMsStub({ value: 1700000000000 }),
+        },
+      ],
+    });
+    proxy.setupFileContents({
+      contents: [
+        { filePath: filePathHome, content: '{"seeded":2}' },
+        { filePath: filePathPayload, content: '{"seeded":1}' },
+      ],
+    });
+    proxy.setupCpSucceeds({
+      sourcePath: payloadPath,
+      destinationPath: homePath,
+      entries: [fileName],
+    });
+
+    const result = await snapshotRestoreLayerBroker({ homePath, payloadPath });
+
+    expect(result).toStrictEqual({
+      files: 1,
+      added: 0,
+      modified: 1,
       removed: 0,
     });
   });
@@ -114,6 +199,12 @@ describe('snapshotRestoreLayerBroker', () => {
         { filePath: addedFilePath, sizeBytes, modifiedAtMs },
         { filePath: existingFilePathHome, sizeBytes, modifiedAtMs },
         { filePath: existingFilePathPayload, sizeBytes, modifiedAtMs },
+      ],
+    });
+    proxy.setupFileContents({
+      contents: [
+        { filePath: existingFilePathHome, content: 'base content' },
+        { filePath: existingFilePathPayload, content: 'base content' },
       ],
     });
     proxy.setupRmSucceeds({ filePaths: [addedFilePath] });
@@ -219,6 +310,12 @@ describe('snapshotRestoreLayerBroker', () => {
       stats: [
         { filePath: homeFilePath, sizeBytes, modifiedAtMs },
         { filePath: payloadFilePath, sizeBytes, modifiedAtMs },
+      ],
+    });
+    proxy.setupFileContents({
+      contents: [
+        { filePath: homeFilePath, content: 'export const x = 1;' },
+        { filePath: payloadFilePath, content: 'export const x = 1;' },
       ],
     });
     proxy.setupCpSucceeds({

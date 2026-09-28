@@ -384,6 +384,62 @@ describe('architectureTestingPatternsBroker', () => {
       );
     });
 
+    it('VALID: {} => includes recipes and ingredients section defining both terms', () => {
+      architectureTestingPatternsBrokerProxy();
+
+      const result: ContentText = architectureTestingPatternsBroker();
+
+      expect(result).toMatch(/^## Recipes and Ingredients$/mu);
+      expect(result).toMatch(
+        /^A recipe is a named, composable way to put the app into a known state\. A siegelense `seed` step calls it, an e2e spec calls it, and an integration test calls it — the same recipe works everywhere, because a recipe only builds a plan and never decides who runs it\.$/mu,
+      );
+      expect(result).toMatch(
+        /^An ingredient is one entity's routes — its create, read, update and delete operations\. Every ingredient declares `copies:`, naming the production code its routes imitate\. When an ingredient's route breaks, `copies:` is where to look first: diff what it copies against what it writes, because a route that no longer matches production is the usual cause\.$/mu,
+      );
+    });
+
+    it('VALID: {} => tells a recipe author to name inputs after their field and declare returned fields', () => {
+      architectureTestingPatternsBrokerProxy();
+
+      const result: ContentText = architectureTestingPatternsBroker();
+
+      expect(result).toMatch(/^### Writing a recipe$/mu);
+      expect(result).toMatch(
+        /^Write a recipe so an agent who has read only `docs --for walking` can pick it up and use it correctly — nothing more\.$/mu,
+      );
+      expect(result).toMatch(
+        /^- \*\*Name each input after the field it fills\.\*\* An input called `guildId` fills a `guildId` field, so a caller can guess the shape without opening the recipe\.$/mu,
+      );
+      expect(result).toMatch(
+        /^- \*\*Give each input, and each field the recipe returns, a one-line meaning\.\*\* A bare key name like `guildId` says nothing about what value goes in or what comes out\.$/mu,
+      );
+      expect(result).toMatch(
+        /^- \*\*Declare every field the recipe hands back to later steps\.\*\* A `seed` step names its own result with `as` \(`\{ "step": "seed", "recipe": "<name>", "as": "g" \}`\), and every step after it reaches into that handle — `\{g\.guildId\}`, `\{g\.guildSlug\}`\. An undeclared field is a field the next step cannot know exists\.$/mu,
+      );
+    });
+
+    it('VALID: {} => tells a recipe author to keep makes honest, compose first, and prove with a real run', () => {
+      architectureTestingPatternsBrokerProxy();
+
+      const result: ContentText = architectureTestingPatternsBroker();
+
+      expect(result).toMatch(
+        /^- \*\*Keep `makes` honest\.\*\* `makes` states the count of each thing the recipe creates\. A recipe that creates three quests and reports one hides state an assertion will trip over later\.$/mu,
+      );
+      expect(result).toMatch(
+        /^- \*\*Seed TWO of anything an assertion must tell apart\.\*\* A recipe that seeds only one of something makes "the right one" and "the first one" the same value, so an off-by-index bug passes against it and a clean result proves nothing\.$/mu,
+      );
+      expect(result).toMatch(
+        /^- \*\*Compose existing recipes before writing a new one\.\*\* Two existing recipes often already combine into the state a new task needs\. A new recipe where two would compose makes the book bigger without making it more capable\.$/mu,
+      );
+      expect(result).toMatch(
+        /^- \*\*Prove each recipe with a real run\.\*\* Run it against a throwaway instance and read back what it produced\. An unproven recipe does not fail loudly — it manufactures a defect that does not exist, because nobody checked its claimed state against its real one\.$/mu,
+      );
+      expect(result).toMatch(
+        /^The `CLAUDE\.md` in a repo's own `hydration-recipes` package is where that repo records the specifics of its own recipes and ingredients — which ones exist, what each one copies, and anything particular to that repo's state\.$/mu,
+      );
+    });
+
     it('VALID: {} => includes argument coverage section heading and the every-argument list', () => {
       architectureTestingPatternsBrokerProxy();
 

@@ -2,8 +2,10 @@ import type { GuildStub, QuestStub } from '@dungeonmaster/shared/contracts';
 import { SavedRecordNameStub } from '@dungeonmaster/hydration/contracts';
 
 import { fileTargetHarness } from '../../../../test/harnesses/file-target/file-target.harness';
+import { liveQuestTargetHarness } from '../../../../test/harnesses/live-quest-target/live-quest-target.harness';
 import { QuestFieldsStub } from '../../../contracts/quest-fields/quest-fields.stub';
 import { dmRegistryBroker } from '../../dm/registry/dm-registry-broker';
+import { recipesGuildEmptyBroker } from '../guild-empty/recipes-guild-empty-broker';
 import { recipesGuildMidExecutionBroker } from '../guild-mid-execution/recipes-guild-mid-execution-broker';
 import { recipesQuestAdvancesOneStepBroker } from './recipes-quest-advances-one-step-broker';
 
@@ -92,6 +94,33 @@ describe('recipesQuestAdvancesOneStepBroker', () => {
       const operationIds = quest.operations.map((operation) => operation.id);
 
       expect(new Set(operationIds).size).toBe(operationIds.length);
+    });
+  });
+
+  // DEF-71: on a live target the quest ingredient's `api` route walks the freshly-minted `created`
+  // quest to `in_progress` through the REAL `questReachRouteBroker`, hitting the REAL
+  // `flows_approved`/`approved` gates on the way — reachable outside `start --seed` (which cannot
+  // pass this recipe's required `guildId` param at all) via a `run` `seed` step, exactly as the
+  // dogfood repro that widened DEF-71 to this recipe used. Before the fix this threw
+  // `Missing required content for transition to flows_approved`; this proves the walk now clears
+  // both gates and stops only at the one hop `liveQuestTargetHarness` cannot honestly serve —
+  // `POST /api/quests/:id/start` (`orchestration-start-responder`'s own logic being unexported).
+  describe('run against a live target (api route, DEF-71)', () => {
+    const liveTarget = liveQuestTargetHarness();
+
+    it('VALID: {guildId from an earlier step on the SAME live target} => walks past the flows_approved and approved gates for real, stopping only at the unserved in_progress hop', async () => {
+      const target = liveTarget.target();
+      const earlierStep = (await run(recipesGuildEmptyBroker(), target)) as Record<
+        PropertyKey,
+        unknown
+      >;
+      const guild = earlierStep[GUILD_NAME] as Guild;
+
+      await expect(
+        run(recipesQuestAdvancesOneStepBroker({ guildId: guild.id }), target),
+      ).rejects.toThrow(
+        /^recipe "quest-advances-one-step": ingredient "quest"'s "api" route at http:\/\/live-quest-target\.test\/api\/quests\/[0-9a-f-]+\/start refused the connection: .*no in-process dispatch for POST \/api\/quests\/[0-9a-f-]+\/start/u,
+      );
     });
   });
 });

@@ -14,7 +14,7 @@
  * // found or its file cannot be parsed as JSON at all.
  */
 
-import { fsReadFileSyncAdapter } from '@dungeonmaster/shared/adapters';
+import { readFileSync } from '#gateway/node/fs';
 import { safeJsonParseTransformer } from '@dungeonmaster/shared/transformers';
 import {
   contentTextContract,
@@ -57,7 +57,7 @@ export const questIndexLoadBroker = ({
     return empty;
   }
 
-  const contents = fsReadFileSyncAdapter({ filePath: questPath });
+  const contents = contentTextContract.parse(readFileSync(questPath));
   const parsed = safeJsonParseTransformer({ value: contents });
 
   if (!parsed.ok) {

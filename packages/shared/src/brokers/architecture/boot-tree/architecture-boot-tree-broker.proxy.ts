@@ -67,7 +67,7 @@ export const architectureBootTreeBrokerProxy = (): {
 
     setupFileContentsMap: ({ map }: { map: Record<string, ContentText> }): void => {
       const impl = buildImpl(map);
-      flowImportsProxy.setupImplementation({ fn: impl });
+      flowImportsProxy.setupImplementation({ fn: impl, map });
       responderProxy.setupFileContentsMap({ map });
     },
   };

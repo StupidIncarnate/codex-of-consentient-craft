@@ -13,12 +13,12 @@ import {
   processIdContract,
   wsMessageContract,
 } from '@dungeonmaster/shared/contracts';
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import {
   portResolveBroker,
   locationsWardResultsPathFindBroker,
 } from '@dungeonmaster/shared/brokers';
 import { environmentStatics } from '@dungeonmaster/shared/statics';
+import { join } from '#gateway/node/path';
 
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
@@ -209,12 +209,10 @@ export const ServerInitResponder = ({
 
             questFindQuestPathBroker({ questId })
               .then(async ({ questPath }) => {
-                const detailFilePath = pathJoinAdapter({
-                  paths: [
-                    locationsWardResultsPathFindBroker({ questFolderPath: questPath }),
-                    `${wardResultId}.json`,
-                  ],
-                });
+                const detailFilePath = join(
+                  locationsWardResultsPathFindBroker({ questFolderPath: questPath }),
+                  `${wardResultId}.json`,
+                );
 
                 const contents = await fsReadFileAdapter({
                   filepath: filePathContract.parse(detailFilePath),

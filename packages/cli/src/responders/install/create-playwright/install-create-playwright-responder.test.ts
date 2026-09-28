@@ -76,10 +76,39 @@ describe('InstallCreatePlaywrightResponder', () => {
         message: 'Created playwright.config.ts',
       });
 
-      const writtenFiles = proxy.getWrittenFiles();
+      expect(proxy.getWrittenFiles()).toStrictEqual([
+        {
+          path: '/project/playwright.config.ts',
+          content: playwrightConfigTemplateStatics.content,
+        },
+        {
+          path: '/project/src/statics/e2e-unresolvable-token/e2e-unresolvable-token-statics.ts',
+          content: playwrightConfigTemplateStatics.unresolvableTokenStaticsContent,
+        },
+        {
+          path: '/project/src/statics/e2e-unresolvable-token/e2e-unresolvable-token-statics.test.ts',
+          content: playwrightConfigTemplateStatics.unresolvableTokenStaticsTestContent,
+        },
+      ]);
+    });
 
-      expect(writtenFiles[0]?.path).toBe('/project/playwright.config.ts');
-      expect(writtenFiles[0]?.content).toBe(playwrightConfigTemplateStatics.content);
+    it('VALID: {no playwright.config.ts} => ensures the companion statics directory before writing into it', async () => {
+      const proxy = InstallCreatePlaywrightResponderProxy();
+
+      proxy.setupFileNotExists({
+        filePath: FilePathStub({ value: '/project/playwright.config.ts' }),
+      });
+
+      await proxy.callResponder({
+        context: {
+          targetProjectRoot: FilePathStub({ value: '/project' }),
+          dungeonmasterRoot: FilePathStub({ value: '/dm-root' }),
+        },
+      });
+
+      expect(
+        proxy.getEnsureDirCallsFor({ path: '/project/src/statics/e2e-unresolvable-token' }),
+      ).toStrictEqual([['/project/src/statics/e2e-unresolvable-token', { recursive: true }]]);
     });
   });
 });

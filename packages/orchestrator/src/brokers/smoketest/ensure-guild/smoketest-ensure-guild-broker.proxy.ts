@@ -16,7 +16,7 @@ import {
   requireActual,
 } from '@dungeonmaster/testing/register-mock';
 import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
-import type { Dirent } from 'fs';
+import type { DirEntrySync } from '#gateway/node/fs';
 
 import { guildListBrokerProxy } from '../../guild/list/guild-list-broker.proxy';
 import { smoketestEnsureGuildBroker } from './smoketest-ensure-guild-broker';
@@ -33,7 +33,7 @@ export const smoketestEnsureGuildBrokerProxy = (): {
     guildEntries: readonly {
       accessible: boolean;
       questsDirPath: FilePath;
-      questDirEntries: Dirent[];
+      questDirEntries: DirEntrySync[];
     }[];
     homeRepoRoot?: RepoRootCwd;
     guildRepoRoots?: readonly (RepoRootCwd | null)[];
@@ -83,20 +83,20 @@ export const smoketestEnsureGuildBrokerProxy = (): {
       guildEntries: readonly {
         accessible: boolean;
         questsDirPath: FilePath;
-        questDirEntries: Dirent[];
+        questDirEntries: DirEntrySync[];
       }[];
       homeRepoRoot?: RepoRootCwd;
       guildRepoRoots?: readonly (RepoRootCwd | null)[];
     }): void => {
       // dungeonmasterHomeFindBroker() is called an extra, EARLIER time here — directly by this
       // broker itself — on top of the calls guildConfigReadBroker and guildListBroker each make
-      // internally once guildListBroker() runs below. pathJoinAdapter's mock answers from a
-      // single shared FIFO queue keyed only on `kind: []` (not on the real segments), so this
-      // stage exists purely to consume ONE MORE queue slot ahead of guildListBroker's own
-      // staging — the actual homePath value returned here is never observed: it only feeds
-      // cwdResolveBroker's startPath for the home walk-up, which is addressed by `kind` alone
-      // (see the comment below), and dungeonmasterHomeFindBroker's other real caller in this
-      // chain (guildConfigReadBroker) never inspects it either.
+      // internally once guildListBroker() runs below. This stage and guildListBroker's own
+      // internal restage of the identical {homeDir, homePath} pair both address the SAME exact
+      // `join`/`homedir` tuples, so the second registration simply re-affirms the first rather
+      // than colliding with it — the actual homePath value returned here is never observed: it
+      // only feeds cwdResolveBroker's startPath for the home walk-up, which is addressed by
+      // `kind` alone (see the comment below), and dungeonmasterHomeFindBroker's other real caller
+      // in this chain (guildConfigReadBroker) never inspects it either.
       homeFindProxy.setupHomePath({ homeDir, homePath });
 
       listProxy.setupGuildList({

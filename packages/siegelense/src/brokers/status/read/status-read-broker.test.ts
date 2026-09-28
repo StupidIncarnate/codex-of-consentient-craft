@@ -7,6 +7,7 @@ import { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
 import { RegistryStub } from '../../../contracts/registry/registry.stub';
 import { SpecNameStub } from '../../../contracts/spec-name/spec-name.stub';
+import { SpecProfileStub } from '../../../contracts/spec-profile/spec-profile.stub';
 import { StatusAnswerStub } from '../../../contracts/status-answer/status-answer.stub';
 import { StepReadingStub } from '../../../contracts/step-reading/step-reading.stub';
 import { machineStatics } from '../../../statics/machine/machine-statics';
@@ -75,7 +76,6 @@ describe('statusReadBroker', () => {
           rootPath: FilePathStub({ value: ROOT_PATH_VALUE }),
           evidencePath,
         });
-        proxy.setupRunsDirPathJoin({ evidencePath });
         proxy.setupRunsDirEntries({ evidencePath, entries: [] });
         proxy.setupProcListing({ pids: [] });
       }
@@ -204,22 +204,21 @@ describe('statusReadBroker', () => {
         evidencePath,
         heartbeat,
       });
-      proxy.setupRunsDirPathJoin({ evidencePath });
       proxy.setupRunsDirEntries({
         evidencePath,
         entries: ['run_1.jsonl', 'run_1.json', 'run_2.jsonl'],
       });
-      proxy.setupShutdownReasonPathJoin({ evidencePath });
       proxy.setupShutdownReasonMissing({ evidencePath });
+      proxy.setupProfileSolo({
+        profile: SpecProfileStub({ samples: [], fromRuns: 0, measuredAt: null, bootMs: null }),
+      });
       proxy.setupProcListing({ pids: ['100'] });
-      proxy.setupPidStatPathJoin({ pid: '100' });
       proxy.setupPidStat({ pid: '100', pgrp: 33_812, comm: 'node' });
-      proxy.setupPidCmdlinePathJoin({ pid: '100' });
       proxy.setupOrphanCmdline({ pid: '100', argv: ['npm', 'run', 'dev:no-watch'] });
       proxy.setupOrphanAlive({ pgid });
-      proxy.setupApiWebLogPathJoins({ evidencePath });
       proxy.setupApiLogPresent({ evidencePath });
       proxy.setupWebLogPresent({ evidencePath });
+      proxy.setupDriverLogAbsent({ evidencePath });
       proxy.setupRepoLinkResolves({
         cwdPath: '/repo',
         linkPath: FilePathStub({ value: '/repo/.dungeonmaster-assets/siegelense-assets' }),
@@ -227,7 +226,6 @@ describe('statusReadBroker', () => {
         homePath,
         rootPath,
       });
-      proxy.setupTranscriptPathJoin({ evidencePath, runId: 'run_2' });
       proxy.setupTranscriptLines({
         evidencePath,
         runId: 'run_2',
@@ -274,11 +272,14 @@ describe('statusReadBroker', () => {
                   linkPresent: true,
                 },
                 transcript: 'run_2.jsonl',
-                logs: ['api-server.log', 'web-server.log'],
+                logs: [
+                  `/repo/.dungeonmaster-assets/siegelense-assets/guilds/${guildId}/instances/${instanceId}/api-server.log`,
+                  `/repo/.dungeonmaster-assets/siegelense-assets/guilds/${guildId}/instances/${instanceId}/web-server.log`,
+                ],
                 lastShot: 'run_2/step7.png',
               },
               likelyCause:
-                'rss 2980MB at last beat; no profile recorded for spec dungeonmaster-stack; kernel OOM kills since boot: 2',
+                'memory 2980MB at last beat; no profile recorded for spec dungeonmaster-stack; kernel OOM kills since boot: 2',
               branch: null,
               evidenceComplete: false,
             },
@@ -383,7 +384,6 @@ describe('statusReadBroker', () => {
         rootPath: FilePathStub({ value: ROOT_PATH_VALUE }),
         evidencePath: evidencePath1,
       });
-      proxy.setupRunsDirPathJoin({ evidencePath: evidencePath1 });
       proxy.setupRunsDirEntries({ evidencePath: evidencePath1, entries: [] });
       proxy.setupProcListing({ pids: [] });
 
@@ -462,7 +462,6 @@ describe('statusReadBroker', () => {
         rootPath: FilePathStub({ value: ROOT_PATH_VALUE }),
         evidencePath: evidencePathRecent,
       });
-      proxy.setupRunsDirPathJoin({ evidencePath: evidencePathRecent });
       proxy.setupRunsDirEntries({ evidencePath: evidencePathRecent, entries: [] });
       proxy.setupProcListing({ pids: [] });
 
@@ -541,7 +540,6 @@ describe('statusReadBroker', () => {
         rootPath: FilePathStub({ value: ROOT_PATH_VALUE }),
         evidencePath: evidencePathRecent,
       });
-      proxy.setupRunsDirPathJoin({ evidencePath: evidencePathRecent });
       proxy.setupRunsDirEntries({ evidencePath: evidencePathRecent, entries: [] });
       proxy.setupProcListing({ pids: [] });
 
@@ -560,10 +558,11 @@ describe('statusReadBroker', () => {
         rootPath: FilePathStub({ value: ROOT_PATH_VALUE }),
         evidencePath: evidencePathOld,
       });
-      proxy.setupRunsDirPathJoin({ evidencePath: evidencePathOld });
       proxy.setupRunsDirEntries({ evidencePath: evidencePathOld, entries: [] });
-      proxy.setupShutdownReasonPathJoin({ evidencePath: evidencePathOld });
       proxy.setupShutdownReasonMissing({ evidencePath: evidencePathOld });
+      proxy.setupProfileSolo({
+        profile: SpecProfileStub({ samples: [], fromRuns: 0, measuredAt: null, bootMs: null }),
+      });
       proxy.setupProcListing({ pids: [] });
 
       const result = await statusReadBroker({ instanceId: null, since: 'beginning' });
@@ -597,7 +596,7 @@ describe('statusReadBroker', () => {
           lastStep: null,
           orphans: [],
           evidence: null,
-          likelyCause: 'rss unavailable at last beat; kernel OOM kills since boot: 2',
+          likelyCause: 'memory unavailable at last beat; kernel OOM kills since boot: 2',
           branch: 'main',
           evidenceComplete: true,
         },
@@ -657,7 +656,6 @@ describe('statusReadBroker', () => {
         rootPath: FilePathStub({ value: ROOT_PATH_VALUE }),
         evidencePath: evidencePathRecent,
       });
-      proxy.setupRunsDirPathJoin({ evidencePath: evidencePathRecent });
       proxy.setupRunsDirEntries({ evidencePath: evidencePathRecent, entries: [] });
       proxy.setupProcListing({ pids: [] });
 

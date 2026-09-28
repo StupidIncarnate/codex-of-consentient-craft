@@ -1,18 +1,22 @@
 import type { OrchestrationModeStub } from '@dungeonmaster/shared/contracts';
 import { FilePathStub } from '@dungeonmaster/shared/contracts';
-import { pathJoinAdapterProxy, processCwdAdapterProxy } from '@dungeonmaster/shared/testing';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import { DungeonmasterConfigStub } from '@dungeonmaster/config';
 import { configResolveBrokerProxy } from '@dungeonmaster/config/config-resolve-caller.proxy';
+import { join } from '#gateway/node/path';
+import { cwd } from '#gateway/node/process';
+import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 type OrchestrationMode = ReturnType<typeof OrchestrationModeStub>;
 
-// The broker builds startPath as pathJoinAdapter([processCwdAdapter(), projectConfigFile]).
-// pathJoinAdapterProxy() defaults to a real '/'-join and processCwdAdapterProxy() defaults to
-// '/default/cwd' (both from @dungeonmaster/shared/testing), so this is the exact, real address
-// configResolveBroker is called with.
+const CWD_VALUE = '/default/cwd';
+
+// The broker builds startPath as join(cwd(), projectConfigFile). `cwd` takes no argument to key
+// on (the honest catch-all); `join` is staged on the exact [cwd, projectConfigFile] tuple, so
+// this is the exact, real address configResolveBroker is called with.
 const CONFIG_START_PATH = FilePathStub({
-  value: `/default/cwd/${dungeonmasterHomeStatics.paths.projectConfigFile}`,
+  value: `${CWD_VALUE}/${dungeonmasterHomeStatics.paths.projectConfigFile}`,
 });
 
 export const orchestrationModeGetBrokerProxy = (): {
@@ -20,8 +24,15 @@ export const orchestrationModeGetBrokerProxy = (): {
   setupConfigNotFound: () => void;
   setupConfigError: (params: { error: Error }) => void;
 } => {
-  pathJoinAdapterProxy();
-  processCwdAdapterProxy();
+  // Wired to satisfy enforce-proxy-child-creation (the implementation imports `cwd`) — never
+  // staged: `cwd.proxy.ts` is an empty proxy, and the real staging is the registerMock below.
+  cwdProxy();
+  const cwdHandle = registerMock({ fn: cwd });
+  cwdHandle.calledWith([]).returns(CWD_VALUE);
+  const joinHandle = registerMock({ fn: join });
+  joinHandle
+    .calledWith([CWD_VALUE, dungeonmasterHomeStatics.paths.projectConfigFile])
+    .returns(CONFIG_START_PATH);
   // Composes config's own black-box caller proxy (F18) rather than mocking configResolveBroker
   // directly here, and rather than composing config's colocated config-resolve-broker.proxy:
   // that proxy mocks configResolveBroker's OWN internal dependencies, one of which

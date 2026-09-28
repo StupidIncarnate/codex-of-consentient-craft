@@ -6,15 +6,17 @@
  * // Writes JSON to {questFolderPath}/ward-results/{wardResultId}.json
  */
 
-import { fsMkdirAdapter, pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import {
   adapterResultContract,
   fileContentsContract,
+  filePathContract,
   type AdapterResult,
   type ErrorMessage,
   type FilePath,
 } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
+import { ensureDir } from '#gateway/node/fs__promises';
+import { join } from '#gateway/node/path';
 
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 
@@ -29,15 +31,13 @@ export const wardPersistResultBroker = async ({
   wardResultId: string;
   detailJson: ErrorMessage;
 }): Promise<AdapterResult> => {
-  const wardResultsDir = pathJoinAdapter({
-    paths: [questFolderPath, locationsStatics.quest.wardResultsDir],
-  });
+  const wardResultsDir = filePathContract.parse(
+    join(questFolderPath, locationsStatics.quest.wardResultsDir),
+  );
 
-  await fsMkdirAdapter({ filepath: wardResultsDir });
+  await ensureDir(wardResultsDir);
 
-  const filePath = pathJoinAdapter({
-    paths: [wardResultsDir, wardResultId + JSON_EXTENSION],
-  });
+  const filePath = filePathContract.parse(join(wardResultsDir, wardResultId + JSON_EXTENSION));
 
   const contents = fileContentsContract.parse(detailJson);
 

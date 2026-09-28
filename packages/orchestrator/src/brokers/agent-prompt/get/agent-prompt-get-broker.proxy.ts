@@ -15,9 +15,11 @@
  * The default resolution is `repo-root`, which is what a quest carrying no `worktreePath` — the
  * shape of every QuestStub that does not opt in — really gets, so the stamp short-circuits before
  * any git spawn and no test that is not about it pays for it. `setupWorktreeHead` opts in.
+ *
+ * `join` is mocked directly on the `#gateway/node/path` specifier (no per-function wrapper to
+ * compose), addressed by the EXACT [questPath, quest.json] tuple.
  */
 
-import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
 import {
   FileContentsStub,
   FileNameStub,
@@ -26,7 +28,9 @@ import {
   repoRootCwdContract,
 } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts';
-import { registerModuleMock } from '@dungeonmaster/testing/register-mock';
+import { join } from '#gateway/node/path';
+import { locationsStatics } from '@dungeonmaster/shared/statics';
+import { registerMock, registerModuleMock } from '@dungeonmaster/testing/register-mock';
 
 import { gitHeadShaAdapterProxy } from '../../../adapters/git/head-sha/git-head-sha-adapter.proxy';
 import { questCwdResolveBroker } from '../../quest/cwd-resolve/quest-cwd-resolve-broker';
@@ -40,21 +44,25 @@ registerModuleMock({ module: '../../quest/cwd-resolve/quest-cwd-resolve-broker' 
 registerModuleMock({ module: '../../quest/operations-update/quest-operations-update-broker' });
 
 type Quest = ReturnType<typeof QuestStub>;
+type FilePathValue = ReturnType<typeof FilePathStub>;
 
 const WORKTREE_CWD = repoRootCwdContract.parse('/home/testuser/worktrees/quest-abc12345');
 const REPO_ROOT_CWD = repoRootCwdContract.parse('/home/testuser/my-guild');
 
 export const agentPromptGetBrokerProxy = (): {
-  setupQuestFound: (params: { quest: Quest }) => void;
+  setupQuestFound: (params: { quest: Quest }) => { questFolderPath: FilePathValue };
   setupLockedQuest: (params: { quest: Quest }) => void;
   setupWorktreeHead: (params: { sha: string }) => void;
   setupWorktreeHeadUnreadable: () => void;
   setupCwdUnresolvable: () => void;
   getStampedWorkItems: () => readonly unknown[];
   getGitSpawnedArgs: () => unknown;
+  getQuestFileJoinArgs: (params: {
+    questFolderPath: FilePathValue;
+  }) => readonly unknown[] | undefined;
 } => {
   const findQuestPathProxy = questFindQuestPathBrokerProxy();
-  const pathJoinProxy = pathJoinAdapterProxy();
+  const joinHandle = registerMock({ fn: join });
   const loadProxy = questLoadBrokerProxy();
 
   // Runs REAL — its proxy mocks the spawn at the I/O boundary, addressed on the `git` command, so
@@ -99,7 +107,7 @@ export const agentPromptGetBrokerProxy = (): {
   });
 
   return {
-    setupQuestFound: ({ quest }: { quest: Quest }): void => {
+    setupQuestFound: ({ quest }: { quest: Quest }): { questFolderPath: FilePathValue } => {
       const guildId = GuildIdStub();
       const homePath = FilePathStub({ value: '/home/testuser/.dungeonmaster' });
       const guildsDir = FilePathStub({
@@ -135,13 +143,17 @@ export const agentPromptGetBrokerProxy = (): {
         ],
       });
 
-      // pathJoin: questPath + quest.json
-      pathJoinProxy.returns({ result: questFilePath });
+      // join: questPath + quest.json, addressed by the exact tuple the broker really passes.
+      joinHandle
+        .calledWith([questFolderPath, locationsStatics.quest.questFile])
+        .returns(questFilePath);
 
       // questLoadBroker reads the quest file
       loadProxy.setupQuestFile({ questJson: JSON.stringify(quest) });
 
       lockedQuest.value = quest;
+
+      return { questFolderPath };
     },
 
     // The quest.json the start-ref persist re-reads under the lock, when it differs from the one
@@ -177,5 +189,17 @@ export const agentPromptGetBrokerProxy = (): {
 
     // The git argv the stamp actually spawned, or undefined when it never reached git.
     getGitSpawnedArgs: (): unknown => headShaProxy.getSpawnedArgs(),
+
+    // The join(questFolderPath, quest.json) args the broker itself invoked — the ONLY way to prove
+    // its own join call resolved this exact folder rather than falling through to some OTHER
+    // proxy's real-passthrough default for the same shared `join` (config-root/guild-path-walk-up
+    // callers registered via questCwdResolveBrokerProxy compose a `[]` catch-all): a mismatched
+    // filename here still computes A path, so `questLoadBrokerProxy`'s own path-blind read would
+    // silently serve the right JSON at the wrong address without this assertion catching it.
+    getQuestFileJoinArgs: ({
+      questFolderPath,
+    }: {
+      questFolderPath: FilePathValue;
+    }): readonly unknown[] | undefined => joinHandle.callsMatching([questFolderPath]).at(0),
   };
 };

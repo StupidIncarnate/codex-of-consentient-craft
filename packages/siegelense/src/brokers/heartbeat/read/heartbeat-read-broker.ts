@@ -12,7 +12,7 @@
  * // Returns the parsed InstanceHeartbeat, or null if heartbeat.json does not exist
  */
 
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
+import { join } from '#gateway/node/path';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import type { GuildId } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
@@ -33,7 +33,7 @@ export const heartbeatReadBroker = async ({
 }): Promise<InstanceHeartbeat | null> => {
   const evidenceDir = locationsInstanceEvidencePathFindBroker({ instanceId, guildId });
   const heartbeatPath = absoluteFilePathContract.parse(
-    pathJoinAdapter({ paths: [evidenceDir, locationsStatics.siegelense.heartbeat] }),
+    join(evidenceDir, locationsStatics.siegelense.heartbeat),
   );
 
   const content = await fsReadFileAdapter({ filePath: heartbeatPath }).catch((error: unknown) => {

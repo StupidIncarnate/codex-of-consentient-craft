@@ -1,7 +1,6 @@
-import {
-  claudeLineNormalizeBrokerProxy,
-  osUserHomedirAdapterProxy,
-} from '@dungeonmaster/shared/testing';
+import { homedir } from '#gateway/node/os';
+import { claudeLineNormalizeBrokerProxy } from '@dungeonmaster/shared/testing';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { fsWatchTailAdapterProxy } from '../../../adapters/fs/watch-tail/fs-watch-tail-adapter.proxy';
 
@@ -14,12 +13,12 @@ export const chatMainSessionTailBrokerProxy = (): {
   lastWatchedPath: () => unknown;
 } => {
   claudeLineNormalizeBrokerProxy();
-  const homedirProxy = osUserHomedirAdapterProxy();
+  const homedirHandle = registerMock({ fn: homedir });
   const tailProxy = fsWatchTailAdapterProxy();
 
   return {
     setupHomeDir: ({ homeDir }: { homeDir: string }): void => {
-      homedirProxy.returns({ path: homeDir });
+      homedirHandle.calledWith([]).returns(homeDir);
     },
     setupLines: ({ lines }: { lines: readonly string[] }): void => {
       tailProxy.setupLines({ lines });

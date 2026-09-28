@@ -553,6 +553,22 @@ describe('questGetBlightChecklistBroker', () => {
     });
   });
 
+  describe('the quest file path it reads', () => {
+    it('VALID: {baseRef} => joins the found folder with quest.json, not any other name', async () => {
+      const proxy = questGetBlightChecklistBrokerProxy();
+      const quest = QuestStub({ baseRef: 'a1b2c3d4' as never });
+      const { questFolderPath } = proxy.setupQuestFound({ quest });
+      proxy.setupDiff({ files: [] });
+
+      await questGetBlightChecklistBroker({ questId: QuestIdStub({ value: quest.id }) });
+
+      expect(proxy.getQuestFileJoinArgs({ questFolderPath })).toStrictEqual([
+        questFolderPath,
+        'quest.json',
+      ]);
+    });
+  });
+
   describe('quest cwd resolution', () => {
     it('VALID: {quest records a worktreePath} => the diff is computed with that worktree path as cwd', async () => {
       const proxy = questGetBlightChecklistBrokerProxy();

@@ -12,7 +12,8 @@
  * // does not resolve to a file.
  */
 
-import { fsReadFileSyncAdapter } from '@dungeonmaster/shared/adapters';
+import { readFileSync } from '#gateway/node/fs';
+import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { SessionId } from '@dungeonmaster/shared/contracts';
 import { transcriptResolveBroker } from '../resolve/transcript-resolve-broker';
 import { jsonlToRecordsTransformer } from '../../../transformers/jsonl-to-records/jsonl-to-records-transformer';
@@ -34,6 +35,6 @@ export const transcriptLoadBroker = ({
     return [];
   }
 
-  const contents = fsReadFileSyncAdapter({ filePath: transcriptPath });
+  const contents = contentTextContract.parse(readFileSync(transcriptPath));
   return jsonlToRecordsTransformer({ contents });
 };

@@ -1,7 +1,9 @@
-import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
 import { FilePathStub, GuildIdStub } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts';
+import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import type { MockHandle } from '@dungeonmaster/testing/register-mock';
+import { join } from '#gateway/node/path';
 
 import { QuestNotFoundError } from '../../../errors/quest-not-found/quest-not-found-error';
 import { laneKillBrokerProxy } from '../../lane/kill/lane-kill-broker.proxy';
@@ -33,7 +35,7 @@ export const questWorkRecordBrokerProxy = (): {
 } => {
   questFindQuestPathBrokerProxy();
   const findQuestPathMock = registerMock({ fn: questFindQuestPathBroker });
-  const pathJoinProxy = pathJoinAdapterProxy();
+  const joinHandle: MockHandle = registerMock({ fn: join });
   const loadProxy = questLoadBrokerProxy();
   const lockProxy = questWithModifyLockBrokerProxy();
   lockProxy.setupEmpty();
@@ -64,7 +66,12 @@ export const questWorkRecordBrokerProxy = (): {
         .calledWith([{ questId: quest.id }])
         .resolves({ questPath: questFolderPath, guildId });
 
-      pathJoinProxy.returns({ result: questFilePath });
+      // questWorkRecordBroker's own join(questPath, quest.json) -> questFilePath, addressed by the
+      // exact tuple rather than an address-less FIFO slot, so it can never answer a different
+      // broker's join call sharing the same underlying mocked `join`.
+      joinHandle
+        .calledWith([questFolderPath, locationsStatics.quest.questFile])
+        .returns(questFilePath);
 
       loadProxy.setupQuestFile({ questJson: JSON.stringify(quest) });
     },

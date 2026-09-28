@@ -14,7 +14,7 @@
  * // Returns the parsed ShutdownReason, or null if shutdown-reason.json does not exist
  */
 
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
+import { join } from '#gateway/node/path';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
@@ -30,7 +30,7 @@ export const shutdownReasonReadBroker = async ({
   evidencePath: AbsoluteFilePath;
 }): Promise<ShutdownReason | null> => {
   const markerPath = absoluteFilePathContract.parse(
-    pathJoinAdapter({ paths: [evidencePath, locationsStatics.siegelense.shutdownReason] }),
+    join(evidencePath, locationsStatics.siegelense.shutdownReason),
   );
 
   const content = await fsReadFileAdapter({ filePath: markerPath }).catch((error: unknown) => {

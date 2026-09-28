@@ -129,6 +129,14 @@ export const runProxy = (): {
   // command matches — the same shape callers addressed by `{command, args}` staging need back to
   // assert exactly what ran.
   getCallsFor: (params: { command: string }) => readonly string[][];
+  // Every call's own OPTIONS (spawn's 3rd positional argument) — `cwd` and `env`, exactly what
+  // `run` builds them as — in call order, for calls whose command matches. `env` is what a caller
+  // staging by `{command}` alone still needs read back: `run` builds it as
+  // `{...process.env, ...env}`, so this is the only way a test proves which of its OWN keys
+  // actually reached the child, short of asserting the whole of `process.env` alongside them.
+  getOptionsFor: (params: {
+    command: string;
+  }) => readonly { cwd: string; env: Record<string, string> }[];
 } => {
   const handle = registerMock({ fn: spawn });
   const killCallCountByCommand = new Map<string, number>();
@@ -298,5 +306,14 @@ export const runProxy = (): {
 
     getCallsFor: ({ command }: { command: string }): readonly string[][] =>
       handle.callsMatching([command]).map((call) => call[1] as string[]),
+
+    getOptionsFor: ({
+      command,
+    }: {
+      command: string;
+    }): readonly { cwd: string; env: Record<string, string> }[] =>
+      handle
+        .callsMatching([command])
+        .map((call) => call[2] as { cwd: string; env: Record<string, string> }),
   };
 };

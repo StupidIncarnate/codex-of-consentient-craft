@@ -7,7 +7,7 @@
  * proxy.setupSnapshots({ homePath, records });
  */
 
-import type { fsReaddirWithTypesAdapter } from '@dungeonmaster/shared/adapters';
+import type { DirEntrySync } from '#gateway/node/fs';
 import type {
   AbsoluteFilePath,
   ContentText,
@@ -15,15 +15,17 @@ import type {
   Guild,
 } from '@dungeonmaster/shared/contracts';
 import { QuestStub } from '@dungeonmaster/shared/contracts';
+import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
+import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 
 import type { EpochMs } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import type { FileSizeBytes } from '../../../contracts/file-size-bytes/file-size-bytes-contract';
 import type { SnapshotRecord } from '../../../contracts/snapshot-record/snapshot-record-contract';
 import { recipeSeedRunBrokerProxy } from '../../recipe/seed-run/recipe-seed-run-broker.proxy';
+import { snapshotIndexReadBroker } from '../../snapshot/index-read/snapshot-index-read-broker';
+import { snapshotIndexReadBrokerProxy } from '../../snapshot/index-read/snapshot-index-read-broker.proxy';
 import { snapshotResolveBrokerProxy } from '../../snapshot/resolve/snapshot-resolve-broker.proxy';
 import { snapshotRestoreLayerBrokerProxy } from './snapshot-restore-layer-broker.proxy';
-
-type Dirent = ReturnType<typeof fsReaddirWithTypesAdapter>[0];
 
 export const stepResetBrokerProxy = (): {
   setupSnapshots: (params: {
@@ -32,7 +34,7 @@ export const stepResetBrokerProxy = (): {
   }) => void;
   setupNoSnapshots: (params: { homePath: AbsoluteFilePath }) => void;
   setupRestoreDirectories: (params: {
-    dirs: readonly { dirPath: AbsoluteFilePath; entries: readonly Dirent[] }[];
+    dirs: readonly { dirPath: AbsoluteFilePath; entries: readonly DirEntrySync[] }[];
   }) => void;
   setupRestoreFileStats: (params: {
     stats: readonly {
@@ -40,6 +42,9 @@ export const stepResetBrokerProxy = (): {
       sizeBytes: FileSizeBytes;
       modifiedAtMs: EpochMs;
     }[];
+  }) => void;
+  setupRestoreFileContents: (params: {
+    contents: readonly { filePath: AbsoluteFilePath; content: string }[];
   }) => void;
   setupRestoreRmSucceeds: (params: { filePaths: readonly AbsoluteFilePath[] }) => void;
   setupRestoreCpSucceeds: (params: {
@@ -53,17 +58,43 @@ export const stepResetBrokerProxy = (): {
     questIds: readonly ContentText[];
   }) => void;
 } => {
-  const resolveProxy = snapshotResolveBrokerProxy();
+  // Constructed for enforce-proxy-child-creation only (step-reset-broker.ts imports
+  // snapshotResolveBroker directly for its `to !== null` path) — its own internals now run through
+  // the directly-mocked snapshotIndexReadBroker below, never their real fsStat/fsReadFile chain.
+  snapshotResolveBrokerProxy();
   const restoreProxy = snapshotRestoreLayerBrokerProxy();
   const recipeProxy = recipeSeedRunBrokerProxy();
+  // Constructed for enforce-proxy-child-creation only — the REAL implementation is mocked directly
+  // below instead, for the same reason run-execute-broker.proxy.ts mocks snapshotCaptureBroker
+  // directly rather than composing its own scenario proxy: snapshotIndexReadBroker's real internals
+  // reach locationsSnapshotPathsFindBroker's deliberately-unstaged, real pathJoinAdapter calls
+  // (see that broker's own proxy comment), and a test combining `setupSnapshots`/`setupNoSnapshots`
+  // with `setupReseed` would otherwise let `setupReseed`'s queued pathJoinAdapter one-shots (a
+  // different, argument-blind mock shared process-wide) answer those calls instead of
+  // recipesLocateBroker's. Mocking the broker itself sidesteps that shared queue entirely, for both
+  // `snapshotResolveBroker`'s own internal call and stepResetBroker's direct one.
+  snapshotIndexReadBrokerProxy();
+  const indexReadHandle: MockHandle = registerMock({ fn: snapshotIndexReadBroker });
+  const { snapshotIndexReadBroker: realSnapshotIndexReadBroker } = requireActual<{
+    snapshotIndexReadBroker: typeof snapshotIndexReadBroker;
+  }>({ module: '../../snapshot/index-read/snapshot-index-read-broker' });
+  // Sticky default: a homePath THIS file never staged still reads the real index — composing this
+  // proxy inside a broader tree (run-verb-layer-broker.proxy.ts builds every verb's proxy together)
+  // must not break an unrelated verb's own real call into snapshotCaptureBroker, which reads the
+  // same index to number its next capture.
+  indexReadHandle
+    .calledWith([])
+    .implement(async (params: Parameters<typeof snapshotIndexReadBroker>[0]) =>
+      realSnapshotIndexReadBroker(params),
+    );
 
   return {
     setupSnapshots: ({ homePath, records }): void => {
-      resolveProxy.setupStoreHolding({ homePath, records });
+      indexReadHandle.calledWith([{ homePath }]).resolves(records);
     },
 
     setupNoSnapshots: ({ homePath }): void => {
-      resolveProxy.setupNoStore({ homePath });
+      indexReadHandle.calledWith([{ homePath }]).resolves([]);
     },
 
     setupRestoreDirectories: ({ dirs }): void => {
@@ -72,6 +103,10 @@ export const stepResetBrokerProxy = (): {
 
     setupRestoreFileStats: ({ stats }): void => {
       restoreProxy.setupFileStats({ stats });
+    },
+
+    setupRestoreFileContents: ({ contents }): void => {
+      restoreProxy.setupFileContents({ contents });
     },
 
     setupRestoreRmSucceeds: ({ filePaths }): void => {

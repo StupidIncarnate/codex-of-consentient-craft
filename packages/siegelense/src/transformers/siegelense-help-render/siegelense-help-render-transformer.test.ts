@@ -33,9 +33,10 @@ describe('siegelenseHelpRenderTransformer', () => {
           '\n' +
           'REFUSES\n' +
           '  Against a finished instance you must name --run (or --since boot); omit both and the call refuses rather than guessing which run you meant.\n' +
+          '  An --instance id with no record in the registry is refused rather than answered.\n' +
           '\n' +
           'OUTPUT\n' +
-          '  By default, an instance header followed by formatted step readings, or a notice when none matched. `--json` prints the raw ResultsAnswer. Every answer carries instanceState.\n' +
+          '  By default, an instance header, the run summary when the query names no --step and no --kind, and formatted step readings, or a notice when none matched. `--json` prints the raw ResultsAnswer. Every answer for a known instance carries instanceState; an id with no record in the registry refuses instead.\n' +
           '\n' +
           'EXAMPLE\n' +
           '  dungeonmaster siegelense results --instance inst_9b2c --run run_2 --step 7\n',
@@ -152,7 +153,7 @@ describe('siegelenseHelpRenderTransformer', () => {
       const result = siegelenseHelpRenderTransformer({ call: null });
 
       expect(result).toBe(
-        'dungeonmaster siegelense — every built call reachable without installing anything. 13 of 13 calls are built.\n' +
+        'dungeonmaster siegelense — every built call reachable without installing anything. 12 of 12 calls are built.\n' +
           '\n' +
           'CALLS\n' +
           '  siegelense start — boot one instance for a lane spec and block until the driver answers or the boot deadline passes.\n' +
@@ -160,7 +161,6 @@ describe('siegelenseHelpRenderTransformer', () => {
           '  siegelense results — read evidence off disk for one instance. Starts nothing.\n' +
           '  siegelense kill — stop one running instance.\n' +
           '  siegelense capacity — how many instances this machine can take right now. Ask before opening a pool. Starts nothing.\n' +
-          '  siegelense profile — what one instance of a lane spec costs, measured. Starts nothing.\n' +
           '  siegelense status — report the fleet, or one instance in full.\n' +
           '  siegelense cleanup — reap every stale instance the registry holds.\n' +
           '  siegelense prune — reclaim asset space deliberately, rather than waiting for the age-out window.\n' +

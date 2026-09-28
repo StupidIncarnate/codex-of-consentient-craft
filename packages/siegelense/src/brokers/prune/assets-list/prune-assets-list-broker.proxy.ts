@@ -1,8 +1,8 @@
 import { readdir, stat } from 'fs/promises';
 
+import { join } from '#gateway/node/path';
 import type { AbsoluteFilePath, FilePath } from '@dungeonmaster/shared/contracts';
-import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
-import { registerMock } from '@dungeonmaster/testing/register-mock';
+import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
 import { fsReaddirAdapterProxy } from '../../../adapters/fs/readdir/fs-readdir-adapter.proxy';
 import { fsStatAdapterProxy } from '../../../adapters/fs/stat/fs-stat-adapter.proxy';
@@ -29,7 +29,12 @@ export const pruneAssetsListBrokerProxy = (): {
   const evidencePathProxy = locationsInstanceEvidencePathFindBrokerProxy();
   locationsPruneAssetPathsFindBrokerProxy();
   runShotsLayerBrokerProxy();
-  pathJoinAdapterProxy();
+  // `join` (from '#gateway/node/path') runs for real, on a sticky passthrough default — a run
+  // file's own path is a plain `path.join(runsDir, fileName)`.
+  const realPath = requireActual<{ join: typeof join }>({ module: 'path' });
+  registerMock({ fn: join })
+    .calledWith([])
+    .implement((...segments: never[]) => realPath.join(...segments));
 
   // The broker stats nine instance-level paths on EVERY call — six process records and three
   // capture buffers — and a fixture describes only the ones it wrote. This floor answers ENOENT for

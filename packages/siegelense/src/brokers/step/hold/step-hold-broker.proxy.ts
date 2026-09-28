@@ -1,6 +1,10 @@
 /**
- * PURPOSE: Test setup helper for stepHoldBroker — composes child proxies for path manipulation,
- * delay timing, screenshot frame diffing, and final file copying.
+ * PURPOSE: Test setup helper for stepHoldBroker — composes child proxies for delay timing,
+ * screenshot frame diffing, and final file copying. `dirname`/`join` (from '#gateway/node/path') are
+ * mocked directly, each on a sticky real-passthrough default: a shot path's own dirname, and a
+ * frame's dir plus its generated filename, are both already-known segments, so the real computed
+ * path always matches what the test asserts against `captureLive`'s and `getDestinationPathFor`'s
+ * own call args.
  *
  * USAGE:
  * const proxy = stepHoldBrokerProxy();
@@ -8,7 +12,8 @@
  */
 
 import { PNG } from 'pngjs';
-import { pathDirnameAdapterProxy, pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
+import { dirname, join } from '#gateway/node/path';
+import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { asyncDelayAdapterProxy } from '../../../adapters/async/delay/async-delay-adapter.proxy';
@@ -32,8 +37,18 @@ export const stepHoldBrokerProxy = (): {
   succeedsCopy: (params: { sourcePath: AbsoluteFilePath }) => void;
   getDestinationPathFor: (params: { sourcePath: AbsoluteFilePath }) => unknown;
 } => {
-  pathDirnameAdapterProxy();
-  pathJoinAdapterProxy();
+  // #gateway/node/path is a raw passthrough of the Node 'path' module (no per-function wrapper, so
+  // no gateway proxy to compose) — mocked directly here, on the same '#gateway/node/path' specifier
+  // the broker imports.
+  const realPath = requireActual<{ dirname: typeof dirname; join: typeof join }>({
+    module: 'path',
+  });
+  registerMock({ fn: dirname })
+    .calledWith([])
+    .implement((inputPath: never) => realPath.dirname(inputPath));
+  registerMock({ fn: join })
+    .calledWith([])
+    .implement((...segments: never[]) => realPath.join(...segments));
   const delayProxy = asyncDelayAdapterProxy();
   const shotChangeProxy = shotChangeReadBrokerProxy();
   const copyProxy = fsCopyFileAdapterProxy();

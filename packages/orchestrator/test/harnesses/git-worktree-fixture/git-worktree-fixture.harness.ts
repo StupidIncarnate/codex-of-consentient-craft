@@ -31,13 +31,12 @@ import {
 } from 'fs';
 import { join } from 'path';
 
-import { childProcessSpawnCaptureAdapter } from '@dungeonmaster/shared/adapters';
+import { run } from '#gateway/node/child_process';
 import {
   absoluteFilePathContract,
   errorMessageContract,
   type AbsoluteFilePath,
   type ErrorMessage,
-  type ExitCode,
   type FileContents,
   type FileName,
   type RepoRelativePath,
@@ -126,13 +125,16 @@ export const gitWorktreeFixtureHarness = (): {
     captureDir: AbsoluteFilePath;
   }) => Promise<{ restore: () => void; readArgvLog: () => readonly ErrorMessage[] }>;
 } => {
+  // A real fixture repo: git is expected on the machine running these integration tests, so a
+  // missing binary (RunNotFoundError) is left to throw rather than folded into a fake result —
+  // the same choice ward's own git-worktree-fixture harness makes for the identical wrapper.
   const runGit = async (params: {
     repoPath: AbsoluteFilePath;
     args: readonly string[];
     env?: Record<string, string>;
-  }): Promise<{ exitCode: ExitCode | null; output: ErrorMessage }> => {
+  }): Promise<Awaited<ReturnType<typeof run>>> => {
     const { repoPath, args, env } = params;
-    return childProcessSpawnCaptureAdapter({
+    return run({
       command: 'git',
       args: [...args],
       cwd: repoPath,
@@ -384,7 +386,7 @@ export const gitWorktreeFixtureHarness = (): {
       captureDir: AbsoluteFilePath;
     }): Promise<{ restore: () => void; readArgvLog: () => readonly ErrorMessage[] }> => {
       mkdirSync(captureDir, { recursive: true });
-      const { output: realGitPath } = await childProcessSpawnCaptureAdapter({
+      const { output: realGitPath } = await run({
         command: 'command',
         args: ['-v', 'git'],
         cwd: captureDir,

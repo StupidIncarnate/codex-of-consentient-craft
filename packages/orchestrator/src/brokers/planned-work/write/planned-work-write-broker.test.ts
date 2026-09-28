@@ -1,4 +1,5 @@
 import { AbsoluteFilePathStub, OperationItemIdStub } from '@dungeonmaster/shared/contracts';
+import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 
 import { WorkPlanStub } from '../../../contracts/work-plan/work-plan.stub';
 import { plannedWorkWriteBroker } from './planned-work-write-broker';
@@ -60,7 +61,7 @@ describe('plannedWorkWriteBroker', () => {
       proxy.setupMkdirFailure({
         questFolderPath,
         operationItemId,
-        error: new Error('EACCES: permission denied'),
+        error: FsErrorStub({ code: 'EACCES', path: questFolderPath }),
       });
 
       await expect(

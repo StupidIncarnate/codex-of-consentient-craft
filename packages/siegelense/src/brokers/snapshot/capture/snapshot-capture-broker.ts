@@ -24,8 +24,8 @@
  * // Copies the home, appends one index line, and returns the SnapshotRecord it wrote
  */
 
-import { fsMkdirAdapter } from '@dungeonmaster/shared/adapters';
-import { fileContentsContract, filePathContract } from '@dungeonmaster/shared/contracts';
+import { ensureDir } from '#gateway/node/fs__promises';
+import { fileContentsContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
 import { fsAppendFileAdapter } from '../../../adapters/fs/append-file/fs-append-file-adapter';
@@ -72,8 +72,8 @@ export const snapshotCaptureBroker = async ({
 
   // The store first, so the index append below has a directory to land in; then the payload, so the
   // record points at a real directory even when the home holds nothing worth copying.
-  await fsMkdirAdapter({ filepath: filePathContract.parse(storeDir) });
-  await fsMkdirAdapter({ filepath: filePathContract.parse(payload) });
+  await ensureDir(storeDir);
+  await ensureDir(payload);
 
   // `excludeName` is the store's own directory name: the payload sits INSIDE the home being copied,
   // so without it the copy would contain the previous captures and grow with every snapshot.

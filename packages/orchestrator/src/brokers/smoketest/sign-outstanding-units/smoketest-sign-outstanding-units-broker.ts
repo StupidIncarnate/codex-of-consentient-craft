@@ -28,7 +28,6 @@
  * public `questWithModifyLockBroker` itself and persists through `questPersistBroker`.
  */
 
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import {
   fileContentsContract,
   filePathContract,
@@ -36,6 +35,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import type { Flow, QuestId, QuestWorkItemId } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
+import { join } from '#gateway/node/path';
 
 import type { QaVerificationUnit } from '../../../contracts/qa-verification-unit/qa-verification-unit-contract';
 import { qaUnitEnumerateTransformer } from '../../../transformers/qa-unit-enumerate/qa-unit-enumerate-transformer';
@@ -60,7 +60,7 @@ export const smoketestSignOutstandingUnitsBroker = async ({
     run: async (): Promise<{ success: true }> => {
       const { questPath } = await questFindQuestPathBroker({ questId });
       const questFilePath = filePathContract.parse(
-        pathJoinAdapter({ paths: [questPath, locationsStatics.quest.questFile] }),
+        join(questPath, locationsStatics.quest.questFile),
       );
 
       const loadedQuest = await questLoadBroker({ questFilePath });

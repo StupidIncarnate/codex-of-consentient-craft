@@ -9,6 +9,16 @@ import { StartInstall } from './start-install';
 import { scaffoldedTemplateTypecheckHarness } from '../../test/harnesses/scaffolded-template-typecheck/scaffolded-template-typecheck.harness';
 import { scaffoldedPlaywrightConfigRunHarness } from '../../test/harnesses/scaffolded-playwright-config-run/scaffolded-playwright-config-run.harness';
 
+// The scaffolded playwright.config.ts imports @dungeonmaster/shared/contracts, a real workspace
+// package — spawning it via tsx from a bare testbed dir under the OS /tmp finds nothing, since
+// Node's bare-specifier resolution only walks up from the FILE's own directory. NODE_PATH adds
+// this repo's real node_modules (where npm workspaces symlinks @dungeonmaster/shared) as an extra
+// search root, letting the spawned process resolve it the same way a real consumer's own
+// installed node_modules would. Measured: this needs no --conditions=source —
+// @dungeonmaster/shared's published dist plus its package.json "imports" map for #gateway/*
+// already resolves under plain Node, the same path a real consumer takes.
+const REPO_NODE_MODULES = `${__dirname}/../../../../node_modules`;
+
 describe('StartInstall', () => {
   describe('wiring to install flow', () => {
     it('VALID: {context} => delegates to flow and returns install result with devDependencies added', async () => {
@@ -105,14 +115,21 @@ describe('StartInstall', () => {
       });
 
       const typecheckHarness = scaffoldedTemplateTypecheckHarness();
-      const diagnostics = typecheckHarness.typecheck({ content: String(writtenContent) });
+      const diagnostics = typecheckHarness.typecheck({
+        content: String(writtenContent),
+        dirPath: testbed.guildPath,
+      });
 
       const runHarness = scaffoldedPlaywrightConfigRunHarness();
       runHarness.installPlaywrightTestStub({ dirPath: testbed.guildPath });
       const { exitCode, stdout, stderr } = await runHarness.run({
         configPath: `${testbed.guildPath}/playwright.config.ts`,
         cwd: testbed.guildPath,
-        env: { DUNGEONMASTER_PORT: '4101', DUNGEONMASTER_WEB_PORT: '4102' },
+        env: {
+          DUNGEONMASTER_PORT: '4101',
+          DUNGEONMASTER_WEB_PORT: '4102',
+          NODE_PATH: REPO_NODE_MODULES,
+        },
       });
 
       testbed.cleanup();
@@ -193,7 +210,7 @@ describe('StartInstall', () => {
       const { exitCode, stderr } = await runHarness.run({
         configPath: `${testbed.guildPath}/playwright.config.ts`,
         cwd: testbed.guildPath,
-        env: {},
+        env: { NODE_PATH: REPO_NODE_MODULES },
       });
 
       testbed.cleanup();
@@ -239,7 +256,7 @@ describe('StartInstall', () => {
       const { exitCode, stderr } = await runHarness.run({
         configPath: `${testbed.guildPath}/playwright.config.ts`,
         cwd: testbed.guildPath,
-        env: {},
+        env: { NODE_PATH: REPO_NODE_MODULES },
       });
 
       testbed.cleanup();
@@ -300,7 +317,7 @@ describe('StartInstall', () => {
       const { exitCode, stderr } = await runHarness.run({
         configPath: `${testbed.guildPath}/playwright.config.ts`,
         cwd: testbed.guildPath,
-        env: {},
+        env: { NODE_PATH: REPO_NODE_MODULES },
       });
 
       testbed.cleanup();
@@ -356,7 +373,7 @@ describe('StartInstall', () => {
       const { exitCode, stderr } = await runHarness.run({
         configPath: `${testbed.guildPath}/playwright.config.ts`,
         cwd: testbed.guildPath,
-        env: {},
+        env: { NODE_PATH: REPO_NODE_MODULES },
       });
 
       testbed.cleanup();

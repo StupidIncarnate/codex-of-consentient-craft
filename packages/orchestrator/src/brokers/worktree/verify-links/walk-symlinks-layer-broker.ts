@@ -18,16 +18,13 @@
  */
 
 import {
-  fsReaddirWithTypesAdapter,
-  pathJoinAdapter,
-  pathResolveAdapter,
-} from '@dungeonmaster/shared/adapters';
-import {
   absoluteFilePathContract,
   filePathContract,
   type AbsoluteFilePath,
   type FilePath,
 } from '@dungeonmaster/shared/contracts';
+import { readdirEntriesSync } from '#gateway/node/fs';
+import { join, resolve } from '#gateway/node/path';
 
 import { fsReadlinkAdapter } from '../../../adapters/fs/readlink/fs-readlink-adapter';
 
@@ -48,15 +45,13 @@ export const walkSymlinksLayerBroker = async ({
   worktreePath: AbsoluteFilePath;
   dirPath: AbsoluteFilePath;
 }): Promise<readonly WorktreeLinkAudit[]> => {
-  const entries = fsReaddirWithTypesAdapter({ dirPath });
+  const entries = readdirEntriesSync(dirPath);
 
   const perEntry = await Promise.all(
     entries.map(async (entry): Promise<readonly WorktreeLinkAudit[]> => {
-      const entryPath = absoluteFilePathContract.parse(
-        pathJoinAdapter({ paths: [dirPath, entry.name] }),
-      );
+      const entryPath = absoluteFilePathContract.parse(join(dirPath, entry.name));
 
-      if (entry.isSymbolicLink()) {
+      if (entry.kind === 'symlink') {
         const storedTarget = await fsReadlinkAdapter({
           linkPath: filePathContract.parse(entryPath),
         });
@@ -70,7 +65,7 @@ export const walkSymlinksLayerBroker = async ({
         }
 
         // Resolved against the LINK'S OWN directory, which is what a relative target means on disk.
-        const resolvedTarget = pathResolveAdapter({ paths: [dirPath, storedTarget] });
+        const resolvedTarget = absoluteFilePathContract.parse(resolve(dirPath, storedTarget));
         const resolved = String(resolvedTarget);
         const root = String(worktreePath);
 
@@ -87,7 +82,7 @@ export const walkSymlinksLayerBroker = async ({
         ];
       }
 
-      if (!entry.isDirectory()) {
+      if (entry.kind !== 'directory') {
         return [];
       }
 

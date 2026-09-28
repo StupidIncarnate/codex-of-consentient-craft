@@ -25,7 +25,7 @@
  * (use `chatHistoryReplayBroker` which reads the whole file).
  */
 
-import { osUserHomedirAdapter } from '@dungeonmaster/shared/adapters';
+import { homedir } from '#gateway/node/os';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import type { ChatEntry, RepoRootCwd, SessionId } from '@dungeonmaster/shared/contracts';
@@ -50,7 +50,7 @@ export const chatMainSessionTailBroker = ({
   chatProcessId: ProcessId;
 }): (() => void) => {
   const projectPath = absoluteFilePathContract.parse(cwd);
-  const homeDir = osUserHomedirAdapter();
+  const homeDir = absoluteFilePathContract.parse(homedir());
 
   const jsonlPath = claudeProjectPathEncoderTransformer({
     homeDir,

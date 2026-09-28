@@ -482,6 +482,23 @@ describe('questGetQuestWorkBroker', () => {
     });
   });
 
+  describe('the quest file path it reads', () => {
+    it('VALID: {a codeweaver work step} => joins the found folder with quest.json, not any other name', async () => {
+      const proxy = questGetQuestWorkBrokerProxy();
+      const { questFolderPath } = proxy.setupQuestWithNoPlan({
+        quest: QUEST,
+        operationItemId: OPERATION_ITEM_ID as never,
+      });
+
+      await questGetQuestWorkBroker({ questId: QUEST_ID, workItemId: WORK_ITEM_ID });
+
+      expect(proxy.getQuestFileJoinArgs({ questFolderPath })).toStrictEqual([
+        questFolderPath,
+        'quest.json',
+      ]);
+    });
+  });
+
   describe('refusals', () => {
     it('ERROR: {a workItemId not on the quest} => throws naming the work item and the quest', async () => {
       const proxy = questGetQuestWorkBrokerProxy();

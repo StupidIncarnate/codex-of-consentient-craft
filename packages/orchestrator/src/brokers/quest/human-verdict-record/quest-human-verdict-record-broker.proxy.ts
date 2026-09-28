@@ -13,7 +13,6 @@
  * the quest's `updatedAt` are deterministic.
  */
 
-import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
 import {
   FileContentsStub,
   FileNameStub,
@@ -22,7 +21,10 @@ import {
   questContract,
 } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts';
-import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { locationsStatics } from '@dungeonmaster/shared/statics';
+import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import type { MockHandle } from '@dungeonmaster/testing/register-mock';
+import { join } from '#gateway/node/path';
 
 import { questFindQuestPathBrokerProxy } from '../find-quest-path/quest-find-quest-path-broker.proxy';
 import { questLoadBrokerProxy } from '../load/quest-load-broker.proxy';
@@ -48,7 +50,7 @@ export const questHumanVerdictRecordBrokerProxy = (): {
   getLastPersistedQuest: () => Parsed;
 } => {
   const findQuestPathProxy = questFindQuestPathBrokerProxy();
-  const pathJoinProxy = pathJoinAdapterProxy();
+  const joinHandle: MockHandle = registerMock({ fn: join });
   const loadProxy = questLoadBrokerProxy();
   const persistProxy = questPersistBrokerProxy();
   const lockProxy = questWithModifyLockBrokerProxy();
@@ -95,8 +97,12 @@ export const questHumanVerdictRecordBrokerProxy = (): {
         ],
       });
 
-      // The broker's own join of questPath + quest.json
-      pathJoinProxy.returns({ result: questFilePath });
+      // questHumanVerdictRecordBroker's own join(questPath, quest.json) -> questFilePath, addressed
+      // by the exact tuple rather than an address-less FIFO slot, so it can never answer a
+      // different broker's join call sharing the same underlying mocked `join`.
+      joinHandle
+        .calledWith([questFolderPath, locationsStatics.quest.questFile])
+        .returns(questFilePath);
 
       // questLoadBroker reads the quest file
       loadProxy.setupQuestFile({ questJson: JSON.stringify(quest) });

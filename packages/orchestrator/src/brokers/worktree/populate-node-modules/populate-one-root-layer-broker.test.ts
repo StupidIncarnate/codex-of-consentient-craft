@@ -3,6 +3,7 @@ import {
   ErrorMessageStub,
   FilePathStub,
 } from '@dungeonmaster/shared/contracts';
+import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 
 import { populateOneRootLayerBroker } from './populate-one-root-layer-broker';
 import { populateOneRootLayerBrokerProxy } from './populate-one-root-layer-broker.proxy';
@@ -16,6 +17,7 @@ describe('populateOneRootLayerBroker', () => {
       const sourceRoot = AbsoluteFilePathStub({ value: '/repo' });
       const targetRoot = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-slug-a1b2c3d4' });
 
+      proxy.setupTargetReady({ targetRoot, scopeNames: ['@dungeonmaster'] });
       proxy.setupDirectoryEntries({
         dirPath: AbsoluteFilePathStub({ value: '/repo/node_modules' }),
         entries: [{ name: '@dungeonmaster', isDir: true, isSymlink: false }],
@@ -62,6 +64,7 @@ describe('populateOneRootLayerBroker', () => {
       const sourceRoot = AbsoluteFilePathStub({ value: '/repo' });
       const targetRoot = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-slug-a1b2c3d4' });
 
+      proxy.setupTargetReady({ targetRoot });
       proxy.setupDirectoryEntries({
         dirPath: AbsoluteFilePathStub({ value: '/repo/node_modules' }),
         entries: [{ name: 'zod', isDir: true, isSymlink: false }],
@@ -86,6 +89,7 @@ describe('populateOneRootLayerBroker', () => {
       const sourceRoot = AbsoluteFilePathStub({ value: '/repo' });
       const targetRoot = AbsoluteFilePathStub({ value: '/wt' });
 
+      proxy.setupTargetReady({ targetRoot });
       proxy.setupDirectoryEntries({
         dirPath: AbsoluteFilePathStub({ value: '/repo/node_modules' }),
         entries: [
@@ -112,6 +116,7 @@ describe('populateOneRootLayerBroker', () => {
       const sourceRoot = AbsoluteFilePathStub({ value: '/repo' });
       const targetRoot = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-slug-a1b2c3d4' });
 
+      proxy.setupTargetReady({ targetRoot });
       proxy.setupDirectoryEntries({
         dirPath: AbsoluteFilePathStub({ value: '/repo/node_modules' }),
         entries: [{ name: '.bin', isDir: true, isSymlink: false }],
@@ -140,6 +145,7 @@ describe('populateOneRootLayerBroker', () => {
       const sourceRoot = AbsoluteFilePathStub({ value: '/repo' });
       const targetRoot = AbsoluteFilePathStub({ value: '/wt' });
 
+      proxy.setupTargetReady({ targetRoot });
       proxy.setupDirectoryEntries({
         dirPath: AbsoluteFilePathStub({ value: '/repo/node_modules' }),
         entries: [
@@ -161,6 +167,7 @@ describe('populateOneRootLayerBroker', () => {
       const sourceRoot = AbsoluteFilePathStub({ value: '/repo' });
       const targetRoot = AbsoluteFilePathStub({ value: '/wt' });
 
+      proxy.setupTargetReady({ targetRoot });
       proxy.setupDirectoryEntries({
         dirPath: AbsoluteFilePathStub({ value: '/repo/node_modules' }),
         entries: [{ name: '.vite-5174', isDir: true, isSymlink: false }],
@@ -183,6 +190,7 @@ describe('populateOneRootLayerBroker', () => {
       const sourceRoot = AbsoluteFilePathStub({ value: '/repo' });
       const targetRoot = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-slug-a1b2c3d4' });
 
+      proxy.setupTargetReady({ targetRoot, scopeNames: ['@types'] });
       proxy.setupDirectoryEntries({
         dirPath: AbsoluteFilePathStub({ value: '/repo/node_modules' }),
         entries: [{ name: '@types', isDir: true, isSymlink: false }],
@@ -217,6 +225,7 @@ describe('populateOneRootLayerBroker', () => {
       const sourceRoot = AbsoluteFilePathStub({ value: '/repo' });
       const targetRoot = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-slug-a1b2c3d4' });
 
+      proxy.setupTargetReady({ targetRoot, scopeNames: ['@babel'] });
       proxy.setupDirectoryEntries({
         dirPath: AbsoluteFilePathStub({ value: '/repo/node_modules' }),
         entries: [{ name: '@babel', isDir: true, isSymlink: false }],
@@ -257,12 +266,15 @@ describe('populateOneRootLayerBroker', () => {
 
       proxy.setupMkdirThrows({
         filepath: FilePathStub({ value: '/repo/worktrees/quest-slug-a1b2c3d4/node_modules' }),
-        error: new Error('EACCES: permission denied'),
+        error: FsErrorStub({
+          code: 'EACCES',
+          path: '/repo/worktrees/quest-slug-a1b2c3d4/node_modules',
+        }),
       });
 
       await expect(
         populateOneRootLayerBroker({ sourceRoot, targetRoot, onLine: () => undefined }),
-      ).rejects.toThrow(/^EACCES: permission denied$/u);
+      ).rejects.toThrow(/^EACCES: op '\/repo\/worktrees\/quest-slug-a1b2c3d4\/node_modules'$/u);
       expect(proxy.getAllCopyArgs()).toStrictEqual([]);
     });
 
@@ -271,6 +283,7 @@ describe('populateOneRootLayerBroker', () => {
       const sourceRoot = AbsoluteFilePathStub({ value: '/repo' });
       const targetRoot = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-slug-a1b2c3d4' });
 
+      proxy.setupTargetReady({ targetRoot });
       proxy.setupDirectoryEntries({
         dirPath: AbsoluteFilePathStub({ value: '/repo/node_modules' }),
         entries: [{ name: '@dungeonmaster', isDir: true, isSymlink: false }],
@@ -279,12 +292,17 @@ describe('populateOneRootLayerBroker', () => {
         filepath: FilePathStub({
           value: '/repo/worktrees/quest-slug-a1b2c3d4/node_modules/@dungeonmaster',
         }),
-        error: new Error('EACCES: permission denied'),
+        error: FsErrorStub({
+          code: 'EACCES',
+          path: '/repo/worktrees/quest-slug-a1b2c3d4/node_modules/@dungeonmaster',
+        }),
       });
 
       await expect(
         populateOneRootLayerBroker({ sourceRoot, targetRoot, onLine: () => undefined }),
-      ).rejects.toThrow(/^EACCES: permission denied$/u);
+      ).rejects.toThrow(
+        /^EACCES: op '\/repo\/worktrees\/quest-slug-a1b2c3d4\/node_modules\/@dungeonmaster'$/u,
+      );
       expect(proxy.getAllSymlinks()).toStrictEqual([]);
     });
 
@@ -295,6 +313,7 @@ describe('populateOneRootLayerBroker', () => {
       const sourceRoot = AbsoluteFilePathStub({ value: '/repo' });
       const targetRoot = AbsoluteFilePathStub({ value: '/mnt/other/wt' });
 
+      proxy.setupTargetReady({ targetRoot });
       proxy.setupDirectoryEntries({
         dirPath: AbsoluteFilePathStub({ value: '/repo/node_modules' }),
         entries: [{ name: 'zod', isDir: true, isSymlink: false }],
@@ -317,6 +336,7 @@ describe('populateOneRootLayerBroker', () => {
       const sourceRoot = AbsoluteFilePathStub({ value: '/repo' });
       const targetRoot = AbsoluteFilePathStub({ value: '/wt' });
 
+      proxy.setupTargetReady({ targetRoot, scopeNames: ['@types'] });
       proxy.setupDirectoryEntries({
         dirPath: AbsoluteFilePathStub({ value: '/repo/node_modules' }),
         entries: [{ name: '@types', isDir: true, isSymlink: false }],
@@ -345,6 +365,7 @@ describe('populateOneRootLayerBroker', () => {
       const sourceRoot = AbsoluteFilePathStub({ value: '/repo' });
       const targetRoot = AbsoluteFilePathStub({ value: '/wt' });
 
+      proxy.setupTargetReady({ targetRoot, scopeNames: ['@dungeonmaster'] });
       proxy.setupDirectoryEntries({
         dirPath: AbsoluteFilePathStub({ value: '/repo/node_modules' }),
         entries: [{ name: '@dungeonmaster', isDir: true, isSymlink: false }],
@@ -379,6 +400,7 @@ describe('populateOneRootLayerBroker', () => {
       const sourceRoot = AbsoluteFilePathStub({ value: '/repo' });
       const targetRoot = AbsoluteFilePathStub({ value: '/wt' });
 
+      proxy.setupTargetReady({ targetRoot, scopeNames: ['@dungeonmaster'] });
       proxy.setupDirectoryEntries({
         dirPath: AbsoluteFilePathStub({ value: '/repo/node_modules' }),
         entries: [{ name: '@dungeonmaster', isDir: true, isSymlink: false }],
@@ -422,6 +444,7 @@ describe('populateOneRootLayerBroker', () => {
       const sourceRoot = AbsoluteFilePathStub({ value: '/repo' });
       const targetRoot = AbsoluteFilePathStub({ value: '/wt' });
 
+      proxy.setupTargetReady({ targetRoot, scopeNames: ['@dungeonmaster'] });
       proxy.setupDirectoryEntries({
         dirPath: AbsoluteFilePathStub({ value: '/repo/node_modules' }),
         entries: [
@@ -468,6 +491,7 @@ describe('populateOneRootLayerBroker', () => {
       const targetRoot = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-slug-a1b2c3d4' });
       const streamed: StreamedLine[] = [];
 
+      proxy.setupTargetReady({ targetRoot });
       proxy.setupDirectoryEntries({
         dirPath: AbsoluteFilePathStub({ value: '/repo/node_modules' }),
         entries: [{ name: 'zod', isDir: true, isSymlink: false }],
@@ -565,6 +589,7 @@ describe('populateOneRootLayerBroker', () => {
       const streamed: StreamedLine[] = [];
 
       proxy.setupTargetNodeModulesOnDisk({ targetRoot, entries: [] });
+      proxy.setupTargetReady({ targetRoot });
       proxy.setupDirectoryEntries({
         dirPath: AbsoluteFilePathStub({ value: '/repo/node_modules' }),
         entries: [{ name: 'zod', isDir: true, isSymlink: false }],

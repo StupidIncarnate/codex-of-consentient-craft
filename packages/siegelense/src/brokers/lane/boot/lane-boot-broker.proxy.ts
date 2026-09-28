@@ -5,13 +5,12 @@
 //        proxy.setupProcessBoot({ logPath, fd, command: 'npm', args: [...], pid: 1001 });
 
 import { chromium } from '@playwright/test';
-import {
-  cwdResolveBrokerProxy,
-  fsMkdirAdapterProxy,
-  pathJoinAdapterProxy,
-  processCwdAdapterProxy,
-} from '@dungeonmaster/shared/testing';
-import { processCwdAdapter } from '@dungeonmaster/shared/adapters';
+import { join } from '#gateway/node/path';
+import { cwd } from '#gateway/node/process';
+import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
+import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
+import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
+import { cwdResolveBrokerProxy } from '@dungeonmaster/shared/testing';
 import { absoluteFilePathContract, contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
 
@@ -38,6 +37,19 @@ type ReadingCount = ReturnType<typeof ReadingCountStub>;
 // no real setTimeout wait.
 const CLOCK_BASE_MS = 1_700_000_000_000;
 const CLOCK_PAST_DEADLINE_MS = 1_710_000_000_000;
+
+// The single cwd value every test in this file resolves against — `resolveRepoRoot()` reads it
+// back off the (now mocked) `cwd()` import directly, the same way the broker's own `cwd()` call
+// does, so both sides always agree.
+const CWD_PATH_VALUE = '/default/cwd';
+
+// This proxy's whole test file boots exactly `HOME_PATH`/`EVIDENCE_PATH` (never a runtime-computed
+// pair), so the only two directories `laneBootBroker` ever `ensureDir`s are staged once,
+// unconditionally, rather than per scenario — mirroring `boot-lock-acquire-broker.proxy.ts`'s
+// identical fixed-rootPath staging.
+const HOME_PATH_VALUE = '/tmp/dm-siege-inst_7f3a9c21';
+const EVIDENCE_PATH_VALUE =
+  '/repo/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_7f3a9c21';
 
 export const laneBootBrokerProxy = (): {
   resolveRepoRoot: () => AbsoluteFilePath;
@@ -71,12 +83,25 @@ export const laneBootBrokerProxy = (): {
   // would also pick up playwrightSessionAdapter's own later PLAYWRIGHT_BROWSERS_PATH mutation.
   getInheritedEnvSnapshot: () => Record<PropertyKey, ContentText>;
 } => {
-  const cwdProxy = cwdResolveBrokerProxy();
-  // Constructed for its own default "any path succeeds" / real-passthrough behavior — see each
-  // adapter's own proxy — and only to satisfy enforce-proxy-child-creation, never addressed further.
-  fsMkdirAdapterProxy();
-  pathJoinAdapterProxy();
-  processCwdAdapterProxy();
+  const resolveProxy = cwdResolveBrokerProxy();
+  // `join` (from '#gateway/node/path') runs for real, on a sticky passthrough default — every
+  // join this broker makes (claudeQueueDir, wardQueueDir, each process's logPath) is already known
+  // at test-setup time (HOME_PATH_VALUE/EVIDENCE_PATH_VALUE plus a literal segment), so the real
+  // computed path always matches what setupProcessBoot stages on fsOpenFdAdapter.
+  const realPath = requireActual<{ join: typeof join }>({ module: 'path' });
+  registerMock({ fn: join })
+    .calledWith([])
+    .implement((...segments: never[]) => realPath.join(...segments));
+  // `ensureDir` has no catch-all by design — the two directories this broker ever ensureDirs are
+  // HOME_PATH_VALUE and EVIDENCE_PATH_VALUE, fixed for every test in this file, so both are staged
+  // once, unconditionally, rather than per scenario.
+  const mkdirProxy = ensureDirProxy();
+  mkdirProxy.succeeds({ path: HOME_PATH_VALUE });
+  mkdirProxy.succeeds({ path: EVIDENCE_PATH_VALUE });
+  // gateway proxy import — inert, satisfies enforce-proxy-child-creation.
+  cwdProxy();
+  const cwdHandle = registerMock({ fn: cwd });
+  cwdHandle.calledWith([]).returns(CWD_PATH_VALUE);
   const spawnProxy = childProcessSpawnDetachedAdapterProxy();
   const openFdProxy = fsOpenFdAdapterProxy();
   const closeFdProxy = fsCloseFdAdapterProxy();
@@ -89,11 +114,11 @@ export const laneBootBrokerProxy = (): {
 
   return {
     resolveRepoRoot: (): AbsoluteFilePath => {
-      // processCwdAdapterProxy() above already mocked process.cwd() to its own sticky default —
-      // reading it here (rather than picking a value independently) is what keeps this and the
-      // implementation's own processCwdAdapter() call agreeing on the same seed.
-      const cwdPath = processCwdAdapter();
-      cwdProxy.setupRepoRootFoundAtStart({ startPath: cwdPath });
+      // The `cwd` mock staged above already answers CWD_PATH_VALUE — reading it here (rather than
+      // picking a value independently) is what keeps this and the implementation's own `cwd()`
+      // call agreeing on the same seed.
+      const cwdPath = cwd();
+      resolveProxy.setupRepoRootFoundAtStart({ startPath: cwdPath });
       return absoluteFilePathContract.parse(cwdPath);
     },
 

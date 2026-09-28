@@ -1,11 +1,11 @@
 /**
  * PURPOSE: Proxy for lane-provision-batch-broker — composes questFindQuestPathBrokerProxy (the
  * implementation's ONE guildId/questPath resolution for the whole batch), laneRecordInstanceBrokerProxy
- * (the write half, queued once per lane a scenario actually starts), and the ONE
- * runtimeDynamicImportAdapterProxy staging that answers BOTH `capacityReadBroker` and
- * `instanceStartBroker` for siegelense's single `brokers` module path — one combined `.succeeds()`
- * call, because two separate stagings of the identical path would collide (registerMock addresses
- * purely by argument, and the later stage silently wins).
+ * (the write half, queued once per lane a scenario actually starts), and the ONE `dynamicImport`
+ * staging that answers BOTH `capacityReadBroker` and `instanceStartBroker` for siegelense's single
+ * `brokers` module path — one combined `.resolves()` call, because two separate stagings of the
+ * identical path would collide (registerMock addresses purely by argument, and the later stage
+ * silently wins).
  *
  * USAGE:
  * const proxy = laneProvisionBatchBrokerProxy();
@@ -15,7 +15,9 @@
  * const persisted = proxy.getLastPersistedQuest();
  */
 
-import { runtimeDynamicImportAdapterProxy } from '@dungeonmaster/shared/testing';
+import { dynamicImport } from '#gateway/node/module';
+import { dynamicImportProxy } from '#gateway/node/module/dynamic-import/dynamic-import.proxy';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 import {
   absoluteFilePathContract,
   FileContentsStub,
@@ -47,7 +49,13 @@ export const laneProvisionBatchBrokerProxy = (): {
 } => {
   const findQuestPathProxy = questFindQuestPathBrokerProxy();
   const recordInstanceProxy = laneRecordInstanceBrokerProxy();
-  const importProxy = runtimeDynamicImportAdapterProxy();
+  // dynamicImportProxy() offers no staging of its own (a language primitive, meant to be driven
+  // for real) — the phantom call satisfies enforce-proxy-child-creation, and the real staging
+  // below addresses dynamicImport itself directly, keyed on the module specifier.
+  dynamicImportProxy();
+  const importHandle = registerMock({ fn: dynamicImport });
+  // Reproduces the exact resolution the broker's own require.resolve() computes, in the same
+  // process and directory — the real address, not a guess.
   const siegelenseBrokersPath = require.resolve('@dungeonmaster/siegelense/brokers');
 
   return {
@@ -103,12 +111,9 @@ export const laneProvisionBatchBrokerProxy = (): {
       suggested: number;
       manifest: unknown;
     }): void => {
-      importProxy.succeeds({
-        path: siegelenseBrokersPath,
-        module: {
-          capacityReadBroker: jest.fn().mockResolvedValue({ suggested }),
-          instanceStartBroker: jest.fn().mockResolvedValue(manifest),
-        },
+      importHandle.calledWith([{ path: siegelenseBrokersPath }]).resolves({
+        capacityReadBroker: jest.fn().mockResolvedValue({ suggested }),
+        instanceStartBroker: jest.fn().mockResolvedValue(manifest),
       });
     },
 

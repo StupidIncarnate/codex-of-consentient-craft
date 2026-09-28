@@ -1,9 +1,8 @@
-import { homedir } from 'os';
+import { homedir } from '#gateway/node/os';
 import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
 import {
   claudeLineNormalizeBrokerProxy,
   cwdResolveBrokerProxy,
-  osUserHomedirAdapterProxy,
 } from '@dungeonmaster/shared/testing';
 import type {
   FileNameStub,
@@ -18,6 +17,7 @@ import {
   repoRootCwdContract,
   sessionIdContract,
 } from '@dungeonmaster/shared/contracts';
+import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import {
   claudeProjectPathEncoderTransformer,
   stripJsonlSuffixTransformer,
@@ -69,10 +69,9 @@ export const chatHistoryReplayBrokerProxy = (): {
   // `setPort` below so an individual test can pin a different port.
   const serverConfigProxy = questGetServerConfigBrokerProxy();
   serverConfigProxy.setPort({ value: '3737' });
-  // Wired to satisfy enforce-proxy-child-creation; osUserHomedirAdapterProxy's own .returns() is
-  // a one-shot, so a test replaying two sessions (two osUserHomedirAdapter() calls) needs a sticky
-  // stage instead — the direct handle below, on the same shared `homedir`.
-  osUserHomedirAdapterProxy();
+  // `registerMock`'s `calledWith([]).returns(...)` answers every matching call, so a test
+  // replaying two sessions (two `homedir()` calls) gets the same value both times with no
+  // extra staging.
   const homedirHandle = registerMock({ fn: homedir });
   const readJsonlProxy = fsReadJsonlAdapterProxy();
   const readdirProxy = fsReaddirAdapterProxy();
@@ -151,7 +150,18 @@ export const chatHistoryReplayBrokerProxy = (): {
       homeDir: string;
       sessionId: SessionId;
     }): void => {
-      guildProxy.setupConfig({ config });
+      // homeDir AND homePath forwarded to guildGetBrokerProxy's own composed
+      // guildConfigReadBrokerProxy — its exact join()/homedir() addresses must agree with every
+      // OTHER proxy this test composes against the SAME homeDir (questResolveQuestsPathBrokerProxy
+      // among them), since all of them share the SAME process-wide gateway mocks. Passing homeDir
+      // alone would leave guildConfigReadBrokerProxy defaulting its OWN unrelated homePath fixture,
+      // which — being staged AFTER a sibling proxy's correct one, on the identical
+      // join(homeDir, '.dungeonmaster') address — would silently win and misdirect every other
+      // composed broker's own home resolution to a path nothing else staged.
+      const homePath = filePathContract.parse(
+        `${homeDir}/${dungeonmasterHomeStatics.paths.configDir}`,
+      );
+      guildProxy.setupConfig({ config, homeDir, homePath });
       homedirHandle.calledWith([]).returns(homeDir);
       homeDirRef.value = absoluteFilePathContract.parse(homeDir);
       sessionIdRef.value = sessionId;

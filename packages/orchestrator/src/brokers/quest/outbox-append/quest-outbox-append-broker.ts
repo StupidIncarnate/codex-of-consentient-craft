@@ -6,11 +6,15 @@
  * // Appends a JSON line with questId and timestamp to ~/.dungeonmaster/event-outbox.jsonl
  */
 
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import { dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
-import { adapterResultContract, fileContentsContract } from '@dungeonmaster/shared/contracts';
+import {
+  adapterResultContract,
+  fileContentsContract,
+  filePathContract,
+} from '@dungeonmaster/shared/contracts';
 import type { AdapterResult, QuestId } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
+import { join } from '#gateway/node/path';
 
 import { fsAppendFileAdapter } from '../../../adapters/fs/append-file/fs-append-file-adapter';
 import { questOutboxLineContract } from '../../../contracts/quest-outbox-line/quest-outbox-line-contract';
@@ -22,9 +26,9 @@ export const questOutboxAppendBroker = async ({
 }): Promise<AdapterResult> => {
   const { homePath } = dungeonmasterHomeFindBroker();
 
-  const outboxFilePath = pathJoinAdapter({
-    paths: [homePath, locationsStatics.dungeonmasterHome.eventOutbox],
-  });
+  const outboxFilePath = filePathContract.parse(
+    join(homePath, locationsStatics.dungeonmasterHome.eventOutbox),
+  );
 
   const outboxLine = questOutboxLineContract.parse({
     questId,

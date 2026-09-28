@@ -16,12 +16,9 @@
  * // Writes profiles/<specHash>/boots/<instanceId>.json and returns the written ProfileBoot
  */
 
-import { fsMkdirAdapter, pathJoinAdapter } from '@dungeonmaster/shared/adapters';
-import {
-  absoluteFilePathContract,
-  fileContentsContract,
-  filePathContract,
-} from '@dungeonmaster/shared/contracts';
+import { ensureDir } from '#gateway/node/fs__promises';
+import { join } from '#gateway/node/path';
+import { absoluteFilePathContract, fileContentsContract } from '@dungeonmaster/shared/contracts';
 
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
@@ -45,9 +42,7 @@ export const profileBootRecordBroker = async ({
   const { bootsDir } = locationsProfileDirsFindBroker({ specHash });
 
   const recordPath = absoluteFilePathContract.parse(
-    pathJoinAdapter({
-      paths: [bootsDir, `${instanceId}${profileStatics.extensions.record}`],
-    }),
+    join(bootsDir, `${instanceId}${profileStatics.extensions.record}`),
   );
 
   const record = profileBootContract.parse({
@@ -57,7 +52,7 @@ export const profileBootRecordBroker = async ({
     recordedAtMs: epochMsContract.parse(Date.now()),
   });
 
-  await fsMkdirAdapter({ filepath: filePathContract.parse(bootsDir) });
+  await ensureDir(bootsDir);
   await fsWriteFileAdapter({
     filePath: recordPath,
     contents: fileContentsContract.parse(`${JSON.stringify(record)}\n`),

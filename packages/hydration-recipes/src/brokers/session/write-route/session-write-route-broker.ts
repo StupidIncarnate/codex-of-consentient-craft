@@ -11,16 +11,29 @@
  * worker and every test file, not one scoped per target, so reading it directly here would silently
  * ignore a test's own `claudeHome` and write wherever that shared sandbox points instead.
  *
+ * `cwd`/`sessionId` are parsed off the raw `fields` FIRST, separately from the full
+ * `sessionFieldsContract.parse(fields)` below — computing `filePath` before the full parse is what
+ * lets a caller's missing/invalid `lines` (the field with no honest default,
+ * `session-ingredient-broker.ts`'s own header) throw `HydrationWriteFailedError` naming the REAL
+ * path it was aimed at, instead of `op-create-apply-layer-broker.ts`'s `(unknown path)` fallback —
+ * `writeFailureTransformer` mines `.path` off whatever the write threw, and a bare ZodError from the
+ * full parse carries none on its own.
+ *
  * USAGE:
  * await sessionWriteRouteBroker({ target, fields: { sessionId, cwd, lines } });
  * // Returns a SessionRecord — appends to <claudeHome>/.claude/projects/<encoded-cwd>/<sessionId>.jsonl
  */
 import { claudePathSlugEncoderTransformer } from '@dungeonmaster/shared/transformers';
-import { absoluteFilePathContract, lineCountContract } from '@dungeonmaster/shared/contracts';
+import {
+  absoluteFilePathContract,
+  lineCountContract,
+  sessionIdContract,
+} from '@dungeonmaster/shared/contracts';
 
 import { dmJsonlAppendAdapter } from '../../../adapters/dm-jsonl/append/dm-jsonl-append-adapter';
 import { sessionFieldsContract } from '../../../contracts/session-fields/session-fields-contract';
 import { sessionRecordContract } from '../../../contracts/session-record/session-record-contract';
+import type { SessionFields } from '../../../contracts/session-fields/session-fields-contract';
 import type { SessionRecord } from '../../../contracts/session-record/session-record-contract';
 import type { DmTarget } from '../../../contracts/dm-target/dm-target-contract';
 
@@ -31,12 +44,21 @@ export const sessionWriteRouteBroker = async ({
   target: DmTarget;
   fields: Record<string, unknown>;
 }): Promise<SessionRecord> => {
-  const parsedFields = sessionFieldsContract.parse(fields);
+  const cwd = absoluteFilePathContract.parse(fields.cwd);
+  const sessionId = sessionIdContract.parse(fields.sessionId);
   const sessionsDir = claudePathSlugEncoderTransformer({
     homeDir: target.claudeHome,
-    projectPath: parsedFields.cwd,
+    projectPath: cwd,
   });
-  const filePath = absoluteFilePathContract.parse(`${sessionsDir}/${parsedFields.sessionId}.jsonl`);
+  const filePath = absoluteFilePathContract.parse(`${sessionsDir}/${sessionId}.jsonl`);
+
+  const parsedFields = ((): SessionFields => {
+    try {
+      return sessionFieldsContract.parse(fields);
+    } catch (cause) {
+      throw Object.assign(new Error(String(cause), { cause }), { path: filePath });
+    }
+  })();
 
   await dmJsonlAppendAdapter({ filePath, lines: parsedFields.lines });
 

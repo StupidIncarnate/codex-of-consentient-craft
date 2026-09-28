@@ -17,7 +17,23 @@
  * manifest's `seeded` field. It runs from this side rather than down the driver socket because this
  * side already holds the booted lane's api port and the deterministic home; a seed that throws
  * takes the same teardown path every other boot failure takes, because a lane whose state is not
- * what the caller asked for is not a lane the caller should be handed.
+ * what the caller asked for is not a lane the caller should be handed — and by the time a seed
+ * runs, the driver has already answered its first `ping`, so that teardown means a REAL, running
+ * driver to stop, not just a registry row to relabel.
+ *
+ * That teardown is `instanceKillBroker`, not a bare registry release: a seed failure's driver is
+ * alive, so `instanceKillBroker` sends it `kill` down the socket, and the driver's own handling
+ * tears the lane down and marks the row killed itself; a boot-poll failure's driver is unreachable,
+ * so `instanceKillBroker` falls to its orphan-reap path instead — either way the row ends up
+ * released, and either way a live process group this attempt spawned is what actually gets signalled,
+ * never left running under a `killed` label. A seed failure additionally gets its own
+ * `shutdown-reason.json`, written AFTER that kill call, naming the seed and its error — the only
+ * record of WHY this instance stopped, since neither the live-kill path nor a clean orphan-reap-with-
+ * nothing-to-reap writes one on its own.
+ *
+ * Acquiring `boot.lock` is wrapped the same way, ahead of the try below: a throw there —
+ * `BootLockHeldError`, contention past the wait ceiling — happens before this attempt ever held the
+ * lock, so only the reservation from `instanceReserveBroker` gets released, never `boot.lock` itself.
  *
  * A successful boot also RECORDS what it cost, through `profileBootRecordBroker` — this is the only
  * side that watches a boot from its first moment, so nothing else can measure `bootMs` (spec line
@@ -35,10 +51,11 @@
  * message straight through; a `'timeout'` status means the poll ran out its deadline with no such
  * report, so `LaneBootFailedError.unready` names only the processes THIS broker can confirm are
  * still not answering their own readyPath, probed directly rather than assumed to be every process
- * the spec declares. Either throw releases the reservation `instanceReserveBroker` minted for this
- * attempt (via `instanceReleaseBroker`, tombstoning the row rather than deleting it) alongside
- * `boot.lock` — a failed boot must leave the registry as it found it, not holding a port pair with
- * no process behind it forever.
+ * the spec declares. Either throw releases `boot.lock` and, through `instanceKillBroker`, the
+ * reservation `instanceReserveBroker` minted for this attempt (tombstoning the row rather than
+ * deleting it) — falling back to `instanceReleaseBroker` directly only if that kill itself throws,
+ * so a failed boot must leave the registry as it found it, not holding a port pair with no process
+ * behind it forever.
  *
  * USAGE:
  * await instanceStartBroker({ specName: SpecNameStub(), questId: null, guildId: null, seed: null });
@@ -56,10 +73,12 @@
  * // ceiling that instance reaps itself against above driverStatics.idle.timeoutMs
  */
 
-import { pathJoinAdapter, processCwdAdapter } from '@dungeonmaster/shared/adapters';
+import { join } from '#gateway/node/path';
+import { cwd } from '#gateway/node/process';
 import {
   absoluteFilePathContract,
   contentTextContract,
+  filePathContract,
   type ContentText,
   type GuildId,
   type QuestId,
@@ -91,6 +110,7 @@ import { instanceReserveBroker } from '../reserve/instance-reserve-broker';
 import { profileBootRecordBroker } from '../../profile/boot-record/profile-boot-record-broker';
 import { recipeSeedRunBroker } from '../../recipe/seed-run/recipe-seed-run-broker';
 import { registryReadBroker } from '../../registry/read/registry-read-broker';
+import { shutdownReasonWriteBroker } from '../../shutdown-reason/write/shutdown-reason-write-broker';
 import { epochMsContract } from '../../../contracts/epoch-ms/epoch-ms-contract';
 import { instanceManifestContract } from '../../../contracts/instance-manifest/instance-manifest-contract';
 import type { InstanceManifest } from '../../../contracts/instance-manifest/instance-manifest-contract';
@@ -174,10 +194,34 @@ export const instanceStartBroker = async ({
 
   const reservedEntry = await instanceReserveBroker({ specName, specHash, questId, guildId });
 
+  // Acquiring the lock sits BEFORE the try below on purpose (queuedMs measures the wait, not a
+  // boot), which means a throw here — `BootLockHeldError`, machine-wide contention past the wait
+  // ceiling — has never been inside that try's own cleanup. Left unguarded, the reservation this
+  // call just minted above would sit `state: 'alive'` with no boot ever attempted, counted against
+  // capacity until its own staleness window passes on its own. This catch releases exactly that
+  // reservation and nothing else — the boot lock itself is never released here, because a throw at
+  // this point means this call never held it.
   const lockWaitStartedAtMs = epochMsContract.parse(Date.now());
-  await bootLockAcquireBroker({ instanceId: reservedEntry.id });
+  try {
+    await bootLockAcquireBroker({ instanceId: reservedEntry.id });
+  } catch (lockAcquireError) {
+    try {
+      await instanceReleaseBroker({ instanceId: reservedEntry.id });
+    } catch (releaseError: unknown) {
+      process.stderr.write(
+        `instanceStartBroker: releasing the reservation for ${reservedEntry.id} after a failed boot-lock acquire failed: ${String(releaseError)}\n`,
+      );
+    }
+    throw lockAcquireError;
+  }
   const lockWaitEndedAtMs = epochMsContract.parse(Date.now());
   const queuedMs = epochMsContract.parse(lockWaitEndedAtMs - lockWaitStartedAtMs);
+
+  // An object property, never a bare `let` — a `let` reassigned only inside the `.catch()` closure
+  // below narrows to its OWN initializer (`null`) at the point the outer catch block reads it,
+  // which trips `no-unnecessary-condition` as an always-false comparison even though the closure
+  // genuinely can and does set it. A property access carries no such narrowing.
+  const seedFailure: { reason: ContentText | null } = { reason: null };
 
   try {
     const evidencePath = locationsInstanceEvidencePathFindBroker({
@@ -185,11 +229,11 @@ export const instanceStartBroker = async ({
       guildId,
     });
     const driverLogPath = absoluteFilePathContract.parse(
-      pathJoinAdapter({ paths: [evidencePath, locationsStatics.siegelense.driverLog] }),
+      join(evidencePath, locationsStatics.siegelense.driverLog),
     );
     const driverLogFd = fsOpenFdAdapter({ filePath: driverLogPath });
 
-    const cwdSeed = processCwdAdapter();
+    const cwdSeed = filePathContract.parse(cwd());
     const repoRoot = await cwdResolveBroker({ startPath: cwdSeed, kind: 'repo-root' });
 
     // Spawns the CLI's own resolved bin script through the CURRENT node binary rather than the
@@ -331,13 +375,13 @@ export const instanceStartBroker = async ({
     }
 
     const homePath = absoluteFilePathContract.parse(
-      pathJoinAdapter({ paths: [osTmpdirAdapter(), `dm-siege-${reservedEntry.id}`] }),
+      join(osTmpdirAdapter(), `dm-siege-${reservedEntry.id}`),
     );
     const apiLogPath = absoluteFilePathContract.parse(
-      pathJoinAdapter({ paths: [evidencePath, locationsStatics.siegelense.apiLog] }),
+      join(evidencePath, locationsStatics.siegelense.apiLog),
     );
     const webLogPath = absoluteFilePathContract.parse(
-      pathJoinAdapter({ paths: [evidencePath, locationsStatics.siegelense.webLog] }),
+      join(evidencePath, locationsStatics.siegelense.webLog),
     );
 
     const [evidenceRepoLocal, apiLogRepoLocal, webLogRepoLocal] = await Promise.all([
@@ -391,6 +435,14 @@ export const instanceStartBroker = async ({
             ),
             homePath,
             parameters: {},
+          }).catch((seedError: unknown) => {
+            // Named here, not derived from `bootError` in the catch below — this is the ONE place
+            // that knows the failure came from the seed step specifically, rather than from the
+            // boot poll that ran before it ever started.
+            seedFailure.reason = contentTextContract.parse(
+              `--seed ${seed} failed: ${String(seedError)}`,
+            );
+            throw seedError;
           });
 
     return instanceManifestContract.parse({
@@ -425,17 +477,47 @@ export const instanceStartBroker = async ({
     await bootLockReleaseBroker({ instanceId: reservedEntry.id });
 
     // A reservation `instanceReserveBroker` minted for THIS attempt must not outlive a boot that
-    // never happened — an unreleased row stays `state: 'alive'` with `bootedAtMs: null` forever,
-    // holding its port pair with no process behind it. Released, never deleted: instanceReleaseBroker's
-    // own tombstone rule is what keeps a fixer's later `results` from answering "unknown instance"
-    // for evidence already sitting on disk. Wrapped so a throw HERE can never replace `bootError` —
-    // the boot failure is what a caller needs to see, whether or not the cleanup after it succeeds.
+    // never finished — a row left `state: 'alive'` holds its port pair, and worse, a driver that DID
+    // spawn (a seed failure runs only after the driver answered `ping`) is left running with nobody
+    // told to stop it. `instanceKillBroker` is what actually stops it: live and reachable, it sends
+    // `kill` down the socket and the driver tears its own lane down; unreachable, it reaps whatever
+    // the registry still names as this row's own pgids. Either way it is also what marks the
+    // registry row killed — the SAME reap path `cleanup` uses for a stale row (its own docstring).
+    // Falling back to `instanceReleaseBroker` directly keeps the one guarantee the old code never
+    // risked losing: a kill that itself throws (a socket edge case, a filesystem error) must never
+    // leave the reservation dangling just because the fuller cleanup above it failed.
     try {
-      await instanceReleaseBroker({ instanceId: reservedEntry.id });
-    } catch (releaseError: unknown) {
+      await instanceKillBroker({ instanceId: reservedEntry.id });
+    } catch (killError: unknown) {
       process.stderr.write(
-        `instanceStartBroker: releasing the reservation for ${reservedEntry.id} after a failed boot failed: ${String(releaseError)}\n`,
+        `instanceStartBroker: stopping ${reservedEntry.id} after a failed boot failed, falling back to releasing the reservation: ${String(killError)}\n`,
       );
+      try {
+        await instanceReleaseBroker({ instanceId: reservedEntry.id });
+      } catch (releaseError: unknown) {
+        process.stderr.write(
+          `instanceStartBroker: releasing the reservation for ${reservedEntry.id} after a failed boot failed: ${String(releaseError)}\n`,
+        );
+      }
+    }
+
+    // Written AFTER the kill above, never before: the orphan-reap path inside instanceKillBroker
+    // overwrites shutdown-reason.json itself whenever it actually reaps a live process group, and a
+    // seed failure's own explanation must be the one left standing, not a generic "reaped N orphaned
+    // process groups" message clobbering it.
+    if (seedFailure.reason !== null) {
+      const evidencePathForShutdown = locationsInstanceEvidencePathFindBroker({
+        instanceId: reservedEntry.id,
+        guildId,
+      });
+      await shutdownReasonWriteBroker({
+        evidencePath: evidencePathForShutdown,
+        reason: seedFailure.reason,
+      }).catch((writeError: unknown) => {
+        process.stderr.write(
+          `instanceStartBroker: writing the shutdown reason for ${reservedEntry.id} failed: ${String(writeError)}\n`,
+        );
+      });
     }
 
     throw bootError;

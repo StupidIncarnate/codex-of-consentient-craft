@@ -1,4 +1,4 @@
-import { fsReadFileSyncAdapterProxy } from '@dungeonmaster/shared/testing';
+import { readFileSyncProxy } from '#gateway/node/fs/read-file-sync/read-file-sync.proxy';
 import { AbsoluteFilePathStub, PathSegmentStub } from '@dungeonmaster/shared/contracts';
 import type {
   SessionIdStub,
@@ -51,9 +51,9 @@ export const DigestRunResponderProxy = (): {
   const questIndexProxy = questIndexLoadBrokerProxy();
   // Not driven directly — the `quest` command's own transcript-size read runs against the SAME
   // underlying fs mock `loadProxy`/`rosterProxy` already stage above (mocks are shared by function
-  // identity). Instantiated only to satisfy enforce-proxy-child-creation for the adapter
+  // identity). Instantiated only to satisfy enforce-proxy-child-creation for the gateway read
   // digest-run-responder.ts imports directly.
-  fsReadFileSyncAdapterProxy();
+  readFileSyncProxy();
 
   const sessionFilePathFor = ({
     target,

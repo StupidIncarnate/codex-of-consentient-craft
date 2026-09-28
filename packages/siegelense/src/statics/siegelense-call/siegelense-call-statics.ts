@@ -7,7 +7,7 @@
  *
  * USAGE:
  * siegelenseCallStatics.calls.names;
- * // Returns the readonly tuple of thirteen call names, in the spec's own order
+ * // Returns the readonly tuple of twelve call names, in the spec's own order
  *
  * siegelenseCallStatics.docs.scopes;
  * // Returns the readonly tuple of `docs { for }` scopes, one per tool-using role
@@ -21,7 +21,6 @@ export const siegelenseCallStatics = {
       'results',
       'kill',
       'capacity',
-      'profile',
       'status',
       'cleanup',
       'prune',

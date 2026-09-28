@@ -1,5 +1,6 @@
-import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
-import { AbsoluteFilePathStub, FilePathStub } from '@dungeonmaster/shared/contracts';
+import { join } from '#gateway/node/path';
+import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
+import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 
 import { errorIsNativeErrorAdapterProxy } from '../../../adapters/error/is-native-error/error-is-native-error-adapter.proxy';
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
@@ -12,27 +13,23 @@ export const machineOomCountBrokerProxy = (): {
   setupVmstatReadFails: (params: { error: Error }) => void;
 } => {
   errorIsNativeErrorAdapterProxy();
-  const pathJoinProxy = pathJoinAdapterProxy();
+  // #gateway/node/path is a raw passthrough of the Node 'path' module (no per-function wrapper, so
+  // no gateway proxy to compose) — mocked directly here, on the same '#gateway/node/path' specifier
+  // the broker imports. '/proc' + 'vmstat' needs no substitution to compute VMSTAT_PATH's real
+  // value, so only the sticky real-passthrough default is installed — no per-call queueing needed
+  // any more, unlike the shared `pathJoinAdapter` queue this used to ride.
+  const realPath = requireActual<{ join: typeof join }>({ module: 'path' });
+  registerMock({ fn: join })
+    .calledWith([])
+    .implement((...segments: never[]) => realPath.join(...segments));
   const readFileProxy = fsReadFileAdapterProxy();
-
-  // '/proc' + 'vmstat' needs no substitution to compute VMSTAT_PATH's real value, so this join is
-  // ALSO explicitly staged (inside each scenario method, in the same call-ordered position a
-  // composing proxy calls it) rather than left to the real-passthrough default: a composing proxy
-  // (machineReadBrokerProxy, and anything built on top of it) queues its own pending path
-  // resolutions on this same shared mock around when this join runs — an unstaged call here would
-  // consume one of those instead of computing its own real path.
-  const queueVmstatPathJoin = (): void => {
-    pathJoinProxy.returns({ result: FilePathStub({ value: '/proc/vmstat' }) });
-  };
 
   return {
     setupVmstat: ({ content }: { content: string }): void => {
-      queueVmstatPathJoin();
       readFileProxy.resolves({ filePath: VMSTAT_PATH, content });
     },
 
     setupVmstatMissing: (): void => {
-      queueVmstatPathJoin();
       readFileProxy.rejects({
         filePath: VMSTAT_PATH,
         error: Object.assign(new Error('ENOENT: no such file or directory'), { code: 'ENOENT' }),
@@ -40,7 +37,6 @@ export const machineOomCountBrokerProxy = (): {
     },
 
     setupVmstatReadFails: ({ error }: { error: Error }): void => {
-      queueVmstatPathJoin();
       readFileProxy.rejects({ filePath: VMSTAT_PATH, error });
     },
   };

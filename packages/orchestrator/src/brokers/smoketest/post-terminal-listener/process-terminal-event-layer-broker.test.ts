@@ -1,4 +1,9 @@
-import { FilePathStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
+import {
+  AbsoluteFilePathStub,
+  FilePathStub,
+  QuestIdStub,
+  QuestStub,
+} from '@dungeonmaster/shared/contracts';
 
 import { SmoketestListenerEntryStub } from '../../../contracts/smoketest-listener-entry/smoketest-listener-entry.stub';
 import { SmoketestScenarioMetaStub } from '../../../contracts/smoketest-scenario-meta/smoketest-scenario-meta.stub';
@@ -63,6 +68,32 @@ describe('processTerminalEventLayerBroker', () => {
 
       expect(result).toStrictEqual({ success: true });
       expect(unregisterListener.mock.calls).toStrictEqual([[{ questId }]]);
+    });
+  });
+
+  describe('quest found, not yet terminal', () => {
+    it('VALID: {quest status in_progress} => joins the found quest path with quest.json, not any other name', async () => {
+      const proxy = processTerminalEventLayerBrokerProxy();
+      proxy.setupPassthrough();
+      const questId = QuestIdStub({ value: 'q-not-terminal' });
+      const questPath = AbsoluteFilePathStub({
+        value: '/home/user/.dungeonmaster/guilds/g1/quests/q-not-terminal',
+      });
+      const quest = QuestStub({ id: questId, status: 'in_progress' });
+      proxy.setupQuestFound({ questId, questPath, quest });
+
+      const entry = SmoketestListenerEntryStub();
+      const scenarioMeta = SmoketestScenarioMetaStub();
+
+      const result = await processTerminalEventLayerBroker({
+        questId,
+        entry,
+        scenarioMeta,
+        unregisterListener: jest.fn(),
+      });
+
+      expect(result).toStrictEqual({ success: true });
+      expect(proxy.getQuestFileJoinArgs({ questPath })).toStrictEqual([questPath, 'quest.json']);
     });
   });
 });

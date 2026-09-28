@@ -2,6 +2,7 @@ import {
   AbsoluteFilePathStub,
   AgentIdStub,
   FileContentsStub,
+  FilePathStub,
   GuildIdStub,
   ProcessIdStub,
   QuestCommentStub,
@@ -10,6 +11,7 @@ import {
   QuestWorkItemIdStub,
   SessionIdStub,
   UserChatEntryStub,
+  WardDetailStub,
   WorkItemStub,
   WsMessageStub,
 } from '@dungeonmaster/shared/contracts';
@@ -162,6 +164,53 @@ describe('ServerInitResponder', () => {
       proxy.simulateMessage({ data: 'not-json{{{', ws: client });
 
       expect(sendMock.mock.calls).toStrictEqual([]);
+    });
+  });
+
+  describe('websocket onMessage ward-detail-request', () => {
+    it('VALID: {ward-detail-request for an existing ward result} => sends ward-detail-response carrying the parsed detail JSON', async () => {
+      const proxy = ServerInitResponderProxy();
+      const questId = QuestIdStub({ value: 'quest-ward-detail-1' });
+      const questPath = AbsoluteFilePathStub({
+        value: '/guilds/g1/quests/quest-ward-detail-1',
+      });
+      const guildId = GuildIdStub();
+      const wardResultId = 'ward-result-abc';
+      const wardResultsPath = FilePathStub({
+        value: '/guilds/g1/quests/quest-ward-detail-1/ward-results',
+      });
+      const detailFilePath = FilePathStub({
+        value: '/guilds/g1/quests/quest-ward-detail-1/ward-results/ward-result-abc.json',
+      });
+      const detail = WardDetailStub();
+      proxy.setupWardDetailSuccess({
+        questId,
+        questPath,
+        guildId,
+        wardResultId,
+        wardResultsPath,
+        detailFilePath,
+        contents: FileContentsStub({ value: JSON.stringify(detail) }),
+      });
+      proxy.callResponder();
+
+      const sendMock = jest.fn();
+      const client = WsClientStub({ send: sendMock });
+      proxy.simulateConnection({ client });
+      proxy.simulateMessage({
+        data: JSON.stringify({ type: 'ward-detail-request', questId, wardResultId }),
+        ws: client,
+      });
+
+      await new Promise((resolve) => {
+        setTimeout(resolve, 10);
+      });
+
+      expect(JSON.parse(String(sendMock.mock.calls[0]?.[0]))).toStrictEqual({
+        type: 'ward-detail-response',
+        wardResultId,
+        detail,
+      });
     });
   });
 
@@ -1658,6 +1707,7 @@ describe('ServerInitResponder', () => {
       const proxy = ServerInitResponderProxy();
       proxy.setupWebBundleFile({
         contents: FileContentsStub({ value: '<!doctype html><title>DM</title>' }),
+        expectedRelativePath: '/index.html',
       });
       proxy.callResponder({ serveWebBundle: true });
 
@@ -1681,7 +1731,10 @@ describe('ServerInitResponder', () => {
 
     it('VALID: {GET /codex/quest/<id>?chat=hidden} => 200 index.html SPA fallback (not redirected)', async () => {
       const proxy = ServerInitResponderProxy();
-      proxy.setupWebBundleFile({ contents: FileContentsStub({ value: '<!doctype html>' }) });
+      proxy.setupWebBundleFile({
+        contents: FileContentsStub({ value: '<!doctype html>' }),
+        expectedRelativePath: '/index.html',
+      });
       proxy.callResponder({ serveWebBundle: true });
 
       const response = await proxy.dispatchRequest({
@@ -1701,7 +1754,10 @@ describe('ServerInitResponder', () => {
 
     it('VALID: {GET /assets/index-abc.js} => 200 serving the JS asset', async () => {
       const proxy = ServerInitResponderProxy();
-      proxy.setupWebBundleFile({ contents: FileContentsStub({ value: 'console.log(1)' }) });
+      proxy.setupWebBundleFile({
+        contents: FileContentsStub({ value: 'console.log(1)' }),
+        expectedRelativePath: '/assets/index-abc.js',
+      });
       proxy.callResponder({ serveWebBundle: true });
 
       const response = await proxy.dispatchRequest({

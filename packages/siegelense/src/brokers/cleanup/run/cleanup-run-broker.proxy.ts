@@ -5,10 +5,15 @@ import { staleReapLayerBrokerProxy } from './stale-reap-layer-broker.proxy';
 
 export const cleanupRunBrokerProxy = (): {
   setupRegistry: ReturnType<typeof staleReapLayerBrokerProxy>['setupRegistry'];
-  setupDriverUnreachable: ReturnType<typeof staleReapLayerBrokerProxy>['setupDriverUnreachable'];
-  setupDriverUnreachableNoHeartbeat: ReturnType<
+  setupDriverUnreachableReapsLivePgids: ReturnType<
     typeof staleReapLayerBrokerProxy
-  >['setupDriverUnreachableNoHeartbeat'];
+  >['setupDriverUnreachableReapsLivePgids'];
+  setupDriverUnreachableNoPgids: ReturnType<
+    typeof staleReapLayerBrokerProxy
+  >['setupDriverUnreachableNoPgids'];
+  setupShutdownReasonWriteSucceeds: ReturnType<
+    typeof staleReapLayerBrokerProxy
+  >['setupShutdownReasonWriteSucceeds'];
   setupNoLocks: ReturnType<typeof lockReleaseLayerBrokerProxy>['setupNoLocks'];
   setupBootLockStale: ReturnType<typeof lockReleaseLayerBrokerProxy>['setupBootLockStale'];
   getReleasedRegistry: ReturnType<typeof staleReapLayerBrokerProxy>['getReleasedRegistry'];
@@ -31,8 +36,9 @@ export const cleanupRunBrokerProxy = (): {
 
   return {
     setupRegistry: reapProxy.setupRegistry,
-    setupDriverUnreachable: reapProxy.setupDriverUnreachable,
-    setupDriverUnreachableNoHeartbeat: reapProxy.setupDriverUnreachableNoHeartbeat,
+    setupDriverUnreachableReapsLivePgids: reapProxy.setupDriverUnreachableReapsLivePgids,
+    setupDriverUnreachableNoPgids: reapProxy.setupDriverUnreachableNoPgids,
+    setupShutdownReasonWriteSucceeds: reapProxy.setupShutdownReasonWriteSucceeds,
     setupNoLocks: lockProxy.setupNoLocks,
     setupBootLockStale: lockProxy.setupBootLockStale,
     getReleasedRegistry: reapProxy.getReleasedRegistry,

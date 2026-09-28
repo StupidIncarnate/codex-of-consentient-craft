@@ -364,15 +364,17 @@ describe('ChatReplayResponder', () => {
       // staging an answer for it here, that mock throws unmatched-call, the responder's
       // catch swallows it silently, and no chat-output frame ever fires.
       proxy.setupQuestWorktree({ questId: quest.id, worktreePath });
-      // homeDir MUST be '/home/user' here, matching guildConfigReadBrokerProxy's own internal
-      // default: setupGuild's guildProxy.setupConfig() unconditionally stages an os.homedir()
-      // answer even though guildGetBroker is never actually invoked on this (worktree) branch —
-      // a phantom entry that would otherwise sit ahead of ours in the shared one-shot queue and
-      // get picked up by chatHistoryReplayBroker's own (real) os.homedir() call instead.
+      // homeDir MUST match setupQuestsPath's own '/home/testuser' above: `homedir()` is now ONE
+      // shared gateway mock (`#gateway/node/os`) across the whole call chain — questListBroker's
+      // own dungeonmasterHomeFindBroker() resolution and chatHistoryReplayBroker's own
+      // `~/.claude/projects/` resolution read the identical staged answer, exactly as a real
+      // machine has exactly one home directory. A mismatched value here starves whichever call
+      // loses the race for the "most recent" stage, throws unmatched, and the responder's own
+      // catch swallows it silently — no chat-output frame ever fires.
       proxy.setupGuild({
         config: GuildConfigStub({ guilds: [guild] }),
         sessionId,
-        homeDir: '/home/user',
+        homeDir: '/home/testuser',
       });
       proxy.setupMainSession({
         content:
@@ -663,15 +665,17 @@ describe('ChatReplayResponder', () => {
       });
 
       proxy.setupQuestWorktree({ questId: quest.id, worktreePath });
-      // homeDir MUST be '/home/user' here, matching guildConfigReadBrokerProxy's own internal
-      // default: setupGuild's guildProxy.setupConfig() unconditionally stages an os.homedir()
-      // answer even though guildGetBroker is never actually invoked on this (worktree) branch —
-      // a phantom entry that would otherwise sit ahead of ours in the shared one-shot queue and
-      // get picked up by chatHistoryReplayBroker's own (real) os.homedir() call instead.
+      // homeDir MUST match setupQuestsPath's own '/home/testuser' above: `homedir()` is now ONE
+      // shared gateway mock (`#gateway/node/os`) across the whole call chain — questListBroker's
+      // own dungeonmasterHomeFindBroker() resolution and chatHistoryReplayBroker's own
+      // `~/.claude/projects/` resolution read the identical staged answer, exactly as a real
+      // machine has exactly one home directory. A mismatched value here starves whichever call
+      // loses the race for the "most recent" stage, throws unmatched, and the responder's own
+      // catch swallows it silently — no chat-output frame ever fires.
       proxy.setupGuild({
         config: GuildConfigStub({ guilds: [guild] }),
         sessionId,
-        homeDir: '/home/user',
+        homeDir: '/home/testuser',
       });
       // fsReadJsonlAdapterProxy addresses by the exact worktree-derived path — if the responder
       // stopped spreading questId into the chatHistoryReplayBroker call, the broker would fall

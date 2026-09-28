@@ -40,6 +40,7 @@ export const commandRunBrokerProxy = (): {
   setupUncommittedWithOnlyDeletedFile: () => void;
   setupExistingPath: ({ filePath }: { filePath: FilePath }) => void;
   setupMissingPath: ({ filePath }: { filePath: FilePath }) => void;
+  setupCompanionTestMissing: (params: { relativePath: string }) => void;
   setupMultiPackagePass: (params: { packageCount: number; subResultContent: string }) => void;
   setupMultiPackageOnlyTests: (params: { matches: TestNamePatternMatch[] }) => void;
   setupPlatformCrossingViolation: (params: { violation: PlatformCrossingViolation }) => void;
@@ -73,6 +74,20 @@ export const commandRunBrokerProxy = (): {
   // are staged together; see platformDedupeCheckLayerBrokerProxy's own comment for why).
   const rootPathForPlatformDedupe = AbsoluteFilePathStub({ value: '/project' });
   platformDedupeProxy.setupClean({ rootPath: rootPathForPlatformDedupe });
+
+  // `checkRunUnitBroker`'s own companion check tries EVERY extension in
+  // `tsExtensionsStatics.allExtensions` before giving up, so declaring a source file's colocated
+  // test absent means staging all four — a `.some()` that finds only three staged throws on the
+  // fourth instead of returning false.
+  const stageNoUnitCompanion = ({ relativePath }: { relativePath: string }): void => {
+    const base = relativePath.slice(0, relativePath.lastIndexOf('.'));
+    for (const ext of ['ts', 'tsx', 'js', 'jsx']) {
+      singleProxy.setupUnitCompanionTestMissing({
+        projectFolder: singlePackageProjectFolder,
+        relativePath: `${base}.test.${ext}`,
+      });
+    }
+  };
 
   return {
     setupSinglePackagePass: (): void => {
@@ -119,6 +134,7 @@ export const commandRunBrokerProxy = (): {
       pathCheckProxy.setupExistingPath({
         filePath: filePathContract.parse('/project/src/index.ts'),
       });
+      stageNoUnitCompanion({ relativePath: 'src/index.ts' });
     },
     // The tracked half names one file still on disk and one this branch's commits touched but a
     // later, uncommitted `rm` removed — the shape `--committed` produces for a file it can only see
@@ -134,6 +150,7 @@ export const commandRunBrokerProxy = (): {
       pathCheckProxy.setupMissingPath({
         filePath: filePathContract.parse('/project/src/gone.ts'),
       });
+      stageNoUnitCompanion({ relativePath: 'src/index.ts' });
     },
     setupUncommittedWithOnlyDeletedFile: (): void => {
       gitScopeProxy.setupUncommittedFiles({ trackedOutput: 'src/gone.ts\n', untrackedOutput: '' });
@@ -148,6 +165,12 @@ export const commandRunBrokerProxy = (): {
     },
     setupMissingPath: ({ filePath }: { filePath: FilePath }): void => {
       pathCheckProxy.setupMissingPath({ filePath });
+    },
+    // Declares NO colocated unit test for a passthrough source file, project-relative
+    // (`relativePath` is the SOURCE file, e.g. `'src/index.ts'` — every `.test.<ext>` candidate
+    // gets staged absent, not just one).
+    setupCompanionTestMissing: ({ relativePath }: { relativePath: string }): void => {
+      stageNoUnitCompanion({ relativePath });
     },
     setupMultiPackagePass: ({
       packageCount,

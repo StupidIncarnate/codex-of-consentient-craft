@@ -14,7 +14,7 @@
  * // Resolves the browserless LaneSpec built from this repo's own devServer.e2e.processes
  */
 
-import { processCwdAdapter } from '@dungeonmaster/shared/adapters';
+import { cwd } from '#gateway/node/process';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics, locationsStatics } from '@dungeonmaster/shared/statics';
 import { configResolveBroker, e2eProcessPlaceholderStatics } from '@dungeonmaster/config';
@@ -47,11 +47,10 @@ export const laneSpecFindBroker = async ({
   // The config-find chain dirname()s startPath on its first iteration — it expects a FILE, so hand
   // it the repo-root config file itself (<cwd>/.dungeonmaster.json), NOT the bare cwd directory: a
   // bare directory dirname()s to cwd's PARENT, walking above the repo root and missing the config.
-  // Built by template concatenation, never `pathJoinAdapter`: that adapter's own mock is a single
-  // call-ordered queue several OTHER proxies in this package already share for their own path
-  // joins, and one more consumer of it steals a slot staged for a caller that runs later.
+  // Built by template concatenation, never `join`: joining is unneeded when only one segment is
+  // ever appended onto a value already known to be a directory.
   const startPath = filePathContract.parse(
-    `${processCwdAdapter()}/${dungeonmasterHomeStatics.paths.projectConfigFile}`,
+    `${cwd()}/${dungeonmasterHomeStatics.paths.projectConfigFile}`,
   );
   const config = await configResolveBroker({ filePath: startPath });
   const configuredProcesses = config.devServer?.e2e?.processes;

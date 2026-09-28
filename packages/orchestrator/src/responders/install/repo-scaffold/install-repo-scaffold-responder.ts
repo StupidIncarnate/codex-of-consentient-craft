@@ -12,7 +12,6 @@
  * // Creates worktrees/ if absent and appends whichever ignore lines are still missing
  */
 
-import { fsMkdirAdapter, pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import {
   type InstallContext,
   type InstallResult,
@@ -22,6 +21,8 @@ import {
   packageNameContract,
 } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
+import { ensureDir } from '#gateway/node/fs__promises';
+import { join } from '#gateway/node/path';
 import { fsIsAccessibleAdapter } from '../../../adapters/fs/is-accessible/fs-is-accessible-adapter';
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
@@ -42,17 +43,13 @@ export const InstallRepoScaffoldResponder = async ({
   context: InstallContext;
 }): Promise<InstallResult> => {
   const worktreesDir = filePathContract.parse(
-    pathJoinAdapter({
-      paths: [context.targetProjectRoot, locationsStatics.repoRoot.worktreesDir],
-    }),
+    join(context.targetProjectRoot, locationsStatics.repoRoot.worktreesDir),
   );
-  const gitignorePath = filePathContract.parse(
-    pathJoinAdapter({ paths: [context.targetProjectRoot, GITIGNORE_FILENAME] }),
-  );
+  const gitignorePath = filePathContract.parse(join(context.targetProjectRoot, GITIGNORE_FILENAME));
 
   const dirPresent = await fsIsAccessibleAdapter({ filePath: worktreesDir });
   if (!dirPresent) {
-    await fsMkdirAdapter({ filepath: worktreesDir });
+    await ensureDir(worktreesDir);
   }
 
   const gitignorePresent = await fsIsAccessibleAdapter({ filePath: gitignorePath });

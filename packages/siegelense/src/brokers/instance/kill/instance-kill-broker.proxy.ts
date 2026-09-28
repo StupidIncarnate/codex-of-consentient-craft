@@ -1,40 +1,38 @@
 import { existsSync } from 'fs';
 import { access, readFile, realpath, rename, unlink, writeFile } from 'fs/promises';
 import { createConnection } from 'net';
-import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { join } from '#gateway/node/path';
+import { registerMock, registerSpyOn, requireActual } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';
-import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
 import { AbsoluteFilePathStub, FilePathStub } from '@dungeonmaster/shared/contracts';
 
-import { errorIsNativeErrorAdapterProxy } from '../../../adapters/error/is-native-error/error-is-native-error-adapter.proxy';
 import { registryReadBrokerProxy } from '../../registry/read/registry-read-broker.proxy';
 import { instanceReleaseBrokerProxy } from '../release/instance-release-broker.proxy';
 import { locationsInstanceEvidencePathFindBrokerProxy } from '../../locations/instance-evidence-path-find/locations-instance-evidence-path-find-broker.proxy';
 import { locationsRepoLinkPathFindBrokerProxy } from '../../locations/repo-link-path-find/locations-repo-link-path-find-broker.proxy';
 import { locationsSocketPathFindBrokerProxy } from '../../locations/socket-path-find/locations-socket-path-find-broker.proxy';
 import { netUnixRequestAdapterProxy } from '../../../adapters/net/unix-request/net-unix-request-adapter.proxy';
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { fsRmAdapterProxy } from '../../../adapters/fs/rm/fs-rm-adapter.proxy';
 import { osTmpdirAdapterProxy } from '../../../adapters/os/tmpdir/os-tmpdir-adapter.proxy';
 import { processIsAliveAdapterProxy } from '../../../adapters/process/is-alive/process-is-alive-adapter.proxy';
 import { processKillGroupAdapterProxy } from '../../../adapters/process/kill-group/process-kill-group-adapter.proxy';
 import { DriverResponseStub } from '../../../contracts/driver-response/driver-response.stub';
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
-import type { InstanceHeartbeatStub } from '../../../contracts/instance-heartbeat/instance-heartbeat.stub';
+import { KillResultStub } from '../../../contracts/kill-result/kill-result.stub';
 import type { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
 import { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
 import type { RegistryStub } from '../../../contracts/registry/registry.stub';
+import { shutdownReasonWriteBrokerProxy } from '../../shutdown-reason/write/shutdown-reason-write-broker.proxy';
 import { driverStatics } from '../../../statics/driver/driver-statics';
 
 type Registry = ReturnType<typeof RegistryStub>;
-type InstanceHeartbeat = ReturnType<typeof InstanceHeartbeatStub>;
 type ProcessGroupId = ReturnType<typeof ProcessGroupIdStub>;
 
 // Same convention as instance-start-broker.proxy.ts: every path here is REAL `path.join` output
-// off a sticky os.tmpdir() / processCwdAdapter() override, never a one-shot
-// `pathJoinAdapter.returns()` — see that file's header comment for why a shared one-shot queue
-// across unrelated resolvers is unsafe. The home itself is staged through
-// dungeonmasterHomeFindBrokerProxy (an addressed homedir()/join() pair), not a sticky override.
+// off a sticky os.tmpdir() override, resolved through `#gateway/node/path`'s own `join` mock's
+// sticky real-passthrough default — never a one-shot stage, which a shared queue across unrelated
+// resolvers cannot guarantee. The home itself is staged through dungeonmasterHomeFindBrokerProxy
+// (an addressed homedir()/join() pair), not a sticky override.
 const HOME_DIR_VALUE = '/home/user';
 const HOME_PATH_VALUE = `${HOME_DIR_VALUE}/.dungeonmaster`;
 const HOME_PATH = FilePathStub({ value: HOME_PATH_VALUE });
@@ -55,22 +53,34 @@ const LINK_PATH_FILE = FilePathStub({ value: LINK_PATH_VALUE });
 
 export const instanceKillBrokerProxy = (): {
   setupRegistry: (params: { registry: Registry }) => void;
-  setupDriverStops: (params: { socketPath: ReturnType<typeof AbsoluteFilePathStub> }) => void;
-  setupDriverUnreachable: (params: {
+  setupDriverStops: (params: {
     socketPath: ReturnType<typeof AbsoluteFilePathStub>;
-    heartbeatPath: ReturnType<typeof AbsoluteFilePathStub>;
-    heartbeat: InstanceHeartbeat;
+    killed?: readonly ProcessGroupId[];
+  }) => void;
+  setupDriverStopsWithMalformedPayload: (params: {
+    socketPath: ReturnType<typeof AbsoluteFilePathStub>;
+  }) => void;
+  setupDriverUnreachableReapsLivePgids: (params: {
+    socketPath: ReturnType<typeof AbsoluteFilePathStub>;
+    pgids: readonly ProcessGroupId[];
     homePath: ReturnType<typeof AbsoluteFilePathStub>;
   }) => void;
-  setupDriverUnreachableNoHeartbeat: (params: {
+  setupDriverUnreachableNoPgids: (params: {
     socketPath: ReturnType<typeof AbsoluteFilePathStub>;
-    heartbeatPath: ReturnType<typeof AbsoluteFilePathStub>;
     homePath: ReturnType<typeof AbsoluteFilePathStub>;
   }) => void;
-  setupDriverUnreachableHeartbeatReadFails: (params: {
+  setupDriverUnreachableSomeAlreadyGone: (params: {
     socketPath: ReturnType<typeof AbsoluteFilePathStub>;
-    heartbeatPath: ReturnType<typeof AbsoluteFilePathStub>;
+    livePgids: readonly ProcessGroupId[];
+    alreadyGonePgids: readonly ProcessGroupId[];
+    homePath: ReturnType<typeof AbsoluteFilePathStub>;
   }) => void;
+  setupShutdownReasonWriteSucceeds: (params: {
+    evidencePath: ReturnType<typeof AbsoluteFilePathStub>;
+  }) => void;
+  getWrittenShutdownReason: (params: {
+    evidencePath: ReturnType<typeof AbsoluteFilePathStub>;
+  }) => unknown;
   getRemovedPaths: () => unknown[];
   getKillGroupCallsFor: (params: { pgid: ProcessGroupId }) => unknown[];
   getReleasedRegistry: () => unknown;
@@ -78,7 +88,6 @@ export const instanceKillBrokerProxy = (): {
     socketPath: ReturnType<typeof AbsoluteFilePathStub>;
   }) => ReturnType<typeof ReadingCountStub>;
 } => {
-  errorIsNativeErrorAdapterProxy();
   registryReadBrokerProxy();
   locationsInstanceEvidencePathFindBrokerProxy();
   // Captured (not composed bare) so its own setupHomeOnly can stage the addressed home without
@@ -91,16 +100,20 @@ export const instanceKillBrokerProxy = (): {
   repoLinkProxy.setupCwd({ cwdPath: CWD_PATH_VALUE });
   locationsSocketPathFindBrokerProxy();
   const releaseProxy = instanceReleaseBrokerProxy();
+  const shutdownReasonProxy = shutdownReasonWriteBrokerProxy();
   const socketProxy = netUnixRequestAdapterProxy();
-  fsReadFileAdapterProxy();
   const rmProxy = fsRmAdapterProxy();
   const tmpdirProxy = osTmpdirAdapterProxy();
   const killGroupProxy = processKillGroupAdapterProxy();
   const isAliveProxy = processIsAliveAdapterProxy();
-  // Not composed as processCwdAdapterProxy/cwdResolveBrokerProxy: this implementation never
-  // imports either directly — locationsRepoLinkPathFindBroker uses them transitively, so the
-  // underlying node primitives are mocked here instead, same as os.tmpdir() below.
-  pathJoinAdapterProxy();
+  // #gateway/node/path is a raw passthrough of the Node 'path' module (no per-function wrapper, so
+  // no gateway proxy to compose) — mocked directly here, on the same '#gateway/node/path' specifier
+  // the broker imports. The one join this broker makes (the throwaway home) needs no substitution
+  // to compute its real value, so only the sticky real-passthrough default is installed.
+  const realPath = requireActual<{ join: typeof join }>({ module: 'path' });
+  registerMock({ fn: join })
+    .calledWith([])
+    .implement((...segments: never[]) => realPath.join(...segments));
   const connectionHandle: MockHandle = registerMock({ fn: createConnection });
 
   const existsHandle: MockHandle = registerMock({ fn: existsSync });
@@ -148,73 +161,130 @@ export const instanceKillBrokerProxy = (): {
       readHandle.calledWith([REGISTRY_PATH_ABS]).resolves(JSON.stringify(registry));
     },
 
+    // The response payload is a real JSON-encoded KillResult, matching what `laneTeardownBroker`'s
+    // own return actually looks like once the driver processes a `kill` request for real — `killed`
+    // defaults to `[]` (nothing the driver's teardown SIGTERM'd/SIGKILL'd), matching a headless or
+    // already-quiet lane.
     setupDriverStops: ({
       socketPath,
+      killed,
+    }: {
+      socketPath: ReturnType<typeof AbsoluteFilePathStub>;
+      killed?: readonly ProcessGroupId[];
+    }): void => {
+      socketProxy.respondsWith({
+        socketPath,
+        response: DriverResponseStub({
+          ok: true,
+          payload: JSON.stringify(
+            KillResultStub({ reapedPgids: [], killed: killed === undefined ? [] : [...killed] }),
+          ),
+        }),
+      });
+    },
+
+    // A payload that fails `killResultContract.parse` — this instance's own driver answered but
+    // never carries any `killed`/pgid information a caller can trust, so the kill still succeeds and
+    // reports nothing stopped rather than throwing over a shape mismatch.
+    setupDriverStopsWithMalformedPayload: ({
+      socketPath,
     }: {
       socketPath: ReturnType<typeof AbsoluteFilePathStub>;
     }): void => {
-      socketProxy.respondsWith({ socketPath, response: DriverResponseStub({ ok: true }) });
+      socketProxy.respondsWith({
+        socketPath,
+        response: DriverResponseStub({ ok: true, payload: 'not json' }),
+      });
     },
 
-    setupDriverUnreachable: ({
+    // The registry row (staged via setupRegistry, `entry.pgids`) names the candidates — never a
+    // separate heartbeat file, which this broker no longer reads at all. Every named pgid answers
+    // ALIVE at both the pre-SIGTERM and pre-SIGKILL checks, so both signals reach it.
+    setupDriverUnreachableReapsLivePgids: ({
       socketPath,
-      heartbeatPath,
-      heartbeat,
+      pgids,
       homePath,
     }: {
       socketPath: ReturnType<typeof AbsoluteFilePathStub>;
-      heartbeatPath: ReturnType<typeof AbsoluteFilePathStub>;
-      heartbeat: InstanceHeartbeat;
+      pgids: readonly ProcessGroupId[];
       homePath: ReturnType<typeof AbsoluteFilePathStub>;
     }): void => {
       socketProxy.connectFails({
         socketPath,
         error: Object.assign(new Error('connect ECONNREFUSED'), { code: 'ECONNREFUSED' }),
       });
-      readHandle.calledWith([heartbeatPath]).resolves(JSON.stringify(heartbeat));
-      heartbeat.pgids.forEach((pgid) => {
+      pgids.forEach((pgid) => {
+        isAliveProxy.setupAlive({ pgid });
         killGroupProxy.setupSent({ pgid, signal: 'SIGTERM' });
+        killGroupProxy.setupSent({ pgid, signal: 'SIGKILL' });
+      });
+      rmProxy.succeeds({ dirPath: homePath });
+    },
+
+    // A mix: some of the registry row's recorded pgids answer gone at the very first probe (a prior
+    // kill already stopped them, or the OS reclaimed the group on its own) and are never signalled at
+    // all; the rest answer alive throughout and get the full SIGTERM/SIGKILL escalation.
+    setupDriverUnreachableSomeAlreadyGone: ({
+      socketPath,
+      livePgids,
+      alreadyGonePgids,
+      homePath,
+    }: {
+      socketPath: ReturnType<typeof AbsoluteFilePathStub>;
+      livePgids: readonly ProcessGroupId[];
+      alreadyGonePgids: readonly ProcessGroupId[];
+      homePath: ReturnType<typeof AbsoluteFilePathStub>;
+    }): void => {
+      socketProxy.connectFails({
+        socketPath,
+        error: Object.assign(new Error('connect ECONNREFUSED'), { code: 'ECONNREFUSED' }),
+      });
+      alreadyGonePgids.forEach((pgid) => {
         isAliveProxy.setupGone({ pgid });
       });
+      livePgids.forEach((pgid) => {
+        isAliveProxy.setupAlive({ pgid });
+        killGroupProxy.setupSent({ pgid, signal: 'SIGTERM' });
+        killGroupProxy.setupSent({ pgid, signal: 'SIGKILL' });
+      });
       rmProxy.succeeds({ dirPath: homePath });
     },
 
-    setupDriverUnreachableNoHeartbeat: ({
+    // The registry row names no pgids at all (a fresh reservation, or one already cleared by a
+    // prior release) — nothing to probe, nothing to signal.
+    setupDriverUnreachableNoPgids: ({
       socketPath,
-      heartbeatPath,
       homePath,
     }: {
       socketPath: ReturnType<typeof AbsoluteFilePathStub>;
-      heartbeatPath: ReturnType<typeof AbsoluteFilePathStub>;
       homePath: ReturnType<typeof AbsoluteFilePathStub>;
     }): void => {
       socketProxy.connectFails({
         socketPath,
         error: Object.assign(new Error('connect ECONNREFUSED'), { code: 'ECONNREFUSED' }),
       });
-      readHandle
-        .calledWith([heartbeatPath])
-        .rejects(Object.assign(new Error('ENOENT: no such file or directory'), { code: 'ENOENT' }));
       rmProxy.succeeds({ dirPath: homePath });
     },
 
-    // This instance is itself mid-teardown, so EMFILE (file descriptor exhaustion) is the
-    // realistic non-absence code the heartbeat read can fail with. That failure must not be read
-    // as "no heartbeat was ever written" and skip straight to reaping nothing.
-    setupDriverUnreachableHeartbeatReadFails: ({
-      socketPath,
-      heartbeatPath,
+    // Delegates to shutdownReasonWriteBrokerProxy's own `writeFile` mock — the SAME shared mock
+    // `writeHandle` above already answers for the registry's own writes, addressed here by the
+    // shutdown-reason path instead. `nowMs` matches this proxy's own `Date.now` stub so re-staging
+    // it through `setupWriteSucceeds` is a no-op collision, not a silent override.
+    setupShutdownReasonWriteSucceeds: ({
+      evidencePath,
     }: {
-      socketPath: ReturnType<typeof AbsoluteFilePathStub>;
-      heartbeatPath: ReturnType<typeof AbsoluteFilePathStub>;
+      evidencePath: ReturnType<typeof AbsoluteFilePathStub>;
     }): void => {
-      socketProxy.connectFails({
-        socketPath,
-        error: Object.assign(new Error('connect ECONNREFUSED'), { code: 'ECONNREFUSED' }),
-      });
-      readHandle
-        .calledWith([heartbeatPath])
-        .rejects(Object.assign(new Error('EMFILE: too many open files'), { code: 'EMFILE' }));
+      shutdownReasonProxy.setupWriteSucceeds({ evidencePath, nowMs: EpochMsStub().valueOf() });
+    },
+
+    getWrittenShutdownReason: ({
+      evidencePath,
+    }: {
+      evidencePath: ReturnType<typeof AbsoluteFilePathStub>;
+    }): unknown => {
+      const written = shutdownReasonProxy.getWrittenMarkerContent({ evidencePath });
+      return typeof written === 'string' ? JSON.parse(written) : null;
     },
 
     getRemovedPaths: (): unknown[] => rmProxy.getRemovedPaths(),

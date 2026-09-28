@@ -3,6 +3,7 @@ import type { QuestStub } from '@dungeonmaster/shared/contracts';
 import type {
   AbsoluteFilePath,
   FileContents,
+  FilePath,
   GuildId,
   OrchestrationEventType,
   ProcessId,
@@ -10,10 +11,10 @@ import type {
 } from '@dungeonmaster/shared/contracts';
 
 import {
-  pathJoinAdapterProxy,
   portResolveBrokerProxy,
   locationsWardResultsPathFindBrokerProxy,
 } from '@dungeonmaster/shared/testing';
+import { join } from '#gateway/node/path';
 import {
   StartOrchestrator,
   questFindQuestPathBroker,
@@ -42,12 +43,12 @@ type EventHandler = (args: { processId: ProcessId; payload: Record<string, unkno
 // DIRECTLY here rather than through their own proxy's real-broker-execution scenarios
 // (setupWatchStarted / setupQuestPath). This responder ALSO composes webBundleResponseBrokerProxy,
 // and every one of these real executions drives the SAME shared, globally-keyed mocks —
-// dungeonmasterHomeFindBrokerProxy's sticky (non-addressed) `os.homedir()` stage and
-// pathJoinAdapterProxy's FIFO one-shot queue — with no way to scope a stage to one caller.
+// dungeonmasterHomeFindBrokerProxy's sticky (non-addressed) `os.homedir()` stage and a shared,
+// address-keyed `join` mock (`#gateway/node/path`) — with no way to scope a stage to one caller.
 // Composing any of the real executions here (confirmed for both) corrupts that shared state for
 // whichever OTHER real execution runs in the same test: questFindQuestPathBroker computed a
 // guildsDir with a stray segment and threw QuestNotFoundError even though setupQuestPath had
-// staged a real match, and questOutboxWatchBroker's own pathJoinAdapter call made
+// staged a real match, and questOutboxWatchBroker's own path-join call made
 // webBundleResponseBroker's web-bundle-serving tests 500. A direct, argument-addressed
 // registerMock for each sidesteps the shared queue entirely.
 type OutboxWatchParams = Parameters<typeof questOutboxWatchBroker>[0];
@@ -58,7 +59,7 @@ export const ServerInitResponderProxy = (): {
   callResponder: (params?: { serveWebBundle?: boolean }) => void;
   dispatchRequest: (params: { url: string; method?: string }) => Promise<Response>;
   setServerPort: (params: { value: string }) => void;
-  setupWebBundleFile: (params: { contents: FileContents }) => void;
+  setupWebBundleFile: (params: { contents: FileContents; expectedRelativePath: string }) => void;
   simulateConnection: (params: { client: WsClient }) => void;
   simulateMessage: (params: { data: string; ws: WsClient }) => void;
   simulateDisconnect: (params: { ws: WsClient }) => void;
@@ -89,6 +90,15 @@ export const ServerInitResponderProxy = (): {
     questId: QuestId;
     questPath: AbsoluteFilePath;
     guildId: GuildId;
+  }) => void;
+  setupWardDetailSuccess: (params: {
+    questId: QuestId;
+    questPath: AbsoluteFilePath;
+    guildId: GuildId;
+    wardResultId: string;
+    wardResultsPath: FilePath;
+    detailFilePath: FilePath;
+    contents: FileContents;
   }) => void;
 } => {
   const dateSpy = registerSpyOn({
@@ -121,9 +131,14 @@ export const ServerInitResponderProxy = (): {
   questFindQuestPathBrokerProxy();
   questOutboxWatchBrokerProxy();
   const devLogProxy = processDevLogAdapterProxy();
-  pathJoinAdapterProxy();
-  locationsWardResultsPathFindBrokerProxy();
-  fsReadFileAdapterProxy();
+  const wardResultsPathProxy = locationsWardResultsPathFindBrokerProxy();
+  const readFileProxy = fsReadFileAdapterProxy();
+  // #gateway/node/path is a raw passthrough of the Node 'path' module (no per-function wrapper,
+  // so no gateway proxy to compose) — mocked directly here, on the same '#gateway/node/path'
+  // specifier server-init-responder.ts imports. Addressed by the exact tuple the ward-detail-request
+  // handler joins: the ward-results directory (staged separately via wardResultsPathProxy, on this
+  // SAME shared join handle) plus `${wardResultId}.json`.
+  const joinHandle = registerMock({ fn: join });
   wsEventRelayBroadcastBrokerProxy();
   questWaitForSessionStampBrokerProxy();
   const webBundleProxy = webBundleResponseBrokerProxy();
@@ -159,8 +174,14 @@ export const ServerInitResponderProxy = (): {
       process.removeAllListeners('SIGINT');
       ServerInitResponder({ app: new Hono(), serveWebBundle });
     },
-    setupWebBundleFile: ({ contents }: { contents: FileContents }): void => {
-      webBundleProxy.setupFileContents({ contents });
+    setupWebBundleFile: ({
+      contents,
+      expectedRelativePath,
+    }: {
+      contents: FileContents;
+      expectedRelativePath: string;
+    }): void => {
+      webBundleProxy.setupFileContents({ contents, expectedRelativePath });
     },
     dispatchRequest: async ({
       url,
@@ -237,6 +258,28 @@ export const ServerInitResponderProxy = (): {
       guildId: GuildId;
     }): void => {
       findQuestPathHandle.calledWith([{ questId }]).resolves({ questPath, guildId });
+    },
+    setupWardDetailSuccess: ({
+      questId,
+      questPath,
+      guildId,
+      wardResultId,
+      wardResultsPath,
+      detailFilePath,
+      contents,
+    }: {
+      questId: QuestId;
+      questPath: AbsoluteFilePath;
+      guildId: GuildId;
+      wardResultId: string;
+      wardResultsPath: FilePath;
+      detailFilePath: FilePath;
+      contents: FileContents;
+    }): void => {
+      findQuestPathHandle.calledWith([{ questId }]).resolves({ questPath, guildId });
+      wardResultsPathProxy.setupWardResultsPath({ questFolderPath: questPath, wardResultsPath });
+      joinHandle.calledWith([wardResultsPath, `${wardResultId}.json`]).returns(detailFilePath);
+      readFileProxy.returns({ filepath: detailFilePath, contents });
     },
   };
 };

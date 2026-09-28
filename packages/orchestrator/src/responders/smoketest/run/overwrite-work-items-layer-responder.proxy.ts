@@ -4,7 +4,6 @@
  * the file-system chain. The responder's own test calls setupPassthrough.
  */
 
-import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
 import {
   FileContentsStub,
   FileNameStub,
@@ -12,7 +11,13 @@ import {
   GuildIdStub,
   type QuestStub,
 } from '@dungeonmaster/shared/contracts';
-import { registerModuleMock, requireActual } from '@dungeonmaster/testing/register-mock';
+import { locationsStatics } from '@dungeonmaster/shared/statics';
+import {
+  registerMock,
+  registerModuleMock,
+  requireActual,
+} from '@dungeonmaster/testing/register-mock';
+import { join } from '#gateway/node/path';
 
 import { questFindQuestPathBrokerProxy } from '../../../brokers/quest/find-quest-path/quest-find-quest-path-broker.proxy';
 import { questLoadBrokerProxy } from '../../../brokers/quest/load/quest-load-broker.proxy';
@@ -34,7 +39,7 @@ export const OverwriteWorkItemsLayerResponderProxy = (): {
   getAllPersistedContents: () => readonly unknown[];
   getCallArgs: () => readonly unknown[][];
 } => {
-  const pathJoinProxy = pathJoinAdapterProxy();
+  const joinHandle = registerMock({ fn: join });
   const findQuestPathProxy = questFindQuestPathBrokerProxy();
   const loadProxy = questLoadBrokerProxy();
   const persistProxy = questPersistBrokerProxy();
@@ -98,7 +103,9 @@ export const OverwriteWorkItemsLayerResponderProxy = (): {
         ],
       });
 
-      pathJoinProxy.returns({ result: questFilePath });
+      joinHandle
+        .calledWith([questFolderPath, locationsStatics.quest.questFile])
+        .returns(questFilePath);
       loadProxy.setupQuestFile({ questJson: JSON.stringify(quest) });
       persistProxy.setupPersist({
         questFilePath,
@@ -140,7 +147,9 @@ export const OverwriteWorkItemsLayerResponderProxy = (): {
         ],
       });
 
-      pathJoinProxy.returns({ result: questFilePath });
+      joinHandle
+        .calledWith([questFolderPath, locationsStatics.quest.questFile])
+        .returns(questFilePath);
       loadProxy.setupQuestFile({ questJson: JSON.stringify(quest) });
       // Reject write without stubbing the success path — the write failure must propagate.
       persistProxy.setupWriteFailure({ questFilePath, error });

@@ -7,10 +7,10 @@ type ListProxy = ReturnType<typeof guildListBrokerProxy>;
 type SetupParams = Parameters<ListProxy['setupGuildList']>[0];
 type QuestDirEntries = SetupParams['guildEntries'][0]['questDirEntries'];
 
-const createMockDirent = ({ isDir }: { isDir: boolean }): QuestDirEntries[0] =>
-  ({
-    isDirectory: jest.fn().mockReturnValue(isDir),
-  }) as never;
+const createMockDirEntry = ({ isDir }: { isDir: boolean }): QuestDirEntries[0] => ({
+  name: 'entry',
+  kind: isDir ? 'directory' : 'file',
+});
 
 describe('guildListBroker', () => {
   describe('successful list', () => {
@@ -35,7 +35,10 @@ describe('guildListBroker', () => {
           {
             accessible: true,
             questsDirPath,
-            questDirEntries: [createMockDirent({ isDir: true }), createMockDirent({ isDir: true })],
+            questDirEntries: [
+              createMockDirEntry({ isDir: true }),
+              createMockDirEntry({ isDir: true }),
+            ],
           },
         ],
       });
@@ -128,15 +131,15 @@ describe('guildListBroker', () => {
           {
             accessible: true,
             questsDirPath: questsDirPath1,
-            questDirEntries: [createMockDirent({ isDir: true })],
+            questDirEntries: [createMockDirEntry({ isDir: true })],
           },
           {
             accessible: true,
             questsDirPath: questsDirPath2,
             questDirEntries: [
-              createMockDirent({ isDir: true }),
-              createMockDirent({ isDir: true }),
-              createMockDirent({ isDir: true }),
+              createMockDirEntry({ isDir: true }),
+              createMockDirEntry({ isDir: true }),
+              createMockDirEntry({ isDir: true }),
             ],
           },
         ],
@@ -190,9 +193,9 @@ describe('guildListBroker', () => {
             accessible: true,
             questsDirPath,
             questDirEntries: [
-              createMockDirent({ isDir: true }),
-              createMockDirent({ isDir: false }),
-              createMockDirent({ isDir: true }),
+              createMockDirEntry({ isDir: true }),
+              createMockDirEntry({ isDir: false }),
+              createMockDirEntry({ isDir: true }),
             ],
           },
         ],

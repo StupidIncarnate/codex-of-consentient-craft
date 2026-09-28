@@ -3,9 +3,9 @@ import * as path from 'path';
 import { readFileSync } from 'fs';
 import { defineConfig, devices } from '@playwright/test';
 import { environmentStatics, locationsStatics } from '@dungeonmaster/shared/statics';
-import { osUserHomedirAdapter } from '@dungeonmaster/shared/adapters';
 import { contentTextContract, networkPortContract } from '@dungeonmaster/shared/contracts';
 import type { ContentText, NetworkPort } from '@dungeonmaster/shared/contracts';
+import { homedir } from '#gateway/node/os';
 import { e2eUnresolvableTokenStatics } from './src/statics/e2e-unresolvable-token/e2e-unresolvable-token-statics';
 
 // CI keeps one retry to absorb shared-runner infrastructure noise.
@@ -21,7 +21,7 @@ const WEB_PORT = Number(process.env.DUNGEONMASTER_WEB_PORT) || TEST_PORT + 1;
 const TEST_HOME = process.env.E2E_TEST_HOME ?? path.join(os.tmpdir(), `dm-e2e-${process.pid}`);
 const FAKE_CLAUDE_QUEUE_DIR = path.join(TEST_HOME, locationsStatics.siegelense.claudeQueueDir);
 const FAKE_WARD_QUEUE_DIR = path.join(TEST_HOME, locationsStatics.siegelense.wardQueueDir);
-const REAL_HOME = osUserHomedirAdapter();
+const REAL_HOME = homedir();
 // Every configured process below spawns with this as its `cwd` — the same repo root a siegelense
 // lane always spawns from (`lane-boot-broker.ts`'s own `spawnCwd`), so a relative
 // `devServer.e2e.processes[].command`/`env` value in `.dungeonmaster.json` resolves identically

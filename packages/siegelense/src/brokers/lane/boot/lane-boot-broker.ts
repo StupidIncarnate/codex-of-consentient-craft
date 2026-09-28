@@ -33,7 +33,9 @@
  */
 
 import { cwdResolveBroker } from '@dungeonmaster/shared/brokers';
-import { fsMkdirAdapter, pathJoinAdapter, processCwdAdapter } from '@dungeonmaster/shared/adapters';
+import { join } from '#gateway/node/path';
+import { cwd } from '#gateway/node/process';
+import { ensureDir } from '#gateway/node/fs__promises';
 import { environmentStatics, locationsStatics } from '@dungeonmaster/shared/statics';
 import {
   absoluteFilePathContract,
@@ -87,21 +89,18 @@ export const laneBootBroker = async ({
       .map(([key, value]): [PropertyKey, ContentText] => [key, contentTextContract.parse(value)]),
   );
 
-  const cwdSeed = processCwdAdapter();
+  const cwdSeed = filePathContract.parse(cwd());
   const repoRoot = await cwdResolveBroker({ startPath: cwdSeed, kind: 'repo-root' });
   const spawnCwd = absoluteFilePathContract.parse(repoRoot);
 
-  await Promise.all([
-    fsMkdirAdapter({ filepath: filePathContract.parse(homePath) }),
-    fsMkdirAdapter({ filepath: filePathContract.parse(evidencePath) }),
-  ]);
+  await Promise.all([ensureDir(homePath), ensureDir(evidencePath)]);
 
   // Per-instance, and known nowhere else: both live inside homePath, which only this call mints.
   const claudeQueueDir = absoluteFilePathContract.parse(
-    pathJoinAdapter({ paths: [homePath, locationsStatics.siegelense.claudeQueueDir] }),
+    join(homePath, locationsStatics.siegelense.claudeQueueDir),
   );
   const wardQueueDir = absoluteFilePathContract.parse(
-    pathJoinAdapter({ paths: [homePath, locationsStatics.siegelense.wardQueueDir] }),
+    join(homePath, locationsStatics.siegelense.wardQueueDir),
   );
 
   // `{apiWorkspace}`/`{webWorkspace}` name a package by ROLE rather than by literal name — see
@@ -138,9 +137,7 @@ export const laneBootBroker = async ({
   });
 
   const booted = spec.processes.map((laneProcess) => {
-    const logPath = absoluteFilePathContract.parse(
-      pathJoinAdapter({ paths: [evidencePath, laneProcess.logFileName] }),
-    );
+    const logPath = absoluteFilePathContract.parse(join(evidencePath, laneProcess.logFileName));
     const fd = fsOpenFdAdapter({ filePath: logPath });
 
     const substitutedArgs = laneProcess.args.map((arg) =>

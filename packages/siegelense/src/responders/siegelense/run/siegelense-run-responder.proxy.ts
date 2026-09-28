@@ -1,12 +1,12 @@
 /**
  * PURPOSE: Test proxy for SiegelenseRunResponder — composes `fsReadFileAdapterProxy` (the
- * `--steps-file` disk read this responder owns) and `pathResolveAdapterProxy` (the path that read
- * resolves against), and mocks `registryReadBroker` / `instanceRunBroker` directly rather than
- * composing either broker's own child proxies' staging, matching `SiegelenseKillResponderProxy`'s
- * shape for the sibling command. All four's own `.proxy.ts` are constructed unconditionally to
- * satisfy `enforce-proxy-child-creation`; a test that never names `--steps-file` never calls
- * `readFile`, so leaving it unstaged is safe. `pathResolveAdapterProxy` keeps its own default real
- * passthrough, so an absolute `--steps-file` value still resolves to itself with no extra staging.
+ * `--steps-file` disk read this responder owns) and stages a real-passthrough `resolve` (the path
+ * that read resolves against), and mocks `registryReadBroker` / `instanceRunBroker` directly rather
+ * than composing either broker's own child proxies' staging, matching `SiegelenseKillResponderProxy`'s
+ * shape for the sibling command. All proxies are constructed unconditionally to satisfy
+ * `enforce-proxy-child-creation`; a test that never names `--steps-file` never calls `readFile`, so
+ * leaving it unstaged is safe. `resolve`'s real-passthrough default means an absolute `--steps-file`
+ * value still resolves to itself with no extra staging.
  *
  * USAGE:
  * const proxy = SiegelenseRunResponderProxy();
@@ -15,10 +15,10 @@
  * proxy.stageStepsFileContent({ filePath, content: '[{"step":"goto","path":"/"}]' });
  */
 
-import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { resolve } from '#gateway/node/path';
+import { registerMock, registerSpyOn, requireActual } from '@dungeonmaster/testing/register-mock';
 import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
-import { pathResolveAdapterProxy } from '@dungeonmaster/shared/testing';
 
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { instanceRunBroker } from '../../../brokers/instance/run/instance-run-broker';
@@ -44,7 +44,13 @@ export const SiegelenseRunResponderProxy = (): {
   // directly below, never through either's own setup methods.
   registryReadBrokerProxy();
   instanceRunBrokerProxy();
-  pathResolveAdapterProxy();
+  // #gateway/node/path re-exports `resolve` bare (no per-function proxy of its own, unlike
+  // fs/fs__promises/child_process) — mocked directly here, with the same sticky real-passthrough
+  // default instance-start-broker.proxy.ts's own `join` staging uses (A12 SL7).
+  const realPath = requireActual<{ resolve: typeof resolve }>({ module: 'path' });
+  registerMock({ fn: resolve })
+    .calledWith([])
+    .implement((...segments: never[]) => realPath.resolve(...segments));
   const readFileProxy = fsReadFileAdapterProxy();
 
   const registryReadHandle = registerMock({ fn: registryReadBroker });

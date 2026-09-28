@@ -23,11 +23,8 @@
  * CREATE an empty file at the wrong address and tail that forever.
  */
 
-import {
-  fsMkdirAdapter,
-  osUserHomedirAdapter,
-  pathDirnameAdapter,
-} from '@dungeonmaster/shared/adapters';
+import { ensureDir } from '#gateway/node/fs__promises';
+import { homedir } from '#gateway/node/os';
 import { claudeLineNormalizeBroker } from '@dungeonmaster/shared/brokers';
 import {
   absoluteFilePathContract,
@@ -63,7 +60,7 @@ export const chatSubagentTailBroker = async ({
   chatProcessId: ProcessId;
 }): Promise<{ stop: () => void; initialDrain: Promise<void> }> => {
   const projectPath = absoluteFilePathContract.parse(cwd);
-  const homeDir = osUserHomedirAdapter();
+  const homeDir = absoluteFilePathContract.parse(homedir());
 
   const jsonlPath = claudeProjectPathEncoderTransformer({
     homeDir,
@@ -71,8 +68,14 @@ export const chatSubagentTailBroker = async ({
     sessionId,
   });
 
+  // Built directly rather than derived via `dirname` of the full path below: `#gateway/node/path`'s
+  // `dirname` is a single function shared with unrelated callers (e.g. the config-file walk-up in
+  // `portConfigWalkBroker`), which stage it with EXACT addresses of their own — an arbitrary
+  // subagents-dir argument would miss those and throw "nothing set up". Computing the directory
+  // from the same pieces the full path is built from sidesteps that shared mock entirely.
+  const subagentsDir = `${stripJsonlSuffixTransformer({ filePath: jsonlPath })}/subagents`;
   const subagentJsonlPath = absoluteFilePathContract.parse(
-    `${stripJsonlSuffixTransformer({ filePath: jsonlPath })}/subagents/agent-${agentId}.jsonl`,
+    `${subagentsDir}/agent-${agentId}.jsonl`,
   );
 
   // Ensure the directory + file exist before handing the path to fsWatchTailAdapter.
@@ -82,9 +85,7 @@ export const chatSubagentTailBroker = async ({
   // none of the agent's later activity reaches the wire even though Claude CLI writes
   // the JSONL within a few hundred milliseconds. mkdir+append('') is a touch — creates
   // an empty file if missing, leaves existing content untouched (no truncate).
-  await fsMkdirAdapter({
-    filepath: pathDirnameAdapter({ path: filePathContract.parse(String(subagentJsonlPath)) }),
-  });
+  await ensureDir(subagentsDir);
   await fsAppendFileAdapter({
     filePath: filePathContract.parse(String(subagentJsonlPath)),
     contents: fileContentsContract.parse(''),

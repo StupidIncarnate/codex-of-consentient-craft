@@ -1,7 +1,6 @@
 import {
   cwdResolveBrokerProxy,
   locationsWorktreePathFindBrokerProxy,
-  processCwdAdapterProxy,
 } from '@dungeonmaster/shared/testing';
 import {
   BaseBranchNameStub,
@@ -9,6 +8,9 @@ import {
   filePathContract,
   type AbsoluteFilePath,
 } from '@dungeonmaster/shared/contracts';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
+import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
+import { cwd } from '#gateway/node/process';
 
 import { fsIsAccessibleAdapterProxy } from '../../../adapters/fs/is-accessible/fs-is-accessible-adapter.proxy';
 import { gitDetectBaseBranchBrokerProxy } from '../../../brokers/git/detect-base-branch/git-detect-base-branch-broker.proxy';
@@ -33,7 +35,8 @@ export const WorktreeCreateResponderProxy = (): {
   }) => void;
   getGitArgsList: () => readonly unknown[];
 } => {
-  const cwdProxy = processCwdAdapterProxy();
+  cwdProxy();
+  const cwdHandle = registerMock({ fn: cwd });
   const cwdResolveProxy = cwdResolveBrokerProxy();
   const isAccessibleProxy = fsIsAccessibleAdapterProxy();
   // "Nothing is on disk" is the honest default for a worktree nobody described — which is what
@@ -47,7 +50,7 @@ export const WorktreeCreateResponderProxy = (): {
   locationsWorktreePathFindBrokerProxy();
 
   const stageRepoRoot = ({ repoRoot }: { repoRoot: AbsoluteFilePath }): void => {
-    cwdProxy.returns({ path: String(repoRoot) });
+    cwdHandle.calledWith([]).returns(String(repoRoot));
     cwdResolveProxy.setupRepoRootFoundAtStart({ startPath: String(repoRoot) });
   };
 

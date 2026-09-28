@@ -1,8 +1,14 @@
 import { EventEmitter } from 'events';
 
 import { chromium } from '@playwright/test';
-import { registerModuleMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
-import { osUserHomedirAdapterProxy, pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
+import { homedir } from '#gateway/node/os';
+import { join } from '#gateway/node/path';
+import {
+  registerMock,
+  registerModuleMock,
+  registerSpyOn,
+  requireActual,
+} from '@dungeonmaster/testing/register-mock';
 
 import { domReadLayerAdapterProxy } from './dom-read-layer-adapter.proxy';
 import { keyPressLayerAdapterProxy } from './key-press-layer-adapter.proxy';
@@ -101,17 +107,21 @@ export const playwrightSessionAdapterProxy = (): {
     close: () => void;
   };
 } => {
-  // The implementation's PLAYWRIGHT_BROWSERS_PATH default deliberately reads the REAL OS home
-  // (see playwright-session-adapter.ts), so this proxy stages nothing on it — called bare only
-  // to satisfy enforce-proxy-child-creation.
-  osUserHomedirAdapterProxy();
-  // Importing anything from `@dungeonmaster/shared/testing` sweeps its whole barrel into the
-  // mock graph, which auto-mocks node's `path` module too (path-join-adapter.proxy.ts mocks the
-  // SAME `join` this file's raw `path.join` calls resolve to). pathJoinAdapterProxy's own
-  // constructor stages a real-passthrough default via requireActual, so calling it bare here is
-  // what keeps every `path.join(evidencePath, 'video')` call in this file computing a genuine
-  // path instead of silently returning undefined.
-  pathJoinAdapterProxy();
+  // #gateway/node/os and #gateway/node/path re-export `homedir`/`join` bare (no per-function proxy
+  // of their own, unlike fs/fs__promises/child_process), so this file stages the same
+  // real-passthrough default directly on the gateway's own re-exports, matching
+  // instance-start-broker.proxy.ts's own `join` pattern (A12 SL7). The implementation's
+  // PLAYWRIGHT_BROWSERS_PATH default deliberately reads the REAL OS home, and every
+  // `join(evidencePath, 'video')` call needs a genuine path rather than an unstaged mock's
+  // `undefined` — nothing here asserts on either value directly.
+  const realOs = requireActual<{ homedir: typeof homedir }>({ module: 'os' });
+  registerMock({ fn: homedir })
+    .calledWith([])
+    .implement(() => realOs.homedir());
+  const realPath = requireActual<{ join: typeof join }>({ module: 'path' });
+  registerMock({ fn: join })
+    .calledWith([])
+    .implement((...segments: never[]) => realPath.join(...segments));
 
   // Each of these three layer adapters is pure (no npm boundary of its own), so its proxy is empty
   // — called here only to satisfy enforce-proxy-child-creation, since this file's implementation

@@ -25,7 +25,8 @@ describe('questFindBroker', () => {
 
       proxy.setupGuildsWithoutQuest({
         root: 'repoLocal',
-        guildIds: ['c17825d3-efff-1536-9a92-df7907af5367'],
+        guildIds: ['b2222222-2222-2222-2222-222222222222'],
+        questId,
       });
       proxy.setupQuestAt({ root: 'dev', guildId, questId });
 
@@ -161,15 +162,18 @@ describe('questFindBroker', () => {
 
       proxy.setupGuildsWithoutQuest({
         root: 'repoLocal',
-        guildIds: ['00118165-fbf1-11d4-8940-5ee9492debae'],
+        guildIds: ['44444444-4444-4444-4444-444444444444'],
+        questId,
       });
       proxy.setupGuildsWithoutQuest({
         root: 'dev',
-        guildIds: ['35fd5b8f-551b-8baf-b8fb-a5c4702e7b71'],
+        guildIds: ['55555555-5555-5555-5555-555555555555'],
+        questId,
       });
       proxy.setupGuildsWithoutQuest({
         root: 'userGlobal',
-        guildIds: ['9f7abf0d-ce8a-518c-9781-61bfa3057384'],
+        guildIds: ['77777777-7777-7777-7777-777777777777'],
+        questId,
       });
 
       const result = questFindBroker({ questId });

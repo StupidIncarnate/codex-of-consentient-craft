@@ -19,7 +19,7 @@
  * // Returns the error lines inside the byte windows of steps 6 through 8
  */
 
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
+import { join } from '#gateway/node/path';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { absoluteFilePathContract, contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
@@ -64,7 +64,7 @@ export const serverWindowReadLayerBroker = async ({
   const toByte = Math.max(...targetWindows.map((window) => window.toByte));
 
   const logPath = absoluteFilePathContract.parse(
-    pathJoinAdapter({ paths: [evidencePath, locationsStatics.siegelense.apiLog] }),
+    join(evidencePath, locationsStatics.siegelense.apiLog),
   );
 
   const content = await fsReadFileAdapter({ filePath: logPath }).catch((error: unknown) => {

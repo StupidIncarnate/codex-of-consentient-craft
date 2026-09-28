@@ -6,9 +6,11 @@
  * // Returns merged WardResult combining all package sub-results
  */
 
-import { childProcessSpawnStreamAdapter } from '@dungeonmaster/shared/adapters';
+import { stream, RunNotFoundError } from '#gateway/node/child_process';
 import {
   absoluteFilePathContract,
+  errorMessageContract,
+  exitCodeContract,
   filePathContract,
   type AbsoluteFilePath,
 } from '@dungeonmaster/shared/contracts';
@@ -132,13 +134,22 @@ export const multiPackageLayerBroker = async ({
       }
 
       const cwd = absoluteFilePathContract.parse(folder.path);
-      const spawnResult = await childProcessSpawnStreamAdapter({
+      // A missing `dungeonmaster-ward` binary rejects `stream` with RunNotFoundError rather than
+      // resolving a result — caught here and folded into the same failed-spawn shape the old
+      // spawn-stream adapter resolved for an ENOENT, so a machine without the resolved bin reads
+      // as a crashed child below, exactly as it always has.
+      const spawnResult = await stream({
         command: wardBin,
         args: spawnArgs,
         cwd,
         onStderr: (line: string) => {
           process.stderr.write(line);
         },
+      }).catch((error: unknown) => {
+        if (!(error instanceof RunNotFoundError)) {
+          throw error;
+        }
+        return { exitCode: null, output: '', signal: null };
       });
 
       const pkgRootPath = absoluteFilePathContract.parse(folder.path);
@@ -172,8 +183,9 @@ export const multiPackageLayerBroker = async ({
         checks: childCrashLayerBroker({
           projectFolder: folder,
           checkTypes,
-          exitCode: spawnResult.exitCode,
-          output: spawnResult.output,
+          exitCode:
+            spawnResult.exitCode === null ? null : exitCodeContract.parse(spawnResult.exitCode),
+          output: errorMessageContract.parse(spawnResult.output),
         }),
       };
     },

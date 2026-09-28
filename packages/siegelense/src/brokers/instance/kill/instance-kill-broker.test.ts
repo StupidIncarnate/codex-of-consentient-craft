@@ -1,8 +1,8 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub, ContentTextStub } from '@dungeonmaster/shared/contracts';
 
 import { instanceKillBroker } from './instance-kill-broker';
 import { instanceKillBrokerProxy } from './instance-kill-broker.proxy';
-import { InstanceHeartbeatStub } from '../../../contracts/instance-heartbeat/instance-heartbeat.stub';
+import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { ProcessGroupIdStub } from '../../../contracts/process-group-id/process-group-id.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
@@ -43,54 +43,144 @@ describe('instanceKillBroker', () => {
       );
       expect(proxy.getRemovedPaths()).toStrictEqual([]);
     });
-  });
 
-  describe('driver unreachable', () => {
-    it('ERROR: {kill, socket refused} => reaps the heartbeat pgids and returns them in reapedPgids', async () => {
+    it("VALID: {kill, driver's teardown stopped two groups} => surfaces them as `killed`, distinct from reapedPgids", async () => {
       const proxy = instanceKillBrokerProxy();
       const entry = RegistryEntryStub({ id: INSTANCE_ID, socketPath: SOCKET_PATH });
       proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
+      const pgidOne = ProcessGroupIdStub({ value: 45_714 });
+      const pgidTwo = ProcessGroupIdStub({ value: 45_716 });
+      proxy.setupDriverStops({ socketPath: SOCKET_PATH, killed: [pgidOne, pgidTwo] });
 
+      const result = await instanceKillBroker({ instanceId: INSTANCE_ID });
+
+      expect({ killed: result.killed, reapedPgids: result.reapedPgids }).toStrictEqual({
+        killed: [pgidOne, pgidTwo],
+        reapedPgids: [],
+      });
+    });
+
+    it('VALID: {kill, driver answers with a malformed payload} => still reports stopped true, with nothing killed', async () => {
+      const proxy = instanceKillBrokerProxy();
+      const entry = RegistryEntryStub({ id: INSTANCE_ID, socketPath: SOCKET_PATH });
+      proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
+      proxy.setupDriverStopsWithMalformedPayload({ socketPath: SOCKET_PATH });
+
+      const result = await instanceKillBroker({ instanceId: INSTANCE_ID });
+
+      expect({ stopped: result.stopped, killed: result.killed }).toStrictEqual({
+        stopped: true,
+        killed: undefined,
+      });
+    });
+  });
+
+  describe('driver unreachable, row still alive', () => {
+    it("VALID: {kill, socket refused} => reaps the registry row's own live pgids and returns them in reapedPgids", async () => {
+      const proxy = instanceKillBrokerProxy();
       const pgidOne = ProcessGroupIdStub({ value: 4821 });
       const pgidTwo = ProcessGroupIdStub({ value: 4822 });
-      const heartbeat = InstanceHeartbeatStub({
-        instanceId: INSTANCE_ID,
+      const entry = RegistryEntryStub({
+        id: INSTANCE_ID,
+        socketPath: SOCKET_PATH,
         pgids: [pgidOne, pgidTwo],
       });
-      const heartbeatPath = AbsoluteFilePathStub({
-        value: `${String(EVIDENCE_PATH)}/heartbeat.json`,
-      });
-      proxy.setupDriverUnreachable({
+      proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
+      proxy.setupDriverUnreachableReapsLivePgids({
         socketPath: SOCKET_PATH,
-        heartbeatPath,
-        heartbeat,
+        pgids: [pgidOne, pgidTwo],
         homePath: HOME_PATH,
       });
+      proxy.setupShutdownReasonWriteSucceeds({ evidencePath: EVIDENCE_PATH });
 
       const result = await instanceKillBroker({ instanceId: INSTANCE_ID });
 
       expect(result.reapedPgids).toStrictEqual([pgidOne, pgidTwo]);
-      // The second entry (signal 0) is processIsAliveAdapter's own aliveness probe, sharing this
-      // same negated-pgid target with processKillGroupAdapter's SIGTERM — both go through the
-      // same underlying `kill`, so a full accounting of what reached this pgid includes it: SIGTERM
-      // sent, found gone on the probe, and SIGKILL correctly never escalated to.
-      expect(proxy.getKillGroupCallsFor({ pgid: pgidOne })).toStrictEqual(['SIGTERM', 0]);
-      expect(proxy.getKillGroupCallsFor({ pgid: pgidTwo })).toStrictEqual(['SIGTERM', 0]);
+      // Probed alive before EITHER signal (0), SIGTERM, probed alive again before SIGKILL (0),
+      // SIGKILL — the same escalation `laneTeardownBroker` runs against a genuinely live group.
+      expect(proxy.getKillGroupCallsFor({ pgid: pgidOne })).toStrictEqual([
+        0,
+        'SIGTERM',
+        0,
+        'SIGKILL',
+      ]);
+      expect(proxy.getKillGroupCallsFor({ pgid: pgidTwo })).toStrictEqual([
+        0,
+        'SIGTERM',
+        0,
+        'SIGKILL',
+      ]);
+    });
+
+    it('VALID: {kill, socket refused, two live pgids reaped} => overwrites shutdown-reason.json so status shows the explicit kill, not a stale idle-reap reason', async () => {
+      const proxy = instanceKillBrokerProxy();
+      const pgidOne = ProcessGroupIdStub({ value: 4821 });
+      const pgidTwo = ProcessGroupIdStub({ value: 4822 });
+      const entry = RegistryEntryStub({
+        id: INSTANCE_ID,
+        socketPath: SOCKET_PATH,
+        pgids: [pgidOne, pgidTwo],
+      });
+      proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
+      proxy.setupDriverUnreachableReapsLivePgids({
+        socketPath: SOCKET_PATH,
+        pgids: [pgidOne, pgidTwo],
+        homePath: HOME_PATH,
+      });
+      proxy.setupShutdownReasonWriteSucceeds({ evidencePath: EVIDENCE_PATH });
+
+      await instanceKillBroker({ instanceId: INSTANCE_ID });
+
+      expect(proxy.getWrittenShutdownReason({ evidencePath: EVIDENCE_PATH })).toStrictEqual({
+        reason: 'reaped 2 orphaned process groups outside the idle timeout',
+        atMs: EpochMsStub().valueOf(),
+      });
+    });
+
+    it('VALID: {kill, socket refused, a caller-supplied reason, two live pgids reaped} => writes the SUPPLIED reason, not the generic wording', async () => {
+      const proxy = instanceKillBrokerProxy();
+      const pgidOne = ProcessGroupIdStub({ value: 4821 });
+      const pgidTwo = ProcessGroupIdStub({ value: 4822 });
+      const entry = RegistryEntryStub({
+        id: INSTANCE_ID,
+        socketPath: SOCKET_PATH,
+        pgids: [pgidOne, pgidTwo],
+      });
+      proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
+      proxy.setupDriverUnreachableReapsLivePgids({
+        socketPath: SOCKET_PATH,
+        pgids: [pgidOne, pgidTwo],
+        homePath: HOME_PATH,
+      });
+      proxy.setupShutdownReasonWriteSucceeds({ evidencePath: EVIDENCE_PATH });
+
+      await instanceKillBroker({
+        instanceId: INSTANCE_ID,
+        reason: ContentTextStub({ value: 'reaped by cleanup after its heartbeat went stale' }),
+      });
+
+      expect(proxy.getWrittenShutdownReason({ evidencePath: EVIDENCE_PATH })).toStrictEqual({
+        reason: 'reaped by cleanup after its heartbeat went stale',
+        atMs: EpochMsStub().valueOf(),
+      });
+    });
+
+    it('VALID: {kill, socket refused, no pgids recorded} => never writes shutdown-reason.json, since nothing was reaped', async () => {
+      const proxy = instanceKillBrokerProxy();
+      const entry = RegistryEntryStub({ id: INSTANCE_ID, socketPath: SOCKET_PATH, pgids: [] });
+      proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
+      proxy.setupDriverUnreachableNoPgids({ socketPath: SOCKET_PATH, homePath: HOME_PATH });
+
+      await instanceKillBroker({ instanceId: INSTANCE_ID });
+
+      expect(proxy.getWrittenShutdownReason({ evidencePath: EVIDENCE_PATH })).toBe(null);
     });
 
     it('VALID: {kill, socket refused} => removes the throwaway home, never the evidence directory', async () => {
       const proxy = instanceKillBrokerProxy();
-      const entry = RegistryEntryStub({ id: INSTANCE_ID, socketPath: SOCKET_PATH });
+      const entry = RegistryEntryStub({ id: INSTANCE_ID, socketPath: SOCKET_PATH, pgids: [] });
       proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
-
-      const heartbeatPath = AbsoluteFilePathStub({
-        value: `${String(EVIDENCE_PATH)}/heartbeat.json`,
-      });
-      proxy.setupDriverUnreachableNoHeartbeat({
-        socketPath: SOCKET_PATH,
-        heartbeatPath,
-        homePath: HOME_PATH,
-      });
+      proxy.setupDriverUnreachableNoPgids({ socketPath: SOCKET_PATH, homePath: HOME_PATH });
 
       const result = await instanceKillBroker({ instanceId: INSTANCE_ID });
 
@@ -98,34 +188,62 @@ describe('instanceKillBroker', () => {
       expect(proxy.getRemovedPaths()).toStrictEqual([HOME_PATH]);
     });
 
-    it('ERROR: {heartbeat read fails for a reason other than absence} => rejects rather than reaping nothing', async () => {
+    it('VALID: {kill, socket refused, a recorded pgid already gone} => never signals it, and it is excluded from reapedPgids', async () => {
       const proxy = instanceKillBrokerProxy();
-      const entry = RegistryEntryStub({ id: INSTANCE_ID, socketPath: SOCKET_PATH });
-      proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
-
-      const heartbeatPath = AbsoluteFilePathStub({
-        value: `${String(EVIDENCE_PATH)}/heartbeat.json`,
-      });
-      proxy.setupDriverUnreachableHeartbeatReadFails({ socketPath: SOCKET_PATH, heartbeatPath });
-
-      await expect(instanceKillBroker({ instanceId: INSTANCE_ID })).rejects.toThrow(
-        `Failed to read file at ${String(heartbeatPath)}`,
-      );
-    });
-
-    it('VALID: {kill, driver already dead} => accepts the dead instance id rather than refusing', async () => {
-      const proxy = instanceKillBrokerProxy();
-      const entry = RegistryEntryStub({ id: INSTANCE_ID, socketPath: SOCKET_PATH, state: 'dead' });
-      proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
-
-      const heartbeatPath = AbsoluteFilePathStub({
-        value: `${String(EVIDENCE_PATH)}/heartbeat.json`,
-      });
-      proxy.setupDriverUnreachableNoHeartbeat({
+      const alreadyGonePgid = ProcessGroupIdStub({ value: 5001 });
+      const livePgid = ProcessGroupIdStub({ value: 5002 });
+      const entry = RegistryEntryStub({
+        id: INSTANCE_ID,
         socketPath: SOCKET_PATH,
-        heartbeatPath,
+        pgids: [alreadyGonePgid, livePgid],
+      });
+      proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
+      proxy.setupDriverUnreachableSomeAlreadyGone({
+        socketPath: SOCKET_PATH,
+        livePgids: [livePgid],
+        alreadyGonePgids: [alreadyGonePgid],
         homePath: HOME_PATH,
       });
+      proxy.setupShutdownReasonWriteSucceeds({ evidencePath: EVIDENCE_PATH });
+
+      const result = await instanceKillBroker({ instanceId: INSTANCE_ID });
+
+      expect(result.reapedPgids).toStrictEqual([livePgid]);
+      expect(proxy.getKillGroupCallsFor({ pgid: alreadyGonePgid })).toStrictEqual([0]);
+    });
+  });
+
+  describe('an instance already at rest', () => {
+    // Every stored state other than 'alive' — 'unknown' is never a STORED registry row (it answers
+    // a missing one), so it has no place in a table of rows this broker might be asked to kill.
+    const NON_ALIVE_STATES = ['killed', 'dead', 'pruned', 'unusable'] as const;
+
+    it.each(NON_ALIVE_STATES)(
+      'VALID: {registry state: %s, stale pgids still recorded} => reports nothing reaped rather than re-signalling them',
+      async (state) => {
+        const proxy = instanceKillBrokerProxy();
+        const pgidOne = ProcessGroupIdStub({ value: 104_541 });
+        const pgidTwo = ProcessGroupIdStub({ value: 104_543 });
+        const entry = RegistryEntryStub({
+          id: INSTANCE_ID,
+          socketPath: null,
+          state,
+          pgids: [pgidOne, pgidTwo],
+        });
+        proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
+
+        const result = await instanceKillBroker({ instanceId: INSTANCE_ID });
+
+        expect(result.reapedPgids).toStrictEqual([]);
+        expect(proxy.getKillGroupCallsFor({ pgid: pgidOne })).toStrictEqual([]);
+        expect(proxy.getKillGroupCallsFor({ pgid: pgidTwo })).toStrictEqual([]);
+      },
+    );
+
+    it('VALID: {kill, already killed} => still reports stopped true and accepts the id rather than refusing', async () => {
+      const proxy = instanceKillBrokerProxy();
+      const entry = RegistryEntryStub({ id: INSTANCE_ID, socketPath: null, state: 'killed' });
+      proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
 
       const result = await instanceKillBroker({ instanceId: INSTANCE_ID });
 

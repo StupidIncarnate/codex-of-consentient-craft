@@ -6,26 +6,24 @@
  * // Returns: DirectoryEntry[] sorted alphabetically, directories only
  */
 
-import {
-  fsReaddirWithTypesAdapter,
-  osUserHomedirAdapter,
-  pathJoinAdapter,
-} from '@dungeonmaster/shared/adapters';
+import { readdirEntriesSync } from '#gateway/node/fs';
+import { homedir } from '#gateway/node/os';
+import { join } from '#gateway/node/path';
 import { directoryEntryContract } from '@dungeonmaster/shared/contracts';
 import type { DirectoryEntry, GuildPath } from '@dungeonmaster/shared/contracts';
 
 export const directoryBrowseBroker = ({ path }: { path?: GuildPath }): DirectoryEntry[] => {
-  const targetPath = path ?? osUserHomedirAdapter();
+  const targetPath = path ?? homedir();
 
-  const entries = fsReaddirWithTypesAdapter({ dirPath: targetPath as never });
+  const entries = readdirEntriesSync(targetPath);
 
   const directories = entries
-    .filter((entry) => entry.isDirectory())
+    .filter((entry) => entry.kind === 'directory')
     .filter((entry) => !entry.name.startsWith('.'))
     .map((entry) =>
       directoryEntryContract.parse({
         name: entry.name,
-        path: pathJoinAdapter({ paths: [targetPath, entry.name] }),
+        path: join(targetPath, entry.name),
         isDirectory: true,
       }),
     )

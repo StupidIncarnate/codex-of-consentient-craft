@@ -12,7 +12,7 @@
 import { resolve } from 'path';
 
 import { filePathContract } from '@dungeonmaster/shared/contracts';
-import { processCwdAdapter } from '@dungeonmaster/shared/adapters';
+import { cwd } from '#gateway/node/process';
 
 import { StartCli } from '../src/startup/start-cli';
 
@@ -34,7 +34,7 @@ if (require.main === module) {
   const [command, ...args] = process.argv.slice(COMMAND_ARG_START_INDEX);
 
   const dungeonmasterRoot = filePathContract.parse(resolve(__dirname, DIRNAME_TO_ROOT_DEPTH));
-  const targetProjectRoot = processCwdAdapter();
+  const targetProjectRoot = filePathContract.parse(cwd());
 
   StartCli({ command, args, context: { dungeonmasterRoot, targetProjectRoot } }).catch(
     (error: unknown) => {

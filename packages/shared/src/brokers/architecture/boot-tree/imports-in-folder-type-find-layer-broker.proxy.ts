@@ -1,7 +1,13 @@
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 import { readFileContentsLayerBrokerProxy } from './read-file-contents-layer-broker.proxy';
+import { importStatementsExtractTransformer } from '../../../transformers/import-statements-extract/import-statements-extract-transformer';
+import { relativeImportResolveTransformer } from '../../../transformers/relative-import-resolve/relative-import-resolve-transformer';
+import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
+
+const TS_SUFFIX = '.ts';
+const TSX_SUFFIX = '.tsx';
 
 export const importsInFolderTypeFindLayerBrokerProxy = (): {
   setupSource: ({
@@ -12,20 +18,22 @@ export const importsInFolderTypeFindLayerBrokerProxy = (): {
     content: ContentText;
   }) => void;
   setupMissing: ({ sourceFile }: { sourceFile: AbsoluteFilePath }) => void;
-  setupImplementation: ({ fn }: { fn: (filePath: ContentText) => ContentText }) => void;
+  setupImplementation: (params: {
+    fn: (filePath: ContentText) => ContentText;
+    map?: Record<string, ContentText>;
+  }) => void;
   setupTsExists: ({ result }: { result: boolean }) => void;
   setupTsxExists: ({ result }: { result: boolean }) => void;
 } => {
   const fileProxy = readFileContentsLayerBrokerProxy();
-  // The resolved ts/tsx candidate path comes from relativeImportResolveTransformer (real, not
-  // mocked), so there is no known path to key on here — an always-true predicate is the explicit
-  // "answer any call" stage setupTsExists/setupTsxExists need. Defaults to false (neither
-  // candidate exists, so the caller falls back to the resolved .ts path) so every test that never
-  // calls setupTsExists/setupTsxExists still gets an answer instead of an unmatched-call throw;
-  // an explicit setupTsExists/setupTsxExists call overrides it, since a later registration of
-  // equal specificity wins.
   const existsProxy = existsSyncProxy();
-  existsProxy.returnsMatchingPath({ path: (): boolean => true, exists: false });
+
+  // The broker resolves every relative import to a .ts candidate (and a sibling .tsx candidate)
+  // with the same real, unmocked transformers it composes itself, so this stages exactly those
+  // candidates instead of answering every path the same way. Defaults to "the .ts candidate is the
+  // real file" — every current scenario's source is a real .ts sibling — and setupTsExists /
+  // setupTsxExists override the specific candidates a later scenario needs.
+  const candidates: { tsPath: AbsoluteFilePath; tsxPath: AbsoluteFilePath }[] = [];
 
   return {
     setupSource: ({
@@ -36,22 +44,67 @@ export const importsInFolderTypeFindLayerBrokerProxy = (): {
       content: ContentText;
     }): void => {
       fileProxy.setupReturns({ filePath: sourceFile, content });
+
+      const importPaths = importStatementsExtractTransformer({ source: content });
+      for (const importPath of importPaths) {
+        const resolved = relativeImportResolveTransformer({ sourceFile, importPath });
+        if (resolved === null) continue;
+
+        const resolvedStr = String(resolved);
+        const tsxPath = AbsoluteFilePathStub({
+          value: resolvedStr.endsWith(TS_SUFFIX)
+            ? `${resolvedStr.slice(0, -TS_SUFFIX.length)}${TSX_SUFFIX}`
+            : `${resolvedStr}${TSX_SUFFIX}`,
+        });
+
+        candidates.push({ tsPath: resolved, tsxPath });
+        existsProxy.returns({ path: resolved, exists: true });
+        existsProxy.returns({ path: tsxPath, exists: false });
+      }
     },
 
     setupMissing: ({ sourceFile }: { sourceFile: AbsoluteFilePath }): void => {
       fileProxy.setupMissing({ filePath: sourceFile });
     },
 
-    setupImplementation: ({ fn }: { fn: (filePath: ContentText) => ContentText }): void => {
+    setupImplementation: ({
+      fn,
+      map,
+    }: {
+      fn: (filePath: ContentText) => ContentText;
+      map?: Record<string, ContentText>;
+    }): void => {
       fileProxy.setupImplementation({ fn });
+
+      // A composing proxy driving a whole file tree by suffix has no single caller-known path to
+      // key on for every candidate the recursive walk might resolve — unlike setupSource, which
+      // stages each real caller's own exact candidates and carries no fallback of any kind.
+      // Real fs.existsSync's own "false on anything unresolved" default answers everything this
+      // scenario never described; the specific suffixes the SAME content map already knows about
+      // are staged after, so they outrank the default per candidate — which is what lets a real
+      // .tsx sibling the map describes win over the .ts candidate that the map does not.
+      existsProxy.returnsMatchingPath({ path: (): boolean => true, exists: false });
+
+      if (map !== undefined) {
+        const suffixes = Object.keys(map);
+        existsProxy.returnsMatchingPath({
+          path: (value: unknown): boolean =>
+            typeof value === 'string' && suffixes.some((suffix) => value.endsWith(suffix)),
+          exists: true,
+        });
+      }
     },
 
     setupTsExists: ({ result }: { result: boolean }): void => {
-      existsProxy.returnsMatchingPath({ path: (): boolean => true, exists: result });
+      for (const { tsPath } of candidates) {
+        existsProxy.returns({ path: tsPath, exists: result });
+      }
     },
 
     setupTsxExists: ({ result }: { result: boolean }): void => {
-      existsProxy.returnsMatchingPath({ path: (): boolean => true, exists: result });
+      for (const { tsxPath } of candidates) {
+        existsProxy.returns({ path: tsxPath, exists: result });
+      }
     },
   };
 };

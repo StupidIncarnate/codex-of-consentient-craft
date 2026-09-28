@@ -3,6 +3,7 @@ import {
   ErrorMessageStub,
   FilePathStub,
 } from '@dungeonmaster/shared/contracts';
+import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 
 import { worktreePopulateNodeModulesBroker } from './worktree-populate-node-modules-broker';
 import { worktreePopulateNodeModulesBrokerProxy } from './worktree-populate-node-modules-broker.proxy';
@@ -98,6 +99,7 @@ describe('worktreePopulateNodeModulesBroker', () => {
       const proxy = worktreePopulateNodeModulesBrokerProxy();
       const repoRoot = AbsoluteFilePathStub({ value: '/repo' });
       const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-slug-a1b2c3d4' });
+      proxy.setupEmptyRepo({ repoRoot, worktreePath });
 
       const result = await worktreePopulateNodeModulesBroker({
         repoRoot,
@@ -117,12 +119,15 @@ describe('worktreePopulateNodeModulesBroker', () => {
       const worktreePath = AbsoluteFilePathStub({ value: '/repo/worktrees/quest-slug-a1b2c3d4' });
       proxy.setupMkdirThrows({
         filepath: FilePathStub({ value: '/repo/worktrees/quest-slug-a1b2c3d4/node_modules' }),
-        error: new Error('EACCES: permission denied'),
+        error: FsErrorStub({
+          code: 'EACCES',
+          path: '/repo/worktrees/quest-slug-a1b2c3d4/node_modules',
+        }),
       });
 
       await expect(
         worktreePopulateNodeModulesBroker({ repoRoot, worktreePath, onLine: () => undefined }),
-      ).rejects.toThrow(/^EACCES: permission denied$/u);
+      ).rejects.toThrow(/^EACCES: op '\/repo\/worktrees\/quest-slug-a1b2c3d4\/node_modules'$/u);
     });
   });
 
@@ -135,12 +140,17 @@ describe('worktreePopulateNodeModulesBroker', () => {
         repoRoot,
         worktreePath,
         packageName: 'orchestrator',
-        error: new Error('EACCES: permission denied'),
+        error: FsErrorStub({
+          code: 'EACCES',
+          path: '/repo/worktrees/quest-slug-a1b2c3d4/packages/orchestrator/node_modules',
+        }),
       });
 
       await expect(
         worktreePopulateNodeModulesBroker({ repoRoot, worktreePath, onLine: () => undefined }),
-      ).rejects.toThrow(/^EACCES: permission denied$/u);
+      ).rejects.toThrow(
+        /^EACCES: op '\/repo\/worktrees\/quest-slug-a1b2c3d4\/packages\/orchestrator\/node_modules'$/u,
+      );
     });
   });
 

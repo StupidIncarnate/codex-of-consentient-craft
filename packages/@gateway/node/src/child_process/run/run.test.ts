@@ -284,6 +284,34 @@ describe('run()', () => {
     });
   });
 
+  describe('reading back spawn options', () => {
+    it('VALID: {two calls to the same command with different cwd and env} => getOptionsFor reads back each call, in order', async () => {
+      const proxy = runProxy();
+      proxy.setupSuccess({ command: 'jest', exitCode: 0, stdout: '', stderr: '' });
+
+      await run({
+        command: 'jest',
+        args: ['--json'],
+        cwd: '/project-a',
+        env: { NODE_OPTIONS: '--conditions=source' },
+      });
+      await run({
+        command: 'jest',
+        args: ['--json'],
+        cwd: '/project-b',
+        env: { CUSTOM_VAR: 'value' },
+      });
+
+      const options = proxy.getOptionsFor({ command: 'jest' });
+
+      expect(options[0]?.cwd).toBe('/project-a');
+      expect(options[0]?.env.NODE_OPTIONS).toBe('--conditions=source');
+      expect(options[1]?.cwd).toBe('/project-b');
+      expect(options[1]?.env.CUSTOM_VAR).toBe('value');
+      expect(options[2]).toBe(undefined);
+    });
+  });
+
   describe('stdio drains after exit fires', () => {
     it('EDGE: {child exits but neither stdio stream ever emits end/close} => promise stays unsettled', async () => {
       const proxy = runProxy();

@@ -55,6 +55,17 @@ describe('InstallLinkCreateResponder', () => {
       expect(proxy.assertMkdirCalledBeforeSymlink()).toBe(true);
     });
 
+    it('VALID: {no siegelense-assets link} => joins the link path from the assets parent and the siegelense-assets entry, not a queued value alone', async () => {
+      const proxy = InstallLinkCreateResponderProxy();
+      proxy.setupNoLink();
+
+      await proxy.callResponder({ context: CONTEXT });
+
+      expect(proxy.getLinkPathJoinArgs()).toStrictEqual([
+        ['/project/.dungeonmaster-assets', 'siegelense-assets'],
+      ]);
+    });
+
     it('EMPTY: {no legacy .siegelense symlink} => makes no unlink call for it', async () => {
       const proxy = InstallLinkCreateResponderProxy();
       proxy.setupNoLink();

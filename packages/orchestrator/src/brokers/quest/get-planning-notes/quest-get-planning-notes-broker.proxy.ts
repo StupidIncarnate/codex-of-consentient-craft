@@ -7,7 +7,6 @@
  * proxy.setupQuestNotFound();
  */
 
-import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
 import {
   FileContentsStub,
   FileNameStub,
@@ -15,22 +14,37 @@ import {
   GuildIdStub,
 } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts';
+import { locationsStatics } from '@dungeonmaster/shared/statics';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
+import type { MockHandle } from '@dungeonmaster/testing/register-mock';
+import { join } from '#gateway/node/path';
 
 import { questFindQuestPathBrokerProxy } from '../find-quest-path/quest-find-quest-path-broker.proxy';
 import { questLoadBrokerProxy } from '../load/quest-load-broker.proxy';
 
 type Quest = ReturnType<typeof QuestStub>;
+type FilePathValue = ReturnType<typeof FilePathStub>;
 
 export const questGetPlanningNotesBrokerProxy = (): {
-  setupQuestFound: (params: { quest: Quest }) => void;
+  setupQuestFound: (params: { quest: Quest }) => {
+    questFolderPath: FilePathValue;
+    questFilePath: FilePathValue;
+  };
   setupQuestNotFound: () => void;
+  getQuestFileJoinArgs: (params: {
+    questFolderPath: FilePathValue;
+  }) => readonly unknown[] | undefined;
 } => {
   const findQuestPathProxy = questFindQuestPathBrokerProxy();
-  const pathJoinProxy = pathJoinAdapterProxy();
+  const joinHandle: MockHandle = registerMock({ fn: join });
   const loadProxy = questLoadBrokerProxy();
 
   return {
-    setupQuestFound: ({ quest }: { quest: Quest }): void => {
+    setupQuestFound: ({
+      quest,
+    }: {
+      quest: Quest;
+    }): { questFolderPath: FilePathValue; questFilePath: FilePathValue } => {
       const guildId = GuildIdStub();
       const homePath = FilePathStub({ value: '/home/testuser/.dungeonmaster' });
       const guildsDir = FilePathStub({
@@ -66,8 +80,12 @@ export const questGetPlanningNotesBrokerProxy = (): {
         ],
       });
 
-      pathJoinProxy.returns({ result: questFilePath });
+      joinHandle
+        .calledWith([questFolderPath, locationsStatics.quest.questFile])
+        .returns(questFilePath);
       loadProxy.setupQuestFile({ questJson: JSON.stringify(quest) });
+
+      return { questFolderPath, questFilePath };
     },
 
     setupQuestNotFound: (): void => {
@@ -82,5 +100,11 @@ export const questGetPlanningNotesBrokerProxy = (): {
         guildsDir,
       });
     },
+
+    getQuestFileJoinArgs: ({
+      questFolderPath,
+    }: {
+      questFolderPath: FilePathValue;
+    }): readonly unknown[] | undefined => joinHandle.callsMatching([questFolderPath]).at(-1),
   };
 };

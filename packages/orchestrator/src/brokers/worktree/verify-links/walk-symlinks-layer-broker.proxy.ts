@@ -1,35 +1,9 @@
-import type { Dirent } from 'fs';
-
-import {
-  fsReaddirWithTypesAdapterProxy,
-  pathJoinAdapterProxy,
-  pathResolveAdapterProxy,
-} from '@dungeonmaster/shared/testing';
 import type { AbsoluteFilePath, FilePath } from '@dungeonmaster/shared/contracts';
+import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
+import { readdirEntriesSyncProxy } from '#gateway/node/fs/readdir-entries-sync/readdir-entries-sync.proxy';
+import { join, resolve } from '#gateway/node/path';
 
 import { fsReadlinkAdapterProxy } from '../../../adapters/fs/readlink/fs-readlink-adapter.proxy';
-
-const buildDirent = ({
-  name,
-  isDir,
-  isSymlink,
-}: {
-  name: string;
-  isDir: boolean;
-  isSymlink: boolean;
-}): Dirent =>
-  ({
-    name,
-    parentPath: '/stub',
-    path: '/stub',
-    isDirectory: () => isDir,
-    isFile: () => !isDir && !isSymlink,
-    isBlockDevice: () => false,
-    isCharacterDevice: () => false,
-    isFIFO: () => false,
-    isSocket: () => false,
-    isSymbolicLink: () => isSymlink,
-  }) as Dirent;
 
 export const walkSymlinksLayerBrokerProxy = (): {
   setupDirectoryEntries: (params: {
@@ -39,13 +13,20 @@ export const walkSymlinksLayerBrokerProxy = (): {
   setupReadlinkTarget: (params: { linkPath: FilePath; target: string }) => void;
   setupReadlinkThrows: (params: { linkPath: FilePath; error: Error }) => void;
 } => {
-  const readdirProxy = fsReaddirWithTypesAdapterProxy();
+  const readdirProxy = readdirEntriesSyncProxy();
   const readlinkProxy = fsReadlinkAdapterProxy();
   // Both wired to satisfy enforce-proxy-child-creation and both left UNADDRESSED on purpose: each
   // defaults to a real passthrough, so every path a test stages must match Node's own
   // path.join / path.resolve output byte-for-byte.
-  pathJoinAdapterProxy();
-  pathResolveAdapterProxy();
+  const realPath = requireActual<{ join: typeof join; resolve: typeof resolve }>({
+    module: 'path',
+  });
+  registerMock({ fn: join })
+    .calledWith([])
+    .implement((...segments: never[]) => realPath.join(...segments));
+  registerMock({ fn: resolve })
+    .calledWith([])
+    .implement((...segments: never[]) => realPath.resolve(...segments));
 
   return {
     setupDirectoryEntries: ({
@@ -56,10 +37,15 @@ export const walkSymlinksLayerBrokerProxy = (): {
       entries: { name: string; isDir: boolean; isSymlink: boolean }[];
     }): void => {
       readdirProxy.returns({
-        dirPath,
-        entries: entries.map(({ name, isDir, isSymlink }) =>
-          buildDirent({ name, isDir, isSymlink }),
-        ),
+        path: dirPath,
+        entries: entries.map(({ name, isDir, isSymlink }) => ({
+          name,
+          kind: isSymlink
+            ? ('symlink' as const)
+            : isDir
+              ? ('directory' as const)
+              : ('file' as const),
+        })),
       });
     },
 

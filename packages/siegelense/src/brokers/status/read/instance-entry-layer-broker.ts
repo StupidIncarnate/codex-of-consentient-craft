@@ -30,7 +30,7 @@
  * // Returns a validated InstanceStatus
  */
 
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
+import { join } from '#gateway/node/path';
 import { absoluteFilePathContract, fileNameContract } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
@@ -58,6 +58,7 @@ import { machineRssByPgidBroker } from '../../machine/rss-by-pgid/machine-rss-by
 import { orphanReadBroker } from '../../orphan/read/orphan-read-broker';
 import { evidenceFileStatics } from '../../../statics/evidence-file/evidence-file-statics';
 import { likelyCauseLayerBroker } from './likely-cause-layer-broker';
+import { profileSoloReadLayerBroker } from './profile-solo-read-layer-broker';
 
 export const instanceEntryLayerBroker = async ({
   entry,
@@ -76,14 +77,9 @@ export const instanceEntryLayerBroker = async ({
     instanceId: entry.id,
     guildId: entry.guildId,
   });
-  // Invoked here, BEFORE runsDirPath, and only awaited below: `heartbeatReadBroker` resolves this
-  // SAME instance's evidence dir all over again internally, and that resolution has to run to
-  // completion before the next, unrelated `pathJoinAdapter` call below — the one computing
-  // `runsDirPath` — reaches the real npm `path.join` this proxy setup leaves as its sticky default
-  // rather than an unconsumed stand-in still queued for heartbeatReadBroker's own resolution.
   const heartbeatPromise = heartbeatReadBroker({ instanceId: entry.id, guildId: entry.guildId });
   const runsDirPath = absoluteFilePathContract.parse(
-    pathJoinAdapter({ paths: [evidenceDir, locationsStatics.siegelense.runsDir] }),
+    join(evidenceDir, locationsStatics.siegelense.runsDir),
   );
 
   const [heartbeat, runsDirEntries, orphans, rssMB, shutdownReasonMarker] = await Promise.all([
@@ -116,12 +112,21 @@ export const instanceEntryLayerBroker = async ({
 
   const rssAtLastBeat = state === 'alive' ? null : (heartbeat?.rssMB ?? null);
 
+  // Sequential, run only AFTER the Promise.all above has fully settled: profileSoloReadLayerBroker
+  // reaches profileReadBroker, which joins its own paths through the SAME shared pathJoinAdapter
+  // queue every other call above stages explicitly, in a fixed order (instance-entry-layer-broker.proxy.ts's
+  // own header). Racing it alongside that Promise.all would consume a queue entry staged for one of
+  // those other calls instead of computing its own real join.
+  const soloProfile =
+    state === 'alive' ? null : await profileSoloReadLayerBroker({ specName: entry.specName });
+
   const likelyCause = likelyCauseLayerBroker({
     state,
     specName: entry.specName,
     rssAtLastBeat,
     oomKillsSinceBoot,
     shutdownReason: shutdownReasonMarker === null ? null : shutdownReasonMarker.reason,
+    soloProfile,
   });
 
   if (!named) {
@@ -143,23 +148,40 @@ export const instanceEntryLayerBroker = async ({
     });
   }
 
-  const [apiLogStat, webLogStat, repoLocalDir] = await Promise.all([
+  const [apiLogStat, webLogStat, driverLogStat, repoLocalDir] = await Promise.all([
     fsStatAdapter({
       filePath: absoluteFilePathContract.parse(
-        pathJoinAdapter({ paths: [evidenceDir, locationsStatics.siegelense.apiLog] }),
+        join(evidenceDir, locationsStatics.siegelense.apiLog),
       ),
     }),
     fsStatAdapter({
       filePath: absoluteFilePathContract.parse(
-        pathJoinAdapter({ paths: [evidenceDir, locationsStatics.siegelense.webLog] }),
+        join(evidenceDir, locationsStatics.siegelense.webLog),
+      ),
+    }),
+    fsStatAdapter({
+      filePath: absoluteFilePathContract.parse(
+        join(evidenceDir, locationsStatics.siegelense.driverLog),
       ),
     }),
     locationsRepoLinkPathFindBroker({ homePath: evidenceDir }),
   ]);
 
+  // Full repo-local paths, not bare names — a bare "api-server.log" gives a reader nothing to
+  // `Read`. `fileNameContract` is an unbranded-format string brand (no path-shape constraint), so a
+  // full path parses through it cleanly; reusing it here — rather than widening the
+  // `instanceEvidenceListingContract.logs` element type to something path-shaped — is what keeps
+  // this a broker-only change.
   const logs = [
-    ...(apiLogStat === null ? [] : [fileNameContract.parse(locationsStatics.siegelense.apiLog)]),
-    ...(webLogStat === null ? [] : [fileNameContract.parse(locationsStatics.siegelense.webLog)]),
+    ...(apiLogStat === null
+      ? []
+      : [fileNameContract.parse(join(repoLocalDir.path, locationsStatics.siegelense.apiLog))]),
+    ...(webLogStat === null
+      ? []
+      : [fileNameContract.parse(join(repoLocalDir.path, locationsStatics.siegelense.webLog))]),
+    ...(driverLogStat === null
+      ? []
+      : [fileNameContract.parse(join(repoLocalDir.path, locationsStatics.siegelense.driverLog))]),
   ];
 
   if (lastRunId === null) {
@@ -187,9 +209,7 @@ export const instanceEntryLayerBroker = async ({
   }
 
   const transcriptPath = absoluteFilePathContract.parse(
-    pathJoinAdapter({
-      paths: [runsDirPath, `${lastRunId}${evidenceFileStatics.extensions.transcript}`],
-    }),
+    join(runsDirPath, `${lastRunId}${evidenceFileStatics.extensions.transcript}`),
   );
   const transcriptContent = await fsReadFileAdapter({ filePath: transcriptPath });
   const transcriptLines = transcriptContent.split('\n').filter((line) => line.length > 0);

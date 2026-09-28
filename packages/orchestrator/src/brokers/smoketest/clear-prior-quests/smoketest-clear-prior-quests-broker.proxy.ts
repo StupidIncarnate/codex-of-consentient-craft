@@ -1,12 +1,20 @@
-import { appendFile, rm } from 'fs/promises';
-import type { FileName, FilePath, GuildConfig, QuestSource } from '@dungeonmaster/shared/contracts';
-import type { Dirent } from 'fs';
+import { rm } from 'fs/promises';
+import type { DirEntrySync } from '#gateway/node/fs';
+import { filePathContract, GuildIdStub, questContract } from '@dungeonmaster/shared/contracts';
+import type {
+  FileName,
+  FilePath,
+  GuildConfig,
+  GuildId,
+  QuestSource,
+} from '@dungeonmaster/shared/contracts';
+import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
 import {
   registerMock,
   registerModuleMock,
   requireActual,
 } from '@dungeonmaster/testing/register-mock';
-import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
+import type { MockHandle, RecordedCalls } from '@dungeonmaster/testing/register-mock';
 
 import { DeletedCountStub } from '../../../contracts/deleted-count/deleted-count.stub';
 import { questDeleteBrokerProxy } from '../../quest/delete/quest-delete-broker.proxy';
@@ -24,7 +32,7 @@ export const smoketestClearPriorQuestsBrokerProxy = (): {
     guildEntries: readonly {
       accessible: boolean;
       questsDirPath: FilePath;
-      questDirEntries: Dirent[];
+      questDirEntries: DirEntrySync[];
     }[];
   }) => void;
   setupQuestsPath: (params: { homeDir: string; homePath: FilePath; questsPath: FilePath }) => void;
@@ -38,26 +46,18 @@ export const smoketestClearPriorQuestsBrokerProxy = (): {
 } => {
   const ensureGuild = smoketestEnsureGuildBrokerProxy();
   const list = questListBrokerProxy();
-  // Wired to satisfy enforce-proxy-child-creation; questDeleteBroker's own real chain runs
-  // through the direct rm/appendFile staging below instead of this child's setupQuestFolderPath
-  // (see the comment there for why a per-questId address isn't available to this proxy).
-  questDeleteBrokerProxy();
+  // Every quest this proxy stages (via setupQuestFile below) gets its OWN real delete-path stage
+  // through this same instance — the test knows every quest it seeds, so there is no need to
+  // guess which ones questSource will match at run time (see setupQuestFile).
+  const deleteProxy = questDeleteBrokerProxy();
 
-  // Which quests actually get deleted is decided by questSource filtering inside
-  // smoketestClearPriorQuestsBroker's real run — this proxy only knows the FULL quest list
-  // (via setupQuestFile below), not which subset will match, so it has no per-questId
-  // questFolderPath to hand questDeleteBrokerProxy.setupQuestFolderPath ahead of time. Key on
-  // the real path SHAPE each call carries instead: a quest deletion always sits under a
-  // `/quests/` directory, and the outbox append always targets the fixed outbox filename.
-  const rmMock = registerMock({ fn: rm });
-  rmMock
-    .calledWith([(filePath: unknown) => String(filePath).includes('/quests/')])
-    .resolves(undefined);
+  // Read-only: `.callsMatching([])` alone, never `.calledWith(...)` — every real rm call this test
+  // can produce already has its own exact-tuple answer staged via deleteProxy.setupQuestFolderPath,
+  // so this handle stages nothing of its own and cannot shadow another proxy's stage.
+  const rmMock: MockHandle = registerMock({ fn: rm });
 
-  const appendMock = registerMock({ fn: appendFile });
-  appendMock
-    .calledWith([(filePath: unknown) => String(filePath).endsWith('event-outbox.jsonl')])
-    .resolves({ success: true as const });
+  const homePathRef: { value: FilePath } = { value: filePathContract.parse('/unset') };
+  const guildIdRef: { value: GuildId } = { value: GuildIdStub() };
 
   const mocked = registerMock({ fn: smoketestClearPriorQuestsBroker });
 
@@ -92,9 +92,14 @@ export const smoketestClearPriorQuestsBrokerProxy = (): {
       guildEntries: readonly {
         accessible: boolean;
         questsDirPath: FilePath;
-        questDirEntries: Dirent[];
+        questDirEntries: DirEntrySync[];
       }[];
     }): void => {
+      homePathRef.value = homePath;
+      const [guild] = config.guilds;
+      if (guild) {
+        guildIdRef.value = guild.id;
+      }
       ensureGuild.setupGuildPresent({ config, homeDir, homePath, guildEntries });
     },
 
@@ -118,13 +123,28 @@ export const smoketestClearPriorQuestsBrokerProxy = (): {
       list.setupQuestDirectories({ files: files.slice() });
     },
 
+    // Which quests actually get deleted is decided by questSource filtering inside
+    // smoketestClearPriorQuestsBroker's real run, but every quest this test seeds is known HERE,
+    // at setup time — so each one gets its own real questDeleteBrokerProxy.setupQuestFolderPath
+    // stage (the exact 5-segment join tuple the real delete call uses), keyed on its own questId.
+    // Staging every seeded quest is harmless: only the questSource-matched one(s) ever have their
+    // rm call read back.
     setupQuestFile: ({ questJson }: { questJson: string }): void => {
       list.setupQuestFile({ questJson });
+
+      const quest = questContract.parse(JSON.parse(questJson));
+      const questFolderPath = filePathContract.parse(
+        `${homePathRef.value}/${dungeonmasterHomeStatics.paths.guildsDir}/${guildIdRef.value}/${dungeonmasterHomeStatics.paths.questsDir}/${quest.id}`,
+      );
+
+      deleteProxy.setupQuestFolderPath({
+        homePath: homePathRef.value,
+        guildId: guildIdRef.value,
+        questId: quest.id,
+        questFolderPath,
+      });
     },
 
-    // deleteBroker.getRmCallArgs() filters by a questFolderPath this proxy never addresses
-    // (see the comment above questDeleteBrokerProxy() for why); read straight off rmMock,
-    // which every real questDeleteBroker call in this test actually dispatches through.
     getRmCallArgs: (): RecordedCalls => rmMock.callsMatching([]),
   };
 };

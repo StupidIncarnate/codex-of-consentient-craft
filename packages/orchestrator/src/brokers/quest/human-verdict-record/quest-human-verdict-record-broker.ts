@@ -32,7 +32,6 @@
  * the honest shape: a reader checks presence instead.
  */
 
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import {
   fileContentsContract,
   filePathContract,
@@ -42,6 +41,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import type { Quest, QuestNote } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
+import { join } from '#gateway/node/path';
 
 import { questFindQuestPathBroker } from '../find-quest-path/quest-find-quest-path-broker';
 import { questLoadBroker } from '../load/quest-load-broker';
@@ -68,7 +68,7 @@ export const questHumanVerdictRecordBroker = async ({
         questId: questIdContract.parse(questId),
       });
       const questFilePath = filePathContract.parse(
-        pathJoinAdapter({ paths: [questPath, locationsStatics.quest.questFile] }),
+        join(questPath, locationsStatics.quest.questFile),
       );
       const quest = await questLoadBroker({ questFilePath });
 

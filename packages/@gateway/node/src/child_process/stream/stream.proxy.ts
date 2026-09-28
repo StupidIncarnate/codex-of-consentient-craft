@@ -59,6 +59,11 @@ export const streamProxy = (): {
   setupError: (params: { command: string; error: Error; stdout?: string }) => void;
   setupCloseNull: (params: { command: string; stdout: string }) => void;
   getSpawnedArgs: (params: { command: string }) => unknown;
+  // Every call's own `args` (spawn's 2nd positional argument), in call order, for calls whose
+  // command matches — `getSpawnedArgs` above only reads the LAST one, which collapses a caller
+  // that spawns the SAME command once per item (one child per workspace package, in
+  // `multiPackageLayerBroker`) down to a single remembered call.
+  getCallsFor: (params: { command: string }) => readonly string[][];
 } => {
   const handle = registerMock({ fn: spawn });
 
@@ -146,5 +151,8 @@ export const streamProxy = (): {
 
     getSpawnedArgs: ({ command }: { command: string }): unknown =>
       handle.callsMatching([command]).at(-1)?.[1],
+
+    getCallsFor: ({ command }: { command: string }): readonly string[][] =>
+      handle.callsMatching([command]).map((call) => call[1] as string[]),
   };
 };

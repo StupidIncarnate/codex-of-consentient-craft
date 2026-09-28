@@ -2,10 +2,11 @@
  * PURPOSE: Creates and removes a uniquely-named, non-hidden marker directory directly under the
  * REAL `os.homedir()` — sandboxed for the whole jest run by `jest.setup-global.js`, so this never
  * touches a developer's own home. `directoryBrowseBroker`'s default (no `path` argument) resolves
- * through `osUserHomedirAdapter()`, and the one integration test that drives it with no path needs
- * something deterministic under that directory to find — the ambient home is otherwise empty in a
- * sandboxed run and unpredictable outside one. A test scenario file may not import `node:fs`/`node:os`
- * directly (`ban-node-builtins-in-test-scenarios`), so this harness is the door through.
+ * through `homedir()` (`#gateway/node/os`), and the one integration test that drives it with no path
+ * needs something deterministic under that directory to find — the ambient home is otherwise empty
+ * in a sandboxed run and unpredictable outside one. A test scenario file may not import
+ * `node:fs`/`node:os` directly (`ban-node-builtins-in-test-scenarios`), so this harness is the door
+ * through.
  *
  * USAGE:
  * const marker = homeDirectoryMarkerHarness();
@@ -22,7 +23,7 @@ import {
   type AbsoluteFilePath,
   type FileName,
 } from '@dungeonmaster/shared/contracts';
-import { osUserHomedirAdapter } from '@dungeonmaster/shared/adapters';
+import { homedir } from '#gateway/node/os';
 
 const MARKER_PREFIX = 'directory-flow-default-path-marker-';
 
@@ -36,7 +37,7 @@ export const homeDirectoryMarkerHarness = (): {
   create: async (): Promise<{ name: FileName; path: AbsoluteFilePath }> => {
     await Promise.resolve();
     const name = fileNameContract.parse(`${MARKER_PREFIX}${String(process.pid)}`);
-    const markerPath = absoluteFilePathContract.parse(join(osUserHomedirAdapter(), name));
+    const markerPath = absoluteFilePathContract.parse(join(homedir(), name));
     mkdirSync(markerPath, { recursive: true });
     return { name, path: markerPath };
   },

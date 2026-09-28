@@ -19,11 +19,18 @@
  * same way a browser-close failure is above — logged, never thrown — so one bad descriptor neither
  * skips the rest of the fds nor the home removal that follows (siegelense-tooling.md line 1083).
  *
+ * The returned `KillResult.killed` names `liveTargets` — the pgids THIS call actually SIGTERM'd
+ * (and, for whichever were still alive a moment later, SIGKILL'd) — never `session.pgids` verbatim,
+ * since a group already dead before this call started was never this call's to stop. `reapedPgids`
+ * stays empty here on purpose: that field is reserved for the ORPHAN-reap path a driver-unreachable
+ * `instanceKillBroker` falls into, and this broker runs only on the OTHER path, where a live driver
+ * received the request and is doing its own teardown.
+ *
  * USAGE:
  * const result = await laneTeardownBroker({ session, instanceId });
  * // Kills every live process group, closes every session.logFds descriptor, removes session.homePath,
- * // leaves session.evidencePath standing, and returns a KillResult naming the released ports and the
- * // repo-local evidence path
+ * // leaves session.evidencePath standing, and returns a KillResult naming the released ports, the
+ * // repo-local evidence path, and the pgids actually stopped as `killed`
  */
 
 import { driverStatics } from '../../../statics/driver/driver-statics';
@@ -116,5 +123,11 @@ export const laneTeardownBroker = async ({
     homeRemoved: true,
     evidenceKept,
     reapedPgids: [],
+    // `reapedPgids` stays empty (see kill-result-contract's own docstring — it names the OTHER,
+    // orphan path exclusively); `killed` is what the socket-reachable caller (instanceKillBroker)
+    // relays back as this call's OWN answer to "what did this teardown actually stop" —
+    // `liveTargets`, never `session.pgids` verbatim, since a group already dead when this call
+    // started was never this call's to stop.
+    killed: liveTargets,
   });
 };

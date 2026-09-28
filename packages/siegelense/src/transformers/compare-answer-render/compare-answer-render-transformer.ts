@@ -1,15 +1,19 @@
 /**
  * PURPOSE: Renders a `CompareAnswer` into a concise, token-efficient human summary for the
  * `dungeonmaster siegelense compare` CLI surface — instance id, runs compared, error deltas across
- * console, server, and network, the pixel diff summary, and each run's own element delta counts. Pure,
- * so the rendered summary is provable without stdout. The two ELEMENTS lines carry counts only
- * (`+appeared -disappeared ~changed`) — the real `KeyRow`s each side recorded are in `elements.runA`/
- * `elements.runB` on the answer itself, reachable via `--json`, the same split this transformer
- * already makes for `console`/`server`/`network`'s own `new:` lines.
+ * console, server, and network, the pixel diff summary, and each run's own element churn. Pure,
+ * so the rendered summary is provable without stdout. The two ELEMENTS lines are labelled "WITHIN
+ * RUN A"/"WITHIN RUN B" on purpose: `elements.runA`/`elements.runB` are each that run's OWN last
+ * recorded delta (appeared/disappeared/changed against its own previous step), never a diff between
+ * run A and run B — `compare` reads stored evidence only, never re-drives a page to compute a fresh
+ * cross-run diff, so a label reading "RUN A" beside "RUN B" would misread as one. The counts here
+ * carry `+appeared -disappeared ~changed` only — the real `KeyRow`s each side recorded are in
+ * `elements.runA`/`elements.runB` on the answer itself, reachable via `--json`, the same split this
+ * transformer already makes for `console`/`server`/`network`'s own `new:` lines.
  *
  * USAGE:
  * compareAnswerRenderTransformer({ answer: CompareAnswerStub() });
- * // Returns 'INSTANCE: inst_7f3a9c21\nCOMPARING: run_4 -> run_5\nCONSOLE ERRORS: +2\nSERVER ERRORS: +0\nNETWORK NON-2XX: +1\nPIXEL DELTA: last capture differs 12%\nELEMENTS RUN A: +0 -0 ~0\nELEMENTS RUN B: +0 -0 ~0\n'
+ * // Returns 'INSTANCE: inst_7f3a9c21\nCOMPARING: run_4 -> run_5\nCONSOLE ERRORS: +2\nSERVER ERRORS: +0\nNETWORK NON-2XX: +1\nPIXEL DELTA: last capture differs 12%\nELEMENTS WITHIN RUN A: +0 -0 ~0\nELEMENTS WITHIN RUN B: +0 -0 ~0\n'
  */
 
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
@@ -60,8 +64,8 @@ export const compareAnswerRenderTransformer = ({
       `SERVER ERRORS: ${serverDelta}`,
       `NETWORK NON-2XX: ${networkDelta}`,
       `PIXEL DELTA: ${pixelDelta}`,
-      `ELEMENTS RUN A: ${elementsRunA}`,
-      `ELEMENTS RUN B: ${elementsRunB}`,
+      `ELEMENTS WITHIN RUN A: ${elementsRunA}`,
+      `ELEMENTS WITHIN RUN B: ${elementsRunB}`,
       '',
     ].join('\n'),
   );

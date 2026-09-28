@@ -51,6 +51,19 @@ describe('wardPersistResultBroker', () => {
         '/quests/quest-003/ward-results/result-xyz.json',
       );
     });
+
+    it('VALID: {questFolderPath, wardResultId} => creates the ward-results directory before writing', async () => {
+      const proxy = wardPersistResultBrokerProxy();
+      const questFolderPath = FilePathStub({ value: '/quests/quest-004' });
+      const wardResultId = 'result-mkdir';
+      const detailJson = ErrorMessageStub({ value: '{"checks":[]}' });
+
+      proxy.setupSuccess({ questFolderPath, wardResultId });
+
+      await wardPersistResultBroker({ questFolderPath, wardResultId, detailJson });
+
+      expect(proxy.getMkdirPaths()).toStrictEqual(['/quests/quest-004/ward-results']);
+    });
   });
 
   describe('error cases', () => {

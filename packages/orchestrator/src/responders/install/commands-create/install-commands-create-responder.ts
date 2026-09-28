@@ -9,7 +9,6 @@
  * // Returns InstallResult — action 'created'; the two command files are written to disk
  */
 
-import { fsMkdirAdapter, pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import {
   type InstallContext,
   type InstallResult,
@@ -19,6 +18,8 @@ import {
   packageNameContract,
 } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
+import { ensureDir } from '#gateway/node/fs__promises';
+import { join } from '#gateway/node/path';
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import { slashCommandsStatics } from '../../../statics/slash-commands/slash-commands-statics';
 
@@ -31,21 +32,19 @@ export const InstallCommandsCreateResponder = async ({
   context: InstallContext;
 }): Promise<InstallResult> => {
   const commandsDir = filePathContract.parse(
-    pathJoinAdapter({
-      paths: [context.targetProjectRoot, locationsStatics.repoRoot.claude.dir, COMMANDS_DIR_NAME],
-    }),
+    join(context.targetProjectRoot, locationsStatics.repoRoot.claude.dir, COMMANDS_DIR_NAME),
   );
 
-  await fsMkdirAdapter({ filepath: commandsDir });
+  await ensureDir(commandsDir);
 
   const createPath = filePathContract.parse(
-    pathJoinAdapter({ paths: [commandsDir, slashCommandsStatics.dumpsterCreate.fileName] }),
+    join(commandsDir, slashCommandsStatics.dumpsterCreate.fileName),
   );
   const huntPath = filePathContract.parse(
-    pathJoinAdapter({ paths: [commandsDir, slashCommandsStatics.dumpsterHunt.fileName] }),
+    join(commandsDir, slashCommandsStatics.dumpsterHunt.fileName),
   );
   const launchPath = filePathContract.parse(
-    pathJoinAdapter({ paths: [commandsDir, slashCommandsStatics.dumpsterLaunch.fileName] }),
+    join(commandsDir, slashCommandsStatics.dumpsterLaunch.fileName),
   );
 
   await fsWriteFileAdapter({

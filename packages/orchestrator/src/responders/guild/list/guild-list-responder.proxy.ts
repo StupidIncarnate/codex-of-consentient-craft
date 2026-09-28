@@ -1,4 +1,4 @@
-import type { Dirent } from 'fs';
+import type { DirEntrySync } from '#gateway/node/fs';
 
 import type { FilePath, GuildConfig } from '@dungeonmaster/shared/contracts';
 
@@ -14,7 +14,7 @@ export const GuildListResponderProxy = (): {
     guildEntries: {
       accessible: boolean;
       questsDirPath: FilePath;
-      questDirEntries: Dirent[];
+      questDirEntries: DirEntrySync[];
     }[];
   }) => void;
   setupEmptyConfig: (params: { homeDir: string; homePath: FilePath }) => void;
@@ -31,7 +31,7 @@ export const GuildListResponderProxy = (): {
       guildEntries: {
         accessible: boolean;
         questsDirPath: FilePath;
-        questDirEntries: Dirent[];
+        questDirEntries: DirEntrySync[];
       }[];
     }): void => {
       brokerProxy.setupGuildList(params);

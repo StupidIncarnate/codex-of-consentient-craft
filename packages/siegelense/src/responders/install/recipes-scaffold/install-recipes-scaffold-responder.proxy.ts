@@ -1,19 +1,14 @@
-import { spawn, type ChildProcess } from 'child_process';
-import { EventEmitter, Readable } from 'stream';
-import {
-  fsExistsSyncAdapterProxy,
-  fsMkdirAdapterProxy,
-  pathBasenameAdapterProxy,
-  pathDirnameAdapterProxy,
-  pathResolveAdapterProxy,
-} from '@dungeonmaster/shared/testing';
+import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
+import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
+import { basename, dirname, resolve } from '#gateway/node/path';
+import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import {
   AbsoluteFilePathStub,
   FilePathStub,
   PathSegmentStub,
+  packageNameContract,
 } from '@dungeonmaster/shared/contracts';
 import type { PathSegment } from '@dungeonmaster/shared/contracts';
-import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
@@ -21,61 +16,15 @@ import { npmInstallAdapterProxy } from '../../../adapters/npm/install/npm-instal
 import { npmRunBuildAdapterProxy } from '../../../adapters/npm/run-build/npm-run-build-adapter.proxy';
 import { InstallRecipesScaffoldResponder } from './install-recipes-scaffold-responder';
 
-// npmInstallAdapter and npmRunBuildAdapter both spawn bare `npm`, so `command` alone cannot tell
-// the two calls apart under the shared childProcessSpawnCaptureAdapterProxy's command-only
-// addressing (the same collision git-detect-base-branch-broker.proxy.ts documents for two `git`
-// calls) — addressing on the full args array instead discriminates them directly, in either order.
-const NPM_INSTALL_ARGS = ['install'];
-// The getters/failure-setters below all address the UNSCOPED package name — every test that reads
-// spawn args or stages a failure uses setupPackageAbsent() with no rootPackageJsonName. The SCOPED
-// tests (rootPackageJsonName present) only assert written file contents, never spawn calls, so the
-// scope-aware build args setupPackageAbsent computes for its own default staging never need to be
-// read back through these fixed constants.
-const NPM_BUILD_ARGS = ['run', 'build', '--workspace=hydration-recipes'];
-// pathBasenameAdapterProxy() (called inside the factory below) stages the REAL, passthrough
-// basename as its own default, so the real responder's fallback — offered whenever the root
-// package.json exists but carries no `name` — genuinely resolves CONTEXT's targetProjectRoot
-// ('/project') to 'project'. Hardcoded rather than computed by calling `basename('/project')' at
-// this MODULE's own top level: 'path' is itself mocked the moment this file's module graph pulls
-// in pathBasenameAdapterProxy, and that mock is staged only once the factory below runs — a
-// module-level call here would run before any test's setup and silently see the unstaged mock.
+// pathBasenameAdapterProxy/pathDirnameAdapterProxy/pathResolveAdapterProxy formerly staged REAL
+// passthrough defaults for basename/dirname/resolve; #gateway/node/path re-exports these bare (no
+// per-function proxy of its own, unlike fs/fs__promises/child_process), so this file stages the
+// same real-passthrough default directly on the gateway's own re-exports, matching
+// instance-start-broker.proxy.ts's own `join` pattern (A12 SL7).
 const FALLBACK_SCOPE = '@project';
 
-const createNpmChild = ({
-  exitCode,
-  stderr,
-}: {
-  exitCode: number;
-  stderr: string;
-}): ChildProcess => {
-  const child = new EventEmitter() as ChildProcess;
-  child.stdout = new Readable({
-    read(): void {
-      /* noop */
-    },
-  });
-  child.stderr = new Readable({
-    read(): void {
-      /* noop */
-    },
-  });
-
-  const mockStderr = child.stderr;
-
-  setImmediate(() => {
-    if (stderr.length > 0) {
-      mockStderr.push(Buffer.from(stderr));
-    }
-    mockStderr.push(null);
-    child.stdout?.push(null);
-    child.emit('exit', exitCode, null);
-  });
-
-  return child;
-};
-
 // Every caller in these tests exercises targetProjectRoot: '/project' (the real, unstaged
-// pathResolve passthrough resolves it to these exact paths), so every test lands on these paths.
+// resolve passthrough resolves it to these exact paths), so every test lands on these paths.
 const RECIPES_PACKAGE_PATH = FilePathStub({ value: '/project/packages/hydration-recipes' });
 const ROOT_PACKAGE_JSON_PATH = FilePathStub({ value: '/project/package.json' });
 const ROOT_PACKAGE_JSON_ABSOLUTE_PATH = AbsoluteFilePathStub({ value: '/project/package.json' });
@@ -99,6 +48,18 @@ const SCAFFOLD_RELATIVE_PATHS = [
   'src/responders/recipes/seed/recipes-seed-responder.ts',
   'src/responders/recipes/seed/recipes-seed-responder.proxy.ts',
   'src/responders/recipes/seed/recipes-seed-responder.test.ts',
+] as const;
+
+// The gateway fs__promises proxy has no catch-all: every directory the real code's own dirname()
+// resolves must be staged by its exact path. Derived once, by hand, from SCAFFOLD_RELATIVE_PATHS
+// above rather than by re-deriving it through a mocked dirname/resolve at proxy-construction time.
+const SCAFFOLD_DIR_PATHS = [
+  RECIPES_PACKAGE_ROOT,
+  `${RECIPES_PACKAGE_ROOT}/src`,
+  `${RECIPES_PACKAGE_ROOT}/src/startup`,
+  `${RECIPES_PACKAGE_ROOT}/src/flows/recipes`,
+  `${RECIPES_PACKAGE_ROOT}/src/responders/recipes/listing`,
+  `${RECIPES_PACKAGE_ROOT}/src/responders/recipes/seed`,
 ] as const;
 
 const SCAFFOLD_FILE_ABSOLUTE_PATHS: ReadonlyMap<
@@ -128,71 +89,34 @@ export const InstallRecipesScaffoldResponderProxy = (): {
   wasBuildSpawnedFromCwd: (params: { cwd: string }) => boolean;
   wasNpmSpawned: () => boolean;
 } => {
-  pathResolveAdapterProxy();
-  pathBasenameAdapterProxy();
-  // No explicit staging: its default is a real `path.dirname` passthrough, exactly what
-  // computing each scaffold file's real parent directory needs.
-  pathDirnameAdapterProxy();
-  const existsProxy = fsExistsSyncAdapterProxy();
-  // No explicit staging either: fsMkdirAdapterProxy's own default answers ANY unaddressed call
-  // as a success, which is what every one of the responder's now-several mkdir calls (one per
-  // unique scaffold directory) needs — there is no single fixed path left to address.
-  const mkdirProxy = fsMkdirAdapterProxy();
+  const realPath = requireActual<{
+    basename: typeof basename;
+    dirname: typeof dirname;
+    resolve: typeof resolve;
+  }>({ module: 'path' });
+  registerMock({ fn: resolve })
+    .calledWith([])
+    .implement((...segments: never[]) => realPath.resolve(...segments));
+  registerMock({ fn: basename })
+    .calledWith([])
+    .implement((inputPath: never) => realPath.basename(inputPath));
+  registerMock({ fn: dirname })
+    .calledWith([])
+    .implement((inputPath: never) => realPath.dirname(inputPath));
+
+  const existsProxy = existsSyncProxy();
+  const mkdirProxy = ensureDirProxy();
+  // Every scaffold directory this responder ever ensureDirs is a known, fixed path (see
+  // SCAFFOLD_DIR_PATHS above) — staged unconditionally so any scenario that reaches the write
+  // phase succeeds; a scenario that returns before that phase (package present, install fails)
+  // simply never calls these.
+  for (const dirPath of SCAFFOLD_DIR_PATHS) {
+    mkdirProxy.succeeds({ path: dirPath });
+  }
   const readProxy = fsReadFileAdapterProxy();
   const writeProxy = fsWriteFileAdapterProxy();
-  // Created but unstaged: the real implementation composes npmInstallAdapter/npmRunBuildAdapter
-  // (which themselves compose childProcessSpawnCaptureAdapter), but this proxy answers `spawn`
-  // directly (see the module comment above) so neither adapter proxy's own constructor-level
-  // default ever fires.
-  npmInstallAdapterProxy();
-  npmRunBuildAdapterProxy();
-  const spawnHandle = registerMock({ fn: spawn });
-
-  const stageInstall = ({ exitCode, stderr }: { exitCode: number; stderr: string }): void => {
-    spawnHandle
-      .calledWith(['npm', NPM_INSTALL_ARGS])
-      .implement(() => createNpmChild({ exitCode, stderr }));
-  };
-
-  const stageBuild = ({
-    args,
-    exitCode,
-    stderr,
-  }: {
-    args: readonly string[];
-    exitCode: number;
-    stderr: string;
-  }): void => {
-    spawnHandle.calledWith(['npm', args]).implement(() => createNpmChild({ exitCode, stderr }));
-  };
-
-  // Stages the npm build call under whatever workspace name the REAL responder will actually
-  // request — scope resolution itself happens once, inline in setupPackageAbsent below (mirroring
-  // workspaceScopeFromRootNameTransformer's own branches for a real name, plus FALLBACK_SCOPE for
-  // the responder's own fallback path), so this only turns a resolved scope (or its absence) into
-  // the --workspace= value. Stages the call directly (`void`) rather than returning the computed
-  // args, since a function returning a raw (unbranded) string array/tuple trips `ban-primitives`
-  // in a responders/ file.
-  const stageBuildForWorkspace = ({
-    scope,
-    exitCode,
-    stderr,
-  }: {
-    scope?: string;
-    exitCode: number;
-    stderr: string;
-  }): void => {
-    const workspaceName = scope === undefined ? 'hydration-recipes' : `${scope}/hydration-recipes`;
-    stageBuild({ args: ['run', 'build', `--workspace=${workspaceName}`], exitCode, stderr });
-  };
-
-  // Reads the spawned `cwd` by substring rather than a structural cast on the captured `unknown`
-  // options object — `ban-adhoc-types` forbids `as {cwd?: unknown}` in a responders/ file, and a
-  // JSON-string search proves the same fact without one.
-  const wasSpawnedFromCwd = ({ args, cwd }: { args: readonly string[]; cwd: string }): boolean =>
-    JSON.stringify(spawnHandle.callsMatching(['npm', args]).at(-1)?.[2] ?? {}).includes(
-      `"cwd":${JSON.stringify(cwd)}`,
-    );
+  const installProxy = npmInstallAdapterProxy();
+  const buildProxy = npmRunBuildAdapterProxy();
 
   return {
     callResponder: InstallRecipesScaffoldResponder,
@@ -213,13 +137,13 @@ export const InstallRecipesScaffoldResponderProxy = (): {
       rootPackageJsonPresent?: boolean;
       rootPackageJsonName?: string;
     } = {}): void => {
-      existsProxy.returns({ filePath: RECIPES_PACKAGE_PATH, result: false });
+      existsProxy.returns({ path: RECIPES_PACKAGE_PATH, exists: false });
 
       const rootPackageJsonExists =
         rootPackageJsonPresent === true || rootPackageJsonName !== undefined;
       existsProxy.returns({
-        filePath: ROOT_PACKAGE_JSON_PATH,
-        result: rootPackageJsonExists,
+        path: ROOT_PACKAGE_JSON_PATH,
+        exists: rootPackageJsonExists,
       });
       if (rootPackageJsonExists) {
         readProxy.resolves({
@@ -235,8 +159,8 @@ export const InstallRecipesScaffoldResponderProxy = (): {
       }
 
       // Mirrors what the real responder resolves: absent root package.json => no scope at all;
-      // present with no name => FALLBACK_SCOPE (pathBasenameAdapter's real passthrough); present
-      // with a name => workspaceScopeFromRootNameTransformer's own two branches for that name.
+      // present with no name => FALLBACK_SCOPE (the real basename passthrough); present with a
+      // name => workspaceScopeFromRootNameTransformer's own two branches for that name.
       const resolvedScope = rootPackageJsonExists
         ? rootPackageJsonName === undefined || rootPackageJsonName.length === 0
           ? FALLBACK_SCOPE
@@ -244,54 +168,55 @@ export const InstallRecipesScaffoldResponderProxy = (): {
             ? rootPackageJsonName.slice(0, rootPackageJsonName.indexOf('/'))
             : `@${rootPackageJsonName}`
         : undefined;
+      const workspace = packageNameContract.parse(
+        resolvedScope === undefined ? 'hydration-recipes' : `${resolvedScope}/hydration-recipes`,
+      );
 
-      stageInstall({ exitCode: 0, stderr: '' });
-      stageBuildForWorkspace({
-        ...(resolvedScope === undefined ? {} : { scope: resolvedScope }),
-        exitCode: 0,
-        stderr: '',
-      });
+      installProxy.setupSuccess();
+      buildProxy.setupSuccess({ workspace });
     },
 
     // The package already exists — real or seeded by a prior install. Nothing under it is read
     // or written, so no mkdir staging is needed: an attempted call fails the test on its own.
     setupPackagePresent: (): void => {
-      existsProxy.returns({ filePath: RECIPES_PACKAGE_PATH, result: true });
+      existsProxy.returns({ path: RECIPES_PACKAGE_PATH, exists: true });
     },
 
     // Build is left unstaged: the responder must short-circuit on a failed install rather than
     // attempt to build a workspace `npm install` never linked into node_modules — an unstaged
     // build call throws "nothing set up", which fails the test if the short-circuit regresses.
     setupInstallFails: ({ output }: { output: string }): void => {
-      stageInstall({ exitCode: 1, stderr: output });
+      installProxy.setupFailure({ output });
     },
 
     setupBuildFails: ({ output }: { output: string }): void => {
-      stageBuild({ args: NPM_BUILD_ARGS, exitCode: 1, stderr: output });
+      buildProxy.setupFailure({
+        workspace: packageNameContract.parse('hydration-recipes'),
+        output,
+      });
     },
 
-    getCreatedDirs: (): readonly unknown[] => mkdirProxy.getCreatedDirs(),
+    getCreatedDirs: (): readonly unknown[] =>
+      SCAFFOLD_DIR_PATHS.flatMap((dirPath) =>
+        mkdirProxy.getCallsFor({ path: dirPath }).map(() => dirPath),
+      ),
 
     getWrittenContents: ({ relativePath }: { relativePath: PathSegment }): unknown => {
       const filePath = SCAFFOLD_FILE_ABSOLUTE_PATHS.get(relativePath);
       return filePath === undefined ? undefined : writeProxy.getWrittenFor({ filePath });
     },
 
-    // installProxy/buildProxy's own getSpawnedArgs() reads the LAST bare-'npm' call regardless of
-    // which adapter made it, so once both calls have happened they would answer identically —
-    // reading straight off spawnHandle, addressed by the full args array, is what discriminates.
-    getInstallSpawnArgs: (): unknown =>
-      spawnHandle.callsMatching(['npm', NPM_INSTALL_ARGS]).at(-1)?.[1],
+    getInstallSpawnArgs: (): unknown => installProxy.getSpawnedArgs(),
 
-    getBuildSpawnArgs: (): unknown =>
-      spawnHandle.callsMatching(['npm', NPM_BUILD_ARGS]).at(-1)?.[1],
+    getBuildSpawnArgs: (): unknown => buildProxy.getSpawnedArgs(),
 
     wasInstallSpawnedFromCwd: ({ cwd }: { cwd: string }): boolean =>
-      wasSpawnedFromCwd({ args: NPM_INSTALL_ARGS, cwd }),
+      installProxy.getSpawnedCwd() === cwd,
 
     wasBuildSpawnedFromCwd: ({ cwd }: { cwd: string }): boolean =>
-      wasSpawnedFromCwd({ args: NPM_BUILD_ARGS, cwd }),
+      buildProxy.getSpawnedCwd() === cwd,
 
-    wasNpmSpawned: (): boolean => spawnHandle.callsMatching(['npm']).length > 0,
+    wasNpmSpawned: (): boolean =>
+      installProxy.getSpawnedArgs() !== undefined || buildProxy.getSpawnedArgs() !== undefined,
   };
 };

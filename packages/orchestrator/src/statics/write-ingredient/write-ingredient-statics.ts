@@ -89,8 +89,8 @@ YOURS:
 
 NOT YOURS:
 
-- **\`packages/hydration-recipes/src/statics/recipe-book/recipe-book-statics.ts\`, and every file
-  under \`brokers/recipes/\`.** That is a RECIPE, and writing one is \`recipe-maker\`'s job — it
+- **\`packages/hydration-recipes/src/brokers/recipes/catalog/recipes-catalog-broker.ts\`, and every
+  file under \`brokers/recipes/\`.** That is a RECIPE, and writing one is \`recipe-maker\`'s job — it
   composes the ingredient you hand back into the setup it needs
 - **git, in every verb.** You commit nothing; the family's own \`commit\` step takes the whole tree,
   once \`recipe-maker\` has proven the sequence

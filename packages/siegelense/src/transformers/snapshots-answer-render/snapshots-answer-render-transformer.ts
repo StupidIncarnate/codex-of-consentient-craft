@@ -1,8 +1,12 @@
 /**
  * PURPOSE: Renders a `SnapshotsAnswer` into a concise, token-efficient human view for the
- * `dungeonmaster siegelense snapshots` CLI surface — instance id and state, followed by either
- * 'SNAPSHOTS: none recorded yet' or an aligned Unicode box-drawing table with columns
- * ['NAME', 'AGE', 'MANUAL']. Pure, so the table and header are provable without stdout.
+ * `dungeonmaster siegelense snapshots` CLI surface — instance id and state, followed by either an
+ * empty-list notice or an aligned Unicode box-drawing table with columns ['NAME', 'AGE', 'MANUAL'].
+ * The empty-list notice is state-aware: a `killed` instance's snapshot store died with the
+ * throwaway home at kill (`snapshotsAnswerContract`'s own header — "the throwaway home is gone and
+ * took its restore points with it"), which is a different fact than "nothing recorded yet", so it
+ * gets a different sentence rather than the same empty array reading two ways. Pure, so the table
+ * and header are provable without stdout.
  *
  * USAGE:
  * snapshotsAnswerRenderTransformer({ answer: SnapshotsAnswerStub({ snapshots: [] }) });
@@ -28,7 +32,11 @@ export const snapshotsAnswerRenderTransformer = ({
   const instanceLine = `INSTANCE: ${answer.instanceId} (${answer.instanceState})`;
 
   if (answer.snapshots.length === 0) {
-    return contentTextContract.parse(`${instanceLine}\nSNAPSHOTS: none recorded yet\n`);
+    return contentTextContract.parse(
+      answer.instanceState === 'killed'
+        ? `${instanceLine}\nSNAPSHOTS: none — the throwaway home died with the instance at kill\n`
+        : `${instanceLine}\nSNAPSHOTS: none recorded yet\n`,
+    );
   }
 
   const { headers, cellPadding } = snapshotsTableStatics.table;

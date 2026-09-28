@@ -1,5 +1,6 @@
+import { join } from '#gateway/node/path';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
-import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
+import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
 import { fsReaddirAdapterProxy } from '../../../adapters/fs/readdir/fs-readdir-adapter.proxy';
 import { fsStatAdapterProxy } from '../../../adapters/fs/stat/fs-stat-adapter.proxy';
@@ -17,7 +18,12 @@ export const runShotsLayerBrokerProxy = (): {
   const readdirProxy = fsReaddirAdapterProxy();
   const statProxy = fsStatAdapterProxy();
   locationsRunPathsFindBrokerProxy();
-  pathJoinAdapterProxy();
+  // `join` (from '#gateway/node/path') runs for real, on a sticky passthrough default — a shot
+  // file's own path is a plain `path.join(shotsDir, fileName)`.
+  const realPath = requireActual<{ join: typeof join }>({ module: 'path' });
+  registerMock({ fn: join })
+    .calledWith([])
+    .implement((...segments: never[]) => realPath.join(...segments));
 
   return {
     setupShotsDir: ({

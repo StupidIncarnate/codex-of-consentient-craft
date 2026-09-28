@@ -16,8 +16,8 @@
  * // Returns ContentText JSON representing the HoldReading
  */
 
-import { pathDirnameAdapter, pathJoinAdapter } from '@dungeonmaster/shared/adapters';
-import { absoluteFilePathContract, filePathContract } from '@dungeonmaster/shared/contracts';
+import { dirname, join } from '#gateway/node/path';
+import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
 
 import { asyncDelayAdapter } from '../../../adapters/async/delay/async-delay-adapter';
@@ -47,16 +47,13 @@ export const stepHoldBroker = async ({
   frames: number;
   everyMs: number;
 }): Promise<ContentText> => {
-  const dir =
-    shotPath === null
-      ? lane.evidencePath
-      : pathDirnameAdapter({ path: filePathContract.parse(shotPath) });
+  const dir = shotPath === null ? lane.evidencePath : dirname(shotPath);
 
   const framePaths: AbsoluteFilePath[] = [];
   for (let i = 0; i < frames; i += 1) {
     const frameNumber = i + 1;
     const framePath = absoluteFilePathContract.parse(
-      pathJoinAdapter({ paths: [dir, `step${String(index)}_frame${String(frameNumber)}.png`] }),
+      join(dir, `step${String(index)}_frame${String(frameNumber)}.png`),
     );
     framePaths.push(framePath);
   }

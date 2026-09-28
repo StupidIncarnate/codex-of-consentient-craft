@@ -16,7 +16,7 @@
  * // Writes shutdown-reason.json under that directory and returns the written ShutdownReason
  */
 
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
+import { join } from '#gateway/node/path';
 import { absoluteFilePathContract, fileContentsContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, ContentText } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
@@ -34,7 +34,7 @@ export const shutdownReasonWriteBroker = async ({
   reason: ContentText;
 }): Promise<ShutdownReason> => {
   const markerPath = absoluteFilePathContract.parse(
-    pathJoinAdapter({ paths: [evidencePath, locationsStatics.siegelense.shutdownReason] }),
+    join(evidencePath, locationsStatics.siegelense.shutdownReason),
   );
 
   const marker = shutdownReasonContract.parse({

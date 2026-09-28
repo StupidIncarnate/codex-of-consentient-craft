@@ -1,7 +1,10 @@
 import { siegelenseOutputStatics } from '../../../statics/siegelense-output/siegelense-output-statics';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
 import { InstanceStatusStub } from '../../../contracts/instance-status/instance-status.stub';
+import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
+import { RegistryStub } from '../../../contracts/registry/registry.stub';
 import { StatusAnswerStub } from '../../../contracts/status-answer/status-answer.stub';
+import { InstanceUnknownError } from '../../../errors/instance-unknown/instance-unknown-error';
 
 import { SiegelenseStatusResponder } from './siegelense-status-responder';
 import { SiegelenseStatusResponderProxy } from './siegelense-status-responder.proxy';
@@ -20,52 +23,45 @@ describe('SiegelenseStatusResponder', () => {
       ]);
     });
 
-    it('EMPTY: {instanceId: null, isJson: false, no instances} => writes the plain fleet-empty sentence', async () => {
+    it('EMPTY: {instanceId: null, isJson: false, no instances} => writes the reworded empty-fleet sentence naming the default --since window', async () => {
       const proxy = SiegelenseStatusResponderProxy();
       const answer = StatusAnswerStub({ instances: [] });
       proxy.stageAnswer({ answer });
 
       await SiegelenseStatusResponder({ instanceId: null, isJson: false });
 
-      expect(proxy.getStdoutWrites()).toStrictEqual(['No siegelense instances running.\n']);
+      expect(proxy.getStdoutWrites()).toStrictEqual([
+        'MONITORED: rss per process group, free memory, free disk, load average, kernel OOM events\n' +
+          'MACHINE: free 980MB/16000MB mem, free disk 2100MB, 8 cores, load 7.9/6.2/4.1, OOM kills 2 (last 20:11:04)\n' +
+          'No siegelense instances created in the last 6hr. Widen with --since beginning.\n',
+      ]);
     });
 
-    it('EMPTY: {instanceId: null, isJson omitted, no instances} => writes the plain fleet-empty sentence by default', async () => {
+    it('EMPTY: {instanceId: null, isJson omitted, no instances} => writes the reworded empty-fleet sentence by default', async () => {
       const proxy = SiegelenseStatusResponderProxy();
       const answer = StatusAnswerStub({ instances: [] });
       proxy.stageAnswer({ answer });
 
       await SiegelenseStatusResponder({ instanceId: null });
 
-      expect(proxy.getStdoutWrites()).toStrictEqual(['No siegelense instances running.\n']);
+      expect(proxy.getStdoutWrites()).toStrictEqual([
+        'MONITORED: rss per process group, free memory, free disk, load average, kernel OOM events\n' +
+          'MACHINE: free 980MB/16000MB mem, free disk 2100MB, 8 cores, load 7.9/6.2/4.1, OOM kills 2 (last 20:11:04)\n' +
+          'No siegelense instances created in the last 6hr. Widen with --since beginning.\n',
+      ]);
     });
   });
 
   describe('an instance named, that id not in the registry', () => {
-    it('EMPTY: {instanceId: inst_deadbeef, isJson: true, no instances} => writes the StatusAnswer as one JSON document', async () => {
+    it('ERROR: {instanceId: inst_deadbeef} => throws InstanceUnknownError and statusReadBroker is never reached', async () => {
       const proxy = SiegelenseStatusResponderProxy();
       const instanceId = InstanceIdStub({ value: 'inst_deadbeef' });
-      const answer = StatusAnswerStub({ instances: [] });
-      proxy.stageAnswer({ answer });
+      proxy.stageRegistry({ registry: RegistryStub({ instances: [] }) });
 
-      await SiegelenseStatusResponder({ instanceId, isJson: true });
-
-      expect(proxy.getStdoutWrites()).toStrictEqual([
-        `${JSON.stringify(answer, null, siegelenseOutputStatics.json.indentSpaces)}\n`,
-      ]);
-    });
-
-    it('EMPTY: {instanceId: inst_deadbeef, isJson: false, no instances} => writes a sentence naming that id, distinct from the fleet-empty sentence', async () => {
-      const proxy = SiegelenseStatusResponderProxy();
-      const instanceId = InstanceIdStub({ value: 'inst_deadbeef' });
-      const answer = StatusAnswerStub({ instances: [] });
-      proxy.stageAnswer({ answer });
-
-      await SiegelenseStatusResponder({ instanceId, isJson: false });
-
-      expect(proxy.getStdoutWrites()).toStrictEqual([
-        'No instance by the id "inst_deadbeef" — unknown, never existed.\n',
-      ]);
+      await expect(SiegelenseStatusResponder({ instanceId, isJson: true })).rejects.toStrictEqual(
+        new InstanceUnknownError({ instanceId }),
+      );
+      expect(proxy.getStdoutWrites()).toStrictEqual([]);
     });
   });
 
@@ -173,7 +169,7 @@ describe('SiegelenseStatusResponder', () => {
         'MONITORED: rss per process group, free memory, free disk, load average, kernel OOM events\n' +
           'MACHINE: free 980MB/16000MB mem, free disk 2100MB, 8 cores, load 7.9/6.2/4.1, OOM kills 2 (last 20:11:04)\n' +
           '┌───────────┬───────┬─────────────────────┬────────┬────────┬───────────┬──────┬────────┬─────────┐\n' +
-          '│ ID        │ STATE │ SPEC                │ BRANCH │ UPTIME │ LAST BEAT │ RUNS │ RSS    │ ORPHANS │\n' +
+          '│ ID        │ STATE │ SPEC                │ BRANCH │ UPTIME │ LAST BEAT │ RUNS │ MEMORY │ ORPHANS │\n' +
           '├───────────┼───────┼─────────────────────┼────────┼────────┼───────────┼──────┼────────┼─────────┤\n' +
           '│ inst_7f3a │ alive │ dungeonmaster-stack │ -      │ 14m    │ 2s ago    │ 3    │ 1840MB │ 0       │\n' +
           '│ inst_9b2c │ dead  │ dungeonmaster-api   │ -      │ -      │ 9h ago    │ 5    │ 1200MB │ 1       │\n' +
@@ -186,6 +182,9 @@ describe('SiegelenseStatusResponder', () => {
     it('VALID: {instanceId: inst_9b2c, isJson: true} => writes the StatusAnswer as one JSON document', async () => {
       const proxy = SiegelenseStatusResponderProxy();
       const instanceId = InstanceIdStub({ value: 'inst_9b2c' });
+      proxy.stageRegistry({
+        registry: RegistryStub({ instances: [RegistryEntryStub({ id: instanceId })] }),
+      });
       const answer = StatusAnswerStub({
         instances: [
           InstanceStatusStub({
@@ -228,6 +227,9 @@ describe('SiegelenseStatusResponder', () => {
     it('VALID: {instanceId: inst_9b2c, isJson: false} => writes that instance in full', async () => {
       const proxy = SiegelenseStatusResponderProxy();
       const instanceId = InstanceIdStub({ value: 'inst_9b2c' });
+      proxy.stageRegistry({
+        registry: RegistryStub({ instances: [RegistryEntryStub({ id: instanceId })] }),
+      });
       const answer = StatusAnswerStub({
         instances: [
           InstanceStatusStub({
@@ -263,19 +265,25 @@ describe('SiegelenseStatusResponder', () => {
       await SiegelenseStatusResponder({ instanceId, isJson: false });
 
       expect(proxy.getStdoutWrites()).toStrictEqual([
-        'INSTANCE inst_9b2c — dead\n' +
-          'SPEC: dungeonmaster-stack\n' +
-          'UPTIME: -\n' +
-          'LAST BEAT: 9h ago\n' +
-          'RUNS: 3\n' +
-          'RSS: at last beat 1840MB\n' +
-          'LAST STEP: run_2 step 7 click\n' +
-          'ORPHANS: pgid 33812 (alive), pgid 33840 (dead)\n' +
-          'EVIDENCE DIR: /repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_9b2c\n' +
-          'TRANSCRIPT: run_2.jsonl\n' +
-          'LOGS: api-server.log, web-server.log\n' +
-          'LAST SHOT: run_2/step7.png\n' +
-          'LIKELY CAUSE: OOM killed — rss climbed to 1840MB before the last beat, 2 kernel OOM events since boot\n',
+        '┌──────────────┬─────────────────────────────────────────────────────────────────────────────────────────┐\n' +
+          '│ FIELD        │ VALUE                                                                                   │\n' +
+          '├──────────────┼─────────────────────────────────────────────────────────────────────────────────────────┤\n' +
+          '│ INSTANCE     │ inst_9b2c — dead                                                                        │\n' +
+          '│ SPEC         │ dungeonmaster-stack                                                                     │\n' +
+          '│ UPTIME       │ -                                                                                       │\n' +
+          '│ LAST BEAT    │ 9h ago                                                                                  │\n' +
+          '│ RUNS         │ 3                                                                                       │\n' +
+          '│ MEMORY       │ at last beat 1840MB                                                                     │\n' +
+          '│ LAST STEP    │ run_2 step 7 click                                                                      │\n' +
+          '│ ORPHANS      │ pgid 33812 (alive)                                                                      │\n' +
+          '│              │ pgid 33840 (dead)                                                                       │\n' +
+          '│ EVIDENCE DIR │ /repo/.dungeonmaster-assets/siegelense-assets/guilds/g1/instances/inst_9b2c             │\n' +
+          '│ TRANSCRIPT   │ run_2.jsonl                                                                             │\n' +
+          '│ LOGS         │ api-server.log                                                                          │\n' +
+          '│              │ web-server.log                                                                          │\n' +
+          '│ LAST SHOT    │ run_2/step7.png                                                                         │\n' +
+          '│ LIKELY CAUSE │ OOM killed — rss climbed to 1840MB before the last beat, 2 kernel OOM events since boot │\n' +
+          '└──────────────┴─────────────────────────────────────────────────────────────────────────────────────────┘\n',
       ]);
     });
   });

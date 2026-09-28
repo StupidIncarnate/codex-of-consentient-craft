@@ -1,8 +1,12 @@
 /**
- * PURPOSE: Proxy for questGetQuestWorkBroker. Stages the I/O boundaries it crosses, IN THE ORDER it
- * crosses them — the quest path lookup and read, the plan-file read, then the two layer brokers.
- * That order is load-bearing: `pathJoinAdapterProxy.returns` is a call-ordered one-shot queue, so
- * staging the plan before the quest hands the quest read the plan file's path.
+ * PURPOSE: Proxy for questGetQuestWorkBroker. Stages the I/O boundaries it crosses — the quest path
+ * lookup and read (its own `join` call, addressed by the exact folder/file tuple), the plan-file
+ * read, then the two layer brokers. The plan-file read is staged against the SAME resolved
+ * `questFolderPath` the quest read used — never a separate constant — because
+ * `questGetQuestWorkBroker` passes `questPath` straight through to `plannedWorkReadBroker`, whose
+ * own `join` call is exact-tuple addressed: a mismatched folder answers nothing,
+ * `fsIsAccessibleAdapter` swallows the miss into `false`, and the plan reads back as silently
+ * missing.
  *
  * USAGE:
  * const proxy = questGetQuestWorkBrokerProxy();
@@ -22,7 +26,10 @@ import {
   GuildIdStub,
 } from '@dungeonmaster/shared/contracts';
 import type { OperationItemId, QuestStub } from '@dungeonmaster/shared/contracts';
-import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
+import { locationsStatics } from '@dungeonmaster/shared/statics';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
+import type { MockHandle } from '@dungeonmaster/testing/register-mock';
+import { join } from '#gateway/node/path';
 
 import type { WorkPlanStub } from '../../../contracts/work-plan/work-plan.stub';
 import { plannedWorkReadBrokerProxy } from '../../planned-work/read/planned-work-read-broker.proxy';
@@ -33,29 +40,32 @@ import { wardRowsLayerBrokerProxy } from './ward-rows-layer-broker.proxy';
 
 type Quest = ReturnType<typeof QuestStub>;
 type WorkPlan = ReturnType<typeof WorkPlanStub>;
+type FilePathValue = ReturnType<typeof FilePathStub>;
 
 const HOME_DIR = '/home/testuser';
-const PLAN_FOLDER_PATH = AbsoluteFilePathStub({
-  value: '/home/testuser/.dungeonmaster/guilds/g1/quests/001-add-auth',
-});
 
 export const questGetQuestWorkBrokerProxy = (): {
-  setupQuestWithNoPlan: (params: { quest: Quest; operationItemId: OperationItemId }) => void;
+  setupQuestWithNoPlan: (params: { quest: Quest; operationItemId: OperationItemId }) => {
+    questFolderPath: FilePathValue;
+  };
   setupQuestWithPlan: (params: {
     quest: Quest;
     operationItemId: OperationItemId;
     plan: WorkPlan;
-  }) => void;
+  }) => { questFolderPath: FilePathValue };
+  getQuestFileJoinArgs: (params: {
+    questFolderPath: FilePathValue;
+  }) => readonly unknown[] | undefined;
 } => {
   const findQuestPathProxy = questFindQuestPathBrokerProxy();
-  const pathJoinProxy = pathJoinAdapterProxy();
+  const joinHandle: MockHandle = registerMock({ fn: join });
   const loadProxy = questLoadBrokerProxy();
   const plannedWorkProxy = plannedWorkReadBrokerProxy();
   const gitRowsProxy = gitRowsLayerBrokerProxy();
   // Created, never staged: every scenario here holds a green quest, so the ward layer reads nothing.
   wardRowsLayerBrokerProxy();
 
-  const stageQuestRead = ({ quest }: { quest: Quest }): void => {
+  const stageQuestRead = ({ quest }: { quest: Quest }): { questFolderPath: FilePathValue } => {
     const guildId = GuildIdStub();
     const questsDirPath = FilePathStub({
       value: `${HOME_DIR}/.dungeonmaster/guilds/${guildId}/quests`,
@@ -83,28 +93,49 @@ export const questGetQuestWorkBrokerProxy = (): {
       ],
     });
 
-    pathJoinProxy.returns({ result: questFilePath });
+    joinHandle
+      .calledWith([questFolderPath, locationsStatics.quest.questFile])
+      .returns(questFilePath);
     loadProxy.setupQuestFile({ questJson: JSON.stringify(quest) });
+
+    return { questFolderPath };
   };
 
   return {
-    setupQuestWithNoPlan: ({ quest, operationItemId }): void => {
-      stageQuestRead({ quest });
+    setupQuestWithNoPlan: ({ quest, operationItemId }): { questFolderPath: FilePathValue } => {
+      const { questFolderPath } = stageQuestRead({ quest });
+      // Re-branded from the FilePath the find-quest-path fixture needed to AbsoluteFilePath, the
+      // brand plannedWorkReadBrokerProxy requires — same string value, so the plan-file read is
+      // staged against the SAME folder plannedWorkReadBroker is really called with.
       plannedWorkProxy.setupPlanMissing({
-        questFolderPath: PLAN_FOLDER_PATH,
+        questFolderPath: AbsoluteFilePathStub({ value: String(questFolderPath) }),
         operationItemId,
       });
       gitRowsProxy.setupWorktreeMissing({ quest });
+
+      return { questFolderPath };
     },
 
-    setupQuestWithPlan: ({ quest, operationItemId, plan }): void => {
-      stageQuestRead({ quest });
+    setupQuestWithPlan: ({ quest, operationItemId, plan }): { questFolderPath: FilePathValue } => {
+      const { questFolderPath } = stageQuestRead({ quest });
       plannedWorkProxy.setupPlanFound({
-        questFolderPath: PLAN_FOLDER_PATH,
+        questFolderPath: AbsoluteFilePathStub({ value: String(questFolderPath) }),
         operationItemId,
         plan,
       });
       gitRowsProxy.setupWorktreeMissing({ quest });
+
+      return { questFolderPath };
     },
+
+    // `.at(0)`, never `.at(-1)`: `gitRowsLayerBroker` runs `questCwdResolveBroker` for real, which
+    // re-derives the quest via its own `questGetBroker` call and joins this SAME folder with
+    // `quest.json` a second time — this broker's OWN join is always the FIRST one recorded,
+    // because it runs before any of the later layer brokers are reached.
+    getQuestFileJoinArgs: ({
+      questFolderPath,
+    }: {
+      questFolderPath: FilePathValue;
+    }): readonly unknown[] | undefined => joinHandle.callsMatching([questFolderPath]).at(0),
   };
 };

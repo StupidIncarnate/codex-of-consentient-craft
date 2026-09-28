@@ -6,12 +6,11 @@
  * // Returns ProjectResult with parsed Jest integration test failures
  */
 
-import {
-  childProcessSpawnCaptureAdapter,
-  fsExistsSyncAdapter,
-} from '@dungeonmaster/shared/adapters';
+import { run, RunNotFoundError } from '#gateway/node/child_process';
+import { existsSync } from '#gateway/node/fs';
 import {
   absoluteFilePathContract,
+  errorMessageContract,
   exitCodeContract,
   filePathContract,
 } from '@dungeonmaster/shared/contracts';
@@ -65,9 +64,7 @@ export const checkRunIntegrationBroker = async ({
 }): Promise<ProjectResult> => {
   const { bin, args, relatedTestsIgnorePattern } = checkCommandsStatics.integration;
   const cwd = absoluteFilePathContract.parse(projectFolder.path);
-  const hasPackageJestConfig = fsExistsSyncAdapter({
-    filePath: filePathContract.parse(`${String(cwd)}/jest.config.js`),
-  });
+  const hasPackageJestConfig = existsSync(filePathContract.parse(`${String(cwd)}/jest.config.js`));
   const { patterns } = jestDiscoverPatternsTransformer({
     checkType: 'integration',
     hasPackageJestConfig,
@@ -198,7 +195,11 @@ export const checkRunIntegrationBroker = async ({
   // the jest process itself reads `dist/` while the tests it runs read source — measured. Ward is
   // published, so the broker below withholds the flag wherever the barrel it names is not on disk;
   // see its header for what Node does with a matched condition pointing at a missing file.
-  const result = await childProcessSpawnCaptureAdapter({
+  // A missing `jest` binary rejects `run` with RunNotFoundError rather than resolving a result —
+  // caught here and folded into the same failed-run shape the old spawn-capture adapter resolved
+  // for an ENOENT, so a machine without the resolved bin reads as a failing integration run below,
+  // exactly as it always has.
+  const result = await run({
     command,
     args: finalArgs,
     cwd,
@@ -208,9 +209,14 @@ export const checkRunIntegrationBroker = async ({
         ? { [openHandleReportStatics.env.pathVar]: String(handleReportPath) }
         : {}),
     },
+  }).catch((error: unknown) => {
+    if (!(error instanceof RunNotFoundError)) {
+      throw error;
+    }
+    return { exitCode: 1, output: '', signal: null, timedOut: false };
   });
 
-  const exitCode = result.exitCode ?? exitCodeContract.parse(1);
+  const exitCode = exitCodeContract.parse(result.exitCode);
   const status = exitCode === exitCodeContract.parse(0) ? 'pass' : 'fail';
 
   // In file scope (--committed / --uncommitted / passthrough), jest's "no tests found" banner means none of the
@@ -242,17 +248,23 @@ export const checkRunIntegrationBroker = async ({
 
   if (status === 'fail') {
     try {
-      testFailures = jestJsonParseTransformer({ jsonOutput: result.output });
+      testFailures = jestJsonParseTransformer({
+        jsonOutput: errorMessageContract.parse(result.output),
+      });
     } catch {
       resolvedStatus = 'fail';
       testFailures = [];
     }
   }
 
-  const passingTests = jestJsonParsePassingTransformer({ jsonOutput: result.output });
+  const passingTests = jestJsonParsePassingTransformer({
+    jsonOutput: errorMessageContract.parse(result.output),
+  });
 
   try {
-    const jsonSlice = extractJsonObjectTransformer({ output: result.output });
+    const jsonSlice = extractJsonObjectTransformer({
+      output: errorMessageContract.parse(result.output),
+    });
     const parsed = jestJsonReportContract.parse(JSON.parse(jsonSlice));
     if (parsed.numTotalTestSuites !== undefined) {
       filesCount = Number(parsed.numTotalTestSuites);
@@ -302,7 +314,7 @@ export const checkRunIntegrationBroker = async ({
     // LAST in this block on purpose. A half-written line makes `JSON.parse` throw, and everything
     // above is already assigned by then, so a mangled report costs the leak findings and nothing
     // else. The file exists only when a suite actually left a timer armed.
-    if (wantsTimerWatch && fsExistsSyncAdapter({ filePath: handleReportPath })) {
+    if (wantsTimerWatch && existsSync(handleReportPath)) {
       const reportContent = await fsReadFileAdapter({ filePath: handleReportPath });
       await fsUnlinkAdapter({ filePath: handleReportPath });
       openHandles.push(...openHandleReportParseTransformer({ content: String(reportContent) }));

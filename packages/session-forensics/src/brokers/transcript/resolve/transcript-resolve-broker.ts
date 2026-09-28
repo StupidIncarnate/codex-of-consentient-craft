@@ -11,14 +11,11 @@
  * // project directory holds a match, or, for a sub-agent id, when no session directory holds one.
  */
 
-import {
-  osUserHomedirAdapter,
-  pathJoinAdapter,
-  fsExistsSyncAdapter,
-  fsReaddirWithTypesAdapter,
-} from '@dungeonmaster/shared/adapters';
+import { existsSync, readdirEntriesSync } from '#gateway/node/fs';
+import { homedir } from '#gateway/node/os';
+import { join } from '#gateway/node/path';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import { absoluteFilePathContract, filePathContract } from '@dungeonmaster/shared/contracts';
+import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, SessionId } from '@dungeonmaster/shared/contracts';
 
 const SUBAGENT_TARGET_PREFIX = 'agent-';
@@ -30,67 +27,54 @@ export const transcriptResolveBroker = ({
   target: SessionId;
   parentSessionId?: SessionId;
 }): AbsoluteFilePath | undefined => {
-  const projectsRoot = absoluteFilePathContract.parse(
-    pathJoinAdapter({
-      paths: [
-        osUserHomedirAdapter(),
-        locationsStatics.userHome.claude.dir,
-        locationsStatics.userHome.claude.projectsDir,
-      ],
-    }),
+  const projectsRoot = join(
+    homedir(),
+    locationsStatics.userHome.claude.dir,
+    locationsStatics.userHome.claude.projectsDir,
   );
 
-  if (!fsExistsSyncAdapter({ filePath: filePathContract.parse(projectsRoot) })) {
+  if (!existsSync(projectsRoot)) {
     return undefined;
   }
 
-  const projectDirs = fsReaddirWithTypesAdapter({ dirPath: projectsRoot })
-    .filter((entry) => entry.isDirectory())
-    .map((entry) =>
-      absoluteFilePathContract.parse(pathJoinAdapter({ paths: [projectsRoot, entry.name] })),
-    );
+  const projectDirs = readdirEntriesSync(projectsRoot)
+    .filter((entry) => entry.kind === 'directory')
+    .map((entry) => join(projectsRoot, entry.name));
 
   if (!target.startsWith(SUBAGENT_TARGET_PREFIX)) {
-    return projectDirs
-      .map((projectDir) =>
-        absoluteFilePathContract.parse(pathJoinAdapter({ paths: [projectDir, `${target}.jsonl`] })),
-      )
-      .find((candidate) => fsExistsSyncAdapter({ filePath: filePathContract.parse(candidate) }));
+    const matched = projectDirs
+      .map((projectDir) => join(projectDir, `${target}.jsonl`))
+      .find((candidate) => existsSync(candidate));
+    return matched === undefined ? undefined : absoluteFilePathContract.parse(matched);
   }
 
   if (parentSessionId !== undefined) {
-    return projectDirs
+    const matched = projectDirs
       .map((projectDir) =>
-        absoluteFilePathContract.parse(
-          pathJoinAdapter({
-            paths: [
-              projectDir,
-              parentSessionId,
-              locationsStatics.userHome.claude.subagentsDir,
-              `${target}.jsonl`,
-            ],
-          }),
+        join(
+          projectDir,
+          parentSessionId,
+          locationsStatics.userHome.claude.subagentsDir,
+          `${target}.jsonl`,
         ),
       )
-      .find((candidate) => fsExistsSyncAdapter({ filePath: filePathContract.parse(candidate) }));
+      .find((candidate) => existsSync(candidate));
+    return matched === undefined ? undefined : absoluteFilePathContract.parse(matched);
   }
 
-  return projectDirs
+  const matched = projectDirs
     .flatMap((projectDir) =>
-      fsReaddirWithTypesAdapter({ dirPath: projectDir })
-        .filter((entry) => entry.isDirectory())
+      readdirEntriesSync(projectDir)
+        .filter((entry) => entry.kind === 'directory')
         .map((sessionEntry) =>
-          absoluteFilePathContract.parse(
-            pathJoinAdapter({
-              paths: [
-                projectDir,
-                sessionEntry.name,
-                locationsStatics.userHome.claude.subagentsDir,
-                `${target}.jsonl`,
-              ],
-            }),
+          join(
+            projectDir,
+            sessionEntry.name,
+            locationsStatics.userHome.claude.subagentsDir,
+            `${target}.jsonl`,
           ),
         ),
     )
-    .find((candidate) => fsExistsSyncAdapter({ filePath: filePathContract.parse(candidate) }));
+    .find((candidate) => existsSync(candidate));
+  return matched === undefined ? undefined : absoluteFilePathContract.parse(matched);
 };

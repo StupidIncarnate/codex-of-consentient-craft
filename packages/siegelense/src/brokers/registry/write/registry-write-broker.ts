@@ -10,12 +10,9 @@
  * // Writes registry.json.tmp, renames it over registry.json, returns { success: true }
  */
 
-import { fsMkdirAdapter, pathJoinAdapter } from '@dungeonmaster/shared/adapters';
-import {
-  absoluteFilePathContract,
-  fileContentsContract,
-  filePathContract,
-} from '@dungeonmaster/shared/contracts';
+import { ensureDir } from '#gateway/node/fs__promises';
+import { join } from '#gateway/node/path';
+import { absoluteFilePathContract, fileContentsContract } from '@dungeonmaster/shared/contracts';
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
@@ -33,10 +30,10 @@ export const registryWriteBroker = async ({
   const rootPath = locationsRootPathFindBroker();
   const registryPath = locationsRegistryPathFindBroker();
   const tmpPath = absoluteFilePathContract.parse(
-    pathJoinAdapter({ paths: [rootPath, locationsStatics.siegelense.registryTmp] }),
+    join(rootPath, locationsStatics.siegelense.registryTmp),
   );
 
-  await fsMkdirAdapter({ filepath: filePathContract.parse(rootPath) });
+  await ensureDir(rootPath);
 
   const contents = fileContentsContract.parse(`${JSON.stringify(registry)}\n`);
   await fsWriteFileAdapter({ filePath: tmpPath, contents });

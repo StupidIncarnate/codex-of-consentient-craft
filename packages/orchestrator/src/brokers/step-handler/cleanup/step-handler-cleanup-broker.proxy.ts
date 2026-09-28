@@ -3,14 +3,22 @@
  * questRepoRootBroker (its own dedicated test suite), matching the ward/riftcarver/commit handler
  * proxies' shape.
  *
+ * `streamLinesProxy` (composed inertly below, to satisfy `enforce-proxy-child-creation` for the
+ * broker's `streamLines` import) addresses the underlying `spawn` by command alone and exposes no
+ * way to read back the `cwd` option or the exact command string — unlike `runProxy`'s
+ * `getOptionsFor`, added in F29 for exactly this need. This handler's own tests assert both, so the
+ * mock below targets `streamLines` itself directly, the same boundary the pre-migration adapter
+ * proxy staged.
+ *
  * USAGE:
  * const proxy = stepHandlerCleanupBrokerProxy();
  * proxy.cleanupExits({ exitCode: ExitCodeStub({ value: 0 }), answer: CleanupAnswerStub() });
  * const result = await stepHandlerCleanupBroker({ args: [], questId, workItemId, onLine: () => undefined });
  */
 
-import { childProcessSpawnStreamLinesAdapter } from '@dungeonmaster/shared/adapters';
-import { childProcessSpawnStreamLinesAdapterProxy } from '@dungeonmaster/shared/testing';
+import { streamLines } from '#gateway/node/child_process';
+import { streamLinesProxy } from '#gateway/node/child_process/stream-lines/stream-lines.proxy';
+import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found.error.proxy';
 import {
   ErrorMessageStub,
   ExitCodeStub,
@@ -41,17 +49,19 @@ export const stepHandlerCleanupBrokerProxy = (): {
   const repoRootMock = registerMock({ fn: questRepoRootBroker });
   repoRootMock.calledWith([]).resolves(RepoRootCwdStub({ value: '/repo' }));
 
-  // Inert for the same reason — this handler stages childProcessSpawnStreamLinesAdapter directly
-  // below (its exact output has to replay through the caller's onLine).
-  childProcessSpawnStreamLinesAdapterProxy();
-  const spawnHandle = registerMock({ fn: childProcessSpawnStreamLinesAdapter });
+  // Inert for the same reason (see the file header) — this handler stages `streamLines` directly
+  // below (its exact output has to replay through the caller's onLine, and its cwd/command have to
+  // be read back, neither of which streamLinesProxy's own methods support).
+  streamLinesProxy();
+  RunNotFoundErrorProxy();
+  const spawnHandle = registerMock({ fn: streamLines });
   const runResult: { exitCode: ExitCode; output: ErrorMessage } = {
     exitCode: ExitCodeStub({ value: 0 }),
     output: ErrorMessageStub({ value: '{}' }),
   };
   const spawnImpl = async ({
     onLine,
-  }: Parameters<typeof childProcessSpawnStreamLinesAdapter>[0]): Promise<{
+  }: Parameters<typeof streamLines>[0]): Promise<{
     exitCode: ExitCode;
     output: ErrorMessage;
   }> => {
@@ -65,7 +75,7 @@ export const stepHandlerCleanupBrokerProxy = (): {
   // Addressed by `command`, not an unaddressed `[]` catch-all — see stepHandlerWardBrokerProxy's
   // own comment on the identical fix: stepHandlerRunBrokerProxy composes every handler proxy
   // together, and an unaddressed sticky registration here would collide with ward's (and
-  // riftcarver's typecheck) spawn on the SAME shared adapter.
+  // riftcarver's typecheck) spawn on the SAME shared function.
   spawnHandle
     .calledWith([{ command: cleanupCliCallStatics.call.bin }])
     .implement(spawnImpl as never);
@@ -88,20 +98,17 @@ export const stepHandlerCleanupBrokerProxy = (): {
 
     getSpawnedCommand: (): unknown => {
       const [call] = spawnHandle.callsMatching([]);
-      return (call?.[0] as Parameters<typeof childProcessSpawnStreamLinesAdapter>[0] | undefined)
-        ?.command;
+      return (call?.[0] as Parameters<typeof streamLines>[0] | undefined)?.command;
     },
 
     getSpawnedArgs: (): unknown => {
       const [call] = spawnHandle.callsMatching([]);
-      return (call?.[0] as Parameters<typeof childProcessSpawnStreamLinesAdapter>[0] | undefined)
-        ?.args;
+      return (call?.[0] as Parameters<typeof streamLines>[0] | undefined)?.args;
     },
 
     getSpawnedCwd: (): unknown => {
       const [call] = spawnHandle.callsMatching([]);
-      return (call?.[0] as Parameters<typeof childProcessSpawnStreamLinesAdapter>[0] | undefined)
-        ?.cwd;
+      return (call?.[0] as Parameters<typeof streamLines>[0] | undefined)?.cwd;
     },
   };
 };

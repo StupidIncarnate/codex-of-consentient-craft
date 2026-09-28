@@ -1,16 +1,18 @@
 /**
  * PURPOSE: Proxy for plannedWorkWriteBroker — mocks the shared planned-work directory resolver,
- * the directory create, and the tmp-write-then-rename atomic write, each keyed on the real
- * computed address so a mock only answers for the path the broker actually builds.
+ * the directory create (`ensureDir`, addressed by the exact path), and the tmp-write-then-rename
+ * atomic write, each keyed on the real computed address so a mock only answers for the path the
+ * broker actually builds. `join` is mocked directly on the `#gateway/node/path` specifier (no
+ * per-function wrapper to compose), addressed by the EXACT [dirPath, fileName] tuple.
  */
 
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, FilePath, OperationItemId } from '@dungeonmaster/shared/contracts';
-import {
-  fsMkdirAdapterProxy,
-  locationsPlannedWorkPathFindBrokerProxy,
-  pathJoinAdapterProxy,
-} from '@dungeonmaster/shared/testing';
+import { locationsPlannedWorkPathFindBrokerProxy } from '@dungeonmaster/shared/testing';
+import type { FsError } from '#gateway/node/fs';
+import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
+import { join } from '#gateway/node/path';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { fsRenameAdapterProxy } from '../../../adapters/fs/rename/fs-rename-adapter.proxy';
 import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
@@ -41,7 +43,7 @@ export const plannedWorkWriteBrokerProxy = (): {
   setupMkdirFailure: (params: {
     questFolderPath: AbsoluteFilePath;
     operationItemId: OperationItemId;
-    error: Error;
+    error: FsError;
   }) => void;
   setupWriteFailure: (params: {
     questFolderPath: AbsoluteFilePath;
@@ -60,8 +62,8 @@ export const plannedWorkWriteBrokerProxy = (): {
   getAllRenames: () => readonly { from: unknown; to: unknown }[];
 } => {
   const locationsProxy = locationsPlannedWorkPathFindBrokerProxy();
-  const pathJoinProxy = pathJoinAdapterProxy();
-  const mkdirProxy = fsMkdirAdapterProxy();
+  const joinHandle = registerMock({ fn: join });
+  const ensureDirHandle = ensureDirProxy();
   const writeProxy = fsWriteFileAdapterProxy();
   const renameProxy = fsRenameAdapterProxy();
 
@@ -75,7 +77,9 @@ export const plannedWorkWriteBrokerProxy = (): {
     const dirPath = dirPathFor({ questFolderPath });
     locationsProxy.setupPlannedWorkPath({ plannedWorkPath: dirPath });
     const filePath = filePathFor({ questFolderPath, operationItemId });
-    pathJoinProxy.returns({ result: filePath });
+    joinHandle
+      .calledWith([dirPath, `${String(operationItemId)}${JSON_EXTENSION}`])
+      .returns(filePath);
     const tmpPath = filePathContract.parse(`${filePath}${TMP_SUFFIX}`);
     return { dirPath, tmpPath };
   };
@@ -83,25 +87,25 @@ export const plannedWorkWriteBrokerProxy = (): {
   return {
     setupWriteSucceeds: ({ questFolderPath, operationItemId }): void => {
       const { dirPath, tmpPath } = stagePaths({ questFolderPath, operationItemId });
-      mkdirProxy.succeeds({ filepath: dirPath });
+      ensureDirHandle.succeeds({ path: dirPath });
       writeProxy.succeeds({ filePath: tmpPath });
       renameProxy.succeeds({ from: tmpPath });
     },
 
     setupMkdirFailure: ({ questFolderPath, operationItemId, error }): void => {
       const { dirPath } = stagePaths({ questFolderPath, operationItemId });
-      mkdirProxy.throws({ filepath: dirPath, error });
+      ensureDirHandle.rejects({ path: dirPath, error });
     },
 
     setupWriteFailure: ({ questFolderPath, operationItemId, error }): void => {
       const { dirPath, tmpPath } = stagePaths({ questFolderPath, operationItemId });
-      mkdirProxy.succeeds({ filepath: dirPath });
+      ensureDirHandle.succeeds({ path: dirPath });
       writeProxy.throws({ filePath: tmpPath, error });
     },
 
     setupRenameFailure: ({ questFolderPath, operationItemId, error }): void => {
       const { dirPath, tmpPath } = stagePaths({ questFolderPath, operationItemId });
-      mkdirProxy.succeeds({ filepath: dirPath });
+      ensureDirHandle.succeeds({ path: dirPath });
       writeProxy.succeeds({ filePath: tmpPath });
       renameProxy.throws({ from: tmpPath, error });
     },

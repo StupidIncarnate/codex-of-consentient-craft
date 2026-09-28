@@ -13,14 +13,20 @@
  * mocking is cleaner and matches questPauseBroker's pattern.
  */
 
-import { pathJoinAdapterProxy } from '@dungeonmaster/shared/testing';
-import type { FilePath } from '@dungeonmaster/shared/contracts';
+import { GuildIdStub } from '@dungeonmaster/shared/contracts';
+import type {
+  AbsoluteFilePath,
+  FilePath,
+  QuestId,
+  QuestStub,
+} from '@dungeonmaster/shared/contracts';
 import {
   registerMock,
   registerModuleMock,
   requireActual,
 } from '@dungeonmaster/testing/register-mock';
-import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
+import type { MockHandle, RecordedCalls } from '@dungeonmaster/testing/register-mock';
+import { join } from '#gateway/node/path';
 
 import { processTerminalEventLayerBroker } from './process-terminal-event-layer-broker';
 import { questFindQuestPathBrokerProxy } from '../../quest/find-quest-path/quest-find-quest-path-broker.proxy';
@@ -30,6 +36,8 @@ import { questWithModifyLockBrokerProxy } from '../../quest/with-modify-lock/que
 import { smoketestAssertFinalStateBrokerProxy } from '../assert-final-state/smoketest-assert-final-state-broker.proxy';
 import { smoketestRunTeardownChecksBrokerProxy } from '../run-teardown-checks/smoketest-run-teardown-checks-broker.proxy';
 
+type Quest = ReturnType<typeof QuestStub>;
+
 registerModuleMock({ module: './process-terminal-event-layer-broker' });
 
 export const processTerminalEventLayerBrokerProxy = (): {
@@ -38,11 +46,17 @@ export const processTerminalEventLayerBrokerProxy = (): {
   setupRejects: (params: { error: Error }) => void;
   setupPassthrough: () => void;
   setupQuestDeleted: (params: { homeDir: string; homePath: FilePath; guildsDir: FilePath }) => void;
+  setupQuestFound: (params: {
+    questId: QuestId;
+    questPath: AbsoluteFilePath;
+    quest: Quest;
+  }) => void;
+  getQuestFileJoinArgs: (params: { questPath: AbsoluteFilePath }) => readonly unknown[] | undefined;
   getCallArgs: () => RecordedCalls;
 } => {
-  pathJoinAdapterProxy();
+  const joinHandle: MockHandle = registerMock({ fn: join });
   const findProxy = questFindQuestPathBrokerProxy();
-  questLoadBrokerProxy();
+  const loadProxy = questLoadBrokerProxy();
   questPersistBrokerProxy();
   questWithModifyLockBrokerProxy();
   smoketestAssertFinalStateBrokerProxy();
@@ -86,6 +100,27 @@ export const processTerminalEventLayerBrokerProxy = (): {
       // guild dirs exist on disk.
       findProxy.setupNoGuilds({ homeDir, homePath, guildsDir });
     },
+    // Resolves questId -> questPath through the real questFindQuestPathBroker chain
+    // (questFindQuestPathBrokerProxy.setupQuestPath), which already stages the very same
+    // join(questPath, quest.json) tuple for its own probe check — one home, read back below by
+    // this proxy's own joinHandle since both calls share the identical mocked `join`.
+    setupQuestFound: ({
+      questId,
+      questPath,
+      quest,
+    }: {
+      questId: QuestId;
+      questPath: AbsoluteFilePath;
+      quest: Quest;
+    }): void => {
+      findProxy.setupQuestPath({ questId, guildId: GuildIdStub(), questPath });
+      loadProxy.setupQuestFile({ questJson: JSON.stringify(quest) });
+    },
+    getQuestFileJoinArgs: ({
+      questPath,
+    }: {
+      questPath: AbsoluteFilePath;
+    }): readonly unknown[] | undefined => joinHandle.callsMatching([questPath]).at(-1),
     getCallArgs: (): RecordedCalls => mocked.callsMatching([]),
   };
 };

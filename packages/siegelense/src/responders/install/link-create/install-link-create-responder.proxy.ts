@@ -1,9 +1,8 @@
 import { mkdir, symlink } from 'fs/promises';
-import {
-  fsMkdirAdapterProxy,
-  fsExistsSyncAdapterProxy,
-  pathJoinAdapterProxy,
-} from '@dungeonmaster/shared/testing';
+import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
+import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
+import { join } from '#gateway/node/path';
+import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 import { AbsoluteFilePathStub, FilePathStub } from '@dungeonmaster/shared/contracts';
 
 import { locationsRootPathFindBrokerProxy } from '../../../brokers/locations/root-path-find/locations-root-path-find-broker.proxy';
@@ -27,9 +26,7 @@ const LEGACY_LINK_PATH_VALUE = '/project/.siegelense';
 
 const targetDirAbs = AbsoluteFilePathStub({ value: TARGET_DIR_VALUE });
 const targetDirFp = FilePathStub({ value: TARGET_DIR_VALUE });
-const assetsDirFp = FilePathStub({ value: ASSETS_DIR_VALUE });
 const linkPathAbs = AbsoluteFilePathStub({ value: LINK_PATH_VALUE });
-const linkPathFp = FilePathStub({ value: LINK_PATH_VALUE });
 const legacyLinkPathAbs = AbsoluteFilePathStub({ value: LEGACY_LINK_PATH_VALUE });
 
 // readlink's own answer for "this path exists and is not a symlink" — the code the responder reads
@@ -52,23 +49,32 @@ export const InstallLinkCreateResponderProxy = (): {
   getReadlinkCalls: () => readonly unknown[];
   getUnlinkedPaths: () => readonly unknown[];
   getMkdirCalls: () => readonly unknown[];
+  getLinkPathJoinArgs: () => readonly unknown[][];
   assertMkdirCalledBeforeSymlink: () => boolean;
 } => {
   const rootPathProxy = locationsRootPathFindBrokerProxy();
   // Empty proxy, called only to satisfy enforce-proxy-child-creation for the implementation's
   // errorIsNativeErrorAdapter import — nothing to configure on it.
   errorIsNativeErrorAdapterProxy();
-  const pathJoinProxy = pathJoinAdapterProxy();
-  const mkdirProxy = fsMkdirAdapterProxy();
-  const existsProxy = fsExistsSyncAdapterProxy();
+  // #gateway/node/path re-exports `join` bare (no per-function proxy of its own, unlike
+  // fs/fs__promises/child_process) — mocked directly here, with the same sticky real-passthrough
+  // default instance-start-broker.proxy.ts's own `join` staging uses (A12 SL7). `onceFor([])`
+  // one-shots below still outrank it for the two calls this file's own implementation makes.
+  const realPath = requireActual<{ join: typeof join }>({ module: 'path' });
+  const joinHandle = registerMock({ fn: join });
+  joinHandle.calledWith([]).implement((...segments: never[]) => realPath.join(...segments));
+  const mkdirProxy = ensureDirProxy();
+  const existsProxy = existsSyncProxy();
   const symlinkProxy = fsSymlinkAdapterProxy();
   const readlinkProxy = fsReadlinkAdapterProxy();
   const unlinkProxy = fsUnlinkAdapterProxy();
 
-  // The responder resolves targetDir first (locationsRootPathFindBroker's own pathJoin, staged
-  // inside rootPathProxy.setupRootPath), then assetsDir (this file's own pathJoin, the parent),
-  // then linkPath (joined onto assetsDir, the child) — pathJoinAdapterProxy's `returns()` is
-  // call-order scoped, so registration order here has to match that execution order.
+  // The responder resolves targetDir first (locationsRootPathFindBroker's own join, staged inside
+  // rootPathProxy.setupRootPath at a SPECIFIC address that outranks a bare one-shot), then assetsDir
+  // (this file's own join, the parent), then linkPath (joined onto assetsDir, the child) — the
+  // one-shot queue above is call-order scoped, so registration order here has to match that
+  // execution order. legacyLinkPath's own join call is left unaddressed on purpose: it falls
+  // through to the real-passthrough default, which computes '/project/.siegelense' for real.
   const setupTargetDir = (): void => {
     rootPathProxy.setupRootPath({
       homeDir: '/home/user',
@@ -77,12 +83,12 @@ export const InstallLinkCreateResponderProxy = (): {
     });
   };
 
-  // mkdir runs for BOTH the link's target (the siegelense root it points to) and its own parent
+  // ensureDir runs for BOTH the link's target (the siegelense root it points to) and its own parent
   // (assetsDir) on every path through the responder, regardless of whether the link itself exists
   // yet — so every setup method stages both, in that order.
   const setupBothMkdirs = (): void => {
-    mkdirProxy.succeeds({ filepath: targetDirFp });
-    mkdirProxy.succeeds({ filepath: assetsDirFp });
+    mkdirProxy.succeeds({ path: TARGET_DIR_VALUE });
+    mkdirProxy.succeeds({ path: ASSETS_DIR_VALUE });
   };
 
   // The legacy flat `.siegelense` check runs unconditionally on every call, after the nested link's
@@ -100,10 +106,10 @@ export const InstallLinkCreateResponderProxy = (): {
     // Neither the target dir nor the link exist yet — the fresh-install case.
     setupNoLink: (): void => {
       setupTargetDir();
-      pathJoinProxy.returns({ result: assetsDirFp });
-      pathJoinProxy.returns({ result: linkPathFp });
+      joinHandle.onceFor([]).returns(ASSETS_DIR_VALUE);
+      joinHandle.onceFor([]).returns(LINK_PATH_VALUE);
       setupBothMkdirs();
-      existsProxy.returns({ filePath: linkPathFp, result: false });
+      existsProxy.returns({ path: LINK_PATH_VALUE, exists: false });
       symlinkProxy.succeeds({ targetPath: targetDirAbs, linkPath: linkPathAbs });
       setupLegacyAbsent();
     },
@@ -111,10 +117,10 @@ export const InstallLinkCreateResponderProxy = (): {
     // The link exists and already reads back the right target — the no-op case.
     setupCorrectLink: (): void => {
       setupTargetDir();
-      pathJoinProxy.returns({ result: assetsDirFp });
-      pathJoinProxy.returns({ result: linkPathFp });
+      joinHandle.onceFor([]).returns(ASSETS_DIR_VALUE);
+      joinHandle.onceFor([]).returns(LINK_PATH_VALUE);
       setupBothMkdirs();
-      existsProxy.returns({ filePath: linkPathFp, result: true });
+      existsProxy.returns({ path: LINK_PATH_VALUE, exists: true });
       readlinkProxy.resolves({ linkPath: linkPathAbs, resolvedTarget: targetDirAbs });
       setupLegacyAbsent();
     },
@@ -122,10 +128,10 @@ export const InstallLinkCreateResponderProxy = (): {
     // The link exists but stores a different target — a leftover from another checkout.
     setupWrongTarget: ({ wrongTarget }: { wrongTarget: string }): void => {
       setupTargetDir();
-      pathJoinProxy.returns({ result: assetsDirFp });
-      pathJoinProxy.returns({ result: linkPathFp });
+      joinHandle.onceFor([]).returns(ASSETS_DIR_VALUE);
+      joinHandle.onceFor([]).returns(LINK_PATH_VALUE);
       setupBothMkdirs();
-      existsProxy.returns({ filePath: linkPathFp, result: true });
+      existsProxy.returns({ path: LINK_PATH_VALUE, exists: true });
       readlinkProxy.resolves({ linkPath: linkPathAbs, resolvedTarget: wrongTarget });
       unlinkProxy.succeeds({ filePath: linkPathAbs });
       symlinkProxy.succeeds({ targetPath: targetDirAbs, linkPath: linkPathAbs });
@@ -136,10 +142,10 @@ export const InstallLinkCreateResponderProxy = (): {
     // itself a symlink, so the responder must unlink it.
     setupLegacySymlinkPresent: (): void => {
       setupTargetDir();
-      pathJoinProxy.returns({ result: assetsDirFp });
-      pathJoinProxy.returns({ result: linkPathFp });
+      joinHandle.onceFor([]).returns(ASSETS_DIR_VALUE);
+      joinHandle.onceFor([]).returns(LINK_PATH_VALUE);
       setupBothMkdirs();
-      existsProxy.returns({ filePath: linkPathFp, result: true });
+      existsProxy.returns({ path: LINK_PATH_VALUE, exists: true });
       readlinkProxy.resolves({ linkPath: linkPathAbs, resolvedTarget: targetDirAbs });
       readlinkProxy.resolves({ linkPath: legacyLinkPathAbs, resolvedTarget: targetDirAbs });
       unlinkProxy.succeeds({ filePath: legacyLinkPathAbs });
@@ -149,10 +155,10 @@ export const InstallLinkCreateResponderProxy = (): {
     // file, never a symlink, so the responder must never unlink it.
     setupLegacyRealDirectory: (): void => {
       setupTargetDir();
-      pathJoinProxy.returns({ result: assetsDirFp });
-      pathJoinProxy.returns({ result: linkPathFp });
+      joinHandle.onceFor([]).returns(ASSETS_DIR_VALUE);
+      joinHandle.onceFor([]).returns(LINK_PATH_VALUE);
       setupBothMkdirs();
-      existsProxy.returns({ filePath: linkPathFp, result: true });
+      existsProxy.returns({ path: LINK_PATH_VALUE, exists: true });
       readlinkProxy.resolves({ linkPath: linkPathAbs, resolvedTarget: targetDirAbs });
       readlinkProxy.rejects({ linkPath: legacyLinkPathAbs, error: legacyIsRealDirectoryError() });
     },
@@ -164,7 +170,20 @@ export const InstallLinkCreateResponderProxy = (): {
 
     getUnlinkedPaths: (): readonly unknown[] => unlinkProxy.getDeletedPaths(),
 
-    getMkdirCalls: (): readonly unknown[] => mkdirProxy.getCreatedDirs(),
+    // Reads jest's own recorded calls off the real 'fs/promises' mkdir directly, in real
+    // invocation order — ensureDirProxy's own getCallsFor is addressed per-path, and combining two
+    // separately-addressed lists cannot recover the ORDER a single real call sequence has, which
+    // this responder's own two-mkdir-then-symlink ordering assertion depends on.
+    getMkdirCalls: (): readonly unknown[] =>
+      (mkdir as jest.MockedFunction<typeof mkdir>).mock.calls.map(([path]) => path),
+
+    // The nested link's own join call is addressed by its FIRST argument, ASSETS_DIR_VALUE — the
+    // one call among the four this file's join queue answers whose first segment is the assets
+    // parent, so this reads back the exact tuple the real code passed rather than trusting the
+    // staged return value, which answers any call regardless of its real arguments. Proves a
+    // broken LINK_ENTRY segment in the real implementation shows up here even though the queued
+    // return value would otherwise mask it.
+    getLinkPathJoinArgs: (): readonly unknown[][] => joinHandle.callsMatching([ASSETS_DIR_VALUE]),
 
     // Cross-mock order cannot be read off either adapter proxy alone — each only tracks its own
     // call history — so this reads jest's own invocationCallOrder off the two underlying

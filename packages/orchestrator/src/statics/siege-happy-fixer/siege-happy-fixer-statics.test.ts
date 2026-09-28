@@ -286,6 +286,18 @@ describe('siegeHappyFixerStatics', () => {
     });
   });
 
+  it('VALID: tool table => lists siegelense results and status as yours for read-only queries', () => {
+    expect({
+      docsInYours: has('Bash: dungeonmaster siegelense docs --for fixing      step 2, once'),
+      resultsStatusInYours: has(
+        'Bash: dungeonmaster siegelense results / status       read-only disk evidence queries (steps 1–4 of fixing manual)',
+      ),
+    }).toStrictEqual({
+      docsInYours: true,
+      resultsStatusInYours: true,
+    });
+  });
+
   it('VALID: template => runs no ward but its own, scoped, never uncommitted or bare, and names the dispatcher ward step as the regression pass', () => {
     expect({
       scopedOnce: has(

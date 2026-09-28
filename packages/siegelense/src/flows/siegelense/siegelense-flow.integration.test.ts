@@ -1,7 +1,7 @@
 /**
- * PURPOSE: Covers ONLY what belongs to the router itself, not to any one of the thirteen
+ * PURPOSE: Covers ONLY what belongs to the router itself, not to any one of the twelve
  * `dungeonmaster siegelense` subcommands: the `--help` surface (bare, and after a call name), the
- * `driver` call (outside the thirteen-command surface), the three-way fall-through for an
+ * `driver` call (outside the twelve-command surface), the three-way fall-through for an
  * unrecognised `args[0]` (a closed-set name with no route, an unknown name, and absent args), and
  * dispatch — that a given `args[0]` reaches the right layer flow. Per-flag behaviour, per-command
  * refusals, rendered output and `--json` shapes belong to each command's own
@@ -106,7 +106,7 @@ describe('SiegelenseFlow', () => {
   });
 
   describe('the status route', () => {
-    it('VALID: {args: ["status"]} => routes to the status responder and reports an empty fleet in human format by default', async () => {
+    it('VALID: {args: ["status"]} => routes to the status responder and reports the reworded empty-fleet sentence naming the default --since window', async () => {
       const writes: ReturnType<typeof ContentTextStub>[] = [];
       const originalWrite = process.stdout.write.bind(process.stdout);
       process.stdout.write = ((chunk: string): boolean => {
@@ -118,7 +118,15 @@ describe('SiegelenseFlow', () => {
 
       process.stdout.write = originalWrite;
 
-      expect(writes).toStrictEqual(['No siegelense instances running.\n']);
+      // MACHINE reads live statfs/loadavg — stripped the same way EMPTY_FLEET_STATUS_JSON strips
+      // it from the --json form above, so this assertion stays deterministic.
+      const [wholeOutput] = writes;
+      const withoutLiveMachineLine = wholeOutput!.replace(/^MACHINE: .*\n/mu, '');
+
+      expect(withoutLiveMachineLine).toBe(
+        `MONITORED: ${machineStatics.monitored.join(', ')}\n` +
+          'No siegelense instances created in the last 6hr. Widen with --since beginning.\n',
+      );
     });
 
     it('VALID: {args: ["status", "--json"]} => routes to the status responder and reports an empty fleet as one JSON document when --json is passed', async () => {
@@ -215,7 +223,7 @@ describe('SiegelenseFlow', () => {
   describe('an unknown subcommand', () => {
     it('INVALID: {args: [statuss]} => rejects naming the unknown subcommand instead of falling back to the fleet listing', async () => {
       await expect(SiegelenseFlow({ args: ['statuss'] })).rejects.toThrow(
-        /^Unknown siegelense subcommand: statuss\n\nUsage: dungeonmaster siegelense \[--help \| start \| run \| results \| kill \| capacity \| status \| cleanup \| prune \| compare \| profile \| snapshots \| recipes \| docs \| driver --instance <instanceId>\]$/u,
+        /^Unknown siegelense subcommand: statuss\n\nUsage: dungeonmaster siegelense \[--help \| start \| run \| results \| kill \| capacity \| status \| cleanup \| prune \| compare \| snapshots \| recipes \| docs \| driver --instance <instanceId>\]$/u,
       );
     });
   });
@@ -305,10 +313,11 @@ describe('SiegelenseFlow', () => {
     const tree = evidenceTreeHarness();
 
     describe('results', () => {
-      it('VALID: {results, run named, no kind} => the stored RunResult read back byte-for-byte', async () => {
+      it('VALID: {results, run named, no kind} => the stored RunResult read back byte-for-byte, plus every step reading', async () => {
         const result = await tree.readResults({
           query: ResultsQueryStub({ instanceId: tree.killedInstanceId(), runId: tree.runOne() }),
         });
+        const run1StepsRows = tree.run1Steps().map((step) => JSON.stringify(step));
 
         expect(result).toStrictEqual({
           instanceId: tree.killedInstanceId(),
@@ -319,10 +328,10 @@ describe('SiegelenseFlow', () => {
           verb: null,
           prunedAtMs: null,
           prunedByRule: null,
-          matched: 0,
-          returned: 0,
+          matched: run1StepsRows.length,
+          returned: run1StepsRows.length,
           truncated: false,
-          rows: [],
+          rows: run1StepsRows,
           storedReturn: tree.run1Result(),
         });
       });
@@ -471,6 +480,8 @@ describe('SiegelenseFlow', () => {
           }),
         });
 
+        const run2StepsRows = tree.run2Steps().map((step) => JSON.stringify(step));
+
         expect(noKindAnswer).toStrictEqual({
           instanceId: tree.killedInstanceId(),
           instanceState: 'killed',
@@ -480,10 +491,10 @@ describe('SiegelenseFlow', () => {
           verb: null,
           prunedAtMs: null,
           prunedByRule: null,
-          matched: 0,
-          returned: 0,
+          matched: run2StepsRows.length,
+          returned: run2StepsRows.length,
           truncated: false,
-          rows: [],
+          rows: run2StepsRows,
           storedReturn: null,
         });
         expect(stepsAnswer).toStrictEqual({
@@ -551,7 +562,9 @@ describe('SiegelenseFlow', () => {
         ]);
         expect(entry?.evidence?.dir.path).toBe(tree.killedInstanceEvidenceDir());
         expect(entry?.evidence?.transcript).toBe('run_2.jsonl');
-        expect(entry?.evidence?.logs).toStrictEqual(['api-server.log']);
+        expect(entry?.evidence?.logs).toStrictEqual([
+          `${tree.killedInstanceEvidenceDir()}/api-server.log`,
+        ]);
         expect(entry?.evidence?.lastShot).toBe('run_2/step1.png');
         expect(entry?.lastStep).toStrictEqual({ run: 'run_2', step: 1, verb: 'goto' });
         expect(entry?.rssAtLastBeat).toBe(1_840);
@@ -629,7 +642,7 @@ describe('SiegelenseFlow', () => {
 
         expect(lines.slice(2, 6)).toStrictEqual([
           '┌───────────────┬────────┬─────────────────────┬────────┬────────┬───────────┬──────┬────────┬─────────┐',
-          '│ ID            │ STATE  │ SPEC                │ BRANCH │ UPTIME │ LAST BEAT │ RUNS │ RSS    │ ORPHANS │',
+          '│ ID            │ STATE  │ SPEC                │ BRANCH │ UPTIME │ LAST BEAT │ RUNS │ MEMORY │ ORPHANS │',
           '├───────────────┼────────┼─────────────────────┼────────┼────────┼───────────┼──────┼────────┼─────────┤',
           `│ ${tree.killedInstanceId()} │ killed │ dungeonmaster-stack │ -      │ -      │ -         │ 2    │ 1840MB │ 0       │`,
         ]);
@@ -640,9 +653,9 @@ describe('SiegelenseFlow', () => {
   // The read path above proves resultsReadBroker/statusReadBroker/compareReadBroker are correct
   // by calling them directly. This block drives the SAME evidence tree through
   // SiegelenseFlow({ args }) instead, for the one case no layer-flow test independently re-proves:
-  // status's table render against a LIVE row with a real RSS value, which widens the RSS column
-  // past what any `siegelense-status-layer-flow.integration.test.ts` fixture (every row `killed`,
-  // RSS always `-`) can produce.
+  // status's table render against a LIVE row with a real MEMORY value, which widens the MEMORY
+  // column past what any `siegelense-status-layer-flow.integration.test.ts` fixture (every row
+  // `killed`, MEMORY always `-`) can produce.
   //
   // `start`, `run` and `kill` get NO integration test here. They need a live driver and this
   // suite deliberately has none — no port pair, no spawned process. Their coverage is
@@ -671,7 +684,7 @@ describe('SiegelenseFlow', () => {
 
       expect(lines.slice(2, 6)).toStrictEqual([
         '┌───────────────┬────────┬─────────────────────┬────────┬────────┬───────────┬──────┬────────┬─────────┐',
-        '│ ID            │ STATE  │ SPEC                │ BRANCH │ UPTIME │ LAST BEAT │ RUNS │ RSS    │ ORPHANS │',
+        '│ ID            │ STATE  │ SPEC                │ BRANCH │ UPTIME │ LAST BEAT │ RUNS │ MEMORY │ ORPHANS │',
         '├───────────────┼────────┼─────────────────────┼────────┼────────┼───────────┼──────┼────────┼─────────┤',
         `│ ${argvTree.killedInstanceId()} │ killed │ dungeonmaster-stack │ -      │ -      │ -         │ 2    │ 1840MB │ 0       │`,
       ]);

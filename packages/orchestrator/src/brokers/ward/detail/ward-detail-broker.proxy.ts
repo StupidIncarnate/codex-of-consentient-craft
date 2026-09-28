@@ -1,8 +1,8 @@
-import { childProcessSpawnCaptureAdapterProxy } from '@dungeonmaster/shared/testing';
-import { ErrorMessageStub, ExitCodeStub } from '@dungeonmaster/shared/contracts';
+import { RunNotFoundErrorProxy } from '#gateway/node/child_process/run-not-found.error.proxy';
+import { runProxy } from '#gateway/node/child_process/run/run.proxy';
 
-// Matches wardDetailBroker's own WARD_COMMAND — the real command childProcessSpawnCaptureAdapter
-// is invoked with, so the underlying spawn mock's command-addressed staging matches.
+// Matches wardDetailBroker's own WARD_COMMAND — the real command `run` is invoked with, so the
+// underlying spawn mock's command-addressed staging matches.
 const WARD_COMMAND = 'dungeonmaster-ward';
 
 export const wardDetailBrokerProxy = (): {
@@ -11,31 +11,28 @@ export const wardDetailBrokerProxy = (): {
   getSpawnedArgs: () => unknown;
   getSpawnedCommand: () => unknown;
 } => {
-  const captureProxy = childProcessSpawnCaptureAdapterProxy();
-  const successCode = ExitCodeStub({ value: 0 });
-  const failCode = ExitCodeStub({ value: 1 });
+  const run = runProxy();
+  // Created but unstaged: RunNotFoundError is a plain class with nothing to mock — composing its
+  // proxy satisfies enforce-proxy-child-creation for the broker's own `instanceof` import.
+  RunNotFoundErrorProxy();
 
   return {
     setupSuccess: ({ output }: { output: string }): void => {
-      captureProxy.setupSuccess({
-        command: WARD_COMMAND,
-        exitCode: successCode,
-        stdout: ErrorMessageStub({ value: output }),
-        stderr: ErrorMessageStub({ value: '' }),
-      });
+      run.setupSuccess({ command: WARD_COMMAND, exitCode: 0, stdout: output, stderr: '' });
     },
 
     setupFailure: (): void => {
-      captureProxy.setupSuccess({
-        command: WARD_COMMAND,
-        exitCode: failCode,
-        stdout: ErrorMessageStub({ value: '' }),
-        stderr: ErrorMessageStub({ value: '' }),
-      });
+      run.setupSuccess({ command: WARD_COMMAND, exitCode: 1, stdout: '', stderr: '' });
     },
 
-    getSpawnedArgs: (): unknown => captureProxy.getSpawnedArgs({ command: WARD_COMMAND }),
+    getSpawnedArgs: (): unknown => run.getCallsFor({ command: WARD_COMMAND }).at(-1),
 
-    getSpawnedCommand: (): unknown => captureProxy.getSpawnedCommand({ command: WARD_COMMAND }),
+    // `getCallsFor` only ever returns entries addressed by this literal command, so any entry at
+    // all is proof the broker really spawned `WARD_COMMAND` (as opposed to some other value it
+    // could have read off `process.env.WARD_CLI_PATH`).
+    getSpawnedCommand: (): unknown => {
+      const calls = run.getCallsFor({ command: WARD_COMMAND });
+      return calls.length > 0 ? WARD_COMMAND : undefined;
+    },
   };
 };

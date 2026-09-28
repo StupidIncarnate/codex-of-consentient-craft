@@ -13,11 +13,15 @@
  * // Writes /tmp/dm-home/config.json, whatever DUNGEONMASTER_HOME says
  */
 
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import { dungeonmasterHomeFindBroker } from '@dungeonmaster/shared/brokers';
-import { adapterResultContract, fileContentsContract } from '@dungeonmaster/shared/contracts';
+import {
+  adapterResultContract,
+  fileContentsContract,
+  filePathContract,
+} from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, AdapterResult, GuildConfig } from '@dungeonmaster/shared/contracts';
 import { dungeonmasterHomeStatics } from '@dungeonmaster/shared/statics';
+import { join } from '#gateway/node/path';
 
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import { questStatics } from '../../../statics/quest/quest-statics';
@@ -31,9 +35,9 @@ export const guildConfigWriteBroker = async ({
 }): Promise<AdapterResult> => {
   const homePath = home ?? dungeonmasterHomeFindBroker().homePath;
 
-  const configFilePath = pathJoinAdapter({
-    paths: [homePath, dungeonmasterHomeStatics.paths.configFile],
-  });
+  const configFilePath = filePathContract.parse(
+    join(homePath, dungeonmasterHomeStatics.paths.configFile),
+  );
 
   const contents = fileContentsContract.parse(
     JSON.stringify(config, null, questStatics.json.indentSpaces),
