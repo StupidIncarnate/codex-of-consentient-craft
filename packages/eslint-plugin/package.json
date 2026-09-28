@@ -55,6 +55,7 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
+    "@dungeonmaster/node": "*",
     "@dungeonmaster/npm": "*",
     "@dungeonmaster/shared": "*",
     "minimatch": "^9.0.5",

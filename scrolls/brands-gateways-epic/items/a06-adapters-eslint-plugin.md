@@ -113,6 +113,201 @@ gateway subpath is a gateway-package change, outside this item's scope).
   used only by the one rule that needs the real type checker) — they are two different files with two different
   real callers.
 
+## Plan — G-I
+
+Batches 1 and 2 (`triage-phase2.md`'s G-I): the four "batch 1" adapters plus the four "batch 2" `fs/*` adapters, and
+every real caller of each. Written 2026-09-28 by a read-only pass over the actual tree (`discover`, `Read`) — not
+implemented. **`eslint/rule-tester`'s caller count made this plan stop before any file was touched; see "Why this
+plan stops here" at the end.**
+
+### 1a. Three plugin-load adapters (small — not blocked)
+
+Delete (9 files):
+- `packages/eslint-plugin/src/adapters/eslint-plugin-eslint-comments/load/eslint-plugin-eslint-comments-load-adapter.ts`
+- `packages/eslint-plugin/src/adapters/eslint-plugin-eslint-comments/load/eslint-plugin-eslint-comments-load-adapter.proxy.ts`
+- `packages/eslint-plugin/src/adapters/eslint-plugin-eslint-comments/load/eslint-plugin-eslint-comments-load-adapter.test.ts`
+- `packages/eslint-plugin/src/adapters/eslint-plugin-jest/load/eslint-plugin-jest-load-adapter.ts`
+- `packages/eslint-plugin/src/adapters/eslint-plugin-jest/load/eslint-plugin-jest-load-adapter.proxy.ts`
+- `packages/eslint-plugin/src/adapters/eslint-plugin-jest/load/eslint-plugin-jest-load-adapter.test.ts`
+- `packages/eslint-plugin/src/adapters/typescript-eslint-eslint-plugin/load/typescript-eslint-eslint-plugin-load-adapter.ts`
+- `packages/eslint-plugin/src/adapters/typescript-eslint-eslint-plugin/load/typescript-eslint-eslint-plugin-load-adapter.proxy.ts`
+- `packages/eslint-plugin/src/adapters/typescript-eslint-eslint-plugin/load/typescript-eslint-eslint-plugin-load-adapter.test.ts`
+
+Replacement: `#gateway/npm/eslint-plugin-eslint-comments`, `#gateway/npm/eslint-plugin-jest`, `#gateway/npm/typescript-eslint__eslint-plugin` — each a real pass-through (`export * from '<pkg>'`, or named re-exports where the package's own `.d.ts` uses `export =`), with no `.proxy.ts` of its own, exactly as unmocked as the deleted adapters' own empty proxies (`Record<PropertyKey, never>`).
+
+Edit (2 files):
+- `packages/eslint-plugin/src/brokers/config/dungeonmaster/config-dungeonmaster-broker.ts` — import lines 32-34; call sites at line 75 (`typescriptEslintEslintPluginLoadAdapter()`), 230/276/299 (`eslintPluginEslintCommentsLoadAdapter()`), 300 (`eslintPluginJestLoadAdapter()`).
+- `packages/eslint-plugin/src/brokers/config/dungeonmaster/config-dungeonmaster-broker.proxy.ts` — drops the three now-pointless child-proxy calls (lines 23-25); keeps its `registerModuleMock({module: 'eslint-plugin-jest', ...})` (mocks the real npm specifier at module-load time, unaffected by which file re-exports it).
+
+Verified NOT needing an edit: `config-dungeonmaster-broker.test.ts` (no reference to any of the three adapter names — confirmed by `discover`).
+
+### 1b. `eslint/rule-tester` — BLOCKED, see "Why this plan stops here"
+
+Delete (3 files):
+- `packages/eslint-plugin/src/adapters/eslint/rule-tester/eslint-rule-tester-adapter.ts`
+- `packages/eslint-plugin/src/adapters/eslint/rule-tester/eslint-rule-tester-adapter.proxy.ts`
+- `packages/eslint-plugin/src/adapters/eslint/rule-tester/eslint-rule-tester-adapter.test.ts`
+
+Replacement per item recommendation: a `test/harnesses/rule-tester.harness.ts` composing `RuleTester` from
+`#gateway/npm/eslint` — test infrastructure, no production proxy.
+
+Edit (1 file): `packages/eslint-plugin/src/index.ts` line 27 — the package's own public barrel re-exports
+`eslintRuleTesterAdapter` from the adapter path; this is what `local-eslint` (a different package) imports it
+through (`import { eslintRuleTesterAdapter } from '@dungeonmaster/eslint-plugin'`), so the barrel line's SOURCE path
+changes but the exported name can stay stable for that external caller.
+
+Edit (76 in-package files) — every `packages/eslint-plugin/src/brokers/rule/<name>/rule-<name>-broker.test.ts` that
+imports `eslintRuleTesterAdapter` by RELATIVE path (`'../../../adapters/eslint/rule-tester/eslint-rule-tester-adapter'`),
+confirmed present by `discover({grep: "eslintRuleTesterAdapter", strict: true})` against `brokers/rule/**`. Per EPIC.md
+concession #1 there is no `_test_` barrel, so each of these 76 relative imports must change individually to the new
+harness path — a barrel re-export at `index.ts` does not cover them, since none of them import through the package
+barrel:
+
+ban-adhoc-types, ban-anonymous-jsx-in-map, ban-dom-handles-in-ingredients, ban-fetch-in-proxies,
+ban-flattened-contract-params, ban-gateway-export, ban-inline-helpers-in-test-scenarios, ban-invented-failures,
+ban-jest-mock-in-proxies, ban-jest-mock-in-tests, ban-negated-matchers, ban-node-builtins-in-test-scenarios,
+ban-nondeterminism-in-ingredients, ban-not-to-throw, ban-object-keys-in-expect, ban-page-route-in-e2e,
+ban-playwright-evaluate-for-styles, ban-playwright-extract-then-assert, ban-primitives, ban-proxy-catch-all-defaults,
+ban-reflect-outside-guards, ban-require-in-source, ban-silent-catch, ban-startup-branching,
+ban-string-includes-in-expect, ban-tautological-assertions, ban-typeof-assertions, ban-unanchored-to-match,
+ban-unknown-payload-in-discriminated-union, ban-wait-for-timeout, ban-weak-asymmetric-matchers,
+ban-weak-existence-matchers, ban-workspace-export-mocks, bin-program-spawn-ban, enforce-contract-usage-in-tests,
+enforce-e2e-base-import, enforce-file-metadata, enforce-gateway-config-names-exist, enforce-gateway-restricted-to,
+enforce-gateway-schema-fields, enforce-harness-patterns, enforce-hydration-recipes-structure,
+enforce-implementation-colocation, enforce-import-dependencies, enforce-jest-mocked-usage, enforce-magic-arrays,
+enforce-object-destructuring-params, enforce-optional-guard-params, enforce-project-structure,
+enforce-proxy-child-creation, enforce-proxy-param-binding, enforce-proxy-patterns, enforce-regex-usage,
+enforce-stub-patterns, enforce-stub-usage, enforce-test-colocation, enforce-test-creation-of-proxy,
+enforce-test-name-prefix, enforce-test-proxy-imports, enforce-testid-queries, forbid-non-exported-functions,
+forbid-todo-skip, forbid-type-reexport, gateway-colocation, gateway-dependency-declared, gateway-import-boundary,
+gateway-layout, gateway-schema-brand, jest-mocked-must-import, no-bare-process-cwd, no-multiple-property-assertions,
+no-mutable-state-in-proxy-factory, raw-import-ban, require-contract-validation,
+require-validation-on-untyped-property-access, require-zod-on-primitives
+
+— each of those 76 names expands to exactly one file,
+`packages/eslint-plugin/src/brokers/rule/<name>/rule-<name>-broker.test.ts`. NOT on this list, confirmed by the same
+`discover` pass: `platform-globals-ban` (uses the typed rule-tester instead, G-J's scope) and
+`enforce-folder-return-types` (b18-rule's file, out of my scope regardless).
+
+Out-of-package, NOT edited (different package — report only): `local-eslint`'s own rule-broker tests
+(`packages/local-eslint/src/brokers/rule/{ban-direct-io-in-test-scenarios,ban-locator-pick,ban-quest-status-literals,ban-sync-seeding-methods,graph-reachability,no-bare-location-literals,no-hardcoded-package-names}/*.test.ts`)
+import `eslintRuleTesterAdapter` from `'@dungeonmaster/eslint-plugin'` (the package barrel), not from the adapter's
+relative path — unaffected as long as `index.ts`'s re-export keeps the same exported name.
+
+### 2. Four `fs/*` adapters
+
+Delete (12 files):
+- `packages/eslint-plugin/src/adapters/fs/ensure-read-file-sync/fs-ensure-read-file-sync-adapter.ts` (+`.proxy.ts`, +`.test.ts`)
+- `packages/eslint-plugin/src/adapters/fs/exists-sync/fs-exists-sync-adapter.ts` (+`.proxy.ts`, +`.test.ts`)
+- `packages/eslint-plugin/src/adapters/fs/read-file-sync/fs-read-file-sync-adapter.ts` (+`.proxy.ts`, +`.test.ts`)
+- `packages/eslint-plugin/src/adapters/fs/write-file-sync/fs-write-file-sync-adapter.ts` (+`.proxy.ts`, +`.test.ts`)
+
+Replacement: `#gateway/node/fs` — `readFileSyncIfExists` (for `fsEnsureReadFileSyncAdapter`, which returns `string`
+and throws on missing; the gateway's shape returns `string | null`, so each caller's "throw on missing" branch has
+to be rebuilt at the call site — this is real behavioural work, not a rename), `existsSync`, `readFileSync`,
+`writeFileSync`. Trap: the gateway's `readFileSync`/`writeFileSync` are FIXED to `'utf8'` — no `encoding` parameter.
+`fsReadFileSyncAdapter`/`fsWriteFileSyncAdapter`/`fsEnsureReadFileSyncAdapter` all accept an optional `encoding`
+that every real caller below omits (all default to `'utf-8'`/`'utf8'` implicitly) EXCEPT their own `.test.ts` files,
+which is being deleted anyway — confirm no real caller passes a non-default encoding before relying on this.
+
+Edit — impl + proxy (2 files each, tests verified not needing changes since they go through the broker's own proxy,
+not the adapter's, except where noted):
+
+| Caller broker/responder | Adapter(s) used | Folder |
+|---|---|---|
+| `config-gateway-lint-config-broker.ts` (+`.proxy.ts`) | exists, read | `brokers/config/gateway-lint-config/` |
+| `config-workspace-package-names-broker.ts` (+`.proxy.ts`) | read | `brokers/config/workspace-package-names/` |
+| `resolve-workspace-glob-layer-broker.ts` (+`.proxy.ts`) | read | `brokers/config/workspace-package-names/` |
+| `repo-scope-resolve-broker.ts` (+`.proxy.ts`) | read | `brokers/repo-scope/resolve/` |
+| `check-gateway-export-name-exists-layer-broker.ts` (+`.proxy.ts`) | exists, read | `brokers/rule/enforce-gateway-config-names-exist/` |
+| `check-gateway-subpath-exists-layer-broker.ts` (+`.proxy.ts`) | exists | `brokers/rule/enforce-gateway-config-names-exist/` |
+| `barrel-completeness-layer-broker.ts` (+`.proxy.ts`) | exists, read | `brokers/rule/gateway-colocation/` |
+| `find-nearest-package-json-layer-broker.ts` (+`.proxy.ts`) | read | `brokers/rule/gateway-dependency-declared/` |
+| `find-package-json-dir-layer-broker.ts` (+`.proxy.ts`) | exists | `brokers/rule/gateway-dependency-declared/` |
+| `build-gateway-type-declaration-index-layer-broker.ts` (+`.proxy.ts`) | exists | `brokers/rule/gateway-schema-brand/` |
+| `collect-gateway-type-declaration-names-layer-broker.ts` (+`.proxy.ts`) | read | `brokers/rule/gateway-schema-brand/` |
+| `find-ancestor-directory-layer-broker.ts` (+`.proxy.ts`) | exists | `brokers/rule/platform-globals-ban/` |
+| `resolve-gateway-scope-layer-broker.ts` (+`.proxy.ts`) | read | `brokers/rule/platform-globals-ban/` |
+| `resolve-package-platform-layer-broker.ts` (+`.proxy.ts`) | read | `brokers/rule/platform-globals-ban/` |
+| `workspace-root-find-broker.ts` (+`.proxy.ts`) | read | `brokers/workspace-root/find/` |
+| `install-detect-config-responder.ts` (+`.proxy.ts`) | read, write | `responders/install/detect-config/` |
+| `rule-enforce-proxy-child-creation-broker.ts` (+`.proxy.ts`) | ensure-read | `brokers/rule/enforce-proxy-child-creation/` — **BLOCKED, see below** |
+
+Verified NOT needing a code change: `rule-enforce-import-dependencies-broker.test.ts:526` contains the literal string
+`'fsEnsureReadFileSyncAdapterProxy'` as FIXTURE TEXT (a sample import line the rule-under-test parses to confirm
+`.proxy.ts` files are exempt from import restrictions) — not a real import. Per the a12 item's own Trap about rule
+fixtures, this stays as-is; it is negative/sample test data, not a caller.
+
+### Why this plan stops here
+
+**`rule-enforce-proxy-child-creation-broker.ts` is the only real caller of `fsEnsureReadFileSyncAdapter`, and
+migrating it collides with a file I am explicitly told not to touch.**
+`packages/eslint-plugin/src/dungeonmaster-rule-enforce-on.integration.test.ts` (owned this session by b18-rule) scans
+each `post-edit`-tagged rule broker's SOURCE TEXT for the literal patterns `fsExistsSyncAdapter`,
+`fsEnsureReadFileSyncAdapter`, `fsReadFileSyncAdapter`, `fsWriteFileSyncAdapter`, `fsReadFileAdapter`,
+`fsWriteFileAdapter` (`checkPostEditRulesForFsOperations`, lines 109-145) to prove a post-edit rule "uses file system
+operations"; its own `it` block asserts `rulesWithoutFsOps` is `[]` (line 232). `@dungeonmaster/enforce-proxy-child-creation`
+is post-edit (confirmed by the hardcoded list this same file asserts at lines 238-246). Once
+`rule-enforce-proxy-child-creation-broker.ts` calls `readFileSyncIfExists`/`existsSync` from `#gateway/node/fs`
+instead, none of those six literal patterns remain in its source, `checkPostEditRulesForFsOperations` reports it as a
+rule with no fs operations, and the integration test throws. I cannot fix this myself (the file is off-limits this
+session); the eventual fix is adding the gateway names to that pattern list, which is a one-line change but sits in a
+file this plan does not touch.
+
+**`eslint/rule-tester`'s migration touches 76 in-package test files plus a cross-package (`local-eslint`) consumer of
+the package barrel** — the exact "dozens of rule test files" condition the dispatching prompt named as a stop
+condition, with the instruction to stop after the plan and report the count rather than implement.
+
+Given both blockers sit inside this same group's file list (one adapter's only caller is off-limits; the other
+adapter's callers number in the dozens), this plan stops here per instruction, with ZERO files created, edited or
+deleted. The three plugin-load adapters (1a) and the three fs adapters other than `fs-ensure-read-file-sync`
+(exists-sync, read-file-sync, write-file-sync) are NOT blocked by either issue and are ready for a fresh, right-sized
+dispatch (the load-adapter sweep is 2 files' worth of caller edits; the fs sweep is 16 files' worth across the 16
+non-blocked callers, i.e. ~34 caller-side files, still well past a 2-4-file batch and worth splitting by rule-folder
+group as the table above already groups them).
+
+### G-I-a
+
+The operator re-split G-I into three groups after the plan above stopped early. This group's scope (2026-09-28):
+
+**1. Three plugin-load adapters and their one caller.**
+
+Delete (9 files):
+- `packages/eslint-plugin/src/adapters/eslint-plugin-eslint-comments/load/eslint-plugin-eslint-comments-load-adapter.ts`
+- `packages/eslint-plugin/src/adapters/eslint-plugin-eslint-comments/load/eslint-plugin-eslint-comments-load-adapter.proxy.ts`
+- `packages/eslint-plugin/src/adapters/eslint-plugin-eslint-comments/load/eslint-plugin-eslint-comments-load-adapter.test.ts`
+- `packages/eslint-plugin/src/adapters/eslint-plugin-jest/load/eslint-plugin-jest-load-adapter.ts`
+- `packages/eslint-plugin/src/adapters/eslint-plugin-jest/load/eslint-plugin-jest-load-adapter.proxy.ts`
+- `packages/eslint-plugin/src/adapters/eslint-plugin-jest/load/eslint-plugin-jest-load-adapter.test.ts`
+- `packages/eslint-plugin/src/adapters/typescript-eslint-eslint-plugin/load/typescript-eslint-eslint-plugin-load-adapter.ts`
+- `packages/eslint-plugin/src/adapters/typescript-eslint-eslint-plugin/load/typescript-eslint-eslint-plugin-load-adapter.proxy.ts`
+- `packages/eslint-plugin/src/adapters/typescript-eslint-eslint-plugin/load/typescript-eslint-eslint-plugin-load-adapter.test.ts`
+
+Edit (2 files):
+- `packages/eslint-plugin/src/brokers/config/dungeonmaster/config-dungeonmaster-broker.ts`
+- `packages/eslint-plugin/src/brokers/config/dungeonmaster/config-dungeonmaster-broker.proxy.ts`
+
+**2. `fs/ensure-read-file-sync` and its one caller.**
+
+Delete (3 files):
+- `packages/eslint-plugin/src/adapters/fs/ensure-read-file-sync/fs-ensure-read-file-sync-adapter.ts`
+- `packages/eslint-plugin/src/adapters/fs/ensure-read-file-sync/fs-ensure-read-file-sync-adapter.proxy.ts`
+- `packages/eslint-plugin/src/adapters/fs/ensure-read-file-sync/fs-ensure-read-file-sync-adapter.test.ts`
+
+Edit (2 files; `.test.ts` verified needing no change, run only):
+- `packages/eslint-plugin/src/brokers/rule/enforce-proxy-child-creation/rule-enforce-proxy-child-creation-broker.ts`
+- `packages/eslint-plugin/src/brokers/rule/enforce-proxy-child-creation/rule-enforce-proxy-child-creation-broker.proxy.ts`
+
+**3. Integration test's fs-operation recognizer.**
+
+Edit (1 file):
+- `packages/eslint-plugin/src/dungeonmaster-rule-enforce-on.integration.test.ts`
+
+Not touched (other groups' scope): `adapters/eslint/rule-tester/**`, `adapters/fs/{exists-sync,read-file-sync,write-file-sync}/**` and every rule folder that still imports them.
+
+Found while implementing, added here per EPIC rule 14 (same package, so edited rather than reported):
+- `packages/eslint-plugin/package.json` — `gateway-dependency-declared` requires `@dungeonmaster/node` in `dependencies` once the broker imports `#gateway/node/fs` directly; only `@dungeonmaster/npm` was listed before.
+
 ## Concessions made while executing
 
 <!-- Empty at the start. The operator fills this and mirrors it into EPIC.md's Concessions table. -->

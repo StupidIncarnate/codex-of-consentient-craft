@@ -32,13 +32,17 @@ import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-c
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
 import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
-import { fsEnsureReadFileSyncAdapter } from '../../../adapters/fs/ensure-read-file-sync/fs-ensure-read-file-sync-adapter';
+import { readFileSyncIfExists } from '#gateway/node/fs';
 import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 import { astGetImportsTransformer } from '../../../transformers/ast-get-imports/ast-get-imports-transformer';
 import { parseImplementationImportsTransformer } from '../../../transformers/parse-implementation-imports/parse-implementation-imports-transformer';
 import type { FileContents, Identifier, ModulePath } from '@dungeonmaster/shared/contracts';
-import { identifierContract, filePathContract } from '@dungeonmaster/shared/contracts';
+import {
+  identifierContract,
+  filePathContract,
+  fileContentsContract,
+} from '@dungeonmaster/shared/contracts';
 import { proxyNameToImplementationNameTransformer } from '../../../transformers/proxy-name-to-implementation-name/proxy-name-to-implementation-name-transformer';
 import { isAstNodeDirectlyInFunctionGuard } from '../../../guards/is-ast-node-directly-in-function/is-ast-node-directly-in-function-guard';
 import { proxyPathToImplementationPathTransformer } from '../../../transformers/proxy-path-to-implementation-path/proxy-path-to-implementation-path-transformer';
@@ -85,13 +89,11 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
       ? proxyPathToImplementationPathTransformer({ proxyPath: filename })
       : '';
 
-    // Read implementation file (checks existence and reads in one operation)
+    // Read implementation file, treating a missing or unreadable file the same way (skip)
     const implementationFileResult = ((): FileContents | null => {
       try {
-        return fsEnsureReadFileSyncAdapter({
-          filePath: filePathContract.parse(implementationPath),
-          encoding: 'utf-8',
-        });
+        const rawContents = readFileSyncIfExists(implementationPath);
+        return rawContents === null ? null : fileContentsContract.parse(rawContents);
       } catch {
         return null;
       }
@@ -261,10 +263,8 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
                 }
                 const barrelContent = ((): FileContents | null => {
                   try {
-                    return fsEnsureReadFileSyncAdapter({
-                      filePath: barrelPath,
-                      encoding: 'utf-8',
-                    });
+                    const rawContents = readFileSyncIfExists(barrelPath);
+                    return rawContents === null ? null : fileContentsContract.parse(rawContents);
                   } catch {
                     return null;
                   }
@@ -306,10 +306,8 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
                 }
                 const barrelContent = ((): FileContents | null => {
                   try {
-                    return fsEnsureReadFileSyncAdapter({
-                      filePath: barrelPath,
-                      encoding: 'utf-8',
-                    });
+                    const rawContents = readFileSyncIfExists(barrelPath);
+                    return rawContents === null ? null : fileContentsContract.parse(rawContents);
                   } catch {
                     return null;
                   }

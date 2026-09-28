@@ -114,6 +114,11 @@ const checkPostEditRulesForFsOperations = (rules: unknown[]): unknown[] => {
     'fsWriteFileSyncAdapter',
     'fsReadFileAdapter',
     'fsWriteFileAdapter',
+    // A rule migrated off its adapter reaches file-system work through the gateway instead —
+    // these two import specifiers are what "uses file system operations" means once the adapter
+    // name itself is gone from the rule's source.
+    '#gateway/node/fs',
+    '#gateway/node/fs__promises',
   ];
 
   const rulesWithoutFsOps: unknown[] = [];

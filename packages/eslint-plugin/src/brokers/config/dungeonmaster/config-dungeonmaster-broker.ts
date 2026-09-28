@@ -29,9 +29,13 @@ import {
   dungeonmasterRuleEnforceOnStatics,
   gatewayLocationsStatics,
 } from '@dungeonmaster/shared/statics';
-import { typescriptEslintEslintPluginLoadAdapter } from '../../../adapters/typescript-eslint-eslint-plugin/load/typescript-eslint-eslint-plugin-load-adapter';
-import { eslintPluginJestLoadAdapter } from '../../../adapters/eslint-plugin-jest/load/eslint-plugin-jest-load-adapter';
-import { eslintPluginEslintCommentsLoadAdapter } from '../../../adapters/eslint-plugin-eslint-comments/load/eslint-plugin-eslint-comments-load-adapter';
+import typescriptEslintPlugin from '#gateway/npm/typescript-eslint__eslint-plugin';
+import eslintPluginJest from '#gateway/npm/eslint-plugin-jest';
+// Namespace import, not default: the gateway wrapper re-exports this package via `export *`,
+// which never forwards a `default` binding. At runtime the compiled `export *` still copies the
+// real package's `configs`/`rules`/`utils` properties onto the wrapper regardless, so the
+// namespace object here holds the same shape the old adapter's default import produced.
+import * as eslintPluginEslintComments from '#gateway/npm/eslint-plugin-eslint-comments';
 import { eslintConflictResolverTransformer } from '../../../transformers/eslint-conflict-resolver/eslint-conflict-resolver-transformer';
 import type { GatewayLintConfig, PackageName } from '@dungeonmaster/shared/contracts';
 
@@ -71,8 +75,7 @@ export const configDungeonmasterBroker = ({
 
   const baseTypescriptConfig: EslintConfig = {
     plugins: {
-      [eslintPluginNameContract.parse('@typescript-eslint')]:
-        typescriptEslintEslintPluginLoadAdapter(),
+      [eslintPluginNameContract.parse('@typescript-eslint')]: typescriptEslintPlugin,
     },
     rules: {
       ...(typescriptEslintRuleStatics.rules as unknown as DeepWritable<
@@ -227,7 +230,7 @@ export const configDungeonmasterBroker = ({
   const typescriptConfig: EslintConfig = eslintConfigContract.parse({
     plugins: {
       ...mergedConfig.plugins,
-      'eslint-comments': eslintPluginEslintCommentsLoadAdapter() as unknown,
+      'eslint-comments': eslintPluginEslintComments as unknown,
     },
     rules: {
       ...mergedConfig.rules,
@@ -273,7 +276,7 @@ export const configDungeonmasterBroker = ({
     files: gatewayFiles,
     plugins: {
       ...mergedConfig.plugins,
-      'eslint-comments': eslintPluginEslintCommentsLoadAdapter() as unknown,
+      'eslint-comments': eslintPluginEslintComments as unknown,
     },
     rules: {
       ...mergedConfig.rules,
@@ -296,8 +299,8 @@ export const configDungeonmasterBroker = ({
   const testConfig: EslintConfig = eslintConfigContract.parse({
     plugins: {
       ...mergedConfig.plugins,
-      'eslint-comments': eslintPluginEslintCommentsLoadAdapter() as unknown,
-      ...(forTesting ? { jest: eslintPluginJestLoadAdapter() } : {}),
+      'eslint-comments': eslintPluginEslintComments as unknown,
+      ...(forTesting ? { jest: eslintPluginJest } : {}),
     },
     rules: {
       ...mergedConfig.rules,

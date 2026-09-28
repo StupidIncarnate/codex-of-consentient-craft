@@ -2,6 +2,9 @@ import { configDungeonmasterBroker } from './config-dungeonmaster-broker';
 import { configDungeonmasterBrokerProxy } from './config-dungeonmaster-broker.proxy';
 import { GatewayLintConfigStub } from '@dungeonmaster/shared/contracts';
 import { EslintRuleNameStub } from '../../../contracts/eslint-rule-name/eslint-rule-name.stub';
+import typescriptEslintPlugin from '#gateway/npm/typescript-eslint__eslint-plugin';
+import eslintPluginJest from '#gateway/npm/eslint-plugin-jest';
+import * as eslintPluginEslintComments from '#gateway/npm/eslint-plugin-eslint-comments';
 
 describe('configDungeonmasterBroker', () => {
   describe('return value structure', () => {
@@ -19,6 +22,26 @@ describe('configDungeonmasterBroker', () => {
         'test',
         'typescript',
       ]);
+    });
+
+    it('VALID: {} => typescript config registers the real @typescript-eslint plugin object', () => {
+      configDungeonmasterBrokerProxy();
+
+      const { typescript } = configDungeonmasterBroker();
+
+      expect((typescript.plugins as Record<PropertyKey, unknown>)['@typescript-eslint']).toBe(
+        typescriptEslintPlugin,
+      );
+    });
+
+    it('VALID: {} => typescript config registers the real eslint-comments plugin object', () => {
+      configDungeonmasterBrokerProxy();
+
+      const { typescript } = configDungeonmasterBroker();
+
+      expect((typescript.plugins as Record<PropertyKey, unknown>)['eslint-comments']).toBe(
+        eslintPluginEslintComments,
+      );
     });
 
     it('VALID: {} => typescript config contains enforce-contract-usage-in-tests rule', () => {
@@ -362,6 +385,14 @@ describe('configDungeonmasterBroker', () => {
       const { test } = configDungeonmasterBroker({ forTesting: true });
 
       expect('jest' in (test.plugins as object)).toBe(true);
+    });
+
+    it('VALID: {forTesting: true} => test config registers the real eslint-plugin-jest plugin object', () => {
+      configDungeonmasterBrokerProxy();
+
+      const { test } = configDungeonmasterBroker({ forTesting: true });
+
+      expect((test.plugins as Record<PropertyKey, unknown>).jest).toBe(eslintPluginJest);
     });
 
     it('VALID: {forTesting: true} => test config disables magic numbers', () => {
