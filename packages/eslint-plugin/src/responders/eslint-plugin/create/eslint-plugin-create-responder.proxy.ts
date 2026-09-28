@@ -92,6 +92,7 @@ import { ruleBanProxyCatchAllDefaultsBrokerProxy } from '../../../brokers/rule/b
 import { ruleBanProxyEmptyCalledWithBrokerProxy } from '../../../brokers/rule/ban-proxy-empty-called-with/rule-ban-proxy-empty-called-with-broker.proxy';
 import { ruleBanInventedFailuresBrokerProxy } from '../../../brokers/rule/ban-invented-failures/rule-ban-invented-failures-broker.proxy';
 import { ruleEnforceGatewaySchemaFieldsBrokerProxy } from '../../../brokers/rule/enforce-gateway-schema-fields/rule-enforce-gateway-schema-fields-broker.proxy';
+import { ruleBanContractTypePredicatesBrokerProxy } from '../../../brokers/rule/ban-contract-type-predicates/rule-ban-contract-type-predicates-broker.proxy';
 import { configDungeonmasterBrokerProxy } from '../../../brokers/config/dungeonmaster/config-dungeonmaster-broker.proxy';
 import { EslintPluginCreateResponder } from './eslint-plugin-create-responder';
 
@@ -178,6 +179,7 @@ export const EslintPluginCreateResponderProxy = (): {
   ruleBanProxyEmptyCalledWithBrokerProxy();
   ruleBanInventedFailuresBrokerProxy();
   ruleEnforceGatewaySchemaFieldsBrokerProxy();
+  ruleBanContractTypePredicatesBrokerProxy();
   configDungeonmasterBrokerProxy();
 
   return {

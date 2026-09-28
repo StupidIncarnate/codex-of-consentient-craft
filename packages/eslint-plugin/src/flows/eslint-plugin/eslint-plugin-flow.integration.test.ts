@@ -8,6 +8,7 @@ describe('EslintPluginFlow', () => {
       expect(Object.keys(plugin.rules).sort()).toStrictEqual([
         'ban-adhoc-types',
         'ban-anonymous-jsx-in-map',
+        'ban-contract-type-predicates',
         'ban-dom-handles-in-ingredients',
         'ban-fetch-in-proxies',
         'ban-flattened-contract-params',

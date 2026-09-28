@@ -92,6 +92,7 @@ export const dungeonmasterRuleEnforceOnStatics = {
   '@dungeonmaster/ban-invented-failures': 'pre-edit',
   '@dungeonmaster/ban-workspace-export-mocks': 'pre-edit',
   '@dungeonmaster/enforce-gateway-schema-fields': 'pre-edit',
+  '@dungeonmaster/ban-contract-type-predicates': 'pre-edit',
 
   // @dungeonmaster - POST-EDIT
   '@dungeonmaster/enforce-proxy-patterns': 'post-edit',

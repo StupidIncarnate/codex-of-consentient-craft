@@ -77,6 +77,7 @@ describe('dungeonmasterRuleEnforceOnStatics', () => {
       '@dungeonmaster/ban-invented-failures': 'pre-edit',
       '@dungeonmaster/ban-workspace-export-mocks': 'pre-edit',
       '@dungeonmaster/enforce-gateway-schema-fields': 'pre-edit',
+      '@dungeonmaster/ban-contract-type-predicates': 'pre-edit',
       '@dungeonmaster/enforce-proxy-patterns': 'post-edit',
       '@dungeonmaster/enforce-proxy-child-creation': 'post-edit',
       '@dungeonmaster/enforce-implementation-colocation': 'post-edit',

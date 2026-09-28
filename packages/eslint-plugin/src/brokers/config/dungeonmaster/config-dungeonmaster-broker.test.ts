@@ -182,6 +182,26 @@ describe('configDungeonmasterBroker', () => {
       expect(ruleEnforceOn['@dungeonmaster/ban-fetch-in-proxies']).toBe('pre-edit');
     });
 
+    it('VALID: {} => ruleEnforceOn contains ban-contract-type-predicates as pre-edit', () => {
+      configDungeonmasterBrokerProxy();
+
+      const { ruleEnforceOn } = configDungeonmasterBroker();
+
+      expect(ruleEnforceOn['@dungeonmaster/ban-contract-type-predicates']).toBe('pre-edit');
+    });
+
+    it('VALID: {} => typescript config contains ban-contract-type-predicates rule, off until flagged predicates migrate', () => {
+      configDungeonmasterBrokerProxy();
+
+      const { typescript } = configDungeonmasterBroker();
+
+      expect(
+        typescript.rules?.[
+          EslintRuleNameStub({ value: '@dungeonmaster/ban-contract-type-predicates' })
+        ],
+      ).toBe('off');
+    });
+
     it('VALID: {} => ruleEnforceOn contains enforce-proxy-patterns as post-edit', () => {
       configDungeonmasterBrokerProxy();
 

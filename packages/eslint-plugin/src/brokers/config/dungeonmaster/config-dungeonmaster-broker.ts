@@ -174,6 +174,11 @@ export const configDungeonmasterBroker = ({
     // #Gateway-branded schema, never a direct z.custom/z.instanceof — registered at 'error'
     // directly (not 'off'-then-scan): the whole-repo scan this item ran found nothing to migrate.
     '@dungeonmaster/enforce-gateway-schema-fields': 'error',
+    // BR C3: a type predicate may narrow to a library type, never to one of our contract types or
+    // an indexed type off one — B17. Built and scanned over the whole repo; off until the flagged
+    // predicates it found (in eslint-plugin, orchestrator, siegelense, ward and web) are migrated
+    // to parse through their contract instead.
+    '@dungeonmaster/ban-contract-type-predicates': 'off',
     // The three gateway config-key rules share ONE rule option — the `gatewayLintConfig` parameter
     // the CALLER read once from `.dungeonmaster.json`, so a rule itself never reads a file for it.
     '@dungeonmaster/ban-gateway-export': ['error', gatewayLintConfig],
