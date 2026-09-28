@@ -32,8 +32,8 @@ export const callerRepoRootBannerTransformer = ({
 }): ContentText => {
   const locationClause =
     source === 'server-cwd-fallback'
-      ? "WARNING: could not resolve the caller's own working directory (no matching Claude " +
-        "Code session JSONL within the scan budget); falling back to the MCP server's own " +
+      ? 'WARNING: the MCP call carried no caller context from the dungeonmaster-pre-mcp-caller ' +
+        "hook (run `dungeonmaster init` to install it); falling back to the MCP server's own " +
         'startup directory. If the caller is working in a worktree, this result may describe ' +
         'the WRONG tree.'
       : "resolved from the caller's own working directory";

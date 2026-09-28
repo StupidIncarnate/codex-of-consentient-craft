@@ -28,7 +28,7 @@ describe('callerRepoRootBannerTransformer', () => {
     });
 
     expect(result).toBe(
-      "[project-root: /repo/codex-of-consentient-craft — WARNING: could not resolve the caller's own working directory (no matching Claude Code session JSONL within the scan budget); falling back to the MCP server's own startup directory. If the caller is working in a worktree, this result may describe the WRONG tree.]",
+      "[project-root: /repo/codex-of-consentient-craft — WARNING: the MCP call carried no caller context from the dungeonmaster-pre-mcp-caller hook (run `dungeonmaster init` to install it); falling back to the MCP server's own startup directory. If the caller is working in a worktree, this result may describe the WRONG tree.]",
     );
   });
 
@@ -58,7 +58,7 @@ describe('callerRepoRootBannerTransformer', () => {
     });
 
     expect(result).toBe(
-      "[project-root: /tmp/scratch-harness-dir — WARNING: could not resolve the caller's own working directory (no matching Claude Code session JSONL within the scan budget); falling back to the MCP server's own startup directory. If the caller is working in a worktree, this result may describe the WRONG tree. WARNING: no .dungeonmaster.json was found anywhere above that path — this is the literal starting directory, not a confirmed dungeonmaster project root.]",
+      "[project-root: /tmp/scratch-harness-dir — WARNING: the MCP call carried no caller context from the dungeonmaster-pre-mcp-caller hook (run `dungeonmaster init` to install it); falling back to the MCP server's own startup directory. If the caller is working in a worktree, this result may describe the WRONG tree. WARNING: no .dungeonmaster.json was found anywhere above that path — this is the literal starting directory, not a confirmed dungeonmaster project root.]",
     );
   });
 });

@@ -52,12 +52,7 @@ export const ArchitectureHandleResponderProxy = (): {
   setupLibraryPackage: (params: { packageName: string }) => void;
   setupFrontendInkPackage: (params: { packageName: string }) => void;
   setupEmptyMonorepo: () => void;
-  setupCallerCwdRoot: (params: {
-    toolUseId: string;
-    homedir: string;
-    sessionId: string;
-    repoRoot: string;
-  }) => void;
+  setupCallerCwdRoot: (params: { repoRoot: string }) => void;
 } => {
   const repoRootProxy = ResolveCallerRepoRootLayerResponderProxy();
   repoRootProxy.setupServerCwd({ cwd: '/default/cwd' });
@@ -114,24 +109,7 @@ export const ArchitectureHandleResponderProxy = (): {
     setupEmptyMonorepo: (): void => {
       projectMapProxy.setupEmptyMonorepo({ projectRoot: DEFAULT_PROJECT_ROOT });
     },
-    setupCallerCwdRoot: ({
-      toolUseId,
-      homedir,
-      sessionId,
-      repoRoot,
-    }: {
-      toolUseId: string;
-      homedir: string;
-      sessionId: string;
-      repoRoot: string;
-    }): void => {
-      repoRootProxy.setupColdMatch({
-        serverCwd: '/default/cwd',
-        homedir,
-        sessionId,
-        toolUseId,
-        callerCwd: repoRoot,
-      });
+    setupCallerCwdRoot: ({ repoRoot }: { repoRoot: string }): void => {
       repoRootProxy.setupRepoRootAtStart({ startPath: repoRoot });
     },
   };

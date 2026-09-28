@@ -6,10 +6,10 @@
  * // Returns ToolResponse with architecture content
  *
  * discover, get-project-map and get-project-inventory resolve their project root via
- * ResolveCallerRepoRootLayerResponder (which owns callerCwdScanCursorState, since brokers/ cannot
- * import state/) instead of the server's own processCwdAdapter() — the MCP stdio child is one per
- * top-level session (shared by every Task-dispatched sub-agent), so its own cwd never reflects a
- * sub-agent pinned to a worktree. get-project-map and get-project-inventory (plain-text responses)
+ * ResolveCallerRepoRootLayerResponder — the caller's cwd the dungeonmaster-pre-mcp-caller hook
+ * stamps on the call — instead of the server's own processCwdAdapter(): the MCP stdio child is one
+ * per top-level session (shared by every Task sub-agent it dispatches), so its own cwd never
+ * reflects a sub-agent pinned to a worktree. get-project-map and get-project-inventory (plain-text responses)
  * prefix callerRepoRootBannerTransformer's banner naming which root the answer describes and
  * whether a `.dungeonmaster.json` was actually found there; discover's response is parsed as JSON
  * by callers, so it carries the same facts as `projectRoot`/`projectRootSource`/`configFound`

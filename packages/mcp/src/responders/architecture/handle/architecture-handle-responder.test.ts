@@ -223,7 +223,7 @@ describe('ArchitectureHandleResponder', () => {
       const text = String(result.content[0]!.text);
 
       expect(text.split('\n')[0]).toBe(
-        "[project-root: /default/cwd — WARNING: could not resolve the caller's own working directory (no matching Claude Code session JSONL within the scan budget); falling back to the MCP server's own startup directory. If the caller is working in a worktree, this result may describe the WRONG tree.]",
+        "[project-root: /default/cwd — WARNING: the MCP call carried no caller context from the dungeonmaster-pre-mcp-caller hook (run `dungeonmaster init` to install it); falling back to the MCP server's own startup directory. If the caller is working in a worktree, this result may describe the WRONG tree.]",
       );
     });
   });
@@ -240,23 +240,24 @@ describe('ArchitectureHandleResponder', () => {
       const text = String(result.content[0]!.text);
 
       expect(text.split('\n')[0]).toBe(
-        "[project-root: /default/cwd — WARNING: could not resolve the caller's own working directory (no matching Claude Code session JSONL within the scan budget); falling back to the MCP server's own startup directory. If the caller is working in a worktree, this result may describe the WRONG tree.]",
+        "[project-root: /default/cwd — WARNING: the MCP call carried no caller context from the dungeonmaster-pre-mcp-caller hook (run `dungeonmaster init` to install it); falling back to the MCP server's own startup directory. If the caller is working in a worktree, this result may describe the WRONG tree.]",
       );
     });
 
     it('VALID: {meta resolves a caller cwd inside a worktree} => banner names the WORKTREE root, not the server cwd', async () => {
       const proxy = ArchitectureHandleResponderProxy();
-      proxy.setupCallerCwdRoot({
-        toolUseId: 'toolu_01K6qfGEd8bFzkPvY8nHt1Ts',
-        homedir: '/home/tester',
-        sessionId: 'aaaaaaaa-1111-4222-9333-444444444444',
-        repoRoot: '/repo/worktrees/siegelense',
-      });
+      const repoRoot = '/repo/worktrees/siegelense';
+      proxy.setupCallerCwdRoot({ repoRoot });
 
       const result = await proxy.callResponder({
         tool: ToolNameStub({ value: 'get-project-inventory' }),
         args: { packageName: 'shared' },
-        meta: { 'claudecode/toolUseId': 'toolu_01K6qfGEd8bFzkPvY8nHt1Ts' },
+        meta: {
+          'dungeonmaster/caller': {
+            cwd: repoRoot,
+            sessionId: 'aaaaaaaa-1111-4222-9333-444444444444',
+          },
+        },
       });
 
       const text = String(result.content[0]!.text);
