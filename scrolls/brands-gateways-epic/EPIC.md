@@ -112,6 +112,7 @@ A new operator took over from the morning handoff below. Heartbeat cron `13,43 *
 | a14-fs2 (sonnet) | A14 testing: last five `fs`/`path` adapters | `testing` | done dc9c3f4be |
 | a14-misc (sonnet) | A14 testing: crypto, child-process, error, timers, playwright, mantine | `testing` | running |
 | agy SL-FS4 | A13 `fs/read-file`, first half (`tmp/agy/sl-fs4.md`) | `siegelense` | running |
+| agy HR-DMJSONL | A08: hydration-recipes' last adapter, `dm-jsonl/append`; re-point eslint-plugin's enforce-folder-return-types test anchor (`tmp/agy/hr-dmjsonl.md`) | `hydration-recipes`, one eslint-plugin test | running |
 
 Still to do in Phase 2: orchestrator misc/timer/spawn (7 adapters), siegelense `read-file` (61 callers), misc singles and playwright session, testing jest/msw/typescript/playwright/misc, web canvas/DOM/IndexedDB/misc/rxjs/testing-library/xyflow and `directory-browse`, hydration-recipes `dm-jsonl/append` (G-J's enforce-folder-return-types test anchors on it). Then A18, A19.
 
@@ -277,7 +278,7 @@ The user can lend Antigravity slots on top of the Claude sub-agents. This sectio
 
 | What | What we learned |
 |---|---|
-| Slot count | Resumed on 2026-09-27 night: at most 2 at once, because `agy`'s five-hour usage limit is smaller than Claude's. (History: 5 slots at first, then 3 while the user ran `agy` elsewhere.) |
+| Slot count | 2026-09-28 afternoon: the user's `agy` status line read 7% of the 5-hour window and 31% of the 7-day window, so both slots are in use. Resumed on 2026-09-27 night: at most 2 at once, because `agy`'s five-hour usage limit is smaller than Claude's. (History: 5 slots at first, then 3 while the user ran `agy` elsewhere.) |
 | The CLI | `agy` is at `~/.local/bin/agy`. `agy -p "<prompt>"` runs one prompt non-interactively and prints the final answer. `agy models` lists the models. |
 | The model | The user asked for Gemini 3.8 Flash. Pass `--model gemini-3.8-flash-high`. |
 | Permissions | Pass `--dangerously-skip-permissions`, or the run stalls on the first tool prompt, because nobody is there to answer it. |
