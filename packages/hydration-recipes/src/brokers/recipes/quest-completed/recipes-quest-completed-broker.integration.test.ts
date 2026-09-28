@@ -1,3 +1,5 @@
+import { questGetBroker } from '@dungeonmaster/orchestrator/brokers';
+import { GetQuestInputStub } from '@dungeonmaster/shared/contracts';
 import type { GuildStub, QuestStub } from '@dungeonmaster/shared/contracts';
 import { SavedRecordNameStub } from '@dungeonmaster/hydration/contracts';
 
@@ -141,6 +143,45 @@ describe('recipesQuestCompletedBroker', () => {
       await expect(run(recipesQuestCompletedBroker(), liveTarget.target())).rejects.toThrow(
         /^recipe "quest-completed": ingredient "quest"'s "api" route at http:\/\/live-quest-target\.test\/api\/quests\/[0-9a-f-]+\/start refused the connection: .*no in-process dispatch for POST \/api\/quests\/[0-9a-f-]+\/start/u,
       );
+    });
+  });
+
+  // DEF-100: a live target's real Start force-completes the chaoswhisperer intake item rather than
+  // removing it (`packages/orchestrator/CLAUDE.md`'s own "Seed (questBuildRelayGraphBroker...)"
+  // entry) — the identical fact `guild-mid-execution`'s own DEF-71 follow-up proved for its own
+  // recipe (`recipes-guild-mid-execution-broker.integration.test.ts`'s "relay seed simulated"
+  // describe block). This recipe's own riftcarver-removal filter already drops the auto-seeded
+  // riftcarver scope; `liveQuestTargetHarness({ simulateRelaySeed: true })` is the one harness mode
+  // that also seeds and force-completes the chaoswhisperer intake item for real, so this is the only
+  // describe block in this file that can prove what a live target's real ledger holds once the walk
+  // reads back "complete" — chaoswhisperer stays on the ledger, complete, alongside codeweaver and
+  // ward, matching exactly what a production quest's own Start leaves behind.
+  describe('run against a live target with the relay seed simulated (DEF-100)', () => {
+    const liveTarget = liveQuestTargetHarness({ simulateRelaySeed: true });
+
+    it('VALID: {} => on a live target, the completed quest keeps the auto-seeded chaoswhisperer intake item complete, alongside codeweaver and ward', async () => {
+      const result = (await run(recipesQuestCompletedBroker(), liveTarget.target())) as Record<
+        PropertyKey,
+        unknown
+      >;
+      const quest = result[QUEST_NAME] as Quest;
+
+      // `saveRecordAs` freezes at CREATE time, before this plan's own `operations.add`/`filter`
+      // steps ran against the same on-disk file — reload fresh, exactly as
+      // `guild-mid-execution`'s own DEF-71 follow-up test does for the identical reason
+      // (`packages/hydration-recipes/CLAUDE.md`'s "saveRecordAs freezes a row's record" finding).
+      const reloaded = await questGetBroker({ input: GetQuestInputStub({ questId: quest.id }) });
+      const operationsOnDisk = reloaded.quest!.operations;
+
+      expect({
+        status: reloaded.quest!.status,
+        rolesOnDisk: operationsOnDisk.map((operation) => operation.role),
+        statusesOnDisk: operationsOnDisk.map((operation) => operation.status),
+      }).toStrictEqual({
+        status: 'complete',
+        rolesOnDisk: ['chaoswhisperer', 'codeweaver', 'ward'],
+        statusesOnDisk: ['complete', 'complete', 'complete'],
+      });
     });
   });
 });
