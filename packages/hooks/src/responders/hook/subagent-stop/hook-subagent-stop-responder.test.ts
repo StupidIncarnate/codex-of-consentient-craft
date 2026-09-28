@@ -69,7 +69,42 @@ const startedOwnShellLine = JSON.stringify({
   },
 });
 
+// THE FALSE POSITIVE THIS RESPONDER MUST NOT PRODUCE. Agent A has started nothing of its own; it
+// ran `ps -ef` to investigate a prior block, and — since every agent shares the session's root
+// process — that captured sibling agent B's still-running `npm run ward` (HookBackgroundTaskStub's
+// default id and command), redirect path included. That is a bare mention of B's id, never the
+// harness's own "ID: " start marker, so it must not read as A having started it.
+const psEfInvestigationLine = JSON.stringify({
+  message: {
+    role: 'user',
+    content: [
+      {
+        type: 'tool_result',
+        tool_use_id: 't3',
+        content:
+          '21309 pts/3 S 0:00 /bin/sh -c npm run ward > /tmp/claude-1001/proj/session/tasks/bcibjy15w.output 2>&1',
+      },
+    ],
+  },
+});
+
 describe('HookSubagentStopResponder', () => {
+  it('VALID: {sibling B has a live background command, agent A started none} => allows the stop', async () => {
+    const proxy = HookSubagentStopResponderProxy();
+    proxy.setupTranscript({
+      filePath: TRANSCRIPT_PATH,
+      contents: [minionLine, psEfInvestigationLine].join('\n'),
+    });
+
+    const result = await HookSubagentStopResponder({
+      hookInput: SubagentStopHookDataStub({
+        background_tasks: [HookBackgroundTaskStub({ status: 'running' })],
+      }),
+    });
+
+    expect(result).toStrictEqual({ stdout: '', stderr: '', exitCode: 0 });
+  });
+
   it('VALID: {minion transcript but a running command it started} => blocks, because the ban is not scoped to work-item agents', async () => {
     const proxy = HookSubagentStopResponderProxy();
     proxy.setupTranscript({

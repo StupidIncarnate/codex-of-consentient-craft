@@ -228,10 +228,29 @@ writing the fix — a test that only checks per-row text is not a regression gua
 - **Use `model: "sonnet"` for large mechanical fan-outs** (lint cascades, mass refactors). These can
   spawn 30-50 agents across waves; opus is overkill for apply-the-contract work. Reserve opus for the
   orchestrator and genuinely hard debugging.
-- **Never fork after a long exploration.** A `fork` sub-agent copies the parent's WHOLE transcript,
-  so each child starts at the parent's context size and only grows from there. One agent explored
-  for 35 minutes, reached about 571k tokens, then forked two children; one of them finished at 863k.
-  Write what the exploration found into a short note and brief a FRESH agent from it instead.
+- **A `fork` sub-agent starts with a full copy of the parent's conversation and runs on the parent's
+  model.** It is not scoped by the instruction you hand it — it carries the parent's WHOLE task and
+  acts on that, not just your prompt.
+- **Never fork from an agent that is implementing or editing files.** The fork edits the same
+  checkout in parallel with its parent. Measured this session (2026-09-28): an implementing agent
+  (F54) forked a helper told "fetch MCP tool outputs; do not implement," and the fork re-did the
+  parent's whole task instead — 129 turns and 47 file edits alongside its parent, about 52 million
+  cache-read tokens against the parent's 36 million. The inherited context was a small share of that:
+  a fresh agent doing the same 129 turns would have cost about 95% as much. The waste is the
+  duplicate work, not the copied context. An earlier agent (SL7) had its forks redo its migration
+  beside it the same way.
+- **Never fork to run a side job** — "fetch these docs," "re-run the regression," "just check X." Do
+  the step yourself, or have the operator dispatch a fresh agent with a short brief.
+- **Never fork after a long exploration.** A fork copies the parent's WHOLE transcript, so each child
+  starts at the parent's context size and only grows from there. One agent explored for 35 minutes,
+  reached about 571k tokens, then forked two children; one of them finished at 863k. Write what the
+  exploration found into a short note and brief a FRESH agent from it instead.
+- **Fork only from a short-context parent running several parallel explorations that edit nothing** —
+  the operator or orchestrator, early in its run, wants a few read-only investigations that should
+  start from everything it already knows. When a child needs only a few facts, a fresh agent with a
+  written brief is cheaper and cannot duplicate the parent's task.
+- **A dispatched agent — anything briefed by `agent-brief.md` — never forks and never dispatches a
+  sub-agent of its own.**
 - **Keep an agent's own context small.**
   - Scope `discover` narrowly. A `context: 15` or `verbose: true` search returned 15k to 42k
     characters per call.

@@ -136,6 +136,38 @@ describe('backgroundTasksOwnedSelectTransformer', () => {
       expect(result).toStrictEqual([]);
     });
 
+    // THE FALSE POSITIVE THIS TRANSFORMER MUST NOT PRODUCE. An agent investigating a stale block
+    // runs `ps -ef`, which — since every agent shares the session's root process — prints every
+    // running shell's command line, redirect target included. A sibling's `tasks/<id>.output`
+    // path lands in THIS agent's own transcript as a bare mention, never preceded by the harness's
+    // own "ID: " marker.
+    it('VALID: {sibling id appears only in ps -ef output this agent captured while investigating} => returns []', () => {
+      const backgroundTasks = [
+        HookBackgroundTaskStub({ id: SIBLING_SHELL_ID, type: 'shell', status: 'running' }),
+      ];
+      const psEfInvestigationTranscript = JSON.stringify({
+        type: 'user',
+        agentId: 'a6766c5a70034d25a',
+        message: {
+          role: 'user',
+          content: [
+            {
+              type: 'tool_result',
+              tool_use_id: 't3',
+              content: `21309 pts/3 S 0:00 /bin/sh -c npm run ward > /tmp/claude-1001/proj/session/tasks/${SIBLING_SHELL_ID}.output 2>&1`,
+            },
+          ],
+        },
+      });
+
+      const result = backgroundTasksOwnedSelectTransformer({
+        backgroundTasks,
+        transcript: psEfInvestigationTranscript,
+      });
+
+      expect(result).toStrictEqual([]);
+    });
+
     it('VALID: {own shell beside two siblings shells} => returns only the own one', () => {
       const backgroundTasks = [
         HookBackgroundTaskStub({ id: SIBLING_SHELL_ID, type: 'shell', status: 'running' }),
