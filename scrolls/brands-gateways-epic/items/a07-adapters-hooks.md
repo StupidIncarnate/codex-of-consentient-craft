@@ -93,3 +93,41 @@ statics" `stays-as-adapter.md` calls it. It reads `@dungeonmaster/shared/statics
 ## Concessions made while executing
 
 <!-- Empty at the start. The operator fills this and mirrors it into EPIC.md's Concessions table. -->
+
+## Plan
+
+### G-K1
+
+Scope: Group G-K1 (batch A) — migrate ESLint adapter callers to `#gateway/npm/eslint` and delete the four adapters.
+
+Files to delete (12):
+- `packages/hooks/src/adapters/eslint/calculate-config-for-file/eslint-calculate-config-for-file-adapter.ts`
+- `packages/hooks/src/adapters/eslint/calculate-config-for-file/eslint-calculate-config-for-file-adapter.proxy.ts`
+- `packages/hooks/src/adapters/eslint/calculate-config-for-file/eslint-calculate-config-for-file-adapter.test.ts`
+- `packages/hooks/src/adapters/eslint/eslint/eslint-eslint-adapter.ts`
+- `packages/hooks/src/adapters/eslint/eslint/eslint-eslint-adapter.proxy.ts`
+- `packages/hooks/src/adapters/eslint/eslint/eslint-eslint-adapter.test.ts`
+- `packages/hooks/src/adapters/eslint/is-path-ignored/eslint-is-path-ignored-adapter.ts`
+- `packages/hooks/src/adapters/eslint/is-path-ignored/eslint-is-path-ignored-adapter.proxy.ts`
+- `packages/hooks/src/adapters/eslint/is-path-ignored/eslint-is-path-ignored-adapter.test.ts`
+- `packages/hooks/src/adapters/eslint/output-fixes/eslint-output-fixes-adapter.ts`
+- `packages/hooks/src/adapters/eslint/output-fixes/eslint-output-fixes-adapter.proxy.ts`
+- `packages/hooks/src/adapters/eslint/output-fixes/eslint-output-fixes-adapter.test.ts`
+
+Files to edit (12):
+- `packages/hooks/src/brokers/eslint/is-path-ignored/eslint-is-path-ignored-broker.ts`
+- `packages/hooks/src/brokers/eslint/is-path-ignored/eslint-is-path-ignored-broker.proxy.ts`
+- `packages/hooks/src/brokers/eslint/is-path-ignored/eslint-is-path-ignored-broker.test.ts`
+- `packages/hooks/src/brokers/eslint/lint-run-targeted/eslint-lint-run-targeted-broker.ts`
+- `packages/hooks/src/brokers/eslint/lint-run-targeted/eslint-lint-run-targeted-broker.proxy.ts`
+- `packages/hooks/src/brokers/eslint/lint-run-targeted/eslint-lint-run-targeted-broker.test.ts`
+- `packages/hooks/src/brokers/eslint/lint-run-with-fix/eslint-lint-run-with-fix-broker.ts`
+- `packages/hooks/src/brokers/eslint/lint-run-with-fix/eslint-lint-run-with-fix-broker.proxy.ts`
+- `packages/hooks/src/brokers/eslint/lint-run-with-fix/eslint-lint-run-with-fix-broker.test.ts`
+- `packages/hooks/src/brokers/eslint/load-config/eslint-load-config-broker.ts`
+- `packages/hooks/src/brokers/eslint/load-config/eslint-load-config-broker.proxy.ts`
+- `packages/hooks/src/brokers/eslint/load-config/eslint-load-config-broker.test.ts`
+
+Composing proxies verified:
+- `packages/hooks/src/brokers/violations/check-new/violations-check-new-broker.proxy.ts`
+- `packages/hooks/src/brokers/violations/fix-and-report/violations-fix-and-report-broker.proxy.ts`

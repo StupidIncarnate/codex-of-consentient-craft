@@ -6,8 +6,7 @@
  * // Returns array of LintResult with only error-level violations after auto-fixing
  */
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
-import { eslintEslintAdapter } from '../../../adapters/eslint/eslint/eslint-eslint-adapter';
-import { eslintOutputFixesAdapter } from '../../../adapters/eslint/output-fixes/eslint-output-fixes-adapter';
+import { ESLint } from '#gateway/npm/eslint';
 import { pathResolveAdapter } from '../../../adapters/path/resolve/path-resolve-adapter';
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import { cwd } from '#gateway/node/process';
@@ -54,18 +53,16 @@ export const eslintLintRunWithFixBroker = async ({
 
     // Create ESLint instance with fix: true
     // Use the project's eslint.config.js for full plugin support (prettier, etc.)
-    const eslint = eslintEslintAdapter({
-      options: {
-        cwd: resolvedWorkingDir,
-        fix: true, // Auto-fix violations
-      },
+    const eslint = new ESLint({
+      cwd: resolvedWorkingDir,
+      fix: true, // Auto-fix violations
     });
 
     // Run linting with auto-fix (generates fixes in memory)
     const results = await eslint.lintFiles([absolutePath]);
 
     // Write fixes to disk (only writes if result.output exists)
-    await eslintOutputFixesAdapter({ results });
+    await ESLint.outputFixes(results);
 
     // Filter to errors only (quiet mode - severity === 2)
     const errorOnlyResults = results.map((result) => ({

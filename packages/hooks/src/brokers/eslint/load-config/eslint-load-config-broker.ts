@@ -5,8 +5,7 @@
  * const config = await eslintLoadConfigBroker({ cwd: '/project/path', filePath: 'src/file.ts' });
  * // Returns config object for the specified file path
  */
-import { eslintEslintAdapter } from '../../../adapters/eslint/eslint/eslint-eslint-adapter';
-import { eslintCalculateConfigForFileAdapter } from '../../../adapters/eslint/calculate-config-for-file/eslint-calculate-config-for-file-adapter';
+import { ESLint } from '#gateway/npm/eslint';
 import { pathResolveAdapter } from '../../../adapters/path/resolve/path-resolve-adapter';
 import { fsExistsSyncAdapter } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter';
 import type { FilePath } from '../../../contracts/file-path/file-path-contract';
@@ -56,8 +55,9 @@ export const eslintLoadConfigBroker = async ({
   }
 
   try {
-    const eslint = eslintEslintAdapter({ options: { cwd: targetCwd } });
-    let config = await eslintCalculateConfigForFileAdapter({ eslint, filePath });
+    const eslint = new ESLint({ cwd: targetCwd });
+    const rawConfig: unknown = await eslint.calculateConfigForFile(filePath);
+    let config: unknown = rawConfig ?? {};
 
     // If the file is in an ESLint-ignored path (e.g., .test-tmp), calculateConfigForFile
     // returns an empty config with no rules. Build candidate fallback paths by walking up
@@ -65,13 +65,14 @@ export const eslintLoadConfigBroker = async ({
     if (!hasEslintRulesConfigGuard({ config })) {
       const candidatePaths = eslintFallbackPathsBroker({ cwd: resolvedCwd });
 
-      const candidateConfigs = await Promise.all(
-        candidatePaths.map(async (candidate) =>
-          eslintCalculateConfigForFileAdapter({ eslint, filePath: candidate }),
-        ),
+      const candidateConfigs: unknown[] = await Promise.all(
+        candidatePaths.map(async (candidate): Promise<unknown> => {
+          const candidateConfig: unknown = await eslint.calculateConfigForFile(candidate);
+          return candidateConfig ?? {};
+        }),
       );
 
-      const matchingConfig = candidateConfigs.find((candidate) =>
+      const matchingConfig: unknown = candidateConfigs.find((candidate) =>
         hasEslintRulesConfigGuard({ config: candidate }),
       );
 

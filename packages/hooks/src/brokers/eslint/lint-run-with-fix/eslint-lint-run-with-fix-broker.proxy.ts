@@ -7,13 +7,18 @@
  * const results = await eslintLintRunWithFixBroker({ filePath, config, cwd });
  */
 
-import { eslintEslintAdapterProxy } from '../../../adapters/eslint/eslint/eslint-eslint-adapter.proxy';
-import { eslintOutputFixesAdapterProxy } from '../../../adapters/eslint/output-fixes/eslint-output-fixes-adapter.proxy';
+import { ESLint } from '#gateway/npm/eslint';
 import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { pathResolveAdapterProxy } from '../../../adapters/path/resolve/path-resolve-adapter.proxy';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { cwd } from '#gateway/node/process';
-import { registerMock } from '@dungeonmaster/testing/register-mock';
+import {
+  registerMock,
+  registerModuleMock,
+  registerSpyOn,
+} from '@dungeonmaster/testing/register-mock';
+
+registerModuleMock({ module: '#gateway/npm/eslint' });
 
 export const eslintLintRunWithFixBrokerProxy = (): {
   returnsLintResults: (params: { filePath: string; results: unknown[] }) => void;
@@ -25,8 +30,6 @@ export const eslintLintRunWithFixBrokerProxy = (): {
   // the real process.cwd(), so a test built on it never depends on where jest runs.
   const cwdHandle = registerMock({ fn: cwd });
   cwdHandle.calledWith([]).returns('/default/cwd');
-  const eslintProxy = eslintEslintAdapterProxy();
-  const outputFixesProxy = eslintOutputFixesAdapterProxy();
   fsReadFileAdapterProxy();
   const resolveProxy = pathResolveAdapterProxy();
 
@@ -39,7 +42,14 @@ export const eslintLintRunWithFixBrokerProxy = (): {
     .calledWith([])
     .implement((...segments: unknown[]) => segments[segments.length - 1] ?? '');
 
-  const lintFilesHandle = eslintProxy.getLintFilesHandle();
+  const lintFilesHandle = registerSpyOn({
+    object: ESLint.prototype,
+    method: 'lintFiles',
+  });
+  const outputFixesHandle = registerSpyOn({
+    object: ESLint,
+    method: 'outputFixes',
+  });
 
   return {
     // lintFiles receives a single argument: an array of the (resolved) paths to lint. This
@@ -48,7 +58,7 @@ export const eslintLintRunWithFixBrokerProxy = (): {
       lintFilesHandle.calledWith([[filePath]]).resolves(results);
       // The broker feeds the SAME results array straight into ESLint.outputFixes() next —
       // address it by the exact array lintFiles just resolved so the write step succeeds too.
-      outputFixesProxy.writesSuccessfully({ results: results as never });
+      outputFixesHandle.calledWith([results]).resolves(undefined);
     },
 
     // Addressed by the staged '/default/cwd' (via the resolved absolute path) rather than by the
@@ -59,7 +69,7 @@ export const eslintLintRunWithFixBrokerProxy = (): {
       const absolutePath = `/default/cwd/resolved/${filePath}`;
       resolveProxy.getHandle().calledWith(['/default/cwd', filePath]).returns(absolutePath);
       lintFilesHandle.calledWith([[absolutePath]]).resolves(results);
-      outputFixesProxy.writesSuccessfully({ results: results as never });
+      outputFixesHandle.calledWith([results]).resolves(undefined);
     },
   };
 };

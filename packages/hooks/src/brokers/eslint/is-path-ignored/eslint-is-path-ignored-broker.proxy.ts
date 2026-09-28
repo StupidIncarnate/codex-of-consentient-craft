@@ -6,12 +6,17 @@
  * proxy.setIgnored({ filePath: 'x.ts', ignored: true });
  * const ignored = await eslintIsPathIgnoredBroker({ cwd: '/project', filePath: 'x.ts' });
  */
-import { eslintEslintAdapterProxy } from '../../../adapters/eslint/eslint/eslint-eslint-adapter.proxy';
-import { eslintIsPathIgnoredAdapterProxy } from '../../../adapters/eslint/is-path-ignored/eslint-is-path-ignored-adapter.proxy';
+import { ESLint } from '#gateway/npm/eslint';
 import { pathResolveAdapterProxy } from '../../../adapters/path/resolve/path-resolve-adapter.proxy';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { cwd } from '#gateway/node/process';
-import { registerMock } from '@dungeonmaster/testing/register-mock';
+import {
+  registerMock,
+  registerModuleMock,
+  registerSpyOn,
+} from '@dungeonmaster/testing/register-mock';
+
+registerModuleMock({ module: '#gateway/npm/eslint' });
 
 export const eslintIsPathIgnoredBrokerProxy = (): {
   setIgnored: (params: {
@@ -26,8 +31,6 @@ export const eslintIsPathIgnoredBrokerProxy = (): {
   // the real process.cwd(), so a test built on it never depends on where jest runs.
   const cwdHandle = registerMock({ fn: cwd });
   cwdHandle.calledWith([]).returns('/default/cwd');
-  const eslintProxy = eslintEslintAdapterProxy();
-  eslintIsPathIgnoredAdapterProxy();
   const resolveProxy = pathResolveAdapterProxy();
 
   // pathResolveAdapterProxy no longer has a global default (converted to argument-addressed
@@ -39,7 +42,10 @@ export const eslintIsPathIgnoredBrokerProxy = (): {
     .calledWith([])
     .implement((...segments: unknown[]) => segments[segments.length - 1] ?? '');
 
-  const isPathIgnoredHandle = eslintProxy.getIsPathIgnoredHandle();
+  const isPathIgnoredHandle = registerSpyOn({
+    object: ESLint.prototype,
+    method: 'isPathIgnored',
+  });
 
   return {
     // Callers that don't know filePath ahead of setup (e.g. a proxy composing this one before its

@@ -6,17 +6,20 @@
  * const config = await eslintLoadConfigBroker({ cwd: '/project/path', filePath: 'src/file.ts' });
  */
 
-import type { Linter } from 'eslint';
-
-import type { ESLint } from 'eslint';
-import { eslintEslintAdapterProxy } from '../../../adapters/eslint/eslint/eslint-eslint-adapter.proxy';
-import { eslintCalculateConfigForFileAdapterProxy } from '../../../adapters/eslint/calculate-config-for-file/eslint-calculate-config-for-file-adapter.proxy';
+import * as eslintGateway from '#gateway/npm/eslint';
+import { ESLint, type Linter } from '#gateway/npm/eslint';
 import { pathResolveAdapterProxy } from '../../../adapters/path/resolve/path-resolve-adapter.proxy';
 import { fsExistsSyncAdapterProxy } from '../../../adapters/fs/exists-sync/fs-exists-sync-adapter.proxy';
 import { eslintFallbackPathsBrokerProxy } from '../fallback-paths/eslint-fallback-paths-broker.proxy';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { cwd } from '#gateway/node/process';
-import { registerMock } from '@dungeonmaster/testing/register-mock';
+import {
+  registerMock,
+  registerModuleMock,
+  registerSpyOn,
+} from '@dungeonmaster/testing/register-mock';
+
+registerModuleMock({ module: '#gateway/npm/eslint' });
 
 export const eslintLoadConfigBrokerProxy = (): Record<PropertyKey, never> => {
   // Create child proxies
@@ -26,35 +29,16 @@ export const eslintLoadConfigBrokerProxy = (): Record<PropertyKey, never> => {
   // the real process.cwd(), so this test's outcome never depends on where jest runs.
   const cwdHandle = registerMock({ fn: cwd });
   cwdHandle.calledWith([]).returns('/default/cwd');
-  const eslintProxy = eslintEslintAdapterProxy();
-  eslintCalculateConfigForFileAdapterProxy();
   const resolveProxy = pathResolveAdapterProxy();
   fsExistsSyncAdapterProxy();
   eslintFallbackPathsBrokerProxy();
 
-  // Built from the SHARED fake instance (not a bare {calculateConfigForFile} object): a composed
-  // test can construct ESLint through more than one broker with the same bare {cwd} options (e.g.
-  // violations-check-new-broker.proxy.ts composes eslintIsPathIgnoredBrokerProxy alongside this
-  // one), so this cwd-keyed override can end up answering a construction call that isn't
-  // load-config's own. Keeping lintText/lintFiles/isPathIgnored wired to the shared instance means
-  // that sibling broker still works; only calculateConfigForFile is swapped for this cwd's config.
   const eslintInstanceReturning = (config: Linter.Config | null): ESLint => {
     const mockCalculateConfigForFile = jest.fn();
 
     mockCalculateConfigForFile.mockResolvedValue(config);
 
-    const sharedInstance = eslintProxy.getSharedInstance();
-
-    // Forwarding arrow functions rather than direct method references — referencing
-    // sharedInstance.lintText etc. directly would be an unbound method reference, and assigned
-    // onto the shared instance's own prototype chain rather than spread, since spreading a class
-    // instance copies its own properties onto a plain object and loses the prototype.
-    return Object.assign(Object.create(Object.getPrototypeOf(sharedInstance) as object), {
-      lintText: async (...args: Parameters<ESLint['lintText']>) => sharedInstance.lintText(...args),
-      lintFiles: async (...args: Parameters<ESLint['lintFiles']>) =>
-        sharedInstance.lintFiles(...args),
-      isPathIgnored: async (...args: Parameters<ESLint['isPathIgnored']>) =>
-        sharedInstance.isPathIgnored(...args),
+    return Object.assign(Object.create(ESLint.prototype), {
       calculateConfigForFile: mockCalculateConfigForFile,
     }) as ESLint;
   };
@@ -70,11 +54,10 @@ export const eslintLoadConfigBrokerProxy = (): Record<PropertyKey, never> => {
     .calledWith([])
     .implement((...segments: unknown[]) => segments[segments.length - 1] ?? '');
 
-  // Override the eslint adapter proxy's constructor mock: this broker's tests dispatch entirely
-  // by the cwd the broker constructs ESLint with, replacing the whole instance (not just
-  // calculateConfigForFile) per cwd, so they stage directly on the constructor handle rather than
-  // going through eslintEslintAdapterProxy's shared instance.
-  const constructorHandle = eslintProxy.getConstructorHandle();
+  const constructorHandle = registerSpyOn({
+    object: eslintGateway,
+    method: 'ESLint',
+  });
 
   // Registered first (lowest priority): any cwd this proxy doesn't special-case, including the
   // default cwd from cwd(). A function matcher scores the same as the

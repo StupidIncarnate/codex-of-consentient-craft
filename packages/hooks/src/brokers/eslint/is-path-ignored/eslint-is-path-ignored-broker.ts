@@ -6,8 +6,7 @@
  * const ignored = await eslintIsPathIgnoredBroker({ cwd: '/project', filePath: 'smoke-repo/x.ts' });
  * // Returns true when the resolved config ignores the file; false on any lookup error
  */
-import { eslintEslintAdapter } from '../../../adapters/eslint/eslint/eslint-eslint-adapter';
-import { eslintIsPathIgnoredAdapter } from '../../../adapters/eslint/is-path-ignored/eslint-is-path-ignored-adapter';
+import { ESLint } from '#gateway/npm/eslint';
 import { pathResolveAdapter } from '../../../adapters/path/resolve/path-resolve-adapter';
 import { cwd } from '#gateway/node/process';
 
@@ -20,9 +19,9 @@ export const eslintIsPathIgnoredBroker = async ({
 }): Promise<boolean> => {
   try {
     const resolvedWorkingDir = customCwd ?? cwd();
-    const eslint = eslintEslintAdapter({ options: { cwd: resolvedWorkingDir } });
+    const eslint = new ESLint({ cwd: resolvedWorkingDir });
     const absolutePath = pathResolveAdapter({ paths: [resolvedWorkingDir, filePath] });
-    return await eslintIsPathIgnoredAdapter({ eslint, filePath: absolutePath });
+    return await eslint.isPathIgnored(absolutePath);
   } catch {
     // isPathIgnored throws for paths outside cwd; treat as "not ignored" so the hook still lints.
     return false;

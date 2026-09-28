@@ -5,7 +5,7 @@
  * const results = await eslintLintRunTargetedBroker({ content: code, filePath: 'file.ts', config: linterConfig, cwd: '/path' });
  * // Returns array of LintResult with violations found
  */
-import { eslintEslintAdapter } from '../../../adapters/eslint/eslint/eslint-eslint-adapter';
+import { ESLint, type Linter } from '#gateway/npm/eslint';
 import { pathResolveAdapter } from '../../../adapters/path/resolve/path-resolve-adapter';
 import { cwd } from '#gateway/node/process';
 import type { LintResult } from '../../../contracts/lint-result/lint-result-contract';
@@ -46,13 +46,10 @@ export const eslintLintRunTargetedBroker = async ({
 
   try {
     // Create ESLint instance with ONLY the filtered rules
-    // Type assertion needed because config is unknown at broker level but typed at adapter boundary
-    const eslint = eslintEslintAdapter({
-      options: {
-        cwd: resolvedWorkingDir,
-        overrideConfigFile: true,
-        overrideConfig: [config] as never,
-      },
+    const eslint = new ESLint({
+      cwd: resolvedWorkingDir,
+      overrideConfigFile: true,
+      overrideConfig: [config as Linter.Config],
     });
 
     // Ensure we have an absolute path for ESLint
@@ -95,12 +92,10 @@ export const eslintLintRunTargetedBroker = async ({
       };
 
       // Type assertion needed because config is unknown at broker level but typed at adapter boundary
-      const fallbackEslint = eslintEslintAdapter({
-        options: {
-          cwd: resolvedWorkingDir,
-          overrideConfigFile: true,
-          overrideConfig: [simplifiedConfig] as never,
-        },
+      const fallbackEslint = new ESLint({
+        cwd: resolvedWorkingDir,
+        overrideConfigFile: true,
+        overrideConfig: [simplifiedConfig as Linter.Config],
       });
 
       results = await fallbackEslint.lintText(content, { filePath: absolutePath });

@@ -7,11 +7,18 @@
  * const results = await eslintLintRunTargetedBroker({ content: 'const x = 1;', filePath, config });
  */
 
-import { eslintEslintAdapterProxy } from '../../../adapters/eslint/eslint/eslint-eslint-adapter.proxy';
+import * as eslintGateway from '#gateway/npm/eslint';
+import { ESLint } from '#gateway/npm/eslint';
 import { pathResolveAdapterProxy } from '../../../adapters/path/resolve/path-resolve-adapter.proxy';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 import { cwd } from '#gateway/node/process';
-import { registerMock } from '@dungeonmaster/testing/register-mock';
+import {
+  registerMock,
+  registerModuleMock,
+  registerSpyOn,
+} from '@dungeonmaster/testing/register-mock';
+
+registerModuleMock({ module: '#gateway/npm/eslint' });
 
 export const eslintLintRunTargetedBrokerProxy = (): {
   setupLintResults: (params: {
@@ -33,7 +40,6 @@ export const eslintLintRunTargetedBrokerProxy = (): {
   // the real process.cwd(), so a test built on it never depends on where jest runs.
   const cwdHandle = registerMock({ fn: cwd });
   cwdHandle.calledWith([]).returns('/default/cwd');
-  const eslintProxy = eslintEslintAdapterProxy();
   const resolveProxy = pathResolveAdapterProxy();
 
   // pathResolveAdapterProxy no longer has a global default (converted to argument-addressed
@@ -41,7 +47,10 @@ export const eslintLintRunTargetedBrokerProxy = (): {
   // this proxy addresses by content, not by filePath — so any non-throwing placeholder is fine.
   resolveProxy.getHandle().calledWith([]).returns('/resolved/path');
 
-  const lintTextHandle = eslintProxy.getLintTextHandle();
+  const lintTextHandle = registerSpyOn({
+    object: ESLint.prototype,
+    method: 'lintText',
+  });
 
   return {
     // Old and new lint runs share a filePath but differ in content — that's the real signal
@@ -69,11 +78,17 @@ export const eslintLintRunTargetedBrokerProxy = (): {
       lintTextHandle.calledWith([content, { filePath: absolutePath }]).resolves(results);
     },
 
-    // Overrides the constructor's success catch-all with a real throw, so the broker's
+    // Overrides the constructor with a real throw, so the broker's
     // try/catch is the thing under test — not a coincidence where the lintText empty-array
     // default happens to match the error path's return value.
     throwsOnConstruction: ({ error }): void => {
-      eslintProxy.getConstructorHandle().calledWith([]).throws(error);
+      const constructorHandle = registerSpyOn({
+        object: eslintGateway,
+        method: 'ESLint',
+      });
+      constructorHandle
+        .calledWith([(options: unknown) => typeof options === 'object' && options !== null])
+        .throws(error);
     },
   };
 };
