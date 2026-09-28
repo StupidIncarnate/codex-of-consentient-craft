@@ -291,6 +291,63 @@ describe('resultsReadBroker', () => {
     ]);
   });
 
+  it("VALID: {kind: network, where: {steps: '6-8'}} => only the entries whose own step falls inside that range, from a fixture holding steps 5, 7 and 9", async () => {
+    const proxy = resultsReadBrokerProxy();
+    const entry = RegistryEntryStub({ id: INSTANCE_ID, state: 'killed' });
+    proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
+    const evidencePath = proxy.evidencePathFor({ instanceId: INSTANCE_ID });
+    proxy.setupRuns({ evidencePath, entries: ['run_2.jsonl', 'run_2.json'] });
+    const step5Text = networkText({ method: 'GET', url: '/api/a', status: 200 });
+    const step7Text = networkText({ method: 'GET', url: '/api/b', status: 200 });
+    const step9Text = networkText({ method: 'GET', url: '/api/c', status: 200 });
+    proxy.setupBuffer({
+      evidencePath,
+      kind: 'network',
+      content:
+        bufferLine({ runId: RUN_2, step: 5, text: step5Text }) +
+        bufferLine({ runId: RUN_2, step: 7, text: step7Text }) +
+        bufferLine({ runId: RUN_2, step: 9, text: step9Text }),
+    });
+
+    const result = await resultsReadBroker({
+      query: ResultsQueryStub({
+        instanceId: INSTANCE_ID,
+        runId: RUN_2,
+        kind: 'network',
+        where: ResultWhereStub({ steps: '6-8' }),
+      }),
+    });
+
+    expect(result.rows).toStrictEqual([step7Text]);
+  });
+
+  it("VALID: {kind: steps, where: {steps: '2-3'}} => only readings whose own step falls inside that range, from a run holding steps 1 through 5", async () => {
+    const proxy = resultsReadBrokerProxy();
+    const entry = RegistryEntryStub({ id: INSTANCE_ID, state: 'killed' });
+    proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
+    const evidencePath = proxy.evidencePathFor({ instanceId: INSTANCE_ID });
+    proxy.setupRuns({ evidencePath, entries: ['run_2.jsonl', 'run_2.json'] });
+    const readings = [1, 2, 3, 4, 5].map((stepValue) =>
+      StepReadingStub({ step: StepIndexStub({ value: stepValue }) }),
+    );
+    proxy.setupTranscript({
+      evidencePath,
+      runId: RUN_2,
+      content: readings.map((reading) => `${JSON.stringify(reading)}\n`).join(''),
+    });
+
+    const result = await resultsReadBroker({
+      query: ResultsQueryStub({
+        instanceId: INSTANCE_ID,
+        runId: RUN_2,
+        kind: 'steps',
+        where: ResultWhereStub({ steps: '2-3' }),
+      }),
+    });
+
+    expect(result.rows).toStrictEqual([JSON.stringify(readings[1]), JSON.stringify(readings[2])]);
+  });
+
   it("VALID: {kind: server, where: {steps: '6-8', level: error}} => the error lines inside those three steps' byte windows", async () => {
     const proxy = resultsReadBrokerProxy();
     const entry = RegistryEntryStub({ id: INSTANCE_ID, state: 'killed' });
