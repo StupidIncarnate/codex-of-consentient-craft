@@ -1120,7 +1120,7 @@ describe('ChatInputWidget', () => {
       fireEvent.keyDown(screen.getByTestId('CHAT_INPUT'), { key: 'Enter', shiftKey: false });
 
       // Computed independently of the widget/transformer — the same round-trip
-      // file-read-data-url-adapter.test.ts uses to pin FileReader's own base64 output — rather than
+      // file-read-data-url-broker.test.ts uses to pin FileReader's own base64 output — rather than
       // read back whatever the composer happened to render.
       const expectedBase64 = globalThis.btoa(String.fromCharCode(...pastedBytes));
 
@@ -1582,7 +1582,7 @@ describe('ChatInputWidget', () => {
 
       // pastedImageAttachBroker runs for real (only crypto.randomUUID and the downscale ladder's
       // measured size are mocked, via attachYields), so the stored draft's bytes come from the
-      // REAL pasted Uint8Array read through fileReadDataUrlAdapter's FileReader, never from
+      // REAL pasted Uint8Array read through fileReadDataUrlBroker's FileReader, never from
       // ComposerAttachmentStub's own default dataUrl — computed independently here the same way
       // the reload-restore tests above do, rather than read back off the composer's own thumbnail.
       // widthPx/heightPx stay at ComposerAttachmentStub's own defaults because attachYields never

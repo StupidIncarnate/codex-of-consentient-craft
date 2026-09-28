@@ -2,7 +2,7 @@
  * PURPOSE: The IndexedDB half of restoring the composer after a page reload — the localStorage text
  * draft carries `[Pasted Image N]` placeholders, and this broker is what turns the stored bytes back
  * into the render-ready ComposerAttachment array those placeholders index into. Reach for this over
- * calling indexedDbDraftImagesReadAdapter directly whenever the caller needs thumbnails to paint,
+ * calling draftImagesReadBroker directly whenever the caller needs thumbnails to paint,
  * not raw persisted rows; reach for draftImagesSaveBroker instead when the composer's attachment
  * list just changed and IndexedDB needs to catch up, not the other way around. `scopeKey` is what
  * keeps two composers (two quests, or the create surface, or one quest's main versus follow-up
@@ -10,7 +10,7 @@
  * measurement fails, or whose stored bytes never passed pastedImageDraftContract in the read
  * adapter, comes back as a HOLE (`undefined`) at its own index rather than being dropped — see
  * composerParseDraftTransformer's header for why the caller needs that slot preserved.
- * indexedDbDraftImagesReadAdapter already hands back a hole for the second case; this broker
+ * draftImagesReadBroker already hands back a hole for the second case; this broker
  * carries that hole through as-is (no measurement attempted on a slot that has no record) and adds
  * its own hole for the first case, through the same Promise.allSettled pass — one hole-preserving
  * mechanism covers both failure kinds rather than two that each cover half.
@@ -22,21 +22,21 @@
  * // own index rather than absent
  */
 
-import { canvasImageMeasureAdapter } from '../../../adapters/canvas/image-measure/canvas-image-measure-adapter';
-import { indexedDbDraftImagesReadAdapter } from '../../../adapters/indexed-db/draft-images-read/indexed-db-draft-images-read-adapter';
 import { composerAttachmentContract } from '../../../contracts/composer-attachment/composer-attachment-contract';
 import type { ComposerAttachment } from '../../../contracts/composer-attachment/composer-attachment-contract';
 import type { ComposerScopeKey } from '../../../contracts/composer-scope-key/composer-scope-key-contract';
 import type { PastedImageDraft } from '../../../contracts/pasted-image-draft/pasted-image-draft-contract';
 import { base64ByteLengthTransformer } from '../../../transformers/base64-byte-length/base64-byte-length-transformer';
 import { dataUrlBuildTransformer } from '../../../transformers/data-url-build/data-url-build-transformer';
+import { imageMeasureBroker } from '../../image/measure/image-measure-broker';
+import { draftImagesReadBroker } from '../read/draft-images-read-broker';
 
 export const draftImagesLoadBroker = async ({
   scopeKey,
 }: {
   scopeKey: ComposerScopeKey;
 }): Promise<readonly (ComposerAttachment | undefined)[]> => {
-  const drafts: readonly (PastedImageDraft | undefined)[] = await indexedDbDraftImagesReadAdapter({
+  const drafts: readonly (PastedImageDraft | undefined)[] = await draftImagesReadBroker({
     scopeKey,
   }).catch((error: unknown) => {
     throw new Error(
@@ -69,7 +69,7 @@ export const draftImagesLoadBroker = async ({
       // the quest spec — so widthPx/heightPx are not something the store has to hand back. They
       // are re-measured here, from the data URL just rebuilt above, on every restore. Do not
       // "optimise" this by adding a widthPx/heightPx field to the draft contract.
-      const { widthPx, heightPx } = await canvasImageMeasureAdapter({ dataUrl });
+      const { widthPx, heightPx } = await imageMeasureBroker({ dataUrl });
 
       return composerAttachmentContract.parse({
         attachmentId: draft.attachmentId,

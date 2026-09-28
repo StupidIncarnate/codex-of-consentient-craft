@@ -6,11 +6,13 @@
  * proxy.setupGuilds({ guilds: [] });
  */
 
+import { notifications } from '#gateway/npm/mantine__notifications';
 import { screen, within } from '#gateway/npm/testing-library__react';
 import userEvent from '@testing-library/user-event';
 
 import type { RecordedCalls, SpyOnHandle } from '@dungeonmaster/testing/register-mock';
-import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 
 import type {
   DirectoryEntryStub,
@@ -24,7 +26,6 @@ import type {
 
 import * as questDeleteBrokerModule from '../../brokers/quest/delete/quest-delete-broker';
 
-import { mantineNotificationsShowAdapterProxy } from '../../adapters/mantine/notifications-show/mantine-notifications-show-adapter.proxy';
 import { useGuildsBindingProxy } from '../../bindings/use-guilds/use-guilds-binding.proxy';
 import { useQuestsBindingProxy } from '../../bindings/use-quests/use-quests-binding.proxy';
 import { useSessionListBindingProxy } from '../../bindings/use-session-list/use-session-list-binding.proxy';
@@ -99,7 +100,10 @@ export const HomeContentWidgetProxy = (): {
     method: 'questDeleteBroker',
     passthrough: true,
   });
-  const notificationsProxy = mantineNotificationsShowAdapterProxy();
+  const isNotificationPayload = (payload: unknown): boolean =>
+    typeof payload === 'object' && payload !== null;
+  const notificationsHandle: MockHandle = registerMock({ fn: notifications.show });
+  notificationsHandle.calledWith([isNotificationPayload]).returns(undefined);
   const guildList = GuildListWidgetProxy();
   const sessionList = GuildSessionListWidgetProxy();
   const emptyState = GuildEmptyStateWidgetProxy();
@@ -153,7 +157,7 @@ export const HomeContentWidgetProxy = (): {
     },
     getUnreadableQuestRowTexts: (): readonly HTMLElement['textContent'][] =>
       sessionList.getUnreadableQuestRowTexts(),
-    getShowToastCalls: (): unknown[] => notificationsProxy.getShowCalls(),
+    getShowToastCalls: (): unknown[] => notificationsHandle.callsMatching([isNotificationPayload]),
     setupQuestsError: (): void => {
       questsProxy.setupError();
     },
@@ -238,7 +242,8 @@ export const HomeContentWidgetProxy = (): {
     },
     isPopoverVisible: ({ testId }: { testId: string }): boolean =>
       sessionList.isPopoverVisible({ testId }),
-    getShownToast: (): unknown => notificationsProxy.getShownNotification(),
+    getShownToast: (): unknown =>
+      notificationsHandle.callsMatching([isNotificationPayload]).at(-1)?.[0],
     getDeleteBrokerCalls: (): RecordedCalls => deleteBrokerSpy.callsMatching([]),
     clearStorage: (): void => {
       localStorage.clear();

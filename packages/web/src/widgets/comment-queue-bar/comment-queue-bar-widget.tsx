@@ -27,7 +27,7 @@ import type { QuestId } from '@dungeonmaster/shared/contracts';
 import type { CommentBatchSendResult } from '../../contracts/comment-batch-send-result/comment-batch-send-result-contract';
 import type { CommentQueueEntry } from '../../contracts/comment-queue-entry/comment-queue-entry-contract';
 
-import { mantineNotificationsShowAdapter } from '../../adapters/mantine/notifications-show/mantine-notifications-show-adapter';
+import { notifications } from '#gateway/npm/mantine__notifications';
 import { useCommentQueueBinding } from '../../bindings/use-comment-queue/use-comment-queue-binding';
 import { buttonLabelContract } from '../../contracts/button-label/button-label-contract';
 import { buttonVariantContract } from '../../contracts/button-variant/button-variant-contract';
@@ -121,7 +121,7 @@ export const CommentQueueBarWidget = ({
                     result.staleAnchors.forEach((anchor) => {
                       deleteComment({ anchor });
                     });
-                    mantineNotificationsShowAdapter({
+                    notifications.show({
                       message: staleAnchorNoticeTransformer({
                         staleAnchors: result.staleAnchors,
                       }),
@@ -130,13 +130,13 @@ export const CommentQueueBarWidget = ({
                     return;
                   }
                   // outcome === 'failed' — the whole queue stays intact for a retry.
-                  mantineNotificationsShowAdapter({ message: result.error, color: 'red' });
+                  notifications.show({ message: result.error, color: 'red' });
                 })
                 .catch((error: unknown) => {
                   // The fetch itself rejected before any response arrived — the queue is left
                   // untouched (cleared only on a 200) and the failure is logged for diagnosis.
                   globalThis.console.error('[comment-queue-bar] send failed', error);
-                  mantineNotificationsShowAdapter({ message: NETWORK_ERROR_MESSAGE, color: 'red' });
+                  notifications.show({ message: NETWORK_ERROR_MESSAGE, color: 'red' });
                 })
                 .finally(() => {
                   setSending(false);

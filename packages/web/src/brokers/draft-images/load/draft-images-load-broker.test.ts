@@ -26,8 +26,16 @@ describe('draftImagesLoadBroker', () => {
         scopeKey: 'quest-a' as never,
       });
       proxy.storeHolds({ drafts: [first, second] });
-      proxy.measures({ dataUrl: ImageDataUrlStub(), widthPx: 800, heightPx: 600 });
-      proxy.measures({ dataUrl: ImageDataUrlStub(), widthPx: 400, heightPx: 300 });
+      proxy.measures({
+        dataUrl: ImageDataUrlStub({ value: 'data:image/png;base64,iVBORw0KGgo=' }),
+        widthPx: 800,
+        heightPx: 600,
+      });
+      proxy.measures({
+        dataUrl: ImageDataUrlStub({ value: 'data:image/png;base64,QUFBQQ==' }),
+        widthPx: 400,
+        heightPx: 300,
+      });
 
       const result = await draftImagesLoadBroker({ scopeKey: QUEST_A_SCOPE });
 
@@ -126,7 +134,7 @@ describe('draftImagesLoadBroker', () => {
       const bad = PastedImageDraftStub({
         attachmentId: '22222222-2222-4222-8222-222222222222',
         mediaType: 'image/png',
-        dataBase64: 'QUFBQQ==',
+        dataBase64: 'QUJDREVG',
         scopeKey: 'quest-a' as never,
       });
       const good2 = PastedImageDraftStub({
@@ -136,9 +144,20 @@ describe('draftImagesLoadBroker', () => {
         scopeKey: 'quest-a' as never,
       });
       proxy.storeHolds({ drafts: [good1, bad, good2] });
-      proxy.measures({ dataUrl: ImageDataUrlStub(), widthPx: 800, heightPx: 600 });
-      proxy.measureFails({ dataUrl: ImageDataUrlStub(), error: new Error('decode failed') });
-      proxy.measures({ dataUrl: ImageDataUrlStub(), widthPx: 400, heightPx: 300 });
+      proxy.measures({
+        dataUrl: ImageDataUrlStub({ value: 'data:image/png;base64,iVBORw0KGgo=' }),
+        widthPx: 800,
+        heightPx: 600,
+      });
+      proxy.measureFails({
+        dataUrl: ImageDataUrlStub({ value: 'data:image/png;base64,QUJDREVG' }),
+        error: new Error('decode failed'),
+      });
+      proxy.measures({
+        dataUrl: ImageDataUrlStub({ value: 'data:image/png;base64,YWJjZA==' }),
+        widthPx: 400,
+        heightPx: 300,
+      });
 
       const result = await draftImagesLoadBroker({ scopeKey: QUEST_A_SCOPE });
 
@@ -166,9 +185,9 @@ describe('draftImagesLoadBroker', () => {
 
   describe('a contract-invalid row leaves a hole rather than renumbering the rest', () => {
     // Defect 2 (the second pass on defect 1): a record that fails pastedImageDraftContract in the
-    // READ ADAPTER — not a record that decodes badly — must ALSO leave a hole at its own slot
+    // READ BROKER — not a record that decodes badly — must ALSO leave a hole at its own slot
     // rather than being compacted out before this broker's Promise.allSettled ever sees it. Seeded
-    // via storeHoldsRaw so the real read adapter runs its own safeParse against the malformed
+    // via storeHoldsRaw so the real read broker runs its own safeParse against the malformed
     // record; storeHolds's typed PastedImageDraft[] cannot express a contract failure at all. Only
     // ONE measures() is staged — if the broker attempted to measure the contract-invalid slot, the
     // second measurement call would have nothing staged to answer it and the test would throw.
@@ -191,7 +210,11 @@ describe('draftImagesLoadBroker', () => {
           good,
         ],
       });
-      proxy.measures({ dataUrl: ImageDataUrlStub(), widthPx: 400, heightPx: 300 });
+      proxy.measures({
+        dataUrl: ImageDataUrlStub({ value: 'data:image/png;base64,QUFBQQ==' }),
+        widthPx: 400,
+        heightPx: 300,
+      });
 
       const result = await draftImagesLoadBroker({ scopeKey: QUEST_A_SCOPE });
 
@@ -239,8 +262,16 @@ describe('draftImagesLoadBroker', () => {
         widthPx: 400,
         heightPx: 300,
       });
-      proxy.measures({ dataUrl: ImageDataUrlStub(), widthPx: 800, heightPx: 600 });
-      proxy.measures({ dataUrl: ImageDataUrlStub(), widthPx: 400, heightPx: 300 });
+      proxy.measures({
+        dataUrl: ImageDataUrlStub({ value: 'data:image/png;base64,iVBORw0KGgo=' }),
+        widthPx: 800,
+        heightPx: 600,
+      });
+      proxy.measures({
+        dataUrl: ImageDataUrlStub({ value: 'data:image/png;base64,QUFBQQ==' }),
+        widthPx: 400,
+        heightPx: 300,
+      });
 
       await draftImagesSaveBroker({
         scopeKey: QUEST_A_SCOPE,

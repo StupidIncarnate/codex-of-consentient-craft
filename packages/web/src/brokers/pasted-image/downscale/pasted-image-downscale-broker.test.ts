@@ -10,7 +10,6 @@ describe('pastedImageDownscaleBroker', () => {
   describe('caps the longest edge on the first re-encode', () => {
     it('VALID: {widthPx: 6000, heightPx: 4000, over the byte ceiling} => the png re-encode lands the longest edge exactly on maxLongestEdgePx (#check-downscale-caps-longest-edge)', async () => {
       const proxy = pastedImageDownscaleBrokerProxy();
-      proxy.originalIs({ widthPx: 6000, heightPx: 4000 });
       proxy.reencodeYields({ dataUrl: 'data:image/png;base64,AAAA' });
 
       const overCeilingBase64 = 'A'.repeat(
@@ -19,6 +18,7 @@ describe('pastedImageDownscaleBroker', () => {
       const attachmentId = AttachmentIdStub();
       const mediaType = PastedImageMediaTypeStub({ value: 'image/png' });
       const dataUrl = ImageDataUrlStub({ value: `data:image/png;base64,${overCeilingBase64}` });
+      proxy.originalIs({ dataUrl, widthPx: 6000, heightPx: 4000 });
 
       const result = await pastedImageDownscaleBroker({ attachmentId, dataUrl, mediaType });
 
@@ -40,13 +40,13 @@ describe('pastedImageDownscaleBroker', () => {
   describe('lands under the byte ceiling', () => {
     it('VALID: {widthPx: 6000, heightPx: 4000, over the byte ceiling} => the resulting attachment decodes at or under maxBytesPerImage (#check-downscale-lands-under-cap)', async () => {
       const proxy = pastedImageDownscaleBrokerProxy();
-      proxy.originalIs({ widthPx: 6000, heightPx: 4000 });
       proxy.reencodeYields({ dataUrl: 'data:image/png;base64,AAAA' });
 
       const overCeilingBase64 = 'A'.repeat(
         Math.ceil(((pastedImageStatics.maxBytesPerImage + 1) * 4) / 3),
       );
       const dataUrl = ImageDataUrlStub({ value: `data:image/png;base64,${overCeilingBase64}` });
+      proxy.originalIs({ dataUrl, widthPx: 6000, heightPx: 4000 });
 
       const result = await pastedImageDownscaleBroker({
         attachmentId: AttachmentIdStub(),
@@ -61,11 +61,11 @@ describe('pastedImageDownscaleBroker', () => {
   describe('already under the ceiling', () => {
     it('EDGE: {dataUrl already at or under maxBytesPerImage} => returns the attachment unchanged with no rescale attempt', async () => {
       const proxy = pastedImageDownscaleBrokerProxy();
-      proxy.originalIs({ widthPx: 800, heightPx: 600 });
 
       const attachmentId = AttachmentIdStub();
       const mediaType = PastedImageMediaTypeStub({ value: 'image/png' });
       const dataUrl = ImageDataUrlStub({ value: 'data:image/png;base64,AAAA' });
+      proxy.originalIs({ dataUrl, widthPx: 800, heightPx: 600 });
 
       const result = await pastedImageDownscaleBroker({ attachmentId, dataUrl, mediaType });
 
@@ -85,7 +85,6 @@ describe('pastedImageDownscaleBroker', () => {
   describe('png still over the ceiling', () => {
     it('VALID: {png re-encode at maxLongestEdgePx still over the ceiling} => retries at the same size as image/jpeg at jpegQuality', async () => {
       const proxy = pastedImageDownscaleBrokerProxy();
-      proxy.originalIs({ widthPx: 6000, heightPx: 4000 });
 
       const overCeilingBase64 = 'A'.repeat(
         Math.ceil(((pastedImageStatics.maxBytesPerImage + 1) * 4) / 3),
@@ -99,6 +98,7 @@ describe('pastedImageDownscaleBroker', () => {
 
       const attachmentId = AttachmentIdStub();
       const dataUrl = ImageDataUrlStub({ value: `data:image/png;base64,${overCeilingBase64}` });
+      proxy.originalIs({ dataUrl, widthPx: 6000, heightPx: 4000 });
 
       const result = await pastedImageDownscaleBroker({
         attachmentId,
@@ -133,7 +133,6 @@ describe('pastedImageDownscaleBroker', () => {
   describe('jpeg still over the ceiling', () => {
     it('VALID: {jpeg re-encode at maxLongestEdgePx still over the ceiling} => halves the longest edge and retries as jpeg', async () => {
       const proxy = pastedImageDownscaleBrokerProxy();
-      proxy.originalIs({ widthPx: 6000, heightPx: 4000 });
 
       const overCeilingBase64 = 'A'.repeat(
         Math.ceil(((pastedImageStatics.maxBytesPerImage + 1) * 4) / 3),
@@ -152,6 +151,7 @@ describe('pastedImageDownscaleBroker', () => {
 
       const attachmentId = AttachmentIdStub();
       const dataUrl = ImageDataUrlStub({ value: `data:image/png;base64,${overCeilingBase64}` });
+      proxy.originalIs({ dataUrl, widthPx: 6000, heightPx: 4000 });
 
       const result = await pastedImageDownscaleBroker({
         attachmentId,
@@ -193,7 +193,6 @@ describe('pastedImageDownscaleBroker', () => {
   describe('bottoms out at the floor', () => {
     it('ERROR: {still over the ceiling at minLongestEdgePx} => rejects and never requests below the floor', async () => {
       const proxy = pastedImageDownscaleBrokerProxy();
-      proxy.originalIs({ widthPx: 6000, heightPx: 4000 });
 
       const overCeilingBase64 = 'A'.repeat(
         Math.ceil(((pastedImageStatics.maxBytesPerImage + 1) * 4) / 3),
@@ -214,6 +213,7 @@ describe('pastedImageDownscaleBroker', () => {
       });
 
       const dataUrl = ImageDataUrlStub({ value: `data:image/png;base64,${overCeilingBase64}` });
+      proxy.originalIs({ dataUrl, widthPx: 6000, heightPx: 4000 });
 
       await expect(
         pastedImageDownscaleBroker({
@@ -233,14 +233,15 @@ describe('pastedImageDownscaleBroker', () => {
   });
 
   describe('decode failure', () => {
-    it('ERROR: {measure adapter rejects} => propagates the decode failure', async () => {
+    it('ERROR: {measure broker rejects} => propagates the decode failure', async () => {
       const proxy = pastedImageDownscaleBrokerProxy();
-      proxy.decodeFails({ error: new Error('truncated clipboard image') });
+      const dataUrl = ImageDataUrlStub();
+      proxy.decodeFails({ dataUrl, error: new Error('truncated clipboard image') });
 
       await expect(
         pastedImageDownscaleBroker({
           attachmentId: AttachmentIdStub(),
-          dataUrl: ImageDataUrlStub(),
+          dataUrl,
           mediaType: PastedImageMediaTypeStub({ value: 'image/png' }),
         }),
       ).rejects.toThrow(/truncated clipboard image/u);
@@ -250,7 +251,6 @@ describe('pastedImageDownscaleBroker', () => {
   describe('re-encoded media type', () => {
     it('EDGE: {input mediaType: image/png, ladder had to re-encode} => the returned attachment carries image/jpeg', async () => {
       const proxy = pastedImageDownscaleBrokerProxy();
-      proxy.originalIs({ widthPx: 6000, heightPx: 4000 });
 
       const overCeilingBase64 = 'A'.repeat(
         Math.ceil(((pastedImageStatics.maxBytesPerImage + 1) * 4) / 3),
@@ -263,6 +263,7 @@ describe('pastedImageDownscaleBroker', () => {
       proxy.reencodeYieldsInOrder({ dataUrls: [oversizedPngOutput, smallJpegOutput] });
 
       const dataUrl = ImageDataUrlStub({ value: `data:image/png;base64,${overCeilingBase64}` });
+      proxy.originalIs({ dataUrl, widthPx: 6000, heightPx: 4000 });
 
       const result = await pastedImageDownscaleBroker({
         attachmentId: AttachmentIdStub(),

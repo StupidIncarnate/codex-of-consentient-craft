@@ -30,8 +30,8 @@ import { composerInsertImageBroker } from '../../brokers/composer/insert-image/c
 import { composerInsertTextBroker } from '../../brokers/composer/insert-text/composer-insert-text-broker';
 import { composerReadTransformer } from '../../transformers/composer-read/composer-read-transformer';
 import { composerWriteBroker } from '../../brokers/composer/write/composer-write-broker';
-import { fileReadDataUrlAdapter } from '../../adapters/file/read-data-url/file-read-data-url-adapter';
-import { mantineNotificationsShowAdapter } from '../../adapters/mantine/notifications-show/mantine-notifications-show-adapter';
+import { fileReadDataUrlBroker } from '../../brokers/file/read-data-url/file-read-data-url-broker';
+import { notifications } from '#gateway/npm/mantine__notifications';
 import { draftImagesLoadBroker } from '../../brokers/draft-images/load/draft-images-load-broker';
 import { draftImagesSaveBroker } from '../../brokers/draft-images/save/draft-images-save-broker';
 import { pastedImageAttachBroker } from '../../brokers/pasted-image/attach/pasted-image-attach-broker';
@@ -310,7 +310,7 @@ export const ChatInputWidget = ({
       const normalizedMediaType = pasteMediaTypeNormalizeTransformer({ mediaType: imageItem.type });
 
       if (!isAllowedPasteMediaTypeGuard({ mediaType: normalizedMediaType })) {
-        mantineNotificationsShowAdapter({
+        notifications.show({
           message: chatComposerStatics.toasts.unsupportedFormat,
           color: chatComposerStatics.toastColor,
         });
@@ -323,7 +323,7 @@ export const ChatInputWidget = ({
       const existingThumbnailCount = editor.querySelectorAll(THUMBNAIL_SELECTOR).length;
 
       if (existingThumbnailCount >= pastedImageStatics.maxImagesPerMessage) {
-        mantineNotificationsShowAdapter({
+        notifications.show({
           message: chatComposerStatics.toasts.tooManyImages,
           color: chatComposerStatics.toastColor,
         });
@@ -342,7 +342,7 @@ export const ChatInputWidget = ({
         // the read is what makes the data URL below carry that same normalised type — the one value
         // computed once above and threaded through the allow-list check, this read, and the
         // `mediaType` passed to pastedImageAttachBroker.
-        const dataUrl = await fileReadDataUrlAdapter({
+        const dataUrl = await fileReadDataUrlBroker({
           blob: new Blob([file], { type: normalizedMediaType }),
         });
         const attachment = await pastedImageAttachBroker({
@@ -358,7 +358,7 @@ export const ChatInputWidget = ({
         // sequential sixth paste gets, rather than being silently dropped.
         const committedThumbnailCount = editor.querySelectorAll(THUMBNAIL_SELECTOR).length;
         if (committedThumbnailCount >= pastedImageStatics.maxImagesPerMessage) {
-          mantineNotificationsShowAdapter({
+          notifications.show({
             message: chatComposerStatics.toasts.tooManyImages,
             color: chatComposerStatics.toastColor,
           });
@@ -372,7 +372,7 @@ export const ChatInputWidget = ({
         // A ladder that bottoms out and an image that will not decode both land here — the user
         // sees one message either way, because neither failure is something they can act on
         // differently.
-        mantineNotificationsShowAdapter({
+        notifications.show({
           message: chatComposerStatics.toasts.cannotReduce,
           color: chatComposerStatics.toastColor,
         });
@@ -460,7 +460,7 @@ export const ChatInputWidget = ({
         clearDraftDispatchedStamp();
       })
       .catch((error: unknown) => {
-        mantineNotificationsShowAdapter({
+        notifications.show({
           message: error instanceof Error ? error.message : String(error),
           color: chatComposerStatics.toastColor,
         });

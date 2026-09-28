@@ -1,11 +1,14 @@
+import { notifications } from '#gateway/npm/mantine__notifications';
 import { screen } from '@testing-library/react';
+
+import { registerMock } from '@dungeonmaster/testing/register-mock';
+import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 
 import { composerDeleteThumbnailBrokerProxy } from '../../brokers/composer/delete-thumbnail/composer-delete-thumbnail-broker.proxy';
 import { composerInsertImageBrokerProxy } from '../../brokers/composer/insert-image/composer-insert-image-broker.proxy';
 import { composerInsertTextBrokerProxy } from '../../brokers/composer/insert-text/composer-insert-text-broker.proxy';
 import { composerWriteBrokerProxy } from '../../brokers/composer/write/composer-write-broker.proxy';
-import { fileReadDataUrlAdapterProxy } from '../../adapters/file/read-data-url/file-read-data-url-adapter.proxy';
-import { mantineNotificationsShowAdapterProxy } from '../../adapters/mantine/notifications-show/mantine-notifications-show-adapter.proxy';
+import { fileReadDataUrlBrokerProxy } from '../../brokers/file/read-data-url/file-read-data-url-broker.proxy';
 import { draftImagesLoadBroker } from '../../brokers/draft-images/load/draft-images-load-broker';
 import { draftImagesLoadBrokerProxy } from '../../brokers/draft-images/load/draft-images-load-broker.proxy';
 import { draftImagesSaveBrokerProxy } from '../../brokers/draft-images/save/draft-images-save-broker.proxy';
@@ -62,26 +65,18 @@ export const ChatInputWidgetProxy = (): {
 } => {
   // Child creation only, per enforce-proxy-child-creation — the widget imports every one of these
   // directly (no binding layer sits between the composer and its adapters/brokers). The DOM
-  // composer brokers and fileReadDataUrlAdapter are pure — no I/O to mock — so their proxies are
+  // composer brokers and fileReadDataUrlBroker are pure — no I/O to mock — so their proxies are
   // instantiated for the rule and never touched again.
   composerWriteBrokerProxy();
   composerInsertTextBrokerProxy();
   composerInsertImageBrokerProxy();
   composerDeleteThumbnailBrokerProxy();
-  fileReadDataUrlAdapterProxy();
+  fileReadDataUrlBrokerProxy();
   // Composed so the widget's REAL draftImagesSaveBroker/draftImagesLoadBroker calls (on every
-  // paste/delete, and on mount) land on a fake IndexedDB instead of jsdom's missing one — jsdom has
-  // no indexedDB global, and without this every content-changed step and every mount would reject.
-  // Both broker proxies register their OWN fake for `indexedDB.open(name, version)`, and a real
-  // `indexedDB.open` call only ever reaches the MOST RECENTLY registered one (registerSpyOn's
-  // addressing is shared per (object, method); two equally-specific `calledWith` descriptions
-  // collide and the later one silently wins for every future call, from either broker) — so
-  // draftImagesSaveBrokerProxy's own internal fake never actually receives a real write once
-  // draftImagesLoadBrokerProxy has also been constructed. getStoredDraftImages below sidesteps that
-  // entirely by calling the REAL draftImagesLoadBroker rather than reaching into either proxy's own
-  // (unreliable) internal state — the same broker restoreDraft() itself calls on every mount, and
-  // the mechanism the "the reload restore" tests already prove reads back whatever was really
-  // written, regardless of which proxy's fake ended up winning the race above.
+  // paste/delete, and on mount) land on the gateway's in-memory IndexedDB instead of jsdom's missing
+  // one. Both proxies stage the same database, so a save the widget makes is what a load reads back;
+  // getStoredDraftImages below calls the REAL draftImagesLoadBroker for the same reason
+  // restoreDraft() does on every mount.
   draftImagesSaveBrokerProxy();
   // Captured (not discarded): its fake `indexedDB.open` is the one that actually answers every
   // real call in this test (see the comment above), so a test that needs the underlying IndexedDB
@@ -98,7 +93,10 @@ export const ChatInputWidgetProxy = (): {
   // already documents how the percent is read back.
   const progressBarProxy = UploadProgressBarWidgetProxy();
 
-  const notificationsProxy = mantineNotificationsShowAdapterProxy();
+  const isNotificationPayload = (payload: unknown): boolean =>
+    typeof payload === 'object' && payload !== null;
+  const notificationsHandle: MockHandle = registerMock({ fn: notifications.show });
+  notificationsHandle.calledWith([isNotificationPayload]).returns(undefined);
   const attachBrokerProxy = pastedImageAttachBrokerProxy();
 
   return {
@@ -153,7 +151,8 @@ export const ChatInputWidgetProxy = (): {
       attachBrokerProxy.ladderFails({ error });
     },
 
-    getShownToast: (): unknown => notificationsProxy.getShownNotification(),
+    getShownToast: (): unknown =>
+      notificationsHandle.callsMatching([isNotificationPayload]).at(-1)?.[0],
 
     // getAttribute (not the `.src` IDL property) so a data URL comes back byte-for-byte what the
     // widget wrote — same reasoning as ImageOverlayWidgetProxy's getImageSrc.

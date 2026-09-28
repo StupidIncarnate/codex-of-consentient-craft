@@ -19,7 +19,7 @@ import type {
   SessionId,
 } from '@dungeonmaster/shared/contracts';
 
-import { mantineNotificationsShowAdapter } from '../../adapters/mantine/notifications-show/mantine-notifications-show-adapter';
+import { notifications } from '#gateway/npm/mantine__notifications';
 import { useGuildsBinding } from '../../bindings/use-guilds/use-guilds-binding';
 import { useQuestsBinding } from '../../bindings/use-quests/use-quests-binding';
 import { useSessionListBinding } from '../../bindings/use-session-list/use-session-list-binding';
@@ -94,7 +94,7 @@ export const HomeContentWidget = (): React.JSX.Element => {
   useEffect(() => {
     if (skippedQuestFilesSignature === '') return;
     const skippedCount = skippedQuestFilesSignature.split(',').length;
-    mantineNotificationsShowAdapter({
+    notifications.show({
       message: `${skippedCount} quest file${skippedCount === 1 ? '' : 's'} could not be read — see the unreadable rows in the quest list`,
       color: 'red',
     });
@@ -235,7 +235,7 @@ export const HomeContentWidget = (): React.JSX.Element => {
                         deleteError instanceof Error && deleteError.message
                           ? deleteError.message
                           : 'Failed to delete quest';
-                      mantineNotificationsShowAdapter({ message, color: 'red' });
+                      notifications.show({ message, color: 'red' });
                       setConfirmingQuestId(null);
                       setDeletingQuestId(null);
                     });

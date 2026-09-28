@@ -1,6 +1,6 @@
 /**
  * PURPOSE: Defines a branded string type for user-facing toast/notification text raised via
- * mantineNotificationsShowAdapter — the branded return type ban-primitives requires for any
+ * `notifications.show` — the branded return type ban-primitives requires for any
  * transformer that produces toast copy.
  *
  * USAGE:

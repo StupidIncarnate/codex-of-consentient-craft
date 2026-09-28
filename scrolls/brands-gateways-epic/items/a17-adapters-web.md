@@ -660,3 +660,26 @@ DOM composer, decided per adapter. None wraps an npm package or a gateway global
 - callers: `src/widgets/chat-input/chat-input-widget.tsx`, `.proxy.tsx`, `.test.tsx`
 - comment renames: `src/statics/chat-composer/chat-composer-statics.ts`, `src/transformers/composer-parse-draft/composer-parse-draft-transformer.ts`, `src/transformers/composer-caret-filler-element/composer-caret-filler-element-transformer.ts`, `src/flows/quest-chat/composer-paste-draft-reload.e2e.ts`, `send-text-only-and-newline.e2e.ts`, `composer-paste-inserts-thumbnail.e2e.ts`, `test/harnesses/composer-paste/composer-paste.harness.ts`
 - `src/contracts/composer-segment/composer-segment-contract.ts`: gains `ComposerSegmentInput`, the pre-parse type the read transformer needs (a transformer may not import zod).
+
+### W-MISC2 scope
+
+Chunk: `canvas/image-measure`, `canvas/image-rescale`, `indexed-db/*`, `file/read-data-url`, `mantine/notifications-show`. Left alone: `mantine/render`, `react-dom/mount`. All under `packages/web/src/`.
+
+Deleted: `adapters/canvas/*`, `adapters/indexed-db/*`, `adapters/file/*`, `adapters/mantine/notifications-show/*` (each adapter, proxy, test).
+
+Created:
+- `brokers/image/measure/image-measure-broker.ts`, `.proxy.ts`, `.test.ts` (over `#gateway/browser/createImageBitmap`; the proxy stages through the gateway's `createImageBitmapProxy`, addressed by the Blob's byte length)
+- `brokers/image/rescale/image-rescale-broker.ts`, `.proxy.ts`, `.test.ts` (over `createImageBitmap` and `canvasEncode`; the proxy stages `canvasEncode` with `registerMock`, because the ladder needs one answer per ask at the same media type and quality)
+- `brokers/file/read-data-url/file-read-data-url-broker.ts`, `.proxy.ts`, `.test.ts` (over `#gateway/browser/FileReader`)
+- `brokers/draft-images/read/draft-images-read-broker.ts`, `.proxy.ts`, `.test.ts` (over `openStore`, `getAll`)
+- `brokers/draft-images/read/migrate-legacy-records-layer-broker.ts`, `.proxy.ts`, `.test.ts` (over `getAll`, `replaceAll`)
+
+Edited:
+- `brokers/draft-images/save/draft-images-save-broker.ts`, `.proxy.ts` (the replace adapter's logic moves in, over `openStore` and `replaceAll`)
+- `brokers/draft-images/load/draft-images-load-broker.ts`, `.proxy.ts`, `.test.ts`
+- `brokers/pasted-image/downscale/pasted-image-downscale-broker.ts`, `.proxy.ts`, `.test.ts`
+- `widgets/chat-input/chat-input-widget.tsx`, `.proxy.tsx`, `.test.tsx` (comments)
+- `widgets/comment-queue-bar/comment-queue-bar-widget.tsx`, `.proxy.tsx`
+- `widgets/home-content/home-content-widget.tsx`, `.proxy.tsx`
+- `widgets/quest-chat/quest-chat-content-layer-widget.tsx`, `.proxy.tsx`
+- `contracts/notification-message/notification-message-contract.ts` (comment names only)

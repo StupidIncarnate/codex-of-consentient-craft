@@ -1,6 +1,6 @@
 /**
  * PURPOSE: Test proxy for CommentQueueBarWidget — composes the comment-queue binding proxy and the
- * notifications adapter proxy, and owns the stub `onSend` handler the widget is rendered with, all
+ * notifications gateway, and owns the stub `onSend` handler the widget is rendered with, all
  * behind semantic setup/trigger/assertion methods so tests never reach through to a child proxy.
  *
  * USAGE:
@@ -9,6 +9,7 @@
  * mantineRenderAdapter({ ui: <CommentQueueBarWidget questId={questId} onSend={proxy.onSend} /> });
  */
 
+import { notifications } from '#gateway/npm/mantine__notifications';
 import { fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
@@ -17,7 +18,6 @@ import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 
 import type { QuestId } from '@dungeonmaster/shared/contracts';
 
-import { mantineNotificationsShowAdapterProxy } from '../../adapters/mantine/notifications-show/mantine-notifications-show-adapter.proxy';
 import { useCommentQueueBindingProxy } from '../../bindings/use-comment-queue/use-comment-queue-binding.proxy';
 import { IconButtonWidgetProxy } from '../icon-button/icon-button-widget.proxy';
 import type { CommentAnchorStub } from '../../contracts/comment-anchor/comment-anchor.stub';
@@ -63,7 +63,10 @@ export const CommentQueueBarWidgetProxy = (): {
   getRequestBody: () => unknown;
 } => {
   const queueProxy = useCommentQueueBindingProxy();
-  const notificationsProxy = mantineNotificationsShowAdapterProxy();
+  const isNotificationPayload = (payload: unknown): boolean =>
+    typeof payload === 'object' && payload !== null;
+  const notificationsHandle: MockHandle = registerMock({ fn: notifications.show });
+  notificationsHandle.calledWith([isNotificationPayload]).returns(undefined);
   // Clear and Send are IconButtonWidgets. Its proxy mocks nothing, so this constructs it for the
   // child-proxy rule only — this proxy addresses both buttons by their own queue-bar testids.
   IconButtonWidgetProxy();
@@ -145,7 +148,8 @@ export const CommentQueueBarWidgetProxy = (): {
       queueProxy.hasStoredQueue({ questId }),
     getStoredValue: ({ questId }: { questId: QuestId }): unknown =>
       queueProxy.getStoredValue({ questId }),
-    getShownToast: (): unknown => notificationsProxy.getShownNotification(),
+    getShownToast: (): unknown =>
+      notificationsHandle.callsMatching([isNotificationPayload]).at(-1)?.[0],
     getRequestCount: (): SendCallCount => sendHandle.callsMatching([isSendPayload]).length,
     getRequestBody: (): unknown => {
       const [payload] = sendHandle.callsMatching([isSendPayload]).at(-1) ?? [];

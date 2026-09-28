@@ -1,3 +1,4 @@
+import { notifications } from '#gateway/npm/mantine__notifications';
 import { fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
@@ -8,8 +9,9 @@ import type {
   QuestSummaryStub,
 } from '@dungeonmaster/shared/contracts';
 import type { RequestCount } from '@dungeonmaster/testing';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
+import type { MockHandle } from '@dungeonmaster/testing/register-mock';
 
-import { mantineNotificationsShowAdapterProxy } from '../../adapters/mantine/notifications-show/mantine-notifications-show-adapter.proxy';
 import { useCommentQueueSweepBindingProxy } from '../../bindings/use-comment-queue-sweep/use-comment-queue-sweep-binding.proxy';
 import { useOrchestrationModeBindingProxy } from '../../bindings/use-orchestration-mode/use-orchestration-mode-binding.proxy';
 import { useQuestChatBindingProxy } from '../../bindings/use-quest-chat/use-quest-chat-binding.proxy';
@@ -135,7 +137,10 @@ export const QuestChatContentLayerWidgetProxy = (): {
   questPauseBrokerProxy();
   questResumeBrokerProxy();
   const questStart = questStartBrokerProxy();
-  const notifications = mantineNotificationsShowAdapterProxy();
+  const isNotificationPayload = (payload: unknown): boolean =>
+    typeof payload === 'object' && payload !== null;
+  const notificationsHandle: MockHandle = registerMock({ fn: notifications.show });
+  notificationsHandle.calledWith([isNotificationPayload]).returns(undefined);
   setupAutoScrollContainer();
   setupChatEntryList();
   const merge = questMergeBrokerProxy();
@@ -250,6 +255,7 @@ export const QuestChatContentLayerWidgetProxy = (): {
       await approvedModal.clickBeginQuest();
     },
     getStartRequestCount: () => questStart.getRequestCount(),
-    getShownNotification: () => notifications.getShownNotification(),
+    getShownNotification: () =>
+      notificationsHandle.callsMatching([isNotificationPayload]).at(-1)?.[0],
   };
 };

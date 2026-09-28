@@ -15,10 +15,13 @@
 
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 
-import { indexedDbDraftImagesReplaceAdapter } from '../../../adapters/indexed-db/draft-images-replace/indexed-db-draft-images-replace-adapter';
+import { openStore, replaceAll } from '#gateway/browser/indexedDB';
+
 import type { ComposerAttachment } from '../../../contracts/composer-attachment/composer-attachment-contract';
 import type { ComposerScopeKey } from '../../../contracts/composer-scope-key/composer-scope-key-contract';
 import { pastedImageDraftContract } from '../../../contracts/pasted-image-draft/pasted-image-draft-contract';
+import { isComposerScopeMatchGuard } from '../../../guards/is-composer-scope-match/is-composer-scope-match-guard';
+import { chatComposerStatics } from '../../../statics/chat-composer/chat-composer-statics';
 import { dataUrlSplitTransformer } from '../../../transformers/data-url-split/data-url-split-transformer';
 
 export const draftImagesSaveBroker = async ({
@@ -31,7 +34,7 @@ export const draftImagesSaveBroker = async ({
   // The text draft's [Pasted Image N] placeholders are the only source of truth for ORDER, and a
   // paste can land BETWEEN two existing images — so insertion order and placeholder order diverge
   // the moment anything but a plain append happens. The caller passes attachments in composer
-  // (left-to-right) order, and this broker hands the whole list to a REPLACE adapter rather than a
+  // (left-to-right) order, and this broker hands the whole list to a REPLACE rather than a
   // targeted add/delete, so a later read back out of IndexedDB always lines up with the
   // placeholders again, however the list was edited.
   const drafts = attachments.map((attachment) => {
@@ -45,8 +48,30 @@ export const draftImagesSaveBroker = async ({
     });
   });
 
+  const { name, version, storeName } = chatComposerStatics.draftDatabase;
+
   try {
-    return await indexedDbDraftImagesReplaceAdapter({ scopeKey, drafts });
+    const db = await openStore({ name, version, storeName });
+
+    try {
+      // Read-then-clear-then-add in ONE transaction, every time — never a targeted patch. Every
+      // OTHER scope's records are read back and re-added alongside this scope's fresh set: a bare
+      // clear() would wipe every composer's drafts at once, not just this one's (see
+      // isComposerScopeMatchGuard's header). This only runs on a paste or a delete, never on a
+      // keystroke.
+      await replaceAll({
+        db,
+        storeName,
+        replace: ({ existing }) => [
+          ...existing.filter((record) => !isComposerScopeMatchGuard({ record, scopeKey })),
+          ...drafts,
+        ],
+      });
+    } finally {
+      db.close();
+    }
+
+    return { success: true as const };
   } catch (error) {
     throw new Error(
       `draftImagesSaveBroker: failed to save draft images — ${error instanceof Error ? error.message : String(error)}`,

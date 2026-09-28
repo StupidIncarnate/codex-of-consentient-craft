@@ -32,7 +32,7 @@ import {
 } from '@dungeonmaster/shared/guards';
 import { previousReviewQuestStatusTransformer } from '@dungeonmaster/shared/transformers';
 
-import { mantineNotificationsShowAdapter } from '../../adapters/mantine/notifications-show/mantine-notifications-show-adapter';
+import { notifications } from '#gateway/npm/mantine__notifications';
 import { useCommentQueueSweepBinding } from '../../bindings/use-comment-queue-sweep/use-comment-queue-sweep-binding';
 import { useOrchestrationModeBinding } from '../../bindings/use-orchestration-mode/use-orchestration-mode-binding';
 import { useQuestChatBinding } from '../../bindings/use-quest-chat/use-quest-chat-binding';
@@ -497,7 +497,7 @@ export const QuestChatContentLayerWidget = ({
             // The modal stays open on a rejection so the reader can read the toast and retry
             // without losing their place. The broker hands up the server's own sentence, which
             // names the actual cause.
-            mantineNotificationsShowAdapter({
+            notifications.show({
               message:
                 startError instanceof Error ? startError.message : BEGIN_QUEST_FAILED_MESSAGE,
               color: ERROR_NOTIFICATION_COLOR,

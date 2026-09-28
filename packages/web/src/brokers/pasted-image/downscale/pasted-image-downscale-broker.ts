@@ -16,17 +16,17 @@ import { pastedImageMediaTypeContract } from '@dungeonmaster/shared/contracts';
 import type { PastedImageMediaType } from '@dungeonmaster/shared/contracts';
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
-import { canvasImageMeasureAdapter } from '../../../adapters/canvas/image-measure/canvas-image-measure-adapter';
-import { canvasImageRescaleAdapter } from '../../../adapters/canvas/image-rescale/canvas-image-rescale-adapter';
 import type { AttachmentId } from '../../../contracts/attachment-id/attachment-id-contract';
 import { composerAttachmentContract } from '../../../contracts/composer-attachment/composer-attachment-contract';
 import type { ComposerAttachment } from '../../../contracts/composer-attachment/composer-attachment-contract';
 import type { ImageDataUrl } from '../../../contracts/image-data-url/image-data-url-contract';
 import type { ImageSize } from '../../../contracts/image-size/image-size-contract';
+import { imageMeasureBroker } from '../../image/measure/image-measure-broker';
+import { imageRescaleBroker } from '../../image/rescale/image-rescale-broker';
 import { base64ByteLengthTransformer } from '../../../transformers/base64-byte-length/base64-byte-length-transformer';
 import { downscaleTargetTransformer } from '../../../transformers/downscale-target/downscale-target-transformer';
 
-// canvas.toDataURL ignores its quality argument entirely for image/png (lossless), but the adapter's
+// canvas.toDataURL ignores its quality argument entirely for image/png (lossless), but the rescale broker's
 // signature always requires a number regardless of media type — this is that placeholder, not a
 // size or quality threshold.
 const PNG_ENCODE_QUALITY = 1;
@@ -40,8 +40,8 @@ const JPEG_MEDIA_TYPE = pastedImageMediaTypeContract.parse('image/jpeg');
 
 // dataUrlSplitTransformer re-validates through pastedImageUploadContract, which itself refuses a
 // payload over the byte ceiling — exactly the candidates this ladder has to be ABLE to inspect
-// mid-attempt. So byte-length checking reads the base64 payload the same way the two canvas
-// adapters already do (their own BASE64_MARKER slice), never through that validating transformer.
+// mid-attempt. So byte-length checking reads the base64 payload the same way the two image
+// brokers already do (their own BASE64_MARKER slice), never through that validating transformer.
 const BASE64_MARKER = ';base64,';
 
 export const pastedImageDownscaleBroker = async ({
@@ -63,7 +63,7 @@ export const pastedImageDownscaleBroker = async ({
       size: retry.originalSize,
       longestEdgePx: retry.longestEdgePx,
     });
-    const jpegDataUrl = await canvasImageRescaleAdapter({
+    const jpegDataUrl = await imageRescaleBroker({
       dataUrl,
       size: target,
       mediaType: JPEG_MEDIA_TYPE,
@@ -104,7 +104,7 @@ export const pastedImageDownscaleBroker = async ({
     });
   }
 
-  const originalSize = await canvasImageMeasureAdapter({ dataUrl });
+  const originalSize = await imageMeasureBroker({ dataUrl });
   const originalDataBase64 = dataUrl.slice(dataUrl.indexOf(BASE64_MARKER) + BASE64_MARKER.length);
   const originalByteLength = base64ByteLengthTransformer({ dataBase64: originalDataBase64 });
 
@@ -123,7 +123,7 @@ export const pastedImageDownscaleBroker = async ({
     size: originalSize,
     longestEdgePx: pastedImageStatics.maxLongestEdgePx,
   });
-  const pngDataUrl = await canvasImageRescaleAdapter({
+  const pngDataUrl = await imageRescaleBroker({
     dataUrl,
     size: target,
     mediaType: PNG_MEDIA_TYPE,
