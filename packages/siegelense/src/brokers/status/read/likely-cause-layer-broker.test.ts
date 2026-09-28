@@ -1,5 +1,6 @@
 import { ContentTextStub } from '@dungeonmaster/shared/contracts';
 
+import { CapacityProfileStub } from '../../../contracts/capacity-profile/capacity-profile.stub';
 import { InstanceStateStub } from '../../../contracts/instance-state/instance-state.stub';
 import { MegabytesStub } from '../../../contracts/megabytes/megabytes.stub';
 import { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
@@ -9,8 +10,8 @@ import { likelyCauseLayerBroker } from './likely-cause-layer-broker';
 import { likelyCauseLayerBrokerProxy } from './likely-cause-layer-broker.proxy';
 
 describe('likelyCauseLayerBroker', () => {
-  describe('a dead instance with a full reading', () => {
-    it('VALID: {rss 2980, no profile, 2 oom kills} => a sentence naming all three', () => {
+  describe('a dead instance with a full reading, no profile ever recorded', () => {
+    it('VALID: {memory 2980, no profile, 2 oom kills} => a sentence naming all three, in plain "memory" wording', () => {
       likelyCauseLayerBrokerProxy();
 
       const result = likelyCauseLayerBroker({
@@ -19,16 +20,17 @@ describe('likelyCauseLayerBroker', () => {
         rssAtLastBeat: MegabytesStub({ value: 2980 }),
         oomKillsSinceBoot: ReadingCountStub({ value: 2 }),
         shutdownReason: null,
+        soloProfile: null,
       });
 
       expect(result).toBe(
-        'rss 2980MB at last beat; no profile recorded for spec dungeonmaster-stack; kernel OOM kills since boot: 2',
+        'memory 2980MB at last beat; no profile recorded for spec dungeonmaster-stack; kernel OOM kills since boot: 2',
       );
     });
   });
 
   describe('a dead instance with nothing measurable', () => {
-    it('VALID: {rss null, oom null} => a sentence saying both are unavailable and claiming nothing', () => {
+    it('VALID: {memory null, oom null} => a sentence saying both are unavailable and claiming nothing', () => {
       likelyCauseLayerBrokerProxy();
 
       const result = likelyCauseLayerBroker({
@@ -37,14 +39,15 @@ describe('likelyCauseLayerBroker', () => {
         rssAtLastBeat: null,
         oomKillsSinceBoot: null,
         shutdownReason: null,
+        soloProfile: null,
       });
 
-      expect(result).toBe('rss unavailable at last beat; kernel OOM events unavailable');
+      expect(result).toBe('memory unavailable at last beat; kernel OOM events unavailable');
     });
   });
 
-  describe('a killed instance', () => {
-    it('VALID: {state: killed, rss 1200} => a sentence naming the last measured rss', () => {
+  describe('a killed instance, no profile ever recorded', () => {
+    it('VALID: {state: killed, memory 1200} => a sentence naming the last measured memory', () => {
       likelyCauseLayerBrokerProxy();
 
       const result = likelyCauseLayerBroker({
@@ -53,16 +56,65 @@ describe('likelyCauseLayerBroker', () => {
         rssAtLastBeat: MegabytesStub({ value: 1200 }),
         oomKillsSinceBoot: ReadingCountStub({ value: 0 }),
         shutdownReason: null,
+        soloProfile: null,
       });
 
       expect(result).toBe(
-        'rss 1200MB at last beat; no profile recorded for spec dungeonmaster-stack; kernel OOM kills since boot: 0',
+        'memory 1200MB at last beat; no profile recorded for spec dungeonmaster-stack; kernel OOM kills since boot: 0',
+      );
+    });
+  });
+
+  describe('a dead instance whose spec DOES have a recorded solo profile', () => {
+    it('VALID: {memory 609, a pool-1 profile of peak 609 / steady 488 from 5 runs} => the sentence quotes the profile instead of denying one exists', () => {
+      likelyCauseLayerBrokerProxy();
+
+      const result = likelyCauseLayerBroker({
+        state: InstanceStateStub({ value: 'dead' }),
+        specName: SpecNameStub({ value: 'stack' }),
+        rssAtLastBeat: MegabytesStub({ value: 609 }),
+        oomKillsSinceBoot: ReadingCountStub({ value: 0 }),
+        shutdownReason: null,
+        soloProfile: CapacityProfileStub({
+          spec: 'stack',
+          poolSize: 1,
+          steadyMB: 488,
+          peakMB: 609,
+          fromRuns: 5,
+        }),
+      });
+
+      expect(result).toBe(
+        'memory 609MB at last beat; profile 609MB peak / 488MB steady at pool size 1, from 5 runs; kernel OOM kills since boot: 0',
+      );
+    });
+
+    it('VALID: {a profile measured only at a contended pool size} => still quotes it, naming the pool size actually measured', () => {
+      likelyCauseLayerBrokerProxy();
+
+      const result = likelyCauseLayerBroker({
+        state: InstanceStateStub({ value: 'dead' }),
+        specName: SpecNameStub({ value: 'stack' }),
+        rssAtLastBeat: MegabytesStub({ value: 2900 }),
+        oomKillsSinceBoot: ReadingCountStub({ value: 1 }),
+        shutdownReason: null,
+        soloProfile: CapacityProfileStub({
+          spec: 'stack',
+          poolSize: 3,
+          steadyMB: 1920,
+          peakMB: 2810,
+          fromRuns: 2,
+        }),
+      });
+
+      expect(result).toBe(
+        'memory 2900MB at last beat; profile 2810MB peak / 1920MB steady at pool size 3, from 2 runs; kernel OOM kills since boot: 1',
       );
     });
   });
 
   describe('a dead instance that recorded why it shut down', () => {
-    it('VALID: {shutdownReason recorded, rss and oom also present} => the recorded reason IS the sentence, with no RSS/OOM recital appended', () => {
+    it('VALID: {shutdownReason recorded, memory and oom also present} => the recorded reason IS the sentence, with no memory/OOM recital appended', () => {
       likelyCauseLayerBrokerProxy();
 
       const result = likelyCauseLayerBroker({
@@ -73,6 +125,7 @@ describe('likelyCauseLayerBroker', () => {
         shutdownReason: ContentTextStub({
           value: 'reaped by idle timeout after 900s with no run received',
         }),
+        soloProfile: null,
       });
 
       expect(result).toBe('reaped by idle timeout after 900s with no run received');
@@ -89,9 +142,33 @@ describe('likelyCauseLayerBroker', () => {
         shutdownReason: ContentTextStub({
           value: 'reaped by idle timeout after 900s with no run received',
         }),
+        soloProfile: null,
       });
 
       expect(result).toBe('reaped by idle timeout after 900s with no run received');
+    });
+
+    it('VALID: {shutdownReason recorded AND a solo profile exists} => the recorded reason still wins, the profile never enters the sentence', () => {
+      likelyCauseLayerBrokerProxy();
+
+      const result = likelyCauseLayerBroker({
+        state: InstanceStateStub({ value: 'dead' }),
+        specName: SpecNameStub({ value: 'stack' }),
+        rssAtLastBeat: MegabytesStub({ value: 609 }),
+        oomKillsSinceBoot: ReadingCountStub({ value: 0 }),
+        shutdownReason: ContentTextStub({
+          value: 'reaped by cleanup after its heartbeat went stale',
+        }),
+        soloProfile: CapacityProfileStub({
+          spec: 'stack',
+          poolSize: 1,
+          steadyMB: 488,
+          peakMB: 609,
+          fromRuns: 5,
+        }),
+      });
+
+      expect(result).toBe('reaped by cleanup after its heartbeat went stale');
     });
   });
 
@@ -105,6 +182,7 @@ describe('likelyCauseLayerBroker', () => {
         rssAtLastBeat: null,
         oomKillsSinceBoot: ReadingCountStub({ value: 2 }),
         shutdownReason: null,
+        soloProfile: null,
       });
 
       expect(result).toBe(null);
@@ -119,6 +197,22 @@ describe('likelyCauseLayerBroker', () => {
         rssAtLastBeat: null,
         oomKillsSinceBoot: null,
         shutdownReason: ContentTextStub({ value: 'reaped by idle timeout' }),
+        soloProfile: null,
+      });
+
+      expect(result).toBe(null);
+    });
+
+    it('VALID: {a live instance, a solo profile somehow provided} => likelyCause is still null', () => {
+      likelyCauseLayerBrokerProxy();
+
+      const result = likelyCauseLayerBroker({
+        state: InstanceStateStub({ value: 'alive' }),
+        specName: SpecNameStub({ value: 'dungeonmaster-stack' }),
+        rssAtLastBeat: null,
+        oomKillsSinceBoot: null,
+        shutdownReason: null,
+        soloProfile: CapacityProfileStub(),
       });
 
       expect(result).toBe(null);

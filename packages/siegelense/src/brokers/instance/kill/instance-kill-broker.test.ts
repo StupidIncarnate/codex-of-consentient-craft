@@ -1,4 +1,4 @@
-import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
+import { AbsoluteFilePathStub, ContentTextStub } from '@dungeonmaster/shared/contracts';
 
 import { instanceKillBroker } from './instance-kill-broker';
 import { instanceKillBrokerProxy } from './instance-kill-broker.proxy';
@@ -106,6 +106,39 @@ describe('instanceKillBroker', () => {
 
       expect(proxy.getWrittenShutdownReason({ evidencePath: EVIDENCE_PATH })).toStrictEqual({
         reason: 'reaped 2 orphaned process groups outside the idle timeout',
+        atMs: EpochMsStub().valueOf(),
+      });
+    });
+
+    it('VALID: {kill, socket refused, a caller-supplied reason, two live pgids reaped} => writes the SUPPLIED reason, not the generic wording', async () => {
+      const proxy = instanceKillBrokerProxy();
+      const entry = RegistryEntryStub({ id: INSTANCE_ID, socketPath: SOCKET_PATH });
+      proxy.setupRegistry({ registry: RegistryStub({ instances: [entry] }) });
+
+      const pgidOne = ProcessGroupIdStub({ value: 4821 });
+      const pgidTwo = ProcessGroupIdStub({ value: 4822 });
+      const heartbeat = InstanceHeartbeatStub({
+        instanceId: INSTANCE_ID,
+        pgids: [pgidOne, pgidTwo],
+      });
+      const heartbeatPath = AbsoluteFilePathStub({
+        value: `${String(EVIDENCE_PATH)}/heartbeat.json`,
+      });
+      proxy.setupDriverUnreachable({
+        socketPath: SOCKET_PATH,
+        heartbeatPath,
+        heartbeat,
+        homePath: HOME_PATH,
+      });
+      proxy.setupShutdownReasonWriteSucceeds({ evidencePath: EVIDENCE_PATH });
+
+      await instanceKillBroker({
+        instanceId: INSTANCE_ID,
+        reason: ContentTextStub({ value: 'reaped by cleanup after its heartbeat went stale' }),
+      });
+
+      expect(proxy.getWrittenShutdownReason({ evidencePath: EVIDENCE_PATH })).toStrictEqual({
+        reason: 'reaped by cleanup after its heartbeat went stale',
         atMs: EpochMsStub().valueOf(),
       });
     });
