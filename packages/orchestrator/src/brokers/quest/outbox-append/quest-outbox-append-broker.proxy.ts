@@ -1,9 +1,9 @@
-import {
-  dungeonmasterHomeFindBrokerProxy,
-  pathJoinAdapterProxy,
-} from '@dungeonmaster/shared/testing';
+import { dungeonmasterHomeFindBrokerProxy } from '@dungeonmaster/shared/testing';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
-import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import { locationsStatics } from '@dungeonmaster/shared/statics';
+import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
+import type { MockHandle } from '@dungeonmaster/testing/register-mock';
+import { join } from '#gateway/node/path';
 
 import { fsAppendFileAdapterProxy } from '../../../adapters/fs/append-file/fs-append-file-adapter.proxy';
 
@@ -18,7 +18,7 @@ export const questOutboxAppendBrokerProxy = (): {
   getAppendedPath: () => unknown;
 } => {
   const homeFindProxy = dungeonmasterHomeFindBrokerProxy();
-  const pathJoinProxy = pathJoinAdapterProxy();
+  const joinHandle: MockHandle = registerMock({ fn: join });
   const appendFileProxy = fsAppendFileAdapterProxy();
 
   registerSpyOn({ object: Date.prototype, method: 'toISOString' })
@@ -34,7 +34,12 @@ export const questOutboxAppendBrokerProxy = (): {
       outboxFilePath: FilePath;
     }): void => {
       homeFindProxy.setupHomePath({ homeDir: '/home/testuser', homePath });
-      pathJoinProxy.returns({ result: outboxFilePath });
+      // questOutboxAppendBroker's own join(homePath, event-outbox.jsonl) -> outboxFilePath,
+      // addressed by the exact tuple rather than an address-less FIFO slot, so it can never answer
+      // a different broker's join call sharing the same underlying mocked `join`.
+      joinHandle
+        .calledWith([homePath, locationsStatics.dungeonmasterHome.eventOutbox])
+        .returns(outboxFilePath);
       appendFileProxy.succeeds({ filePath: outboxFilePath });
     },
 
@@ -48,7 +53,9 @@ export const questOutboxAppendBrokerProxy = (): {
       error: Error;
     }): void => {
       homeFindProxy.setupHomePath({ homeDir: '/home/testuser', homePath });
-      pathJoinProxy.returns({ result: outboxFilePath });
+      joinHandle
+        .calledWith([homePath, locationsStatics.dungeonmasterHome.eventOutbox])
+        .returns(outboxFilePath);
       appendFileProxy.throws({ filePath: outboxFilePath, error });
     },
 

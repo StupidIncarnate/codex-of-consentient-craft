@@ -1,14 +1,14 @@
-import {
-  dungeonmasterHomeEnsureBrokerProxy,
-  pathJoinAdapterProxy,
-} from '@dungeonmaster/shared/testing';
+import { dungeonmasterHomeEnsureBrokerProxy } from '@dungeonmaster/shared/testing';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { FilePath, QuestId } from '@dungeonmaster/shared/contracts';
+import { locationsStatics } from '@dungeonmaster/shared/statics';
 import {
   registerMock,
   registerModuleMock,
   requireActual,
 } from '@dungeonmaster/testing/register-mock';
+import type { MockHandle } from '@dungeonmaster/testing/register-mock';
+import { join } from '#gateway/node/path';
 
 import { fsAppendFileAdapterProxy } from '../../../adapters/fs/append-file/fs-append-file-adapter.proxy';
 import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
@@ -41,7 +41,7 @@ export const questOutboxWatchBrokerProxy = (): {
   };
 } => {
   const homeEnsureProxy = dungeonmasterHomeEnsureBrokerProxy();
-  const pathJoinProxy = pathJoinAdapterProxy();
+  const joinHandle: MockHandle = registerMock({ fn: join });
   const appendFileProxy = fsAppendFileAdapterProxy();
   const writeFileProxy = fsWriteFileAdapterProxy();
   const watchTailProxy = fsWatchTailAdapterProxy();
@@ -60,7 +60,12 @@ export const questOutboxWatchBrokerProxy = (): {
       homePath,
       guildsPath: homePath,
     });
-    pathJoinProxy.returns({ result: outboxPath });
+    // questOutboxWatchBroker's own join(homePath, event-outbox.jsonl) -> outboxPath, addressed by
+    // the exact tuple rather than an address-less FIFO slot, so it can never answer a different
+    // broker's join call sharing the same underlying mocked `join`.
+    joinHandle
+      .calledWith([homePath, locationsStatics.dungeonmasterHome.eventOutbox])
+      .returns(outboxPath);
     appendFileProxy.succeeds({ filePath: outboxPath });
     writeFileProxy.succeeds({ filePath: outboxPath });
   };
@@ -73,7 +78,7 @@ export const questOutboxWatchBrokerProxy = (): {
 
   // The broker itself is mocked (registerModuleMock above) purely to intercept and capture what a
   // caller passed in — every real fs-level behavior still runs through the REAL broker via
-  // requireActual, driven by the same staged homeEnsureProxy/pathJoinProxy/watchTailProxy this file
+  // requireActual, driven by the same staged homeEnsureProxy/joinHandle/watchTailProxy this file
   // wires above.
   const mocked = registerMock({ fn: questOutboxWatchBroker });
   const realMod = requireActual<{ questOutboxWatchBroker: typeof questOutboxWatchBroker }>({

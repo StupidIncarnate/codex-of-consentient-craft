@@ -16,10 +16,10 @@
  * the session fixes what the message names and calls again.
  */
 
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
 import { filePathContract, unitObservationContract } from '@dungeonmaster/shared/contracts';
 import type { QuestId, QuestWorkItemId } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
+import { join } from '#gateway/node/path';
 
 import { isoTimestampContract } from '../../../contracts/iso-timestamp/iso-timestamp-contract';
 import type { QuestWorkInput } from '../../../contracts/quest-work-input/quest-work-input-contract';
@@ -53,7 +53,7 @@ export const questWorkRecordBroker = async ({
     run: async (): Promise<QuestWorkRecordResult> => {
       const { questPath } = await questFindQuestPathBroker({ questId });
       const questFilePath = filePathContract.parse(
-        pathJoinAdapter({ paths: [questPath, locationsStatics.quest.questFile] }),
+        join(questPath, locationsStatics.quest.questFile),
       );
       const quest = await questLoadBroker({ questFilePath });
 

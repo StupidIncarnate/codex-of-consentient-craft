@@ -14,10 +14,10 @@
  */
 
 import { dungeonmasterHomeEnsureBroker } from '@dungeonmaster/shared/brokers';
-import { pathJoinAdapter } from '@dungeonmaster/shared/adapters';
-import { fileContentsContract } from '@dungeonmaster/shared/contracts';
+import { fileContentsContract, filePathContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, QuestId } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
+import { join } from '#gateway/node/path';
 
 import { fsAppendFileAdapter } from '../../../adapters/fs/append-file/fs-append-file-adapter';
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
@@ -40,9 +40,9 @@ export const questOutboxWatchBroker = async ({
 }): Promise<{ stop: () => void }> => {
   const { homePath } = await dungeonmasterHomeEnsureBroker();
 
-  const outboxPath = pathJoinAdapter({
-    paths: [homePath, locationsStatics.dungeonmasterHome.eventOutbox],
-  });
+  const outboxPath = filePathContract.parse(
+    join(homePath, locationsStatics.dungeonmasterHome.eventOutbox),
+  );
 
   if (resetOnStart) {
     await fsWriteFileAdapter({
