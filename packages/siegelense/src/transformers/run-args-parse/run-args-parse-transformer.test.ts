@@ -1,5 +1,6 @@
 import { ContentTextStub } from '@dungeonmaster/shared/contracts';
 
+import { docsStatics } from '../../statics/docs/docs-statics';
 import { runArgsParseTransformer } from './run-args-parse-transformer';
 
 describe('runArgsParseTransformer', () => {
@@ -237,6 +238,27 @@ describe('runArgsParseTransformer', () => {
       ).toThrow(
         /^--instance is required: it cannot be missing, and the value cannot itself start with "--"\.$/u,
       );
+    });
+  });
+
+  describe('every step example on a siegelense docs role page survives the same parse run --steps uses (DEF-79)', () => {
+    it('VALID: {walking, attacking, fixing} => every line starting with { "step": round-trips through --steps as a one-step batch, and at least one exists', () => {
+      const allLines = [
+        ...docsStatics.scopes.walking.sections,
+        ...docsStatics.scopes.attacking.sections,
+        ...docsStatics.scopes.fixing.sections,
+      ].flatMap((section) => section.lines);
+      const fencedLines = allLines.filter((line) => line.startsWith('{ "step":'));
+
+      const results = fencedLines.map((line) =>
+        runArgsParseTransformer({
+          args: ['--instance', 'inst_7f3a9c21', '--steps', `[${line}]`],
+          stepsFileContent: null,
+        }),
+      );
+
+      expect(results.length).toBeGreaterThan(0);
+      expect(results.every((result) => result.steps.length === 1)).toBe(true);
     });
   });
 });

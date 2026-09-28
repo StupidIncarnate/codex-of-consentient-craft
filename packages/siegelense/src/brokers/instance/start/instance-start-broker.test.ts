@@ -13,6 +13,7 @@ import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub'
 import { InstanceStateStub } from '../../../contracts/instance-state/instance-state.stub';
 import { LaneProcessNameStub } from '../../../contracts/lane-process-name/lane-process-name.stub';
 import { PortPairStub } from '../../../contracts/port-pair/port-pair.stub';
+import { RecipeNameStub } from '../../../contracts/recipe-name/recipe-name.stub';
 import { RegistryEntryStub } from '../../../contracts/registry-entry/registry-entry.stub';
 import { RegistryStub } from '../../../contracts/registry/registry.stub';
 import { SpecNameStub } from '../../../contracts/spec-name/spec-name.stub';
@@ -569,6 +570,88 @@ describe('instanceStartBroker', () => {
         path: '/default/cwd/.dungeonmaster-assets/siegelense-assets/unowned/instances/inst_7f3a9c2158cc4372a5670e02b2c3d479',
         linkPresent: true,
       });
+    });
+  });
+
+  describe('a failed seed stops the driver it just booted', () => {
+    it('ERROR: {seed fails after a successful boot} => attempts a real kill of the running driver rather than only relabelling the registry row', async () => {
+      const proxy = instanceStartBrokerProxy();
+      const instanceId = proxy.mintInstanceId();
+      const specName = SpecNameStub({ value: 'api' });
+      const seed = RecipeNameStub({ value: 'guild-with-three-quests' });
+      const seedError = new Error("recipesSeedRunBroker: unknown recipe 'guild-with-three-quests'");
+      proxy.setupHappyBoot({
+        instanceId,
+        evidencePath: UNOWNED_EVIDENCE_PATH,
+        registry: RegistryStub({ instances: [RegistryEntryStub({ id: instanceId })] }),
+      });
+      proxy.stageSeedFails({ seed, error: seedError });
+      proxy.stageShutdownReasonWriteSucceeds({ evidencePath: UNOWNED_EVIDENCE_PATH });
+
+      const startPromise = instanceStartBroker({ specName, questId: null, guildId: null, seed });
+
+      await expect(startPromise).rejects.toThrow(seedError.message);
+      expect(proxy.getKillConnectionCountFor({ instanceId })).toBe(2);
+    });
+
+    it('ERROR: {seed fails after a successful boot} => writes a shutdown reason naming the seed and its failure', async () => {
+      const proxy = instanceStartBrokerProxy();
+      const instanceId = proxy.mintInstanceId();
+      const specName = SpecNameStub({ value: 'api' });
+      const seed = RecipeNameStub({ value: 'guild-with-three-quests' });
+      const seedError = new Error("recipesSeedRunBroker: unknown recipe 'guild-with-three-quests'");
+      proxy.setupHappyBoot({
+        instanceId,
+        evidencePath: UNOWNED_EVIDENCE_PATH,
+        registry: RegistryStub({ instances: [RegistryEntryStub({ id: instanceId })] }),
+      });
+      proxy.stageSeedFails({ seed, error: seedError });
+      proxy.stageShutdownReasonWriteSucceeds({ evidencePath: UNOWNED_EVIDENCE_PATH });
+
+      await instanceStartBroker({ specName, questId: null, guildId: null, seed }).catch(
+        (error: unknown) => error,
+      );
+
+      expect(proxy.getWrittenShutdownReason({ evidencePath: UNOWNED_EVIDENCE_PATH })).toStrictEqual(
+        {
+          reason: `--seed ${seed} failed: Error: ${seedError.message}`,
+          atMs: EpochMsStub().valueOf(),
+        },
+      );
+    });
+  });
+
+  describe('a boot-lock acquisition failure releases the reservation it just made', () => {
+    it('ERROR: {boot-lock acquire throws before the boot try even starts} => still releases the reservation, never the boot lock it never held', async () => {
+      const proxy = instanceStartBrokerProxy();
+      const instanceId = proxy.mintInstanceId();
+      const specName = SpecNameStub({ value: 'api' });
+      const readError = Object.assign(new Error('EMFILE: too many open files'), {
+        code: 'EMFILE',
+      });
+      proxy.stageBootLockAcquireFailsWithReadError({
+        registry: RegistryStub({ instances: [RegistryEntryStub({ id: instanceId })] }),
+        error: readError,
+      });
+
+      await expect(
+        instanceStartBroker({ specName, questId: null, guildId: null, seed: null }),
+      ).rejects.toThrow('/home/user/.dungeonmaster/siegelense/boot.lock');
+
+      const expectedRegistry = RegistryStub({
+        instances: [
+          RegistryEntryStub({
+            id: instanceId,
+            state: 'killed',
+            pid: null,
+            pgids: [],
+            socketPath: null,
+          }),
+        ],
+      });
+
+      expect(proxy.getLastRegistryWriteContent()).toStrictEqual(expectedRegistry);
+      expect(proxy.getBootLockReleasedPaths()).toStrictEqual([]);
     });
   });
 

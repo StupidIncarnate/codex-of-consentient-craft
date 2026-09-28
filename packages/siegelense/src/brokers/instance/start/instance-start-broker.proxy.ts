@@ -27,7 +27,9 @@ import { CapacityAnswerStub } from '../../../contracts/capacity-answer/capacity-
 import { instanceReleaseBrokerProxy } from '../release/instance-release-broker.proxy';
 import { instanceReserveBrokerProxy } from '../reserve/instance-reserve-broker.proxy';
 import { profileBootRecordBrokerProxy } from '../../profile/boot-record/profile-boot-record-broker.proxy';
+import { recipeSeedRunBroker } from '../../recipe/seed-run/recipe-seed-run-broker';
 import { recipeSeedRunBrokerProxy } from '../../recipe/seed-run/recipe-seed-run-broker.proxy';
+import type { RecipeName } from '../../../contracts/recipe-name/recipe-name-contract';
 import { BootFailureMarkerStub } from '../../../contracts/boot-failure-marker/boot-failure-marker.stub';
 import { instanceKillBrokerProxy } from '../kill/instance-kill-broker.proxy';
 import { bootLockAcquireBrokerProxy } from '../../boot-lock/acquire/boot-lock-acquire-broker.proxy';
@@ -47,8 +49,10 @@ import { laneReadyWaitBrokerProxy } from '../../lane/ready-wait/lane-ready-wait-
 import { FileDescriptorStub } from '../../../contracts/file-descriptor/file-descriptor.stub';
 import { EpochMsStub } from '../../../contracts/epoch-ms/epoch-ms.stub';
 import { InstanceIdStub } from '../../../contracts/instance-id/instance-id.stub';
+import type { ReadingCountStub } from '../../../contracts/reading-count/reading-count.stub';
 import type { SpecNameStub } from '../../../contracts/spec-name/spec-name.stub';
 import type { RegistryStub } from '../../../contracts/registry/registry.stub';
+import { shutdownReasonWriteBrokerProxy } from '../../shutdown-reason/write/shutdown-reason-write-broker.proxy';
 import { driverStatics } from '../../../statics/driver/driver-statics';
 import { profileStatics } from '../../../statics/profile/profile-statics';
 
@@ -143,6 +147,8 @@ export const instanceStartBrokerProxy = (): {
     driverMessage: string;
   }) => void;
   stageInstanceReleaseWriteFails: (params: { error: Error }) => void;
+  stageBootLockAcquireFailsWithReadError: (params: { registry: Registry; error: Error }) => void;
+  stageSeedFails: (params: { seed: RecipeName; error: Error }) => void;
   getWriteOrder: () => readonly FilePath[];
   getBootLockReleasedPaths: () => unknown[];
   getLastRegistryWriteContent: () => unknown;
@@ -153,6 +159,11 @@ export const instanceStartBrokerProxy = (): {
   stageProcessReachable: (params: { url: string }) => void;
   stageProcessUnreachable: (params: { url: string }) => void;
   setupCapacityRefusal: (params: { specName: SpecName; why: string }) => void;
+  getKillConnectionCountFor: (params: {
+    instanceId: InstanceId;
+  }) => ReturnType<typeof ReadingCountStub>;
+  stageShutdownReasonWriteSucceeds: (params: { evidencePath: FilePath }) => void;
+  getWrittenShutdownReason: (params: { evidencePath: FilePath }) => unknown;
 } => {
   // Created to satisfy enforce-proxy-child-creation; their onceFor-based semantic setup methods
   // are never called, since every path here resolves through the REAL pathJoin passthrough (see
@@ -184,14 +195,22 @@ export const instanceStartBrokerProxy = (): {
   // boot record's path is keyed by the spec's REAL content hash, which no test in this file names,
   // so the write below is addressed by a predicate on the boots directory instead.
   profileBootRecordBrokerProxy();
-  // Constructed for enforce-proxy-child-creation. `--seed` is `null` in every case in this file,
-  // so `recipeSeedRunBroker` is never reached; a case that seeds would stage this proxy's own
-  // book and lane answers instead.
+  // Constructed for enforce-proxy-child-creation: instanceStartBroker now calls
+  // shutdownReasonWriteBroker directly too (a seed failure's own reason), even though every actual
+  // write in this file's tests still goes through killProxy's own composed instance of this same
+  // proxy — registerMock dedups the underlying writeFile mock by function reference regardless of
+  // which composition constructed it.
+  shutdownReasonWriteBrokerProxy();
+  // Constructed for enforce-proxy-child-creation. `recipeSeedRunBroker` itself is staged DIRECTLY
+  // below (stageSeedFails) rather than through this proxy's own book/lane setup — same reasoning as
+  // capacityReadBroker above: recipesLocateBrokerProxy's own book-present staging is fixed to a
+  // `/repo` cwd, which would collide with this file's own `/default/cwd` staging the moment both
+  // run in the same test.
   recipeSeedRunBrokerProxy();
   // instanceStartBroker's opportunistic stale-reap calls instanceKillBroker directly (chunk-2
   // plan: "cleanup will call the same broker" — kill IS the reap primitive), so its proxy is a
-  // real child-proxy composition, not a phantom one, and its OWN setupDriverUnreachableNoHeartbeat
-  // is what setupStaleReap below reaches for instead of hand-building the socket/heartbeat/rm
+  // real child-proxy composition, not a phantom one, and its OWN setupDriverUnreachableNoPgids
+  // is what setupStaleReap below reaches for instead of hand-building the socket/registry-pgids/rm
   // mocks a second time.
   const killProxy = instanceKillBrokerProxy();
 
@@ -223,6 +242,12 @@ export const instanceStartBrokerProxy = (): {
   // specific address.
   const capacityHandle: MockHandle = registerMock({ fn: capacityReadBroker });
   capacityHandle.calledWith([]).resolves(CapacityAnswerStub());
+
+  // Staged directly for the same reason capacityReadBroker is above — see the constructor comment
+  // on recipeSeedRunBrokerProxy() for why composing its own child staging is unsafe here. No
+  // constructor-level default: every test in this file either never seeds (seed: null, never
+  // reaches this call) or stages stageSeedFails() at the specific recipe address it names.
+  const recipeSeedHandle: MockHandle = registerMock({ fn: recipeSeedRunBroker });
 
   registerSpyOn({ object: crypto, method: 'randomUUID' }).calledWith([]).returns(MINTED_UUID_VALUE);
   const dateNowHandle = registerSpyOn({ object: Date, method: 'now' });
@@ -320,6 +345,14 @@ export const instanceStartBrokerProxy = (): {
     );
 
     readHandle.calledWith([REGISTRY_PATH_ABS]).resolves(JSON.stringify(registry));
+
+    // A boot that reaches the poll answering `ready` is one the DRIVER already released boot.lock
+    // for itself (its own docstring) — the sticky default here is that ordinary case, so a caller
+    // whose OWN failure (a seed) runs the catch block's bootLockReleaseBroker call for the first
+    // time in a happy-boot test finds no lock left to release, exactly as a real released lock reads.
+    readHandle
+      .calledWith([BOOT_LOCK_PATH_ABS])
+      .rejects(Object.assign(new Error('ENOENT: no such file or directory'), { code: 'ENOENT' }));
 
     const driverLogPath = AbsoluteFilePathStub({ value: `${String(evidencePath)}/driver.log` });
     openFdProxy.returns({ filePath: driverLogPath, fd: FileDescriptorStub({ value: 17 }) });
@@ -421,6 +454,16 @@ export const instanceStartBrokerProxy = (): {
       // readyPath directly once the ping times out, so a caller of this method also stages
       // `stageLaneSpec` and a `stageProcessReachable`/`stageProcessUnreachable` per process it
       // cares about.
+
+      // The catch block's cleanup now calls instanceKillBroker rather than releasing the
+      // registry row directly — its socket attempt fails the same way the poll's own did (same
+      // shared connection mock), so it falls to the orphan-reap path: the registry row this
+      // scenario stages carries no pgids (a driver that never answers ping never got as far as a
+      // heartbeat), so nothing is signalled, and only the throwaway home needs removing.
+      killProxy.setupDriverUnreachableNoPgids({
+        socketPath,
+        homePath: AbsoluteFilePathStub({ value: `${TMP_DIR_VALUE}/dm-siege-${instanceId}` }),
+      });
     },
 
     setupBootFailureMarkerAppears: ({
@@ -453,6 +496,14 @@ export const instanceStartBrokerProxy = (): {
         .calledWith([BOOT_LOCK_PATH_ABS])
         .resolves(JSON.stringify({ heldBy: instanceId, heldByPid: '4821', acquiredAtMs: 0 }));
       unlinkHandle.calledWith([BOOT_LOCK_PATH_ABS]).resolves(undefined);
+
+      // Same reasoning as setupBootNeverAnswers above: the catch's instanceKillBroker call falls
+      // to the orphan-reap path against a socket that never answered, and a driver that died
+      // before ever finishing its boot never wrote a heartbeat naming any pgids either.
+      killProxy.setupDriverUnreachableNoPgids({
+        socketPath,
+        homePath: AbsoluteFilePathStub({ value: `${TMP_DIR_VALUE}/dm-siege-${instanceId}` }),
+      });
     },
 
     // Reserve's own write (state: 'alive') always lands first and must keep succeeding — only the
@@ -508,19 +559,70 @@ export const instanceStartBrokerProxy = (): {
       const staleSocketPath = AbsoluteFilePathStub({
         value: `${TMP_DIR_VALUE}/dm-siege-sockets/${staleInstanceId}.sock`,
       });
-      const staleEvidencePath = `${ROOT_PATH_VALUE}/unowned/instances/${staleInstanceId}`;
-      const staleHeartbeatPath = AbsoluteFilePathStub({
-        value: `${staleEvidencePath}/heartbeat.json`,
-      });
       const staleHomePath = AbsoluteFilePathStub({
         value: `${TMP_DIR_VALUE}/dm-siege-${staleInstanceId}`,
       });
 
-      killProxy.setupDriverUnreachableNoHeartbeat({
+      killProxy.setupDriverUnreachableNoPgids({
         socketPath: staleSocketPath,
-        heartbeatPath: staleHeartbeatPath,
         homePath: staleHomePath,
       });
     },
+
+    // Bypasses bootLockAcquireBroker's real polling/takeover logic entirely: the exclusive create
+    // loses to a file already there (EEXIST, the broker's own first move on every call), and the
+    // read that classifies that failure fails for a reason that has nothing to do with absence —
+    // the ONE branch that throws immediately, with no retry and no Date.now() sequencing to stage.
+    stageBootLockAcquireFailsWithReadError: ({
+      registry,
+      error,
+    }: {
+      registry: Registry;
+      error: Error;
+    }): void => {
+      Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
+      // Same drain `stageBoot` runs, for the same reason (see PATH_JOIN_DRAIN_COUNT above):
+      // bootLockAcquireBrokerProxy/bootLockReleaseBrokerProxy each queue one-shot pathJoin
+      // resolutions unconditionally at construction, and this scenario reaches registryReadBroker's
+      // own real path joins before any of that queue has otherwise been drained.
+      Array.from({ length: PATH_JOIN_DRAIN_COUNT }, (_unused, drainIndex) => drainIndex).forEach(
+        (drainIndex) => {
+          join('drain', String(drainIndex));
+        },
+      );
+      readHandle.calledWith([REGISTRY_PATH_ABS]).resolves(JSON.stringify(registry));
+      writeHandle
+        .calledWith([BOOT_LOCK_PATH_ABS])
+        .rejects(Object.assign(new Error('EEXIST: file already exists'), { code: 'EEXIST' }));
+      readHandle.calledWith([BOOT_LOCK_PATH_ABS]).rejects(error);
+    },
+
+    // Addressed on the `recipe` field alone — a prefix match, so the real apiBaseUrl/homePath/
+    // parameters the broker builds need never be named here.
+    stageSeedFails: ({ seed, error }: { seed: RecipeName; error: Error }): void => {
+      recipeSeedHandle.calledWith([{ recipe: seed }]).rejects(error);
+    },
+
+    getKillConnectionCountFor: ({
+      instanceId,
+    }: {
+      instanceId: InstanceId;
+    }): ReturnType<typeof ReadingCountStub> =>
+      killProxy.getConnectionCountFor({
+        socketPath: AbsoluteFilePathStub({
+          value: `${TMP_DIR_VALUE}/dm-siege-sockets/${instanceId}.sock`,
+        }),
+      }),
+
+    stageShutdownReasonWriteSucceeds: ({ evidencePath }: { evidencePath: FilePath }): void => {
+      killProxy.setupShutdownReasonWriteSucceeds({
+        evidencePath: AbsoluteFilePathStub({ value: String(evidencePath) }),
+      });
+    },
+
+    getWrittenShutdownReason: ({ evidencePath }: { evidencePath: FilePath }): unknown =>
+      killProxy.getWrittenShutdownReason({
+        evidencePath: AbsoluteFilePathStub({ value: String(evidencePath) }),
+      }),
   };
 };
