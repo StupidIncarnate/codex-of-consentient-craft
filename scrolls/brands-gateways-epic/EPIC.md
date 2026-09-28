@@ -102,7 +102,11 @@ A new operator took over from the morning handoff below. Heartbeat cron `13,43 *
 | — | Landed this session | — | See `git log`. **No `adapters/` left in orchestrator (A10 done), web (A17 done), ward, eslint-plugin, shared, hydration-recipes** (plus cli, config, hooks, hydration, mcp, server, tooling from before). Left: siegelense (the SL-MISC2 run), testing (`typescript/mock-calls-to-statements`, `typescript/source-file-getter`, `jest/*`, `msw/*`, `mantine/render`, `child-process/mocker`). Web e2e green at every web commit, last 1790639032876-dda2. |
 | a13-pw2 (opus) + agy SL-MISC | A13: playwright facade becomes `browserSessionLaunchBroker` on `chromiumProxy`; misc adapters part 1 | `siegelense` | finished, gate green 1790638393980-31f2; commit waits for SL-MISC2 (same package, still editing) |
 | agy SL-MISC2 | A13: the 19 siegelense adapters left | `siegelense` | running |
-| t04-orch (sonnet) | T04: new orchestrator proxy methods; server and hydration-recipes to 0 | `orchestrator`, `server`, `hydration-recipes` | running |
+| t04-orch (sonnet) | T04: orchestrator proxy methods | `orchestrator`, `server`, `hydration-recipes` | done f59076a76: server, hydration-recipes, mcp at 0 |
+| a14-ts2 (opus) | A14: last two typescript adapters; ts-jest cache key | `testing` (disjoint) | running |
+| a14-msw (sonnet) | A14: `msw/*` adapters; F68 `holdsOpen` raw body | `testing` (disjoint) | running |
+| t04-orch2 (sonnet) | T04: orchestrator's own 5; census of other packages | `orchestrator` | running |
+| t05-smt (sonnet) | T05: server, mcp, tooling | `server`, `mcp`, `tooling` tests and proxies | running |
 
 Open follow-ups found this session and not yet dispatched: F68 (testing `holdsOpen` raw body), F71 (web stylesheet home, with A19), F72 (T05 rules ignore `registerSpyOn`), F63 (repo jest bump), F10, F30, F47-style checks; T04 remainder (hydration-recipes 5, server 11) needs new orchestrator proxy methods (table in the T04 item); T05 sweeps per package (ward 46c51491c, cli/config/hooks 8e56d3290 all at 0; a combined scan of many packages ran out of memory, so scan one package at a time with `node tmp/t05-scan-pkgs.js <pkg>`).
 
