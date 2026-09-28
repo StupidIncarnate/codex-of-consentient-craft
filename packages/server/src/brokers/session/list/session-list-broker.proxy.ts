@@ -9,22 +9,20 @@ import type {
 } from '@dungeonmaster/shared/contracts';
 import { claudeProjectPathEncoderTransformer } from '@dungeonmaster/shared/transformers';
 import { homedir } from '#gateway/node/os';
+import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { globFindAdapterProxy } from '../../../adapters/glob/find/glob-find-adapter.proxy';
 import { fsStatAdapterProxy } from '../../../adapters/fs/stat/fs-stat-adapter.proxy';
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import type { GlobPatternStub } from '@dungeonmaster/shared/contracts';
 import type { FilePathStub } from '../../../contracts/file-path/file-path.stub';
-import type { FileContentsStub } from '@dungeonmaster/shared/contracts';
 
 type Guild = ReturnType<typeof GuildStub>;
 type QuestListItem = ReturnType<typeof QuestListItemStub>;
 type Quest = ReturnType<typeof QuestStub>;
 type GlobPattern = ReturnType<typeof GlobPatternStub>;
 type FilePath = ReturnType<typeof FilePathStub>;
-type FileContents = ReturnType<typeof FileContentsStub>;
 
 export const sessionListBrokerProxy = (): {
   setupGuild: (params: { guild: Guild }) => void;
@@ -57,7 +55,7 @@ export const sessionListBrokerProxy = (): {
   const homedirHandle = registerMock({ fn: homedir });
   const globProxy = globFindAdapterProxy();
   const statProxy = fsStatAdapterProxy();
-  const readFileProxy = fsReadFileAdapterProxy();
+  const readProxy = readFileProxy();
 
   // sessionListBroker reads each globbed file's contents (and stats it first) in the same order
   // the glob results were produced (dedupedFiles.map). Tracking the real paths here — instead of
@@ -130,16 +128,19 @@ export const sessionListBrokerProxy = (): {
     },
     setupFileContent: ({ content }: { content: string }): void => {
       const filepath = pendingReadFilePaths.shift() ?? ('' as FilePath);
-      readFileProxy.returns({
-        filepath,
-        contents: content as FileContents,
+      readProxy.returns({
+        path: filepath,
+        contents: content,
       });
     },
     setupFileContentError: ({ error }: { error: Error }): void => {
       const filepath = pendingReadFilePaths.shift() ?? ('' as FilePath);
-      readFileProxy.throws({
-        filepath,
-        error,
+      // readFileProxy's throwsMatchingPath demands an FsError (a coded, recorded failure — G19
+      // bans a catch-all Error), stamped from the caller-supplied Error's own message, per this
+      // codebase's `'<CODE>: <detail>'` convention.
+      readProxy.throwsMatchingPath({
+        path: filepath,
+        error: Object.assign(error, { code: error.message.split(':')[0] ?? 'UNKNOWN' }),
       });
     },
     setupFileStatError: ({ error }: { error: Error }): void => {

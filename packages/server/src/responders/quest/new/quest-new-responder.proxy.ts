@@ -1,4 +1,5 @@
-import { rm, writeFile } from 'fs/promises';
+import { rm } from 'fs/promises';
+import { writeFileFromBase64 } from '#gateway/node/fs__promises';
 import type { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { StartOrchestratorProxy } from '@dungeonmaster/orchestrator/startup/start-orchestrator.proxy';
 import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
@@ -66,9 +67,9 @@ export const QuestNewResponderProxy = (): {
   // already registers — registerSpyOn shares staging across every handle on one function, so this
   // does not create a competing mock.
   const uuidSpy = registerSpyOn({ object: crypto, method: 'randomUUID' });
-  // Extra READ-ONLY handle on the same npm `writeFile` persistProxy already mocks — mirrors
-  // quest-chat-responder.proxy.ts's own writeCallsHandle.
-  const writeCallsHandle = registerMock({ fn: writeFile });
+  // Extra READ-ONLY handle on the same gateway `writeFileFromBase64` persistProxy already mocks —
+  // mirrors quest-chat-responder.proxy.ts's own writeCallsHandle.
+  const writeCallsHandle = registerMock({ fn: writeFileFromBase64 });
   const rmProxy = fsRmAdapterProxy();
   // No test here exercises a cleanup failure of its own — that path is covered by
   // fs-rm-adapter's own test suite — so the removal always succeeds, mirroring persistProxy's own

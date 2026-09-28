@@ -15,6 +15,7 @@
  * // Writes each image under the quest's images dir and returns the message with its tokens rewritten
  */
 
+import { ensureDir, writeFileFromBase64 } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
 import {
   locationsQuestFolderPathFindBroker,
@@ -23,8 +24,6 @@ import {
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import type { GuildId, PastedImageUpload, QuestId } from '@dungeonmaster/shared/contracts';
 
-import { fsMkdirAdapter } from '../../../adapters/fs/mkdir/fs-mkdir-adapter';
-import { fsWriteFileBase64Adapter } from '../../../adapters/fs/write-file-base64/fs-write-file-base64-adapter';
 import { userMessageContract } from '../../../contracts/user-message/user-message-contract';
 import type { UserMessage } from '../../../contracts/user-message/user-message-contract';
 import { localImageCopyBroker } from '../../local-image/copy/local-image-copy-broker';
@@ -54,7 +53,7 @@ export const pastedImagePersistBroker = async ({
   const questFolderPath = locationsQuestFolderPathFindBroker({ guildId, questId });
   const imagesDirPath = locationsQuestImagesPathFindBroker({ questFolderPath });
 
-  await fsMkdirAdapter({ dirPath: imagesDirPath });
+  await ensureDir(imagesDirPath);
 
   // Built before localImageCopyBroker is called below: both mint their file ids synchronously
   // inside their own `.map()`, so constructing this promise first is what keeps a test's staged
@@ -66,7 +65,7 @@ export const pastedImagePersistBroker = async ({
         join(imagesDirPath, `${crypto.randomUUID()}.${extension}`),
       );
 
-      await fsWriteFileBase64Adapter({ filePath, dataBase64: image.dataBase64 });
+      await writeFileFromBase64(filePath, image.dataBase64);
 
       return filePath;
     }),

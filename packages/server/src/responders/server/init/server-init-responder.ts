@@ -18,9 +18,9 @@ import {
   locationsWardResultsPathFindBroker,
 } from '@dungeonmaster/shared/brokers';
 import { environmentStatics } from '@dungeonmaster/shared/statics';
+import { readFile } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
 
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import { honoCreateNodeWebSocketAdapter } from '../../../adapters/hono/create-node-web-socket/hono-create-node-web-socket-adapter';
 import { honoServeAdapter } from '../../../adapters/hono/serve/hono-serve-adapter';
@@ -212,9 +212,7 @@ export const ServerInitResponder = ({
                   `${wardResultId}.json`,
                 );
 
-                const contents = await fsReadFileAdapter({
-                  filepath: filePathContract.parse(detailFilePath),
-                });
+                const contents = await readFile(filePathContract.parse(detailFilePath));
 
                 const detail: unknown = JSON.parse(contents);
 

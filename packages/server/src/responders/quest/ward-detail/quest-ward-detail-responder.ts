@@ -10,10 +10,10 @@
  */
 
 import { questFindQuestPathBroker } from '@dungeonmaster/orchestrator';
+import { readFile } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
 import { locationsWardResultsPathFindBroker } from '@dungeonmaster/shared/brokers';
 
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import { questWardDetailParamsContract } from '../../../contracts/quest-ward-detail-params/quest-ward-detail-params-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
@@ -41,7 +41,7 @@ export const QuestWardDetailResponder = async ({
       locationsWardResultsPathFindBroker({ questFolderPath: questPath }),
       `${wardResultId}.json`,
     );
-    const contents = await fsReadFileAdapter({ filepath: filePathContract.parse(detailFilePath) });
+    const contents = await readFile(filePathContract.parse(detailFilePath));
     const detail: unknown = JSON.parse(contents);
     return responderResultContract.parse({ status: httpStatusStatics.success.ok, data: detail });
   } catch (error: unknown) {

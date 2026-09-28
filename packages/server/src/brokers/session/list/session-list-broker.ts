@@ -8,16 +8,17 @@
 
 import {
   absoluteFilePathContract,
+  fileContentsContract,
   globPatternContract,
   sessionIdContract,
 } from '@dungeonmaster/shared/contracts';
 import type { GuildId, SessionId } from '@dungeonmaster/shared/contracts';
+import { readFile } from '#gateway/node/fs__promises';
 import { homedir } from '#gateway/node/os';
 import { StartOrchestrator, isoTimestampContract } from '@dungeonmaster/orchestrator';
 
 import { globFindAdapter } from '../../../adapters/glob/find/glob-find-adapter';
 import { fsStatAdapter } from '../../../adapters/fs/stat/fs-stat-adapter';
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { claudeProjectPathEncoderTransformer } from '@dungeonmaster/shared/transformers';
 import { extractSessionFileSummaryTransformer } from '../../../transformers/extract-session-file-summary/extract-session-file-summary-transformer';
 import { hasSessionSummaryGuard } from '../../../guards/has-session-summary/has-session-summary-guard';
@@ -142,7 +143,7 @@ export const sessionListBroker = async ({
             }
 
             try {
-              const rawContent = await fsReadFileAdapter({ filepath: filePath });
+              const rawContent = fileContentsContract.parse(await readFile(filePath));
               const summary = extractSessionFileSummaryTransformer({
                 fileContent: rawContent,
               });

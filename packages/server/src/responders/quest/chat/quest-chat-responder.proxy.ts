@@ -1,4 +1,4 @@
-import { writeFile } from 'fs/promises';
+import { writeFileFromBase64 } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
 import { StartOrchestrator } from '@dungeonmaster/orchestrator';
 import { questFindQuestPathBrokerProxy } from '@dungeonmaster/orchestrator/brokers/quest/find-quest-path/quest-find-quest-path-broker.proxy';
@@ -78,12 +78,12 @@ export const QuestChatResponderProxy = (): {
   // Staged here, addressed by the exact 3-arg tuple, only when setupFindQuestPath is given a
   // homePath to collide against.
   const joinHandle = registerMock({ fn: join });
-  // Extra READ-ONLY handle on the same npm `writeFile` persistProxy's own fsWriteFileBase64AdapterProxy
+  // Extra READ-ONLY handle on the same gateway `writeFileFromBase64` persistProxy's own proxy
   // already stages. It never calls .calledWith, only .callsMatching, so it cannot collide with that
   // staging — same pattern pastedImagePersistBrokerProxy itself uses for its writeCallCount(). This is
   // what lets a test see every write's raw base64 payload in invocation order without first computing
   // each write's absolute destination path.
-  const writeCallsHandle = registerMock({ fn: writeFile });
+  const writeCallsHandle = registerMock({ fn: writeFileFromBase64 });
 
   return {
     setupQuestLoad: ({ quest }: { quest: Quest }): void => {

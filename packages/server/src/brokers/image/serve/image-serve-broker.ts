@@ -17,13 +17,12 @@
  */
 
 import { existsSync } from '#gateway/node/fs';
+import { readFileBytes, realpath } from '#gateway/node/fs__promises';
 import { dirname, join } from '#gateway/node/path';
 import { locationsQuestImagesPathFindBroker } from '@dungeonmaster/shared/brokers';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
-import { fsReadFileBytesAdapter } from '../../../adapters/fs/read-file-bytes/fs-read-file-bytes-adapter';
-import { fsRealpathAdapter } from '../../../adapters/fs/realpath/fs-realpath-adapter';
 import { processDevLogAdapter } from '../../../adapters/process/dev-log/process-dev-log-adapter';
 import { isServableImagePathGuard } from '../../../guards/is-servable-image-path/is-servable-image-path-guard';
 import { errorFormatReasonTransformer } from '../../../transformers/error-format-reason/error-format-reason-transformer';
@@ -49,7 +48,7 @@ export const imageServeBroker = async ({
   try {
     // Rejects for a path nothing exists at, which is why the confinement check below never has to
     // reason about a name that resolves to nothing.
-    const realFilePath = await fsRealpathAdapter({ filePath });
+    const realFilePath = await realpath(filePath);
 
     const containingDir = dirname(realFilePath);
     const questFolderPath = absoluteFilePathContract.parse(dirname(containingDir));
@@ -67,7 +66,7 @@ export const imageServeBroker = async ({
       return null;
     }
 
-    const bytes = await fsReadFileBytesAdapter({ filePath: realFilePath });
+    const bytes = await readFileBytes(realFilePath);
     return { bytes, contentType };
   } catch (error: unknown) {
     const reason = errorFormatReasonTransformer({ error });

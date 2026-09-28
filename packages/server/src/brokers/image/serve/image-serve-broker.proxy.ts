@@ -1,12 +1,12 @@
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
+import { readFileBytesProxy } from '#gateway/node/fs__promises/read-file-bytes/read-file-bytes.proxy';
+import { realpathProxy } from '#gateway/node/fs__promises/realpath/realpath.proxy';
 import { dirname, join } from '#gateway/node/path';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { locationsQuestImagesPathFindBrokerProxy } from '@dungeonmaster/shared/testing';
 import { registerMock, requireActual } from '@dungeonmaster/testing/register-mock';
 
-import { fsReadFileBytesAdapterProxy } from '../../../adapters/fs/read-file-bytes/fs-read-file-bytes-adapter.proxy';
-import { fsRealpathAdapterProxy } from '../../../adapters/fs/realpath/fs-realpath-adapter.proxy';
 import { processDevLogAdapterProxy } from '../../../adapters/process/dev-log/process-dev-log-adapter.proxy';
 
 export const imageServeBrokerProxy = (): {
@@ -17,8 +17,8 @@ export const imageServeBrokerProxy = (): {
   }) => void;
   setupReadFailure: (params: { filePath: AbsoluteFilePath; error: Error }) => void;
 } => {
-  const readProxy = fsReadFileBytesAdapterProxy();
-  const realpathProxy = fsRealpathAdapterProxy();
+  const readProxy = readFileBytesProxy();
+  const realpathHandleProxy = realpathProxy();
   const existsProxy = existsSyncProxy();
   processDevLogAdapterProxy();
   const joinHandle = registerMock({ fn: join });
@@ -37,8 +37,8 @@ export const imageServeBrokerProxy = (): {
     // only ever proves the mock — that case belongs in images-flow.integration.test.ts, against a
     // real link on a real filesystem.
     setupFileBytes: ({ filePath, bytes }): void => {
-      realpathProxy.returns({ filePath, realPath: filePath });
-      readProxy.returns({ filePath, bytes });
+      realpathHandleProxy.returns({ path: filePath, resolved: filePath });
+      readProxy.returns({ path: filePath, bytes });
       existsProxy.returns({
         path: realPath.join(
           realPath.dirname(realPath.dirname(filePath)),
@@ -50,8 +50,8 @@ export const imageServeBrokerProxy = (): {
     // Same file on disk, but the directory two levels up is nobody's quest folder — the shape of
     // any `images` directory that happens to exist on the host.
     setupFileBytesWithoutQuestFile: ({ filePath, bytes }): void => {
-      realpathProxy.returns({ filePath, realPath: filePath });
-      readProxy.returns({ filePath, bytes });
+      realpathHandleProxy.returns({ path: filePath, resolved: filePath });
+      readProxy.returns({ path: filePath, bytes });
       existsProxy.returns({
         path: realPath.join(
           realPath.dirname(realPath.dirname(filePath)),
@@ -61,8 +61,14 @@ export const imageServeBrokerProxy = (): {
       });
     },
     setupReadFailure: ({ filePath, error }): void => {
-      realpathProxy.returns({ filePath, realPath: filePath });
-      readProxy.throws({ filePath, error });
+      realpathHandleProxy.returns({ path: filePath, resolved: filePath });
+      // readFileBytesProxy's throwsMatchingPath demands an FsError (a coded, recorded failure —
+      // G19 bans a catch-all Error), so the caller-supplied Error is stamped with a code parsed
+      // from its own message (this codebase's convention is `'<CODE>: <detail>'`), never invented.
+      readProxy.throwsMatchingPath({
+        path: filePath,
+        error: Object.assign(error, { code: error.message.split(':')[0] ?? 'UNKNOWN' }),
+      });
       existsProxy.returns({
         path: realPath.join(
           realPath.dirname(realPath.dirname(filePath)),

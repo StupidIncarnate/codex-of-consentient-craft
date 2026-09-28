@@ -14,6 +14,7 @@ import {
   portResolveBrokerProxy,
   locationsWardResultsPathFindBrokerProxy,
 } from '@dungeonmaster/shared/testing';
+import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { join } from '#gateway/node/path';
 import {
   StartOrchestrator,
@@ -27,7 +28,6 @@ import { questOutboxWatchBrokerProxy } from '@dungeonmaster/orchestrator/brokers
 import { registerMock, registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { RecordedCalls } from '@dungeonmaster/testing/register-mock';
 
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { honoCreateNodeWebSocketAdapterProxy } from '../../../adapters/hono/create-node-web-socket/hono-create-node-web-socket-adapter.proxy';
 import { honoServeAdapterProxy } from '../../../adapters/hono/serve/hono-serve-adapter.proxy';
 import { questWaitForSessionStampBrokerProxy } from '../../../brokers/quest/wait-for-session-stamp/quest-wait-for-session-stamp-broker.proxy';
@@ -132,7 +132,7 @@ export const ServerInitResponderProxy = (): {
   questOutboxWatchBrokerProxy();
   const devLogProxy = processDevLogAdapterProxy();
   const wardResultsPathProxy = locationsWardResultsPathFindBrokerProxy();
-  const readFileProxy = fsReadFileAdapterProxy();
+  const readProxy = readFileProxy();
   // #gateway/node/path is a raw passthrough of the Node 'path' module (no per-function wrapper,
   // so no gateway proxy to compose) — mocked directly here, on the same '#gateway/node/path'
   // specifier server-init-responder.ts imports. Addressed by the exact tuple the ward-detail-request
@@ -279,7 +279,7 @@ export const ServerInitResponderProxy = (): {
       findQuestPathHandle.calledWith([{ questId }]).resolves({ questPath, guildId });
       wardResultsPathProxy.setupWardResultsPath({ questFolderPath: questPath, wardResultsPath });
       joinHandle.calledWith([wardResultsPath, `${wardResultId}.json`]).returns(detailFilePath);
-      readFileProxy.returns({ filepath: detailFilePath, contents });
+      readProxy.returns({ path: detailFilePath, contents });
     },
   };
 };

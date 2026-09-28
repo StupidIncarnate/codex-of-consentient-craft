@@ -13,10 +13,10 @@
  */
 
 import { questFindQuestPathBroker } from '@dungeonmaster/orchestrator';
+import { readFile } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import { questRiftcarverDetailParamsContract } from '../../../contracts/quest-riftcarver-detail-params/quest-riftcarver-detail-params-contract';
 import { responderResultContract } from '../../../contracts/responder-result/responder-result-contract';
@@ -45,7 +45,7 @@ export const QuestRiftcarverDetailResponder = async ({
       locationsStatics.quest.riftcarverResultsDir,
       `${riftcarverResultId}.log`,
     );
-    const contents = await fsReadFileAdapter({ filepath: filePathContract.parse(logFilePath) });
+    const contents = await readFile(filePathContract.parse(logFilePath));
     return responderResultContract.parse({
       status: httpStatusStatics.success.ok,
       data: { log: contents },

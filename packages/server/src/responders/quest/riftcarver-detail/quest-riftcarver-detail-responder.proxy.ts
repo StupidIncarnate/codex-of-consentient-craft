@@ -5,11 +5,11 @@ import {
   GuildIdStub,
   QuestIdStub,
 } from '@dungeonmaster/shared/contracts';
+import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { join } from '#gateway/node/path';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 import { QuestRiftcarverDetailResponder } from './quest-riftcarver-detail-responder';
 
@@ -29,7 +29,7 @@ export const QuestRiftcarverDetailResponderProxy = (): {
 } => {
   const findQuestPathProxy = questFindQuestPathBrokerProxy();
   const joinHandle = registerMock({ fn: join });
-  const readFileProxy = fsReadFileAdapterProxy();
+  const readProxy = readFileProxy();
 
   const setupPaths = (): void => {
     findQuestPathProxy.setupQuestPath({
@@ -49,17 +49,20 @@ export const QuestRiftcarverDetailResponderProxy = (): {
   return {
     setupDetail: (): { expectedLog: typeof FIXED_LOG } => {
       setupPaths();
-      readFileProxy.returns({
-        filepath: LOG_FILE_PATH,
+      readProxy.returns({
+        path: LOG_FILE_PATH,
         contents: FileContentsStub({ value: FIXED_LOG }),
       });
       return { expectedLog: FIXED_LOG };
     },
     setupNotFound: (): void => {
       setupPaths();
-      readFileProxy.throws({
-        filepath: LOG_FILE_PATH,
-        error: new Error('ENOENT: no such file or directory'),
+      // readFileProxy's throwsMatchingPath demands an FsError (a coded, recorded failure — G19
+      // bans a catch-all Error) — this file's own test asserts the exact message text below, so
+      // it is built directly rather than through the differently-worded `missing()` scenario.
+      readProxy.throwsMatchingPath({
+        path: LOG_FILE_PATH,
+        error: Object.assign(new Error('ENOENT: no such file or directory'), { code: 'ENOENT' }),
       });
     },
     callResponder: QuestRiftcarverDetailResponder,

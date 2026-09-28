@@ -12,12 +12,11 @@
  * // write fails is simply absent from the map — the broker itself always resolves.
  */
 
+import { readFileBytes, writeFileBytes } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 
-import { fsReadFileBytesAdapter } from '../../../adapters/fs/read-file-bytes/fs-read-file-bytes-adapter';
-import { fsWriteFileBytesAdapter } from '../../../adapters/fs/write-file-bytes/fs-write-file-bytes-adapter';
 import type { LocalImagePathMatch } from '../../../contracts/local-image-path-match/local-image-path-match-contract';
 import type { PastedImageOrdinal } from '../../../contracts/pasted-image-ordinal/pasted-image-ordinal-contract';
 import { imageContentTypeTransformer } from '../../../transformers/image-content-type/image-content-type-transformer';
@@ -52,10 +51,10 @@ export const localImageCopyBroker = async ({
         );
 
         try {
-          const bytes = await fsReadFileBytesAdapter({ filePath: match.path });
+          const bytes = await readFileBytes(match.path);
 
           try {
-            await fsWriteFileBytesAdapter({ filePath: destination, bytes });
+            await writeFileBytes(destination, bytes);
           } catch (writeError: unknown) {
             process.stderr.write(
               `[local-image-copy-broker] failed to write ${destination}: ${String(writeError)}\n`,

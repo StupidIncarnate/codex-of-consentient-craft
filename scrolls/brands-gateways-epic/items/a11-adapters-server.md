@@ -88,4 +88,80 @@ that is [Z04](z04-claude-md-and-agents-md.md)'s job, once every A/B/G/T item has
 
 ## Concessions made while executing
 
-<!-- Empty at the start. The operator fills this and mirrors it into EPIC.md's Concessions table. -->
+G-C (2026-09-28): two of the item's eight adapters could not be migrated — see the Plan section
+below for the full reasoning. `stat` is blocked because `#gateway/node/fs__promises`'s `stat`/
+`statIfExists` return `{kind, sizeBytes, modifiedAtMs}` with no `birthtime`, and `session-list-broker.ts`
+needs it. `rm` is blocked because `#gateway/node/fs__promises`'s `rmProxy` exposes only exact-path
+`succeeds`/`rejects`, no `getCallsFor`/read-back (unlike its sibling `ensureDirProxy`), and
+`quest-new-responder.test.ts` asserts the exact `[path, {recursive, force}]` tuple `rm` received. Both
+gaps need a gateway-side fix (`stat` gaining a birthtime field, or `rmProxy` gaining a `getCallsFor`
+matching `ensureDirProxy`'s) before A11 can close fully.
+
+## Plan — G-C (2026-09-28)
+
+Scope: `packages/server/src/adapters/fs/{mkdir,read-file-bytes,read-file,realpath,rm,stat,write-file-base64,write-file-bytes}/`
+(batches 1-2). Package: server only.
+
+Two of the eight are blocked — gateway `#gateway/node/fs__promises` offers no way to complete them, so
+they and their sole caller are left untouched and reported:
+
+- **`stat`** — `fs-stat-adapter.ts` returns raw `fs.Stats` and its only caller,
+  `session-list-broker.ts`, reads `stats.birthtime.toISOString()`. The gateway's `stat`/`statIfExists`
+  return `FileStat = {kind, sizeBytes, modifiedAtMs}` — no `birthtime` field exists anywhere in
+  `#gateway/node/fs__promises` or `#gateway/node/fs`. `fs-stat-adapter.ts`, its `.proxy.ts` and
+  `.test.ts` stay; only `session-list-broker.ts`'s OTHER call (`fsReadFileAdapter`) migrates.
+- **`rm`** — `fs-rm-adapter.ts`'s only caller, `quest-new-responder.ts`, and its test assert the exact
+  `[path, {recursive, force}]` tuple `rm` received. `#gateway/node/fs__promises`'s `rmProxy` exposes only
+  `succeeds`/`rejects` (both exact-path-only) — no `getCallsFor`/read-back, unlike its sibling
+  `ensureDirProxy`. `fs-rm-adapter.ts` (+`.proxy.ts`+`.test.ts`) and `quest-new-responder.ts`
+  (+`.proxy.ts`) stay untouched.
+
+Delete (adapter + proxy + test each, folder goes empty):
+- `packages/server/src/adapters/fs/mkdir/fs-mkdir-adapter.ts` (+`.proxy.ts`+`.test.ts`)
+- `packages/server/src/adapters/fs/read-file-bytes/fs-read-file-bytes-adapter.ts` (+`.proxy.ts`+`.test.ts`)
+- `packages/server/src/adapters/fs/read-file/fs-read-file-adapter.ts` (+`.proxy.ts`+`.test.ts`)
+- `packages/server/src/adapters/fs/realpath/fs-realpath-adapter.ts` (+`.proxy.ts`+`.test.ts`)
+- `packages/server/src/adapters/fs/write-file-base64/fs-write-file-base64-adapter.ts` (+`.proxy.ts`+`.test.ts`)
+- `packages/server/src/adapters/fs/write-file-bytes/fs-write-file-bytes-adapter.ts` (+`.proxy.ts`+`.test.ts`)
+
+Edit (callers, onto `#gateway/node/fs__promises`):
+- `packages/server/src/brokers/image/serve/image-serve-broker.ts` — `fsRealpathAdapter`→`realpath`,
+  `fsReadFileBytesAdapter`→`readFileBytes`
+- `packages/server/src/brokers/image/serve/image-serve-broker.proxy.ts` — compose `realpathProxy`,
+  `readFileBytesProxy`
+- `packages/server/src/brokers/local-image/copy/local-image-copy-broker.ts` — `fsReadFileBytesAdapter`→
+  `readFileBytes`, `fsWriteFileBytesAdapter`→`writeFileBytes` (its `.filter()` predicate is B17-6's, left as-is)
+- `packages/server/src/brokers/local-image/copy/local-image-copy-broker.proxy.ts` — compose
+  `readFileBytesProxy`, `writeFileBytesProxy`; add a `sourceReadAttemptedPaths` read-back method
+- `packages/server/src/brokers/pasted-image/persist/pasted-image-persist-broker.ts` —
+  `fsMkdirAdapter`→`ensureDir`, `fsWriteFileBase64Adapter`→`writeFileFromBase64`
+- `packages/server/src/brokers/pasted-image/persist/pasted-image-persist-broker.proxy.ts` — compose
+  `ensureDirProxy`/`writeFileFromBase64Proxy` (satisfies `enforce-proxy-child-creation`) plus a direct
+  predicate-addressed `registerMock` on each gateway export (mirrors `chat-subagent-tail-broker.proxy.ts`'s
+  `ensureDir` pattern), since every dirPath/destination this broker computes is runtime-minted and the
+  gateway's `succeeds`/`rejects` take only an exact literal path
+- `packages/server/src/brokers/session/list/session-list-broker.ts` — `fsReadFileAdapter`→`readFile` only;
+  `fsStatAdapter` stays (blocked, see above)
+- `packages/server/src/brokers/session/list/session-list-broker.proxy.ts` — compose `readFileProxy` for the
+  read half only
+- `packages/server/src/brokers/web-bundle/response/web-bundle-response-broker.ts` — `fsReadFileAdapter`→
+  `readFile`
+- `packages/server/src/brokers/web-bundle/response/web-bundle-response-broker.proxy.ts` — compose
+  `readFileProxy`
+- `packages/server/src/responders/quest/riftcarver-detail/quest-riftcarver-detail-responder.ts` —
+  `fsReadFileAdapter`→`readFile`
+- `packages/server/src/responders/quest/riftcarver-detail/quest-riftcarver-detail-responder.proxy.ts` —
+  compose `readFileProxy`
+- `packages/server/src/responders/quest/ward-detail/quest-ward-detail-responder.ts` —
+  `fsReadFileAdapter`→`readFile`
+- `packages/server/src/responders/quest/ward-detail/quest-ward-detail-responder.proxy.ts` — compose
+  `readFileProxy`
+- `packages/server/src/responders/server/init/server-init-responder.ts` — `fsReadFileAdapter`→`readFile`
+- `packages/server/src/responders/server/init/server-init-responder.proxy.ts` — compose `readFileProxy`
+
+Found during implementation, added to scope (same package, both compose `pastedImagePersistBrokerProxy`
+and each ran its OWN read-only `registerMock({fn: writeFile})` on raw `fs/promises` to read back upload
+payloads — broken once the persist broker's write moved off that raw path; redirected to the gateway's
+`writeFileFromBase64` instead, which also drops a pre-existing raw-`fs/promises` import each file carried):
+- `packages/server/src/responders/quest/chat/quest-chat-responder.proxy.ts`
+- `packages/server/src/responders/quest/new/quest-new-responder.proxy.ts`

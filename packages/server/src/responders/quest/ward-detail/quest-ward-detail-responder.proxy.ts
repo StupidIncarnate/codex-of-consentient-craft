@@ -6,11 +6,11 @@ import {
   GuildIdStub,
   QuestIdStub,
 } from '@dungeonmaster/shared/contracts';
+import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { join } from '#gateway/node/path';
 import { locationsWardResultsPathFindBrokerProxy } from '@dungeonmaster/shared/testing';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
 import { FilePathStub } from '../../../contracts/file-path/file-path.stub';
 import { QuestWardDetailResponder } from './quest-ward-detail-responder';
 
@@ -42,7 +42,7 @@ export const QuestWardDetailResponderProxy = (): {
   const findPathProxy = questFindQuestPathBrokerProxy();
   const locationsProxy = locationsWardResultsPathFindBrokerProxy();
   const joinHandle = registerMock({ fn: join });
-  const readFileProxy = fsReadFileAdapterProxy();
+  const readProxy = readFileProxy();
 
   const setupPaths = (): void => {
     findPathProxy.setupQuestPath({
@@ -62,17 +62,20 @@ export const QuestWardDetailResponderProxy = (): {
   return {
     setupDetail: (): { expectedDetail: typeof FIXED_DETAIL } => {
       setupPaths();
-      readFileProxy.returns({
-        filepath: DETAIL_FILE_PATH,
+      readProxy.returns({
+        path: DETAIL_FILE_PATH,
         contents: FileContentsStub({ value: JSON.stringify(FIXED_DETAIL) }),
       });
       return { expectedDetail: FIXED_DETAIL };
     },
     setupNotFound: (): void => {
       setupPaths();
-      readFileProxy.throws({
-        filepath: DETAIL_FILE_PATH,
-        error: new Error('ENOENT: no such file or directory'),
+      // readFileProxy's throwsMatchingPath demands an FsError (a coded, recorded failure — G19
+      // bans a catch-all Error) — this file's own test asserts the exact message text below, so
+      // it is built directly rather than through the differently-worded `missing()` scenario.
+      readProxy.throwsMatchingPath({
+        path: DETAIL_FILE_PATH,
+        error: Object.assign(new Error('ENOENT: no such file or directory'), { code: 'ENOENT' }),
       });
     },
     callResponder: QuestWardDetailResponder,

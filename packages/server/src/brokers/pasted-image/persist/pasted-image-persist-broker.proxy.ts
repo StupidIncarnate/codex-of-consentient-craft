@@ -1,16 +1,15 @@
-import { mkdir, readFile, writeFile } from 'fs/promises';
+import { ensureDir, writeFileFromBase64 } from '#gateway/node/fs__promises';
+import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
+import { writeFileFromBase64Proxy } from '#gateway/node/fs__promises/write-file-from-base64/write-file-from-base64.proxy';
 import { homedir } from '#gateway/node/os';
 import { join } from '#gateway/node/path';
 import { registerMock, registerSpyOn, requireActual } from '@dungeonmaster/testing/register-mock';
-import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath } from '@dungeonmaster/shared/contracts';
 import {
   locationsQuestFolderPathFindBrokerProxy,
   locationsQuestImagesPathFindBrokerProxy,
 } from '@dungeonmaster/shared/testing';
 
-import { fsMkdirAdapterProxy } from '../../../adapters/fs/mkdir/fs-mkdir-adapter.proxy';
-import { fsWriteFileBase64AdapterProxy } from '../../../adapters/fs/write-file-base64/fs-write-file-base64-adapter.proxy';
 import { localImageCopyBrokerProxy } from '../../local-image/copy/local-image-copy-broker.proxy';
 
 export const pastedImagePersistBrokerProxy = (): {
@@ -28,8 +27,10 @@ export const pastedImagePersistBrokerProxy = (): {
   writtenDestinations: () => AbsoluteFilePath[];
   writtenBytesFor: (params: { filePath: AbsoluteFilePath }) => unknown;
 } => {
-  const mkdirProxy = fsMkdirAdapterProxy();
-  const writeProxy = fsWriteFileBase64AdapterProxy();
+  ensureDirProxy(); // satisfies enforce-proxy-child-creation; this broker's real ensureDir calls
+  // are mocked directly on `ensureDir` below, not through this child proxy's own exact-path-only
+  // `succeeds`/`rejects`.
+  writeFileFromBase64Proxy(); // same reason, for `writeFileFromBase64` below.
   const copyProxy = localImageCopyBrokerProxy();
   const joinHandle = registerMock({ fn: join });
   const realPath = requireActual<{ join: typeof join }>({ module: 'path' });
@@ -50,19 +51,22 @@ export const pastedImagePersistBrokerProxy = (): {
   // construct dungeonmasterHomeFindBrokerProxy transitively, which is what registers its join()
   // real-passthrough default, so every join() beneath the resolved home dir still runs REAL.
   const homedirHandle = registerMock({ fn: homedir });
-  // Extra handles on the SAME npm functions fsMkdirAdapterProxy/fsWriteFileBase64AdapterProxy/
-  // localImageCopyBrokerProxy already mock (mkdir, writeFile, readFile) — registerMock shares
-  // staging AND call history across every handle on one function, so a second handle here only
-  // ever READS (.callsMatching), never .calledWith, and cannot collide with the staging those
-  // proxies already own.
-  const mkdirCallsHandle = registerMock({ fn: mkdir });
-  const writeCallsHandle = registerMock({ fn: writeFile });
-  const readCallsHandle = registerMock({ fn: readFile });
-
-  // Every send unconditionally creates the images dir and writes every attachment — there is no
-  // failure path under test, so both adapters succeed for any address this broker computes.
-  mkdirProxy.succeeds({ dirPath: (): boolean => true });
-  writeProxy.succeeds({ filePath: (): boolean => true });
+  // Every dirPath this broker ensures, and every upload destination it writes to, is computed at
+  // call time from a guildId/questId/uuid this proxy never receives — ensureDirProxy's and
+  // writeFileFromBase64Proxy's own succeeds/rejects take only an exact literal path (no
+  // matching-path variant), so both are mocked directly on their gateway export instead, each
+  // addressed by the one real structural fact every such call shares.
+  const ensureDirHandle = registerMock({ fn: ensureDir });
+  ensureDirHandle
+    .calledWith([(path: unknown) => typeof path === 'string' && path.endsWith('/images')])
+    .resolves(undefined);
+  const writeFileFromBase64Handle = registerMock({ fn: writeFileFromBase64 });
+  // Every upload lands under a quest's images directory, whatever id the test stages for it (a
+  // real uuid in some tests, a descriptive stub id like "first-image-id" in others) — so the
+  // address is the directory invariant, not the minted name's own shape.
+  writeFileFromBase64Handle
+    .calledWith([(path: unknown): boolean => typeof path === 'string' && path.includes('/images/')])
+    .resolves(undefined);
 
   return {
     setupHome: ({ homePath }: { homePath: string }): void => {
@@ -89,17 +93,18 @@ export const pastedImagePersistBrokerProxy = (): {
       }
     },
     mkdirRequestedDirPaths: (): unknown[] =>
-      mkdirCallsHandle.callsMatching([]).map((call) => String(call[0])),
+      ensureDirHandle.callsMatching([]).map((call) => String(call[0])),
     writtenPayloadFor: ({ filePath }: { filePath: string }): unknown =>
-      writeProxy.writtenArgsFor({ filePath: absoluteFilePathContract.parse(filePath) })?.[1],
-    writeCallCount: (): unknown => writeCallsHandle.callsMatching([]).length,
-    // Both the base64 upload write and the raw-bytes copy write land on this same npm writeFile,
-    // staged at different argument specificity — so this list is the complete set of paths this
-    // broker actually wrote to disk, upload and copy alike.
-    writtenImagePaths: (): unknown[] =>
-      writeCallsHandle.callsMatching([]).map((call) => String(call[0])),
-    sourceReadAttemptedPaths: (): unknown[] =>
-      readCallsHandle.callsMatching([]).map((call) => String(call[0])),
+      writeFileFromBase64Handle.callsMatching([filePath]).at(-1)?.[1],
+    writeCallCount: (): unknown =>
+      writeFileFromBase64Handle.callsMatching([]).length + copyProxy.writtenDestinations().length,
+    // Both the base64 upload write and the raw-bytes copy write are complete sets of paths this
+    // broker actually wrote to disk, upload and copy alike, in that order.
+    writtenImagePaths: (): unknown[] => [
+      ...writeFileFromBase64Handle.callsMatching([]).map((call) => String(call[0])),
+      ...copyProxy.writtenDestinations().map((path) => String(path)),
+    ],
+    sourceReadAttemptedPaths: (): unknown[] => copyProxy.sourceReadAttemptedPaths(),
     stageCopyIds: ({ ids }: { ids: readonly string[] }): void => {
       copyProxy.stageCopyIds({ ids });
     },

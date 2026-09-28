@@ -10,9 +10,9 @@
  */
 import { fileContentsContract } from '@dungeonmaster/shared/contracts';
 import type { FileContents } from '@dungeonmaster/shared/contracts';
+import { readFile } from '#gateway/node/fs__promises';
 import { join } from '#gateway/node/path';
 
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { webBundleDistPathAdapter } from '../../../adapters/web-bundle/dist-path/web-bundle-dist-path-adapter';
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import { httpStatusStatics } from '../../../statics/http-status/http-status-statics';
@@ -56,7 +56,7 @@ export const webBundleResponseBroker = async ({
   const relativePath = filePathContract.parse(isStatic ? pathname : INDEX_HTML_PATH);
 
   const filepath = filePathContract.parse(join(distPath, relativePath));
-  const body = await fsReadFileAdapter({ filepath });
+  const body = fileContentsContract.parse(await readFile(filepath));
 
   return {
     body,
