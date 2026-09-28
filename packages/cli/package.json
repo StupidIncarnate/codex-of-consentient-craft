@@ -49,6 +49,7 @@
   },
   "dependencies": {
     "@dungeonmaster/node": "*",
+    "@dungeonmaster/npm": "*",
     "@dungeonmaster/orchestrator": "*",
     "@dungeonmaster/server": "*",
     "@dungeonmaster/shared": "*",

@@ -1,5 +1,5 @@
 /**
- * PURPOSE: What `typescriptTsconfigCompilerOptionsLocateAdapter` reports about a tsconfig's own
+ * PURPOSE: What `tsconfigCompilerOptionsLocateTransformer` reports about a tsconfig's own
  * `compilerOptions` block — where a new option may be spliced in, and for each option already
  * there, the exact character range of its value so that value alone can be replaced. A
  * `situation` of `missingCompilerOptions` is one this install step leaves untouched.

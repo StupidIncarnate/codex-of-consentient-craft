@@ -3,7 +3,7 @@ import { environmentStatics } from '@dungeonmaster/shared/statics';
 import { registerSpyOn, registerMock } from '@dungeonmaster/testing/register-mock';
 import { dynamicImport } from '#gateway/node/module';
 import { dynamicImportProxy } from '#gateway/node/module/dynamic-import/dynamic-import.proxy';
-import { childProcessExecAdapterProxy } from '../../../adapters/child-process/exec/child-process-exec-adapter.proxy';
+import { runFireAndForgetProxy } from '#gateway/node/child_process/run-fire-and-forget/run-fire-and-forget.proxy';
 import { httpBackendPackageResolveBrokerProxy } from '../../../brokers/http-backend-package/resolve/http-backend-package-resolve-broker.proxy';
 import { CliServeResponder } from './cli-serve-responder';
 
@@ -18,10 +18,9 @@ export const CliServeResponderProxy = ({
 }): {
   callResponder: typeof CliServeResponder;
   setupPlatform: (params: { platform: NodeJS.Platform }) => void;
-  getExecCalls: () => readonly unknown[];
   getStdoutOutput: () => readonly unknown[];
 } => {
-  const execProxy = childProcessExecAdapterProxy();
+  const execProxy = runFireAndForgetProxy();
 
   // The responder no longer hardcodes a package name — it asks httpBackendPackageResolveBroker,
   // which itself runs real (brokers are not mocked in this repo's tests) with only its own
@@ -63,10 +62,8 @@ export const CliServeResponderProxy = ({
           : platform === 'win32'
             ? `start ${SERVER_URL}`
             : `xdg-open ${SERVER_URL}`;
-      execProxy.succeeds({ command: cmd });
+      execProxy.setupSuccess({ command: cmd });
     },
-
-    getExecCalls: (): readonly unknown[] => execProxy.getExecCalls(),
 
     getStdoutOutput: (): readonly unknown[] => stdoutWrite.callsMatching([]).map((call) => call[0]),
   };

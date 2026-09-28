@@ -1,8 +1,8 @@
 /**
- * PURPOSE: Delegates to `typescriptContentDiagnosticsAdapter` so an integration test can prove a
- * scaffolded template's TEXT typechecks — a `statics/` test file cannot import an `adapters/` file
+ * PURPOSE: Delegates to `typescriptContentDiagnosticsBroker` so an integration test can prove a
+ * scaffolded template's TEXT typechecks — a `statics/` test file cannot import a `brokers/` file
  * directly (`@dungeonmaster/enforce-import-dependencies` confines it to `statics/`), so this
- * harness is the seam that reaches the adapter on a suite's behalf.
+ * harness is the seam that reaches the broker on a suite's behalf.
  *
  * USAGE:
  * const harness = scaffoldedTemplateTypecheckHarness();
@@ -13,7 +13,7 @@
  * // into dirPath instead of failing to find it
  */
 
-import { typescriptContentDiagnosticsAdapter } from '../../../src/adapters/typescript/content-diagnostics/typescript-content-diagnostics-adapter';
+import { typescriptContentDiagnosticsBroker } from '../../../src/brokers/typescript/content-diagnostics/typescript-content-diagnostics-broker';
 import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
 
 export const scaffoldedTemplateTypecheckHarness = (): {
@@ -26,5 +26,5 @@ export const scaffoldedTemplateTypecheckHarness = (): {
     content: string;
     dirPath?: string;
   }): readonly ErrorMessage[] =>
-    typescriptContentDiagnosticsAdapter(dirPath === undefined ? { content } : { content, dirPath }),
+    typescriptContentDiagnosticsBroker(dirPath === undefined ? { content } : { content, dirPath }),
 });

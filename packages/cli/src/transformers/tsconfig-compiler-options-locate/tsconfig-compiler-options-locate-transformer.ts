@@ -3,20 +3,23 @@
  * spot after the last option where a new one can be spliced in, and each existing option's value
  * range — so a caller can set options without reformatting the file or losing its comments. Parses
  * through TypeScript's own JSON parser, which accepts the comments and trailing commas a tsconfig
- * may carry and `JSON.parse` refuses.
+ * may carry and `JSON.parse` refuses. A pure text-to-position transform, with no adapter shape left
+ * to justify: `ts.parseJsonText` and its AST walk are a straight `#gateway/npm/typescript`
+ * pass-through call, same as any other npm-package function a transformer reaches through the
+ * gateway.
  *
  * USAGE:
- * typescriptTsconfigCompilerOptionsLocateAdapter({ text: '{\n  "compilerOptions": {\n    "module": "commonjs"\n  }\n}\n' });
+ * tsconfigCompilerOptionsLocateTransformer({ text: '{\n  "compilerOptions": {\n    "module": "commonjs"\n  }\n}\n' });
  * // Returns { situation: 'hasCompilerOptions', insertPos, indent: '    ', needsLeadingComma: true, existing: [{ key: 'module', valueStart, valueEnd }] }
  */
 
-import * as ts from 'typescript';
+import * as ts from '#gateway/npm/typescript';
 import { locationsStatics } from '@dungeonmaster/shared/statics';
-import { tsconfigCompilerOptionsLocateResultContract } from '../../../contracts/tsconfig-compiler-options-locate-result/tsconfig-compiler-options-locate-result-contract';
-import type { TsconfigCompilerOptionsLocateResult } from '../../../contracts/tsconfig-compiler-options-locate-result/tsconfig-compiler-options-locate-result-contract';
-import { isWhitespaceOnlyGuard } from '../../../guards/is-whitespace-only/is-whitespace-only-guard';
+import { tsconfigCompilerOptionsLocateResultContract } from '../../contracts/tsconfig-compiler-options-locate-result/tsconfig-compiler-options-locate-result-contract';
+import type { TsconfigCompilerOptionsLocateResult } from '../../contracts/tsconfig-compiler-options-locate-result/tsconfig-compiler-options-locate-result-contract';
+import { isWhitespaceOnlyGuard } from '../../guards/is-whitespace-only/is-whitespace-only-guard';
 
-export const typescriptTsconfigCompilerOptionsLocateAdapter = ({
+export const tsconfigCompilerOptionsLocateTransformer = ({
   text,
 }: {
   text: string;

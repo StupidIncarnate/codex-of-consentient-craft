@@ -2,7 +2,6 @@ import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy'
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { writeFileProxy } from '#gateway/node/fs__promises/write-file/write-file.proxy';
 import type { FilePath } from '@dungeonmaster/shared/contracts';
-import { typescriptTsconfigCompilerOptionsLocateAdapterProxy } from '../../../adapters/typescript/tsconfig-compiler-options-locate/typescript-tsconfig-compiler-options-locate-adapter.proxy';
 
 export const gatewayTsconfigCompilerOptionsWriteBrokerProxy = (): {
   setupMissingFile: (params: { tsconfigPath: FilePath }) => void;
@@ -12,9 +11,8 @@ export const gatewayTsconfigCompilerOptionsWriteBrokerProxy = (): {
   const existsProxy = existsSyncProxy();
   const readProxy = readFileProxy();
   const writeProxy = writeFileProxy();
-  // Empty proxy: the real TypeScript JSON parse runs for real. Called only to satisfy
-  // enforce-proxy-child-creation.
-  typescriptTsconfigCompilerOptionsLocateAdapterProxy();
+  // tsconfigCompilerOptionsLocateTransformer is a pure transformer — it runs real in tests and
+  // needs no child-proxy composition, the same as tsconfigCompilerOptionsSetTextTransformer below.
 
   return {
     setupMissingFile: ({ tsconfigPath }): void => {

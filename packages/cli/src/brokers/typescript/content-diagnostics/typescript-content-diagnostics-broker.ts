@@ -22,18 +22,21 @@
  * three hops inside the barrel that the checked file never touches) no longer surfaces — only a
  * diagnostic attached to the checked file itself does. That is the right scope for "does this
  * scaffolded file work": a bug in a sibling contract nothing here imports is that package's own
- * ward typecheck's job, not this adapter's.
+ * ward typecheck's job, not this broker's. The virtual-file host overrides and the `ErrorMessage`
+ * contract mapping stay here rather than in `#gateway/npm/typescript` itself, because they compose
+ * several `ts.Program` calls with this repo's own contract — the gateway only wraps the raw
+ * compiler API, never our own data shapes.
  *
  * USAGE:
- * typescriptContentDiagnosticsAdapter({ content: playwrightConfigTemplateStatics.content });
+ * typescriptContentDiagnosticsBroker({ content: playwrightConfigTemplateStatics.content });
  * // Returns every syntactic and semantic diagnostic as ErrorMessage[], or [] when it typechecks
- * typescriptContentDiagnosticsAdapter({ content, dirPath: testbed.guildPath });
+ * typescriptContentDiagnosticsBroker({ content, dirPath: testbed.guildPath });
  * // Same, but a relative import in `content` resolves against a companion file really written
  * // into dirPath instead of failing to find it
  */
 
-import * as ts from 'typescript';
-import { resolve, join } from 'path';
+import * as ts from '#gateway/npm/typescript';
+import { resolve, join } from '#gateway/node/path';
 import { errorMessageContract } from '@dungeonmaster/shared/contracts';
 import type { ErrorMessage } from '@dungeonmaster/shared/contracts';
 
@@ -63,12 +66,12 @@ const parseConfigFileHost: ts.ParseConfigFileHost = {
   getCurrentDirectory: () => ts.sys.getCurrentDirectory(),
   onUnRecoverableConfigFileDiagnostic: (diagnostic: ts.Diagnostic): void => {
     throw new Error(
-      `typescriptContentDiagnosticsAdapter could not parse ${ESLINT_PLUGIN_TSCONFIG_PATH}: ${ts.flattenDiagnosticMessageText(diagnostic.messageText, ' ')}`,
+      `typescriptContentDiagnosticsBroker could not parse ${ESLINT_PLUGIN_TSCONFIG_PATH}: ${ts.flattenDiagnosticMessageText(diagnostic.messageText, ' ')}`,
     );
   },
 };
 
-export const typescriptContentDiagnosticsAdapter = ({
+export const typescriptContentDiagnosticsBroker = ({
   content,
   dirPath,
 }: {
@@ -82,7 +85,7 @@ export const typescriptContentDiagnosticsAdapter = ({
   );
   if (parsedConfig === undefined) {
     throw new Error(
-      `typescriptContentDiagnosticsAdapter could not parse ${ESLINT_PLUGIN_TSCONFIG_PATH}`,
+      `typescriptContentDiagnosticsBroker could not parse ${ESLINT_PLUGIN_TSCONFIG_PATH}`,
     );
   }
   const compilerOptions: ts.CompilerOptions = {
@@ -130,7 +133,7 @@ export const typescriptContentDiagnosticsAdapter = ({
   const sourceFile = program.getSourceFile(virtualFilePath);
   if (sourceFile === undefined) {
     throw new Error(
-      `typescriptContentDiagnosticsAdapter: program has no source file for ${virtualFilePath}`,
+      `typescriptContentDiagnosticsBroker: program has no source file for ${virtualFilePath}`,
     );
   }
   const diagnostics = [

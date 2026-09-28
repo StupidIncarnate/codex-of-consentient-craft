@@ -30,8 +30,8 @@ import type {
   PathSegment,
 } from '@dungeonmaster/shared/contracts';
 import { packageBuildOrderStatics } from '@dungeonmaster/shared/statics';
+import { question } from '#gateway/node/readline';
 
-import { readlineQuestionAdapter } from '../../../adapters/readline/question/readline-question-adapter';
 import { packageScaffoldConfigStatics } from '../../../statics/package-scaffold-config/package-scaffold-config-statics';
 import {
   createPackageRequestContract,
@@ -51,9 +51,11 @@ export const createPackageResolveRequestBroker = async ({
   const nameAnswer =
     args.name === undefined
       ? interactive
-        ? await readlineQuestionAdapter({
+        ? await question({
+            input: process.stdin,
+            output: process.stdout,
             prompt: 'Package name: ',
-            fallback: contentTextContract.parse(''),
+            fallback: '',
           })
         : undefined
       : args.name;
@@ -64,7 +66,7 @@ export const createPackageResolveRequestBroker = async ({
     );
   }
 
-  if (String(nameAnswer) === '') {
+  if (nameAnswer === '') {
     throw new Error('Package name is required.');
   }
 
@@ -91,9 +93,11 @@ export const createPackageResolveRequestBroker = async ({
   const packageTypeAnswer =
     args.packageType === undefined
       ? interactive
-        ? await readlineQuestionAdapter({
+        ? await question({
+            input: process.stdin,
+            output: process.stdout,
             prompt: 'Package type: ',
-            fallback: contentTextContract.parse('library'),
+            fallback: 'library',
           })
         : undefined
       : args.packageType;
@@ -117,7 +121,14 @@ export const createPackageResolveRequestBroker = async ({
   const description: ContentText =
     args.description === undefined
       ? interactive
-        ? await readlineQuestionAdapter({ prompt: 'Description: ', fallback: descriptionDefault })
+        ? contentTextContract.parse(
+            await question({
+              input: process.stdin,
+              output: process.stdout,
+              prompt: 'Description: ',
+              fallback: descriptionDefault,
+            }),
+          )
         : descriptionDefault
       : args.description;
 

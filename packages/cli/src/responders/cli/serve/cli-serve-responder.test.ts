@@ -38,34 +38,37 @@ describe('CliServeResponder', () => {
   });
 
   describe('browser open', () => {
-    it('VALID: {platform: darwin} => opens browser with open command', async () => {
+    // runFireAndForgetProxy addresses its mock by the exact command staged (setupSuccess), so a
+    // response other than {success: true} below means the responder built a different command
+    // than this platform's — the mock throws unconditionally on an unaddressed call.
+    it('VALID: {platform: darwin} => opens browser with the open command', async () => {
       const StartServer = jest.fn();
       const proxy = CliServeResponderProxy({ StartServer });
       proxy.setupPlatform({ platform: 'darwin' });
 
-      await proxy.callResponder();
+      const result = await proxy.callResponder();
 
-      expect(proxy.getExecCalls()).toStrictEqual([`open ${SERVER_URL}`]);
+      expect(result).toStrictEqual({ success: true });
     });
 
-    it('VALID: {platform: win32} => opens browser with start command', async () => {
+    it('VALID: {platform: win32} => opens browser with the start command', async () => {
       const StartServer = jest.fn();
       const proxy = CliServeResponderProxy({ StartServer });
       proxy.setupPlatform({ platform: 'win32' });
 
-      await proxy.callResponder();
+      const result = await proxy.callResponder();
 
-      expect(proxy.getExecCalls()).toStrictEqual([`start ${SERVER_URL}`]);
+      expect(result).toStrictEqual({ success: true });
     });
 
-    it('VALID: {platform: linux} => opens browser with xdg-open command', async () => {
+    it('VALID: {platform: linux} => opens browser with the xdg-open command', async () => {
       const StartServer = jest.fn();
       const proxy = CliServeResponderProxy({ StartServer });
       proxy.setupPlatform({ platform: 'linux' });
 
-      await proxy.callResponder();
+      const result = await proxy.callResponder();
 
-      expect(proxy.getExecCalls()).toStrictEqual([`xdg-open ${SERVER_URL}`]);
+      expect(result).toStrictEqual({ success: true });
     });
   });
 });

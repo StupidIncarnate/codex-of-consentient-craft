@@ -9,10 +9,10 @@
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import { adapterResultContract, filePathContract } from '@dungeonmaster/shared/contracts';
 import { dynamicImport } from '#gateway/node/module';
+import { runFireAndForget } from '#gateway/node/child_process';
 import { portResolveBroker } from '@dungeonmaster/shared/brokers';
 import { environmentStatics } from '@dungeonmaster/shared/statics';
 
-import { childProcessExecAdapter } from '../../../adapters/child-process/exec/child-process-exec-adapter';
 import { httpBackendPackageResolveBroker } from '../../../brokers/http-backend-package/resolve/http-backend-package-resolve-broker';
 import { startServerModuleContract } from '../../../contracts/start-server-module/start-server-module-contract';
 
@@ -34,6 +34,6 @@ export const CliServeResponder = async (): Promise<AdapterResult> => {
       : process.platform === 'win32'
         ? `start ${serverUrl}`
         : `xdg-open ${serverUrl}`;
-  childProcessExecAdapter({ command: cmd });
+  runFireAndForget({ command: cmd });
   return adapterResultContract.parse({ success: true });
 };

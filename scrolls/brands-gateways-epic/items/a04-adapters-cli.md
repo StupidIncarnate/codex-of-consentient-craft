@@ -120,6 +120,32 @@ Edit (every real caller found by `discover`, scoped to `packages/cli/**`):
 Not edited (G24's uncommitted files — reported as LEFT STANDING if a caller lands there; none did):
 `gateway-package-template-statics.ts`, `package-scaffold-config-statics.ts`(+`.test.ts`), `gateway-package-scaffold-files-transformer.test.ts`, `gateway-source-copy-statics.ts`(+`.test.ts`), `gateway-source-copy-broker.test.ts`, `package-seed-frontend-statics.ts`(+`.test.ts`), `package-scaffold-files-transformer.test.ts`, `cli-create-package-responder.test.ts`, `install-flow.integration.test.ts`.
 
+## Plan — G-F (batches 3-4: readline/question, child-process/exec, typescript/content-diagnostics, typescript/tsconfig-compiler-options-locate)
+
+Delete (12 files, the 4 adapters this group owns, each with its `.proxy.ts` and `.test.ts`):
+- `packages/cli/src/adapters/readline/question/readline-question-adapter.ts` (+`.proxy.ts`, `.test.ts`)
+- `packages/cli/src/adapters/child-process/exec/child-process-exec-adapter.ts` (+`.proxy.ts`, `.test.ts`)
+- `packages/cli/src/adapters/typescript/content-diagnostics/typescript-content-diagnostics-adapter.ts` (+`.proxy.ts`, `.test.ts`)
+- `packages/cli/src/adapters/typescript/tsconfig-compiler-options-locate/typescript-tsconfig-compiler-options-locate-adapter.ts` (+`.proxy.ts`, `.test.ts`)
+
+Create (5 files — the split/move targets):
+- `packages/cli/src/brokers/typescript/content-diagnostics/typescript-content-diagnostics-broker.ts` — the content-diagnostics adapter's virtual-file host and `ErrorMessage` mapping, unchanged shape, importing `#gateway/npm/typescript` and `#gateway/node/path` instead of raw `typescript`/`path`
+- `packages/cli/src/brokers/typescript/content-diagnostics/typescript-content-diagnostics-broker.proxy.ts` — empty proxy (real `ts.Program`, same reasoning as the adapter's old empty proxy)
+- `packages/cli/src/brokers/typescript/content-diagnostics/typescript-content-diagnostics-broker.test.ts` — ported from the adapter's test, same cases
+- `packages/cli/src/transformers/tsconfig-compiler-options-locate/tsconfig-compiler-options-locate-transformer.ts` — the tsconfig-compiler-options-locate adapter's function, unchanged shape, importing `#gateway/npm/typescript`; no `.proxy.ts` (pure transformer, sibling `tsconfig-compiler-options-set-text-transformer` has none either)
+- `packages/cli/src/transformers/tsconfig-compiler-options-locate/tsconfig-compiler-options-locate-transformer.test.ts` — ported from the adapter's test, same cases
+
+Edit (every real caller found by `discover`, scoped to `packages/cli/**`):
+- `packages/cli/src/brokers/create-package/resolve-request/create-package-resolve-request-broker.ts` (+`.proxy.ts`) — readline/question → `#gateway/node/readline`'s `question`, called 3× with explicit `input: process.stdin, output: process.stdout`
+- `packages/cli/src/responders/cli/serve/cli-serve-responder.ts` (+`.proxy.ts`, `.test.ts`) — child-process/exec → `#gateway/node/child_process`'s `runFireAndForget`
+- `packages/cli/src/brokers/gateway/tsconfig-compiler-options-write/gateway-tsconfig-compiler-options-write-broker.ts` (+`.proxy.ts`) — typescript/tsconfig-compiler-options-locate adapter call → `tsconfigCompilerOptionsLocateTransformer`; proxy drops the phantom adapter-proxy composition (transformers take no child-proxy call)
+- `packages/cli/test/harnesses/scaffolded-template-typecheck/scaffolded-template-typecheck.harness.ts` — import + call site → `typescriptContentDiagnosticsBroker`
+- `packages/cli/src/contracts/tsconfig-compiler-options-locate-result/tsconfig-compiler-options-locate-result-contract.ts` — PURPOSE header renames the adapter it describes
+- `packages/cli/src/transformers/tsconfig-compiler-options-set-text/tsconfig-compiler-options-set-text-transformer.ts` — PURPOSE header renames the adapter it credits
+
+Not edited (G24's uncommitted files — none of this group's callers land there):
+`gateway-package-template-statics.ts`, `package-scaffold-config-statics.ts`(+`.test.ts`), `gateway-package-scaffold-files-transformer.test.ts`, `gateway-source-copy-statics.ts`(+`.test.ts`), `gateway-source-copy-broker.test.ts`, `package-seed-frontend-statics.ts`(+`.test.ts`), `package-scaffold-files-transformer.test.ts`, `cli-create-package-responder.test.ts`, `install-flow.integration.test.ts`.
+
 ## Concessions made while executing
 
 <!-- Empty at the start. The operator fills this and mirrors it into EPIC.md's Concessions table. -->

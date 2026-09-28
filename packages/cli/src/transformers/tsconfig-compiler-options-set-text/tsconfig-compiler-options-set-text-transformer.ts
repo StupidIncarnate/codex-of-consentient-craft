@@ -1,6 +1,6 @@
 /**
  * PURPOSE: Applies wanted `compilerOptions` values to a tsconfig's TEXT at the positions
- * `typescriptTsconfigCompilerOptionsLocateAdapter` reported: an option holding another value has
+ * `tsconfigCompilerOptionsLocateTransformer` reported: an option holding another value has
  * just that value replaced, a missing option is appended after the last one, and every other
  * character — comments, spacing, key order — stays as it was. An option already holding the wanted
  * value is left alone, so a second run changes nothing. A file with no `compilerOptions` block is
