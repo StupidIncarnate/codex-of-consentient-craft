@@ -3,6 +3,7 @@ import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 import { UntilConsolePatternStub } from '../../../contracts/until-console-pattern/until-console-pattern.stub';
 import { UntilFilePathStub } from '../../../contracts/until-file-path/until-file-path.stub';
 import { UntilResponseStub } from '../../../contracts/until-response/until-response.stub';
+import type { StepAmbiguousError } from '../../../errors/step-ambiguous/step-ambiguous-error';
 import { stepUntilBroker } from './step-until-broker';
 import { stepUntilBrokerProxy } from './step-until-broker.proxy';
 
@@ -53,7 +54,7 @@ describe('stepUntilBroker', () => {
       });
     });
 
-    it('ERROR: {visible matches two elements} => rethrows the strict-mode violation unchanged, never as a ceiling', async () => {
+    it('ERROR: {visible matches two elements} => throws StepAmbiguousError carrying both candidates, never a ceiling (DEF-92)', async () => {
       const proxy = stepUntilBrokerProxy();
       const { lane } = proxy.laneVisibleAmbiguous();
 
@@ -70,17 +71,31 @@ describe('stepUntilBroker', () => {
         (): never => {
           throw new Error('Expected stepUntilBroker to reject');
         },
-        (caught: unknown): Error => caught as Error,
+        (caught: unknown): StepAmbiguousError => caught as StepAmbiguousError,
       );
 
       // The verdict half of this matters as much as the message: `runExecuteStepLayerBroker` reads
       // `instanceof UntilCeilingHitError` for `timedOut`, so an ambiguity folded into a ceiling
       // would make the whole run answer `status: 'timeout'` and advise waiting longer for an
-      // element that is already on the screen twice.
-      expect({ name: error.name, message: error.message }).toStrictEqual({
-        name: 'Error',
+      // element that is already on the screen twice. Wrapped in siegelense's own words, listing the
+      // candidates (siegelense's own ambiguity rule), never Playwright's raw
+      // `Call log:`-and-ANSI-colour text.
+      expect({
+        name: error.name,
+        message: error.message,
+        candidates: error.candidates,
+      }).toStrictEqual({
+        name: 'StepAmbiguousError',
         message:
-          'strict mode violation: locator(\'[data-testid="PIXEL_BTN"]\') resolved to 2 elements',
+          'AMBIGUOUS: 2 elements match target [data-testid="PIXEL_BTN"].\n' +
+          '  [0] ref=16 within=(document root) text="+" rect=(444,348) 27x25\n' +
+          '  [1] ref=23 within=(document root) text="+" rect=(965,348) 27x25\n' +
+          'Pick one by ref — { "step": "click", "ref": N } — or narrow with `within`. Two candidates ' +
+          'sharing a `within` can only be told apart by ref; run `look` for the current key.',
+        candidates: [
+          { index: 0, ref: 16, within: null, text: '+', rect: '(444,348) 27x25' },
+          { index: 1, ref: 23, within: null, text: '+', rect: '(965,348) 27x25' },
+        ],
       });
     });
   });
