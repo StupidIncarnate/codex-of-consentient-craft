@@ -51,12 +51,14 @@ describe('packageDiscoverBroker', () => {
           installPath: FilePathStub({
             value: '/home/user/dungeonmaster/packages/cli/dist/startup/start-install.js',
           }),
+          finalizeInstallPath: null,
         },
         {
           packageName: PackageNameStub({ value: '@dungeonmaster/hooks' }),
           installPath: FilePathStub({
             value: '/home/user/dungeonmaster/packages/hooks/dist/startup/start-install.js',
           }),
+          finalizeInstallPath: null,
         },
       ]);
     });
@@ -108,6 +110,43 @@ describe('packageDiscoverBroker', () => {
     });
   });
 
+  describe('a package with a start-install-finalize.js sibling', () => {
+    it('VALID: {siegelense holds both start-install.js and start-install-finalize.js} => finalizeInstallPath is populated', () => {
+      const proxy = packageDiscoverBrokerProxy();
+      const dungeonmasterRoot = FilePathStub({ value: '/dm' });
+
+      proxy.setupPackageDiscovery({
+        packagesPath: FilePathStub({ value: '/dm/packages' }),
+        packages: [
+          {
+            name: FileNameStub({ value: 'siegelense' }),
+            standardPath: FilePathStub({
+              value: '/dm/packages/siegelense/dist/startup/start-install.js',
+            }),
+            installerLocation: 'standard',
+            finalizeInstallPath: FilePathStub({
+              value: '/dm/packages/siegelense/dist/startup/start-install-finalize.js',
+            }),
+          },
+        ],
+      });
+
+      const result = packageDiscoverBroker({ dungeonmasterRoot });
+
+      expect(result).toStrictEqual([
+        {
+          packageName: PackageNameStub({ value: '@dungeonmaster/siegelense' }),
+          installPath: FilePathStub({
+            value: '/dm/packages/siegelense/dist/startup/start-install.js',
+          }),
+          finalizeInstallPath: FilePathStub({
+            value: '/dm/packages/siegelense/dist/startup/start-install-finalize.js',
+          }),
+        },
+      ]);
+    });
+  });
+
   describe('edge cases', () => {
     it('EDGE: {dungeonmasterRoot: "/path/with spaces"} => handles paths with spaces', () => {
       const proxy = packageDiscoverBrokerProxy();
@@ -134,6 +173,7 @@ describe('packageDiscoverBroker', () => {
           installPath: FilePathStub({
             value: '/path/with spaces/packages/cli/dist/startup/start-install.js',
           }),
+          finalizeInstallPath: null,
         },
       ]);
     });

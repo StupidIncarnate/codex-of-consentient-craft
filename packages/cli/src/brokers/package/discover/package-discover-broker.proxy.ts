@@ -10,15 +10,19 @@ export const packageDiscoverBrokerProxy = (): {
       standardPath: FilePath;
       alternatePath?: FilePath;
       installerLocation: 'standard' | 'alternate' | 'none';
+      // The sibling start-install-finalize.js path for this package's own installerLocation.
+      // Left unset when the package has no finalize step — fsExistsSyncAdapterProxy's own
+      // default (false for any unaddressed path) is what makes finalizeInstallPath read null.
+      finalizeInstallPath?: FilePath;
     }[];
   }) => void;
   setupEmptyPackagesDirectory: (params: { packagesPath: FilePath }) => void;
 } => {
   const fsReaddirProxy = fsReaddirAdapterProxy();
   // Unstaged: pathJoinAdapterProxy's default is a real path.join passthrough, and every
-  // packagesPath/standardPath/alternatePath supplied below is already the real join of
-  // dungeonmasterRoot + segments — there is nothing to fake, so fsExistsSync is the only mock
-  // keyed here, addressed by those real paths.
+  // packagesPath/standardPath/alternatePath/finalizeInstallPath supplied below is already the
+  // real join of dungeonmasterRoot + segments — there is nothing to fake, so fsExistsSync is the
+  // only mock keyed here, addressed by those real paths.
   pathJoinAdapterProxy();
   const fsExistsSyncProxy = fsExistsSyncAdapterProxy();
 
@@ -38,6 +42,10 @@ export const packageDiscoverBrokerProxy = (): {
               result: pkg.installerLocation === 'alternate',
             });
           }
+        }
+
+        if (pkg.finalizeInstallPath) {
+          fsExistsSyncProxy.returns({ filePath: pkg.finalizeInstallPath, result: true });
         }
       }
     },

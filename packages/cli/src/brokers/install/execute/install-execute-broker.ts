@@ -1,5 +1,9 @@
 /**
- * PURPOSE: Executes a single package's install function by dynamically importing it
+ * PURPOSE: Executes a single package's install function by dynamically importing it and calling
+ * the named export `exportName` selects — `StartInstall` by default. The CLI orchestration
+ * layer's "after all installs" pass (DEF-99) reuses this same broker with
+ * `exportName: 'StartInstallFinalize'`, against a package's OPTIONAL `start-install-finalize.js`,
+ * rather than duplicating this whole import-call-parse shape for a second export name.
  *
  * USAGE:
  * const result = await installExecuteBroker({
@@ -23,10 +27,12 @@ export const installExecuteBroker = async ({
   packageName,
   installPath,
   context,
+  exportName = 'StartInstall',
 }: {
   packageName: PackageName;
   installPath: FilePath;
   context: InstallContext;
+  exportName?: 'StartInstall' | 'StartInstallFinalize';
 }): Promise<InstallResult> => {
   try {
     const module = await runtimeDynamicImportAdapter({ path: installPath });
@@ -34,18 +40,18 @@ export const installExecuteBroker = async ({
     if (
       typeof module !== 'object' ||
       module === null ||
-      !('StartInstall' in module) ||
-      typeof (module as Record<PropertyKey, unknown>).StartInstall !== 'function'
+      !(exportName in module) ||
+      typeof (module as Record<PropertyKey, unknown>)[exportName] !== 'function'
     ) {
       return installResultContract.parse({
         packageName,
         success: false,
         action: 'failed',
-        error: errorMessageContract.parse(`No StartInstall function found in ${installPath}`),
+        error: errorMessageContract.parse(`No ${exportName} function found in ${installPath}`),
       });
     }
 
-    const startInstallFn = (module as Record<PropertyKey, unknown>).StartInstall as (params: {
+    const startInstallFn = (module as Record<PropertyKey, unknown>)[exportName] as (params: {
       context: InstallContext;
     }) => Promise<InstallResult>;
 

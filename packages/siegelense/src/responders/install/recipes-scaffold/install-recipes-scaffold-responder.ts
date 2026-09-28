@@ -9,6 +9,12 @@
  * packages, detected off its root package.json the same convention `@dungeonmaster/cli`'s own
  * `create-package` uses.
  *
+ * Marks `recipesScaffoldState` rather than running `npm install` / `npm run build` itself — those
+ * run from `InstallRecipesFinalizeResponder`, once, after every package's `StartInstall` has
+ * finished (DEF-99). Running them here raced other packages' own `StartInstall` still writing
+ * `package.json` (devDependencies another package adds), because the CLI's package discovery order
+ * is an unsorted `readdirSync` and this package's turn can land before theirs.
+ *
  * USAGE:
  * const result = await InstallRecipesScaffoldResponder({ context });
  * // Creates packages/hydration-recipes/{package.json,tsconfig.json,tsconfig.build.json,
@@ -24,7 +30,6 @@ import {
 import {
   type InstallContext,
   type InstallResult,
-  absoluteFilePathContract,
   filePathContract,
   installMessageContract,
   packageJsonContract,
@@ -34,8 +39,7 @@ import {
 
 import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
-import { npmInstallAdapter } from '../../../adapters/npm/install/npm-install-adapter';
-import { npmRunBuildAdapter } from '../../../adapters/npm/run-build/npm-run-build-adapter';
+import { recipesScaffoldState } from '../../../state/recipes-scaffold/recipes-scaffold-state';
 import { recipesScaffoldFilesTransformer } from '../../../transformers/recipes-scaffold-files/recipes-scaffold-files-transformer';
 import { workspaceScopeDetectTransformer } from '../../../transformers/workspace-scope-detect/workspace-scope-detect-transformer';
 
@@ -102,45 +106,12 @@ export const InstallRecipesScaffoldResponder = async ({
   );
 
   const createdMessage = `Created ${PACKAGES_DIRNAME}/${RECIPES_PACKAGE_DIRNAME}/ (package.json, tsconfig.json, tsconfig.build.json, ${SRC_DIRNAME}/index.ts)`;
-  const buildCommand = `npm run build --workspace=${recipesPackageName}`;
 
   // Until `npm install` links the freshly scaffolded workspace and `npm run build` compiles it,
-  // `recipesLocateBroker` throws `RecipesBuildMissingError` on every `siegelense recipes` call — so
-  // this ONE run, the run that just created the package, does both itself. Neither failure is
-  // fatal to the overall install: the other packages' own installs still need to run, so a failure
-  // here is reported through the result rather than thrown, naming the exact command to run by
-  // hand.
-  const targetProjectRootCwd = absoluteFilePathContract.parse(context.targetProjectRoot);
-
-  const installResult = await npmInstallAdapter({ cwd: targetProjectRootCwd });
-  if (installResult.exitCode !== 0) {
-    return {
-      packageName: packageNameContract.parse(PACKAGE_NAME),
-      success: false,
-      action: 'created',
-      message: installMessageContract.parse(
-        `${createdMessage}; npm install failed (exit ${String(installResult.exitCode)}): ` +
-          `${String(installResult.output)} — run "npm install" at the repo root, then "${buildCommand}" ` +
-          'to finish setting it up',
-      ),
-    };
-  }
-
-  const buildResult = await npmRunBuildAdapter({
-    cwd: targetProjectRootCwd,
-    workspace: recipesPackageName,
-  });
-  if (buildResult.exitCode !== 0) {
-    return {
-      packageName: packageNameContract.parse(PACKAGE_NAME),
-      success: false,
-      action: 'created',
-      message: installMessageContract.parse(
-        `${createdMessage}; ${buildCommand} failed (exit ${String(buildResult.exitCode)}): ` +
-          `${String(buildResult.output)} — run "${buildCommand}" to finish setting it up`,
-      ),
-    };
-  }
+  // `recipesLocateBroker` throws `RecipesBuildMissingError` on every `siegelense recipes` call —
+  // InstallRecipesFinalizeResponder does both, once every package's StartInstall has finished, but
+  // only reaches for this package when this flag says it was scaffolded THIS run.
+  recipesScaffoldState.markScaffolded({ recipesPackageName });
 
   return {
     packageName: packageNameContract.parse(PACKAGE_NAME),
