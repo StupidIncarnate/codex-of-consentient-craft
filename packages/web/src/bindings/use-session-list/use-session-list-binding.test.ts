@@ -1,8 +1,6 @@
 import { GuildIdStub, SessionListItemStub } from '@dungeonmaster/shared/contracts';
 
-import { testingLibraryActAdapter } from '../../adapters/testing-library/act/testing-library-act-adapter';
-import { testingLibraryRenderHookAdapter } from '../../adapters/testing-library/render-hook/testing-library-render-hook-adapter';
-import { testingLibraryWaitForAdapter } from '../../adapters/testing-library/wait-for/testing-library-wait-for-adapter';
+import { act, renderHook, waitFor } from '#gateway/npm/testing-library__react';
 
 import { useSessionListBinding } from './use-session-list-binding';
 import { useSessionListBindingProxy } from './use-session-list-binding.proxy';
@@ -15,9 +13,7 @@ describe('useSessionListBinding', () => {
       const proxy = useSessionListBindingProxy();
       proxy.setupSessions({ sessions: [] });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useSessionListBinding({ guildId }),
-      });
+      const { result } = renderHook(() => useSessionListBinding({ guildId }));
 
       expect(result.current).toStrictEqual({
         data: [],
@@ -38,16 +34,12 @@ describe('useSessionListBinding', () => {
 
       proxy.setupSessions({ sessions });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useSessionListBinding({ guildId }),
-      });
+      const { result } = renderHook(() => useSessionListBinding({ guildId }));
 
       const currentState = (): ReturnType<typeof useSessionListBinding> => result.current;
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().loading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(currentState().loading).toBe(false);
       });
 
       expect(result.current).toStrictEqual({
@@ -64,16 +56,12 @@ describe('useSessionListBinding', () => {
       const proxy = useSessionListBindingProxy();
       proxy.setupSessions({ sessions: [] });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useSessionListBinding({ guildId }),
-      });
+      const { result } = renderHook(() => useSessionListBinding({ guildId }));
 
       const currentState = (): ReturnType<typeof useSessionListBinding> => result.current;
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().loading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(currentState().loading).toBe(false);
       });
 
       expect(result.current).toStrictEqual({
@@ -90,16 +78,12 @@ describe('useSessionListBinding', () => {
       const proxy = useSessionListBindingProxy();
       proxy.setupError();
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useSessionListBinding({ guildId }),
-      });
+      const { result } = renderHook(() => useSessionListBinding({ guildId }));
 
       const currentState = (): ReturnType<typeof useSessionListBinding> => result.current;
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().loading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(currentState().loading).toBe(false);
       });
 
       const { error } = result.current;
@@ -120,16 +104,12 @@ describe('useSessionListBinding', () => {
       const proxy = useSessionListBindingProxy();
       proxy.setupSessions({ sessions: [SessionListItemStub({ sessionId: 'session-1' })] });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useSessionListBinding({ guildId }),
-      });
+      const { result } = renderHook(() => useSessionListBinding({ guildId }));
 
       const currentState = (): ReturnType<typeof useSessionListBinding> => result.current;
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().loading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(currentState().loading).toBe(false);
       });
 
       proxy.setupSessions({
@@ -141,18 +121,14 @@ describe('useSessionListBinding', () => {
 
       const { refresh } = result.current;
 
-      testingLibraryActAdapter({
-        callback: () => {
-          refresh().catch((error: unknown) => {
-            globalThis.console.error('[test] refresh failed', error);
-          });
-        },
+      act(() => {
+        refresh().catch((error: unknown) => {
+          globalThis.console.error('[test] refresh failed', error);
+        });
       });
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().loading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(currentState().loading).toBe(false);
       });
 
       expect(result.current).toStrictEqual({
@@ -171,9 +147,7 @@ describe('useSessionListBinding', () => {
     it('EMPTY: {guildId: null} => returns empty data without loading', () => {
       useSessionListBindingProxy();
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useSessionListBinding({ guildId: null }),
-      });
+      const { result } = renderHook(() => useSessionListBinding({ guildId: null }));
 
       expect(result.current).toStrictEqual({
         data: [],
@@ -189,14 +163,10 @@ describe('useSessionListBinding', () => {
       const proxy = useSessionListBindingProxy();
       proxy.setupOuterCatchTrigger({ guildId });
 
-      testingLibraryRenderHookAdapter({
-        renderCallback: () => useSessionListBinding({ guildId }),
-      });
+      renderHook(() => useSessionListBinding({ guildId }));
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(proxy.getConsoleErrorCalls()[0]?.[0]).toBe('[use-session-list]');
-        },
+      await waitFor(() => {
+        expect(proxy.getConsoleErrorCalls()[0]?.[0]).toBe('[use-session-list]');
       });
 
       expect(proxy.getConsoleErrorCalls()[0]?.[1]).toBeInstanceOf(Error);

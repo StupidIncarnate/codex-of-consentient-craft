@@ -9,7 +9,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
-import { testingLibraryActAdapter } from '../../adapters/testing-library/act/testing-library-act-adapter';
+import { act } from '#gateway/npm/testing-library__react';
 import { QuestQueueBarWidget } from './quest-queue-bar-widget';
 import { QuestQueueBarWidgetProxy } from './quest-queue-bar-widget.proxy';
 
@@ -247,16 +247,14 @@ describe('QuestQueueBarWidget', () => {
         ],
       });
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'execution-queue-updated',
-              payload: {},
-              timestamp: '2026-05-05T13:00:00.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'execution-queue-updated',
+            payload: {},
+            timestamp: '2026-05-05T13:00:00.000Z',
+          }),
+        });
       });
 
       await waitFor(() => {
@@ -301,16 +299,14 @@ describe('QuestQueueBarWidget', () => {
         ],
       });
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'execution-queue-error',
-              payload: {},
-              timestamp: '2026-05-05T13:00:00.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'execution-queue-error',
+            payload: {},
+            timestamp: '2026-05-05T13:00:00.000Z',
+          }),
+        });
       });
 
       const badge = await findByTestId('QUEST_QUEUE_BAR_ERROR_BADGE');

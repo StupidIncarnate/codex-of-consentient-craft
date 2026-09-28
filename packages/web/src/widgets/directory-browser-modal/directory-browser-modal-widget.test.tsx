@@ -3,7 +3,7 @@ import { screen, waitFor } from '@testing-library/react';
 import { DirectoryEntryStub } from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
-import { testingLibraryActAsyncAdapter } from '../../adapters/testing-library/act-async/testing-library-act-async-adapter';
+import { act } from '#gateway/npm/testing-library__react';
 import { DirectoryBrowserModalWidget } from './directory-browser-modal-widget';
 import { DirectoryBrowserModalWidgetProxy } from './directory-browser-modal-widget.proxy';
 
@@ -14,15 +14,13 @@ describe('DirectoryBrowserModalWidget', () => {
 
       proxy.setupEntries({ entries: [] });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          mantineRenderAdapter({
-            ui: (
-              <DirectoryBrowserModalWidget opened={true} onClose={jest.fn()} onSelect={jest.fn()} />
-            ),
-          });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        mantineRenderAdapter({
+          ui: (
+            <DirectoryBrowserModalWidget opened={true} onClose={jest.fn()} onSelect={jest.fn()} />
+          ),
+        });
+        await Promise.resolve();
       });
 
       expect(screen.getByRole('heading', { name: 'Browse Directory' })).toBeInTheDocument();
@@ -33,15 +31,13 @@ describe('DirectoryBrowserModalWidget', () => {
 
       proxy.setupEntries({ entries: [] });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          mantineRenderAdapter({
-            ui: (
-              <DirectoryBrowserModalWidget opened={true} onClose={jest.fn()} onSelect={jest.fn()} />
-            ),
-          });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        mantineRenderAdapter({
+          ui: (
+            <DirectoryBrowserModalWidget opened={true} onClose={jest.fn()} onSelect={jest.fn()} />
+          ),
+        });
+        await Promise.resolve();
       });
 
       expect(proxy.getCurrentPath()).toBe('/');
@@ -52,15 +48,13 @@ describe('DirectoryBrowserModalWidget', () => {
 
       proxy.setupEntries({ entries: [] });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          mantineRenderAdapter({
-            ui: (
-              <DirectoryBrowserModalWidget opened={true} onClose={jest.fn()} onSelect={jest.fn()} />
-            ),
-          });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        mantineRenderAdapter({
+          ui: (
+            <DirectoryBrowserModalWidget opened={true} onClose={jest.fn()} onSelect={jest.fn()} />
+          ),
+        });
+        await Promise.resolve();
       });
 
       expect(screen.getByTestId('GO_UP_BUTTON')).toBeInTheDocument();
@@ -71,15 +65,13 @@ describe('DirectoryBrowserModalWidget', () => {
 
       proxy.setupEntries({ entries: [] });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          mantineRenderAdapter({
-            ui: (
-              <DirectoryBrowserModalWidget opened={true} onClose={jest.fn()} onSelect={jest.fn()} />
-            ),
-          });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        mantineRenderAdapter({
+          ui: (
+            <DirectoryBrowserModalWidget opened={true} onClose={jest.fn()} onSelect={jest.fn()} />
+          ),
+        });
+        await Promise.resolve();
       });
 
       expect(screen.getByTestId('SELECT_DIRECTORY_BUTTON')).toBeInTheDocument();
@@ -90,15 +82,13 @@ describe('DirectoryBrowserModalWidget', () => {
 
       proxy.setupEntries({ entries: [] });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          mantineRenderAdapter({
-            ui: (
-              <DirectoryBrowserModalWidget opened={true} onClose={jest.fn()} onSelect={jest.fn()} />
-            ),
-          });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        mantineRenderAdapter({
+          ui: (
+            <DirectoryBrowserModalWidget opened={true} onClose={jest.fn()} onSelect={jest.fn()} />
+          ),
+        });
+        await Promise.resolve();
       });
 
       expect(screen.getByTestId('EMPTY_DIRECTORY')).toBeInTheDocument();
@@ -114,15 +104,11 @@ describe('DirectoryBrowserModalWidget', () => {
         entries: [DirectoryEntryStub({ name: 'projects', path: '/home/user/projects' })],
       });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          mantineRenderAdapter({
-            ui: (
-              <DirectoryBrowserModalWidget opened={true} onClose={jest.fn()} onSelect={onSelect} />
-            ),
-          });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        mantineRenderAdapter({
+          ui: <DirectoryBrowserModalWidget opened={true} onClose={jest.fn()} onSelect={onSelect} />,
+        });
+        await Promise.resolve();
       });
 
       await waitFor(() => {
@@ -141,15 +127,11 @@ describe('DirectoryBrowserModalWidget', () => {
 
       proxy.setupEntries({ entries: [] });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          mantineRenderAdapter({
-            ui: (
-              <DirectoryBrowserModalWidget opened={true} onClose={onClose} onSelect={jest.fn()} />
-            ),
-          });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        mantineRenderAdapter({
+          ui: <DirectoryBrowserModalWidget opened={true} onClose={onClose} onSelect={jest.fn()} />,
+        });
+        await Promise.resolve();
       });
 
       await proxy.clickCancel();

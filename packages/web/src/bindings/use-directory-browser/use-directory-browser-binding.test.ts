@@ -1,8 +1,6 @@
 import { DirectoryEntryStub, GuildPathStub } from '@dungeonmaster/shared/contracts';
 
-import { testingLibraryActAdapter } from '../../adapters/testing-library/act/testing-library-act-adapter';
-import { testingLibraryRenderHookAdapter } from '../../adapters/testing-library/render-hook/testing-library-render-hook-adapter';
-import { testingLibraryWaitForAdapter } from '../../adapters/testing-library/wait-for/testing-library-wait-for-adapter';
+import { act, renderHook, waitFor } from '#gateway/npm/testing-library__react';
 
 import { useDirectoryBrowserBinding } from './use-directory-browser-binding';
 import { useDirectoryBrowserBindingProxy } from './use-directory-browser-binding.proxy';
@@ -13,9 +11,7 @@ describe('useDirectoryBrowserBinding', () => {
       const proxy = useDirectoryBrowserBindingProxy();
       proxy.setupEntries({ entries: [] });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useDirectoryBrowserBinding(),
-      });
+      const { result } = renderHook(() => useDirectoryBrowserBinding());
 
       expect(result.current).toStrictEqual({
         currentPath: null,
@@ -37,16 +33,12 @@ describe('useDirectoryBrowserBinding', () => {
 
       proxy.setupEntries({ entries });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useDirectoryBrowserBinding(),
-      });
+      const { result } = renderHook(() => useDirectoryBrowserBinding());
 
       const currentState = (): ReturnType<typeof useDirectoryBrowserBinding> => result.current;
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().loading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(currentState().loading).toBe(false);
       });
 
       expect(result.current).toStrictEqual({
@@ -66,16 +58,12 @@ describe('useDirectoryBrowserBinding', () => {
         entries: [DirectoryEntryStub({ name: 'home', path: '/home', isDirectory: true })],
       });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useDirectoryBrowserBinding(),
-      });
+      const { result } = renderHook(() => useDirectoryBrowserBinding());
 
       const currentState = (): ReturnType<typeof useDirectoryBrowserBinding> => result.current;
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().loading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(currentState().loading).toBe(false);
       });
 
       const targetPath = GuildPathStub({ value: '/home' });
@@ -85,16 +73,12 @@ describe('useDirectoryBrowserBinding', () => {
         entries: [DirectoryEntryStub({ name: 'user', path: '/home/user', isDirectory: true })],
       });
 
-      testingLibraryActAdapter({
-        callback: () => {
-          navigateTo({ path: targetPath });
-        },
+      act(() => {
+        navigateTo({ path: targetPath });
       });
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().loading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(currentState().loading).toBe(false);
       });
 
       expect(result.current).toStrictEqual({
@@ -112,46 +96,34 @@ describe('useDirectoryBrowserBinding', () => {
       const proxy = useDirectoryBrowserBindingProxy();
       proxy.setupEntries({ entries: [] });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useDirectoryBrowserBinding(),
-      });
+      const { result } = renderHook(() => useDirectoryBrowserBinding());
 
       const currentState = (): ReturnType<typeof useDirectoryBrowserBinding> => result.current;
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().loading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(currentState().loading).toBe(false);
       });
 
       const targetPath = GuildPathStub({ value: '/home/user' });
 
       proxy.setupEntries({ entries: [] });
 
-      testingLibraryActAdapter({
-        callback: () => {
-          result.current.navigateTo({ path: targetPath });
-        },
+      act(() => {
+        result.current.navigateTo({ path: targetPath });
       });
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().currentPath).toBe('/home/user');
-        },
+      await waitFor(() => {
+        expect(currentState().currentPath).toBe('/home/user');
       });
 
       proxy.setupEntries({ entries: [] });
 
-      testingLibraryActAdapter({
-        callback: () => {
-          result.current.goUp();
-        },
+      act(() => {
+        result.current.goUp();
       });
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().currentPath).toBe('/home');
-        },
+      await waitFor(() => {
+        expect(currentState().currentPath).toBe('/home');
       });
 
       expect(result.current.currentPath).toBe('/home');
@@ -161,24 +133,18 @@ describe('useDirectoryBrowserBinding', () => {
       const proxy = useDirectoryBrowserBindingProxy();
       proxy.setupEntries({ entries: [] });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useDirectoryBrowserBinding(),
-      });
+      const { result } = renderHook(() => useDirectoryBrowserBinding());
 
       const currentState = (): ReturnType<typeof useDirectoryBrowserBinding> => result.current;
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().loading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(currentState().loading).toBe(false);
       });
 
       const { goUp } = result.current;
 
-      testingLibraryActAdapter({
-        callback: () => {
-          goUp();
-        },
+      act(() => {
+        goUp();
       });
 
       expect(result.current.currentPath).toBe(null);
@@ -190,16 +156,12 @@ describe('useDirectoryBrowserBinding', () => {
       const proxy = useDirectoryBrowserBindingProxy();
       proxy.setupError();
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useDirectoryBrowserBinding(),
-      });
+      const { result } = renderHook(() => useDirectoryBrowserBinding());
 
       const currentState = (): ReturnType<typeof useDirectoryBrowserBinding> => result.current;
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().loading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(currentState().loading).toBe(false);
       });
 
       expect(result.current).toStrictEqual({
@@ -219,14 +181,10 @@ describe('useDirectoryBrowserBinding', () => {
 
       const consoleErrorCalls = proxy.getConsoleErrorCalls();
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useDirectoryBrowserBinding(),
-      });
+      const { result } = renderHook(() => useDirectoryBrowserBinding());
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(result.current.loading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
       });
 
       expect(consoleErrorCalls).toStrictEqual([]);
@@ -238,14 +196,10 @@ describe('useDirectoryBrowserBinding', () => {
 
       const consoleErrorCalls = proxy.getConsoleErrorCalls();
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useDirectoryBrowserBinding(),
-      });
+      const { result } = renderHook(() => useDirectoryBrowserBinding());
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(result.current.loading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
       });
 
       expect(consoleErrorCalls).toStrictEqual([]);

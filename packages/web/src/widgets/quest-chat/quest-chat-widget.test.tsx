@@ -8,7 +8,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { GuildListItemStub, OrchestrationModeStub } from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
-import { testingLibraryActAsyncAdapter } from '../../adapters/testing-library/act-async/testing-library-act-async-adapter';
+import { act } from '#gateway/npm/testing-library__react';
 import { QuestChatWidget } from './quest-chat-widget';
 import { QuestChatWidgetProxy } from './quest-chat-widget.proxy';
 
@@ -32,14 +32,12 @@ describe('QuestChatWidget', () => {
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupMode({ mode: OrchestrationModeStub({ value: 'claude' }) });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          renderAt({
-            path: '/:guildSlug/quest/:questId',
-            url: '/my-guild/quest/abc-123',
-          });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        renderAt({
+          path: '/:guildSlug/quest/:questId',
+          url: '/my-guild/quest/abc-123',
+        });
+        await Promise.resolve();
       });
 
       await waitFor(() => {
@@ -55,14 +53,12 @@ describe('QuestChatWidget', () => {
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupMode({ mode: OrchestrationModeStub({ value: 'claude' }) });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          renderAt({
-            path: '/:guildSlug/quest',
-            url: '/my-guild/quest',
-          });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        renderAt({
+          path: '/:guildSlug/quest',
+          url: '/my-guild/quest',
+        });
+        await Promise.resolve();
       });
 
       await waitFor(() => {
@@ -76,14 +72,12 @@ describe('QuestChatWidget', () => {
       const proxy = QuestChatWidgetProxy();
       proxy.setupGuilds({ guilds: [] });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          renderAt({
-            path: '/:guildSlug/quest',
-            url: '/missing-guild/quest',
-          });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        renderAt({
+          path: '/:guildSlug/quest',
+          url: '/missing-guild/quest',
+        });
+        await Promise.resolve();
       });
 
       await waitFor(() => {

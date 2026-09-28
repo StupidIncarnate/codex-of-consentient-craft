@@ -1,5 +1,4 @@
-import { testingLibraryActAdapter } from '../../adapters/testing-library/act/testing-library-act-adapter';
-import { testingLibraryRenderHookAdapter } from '../../adapters/testing-library/render-hook/testing-library-render-hook-adapter';
+import { act, renderHook } from '#gateway/npm/testing-library__react';
 import { AssistantTextChatEntryStub } from '@dungeonmaster/shared/contracts';
 import { SlotIndexStub } from '@dungeonmaster/shared/contracts';
 
@@ -12,9 +11,7 @@ describe('useAgentOutputBinding', () => {
       const proxy = useAgentOutputBindingProxy();
       proxy.setupEmpty();
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useAgentOutputBinding(),
-      });
+      const { result } = renderHook(() => useAgentOutputBinding());
 
       expect(result.current.slotEntries.size).toBe(0);
     });
@@ -27,14 +24,10 @@ describe('useAgentOutputBinding', () => {
       const slotIndex = SlotIndexStub({ value: 0 });
       const entry = AssistantTextChatEntryStub({ content: 'Building...' });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useAgentOutputBinding(),
-      });
+      const { result } = renderHook(() => useAgentOutputBinding());
 
-      testingLibraryActAdapter({
-        callback: () => {
-          result.current.handleAgentOutput({ slotIndex, entries: [entry] });
-        },
+      act(() => {
+        result.current.handleAgentOutput({ slotIndex, entries: [entry] });
       });
 
       const entries = result.current.slotEntries.get(slotIndex);
@@ -49,20 +42,14 @@ describe('useAgentOutputBinding', () => {
       const entry1 = AssistantTextChatEntryStub({ content: 'line 1' });
       const entry2 = AssistantTextChatEntryStub({ content: 'line 2' });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useAgentOutputBinding(),
+      const { result } = renderHook(() => useAgentOutputBinding());
+
+      act(() => {
+        result.current.handleAgentOutput({ slotIndex, entries: [entry1] });
       });
 
-      testingLibraryActAdapter({
-        callback: () => {
-          result.current.handleAgentOutput({ slotIndex, entries: [entry1] });
-        },
-      });
-
-      testingLibraryActAdapter({
-        callback: () => {
-          result.current.handleAgentOutput({ slotIndex, entries: [entry2] });
-        },
+      act(() => {
+        result.current.handleAgentOutput({ slotIndex, entries: [entry2] });
       });
 
       const entries = result.current.slotEntries.get(slotIndex);
@@ -75,14 +62,10 @@ describe('useAgentOutputBinding', () => {
       proxy.setupEmpty();
       const slotIndex = SlotIndexStub({ value: 0 });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useAgentOutputBinding(),
-      });
+      const { result } = renderHook(() => useAgentOutputBinding());
 
-      testingLibraryActAdapter({
-        callback: () => {
-          result.current.handleAgentOutput({ slotIndex, entries: [] });
-        },
+      act(() => {
+        result.current.handleAgentOutput({ slotIndex, entries: [] });
       });
 
       expect(result.current.slotEntries.size).toBe(0);
@@ -96,20 +79,14 @@ describe('useAgentOutputBinding', () => {
       const slotIndex = SlotIndexStub({ value: 0 });
       const entry = AssistantTextChatEntryStub({ content: 'some output' });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useAgentOutputBinding(),
+      const { result } = renderHook(() => useAgentOutputBinding());
+
+      act(() => {
+        result.current.handleAgentOutput({ slotIndex, entries: [entry] });
       });
 
-      testingLibraryActAdapter({
-        callback: () => {
-          result.current.handleAgentOutput({ slotIndex, entries: [entry] });
-        },
-      });
-
-      testingLibraryActAdapter({
-        callback: () => {
-          result.current.clearOutput();
-        },
+      act(() => {
+        result.current.clearOutput();
       });
 
       expect(result.current.slotEntries.size).toBe(0);

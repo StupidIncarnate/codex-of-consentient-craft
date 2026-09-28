@@ -2,7 +2,7 @@
  * PURPOSE: Tests for HomeContentWidget - guild selection and session list rendering
  */
 
-import { screen, waitFor } from '#gateway/npm/testing-library__react';
+import { act, screen, waitFor } from '#gateway/npm/testing-library__react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import {
   GuildIdStub,
@@ -15,7 +15,6 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
-import { testingLibraryActAsyncAdapter } from '../../adapters/testing-library/act-async/testing-library-act-async-adapter';
 import { HomeContentWidget } from './home-content-widget';
 import { HomeContentWidgetProxy } from './home-content-widget.proxy';
 
@@ -35,17 +34,15 @@ describe('HomeContentWidget', () => {
 
       proxy.setupGuilds({ guilds: [] });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          mantineRenderAdapter({
-            ui: (
-              <MemoryRouter>
-                <HomeContentWidget />
-              </MemoryRouter>
-            ),
-          });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        mantineRenderAdapter({
+          ui: (
+            <MemoryRouter>
+              <HomeContentWidget />
+            </MemoryRouter>
+          ),
+        });
+        await Promise.resolve();
       });
 
       await waitFor(() => {
@@ -66,17 +63,15 @@ describe('HomeContentWidget', () => {
 
       proxy.setupGuilds({ guilds });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          mantineRenderAdapter({
-            ui: (
-              <MemoryRouter>
-                <HomeContentWidget />
-              </MemoryRouter>
-            ),
-          });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        mantineRenderAdapter({
+          ui: (
+            <MemoryRouter>
+              <HomeContentWidget />
+            </MemoryRouter>
+          ),
+        });
+        await Promise.resolve();
       });
 
       await waitFor(() => {
@@ -94,17 +89,15 @@ describe('HomeContentWidget', () => {
 
       proxy.setupGuilds({ guilds });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          mantineRenderAdapter({
-            ui: (
-              <MemoryRouter>
-                <HomeContentWidget />
-              </MemoryRouter>
-            ),
-          });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        mantineRenderAdapter({
+          ui: (
+            <MemoryRouter>
+              <HomeContentWidget />
+            </MemoryRouter>
+          ),
+        });
+        await Promise.resolve();
       });
 
       await waitFor(() => {
@@ -129,40 +122,34 @@ describe('HomeContentWidget', () => {
 
       proxy.setupGuilds({ guilds: [] });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          mantineRenderAdapter({
-            ui: (
-              <MemoryRouter>
-                <HomeContentWidget />
-              </MemoryRouter>
-            ),
-          });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        mantineRenderAdapter({
+          ui: (
+            <MemoryRouter>
+              <HomeContentWidget />
+            </MemoryRouter>
+          ),
+        });
+        await Promise.resolve();
       });
 
       await waitFor(() => {
         expect(proxy.isNewGuildTitleVisible()).toBe(true);
       });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await proxy.typeGuildName({ value: 'new-guild' });
-          await proxy.typeGuildPath({ value: '/home/user/new-guild' });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        await proxy.typeGuildName({ value: 'new-guild' });
+        await proxy.typeGuildPath({ value: '/home/user/new-guild' });
+        await Promise.resolve();
       });
 
       proxy.setupCreateGuild({ id: guildId });
       proxy.setupGuilds({ guilds: [createdGuild] });
       proxy.setupSessions({ sessions: [] });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await proxy.clickCreateGuild();
-          await Promise.resolve();
-        },
+      await act(async () => {
+        await proxy.clickCreateGuild();
+        await Promise.resolve();
       });
 
       await waitFor(() => {
@@ -184,17 +171,15 @@ describe('HomeContentWidget', () => {
 
       proxy.setupGuilds({ guilds: [guild] });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          mantineRenderAdapter({
-            ui: (
-              <MemoryRouter>
-                <HomeContentWidget />
-              </MemoryRouter>
-            ),
-          });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        mantineRenderAdapter({
+          ui: (
+            <MemoryRouter>
+              <HomeContentWidget />
+            </MemoryRouter>
+          ),
+        });
+        await Promise.resolve();
       });
 
       await waitFor(() => {
@@ -203,11 +188,9 @@ describe('HomeContentWidget', () => {
 
       proxy.setupSessions({ sessions: [] });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await proxy.clickGuildItem({ testId: `GUILD_ITEM_${guild.id}` });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        await proxy.clickGuildItem({ testId: `GUILD_ITEM_${guild.id}` });
+        await Promise.resolve();
       });
 
       await waitFor(() => {
@@ -230,17 +213,15 @@ describe('HomeContentWidget', () => {
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupSessions({ sessions: [] });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          mantineRenderAdapter({
-            ui: (
-              <MemoryRouter>
-                <HomeContentWidget />
-              </MemoryRouter>
-            ),
-          });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        mantineRenderAdapter({
+          ui: (
+            <MemoryRouter>
+              <HomeContentWidget />
+            </MemoryRouter>
+          ),
+        });
+        await Promise.resolve();
       });
 
       await waitFor(() => {
@@ -264,17 +245,15 @@ describe('HomeContentWidget', () => {
       proxy.setupGuilds({ guilds: [realGuild] });
       proxy.setupSessions({ sessions: [] });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          mantineRenderAdapter({
-            ui: (
-              <MemoryRouter>
-                <HomeContentWidget />
-              </MemoryRouter>
-            ),
-          });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        mantineRenderAdapter({
+          ui: (
+            <MemoryRouter>
+              <HomeContentWidget />
+            </MemoryRouter>
+          ),
+        });
+        await Promise.resolve();
       });
 
       await waitFor(() => {
@@ -294,17 +273,15 @@ describe('HomeContentWidget', () => {
 
       proxy.setupGuilds({ guilds });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          mantineRenderAdapter({
-            ui: (
-              <MemoryRouter>
-                <HomeContentWidget />
-              </MemoryRouter>
-            ),
-          });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        mantineRenderAdapter({
+          ui: (
+            <MemoryRouter>
+              <HomeContentWidget />
+            </MemoryRouter>
+          ),
+        });
+        await Promise.resolve();
       });
 
       await waitFor(() => {
@@ -326,39 +303,35 @@ describe('HomeContentWidget', () => {
 
       proxy.setupGuilds({ guilds: [guild] });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          mantineRenderAdapter({
-            ui: (
-              <MemoryRouter initialEntries={['/']}>
-                <Routes>
-                  <Route
-                    path="/"
-                    element={
-                      <>
-                        <HomeContentWidget />
-                        <LocationProbe />
-                      </>
-                    }
-                  />
-                  <Route path="/queue" element={<LocationProbe />} />
-                </Routes>
-              </MemoryRouter>
-            ),
-          });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        mantineRenderAdapter({
+          ui: (
+            <MemoryRouter initialEntries={['/']}>
+              <Routes>
+                <Route
+                  path="/"
+                  element={
+                    <>
+                      <HomeContentWidget />
+                      <LocationProbe />
+                    </>
+                  }
+                />
+                <Route path="/queue" element={<LocationProbe />} />
+              </Routes>
+            </MemoryRouter>
+          ),
+        });
+        await Promise.resolve();
       });
 
       await waitFor(() => {
         expect(proxy.isQueueLinkVisible()).toBe(true);
       });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await proxy.clickQueueLink();
-          await Promise.resolve();
-        },
+      await act(async () => {
+        await proxy.clickQueueLink();
+        await Promise.resolve();
       });
 
       await waitFor(() => {
@@ -387,47 +360,41 @@ describe('HomeContentWidget', () => {
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupSessions({ sessions: [] });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          mantineRenderAdapter({
-            ui: (
-              <MemoryRouter initialEntries={['/']}>
-                <Routes>
-                  <Route
-                    path="/"
-                    element={
-                      <>
-                        <HomeContentWidget />
-                        <LocationProbe />
-                      </>
-                    }
-                  />
-                  <Route path="/:guildSlug/quest" element={<LocationProbe />} />
-                  <Route path="/:guildSlug/session/:sessionId" element={<LocationProbe />} />
-                </Routes>
-              </MemoryRouter>
-            ),
-          });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        mantineRenderAdapter({
+          ui: (
+            <MemoryRouter initialEntries={['/']}>
+              <Routes>
+                <Route
+                  path="/"
+                  element={
+                    <>
+                      <HomeContentWidget />
+                      <LocationProbe />
+                    </>
+                  }
+                />
+                <Route path="/:guildSlug/quest" element={<LocationProbe />} />
+                <Route path="/:guildSlug/session/:sessionId" element={<LocationProbe />} />
+              </Routes>
+            </MemoryRouter>
+          ),
+        });
+        await Promise.resolve();
       });
 
       await waitFor(() => {
         expect(proxy.isGuildItemVisible({ testId: `GUILD_ITEM_${guild.id}` })).toBe(true);
       });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await proxy.clickGuildItem({ testId: `GUILD_ITEM_${guild.id}` });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        await proxy.clickGuildItem({ testId: `GUILD_ITEM_${guild.id}` });
+        await Promise.resolve();
       });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await proxy.clickAddSession();
-          await Promise.resolve();
-        },
+      await act(async () => {
+        await proxy.clickAddSession();
+        await Promise.resolve();
       });
 
       await waitFor(() => {
@@ -463,50 +430,44 @@ describe('HomeContentWidget', () => {
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupSessions({ sessions: [session] });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          mantineRenderAdapter({
-            ui: (
-              <MemoryRouter initialEntries={['/']}>
-                <Routes>
-                  <Route
-                    path="/"
-                    element={
-                      <>
-                        <HomeContentWidget />
-                        <LocationProbe />
-                      </>
-                    }
-                  />
-                  <Route path="/:guildSlug/quest" element={<LocationProbe />} />
-                  <Route path="/:guildSlug/quest/:questId" element={<LocationProbe />} />
-                  <Route path="/:guildSlug/session/:sessionId" element={<LocationProbe />} />
-                </Routes>
-              </MemoryRouter>
-            ),
-          });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        mantineRenderAdapter({
+          ui: (
+            <MemoryRouter initialEntries={['/']}>
+              <Routes>
+                <Route
+                  path="/"
+                  element={
+                    <>
+                      <HomeContentWidget />
+                      <LocationProbe />
+                    </>
+                  }
+                />
+                <Route path="/:guildSlug/quest" element={<LocationProbe />} />
+                <Route path="/:guildSlug/quest/:questId" element={<LocationProbe />} />
+                <Route path="/:guildSlug/session/:sessionId" element={<LocationProbe />} />
+              </Routes>
+            </MemoryRouter>
+          ),
+        });
+        await Promise.resolve();
       });
 
       await waitFor(() => {
         expect(proxy.isGuildItemVisible({ testId: `GUILD_ITEM_${guild.id}` })).toBe(true);
       });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await proxy.clickGuildItem({ testId: `GUILD_ITEM_${guild.id}` });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        await proxy.clickGuildItem({ testId: `GUILD_ITEM_${guild.id}` });
+        await Promise.resolve();
       });
 
       // Default filter is "Quests Only" which renders quest rows, not session
       // rows. To click the underlying session row, switch to "All" first.
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await proxy.selectAllSessionsFilter();
-          await Promise.resolve();
-        },
+      await act(async () => {
+        await proxy.selectAllSessionsFilter();
+        await Promise.resolve();
       });
 
       await waitFor(() => {
@@ -515,11 +476,9 @@ describe('HomeContentWidget', () => {
         expect(sessionEl.tagName).toBe('BUTTON');
       });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await proxy.clickSessionItem({ testId: `SESSION_ITEM_${sessionId}` });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        await proxy.clickSessionItem({ testId: `SESSION_ITEM_${sessionId}` });
+        await Promise.resolve();
       });
 
       await waitFor(() => {
@@ -550,49 +509,43 @@ describe('HomeContentWidget', () => {
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupSessions({ sessions: [session] });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          mantineRenderAdapter({
-            ui: (
-              <MemoryRouter initialEntries={['/']}>
-                <Routes>
-                  <Route
-                    path="/"
-                    element={
-                      <>
-                        <HomeContentWidget />
-                        <LocationProbe />
-                      </>
-                    }
-                  />
-                  <Route path="/:guildSlug/quest" element={<LocationProbe />} />
-                  <Route path="/:guildSlug/quest/:questId" element={<LocationProbe />} />
-                  <Route path="/:guildSlug/session/:sessionId" element={<LocationProbe />} />
-                </Routes>
-              </MemoryRouter>
-            ),
-          });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        mantineRenderAdapter({
+          ui: (
+            <MemoryRouter initialEntries={['/']}>
+              <Routes>
+                <Route
+                  path="/"
+                  element={
+                    <>
+                      <HomeContentWidget />
+                      <LocationProbe />
+                    </>
+                  }
+                />
+                <Route path="/:guildSlug/quest" element={<LocationProbe />} />
+                <Route path="/:guildSlug/quest/:questId" element={<LocationProbe />} />
+                <Route path="/:guildSlug/session/:sessionId" element={<LocationProbe />} />
+              </Routes>
+            </MemoryRouter>
+          ),
+        });
+        await Promise.resolve();
       });
 
       await waitFor(() => {
         expect(proxy.isGuildItemVisible({ testId: `GUILD_ITEM_${guild.id}` })).toBe(true);
       });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await proxy.clickGuildItem({ testId: `GUILD_ITEM_${guild.id}` });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        await proxy.clickGuildItem({ testId: `GUILD_ITEM_${guild.id}` });
+        await Promise.resolve();
       });
 
       // Orphan filter — toggle to "All" so the no-quest row is visible
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await proxy.selectAllSessionsFilter();
-          await Promise.resolve();
-        },
+      await act(async () => {
+        await proxy.selectAllSessionsFilter();
+        await Promise.resolve();
       });
 
       await waitFor(() => {
@@ -601,11 +554,9 @@ describe('HomeContentWidget', () => {
         expect(sessionEl.tagName).toBe('BUTTON');
       });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await proxy.clickSessionItem({ testId: `SESSION_ITEM_${sessionId}` });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        await proxy.clickSessionItem({ testId: `SESSION_ITEM_${sessionId}` });
+        await Promise.resolve();
       });
 
       await waitFor(() => {
@@ -631,38 +582,32 @@ describe('HomeContentWidget', () => {
       proxy.setupGuilds({ guilds: [] });
       proxy.setupSessions({ sessions: [] });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          mantineRenderAdapter({
-            ui: (
-              <MemoryRouter>
-                <HomeContentWidget />
-              </MemoryRouter>
-            ),
-          });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        mantineRenderAdapter({
+          ui: (
+            <MemoryRouter>
+              <HomeContentWidget />
+            </MemoryRouter>
+          ),
+        });
+        await Promise.resolve();
       });
 
       await waitFor(() => {
         expect(proxy.isNewGuildTitleVisible()).toBe(true);
       });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await proxy.typeGuildName({ value: 'fail-guild' });
-          await proxy.typeGuildPath({ value: '/home/user/fail-guild' });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        await proxy.typeGuildName({ value: 'fail-guild' });
+        await proxy.typeGuildPath({ value: '/home/user/fail-guild' });
+        await Promise.resolve();
       });
 
       proxy.setupCreateGuildError();
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await proxy.clickCreateGuild();
-          await Promise.resolve();
-        },
+      await act(async () => {
+        await proxy.clickCreateGuild();
+        await Promise.resolve();
       });
 
       await waitFor(() => {
@@ -708,37 +653,31 @@ describe('HomeContentWidget', () => {
       proxy.setupQuests({ quests: [quest] });
       proxy.setupDeleteQuest();
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          mantineRenderAdapter({
-            ui: (
-              <MemoryRouter>
-                <HomeContentWidget />
-              </MemoryRouter>
-            ),
-          });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        mantineRenderAdapter({
+          ui: (
+            <MemoryRouter>
+              <HomeContentWidget />
+            </MemoryRouter>
+          ),
+        });
+        await Promise.resolve();
       });
 
       await waitFor(() => {
         expect(screen.getByTestId(`QUEST_DELETE_${questId}`).tagName).toBe('BUTTON');
       });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await proxy.clickDeleteButton({ testId: `QUEST_DELETE_${questId}` });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        await proxy.clickDeleteButton({ testId: `QUEST_DELETE_${questId}` });
+        await Promise.resolve();
       });
 
       proxy.setupQuests({ quests: [] });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await proxy.clickBanish();
-          await Promise.resolve();
-        },
+      await act(async () => {
+        await proxy.clickBanish();
+        await Promise.resolve();
       });
 
       await waitFor(() => {
@@ -774,35 +713,29 @@ describe('HomeContentWidget', () => {
         message: 'Quest is currently running',
       });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          mantineRenderAdapter({
-            ui: (
-              <MemoryRouter>
-                <HomeContentWidget />
-              </MemoryRouter>
-            ),
-          });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        mantineRenderAdapter({
+          ui: (
+            <MemoryRouter>
+              <HomeContentWidget />
+            </MemoryRouter>
+          ),
+        });
+        await Promise.resolve();
       });
 
       await waitFor(() => {
         expect(screen.getByTestId(`QUEST_DELETE_${questId}`).tagName).toBe('BUTTON');
       });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await proxy.clickDeleteButton({ testId: `QUEST_DELETE_${questId}` });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        await proxy.clickDeleteButton({ testId: `QUEST_DELETE_${questId}` });
+        await Promise.resolve();
       });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await proxy.clickBanish();
-          await Promise.resolve();
-        },
+      await act(async () => {
+        await proxy.clickBanish();
+        await Promise.resolve();
       });
 
       await waitFor(() => {
@@ -840,35 +773,29 @@ describe('HomeContentWidget', () => {
       proxy.setupQuests({ quests: [quest] });
       proxy.setupDeleteQuestRejectsWithoutMessage({ questId, guildId });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          mantineRenderAdapter({
-            ui: (
-              <MemoryRouter>
-                <HomeContentWidget />
-              </MemoryRouter>
-            ),
-          });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        mantineRenderAdapter({
+          ui: (
+            <MemoryRouter>
+              <HomeContentWidget />
+            </MemoryRouter>
+          ),
+        });
+        await Promise.resolve();
       });
 
       await waitFor(() => {
         expect(screen.getByTestId(`QUEST_DELETE_${questId}`).tagName).toBe('BUTTON');
       });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await proxy.clickDeleteButton({ testId: `QUEST_DELETE_${questId}` });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        await proxy.clickDeleteButton({ testId: `QUEST_DELETE_${questId}` });
+        await Promise.resolve();
       });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await proxy.clickBanish();
-          await Promise.resolve();
-        },
+      await act(async () => {
+        await proxy.clickBanish();
+        await Promise.resolve();
       });
 
       await waitFor(() => {
@@ -907,17 +834,15 @@ describe('HomeContentWidget', () => {
         ],
       });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          mantineRenderAdapter({
-            ui: (
-              <MemoryRouter>
-                <HomeContentWidget />
-              </MemoryRouter>
-            ),
-          });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        mantineRenderAdapter({
+          ui: (
+            <MemoryRouter>
+              <HomeContentWidget />
+            </MemoryRouter>
+          ),
+        });
+        await Promise.resolve();
       });
 
       await waitFor(() => {
@@ -946,17 +871,15 @@ describe('HomeContentWidget', () => {
         quests: [QuestListItemStub({ id: QuestIdStub({ value: 'only-quest' }) })],
       });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          mantineRenderAdapter({
-            ui: (
-              <MemoryRouter>
-                <HomeContentWidget />
-              </MemoryRouter>
-            ),
-          });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        mantineRenderAdapter({
+          ui: (
+            <MemoryRouter>
+              <HomeContentWidget />
+            </MemoryRouter>
+          ),
+        });
+        await Promise.resolve();
       });
 
       await waitFor(() => {

@@ -18,8 +18,7 @@ import {
 
 import { questStatusMetadataStatics } from '@dungeonmaster/shared/statics';
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
-import { testingLibraryActAdapter } from '../../adapters/testing-library/act/testing-library-act-adapter';
-import { testingLibraryWaitForAdapter } from '../../adapters/testing-library/wait-for/testing-library-wait-for-adapter';
+import { act, waitFor } from '#gateway/npm/testing-library__react';
 import { elapsedDisplayConfigStatics } from '../../statics/elapsed-display-config/elapsed-display-config-statics';
 import { ExecutionPanelWidget } from './execution-panel-widget';
 import { ExecutionPanelWidgetProxy } from './execution-panel-widget.proxy';
@@ -193,12 +192,10 @@ describe('ExecutionPanelWidget', () => {
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(screen.getByTestId('execution-status-bar-layer-widget').textContent).toBe(
-            'EXECUTION2/6 STEPS',
-          );
-        },
+      await waitFor(() => {
+        expect(screen.getByTestId('execution-status-bar-layer-widget').textContent).toBe(
+          'EXECUTION2/6 STEPS',
+        );
       });
 
       expect(screen.getByTestId('execution-status-bar-layer-widget').textContent).toBe(
@@ -221,12 +218,10 @@ describe('ExecutionPanelWidget', () => {
         ui: <ExecutionPanelWidget quest={quest} />,
       });
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(screen.getByTestId('execution-status-bar-layer-widget').textContent).toBe(
-            'EXECUTION3/3 STEPS',
-          );
-        },
+      await waitFor(() => {
+        expect(screen.getByTestId('execution-status-bar-layer-widget').textContent).toBe(
+          'EXECUTION3/3 STEPS',
+        );
       });
 
       expect(screen.getByTestId('execution-status-bar-layer-widget').textContent).toBe(
@@ -1952,11 +1947,9 @@ describe('ExecutionPanelWidget', () => {
       // the SAME expression on the SAME render — so whichever update React folds in first, the commit
       // this act() flushes can only ever see the CURRENT status, never a torn pairing of stale status
       // with fresh now (or vice versa).
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.fireTickWithoutAct();
-          rerender(<ExecutionPanelWidget quest={pausedQuest} />);
-        },
+      act(() => {
+        proxy.fireTickWithoutAct();
+        rerender(<ExecutionPanelWidget quest={pausedQuest} />);
       });
 
       expect(proxy.getRowDurations()).toStrictEqual([]);

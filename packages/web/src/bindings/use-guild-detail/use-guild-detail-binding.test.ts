@@ -1,7 +1,6 @@
 import { GuildIdStub, GuildStub } from '@dungeonmaster/shared/contracts';
 
-import { testingLibraryRenderHookAdapter } from '../../adapters/testing-library/render-hook/testing-library-render-hook-adapter';
-import { testingLibraryWaitForAdapter } from '../../adapters/testing-library/wait-for/testing-library-wait-for-adapter';
+import { renderHook, waitFor } from '#gateway/npm/testing-library__react';
 
 import { useGuildDetailBinding } from './use-guild-detail-binding';
 import { useGuildDetailBindingProxy } from './use-guild-detail-binding.proxy';
@@ -14,16 +13,12 @@ describe('useGuildDetailBinding', () => {
 
       proxy.setupGuild({ guild });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useGuildDetailBinding({ guildId: guild.id }),
-      });
+      const { result } = renderHook(() => useGuildDetailBinding({ guildId: guild.id }));
 
       const currentState = (): ReturnType<typeof useGuildDetailBinding> => result.current;
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().loading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(currentState().loading).toBe(false);
       });
 
       expect(result.current).toStrictEqual({
@@ -39,9 +34,7 @@ describe('useGuildDetailBinding', () => {
     it('EMPTY: {guildId: null} => returns null data without loading', () => {
       useGuildDetailBindingProxy();
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useGuildDetailBinding({ guildId: null }),
-      });
+      const { result } = renderHook(() => useGuildDetailBinding({ guildId: null }));
 
       expect(result.current).toStrictEqual({
         data: null,
@@ -59,16 +52,12 @@ describe('useGuildDetailBinding', () => {
 
       proxy.setupError();
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useGuildDetailBinding({ guildId }),
-      });
+      const { result } = renderHook(() => useGuildDetailBinding({ guildId }));
 
       const currentState = (): ReturnType<typeof useGuildDetailBinding> => result.current;
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().loading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(currentState().loading).toBe(false);
       });
 
       const { error } = result.current;
@@ -90,17 +79,13 @@ describe('useGuildDetailBinding', () => {
       const testGuildId = GuildIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' });
       proxy.setupOuterCatchTrigger({ guildId: testGuildId });
 
-      testingLibraryRenderHookAdapter({
-        renderCallback: () => useGuildDetailBinding({ guildId: testGuildId }),
-      });
+      renderHook(() => useGuildDetailBinding({ guildId: testGuildId }));
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          const loggedError = proxy.getConsoleErrorCalls()[0]?.[1];
+      await waitFor(() => {
+        const loggedError = proxy.getConsoleErrorCalls()[0]?.[1];
 
-          expect(loggedError).toBeInstanceOf(Error);
-          expect(proxy.getConsoleErrorCalls()).toStrictEqual([['[use-guild-detail]', loggedError]]);
-        },
+        expect(loggedError).toBeInstanceOf(Error);
+        expect(proxy.getConsoleErrorCalls()).toStrictEqual([['[use-guild-detail]', loggedError]]);
       });
 
       const loggedError = proxy.getConsoleErrorCalls()[0]?.[1];

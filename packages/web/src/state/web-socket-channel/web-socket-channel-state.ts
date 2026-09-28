@@ -18,11 +18,11 @@ import type {
 } from '@dungeonmaster/shared/contracts';
 import { wsMessageContract } from '@dungeonmaster/shared/contracts';
 
-import { rxjsFilterAdapter } from '../../adapters/rxjs/filter/rxjs-filter-adapter';
-import { rxjsMergeAdapter } from '../../adapters/rxjs/merge/rxjs-merge-adapter';
-import { rxjsOfAdapter } from '../../adapters/rxjs/of/rxjs-of-adapter';
-import { rxjsSubjectAdapter } from '../../adapters/rxjs/subject/rxjs-subject-adapter';
-import { websocketConnectAdapter } from '../../adapters/websocket/connect/websocket-connect-adapter';
+import { connect } from '#gateway/browser/WebSocket';
+import type { Observable } from '#gateway/npm/rxjs';
+import { merge, of, Subject } from '#gateway/npm/rxjs';
+import { filter } from '#gateway/npm/rxjs__operators';
+
 import { chatCompletePayloadContract } from '../../contracts/chat-complete-payload/chat-complete-payload-contract';
 import { chatHistoryCompletePayloadContract } from '../../contracts/chat-history-complete-payload/chat-history-complete-payload-contract';
 import { chatOutputPayloadContract } from '../../contracts/chat-output-payload/chat-output-payload-contract';
@@ -39,10 +39,9 @@ import type { WsUrl } from '../../contracts/ws-url/ws-url-contract';
 
 type WardResultId = WardResult['id'];
 
-type WsConnection = ReturnType<typeof websocketConnectAdapter>;
+type WsConnection = ReturnType<typeof connect>;
 
-type SubjectAdapter<T> = ReturnType<typeof rxjsSubjectAdapter<T>>;
-type ChannelObservable<T> = SubjectAdapter<T>['observable'];
+type ChannelObservable<T> = Observable<T>;
 
 const RECONNECT_DELAY_MS_VALUE = 3000;
 
@@ -52,32 +51,32 @@ const internalState: {
   isOpen: boolean;
   reconnectTimer: ReturnType<typeof setTimeout> | null;
   shouldReconnect: boolean;
-  chatOutputSubject: SubjectAdapter<ChatOutputPayload>;
-  chatStreamEndedSubject: SubjectAdapter<ChatStreamEndedPayload>;
-  clarificationRequestSubject: SubjectAdapter<ClarificationRequestPayload>;
-  questUpdatedSubject: SubjectAdapter<Quest>;
-  questLoadFailedSubject: SubjectAdapter<QuestLoadFailedPayload>;
-  executionQueueChangedSubject: SubjectAdapter<undefined>;
-  rateLimitsChangedSubject: SubjectAdapter<undefined>;
-  dispatchStateChangedSubject: SubjectAdapter<undefined>;
-  wardDetailResponseSubject: SubjectAdapter<WardDetailResponse>;
-  opensSubject: SubjectAdapter<undefined>;
+  chatOutputSubject: Subject<ChatOutputPayload>;
+  chatStreamEndedSubject: Subject<ChatStreamEndedPayload>;
+  clarificationRequestSubject: Subject<ClarificationRequestPayload>;
+  questUpdatedSubject: Subject<Quest>;
+  questLoadFailedSubject: Subject<QuestLoadFailedPayload>;
+  executionQueueChangedSubject: Subject<undefined>;
+  rateLimitsChangedSubject: Subject<undefined>;
+  dispatchStateChangedSubject: Subject<undefined>;
+  wardDetailResponseSubject: Subject<WardDetailResponse>;
+  opensSubject: Subject<undefined>;
 } = {
   socket: null,
   url: null,
   isOpen: false,
   reconnectTimer: null,
   shouldReconnect: false,
-  chatOutputSubject: rxjsSubjectAdapter<ChatOutputPayload>(),
-  chatStreamEndedSubject: rxjsSubjectAdapter<ChatStreamEndedPayload>(),
-  clarificationRequestSubject: rxjsSubjectAdapter<ClarificationRequestPayload>(),
-  questUpdatedSubject: rxjsSubjectAdapter<Quest>(),
-  questLoadFailedSubject: rxjsSubjectAdapter<QuestLoadFailedPayload>(),
-  executionQueueChangedSubject: rxjsSubjectAdapter<undefined>(),
-  rateLimitsChangedSubject: rxjsSubjectAdapter<undefined>(),
-  dispatchStateChangedSubject: rxjsSubjectAdapter<undefined>(),
-  wardDetailResponseSubject: rxjsSubjectAdapter<WardDetailResponse>(),
-  opensSubject: rxjsSubjectAdapter<undefined>(),
+  chatOutputSubject: new Subject<ChatOutputPayload>(),
+  chatStreamEndedSubject: new Subject<ChatStreamEndedPayload>(),
+  clarificationRequestSubject: new Subject<ClarificationRequestPayload>(),
+  questUpdatedSubject: new Subject<Quest>(),
+  questLoadFailedSubject: new Subject<QuestLoadFailedPayload>(),
+  executionQueueChangedSubject: new Subject<undefined>(),
+  rateLimitsChangedSubject: new Subject<undefined>(),
+  dispatchStateChangedSubject: new Subject<undefined>(),
+  wardDetailResponseSubject: new Subject<WardDetailResponse>(),
+  opensSubject: new Subject<undefined>(),
 };
 
 export const webSocketChannelState = {
@@ -116,7 +115,7 @@ export const webSocketChannelState = {
       internalState.reconnectTimer = null;
     }
 
-    internalState.socket = websocketConnectAdapter({
+    internalState.socket = connect({
       url: internalState.url,
       onMessage: webSocketChannelState.dispatchInbound,
       onOpen: (): void => {
@@ -205,33 +204,28 @@ export const webSocketChannelState = {
   isConnected: (): boolean => internalState.isOpen,
 
   chatOutput$: (): ChannelObservable<ChatOutputPayload> =>
-    internalState.chatOutputSubject.observable,
+    internalState.chatOutputSubject.asObservable(),
   chatStreamEnded$: (): ChannelObservable<ChatStreamEndedPayload> =>
-    internalState.chatStreamEndedSubject.observable,
+    internalState.chatStreamEndedSubject.asObservable(),
   clarificationRequest$: (): ChannelObservable<ClarificationRequestPayload> =>
-    internalState.clarificationRequestSubject.observable,
-  questUpdated$: (): ChannelObservable<Quest> => internalState.questUpdatedSubject.observable,
+    internalState.clarificationRequestSubject.asObservable(),
+  questUpdated$: (): ChannelObservable<Quest> => internalState.questUpdatedSubject.asObservable(),
   questLoadFailed$: (): ChannelObservable<QuestLoadFailedPayload> =>
-    internalState.questLoadFailedSubject.observable,
+    internalState.questLoadFailedSubject.asObservable(),
   executionQueueChanged$: (): ChannelObservable<undefined> =>
-    internalState.executionQueueChangedSubject.observable,
+    internalState.executionQueueChangedSubject.asObservable(),
   rateLimitsChanged$: (): ChannelObservable<undefined> =>
-    internalState.rateLimitsChangedSubject.observable,
+    internalState.rateLimitsChangedSubject.asObservable(),
   dispatchStateChanged$: (): ChannelObservable<undefined> =>
-    internalState.dispatchStateChangedSubject.observable,
+    internalState.dispatchStateChangedSubject.asObservable(),
   wardDetailResponse$: (): ChannelObservable<WardDetailResponse> =>
-    internalState.wardDetailResponseSubject.observable,
+    internalState.wardDetailResponseSubject.asObservable(),
 
   opens$: (): ChannelObservable<undefined> =>
-    rxjsMergeAdapter<undefined>({
-      sources: [
-        rxjsFilterAdapter<undefined>({
-          source: rxjsOfAdapter<undefined>({ value: undefined }),
-          predicate: (): boolean => internalState.isOpen,
-        }),
-        internalState.opensSubject.observable,
-      ],
-    }),
+    merge(
+      of<undefined>(undefined).pipe(filter((): boolean => internalState.isOpen)),
+      internalState.opensSubject.asObservable(),
+    ),
 
   sendSubscribeQuest: ({ questId }: { questId: QuestId }): boolean => {
     if (internalState.socket === null) return false;

@@ -1,8 +1,7 @@
 import { RateLimitsSnapshotStub, RateLimitWindowStub } from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
-import { testingLibraryActAdapter } from '../../adapters/testing-library/act/testing-library-act-adapter';
-import { testingLibraryWaitForAdapter } from '../../adapters/testing-library/wait-for/testing-library-wait-for-adapter';
+import { act, waitFor } from '#gateway/npm/testing-library__react';
 import { RateLimitsStackWidget } from './rate-limits-stack-widget';
 import { RateLimitsStackWidgetProxy } from './rate-limits-stack-widget.proxy';
 
@@ -21,12 +20,10 @@ describe('RateLimitsStackWidget', () => {
       ui: <RateLimitsStackWidget />,
     });
 
-    await testingLibraryWaitForAdapter({
-      callback: () => {
-        expect(getByTestId('RATE_LIMITS_STACK').getAttribute('data-testid')).toBe(
-          'RATE_LIMITS_STACK',
-        );
-      },
+    await waitFor(() => {
+      expect(getByTestId('RATE_LIMITS_STACK').getAttribute('data-testid')).toBe(
+        'RATE_LIMITS_STACK',
+      );
     });
 
     expect(getByTestId('RATE_LIMIT_CARD_5H').textContent).toMatch(/^\[ 5h.*42%.*\]$/u);
@@ -74,10 +71,8 @@ describe('RateLimitsStackWidget', () => {
       ui: <RateLimitsStackWidget />,
     });
 
-    await testingLibraryWaitForAdapter({
-      callback: () => {
-        expect(getByTestId('RATE_LIMIT_CARD_5H').textContent).toMatch(/^\[ 5h.*42%.*\]$/u);
-      },
+    await waitFor(() => {
+      expect(getByTestId('RATE_LIMIT_CARD_5H').textContent).toMatch(/^\[ 5h.*42%.*\]$/u);
     });
 
     proxy.setupSnapshot({
@@ -87,22 +82,18 @@ describe('RateLimitsStackWidget', () => {
       }),
     });
 
-    testingLibraryActAdapter({
-      callback: () => {
-        proxy.deliverWsMessage({
-          data: JSON.stringify({
-            type: 'rate-limits-updated',
-            payload: {},
-            timestamp: '2026-05-05T13:00:00.000Z',
-          }),
-        });
-      },
+    act(() => {
+      proxy.deliverWsMessage({
+        data: JSON.stringify({
+          type: 'rate-limits-updated',
+          payload: {},
+          timestamp: '2026-05-05T13:00:00.000Z',
+        }),
+      });
     });
 
-    await testingLibraryWaitForAdapter({
-      callback: () => {
-        expect(getByTestId('RATE_LIMIT_CARD_5H').textContent).toMatch(/^\[ 5h.*81%.*\]$/u);
-      },
+    await waitFor(() => {
+      expect(getByTestId('RATE_LIMIT_CARD_5H').textContent).toMatch(/^\[ 5h.*81%.*\]$/u);
     });
 
     expect(getByTestId('RATE_LIMIT_CARD_5H').textContent).toMatch(/^\[ 5h.*81%.*\]$/u);

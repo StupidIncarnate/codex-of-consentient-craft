@@ -1,8 +1,6 @@
 import { GuildListItemStub } from '@dungeonmaster/shared/contracts';
 
-import { testingLibraryActAdapter } from '../../adapters/testing-library/act/testing-library-act-adapter';
-import { testingLibraryRenderHookAdapter } from '../../adapters/testing-library/render-hook/testing-library-render-hook-adapter';
-import { testingLibraryWaitForAdapter } from '../../adapters/testing-library/wait-for/testing-library-wait-for-adapter';
+import { act, renderHook, waitFor } from '#gateway/npm/testing-library__react';
 
 import { useGuildsBinding } from './use-guilds-binding';
 import { useGuildsBindingProxy } from './use-guilds-binding.proxy';
@@ -13,9 +11,7 @@ describe('useGuildsBinding', () => {
       const proxy = useGuildsBindingProxy();
       proxy.setupGuilds({ guilds: [] });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useGuildsBinding(),
-      });
+      const { result } = renderHook(() => useGuildsBinding());
 
       expect(result.current).toStrictEqual({
         guilds: [],
@@ -36,16 +32,12 @@ describe('useGuildsBinding', () => {
 
       proxy.setupGuilds({ guilds });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useGuildsBinding(),
-      });
+      const { result } = renderHook(() => useGuildsBinding());
 
       const currentState = (): ReturnType<typeof useGuildsBinding> => result.current;
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().loading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(currentState().loading).toBe(false);
       });
 
       expect(result.current).toStrictEqual({
@@ -62,16 +54,12 @@ describe('useGuildsBinding', () => {
       const proxy = useGuildsBindingProxy();
       proxy.setupGuilds({ guilds: [] });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useGuildsBinding(),
-      });
+      const { result } = renderHook(() => useGuildsBinding());
 
       const currentState = (): ReturnType<typeof useGuildsBinding> => result.current;
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().loading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(currentState().loading).toBe(false);
       });
 
       expect(result.current).toStrictEqual({
@@ -88,16 +76,12 @@ describe('useGuildsBinding', () => {
       const proxy = useGuildsBindingProxy();
       proxy.setupError();
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useGuildsBinding(),
-      });
+      const { result } = renderHook(() => useGuildsBinding());
 
       const currentState = (): ReturnType<typeof useGuildsBinding> => result.current;
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().loading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(currentState().loading).toBe(false);
       });
 
       const { error } = result.current;
@@ -120,16 +104,12 @@ describe('useGuildsBinding', () => {
         guilds: [GuildListItemStub({ id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479', name: 'First' })],
       });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useGuildsBinding(),
-      });
+      const { result } = renderHook(() => useGuildsBinding());
 
       const currentState = (): ReturnType<typeof useGuildsBinding> => result.current;
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().loading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(currentState().loading).toBe(false);
       });
 
       proxy.setupGuilds({
@@ -141,18 +121,14 @@ describe('useGuildsBinding', () => {
 
       const { refresh } = result.current;
 
-      testingLibraryActAdapter({
-        callback: () => {
-          refresh().catch((error: unknown) => {
-            globalThis.console.error('[test] refresh failed', error);
-          });
-        },
+      act(() => {
+        refresh().catch((error: unknown) => {
+          globalThis.console.error('[test] refresh failed', error);
+        });
       });
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().loading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(currentState().loading).toBe(false);
       });
 
       expect(result.current).toStrictEqual({
@@ -172,16 +148,12 @@ describe('useGuildsBinding', () => {
       const proxy = useGuildsBindingProxy();
       proxy.setupError();
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useGuildsBinding(),
-      });
+      const { result } = renderHook(() => useGuildsBinding());
 
       const currentState = (): ReturnType<typeof useGuildsBinding> => result.current;
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().loading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(currentState().loading).toBe(false);
       });
 
       const { error } = result.current;
@@ -202,17 +174,13 @@ describe('useGuildsBinding', () => {
       const proxy = useGuildsBindingProxy();
       proxy.setupOuterCatchTrigger();
 
-      testingLibraryRenderHookAdapter({
-        renderCallback: () => useGuildsBinding(),
-      });
+      renderHook(() => useGuildsBinding());
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          const loggedError = proxy.getConsoleErrorCalls()[0]?.[1];
+      await waitFor(() => {
+        const loggedError = proxy.getConsoleErrorCalls()[0]?.[1];
 
-          expect(loggedError).toBeInstanceOf(Error);
-          expect(proxy.getConsoleErrorCalls()).toStrictEqual([['[use-guilds]', loggedError]]);
-        },
+        expect(loggedError).toBeInstanceOf(Error);
+        expect(proxy.getConsoleErrorCalls()).toStrictEqual([['[use-guilds]', loggedError]]);
       });
 
       const loggedError = proxy.getConsoleErrorCalls()[0]?.[1];

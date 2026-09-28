@@ -13,7 +13,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
-import { testingLibraryActAsyncAdapter } from '../../adapters/testing-library/act-async/testing-library-act-async-adapter';
+import { act } from '#gateway/npm/testing-library__react';
 import { HomeContentWidget } from '../home-content/home-content-widget';
 import { QuestChatWidget } from '../quest-chat/quest-chat-widget';
 import { SessionViewWidget } from '../session-view/session-view-widget';
@@ -50,11 +50,9 @@ describe('AppWidget', () => {
         entries: [QuestQueueEntryStub({ questId: 'q-head', questTitle: 'Head Quest' })],
       });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          renderApp();
-          await Promise.resolve();
-        },
+      await act(async () => {
+        renderApp();
+        await Promise.resolve();
       });
 
       await waitFor(() => {
@@ -72,11 +70,9 @@ describe('AppWidget', () => {
       proxy.setupMountDefaults();
       proxy.setupGuilds({ guilds: [] });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          renderApp();
-          await Promise.resolve();
-        },
+      await act(async () => {
+        renderApp();
+        await Promise.resolve();
       });
 
       await waitFor(() => {
@@ -97,11 +93,9 @@ describe('AppWidget', () => {
 
       proxy.setupGuilds({ guilds });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          renderApp();
-          await Promise.resolve();
-        },
+      await act(async () => {
+        renderApp();
+        await Promise.resolve();
       });
 
       await waitFor(() => {
@@ -119,11 +113,9 @@ describe('AppWidget', () => {
 
       proxy.setupGuilds({ guilds });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          renderApp();
-          await Promise.resolve();
-        },
+      await act(async () => {
+        renderApp();
+        await Promise.resolve();
       });
 
       await waitFor(() => {
@@ -148,11 +140,9 @@ describe('AppWidget', () => {
 
       proxy.setupGuilds({ guilds });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          renderApp();
-          await Promise.resolve();
-        },
+      await act(async () => {
+        renderApp();
+        await Promise.resolve();
       });
 
       await waitFor(() => {
@@ -161,11 +151,9 @@ describe('AppWidget', () => {
 
       proxy.setupSessions({ sessions });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await proxy.clickGuildItem({ testId: `GUILD_ITEM_${guild.id}` });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        await proxy.clickGuildItem({ testId: `GUILD_ITEM_${guild.id}` });
+        await Promise.resolve();
       });
 
       await waitFor(() => {
@@ -187,11 +175,9 @@ describe('AppWidget', () => {
 
       proxy.setupGuilds({ guilds });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          renderApp();
-          await Promise.resolve();
-        },
+      await act(async () => {
+        renderApp();
+        await Promise.resolve();
       });
 
       await waitFor(() => {
@@ -200,25 +186,19 @@ describe('AppWidget', () => {
 
       proxy.setupSessions({ sessions });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await proxy.clickGuildItem({ testId: `GUILD_ITEM_${guild.id}` });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        await proxy.clickGuildItem({ testId: `GUILD_ITEM_${guild.id}` });
+        await Promise.resolve();
       });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await proxy.selectAllSessionsFilter();
-          await Promise.resolve();
-        },
+      await act(async () => {
+        await proxy.selectAllSessionsFilter();
+        await Promise.resolve();
       });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await proxy.clickSessionItem({ testId: 'SESSION_ITEM_session-1' });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        await proxy.clickSessionItem({ testId: 'SESSION_ITEM_session-1' });
+        await Promise.resolve();
       });
 
       await waitFor(() => {
@@ -242,34 +222,28 @@ describe('AppWidget', () => {
 
       proxy.setupGuilds({ guilds: [] });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          renderApp();
-          await Promise.resolve();
-        },
+      await act(async () => {
+        renderApp();
+        await Promise.resolve();
       });
 
       await waitFor(() => {
         expect(proxy.isNewGuildTitleVisible()).toBe(true);
       });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await proxy.typeGuildName({ value: 'new-guild' });
-          await proxy.typeGuildPath({ value: '/home/user/new-guild' });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        await proxy.typeGuildName({ value: 'new-guild' });
+        await proxy.typeGuildPath({ value: '/home/user/new-guild' });
+        await Promise.resolve();
       });
 
       proxy.setupCreateGuild({ id: guildId });
       proxy.setupGuilds({ guilds: [createdGuild] });
       proxy.setupSessions({ sessions: [] });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await proxy.clickCreateGuild();
-          await Promise.resolve();
-        },
+      await act(async () => {
+        await proxy.clickCreateGuild();
+        await Promise.resolve();
       });
 
       await waitFor(() => {
@@ -291,34 +265,28 @@ describe('AppWidget', () => {
 
       proxy.setupGuilds({ guilds: [] });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          renderApp();
-          await Promise.resolve();
-        },
+      await act(async () => {
+        renderApp();
+        await Promise.resolve();
       });
 
       await waitFor(() => {
         expect(proxy.isNewGuildTitleVisible()).toBe(true);
       });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await proxy.typeGuildName({ value: 'test-guild' });
-          await proxy.typeGuildPath({ value: '/home/user/test-guild' });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        await proxy.typeGuildName({ value: 'test-guild' });
+        await proxy.typeGuildPath({ value: '/home/user/test-guild' });
+        await Promise.resolve();
       });
 
       proxy.setupCreateGuild({ id: guildId });
       proxy.setupGuilds({ guilds: [createdGuild] });
       proxy.setupSessions({ sessions: [] });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await proxy.clickCreateGuild();
-          await Promise.resolve();
-        },
+      await act(async () => {
+        await proxy.clickCreateGuild();
+        await Promise.resolve();
       });
 
       await waitFor(() => {
@@ -344,45 +312,37 @@ describe('AppWidget', () => {
 
       proxy.setupGuilds({ guilds: [existingGuild] });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          renderApp();
-          await Promise.resolve();
-        },
+      await act(async () => {
+        renderApp();
+        await Promise.resolve();
       });
 
       await waitFor(() => {
         expect(proxy.isGuildItemVisible({ testId: `GUILD_ITEM_${existingGuild.id}` })).toBe(true);
       });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await proxy.clickAddGuild();
-          await Promise.resolve();
-        },
+      await act(async () => {
+        await proxy.clickAddGuild();
+        await Promise.resolve();
       });
 
       await waitFor(() => {
         expect(proxy.isNewGuildTitleVisible()).toBe(true);
       });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await proxy.typeGuildName({ value: 'new-guild' });
-          await proxy.typeGuildPath({ value: '/home/user/new-guild' });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        await proxy.typeGuildName({ value: 'new-guild' });
+        await proxy.typeGuildPath({ value: '/home/user/new-guild' });
+        await Promise.resolve();
       });
 
       proxy.setupCreateGuild({ id: newGuildId });
       proxy.setupGuilds({ guilds: [existingGuild, newGuild] });
       proxy.setupSessions({ sessions: [] });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await proxy.clickCreateGuild();
-          await Promise.resolve();
-        },
+      await act(async () => {
+        await proxy.clickCreateGuild();
+        await Promise.resolve();
       });
 
       await waitFor(() => {
@@ -404,33 +364,27 @@ describe('AppWidget', () => {
 
       proxy.setupGuilds({ guilds: [guild] });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          renderApp();
-          await Promise.resolve();
-        },
+      await act(async () => {
+        renderApp();
+        await Promise.resolve();
       });
 
       await waitFor(() => {
         expect(proxy.isGuildItemVisible({ testId: `GUILD_ITEM_${guild.id}` })).toBe(true);
       });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await proxy.clickAddGuild();
-          await Promise.resolve();
-        },
+      await act(async () => {
+        await proxy.clickAddGuild();
+        await Promise.resolve();
       });
 
       await waitFor(() => {
         expect(proxy.isNewGuildTitleVisible()).toBe(true);
       });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await proxy.clickCancelGuild();
-          await Promise.resolve();
-        },
+      await act(async () => {
+        await proxy.clickCancelGuild();
+        await Promise.resolve();
       });
 
       await waitFor(() => {
@@ -446,32 +400,26 @@ describe('AppWidget', () => {
       proxy.setupMountDefaults();
       proxy.setupGuilds({ guilds: [] });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          renderApp();
-          await Promise.resolve();
-        },
+      await act(async () => {
+        renderApp();
+        await Promise.resolve();
       });
 
       await waitFor(() => {
         expect(proxy.isNewGuildTitleVisible()).toBe(true);
       });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await proxy.typeGuildName({ value: 'fail-guild' });
-          await proxy.typeGuildPath({ value: '/home/user/fail-guild' });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        await proxy.typeGuildName({ value: 'fail-guild' });
+        await proxy.typeGuildPath({ value: '/home/user/fail-guild' });
+        await Promise.resolve();
       });
 
       proxy.setupCreateGuildError();
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await proxy.clickCreateGuild();
-          await Promise.resolve();
-        },
+      await act(async () => {
+        await proxy.clickCreateGuild();
+        await Promise.resolve();
       });
 
       await waitFor(() => {
@@ -495,11 +443,9 @@ describe('AppWidget', () => {
 
       proxy.setupGuilds({ guilds: [guild] });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          renderApp();
-          await Promise.resolve();
-        },
+      await act(async () => {
+        renderApp();
+        await Promise.resolve();
       });
 
       await waitFor(() => {
@@ -508,11 +454,9 @@ describe('AppWidget', () => {
 
       proxy.setupSessions({ sessions });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await proxy.clickGuildItem({ testId: `GUILD_ITEM_${guild.id}` });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        await proxy.clickGuildItem({ testId: `GUILD_ITEM_${guild.id}` });
+        await Promise.resolve();
       });
 
       await waitFor(() => {
@@ -533,11 +477,9 @@ describe('AppWidget', () => {
 
       proxy.setupGuilds({ guilds: [guild] });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          renderApp();
-          await Promise.resolve();
-        },
+      await act(async () => {
+        renderApp();
+        await Promise.resolve();
       });
 
       await waitFor(() => {
@@ -546,11 +488,9 @@ describe('AppWidget', () => {
 
       proxy.setupSessions({ sessions: [] });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await proxy.clickGuildItem({ testId: `GUILD_ITEM_${guild.id}` });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        await proxy.clickGuildItem({ testId: `GUILD_ITEM_${guild.id}` });
+        await Promise.resolve();
       });
 
       await waitFor(() => {
@@ -571,11 +511,9 @@ describe('AppWidget', () => {
 
       proxy.setupGuilds({ guilds: [guild] });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          renderApp();
-          await Promise.resolve();
-        },
+      await act(async () => {
+        renderApp();
+        await Promise.resolve();
       });
 
       await waitFor(() => {
@@ -584,11 +522,9 @@ describe('AppWidget', () => {
 
       proxy.setupSessionsError();
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await proxy.clickGuildItem({ testId: `GUILD_ITEM_${guild.id}` });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        await proxy.clickGuildItem({ testId: `GUILD_ITEM_${guild.id}` });
+        await Promise.resolve();
       });
 
       await waitFor(() => {
@@ -612,11 +548,9 @@ describe('AppWidget', () => {
 
       proxy.setupGuilds({ guilds: [guild] });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          renderApp();
-          await Promise.resolve();
-        },
+      await act(async () => {
+        renderApp();
+        await Promise.resolve();
       });
 
       await waitFor(() => {
@@ -625,25 +559,19 @@ describe('AppWidget', () => {
 
       proxy.setupSessions({ sessions });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await proxy.clickGuildItem({ testId: `GUILD_ITEM_${guild.id}` });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        await proxy.clickGuildItem({ testId: `GUILD_ITEM_${guild.id}` });
+        await Promise.resolve();
       });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await proxy.selectAllSessionsFilter();
-          await Promise.resolve();
-        },
+      await act(async () => {
+        await proxy.selectAllSessionsFilter();
+        await Promise.resolve();
       });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await proxy.clickSessionItem({ testId: 'SESSION_ITEM_nav-s1' });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        await proxy.clickSessionItem({ testId: 'SESSION_ITEM_nav-s1' });
+        await Promise.resolve();
       });
 
       await waitFor(() => {
@@ -662,34 +590,28 @@ describe('AppWidget', () => {
 
       proxy.setupGuilds({ guilds: [] });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          renderApp();
-          await Promise.resolve();
-        },
+      await act(async () => {
+        renderApp();
+        await Promise.resolve();
       });
 
       await waitFor(() => {
         expect(proxy.isNewGuildTitleVisible()).toBe(true);
       });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await proxy.typeGuildName({ value: 'auto-guild' });
-          await proxy.typeGuildPath({ value: '/home/user/auto-guild' });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        await proxy.typeGuildName({ value: 'auto-guild' });
+        await proxy.typeGuildPath({ value: '/home/user/auto-guild' });
+        await Promise.resolve();
       });
 
       proxy.setupCreateGuild({ id: guildId });
       proxy.setupGuilds({ guilds: [guild] });
       proxy.setupSessions({ sessions: [] });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await proxy.clickCreateGuild();
-          await Promise.resolve();
-        },
+      await act(async () => {
+        await proxy.clickCreateGuild();
+        await Promise.resolve();
       });
 
       await waitFor(() => {
@@ -714,11 +636,9 @@ describe('AppWidget', () => {
 
       proxy.setupGuilds({ guilds: [guildA, guildB] });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          renderApp();
-          await Promise.resolve();
-        },
+      await act(async () => {
+        renderApp();
+        await Promise.resolve();
       });
 
       await waitFor(() => {
@@ -727,11 +647,9 @@ describe('AppWidget', () => {
 
       proxy.setupSessions({ sessions: [] });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await proxy.clickGuildItem({ testId: `GUILD_ITEM_${guildA.id}` });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        await proxy.clickGuildItem({ testId: `GUILD_ITEM_${guildA.id}` });
+        await Promise.resolve();
       });
 
       await waitFor(() => {
@@ -749,11 +667,9 @@ describe('AppWidget', () => {
       proxy.setupMountDefaults();
       proxy.setupGuilds({ guilds: [] });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          renderApp();
-          await Promise.resolve();
-        },
+      await act(async () => {
+        renderApp();
+        await Promise.resolve();
       });
 
       await waitFor(() => {
@@ -775,11 +691,9 @@ describe('AppWidget', () => {
 
       proxy.setupGuilds({ guilds: [guild] });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          renderApp();
-          await Promise.resolve();
-        },
+      await act(async () => {
+        renderApp();
+        await Promise.resolve();
       });
 
       await waitFor(() => {
@@ -788,25 +702,19 @@ describe('AppWidget', () => {
 
       proxy.setupSessions({ sessions });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await proxy.clickGuildItem({ testId: `GUILD_ITEM_${guild.id}` });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        await proxy.clickGuildItem({ testId: `GUILD_ITEM_${guild.id}` });
+        await Promise.resolve();
       });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await proxy.selectAllSessionsFilter();
-          await Promise.resolve();
-        },
+      await act(async () => {
+        await proxy.selectAllSessionsFilter();
+        await Promise.resolve();
       });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await proxy.clickSessionItem({ testId: 'SESSION_ITEM_logo-s1' });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        await proxy.clickSessionItem({ testId: 'SESSION_ITEM_logo-s1' });
+        await Promise.resolve();
       });
 
       await waitFor(() => {
@@ -815,11 +723,9 @@ describe('AppWidget', () => {
 
       proxy.setupGuilds({ guilds: [guild] });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await proxy.clickLogoLink();
-          await Promise.resolve();
-        },
+      await act(async () => {
+        await proxy.clickLogoLink();
+        await Promise.resolve();
       });
 
       await waitFor(() => {
@@ -838,11 +744,9 @@ describe('AppWidget', () => {
       proxy.setupMountDefaults();
       proxy.setupGuildsError();
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          renderApp();
-          await Promise.resolve();
-        },
+      await act(async () => {
+        renderApp();
+        await Promise.resolve();
       });
 
       await waitFor(() => {
@@ -871,11 +775,9 @@ describe('AppWidget', () => {
 
       proxy.setupGuilds({ guilds: [guildA, guildB, guildC] });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          renderApp();
-          await Promise.resolve();
-        },
+      await act(async () => {
+        renderApp();
+        await Promise.resolve();
       });
 
       await waitFor(() => {
@@ -898,11 +800,9 @@ describe('AppWidget', () => {
 
       proxy.setupGuilds({ guilds: [guild] });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          renderApp();
-          await Promise.resolve();
-        },
+      await act(async () => {
+        renderApp();
+        await Promise.resolve();
       });
 
       await waitFor(() => {
@@ -911,25 +811,19 @@ describe('AppWidget', () => {
 
       proxy.setupSessions({ sessions });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await proxy.clickGuildItem({ testId: `GUILD_ITEM_${guild.id}` });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        await proxy.clickGuildItem({ testId: `GUILD_ITEM_${guild.id}` });
+        await Promise.resolve();
       });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await proxy.selectAllSessionsFilter();
-          await Promise.resolve();
-        },
+      await act(async () => {
+        await proxy.selectAllSessionsFilter();
+        await Promise.resolve();
       });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await proxy.clickSessionItem({ testId: 'SESSION_ITEM_tab-s1' });
-          await Promise.resolve();
-        },
+      await act(async () => {
+        await proxy.clickSessionItem({ testId: 'SESSION_ITEM_tab-s1' });
+        await Promise.resolve();
       });
 
       await waitFor(() => {

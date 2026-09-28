@@ -12,10 +12,7 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
-import { testingLibraryActAdapter } from '../../adapters/testing-library/act/testing-library-act-adapter';
-import { testingLibraryActAsyncAdapter } from '../../adapters/testing-library/act-async/testing-library-act-async-adapter';
-import { testingLibraryRenderHookAdapter } from '../../adapters/testing-library/render-hook/testing-library-render-hook-adapter';
-import { testingLibraryWaitForAdapter } from '../../adapters/testing-library/wait-for/testing-library-wait-for-adapter';
+import { act, renderHook, waitFor } from '#gateway/npm/testing-library__react';
 import { CommentAnchorStub } from '../../contracts/comment-anchor/comment-anchor.stub';
 import { CommentQueueEntryStub } from '../../contracts/comment-queue-entry/comment-queue-entry.stub';
 import { dataUrlBuildTransformer } from '../../transformers/data-url-build/data-url-build-transformer';
@@ -41,9 +38,7 @@ describe('useQuestChatBinding', () => {
       proxy.setupConnectedChannel();
       proxy.setupConnectedChannel();
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId: null }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId: null }));
 
       expect(result.current).toStrictEqual({
         entriesBySession: new Map(),
@@ -74,9 +69,7 @@ describe('useQuestChatBinding', () => {
       proxy.setupConnectedChannel();
       const questId = QuestIdStub({ value: 'quest-sub-1' });
 
-      testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      renderHook(() => useQuestChatBinding({ questId }));
 
       const sentMessages = proxy.getSentWsMessages();
 
@@ -87,9 +80,7 @@ describe('useQuestChatBinding', () => {
       const proxy = useQuestChatBindingProxy();
       proxy.setupConnectedChannel();
 
-      testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId: null }),
-      });
+      renderHook(() => useQuestChatBinding({ questId: null }));
 
       const sentMessages = proxy.getSentWsMessages();
 
@@ -116,20 +107,16 @@ describe('useQuestChatBinding', () => {
       );
       const quest = QuestStub({ id: questId, workItems });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'quest-modified',
-              payload: { questId: 'quest-scale-5', quest },
-              timestamp: '2025-01-01T00:00:00.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-modified',
+            payload: { questId: 'quest-scale-5', quest },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
       });
 
       expect(proxy.getSentWsMessages()).toStrictEqual([
@@ -151,20 +138,16 @@ describe('useQuestChatBinding', () => {
       );
       const quest = QuestStub({ id: questId, workItems });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'quest-modified',
-              payload: { questId: 'quest-scale-60', quest },
-              timestamp: '2025-01-01T00:00:00.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-modified',
+            payload: { questId: 'quest-scale-60', quest },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
       });
 
       expect(proxy.getSentWsMessages()).toStrictEqual([
@@ -183,34 +166,30 @@ describe('useQuestChatBinding', () => {
       const entryUuid = '00000000-0000-4000-8000-000000000001';
       const entryTs = '2025-01-01T00:00:00.000Z';
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'chat-output',
-              payload: {
-                questId: 'quest-out-1',
-                workItemId: QuestWorkItemIdStub(),
-                sessionId,
-                chatProcessId: ProcessIdStub({ value: 'proc-1' }),
-                entries: [
-                  {
-                    role: 'assistant',
-                    type: 'text',
-                    content: 'hello',
-                    uuid: entryUuid,
-                    timestamp: entryTs,
-                  },
-                ],
-              },
-              timestamp: '2025-01-01T00:00:00.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              questId: 'quest-out-1',
+              workItemId: QuestWorkItemIdStub(),
+              sessionId,
+              chatProcessId: ProcessIdStub({ value: 'proc-1' }),
+              entries: [
+                {
+                  role: 'assistant',
+                  type: 'text',
+                  content: 'hello',
+                  uuid: entryUuid,
+                  timestamp: entryTs,
+                },
+              ],
+            },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
       });
 
       const expectedMap = new Map();
@@ -263,25 +242,21 @@ describe('useQuestChatBinding', () => {
       proxy.setupConnectedChannel();
       const questId = QuestIdStub({ value: 'quest-mine' });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'chat-output',
-              payload: {
-                questId: 'quest-other',
-                workItemId: QuestWorkItemIdStub(),
-                chatProcessId: ProcessIdStub({ value: 'proc-2' }),
-                entries: [{ role: 'assistant', type: 'text', content: 'noise' }],
-              },
-              timestamp: '2025-01-01T00:00:00.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              questId: 'quest-other',
+              workItemId: QuestWorkItemIdStub(),
+              chatProcessId: ProcessIdStub({ value: 'proc-2' }),
+              entries: [{ role: 'assistant', type: 'text', content: 'noise' }],
+            },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
       });
 
       expect(result.current).toStrictEqual({
@@ -311,37 +286,33 @@ describe('useQuestChatBinding', () => {
       proxy.setupConnectedChannel();
       const questId = QuestIdStub({ value: 'quest-anchor' });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'chat-output',
-              payload: {
-                workItemId: QuestWorkItemIdStub(),
-                sessionId: SessionIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d480' }),
-                chatProcessId: ProcessIdStub({ value: 'proc-orphan' }),
-                // Fully-formed entries: the payload must be rejected by the questId filter,
-                // not by chatEntryContract. Entries missing uuid/timestamp are dropped as
-                // unparseable before the filter is ever consulted, which passes this
-                // assertion even with no quest scoping at all.
-                entries: [
-                  {
-                    role: 'assistant',
-                    type: 'text',
-                    content: 'orphan',
-                    uuid: '00000000-0000-4000-8000-0000000000a1',
-                    timestamp: '2025-01-01T00:00:00.000Z',
-                  },
-                ],
-              },
-              timestamp: '2025-01-01T00:00:00.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              workItemId: QuestWorkItemIdStub(),
+              sessionId: SessionIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d480' }),
+              chatProcessId: ProcessIdStub({ value: 'proc-orphan' }),
+              // Fully-formed entries: the payload must be rejected by the questId filter,
+              // not by chatEntryContract. Entries missing uuid/timestamp are dropped as
+              // unparseable before the filter is ever consulted, which passes this
+              // assertion even with no quest scoping at all.
+              entries: [
+                {
+                  role: 'assistant',
+                  type: 'text',
+                  content: 'orphan',
+                  uuid: '00000000-0000-4000-8000-0000000000a1',
+                  timestamp: '2025-01-01T00:00:00.000Z',
+                },
+              ],
+            },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
       });
 
       expect(result.current).toStrictEqual({
@@ -371,34 +342,30 @@ describe('useQuestChatBinding', () => {
       proxy.setupConnectedChannel();
       const questId = QuestIdStub({ value: 'quest-being-viewed' });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'chat-output',
-              payload: {
-                questId: 'quest-running-in-another-tab',
-                workItemId: QuestWorkItemIdStub(),
-                sessionId: SessionIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d481' }),
-                chatProcessId: ProcessIdStub({ value: 'proc-other-quest' }),
-                entries: [
-                  {
-                    role: 'assistant',
-                    type: 'text',
-                    content: 'work belonging to the other quest',
-                    uuid: '00000000-0000-4000-8000-0000000000a2',
-                    timestamp: '2025-01-01T00:00:00.000Z',
-                  },
-                ],
-              },
-              timestamp: '2025-01-01T00:00:00.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              questId: 'quest-running-in-another-tab',
+              workItemId: QuestWorkItemIdStub(),
+              sessionId: SessionIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d481' }),
+              chatProcessId: ProcessIdStub({ value: 'proc-other-quest' }),
+              entries: [
+                {
+                  role: 'assistant',
+                  type: 'text',
+                  content: 'work belonging to the other quest',
+                  uuid: '00000000-0000-4000-8000-0000000000a2',
+                  timestamp: '2025-01-01T00:00:00.000Z',
+                },
+              ],
+            },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
       });
 
       expect(result.current).toStrictEqual({
@@ -431,20 +398,16 @@ describe('useQuestChatBinding', () => {
       const questId = QuestIdStub({ value: 'quest-mod-1' });
       const quest = QuestStub({ id: questId });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'quest-modified',
-              payload: { questId: 'quest-mod-1', quest },
-              timestamp: '2025-01-01T00:00:00.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-modified',
+            payload: { questId: 'quest-mod-1', quest },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
       });
 
       expect(result.current).toStrictEqual({
@@ -474,23 +437,19 @@ describe('useQuestChatBinding', () => {
       proxy.setupConnectedChannel();
       const questId = QuestIdStub({ value: 'quest-mine' });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'quest-modified',
-              payload: {
-                questId: 'quest-other',
-                quest: QuestStub({ id: QuestIdStub({ value: 'quest-other' }) }),
-              },
-              timestamp: '2025-01-01T00:00:00.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-modified',
+            payload: {
+              questId: 'quest-other',
+              quest: QuestStub({ id: QuestIdStub({ value: 'quest-other' }) }),
+            },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
       });
 
       expect(result.current).toStrictEqual({
@@ -556,30 +515,26 @@ describe('useQuestChatBinding', () => {
         ],
       });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
-      testingLibraryActAdapter({
-        callback: () => {
-          // Frame A: the work item just finished.
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'quest-modified',
-              payload: { questId: 'quest-stale-order-1', quest: finishedQuest },
-              timestamp: '2025-01-01T00:00:01.000Z',
-            }),
-          });
-          // Frame B: an OLDER-shaped duplicate/replay landing after A, still showing the work item
-          // running with no completedAt.
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'quest-modified',
-              payload: { questId: 'quest-stale-order-1', quest: staleRunningQuest },
-              timestamp: '2025-01-01T00:00:00.000Z',
-            }),
-          });
-        },
+      act(() => {
+        // Frame A: the work item just finished.
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-modified',
+            payload: { questId: 'quest-stale-order-1', quest: finishedQuest },
+            timestamp: '2025-01-01T00:00:01.000Z',
+          }),
+        });
+        // Frame B: an OLDER-shaped duplicate/replay landing after A, still showing the work item
+        // running with no completedAt.
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-modified',
+            payload: { questId: 'quest-stale-order-1', quest: staleRunningQuest },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
       });
 
       expect(result.current.quest).toStrictEqual(finishedQuest);
@@ -626,29 +581,25 @@ describe('useQuestChatBinding', () => {
         ],
       });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
-      testingLibraryActAdapter({
-        callback: () => {
-          // Both frames dispatched inside the SAME act callback, with no await/tick between them —
-          // the same-microtask shape a batched server flush would produce.
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'quest-modified',
-              payload: { questId: 'quest-same-tick-a', quest: finishedQuest },
-              timestamp: '2025-01-01T00:00:00.000Z',
-            }),
-          });
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'quest-modified',
-              payload: { questId: 'quest-same-tick-a', quest: stillRunningQuest },
-              timestamp: '2025-01-01T00:00:00.000Z',
-            }),
-          });
-        },
+      act(() => {
+        // Both frames dispatched inside the SAME act callback, with no await/tick between them —
+        // the same-microtask shape a batched server flush would produce.
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-modified',
+            payload: { questId: 'quest-same-tick-a', quest: finishedQuest },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-modified',
+            payload: { questId: 'quest-same-tick-a', quest: stillRunningQuest },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
       });
 
       expect(result.current.quest).toStrictEqual(finishedQuest);
@@ -684,27 +635,23 @@ describe('useQuestChatBinding', () => {
         ],
       });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'quest-modified',
-              payload: { questId: 'quest-same-tick-b', quest: stillRunningQuest },
-              timestamp: '2025-01-01T00:00:00.000Z',
-            }),
-          });
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'quest-modified',
-              payload: { questId: 'quest-same-tick-b', quest: finishedQuest },
-              timestamp: '2025-01-01T00:00:00.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-modified',
+            payload: { questId: 'quest-same-tick-b', quest: stillRunningQuest },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-modified',
+            payload: { questId: 'quest-same-tick-b', quest: finishedQuest },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
       });
 
       expect(result.current.quest).toStrictEqual(stillRunningQuest);
@@ -717,20 +664,16 @@ describe('useQuestChatBinding', () => {
       proxy.setupConnectedChannel();
       const questId = QuestIdStub({ value: 'quest-broken-1' });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'quest-load-failed',
-              payload: { questId: 'quest-broken-1', error: LOAD_FAILURE_REASON },
-              timestamp: '2025-01-01T00:00:00.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-load-failed',
+            payload: { questId: 'quest-broken-1', error: LOAD_FAILURE_REASON },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
       });
 
       expect(result.current).toStrictEqual({
@@ -760,20 +703,16 @@ describe('useQuestChatBinding', () => {
       proxy.setupConnectedChannel();
       const questId = QuestIdStub({ value: 'quest-mine' });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'quest-load-failed',
-              payload: { questId: 'quest-other', error: LOAD_FAILURE_REASON },
-              timestamp: '2025-01-01T00:00:00.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-load-failed',
+            payload: { questId: 'quest-other', error: LOAD_FAILURE_REASON },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
       });
 
       expect(result.current).toStrictEqual({
@@ -804,32 +743,26 @@ describe('useQuestChatBinding', () => {
       const questId = QuestIdStub({ value: 'quest-repaired-1' });
       const quest = QuestStub({ id: questId });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
+
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-load-failed',
+            payload: { questId: 'quest-repaired-1', error: LOAD_FAILURE_REASON },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
       });
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'quest-load-failed',
-              payload: { questId: 'quest-repaired-1', error: LOAD_FAILURE_REASON },
-              timestamp: '2025-01-01T00:00:00.000Z',
-            }),
-          });
-        },
-      });
-
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'quest-modified',
-              payload: { questId: 'quest-repaired-1', quest },
-              timestamp: '2025-01-01T00:00:01.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-modified',
+            payload: { questId: 'quest-repaired-1', quest },
+            timestamp: '2025-01-01T00:00:01.000Z',
+          }),
+        });
       });
 
       // A stale error beside a quest that now loads would keep the route showing a failure it has
@@ -863,32 +796,28 @@ describe('useQuestChatBinding', () => {
       proxy.setupConnectedChannel();
       const questId = QuestIdStub({ value: 'quest-hist-1' });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'chat-output',
-              payload: {
-                questId: 'quest-hist-1',
-                workItemId: QuestWorkItemIdStub(),
-                chatProcessId: ProcessIdStub({ value: 'proc-h' }),
-                entries: [{ role: 'assistant', type: 'text', content: 'replay' }],
-              },
-              timestamp: '2025-01-01T00:00:00.000Z',
-            }),
-          });
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'chat-history-complete',
-              payload: { chatProcessId: ProcessIdStub({ value: 'proc-h' }) },
-              timestamp: '2025-01-01T00:00:00.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              questId: 'quest-hist-1',
+              workItemId: QuestWorkItemIdStub(),
+              chatProcessId: ProcessIdStub({ value: 'proc-h' }),
+              entries: [{ role: 'assistant', type: 'text', content: 'replay' }],
+            },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-history-complete',
+            payload: { chatProcessId: ProcessIdStub({ value: 'proc-h' }) },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
       });
 
       expect(result.current.isStreaming).toBe(false);
@@ -905,35 +834,31 @@ describe('useQuestChatBinding', () => {
       const entryUuid = '00000000-0000-4000-8000-000000000901';
       const entryTs = '2025-01-01T00:00:00.000Z';
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'chat-output',
-              payload: {
-                questId: 'quest-replay-arm',
-                workItemId,
-                sessionId,
-                replay: true,
-                chatProcessId: ProcessIdStub({ value: 'quest-replay-wi-1' }),
-                entries: [
-                  {
-                    role: 'assistant',
-                    type: 'text',
-                    content: 'from the transcript',
-                    uuid: entryUuid,
-                    timestamp: entryTs,
-                  },
-                ],
-              },
-              timestamp: '2025-01-01T00:00:00.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              questId: 'quest-replay-arm',
+              workItemId,
+              sessionId,
+              replay: true,
+              chatProcessId: ProcessIdStub({ value: 'quest-replay-wi-1' }),
+              entries: [
+                {
+                  role: 'assistant',
+                  type: 'text',
+                  content: 'from the transcript',
+                  uuid: entryUuid,
+                  timestamp: entryTs,
+                },
+              ],
+            },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
       });
 
       const expectedSessionMap = new Map();
@@ -990,89 +915,79 @@ describe('useQuestChatBinding', () => {
       proxy.setupConnectedChannel();
       const questId = QuestIdStub({ value: 'quest-replay-strobe' });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
       const observed: boolean[] = [];
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'chat-output',
-              payload: {
-                questId: 'quest-replay-strobe',
-                workItemId: QuestWorkItemIdStub({ value: '00000000-0000-4000-8000-0000000000a1' }),
-                replay: true,
-                chatProcessId: ProcessIdStub({ value: 'quest-replay-a' }),
-                entries: [
-                  {
-                    role: 'assistant',
-                    type: 'text',
-                    content: 'a',
-                    uuid: '00000000-0000-4000-8000-000000000911',
-                    timestamp: '2025-01-01T00:00:00.000Z',
-                  },
-                ],
-              },
-              timestamp: '2025-01-01T00:00:00.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              questId: 'quest-replay-strobe',
+              workItemId: QuestWorkItemIdStub({ value: '00000000-0000-4000-8000-0000000000a1' }),
+              replay: true,
+              chatProcessId: ProcessIdStub({ value: 'quest-replay-a' }),
+              entries: [
+                {
+                  role: 'assistant',
+                  type: 'text',
+                  content: 'a',
+                  uuid: '00000000-0000-4000-8000-000000000911',
+                  timestamp: '2025-01-01T00:00:00.000Z',
+                },
+              ],
+            },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
       });
       observed.push(result.current.isStreaming);
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'chat-history-complete',
-              payload: { chatProcessId: ProcessIdStub({ value: 'quest-replay-a' }) },
-              timestamp: '2025-01-01T00:00:00.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-history-complete',
+            payload: { chatProcessId: ProcessIdStub({ value: 'quest-replay-a' }) },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
       });
       observed.push(result.current.isStreaming);
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'chat-output',
-              payload: {
-                questId: 'quest-replay-strobe',
-                workItemId: QuestWorkItemIdStub({ value: '00000000-0000-4000-8000-0000000000a2' }),
-                replay: true,
-                chatProcessId: ProcessIdStub({ value: 'quest-replay-b' }),
-                entries: [
-                  {
-                    role: 'assistant',
-                    type: 'text',
-                    content: 'b',
-                    uuid: '00000000-0000-4000-8000-000000000912',
-                    timestamp: '2025-01-01T00:00:01.000Z',
-                  },
-                ],
-              },
-              timestamp: '2025-01-01T00:00:00.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              questId: 'quest-replay-strobe',
+              workItemId: QuestWorkItemIdStub({ value: '00000000-0000-4000-8000-0000000000a2' }),
+              replay: true,
+              chatProcessId: ProcessIdStub({ value: 'quest-replay-b' }),
+              entries: [
+                {
+                  role: 'assistant',
+                  type: 'text',
+                  content: 'b',
+                  uuid: '00000000-0000-4000-8000-000000000912',
+                  timestamp: '2025-01-01T00:00:01.000Z',
+                },
+              ],
+            },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
       });
       observed.push(result.current.isStreaming);
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'chat-history-complete',
-              payload: { chatProcessId: ProcessIdStub({ value: 'quest-replay-b' }) },
-              timestamp: '2025-01-01T00:00:00.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-history-complete',
+            payload: { chatProcessId: ProcessIdStub({ value: 'quest-replay-b' }) },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
       });
       observed.push(result.current.isStreaming);
 
@@ -1084,61 +999,57 @@ describe('useQuestChatBinding', () => {
       proxy.setupConnectedChannel();
       const questId = QuestIdStub({ value: 'quest-replay-then-live' });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'chat-output',
-              payload: {
-                questId: 'quest-replay-then-live',
-                workItemId: QuestWorkItemIdStub(),
-                replay: true,
-                chatProcessId: ProcessIdStub({ value: 'quest-replay-c' }),
-                entries: [
-                  {
-                    role: 'assistant',
-                    type: 'text',
-                    content: 'old',
-                    uuid: '00000000-0000-4000-8000-000000000913',
-                    timestamp: '2025-01-01T00:00:00.000Z',
-                  },
-                ],
-              },
-              timestamp: '2025-01-01T00:00:00.000Z',
-            }),
-          });
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'chat-history-complete',
-              payload: { chatProcessId: ProcessIdStub({ value: 'quest-replay-c' }) },
-              timestamp: '2025-01-01T00:00:00.000Z',
-            }),
-          });
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'chat-output',
-              payload: {
-                questId: 'quest-replay-then-live',
-                workItemId: QuestWorkItemIdStub(),
-                chatProcessId: ProcessIdStub({ value: 'proc-live' }),
-                entries: [
-                  {
-                    role: 'assistant',
-                    type: 'text',
-                    content: 'now',
-                    uuid: '00000000-0000-4000-8000-000000000914',
-                    timestamp: '2025-01-01T00:00:02.000Z',
-                  },
-                ],
-              },
-              timestamp: '2025-01-01T00:00:00.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              questId: 'quest-replay-then-live',
+              workItemId: QuestWorkItemIdStub(),
+              replay: true,
+              chatProcessId: ProcessIdStub({ value: 'quest-replay-c' }),
+              entries: [
+                {
+                  role: 'assistant',
+                  type: 'text',
+                  content: 'old',
+                  uuid: '00000000-0000-4000-8000-000000000913',
+                  timestamp: '2025-01-01T00:00:00.000Z',
+                },
+              ],
+            },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-history-complete',
+            payload: { chatProcessId: ProcessIdStub({ value: 'quest-replay-c' }) },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              questId: 'quest-replay-then-live',
+              workItemId: QuestWorkItemIdStub(),
+              chatProcessId: ProcessIdStub({ value: 'proc-live' }),
+              entries: [
+                {
+                  role: 'assistant',
+                  type: 'text',
+                  content: 'now',
+                  uuid: '00000000-0000-4000-8000-000000000914',
+                  timestamp: '2025-01-01T00:00:02.000Z',
+                },
+              ],
+            },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
       });
 
       expect(result.current.isStreaming).toBe(true);
@@ -1151,30 +1062,26 @@ describe('useQuestChatBinding', () => {
       proxy.setupConnectedChannel();
       const questId = QuestIdStub({ value: 'quest-clarify-1' });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'clarification-request',
-              payload: {
-                chatProcessId: ProcessIdStub({ value: 'proc-c' }),
-                questions: [
-                  {
-                    question: 'Which DB?',
-                    header: 'Database',
-                    options: [{ label: 'Postgres', description: 'Relational' }],
-                    multiSelect: false,
-                  },
-                ],
-              },
-              timestamp: '2025-01-01T00:00:00.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'clarification-request',
+            payload: {
+              chatProcessId: ProcessIdStub({ value: 'proc-c' }),
+              questions: [
+                {
+                  question: 'Which DB?',
+                  header: 'Database',
+                  options: [{ label: 'Postgres', description: 'Relational' }],
+                  multiSelect: false,
+                },
+              ],
+            },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
       });
 
       expect(result.current.pendingClarification).toStrictEqual({
@@ -1202,14 +1109,10 @@ describe('useQuestChatBinding', () => {
       proxy.setupUuids({ uuids: [synthUuid] });
       proxy.setupTimestamps({ timestamps: [synthTs] });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await result.current.sendMessage({ message });
-        },
+      await act(async () => {
+        await result.current.sendMessage({ message });
       });
 
       const synthKey = '__no_session__' as ReturnType<typeof SessionIdStub>;
@@ -1250,14 +1153,10 @@ describe('useQuestChatBinding', () => {
       proxy.setupUuids({ uuids: ['00000000-0000-4000-8000-000000000d01'] });
       proxy.setupTimestamps({ timestamps: ['2026-09-01T00:00:00.000Z'] });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await result.current.sendMessage({ message, images: [image] });
-        },
+      await act(async () => {
+        await result.current.sendMessage({ message, images: [image] });
       });
 
       // The wrong value this turns red against: the binding dropping `images` on the way to the
@@ -1285,16 +1184,12 @@ describe('useQuestChatBinding', () => {
       proxy.setupUuids({ uuids: [userUuid, errorUuid] });
       proxy.setupTimestamps({ timestamps: [userTs, errorTs] });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await expect(result.current.sendMessage({ message })).rejects.toThrow(
-            /^xhrPostWithProgressAdapter: network error posting to \/api\/quests\/quest-send-error-1\/chat$/u,
-          );
-        },
+      await act(async () => {
+        await expect(result.current.sendMessage({ message })).rejects.toThrow(
+          /^xhrPostWithProgressAdapter: network error posting to \/api\/quests\/quest-send-error-1\/chat$/u,
+        );
       });
 
       const synthKey = '__no_session__' as ReturnType<typeof SessionIdStub>;
@@ -1329,14 +1224,10 @@ describe('useQuestChatBinding', () => {
       proxy.setupUuids({ uuids: [synthUuid] });
       proxy.setupTimestamps({ timestamps: [synthTs] });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await result.current.sendCommentBatch({ comments: [CommentQueueEntryStub()] });
-        },
+      await act(async () => {
+        await result.current.sendCommentBatch({ comments: [CommentQueueEntryStub()] });
       });
 
       const synthKey = '__no_session__' as ReturnType<typeof SessionIdStub>;
@@ -1380,17 +1271,13 @@ describe('useQuestChatBinding', () => {
         chatProcessId: ProcessIdStub({ value: 'proc-comment-bare' }),
       });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
       const outcomes: unknown[] = [];
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          outcomes.push(
-            await result.current.sendCommentBatch({ comments: [CommentQueueEntryStub()] }),
-          );
-        },
+      await act(async () => {
+        outcomes.push(
+          await result.current.sendCommentBatch({ comments: [CommentQueueEntryStub()] }),
+        );
       });
 
       // An older server that does not echo the turn back still delivered the batch, so the send
@@ -1414,17 +1301,13 @@ describe('useQuestChatBinding', () => {
         staleAnchors: [CommentAnchorStub({ flowId: 'login-flow', nodeId: 'login-page' })],
       });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
       const outcomes: unknown[] = [];
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          outcomes.push(
-            await result.current.sendCommentBatch({ comments: [CommentQueueEntryStub()] }),
-          );
-        },
+      await act(async () => {
+        outcomes.push(
+          await result.current.sendCommentBatch({ comments: [CommentQueueEntryStub()] }),
+        );
       });
 
       // A stale batch reached no agent, so rendering it would claim feedback was sent that never was.
@@ -1447,17 +1330,13 @@ describe('useQuestChatBinding', () => {
       const questId = QuestIdStub({ value: 'quest-comment-failed-1' });
       proxy.setupCommentBatchFailed({ error: 'quest is not running' });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
       const outcomes: unknown[] = [];
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          outcomes.push(
-            await result.current.sendCommentBatch({ comments: [CommentQueueEntryStub()] }),
-          );
-        },
+      await act(async () => {
+        outcomes.push(
+          await result.current.sendCommentBatch({ comments: [CommentQueueEntryStub()] }),
+        );
       });
 
       expect({
@@ -1475,17 +1354,13 @@ describe('useQuestChatBinding', () => {
       const proxy = useQuestChatBindingProxy();
       proxy.setupConnectedChannel();
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId: null }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId: null }));
 
       const outcomes: unknown[] = [];
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          outcomes.push(
-            await result.current.sendCommentBatch({ comments: [CommentQueueEntryStub()] }),
-          );
-        },
+      await act(async () => {
+        outcomes.push(
+          await result.current.sendCommentBatch({ comments: [CommentQueueEntryStub()] }),
+        );
       });
 
       expect({
@@ -1506,14 +1381,10 @@ describe('useQuestChatBinding', () => {
       proxy.setupConnectedChannel();
       const questId = QuestIdStub({ value: 'quest-unmount-1' });
 
-      const { unmount } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { unmount } = renderHook(() => useQuestChatBinding({ questId }));
 
-      testingLibraryActAdapter({
-        callback: () => {
-          unmount();
-        },
+      act(() => {
+        unmount();
       });
 
       expect(proxy.getSentWsMessages()).toStrictEqual([
@@ -1533,26 +1404,20 @@ describe('useQuestChatBinding', () => {
       proxy.setupResume({ restoredStatus: 'in_progress' });
       proxy.setupChat({ chatProcessId: ProcessIdStub({ value: 'proc-pr' }) });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
+
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-modified',
+            payload: { questId: 'quest-pause-resume-1', quest: pausedQuest },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
       });
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'quest-modified',
-              payload: { questId: 'quest-pause-resume-1', quest: pausedQuest },
-              timestamp: '2025-01-01T00:00:00.000Z',
-            }),
-          });
-        },
-      });
-
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await result.current.sendMessage({ message });
-        },
+      await act(async () => {
+        await result.current.sendMessage({ message });
       });
 
       expect({
@@ -1570,28 +1435,22 @@ describe('useQuestChatBinding', () => {
       proxy.setupChat({ chatProcessId: ProcessIdStub({ value: 'proc-pr-2' }) });
       proxy.setupResumeServerError();
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
+
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-modified',
+            payload: { questId: 'quest-pause-resume-2', quest: pausedQuest },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
       });
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'quest-modified',
-              payload: { questId: 'quest-pause-resume-2', quest: pausedQuest },
-              timestamp: '2025-01-01T00:00:00.000Z',
-            }),
-          });
-        },
-      });
-
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await expect(result.current.sendMessage({ message })).rejects.toThrow(
-            /^POST \/api\/quests\/quest-pause-resume-2\/resume failed with status 500: Internal Server Error$/u,
-          );
-        },
+      await act(async () => {
+        await expect(result.current.sendMessage({ message })).rejects.toThrow(
+          /^POST \/api\/quests\/quest-pause-resume-2\/resume failed with status 500: Internal Server Error$/u,
+        );
       });
 
       expect({
@@ -1607,36 +1466,32 @@ describe('useQuestChatBinding', () => {
       proxy.setupConnectedChannel();
       const questId = QuestIdStub({ value: 'quest-complete-1' });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'chat-output',
-              payload: {
-                questId: 'quest-complete-1',
-                workItemId: QuestWorkItemIdStub(),
-                chatProcessId: ProcessIdStub({ value: 'proc-cc' }),
-                entries: [{ role: 'assistant', type: 'text', content: 'streaming' }],
-              },
-              timestamp: '2025-01-01T00:00:00.000Z',
-            }),
-          });
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'chat-complete',
-              payload: {
-                chatProcessId: ProcessIdStub({ value: 'proc-cc' }),
-                exitCode: 0,
-                sessionId: SessionIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
-              },
-              timestamp: '2025-01-01T00:00:00.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              questId: 'quest-complete-1',
+              workItemId: QuestWorkItemIdStub(),
+              chatProcessId: ProcessIdStub({ value: 'proc-cc' }),
+              entries: [{ role: 'assistant', type: 'text', content: 'streaming' }],
+            },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-complete',
+            payload: {
+              chatProcessId: ProcessIdStub({ value: 'proc-cc' }),
+              exitCode: 0,
+              sessionId: SessionIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
+            },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
       });
 
       expect(result.current.isStreaming).toBe(false);
@@ -1647,31 +1502,25 @@ describe('useQuestChatBinding', () => {
       proxy.setupConnectedChannel();
       const questId = QuestIdStub({ value: 'quest-silent-turn' });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
-      testingLibraryActAdapter({
-        callback: () => {
-          result.current.armStreaming();
-        },
+      act(() => {
+        result.current.armStreaming();
       });
       const whileArmed = result.current.isStreaming;
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'chat-complete',
-              payload: {
-                chatProcessId: ProcessIdStub({ value: 'proc-silent' }),
-                exitCode: 0,
-                sessionId: SessionIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
-              },
-              timestamp: '2025-01-01T00:00:00.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-complete',
+            payload: {
+              chatProcessId: ProcessIdStub({ value: 'proc-silent' }),
+              exitCode: 0,
+              sessionId: SessionIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
+            },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
       });
 
       // A turn that emitted nothing still ended. Gating the running state on "output arrived"
@@ -1687,29 +1536,23 @@ describe('useQuestChatBinding', () => {
       proxy.setupConnectedChannel();
       const questId = QuestIdStub({ value: 'quest-replay-vs-turn' });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
-      testingLibraryActAdapter({
-        callback: () => {
-          result.current.armStreaming();
-        },
+      act(() => {
+        result.current.armStreaming();
       });
       const whileArmed = result.current.isStreaming;
 
-      testingLibraryActAdapter({
-        callback: () => {
-          // The subscribe-quest replay finisher, which lands a couple hundred ms after a browser
-          // binds a quest — squarely inside the window where a just-sent turn has no token yet.
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'chat-history-complete',
-              payload: { questId: 'quest-replay-vs-turn' },
-              timestamp: '2025-01-01T00:00:00.000Z',
-            }),
-          });
-        },
+      act(() => {
+        // The subscribe-quest replay finisher, which lands a couple hundred ms after a browser
+        // binds a quest — squarely inside the window where a just-sent turn has no token yet.
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-history-complete',
+            payload: { questId: 'quest-replay-vs-turn' },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
       });
 
       expect({ whileArmed, afterHistoryReplayed: result.current.isStreaming }).toStrictEqual({
@@ -1724,30 +1567,24 @@ describe('useQuestChatBinding', () => {
       const questId = QuestIdStub({ value: 'quest-retained-completion' });
       const chatProcessId = ProcessIdStub({ value: 'chat-first-message' });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
-      testingLibraryActAdapter({
-        callback: () => {
-          result.current.armStreaming({ chatProcessId });
-        },
+      act(() => {
+        result.current.armStreaming({ chatProcessId });
       });
       const whileArmed = result.current.isStreaming;
 
-      testingLibraryActAdapter({
-        callback: () => {
-          // The turn ended before this browser could subscribe — its quest did not exist until the
-          // POST that created it returned. The server re-sends the completion it had nobody to
-          // deliver to, at the end of subscribe-quest, stamped `retained`.
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'chat-complete',
-              payload: { chatProcessId, exitCode: 0, retained: true },
-              timestamp: '2025-01-01T00:00:00.000Z',
-            }),
-          });
-        },
+      act(() => {
+        // The turn ended before this browser could subscribe — its quest did not exist until the
+        // POST that created it returned. The server re-sends the completion it had nobody to
+        // deliver to, at the end of subscribe-quest, stamped `retained`.
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-complete',
+            payload: { chatProcessId, exitCode: 0, retained: true },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
       });
 
       expect({ whileArmed, afterRetainedCompletion: result.current.isStreaming }).toStrictEqual({
@@ -1761,34 +1598,28 @@ describe('useQuestChatBinding', () => {
       proxy.setupConnectedChannel();
       const questId = QuestIdStub({ value: 'quest-retained-vs-live' });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
-      testingLibraryActAdapter({
-        callback: () => {
-          result.current.armStreaming();
-        },
+      act(() => {
+        result.current.armStreaming();
       });
       const whileArmed = result.current.isStreaming;
 
-      testingLibraryActAdapter({
-        callback: () => {
-          // A re-delivery describes a turn that finished BEFORE this browser subscribed, so it says
-          // nothing about the turn just committed here — whose POST has not handed back a handle
-          // yet. The permissive "no handle yet" arm a LIVE completion gets must not apply.
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'chat-complete',
-              payload: {
-                chatProcessId: ProcessIdStub({ value: 'chat-an-earlier-turn' }),
-                exitCode: 0,
-                retained: true,
-              },
-              timestamp: '2025-01-01T00:00:00.000Z',
-            }),
-          });
-        },
+      act(() => {
+        // A re-delivery describes a turn that finished BEFORE this browser subscribed, so it says
+        // nothing about the turn just committed here — whose POST has not handed back a handle
+        // yet. The permissive "no handle yet" arm a LIVE completion gets must not apply.
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-complete',
+            payload: {
+              chatProcessId: ProcessIdStub({ value: 'chat-an-earlier-turn' }),
+              exitCode: 0,
+              retained: true,
+            },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
       });
 
       expect({ whileArmed, afterRetainedCompletion: result.current.isStreaming }).toStrictEqual({
@@ -1805,61 +1636,53 @@ describe('useQuestChatBinding', () => {
       proxy.setupUuids({ uuids: ['00000000-0000-4000-8000-0000000000f1'] });
       proxy.setupTimestamps({ timestamps: ['2026-08-05T00:00:00.000Z'] });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await result.current.sendMessage({ message: UserInputStub({ value: 'Hi' }) });
-        },
+      await act(async () => {
+        await result.current.sendMessage({ message: UserInputStub({ value: 'Hi' }) });
       });
       const afterSend = result.current.isStreaming;
 
-      testingLibraryActAdapter({
-        callback: () => {
-          // Two completions belonging to other processes — a sibling work item finishing, another
-          // browser's replay draining. Neither is the turn this composer is tracking.
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'chat-complete',
-              payload: {
-                chatProcessId: ProcessIdStub({ value: 'proc-someone-else' }),
-                exitCode: 0,
-                sessionId: SessionIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
-              },
-              timestamp: '2026-08-05T00:00:01.000Z',
-            }),
-          });
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'chat-complete',
-              payload: {
-                chatProcessId: ProcessIdStub({ value: 'proc-a-third-one' }),
-                exitCode: 0,
-                sessionId: SessionIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
-              },
-              timestamp: '2026-08-05T00:00:02.000Z',
-            }),
-          });
-        },
+      act(() => {
+        // Two completions belonging to other processes — a sibling work item finishing, another
+        // browser's replay draining. Neither is the turn this composer is tracking.
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-complete',
+            payload: {
+              chatProcessId: ProcessIdStub({ value: 'proc-someone-else' }),
+              exitCode: 0,
+              sessionId: SessionIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
+            },
+            timestamp: '2026-08-05T00:00:01.000Z',
+          }),
+        });
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-complete',
+            payload: {
+              chatProcessId: ProcessIdStub({ value: 'proc-a-third-one' }),
+              exitCode: 0,
+              sessionId: SessionIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
+            },
+            timestamp: '2026-08-05T00:00:02.000Z',
+          }),
+        });
       });
       const afterForeignCompletions = result.current.isStreaming;
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'chat-complete',
-              payload: {
-                chatProcessId: ProcessIdStub({ value: 'proc-mine' }),
-                exitCode: 0,
-                sessionId: SessionIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
-              },
-              timestamp: '2026-08-05T00:00:03.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-complete',
+            payload: {
+              chatProcessId: ProcessIdStub({ value: 'proc-mine' }),
+              exitCode: 0,
+              sessionId: SessionIdStub({ value: 'f47ac10b-58cc-4372-a567-0e02b2c3d479' }),
+            },
+            timestamp: '2026-08-05T00:00:03.000Z',
+          }),
+        });
       });
 
       // No chat-output is delivered anywhere in this scenario: the running state must survive the
@@ -1887,30 +1710,24 @@ describe('useQuestChatBinding', () => {
       proxy.setupUuids({ uuids: ['00000000-0000-4000-8000-0000000000e0'] });
       proxy.setupTimestamps({ timestamps: ['2026-08-09T00:00:00.000Z'] });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
+
+      await act(async () => {
+        await result.current.sendMessage({ message: UserInputStub({ value: 'Hi' }) });
       });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await result.current.sendMessage({ message: UserInputStub({ value: 'Hi' }) });
-        },
-      });
-
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'chat-complete',
-              payload: {
-                chatProcessId: ProcessIdStub({ value: 'proc-ended' }),
-                exitCode: 0,
-                sessionId,
-              },
-              timestamp: '2026-08-09T00:00:01.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-complete',
+            payload: {
+              chatProcessId: ProcessIdStub({ value: 'proc-ended' }),
+              exitCode: 0,
+              sessionId,
+            },
+            timestamp: '2026-08-09T00:00:01.000Z',
+          }),
+        });
       });
       const afterTurnEnded = result.current.isStreaming;
 
@@ -1918,29 +1735,27 @@ describe('useQuestChatBinding', () => {
       // JSONL at exit and the post-exit tail replays it. This output names the process that has
       // already completed, so it is a transcript draining, not an agent working — and no second
       // chat-complete is ever coming for it, so re-arming here pins the composer on STOP forever.
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'chat-output',
-              payload: {
-                questId: 'quest-late-output',
-                sessionId,
-                chatProcessId: ProcessIdStub({ value: 'proc-ended' }),
-                entries: [
-                  {
-                    role: 'assistant',
-                    type: 'text',
-                    content: 'late tail line',
-                    uuid: entryUuid,
-                    timestamp: entryTs,
-                  },
-                ],
-              },
-              timestamp: '2026-08-09T00:00:06.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              questId: 'quest-late-output',
+              sessionId,
+              chatProcessId: ProcessIdStub({ value: 'proc-ended' }),
+              entries: [
+                {
+                  role: 'assistant',
+                  type: 'text',
+                  content: 'late tail line',
+                  uuid: entryUuid,
+                  timestamp: entryTs,
+                },
+              ],
+            },
+            timestamp: '2026-08-09T00:00:06.000Z',
+          }),
+        });
       });
 
       expect({
@@ -1971,58 +1786,50 @@ describe('useQuestChatBinding', () => {
       proxy.setupUuids({ uuids: ['00000000-0000-4000-8000-0000000000e2'] });
       proxy.setupTimestamps({ timestamps: ['2026-08-09T00:00:00.000Z'] });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
+
+      await act(async () => {
+        await result.current.sendMessage({ message: UserInputStub({ value: 'Hi' }) });
       });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await result.current.sendMessage({ message: UserInputStub({ value: 'Hi' }) });
-        },
-      });
-
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'chat-complete',
-              payload: {
-                chatProcessId: ProcessIdStub({ value: 'proc-first' }),
-                exitCode: 0,
-                sessionId,
-              },
-              timestamp: '2026-08-09T00:00:01.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-complete',
+            payload: {
+              chatProcessId: ProcessIdStub({ value: 'proc-first' }),
+              exitCode: 0,
+              sessionId,
+            },
+            timestamp: '2026-08-09T00:00:01.000Z',
+          }),
+        });
       });
       const afterTurnEnded = result.current.isStreaming;
 
       // The non-vacuous partner of the case above: only the ENDED process is muted. A different
       // process emitting is a real turn under way, and the composer must report it.
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'chat-output',
-              payload: {
-                questId: 'quest-new-turn-output',
-                sessionId,
-                chatProcessId: ProcessIdStub({ value: 'proc-second' }),
-                entries: [
-                  {
-                    role: 'assistant',
-                    type: 'text',
-                    content: 'a new turn is emitting',
-                    uuid: '00000000-0000-4000-8000-0000000000e3',
-                    timestamp: '2026-08-09T00:00:07.000Z',
-                  },
-                ],
-              },
-              timestamp: '2026-08-09T00:00:07.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              questId: 'quest-new-turn-output',
+              sessionId,
+              chatProcessId: ProcessIdStub({ value: 'proc-second' }),
+              entries: [
+                {
+                  role: 'assistant',
+                  type: 'text',
+                  content: 'a new turn is emitting',
+                  uuid: '00000000-0000-4000-8000-0000000000e3',
+                  timestamp: '2026-08-09T00:00:07.000Z',
+                },
+              ],
+            },
+            timestamp: '2026-08-09T00:00:07.000Z',
+          }),
+        });
       });
 
       expect({ afterTurnEnded, afterNewProcessOutput: result.current.isStreaming }).toStrictEqual({
@@ -2037,22 +1844,18 @@ describe('useQuestChatBinding', () => {
 
       let activeQuestId = QuestIdStub({ value: 'quest-armed-a' });
 
-      const { result, rerender } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId: activeQuestId }),
-      });
+      const { result, rerender } = renderHook(() =>
+        useQuestChatBinding({ questId: activeQuestId }),
+      );
 
-      testingLibraryActAdapter({
-        callback: () => {
-          result.current.armStreaming();
-        },
+      act(() => {
+        result.current.armStreaming();
       });
       const whileArmed = result.current.isStreaming;
 
-      testingLibraryActAdapter({
-        callback: () => {
-          activeQuestId = QuestIdStub({ value: 'quest-armed-b' });
-          rerender();
-        },
+      act(() => {
+        activeQuestId = QuestIdStub({ value: 'quest-armed-b' });
+        rerender();
       });
 
       expect({ whileArmed, afterQuestSwitch: result.current.isStreaming }).toStrictEqual({
@@ -2070,20 +1873,16 @@ describe('useQuestChatBinding', () => {
       proxy.setupClarify({ chatProcessId: ProcessIdStub({ value: 'proc-clar' }) });
       const stub = AskUserQuestionStub();
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          result.current.submitClarifyAnswers({
-            questions: stub.questions,
-            answers: [{ header: 'Preference', label: 'Option A' }],
-          });
-          await new Promise((resolve) => {
-            globalThis.setTimeout(resolve, 0);
-          });
-        },
+      await act(async () => {
+        result.current.submitClarifyAnswers({
+          questions: stub.questions,
+          answers: [{ header: 'Preference', label: 'Option A' }],
+        });
+        await new Promise((resolve) => {
+          globalThis.setTimeout(resolve, 0);
+        });
       });
 
       expect(result.current.isStreaming).toBe(true);
@@ -2097,17 +1896,13 @@ describe('useQuestChatBinding', () => {
       const questId = QuestIdStub({ value: 'quest-stop-1' });
       proxy.setupPause();
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          result.current.stopChat();
-          await new Promise((resolve) => {
-            globalThis.setTimeout(resolve, 0);
-          });
-        },
+      await act(async () => {
+        result.current.stopChat();
+        await new Promise((resolve) => {
+          globalThis.setTimeout(resolve, 0);
+        });
       });
 
       expect(proxy.getPauseRequestCount()).toBe(1);
@@ -2122,33 +1917,29 @@ describe('useQuestChatBinding', () => {
       const entryUuid = '00000000-0000-4000-8000-000000000099';
       const entryTs = '2025-01-01T00:00:00.000Z';
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'chat-output',
-              payload: {
-                questId: 'quest-nosession-1',
-                workItemId: QuestWorkItemIdStub(),
-                chatProcessId: ProcessIdStub({ value: 'proc-ns' }),
-                entries: [
-                  {
-                    role: 'assistant',
-                    type: 'text',
-                    content: 'no-sess',
-                    uuid: entryUuid,
-                    timestamp: entryTs,
-                  },
-                ],
-              },
-              timestamp: '2025-01-01T00:00:00.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              questId: 'quest-nosession-1',
+              workItemId: QuestWorkItemIdStub(),
+              chatProcessId: ProcessIdStub({ value: 'proc-ns' }),
+              entries: [
+                {
+                  role: 'assistant',
+                  type: 'text',
+                  content: 'no-sess',
+                  uuid: entryUuid,
+                  timestamp: entryTs,
+                },
+              ],
+            },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
       });
 
       const synthKey = '__no_session__' as ReturnType<typeof SessionIdStub>;
@@ -2173,16 +1964,12 @@ describe('useQuestChatBinding', () => {
       proxy.setupConnectedChannel();
       const questId = QuestIdStub({ value: 'quest-bad-1' });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({ not: 'valid' }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({ not: 'valid' }),
+        });
       });
 
       expect(result.current).toStrictEqual({
@@ -2217,28 +2004,22 @@ describe('useQuestChatBinding', () => {
       const entryUuid = '00000000-0000-4000-8000-000000000042';
       const entryTs = '2025-01-01T00:00:00.000Z';
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
       expect(proxy.getSentWsMessages()).toStrictEqual([
         { type: 'subscribe-quest', questId: 'quest-reconnect-1' },
       ]);
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.triggerWsClose();
-          proxy.triggerWsReconnect();
-        },
+      act(() => {
+        proxy.triggerWsClose();
+        proxy.triggerWsReconnect();
       });
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(proxy.getSentWsMessages()).toStrictEqual([
-            { type: 'subscribe-quest', questId: 'quest-reconnect-1' },
-            { type: 'subscribe-quest', questId: 'quest-reconnect-1' },
-          ]);
-        },
+      await waitFor(() => {
+        expect(proxy.getSentWsMessages()).toStrictEqual([
+          { type: 'subscribe-quest', questId: 'quest-reconnect-1' },
+          { type: 'subscribe-quest', questId: 'quest-reconnect-1' },
+        ]);
       });
 
       expect(proxy.getSentWsMessages()).toStrictEqual([
@@ -2246,30 +2027,28 @@ describe('useQuestChatBinding', () => {
         { type: 'subscribe-quest', questId: 'quest-reconnect-1' },
       ]);
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'chat-output',
-              payload: {
-                questId: 'quest-reconnect-1',
-                workItemId: QuestWorkItemIdStub(),
-                sessionId,
-                chatProcessId: ProcessIdStub({ value: 'proc-reconnect' }),
-                entries: [
-                  {
-                    role: 'assistant',
-                    type: 'text',
-                    content: 'post-reconnect',
-                    uuid: entryUuid,
-                    timestamp: entryTs,
-                  },
-                ],
-              },
-              timestamp: '2025-01-01T00:00:00.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              questId: 'quest-reconnect-1',
+              workItemId: QuestWorkItemIdStub(),
+              sessionId,
+              chatProcessId: ProcessIdStub({ value: 'proc-reconnect' }),
+              entries: [
+                {
+                  role: 'assistant',
+                  type: 'text',
+                  content: 'post-reconnect',
+                  uuid: entryUuid,
+                  timestamp: entryTs,
+                },
+              ],
+            },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
       });
 
       const expectedMap = new Map();
@@ -2310,42 +2089,34 @@ describe('useQuestChatBinding', () => {
       ];
       const quest = QuestStub({ id: questId, workItems });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
       expect(proxy.getSentWsMessages()).toStrictEqual([
         { type: 'subscribe-quest', questId: 'quest-reconnect-finish-1' },
       ]);
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.triggerWsClose();
-          proxy.triggerWsReconnect();
-        },
+      act(() => {
+        proxy.triggerWsClose();
+        proxy.triggerWsReconnect();
       });
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(proxy.getSentWsMessages()).toStrictEqual([
-            { type: 'subscribe-quest', questId: 'quest-reconnect-finish-1' },
-            { type: 'subscribe-quest', questId: 'quest-reconnect-finish-1' },
-          ]);
-        },
+      await waitFor(() => {
+        expect(proxy.getSentWsMessages()).toStrictEqual([
+          { type: 'subscribe-quest', questId: 'quest-reconnect-finish-1' },
+          { type: 'subscribe-quest', questId: 'quest-reconnect-finish-1' },
+        ]);
       });
 
       // The only frame this test ever delivers — nothing carrying this work item's completion was
       // sent before the close, and nothing rides the close/reconnect pair itself.
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'quest-modified',
-              payload: { questId: 'quest-reconnect-finish-1', quest },
-              timestamp: '2025-01-01T00:00:00.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-modified',
+            payload: { questId: 'quest-reconnect-finish-1', quest },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
       });
 
       expect(result.current.quest).toStrictEqual(quest);
@@ -2361,33 +2132,25 @@ describe('useQuestChatBinding', () => {
 
       let activeQuestId = questId1;
 
-      const { rerender } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId: activeQuestId }),
+      const { rerender } = renderHook(() => useQuestChatBinding({ questId: activeQuestId }));
+
+      await waitFor(() => {
+        expect(proxy.getSentWsMessages()).toStrictEqual([
+          { type: 'subscribe-quest', questId: 'quest-change-old' },
+        ]);
       });
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(proxy.getSentWsMessages()).toStrictEqual([
-            { type: 'subscribe-quest', questId: 'quest-change-old' },
-          ]);
-        },
+      act(() => {
+        activeQuestId = questId2;
+        rerender();
       });
 
-      testingLibraryActAdapter({
-        callback: () => {
-          activeQuestId = questId2;
-          rerender();
-        },
-      });
-
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(proxy.getSentWsMessages()).toStrictEqual([
-            { type: 'subscribe-quest', questId: 'quest-change-old' },
-            { type: 'unsubscribe-quest', questId: 'quest-change-old' },
-            { type: 'subscribe-quest', questId: 'quest-change-new' },
-          ]);
-        },
+      await waitFor(() => {
+        expect(proxy.getSentWsMessages()).toStrictEqual([
+          { type: 'subscribe-quest', questId: 'quest-change-old' },
+          { type: 'unsubscribe-quest', questId: 'quest-change-old' },
+          { type: 'subscribe-quest', questId: 'quest-change-new' },
+        ]);
       });
 
       expect(proxy.getSentWsMessages()).toStrictEqual([
@@ -2409,23 +2172,19 @@ describe('useQuestChatBinding', () => {
 
       let activeQuestId = questId1;
 
-      const { result, rerender } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId: activeQuestId }),
-      });
+      const { result, rerender } = renderHook(() =>
+        useQuestChatBinding({ questId: activeQuestId }),
+      );
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await result.current.sendFollowupMessage({ message });
-        },
+      await act(async () => {
+        await result.current.sendFollowupMessage({ message });
       });
 
       const beforeSwitch = result.current.followupEntries;
 
-      testingLibraryActAdapter({
-        callback: () => {
-          activeQuestId = questId2;
-          rerender();
-        },
+      act(() => {
+        activeQuestId = questId2;
+        rerender();
       });
 
       expect({ beforeSwitch, afterSwitch: result.current.followupEntries }).toStrictEqual({
@@ -2454,14 +2213,10 @@ describe('useQuestChatBinding', () => {
       proxy.setupUuids({ uuids: [synthUuid] });
       proxy.setupTimestamps({ timestamps: [synthTs] });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await result.current.sendFollowupMessage({ message });
-        },
+      await act(async () => {
+        await result.current.sendFollowupMessage({ message });
       });
 
       // The FOLLOW-UP turn arms the FOLLOW-UP flag and leaves the main composer's alone: the two
@@ -2485,14 +2240,10 @@ describe('useQuestChatBinding', () => {
       const proxy = useQuestChatBindingProxy();
       proxy.setupConnectedChannel();
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId: null }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId: null }));
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await result.current.sendFollowupMessage({ message: UserInputStub({ value: 'Hi' }) });
-        },
+      await act(async () => {
+        await result.current.sendFollowupMessage({ message: UserInputStub({ value: 'Hi' }) });
       });
 
       expect({
@@ -2515,18 +2266,14 @@ describe('useQuestChatBinding', () => {
       proxy.setupUuids({ uuids: [synthUuid, errorUuid] });
       proxy.setupTimestamps({ timestamps: [synthTs, errorTs] });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await expect(
-            result.current.sendFollowupMessage({
-              message: UserInputStub({ value: 'Any updates?' }),
-            }),
-          ).rejects.toThrow(/^Quest must be blocked, complete or merged for follow-up$/u);
-        },
+      await act(async () => {
+        await expect(
+          result.current.sendFollowupMessage({
+            message: UserInputStub({ value: 'Any updates?' }),
+          }),
+        ).rejects.toThrow(/^Quest must be blocked, complete or merged for follow-up$/u);
       });
 
       // A rejected POST never started an agent, so the FOLLOW-UP composer must be live again for
@@ -2563,18 +2310,14 @@ describe('useQuestChatBinding', () => {
       proxy.setupUuids({ uuids: [synthUuid, errorUuid] });
       proxy.setupTimestamps({ timestamps: [synthTs, errorTs] });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await expect(
-            result.current.sendFollowupMessage({
-              message: UserInputStub({ value: 'Show me the feature' }),
-            }),
-          ).rejects.toThrow(/^Failed to start follow-up chat$/u);
-        },
+      await act(async () => {
+        await expect(
+          result.current.sendFollowupMessage({
+            message: UserInputStub({ value: 'Show me the feature' }),
+          }),
+        ).rejects.toThrow(/^Failed to start follow-up chat$/u);
       });
 
       expect(result.current.followupEntries).toStrictEqual([
@@ -2601,24 +2344,18 @@ describe('useQuestChatBinding', () => {
       proxy.setupUuids({ uuids: [firstUuid, secondUuid] });
       proxy.setupTimestamps({ timestamps: [firstTs, secondTs] });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
+
+      await act(async () => {
+        await result.current.sendFollowupMessage({
+          message: UserInputStub({ value: 'First question' }),
+        });
       });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await result.current.sendFollowupMessage({
-            message: UserInputStub({ value: 'First question' }),
-          });
-        },
-      });
-
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await result.current.sendFollowupMessage({
-            message: UserInputStub({ value: 'Second question' }),
-          });
-        },
+      await act(async () => {
+        await result.current.sendFollowupMessage({
+          message: UserInputStub({ value: 'Second question' }),
+        });
       });
 
       expect(result.current.followupEntries).toStrictEqual([
@@ -2639,20 +2376,16 @@ describe('useQuestChatBinding', () => {
         workItems: [WorkItemStub({ role: 'codeweaver' })],
       });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'quest-modified',
-              payload: { questId: 'quest-followup-no-workitem-1', quest },
-              timestamp: '2026-08-09T00:00:00.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-modified',
+            payload: { questId: 'quest-followup-no-workitem-1', quest },
+            timestamp: '2026-08-09T00:00:00.000Z',
+          }),
+        });
       });
 
       expect(result.current.followupEntries).toStrictEqual([]);
@@ -2668,20 +2401,16 @@ describe('useQuestChatBinding', () => {
         workItems: [WorkItemStub({ role: 'tavernkeeper' })],
       });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'quest-modified',
-              payload: { questId: 'quest-followup-no-session-1', quest },
-              timestamp: '2026-08-09T00:00:00.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-modified',
+            payload: { questId: 'quest-followup-no-session-1', quest },
+            timestamp: '2026-08-09T00:00:00.000Z',
+          }),
+        });
       });
 
       expect(result.current.followupEntries).toStrictEqual([]);
@@ -2702,44 +2431,40 @@ describe('useQuestChatBinding', () => {
       const entryUuid = '00000000-0000-4000-8000-000000000401';
       const entryTs = '2026-08-09T00:00:00.000Z';
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'quest-modified',
-              payload: { questId: 'quest-followup-stream-1', quest },
-              timestamp: '2026-08-09T00:00:00.000Z',
-            }),
-          });
-          // FollowupChatStartResponder's live chat-output payload carries workItemId but never
-          // sessionId (sessionId there is "informational only" — routing is by questId+workItemId,
-          // same convention chat-start-responder uses). Only chatHistoryReplayBroker's replay
-          // payload adds sessionId. This fixture matches the real live-turn wire shape.
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'chat-output',
-              payload: {
-                questId: 'quest-followup-stream-1',
-                workItemId: QuestWorkItemIdStub(),
-                chatProcessId: ProcessIdStub({ value: 'proc-followup-stream' }),
-                entries: [
-                  {
-                    role: 'assistant',
-                    type: 'text',
-                    content: 'Here is what changed',
-                    uuid: entryUuid,
-                    timestamp: entryTs,
-                  },
-                ],
-              },
-              timestamp: '2026-08-09T00:00:00.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-modified',
+            payload: { questId: 'quest-followup-stream-1', quest },
+            timestamp: '2026-08-09T00:00:00.000Z',
+          }),
+        });
+        // FollowupChatStartResponder's live chat-output payload carries workItemId but never
+        // sessionId (sessionId there is "informational only" — routing is by questId+workItemId,
+        // same convention chat-start-responder uses). Only chatHistoryReplayBroker's replay
+        // payload adds sessionId. This fixture matches the real live-turn wire shape.
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              questId: 'quest-followup-stream-1',
+              workItemId: QuestWorkItemIdStub(),
+              chatProcessId: ProcessIdStub({ value: 'proc-followup-stream' }),
+              entries: [
+                {
+                  role: 'assistant',
+                  type: 'text',
+                  content: 'Here is what changed',
+                  uuid: entryUuid,
+                  timestamp: entryTs,
+                },
+              ],
+            },
+            timestamp: '2026-08-09T00:00:00.000Z',
+          }),
+        });
       });
 
       expect({
@@ -2772,57 +2497,51 @@ describe('useQuestChatBinding', () => {
         workItems: [WorkItemStub({ role: 'tavernkeeper', sessionId: tavernkeeperSessionId })],
       });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'quest-modified',
-              payload: { questId: 'quest-followup-turn-end-1', quest },
-              timestamp: '2026-08-09T00:00:00.000Z',
-            }),
-          });
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'chat-output',
-              payload: {
-                questId: 'quest-followup-turn-end-1',
-                workItemId: QuestWorkItemIdStub(),
-                chatProcessId: ProcessIdStub({ value: 'proc-followup-turn-end' }),
-                entries: [
-                  {
-                    role: 'assistant',
-                    type: 'text',
-                    content: 'Working on it',
-                    uuid: '00000000-0000-4000-8000-000000000402',
-                    timestamp: '2026-08-09T00:00:00.000Z',
-                  },
-                ],
-              },
-              timestamp: '2026-08-09T00:00:00.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-modified',
+            payload: { questId: 'quest-followup-turn-end-1', quest },
+            timestamp: '2026-08-09T00:00:00.000Z',
+          }),
+        });
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              questId: 'quest-followup-turn-end-1',
+              workItemId: QuestWorkItemIdStub(),
+              chatProcessId: ProcessIdStub({ value: 'proc-followup-turn-end' }),
+              entries: [
+                {
+                  role: 'assistant',
+                  type: 'text',
+                  content: 'Working on it',
+                  uuid: '00000000-0000-4000-8000-000000000402',
+                  timestamp: '2026-08-09T00:00:00.000Z',
+                },
+              ],
+            },
+            timestamp: '2026-08-09T00:00:00.000Z',
+          }),
+        });
       });
       const whileStreaming = result.current.isFollowupStreaming;
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'chat-complete',
-              payload: {
-                chatProcessId: ProcessIdStub({ value: 'proc-followup-turn-end' }),
-                exitCode: 0,
-                sessionId: tavernkeeperSessionId,
-              },
-              timestamp: '2026-08-09T00:00:01.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-complete',
+            payload: {
+              chatProcessId: ProcessIdStub({ value: 'proc-followup-turn-end' }),
+              exitCode: 0,
+              sessionId: tavernkeeperSessionId,
+            },
+            timestamp: '2026-08-09T00:00:01.000Z',
+          }),
+        });
       });
 
       expect({ whileStreaming, afterTurnEnded: result.current.isFollowupStreaming }).toStrictEqual({
@@ -2844,57 +2563,51 @@ describe('useQuestChatBinding', () => {
         workItems: [WorkItemStub({ role: 'tavernkeeper', sessionId: tavernkeeperSessionId })],
       });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'quest-modified',
-              payload: { questId: 'quest-followup-complete-status-1', quest },
-              timestamp: '2026-08-09T00:00:00.000Z',
-            }),
-          });
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'chat-output',
-              payload: {
-                questId: 'quest-followup-complete-status-1',
-                workItemId: QuestWorkItemIdStub(),
-                chatProcessId: ProcessIdStub({ value: 'proc-followup-complete' }),
-                entries: [
-                  {
-                    role: 'assistant',
-                    type: 'text',
-                    content: 'All done',
-                    uuid: '00000000-0000-4000-8000-000000000403',
-                    timestamp: '2026-08-09T00:00:00.000Z',
-                  },
-                ],
-              },
-              timestamp: '2026-08-09T00:00:00.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-modified',
+            payload: { questId: 'quest-followup-complete-status-1', quest },
+            timestamp: '2026-08-09T00:00:00.000Z',
+          }),
+        });
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              questId: 'quest-followup-complete-status-1',
+              workItemId: QuestWorkItemIdStub(),
+              chatProcessId: ProcessIdStub({ value: 'proc-followup-complete' }),
+              entries: [
+                {
+                  role: 'assistant',
+                  type: 'text',
+                  content: 'All done',
+                  uuid: '00000000-0000-4000-8000-000000000403',
+                  timestamp: '2026-08-09T00:00:00.000Z',
+                },
+              ],
+            },
+            timestamp: '2026-08-09T00:00:00.000Z',
+          }),
+        });
       });
       const whileStreaming = result.current.isFollowupStreaming;
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'chat-complete',
-              payload: {
-                chatProcessId: ProcessIdStub({ value: 'proc-followup-complete' }),
-                exitCode: 0,
-                sessionId: tavernkeeperSessionId,
-              },
-              timestamp: '2026-08-09T00:00:01.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-complete',
+            payload: {
+              chatProcessId: ProcessIdStub({ value: 'proc-followup-complete' }),
+              exitCode: 0,
+              sessionId: tavernkeeperSessionId,
+            },
+            timestamp: '2026-08-09T00:00:01.000Z',
+          }),
+        });
       });
 
       expect({ whileStreaming, afterComplete: result.current.isFollowupStreaming }).toStrictEqual({
@@ -2916,57 +2629,51 @@ describe('useQuestChatBinding', () => {
         workItems: [WorkItemStub({ role: 'tavernkeeper', sessionId: tavernkeeperSessionId })],
       });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'quest-modified',
-              payload: { questId: 'quest-followup-merged-status-1', quest },
-              timestamp: '2026-08-09T00:00:00.000Z',
-            }),
-          });
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'chat-output',
-              payload: {
-                questId: 'quest-followup-merged-status-1',
-                workItemId: QuestWorkItemIdStub(),
-                chatProcessId: ProcessIdStub({ value: 'proc-followup-merged' }),
-                entries: [
-                  {
-                    role: 'assistant',
-                    type: 'text',
-                    content: 'Merged and done',
-                    uuid: '00000000-0000-4000-8000-000000000404',
-                    timestamp: '2026-08-09T00:00:00.000Z',
-                  },
-                ],
-              },
-              timestamp: '2026-08-09T00:00:00.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-modified',
+            payload: { questId: 'quest-followup-merged-status-1', quest },
+            timestamp: '2026-08-09T00:00:00.000Z',
+          }),
+        });
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              questId: 'quest-followup-merged-status-1',
+              workItemId: QuestWorkItemIdStub(),
+              chatProcessId: ProcessIdStub({ value: 'proc-followup-merged' }),
+              entries: [
+                {
+                  role: 'assistant',
+                  type: 'text',
+                  content: 'Merged and done',
+                  uuid: '00000000-0000-4000-8000-000000000404',
+                  timestamp: '2026-08-09T00:00:00.000Z',
+                },
+              ],
+            },
+            timestamp: '2026-08-09T00:00:00.000Z',
+          }),
+        });
       });
       const whileStreaming = result.current.isFollowupStreaming;
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'chat-complete',
-              payload: {
-                chatProcessId: ProcessIdStub({ value: 'proc-followup-merged' }),
-                exitCode: 0,
-                sessionId: tavernkeeperSessionId,
-              },
-              timestamp: '2026-08-09T00:00:01.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-complete',
+            payload: {
+              chatProcessId: ProcessIdStub({ value: 'proc-followup-merged' }),
+              exitCode: 0,
+              sessionId: tavernkeeperSessionId,
+            },
+            timestamp: '2026-08-09T00:00:01.000Z',
+          }),
+        });
       });
 
       expect({ whileStreaming, afterComplete: result.current.isFollowupStreaming }).toStrictEqual({
@@ -2996,36 +2703,28 @@ describe('useQuestChatBinding', () => {
       proxy.setupUuids({ uuids: [mainUuid, followupUuid] });
       proxy.setupTimestamps({ timestamps: [mainTs, followupTs] });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
+
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-modified',
+            payload: { questId: 'quest-followup-isolation-1', quest },
+            timestamp: '2026-08-09T00:00:00.000Z',
+          }),
+        });
       });
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'quest-modified',
-              payload: { questId: 'quest-followup-isolation-1', quest },
-              timestamp: '2026-08-09T00:00:00.000Z',
-            }),
-          });
-        },
+      await act(async () => {
+        await result.current.sendMessage({
+          message: UserInputStub({ value: 'Main composer message' }),
+        });
       });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await result.current.sendMessage({
-            message: UserInputStub({ value: 'Main composer message' }),
-          });
-        },
-      });
-
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await result.current.sendFollowupMessage({
-            message: UserInputStub({ value: 'Followup composer message' }),
-          });
-        },
+      await act(async () => {
+        await result.current.sendFollowupMessage({
+          message: UserInputStub({ value: 'Followup composer message' }),
+        });
       });
 
       const synthKey = '__no_session__' as ReturnType<typeof SessionIdStub>;
@@ -3075,40 +2774,36 @@ describe('useQuestChatBinding', () => {
         ],
       });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'quest-modified',
-              payload: { questId: 'quest-followup-scope-1', quest },
-              timestamp: '2026-08-09T00:00:00.000Z',
-            }),
-          });
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'chat-output',
-              payload: {
-                questId: 'quest-followup-scope-1',
-                workItemId: codeweaverWorkItemId,
-                chatProcessId: ProcessIdStub({ value: 'proc-codeweaver-scope' }),
-                entries: [
-                  {
-                    role: 'assistant',
-                    type: 'text',
-                    content: 'still building',
-                    uuid: '00000000-0000-4000-8000-0000000000c3',
-                    timestamp: '2026-08-09T00:00:00.000Z',
-                  },
-                ],
-              },
-              timestamp: '2026-08-09T00:00:00.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-modified',
+            payload: { questId: 'quest-followup-scope-1', quest },
+            timestamp: '2026-08-09T00:00:00.000Z',
+          }),
+        });
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              questId: 'quest-followup-scope-1',
+              workItemId: codeweaverWorkItemId,
+              chatProcessId: ProcessIdStub({ value: 'proc-codeweaver-scope' }),
+              entries: [
+                {
+                  role: 'assistant',
+                  type: 'text',
+                  content: 'still building',
+                  uuid: '00000000-0000-4000-8000-0000000000c3',
+                  timestamp: '2026-08-09T00:00:00.000Z',
+                },
+              ],
+            },
+            timestamp: '2026-08-09T00:00:00.000Z',
+          }),
+        });
       });
 
       expect({
@@ -3133,48 +2828,40 @@ describe('useQuestChatBinding', () => {
       proxy.setupUuids({ uuids: ['00000000-0000-4000-8000-0000000000c4'] });
       proxy.setupTimestamps({ timestamps: ['2026-08-09T00:00:00.000Z'] });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await result.current.sendFollowupMessage({
-            message: UserInputStub({ value: 'What broke?' }),
-          });
-        },
+      await act(async () => {
+        await result.current.sendFollowupMessage({
+          message: UserInputStub({ value: 'What broke?' }),
+        });
       });
       const afterSend = result.current.isFollowupStreaming;
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'chat-complete',
-              payload: {
-                chatProcessId: ProcessIdStub({ value: 'proc-somebody-else' }),
-                exitCode: 0,
-              },
-              timestamp: '2026-08-09T00:00:01.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-complete',
+            payload: {
+              chatProcessId: ProcessIdStub({ value: 'proc-somebody-else' }),
+              exitCode: 0,
+            },
+            timestamp: '2026-08-09T00:00:01.000Z',
+          }),
+        });
       });
       const afterForeignCompletion = result.current.isFollowupStreaming;
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'chat-complete',
-              payload: {
-                chatProcessId: ProcessIdStub({ value: 'proc-tavernkeeper-live' }),
-                exitCode: 0,
-              },
-              timestamp: '2026-08-09T00:00:02.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-complete',
+            payload: {
+              chatProcessId: ProcessIdStub({ value: 'proc-tavernkeeper-live' }),
+              exitCode: 0,
+            },
+            timestamp: '2026-08-09T00:00:02.000Z',
+          }),
+        });
       });
 
       expect({
@@ -3198,17 +2885,13 @@ describe('useQuestChatBinding', () => {
       proxy.setupFollowupStop({ stopped: true });
       proxy.setupPause();
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          result.current.stopFollowupChat();
-          await new Promise((resolve) => {
-            globalThis.setTimeout(resolve, 0);
-          });
-        },
+      await act(async () => {
+        result.current.stopFollowupChat();
+        await new Promise((resolve) => {
+          globalThis.setTimeout(resolve, 0);
+        });
       });
 
       expect({
@@ -3222,14 +2905,10 @@ describe('useQuestChatBinding', () => {
       proxy.setupConnectedChannel();
       proxy.setupFollowupStop({ stopped: true });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId: null }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId: null }));
 
-      testingLibraryActAdapter({
-        callback: () => {
-          result.current.stopFollowupChat();
-        },
+      act(() => {
+        result.current.stopFollowupChat();
       });
 
       expect(proxy.getFollowupStopRequestCount()).toBe(0);
@@ -3246,26 +2925,20 @@ describe('useQuestChatBinding', () => {
       proxy.setupUuids({ uuids: ['00000000-0000-4000-8000-0000000000c7'] });
       proxy.setupTimestamps({ timestamps: ['2026-08-09T00:00:00.000Z'] });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await result.current.sendFollowupMessage({
-            message: UserInputStub({ value: 'What broke?' }),
-          });
-        },
+      await act(async () => {
+        await result.current.sendFollowupMessage({
+          message: UserInputStub({ value: 'What broke?' }),
+        });
       });
       const afterSend = result.current.isFollowupStreaming;
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          result.current.stopFollowupChat();
-          await new Promise((resolve) => {
-            globalThis.setTimeout(resolve, 0);
-          });
-        },
+      await act(async () => {
+        result.current.stopFollowupChat();
+        await new Promise((resolve) => {
+          globalThis.setTimeout(resolve, 0);
+        });
       });
 
       expect({
@@ -3287,25 +2960,19 @@ describe('useQuestChatBinding', () => {
         timestamps: ['2026-08-09T00:00:00.000Z', '2026-08-09T00:00:01.000Z'],
       });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
+
+      await act(async () => {
+        await Promise.all([
+          result.current.sendMessage({ message: UserInputStub({ value: 'main turn' }) }),
+          result.current.sendFollowupMessage({
+            message: UserInputStub({ value: 'followup turn' }),
+          }),
+        ]);
       });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await Promise.all([
-            result.current.sendMessage({ message: UserInputStub({ value: 'main turn' }) }),
-            result.current.sendFollowupMessage({
-              message: UserInputStub({ value: 'followup turn' }),
-            }),
-          ]);
-        },
-      });
-
-      testingLibraryActAdapter({
-        callback: () => {
-          result.current.disarmFollowupStreaming();
-        },
+      act(() => {
+        result.current.disarmFollowupStreaming();
       });
 
       expect({
@@ -3332,38 +2999,32 @@ describe('useQuestChatBinding', () => {
       proxy.setupUuids({ uuids: [optimisticUuid] });
       proxy.setupTimestamps({ timestamps: [optimisticTs] });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
+
+      await act(async () => {
+        await result.current.sendMessage({ message: UserInputStub({ value: 'Hello there' }) });
       });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await result.current.sendMessage({ message: UserInputStub({ value: 'Hello there' }) });
-        },
-      });
-
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'chat-output',
-              payload: {
-                questId: 'quest-dedupe-plain-1',
-                sessionId,
-                chatProcessId: ProcessIdStub({ value: 'proc-dedupe-plain-1' }),
-                entries: [
-                  {
-                    role: 'user',
-                    content: 'Hello there',
-                    uuid: deliveredUuid,
-                    timestamp: deliveredTs,
-                  },
-                ],
-              },
-              timestamp: '2026-09-02T00:00:01.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              questId: 'quest-dedupe-plain-1',
+              sessionId,
+              chatProcessId: ProcessIdStub({ value: 'proc-dedupe-plain-1' }),
+              entries: [
+                {
+                  role: 'user',
+                  content: 'Hello there',
+                  uuid: deliveredUuid,
+                  timestamp: deliveredTs,
+                },
+              ],
+            },
+            timestamp: '2026-09-02T00:00:01.000Z',
+          }),
+        });
       });
 
       // The wrong value this turns red against: the synthetic bucket still carrying the optimistic
@@ -3392,43 +3053,37 @@ describe('useQuestChatBinding', () => {
       proxy.setupUuids({ uuids: [optimisticUuid] });
       proxy.setupTimestamps({ timestamps: [optimisticTs] });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await result.current.sendMessage({
-            message: UserInputStub({ value: 'A[Pasted Image 1]B' }),
-            images: [image],
-          });
-        },
+      await act(async () => {
+        await result.current.sendMessage({
+          message: UserInputStub({ value: 'A[Pasted Image 1]B' }),
+          images: [image],
+        });
       });
 
       const deliveredContent = `A![Pasted Image 1](http://host/api/images?path=%2Fp%2Fx.png)B\n\n${pastedImageStatics.promptSentinel}\n${pastedImageStatics.promptInstruction}`;
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'chat-output',
-              payload: {
-                questId: 'quest-dedupe-image-1',
-                sessionId,
-                chatProcessId: ProcessIdStub({ value: 'proc-dedupe-image-1' }),
-                entries: [
-                  {
-                    role: 'user',
-                    content: deliveredContent,
-                    uuid: deliveredUuid,
-                    timestamp: deliveredTs,
-                  },
-                ],
-              },
-              timestamp: '2026-09-02T00:00:01.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              questId: 'quest-dedupe-image-1',
+              sessionId,
+              chatProcessId: ProcessIdStub({ value: 'proc-dedupe-image-1' }),
+              entries: [
+                {
+                  role: 'user',
+                  content: deliveredContent,
+                  uuid: deliveredUuid,
+                  timestamp: deliveredTs,
+                },
+              ],
+            },
+            timestamp: '2026-09-02T00:00:01.000Z',
+          }),
+        });
       });
 
       // The wrong value this turns red against: BOTH copies rendering, because a raw string
@@ -3457,42 +3112,36 @@ describe('useQuestChatBinding', () => {
       proxy.setupUuids({ uuids: [optimisticUuid] });
       proxy.setupTimestamps({ timestamps: [optimisticTs] });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await result.current.sendMessage({
-            message: UserInputStub({ value: 'A /tmp/snips/snip-20260913-165729.png B' }),
-          });
-        },
+      await act(async () => {
+        await result.current.sendMessage({
+          message: UserInputStub({ value: 'A /tmp/snips/snip-20260913-165729.png B' }),
+        });
       });
 
       const deliveredContent = `A ![Pasted Image 1](http://host/api/images?path=%2Fq%2Fimages%2Fu.png) B\n\n${pastedImageStatics.promptSentinel}\n${pastedImageStatics.promptInstruction}`;
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'chat-output',
-              payload: {
-                questId: 'quest-dedupe-screenshot-1',
-                sessionId,
-                chatProcessId: ProcessIdStub({ value: 'proc-dedupe-screenshot-1' }),
-                entries: [
-                  {
-                    role: 'user',
-                    content: deliveredContent,
-                    uuid: deliveredUuid,
-                    timestamp: deliveredTs,
-                  },
-                ],
-              },
-              timestamp: '2026-09-02T00:00:01.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              questId: 'quest-dedupe-screenshot-1',
+              sessionId,
+              chatProcessId: ProcessIdStub({ value: 'proc-dedupe-screenshot-1' }),
+              entries: [
+                {
+                  role: 'user',
+                  content: deliveredContent,
+                  uuid: deliveredUuid,
+                  timestamp: deliveredTs,
+                },
+              ],
+            },
+            timestamp: '2026-09-02T00:00:01.000Z',
+          }),
+        });
       });
 
       // The wrong value this turns red against: the synthetic bucket still carrying the optimistic
@@ -3519,14 +3168,10 @@ describe('useQuestChatBinding', () => {
       proxy.setupUuids({ uuids: [optimisticUuid] });
       proxy.setupTimestamps({ timestamps: [optimisticTs] });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await result.current.sendMessage({ message: UserInputStub({ value: 'Still waiting' }) });
-        },
+      await act(async () => {
+        await result.current.sendMessage({ message: UserInputStub({ value: 'Still waiting' }) });
       });
 
       // The wrong value this turns red against: a filter that drops the synthetic bucket WHOLESALE
@@ -3554,38 +3199,32 @@ describe('useQuestChatBinding', () => {
       proxy.setupUuids({ uuids: [optimisticUuid] });
       proxy.setupTimestamps({ timestamps: [optimisticTs] });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
+
+      await act(async () => {
+        await result.current.sendMessage({ message: UserInputStub({ value: 'Hello there' }) });
       });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await result.current.sendMessage({ message: UserInputStub({ value: 'Hello there' }) });
-        },
-      });
-
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'chat-output',
-              payload: {
-                questId: 'quest-dedupe-different-1',
-                sessionId,
-                chatProcessId: ProcessIdStub({ value: 'proc-dedupe-different-1' }),
-                entries: [
-                  {
-                    role: 'user',
-                    content: 'A totally unrelated message',
-                    uuid: deliveredUuid,
-                    timestamp: deliveredTs,
-                  },
-                ],
-              },
-              timestamp: '2026-09-02T00:00:01.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              questId: 'quest-dedupe-different-1',
+              sessionId,
+              chatProcessId: ProcessIdStub({ value: 'proc-dedupe-different-1' }),
+              entries: [
+                {
+                  role: 'user',
+                  content: 'A totally unrelated message',
+                  uuid: deliveredUuid,
+                  timestamp: deliveredTs,
+                },
+              ],
+            },
+            timestamp: '2026-09-02T00:00:01.000Z',
+          }),
+        });
       });
 
       // The wrong value this turns red against: a guard miscomparing roles/content evicting the
@@ -3617,62 +3256,56 @@ describe('useQuestChatBinding', () => {
       const liveUuid = '00000000-0000-4000-8000-000000000709';
       const liveTs = '2026-09-02T00:00:01.000Z';
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
       // The replay of the pre-existing sub-agent JSONL: ChatReplayResponder stamps a sessionId, so
       // this copy lands in a REAL session bucket.
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'chat-output',
-              payload: {
-                questId: 'quest-dedupe-wire-1',
-                sessionId,
-                chatProcessId: ProcessIdStub({ value: 'proc-dedupe-wire-replay' }),
-                entries: [
-                  {
-                    role: 'assistant',
-                    type: 'text',
-                    content: 'SUBAGENT_INNER_MARKER_xyz',
-                    uuid: replayedUuid,
-                    timestamp: replayedTs,
-                  },
-                ],
-              },
-              timestamp: replayedTs,
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              questId: 'quest-dedupe-wire-1',
+              sessionId,
+              chatProcessId: ProcessIdStub({ value: 'proc-dedupe-wire-replay' }),
+              entries: [
+                {
+                  role: 'assistant',
+                  type: 'text',
+                  content: 'SUBAGENT_INNER_MARKER_xyz',
+                  uuid: replayedUuid,
+                  timestamp: replayedTs,
+                },
+              ],
+            },
+            timestamp: replayedTs,
+          }),
+        });
       });
 
       // The same line arriving live off the sub-agent tail. ChatStartResponder's payload routes by
       // questId + workItemId and carries NO sessionId, so this copy lands in the SYNTHETIC bucket —
       // the same bucket the optimistic user entry uses, though nothing here staged it.
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'chat-output',
-              payload: {
-                questId: 'quest-dedupe-wire-1',
-                chatProcessId: ProcessIdStub({ value: 'proc-dedupe-wire-live' }),
-                entries: [
-                  {
-                    role: 'assistant',
-                    type: 'text',
-                    content: 'SUBAGENT_INNER_MARKER_xyz',
-                    uuid: liveUuid,
-                    timestamp: liveTs,
-                  },
-                ],
-              },
-              timestamp: liveTs,
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              questId: 'quest-dedupe-wire-1',
+              chatProcessId: ProcessIdStub({ value: 'proc-dedupe-wire-live' }),
+              entries: [
+                {
+                  role: 'assistant',
+                  type: 'text',
+                  content: 'SUBAGENT_INNER_MARKER_xyz',
+                  uuid: liveUuid,
+                  timestamp: liveTs,
+                },
+              ],
+            },
+            timestamp: liveTs,
+          }),
+        });
       });
 
       // The wrong value this turns red against: an empty synthetic bucket. Content-equality dedupe
@@ -3717,14 +3350,10 @@ describe('useQuestChatBinding', () => {
       proxy.setupUuids({ uuids: [stagedUuid] });
       proxy.setupTimestamps({ timestamps: ['2026-09-02T00:00:00.000Z'] });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await result.current.sendMessage({ message, images: [imageA, imageB] });
-        },
+      await act(async () => {
+        await result.current.sendMessage({ message, images: [imageA, imageB] });
       });
 
       // The wrong value this turns red against: an empty array, because nothing ever called
@@ -3748,14 +3377,10 @@ describe('useQuestChatBinding', () => {
       proxy.setupUuids({ uuids: [stagedUuid] });
       proxy.setupTimestamps({ timestamps: ['2026-09-02T00:00:00.000Z'] });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await result.current.sendMessage({ message: UserInputStub({ value: 'No images here' }) });
-        },
+      await act(async () => {
+        await result.current.sendMessage({ message: UserInputStub({ value: 'No images here' }) });
       });
 
       expect(
@@ -3778,14 +3403,10 @@ describe('useQuestChatBinding', () => {
       proxy.setupUuids({ uuids: [stagedUuid] });
       proxy.setupTimestamps({ timestamps: ['2026-09-02T00:00:00.000Z'] });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await result.current.sendFollowupMessage({ message, images: [image] });
-        },
+      await act(async () => {
+        await result.current.sendFollowupMessage({ message, images: [image] });
       });
 
       expect(
@@ -3813,43 +3434,37 @@ describe('useQuestChatBinding', () => {
       proxy.setupUuids({ uuids: [stagedUuid] });
       proxy.setupTimestamps({ timestamps: [stagedTs] });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await result.current.sendMessage({
-            message: UserInputStub({ value: 'A[Pasted Image 1]B' }),
-            images: [image],
-          });
-        },
+      await act(async () => {
+        await result.current.sendMessage({
+          message: UserInputStub({ value: 'A[Pasted Image 1]B' }),
+          images: [image],
+        });
       });
 
       const deliveredContent = `A![Pasted Image 1](http://host/api/images?path=%2Fp%2Fx.png)B\n\n${pastedImageStatics.promptSentinel}\n${pastedImageStatics.promptInstruction}`;
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'chat-output',
-              payload: {
-                questId: 'quest-forget-images-1',
-                sessionId,
-                chatProcessId: ProcessIdStub({ value: 'proc-forget-images-1' }),
-                entries: [
-                  {
-                    role: 'user',
-                    content: deliveredContent,
-                    uuid: deliveredUuid,
-                    timestamp: deliveredTs,
-                  },
-                ],
-              },
-              timestamp: '2026-09-02T00:00:01.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              questId: 'quest-forget-images-1',
+              sessionId,
+              chatProcessId: ProcessIdStub({ value: 'proc-forget-images-1' }),
+              entries: [
+                {
+                  role: 'user',
+                  content: deliveredContent,
+                  uuid: deliveredUuid,
+                  timestamp: deliveredTs,
+                },
+              ],
+            },
+            timestamp: '2026-09-02T00:00:01.000Z',
+          }),
+        });
       });
 
       const synthKey = '__no_session__' as ReturnType<typeof SessionIdStub>;
@@ -3883,17 +3498,13 @@ describe('useQuestChatBinding', () => {
       proxy.setupUuids({ uuids: [stagedUuid] });
       proxy.setupTimestamps({ timestamps: [stagedTs] });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
-      });
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await result.current.sendMessage({
-            message: UserInputStub({ value: 'A[Pasted Image 1]B' }),
-            images: [image],
-          });
-        },
+      await act(async () => {
+        await result.current.sendMessage({
+          message: UserInputStub({ value: 'A[Pasted Image 1]B' }),
+          images: [image],
+        });
       });
 
       const synthKey = '__no_session__' as ReturnType<typeof SessionIdStub>;
@@ -3941,55 +3552,47 @@ describe('useQuestChatBinding', () => {
       proxy.setupUuids({ uuids: [stagedUuid] });
       proxy.setupTimestamps({ timestamps: [stagedTs] });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId }),
+      const { result } = renderHook(() => useQuestChatBinding({ questId }));
+
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-modified',
+            payload: { questId: 'quest-forget-images-followup-1', quest },
+            timestamp: '2026-09-02T00:00:00.000Z',
+          }),
+        });
       });
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'quest-modified',
-              payload: { questId: 'quest-forget-images-followup-1', quest },
-              timestamp: '2026-09-02T00:00:00.000Z',
-            }),
-          });
-        },
-      });
-
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await result.current.sendFollowupMessage({
-            message: UserInputStub({ value: 'A[Pasted Image 1]B' }),
-            images: [image],
-          });
-        },
+      await act(async () => {
+        await result.current.sendFollowupMessage({
+          message: UserInputStub({ value: 'A[Pasted Image 1]B' }),
+          images: [image],
+        });
       });
 
       const deliveredContent = `A![Pasted Image 1](http://host/api/images?path=%2Fp%2Fx.png)B\n\n${pastedImageStatics.promptSentinel}\n${pastedImageStatics.promptInstruction}`;
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'chat-output',
-              payload: {
-                questId: 'quest-forget-images-followup-1',
-                workItemId: QuestWorkItemIdStub(),
-                chatProcessId: ProcessIdStub({ value: 'proc-forget-images-followup-1' }),
-                entries: [
-                  {
-                    role: 'user',
-                    content: deliveredContent,
-                    uuid: deliveredUuid,
-                    timestamp: deliveredTs,
-                  },
-                ],
-              },
-              timestamp: '2026-09-02T00:00:01.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              questId: 'quest-forget-images-followup-1',
+              workItemId: QuestWorkItemIdStub(),
+              chatProcessId: ProcessIdStub({ value: 'proc-forget-images-followup-1' }),
+              entries: [
+                {
+                  role: 'user',
+                  content: deliveredContent,
+                  uuid: deliveredUuid,
+                  timestamp: deliveredTs,
+                },
+              ],
+            },
+            timestamp: '2026-09-02T00:00:01.000Z',
+          }),
+        });
       });
 
       expect({
@@ -4029,28 +3632,24 @@ describe('useQuestChatBinding', () => {
 
       let activeQuestId = questId1;
 
-      const { result, rerender } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId: activeQuestId }),
-      });
+      const { result, rerender } = renderHook(() =>
+        useQuestChatBinding({ questId: activeQuestId }),
+      );
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await result.current.sendFollowupMessage({
-            message: UserInputStub({ value: 'A[Pasted Image 1]B' }),
-            images: [image],
-          });
-        },
+      await act(async () => {
+        await result.current.sendFollowupMessage({
+          message: UserInputStub({ value: 'A[Pasted Image 1]B' }),
+          images: [image],
+        });
       });
 
       const beforeSwitch = proxy.getRememberedImages({
         uuid: stagedUuid as ReturnType<typeof UserChatEntryStub>['uuid'],
       });
 
-      testingLibraryActAdapter({
-        callback: () => {
-          activeQuestId = questId2;
-          rerender();
-        },
+      act(() => {
+        activeQuestId = questId2;
+        rerender();
       });
 
       expect({
@@ -4095,33 +3694,27 @@ describe('useQuestChatBinding', () => {
 
       let activeQuestId = questId1;
 
-      const { result, rerender } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestChatBinding({ questId: activeQuestId }),
+      const { result, rerender } = renderHook(() =>
+        useQuestChatBinding({ questId: activeQuestId }),
+      );
+
+      await act(async () => {
+        await result.current.sendMessage({
+          message: UserInputStub({ value: 'Main A[Pasted Image 1]B' }),
+          images: [mainImage],
+        });
       });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await result.current.sendMessage({
-            message: UserInputStub({ value: 'Main A[Pasted Image 1]B' }),
-            images: [mainImage],
-          });
-        },
+      await act(async () => {
+        await result.current.sendFollowupMessage({
+          message: UserInputStub({ value: 'Followup A[Pasted Image 1]B' }),
+          images: [followupImage],
+        });
       });
 
-      await testingLibraryActAsyncAdapter({
-        callback: async () => {
-          await result.current.sendFollowupMessage({
-            message: UserInputStub({ value: 'Followup A[Pasted Image 1]B' }),
-            images: [followupImage],
-          });
-        },
-      });
-
-      testingLibraryActAdapter({
-        callback: () => {
-          activeQuestId = questId2;
-          rerender();
-        },
+      act(() => {
+        activeQuestId = questId2;
+        rerender();
       });
 
       const synthKey = '__no_session__' as ReturnType<typeof SessionIdStub>;

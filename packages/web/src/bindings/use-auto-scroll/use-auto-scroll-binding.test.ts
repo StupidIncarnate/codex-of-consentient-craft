@@ -1,4 +1,4 @@
-import { testingLibraryRenderHookAdapter } from '../../adapters/testing-library/render-hook/testing-library-render-hook-adapter';
+import { renderHook } from '#gateway/npm/testing-library__react';
 import { useAutoScrollBinding } from './use-auto-scroll-binding';
 import { useAutoScrollBindingProxy } from './use-auto-scroll-binding.proxy';
 
@@ -7,9 +7,7 @@ describe('useAutoScrollBinding', () => {
     it('VALID: {} => scrollContainerProps ref starts as null', () => {
       useAutoScrollBindingProxy().setup();
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useAutoScrollBinding(),
-      });
+      const { result } = renderHook(() => useAutoScrollBinding());
 
       expect(result.current.scrollContainerProps.ref.current).toBe(null);
     });
@@ -17,9 +15,7 @@ describe('useAutoScrollBinding', () => {
     it('VALID: {} => scrollContainerProps has onScroll handler', () => {
       useAutoScrollBindingProxy().setup();
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useAutoScrollBinding(),
-      });
+      const { result } = renderHook(() => useAutoScrollBinding());
 
       expect(result.current.scrollContainerProps.onScroll).toStrictEqual(expect.any(Function));
     });
@@ -27,9 +23,7 @@ describe('useAutoScrollBinding', () => {
     it('VALID: {} => contentRef starts as null', () => {
       useAutoScrollBindingProxy().setup();
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useAutoScrollBinding(),
-      });
+      const { result } = renderHook(() => useAutoScrollBinding());
 
       expect(result.current.contentRef.current).toBe(null);
     });

@@ -21,7 +21,7 @@ import type {
 } from '@dungeonmaster/shared/contracts';
 import { chatEntryContract } from '@dungeonmaster/shared/contracts';
 
-import { rxjsFilterAdapter } from '../../adapters/rxjs/filter/rxjs-filter-adapter';
+import { filter } from '#gateway/npm/rxjs__operators';
 import { sortChatEntriesByTimestampTransformer } from '../../transformers/sort-chat-entries-by-timestamp/sort-chat-entries-by-timestamp-transformer';
 import { webSocketChannelState } from '../../state/web-socket-channel/web-socket-channel-state';
 
@@ -71,41 +71,41 @@ export const useSessionReplayBinding = ({
       });
     });
 
-    const chatOutputSub = rxjsFilterAdapter({
-      source: webSocketChannelState.chatOutput$(),
-      predicate: (p) => p.chatProcessId === replayProcessIdRef.current,
-    }).subscribe((payload): void => {
-      const rawEntries = payload.entries;
-      if (!Array.isArray(rawEntries)) return;
+    const chatOutputSub = webSocketChannelState
+      .chatOutput$()
+      .pipe(filter((p) => p.chatProcessId === replayProcessIdRef.current))
+      .subscribe((payload): void => {
+        const rawEntries = payload.entries;
+        if (!Array.isArray(rawEntries)) return;
 
-      const validEntries: ChatEntry[] = [];
-      for (const candidate of rawEntries as unknown[]) {
-        const parseResult = chatEntryContract.safeParse(candidate);
-        if (parseResult.success) {
-          validEntries.push(parseResult.data);
+        const validEntries: ChatEntry[] = [];
+        for (const candidate of rawEntries as unknown[]) {
+          const parseResult = chatEntryContract.safeParse(candidate);
+          if (parseResult.success) {
+            validEntries.push(parseResult.data);
+          }
         }
-      }
 
-      if (validEntries.length === 0) return;
-      receivedEntriesRef.current = true;
-      setEntriesByUuid((prev) => {
-        const next = new Map(prev);
-        for (const entry of validEntries) {
-          next.set(entry.uuid, entry);
-        }
-        return next;
+        if (validEntries.length === 0) return;
+        receivedEntriesRef.current = true;
+        setEntriesByUuid((prev) => {
+          const next = new Map(prev);
+          for (const entry of validEntries) {
+            next.set(entry.uuid, entry);
+          }
+          return next;
+        });
       });
-    });
 
-    const streamEndedSub = rxjsFilterAdapter({
-      source: webSocketChannelState.chatStreamEnded$(),
-      predicate: (p) => p.chatProcessId === replayProcessIdRef.current,
-    }).subscribe((): void => {
-      setIsLoading(false);
-      if (!receivedEntriesRef.current) {
-        setSessionNotFound(true);
-      }
-    });
+    const streamEndedSub = webSocketChannelState
+      .chatStreamEnded$()
+      .pipe(filter((p) => p.chatProcessId === replayProcessIdRef.current))
+      .subscribe((): void => {
+        setIsLoading(false);
+        if (!receivedEntriesRef.current) {
+          setSessionNotFound(true);
+        }
+      });
 
     return (): void => {
       opensSub.unsubscribe();

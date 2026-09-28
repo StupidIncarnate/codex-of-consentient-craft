@@ -11,7 +11,8 @@
 
 import type { ObservableId, QuestId } from '@dungeonmaster/shared/contracts';
 
-import { fetchPostWithStatusAdapter } from '../../../adapters/fetch/post-with-status/fetch-post-with-status-adapter';
+import { fetchWithStatus } from '#gateway/browser/fetch';
+
 import { humanVerdictResponseContract } from '../../../contracts/human-verdict-response/human-verdict-response-contract';
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
 
@@ -27,8 +28,23 @@ export const questHumanVerdictBroker = async ({
   reason: string;
 }): Promise<{ ok: true }> => {
   const url = webConfigStatics.api.routes.questHumanVerdict.replace(':questId', questId);
-  const result = await fetchPostWithStatusAdapter({ url, body: { unitId, outcome, reason } });
-  const parsed = humanVerdictResponseContract.safeParse(result.body);
+  const result = await fetchWithStatus({
+    url,
+    method: 'POST',
+    body: { unitId, outcome, reason },
+  });
+
+  // `fetchWithStatus` hands back the raw response text; a body that is not JSON parses as itself,
+  // which the contract then rejects.
+  let parsedBody: unknown = null;
+  if (result.body.length > 0) {
+    try {
+      parsedBody = JSON.parse(result.body) as unknown;
+    } catch {
+      parsedBody = result.body;
+    }
+  }
+  const parsed = humanVerdictResponseContract.safeParse(parsedBody);
 
   if (result.ok && parsed.success && parsed.data.ok === true) {
     return { ok: true };

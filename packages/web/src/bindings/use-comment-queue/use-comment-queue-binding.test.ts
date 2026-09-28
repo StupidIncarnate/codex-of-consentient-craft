@@ -1,7 +1,6 @@
 import { CommentTextStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
 
-import { testingLibraryActAdapter } from '../../adapters/testing-library/act/testing-library-act-adapter';
-import { testingLibraryRenderHookAdapter } from '../../adapters/testing-library/render-hook/testing-library-render-hook-adapter';
+import { act, renderHook } from '#gateway/npm/testing-library__react';
 import { CommentAnchorStub } from '../../contracts/comment-anchor/comment-anchor.stub';
 import { CommentQueueEntryStub } from '../../contracts/comment-queue-entry/comment-queue-entry.stub';
 
@@ -15,9 +14,7 @@ describe('useCommentQueueBinding', () => {
       proxy.setupEmptyQueue();
       const questId = QuestIdStub({ value: 'quest-a' });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useCommentQueueBinding({ questId }),
-      });
+      const { result } = renderHook(() => useCommentQueueBinding({ questId }));
 
       expect(result.current.entries).toStrictEqual([]);
     });
@@ -30,9 +27,7 @@ describe('useCommentQueueBinding', () => {
       const second = CommentQueueEntryStub({ nodeId: 'dashboard' });
       proxy.setupQueuedComments({ questId, entries: [first, second] });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useCommentQueueBinding({ questId }),
-      });
+      const { result } = renderHook(() => useCommentQueueBinding({ questId }));
 
       expect(result.current.entries).toStrictEqual([first, second]);
     });
@@ -44,9 +39,7 @@ describe('useCommentQueueBinding', () => {
       const questB = QuestIdStub({ value: 'quest-b' });
       proxy.setupQueuedComments({ questId: questB, entries: [CommentQueueEntryStub({})] });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useCommentQueueBinding({ questId: questA }),
-      });
+      const { result } = renderHook(() => useCommentQueueBinding({ questId: questA }));
 
       expect(result.current.entries).toStrictEqual([]);
     });
@@ -68,14 +61,12 @@ describe('useCommentQueueBinding', () => {
       // under the new quest's boxes and toolbar count.
       let activeQuestId = questA;
 
-      const { result, rerender } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useCommentQueueBinding({ questId: activeQuestId }),
-      });
-      testingLibraryActAdapter({
-        callback: () => {
-          activeQuestId = questB;
-          rerender();
-        },
+      const { result, rerender } = renderHook(() =>
+        useCommentQueueBinding({ questId: activeQuestId }),
+      );
+      act(() => {
+        activeQuestId = questB;
+        rerender();
       });
 
       expect(result.current.entries).toStrictEqual([entryB]);
@@ -93,14 +84,12 @@ describe('useCommentQueueBinding', () => {
 
       let activeQuestId = questA;
 
-      const { result, rerender } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useCommentQueueBinding({ questId: activeQuestId }),
-      });
-      testingLibraryActAdapter({
-        callback: () => {
-          activeQuestId = questB;
-          rerender();
-        },
+      const { result, rerender } = renderHook(() =>
+        useCommentQueueBinding({ questId: activeQuestId }),
+      );
+      act(() => {
+        activeQuestId = questB;
+        rerender();
       });
 
       expect(result.current.entries).toStrictEqual([]);
@@ -115,9 +104,7 @@ describe('useCommentQueueBinding', () => {
       const entry = CommentQueueEntryStub({ nodeId: 'login-page' });
       proxy.setupQueuedComments({ questId, entries: [entry] });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useCommentQueueBinding({ questId }),
-      });
+      const { result } = renderHook(() => useCommentQueueBinding({ questId }));
 
       expect(
         result.current.entryFor({ anchor: CommentAnchorStub({ nodeId: 'login-page' }) }),
@@ -129,9 +116,7 @@ describe('useCommentQueueBinding', () => {
       proxy.setupEmptyQueue();
       const questId = QuestIdStub({ value: 'quest-a' });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useCommentQueueBinding({ questId }),
-      });
+      const { result } = renderHook(() => useCommentQueueBinding({ questId }));
 
       expect(result.current.entryFor({ anchor: CommentAnchorStub({}) })).toBe(undefined);
     });
@@ -145,9 +130,7 @@ describe('useCommentQueueBinding', () => {
         entries: [CommentQueueEntryStub({ nodeId: 'login-page' })],
       });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useCommentQueueBinding({ questId }),
-      });
+      const { result } = renderHook(() => useCommentQueueBinding({ questId }));
 
       expect(
         result.current.entryFor({
@@ -166,16 +149,12 @@ describe('useCommentQueueBinding', () => {
       proxy.setupEmptyQueue();
       const questId = QuestIdStub({ value: 'quest-a' });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useCommentQueueBinding({ questId }),
-      });
-      testingLibraryActAdapter({
-        callback: () => {
-          result.current.queueComment({
-            anchor: CommentAnchorStub({ nodeId: 'login-page' }),
-            text: CommentTextStub({ value: 'this step is wrong' }),
-          });
-        },
+      const { result } = renderHook(() => useCommentQueueBinding({ questId }));
+      act(() => {
+        result.current.queueComment({
+          anchor: CommentAnchorStub({ nodeId: 'login-page' }),
+          text: CommentTextStub({ value: 'this step is wrong' }),
+        });
       });
 
       expect(result.current.entries).toStrictEqual([
@@ -193,19 +172,15 @@ describe('useCommentQueueBinding', () => {
       proxy.setupEmptyQueue();
       const questId = QuestIdStub({ value: 'quest-a' });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useCommentQueueBinding({ questId }),
-      });
-      testingLibraryActAdapter({
-        callback: () => {
-          result.current.queueComment({
-            anchor: CommentAnchorStub({
-              nodeId: 'login-page',
-              observableId: 'login-redirects-to-dashboard',
-            }),
-            text: CommentTextStub({ value: 'this assertion is wrong' }),
-          });
-        },
+      const { result } = renderHook(() => useCommentQueueBinding({ questId }));
+      act(() => {
+        result.current.queueComment({
+          anchor: CommentAnchorStub({
+            nodeId: 'login-page',
+            observableId: 'login-redirects-to-dashboard',
+          }),
+          text: CommentTextStub({ value: 'this assertion is wrong' }),
+        });
       });
 
       expect(result.current.entries).toStrictEqual([
@@ -230,16 +205,12 @@ describe('useCommentQueueBinding', () => {
       });
       proxy.setupQueuedComments({ questId, entries: [original] });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useCommentQueueBinding({ questId }),
-      });
-      testingLibraryActAdapter({
-        callback: () => {
-          result.current.queueComment({
-            anchor: CommentAnchorStub({ nodeId: 'login-page' }),
-            text: CommentTextStub({ value: 'edited text' }),
-          });
-        },
+      const { result } = renderHook(() => useCommentQueueBinding({ questId }));
+      act(() => {
+        result.current.queueComment({
+          anchor: CommentAnchorStub({ nodeId: 'login-page' }),
+          text: CommentTextStub({ value: 'edited text' }),
+        });
       });
 
       // The replacement carries the edit-time stamp, not the original's — an actively edited
@@ -263,13 +234,9 @@ describe('useCommentQueueBinding', () => {
       const questId = QuestIdStub({ value: 'quest-a' });
       proxy.setupQueuedComments({ questId, entries: [CommentQueueEntryStub({})] });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useCommentQueueBinding({ questId }),
-      });
-      testingLibraryActAdapter({
-        callback: () => {
-          result.current.deleteComment({ anchor: CommentAnchorStub({}) });
-        },
+      const { result } = renderHook(() => useCommentQueueBinding({ questId }));
+      act(() => {
+        result.current.deleteComment({ anchor: CommentAnchorStub({}) });
       });
 
       expect(result.current.entries).toStrictEqual([]);
@@ -286,13 +253,9 @@ describe('useCommentQueueBinding', () => {
         entries: [CommentQueueEntryStub({ nodeId: 'login-page' }), kept],
       });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useCommentQueueBinding({ questId }),
-      });
-      testingLibraryActAdapter({
-        callback: () => {
-          result.current.deleteComment({ anchor: CommentAnchorStub({ nodeId: 'login-page' }) });
-        },
+      const { result } = renderHook(() => useCommentQueueBinding({ questId }));
+      act(() => {
+        result.current.deleteComment({ anchor: CommentAnchorStub({ nodeId: 'login-page' }) });
       });
 
       expect(result.current.entries).toStrictEqual([kept]);
@@ -312,13 +275,9 @@ describe('useCommentQueueBinding', () => {
         ],
       });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useCommentQueueBinding({ questId }),
-      });
-      testingLibraryActAdapter({
-        callback: () => {
-          result.current.clearQueue();
-        },
+      const { result } = renderHook(() => useCommentQueueBinding({ questId }));
+      act(() => {
+        result.current.clearQueue();
       });
 
       expect(result.current.entries).toStrictEqual([]);
@@ -332,19 +291,13 @@ describe('useCommentQueueBinding', () => {
       proxy.setupEmptyQueue();
       const questId = QuestIdStub({ value: 'quest-a' });
 
-      const first = testingLibraryRenderHookAdapter({
-        renderCallback: () => useCommentQueueBinding({ questId }),
-      });
-      const second = testingLibraryRenderHookAdapter({
-        renderCallback: () => useCommentQueueBinding({ questId }),
-      });
-      testingLibraryActAdapter({
-        callback: () => {
-          second.result.current.queueComment({
-            anchor: CommentAnchorStub({ nodeId: 'login-page' }),
-            text: CommentTextStub({ value: 'shared store update' }),
-          });
-        },
+      const first = renderHook(() => useCommentQueueBinding({ questId }));
+      const second = renderHook(() => useCommentQueueBinding({ questId }));
+      act(() => {
+        second.result.current.queueComment({
+          anchor: CommentAnchorStub({ nodeId: 'login-page' }),
+          text: CommentTextStub({ value: 'shared store update' }),
+        });
       });
 
       expect(first.result.current.entries).toStrictEqual([

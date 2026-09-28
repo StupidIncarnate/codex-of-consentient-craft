@@ -1,9 +1,16 @@
-// PURPOSE: Proxy for quest-modify-broker providing test control over HTTP responses
-// USAGE: Create proxy in test, use setup methods to configure endpoint behavior
+/**
+ * PURPOSE: Proxy for quest-modify-broker providing test control over HTTP responses. Composes
+ * the gateway's own `fetchJsonProxy`, which registers an MSW handler rather than spying on
+ * `globalThis.fetch` directly.
+ *
+ * USAGE:
+ * const proxy = questModifyBrokerProxy();
+ * proxy.setupModify();
+ * await questModifyBroker({ questId, modifications });
+ */
 
-import { StartEndpointMock } from '@dungeonmaster/testing';
+import { fetchJsonProxy } from '#gateway/browser/fetch/fetch-json/fetch-json.proxy';
 
-import { fetchPatchAdapterProxy } from '../../../adapters/fetch/patch/fetch-patch-adapter.proxy';
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
 
 export const questModifyBrokerProxy = (): {
@@ -12,25 +19,21 @@ export const questModifyBrokerProxy = (): {
   setupError: () => void;
   setupInvalidResponse: (params: { data: unknown }) => void;
 } => {
-  fetchPatchAdapterProxy();
-
-  const endpoint = StartEndpointMock.listen({
-    method: 'patch',
-    url: webConfigStatics.api.routes.questById,
-  });
+  const jsonFetchProxy = fetchJsonProxy();
+  const url = webConfigStatics.api.routes.questById;
 
   return {
-    setupModify: () => {
-      endpoint.resolves({ data: { success: true } });
+    setupModify: (): void => {
+      jsonFetchProxy.setupSuccess({ method: 'patch', url, body: { success: true } });
     },
-    setupFailure: ({ error }) => {
-      endpoint.resolves({ data: { success: false, error } });
+    setupFailure: ({ error }: { error: string }): void => {
+      jsonFetchProxy.setupSuccess({ method: 'patch', url, body: { success: false, error } });
     },
-    setupError: () => {
-      endpoint.networkError();
+    setupError: (): void => {
+      jsonFetchProxy.setupConnectionRefused({ method: 'patch', url });
     },
-    setupInvalidResponse: ({ data }) => {
-      endpoint.resolves({ data });
+    setupInvalidResponse: ({ data }: { data: unknown }): void => {
+      jsonFetchProxy.setupSuccess({ method: 'patch', url, body: data });
     },
   };
 };

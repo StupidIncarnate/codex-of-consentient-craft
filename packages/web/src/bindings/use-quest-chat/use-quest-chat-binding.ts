@@ -36,7 +36,7 @@ import {
   isUserPausedQuestStatusGuard,
 } from '@dungeonmaster/shared/guards';
 
-import { rxjsFilterAdapter } from '../../adapters/rxjs/filter/rxjs-filter-adapter';
+import { filter } from '#gateway/npm/rxjs__operators';
 import { questChatBroker } from '../../brokers/quest/chat/quest-chat-broker';
 import { questClarifyBroker } from '../../brokers/quest/clarify/quest-clarify-broker';
 import { questCommentBatchBroker } from '../../brokers/quest/comment-batch/quest-comment-batch-broker';
@@ -348,172 +348,184 @@ export const useQuestChatBinding = ({
       webSocketChannelState.sendSubscribeQuest({ questId: activeQuestId });
     });
 
-    const chatOutputSub = rxjsFilterAdapter({
-      source: webSocketChannelState.chatOutput$(),
-      // Only payloads addressed to the quest this binding is bound to. One browser tab per
-      // quest shares a guild's server, so an untagged frame accepted here is another
-      // quest's transcript rendering in this one's panel — and, because any accepted frame
-      // arms `streamingFromOutput`, a quest sitting on an approval gate reporting itself as
-      // streaming. The server resolves the owning quest before it delivers, so a frame that
-      // reaches a quest subscription always carries its id.
-      predicate: (p) => p.questId === questIdRef.current,
-    }).subscribe((payload): void => {
-      const activeQuestId = questIdRef.current;
-      if (!activeQuestId) return;
+    const chatOutputSub = webSocketChannelState
+      .chatOutput$()
+      .pipe(
+        // Only payloads addressed to the quest this binding is bound to. One browser tab per
+        // quest shares a guild's server, so an untagged frame accepted here is another
+        // quest's transcript rendering in this one's panel — and, because any accepted frame
+        // arms `streamingFromOutput`, a quest sitting on an approval gate reporting itself as
+        // streaming. The server resolves the owning quest before it delivers, so a frame that
+        // reaches a quest subscription always carries its id.
+        filter((p) => p.questId === questIdRef.current),
+      )
+      .subscribe((payload): void => {
+        const activeQuestId = questIdRef.current;
+        if (!activeQuestId) return;
 
-      const rawEntries = payload.entries;
-      if (!Array.isArray(rawEntries)) return;
+        const rawEntries = payload.entries;
+        if (!Array.isArray(rawEntries)) return;
 
-      const validEntries: ChatEntry[] = [];
-      const rejected: { candidate: unknown; reason: unknown }[] = [];
-      for (const candidate of rawEntries as unknown[]) {
-        const parseResult = chatEntryContract.safeParse(candidate);
-        if (parseResult.success) {
-          validEntries.push(replaceEpochChatEntryTimestampTransformer({ entry: parseResult.data }));
-        } else {
-          rejected.push({ candidate, reason: parseResult.error.issues });
-        }
-      }
-
-      globalThis.console.log('[WS] chat-output', {
-        questId: activeQuestId,
-        sessionId: payload.sessionId ?? null,
-        chatProcessId: payload.chatProcessId ?? null,
-        slotIndex: payload.slotIndex ?? null,
-        validCount: validEntries.length,
-        rawCount: rawEntries.length,
-        entries: validEntries.map((e) => ({
-          role: e.role,
-          type: 'type' in e ? e.type : null,
-          toolName: 'toolName' in e ? String(e.toolName) : null,
-          toolUseId: 'toolUseId' in e && e.toolUseId ? String(e.toolUseId) : null,
-          agentId: 'agentId' in e && e.agentId ? String(e.agentId) : null,
-          source: 'source' in e ? (e.source ?? null) : null,
-          content: 'content' in e && typeof e.content === 'string' ? e.content : null,
-          uuid: String(e.uuid),
-          timestamp: String(e.timestamp),
-        })),
-      });
-      if (rejected.length > 0) {
-        globalThis.console.warn('[WS] chat-output rejected-entries', rejected);
-      }
-
-      if (validEntries.length === 0) return;
-
-      const sessionKey = payload.sessionId ?? SYNTHETIC_SESSION_KEY;
-      setEntriesBySessionInternal((prev) =>
-        upsertChatEntriesByUuidTransformer({ prev, key: sessionKey, newEntries: validEntries }),
-      );
-
-      const workItemKey = payload.workItemId;
-      if (workItemKey !== undefined) {
-        setEntriesByWorkItemInternal((prev) =>
-          upsertChatEntriesByUuidTransformer({ prev, key: workItemKey, newEntries: validEntries }),
-        );
-      }
-
-      const slotIndexParsed = slotIndexContract.safeParse(payload.slotIndex);
-      if (slotIndexParsed.success) {
-        const slotKey = slotIndexParsed.data;
-        setSlotEntriesInternal((prev) =>
-          upsertChatEntriesByUuidTransformer({ prev, key: slotKey, newEntries: validEntries }),
-        );
-      }
-
-      // Entries are upserted above whatever this decides — a drained transcript still has to
-      // RENDER; it just must not claim the agent is still working.
-      //
-      // A REPLAYED frame is a transcript read back off disk (ChatReplayResponder stamps it), so it
-      // never arms the indicator. Subscribe-quest replays EVERY work item and each one ends with
-      // its own `chat-history-complete`, so without this arm→disarm alternates once per work item:
-      // a 31-item quest strobed the FOLLOW-UP composer SEND↔STOP ~35 times in under three seconds
-      // while nothing was running. Gating on the flag rather than on the `quest-replay-` process-id
-      // prefix keeps the server's id-naming convention out of the browser.
-      if (payload.replay === true) return;
-
-      const outputChatProcessId = payload.chatProcessId;
-      if (
-        outputChatProcessId !== undefined &&
-        endedChatProcessIdsRef.current.has(outputChatProcessId)
-      ) {
-        return;
-      }
-
-      setStreamingFromOutput(true);
-
-      // The follow-up composer arms only on ITS OWN agent's output. Routing by workItemId rather
-      // than by chatProcessId is what makes this work across a reload: a replayed-then-resumed
-      // tavernkeeper turn arrives under a process id this browser never issued, but the work item
-      // is stamped on the quest and survives.
-      const followupWorkItemIdNow = followupWorkItemIdRef.current;
-      if (followupWorkItemIdNow !== null && workItemKey === followupWorkItemIdNow) {
-        setFollowupStreamingFromOutput(true);
-      }
-    });
-
-    const chatStreamEndedSub = rxjsFilterAdapter({
-      source: webSocketChannelState.chatStreamEnded$(),
-      // Scoped the same way the chatOutput$ predicate above it already is. A completion naming a
-      // DIFFERENT process than the one this binding is tracking is somebody else's turn ending —
-      // a sibling work item finishing, another browser's replay draining — and letting it through
-      // is what made the control read PLAY while this quest's harness was still working. An
-      // untracked turn (`null`) or an untagged payload falls through, same as chatOutputSub's own
-      // "no id to compare against" arm.
-      //
-      // TWO tracked turns now, so the filter admits a frame either one claims and each arm re-tests
-      // its own below. Filtering on the main handle alone would have dropped the tavernkeeper's own
-      // completion whenever the main composer had a turn in flight, leaving the FOLLOW-UP tab on
-      // STOP with nothing left to clear it.
-      //
-      // `retained` rides along to the guard on every call: it narrows the match to an exact handle,
-      // so a re-delivered completion for a turn that ended before this browser subscribed is
-      // dropped here outright unless one of the two composers is actually tracking it.
-      predicate: (p) =>
-        isTrackedChatProcessGuard({
-          chatProcessId: p.chatProcessId,
-          trackedChatProcessId: trackedChatProcessIdRef.current,
-          retained: p.retained,
-        }) ||
-        isTrackedChatProcessGuard({
-          chatProcessId: p.chatProcessId,
-          trackedChatProcessId: followupTrackedChatProcessIdRef.current,
-          retained: p.retained,
-        }),
-    }).subscribe((payload): void => {
-      if (
-        isTrackedChatProcessGuard({
-          chatProcessId: payload.chatProcessId,
-          trackedChatProcessId: trackedChatProcessIdRef.current,
-          retained: payload.retained,
-        })
-      ) {
-        setStreamingFromOutput(false);
-        // Only a real turn end disarms. `history-replayed` is the subscribe-quest replay draining,
-        // which fires a couple hundred ms after this binding attaches to a quest — disarming on it
-        // would report a turn the user just started as idle.
-        if (payload.reason === 'turn-ended') {
-          setPendingTurn(false);
-          trackedChatProcessIdRef.current = null;
-          if (payload.chatProcessId !== undefined) {
-            endedChatProcessIdsRef.current.add(payload.chatProcessId);
+        const validEntries: ChatEntry[] = [];
+        const rejected: { candidate: unknown; reason: unknown }[] = [];
+        for (const candidate of rawEntries as unknown[]) {
+          const parseResult = chatEntryContract.safeParse(candidate);
+          if (parseResult.success) {
+            validEntries.push(
+              replaceEpochChatEntryTimestampTransformer({ entry: parseResult.data }),
+            );
+          } else {
+            rejected.push({ candidate, reason: parseResult.error.issues });
           }
         }
-      }
 
-      if (
-        isTrackedChatProcessGuard({
-          chatProcessId: payload.chatProcessId,
-          trackedChatProcessId: followupTrackedChatProcessIdRef.current,
-          retained: payload.retained,
-        })
-      ) {
-        setFollowupStreamingFromOutput(false);
-        if (payload.reason === 'turn-ended') {
-          setFollowupPendingTurn(false);
-          followupTrackedChatProcessIdRef.current = null;
+        globalThis.console.log('[WS] chat-output', {
+          questId: activeQuestId,
+          sessionId: payload.sessionId ?? null,
+          chatProcessId: payload.chatProcessId ?? null,
+          slotIndex: payload.slotIndex ?? null,
+          validCount: validEntries.length,
+          rawCount: rawEntries.length,
+          entries: validEntries.map((e) => ({
+            role: e.role,
+            type: 'type' in e ? e.type : null,
+            toolName: 'toolName' in e ? String(e.toolName) : null,
+            toolUseId: 'toolUseId' in e && e.toolUseId ? String(e.toolUseId) : null,
+            agentId: 'agentId' in e && e.agentId ? String(e.agentId) : null,
+            source: 'source' in e ? (e.source ?? null) : null,
+            content: 'content' in e && typeof e.content === 'string' ? e.content : null,
+            uuid: String(e.uuid),
+            timestamp: String(e.timestamp),
+          })),
+        });
+        if (rejected.length > 0) {
+          globalThis.console.warn('[WS] chat-output rejected-entries', rejected);
         }
-      }
-    });
+
+        if (validEntries.length === 0) return;
+
+        const sessionKey = payload.sessionId ?? SYNTHETIC_SESSION_KEY;
+        setEntriesBySessionInternal((prev) =>
+          upsertChatEntriesByUuidTransformer({ prev, key: sessionKey, newEntries: validEntries }),
+        );
+
+        const workItemKey = payload.workItemId;
+        if (workItemKey !== undefined) {
+          setEntriesByWorkItemInternal((prev) =>
+            upsertChatEntriesByUuidTransformer({
+              prev,
+              key: workItemKey,
+              newEntries: validEntries,
+            }),
+          );
+        }
+
+        const slotIndexParsed = slotIndexContract.safeParse(payload.slotIndex);
+        if (slotIndexParsed.success) {
+          const slotKey = slotIndexParsed.data;
+          setSlotEntriesInternal((prev) =>
+            upsertChatEntriesByUuidTransformer({ prev, key: slotKey, newEntries: validEntries }),
+          );
+        }
+
+        // Entries are upserted above whatever this decides — a drained transcript still has to
+        // RENDER; it just must not claim the agent is still working.
+        //
+        // A REPLAYED frame is a transcript read back off disk (ChatReplayResponder stamps it), so it
+        // never arms the indicator. Subscribe-quest replays EVERY work item and each one ends with
+        // its own `chat-history-complete`, so without this arm→disarm alternates once per work item:
+        // a 31-item quest strobed the FOLLOW-UP composer SEND↔STOP ~35 times in under three seconds
+        // while nothing was running. Gating on the flag rather than on the `quest-replay-` process-id
+        // prefix keeps the server's id-naming convention out of the browser.
+        if (payload.replay === true) return;
+
+        const outputChatProcessId = payload.chatProcessId;
+        if (
+          outputChatProcessId !== undefined &&
+          endedChatProcessIdsRef.current.has(outputChatProcessId)
+        ) {
+          return;
+        }
+
+        setStreamingFromOutput(true);
+
+        // The follow-up composer arms only on ITS OWN agent's output. Routing by workItemId rather
+        // than by chatProcessId is what makes this work across a reload: a replayed-then-resumed
+        // tavernkeeper turn arrives under a process id this browser never issued, but the work item
+        // is stamped on the quest and survives.
+        const followupWorkItemIdNow = followupWorkItemIdRef.current;
+        if (followupWorkItemIdNow !== null && workItemKey === followupWorkItemIdNow) {
+          setFollowupStreamingFromOutput(true);
+        }
+      });
+
+    const chatStreamEndedSub = webSocketChannelState
+      .chatStreamEnded$()
+      .pipe(
+        // Scoped the same way the chatOutput$ predicate above it already is. A completion naming a
+        // DIFFERENT process than the one this binding is tracking is somebody else's turn ending —
+        // a sibling work item finishing, another browser's replay draining — and letting it through
+        // is what made the control read PLAY while this quest's harness was still working. An
+        // untracked turn (`null`) or an untagged payload falls through, same as chatOutputSub's own
+        // "no id to compare against" arm.
+        //
+        // TWO tracked turns now, so the filter admits a frame either one claims and each arm re-tests
+        // its own below. Filtering on the main handle alone would have dropped the tavernkeeper's own
+        // completion whenever the main composer had a turn in flight, leaving the FOLLOW-UP tab on
+        // STOP with nothing left to clear it.
+        //
+        // `retained` rides along to the guard on every call: it narrows the match to an exact handle,
+        // so a re-delivered completion for a turn that ended before this browser subscribed is
+        // dropped here outright unless one of the two composers is actually tracking it.
+        filter(
+          (p) =>
+            isTrackedChatProcessGuard({
+              chatProcessId: p.chatProcessId,
+              trackedChatProcessId: trackedChatProcessIdRef.current,
+              retained: p.retained,
+            }) ||
+            isTrackedChatProcessGuard({
+              chatProcessId: p.chatProcessId,
+              trackedChatProcessId: followupTrackedChatProcessIdRef.current,
+              retained: p.retained,
+            }),
+        ),
+      )
+      .subscribe((payload): void => {
+        if (
+          isTrackedChatProcessGuard({
+            chatProcessId: payload.chatProcessId,
+            trackedChatProcessId: trackedChatProcessIdRef.current,
+            retained: payload.retained,
+          })
+        ) {
+          setStreamingFromOutput(false);
+          // Only a real turn end disarms. `history-replayed` is the subscribe-quest replay draining,
+          // which fires a couple hundred ms after this binding attaches to a quest — disarming on it
+          // would report a turn the user just started as idle.
+          if (payload.reason === 'turn-ended') {
+            setPendingTurn(false);
+            trackedChatProcessIdRef.current = null;
+            if (payload.chatProcessId !== undefined) {
+              endedChatProcessIdsRef.current.add(payload.chatProcessId);
+            }
+          }
+        }
+
+        if (
+          isTrackedChatProcessGuard({
+            chatProcessId: payload.chatProcessId,
+            trackedChatProcessId: followupTrackedChatProcessIdRef.current,
+            retained: payload.retained,
+          })
+        ) {
+          setFollowupStreamingFromOutput(false);
+          if (payload.reason === 'turn-ended') {
+            setFollowupPendingTurn(false);
+            followupTrackedChatProcessIdRef.current = null;
+          }
+        }
+      });
 
     const clarificationRequestSub = webSocketChannelState
       .clarificationRequest$()
@@ -539,45 +551,45 @@ export const useQuestChatBinding = ({
       updatedAt: undefined,
     };
 
-    const questUpdatedSub = rxjsFilterAdapter({
-      source: webSocketChannelState.questUpdated$(),
-      predicate: (q) => q.id === questIdRef.current,
-    }).subscribe((updatedQuest): void => {
-      const questParsed = questContract.safeParse(updatedQuest);
-      if (!questParsed.success) return;
-      // A delayed duplicate broadcast, or a reconnect replay racing a live update, can deliver an
-      // OLDER-shaped frame after a fresher one already landed — see isQuestUpdateStaleGuard for why
-      // `updatedAt` is the only trustworthy ordering signal the quest contract carries. The whole
-      // frame is dropped, not just its regressed field: none of what it would also overwrite below
-      // (the tavernkeeper work item id, the load-error clear) is any more trustworthy than the
-      // quest object it rode in on.
-      if (
-        questUpdateBaseline.hasApplied &&
-        isQuestUpdateStaleGuard({
-          incomingUpdatedAt: questParsed.data.updatedAt,
-          lastAppliedUpdatedAt: questUpdateBaseline.updatedAt,
-        })
-      ) {
-        return;
-      }
-      questUpdateBaseline.hasApplied = true;
-      questUpdateBaseline.updatedAt = questParsed.data.updatedAt;
-      setQuest(questParsed.data);
-      followupWorkItemIdRef.current =
-        questParsed.data.workItems.find((workItem) =>
-          isPostQuestChatWorkItemRoleGuard({ role: workItem.role }),
-        )?.id ?? null;
-      // A quest that now parses supersedes any earlier failure, so the route stops reporting a
-      // failure it has already recovered from.
-      setLoadError(null);
-    });
+    const questUpdatedSub = webSocketChannelState
+      .questUpdated$()
+      .pipe(filter((q) => q.id === questIdRef.current))
+      .subscribe((updatedQuest): void => {
+        const questParsed = questContract.safeParse(updatedQuest);
+        if (!questParsed.success) return;
+        // A delayed duplicate broadcast, or a reconnect replay racing a live update, can deliver an
+        // OLDER-shaped frame after a fresher one already landed — see isQuestUpdateStaleGuard for why
+        // `updatedAt` is the only trustworthy ordering signal the quest contract carries. The whole
+        // frame is dropped, not just its regressed field: none of what it would also overwrite below
+        // (the tavernkeeper work item id, the load-error clear) is any more trustworthy than the
+        // quest object it rode in on.
+        if (
+          questUpdateBaseline.hasApplied &&
+          isQuestUpdateStaleGuard({
+            incomingUpdatedAt: questParsed.data.updatedAt,
+            lastAppliedUpdatedAt: questUpdateBaseline.updatedAt,
+          })
+        ) {
+          return;
+        }
+        questUpdateBaseline.hasApplied = true;
+        questUpdateBaseline.updatedAt = questParsed.data.updatedAt;
+        setQuest(questParsed.data);
+        followupWorkItemIdRef.current =
+          questParsed.data.workItems.find((workItem) =>
+            isPostQuestChatWorkItemRoleGuard({ role: workItem.role }),
+          )?.id ?? null;
+        // A quest that now parses supersedes any earlier failure, so the route stops reporting a
+        // failure it has already recovered from.
+        setLoadError(null);
+      });
 
-    const questLoadFailedSub = rxjsFilterAdapter({
-      source: webSocketChannelState.questLoadFailed$(),
-      predicate: (p) => p.questId === questIdRef.current,
-    }).subscribe((payload): void => {
-      setLoadError(payload.error);
-    });
+    const questLoadFailedSub = webSocketChannelState
+      .questLoadFailed$()
+      .pipe(filter((p) => p.questId === questIdRef.current))
+      .subscribe((payload): void => {
+        setLoadError(payload.error);
+      });
 
     return (): void => {
       opensSub.unsubscribe();

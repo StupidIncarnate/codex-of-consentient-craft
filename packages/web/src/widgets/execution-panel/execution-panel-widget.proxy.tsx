@@ -5,7 +5,7 @@ import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { RequestCount } from '@dungeonmaster/testing';
 import type { QuestProjectionStub } from '@dungeonmaster/shared/contracts';
 
-import { testingLibraryActAdapter } from '../../adapters/testing-library/act/testing-library-act-adapter';
+import { act } from '#gateway/npm/testing-library__react';
 import { useElapsedTickBindingProxy } from '../../bindings/use-elapsed-tick/use-elapsed-tick-binding.proxy';
 import { useQuestProjectionBindingProxy } from '../../bindings/use-quest-projection/use-quest-projection-binding.proxy';
 import { AutoScrollContainerWidgetProxy } from '../auto-scroll-container/auto-scroll-container-widget.proxy';
@@ -256,10 +256,8 @@ export const ExecutionPanelWidgetProxy = (): {
       elapsedTickProxy.advanceNowMs({ ms });
     },
     fireTick: (): void => {
-      testingLibraryActAdapter({
-        callback: () => {
-          elapsedTickProxy.fireTick();
-        },
+      act(() => {
+        elapsedTickProxy.fireTick();
       });
     },
     fireTickWithoutAct: (): void => {

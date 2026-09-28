@@ -2,7 +2,6 @@ import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { RequestCount } from '@dungeonmaster/testing';
 import type { QuestProjectionStub } from '@dungeonmaster/shared/contracts';
 
-import { rxjsFilterAdapterProxy } from '../../adapters/rxjs/filter/rxjs-filter-adapter.proxy';
 import { questProjectionBrokerProxy } from '../../brokers/quest/projection/quest-projection-broker.proxy';
 import { webSocketChannelStateProxy } from '../../state/web-socket-channel/web-socket-channel-state.proxy';
 
@@ -16,7 +15,6 @@ export const useQuestProjectionBindingProxy = (): {
   deliverWsMessage: (params: { data: string }) => void;
 } => {
   const broker = questProjectionBrokerProxy();
-  rxjsFilterAdapterProxy();
   const channel = webSocketChannelStateProxy();
   // useQuestProjectionBinding logs from the effect's outer catch only; the inner catch sets `error`
   // state instead. passthrough: true — console.error is a shared sink and React's own internal

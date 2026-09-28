@@ -1,4 +1,3 @@
-import { rxjsFilterAdapterProxy } from '../../adapters/rxjs/filter/rxjs-filter-adapter.proxy';
 import { webSocketChannelStateProxy } from '../../state/web-socket-channel/web-socket-channel-state.proxy';
 
 export const useSessionReplayBindingProxy = (): {
@@ -8,7 +7,6 @@ export const useSessionReplayBindingProxy = (): {
   triggerWsClose: () => void;
   triggerWsReconnect: () => void;
 } => {
-  rxjsFilterAdapterProxy();
   const channel = webSocketChannelStateProxy();
 
   return {

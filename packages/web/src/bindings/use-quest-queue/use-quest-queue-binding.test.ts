@@ -1,8 +1,6 @@
 import { QuestQueueEntryStub } from '@dungeonmaster/shared/contracts';
 
-import { testingLibraryActAdapter } from '../../adapters/testing-library/act/testing-library-act-adapter';
-import { testingLibraryRenderHookAdapter } from '../../adapters/testing-library/render-hook/testing-library-render-hook-adapter';
-import { testingLibraryWaitForAdapter } from '../../adapters/testing-library/wait-for/testing-library-wait-for-adapter';
+import { act, renderHook, waitFor } from '#gateway/npm/testing-library__react';
 import { useQuestQueueBinding } from './use-quest-queue-binding';
 import { useQuestQueueBindingProxy } from './use-quest-queue-binding.proxy';
 
@@ -17,16 +15,12 @@ describe('useQuestQueueBinding', () => {
       ];
       proxy.setupEntries({ entries });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestQueueBinding(),
-      });
+      const { result } = renderHook(() => useQuestQueueBinding());
 
       const currentState = (): ReturnType<typeof useQuestQueueBinding> => result.current;
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().isLoading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(currentState().isLoading).toBe(false);
       });
 
       expect(result.current).toStrictEqual({
@@ -42,16 +36,12 @@ describe('useQuestQueueBinding', () => {
       proxy.setupConnectedChannel();
       proxy.setupEntries({ entries: [] });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestQueueBinding(),
-      });
+      const { result } = renderHook(() => useQuestQueueBinding());
 
       const currentState = (): ReturnType<typeof useQuestQueueBinding> => result.current;
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().isLoading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(currentState().isLoading).toBe(false);
       });
 
       expect(result.current).toStrictEqual({
@@ -67,9 +57,7 @@ describe('useQuestQueueBinding', () => {
       proxy.setupConnectedChannel();
       proxy.setupEntries({ entries: [] });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestQueueBinding(),
-      });
+      const { result } = renderHook(() => useQuestQueueBinding());
 
       expect(result.current.isLoading).toBe(true);
     });
@@ -90,16 +78,12 @@ describe('useQuestQueueBinding', () => {
       const second = QuestQueueEntryStub({ questId: 'q-ok', questTitle: 'Next' });
       proxy.setupEntries({ entries: [headWithError, second] });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestQueueBinding(),
-      });
+      const { result } = renderHook(() => useQuestQueueBinding());
 
       const currentState = (): ReturnType<typeof useQuestQueueBinding> => result.current;
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().isLoading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(currentState().isLoading).toBe(false);
       });
 
       expect(result.current).toStrictEqual({
@@ -124,16 +108,12 @@ describe('useQuestQueueBinding', () => {
       });
       proxy.setupEntries({ entries: [head, tailErr] });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestQueueBinding(),
-      });
+      const { result } = renderHook(() => useQuestQueueBinding());
 
       const currentState = (): ReturnType<typeof useQuestQueueBinding> => result.current;
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().isLoading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(currentState().isLoading).toBe(false);
       });
 
       expect(result.current).toStrictEqual({
@@ -152,16 +132,12 @@ describe('useQuestQueueBinding', () => {
       const initial = [QuestQueueEntryStub({ questId: 'q-1', questTitle: 'First' })];
       proxy.setupEntries({ entries: initial });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestQueueBinding(),
-      });
+      const { result } = renderHook(() => useQuestQueueBinding());
 
       const currentState = (): ReturnType<typeof useQuestQueueBinding> => result.current;
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().isLoading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(currentState().isLoading).toBe(false);
       });
 
       const updated = [
@@ -170,22 +146,18 @@ describe('useQuestQueueBinding', () => {
       ];
       proxy.setupEntries({ entries: updated });
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'execution-queue-updated',
-              payload: {},
-              timestamp: '2024-01-15T10:00:00.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'execution-queue-updated',
+            payload: {},
+            timestamp: '2024-01-15T10:00:00.000Z',
+          }),
+        });
       });
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().allEntries).toStrictEqual(updated);
-        },
+      await waitFor(() => {
+        expect(currentState().allEntries).toStrictEqual(updated);
       });
 
       expect(result.current).toStrictEqual({
@@ -202,16 +174,12 @@ describe('useQuestQueueBinding', () => {
       const initial = [QuestQueueEntryStub({ questId: 'q-1', questTitle: 'First' })];
       proxy.setupEntries({ entries: initial });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestQueueBinding(),
-      });
+      const { result } = renderHook(() => useQuestQueueBinding());
 
       const currentState = (): ReturnType<typeof useQuestQueueBinding> => result.current;
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().isLoading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(currentState().isLoading).toBe(false);
       });
 
       const failed = QuestQueueEntryStub({
@@ -224,22 +192,18 @@ describe('useQuestQueueBinding', () => {
       });
       proxy.setupEntries({ entries: [failed] });
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'execution-queue-error',
-              payload: {},
-              timestamp: '2024-01-15T10:00:00.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'execution-queue-error',
+            payload: {},
+            timestamp: '2024-01-15T10:00:00.000Z',
+          }),
+        });
       });
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().errorEntry).toStrictEqual(failed);
-        },
+      await waitFor(() => {
+        expect(currentState().errorEntry).toStrictEqual(failed);
       });
 
       expect(result.current).toStrictEqual({
@@ -256,16 +220,12 @@ describe('useQuestQueueBinding', () => {
       const initial = [QuestQueueEntryStub({ questId: 'q-1', questTitle: 'First' })];
       proxy.setupEntries({ entries: initial });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestQueueBinding(),
-      });
+      const { result } = renderHook(() => useQuestQueueBinding());
 
       const currentState = (): ReturnType<typeof useQuestQueueBinding> => result.current;
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().isLoading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(currentState().isLoading).toBe(false);
       });
 
       const other = [
@@ -274,16 +234,14 @@ describe('useQuestQueueBinding', () => {
       ];
       proxy.setupEntries({ entries: other });
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'quest-modified',
-              payload: { questId: 'add-auth', quest: {} },
-              timestamp: '2024-01-15T10:00:00.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-modified',
+            payload: { questId: 'add-auth', quest: {} },
+            timestamp: '2024-01-15T10:00:00.000Z',
+          }),
+        });
       });
 
       // Allow any microtasks to settle.

@@ -1,8 +1,6 @@
 import { DispatchStateStub } from '@dungeonmaster/shared/contracts';
 
-import { testingLibraryActAdapter } from '../../adapters/testing-library/act/testing-library-act-adapter';
-import { testingLibraryRenderHookAdapter } from '../../adapters/testing-library/render-hook/testing-library-render-hook-adapter';
-import { testingLibraryWaitForAdapter } from '../../adapters/testing-library/wait-for/testing-library-wait-for-adapter';
+import { act, renderHook, waitFor } from '#gateway/npm/testing-library__react';
 import { useDispatchStateBinding } from './use-dispatch-state-binding';
 import { useDispatchStateBindingProxy } from './use-dispatch-state-binding.proxy';
 
@@ -14,16 +12,12 @@ describe('useDispatchStateBinding', () => {
       const state = DispatchStateStub({ mode: 'paused' });
       proxy.setupState({ state });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useDispatchStateBinding(),
-      });
+      const { result } = renderHook(() => useDispatchStateBinding());
 
       const currentState = (): ReturnType<typeof useDispatchStateBinding> => result.current;
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().isLoading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(currentState().isLoading).toBe(false);
       });
 
       expect(result.current).toStrictEqual({
@@ -37,9 +31,7 @@ describe('useDispatchStateBinding', () => {
       proxy.setupConnectedChannel();
       proxy.setupState({ state: DispatchStateStub() });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useDispatchStateBinding(),
-      });
+      const { result } = renderHook(() => useDispatchStateBinding());
 
       expect(result.current).toStrictEqual({
         state: null,
@@ -52,16 +44,12 @@ describe('useDispatchStateBinding', () => {
       proxy.setupConnectedChannel();
       proxy.setupError();
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useDispatchStateBinding(),
-      });
+      const { result } = renderHook(() => useDispatchStateBinding());
 
       const currentState = (): ReturnType<typeof useDispatchStateBinding> => result.current;
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().isLoading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(currentState().isLoading).toBe(false);
       });
 
       expect(result.current).toStrictEqual({
@@ -78,16 +66,12 @@ describe('useDispatchStateBinding', () => {
       const initial = DispatchStateStub({ mode: 'paused' });
       proxy.setupState({ state: initial });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useDispatchStateBinding(),
-      });
+      const { result } = renderHook(() => useDispatchStateBinding());
 
       const currentState = (): ReturnType<typeof useDispatchStateBinding> => result.current;
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().isLoading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(currentState().isLoading).toBe(false);
       });
 
       const updated = DispatchStateStub({
@@ -96,22 +80,18 @@ describe('useDispatchStateBinding', () => {
       });
       proxy.setupState({ state: updated });
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'dispatch-state-changed',
-              payload: {},
-              timestamp: '2024-01-15T10:10:00.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'dispatch-state-changed',
+            payload: {},
+            timestamp: '2024-01-15T10:10:00.000Z',
+          }),
+        });
       });
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().state).toStrictEqual(updated);
-        },
+      await waitFor(() => {
+        expect(currentState().state).toStrictEqual(updated);
       });
 
       expect(result.current).toStrictEqual({
@@ -126,16 +106,12 @@ describe('useDispatchStateBinding', () => {
       const initial = DispatchStateStub({ mode: 'paused' });
       proxy.setupState({ state: initial });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useDispatchStateBinding(),
-      });
+      const { result } = renderHook(() => useDispatchStateBinding());
 
       const currentState = (): ReturnType<typeof useDispatchStateBinding> => result.current;
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().isLoading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(currentState().isLoading).toBe(false);
       });
 
       const other = DispatchStateStub({
@@ -144,16 +120,14 @@ describe('useDispatchStateBinding', () => {
       });
       proxy.setupState({ state: other });
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'execution-queue-updated',
-              payload: {},
-              timestamp: '2024-01-15T10:10:00.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'execution-queue-updated',
+            payload: {},
+            timestamp: '2024-01-15T10:10:00.000Z',
+          }),
+        });
       });
 
       // Allow any microtasks to settle.

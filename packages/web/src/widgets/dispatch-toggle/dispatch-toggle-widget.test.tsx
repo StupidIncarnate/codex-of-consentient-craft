@@ -3,7 +3,7 @@ import { waitFor } from '@testing-library/react';
 import { DispatchHoldStub, DispatchStateStub } from '@dungeonmaster/shared/contracts';
 
 import { mantineRenderAdapter } from '../../adapters/mantine/render/mantine-render-adapter';
-import { testingLibraryActAdapter } from '../../adapters/testing-library/act/testing-library-act-adapter';
+import { act } from '#gateway/npm/testing-library__react';
 import { DispatchToggleWidget } from './dispatch-toggle-widget';
 import { DispatchToggleWidgetProxy } from './dispatch-toggle-widget.proxy';
 
@@ -94,16 +94,14 @@ describe('DispatchToggleWidget', () => {
       expect(proxy.hasToggleLabel({ text: 'PLAY' })).toBe(true);
 
       proxy.setupDispatchState({ state: DispatchStateStub({ mode: 'node-playing' }) });
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'dispatch-state-changed',
-              payload: {},
-              timestamp: '2024-01-15T10:10:00.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'dispatch-state-changed',
+            payload: {},
+            timestamp: '2024-01-15T10:10:00.000Z',
+          }),
+        });
       });
 
       await waitFor(() => {
@@ -247,16 +245,14 @@ describe('DispatchToggleWidget', () => {
       proxy.setupDispatchState({
         state: DispatchStateStub({ mode: 'paused', hold: DispatchHoldStub() }),
       });
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'dispatch-state-changed',
-              payload: {},
-              timestamp: '2024-01-15T10:10:00.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'dispatch-state-changed',
+            payload: {},
+            timestamp: '2024-01-15T10:10:00.000Z',
+          }),
+        });
       });
 
       await waitFor(() => {

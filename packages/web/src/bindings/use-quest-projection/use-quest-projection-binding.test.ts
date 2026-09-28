@@ -1,8 +1,6 @@
 import { QuestIdStub, QuestProjectionStub, QuestStub } from '@dungeonmaster/shared/contracts';
 
-import { testingLibraryActAdapter } from '../../adapters/testing-library/act/testing-library-act-adapter';
-import { testingLibraryRenderHookAdapter } from '../../adapters/testing-library/render-hook/testing-library-render-hook-adapter';
-import { testingLibraryWaitForAdapter } from '../../adapters/testing-library/wait-for/testing-library-wait-for-adapter';
+import { act, renderHook, waitFor } from '#gateway/npm/testing-library__react';
 import { useQuestProjectionBinding } from './use-quest-projection-binding';
 import { useQuestProjectionBindingProxy } from './use-quest-projection-binding.proxy';
 
@@ -17,16 +15,12 @@ describe('useQuestProjectionBinding', () => {
       const projection = QuestProjectionStub({ questId: 'q-projection' });
       proxy.setupProjection({ projection });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestProjectionBinding({ questId: QUEST_ID }),
-      });
+      const { result } = renderHook(() => useQuestProjectionBinding({ questId: QUEST_ID }));
 
       const currentState = (): ReturnType<typeof useQuestProjectionBinding> => result.current;
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().loading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(currentState().loading).toBe(false);
       });
 
       expect(result.current).toStrictEqual({ data: projection, loading: false, error: null });
@@ -37,9 +31,7 @@ describe('useQuestProjectionBinding', () => {
       proxy.setupConnectedChannel();
       proxy.setupProjection({ projection: QuestProjectionStub({ questId: 'q-projection' }) });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestProjectionBinding({ questId: QUEST_ID }),
-      });
+      const { result } = renderHook(() => useQuestProjectionBinding({ questId: QUEST_ID }));
 
       expect(result.current.loading).toBe(true);
     });
@@ -49,16 +41,12 @@ describe('useQuestProjectionBinding', () => {
       proxy.setupConnectedChannel();
       proxy.setupProjection({ projection: QuestProjectionStub({ questId: 'q-projection' }) });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestProjectionBinding({ questId: null }),
-      });
+      const { result } = renderHook(() => useQuestProjectionBinding({ questId: null }));
 
       const currentState = (): ReturnType<typeof useQuestProjectionBinding> => result.current;
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().loading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(currentState().loading).toBe(false);
       });
 
       expect(result.current).toStrictEqual({ data: null, loading: false, error: null });
@@ -72,16 +60,12 @@ describe('useQuestProjectionBinding', () => {
       proxy.setupConnectedChannel();
       proxy.setupNotFound();
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestProjectionBinding({ questId: QUEST_ID }),
-      });
+      const { result } = renderHook(() => useQuestProjectionBinding({ questId: QUEST_ID }));
 
       const currentState = (): ReturnType<typeof useQuestProjectionBinding> => result.current;
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().loading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(currentState().loading).toBe(false);
       });
 
       expect(result.current.data).toBe(null);
@@ -102,16 +86,12 @@ describe('useQuestProjectionBinding', () => {
       });
       proxy.setupProjection({ projection: initial });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestProjectionBinding({ questId: QUEST_ID }),
-      });
+      const { result } = renderHook(() => useQuestProjectionBinding({ questId: QUEST_ID }));
 
       const currentState = (): ReturnType<typeof useQuestProjectionBinding> => result.current;
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().loading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(currentState().loading).toBe(false);
       });
 
       // A work item completed on disk: the same quest now reports one more completed step.
@@ -122,25 +102,21 @@ describe('useQuestProjectionBinding', () => {
       });
       proxy.setupProjection({ projection: afterCompletion });
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'quest-modified',
-              payload: {
-                questId: 'q-projection',
-                quest: QuestStub({ id: 'q-projection', status: 'in_progress' }),
-              },
-              timestamp: '2026-01-01T00:00:00.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-modified',
+            payload: {
+              questId: 'q-projection',
+              quest: QuestStub({ id: 'q-projection', status: 'in_progress' }),
+            },
+            timestamp: '2026-01-01T00:00:00.000Z',
+          }),
+        });
       });
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().data).toStrictEqual(afterCompletion);
-        },
+      await waitFor(() => {
+        expect(currentState().data).toStrictEqual(afterCompletion);
       });
 
       expect(result.current).toStrictEqual({ data: afterCompletion, loading: false, error: null });
@@ -152,31 +128,25 @@ describe('useQuestProjectionBinding', () => {
       const initial = QuestProjectionStub({ questId: 'q-projection' });
       proxy.setupProjection({ projection: initial });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestProjectionBinding({ questId: QUEST_ID }),
-      });
+      const { result } = renderHook(() => useQuestProjectionBinding({ questId: QUEST_ID }));
 
       const currentState = (): ReturnType<typeof useQuestProjectionBinding> => result.current;
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().loading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(currentState().loading).toBe(false);
       });
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'quest-modified',
-              payload: {
-                questId: String(OTHER_QUEST_ID),
-                quest: QuestStub({ id: 'q-other', status: 'in_progress' }),
-              },
-              timestamp: '2026-01-01T00:00:00.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-modified',
+            payload: {
+              questId: String(OTHER_QUEST_ID),
+              quest: QuestStub({ id: 'q-other', status: 'in_progress' }),
+            },
+            timestamp: '2026-01-01T00:00:00.000Z',
+          }),
+        });
       });
 
       // A stray refetch runs its broker call and mock-fetch resolution across several microtask

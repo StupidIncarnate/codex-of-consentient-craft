@@ -1,5 +1,4 @@
-import { testingLibraryActAdapter } from '../../adapters/testing-library/act/testing-library-act-adapter';
-import { testingLibraryRenderHookAdapter } from '../../adapters/testing-library/render-hook/testing-library-render-hook-adapter';
+import { act, renderHook } from '#gateway/npm/testing-library__react';
 import { elapsedDisplayConfigStatics } from '../../statics/elapsed-display-config/elapsed-display-config-statics';
 
 import { useElapsedTickBinding } from './use-elapsed-tick-binding';
@@ -14,9 +13,7 @@ describe('useElapsedTickBinding', () => {
       const proxy = useElapsedTickBindingProxy();
       proxy.setNowMs({ ms: 240_000 });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useElapsedTickBinding({ enabled: false }),
-      });
+      const { result } = renderHook(() => useElapsedTickBinding({ enabled: false }));
 
       expect(result.current.now).toBe('1970-01-01T00:04:00.000Z');
       expect(proxy.getTickIntervalCount()).toBe(0);
@@ -28,15 +25,11 @@ describe('useElapsedTickBinding', () => {
       const proxy = useElapsedTickBindingProxy();
       proxy.setNowMs({ ms: 0 });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useElapsedTickBinding({ enabled: true }),
-      });
+      const { result } = renderHook(() => useElapsedTickBinding({ enabled: true }));
 
       proxy.advanceNowMs({ ms: elapsedDisplayConfigStatics.refresh.tickMs });
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.fireTick();
-        },
+      act(() => {
+        proxy.fireTick();
       });
 
       expect(result.current.now).toBe('1970-01-01T00:01:00.000Z');
@@ -53,17 +46,13 @@ describe('useElapsedTickBinding', () => {
       const proxy = useElapsedTickBindingProxy();
       proxy.setNowMs({ ms: 0 });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useElapsedTickBinding({ enabled: true }),
-      });
+      const { result } = renderHook(() => useElapsedTickBinding({ enabled: true }));
 
       proxy.advanceNowMs({ ms: elapsedDisplayConfigStatics.refresh.tickMs * 5 });
 
-      testingLibraryActAdapter({
-        callback: () => {
-          Object.defineProperty(document, 'hidden', { value: false, configurable: true });
-          document.dispatchEvent(new Event('visibilitychange'));
-        },
+      act(() => {
+        Object.defineProperty(document, 'hidden', { value: false, configurable: true });
+        document.dispatchEvent(new Event('visibilitychange'));
       });
 
       expect(result.current.now).toBe('1970-01-01T00:05:00.000Z');
@@ -75,9 +64,7 @@ describe('useElapsedTickBinding', () => {
       const proxy = useElapsedTickBindingProxy();
       proxy.setNowMs({ ms: 0 });
 
-      testingLibraryRenderHookAdapter({
-        renderCallback: () => useElapsedTickBinding({ enabled: false }),
-      });
+      renderHook(() => useElapsedTickBinding({ enabled: false }));
 
       expect(proxy.getTickIntervalCount()).toBe(0);
     });
@@ -88,9 +75,7 @@ describe('useElapsedTickBinding', () => {
       const proxy = useElapsedTickBindingProxy();
       proxy.setNowMs({ ms: 0 });
 
-      const { unmount } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useElapsedTickBinding({ enabled: true }),
-      });
+      const { unmount } = renderHook(() => useElapsedTickBinding({ enabled: true }));
       unmount();
 
       expect(proxy.getClearedTickCount()).toBe(1);
@@ -103,9 +88,7 @@ describe('useElapsedTickBinding', () => {
       const proxy = useElapsedTickBindingProxy();
       proxy.setNowMs({ ms: 0 });
 
-      const { unmount } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useElapsedTickBinding({ enabled: true }),
-      });
+      const { unmount } = renderHook(() => useElapsedTickBinding({ enabled: true }));
       unmount();
 
       expect(proxy.getVisibilityChangeListenerCount()).toBe(1);
@@ -117,14 +100,10 @@ describe('useElapsedTickBinding', () => {
       proxy.setNowMs({ ms: 0 });
       let enabled = true;
 
-      const { rerender } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useElapsedTickBinding({ enabled }),
-      });
-      testingLibraryActAdapter({
-        callback: () => {
-          enabled = false;
-          rerender();
-        },
+      const { rerender } = renderHook(() => useElapsedTickBinding({ enabled }));
+      act(() => {
+        enabled = false;
+        rerender();
       });
 
       expect(proxy.getClearedTickCount()).toBe(1);
@@ -136,9 +115,7 @@ describe('useElapsedTickBinding', () => {
       const proxy = useElapsedTickBindingProxy();
       proxy.setNowMs({ ms: 0 });
 
-      const { rerender } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useElapsedTickBinding({ enabled: true }),
-      });
+      const { rerender } = renderHook(() => useElapsedTickBinding({ enabled: true }));
       rerender();
       rerender();
       rerender();
@@ -155,19 +132,13 @@ describe('useElapsedTickBinding', () => {
       const proxy = useElapsedTickBindingProxy();
       proxy.setNowMs({ ms: 0 });
 
-      const first = testingLibraryRenderHookAdapter({
-        renderCallback: () => useElapsedTickBinding({ enabled: true }),
-      });
+      const first = renderHook(() => useElapsedTickBinding({ enabled: true }));
       first.unmount();
 
-      const second = testingLibraryRenderHookAdapter({
-        renderCallback: () => useElapsedTickBinding({ enabled: true }),
-      });
+      const second = renderHook(() => useElapsedTickBinding({ enabled: true }));
       second.unmount();
 
-      testingLibraryRenderHookAdapter({
-        renderCallback: () => useElapsedTickBinding({ enabled: true }),
-      });
+      renderHook(() => useElapsedTickBinding({ enabled: true }));
 
       expect(proxy.getTickIntervalCount()).toBe(3);
       expect(proxy.getClearedTickCount()).toBe(2);
@@ -184,28 +155,22 @@ describe('useElapsedTickBinding', () => {
       const proxy = useElapsedTickBindingProxy();
       proxy.setNowMs({ ms: 0 });
 
-      const first = testingLibraryRenderHookAdapter({
-        renderCallback: () => useElapsedTickBinding({ enabled: true }),
-      });
+      const first = renderHook(() => useElapsedTickBinding({ enabled: true }));
       first.unmount();
 
       // The gap happens entirely while nothing is mounted: no tick callback fires here, only the
       // mocked clock moves on.
       proxy.advanceNowMs({ ms: elapsedDisplayConfigStatics.refresh.tickMs * 2.5 });
 
-      const second = testingLibraryRenderHookAdapter({
-        renderCallback: () => useElapsedTickBinding({ enabled: true }),
-      });
+      const second = renderHook(() => useElapsedTickBinding({ enabled: true }));
       const readSecondNow = (): ReturnType<typeof useElapsedTickBinding>['now'] =>
         second.result.current.now;
 
       expect(readSecondNow()).toBe('1970-01-01T00:02:30.000Z');
 
       proxy.advanceNowMs({ ms: elapsedDisplayConfigStatics.refresh.tickMs });
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.fireTick();
-        },
+      act(() => {
+        proxy.fireTick();
       });
 
       // Exactly one further step — not a multi-tick catch-up jump for the gap that passed while

@@ -1,7 +1,6 @@
 import { QuestIdStub, WardResultStub } from '@dungeonmaster/shared/contracts';
 
-import { testingLibraryActAdapter } from '../../adapters/testing-library/act/testing-library-act-adapter';
-import { testingLibraryRenderHookAdapter } from '../../adapters/testing-library/render-hook/testing-library-render-hook-adapter';
+import { act, renderHook } from '#gateway/npm/testing-library__react';
 
 import { useWardDetailBinding } from './use-ward-detail-binding';
 import { useWardDetailBindingProxy } from './use-ward-detail-binding.proxy';
@@ -13,9 +12,7 @@ describe('useWardDetailBinding', () => {
       proxy.setupConnectedChannel();
       const questId = QuestIdStub({ value: 'test-quest' });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useWardDetailBinding({ questId }),
-      });
+      const { result } = renderHook(() => useWardDetailBinding({ questId }));
 
       expect({ detail: result.current.detail, loading: result.current.loading }).toStrictEqual({
         detail: null,
@@ -31,14 +28,10 @@ describe('useWardDetailBinding', () => {
       const questId = QuestIdStub({ value: 'test-quest' });
       const wardResult = WardResultStub();
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useWardDetailBinding({ questId }),
-      });
+      const { result } = renderHook(() => useWardDetailBinding({ questId }));
 
-      testingLibraryActAdapter({
-        callback: () => {
-          result.current.requestDetail({ wardResultId: wardResult.id });
-        },
+      act(() => {
+        result.current.requestDetail({ wardResultId: wardResult.id });
       });
 
       const sentMessages = proxy.getSentMessages();
@@ -57,14 +50,10 @@ describe('useWardDetailBinding', () => {
       proxy.setupConnectedChannel();
       const wardResult = WardResultStub();
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useWardDetailBinding({ questId: null }),
-      });
+      const { result } = renderHook(() => useWardDetailBinding({ questId: null }));
 
-      testingLibraryActAdapter({
-        callback: () => {
-          result.current.requestDetail({ wardResultId: wardResult.id });
-        },
+      act(() => {
+        result.current.requestDetail({ wardResultId: wardResult.id });
       });
 
       expect(proxy.getSentMessages()).toStrictEqual([]);
@@ -79,26 +68,20 @@ describe('useWardDetailBinding', () => {
       const wardResult = WardResultStub();
       const detailPayload = 'ward-detail-content-abc';
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useWardDetailBinding({ questId }),
+      const { result } = renderHook(() => useWardDetailBinding({ questId }));
+
+      act(() => {
+        result.current.requestDetail({ wardResultId: wardResult.id });
       });
 
-      testingLibraryActAdapter({
-        callback: () => {
-          result.current.requestDetail({ wardResultId: wardResult.id });
-        },
-      });
-
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'ward-detail-response',
-              wardResultId: wardResult.id,
-              detail: detailPayload,
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'ward-detail-response',
+            wardResultId: wardResult.id,
+            detail: detailPayload,
+          }),
+        });
       });
 
       expect({ detail: result.current.detail, loading: result.current.loading }).toStrictEqual({
@@ -114,26 +97,20 @@ describe('useWardDetailBinding', () => {
       const wardResult = WardResultStub();
       const otherWardResult = WardResultStub({ id: 'b2c3d4e5-f6a7-8901-bcde-f12345678901' });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useWardDetailBinding({ questId }),
+      const { result } = renderHook(() => useWardDetailBinding({ questId }));
+
+      act(() => {
+        result.current.requestDetail({ wardResultId: wardResult.id });
       });
 
-      testingLibraryActAdapter({
-        callback: () => {
-          result.current.requestDetail({ wardResultId: wardResult.id });
-        },
-      });
-
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'ward-detail-response',
-              wardResultId: otherWardResult.id,
-              detail: 'wrong-detail',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'ward-detail-response',
+            wardResultId: otherWardResult.id,
+            detail: 'wrong-detail',
+          }),
+        });
       });
 
       expect({ detail: result.current.detail, loading: result.current.loading }).toStrictEqual({
@@ -148,26 +125,20 @@ describe('useWardDetailBinding', () => {
       const questId = QuestIdStub({ value: 'test-quest' });
       const wardResult = WardResultStub();
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useWardDetailBinding({ questId }),
+      const { result } = renderHook(() => useWardDetailBinding({ questId }));
+
+      act(() => {
+        result.current.requestDetail({ wardResultId: wardResult.id });
       });
 
-      testingLibraryActAdapter({
-        callback: () => {
-          result.current.requestDetail({ wardResultId: wardResult.id });
-        },
-      });
-
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'quest-modified',
-              wardResultId: wardResult.id,
-              detail: 'should-not-appear',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-modified',
+            wardResultId: wardResult.id,
+            detail: 'should-not-appear',
+          }),
+        });
       });
 
       expect({ detail: result.current.detail, loading: result.current.loading }).toStrictEqual({
@@ -186,35 +157,27 @@ describe('useWardDetailBinding', () => {
       const wardResult2 = WardResultStub({ id: 'b2c3d4e5-f6a7-8901-bcde-f12345678901' });
       const detail2 = 'detail-for-id2';
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useWardDetailBinding({ questId }),
-      });
+      const { result } = renderHook(() => useWardDetailBinding({ questId }));
 
       // First request — starts a subscription for wardResult1
-      testingLibraryActAdapter({
-        callback: () => {
-          result.current.requestDetail({ wardResultId: wardResult1.id });
-        },
+      act(() => {
+        result.current.requestDetail({ wardResultId: wardResult1.id });
       });
 
       // Second request — cancels first subscription, starts one for wardResult2
-      testingLibraryActAdapter({
-        callback: () => {
-          result.current.requestDetail({ wardResultId: wardResult2.id });
-        },
+      act(() => {
+        result.current.requestDetail({ wardResultId: wardResult2.id });
       });
 
       // Response for wardResult2 arrives — should resolve since it is the active subscription
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'ward-detail-response',
-              wardResultId: wardResult2.id,
-              detail: detail2,
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'ward-detail-response',
+            wardResultId: wardResult2.id,
+            detail: detail2,
+          }),
+        });
       });
 
       expect({ detail: result.current.detail, loading: result.current.loading }).toStrictEqual({

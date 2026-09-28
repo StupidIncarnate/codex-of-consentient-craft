@@ -511,3 +511,82 @@ Files touched: the five `brokers/**` `.ts` + `.proxy.ts`; `contracts/quest-queue
 `contracts/rate-limits-get-result/` (3 files each); `brokers/quest/list/quest-list-broker.test.ts`;
 `bindings/use-quests/use-quests-binding.{proxy.ts,test.ts}`; widgets `app`, `home-content`, `quest-queue-bar`,
 `guild-add-modal`, `guild-empty-state`, `directory-browser-modal` (proxy where named above, plus test).
+
+### W-NET scope
+
+The remaining network adapters. `fetch/patch` and `fetch/post-with-status` move onto `fetchJson` and
+`fetchWithStatus`; `websocket/connect` onto `#gateway/browser/WebSocket` `connect`. `xhr/post-with-progress`
+stays: `@gateway/browser` exports the raw `XMLHttpRequest` global with no proxy and no wrapper, so the
+broker proxies have nothing to compose.
+
+Brokers (`.ts`, `.proxy.ts`, `.test.ts` each), `packages/web/src/brokers/quest/`: `modify/quest-modify-broker`,
+`human-verdict/quest-human-verdict-broker`, `start/quest-start-broker`. The two `fetchWithStatus` brokers parse
+the raw body themselves (JSON, raw-text fallback), and `human-verdict`'s `setupHeld` composes
+`fetchWithStatusProxy().setupHeld`.
+
+State: `packages/web/src/state/web-socket-channel/web-socket-channel-state.ts` and `.proxy.ts` (composes
+`connectProxy`; the reconnect-timer flush, which the gateway proxy does not offer, moves into this proxy).
+
+Deleted: `packages/web/src/adapters/fetch/patch/*`, `packages/web/src/adapters/fetch/post-with-status/*`,
+`packages/web/src/adapters/websocket/connect/*` (three files each).
+
+Item file: `scrolls/brands-gateways-epic/items/a17-adapters-web.md`.
+
+
+### W-TL-RX scope
+
+Deleted outright (30 files): `packages/web/src/adapters/testing-library/{act,act-async,render-hook,wait-for}/*` and `packages/web/src/adapters/rxjs/{filter,merge,of,subject,take,timeout}/*` (adapter, proxy, test each). Every caller imports `act`/`renderHook`/`waitFor` from `#gateway/npm/testing-library__react`, and `filter`/`take`/`timeout`/`merge`/`of`/`Subject` from `#gateway/npm/rxjs__operators` / `#gateway/npm/rxjs`. Files edited:
+
+- `packages/web/src/bindings/use-agent-output/use-agent-output-binding.test.ts`
+- `packages/web/src/bindings/use-auto-scroll/use-auto-scroll-binding.test.ts`
+- `packages/web/src/bindings/use-comment-queue-sweep/use-comment-queue-sweep-binding.test.ts`
+- `packages/web/src/bindings/use-comment-queue/use-comment-queue-binding.test.ts`
+- `packages/web/src/bindings/use-directory-browser/use-directory-browser-binding.test.ts`
+- `packages/web/src/bindings/use-disclosure-anchor/use-disclosure-anchor-binding.test.ts`
+- `packages/web/src/bindings/use-dispatch-state/use-dispatch-state-binding.test.ts`
+- `packages/web/src/bindings/use-elapsed-tick/use-elapsed-tick-binding.test.ts`
+- `packages/web/src/bindings/use-guild-detail/use-guild-detail-binding.test.ts`
+- `packages/web/src/bindings/use-guilds/use-guilds-binding.test.ts`
+- `packages/web/src/bindings/use-orchestration-mode/use-orchestration-mode-binding.test.ts`
+- `packages/web/src/bindings/use-quest-chat/use-quest-chat-binding.proxy.ts`
+- `packages/web/src/bindings/use-quest-chat/use-quest-chat-binding.test.ts`
+- `packages/web/src/bindings/use-quest-chat/use-quest-chat-binding.ts`
+- `packages/web/src/bindings/use-quest-projection/use-quest-projection-binding.proxy.ts`
+- `packages/web/src/bindings/use-quest-projection/use-quest-projection-binding.test.ts`
+- `packages/web/src/bindings/use-quest-projection/use-quest-projection-binding.ts`
+- `packages/web/src/bindings/use-quest-queue/use-quest-queue-binding.test.ts`
+- `packages/web/src/bindings/use-quest-summary/use-quest-summary-binding.proxy.ts`
+- `packages/web/src/bindings/use-quest-summary/use-quest-summary-binding.test.ts`
+- `packages/web/src/bindings/use-quest-summary/use-quest-summary-binding.ts`
+- `packages/web/src/bindings/use-quests/use-quests-binding.test.ts`
+- `packages/web/src/bindings/use-rate-limits/use-rate-limits-binding.test.ts`
+- `packages/web/src/bindings/use-session-list/use-session-list-binding.test.ts`
+- `packages/web/src/bindings/use-session-replay/use-session-replay-binding.proxy.ts`
+- `packages/web/src/bindings/use-session-replay/use-session-replay-binding.test.ts`
+- `packages/web/src/bindings/use-session-replay/use-session-replay-binding.ts`
+- `packages/web/src/bindings/use-ward-detail/use-ward-detail-binding.proxy.ts`
+- `packages/web/src/bindings/use-ward-detail/use-ward-detail-binding.test.ts`
+- `packages/web/src/bindings/use-ward-detail/use-ward-detail-binding.ts`
+- `packages/web/src/state/web-socket-channel/web-socket-channel-state.proxy.ts`
+- `packages/web/src/state/web-socket-channel/web-socket-channel-state.ts`
+- `packages/web/src/widgets/app/app-widget.integration.test.tsx`
+- `packages/web/src/widgets/app/app-widget.test.tsx`
+- `packages/web/src/widgets/directory-browser-modal/directory-browser-modal-widget.test.tsx`
+- `packages/web/src/widgets/dispatch-toggle/dispatch-toggle-widget.test.tsx`
+- `packages/web/src/widgets/execution-panel/execution-panel-widget.proxy.tsx`
+- `packages/web/src/widgets/execution-panel/execution-panel-widget.test.tsx`
+- `packages/web/src/widgets/home-content/home-content-widget.test.tsx`
+- `packages/web/src/widgets/quest-chat/quest-chat-widget.test.tsx`
+- `packages/web/src/widgets/quest-queue-bar/quest-queue-bar-widget.test.tsx`
+- `packages/web/src/widgets/rate-limits-stack/rate-limits-stack-widget.test.tsx`
+
+## Plan — F66 and F67
+
+Scope: `packages/@gateway/browser/**` only. Web's callers are not migrated here.
+
+Named files:
+- `packages/@gateway/browser/src/XMLHttpRequest/xhr-post-with-progress/xhr-post-with-progress.ts` (new): `xhrPostWithProgress({ url, body, onProgress })` resolves `{ status, ok, body }` with `body` the raw response text (the `fetchWithStatus` shape); rejects naming the url on network error, timeout and abort.
+- `.../xhr-post-with-progress/xhr-post-with-progress.proxy.ts` (new): stages through MSW (`StartEndpointMock`), like the fetch proxies. `setupResponse`, `setupRefused`, `getRequestBodies`, `getRequestCount`, all keyed by url (method is always POST). No catch-all default: an unstaged url fails the test through MSW's unhandled-request check. Progress is MSW's own upload event (loaded and total both the request body's byte length), not scripted.
+- `.../xhr-post-with-progress/xhr-post-with-progress.test.ts` (new).
+- `packages/@gateway/browser/src/XMLHttpRequest/XMLHttpRequest.ts` and `XMLHttpRequest.test.ts`: the raw-global re-export becomes the curated entry exporting `xhrPostWithProgress` (no caller imports the raw export).
+- `packages/@gateway/browser/src/fetch/fetch-with-status/fetch-with-status.proxy.ts` and `fetch-with-status.test.ts` (F67): `setupHeld` hands `holdsOpen` the parsed JSON so the released body is the staged text; non-JSON text throws at staging. Test releases a held response and reads the exact body.

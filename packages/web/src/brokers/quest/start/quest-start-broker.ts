@@ -15,7 +15,8 @@
 import { processIdContract } from '@dungeonmaster/shared/contracts';
 import type { ProcessId, QuestId } from '@dungeonmaster/shared/contracts';
 
-import { fetchPostWithStatusAdapter } from '../../../adapters/fetch/post-with-status/fetch-post-with-status-adapter';
+import { fetchWithStatus } from '#gateway/browser/fetch';
+
 import { questStartResponseContract } from '../../../contracts/quest-start-response/quest-start-response-contract';
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
 
@@ -26,10 +27,20 @@ export const questStartBroker = async ({
 }): Promise<{ processId: ProcessId }> => {
   const url = webConfigStatics.api.routes.questStart.replace(':questId', questId);
 
-  // `body: undefined` on purpose — Begin Quest sends no request body, the questId travels in the
-  // URL only, and JSON.stringify(undefined) is undefined so fetch sends nothing.
-  const result = await fetchPostWithStatusAdapter({ url, body: undefined });
-  const parsed = questStartResponseContract.safeParse(result.body);
+  // No `body` on purpose — Begin Quest sends no request body, the questId travels in the URL only.
+  const result = await fetchWithStatus({ url, method: 'POST' });
+
+  // `fetchWithStatus` hands back the raw response text; a body that is not JSON parses as itself,
+  // which the contract then rejects.
+  let parsedBody: unknown = null;
+  if (result.body.length > 0) {
+    try {
+      parsedBody = JSON.parse(result.body) as unknown;
+    } catch {
+      parsedBody = result.body;
+    }
+  }
+  const parsed = questStartResponseContract.safeParse(parsedBody);
 
   if (result.ok) {
     if (parsed.success && parsed.data.processId !== undefined) {

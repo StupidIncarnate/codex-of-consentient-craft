@@ -2,8 +2,7 @@ import { QuestIdStub } from '@dungeonmaster/shared/contracts';
 import { StartEndpointMock } from '@dungeonmaster/testing';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 
-import { testingLibraryRenderHookAdapter } from '../../adapters/testing-library/render-hook/testing-library-render-hook-adapter';
-import { testingLibraryWaitForAdapter } from '../../adapters/testing-library/wait-for/testing-library-wait-for-adapter';
+import { renderHook, waitFor } from '#gateway/npm/testing-library__react';
 import { useQuestChatBinding } from '../../bindings/use-quest-chat/use-quest-chat-binding';
 import { useQuestQueueBinding } from '../../bindings/use-quest-queue/use-quest-queue-binding';
 import { useRateLimitsBinding } from '../../bindings/use-rate-limits/use-rate-limits-binding';
@@ -66,32 +65,24 @@ describe('shared websocket connection', () => {
     const questId = QuestIdStub({ value: 'test-quest' });
 
     // Mount all three WS-consuming bindings simultaneously.
-    const { result: chatResult } = testingLibraryRenderHookAdapter({
-      renderCallback: () => useQuestChatBinding({ questId }),
-    });
-    const { result: queueResult } = testingLibraryRenderHookAdapter({
-      renderCallback: () => useQuestQueueBinding(),
-    });
-    const { result: rateLimitsResult } = testingLibraryRenderHookAdapter({
-      renderCallback: () => useRateLimitsBinding(),
-    });
+    const { result: chatResult } = renderHook(() => useQuestChatBinding({ questId }));
+    const { result: queueResult } = renderHook(() => useQuestQueueBinding());
+    const { result: rateLimitsResult } = renderHook(() => useRateLimitsBinding());
 
     // Wait until both HTTP-backed bindings finish loading (which confirms all
     // useEffect calls — including the WS constructor — have run), then assert
     // their complete idle state in one pass.
-    await testingLibraryWaitForAdapter({
-      callback: () => {
-        expect(queueResult.current).toStrictEqual({
-          activeEntry: null,
-          allEntries: [],
-          errorEntry: undefined,
-          isLoading: false,
-        });
-        expect(rateLimitsResult.current).toStrictEqual({
-          snapshot: null,
-          isLoading: false,
-        });
-      },
+    await waitFor(() => {
+      expect(queueResult.current).toStrictEqual({
+        activeEntry: null,
+        allEntries: [],
+        errorEntry: undefined,
+        isLoading: false,
+      });
+      expect(rateLimitsResult.current).toStrictEqual({
+        snapshot: null,
+        isLoading: false,
+      });
     });
 
     expect(chatResult.current).toStrictEqual({

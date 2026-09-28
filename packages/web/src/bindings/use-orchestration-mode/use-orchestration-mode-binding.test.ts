@@ -1,5 +1,4 @@
-import { testingLibraryRenderHookAdapter } from '../../adapters/testing-library/render-hook/testing-library-render-hook-adapter';
-import { testingLibraryWaitForAdapter } from '../../adapters/testing-library/wait-for/testing-library-wait-for-adapter';
+import { renderHook, waitFor } from '#gateway/npm/testing-library__react';
 import { useOrchestrationModeBinding } from './use-orchestration-mode-binding';
 import { useOrchestrationModeBindingProxy } from './use-orchestration-mode-binding.proxy';
 
@@ -9,16 +8,12 @@ describe('useOrchestrationModeBinding', () => {
       const proxy = useOrchestrationModeBindingProxy();
       proxy.setupMode({ mode: 'node' });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useOrchestrationModeBinding(),
-      });
+      const { result } = renderHook(() => useOrchestrationModeBinding());
 
       const current = (): ReturnType<typeof useOrchestrationModeBinding> => result.current;
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(current().isLoading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(current().isLoading).toBe(false);
       });
 
       expect(result.current).toStrictEqual({ mode: 'node', isLoading: false });
@@ -28,9 +23,7 @@ describe('useOrchestrationModeBinding', () => {
       const proxy = useOrchestrationModeBindingProxy();
       proxy.setupMode({ mode: 'claude' });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useOrchestrationModeBinding(),
-      });
+      const { result } = renderHook(() => useOrchestrationModeBinding());
 
       expect(result.current).toStrictEqual({ mode: null, isLoading: true });
     });
@@ -39,16 +32,12 @@ describe('useOrchestrationModeBinding', () => {
       const proxy = useOrchestrationModeBindingProxy();
       proxy.setupError();
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useOrchestrationModeBinding(),
-      });
+      const { result } = renderHook(() => useOrchestrationModeBinding());
 
       const current = (): ReturnType<typeof useOrchestrationModeBinding> => result.current;
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(current().isLoading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(current().isLoading).toBe(false);
       });
 
       expect(result.current).toStrictEqual({ mode: null, isLoading: false });

@@ -1,5 +1,5 @@
 /**
- * PURPOSE: Proxy for webSocketChannelState — composes the underlying websocketConnectAdapterProxy and exposes setup hooks tests use to drive the singleton. Bindings' tests use this proxy instead of websocketConnectAdapterProxy so they exercise the same dispatch + reconnect logic that production runs. Tests must call setupEmpty() before connect() to reset the singleton between cases.
+ * PURPOSE: Proxy for webSocketChannelState — composes the gateway's WebSocket `connectProxy` and exposes setup hooks tests use to drive the singleton. Bindings' tests use this proxy instead of `connectProxy` so they exercise the same dispatch + reconnect logic that production runs. Tests must call setupEmpty() before connect() to reset the singleton between cases.
  *
  * USAGE:
  * const proxy = webSocketChannelStateProxy();
@@ -11,11 +11,10 @@
  * proxy.getSentMessages();     // outbound JSON parsed messages
  */
 
-import { rxjsFilterAdapterProxy } from '../../adapters/rxjs/filter/rxjs-filter-adapter.proxy';
-import { rxjsMergeAdapterProxy } from '../../adapters/rxjs/merge/rxjs-merge-adapter.proxy';
-import { rxjsOfAdapterProxy } from '../../adapters/rxjs/of/rxjs-of-adapter.proxy';
-import { rxjsSubjectAdapterProxy } from '../../adapters/rxjs/subject/rxjs-subject-adapter.proxy';
-import { websocketConnectAdapterProxy } from '../../adapters/websocket/connect/websocket-connect-adapter.proxy';
+import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
+
+import { connectProxy } from '#gateway/browser/WebSocket/connect/connect.proxy';
+
 import type { WsUrl } from '../../contracts/ws-url/ws-url-contract';
 import { WsUrlStub } from '../../contracts/ws-url/ws-url.stub';
 import { webSocketChannelState } from './web-socket-channel-state';
@@ -36,11 +35,12 @@ export const webSocketChannelStateProxy = ({
   // that don't pass one get the default test port (WsUrlStub()); WebSocketChannelConnectResponderProxy
   // passes the real jsdom-derived URL because that responder computes its own url and never
   // accepts one from the caller.
-  const wsProxy = websocketConnectAdapterProxy({ url: defaultUrl });
-  rxjsFilterAdapterProxy();
-  rxjsMergeAdapterProxy();
-  rxjsOfAdapterProxy();
-  rxjsSubjectAdapterProxy();
+  const wsProxy = connectProxy({ url: defaultUrl });
+  const setTimeoutSpy = registerSpyOn({
+    object: globalThis,
+    method: 'setTimeout',
+    passthrough: true,
+  });
 
   return {
     setupEmpty: (): void => {
@@ -58,13 +58,21 @@ export const webSocketChannelStateProxy = ({
     triggerClose: () => {
       wsProxy.triggerClose();
     },
+    // The reconnect delay is a private constant inside web-socket-channel-state.ts, so there is no
+    // value to key the scheduled setTimeout on. Only one reconnect timer is in flight at a time, so
+    // the last recorded call is the one. `.map()` reads the complete call history into callbacks
+    // first, so picking the tail is not an unaddressed peek.
     triggerReconnectFlush: () => {
-      wsProxy.triggerReconnect();
+      const callbacks = setTimeoutSpy.callsMatching([]).map((call) => call[0] as () => void);
+      const lastCallback = callbacks.at(-1);
+      if (lastCallback) {
+        lastCallback();
+      }
     },
     // triggerReconnect simulates a reconnect after triggerClose: directly calls openConnection
     // (bypassing the real 3s timer) and then explicitly fires onopen on the new socket.
     // The two-step approach (openConnection then explicit onopen) is necessary because
-    // websocketConnectAdapterProxy uses deferOpen=false, which fires the onopen setter
+    // connectProxy uses deferOpen=false, which fires the onopen setter
     // synchronously during socket construction — BEFORE internalState.socket is assigned.
     // Calling onopen explicitly after openConnection() ensures internalState.socket is
     // non-null when sendReplayHistory checks it.

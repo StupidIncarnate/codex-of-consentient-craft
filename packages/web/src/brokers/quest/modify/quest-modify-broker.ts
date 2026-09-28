@@ -8,7 +8,8 @@
 import { adapterResultContract, errorMessageContract } from '@dungeonmaster/shared/contracts';
 import type { AdapterResult, QuestId } from '@dungeonmaster/shared/contracts';
 
-import { fetchPatchAdapter } from '../../../adapters/fetch/patch/fetch-patch-adapter';
+import { fetchJson } from '#gateway/browser/fetch';
+
 import { questModifyResponseContract } from '../../../contracts/quest-modify-response/quest-modify-response-contract';
 import { webConfigStatics } from '../../../statics/web-config/web-config-statics';
 
@@ -19,8 +20,9 @@ export const questModifyBroker = async ({
   questId: QuestId;
   modifications: Record<string, unknown>;
 }): Promise<AdapterResult> => {
-  const response = await fetchPatchAdapter<unknown>({
+  const response = await fetchJson({
     url: webConfigStatics.api.routes.questById.replace(':questId', questId),
+    method: 'PATCH',
     body: modifications,
   });
 

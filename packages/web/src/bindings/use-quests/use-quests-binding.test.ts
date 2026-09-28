@@ -4,9 +4,7 @@ import {
   SkippedQuestFileStub,
 } from '@dungeonmaster/shared/contracts';
 
-import { testingLibraryActAdapter } from '../../adapters/testing-library/act/testing-library-act-adapter';
-import { testingLibraryRenderHookAdapter } from '../../adapters/testing-library/render-hook/testing-library-render-hook-adapter';
-import { testingLibraryWaitForAdapter } from '../../adapters/testing-library/wait-for/testing-library-wait-for-adapter';
+import { act, renderHook, waitFor } from '#gateway/npm/testing-library__react';
 
 import { useQuestsBinding } from './use-quests-binding';
 import { useQuestsBindingProxy } from './use-quests-binding.proxy';
@@ -19,9 +17,7 @@ describe('useQuestsBinding', () => {
       const proxy = useQuestsBindingProxy();
       proxy.setupQuests({ quests: [] });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestsBinding({ guildId }),
-      });
+      const { result } = renderHook(() => useQuestsBinding({ guildId }));
 
       expect(result.current).toStrictEqual({
         data: [],
@@ -43,16 +39,12 @@ describe('useQuestsBinding', () => {
 
       proxy.setupQuests({ quests });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestsBinding({ guildId }),
-      });
+      const { result } = renderHook(() => useQuestsBinding({ guildId }));
 
       const currentState = (): ReturnType<typeof useQuestsBinding> => result.current;
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().loading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(currentState().loading).toBe(false);
       });
 
       expect(result.current).toStrictEqual({
@@ -73,16 +65,12 @@ describe('useQuestsBinding', () => {
 
       proxy.setupQuestsWithSkips({ quests, skipped });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestsBinding({ guildId }),
-      });
+      const { result } = renderHook(() => useQuestsBinding({ guildId }));
 
       const currentState = (): ReturnType<typeof useQuestsBinding> => result.current;
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().loading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(currentState().loading).toBe(false);
       });
 
       expect(result.current).toStrictEqual({
@@ -100,16 +88,12 @@ describe('useQuestsBinding', () => {
       const proxy = useQuestsBindingProxy();
       proxy.setupQuests({ quests: [] });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestsBinding({ guildId }),
-      });
+      const { result } = renderHook(() => useQuestsBinding({ guildId }));
 
       const currentState = (): ReturnType<typeof useQuestsBinding> => result.current;
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().loading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(currentState().loading).toBe(false);
       });
 
       expect(result.current).toStrictEqual({
@@ -127,16 +111,12 @@ describe('useQuestsBinding', () => {
       const proxy = useQuestsBindingProxy();
       proxy.setupError();
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestsBinding({ guildId }),
-      });
+      const { result } = renderHook(() => useQuestsBinding({ guildId }));
 
       const currentState = (): ReturnType<typeof useQuestsBinding> => result.current;
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().loading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(currentState().loading).toBe(false);
       });
 
       const { error } = result.current;
@@ -158,16 +138,12 @@ describe('useQuestsBinding', () => {
       const proxy = useQuestsBindingProxy();
       proxy.setupQuests({ quests: [QuestListItemStub({ id: 'quest-1', title: 'First' })] });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestsBinding({ guildId }),
-      });
+      const { result } = renderHook(() => useQuestsBinding({ guildId }));
 
       const currentState = (): ReturnType<typeof useQuestsBinding> => result.current;
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().loading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(currentState().loading).toBe(false);
       });
 
       proxy.setupQuests({
@@ -179,18 +155,14 @@ describe('useQuestsBinding', () => {
 
       const { refresh } = result.current;
 
-      testingLibraryActAdapter({
-        callback: () => {
-          refresh().catch((error: unknown) => {
-            globalThis.console.error('[test] refresh failed', error);
-          });
-        },
+      act(() => {
+        refresh().catch((error: unknown) => {
+          globalThis.console.error('[test] refresh failed', error);
+        });
       });
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().loading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(currentState().loading).toBe(false);
       });
 
       expect(result.current).toStrictEqual({
@@ -209,16 +181,12 @@ describe('useQuestsBinding', () => {
       const proxy = useQuestsBindingProxy();
       proxy.setupError();
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestsBinding({ guildId }),
-      });
+      const { result } = renderHook(() => useQuestsBinding({ guildId }));
 
       const currentState = (): ReturnType<typeof useQuestsBinding> => result.current;
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().loading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(currentState().loading).toBe(false);
       });
 
       proxy.setupQuests({
@@ -227,18 +195,14 @@ describe('useQuestsBinding', () => {
 
       const { refresh } = result.current;
 
-      testingLibraryActAdapter({
-        callback: () => {
-          refresh().catch((error: unknown) => {
-            globalThis.console.error('[test] refresh failed', error);
-          });
-        },
+      act(() => {
+        refresh().catch((error: unknown) => {
+          globalThis.console.error('[test] refresh failed', error);
+        });
       });
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().loading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(currentState().loading).toBe(false);
       });
 
       expect(result.current).toStrictEqual({
@@ -256,34 +220,26 @@ describe('useQuestsBinding', () => {
         quests: [QuestListItemStub({ id: 'quest-1', title: 'Original' })],
       });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestsBinding({ guildId }),
-      });
+      const { result } = renderHook(() => useQuestsBinding({ guildId }));
 
       const currentState = (): ReturnType<typeof useQuestsBinding> => result.current;
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().loading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(currentState().loading).toBe(false);
       });
 
       proxy.setupError();
 
       const { refresh } = result.current;
 
-      testingLibraryActAdapter({
-        callback: () => {
-          refresh().catch((error: unknown) => {
-            globalThis.console.error('[test] refresh failed', error);
-          });
-        },
+      act(() => {
+        refresh().catch((error: unknown) => {
+          globalThis.console.error('[test] refresh failed', error);
+        });
       });
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().loading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(currentState().loading).toBe(false);
       });
 
       const { error } = result.current;
@@ -305,16 +261,12 @@ describe('useQuestsBinding', () => {
       const proxy = useQuestsBindingProxy();
       proxy.setupQuests({ quests: { notAnArray: true } as never });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestsBinding({ guildId }),
-      });
+      const { result } = renderHook(() => useQuestsBinding({ guildId }));
 
       const currentState = (): ReturnType<typeof useQuestsBinding> => result.current;
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().loading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(currentState().loading).toBe(false);
       });
 
       expect(result.current.error?.name).toBe('ZodError');
@@ -324,16 +276,12 @@ describe('useQuestsBinding', () => {
       const proxy = useQuestsBindingProxy();
       proxy.setupEmptyBody();
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestsBinding({ guildId }),
-      });
+      const { result } = renderHook(() => useQuestsBinding({ guildId }));
 
       const currentState = (): ReturnType<typeof useQuestsBinding> => result.current;
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().loading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(currentState().loading).toBe(false);
       });
 
       const { error } = result.current;
@@ -357,16 +305,12 @@ describe('useQuestsBinding', () => {
       const proxy = useQuestsBindingProxy();
       proxy.setupError();
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestsBinding({ guildId }),
-      });
+      const { result } = renderHook(() => useQuestsBinding({ guildId }));
 
       const currentState = (): ReturnType<typeof useQuestsBinding> => result.current;
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().loading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(currentState().loading).toBe(false);
       });
 
       const { error } = result.current;
@@ -388,14 +332,10 @@ describe('useQuestsBinding', () => {
       const proxy = useQuestsBindingProxy();
       proxy.setupOuterCatchTrigger({ guildId });
 
-      testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestsBinding({ guildId }),
-      });
+      renderHook(() => useQuestsBinding({ guildId }));
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(proxy.getConsoleErrorCalls()[0]?.[0]).toBe('[use-quests]');
-        },
+      await waitFor(() => {
+        expect(proxy.getConsoleErrorCalls()[0]?.[0]).toBe('[use-quests]');
       });
 
       expect(proxy.getConsoleErrorCalls()[0]?.[1]).toBeInstanceOf(Error);

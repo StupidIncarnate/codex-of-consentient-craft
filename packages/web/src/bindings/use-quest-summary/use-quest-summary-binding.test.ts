@@ -6,9 +6,7 @@ import {
   QuestSummaryTrackCountsStub,
 } from '@dungeonmaster/shared/contracts';
 
-import { testingLibraryActAdapter } from '../../adapters/testing-library/act/testing-library-act-adapter';
-import { testingLibraryRenderHookAdapter } from '../../adapters/testing-library/render-hook/testing-library-render-hook-adapter';
-import { testingLibraryWaitForAdapter } from '../../adapters/testing-library/wait-for/testing-library-wait-for-adapter';
+import { act, renderHook, waitFor } from '#gateway/npm/testing-library__react';
 import { useQuestSummaryBinding } from './use-quest-summary-binding';
 import { useQuestSummaryBindingProxy } from './use-quest-summary-binding.proxy';
 
@@ -23,16 +21,12 @@ describe('useQuestSummaryBinding', () => {
       const summary = QuestSummaryStub({ questId: 'q-summary' });
       proxy.setupSummary({ summary });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestSummaryBinding({ questId: QUEST_ID }),
-      });
+      const { result } = renderHook(() => useQuestSummaryBinding({ questId: QUEST_ID }));
 
       const currentState = (): ReturnType<typeof useQuestSummaryBinding> => result.current;
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().loading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(currentState().loading).toBe(false);
       });
 
       expect(result.current).toStrictEqual({ data: summary, loading: false, error: null });
@@ -43,9 +37,7 @@ describe('useQuestSummaryBinding', () => {
       proxy.setupConnectedChannel();
       proxy.setupSummary({ summary: QuestSummaryStub({ questId: 'q-summary' }) });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestSummaryBinding({ questId: QUEST_ID }),
-      });
+      const { result } = renderHook(() => useQuestSummaryBinding({ questId: QUEST_ID }));
 
       expect(result.current.loading).toBe(true);
     });
@@ -55,16 +47,12 @@ describe('useQuestSummaryBinding', () => {
       proxy.setupConnectedChannel();
       proxy.setupSummary({ summary: QuestSummaryStub({ questId: 'q-summary' }) });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestSummaryBinding({ questId: null }),
-      });
+      const { result } = renderHook(() => useQuestSummaryBinding({ questId: null }));
 
       const currentState = (): ReturnType<typeof useQuestSummaryBinding> => result.current;
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().loading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(currentState().loading).toBe(false);
       });
 
       expect(result.current).toStrictEqual({ data: null, loading: false, error: null });
@@ -78,16 +66,12 @@ describe('useQuestSummaryBinding', () => {
       proxy.setupConnectedChannel();
       proxy.setupNotFound();
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestSummaryBinding({ questId: QUEST_ID }),
-      });
+      const { result } = renderHook(() => useQuestSummaryBinding({ questId: QUEST_ID }));
 
       const currentState = (): ReturnType<typeof useQuestSummaryBinding> => result.current;
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().loading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(currentState().loading).toBe(false);
       });
 
       expect(result.current.data).toBe(null);
@@ -119,16 +103,12 @@ describe('useQuestSummaryBinding', () => {
       });
       proxy.setupSummary({ summary: initial });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestSummaryBinding({ questId: QUEST_ID }),
-      });
+      const { result } = renderHook(() => useQuestSummaryBinding({ questId: QUEST_ID }));
 
       const currentState = (): ReturnType<typeof useQuestSummaryBinding> => result.current;
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().loading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(currentState().loading).toBe(false);
       });
 
       // An observation landed on disk: the same quest now reports one unit met and one fewer
@@ -151,25 +131,21 @@ describe('useQuestSummaryBinding', () => {
       });
       proxy.setupSummary({ summary: afterSignoff });
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'quest-modified',
-              payload: {
-                questId: 'q-summary',
-                quest: QuestStub({ id: 'q-summary', status: 'in_progress' }),
-              },
-              timestamp: '2026-01-01T00:00:00.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-modified',
+            payload: {
+              questId: 'q-summary',
+              quest: QuestStub({ id: 'q-summary', status: 'in_progress' }),
+            },
+            timestamp: '2026-01-01T00:00:00.000Z',
+          }),
+        });
       });
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().data).toStrictEqual(afterSignoff);
-        },
+      await waitFor(() => {
+        expect(currentState().data).toStrictEqual(afterSignoff);
       });
 
       expect(result.current).toStrictEqual({ data: afterSignoff, loading: false, error: null });
@@ -181,31 +157,25 @@ describe('useQuestSummaryBinding', () => {
       const initial = QuestSummaryStub({ questId: 'q-summary' });
       proxy.setupSummary({ summary: initial });
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useQuestSummaryBinding({ questId: QUEST_ID }),
-      });
+      const { result } = renderHook(() => useQuestSummaryBinding({ questId: QUEST_ID }));
 
       const currentState = (): ReturnType<typeof useQuestSummaryBinding> => result.current;
 
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(currentState().loading).toBe(false);
-        },
+      await waitFor(() => {
+        expect(currentState().loading).toBe(false);
       });
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'quest-modified',
-              payload: {
-                questId: String(OTHER_QUEST_ID),
-                quest: QuestStub({ id: 'q-other', status: 'in_progress' }),
-              },
-              timestamp: '2026-01-01T00:00:00.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'quest-modified',
+            payload: {
+              questId: String(OTHER_QUEST_ID),
+              quest: QuestStub({ id: 'q-other', status: 'in_progress' }),
+            },
+            timestamp: '2026-01-01T00:00:00.000Z',
+          }),
+        });
       });
 
       // A stray refetch lands a macrotask later, so one microtask tick would let a broken filter pass.

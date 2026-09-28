@@ -14,9 +14,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import type { QuestId, WardResult } from '@dungeonmaster/shared/contracts';
 
-import { rxjsFilterAdapter } from '../../adapters/rxjs/filter/rxjs-filter-adapter';
-import { rxjsTakeAdapter } from '../../adapters/rxjs/take/rxjs-take-adapter';
-import { rxjsTimeoutAdapter } from '../../adapters/rxjs/timeout/rxjs-timeout-adapter';
+import { filter, take, timeout } from '#gateway/npm/rxjs__operators';
 import { takeCountContract } from '../../contracts/take-count/take-count-contract';
 import { timeoutMsContract } from '../../contracts/timeout-ms/timeout-ms-contract';
 import { webSocketChannelState } from '../../state/web-socket-channel/web-socket-channel-state';
@@ -63,12 +61,11 @@ export const useWardDetailBinding = ({
       const previousSub = subscriptionRef.current;
       if (previousSub) previousSub.unsubscribe();
 
-      const filtered = rxjsFilterAdapter({
-        source: webSocketChannelState.wardDetailResponse$(),
-        predicate: (p) => p.wardResultId === wardResultId,
-      });
-      const oneShot = rxjsTakeAdapter({ source: filtered, count: ONE_EMISSION });
-      const guarded = rxjsTimeoutAdapter({ source: oneShot, durationMs: WARD_DETAIL_TIMEOUT_MS });
+      const filtered = webSocketChannelState
+        .wardDetailResponse$()
+        .pipe(filter((p) => p.wardResultId === wardResultId));
+      const oneShot = filtered.pipe(take(ONE_EMISSION));
+      const guarded = oneShot.pipe(timeout({ first: WARD_DETAIL_TIMEOUT_MS }));
 
       subscriptionRef.current = guarded.subscribe({
         next: (response) => {

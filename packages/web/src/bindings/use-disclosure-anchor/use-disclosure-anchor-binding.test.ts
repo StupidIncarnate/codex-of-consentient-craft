@@ -1,4 +1,4 @@
-import { testingLibraryRenderHookAdapter } from '../../adapters/testing-library/render-hook/testing-library-render-hook-adapter';
+import { renderHook } from '#gateway/npm/testing-library__react';
 import { useDisclosureAnchorBinding } from './use-disclosure-anchor-binding';
 import { useDisclosureAnchorBindingProxy } from './use-disclosure-anchor-binding.proxy';
 
@@ -8,7 +8,7 @@ describe('useDisclosureAnchorBinding', () => {
       const proxy = useDisclosureAnchorBindingProxy();
       proxy.setupReleased();
 
-      testingLibraryRenderHookAdapter({ renderCallback: () => useDisclosureAnchorBinding() });
+      renderHook(() => useDisclosureAnchorBinding());
 
       expect(proxy.isHeld()).toBe(false);
     });
@@ -17,9 +17,7 @@ describe('useDisclosureAnchorBinding', () => {
       const proxy = useDisclosureAnchorBindingProxy();
       proxy.setupReleased();
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useDisclosureAnchorBinding(),
-      });
+      const { result } = renderHook(() => useDisclosureAnchorBinding());
       result.current.holdAnchor();
 
       expect(proxy.isHeld()).toBe(true);
@@ -32,9 +30,7 @@ describe('useDisclosureAnchorBinding', () => {
       const proxy = useDisclosureAnchorBindingProxy();
       proxy.setupReleased();
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useDisclosureAnchorBinding(),
-      });
+      const { result } = renderHook(() => useDisclosureAnchorBinding());
       result.current.anchorRef(null);
       result.current.holdAnchor();
 
@@ -45,9 +41,7 @@ describe('useDisclosureAnchorBinding', () => {
       const proxy = useDisclosureAnchorBindingProxy();
       proxy.setupReleased();
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useDisclosureAnchorBinding(),
-      });
+      const { result } = renderHook(() => useDisclosureAnchorBinding());
       result.current.holdAnchor();
       result.current.holdAnchor();
 
@@ -68,9 +62,7 @@ describe('useDisclosureAnchorBinding', () => {
       const proxy = useDisclosureAnchorBindingProxy();
       proxy.setupReleased();
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useDisclosureAnchorBinding(),
-      });
+      const { result } = renderHook(() => useDisclosureAnchorBinding());
       result.current.holdAnchor();
       proxy.advanceFrame();
 
@@ -81,9 +73,7 @@ describe('useDisclosureAnchorBinding', () => {
       const proxy = useDisclosureAnchorBindingProxy();
       proxy.setupReleased();
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useDisclosureAnchorBinding(),
-      });
+      const { result } = renderHook(() => useDisclosureAnchorBinding());
       result.current.holdAnchor();
       proxy.advanceFrame();
       proxy.advanceFrame();
@@ -100,9 +90,7 @@ describe('useDisclosureAnchorBinding', () => {
       const proxy = useDisclosureAnchorBindingProxy();
       proxy.setupReleased();
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useDisclosureAnchorBinding(),
-      });
+      const { result } = renderHook(() => useDisclosureAnchorBinding());
       result.current.holdAnchor();
       proxy.advanceFrame();
       proxy.advanceFrame();
@@ -120,9 +108,7 @@ describe('useDisclosureAnchorBinding', () => {
     it('VALID: {re-rendered} => hands back the same callback ref, so React never detaches it', () => {
       useDisclosureAnchorBindingProxy().setupReleased();
 
-      const { result, rerender } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useDisclosureAnchorBinding(),
-      });
+      const { result, rerender } = renderHook(() => useDisclosureAnchorBinding());
       const firstRef = result.current.anchorRef;
       rerender();
 

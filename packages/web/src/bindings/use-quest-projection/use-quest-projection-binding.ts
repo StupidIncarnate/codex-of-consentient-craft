@@ -19,7 +19,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 import type { QuestId, QuestProjection } from '@dungeonmaster/shared/contracts';
 
-import { rxjsFilterAdapter } from '../../adapters/rxjs/filter/rxjs-filter-adapter';
+import { filter } from '#gateway/npm/rxjs__operators';
 import { questProjectionBroker } from '../../brokers/quest/projection/quest-projection-broker';
 import { webSocketChannelState } from '../../state/web-socket-channel/web-socket-channel-state';
 
@@ -62,14 +62,14 @@ export const useQuestProjectionBinding = ({
 
     // Filtered on the quest id: one browser tab holds one shared socket, and a `quest-modified` for
     // a quest this panel is not showing must not spend a request.
-    const subscription = rxjsFilterAdapter({
-      source: webSocketChannelState.questUpdated$(),
-      predicate: (quest) => quest.id === questId,
-    }).subscribe((): void => {
-      refresh().catch((catchError: unknown) => {
-        globalThis.console.error('[use-quest-projection]', catchError);
+    const subscription = webSocketChannelState
+      .questUpdated$()
+      .pipe(filter((quest) => quest.id === questId))
+      .subscribe((): void => {
+        refresh().catch((catchError: unknown) => {
+          globalThis.console.error('[use-quest-projection]', catchError);
+        });
       });
-    });
 
     return (): void => {
       subscription.unsubscribe();

@@ -5,9 +5,7 @@ import {
   SessionIdStub,
 } from '@dungeonmaster/shared/contracts';
 
-import { testingLibraryActAdapter } from '../../adapters/testing-library/act/testing-library-act-adapter';
-import { testingLibraryRenderHookAdapter } from '../../adapters/testing-library/render-hook/testing-library-render-hook-adapter';
-import { testingLibraryWaitForAdapter } from '../../adapters/testing-library/wait-for/testing-library-wait-for-adapter';
+import { act, renderHook, waitFor } from '#gateway/npm/testing-library__react';
 
 import { useSessionReplayBinding } from './use-session-replay-binding';
 import { useSessionReplayBindingProxy } from './use-session-replay-binding.proxy';
@@ -18,9 +16,9 @@ describe('useSessionReplayBinding', () => {
       const proxy = useSessionReplayBindingProxy();
       proxy.setupConnectedChannel();
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useSessionReplayBinding({ sessionId: null, guildId: null }),
-      });
+      const { result } = renderHook(() =>
+        useSessionReplayBinding({ sessionId: null, guildId: null }),
+      );
 
       expect(result.current).toStrictEqual({
         entries: [],
@@ -38,9 +36,7 @@ describe('useSessionReplayBinding', () => {
 
       proxy.setupConnectedChannel();
 
-      testingLibraryRenderHookAdapter({
-        renderCallback: () => useSessionReplayBinding({ sessionId, guildId }),
-      });
+      renderHook(() => useSessionReplayBinding({ sessionId, guildId }));
 
       expect(proxy.getSentWsMessages()).toStrictEqual([
         {
@@ -57,9 +53,7 @@ describe('useSessionReplayBinding', () => {
 
       proxy.setupConnectedChannel();
 
-      testingLibraryRenderHookAdapter({
-        renderCallback: () => useSessionReplayBinding({ sessionId: null, guildId: GuildIdStub() }),
-      });
+      renderHook(() => useSessionReplayBinding({ sessionId: null, guildId: GuildIdStub() }));
 
       expect(proxy.getSentWsMessages()).toStrictEqual([]);
     });
@@ -75,33 +69,29 @@ describe('useSessionReplayBinding', () => {
 
       proxy.setupConnectedChannel();
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useSessionReplayBinding({ sessionId, guildId }),
-      });
+      const { result } = renderHook(() => useSessionReplayBinding({ sessionId, guildId }));
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'chat-output',
-              payload: {
-                chatProcessId: `replay-${sessionId}`,
-                questId: QuestIdStub(),
-                workItemId: QuestWorkItemIdStub(),
-                entries: [
-                  {
-                    role: 'assistant',
-                    type: 'text',
-                    content: 'replayed',
-                    uuid: entryUuid,
-                    timestamp: entryTs,
-                  },
-                ],
-              },
-              timestamp: '2025-01-01T00:00:00.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              chatProcessId: `replay-${sessionId}`,
+              questId: QuestIdStub(),
+              workItemId: QuestWorkItemIdStub(),
+              entries: [
+                {
+                  role: 'assistant',
+                  type: 'text',
+                  content: 'replayed',
+                  uuid: entryUuid,
+                  timestamp: entryTs,
+                },
+              ],
+            },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
       });
 
       expect(result.current).toStrictEqual({
@@ -126,25 +116,21 @@ describe('useSessionReplayBinding', () => {
 
       proxy.setupConnectedChannel();
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useSessionReplayBinding({ sessionId, guildId }),
-      });
+      const { result } = renderHook(() => useSessionReplayBinding({ sessionId, guildId }));
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'chat-output',
-              payload: {
-                chatProcessId: 'unrelated-proc-id',
-                questId: QuestIdStub(),
-                workItemId: QuestWorkItemIdStub(),
-                entries: [{ role: 'assistant', type: 'text', content: 'noise' }],
-              },
-              timestamp: '2025-01-01T00:00:00.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              chatProcessId: 'unrelated-proc-id',
+              questId: QuestIdStub(),
+              workItemId: QuestWorkItemIdStub(),
+              entries: [{ role: 'assistant', type: 'text', content: 'noise' }],
+            },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
       });
 
       expect(result.current).toStrictEqual({
@@ -165,40 +151,36 @@ describe('useSessionReplayBinding', () => {
 
       proxy.setupConnectedChannel();
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useSessionReplayBinding({ sessionId, guildId }),
-      });
+      const { result } = renderHook(() => useSessionReplayBinding({ sessionId, guildId }));
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'chat-output',
-              payload: {
-                chatProcessId: `replay-${sessionId}`,
-                questId: QuestIdStub(),
-                workItemId: QuestWorkItemIdStub(),
-                entries: [
-                  {
-                    role: 'assistant',
-                    type: 'text',
-                    content: 'replayed',
-                    uuid: entryUuid,
-                    timestamp: entryTs,
-                  },
-                ],
-              },
-              timestamp: '2025-01-01T00:00:00.000Z',
-            }),
-          });
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'chat-history-complete',
-              payload: { chatProcessId: `replay-${sessionId}` },
-              timestamp: '2025-01-01T00:00:00.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              chatProcessId: `replay-${sessionId}`,
+              questId: QuestIdStub(),
+              workItemId: QuestWorkItemIdStub(),
+              entries: [
+                {
+                  role: 'assistant',
+                  type: 'text',
+                  content: 'replayed',
+                  uuid: entryUuid,
+                  timestamp: entryTs,
+                },
+              ],
+            },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-history-complete',
+            payload: { chatProcessId: `replay-${sessionId}` },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
       });
 
       expect(result.current).toStrictEqual({
@@ -223,20 +205,16 @@ describe('useSessionReplayBinding', () => {
 
       proxy.setupConnectedChannel();
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useSessionReplayBinding({ sessionId, guildId }),
-      });
+      const { result } = renderHook(() => useSessionReplayBinding({ sessionId, guildId }));
 
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'chat-history-complete',
-              payload: { chatProcessId: `replay-${sessionId}` },
-              timestamp: '2025-01-01T00:00:00.000Z',
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-history-complete',
+            payload: { chatProcessId: `replay-${sessionId}` },
+            timestamp: '2025-01-01T00:00:00.000Z',
+          }),
+        });
       });
 
       expect(result.current).toStrictEqual({
@@ -257,39 +235,33 @@ describe('useSessionReplayBinding', () => {
 
       proxy.setupConnectedChannel();
 
-      const { result, unmount } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useSessionReplayBinding({ sessionId, guildId }),
+      const { result, unmount } = renderHook(() => useSessionReplayBinding({ sessionId, guildId }));
+
+      act(() => {
+        unmount();
       });
 
-      testingLibraryActAdapter({
-        callback: () => {
-          unmount();
-        },
-      });
-
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'chat-output',
-              payload: {
-                chatProcessId: `replay-${sessionId}`,
-                questId: QuestIdStub(),
-                workItemId: QuestWorkItemIdStub(),
-                entries: [
-                  {
-                    role: 'assistant',
-                    type: 'text',
-                    content: 'post-unmount entry',
-                    uuid: entryUuid,
-                    timestamp: entryTs,
-                  },
-                ],
-              },
-              timestamp: entryTs,
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              chatProcessId: `replay-${sessionId}`,
+              questId: QuestIdStub(),
+              workItemId: QuestWorkItemIdStub(),
+              entries: [
+                {
+                  role: 'assistant',
+                  type: 'text',
+                  content: 'post-unmount entry',
+                  uuid: entryUuid,
+                  timestamp: entryTs,
+                },
+              ],
+            },
+            timestamp: entryTs,
+          }),
+        });
       });
 
       expect(result.current).toStrictEqual({
@@ -314,9 +286,7 @@ describe('useSessionReplayBinding', () => {
 
       proxy.setupConnectedChannel();
 
-      const { result } = testingLibraryRenderHookAdapter({
-        renderCallback: () => useSessionReplayBinding({ sessionId, guildId }),
-      });
+      const { result } = renderHook(() => useSessionReplayBinding({ sessionId, guildId }));
 
       // The channel is open before mount, so opens$() emits synchronously and
       // sendReplayHistory is called before renderHook returns.
@@ -330,87 +300,79 @@ describe('useSessionReplayBinding', () => {
       ]);
 
       // Deliver one chat-output to prime the state before the disconnect
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'chat-output',
-              payload: {
-                chatProcessId: `replay-${sessionId}`,
-                questId: QuestIdStub(),
-                workItemId: QuestWorkItemIdStub(),
-                entries: [
-                  {
-                    role: 'assistant',
-                    type: 'text',
-                    content: 'first streamed entry',
-                    uuid: entryUuid1,
-                    timestamp: entryTs1,
-                  },
-                ],
-              },
-              timestamp: entryTs1,
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              chatProcessId: `replay-${sessionId}`,
+              questId: QuestIdStub(),
+              workItemId: QuestWorkItemIdStub(),
+              entries: [
+                {
+                  role: 'assistant',
+                  type: 'text',
+                  content: 'first streamed entry',
+                  uuid: entryUuid1,
+                  timestamp: entryTs1,
+                },
+              ],
+            },
+            timestamp: entryTs1,
+          }),
+        });
       });
 
       // Simulate WS close + reconnect mid-replay.
       // The channel handles the reconnect cycle: triggerWsClose fires onClose which
       // schedules a setTimeout for reconnect; triggerWsReconnect flushes that timer;
       // the channel re-creates the socket; opens$ emits; the binding re-sends replay-history.
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.triggerWsClose();
-          proxy.triggerWsReconnect();
-        },
+      act(() => {
+        proxy.triggerWsClose();
+        proxy.triggerWsReconnect();
       });
 
       // Wait for the second replay-history on the new connection
-      await testingLibraryWaitForAdapter({
-        callback: () => {
-          expect(proxy.getSentWsMessages()).toStrictEqual([
-            {
-              type: 'replay-history',
-              sessionId,
-              guildId,
-              chatProcessId: `replay-${sessionId}`,
-            },
-            {
-              type: 'replay-history',
-              sessionId,
-              guildId,
-              chatProcessId: `replay-${sessionId}`,
-            },
-          ]);
-        },
+      await waitFor(() => {
+        expect(proxy.getSentWsMessages()).toStrictEqual([
+          {
+            type: 'replay-history',
+            sessionId,
+            guildId,
+            chatProcessId: `replay-${sessionId}`,
+          },
+          {
+            type: 'replay-history',
+            sessionId,
+            guildId,
+            chatProcessId: `replay-${sessionId}`,
+          },
+        ]);
       });
 
       // Deliver a chat-output on the new connection; assert streaming resumed and
       // the pre-reconnect entry was retained (dedup by uuid)
-      testingLibraryActAdapter({
-        callback: () => {
-          proxy.deliverWsMessage({
-            data: JSON.stringify({
-              type: 'chat-output',
-              payload: {
-                chatProcessId: `replay-${sessionId}`,
-                questId: QuestIdStub(),
-                workItemId: QuestWorkItemIdStub(),
-                entries: [
-                  {
-                    role: 'assistant',
-                    type: 'text',
-                    content: 'resumed after reconnect',
-                    uuid: entryUuid2,
-                    timestamp: entryTs2,
-                  },
-                ],
-              },
-              timestamp: entryTs2,
-            }),
-          });
-        },
+      act(() => {
+        proxy.deliverWsMessage({
+          data: JSON.stringify({
+            type: 'chat-output',
+            payload: {
+              chatProcessId: `replay-${sessionId}`,
+              questId: QuestIdStub(),
+              workItemId: QuestWorkItemIdStub(),
+              entries: [
+                {
+                  role: 'assistant',
+                  type: 'text',
+                  content: 'resumed after reconnect',
+                  uuid: entryUuid2,
+                  timestamp: entryTs2,
+                },
+              ],
+            },
+            timestamp: entryTs2,
+          }),
+        });
       });
 
       expect(result.current).toStrictEqual({

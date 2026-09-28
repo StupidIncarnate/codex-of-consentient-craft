@@ -10,7 +10,6 @@ import { questFollowupBrokerProxy } from '../../brokers/quest/followup/quest-fol
 import { questFollowupStopBrokerProxy } from '../../brokers/quest/followup-stop/quest-followup-stop-broker.proxy';
 import { questPauseBrokerProxy } from '../../brokers/quest/pause/quest-pause-broker.proxy';
 import { questResumeBrokerProxy } from '../../brokers/quest/resume/quest-resume-broker.proxy';
-import { rxjsFilterAdapterProxy } from '../../adapters/rxjs/filter/rxjs-filter-adapter.proxy';
 import type { ImageDataUrlStub } from '../../contracts/image-data-url/image-data-url.stub';
 import { pastedImageMemoryState } from '../../state/pasted-image-memory/pasted-image-memory-state';
 import { pastedImageMemoryStateProxy } from '../../state/pasted-image-memory/pasted-image-memory-state.proxy';
@@ -63,7 +62,6 @@ export const useQuestChatBindingProxy = (): {
   const followupStopProxy = questFollowupStopBrokerProxy();
   const pauseProxy = questPauseBrokerProxy();
   const resumeProxy = questResumeBrokerProxy();
-  rxjsFilterAdapterProxy();
   const channel = webSocketChannelStateProxy();
   // pastedImageMemoryState is a module-level singleton with no I/O boundary to mock, so a fresh
   // proxy's only job is clearing whatever a previous test left staged — same reasoning
