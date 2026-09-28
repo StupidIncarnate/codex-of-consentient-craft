@@ -1,4 +1,6 @@
-import { runtimeDynamicImportAdapterProxy } from '@dungeonmaster/shared/testing';
+import { dynamicImport } from '#gateway/node/module';
+import { dynamicImportProxy } from '#gateway/node/module/dynamic-import/dynamic-import.proxy';
+import { registerMock } from '@dungeonmaster/testing/register-mock';
 
 import { laneKillBroker } from './lane-kill-broker';
 
@@ -8,7 +10,11 @@ export const laneKillBrokerProxy = (): {
   setupImportFailure: (params: { error: Error }) => void;
   getKilledInstanceIds: () => readonly unknown[];
 } => {
-  const importProxy = runtimeDynamicImportAdapterProxy();
+  // dynamicImportProxy() offers no staging of its own (a language primitive, meant to be driven
+  // for real) — the phantom call satisfies enforce-proxy-child-creation, and the real staging
+  // below addresses dynamicImport itself directly, keyed on the module specifier.
+  dynamicImportProxy();
+  const importHandle = registerMock({ fn: dynamicImport });
   // Reproduces the exact resolution the broker's own require.resolve() computes, in the same
   // process and directory — the real address, not a guess.
   const siegelenseBrokersPath = require.resolve('@dungeonmaster/siegelense/brokers');
@@ -19,11 +25,11 @@ export const laneKillBrokerProxy = (): {
 
     setupStopped: ({ stopped }: { stopped: boolean }): void => {
       instanceKillBroker.mockResolvedValue({ stopped });
-      importProxy.succeeds({ path: siegelenseBrokersPath, module: { instanceKillBroker } });
+      importHandle.calledWith([{ path: siegelenseBrokersPath }]).resolves({ instanceKillBroker });
     },
 
     setupImportFailure: ({ error }: { error: Error }): void => {
-      importProxy.throws({ path: siegelenseBrokersPath, error });
+      importHandle.calledWith([{ path: siegelenseBrokersPath }]).rejects(error);
     },
 
     getKilledInstanceIds: (): readonly unknown[] =>

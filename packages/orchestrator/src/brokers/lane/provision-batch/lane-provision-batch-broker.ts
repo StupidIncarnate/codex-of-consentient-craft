@@ -7,7 +7,7 @@
  * unchanged — capacity is spent only where it was measured for.
  *
  * `capacityReadBroker` AND `instanceStartBroker` are pulled off ONE `require.resolve` +
- * `runtimeDynamicImportAdapter` call, never two — the orchestrator cannot depend on
+ * `dynamicImport` (`#gateway/node/module`) call, never two — the orchestrator cannot depend on
  * `@dungeonmaster/siegelense` (it is a cycle), so this is the same route `cli-siegelense-responder.ts`
  * takes, and BOTH functions resolve the IDENTICAL `@dungeonmaster/siegelense/brokers` path. Two
  * independent resolutions (this broker calling out to a separate capacity-only broker and a
@@ -15,7 +15,8 @@
  * to key the two calls apart by — mocking that path is addressed purely by the path argument, so
  * two separate stagings for it COLLIDE, the later one silently winning and leaving the earlier
  * caller's function missing off the resolved module. ONE resolution, ONE staged module, is what
- * keeps both callable in the same test.
+ * keeps both callable in the same test. `dynamicImport` hands back `unknown`, so the loaded module
+ * is parsed through `siegelenseLaneProvisionModuleContract` rather than cast.
  *
  * A BATCH IS ONE STEP OF ONE FAMILY BY CONSTRUCTION (`selectBatchLayerBroker`'s own invariant), so
  * `needsLane` is either true for every item in `step.agents` or true for none of them — checking the
@@ -35,12 +36,13 @@
 
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import type { Quest } from '@dungeonmaster/shared/contracts';
-import { runtimeDynamicImportAdapter } from '@dungeonmaster/shared/adapters';
+import { dynamicImport } from '#gateway/node/module';
 
 import { laneCapacityContract } from '../../../contracts/lane-capacity/lane-capacity-contract';
 import { laneManifestReadingContract } from '../../../contracts/lane-manifest-reading/lane-manifest-reading-contract';
 import { nextStepContract } from '../../../contracts/next-step/next-step-contract';
 import type { NextStep } from '../../../contracts/next-step/next-step-contract';
+import { siegelenseLaneProvisionModuleContract } from '../../../contracts/siegelense-lane-provision-module/siegelense-lane-provision-module-contract';
 import { laneStatics } from '../../../statics/lane/lane-statics';
 import { laneManifestToWorkItemInstanceTransformer } from '../../../transformers/lane-manifest-to-work-item-instance/lane-manifest-to-work-item-instance-transformer';
 import { questFindQuestPathBroker } from '../../quest/find-quest-path/quest-find-quest-path-broker';
@@ -68,20 +70,14 @@ export const laneProvisionBatchBroker = async ({
 
   const modulePath = filePathContract.parse(require.resolve(SIEGELENSE_BROKERS_MODULE_NAME));
 
-  const siegelenseBrokers = await runtimeDynamicImportAdapter<{
-    capacityReadBroker: (params: { specName: string; poolSize: number | null }) => Promise<unknown>;
-    instanceStartBroker: (params: {
-      specName: string;
-      questId: string | null;
-      guildId: string | null;
-      seed: string | null;
-    }) => Promise<unknown>;
-  }>({ path: modulePath }).catch((error: unknown) => {
-    const message = error instanceof Error ? error.message : String(error);
-    throw new Error(`Failed to load ${SIEGELENSE_BROKERS_MODULE_NAME}: ${message}`, {
-      cause: error,
-    });
-  });
+  const siegelenseBrokers = siegelenseLaneProvisionModuleContract.parse(
+    await dynamicImport({ path: modulePath }).catch((error: unknown) => {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(`Failed to load ${SIEGELENSE_BROKERS_MODULE_NAME}: ${message}`, {
+        cause: error,
+      });
+    }),
+  );
 
   const capacity = laneCapacityContract.parse(
     await siegelenseBrokers.capacityReadBroker({
