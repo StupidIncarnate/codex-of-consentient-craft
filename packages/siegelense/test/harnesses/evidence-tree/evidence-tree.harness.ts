@@ -14,6 +14,11 @@
  * `flows/siegelense/`, and `@dungeonmaster/enforce-import-dependencies` refuses a `flows/` file
  * (its test included) importing `brokers/` directly, so this harness is the one door through.
  *
+ * `addStaleAliveEntry` spawns a REAL detached `sleep` process for its pgid rather than a bare
+ * literal: `instanceKillBroker`'s orphan-reap path now requires a candidate to answer alive before
+ * it will signal or report it (DEF-69's safety fix — a stale, never-alive pgid must never be counted
+ * as reaped), so proving the reap actually stops something needs a genuine live process group.
+ *
  * USAGE:
  * const tree = evidenceTreeHarness();
  * // tree.beforeEach()/tree.afterEach() are auto-wired by the ts-jest harness transformer
@@ -209,10 +214,8 @@ export const evidenceTreeHarness = (): {
 } => {
   let testbed: ReturnType<typeof installTestbedCreateBroker> | null = null;
   let originalHome: typeof process.env.DUNGEONMASTER_HOME;
-  // A REAL detached child, spawned once addStaleAliveEntry runs — instanceKillBroker's orphan-reap
-  // path now requires a candidate pgid to answer alive before it signals or reports it (DEF-69), so
-  // proving cleanup's reap actually stops something needs a genuine live process group to point at,
-  // not a bare literal nothing on the machine actually holds.
+  // A REAL detached child, spawned once addStaleAliveEntry runs — see this file's own PURPOSE for
+  // why a bare literal pgid no longer proves anything.
   let staleChildProcess: ChildProcess | null = null;
   let staleChildPgid: ReturnType<typeof ProcessGroupIdStub> | null = null;
 
@@ -549,6 +552,28 @@ export const evidenceTreeHarness = (): {
   };
 
   const afterEach = (): void => {
+    // Backstop only: the normal case is the test's own `cleanup` call already reaped this pgid, so
+    // ESRCH here is success, not failure — a test that fails BEFORE cleanup runs is what this
+    // guards against, so no `sleep 300` from a broken test run lingers on the machine.
+    if (staleChildProcess?.pid !== undefined) {
+      try {
+        process.kill(-staleChildProcess.pid, 'SIGKILL');
+      } catch (killError: unknown) {
+        if (
+          killError === null ||
+          typeof killError !== 'object' ||
+          !('code' in killError) ||
+          killError.code !== 'ESRCH'
+        ) {
+          process.stderr.write(
+            `evidenceTreeHarness: killing the stale fixture process failed: ${String(killError)}\n`,
+          );
+        }
+      }
+    }
+    staleChildProcess = null;
+    staleChildPgid = null;
+
     if (originalHome === undefined) {
       Reflect.deleteProperty(process.env, 'DUNGEONMASTER_HOME');
     } else {
@@ -566,10 +591,23 @@ export const evidenceTreeHarness = (): {
     const evidenceDir = staleInstanceEvidenceDir();
     mkdirSync(evidenceDir, { recursive: true });
 
+    // Detached so it becomes its own session/process-group leader — its pid IS its pgid, the same
+    // relationship `childProcessSpawnDetachedAdapter` relies on for a real driver's own lane
+    // processes. `sleep` outlives any single test easily; afterEach force-kills it unconditionally
+    // as a backstop for a test that fails before cleanup's own reap gets to it.
+    const child = spawn('sleep', ['300'], { detached: true, stdio: 'ignore' });
+    child.unref();
+    staleChildProcess = child;
+    if (child.pid === undefined) {
+      throw new Error('evidenceTreeHarness: failed to spawn the stale fixture process');
+    }
+    const stalePgid = ProcessGroupIdStub({ value: child.pid });
+    staleChildPgid = stalePgid;
+
     const heartbeat = InstanceHeartbeatStub({
       instanceId: STALE_INSTANCE_ID,
       pid: ProcessIdStub(),
-      pgids: [FAKE_PGID],
+      pgids: [stalePgid],
       beatAtMs: EpochMsStub(),
       rssMB: null,
     });
@@ -585,9 +623,9 @@ export const evidenceTreeHarness = (): {
       specHash: SpecHashStub(),
       pid: ProcessIdStub(),
       // heartbeatWriteBroker stamps the SAME pgids onto heartbeat.json and this row in one call —
-      // the fixture above (FAKE_PGID in the heartbeat) is a lie unless this row names it too, and
-      // instanceKillBroker's orphan-reap path reads its candidates from THIS field, never the file.
-      pgids: [FAKE_PGID],
+      // the fixture above is a lie unless this row names the same pgid, and instanceKillBroker's
+      // orphan-reap path reads its candidates from THIS field, never the file.
+      pgids: [stalePgid],
       socketPath: `${evidenceDir}/x.sock`,
       ports: PortPairStub({ api: 40_021, web: 40_022 }),
       state: 'alive',
@@ -612,7 +650,12 @@ export const evidenceTreeHarness = (): {
     liveInstanceId: () => LIVE_INSTANCE_ID,
     staleInstanceId: () => STALE_INSTANCE_ID,
     unknownInstanceId: () => UNKNOWN_INSTANCE_ID,
-    fakePgid: () => FAKE_PGID,
+    fakePgid: () => {
+      if (staleChildPgid === null) {
+        throw new Error('evidenceTreeHarness: fakePgid() called before addStaleAliveEntry()');
+      }
+      return staleChildPgid;
+    },
     runOne: () => RUN_1,
     runTwo: () => RUN_2,
     killedInstanceEvidenceDir,
