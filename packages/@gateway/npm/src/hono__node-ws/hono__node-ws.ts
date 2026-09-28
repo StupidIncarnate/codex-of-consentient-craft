@@ -1,10 +1,11 @@
 /**
- * PURPOSE: Pass-through for the npm package '@hono/node-ws'. Code outside the gateway imports @hono/node-ws
- * through here instead of the raw package, so a future guard or override on @hono/node-ws lands in
- * this one file and reaches every caller.
+ * PURPOSE: Gateway entry for the npm package '@hono/node-ws'. Every raw export passes through
+ * except `createNodeWebSocket`, which this subpath overrides with OUR guarded version — see
+ * `./node-web-socket/node-web-socket`.
  *
  * USAGE:
- * import { someExport } from '#gateway/npm/hono__node-ws';
+ * import { createNodeWebSocket } from '#gateway/npm/hono__node-ws';
  */
 
 export * from '@hono/node-ws';
+export { createNodeWebSocket } from './node-web-socket/node-web-socket';

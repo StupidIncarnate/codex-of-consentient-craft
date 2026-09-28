@@ -16,8 +16,8 @@ import {
 } from '@dungeonmaster/shared/testing';
 import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { join } from '#gateway/node/path';
-import { createNodeWebSocket } from '#gateway/npm/hono__node-ws';
-import { serve } from '#gateway/npm/hono__node-server';
+import { createNodeWebSocketProxy } from '#gateway/npm/hono__node-ws/node-web-socket/node-web-socket.proxy';
+import { serveProxy } from '#gateway/npm/hono__node-server/server/server.proxy';
 import {
   StartOrchestrator,
   questFindQuestPathBroker,
@@ -119,45 +119,11 @@ export const ServerInitResponderProxy = (): {
   });
   dateSpy.calledWith([]).returns('2024-01-01T00:00:00.000Z');
 
-  // Neither `#gateway/npm/hono__node-ws` nor `#gateway/npm/hono__node-server` ships a `.proxy.ts`
-  // for createNodeWebSocket/serve (confirmed: their wrapper folders hold only `.stub.ts`), so this
-  // responder's own proxy stages both directly on the gateway import, inlining what the deleted
-  // adapters' own proxies did.
-  const wsHandle = registerMock({ fn: createNodeWebSocket });
-  const wsCaptured: {
-    factory?: () => {
-      onOpen?: (evt: unknown, ws: unknown) => void;
-      onMessage?: (evt: unknown, ws: unknown) => void;
-      onClose?: (evt: unknown, ws: unknown) => void;
-    };
-  } = {};
-  // createNodeWebSocket is called once per test with a fresh `new Hono()` instance this proxy never
-  // sees ahead of time — nothing to key on beyond "the one call this test made".
-  wsHandle.calledWith([]).returns({
-    injectWebSocket: jest.fn(),
-    upgradeWebSocket: (
-      factory: () => {
-        onOpen?: (evt: unknown, ws: unknown) => void;
-        onMessage?: (evt: unknown, ws: unknown) => void;
-        onClose?: (evt: unknown, ws: unknown) => void;
-      },
-    ) => {
-      wsCaptured.factory = factory;
-      return jest.fn() as never;
-    },
-  } as never);
-
-  const serveHandle = registerMock({ fn: serve });
-  const serveCaptured: { fetch?: (request: Request) => Response | Promise<Response> } = {};
-  // ServerInitResponder is called exactly once per test (one server instance); the port/hostname
-  // it's called with varies across tests (default 3737, overridden via setServerPort) but does not
-  // change what's under test here — capturing the fetch handler regardless of port.
-  serveHandle.calledWith([]).implement(((options: {
-    fetch: (request: Request) => Response | Promise<Response>;
-  }) => {
-    serveCaptured.fetch = options.fetch;
-    return {} as never;
-  }) as unknown as typeof serve);
+  // Neither gateway subpath had its own `.proxy.ts` until F49 (confirmed: their wrapper folders
+  // held only `.stub.ts`); both now ship one, so this responder's own proxy composes them instead
+  // of staging createNodeWebSocket/serve directly on the gateway import.
+  const nodeWebSocket = createNodeWebSocketProxy();
+  const server = serveProxy();
 
   const orchestrator = StartOrchestratorProxy();
   // Second handle on the SAME mocked StartOrchestrator.replayChatHistory function — shares staged
@@ -240,25 +206,25 @@ export const ServerInitResponderProxy = (): {
       url: string;
       method?: string;
     }): Promise<Response> => {
-      if (!serveCaptured.fetch) {
+      const capturedOptions = server.getCapturedOptions();
+      if (!capturedOptions) {
         throw new Error('fetch not captured. Call callResponder() first.');
       }
-      const appFetch = serveCaptured.fetch;
-      return appFetch(new Request(url, { method }));
+      return capturedOptions.fetch(new Request(url, { method }));
     },
     setServerPort: ({ value }: { value: string }): void => {
       portProxy.setEnvPort({ value });
     },
     simulateConnection: ({ client }: { client: WsClient }): void => {
-      const handlers = wsCaptured.factory?.();
+      const handlers = nodeWebSocket.getCapturedUpgradeFactory()?.();
       handlers?.onOpen?.(undefined, client);
     },
     simulateMessage: ({ data, ws }: { data: string; ws: WsClient }): void => {
-      const handlers = wsCaptured.factory?.();
+      const handlers = nodeWebSocket.getCapturedUpgradeFactory()?.();
       handlers?.onMessage?.({ data }, ws);
     },
     simulateDisconnect: ({ ws }: { ws: WsClient }): void => {
-      const handlers = wsCaptured.factory?.();
+      const handlers = nodeWebSocket.getCapturedUpgradeFactory()?.();
       handlers?.onClose?.(undefined, ws);
     },
     // Keyed on the quest's own id: every real caller (subscribe-quest, replay-quest-history,
@@ -337,13 +303,9 @@ export const ServerInitResponderProxy = (): {
       joinHandle.calledWith([wardResultsPath, `${wardResultId}.json`]).returns(detailFilePath);
       readProxy.returns({ path: detailFilePath, contents });
     },
-    // Proves a real Hono app reached createNodeWebSocket — wsHandle's own stage is address-less
-    // (a fresh `new Hono()` per test, nothing to key on in advance), so this call-readback is the
-    // only way to catch a call that passed the wrong (or no) app through.
-    getCapturedWebSocketAppIsHono: (): boolean => {
-      const call = [...wsHandle.callsMatching([])].at(-1);
-      const options = call?.[0] as Parameters<typeof createNodeWebSocket>[0] | undefined;
-      return options?.app instanceof Hono;
-    },
+    // Proves a real Hono app reached createNodeWebSocket — the gateway proxy's own stage is
+    // address-less (a fresh `new Hono()` per test, nothing to key on in advance), so this
+    // call-readback is the only way to catch a call that passed the wrong (or no) app through.
+    getCapturedWebSocketAppIsHono: (): boolean => nodeWebSocket.getCapturedApp() instanceof Hono,
   };
 };

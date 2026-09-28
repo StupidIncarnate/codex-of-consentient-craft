@@ -314,3 +314,65 @@ Delete (adapter + proxy + test each, folder goes empty):
 
 After this: `packages/server/src/adapters/` no longer exists (both `fs/stat/` and `fs/rm/` are the
 only folders left standing after G-C/G-D, per the census in "Current state").
+
+## Plan — F49
+
+Scope: `@gateway/npm`'s `hono__node-server` and `hono__node-ws` subpaths, plus server's
+`server-init-responder.proxy.ts`. Packages: `@gateway/npm` and `server` only.
+
+New (gateway wrapper, proxy, test — the subpath folders `server/` and `node-web-socket/` already
+hold a `.stub.ts` each from G18; this adds the missing wrapper + proxy the colocation rule requires
+once a wrapper file exists):
+- `packages/@gateway/npm/src/hono__node-server/server/server.ts` — OUR guarded `serve`, narrowed to
+  the `{fetch, port, hostname}` / `{port}` listener shape every caller in this repo passes, typed via
+  `Parameters<typeof pkgServe>`/`ReturnType<typeof pkgServe>` rather than hand-duplicating `@hono/node-server`'s
+  `Options`/`AddressInfo` unions
+- `packages/@gateway/npm/src/hono__node-server/server/server.proxy.ts` — `serveProxy`, mocks OUR
+  wrapper `serve` directly (it has no guard logic of its own to preserve real, unlike `glob`), stages
+  the one call address-less (`calledWith([])` — a fresh closure-over-app-under-test every call, so
+  `[]` is the honest address, matching this file's own `outboxWatchHandle` precedent), captures
+  `{fetch, port, hostname}`, and returns a real, never-listening `ServerType` via `@hono/node-server`'s
+  own `createAdaptorServer` (builds the real Node `http.Server`, skips `.listen()`) — no cast
+- `packages/@gateway/npm/src/hono__node-server/server/server.test.ts` — proves `serveProxy` captures
+  the real fetch handler, port and hostname, and that a call with no explicit hostname still returns
+  a real usable `ServerType`
+- `packages/@gateway/npm/src/hono__node-ws/node-web-socket/node-web-socket.ts` — OUR guarded
+  `createNodeWebSocket`, pass-through typed via `Parameters<typeof pkgCreateNodeWebSocket>`/`ReturnType<>`
+- `packages/@gateway/npm/src/hono__node-ws/node-web-socket/node-web-socket.proxy.ts` —
+  `createNodeWebSocketProxy`, mocks OUR wrapper directly (address-less, same reasoning as `serve`:
+  each call closes over a fresh `Hono` app), captures the real `app` and the `upgradeWebSocket`
+  factory, returns a real `NodeWebSocket` (built once for real against a throwaway `Hono`, so `wss`
+  is a real `WebSocketServer` and never a cast) with `injectWebSocket` overridden to a no-op and
+  `upgradeWebSocket` overridden to capture-then-delegate to the real one
+- `packages/@gateway/npm/src/hono__node-ws/node-web-socket/node-web-socket.test.ts` — proves the
+  proxy captures the real `app` passed in and the same factory function Hono receives from
+  `upgradeWebSocket`, and that `injectWebSocket` is a callable no-op
+
+Edit (existing files):
+- `packages/@gateway/npm/src/hono__node-server/server/server.stub.ts` — `ServerStub` now imports
+  `serve` from `./server` (OUR wrapper) instead of raw `@hono/node-server`, matching every other
+  gateway stub's "call this subpath's own wrapper" rule
+- `packages/@gateway/npm/src/hono__node-server/hono__node-server.ts` — becomes
+  `export * from '@hono/node-server'; export { serve } from './server/server';`, same shape as
+  `glob.ts`'s override line
+- `packages/@gateway/npm/src/hono__node-server/hono__node-server.test.ts` — adds the second
+  `it` block `glob.test.ts` carries, asserting `ourModule.serve` is OUR wrapper's `serve`
+- `packages/@gateway/npm/src/hono__node-ws/node-web-socket/node-web-socket.stub.ts` —
+  `NodeWebSocketStub` now imports `createNodeWebSocket` from `./node-web-socket`
+- `packages/@gateway/npm/src/hono__node-ws/hono__node-ws.ts` — becomes
+  `export * from '@hono/node-ws'; export { createNodeWebSocket } from './node-web-socket/node-web-socket';`
+- `packages/@gateway/npm/src/hono__node-ws/hono__node-ws.test.ts` — adds the override-assertion
+  `it` block
+- `packages/server/src/responders/server/init/server-init-responder.proxy.ts` — composes
+  `serveProxy()` and `createNodeWebSocketProxy()` in place of the two raw `registerMock({fn: serve})`
+  / `registerMock({fn: createNodeWebSocket})` calls; drops the `as never` / `as unknown as` casts on
+  both; `getCapturedWebSocketAppIsHono` reads the app back through `createNodeWebSocketProxy`'s own
+  capture instead of `wsHandle.callsMatching([])`; `dispatchRequest` reads the captured fetch through
+  `serveProxy`'s capture instead of its own local `serveCaptured`; `simulateConnection`/
+  `simulateMessage`/`simulateDisconnect` invoke the captured upgrade factory read back from
+  `createNodeWebSocketProxy` instead of a local `wsCaptured.factory`. Every public proxy method name
+  and parameter stays the same.
+
+Not touched: `server-init-responder.ts` (production code) — it already imports `serve` and
+`createNodeWebSocket` by the same names from the same `#gateway/npm/*` specifiers, so the barrel
+override means zero changes there.
