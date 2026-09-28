@@ -73,3 +73,36 @@ Census of `packages/mcp/src/adapters/**` run 2026-09-26: 31 files, in three grou
 ## Concessions made while executing
 
 <!-- Empty at the start. The operator fills this and mirrors it into EPIC.md's Concessions table. -->
+
+## Plan
+
+### G-A
+
+Scope: `packages/mcp/src/adapters/fs/{mkdir,read-file-if-exists,read-file,readdir-if-exists}/` only.
+`fsReaddirIfExistsAdapter` has zero real callers anywhere in `packages/mcp` (confirmed by `discover`) —
+delete it and its proxy/test with no caller migration.
+
+Delete (adapter + proxy + test, 4 folders, 12 files):
+- `packages/mcp/src/adapters/fs/mkdir/fs-mkdir-adapter.ts`
+- `packages/mcp/src/adapters/fs/mkdir/fs-mkdir-adapter.proxy.ts`
+- `packages/mcp/src/adapters/fs/mkdir/fs-mkdir-adapter.test.ts`
+- `packages/mcp/src/adapters/fs/read-file/fs-read-file-adapter.ts`
+- `packages/mcp/src/adapters/fs/read-file/fs-read-file-adapter.proxy.ts`
+- `packages/mcp/src/adapters/fs/read-file/fs-read-file-adapter.test.ts`
+- `packages/mcp/src/adapters/fs/read-file-if-exists/fs-read-file-if-exists-adapter.ts`
+- `packages/mcp/src/adapters/fs/read-file-if-exists/fs-read-file-if-exists-adapter.proxy.ts`
+- `packages/mcp/src/adapters/fs/read-file-if-exists/fs-read-file-if-exists-adapter.test.ts`
+- `packages/mcp/src/adapters/fs/readdir-if-exists/fs-readdir-if-exists-adapter.ts`
+- `packages/mcp/src/adapters/fs/readdir-if-exists/fs-readdir-if-exists-adapter.proxy.ts`
+- `packages/mcp/src/adapters/fs/readdir-if-exists/fs-readdir-if-exists-adapter.test.ts`
+
+Edit (callers, onto `#gateway/node/fs__promises`):
+- `packages/mcp/src/brokers/agents/plugin-create/agents-plugin-create-broker.ts` — `fsMkdirAdapter` → `ensureDir`
+- `packages/mcp/src/brokers/agents/plugin-create/agents-plugin-create-broker.proxy.ts` — compose `ensureDirProxy`
+- `packages/mcp/src/brokers/file/scanner/file-scanner-broker.ts` — `fsReadFileAdapter` → `readFile`, rebrand via `fileContentsContract`
+- `packages/mcp/src/brokers/file/scanner/file-scanner-broker.proxy.ts` — compose `readFileProxy`
+- `packages/mcp/src/brokers/file/scanner/file-scanner-broker.test.ts` — the two failing-read tests move from a raw `new Error(...)` to `FsErrorStub`, since the gateway's `throwsMatchingPath` requires a real `FsError` (`.code`), not a bare `Error`
+- `packages/mcp/src/brokers/folder-constraints/init/folder-constraints-init-broker.ts` — `fsReadFileAdapter` → `readFile`
+- `packages/mcp/src/brokers/folder-constraints/init/folder-constraints-init-broker.proxy.ts` — compose `readFileProxy`; stage each of the 14 real constraint files explicitly (the gateway proxy ships no real-disk passthrough the way the old local adapter proxy did — see DECISIONS)
+- `packages/mcp/src/brokers/discover-ignore/init/discover-ignore-init-broker.ts` — `fsReadFileIfExistsAdapter` → `readFileIfExists`; `undefined` sentinel becomes `null`
+- `packages/mcp/src/brokers/discover-ignore/init/discover-ignore-init-broker.proxy.ts` — compose `readFileIfExistsProxy`

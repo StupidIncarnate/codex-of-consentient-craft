@@ -14,7 +14,7 @@
  */
 
 import { globProxy } from '#gateway/npm/glob/glob/glob.proxy';
-import { fsReadFileAdapterProxy } from '../../../adapters/fs/read-file/fs-read-file-adapter.proxy';
+import { readFileProxy } from '#gateway/node/fs__promises/read-file/read-file.proxy';
 import { sharedPackageResolveAdapterProxy } from '../../../adapters/shared-package/resolve/shared-package-resolve-adapter.proxy';
 import { sharedPackageResolveAdapter } from '../../../adapters/shared-package/resolve/shared-package-resolve-adapter';
 import { globIgnoreFilterTransformer } from '../../../transformers/glob-ignore-filter/glob-ignore-filter-transformer';
@@ -24,6 +24,7 @@ import { cwd } from '#gateway/node/process';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import { PathSegmentStub, globPatternContract } from '@dungeonmaster/shared/contracts';
 import type { FileContents, GlobPattern, PathSegment } from '@dungeonmaster/shared/contracts';
+import type { FsError } from '#gateway/node/fs';
 
 const BROAD_GLOB_PREFIX = '**';
 
@@ -37,7 +38,7 @@ export const fileScannerBrokerProxy = (): {
     files: readonly {
       filepath: PathSegment;
       contents?: FileContents;
-      error?: Error;
+      error?: FsError;
     }[];
     pattern: GlobPattern;
   }) => void;
@@ -53,7 +54,7 @@ export const fileScannerBrokerProxy = (): {
   cwdHandle.calledWith([]).returns('/default/cwd');
   // The scan root the broker will resolve, read from the same gateway the broker calls.
   const scanRoot = PathSegmentStub({ value: '/default/cwd' });
-  const readFileProxy = fsReadFileAdapterProxy();
+  const readFileGateway = readFileProxy();
   sharedPackageResolveAdapterProxy();
   // A real call, made with the same mocked `existsSync` the line above just staged — the exact
   // root the broker will independently resolve for a broad glob's second scan.
@@ -133,7 +134,7 @@ export const fileScannerBrokerProxy = (): {
         matches: files.map((f) => f.filepath),
       });
       for (const { filepath, contents } of files) {
-        readFileProxy.returnsFor({ filepath, contents });
+        readFileGateway.returns({ path: filepath, contents });
       }
     },
     setupFilesWithFailingReads: ({
@@ -143,7 +144,7 @@ export const fileScannerBrokerProxy = (): {
       files: readonly {
         filepath: PathSegment;
         contents?: FileContents;
-        error?: Error;
+        error?: FsError;
       }[];
       pattern: GlobPattern;
     }): void => {
@@ -155,9 +156,9 @@ export const fileScannerBrokerProxy = (): {
       });
       for (const entry of files) {
         if (entry.error) {
-          readFileProxy.throwsFor({ filepath: entry.filepath, error: entry.error });
+          readFileGateway.throwsMatchingPath({ path: entry.filepath, error: entry.error });
         } else if (entry.contents) {
-          readFileProxy.returnsFor({ filepath: entry.filepath, contents: entry.contents });
+          readFileGateway.returns({ path: entry.filepath, contents: entry.contents });
         }
       }
     },
@@ -181,7 +182,7 @@ export const fileScannerBrokerProxy = (): {
         matches: files.map((f) => f.filepath),
       });
       for (const { filepath, contents } of files) {
-        readFileProxy.returnsFor({ filepath, contents });
+        readFileGateway.returns({ path: filepath, contents });
       }
     },
 

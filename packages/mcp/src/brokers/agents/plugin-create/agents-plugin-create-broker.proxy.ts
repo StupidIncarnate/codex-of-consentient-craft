@@ -1,7 +1,7 @@
 import type { join } from 'path';
 import { requireActual } from '@dungeonmaster/testing/register-mock';
+import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
 import { fsWriteFileAdapterProxy } from '../../../adapters/fs/write-file/fs-write-file-adapter.proxy';
-import { fsMkdirAdapterProxy } from '../../../adapters/fs/mkdir/fs-mkdir-adapter.proxy';
 import { pathJoinAdapterProxy } from '../../../adapters/path/join/path-join-adapter.proxy';
 import { PathSegmentStub as FilePathStub } from '@dungeonmaster/shared/contracts';
 import { locationsStatics, mcpToolsStatics } from '@dungeonmaster/shared/statics';
@@ -16,7 +16,7 @@ export const agentsPluginCreateBrokerProxy = (): {
   getWrittenMcpConfigJson: ({ targetProjectRoot }: { targetProjectRoot: FilePath }) => unknown;
 } => {
   const writeProxy = fsWriteFileAdapterProxy();
-  const mkdirProxy = fsMkdirAdapterProxy();
+  const mkdirGateway = ensureDirProxy();
   pathJoinAdapterProxy();
 
   const actualPath = requireActual<{ join: typeof join }>({ module: 'path' });
@@ -49,7 +49,7 @@ export const agentsPluginCreateBrokerProxy = (): {
   return {
     callBroker: agentsPluginCreateBroker,
     setupSuccess: ({ targetProjectRoot }: { targetProjectRoot: FilePath }): void => {
-      mkdirProxy.succeeds({ filepath: pluginDirFor({ targetProjectRoot }) });
+      mkdirGateway.succeeds({ path: pluginDirFor({ targetProjectRoot }) });
       writeProxy.succeeds({ filepath: pluginJsonPathFor({ targetProjectRoot }) });
       writeProxy.succeeds({ filepath: mcpConfigJsonPathFor({ targetProjectRoot }) });
     },

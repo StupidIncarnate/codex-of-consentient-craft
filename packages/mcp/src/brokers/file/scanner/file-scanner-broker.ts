@@ -7,7 +7,7 @@
  */
 
 import { glob as globFind } from '#gateway/npm/glob';
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
+import { readFile } from '#gateway/node/fs__promises';
 import { sharedPackageResolveAdapter } from '../../../adapters/shared-package/resolve/shared-package-resolve-adapter';
 import { metadataExtractorTransformer } from '../../../transformers/metadata-extractor/metadata-extractor-transformer';
 import { signatureExtractorTransformer } from '../../../transformers/signature-extractor/signature-extractor-transformer';
@@ -21,7 +21,11 @@ import { globResolveTransformer } from '../../../transformers/glob-resolve/glob-
 import { isMultiDotFileGuard } from '../../../guards/is-multi-dot-file/is-multi-dot-file-guard';
 import { globIgnoreFilterTransformer } from '../../../transformers/glob-ignore-filter/glob-ignore-filter-transformer';
 import { fileDiscoveryStatics } from '../../../statics/file-discovery/file-discovery-statics';
-import { globPatternContract, pathSegmentContract } from '@dungeonmaster/shared/contracts';
+import {
+  fileContentsContract,
+  globPatternContract,
+  pathSegmentContract,
+} from '@dungeonmaster/shared/contracts';
 import type { GlobPattern as IgnorePattern, PathSegment } from '@dungeonmaster/shared/contracts';
 import { cwd } from '#gateway/node/process';
 import { fileMetadataContract } from '../../../contracts/file-metadata/file-metadata-contract';
@@ -102,7 +106,7 @@ export const fileScannerBroker = async ({
 
   // 2. Extract metadata from each file (parallel for performance)
   const metadataPromises = allFilePaths.map(async (filepath) => {
-    const contents = await fsReadFileAdapter({ filepath });
+    const contents = fileContentsContract.parse(await readFile(filepath));
 
     // Grep integration: if grep provided, record whether content matches
     const hits: FileMetadata['hits'] = grep

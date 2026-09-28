@@ -5,6 +5,7 @@ import {
   GlobPatternStub,
   PathSegmentStub,
 } from '@dungeonmaster/shared/contracts';
+import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { DiscoverInputStub } from '../../../contracts/discover-input/discover-input.stub';
 
 describe('fileScannerBroker', () => {
@@ -648,7 +649,10 @@ export const orphanGuard = (): boolean => true;`,
       proxy.setupFilesWithFailingReads({
         files: [
           { filepath: goodPath, contents: goodContents },
-          { filepath: badPath, error: new Error('EACCES: permission denied') },
+          {
+            filepath: badPath,
+            error: FsErrorStub({ code: 'EACCES', path: badPath, syscall: 'open' }),
+          },
         ],
         pattern,
       });
@@ -682,8 +686,8 @@ export const orphanGuard = (): boolean => true;`,
 
       proxy.setupFilesWithFailingReads({
         files: [
-          { filepath: path1, error: new Error('ENOENT') },
-          { filepath: path2, error: new Error('EISDIR') },
+          { filepath: path1, error: FsErrorStub({ code: 'ENOENT', path: path1, syscall: 'open' }) },
+          { filepath: path2, error: FsErrorStub({ code: 'EISDIR', path: path2, syscall: 'open' }) },
         ],
         pattern,
       });

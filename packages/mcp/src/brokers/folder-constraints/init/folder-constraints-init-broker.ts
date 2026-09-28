@@ -7,7 +7,7 @@
  */
 import { folderConstraintsStatics } from '../../../statics/folder-constraints/folder-constraints-statics';
 import { pathResolveAdapter } from '../../../adapters/path/resolve/path-resolve-adapter';
-import { fsReadFileAdapter } from '../../../adapters/fs/read-file/fs-read-file-adapter';
+import { readFile } from '#gateway/node/fs__promises';
 import { contentTextContract } from '../../../contracts/content-text/content-text-contract';
 import type { ContentText } from '../../../contracts/content-text/content-text-contract';
 import type { FolderType } from '@dungeonmaster/shared/contracts';
@@ -26,7 +26,7 @@ export const folderConstraintsInitBroker = async (): Promise<{
     entries.map(async ([folderType, filename]) => {
       try {
         const filepath = pathResolveAdapter({ paths: [constraintsDir, filename] });
-        const content = await fsReadFileAdapter({ filepath });
+        const content = await readFile(filepath);
         const validated = contentTextContract.parse(`\n${content}`);
         return { folderType: folderType as FolderType, content: validated, error: null };
       } catch (error: unknown) {

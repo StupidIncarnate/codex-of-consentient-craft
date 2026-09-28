@@ -14,8 +14,8 @@ import {
 } from '@dungeonmaster/shared/contracts';
 import { locationsStatics, mcpToolsStatics } from '@dungeonmaster/shared/statics';
 import { jsonFileContentsTransformer } from '@dungeonmaster/shared/transformers';
+import { ensureDir } from '#gateway/node/fs__promises';
 import { pathJoinAdapter } from '../../../adapters/path/join/path-join-adapter';
-import { fsMkdirAdapter } from '../../../adapters/fs/mkdir/fs-mkdir-adapter';
 import { fsWriteFileAdapter } from '../../../adapters/fs/write-file/fs-write-file-adapter';
 import { dungeonmasterConfigCreatorTransformer } from '../../../transformers/dungeonmaster-config-creator/dungeonmaster-config-creator-transformer';
 
@@ -35,7 +35,7 @@ export const agentsPluginCreateBroker = async ({
     }),
   );
 
-  await fsMkdirAdapter({ filepath: pluginDir });
+  await ensureDir(pluginDir);
 
   const pluginJsonPath = pathSegmentContract.parse(
     pathJoinAdapter({ paths: [pluginDir, locationsStatics.repoRoot.agents.pluginJson] }),

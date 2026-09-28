@@ -19,9 +19,9 @@
  * // Returns the deduped union, or just the static rules when the repo keeps no .gitignore
  */
 
-import { globPatternContract, pathSegmentContract } from '@dungeonmaster/shared/contracts';
+import { fileContentsContract, globPatternContract } from '@dungeonmaster/shared/contracts';
 import type { GlobPattern } from '@dungeonmaster/shared/contracts';
-import { fsReadFileIfExistsAdapter } from '../../../adapters/fs/read-file-if-exists/fs-read-file-if-exists-adapter';
+import { readFileIfExists } from '#gateway/node/fs__promises';
 import { fileDiscoveryStatics } from '../../../statics/file-discovery/file-discovery-statics';
 import { gitignoreToGlobTransformer } from '../../../transformers/gitignore-to-glob/gitignore-to-glob-transformer';
 
@@ -38,15 +38,18 @@ export const discoverIgnoreInitBroker = async (): Promise<readonly GlobPattern[]
     globPatternContract.parse(pattern),
   );
 
-  const contents = await fsReadFileIfExistsAdapter({
-    filepath: pathSegmentContract.parse(GITIGNORE_FILENAME),
-  });
+  const contents = await readFileIfExists(GITIGNORE_FILENAME);
 
-  if (contents === undefined) {
+  if (contents === null) {
     return staticPatterns;
   }
 
   // A branded pattern is a plain string at runtime, so the Set dedups by pattern text — which is
   // what keeps a rule both lists carry (`dist` is routinely in both) from compiling twice in glob.
-  return [...new Set([...staticPatterns, ...gitignoreToGlobTransformer({ contents })])];
+  return [
+    ...new Set([
+      ...staticPatterns,
+      ...gitignoreToGlobTransformer({ contents: fileContentsContract.parse(contents) }),
+    ]),
+  ];
 };

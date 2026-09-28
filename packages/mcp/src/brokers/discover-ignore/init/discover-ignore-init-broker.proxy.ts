@@ -1,6 +1,6 @@
 import { PathSegmentStub } from '@dungeonmaster/shared/contracts';
 import type { FileContents } from '@dungeonmaster/shared/contracts';
-import { fsReadFileIfExistsAdapterProxy } from '../../../adapters/fs/read-file-if-exists/fs-read-file-if-exists-adapter.proxy';
+import { readFileIfExistsProxy } from '#gateway/node/fs__promises/read-file-if-exists/read-file-if-exists.proxy';
 
 // The broker reads '.gitignore' relative to process.cwd(), so this is the whole address.
 const GITIGNORE_PATH = PathSegmentStub({ value: '.gitignore' });
@@ -9,15 +9,15 @@ export const discoverIgnoreInitBrokerProxy = (): {
   setupGitignore: (params: { contents: FileContents }) => void;
   setupNoGitignore: () => void;
 } => {
-  const readProxy = fsReadFileIfExistsAdapterProxy();
+  const readGateway = readFileIfExistsProxy();
 
   return {
     setupGitignore: ({ contents }: { contents: FileContents }): void => {
-      readProxy.returnsFor({ filepath: GITIGNORE_PATH, contents });
+      readGateway.returns({ path: GITIGNORE_PATH, contents });
     },
 
     setupNoGitignore: (): void => {
-      readProxy.missingFor({ filepath: GITIGNORE_PATH });
+      readGateway.missing({ path: GITIGNORE_PATH });
     },
   };
 };
