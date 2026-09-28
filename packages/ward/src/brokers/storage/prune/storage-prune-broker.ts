@@ -6,7 +6,7 @@
  * // Removes run files older than ttlStatics.runResultTtl from the .ward directory
  */
 
-import { readdirIfExists, statIfExists } from '#gateway/node/fs__promises';
+import { readdirIfExists, statIfExists, unlink } from '#gateway/node/fs__promises';
 import {
   adapterResultContract,
   filePathContract,
@@ -15,7 +15,6 @@ import {
 } from '@dungeonmaster/shared/contracts';
 
 import { ttlStatics } from '../../../statics/ttl/ttl-statics';
-import { fsUnlinkAdapter } from '../../../adapters/fs/unlink/fs-unlink-adapter';
 
 const RUN_PREFIX_LENGTH = 'run-'.length;
 
@@ -62,7 +61,9 @@ export const storagePruneBroker = async ({
     await Promise.all(
       judged
         .filter((candidate) => candidate.expired)
-        .map(async (candidate) => fsUnlinkAdapter({ filePath: candidate.filePath })),
+        .map(async (candidate) => {
+          await unlink(candidate.filePath);
+        }),
     );
   } catch {
     // .ward directory may not exist yet - safe to ignore

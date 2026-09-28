@@ -374,7 +374,22 @@ Left for a follow-up group:
 - `fs/unlink` (`fsUnlinkAdapter` → `unlink`), its 4 caller files (`check-run/e2e`, `check-run/integration`, `check-run/unit`, `storage/prune` unlink half) and their `.proxy.ts` files, plus the adapter's own 3 files.
 - `fs/read-file`, `crypto/hash-files`, `fs/write-file`, `os/tmpdir`, `typescript/module-shape` (other groups).
 
+### F55
+
+Migrates `packages/ward/src/brokers/storage/prune/storage-prune-broker.ts` off ward's `fsUnlinkAdapter` onto `unlink` from `#gateway/node/fs__promises`, after adding `getCallsFor({ path })` call read-back to `@gateway/node`'s `fs__promises/unlink/unlink.proxy.ts`.
+
+Files to edit:
+- `packages/@gateway/node/src/fs__promises/unlink/unlink.proxy.ts` — add `getCallsFor({ path: PathMatcher })` read-back returning each call's arguments, matching `rm.proxy.ts` and `rename.proxy.ts`
+- `packages/@gateway/node/src/fs__promises/unlink/unlink.test.ts` — add test proving `getCallsFor` reads back two calls in order
+- `packages/ward/src/brokers/storage/prune/storage-prune-broker.ts` — import `unlink` from `#gateway/node/fs__promises` and replace `fsUnlinkAdapter` call
+- `packages/ward/src/brokers/storage/prune/storage-prune-broker.proxy.ts` — compose `unlinkProxy` from `#gateway/node/fs__promises/unlink/unlink.proxy`, stage candidate paths in `setupWithFiles`, and read back deleted paths via `unlinkProxy().getCallsFor`
+- `packages/ward/src/brokers/storage/prune/storage-prune-broker.test.ts` — verify test suite remains green and asserts real deleted paths
+
+Adapter deletion check:
+- `packages/ward/src/adapters/fs/unlink/fs-unlink-adapter.ts` (+ `.proxy.ts`, `.test.ts`) — checked with `discover`: 3 callers in other groups (`check-run/e2e`, `check-run/integration`, `check-run/unit`) still import `fsUnlinkAdapter`. Per rule ("delete ... if nothing else imports it"), the adapter is left standing until those callers migrate.
+
 ## Concessions made while executing
 
 <!-- Empty at the start. The operator fills this and mirrors it into EPIC.md's Concessions table. -->
+
 

@@ -1,13 +1,12 @@
 import { readdirIfExistsProxy } from '#gateway/node/fs__promises/readdir-if-exists/readdir-if-exists.proxy';
+import { statIfExistsProxy } from '#gateway/node/fs__promises/stat-if-exists/stat-if-exists.proxy';
+import { unlinkProxy } from '#gateway/node/fs__promises/unlink/unlink.proxy';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import {
   filePathContract,
   type AbsoluteFilePath,
   type FilePath,
 } from '@dungeonmaster/shared/contracts';
-
-import { statIfExistsProxy } from '#gateway/node/fs__promises/stat-if-exists/stat-if-exists.proxy';
-import { fsUnlinkAdapterProxy } from '../../../adapters/fs/unlink/fs-unlink-adapter.proxy';
 
 export const storagePruneBrokerProxy = (): {
   setupWithFiles: (params: {
@@ -23,11 +22,7 @@ export const storagePruneBrokerProxy = (): {
 } => {
   const readdirProxy = readdirIfExistsProxy();
   const statProxy = statIfExistsProxy();
-  const unlinkProxy = fsUnlinkAdapterProxy();
-
-  // The sweep chooses its own paths, so they cannot be staged one by one without staging the
-  // answer. fsUnlinkAdapter never reads unlink's resolved value either, so a catch-all is enough.
-  unlinkProxy.succeedsForAnyPath();
+  const unlink = unlinkProxy();
 
   const wardDirFor = ({ rootPath }: { rootPath: AbsoluteFilePath }): FilePath =>
     filePathContract.parse(`${rootPath}/.ward`);
@@ -67,6 +62,9 @@ export const storagePruneBrokerProxy = (): {
       for (const name of statNullFor) {
         statProxy.missing({ path: String(runFilePathFor({ rootPath, name })) });
       }
+      for (const name of entries) {
+        unlink.succeeds({ path: String(runFilePathFor({ rootPath, name })) });
+      }
     },
     setupEmpty: ({ rootPath }: { rootPath: AbsoluteFilePath }): void => {
       readdirProxy.returns({ path: String(wardDirFor({ rootPath })), names: [] });
@@ -74,6 +72,7 @@ export const storagePruneBrokerProxy = (): {
     setupReaddirFail: ({ rootPath }: { rootPath: AbsoluteFilePath }): void => {
       readdirProxy.missing({ path: String(wardDirFor({ rootPath })) });
     },
-    getDeletedPaths: (): unknown[] => unlinkProxy.getDeletedPaths(),
+    getDeletedPaths: (): unknown[] =>
+      unlink.getCallsFor({ path: () => true }).map((call) => call[0]),
   };
 };
