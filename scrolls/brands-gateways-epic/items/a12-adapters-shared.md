@@ -196,3 +196,84 @@ Phase 3 deletes `packages/shared/src/adapters/`, `packages/shared/adapters.ts`, 
 ### Trap: a passthrough join composed from far away (O3, O7)
 
 `configRootFindBrokerProxy`, `dungeonmasterHomeFindBrokerProxy` and their kin give the shared `#gateway/node/path` `join` mock a real-passthrough default. A broker whose proxy reaches them transitively (through `questFindQuestPathBrokerProxy`, `questCwdResolveBrokerProxy`, `questRepoRootBrokerProxy` or `cwdResolveBrokerProxy`) can build a wrong path and still pass, because the wrong join is answered for real and a loader proxy that reads by call order serves the right content anyway. Such a broker's proxy exposes `getQuestFileJoinArgs` (read back with `joinHandle.callsMatching([folderPath]).at(0)`), and its test asserts the exact join tuple. Prove it: mutate the join and watch that test fail.
+
+### G-Q
+
+The 3 type-only imports named in "Phase 2 census" above:
+- `packages/shared/src/brokers/architecture/orphan-detect/architecture-orphan-detect-broker.test.ts`
+- `packages/shared/src/brokers/architecture/orphan-detect/list-walked-folder-files-layer-broker.test.ts`
+- `packages/shared/src/brokers/architecture/orphan-detect/walk-reachable-files-layer-broker.test.ts`
+
+Each has `type Dirent = ReturnType<typeof fsReaddirWithTypesAdapter>[0]`, a type-only import of the
+shared adapter this item deletes, used to build fake `fs.Dirent`-shaped objects (`isDirectory()`,
+`isFile()`, ... methods) that `safeReaddirLayerBrokerProxy.setupReaddirImplementation` feeds straight
+to the mocked RAW `fs.readdirSync` — the REAL, unmocked `readdirEntriesSync` then calls those methods
+to compute `kind` for real, one layer up. `DirEntrySync` (`{name, kind}`, no methods) is NOT a
+same-shape swap here: the real gateway mapping would call `.isFile()` on a plain `{name, kind}` object
+and throw at runtime. A direct `import type { Dirent } from 'fs'` in a `.test.ts` file is blocked by
+the pre-edit hook (`enforce-import-dependencies`: "brokers/ cannot import external package fs") even
+though this domain's sibling `.proxy.ts` files already do exactly that — proxies are exempted, tests
+are not. Fix: `#gateway/node/fs`'s own barrel re-exports the whole `'fs'` module (`export * from 'fs'`
+in `packages/@gateway/node/src/fs/fs.ts:10`), so `import type { Dirent } from '#gateway/node/fs'` is
+an INTERNAL import (matches the hook's own "only internal imports allowed") carrying the identical
+real-`fs.Dirent` type. No production code or runtime staging logic in these three files changes.
+
+## Plan
+
+### G-P
+
+Hydration-recipes' last three callers of `@dungeonmaster/shared/adapters`, their proxies, tests, and every composing proxy in hydration-recipes.
+
+Files to edit:
+- `packages/hydration-recipes/src/brokers/guild/directory-ensure/guild-directory-ensure-broker.ts` — migrate `pathResolveAdapter` and `fsMkdirAdapter` to `#gateway/node/path` (`resolve`) and `#gateway/node/fs__promises` (`ensureDir`)
+- `packages/hydration-recipes/src/brokers/guild/directory-ensure/guild-directory-ensure-broker.proxy.ts` — compose `#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy` (`ensureDirProxy`), expose `setupDirectoryCreation` and `pathsTouched`
+- `packages/hydration-recipes/src/brokers/guild/directory-ensure/guild-directory-ensure-broker.test.ts` — stage directory creation via `proxy.setupDirectoryCreation`
+- `packages/hydration-recipes/src/brokers/guild/directory-ensure/guild-directory-ensure-broker.integration.test.ts` — integration test verifying directory ensure on real disk
+- `packages/hydration-recipes/src/brokers/guild/unique-path-resolve/guild-unique-path-resolve-broker.ts` — migrate `fsExistsSyncAdapter` to `#gateway/node/fs` (`existsSync`)
+- `packages/hydration-recipes/src/brokers/guild/unique-path-resolve/guild-unique-path-resolve-broker.proxy.ts` — compose `#gateway/node/fs/exists-sync/exists-sync.proxy` (`existsSyncProxy`), expose `setupExisting` and `setupFree`
+- `packages/hydration-recipes/src/brokers/guild/unique-path-resolve/guild-unique-path-resolve-broker.test.ts` — stage free candidate paths via `proxy.setupFree`
+- `packages/hydration-recipes/src/brokers/session/unique-id-resolve/session-unique-id-resolve-broker.ts` — migrate `fsExistsSyncAdapter` to `#gateway/node/fs` (`existsSync`)
+- `packages/hydration-recipes/src/brokers/session/unique-id-resolve/session-unique-id-resolve-broker.proxy.ts` — compose `#gateway/node/fs/exists-sync/exists-sync.proxy` (`existsSyncProxy`), expose `setupExisting` and `setupFree`
+- `packages/hydration-recipes/src/brokers/session/unique-id-resolve/session-unique-id-resolve-broker.test.ts` — stage free candidate paths via `proxy.setupFree`
+- `packages/hydration-recipes/src/brokers/guild/api-route/guild-api-route-broker.proxy.ts` — compose child proxies, expose `setupDirectoryCreation` and `setupPathFree`
+- `packages/hydration-recipes/src/brokers/guild/api-route/guild-api-route-broker.test.ts` — stage directory creation and free candidate path
+- `packages/hydration-recipes/src/brokers/guild/write-route/guild-write-route-broker.proxy.ts` — delegate `setupDirectoryCreation` and stage candidate path as free in `succeeds`/`succeedsWithId`/`setupDirectoryCreation`
+- `packages/hydration-recipes/src/brokers/session/write-route/session-write-route-broker.proxy.ts` — stage free candidate path in `succeeds` and expose `setupFree`
+- `packages/hydration-recipes/src/brokers/session/write-route/session-write-route-broker.test.ts` — stage free candidate path in error case test
+
+### G-V
+
+Riftcarver's step handler off `childProcessSpawnStreamLinesAdapter`/`pathJoinAdapter` onto `#gateway/node/*`, plus F35's raw-`spawn`-for-`cp` cleanup; and F34's other half — the cleanup and ward step-handler proxies move off a raw `streamLines` mock onto `streamLinesProxy`'s own `getOptionsFor`/`getSpawnedArgs` read-back (F34/F35, cbbe03451 gave the gateway proxy the read-back this needed).
+
+Files to edit:
+- `packages/orchestrator/src/brokers/step-handler/riftcarver/step-handler-riftcarver-broker.ts` — `childProcessSpawnStreamLinesAdapter` (`@dungeonmaster/shared/adapters`) → `streamLines` (`#gateway/node/child_process`) for the typecheck spawn
+- `packages/orchestrator/src/brokers/step-handler/riftcarver/step-handler-riftcarver-broker.proxy.ts` — compose `streamLinesProxy` (`#gateway/node/child_process/stream-lines/stream-lines.proxy`) actively (staged in `setupQuest`/`setupTypecheckFails`, never unconditionally, so an inert construction via `stepHandlerRunBrokerProxy` never collides with ward's own `'dungeonmaster-ward'` address); drop the raw `spawn`(`child_process`)/`mkdir`(`fs/promises`) imports and their two `as never` casts — mock the gateway's own `run` (`#gateway/node/child_process`) and `ensureDir` (`#gateway/node/fs__promises`) directly instead (same "mocked at the wrapper" pattern already used here for `readdirEntriesSync`/`existsSync`/`join`, since the implementation file itself never imports `run`/`ensureDir` and `enforce-proxy-child-creation` refuses a nested `runProxy()`/`ensureDirProxy()` composition here); drop the `pathJoinAdapter` mock entirely — `questOperationsUpdateBroker` (real, out of this item's scope) still calls it for real, and leaving it out of the `@dungeonmaster/shared/adapters` module mock's override list lets `jest.requireActual` serve the real, already-correct implementation
+- `packages/orchestrator/src/brokers/step-handler/riftcarver/step-handler-riftcarver-broker.test.ts` — no change; existing scenarios cover the migration
+- `packages/orchestrator/src/brokers/step-handler/cleanup/step-handler-cleanup-broker.proxy.ts` — drop the raw `registerMock({fn: streamLines})` queue-free direct mock; use `streamLinesProxy()` actively (`setupSuccess`/`getSpawnedArgs`/`getOptionsFor`) addressed on `cleanupCliCallStatics.call.bin`
+- `packages/orchestrator/src/brokers/step-handler/ward/step-handler-ward-broker.proxy.ts` — attempted, reverted: **BLOCKED**, not a file this item can land as planned. See "Trap: ward's `streamLines` and `run` share one address space" below.
+
+### Trap: ward's `streamLines` and `run` share one address space
+
+`stepHandlerWardBroker`'s own spawn (`streamLines`, command `dungeonmaster-ward`, args `['run', ...]`) and
+`wardDetailBroker`'s own spawn (`run`, SAME command `dungeonmaster-ward`, args `['detail', ...]`) both reduce to the
+identical raw `spawn` (`'child_process'`) mock underneath — `streamLinesProxy` and `runProxy` both `registerMock({fn:
+spawn})` on the SAME shared handle. `runProxy().setupSuccess` accepts an `args`/`cwd` refinement; `streamLinesProxy(
+).setupSuccess` accepts `command` ONLY (confirmed: `packages/@gateway/node/src/child_process/stream-lines/stream-lines.proxy.ts`'s
+own `setupSuccess` signature has no `args`/`cwd` param). `wardDetailBrokerProxy` (`packages/orchestrator/src/brokers/ward/detail/ward-detail-broker.proxy.ts`)
+already stages `run` addressed by `{command: WARD_COMMAND}` alone too (no `args`), so BOTH proxies stage the exact
+same address `['dungeonmaster-ward']` at equal specificity. Composing `stepHandlerWardBrokerProxy` with
+`streamLinesProxy()` staged actively (`wardExits` → `spawn.setupSuccess({command: WARD_COMMAND, ...})`, called AFTER
+`detailProxy.setupSuccess(...)` inside the same method) makes the LATER registration win everywhere
+(`mockStagedBestMatchTransformer`: "later-written staging wins" at equal score) — so ward's OWN run gets answered
+by the `run`-shaped mock, which emits `'exit'`, never `'close'`. `streamLines()`'s real wrapper (`stream-lines.ts`)
+listens ONLY for `child.on('close', ...)`, so its promise never resolves — a real, confirmed hang (`TIMEOUT: Test
+killed before reaching any expect() calls`, all three `wardExits`-driven tests in `step-handler-ward-broker.test.ts`
+plus `step-handler-run-broker.test.ts`'s ward-dispatch test). Reproduced outside jest with a minimal script
+mirroring `createMockChild`/`setupSuccess` exactly — the mock mechanics themselves are correct; the collision is
+address-space, not implementation. **Fix needed on the gateway side** (`packages/@gateway/node`, out of this item's
+scope): give `streamLinesProxy().setupSuccess` (and its sibling stage methods) the same `args`/`cwd` params
+`runProxy().setupSuccess` already has, so two callers of the SAME binary via different gateway wrappers can be
+staged at different specificities. Until then, `step-handler-ward-broker.proxy.ts` stays on its pre-migration
+design: `streamLinesProxy()` composed INERTLY (satisfies `enforce-proxy-child-creation`) and `streamLines` itself
+mocked directly, exactly as it was before this item.
+

@@ -17,8 +17,9 @@
  * await guildDirectoryEnsureBroker({ target, path: guildPathContract.parse('/tmp/dm-home/guilds-under-test/guild-1') });
  * // Creates the directory when it resolves inside target.home; no-ops otherwise
  */
-import { fsMkdirAdapter, pathResolveAdapter } from '@dungeonmaster/shared/adapters';
-import { adapterResultContract, filePathContract } from '@dungeonmaster/shared/contracts';
+import { ensureDir } from '#gateway/node/fs__promises';
+import { resolve } from '#gateway/node/path';
+import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import type { AdapterResult, GuildPath } from '@dungeonmaster/shared/contracts';
 
 import type { DmTarget } from '../../../contracts/dm-target/dm-target-contract';
@@ -30,11 +31,11 @@ export const guildDirectoryEnsureBroker = async ({
   target: DmTarget;
   path: GuildPath;
 }): Promise<AdapterResult> => {
-  const targetRoot = pathResolveAdapter({ paths: [target.home] });
-  const guildDir = pathResolveAdapter({ paths: [path] });
+  const targetRoot = resolve(target.home);
+  const guildDir = resolve(path);
 
   if (guildDir === targetRoot || guildDir.startsWith(`${targetRoot}/`)) {
-    await fsMkdirAdapter({ filepath: filePathContract.parse(guildDir) });
+    await ensureDir(guildDir);
   }
 
   return adapterResultContract.parse({ success: true });

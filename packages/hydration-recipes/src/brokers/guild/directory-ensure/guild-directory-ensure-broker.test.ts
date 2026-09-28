@@ -8,6 +8,7 @@ describe('guildDirectoryEnsureBroker', () => {
     it('VALID: {path: target.home + relative fragment} => makes the resolved directory', async () => {
       const proxy = guildDirectoryEnsureBrokerProxy();
       const target = DmTargetStub({ home: '/tmp/dm-home', claudeHome: '/tmp/dm-home' });
+      proxy.setupDirectoryCreation({ path: '/tmp/dm-home/guilds-under-test/guild-1' });
 
       await guildDirectoryEnsureBroker({
         target,

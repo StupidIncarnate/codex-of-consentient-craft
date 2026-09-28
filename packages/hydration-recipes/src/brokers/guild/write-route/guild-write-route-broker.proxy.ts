@@ -34,6 +34,7 @@ export const guildWriteRouteBrokerProxy = (): {
     guild: Guild;
   }) => void;
   setupDirectoryCreation: ({ path }: { path: string }) => void;
+  setupPathFree: ({ path }: { path: string }) => void;
   pathsTouched: () => readonly unknown[];
   registrationsMade: () => readonly unknown[];
 } => {
@@ -41,10 +42,7 @@ export const guildWriteRouteBrokerProxy = (): {
   // fencing needs — shared with the api route's proxy so both stay in sync. It also covers the
   // invalid-id scenario, where the directory ensure runs before the id validation throws.
   const directoryProxy = guildDirectoryEnsureBrokerProxy();
-  // guildUniquePathResolveBrokerProxy's own default (fsExistsSyncAdapterProxy's "any unaddressed
-  // path is non-existent") is all this route needs for every scenario that never stages a
-  // collision — the DEF-78 dedup then leaves the default fragment untouched.
-  guildUniquePathResolveBrokerProxy();
+  const uniquePathProxy = guildUniquePathResolveBrokerProxy();
   // guildAddBrokerProxy's own setup mints a FIXED id/createdAt via crypto.randomUUID, which does
   // not let a test stage an arbitrary `guild` fixture — created here only to satisfy
   // `enforce-proxy-child-creation`; this route's own registerMock below stages the real answer.
@@ -66,6 +64,8 @@ export const guildWriteRouteBrokerProxy = (): {
       home: string;
       guild: Guild;
     }): void => {
+      directoryProxy.setupDirectoryCreation({ path });
+      uniquePathProxy.setupFree({ absolutePaths: [path] });
       addGuildHandle.calledWith([{ name, path, home }]).resolves(guild);
     },
     // A more specific address than `succeeds` above (it names `id` too) — for a call this route
@@ -83,12 +83,16 @@ export const guildWriteRouteBrokerProxy = (): {
       id: string;
       guild: Guild;
     }): void => {
+      directoryProxy.setupDirectoryCreation({ path });
+      uniquePathProxy.setupFree({ absolutePaths: [path] });
       addGuildHandle.calledWith([{ name, path, home, id }]).resolves(guild);
     },
-    setupDirectoryCreation: (): void => {
-      // No staging needed: guildDirectoryEnsureBrokerProxy's own fsMkdirAdapterProxy composition
-      // already succeeds any unaddressed mkdir call by default — kept as a no-op only because
-      // guild-write-route-broker.test.ts's own invalid-id case still calls it.
+    setupDirectoryCreation: ({ path }: { path: string }): void => {
+      directoryProxy.setupDirectoryCreation({ path });
+      uniquePathProxy.setupFree({ absolutePaths: [path] });
+    },
+    setupPathFree: ({ path }: { path: string }): void => {
+      uniquePathProxy.setupFree({ absolutePaths: [path] });
     },
     // Every filesystem path the route reached — the one directory it makes, and nothing else, since
     // `guildAddBroker` is mocked at the broker boundary and its own mkdir never runs. Assert

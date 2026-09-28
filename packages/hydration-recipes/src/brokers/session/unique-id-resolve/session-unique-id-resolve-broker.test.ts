@@ -6,7 +6,10 @@ import { AbsoluteFilePathStub, SessionIdStub } from '@dungeonmaster/shared/contr
 describe('sessionUniqueIdResolveBroker', () => {
   describe('the default id, free', () => {
     it('VALID: {sessionId: "seed-session-1", nothing on disk} => returns it unchanged', () => {
-      sessionUniqueIdResolveBrokerProxy();
+      const proxy = sessionUniqueIdResolveBrokerProxy();
+      proxy.setupFree({
+        filePaths: ['/tmp/guild-1/.claude/projects/-tmp-guild-1/seed-session-1.jsonl'],
+      });
       const target = DmTargetStub({ claudeHome: '/tmp/guild-1' });
 
       const result = sessionUniqueIdResolveBroker({
@@ -26,6 +29,9 @@ describe('sessionUniqueIdResolveBroker', () => {
       proxy.setupExisting({
         filePaths: ['/tmp/guild-1/.claude/projects/-tmp-guild-1/seed-session-1.jsonl'],
       });
+      proxy.setupFree({
+        filePaths: ['/tmp/guild-1/.claude/projects/-tmp-guild-1/seed-session-2.jsonl'],
+      });
 
       const result = sessionUniqueIdResolveBroker({
         target,
@@ -44,6 +50,9 @@ describe('sessionUniqueIdResolveBroker', () => {
           '/tmp/guild-1/.claude/projects/-tmp-guild-1/seed-session-1.jsonl',
           '/tmp/guild-1/.claude/projects/-tmp-guild-1/seed-session-2.jsonl',
         ],
+      });
+      proxy.setupFree({
+        filePaths: ['/tmp/guild-1/.claude/projects/-tmp-guild-1/seed-session-3.jsonl'],
       });
 
       const result = sessionUniqueIdResolveBroker({

@@ -7,17 +7,23 @@ type DmHttpResponse = ReturnType<typeof DmHttpResponseStub>;
 
 export const guildApiRouteBrokerProxy = (): {
   succeeds: ({ url, response }: { url: string; response: DmHttpResponse }) => void;
+  setupDirectoryCreation: ({ path }: { path: string }) => void;
+  setupPathFree: ({ path }: { path: string }) => void;
   pathsTouched: () => readonly unknown[];
 } => {
   const httpProxy = dmHttpRequestBrokerProxy();
   const directoryProxy = guildDirectoryEnsureBrokerProxy();
-  // guildUniquePathResolveBrokerProxy's own default leaves every scenario's default fragment
-  // untouched — every existing test here never stages a collision.
-  guildUniquePathResolveBrokerProxy();
+  const uniquePathProxy = guildUniquePathResolveBrokerProxy();
 
   return {
     succeeds: ({ url, response }: { url: string; response: DmHttpResponse }): void => {
       httpProxy.succeeds({ url, response });
+    },
+    setupDirectoryCreation: ({ path }: { path: string }): void => {
+      directoryProxy.setupDirectoryCreation({ path });
+    },
+    setupPathFree: ({ path }: { path: string }): void => {
+      uniquePathProxy.setupFree({ absolutePaths: [path] });
     },
     pathsTouched: (): readonly unknown[] => directoryProxy.pathsTouched(),
   };

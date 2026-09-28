@@ -20,8 +20,8 @@
  * // else the original id unchanged
  */
 import { claudePathSlugEncoderTransformer } from '@dungeonmaster/shared/transformers';
-import { fsExistsSyncAdapter } from '@dungeonmaster/shared/adapters';
-import { absoluteFilePathContract, filePathContract } from '@dungeonmaster/shared/contracts';
+import { existsSync } from '#gateway/node/fs';
+import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 import type { AbsoluteFilePath, SessionId } from '@dungeonmaster/shared/contracts';
 
 import { sessionDefaultIdBumpTransformer } from '../../../transformers/session-default-id-bump/session-default-id-bump-transformer';
@@ -42,7 +42,7 @@ export const sessionUniqueIdResolveBroker = ({
   });
   const filePath = absoluteFilePathContract.parse(`${sessionsDir}/${sessionId}.jsonl`);
 
-  if (!fsExistsSyncAdapter({ filePath: filePathContract.parse(filePath) })) {
+  if (!existsSync(filePath)) {
     return sessionId;
   }
 

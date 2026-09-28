@@ -1,18 +1,18 @@
-import { fsMkdirAdapterProxy, pathResolveAdapterProxy } from '@dungeonmaster/shared/testing';
+import { ensureDirProxy } from '#gateway/node/fs__promises/ensure-dir/ensure-dir.proxy';
+import { resolve } from '#gateway/node/path';
 
 export const guildDirectoryEnsureBrokerProxy = (): {
+  setupDirectoryCreation: ({ path }: { path: string }) => void;
   pathsTouched: () => readonly unknown[];
 } => {
-  // fsMkdirAdapterProxy's own default (any unaddressed call succeeds) is all this broker needs —
-  // composed bare, with no per-call staging, exactly as guildWriteRouteBroker's own proxy did
-  // before this broker existed.
-  const mkdirProxy = fsMkdirAdapterProxy();
-  // pathResolveAdapterProxy's own default is a REAL passthrough, so the fencing check computes a
-  // genuine resolved path with nothing staged.
-  pathResolveAdapterProxy();
+  const ensureDir = ensureDirProxy();
 
   return {
+    setupDirectoryCreation: ({ path }: { path: string }): void => {
+      ensureDir.succeeds({ path: resolve(path) });
+    },
     // Every filesystem path this broker reached — the one directory it makes, and nothing else.
-    pathsTouched: (): readonly unknown[] => mkdirProxy.getCreatedDirs(),
+    pathsTouched: (): readonly unknown[] =>
+      ensureDir.getCallsFor({ path: (_value: unknown): boolean => true }).map((call) => call[0]),
   };
 };

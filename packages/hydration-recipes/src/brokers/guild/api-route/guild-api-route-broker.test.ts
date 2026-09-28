@@ -16,6 +16,8 @@ describe('guildApiRouteBroker', () => {
         status: 201,
         body: { id: 'f47ac10b', name: 'Guild 1', path: '/tmp/dm-home/guilds-under-test/guild-1' },
       });
+      proxy.setupPathFree({ path: '/tmp/dm-home/guilds-under-test/guild-1' });
+      proxy.setupDirectoryCreation({ path: '/tmp/dm-home/guilds-under-test/guild-1' });
       proxy.succeeds({ url: 'http://app.in-process/api/guilds', response });
 
       const result = await guildApiRouteBroker({
@@ -41,6 +43,8 @@ describe('guildApiRouteBroker', () => {
         status: 201,
         body: { id: 'f47ac10b', name: 'Guild 1', path: '/tmp/dm-home/guilds-under-test/guild-1' },
       });
+      proxy.setupPathFree({ path: '/tmp/dm-home/guilds-under-test/guild-1' });
+      proxy.setupDirectoryCreation({ path: '/tmp/dm-home/guilds-under-test/guild-1' });
       proxy.succeeds({ url: 'http://app.in-process/api/guilds', response });
 
       await guildApiRouteBroker({
@@ -64,6 +68,7 @@ describe('guildApiRouteBroker', () => {
         status: 201,
         body: { id: 'f47ac10b', name: 'Real Project', path: '/home/user/real-project' },
       });
+      proxy.setupPathFree({ path: '/home/user/real-project' });
       proxy.succeeds({ url: 'http://app.in-process/api/guilds', response });
 
       await guildApiRouteBroker({
@@ -80,6 +85,8 @@ describe('guildApiRouteBroker', () => {
       const proxy = guildApiRouteBrokerProxy();
       const target = DmTargetStub({ baseUrl: 'http://app.in-process' });
       const response = DmHttpResponseStub({ status: 500, body: { error: 'database unavailable' } });
+      proxy.setupPathFree({ path: '/tmp/dm-target-stub/guilds-under-test/guild-1' });
+      proxy.setupDirectoryCreation({ path: '/tmp/dm-target-stub/guilds-under-test/guild-1' });
       proxy.succeeds({ url: 'http://app.in-process/api/guilds', response });
 
       await expect(

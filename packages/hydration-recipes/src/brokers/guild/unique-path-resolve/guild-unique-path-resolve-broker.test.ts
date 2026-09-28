@@ -6,8 +6,9 @@ import { GuildPathStub } from '@dungeonmaster/shared/contracts';
 describe('guildUniquePathResolveBroker', () => {
   describe('the default fragment, free', () => {
     it('VALID: {path: "guilds-under-test/guild-1", nothing on disk} => returns it unchanged', () => {
-      guildUniquePathResolveBrokerProxy();
+      const proxy = guildUniquePathResolveBrokerProxy();
       const target = DmTargetStub({ home: '/tmp/dm-home', claudeHome: '/tmp/dm-home' });
+      proxy.setupFree({ absolutePaths: ['/tmp/dm-home/guilds-under-test/guild-1'] });
 
       const result = guildUniquePathResolveBroker({
         target,
@@ -23,6 +24,7 @@ describe('guildUniquePathResolveBroker', () => {
       const proxy = guildUniquePathResolveBrokerProxy();
       const target = DmTargetStub({ home: '/tmp/dm-home', claudeHome: '/tmp/dm-home' });
       proxy.setupExisting({ absolutePaths: ['/tmp/dm-home/guilds-under-test/guild-1'] });
+      proxy.setupFree({ absolutePaths: ['/tmp/dm-home/guilds-under-test/guild-2'] });
 
       const result = guildUniquePathResolveBroker({
         target,
@@ -41,6 +43,7 @@ describe('guildUniquePathResolveBroker', () => {
           '/tmp/dm-home/guilds-under-test/guild-2',
         ],
       });
+      proxy.setupFree({ absolutePaths: ['/tmp/dm-home/guilds-under-test/guild-3'] });
 
       const result = guildUniquePathResolveBroker({
         target,

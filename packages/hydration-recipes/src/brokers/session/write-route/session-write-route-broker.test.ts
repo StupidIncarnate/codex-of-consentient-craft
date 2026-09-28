@@ -33,7 +33,10 @@ describe('sessionWriteRouteBroker', () => {
 
   describe('a caller that never supplied lines', () => {
     it('ERROR: {sessionId, cwd, no lines} => throws naming the REAL resolved path, not "(unknown path)"', async () => {
-      sessionWriteRouteBrokerProxy();
+      const proxy = sessionWriteRouteBrokerProxy();
+      proxy.setupFree({
+        filePaths: ['/tmp/guild-1/.claude/projects/-tmp-guild-1/seed-session-1.jsonl'],
+      });
       const target = DmTargetStub({ claudeHome: '/tmp/guild-1' });
 
       const thrown = (await sessionWriteRouteBroker({

@@ -27,8 +27,7 @@
  * // Returns 'guilds-under-test/guild-2' when guild-1's directory already exists under target.home,
  * // else the original path unchanged
  */
-import { fsExistsSyncAdapter } from '@dungeonmaster/shared/adapters';
-import { filePathContract } from '@dungeonmaster/shared/contracts';
+import { existsSync } from '#gateway/node/fs';
 import type { GuildPath } from '@dungeonmaster/shared/contracts';
 
 import { guildDefaultPathBumpTransformer } from '../../../transformers/guild-default-path-bump/guild-default-path-bump-transformer';
@@ -44,7 +43,7 @@ export const guildUniquePathResolveBroker = ({
 }): GuildPath => {
   const absolute = guildPathDeriveTransformer({ target, path });
 
-  if (!fsExistsSyncAdapter({ filePath: filePathContract.parse(absolute) })) {
+  if (!existsSync(absolute)) {
     return path;
   }
 
