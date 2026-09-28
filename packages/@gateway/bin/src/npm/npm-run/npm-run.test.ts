@@ -19,11 +19,11 @@ describe('npmRun()', () => {
 
   it('ERROR: {run throws RunNotFoundError} => throws NpmNotInstalledError', async () => {
     const proxy = npmRunProxy();
-    proxy.setupNotFound({ args: ['install'], message: 'spawn npm ENOENT' });
+    proxy.setupNotFound({ args: ['install'] });
 
     await expect(npmRun({ args: ['install'], cwd: '/repo' })).rejects.toStrictEqual(
       new NpmNotInstalledError(
-        'npm install could not start in /repo: "npm" never started: spawn npm ENOENT',
+        'npm install could not start in /repo: "npm" never started: ENOENT: open \'npm\'',
       ),
     );
   });
@@ -63,7 +63,6 @@ describe('npmRun()', () => {
       const proxy = npmRunProxy();
       proxy.throwsMatchingArgs({
         args: ['run', 'build', (value) => String(value).startsWith('--workspace=')],
-        message: 'spawn npm ENOENT',
       });
 
       await expect(
@@ -73,7 +72,7 @@ describe('npmRun()', () => {
         }),
       ).rejects.toStrictEqual(
         new NpmNotInstalledError(
-          'npm run build --workspace=@dungeonmaster/computed-at-runtime could not start in /repo: "npm" never started: spawn npm ENOENT',
+          'npm run build --workspace=@dungeonmaster/computed-at-runtime could not start in /repo: "npm" never started: ENOENT: open \'npm\'',
         ),
       );
     });

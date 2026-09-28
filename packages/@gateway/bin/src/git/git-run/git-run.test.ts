@@ -14,11 +14,11 @@ describe('gitRun()', () => {
 
   it('ERROR: {run throws RunNotFoundError} => throws GitNotInstalledError', async () => {
     const proxy = gitRunProxy();
-    proxy.setupNotFound({ args: ['status'], message: 'spawn git ENOENT' });
+    proxy.setupNotFound({ args: ['status'] });
 
     await expect(gitRun({ args: ['status'], cwd: '/repo' })).rejects.toStrictEqual(
       new GitNotInstalledError(
-        'git status could not start in /repo: "git" never started: spawn git ENOENT',
+        'git status could not start in /repo: "git" never started: ENOENT: open \'git\'',
       ),
     );
   });
@@ -76,12 +76,11 @@ describe('gitRun()', () => {
       const proxy = gitRunProxy();
       proxy.throwsMatchingArgs({
         args: [(value) => value === 'push'],
-        message: 'spawn git ENOENT',
       });
 
       await expect(gitRun({ args: ['push'], cwd: '/repo' })).rejects.toStrictEqual(
         new GitNotInstalledError(
-          'git push could not start in /repo: "git" never started: spawn git ENOENT',
+          'git push could not start in /repo: "git" never started: ENOENT: open \'git\'',
         ),
       );
     });

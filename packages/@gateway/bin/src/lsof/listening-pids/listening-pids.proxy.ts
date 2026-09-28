@@ -10,10 +10,10 @@ const portArg = (port: PortMatcher): string | ((value: unknown) => boolean) =>
 export const listeningPidsProxy = (): {
   setupPids: (params: { port: number; pids: number[] }) => void;
   setupNoneListening: (params: { port: number }) => void;
-  setupNotFound: (params: { port: number; message: string }) => void;
+  setupNotFound: (params: { port: number }) => void;
   returnsMatchingPort: (params: { port: PortMatcher; pids: number[] }) => void;
   noneListeningMatchingPort: (params: { port: PortMatcher }) => void;
-  throwsMatchingPort: (params: { port: PortMatcher; message: string }) => void;
+  throwsMatchingPort: (params: { port: PortMatcher }) => void;
   getCallsFor: (params: { port: PortMatcher }) => readonly unknown[][];
 } => {
   const runProxy = lsofRunProxy();
@@ -29,8 +29,8 @@ export const listeningPidsProxy = (): {
     setupNoneListening: ({ port }: { port: number }): void => {
       runProxy.setupResult({ args: ['-ti', `:${String(port)}`], exitCode: 1, output: '' });
     },
-    setupNotFound: ({ port, message }: { port: number; message: string }): void => {
-      runProxy.setupNotFound({ args: ['-ti', `:${String(port)}`], message });
+    setupNotFound: ({ port }: { port: number }): void => {
+      runProxy.setupNotFound({ args: ['-ti', `:${String(port)}`] });
     },
 
     returnsMatchingPort: ({ port, pids }: { port: PortMatcher; pids: number[] }): void => {
@@ -43,8 +43,8 @@ export const listeningPidsProxy = (): {
     noneListeningMatchingPort: ({ port }: { port: PortMatcher }): void => {
       runProxy.returnsMatchingArgs({ args: ['-ti', portArg(port)], exitCode: 1, output: '' });
     },
-    throwsMatchingPort: ({ port, message }: { port: PortMatcher; message: string }): void => {
-      runProxy.throwsMatchingArgs({ args: ['-ti', portArg(port)], message });
+    throwsMatchingPort: ({ port }: { port: PortMatcher }): void => {
+      runProxy.throwsMatchingArgs({ args: ['-ti', portArg(port)] });
     },
 
     getCallsFor: ({ port }: { port: PortMatcher }): readonly unknown[][] =>

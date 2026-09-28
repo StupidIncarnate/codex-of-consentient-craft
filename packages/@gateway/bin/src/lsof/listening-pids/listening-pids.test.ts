@@ -23,11 +23,11 @@ describe('listeningPids()', () => {
 
   it('ERROR: {run throws RunNotFoundError} => throws LsofNotInstalledError, never an empty array', async () => {
     const proxy = listeningPidsProxy();
-    proxy.setupNotFound({ port: 3737, message: 'spawn lsof ENOENT' });
+    proxy.setupNotFound({ port: 3737 });
 
     await expect(listeningPids({ port: 3737 })).rejects.toStrictEqual(
       new LsofNotInstalledError(
-        'lsof -ti :3737 could not start: "lsof" never started: spawn lsof ENOENT',
+        'lsof -ti :3737 could not start: "lsof" never started: ENOENT: open \'lsof\'',
       ),
     );
   });
@@ -58,12 +58,11 @@ describe('listeningPids()', () => {
       const proxy = listeningPidsProxy();
       proxy.throwsMatchingPort({
         port: (value) => String(value).startsWith(':'),
-        message: 'spawn lsof ENOENT',
       });
 
       await expect(listeningPids({ port: 4242 })).rejects.toStrictEqual(
         new LsofNotInstalledError(
-          'lsof -ti :4242 could not start: "lsof" never started: spawn lsof ENOENT',
+          'lsof -ti :4242 could not start: "lsof" never started: ENOENT: open \'lsof\'',
         ),
       );
     });

@@ -16,12 +16,11 @@ describe('killRun()', () => {
     const proxy = killRunProxy();
     proxy.setupNotFound({
       args: ['-SIGKILL', '12345'],
-      message: 'spawn kill ENOENT',
     });
 
     await expect(killRun({ args: ['-SIGKILL', '12345'], cwd: '/repo' })).rejects.toStrictEqual(
       new KillNotInstalledError(
-        'kill -SIGKILL 12345 could not start in /repo: "kill" never started: spawn kill ENOENT',
+        'kill -SIGKILL 12345 could not start in /repo: "kill" never started: ENOENT: open \'kill\'',
       ),
     );
   });
@@ -62,12 +61,11 @@ describe('killRun()', () => {
       const proxy = killRunProxy();
       proxy.throwsMatchingArgs({
         args: ['-SIGKILL', (value) => Number(value) > 0],
-        message: 'spawn kill ENOENT',
       });
 
       await expect(killRun({ args: ['-SIGKILL', '54321'], cwd: '/repo' })).rejects.toStrictEqual(
         new KillNotInstalledError(
-          'kill -SIGKILL 54321 could not start in /repo: "kill" never started: spawn kill ENOENT',
+          'kill -SIGKILL 54321 could not start in /repo: "kill" never started: ENOENT: open \'kill\'',
         ),
       );
     });

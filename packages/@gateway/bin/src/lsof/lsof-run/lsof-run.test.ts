@@ -14,11 +14,11 @@ describe('lsofRun()', () => {
 
   it('ERROR: {run throws RunNotFoundError} => throws LsofNotInstalledError', async () => {
     const proxy = lsofRunProxy();
-    proxy.setupNotFound({ args: ['-ti', ':3737'], message: 'spawn lsof ENOENT' });
+    proxy.setupNotFound({ args: ['-ti', ':3737'] });
 
     await expect(lsofRun({ args: ['-ti', ':3737'], cwd: '/' })).rejects.toStrictEqual(
       new LsofNotInstalledError(
-        'lsof -ti :3737 could not start: "lsof" never started: spawn lsof ENOENT',
+        'lsof -ti :3737 could not start: "lsof" never started: ENOENT: open \'lsof\'',
       ),
     );
   });
@@ -50,12 +50,11 @@ describe('lsofRun()', () => {
       const proxy = lsofRunProxy();
       proxy.throwsMatchingArgs({
         args: ['-ti', (value) => String(value).startsWith(':')],
-        message: 'spawn lsof ENOENT',
       });
 
       await expect(lsofRun({ args: ['-ti', ':4242'], cwd: '/' })).rejects.toStrictEqual(
         new LsofNotInstalledError(
-          'lsof -ti :4242 could not start: "lsof" never started: spawn lsof ENOENT',
+          'lsof -ti :4242 could not start: "lsof" never started: ENOENT: open \'lsof\'',
         ),
       );
     });

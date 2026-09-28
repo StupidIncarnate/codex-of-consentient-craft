@@ -265,3 +265,22 @@ implementing agent's final report for what was tried.
 ## Concessions made while executing
 
 <!-- Empty at the start. The operator fills this and mirrors it into EPIC.md's Concessions table. -->
+
+## Plan — F47
+
+Census (python os.walk): `timedOut` is accepted by five `*-run.proxy.ts` (npm, git, kill, cp, lsof) and passed
+by no caller anywhere in `packages/*/src`. Each of the five builds `Object.assign(new Error(message), { code: 'ENOENT' })`
+by hand. `listening-pids.proxy.ts` forwards `message` to `lsofRunProxy`. No caller outside `packages/@gateway/bin`
+passes `message` to `setupNotFound`/`throwsMatchingArgs`/`throwsMatchingPort`, so no edit lands in another package.
+
+Recorded failure: `FileMissingErrorStub` from `#gateway/node/fs/file-missing-error/file-missing-error.stub`
+(G16). It fixes the error's message, so the `message` param is dropped from the not-found methods.
+
+Files:
+- `packages/@gateway/bin/src/npm/npm-run/npm-run.proxy.ts`, `npm-run.test.ts`
+- `packages/@gateway/bin/src/git/git-run/git-run.proxy.ts`, `git-run.test.ts`
+- `packages/@gateway/bin/src/kill/kill-run/kill-run.proxy.ts`, `kill-run.test.ts`
+- `packages/@gateway/bin/src/cp/cp-run/cp-run.proxy.ts`, `cp-run.test.ts`
+- `packages/@gateway/bin/src/lsof/lsof-run/lsof-run.proxy.ts`, `lsof-run.test.ts`
+- `packages/@gateway/bin/src/lsof/listening-pids/listening-pids.proxy.ts`, `listening-pids.test.ts`
+- new: `packages/shared/src/brokers/port/kill-listeners/port-kill-listeners-broker.integration.test.ts`

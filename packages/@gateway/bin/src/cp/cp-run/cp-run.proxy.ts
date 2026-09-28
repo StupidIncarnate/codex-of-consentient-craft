@@ -1,4 +1,5 @@
 import { runProxy } from '#gateway/node/child_process/run/run.proxy';
+import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
 import { argsMatcher } from '../../gateway-test-support/arg-matcher';
 import type { ArgsMatcher } from '../../gateway-test-support/arg-matcher';
 
@@ -9,10 +10,9 @@ import type { ArgsMatcher } from '../../gateway-test-support/arg-matcher';
 // here, only `command` and `args`: `run.setupSuccess`/`setupError` without a `cwd` key is a prefix
 // match, the same "any cwd matches" reach every existing caller of this proxy already relies on.
 //
-// `timedOut` stays accepted on every method below for API parity, but is never wired through:
-// `run`'s real body sets it ONLY from its OWN internal timer, armed by a `timeout` param this
-// gateway's `*-run.ts` wrappers never pass to `run`, so no spawn-level staging can produce it —
-// there is nothing here for a real caller to ever observe.
+// `timedOut` is not staged: `run`'s real body sets it ONLY from its OWN internal timer, armed by a
+// `timeout` param this gateway's `*-run.ts` wrappers never pass to `run`, so no spawn-level staging
+// can produce it.
 const COMMAND = 'cp';
 
 export const cpRunProxy = (): {
@@ -21,17 +21,15 @@ export const cpRunProxy = (): {
     exitCode: number;
     output: string;
     signal?: NodeJS.Signals;
-    timedOut?: boolean;
   }) => void;
-  setupNotFound: (params: { args: string[]; message: string }) => void;
+  setupNotFound: (params: { args: string[] }) => void;
   returnsMatchingArgs: (params: {
     args: ArgsMatcher;
     exitCode: number;
     output: string;
     signal?: NodeJS.Signals;
-    timedOut?: boolean;
   }) => void;
-  throwsMatchingArgs: (params: { args: ArgsMatcher; message: string }) => void;
+  throwsMatchingArgs: (params: { args: ArgsMatcher }) => void;
   getCallsFor: (params: { args: ArgsMatcher }) => readonly unknown[][];
 } => {
   const run = runProxy();
@@ -56,18 +54,13 @@ export const cpRunProxy = (): {
 
   // `run`'s real body wraps spawn's own `'error'` event into RunNotFoundError, reading `code` and
   // `message` off whatever error the mocked spawn emits — so staging that raw error here (rather
-  // than constructing RunNotFoundError by hand) produces the identical rejection a real ENOENT does.
-  const stageNotFound = ({
-    args,
-    message,
-  }: {
-    args: string[] | ArgsMatcher;
-    message: string;
-  }): void => {
+  // than constructing RunNotFoundError by hand) produces the identical rejection a real ENOENT does; the
+  // error itself is the recorded ENOENT failure from `@gateway/node/fs`.
+  const stageNotFound = ({ args }: { args: string[] | ArgsMatcher }): void => {
     run.setupError({
       command: COMMAND,
       args,
-      error: Object.assign(new Error(message), { code: 'ENOENT' }),
+      error: FileMissingErrorStub({ path: COMMAND }),
     });
   };
 

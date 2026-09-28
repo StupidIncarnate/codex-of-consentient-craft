@@ -16,12 +16,11 @@ describe('cpRun()', () => {
     const proxy = cpRunProxy();
     proxy.setupNotFound({
       args: ['-a', '/src', '/dest'],
-      message: 'spawn cp ENOENT',
     });
 
     await expect(cpRun({ args: ['-a', '/src', '/dest'], cwd: '/repo' })).rejects.toStrictEqual(
       new CpNotInstalledError(
-        'cp -a /src /dest could not start in /repo: "cp" never started: spawn cp ENOENT',
+        'cp -a /src /dest could not start in /repo: "cp" never started: ENOENT: open \'cp\'',
       ),
     );
   });
@@ -65,14 +64,13 @@ describe('cpRun()', () => {
       const proxy = cpRunProxy();
       proxy.throwsMatchingArgs({
         args: ['-a', (value) => String(value).startsWith('/worktrees/'), '/dest'],
-        message: 'spawn cp ENOENT',
       });
 
       await expect(
         cpRun({ args: ['-a', '/worktrees/computed-at-runtime/pkg', '/dest'], cwd: '/repo' }),
       ).rejects.toStrictEqual(
         new CpNotInstalledError(
-          'cp -a /worktrees/computed-at-runtime/pkg /dest could not start in /repo: "cp" never started: spawn cp ENOENT',
+          'cp -a /worktrees/computed-at-runtime/pkg /dest could not start in /repo: "cp" never started: ENOENT: open \'cp\'',
         ),
       );
     });
