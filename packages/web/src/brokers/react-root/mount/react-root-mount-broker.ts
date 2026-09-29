@@ -6,6 +6,7 @@
  * reactRootMountBroker({ rootElementId: 'root', Wrapper: AppRootWidget, content: createElement('div') });
  * // Renders content inside Wrapper into #root; throws when no element has that id
  */
+import { document } from '#gateway/browser/document';
 import { createElement } from '#gateway/npm/react';
 import type { ComponentType, ReactNode } from '#gateway/npm/react';
 import { createRoot } from '#gateway/npm/react-dom__client';

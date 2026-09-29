@@ -1,3 +1,6 @@
+import { Blob } from '#gateway/browser/Blob';
+import { btoa } from '#gateway/browser/btoa';
+
 import { fileReadDataUrlBroker } from './file-read-data-url-broker';
 import { fileReadDataUrlBrokerProxy } from './file-read-data-url-broker.proxy';
 
@@ -8,7 +11,7 @@ describe('fileReadDataUrlBroker', () => {
       const bytes = new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]);
       const blob = new Blob([bytes], { type: 'image/png' });
       const binary = String.fromCharCode(...bytes);
-      const expectedBase64 = globalThis.btoa(binary);
+      const expectedBase64 = btoa(binary);
 
       const result = await fileReadDataUrlBroker({ blob });
 
@@ -20,7 +23,7 @@ describe('fileReadDataUrlBroker', () => {
       const bytes = new Uint8Array([255, 216, 255, 224]);
       const blob = new Blob([bytes], { type: 'image/jpeg' });
       const binary = String.fromCharCode(...bytes);
-      const expectedBase64 = globalThis.btoa(binary);
+      const expectedBase64 = btoa(binary);
 
       const result = await fileReadDataUrlBroker({ blob });
 

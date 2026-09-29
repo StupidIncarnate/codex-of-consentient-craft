@@ -11,6 +11,8 @@
  * // Returns: ComposerAttachment carrying a freshly minted attachmentId
  */
 
+import { crypto } from '#gateway/browser/crypto';
+
 import type { PastedImageMediaType } from '@dungeonmaster/shared/contracts';
 
 import { pastedImageDownscaleBroker } from '../downscale/pasted-image-downscale-broker';

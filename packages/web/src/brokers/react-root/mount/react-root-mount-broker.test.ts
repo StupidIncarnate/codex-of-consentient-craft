@@ -1,3 +1,4 @@
+import { document } from '#gateway/browser/document';
 import { createElement } from '#gateway/npm/react';
 import type { ReactNode } from '#gateway/npm/react';
 import { act, screen } from '#gateway/npm/testing-library__react';

@@ -22,6 +22,8 @@
  * // own index rather than absent
  */
 
+import { console } from '#gateway/browser/console';
+
 import { composerAttachmentContract } from '../../../contracts/composer-attachment/composer-attachment-contract';
 import type { ComposerAttachment } from '../../../contracts/composer-attachment/composer-attachment-contract';
 import type { ComposerScopeKey } from '../../../contracts/composer-scope-key/composer-scope-key-contract';
@@ -93,10 +95,7 @@ export const draftImagesLoadBroker = async ({
       return outcome.value;
     }
 
-    globalThis.console.error(
-      '[draft-images-load] failed to measure a stored draft',
-      outcome.reason,
-    );
+    console.error('[draft-images-load] failed to measure a stored draft', outcome.reason);
     return undefined;
   });
 };

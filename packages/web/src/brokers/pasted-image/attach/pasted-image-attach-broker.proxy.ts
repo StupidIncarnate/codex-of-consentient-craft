@@ -2,6 +2,7 @@
 // and the composed downscale ladder's outcome.
 // USAGE: Create proxy in test, stage mintsIds()/ladderYields()/ladderFails(), call the broker.
 
+import { crypto } from '#gateway/browser/crypto';
 import { registerSpyOn } from '@dungeonmaster/testing/register-mock';
 import type { SpyOnHandle } from '@dungeonmaster/testing/register-mock';
 

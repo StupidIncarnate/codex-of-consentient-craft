@@ -1,3 +1,4 @@
+import { Blob } from '#gateway/browser/Blob';
 import { canvasEncodeProxy } from '#gateway/browser/HTMLCanvasElement/canvas-encode/canvas-encode.proxy';
 import { createImageBitmapProxy } from '#gateway/browser/createImageBitmap/create-image-bitmap/create-image-bitmap.proxy';
 

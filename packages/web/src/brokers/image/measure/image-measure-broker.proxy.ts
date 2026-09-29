@@ -1,3 +1,4 @@
+import { Blob } from '#gateway/browser/Blob';
 import { createImageBitmapProxy } from '#gateway/browser/createImageBitmap/create-image-bitmap/create-image-bitmap.proxy';
 
 import { ImageSizeStub } from '../../../contracts/image-size/image-size.stub';
