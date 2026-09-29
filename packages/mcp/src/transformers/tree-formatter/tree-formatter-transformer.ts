@@ -39,10 +39,11 @@ export const treeFormatterTransformer = ({
   const items = rawItems.map((rawItem) => treeItemContract.parse(rawItem));
 
   // Build tree structure
-  const root: TreeNode = {
-    ...treeNodeContract.parse({ name: folderNameContract.parse(''), items: [] }),
+  const root: TreeNode = treeNodeContract.parse({
+    name: folderNameContract.parse(''),
+    items: [],
     children: new Map(),
-  };
+  });
 
   for (const item of items) {
     const relevantPath = pathToTreeRelativeTransformer({
@@ -60,10 +61,10 @@ export const treeFormatterTransformer = ({
     for (const segment of pathSegments) {
       const folderName = folderNameContract.parse(segment);
       if (!currentNode.children.has(folderName)) {
-        currentNode.children.set(folderName, {
-          ...treeNodeContract.parse({ name: folderName, items: [] }),
-          children: new Map(),
-        });
+        currentNode.children.set(
+          folderName,
+          treeNodeContract.parse({ name: folderName, items: [], children: new Map() }),
+        );
       }
       const childNode = currentNode.children.get(folderName);
       if (!childNode) {

@@ -18,7 +18,7 @@ import type { RecipeCatalogEntry } from './recipe-catalog-entry-contract';
 export const RecipeCatalogEntryStub = ({
   ...props
 }: StubArgument<RecipeCatalogEntry> = {}): RecipeCatalogEntry => {
-  const { probeListing, execute, inputs, ...dataProps } = props;
+  const { probeListing, execute, ...dataProps } = props;
 
   return {
     ...recipeCatalogEntryContract.parse({
@@ -26,7 +26,6 @@ export const RecipeCatalogEntryStub = ({
       description: 'one guild holding three quests',
       ...dataProps,
     }),
-    ...(inputs ? { inputs } : {}),
     probeListing:
       probeListing ??
       (() => ({

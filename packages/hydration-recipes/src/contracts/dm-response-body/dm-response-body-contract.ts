@@ -9,16 +9,6 @@
  */
 import { z } from '#gateway/npm/zod';
 
-export type DmResponseBody =
-  boolean | number | string | null | DmResponseBody[] | { [key: string]: DmResponseBody };
+export const dmResponseBodyContract = z.json();
 
-export const dmResponseBodyContract: z.ZodType<DmResponseBody> = z.lazy(() =>
-  z.union([
-    z.boolean(),
-    z.number(),
-    z.string(),
-    z.null(),
-    z.array(dmResponseBodyContract),
-    z.record(z.string(), dmResponseBodyContract),
-  ]),
-);
+export type DmResponseBody = z.infer<typeof dmResponseBodyContract>;

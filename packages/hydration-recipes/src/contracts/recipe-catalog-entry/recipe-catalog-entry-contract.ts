@@ -26,15 +26,21 @@ const recipeDescriptionContract = z.string().min(1).brand<'RecipeDescription'>()
 
 export type RecipeDescription = z.infer<typeof recipeDescriptionContract>;
 
+// The schema itself, not its shape — `z.custom` with no type argument hands the same reference
+// back rather than expanding a `ZodTypeAny`'s own methods through `StubArgument`.
+const zodSchemaContract = z.custom((value) => value instanceof z.ZodType, {
+  message: 'Expected a zod schema',
+});
+
 export const recipeCatalogEntryContract = z.object({
   recipeName: recipeNameContract,
   description: recipeDescriptionContract,
+  inputs: zodSchemaContract.optional(),
 });
 
 export type RecipeCatalogEntryData = z.infer<typeof recipeCatalogEntryContract>;
 
 export type RecipeCatalogEntry = RecipeCatalogEntryData & {
-  inputs?: z.ZodType | undefined;
   probeListing: () => {
     runs: PlanRunsResult;
     makes: readonly PlanMakesEntry[];

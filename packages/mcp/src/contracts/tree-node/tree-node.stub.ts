@@ -11,15 +11,10 @@ import type { StubArgument } from '@dungeonmaster/shared/@types';
 import { FolderNameStub } from '../folder-name/folder-name.stub';
 import { TreeItemStub } from '../tree-item/tree-item.stub';
 
-export const TreeNodeStub = ({ ...props }: StubArgument<TreeNode> = {}): TreeNode => {
-  const { children, ...dataProps } = props;
-
-  return {
-    ...treeNodeContract.parse({
-      name: FolderNameStub({ value: 'guards' }),
-      items: [TreeItemStub()],
-      ...dataProps,
-    }),
-    children: (children ?? new Map()) as Map<ReturnType<typeof FolderNameStub>, TreeNode>,
-  };
-};
+export const TreeNodeStub = ({ ...props }: StubArgument<TreeNode> = {}): TreeNode =>
+  treeNodeContract.parse({
+    name: FolderNameStub({ value: 'guards' }),
+    items: [TreeItemStub()],
+    children: new Map(),
+    ...props,
+  });

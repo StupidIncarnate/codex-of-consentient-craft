@@ -14,11 +14,20 @@ import { folderNameContract } from '../folder-name/folder-name-contract';
 import type { FolderName } from '../folder-name/folder-name-contract';
 import { treeItemContract } from '../tree-item/tree-item-contract';
 
+interface TreeNodeSelf {
+  name: FolderName;
+  items: z.infer<typeof treeItemContract>[];
+  children: Map<FolderName, TreeNodeSelf>;
+}
+
+// A getter, not `z.lazy` + a cast — its return type wraps `z.core.$ZodType`, the self-reference
+// form `contracts/` allows.
 export const treeNodeContract = z.object({
   name: folderNameContract,
   items: z.array(treeItemContract),
+  get children(): z.ZodMap<typeof folderNameContract, z.core.$ZodType<TreeNodeSelf>> {
+    return z.map(folderNameContract, treeNodeContract);
+  },
 });
 
-export type TreeNode = z.infer<typeof treeNodeContract> & {
-  children: Map<FolderName, TreeNode>;
-};
+export type TreeNode = z.infer<typeof treeNodeContract>;
