@@ -9,21 +9,22 @@
  * findModuleConstInitLayerBroker({ name: 'COMMAND', moduleBody: programBodyStatements });
  * // Returns the const's init node, or undefined when no module-level const has that name
  */
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
 export const findModuleConstInitLayerBroker = ({
   name,
   moduleBody,
 }: {
   name: string;
-  moduleBody: readonly Tsestree[];
-}): Tsestree | undefined => {
+  moduleBody: readonly TSESTree.ProgramStatement[];
+}): TSESTree.Node | undefined => {
   for (const statement of moduleBody) {
-    if (statement.type !== 'VariableDeclaration' || statement.kind !== 'const') {
+    if (statement.type !== AST_NODE_TYPES.VariableDeclaration || statement.kind !== 'const') {
       continue;
     }
-    for (const declarator of statement.declarations ?? []) {
-      if (declarator.id?.type === 'Identifier' && String(declarator.id.name) === name) {
+    for (const declarator of statement.declarations) {
+      if (declarator.id.type === AST_NODE_TYPES.Identifier && declarator.id.name === name) {
         return declarator.init ?? undefined;
       }
     }

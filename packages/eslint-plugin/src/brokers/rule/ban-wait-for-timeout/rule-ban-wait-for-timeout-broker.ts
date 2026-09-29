@@ -7,8 +7,8 @@
  */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isSpecFileGuard } from '../../../guards/is-spec-file/is-spec-file-guard';
 import { isIntegrationTestFileGuard } from '../../../guards/is-integration-test-file/is-integration-test-file-guard';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
@@ -30,9 +30,9 @@ export const ruleBanWaitForTimeoutBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: EslintContext) => {
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
-    const filename = ctx.filename ?? '';
+    const { filename } = ctx;
     const isSpec = isSpecFileGuard({ filename });
     const isIntegration = isIntegrationTestFileGuard({
       filePath: filePathContract.parse(filename),
@@ -47,18 +47,26 @@ export const ruleBanWaitForTimeoutBroker = (): EslintRule => ({
     let pageEvaluateDepth = 0;
 
     return {
-      CallExpression: (node: Tsestree): void => {
+      CallExpression: (node: TSESTree.CallExpression): void => {
         const { callee } = node;
 
-        if (!callee) return;
-
         // Track page.evaluate() entry
-        if (callee.type === 'MemberExpression' && callee.property?.name === 'evaluate') {
+        if (
+          callee.type === AST_NODE_TYPES.MemberExpression &&
+          (callee.property.type === AST_NODE_TYPES.Identifier ||
+            callee.property.type === AST_NODE_TYPES.PrivateIdentifier) &&
+          callee.property.name === 'evaluate'
+        ) {
           pageEvaluateDepth += 1;
         }
 
         // Ban .waitForTimeout() calls
-        if (callee.type === 'MemberExpression' && callee.property?.name === 'waitForTimeout') {
+        if (
+          callee.type === AST_NODE_TYPES.MemberExpression &&
+          (callee.property.type === AST_NODE_TYPES.Identifier ||
+            callee.property.type === AST_NODE_TYPES.PrivateIdentifier) &&
+          callee.property.name === 'waitForTimeout'
+        ) {
           ctx.report({
             node,
             messageId: 'noWaitForTimeout',
@@ -72,17 +80,24 @@ export const ruleBanWaitForTimeoutBroker = (): EslintRule => ({
           return;
         }
 
-        const isBareSetTimeout = callee.type === 'Identifier' && callee.name === 'setTimeout';
+        const isBareSetTimeout =
+          callee.type === AST_NODE_TYPES.Identifier && callee.name === 'setTimeout';
 
         const isGlobalSetTimeout =
-          callee.type === 'MemberExpression' &&
-          callee.object?.name === 'globalThis' &&
-          callee.property?.name === 'setTimeout';
+          callee.type === AST_NODE_TYPES.MemberExpression &&
+          callee.object.type === AST_NODE_TYPES.Identifier &&
+          callee.object.name === 'globalThis' &&
+          (callee.property.type === AST_NODE_TYPES.Identifier ||
+            callee.property.type === AST_NODE_TYPES.PrivateIdentifier) &&
+          callee.property.name === 'setTimeout';
 
         const isTestSetTimeout =
-          callee.type === 'MemberExpression' &&
-          callee.object?.name === 'test' &&
-          callee.property?.name === 'setTimeout';
+          callee.type === AST_NODE_TYPES.MemberExpression &&
+          callee.object.type === AST_NODE_TYPES.Identifier &&
+          callee.object.name === 'test' &&
+          (callee.property.type === AST_NODE_TYPES.Identifier ||
+            callee.property.type === AST_NODE_TYPES.PrivateIdentifier) &&
+          callee.property.name === 'setTimeout';
 
         if (isBareSetTimeout || isGlobalSetTimeout || isTestSetTimeout) {
           ctx.report({
@@ -92,12 +107,15 @@ export const ruleBanWaitForTimeoutBroker = (): EslintRule => ({
         }
       },
 
-      'CallExpression:exit': (node: Tsestree): void => {
+      'CallExpression:exit': (node: TSESTree.CallExpression): void => {
         const { callee } = node;
 
-        if (!callee) return;
-
-        if (callee.type === 'MemberExpression' && callee.property?.name === 'evaluate') {
+        if (
+          callee.type === AST_NODE_TYPES.MemberExpression &&
+          (callee.property.type === AST_NODE_TYPES.Identifier ||
+            callee.property.type === AST_NODE_TYPES.PrivateIdentifier) &&
+          callee.property.name === 'evaluate'
+        ) {
           pageEvaluateDepth -= 1;
         }
       },

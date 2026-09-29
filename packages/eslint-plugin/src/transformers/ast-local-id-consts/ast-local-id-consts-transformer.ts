@@ -8,43 +8,48 @@
  * astLocalIdConstsTransformer({ program: programNode });
  * // Returns Map { 'workItemId' => 'workItemContract' } for `id: workItemId` in workItemContract
  */
+
+import { identifierContract } from '@dungeonmaster/shared/contracts';
 import type { Identifier } from '@dungeonmaster/shared/contracts';
-import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { astCollectNodesTransformer } from '../ast-collect-nodes/ast-collect-nodes-transformer';
 import { astProgramDeclaratorsTransformer } from '../ast-program-declarators/ast-program-declarators-transformer';
 
 export const astLocalIdConstsTransformer = ({
   program,
 }: {
-  program: Tsestree;
+  program: TSESTree.Program;
 }): Map<Identifier, Identifier> => {
   const localNames = new Set(
-    astProgramDeclaratorsTransformer({ program, localOnly: true }).map(
-      (declarator) => declarator.id?.name,
+    astProgramDeclaratorsTransformer({ program, localOnly: true }).map((declarator) =>
+      declarator.id.type === AST_NODE_TYPES.Identifier ? declarator.id.name : undefined,
     ),
   );
   const idConsts = new Map<Identifier, Identifier>();
 
   for (const declarator of astProgramDeclaratorsTransformer({ program, localOnly: false })) {
-    const ownerName = declarator.id?.name;
+    const ownerName =
+      declarator.id.type === AST_NODE_TYPES.Identifier ? declarator.id.name : undefined;
     if (ownerName === undefined || !declarator.init) {
       continue;
     }
 
     for (const property of astCollectNodesTransformer({
       node: declarator.init,
-      type: 'Property',
+      type: AST_NODE_TYPES.Property,
     })) {
-      // The contract types a Property's value as unknown, though ESLint always hands a node.
-      const value = property.value as Tsestree | undefined;
       if (
-        property.key?.type === 'Identifier' &&
+        property.type === AST_NODE_TYPES.Property &&
+        property.key.type === AST_NODE_TYPES.Identifier &&
         property.key.name === 'id' &&
-        value?.type === 'Identifier' &&
-        value.name !== undefined &&
-        localNames.has(value.name)
+        property.value.type === AST_NODE_TYPES.Identifier &&
+        localNames.has(property.value.name)
       ) {
-        idConsts.set(value.name, ownerName);
+        idConsts.set(
+          identifierContract.parse(property.value.name),
+          identifierContract.parse(ownerName),
+        );
       }
     }
   }

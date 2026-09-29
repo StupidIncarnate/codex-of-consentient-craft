@@ -7,8 +7,7 @@
  */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isEntryFileGuard } from '../../../guards/is-entry-file/is-entry-file-guard';
 import { isSameDomainFolderGuard } from '../../../guards/is-same-domain-folder/is-same-domain-folder-guard';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
@@ -41,21 +40,21 @@ export const ruleEnforceImportDependenciesBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: EslintContext) => {
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
     return {
-      ImportDeclaration: (node: Tsestree): void => {
+      ImportDeclaration: (node: TSESTree.ImportDeclaration): void => {
         // Skip validation for .proxy.ts files - they have their own proxy rules
         if (
           hasFileSuffixGuard({
-            ...(ctx.filename ? { filename: String(ctx.filename) } : {}),
+            ...(ctx.filename ? { filename: ctx.filename } : {}),
             suffix: 'proxy',
           })
         ) {
           return;
         }
 
-        const folderType = folderTypeTransformer({ filename: ctx.filename ?? '' });
+        const folderType = folderTypeTransformer({ filename: ctx.filename });
 
         if (folderType === null) {
           return;
@@ -63,7 +62,7 @@ export const ruleEnforceImportDependenciesBroker = (): EslintRule => ({
 
         const allowedImports = folderConfigTransformer({ folderType })?.allowedImports ?? [];
 
-        const importSource = node.source?.value;
+        const importSource = node.source.value;
 
         if (typeof importSource !== 'string') {
           return;
@@ -74,7 +73,7 @@ export const ruleEnforceImportDependenciesBroker = (): EslintRule => ({
         if (isRelativeImport) {
           // Check if import is from the same domain folder
           const isSameFolder = isSameDomainFolderGuard({
-            currentFilePath: ctx.filename ?? '',
+            currentFilePath: ctx.filename,
             importPath: importSource,
           });
 
@@ -85,7 +84,7 @@ export const ruleEnforceImportDependenciesBroker = (): EslintRule => ({
 
           // For cross-folder imports, determine the imported folder type by resolving the path
           const resolvedImportPath = filepathResolveRelativeImportTransformer({
-            currentFilePath: ctx.filename ?? '',
+            currentFilePath: ctx.filename,
             importPath: importSource,
           });
 
@@ -155,8 +154,8 @@ export const ruleEnforceImportDependenciesBroker = (): EslintRule => ({
 
           if (!isEntryFile) {
             // Exception: Test files and stub files can import .stub.ts files from contracts folder
-            const isTestFile = isTestFileGuard({ filename: ctx.filename ?? '' });
-            const isCurrentFileStub = isStubFileGuard({ filename: ctx.filename ?? '' });
+            const isTestFile = isTestFileGuard({ filename: ctx.filename });
+            const isCurrentFileStub = isStubFileGuard({ filename: ctx.filename });
             const isImportedFileStub = isStubFileGuard({ filename: importSource });
             const isFromContracts = importedFolderType === 'contracts';
 

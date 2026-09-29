@@ -1,44 +1,17 @@
+import { ProgramStub } from '#gateway/npm/typescript-eslint__utils/program/program.stub';
 import { astProgramDeclaratorsTransformer } from './ast-program-declarators-transformer';
-import { TsestreeStub, TsestreeNodeType } from '../../contracts/tsestree/tsestree.stub';
 
-const program = TsestreeStub({
-  type: TsestreeNodeType.Program,
-  body: [
-    {
-      type: TsestreeNodeType.VariableDeclaration,
-      declarations: [
-        {
-          type: TsestreeNodeType.VariableDeclarator,
-          id: { type: TsestreeNodeType.Identifier, name: 'localFields' },
-        },
-      ],
-    },
-    {
-      type: TsestreeNodeType.ExportNamedDeclaration,
-      declaration: {
-        type: TsestreeNodeType.VariableDeclaration,
-        declarations: [
-          {
-            type: TsestreeNodeType.VariableDeclarator,
-            id: { type: TsestreeNodeType.Identifier, name: 'questContract' },
-          },
-        ],
-      },
-    },
-    {
-      type: TsestreeNodeType.ImportDeclaration,
-    },
-  ],
-});
+const code = "const localFields;\nexport const questContract;\nimport 'x';";
+const program = ProgramStub({ code });
 
 describe('astProgramDeclaratorsTransformer', () => {
   describe('every top-level declarator', () => {
     it('VALID: {localOnly: false} => returns the local and the exported declarator', () => {
       const result = astProgramDeclaratorsTransformer({ program, localOnly: false });
 
-      expect(result).toStrictEqual([
-        { type: 'VariableDeclarator', id: { type: 'Identifier', name: 'localFields' } },
-        { type: 'VariableDeclarator', id: { type: 'Identifier', name: 'questContract' } },
+      expect(result.map((declarator) => code.slice(...declarator.id.range))).toStrictEqual([
+        'localFields',
+        'questContract',
       ]);
     });
   });
@@ -47,19 +20,9 @@ describe('astProgramDeclaratorsTransformer', () => {
     it('VALID: {localOnly: true} => returns the unexported declarator alone', () => {
       const result = astProgramDeclaratorsTransformer({ program, localOnly: true });
 
-      expect(result).toStrictEqual([
-        { type: 'VariableDeclarator', id: { type: 'Identifier', name: 'localFields' } },
+      expect(result.map((declarator) => code.slice(...declarator.id.range))).toStrictEqual([
+        'localFields',
       ]);
-    });
-  });
-
-  describe('a program with no statement list', () => {
-    it('EMPTY: {body: null} => returns an empty list', () => {
-      const empty = TsestreeStub({ type: TsestreeNodeType.Program, body: null });
-
-      const result = astProgramDeclaratorsTransformer({ program: empty, localOnly: false });
-
-      expect(result).toStrictEqual([]);
     });
   });
 });

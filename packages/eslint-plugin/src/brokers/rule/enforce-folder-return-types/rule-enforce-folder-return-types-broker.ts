@@ -13,8 +13,7 @@ import { folderTypeContract } from '@dungeonmaster/shared/contracts';
 import { functionExportingFoldersStatics } from '../../../statics/function-exporting-folders/function-exporting-folders-statics';
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { functionExportingFolderFromFilenameTransformer } from '../../../transformers/function-exporting-folder-from-filename/function-exporting-folder-from-filename-transformer';
 import { checkFolderReturnTypeLayerBroker } from './check-folder-return-type-layer-broker';
 
@@ -45,9 +44,9 @@ export const ruleEnforceFolderReturnTypesBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: EslintContext) => {
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
-    const filename = String(ctx.getFilename?.() ?? '');
+    const { filename } = ctx;
     const baseFolderType = functionExportingFolderFromFilenameTransformer({ filename });
     // Proxy files (e.g., foo-broker.proxy.ts) live in function-exporting folders but the
     // base transformer ignores them because their suffix is .proxy.ts. Detect proxy files
@@ -62,33 +61,41 @@ export const ruleEnforceFolderReturnTypesBroker = (): EslintRule => ({
 
     return {
       'ExportNamedDeclaration > VariableDeclaration > VariableDeclarator[id.type="Identifier"] > ArrowFunctionExpression:not([returnType])':
-        (node: Tsestree): void => {
+        (node: TSESTree.ArrowFunctionExpression): void => {
           ctx.report({ node, messageId: 'missingReturnType' });
         },
-      'ExportNamedDeclaration > FunctionDeclaration:not([returnType])': (node: Tsestree): void => {
+      'ExportNamedDeclaration > FunctionDeclaration:not([returnType])': (
+        node: TSESTree.FunctionDeclaration,
+      ): void => {
         ctx.report({ node, messageId: 'missingReturnType' });
       },
       'ExportDefaultDeclaration > FunctionDeclaration:not([returnType])': (
-        node: Tsestree,
+        node: TSESTree.FunctionDeclaration,
       ): void => {
         ctx.report({ node, messageId: 'missingReturnType' });
       },
       'ExportDefaultDeclaration > ArrowFunctionExpression:not([returnType])': (
-        node: Tsestree,
+        node: TSESTree.ArrowFunctionExpression,
       ): void => {
         ctx.report({ node, messageId: 'missingReturnType' });
       },
       'ExportNamedDeclaration > VariableDeclaration > VariableDeclarator[id.type="Identifier"] > ArrowFunctionExpression[returnType]':
-        (node: Tsestree): void => {
+        (node: TSESTree.ArrowFunctionExpression): void => {
           checkFolderReturnTypeLayerBroker({ node, ctx, folderType, isProxyFile });
         },
-      'ExportNamedDeclaration > FunctionDeclaration[returnType]': (node: Tsestree): void => {
+      'ExportNamedDeclaration > FunctionDeclaration[returnType]': (
+        node: TSESTree.FunctionDeclaration,
+      ): void => {
         checkFolderReturnTypeLayerBroker({ node, ctx, folderType, isProxyFile });
       },
-      'ExportDefaultDeclaration > FunctionDeclaration[returnType]': (node: Tsestree): void => {
+      'ExportDefaultDeclaration > FunctionDeclaration[returnType]': (
+        node: TSESTree.FunctionDeclaration,
+      ): void => {
         checkFolderReturnTypeLayerBroker({ node, ctx, folderType, isProxyFile });
       },
-      'ExportDefaultDeclaration > ArrowFunctionExpression[returnType]': (node: Tsestree): void => {
+      'ExportDefaultDeclaration > ArrowFunctionExpression[returnType]': (
+        node: TSESTree.ArrowFunctionExpression,
+      ): void => {
         checkFolderReturnTypeLayerBroker({ node, ctx, folderType, isProxyFile });
       },
     };

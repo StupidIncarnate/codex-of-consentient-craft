@@ -14,8 +14,8 @@
  */
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
 export const checkPrimitiveViolationLayerBroker = ({
   node,
@@ -25,12 +25,12 @@ export const checkPrimitiveViolationLayerBroker = ({
   allowPrimitiveReturns,
   ctx,
 }: {
-  node: Tsestree;
+  node: TSESTree.Node;
   typeName: string;
   suggestion: string;
   allowPrimitiveInputs: boolean;
   allowPrimitiveReturns: boolean;
-  ctx: EslintContext;
+  ctx: TSESLint.RuleContext<string, unknown[]>;
 }): AdapterResult => {
   const result = adapterResultContract.parse({ success: true });
   // Walk up the AST to determine context
@@ -41,48 +41,44 @@ export const checkPrimitiveViolationLayerBroker = ({
 
   while (current) {
     // Check if this annotation is on a function's return type
-    if (current.type === 'TSTypeAnnotation') {
+    if (current.type === AST_NODE_TYPES.TSTypeAnnotation) {
       const annotationParent = current.parent;
-      if (annotationParent) {
-        const isReturnTypeCheck =
-          'returnType' in annotationParent && annotationParent.returnType === current;
-        if (isReturnTypeCheck) {
-          isReturnType = true;
+      const isReturnTypeCheck =
+        'returnType' in annotationParent && annotationParent.returnType === current;
+      if (isReturnTypeCheck) {
+        isReturnType = true;
+        break;
+      }
+
+      // Check if this annotation is on a direct parameter — possibly defaulted
+      // (`(x: T = value) => {}`), in which case the Identifier's immediate parent is an
+      // AssignmentPattern rather than the function itself, so `.params` lives one level up.
+      if (annotationParent.type === AST_NODE_TYPES.Identifier) {
+        const identifierParent = annotationParent.parent;
+        const paramHolder =
+          identifierParent.type === AST_NODE_TYPES.AssignmentPattern
+            ? identifierParent.parent
+            : identifierParent;
+        const hasParams = 'params' in paramHolder && Array.isArray(paramHolder.params);
+        if (hasParams) {
+          isParameter = true;
           break;
         }
+      }
 
-        // Check if this annotation is on a direct parameter — possibly defaulted
-        // (`(x: T = value) => {}`), in which case the Identifier's immediate parent is an
-        // AssignmentPattern rather than the function itself, so `.params` lives one level up.
-        if (annotationParent.type === 'Identifier') {
-          const identifierParent = annotationParent.parent;
-          const paramHolder =
-            identifierParent && identifierParent.type === 'AssignmentPattern'
-              ? identifierParent.parent
-              : identifierParent;
-          const hasParams =
-            paramHolder && 'params' in paramHolder && Array.isArray(paramHolder.params);
-          if (hasParams) {
-            isParameter = true;
-            break;
-          }
-        }
-
-        // Check if this annotation is on a destructured parameter — possibly defaulted
-        // (`({x}: T = {}) => {}`), in which case the ObjectPattern's immediate parent is an
-        // AssignmentPattern rather than the function itself, so `.params` lives one level up.
-        if (annotationParent.type === 'ObjectPattern') {
-          const objectPatternParent = annotationParent.parent;
-          const paramHolder =
-            objectPatternParent && objectPatternParent.type === 'AssignmentPattern'
-              ? objectPatternParent.parent
-              : objectPatternParent;
-          const hasParams =
-            paramHolder && 'params' in paramHolder && Array.isArray(paramHolder.params);
-          if (hasParams) {
-            isPropertyInParameter = true;
-            break;
-          }
+      // Check if this annotation is on a destructured parameter — possibly defaulted
+      // (`({x}: T = {}) => {}`), in which case the ObjectPattern's immediate parent is an
+      // AssignmentPattern rather than the function itself, so `.params` lives one level up.
+      if (annotationParent.type === AST_NODE_TYPES.ObjectPattern) {
+        const objectPatternParent = annotationParent.parent;
+        const paramHolder =
+          objectPatternParent.type === AST_NODE_TYPES.AssignmentPattern
+            ? objectPatternParent.parent
+            : objectPatternParent;
+        const hasParams = 'params' in paramHolder && Array.isArray(paramHolder.params);
+        if (hasParams) {
+          isPropertyInParameter = true;
+          break;
         }
       }
     }

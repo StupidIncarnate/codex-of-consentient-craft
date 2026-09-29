@@ -8,14 +8,16 @@
  * }
  * // Returns true if all params are ObjectPattern or AssignmentPattern with ObjectPattern
  */
-import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
 export const isAstFunctionParamsDestructuredGuard = ({
   funcNode,
 }: {
-  funcNode?: Tsestree;
+  funcNode?:
+    TSESTree.ArrowFunctionExpression | TSESTree.FunctionDeclaration | TSESTree.FunctionExpression;
 }): boolean => {
-  if (!funcNode?.params || funcNode.params.length === 0) {
+  if (!funcNode || funcNode.params.length === 0) {
     return true; // No params means no violation
   }
 
@@ -25,7 +27,8 @@ export const isAstFunctionParamsDestructuredGuard = ({
   // 2. AssignmentPattern with ObjectPattern left: ({ x = 5 } = {})
   return funcNode.params.every(
     (param) =>
-      param.type === 'ObjectPattern' ||
-      (param.type === 'AssignmentPattern' && param.left?.type === 'ObjectPattern'),
+      param.type === AST_NODE_TYPES.ObjectPattern ||
+      (param.type === AST_NODE_TYPES.AssignmentPattern &&
+        param.left.type === AST_NODE_TYPES.ObjectPattern),
   );
 };

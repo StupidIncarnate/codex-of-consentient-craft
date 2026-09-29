@@ -7,8 +7,8 @@
  */
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { validateObjectExpressionLayerBroker } from './validate-object-expression-layer-broker';
 
 export const validateReturnStatementLayerBroker = ({
@@ -16,12 +16,12 @@ export const validateReturnStatementLayerBroker = ({
   context,
   functionNode,
 }: {
-  statement: Tsestree;
-  context: EslintContext;
-  functionNode: Tsestree;
+  statement: TSESTree.Node;
+  context: TSESLint.RuleContext<string, unknown[]>;
+  functionNode: TSESTree.Node;
 }): AdapterResult => {
   const result = adapterResultContract.parse({ success: true });
-  if (statement.type === 'ReturnStatement') {
+  if (statement.type === AST_NODE_TYPES.ReturnStatement) {
     const { argument } = statement;
 
     if (!argument) {
@@ -33,10 +33,10 @@ export const validateReturnStatementLayerBroker = ({
     }
 
     if (
-      argument.type === 'Literal' ||
-      argument.type === 'TemplateLiteral' ||
-      argument.type === 'ArrayExpression' ||
-      argument.type === 'Identifier'
+      argument.type === AST_NODE_TYPES.Literal ||
+      argument.type === AST_NODE_TYPES.TemplateLiteral ||
+      argument.type === AST_NODE_TYPES.ArrayExpression ||
+      argument.type === AST_NODE_TYPES.Identifier
     ) {
       context.report({
         node: functionNode,
@@ -45,7 +45,7 @@ export const validateReturnStatementLayerBroker = ({
       return result;
     }
 
-    if (argument.type === 'ObjectExpression') {
+    if (argument.type === AST_NODE_TYPES.ObjectExpression) {
       validateObjectExpressionLayerBroker({ objectNode: argument, context });
     }
   }

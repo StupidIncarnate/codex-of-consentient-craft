@@ -17,7 +17,7 @@ export const voidSinkSpyLayerBroker = ({
   objectNode: unknown;
   method: string;
 }): boolean => {
-  // `parent` makes a real node cyclic, so it is read structurally, never through the Tsestree contract
+  // `parent` makes a real node cyclic, so it is read structurally
   const node = objectNode as TSESTree.Node;
 
   if (node.type === AST_NODE_TYPES.Identifier) {

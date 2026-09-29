@@ -13,8 +13,8 @@
  */
 import type { AdapterResult, FolderType } from '@dungeonmaster/shared/contracts';
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { typedReturnIsVoidLikeTransformer } from '../../../transformers/typed-return-is-void-like/typed-return-is-void-like-transformer';
 import { typedParserServicesTransformer } from '../../../transformers/typed-parser-services/typed-parser-services-transformer';
 import { isGatewayFileGuard } from '../../../guards/is-gateway-file/is-gateway-file-guard';
@@ -26,8 +26,8 @@ export const checkFolderReturnTypeLayerBroker = ({
   folderType,
   isProxyFile,
 }: {
-  node?: Tsestree;
-  ctx?: EslintContext;
+  node?: TSESTree.ArrowFunctionExpression | TSESTree.FunctionDeclaration;
+  ctx?: TSESLint.RuleContext<string, unknown[]>;
   folderType?: FolderType | undefined;
   isProxyFile?: boolean;
 }): AdapterResult => {
@@ -43,11 +43,13 @@ export const checkFolderReturnTypeLayerBroker = ({
   }
 
   const { typeAnnotation } = returnType;
-  if (!typeAnnotation) {
-    return result;
-  }
-
-  const typeArgs = typeAnnotation.typeArguments ?? typeAnnotation.typeParameters;
+  const typeReference =
+    typeAnnotation.type === AST_NODE_TYPES.TSTypeReference ? typeAnnotation : undefined;
+  const typeReferenceName =
+    typeReference?.typeName.type === AST_NODE_TYPES.Identifier
+      ? typeReference.typeName.name
+      : undefined;
+  const typeArgs = typeReference?.typeArguments;
 
   if (!isProxyFile) {
     const declaredIsVoidLike = typedReturnIsVoidLikeTransformer({ context: ctx, node });
@@ -55,20 +57,20 @@ export const checkFolderReturnTypeLayerBroker = ({
     // Every ExpressionStatement in the function's own top-level block whose expression (bare, or
     // unwrapped from one `await`) is a plain-identifier call — a MemberExpression callee
     // (array.push, map.set) is never a candidate, which is how built-in methods stay uncounted.
-    const functionBody = Array.isArray(node.body) ? undefined : node.body;
-    const bodyStatements =
-      functionBody?.type === 'BlockStatement' && Array.isArray(functionBody.body)
-        ? functionBody.body
-        : [];
-    const discardedCalls = bodyStatements.reduce<Tsestree[]>((calls, statement) => {
-      if (statement.type !== 'ExpressionStatement') {
+    const bodyStatements = node.body.type === AST_NODE_TYPES.BlockStatement ? node.body.body : [];
+    const discardedCalls = bodyStatements.reduce<TSESTree.CallExpression[]>((calls, statement) => {
+      if (statement.type !== AST_NODE_TYPES.ExpressionStatement) {
         return calls;
       }
 
       const { expression } = statement;
-      const candidate = expression?.type === 'AwaitExpression' ? expression.argument : expression;
+      const candidate =
+        expression.type === AST_NODE_TYPES.AwaitExpression ? expression.argument : expression;
 
-      if (candidate?.type === 'CallExpression' && candidate.callee?.type === 'Identifier') {
+      if (
+        candidate.type === AST_NODE_TYPES.CallExpression &&
+        candidate.callee.type === AST_NODE_TYPES.Identifier
+      ) {
         calls.push(candidate);
       }
 
@@ -97,14 +99,14 @@ export const checkFolderReturnTypeLayerBroker = ({
     });
 
     if (declaredIsVoidLike === true && hasInformativeDiscardedCall) {
-      const isPromiseWrapped =
-        typeAnnotation.type === 'TSTypeReference' && typeAnnotation.typeName?.name === 'Promise';
-      const isPromiseVoidAst = isPromiseWrapped && typeArgs?.params?.[0]?.type === 'TSVoidKeyword';
+      const isPromiseWrapped = typeReferenceName === 'Promise';
+      const isPromiseVoidAst =
+        isPromiseWrapped && typeArgs?.params[0]?.type === AST_NODE_TYPES.TSVoidKeyword;
 
       ctx.report({
         node,
         messageId:
-          typeAnnotation.type === 'TSVoidKeyword'
+          typeAnnotation.type === AST_NODE_TYPES.TSVoidKeyword
             ? 'folderVoidReturn'
             : isPromiseVoidAst
               ? 'folderPromiseVoidReturn'
@@ -118,11 +120,11 @@ export const checkFolderReturnTypeLayerBroker = ({
   // Loose-return checks; carve-out for I/O boundary files (*-contract.ts, *-adapter.ts).
   // Contracts are not in function-exporting folders so they're already exempt; adapters are
   // exempt by suffix here so they can return raw external shapes.
-  const filename = String(ctx.getFilename?.() ?? '');
+  const { filename } = ctx;
   const isIoBoundaryFile = filename.endsWith('-contract.ts') || filename.endsWith('-adapter.ts');
 
   if (!isIoBoundaryFile) {
-    if (typeAnnotation.type === 'TSUnknownKeyword') {
+    if (typeAnnotation.type === AST_NODE_TYPES.TSUnknownKeyword) {
       ctx.report({
         node,
         messageId: 'folderUnknownReturn',
@@ -130,7 +132,7 @@ export const checkFolderReturnTypeLayerBroker = ({
       });
       return result;
     }
-    if (typeAnnotation.type === 'TSObjectKeyword') {
+    if (typeAnnotation.type === AST_NODE_TYPES.TSObjectKeyword) {
       ctx.report({
         node,
         messageId: 'folderObjectReturn',
@@ -138,17 +140,17 @@ export const checkFolderReturnTypeLayerBroker = ({
       });
       return result;
     }
-    const recordKeyParam = typeArgs?.params?.[0];
-    const recordValueParam = typeArgs?.params?.[1];
+    const recordKeyParam = typeArgs?.params[0];
+    const recordValueParam = typeArgs?.params[1];
     const isRecordKeyStringOrPropertyKey =
-      recordKeyParam?.type === 'TSStringKeyword' ||
-      (recordKeyParam?.type === 'TSTypeReference' &&
-        recordKeyParam.typeName?.name === 'PropertyKey');
+      recordKeyParam?.type === AST_NODE_TYPES.TSStringKeyword ||
+      (recordKeyParam?.type === AST_NODE_TYPES.TSTypeReference &&
+        recordKeyParam.typeName.type === AST_NODE_TYPES.Identifier &&
+        recordKeyParam.typeName.name === 'PropertyKey');
     if (
-      typeAnnotation.type === 'TSTypeReference' &&
-      typeAnnotation.typeName?.name === 'Record' &&
+      typeReferenceName === 'Record' &&
       isRecordKeyStringOrPropertyKey &&
-      recordValueParam?.type === 'TSUnknownKeyword'
+      recordValueParam?.type === AST_NODE_TYPES.TSUnknownKeyword
     ) {
       ctx.report({
         node,
@@ -160,7 +162,10 @@ export const checkFolderReturnTypeLayerBroker = ({
   }
 
   if (!isProxyFile && folderType === 'guards') {
-    if (typeAnnotation.type !== 'TSBooleanKeyword' && typeAnnotation.type !== 'TSTypePredicate') {
+    if (
+      typeAnnotation.type !== AST_NODE_TYPES.TSBooleanKeyword &&
+      typeAnnotation.type !== AST_NODE_TYPES.TSTypePredicate
+    ) {
       ctx.report({
         node,
         messageId: 'guardMustReturnBoolean',

@@ -8,20 +8,21 @@
  * }
  * // Returns true if function body contains direct or spread contract.parse() calls
  */
-import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isAstContractParseCallGuard } from '../is-ast-contract-parse-call/is-ast-contract-parse-call-guard';
 import { isAstObjectContractParseSpreadGuard } from '../is-ast-object-contract-parse-spread/is-ast-object-contract-parse-spread-guard';
 
 export const isAstFunctionUsesContractParseGuard = ({
   funcNode,
 }: {
-  funcNode?: Tsestree;
+  funcNode?: TSESTree.Node;
 }): boolean => {
   if (funcNode === undefined) {
     return false;
   }
 
-  const { body } = funcNode;
+  const body = 'body' in funcNode ? funcNode.body : undefined;
   if (!body) {
     return false;
   }
@@ -32,21 +33,21 @@ export const isAstFunctionUsesContractParseGuard = ({
   }
 
   // Handle arrow function with expression body: () => contract.parse({})
-  if (body.type === 'CallExpression') {
+  if (body.type === AST_NODE_TYPES.CallExpression) {
     return isAstContractParseCallGuard({ node: body });
   }
 
   // Handle arrow function with expression body: () => ({ ...contract.parse({}) })
-  if (body.type === 'ObjectExpression') {
+  if (body.type === AST_NODE_TYPES.ObjectExpression) {
     return isAstObjectContractParseSpreadGuard({ node: body });
   }
 
   // Handle arrow function or regular function with block body: () => { return contract.parse({}) }
-  if (body.type === 'BlockStatement' && body.body && Array.isArray(body.body)) {
+  if (body.type === AST_NODE_TYPES.BlockStatement && Array.isArray(body.body)) {
     // Check if contract.parse() is called anywhere in the function
     const hasContractParse = body.body.some((statement) => {
       // Check return statements
-      if (statement.type === 'ReturnStatement' && statement.argument) {
+      if (statement.type === AST_NODE_TYPES.ReturnStatement && statement.argument) {
         // Direct call: return contract.parse({})
         if (isAstContractParseCallGuard({ node: statement.argument })) {
           return true;
@@ -58,7 +59,7 @@ export const isAstFunctionUsesContractParseGuard = ({
       }
 
       // Check variable declarations: const validated = contract.parse({})
-      if (statement.type === 'VariableDeclaration' && statement.declarations) {
+      if (statement.type === AST_NODE_TYPES.VariableDeclaration) {
         return statement.declarations.some((decl) => {
           if (decl.init) {
             return isAstContractParseCallGuard({ node: decl.init });

@@ -20,7 +20,8 @@ import { routedGraphContract } from '@dungeonmaster/shared/contracts';
 import { questFlowStatics } from '@dungeonmaster/shared/statics';
 import { graphReachabilityViolationsTransformer } from '@dungeonmaster/shared/transformers';
 import { eslintRuleContract } from '@dungeonmaster/eslint-plugin';
-import type { EslintRule, EslintContext, Tsestree } from '@dungeonmaster/eslint-plugin';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
+import type { EslintRule } from '@dungeonmaster/eslint-plugin';
 import { graphReachabilityStatics } from '../../../statics/graph-reachability/graph-reachability-statics';
 import { isGraphReachabilityScopeFileGuard } from '../../../guards/is-graph-reachability-scope-file/is-graph-reachability-scope-file-guard';
 
@@ -54,12 +55,12 @@ export const ruleGraphReachabilityBroker = (): EslintRule => ({
     },
   }),
   create: (context: unknown) => {
-    const ctx = context as EslintContext;
-    const filename = ctx.filename ?? ctx.getFilename?.() ?? '';
+    const ctx = context as TSESLint.RuleContext<string, unknown[]>;
+    const { filename } = ctx;
 
     if (
       !isGraphReachabilityScopeFileGuard({
-        filename: String(filename),
+        filename,
         scopeFilePaths: graphReachabilityStatics.scopeFilePaths,
       })
     ) {
@@ -67,7 +68,7 @@ export const ruleGraphReachabilityBroker = (): EslintRule => ({
     }
 
     return {
-      Program: (node: Tsestree): void => {
+      Program: (node: TSESTree.Program): void => {
         for (const violation of graphViolations) {
           ctx.report({
             node,

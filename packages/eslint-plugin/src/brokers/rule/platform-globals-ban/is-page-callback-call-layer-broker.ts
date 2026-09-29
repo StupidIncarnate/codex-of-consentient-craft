@@ -9,21 +9,22 @@
  * isPageCallbackCallLayerBroker({ node: pageEvaluateCallExpression });
  * // Returns true
  */
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { pageCallbackMethodsStatics } from '../../../statics/page-callback-methods/page-callback-methods-statics';
 
 export const isPageCallbackCallLayerBroker = ({
   node,
 }: {
-  node?: Tsestree | null | undefined;
+  node?: TSESTree.Node | null | undefined;
 }): boolean => {
-  if (node?.type !== 'CallExpression') {
+  if (node?.type !== AST_NODE_TYPES.CallExpression) {
     return false;
   }
   const { callee } = node;
-  if (callee?.type !== 'MemberExpression' || callee.computed === true) {
+  if (callee.type !== AST_NODE_TYPES.MemberExpression || callee.computed) {
     return false;
   }
-  const methodName = callee.property?.name;
+  const methodName = callee.property.name;
   return pageCallbackMethodsStatics.names.some((name) => name === methodName);
 };

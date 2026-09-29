@@ -1,31 +1,15 @@
+import { CallExpressionStub } from '#gateway/npm/typescript-eslint__utils/call-expression/call-expression.stub';
+import { IdentifierStub } from '#gateway/npm/typescript-eslint__utils/identifier/identifier.stub';
 import { checkBindingInitializerLayerBroker } from './check-binding-initializer-layer-broker';
 import { checkBindingInitializerLayerBrokerProxy } from './check-binding-initializer-layer-broker.proxy';
-import { TsestreeStub, TsestreeNodeType } from '../../../contracts/tsestree/tsestree.stub';
 
 describe('checkBindingInitializerLayerBroker', () => {
   it('VALID: identifier bound in enclosing block returns the init AST node', () => {
     checkBindingInitializerLayerBrokerProxy();
 
-    const initNode = TsestreeStub({ type: TsestreeNodeType.CallExpression });
-    const declarator = TsestreeStub({
-      type: TsestreeNodeType.VariableDeclarator,
-      id: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'parsed' }),
-      init: initNode,
-    });
-    const declaration = TsestreeStub({
-      type: TsestreeNodeType.VariableDeclaration,
-      kind: 'const',
-      declarations: [declarator],
-    });
-    const block = TsestreeStub({
-      type: TsestreeNodeType.BlockStatement,
-      body: [declaration],
-    });
-    const identifierNode = TsestreeStub({
-      type: TsestreeNodeType.Identifier,
-      name: 'parsed',
-      parent: block,
-    });
+    const code = '{ const parsed = f(); }';
+    const initNode = CallExpressionStub({ code });
+    const identifierNode = IdentifierStub({ code });
 
     const result = checkBindingInitializerLayerBroker({ identifierNode });
 
@@ -35,15 +19,7 @@ describe('checkBindingInitializerLayerBroker', () => {
   it('EDGE: no matching declarator in enclosing block returns undefined', () => {
     checkBindingInitializerLayerBrokerProxy();
 
-    const block = TsestreeStub({
-      type: TsestreeNodeType.BlockStatement,
-      body: [],
-    });
-    const identifierNode = TsestreeStub({
-      type: TsestreeNodeType.Identifier,
-      name: 'unknownName',
-      parent: block,
-    });
+    const identifierNode = IdentifierStub({ code: '{ unknownName; }' });
 
     const result = checkBindingInitializerLayerBroker({ identifierNode });
 
@@ -53,10 +29,7 @@ describe('checkBindingInitializerLayerBroker', () => {
   it('EDGE: identifier with no enclosing block or program returns undefined', () => {
     checkBindingInitializerLayerBrokerProxy();
 
-    const identifierNode = TsestreeStub({
-      type: TsestreeNodeType.Identifier,
-      name: 'orphan',
-    });
+    const identifierNode = IdentifierStub({ code: 'orphan;' });
 
     const result = checkBindingInitializerLayerBroker({ identifierNode });
 
@@ -66,7 +39,7 @@ describe('checkBindingInitializerLayerBroker', () => {
   it('EDGE: non-identifier node returns undefined', () => {
     checkBindingInitializerLayerBrokerProxy();
 
-    const node = TsestreeStub({ type: TsestreeNodeType.CallExpression });
+    const node = CallExpressionStub({ code: 'f();' });
 
     const result = checkBindingInitializerLayerBroker({ identifierNode: node });
 

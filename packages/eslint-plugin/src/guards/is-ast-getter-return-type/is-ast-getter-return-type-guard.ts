@@ -7,19 +7,20 @@
  * isAstGetterReturnTypeGuard({ node: typeReferenceNode });
  * // Returns true for the `z.ZodType` in `get next(): z.ZodType<Self> {…}`, false for a field's type
  */
-import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
-export const isAstGetterReturnTypeGuard = ({ node }: { node?: Tsestree }): boolean => {
+export const isAstGetterReturnTypeGuard = ({ node }: { node?: TSESTree.Node }): boolean => {
   if (!node) {
     return false;
   }
 
-  let current: Tsestree = node;
+  let current: TSESTree.Node = node;
   let { parent } = current;
 
   while (parent) {
-    if (parent.type === 'FunctionExpression') {
-      return parent.returnType === current && parent.parent?.type === 'Property';
+    if (parent.type === AST_NODE_TYPES.FunctionExpression) {
+      return parent.returnType === current && parent.parent.type === AST_NODE_TYPES.Property;
     }
 
     current = parent;

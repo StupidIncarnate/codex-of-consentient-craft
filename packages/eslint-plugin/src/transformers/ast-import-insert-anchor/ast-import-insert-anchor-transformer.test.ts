@@ -1,40 +1,11 @@
+import { ProgramStub } from '#gateway/npm/typescript-eslint__utils/program/program.stub';
 import { astImportInsertAnchorTransformer } from './ast-import-insert-anchor-transformer';
-import { TsestreeStub, TsestreeNodeType } from '../../contracts/tsestree/tsestree.stub';
-
-const importFrom = ({
-  source,
-  importKind,
-  specifiers,
-}: {
-  source: string;
-  importKind: 'type' | 'value';
-  specifiers: ReturnType<typeof TsestreeStub>[];
-}): ReturnType<typeof TsestreeStub> =>
-  TsestreeStub({
-    type: TsestreeNodeType.ImportDeclaration,
-    importKind,
-    source: TsestreeStub({ type: TsestreeNodeType.Literal, value: source }),
-    specifiers,
-  });
 
 describe('astImportInsertAnchorTransformer', () => {
   describe('an existing import of the same module and kind', () => {
     it('VALID: {type import from the same source} => returns its last specifier', () => {
-      const first = TsestreeStub({
-        type: TsestreeNodeType.ImportSpecifier,
-        local: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'First' }),
-      });
-      const last = TsestreeStub({
-        type: TsestreeNodeType.ImportSpecifier,
-        local: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'Last' }),
-      });
-      const program = TsestreeStub({
-        type: TsestreeNodeType.Program,
-        body: [
-          importFrom({ source: './a', importKind: 'type', specifiers: [first, last] }),
-          importFrom({ source: './b', importKind: 'value', specifiers: [] }),
-        ],
-      });
+      const code = 'import type { x as First, x as Last } from "./a";\nimport "./b";';
+      const program = ProgramStub({ code });
 
       const result = astImportInsertAnchorTransformer({
         program,
@@ -42,24 +13,15 @@ describe('astImportInsertAnchorTransformer', () => {
         importKind: 'type',
       });
 
-      expect(result).toStrictEqual(last);
+      expect(result?.type).toBe('ImportSpecifier');
+      expect(result?.range).toStrictEqual([26, 35]);
     });
   });
 
   describe('no import of that module and kind', () => {
     it('VALID: {same source, other kind} => returns the last import of the file', () => {
-      const lastImport = importFrom({ source: './b', importKind: 'value', specifiers: [] });
-      const program = TsestreeStub({
-        type: TsestreeNodeType.Program,
-        body: [
-          importFrom({
-            source: './a',
-            importKind: 'value',
-            specifiers: [TsestreeStub({ type: TsestreeNodeType.ImportSpecifier })],
-          }),
-          lastImport,
-        ],
-      });
+      const code = 'import { x } from "./a";\nimport "./b";';
+      const program = ProgramStub({ code });
 
       const result = astImportInsertAnchorTransformer({
         program,
@@ -67,11 +29,12 @@ describe('astImportInsertAnchorTransformer', () => {
         importKind: 'type',
       });
 
-      expect(result).toStrictEqual(lastImport);
+      expect(result?.type).toBe('ImportDeclaration');
+      expect(result?.range).toStrictEqual([25, 38]);
     });
 
     it('EMPTY: {file with no import} => returns null', () => {
-      const program = TsestreeStub({ type: TsestreeNodeType.Program, body: [] });
+      const program = ProgramStub({ code: '' });
 
       const result = astImportInsertAnchorTransformer({
         program,

@@ -20,11 +20,11 @@
  */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { astGetImportsTransformer } from '../../../transformers/ast-get-imports/ast-get-imports-transformer';
 import { gatewayCallerPackageNameTransformer } from '../../../transformers/gateway-caller-package-name/gateway-caller-package-name-transformer';
-import type { Identifier, ModulePath, PackageName } from '@dungeonmaster/shared/contracts';
+import type { ModulePath, PackageName } from '@dungeonmaster/shared/contracts';
 
 export const ruleBanWorkspaceExportMocksBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -41,31 +41,31 @@ export const ruleBanWorkspaceExportMocksBroker = (): EslintRule => ({
       schema: [{ type: 'object' }],
     },
   }),
-  create: (context: EslintContext) => {
-    const ctx = context as EslintContext & {
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
+    const ctx = context as TSESLint.RuleContext<string, unknown[]> & {
       options?: { workspacePackageNames?: PackageName[] }[];
     };
-    const workspacePackageNames = ctx.options?.[0]?.workspacePackageNames ?? [];
+    const workspacePackageNames = ctx.options[0]?.workspacePackageNames ?? [];
 
     if (workspacePackageNames.length === 0) {
       return {};
     }
 
-    const filename = ctx.filename ?? ctx.getFilename?.() ?? '';
+    const { filename } = ctx;
     const ownPackageFolder = gatewayCallerPackageNameTransformer({ filename });
 
-    const imports = new Map<Identifier, ModulePath>();
+    const imports = new Map<string, ModulePath>();
 
     return {
-      ImportDeclaration: (node: Tsestree): void => {
+      ImportDeclaration: (node: TSESTree.ImportDeclaration): void => {
         for (const [name, importPath] of astGetImportsTransformer({ node })) {
           imports.set(name, importPath);
         }
       },
 
-      CallExpression: (node: Tsestree): void => {
+      CallExpression: (node: TSESTree.CallExpression): void => {
         const { callee } = node;
-        if (callee?.type !== 'Identifier') {
+        if (callee.type !== AST_NODE_TYPES.Identifier) {
           return;
         }
 
@@ -77,25 +77,25 @@ export const ruleBanWorkspaceExportMocksBroker = (): EslintRule => ({
           return;
         }
 
-        const [firstArg] = node.arguments ?? [];
-        if (firstArg?.type !== 'ObjectExpression') {
+        const [firstArg] = node.arguments;
+        if (firstArg?.type !== AST_NODE_TYPES.ObjectExpression) {
           return;
         }
 
-        for (const prop of firstArg.properties ?? []) {
-          if (prop.type !== 'Property' || prop.key?.type !== 'Identifier') {
+        for (const prop of firstArg.properties) {
+          if (
+            prop.type !== AST_NODE_TYPES.Property ||
+            prop.key.type !== AST_NODE_TYPES.Identifier
+          ) {
             continue;
           }
 
           if (isRegisterMock && prop.key.name === 'fn') {
-            // Property.value overlaps with Literal.value (typed `unknown`) in the shared Tsestree
-            // contract, so the property-value side needs an explicit cast to the Node shape —
-            // the same cast check-discriminated-union-variants-layer-broker already applies.
-            let current = prop.value as Tsestree | undefined;
-            while (current?.type === 'MemberExpression') {
-              current = current.object as Tsestree | undefined;
+            let current: TSESTree.Node = prop.value;
+            while (current.type === AST_NODE_TYPES.MemberExpression) {
+              current = current.object;
             }
-            if (current?.type !== 'Identifier' || current.name === undefined) {
+            if (current.type !== AST_NODE_TYPES.Identifier) {
               continue;
             }
 
@@ -124,12 +124,12 @@ export const ruleBanWorkspaceExportMocksBroker = (): EslintRule => ({
             });
           }
 
-          const propValue = prop.value as Tsestree | undefined;
+          const propValue = prop.value as TSESTree.Node | undefined;
 
           if (
             isRegisterModuleMock &&
             prop.key.name === 'module' &&
-            propValue?.type === 'Literal' &&
+            propValue?.type === AST_NODE_TYPES.Literal &&
             typeof propValue.value === 'string'
           ) {
             const moduleSpecifier = propValue.value;

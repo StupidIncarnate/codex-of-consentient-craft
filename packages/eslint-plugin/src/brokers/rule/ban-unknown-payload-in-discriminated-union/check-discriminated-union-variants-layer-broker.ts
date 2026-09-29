@@ -7,8 +7,8 @@
  */
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isAstMethodCallGuard } from '../../../guards/is-ast-method-call/is-ast-method-call-guard';
 import { checkResolveSchemaBindingLayerBroker } from './check-resolve-schema-binding-layer-broker';
 
@@ -16,8 +16,8 @@ export const checkDiscriminatedUnionVariantsLayerBroker = ({
   node,
   ctx,
 }: {
-  node?: Tsestree;
-  ctx?: EslintContext;
+  node?: TSESTree.Node;
+  ctx?: TSESLint.RuleContext<string, unknown[]>;
 }): AdapterResult => {
   const result = adapterResultContract.parse({ success: true });
 
@@ -25,29 +25,37 @@ export const checkDiscriminatedUnionVariantsLayerBroker = ({
   if (!isAstMethodCallGuard({ node, object: 'z', method: 'discriminatedUnion' })) return result;
 
   // 2nd argument is the variants array
-  const variantsArg = node.arguments?.[1];
-  if (!variantsArg || variantsArg.type !== 'ArrayExpression') return result;
+  const variantsArg =
+    node.type === AST_NODE_TYPES.CallExpression || node.type === AST_NODE_TYPES.NewExpression
+      ? node.arguments[1]
+      : undefined;
+  if (!variantsArg || variantsArg.type !== AST_NODE_TYPES.ArrayExpression) return result;
 
-  for (const variant of variantsArg.elements ?? []) {
+  for (const variant of variantsArg.elements) {
     if (!variant) continue;
     if (!isAstMethodCallGuard({ node: variant, object: 'z', method: 'object' })) continue;
 
-    const [shape] = variant.arguments ?? [];
-    if (!shape || shape.type !== 'ObjectExpression') continue;
+    const [shape] =
+      (variant.type === AST_NODE_TYPES.CallExpression ||
+      variant.type === AST_NODE_TYPES.NewExpression
+        ? variant.arguments
+        : undefined) ?? [];
+    if (!shape || shape.type !== AST_NODE_TYPES.ObjectExpression) continue;
 
-    for (const prop of shape.properties ?? []) {
-      if (prop.type !== 'Property') continue;
-      // `Property.value` overlaps with `Literal.value` (typed as unknown) in the contract;
-      // cast to Tsestree for the property-value (a Node) shape.
-      const value = prop.value as Tsestree | undefined;
-      if (!value) continue;
+    for (const prop of shape.properties) {
+      if (prop.type !== AST_NODE_TYPES.Property) continue;
+      const { value } = prop;
 
       // Resolve property name from Identifier.name or string Literal.value
       const { key } = prop;
       const nameFromIdentifier =
-        key?.type === 'Identifier' && typeof key.name === 'string' ? String(key.name) : undefined;
+        key.type === AST_NODE_TYPES.Identifier && typeof key.name === 'string'
+          ? key.name
+          : undefined;
       const nameFromLiteral =
-        key?.type === 'Literal' && typeof key.value === 'string' ? key.value : undefined;
+        key.type === AST_NODE_TYPES.Literal && typeof key.value === 'string'
+          ? key.value
+          : undefined;
       const name = nameFromIdentifier ?? nameFromLiteral;
 
       // Carve-out: properties named with `Raw` suffix are allowed
@@ -58,8 +66,8 @@ export const checkDiscriminatedUnionVariantsLayerBroker = ({
       // Resolve the schema node: either the property's value directly, or — if the
       // value is an Identifier reference (e.g. `payload: genericPayloadSchema`) — the
       // initializer of its same-file Program-level binding.
-      let schemaNode: Tsestree | undefined = value;
-      if (value.type === 'Identifier') {
+      let schemaNode: TSESTree.Node | undefined = value;
+      if (value.type === AST_NODE_TYPES.Identifier) {
         schemaNode = checkResolveSchemaBindingLayerBroker({ identifierNode: value });
         if (!schemaNode) continue;
       }
@@ -76,10 +84,14 @@ export const checkDiscriminatedUnionVariantsLayerBroker = ({
 
       // z.record(<anything>, z.unknown()) — flag if any argument is z.unknown()
       if (isAstMethodCallGuard({ node: schemaNode, object: 'z', method: 'record' })) {
-        const recordArgs = schemaNode.arguments ?? [];
+        const recordArgs =
+          (schemaNode.type === AST_NODE_TYPES.CallExpression ||
+          schemaNode.type === AST_NODE_TYPES.NewExpression
+            ? schemaNode.arguments
+            : undefined) ?? [];
         let hasUnknown = false;
         for (const arg of recordArgs) {
-          if (arg && isAstMethodCallGuard({ node: arg, object: 'z', method: 'unknown' })) {
+          if (isAstMethodCallGuard({ node: arg, object: 'z', method: 'unknown' })) {
             hasUnknown = true;
             break;
           }

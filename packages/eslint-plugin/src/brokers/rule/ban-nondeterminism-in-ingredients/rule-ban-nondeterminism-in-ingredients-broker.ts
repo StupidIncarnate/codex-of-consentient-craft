@@ -17,8 +17,8 @@
  */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { nondeterministicCallWatchlistStatics } from '../../../statics/nondeterministic-call-watchlist/nondeterministic-call-watchlist-statics';
 import { isIngredientDeclarationFileGuard } from '../../../guards/is-ingredient-declaration-file/is-ingredient-declaration-file-guard';
 import { isIngredientDeclarationCallGuard } from '../../../guards/is-ingredient-declaration-call/is-ingredient-declaration-call-guard';
@@ -39,28 +39,29 @@ export const ruleBanNondeterminismInIngredientsBroker = (): EslintRule => ({
     },
   }),
   create: (context: unknown) => {
-    const ctx = context as EslintContext;
-    const filename = ctx.filename ?? ctx.getFilename?.() ?? '';
+    const ctx = context as TSESLint.RuleContext<string, unknown[]>;
+    const { filename } = ctx;
 
     const isKnownIngredientFileByPath = isIngredientDeclarationFileGuard({
-      filename: String(filename),
+      filename,
     });
     let isKnownIngredientFileByCall = false;
     const pendingReports: (() => void)[] = [];
 
     return {
-      CallExpression: (node: Tsestree): void => {
+      CallExpression: (node: TSESTree.CallExpression): void => {
         if (isIngredientDeclarationCallGuard({ node })) {
           isKnownIngredientFileByCall = true;
         }
 
         const { callee } = node;
-        if (callee?.type !== 'MemberExpression') {
+        if (callee.type !== AST_NODE_TYPES.MemberExpression) {
           return;
         }
-        const objectName = callee.object?.type === 'Identifier' ? callee.object.name : undefined;
+        const objectName =
+          callee.object.type === AST_NODE_TYPES.Identifier ? callee.object.name : undefined;
         const propertyName =
-          callee.property?.type === 'Identifier' ? callee.property.name : undefined;
+          callee.property.type === AST_NODE_TYPES.Identifier ? callee.property.name : undefined;
         if (objectName === undefined || propertyName === undefined) {
           return;
         }
@@ -73,7 +74,7 @@ export const ruleBanNondeterminismInIngredientsBroker = (): EslintRule => ({
             ctx.report({
               node,
               messageId: 'nondeterministicCallInIngredient',
-              data: { objectName: String(objectName), propertyName: String(propertyName) },
+              data: { objectName, propertyName },
             });
           });
         }

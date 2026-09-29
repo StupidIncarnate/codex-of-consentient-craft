@@ -11,8 +11,8 @@
  */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
 export const ruleBanRequireInSourceBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -29,14 +29,14 @@ export const ruleBanRequireInSourceBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: EslintContext) => {
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
 
     return {
-      CallExpression: (node: Tsestree): void => {
+      CallExpression: (node: TSESTree.CallExpression): void => {
         const { callee } = node;
 
-        if (callee?.type !== 'Identifier') {
+        if (callee.type !== AST_NODE_TYPES.Identifier) {
           return;
         }
 

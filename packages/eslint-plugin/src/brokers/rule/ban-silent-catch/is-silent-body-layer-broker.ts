@@ -5,29 +5,30 @@
  * const silent = isSilentBodyLayerBroker({ body: handlerNode.body });
  * // Returns true if the body is empty, returns undefined, or has no meaningful statements
  */
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { hasMeaningfulStatementLayerBroker } from './has-meaningful-statement-layer-broker';
 
 export const isSilentBodyLayerBroker = ({
   body,
 }: {
-  body: Tsestree | undefined | null;
+  body: TSESTree.Node | undefined | null;
 }): boolean => {
   if (!body) {
     return true;
   }
 
   // Expression body (arrow without braces): () => undefined
-  if (body.type !== 'BlockStatement') {
+  if (body.type !== AST_NODE_TYPES.BlockStatement) {
     // () => undefined
-    if (body.type === 'Identifier' && body.name === 'undefined') {
+    if (body.type === AST_NODE_TYPES.Identifier && body.name === 'undefined') {
       return true;
     }
 
     // () => void 0
     if (
-      body.type === 'UnaryExpression' &&
-      body.argument?.type === 'Literal' &&
+      body.type === AST_NODE_TYPES.UnaryExpression &&
+      body.argument.type === AST_NODE_TYPES.Literal &&
       body.argument.value === 0
     ) {
       return true;
@@ -38,7 +39,7 @@ export const isSilentBodyLayerBroker = ({
   }
 
   // Block body: check statements
-  const statements: Tsestree[] | undefined = Array.isArray(body.body) ? body.body : undefined;
+  const statements: TSESTree.Node[] | undefined = Array.isArray(body.body) ? body.body : undefined;
 
   // Empty block: () => {}
   if (!statements || statements.length === 0) {

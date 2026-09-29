@@ -7,8 +7,7 @@
  */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isSpecFileGuard } from '../../../guards/is-spec-file/is-spec-file-guard';
 import { isIntegrationTestFileGuard } from '../../../guards/is-integration-test-file/is-integration-test-file-guard';
 import { isInTestDirGuard } from '../../../guards/is-in-test-dir/is-in-test-dir-guard';
@@ -30,11 +29,11 @@ export const ruleBanNodeBuiltinsInTestScenariosBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: EslintContext) => {
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
     return {
-      ImportDeclaration: (node: Tsestree): void => {
-        const filename = ctx.filename ?? '';
+      ImportDeclaration: (node: TSESTree.ImportDeclaration): void => {
+        const { filename } = ctx;
 
         const isInTestDir = isInTestDirGuard({ filename });
 
@@ -51,7 +50,7 @@ export const ruleBanNodeBuiltinsInTestScenariosBroker = (): EslintRule => ({
           return;
         }
 
-        const importSource = node.source?.value;
+        const importSource = node.source.value;
 
         if (typeof importSource !== 'string') {
           return;

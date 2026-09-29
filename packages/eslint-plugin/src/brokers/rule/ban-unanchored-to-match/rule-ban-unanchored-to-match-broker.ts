@@ -9,8 +9,8 @@
  */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
 import { hasRegexAnchorGuard } from '../../../guards/has-regex-anchor/has-regex-anchor-guard';
 import { regexMatchMethodsStatics } from '../../../statics/regex-match-methods/regex-match-methods-statics';
@@ -31,24 +31,28 @@ export const ruleBanUnanchoredToMatchBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: EslintContext) => {
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
-    const isTestFile = isTestFileGuard({ filename: ctx.filename ?? '' });
+    const isTestFile = isTestFileGuard({ filename: ctx.filename });
 
     if (!isTestFile) {
       return {};
     }
 
     return {
-      CallExpression: (node: Tsestree): void => {
+      CallExpression: (node: TSESTree.CallExpression): void => {
         const { callee } = node;
 
         // Check if this is a method call on an expect chain
-        if (callee?.type !== 'MemberExpression') {
+        if (callee.type !== AST_NODE_TYPES.MemberExpression) {
           return;
         }
 
-        const methodName = callee.property?.name;
+        const methodName =
+          callee.property.type === AST_NODE_TYPES.Identifier ||
+          callee.property.type === AST_NODE_TYPES.PrivateIdentifier
+            ? callee.property.name
+            : undefined;
         if (methodName === undefined) {
           return;
         }
@@ -56,16 +60,19 @@ export const ruleBanUnanchoredToMatchBroker = (): EslintRule => ({
         // Check expect.stringMatching(/regex/)
         if (
           methodName === 'stringMatching' &&
-          callee.object?.type === 'Identifier' &&
+          callee.object.type === AST_NODE_TYPES.Identifier &&
           callee.object.name === 'expect'
         ) {
-          const firstArg = node.arguments?.[0];
-          if (firstArg === null || firstArg === undefined) {
+          const [firstArg] = node.arguments;
+          if (firstArg === undefined) {
             return;
           }
 
-          const regexPattern = firstArg.regex?.pattern;
-          if (regexPattern === undefined || typeof regexPattern !== 'string') {
+          const regexPattern =
+            firstArg.type === AST_NODE_TYPES.Literal && 'regex' in firstArg
+              ? firstArg.regex.pattern
+              : undefined;
+          if (regexPattern === undefined) {
             return;
           }
 
@@ -95,14 +102,17 @@ export const ruleBanUnanchoredToMatchBroker = (): EslintRule => ({
         }
 
         // Check if the first argument is a regex literal
-        const firstArg = node.arguments?.[0];
-        if (firstArg === null || firstArg === undefined) {
+        const [firstArg] = node.arguments;
+        if (firstArg === undefined) {
           return;
         }
 
         // ESLint AST stores regex literals as Literal nodes with a regex property
-        const regexPattern = firstArg.regex?.pattern;
-        if (regexPattern === undefined || typeof regexPattern !== 'string') {
+        const regexPattern =
+          firstArg.type === AST_NODE_TYPES.Literal && 'regex' in firstArg
+            ? firstArg.regex.pattern
+            : undefined;
+        if (regexPattern === undefined) {
           return;
         }
 

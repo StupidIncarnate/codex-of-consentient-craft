@@ -1,28 +1,23 @@
+import { ImportDeclarationStub } from '#gateway/npm/typescript-eslint__utils/import-declaration/import-declaration.stub';
 import { resolveImportedStaticsLayerBroker } from './resolve-imported-statics-layer-broker';
 import { resolveImportedStaticsLayerBrokerProxy } from './resolve-imported-statics-layer-broker.proxy';
-import { TsestreeStub, TsestreeNodeType } from '../../../contracts/tsestree/tsestree.stub';
 
 const importOf = ({
   source,
   imported,
   local,
-  kind = TsestreeNodeType.ImportSpecifier,
+  kind = 'named',
 }: {
   source: string;
   imported: string;
   local: string;
-  kind?: string;
-}): ReturnType<typeof TsestreeStub> =>
-  TsestreeStub({
-    type: TsestreeNodeType.ImportDeclaration,
-    source: TsestreeStub({ type: TsestreeNodeType.Literal, value: source }),
-    specifiers: [
-      TsestreeStub({
-        type: kind,
-        imported: TsestreeStub({ type: TsestreeNodeType.Identifier, name: imported }),
-        local: TsestreeStub({ type: TsestreeNodeType.Identifier, name: local }),
-      }),
-    ],
+  kind?: 'named' | 'namespace';
+}): ReturnType<typeof ImportDeclarationStub> =>
+  ImportDeclarationStub({
+    code:
+      kind === 'namespace'
+        ? `import * as ${local} from '${source}';`
+        : `import { ${imported} as ${local} } from '${source}';`,
   });
 
 const FILENAME = '/repo/packages/ward/src/brokers/bundle/build/bundle-build-broker.ts';
@@ -151,7 +146,7 @@ describe('resolveImportedStaticsLayerBroker', () => {
           source: '../../../statics/bundle/bundle-statics',
           imported: 'bundleStatics',
           local: 'bundleStatics',
-          kind: TsestreeNodeType.ImportNamespaceSpecifier,
+          kind: 'namespace',
         }),
       ];
 

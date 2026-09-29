@@ -1,8 +1,5 @@
+import { LiteralStub } from '#gateway/npm/typescript-eslint__utils/literal/literal.stub';
 import { hasInlineStatusSetElementsLayerBrokerProxy } from './has-inline-status-set-elements-layer-broker.proxy';
-import {
-  TsestreeStub,
-  TsestreeNodeType,
-} from '@dungeonmaster/eslint-plugin/contracts/tsestree/tsestree.stub';
 
 describe('hasInlineStatusSetElementsLayerBroker', () => {
   describe('missing elements', () => {
@@ -25,7 +22,7 @@ describe('hasInlineStatusSetElementsLayerBroker', () => {
 
       expect(
         proxy.hasInlineStatusSetElementsLayerBroker({
-          elements: [TsestreeStub({ type: TsestreeNodeType.Literal, value: 'in_progress' })],
+          elements: [LiteralStub({ code: 'const l = "in_progress";' })],
         }),
       ).toBe(false);
     });
@@ -38,8 +35,8 @@ describe('hasInlineStatusSetElementsLayerBroker', () => {
       expect(
         proxy.hasInlineStatusSetElementsLayerBroker({
           elements: [
-            TsestreeStub({ type: TsestreeNodeType.Literal, value: 'in_progress' }),
-            TsestreeStub({ type: TsestreeNodeType.Literal, value: 'complete' }),
+            LiteralStub({ code: 'const l = "in_progress";' }),
+            LiteralStub({ code: 'const l = "complete";' }),
           ],
         }),
       ).toBe(true);
@@ -51,10 +48,10 @@ describe('hasInlineStatusSetElementsLayerBroker', () => {
       expect(
         proxy.hasInlineStatusSetElementsLayerBroker({
           elements: [
-            TsestreeStub({ type: TsestreeNodeType.Literal, value: 'explore_flows' }),
-            TsestreeStub({ type: TsestreeNodeType.Literal, value: 'review_flows' }),
-            TsestreeStub({ type: TsestreeNodeType.Literal, value: 'flows_approved' }),
-            TsestreeStub({ type: TsestreeNodeType.Literal, value: 'hello' }),
+            LiteralStub({ code: 'const l = "explore_flows";' }),
+            LiteralStub({ code: 'const l = "review_flows";' }),
+            LiteralStub({ code: 'const l = "flows_approved";' }),
+            LiteralStub({ code: 'const l = "hello";' }),
           ],
         }),
       ).toBe(true);
@@ -68,8 +65,8 @@ describe('hasInlineStatusSetElementsLayerBroker', () => {
       expect(
         proxy.hasInlineStatusSetElementsLayerBroker({
           elements: [
-            TsestreeStub({ type: TsestreeNodeType.Literal, value: 'hello' }),
-            TsestreeStub({ type: TsestreeNodeType.Literal, value: 'world' }),
+            LiteralStub({ code: 'const l = "hello";' }),
+            LiteralStub({ code: 'const l = "world";' }),
           ],
         }),
       ).toBe(false);

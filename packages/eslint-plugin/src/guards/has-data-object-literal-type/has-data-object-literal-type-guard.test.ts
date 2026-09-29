@@ -1,129 +1,86 @@
+import { TSTypeOperatorStub } from '#gateway/npm/typescript-eslint__utils/ts-type-operator/ts-type-operator.stub';
+import { TSIndexedAccessTypeStub } from '#gateway/npm/typescript-eslint__utils/ts-indexed-access-type/ts-indexed-access-type.stub';
+import { TSFunctionTypeStub } from '#gateway/npm/typescript-eslint__utils/ts-function-type/ts-function-type.stub';
+import { TSTypeLiteralStub } from '#gateway/npm/typescript-eslint__utils/ts-type-literal/ts-type-literal.stub';
+import { TSUnionTypeStub } from '#gateway/npm/typescript-eslint__utils/ts-union-type/ts-union-type.stub';
+import { TSArrayTypeStub } from '#gateway/npm/typescript-eslint__utils/ts-array-type/ts-array-type.stub';
+import { TSTypeAnnotationStub } from '#gateway/npm/typescript-eslint__utils/ts-type-annotation/ts-type-annotation.stub';
+import { TSTypeReferenceStub } from '#gateway/npm/typescript-eslint__utils/ts-type-reference/ts-type-reference.stub';
 import { hasDataObjectLiteralTypeGuard } from './has-data-object-literal-type-guard';
-import { TsestreeStub } from '../../contracts/tsestree/tsestree.stub';
-
-const dataMember = TsestreeStub({
-  type: 'TSPropertySignature',
-  typeAnnotation: TsestreeStub({
-    type: 'TSTypeAnnotation',
-    typeAnnotation: TsestreeStub({ type: 'TSStringKeyword' }),
-  }),
-});
-const methodMember = TsestreeStub({ type: 'TSMethodSignature' });
+import { TSIntersectionTypeStub } from '#gateway/npm/typescript-eslint__utils/ts-intersection-type/ts-intersection-type.stub';
 
 describe('hasDataObjectLiteralTypeGuard', () => {
   describe('object type literals', () => {
     it('VALID: {literal with a data member} => returns true', () => {
-      const node = TsestreeStub({ type: 'TSTypeLiteral', members: [dataMember] });
+      const node = TSTypeLiteralStub({ code: 'type T = { a: string };' });
 
       expect(hasDataObjectLiteralTypeGuard({ node })).toBe(true);
     });
 
     it('VALID: {literal mixing data and functions} => returns true', () => {
-      const node = TsestreeStub({ type: 'TSTypeLiteral', members: [methodMember, dataMember] });
+      const node = TSTypeLiteralStub({ code: 'type T = { m(): void; a: string };' });
 
       expect(hasDataObjectLiteralTypeGuard({ node })).toBe(true);
     });
 
     it('VALID: {literal whose every member is a function} => returns false', () => {
-      const node = TsestreeStub({ type: 'TSTypeLiteral', members: [methodMember, methodMember] });
+      const node = TSTypeLiteralStub({ code: 'type T = { m(): void; n(): void };' });
 
       expect(hasDataObjectLiteralTypeGuard({ node })).toBe(false);
     });
 
     it('EDGE: {empty literal} => returns false', () => {
-      const node = TsestreeStub({ type: 'TSTypeLiteral', members: [] });
+      const node = TSTypeLiteralStub({ code: 'type T = {  };' });
 
       expect(hasDataObjectLiteralTypeGuard({ node })).toBe(false);
     });
   });
 
   describe('containers', () => {
-    it.each(['TSUnionType', 'TSIntersectionType'] as const)(
-      'VALID: {%s containing a data literal} => returns true',
-      (type) => {
-        const node = TsestreeStub({
-          type,
-          types: [
-            TsestreeStub({ type: 'TSTypeReference' }),
-            TsestreeStub({ type: 'TSTypeLiteral', members: [dataMember] }),
-          ],
-        });
+    it('VALID: {union containing a data literal} => returns true', () => {
+      const node = TSUnionTypeStub({ code: 'let x: T | { a: string };' });
 
-        expect(hasDataObjectLiteralTypeGuard({ node })).toBe(true);
-      },
-    );
+      expect(hasDataObjectLiteralTypeGuard({ node })).toBe(true);
+    });
+
+    it('VALID: {intersection containing a data literal} => returns true', () => {
+      const node = TSIntersectionTypeStub({ code: 'let x: T & { a: string };' });
+
+      expect(hasDataObjectLiteralTypeGuard({ node })).toBe(true);
+    });
 
     it('VALID: {union of references only} => returns false', () => {
-      const node = TsestreeStub({
-        type: 'TSUnionType',
-        types: [TsestreeStub({ type: 'TSTypeReference' }), TsestreeStub({ type: 'TSNullKeyword' })],
-      });
+      const node = TSUnionTypeStub({ code: 'let x: T | null;' });
 
       expect(hasDataObjectLiteralTypeGuard({ node })).toBe(false);
     });
 
     it('VALID: {array of data literals} => returns true', () => {
-      const node = TsestreeStub({
-        type: 'TSArrayType',
-        elementType: TsestreeStub({ type: 'TSTypeLiteral', members: [dataMember] }),
-      });
+      const node = TSArrayTypeStub({ code: 'let x: { a: string }[];' });
 
       expect(hasDataObjectLiteralTypeGuard({ node })).toBe(true);
     });
 
     it('VALID: {type annotation wrapping a data literal} => returns true', () => {
-      const node = TsestreeStub({
-        type: 'TSTypeAnnotation',
-        typeAnnotation: TsestreeStub({ type: 'TSTypeLiteral', members: [dataMember] }),
-      });
+      const node = TSTypeAnnotationStub({ code: 'let x: { a: string };' });
 
       expect(hasDataObjectLiteralTypeGuard({ node })).toBe(true);
     });
 
     it('VALID: {readonly operator over a data literal array} => returns true', () => {
-      const node = TsestreeStub({
-        type: 'TSTypeOperator',
-        typeAnnotation: TsestreeStub({
-          type: 'TSArrayType',
-          elementType: TsestreeStub({ type: 'TSTypeLiteral', members: [dataMember] }),
-        }),
-      });
+      const node = TSTypeOperatorStub({ code: 'let x: readonly { a: string }[];' });
 
       expect(hasDataObjectLiteralTypeGuard({ node })).toBe(true);
     });
 
     it('VALID: {Promise of a data literal via typeArguments} => returns true', () => {
-      const node = TsestreeStub({
-        type: 'TSTypeReference',
-        typeArguments: TsestreeStub({
-          type: 'TSTypeParameterInstantiation',
-          params: [TsestreeStub({ type: 'TSTypeLiteral', members: [dataMember] })],
-        }),
-      });
-
-      expect(hasDataObjectLiteralTypeGuard({ node })).toBe(true);
-    });
-
-    it('VALID: {reference carrying typeParameters instead of typeArguments} => returns true', () => {
-      const node = TsestreeStub({
-        type: 'TSTypeReference',
-        typeParameters: TsestreeStub({
-          type: 'TSTypeParameterInstantiation',
-          params: [TsestreeStub({ type: 'TSTypeLiteral', members: [dataMember] })],
-        }),
-      });
+      const node = TSTypeReferenceStub({ code: 'let x: T<{ a: string }>;' });
 
       expect(hasDataObjectLiteralTypeGuard({ node })).toBe(true);
     });
 
     it('VALID: {Promise of a method set} => returns false', () => {
-      const node = TsestreeStub({
-        type: 'TSTypeReference',
-        typeArguments: TsestreeStub({
-          type: 'TSTypeParameterInstantiation',
-          params: [TsestreeStub({ type: 'TSTypeLiteral', members: [methodMember] })],
-        }),
-      });
+      const node = TSTypeReferenceStub({ code: 'let x: T<{ m(): void }>;' });
 
       expect(hasDataObjectLiteralTypeGuard({ node })).toBe(false);
     });
@@ -131,19 +88,13 @@ describe('hasDataObjectLiteralTypeGuard', () => {
 
   describe('non-shape nodes', () => {
     it('VALID: {indexed access type} => returns false', () => {
-      const node = TsestreeStub({ type: 'TSIndexedAccessType' });
+      const node = TSIndexedAccessTypeStub({ code: 'let x: Quest["id"];' });
 
       expect(hasDataObjectLiteralTypeGuard({ node })).toBe(false);
     });
 
     it('VALID: {function type returning a data literal} => returns false', () => {
-      const node = TsestreeStub({
-        type: 'TSFunctionType',
-        returnType: TsestreeStub({
-          type: 'TSTypeAnnotation',
-          typeAnnotation: TsestreeStub({ type: 'TSTypeLiteral', members: [dataMember] }),
-        }),
-      });
+      const node = TSFunctionTypeStub({ code: 'let x: () => { a: string };' });
 
       expect(hasDataObjectLiteralTypeGuard({ node })).toBe(false);
     });

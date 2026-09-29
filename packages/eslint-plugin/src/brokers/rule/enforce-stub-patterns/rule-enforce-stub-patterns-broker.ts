@@ -9,8 +9,8 @@
  */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 import { isAstNodeExportedGuard } from '../../../guards/is-ast-node-exported/is-ast-node-exported-guard';
 import { isAstParamSingleValuePropertyGuard } from '../../../guards/is-ast-param-single-value-property/is-ast-param-single-value-property-guard';
@@ -36,15 +36,15 @@ export const ruleEnforceStubPatternsBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: EslintContext) => {
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
-    const filename = String(ctx.getFilename?.() ?? '');
+    const { filename } = ctx;
     if (!hasFileSuffixGuard({ filename, suffix: 'stub' })) {
       return {};
     }
 
     return {
-      ArrowFunctionExpression: (node: Tsestree): void => {
+      ArrowFunctionExpression: (node: TSESTree.ArrowFunctionExpression): void => {
         // Only check root exported stub functions, not nested arrow functions
         if (!isAstNodeExportedGuard({ node })) {
           return;
@@ -52,23 +52,26 @@ export const ruleEnforceStubPatternsBroker = (): EslintRule => ({
 
         // Skip nested arrow functions (arrow functions inside other functions)
         // Check if any parent is a function-like node before reaching the export
-        let { parent } = node;
-        while (parent !== undefined && parent !== null) {
+        let parent: TSESTree.Node | undefined = node.parent;
+        while (parent) {
           const { type } = parent;
-          if (type === 'ExportNamedDeclaration' || type === 'ExportDefaultDeclaration') {
+          if (
+            type === AST_NODE_TYPES.ExportNamedDeclaration ||
+            type === AST_NODE_TYPES.ExportDefaultDeclaration
+          ) {
             break; // Reached export, this is a top-level export
           }
           if (
-            type === 'ArrowFunctionExpression' ||
-            type === 'FunctionExpression' ||
-            type === 'FunctionDeclaration'
+            type === AST_NODE_TYPES.ArrowFunctionExpression ||
+            type === AST_NODE_TYPES.FunctionExpression ||
+            type === AST_NODE_TYPES.FunctionDeclaration
           ) {
             return; // This is a nested function, skip it
           }
           ({ parent } = parent);
         }
 
-        if (!node.params || node.params.length === 0) {
+        if (node.params.length === 0) {
           return;
         }
 

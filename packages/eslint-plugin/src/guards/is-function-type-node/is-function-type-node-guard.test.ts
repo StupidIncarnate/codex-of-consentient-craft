@@ -1,45 +1,46 @@
+import { TSFunctionTypeStub } from '#gateway/npm/typescript-eslint__utils/ts-function-type/ts-function-type.stub';
+import { TSMethodSignatureStub } from '#gateway/npm/typescript-eslint__utils/ts-method-signature/ts-method-signature.stub';
+import { TSCallSignatureDeclarationStub } from '#gateway/npm/typescript-eslint__utils/ts-call-signature-declaration/ts-call-signature-declaration.stub';
+import { TSConstructSignatureDeclarationStub } from '#gateway/npm/typescript-eslint__utils/ts-construct-signature-declaration/ts-construct-signature-declaration.stub';
+import { TSPropertySignatureStub } from '#gateway/npm/typescript-eslint__utils/ts-property-signature/ts-property-signature.stub';
+import { TSUnionTypeStub } from '#gateway/npm/typescript-eslint__utils/ts-union-type/ts-union-type.stub';
+import { TSIndexSignatureStub } from '#gateway/npm/typescript-eslint__utils/ts-index-signature/ts-index-signature.stub';
 import { isFunctionTypeNodeGuard } from './is-function-type-node-guard';
-import { TsestreeStub } from '../../contracts/tsestree/tsestree.stub';
 
 describe('isFunctionTypeNodeGuard', () => {
   describe('function nodes', () => {
-    it.each([
-      'TSFunctionType',
-      'TSMethodSignature',
-      'TSCallSignatureDeclaration',
-      'TSConstructSignatureDeclaration',
-    ] as const)('VALID: {node type %s} => returns true', (type) => {
-      const node = TsestreeStub({ type });
+    it('VALID: {node type TSFunctionType} => returns true', () => {
+      const node = TSFunctionTypeStub({ code: 'let x: () => void;' });
+
+      expect(isFunctionTypeNodeGuard({ node })).toBe(true);
+    });
+
+    it('VALID: {node type TSMethodSignature} => returns true', () => {
+      const node = TSMethodSignatureStub({ code: 'type T = { m(): void };' });
+
+      expect(isFunctionTypeNodeGuard({ node })).toBe(true);
+    });
+
+    it('VALID: {node type TSCallSignatureDeclaration} => returns true', () => {
+      const node = TSCallSignatureDeclarationStub({ code: 'type T = { (): void };' });
+
+      expect(isFunctionTypeNodeGuard({ node })).toBe(true);
+    });
+
+    it('VALID: {node type TSConstructSignatureDeclaration} => returns true', () => {
+      const node = TSConstructSignatureDeclarationStub({ code: 'type T = { new (): T };' });
 
       expect(isFunctionTypeNodeGuard({ node })).toBe(true);
     });
 
     it('VALID: {property signature typed by a function type} => returns true', () => {
-      const node = TsestreeStub({
-        type: 'TSPropertySignature',
-        typeAnnotation: TsestreeStub({
-          type: 'TSTypeAnnotation',
-          typeAnnotation: TsestreeStub({ type: 'TSFunctionType' }),
-        }),
-      });
+      const node = TSPropertySignatureStub({ code: 'type T = { a: () => void };' });
 
       expect(isFunctionTypeNodeGuard({ node })).toBe(true);
     });
 
     it('VALID: {property typed function | undefined} => returns true', () => {
-      const node = TsestreeStub({
-        type: 'TSPropertySignature',
-        typeAnnotation: TsestreeStub({
-          type: 'TSTypeAnnotation',
-          typeAnnotation: TsestreeStub({
-            type: 'TSUnionType',
-            types: [
-              TsestreeStub({ type: 'TSFunctionType' }),
-              TsestreeStub({ type: 'TSUndefinedKeyword' }),
-            ],
-          }),
-        }),
-      });
+      const node = TSPropertySignatureStub({ code: 'type T = { a: (() => void) | undefined };' });
 
       expect(isFunctionTypeNodeGuard({ node })).toBe(true);
     });
@@ -47,55 +48,31 @@ describe('isFunctionTypeNodeGuard', () => {
 
   describe('data nodes', () => {
     it('VALID: {property typed string} => returns false', () => {
-      const node = TsestreeStub({
-        type: 'TSPropertySignature',
-        typeAnnotation: TsestreeStub({
-          type: 'TSTypeAnnotation',
-          typeAnnotation: TsestreeStub({ type: 'TSStringKeyword' }),
-        }),
-      });
+      const node = TSPropertySignatureStub({ code: 'type T = { a: string };' });
 
       expect(isFunctionTypeNodeGuard({ node })).toBe(false);
     });
 
     it('VALID: {property typed by a named type} => returns false', () => {
-      const node = TsestreeStub({
-        type: 'TSPropertySignature',
-        typeAnnotation: TsestreeStub({
-          type: 'TSTypeAnnotation',
-          typeAnnotation: TsestreeStub({ type: 'TSTypeReference' }),
-        }),
-      });
+      const node = TSPropertySignatureStub({ code: 'type T = { a: T };' });
 
       expect(isFunctionTypeNodeGuard({ node })).toBe(false);
     });
 
     it('VALID: {property typed function | string} => returns false', () => {
-      const node = TsestreeStub({
-        type: 'TSUnionType',
-        types: [
-          TsestreeStub({ type: 'TSFunctionType' }),
-          TsestreeStub({ type: 'TSStringKeyword' }),
-        ],
-      });
+      const node = TSUnionTypeStub({ code: 'let x: (() => void) | string;' });
 
       expect(isFunctionTypeNodeGuard({ node })).toBe(false);
     });
 
     it('VALID: {union of only undefined and null} => returns false', () => {
-      const node = TsestreeStub({
-        type: 'TSUnionType',
-        types: [
-          TsestreeStub({ type: 'TSUndefinedKeyword' }),
-          TsestreeStub({ type: 'TSNullKeyword' }),
-        ],
-      });
+      const node = TSUnionTypeStub({ code: 'let x: undefined | null;' });
 
       expect(isFunctionTypeNodeGuard({ node })).toBe(false);
     });
 
     it('VALID: {index signature} => returns false', () => {
-      const node = TsestreeStub({ type: 'TSIndexSignature' });
+      const node = TSIndexSignatureStub({ code: 'type T = { [key: string]: string };' });
 
       expect(isFunctionTypeNodeGuard({ node })).toBe(false);
     });

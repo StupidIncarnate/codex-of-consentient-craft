@@ -1,14 +1,15 @@
+import { IdentifierStub } from '#gateway/npm/typescript-eslint__utils/identifier/identifier.stub';
+import { ProgramStub } from '#gateway/npm/typescript-eslint__utils/program/program.stub';
+import { TSTypeReferenceStub } from '#gateway/npm/typescript-eslint__utils/ts-type-reference/ts-type-reference.stub';
+import { TSQualifiedNameStub } from '#gateway/npm/typescript-eslint__utils/ts-qualified-name/ts-qualified-name.stub';
 import { isTypePositionLayerBroker } from './is-type-position-layer-broker';
 import { isTypePositionLayerBrokerProxy } from './is-type-position-layer-broker.proxy';
-import { TsestreeStub, TsestreeNodeType } from '../../../contracts/tsestree/tsestree.stub';
 
 describe('isTypePositionLayerBroker', () => {
   describe('type positions', () => {
     it('VALID: {parent: TSTypeReference} => returns true', () => {
       isTypePositionLayerBrokerProxy();
-      const node = TsestreeStub({
-        parent: TsestreeStub({ type: TsestreeNodeType.TSTypeReference }),
-      });
+      const { typeName: node } = TSTypeReferenceStub({ code: 'let x: Buffer;' });
 
       const result = isTypePositionLayerBroker({ node });
 
@@ -17,9 +18,7 @@ describe('isTypePositionLayerBroker', () => {
 
     it('VALID: {parent: TSQualifiedName} => returns true', () => {
       isTypePositionLayerBrokerProxy();
-      const node = TsestreeStub({
-        parent: TsestreeStub({ type: TsestreeNodeType.TSQualifiedName }),
-      });
+      const { left: node } = TSQualifiedNameStub({ code: 'let x: NodeJS.ErrnoException;' });
 
       const result = isTypePositionLayerBroker({ node });
 
@@ -30,9 +29,7 @@ describe('isTypePositionLayerBroker', () => {
   describe('value positions', () => {
     it('INVALID: {parent: MemberExpression} => returns false', () => {
       isTypePositionLayerBrokerProxy();
-      const node = TsestreeStub({
-        parent: TsestreeStub({ type: TsestreeNodeType.MemberExpression }),
-      });
+      const node = IdentifierStub({ code: 'x.b;' });
 
       const result = isTypePositionLayerBroker({ node });
 
@@ -41,7 +38,7 @@ describe('isTypePositionLayerBroker', () => {
 
     it('EMPTY: {no parent} => returns false', () => {
       isTypePositionLayerBrokerProxy();
-      const node = TsestreeStub({ parent: null });
+      const node = ProgramStub({ code: '' });
 
       const result = isTypePositionLayerBroker({ node });
 

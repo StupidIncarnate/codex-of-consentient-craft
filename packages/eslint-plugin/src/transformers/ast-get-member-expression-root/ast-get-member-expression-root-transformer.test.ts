@@ -1,14 +1,11 @@
+import { MemberExpressionStub } from '#gateway/npm/typescript-eslint__utils/member-expression/member-expression.stub';
+import { LiteralStub } from '#gateway/npm/typescript-eslint__utils/literal/literal.stub';
 import { astGetMemberExpressionRootTransformer } from './ast-get-member-expression-root-transformer';
-import { TsestreeStub, TsestreeNodeType } from '../../contracts/tsestree/tsestree.stub';
 
 describe('astGetMemberExpressionRootTransformer', () => {
   describe('single-level member expressions', () => {
     it("VALID: {expr: obj.prop} => returns 'obj'", () => {
-      const expr = TsestreeStub({
-        type: TsestreeNodeType.MemberExpression,
-        object: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'obj' }),
-        property: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'prop' }),
-      });
+      const expr = MemberExpressionStub({ code: 'obj.prop;' });
 
       const result = astGetMemberExpressionRootTransformer({ expr });
 
@@ -16,11 +13,7 @@ describe('astGetMemberExpressionRootTransformer', () => {
     });
 
     it("VALID: {expr: result.files} => returns 'result'", () => {
-      const expr = TsestreeStub({
-        type: TsestreeNodeType.MemberExpression,
-        object: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'result' }),
-        property: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'files' }),
-      });
+      const expr = MemberExpressionStub({ code: 'result.files;' });
 
       const result = astGetMemberExpressionRootTransformer({ expr });
 
@@ -30,15 +23,7 @@ describe('astGetMemberExpressionRootTransformer', () => {
 
   describe('nested member expressions', () => {
     it("VALID: {expr: obj.prop.nested} => returns 'obj'", () => {
-      const expr = TsestreeStub({
-        type: TsestreeNodeType.MemberExpression,
-        object: TsestreeStub({
-          type: TsestreeNodeType.MemberExpression,
-          object: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'obj' }),
-          property: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'prop' }),
-        }),
-        property: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'nested' }),
-      });
+      const expr = MemberExpressionStub({ code: 'obj.prop.nested;' });
 
       const result = astGetMemberExpressionRootTransformer({ expr });
 
@@ -46,15 +31,7 @@ describe('astGetMemberExpressionRootTransformer', () => {
     });
 
     it("VALID: {expr: result.user.name} => returns 'result'", () => {
-      const expr = TsestreeStub({
-        type: TsestreeNodeType.MemberExpression,
-        object: TsestreeStub({
-          type: TsestreeNodeType.MemberExpression,
-          object: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'result' }),
-          property: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'user' }),
-        }),
-        property: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'name' }),
-      });
+      const expr = MemberExpressionStub({ code: 'result.user.name;' });
 
       const result = astGetMemberExpressionRootTransformer({ expr });
 
@@ -62,19 +39,7 @@ describe('astGetMemberExpressionRootTransformer', () => {
     });
 
     it("VALID: {expr: data.user.profile.avatar} => returns 'data'", () => {
-      const expr = TsestreeStub({
-        type: TsestreeNodeType.MemberExpression,
-        object: TsestreeStub({
-          type: TsestreeNodeType.MemberExpression,
-          object: TsestreeStub({
-            type: TsestreeNodeType.MemberExpression,
-            object: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'data' }),
-            property: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'user' }),
-          }),
-          property: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'profile' }),
-        }),
-        property: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'avatar' }),
-      });
+      const expr = MemberExpressionStub({ code: 'data.user.profile.avatar;' });
 
       const result = astGetMemberExpressionRootTransformer({ expr });
 
@@ -96,10 +61,7 @@ describe('astGetMemberExpressionRootTransformer', () => {
     });
 
     it('EMPTY: {expr: non-MemberExpression} => returns null', () => {
-      const expr = TsestreeStub({
-        type: TsestreeNodeType.Literal,
-        value: 'foo',
-      });
+      const expr = LiteralStub({ code: 'const l = "foo";' });
 
       const result = astGetMemberExpressionRootTransformer({ expr });
 
@@ -107,11 +69,7 @@ describe('astGetMemberExpressionRootTransformer', () => {
     });
 
     it('EDGE: {expr: MemberExpression with Identifier root} => returns identifier name', () => {
-      const expr = TsestreeStub({
-        type: TsestreeNodeType.MemberExpression,
-        object: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'root' }),
-        property: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'property' }),
-      });
+      const expr = MemberExpressionStub({ code: 'root.property;' });
 
       const result = astGetMemberExpressionRootTransformer({ expr });
 
@@ -119,38 +77,7 @@ describe('astGetMemberExpressionRootTransformer', () => {
     });
 
     it('EDGE: {expr: MemberExpression with non-Identifier root} => returns null', () => {
-      const expr = TsestreeStub({
-        type: TsestreeNodeType.MemberExpression,
-        object: TsestreeStub({
-          type: TsestreeNodeType.Literal,
-          value: 123,
-        }),
-        property: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'property' }),
-      });
-
-      const result = astGetMemberExpressionRootTransformer({ expr });
-
-      expect(result).toBe(null);
-    });
-
-    it('EDGE: {expr: MemberExpression with object undefined} => returns null', () => {
-      const expr = TsestreeStub({
-        type: TsestreeNodeType.MemberExpression,
-        object: undefined,
-        property: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'property' }),
-      });
-
-      const result = astGetMemberExpressionRootTransformer({ expr });
-
-      expect(result).toBe(null);
-    });
-
-    it('EDGE: {expr: Identifier with no name} => returns null', () => {
-      const expr = TsestreeStub({
-        type: TsestreeNodeType.MemberExpression,
-        object: TsestreeStub({ type: TsestreeNodeType.Identifier, name: undefined }),
-        property: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'property' }),
-      });
+      const expr = MemberExpressionStub({ code: '"text".length;' });
 
       const result = astGetMemberExpressionRootTransformer({ expr });
 

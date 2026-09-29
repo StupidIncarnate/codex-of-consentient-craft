@@ -13,28 +13,29 @@
  * isAstNodeDirectlyInFunctionGuard({ node: callExpressionNode, functionNode: proxyArrowFunctionNode });
  * // Returns true when node.parent chain reaches functionNode before any other function node
  */
-import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
 export const isAstNodeDirectlyInFunctionGuard = ({
   node,
   functionNode,
 }: {
-  node?: Tsestree | undefined;
-  functionNode?: Tsestree | undefined;
+  node?: TSESTree.Node | undefined;
+  functionNode?: TSESTree.Node | undefined;
 }): boolean => {
   if (node === undefined || functionNode === undefined) {
     return false;
   }
 
   let current = node.parent;
-  while (current !== undefined && current !== null) {
+  while (current) {
     if (current === functionNode) {
       return true;
     }
     if (
-      current.type === 'ArrowFunctionExpression' ||
-      current.type === 'FunctionExpression' ||
-      current.type === 'FunctionDeclaration'
+      current.type === AST_NODE_TYPES.ArrowFunctionExpression ||
+      current.type === AST_NODE_TYPES.FunctionExpression ||
+      current.type === AST_NODE_TYPES.FunctionDeclaration
     ) {
       return false;
     }

@@ -18,8 +18,7 @@ import { filePathContract, gatewayLintConfigContract } from '@dungeonmaster/shar
 import { dirname } from '#gateway/node/path';
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { workspaceRootFindBroker } from '../../workspace-root/find/workspace-root-find-broker';
 import { checkGatewaySubpathExistsLayerBroker } from './check-gateway-subpath-exists-layer-broker';
 import { checkGatewayExportNameExistsLayerBroker } from './check-gateway-export-name-exists-layer-broker';
@@ -44,15 +43,15 @@ export const ruleEnforceGatewayConfigNamesExistBroker = (): EslintRule => ({
       schema: [{ type: 'object' }],
     },
   }),
-  create: (context: EslintContext) => {
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
-    const filename = ctx.filename ?? ctx.getFilename?.() ?? '';
+    const { filename } = ctx;
 
     if (!filename.endsWith(ANCHOR_FILE_SUFFIX)) {
       return {};
     }
 
-    const rawOptions = ctx.options?.[0];
+    const [rawOptions] = ctx.options;
     const { bannedExports, restrictedTo } = gatewayLintConfigContract.parse(
       typeof rawOptions === 'object' && rawOptions !== null ? rawOptions : {},
     );
@@ -62,7 +61,7 @@ export const ruleEnforceGatewayConfigNamesExistBroker = (): EslintRule => ({
     }
 
     return {
-      Program: (node: Tsestree): void => {
+      Program: (node: TSESTree.Program): void => {
         const workspaceRoot = workspaceRootFindBroker({
           startDir: filePathContract.parse(dirname(filename)),
         });

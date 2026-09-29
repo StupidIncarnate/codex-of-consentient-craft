@@ -8,7 +8,9 @@
  * WHEN-TO-USE: Registered in @dungeonmaster/local-eslint.
  */
 import { eslintRuleContract } from '@dungeonmaster/eslint-plugin';
-import type { EslintRule, EslintContext, Tsestree } from '@dungeonmaster/eslint-plugin';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
+import type { EslintRule } from '@dungeonmaster/eslint-plugin';
 import { isBanSyncSeedingMethodsScopeFileGuard } from '../../../guards/is-ban-sync-seeding-methods-scope-file/is-ban-sync-seeding-methods-scope-file-guard';
 import { banSyncSeedingMethodsStatics } from '../../../statics/ban-sync-seeding-methods/ban-sync-seeding-methods-statics';
 
@@ -26,29 +28,26 @@ export const ruleBanSyncSeedingMethodsBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: unknown) => {
-    const ctx = context as EslintContext;
-    const filename = ctx.filename ?? ctx.getFilename?.() ?? '';
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
+    const ctx = context;
+    const { filename } = ctx;
 
-    if (!isBanSyncSeedingMethodsScopeFileGuard({ filename: String(filename) })) {
+    if (!isBanSyncSeedingMethodsScopeFileGuard({ filename })) {
       return {};
     }
 
     return {
-      Property: (node: Tsestree): void => {
-        if (!node.key || node.key.type !== 'Identifier' || typeof node.key.name !== 'string') {
+      Property: (node: TSESTree.Property): void => {
+        if (node.key.type !== AST_NODE_TYPES.Identifier) {
           return;
         }
 
-        const methodName = String(node.key.name);
-        if (!node.value) {
-          return;
-        }
+        const methodName = node.key.name;
 
-        const valueNode = node.value as Record<PropertyKey, unknown>;
+        const valueNode = node.value;
         if (
-          valueNode.type !== 'FunctionExpression' &&
-          valueNode.type !== 'ArrowFunctionExpression'
+          valueNode.type !== AST_NODE_TYPES.FunctionExpression &&
+          valueNode.type !== AST_NODE_TYPES.ArrowFunctionExpression
         ) {
           return;
         }
@@ -60,23 +59,13 @@ export const ruleBanSyncSeedingMethodsBroker = (): EslintRule => ({
           return;
         }
 
-        const isAsync = valueNode.async === true;
-        let returnsPromise = false;
+        const typeAnnotation = valueNode.returnType?.typeAnnotation;
+        const returnsPromise =
+          typeAnnotation?.type === AST_NODE_TYPES.TSTypeReference &&
+          typeAnnotation.typeName.type === AST_NODE_TYPES.Identifier &&
+          typeAnnotation.typeName.name === 'Promise';
 
-        const returnType = valueNode.returnType as Record<PropertyKey, unknown> | undefined;
-        const typeAnnotation = returnType?.typeAnnotation as
-          Record<PropertyKey, unknown> | undefined;
-        const typeName = typeAnnotation?.typeName as Record<PropertyKey, unknown> | undefined;
-
-        if (
-          typeAnnotation?.type === 'TSTypeReference' &&
-          typeName?.type === 'Identifier' &&
-          typeName.name === 'Promise'
-        ) {
-          returnsPromise = true;
-        }
-
-        if (!isAsync && !returnsPromise) {
+        if (!valueNode.async && !returnsPromise) {
           ctx.report({
             node,
             messageId: 'syncSeeding',
@@ -86,18 +75,15 @@ export const ruleBanSyncSeedingMethodsBroker = (): EslintRule => ({
           });
         }
       },
-      MethodDefinition: (node: Tsestree): void => {
-        if (!node.key || node.key.type !== 'Identifier' || typeof node.key.name !== 'string') {
+      MethodDefinition: (node: TSESTree.MethodDefinition): void => {
+        if (node.key.type !== AST_NODE_TYPES.Identifier) {
           return;
         }
 
-        const methodName = String(node.key.name);
-        if (!node.value) {
-          return;
-        }
+        const methodName = node.key.name;
 
-        const valueNode = node.value as Record<PropertyKey, unknown>;
-        if (valueNode.type !== 'FunctionExpression') {
+        const valueNode = node.value;
+        if (valueNode.type !== AST_NODE_TYPES.FunctionExpression) {
           return;
         }
 
@@ -108,23 +94,13 @@ export const ruleBanSyncSeedingMethodsBroker = (): EslintRule => ({
           return;
         }
 
-        const isAsync = valueNode.async === true;
-        let returnsPromise = false;
+        const typeAnnotation = valueNode.returnType?.typeAnnotation;
+        const returnsPromise =
+          typeAnnotation?.type === AST_NODE_TYPES.TSTypeReference &&
+          typeAnnotation.typeName.type === AST_NODE_TYPES.Identifier &&
+          typeAnnotation.typeName.name === 'Promise';
 
-        const returnType = valueNode.returnType as Record<PropertyKey, unknown> | undefined;
-        const typeAnnotation = returnType?.typeAnnotation as
-          Record<PropertyKey, unknown> | undefined;
-        const typeName = typeAnnotation?.typeName as Record<PropertyKey, unknown> | undefined;
-
-        if (
-          typeAnnotation?.type === 'TSTypeReference' &&
-          typeName?.type === 'Identifier' &&
-          typeName.name === 'Promise'
-        ) {
-          returnsPromise = true;
-        }
-
-        if (!isAsync && !returnsPromise) {
+        if (!valueNode.async && !returnsPromise) {
           ctx.report({
             node,
             messageId: 'syncSeeding',

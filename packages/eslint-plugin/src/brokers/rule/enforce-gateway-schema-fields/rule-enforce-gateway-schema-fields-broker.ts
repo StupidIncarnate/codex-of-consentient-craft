@@ -21,13 +21,13 @@
  * // type alone.
  */
 import { identifierContract } from '@dungeonmaster/shared/contracts';
-import type { Identifier } from '@dungeonmaster/shared/contracts';
+
 import { filePathContract } from '../../../contracts/file-path/file-path-contract';
 import type { FilePath } from '../../../contracts/file-path/file-path-contract';
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isFileInFolderTypeGuard } from '../../../guards/is-file-in-folder-type/is-file-in-folder-type-guard';
 import { isAstMethodCallGuard } from '../../../guards/is-ast-method-call/is-ast-method-call-guard';
 
@@ -46,9 +46,9 @@ export const ruleEnforceGatewaySchemaFieldsBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: EslintContext) => {
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
-    const filename = ctx.filename ?? ctx.getFilename?.() ?? '';
+    const { filename } = ctx;
 
     if (!isFileInFolderTypeGuard({ filename, folderType: 'contracts', suffix: 'contract' })) {
       return {};
@@ -56,27 +56,23 @@ export const ruleEnforceGatewaySchemaFieldsBroker = (): EslintRule => ({
 
     // Populated by every ImportDeclaration before a later CallExpression reads it — imports are
     // always syntactically ahead of their usage, so one forward pass over the file is enough.
-    const importSourceByLocalName = new Map<Identifier, FilePath>();
+    const importSourceByLocalName = new Map<string, FilePath>();
 
     return {
-      ImportDeclaration: (node: Tsestree): void => {
-        const sourceValue = typeof node.source?.value === 'string' ? node.source.value : undefined;
+      ImportDeclaration: (node: TSESTree.ImportDeclaration): void => {
+        const sourceValue = typeof node.source.value === 'string' ? node.source.value : undefined;
         if (sourceValue === undefined) {
           return;
         }
 
         const importSource = filePathContract.parse(sourceValue);
 
-        for (const specifier of node.specifiers ?? []) {
-          const localName =
-            specifier.local?.type === 'Identifier' ? specifier.local.name : undefined;
-          if (localName !== undefined) {
-            importSourceByLocalName.set(localName, importSource);
-          }
+        for (const specifier of node.specifiers) {
+          importSourceByLocalName.set(specifier.local.name, importSource);
         }
       },
 
-      CallExpression: (node: Tsestree): void => {
+      CallExpression: (node: TSESTree.CallExpression): void => {
         const isCustomCall = isAstMethodCallGuard({ node, object: 'z', method: 'custom' });
         const isInstanceofCall = isAstMethodCallGuard({ node, object: 'z', method: 'instanceof' });
 
@@ -86,16 +82,16 @@ export const ruleEnforceGatewaySchemaFieldsBroker = (): EslintRule => ({
 
         // z.custom<T>(...) — the checked type is T, the first type argument.
         // z.instanceof(X) — the checked type is X, the first value argument (a class reference).
-        const typeArgs = node.typeArguments ?? node.typeParameters;
-        const firstTypeParam = typeArgs?.params?.[0];
-        const firstValueArg = node.arguments?.[0];
+        const typeArgs = node.typeArguments;
+        const firstTypeParam = typeArgs?.params[0];
+        const [firstValueArg] = node.arguments;
 
         const checkedTypeName = isCustomCall
-          ? firstTypeParam?.type === 'TSTypeReference' &&
-            firstTypeParam.typeName?.type === 'Identifier'
+          ? firstTypeParam?.type === AST_NODE_TYPES.TSTypeReference &&
+            firstTypeParam.typeName.type === AST_NODE_TYPES.Identifier
             ? firstTypeParam.typeName.name
             : undefined
-          : firstValueArg?.type === 'Identifier'
+          : firstValueArg?.type === AST_NODE_TYPES.Identifier
             ? firstValueArg.name
             : undefined;
 
@@ -120,20 +116,20 @@ export const ruleEnforceGatewaySchemaFieldsBroker = (): EslintRule => ({
         // to the nearest enclosing object-literal Property this call is the VALUE of — never
         // diving into a sibling z.object(...)'s own shape, since that call gets its own
         // independent visit from this same listener.
-        let current: Tsestree = node;
+        let current: TSESTree.Node = node;
         // Sentinel: unchanged (`=== node`) after the walk means no enclosing Property was found.
-        let propertyNode: Tsestree = node;
-        let { parent } = current;
+        let propertyNode: TSESTree.Node = node;
+        let { parent }: { parent: TSESTree.Node | undefined } = current;
 
         while (parent) {
-          if (parent.type === 'Property' && (parent.value as Tsestree | undefined) === current) {
+          if (parent.type === AST_NODE_TYPES.Property && parent.value === current) {
             propertyNode = parent;
             break;
           }
 
           const staysInChain =
-            (parent.type === 'MemberExpression' && parent.object === current) ||
-            (parent.type === 'CallExpression' && parent.callee === current);
+            (parent.type === AST_NODE_TYPES.MemberExpression && parent.object === current) ||
+            (parent.type === AST_NODE_TYPES.CallExpression && parent.callee === current);
 
           if (!staysInChain) {
             break;
@@ -147,26 +143,28 @@ export const ruleEnforceGatewaySchemaFieldsBroker = (): EslintRule => ({
           return;
         }
 
-        const objectExpr = propertyNode.parent ?? undefined;
-        if (objectExpr?.type !== 'ObjectExpression') {
+        const objectExpr = propertyNode.parent;
+        if (objectExpr.type !== AST_NODE_TYPES.ObjectExpression) {
           return;
         }
 
-        const objectCall = objectExpr.parent ?? undefined;
+        const objectCall = objectExpr.parent;
         const isZodObjectShape =
-          objectCall !== undefined &&
           isAstMethodCallGuard({ node: objectCall, object: 'z', method: 'object' }) &&
-          objectCall.arguments?.[0] === objectExpr;
+          (objectCall.type === AST_NODE_TYPES.CallExpression ||
+          objectCall.type === AST_NODE_TYPES.NewExpression
+            ? objectCall.arguments[0]
+            : undefined) === objectExpr;
 
         if (!isZodObjectShape) {
           return;
         }
 
-        const { key } = propertyNode;
+        const key = propertyNode.type === AST_NODE_TYPES.Property ? propertyNode.key : undefined;
         const keyName =
-          key?.type === 'Identifier' && key.name !== undefined
+          key?.type === AST_NODE_TYPES.Identifier
             ? key.name
-            : key?.type === 'Literal' && typeof key.value === 'string'
+            : key?.type === AST_NODE_TYPES.Literal && typeof key.value === 'string'
               ? key.value
               : '<computed>';
 

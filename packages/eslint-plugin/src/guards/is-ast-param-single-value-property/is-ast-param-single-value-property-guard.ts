@@ -8,36 +8,40 @@
  * }
  * // Returns true if first param is ObjectPattern with single 'value' property
  */
-import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
 export const isAstParamSingleValuePropertyGuard = ({
   funcNode,
 }: {
-  funcNode?: Tsestree;
+  funcNode?: TSESTree.Node;
 }): boolean => {
-  if (!funcNode?.params || funcNode.params.length === 0) {
+  if (
+    !(funcNode && 'params' in funcNode) ||
+    ('params' in funcNode && funcNode.params.length === 0)
+  ) {
     return false;
   }
 
-  const [firstParam] = funcNode.params;
+  const [firstParam] = 'params' in funcNode ? funcNode.params : [];
   if (!firstParam) {
     return false;
   }
 
   // Handle both ObjectPattern and AssignmentPattern wrapping ObjectPattern
   const pattern =
-    firstParam.type === 'ObjectPattern'
+    firstParam.type === AST_NODE_TYPES.ObjectPattern
       ? firstParam
-      : firstParam.type === 'AssignmentPattern' && firstParam.left
+      : firstParam.type === AST_NODE_TYPES.AssignmentPattern
         ? firstParam.left
         : null;
 
-  if (!pattern || pattern.type !== 'ObjectPattern') {
+  if (!pattern || pattern.type !== AST_NODE_TYPES.ObjectPattern) {
     return false;
   }
 
   const { properties } = pattern;
-  if (!properties || properties.length !== 1) {
+  if (properties.length !== 1) {
     return false;
   }
 
@@ -47,5 +51,9 @@ export const isAstParamSingleValuePropertyGuard = ({
   }
 
   // Check if it's a single property named 'value'
-  return prop.type === 'Property' && prop.key?.type === 'Identifier' && prop.key.name === 'value';
+  return (
+    prop.type === AST_NODE_TYPES.Property &&
+    prop.key.type === AST_NODE_TYPES.Identifier &&
+    prop.key.name === 'value'
+  );
 };

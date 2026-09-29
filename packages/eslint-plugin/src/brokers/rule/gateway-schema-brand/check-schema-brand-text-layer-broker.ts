@@ -12,39 +12,42 @@
  * // literal does not read '#GatewayChildProcess'
  */
 import { adapterResultContract, type AdapterResult } from '@dungeonmaster/shared/contracts';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
 export const checkSchemaBrandTextLayerBroker = ({
   node,
   context,
 }: {
-  node: Tsestree;
-  context: EslintContext;
+  node: TSESTree.CallExpression;
+  context: TSESLint.RuleContext<string, unknown[]>;
 }): AdapterResult => {
   const result = adapterResultContract.parse({ success: true });
-  const receiver = node.callee?.type === 'MemberExpression' ? node.callee.object : undefined;
+  const receiver =
+    node.callee.type === AST_NODE_TYPES.MemberExpression ? node.callee.object : undefined;
 
-  if (receiver?.type !== 'CallExpression') {
+  if (receiver?.type !== AST_NODE_TYPES.CallExpression) {
     return result;
   }
 
   const receiverCallee = receiver.callee;
   const receiverProperty =
-    receiverCallee?.type === 'MemberExpression' && receiverCallee.property?.type === 'Identifier'
+    receiverCallee.type === AST_NODE_TYPES.MemberExpression &&
+    receiverCallee.property.type === AST_NODE_TYPES.Identifier
       ? receiverCallee.property.name
       : undefined;
 
   const typeName = (() => {
     if (receiverProperty === 'instanceof') {
-      const [classArg] = receiver.arguments ?? [];
-      return classArg?.type === 'Identifier' ? classArg.name : undefined;
+      const [classArg] = receiver.arguments;
+      return classArg?.type === AST_NODE_TYPES.Identifier ? classArg.name : undefined;
     }
 
     if (receiverProperty === 'custom') {
-      const typeArgs = receiver.typeArguments ?? receiver.typeParameters;
-      const firstParam = typeArgs?.params?.[0];
-      return firstParam?.type === 'TSTypeReference' && firstParam.typeName?.type === 'Identifier'
+      const typeArgs = receiver.typeArguments;
+      const firstParam = typeArgs?.params[0];
+      return firstParam?.type === AST_NODE_TYPES.TSTypeReference &&
+        firstParam.typeName.type === AST_NODE_TYPES.Identifier
         ? firstParam.typeName.name
         : undefined;
     }
@@ -56,10 +59,10 @@ export const checkSchemaBrandTextLayerBroker = ({
     return result;
   }
 
-  const brandTypeArgs = node.typeArguments ?? node.typeParameters;
-  const brandParam = brandTypeArgs?.params?.[0];
-  const brandLiteral = brandParam?.type === 'TSLiteralType' ? brandParam.literal : undefined;
-  const brandText = brandLiteral?.type === 'Literal' ? brandLiteral.value : undefined;
+  const brandParam = node.typeArguments?.params[0];
+  const brandLiteral =
+    brandParam?.type === AST_NODE_TYPES.TSLiteralType ? brandParam.literal : undefined;
+  const brandText = brandLiteral?.type === AST_NODE_TYPES.Literal ? brandLiteral.value : undefined;
 
   if (typeof brandText !== 'string') {
     return result;

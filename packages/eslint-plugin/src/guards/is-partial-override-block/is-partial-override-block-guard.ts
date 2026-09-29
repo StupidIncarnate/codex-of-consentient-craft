@@ -11,15 +11,15 @@
  * // Returns true for `{ a?: Host['a']; b?: Host['b'] }`, false once any member is required
  * // or once the block carries a member that is not indexed off that host
  */
-import { tsestreeNodeTypeStatics } from '../../statics/tsestree-node-type/tsestree-node-type-statics';
-import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
 export const isPartialOverrideBlockGuard = ({
   block,
   hostCount,
   distinctPropertyCount,
 }: {
-  block?: Tsestree;
+  block?: TSESTree.Node;
   hostCount?: number;
   distinctPropertyCount?: number;
 }): boolean => {
@@ -28,8 +28,12 @@ export const isPartialOverrideBlockGuard = ({
   }
 
   // A TSTypeLiteral carries its members on `members`; a TSInterfaceBody carries them on `body`.
-  const blockBody = Array.isArray(block.body) ? block.body : undefined;
-  const members = block.members ?? blockBody;
+  const members =
+    block.type === AST_NODE_TYPES.TSTypeLiteral
+      ? block.members
+      : block.type === AST_NODE_TYPES.TSInterfaceBody
+        ? block.body
+        : undefined;
   if (members === undefined) {
     return false;
   }
@@ -38,9 +42,7 @@ export const isPartialOverrideBlockGuard = ({
   // describing something the caller must supply in full, which is a parameter list rather than an
   // override bag.
   const allOptional = members.every(
-    (member) =>
-      member.type === tsestreeNodeTypeStatics.nodeTypes.TSPropertySignature &&
-      member.optional === true,
+    (member) => member.type === AST_NODE_TYPES.TSPropertySignature && member.optional,
   );
 
   // And the host must account for ALL of them. A block mixing `Host['a']` with an unrelated field

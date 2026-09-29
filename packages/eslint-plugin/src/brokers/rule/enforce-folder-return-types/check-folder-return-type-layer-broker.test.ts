@@ -1,7 +1,8 @@
+import { RuleContextStub } from '#gateway/npm/typescript-eslint__utils/rule-context/rule-context.stub';
+import { CallExpressionStub } from '#gateway/npm/typescript-eslint__utils/call-expression/call-expression.stub';
+import { ArrowFunctionExpressionStub } from '#gateway/npm/typescript-eslint__utils/arrow-function-expression/arrow-function-expression.stub';
 import { checkFolderReturnTypeLayerBroker } from './check-folder-return-type-layer-broker';
 import { checkFolderReturnTypeLayerBrokerProxy } from './check-folder-return-type-layer-broker.proxy';
-import { EslintContextStub } from '../../../contracts/eslint-context/eslint-context.stub';
-import { TsestreeStub, TsestreeNodeType } from '../../../contracts/tsestree/tsestree.stub';
 import { FilePathStub } from '@dungeonmaster/shared/contracts/file-path/file-path.stub';
 
 describe('checkFolderReturnTypeLayerBroker', () => {
@@ -9,32 +10,10 @@ describe('checkFolderReturnTypeLayerBroker', () => {
     it('INVALID: void return discards a real value from a broker call => reports folderVoidReturn', () => {
       const proxy = checkFolderReturnTypeLayerBrokerProxy();
       const mockReport = jest.fn();
-      const ctx = EslintContextStub({ report: mockReport });
-      const callee = TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'otherBroker' });
-      const callNode = TsestreeStub({
-        type: TsestreeNodeType.CallExpression,
-        callee,
-        arguments: [],
-      });
-      const node = TsestreeStub({
-        type: TsestreeNodeType.ArrowFunctionExpression,
-        returnType: TsestreeStub({
-          type: TsestreeNodeType.TSTypeAnnotation,
-          typeAnnotation: TsestreeStub({ type: TsestreeNodeType.TSVoidKeyword }),
-        }),
-        body: TsestreeStub({
-          type: TsestreeNodeType.BlockStatement,
-          body: [
-            TsestreeStub({
-              type: TsestreeNodeType.ExpressionStatement,
-              expression: TsestreeStub({
-                type: TsestreeNodeType.AwaitExpression,
-                argument: callNode,
-              }),
-            }),
-          ],
-        }),
-      });
+      const ctx = RuleContextStub({ report: mockReport });
+      const code = 'const f = (): void => { await otherBroker(); };';
+      const callNode = CallExpressionStub({ code });
+      const node = ArrowFunctionExpressionStub({ code });
 
       proxy.setupDeclaredReturn({ node, isVoidLike: true });
       proxy.setupCallDeclarationFile({
@@ -62,29 +41,10 @@ describe('checkFolderReturnTypeLayerBroker', () => {
     it('VALID: void return, discarded broker call also returns void => does not report', () => {
       const proxy = checkFolderReturnTypeLayerBrokerProxy();
       const mockReport = jest.fn();
-      const ctx = EslintContextStub({ report: mockReport });
-      const callee = TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'doNothingBroker' });
-      const callNode = TsestreeStub({
-        type: TsestreeNodeType.CallExpression,
-        callee,
-        arguments: [],
-      });
-      const node = TsestreeStub({
-        type: TsestreeNodeType.ArrowFunctionExpression,
-        returnType: TsestreeStub({
-          type: TsestreeNodeType.TSTypeAnnotation,
-          typeAnnotation: TsestreeStub({ type: TsestreeNodeType.TSVoidKeyword }),
-        }),
-        body: TsestreeStub({
-          type: TsestreeNodeType.BlockStatement,
-          body: [
-            TsestreeStub({
-              type: TsestreeNodeType.ExpressionStatement,
-              expression: callNode,
-            }),
-          ],
-        }),
-      });
+      const ctx = RuleContextStub({ report: mockReport });
+      const code = 'const f = (): void => { doNothingBroker(); };';
+      const callNode = CallExpressionStub({ code });
+      const node = ArrowFunctionExpressionStub({ code });
 
       proxy.setupDeclaredReturn({ node, isVoidLike: true });
       proxy.setupCallDeclarationFile({
@@ -107,15 +67,8 @@ describe('checkFolderReturnTypeLayerBroker', () => {
     it('VALID: void return with no discarded calls at all => does not report', () => {
       const proxy = checkFolderReturnTypeLayerBrokerProxy();
       const mockReport = jest.fn();
-      const ctx = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({
-        type: TsestreeNodeType.ArrowFunctionExpression,
-        returnType: TsestreeStub({
-          type: TsestreeNodeType.TSTypeAnnotation,
-          typeAnnotation: TsestreeStub({ type: TsestreeNodeType.TSVoidKeyword }),
-        }),
-        body: TsestreeStub({ type: TsestreeNodeType.BlockStatement, body: [] }),
-      });
+      const ctx = RuleContextStub({ report: mockReport });
+      const node = ArrowFunctionExpressionStub({ code: 'const f = (): void => {  };' });
 
       proxy.setupDeclaredReturn({ node, isVoidLike: true });
 
@@ -131,39 +84,10 @@ describe('checkFolderReturnTypeLayerBroker', () => {
     it('INVALID: Promise<void> return discards a real value from a gateway call => reports folderPromiseVoidReturn', () => {
       const proxy = checkFolderReturnTypeLayerBrokerProxy();
       const mockReport = jest.fn();
-      const ctx = EslintContextStub({ report: mockReport });
-      const callee = TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'statIfExists' });
-      const callNode = TsestreeStub({
-        type: TsestreeNodeType.CallExpression,
-        callee,
-        arguments: [],
-      });
-      const node = TsestreeStub({
-        type: TsestreeNodeType.ArrowFunctionExpression,
-        returnType: TsestreeStub({
-          type: TsestreeNodeType.TSTypeAnnotation,
-          typeAnnotation: TsestreeStub({
-            type: TsestreeNodeType.TSTypeReference,
-            typeName: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'Promise' }),
-            typeArguments: TsestreeStub({
-              type: TsestreeNodeType.TSTypeParameterInstantiation,
-              params: [TsestreeStub({ type: TsestreeNodeType.TSVoidKeyword })],
-            }),
-          }),
-        }),
-        body: TsestreeStub({
-          type: TsestreeNodeType.BlockStatement,
-          body: [
-            TsestreeStub({
-              type: TsestreeNodeType.ExpressionStatement,
-              expression: TsestreeStub({
-                type: TsestreeNodeType.AwaitExpression,
-                argument: callNode,
-              }),
-            }),
-          ],
-        }),
-      });
+      const ctx = RuleContextStub({ report: mockReport });
+      const code = 'const f = (): Promise<void> => { await statIfExists(); };';
+      const callNode = CallExpressionStub({ code });
+      const node = ArrowFunctionExpressionStub({ code });
 
       proxy.setupDeclaredReturn({ node, isVoidLike: true });
       proxy.setupCallDeclarationFile({
@@ -191,39 +115,10 @@ describe('checkFolderReturnTypeLayerBroker', () => {
     it('VALID: Promise<void> return, discarded gateway call also returns void => does not report', () => {
       const proxy = checkFolderReturnTypeLayerBrokerProxy();
       const mockReport = jest.fn();
-      const ctx = EslintContextStub({ report: mockReport });
-      const callee = TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'unlinkIfExists' });
-      const callNode = TsestreeStub({
-        type: TsestreeNodeType.CallExpression,
-        callee,
-        arguments: [],
-      });
-      const node = TsestreeStub({
-        type: TsestreeNodeType.ArrowFunctionExpression,
-        returnType: TsestreeStub({
-          type: TsestreeNodeType.TSTypeAnnotation,
-          typeAnnotation: TsestreeStub({
-            type: TsestreeNodeType.TSTypeReference,
-            typeName: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'Promise' }),
-            typeArguments: TsestreeStub({
-              type: TsestreeNodeType.TSTypeParameterInstantiation,
-              params: [TsestreeStub({ type: TsestreeNodeType.TSVoidKeyword })],
-            }),
-          }),
-        }),
-        body: TsestreeStub({
-          type: TsestreeNodeType.BlockStatement,
-          body: [
-            TsestreeStub({
-              type: TsestreeNodeType.ExpressionStatement,
-              expression: TsestreeStub({
-                type: TsestreeNodeType.AwaitExpression,
-                argument: callNode,
-              }),
-            }),
-          ],
-        }),
-      });
+      const ctx = RuleContextStub({ report: mockReport });
+      const code = 'const f = (): Promise<void> => { await unlinkIfExists(); };';
+      const callNode = CallExpressionStub({ code });
+      const node = ArrowFunctionExpressionStub({ code });
 
       proxy.setupDeclaredReturn({ node, isVoidLike: true });
       proxy.setupCallDeclarationFile({
@@ -247,32 +142,10 @@ describe('checkFolderReturnTypeLayerBroker', () => {
     it('INVALID: single-value return type discards a real value => reports folderDisguisedVoidReturn', () => {
       const proxy = checkFolderReturnTypeLayerBrokerProxy();
       const mockReport = jest.fn();
-      const ctx = EslintContextStub({ report: mockReport });
-      const callee = TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'otherBroker' });
-      const callNode = TsestreeStub({
-        type: TsestreeNodeType.CallExpression,
-        callee,
-        arguments: [],
-      });
-      const node = TsestreeStub({
-        type: TsestreeNodeType.ArrowFunctionExpression,
-        returnType: TsestreeStub({
-          type: TsestreeNodeType.TSTypeAnnotation,
-          typeAnnotation: TsestreeStub({
-            type: TsestreeNodeType.TSTypeReference,
-            typeName: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'AdapterResult' }),
-          }),
-        }),
-        body: TsestreeStub({
-          type: TsestreeNodeType.BlockStatement,
-          body: [
-            TsestreeStub({
-              type: TsestreeNodeType.ExpressionStatement,
-              expression: callNode,
-            }),
-          ],
-        }),
-      });
+      const ctx = RuleContextStub({ report: mockReport });
+      const code = 'const f = (): AdapterResult => { otherBroker(); };';
+      const callNode = CallExpressionStub({ code });
+      const node = ArrowFunctionExpressionStub({ code });
 
       proxy.setupDeclaredReturn({ node, isVoidLike: true });
       proxy.setupCallDeclarationFile({
@@ -300,32 +173,10 @@ describe('checkFolderReturnTypeLayerBroker', () => {
     it('VALID: single-value return type, discarded call also void-like => does not report', () => {
       const proxy = checkFolderReturnTypeLayerBrokerProxy();
       const mockReport = jest.fn();
-      const ctx = EslintContextStub({ report: mockReport });
-      const callee = TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'doNothingBroker' });
-      const callNode = TsestreeStub({
-        type: TsestreeNodeType.CallExpression,
-        callee,
-        arguments: [],
-      });
-      const node = TsestreeStub({
-        type: TsestreeNodeType.ArrowFunctionExpression,
-        returnType: TsestreeStub({
-          type: TsestreeNodeType.TSTypeAnnotation,
-          typeAnnotation: TsestreeStub({
-            type: TsestreeNodeType.TSTypeReference,
-            typeName: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'AdapterResult' }),
-          }),
-        }),
-        body: TsestreeStub({
-          type: TsestreeNodeType.BlockStatement,
-          body: [
-            TsestreeStub({
-              type: TsestreeNodeType.ExpressionStatement,
-              expression: callNode,
-            }),
-          ],
-        }),
-      });
+      const ctx = RuleContextStub({ report: mockReport });
+      const code = 'const f = (): AdapterResult => { doNothingBroker(); };';
+      const callNode = CallExpressionStub({ code });
+      const node = ArrowFunctionExpressionStub({ code });
 
       proxy.setupDeclaredReturn({ node, isVoidLike: true });
       proxy.setupCallDeclarationFile({
@@ -348,29 +199,10 @@ describe('checkFolderReturnTypeLayerBroker', () => {
     it('VALID: void return, discarded call declared outside brokers/gateway => does not report', () => {
       const proxy = checkFolderReturnTypeLayerBrokerProxy();
       const mockReport = jest.fn();
-      const ctx = EslintContextStub({ report: mockReport });
-      const callee = TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'formatQuestId' });
-      const callNode = TsestreeStub({
-        type: TsestreeNodeType.CallExpression,
-        callee,
-        arguments: [],
-      });
-      const node = TsestreeStub({
-        type: TsestreeNodeType.ArrowFunctionExpression,
-        returnType: TsestreeStub({
-          type: TsestreeNodeType.TSTypeAnnotation,
-          typeAnnotation: TsestreeStub({ type: TsestreeNodeType.TSVoidKeyword }),
-        }),
-        body: TsestreeStub({
-          type: TsestreeNodeType.BlockStatement,
-          body: [
-            TsestreeStub({
-              type: TsestreeNodeType.ExpressionStatement,
-              expression: callNode,
-            }),
-          ],
-        }),
-      });
+      const ctx = RuleContextStub({ report: mockReport });
+      const code = 'const f = (): void => { formatQuestId(); };';
+      const callNode = CallExpressionStub({ code });
+      const node = ArrowFunctionExpressionStub({ code });
 
       proxy.setupDeclaredReturn({ node, isVoidLike: true });
       proxy.setupCallDeclarationFile({
@@ -392,29 +224,10 @@ describe('checkFolderReturnTypeLayerBroker', () => {
     it('VALID: void return, discarded call whose declaration file cannot be resolved => does not report', () => {
       const proxy = checkFolderReturnTypeLayerBrokerProxy();
       const mockReport = jest.fn();
-      const ctx = EslintContextStub({ report: mockReport });
-      const callee = TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'unresolvedCall' });
-      const callNode = TsestreeStub({
-        type: TsestreeNodeType.CallExpression,
-        callee,
-        arguments: [],
-      });
-      const node = TsestreeStub({
-        type: TsestreeNodeType.ArrowFunctionExpression,
-        returnType: TsestreeStub({
-          type: TsestreeNodeType.TSTypeAnnotation,
-          typeAnnotation: TsestreeStub({ type: TsestreeNodeType.TSVoidKeyword }),
-        }),
-        body: TsestreeStub({
-          type: TsestreeNodeType.BlockStatement,
-          body: [
-            TsestreeStub({
-              type: TsestreeNodeType.ExpressionStatement,
-              expression: callNode,
-            }),
-          ],
-        }),
-      });
+      const ctx = RuleContextStub({ report: mockReport });
+      const code = 'const f = (): void => { unresolvedCall(); };';
+      const callNode = CallExpressionStub({ code });
+      const node = ArrowFunctionExpressionStub({ code });
 
       proxy.setupDeclaredReturn({ node, isVoidLike: true });
       proxy.setupCallDeclarationFile({ callNode, declarationFile: undefined });
@@ -431,31 +244,9 @@ describe('checkFolderReturnTypeLayerBroker', () => {
     it('VALID: void return, discarded MemberExpression call (array.push) => does not report', () => {
       const proxy = checkFolderReturnTypeLayerBrokerProxy();
       const mockReport = jest.fn();
-      const ctx = EslintContextStub({ report: mockReport });
-      const callNode = TsestreeStub({
-        type: TsestreeNodeType.CallExpression,
-        callee: TsestreeStub({
-          type: TsestreeNodeType.MemberExpression,
-          object: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'items' }),
-          property: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'push' }),
-        }),
-        arguments: [],
-      });
-      const node = TsestreeStub({
-        type: TsestreeNodeType.ArrowFunctionExpression,
-        returnType: TsestreeStub({
-          type: TsestreeNodeType.TSTypeAnnotation,
-          typeAnnotation: TsestreeStub({ type: TsestreeNodeType.TSVoidKeyword }),
-        }),
-        body: TsestreeStub({
-          type: TsestreeNodeType.BlockStatement,
-          body: [
-            TsestreeStub({
-              type: TsestreeNodeType.ExpressionStatement,
-              expression: callNode,
-            }),
-          ],
-        }),
+      const ctx = RuleContextStub({ report: mockReport });
+      const node = ArrowFunctionExpressionStub({
+        code: 'const f = (): void => { items.push(); };',
       });
 
       proxy.setupDeclaredReturn({ node, isVoidLike: true });
@@ -474,15 +265,8 @@ describe('checkFolderReturnTypeLayerBroker', () => {
     it('VALID: proxy file returning void => does not report (R1 skipped for proxy files)', () => {
       checkFolderReturnTypeLayerBrokerProxy();
       const mockReport = jest.fn();
-      const ctx = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({
-        type: TsestreeNodeType.ArrowFunctionExpression,
-        returnType: TsestreeStub({
-          type: TsestreeNodeType.TSTypeAnnotation,
-          typeAnnotation: TsestreeStub({ type: TsestreeNodeType.TSVoidKeyword }),
-        }),
-        body: TsestreeStub({ type: TsestreeNodeType.BlockStatement, body: [] }),
-      });
+      const ctx = RuleContextStub({ report: mockReport });
+      const node = ArrowFunctionExpressionStub({ code: 'const f = (): void => {  };' });
 
       // No setupDeclaredReturn staged — if the broker called the adapter despite isProxyFile,
       // the unaddressed mock call would throw unconditionally.
@@ -501,14 +285,8 @@ describe('checkFolderReturnTypeLayerBroker', () => {
     it('VALID: guard returning boolean => does not report', () => {
       const proxy = checkFolderReturnTypeLayerBrokerProxy();
       const mockReport = jest.fn();
-      const ctx = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({
-        type: TsestreeNodeType.ArrowFunctionExpression,
-        returnType: TsestreeStub({
-          type: TsestreeNodeType.TSTypeAnnotation,
-          typeAnnotation: TsestreeStub({ type: TsestreeNodeType.TSBooleanKeyword }),
-        }),
-      });
+      const ctx = RuleContextStub({ report: mockReport });
+      const node = ArrowFunctionExpressionStub({ code: 'const f = (): boolean => {};' });
 
       proxy.setupDeclaredReturn({ node, isVoidLike: false });
 
@@ -524,13 +302,9 @@ describe('checkFolderReturnTypeLayerBroker', () => {
     it('VALID: guard returning type predicate => does not report', () => {
       const proxy = checkFolderReturnTypeLayerBrokerProxy();
       const mockReport = jest.fn();
-      const ctx = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({
-        type: TsestreeNodeType.ArrowFunctionExpression,
-        returnType: TsestreeStub({
-          type: TsestreeNodeType.TSTypeAnnotation,
-          typeAnnotation: TsestreeStub({ type: TsestreeNodeType.TSTypePredicate }),
-        }),
+      const ctx = RuleContextStub({ report: mockReport });
+      const node = ArrowFunctionExpressionStub({
+        code: 'const f = (value: unknown): value is string => {};',
       });
 
       proxy.setupDeclaredReturn({ node, isVoidLike: false });
@@ -547,14 +321,8 @@ describe('checkFolderReturnTypeLayerBroker', () => {
     it('INVALID: guard returning string => reports guardMustReturnBoolean', () => {
       const proxy = checkFolderReturnTypeLayerBrokerProxy();
       const mockReport = jest.fn();
-      const ctx = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({
-        type: TsestreeNodeType.ArrowFunctionExpression,
-        returnType: TsestreeStub({
-          type: TsestreeNodeType.TSTypeAnnotation,
-          typeAnnotation: TsestreeStub({ type: TsestreeNodeType.TSStringKeyword }),
-        }),
-      });
+      const ctx = RuleContextStub({ report: mockReport });
+      const node = ArrowFunctionExpressionStub({ code: 'const f = (): string => {};' });
 
       proxy.setupDeclaredReturn({ node, isVoidLike: false });
 
@@ -574,15 +342,8 @@ describe('checkFolderReturnTypeLayerBroker', () => {
     it('INVALID: guard returning void with no informative calls => reports guardMustReturnBoolean', () => {
       const proxy = checkFolderReturnTypeLayerBrokerProxy();
       const mockReport = jest.fn();
-      const ctx = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({
-        type: TsestreeNodeType.ArrowFunctionExpression,
-        returnType: TsestreeStub({
-          type: TsestreeNodeType.TSTypeAnnotation,
-          typeAnnotation: TsestreeStub({ type: TsestreeNodeType.TSVoidKeyword }),
-        }),
-        body: TsestreeStub({ type: TsestreeNodeType.BlockStatement, body: [] }),
-      });
+      const ctx = RuleContextStub({ report: mockReport });
+      const node = ArrowFunctionExpressionStub({ code: 'const f = (): void => {  };' });
 
       proxy.setupDeclaredReturn({ node, isVoidLike: true });
 
@@ -602,14 +363,8 @@ describe('checkFolderReturnTypeLayerBroker', () => {
     it('VALID: broker returning string (guard check does not apply) => does not report', () => {
       const proxy = checkFolderReturnTypeLayerBrokerProxy();
       const mockReport = jest.fn();
-      const ctx = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({
-        type: TsestreeNodeType.ArrowFunctionExpression,
-        returnType: TsestreeStub({
-          type: TsestreeNodeType.TSTypeAnnotation,
-          typeAnnotation: TsestreeStub({ type: TsestreeNodeType.TSStringKeyword }),
-        }),
-      });
+      const ctx = RuleContextStub({ report: mockReport });
+      const node = ArrowFunctionExpressionStub({ code: 'const f = (): string => {};' });
 
       proxy.setupDeclaredReturn({ node, isVoidLike: false });
 
@@ -627,14 +382,8 @@ describe('checkFolderReturnTypeLayerBroker', () => {
     it('VALID: broker with non-void return type => does not report', () => {
       const proxy = checkFolderReturnTypeLayerBrokerProxy();
       const mockReport = jest.fn();
-      const ctx = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({
-        type: TsestreeNodeType.ArrowFunctionExpression,
-        returnType: TsestreeStub({
-          type: TsestreeNodeType.TSTypeAnnotation,
-          typeAnnotation: TsestreeStub({ type: TsestreeNodeType.TSStringKeyword }),
-        }),
-      });
+      const ctx = RuleContextStub({ report: mockReport });
+      const node = ArrowFunctionExpressionStub({ code: 'const f = (): string => {};' });
 
       proxy.setupDeclaredReturn({ node, isVoidLike: false });
 
@@ -650,17 +399,8 @@ describe('checkFolderReturnTypeLayerBroker', () => {
     it('VALID: transformer returning branded type => does not report', () => {
       const proxy = checkFolderReturnTypeLayerBrokerProxy();
       const mockReport = jest.fn();
-      const ctx = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({
-        type: TsestreeNodeType.ArrowFunctionExpression,
-        returnType: TsestreeStub({
-          type: TsestreeNodeType.TSTypeAnnotation,
-          typeAnnotation: TsestreeStub({
-            type: TsestreeNodeType.TSTypeReference,
-            typeName: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'ContentText' }),
-          }),
-        }),
-      });
+      const ctx = RuleContextStub({ report: mockReport });
+      const node = ArrowFunctionExpressionStub({ code: 'const f = (): ContentText => {};' });
 
       proxy.setupDeclaredReturn({ node, isVoidLike: false });
 
@@ -678,7 +418,7 @@ describe('checkFolderReturnTypeLayerBroker', () => {
     it('VALID: no node => does not report', () => {
       checkFolderReturnTypeLayerBrokerProxy();
       const mockReport = jest.fn();
-      const ctx = EslintContextStub({ report: mockReport });
+      const ctx = RuleContextStub({ report: mockReport });
 
       checkFolderReturnTypeLayerBroker({
         ctx,
@@ -691,14 +431,8 @@ describe('checkFolderReturnTypeLayerBroker', () => {
     it('VALID: no folderType (file outside function-exporting folders) => does not report', () => {
       checkFolderReturnTypeLayerBrokerProxy();
       const mockReport = jest.fn();
-      const ctx = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({
-        type: TsestreeNodeType.ArrowFunctionExpression,
-        returnType: TsestreeStub({
-          type: TsestreeNodeType.TSTypeAnnotation,
-          typeAnnotation: TsestreeStub({ type: TsestreeNodeType.TSVoidKeyword }),
-        }),
-      });
+      const ctx = RuleContextStub({ report: mockReport });
+      const node = ArrowFunctionExpressionStub({ code: 'const f = (): void => {};' });
 
       checkFolderReturnTypeLayerBroker({ node, ctx });
 
@@ -708,10 +442,8 @@ describe('checkFolderReturnTypeLayerBroker', () => {
     it('VALID: no return type annotation => does not report', () => {
       checkFolderReturnTypeLayerBrokerProxy();
       const mockReport = jest.fn();
-      const ctx = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({
-        type: TsestreeNodeType.ArrowFunctionExpression,
-      });
+      const ctx = RuleContextStub({ report: mockReport });
+      const node = ArrowFunctionExpressionStub({ code: 'const f = () => {};' });
 
       checkFolderReturnTypeLayerBroker({
         node,

@@ -11,12 +11,13 @@
  * // Returns ['READ_FN'] as Identifier[]
  */
 import { identifierContract, type Identifier } from '@dungeonmaster/shared/contracts';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
 export const enclosingFunctionBindingNamesLayerBroker = ({
   node,
 }: {
-  node?: Tsestree | null | undefined;
+  node?: TSESTree.Node | null | undefined;
 }): Identifier[] => {
   if (node === null || node === undefined) {
     return [];
@@ -24,18 +25,18 @@ export const enclosingFunctionBindingNamesLayerBroker = ({
   const outerNames = enclosingFunctionBindingNamesLayerBroker({ node: node.parent });
   const { parent } = node;
 
-  if (node.type === 'FunctionDeclaration' && node.id?.name !== undefined) {
+  if (node.type === AST_NODE_TYPES.FunctionDeclaration && node.id?.name !== undefined) {
     return [identifierContract.parse(node.id.name), ...outerNames];
   }
 
   const isFunctionLiteral =
-    node.type === 'ArrowFunctionExpression' || node.type === 'FunctionExpression';
+    node.type === AST_NODE_TYPES.ArrowFunctionExpression ||
+    node.type === AST_NODE_TYPES.FunctionExpression;
   if (
     isFunctionLiteral &&
-    parent?.type === 'VariableDeclarator' &&
+    parent?.type === AST_NODE_TYPES.VariableDeclarator &&
     parent.init === node &&
-    parent.id?.type === 'Identifier' &&
-    parent.id.name !== undefined
+    parent.id.type === AST_NODE_TYPES.Identifier
   ) {
     return [identifierContract.parse(parent.id.name), ...outerNames];
   }

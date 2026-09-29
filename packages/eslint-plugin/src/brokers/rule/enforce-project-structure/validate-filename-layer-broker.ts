@@ -5,8 +5,7 @@
  * const shouldContinue = validateFilenameLayerBroker({node, context, filename, firstFolder, folderConfig, isLayerFile});
  * // Returns true if filename is valid, false if validation failed (errors reported)
  */
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import type { Identifier } from '@dungeonmaster/shared/contracts';
 import { identifierContract } from '@dungeonmaster/shared/contracts';
 import type { folderConfigStatics } from '@dungeonmaster/shared/statics';
@@ -26,8 +25,8 @@ export const validateFilenameLayerBroker = ({
   folderConfig,
   isLayerFile,
 }: {
-  node: Tsestree;
-  context: EslintContext;
+  node: TSESTree.Node;
+  context: TSESLint.RuleContext<string, unknown[]>;
   filename: string;
   firstFolder: Identifier;
   folderConfig: (typeof folderConfigStatics)[keyof typeof folderConfigStatics];

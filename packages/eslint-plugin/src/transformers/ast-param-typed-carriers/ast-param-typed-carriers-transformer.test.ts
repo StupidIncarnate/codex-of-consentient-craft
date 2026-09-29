@@ -1,33 +1,12 @@
+import { IdentifierStub } from '#gateway/npm/typescript-eslint__utils/identifier/identifier.stub';
+import { ObjectPatternStub } from '#gateway/npm/typescript-eslint__utils/object-pattern/object-pattern.stub';
+import { AssignmentPatternStub } from '#gateway/npm/typescript-eslint__utils/assignment-pattern/assignment-pattern.stub';
 import { astParamTypedCarriersTransformer } from './ast-param-typed-carriers-transformer';
-import { TsestreeStub, TsestreeNodeType } from '../../contracts/tsestree/tsestree.stub';
-
-const annotation = ({
-  type,
-}: {
-  type: ReturnType<typeof TsestreeStub>;
-}): ReturnType<typeof TsestreeStub> =>
-  TsestreeStub({
-    type: TsestreeNodeType.TSTypeAnnotation,
-    typeAnnotation: type,
-  });
-
-const signature = ({ name }: { name: string }): ReturnType<typeof TsestreeStub> =>
-  TsestreeStub({
-    type: TsestreeNodeType.TSPropertySignature,
-    key: TsestreeStub({ type: TsestreeNodeType.Identifier, name }),
-    typeAnnotation: annotation({ type: TsestreeStub({ type: TsestreeNodeType.TSStringKeyword }) }),
-  });
 
 describe('astParamTypedCarriersTransformer', () => {
   describe('a plain identifier parameter', () => {
     it('VALID: {questId: string} => returns the identifier itself', () => {
-      const param = TsestreeStub({
-        type: TsestreeNodeType.Identifier,
-        name: 'questId',
-        typeAnnotation: annotation({
-          type: TsestreeStub({ type: TsestreeNodeType.TSStringKeyword }),
-        }),
-      });
+      const param = IdentifierStub({ code: '(questId: string) => {};' });
 
       const result = astParamTypedCarriersTransformer({ param });
 
@@ -35,7 +14,7 @@ describe('astParamTypedCarriersTransformer', () => {
     });
 
     it('EMPTY: {identifier with no written type} => returns nothing', () => {
-      const param = TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'questId' });
+      const param = IdentifierStub({ code: '(questId) => {};' });
 
       const result = astParamTypedCarriersTransformer({ param });
 
@@ -45,47 +24,32 @@ describe('astParamTypedCarriersTransformer', () => {
 
   describe('a destructured parameter', () => {
     it('VALID: {inline type literal} => returns each property signature', () => {
-      const questId = signature({ name: 'questId' });
-      const label = signature({ name: 'label' });
-      const param = TsestreeStub({
-        type: TsestreeNodeType.ObjectPattern,
-        typeAnnotation: annotation({
-          type: TsestreeStub({
-            type: TsestreeNodeType.TSTypeLiteral,
-            members: [questId, label],
-          }),
-        }),
-      });
+      const code = '({}: { questId: string; label: string }) => {};';
+      const param = ObjectPatternStub({ code });
 
       const result = astParamTypedCarriersTransformer({ param });
 
-      expect(result).toStrictEqual([questId, label]);
+      expect(
+        result.map((carrier) => ({ type: carrier.type, text: code.slice(...carrier.range) })),
+      ).toStrictEqual([
+        { type: 'TSPropertySignature', text: 'questId: string;' },
+        { type: 'TSPropertySignature', text: 'label: string' },
+      ]);
     });
 
     it('VALID: {destructured with a default} => reads through the left side', () => {
-      const questId = signature({ name: 'questId' });
-      const param = TsestreeStub({
-        type: TsestreeNodeType.AssignmentPattern,
-        left: TsestreeStub({
-          type: TsestreeNodeType.ObjectPattern,
-          typeAnnotation: annotation({
-            type: TsestreeStub({ type: TsestreeNodeType.TSTypeLiteral, members: [questId] }),
-          }),
-        }),
-      });
+      const code = '({}: { questId: string } = {}) => {};';
+      const param = AssignmentPatternStub({ code });
 
       const result = astParamTypedCarriersTransformer({ param });
 
-      expect(result).toStrictEqual([questId]);
+      expect(
+        result.map((carrier) => ({ type: carrier.type, text: code.slice(...carrier.range) })),
+      ).toStrictEqual([{ type: 'TSPropertySignature', text: 'questId: string' }]);
     });
 
     it('EMPTY: {typed by a named type} => returns nothing', () => {
-      const param = TsestreeStub({
-        type: TsestreeNodeType.ObjectPattern,
-        typeAnnotation: annotation({
-          type: TsestreeStub({ type: TsestreeNodeType.TSTypeReference }),
-        }),
-      });
+      const param = ObjectPatternStub({ code: '({}: T) => {};' });
 
       const result = astParamTypedCarriersTransformer({ param });
 

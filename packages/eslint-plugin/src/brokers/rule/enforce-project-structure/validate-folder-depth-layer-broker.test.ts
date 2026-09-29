@@ -1,7 +1,7 @@
+import { RuleContextStub } from '#gateway/npm/typescript-eslint__utils/rule-context/rule-context.stub';
+import { ProgramStub } from '#gateway/npm/typescript-eslint__utils/program/program.stub';
 import { validateFolderDepthLayerBroker } from './validate-folder-depth-layer-broker';
 import { validateFolderDepthLayerBrokerProxy } from './validate-folder-depth-layer-broker.proxy';
-import { EslintContextStub } from '../../../contracts/eslint-context/eslint-context.stub';
-import { TsestreeStub, TsestreeNodeType } from '../../../contracts/tsestree/tsestree.stub';
 import { IdentifierStub } from '@dungeonmaster/shared/contracts/identifier/identifier.stub';
 import { folderConfigStatics } from '@dungeonmaster/shared/statics';
 
@@ -10,8 +10,8 @@ describe('validateFolderDepthLayerBroker', () => {
     it('VALID: brokers at depth 2 => returns true', () => {
       validateFolderDepthLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'brokers' });
 
       const result = validateFolderDepthLayerBroker({
@@ -29,8 +29,8 @@ describe('validateFolderDepthLayerBroker', () => {
     it('VALID: contracts at depth 1 => returns true', () => {
       validateFolderDepthLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'contracts' });
 
       const result = validateFolderDepthLayerBroker({
@@ -48,8 +48,8 @@ describe('validateFolderDepthLayerBroker', () => {
     it('VALID: startup at depth 0 => returns true', () => {
       validateFolderDepthLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'startup' });
 
       const result = validateFolderDepthLayerBroker({
@@ -67,8 +67,8 @@ describe('validateFolderDepthLayerBroker', () => {
     it('VALID: responders at depth 2 => returns true', () => {
       validateFolderDepthLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'responders' });
 
       const result = validateFolderDepthLayerBroker({
@@ -88,8 +88,8 @@ describe('validateFolderDepthLayerBroker', () => {
     it('INVALID: responders at depth 0 => reports invalidFolderDepth', () => {
       validateFolderDepthLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'responders' });
 
       const result = validateFolderDepthLayerBroker({
@@ -117,8 +117,8 @@ describe('validateFolderDepthLayerBroker', () => {
     it('INVALID: responders at depth 1 => reports invalidFolderDepth', () => {
       validateFolderDepthLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'responders' });
 
       const result = validateFolderDepthLayerBroker({
@@ -146,8 +146,8 @@ describe('validateFolderDepthLayerBroker', () => {
     it('INVALID: guards at depth 2 => reports invalidFolderDepth', () => {
       validateFolderDepthLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'guards' });
 
       const result = validateFolderDepthLayerBroker({
@@ -175,8 +175,8 @@ describe('validateFolderDepthLayerBroker', () => {
     it('INVALID: contracts at depth 2 => reports invalidFolderDepth', () => {
       validateFolderDepthLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'contracts' });
 
       const result = validateFolderDepthLayerBroker({
@@ -204,8 +204,8 @@ describe('validateFolderDepthLayerBroker', () => {
     it('INVALID: startup at depth 1 => reports invalidFolderDepth', () => {
       validateFolderDepthLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'startup' });
 
       const result = validateFolderDepthLayerBroker({
@@ -233,8 +233,8 @@ describe('validateFolderDepthLayerBroker', () => {
     it('INVALID: brokers at depth 0 => reports invalidFolderDepth', () => {
       validateFolderDepthLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'brokers' });
 
       const result = validateFolderDepthLayerBroker({
@@ -264,8 +264,8 @@ describe('validateFolderDepthLayerBroker', () => {
     it('INVALID: PascalCase folder segment => reports invalidFilenameCase', () => {
       validateFolderDepthLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'brokers' });
 
       const result = validateFolderDepthLayerBroker({
@@ -292,8 +292,8 @@ describe('validateFolderDepthLayerBroker', () => {
     it('INVALID: snake_case folder segment => reports invalidFilenameCase', () => {
       validateFolderDepthLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.Program });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ProgramStub({ code: '' });
       const firstFolder = IdentifierStub({ value: 'brokers' });
 
       const result = validateFolderDepthLayerBroker({

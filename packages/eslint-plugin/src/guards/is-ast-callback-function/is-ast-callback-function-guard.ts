@@ -8,7 +8,8 @@
  * }
  * // Returns true if function's parent is a CallExpression
  */
-import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
-export const isAstCallbackFunctionGuard = ({ funcNode }: { funcNode?: Tsestree }): boolean =>
-  funcNode?.parent?.type === 'CallExpression';
+export const isAstCallbackFunctionGuard = ({ funcNode }: { funcNode?: TSESTree.Node }): boolean =>
+  funcNode?.parent?.type === AST_NODE_TYPES.CallExpression;

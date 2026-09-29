@@ -49,8 +49,8 @@
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { existsSync } from '#gateway/node/fs';
 import { isGatewayFileGuard } from '../../../guards/is-gateway-file/is-gateway-file-guard';
 import { isGatewayBarrelFileGuard } from '../../../guards/is-gateway-barrel-file/is-gateway-barrel-file-guard';
@@ -113,10 +113,12 @@ export const ruleGatewayColocationBroker = (): EslintRule => ({
       ],
     },
   }),
-  create: (context: EslintContext) => {
-    const ctx = context as EslintContext & { options?: { requireStub?: boolean }[] };
-    const filename = ctx.filename ?? ctx.getFilename?.() ?? '';
-    const requireStub = ctx.options?.[0]?.requireStub === true;
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
+    const ctx = context as TSESLint.RuleContext<string, unknown[]> & {
+      options?: { requireStub?: boolean }[];
+    };
+    const { filename } = ctx;
+    const requireStub = ctx.options[0]?.requireStub === true;
 
     if (filename.length === 0 || !isGatewayFileGuard({ filename })) {
       return {};
@@ -139,12 +141,12 @@ export const ruleGatewayColocationBroker = (): EslintRule => ({
     const isBarrelFile = isGatewayBarrelFileGuard({ filename });
 
     return {
-      Program: (node: Tsestree): void => {
+      Program: (node: TSESTree.Program): void => {
         const statements = Array.isArray(node.body) ? node.body : [];
 
         if (isErrorFile) {
           const nonImportStatements = statements.filter(
-            (statement) => statement.type !== 'ImportDeclaration',
+            (statement) => statement.type !== AST_NODE_TYPES.ImportDeclaration,
           );
 
           if (nonImportStatements.length !== 1) {
@@ -158,12 +160,12 @@ export const ruleGatewayColocationBroker = (): EslintRule => ({
 
           const [onlyStatement] = nonImportStatements;
           const errorClassDeclaration =
-            onlyStatement?.type === 'ExportNamedDeclaration' &&
-            onlyStatement.declaration?.type === 'ClassDeclaration'
+            onlyStatement?.type === AST_NODE_TYPES.ExportNamedDeclaration &&
+            onlyStatement.declaration?.type === AST_NODE_TYPES.ClassDeclaration
               ? onlyStatement.declaration
               : undefined;
           const extendsError =
-            errorClassDeclaration?.superClass?.type === 'Identifier' &&
+            errorClassDeclaration?.superClass?.type === AST_NODE_TYPES.Identifier &&
             errorClassDeclaration.superClass.name === 'Error';
 
           if (errorClassDeclaration === undefined || !extendsError) {
@@ -213,15 +215,15 @@ export const ruleGatewayColocationBroker = (): EslintRule => ({
         if (!isBarrelFile) {
           statements.forEach((statement) => {
             const wrapperClassDeclaration =
-              statement.type === 'ClassDeclaration'
+              statement.type === AST_NODE_TYPES.ClassDeclaration
                 ? statement
-                : statement.type === 'ExportNamedDeclaration' &&
-                    statement.declaration?.type === 'ClassDeclaration'
+                : statement.type === AST_NODE_TYPES.ExportNamedDeclaration &&
+                    statement.declaration?.type === AST_NODE_TYPES.ClassDeclaration
                   ? statement.declaration
                   : undefined;
 
             const wrapperClassExtendsError =
-              wrapperClassDeclaration?.superClass?.type === 'Identifier' &&
+              wrapperClassDeclaration?.superClass?.type === AST_NODE_TYPES.Identifier &&
               wrapperClassDeclaration.superClass.name === 'Error';
 
             if (wrapperClassDeclaration !== undefined && wrapperClassExtendsError) {
@@ -240,10 +242,10 @@ export const ruleGatewayColocationBroker = (): EslintRule => ({
             statements.length > 0 &&
             statements.every(
               (statement) =>
-                statement.type === 'ImportDeclaration' ||
-                (statement.type === 'ExportNamedDeclaration' &&
-                  (statement.declaration?.type === 'TSInterfaceDeclaration' ||
-                    statement.declaration?.type === 'TSTypeAliasDeclaration')),
+                statement.type === AST_NODE_TYPES.ImportDeclaration ||
+                (statement.type === AST_NODE_TYPES.ExportNamedDeclaration &&
+                  (statement.declaration?.type === AST_NODE_TYPES.TSInterfaceDeclaration ||
+                    statement.declaration?.type === AST_NODE_TYPES.TSTypeAliasDeclaration)),
             );
 
           if (declaresOnlyTypes) {
@@ -280,23 +282,26 @@ export const ruleGatewayColocationBroker = (): EslintRule => ({
             return true;
           }
 
-          if (statementType === 'ExportNamedDeclaration') {
+          if (statementType === AST_NODE_TYPES.ExportNamedDeclaration) {
             const hasSource = typeof statement.source?.value === 'string';
             const declarationNode = statement.declaration;
             const declarationType = declarationNode?.type;
             const isTypeDeclaration =
-              declarationType === 'TSTypeAliasDeclaration' ||
-              declarationType === 'TSInterfaceDeclaration';
+              declarationType === AST_NODE_TYPES.TSTypeAliasDeclaration ||
+              declarationType === AST_NODE_TYPES.TSInterfaceDeclaration;
 
             if (hasSource || isTypeDeclaration) {
               return true;
             }
 
-            if (declarationType !== 'VariableDeclaration' || declarationNode?.kind !== 'const') {
+            if (
+              declarationType !== AST_NODE_TYPES.VariableDeclaration ||
+              declarationNode?.kind !== 'const'
+            ) {
               return false;
             }
 
-            const declarations = declarationNode.declarations ?? [];
+            const { declarations } = declarationNode;
 
             if (declarations.length !== 1) {
               return false;
@@ -307,30 +312,31 @@ export const ruleGatewayColocationBroker = (): EslintRule => ({
             const init = declarator?.init;
 
             const isMemberCapture =
-              id?.type === 'Identifier' &&
-              init?.type === 'MemberExpression' &&
-              init.computed !== true &&
-              init.object?.type === 'Identifier' &&
+              id?.type === AST_NODE_TYPES.Identifier &&
+              init?.type === AST_NODE_TYPES.MemberExpression &&
+              !init.computed &&
+              init.object.type === AST_NODE_TYPES.Identifier &&
               init.object.name === 'globalThis' &&
-              init.property?.type === 'Identifier' &&
+              init.property.type === AST_NODE_TYPES.Identifier &&
               init.property.name === id.name;
 
-            const patternProperties = id?.properties ?? [];
+            const patternProperties =
+              (id?.type === AST_NODE_TYPES.ObjectPattern ? id.properties : undefined) ?? [];
             const [firstPatternProperty] = patternProperties;
 
             const isDestructureCapture =
-              id?.type === 'ObjectPattern' &&
+              id?.type === AST_NODE_TYPES.ObjectPattern &&
               patternProperties.length === 1 &&
-              firstPatternProperty?.type === 'Property' &&
-              firstPatternProperty.shorthand === true &&
-              init?.type === 'Identifier' &&
+              firstPatternProperty?.type === AST_NODE_TYPES.Property &&
+              firstPatternProperty.shorthand &&
+              init?.type === AST_NODE_TYPES.Identifier &&
               init.name === 'globalThis';
 
             return isMemberCapture || isDestructureCapture;
           }
 
-          if (statementType === 'ImportDeclaration') {
-            return (statement.specifiers ?? []).length === 0;
+          if (statementType === AST_NODE_TYPES.ImportDeclaration) {
+            return statement.specifiers.length === 0;
           }
 
           return false;

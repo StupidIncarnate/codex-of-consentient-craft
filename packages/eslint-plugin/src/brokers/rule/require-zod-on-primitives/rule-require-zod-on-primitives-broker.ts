@@ -9,8 +9,7 @@
  */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isAstBrandInChainGuard } from '../../../guards/is-ast-brand-in-chain/is-ast-brand-in-chain-guard';
 
 export const ruleRequireZodOnPrimitivesBroker = (): EslintRule => ({
@@ -29,11 +28,11 @@ export const ruleRequireZodOnPrimitivesBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: EslintContext) => {
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
     return {
       'CallExpression[callee.object.name="z"][callee.property.name="string"]': (
-        node: Tsestree,
+        node: TSESTree.CallExpression,
       ): void => {
         if (!isAstBrandInChainGuard({ node })) {
           ctx.report({
@@ -43,7 +42,7 @@ export const ruleRequireZodOnPrimitivesBroker = (): EslintRule => ({
         }
       },
       'CallExpression[callee.object.name="z"][callee.property.name="number"]': (
-        node: Tsestree,
+        node: TSESTree.CallExpression,
       ): void => {
         if (!isAstBrandInChainGuard({ node })) {
           ctx.report({

@@ -13,8 +13,8 @@
  */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 
 export const ruleBanProxyCatchAllDefaultsBroker = (): EslintRule => ({
@@ -32,24 +32,28 @@ export const ruleBanProxyCatchAllDefaultsBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: EslintContext) => {
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
-    const filename = ctx.filename ?? '';
+    const { filename } = ctx;
 
-    if (!hasFileSuffixGuard({ filename: String(filename), suffix: 'proxy' })) {
+    if (!hasFileSuffixGuard({ filename, suffix: 'proxy' })) {
       return {};
     }
 
-    let currentProxyFunction: Tsestree | null = null;
+    let currentProxyFunction: TSESTree.Node | null = null;
     let foundReturnStatement = false;
 
     return {
       // Track when we enter a proxy function, the same selector enforce-proxy-patterns uses
       'ExportNamedDeclaration > VariableDeclaration > VariableDeclarator > ArrowFunctionExpression':
-        (node: Tsestree): void => {
-          const ancestors = ctx.sourceCode?.getAncestors(node) ?? [];
+        (node: TSESTree.ArrowFunctionExpression): void => {
+          const ancestors = ctx.sourceCode.getAncestors(node);
           for (const ancestor of ancestors) {
-            if (ancestor.type === 'VariableDeclarator' && ancestor.id?.name?.endsWith('Proxy')) {
+            if (
+              ancestor.type === AST_NODE_TYPES.VariableDeclarator &&
+              ancestor.id.type === AST_NODE_TYPES.Identifier &&
+              ancestor.id.name.endsWith('Proxy')
+            ) {
               currentProxyFunction = node;
               foundReturnStatement = false;
               break;
@@ -71,39 +75,42 @@ export const ruleBanProxyCatchAllDefaultsBroker = (): EslintRule => ({
         }
       },
 
-      CallExpression: (node: Tsestree): void => {
+      CallExpression: (node: TSESTree.CallExpression): void => {
         if (currentProxyFunction === null || foundReturnStatement) {
           return;
         }
 
         const { callee } = node;
 
-        if (callee?.type !== 'MemberExpression' || callee.property?.name !== 'calledWith') {
+        if (
+          callee.type !== AST_NODE_TYPES.MemberExpression ||
+          (callee.property.type === AST_NODE_TYPES.Identifier ||
+          callee.property.type === AST_NODE_TYPES.PrivateIdentifier
+            ? callee.property.name
+            : undefined) !== 'calledWith'
+        ) {
           return;
         }
 
-        const [addressArgument] = node.arguments ?? [];
+        const [addressArgument] = node.arguments;
 
-        if (addressArgument?.type !== 'ArrayExpression') {
+        if (addressArgument?.type !== AST_NODE_TYPES.ArrayExpression) {
           return;
         }
 
-        const hasCatchAllElement = (addressArgument.elements ?? []).some((element): boolean => {
+        const hasCatchAllElement = addressArgument.elements.some((element): boolean => {
           if (
             element === null ||
-            (element.type !== 'ArrowFunctionExpression' && element.type !== 'FunctionExpression')
+            (element.type !== AST_NODE_TYPES.ArrowFunctionExpression &&
+              element.type !== AST_NODE_TYPES.FunctionExpression)
           ) {
             return false;
           }
 
           const { body } = element;
 
-          if (!body || Array.isArray(body)) {
-            return false;
-          }
-
-          if (body.type !== 'BlockStatement') {
-            return body.type === 'Literal' && body.value === true;
+          if (body.type !== AST_NODE_TYPES.BlockStatement) {
+            return body.type === AST_NODE_TYPES.Literal && body.value === true;
           }
 
           const statements = Array.isArray(body.body) ? body.body : [];
@@ -115,8 +122,8 @@ export const ruleBanProxyCatchAllDefaultsBroker = (): EslintRule => ({
           const [onlyStatement] = statements;
 
           return (
-            onlyStatement?.type === 'ReturnStatement' &&
-            onlyStatement.argument?.type === 'Literal' &&
+            onlyStatement?.type === AST_NODE_TYPES.ReturnStatement &&
+            onlyStatement.argument?.type === AST_NODE_TYPES.Literal &&
             onlyStatement.argument.value === true
           );
         });

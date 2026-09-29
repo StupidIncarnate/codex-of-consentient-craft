@@ -7,8 +7,7 @@
  */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import { existsSync } from '#gateway/node/fs';
 import { filepathResolveRelativeImportTransformer } from '../../../transformers/filepath-resolve-relative-import/filepath-resolve-relative-import-transformer';
@@ -31,7 +30,7 @@ export const ruleEnforceHydrationRecipesStructureBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: EslintContext) => {
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const { filename } = context;
     if (!filename || filename === '<text>' || filename === '<input>') {
       return {};
@@ -74,8 +73,8 @@ export const ruleEnforceHydrationRecipesStructureBroker = (): EslintRule => ({
       filename.startsWith('packages/hydration-recipes/');
 
     return {
-      ImportDeclaration: (node: Tsestree): void => {
-        const sourceValue = typeof node.source?.value === 'string' ? node.source.value : undefined;
+      ImportDeclaration: (node: TSESTree.ImportDeclaration): void => {
+        const sourceValue = typeof node.source.value === 'string' ? node.source.value : undefined;
         if (!sourceValue) {
           return;
         }
@@ -115,7 +114,7 @@ export const ruleEnforceHydrationRecipesStructureBroker = (): EslintRule => ({
           }
         }
       },
-      Program: (node: Tsestree): void => {
+      Program: (node: TSESTree.Program): void => {
         if (!isInsideHydrationRecipes) {
           return;
         }

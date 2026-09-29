@@ -8,36 +8,39 @@
  * }
  * // Returns true if first param's type annotation is TSTypeReference to 'StubArgument'
  */
-import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
-export const isAstParamStubArgumentTypeGuard = ({ funcNode }: { funcNode?: Tsestree }): boolean => {
-  if (!funcNode?.params || funcNode.params.length === 0) {
-    return false;
-  }
-
-  const [firstParam] = funcNode.params;
+export const isAstParamStubArgumentTypeGuard = ({
+  funcNode,
+}: {
+  funcNode?:
+    TSESTree.ArrowFunctionExpression | TSESTree.FunctionDeclaration | TSESTree.FunctionExpression;
+}): boolean => {
+  const [firstParam] = funcNode?.params ?? [];
   if (!firstParam) {
     return false;
   }
 
   // Get the type annotation - could be on AssignmentPattern or ObjectPattern
-  const typeAnnotation = firstParam.typeAnnotation ?? firstParam.left?.typeAnnotation;
+  const typeAnnotation =
+    ('typeAnnotation' in firstParam ? firstParam.typeAnnotation : undefined) ??
+    (firstParam.type === AST_NODE_TYPES.AssignmentPattern
+      ? firstParam.left.typeAnnotation
+      : undefined);
 
-  if (!typeAnnotation?.typeAnnotation) {
+  if (!typeAnnotation) {
     return false;
   }
 
   const typeNode = typeAnnotation.typeAnnotation;
 
   // Check if it's a TSTypeReference with name 'StubArgument'
-  if (typeNode.type !== 'TSTypeReference') {
+  if (typeNode.type !== AST_NODE_TYPES.TSTypeReference) {
     return false;
   }
 
   const { typeName } = typeNode;
-  if (!typeName || typeName.type !== 'Identifier') {
-    return false;
-  }
 
-  return typeName.name === 'StubArgument';
+  return typeName.type === AST_NODE_TYPES.Identifier && typeName.name === 'StubArgument';
 };

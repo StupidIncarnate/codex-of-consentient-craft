@@ -1,8 +1,5 @@
+import { LiteralStub } from '#gateway/npm/typescript-eslint__utils/literal/literal.stub';
 import { isPackageNameComparisonOperandGuard } from './is-package-name-comparison-operand-guard';
-import {
-  TsestreeStub,
-  TsestreeNodeType,
-} from '@dungeonmaster/eslint-plugin/contracts/tsestree/tsestree.stub';
 
 describe('isPackageNameComparisonOperandGuard', () => {
   describe('missing node', () => {
@@ -14,10 +11,10 @@ describe('isPackageNameComparisonOperandGuard', () => {
       expect(isPackageNameComparisonOperandGuard({ node: null })).toBe(false);
     });
 
-    it('EMPTY: {node: Literal with no parent} => returns false', () => {
+    it('EMPTY: {node: Literal in a bare expression statement} => returns false', () => {
       expect(
         isPackageNameComparisonOperandGuard({
-          node: TsestreeStub({ type: TsestreeNodeType.Literal, value: 'web', parent: null }),
+          node: LiteralStub({ code: '"web";' }),
         }),
       ).toBe(false);
     });
@@ -29,11 +26,7 @@ describe('isPackageNameComparisonOperandGuard', () => {
       (operator) => {
         expect(
           isPackageNameComparisonOperandGuard({
-            node: TsestreeStub({
-              type: TsestreeNodeType.Literal,
-              value: 'web',
-              parent: { type: TsestreeNodeType.BinaryExpression, operator },
-            }),
+            node: LiteralStub({ code: `"web" ${operator} b;` }),
           }),
         ).toBe(true);
       },
@@ -42,11 +35,7 @@ describe('isPackageNameComparisonOperandGuard', () => {
     it('VALID: {node: SwitchCase test} => returns true', () => {
       expect(
         isPackageNameComparisonOperandGuard({
-          node: TsestreeStub({
-            type: TsestreeNodeType.Literal,
-            value: 'server',
-            parent: { type: TsestreeNodeType.SwitchCase },
-          }),
+          node: LiteralStub({ code: 'switch (x) { case "server": break; }' }),
         }),
       ).toBe(true);
     });
@@ -56,11 +45,7 @@ describe('isPackageNameComparisonOperandGuard', () => {
     it('VALID: {node: array member} => returns false', () => {
       expect(
         isPackageNameComparisonOperandGuard({
-          node: TsestreeStub({
-            type: TsestreeNodeType.Literal,
-            value: 'web',
-            parent: { type: TsestreeNodeType.ArrayExpression },
-          }),
+          node: LiteralStub({ code: 'const a = ["web"];' }),
         }),
       ).toBe(false);
     });
@@ -68,11 +53,7 @@ describe('isPackageNameComparisonOperandGuard', () => {
     it('VALID: {node: object property value} => returns false', () => {
       expect(
         isPackageNameComparisonOperandGuard({
-          node: TsestreeStub({
-            type: TsestreeNodeType.Literal,
-            value: 'web',
-            parent: { type: TsestreeNodeType.Property },
-          }),
+          node: LiteralStub({ code: 'const o = { a: "web" };' }),
         }),
       ).toBe(false);
     });
@@ -80,11 +61,7 @@ describe('isPackageNameComparisonOperandGuard', () => {
     it('VALID: {node: operand of a non-equality binary operator} => returns false', () => {
       expect(
         isPackageNameComparisonOperandGuard({
-          node: TsestreeStub({
-            type: TsestreeNodeType.Literal,
-            value: 'web',
-            parent: { type: TsestreeNodeType.BinaryExpression, operator: '+' },
-          }),
+          node: LiteralStub({ code: '"web" + b' }),
         }),
       ).toBe(false);
     });

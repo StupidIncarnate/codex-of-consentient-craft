@@ -9,8 +9,8 @@
  */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
 import { astFindExpectCallTransformer } from '../../../transformers/ast-find-expect-call/ast-find-expect-call-transformer';
 
@@ -29,11 +29,11 @@ export const ruleBanTypeofAssertionsBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: EslintContext) => {
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
     return {
-      CallExpression: (node: Tsestree): void => {
-        const isTestFile = isTestFileGuard({ filename: ctx.filename ?? '' });
+      CallExpression: (node: TSESTree.CallExpression): void => {
+        const isTestFile = isTestFileGuard({ filename: ctx.filename });
 
         if (!isTestFile) {
           return;
@@ -45,9 +45,9 @@ export const ruleBanTypeofAssertionsBroker = (): EslintRule => ({
           return;
         }
 
-        const firstArg = expectCall.arguments?.[0];
+        const [firstArg] = expectCall.arguments;
 
-        if (firstArg?.type === 'UnaryExpression' && firstArg.operator === 'typeof') {
+        if (firstArg?.type === AST_NODE_TYPES.UnaryExpression && firstArg.operator === 'typeof') {
           ctx.report({
             node,
             messageId: 'noTypeofAssertion',

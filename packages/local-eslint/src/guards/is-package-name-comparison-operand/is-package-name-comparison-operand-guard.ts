@@ -7,27 +7,28 @@
  *
  * WHEN-TO-USE: Only inside the no-hardcoded-package-names rule broker. Reach for `isMembershipTestUsageGuard` instead when the decision is made by the COLLECTION a name sits in rather than by the name itself — a bare name in an array literal decides nothing until something tests membership against that array.
  */
-import type { Tsestree } from '@dungeonmaster/eslint-plugin';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { packageNameLiteralStatics } from '../../statics/package-name-literal/package-name-literal-statics';
 
 export const isPackageNameComparisonOperandGuard = ({
   node,
 }: {
-  node?: Tsestree | null;
+  node?: TSESTree.Node | null;
 }): boolean => {
   const parent = node?.parent;
 
-  if (parent === null || parent === undefined) {
+  if (!parent) {
     return false;
   }
 
-  if (parent.type === 'SwitchCase') {
+  if (parent.type === AST_NODE_TYPES.SwitchCase) {
     // A string literal can only be the discriminant test of a case — the consequent holds
     // statements, whose own literals hang off an ExpressionStatement instead.
     return true;
   }
 
-  if (parent.type !== 'BinaryExpression') {
+  if (parent.type !== AST_NODE_TYPES.BinaryExpression) {
     return false;
   }
 

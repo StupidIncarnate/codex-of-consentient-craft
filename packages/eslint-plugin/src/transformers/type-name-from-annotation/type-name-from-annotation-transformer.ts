@@ -5,44 +5,42 @@
  * const typeName = typeNameFromAnnotationTransformer({ typeAnnotation: node.typeAnnotation });
  * // Returns 'User' for const user: User = { id: '1' }
  */
-import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { identifierContract, type Identifier } from '@dungeonmaster/shared/contracts';
 
 export const typeNameFromAnnotationTransformer = ({
   typeAnnotation,
 }: {
-  typeAnnotation?: Tsestree | null;
+  typeAnnotation?: TSESTree.Node | null;
 }): Identifier | null => {
   if (!typeAnnotation) {
     return null;
   }
 
   // TSTypeAnnotation wraps the actual type
-  if (typeAnnotation.type === 'TSTypeAnnotation') {
+  if (typeAnnotation.type === AST_NODE_TYPES.TSTypeAnnotation) {
     const innerAnnotation = typeAnnotation.typeAnnotation;
-    if (!innerAnnotation) {
-      return null;
-    }
     return typeNameFromAnnotationTransformer({
       typeAnnotation: innerAnnotation,
     });
   }
 
   // TSTypeReference contains the type name
-  if (typeAnnotation.type === 'TSTypeReference' && typeAnnotation.typeName) {
+  if (typeAnnotation.type === AST_NODE_TYPES.TSTypeReference) {
     // Simple identifier (e.g., User)
-    if (typeAnnotation.typeName.type === 'Identifier' && typeAnnotation.typeName.name) {
+    if (
+      typeAnnotation.typeName.type === AST_NODE_TYPES.Identifier &&
+      typeAnnotation.typeName.name
+    ) {
       return identifierContract.parse(typeAnnotation.typeName.name);
     }
   }
 
   // TSArrayType (e.g., User[])
-  if (typeAnnotation.type === 'TSArrayType') {
+  if (typeAnnotation.type === AST_NODE_TYPES.TSArrayType) {
     // Try elementType first (some parsers), then typeAnnotation
-    const elementType = typeAnnotation.elementType ?? typeAnnotation.typeAnnotation;
-    if (!elementType) {
-      return null;
-    }
+    const { elementType } = typeAnnotation;
     return typeNameFromAnnotationTransformer({
       typeAnnotation: elementType,
     });
@@ -50,8 +48,8 @@ export const typeNameFromAnnotationTransformer = ({
 
   // Generic types (e.g., Array<User>)
   if (
-    typeAnnotation.type === 'TSTypeReference' &&
-    typeAnnotation.typeName?.type === 'Identifier' &&
+    typeAnnotation.type === AST_NODE_TYPES.TSTypeReference &&
+    typeAnnotation.typeName.type === AST_NODE_TYPES.Identifier &&
     typeAnnotation.typeName.name
   ) {
     return identifierContract.parse(typeAnnotation.typeName.name);

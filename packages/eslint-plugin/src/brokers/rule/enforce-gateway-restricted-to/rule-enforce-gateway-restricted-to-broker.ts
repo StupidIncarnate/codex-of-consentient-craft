@@ -19,8 +19,8 @@
 import { gatewayLintConfigContract } from '@dungeonmaster/shared/contracts';
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { gatewayCallerPackageNameTransformer } from '../../../transformers/gateway-caller-package-name/gateway-caller-package-name-transformer';
 
 export const ruleEnforceGatewayRestrictedToBroker = (): EslintRule => ({
@@ -40,9 +40,9 @@ export const ruleEnforceGatewayRestrictedToBroker = (): EslintRule => ({
       schema: [{ type: 'object' }],
     },
   }),
-  create: (context: EslintContext) => {
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
-    const rawOptions = ctx.options?.[0];
+    const [rawOptions] = ctx.options;
     const { restrictedTo } = gatewayLintConfigContract.parse(
       typeof rawOptions === 'object' && rawOptions !== null ? rawOptions : {},
     );
@@ -51,7 +51,7 @@ export const ruleEnforceGatewayRestrictedToBroker = (): EslintRule => ({
       return {};
     }
 
-    const filename = ctx.filename ?? ctx.getFilename?.() ?? '';
+    const { filename } = ctx;
     if (filename.length === 0) {
       return {};
     }
@@ -62,8 +62,8 @@ export const ruleEnforceGatewayRestrictedToBroker = (): EslintRule => ({
     }
 
     return {
-      ImportDeclaration: (node: Tsestree): void => {
-        const importSource = node.source?.value;
+      ImportDeclaration: (node: TSESTree.ImportDeclaration): void => {
+        const importSource = node.source.value;
         if (typeof importSource !== 'string') {
           return;
         }
@@ -96,10 +96,14 @@ export const ruleEnforceGatewayRestrictedToBroker = (): EslintRule => ({
             continue;
           }
 
-          const hasNamedImport = (node.specifiers ?? []).some(
+          const hasNamedImport = node.specifiers.some(
             (specifier) =>
-              specifier.type === 'ImportSpecifier' &&
-              String(specifier.imported?.name) === String(entry.name),
+              specifier.type === AST_NODE_TYPES.ImportSpecifier &&
+              String(
+                specifier.imported.type === AST_NODE_TYPES.Identifier
+                  ? specifier.imported.name
+                  : undefined,
+              ) === String(entry.name),
           );
 
           if (!hasNamedImport) {

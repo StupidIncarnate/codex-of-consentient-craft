@@ -1,14 +1,12 @@
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
+import { RuleContextStub } from '#gateway/npm/typescript-eslint__utils/rule-context/rule-context.stub';
+import type { TSESLint } from '#gateway/npm/typescript-eslint__utils';
 
 /**
  * Proxy for enforce-stub-patterns rule broker.
  * Provides mock setup for testing the rule.
  */
 export const ruleEnforceStubPatternsBrokerProxy = (): {
-  createContext: () => EslintContext;
+  createContext: () => TSESLint.RuleContext<string, unknown[]>;
 } => ({
-  createContext: (): EslintContext => ({
-    filename: undefined,
-    report: jest.fn(),
-  }),
+  createContext: (): TSESLint.RuleContext<string, unknown[]> => RuleContextStub(),
 });

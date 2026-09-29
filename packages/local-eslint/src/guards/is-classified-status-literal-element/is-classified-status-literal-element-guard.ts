@@ -7,18 +7,19 @@
  *
  * WHEN-TO-USE: Only the ban-quest-status-literals rule / helpers should call this.
  */
-import type { Tsestree } from '@dungeonmaster/eslint-plugin';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { classifyStatusLiteralTransformer } from '../../transformers/classify-status-literal/classify-status-literal-transformer';
 
 export const isClassifiedStatusLiteralElementGuard = ({
   element,
 }: {
-  element?: Tsestree | null;
+  element?: TSESTree.Node | null;
 }): boolean => {
   if (element === null || element === undefined) {
     return false;
   }
-  if (element.type !== 'Literal') {
+  if (element.type !== AST_NODE_TYPES.Literal) {
     return false;
   }
   if (typeof element.value !== 'string') {

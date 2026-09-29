@@ -30,14 +30,14 @@
  */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { readFileSyncIfExists, existsSync } from '#gateway/node/fs';
 import { dirname } from '#gateway/node/path';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 import { astGetImportsTransformer } from '../../../transformers/ast-get-imports/ast-get-imports-transformer';
 import { parseImplementationImportsTransformer } from '../../../transformers/parse-implementation-imports/parse-implementation-imports-transformer';
-import type { FileContents, Identifier, ModulePath } from '@dungeonmaster/shared/contracts';
+import type { FileContents, ModulePath } from '@dungeonmaster/shared/contracts';
 import {
   identifierContract,
   filePathContract,
@@ -72,14 +72,12 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: EslintContext) => {
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
     const { filename } = ctx;
 
     // Only check .proxy.ts files
-    if (
-      !hasFileSuffixGuard({ ...(filename ? { filename: String(filename) } : {}), suffix: 'proxy' })
-    ) {
+    if (!hasFileSuffixGuard({ ...(filename ? { filename } : {}), suffix: 'proxy' })) {
       return {};
     }
 
@@ -124,14 +122,14 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
     });
 
     // Track proxy imports and creation calls
-    const proxyImports = new Map<Identifier, ModulePath>(); // proxyName -> importPath
-    const proxyCreationCalls = new Set<Identifier>(); // proxyName
-    let currentProxyFunctionNode: Tsestree | null = null;
+    const proxyImports = new Map<string, ModulePath>(); // proxyName -> importPath
+    const proxyCreationCalls = new Set<string>(); // proxyName
+    let currentProxyFunctionNode: TSESTree.Node | null = null;
 
     return {
       // Track proxy file imports
-      ImportDeclaration: (node: Tsestree): void => {
-        const source = node.source?.value;
+      ImportDeclaration: (node: TSESTree.ImportDeclaration): void => {
+        const source = node.source.value;
         if (typeof source !== 'string') return;
 
         // Track .proxy imports (relative paths)
@@ -160,16 +158,15 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
       // expression (`return { ...childProxy() }`, same as the implicit-return
       // `() => ({ ...childProxy() })`) — but NOT nested inside a further function the returned
       // object exposes as a method, which is deferred rather than eager.
-      CallExpression: (node: Tsestree): void => {
+      CallExpression: (node: TSESTree.CallExpression): void => {
         if (currentProxyFunctionNode === null) return;
 
         const { callee } = node;
-        if (!callee) return;
 
-        if (callee.type === 'Identifier') {
+        if (callee.type === AST_NODE_TYPES.Identifier) {
           const calleeName = callee.name;
           if (
-            calleeName?.endsWith('Proxy') &&
+            calleeName.endsWith('Proxy') &&
             isAstNodeDirectlyInFunctionGuard({ node, functionNode: currentProxyFunctionNode })
           ) {
             proxyCreationCalls.add(calleeName);
@@ -179,12 +176,15 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
 
       // Track when we enter the proxy function
       'ExportNamedDeclaration > VariableDeclaration > VariableDeclarator > ArrowFunctionExpression':
-        (node: Tsestree): void => {
-          const ancestors = ctx.sourceCode?.getAncestors(node) ?? [];
+        (node: TSESTree.ArrowFunctionExpression): void => {
+          const ancestors = ctx.sourceCode.getAncestors(node);
           for (const ancestor of ancestors) {
-            if (ancestor.type === 'VariableDeclarator') {
+            if (ancestor.type === AST_NODE_TYPES.VariableDeclarator) {
               const ancestorId = ancestor.id;
-              if (ancestorId?.name?.endsWith('Proxy')) {
+              if (
+                ancestorId.type === AST_NODE_TYPES.Identifier &&
+                ancestorId.name.endsWith('Proxy')
+              ) {
                 currentProxyFunctionNode = node;
                 break;
               }
@@ -199,7 +199,7 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
         },
 
       // Validate at the end
-      'Program:exit': (node: Tsestree): void => {
+      'Program:exit': (node: TSESTree.Program): void => {
         // Check 1: For each implementation import, verify proxy has corresponding import and creation
         for (const [importedName, importPath] of implementationImports) {
           // Derive expected proxy name and path
@@ -251,14 +251,14 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
                 gatewaySubpathSegment === undefined
                   ? null
                   : gatewayBarrelPathTransformer({
-                      callerFilePath: filePathContract.parse(String(filename ?? '')),
+                      callerFilePath: filePathContract.parse(filename),
                       gatewayFolder: gatewayFolderSegment,
                       subpath: gatewaySubpathSegment,
                     });
 
-              const wrapperPaths = ((): Map<Identifier, ModulePath> => {
+              const wrapperPaths = ((): Map<string, ModulePath> => {
                 if (barrelPath === null) {
-                  return new Map<Identifier, ModulePath>();
+                  return new Map<string, ModulePath>();
                 }
                 const barrelContent = ((): FileContents | null => {
                   try {
@@ -269,7 +269,7 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
                   }
                 })();
                 return barrelContent === null
-                  ? new Map<Identifier, ModulePath>()
+                  ? new Map<string, ModulePath>()
                   : gatewayBarrelWrapperPathsTransformer({ content: barrelContent });
               })();
 
@@ -294,14 +294,14 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
               // subpath's barrel (see its own PURPOSE — both are "which sibling file does this
               // name re-export from").
               const barrelPath = packageRootSourcePathTransformer({
-                callerFilePath: filePathContract.parse(String(filename ?? '')),
+                callerFilePath: filePathContract.parse(filename),
                 packageName,
                 relativePath: 'index.ts',
               });
 
-              const wrapperPaths = ((): Map<Identifier, ModulePath> => {
+              const wrapperPaths = ((): Map<string, ModulePath> => {
                 if (barrelPath === null) {
-                  return new Map<Identifier, ModulePath>();
+                  return new Map<string, ModulePath>();
                 }
                 const barrelContent = ((): FileContents | null => {
                   try {
@@ -312,7 +312,7 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
                   }
                 })();
                 return barrelContent === null
-                  ? new Map<Identifier, ModulePath>()
+                  ? new Map<string, ModulePath>()
                   : gatewayBarrelWrapperPathsTransformer({ content: barrelContent });
               })();
 
@@ -331,7 +331,7 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
               // from `agentRoleContract` (no proxy — contracts use stubs) without this rule ever
               // naming either one.
               const wrapperProxyPath = packageRootSourcePathTransformer({
-                callerFilePath: filePathContract.parse(String(filename ?? '')),
+                callerFilePath: filePathContract.parse(filename),
                 packageName,
                 relativePath: `${relativeWrapperPath}.proxy.ts`,
               });
@@ -407,7 +407,7 @@ export const ruleEnforceProxyChildCreationBroker = (): EslintRule => ({
           if (!hasImplementationImport) {
             // Get implementation filename for error message
             const implementationFile =
-              filename?.split('/').pop()?.replace('.proxy.ts', '.ts') ?? 'implementation';
+              filename.split('/').pop()?.replace('.proxy.ts', '.ts') ?? 'implementation';
 
             ctx.report({
               node,

@@ -9,59 +9,53 @@
  */
 import type { Identifier } from '@dungeonmaster/shared/contracts';
 import { identifierContract } from '@dungeonmaster/shared/contracts';
-import type { Tsestree } from '@dungeonmaster/eslint-plugin';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { matchesStatusHolderIdentifierGuard } from '../../../guards/matches-status-holder-identifier/matches-status-holder-identifier-guard';
 
 export const isStatusMemberExpressionLayerBroker = ({
   node,
   extraAllowlist,
 }: {
-  node?: Tsestree | null;
+  node?: TSESTree.Node | null;
   extraAllowlist?: readonly Identifier[];
 }): boolean => {
-  if (node === null || node === undefined || node.type !== 'MemberExpression') {
+  if (node === null || node === undefined || node.type !== AST_NODE_TYPES.MemberExpression) {
     return false;
   }
   const { property } = node;
-  if (property === null || property === undefined || property.type !== 'Identifier') {
+  if (property.type !== AST_NODE_TYPES.Identifier) {
     return false;
   }
-  if (String(property.name ?? '') !== 'status') {
+  if (property.name !== 'status') {
     return false;
   }
 
   const { object } = node;
-  if (object === null || object === undefined) {
-    return false;
-  }
 
   // Case 1: `quest.status` — object is an Identifier.
-  if (object.type === 'Identifier') {
+  if (object.type === AST_NODE_TYPES.Identifier) {
     return matchesStatusHolderIdentifierGuard(
       extraAllowlist === undefined
-        ? { identifierName: identifierContract.parse(String(object.name ?? '')) }
+        ? { identifierName: identifierContract.parse(object.name) }
         : {
-            identifierName: identifierContract.parse(String(object.name ?? '')),
+            identifierName: identifierContract.parse(object.name),
             extraAllowlist,
           },
     );
   }
 
   // Case 2: `postResult.quest.status` — object is a MemberExpression whose terminal property is the holder name.
-  if (object.type === 'MemberExpression') {
+  if (object.type === AST_NODE_TYPES.MemberExpression) {
     const innerProperty = object.property;
-    if (
-      innerProperty === null ||
-      innerProperty === undefined ||
-      innerProperty.type !== 'Identifier'
-    ) {
+    if (innerProperty.type !== AST_NODE_TYPES.Identifier) {
       return false;
     }
     return matchesStatusHolderIdentifierGuard(
       extraAllowlist === undefined
-        ? { identifierName: identifierContract.parse(String(innerProperty.name ?? '')) }
+        ? { identifierName: identifierContract.parse(innerProperty.name) }
         : {
-            identifierName: identifierContract.parse(String(innerProperty.name ?? '')),
+            identifierName: identifierContract.parse(innerProperty.name),
             extraAllowlist,
           },
     );

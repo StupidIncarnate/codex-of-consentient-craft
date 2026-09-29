@@ -9,8 +9,8 @@
  */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 import { isAstObjectStubSpreadGuard } from '../../../guards/is-ast-object-stub-spread/is-ast-object-stub-spread-guard';
 import { isGatewayFileGuard } from '../../../guards/is-gateway-file/is-gateway-file-guard';
@@ -31,9 +31,9 @@ export const ruleEnforceStubUsageBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: EslintContext) => {
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
-    const filename = String(ctx.getFilename?.() ?? '');
+    const { filename } = ctx;
 
     // Only apply to test files
     if (!hasFileSuffixGuard({ filename, suffix: 'test' })) {
@@ -47,17 +47,17 @@ export const ruleEnforceStubUsageBroker = (): EslintRule => ({
     }
 
     return {
-      VariableDeclarator: (node: Tsestree): void => {
+      VariableDeclarator: (node: TSESTree.VariableDeclarator): void => {
         const { id, init } = node;
 
         // Unwrap TSAsExpression recursively (e.g., {} as unknown as Type)
         let actualInit = init;
-        while (actualInit?.type === 'TSAsExpression') {
+        while (actualInit?.type === AST_NODE_TYPES.TSAsExpression) {
           actualInit = actualInit.expression;
         }
 
-        const isObjectLiteral = actualInit?.type === 'ObjectExpression';
-        const isArrayLiteral = actualInit?.type === 'ArrayExpression';
+        const isObjectLiteral = actualInit?.type === AST_NODE_TYPES.ObjectExpression;
+        const isArrayLiteral = actualInit?.type === AST_NODE_TYPES.ArrayExpression;
 
         if (!isObjectLiteral && !isArrayLiteral) {
           return;
@@ -71,9 +71,13 @@ export const ruleEnforceStubUsageBroker = (): EslintRule => ({
 
         // For arrays: only flag if they contain object literals
         if (isArrayLiteral && actualInit) {
-          const hasObjectLiterals = actualInit.elements?.some(
-            (element) => element?.type === 'ObjectExpression',
-          );
+          const hasObjectLiterals =
+            actualInit.type === AST_NODE_TYPES.ArrayExpression ||
+            actualInit.type === AST_NODE_TYPES.ArrayPattern
+              ? actualInit.elements.some(
+                  (element) => element?.type === AST_NODE_TYPES.ObjectExpression,
+                )
+              : undefined;
 
           if (!hasObjectLiterals) {
             return; // Array doesn't contain object literals, allow it
@@ -81,7 +85,7 @@ export const ruleEnforceStubUsageBroker = (): EslintRule => ({
         }
 
         // Extract type name from type annotation if available
-        const annotation = id?.typeAnnotation;
+        const annotation = id.typeAnnotation;
         const typeName = annotation
           ? typeNameFromAnnotationTransformer({ typeAnnotation: annotation })
           : null;

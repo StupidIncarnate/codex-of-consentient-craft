@@ -7,8 +7,8 @@
  */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 
 export const ruleBanFetchInProxiesBroker = (): EslintRule => ({
@@ -26,9 +26,9 @@ export const ruleBanFetchInProxiesBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: EslintContext) => {
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
-    const filename = ctx.filename ?? '';
+    const { filename } = ctx;
 
     const isProxyFile = hasFileSuffixGuard({ filename, suffix: 'proxy' });
 
@@ -37,23 +37,26 @@ export const ruleBanFetchInProxiesBroker = (): EslintRule => ({
     }
 
     return {
-      MemberExpression: (node: Tsestree): void => {
+      MemberExpression: (node: TSESTree.MemberExpression): void => {
         // Check for globalThis.fetch
         const { object, property } = node;
 
         if (
-          object?.type === 'Identifier' &&
+          object.type === AST_NODE_TYPES.Identifier &&
           object.name === 'globalThis' &&
-          property?.type === 'Identifier' &&
+          property.type === AST_NODE_TYPES.Identifier &&
           property.name === 'fetch'
         ) {
           // Skip if this is part of jest.spyOn(globalThis, 'fetch') - that's handled by CallExpression
           const { parent } = node;
           if (
-            parent?.type === 'CallExpression' &&
-            parent.callee?.type === 'MemberExpression' &&
-            parent.callee.object?.name === 'jest' &&
-            parent.callee.property?.name === 'spyOn'
+            parent.type === AST_NODE_TYPES.CallExpression &&
+            parent.callee.type === AST_NODE_TYPES.MemberExpression &&
+            parent.callee.object.type === AST_NODE_TYPES.Identifier &&
+            parent.callee.object.name === 'jest' &&
+            (parent.callee.property.type === AST_NODE_TYPES.Identifier ||
+              parent.callee.property.type === AST_NODE_TYPES.PrivateIdentifier) &&
+            parent.callee.property.name === 'spyOn'
           ) {
             return;
           }
@@ -64,11 +67,11 @@ export const ruleBanFetchInProxiesBroker = (): EslintRule => ({
           });
         }
       },
-      CallExpression: (node: Tsestree): void => {
+      CallExpression: (node: TSESTree.CallExpression): void => {
         const { callee } = node;
 
         // Check for direct fetch() calls
-        if (callee?.type === 'Identifier' && callee.name === 'fetch') {
+        if (callee.type === AST_NODE_TYPES.Identifier && callee.name === 'fetch') {
           ctx.report({
             node,
             messageId: 'noFetchInProxy',
@@ -78,17 +81,20 @@ export const ruleBanFetchInProxiesBroker = (): EslintRule => ({
 
         // Check for jest.spyOn(globalThis, 'fetch')
         if (
-          callee?.type === 'MemberExpression' &&
-          callee.object?.name === 'jest' &&
-          callee.property?.name === 'spyOn'
+          callee.type === AST_NODE_TYPES.MemberExpression &&
+          callee.object.type === AST_NODE_TYPES.Identifier &&
+          callee.object.name === 'jest' &&
+          (callee.property.type === AST_NODE_TYPES.Identifier ||
+            callee.property.type === AST_NODE_TYPES.PrivateIdentifier) &&
+          callee.property.name === 'spyOn'
         ) {
-          const args = node.arguments ?? [];
+          const args = node.arguments;
           const [firstArg, secondArg] = args;
 
           if (
-            firstArg?.type === 'Identifier' &&
+            firstArg?.type === AST_NODE_TYPES.Identifier &&
             firstArg.name === 'globalThis' &&
-            secondArg?.type === 'Literal' &&
+            secondArg?.type === AST_NODE_TYPES.Literal &&
             secondArg.value === 'fetch'
           ) {
             ctx.report({

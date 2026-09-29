@@ -7,8 +7,7 @@
  */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { validateFunctionParamsUseObjectDestructuringTransformer } from '../../../transformers/validate-function-params-use-object-destructuring/validate-function-params-use-object-destructuring-transformer';
 
 export const ruleEnforceObjectDestructuringParamsBroker = (): EslintRule => ({
@@ -25,17 +24,19 @@ export const ruleEnforceObjectDestructuringParamsBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: EslintContext) => {
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
 
     return {
       // Only check exported arrow functions: export const fn = () => {}
       'ExportNamedDeclaration > VariableDeclaration > VariableDeclarator > ArrowFunctionExpression':
-        (node: Tsestree): void => {
+        (node: TSESTree.ArrowFunctionExpression): void => {
           validateFunctionParamsUseObjectDestructuringTransformer({ node, context: ctx });
         },
       // Only check exported function declarations: export function fn() {}
-      'ExportNamedDeclaration > FunctionDeclaration': (node: Tsestree): void => {
+      'ExportNamedDeclaration > FunctionDeclaration': (
+        node: TSESTree.FunctionDeclaration,
+      ): void => {
         validateFunctionParamsUseObjectDestructuringTransformer({ node, context: ctx });
       },
     };

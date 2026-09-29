@@ -18,9 +18,9 @@
  */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { voidSinkSpyLayerBroker } from './void-sink-spy-layer-broker';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
 import { identifierContract, type Identifier } from '@dungeonmaster/shared/contracts';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 import { typedFunctionTakesNoArgsTransformer } from '../../../transformers/typed-function-takes-no-args/typed-function-takes-no-args-transformer';
@@ -41,32 +41,34 @@ export const ruleBanProxyEmptyCalledWithBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: EslintContext) => {
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
-    const filename = String(ctx.filename ?? '');
+    const { filename } = ctx;
 
     if (!hasFileSuffixGuard({ filename, suffix: 'proxy' })) {
       return {};
     }
 
-    // `Property.value` reads as `unknown` from the Tsestree contract (the same gap
-    // validate-no-exposed-child-proxies-layer-broker documents) — each node is handed straight to
-    // the type-checker helpers, whose own parameters are `unknown` and narrow via the real
-    // TSESTree.Node cast. A handle maps to a thunk so the type checker runs only when a
-    // `calledWith([])` on it is actually found.
+    // Each node is handed straight to the type-checker helpers, whose own parameters are `unknown`
+    // and narrow via the real TSESTree.Node cast. A handle maps to a thunk so the type checker runs
+    // only when a `calledWith([])` on it is actually found.
     const takesNoArgsByHandleName = new Map<Identifier, () => boolean | undefined>();
     // A spy on a void sink (`process.stdout|stderr` `write`, `process` `on`) is a recorder, not a
     // catch-all, when the proxy reads its calls back — so its report waits for Program:exit, by
     // which point every read-back in the file has been seen.
     const voidSinkHandleNames = new Set<Identifier>();
     const readBackHandleNames = new Set<Identifier>();
-    const deferredReports: { node: Tsestree; handleName: Identifier }[] = [];
+    const deferredReports: { node: TSESTree.Node; handleName: Identifier }[] = [];
 
     return {
-      VariableDeclarator: (node: Tsestree): void => {
+      VariableDeclarator: (node: TSESTree.VariableDeclarator): void => {
         const { id, init } = node;
 
-        if (!id?.name || init?.type !== 'CallExpression' || init.callee?.type !== 'Identifier') {
+        if (
+          id.type !== AST_NODE_TYPES.Identifier ||
+          init?.type !== AST_NODE_TYPES.CallExpression ||
+          init.callee.type !== AST_NODE_TYPES.Identifier
+        ) {
           return;
         }
 
@@ -76,17 +78,22 @@ export const ruleBanProxyEmptyCalledWithBroker = (): EslintRule => ({
           return;
         }
 
-        const [optionsArgument] = init.arguments ?? [];
+        const [optionsArgument] = init.arguments;
 
-        if (optionsArgument?.type !== 'ObjectExpression') {
+        if (optionsArgument?.type !== AST_NODE_TYPES.ObjectExpression) {
           return;
         }
 
-        const properties = optionsArgument.properties ?? [];
+        const properties = optionsArgument.properties.filter(
+          (property) => property.type === AST_NODE_TYPES.Property,
+        );
         const handleName = identifierContract.parse(id.name);
 
         if (registerName === 'registerMock') {
-          const fnNode = properties.find((property) => property.key?.name === 'fn')?.value;
+          const fnNode = properties.find(
+            (property) =>
+              property.key.type === AST_NODE_TYPES.Identifier && property.key.name === 'fn',
+          )?.value;
 
           if (fnNode) {
             takesNoArgsByHandleName.set(handleName, () =>
@@ -97,14 +104,18 @@ export const ruleBanProxyEmptyCalledWithBroker = (): EslintRule => ({
           return;
         }
 
-        const objectNode = properties.find((property) => property.key?.name === 'object')?.value;
-        const method = properties.find((property) => property.key?.name === 'method')?.value;
+        const objectNode = properties.find(
+          (property) =>
+            property.key.type === AST_NODE_TYPES.Identifier && property.key.name === 'object',
+        )?.value;
+        const method = properties.find(
+          (property) =>
+            property.key.type === AST_NODE_TYPES.Identifier && property.key.name === 'method',
+        )?.value;
 
         if (
           objectNode &&
-          typeof method === 'object' &&
-          method !== null &&
-          'value' in method &&
+          method?.type === AST_NODE_TYPES.Literal &&
           typeof method.value === 'string'
         ) {
           const methodName = method.value;
@@ -123,11 +134,16 @@ export const ruleBanProxyEmptyCalledWithBroker = (): EslintRule => ({
         }
       },
 
-      MemberExpression: (node: Tsestree): void => {
+      MemberExpression: (node: TSESTree.MemberExpression): void => {
         if (
-          node.object?.type === 'Identifier' &&
+          node.object.type === AST_NODE_TYPES.Identifier &&
           node.object.name &&
-          (node.property?.name === 'callsMatching' || node.property?.name === 'mock')
+          (((node.property.type === AST_NODE_TYPES.Identifier ||
+            node.property.type === AST_NODE_TYPES.PrivateIdentifier) &&
+            node.property.name === 'callsMatching') ||
+            ((node.property.type === AST_NODE_TYPES.Identifier ||
+              node.property.type === AST_NODE_TYPES.PrivateIdentifier) &&
+              node.property.name === 'mock'))
         ) {
           readBackHandleNames.add(identifierContract.parse(node.object.name));
         }
@@ -144,13 +160,16 @@ export const ruleBanProxyEmptyCalledWithBroker = (): EslintRule => ({
         }
       },
 
-      CallExpression: (node: Tsestree): void => {
+      CallExpression: (node: TSESTree.CallExpression): void => {
         const { callee } = node;
 
         if (
-          callee?.type !== 'MemberExpression' ||
-          callee.property?.name !== 'calledWith' ||
-          callee.object?.type !== 'Identifier' ||
+          callee.type !== AST_NODE_TYPES.MemberExpression ||
+          (callee.property.type === AST_NODE_TYPES.Identifier ||
+          callee.property.type === AST_NODE_TYPES.PrivateIdentifier
+            ? callee.property.name
+            : undefined) !== 'calledWith' ||
+          callee.object.type !== AST_NODE_TYPES.Identifier ||
           !callee.object.name
         ) {
           return;
@@ -164,11 +183,11 @@ export const ruleBanProxyEmptyCalledWithBroker = (): EslintRule => ({
           return;
         }
 
-        const [addressArgument] = node.arguments ?? [];
+        const [addressArgument] = node.arguments;
 
         if (
-          addressArgument?.type !== 'ArrayExpression' ||
-          (addressArgument.elements ?? []).length !== 0
+          addressArgument?.type !== AST_NODE_TYPES.ArrayExpression ||
+          addressArgument.elements.length !== 0
         ) {
           return;
         }

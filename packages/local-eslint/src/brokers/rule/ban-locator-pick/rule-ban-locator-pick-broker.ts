@@ -19,7 +19,9 @@
  * standing "nothing ever silently picks a match" constraint over the step-command implementations.
  */
 import { eslintRuleContract } from '@dungeonmaster/eslint-plugin';
-import type { EslintRule, EslintContext, Tsestree } from '@dungeonmaster/eslint-plugin';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
+import type { EslintRule } from '@dungeonmaster/eslint-plugin';
 import { locatorPickStatics } from '../../../statics/locator-pick/locator-pick-statics';
 import { isLocatorPickScopeFileGuard } from '../../../guards/is-locator-pick-scope-file/is-locator-pick-scope-file-guard';
 
@@ -41,21 +43,25 @@ export const ruleBanLocatorPickBroker = (): EslintRule => ({
     },
   }),
   create: (context: unknown) => {
-    const ctx = context as EslintContext;
-    const filename = ctx.filename ?? ctx.getFilename?.() ?? '';
+    const ctx = context as TSESLint.RuleContext<string, unknown[]>;
+    const { filename } = ctx;
 
-    if (!isLocatorPickScopeFileGuard({ filename: String(filename) })) {
+    if (!isLocatorPickScopeFileGuard({ filename })) {
       return {};
     }
 
     return {
-      CallExpression: (node: Tsestree): void => {
+      CallExpression: (node: TSESTree.CallExpression): void => {
         const { callee } = node;
-        if (!callee || callee.type !== 'MemberExpression') {
+        if (callee.type !== AST_NODE_TYPES.MemberExpression) {
           return;
         }
 
-        const methodName = callee.property?.name;
+        const methodName =
+          callee.property.type === AST_NODE_TYPES.Identifier ||
+          callee.property.type === AST_NODE_TYPES.PrivateIdentifier
+            ? callee.property.name
+            : undefined;
         if (methodName === undefined) {
           return;
         }
@@ -68,7 +74,7 @@ export const ruleBanLocatorPickBroker = (): EslintRule => ({
             node,
             messageId: 'locatorPick',
             data: {
-              method: String(methodName),
+              method: methodName,
               scope: locatorPickStatics.scope.inScopePathSubstring,
             },
           });
@@ -79,8 +85,8 @@ export const ruleBanLocatorPickBroker = (): EslintRule => ({
           return;
         }
 
-        const [firstArgument] = node.arguments ?? [];
-        if (!firstArgument || firstArgument.type !== 'Literal') {
+        const [firstArgument] = node.arguments;
+        if (!firstArgument || firstArgument.type !== AST_NODE_TYPES.Literal) {
           return;
         }
 

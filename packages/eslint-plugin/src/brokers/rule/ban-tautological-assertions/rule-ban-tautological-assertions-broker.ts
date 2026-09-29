@@ -9,8 +9,8 @@
  */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
 import { astFindExpectCallTransformer } from '../../../transformers/ast-find-expect-call/ast-find-expect-call-transformer';
 import { tautologyLiteralKeyTransformer } from '../../../transformers/tautology-literal-key/tautology-literal-key-transformer';
@@ -30,9 +30,9 @@ export const ruleBanTautologicalAssertionsBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: EslintContext) => {
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
-    const isTestFile = isTestFileGuard({ filename: ctx.filename ?? '' });
+    const isTestFile = isTestFileGuard({ filename: ctx.filename });
 
     if (!isTestFile) {
       return {};
@@ -41,15 +41,19 @@ export const ruleBanTautologicalAssertionsBroker = (): EslintRule => ({
     const tautologyMatchers = new Set(['toBe', 'toEqual', 'toStrictEqual']);
 
     return {
-      CallExpression: (node: Tsestree): void => {
+      CallExpression: (node: TSESTree.CallExpression): void => {
         const { callee } = node;
 
-        if (callee?.type !== 'MemberExpression') {
+        if (callee.type !== AST_NODE_TYPES.MemberExpression) {
           return;
         }
 
-        const matcherName = callee.property?.name;
-        if (matcherName === undefined || !tautologyMatchers.has(String(matcherName))) {
+        const matcherName =
+          callee.property.type === AST_NODE_TYPES.Identifier ||
+          callee.property.type === AST_NODE_TYPES.PrivateIdentifier
+            ? callee.property.name
+            : undefined;
+        if (matcherName === undefined || !tautologyMatchers.has(matcherName)) {
           return;
         }
 
@@ -60,28 +64,27 @@ export const ruleBanTautologicalAssertionsBroker = (): EslintRule => ({
         }
 
         // Get the expect() argument
-        const expectArg = expectCall.arguments?.[0];
-        if (expectArg === null || expectArg === undefined) {
+        const [expectArg] = expectCall.arguments;
+        if (expectArg === undefined) {
           return;
         }
 
         // Get the matcher argument
-        const matcherArg = node.arguments?.[0];
-        if (matcherArg === null || matcherArg === undefined) {
+        const [matcherArg] = node.arguments;
+        if (matcherArg === undefined) {
           return;
         }
 
         // Check for same identifier (variable) tautology: expect(foo).toBe(foo)
         if (
-          expectArg.type === 'Identifier' &&
-          matcherArg.type === 'Identifier' &&
-          expectArg.name !== undefined &&
+          expectArg.type === AST_NODE_TYPES.Identifier &&
+          matcherArg.type === AST_NODE_TYPES.Identifier &&
           expectArg.name === matcherArg.name
         ) {
           ctx.report({
             node,
             messageId: 'tautologicalAssertion',
-            data: { value: String(expectArg.name) },
+            data: { value: expectArg.name },
           });
           return;
         }
@@ -100,11 +103,12 @@ export const ruleBanTautologicalAssertionsBroker = (): EslintRule => ({
             messageId: 'tautologicalAssertion',
             data: {
               value:
-                typeof expectArg.value === 'string' ||
-                typeof expectArg.value === 'number' ||
-                typeof expectArg.value === 'boolean'
+                expectArg.type === AST_NODE_TYPES.Literal &&
+                (typeof expectArg.value === 'string' ||
+                  typeof expectArg.value === 'number' ||
+                  typeof expectArg.value === 'boolean')
                   ? String(expectArg.value)
-                  : typeof expectArg.name === 'string'
+                  : expectArg.type === AST_NODE_TYPES.Identifier
                     ? expectArg.name
                     : expectKey,
             },

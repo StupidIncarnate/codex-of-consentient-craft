@@ -6,13 +6,20 @@
  * astCallMethodNameTransformer({ node: callNode });
  * // Returns 'brand' for `z.string().brand<'X'>()`
  */
+import { identifierContract } from '@dungeonmaster/shared/contracts';
 import type { Identifier } from '@dungeonmaster/shared/contracts';
-import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
-export const astCallMethodNameTransformer = ({ node }: { node: Tsestree }): Identifier | null => {
+export const astCallMethodNameTransformer = ({
+  node,
+}: {
+  node: TSESTree.CallExpression;
+}): Identifier | null => {
   const { callee } = node;
 
-  return callee?.type === 'MemberExpression' && callee.property?.type === 'Identifier'
-    ? (callee.property.name ?? null)
+  return callee.type === AST_NODE_TYPES.MemberExpression &&
+    callee.property.type === AST_NODE_TYPES.Identifier
+    ? identifierContract.parse(callee.property.name)
     : null;
 };

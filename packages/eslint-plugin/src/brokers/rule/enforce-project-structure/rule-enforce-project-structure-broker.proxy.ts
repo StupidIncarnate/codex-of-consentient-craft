@@ -1,4 +1,5 @@
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
+import { RuleContextStub } from '#gateway/npm/typescript-eslint__utils/rule-context/rule-context.stub';
+import type { TSESLint } from '#gateway/npm/typescript-eslint__utils';
 import { collectExportsLayerBrokerProxy } from './collect-exports-layer-broker.proxy';
 import { validateExportLayerBrokerProxy } from './validate-export-layer-broker.proxy';
 import { validateFilenameLayerBrokerProxy } from './validate-filename-layer-broker.proxy';
@@ -10,7 +11,7 @@ import { validateFolderLocationLayerBrokerProxy } from './validate-folder-locati
  * Provides mock setup for testing the rule.
  */
 export const ruleEnforceProjectStructureBrokerProxy = (): {
-  createContext: () => EslintContext;
+  createContext: () => TSESLint.RuleContext<string, unknown[]>;
   layers: {
     collectExports: ReturnType<typeof collectExportsLayerBrokerProxy>;
     validateExport: ReturnType<typeof validateExportLayerBrokerProxy>;
@@ -19,10 +20,7 @@ export const ruleEnforceProjectStructureBrokerProxy = (): {
     validateFolderLocation: ReturnType<typeof validateFolderLocationLayerBrokerProxy>;
   };
 } => ({
-  createContext: (): EslintContext => ({
-    filename: undefined,
-    report: jest.fn(),
-  }),
+  createContext: (): TSESLint.RuleContext<string, unknown[]> => RuleContextStub(),
   layers: {
     collectExports: collectExportsLayerBrokerProxy(),
     validateExport: validateExportLayerBrokerProxy(),

@@ -8,22 +8,28 @@
  * astObjectBrandAnchorTransformer({ node: zObjectCall });
  * // Returns the `z.object({ … }).strict()` call for `z.object({ … }).strict().optional()`
  */
-import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { zodObjectBrandStatics } from '../../statics/zod-object-brand/zod-object-brand-statics';
 
-export const astObjectBrandAnchorTransformer = ({ node }: { node: Tsestree }): Tsestree | null => {
-  let anchor: Tsestree = node;
-  let current: Tsestree = node;
+export const astObjectBrandAnchorTransformer = ({
+  node,
+}: {
+  node: TSESTree.Node;
+}): TSESTree.Node | null => {
+  let anchor: TSESTree.Node = node;
+  let current: TSESTree.Node = node;
   let inShapeRun = true;
   let { parent } = current;
 
-  while (parent?.type === 'MemberExpression' && parent.object === current) {
-    const call = parent.parent ?? undefined;
-    if (call?.type !== 'CallExpression' || call.callee !== parent) {
+  while (parent?.type === AST_NODE_TYPES.MemberExpression && parent.object === current) {
+    const call = parent.parent;
+    if (call.type !== AST_NODE_TYPES.CallExpression || call.callee !== parent) {
       break;
     }
 
-    const method = parent.property?.type === 'Identifier' ? parent.property.name : undefined;
+    const method =
+      parent.property.type === AST_NODE_TYPES.Identifier ? parent.property.name : undefined;
     if (method === 'brand') {
       return null;
     }

@@ -28,8 +28,8 @@ import { gatewayLocationsStatics, nodeBuiltinStatics } from '@dungeonmaster/shar
 import { identifierContract, type Identifier } from '@dungeonmaster/shared/contracts';
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { typedParserServicesTransformer } from '../../../transformers/typed-parser-services/typed-parser-services-transformer';
 import { isBannedPlatformDeclarationFileGuard } from '../../../guards/is-banned-platform-declaration-file/is-banned-platform-declaration-file-guard';
 import { isInsideGatewayLayerBroker } from './is-inside-gateway-layer-broker';
@@ -63,8 +63,8 @@ export const rulePlatformGlobalsBanBroker = (): EslintRule => ({
     },
   }),
   create: (context: unknown) => {
-    const ctx = context as EslintContext;
-    const filename = ctx.getFilename?.() ?? '';
+    const ctx = context as TSESLint.RuleContext<string, unknown[]>;
+    const { filename } = ctx;
 
     if (filename.length === 0 || isInsideGatewayLayerBroker({ filename })) {
       return {};
@@ -74,15 +74,14 @@ export const rulePlatformGlobalsBanBroker = (): EslintRule => ({
     // back because their identifier sits inside a named function — both settled at Program:exit,
     // since a function is usually declared above the call that ships it to the browser.
     const browserFunctionNames = new Set<Identifier>();
-    const heldReportNames = new Map<Tsestree, Identifier[]>();
-    const heldReportData = new Map<Tsestree, Record<PropertyKey, unknown>>();
+    const heldReportNames = new Map<TSESTree.Node, Identifier[]>();
+    const heldReportData = new Map<TSESTree.Node, Record<PropertyKey, unknown>>();
 
     return {
-      CallExpression: (node: Tsestree): void => {
-        const [firstArgument] = node.arguments ?? [];
+      CallExpression: (node: TSESTree.CallExpression): void => {
+        const [firstArgument] = node.arguments;
         if (
-          firstArgument?.type === 'Identifier' &&
-          firstArgument.name !== undefined &&
+          firstArgument?.type === AST_NODE_TYPES.Identifier &&
           isPageCallbackCallLayerBroker({ node })
         ) {
           browserFunctionNames.add(identifierContract.parse(firstArgument.name));
@@ -99,8 +98,8 @@ export const rulePlatformGlobalsBanBroker = (): EslintRule => ({
           }
         }
       },
-      Identifier: (node: Tsestree): void => {
-        if (node.name === undefined || EXEMPT_NAMES.has(String(node.name))) {
+      Identifier: (node: TSESTree.Identifier): void => {
+        if (EXEMPT_NAMES.has(node.name)) {
           return;
         }
 
@@ -129,7 +128,7 @@ export const rulePlatformGlobalsBanBroker = (): EslintRule => ({
           return;
         }
         const platform = resolvePackagePlatformLayerBroker({ filename });
-        const identifierName = String(target.name);
+        const identifierName = node.name;
         // 'Buffer' the ambient global class spells its own wrapped module 'buffer' lowercase —
         // fall back to the lowercase form only when IT is a real Node builtin, so 'process' and
         // 'crypto' (already lowercase builtins) are untouched and 'setTimeout' (lowercase but not

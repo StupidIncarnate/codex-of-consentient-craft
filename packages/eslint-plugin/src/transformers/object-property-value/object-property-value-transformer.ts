@@ -8,21 +8,22 @@
  * objectPropertyValueTransformer({ properties: objectExpressionNode.properties ?? [], name: 'command' });
  * // Returns the `command` property's value node, or undefined when no such property exists
  */
-import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isNamedObjectPropertyGuard } from '../../guards/is-named-object-property/is-named-object-property-guard';
 
 export const objectPropertyValueTransformer = ({
   properties,
   name,
 }: {
-  properties: readonly Tsestree[];
+  properties: readonly TSESTree.Node[];
   name: string;
-}): Tsestree | undefined => {
+}): TSESTree.Node | undefined => {
   const matchingProperty = properties.find((property) =>
     isNamedObjectPropertyGuard({ property, name }),
   );
-  const rawValue = matchingProperty?.value;
+  const rawValue =
+    matchingProperty && 'value' in matchingProperty ? matchingProperty.value : undefined;
   return rawValue !== null && typeof rawValue === 'object' && 'type' in rawValue
-    ? (rawValue as Tsestree)
+    ? (rawValue as TSESTree.Node)
     : undefined;
 };

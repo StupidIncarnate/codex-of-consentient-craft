@@ -12,7 +12,8 @@
 import { locationsStatics } from '@dungeonmaster/shared/statics';
 import { pathSegmentContract } from '@dungeonmaster/shared/contracts';
 import { eslintRuleContract } from '@dungeonmaster/eslint-plugin';
-import type { EslintRule, EslintContext, Tsestree } from '@dungeonmaster/eslint-plugin';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
+import type { EslintRule } from '@dungeonmaster/eslint-plugin';
 import { locationLiteralStatics } from '../../../statics/location-literal/location-literal-statics';
 import { locationLiteralKeyPathsTransformer } from '../../../transformers/location-literal-key-paths/location-literal-key-paths-transformer';
 import { isLocationLiteralAllowlistedGuard } from '../../../guards/is-location-literal-allowlisted/is-location-literal-allowlisted-guard';
@@ -40,15 +41,15 @@ export const ruleNoBareLocationLiteralsBroker = (): EslintRule => ({
     },
   }),
   create: (context: unknown) => {
-    const ctx = context as EslintContext;
-    const filename = ctx.filename ?? ctx.getFilename?.() ?? '';
+    const ctx = context as TSESLint.RuleContext<string, unknown[]>;
+    const { filename } = ctx;
 
-    if (isLocationLiteralAllowlistedGuard({ filename: String(filename) })) {
+    if (isLocationLiteralAllowlistedGuard({ filename })) {
       return {};
     }
 
     return {
-      Literal: (node: Tsestree): void => {
+      Literal: (node: TSESTree.Literal): void => {
         const { value } = node;
         if (typeof value !== 'string') {
           return;

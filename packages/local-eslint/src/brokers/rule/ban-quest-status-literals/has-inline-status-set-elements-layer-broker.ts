@@ -7,14 +7,14 @@
  *
  * WHEN-TO-USE: Only the ban-quest-status-literals rule should call this (for `new Set([...])` and inline array-literal flags).
  */
-import type { Tsestree } from '@dungeonmaster/eslint-plugin';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isClassifiedStatusLiteralElementGuard } from '../../../guards/is-classified-status-literal-element/is-classified-status-literal-element-guard';
 import { statusLiteralStatics } from '../../../statics/status-literal/status-literal-statics';
 
 export const hasInlineStatusSetElementsLayerBroker = ({
   elements,
 }: {
-  elements?: readonly (Tsestree | null)[];
+  elements?: readonly (TSESTree.Node | null)[];
 }): boolean => {
   if (elements === undefined) {
     return false;

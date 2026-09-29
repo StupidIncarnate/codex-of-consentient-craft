@@ -15,8 +15,7 @@
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 import { adapterResultContract } from '@dungeonmaster/shared/contracts';
 import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { binProgramHomeStatics } from '../../../statics/bin-program-home/bin-program-home-statics';
 import { resolveSpawnedProgramLayerBroker } from './resolve-spawned-program-layer-broker';
 
@@ -28,11 +27,11 @@ export const reportBinProgramSpawnLayerBroker = ({
   moduleBody,
   filename,
 }: {
-  ctx: EslintContext;
-  node: Tsestree;
-  commandNode: Tsestree | undefined;
-  argsNode: Tsestree | undefined;
-  moduleBody: readonly Tsestree[];
+  ctx: TSESLint.RuleContext<string, unknown[]>;
+  node: TSESTree.Node;
+  commandNode: TSESTree.Node | undefined;
+  argsNode: TSESTree.Node | undefined;
+  moduleBody: readonly TSESTree.ProgramStatement[];
   filename?: string | undefined;
 }): AdapterResult => {
   const program = resolveSpawnedProgramLayerBroker({

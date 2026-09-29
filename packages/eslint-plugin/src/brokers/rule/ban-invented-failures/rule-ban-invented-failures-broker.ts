@@ -13,8 +13,8 @@
  */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
 
@@ -33,29 +33,36 @@ export const ruleBanInventedFailuresBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: EslintContext) => {
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
-    const filename = String(ctx.filename ?? '');
+    const { filename } = ctx;
 
     if (!hasFileSuffixGuard({ filename, suffix: 'proxy' }) && !isTestFileGuard({ filename })) {
       return {};
     }
 
     return {
-      NewExpression: (node: Tsestree): void => {
+      NewExpression: (node: TSESTree.NewExpression): void => {
         const { callee } = node;
 
-        if (callee?.type !== 'Identifier' || callee.name !== 'Error') {
+        if (callee.type !== AST_NODE_TYPES.Identifier || callee.name !== 'Error') {
           return;
         }
 
-        const ancestors = ctx.sourceCode?.getAncestors(node) ?? [];
+        const ancestors = ctx.sourceCode.getAncestors(node);
         const isFedToAnInventedFailureCall = ancestors.some((ancestor): boolean => {
-          if (ancestor.type !== 'CallExpression' || ancestor.callee?.type !== 'MemberExpression') {
+          if (
+            ancestor.type !== AST_NODE_TYPES.CallExpression ||
+            ancestor.callee.type !== AST_NODE_TYPES.MemberExpression
+          ) {
             return false;
           }
 
-          const methodName = ancestor.callee.property?.name;
+          const methodName =
+            ancestor.callee.property.type === AST_NODE_TYPES.Identifier ||
+            ancestor.callee.property.type === AST_NODE_TYPES.PrivateIdentifier
+              ? ancestor.callee.property.name
+              : undefined;
 
           return methodName === 'rejects' || methodName === 'throws' || methodName === 'implement';
         });

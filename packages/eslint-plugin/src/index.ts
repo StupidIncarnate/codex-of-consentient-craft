@@ -14,13 +14,6 @@ export type { EslintConfig } from './contracts/eslint-config/eslint-config-contr
 export type { TsconfigOptions } from './contracts/tsconfig-options/tsconfig-options-contract';
 export type { AstNode } from './contracts/ast-node/ast-node-contract';
 export type { RuleViolation } from './contracts/rule-violation/rule-violation-contract';
-export type {
-  EslintContext,
-  EslintScope,
-  EslintSourceCode,
-} from './contracts/eslint-context/eslint-context-contract';
-export type { Tsestree } from './contracts/tsestree/tsestree-contract';
-export { tsestreeContract } from './contracts/tsestree/tsestree-contract';
 
 // Export adapters for writing custom rule tests
 

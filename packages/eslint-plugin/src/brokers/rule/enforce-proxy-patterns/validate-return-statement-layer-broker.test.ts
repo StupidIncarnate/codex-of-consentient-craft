@@ -1,20 +1,18 @@
+import { RuleContextStub } from '#gateway/npm/typescript-eslint__utils/rule-context/rule-context.stub';
+import { ArrowFunctionExpressionStub } from '#gateway/npm/typescript-eslint__utils/arrow-function-expression/arrow-function-expression.stub';
+import { ExpressionStatementStub } from '#gateway/npm/typescript-eslint__utils/expression-statement/expression-statement.stub';
+import { ReturnStatementStub } from '#gateway/npm/typescript-eslint__utils/return-statement/return-statement.stub';
 import { validateReturnStatementLayerBroker } from './validate-return-statement-layer-broker';
 import { validateReturnStatementLayerBrokerProxy } from './validate-return-statement-layer-broker.proxy';
-import { EslintContextStub } from '../../../contracts/eslint-context/eslint-context.stub';
-import { TsestreeStub, TsestreeNodeType } from '../../../contracts/tsestree/tsestree.stub';
 
 describe('validateReturnStatementLayerBroker', () => {
   describe('non-return statement', () => {
     it('VALID: {type: ExpressionStatement} => does not report', () => {
       validateReturnStatementLayerBrokerProxy();
       const mockReport = jest.fn();
-      const mockContext = EslintContextStub({ report: mockReport });
-      const mockFunctionNode = TsestreeStub({
-        type: TsestreeNodeType.ArrowFunctionExpression,
-      });
-      const statement = TsestreeStub({
-        type: TsestreeNodeType.ExpressionStatement,
-      });
+      const mockContext = RuleContextStub({ report: mockReport });
+      const mockFunctionNode = ArrowFunctionExpressionStub({ code: 'const f = () => {};' });
+      const statement = ExpressionStatementStub({ code: 'x;' });
 
       validateReturnStatementLayerBroker({
         statement,
@@ -30,17 +28,9 @@ describe('validateReturnStatementLayerBroker', () => {
     it('VALID: {argument.type: ObjectExpression, properties: []} => does not report', () => {
       validateReturnStatementLayerBrokerProxy();
       const mockReport = jest.fn();
-      const mockContext = EslintContextStub({ report: mockReport });
-      const mockFunctionNode = TsestreeStub({
-        type: TsestreeNodeType.ArrowFunctionExpression,
-      });
-      const statement = TsestreeStub({
-        type: TsestreeNodeType.ReturnStatement,
-        argument: TsestreeStub({
-          type: TsestreeNodeType.ObjectExpression,
-          properties: [],
-        }),
-      });
+      const mockContext = RuleContextStub({ report: mockReport });
+      const mockFunctionNode = ArrowFunctionExpressionStub({ code: 'const f = () => {};' });
+      const statement = ReturnStatementStub({ code: 'return {  };' });
 
       validateReturnStatementLayerBroker({
         statement,
@@ -54,16 +44,9 @@ describe('validateReturnStatementLayerBroker', () => {
     it('VALID: {argument.type: CallExpression} => does not report', () => {
       validateReturnStatementLayerBrokerProxy();
       const mockReport = jest.fn();
-      const mockContext = EslintContextStub({ report: mockReport });
-      const mockFunctionNode = TsestreeStub({
-        type: TsestreeNodeType.ArrowFunctionExpression,
-      });
-      const statement = TsestreeStub({
-        type: TsestreeNodeType.ReturnStatement,
-        argument: TsestreeStub({
-          type: TsestreeNodeType.CallExpression,
-        }),
-      });
+      const mockContext = RuleContextStub({ report: mockReport });
+      const mockFunctionNode = ArrowFunctionExpressionStub({ code: 'const f = () => {};' });
+      const statement = ReturnStatementStub({ code: 'return f();' });
 
       validateReturnStatementLayerBroker({
         statement,
@@ -77,16 +60,9 @@ describe('validateReturnStatementLayerBroker', () => {
     it('VALID: {argument.type: MemberExpression} => does not report', () => {
       validateReturnStatementLayerBrokerProxy();
       const mockReport = jest.fn();
-      const mockContext = EslintContextStub({ report: mockReport });
-      const mockFunctionNode = TsestreeStub({
-        type: TsestreeNodeType.ArrowFunctionExpression,
-      });
-      const statement = TsestreeStub({
-        type: TsestreeNodeType.ReturnStatement,
-        argument: TsestreeStub({
-          type: TsestreeNodeType.MemberExpression,
-        }),
-      });
+      const mockContext = RuleContextStub({ report: mockReport });
+      const mockFunctionNode = ArrowFunctionExpressionStub({ code: 'const f = () => {};' });
+      const statement = ReturnStatementStub({ code: 'return a.b;' });
 
       validateReturnStatementLayerBroker({
         statement,
@@ -102,14 +78,9 @@ describe('validateReturnStatementLayerBroker', () => {
     it('INVALID: {argument: undefined} => reports proxyMustReturnObject', () => {
       validateReturnStatementLayerBrokerProxy();
       const mockReport = jest.fn();
-      const mockContext = EslintContextStub({ report: mockReport });
-      const mockFunctionNode = TsestreeStub({
-        type: TsestreeNodeType.ArrowFunctionExpression,
-      });
-      const statement = TsestreeStub({
-        type: TsestreeNodeType.ReturnStatement,
-        argument: undefined,
-      });
+      const mockContext = RuleContextStub({ report: mockReport });
+      const mockFunctionNode = ArrowFunctionExpressionStub({ code: 'const f = () => {};' });
+      const statement = ReturnStatementStub({ code: 'return;' });
 
       validateReturnStatementLayerBroker({
         statement,
@@ -127,14 +98,9 @@ describe('validateReturnStatementLayerBroker', () => {
     it('EMPTY: {argument: null} => reports proxyMustReturnObject', () => {
       validateReturnStatementLayerBrokerProxy();
       const mockReport = jest.fn();
-      const mockContext = EslintContextStub({ report: mockReport });
-      const mockFunctionNode = TsestreeStub({
-        type: TsestreeNodeType.ArrowFunctionExpression,
-      });
-      const statement = TsestreeStub({
-        type: TsestreeNodeType.ReturnStatement,
-        argument: null,
-      });
+      const mockContext = RuleContextStub({ report: mockReport });
+      const mockFunctionNode = ArrowFunctionExpressionStub({ code: 'const f = () => {};' });
+      const statement = ReturnStatementStub({ code: 'return;' });
 
       validateReturnStatementLayerBroker({
         statement,
@@ -154,17 +120,9 @@ describe('validateReturnStatementLayerBroker', () => {
     it('INVALID: {argument.type: Literal, value: "hello"} => reports proxyMustReturnObject', () => {
       validateReturnStatementLayerBrokerProxy();
       const mockReport = jest.fn();
-      const mockContext = EslintContextStub({ report: mockReport });
-      const mockFunctionNode = TsestreeStub({
-        type: TsestreeNodeType.ArrowFunctionExpression,
-      });
-      const statement = TsestreeStub({
-        type: TsestreeNodeType.ReturnStatement,
-        argument: TsestreeStub({
-          type: TsestreeNodeType.Literal,
-          value: 'hello',
-        }),
-      });
+      const mockContext = RuleContextStub({ report: mockReport });
+      const mockFunctionNode = ArrowFunctionExpressionStub({ code: 'const f = () => {};' });
+      const statement = ReturnStatementStub({ code: 'return "hello";' });
 
       validateReturnStatementLayerBroker({
         statement,
@@ -182,17 +140,9 @@ describe('validateReturnStatementLayerBroker', () => {
     it('INVALID: {argument.type: Literal, value: 42} => reports proxyMustReturnObject', () => {
       validateReturnStatementLayerBrokerProxy();
       const mockReport = jest.fn();
-      const mockContext = EslintContextStub({ report: mockReport });
-      const mockFunctionNode = TsestreeStub({
-        type: TsestreeNodeType.ArrowFunctionExpression,
-      });
-      const statement = TsestreeStub({
-        type: TsestreeNodeType.ReturnStatement,
-        argument: TsestreeStub({
-          type: TsestreeNodeType.Literal,
-          value: 42,
-        }),
-      });
+      const mockContext = RuleContextStub({ report: mockReport });
+      const mockFunctionNode = ArrowFunctionExpressionStub({ code: 'const f = () => {};' });
+      const statement = ReturnStatementStub({ code: 'return 42;' });
 
       validateReturnStatementLayerBroker({
         statement,
@@ -210,17 +160,9 @@ describe('validateReturnStatementLayerBroker', () => {
     it('INVALID: {argument.type: Literal, value: true} => reports proxyMustReturnObject', () => {
       validateReturnStatementLayerBrokerProxy();
       const mockReport = jest.fn();
-      const mockContext = EslintContextStub({ report: mockReport });
-      const mockFunctionNode = TsestreeStub({
-        type: TsestreeNodeType.ArrowFunctionExpression,
-      });
-      const statement = TsestreeStub({
-        type: TsestreeNodeType.ReturnStatement,
-        argument: TsestreeStub({
-          type: TsestreeNodeType.Literal,
-          value: true,
-        }),
-      });
+      const mockContext = RuleContextStub({ report: mockReport });
+      const mockFunctionNode = ArrowFunctionExpressionStub({ code: 'const f = () => {};' });
+      const statement = ReturnStatementStub({ code: 'return true;' });
 
       validateReturnStatementLayerBroker({
         statement,
@@ -240,16 +182,9 @@ describe('validateReturnStatementLayerBroker', () => {
     it('INVALID: {argument.type: TemplateLiteral} => reports proxyMustReturnObject', () => {
       validateReturnStatementLayerBrokerProxy();
       const mockReport = jest.fn();
-      const mockContext = EslintContextStub({ report: mockReport });
-      const mockFunctionNode = TsestreeStub({
-        type: TsestreeNodeType.ArrowFunctionExpression,
-      });
-      const statement = TsestreeStub({
-        type: TsestreeNodeType.ReturnStatement,
-        argument: TsestreeStub({
-          type: TsestreeNodeType.TemplateLiteral,
-        }),
-      });
+      const mockContext = RuleContextStub({ report: mockReport });
+      const mockFunctionNode = ArrowFunctionExpressionStub({ code: 'const f = () => {};' });
+      const statement = ReturnStatementStub({ code: `return \`\${x}\`;` });
 
       validateReturnStatementLayerBroker({
         statement,
@@ -269,16 +204,9 @@ describe('validateReturnStatementLayerBroker', () => {
     it('INVALID: {argument.type: ArrayExpression} => reports proxyMustReturnObject', () => {
       validateReturnStatementLayerBrokerProxy();
       const mockReport = jest.fn();
-      const mockContext = EslintContextStub({ report: mockReport });
-      const mockFunctionNode = TsestreeStub({
-        type: TsestreeNodeType.ArrowFunctionExpression,
-      });
-      const statement = TsestreeStub({
-        type: TsestreeNodeType.ReturnStatement,
-        argument: TsestreeStub({
-          type: TsestreeNodeType.ArrayExpression,
-        }),
-      });
+      const mockContext = RuleContextStub({ report: mockReport });
+      const mockFunctionNode = ArrowFunctionExpressionStub({ code: 'const f = () => {};' });
+      const statement = ReturnStatementStub({ code: 'return [];' });
 
       validateReturnStatementLayerBroker({
         statement,
@@ -298,17 +226,9 @@ describe('validateReturnStatementLayerBroker', () => {
     it('INVALID: {argument.type: Identifier, name: "someVar"} => reports proxyMustReturnObject', () => {
       validateReturnStatementLayerBrokerProxy();
       const mockReport = jest.fn();
-      const mockContext = EslintContextStub({ report: mockReport });
-      const mockFunctionNode = TsestreeStub({
-        type: TsestreeNodeType.ArrowFunctionExpression,
-      });
-      const statement = TsestreeStub({
-        type: TsestreeNodeType.ReturnStatement,
-        argument: TsestreeStub({
-          type: TsestreeNodeType.Identifier,
-          name: 'someVar',
-        }),
-      });
+      const mockContext = RuleContextStub({ report: mockReport });
+      const mockFunctionNode = ArrowFunctionExpressionStub({ code: 'const f = () => {};' });
+      const statement = ReturnStatementStub({ code: 'return someVar;' });
 
       validateReturnStatementLayerBroker({
         statement,

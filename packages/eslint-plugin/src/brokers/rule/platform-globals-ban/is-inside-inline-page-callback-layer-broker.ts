@@ -10,23 +10,28 @@
  * isInsideInlinePageCallbackLayerBroker({ node: documentIdentifierInsideEvaluateArrow });
  * // Returns true
  */
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isPageCallbackCallLayerBroker } from './is-page-callback-call-layer-broker';
 
 export const isInsideInlinePageCallbackLayerBroker = ({
   node,
 }: {
-  node?: Tsestree | null | undefined;
+  node?: TSESTree.Node | null | undefined;
 }): boolean => {
   if (node === null || node === undefined) {
     return false;
   }
   const isFunctionLiteral =
-    node.type === 'ArrowFunctionExpression' || node.type === 'FunctionExpression';
+    node.type === AST_NODE_TYPES.ArrowFunctionExpression ||
+    node.type === AST_NODE_TYPES.FunctionExpression;
   if (
     isFunctionLiteral &&
     isPageCallbackCallLayerBroker({ node: node.parent }) &&
-    node.parent?.arguments?.[0] === node
+    (node.parent.type === AST_NODE_TYPES.CallExpression ||
+    node.parent.type === AST_NODE_TYPES.NewExpression
+      ? node.parent.arguments[0]
+      : undefined) === node
   ) {
     return true;
   }

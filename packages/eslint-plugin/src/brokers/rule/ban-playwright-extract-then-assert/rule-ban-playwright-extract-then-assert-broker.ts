@@ -8,9 +8,9 @@
  */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
-import type { Identifier } from '@dungeonmaster/shared/contracts';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
+
 import { isSpecFileGuard } from '../../../guards/is-spec-file/is-spec-file-guard';
 import { playwrightExtractionMethodsStatics } from '../../../statics/playwright-extraction-methods/playwright-extraction-methods-statics';
 
@@ -29,38 +29,36 @@ export const ruleBanPlaywrightExtractThenAssertBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: EslintContext) => {
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
-    const trackedVariables = new Map<Identifier, Identifier>();
+    const trackedVariables = new Map<string, string>();
 
     return {
-      VariableDeclarator: (node: Tsestree): void => {
-        const isSpecFile = isSpecFileGuard({ filename: ctx.filename ?? '' });
+      VariableDeclarator: (node: TSESTree.VariableDeclarator): void => {
+        const isSpecFile = isSpecFileGuard({ filename: ctx.filename });
 
         if (!isSpecFile) {
           return;
         }
 
         // Check: const x = await el.textContent()
-        const isAwaitExpression = node.init?.type === 'AwaitExpression';
+        const { init } = node;
 
-        if (!isAwaitExpression) {
+        if (init?.type !== AST_NODE_TYPES.AwaitExpression) {
           return;
         }
 
-        const isCallExpression = node.init?.argument?.type === 'CallExpression';
+        const { argument } = init;
 
-        if (!isCallExpression) {
+        if (
+          argument.type !== AST_NODE_TYPES.CallExpression ||
+          argument.callee.type !== AST_NODE_TYPES.MemberExpression
+        ) {
           return;
         }
 
-        const isMemberExpression = node.init?.argument?.callee?.type === 'MemberExpression';
-
-        if (!isMemberExpression) {
-          return;
-        }
-
-        const methodName = node.init?.argument?.callee?.property?.name;
+        const { property } = argument.callee;
+        const methodName = 'name' in property ? property.name : undefined;
         const isTrackedMethod =
           methodName === 'textContent' || methodName === 'inputValue' || methodName === 'count';
 
@@ -68,41 +66,38 @@ export const ruleBanPlaywrightExtractThenAssertBroker = (): EslintRule => ({
           return;
         }
 
-        const variableName = node.id?.name;
+        const variableName = node.id.type === AST_NODE_TYPES.Identifier ? node.id.name : undefined;
 
         if (variableName === undefined) {
           return;
         }
 
         const { methods } = playwrightExtractionMethodsStatics;
-        const methodKey = String(methodName) as keyof typeof methods;
-        trackedVariables.set(variableName, methods[methodKey] as Identifier);
+        const methodKey = methodName;
+        trackedVariables.set(variableName, methods[methodKey] as string);
       },
-      CallExpression: (node: Tsestree): void => {
-        const isSpecFile = isSpecFileGuard({ filename: ctx.filename ?? '' });
+      CallExpression: (node: TSESTree.CallExpression): void => {
+        const isSpecFile = isSpecFileGuard({ filename: ctx.filename });
 
         if (!isSpecFile) {
           return;
         }
 
-        const isExpectCall = node.callee?.name === 'expect';
+        const isExpectCall =
+          node.callee.type === AST_NODE_TYPES.Identifier && node.callee.name === 'expect';
 
         if (!isExpectCall) {
           return;
         }
 
-        const firstArg = node.arguments?.[0];
-        const isIdentifier = firstArg?.type === 'Identifier';
+        const [firstArg] = node.arguments;
+        const isIdentifier = firstArg?.type === AST_NODE_TYPES.Identifier;
 
         if (!isIdentifier) {
           return;
         }
 
         const argName = firstArg.name;
-
-        if (argName === undefined) {
-          return;
-        }
 
         const replacement = trackedVariables.get(argName);
 

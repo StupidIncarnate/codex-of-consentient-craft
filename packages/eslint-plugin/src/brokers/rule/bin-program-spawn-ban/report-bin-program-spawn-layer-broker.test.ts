@@ -1,16 +1,17 @@
+import { RuleContextStub } from '#gateway/npm/typescript-eslint__utils/rule-context/rule-context.stub';
+import { CallExpressionStub } from '#gateway/npm/typescript-eslint__utils/call-expression/call-expression.stub';
+import { LiteralStub } from '#gateway/npm/typescript-eslint__utils/literal/literal.stub';
 import { reportBinProgramSpawnLayerBroker } from './report-bin-program-spawn-layer-broker';
 import { reportBinProgramSpawnLayerBrokerProxy } from './report-bin-program-spawn-layer-broker.proxy';
-import { EslintContextStub } from '../../../contracts/eslint-context/eslint-context.stub';
-import { TsestreeStub, TsestreeNodeType } from '../../../contracts/tsestree/tsestree.stub';
 
 describe('reportBinProgramSpawnLayerBroker', () => {
   describe('a homed program', () => {
     it('VALID: {commandNode: Literal "git"} => reports binProgramSpawn for git/currentBranch', () => {
       reportBinProgramSpawnLayerBrokerProxy();
       const mockReport = jest.fn();
-      const ctx = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.CallExpression });
-      const commandNode = TsestreeStub({ type: TsestreeNodeType.Literal, value: 'git' });
+      const ctx = RuleContextStub({ report: mockReport });
+      const node = CallExpressionStub({ code: 'f();' });
+      const commandNode = LiteralStub({ code: 'const l = "git";' });
 
       reportBinProgramSpawnLayerBroker({
         ctx,
@@ -34,9 +35,9 @@ describe('reportBinProgramSpawnLayerBroker', () => {
     it('VALID: {commandNode: Literal "lsof"} => builds the gatewayPath from the import-alias prefix', () => {
       reportBinProgramSpawnLayerBrokerProxy();
       const mockReport = jest.fn();
-      const ctx = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.CallExpression });
-      const commandNode = TsestreeStub({ type: TsestreeNodeType.Literal, value: 'lsof' });
+      const ctx = RuleContextStub({ report: mockReport });
+      const node = CallExpressionStub({ code: 'f();' });
+      const commandNode = LiteralStub({ code: 'const l = "lsof";' });
 
       reportBinProgramSpawnLayerBroker({
         ctx,
@@ -62,9 +63,9 @@ describe('reportBinProgramSpawnLayerBroker', () => {
     it('INVALID: {commandNode: Literal "tsc"} => never reports', () => {
       reportBinProgramSpawnLayerBrokerProxy();
       const mockReport = jest.fn();
-      const ctx = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.CallExpression });
-      const commandNode = TsestreeStub({ type: TsestreeNodeType.Literal, value: 'tsc' });
+      const ctx = RuleContextStub({ report: mockReport });
+      const node = CallExpressionStub({ code: 'f();' });
+      const commandNode = LiteralStub({ code: 'const l = "tsc";' });
 
       reportBinProgramSpawnLayerBroker({
         ctx,
@@ -82,8 +83,8 @@ describe('reportBinProgramSpawnLayerBroker', () => {
     it('EMPTY: {commandNode: undefined} => never reports, failing open', () => {
       reportBinProgramSpawnLayerBrokerProxy();
       const mockReport = jest.fn();
-      const ctx = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.CallExpression });
+      const ctx = RuleContextStub({ report: mockReport });
+      const node = CallExpressionStub({ code: 'f();' });
 
       reportBinProgramSpawnLayerBroker({
         ctx,

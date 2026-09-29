@@ -16,8 +16,8 @@ import { importPathContract } from '@dungeonmaster/shared/contracts';
 import { gatewayLocationsStatics } from '@dungeonmaster/shared/statics';
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { validateGatewaySpecifierLayerBroker } from './validate-gateway-specifier-layer-broker';
 
 const gatewaySpecifierPrefix = `${gatewayLocationsStatics.importPrefix}/`;
@@ -39,9 +39,9 @@ export const ruleGatewayDependencyDeclaredBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: EslintContext) => {
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
-    const filename = ctx.filename ?? ctx.getFilename?.() ?? '';
+    const { filename } = ctx;
 
     if (filename.length === 0) {
       return {};
@@ -49,9 +49,14 @@ export const ruleGatewayDependencyDeclaredBroker = (): EslintRule => ({
 
     return {
       'ImportDeclaration, ExportNamedDeclaration, ExportAllDeclaration, ImportExpression': (
-        node: Tsestree,
+        node:
+          | TSESTree.ImportDeclaration
+          | TSESTree.ExportNamedDeclaration
+          | TSESTree.ExportAllDeclaration
+          | TSESTree.ImportExpression,
       ): void => {
-        const importSource = node.source?.value;
+        const importSource =
+          node.source?.type === AST_NODE_TYPES.Literal ? node.source.value : undefined;
 
         if (typeof importSource !== 'string' || !importSource.startsWith(gatewaySpecifierPrefix)) {
           return;
@@ -65,24 +70,25 @@ export const ruleGatewayDependencyDeclaredBroker = (): EslintRule => ({
         });
       },
 
-      CallExpression: (node: Tsestree): void => {
+      CallExpression: (node: TSESTree.CallExpression): void => {
         const { callee } = node;
-        const args = node.arguments ?? [];
+        const args = node.arguments;
         const [firstArg] = args;
 
-        const isRequireCall = callee?.type === 'Identifier' && callee.name === 'require';
+        const isRequireCall =
+          callee.type === AST_NODE_TYPES.Identifier && callee.name === 'require';
         const isRequireResolveCall =
-          callee?.type === 'MemberExpression' &&
-          callee.object?.type === 'Identifier' &&
+          callee.type === AST_NODE_TYPES.MemberExpression &&
+          callee.object.type === AST_NODE_TYPES.Identifier &&
           callee.object.name === 'require' &&
-          callee.property?.type === 'Identifier' &&
+          callee.property.type === AST_NODE_TYPES.Identifier &&
           callee.property.name === 'resolve';
 
         if (!isRequireCall && !isRequireResolveCall) {
           return;
         }
 
-        const importSource = firstArg?.type === 'Literal' ? firstArg.value : undefined;
+        const importSource = firstArg?.type === AST_NODE_TYPES.Literal ? firstArg.value : undefined;
 
         if (typeof importSource !== 'string' || !importSource.startsWith(gatewaySpecifierPrefix)) {
           return;

@@ -5,25 +5,27 @@
  * const init = checkBindingInitializerLayerBroker({ identifierNode });
  * // Returns the `init` AST node of the same-block VariableDeclarator binding the identifier, or undefined
  */
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
 export const checkBindingInitializerLayerBroker = ({
   identifierNode,
 }: {
-  identifierNode?: Tsestree;
-}): Tsestree | undefined => {
-  if (!identifierNode || identifierNode.type !== 'Identifier' || !identifierNode.name) {
+  identifierNode?: TSESTree.Node;
+}): TSESTree.Node | undefined => {
+  if (
+    !identifierNode ||
+    identifierNode.type !== AST_NODE_TYPES.Identifier ||
+    !identifierNode.name
+  ) {
     return undefined;
   }
 
-  const identifierName = String(identifierNode.name);
+  const identifierName = identifierNode.name;
 
-  let block: Tsestree | null | undefined = identifierNode.parent;
-  while (block && block.type !== 'BlockStatement' && block.type !== 'Program') {
+  let block: TSESTree.Node | null | undefined = identifierNode.parent;
+  while (block.type !== AST_NODE_TYPES.BlockStatement && block.type !== AST_NODE_TYPES.Program) {
     block = block.parent;
-  }
-  if (!block) {
-    return undefined;
   }
 
   const bodyValue = block.body;
@@ -32,16 +34,13 @@ export const checkBindingInitializerLayerBroker = ({
   }
 
   for (const statement of bodyValue) {
-    if (statement.type !== 'VariableDeclaration') {
+    if (statement.type !== AST_NODE_TYPES.VariableDeclaration) {
       continue;
     }
-    const declarations = statement.declarations ?? [];
+    const { declarations } = statement;
     for (const declarator of declarations) {
-      if (declarator.type !== 'VariableDeclarator') {
-        continue;
-      }
       const { id, init } = declarator;
-      if (id && id.type === 'Identifier' && id.name === identifierName && init) {
+      if (id.type === AST_NODE_TYPES.Identifier && id.name === identifierName && init) {
         return init;
       }
     }

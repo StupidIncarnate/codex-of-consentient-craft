@@ -1,8 +1,6 @@
+import { IdentifierStub } from '#gateway/npm/typescript-eslint__utils/identifier/identifier.stub';
+import { LiteralStub } from '#gateway/npm/typescript-eslint__utils/literal/literal.stub';
 import { isClassifiedStatusLiteralElementGuard } from './is-classified-status-literal-element-guard';
-import {
-  TsestreeStub,
-  TsestreeNodeType,
-} from '@dungeonmaster/eslint-plugin/contracts/tsestree/tsestree.stub';
 
 describe('isClassifiedStatusLiteralElementGuard', () => {
   describe('missing element', () => {
@@ -19,7 +17,7 @@ describe('isClassifiedStatusLiteralElementGuard', () => {
     it('EMPTY: {element: Identifier} => returns false', () => {
       expect(
         isClassifiedStatusLiteralElementGuard({
-          element: TsestreeStub({ type: TsestreeNodeType.Identifier }),
+          element: IdentifierStub({ code: 'x;' }),
         }),
       ).toBe(false);
     });
@@ -29,7 +27,7 @@ describe('isClassifiedStatusLiteralElementGuard', () => {
     it('EMPTY: {element: Literal with numeric value} => returns false', () => {
       expect(
         isClassifiedStatusLiteralElementGuard({
-          element: TsestreeStub({ type: TsestreeNodeType.Literal, value: 0 }),
+          element: LiteralStub({ code: 'const l = 0;' }),
         }),
       ).toBe(false);
     });
@@ -41,7 +39,7 @@ describe('isClassifiedStatusLiteralElementGuard', () => {
       (value) => {
         expect(
           isClassifiedStatusLiteralElementGuard({
-            element: TsestreeStub({ type: TsestreeNodeType.Literal, value }),
+            element: LiteralStub({ code: `const l = "${value}";` }),
           }),
         ).toBe(true);
       },
@@ -52,7 +50,7 @@ describe('isClassifiedStatusLiteralElementGuard', () => {
     it('EMPTY: {element: Literal("hello")} => returns false', () => {
       expect(
         isClassifiedStatusLiteralElementGuard({
-          element: TsestreeStub({ type: TsestreeNodeType.Literal, value: 'hello' }),
+          element: LiteralStub({ code: 'const l = "hello";' }),
         }),
       ).toBe(false);
     });

@@ -1,32 +1,15 @@
+import { RuleContextStub } from '#gateway/npm/typescript-eslint__utils/rule-context/rule-context.stub';
+import { ObjectExpressionStub } from '#gateway/npm/typescript-eslint__utils/object-expression/object-expression.stub';
 import { validateObjectExpressionLayerBroker } from './validate-object-expression-layer-broker';
 import { validateObjectExpressionLayerBrokerProxy } from './validate-object-expression-layer-broker.proxy';
-import { EslintContextStub } from '../../../contracts/eslint-context/eslint-context.stub';
-import { TsestreeStub, TsestreeNodeType } from '../../../contracts/tsestree/tsestree.stub';
 
 describe('validateObjectExpressionLayerBroker', () => {
   describe('object with no properties', () => {
-    it('EMPTY: {properties: undefined} => does not report', () => {
-      validateObjectExpressionLayerBrokerProxy();
-      const mockReport = jest.fn();
-      const mockContext = EslintContextStub({ report: mockReport });
-      const objectNode = TsestreeStub({
-        type: TsestreeNodeType.ObjectExpression,
-        properties: undefined,
-      });
-
-      validateObjectExpressionLayerBroker({ objectNode, context: mockContext });
-
-      expect(mockReport.mock.calls).toStrictEqual([]);
-    });
-
     it('VALID: {properties: []} => does not report', () => {
       validateObjectExpressionLayerBrokerProxy();
       const mockReport = jest.fn();
-      const mockContext = EslintContextStub({ report: mockReport });
-      const objectNode = TsestreeStub({
-        type: TsestreeNodeType.ObjectExpression,
-        properties: [],
-      });
+      const mockContext = RuleContextStub({ report: mockReport });
+      const objectNode = ObjectExpressionStub({ code: 'const o = {  };' });
 
       validateObjectExpressionLayerBroker({ objectNode, context: mockContext });
 
@@ -38,19 +21,8 @@ describe('validateObjectExpressionLayerBroker', () => {
     it('VALID: {property.type: Property, key.name: "returns"} => does not report', () => {
       validateObjectExpressionLayerBrokerProxy();
       const mockReport = jest.fn();
-      const mockContext = EslintContextStub({ report: mockReport });
-      const objectNode = TsestreeStub({
-        type: TsestreeNodeType.ObjectExpression,
-        properties: [
-          TsestreeStub({
-            type: TsestreeNodeType.Property,
-            key: TsestreeStub({
-              type: TsestreeNodeType.Identifier,
-              name: 'returns',
-            }),
-          }),
-        ],
-      });
+      const mockContext = RuleContextStub({ report: mockReport });
+      const objectNode = ObjectExpressionStub({ code: 'const o = { returns: v };' });
 
       validateObjectExpressionLayerBroker({ objectNode, context: mockContext });
 
@@ -60,41 +32,8 @@ describe('validateObjectExpressionLayerBroker', () => {
     it('VALID: {property.type: Property, key.name: "throws"} => does not report', () => {
       validateObjectExpressionLayerBrokerProxy();
       const mockReport = jest.fn();
-      const mockContext = EslintContextStub({ report: mockReport });
-      const objectNode = TsestreeStub({
-        type: TsestreeNodeType.ObjectExpression,
-        properties: [
-          TsestreeStub({
-            type: TsestreeNodeType.Property,
-            key: TsestreeStub({
-              type: TsestreeNodeType.Identifier,
-              name: 'throws',
-            }),
-          }),
-        ],
-      });
-
-      validateObjectExpressionLayerBroker({ objectNode, context: mockContext });
-
-      expect(mockReport.mock.calls).toStrictEqual([]);
-    });
-
-    it('VALID: {property.type: MethodDefinition, key.name: "setupProxy"} => does not report', () => {
-      validateObjectExpressionLayerBrokerProxy();
-      const mockReport = jest.fn();
-      const mockContext = EslintContextStub({ report: mockReport });
-      const objectNode = TsestreeStub({
-        type: TsestreeNodeType.ObjectExpression,
-        properties: [
-          TsestreeStub({
-            type: TsestreeNodeType.MethodDefinition,
-            key: TsestreeStub({
-              type: TsestreeNodeType.Identifier,
-              name: 'setupProxy',
-            }),
-          }),
-        ],
-      });
+      const mockContext = RuleContextStub({ report: mockReport });
+      const objectNode = ObjectExpressionStub({ code: 'const o = { throws: v };' });
 
       validateObjectExpressionLayerBroker({ objectNode, context: mockContext });
 
@@ -106,45 +45,9 @@ describe('validateObjectExpressionLayerBroker', () => {
     it('INVALID: {property.type: Property, key.name: "bootstrap"} => reports proxyNoBootstrapMethod', () => {
       validateObjectExpressionLayerBrokerProxy();
       const mockReport = jest.fn();
-      const mockContext = EslintContextStub({ report: mockReport });
-      const property = TsestreeStub({
-        type: TsestreeNodeType.Property,
-        key: TsestreeStub({
-          type: TsestreeNodeType.Identifier,
-          name: 'bootstrap',
-        }),
-      });
-
-      const objectNode = TsestreeStub({
-        type: TsestreeNodeType.ObjectExpression,
-        properties: [property],
-      });
-
-      validateObjectExpressionLayerBroker({ objectNode, context: mockContext });
-
-      expect(mockReport).toHaveBeenCalledTimes(1);
-      expect(mockReport).toHaveBeenCalledWith({
-        node: property,
-        messageId: 'proxyNoBootstrapMethod',
-      });
-    });
-
-    it('INVALID: {property.type: MethodDefinition, key.name: "bootstrap"} => reports proxyNoBootstrapMethod', () => {
-      validateObjectExpressionLayerBrokerProxy();
-      const mockReport = jest.fn();
-      const mockContext = EslintContextStub({ report: mockReport });
-      const property = TsestreeStub({
-        type: TsestreeNodeType.MethodDefinition,
-        key: TsestreeStub({
-          type: TsestreeNodeType.Identifier,
-          name: 'bootstrap',
-        }),
-      });
-
-      const objectNode = TsestreeStub({
-        type: TsestreeNodeType.ObjectExpression,
-        properties: [property],
-      });
+      const mockContext = RuleContextStub({ report: mockReport });
+      const objectNode = ObjectExpressionStub({ code: 'const o = { bootstrap: v };' });
+      const [property] = objectNode.properties;
 
       validateObjectExpressionLayerBroker({ objectNode, context: mockContext });
 
@@ -160,19 +63,9 @@ describe('validateObjectExpressionLayerBroker', () => {
     it('INVALID: {key.name: "mockUser"} => reports proxyHelperNoMockInName with forbiddenWord "mock"', () => {
       validateObjectExpressionLayerBrokerProxy();
       const mockReport = jest.fn();
-      const mockContext = EslintContextStub({ report: mockReport });
-      const property = TsestreeStub({
-        type: TsestreeNodeType.Property,
-        key: TsestreeStub({
-          type: TsestreeNodeType.Identifier,
-          name: 'mockUser',
-        }),
-      });
-
-      const objectNode = TsestreeStub({
-        type: TsestreeNodeType.ObjectExpression,
-        properties: [property],
-      });
+      const mockContext = RuleContextStub({ report: mockReport });
+      const objectNode = ObjectExpressionStub({ code: 'const o = { mockUser: v };' });
+      const [property] = objectNode.properties;
 
       validateObjectExpressionLayerBroker({ objectNode, context: mockContext });
 
@@ -187,19 +80,9 @@ describe('validateObjectExpressionLayerBroker', () => {
     it('INVALID: {key.name: "stubUser"} => reports proxyHelperNoMockInName with forbiddenWord "stub"', () => {
       validateObjectExpressionLayerBrokerProxy();
       const mockReport = jest.fn();
-      const mockContext = EslintContextStub({ report: mockReport });
-      const property = TsestreeStub({
-        type: TsestreeNodeType.Property,
-        key: TsestreeStub({
-          type: TsestreeNodeType.Identifier,
-          name: 'stubUser',
-        }),
-      });
-
-      const objectNode = TsestreeStub({
-        type: TsestreeNodeType.ObjectExpression,
-        properties: [property],
-      });
+      const mockContext = RuleContextStub({ report: mockReport });
+      const objectNode = ObjectExpressionStub({ code: 'const o = { stubUser: v };' });
+      const [property] = objectNode.properties;
 
       validateObjectExpressionLayerBroker({ objectNode, context: mockContext });
 
@@ -214,19 +97,9 @@ describe('validateObjectExpressionLayerBroker', () => {
     it('INVALID: {key.name: "fakeData"} => reports proxyHelperNoMockInName with forbiddenWord "fake"', () => {
       validateObjectExpressionLayerBrokerProxy();
       const mockReport = jest.fn();
-      const mockContext = EslintContextStub({ report: mockReport });
-      const property = TsestreeStub({
-        type: TsestreeNodeType.Property,
-        key: TsestreeStub({
-          type: TsestreeNodeType.Identifier,
-          name: 'fakeData',
-        }),
-      });
-
-      const objectNode = TsestreeStub({
-        type: TsestreeNodeType.ObjectExpression,
-        properties: [property],
-      });
+      const mockContext = RuleContextStub({ report: mockReport });
+      const objectNode = ObjectExpressionStub({ code: 'const o = { fakeData: v };' });
+      const [property] = objectNode.properties;
 
       validateObjectExpressionLayerBroker({ objectNode, context: mockContext });
 
@@ -241,19 +114,9 @@ describe('validateObjectExpressionLayerBroker', () => {
     it('INVALID: {key.name: "spyOnUser"} => reports proxyHelperNoMockInName with forbiddenWord "spy"', () => {
       validateObjectExpressionLayerBrokerProxy();
       const mockReport = jest.fn();
-      const mockContext = EslintContextStub({ report: mockReport });
-      const property = TsestreeStub({
-        type: TsestreeNodeType.Property,
-        key: TsestreeStub({
-          type: TsestreeNodeType.Identifier,
-          name: 'spyOnUser',
-        }),
-      });
-
-      const objectNode = TsestreeStub({
-        type: TsestreeNodeType.ObjectExpression,
-        properties: [property],
-      });
+      const mockContext = RuleContextStub({ report: mockReport });
+      const objectNode = ObjectExpressionStub({ code: 'const o = { spyOnUser: v };' });
+      const [property] = objectNode.properties;
 
       validateObjectExpressionLayerBroker({ objectNode, context: mockContext });
 
@@ -268,19 +131,9 @@ describe('validateObjectExpressionLayerBroker', () => {
     it('INVALID: {key.name: "jestMocked"} => reports proxyHelperNoMockInName with forbiddenWord "mock"', () => {
       validateObjectExpressionLayerBrokerProxy();
       const mockReport = jest.fn();
-      const mockContext = EslintContextStub({ report: mockReport });
-      const property = TsestreeStub({
-        type: TsestreeNodeType.Property,
-        key: TsestreeStub({
-          type: TsestreeNodeType.Identifier,
-          name: 'jestMocked',
-        }),
-      });
-
-      const objectNode = TsestreeStub({
-        type: TsestreeNodeType.ObjectExpression,
-        properties: [property],
-      });
+      const mockContext = RuleContextStub({ report: mockReport });
+      const objectNode = ObjectExpressionStub({ code: 'const o = { jestMocked: v };' });
+      const [property] = objectNode.properties;
 
       validateObjectExpressionLayerBroker({ objectNode, context: mockContext });
 
@@ -295,19 +148,9 @@ describe('validateObjectExpressionLayerBroker', () => {
     it('INVALID: {key.name: "dummyData"} => reports proxyHelperNoMockInName with forbiddenWord "dummy"', () => {
       validateObjectExpressionLayerBrokerProxy();
       const mockReport = jest.fn();
-      const mockContext = EslintContextStub({ report: mockReport });
-      const property = TsestreeStub({
-        type: TsestreeNodeType.Property,
-        key: TsestreeStub({
-          type: TsestreeNodeType.Identifier,
-          name: 'dummyData',
-        }),
-      });
-
-      const objectNode = TsestreeStub({
-        type: TsestreeNodeType.ObjectExpression,
-        properties: [property],
-      });
+      const mockContext = RuleContextStub({ report: mockReport });
+      const objectNode = ObjectExpressionStub({ code: 'const o = { dummyData: v };' });
+      const [property] = objectNode.properties;
 
       validateObjectExpressionLayerBroker({ objectNode, context: mockContext });
 
@@ -322,19 +165,9 @@ describe('validateObjectExpressionLayerBroker', () => {
     it('INVALID: {key.name: "setupMOCKUser"} (case-insensitive) => reports proxyHelperNoMockInName with forbiddenWord "mock"', () => {
       validateObjectExpressionLayerBrokerProxy();
       const mockReport = jest.fn();
-      const mockContext = EslintContextStub({ report: mockReport });
-      const property = TsestreeStub({
-        type: TsestreeNodeType.Property,
-        key: TsestreeStub({
-          type: TsestreeNodeType.Identifier,
-          name: 'setupMOCKUser',
-        }),
-      });
-
-      const objectNode = TsestreeStub({
-        type: TsestreeNodeType.ObjectExpression,
-        properties: [property],
-      });
+      const mockContext = RuleContextStub({ report: mockReport });
+      const objectNode = ObjectExpressionStub({ code: 'const o = { setupMOCKUser: v };' });
+      const [property] = objectNode.properties;
 
       validateObjectExpressionLayerBroker({ objectNode, context: mockContext });
 
@@ -351,15 +184,8 @@ describe('validateObjectExpressionLayerBroker', () => {
     it('VALID: {property.type: SpreadElement} => does not report', () => {
       validateObjectExpressionLayerBrokerProxy();
       const mockReport = jest.fn();
-      const mockContext = EslintContextStub({ report: mockReport });
-      const objectNode = TsestreeStub({
-        type: TsestreeNodeType.ObjectExpression,
-        properties: [
-          TsestreeStub({
-            type: TsestreeNodeType.SpreadElement,
-          }),
-        ],
-      });
+      const mockContext = RuleContextStub({ report: mockReport });
+      const objectNode = ObjectExpressionStub({ code: 'const o = { ...x };' });
 
       validateObjectExpressionLayerBroker({ objectNode, context: mockContext });
 
@@ -368,41 +194,11 @@ describe('validateObjectExpressionLayerBroker', () => {
   });
 
   describe('object with property without key name', () => {
-    it('EDGE: {property.key: undefined} => does not report', () => {
+    it("EDGE: {property keyed by the string 'mock-user'} => does not report", () => {
       validateObjectExpressionLayerBrokerProxy();
       const mockReport = jest.fn();
-      const mockContext = EslintContextStub({ report: mockReport });
-      const objectNode = TsestreeStub({
-        type: TsestreeNodeType.ObjectExpression,
-        properties: [
-          TsestreeStub({
-            type: TsestreeNodeType.Property,
-            key: undefined,
-          }),
-        ],
-      });
-
-      validateObjectExpressionLayerBroker({ objectNode, context: mockContext });
-
-      expect(mockReport.mock.calls).toStrictEqual([]);
-    });
-
-    it('EDGE: {property.key.name: undefined} => does not report', () => {
-      validateObjectExpressionLayerBrokerProxy();
-      const mockReport = jest.fn();
-      const mockContext = EslintContextStub({ report: mockReport });
-      const objectNode = TsestreeStub({
-        type: TsestreeNodeType.ObjectExpression,
-        properties: [
-          TsestreeStub({
-            type: TsestreeNodeType.Property,
-            key: TsestreeStub({
-              type: TsestreeNodeType.Identifier,
-              name: undefined,
-            }),
-          }),
-        ],
-      });
+      const mockContext = RuleContextStub({ report: mockReport });
+      const objectNode = ObjectExpressionStub({ code: "const o = { 'mock-user': v };" });
 
       validateObjectExpressionLayerBroker({ objectNode, context: mockContext });
 
@@ -414,27 +210,9 @@ describe('validateObjectExpressionLayerBroker', () => {
     it('INVALID: {properties: [bootstrap, mockUser]} => reports both violations', () => {
       validateObjectExpressionLayerBrokerProxy();
       const mockReport = jest.fn();
-      const mockContext = EslintContextStub({ report: mockReport });
-      const property1 = TsestreeStub({
-        type: TsestreeNodeType.Property,
-        key: TsestreeStub({
-          type: TsestreeNodeType.Identifier,
-          name: 'bootstrap',
-        }),
-      });
-
-      const property2 = TsestreeStub({
-        type: TsestreeNodeType.Property,
-        key: TsestreeStub({
-          type: TsestreeNodeType.Identifier,
-          name: 'mockUser',
-        }),
-      });
-
-      const objectNode = TsestreeStub({
-        type: TsestreeNodeType.ObjectExpression,
-        properties: [property1, property2],
-      });
+      const mockContext = RuleContextStub({ report: mockReport });
+      const objectNode = ObjectExpressionStub({ code: 'const o = { bootstrap: v, mockUser: v };' });
+      const [property1, property2] = objectNode.properties;
 
       validateObjectExpressionLayerBroker({ objectNode, context: mockContext });
 

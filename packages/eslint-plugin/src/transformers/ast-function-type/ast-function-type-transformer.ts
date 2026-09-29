@@ -9,12 +9,13 @@
  *
  * WHEN-TO-USE: When validating function naming conventions based on their return types
  */
-import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
 export const astFunctionTypeTransformer = ({
   node,
 }: {
-  node?: Tsestree | undefined;
+  node?: TSESTree.Node | undefined;
 }): 'guard' | 'transformer' | 'unknown' => {
   if (node === undefined) {
     return 'unknown';
@@ -22,33 +23,26 @@ export const astFunctionTypeTransformer = ({
 
   // Check if parent is VariableDeclarator to get return type annotation
   const { parent } = node;
-  if (parent === undefined || parent === null || parent.type !== 'VariableDeclarator') {
+  if (!parent || parent.type !== AST_NODE_TYPES.VariableDeclarator) {
     return 'unknown';
   }
 
   // Check if it's an arrow function with return type
   const arrowFunc = parent.init;
-  if (
-    arrowFunc === undefined ||
-    arrowFunc === null ||
-    arrowFunc.type !== 'ArrowFunctionExpression'
-  ) {
+  if (arrowFunc?.type !== AST_NODE_TYPES.ArrowFunctionExpression) {
     return 'unknown';
   }
 
   // Check return type annotation
   const { returnType } = arrowFunc;
-  if (returnType === undefined || returnType === null) {
+  if (returnType === undefined) {
     return 'unknown';
   }
 
   // Type annotation structure: TSTypeAnnotation > TSBooleanKeyword
   const { typeAnnotation } = returnType;
-  if (typeAnnotation === undefined || typeAnnotation === null) {
-    return 'unknown';
-  }
 
-  if (typeAnnotation.type === 'TSBooleanKeyword') {
+  if (typeAnnotation.type === AST_NODE_TYPES.TSBooleanKeyword) {
     return 'guard';
   }
 

@@ -13,8 +13,7 @@
  */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { existsSync } from '#gateway/node/fs';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import { isPackageBarrelFileGuard } from '../../../guards/is-package-barrel-file/is-package-barrel-file-guard';
@@ -62,18 +61,18 @@ export const ruleEnforceImplementationColocationBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: EslintContext) => {
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
     let hasRegexLiteral = false;
     return {
       // Runs on every Literal node the walk reaches before `Program:exit` fires below,
       // so a regex anywhere in the file is seen before the statics test-requirement check runs.
-      Literal: (node: Tsestree): void => {
+      Literal: (node: TSESTree.Literal): void => {
         if (node.value instanceof RegExp) {
           hasRegexLiteral = true;
         }
       },
-      'Program:exit': (node: Tsestree): void => {
+      'Program:exit': (node: TSESTree.Program): void => {
         const { filename } = ctx;
 
         // Skip if filename is not provided

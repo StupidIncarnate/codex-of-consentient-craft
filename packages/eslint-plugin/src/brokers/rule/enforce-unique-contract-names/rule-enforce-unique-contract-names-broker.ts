@@ -17,8 +17,7 @@ import { repoRootFromSourcePathTransformer } from '@dungeonmaster/shared/transfo
 
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isFileInFolderTypeGuard } from '../../../guards/is-file-in-folder-type/is-file-in-folder-type-guard';
 
 export const ruleEnforceUniqueContractNamesBroker = (): EslintRule => ({
@@ -36,8 +35,8 @@ export const ruleEnforceUniqueContractNamesBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: EslintContext) => ({
-    'Program:exit': (node: Tsestree): void => {
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => ({
+    'Program:exit': (node: TSESTree.Program): void => {
       const { filename } = context;
       if (
         !filename ||
@@ -52,9 +51,7 @@ export const ruleEnforceUniqueContractNamesBroker = (): EslintRule => ({
       }
 
       const { owners } = ownerIndexBuildBroker({ rootDir });
-      for (const owner of owners.filter(
-        (candidate) => String(candidate.filePath) === String(filename),
-      )) {
+      for (const owner of owners.filter((candidate) => candidate.filePath === filename)) {
         const otherPackages = [
           ...new Set(
             owners

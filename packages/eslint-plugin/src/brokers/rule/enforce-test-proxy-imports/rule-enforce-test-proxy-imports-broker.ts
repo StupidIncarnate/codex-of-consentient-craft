@@ -9,8 +9,7 @@
  */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
 import { testFilePathToColocatedProxyPathTransformer } from '../../../transformers/test-file-path-to-colocated-proxy-path/test-file-path-to-colocated-proxy-path-transformer';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
@@ -37,9 +36,9 @@ export const ruleEnforceTestProxyImportsBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: EslintContext) => {
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
-    const filename = ctx.filename ?? '';
+    const { filename } = ctx;
 
     // Only check test files
     if (!isTestFileGuard({ filename })) {
@@ -58,8 +57,8 @@ export const ruleEnforceTestProxyImportsBroker = (): EslintRule => ({
     let proxyImportCount = 0;
 
     return {
-      ImportDeclaration: (node: Tsestree): void => {
-        const importSource = node.source?.value;
+      ImportDeclaration: (node: TSESTree.ImportDeclaration): void => {
+        const importSource = node.source.value;
 
         if (typeof importSource !== 'string') {
           return;

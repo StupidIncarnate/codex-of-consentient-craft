@@ -11,18 +11,17 @@
  */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
 import { isIntegrationTestFileGuard } from '../../../guards/is-integration-test-file/is-integration-test-file-guard';
 import { isE2eTestFileGuard } from '../../../guards/is-e2e-test-file/is-e2e-test-file-guard';
 import { isSpecFileGuard } from '../../../guards/is-spec-file/is-spec-file-guard';
 import { isProxyImportGuard } from '../../../guards/is-proxy-import/is-proxy-import-guard';
 import { isHarnessImportGuard } from '../../../guards/is-harness-import/is-harness-import-guard';
-import { filePathContract } from '@dungeonmaster/shared/contracts';
+import { filePathContract, identifierContract } from '@dungeonmaster/shared/contracts';
 import { folderConfigStatics } from '@dungeonmaster/shared/statics';
 import type { Identifier } from '@dungeonmaster/shared/contracts';
-import { identifierContract } from '@dungeonmaster/shared/contracts';
 import { singularizeFolderTypeTransformer } from '../../../transformers/singularize-folder-type/singularize-folder-type-transformer';
 import { astCalleeRootNameTransformer } from '../../../transformers/ast-callee-root-name/ast-callee-root-name-transformer';
 
@@ -53,9 +52,9 @@ export const ruleEnforceTestCreationOfProxyBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: EslintContext) => {
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
-    const filename = ctx.filename ? String(ctx.filename) : '';
+    const filename = ctx.filename ? ctx.filename : '';
 
     // Only check test files
     if (!isTestFileGuard({ filename })) {
@@ -80,11 +79,10 @@ export const ruleEnforceTestCreationOfProxyBroker = (): EslintRule => ({
       let testBlockDepth = 0;
 
       return {
-        ImportDeclaration: (node: Tsestree): void => {
+        ImportDeclaration: (node: TSESTree.ImportDeclaration): void => {
           if (isStartupIntegrationTest) return;
 
           const { source } = node;
-          if (!source) return;
 
           const importSource = source.value;
           if (typeof importSource !== 'string') return;
@@ -98,10 +96,9 @@ export const ruleEnforceTestCreationOfProxyBroker = (): EslintRule => ({
           }
         },
 
-        CallExpression: (node: Tsestree): void => {
+        CallExpression: (node: TSESTree.CallExpression): void => {
           if (isStartupIntegrationTest) return;
           const { callee } = node;
-          if (!callee) return;
 
           const rootName = astCalleeRootNameTransformer({ node });
 
@@ -109,19 +106,19 @@ export const ruleEnforceTestCreationOfProxyBroker = (): EslintRule => ({
             describeDepth += 1;
           } else if (rootName === 'it' || rootName === 'test') {
             testBlockDepth += 1;
-          } else if (callee.type === 'Identifier') {
+          } else if (callee.type === AST_NODE_TYPES.Identifier) {
             const { name } = callee;
-            if (name !== undefined && name !== '' && name.endsWith('Harness')) {
+            if (name !== '' && name.endsWith('Harness')) {
               // Skip if this call is the initializer of a VariableDeclarator
               // (the VariableDeclaration handler will report it instead)
-              const isVariableInit = node.parent?.type === 'VariableDeclarator';
+              const isVariableInit = node.parent.type === AST_NODE_TYPES.VariableDeclarator;
               // Skip if this call is an argument inside wireHarnessLifecycle()
               const parentNode = node.parent;
               const isInsideWireHarness =
-                parentNode?.type === 'Property' &&
-                parentNode.parent?.type === 'ObjectExpression' &&
-                parentNode.parent.parent?.type === 'CallExpression' &&
-                parentNode.parent.parent.callee?.type === 'Identifier' &&
+                parentNode.type === AST_NODE_TYPES.Property &&
+                parentNode.parent.type === AST_NODE_TYPES.ObjectExpression &&
+                parentNode.parent.parent.type === AST_NODE_TYPES.CallExpression &&
+                parentNode.parent.parent.callee.type === AST_NODE_TYPES.Identifier &&
                 parentNode.parent.parent.callee.name === 'wireHarnessLifecycle';
               if (!isVariableInit && !isInsideWireHarness) {
                 const isInDescribeOnly = describeDepth > 0 && testBlockDepth === 0;
@@ -144,7 +141,7 @@ export const ruleEnforceTestCreationOfProxyBroker = (): EslintRule => ({
           }
         },
 
-        'CallExpression:exit': (node: Tsestree): void => {
+        'CallExpression:exit': (node: TSESTree.CallExpression): void => {
           if (isStartupIntegrationTest) return;
 
           const rootName = astCalleeRootNameTransformer({ node });
@@ -156,19 +153,20 @@ export const ruleEnforceTestCreationOfProxyBroker = (): EslintRule => ({
           }
         },
 
-        VariableDeclaration: (node: Tsestree): void => {
+        VariableDeclaration: (node: TSESTree.VariableDeclaration): void => {
           if (isStartupIntegrationTest) return;
           const { declarations } = node;
-          if (!declarations || declarations.length === 0) return;
+          if (declarations.length === 0) return;
 
           for (const declaration of declarations) {
             const { id, init } = declaration;
-            if (init && init.type === 'CallExpression') {
+            if (init && init.type === AST_NODE_TYPES.CallExpression) {
               const { callee } = init;
-              if (callee && callee.type === 'Identifier' && callee.name?.endsWith('Harness')) {
+              if (callee.type === AST_NODE_TYPES.Identifier && callee.name.endsWith('Harness')) {
                 const isInDescribeOnly = describeDepth > 0 && testBlockDepth === 0;
                 if (!isInDescribeOnly) {
-                  const variableName = id?.name ?? 'harness';
+                  const variableName =
+                    (id.type === AST_NODE_TYPES.Identifier ? id.name : undefined) ?? 'harness';
                   ctx.report({
                     node: declaration,
                     messageId: 'harnessMustBeInDescribe',
@@ -176,7 +174,8 @@ export const ruleEnforceTestCreationOfProxyBroker = (): EslintRule => ({
                   });
                 } else if (isSpec) {
                   // In .e2e.ts files, harness must be wrapped with wireHarnessLifecycle
-                  const variableName = id?.name ?? 'harness';
+                  const variableName =
+                    (id.type === AST_NODE_TYPES.Identifier ? id.name : undefined) ?? 'harness';
                   ctx.report({
                     node: declaration,
                     messageId: 'harnessNeedsWireInSpec',
@@ -185,8 +184,7 @@ export const ruleEnforceTestCreationOfProxyBroker = (): EslintRule => ({
                 }
               } else if (
                 isSpec &&
-                callee &&
-                callee.type === 'Identifier' &&
+                callee.type === AST_NODE_TYPES.Identifier &&
                 callee.name === 'wireHarnessLifecycle'
               ) {
                 // wireHarnessLifecycle wrapping is valid in .e2e.ts - no report needed
@@ -202,7 +200,7 @@ export const ruleEnforceTestCreationOfProxyBroker = (): EslintRule => ({
     let testBlockDepth = 0;
 
     // Track exported proxy declarations to avoid duplicate errors
-    const exportedProxyDeclarations = new Set<Tsestree>();
+    const exportedProxyDeclarations = new Set<TSESTree.Node>();
 
     // Track proxies created in current test block (reset for each test)
     const proxiesCreatedInCurrentTest = new Set<Identifier>();
@@ -221,9 +219,8 @@ export const ruleEnforceTestCreationOfProxyBroker = (): EslintRule => ({
 
     return {
       // Ban harness imports in unit tests
-      ImportDeclaration: (node: Tsestree): void => {
+      ImportDeclaration: (node: TSESTree.ImportDeclaration): void => {
         const { source } = node;
-        if (!source) return;
 
         const importSource = source.value;
         if (typeof importSource !== 'string') return;
@@ -238,16 +235,17 @@ export const ruleEnforceTestCreationOfProxyBroker = (): EslintRule => ({
       },
 
       // Track when we enter a test block (it/test calls) or hook block
-      CallExpression: (node: Tsestree): void => {
+      CallExpression: (node: TSESTree.CallExpression): void => {
         const { callee } = node;
-
-        if (!callee) return;
 
         // Check for StartEndpointMock.listen() - treats as proxy-equivalent mock setup
         if (
-          callee.type === 'MemberExpression' &&
-          callee.object?.name === 'StartEndpointMock' &&
-          callee.property?.name === 'listen' &&
+          callee.type === AST_NODE_TYPES.MemberExpression &&
+          callee.object.type === AST_NODE_TYPES.Identifier &&
+          callee.object.name === 'StartEndpointMock' &&
+          (callee.property.type === AST_NODE_TYPES.Identifier ||
+            callee.property.type === AST_NODE_TYPES.PrivateIdentifier) &&
+          callee.property.name === 'listen' &&
           testBlockDepth > 0
         ) {
           hasCreatedProxyInTest = true;
@@ -260,9 +258,9 @@ export const ruleEnforceTestCreationOfProxyBroker = (): EslintRule => ({
           // Reset proxy tracking for new test
           proxiesCreatedInCurrentTest.clear();
           hasCreatedProxyInTest = false;
-        } else if (callee.type === 'Identifier') {
+        } else if (callee.type === AST_NODE_TYPES.Identifier) {
           const { name } = callee;
-          if (testBlockDepth > 0 && name !== undefined && name !== '') {
+          if (testBlockDepth > 0 && name !== '') {
             // Check if this is a proxy call (mark that proxy was created)
             if (name.endsWith('Proxy')) {
               hasCreatedProxyInTest = true;
@@ -295,7 +293,7 @@ export const ruleEnforceTestCreationOfProxyBroker = (): EslintRule => ({
       },
 
       // Track when we exit a test block
-      'CallExpression:exit': (node: Tsestree): void => {
+      'CallExpression:exit': (node: TSESTree.CallExpression): void => {
         const rootName = astCalleeRootNameTransformer({ node });
 
         if (rootName === 'it' || rootName === 'test') {
@@ -304,10 +302,10 @@ export const ruleEnforceTestCreationOfProxyBroker = (): EslintRule => ({
       },
 
       // Check variable declarations for proxy creation
-      VariableDeclaration: (node: Tsestree): void => {
+      VariableDeclaration: (node: TSESTree.VariableDeclaration): void => {
         const { declarations } = node;
 
-        if (!declarations || declarations.length === 0) return;
+        if (declarations.length === 0) return;
 
         for (const declaration of declarations) {
           // Skip if this declaration is already tracked as exported (avoid duplicate errors)
@@ -316,28 +314,30 @@ export const ruleEnforceTestCreationOfProxyBroker = (): EslintRule => ({
           } else {
             const { id, init } = declaration;
 
-            if (init && init.type === 'CallExpression') {
+            if (init && init.type === AST_NODE_TYPES.CallExpression) {
               const { callee } = init;
 
-              if (callee && callee.type === 'Identifier') {
+              if (callee.type === AST_NODE_TYPES.Identifier) {
                 const { name } = callee;
-                const isProxyCall = Boolean(name?.endsWith('Proxy'));
+                const isProxyCall = name.endsWith('Proxy');
                 if (isProxyCall) {
                   // Found proxy creation - check if inside test block (NOT hooks)
                   if (testBlockDepth === 0) {
-                    const variableName = id?.name ?? 'proxy';
+                    const variableName =
+                      (id.type === AST_NODE_TYPES.Identifier ? id.name : undefined) ?? 'proxy';
                     ctx.report({
                       node: declaration,
                       messageId: 'proxyMustBeInTest',
                       data: {
                         name: variableName,
-                        proxyFunction: name ?? 'proxy',
+                        proxyFunction: name,
                       },
                     });
                   } else {
                     // Inside test block - mark that we've created a proxy
                     hasCreatedProxyInTest = true;
-                    const variableNameRaw = id?.name ?? name ?? 'proxy';
+                    const variableNameRaw =
+                      (id.type === AST_NODE_TYPES.Identifier ? id.name : undefined) ?? name;
                     const variableName = identifierContract.parse(variableNameRaw);
                     proxiesCreatedInCurrentTest.add(variableName);
                   }
@@ -349,26 +349,26 @@ export const ruleEnforceTestCreationOfProxyBroker = (): EslintRule => ({
       },
 
       // Check for exported proxy instances
-      ExportNamedDeclaration: (node: Tsestree): void => {
+      ExportNamedDeclaration: (node: TSESTree.ExportNamedDeclaration): void => {
         const { declaration } = node;
 
         if (!declaration) return;
 
-        if (declaration.type !== 'VariableDeclaration') return;
+        if (declaration.type !== AST_NODE_TYPES.VariableDeclaration) return;
 
         const { declarations } = declaration;
 
-        if (!declarations || declarations.length === 0) return;
+        if (declarations.length === 0) return;
 
         for (const declarator of declarations) {
           const { init } = declarator;
 
-          if (init && init.type === 'CallExpression') {
+          if (init && init.type === AST_NODE_TYPES.CallExpression) {
             const { callee } = init;
 
-            if (callee && callee.type === 'Identifier') {
+            if (callee.type === AST_NODE_TYPES.Identifier) {
               const { name } = callee;
-              const isProxyCall = Boolean(name?.endsWith('Proxy'));
+              const isProxyCall = name.endsWith('Proxy');
               if (isProxyCall) {
                 // Track this declaration as exported to avoid duplicate errors
                 exportedProxyDeclarations.add(declarator);

@@ -9,8 +9,8 @@
  */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
 import { isSpecFileGuard } from '../../../guards/is-spec-file/is-spec-file-guard';
 import { astFindExpectCallTransformer } from '../../../transformers/ast-find-expect-call/ast-find-expect-call-transformer';
@@ -30,9 +30,9 @@ export const ruleBanNegatedMatchersBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: EslintContext) => {
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
-    const filename = ctx.filename ?? '';
+    const { filename } = ctx;
     const isTestFile = isTestFileGuard({ filename });
 
     if (!isTestFile) {
@@ -53,24 +53,33 @@ export const ruleBanNegatedMatchersBroker = (): EslintRule => ({
     ]);
 
     return {
-      CallExpression: (node: Tsestree): void => {
+      CallExpression: (node: TSESTree.CallExpression): void => {
         const { callee } = node;
 
-        if (callee?.type !== 'MemberExpression') {
+        if (callee.type !== AST_NODE_TYPES.MemberExpression) {
           return;
         }
 
-        const matcherName = callee.property?.name;
+        const matcherName =
+          callee.property.type === AST_NODE_TYPES.Identifier ||
+          callee.property.type === AST_NODE_TYPES.PrivateIdentifier
+            ? callee.property.name
+            : undefined;
         if (matcherName === undefined) {
           return;
         }
 
         // Check if the object is a .not member expression
-        if (callee.object?.type !== 'MemberExpression') {
+        if (callee.object.type !== AST_NODE_TYPES.MemberExpression) {
           return;
         }
 
-        if (callee.object.property?.name !== 'not') {
+        if (
+          (callee.object.property.type === AST_NODE_TYPES.Identifier ||
+          callee.object.property.type === AST_NODE_TYPES.PrivateIdentifier
+            ? callee.object.property.name
+            : undefined) !== 'not'
+        ) {
           return;
         }
 
@@ -81,7 +90,7 @@ export const ruleBanNegatedMatchersBroker = (): EslintRule => ({
         }
 
         // In Playwright files, only allow specific visibility/state matchers with .not
-        if (isPlaywrightFile && allowedPlaywrightNegatedMatchers.has(String(matcherName))) {
+        if (isPlaywrightFile && allowedPlaywrightNegatedMatchers.has(matcherName)) {
           return;
         }
 

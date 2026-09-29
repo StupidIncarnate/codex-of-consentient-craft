@@ -10,32 +10,33 @@
  * isJsonParseOrDynamicImportCallLayerBroker({ node: someOtherCallNode });
  * // Returns false
  */
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
 export const isJsonParseOrDynamicImportCallLayerBroker = ({
   node,
 }: {
-  node: Tsestree | null | undefined;
+  node: TSESTree.Node | null | undefined;
 }): boolean => {
   if (!node) {
     return false;
   }
 
-  if (node.type === 'ImportExpression') {
+  if (node.type === AST_NODE_TYPES.ImportExpression) {
     return true;
   }
 
-  if (node.type !== 'CallExpression') {
+  if (node.type !== AST_NODE_TYPES.CallExpression) {
     return false;
   }
 
   const { callee } = node;
 
   return (
-    callee?.type === 'MemberExpression' &&
-    callee.object?.type === 'Identifier' &&
+    callee.type === AST_NODE_TYPES.MemberExpression &&
+    callee.object.type === AST_NODE_TYPES.Identifier &&
     callee.object.name === 'JSON' &&
-    callee.property?.type === 'Identifier' &&
+    callee.property.type === AST_NODE_TYPES.Identifier &&
     callee.property.name === 'parse'
   );
 };

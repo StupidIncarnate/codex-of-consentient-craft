@@ -9,9 +9,9 @@
  */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
-import type { Identifier } from '@dungeonmaster/shared/contracts';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
+
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
 import { isAstIncludesCallGuard } from '../../../guards/is-ast-includes-call/is-ast-includes-call-guard';
 
@@ -30,19 +30,19 @@ export const ruleBanStringIncludesInExpectBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: EslintContext) => {
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
-    const isTestFile = isTestFileGuard({ filename: ctx.filename ?? '' });
+    const isTestFile = isTestFileGuard({ filename: ctx.filename });
 
     if (!isTestFile) {
       return {};
     }
 
-    const includesVariables = new Set<Identifier>();
+    const includesVariables = new Set<string>();
 
     return {
-      VariableDeclarator: (node: Tsestree): void => {
-        if (node.id?.type !== 'Identifier' || node.id.name === undefined) {
+      VariableDeclarator: (node: TSESTree.VariableDeclarator): void => {
+        if (node.id.type !== AST_NODE_TYPES.Identifier) {
           return;
         }
 
@@ -51,16 +51,16 @@ export const ruleBanStringIncludesInExpectBroker = (): EslintRule => ({
         }
       },
 
-      CallExpression: (node: Tsestree): void => {
+      CallExpression: (node: TSESTree.CallExpression): void => {
         const { callee } = node;
 
         // Check if this is expect(...)
-        if (callee?.type !== 'Identifier' || callee.name !== 'expect') {
+        if (callee.type !== AST_NODE_TYPES.Identifier || callee.name !== 'expect') {
           return;
         }
 
-        const firstArg = node.arguments?.[0];
-        if (firstArg === null || firstArg === undefined) {
+        const [firstArg] = node.arguments;
+        if (firstArg === undefined) {
           return;
         }
 
@@ -74,11 +74,7 @@ export const ruleBanStringIncludesInExpectBroker = (): EslintRule => ({
         }
 
         // Check if the argument is a variable assigned from .includes(...)
-        if (
-          firstArg.type === 'Identifier' &&
-          firstArg.name !== undefined &&
-          includesVariables.has(firstArg.name)
-        ) {
+        if (firstArg.type === AST_NODE_TYPES.Identifier && includesVariables.has(firstArg.name)) {
           ctx.report({
             node,
             messageId: 'noIncludesInExpect',

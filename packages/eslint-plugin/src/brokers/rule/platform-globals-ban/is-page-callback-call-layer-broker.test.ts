@@ -1,7 +1,8 @@
+import { CallExpressionStub } from '#gateway/npm/typescript-eslint__utils/call-expression/call-expression.stub';
+import { MemberExpressionStub } from '#gateway/npm/typescript-eslint__utils/member-expression/member-expression.stub';
 import { isPageCallbackCallLayerBroker } from './is-page-callback-call-layer-broker';
 import { isPageCallbackCallLayerBrokerProxy } from './is-page-callback-call-layer-broker.proxy';
 import { pageCallbackMethodsStatics } from '../../../statics/page-callback-methods/page-callback-methods-statics';
-import { TsestreeStub, TsestreeNodeType } from '../../../contracts/tsestree/tsestree.stub';
 
 describe('isPageCallbackCallLayerBroker', () => {
   describe('browser-side method calls', () => {
@@ -9,15 +10,7 @@ describe('isPageCallbackCallLayerBroker', () => {
       'VALID: {page.%s(fn)} => returns true',
       (methodName) => {
         isPageCallbackCallLayerBrokerProxy();
-        const node = TsestreeStub({
-          type: TsestreeNodeType.CallExpression,
-          callee: TsestreeStub({
-            type: TsestreeNodeType.MemberExpression,
-            computed: false,
-            object: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'page' }),
-            property: TsestreeStub({ type: TsestreeNodeType.Identifier, name: methodName }),
-          }),
-        });
+        const node = CallExpressionStub({ code: `page.${methodName}();` });
 
         const result = isPageCallbackCallLayerBroker({ node });
 
@@ -29,15 +22,7 @@ describe('isPageCallbackCallLayerBroker', () => {
   describe('other calls', () => {
     it('INVALID: {page.click()} => returns false', () => {
       isPageCallbackCallLayerBrokerProxy();
-      const node = TsestreeStub({
-        type: TsestreeNodeType.CallExpression,
-        callee: TsestreeStub({
-          type: TsestreeNodeType.MemberExpression,
-          computed: false,
-          object: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'page' }),
-          property: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'click' }),
-        }),
-      });
+      const node = CallExpressionStub({ code: 'page.click();' });
 
       const result = isPageCallbackCallLayerBroker({ node });
 
@@ -46,15 +31,7 @@ describe('isPageCallbackCallLayerBroker', () => {
 
     it('INVALID: {page[evaluate](fn), computed} => returns false', () => {
       isPageCallbackCallLayerBrokerProxy();
-      const node = TsestreeStub({
-        type: TsestreeNodeType.CallExpression,
-        callee: TsestreeStub({
-          type: TsestreeNodeType.MemberExpression,
-          computed: true,
-          object: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'page' }),
-          property: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'evaluate' }),
-        }),
-      });
+      const node = CallExpressionStub({ code: 'page[evaluate]();' });
 
       const result = isPageCallbackCallLayerBroker({ node });
 
@@ -63,10 +40,7 @@ describe('isPageCallbackCallLayerBroker', () => {
 
     it('INVALID: {evaluate(fn), bare callee} => returns false', () => {
       isPageCallbackCallLayerBrokerProxy();
-      const node = TsestreeStub({
-        type: TsestreeNodeType.CallExpression,
-        callee: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'evaluate' }),
-      });
+      const node = CallExpressionStub({ code: 'evaluate();' });
 
       const result = isPageCallbackCallLayerBroker({ node });
 
@@ -75,11 +49,7 @@ describe('isPageCallbackCallLayerBroker', () => {
 
     it('INVALID: {node is a MemberExpression, not a call} => returns false', () => {
       isPageCallbackCallLayerBrokerProxy();
-      const node = TsestreeStub({
-        type: TsestreeNodeType.MemberExpression,
-        computed: false,
-        property: TsestreeStub({ type: TsestreeNodeType.Identifier, name: 'evaluate' }),
-      });
+      const node = MemberExpressionStub({ code: 'a.evaluate;' });
 
       const result = isPageCallbackCallLayerBroker({ node });
 

@@ -1,16 +1,16 @@
+import { RuleContextStub } from '#gateway/npm/typescript-eslint__utils/rule-context/rule-context.stub';
+import { ProgramStub } from '#gateway/npm/typescript-eslint__utils/program/program.stub';
 import { IdentifierStub } from '@dungeonmaster/shared/contracts/identifier/identifier.stub';
 import { ImportPathStub } from '@dungeonmaster/shared/contracts/import-path/import-path.stub';
 import { barrelNoTestSupportReexportLayerBroker } from './barrel-no-test-support-reexport-layer-broker';
 import { barrelNoTestSupportReexportLayerBrokerProxy } from './barrel-no-test-support-reexport-layer-broker.proxy';
-import { EslintContextStub } from '../../../contracts/eslint-context/eslint-context.stub';
-import { TsestreeStub, TsestreeNodeType } from '../../../contracts/tsestree/tsestree.stub';
 
 describe('barrelNoTestSupportReexportLayerBroker', () => {
   it('VALID: {reexport source is a plain wrapper} => reports nothing and returns true', () => {
     barrelNoTestSupportReexportLayerBrokerProxy();
     const mockReport = jest.fn();
-    const context = EslintContextStub({ report: mockReport });
-    const node = TsestreeStub({ type: TsestreeNodeType.Program });
+    const context = RuleContextStub({ report: mockReport });
+    const node = ProgramStub({ code: '' });
 
     const result = barrelNoTestSupportReexportLayerBroker({
       node,
@@ -31,8 +31,8 @@ describe('barrelNoTestSupportReexportLayerBroker', () => {
   it('INVALID: {reexport source ends in .proxy} => reports barrelReexportsTestSupportFile and returns false', () => {
     barrelNoTestSupportReexportLayerBrokerProxy();
     const mockReport = jest.fn();
-    const context = EslintContextStub({ report: mockReport });
-    const node = TsestreeStub({ type: TsestreeNodeType.Program });
+    const context = RuleContextStub({ report: mockReport });
+    const node = ProgramStub({ code: '' });
     const name = IdentifierStub({ value: 'readFileSyncProxy' });
     const source = ImportPathStub({ value: './read-file-sync/read-file-sync.proxy' });
 
@@ -55,8 +55,8 @@ describe('barrelNoTestSupportReexportLayerBroker', () => {
   it('INVALID: {reexport source ends in .stub} => reports barrelReexportsTestSupportFile and returns false', () => {
     barrelNoTestSupportReexportLayerBrokerProxy();
     const mockReport = jest.fn();
-    const context = EslintContextStub({ report: mockReport });
-    const node = TsestreeStub({ type: TsestreeNodeType.Program });
+    const context = RuleContextStub({ report: mockReport });
+    const node = ProgramStub({ code: '' });
     const name = IdentifierStub({ value: 'FsErrorStub' });
     const source = ImportPathStub({ value: './is-fs-error/fs-error.stub' });
 
@@ -79,8 +79,8 @@ describe('barrelNoTestSupportReexportLayerBroker', () => {
   it('EMPTY: {no reexports} => reports nothing and returns true', () => {
     barrelNoTestSupportReexportLayerBrokerProxy();
     const mockReport = jest.fn();
-    const context = EslintContextStub({ report: mockReport });
-    const node = TsestreeStub({ type: TsestreeNodeType.Program });
+    const context = RuleContextStub({ report: mockReport });
+    const node = ProgramStub({ code: '' });
 
     const result = barrelNoTestSupportReexportLayerBroker({
       node,

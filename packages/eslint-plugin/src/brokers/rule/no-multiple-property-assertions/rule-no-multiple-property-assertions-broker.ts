@@ -9,8 +9,8 @@
  */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
 import { astGetMemberExpressionRootTransformer } from '../../../transformers/ast-get-member-expression-root/ast-get-member-expression-root-transformer';
 import { astFindExpectCallTransformer } from '../../../transformers/ast-find-expect-call/ast-find-expect-call-transformer';
@@ -31,9 +31,9 @@ export const ruleNoMultiplePropertyAssertionsBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: EslintContext) => {
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
-    const isTestFile = isTestFileGuard({ filename: ctx.filename ?? '' });
+    const isTestFile = isTestFileGuard({ filename: ctx.filename });
 
     if (!isTestFile) {
       return {};
@@ -45,7 +45,7 @@ export const ruleNoMultiplePropertyAssertionsBroker = (): EslintRule => ({
 
     return {
       // Track when we enter an it() or test() block
-      'CallExpression[callee.name=/^(it|test)$/]': (node: Tsestree): void => {
+      'CallExpression[callee.name=/^(it|test)$/]': (node: TSESTree.CallExpression): void => {
         currentItBlock = node;
         assertionsByItBlock.set(currentItBlock, []);
       },
@@ -80,7 +80,7 @@ export const ruleNoMultiplePropertyAssertionsBroker = (): EslintRule => ({
             // Report on all assertions for this root object
             for (const node of nodes) {
               ctx.report({
-                node: node as Tsestree,
+                node: node as TSESTree.Node,
                 messageId: 'multiplePropertyAssertions',
                 data: {
                   rootObject,
@@ -95,7 +95,7 @@ export const ruleNoMultiplePropertyAssertionsBroker = (): EslintRule => ({
       },
 
       // Detect expect(obj.property).<anyMatcher>() pattern
-      CallExpression: (node: Tsestree): void => {
+      CallExpression: (node: TSESTree.CallExpression): void => {
         if (currentItBlock === null) {
           return;
         }
@@ -107,9 +107,8 @@ export const ruleNoMultiplePropertyAssertionsBroker = (): EslintRule => ({
         }
 
         // Check if expect() argument is a member expression (obj.property)
-        const expectArg = expectCall.arguments?.[0];
-        const isMemberExpression =
-          expectArg !== null && expectArg !== undefined && expectArg.type === 'MemberExpression';
+        const [expectArg] = expectCall.arguments;
+        const isMemberExpression = expectArg?.type === AST_NODE_TYPES.MemberExpression;
 
         if (!isMemberExpression) {
           return;

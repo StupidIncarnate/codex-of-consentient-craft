@@ -10,8 +10,7 @@
 import type { GlobPattern, PathSegment } from '@dungeonmaster/shared/contracts';
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isProcessCwdCallGuard } from '../../../guards/is-process-cwd-call/is-process-cwd-call-guard';
 import { isHarnessOrProxyFileGuard } from '../../../guards/is-harness-or-proxy-file/is-harness-or-proxy-file-guard';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
@@ -58,8 +57,8 @@ export const ruleNoBareProcessCwdBroker = (): EslintRule => ({
       ],
     },
   }),
-  create: (context: EslintContext) => {
-    const ctx = context as EslintContext & {
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
+    const ctx = context as TSESLint.RuleContext<string, unknown[]> & {
       cwd?: PathSegment;
       options?: {
         allowedFiles?: readonly GlobPattern[];
@@ -67,18 +66,14 @@ export const ruleNoBareProcessCwdBroker = (): EslintRule => ({
         allowTestFiles?: boolean;
       }[];
     };
-    const filename = ctx.filename ?? ctx.getFilename?.() ?? '';
-    const cwd = ctx.cwd ?? '';
-    const options = ctx.options?.[0] ?? {};
+    const { filename } = ctx;
+    const { cwd } = ctx;
+    const options = ctx.options[0] ?? {};
     const allowedFiles = options.allowedFiles ?? noBareProcessCwdStatics.defaults.allowedFiles;
     const allowedFolders =
       options.allowedFolders ?? noBareProcessCwdStatics.defaults.allowedFolders;
     const allowTestFiles =
       options.allowTestFiles ?? noBareProcessCwdStatics.defaults.allowTestFiles;
-
-    if (filename.length === 0) {
-      return {};
-    }
 
     if (
       allowTestFiles &&
@@ -99,7 +94,7 @@ export const ruleNoBareProcessCwdBroker = (): EslintRule => ({
     }
 
     return {
-      CallExpression: (node: Tsestree): void => {
+      CallExpression: (node: TSESTree.CallExpression): void => {
         if (!isProcessCwdCallGuard({ node })) {
           return;
         }

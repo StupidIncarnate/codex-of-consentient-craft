@@ -16,8 +16,8 @@
  */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { domHandleWatchlistStatics } from '../../../statics/dom-handle-watchlist/dom-handle-watchlist-statics';
 import { isIngredientDeclarationFileGuard } from '../../../guards/is-ingredient-declaration-file/is-ingredient-declaration-file-guard';
 import { isIngredientDeclarationCallGuard } from '../../../guards/is-ingredient-declaration-call/is-ingredient-declaration-call-guard';
@@ -38,18 +38,18 @@ export const ruleBanDomHandlesInIngredientsBroker = (): EslintRule => ({
     },
   }),
   create: (context: unknown) => {
-    const ctx = context as EslintContext;
-    const filename = ctx.filename ?? ctx.getFilename?.() ?? '';
+    const ctx = context as TSESLint.RuleContext<string, unknown[]>;
+    const { filename } = ctx;
 
     const isKnownIngredientFileByPath = isIngredientDeclarationFileGuard({
-      filename: String(filename),
+      filename,
     });
     let isKnownIngredientFileByCall = false;
     const pendingReports: (() => void)[] = [];
 
     return {
-      ImportDeclaration: (node: Tsestree): void => {
-        const sourceValue = node.source?.value;
+      ImportDeclaration: (node: TSESTree.ImportDeclaration): void => {
+        const sourceValue = node.source.value;
         if (typeof sourceValue !== 'string') {
           return;
         }
@@ -67,7 +67,7 @@ export const ruleBanDomHandlesInIngredientsBroker = (): EslintRule => ({
         }
       },
 
-      'JSXElement, JSXFragment': (node: Tsestree): void => {
+      'JSXElement, JSXFragment': (node: TSESTree.JSXElement | TSESTree.JSXFragment): void => {
         pendingReports.push(() => {
           ctx.report({
             node,
@@ -77,32 +77,32 @@ export const ruleBanDomHandlesInIngredientsBroker = (): EslintRule => ({
         });
       },
 
-      CallExpression: (node: Tsestree): void => {
+      CallExpression: (node: TSESTree.CallExpression): void => {
         if (isIngredientDeclarationCallGuard({ node })) {
           isKnownIngredientFileByCall = true;
         }
 
         const { callee } = node;
 
-        if (callee?.type === 'Identifier' && callee.name !== undefined) {
+        if (callee.type === AST_NODE_TYPES.Identifier) {
           const calleeName = callee.name;
           if (domHandleWatchlistStatics.refCallNames.some((name) => name === calleeName)) {
             pendingReports.push(() => {
               ctx.report({
                 node,
                 messageId: 'domHandleInIngredient',
-                data: { detail: `a DOM ref (\`${String(calleeName)}(...)\`)` },
+                data: { detail: `a DOM ref (\`${calleeName}(...)\`)` },
               });
             });
           }
           return;
         }
 
-        if (callee?.type !== 'MemberExpression') {
+        if (callee.type !== AST_NODE_TYPES.MemberExpression) {
           return;
         }
         const propertyName =
-          callee.property?.type === 'Identifier' ? callee.property.name : undefined;
+          callee.property.type === AST_NODE_TYPES.Identifier ? callee.property.name : undefined;
         if (propertyName === undefined) {
           return;
         }
@@ -111,7 +111,7 @@ export const ruleBanDomHandlesInIngredientsBroker = (): EslintRule => ({
             ctx.report({
               node,
               messageId: 'domHandleInIngredient',
-              data: { detail: `a DOM selector call (\`.${String(propertyName)}(...)\`)` },
+              data: { detail: `a DOM selector call (\`.${propertyName}(...)\`)` },
             });
           });
           return;
@@ -121,7 +121,7 @@ export const ruleBanDomHandlesInIngredientsBroker = (): EslintRule => ({
             ctx.report({
               node,
               messageId: 'domHandleInIngredient',
-              data: { detail: `a DOM position call (\`.${String(propertyName)}(...)\`)` },
+              data: { detail: `a DOM position call (\`.${propertyName}(...)\`)` },
             });
           });
         }

@@ -23,8 +23,8 @@
  */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isGatewayFileGuard } from '../../../guards/is-gateway-file/is-gateway-file-guard';
 import { typedTypeParameterNameTransformer } from '../../../transformers/typed-type-parameter-name/typed-type-parameter-name-transformer';
 import { isTypeNameReferencedLayerBroker } from './is-type-name-referenced-layer-broker';
@@ -51,30 +51,35 @@ export const ruleGatewayReturnUnknownNotCallerTypeBroker = (): EslintRule => ({
     },
   }),
   create: (context: unknown) => {
-    const ctx = context as EslintContext;
-    const filename = ctx.filename ?? ctx.getFilename?.() ?? '';
+    const ctx = context as TSESLint.RuleContext<string, unknown[]>;
+    const { filename } = ctx;
 
     if (filename.length === 0 || !isGatewayFileGuard({ filename })) {
       return {};
     }
 
     return {
-      'TSAsExpression, TSTypeAssertion': (node: Tsestree): void => {
+      'TSAsExpression, TSTypeAssertion': (
+        node: TSESTree.TSAsExpression | TSESTree.TSTypeAssertion,
+      ): void => {
         const { typeAnnotation } = node;
 
         if (
-          typeAnnotation?.type !== 'TSTypeReference' ||
-          typeAnnotation.typeName?.type !== 'Identifier'
+          typeAnnotation.type !== AST_NODE_TYPES.TSTypeReference ||
+          typeAnnotation.typeName.type !== AST_NODE_TYPES.Identifier
         ) {
           return;
         }
 
         const isPromiseWrapped = typeAnnotation.typeName.name === 'Promise';
-        const promiseTypeArgs = typeAnnotation.typeArguments ?? typeAnnotation.typeParameters;
-        const promiseInner = promiseTypeArgs?.params?.[0];
+        const promiseTypeArgs = typeAnnotation.typeArguments;
+        const promiseInner = promiseTypeArgs?.params[0];
         const candidate = isPromiseWrapped ? promiseInner : typeAnnotation;
 
-        if (candidate?.type !== 'TSTypeReference' || candidate.typeName?.type !== 'Identifier') {
+        if (
+          candidate?.type !== AST_NODE_TYPES.TSTypeReference ||
+          candidate.typeName.type !== AST_NODE_TYPES.Identifier
+        ) {
           return;
         }
 
@@ -95,21 +100,26 @@ export const ruleGatewayReturnUnknownNotCallerTypeBroker = (): EslintRule => ({
       },
 
       'FunctionDeclaration, FunctionExpression, ArrowFunctionExpression': (
-        node: Tsestree,
+        node:
+          | TSESTree.FunctionDeclaration
+          | TSESTree.FunctionExpression
+          | TSESTree.ArrowFunctionExpression,
       ): void => {
         const returnTypeAnnotation = node.returnType?.typeAnnotation;
 
         if (
-          returnTypeAnnotation?.type === 'TSTypeReference' &&
-          returnTypeAnnotation.typeName?.type === 'Identifier'
+          returnTypeAnnotation?.type === AST_NODE_TYPES.TSTypeReference &&
+          returnTypeAnnotation.typeName.type === AST_NODE_TYPES.Identifier
         ) {
           const isPromiseWrapped = returnTypeAnnotation.typeName.name === 'Promise';
-          const promiseTypeArgs =
-            returnTypeAnnotation.typeArguments ?? returnTypeAnnotation.typeParameters;
-          const promiseInner = promiseTypeArgs?.params?.[0];
+          const promiseTypeArgs = returnTypeAnnotation.typeArguments;
+          const promiseInner = promiseTypeArgs?.params[0];
           const candidate = isPromiseWrapped ? promiseInner : returnTypeAnnotation;
 
-          if (candidate?.type === 'TSTypeReference' && candidate.typeName?.type === 'Identifier') {
+          if (
+            candidate?.type === AST_NODE_TYPES.TSTypeReference &&
+            candidate.typeName.type === AST_NODE_TYPES.Identifier
+          ) {
             const typeParameterName = typedTypeParameterNameTransformer({
               context: ctx,
               node: candidate.typeName,
@@ -117,7 +127,7 @@ export const ruleGatewayReturnUnknownNotCallerTypeBroker = (): EslintRule => ({
 
             const isForwarded =
               typeParameterName !== undefined &&
-              (node.params ?? []).some((param) =>
+              node.params.some((param) =>
                 isTypeNameReferencedLayerBroker({
                   node: param,
                   typeParameterName: String(typeParameterName),
@@ -135,19 +145,17 @@ export const ruleGatewayReturnUnknownNotCallerTypeBroker = (): EslintRule => ({
         }
 
         if (
-          node.type === 'ArrowFunctionExpression' &&
+          node.type === AST_NODE_TYPES.ArrowFunctionExpression &&
           !node.returnType &&
-          node.body !== undefined &&
-          node.body !== null &&
           !Array.isArray(node.body) &&
-          node.body.type !== 'BlockStatement' &&
+          node.body.type !== AST_NODE_TYPES.BlockStatement &&
           isJsonParseOrDynamicImportCallLayerBroker({ node: node.body })
         ) {
           ctx.report({ node: node.body, messageId: 'anyLeakNoReturnType' });
         }
       },
 
-      ReturnStatement: (node: Tsestree): void => {
+      ReturnStatement: (node: TSESTree.ReturnStatement): void => {
         checkAnyLeakReturnLayerBroker({ node, context: ctx });
       },
     };

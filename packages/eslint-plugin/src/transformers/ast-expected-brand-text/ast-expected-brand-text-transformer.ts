@@ -7,8 +7,9 @@
  * astExpectedBrandTextTransformer({ node: brandCall, fieldListOwners: new Map() });
  * // Returns 'QuestId' for a brand inside `id:` of `questContract`, null when no const owns the node
  */
+
 import type { Identifier } from '@dungeonmaster/shared/contracts';
-import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { astBrandPathTransformer } from '../ast-brand-path/ast-brand-path-transformer';
 import { brandTextDeriveTransformer } from '../brand-text-derive/brand-text-derive-transformer';
 
@@ -16,9 +17,9 @@ export const astExpectedBrandTextTransformer = ({
   node,
   fieldListOwners,
 }: {
-  node: Tsestree;
+  node: TSESTree.Node;
   fieldListOwners: ReadonlyMap<Identifier, Identifier>;
-}): Identifier | null => {
+}): string | null => {
   const [first, ...keys] = astBrandPathTransformer({ node });
 
   if (first === undefined) {

@@ -7,8 +7,7 @@
  */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isSpecFileGuard } from '../../../guards/is-spec-file/is-spec-file-guard';
 
 export const ruleEnforceE2eBaseImportBroker = (): EslintRule => ({
@@ -26,11 +25,11 @@ export const ruleEnforceE2eBaseImportBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: EslintContext) => {
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
     return {
-      ImportDeclaration: (node: Tsestree): void => {
-        const isSpecFile = isSpecFileGuard({ filename: ctx.filename ?? '' });
+      ImportDeclaration: (node: TSESTree.ImportDeclaration): void => {
+        const isSpecFile = isSpecFileGuard({ filename: ctx.filename });
 
         if (!isSpecFile) {
           return;
@@ -38,7 +37,7 @@ export const ruleEnforceE2eBaseImportBroker = (): EslintRule => ({
 
         const { source } = node;
 
-        if (source?.value === '@playwright/test') {
+        if (source.value === '@playwright/test') {
           ctx.report({
             node,
             messageId: 'useTestingE2e',

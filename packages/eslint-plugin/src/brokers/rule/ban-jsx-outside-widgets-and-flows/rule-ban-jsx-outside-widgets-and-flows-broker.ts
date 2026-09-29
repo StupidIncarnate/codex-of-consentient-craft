@@ -10,8 +10,7 @@
  */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
 export const ruleBanJsxOutsideWidgetsAndFlowsBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -27,9 +26,9 @@ export const ruleBanJsxOutsideWidgetsAndFlowsBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: EslintContext) => {
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
-    const filename = ctx.filename ?? '';
+    const { filename } = ctx;
 
     if (filename.includes('/widgets/') || filename.includes('/flows/')) {
       return {};
@@ -39,13 +38,13 @@ export const ruleBanJsxOutsideWidgetsAndFlowsBroker = (): EslintRule => ({
     const depth = { value: 0 };
 
     return {
-      JSXElement: (node: Tsestree): void => {
+      JSXElement: (node: TSESTree.JSXElement): void => {
         if (depth.value === 0) {
           ctx.report({ node, messageId: 'jsxOutsideWidgetsAndFlows' });
         }
         depth.value += 1;
       },
-      JSXFragment: (node: Tsestree): void => {
+      JSXFragment: (node: TSESTree.JSXFragment): void => {
         if (depth.value === 0) {
           ctx.report({ node, messageId: 'jsxOutsideWidgetsAndFlows' });
         }

@@ -8,8 +8,8 @@
  */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
 export const ruleBanReflectOutsideGuardsBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -26,30 +26,32 @@ export const ruleBanReflectOutsideGuardsBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: EslintContext) => {
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
-    const filename = ctx.getFilename?.() ?? ctx.filename;
+    const { filename } = ctx;
 
     if (
-      filename !== undefined &&
-      (filename.endsWith('-guard.ts') ||
-        filename.endsWith('-guard.tsx') ||
-        filename.endsWith('-contract.ts') ||
-        filename.endsWith('-contract.tsx'))
+      filename.endsWith('-guard.ts') ||
+      filename.endsWith('-guard.tsx') ||
+      filename.endsWith('-contract.ts') ||
+      filename.endsWith('-contract.tsx')
     ) {
       return {};
     }
 
     return {
-      CallExpression: (node: Tsestree): void => {
+      CallExpression: (node: TSESTree.CallExpression): void => {
         const { callee } = node;
 
-        if (!callee) return;
-        if (callee.type !== 'MemberExpression') return;
-        if (callee.object?.type !== 'Identifier') return;
+        if (callee.type !== AST_NODE_TYPES.MemberExpression) return;
+        if (callee.object.type !== AST_NODE_TYPES.Identifier) return;
         if (callee.object.name !== 'Reflect') return;
 
-        const propertyName = callee.property?.name;
+        const propertyName =
+          callee.property.type === AST_NODE_TYPES.Identifier ||
+          callee.property.type === AST_NODE_TYPES.PrivateIdentifier
+            ? callee.property.name
+            : undefined;
 
         if (propertyName !== 'get' && propertyName !== 'set') return;
 

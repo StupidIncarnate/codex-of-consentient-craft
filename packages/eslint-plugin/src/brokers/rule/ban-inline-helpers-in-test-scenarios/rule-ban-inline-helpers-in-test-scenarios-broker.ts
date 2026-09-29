@@ -7,8 +7,8 @@
  */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isSpecFileGuard } from '../../../guards/is-spec-file/is-spec-file-guard';
 import { isIntegrationTestFileGuard } from '../../../guards/is-integration-test-file/is-integration-test-file-guard';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
@@ -28,9 +28,9 @@ export const ruleBanInlineHelpersInTestScenariosBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: EslintContext) => {
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
-    const filename = ctx.filename ?? '';
+    const { filename } = ctx;
 
     const isSpec = isSpecFileGuard({ filename });
     const isIntegration = isIntegrationTestFileGuard({
@@ -44,22 +44,22 @@ export const ruleBanInlineHelpersInTestScenariosBroker = (): EslintRule => ({
     return {
       // Detect top-level: export const foo = (...) => { ... }
       // and top-level: const foo = (...) => { ... }
-      VariableDeclarator: (node: Tsestree): void => {
+      VariableDeclarator: (node: TSESTree.VariableDeclarator): void => {
         // Only check module-level declarations (parent chain: VariableDeclaration -> Program or ExportNamedDeclaration -> Program)
-        const ancestors = ctx.sourceCode?.getAncestors(node) ?? [];
+        const ancestors = ctx.sourceCode.getAncestors(node);
 
         // The parent chain for a top-level const is:
         // Program > (ExportNamedDeclaration >)? VariableDeclaration > VariableDeclarator
         // We need depth 2 or 3 from Program
-        const isTopLevel = ancestors.some((ancestor) => ancestor.type === 'Program');
+        const isTopLevel = ancestors.some((ancestor) => ancestor.type === AST_NODE_TYPES.Program);
 
         // Must be directly under Program (not inside a function, describe block, etc.)
         // Check that no ancestor is a function or call expression callback
         const isInsideFunction = ancestors.some(
           (ancestor) =>
-            ancestor.type === 'ArrowFunctionExpression' ||
-            ancestor.type === 'FunctionExpression' ||
-            ancestor.type === 'FunctionDeclaration',
+            ancestor.type === AST_NODE_TYPES.ArrowFunctionExpression ||
+            ancestor.type === AST_NODE_TYPES.FunctionExpression ||
+            ancestor.type === AST_NODE_TYPES.FunctionDeclaration,
         );
 
         if (!isTopLevel || isInsideFunction) {
@@ -69,21 +69,18 @@ export const ruleBanInlineHelpersInTestScenariosBroker = (): EslintRule => ({
         const { id, init } = node;
 
         // Only flag arrow functions with block bodies (not simple expressions/constants)
-        if (init === null || init === undefined || init.type !== 'ArrowFunctionExpression') {
+        if (init === null || init.type !== AST_NODE_TYPES.ArrowFunctionExpression) {
           return;
         }
 
         // Only flag block body functions: () => { ... }
         // Allow expression body: () => value (these are typically simple constants/transforms)
         const { body } = init;
-        if (body === null || body === undefined || Array.isArray(body)) {
-          return;
-        }
-        if (body.type !== 'BlockStatement') {
+        if (body.type !== AST_NODE_TYPES.BlockStatement) {
           return;
         }
 
-        const name = id?.name ?? 'anonymous';
+        const name = (id.type === AST_NODE_TYPES.Identifier ? id.name : undefined) ?? 'anonymous';
 
         ctx.report({
           node,

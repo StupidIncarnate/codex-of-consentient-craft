@@ -7,8 +7,8 @@
  **/
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isImplementationFileGuard } from '../../../guards/is-implementation-file/is-implementation-file-guard';
 import { shouldExcludeFileFromProjectStructureRulesGuard } from '../../../guards/should-exclude-file-from-project-structure-rules/should-exclude-file-from-project-structure-rules-guard';
 import { extractFileMetadataTransformer } from '../../../transformers/extract-file-metadata/extract-file-metadata-transformer';
@@ -30,27 +30,26 @@ export const ruleEnforceFileMetadataBroker = (): EslintRule => ({
       fixable: 'code',
     },
   }),
-  create: (context: EslintContext) => {
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
     const { filename } = ctx;
 
     // PRE-VALIDATION: Exclude files outside src/ (root barrels, config, etc.) from structure
     // validation. A gateway package's files sit under a real src/, so this guard reads them as
     // in-scope — the header rule already applies to gateway wrappers with no extra handling.
-    if (shouldExcludeFileFromProjectStructureRulesGuard({ filename: filename ?? '' })) {
+    if (shouldExcludeFileFromProjectStructureRulesGuard({ filename })) {
       return {};
     }
 
     // Only check implementation files (single-dot, not .test.ts, .proxy.ts, etc.)
-    if (!isImplementationFileGuard({ filename: filename ?? '' })) {
+    if (!isImplementationFileGuard({ filename })) {
       return {};
     }
 
     return {
       // Check comments once at Program level
-      Program: (node: Tsestree): void => {
-        const RANGE_TUPLE_LENGTH = 2;
-        const allComments = ctx.sourceCode?.getAllComments() ?? [];
+      Program: (node: TSESTree.Program): void => {
+        const allComments = ctx.sourceCode.getAllComments();
 
         // Find the first comment with valid metadata
         let metadataComment = null;
@@ -76,8 +75,8 @@ export const ruleEnforceFileMetadataBroker = (): EslintRule => ({
         if (Array.isArray(body)) {
           for (const statement of body) {
             if (
-              statement.type === 'ImportDeclaration' ||
-              statement.type === 'TSImportEqualsDeclaration'
+              statement.type === AST_NODE_TYPES.ImportDeclaration ||
+              statement.type === AST_NODE_TYPES.TSImportEqualsDeclaration
             ) {
               firstImport = statement;
               break;
@@ -90,52 +89,23 @@ export const ruleEnforceFileMetadataBroker = (): EslintRule => ({
           return;
         }
 
-        // Validate ranges
-        const commentRange = metadataComment.range;
-        const importRange = firstImport.range;
-        if (
-          !commentRange ||
-          !importRange ||
-          !Array.isArray(commentRange) ||
-          !Array.isArray(importRange) ||
-          commentRange.length !== RANGE_TUPLE_LENGTH ||
-          typeof commentRange[0] !== 'number' ||
-          typeof importRange[0] !== 'number'
-        ) {
-          return;
-        }
-
         // Metadata comes after import - report with fixer
-        if (commentRange[0] > importRange[0] && ctx.sourceCode) {
+        if (metadataComment.range[0] > firstImport.range[0]) {
           ctx.report({
             node,
             messageId: 'metadataNotBeforeImports',
             fix: (fixer) => {
-              if (!ctx.sourceCode) {
-                return null;
-              }
               const commentText = ctx.sourceCode.getText(metadataComment);
               const removalRange = metadataComment.range;
               const sourceText = ctx.sourceCode.getText();
-
-              if (
-                typeof sourceText !== 'string' ||
-                !Array.isArray(removalRange) ||
-                removalRange.length !== RANGE_TUPLE_LENGTH ||
-                typeof removalRange[0] !== 'number' ||
-                typeof removalRange[1] !== 'number'
-              ) {
-                return null;
-              }
-
-              const { 0: startPos, 1: originalEndPos } = removalRange;
+              const [startPos, originalEndPos] = removalRange;
               const endPos =
                 originalEndPos < sourceText.length && sourceText[originalEndPos] === '\n'
                   ? originalEndPos + 1
                   : originalEndPos;
 
               return [
-                fixer.insertTextBeforeRange([0, 0], `${String(commentText)}\n`),
+                fixer.insertTextBeforeRange([0, 0], `${commentText}\n`),
                 fixer.removeRange([startPos, endPos]),
               ];
             },

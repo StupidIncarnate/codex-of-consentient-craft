@@ -1,7 +1,7 @@
+import { RuleContextStub } from '#gateway/npm/typescript-eslint__utils/rule-context/rule-context.stub';
+import { ImportDeclarationStub } from '#gateway/npm/typescript-eslint__utils/import-declaration/import-declaration.stub';
 import { validateExternalImportLayerBroker } from './validate-external-import-layer-broker';
 import { validateExternalImportLayerBrokerProxy } from './validate-external-import-layer-broker.proxy';
-import { EslintContextStub } from '../../../contracts/eslint-context/eslint-context.stub';
-import { TsestreeStub, TsestreeNodeType } from '../../../contracts/tsestree/tsestree.stub';
 import { folderConfigStatics } from '@dungeonmaster/shared/statics';
 
 describe('validateExternalImportLayerBroker', () => {
@@ -9,8 +9,8 @@ describe('validateExternalImportLayerBroker', () => {
     it('VALID: {@types subpath} => returns true, no report', () => {
       validateExternalImportLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.ImportDeclaration });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ImportDeclarationStub({ code: "import 'x';" });
 
       const result = validateExternalImportLayerBroker({
         node,
@@ -27,8 +27,8 @@ describe('validateExternalImportLayerBroker', () => {
     it('VALID: {specific-package allowlist match} => returns true, no report', () => {
       validateExternalImportLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.ImportDeclaration });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ImportDeclarationStub({ code: "import 'x';" });
 
       const result = validateExternalImportLayerBroker({
         node,
@@ -45,8 +45,8 @@ describe('validateExternalImportLayerBroker', () => {
     it('VALID: {cross-package subpath of an allowed folder type} => returns true, no report', () => {
       validateExternalImportLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.ImportDeclaration });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ImportDeclarationStub({ code: "import 'x';" });
 
       const result = validateExternalImportLayerBroker({
         node,
@@ -63,8 +63,8 @@ describe('validateExternalImportLayerBroker', () => {
     it('VALID: {gateway subpath import, from a folder type that cannot import node_modules} => returns true, no report', () => {
       validateExternalImportLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.ImportDeclaration });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ImportDeclarationStub({ code: "import 'x';" });
 
       const result = validateExternalImportLayerBroker({
         node,
@@ -81,8 +81,8 @@ describe('validateExternalImportLayerBroker', () => {
     it('VALID: {bare gateway package import, no subpath} => returns true, no report', () => {
       validateExternalImportLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.ImportDeclaration });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ImportDeclarationStub({ code: "import 'x';" });
 
       const result = validateExternalImportLayerBroker({
         node,
@@ -99,8 +99,8 @@ describe('validateExternalImportLayerBroker', () => {
     it('VALID: {#gateway subpath import, from a folder type that cannot import node_modules} => returns true, no report', () => {
       validateExternalImportLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.ImportDeclaration });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ImportDeclarationStub({ code: "import 'x';" });
 
       const result = validateExternalImportLayerBroker({
         node,
@@ -117,8 +117,8 @@ describe('validateExternalImportLayerBroker', () => {
     it('VALID: {bare #gateway package import, no subpath} => returns true, no report', () => {
       validateExternalImportLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.ImportDeclaration });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ImportDeclarationStub({ code: "import 'x';" });
 
       const result = validateExternalImportLayerBroker({
         node,
@@ -135,8 +135,8 @@ describe('validateExternalImportLayerBroker', () => {
     it('VALID: {bare external package in a node_modules folder} => returns true, no report', () => {
       validateExternalImportLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.ImportDeclaration });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ImportDeclarationStub({ code: "import 'x';" });
 
       const result = validateExternalImportLayerBroker({
         node,
@@ -155,8 +155,8 @@ describe('validateExternalImportLayerBroker', () => {
     it('INVALID: {cross-package subpath of a disallowed folder type} => reports forbiddenImport', () => {
       validateExternalImportLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.ImportDeclaration });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ImportDeclarationStub({ code: "import 'x';" });
       const folderType = 'brokers';
 
       const result = validateExternalImportLayerBroker({
@@ -183,8 +183,8 @@ describe('validateExternalImportLayerBroker', () => {
     it('INVALID: {bare external package with no node_modules access} => reports forbiddenExternalImport', () => {
       validateExternalImportLayerBrokerProxy();
       const mockReport = jest.fn();
-      const context = EslintContextStub({ report: mockReport });
-      const node = TsestreeStub({ type: TsestreeNodeType.ImportDeclaration });
+      const context = RuleContextStub({ report: mockReport });
+      const node = ImportDeclarationStub({ code: "import 'x';" });
       const folderType = 'brokers';
 
       const result = validateExternalImportLayerBroker({

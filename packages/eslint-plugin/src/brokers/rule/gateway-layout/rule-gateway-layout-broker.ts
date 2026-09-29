@@ -18,8 +18,7 @@
  */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isGatewayFileGuard } from '../../../guards/is-gateway-file/is-gateway-file-guard';
 import { isGatewayBarrelFileGuard } from '../../../guards/is-gateway-barrel-file/is-gateway-barrel-file-guard';
 import { readdirEntriesSync } from '#gateway/node/fs';
@@ -39,9 +38,9 @@ export const ruleGatewayLayoutBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: EslintContext) => {
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
-    const filename = ctx.filename ?? ctx.getFilename?.() ?? '';
+    const { filename } = ctx;
 
     if (filename.length === 0 || !isGatewayFileGuard({ filename })) {
       return {};
@@ -56,7 +55,7 @@ export const ruleGatewayLayoutBroker = (): EslintRule => ({
     }
 
     return {
-      Program: (node: Tsestree): void => {
+      Program: (node: TSESTree.Program): void => {
         const ownFolderPath = filename.slice(0, filename.length - fileBaseName.length - 1);
         const ownFolderName = ownFolderPath.split('/').pop() ?? '';
         const parentDir = ownFolderPath.slice(0, ownFolderPath.length - ownFolderName.length - 1);

@@ -8,25 +8,24 @@
  * }
  * // Returns true if node is CallExpression with pattern: {identifier}Contract.parse()
  */
-import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
-export const isAstContractParseCallGuard = ({ node }: { node?: Tsestree }): boolean => {
-  if (node === undefined || node.type !== 'CallExpression' || !node.callee) {
+export const isAstContractParseCallGuard = ({ node }: { node?: TSESTree.Node }): boolean => {
+  if (node === undefined || node.type !== AST_NODE_TYPES.CallExpression) {
     return false;
   }
 
   const { callee } = node;
-  if (callee.type !== 'MemberExpression') {
+  if (callee.type !== AST_NODE_TYPES.MemberExpression) {
     return false;
   }
 
   const { object, property } = callee;
-  return Boolean(
-    object &&
-    object.type === 'Identifier' &&
-    object.name?.endsWith('Contract') &&
-    property &&
-    property.type === 'Identifier' &&
-    property.name === 'parse',
+  return (
+    object.type === AST_NODE_TYPES.Identifier &&
+    object.name.endsWith('Contract') &&
+    property.type === AST_NODE_TYPES.Identifier &&
+    property.name === 'parse'
   );
 };

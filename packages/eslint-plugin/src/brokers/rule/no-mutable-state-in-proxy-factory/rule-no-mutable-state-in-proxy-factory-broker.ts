@@ -9,8 +9,7 @@
  */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 
 export const ruleNoMutableStateInProxyFactoryBroker = (): EslintRule => ({
@@ -27,9 +26,9 @@ export const ruleNoMutableStateInProxyFactoryBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: EslintContext) => {
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
-    const filename = ctx.filename ?? '';
+    const { filename } = ctx;
 
     // Only check .proxy.ts files
     if (!hasFileSuffixGuard({ filename, suffix: 'proxy' })) {
@@ -38,13 +37,13 @@ export const ruleNoMutableStateInProxyFactoryBroker = (): EslintRule => ({
 
     return {
       // Check for let/var declarations anywhere in the file
-      VariableDeclaration: (node: Tsestree): void => {
+      VariableDeclaration: (node: TSESTree.VariableDeclaration): void => {
         const { kind, declarations } = node;
 
         // Only check let and var (const is fine)
         if (kind !== 'let' && kind !== 'var') return;
 
-        if (!declarations || declarations.length === 0) return;
+        if (declarations.length === 0) return;
 
         // Report ALL let/var declarations - no exceptions
         for (const declaration of declarations) {

@@ -10,8 +10,8 @@
  */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import { isGatewayFileGuard } from '../../../guards/is-gateway-file/is-gateway-file-guard';
 
@@ -33,9 +33,9 @@ export const ruleRequireContractValidationBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: EslintContext) => {
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
-    const filename = ctx.filename ?? ctx.getFilename?.() ?? '';
+    const { filename } = ctx;
 
     // Allow raw import() in @dungeonmaster/shared's dynamic-import adapter - it IS the foundation wrapper
     const isSharedDynamicImportAdapter =
@@ -50,11 +50,11 @@ export const ruleRequireContractValidationBroker = (): EslintRule => ({
 
     return {
       // Handle require() calls
-      'CallExpression[callee.name="require"]': (node: Tsestree): void => {
+      'CallExpression[callee.name="require"]': (node: TSESTree.CallExpression): void => {
         if (isExempt) {
           return;
         }
-        const arg = node.arguments?.[0];
+        const [arg] = node.arguments;
 
         if (!arg) {
           ctx.report({
@@ -65,7 +65,7 @@ export const ruleRequireContractValidationBroker = (): EslintRule => ({
         }
 
         // Allow string literals that are valid file paths (not npm modules)
-        if (arg.type === 'Literal' && typeof arg.value === 'string') {
+        if (arg.type === AST_NODE_TYPES.Literal && typeof arg.value === 'string') {
           const parseResult = filePathContract.safeParse(arg.value);
 
           if (!parseResult.success) {
@@ -82,20 +82,23 @@ export const ruleRequireContractValidationBroker = (): EslintRule => ({
         }
 
         // Require contract.parse() wrapping
-        const objectName = arg.callee?.object?.name;
+        const objectName =
+          arg.type === AST_NODE_TYPES.CallExpression &&
+          arg.callee.type === AST_NODE_TYPES.MemberExpression &&
+          arg.callee.object.type === AST_NODE_TYPES.Identifier
+            ? arg.callee.object.name
+            : undefined;
         const isValidContractCall =
-          arg.type === 'CallExpression' &&
-          arg.callee &&
-          arg.callee.type === 'MemberExpression' &&
-          arg.callee.property &&
+          arg.type === AST_NODE_TYPES.CallExpression &&
+          arg.callee.type === AST_NODE_TYPES.MemberExpression &&
+          arg.callee.property.type === AST_NODE_TYPES.Identifier &&
           arg.callee.property.name === 'parse' &&
           objectName !== undefined &&
-          objectName !== '' &&
           (objectName === 'filePathContract' ||
             objectName === 'absoluteFilePathContract' ||
             objectName === 'relativeFilePathContract');
 
-        if (isValidContractCall === false) {
+        if (!isValidContractCall) {
           ctx.report({
             node,
             messageId: 'requireNeedsContract',
@@ -104,22 +107,14 @@ export const ruleRequireContractValidationBroker = (): EslintRule => ({
       },
 
       // Handle dynamic import() calls
-      ImportExpression: (node: Tsestree): void => {
+      ImportExpression: (node: TSESTree.ImportExpression): void => {
         if (isExempt) {
           return;
         }
         const { source } = node;
 
-        if (!source) {
-          ctx.report({
-            node,
-            messageId: 'importNeedsContract',
-          });
-          return;
-        }
-
         // Allow string literals that are valid file paths (not npm modules)
-        if (source.type === 'Literal' && typeof source.value === 'string') {
+        if (source.type === AST_NODE_TYPES.Literal && typeof source.value === 'string') {
           const parseResult = filePathContract.safeParse(source.value);
 
           if (!parseResult.success) {
@@ -136,20 +131,23 @@ export const ruleRequireContractValidationBroker = (): EslintRule => ({
         }
 
         // Require contract.parse() wrapping
-        const objectName = source.callee?.object?.name;
+        const objectName =
+          source.type === AST_NODE_TYPES.CallExpression &&
+          source.callee.type === AST_NODE_TYPES.MemberExpression &&
+          source.callee.object.type === AST_NODE_TYPES.Identifier
+            ? source.callee.object.name
+            : undefined;
         const isValidContractCall =
-          source.type === 'CallExpression' &&
-          source.callee &&
-          source.callee.type === 'MemberExpression' &&
-          source.callee.property &&
+          source.type === AST_NODE_TYPES.CallExpression &&
+          source.callee.type === AST_NODE_TYPES.MemberExpression &&
+          source.callee.property.type === AST_NODE_TYPES.Identifier &&
           source.callee.property.name === 'parse' &&
           objectName !== undefined &&
-          objectName !== '' &&
           (objectName === 'filePathContract' ||
             objectName === 'absoluteFilePathContract' ||
             objectName === 'relativeFilePathContract');
 
-        if (isValidContractCall === false) {
+        if (!isValidContractCall) {
           ctx.report({
             node,
             messageId: 'importNeedsContract',

@@ -25,8 +25,7 @@
  */
 import type { FilePath, Identifier, ImportPath } from '@dungeonmaster/shared/contracts';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { existsSync, readFileSync, readdirEntriesSync } from '#gateway/node/fs';
 import { isGatewayWrapperImplementationFileGuard } from '../../../guards/is-gateway-wrapper-implementation-file/is-gateway-wrapper-implementation-file-guard';
 import { gatewayWrapperExportedNamesTransformer } from '../../../transformers/gateway-wrapper-exported-names/gateway-wrapper-exported-names-transformer';
@@ -38,8 +37,8 @@ export const barrelCompletenessLayerBroker = ({
   subpathDirectory,
   reexports,
 }: {
-  node: Tsestree;
-  context: EslintContext;
+  node: TSESTree.Node;
+  context: TSESLint.RuleContext<string, unknown[]>;
   fileName: string;
   subpathDirectory: FilePath;
   reexports: { name: Identifier; source: ImportPath }[];

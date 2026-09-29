@@ -7,8 +7,7 @@
  */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
 import { isE2eTestFileGuard } from '../../../guards/is-e2e-test-file/is-e2e-test-file-guard';
 import { contractPathToStubPathTransformer } from '../../../transformers/contract-path-to-stub-path/contract-path-to-stub-path-transformer';
@@ -36,25 +35,25 @@ export const ruleEnforceContractUsageInTestsBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: EslintContext) => {
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
 
     // Track imports for contract test files
     const imports = {
       hasContractImport: false,
       hasStubImport: false,
-      contractImportNode: null as Tsestree | null,
-      stubImportNode: null as Tsestree | null,
+      contractImportNode: null as TSESTree.Node | null,
+      stubImportNode: null as TSESTree.Node | null,
     };
 
     // Check if this is a contract test file (supports both .ts and .tsx)
-    const filename = ctx.filename ?? '';
+    const { filename } = ctx;
     const isContractTestFile = fileExtensionsStatics.source.typescript.some((ext) =>
       filename.endsWith(`-contract.test${ext}`),
     );
 
     return {
-      ImportDeclaration: (node: Tsestree): void => {
+      ImportDeclaration: (node: TSESTree.ImportDeclaration): void => {
         // Only check test files
         const isTestFile = isTestFileGuard({ filename });
 
@@ -68,21 +67,18 @@ export const ruleEnforceContractUsageInTestsBroker = (): EslintRule => ({
         }
 
         // Extract import source
-        const importSource = node.source?.value;
-
-        if (typeof importSource !== 'string') {
-          return;
-        }
+        const importSource = node.source.value;
 
         // Check for @dungeonmaster/shared/contracts imports
         // Allow stub imports (files ending with "Stub"), block contract imports
         if (importSource.startsWith('@dungeonmaster/shared/contracts')) {
           // Check if this is importing a stub by looking at the import specifiers
-          const specifiers = node.specifiers ?? [];
+          const { specifiers } = node;
 
           // Check if all imports are stubs (end with "Stub")
           const allImportsAreStubs = specifiers.every((spec) => {
-            const importedName = spec.imported?.name ?? '';
+            const importedName =
+              'imported' in spec && 'name' in spec.imported ? spec.imported.name : '';
             return importedName.endsWith('Stub');
           });
 
@@ -157,7 +153,7 @@ export const ruleEnforceContractUsageInTestsBroker = (): EslintRule => ({
           const basename = filename.split('/').pop() ?? '';
           const stubPath = `./${basename.replace('-contract.test.ts', '.stub')}`;
           ctx.report({
-            node: imports.contractImportNode ?? ({} as Tsestree),
+            node: imports.contractImportNode ?? ({} as TSESTree.Node),
             messageId: 'contractTestMissingStub',
             data: {
               stubPath,
@@ -168,7 +164,7 @@ export const ruleEnforceContractUsageInTestsBroker = (): EslintRule => ({
           const basename = filename.split('/').pop() ?? '';
           const contractPath = `./${basename.replace('.test.ts', '')}`;
           ctx.report({
-            node: imports.stubImportNode ?? ({} as Tsestree),
+            node: imports.stubImportNode ?? ({} as TSESTree.Node),
             messageId: 'contractTestMissingContract',
             data: {
               contractPath,
@@ -179,7 +175,7 @@ export const ruleEnforceContractUsageInTestsBroker = (): EslintRule => ({
           const basename = filename.split('/').pop() ?? '';
           const contractPath = `./${basename.replace('.test.ts', '')}`;
           ctx.report({
-            node: {} as Tsestree,
+            node: {} as TSESTree.Node,
             messageId: 'contractTestMissingContract',
             data: {
               contractPath,

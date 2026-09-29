@@ -7,8 +7,7 @@
  */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { shouldExcludeFileFromProjectStructureRulesGuard } from '../../../guards/should-exclude-file-from-project-structure-rules/should-exclude-file-from-project-structure-rules-guard';
 import { folderConfigStatics } from '@dungeonmaster/shared/statics';
 import { isPackageBarrelFileGuard } from '../../../guards/is-package-barrel-file/is-package-barrel-file-guard';
@@ -79,9 +78,9 @@ export const ruleEnforceProjectStructureBroker = (): EslintRule => {
 
   return {
     ...parsedMeta,
-    create: (context: EslintContext) => {
+    create: (context: TSESLint.RuleContext<string, unknown[]>) => {
       const ctx = context;
-      const filename = String(ctx.filename ?? '');
+      const { filename } = ctx;
 
       // PRE-VALIDATION: Exclude files from structure validation
       if (shouldExcludeFileFromProjectStructureRulesGuard({ filename })) {
@@ -95,7 +94,7 @@ export const ruleEnforceProjectStructureBroker = (): EslintRule => {
       }
 
       return {
-        Program: (node: Tsestree): void => {
+        Program: (node: TSESTree.Program): void => {
           // A folder type's own barrel (`src/contracts/contracts.ts`) sits at depth 0 and
           // re-exports with `export *`; a same-named file holding anything else is graded normally.
           // A `src/startup/start-<pkg>.ts` that only re-exports is the anchor of a package's

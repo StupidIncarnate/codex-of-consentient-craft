@@ -8,22 +8,23 @@
  * }
  * // Returns true if any parent is a function type
  */
-import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
 export const isAstNodeInsideFunctionGuard = ({
   node,
 }: {
-  node?: Tsestree | undefined;
+  node?: TSESTree.Node | undefined;
 }): boolean => {
   if (node === undefined) {
     return false;
   }
   let current = node.parent;
-  while (current !== undefined && current !== null) {
+  while (current) {
     if (
-      current.type === 'ArrowFunctionExpression' ||
-      current.type === 'FunctionExpression' ||
-      current.type === 'FunctionDeclaration'
+      current.type === AST_NODE_TYPES.ArrowFunctionExpression ||
+      current.type === AST_NODE_TYPES.FunctionExpression ||
+      current.type === AST_NODE_TYPES.FunctionDeclaration
     ) {
       return true;
     }

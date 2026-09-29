@@ -10,8 +10,7 @@
  */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { shouldExcludeFileFromProjectStructureRulesGuard } from '../../../guards/should-exclude-file-from-project-structure-rules/should-exclude-file-from-project-structure-rules-guard';
 import { isAstNodeInsideFunctionGuard } from '../../../guards/is-ast-node-inside-function/is-ast-node-inside-function-guard';
 import { isAstNodeExportedGuard } from '../../../guards/is-ast-node-exported/is-ast-node-exported-guard';
@@ -36,9 +35,9 @@ export const ruleForbidNonExportedFunctionsBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: EslintContext) => {
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
-    const filename = ctx.filename ?? '';
+    const { filename } = ctx;
 
     // Exclude test/stub files
     if (shouldExcludeFileFromProjectStructureRulesGuard({ filename })) {
@@ -52,7 +51,9 @@ export const ruleForbidNonExportedFunctionsBroker = (): EslintRule => ({
 
     return {
       // Catch non-exported arrow functions: const foo = () => {}
-      'VariableDeclarator > ArrowFunctionExpression': (node: Tsestree): void => {
+      'VariableDeclarator > ArrowFunctionExpression': (
+        node: TSESTree.ArrowFunctionExpression,
+      ): void => {
         // Check if it's inside a function (nested)
         if (isAstNodeInsideFunctionGuard({ node })) {
           const functionType = astFunctionTypeTransformer({ node });
@@ -78,7 +79,7 @@ export const ruleForbidNonExportedFunctionsBroker = (): EslintRule => ({
       },
 
       // Catch non-exported function declarations: function foo() {}
-      FunctionDeclaration: (node: Tsestree): void => {
+      FunctionDeclaration: (node: TSESTree.FunctionDeclaration): void => {
         // Check if it's inside a function (nested)
         if (isAstNodeInsideFunctionGuard({ node })) {
           ctx.report({
@@ -104,7 +105,7 @@ export const ruleForbidNonExportedFunctionsBroker = (): EslintRule => ({
       },
 
       // Catch nested function expressions: const foo = function() {}
-      FunctionExpression: (node: Tsestree): void => {
+      FunctionExpression: (node: TSESTree.FunctionExpression): void => {
         if (isAstNodeInsideFunctionGuard({ node })) {
           ctx.report({
             node,

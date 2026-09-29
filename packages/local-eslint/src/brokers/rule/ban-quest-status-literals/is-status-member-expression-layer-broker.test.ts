@@ -1,9 +1,7 @@
+import { IdentifierStub as IdentifierNodeStub } from '#gateway/npm/typescript-eslint__utils/identifier/identifier.stub';
+import { MemberExpressionStub } from '#gateway/npm/typescript-eslint__utils/member-expression/member-expression.stub';
 import { IdentifierStub } from '@dungeonmaster/shared/contracts/identifier/identifier.stub';
 import { isStatusMemberExpressionLayerBrokerProxy } from './is-status-member-expression-layer-broker.proxy';
-import {
-  TsestreeStub,
-  TsestreeNodeType,
-} from '@dungeonmaster/eslint-plugin/contracts/tsestree/tsestree.stub';
 
 describe('isStatusMemberExpressionLayerBroker', () => {
   describe('missing node', () => {
@@ -32,7 +30,7 @@ describe('isStatusMemberExpressionLayerBroker', () => {
 
       expect(
         proxy.isStatusMemberExpressionLayerBroker({
-          node: TsestreeStub({ type: TsestreeNodeType.Identifier }),
+          node: IdentifierNodeStub({ code: 'x;' }),
           extraAllowlist: [],
         }),
       ).toBe(false);
@@ -43,17 +41,7 @@ describe('isStatusMemberExpressionLayerBroker', () => {
     it('EMPTY: {quest.name} => returns false', () => {
       const proxy = isStatusMemberExpressionLayerBrokerProxy();
 
-      const node = TsestreeStub({
-        type: TsestreeNodeType.MemberExpression,
-        object: TsestreeStub({
-          type: TsestreeNodeType.Identifier,
-          name: IdentifierStub({ value: 'quest' }),
-        }),
-        property: TsestreeStub({
-          type: TsestreeNodeType.Identifier,
-          name: IdentifierStub({ value: 'name' }),
-        }),
-      });
+      const node = MemberExpressionStub({ code: 'quest.name;' });
 
       expect(proxy.isStatusMemberExpressionLayerBroker({ node, extraAllowlist: [] })).toBe(false);
     });
@@ -65,17 +53,7 @@ describe('isStatusMemberExpressionLayerBroker', () => {
       (holder) => {
         const proxy = isStatusMemberExpressionLayerBrokerProxy();
 
-        const node = TsestreeStub({
-          type: TsestreeNodeType.MemberExpression,
-          object: TsestreeStub({
-            type: TsestreeNodeType.Identifier,
-            name: IdentifierStub({ value: holder }),
-          }),
-          property: TsestreeStub({
-            type: TsestreeNodeType.Identifier,
-            name: IdentifierStub({ value: 'status' }),
-          }),
-        });
+        const node = MemberExpressionStub({ code: `${holder}.status;` });
 
         expect(proxy.isStatusMemberExpressionLayerBroker({ node, extraAllowlist: [] })).toBe(true);
       },
@@ -88,17 +66,7 @@ describe('isStatusMemberExpressionLayerBroker', () => {
       (holder) => {
         const proxy = isStatusMemberExpressionLayerBrokerProxy();
 
-        const node = TsestreeStub({
-          type: TsestreeNodeType.MemberExpression,
-          object: TsestreeStub({
-            type: TsestreeNodeType.Identifier,
-            name: IdentifierStub({ value: holder }),
-          }),
-          property: TsestreeStub({
-            type: TsestreeNodeType.Identifier,
-            name: IdentifierStub({ value: 'status' }),
-          }),
-        });
+        const node = MemberExpressionStub({ code: `${holder}.status;` });
 
         expect(proxy.isStatusMemberExpressionLayerBroker({ node, extraAllowlist: [] })).toBe(true);
       },
@@ -109,24 +77,7 @@ describe('isStatusMemberExpressionLayerBroker', () => {
     it('VALID: {postResult.quest.status} => returns true', () => {
       const proxy = isStatusMemberExpressionLayerBrokerProxy();
 
-      const node = TsestreeStub({
-        type: TsestreeNodeType.MemberExpression,
-        object: TsestreeStub({
-          type: TsestreeNodeType.MemberExpression,
-          object: TsestreeStub({
-            type: TsestreeNodeType.Identifier,
-            name: IdentifierStub({ value: 'postResult' }),
-          }),
-          property: TsestreeStub({
-            type: TsestreeNodeType.Identifier,
-            name: IdentifierStub({ value: 'quest' }),
-          }),
-        }),
-        property: TsestreeStub({
-          type: TsestreeNodeType.Identifier,
-          name: IdentifierStub({ value: 'status' }),
-        }),
-      });
+      const node = MemberExpressionStub({ code: 'postResult.quest.status;' });
 
       expect(proxy.isStatusMemberExpressionLayerBroker({ node, extraAllowlist: [] })).toBe(true);
     });
@@ -136,17 +87,7 @@ describe('isStatusMemberExpressionLayerBroker', () => {
     it('EMPTY: {user.status} => returns false', () => {
       const proxy = isStatusMemberExpressionLayerBrokerProxy();
 
-      const node = TsestreeStub({
-        type: TsestreeNodeType.MemberExpression,
-        object: TsestreeStub({
-          type: TsestreeNodeType.Identifier,
-          name: IdentifierStub({ value: 'user' }),
-        }),
-        property: TsestreeStub({
-          type: TsestreeNodeType.Identifier,
-          name: IdentifierStub({ value: 'status' }),
-        }),
-      });
+      const node = MemberExpressionStub({ code: 'user.status;' });
 
       expect(proxy.isStatusMemberExpressionLayerBroker({ node, extraAllowlist: [] })).toBe(false);
     });
@@ -154,17 +95,7 @@ describe('isStatusMemberExpressionLayerBroker', () => {
     it('VALID: {user.status, extraAllowlist: ["user"]} => returns true', () => {
       const proxy = isStatusMemberExpressionLayerBrokerProxy();
 
-      const node = TsestreeStub({
-        type: TsestreeNodeType.MemberExpression,
-        object: TsestreeStub({
-          type: TsestreeNodeType.Identifier,
-          name: IdentifierStub({ value: 'user' }),
-        }),
-        property: TsestreeStub({
-          type: TsestreeNodeType.Identifier,
-          name: IdentifierStub({ value: 'status' }),
-        }),
-      });
+      const node = MemberExpressionStub({ code: 'user.status;' });
 
       expect(
         proxy.isStatusMemberExpressionLayerBroker({

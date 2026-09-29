@@ -9,8 +9,8 @@
  */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
 import { astFindExpectCallTransformer } from '../../../transformers/ast-find-expect-call/ast-find-expect-call-transformer';
 
@@ -44,36 +44,36 @@ export const ruleBanWeakAsymmetricMatchersBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: EslintContext) => {
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
-    const isTestFile = isTestFileGuard({ filename: ctx.filename ?? '' });
+    const isTestFile = isTestFileGuard({ filename: ctx.filename });
 
     if (!isTestFile) {
       return {};
     }
 
     return {
-      CallExpression: (node: Tsestree): void => {
+      CallExpression: (node: TSESTree.CallExpression): void => {
         // Step 1: Check if this CallExpression is a banned asymmetric matcher
         const { callee } = node;
-        if (callee?.type !== 'MemberExpression') {
+        if (callee.type !== AST_NODE_TYPES.MemberExpression) {
           return;
         }
-        if (callee.object?.type !== 'Identifier' || callee.object.name !== 'expect') {
+        if (callee.object.type !== AST_NODE_TYPES.Identifier || callee.object.name !== 'expect') {
           return;
         }
-        if (callee.property?.type !== 'Identifier') {
+        if (callee.property.type !== AST_NODE_TYPES.Identifier) {
           return;
         }
 
-        const method = String(callee.property.name);
+        const method = callee.property.name;
         let isBanned = false;
         let bannedType = '';
 
         if (method === 'any') {
-          const firstArg = node.arguments?.[0];
-          if (firstArg?.type === 'Identifier' && firstArg.name !== undefined) {
-            const argName = String(firstArg.name);
+          const [firstArg] = node.arguments;
+          if (firstArg?.type === AST_NODE_TYPES.Identifier) {
+            const argName = firstArg.name;
             if (!allowedAnyArgs.has(argName)) {
               isBanned = true;
               bannedType = argName;
@@ -88,17 +88,18 @@ export const ruleBanWeakAsymmetricMatchersBroker = (): EslintRule => ({
         }
 
         // Step 2: Walk parent chain to check if nested inside toStrictEqual()/toBe()
-        let current: Tsestree | null | undefined = node.parent;
+        let current: TSESTree.Node | undefined = node.parent;
         let depth = 0;
-        while (current !== null && current !== undefined && depth < maxParentDepth) {
-          if (current.type === 'CallExpression') {
+        while (current && depth < maxParentDepth) {
+          if (current.type === AST_NODE_TYPES.CallExpression) {
             const parentCallee = current.callee;
-            if (parentCallee?.type === 'MemberExpression') {
-              const parentMatcherName = parentCallee.property?.name;
-              if (
-                parentMatcherName !== undefined &&
-                enclosingMatchers.has(String(parentMatcherName))
-              ) {
+            if (parentCallee.type === AST_NODE_TYPES.MemberExpression) {
+              const parentMatcherName =
+                parentCallee.property.type === AST_NODE_TYPES.Identifier ||
+                parentCallee.property.type === AST_NODE_TYPES.PrivateIdentifier
+                  ? parentCallee.property.name
+                  : undefined;
+              if (parentMatcherName !== undefined && enclosingMatchers.has(parentMatcherName)) {
                 // Verify this parent is on an expect chain
                 const expectCall = astFindExpectCallTransformer({ node: current });
                 if (expectCall !== null) {

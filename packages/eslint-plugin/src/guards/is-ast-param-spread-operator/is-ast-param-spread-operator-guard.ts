@@ -8,35 +8,43 @@
  * }
  * // Returns true if first param is ObjectPattern with single RestElement property
  */
-import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
-export const isAstParamSpreadOperatorGuard = ({ funcNode }: { funcNode?: Tsestree }): boolean => {
-  if (!funcNode?.params || funcNode.params.length === 0) {
+export const isAstParamSpreadOperatorGuard = ({
+  funcNode,
+}: {
+  funcNode?: TSESTree.Node;
+}): boolean => {
+  if (
+    !(funcNode && 'params' in funcNode) ||
+    ('params' in funcNode && funcNode.params.length === 0)
+  ) {
     return false;
   }
 
-  const [firstParam] = funcNode.params;
+  const [firstParam] = 'params' in funcNode ? funcNode.params : [];
   if (!firstParam) {
     return false;
   }
 
   // Handle both ObjectPattern and AssignmentPattern wrapping ObjectPattern
   const pattern =
-    firstParam.type === 'ObjectPattern'
+    firstParam.type === AST_NODE_TYPES.ObjectPattern
       ? firstParam
-      : firstParam.type === 'AssignmentPattern' && firstParam.left
+      : firstParam.type === AST_NODE_TYPES.AssignmentPattern
         ? firstParam.left
         : null;
 
-  if (!pattern || pattern.type !== 'ObjectPattern') {
+  if (!pattern || pattern.type !== AST_NODE_TYPES.ObjectPattern) {
     return false;
   }
 
   const { properties } = pattern;
-  if (!properties || properties.length === 0) {
+  if (properties.length === 0) {
     return false;
   }
 
   // Must have exactly one property and it must be a RestElement
-  return properties.length === 1 && properties[0]?.type === 'RestElement';
+  return properties.length === 1 && properties[0]?.type === AST_NODE_TYPES.RestElement;
 };

@@ -8,8 +8,7 @@
  */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isTestSupportFileGuard } from '../../../guards/is-test-support-file/is-test-support-file-guard';
 import { reportTestSupportLayerBroker } from './report-test-support-layer-broker';
 
@@ -28,22 +27,22 @@ export const ruleBanTestSupportInProductionBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: EslintContext) => {
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
-    const filename = String(ctx.filename ?? '');
+    const { filename } = ctx;
 
     if (isTestSupportFileGuard({ filename })) {
       return {};
     }
 
     return {
-      ImportDeclaration: (node: Tsestree): void => {
+      ImportDeclaration: (node: TSESTree.ImportDeclaration): void => {
         reportTestSupportLayerBroker({ node, context: ctx, verb: 'imported' });
       },
-      ExportNamedDeclaration: (node: Tsestree): void => {
+      ExportNamedDeclaration: (node: TSESTree.ExportNamedDeclaration): void => {
         reportTestSupportLayerBroker({ node, context: ctx, verb: 'exported' });
       },
-      ExportAllDeclaration: (node: Tsestree): void => {
+      ExportAllDeclaration: (node: TSESTree.ExportAllDeclaration): void => {
         reportTestSupportLayerBroker({ node, context: ctx, verb: 'exported' });
       },
     };

@@ -9,8 +9,7 @@
  */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 import { isAstMethodCallGuard } from '../../../guards/is-ast-method-call/is-ast-method-call-guard';
 import { isNpmPackageGuard } from '../../../guards/is-npm-package/is-npm-package-guard';
@@ -40,19 +39,19 @@ export const ruleJestMockedMustImportBroker = (): EslintRule => {
         schema: [],
       },
     }),
-    create: (context: EslintContext) => {
+    create: (context: TSESLint.RuleContext<string, unknown[]>) => {
       const ctx = context;
       // Reset state for each file
       importedNames.clear();
 
       // Only check proxy files
-      if (!hasFileSuffixGuard({ filename: ctx.filename ?? '', suffix: 'proxy' })) {
+      if (!hasFileSuffixGuard({ filename: ctx.filename, suffix: 'proxy' })) {
         return {};
       }
 
       return {
         // Track all imports
-        ImportDeclaration: (node: Tsestree): void => {
+        ImportDeclaration: (node: TSESTree.ImportDeclaration): void => {
           const imports = astGetImportsTransformer({ node });
           for (const [name, source] of imports) {
             importedNames.set(name, source);
@@ -60,7 +59,7 @@ export const ruleJestMockedMustImportBroker = (): EslintRule => {
         },
 
         // Check jest.mocked() calls
-        CallExpression: (node: Tsestree): void => {
+        CallExpression: (node: TSESTree.CallExpression): void => {
           if (!isAstMethodCallGuard({ node, object: 'jest', method: 'mocked' })) {
             return;
           }
@@ -88,7 +87,7 @@ export const ruleJestMockedMustImportBroker = (): EslintRule => {
 
           // Additional validation for I/O-boundary proxies (adapters/, and gateway wrappers
           // under packages/{node,npm,browser,bin}/)
-          const filename = ctx.filename ?? '';
+          const { filename } = ctx;
           if (
             isIoBoundaryProxyGuard({ filename }) &&
             hasFileSuffixGuard({ filename, suffix: 'proxy' })

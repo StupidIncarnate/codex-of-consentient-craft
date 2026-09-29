@@ -9,7 +9,8 @@
  */
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { ContentText } from '@dungeonmaster/shared/contracts';
-import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
 export const importInsertTextTransformer = ({
   anchor,
@@ -17,12 +18,12 @@ export const importInsertTextTransformer = ({
   source,
   importKind,
 }: {
-  anchor: Tsestree | null;
+  anchor: TSESTree.Node | null;
   name: string;
   source: string;
   importKind: 'type' | 'value';
 }): ContentText => {
-  if (anchor?.type === 'ImportSpecifier') {
+  if (anchor?.type === AST_NODE_TYPES.ImportSpecifier) {
     return contentTextContract.parse(`, ${name}`);
   }
 

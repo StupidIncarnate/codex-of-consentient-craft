@@ -1,40 +1,18 @@
+import { RuleContextStub } from '#gateway/npm/typescript-eslint__utils/rule-context/rule-context.stub';
+import { ObjectExpressionStub } from '#gateway/npm/typescript-eslint__utils/object-expression/object-expression.stub';
 import { validateNoExposedChildProxiesLayerBroker } from './validate-no-exposed-child-proxies-layer-broker';
 import { validateNoExposedChildProxiesLayerBrokerProxy } from './validate-no-exposed-child-proxies-layer-broker.proxy';
-import { EslintContextStub } from '../../../contracts/eslint-context/eslint-context.stub';
-import { TsestreeStub, TsestreeNodeType } from '../../../contracts/tsestree/tsestree.stub';
 import { IdentifierStub } from '@dungeonmaster/shared/contracts/identifier/identifier.stub';
 
 type Identifier = ReturnType<typeof IdentifierStub>;
 
 describe('validateNoExposedChildProxiesLayerBroker', () => {
   describe('object with no properties', () => {
-    it('EMPTY: {properties: undefined} => does not report', () => {
-      validateNoExposedChildProxiesLayerBrokerProxy();
-      const mockReport = jest.fn();
-      const mockContext = EslintContextStub({ report: mockReport });
-      const objectNode = TsestreeStub({
-        type: TsestreeNodeType.ObjectExpression,
-        properties: undefined,
-      });
-      const proxyVariables = new Map<Identifier, Identifier>();
-
-      validateNoExposedChildProxiesLayerBroker({
-        objectNode,
-        proxyVariables,
-        context: mockContext,
-      });
-
-      expect(mockReport.mock.calls).toStrictEqual([]);
-    });
-
     it('VALID: {properties: []} => does not report', () => {
       validateNoExposedChildProxiesLayerBrokerProxy();
       const mockReport = jest.fn();
-      const mockContext = EslintContextStub({ report: mockReport });
-      const objectNode = TsestreeStub({
-        type: TsestreeNodeType.ObjectExpression,
-        properties: [],
-      });
+      const mockContext = RuleContextStub({ report: mockReport });
+      const objectNode = ObjectExpressionStub({ code: 'const o = {  };' });
       const proxyVariables = new Map<Identifier, Identifier>();
 
       validateNoExposedChildProxiesLayerBroker({
@@ -51,23 +29,8 @@ describe('validateNoExposedChildProxiesLayerBroker', () => {
     it('VALID: {method: ArrowFunctionExpression} => does not report (function, not identifier)', () => {
       validateNoExposedChildProxiesLayerBrokerProxy();
       const mockReport = jest.fn();
-      const mockContext = EslintContextStub({ report: mockReport });
-      const objectNode = TsestreeStub({
-        type: TsestreeNodeType.ObjectExpression,
-        properties: [
-          TsestreeStub({
-            type: TsestreeNodeType.Property,
-            shorthand: false,
-            key: TsestreeStub({
-              type: TsestreeNodeType.Identifier,
-              name: IdentifierStub({ value: 'setupQuestFile' }),
-            }),
-            value: TsestreeStub({
-              type: TsestreeNodeType.ArrowFunctionExpression,
-            }),
-          }),
-        ],
-      });
+      const mockContext = RuleContextStub({ report: mockReport });
+      const objectNode = ObjectExpressionStub({ code: 'const o = { setupQuestFile: () => {} };' });
       const childProxyId = IdentifierStub({ value: 'childProxy' });
       const childBrokerProxyId = IdentifierStub({ value: 'childBrokerProxy' });
       const proxyVariables = new Map<Identifier, Identifier>([[childProxyId, childBrokerProxyId]]);
@@ -84,20 +47,8 @@ describe('validateNoExposedChildProxiesLayerBroker', () => {
     it('VALID: {nonProxyIdentifier} => does not report (identifier not in proxyVariables)', () => {
       validateNoExposedChildProxiesLayerBrokerProxy();
       const mockReport = jest.fn();
-      const mockContext = EslintContextStub({ report: mockReport });
-      const objectNode = TsestreeStub({
-        type: TsestreeNodeType.ObjectExpression,
-        properties: [
-          TsestreeStub({
-            type: TsestreeNodeType.Property,
-            shorthand: true,
-            key: TsestreeStub({
-              type: TsestreeNodeType.Identifier,
-              name: IdentifierStub({ value: 'myConfig' }),
-            }),
-          }),
-        ],
-      });
+      const mockContext = RuleContextStub({ report: mockReport });
+      const objectNode = ObjectExpressionStub({ code: 'const o = { myConfig };' });
       const childProxyId = IdentifierStub({ value: 'childProxy' });
       const childBrokerProxyId = IdentifierStub({ value: 'childBrokerProxy' });
       const proxyVariables = new Map<Identifier, Identifier>([[childProxyId, childBrokerProxyId]]);
@@ -114,24 +65,8 @@ describe('validateNoExposedChildProxiesLayerBroker', () => {
     it('VALID: {child: nonProxyIdentifier} => does not report (explicit identifier not in proxyVariables)', () => {
       validateNoExposedChildProxiesLayerBrokerProxy();
       const mockReport = jest.fn();
-      const mockContext = EslintContextStub({ report: mockReport });
-      const objectNode = TsestreeStub({
-        type: TsestreeNodeType.ObjectExpression,
-        properties: [
-          TsestreeStub({
-            type: TsestreeNodeType.Property,
-            shorthand: false,
-            key: TsestreeStub({
-              type: TsestreeNodeType.Identifier,
-              name: IdentifierStub({ value: 'config' }),
-            }),
-            value: {
-              type: 'Identifier',
-              name: IdentifierStub({ value: 'myConfig' }),
-            },
-          }),
-        ],
-      });
+      const mockContext = RuleContextStub({ report: mockReport });
+      const objectNode = ObjectExpressionStub({ code: 'const o = { config: myConfig };' });
       const childProxyId = IdentifierStub({ value: 'childProxy' });
       const childBrokerProxyId = IdentifierStub({ value: 'childBrokerProxy' });
       const proxyVariables = new Map<Identifier, Identifier>([[childProxyId, childBrokerProxyId]]);
@@ -148,24 +83,8 @@ describe('validateNoExposedChildProxiesLayerBroker', () => {
     it('VALID: {count: Literal} => does not report (primitive value)', () => {
       validateNoExposedChildProxiesLayerBrokerProxy();
       const mockReport = jest.fn();
-      const mockContext = EslintContextStub({ report: mockReport });
-      const objectNode = TsestreeStub({
-        type: TsestreeNodeType.ObjectExpression,
-        properties: [
-          TsestreeStub({
-            type: TsestreeNodeType.Property,
-            shorthand: false,
-            key: TsestreeStub({
-              type: TsestreeNodeType.Identifier,
-              name: IdentifierStub({ value: 'count' }),
-            }),
-            value: {
-              type: 'Literal',
-              value: 42,
-            },
-          }),
-        ],
-      });
+      const mockContext = RuleContextStub({ report: mockReport });
+      const objectNode = ObjectExpressionStub({ code: 'const o = { count: 42 };' });
       const childProxyId = IdentifierStub({ value: 'childProxy' });
       const childBrokerProxyId = IdentifierStub({ value: 'childBrokerProxy' });
       const proxyVariables = new Map<Identifier, Identifier>([[childProxyId, childBrokerProxyId]]);
@@ -184,20 +103,10 @@ describe('validateNoExposedChildProxiesLayerBroker', () => {
     it('INVALID: {childProxy} (shorthand) => reports exposedChildProxy', () => {
       validateNoExposedChildProxiesLayerBrokerProxy();
       const mockReport = jest.fn();
-      const mockContext = EslintContextStub({ report: mockReport });
+      const mockContext = RuleContextStub({ report: mockReport });
       const childProxyId = IdentifierStub({ value: 'childProxy' });
-      const property = TsestreeStub({
-        type: TsestreeNodeType.Property,
-        shorthand: true,
-        key: TsestreeStub({
-          type: TsestreeNodeType.Identifier,
-          name: childProxyId,
-        }),
-      });
-      const objectNode = TsestreeStub({
-        type: TsestreeNodeType.ObjectExpression,
-        properties: [property],
-      });
+      const objectNode = ObjectExpressionStub({ code: 'const o = { childProxy };' });
+      const [property] = objectNode.properties;
       const childBrokerProxyId = IdentifierStub({ value: 'childBrokerProxy' });
       const proxyVariables = new Map<Identifier, Identifier>([[childProxyId, childBrokerProxyId]]);
 
@@ -218,20 +127,10 @@ describe('validateNoExposedChildProxiesLayerBroker', () => {
     it('INVALID: {slotManagerProxy} (shorthand) => reports exposedChildProxy', () => {
       validateNoExposedChildProxiesLayerBrokerProxy();
       const mockReport = jest.fn();
-      const mockContext = EslintContextStub({ report: mockReport });
+      const mockContext = RuleContextStub({ report: mockReport });
       const slotManagerProxyId = IdentifierStub({ value: 'slotManagerProxy' });
-      const property = TsestreeStub({
-        type: TsestreeNodeType.Property,
-        shorthand: true,
-        key: TsestreeStub({
-          type: TsestreeNodeType.Identifier,
-          name: slotManagerProxyId,
-        }),
-      });
-      const objectNode = TsestreeStub({
-        type: TsestreeNodeType.ObjectExpression,
-        properties: [property],
-      });
+      const objectNode = ObjectExpressionStub({ code: 'const o = { slotManagerProxy };' });
+      const [property] = objectNode.properties;
       const slotManagerOrchestrateBrokerProxyId = IdentifierStub({
         value: 'slotManagerOrchestrateBrokerProxy',
       });
@@ -258,24 +157,10 @@ describe('validateNoExposedChildProxiesLayerBroker', () => {
     it('INVALID: {child: childProxy} => reports exposedChildProxy', () => {
       validateNoExposedChildProxiesLayerBrokerProxy();
       const mockReport = jest.fn();
-      const mockContext = EslintContextStub({ report: mockReport });
+      const mockContext = RuleContextStub({ report: mockReport });
       const childProxyId = IdentifierStub({ value: 'childProxy' });
-      const property = TsestreeStub({
-        type: TsestreeNodeType.Property,
-        shorthand: false,
-        key: TsestreeStub({
-          type: TsestreeNodeType.Identifier,
-          name: IdentifierStub({ value: 'child' }),
-        }),
-        value: {
-          type: 'Identifier',
-          name: childProxyId,
-        },
-      });
-      const objectNode = TsestreeStub({
-        type: TsestreeNodeType.ObjectExpression,
-        properties: [property],
-      });
+      const objectNode = ObjectExpressionStub({ code: 'const o = { child: childProxy };' });
+      const [property] = objectNode.properties;
       const childBrokerProxyId = IdentifierStub({ value: 'childBrokerProxy' });
       const proxyVariables = new Map<Identifier, Identifier>([[childProxyId, childBrokerProxyId]]);
 
@@ -296,24 +181,10 @@ describe('validateNoExposedChildProxiesLayerBroker', () => {
     it('INVALID: {childProxy: childProxy} (same name) => reports exposedChildProxy', () => {
       validateNoExposedChildProxiesLayerBrokerProxy();
       const mockReport = jest.fn();
-      const mockContext = EslintContextStub({ report: mockReport });
+      const mockContext = RuleContextStub({ report: mockReport });
       const childProxyId = IdentifierStub({ value: 'childProxy' });
-      const property = TsestreeStub({
-        type: TsestreeNodeType.Property,
-        shorthand: false,
-        key: TsestreeStub({
-          type: TsestreeNodeType.Identifier,
-          name: childProxyId,
-        }),
-        value: {
-          type: 'Identifier',
-          name: childProxyId,
-        },
-      });
-      const objectNode = TsestreeStub({
-        type: TsestreeNodeType.ObjectExpression,
-        properties: [property],
-      });
+      const objectNode = ObjectExpressionStub({ code: 'const o = { childProxy: childProxy };' });
+      const [property] = objectNode.properties;
       const childBrokerProxyId = IdentifierStub({ value: 'childBrokerProxy' });
       const proxyVariables = new Map<Identifier, Identifier>([[childProxyId, childBrokerProxyId]]);
 
@@ -336,29 +207,11 @@ describe('validateNoExposedChildProxiesLayerBroker', () => {
     it('INVALID: {childProxy, otherProxy} => reports both exposedChildProxy errors', () => {
       validateNoExposedChildProxiesLayerBrokerProxy();
       const mockReport = jest.fn();
-      const mockContext = EslintContextStub({ report: mockReport });
+      const mockContext = RuleContextStub({ report: mockReport });
       const childProxyId = IdentifierStub({ value: 'childProxy' });
       const otherProxyId = IdentifierStub({ value: 'otherProxy' });
-      const property1 = TsestreeStub({
-        type: TsestreeNodeType.Property,
-        shorthand: true,
-        key: TsestreeStub({
-          type: TsestreeNodeType.Identifier,
-          name: childProxyId,
-        }),
-      });
-      const property2 = TsestreeStub({
-        type: TsestreeNodeType.Property,
-        shorthand: true,
-        key: TsestreeStub({
-          type: TsestreeNodeType.Identifier,
-          name: otherProxyId,
-        }),
-      });
-      const objectNode = TsestreeStub({
-        type: TsestreeNodeType.ObjectExpression,
-        properties: [property1, property2],
-      });
+      const objectNode = ObjectExpressionStub({ code: 'const o = { childProxy, otherProxy };' });
+      const [property1, property2] = objectNode.properties;
       const childBrokerProxyId = IdentifierStub({ value: 'childBrokerProxy' });
       const otherBrokerProxyId = IdentifierStub({ value: 'otherBrokerProxy' });
       const proxyVariables = new Map<Identifier, Identifier>([
@@ -388,33 +241,13 @@ describe('validateNoExposedChildProxiesLayerBroker', () => {
     it('INVALID: {childProxy, other: otherProxy} (mixed shorthand and explicit) => reports both', () => {
       validateNoExposedChildProxiesLayerBrokerProxy();
       const mockReport = jest.fn();
-      const mockContext = EslintContextStub({ report: mockReport });
+      const mockContext = RuleContextStub({ report: mockReport });
       const childProxyId = IdentifierStub({ value: 'childProxy' });
       const otherProxyId = IdentifierStub({ value: 'otherProxy' });
-      const property1 = TsestreeStub({
-        type: TsestreeNodeType.Property,
-        shorthand: true,
-        key: TsestreeStub({
-          type: TsestreeNodeType.Identifier,
-          name: childProxyId,
-        }),
+      const objectNode = ObjectExpressionStub({
+        code: 'const o = { childProxy, other: otherProxy };',
       });
-      const property2 = TsestreeStub({
-        type: TsestreeNodeType.Property,
-        shorthand: false,
-        key: TsestreeStub({
-          type: TsestreeNodeType.Identifier,
-          name: IdentifierStub({ value: 'other' }),
-        }),
-        value: {
-          type: 'Identifier',
-          name: otherProxyId,
-        },
-      });
-      const objectNode = TsestreeStub({
-        type: TsestreeNodeType.ObjectExpression,
-        properties: [property1, property2],
-      });
+      const [property1, property2] = objectNode.properties;
       const childBrokerProxyId = IdentifierStub({ value: 'childBrokerProxy' });
       const otherBrokerProxyId = IdentifierStub({ value: 'otherBrokerProxy' });
       const proxyVariables = new Map<Identifier, Identifier>([
@@ -446,72 +279,8 @@ describe('validateNoExposedChildProxiesLayerBroker', () => {
     it('EDGE: {SpreadElement} => does not report (not a Property)', () => {
       validateNoExposedChildProxiesLayerBrokerProxy();
       const mockReport = jest.fn();
-      const mockContext = EslintContextStub({ report: mockReport });
-      const objectNode = TsestreeStub({
-        type: TsestreeNodeType.ObjectExpression,
-        properties: [
-          TsestreeStub({
-            type: TsestreeNodeType.SpreadElement,
-          }),
-        ],
-      });
-      const childProxyId = IdentifierStub({ value: 'childProxy' });
-      const childBrokerProxyId = IdentifierStub({ value: 'childBrokerProxy' });
-      const proxyVariables = new Map<Identifier, Identifier>([[childProxyId, childBrokerProxyId]]);
-
-      validateNoExposedChildProxiesLayerBroker({
-        objectNode,
-        proxyVariables,
-        context: mockContext,
-      });
-
-      expect(mockReport.mock.calls).toStrictEqual([]);
-    });
-
-    it('EDGE: {property.key: undefined} => does not report', () => {
-      validateNoExposedChildProxiesLayerBrokerProxy();
-      const mockReport = jest.fn();
-      const mockContext = EslintContextStub({ report: mockReport });
-      const objectNode = TsestreeStub({
-        type: TsestreeNodeType.ObjectExpression,
-        properties: [
-          TsestreeStub({
-            type: TsestreeNodeType.Property,
-            shorthand: true,
-            key: undefined,
-          }),
-        ],
-      });
-      const childProxyId = IdentifierStub({ value: 'childProxy' });
-      const childBrokerProxyId = IdentifierStub({ value: 'childBrokerProxy' });
-      const proxyVariables = new Map<Identifier, Identifier>([[childProxyId, childBrokerProxyId]]);
-
-      validateNoExposedChildProxiesLayerBroker({
-        objectNode,
-        proxyVariables,
-        context: mockContext,
-      });
-
-      expect(mockReport.mock.calls).toStrictEqual([]);
-    });
-
-    it('EDGE: {property.key.name: undefined} => does not report', () => {
-      validateNoExposedChildProxiesLayerBrokerProxy();
-      const mockReport = jest.fn();
-      const mockContext = EslintContextStub({ report: mockReport });
-      const objectNode = TsestreeStub({
-        type: TsestreeNodeType.ObjectExpression,
-        properties: [
-          TsestreeStub({
-            type: TsestreeNodeType.Property,
-            shorthand: true,
-            key: TsestreeStub({
-              type: TsestreeNodeType.Identifier,
-              name: undefined,
-            }),
-          }),
-        ],
-      });
+      const mockContext = RuleContextStub({ report: mockReport });
+      const objectNode = ObjectExpressionStub({ code: 'const o = { ...x };' });
       const childProxyId = IdentifierStub({ value: 'childProxy' });
       const childBrokerProxyId = IdentifierStub({ value: 'childBrokerProxy' });
       const proxyVariables = new Map<Identifier, Identifier>([[childProxyId, childBrokerProxyId]]);
@@ -528,20 +297,8 @@ describe('validateNoExposedChildProxiesLayerBroker', () => {
     it('EDGE: {empty proxyVariables map} => does not report', () => {
       validateNoExposedChildProxiesLayerBrokerProxy();
       const mockReport = jest.fn();
-      const mockContext = EslintContextStub({ report: mockReport });
-      const objectNode = TsestreeStub({
-        type: TsestreeNodeType.ObjectExpression,
-        properties: [
-          TsestreeStub({
-            type: TsestreeNodeType.Property,
-            shorthand: true,
-            key: TsestreeStub({
-              type: TsestreeNodeType.Identifier,
-              name: IdentifierStub({ value: 'childProxy' }),
-            }),
-          }),
-        ],
-      });
+      const mockContext = RuleContextStub({ report: mockReport });
+      const objectNode = ObjectExpressionStub({ code: 'const o = { childProxy };' });
       const proxyVariables = new Map<Identifier, Identifier>();
 
       validateNoExposedChildProxiesLayerBroker({

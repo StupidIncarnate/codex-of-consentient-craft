@@ -7,8 +7,8 @@
  */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isSpecFileGuard } from '../../../guards/is-spec-file/is-spec-file-guard';
 
 export const ruleBanPageRouteInE2eBroker = (): EslintRule => ({
@@ -26,11 +26,11 @@ export const ruleBanPageRouteInE2eBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: EslintContext) => {
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
     return {
-      CallExpression: (node: Tsestree): void => {
-        const isSpecFile = isSpecFileGuard({ filename: ctx.filename ?? '' });
+      CallExpression: (node: TSESTree.CallExpression): void => {
+        const isSpecFile = isSpecFileGuard({ filename: ctx.filename });
 
         if (!isSpecFile) {
           return;
@@ -39,9 +39,12 @@ export const ruleBanPageRouteInE2eBroker = (): EslintRule => ({
         const { callee } = node;
 
         const isPageRouteCall =
-          callee?.type === 'MemberExpression' &&
-          callee.object?.name === 'page' &&
-          callee.property?.name === 'route';
+          callee.type === AST_NODE_TYPES.MemberExpression &&
+          callee.object.type === AST_NODE_TYPES.Identifier &&
+          callee.object.name === 'page' &&
+          (callee.property.type === AST_NODE_TYPES.Identifier ||
+            callee.property.type === AST_NODE_TYPES.PrivateIdentifier) &&
+          callee.property.name === 'route';
 
         if (!isPageRouteCall) {
           return;

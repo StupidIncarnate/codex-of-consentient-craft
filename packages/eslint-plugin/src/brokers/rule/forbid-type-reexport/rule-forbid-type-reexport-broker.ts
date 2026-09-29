@@ -10,8 +10,8 @@
  */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
 export const ruleForbidTypeReexportBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -27,10 +27,10 @@ export const ruleForbidTypeReexportBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: EslintContext) => {
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const importedTypes = new Set<PropertyKey>();
     const ctx = context;
-    const filename = String(ctx.getFilename?.() ?? '');
+    const { filename } = ctx;
 
     // Allow re-exports in index.ts files
     if (filename.endsWith('index.ts')) {
@@ -38,16 +38,16 @@ export const ruleForbidTypeReexportBroker = (): EslintRule => ({
     }
 
     return {
-      ImportDeclaration: (node: Tsestree): void => {
+      ImportDeclaration: (node: TSESTree.ImportDeclaration): void => {
         // Track import type declarations
         if (node.importKind === 'type') {
           const { specifiers } = node;
           if (Array.isArray(specifiers)) {
             for (const specifier of specifiers) {
-              if (specifier.type === 'ImportSpecifier') {
-                const localName = specifier.local?.name;
+              if (specifier.type === AST_NODE_TYPES.ImportSpecifier) {
+                const localName = specifier.local.name;
                 if (localName) {
-                  importedTypes.add(String(localName));
+                  importedTypes.add(localName);
                 }
               }
             }
@@ -55,21 +55,19 @@ export const ruleForbidTypeReexportBroker = (): EslintRule => ({
         }
       },
 
-      ExportNamedDeclaration: (node: Tsestree): void => {
+      ExportNamedDeclaration: (node: TSESTree.ExportNamedDeclaration): void => {
         // Check if this is a type re-export
         if (node.exportKind === 'type') {
-          const { specifiers } = node;
-          if (Array.isArray(specifiers)) {
-            for (const specifier of specifiers) {
-              if (specifier.type === 'ExportSpecifier') {
-                const exportedName = specifier.exported?.name;
-                if (exportedName && importedTypes.has(String(exportedName))) {
-                  ctx.report({
-                    node: specifier,
-                    messageId: 'noTypeReexport',
-                  });
-                }
-              }
+          for (const specifier of node.specifiers) {
+            const exportedName =
+              specifier.exported.type === AST_NODE_TYPES.Identifier
+                ? specifier.exported.name
+                : undefined;
+            if (exportedName && importedTypes.has(exportedName)) {
+              ctx.report({
+                node: specifier,
+                messageId: 'noTypeReexport',
+              });
             }
           }
         }

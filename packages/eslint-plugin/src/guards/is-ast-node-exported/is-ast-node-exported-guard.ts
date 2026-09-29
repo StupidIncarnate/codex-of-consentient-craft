@@ -8,16 +8,20 @@
  * }
  * // Returns true if any parent is an export declaration
  */
-import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
-export const isAstNodeExportedGuard = ({ node }: { node?: Tsestree | undefined }): boolean => {
+export const isAstNodeExportedGuard = ({ node }: { node?: TSESTree.Node | undefined }): boolean => {
   if (node === undefined) {
     return false;
   }
   let current = node.parent;
-  while (current !== undefined && current !== null) {
+  while (current) {
     const nodeType = current.type;
-    if (nodeType === 'ExportNamedDeclaration' || nodeType === 'ExportDefaultDeclaration') {
+    if (
+      nodeType === AST_NODE_TYPES.ExportNamedDeclaration ||
+      nodeType === AST_NODE_TYPES.ExportDefaultDeclaration
+    ) {
       return true;
     }
     current = current.parent;

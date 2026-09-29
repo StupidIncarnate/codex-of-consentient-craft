@@ -10,7 +10,7 @@
  * // Returns validated rule metadata; use EslintRule type for complete rule with create() function
  */
 import { z } from '#gateway/npm/zod';
-import type { EslintContext } from '../eslint-context/eslint-context-contract';
+import type { TSESLint } from '#gateway/npm/typescript-eslint__utils';
 
 export const eslintRuleContract = z.object({
   meta: z.object({
@@ -31,6 +31,6 @@ export const eslintRuleContract = z.object({
 // Type intersection adds function properties
 export type EslintRule = z.infer<typeof eslintRuleContract> & {
   create: (
-    context: EslintContext,
+    context: TSESLint.RuleContext<string, unknown[]>,
   ) => Record<PropertyKey & z.BRAND<'EslintSelector'>, (node: unknown) => void>;
 };

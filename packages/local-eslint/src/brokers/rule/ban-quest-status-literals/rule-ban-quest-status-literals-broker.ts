@@ -11,7 +11,9 @@
 import type { Identifier } from '@dungeonmaster/shared/contracts';
 import { identifierContract } from '@dungeonmaster/shared/contracts';
 import { eslintRuleContract } from '@dungeonmaster/eslint-plugin';
-import type { EslintRule, EslintContext, Tsestree } from '@dungeonmaster/eslint-plugin';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
+import type { EslintRule } from '@dungeonmaster/eslint-plugin';
 import { isStatusComparisonAllowlistedGuard } from '../../../guards/is-status-comparison-allowlisted/is-status-comparison-allowlisted-guard';
 import { statusLiteralStatics } from '../../../statics/status-literal/status-literal-statics';
 import { classifyStatusLiteralTransformer } from '../../../transformers/classify-status-literal/classify-status-literal-transformer';
@@ -58,16 +60,16 @@ export const ruleBanQuestStatusLiteralsBroker = (): EslintRule => ({
     },
   }),
   create: (context: unknown) => {
-    const ctx = context as EslintContext & {
+    const ctx = context as TSESLint.RuleContext<string, unknown[]> & {
       options?: { extraStatusHolders?: unknown }[];
     };
-    const filename = ctx.filename ?? ctx.getFilename?.() ?? '';
+    const { filename } = ctx;
 
-    if (isStatusComparisonAllowlistedGuard({ filename: String(filename) })) {
+    if (isStatusComparisonAllowlistedGuard({ filename })) {
       return {};
     }
 
-    const optionZero = ctx.options?.[0];
+    const [optionZero] = ctx.options;
     const rawExtras = optionZero?.extraStatusHolders;
     const extraAllowlist: readonly Identifier[] = Array.isArray(rawExtras)
       ? rawExtras.map((name) => identifierContract.parse(String(name)))
@@ -76,16 +78,13 @@ export const ruleBanQuestStatusLiteralsBroker = (): EslintRule => ({
     const bannedPrefixes = statusLiteralStatics.bannedStartsWithPrefixes;
 
     return {
-      BinaryExpression: (node: Tsestree): void => {
+      BinaryExpression: (node: TSESTree.BinaryExpression): void => {
         const { operator } = node;
         if (operator !== '===' && operator !== '!==' && operator !== '==' && operator !== '!=') {
           return;
         }
 
         const { left, right } = node;
-        if (left === null || left === undefined || right === null || right === undefined) {
-          return;
-        }
 
         const leftIsStatusMember = isStatusMemberExpressionLayerBroker({
           node: left,
@@ -96,10 +95,14 @@ export const ruleBanQuestStatusLiteralsBroker = (): EslintRule => ({
           extraAllowlist,
         });
 
-        const literalSide: Tsestree | null =
-          leftIsStatusMember && right.type === 'Literal' && typeof right.value === 'string'
+        const literalSide: TSESTree.Node | null =
+          leftIsStatusMember &&
+          right.type === AST_NODE_TYPES.Literal &&
+          typeof right.value === 'string'
             ? right
-            : rightIsStatusMember && left.type === 'Literal' && typeof left.value === 'string'
+            : rightIsStatusMember &&
+                left.type === AST_NODE_TYPES.Literal &&
+                typeof left.value === 'string'
               ? left
               : null;
 
@@ -107,7 +110,7 @@ export const ruleBanQuestStatusLiteralsBroker = (): EslintRule => ({
           return;
         }
 
-        const literalValue = String(literalSide.value);
+        const literalValue = literalSide.value;
         const kind = classifyStatusLiteralTransformer({ literal: literalValue });
         if (kind === null) {
           return;
@@ -119,23 +122,22 @@ export const ruleBanQuestStatusLiteralsBroker = (): EslintRule => ({
         });
       },
 
-      SwitchStatement: (node: Tsestree): void => {
+      SwitchStatement: (node: TSESTree.SwitchStatement): void => {
         if (
           !isStatusMemberExpressionLayerBroker({
-            node: node.discriminant ?? null,
+            node: node.discriminant,
             extraAllowlist,
           })
         ) {
           return;
         }
 
-        const cases = node.cases ?? [];
+        const { cases } = node;
         const hasKnownStatusCase = cases.some((switchCase) => {
           const testNode = switchCase.test;
           if (
             testNode === null ||
-            testNode === undefined ||
-            testNode.type !== 'Literal' ||
+            testNode.type !== AST_NODE_TYPES.Literal ||
             typeof testNode.value !== 'string'
           ) {
             return false;
@@ -148,25 +150,20 @@ export const ruleBanQuestStatusLiteralsBroker = (): EslintRule => ({
         }
       },
 
-      CallExpression: (node: Tsestree): void => {
+      CallExpression: (node: TSESTree.CallExpression): void => {
         const { callee } = node;
-        if (callee === null || callee === undefined || callee.type !== 'MemberExpression') {
+        if (callee.type !== AST_NODE_TYPES.MemberExpression) {
           return;
         }
         const { property } = callee;
-        if (property === null || property === undefined || property.type !== 'Identifier') {
+        if (property.type !== AST_NODE_TYPES.Identifier) {
           return;
         }
-        if (String(property.name ?? '') !== 'startsWith') {
+        if (property.name !== 'startsWith') {
           return;
         }
-        const firstArg = node.arguments?.[0];
-        if (
-          firstArg === null ||
-          firstArg === undefined ||
-          firstArg.type !== 'Literal' ||
-          typeof firstArg.value !== 'string'
-        ) {
+        const [firstArg] = node.arguments;
+        if (firstArg?.type !== AST_NODE_TYPES.Literal || typeof firstArg.value !== 'string') {
           return;
         }
         const argValue = firstArg.value;
@@ -180,37 +177,37 @@ export const ruleBanQuestStatusLiteralsBroker = (): EslintRule => ({
         });
       },
 
-      ArrayExpression: (node: Tsestree): void => {
+      ArrayExpression: (node: TSESTree.ArrayExpression): void => {
         // Skip arrays that are the argument to `new Set(...)` — the NewExpression listener handles those.
         // Also skip arrays passed to any function call (e.g., `z.enum([...])`, `['a','b'].forEach(...)`) —
         // those are not inline membership sets; they are enum / iteration plumbing. The inline-set
         // diagnostic targets assignment-shaped literals only (const foo = [...]).
         const { parent } = node;
-        if (parent === null || parent === undefined) {
-          return;
-        }
-        if (parent.type === 'NewExpression' || parent.type === 'CallExpression') {
+        if (
+          parent.type === AST_NODE_TYPES.NewExpression ||
+          parent.type === AST_NODE_TYPES.CallExpression
+        ) {
           return;
         }
 
-        if (hasInlineStatusSetElementsLayerBroker({ elements: node.elements ?? [] })) {
+        if (hasInlineStatusSetElementsLayerBroker({ elements: node.elements })) {
           ctx.report({ node, messageId: 'inlineStatusSet' });
         }
       },
 
-      NewExpression: (node: Tsestree): void => {
+      NewExpression: (node: TSESTree.NewExpression): void => {
         const { callee } = node;
-        if (callee === null || callee === undefined || callee.type !== 'Identifier') {
+        if (callee.type !== AST_NODE_TYPES.Identifier) {
           return;
         }
-        if (String(callee.name ?? '') !== 'Set') {
+        if (callee.name !== 'Set') {
           return;
         }
-        const firstArg = node.arguments?.[0];
-        if (firstArg === null || firstArg === undefined || firstArg.type !== 'ArrayExpression') {
+        const [firstArg] = node.arguments;
+        if (firstArg?.type !== AST_NODE_TYPES.ArrayExpression) {
           return;
         }
-        if (hasInlineStatusSetElementsLayerBroker({ elements: firstArg.elements ?? [] })) {
+        if (hasInlineStatusSetElementsLayerBroker({ elements: firstArg.elements })) {
           ctx.report({ node, messageId: 'inlineStatusSet' });
         }
       },

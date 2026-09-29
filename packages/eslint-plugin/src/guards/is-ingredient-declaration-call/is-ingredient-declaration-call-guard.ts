@@ -15,18 +15,19 @@
  * // Returns true for `ingredient({ name: 'quest', ... })`, false for `dm.ingredient({...})`,
  * // `ingredient()` with no argument, or any call to a differently-named function
  */
-import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { ingredientDeclarationStatics } from '../../statics/ingredient-declaration/ingredient-declaration-statics';
 
-export const isIngredientDeclarationCallGuard = ({ node }: { node?: Tsestree }): boolean => {
-  if (node === undefined || node.type !== 'CallExpression') {
+export const isIngredientDeclarationCallGuard = ({ node }: { node?: TSESTree.Node }): boolean => {
+  if (node === undefined || node.type !== AST_NODE_TYPES.CallExpression) {
     return false;
   }
 
   const { callee, arguments: callArguments } = node;
   const calleeIsDeclarationFunction =
-    callee?.type === 'Identifier' &&
+    callee.type === AST_NODE_TYPES.Identifier &&
     callee.name === ingredientDeclarationStatics.declarationFunctionName;
 
-  return calleeIsDeclarationFunction && (callArguments?.length ?? 0) > 0;
+  return calleeIsDeclarationFunction && callArguments.length > 0;
 };

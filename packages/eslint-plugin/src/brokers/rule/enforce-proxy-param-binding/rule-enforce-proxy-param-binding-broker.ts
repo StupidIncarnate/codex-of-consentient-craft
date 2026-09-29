@@ -7,8 +7,7 @@
  */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 import { checkUnboundTypePropertiesLayerBroker } from './check-unbound-type-properties-layer-broker';
 
@@ -27,9 +26,9 @@ export const ruleEnforceProxyParamBindingBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: EslintContext) => {
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
-    const filename = ctx.filename ?? '';
+    const { filename } = ctx;
     const isProxyFile = hasFileSuffixGuard({ filename, suffix: 'proxy' });
 
     if (!isProxyFile) {
@@ -37,13 +36,13 @@ export const ruleEnforceProxyParamBindingBroker = (): EslintRule => ({
     }
 
     return {
-      ArrowFunctionExpression: (node: Tsestree): void => {
+      ArrowFunctionExpression: (node: TSESTree.ArrowFunctionExpression): void => {
         checkUnboundTypePropertiesLayerBroker({ node, ctx });
       },
-      FunctionExpression: (node: Tsestree): void => {
+      FunctionExpression: (node: TSESTree.FunctionExpression): void => {
         checkUnboundTypePropertiesLayerBroker({ node, ctx });
       },
-      FunctionDeclaration: (node: Tsestree): void => {
+      FunctionDeclaration: (node: TSESTree.FunctionDeclaration): void => {
         checkUnboundTypePropertiesLayerBroker({ node, ctx });
       },
     };

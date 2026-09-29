@@ -16,8 +16,8 @@
 import { gatewayLintConfigContract } from '@dungeonmaster/shared/contracts';
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
 export const ruleBanGatewayExportBroker = (): EslintRule => ({
   ...eslintRuleContract.parse({
@@ -33,9 +33,9 @@ export const ruleBanGatewayExportBroker = (): EslintRule => ({
       schema: [{ type: 'object' }],
     },
   }),
-  create: (context: EslintContext) => {
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
-    const rawOptions = ctx.options?.[0];
+    const [rawOptions] = ctx.options;
     const { bannedExports } = gatewayLintConfigContract.parse(
       typeof rawOptions === 'object' && rawOptions !== null ? rawOptions : {},
     );
@@ -45,8 +45,8 @@ export const ruleBanGatewayExportBroker = (): EslintRule => ({
     }
 
     return {
-      ImportDeclaration: (node: Tsestree): void => {
-        const importSource = node.source?.value;
+      ImportDeclaration: (node: TSESTree.ImportDeclaration): void => {
+        const importSource = node.source.value;
         if (typeof importSource !== 'string') {
           return;
         }
@@ -56,19 +56,20 @@ export const ruleBanGatewayExportBroker = (): EslintRule => ({
           return;
         }
 
-        for (const specifier of node.specifiers ?? []) {
-          if (specifier.type !== 'ImportSpecifier') {
+        for (const specifier of node.specifiers) {
+          if (specifier.type !== AST_NODE_TYPES.ImportSpecifier) {
             continue;
           }
 
-          const importedName = specifier.imported?.name;
+          const importedName =
+            specifier.imported.type === AST_NODE_TYPES.Identifier
+              ? specifier.imported.name
+              : undefined;
           if (typeof importedName !== 'string') {
             continue;
           }
 
-          const match = matchingEntries.find(
-            (entry) => String(entry.name) === String(importedName),
-          );
+          const match = matchingEntries.find((entry) => entry.name === importedName);
           if (!match) {
             continue;
           }

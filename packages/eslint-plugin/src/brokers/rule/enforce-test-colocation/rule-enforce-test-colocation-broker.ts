@@ -9,8 +9,7 @@
  */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { existsSync } from '#gateway/node/fs';
 import { filePathContract } from '@dungeonmaster/shared/contracts';
 import { isTestFileGuard } from '../../../guards/is-test-file/is-test-file-guard';
@@ -32,10 +31,10 @@ export const ruleEnforceTestColocationBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: EslintContext) => {
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
     return {
-      Program: (node: Tsestree): void => {
+      Program: (node: TSESTree.Program): void => {
         const { filename } = ctx;
 
         // Only check test files

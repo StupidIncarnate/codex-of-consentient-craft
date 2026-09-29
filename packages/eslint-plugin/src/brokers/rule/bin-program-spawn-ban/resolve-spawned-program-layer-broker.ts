@@ -9,7 +9,8 @@
  * // Returns 'git' as ContentText
  */
 import type { ContentText } from '@dungeonmaster/shared/contracts';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { firstWordTransformer } from '../../../transformers/first-word/first-word-transformer';
 import { shCScriptTransformer } from '../../../transformers/sh-c-script/sh-c-script-transformer';
 import { resolveStaticStringLayerBroker } from './resolve-static-string-layer-broker';
@@ -20,9 +21,9 @@ export const resolveSpawnedProgramLayerBroker = ({
   moduleBody,
   filename,
 }: {
-  commandNode: Tsestree | undefined;
-  argsNode: Tsestree | undefined;
-  moduleBody: readonly Tsestree[];
+  commandNode: TSESTree.Node | undefined;
+  argsNode: TSESTree.Node | undefined;
+  moduleBody: readonly TSESTree.ProgramStatement[];
   filename?: string | undefined;
 }): ContentText | undefined => {
   const resolvedCommand = resolveStaticStringLayerBroker({
@@ -47,8 +48,8 @@ export const resolveSpawnedProgramLayerBroker = ({
 
   // The shell and its script are split across command/args: spawn('sh', ['-c', 'git status']).
   const isShellLauncher = commandFirstWord === 'sh' || commandFirstWord === 'bash';
-  if (isShellLauncher && argsNode?.type === 'ArrayExpression') {
-    const [flagNode, scriptNode] = argsNode.elements ?? [];
+  if (isShellLauncher && argsNode?.type === AST_NODE_TYPES.ArrayExpression) {
+    const [flagNode, scriptNode] = argsNode.elements;
     const flag =
       flagNode === null || flagNode === undefined
         ? undefined

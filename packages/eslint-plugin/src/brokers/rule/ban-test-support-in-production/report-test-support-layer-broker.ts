@@ -5,8 +5,7 @@
  * reportTestSupportLayerBroker({ node, context, verb: 'imported' });
  * // Returns true when it reported
  */
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isNpmPackageGuard } from '../../../guards/is-npm-package/is-npm-package-guard';
 import { isStubOrProxyImportGuard } from '../../../guards/is-stub-or-proxy-import/is-stub-or-proxy-import-guard';
 import { isStubOrProxyNameGuard } from '../../../guards/is-stub-or-proxy-name/is-stub-or-proxy-name-guard';
@@ -16,8 +15,9 @@ export const reportTestSupportLayerBroker = ({
   context,
   verb,
 }: {
-  node: Tsestree;
-  context: EslintContext;
+  node:
+    TSESTree.ExportAllDeclaration | TSESTree.ExportNamedDeclaration | TSESTree.ImportDeclaration;
+  context: TSESLint.RuleContext<string, unknown[]>;
   verb: 'imported' | 'exported';
 }): boolean => {
   const source = node.source?.value;
@@ -39,15 +39,18 @@ export const reportTestSupportLayerBroker = ({
     return false;
   }
 
-  const offending = (node.specifiers ?? []).filter((specifier) =>
-    isStubOrProxyNameGuard({ name: (specifier.imported ?? specifier.local)?.name }),
-  );
+  const specifiers = 'specifiers' in node ? node.specifiers : [];
+  const offending = specifiers.flatMap((specifier) => {
+    const reference = 'imported' in specifier ? specifier.imported : specifier.local;
+    const name = 'name' in reference ? reference.name : undefined;
+    return isStubOrProxyNameGuard({ name }) ? [{ specifier, name }] : [];
+  });
 
-  for (const specifier of offending) {
+  for (const { specifier, name } of offending) {
     context.report({
       node: specifier,
       messageId: 'testSupportInProduction',
-      data: { what: String((specifier.imported ?? specifier.local)?.name), verb },
+      data: { what: String(name), verb },
     });
   }
 

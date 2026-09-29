@@ -6,8 +6,9 @@
  * // Returns array of collected exports, or null if a fatal forbidden pattern was reported
  */
 import type { CollectedExport } from '../../../contracts/collected-export/collected-export-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
+import { identifierContract } from '@dungeonmaster/shared/contracts';
 import type { Identifier } from '@dungeonmaster/shared/contracts';
 import { hasFileSuffixGuard } from '../../../guards/has-file-suffix/has-file-suffix-guard';
 
@@ -17,34 +18,29 @@ export const collectExportsLayerBroker = ({
   filename,
   firstFolder,
 }: {
-  node: Tsestree;
-  context: EslintContext;
+  node: TSESTree.Program;
+  context: TSESLint.RuleContext<string, unknown[]>;
   filename: string;
   firstFolder: Identifier;
 }): CollectedExport[] | null => {
   const exports: CollectedExport[] = [];
-  const { body } = node;
 
-  if (!body || !Array.isArray(body)) {
-    return exports;
-  }
-
-  for (const statement of body) {
-    if (statement.type === 'ExportDefaultDeclaration') {
+  for (const statement of node.body) {
+    if (statement.type === AST_NODE_TYPES.ExportDefaultDeclaration) {
       context.report({ node, messageId: 'noDefaultExport' });
       return null;
     }
 
-    if (statement.type === 'ExportAllDeclaration') {
+    if (statement.type === AST_NODE_TYPES.ExportAllDeclaration) {
       context.report({ node, messageId: 'noNamespaceExport' });
       return null;
     }
 
-    if (statement.type === 'ExportNamedDeclaration') {
+    if (statement.type === AST_NODE_TYPES.ExportNamedDeclaration) {
       const isTypeOnly = statement.exportKind === 'type';
       const { declaration, source } = statement;
-      const hasSource = source !== null && source !== undefined;
-      const hasDeclaration = declaration !== null && declaration !== undefined;
+      const hasSource = source !== null;
+      const hasDeclaration = declaration !== null;
 
       if (!isTypeOnly && (hasSource || !hasDeclaration)) {
         context.report({
@@ -56,17 +52,17 @@ export const collectExportsLayerBroker = ({
       }
 
       if (!isTypeOnly && declaration) {
-        if (declaration.type === 'VariableDeclaration' && declaration.declarations) {
+        if (declaration.type === AST_NODE_TYPES.VariableDeclaration) {
           for (const declarator of declaration.declarations) {
-            if (declarator.id?.type === 'Identifier' && declarator.id.name) {
+            if (declarator.id.type === AST_NODE_TYPES.Identifier) {
               const { init } = declarator;
-              const isArrowFunction = init?.type === 'ArrowFunctionExpression';
+              const isArrowFunction = init?.type === AST_NODE_TYPES.ArrowFunctionExpression;
 
               if (hasFileSuffixGuard({ filename, suffix: 'proxy' }) && !isArrowFunction) {
                 const actualType =
-                  init?.type === 'Identifier'
+                  init?.type === AST_NODE_TYPES.Identifier
                     ? 're-exported variable'
-                    : init?.type === 'FunctionExpression'
+                    : init?.type === AST_NODE_TYPES.FunctionExpression
                       ? 'function expression'
                       : (init?.type ?? 'non-function value');
                 context.report({
@@ -79,14 +75,14 @@ export const collectExportsLayerBroker = ({
 
               exports.push({
                 type: 'VariableDeclaration' as CollectedExport['type'],
-                name: declarator.id.name,
+                name: identifierContract.parse(declarator.id.name),
                 isTypeOnly: false,
               });
             }
           }
         }
 
-        if (declaration.type === 'FunctionDeclaration' && declaration.id?.name) {
+        if (declaration.type === AST_NODE_TYPES.FunctionDeclaration && declaration.id?.name) {
           if (hasFileSuffixGuard({ filename, suffix: 'proxy' })) {
             context.report({
               node,
@@ -97,12 +93,12 @@ export const collectExportsLayerBroker = ({
           }
           exports.push({
             type: 'FunctionDeclaration' as CollectedExport['type'],
-            name: declaration.id.name,
+            name: identifierContract.parse(declaration.id.name),
             isTypeOnly: false,
           });
         }
 
-        if (declaration.type === 'ClassDeclaration' && declaration.id?.name) {
+        if (declaration.type === AST_NODE_TYPES.ClassDeclaration && declaration.id?.name) {
           if (hasFileSuffixGuard({ filename, suffix: 'proxy' })) {
             context.report({
               node,
@@ -113,7 +109,7 @@ export const collectExportsLayerBroker = ({
           }
           exports.push({
             type: 'ClassDeclaration' as CollectedExport['type'],
-            name: declaration.id.name,
+            name: identifierContract.parse(declaration.id.name),
             isTypeOnly: false,
           });
         }

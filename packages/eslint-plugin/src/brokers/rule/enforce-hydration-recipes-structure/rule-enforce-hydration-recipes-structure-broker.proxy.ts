@@ -5,20 +5,18 @@
  * const proxy = ruleEnforceHydrationRecipesStructureBrokerProxy();
  * proxy.setupFileSystem((filePath) => ...);
  */
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
+import { RuleContextStub } from '#gateway/npm/typescript-eslint__utils/rule-context/rule-context.stub';
+import type { TSESLint } from '#gateway/npm/typescript-eslint__utils';
 import { existsSyncProxy } from '#gateway/node/fs/exists-sync/exists-sync.proxy';
 
 export const ruleEnforceHydrationRecipesStructureBrokerProxy = (): {
-  createContext: () => EslintContext;
+  createContext: () => TSESLint.RuleContext<string, unknown[]>;
   setupFileSystem: (fileSystemCheck: (path: string) => boolean) => void;
 } => {
   const existsProxy = existsSyncProxy();
 
   return {
-    createContext: (): EslintContext => ({
-      filename: undefined,
-      report: jest.fn(),
-    }),
+    createContext: (): TSESLint.RuleContext<string, unknown[]> => RuleContextStub(),
     // existsSyncProxy ships no address-less catch-all: the caller's own decision function is
     // staged as two complementary predicates (matches where it says true, matches where it says
     // false), so exactly one ever answers a given call — never both, never neither.

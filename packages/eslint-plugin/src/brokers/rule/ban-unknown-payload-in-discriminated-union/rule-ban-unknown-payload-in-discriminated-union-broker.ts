@@ -7,8 +7,7 @@
  */
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { checkDiscriminatedUnionVariantsLayerBroker } from './check-discriminated-union-variants-layer-broker';
 
 export const ruleBanUnknownPayloadInDiscriminatedUnionBroker = (): EslintRule => ({
@@ -28,11 +27,11 @@ export const ruleBanUnknownPayloadInDiscriminatedUnionBroker = (): EslintRule =>
       schema: [],
     },
   }),
-  create: (context: EslintContext) => {
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
 
     return {
-      CallExpression: (node: Tsestree): void => {
+      CallExpression: (node: TSESTree.CallExpression): void => {
         checkDiscriminatedUnionVariantsLayerBroker({ node, ctx });
       },
     };

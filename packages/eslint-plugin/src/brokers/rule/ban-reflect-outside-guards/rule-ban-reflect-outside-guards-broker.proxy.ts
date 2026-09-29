@@ -5,13 +5,11 @@
  * const proxy = ruleBanReflectOutsideGuardsBrokerProxy();
  * const context = proxy.createContext();
  */
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
+import { RuleContextStub } from '#gateway/npm/typescript-eslint__utils/rule-context/rule-context.stub';
+import type { TSESLint } from '#gateway/npm/typescript-eslint__utils';
 
 export const ruleBanReflectOutsideGuardsBrokerProxy = (): {
-  createContext: () => EslintContext;
+  createContext: () => TSESLint.RuleContext<string, unknown[]>;
 } => ({
-  createContext: (): EslintContext => ({
-    filename: undefined,
-    report: jest.fn(),
-  }),
+  createContext: (): TSESLint.RuleContext<string, unknown[]> => RuleContextStub(),
 });

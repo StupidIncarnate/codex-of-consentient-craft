@@ -8,22 +8,23 @@
  * astProgramDeclaratorsTransformer({ program: programNode, localOnly: true });
  * // Returns the declarators of `const questFields = z.object({ … })`, not of `export const …`
  */
-import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
 export const astProgramDeclaratorsTransformer = ({
   program,
   localOnly,
 }: {
-  program: Tsestree;
+  program: TSESTree.Program;
   localOnly: boolean;
-}): Tsestree[] =>
-  (Array.isArray(program.body) ? program.body : []).flatMap((statement) => {
-    const isExported = statement.type === 'ExportNamedDeclaration';
+}): TSESTree.VariableDeclarator[] =>
+  program.body.flatMap((statement) => {
+    const isExported = statement.type === AST_NODE_TYPES.ExportNamedDeclaration;
     if (localOnly && isExported) {
       return [];
     }
 
     const declaration = isExported ? statement.declaration : statement;
 
-    return declaration?.type === 'VariableDeclaration' ? (declaration.declarations ?? []) : [];
+    return declaration?.type === AST_NODE_TYPES.VariableDeclaration ? declaration.declarations : [];
   });

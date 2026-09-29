@@ -1,7 +1,5 @@
-import {
-  TsestreeStub,
-  TsestreeNodeType,
-} from '@dungeonmaster/eslint-plugin/contracts/tsestree/tsestree.stub';
+import { IdentifierStub } from '#gateway/npm/typescript-eslint__utils/identifier/identifier.stub';
+import { ArrayExpressionStub } from '#gateway/npm/typescript-eslint__utils/array-expression/array-expression.stub';
 
 import { packageNameLiteralStatics } from '../../statics/package-name-literal/package-name-literal-statics';
 import { isMembershipTestUsageGuard } from './is-membership-test-usage-guard';
@@ -16,10 +14,10 @@ describe('isMembershipTestUsageGuard', () => {
       expect(isMembershipTestUsageGuard({ node: null })).toBe(false);
     });
 
-    it('EMPTY: {node: ArrayExpression with no parent} => returns false', () => {
+    it('EMPTY: {node: ArrayExpression in a bare expression statement} => returns false', () => {
       expect(
         isMembershipTestUsageGuard({
-          node: TsestreeStub({ type: TsestreeNodeType.ArrayExpression, parent: null }),
+          node: ArrayExpressionStub({ code: '[];' }),
         }),
       ).toBe(false);
     });
@@ -31,13 +29,7 @@ describe('isMembershipTestUsageGuard', () => {
       (methodName) => {
         expect(
           isMembershipTestUsageGuard({
-            node: TsestreeStub({
-              type: TsestreeNodeType.ArrayExpression,
-              parent: {
-                type: TsestreeNodeType.MemberExpression,
-                property: { type: TsestreeNodeType.Identifier, name: methodName },
-              },
-            }),
+            node: ArrayExpressionStub({ code: `[].${methodName};` }),
           }),
         ).toBe(true);
       },
@@ -46,14 +38,7 @@ describe('isMembershipTestUsageGuard', () => {
     it('VALID: {node: binding identifier receiving .includes()} => returns true', () => {
       expect(
         isMembershipTestUsageGuard({
-          node: TsestreeStub({
-            type: TsestreeNodeType.Identifier,
-            name: 'UI_PACKAGES',
-            parent: {
-              type: TsestreeNodeType.MemberExpression,
-              property: { type: TsestreeNodeType.Identifier, name: 'includes' },
-            },
-          }),
+          node: IdentifierStub({ code: 'UI_PACKAGES.includes;' }),
         }),
       ).toBe(true);
     });
@@ -61,13 +46,7 @@ describe('isMembershipTestUsageGuard', () => {
     it("VALID: {node: computed member ['includes']} => returns true, since the bracket spelling is the same call", () => {
       expect(
         isMembershipTestUsageGuard({
-          node: TsestreeStub({
-            type: TsestreeNodeType.ArrayExpression,
-            parent: {
-              type: TsestreeNodeType.MemberExpression,
-              property: { type: TsestreeNodeType.Literal, value: 'includes' },
-            },
-          }),
+          node: ArrayExpressionStub({ code: '[]["includes"];' }),
         }),
       ).toBe(true);
     });
@@ -75,14 +54,7 @@ describe('isMembershipTestUsageGuard', () => {
     it('VALID: {node: the property identifier itself} => returns false, because the method name is not the collection', () => {
       expect(
         isMembershipTestUsageGuard({
-          node: TsestreeStub({
-            type: TsestreeNodeType.Identifier,
-            name: 'includes',
-            parent: {
-              type: TsestreeNodeType.MemberExpression,
-              property: { type: TsestreeNodeType.Identifier, name: 'includes' },
-            },
-          }),
+          node: IdentifierStub({ code: 'includes.includes;' }),
         }),
       ).toBe(false);
     });
@@ -90,13 +62,7 @@ describe('isMembershipTestUsageGuard', () => {
     it('VALID: {node: receiver of .map()} => returns false, because reshaping a list decides nothing', () => {
       expect(
         isMembershipTestUsageGuard({
-          node: TsestreeStub({
-            type: TsestreeNodeType.ArrayExpression,
-            parent: {
-              type: TsestreeNodeType.MemberExpression,
-              property: { type: TsestreeNodeType.Identifier, name: 'map' },
-            },
-          }),
+          node: ArrayExpressionStub({ code: '[].map;' }),
         }),
       ).toBe(false);
     });
@@ -104,13 +70,7 @@ describe('isMembershipTestUsageGuard', () => {
     it('VALID: {node: receiver of .filter()} => returns false, because narrowing a list decides nothing', () => {
       expect(
         isMembershipTestUsageGuard({
-          node: TsestreeStub({
-            type: TsestreeNodeType.ArrayExpression,
-            parent: {
-              type: TsestreeNodeType.MemberExpression,
-              property: { type: TsestreeNodeType.Identifier, name: 'filter' },
-            },
-          }),
+          node: ArrayExpressionStub({ code: '[].filter;' }),
         }),
       ).toBe(false);
     });
@@ -120,13 +80,7 @@ describe('isMembershipTestUsageGuard', () => {
       (methodName) => {
         expect(
           isMembershipTestUsageGuard({
-            node: TsestreeStub({
-              type: TsestreeNodeType.ArrayExpression,
-              parent: {
-                type: TsestreeNodeType.MemberExpression,
-                property: { type: TsestreeNodeType.Identifier, name: methodName },
-              },
-            }),
+            node: ArrayExpressionStub({ code: `[].${methodName};` }),
           }),
         ).toBe(false);
       },
@@ -137,13 +91,7 @@ describe('isMembershipTestUsageGuard', () => {
     it('VALID: {node: argument of new Set()} => returns true', () => {
       expect(
         isMembershipTestUsageGuard({
-          node: TsestreeStub({
-            type: TsestreeNodeType.ArrayExpression,
-            parent: {
-              type: TsestreeNodeType.NewExpression,
-              callee: { type: TsestreeNodeType.Identifier, name: 'Set' },
-            },
-          }),
+          node: ArrayExpressionStub({ code: 'new Set([]);' }),
         }),
       ).toBe(true);
     });
@@ -151,13 +99,7 @@ describe('isMembershipTestUsageGuard', () => {
     it('VALID: {node: argument of new Map()} => returns false, since a Map built from names is a lookup, not a test', () => {
       expect(
         isMembershipTestUsageGuard({
-          node: TsestreeStub({
-            type: TsestreeNodeType.ArrayExpression,
-            parent: {
-              type: TsestreeNodeType.NewExpression,
-              callee: { type: TsestreeNodeType.Identifier, name: 'Map' },
-            },
-          }),
+          node: ArrayExpressionStub({ code: 'new Map([]);' }),
         }),
       ).toBe(false);
     });
@@ -165,14 +107,7 @@ describe('isMembershipTestUsageGuard', () => {
     it('VALID: {node: the Set callee identifier itself} => returns false', () => {
       expect(
         isMembershipTestUsageGuard({
-          node: TsestreeStub({
-            type: TsestreeNodeType.Identifier,
-            name: 'Set',
-            parent: {
-              type: TsestreeNodeType.NewExpression,
-              callee: { type: TsestreeNodeType.Identifier, name: 'Set' },
-            },
-          }),
+          node: IdentifierStub({ code: 'new Set()' }),
         }),
       ).toBe(false);
     });
@@ -182,16 +117,7 @@ describe('isMembershipTestUsageGuard', () => {
     it('VALID: {node: `as const` array reaching .includes()} => returns true through the assertion', () => {
       expect(
         isMembershipTestUsageGuard({
-          node: TsestreeStub({
-            type: TsestreeNodeType.ArrayExpression,
-            parent: {
-              type: TsestreeNodeType.TSAsExpression,
-              parent: {
-                type: TsestreeNodeType.MemberExpression,
-                property: { type: TsestreeNodeType.Identifier, name: 'includes' },
-              },
-            },
-          }),
+          node: ArrayExpressionStub({ code: '([] as const).includes;' }),
         }),
       ).toBe(true);
     });
@@ -201,10 +127,7 @@ describe('isMembershipTestUsageGuard', () => {
     it('VALID: {node: initializer of a VariableDeclarator} => returns false on its own', () => {
       expect(
         isMembershipTestUsageGuard({
-          node: TsestreeStub({
-            type: TsestreeNodeType.ArrayExpression,
-            parent: { type: TsestreeNodeType.VariableDeclarator },
-          }),
+          node: ArrayExpressionStub({ code: 'const x = [];' }),
         }),
       ).toBe(false);
     });
@@ -212,10 +135,7 @@ describe('isMembershipTestUsageGuard', () => {
     it('VALID: {node: value of an object Property} => returns false', () => {
       expect(
         isMembershipTestUsageGuard({
-          node: TsestreeStub({
-            type: TsestreeNodeType.ArrayExpression,
-            parent: { type: TsestreeNodeType.Property },
-          }),
+          node: ArrayExpressionStub({ code: 'const o = { a: [] };' }),
         }),
       ).toBe(false);
     });

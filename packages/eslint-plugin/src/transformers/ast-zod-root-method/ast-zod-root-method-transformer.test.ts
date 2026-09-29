@@ -1,35 +1,11 @@
+import { CallExpressionStub } from '#gateway/npm/typescript-eslint__utils/call-expression/call-expression.stub';
+import { IdentifierStub } from '#gateway/npm/typescript-eslint__utils/identifier/identifier.stub';
 import { astZodRootMethodTransformer } from './ast-zod-root-method-transformer';
-import { TsestreeStub, TsestreeNodeType } from '../../contracts/tsestree/tsestree.stub';
-
-const identifier = ({ name }: { name: string }): ReturnType<typeof TsestreeStub> =>
-  TsestreeStub({ type: TsestreeNodeType.Identifier, name });
-
-const callOn = ({
-  receiver,
-  method,
-}: {
-  receiver: ReturnType<typeof TsestreeStub>;
-  method: string;
-}): ReturnType<typeof TsestreeStub> =>
-  TsestreeStub({
-    type: TsestreeNodeType.CallExpression,
-    callee: TsestreeStub({
-      type: TsestreeNodeType.MemberExpression,
-      object: receiver,
-      property: identifier({ name: method }),
-    }),
-  });
 
 describe('astZodRootMethodTransformer', () => {
   describe('a chain that starts on z', () => {
     it("VALID: {z.string().min(1).brand()} => returns 'string'", () => {
-      const node = callOn({
-        receiver: callOn({
-          receiver: callOn({ receiver: identifier({ name: 'z' }), method: 'string' }),
-          method: 'min',
-        }),
-        method: 'brand',
-      });
+      const node = CallExpressionStub({ code: 'z.string().min(1).brand();' });
 
       const result = astZodRootMethodTransformer({ node });
 
@@ -37,10 +13,7 @@ describe('astZodRootMethodTransformer', () => {
     });
 
     it("VALID: {z.object({}).brand()} => returns 'object'", () => {
-      const node = callOn({
-        receiver: callOn({ receiver: identifier({ name: 'z' }), method: 'object' }),
-        method: 'brand',
-      });
+      const node = CallExpressionStub({ code: 'z.object({}).brand();' });
 
       const result = astZodRootMethodTransformer({ node });
 
@@ -48,10 +21,7 @@ describe('astZodRootMethodTransformer', () => {
     });
 
     it("VALID: {z.enum([]).brand()} => returns 'enum'", () => {
-      const node = callOn({
-        receiver: callOn({ receiver: identifier({ name: 'z' }), method: 'enum' }),
-        method: 'brand',
-      });
+      const node = CallExpressionStub({ code: 'z.enum([]).brand();' });
 
       const result = astZodRootMethodTransformer({ node });
 
@@ -59,13 +29,7 @@ describe('astZodRootMethodTransformer', () => {
     });
 
     it("VALID: {z.object({}).extend({}).brand()} => returns 'derive'", () => {
-      const node = callOn({
-        receiver: callOn({
-          receiver: callOn({ receiver: identifier({ name: 'z' }), method: 'object' }),
-          method: 'extend',
-        }),
-        method: 'brand',
-      });
+      const node = CallExpressionStub({ code: 'z.object({}).extend({}).brand();' });
 
       const result = astZodRootMethodTransformer({ node });
 
@@ -75,10 +39,7 @@ describe('astZodRootMethodTransformer', () => {
 
   describe('a chain that starts elsewhere', () => {
     it("VALID: {userContract.pick({}).brand()} => returns 'derive'", () => {
-      const node = callOn({
-        receiver: callOn({ receiver: identifier({ name: 'userContract' }), method: 'pick' }),
-        method: 'brand',
-      });
+      const node = CallExpressionStub({ code: 'userContract.pick({}).brand();' });
 
       const result = astZodRootMethodTransformer({ node });
 
@@ -86,7 +47,7 @@ describe('astZodRootMethodTransformer', () => {
     });
 
     it('EMPTY: {userContract.optional()} => returns null', () => {
-      const node = callOn({ receiver: identifier({ name: 'userContract' }), method: 'optional' });
+      const node = CallExpressionStub({ code: 'userContract.optional();' });
 
       const result = astZodRootMethodTransformer({ node });
 
@@ -94,18 +55,7 @@ describe('astZodRootMethodTransformer', () => {
     });
 
     it('EMPTY: {questContract.shape.id.min(5)} => returns null', () => {
-      const node = callOn({
-        receiver: TsestreeStub({
-          type: TsestreeNodeType.MemberExpression,
-          object: TsestreeStub({
-            type: TsestreeNodeType.MemberExpression,
-            object: identifier({ name: 'questContract' }),
-            property: identifier({ name: 'shape' }),
-          }),
-          property: identifier({ name: 'id' }),
-        }),
-        method: 'min',
-      });
+      const node = CallExpressionStub({ code: 'questContract.shape.id.min(5);' });
 
       const result = astZodRootMethodTransformer({ node });
 
@@ -113,7 +63,7 @@ describe('astZodRootMethodTransformer', () => {
     });
 
     it('EMPTY: {a node that is not a call} => returns null', () => {
-      const node = identifier({ name: 'z' });
+      const node = IdentifierStub({ code: 'z;' });
 
       const result = astZodRootMethodTransformer({ node });
 

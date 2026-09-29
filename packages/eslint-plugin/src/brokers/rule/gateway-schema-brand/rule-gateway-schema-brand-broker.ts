@@ -21,8 +21,8 @@ import { filePathContract, identifierContract } from '@dungeonmaster/shared/cont
 import { dirname } from '#gateway/node/path';
 import { eslintRuleContract } from '../../../contracts/eslint-rule/eslint-rule-contract';
 import type { EslintRule } from '../../../contracts/eslint-rule/eslint-rule-contract';
-import type { EslintContext } from '../../../contracts/eslint-context/eslint-context-contract';
-import type { Tsestree } from '../../../contracts/tsestree/tsestree-contract';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESLint, TSESTree } from '#gateway/npm/typescript-eslint__utils';
 import { isGatewayFileGuard } from '../../../guards/is-gateway-file/is-gateway-file-guard';
 import { dotCountTransformer } from '../../../transformers/dot-count/dot-count-transformer';
 import { workspaceRootFindBroker } from '../../workspace-root/find/workspace-root-find-broker';
@@ -48,9 +48,9 @@ export const ruleGatewaySchemaBrandBroker = (): EslintRule => ({
       schema: [],
     },
   }),
-  create: (context: EslintContext) => {
+  create: (context: TSESLint.RuleContext<string, unknown[]>) => {
     const ctx = context;
-    const filename = ctx.filename ?? ctx.getFilename?.() ?? '';
+    const { filename } = ctx;
 
     if (filename.length === 0 || !isGatewayFileGuard({ filename })) {
       return {};
@@ -66,31 +66,34 @@ export const ruleGatewaySchemaBrandBroker = (): EslintRule => ({
     }
 
     return {
-      CallExpression: (node: Tsestree): void => {
+      CallExpression: (node: TSESTree.CallExpression): void => {
         const { callee } = node;
         const objectName =
-          callee?.type === 'MemberExpression' && callee.object?.type === 'Identifier'
+          callee.type === AST_NODE_TYPES.MemberExpression &&
+          callee.object.type === AST_NODE_TYPES.Identifier
             ? callee.object.name
             : undefined;
         const propertyName =
-          callee?.type === 'MemberExpression' && callee.property?.type === 'Identifier'
+          callee.type === AST_NODE_TYPES.MemberExpression &&
+          callee.property.type === AST_NODE_TYPES.Identifier
             ? callee.property.name
             : undefined;
 
         if (objectName === 'z' && propertyName === 'custom') {
-          const args = node.arguments ?? [];
+          const args = node.arguments;
           const hasCheckFunction = args.some(
             (arg) =>
-              arg?.type === 'ArrowFunctionExpression' ||
-              arg?.type === 'FunctionExpression' ||
-              arg?.type === 'Identifier',
+              arg.type === AST_NODE_TYPES.ArrowFunctionExpression ||
+              arg.type === AST_NODE_TYPES.FunctionExpression ||
+              arg.type === AST_NODE_TYPES.Identifier,
           );
 
           if (!hasCheckFunction) {
-            const typeArgs = node.typeArguments ?? node.typeParameters;
-            const firstParam = typeArgs?.params?.[0];
+            const typeArgs = node.typeArguments;
+            const firstParam = typeArgs?.params[0];
             const typeName =
-              firstParam?.type === 'TSTypeReference' && firstParam.typeName?.type === 'Identifier'
+              firstParam?.type === AST_NODE_TYPES.TSTypeReference &&
+              firstParam.typeName.type === AST_NODE_TYPES.Identifier
                 ? firstParam.typeName.name
                 : 'T';
 
@@ -103,21 +106,17 @@ export const ruleGatewaySchemaBrandBroker = (): EslintRule => ({
         }
       },
 
-      ExportNamedDeclaration: (node: Tsestree): void => {
-        const declarationType = node.declaration?.type;
+      ExportNamedDeclaration: (node: TSESTree.ExportNamedDeclaration): void => {
+        const { declaration } = node;
 
         if (
-          declarationType !== 'TSInterfaceDeclaration' &&
-          declarationType !== 'TSTypeAliasDeclaration'
+          declaration?.type !== AST_NODE_TYPES.TSInterfaceDeclaration &&
+          declaration?.type !== AST_NODE_TYPES.TSTypeAliasDeclaration
         ) {
           return;
         }
 
-        const name = node.declaration?.id?.name;
-
-        if (name === undefined) {
-          return;
-        }
+        const { name } = declaration.id;
 
         const workspaceRoot = workspaceRootFindBroker({
           startDir: filePathContract.parse(dirname(filename)),
@@ -130,14 +129,14 @@ export const ruleGatewaySchemaBrandBroker = (): EslintRule => ({
         const index = buildGatewayTypeDeclarationIndexLayerBroker({
           rootDir: workspaceRoot.rootDir,
         });
-        const declaringFiles = index.get(identifierContract.parse(String(name))) ?? [];
+        const declaringFiles = index.get(identifierContract.parse(name)) ?? [];
         const otherFile = declaringFiles.find((filePath) => filePath !== filename);
 
         if (otherFile !== undefined) {
           ctx.report({
             node,
             messageId: 'duplicateTypeName',
-            data: { name: String(name), otherFile },
+            data: { name, otherFile },
           });
         }
       },

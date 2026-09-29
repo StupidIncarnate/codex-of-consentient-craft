@@ -1,5 +1,8 @@
+import { BlockStatementStub } from '#gateway/npm/typescript-eslint__utils/block-statement/block-statement.stub';
+import { IdentifierStub } from '#gateway/npm/typescript-eslint__utils/identifier/identifier.stub';
+import { UnaryExpressionStub } from '#gateway/npm/typescript-eslint__utils/unary-expression/unary-expression.stub';
+import { CallExpressionStub } from '#gateway/npm/typescript-eslint__utils/call-expression/call-expression.stub';
 import { isSilentBodyLayerBrokerProxy } from './is-silent-body-layer-broker.proxy';
-import { TsestreeStub } from '../../../contracts/tsestree/tsestree.stub';
 
 describe('isSilentBodyLayerBroker', () => {
   it('EDGE: null body => returns true', () => {
@@ -22,7 +25,7 @@ describe('isSilentBodyLayerBroker', () => {
     const proxy = isSilentBodyLayerBrokerProxy();
 
     const result = proxy.isSilentBodyLayerBroker({
-      body: TsestreeStub({ type: 'BlockStatement', body: [] }),
+      body: BlockStatementStub({ code: '{  }' }),
     });
 
     expect(result).toBe(true);
@@ -32,7 +35,7 @@ describe('isSilentBodyLayerBroker', () => {
     const proxy = isSilentBodyLayerBrokerProxy();
 
     const result = proxy.isSilentBodyLayerBroker({
-      body: TsestreeStub({ type: 'Identifier', name: 'undefined' }),
+      body: IdentifierStub({ code: 'undefined;' }),
     });
 
     expect(result).toBe(true);
@@ -42,10 +45,7 @@ describe('isSilentBodyLayerBroker', () => {
     const proxy = isSilentBodyLayerBrokerProxy();
 
     const result = proxy.isSilentBodyLayerBroker({
-      body: TsestreeStub({
-        type: 'UnaryExpression',
-        argument: TsestreeStub({ type: 'Literal', value: 0 }),
-      }),
+      body: UnaryExpressionStub({ code: '!0' }),
     });
 
     expect(result).toBe(true);
@@ -55,7 +55,7 @@ describe('isSilentBodyLayerBroker', () => {
     const proxy = isSilentBodyLayerBrokerProxy();
 
     const result = proxy.isSilentBodyLayerBroker({
-      body: TsestreeStub({ type: 'CallExpression' }),
+      body: CallExpressionStub({ code: 'f();' }),
     });
 
     expect(result).toBe(false);
@@ -65,10 +65,7 @@ describe('isSilentBodyLayerBroker', () => {
     const proxy = isSilentBodyLayerBrokerProxy();
 
     const result = proxy.isSilentBodyLayerBroker({
-      body: TsestreeStub({
-        type: 'BlockStatement',
-        body: [TsestreeStub({ type: 'ThrowStatement' })],
-      }),
+      body: BlockStatementStub({ code: '{ throw x; }' }),
     });
 
     expect(result).toBe(false);
@@ -78,15 +75,7 @@ describe('isSilentBodyLayerBroker', () => {
     const proxy = isSilentBodyLayerBrokerProxy();
 
     const result = proxy.isSilentBodyLayerBroker({
-      body: TsestreeStub({
-        type: 'BlockStatement',
-        body: [
-          TsestreeStub({
-            type: 'ReturnStatement',
-            argument: TsestreeStub({ type: 'Identifier', name: 'undefined' }),
-          }),
-        ],
-      }),
+      body: BlockStatementStub({ code: '{ return undefined; }' }),
     });
 
     expect(result).toBe(true);

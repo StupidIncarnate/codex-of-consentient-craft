@@ -5,41 +5,27 @@
  * const imports = astGetImportsTransformer({ node: importDeclarationNode });
  * // Returns Map { 'foo' => 'bar' } for import { foo } from 'bar'
  */
-import type { Tsestree } from '../../contracts/tsestree/tsestree-contract';
+import { identifierContract } from '@dungeonmaster/shared/contracts';
 import type { Identifier, ModulePath } from '@dungeonmaster/shared/contracts';
+import { AST_NODE_TYPES } from '#gateway/npm/typescript-eslint__utils';
+import type { TSESTree } from '#gateway/npm/typescript-eslint__utils';
 
 export const astGetImportsTransformer = ({
   node,
 }: {
-  node?: Tsestree;
+  node?: TSESTree.Node;
 }): Map<Identifier, ModulePath> => {
   const imports = new Map<Identifier, ModulePath>();
 
-  if (!node || node.type !== 'ImportDeclaration') {
+  if (!node || node.type !== AST_NODE_TYPES.ImportDeclaration) {
     return imports;
   }
 
-  const source = node.source?.value;
+  const modulePath = node.source.value as ModulePath;
 
-  if (typeof source !== 'string') {
-    return imports;
-  }
-
-  const modulePath = source as ModulePath;
-
-  // Track all imported names
-  const specifiers = node.specifiers ?? [];
-  for (const spec of specifiers) {
-    if (spec.type === 'ImportSpecifier' && spec.local?.name) {
-      // Named import: import { foo } from 'bar'
-      imports.set(spec.local.name, modulePath);
-    } else if (spec.type === 'ImportDefaultSpecifier' && spec.local?.name) {
-      // Default import: import foo from 'bar'
-      imports.set(spec.local.name, modulePath);
-    } else if (spec.type === 'ImportNamespaceSpecifier' && spec.local?.name) {
-      // Namespace import: import * as foo from 'bar'
-      imports.set(spec.local.name, modulePath);
-    }
+  // Track all imported names: named, default and namespace imports alike
+  for (const spec of node.specifiers) {
+    imports.set(identifierContract.parse(spec.local.name), modulePath);
   }
 
   return imports;
