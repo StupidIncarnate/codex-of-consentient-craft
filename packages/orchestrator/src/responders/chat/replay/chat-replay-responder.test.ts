@@ -1,3 +1,5 @@
+import { FileMissingErrorStub } from '#gateway/node/fs/file-missing-error/file-missing-error.stub';
+import { FsErrorStub } from '#gateway/node/fs/is-fs-error/fs-error.stub';
 import { ProcessIdStub } from '@dungeonmaster/shared/contracts/process-id/process-id.stub';
 import { SessionIdStub } from '@dungeonmaster/shared/contracts/session-id/session-id.stub';
 import { GuildIdStub } from '@dungeonmaster/shared/contracts/guild-id/guild-id.stub';
@@ -242,6 +244,69 @@ describe('ChatReplayResponder', () => {
       expect(chatOutputPayloadKeys).toStrictEqual([
         ['chatProcessId', 'entries', 'replay', 'sessionId'],
       ]);
+    });
+  });
+
+  describe('quest lookup failures', () => {
+    it('VALID: {guild has no quests directory yet (ENOENT)} => replays the session as an orphan and emits chat-history-complete', async () => {
+      const proxy = ChatReplayResponderProxy();
+      const eventCapture = proxy.setupEventCapture();
+      const sessionId = SessionIdStub({ value: 'session-no-quests-dir' });
+      const guildId = GuildIdStub();
+      const chatProcessId = ProcessIdStub({ value: 'replay-no-quests-dir' });
+      const guild = GuildStub({ id: guildId });
+      const questsPath = FilePathStub({
+        value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
+      });
+
+      proxy.setupQuestsPath({
+        homeDir: '/home/testuser',
+        homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
+        questsPath,
+      });
+      proxy.setupQuestDirectoriesFailure({ error: FileMissingErrorStub({ path: questsPath }) });
+      proxy.setupGuild({
+        config: GuildConfigStub({ guilds: [guild] }),
+        sessionId,
+        homeDir: '/home/testuser',
+      });
+      proxy.setupMainSession({ content: '' });
+      proxy.setupSubagentDirMissing();
+
+      await proxy.callResponder({ sessionId, guildId, chatProcessId });
+
+      expect(eventCapture.getEmittedEvents()).toStrictEqual([
+        {
+          type: 'chat-history-complete',
+          processId: chatProcessId,
+          payload: { chatProcessId, sessionId },
+        },
+      ]);
+    });
+
+    it('ERROR: {quests directory unreadable (EACCES)} => rejects with the original error and emits nothing', async () => {
+      const proxy = ChatReplayResponderProxy();
+      const eventCapture = proxy.setupEventCapture();
+      const sessionId = SessionIdStub({ value: 'session-quests-dir-denied' });
+      const guildId = GuildIdStub();
+      const chatProcessId = ProcessIdStub({ value: 'replay-quests-dir-denied' });
+      const questsPath = FilePathStub({
+        value: `/home/testuser/.dungeonmaster/guilds/${guildId}/quests`,
+      });
+
+      proxy.setupQuestsPath({
+        homeDir: '/home/testuser',
+        homePath: FilePathStub({ value: '/home/testuser/.dungeonmaster' }),
+        questsPath,
+      });
+      proxy.setupQuestDirectoriesFailure({
+        error: FsErrorStub({ code: 'EACCES', syscall: 'scandir', path: questsPath }),
+      });
+
+      await expect(proxy.callResponder({ sessionId, guildId, chatProcessId })).rejects.toThrow(
+        `EACCES: scandir '${questsPath}'`,
+      );
+      expect(eventCapture.getEmittedEvents()).toStrictEqual([]);
     });
   });
 

@@ -1,3 +1,4 @@
+import { isFsErrorProxy } from '#gateway/node/fs/is-fs-error/is-fs-error.proxy';
 import type { GuildListItem } from '@dungeonmaster/shared/contracts';
 import type { QuestStub } from '@dungeonmaster/shared/contracts/quest/quest.stub';
 
@@ -12,7 +13,9 @@ export const questActiveQuestsBrokerProxy = (): {
     questsByGuildId: readonly { guildId: GuildListItem['id']; quests: readonly Quest[] }[];
   }) => void;
   setupNoGuilds: () => void;
+  setupFirstGuildListFailure: (params: { error: Error }) => void;
 } => {
+  isFsErrorProxy();
   const guildListProxy = guildListBrokerProxy();
   const questListProxy = questListBrokerProxy();
 
@@ -31,6 +34,10 @@ export const questActiveQuestsBrokerProxy = (): {
     },
     setupNoGuilds: (): void => {
       guildListProxy.setupDirectListing({ items: [] });
+    },
+    // Consumed by the first questListBroker call, which is the first valid guild's.
+    setupFirstGuildListFailure: ({ error }: { error: Error }): void => {
+      questListProxy.setupDirectListFailure({ error });
     },
   };
 };

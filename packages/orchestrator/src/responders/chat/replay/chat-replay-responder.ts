@@ -7,7 +7,8 @@
  */
 
 import { randomUUID } from '#gateway/node/crypto';
-import type { GuildId, ProcessId, SessionId } from '@dungeonmaster/shared/contracts';
+import { isFsError } from '#gateway/node/fs';
+import type { GuildId, ProcessId, Quest, SessionId } from '@dungeonmaster/shared/contracts';
 import { processIdContract } from '@dungeonmaster/shared/contracts';
 
 import { chatHistoryReplayBroker } from '../../../brokers/chat/history-replay/chat-history-replay-broker';
@@ -34,25 +35,33 @@ export const ChatReplayResponder = async ({
   //
   // `sessionId` alone identifies the work item: every dispatched session (Node child, chat
   // role) is its own dedicated top-level session, so no two work items on a quest share one.
-  const linked = await (async (): Promise<LinkedQuestInfo | null> => {
+  //
+  // Only a guild with no quests directory yet (ENOENT) reads as "no quests". Any other lookup
+  // failure rejects, and so does a linked-quest value that fails its contract: a replay that
+  // silently downgrades a linked session to an orphan hides a broken quest from the operator.
+  const quests = await (async (): Promise<Quest[]> => {
     try {
-      const quests = await questListBroker({ guildId });
-      const linkedQuest = quests.find((quest) =>
-        quest.workItems.some((wi) => wi.sessionId === sessionId),
-      );
-      if (linkedQuest === undefined) {
-        return null;
+      return await questListBroker({ guildId });
+    } catch (error: unknown) {
+      if (isFsError({ error, code: 'ENOENT' })) {
+        return [];
       }
-      const matchedWorkItem = linkedQuest.workItems.find((wi) => wi.sessionId === sessionId);
-      return linkedQuestInfoContract.parse({
-        questId: linkedQuest.id,
-        ...(matchedWorkItem ? { workItemId: matchedWorkItem.id, role: matchedWorkItem.role } : {}),
-      });
-    } catch {
-      // Quest lookup failure should not block history replay
-      return null;
+      throw error;
     }
   })();
+  const linkedQuest = quests.find((quest) =>
+    quest.workItems.some((wi) => wi.sessionId === sessionId),
+  );
+  const matchedWorkItem = linkedQuest?.workItems.find((wi) => wi.sessionId === sessionId);
+  const linked: LinkedQuestInfo | null =
+    linkedQuest === undefined
+      ? null
+      : linkedQuestInfoContract.parse({
+          questId: linkedQuest.id,
+          ...(matchedWorkItem
+            ? { workItemId: matchedWorkItem.id, role: matchedWorkItem.role }
+            : {}),
+        });
 
   // Build the routing fragment once. Linked sessions stamp questId/workItemId on every
   // payload; orphan sessions leave them off so the server can route to the requesting

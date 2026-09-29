@@ -1,4 +1,5 @@
 import { randomUUID } from '#gateway/node/crypto';
+import { isFsErrorProxy } from '#gateway/node/fs/is-fs-error/is-fs-error.proxy';
 import type { OrchestrationEventType, ProcessId } from '@dungeonmaster/shared/contracts';
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 
@@ -25,6 +26,9 @@ export const ChatReplayResponderProxy = (): {
   >['setupSubagentDirMissing'];
   setupQuestsPath: ReturnType<typeof questListBrokerProxy>['setupQuestsPath'];
   setupQuestDirectories: ReturnType<typeof questListBrokerProxy>['setupQuestDirectories'];
+  setupQuestDirectoriesFailure: ReturnType<
+    typeof questListBrokerProxy
+  >['setupQuestDirectoriesFailure'];
   setupQuestFilePath: ReturnType<typeof questListBrokerProxy>['setupQuestFilePath'];
   setupQuestFile: ReturnType<typeof questListBrokerProxy>['setupQuestFile'];
   setupQuestSession: ReturnType<typeof chatHistoryReplayBrokerProxy>['setupQuestSession'];
@@ -41,6 +45,7 @@ export const ChatReplayResponderProxy = (): {
     }[];
   };
 } => {
+  isFsErrorProxy();
   const historyProxy = chatHistoryReplayBrokerProxy();
   const questListProxy = questListBrokerProxy();
   orchestrationEventsStateProxy();
@@ -56,6 +61,7 @@ export const ChatReplayResponderProxy = (): {
     setupSubagentDirMissing: historyProxy.setupSubagentDirMissing,
     setupQuestsPath: questListProxy.setupQuestsPath,
     setupQuestDirectories: questListProxy.setupQuestDirectories,
+    setupQuestDirectoriesFailure: questListProxy.setupQuestDirectoriesFailure,
     setupQuestFilePath: questListProxy.setupQuestFilePath,
     setupQuestFile: questListProxy.setupQuestFile,
     setupQuestSession: historyProxy.setupQuestSession,

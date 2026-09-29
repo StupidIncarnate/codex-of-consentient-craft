@@ -7,14 +7,16 @@
  * and the dispatcher share: `/queue` (ExecutionQueueGetAllResponder) renders the whole array, and
  * `questGetNextStepBroker` dispatches the head. There is no in-memory or JSON-file queue — every
  * call re-reads the quest JSONs on disk, so a quest that started (or a higher-priority one that just
- * arrived) is judged fresh on the next pass, not from a stale cached list. Per-guild load failures
- * are isolated so one broken guild can't blank the scan.
+ * arrived) is judged fresh on the next pass, not from a stale cached list. A guild whose quests
+ * directory does not exist yet contributes nothing; every other failure rejects the scan.
  *
  * USAGE:
  * const entries = await questActiveQuestsBroker();
  * // Returns: ActiveQuestEntry[] — FIFO by quest.createdAt (head first). Empty when nothing runs.
  */
 
+import { isFsError } from '#gateway/node/fs';
+import type { Quest } from '@dungeonmaster/shared/contracts';
 import {
   isAnyAgentRunningQuestStatusGuard,
   isUserPausedQuestStatusGuard,
@@ -32,19 +34,27 @@ export const questActiveQuestsBroker = async (): Promise<ActiveQuestEntry[]> => 
     guilds
       .filter((g) => g.valid)
       .map(async (g): Promise<ActiveQuestEntry[]> => {
-        try {
-          const quests = await questListBroker({ guildId: g.id });
-          const guildSlug = g.urlSlug ?? nameToUrlSlugTransformer({ name: g.name });
-          return quests
-            .filter(
-              (q) =>
-                isAnyAgentRunningQuestStatusGuard({ status: q.status }) ||
-                isUserPausedQuestStatusGuard({ status: q.status }),
-            )
-            .map((quest) => activeQuestEntryContract.parse({ quest, guildId: g.id, guildSlug }));
-        } catch {
-          return [] as ActiveQuestEntry[];
-        }
+        // Only a guild with no quests directory yet (ENOENT) contributes nothing. Any other
+        // failure rejects the scan, and so does an entry that fails its contract: dropping a
+        // guild's active quests on an unreadable directory leaves the dispatcher idle over them.
+        const quests = await (async (): Promise<Quest[]> => {
+          try {
+            return await questListBroker({ guildId: g.id });
+          } catch (error: unknown) {
+            if (isFsError({ error, code: 'ENOENT' })) {
+              return [];
+            }
+            throw error;
+          }
+        })();
+        const guildSlug = g.urlSlug ?? nameToUrlSlugTransformer({ name: g.name });
+        return quests
+          .filter(
+            (q) =>
+              isAnyAgentRunningQuestStatusGuard({ status: q.status }) ||
+              isUserPausedQuestStatusGuard({ status: q.status }),
+          )
+          .map((quest) => activeQuestEntryContract.parse({ quest, guildId: g.id, guildSlug }));
       }),
   );
 
