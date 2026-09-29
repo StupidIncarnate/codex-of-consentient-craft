@@ -1,0 +1,157 @@
+Leftovers for hand (90), grouped by reason. Each row: package  file:line  kind name  type
+
+## mixed-data-and-functions (20)
+orchestrator  packages/orchestrator/src/brokers/agent/launch/agent-launch-broker.ts:122  return agentLaunchBroker  { processId: ProcessId; handle: ReturnType<typeof chatStreamProcessHandleBroker>; kill: () => void; sessionId$: Promise<SessionId | null>; }
+orchestrator  packages/orchestrator/src/brokers/agent/spawn-unified/agent-spawn-unified-broker.ts:60  return agentSpawnUnifiedBroker  { kill: () => void; sessionId$: Promise<SessionId | null>; pid: ProcessPid | undefined }
+orchestrator  packages/orchestrator/src/brokers/chat/stream-process-handle/chat-stream-process-handle-broker.ts:67  return chatStreamProcessHandleBroker  { onLine: (params: { rawLine: string }) => void; stop: () => void; initialDrains: () => Promise<void>; // The shared processor instance — ex
+orchestrator  packages/orchestrator/src/brokers/chat/subagent-tail/chat-subagent-tail-broker.ts:57  return chatSubagentTailBroker  Promise<{ stop: () => void; initialDrain: Promise<void> }>
+orchestrator  packages/orchestrator/src/responders/execution-queue/sync-listener-bootstrap/execution-queue-sync-listener-bootstrap-responder.ts:28  variable state  { installed: { stop: () => void } | null; installing: boolean }
+orchestrator  packages/orchestrator/src/responders/smoketest/bootstrap-listener/smoketest-bootstrap-listener-responder.ts:29  variable state  { installed: { stop: () => void } | null; installing: boolean }
+orchestrator  packages/orchestrator/src/state/rate-limits-bootstrap/rate-limits-bootstrap-state.ts:10  variable state  { handle: { stop: () => void } | null }
+server  packages/server/src/flows/quest-driven-watchers/quest-driven-watchers-flow.ts:15  variable state  { handle: { stop: () => void } | null }
+testing  packages/testing/src/middleware/child-process-mock/child-process-mock-middleware.ts:28  alias MockChildProcessInstance  EventEmitter & { stdout: EventEmitter; stderr: EventEmitter; stdin: { write: ReturnType<typeof gatewayFn>; end: ReturnType<typeof gatewayFn>
+testing  packages/testing/src/middleware/child-process-mock/child-process-mock-middleware.ts:39  return childProcessMockMiddleware  { mockSpawn: ({ behavior }: { behavior: MockProcessBehavior }) => { restore: () => void; }; presets: { success: (params: { stdout?: MockSpaw
+web  packages/web/src/bindings/use-agent-output/use-agent-output-binding.ts:14  return useAgentOutputBinding  { slotEntries: Map<SlotIndex, ChatEntry[]>; handleAgentOutput: (params: { slotIndex: SlotIndex; entries: ChatEntry[] }) => void; clearOutput
+web  packages/web/src/bindings/use-auto-scroll/use-auto-scroll-binding.ts:20  return useAutoScrollBinding  { scrollContainerProps: { ref: React.RefObject<HTMLDivElement | null>; onScroll: (event: React.UIEvent<HTMLDivElement>) => void; }; contentR
+web  packages/web/src/bindings/use-comment-queue/use-comment-queue-binding.ts:26  return useCommentQueueBinding  { entries: CommentQueueEntry[]; entryFor: (params: { anchor: CommentAnchor }) => CommentQueueEntry | undefined; queueComment: (params: { anc
+web  packages/web/src/bindings/use-directory-browser/use-directory-browser-binding.ts:16  return useDirectoryBrowserBinding  { currentPath: GuildPath | null; entries: DirectoryEntry[]; loading: boolean; navigateTo: (params: { path: GuildPath }) => void; goUp: () =>
+web  packages/web/src/bindings/use-guild-detail/use-guild-detail-binding.ts:20  return useGuildDetailBinding  { data: Guild | null; loading: boolean; error: Error | null; refresh: () => Promise<void>; }
+web  packages/web/src/bindings/use-guilds/use-guilds-binding.ts:16  return useGuildsBinding  { guilds: GuildListItem[]; loading: boolean; error: Error | null; refresh: () => Promise<void>; }
+web  packages/web/src/bindings/use-quest-chat/use-quest-chat-binding.ts:75  return useQuestChatBinding  { entriesBySession: Map<SessionId, ChatEntry[]>; entriesByWorkItem: Map<QuestWorkItemId, ChatEntry[]>; slotEntries: Map<SlotIndex, ChatEntry
+web  packages/web/src/bindings/use-quests/use-quests-binding.ts:23  return useQuestsBinding  { data: QuestListItem[]; skipped: SkippedQuestFile[]; loading: boolean; error: Error | null; refresh: () => Promise<void>; }
+web  packages/web/src/bindings/use-session-list/use-session-list-binding.ts:20  return useSessionListBinding  { data: SessionListItem[]; loading: boolean; error: Error | null; refresh: () => Promise<void>; }
+web  packages/web/src/bindings/use-ward-detail/use-ward-detail-binding.ts:34  return useWardDetailBinding  { detail: unknown; loading: boolean; requestDetail: ({ wardResultId }: { wardResultId: WardResultId }) => void; }
+
+## gate (16)
+eslint-plugin  packages/eslint-plugin/src/brokers/rule/gateway-dependency-declared/find-nearest-package-json-layer-broker.ts:25  typearg nearestPackageJsonCache  { packageJsonPath: FilePath; packageJson: GatewayConsumerPackageJson }
+      packages/eslint-plugin/src/brokers/rule/gateway-dependency-declared/find-nearest-package-json-layer-broker.ts:42 TS2322: Type '{ packageJsonPath: ((string & $brand<"AbsoluteFilePath">) | (string & $br
+eslint-plugin  packages/eslint-plugin/src/brokers/rule/gateway-dependency-declared/find-nearest-package-json-layer-broker.ts:32  return findNearestPackageJsonLayerBroker  { packageJsonPath: FilePath; packageJson: GatewayConsumerPackageJson } | undefined
+      packages/eslint-plugin/src/brokers/rule/gateway-dependency-declared/find-nearest-package-json-layer-broker.ts:42 TS2322: Type '{ packageJsonPath: ((string & $brand<"AbsoluteFilePath">) | (string & $br
+orchestrator  packages/orchestrator/src/brokers/quest/create/quest-create-broker.ts:55  return questCreateBroker  Promise<{ questFilePath: FilePath; questFolderPath: FilePath }>
+      packages/orchestrator/src/brokers/quest/user-add/quest-user-add-broker.proxy.ts:29 TS2345: Argument of type '{ questFilePath: ((string & $brand<"AbsoluteFilePath">) | (string & $brand<"RelativeFilePat
+orchestrator  packages/orchestrator/src/brokers/quest/find-quest-path/match-candidates-layer-broker.ts:44  return matchCandidatesLayerBroker  Promise<{ questPath: AbsoluteFilePath; guildId: GuildId } | null>
+      packages/orchestrator/src/brokers/quest/find-quest-path/match-candidates-layer-broker.ts:61 TS2322: Type '{ questPath: string & $brand<"AbsoluteFilePath">; guildId: string & $brand<"GuildId">; } | nul
+orchestrator  packages/orchestrator/src/brokers/quest/hydrate/quest-hydrate-broker.ts:70  return questHydrateBroker  Promise<{ questId: QuestId }>
+      packages/orchestrator/src/brokers/quest/hydrate/quest-hydrate-broker.proxy.ts:48 TS2345: Argument of type '{ questId: string & $brand<"QuestId">; }' is not assignable to parameter of type '({ questId:
+orchestrator  packages/orchestrator/src/brokers/quest/operations-update/quest-operations-update-broker.ts:72  return questOperationsUpdateBroker  Promise<{ quest: Quest } | null>
+      packages/orchestrator/src/brokers/agent-prompt/get/agent-prompt-get-broker.proxy.ts:100 TS2345: Argument of type '({ update }: { questId: string & $brand<"QuestId">; update: (params: { quest: { id: st
+orchestrator  packages/orchestrator/src/brokers/worktree/verify-links/walk-symlinks-layer-broker.ts:32  alias WorktreeLinkAudit  Readonly<{ linkPath: AbsoluteFilePath; storedTarget: FilePath; resolvedTarget: AbsoluteFilePath; relative: boolean; inside: boolean; }>
+      packages/orchestrator/src/brokers/worktree/verify-links/walk-symlinks-layer-broker.ts:62 TS2322: Type '{ linkPath: string & $brand<"AbsoluteFilePath">; storedTarget: ((string & $brand<"AbsoluteFilePat
+orchestrator  packages/orchestrator/src/responders/chat/start/chat-start-responder.ts:58  return ChatStartResponder  Promise<{ chatProcessId: ProcessId; questId?: QuestId }>
+      packages/orchestrator/src/startup/start-orchestrator.ts:297 TS2375: Type '{ chatProcessId: string & $brand<"ProcessId">; questId?: (string & $brand<"QuestId">) | undefined; } & $brand<"ChatStartResult
+orchestrator  packages/orchestrator/src/responders/quest/get-blight-checklist/quest-get-blight-checklist-responder.ts:29  alias QuestGetBlightChecklistResponderResult  | { readonly success: true; readonly data: ContentText } | { readonly success: false; readonly error: ErrorMessage }
+      packages/mcp/src/responders/quest/handle/blight-checklist-layer-responder.test.ts:14 TS2322: Type '{ success: true; data: string & $brand<"ContentText">; }' is not assignable to type '({ success: true
+orchestrator  packages/orchestrator/src/responders/quest/get-planning-notes/quest-get-planning-notes-responder.ts:17  alias QuestGetPlanningNotesResponderResult  | { readonly success: true; readonly data: PlanningNotes } | { readonly success: false; readonly error: ErrorMessage }
+      packages/mcp/src/responders/quest/handle/quest-handle-responder.test.ts:1014 TS2322: Type '{ success: true; data: { blightLedger: never[]; questNotes: never[]; operationPlans: never[]; }; }' is not as
+orchestrator  packages/orchestrator/src/responders/smoketest/run/enqueue-bundled-suite-layer-responder.ts:43  return EnqueueBundledSuiteLayerResponder  Promise<{ questId: QuestId; guildSlug: UrlSlug } | null>
+      packages/orchestrator/src/responders/smoketest/run/enqueue-bundled-suite-layer-responder.proxy.ts:62 TS2345: Argument of type '{ questId: string & $brand<"QuestId">; guildSlug: string & $brand<"UrlSlu
+orchestrator  packages/orchestrator/src/responders/smoketest/run/enqueue-orchestration-scenario-layer-responder.ts:48  return EnqueueOrchestrationScenarioLayerResponder  Promise<{ questId: QuestId; guildSlug: UrlSlug }>
+      packages/orchestrator/src/responders/smoketest/run/enqueue-orchestration-scenario-layer-responder.proxy.ts:58 TS2345: Argument of type '{ questId: string & $brand<"QuestId">; guildSlug: string & $bran
+orchestrator  packages/orchestrator/src/responders/worktree/create/worktree-create-responder.ts:39  return WorktreeCreateResponder  Promise<{ worktreePath: AbsoluteFilePath }>
+      packages/mcp/src/responders/quest/handle/create-worktree-layer-responder.test.ts:14 TS2322: Type '{ worktreePath: string & $brand<"AbsoluteFilePath">; }' is not assignable to type '{ worktreePath: str
+server  packages/server/src/state/session-summary-cache/session-summary-cache-state.ts:14  typearg cache  { mtimeMs: MtimeMs; summary: SessionSummary | undefined }
+      packages/server/src/state/session-summary-cache/session-summary-cache-state.ts:41 TS2345: Argument of type '{ mtimeMs: number & $brand<"MtimeMs">; summary: (string & $brand<"SessionSummary">) | undefi
+ward  packages/ward/src/brokers/platform-crossing/check/resolve-specifier-cached-layer-broker.ts:44  return resolveSpecifierCachedLayerBroker  Promise<{ filePath: FilePath; content: FileContents } | undefined>
+      packages/ward/src/brokers/platform-crossing/check/resolve-specifier-cached-layer-broker.ts:51 TS2322: Type '{ filePath: ((string & $brand<"AbsoluteFilePath">) | (string & $brand<"RelativeFilePath">)) 
+ward  packages/ward/src/brokers/platform-crossing/check/resolve-specifier-layer-broker.ts:39  return resolveSpecifierLayerBroker  Promise<{ filePath: FilePath; content: FileContents } | undefined>
+      packages/ward/src/brokers/platform-crossing/check/resolve-specifier-layer-broker.ts:48 TS2719: Type '({ filePath: ((string & import("/home/brutus-home/projects/codex-of-consentient-craft/worktrees/gat
+
+## one-fact-boolean (return the boolean (15)
+cli  packages/cli/src/brokers/rate-limits/snapshot-write/rate-limits-snapshot-write-broker.ts:29  return rateLimitsSnapshotWriteBroker  Promise<{ written: boolean }>
+hydration-recipes  packages/hydration-recipes/src/brokers/quest/remove-route/quest-remove-route-broker.ts:39  return questRemoveRouteBroker  Promise<{ deleted: boolean }>
+orchestrator  packages/orchestrator/src/brokers/quest/block-on-failure/quest-block-on-failure-broker.ts:54  return questBlockOnFailureBroker  Promise<{ blocked: boolean }>
+orchestrator  packages/orchestrator/src/brokers/quest/get-next-step/block-on-missing-worktree-layer-broker.ts:31  return blockOnMissingWorktreeLayerBroker  Promise<{ blocked: boolean }>
+orchestrator  packages/orchestrator/src/brokers/quest/node-dispatch-loop/pre-stamp-in-progress-layer-broker.ts:40  return preStampInProgressLayerBroker  Promise<{ stamped: boolean }>
+orchestrator  packages/orchestrator/src/brokers/quest/pause/quest-pause-broker.ts:81  return questPauseBroker  Promise<{ paused: boolean }>
+orchestrator  packages/orchestrator/src/responders/followup-chat/stop/followup-chat-stop-responder.ts:33  return FollowupChatStopResponder  Promise<{ stopped: boolean }>
+orchestrator  packages/orchestrator/src/responders/orchestration/abandon/orchestration-abandon-responder.ts:22  return OrchestrationAbandonResponder  Promise<{ abandoned: boolean }>
+orchestrator  packages/orchestrator/src/responders/orchestration/delete/orchestration-delete-responder.ts:26  return OrchestrationDeleteResponder  Promise<{ deleted: boolean }>
+orchestrator  packages/orchestrator/src/responders/orchestration/merge/orchestration-merge-responder.ts:42  return OrchestrationMergeResponder  Promise<{ merging: boolean }>
+orchestrator  packages/orchestrator/src/responders/orchestration/pause/orchestration-pause-responder.ts:22  return OrchestrationPauseResponder  Promise<{ paused: boolean }>
+siegelense  packages/siegelense/src/brokers/cleanup/run/lock-release-layer-broker.ts:30  return lockReleaseLayerBroker  Promise<{ lockReleased: boolean }>
+siegelense  packages/siegelense/src/brokers/process/kill-group/process-kill-group-broker.ts:28  return processKillGroupBroker  { signalSent: boolean }
+siegelense  packages/siegelense/src/brokers/step/reset/reset-clear-storage-layer-broker.ts:21  return resetClearStorageLayerBroker  Promise<{ cleared: boolean }>
+web  packages/web/src/transformers/compute-scroll-capture/compute-scroll-capture-transformer.ts:26  return computeScrollCaptureTransformer  { isCapturing: boolean }
+
+## always-true-single-fact (B18 split b / R1 (7)
+cli  packages/cli/src/brokers/rate-limits/history-append/rate-limits-history-append-broker.ts:24  return rateLimitsHistoryAppendBroker  Promise<{ appended: true }>
+orchestrator  packages/orchestrator/src/brokers/quest/delete/quest-delete-broker.ts:24  return questDeleteBroker  Promise<{ success: true }>
+orchestrator  packages/orchestrator/src/brokers/smoketest/scenario-driver/smoketest-sweep-pending-work-items-layer-broker.ts:43  return smoketestSweepPendingWorkItemsLayerBroker  Promise<{ success: true }>
+orchestrator  packages/orchestrator/src/brokers/smoketest/sign-outstanding-units/smoketest-sign-outstanding-units-broker.ts:57  return smoketestSignOutstandingUnitsBroker  Promise<{ success: true }>
+orchestrator  packages/orchestrator/src/brokers/smoketest/stamp-override/smoketest-stamp-override-broker.ts:41  return smoketestStampOverrideBroker  Promise<{ success: true }>
+orchestrator  packages/orchestrator/src/brokers/smoketest/teardown-quest/smoketest-teardown-quest-broker.ts:25  return smoketestTeardownQuestBroker  Promise<{ success: true }>
+web  packages/web/src/brokers/quest/human-verdict/quest-human-verdict-broker.ts:29  return questHumanVerdictBroker  Promise<{ ok: true }>
+
+## unknown/any (6)
+orchestrator  packages/orchestrator/src/brokers/quest/modify/resolve-package-entry-facts-layer-broker.ts:45  return resolvePackageEntryFactsLayerBroker  Promise<{ existingLocations: Set<unknown>; dependentsByPackage: Map<unknown, unknown[]>; stampedEntries: QuestPackageEntry[]; }>
+orchestrator  packages/orchestrator/src/responders/smoketest/state/smoketest-state-responder.ts:12  return SmoketestStateResponder  { active: ActiveSmoketestRun | null; events: readonly unknown[]; }
+orchestrator  packages/orchestrator/src/state/smoketest-run/smoketest-run-state.ts:23  variable state  { active: ActiveSmoketestRun | null; events: readonly unknown[]; }
+shared  packages/shared/src/transformers/safe-json-parse/safe-json-parse-transformer.ts:9  alias SafeJsonParseResult  { ok: true; value: unknown } | { ok: false }
+shared  packages/shared/src/transformers/safe-xml-parse/safe-xml-parse-transformer.ts:12  alias SafeXmlParseResult  { ok: true; value: unknown } | { ok: false }
+siegelense  packages/siegelense/src/brokers/driver/handle-request/driver-handle-request-broker.ts:39  alias PayloadParseOutcome  { success: true; value: unknown } | { success: false; error: unknown }
+
+## kind:TypeQuery (3)
+eslint-plugin  packages/eslint-plugin/src/brokers/config/dungeonmaster/config-dungeonmaster-broker.ts:60  return configDungeonmasterBroker  { typescript: EslintConfig; test: EslintConfig; gateway: EslintConfig; fileOverrides: EslintConfig[]; ruleEnforceOn: typeof dungeonmasterRul
+orchestrator  packages/orchestrator/src/brokers/worktree/provision/worktree-provision-broker.ts:39  alias WorktreeProvisionResult  | { ok: true } | { ok: false; failedStep: typeof STEPS.nodeModules | typeof STEPS.seedDist | typeof STEPS.verifyLinks; error: Error; }
+server  packages/server/src/responders/image/serve/image-serve-responder.ts:25  return ImageServeResponder  Promise<{ status: typeof httpStatusStatics.success.ok | typeof httpStatusStatics.clientError.notFound; bytes: Uint8Array; contentType: Image
+
+## type-ref:EslintRule (2)
+eslint-plugin  packages/eslint-plugin/src/responders/eslint-plugin/create/eslint-plugin-create-responder.ts:92  return EslintPluginCreateResponder  { readonly rules: { readonly 'ban-adhoc-types': EslintRule; readonly 'ban-primitives': EslintRule; readonly 'enforce-contract-usage-in-tests
+local-eslint  packages/local-eslint/src/responders/local-eslint/create/local-eslint-create-responder.ts:19  return LocalEslintCreateResponder  { readonly rules: { readonly 'ban-quest-status-literals': EslintRule; readonly 'no-bare-location-literals': EslintRule; readonly 'no-hardcod
+
+## type-ref:PropertyKey (2)
+hooks  packages/hooks/src/transformers/rule-display-config-extract/rule-display-config-extract-transformer.ts:16  return ruleDisplayConfigExtractTransformer  { displayName?: PropertyKey; message?: PropertyKey | ((hookData: unknown) => PropertyKey) }
+orchestrator  packages/orchestrator/src/guards/is-step-mintable-on-request/is-step-mintable-on-request-guard.ts:18  variable agentFlowGraphs  Readonly< Record< PropertyKey, | { steps: Readonly<Record<PropertyKey, { mintableOnRequest?: boolean } | undefined>> } | undefined > >
+
+## type-ref:ReturnType (2)
+orchestrator  packages/orchestrator/src/brokers/chat/spawn/chat-spawn-broker.ts:109  return chatSpawnBroker  Promise<{ chatProcessId: ProcessId; handle: ReturnType<typeof chatStreamProcessHandleBroker>; }>
+web  packages/web/src/state/web-socket-channel/web-socket-channel-state.ts:50  variable internalState  { socket: WsConnection | null; url: WsUrl | null; isOpen: boolean; reconnectTimer: ReturnType<typeof setTimeout> | null; shouldReconnect: bo
+
+## kind:FunctionType (2)
+orchestrator  packages/orchestrator/src/state/orchestration-dispatch/orchestration-dispatch-state.ts:36  variable state  { isPlaying: boolean; hold: DispatchHold | null; handlers: Set<ChangeHandler>; }
+orchestrator  packages/orchestrator/src/state/quest-execution-queue/quest-execution-queue-state.ts:33  variable state  { entries: QuestQueueEntry[]; handlers: Set<ChangeHandler>; }
+
+## type-ref:PreToolUseHook (1)
+hooks  packages/hooks/src/transformers/dungeonmaster-hooks-creator/dungeonmaster-hooks-creator-transformer.ts:20  return dungeonmasterHooksCreatorTransformer  { PreToolUse: PreToolUseHook[]; PostToolUse: PostToolUseHook[]; SessionStart: SessionStartHook[]; SubagentStart: SessionStartHook[]; Subagen
+
+## type-ref:RecipeDescription (1)
+hydration-recipes  packages/hydration-recipes/src/brokers/recipes-listing/build/recipes-listing-build-broker.ts:20  return recipesListingBuildBroker  readonly { recipeName: RecipeName; description: RecipeDescription; inputKeys: readonly RecipeInputKey[]; runs: PlanRunsResult; makes: readon
+
+## type-ref:QuestWorkGit (1)
+orchestrator  packages/orchestrator/src/brokers/quest/get-quest-work/git-rows-layer-broker.ts:49  return gitRowsLayerBroker  Promise<{ git: QuestWorkGit; uncommittedPaths: RepoRelativePath[]; committedPaths: QuestWorkCommit[]; }>
+
+## type-ref:QuestWorkWard (1)
+orchestrator  packages/orchestrator/src/brokers/quest/get-quest-work/ward-rows-layer-broker.ts:51  return wardRowsLayerBroker  Promise<{ ward: QuestWorkWard | null; riftcarverLogPath: FilePath | null }>
+
+## type-ref:Exclude (1)
+orchestrator  packages/orchestrator/src/brokers/quest/work-record/quest-work-record-broker.ts:44  alias RecordPayload  Exclude<QuestWorkInput['payload'], { kind: 'plan' } | { kind: 'amendment' }>
+
+## kind:IndexedAccessType (1)
+orchestrator  packages/orchestrator/src/brokers/step-handler/riftcarver/step-handler-riftcarver-broker.ts:82  alias CarveResult  | { ok: true; branchName: QuestBranchName; baseBranch: BaseBranchName; worktreePath: AbsoluteFilePath; baseRef: NonNullable<Quest['baseRef']
+
+## type-ref:NodeDispatchRunnerController (1)
+orchestrator  packages/orchestrator/src/responders/orchestration-dispatch/bootstrap/orchestration-dispatch-bootstrap-responder.ts:31  variable state  { runner: NodeDispatchRunnerController | null; }
+
+## object-union-without-discriminant (1)
+orchestrator  packages/orchestrator/src/responders/quest/get-quest-work/quest-get-quest-work-responder.ts:37  alias QuestGetQuestWorkResult  | { readonly view: QuestWorkView; readonly planText: null } | { readonly view: null; readonly planText: ContentText }
+
+## type-ref:SmoketestListenerEntry (1)
+orchestrator  packages/orchestrator/src/state/smoketest-listener/smoketest-listener-state.ts:15  variable state  { entries: Map<QuestId, SmoketestListenerEntry> }
+
+## type-ref:ImageContentType (1)
+server  packages/server/src/brokers/image/serve/image-serve-broker.ts:36  return imageServeBroker  Promise<{ bytes: Uint8Array; contentType: ImageContentType } | null>
+
+## type-ref:WebBundleContentType (1)
+server  packages/server/src/brokers/web-bundle/response/web-bundle-response-broker.ts:32  return webBundleResponseBroker  Promise<{ body: FileContents; contentType: WebBundleContentType; status: typeof httpStatusStatics.success.ok | typeof httpStatusStatics.serv
+
+## alias-used-by-no-annotated-function (importers or parameters only) (1)
+shared  packages/shared/src/transformers/template-literals-strip/template-literals-strip-transformer.ts:33  alias StripContext  | { kind: 'template' } | { kind: 'interp'; openBraces: ContentText[]; stringQuote: null | "'" | '"' }
+
+## type-ref:Promise (1)
+ward  packages/ward/src/brokers/platform-crossing/check/resolve-specifier-cached-layer-broker.ts:29  alias ResolveSpecifierCache  Map< PlatformCrossingResolveCacheKey, Promise<{ filePath: FilePath; content: FileContents } | undefined> >
+
+## kind:TypeOperator (1)
+web  packages/web/src/transformers/execution-row-display-resolve/execution-row-display-resolve-transformer.ts:40  return executionRowDisplayResolveTransformer  { statusLabel: DisplayLabel; statusColor: keyof typeof emberDepthsThemeStatics.colors; roleColor: keyof typeof emberDepthsThemeStatics.color
+
+## type-ref:Extract (1)
+web  packages/web/src/transformers/merge-tool-entries/merge-tool-entries-transformer.ts:15  alias ToolResultEntry  Extract<ChatEntry, { type: 'tool_result' }>
