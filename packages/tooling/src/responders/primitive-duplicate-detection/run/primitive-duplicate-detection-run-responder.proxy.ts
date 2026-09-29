@@ -2,11 +2,9 @@ import { duplicateDetectionDetectBrokerProxy } from '../../../brokers/duplicate-
 import { PrimitiveDuplicateDetectionRunResponder } from './primitive-duplicate-detection-run-responder';
 import { AbsoluteFilePathStub } from '../../../contracts/absolute-file-path/absolute-file-path.stub';
 import { GlobPatternStub } from '../../../contracts/glob-pattern/glob-pattern.stub';
-import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { SourceCode } from '../../../contracts/source-code/source-code-contract';
 import type { GlobPattern } from '../../../contracts/glob-pattern/glob-pattern-contract';
 import type { AbsoluteFilePath } from '../../../contracts/absolute-file-path/absolute-file-path-contract';
-import { cwd } from '#gateway/node/process';
 import { stdoutProxy } from '#gateway/node/process/stdout/stdout.proxy';
 import { cwdProxy } from '#gateway/node/process/cwd/cwd.proxy';
 
@@ -22,13 +20,7 @@ export const PrimitiveDuplicateDetectionRunResponderProxy = (): {
   getDefaultCwd: () => AbsoluteFilePath;
 } => {
   const brokerProxy = duplicateDetectionDetectBrokerProxy();
-  // #gateway/node/process's own cwdProxy is empty — composed only to satisfy
-  // enforce-proxy-child-creation for the `cwd` import above. The real staging happens on the
-  // gateway's own `cwd` export directly, addressed by `[]` (its only honest address — it takes no
-  // arguments), so every scenario below runs on a fixed value instead of the real OS cwd.
-  cwdProxy();
-  const cwdHandle = registerMock({ fn: cwd });
-  cwdHandle.calledWith([]).returns(String(DEFAULT_CWD));
+  const cwdStage = cwdProxy();
 
   const stdoutHandle = stdoutProxy();
 
@@ -36,6 +28,7 @@ export const PrimitiveDuplicateDetectionRunResponderProxy = (): {
     callResponder: PrimitiveDuplicateDetectionRunResponder,
 
     setupNoDuplicates: ({ pattern = GlobPatternStub() }: { pattern?: GlobPattern } = {}): void => {
+      cwdStage.setupCwd({ value: String(DEFAULT_CWD) });
       brokerProxy.setupFiles({ pattern, files: [] });
     },
 
@@ -46,6 +39,7 @@ export const PrimitiveDuplicateDetectionRunResponderProxy = (): {
       sourceCode: SourceCode;
       pattern?: GlobPattern;
     }): void => {
+      cwdStage.setupCwd({ value: String(DEFAULT_CWD) });
       brokerProxy.setupFiles({
         pattern,
         files: [{ filePath: AbsoluteFilePathStub(), sourceCode }],
