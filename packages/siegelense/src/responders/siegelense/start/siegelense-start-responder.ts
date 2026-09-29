@@ -25,6 +25,11 @@
  * check, and `RecipeUnknownError` is the same wording a `run` batch's own `seed` step already uses
  * for the unknown-recipe case.
  *
+ * Before the boot it writes `servedBuildStaleReadBroker`'s warning to STDERR when a compiled folder
+ * the lane serves is behind the checkout — a `stack` lane's web is a build, not live source, so a
+ * change since that build is otherwise missing from the lane with nothing saying so. It only warns;
+ * nothing here builds.
+ *
  * USAGE:
  * await SiegelenseStartResponder({ specName: SpecNameStub(), questId: null, guildId: null, seed: null });
  * // Writes the human summary to stdout
@@ -39,7 +44,7 @@
  * // Same, but the driver it spawns serves the raised ceiling instead of driverStatics.idle.timeoutMs
  */
 
-import { adapterResultContract } from '@dungeonmaster/shared/contracts';
+import { adapterResultContract, contentTextContract } from '@dungeonmaster/shared/contracts';
 import type { AdapterResult, GuildId, QuestId, TimeoutMs } from '@dungeonmaster/shared/contracts';
 
 import type { RecipeName } from '../../../contracts/recipe-name/recipe-name-contract';
@@ -47,6 +52,7 @@ import type { RecipeName } from '../../../contracts/recipe-name/recipe-name-cont
 import { instanceStartBroker } from '../../../brokers/instance/start/instance-start-broker';
 import { questOwningGuildFindBroker } from '../../../brokers/quest/owning-guild-find/quest-owning-guild-find-broker';
 import { recipesReadBroker } from '../../../brokers/recipes/read/recipes-read-broker';
+import { servedBuildStaleReadBroker } from '../../../brokers/served-build/stale-read/served-build-stale-read-broker';
 import type { SpecName } from '../../../contracts/spec-name/spec-name-contract';
 import { RecipeUnknownError } from '../../../errors/recipe-unknown/recipe-unknown-error';
 import { SeedRecipeNeedsInputError } from '../../../errors/seed-recipe-needs-input/seed-recipe-needs-input-error';
@@ -91,6 +97,17 @@ export const SiegelenseStartResponder = async ({
         inputKeys: seedEntry.inputKeys,
       });
     }
+  }
+
+  // Stderr, never stdout: stdout stays the one document `start` promises. A check that throws is
+  // reported and the boot goes ahead — the warning is advice, and the lane is what was asked for.
+  const staleWarning = await servedBuildStaleReadBroker({ specName }).catch((error: unknown) =>
+    contentTextContract.parse(
+      `[siegelense start] the stale-build check failed, so nothing says whether this lane's compiled output is current: ${error instanceof Error ? error.message : String(error)}\n`,
+    ),
+  );
+  if (staleWarning.length > 0) {
+    process.stderr.write(staleWarning);
   }
 
   const manifest = await instanceStartBroker(
