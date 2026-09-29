@@ -12,8 +12,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const callerRepoRootSourceContract = z
-  .enum(['caller-cwd', 'server-cwd-fallback'])
-  .brand<'CallerRepoRootSource'>();
+export const callerRepoRootSourceContract = z.enum(['caller-cwd', 'server-cwd-fallback']);
 
 export type CallerRepoRootSource = z.infer<typeof callerRepoRootSourceContract>;

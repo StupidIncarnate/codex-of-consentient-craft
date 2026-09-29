@@ -11,8 +11,14 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const httpMethodContract = z
-  .enum(['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'])
-  .brand<'HttpMethod'>();
+export const httpMethodContract = z.enum([
+  'GET',
+  'POST',
+  'PUT',
+  'PATCH',
+  'DELETE',
+  'HEAD',
+  'OPTIONS',
+]);
 
 export type HttpMethod = z.infer<typeof httpMethodContract>;

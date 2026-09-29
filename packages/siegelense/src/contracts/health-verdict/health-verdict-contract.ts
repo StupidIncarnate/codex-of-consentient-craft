@@ -12,6 +12,6 @@ import { z } from '#gateway/npm/zod';
 
 import { healthStatics } from '../../statics/health/health-statics';
 
-export const healthVerdictContract = z.enum(healthStatics.verdicts.all).brand<'HealthVerdict'>();
+export const healthVerdictContract = z.enum(healthStatics.verdicts.all);
 
 export type HealthVerdict = z.infer<typeof healthVerdictContract>;

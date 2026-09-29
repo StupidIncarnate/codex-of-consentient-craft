@@ -66,7 +66,7 @@ export const callChainLinesRenderLayerBroker = ({
     const { entries, layers } = importsInFolderTypeFindLayerBroker({
       sourceFile,
       packageSrcPath,
-      folderType: String(folderType),
+      folderType,
     });
 
     for (const importedFile of entries) {

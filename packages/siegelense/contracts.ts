@@ -138,8 +138,6 @@ export * from './src/contracts/orphan-reading/orphan-reading.stub';
 export * from './src/contracts/status-answer/status-answer-contract';
 export * from './src/contracts/status-answer/status-answer.stub';
 
-
-
 export * from './src/contracts/pixel-count/pixel-count-contract';
 export * from './src/contracts/pixel-count/pixel-count.stub';
 
@@ -205,7 +203,6 @@ export * from './src/contracts/health-reading/health-reading.stub';
 
 export * from './src/contracts/http-method/http-method-contract';
 export * from './src/contracts/http-method/http-method.stub';
-
 
 export * from './src/contracts/step-file-path/step-file-path-contract';
 export * from './src/contracts/step-file-path/step-file-path.stub';

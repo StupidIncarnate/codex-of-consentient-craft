@@ -10,8 +10,6 @@ import { z } from '#gateway/npm/zod';
 
 import { pastedImageStatics } from '../../statics/pasted-image/pasted-image-statics';
 
-export const pastedImageMediaTypeContract = z
-  .enum(pastedImageStatics.allowedMediaTypes)
-  .brand<'PastedImageMediaType'>();
+export const pastedImageMediaTypeContract = z.enum(pastedImageStatics.allowedMediaTypes);
 
 export type PastedImageMediaType = z.infer<typeof pastedImageMediaTypeContract>;

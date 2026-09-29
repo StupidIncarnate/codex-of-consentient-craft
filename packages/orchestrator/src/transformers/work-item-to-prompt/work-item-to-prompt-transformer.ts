@@ -197,7 +197,7 @@ export const workItemToPromptTransformer = ({
   if (isWarpgate && quest.baseBranch !== undefined) {
     parts.push(
       contentTextContract.parse(''),
-      contentTextContract.parse(`Base branch: ${String(quest.baseBranch)}`),
+      contentTextContract.parse(`Base branch: ${quest.baseBranch}`),
     );
   }
 

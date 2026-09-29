@@ -19,8 +19,13 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const instanceStateContract = z
-  .enum(['alive', 'killed', 'dead', 'pruned', 'unknown', 'unusable'])
-  .brand<'InstanceState'>();
+export const instanceStateContract = z.enum([
+  'alive',
+  'killed',
+  'dead',
+  'pruned',
+  'unknown',
+  'unusable',
+]);
 
 export type InstanceState = z.infer<typeof instanceStateContract>;

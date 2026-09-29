@@ -13,6 +13,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const snapshotBoundaryContract = z.enum(['start', 'end']).brand<'SnapshotBoundary'>();
+export const snapshotBoundaryContract = z.enum(['start', 'end']);
 
 export type SnapshotBoundary = z.infer<typeof snapshotBoundaryContract>;

@@ -16,8 +16,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const shotOpenReasonContract = z
-  .enum(['blank', 'failed', 'start', 'end', 'changed'])
-  .brand<'ShotOpenReason'>();
+export const shotOpenReasonContract = z.enum(['blank', 'failed', 'start', 'end', 'changed']);
 
 export type ShotOpenReason = z.infer<typeof shotOpenReasonContract>;

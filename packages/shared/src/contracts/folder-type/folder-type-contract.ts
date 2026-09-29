@@ -22,6 +22,6 @@ if (firstType === undefined) {
   throw new Error('Unexpected: first folder type is undefined despite length check');
 }
 
-export const folderTypeContract = z.enum([firstType, ...restTypes]).brand<'FolderType'>();
+export const folderTypeContract = z.enum([firstType, ...restTypes]);
 
 export type FolderType = z.infer<typeof folderTypeContract>;

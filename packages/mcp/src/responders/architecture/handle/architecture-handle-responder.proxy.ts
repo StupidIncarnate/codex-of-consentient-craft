@@ -18,7 +18,6 @@ import { AbsoluteFilePathStub } from '@dungeonmaster/shared/contracts';
 import type {
   ContentText,
   FileContents,
-  FolderType,
   GlobPattern,
   PathSegment,
 } from '@dungeonmaster/shared/contracts';
@@ -115,7 +114,7 @@ export const ArchitectureHandleResponderProxy = (): {
       content: string;
     }): void => {
       folderConstraintsState.set({
-        folderType: folderType as FolderType,
+        folderType,
         content: ContentTextStub({ value: content }),
       });
     },

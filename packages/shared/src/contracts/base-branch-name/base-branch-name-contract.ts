@@ -12,8 +12,6 @@ import { z } from '#gateway/npm/zod';
 
 import { baseBranchStatics } from '../../statics/base-branch/base-branch-statics';
 
-export const baseBranchNameContract = z
-  .enum(baseBranchStatics.candidates)
-  .brand<'BaseBranchName'>();
+export const baseBranchNameContract = z.enum(baseBranchStatics.candidates);
 
 export type BaseBranchName = z.infer<typeof baseBranchNameContract>;

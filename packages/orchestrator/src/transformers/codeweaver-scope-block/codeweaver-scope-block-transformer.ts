@@ -132,7 +132,7 @@ export const codeweaverScopeBlockTransformer = ({
         String(entry.name) !== ownPackageText &&
         // A package the quest DELETES is no home for anything: it is gone once this lands.
         entry.changeType !== 'delete' &&
-        kinds.some((kind) => String(kind) === SHARED_HOME_KIND)
+        kinds.some((kind) => kind === SHARED_HOME_KIND)
       );
     })
     .map((entry) => ({

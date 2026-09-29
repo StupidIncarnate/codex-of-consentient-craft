@@ -84,7 +84,7 @@ export const keyRenderTransformer = ({ listing }: { listing: KeyListing }): Cont
       flags: row.flags
         .map((flag) => {
           const detail = Object.entries(row.flagDetail).find(([name]) => name === flag)?.[1];
-          return detail === undefined ? String(flag) : `${String(flag)} ${detail}`;
+          return detail === undefined ? flag : `${flag} ${detail}`;
         })
         .join(' '),
     };

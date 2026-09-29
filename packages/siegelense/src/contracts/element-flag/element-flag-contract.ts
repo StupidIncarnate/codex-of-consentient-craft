@@ -16,6 +16,6 @@ import { z } from '#gateway/npm/zod';
 
 import { keyStatics } from '../../statics/key/key-statics';
 
-export const elementFlagContract = z.enum(keyStatics.flags.all).brand<'ElementFlag'>();
+export const elementFlagContract = z.enum(keyStatics.flags.all);
 
 export type ElementFlag = z.infer<typeof elementFlagContract>;

@@ -362,7 +362,7 @@ export const resultsReadBroker = async ({
   }
 
   throw new UnknownResultKindError({
-    kind: String(query.kind),
+    kind: query.kind,
     known: [...resultsStatics.kinds.all],
   });
 };

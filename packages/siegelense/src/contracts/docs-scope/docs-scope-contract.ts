@@ -15,6 +15,6 @@ import { z } from '#gateway/npm/zod';
 
 import { siegelenseCallStatics } from '../../statics/siegelense-call/siegelense-call-statics';
 
-export const docsScopeContract = z.enum(siegelenseCallStatics.docs.scopes).brand<'DocsScope'>();
+export const docsScopeContract = z.enum(siegelenseCallStatics.docs.scopes);
 
 export type DocsScope = z.infer<typeof docsScopeContract>;

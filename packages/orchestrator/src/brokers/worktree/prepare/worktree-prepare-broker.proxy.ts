@@ -112,7 +112,7 @@ export const worktreePrepareBrokerProxy = (): {
     addProxy.setupCreateBranch({
       worktreePath: String(worktreePath),
       branchName: String(branchName),
-      baseBranch: String(baseBranch),
+      baseBranch,
       exitCode: 0,
       output: '',
     });
@@ -175,7 +175,7 @@ export const worktreePrepareBrokerProxy = (): {
       addProxy.setupCreateBranch({
         worktreePath: String(worktreePath),
         branchName: String(branchName),
-        baseBranch: String(baseBranch),
+        baseBranch,
         exitCode: 128,
         output,
       });

@@ -8,8 +8,9 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const toggleTestIdContract = z
-  .enum(['SUBAGENT_CHAIN_SHOW_EARLIER_TOGGLE', 'CHAT_LIST_SHOW_EARLIER_TOGGLE'])
-  .brand<'ToggleTestId'>();
+export const toggleTestIdContract = z.enum([
+  'SUBAGENT_CHAIN_SHOW_EARLIER_TOGGLE',
+  'CHAT_LIST_SHOW_EARLIER_TOGGLE',
+]);
 
 export type ToggleTestId = z.infer<typeof toggleTestIdContract>;

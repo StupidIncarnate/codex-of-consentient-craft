@@ -10,6 +10,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const platformContract = z.enum(['browser', 'node']).brand<'Platform'>();
+export const platformContract = z.enum(['browser', 'node']);
 
 export type Platform = z.infer<typeof platformContract>;

@@ -8,6 +8,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const chatLineSourceContract = z.enum(['session', 'subagent']).brand<'ChatLineSource'>();
+export const chatLineSourceContract = z.enum(['session', 'subagent']);
 
 export type ChatLineSource = z.infer<typeof chatLineSourceContract>;

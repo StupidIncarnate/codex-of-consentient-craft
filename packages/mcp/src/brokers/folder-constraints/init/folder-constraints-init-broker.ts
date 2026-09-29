@@ -30,10 +30,10 @@ export const folderConstraintsInitBroker = async (): Promise<{
         const filepath = pathSegmentContract.parse(resolve(constraintsDir, filename));
         const content = await readFile(filepath);
         const validated = contentTextContract.parse(`\n${content}`);
-        return { folderType: folderType as FolderType, content: validated, error: null };
+        return { folderType, content: validated, error: null };
       } catch (error: unknown) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        return { folderType: folderType as FolderType, content: null, error: errorMessage };
+        return { folderType, content: null, error: errorMessage };
       }
     }),
   );

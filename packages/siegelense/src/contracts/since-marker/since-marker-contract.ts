@@ -14,6 +14,6 @@ import { z } from '#gateway/npm/zod';
 
 import { resultsStatics } from '../../statics/results/results-statics';
 
-export const sinceMarkerContract = z.literal(resultsStatics.since.boot).brand<'SinceMarker'>();
+export const sinceMarkerContract = z.literal(resultsStatics.since.boot);
 
 export type SinceMarker = z.infer<typeof sinceMarkerContract>;

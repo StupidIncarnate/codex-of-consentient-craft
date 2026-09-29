@@ -12,6 +12,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const stepExpectationContract = z.enum(['ok', 'error']).brand<'StepExpectation'>();
+export const stepExpectationContract = z.enum(['ok', 'error']);
 
 export type StepExpectation = z.infer<typeof stepExpectationContract>;

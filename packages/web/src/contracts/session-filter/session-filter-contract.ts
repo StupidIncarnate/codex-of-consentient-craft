@@ -8,6 +8,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const sessionFilterContract = z.enum(['all', 'quests-only']).brand<'SessionFilter'>();
+export const sessionFilterContract = z.enum(['all', 'quests-only']);
 
 export type SessionFilter = z.infer<typeof sessionFilterContract>;

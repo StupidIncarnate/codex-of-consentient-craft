@@ -14,6 +14,6 @@ import { z } from '#gateway/npm/zod';
 
 import { machineStatics } from '../../statics/machine/machine-statics';
 
-export const monitoredMetricContract = z.enum(machineStatics.monitored).brand<'MonitoredMetric'>();
+export const monitoredMetricContract = z.enum(machineStatics.monitored);
 
 export type MonitoredMetric = z.infer<typeof monitoredMetricContract>;

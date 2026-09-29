@@ -25,6 +25,6 @@ if (!first) {
   throw new Error('Failed to extract first allowedImport value');
 }
 
-export const allowedImportContract = z.enum([first, ...rest]).brand<'AllowedImport'>();
+export const allowedImportContract = z.enum([first, ...rest]);
 
 export type AllowedImport = z.infer<typeof allowedImportContract>;

@@ -11,8 +11,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const iconButtonSizeContract = z
-  .enum(['xs', 'sm', 'md', 'lg', 'xl'])
-  .brand<'IconButtonSize'>();
+export const iconButtonSizeContract = z.enum(['xs', 'sm', 'md', 'lg', 'xl']);
 
 export type IconButtonSize = z.infer<typeof iconButtonSizeContract>;

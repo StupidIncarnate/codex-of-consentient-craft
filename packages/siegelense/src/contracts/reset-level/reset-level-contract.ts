@@ -9,6 +9,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const resetLevelContract = z.enum(['page', 'state', 'instance']).brand<'ResetLevel'>();
+export const resetLevelContract = z.enum(['page', 'state', 'instance']);
 
 export type ResetLevel = z.infer<typeof resetLevelContract>;

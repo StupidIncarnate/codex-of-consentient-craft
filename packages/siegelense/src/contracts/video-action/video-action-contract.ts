@@ -12,6 +12,6 @@ import { z } from '#gateway/npm/zod';
 
 import { videoStatics } from '../../statics/video/video-statics';
 
-export const videoActionContract = z.enum(videoStatics.actions).brand<'VideoAction'>();
+export const videoActionContract = z.enum(videoStatics.actions);
 
 export type VideoAction = z.infer<typeof videoActionContract>;

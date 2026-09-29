@@ -38,7 +38,7 @@ export const architectureFolderDetailBroker = ({
 
   // Now TypeScript knows folderType is a valid key - we can safely access it
   // The as keyof typeof is safe because we checked with isKeyOfGuard above
-  const rawConfig = folderConfigStatics[folderType as keyof typeof folderConfigStatics];
+  const rawConfig = folderConfigStatics[folderType];
 
   // Parse and validate config through contract - explicitly type to satisfy ESLint
   const config: FolderConfig = folderConfigContract.parse(rawConfig);

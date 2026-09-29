@@ -22,7 +22,7 @@ export const folderPurposeTransformer = ({
     return contentTextContract.parse('No purpose description available.');
   }
 
-  const config = folderConfigStatics[folderType as keyof typeof folderConfigStatics];
+  const config = folderConfigStatics[folderType];
 
   return contentTextContract.parse(config.meta.purpose);
 };

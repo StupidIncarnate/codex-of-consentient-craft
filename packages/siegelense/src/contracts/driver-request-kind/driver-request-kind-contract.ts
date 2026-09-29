@@ -14,8 +14,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const driverRequestKindContract = z
-  .enum(['ping', 'run', 'kill'])
-  .brand<'DriverRequestKind'>();
+export const driverRequestKindContract = z.enum(['ping', 'run', 'kill']);
 
 export type DriverRequestKind = z.infer<typeof driverRequestKindContract>;

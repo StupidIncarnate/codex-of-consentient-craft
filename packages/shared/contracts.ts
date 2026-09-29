@@ -310,7 +310,6 @@ export * from './src/contracts/session-list-item/session-list-item.stub';
 export * from './src/contracts/hex-color/hex-color-contract';
 export * from './src/contracts/hex-color/hex-color.stub';
 
-
 export * from './src/contracts/css-pixels/css-pixels-contract';
 export * from './src/contracts/css-pixels/css-pixels.stub';
 
@@ -677,7 +676,6 @@ export * from './src/contracts/thinking-block-param/thinking-block-param.stub';
 
 export * from './src/contracts/redacted-thinking-block-param/redacted-thinking-block-param-contract';
 export * from './src/contracts/redacted-thinking-block-param/redacted-thinking-block-param.stub';
-
 
 export * from './src/contracts/assistant-content-block-param/assistant-content-block-param-contract';
 export * from './src/contracts/assistant-content-block-param/assistant-content-block-param.stub';

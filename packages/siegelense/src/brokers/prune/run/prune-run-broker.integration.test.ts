@@ -339,9 +339,7 @@ describe('prune, against a real evidence tree', () => {
     });
 
     it('VALID: {--instance the neighbour, no quest at all} => the answer still names open-issue as unchecked, because that gap is permanent, not conditioned on quest ownership', () => {
-      expect(neighbourSweep?.unresolved.map((gap) => String(gap.kind))).toStrictEqual([
-        'open-issue',
-      ]);
+      expect(neighbourSweep?.unresolved.map((gap) => gap.kind)).toStrictEqual(['open-issue']);
     });
   });
 
@@ -396,7 +394,7 @@ describe('prune, against a real evidence tree', () => {
     });
 
     it('VALID: {a sweep touching a quest-owned instance} => the answer names open-issue as never checked, rather than reporting silence as "nothing cites this"', () => {
-      expect(fleetSweep?.unresolved.map((gap) => String(gap.kind))).toStrictEqual(['open-issue']);
+      expect(fleetSweep?.unresolved.map((gap) => gap.kind)).toStrictEqual(['open-issue']);
     });
   });
 

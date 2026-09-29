@@ -22,4 +22,4 @@ export const laneProcessPortResolveTransformer = ({
 }: {
   portRole: LaneProcess['portRole'];
   ports: PortPair;
-}): PortPair['api'] | null => (portRole === null ? null : ports[portRole as 'api' | 'web']);
+}): PortPair['api'] | null => (portRole === null ? null : ports[portRole]);

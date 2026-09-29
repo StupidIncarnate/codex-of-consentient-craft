@@ -14,6 +14,6 @@ import { z } from '#gateway/npm/zod';
 
 import { stepStatics } from '../../statics/step/step-statics';
 
-export const stepVerbContract = z.enum(stepStatics.verbs.all).brand<'StepVerb'>();
+export const stepVerbContract = z.enum(stepStatics.verbs.all);
 
 export type StepVerb = z.infer<typeof stepVerbContract>;

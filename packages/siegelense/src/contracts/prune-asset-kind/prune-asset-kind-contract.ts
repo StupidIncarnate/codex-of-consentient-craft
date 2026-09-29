@@ -14,8 +14,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const pruneAssetKindContract = z
-  .enum(['video', 'shot', 'transcript', 'log'])
-  .brand<'PruneAssetKind'>();
+export const pruneAssetKindContract = z.enum(['video', 'shot', 'transcript', 'log']);
 
 export type PruneAssetKind = z.infer<typeof pruneAssetKindContract>;

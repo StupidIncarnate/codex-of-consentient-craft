@@ -14,8 +14,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const citationKindContract = z
-  .enum(['verified-prelude', 'open-issue', 'walked-note'])
-  .brand<'CitationKind'>();
+export const citationKindContract = z.enum(['verified-prelude', 'open-issue', 'walked-note']);
 
 export type CitationKind = z.infer<typeof citationKindContract>;

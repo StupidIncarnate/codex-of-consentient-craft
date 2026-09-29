@@ -9,8 +9,6 @@
  */
 import { z } from '#gateway/npm/zod';
 
-export const digestCommandContract = z
-  .enum(['summary', 'buckets', 'gaps', 'coverage', 'quest'])
-  .brand<'DigestCommand'>();
+export const digestCommandContract = z.enum(['summary', 'buckets', 'gaps', 'coverage', 'quest']);
 
 export type DigestCommand = z.infer<typeof digestCommandContract>;

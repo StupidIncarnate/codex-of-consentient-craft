@@ -8,8 +8,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const buttonVariantContract = z
-  .enum(['primary', 'ghost', 'danger'])
-  .brand<'ButtonVariant'>();
+export const buttonVariantContract = z.enum(['primary', 'ghost', 'danger']);
 
 export type ButtonVariant = z.infer<typeof buttonVariantContract>;

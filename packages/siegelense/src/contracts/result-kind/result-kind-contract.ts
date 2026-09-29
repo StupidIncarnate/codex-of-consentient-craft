@@ -14,6 +14,6 @@ import { z } from '#gateway/npm/zod';
 
 import { resultsStatics } from '../../statics/results/results-statics';
 
-export const resultKindContract = z.enum(resultsStatics.kinds.all).brand<'ResultKind'>();
+export const resultKindContract = z.enum(resultsStatics.kinds.all);
 
 export type ResultKind = z.infer<typeof resultKindContract>;

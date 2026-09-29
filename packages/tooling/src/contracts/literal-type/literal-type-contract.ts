@@ -7,6 +7,6 @@
  */
 import { z } from '#gateway/npm/zod';
 
-export const literalTypeContract = z.enum(['string', 'regex']).brand<'LiteralType'>();
+export const literalTypeContract = z.enum(['string', 'regex']);
 
 export type LiteralType = z.infer<typeof literalTypeContract>;

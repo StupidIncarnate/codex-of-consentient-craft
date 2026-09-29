@@ -12,6 +12,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const stopOnContract = z.enum(['error', 'never']).brand<'StopOn'>();
+export const stopOnContract = z.enum(['error', 'never']);
 
 export type StopOn = z.infer<typeof stopOnContract>;

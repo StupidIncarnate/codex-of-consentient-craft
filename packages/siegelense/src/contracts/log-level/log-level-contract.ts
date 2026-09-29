@@ -12,6 +12,6 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const logLevelContract = z.enum(['error', 'warn', 'info']).brand<'LogLevel'>();
+export const logLevelContract = z.enum(['error', 'warn', 'info']);
 
 export type LogLevel = z.infer<typeof logLevelContract>;

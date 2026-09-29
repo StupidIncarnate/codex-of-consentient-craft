@@ -8,21 +8,19 @@
 
 import { z } from '#gateway/npm/zod';
 
-export const themeColorTokenContract = z
-  .enum([
-    'bg-deep',
-    'bg-surface',
-    'bg-raised',
-    'border',
-    'text',
-    'text-dim',
-    'primary',
-    'success',
-    'warning',
-    'danger',
-    'loot-gold',
-    'loot-rare',
-  ])
-  .brand<'ThemeColorToken'>();
+export const themeColorTokenContract = z.enum([
+  'bg-deep',
+  'bg-surface',
+  'bg-raised',
+  'border',
+  'text',
+  'text-dim',
+  'primary',
+  'success',
+  'warning',
+  'danger',
+  'loot-gold',
+  'loot-rare',
+]);
 
 export type ThemeColorToken = z.infer<typeof themeColorTokenContract>;
