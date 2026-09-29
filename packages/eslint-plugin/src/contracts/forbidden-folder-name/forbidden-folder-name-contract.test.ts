@@ -34,7 +34,7 @@ describe('ForbiddenFolderNameStub', () => {
 
   it('INVALID: {value: number} => throws ZodError with "Expected string"', () => {
     expect(() => {
-      return forbiddenFolderNameContract.parse(123 as never);
+      return forbiddenFolderNameContract.parse(123);
     }).toThrow(/expected string/u);
   });
 });

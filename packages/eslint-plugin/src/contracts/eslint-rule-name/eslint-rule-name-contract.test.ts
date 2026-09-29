@@ -14,7 +14,7 @@ describe('eslintRuleNameContract', () => {
 
   describe('invalid names', () => {
     it('INVALID: {value: 123} => throws validation error', () => {
-      expect(() => eslintRuleNameContract.parse(123 as never)).toThrow(/expected string/u);
+      expect(() => eslintRuleNameContract.parse(123)).toThrow(/expected string/u);
     });
   });
 });

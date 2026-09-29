@@ -1,16 +1,16 @@
 import { eslintRulesDisableConflictsTransformer } from './eslint-rules-disable-conflicts-transformer';
-import { EslintRulesStub } from '../../contracts/eslint-rules/eslint-rules.stub';
+import type { TSESLint } from '#gateway/npm/typescript-eslint__utils';
 
 describe('eslintRulesDisableConflictsTransformer', () => {
   it('VALID: {mergedRules with base rule, overrideRules with plugin rule} => disables base rule', () => {
-    const mergedRules = EslintRulesStub({
+    const mergedRules = {
       'no-unused-vars': 'error',
       'no-console': 'warn',
-    });
+    } satisfies TSESLint.SharedConfig.RulesRecord;
 
-    const overrideRules = EslintRulesStub({
+    const overrideRules = {
       '@typescript-eslint/no-unused-vars': 'error',
-    });
+    } satisfies TSESLint.SharedConfig.RulesRecord;
 
     eslintRulesDisableConflictsTransformer({ mergedRules, overrideRules });
 
@@ -21,18 +21,18 @@ describe('eslintRulesDisableConflictsTransformer', () => {
   });
 
   it('VALID: {multiple base rules, multiple plugin overrides} => disables all conflicting base rules', () => {
-    const mergedRules = EslintRulesStub({
+    const mergedRules = {
       'no-unused-vars': 'error',
       'no-use-before-define': 'error',
       'dot-notation': 'error',
       'no-console': 'warn',
-    });
+    } satisfies TSESLint.SharedConfig.RulesRecord;
 
-    const overrideRules = EslintRulesStub({
+    const overrideRules = {
       '@typescript-eslint/no-unused-vars': 'error',
       '@typescript-eslint/no-use-before-define': 'error',
       '@typescript-eslint/dot-notation': 'error',
-    });
+    } satisfies TSESLint.SharedConfig.RulesRecord;
 
     eslintRulesDisableConflictsTransformer({ mergedRules, overrideRules });
 
@@ -45,15 +45,15 @@ describe('eslintRulesDisableConflictsTransformer', () => {
   });
 
   it('VALID: {base rules, non-conflicting plugin rules} => keeps base rules unchanged', () => {
-    const mergedRules = EslintRulesStub({
+    const mergedRules = {
       'no-console': 'error',
       'prefer-const': 'error',
-    });
+    } satisfies TSESLint.SharedConfig.RulesRecord;
 
-    const overrideRules = EslintRulesStub({
+    const overrideRules = {
       '@typescript-eslint/explicit-function-return-type': 'error',
       '@typescript-eslint/no-explicit-any': 'error',
-    });
+    } satisfies TSESLint.SharedConfig.RulesRecord;
 
     eslintRulesDisableConflictsTransformer({ mergedRules, overrideRules });
 
@@ -64,14 +64,14 @@ describe('eslintRulesDisableConflictsTransformer', () => {
   });
 
   it('VALID: {base rules, rules without slash} => ignores non-plugin rules', () => {
-    const mergedRules = EslintRulesStub({
+    const mergedRules = {
       'no-console': 'error',
-    });
+    } satisfies TSESLint.SharedConfig.RulesRecord;
 
-    const overrideRules = EslintRulesStub({
+    const overrideRules = {
       'standalone-rule': 'error',
       'no-console': 'warn',
-    });
+    } satisfies TSESLint.SharedConfig.RulesRecord;
 
     eslintRulesDisableConflictsTransformer({ mergedRules, overrideRules });
 
@@ -81,11 +81,11 @@ describe('eslintRulesDisableConflictsTransformer', () => {
   });
 
   it('EMPTY: {empty mergedRules, plugin rules} => no changes', () => {
-    const mergedRules = EslintRulesStub({});
+    const mergedRules = {} satisfies TSESLint.SharedConfig.RulesRecord;
 
-    const overrideRules = EslintRulesStub({
+    const overrideRules = {
       '@typescript-eslint/no-unused-vars': 'error',
-    });
+    } satisfies TSESLint.SharedConfig.RulesRecord;
 
     eslintRulesDisableConflictsTransformer({ mergedRules, overrideRules });
 
@@ -93,11 +93,11 @@ describe('eslintRulesDisableConflictsTransformer', () => {
   });
 
   it('EMPTY: {base rules, empty overrideRules} => no changes', () => {
-    const mergedRules = EslintRulesStub({
+    const mergedRules = {
       'no-console': 'error',
-    });
+    } satisfies TSESLint.SharedConfig.RulesRecord;
 
-    const overrideRules = EslintRulesStub({});
+    const overrideRules = {} satisfies TSESLint.SharedConfig.RulesRecord;
 
     eslintRulesDisableConflictsTransformer({ mergedRules, overrideRules });
 
@@ -107,7 +107,7 @@ describe('eslintRulesDisableConflictsTransformer', () => {
   });
 
   it('VALID: {base rule with array config, plugin override} => disables base rule preserving type', () => {
-    const mergedRules = EslintRulesStub({
+    const mergedRules = {
       'no-unused-vars': [
         'error',
         {
@@ -115,9 +115,9 @@ describe('eslintRulesDisableConflictsTransformer', () => {
           varsIgnorePattern: '^_',
         },
       ],
-    });
+    } satisfies TSESLint.SharedConfig.RulesRecord;
 
-    const overrideRules = EslintRulesStub({
+    const overrideRules = {
       '@typescript-eslint/no-unused-vars': [
         'error',
         {
@@ -126,7 +126,7 @@ describe('eslintRulesDisableConflictsTransformer', () => {
           caughtErrorsIgnorePattern: '^_',
         },
       ],
-    });
+    } satisfies TSESLint.SharedConfig.RulesRecord;
 
     eslintRulesDisableConflictsTransformer({ mergedRules, overrideRules });
 

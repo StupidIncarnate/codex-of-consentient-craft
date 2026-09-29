@@ -1,7 +1,6 @@
 /**
- * PURPOSE: A key into `eslintConfigContract`'s `plugins` record — an ESLint plugin namespace (e.g.
- * `'@typescript-eslint'`). A caller building a config with a known plugin name re-parses it through
- * this contract to index or write the branded `Record` that field returns.
+ * PURPOSE: An ESLint plugin namespace (e.g. `'@typescript-eslint'`), the key of a flat config's
+ * `plugins` record. A caller with a known plugin name parses it through this contract.
  *
  * USAGE:
  * eslintPluginNameContract.parse('@typescript-eslint');

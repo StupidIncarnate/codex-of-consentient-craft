@@ -1,7 +1,7 @@
 /**
- * PURPOSE: A key into `eslintRulesContract`'s record — a plugin-qualified ESLint rule name (e.g.
- * `'@typescript-eslint/no-explicit-any'`). A caller reading or writing a known rule name re-parses
- * it through this contract to index or write the branded `Record` that field returns.
+ * PURPOSE: A plugin-qualified ESLint rule name (e.g. `'@typescript-eslint/no-explicit-any'`), the
+ * key of a flat config's `rules` record. A caller with a known rule name parses it through this
+ * contract.
  *
  * USAGE:
  * eslintRuleNameContract.parse('@typescript-eslint/no-explicit-any');

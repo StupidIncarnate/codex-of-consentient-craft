@@ -10,16 +10,16 @@
  *
  * WHEN-TO-USE: When combining multiple ESLint configs with overlapping rule names
  */
-import type { EslintConfig } from '../../contracts/eslint-config/eslint-config-contract';
+import type { TSESLint } from '#gateway/npm/typescript-eslint__utils';
 import { eslintRulesDisableConflictsTransformer } from '../eslint-rules-disable-conflicts/eslint-rules-disable-conflicts-transformer';
 
 export const eslintConflictResolverTransformer = ({
   reference,
   overrides,
 }: {
-  reference: EslintConfig;
-  overrides: EslintConfig[];
-}): EslintConfig => {
+  reference: TSESLint.FlatConfig.Config;
+  overrides: TSESLint.FlatConfig.Config[];
+}): TSESLint.FlatConfig.Config => {
   const mergedRules = { ...reference.rules };
 
   // Process each override config in order

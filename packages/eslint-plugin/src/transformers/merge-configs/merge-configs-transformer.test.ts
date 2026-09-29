@@ -1,5 +1,5 @@
 import { mergeConfigsTransformer } from './merge-configs-transformer';
-import { EslintConfigStub } from '../../contracts/eslint-config/eslint-config.stub';
+import { FlatConfigStub } from '#gateway/npm/typescript-eslint__utils/flat-config/flat-config.stub';
 
 describe('mergeConfigsTransformer', () => {
   describe('merge()', () => {
@@ -16,7 +16,7 @@ describe('mergeConfigsTransformer', () => {
     });
 
     it('VALID: {configs: [singleConfig]} => returns single config merged', () => {
-      const singleConfig = EslintConfigStub({
+      const singleConfig = FlatConfigStub({
         plugins: { test: {} },
         rules: { 'test-rule': 'error' },
       });
@@ -26,25 +26,23 @@ describe('mergeConfigsTransformer', () => {
       expect(result).toStrictEqual({
         plugins: { test: {} },
         rules: { 'test-rule': 'error' },
-        languageOptions: {
-          globals: {},
-          parser: undefined,
-          parserOptions: {},
-        },
+        languageOptions: {},
         files: ['**/*.ts'],
-        ignores: ['node_modules'],
+        ignores: ['dist/**'],
       });
     });
 
     it('VALID: {configs: [config1, config2]} => returns merged configs with combined properties', () => {
-      const config1 = EslintConfigStub({
+      const config1 = FlatConfigStub({
         plugins: { plugin1: {} },
         rules: { rule1: 'error' },
         files: ['*.ts'],
+        ignores: ['build/'],
       });
-      const config2 = EslintConfigStub({
+      const config2 = FlatConfigStub({
         plugins: { plugin2: {} },
         rules: { rule2: 'warn' },
+        files: ['**/*.ts'],
         ignores: ['dist/'],
       });
 
@@ -53,49 +51,43 @@ describe('mergeConfigsTransformer', () => {
       expect(result).toStrictEqual({
         plugins: { plugin1: {}, plugin2: {} },
         rules: { rule1: 'error', rule2: 'warn' },
-        languageOptions: {
-          globals: {},
-          parser: undefined,
-          parserOptions: {},
-        },
+        languageOptions: {},
         files: ['*.ts', '**/*.ts'],
-        ignores: ['node_modules', 'dist/'],
+        ignores: ['build/', 'dist/'],
       });
     });
 
     it('VALID: {configs: [overlappingConfigs]} => returns merged with later config overriding earlier', () => {
-      const config1 = EslintConfigStub({
-        plugins: { shared: { version: 1 } },
+      const config1 = FlatConfigStub({
+        plugins: { shared: { meta: { version: '1' } } },
         rules: { 'shared-rule': 'warn' },
       });
-      const config2 = EslintConfigStub({
-        plugins: { shared: { version: 2 } },
+      const config2 = FlatConfigStub({
+        plugins: { shared: { meta: { version: '2' } } },
         rules: { 'shared-rule': 'error' },
       });
 
       const result = mergeConfigsTransformer({ configs: [config1, config2] });
 
       expect(result).toStrictEqual({
-        plugins: { shared: { version: 2 } },
+        plugins: { shared: { meta: { version: '2' } } },
         rules: { 'shared-rule': 'error' },
-        languageOptions: {
-          globals: {},
-          parser: undefined,
-          parserOptions: {},
-        },
+        languageOptions: {},
         files: ['**/*.ts', '**/*.ts'],
-        ignores: ['node_modules', 'node_modules'],
+        ignores: ['dist/**', 'dist/**'],
       });
     });
 
     it('VALID: {configs: [configWithLanguageOptions]} => returns merged with language options', () => {
-      const config1 = EslintConfigStub({
+      const config1 = FlatConfigStub({
+        rules: {},
         languageOptions: {
-          parser: { name: 'typescript' },
-          parserOptions: { ecmaVersion: 2020 },
+          ecmaVersion: 2020,
+          parserOptions: { ecmaFeatures: { jsx: true } },
         },
       });
-      const config2 = EslintConfigStub({
+      const config2 = FlatConfigStub({
+        rules: {},
         languageOptions: {
           globals: { window: true },
         },
@@ -107,21 +99,23 @@ describe('mergeConfigsTransformer', () => {
         plugins: {},
         rules: {},
         languageOptions: {
-          parser: { name: 'typescript' },
-          parserOptions: { ecmaVersion: 2020 },
+          ecmaVersion: 2020,
+          parserOptions: { ecmaFeatures: { jsx: true } },
           globals: { window: true },
         },
         files: ['**/*.ts', '**/*.ts'],
-        ignores: ['node_modules', 'node_modules'],
+        ignores: ['dist/**', 'dist/**'],
       });
     });
 
     it('VALID: {configs: [multipleFilesAndIgnores]} => returns merged arrays', () => {
-      const config1 = EslintConfigStub({
+      const config1 = FlatConfigStub({
+        rules: {},
         files: ['*.ts', '*.tsx'],
         ignores: ['dist/', 'build/'],
       });
-      const config2 = EslintConfigStub({
+      const config2 = FlatConfigStub({
+        rules: {},
         files: ['*.js'],
         ignores: ['node_modules/'],
       });
@@ -131,11 +125,7 @@ describe('mergeConfigsTransformer', () => {
       expect(result).toStrictEqual({
         plugins: {},
         rules: {},
-        languageOptions: {
-          globals: {},
-          parser: undefined,
-          parserOptions: {},
-        },
+        languageOptions: {},
         files: ['*.ts', '*.tsx', '*.js'],
         ignores: ['dist/', 'build/', 'node_modules/'],
       });

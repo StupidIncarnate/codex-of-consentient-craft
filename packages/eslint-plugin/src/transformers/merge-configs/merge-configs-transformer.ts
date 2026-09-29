@@ -7,10 +7,14 @@
  * });
  * // Returns: Single config with all plugins, rules, languageOptions, files, and ignores merged
  */
-import type { EslintConfig } from '../../contracts/eslint-config/eslint-config-contract';
+import type { TSESLint } from '#gateway/npm/typescript-eslint__utils';
 
-export const mergeConfigsTransformer = ({ configs }: { configs: EslintConfig[] }): EslintConfig => {
-  const merged: EslintConfig = {
+export const mergeConfigsTransformer = ({
+  configs,
+}: {
+  configs: TSESLint.FlatConfig.Config[];
+}): TSESLint.FlatConfig.Config => {
+  const merged: TSESLint.FlatConfig.Config = {
     plugins: {},
     rules: {},
     languageOptions: {},

@@ -17,10 +17,6 @@
  * // (`const plugin = StartEslintPlugin();`), so any I/O here would run merely from requiring the
  * // package — breaking every other package's tests the moment they import a plugin export.
  */
-import {
-  eslintConfigContract,
-  type EslintConfig,
-} from '../../../contracts/eslint-config/eslint-config-contract';
 import { eslintPluginNameContract } from '../../../contracts/eslint-plugin-name/eslint-plugin-name-contract';
 import { eslintRuleStatics } from '../../../statics/eslint-rule/eslint-rule-statics';
 import { typescriptEslintRuleStatics } from '../../../statics/typescript-eslint-rule/typescript-eslint-rule-statics';
@@ -29,6 +25,7 @@ import {
   dungeonmasterRuleEnforceOnStatics,
   gatewayLocationsStatics,
 } from '@dungeonmaster/shared/statics';
+import type { TSESLint } from '#gateway/npm/typescript-eslint__utils';
 import typescriptEslintPlugin from '#gateway/npm/typescript-eslint__eslint-plugin';
 import eslintPluginJest from '#gateway/npm/eslint-plugin-jest';
 // Namespace import, not default: the gateway wrapper re-exports this package via `export *`,
@@ -39,11 +36,7 @@ import * as eslintPluginEslintComments from '#gateway/npm/eslint-plugin-eslint-c
 import { eslintConflictResolverTransformer } from '../../../transformers/eslint-conflict-resolver/eslint-conflict-resolver-transformer';
 import type { GatewayLintConfig, PackageName } from '@dungeonmaster/shared/contracts';
 
-type DeepWritable<T> = T extends readonly (infer U)[]
-  ? DeepWritable<U>[]
-  : T extends object
-    ? { -readonly [K in keyof T]: DeepWritable<T[K]> }
-    : T;
+type DeepWritable<T> = T extends object ? { -readonly [K in keyof T]: DeepWritable<T[K]> } : T;
 
 export const configDungeonmasterBroker = ({
   forTesting = false,
@@ -58,14 +51,14 @@ export const configDungeonmasterBroker = ({
   // existing test, every other consumer) still returns a config, with the rule reporting nothing.
   workspacePackageNames?: PackageName[];
 } = {}): {
-  typescript: EslintConfig;
-  test: EslintConfig;
-  gateway: EslintConfig;
-  fileOverrides: EslintConfig[];
+  typescript: TSESLint.FlatConfig.Config;
+  test: TSESLint.FlatConfig.Config;
+  gateway: TSESLint.FlatConfig.Config;
+  fileOverrides: TSESLint.FlatConfig.Config[];
   ruleEnforceOn: typeof dungeonmasterRuleEnforceOnStatics;
 } => {
   // Build base configs
-  const eslintConfig: EslintConfig = {
+  const eslintConfig: TSESLint.FlatConfig.Config = {
     plugins: {},
     rules: {
       ...(eslintRuleStatics.rules as unknown as DeepWritable<typeof eslintRuleStatics.rules>),
@@ -73,7 +66,7 @@ export const configDungeonmasterBroker = ({
     },
   };
 
-  const baseTypescriptConfig: EslintConfig = {
+  const baseTypescriptConfig: TSESLint.FlatConfig.Config = {
     plugins: {
       [eslintPluginNameContract.parse('@typescript-eslint')]: typescriptEslintPlugin,
     },
@@ -249,16 +242,16 @@ export const configDungeonmasterBroker = ({
     '@typescript-eslint/no-unsafe-return': 'off',
   } as const;
 
-  const typescriptConfig: EslintConfig = eslintConfigContract.parse({
+  const typescriptConfig: TSESLint.FlatConfig.Config = {
     plugins: {
       ...mergedConfig.plugins,
-      'eslint-comments': eslintPluginEslintComments as unknown,
+      'eslint-comments': eslintPluginEslintComments,
     },
     rules: {
       ...mergedConfig.rules,
       ...(dungeonmasterCustomRules as unknown as DeepWritable<typeof dungeonmasterCustomRules>),
     },
-  });
+  };
 
   // The gateway carve-out (packages/{npm,node,browser,bin}/src/**): a re-scoped, POSITIVE rule
   // set, never a `rules: {…: 'off'}` overlay. Built by OMITTING, from dungeonmasterCustomRules,
@@ -293,11 +286,11 @@ export const configDungeonmasterBroker = ({
   // the same directories while giving ESLint a concrete extension to match on.
   const gatewayFiles = gatewayLocationsStatics.packageGlobs.map((glob) => `${glob}/*.ts`);
 
-  const gatewayConfig: EslintConfig = eslintConfigContract.parse({
+  const gatewayConfig: TSESLint.FlatConfig.Config = {
     files: gatewayFiles,
     plugins: {
       ...mergedConfig.plugins,
-      'eslint-comments': eslintPluginEslintComments as unknown,
+      'eslint-comments': eslintPluginEslintComments,
     },
     rules: {
       ...mergedConfig.rules,
@@ -315,12 +308,12 @@ export const configDungeonmasterBroker = ({
       // two gateway modules export a same-named type — G20.
       '@dungeonmaster/gateway-schema-brand': 'error',
     },
-  });
+  };
 
-  const testConfig: EslintConfig = eslintConfigContract.parse({
+  const testConfig: TSESLint.FlatConfig.Config = {
     plugins: {
       ...mergedConfig.plugins,
-      'eslint-comments': eslintPluginEslintComments as unknown,
+      'eslint-comments': eslintPluginEslintComments,
       ...(forTesting ? { jest: eslintPluginJest } : {}),
     },
     rules: {
@@ -338,38 +331,38 @@ export const configDungeonmasterBroker = ({
       // It doesnt matter if this happens in tests
       '@typescript-eslint/no-base-to-string': 'off',
     },
-  });
+  };
 
   // Proxy files need to use type assertions for mock compatibility
-  const proxyOverrides: EslintConfig = eslintConfigContract.parse({
+  const proxyOverrides: TSESLint.FlatConfig.Config = {
     files: ['**/*.proxy.ts', '**/*.proxy.tsx'],
     rules: {
       '@typescript-eslint/no-unsafe-type-assertion': 'off',
     },
-  });
+  };
 
   // Stub files need to use primitives and magic numbers for type conversion
-  const stubOverride: EslintConfig = eslintConfigContract.parse({
+  const stubOverride: TSESLint.FlatConfig.Config = {
     files: ['**/*.stub.ts', '**/*.stub.tsx'],
     rules: {
       '@typescript-eslint/no-magic-numbers': 'off',
       // // So that we can spread props as a whole object
       // '@dungeonmaster/enforce-object-destructuring-params': 'off',
     },
-  });
+  };
 
-  const integrationOverrides: EslintConfig = eslintConfigContract.parse({
+  const integrationOverrides: TSESLint.FlatConfig.Config = {
     files: ['**/*.integration.test.ts', '**/*.integration.test.tsx'],
     rules: {
       'jest/max-expects': 'off', // int tests need more flow asserts
     },
-  });
+  };
 
   // Package-meta integration tests sit directly in src/ (not in a domain subfolder): they
   // exercise the package as a whole (loading the built plugin, reading rule source files,
   // spinning up tmp environments), so they legitimately use node builtins + module-level
   // helpers and have no single colocated implementation companion.
-  const packageMetaIntegrationOverrides: EslintConfig = eslintConfigContract.parse({
+  const packageMetaIntegrationOverrides: TSESLint.FlatConfig.Config = {
     files: ['**/src/*.integration.test.ts', '**/src/*.integration.test.tsx'],
     rules: {
       '@dungeonmaster/enforce-test-creation-of-proxy': 'off',
@@ -378,9 +371,9 @@ export const configDungeonmasterBroker = ({
       '@dungeonmaster/ban-node-builtins-in-test-scenarios': 'off',
       '@dungeonmaster/ban-inline-helpers-in-test-scenarios': 'off',
     },
-  });
+  };
 
-  const e2eOverrides: EslintConfig = eslintConfigContract.parse({
+  const e2eOverrides: TSESLint.FlatConfig.Config = {
     files: ['**/*.e2e.test.ts', '**/*.e2e.test.tsx'],
     rules: {
       'jest/max-expects': 'off',
@@ -388,28 +381,28 @@ export const configDungeonmasterBroker = ({
       '@dungeonmaster/enforce-test-colocation': 'off',
       '@dungeonmaster/require-contract-validation': 'off',
     },
-  });
+  };
 
-  const startupTestOverrides: EslintConfig = eslintConfigContract.parse({
+  const startupTestOverrides: TSESLint.FlatConfig.Config = {
     files: ['**/*.e2e.test.ts', '**/*.integration.test.ts'],
     rules: {
       'jest/no-hooks': 'off',
       '@typescript-eslint/init-declarations': 'off',
     },
-  });
+  };
 
   // Startup files use && for conditional side effects (ban-startup-branching provides the real protection)
-  const startupShortCircuitOverrides: EslintConfig = eslintConfigContract.parse({
+  const startupShortCircuitOverrides: TSESLint.FlatConfig.Config = {
     files: ['**/startup/start-*.ts'],
     ignores: ['**/*.test.ts'],
     rules: {
       '@typescript-eslint/no-unused-expressions': ['error', { allowShortCircuit: true }],
     },
-  });
+  };
 
   // Playwright e2e files — relax rules that conflict with Playwright's test API.
   // isTestFileGuard matches *.e2e.ts, so test-scoped @dungeonmaster rules fire on e2e files.
-  const specOverrides: EslintConfig = eslintConfigContract.parse({
+  const specOverrides: TSESLint.FlatConfig.Config = {
     files: ['**/*.e2e.ts'],
     rules: {
       // Jest API conflicts — Playwright uses test() not it(), has own expect/hooks/describe
@@ -452,12 +445,12 @@ export const configDungeonmasterBroker = ({
       '@typescript-eslint/no-unsafe-argument': 'off',
       '@typescript-eslint/no-unsafe-return': 'off',
     },
-  });
+  };
 
   // Harness files — not matched by isTestFileGuard (*.harness.ts has no .test/.spec suffix),
   // so test-scoped @dungeonmaster rules already skip them. Only jest rules need overrides
   // because the jest plugin config includes *.harness.ts in its files pattern.
-  const harnessOverrides: EslintConfig = eslintConfigContract.parse({
+  const harnessOverrides: TSESLint.FlatConfig.Config = {
     files: ['**/*.harness.ts'],
     rules: {
       // Harnesses register afterEach/beforeEach internally — lifecycle ownership pattern
@@ -466,7 +459,7 @@ export const configDungeonmasterBroker = ({
       // Harness factory body has statements outside hooks (state tracking, imports)
       'jest/require-hook': 'off',
     },
-  });
+  };
 
   return {
     typescript: typescriptConfig,

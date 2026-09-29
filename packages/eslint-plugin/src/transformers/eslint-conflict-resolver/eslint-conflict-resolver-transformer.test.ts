@@ -1,11 +1,11 @@
 import { eslintConflictResolverTransformer } from './eslint-conflict-resolver-transformer';
-import { EslintConfigStub } from '../../contracts/eslint-config/eslint-config.stub';
+import { FlatConfigStub } from '#gateway/npm/typescript-eslint__utils/flat-config/flat-config.stub';
 
 describe('eslintConflictResolverTransformer', () => {
   describe('conflict resolution', () => {
     it('VALID: {reference with no-unused-vars, overrides with @typescript-eslint/no-unused-vars} => turns off ESLint rule', () => {
-      const reference = EslintConfigStub({
-        plugins: { eslint: 'eslint' },
+      const reference = FlatConfigStub({
+        plugins: { eslint: { meta: { name: 'eslint' } } },
         rules: {
           'no-unused-vars': 'error',
           'no-console': 'warn',
@@ -13,8 +13,8 @@ describe('eslintConflictResolverTransformer', () => {
       });
 
       const overrides = [
-        EslintConfigStub({
-          plugins: { '@typescript-eslint': 'typescript-eslint-plugin' },
+        FlatConfigStub({
+          plugins: { '@typescript-eslint': { meta: { name: 'typescript-eslint-plugin' } } },
           rules: {
             '@typescript-eslint/no-unused-vars': 'error',
           },
@@ -28,8 +28,8 @@ describe('eslintConflictResolverTransformer', () => {
 
       expect(result).toStrictEqual({
         plugins: {
-          eslint: 'eslint',
-          '@typescript-eslint': 'typescript-eslint-plugin',
+          eslint: { meta: { name: 'eslint' } },
+          '@typescript-eslint': { meta: { name: 'typescript-eslint-plugin' } },
         },
         rules: {
           'no-unused-vars': 'off',
@@ -40,8 +40,8 @@ describe('eslintConflictResolverTransformer', () => {
     });
 
     it('VALID: {multiple conflicting rules} => turns off all conflicting ESLint rules', () => {
-      const reference = EslintConfigStub({
-        plugins: { eslint: 'eslint' },
+      const reference = FlatConfigStub({
+        plugins: { eslint: { meta: { name: 'eslint' } } },
         rules: {
           'no-unused-vars': 'error',
           'no-use-before-define': 'error',
@@ -51,8 +51,8 @@ describe('eslintConflictResolverTransformer', () => {
       });
 
       const overrides = [
-        EslintConfigStub({
-          plugins: { '@typescript-eslint': 'typescript-eslint-plugin' },
+        FlatConfigStub({
+          plugins: { '@typescript-eslint': { meta: { name: 'typescript-eslint-plugin' } } },
           rules: {
             '@typescript-eslint/no-unused-vars': 'error',
             '@typescript-eslint/no-use-before-define': 'error',
@@ -68,8 +68,8 @@ describe('eslintConflictResolverTransformer', () => {
 
       expect(result).toStrictEqual({
         plugins: {
-          eslint: 'eslint',
-          '@typescript-eslint': 'typescript-eslint-plugin',
+          eslint: { meta: { name: 'eslint' } },
+          '@typescript-eslint': { meta: { name: 'typescript-eslint-plugin' } },
         },
         rules: {
           'no-unused-vars': 'off',
@@ -84,8 +84,8 @@ describe('eslintConflictResolverTransformer', () => {
     });
 
     it('VALID: {multiple override plugins} => later overrides win over earlier ones', () => {
-      const reference = EslintConfigStub({
-        plugins: { eslint: 'eslint' },
+      const reference = FlatConfigStub({
+        plugins: { eslint: { meta: { name: 'eslint' } } },
         rules: {
           'no-unused-vars': 'error',
           camelcase: 'error',
@@ -93,14 +93,14 @@ describe('eslintConflictResolverTransformer', () => {
       });
 
       const overrides = [
-        EslintConfigStub({
-          plugins: { '@typescript-eslint': 'typescript-eslint-plugin' },
+        FlatConfigStub({
+          plugins: { '@typescript-eslint': { meta: { name: 'typescript-eslint-plugin' } } },
           rules: {
             '@typescript-eslint/no-unused-vars': 'error',
           },
         }),
-        EslintConfigStub({
-          plugins: { '@dungeonmaster': 'dungeonmaster-plugin' },
+        FlatConfigStub({
+          plugins: { '@dungeonmaster': { meta: { name: 'dungeonmaster-plugin' } } },
           rules: {
             '@dungeonmaster/camelcase': 'error',
             '@dungeonmaster/no-unused-vars': 'warn',
@@ -115,9 +115,9 @@ describe('eslintConflictResolverTransformer', () => {
 
       expect(result).toStrictEqual({
         plugins: {
-          eslint: 'eslint',
-          '@typescript-eslint': 'typescript-eslint-plugin',
-          '@dungeonmaster': 'dungeonmaster-plugin',
+          eslint: { meta: { name: 'eslint' } },
+          '@typescript-eslint': { meta: { name: 'typescript-eslint-plugin' } },
+          '@dungeonmaster': { meta: { name: 'dungeonmaster-plugin' } },
         },
         rules: {
           'no-unused-vars': 'off',
@@ -130,8 +130,8 @@ describe('eslintConflictResolverTransformer', () => {
     });
 
     it('VALID: {no conflicting rules} => keeps all ESLint rules as-is', () => {
-      const reference = EslintConfigStub({
-        plugins: { eslint: 'eslint' },
+      const reference = FlatConfigStub({
+        plugins: { eslint: { meta: { name: 'eslint' } } },
         rules: {
           'no-console': 'error',
           'prefer-const': 'error',
@@ -139,8 +139,8 @@ describe('eslintConflictResolverTransformer', () => {
       });
 
       const overrides = [
-        EslintConfigStub({
-          plugins: { '@typescript-eslint': 'typescript-eslint-plugin' },
+        FlatConfigStub({
+          plugins: { '@typescript-eslint': { meta: { name: 'typescript-eslint-plugin' } } },
           rules: {
             '@typescript-eslint/explicit-function-return-type': 'error',
             '@typescript-eslint/no-explicit-any': 'error',
@@ -155,8 +155,8 @@ describe('eslintConflictResolverTransformer', () => {
 
       expect(result).toStrictEqual({
         plugins: {
-          eslint: 'eslint',
-          '@typescript-eslint': 'typescript-eslint-plugin',
+          eslint: { meta: { name: 'eslint' } },
+          '@typescript-eslint': { meta: { name: 'typescript-eslint-plugin' } },
         },
         rules: {
           'no-console': 'error',
@@ -168,8 +168,8 @@ describe('eslintConflictResolverTransformer', () => {
     });
 
     it('VALID: {rule with complex configuration array} => preserves rule configuration', () => {
-      const reference = EslintConfigStub({
-        plugins: { eslint: 'eslint' },
+      const reference = FlatConfigStub({
+        plugins: { eslint: { meta: { name: 'eslint' } } },
         rules: {
           'no-unused-vars': [
             'error',
@@ -182,8 +182,8 @@ describe('eslintConflictResolverTransformer', () => {
       });
 
       const overrides = [
-        EslintConfigStub({
-          plugins: { '@typescript-eslint': 'typescript-eslint-plugin' },
+        FlatConfigStub({
+          plugins: { '@typescript-eslint': { meta: { name: 'typescript-eslint-plugin' } } },
           rules: {
             '@typescript-eslint/no-unused-vars': [
               'error',
@@ -204,8 +204,8 @@ describe('eslintConflictResolverTransformer', () => {
 
       expect(result).toStrictEqual({
         plugins: {
-          eslint: 'eslint',
-          '@typescript-eslint': 'typescript-eslint-plugin',
+          eslint: { meta: { name: 'eslint' } },
+          '@typescript-eslint': { meta: { name: 'typescript-eslint-plugin' } },
         },
         rules: {
           'no-unused-vars': 'off',
@@ -224,12 +224,12 @@ describe('eslintConflictResolverTransformer', () => {
 
   describe('edge cases', () => {
     it('EMPTY: {reference with no rules, empty overrides} => returns empty config', () => {
-      const reference = EslintConfigStub({
+      const reference = FlatConfigStub({
         plugins: {},
         rules: {},
       });
 
-      const overrides: ReturnType<typeof EslintConfigStub>[] = [];
+      const overrides: ReturnType<typeof FlatConfigStub>[] = [];
 
       const result = eslintConflictResolverTransformer({
         reference,
@@ -243,15 +243,15 @@ describe('eslintConflictResolverTransformer', () => {
     });
 
     it('EDGE: {reference with rules, empty overrides} => returns reference unchanged', () => {
-      const reference = EslintConfigStub({
-        plugins: { eslint: 'eslint' },
+      const reference = FlatConfigStub({
+        plugins: { eslint: { meta: { name: 'eslint' } } },
         rules: {
           'no-console': 'error',
           'prefer-const': 'error',
         },
       });
 
-      const overrides: ReturnType<typeof EslintConfigStub>[] = [];
+      const overrides: ReturnType<typeof FlatConfigStub>[] = [];
 
       const result = eslintConflictResolverTransformer({
         reference,
@@ -259,7 +259,7 @@ describe('eslintConflictResolverTransformer', () => {
       });
 
       expect(result).toStrictEqual({
-        plugins: { eslint: 'eslint' },
+        plugins: { eslint: { meta: { name: 'eslint' } } },
         rules: {
           'no-console': 'error',
           'prefer-const': 'error',
@@ -268,16 +268,16 @@ describe('eslintConflictResolverTransformer', () => {
     });
 
     it('VALID: {plugin rule without slash} => ignores non-plugin rules', () => {
-      const reference = EslintConfigStub({
-        plugins: { eslint: 'eslint' },
+      const reference = FlatConfigStub({
+        plugins: { eslint: { meta: { name: 'eslint' } } },
         rules: {
           'no-console': 'error',
         },
       });
 
       const overrides = [
-        EslintConfigStub({
-          plugins: { custom: 'custom-plugin' },
+        FlatConfigStub({
+          plugins: { custom: { meta: { name: 'custom-plugin' } } },
           rules: {
             'standalone-rule': 'error',
             'no-console': 'warn',
@@ -292,8 +292,8 @@ describe('eslintConflictResolverTransformer', () => {
 
       expect(result).toStrictEqual({
         plugins: {
-          eslint: 'eslint',
-          custom: 'custom-plugin',
+          eslint: { meta: { name: 'eslint' } },
+          custom: { meta: { name: 'custom-plugin' } },
         },
         rules: {
           'no-console': 'warn',
@@ -303,16 +303,16 @@ describe('eslintConflictResolverTransformer', () => {
     });
 
     it('VALID: {override rule not in reference} => adds override rule without conflict', () => {
-      const reference = EslintConfigStub({
-        plugins: { eslint: 'eslint' },
+      const reference = FlatConfigStub({
+        plugins: { eslint: { meta: { name: 'eslint' } } },
         rules: {
           'no-console': 'error',
         },
       });
 
       const overrides = [
-        EslintConfigStub({
-          plugins: { '@typescript-eslint': 'typescript-eslint-plugin' },
+        FlatConfigStub({
+          plugins: { '@typescript-eslint': { meta: { name: 'typescript-eslint-plugin' } } },
           rules: {
             '@typescript-eslint/no-unused-vars': 'error',
           },
@@ -326,8 +326,8 @@ describe('eslintConflictResolverTransformer', () => {
 
       expect(result).toStrictEqual({
         plugins: {
-          eslint: 'eslint',
-          '@typescript-eslint': 'typescript-eslint-plugin',
+          eslint: { meta: { name: 'eslint' } },
+          '@typescript-eslint': { meta: { name: 'typescript-eslint-plugin' } },
         },
         rules: {
           'no-console': 'error',
