@@ -6,7 +6,7 @@
  * // Returns: OrchestrationSlot object
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const orchestrationSlotContract = z.object({
   slotId: z.number().int().nonnegative().brand<'SlotId'>(),

@@ -8,7 +8,7 @@
  * routedGraphNodeKeyContract.parse('plan');
  * // Returns a branded RoutedGraphNodeKey
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const routedGraphNodeKeyContract = z.string().min(1).brand<'RoutedGraphNodeKey'>();
 

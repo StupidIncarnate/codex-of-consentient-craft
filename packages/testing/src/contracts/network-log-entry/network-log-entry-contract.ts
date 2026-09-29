@@ -6,7 +6,7 @@
  * // Returns validated NetworkLogEntry type
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const networkLogEntryContract = z.object({
   method: z.string().brand<'HttpMethod'>(),

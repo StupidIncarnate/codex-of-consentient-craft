@@ -8,7 +8,7 @@
  * // Returns { abandoned: true }
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const questAbandonResultContract = z.object({
   abandoned: z.boolean(),

@@ -9,7 +9,7 @@
  * WHEN-NOT-TO-USE: For authored/slug-style IDs (comments have no authored name, unlike e.g. ObservableId)
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const questCommentIdContract = z.uuid().brand<'QuestCommentId'>();
 

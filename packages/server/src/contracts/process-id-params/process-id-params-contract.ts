@@ -6,7 +6,7 @@
  * // Returns: ProcessIdParams with branded ProcessId
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { processIdContract } from '../process-id/process-id-contract';
 
 export const processIdParamsContract = z.object({

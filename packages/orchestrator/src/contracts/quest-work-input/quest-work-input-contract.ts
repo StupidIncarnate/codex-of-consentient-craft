@@ -28,7 +28,7 @@
  * that runs is the literal same validator, not a copy of its rule.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import {
   flowIdContract,

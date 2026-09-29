@@ -7,7 +7,7 @@
  * // Returns: QuestSummaryParams with a branded QuestId
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { questIdContract } from '@dungeonmaster/shared/contracts';
 
 export const questSummaryParamsContract = z.object({

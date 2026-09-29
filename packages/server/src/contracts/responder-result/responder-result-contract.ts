@@ -6,7 +6,7 @@
  * // Returns typed responder result with status and data
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const responderResultContract = z.object({
   status: z.number().int().brand<'HttpStatusCode'>(),

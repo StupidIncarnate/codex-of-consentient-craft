@@ -5,7 +5,7 @@
  * const parsed = summaryStreamLineContract.parse(JSON.parse(rawLine));
  * // Validates summary messages carrying a human-readable summary of the session
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const summaryStreamLineContract = z.object({
   type: z.literal('summary'),

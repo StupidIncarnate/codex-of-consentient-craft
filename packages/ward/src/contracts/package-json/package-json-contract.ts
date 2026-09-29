@@ -6,7 +6,7 @@
  * // Returns: PackageJson validated object with optional name, workspaces, and scripts
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const packageJsonContract = z
   .object({

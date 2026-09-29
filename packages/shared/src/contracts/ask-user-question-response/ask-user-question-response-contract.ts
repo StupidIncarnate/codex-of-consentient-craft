@@ -9,7 +9,7 @@
  * // Returns validated AskUserQuestionResponse with branded answer values
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { askUserQuestionContract } from '../ask-user-question/ask-user-question-contract';
 

@@ -15,7 +15,7 @@
  * `full`, so it only ever fires on a result written before the rename.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 const LEGACY_COMMITTED = 'changed';
 

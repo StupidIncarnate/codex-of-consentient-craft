@@ -10,7 +10,7 @@
  * fired, since nothing writes a completion to disk for the subscribe replay to re-read.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { processIdContract, sessionIdContract } from '@dungeonmaster/shared/contracts';
 

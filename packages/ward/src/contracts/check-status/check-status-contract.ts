@@ -6,7 +6,7 @@
  * // Returns: CheckStatus branded string
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const checkStatusContract = z.enum(['pass', 'fail', 'skip']);
 

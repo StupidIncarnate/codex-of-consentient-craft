@@ -34,7 +34,7 @@
  * // Returns a validated RecipeManifest
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { recipeFidelityStatics } from '../../statics/recipe-fidelity/recipe-fidelity-statics';
 import { recipeFidelityContract } from '../recipe-fidelity/recipe-fidelity-contract';

@@ -9,7 +9,7 @@
  * // Returns: FlowPortalNodeData with branded fields
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { flowEdgeRefContract } from '@dungeonmaster/shared/contracts';
 

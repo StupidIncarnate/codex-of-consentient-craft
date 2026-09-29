@@ -23,7 +23,7 @@
  * processor.processLine({ parsed, source: chatLineSourceContract.parse('session') });
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import type { AgentId } from '../agent-id/agent-id-contract';
 import type { ChatLineOutput } from '../chat-line-output/chat-line-output-contract';

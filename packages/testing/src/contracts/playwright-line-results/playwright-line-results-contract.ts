@@ -6,7 +6,7 @@
  * // Returns: PlaywrightLineResults validated object
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const playwrightLineResultsContract = z.object({
   passed: z.array(z.string().min(1).brand<'PlaywrightTestTitle'>()),

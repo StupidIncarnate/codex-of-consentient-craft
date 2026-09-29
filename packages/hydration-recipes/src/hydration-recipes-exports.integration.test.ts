@@ -9,7 +9,7 @@
  *
  * USAGE: no exports — a Jest suite.
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { recipesConventionStatics } from '@dungeonmaster/shared/statics';
 

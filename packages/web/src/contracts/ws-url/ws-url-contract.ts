@@ -6,7 +6,7 @@
  * // Returns WsUrl
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const wsUrlContract = z
   .string()

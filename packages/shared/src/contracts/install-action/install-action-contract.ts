@@ -6,7 +6,7 @@
  * // Returns branded InstallAction enum type for install operation results
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 /**
  * Represents the action taken during an install operation

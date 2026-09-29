@@ -6,7 +6,7 @@
  * // Returns: GuildName branded string
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 const MAX_GUILD_NAME_LENGTH = 100;
 

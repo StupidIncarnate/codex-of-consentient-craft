@@ -14,7 +14,7 @@
  *   nullable fields are orchestrator-internal — no LLM caller can set them.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { questWorkItemIdContract } from '../quest-work-item-id/quest-work-item-id-contract';
 import { sessionIdContract } from '../session-id/session-id-contract';

@@ -8,7 +8,7 @@
  * // Returns: ImageDataUrl branded string
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';
 
 const MEDIA_TYPE_ALTERNATION = pastedImageStatics.allowedMediaTypes

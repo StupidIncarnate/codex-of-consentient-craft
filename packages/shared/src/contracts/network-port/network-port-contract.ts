@@ -6,7 +6,7 @@
  * // Returns branded NetworkPort number
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 const MIN_PORT = 1;
 const MAX_PORT = 65_535;

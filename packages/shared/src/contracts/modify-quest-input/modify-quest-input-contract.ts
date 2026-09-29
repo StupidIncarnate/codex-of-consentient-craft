@@ -34,7 +34,7 @@
  * timestamps have been observed identical across a whole quest and set in a future that never
  * happened.
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { designDecisionContract } from '../design-decision/design-decision-contract';
 import { designDecisionIdContract } from '../design-decision-id/design-decision-id-contract';

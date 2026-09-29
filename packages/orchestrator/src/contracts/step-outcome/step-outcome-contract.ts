@@ -9,7 +9,7 @@
  * // Returns 'unmet' as StepOutcome
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const stepOutcomeContract = z.enum(['wall', 'unmet', 'done', 'empty']);
 

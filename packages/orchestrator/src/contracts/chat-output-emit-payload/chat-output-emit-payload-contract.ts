@@ -6,7 +6,7 @@
  * // Returns: { processId, slotIndex, entries, questId, workItemId, sessionId?, chatProcessId? }
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import {
   chatEntryContract,

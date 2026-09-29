@@ -15,7 +15,7 @@
  * });
  * // Returns QuestFields
  */
-import type { z } from 'zod';
+import type { z } from '#gateway/npm/zod';
 
 import { guildIdContract, questContract } from '@dungeonmaster/shared/contracts';
 

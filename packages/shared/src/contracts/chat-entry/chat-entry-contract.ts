@@ -14,7 +14,7 @@
  * sub-agent chains.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 const chatUsageContract = z.object({
   inputTokens: z.number().int().nonnegative().brand<'InputTokens'>(),

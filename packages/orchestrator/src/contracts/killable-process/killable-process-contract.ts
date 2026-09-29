@@ -8,7 +8,7 @@
  * // Terminates the subprocess and waits for full exit
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 // `kill` and `waitForExit` are functions — a Zod object schema cannot check callability, so both
 // stay out of the parse and are attached only through the type intersection below.

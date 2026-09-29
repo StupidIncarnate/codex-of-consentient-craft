@@ -6,7 +6,7 @@
  * // Returns: SectionLabel branded string
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const sectionLabelContract = z.string().min(1).brand<'SectionLabel'>();
 

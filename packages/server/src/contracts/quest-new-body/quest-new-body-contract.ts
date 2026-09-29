@@ -14,7 +14,7 @@
  *   appear to change a running quest's pipeline.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { questTypeContract } from '@dungeonmaster/shared/contracts';
 

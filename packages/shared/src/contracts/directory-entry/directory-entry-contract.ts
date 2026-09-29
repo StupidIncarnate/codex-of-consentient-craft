@@ -6,7 +6,7 @@
  * // Returns: DirectoryEntry object
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { guildPathContract } from '../guild-path/guild-path-contract';
 

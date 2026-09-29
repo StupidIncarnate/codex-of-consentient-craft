@@ -9,7 +9,7 @@
  * // Returns a branded OpenHandleDisplay
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const openHandleDisplayContract = z.string().brand<'OpenHandleDisplay'>();
 

@@ -6,7 +6,7 @@
  * // Returns branded ToolName string for Map lookups across tool_use/tool_result boundaries
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const toolNameContract = z.string().min(1).brand<'ToolName'>();
 

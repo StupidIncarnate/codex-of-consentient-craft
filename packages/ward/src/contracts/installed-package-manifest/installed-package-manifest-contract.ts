@@ -8,7 +8,7 @@
  * // Returns: InstalledPackageManifest, version '8.3.18'
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { installedPackageVersionContract } from '../installed-package-version/installed-package-version-contract';
 
 export const installedPackageManifestContract = z

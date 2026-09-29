@@ -13,7 +13,7 @@
  * });
  * // Returns a validated RoutedGraph
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { routedGraphNodeKeyContract } from '../routed-graph-node-key/routed-graph-node-key-contract';
 import { routedGraphOutcomeWordContract } from '../routed-graph-outcome-word/routed-graph-outcome-word-contract';

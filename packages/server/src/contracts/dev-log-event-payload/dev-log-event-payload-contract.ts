@@ -15,7 +15,7 @@
  * // Returns: { chatProcessId?, processId?, questId?, sessionId?, phase?, slotIndex?, role?, questions?[], entries?[] }
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const devLogEventPayloadContract = z
   .object({

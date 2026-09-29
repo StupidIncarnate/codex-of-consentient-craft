@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { mswServerStateProxy } from '../../../state/msw-server/msw-server-state.proxy';
 import type { EndpointResponseContract } from '../../../contracts/endpoint-control/endpoint-control-contract';

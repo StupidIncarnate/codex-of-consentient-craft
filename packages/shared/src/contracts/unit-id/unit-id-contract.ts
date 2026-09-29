@@ -13,7 +13,7 @@
  * question for whoever retires the sign-off machinery.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 const KEBAB_SEGMENT = '[a-z][a-z0-9]*(?:-[a-z0-9]+)*';
 

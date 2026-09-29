@@ -51,7 +51,7 @@
  * and `verifyByHuman` alike. Absent means an automated check settles it.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { observableIdContract } from '../observable-id/observable-id-contract';
 import { observableOriginContract } from '../observable-origin/observable-origin-contract';

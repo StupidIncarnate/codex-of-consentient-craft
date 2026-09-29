@@ -9,7 +9,7 @@
  * // Returns branded PlatformCrossingDisplayText
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const platformCrossingDisplayTextContract = z
   .string()

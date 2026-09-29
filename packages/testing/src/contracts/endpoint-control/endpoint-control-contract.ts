@@ -5,7 +5,7 @@
  * import type { EndpointControl, HttpMethod } from './endpoint-control-contract';
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import type { RequestCount } from '../request-count/request-count-contract';
 

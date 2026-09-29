@@ -10,7 +10,7 @@
  * // Returns a ComposerSegment discriminated on `kind`
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { attachmentIdContract } from '../attachment-id/attachment-id-contract';
 

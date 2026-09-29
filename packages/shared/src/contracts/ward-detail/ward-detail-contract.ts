@@ -18,7 +18,7 @@
  * // Every nested object is .loose() so unread ward fields survive validation.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 const errorEntry = z
   .object({

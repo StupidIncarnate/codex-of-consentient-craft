@@ -6,7 +6,7 @@
  * if (config.success) return config.data.dungeonmaster?.port;
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { networkPortContract } from '../network-port/network-port-contract';
 

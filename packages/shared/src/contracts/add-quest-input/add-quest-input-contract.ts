@@ -5,7 +5,7 @@
  * const input: AddQuestInput = addQuestInputContract.parse({ title: 'Add Auth', userRequest: 'User wants...' });
  * // Returns validated AddQuestInput with title and userRequest
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { questSourceContract } from '../quest-source/quest-source-contract';
 import { questTypeContract } from '../quest-type/quest-type-contract';

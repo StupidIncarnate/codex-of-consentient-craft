@@ -6,7 +6,7 @@
  * // Returns: RawOutput validated object
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { processSignalContract } from '@dungeonmaster/shared/contracts';
 
 export const rawOutputContract = z.object({

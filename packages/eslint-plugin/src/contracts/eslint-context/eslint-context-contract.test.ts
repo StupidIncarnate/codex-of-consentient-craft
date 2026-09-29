@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { eslintContextContract } from './eslint-context-contract';
 import { EslintContextStub } from './eslint-context.stub';
 

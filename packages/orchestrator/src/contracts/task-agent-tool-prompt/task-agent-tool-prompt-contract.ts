@@ -8,7 +8,7 @@
  * // Returns branded TaskAgentToolPrompt
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const taskAgentToolPromptContract = z.string().min(1).brand<'TaskAgentToolPrompt'>();
 

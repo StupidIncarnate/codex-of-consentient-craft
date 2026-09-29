@@ -6,7 +6,7 @@
  * // Returns: discriminated union by message type
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import {
   guildIdContract,
   processIdContract,

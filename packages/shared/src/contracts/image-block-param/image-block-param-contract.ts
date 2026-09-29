@@ -6,7 +6,7 @@
  * // Returns: ImageBlockParam with discriminated source union
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 const base64ImageSourceContract = z.object({
   type: z.literal('base64'),

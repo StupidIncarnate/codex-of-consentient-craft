@@ -12,7 +12,7 @@
  * shared — see questFlowStatics.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const questTypeContract = z.enum(['feature', 'bug-hunt']);
 

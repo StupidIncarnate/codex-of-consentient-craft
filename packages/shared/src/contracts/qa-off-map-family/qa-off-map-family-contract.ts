@@ -11,7 +11,7 @@
  * the ledger carrying a real observation or an explicit justified `gap` — never a silent omission.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const qaOffMapFamilyContract = z.enum([
   're-entry',

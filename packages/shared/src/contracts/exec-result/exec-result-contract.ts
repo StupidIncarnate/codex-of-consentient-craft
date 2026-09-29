@@ -7,7 +7,7 @@
  * // Returns validated ExecResult type
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const execResultContract = z.object({
   stdout: z.string().brand<'Stdout'>(),

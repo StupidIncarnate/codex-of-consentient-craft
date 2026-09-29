@@ -6,7 +6,7 @@
  * // Returns ClarificationRequestPayload with chatProcessId and raw questions
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { processIdContract } from '@dungeonmaster/shared/contracts';
 

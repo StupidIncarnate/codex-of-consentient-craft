@@ -6,7 +6,7 @@
  * // Returns: SessionIdParams with branded SessionId
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { sessionIdContract } from '@dungeonmaster/shared/contracts';
 
 export const sessionIdParamsContract = z.object({

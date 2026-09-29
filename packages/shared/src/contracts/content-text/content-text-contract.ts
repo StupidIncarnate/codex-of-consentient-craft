@@ -5,7 +5,7 @@
  * const text: ContentText = contentTextContract.parse('Result text');
  * // Returns a branded ContentText string type
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const contentTextContract = z.string().brand<'ContentText'>();
 

@@ -6,7 +6,7 @@
  * // Use as constraint for arrays that support id-based upsert
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const itemWithIdContract = z
   .object({

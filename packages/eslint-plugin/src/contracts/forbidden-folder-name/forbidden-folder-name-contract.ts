@@ -5,7 +5,7 @@
  * const forbidden = forbiddenFolderNameContract.parse('utils');
  * // Returns branded ForbiddenFolderName for use in project structure validation
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const forbiddenFolderNameContract = z.string().brand<'ForbiddenFolderName'>();
 

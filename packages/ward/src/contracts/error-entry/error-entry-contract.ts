@@ -6,7 +6,7 @@
  * // Returns: ErrorEntry validated object
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const errorEntryContract = z.object({
   filePath: z.string().brand<'ErrorFilePath'>(),

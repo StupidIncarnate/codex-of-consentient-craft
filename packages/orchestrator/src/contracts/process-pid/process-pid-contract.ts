@@ -6,7 +6,7 @@
  * // Returns: ProcessPid branded number
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const processPidContract = z.number().int().positive().brand<'ProcessPid'>();
 

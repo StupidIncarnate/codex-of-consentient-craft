@@ -14,7 +14,7 @@
  * // Returns: StepHandlerResult
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { contentTextContract, relatedDataItemContract } from '@dungeonmaster/shared/contracts';
 

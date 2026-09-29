@@ -9,7 +9,7 @@
  * // Returns a branded BucketStartKey
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const bucketStartKeyContract = z.string().brand<'BucketStartKey'>();
 

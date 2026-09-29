@@ -18,7 +18,7 @@
  * // the cant-meet/toSettle pairing rule
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { unitIdContract } from '../unit-id/unit-id-contract';
 import { unitMarkContract } from '../unit-mark/unit-mark-contract';

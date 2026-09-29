@@ -6,7 +6,7 @@
  * // Returns: CssSpacing branded number
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const cssSpacingContract = z.number().brand<'CssSpacing'>();
 

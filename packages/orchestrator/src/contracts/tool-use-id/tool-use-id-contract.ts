@@ -6,7 +6,7 @@
  * // Returns branded ToolUseId
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const toolUseIdContract = z.string().min(1).brand<'ToolUseId'>();
 

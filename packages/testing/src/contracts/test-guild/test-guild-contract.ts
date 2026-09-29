@@ -6,7 +6,7 @@
  * // Returns validated TestGuildData with branded types
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import type { ProcessOutput } from '../process-output/process-output-contract';
 import type { CommandName } from '../command-name/command-name-contract';
 import type { FileName } from '../file-name/file-name-contract';

@@ -6,7 +6,7 @@
  * // Returns: SlotStatus branded enum value
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const slotStatusContract = z.enum(['idle', 'running', 'completed', 'failed']);
 

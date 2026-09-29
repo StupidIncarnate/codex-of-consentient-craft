@@ -6,7 +6,7 @@
  * // Returns: ToolReferenceBlockParam with branded tool_name
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const toolReferenceBlockParamContract = z.object({
   type: z.literal('tool_reference'),

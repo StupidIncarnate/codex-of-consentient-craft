@@ -14,7 +14,7 @@
  * at all.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const blightDispositionContract = z.enum(['reviewed', 'fixed', 'routed', 'recorded', 'gap']);
 

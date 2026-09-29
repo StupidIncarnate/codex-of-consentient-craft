@@ -6,7 +6,7 @@
  * // Returns: OutcomeType branded enum value
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const outcomeTypeContract = z.enum([
   'api-call',

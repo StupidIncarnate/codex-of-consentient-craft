@@ -8,7 +8,7 @@
  * // deps satisfies NodeDispatchRunnerDeps
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import type { AdapterResult } from '@dungeonmaster/shared/contracts';
 

@@ -7,7 +7,7 @@
  * // Returns QuestTitle branded string
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const questTitleContract = z.string().min(1).brand<'QuestTitle'>();
 export type QuestTitle = z.infer<typeof questTitleContract>;

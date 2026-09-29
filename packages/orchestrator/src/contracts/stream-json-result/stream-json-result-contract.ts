@@ -6,7 +6,7 @@
  * // Returns validated StreamJsonResult object
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { chatEntryContract } from '@dungeonmaster/shared/contracts';
 

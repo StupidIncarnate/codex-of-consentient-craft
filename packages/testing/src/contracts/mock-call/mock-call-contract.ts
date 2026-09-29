@@ -10,7 +10,7 @@
  * // Returns validated MockCall object
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { moduleNameContract } from '../module-name/module-name-contract';
 import { factoryFunctionTextContract } from '../factory-function-text/factory-function-text-contract';
 import { sourceFileNameContract } from '../source-file-name/source-file-name-contract';

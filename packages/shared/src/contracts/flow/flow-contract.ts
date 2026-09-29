@@ -13,7 +13,7 @@
  * would be missing the new key; the array simply grows.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { flowEdgeContract } from '../flow-edge/flow-edge-contract';
 import { flowIdContract } from '../flow-id/flow-id-contract';

@@ -10,7 +10,7 @@
  * // Returns a validated LaneKillResult
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const laneKillResultContract = z.object({
   stopped: z.boolean(),

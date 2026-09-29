@@ -6,7 +6,7 @@
  * // Returns: BinCommand branded string
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const binCommandContract = z.string().min(1).brand<'BinCommand'>();
 

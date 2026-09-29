@@ -1,4 +1,4 @@
-import type { ZodError } from 'zod';
+import type { ZodError } from '#gateway/npm/zod';
 import { GuildIdStub, QuestIdStub } from '@dungeonmaster/shared/contracts';
 import { wsIncomingMessageContract } from './ws-incoming-message-contract';
 import {

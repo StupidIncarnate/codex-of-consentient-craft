@@ -12,7 +12,7 @@
  * (sessionId, uuid, parentUuid, isSidechain, timestamp, etc.) that downstream code does not need
  * to read. Validation guarantees the shapes we DO read; the rest are preserved by passthrough.
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 const _contentItem = z
   .object({

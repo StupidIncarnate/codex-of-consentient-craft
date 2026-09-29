@@ -5,7 +5,7 @@
  * questFolderFindResultContract.parse({ found: true, folderPath: '/path', quest: {...} });
  * // Returns: QuestFolderFindResult object
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { filePathContract, questContract } from '@dungeonmaster/shared/contracts';
 

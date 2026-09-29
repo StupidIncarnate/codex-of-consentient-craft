@@ -6,7 +6,7 @@
  * // Returns: GuildPath branded string
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const guildPathContract = z.string().min(1).brand<'GuildPath'>();
 

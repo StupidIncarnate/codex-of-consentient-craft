@@ -8,7 +8,7 @@
  * // Returns a branded ScriptName
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const scriptNameContract = z.string().brand<'ScriptName'>();
 

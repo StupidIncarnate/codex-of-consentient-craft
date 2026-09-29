@@ -5,7 +5,7 @@
  * const name: ContractName = contractNameContract.parse('LoginCredentials');
  * // Returns a branded ContractName string type
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const contractNameContract = z
   .string()

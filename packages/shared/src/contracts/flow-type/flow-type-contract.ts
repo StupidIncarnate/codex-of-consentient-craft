@@ -18,7 +18,7 @@
  * a file is ABSENT goes green the day it is written and is blind afterwards.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const flowTypeContract = z.enum(['runtime', 'operational']);
 

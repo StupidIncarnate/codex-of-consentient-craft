@@ -6,7 +6,7 @@
  * // Returns: ToolingRequirement object
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { observableIdContract } from '../observable-id/observable-id-contract';
 import { toolingRequirementIdContract } from '../tooling-requirement-id/tooling-requirement-id-contract';

@@ -10,7 +10,7 @@
  * // Returns success with the error shape
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { processIdContract, questIdContract } from '@dungeonmaster/shared/contracts';
 

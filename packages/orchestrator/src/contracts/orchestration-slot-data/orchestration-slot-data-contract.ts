@@ -6,7 +6,7 @@
  * // Returns: OrchestrationSlotData object for tracking slot state
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { agentRoleContract } from '../agent-role/agent-role-contract';
 import { slotIndexContract } from '@dungeonmaster/shared/contracts';

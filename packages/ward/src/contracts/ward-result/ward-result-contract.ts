@@ -6,7 +6,7 @@
  * // Returns: WardResult validated object
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { runIdContract } from '../run-id/run-id-contract';
 import { runFiltersContract } from '../run-filters/run-filters-contract';
 import { checkResultContract } from '../check-result/check-result-contract';

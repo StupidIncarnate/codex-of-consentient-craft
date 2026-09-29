@@ -16,7 +16,7 @@
  */
 
 import { unitIdContract } from '@dungeonmaster/shared/contracts';
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const signalGateResultContract = z.discriminatedUnion('ok', [
   z.object({

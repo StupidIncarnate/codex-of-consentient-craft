@@ -6,7 +6,7 @@
  * // Returns: { path?: GuildPath }
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { guildPathContract } from '@dungeonmaster/shared/contracts';
 
 export const directoryBrowseBodyContract = z.object({

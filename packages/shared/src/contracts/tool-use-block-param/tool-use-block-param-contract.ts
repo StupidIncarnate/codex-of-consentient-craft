@@ -6,7 +6,7 @@
  * // Returns: ToolUseBlockParam with branded id and name fields
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const toolUseBlockParamContract = z.object({
   type: z.literal('tool_use'),

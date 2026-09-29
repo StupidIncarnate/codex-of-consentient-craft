@@ -12,7 +12,7 @@
  * WHEN-TO-USE: Project-map boot-tree rendering for flows that compose React Router routes
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { contentTextContract } from '../content-text/content-text-contract';
 
 export const routeMetadataContract = z.object({

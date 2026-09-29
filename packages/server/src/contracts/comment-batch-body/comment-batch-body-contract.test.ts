@@ -1,4 +1,4 @@
-import type { ZodError } from 'zod';
+import type { ZodError } from '#gateway/npm/zod';
 import { CommentBatchEntryStub } from '@dungeonmaster/shared/contracts';
 
 import { commentBatchBodyContract } from './comment-batch-body-contract';

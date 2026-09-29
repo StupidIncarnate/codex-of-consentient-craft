@@ -9,7 +9,7 @@
  * // Returns: IconButtonSize branded string
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const iconButtonSizeContract = z
   .enum(['xs', 'sm', 'md', 'lg', 'xl'])

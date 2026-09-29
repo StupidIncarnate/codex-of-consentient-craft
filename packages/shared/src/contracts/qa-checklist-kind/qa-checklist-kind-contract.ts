@@ -11,7 +11,7 @@
  * `workItem.observations[]`, so coverage is counted rather than remembered.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const qaChecklistKindContract = z.enum(['terminal', 'branch', 'observable', 'off-map']);
 

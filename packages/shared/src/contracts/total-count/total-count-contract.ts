@@ -6,7 +6,7 @@
  * // Returns: TotalCount branded number
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const totalCountContract = z.number().int().nonnegative().brand<'TotalCount'>();
 

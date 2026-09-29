@@ -6,7 +6,7 @@
  * // Returns branded GitBranchName type for git branch names
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const gitBranchNameContract = z.string().min(1).brand<'GitBranchName'>();
 

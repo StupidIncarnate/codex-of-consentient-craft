@@ -17,7 +17,7 @@
  * });
  * // Returns OperationFields
  */
-import type { z } from 'zod';
+import type { z } from '#gateway/npm/zod';
 
 import {
   guildIdContract,

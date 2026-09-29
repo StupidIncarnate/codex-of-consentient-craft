@@ -9,7 +9,7 @@
  * // Returns ToolResultKey branded string
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const toolResultKeyContract = z.string().brand<'ToolResultKey'>();
 

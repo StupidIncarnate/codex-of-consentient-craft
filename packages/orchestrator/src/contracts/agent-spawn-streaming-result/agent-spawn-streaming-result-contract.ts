@@ -6,7 +6,7 @@
  * // Returns validated AgentSpawnStreamingResult
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { exitCodeContract, sessionIdContract } from '@dungeonmaster/shared/contracts';
 import { streamSignalContract } from '../stream-signal/stream-signal-contract';
 import { streamTextContract } from '../stream-text/stream-text-contract';

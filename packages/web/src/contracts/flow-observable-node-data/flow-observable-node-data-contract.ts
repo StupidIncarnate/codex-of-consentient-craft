@@ -9,7 +9,7 @@
  * // Returns: FlowObservableNodeData with branded fields
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import {
   flowIdContract,

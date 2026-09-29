@@ -6,7 +6,7 @@
  * // Returns: CssDimension branded value
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const cssDimensionContract = z.union([z.number(), z.string()]).brand<'CssDimension'>();
 

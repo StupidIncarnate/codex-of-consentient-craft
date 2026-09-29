@@ -9,7 +9,7 @@
  * WHEN-NOT-TO-USE: For slot manager internal WorkItemId (sequential strings)
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const questWorkItemIdContract = z.uuid().brand<'QuestWorkItemId'>();
 

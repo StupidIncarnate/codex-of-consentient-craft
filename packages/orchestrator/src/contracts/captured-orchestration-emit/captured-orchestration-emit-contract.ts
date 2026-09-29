@@ -13,7 +13,7 @@
  * }});
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { processIdContract } from '@dungeonmaster/shared/contracts';
 
 import { orchestrationEventPayloadKeyContract } from '../orchestration-event-payload-key/orchestration-event-payload-key-contract';

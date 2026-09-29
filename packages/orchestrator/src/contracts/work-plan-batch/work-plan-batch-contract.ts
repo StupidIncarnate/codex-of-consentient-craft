@@ -12,7 +12,7 @@
  * count without adding a single dispatchable piece.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { workPlanPieceContract } from '../work-plan-piece/work-plan-piece-contract';
 

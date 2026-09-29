@@ -54,7 +54,7 @@ import {
   questWorkItemIdContract,
   unitObservationContract,
 } from '@dungeonmaster/shared/contracts';
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { isoTimestampContract } from '../iso-timestamp/iso-timestamp-contract';
 import { workPlanBatchContract } from '../work-plan-batch/work-plan-batch-contract';

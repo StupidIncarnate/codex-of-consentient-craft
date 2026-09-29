@@ -10,7 +10,7 @@
  * // Returns: 'chaoswhisperer-gap-minion' as AgentPromptName
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const agentPromptNameContract = z.string().min(1).brand<'AgentPromptName'>();
 

@@ -9,7 +9,7 @@
  * // Returned synchronously by quest-get-server-config-broker.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { networkPortContract } from '@dungeonmaster/shared/contracts';
 

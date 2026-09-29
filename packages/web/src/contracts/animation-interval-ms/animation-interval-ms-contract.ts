@@ -6,7 +6,7 @@
  * // Returns: AnimationIntervalMs branded number
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const animationIntervalMsContract = z
   .number()

@@ -18,7 +18,7 @@
  * ingredient({ fields: operationFieldsSchemaContract, ... });
  * // Same runtime schema as operationFieldsContract; parses and fails exactly the same
  */
-import type { z } from 'zod';
+import type { z } from '#gateway/npm/zod';
 
 import { operationFieldsContract } from '../operation-fields/operation-fields-contract';
 import type { OperationFields } from '../operation-fields/operation-fields-contract';

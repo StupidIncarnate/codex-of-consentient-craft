@@ -5,7 +5,7 @@
  * const result: AddQuestResult = addQuestResultContract.parse({ success: true, questId: 'add-auth', questFolder: '001-add-auth', filePath: '/path/to/quest.json' });
  * // Returns validated AddQuestResult with success status and optional quest details or error
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { questWorkItemIdContract } from '../quest-work-item-id/quest-work-item-id-contract';
 

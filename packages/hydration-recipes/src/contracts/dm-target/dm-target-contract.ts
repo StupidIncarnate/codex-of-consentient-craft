@@ -14,7 +14,7 @@
  * dmTargetContract.parse({ home: '/tmp/guild-1', claudeHome: '/tmp/guild-1' });
  * // Returns a DmTarget that can only run ingredients declaring a `write` route
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 

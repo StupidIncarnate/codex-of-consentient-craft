@@ -9,7 +9,7 @@
  * WHEN-NOT-TO-USE: For the plan's own id (use operationPlanIdContract) or the ledger item id (use operationItemIdContract)
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const operationPlanPieceIdContract = z.uuid().brand<'OperationPlanPieceId'>();
 

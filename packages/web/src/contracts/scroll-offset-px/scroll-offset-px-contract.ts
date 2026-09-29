@@ -10,7 +10,7 @@
  * // Returns ScrollOffsetPx branded number — an anchor 120px above the scrollport's top edge
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const scrollOffsetPxContract = z.number().brand<'ScrollOffsetPx'>();
 

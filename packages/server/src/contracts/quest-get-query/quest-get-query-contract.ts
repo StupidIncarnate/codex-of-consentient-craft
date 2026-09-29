@@ -6,7 +6,7 @@
  * // Returns { stage?: QuestStage }
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { questStageContract } from '@dungeonmaster/shared/contracts';
 
 export const questGetQueryContract = z.object({

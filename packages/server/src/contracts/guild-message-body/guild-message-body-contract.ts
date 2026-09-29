@@ -8,7 +8,7 @@
  * // Returns: { guildId: GuildId, message: UserMessage, images?: PastedImageUploadList }
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { guildIdContract } from '@dungeonmaster/shared/contracts';
 
 import { userMessageContract } from '../user-message/user-message-contract';

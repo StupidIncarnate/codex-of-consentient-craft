@@ -10,7 +10,7 @@
  * // Returns McpCallerContext
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { absoluteFilePathContract } from '../absolute-file-path/absolute-file-path-contract';
 import { agentIdContract } from '../agent-id/agent-id-contract';

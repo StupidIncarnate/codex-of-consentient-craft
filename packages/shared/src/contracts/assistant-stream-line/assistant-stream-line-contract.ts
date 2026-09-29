@@ -6,7 +6,7 @@
  * const parsed = assistantStreamLineContract.parse(JSON.parse(rawLine));
  * // Validates assistant messages from Claude CLI streaming output
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { assistantContentBlockParamContract } from '../assistant-content-block-param/assistant-content-block-param-contract';
 

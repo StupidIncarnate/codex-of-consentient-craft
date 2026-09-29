@@ -8,7 +8,7 @@
  * // Returns: 'browser' as Platform
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const platformContract = z.enum(['browser', 'node']).brand<'Platform'>();
 

@@ -15,7 +15,7 @@
  * // Returns 'direct' as RecipeFidelity
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { recipeFidelityStatics } from '../../statics/recipe-fidelity/recipe-fidelity-statics';
 

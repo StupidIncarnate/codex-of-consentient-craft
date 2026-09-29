@@ -6,7 +6,7 @@
  * // Returns: PlaywrightJsonReport with recursive suites, specs, tests, results
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 const playwrightTestResultContract = z
   .object({

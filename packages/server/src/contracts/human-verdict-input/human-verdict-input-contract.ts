@@ -8,7 +8,7 @@
  * // Returns: HumanVerdictInput ready for orchestratorRecordHumanVerdictAdapter
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { questIdContract } from '@dungeonmaster/shared/contracts';
 
 export const humanVerdictInputContract = z

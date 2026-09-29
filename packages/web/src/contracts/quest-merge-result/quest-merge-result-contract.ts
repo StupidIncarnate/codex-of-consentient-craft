@@ -7,7 +7,7 @@
  * // Returns { merging: true }
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const questMergeResultContract = z.object({
   merging: z.boolean(),

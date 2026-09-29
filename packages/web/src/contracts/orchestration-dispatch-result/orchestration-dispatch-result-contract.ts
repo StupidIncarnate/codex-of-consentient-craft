@@ -9,7 +9,7 @@
  */
 
 import { dispatchStateContract } from '@dungeonmaster/shared/contracts';
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const orchestrationDispatchResultContract = z.object({
   state: dispatchStateContract,

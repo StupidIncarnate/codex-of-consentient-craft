@@ -6,7 +6,7 @@
  * // Returns: ContractCount branded number
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const contractCountContract = z.number().int().min(0).brand<'ContractCount'>();
 

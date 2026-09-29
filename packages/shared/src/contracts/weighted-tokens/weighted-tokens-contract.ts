@@ -9,7 +9,7 @@
  * // Returns a branded WeightedTokens
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const weightedTokensContract = z.number().min(0).brand<'WeightedTokens'>();
 

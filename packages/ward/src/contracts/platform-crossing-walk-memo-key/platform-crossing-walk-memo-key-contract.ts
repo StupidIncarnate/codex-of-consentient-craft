@@ -8,7 +8,7 @@
  * // Returns branded PlatformCrossingWalkMemoKey
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const platformCrossingWalkMemoKeyContract = z
   .string()

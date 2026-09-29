@@ -6,7 +6,7 @@
  * // Returns a branded SlotCount integer (0 or positive)
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const slotCountContract = z.number().int().nonnegative().brand<'SlotCount'>();
 

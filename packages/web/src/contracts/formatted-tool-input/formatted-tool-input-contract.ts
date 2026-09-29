@@ -6,7 +6,7 @@
  * // Returns validated FormattedToolInput object
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { formattedToolFieldContract } from '../formatted-tool-field/formatted-tool-field-contract';
 

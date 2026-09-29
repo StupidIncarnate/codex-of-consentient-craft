@@ -6,7 +6,7 @@
  * // Returns: SessionFilter branded string
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const sessionFilterContract = z.enum(['all', 'quests-only']).brand<'SessionFilter'>();
 

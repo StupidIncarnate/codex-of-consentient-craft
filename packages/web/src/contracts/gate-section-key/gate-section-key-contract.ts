@@ -6,7 +6,7 @@
  * // Returns: GateSectionKey branded enum value
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const gateSectionKeyContract = z.enum([
   'flows',

@@ -6,7 +6,7 @@
  * // Returns: WardErrorList branded string
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const wardErrorListContract = z.string().brand<'WardErrorList'>();
 

@@ -6,7 +6,7 @@
  * // Returns branded Identifier type for variable names, function names, etc.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 /**
  * Represents a JavaScript/TypeScript identifier (variable name, function name, etc.)

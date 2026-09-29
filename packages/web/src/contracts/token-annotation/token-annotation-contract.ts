@@ -6,7 +6,7 @@
  * // Returns validated TokenAnnotation object
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { contextTokenCountContract } from '../context-token-count/context-token-count-contract';
 import { contextTokenDeltaContract } from '../context-token-delta/context-token-delta-contract';

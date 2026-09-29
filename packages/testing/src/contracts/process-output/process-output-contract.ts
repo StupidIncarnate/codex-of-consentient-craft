@@ -6,7 +6,7 @@
  * // Returns validated ProcessOutput branded type
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const processOutputContract = z.string().brand<'ProcessOutput'>();
 

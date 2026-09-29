@@ -6,7 +6,7 @@
  * // Returns: TailStartIndex branded number — items[0..2] are hidden, items[3..] are visible
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const tailStartIndexContract = z.number().int().nonnegative().brand<'TailStartIndex'>();
 

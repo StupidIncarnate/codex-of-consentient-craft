@@ -6,7 +6,7 @@
  * // Returns branded RelativeFilePath type that starts with ./ or ../
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const relativeFilePathContract = z
   .string()

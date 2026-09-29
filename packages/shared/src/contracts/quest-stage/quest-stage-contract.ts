@@ -5,7 +5,7 @@
  * questStageContract.parse('spec');
  * // Returns branded 'spec' as QuestStage
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const questStageContract = z.enum(['spec', 'planning', 'implementation']);
 

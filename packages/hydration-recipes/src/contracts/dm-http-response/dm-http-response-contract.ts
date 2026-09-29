@@ -10,7 +10,7 @@
  * dmHttpResponseContract.parse({ status: 201, body: { id: 'f47ac10b-...' } });
  * // Returns { status: HttpStatusCode; body: unknown }
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const dmHttpResponseContract = z.object({
   status: z.number().int().brand<'HttpStatusCode'>(),

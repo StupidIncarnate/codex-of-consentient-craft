@@ -19,7 +19,7 @@
  * since `tsestreeContract` can refer to itself directly once it exists.
  * Type property constrained to TsestreeNodeType enum values.
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { tsestreeNodeTypeStatics } from '../../statics/tsestree-node-type/tsestree-node-type-statics';
 import { identifierContract } from '@dungeonmaster/shared/contracts';
 

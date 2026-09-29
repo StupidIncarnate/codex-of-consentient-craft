@@ -6,7 +6,7 @@
  * // Returns: CheckResult validated object
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { checkTypeContract } from '../check-type/check-type-contract';
 import { checkStatusContract } from '../check-status/check-status-contract';
 import { projectResultContract } from '../project-result/project-result-contract';

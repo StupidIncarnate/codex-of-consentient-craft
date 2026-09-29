@@ -15,7 +15,7 @@
  * before it. Reusing the family as the array element's `id` keeps the merge an upsert.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { qaOffMapFamilyContract } from '../qa-off-map-family/qa-off-map-family-contract';
 

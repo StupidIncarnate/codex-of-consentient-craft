@@ -6,7 +6,7 @@
  * // Describes a call to the mocked function and the answer it receives
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 // `impl` is a function — zod validates only the data fields; `.loose()` carries `impl`
 // through `.parse()` unvalidated, since a Zod object schema cannot check callability.

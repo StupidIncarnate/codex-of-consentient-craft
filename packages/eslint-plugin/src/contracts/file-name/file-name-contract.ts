@@ -5,7 +5,7 @@
  * const filename = fileNameContract.parse('my-file.ts');
  * // Returns branded FileName; throws on '/path/file.ts' or empty string
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const fileNameContract = z
   .string()

@@ -5,7 +5,7 @@
  * const pattern = globPatternContract.parse('src/**\/*.ts');
  * // Returns: GlobPattern (branded string)
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const globPatternContract = z.string().brand<'GlobPattern'>();
 

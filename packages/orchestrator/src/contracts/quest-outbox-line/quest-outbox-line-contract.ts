@@ -6,7 +6,7 @@
  * // Returns validated QuestOutboxLine object
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { questIdContract } from '@dungeonmaster/shared/contracts';
 

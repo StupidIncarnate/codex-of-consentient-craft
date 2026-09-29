@@ -12,7 +12,7 @@
  *   siegelenseLaneProvisionModuleContract.parse(await dynamicImport({ path }));
  * await capacityReadBroker({ specName: 'default', poolSize: null });
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export type CapacityReadBrokerFn = (params: {
   specName: string;

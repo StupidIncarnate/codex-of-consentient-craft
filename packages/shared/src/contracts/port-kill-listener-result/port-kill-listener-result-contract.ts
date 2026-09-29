@@ -7,7 +7,7 @@
  * const result = portKillListenerResultContract.parse({ pid: 12345, exitCode: 0, output: '' });
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { errorMessageContract } from '../error-message/error-message-contract';
 import { exitCodeContract } from '../exit-code/exit-code-contract';

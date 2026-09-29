@@ -12,7 +12,7 @@
  * // Returns a branded PieceId
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const pieceIdContract = z.string().min(1).brand<'PieceId'>();
 

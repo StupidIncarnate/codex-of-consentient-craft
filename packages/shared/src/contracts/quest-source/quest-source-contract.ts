@@ -10,7 +10,7 @@
  * can be bulk-cleared between suite runs without touching real quests.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const questSourceContract = z.enum([
   'user',

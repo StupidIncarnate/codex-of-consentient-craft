@@ -6,7 +6,7 @@
  * // Use as function parameter types in orchestration brokers
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import {
   chatEntryContract,
   questWorkItemIdContract,

@@ -18,7 +18,7 @@
  * // every observable on those nodes printed — sibling packages' included — while a node web does
  * // not tag keeps its observables as a count
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { flowIdContract } from '../flow-id/flow-id-contract';
 import { packageNameContract } from '../package-name/package-name-contract';

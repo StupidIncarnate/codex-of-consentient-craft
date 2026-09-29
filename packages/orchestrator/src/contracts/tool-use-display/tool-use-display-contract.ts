@@ -6,7 +6,7 @@
  * // Returns a branded ToolUseDisplay string type
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const toolUseDisplayContract = z.string().min(1).brand<'ToolUseDisplay'>();
 

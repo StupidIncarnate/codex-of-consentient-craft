@@ -11,7 +11,7 @@
  * // Returns typed InstallResult with package name, success status, action, and optional message/error
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { packageNameContract } from '../package-name/package-name-contract';
 import { installActionContract } from '../install-action/install-action-contract';
 import { installMessageContract } from '../install-message/install-message-contract';

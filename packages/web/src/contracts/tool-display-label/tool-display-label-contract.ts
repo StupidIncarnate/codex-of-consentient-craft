@@ -8,7 +8,7 @@
  * // Returns: ToolDisplayLabel branded string
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const toolDisplayLabelContract = z.string().min(1).brand<'ToolDisplayLabel'>();
 

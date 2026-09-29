@@ -11,7 +11,7 @@
  * // Returns {kind, testPath, stack}
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const testingOpenHandleFindingContract = z.object({
   kind: z.string().min(1).brand<'TestingOpenHandleKind'>(),

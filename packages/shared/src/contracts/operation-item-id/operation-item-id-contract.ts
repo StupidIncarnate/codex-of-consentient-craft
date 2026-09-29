@@ -9,7 +9,7 @@
  * WHEN-NOT-TO-USE: For work item IDs (use questWorkItemIdContract)
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const operationItemIdContract = z.uuid().brand<'OperationItemId'>();
 

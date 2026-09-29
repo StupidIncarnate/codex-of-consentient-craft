@@ -26,7 +26,7 @@
  * person's judgment has anywhere to live.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const questNoteKindContract = z.enum([
   'open-question',

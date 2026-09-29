@@ -8,7 +8,7 @@
  * const env = orchestrationEventEnvelopeContract.parse(rawEvent);
  * const entries = env.payload?.['entries'];
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { orchestrationEventPayloadKeyContract } from '../orchestration-event-payload-key/orchestration-event-payload-key-contract';
 

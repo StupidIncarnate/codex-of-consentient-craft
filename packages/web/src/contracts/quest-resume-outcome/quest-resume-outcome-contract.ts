@@ -12,7 +12,7 @@
  * the user watches a "resumed" quest do nothing.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { errorMessageContract, questStatusContract } from '@dungeonmaster/shared/contracts';
 

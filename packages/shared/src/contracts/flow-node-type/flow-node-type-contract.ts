@@ -6,7 +6,7 @@
  * // Returns: FlowNodeType enum value
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const flowNodeTypeContract = z.enum(['state', 'decision', 'action', 'terminal']);
 

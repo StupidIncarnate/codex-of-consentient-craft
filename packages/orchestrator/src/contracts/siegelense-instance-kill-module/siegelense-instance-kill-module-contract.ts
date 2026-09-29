@@ -10,7 +10,7 @@
  * const { instanceKillBroker } = siegelenseInstanceKillModuleContract.parse(await dynamicImport({ path }));
  * await instanceKillBroker({ instanceId: 'inst_7f3a9c21' });
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export type InstanceKillBrokerFn = (params: { instanceId: string }) => Promise<unknown>;
 

@@ -6,7 +6,7 @@
  * // Returns: ElkPositionMap with branded x/y values keyed by node id string
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 const elkPositionXContract = z.number().brand<'ElkPositionX'>();
 const elkPositionYContract = z.number().brand<'ElkPositionY'>();

@@ -9,7 +9,7 @@
  * nestedChainArgsContract.parse({ depth: 2 });
  * // Returns NestedChainArgs
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 const chainDepthContract = z.number().int().positive().brand<'ChainDepth'>();
 

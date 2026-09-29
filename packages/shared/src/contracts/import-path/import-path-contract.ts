@@ -5,7 +5,7 @@
  * const path: ImportPath = importPathContract.parse('statics');
  * // Returns validated branded string representing an import path
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const importPathContract = z.string().brand<'ImportPath'>();
 

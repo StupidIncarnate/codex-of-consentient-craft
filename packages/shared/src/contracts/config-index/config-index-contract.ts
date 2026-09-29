@@ -6,7 +6,7 @@
  * // Returns: ConfigIndex branded number
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const configIndexContract = z.number().int().nonnegative().brand<'ConfigIndex'>();
 

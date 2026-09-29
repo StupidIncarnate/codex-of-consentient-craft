@@ -6,7 +6,7 @@
  * // Returns validated MswRequestId branded type
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const mswRequestIdContract = z.string().brand<'MswRequestId'>();
 

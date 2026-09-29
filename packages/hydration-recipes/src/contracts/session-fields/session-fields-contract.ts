@@ -23,7 +23,7 @@
  * that needs one field's own contract reaches for the leaf import (`sessionIdContract`, etc.)
  * instead of `sessionFieldsContract.shape.<field>`.
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import {
   absoluteFilePathContract,

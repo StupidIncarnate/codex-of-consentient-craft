@@ -6,7 +6,7 @@
  * // Returns: ThinkingBlockParam with branded thinking field
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const thinkingBlockParamContract = z.object({
   type: z.literal('thinking'),

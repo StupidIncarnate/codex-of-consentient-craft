@@ -10,7 +10,7 @@
  * // Returns a branded UnhandledRequestMessage
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const unhandledRequestMessageContract = z.string().brand<'UnhandledRequestMessage'>();
 

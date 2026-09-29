@@ -5,7 +5,7 @@
  * resetDurationLabelContract.parse('2h5m');
  * // Returns: branded ResetDurationLabel
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const resetDurationLabelContract = z.string().min(1).brand<'ResetDurationLabel'>();
 

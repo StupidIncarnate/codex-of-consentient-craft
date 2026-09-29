@@ -6,7 +6,7 @@
  * // Returns validated MockSpawnResult with branded types
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const mockSpawnResultContract = z.object({
   code: z.number().int().brand<'ExitCode'>(),

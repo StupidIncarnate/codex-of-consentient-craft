@@ -14,7 +14,7 @@
  * session its entire failing-check list over a word it could have passed straight through.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const wardCheckTypeContract = z.string().min(1).brand<'WardCheckType'>();
 

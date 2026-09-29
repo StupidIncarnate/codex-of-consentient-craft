@@ -6,7 +6,7 @@
  * // Returns validated IdentifierName branded type
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const identifierNameContract = z.string().min(1).brand<'IdentifierName'>();
 

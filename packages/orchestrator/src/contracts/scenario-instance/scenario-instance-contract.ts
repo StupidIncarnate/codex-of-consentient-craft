@@ -6,7 +6,7 @@
  * // Returns: ScenarioInstance
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { arrayIndexContract, workItemRoleContract } from '@dungeonmaster/shared/contracts';
 

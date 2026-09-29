@@ -8,7 +8,7 @@
  * // Returns { agentId: AgentId, lines: StreamJsonLine[] }
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { streamJsonLineContract } from '@dungeonmaster/shared/contracts';
 

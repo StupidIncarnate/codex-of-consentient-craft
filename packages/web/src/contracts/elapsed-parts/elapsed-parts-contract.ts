@@ -10,7 +10,7 @@
  * // Returns a branded ElapsedParts object
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { elapsedDisplayConfigStatics } from '../../statics/elapsed-display-config/elapsed-display-config-statics';
 

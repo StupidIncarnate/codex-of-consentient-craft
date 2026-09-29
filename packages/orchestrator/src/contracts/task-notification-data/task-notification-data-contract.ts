@@ -6,7 +6,7 @@
  * // Returns validated TaskNotificationData carrying the background-agent result fields
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const taskNotificationDataContract = z.object({
   taskId: z.string().min(1).brand<'TaskNotificationTaskId'>(),

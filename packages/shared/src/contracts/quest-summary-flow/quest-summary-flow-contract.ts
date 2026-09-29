@@ -22,7 +22,7 @@
  * because the summary's whole job is to be the one thing a reader has to load.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { flowContract } from '../flow/flow-contract';
 import { flowIdContract } from '../flow-id/flow-id-contract';

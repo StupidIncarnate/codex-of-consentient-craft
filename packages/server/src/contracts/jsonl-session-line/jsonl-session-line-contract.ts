@@ -6,7 +6,7 @@
  * // Returns: { type?, summary?, slug?, isMeta?, message? }
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const jsonlSessionLineContract = z
   .object({

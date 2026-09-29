@@ -15,7 +15,7 @@
  * WHEN-TO-USE: Building the file-bus-edges layer for the project-map EDGES footer
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { contentTextContract } from '../content-text/content-text-contract';
 import { absoluteFilePathContract } from '../absolute-file-path/absolute-file-path-contract';
 

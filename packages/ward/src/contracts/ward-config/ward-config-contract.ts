@@ -11,7 +11,7 @@
  * files, so both may be set at once and the resolved file list is their union.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { checkTypeContract } from '../check-type/check-type-contract';
 
 export const wardConfigContract = z.object({

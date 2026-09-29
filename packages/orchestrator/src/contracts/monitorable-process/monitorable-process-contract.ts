@@ -8,7 +8,7 @@
  * // Provides a minimal interface for monitoring a child process exit
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 // `kill` and `on` are functions — a Zod object schema cannot check callability, so both stay out
 // of the parse and are attached only through the `MonitorableProcess` interface below.

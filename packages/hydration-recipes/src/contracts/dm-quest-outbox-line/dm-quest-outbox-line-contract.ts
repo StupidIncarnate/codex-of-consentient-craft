@@ -10,7 +10,7 @@
  * dmQuestOutboxLineContract.parse({ questId: 'add-auth', timestamp: '2024-01-15T10:00:00.000Z' });
  * // Returns { questId: QuestId; timestamp: DmQuestOutboxTimestamp }
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { questIdContract } from '@dungeonmaster/shared/contracts';
 

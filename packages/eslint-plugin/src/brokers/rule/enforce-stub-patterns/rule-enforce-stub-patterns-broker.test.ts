@@ -75,7 +75,7 @@ export const EmptyStub = (): Empty => emptyContract.parse({});
     {
       code: `
 import type { StubArgument } from '@dungeonmaster/shared/@types';
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { eslintContextContract } from './eslint-context-contract';
 const filenameContract = z.string().brand<'Filename'>();
 export const EslintContextStub = ({ ...props }: StubArgument<EslintContext> = {}): EslintContext => {

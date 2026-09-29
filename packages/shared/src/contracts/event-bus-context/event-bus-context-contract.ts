@@ -10,7 +10,7 @@
  * into `responderLinesRenderLayerBroker` so each responder can be annotated in-line.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { eventBusContract } from '../event-bus/event-bus-contract';
 import { busEmitterSiteContract } from '../bus-emitter-site/bus-emitter-site-contract';
 import { busSubscriberFileContract } from '../bus-subscriber-file/bus-subscriber-file-contract';

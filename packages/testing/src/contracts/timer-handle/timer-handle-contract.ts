@@ -9,7 +9,7 @@
  * // Returns false once something has called .unref() on it
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 // A bare (stripping) object, not `.loose()`: a real value this contract also has to accept — Node's
 // own `Timeout` / `Immediate`, handed back by the real `setTimeout`/`setInterval`/`setImmediate` —

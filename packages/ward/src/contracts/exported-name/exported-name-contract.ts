@@ -9,7 +9,7 @@
  * // Returns branded ExportedName
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const exportedNameContract = z.string().min(1).brand<'ExportedName'>();
 

@@ -7,7 +7,7 @@
  * const opts = spawnOptionsSnapshotContract.parse(proxy.getSpawnedOptions());
  * expect(opts.cwd).toBe('/abs/path');
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { spawnOptionsEnvNameContract } from '../spawn-options-env-name/spawn-options-env-name-contract';
 

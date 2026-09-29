@@ -17,7 +17,7 @@
  * // Returns: QuestPackageEntry object
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { filePathContract } from '../file-path/file-path-contract';
 import { packageNameContract } from '../package-name/package-name-contract';

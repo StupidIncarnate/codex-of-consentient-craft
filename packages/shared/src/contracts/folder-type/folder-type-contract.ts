@@ -5,7 +5,7 @@
  * const folderType = folderTypeContract.parse('brokers');
  * // Returns branded FolderType (e.g., 'brokers', 'adapters', 'contracts', 'guards')
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { folderConfigStatics } from '../../statics/folder-config/folder-config-statics';
 
 const allFolderTypes = Object.keys(folderConfigStatics);

@@ -6,7 +6,7 @@
  * reconcileWatchersResultContract.parse({ started: 1, stopped: 0 });
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const reconcileWatchersResultContract = z.object({
   started: z.number().int().nonnegative().brand<'StartedWatcherCount'>(),

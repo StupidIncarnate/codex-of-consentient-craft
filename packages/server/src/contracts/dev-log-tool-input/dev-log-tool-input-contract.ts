@@ -6,7 +6,7 @@
  * // Returns: { file_path?, command?, pattern?, description?, subject?, taskId?, status?, questId?, guildId? }
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const devLogToolInputContract = z
   .object({

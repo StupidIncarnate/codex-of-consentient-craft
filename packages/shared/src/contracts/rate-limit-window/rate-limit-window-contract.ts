@@ -5,7 +5,7 @@
  * rateLimitWindowContract.parse({usedPercentage: 42, resetsAt: '2026-05-05T15:00:00.000Z'});
  * // Returns: RateLimitWindow object — used by rate-limits-snapshot and rate-limits-history-line
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { rateLimitStatics } from '../../statics/rate-limit/rate-limit-statics';
 

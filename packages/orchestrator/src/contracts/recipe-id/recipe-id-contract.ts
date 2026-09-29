@@ -15,7 +15,7 @@
  * cannot be imported here.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const recipeIdContract = z
   .string()

@@ -6,7 +6,7 @@
  * // Returns: FileTiming validated object
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { gitRelativePathContract } from '../git-relative-path/git-relative-path-contract';
 import { durationMsContract } from '../duration-ms/duration-ms-contract';
 

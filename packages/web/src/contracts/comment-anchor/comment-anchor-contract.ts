@@ -9,7 +9,7 @@
  * // Returns: CommentAnchor for an assertion-card comment
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import {
   flowIdContract,

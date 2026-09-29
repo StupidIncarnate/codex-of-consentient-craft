@@ -6,7 +6,7 @@
  * // Returns: 'pending' as WorkItemStatus
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const workItemStatusContract = z.enum([
   'pending',

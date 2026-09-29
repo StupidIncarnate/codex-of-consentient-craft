@@ -6,7 +6,7 @@
  * // Returns ReplayHistoryMessage — used to inspect outbound WS messages in tests
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import {
   guildIdContract,

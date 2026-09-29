@@ -13,7 +13,7 @@
  * WHEN-TO-USE: Building the frontend-react widget tree for project-map headline rendering
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { contentTextContract } from '../content-text/content-text-contract';
 import { absoluteFilePathContract } from '../absolute-file-path/absolute-file-path-contract';
 

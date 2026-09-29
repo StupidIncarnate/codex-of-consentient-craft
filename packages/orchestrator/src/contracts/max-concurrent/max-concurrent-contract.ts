@@ -6,7 +6,7 @@
  * // Returns: MaxConcurrent branded number
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const maxConcurrentContract = z.number().int().min(1).brand<'MaxConcurrent'>();
 

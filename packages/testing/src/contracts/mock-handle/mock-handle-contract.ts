@@ -5,7 +5,7 @@
  * import type { MockHandle } from './mock-handle-contract';
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import type { MockStaging } from '../mock-staging/mock-staging-contract';
 import type { RecordedCalls } from '../recorded-calls/recorded-calls-contract';

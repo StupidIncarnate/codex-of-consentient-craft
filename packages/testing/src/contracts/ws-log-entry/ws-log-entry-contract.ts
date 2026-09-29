@@ -6,7 +6,7 @@
  * // Returns validated WsLogEntry type
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const wsLogEntryContract = z.object({
   direction: z.enum(['sent', 'received']),

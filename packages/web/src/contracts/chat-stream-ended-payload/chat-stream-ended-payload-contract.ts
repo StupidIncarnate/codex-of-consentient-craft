@@ -18,7 +18,7 @@
  * resolved yet — would let a re-delivery clear a turn it has nothing to do with.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import {
   processIdContract,

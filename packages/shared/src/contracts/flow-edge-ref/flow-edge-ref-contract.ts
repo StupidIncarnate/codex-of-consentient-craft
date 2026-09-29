@@ -9,7 +9,7 @@
  * // Returns: FlowEdgeRef for cross-flow reference
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const flowEdgeRefContract = z.string().min(1).brand<'FlowEdgeRef'>();
 

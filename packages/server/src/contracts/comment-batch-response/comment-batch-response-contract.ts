@@ -9,7 +9,7 @@
  * // replays the session from disk.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { processIdContract } from '@dungeonmaster/shared/contracts';
 

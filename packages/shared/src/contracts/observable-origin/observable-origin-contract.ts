@@ -17,7 +17,7 @@
  * Flowrider's coverage would report a permanent, uncloseable hole.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const observableOriginContract = z.enum([
   'spec',

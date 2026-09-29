@@ -48,7 +48,7 @@
  * track with nothing anywhere reporting a fault.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { verificationTrackContract } from '../verification-track/verification-track-contract';
 

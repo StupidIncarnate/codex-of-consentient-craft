@@ -8,7 +8,7 @@
  * // 'cleared' = file vanished (ENOENT), snapshot=null emitted once
  * // 'error' = read or parse failed, error reported via onError
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const rateLimitsWatchTickOutcomeContract = z.enum([
   'changed',

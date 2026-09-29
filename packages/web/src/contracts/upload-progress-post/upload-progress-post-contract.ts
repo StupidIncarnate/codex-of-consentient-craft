@@ -12,7 +12,7 @@
  * // Returns: UploadProgressPost
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import type { ByteLength } from '../byte-length/byte-length-contract';
 

@@ -6,7 +6,7 @@
  * // Returns: 'data' as QuestContractKind
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const questContractKindContract = z
   .enum(['data', 'endpoint', 'event'])

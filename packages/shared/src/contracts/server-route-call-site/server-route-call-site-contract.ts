@@ -11,7 +11,7 @@
  * // Returns validated ServerRouteCallSite
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { contentTextContract } from '../content-text/content-text-contract';
 
 export const serverRouteCallSiteContract = z.object({

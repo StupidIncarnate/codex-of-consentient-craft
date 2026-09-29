@@ -10,7 +10,7 @@
  * // Returns: GatewayPackageNames
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { gatewayPackageNameContract } from '../gateway-package-name/gateway-package-name-contract';
 
 export const gatewayPackageNamesContract = z.object({

@@ -6,7 +6,7 @@
  * // Returns: JestJsonReport with optional summary counts and per-suite results
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 const jestAssertionResultContract = z
   .object({

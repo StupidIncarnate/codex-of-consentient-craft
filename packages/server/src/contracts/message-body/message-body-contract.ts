@@ -8,7 +8,7 @@
  * // Returns: { message: UserMessage, images?: PastedImageUploadList }
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { pastedImageUploadListContract } from '../pasted-image-upload-list/pasted-image-upload-list-contract';
 import { userMessageContract } from '../user-message/user-message-contract';

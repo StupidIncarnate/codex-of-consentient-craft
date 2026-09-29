@@ -6,7 +6,7 @@
  * // Returns validated DelayMilliseconds branded type
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const delayMillisecondsContract = z
   .number()

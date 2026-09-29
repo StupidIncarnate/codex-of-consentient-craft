@@ -11,7 +11,7 @@
  * item id the plan was produced for (use operationItemIdContract)
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const operationPlanIdContract = z.uuid().brand<'OperationPlanId'>();
 

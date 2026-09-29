@@ -6,7 +6,7 @@
  * if (parsed.success) console.log(parsed.data.prompt);
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { taskAgentToolPromptContract } from '../task-agent-tool-prompt/task-agent-tool-prompt-contract';
 

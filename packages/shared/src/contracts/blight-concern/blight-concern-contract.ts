@@ -35,7 +35,7 @@
  * tool rather than being asked by any whole-diff role.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const blightConcernContract = z.enum(['craft', 'perf', 'dedup', 'integrity', 'test-cases']);
 

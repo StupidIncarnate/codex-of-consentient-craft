@@ -14,7 +14,7 @@
  * // Returns: PlatformCrossingViolation
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { platformContract } from '../platform/platform-contract';
 import { platformCrossingChainHopContract } from '../platform-crossing-chain-hop/platform-crossing-chain-hop-contract';
 import { gatewayPackageNameContract } from '../gateway-package-name/gateway-package-name-contract';

@@ -13,7 +13,7 @@
  * `.loose()` on every nested object so unread ward fields (rawOutput trim is a separate
  * concern in the producer; ward emits more keys than this contract names) survive validation.
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 const errorEntry = z
   .object({

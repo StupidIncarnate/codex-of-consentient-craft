@@ -6,7 +6,7 @@
  * // Returns branded RepoRelativePath type that rejects absolute paths to keep persisted quest data portable
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const repoRelativePathContract = z
   .string()

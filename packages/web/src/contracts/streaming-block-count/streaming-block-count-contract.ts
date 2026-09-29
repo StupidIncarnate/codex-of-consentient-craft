@@ -6,7 +6,7 @@
  * // Returns: StreamingBlockCount branded number
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const streamingBlockCountContract = z
   .number()

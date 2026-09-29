@@ -20,7 +20,7 @@
  * and its JSONL sits under that parent's own directory.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { absoluteFilePathContract } from '../absolute-file-path/absolute-file-path-contract';
 import { questWorkItemIdContract } from '../quest-work-item-id/quest-work-item-id-contract';

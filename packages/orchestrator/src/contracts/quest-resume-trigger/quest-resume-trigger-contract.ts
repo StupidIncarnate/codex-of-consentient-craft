@@ -11,7 +11,7 @@
  * // Returns the validated trigger; reject anything outside the union
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { questResumeTriggerStatics } from '../../statics/quest-resume-trigger/quest-resume-trigger-statics';
 

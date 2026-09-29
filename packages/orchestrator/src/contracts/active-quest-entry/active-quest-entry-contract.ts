@@ -10,7 +10,7 @@
  * // Returns: ActiveQuestEntry
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { guildIdContract, questContract, urlSlugContract } from '@dungeonmaster/shared/contracts';
 

@@ -12,7 +12,7 @@
  * // Returns: SmoketestScenario
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { questBlueprintContract } from '../quest-blueprint/quest-blueprint-contract';
 import {

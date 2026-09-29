@@ -8,7 +8,7 @@
  * // Returns: 'main' as BaseBranchName
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { baseBranchStatics } from '../../statics/base-branch/base-branch-statics';
 

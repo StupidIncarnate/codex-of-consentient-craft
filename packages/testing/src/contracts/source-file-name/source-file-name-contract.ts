@@ -6,7 +6,7 @@
  * // Returns validated SourceFileName branded type
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const sourceFileNameContract = z.string().min(1).brand<'SourceFileName'>();
 

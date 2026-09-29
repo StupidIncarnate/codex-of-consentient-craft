@@ -5,7 +5,7 @@
  * const result: ModifyQuestResult = modifyQuestResultContract.parse({ success: true });
  * // Returns validated ModifyQuestResult with success status, optional error, and optional failedChecks
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { verifyQuestCheckContract } from '../verify-quest-check/verify-quest-check-contract';
 

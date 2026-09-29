@@ -6,7 +6,7 @@
  * // Returns: WorkItem object
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { fileNameContract } from '../file-name/file-name-contract';
 import { packageNameContract } from '../package-name/package-name-contract';

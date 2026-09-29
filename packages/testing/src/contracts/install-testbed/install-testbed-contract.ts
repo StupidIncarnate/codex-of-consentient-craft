@@ -6,7 +6,7 @@
  * // Returns validated InstallTestbedData with branded types
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import type { RelativePath } from '../relative-path/relative-path-contract';
 import type { FileContent } from '../file-content/file-content-contract';
 import type { FilePath } from '../file-path/file-path-contract';

@@ -10,7 +10,7 @@
  * });
  * // Returns validated TsconfigOptions with branded types for string fields
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const tsconfigOptionsContract = z.object({
   target: z.string().brand<'TsTarget'>().optional(),

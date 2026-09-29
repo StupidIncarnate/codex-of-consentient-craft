@@ -7,7 +7,7 @@
  * // Returns validated SubdirName type
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const subdirNameContract = z.string().brand<'SubdirName'>();
 

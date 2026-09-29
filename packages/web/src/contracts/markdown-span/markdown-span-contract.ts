@@ -8,7 +8,7 @@
  * // Returns a MarkdownSpan discriminated on `kind`
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const markdownSpanContract = z.discriminatedUnion('kind', [
   z.object({

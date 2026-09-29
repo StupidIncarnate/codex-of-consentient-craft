@@ -20,7 +20,7 @@
  * // Returns a validated LaneManifestReading
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { absoluteFilePathContract, siegeInstanceIdContract } from '@dungeonmaster/shared/contracts';
 

@@ -67,7 +67,7 @@ import {
   unitObservationFieldsContract,
   wardResultContract,
 } from '@dungeonmaster/shared/contracts';
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { agentFamilyNameContract } from '../agent-family-name/agent-family-name-contract';
 import { commitShaContract } from '../commit-sha/commit-sha-contract';

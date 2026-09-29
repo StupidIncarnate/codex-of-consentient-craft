@@ -56,7 +56,7 @@
  * own tests.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { operationItemContract } from '../operation-item/operation-item-contract';
 import { operationItemIdContract } from '../operation-item-id/operation-item-id-contract';

@@ -9,7 +9,7 @@
  * // Returns a branded WorkItemPayloadKey
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const workItemPayloadKeyContract = z.string().brand<'WorkItemPayloadKey'>();
 

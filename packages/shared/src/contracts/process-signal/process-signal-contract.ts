@@ -13,7 +13,7 @@
  * // Returns: ProcessSignal
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const processSignalContract = z.string().min(1).brand<'ProcessSignal'>();
 

@@ -7,7 +7,7 @@
  * fileStemContract.parse('seed-session-1');
  * // Returns branded FileStem
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const fileStemContract = z.string().min(1).brand<'FileStem'>();
 

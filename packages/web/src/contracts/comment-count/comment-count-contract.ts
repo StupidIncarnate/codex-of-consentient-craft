@@ -6,7 +6,7 @@
  * // Returns: CommentCount branded number
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const commentCountContract = z.number().int().min(0).brand<'CommentCount'>();
 

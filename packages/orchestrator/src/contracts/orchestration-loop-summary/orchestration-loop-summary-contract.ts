@@ -6,7 +6,7 @@
  * // Returns: OrchestrationLoopSummary branded multi-line string written to stderr each loop iteration
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const orchestrationLoopSummaryContract = z.string().brand<'OrchestrationLoopSummary'>();
 

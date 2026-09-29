@@ -6,7 +6,7 @@
  * // Returns: OrchestrationEventType enum value
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const orchestrationEventTypeContract = z.enum([
   'phase-change',

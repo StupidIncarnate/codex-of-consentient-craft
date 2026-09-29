@@ -6,7 +6,7 @@
  * pastedImageMediaTypeContract.parse('image/png');
  * // Returns branded PastedImageMediaType
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { pastedImageStatics } from '../../statics/pasted-image/pasted-image-statics';
 

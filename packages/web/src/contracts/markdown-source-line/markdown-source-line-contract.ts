@@ -9,7 +9,7 @@
  * // Returns: MarkdownSourceLine branded string
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const markdownSourceLineContract = z.string().brand<'MarkdownSourceLine'>();
 

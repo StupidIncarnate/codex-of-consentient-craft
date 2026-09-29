@@ -6,7 +6,7 @@
  * // Returns: OrchestrationStatus object
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { orchestrationSlotContract } from '../orchestration-slot/orchestration-slot-contract';
 

@@ -18,7 +18,7 @@
  */
 
 import { pieceIdContract } from '@dungeonmaster/shared/contracts';
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { workPlanValidationCheckContract } from '../work-plan-validation-check/work-plan-validation-check-contract';
 

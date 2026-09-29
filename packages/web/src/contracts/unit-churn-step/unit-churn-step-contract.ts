@@ -8,7 +8,7 @@
  * // Returns: UnitChurnStep
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { unitMarkContract } from '@dungeonmaster/shared/contracts';
 

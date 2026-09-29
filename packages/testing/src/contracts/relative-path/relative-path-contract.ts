@@ -7,7 +7,7 @@
  * // Returns validated RelativePath type
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const relativePathContract = z.string().brand<'RelativePath'>();
 

@@ -12,7 +12,7 @@
  * WHEN-TO-USE: Building the Hooks section of the hook-handlers headline renderer
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { contentTextContract } from '../content-text/content-text-contract';
 
 export const binEntryContract = z.object({

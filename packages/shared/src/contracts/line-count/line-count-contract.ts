@@ -5,7 +5,7 @@
  * const lines: LineCount = lineCountContract.parse(500);
  * // Returns a branded LineCount number type
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const lineCountContract = z.number().int().positive().brand<'LineCount'>();
 

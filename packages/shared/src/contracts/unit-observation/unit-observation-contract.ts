@@ -17,7 +17,7 @@
  * contract instead when you need `.omit()`/`.shape` — see that file's own header for why.
  */
 
-import type { z } from 'zod';
+import type { z } from '#gateway/npm/zod';
 
 import { unitObservationFieldsContract } from '../unit-observation-fields/unit-observation-fields-contract';
 

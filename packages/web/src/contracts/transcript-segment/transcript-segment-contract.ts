@@ -10,7 +10,7 @@
  * // Returns a TranscriptSegment discriminated on `kind`
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const transcriptSegmentContract = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('text'), text: z.string().brand<'TranscriptSegmentText'>() }),

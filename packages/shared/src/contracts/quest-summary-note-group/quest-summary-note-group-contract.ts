@@ -23,7 +23,7 @@
  * inside them.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { questNoteContract } from '../quest-note/quest-note-contract';
 import { questNoteKindContract } from '../quest-note-kind/quest-note-kind-contract';

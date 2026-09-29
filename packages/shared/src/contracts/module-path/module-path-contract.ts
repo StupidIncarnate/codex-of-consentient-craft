@@ -6,7 +6,7 @@
  * // Returns branded ModulePath type for npm packages, relative paths, or absolute paths
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 /**
  * Represents a module path used in import/require statements

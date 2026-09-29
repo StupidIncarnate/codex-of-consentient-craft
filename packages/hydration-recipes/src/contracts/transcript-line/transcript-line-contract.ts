@@ -16,7 +16,7 @@
  * // Returns the fields a recipe's own assertions address
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 const CONTENT_ITEM = z
   .object({

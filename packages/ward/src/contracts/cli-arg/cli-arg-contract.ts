@@ -6,7 +6,7 @@
  * // Returns: CliArg branded string
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const cliArgContract = z.string().brand<'CliArg'>();
 

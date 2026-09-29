@@ -6,7 +6,7 @@
  * // Returns: { status: 'ok', timestamp: string }
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const healthResponseContract = z.object({
   status: z.string().min(1).brand<'HealthStatus'>(),

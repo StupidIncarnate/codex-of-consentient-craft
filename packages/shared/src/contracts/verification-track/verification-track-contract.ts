@@ -15,7 +15,7 @@
  * indexes by these same three names, so a member with no matching family is a COMPILE error there.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { verificationTracksStatics } from '../../statics/verification-tracks/verification-tracks-statics';
 

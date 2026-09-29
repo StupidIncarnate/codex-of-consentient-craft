@@ -5,7 +5,7 @@
  * const config = eslintConfigContract.parse({ plugins: {...}, rules: {...}, files: ['**\/*.ts'] });
  * // Returns validated EslintConfig object
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { eslintPluginNameContract } from '../eslint-plugin-name/eslint-plugin-name-contract';
 import { eslintRulesContract } from '../eslint-rules/eslint-rules-contract';
 

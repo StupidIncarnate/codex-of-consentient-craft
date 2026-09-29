@@ -16,7 +16,7 @@
  * // Returns: QuestBlueprint object validated against questContract's schema
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import {
   questContract,

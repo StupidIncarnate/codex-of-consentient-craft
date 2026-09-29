@@ -6,7 +6,7 @@
  * // Returns the validated prefix string; reject anything outside the union
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const processIdPrefixContract = z.enum(['chat', 'proc']);
 

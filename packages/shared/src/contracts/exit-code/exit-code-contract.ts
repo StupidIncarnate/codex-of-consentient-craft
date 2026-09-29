@@ -5,7 +5,7 @@
  * const code: ExitCode = exitCodeContract.parse(0);
  * // Returns a branded ExitCode number type
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 const MAX_EXIT_CODE = 255;
 

@@ -6,7 +6,7 @@
  * // Returns: ElapsedMs branded number
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const elapsedMsContract = z.number().int().nonnegative().brand<'ElapsedMs'>();
 

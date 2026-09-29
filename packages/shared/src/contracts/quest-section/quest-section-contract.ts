@@ -9,7 +9,7 @@
  * down to a stage's sections, and the text renderer needs to know which sections were filtered out
  * so it can omit them rather than print them as "(none)".
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const questSectionContract = z.enum([
   'designDecisions',

@@ -5,7 +5,7 @@
  * const idx: ArrayIndex = arrayIndexContract.parse(0);
  * // Returns a branded ArrayIndex number type for nonnegative integer positions
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const arrayIndexContract = z.number().int().nonnegative().brand<'ArrayIndex'>();
 

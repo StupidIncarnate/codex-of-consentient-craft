@@ -5,7 +5,7 @@
  * const kebabStr = kebabCaseStringContract.parse('user-profile-broker');
  * // Returns branded KebabCaseString; throws on 'UserProfile' or 'user_profile'
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const kebabCaseStringContract = z
   .string()

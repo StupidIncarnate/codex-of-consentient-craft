@@ -9,7 +9,7 @@
  * // Returns validated TestbedConfig with branded types
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const testbedConfigContract = z
   .object({

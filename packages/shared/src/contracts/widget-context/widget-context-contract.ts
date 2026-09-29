@@ -14,7 +14,7 @@
  * WHEN-TO-USE: Plumbing widget data through the boot-tree call chain for frontend-react packages
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { absoluteFilePathContract } from '../absolute-file-path/absolute-file-path-contract';
 import { httpEdgeContract } from '../http-edge/http-edge-contract';
 import { wsEdgeContract } from '../ws-edge/ws-edge-contract';

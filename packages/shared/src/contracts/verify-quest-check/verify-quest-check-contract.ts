@@ -5,7 +5,7 @@
  * const check: VerifyQuestCheck = verifyQuestCheckContract.parse({ name: 'Observable Coverage', passed: true, details: 'All covered' });
  * // Returns validated VerifyQuestCheck with name, passed status, and details
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const verifyQuestCheckContract = z.object({
   name: z.string().min(1).brand<'CheckName'>(),

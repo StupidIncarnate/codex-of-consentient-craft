@@ -6,7 +6,7 @@
  * // Used by orchestration integration tests to simulate ward command outputs
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { exitCodeContract } from '../exit-code/exit-code-contract';
 import { timeoutMsContract } from '../timeout-ms/timeout-ms-contract';

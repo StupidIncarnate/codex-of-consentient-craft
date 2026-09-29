@@ -8,7 +8,7 @@
  * // Returns: UploadPercent branded number
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { chatComposerStatics } from '../../statics/chat-composer/chat-composer-statics';
 

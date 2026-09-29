@@ -8,7 +8,7 @@
  */
 
 import { guildIdContract } from '@dungeonmaster/shared/contracts';
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const guildCreateResultContract = z.object({
   id: guildIdContract,

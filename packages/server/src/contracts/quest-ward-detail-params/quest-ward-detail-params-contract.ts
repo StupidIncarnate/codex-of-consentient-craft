@@ -8,7 +8,7 @@
  * // Returns: QuestWardDetailParams with branded QuestId + WardResultId
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { questIdContract } from '@dungeonmaster/shared/contracts';
 
 export const questWardDetailParamsContract = z.object({

@@ -6,7 +6,7 @@
  * // Returns validated MatchSpecificity branded type — one point per leaf value compared
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const matchSpecificityContract = z.number().int().min(0).brand<'MatchSpecificity'>();
 

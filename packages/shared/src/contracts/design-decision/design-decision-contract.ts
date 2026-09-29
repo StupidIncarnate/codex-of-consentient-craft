@@ -6,7 +6,7 @@
  * // Returns: DesignDecision object
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { designDecisionIdContract } from '../design-decision-id/design-decision-id-contract';
 import { flowNodeIdContract } from '../flow-node-id/flow-node-id-contract';

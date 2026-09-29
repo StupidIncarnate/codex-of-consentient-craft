@@ -6,7 +6,7 @@
  * const input = signalBackInputContract.parse({ signal: 'complete', questId, workItemId, operationItemId });
  * // Returns validated signal-back input — the session-terminal marker
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import {
   blockedReasonContract,

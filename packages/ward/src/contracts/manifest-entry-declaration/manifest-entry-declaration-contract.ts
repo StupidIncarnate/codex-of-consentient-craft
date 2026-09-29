@@ -11,7 +11,7 @@
  * // Returns a branded ManifestEntryDeclaration
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const manifestEntryDeclarationContract = z.object({
   field: z.string().min(1).brand<'ManifestEntryField'>(),

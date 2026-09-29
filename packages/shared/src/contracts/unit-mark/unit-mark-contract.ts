@@ -7,7 +7,7 @@
  * // Returns 'cant-meet' as UnitMark
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const unitMarkContract = z.enum(['met', 'cant-meet', 'unmet']);
 

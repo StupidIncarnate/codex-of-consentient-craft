@@ -6,7 +6,7 @@
  * // Returns branded NormalizedLine — accepted by downstream processors via `unknown` parameter
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const normalizedLineContract = z.unknown().brand<'NormalizedLine'>();
 

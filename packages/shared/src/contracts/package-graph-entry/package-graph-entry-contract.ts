@@ -20,7 +20,7 @@
  * // Returns: PackageGraphEntry object
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { packageNameContract } from '../package-name/package-name-contract';
 import { packageTypeContract } from '../package-type/package-type-contract';

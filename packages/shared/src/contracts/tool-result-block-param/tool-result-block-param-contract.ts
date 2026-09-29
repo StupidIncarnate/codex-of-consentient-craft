@@ -6,7 +6,7 @@
  * // Returns: ToolResultBlockParam with optional content and is_error flag
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { textBlockParamContract } from '../text-block-param/text-block-param-contract';
 import { imageBlockParamContract } from '../image-block-param/image-block-param-contract';

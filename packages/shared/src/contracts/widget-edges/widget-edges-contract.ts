@@ -8,7 +8,7 @@
  * WHEN-TO-USE: Passing edge data between extractWidgetEdgesLayerBroker and buildWidgetNodeLayerBroker
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { absoluteFilePathContract } from '../absolute-file-path/absolute-file-path-contract';
 import { contentTextContract } from '../content-text/content-text-contract';
 

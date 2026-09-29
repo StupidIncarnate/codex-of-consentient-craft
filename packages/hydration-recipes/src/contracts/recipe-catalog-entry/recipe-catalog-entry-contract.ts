@@ -11,7 +11,7 @@
  * // Returns RecipeCatalogEntryData
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { recipeNameContract } from '@dungeonmaster/hydration/contracts';
 import type {
   HydrationRunResult,

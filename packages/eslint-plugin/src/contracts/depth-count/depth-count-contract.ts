@@ -8,7 +8,7 @@
  * const depth = depthCountContract.parse(3);
  * // Returns branded DepthCount; throws on negative numbers or non-integers
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const depthCountContract = z.number().int().nonnegative().brand<'DepthCount'>();
 

@@ -10,7 +10,7 @@
  * // Returns: TypescriptModuleShape
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { moduleDependencyContract } from '../module-dependency/module-dependency-contract';
 import { exportedNameContract } from '../exported-name/exported-name-contract';
 

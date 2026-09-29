@@ -7,7 +7,7 @@
  */
 
 import { absoluteFilePathContract } from '../absolute-file-path/absolute-file-path-contract';
-import type { z } from 'zod';
+import type { z } from '#gateway/npm/zod';
 
 export const projectRootCwdContract = absoluteFilePathContract.brand<'ProjectRootCwd'>();
 

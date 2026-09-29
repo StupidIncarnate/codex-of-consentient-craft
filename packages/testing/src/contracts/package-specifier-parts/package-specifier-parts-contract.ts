@@ -7,7 +7,7 @@
  * packageSpecifierPartsContract.parse({ packageName: '@dungeonmaster/bin', subpath: 'testing' });
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const packageSpecifierPartsContract = z.object({
   packageName: z.string().brand<'WorkspacePackageName'>(),

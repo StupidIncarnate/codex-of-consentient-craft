@@ -5,7 +5,7 @@
  * const importType = allowedImportContract.parse('npm-package');
  * // Returns branded AllowedImport type (e.g., 'npm-package', 'relative', 'contract-only')
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { folderConfigStatics } from '@dungeonmaster/shared/statics';
 
 // Extract all unique allowed import values from the config

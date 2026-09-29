@@ -18,7 +18,7 @@
  * it did.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { flowIdContract } from '../flow-id/flow-id-contract';
 import { qaChecklistItemIdContract } from '../qa-checklist-item-id/qa-checklist-item-id-contract';

@@ -5,7 +5,7 @@
  * rateLimitsWatchTickResultContract.parse({ outcome: 'changed', lastJson: '{"...":...}' });
  * // Used by rateLimitsWatchTickLayerBroker to communicate state forward without mutation
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { fileContentsContract } from '@dungeonmaster/shared/contracts';
 

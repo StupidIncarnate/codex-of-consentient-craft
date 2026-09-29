@@ -6,7 +6,7 @@
  * // Returns: 'Expected true to be false' as SummaryLine
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const summaryLineContract = z.string().min(1).brand<'SummaryLine'>();
 

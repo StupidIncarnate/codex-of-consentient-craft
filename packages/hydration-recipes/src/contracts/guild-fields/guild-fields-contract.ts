@@ -9,7 +9,7 @@
  * guildFieldsContract.parse({ name: 'Guild 1', path: '/tmp/guilds-under-test/guild-1' });
  * // Returns GuildFields
  */
-import type { z } from 'zod';
+import type { z } from '#gateway/npm/zod';
 
 import { guildContract } from '@dungeonmaster/shared/contracts';
 

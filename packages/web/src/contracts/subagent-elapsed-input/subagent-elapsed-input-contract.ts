@@ -10,7 +10,7 @@
  * // Returns a branded SubagentElapsedInput with every optional field omitted
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { isoTimestampContract } from '../iso-timestamp/iso-timestamp-contract';
 

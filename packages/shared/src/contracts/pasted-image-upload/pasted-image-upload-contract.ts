@@ -8,7 +8,7 @@
  * pastedImageUploadContract.parse({ mediaType: 'image/png', dataBase64: 'iVBORw0KGgo=' });
  * // Returns: PastedImageUpload with branded mediaType and dataBase64 fields
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { pastedImageStatics } from '../../statics/pasted-image/pasted-image-statics';
 import { pastedImageMediaTypeContract } from '../pasted-image-media-type/pasted-image-media-type-contract';

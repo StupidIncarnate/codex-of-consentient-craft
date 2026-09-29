@@ -5,7 +5,7 @@
  * const cap: StepChunkSize = stepChunkSizeContract.parse(6);
  * // Returns a branded StepChunkSize number; min 1 (at least one step per chunk)
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const stepChunkSizeContract = z.number().int().min(1).brand<'StepChunkSize'>();
 

@@ -10,7 +10,7 @@
  * // Returns validated FolderDependencyTree object
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { contentTextContract } from '../content-text/content-text-contract';
 import { folderTypeContract } from '../folder-type/folder-type-contract';
 import { importPathContract } from '../import-path/import-path-contract';

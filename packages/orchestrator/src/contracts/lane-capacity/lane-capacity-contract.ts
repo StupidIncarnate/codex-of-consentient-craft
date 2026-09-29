@@ -11,7 +11,7 @@
  * // Returns a validated LaneCapacity
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const laneCapacityContract = z.object({
   suggested: z.number().int().nonnegative().brand<'LaneSuggestedCount'>(),

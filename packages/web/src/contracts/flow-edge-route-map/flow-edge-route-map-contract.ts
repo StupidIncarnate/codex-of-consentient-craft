@@ -9,7 +9,7 @@
  * // Returns: FlowEdgeRouteMap keyed by edge id with branded x/y route points
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 const routePointContract = z.object({
   x: z.number().brand<'ElkRouteX'>(),

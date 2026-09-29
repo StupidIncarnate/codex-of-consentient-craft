@@ -6,7 +6,7 @@
  * // Returns: StreamJsonLine branded string
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const streamJsonLineContract = z.string().min(1).brand<'StreamJsonLine'>();
 

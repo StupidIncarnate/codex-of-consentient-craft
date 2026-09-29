@@ -11,7 +11,7 @@
  *
  * `.loose()` so any non-task-notification keys (e.g., other XML siblings) survive.
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const inflatedTaskNotificationContentContract = z
   .object({

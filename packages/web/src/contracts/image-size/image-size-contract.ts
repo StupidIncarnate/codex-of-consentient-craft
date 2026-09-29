@@ -8,7 +8,7 @@
  * // Returns: ImageSize — a widthPx/heightPx pair
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { pixelLengthContract } from '../pixel-length/pixel-length-contract';
 

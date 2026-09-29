@@ -6,7 +6,7 @@
  * // Returns validated FactoryFunctionText branded type
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const factoryFunctionTextContract = z.string().brand<'FactoryFunctionText'>();
 

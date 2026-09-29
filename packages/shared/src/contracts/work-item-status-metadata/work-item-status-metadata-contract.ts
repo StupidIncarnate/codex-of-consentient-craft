@@ -6,7 +6,7 @@
  * // Returns a validated WorkItemStatusMetadata object
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const workItemStatusMetadataContract = z.object({
   isTerminal: z.boolean(),

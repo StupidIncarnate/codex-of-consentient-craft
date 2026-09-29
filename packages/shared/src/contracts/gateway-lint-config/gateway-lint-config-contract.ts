@@ -20,7 +20,7 @@
  * // Returns the validated GatewayLintConfig
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const gatewayLintConfigContract = z.object({
   bannedExports: z

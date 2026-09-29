@@ -19,7 +19,7 @@
  * // Returns a validated CleanupAnswer
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const cleanupAnswerContract = z.object({
   reaped: z.array(z.unknown()),

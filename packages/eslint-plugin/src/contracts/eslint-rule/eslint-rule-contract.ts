@@ -9,7 +9,7 @@
  * const ruleMeta = eslintRuleContract.parse({ meta: { type: 'problem', docs: {...}, messages: {...} } });
  * // Returns validated rule metadata; use EslintRule type for complete rule with create() function
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import type { EslintContext } from '../eslint-context/eslint-context-contract';
 
 export const eslintRuleContract = z.object({

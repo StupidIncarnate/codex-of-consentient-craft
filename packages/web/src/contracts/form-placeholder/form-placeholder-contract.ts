@@ -6,7 +6,7 @@
  * // Returns: FormPlaceholder branded string
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const formPlaceholderContract = z.string().min(1).brand<'FormPlaceholder'>();
 

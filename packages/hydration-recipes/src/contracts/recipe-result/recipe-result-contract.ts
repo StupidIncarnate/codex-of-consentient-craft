@@ -17,7 +17,7 @@
  */
 
 import { contentTextContract } from '@dungeonmaster/shared/contracts';
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { recipeReturnNameContract } from '../recipe-return-name/recipe-return-name-contract';
 

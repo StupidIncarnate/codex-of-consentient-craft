@@ -8,7 +8,7 @@
  * // Returns branded DuplicateInstallPackageName
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const duplicateInstallPackageNameContract = z
   .string()

@@ -5,7 +5,7 @@
  * const parsed = userToolResultStreamLineContract.parse(JSON.parse(rawLine));
  * // Validates user messages containing tool results (permission errors, successful outputs, etc.)
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { toolResultBlockParamContract } from '../tool-result-block-param/tool-result-block-param-contract';
 import { textBlockParamContract } from '../text-block-param/text-block-param-contract';

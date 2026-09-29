@@ -5,7 +5,7 @@
  * const rules = eslintRulesContract.parse({ 'no-console': 'error', 'max-len': ['warn', 120] });
  * // Returns validated EslintRules record
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { eslintRuleNameContract } from '../eslint-rule-name/eslint-rule-name-contract';
 
 export const eslintRulesContract = z.record(

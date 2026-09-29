@@ -6,7 +6,7 @@
  * // Returns a branded ToolInputDisplay string type
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const toolInputDisplayContract = z.string().brand<'ToolInputDisplay'>();
 

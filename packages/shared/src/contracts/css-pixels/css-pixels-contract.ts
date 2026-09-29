@@ -5,7 +5,7 @@
  * const px: CssPixels = cssPixelsContract.parse(16);
  * // Returns a branded CssPixels number type
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const cssPixelsContract = z.number().int().nonnegative().brand<'CssPixels'>();
 

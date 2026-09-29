@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import type { childProcessSchema } from '#gateway/node/child_process';
 import { ChildProcessStub } from '#gateway/node/child_process/child-process/child-process.stub';
 import type { StubArgument } from './stub-argument.type';

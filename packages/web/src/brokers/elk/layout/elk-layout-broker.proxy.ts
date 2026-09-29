@@ -1,6 +1,6 @@
 import ELK from '#gateway/npm/elkjs';
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { registerMock } from '@dungeonmaster/testing/register-mock';
 import type { MockHandle } from '@dungeonmaster/testing/register-mock';

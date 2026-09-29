@@ -6,7 +6,7 @@
  * // parsed.success === true exposes parsed.data.error — the server's error message
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const errorBodyContract = z.object({
   error: z.string().min(1).brand<'ErrorMessage'>(),

@@ -6,7 +6,7 @@
  * // Returns: { title: string, userRequest: string, guildId: GuildId }
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { guildIdContract } from '@dungeonmaster/shared/contracts';
 
 export const questUserAddBodyContract = z.object({

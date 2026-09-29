@@ -9,7 +9,7 @@
  * WHEN-NOT-TO-USE: For untrimmed or whitespace-only input — trim before parsing, since whitespace-only input queues nothing
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const commentTextContract = z.string().min(1).brand<'CommentText'>();
 

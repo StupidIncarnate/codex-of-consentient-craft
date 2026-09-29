@@ -6,7 +6,7 @@
  * // Returns branded DurationMs type for timing values
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const durationMsContract = z.number().nonnegative().brand<'DurationMs'>();
 

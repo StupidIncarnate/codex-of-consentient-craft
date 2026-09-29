@@ -5,7 +5,7 @@
  * const parsed = systemInitStreamLineContract.parse(JSON.parse(rawLine));
  * // Validates system init messages that carry a session ID
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const systemInitStreamLineContract = z.object({
   type: z.literal('system'),

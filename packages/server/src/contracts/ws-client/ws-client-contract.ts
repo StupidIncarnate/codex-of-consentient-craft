@@ -6,7 +6,7 @@
  * // Type for WebSocket client abstraction used in broadcast broker
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export interface WsClient {
   send: (data: string) => void;

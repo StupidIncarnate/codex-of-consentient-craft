@@ -9,7 +9,7 @@
  * // Returns a BundleHash branded string
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { bundleStatics } from '../../statics/bundle/bundle-statics';
 

@@ -5,7 +5,7 @@
  * const color: HexColor = hexColorContract.parse('#ff6b35');
  * // Returns a branded HexColor string type
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const hexColorContract = z
   .string()

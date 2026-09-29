@@ -6,7 +6,7 @@
  * // Returns: ClaudeModel ('haiku' | 'sonnet' | 'opus')
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const claudeModelContract = z.enum(['haiku', 'sonnet', 'opus']);
 

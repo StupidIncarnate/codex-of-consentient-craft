@@ -8,7 +8,7 @@
  * corruptSchemaArgsContract.parse({});
  * // Returns CorruptSchemaArgs
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const corruptSchemaArgsContract = z.object({});
 

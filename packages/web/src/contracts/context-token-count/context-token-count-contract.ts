@@ -6,7 +6,7 @@
  * // Returns: ContextTokenCount branded number
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const contextTokenCountContract = z
   .number()

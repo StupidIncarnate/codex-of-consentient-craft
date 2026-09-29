@@ -6,7 +6,7 @@
  * // Returns branded PackageName type for npm package identifiers
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 /**
  * Represents a valid npm package name

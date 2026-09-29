@@ -10,7 +10,7 @@
  * orchestrationEventPayloadKeyContract.parse('questId');
  * // Returns a branded OrchestrationEventPayloadKey
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const orchestrationEventPayloadKeyContract = z
   .string()

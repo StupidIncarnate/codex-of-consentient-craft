@@ -6,7 +6,7 @@
  * // Returns QuestModifyResponse — either {success: true} or {success: false, error: '...'}
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const questModifyResponseContract = z.union([
   z.object({ success: z.literal(true) }),

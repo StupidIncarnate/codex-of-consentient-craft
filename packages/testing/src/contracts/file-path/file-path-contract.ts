@@ -7,7 +7,7 @@
  * // Returns validated FilePath type
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const filePathContract = z.string().brand<'FilePath'>();
 

@@ -6,7 +6,7 @@
  * // Returns: one of TextBlockParam | ThinkingBlockParam | RedactedThinkingBlockParam | ToolUseBlockParam | ToolResultBlockParam
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { textBlockParamContract } from '../text-block-param/text-block-param-contract';
 import { thinkingBlockParamContract } from '../thinking-block-param/thinking-block-param-contract';

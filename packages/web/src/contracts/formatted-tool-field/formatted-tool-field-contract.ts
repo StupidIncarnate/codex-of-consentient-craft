@@ -9,7 +9,7 @@
  * // Returns a branded FormattedToolField
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const formattedToolFieldContract = z.object({
   key: z.string().min(1).brand<'ToolFieldKey'>(),

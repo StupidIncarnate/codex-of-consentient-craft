@@ -7,7 +7,7 @@
  * const mod = orchestrationEventsStateModuleContract.parse(require('.../orchestration-events-state'));
  * mod.orchestrationEventsState.on({ ... });
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { orchestrationEventsStateFacadeContract } from '../orchestration-events-state-facade/orchestration-events-state-facade-contract';
 import type { OrchestrationEventsStateFacade } from '../orchestration-events-state-facade/orchestration-events-state-facade-contract';

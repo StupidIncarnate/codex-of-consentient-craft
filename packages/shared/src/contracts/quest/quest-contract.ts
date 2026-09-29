@@ -6,7 +6,7 @@
  * // Returns: Quest object
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { absoluteFilePathContract } from '../absolute-file-path/absolute-file-path-contract';
 import { baseBranchNameContract } from '../base-branch-name/base-branch-name-contract';

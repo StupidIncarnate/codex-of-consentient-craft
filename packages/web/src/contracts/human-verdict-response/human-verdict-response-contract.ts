@@ -10,7 +10,7 @@
  * // Returns success with the 400 refusal shape
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const humanVerdictResponseContract = z.object({
   ok: z.literal(true).optional(),

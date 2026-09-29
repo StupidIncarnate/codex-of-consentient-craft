@@ -9,7 +9,7 @@
  * // Returns: QuestRiftcarverDetailParams with branded QuestId + RiftcarverResultId
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { questIdContract } from '@dungeonmaster/shared/contracts';
 
 export const questRiftcarverDetailParamsContract = z.object({

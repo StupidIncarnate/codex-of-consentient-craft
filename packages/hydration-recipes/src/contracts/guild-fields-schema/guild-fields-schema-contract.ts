@@ -17,7 +17,7 @@
  * ingredient({ fields: guildFieldsSchemaContract, ... });
  * // Same runtime schema as guildFieldsContract; parses and fails exactly the same
  */
-import type { z } from 'zod';
+import type { z } from '#gateway/npm/zod';
 
 import { guildFieldsContract } from '../guild-fields/guild-fields-contract';
 import type { GuildFields } from '../guild-fields/guild-fields-contract';

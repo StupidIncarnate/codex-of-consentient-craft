@@ -6,7 +6,7 @@
  * // Returns: ThemeSchemeDescription branded string
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 const MAX_THEME_SCHEME_DESCRIPTION_LENGTH = 200;
 

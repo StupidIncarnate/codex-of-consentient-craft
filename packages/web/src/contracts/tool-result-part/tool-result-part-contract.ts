@@ -11,7 +11,7 @@
  * // Returns a ToolResultPart discriminated on `kind`
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { markdownSourceContract } from '../markdown-source/markdown-source-contract';
 import { toolResultKeyContract } from '../tool-result-key/tool-result-key-contract';

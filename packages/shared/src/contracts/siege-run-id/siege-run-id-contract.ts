@@ -12,7 +12,7 @@
  * // Returns a branded SiegeRunId
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const siegeRunIdContract = z
   .string()

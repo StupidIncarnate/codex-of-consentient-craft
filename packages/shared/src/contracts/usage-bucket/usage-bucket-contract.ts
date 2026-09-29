@@ -9,7 +9,7 @@
  * // Returns: UsageBucket
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 const tokenCountContract = z.number().int().min(0).brand<'TokenCount'>();
 

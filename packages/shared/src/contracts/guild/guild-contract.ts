@@ -6,7 +6,7 @@
  * // Returns: Guild object
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { guildIdContract } from '../guild-id/guild-id-contract';
 import { guildNameContract } from '../guild-name/guild-name-contract';

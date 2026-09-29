@@ -6,7 +6,7 @@
  * // Returns { success: true, data: { description: 'Run tests' } } when valid
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const taskToolInputContract = z
   .object({

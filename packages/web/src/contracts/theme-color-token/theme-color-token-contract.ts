@@ -6,7 +6,7 @@
  * // Returns: ThemeColorToken branded string
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const themeColorTokenContract = z
   .enum([

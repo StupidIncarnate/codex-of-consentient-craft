@@ -6,7 +6,7 @@
  * // Returns: TsconfigJson with optional include/exclude string arrays
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const tsconfigJsonContract = z
   .object({

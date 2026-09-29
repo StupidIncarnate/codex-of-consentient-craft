@@ -13,7 +13,7 @@
  * `quest` is still populated beside it, so a caller reading the JSON is never handed less than
  * before.
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { contentTextContract } from '../content-text/content-text-contract';
 import { questContract } from '../quest/quest-contract';

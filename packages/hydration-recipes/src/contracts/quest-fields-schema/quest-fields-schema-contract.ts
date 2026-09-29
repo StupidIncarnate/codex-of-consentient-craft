@@ -20,7 +20,7 @@
  * ingredient({ fields: questFieldsSchemaContract, ... });
  * // Same runtime schema as questFieldsContract; parses and fails exactly the same
  */
-import type { z } from 'zod';
+import type { z } from '#gateway/npm/zod';
 
 import { questFieldsContract } from '../quest-fields/quest-fields-contract';
 import type { QuestFields } from '../quest-fields/quest-fields-contract';

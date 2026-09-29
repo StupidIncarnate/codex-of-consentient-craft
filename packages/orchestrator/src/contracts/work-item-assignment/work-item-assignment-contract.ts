@@ -11,7 +11,7 @@
  */
 
 import { unitIdContract } from '@dungeonmaster/shared/contracts';
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const workItemAssignmentContract = z.object({
   // `.loose()`, because each family's entry carries more than the id — `layer`, `surface`,

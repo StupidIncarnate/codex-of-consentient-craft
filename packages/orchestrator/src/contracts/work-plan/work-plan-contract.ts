@@ -37,7 +37,7 @@
  * piece ever written.
  */
 
-import type { z } from 'zod';
+import type { z } from '#gateway/npm/zod';
 
 import { workPlanFieldsContract } from '../work-plan-fields/work-plan-fields-contract';
 import { workPlanPayloadCodeweaverContract } from '../work-plan-payload-codeweaver/work-plan-payload-codeweaver-contract';

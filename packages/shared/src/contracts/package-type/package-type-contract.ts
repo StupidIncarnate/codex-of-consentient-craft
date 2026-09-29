@@ -6,7 +6,7 @@
  * // Returns: 'http-backend' as PackageType
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const packageTypeContract = z
   .enum([

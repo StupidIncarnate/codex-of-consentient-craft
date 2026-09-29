@@ -9,7 +9,7 @@
  * // Returns branded PastedImageOrdinal
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const pastedImageOrdinalContract = z.number().int().positive().brand<'PastedImageOrdinal'>();
 

@@ -5,7 +5,7 @@
  * rateLimitsSnapshotContract.parse({fiveHour: window, sevenDay: window, updatedAt: iso});
  * // Returns: RateLimitsSnapshot — null windows mean "no data yet" (graceful UI hide)
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { rateLimitWindowContract } from '../rate-limit-window/rate-limit-window-contract';
 

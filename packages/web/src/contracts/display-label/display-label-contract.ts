@@ -6,7 +6,7 @@
  * // Returns: DisplayLabel branded string
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const displayLabelContract = z.string().brand<'DisplayLabel'>();
 

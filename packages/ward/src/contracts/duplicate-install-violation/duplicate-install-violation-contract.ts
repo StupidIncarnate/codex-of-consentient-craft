@@ -17,7 +17,7 @@
  * // Returns: DuplicateInstallViolation
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { duplicateInstallPackageNameContract } from '../duplicate-install-package-name/duplicate-install-package-name-contract';
 import { duplicateInstallLocationContract } from '../duplicate-install-location/duplicate-install-location-contract';
 import { duplicateInstallThresholdsStatics } from '../../statics/duplicate-install-thresholds/duplicate-install-thresholds-statics';

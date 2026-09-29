@@ -11,7 +11,7 @@
  * successfully so the web's `isStreaming` flag flips off after either flow completes.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { processIdContract, questIdContract } from '@dungeonmaster/shared/contracts';
 

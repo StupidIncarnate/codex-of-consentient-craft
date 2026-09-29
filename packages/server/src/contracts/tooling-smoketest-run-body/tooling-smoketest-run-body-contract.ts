@@ -6,7 +6,7 @@
  * // Returns: { suite: SmoketestSuite }
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { smoketestSuiteContract } from '@dungeonmaster/shared/contracts';
 
 export const toolingSmoketestRunBodyContract = z.object({

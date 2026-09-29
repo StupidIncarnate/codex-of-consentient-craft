@@ -9,7 +9,7 @@
  * // Returns typed InstallContext with project and dungeonmaster root paths
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { filePathContract } from '../file-path/file-path-contract';
 
 /**

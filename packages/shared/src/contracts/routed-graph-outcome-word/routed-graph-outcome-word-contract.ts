@@ -10,7 +10,7 @@
  * routedGraphOutcomeWordContract.parse('done');
  * // Returns a branded RoutedGraphOutcomeWord
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const routedGraphOutcomeWordContract = z.string().brand<'RoutedGraphOutcomeWord'>();
 

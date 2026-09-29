@@ -6,7 +6,7 @@
  * // Returns QuestModifiedPayload with raw quest blob (validated separately by questContract)
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { questIdContract } from '@dungeonmaster/shared/contracts';
 

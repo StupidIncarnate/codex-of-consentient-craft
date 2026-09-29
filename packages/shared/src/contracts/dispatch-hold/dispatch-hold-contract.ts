@@ -15,7 +15,7 @@
  * // Returns: DispatchHold — dispatch stays refused until now passes resumeAt
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const dispatchHoldContract = z.object({
   // `approaching-limit` is raised from a snapshot percentage before anything breaks; `rejected` is

@@ -11,7 +11,7 @@
  */
 
 import { operationItemIdContract } from '@dungeonmaster/shared/contracts';
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { questWorkRecordResultContract } from '../quest-work-record-result/quest-work-record-result-contract';
 

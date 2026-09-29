@@ -6,7 +6,7 @@
  * // Returns: TimeoutMs branded number
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const timeoutMsContract = z.number().int().min(0).brand<'TimeoutMs'>();
 

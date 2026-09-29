@@ -9,7 +9,7 @@
  * WHEN-NOT-TO-USE: For a persisted comment — that carries an id and lives under questCommentContract
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { commentTextContract } from '../comment-text/comment-text-contract';
 import { flowIdContract } from '../flow-id/flow-id-contract';

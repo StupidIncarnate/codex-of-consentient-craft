@@ -6,7 +6,7 @@
  * // Returns validated PackageJson with branded types
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { scriptNameContract } from '../script-name/script-name-contract';
 

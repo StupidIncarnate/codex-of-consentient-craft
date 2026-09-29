@@ -6,7 +6,7 @@
  * // Returns branded ErrorMessage type for error messages and user-facing text
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 /**
  * Represents an error or validation message string

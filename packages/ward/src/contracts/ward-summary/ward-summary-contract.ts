@@ -6,7 +6,7 @@
  * // Returns: WardSummary branded string
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const wardSummaryContract = z.string().brand<'WardSummary'>();
 

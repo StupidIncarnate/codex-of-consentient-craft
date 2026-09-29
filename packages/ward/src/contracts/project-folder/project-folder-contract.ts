@@ -6,7 +6,7 @@
  * // Returns: ProjectFolder validated object
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const projectFolderContract = z.object({
   name: z.string().brand<'ProjectName'>(),

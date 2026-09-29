@@ -6,7 +6,7 @@
  * // Returns validated ThemeScheme object
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { hexColorContract } from '@dungeonmaster/shared/contracts';
 

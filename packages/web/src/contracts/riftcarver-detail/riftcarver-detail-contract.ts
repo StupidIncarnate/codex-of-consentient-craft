@@ -10,7 +10,7 @@
  * // parsed.data.log is the full carve log as one string.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const riftcarverDetailContract = z.object({
   log: z.string().brand<'RiftcarverLog'>(),

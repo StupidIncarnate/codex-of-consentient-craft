@@ -8,7 +8,7 @@
  * workspaceRootPackageJsonContract.safeParse({ name: 'dungeonmaster', workspaces: ['packages/*'] });
  * // Returns { success: true, data: { name: 'dungeonmaster', workspaces: [...] } }
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const workspaceRootPackageJsonContract = z
   .object({

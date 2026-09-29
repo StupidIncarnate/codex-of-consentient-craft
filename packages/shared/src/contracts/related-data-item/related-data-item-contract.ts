@@ -9,7 +9,7 @@
  * WHEN-NOT-TO-USE: For direct quest property access without work item indirection
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 // The alternation is an ALLOWLIST of quest collections a work item may point into, so a collection
 // missing from it cannot be referenced at all — `questContract.parse` rejects the whole quest rather

@@ -14,7 +14,7 @@ import {
   questNoteIdContract,
   stepNameContract,
 } from '@dungeonmaster/shared/contracts';
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { stepOutcomeContract } from '../step-outcome/step-outcome-contract';
 

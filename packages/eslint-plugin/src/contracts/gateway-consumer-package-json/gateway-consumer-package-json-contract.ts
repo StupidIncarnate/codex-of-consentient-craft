@@ -14,7 +14,7 @@
  * });
  * // Returns the parsed shape; unrecognized fields pass through untouched
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { packageNameContract } from '@dungeonmaster/shared/contracts';
 
 const gatewayImportsTargetContract = z.union([

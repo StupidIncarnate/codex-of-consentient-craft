@@ -8,7 +8,7 @@
  * // Returns: OrchestrationMode ('claude' | 'node')
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const orchestrationModeContract = z.enum(['claude', 'node']);
 

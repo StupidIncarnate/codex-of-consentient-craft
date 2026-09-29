@@ -6,7 +6,7 @@
  * // Returns: SmoketestScenarioMeta
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const smoketestScenarioMetaContract = z.object({
   caseId: z.string().min(1).brand<'SmoketestCaseId'>(),

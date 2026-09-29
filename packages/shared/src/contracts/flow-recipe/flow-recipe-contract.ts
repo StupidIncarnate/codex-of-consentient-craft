@@ -14,7 +14,7 @@
  * // Returns: FlowRecipe
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { flowRecipeNameContract } from '../flow-recipe-name/flow-recipe-name-contract';
 import { siegeInstanceIdContract } from '../siege-instance-id/siege-instance-id-contract';

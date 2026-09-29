@@ -6,7 +6,7 @@
  * // Returns validated ClarificationQuestion object
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 const clarificationQuestionOptionContract = z.object({
   label: z.string().min(1).brand<'ClarificationOptionLabel'>(),

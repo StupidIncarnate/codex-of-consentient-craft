@@ -6,7 +6,7 @@
  * // Returns: UrlSlug branded string
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const urlSlugContract = z
   .string()

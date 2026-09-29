@@ -6,7 +6,7 @@
  * // Returns branded FollowupDepth
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const followupDepthContract = z.number().int().min(0).brand<'FollowupDepth'>();
 

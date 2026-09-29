@@ -9,7 +9,7 @@
  * // Returns a branded StickyZIndex
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { stickyHeaderStatics } from '../../statics/sticky-header/sticky-header-statics';
 

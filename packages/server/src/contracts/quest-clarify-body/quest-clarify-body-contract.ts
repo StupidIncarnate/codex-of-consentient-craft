@@ -6,7 +6,7 @@
  * // Returns: { answers: array, questions: array }
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const questClarifyBodyContract = z.object({
   answers: z.array(z.unknown()).min(1),

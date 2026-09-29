@@ -7,7 +7,7 @@
  * // Returns { stopped: true }
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const questFollowupStopResultContract = z.object({
   stopped: z.boolean(),

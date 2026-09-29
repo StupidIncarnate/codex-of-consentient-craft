@@ -6,7 +6,7 @@
  * // Returns: OpenHandle validated object
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const openHandleContract = z.object({
   name: z.string().brand<'OpenHandleName'>(),

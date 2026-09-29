@@ -9,7 +9,7 @@
  * // Returns a MarkdownBlock discriminated on `kind`
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { markdownSyntaxStatics } from '../../statics/markdown-syntax/markdown-syntax-statics';
 import { markdownSpanContract } from '../markdown-span/markdown-span-contract';

@@ -9,7 +9,7 @@
  *
  * `.loose()` so unread fields (e.g., MCP-injected metadata) survive validation.
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const normalizedStreamLineContentItemContract = z
   .object({

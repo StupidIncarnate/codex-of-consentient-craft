@@ -29,7 +29,7 @@
  * have produced is the shape a reviewer should reject.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { blightChecklistItemIdContract } from '../blight-checklist-item-id/blight-checklist-item-id-contract';
 import { blightDispositionContract } from '../blight-disposition/blight-disposition-contract';

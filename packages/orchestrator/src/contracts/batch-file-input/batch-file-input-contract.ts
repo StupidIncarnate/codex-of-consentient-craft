@@ -7,7 +7,7 @@
  * // Returns { filePaths: AbsoluteFilePath[], errors: ErrorMessage[], verificationCommand?, contextInstructions? }
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { absoluteFilePathContract, errorMessageContract } from '@dungeonmaster/shared/contracts';
 
 export const batchFileInputContract = z

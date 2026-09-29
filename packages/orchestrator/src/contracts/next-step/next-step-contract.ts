@@ -8,7 +8,7 @@
  * // Returns: NextStep variant
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { runStepContract } from '../run-step/run-step-contract';
 import { spawnInstructionContract } from '../spawn-instruction/spawn-instruction-contract';

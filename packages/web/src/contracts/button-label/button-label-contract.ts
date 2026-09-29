@@ -6,7 +6,7 @@
  * // Returns: ButtonLabel branded string
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 const MAX_BUTTON_LABEL_LENGTH = 50;
 

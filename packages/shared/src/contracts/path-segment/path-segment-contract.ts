@@ -6,7 +6,7 @@
  * // Returns branded PathSegment string for bare path fragments, basenames, sub-paths, and display paths
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const pathSegmentContract = z.string().brand<'PathSegment'>();
 

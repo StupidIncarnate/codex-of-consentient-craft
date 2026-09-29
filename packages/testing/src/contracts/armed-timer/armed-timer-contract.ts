@@ -13,7 +13,7 @@
  * // Returns true while the timer is un-cleared and still ref-ed
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { openHandleStatics } from '../../statics/open-handle/open-handle-statics';
 
 export const armedTimerContract = z.object({

@@ -6,7 +6,7 @@
  * // Returns TakeCount: 1
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const takeCountContract = z.number().int().positive().brand<'TakeCount'>();
 

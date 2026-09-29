@@ -6,7 +6,7 @@
  * // Returns: FlowEdge object
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { flowEdgeIdContract } from '../flow-edge-id/flow-edge-id-contract';
 import { flowEdgeRefContract } from '../flow-edge-ref/flow-edge-ref-contract';

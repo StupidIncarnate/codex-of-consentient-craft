@@ -6,7 +6,7 @@
  * const exports: CollectedExport[] = [];
  * // Used by collect-exports-layer-broker and validate-export-layer-broker
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { identifierContract } from '@dungeonmaster/shared/contracts';
 
 export const collectedExportContract = z.object({

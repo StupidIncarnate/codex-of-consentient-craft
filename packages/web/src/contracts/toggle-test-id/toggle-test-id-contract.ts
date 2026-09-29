@@ -6,7 +6,7 @@
  * toggleTestIdContract.parse('CHAT_LIST_SHOW_EARLIER_TOGGLE');
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const toggleTestIdContract = z
   .enum(['SUBAGENT_CHAIN_SHOW_EARLIER_TOGGLE', 'CHAT_LIST_SHOW_EARLIER_TOGGLE'])

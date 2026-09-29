@@ -9,7 +9,7 @@
  * // Returns: ComposerSerialized — what the chat composer's content collapses to for a draft save or a send
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { userInputContract } from '@dungeonmaster/shared/contracts';
 

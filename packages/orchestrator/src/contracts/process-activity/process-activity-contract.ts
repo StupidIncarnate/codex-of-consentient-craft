@@ -5,7 +5,7 @@
  * const activity: ProcessActivity = { lastActivityAt: new Date() };
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { absoluteFilePathContract } from '@dungeonmaster/shared/contracts';
 

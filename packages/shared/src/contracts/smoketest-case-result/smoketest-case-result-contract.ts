@@ -6,7 +6,7 @@
  * // Returns: SmoketestCaseResult
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { chatEntryContract } from '../chat-entry/chat-entry-contract';
 

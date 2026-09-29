@@ -23,7 +23,7 @@
  * // All return { success: true, data: {...} }
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { workspacePackageExportSourcePathContract } from '../workspace-package-export-source-path/workspace-package-export-source-path-contract';
 import { importPathContract } from '../import-path/import-path-contract';
 

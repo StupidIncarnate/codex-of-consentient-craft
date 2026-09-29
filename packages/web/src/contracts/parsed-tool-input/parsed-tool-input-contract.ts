@@ -6,7 +6,7 @@
  * // Returns ParsedToolInput — a Record<ToolInputKey, unknown>
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { toolInputKeyContract } from '../tool-input-key/tool-input-key-contract';
 

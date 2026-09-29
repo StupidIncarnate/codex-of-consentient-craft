@@ -14,7 +14,7 @@
  * later pass re-stating the same open question upserts onto it instead of appending a duplicate.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const questNoteIdContract = z.string().min(1).brand<'QuestNoteId'>();
 

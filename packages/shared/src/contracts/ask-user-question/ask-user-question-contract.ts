@@ -6,7 +6,7 @@
  * // Returns validated AskUserQuestion object
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 const askUserQuestionOptionContract = z.object({
   label: z.string().min(1).brand<'OptionLabel'>(),

@@ -7,7 +7,7 @@
  * // innerGroups is recursive — a sub-agent chain can contain nested sub-agent chains with no depth cap
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { chatEntryContract } from '@dungeonmaster/shared/contracts';
 import { contextTokenCountContract } from '../context-token-count/context-token-count-contract';

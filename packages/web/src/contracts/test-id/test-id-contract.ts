@@ -6,7 +6,7 @@
  * // Returns: TestId branded string
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const testIdContract = z.string().brand<'TestId'>();
 

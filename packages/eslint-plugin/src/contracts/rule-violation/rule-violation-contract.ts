@@ -10,7 +10,7 @@
  * };
  * // Returns a validated RuleViolation object that can be reported to ESLint
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 // Type-only: extracted so `suggest`'s intersection type below has a name, never parsed as a
 // runtime value of its own (`suggest` stays out of the schema — see the header comment on

@@ -9,7 +9,7 @@
  * const message: UserMessage = userMessageContract.parse('fix the login bug');
  * // Returns a branded UserMessage string type
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const userMessageContract = z.string().min(1).brand<'UserMessage'>();
 

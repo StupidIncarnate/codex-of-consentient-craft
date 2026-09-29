@@ -6,7 +6,7 @@
  * // Returns: TestFailure validated object
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const testFailureContract = z.object({
   suitePath: z.string().brand<'SuitePath'>(),

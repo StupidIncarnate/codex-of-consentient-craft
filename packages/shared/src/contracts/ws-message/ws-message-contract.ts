@@ -6,7 +6,7 @@
  * // Returns: WsMessage object
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { orchestrationEventTypeContract } from '../orchestration-event-type/orchestration-event-type-contract';
 

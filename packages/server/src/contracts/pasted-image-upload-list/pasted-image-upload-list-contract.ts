@@ -7,7 +7,7 @@
  * pastedImageUploadListContract.parse([{ mediaType: 'image/png', dataBase64: 'iVBORw0KGgo=' }]);
  * // Returns: PastedImageUploadList with each entry validated by pastedImageUploadContract
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { pastedImageUploadContract } from '@dungeonmaster/shared/contracts';
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';

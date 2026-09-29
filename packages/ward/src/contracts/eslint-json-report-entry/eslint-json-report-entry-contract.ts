@@ -8,7 +8,7 @@
  * // Returns: EslintJsonReportEntry with optional filePath, messages, stats
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 const eslintMessageContract = z
   .object({

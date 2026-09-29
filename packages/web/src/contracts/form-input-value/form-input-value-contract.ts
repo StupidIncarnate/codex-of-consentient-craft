@@ -6,7 +6,7 @@
  * // Returns: FormInputValue branded string
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const formInputValueContract = z.string().brand<'FormInputValue'>();
 

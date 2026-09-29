@@ -50,7 +50,7 @@
  * `@dungeonmaster/orchestrator`.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { questIdContract } from '../quest-id/quest-id-contract';
 import { questSummaryDebtContract } from '../quest-summary-debt/quest-summary-debt-contract';

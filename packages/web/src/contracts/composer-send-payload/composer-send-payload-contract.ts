@@ -14,7 +14,7 @@
  * // Returns: ComposerSendPayload
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { userInputContract } from '@dungeonmaster/shared/contracts';
 

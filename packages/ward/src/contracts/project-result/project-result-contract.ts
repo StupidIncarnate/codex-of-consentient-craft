@@ -6,7 +6,7 @@
  * // Returns: ProjectResult validated object
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { projectFolderContract } from '../project-folder/project-folder-contract';
 import { checkStatusContract } from '../check-status/check-status-contract';
 import { errorEntryContract } from '../error-entry/error-entry-contract';

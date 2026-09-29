@@ -6,7 +6,7 @@
  * // Returns branded ChatLineSource
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const chatLineSourceContract = z.enum(['session', 'subagent']).brand<'ChatLineSource'>();
 

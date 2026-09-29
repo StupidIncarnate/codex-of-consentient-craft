@@ -7,7 +7,7 @@
  * eslintPluginNameContract.parse('@typescript-eslint');
  * // Returns a branded EslintPluginName
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const eslintPluginNameContract = z.string().brand<'EslintPluginName'>();
 

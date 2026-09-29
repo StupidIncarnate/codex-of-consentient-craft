@@ -8,7 +8,7 @@
  * const plugin = eslintPluginContract.parse({ rules: {...}, configs: {...} });
  * // Returns validated EslintPlugin object
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const eslintPluginContract = z.object({
   rules: z.record(z.string().brand<'EslintRuleName'>(), z.unknown()).optional(),

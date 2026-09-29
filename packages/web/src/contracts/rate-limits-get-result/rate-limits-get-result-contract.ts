@@ -8,7 +8,7 @@
  */
 
 import { rateLimitsSnapshotContract } from '@dungeonmaster/shared/contracts';
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const rateLimitsGetResultContract = z.object({
   snapshot: rateLimitsSnapshotContract.nullable(),

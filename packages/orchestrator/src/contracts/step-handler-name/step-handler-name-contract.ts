@@ -11,7 +11,7 @@
  * // Returns 'ward' as StepHandlerName
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const stepHandlerNameContract = z.enum(['ward', 'riftcarver', 'commit', 'cleanup']);
 

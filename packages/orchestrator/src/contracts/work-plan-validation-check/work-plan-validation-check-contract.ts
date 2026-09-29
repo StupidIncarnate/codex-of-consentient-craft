@@ -13,7 +13,7 @@
  * // Returns a branded WorkPlanValidationCheck naming check #5, the in-scope-assigned-unit check
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { workPlanValidationCheckStatics } from '../../statics/work-plan-validation-check/work-plan-validation-check-statics';
 

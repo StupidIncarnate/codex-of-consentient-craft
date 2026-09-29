@@ -6,7 +6,7 @@
  * // Returns: SmoketestTeardownCheck (variant: port-free)
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { networkPortContract } from '@dungeonmaster/shared/contracts';
 

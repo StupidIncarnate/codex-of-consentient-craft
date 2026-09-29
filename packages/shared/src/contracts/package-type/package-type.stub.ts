@@ -1,4 +1,4 @@
-import type { z } from 'zod';
+import type { z } from '#gateway/npm/zod';
 
 import { packageTypeContract } from './package-type-contract';
 import type { PackageType } from './package-type-contract';

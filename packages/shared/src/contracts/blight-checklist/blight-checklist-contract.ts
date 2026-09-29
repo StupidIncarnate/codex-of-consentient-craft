@@ -18,7 +18,7 @@
  * recalling what it did.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { blightChecklistItemIdContract } from '../blight-checklist-item-id/blight-checklist-item-id-contract';
 import { blightChecklistItemContract } from '../blight-checklist-item/blight-checklist-item-contract';

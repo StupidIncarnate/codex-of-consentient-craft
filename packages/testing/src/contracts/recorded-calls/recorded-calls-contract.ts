@@ -6,7 +6,7 @@
  * import type { RecordedCalls } from './recorded-calls-contract';
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 // The schema exists for `.parse()` in the stub below, not for its inferred type: zod v4 infers a
 // bare empty `z.object({})` as `Record<string, never>`, which an array-shaped value (see

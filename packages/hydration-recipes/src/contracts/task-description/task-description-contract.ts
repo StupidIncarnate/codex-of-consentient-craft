@@ -9,7 +9,7 @@
  * taskDescriptionContract.parse('Seeded task 1');
  * // Returns a branded TaskDescription
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const taskDescriptionContract = z.string().min(1).brand<'TaskDescription'>();
 

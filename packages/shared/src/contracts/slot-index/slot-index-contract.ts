@@ -6,7 +6,7 @@
  * // Returns: SlotIndex branded number
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const slotIndexContract = z.number().int().nonnegative().brand<'SlotIndex'>();
 

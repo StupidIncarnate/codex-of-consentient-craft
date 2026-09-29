@@ -8,7 +8,7 @@
  * // Returns { deleted: true }
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const questDeleteResultContract = z.object({
   deleted: z.boolean(),

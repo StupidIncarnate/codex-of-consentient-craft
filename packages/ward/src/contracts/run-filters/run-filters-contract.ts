@@ -6,7 +6,7 @@
  * // Returns: RunFilters validated object
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { checkTypeContract } from '../check-type/check-type-contract';
 
 export const runFiltersContract = z.object({

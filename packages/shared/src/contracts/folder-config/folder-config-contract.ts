@@ -6,7 +6,7 @@
  * // Returns validated folder configuration object
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const folderConfigContract = z.object({
   fileSuffix: z.union([

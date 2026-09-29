@@ -6,7 +6,7 @@
  * // Returns branded GitRelativePath type for git-relative paths
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const gitRelativePathContract = z.string().min(1).brand<'GitRelativePath'>();
 

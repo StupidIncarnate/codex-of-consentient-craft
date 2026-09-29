@@ -6,7 +6,7 @@
  * // Returns validated StreamSignal from agent's MCP tool call
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { blockedReasonContract, operationItemIdContract } from '@dungeonmaster/shared/contracts';
 

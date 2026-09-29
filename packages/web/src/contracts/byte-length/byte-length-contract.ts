@@ -8,7 +8,7 @@
  * // Returns: ByteLength branded number
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const byteLengthContract = z.number().int().nonnegative().brand<'ByteLength'>();
 

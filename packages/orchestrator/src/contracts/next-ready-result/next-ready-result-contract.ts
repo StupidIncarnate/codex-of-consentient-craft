@@ -6,7 +6,7 @@
  * // Returned by nextReadyWorkItemsTransformer
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { workItemContract } from '@dungeonmaster/shared/contracts';
 

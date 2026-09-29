@@ -9,7 +9,7 @@
  * // Returns: RiftcarverLogLine branded string
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const riftcarverLogLineContract = z.string().brand<'RiftcarverLogLine'>();
 

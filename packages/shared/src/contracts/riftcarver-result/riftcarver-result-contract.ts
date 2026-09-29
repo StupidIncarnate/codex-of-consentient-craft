@@ -15,7 +15,7 @@
  * // Returns: RiftcarverResult (lightweight ref, log at {questFolder}/riftcarver-results/{id}.log)
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const riftcarverResultContract = z.object({
   id: z.uuid().brand<'RiftcarverResultId'>(),

@@ -6,7 +6,7 @@
  * // Returns a PackageJson object with typed name, bin, dependencies, and exports fields
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const packageJsonContract = z
   .object({

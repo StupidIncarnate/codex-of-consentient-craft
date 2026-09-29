@@ -19,7 +19,7 @@
  * matches what a walker can actually drive in one pass.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { flowNodeIdContract } from '../flow-node-id/flow-node-id-contract';
 

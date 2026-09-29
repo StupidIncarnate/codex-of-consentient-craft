@@ -6,7 +6,7 @@
  * // Returns branded InstallMessage type for install status messages
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 /**
  * Represents a message about an install operation

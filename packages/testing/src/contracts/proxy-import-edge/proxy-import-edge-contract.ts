@@ -12,7 +12,7 @@
  * // Returns a validated ProxyImportEdge
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { importPathContract } from '../import-path/import-path-contract';
 import { identifierNameContract } from '../identifier-name/identifier-name-contract';
 

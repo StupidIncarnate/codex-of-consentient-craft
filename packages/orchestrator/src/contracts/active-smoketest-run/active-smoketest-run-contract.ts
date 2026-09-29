@@ -6,7 +6,7 @@
  * // Returns: ActiveSmoketestRun
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { smoketestRunIdContract, smoketestSuiteContract } from '@dungeonmaster/shared/contracts';
 

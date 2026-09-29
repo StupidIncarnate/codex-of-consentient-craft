@@ -5,7 +5,7 @@
  * rateLimitsWatchHandleContract.parse({ stop: () => undefined });
  * // Returns: RateLimitsWatchHandle. Used by rate-limits-bootstrap-state to track the active watcher.
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 // `stop` is a function — a Zod object schema cannot check callability, so it stays out of the
 // parse and is attached only through the type intersection below. `.loose()` carries it

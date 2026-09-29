@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { eslintContextContract } from './eslint-context-contract';
 import type { EslintContext, EslintScope, EslintSourceCode } from './eslint-context-contract';
 import type { StubArgument } from '@dungeonmaster/shared/@types';

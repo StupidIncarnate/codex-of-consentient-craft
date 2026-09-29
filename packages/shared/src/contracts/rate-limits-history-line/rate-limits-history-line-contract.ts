@@ -5,7 +5,7 @@
  * rateLimitsHistoryLineContract.parse({at: iso, fiveHour: window, sevenDay: window});
  * // Returns: RateLimitsHistoryLine — appended to ~/.dungeonmaster/rate-limits-history.jsonl for future trajectory analysis
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { rateLimitWindowContract } from '../rate-limit-window/rate-limit-window-contract';
 

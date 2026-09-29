@@ -13,7 +13,7 @@
  * // Returns a branded StepName
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const stepNameContract = z.string().min(1).brand<'StepName'>();
 

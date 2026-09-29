@@ -5,7 +5,7 @@
  * const path: FilePath = filePathContract.parse('src/contracts/file-path');
  * // Returns a branded FilePath string type
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const filePathContract = z.string().brand<'FilePath'>();
 

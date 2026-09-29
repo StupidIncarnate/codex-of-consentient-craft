@@ -22,7 +22,7 @@
  * disjoint" from an instruction into a property of the data.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { blightChecklistItemIdContract } from '../blight-checklist-item-id/blight-checklist-item-id-contract';
 import { blightConcernContract } from '../blight-concern/blight-concern-contract';

@@ -12,7 +12,7 @@
  * // Returns a validated OpenHandleFinding
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { openHandleStatics } from '../../statics/open-handle/open-handle-statics';
 
 export const openHandleFindingContract = z.object({

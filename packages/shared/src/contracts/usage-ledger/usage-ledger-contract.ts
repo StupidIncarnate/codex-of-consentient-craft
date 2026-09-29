@@ -10,7 +10,7 @@
  * // Returns: UsageLedger
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { absoluteFilePathContract } from '../absolute-file-path/absolute-file-path-contract';
 import { bucketStartKeyContract } from '../bucket-start-key/bucket-start-key-contract';

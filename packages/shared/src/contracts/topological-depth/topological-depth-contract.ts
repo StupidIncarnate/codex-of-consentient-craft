@@ -6,7 +6,7 @@
  * // Returns: TopologicalDepth branded number
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const topologicalDepthContract = z.number().int().nonnegative().brand<'TopologicalDepth'>();
 

@@ -5,7 +5,7 @@
  * const input: UserInput = userInputContract.parse('user text');
  * // Returns a branded UserInput string type
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const userInputContract = z.string().brand<'UserInput'>();
 

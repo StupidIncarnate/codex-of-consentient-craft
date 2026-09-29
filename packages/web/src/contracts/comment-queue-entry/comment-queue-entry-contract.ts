@@ -7,7 +7,7 @@
  * // Returns: CommentQueueEntry — one element of the per-quest localStorage array
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { commentTextContract } from '@dungeonmaster/shared/contracts';
 

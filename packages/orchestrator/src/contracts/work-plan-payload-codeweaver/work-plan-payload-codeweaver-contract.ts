@@ -20,7 +20,7 @@
  * edges carry no type tag at all, so a type-keyed map would lose two whole kinds silently.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { workPlanCodeweaverUnitContract } from '../work-plan-codeweaver-unit/work-plan-codeweaver-unit-contract';
 import { workPlanFileEntryContract } from '../work-plan-file-entry/work-plan-file-entry-contract';

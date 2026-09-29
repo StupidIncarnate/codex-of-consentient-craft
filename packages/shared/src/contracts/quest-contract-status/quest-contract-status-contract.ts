@@ -6,7 +6,7 @@
  * // Returns: 'new' as QuestContractStatus
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const questContractStatusContract = z
   .enum(['new', 'existing', 'modified'])

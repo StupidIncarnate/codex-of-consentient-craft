@@ -5,7 +5,7 @@
  * linkedQuestInfoContract.parse({ questId, workItemId, role });
  * // Returns: LinkedQuestInfo
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import {
   questIdContract,

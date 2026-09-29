@@ -30,7 +30,7 @@
  * `.shape` is gone from this export as a result; a caller that needs one field's own contract
  * reaches for the leaf import (`agentIdContract`, `toolUseIdContract`, etc.) instead.
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import {
   absoluteFilePathContract,

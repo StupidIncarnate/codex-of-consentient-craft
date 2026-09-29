@@ -6,7 +6,7 @@
  * // Returns: ScrollPositionPx branded number
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const scrollPositionPxContract = z.number().nonnegative().brand<'ScrollPositionPx'>();
 

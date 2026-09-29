@@ -6,7 +6,7 @@
  * // Returns: DeletedCount branded number
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const deletedCountContract = z.number().int().nonnegative().brand<'DeletedCount'>();
 

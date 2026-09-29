@@ -7,7 +7,7 @@
  * // Returns: CommentStaleAnchor — one anchor the browser drops from its queue
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import {
   flowIdContract,

@@ -10,7 +10,7 @@
  * // Returns: UnitMarkReadout
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { unitIdContract } from '@dungeonmaster/shared/contracts';
 

@@ -8,7 +8,7 @@
  * // Returns: TrailingThinkingIndex pointing at groups[4] which is the empty-thinking entry to swap for a streaming indicator.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const trailingThinkingIndexContract = z
   .number()

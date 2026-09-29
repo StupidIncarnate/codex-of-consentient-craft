@@ -10,7 +10,7 @@
  * // Returns a zod result; `.success` is false for every line that records no spend
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 const rawTokenCountContract = z.number().int().min(0).brand<'TokenCount'>();
 

@@ -18,7 +18,7 @@
  * });
  * // Returns WorkItemAttachArgs
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { savedRefContract } from '@dungeonmaster/hydration/contracts';
 import {

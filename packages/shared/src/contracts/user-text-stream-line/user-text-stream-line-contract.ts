@@ -5,7 +5,7 @@
  * const parsed = userTextStreamLineContract.parse(JSON.parse(rawLine));
  * // Validates user messages with string or array text content (no tool results)
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { textBlockParamContract } from '../text-block-param/text-block-param-contract';
 

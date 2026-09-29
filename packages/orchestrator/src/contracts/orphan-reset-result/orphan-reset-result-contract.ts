@@ -6,7 +6,7 @@
  * // Returns: OrphanResetResult — { orphansReset: 3 }
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const orphanResetResultContract = z.object({
   orphansReset: z.number().int().nonnegative().brand<'OrphansResetCount'>(),

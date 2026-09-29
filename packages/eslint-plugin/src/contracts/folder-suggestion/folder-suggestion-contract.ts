@@ -5,7 +5,7 @@
  * const suggestion = folderSuggestionContract.parse('Move to /src/brokers/ folder');
  * // Returns branded FolderSuggestion string for displaying in lint errors
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const folderSuggestionContract = z.string().brand<'FolderSuggestion'>();
 

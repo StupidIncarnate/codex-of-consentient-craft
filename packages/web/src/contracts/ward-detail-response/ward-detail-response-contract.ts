@@ -6,7 +6,7 @@
  * // Returns WardDetailResponse with the detail blob (validated separately by ward result contract)
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const wardDetailResponseContract = z.object({
   type: z.literal('ward-detail-response'),

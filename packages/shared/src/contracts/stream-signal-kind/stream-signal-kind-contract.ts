@@ -10,7 +10,7 @@
  * pivot in place; the only failure concept is a ward exit-code red, handled by the orchestrator.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const streamSignalKindContract = z.enum(['complete']);
 

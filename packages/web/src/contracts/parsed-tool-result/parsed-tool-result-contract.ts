@@ -9,7 +9,7 @@
  * // Returns ParsedToolResult — a Record<ToolResultKey, unknown>
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { toolResultKeyContract } from '../tool-result-key/tool-result-key-contract';
 

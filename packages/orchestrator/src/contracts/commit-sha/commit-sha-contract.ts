@@ -13,7 +13,7 @@
  * length git chooses per repo, so pinning either end would refuse a real reading.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const commitShaContract = z
   .string()

@@ -6,7 +6,7 @@
  * // Used in questWorkItemInsertBroker for swapping dependsOn references
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { questWorkItemIdContract } from '@dungeonmaster/shared/contracts';
 

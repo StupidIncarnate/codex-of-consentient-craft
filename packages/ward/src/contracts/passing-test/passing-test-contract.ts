@@ -6,7 +6,7 @@
  * // Returns: PassingTest validated object
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { durationMsContract } from '../duration-ms/duration-ms-contract';
 
 export const passingTestContract = z.object({

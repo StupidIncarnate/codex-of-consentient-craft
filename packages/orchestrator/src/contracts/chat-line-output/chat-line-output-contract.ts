@@ -6,7 +6,7 @@
  * // Returns validated ChatLineOutput
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { chatEntryContract } from '@dungeonmaster/shared/contracts';
 import { agentIdContract } from '../agent-id/agent-id-contract';

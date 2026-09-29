@@ -9,7 +9,7 @@
  * // Returns a branded OutOfMemoryReport
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const outOfMemoryReportContract = z.string().brand<'OutOfMemoryReport'>();
 

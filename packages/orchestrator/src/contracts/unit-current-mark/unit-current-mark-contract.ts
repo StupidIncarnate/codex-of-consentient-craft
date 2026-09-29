@@ -23,7 +23,7 @@ import {
   unitIdContract,
   unitMarkContract,
 } from '@dungeonmaster/shared/contracts';
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const unitCurrentMarkContract = z.object({
   unitId: unitIdContract,

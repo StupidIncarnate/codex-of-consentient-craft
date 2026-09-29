@@ -6,7 +6,7 @@
  * // Returns: AsciiArt branded string
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const asciiArtContract = z.string().min(1).brand<'AsciiArt'>();
 

@@ -6,7 +6,7 @@
  * // Returns: RedactedThinkingBlockParam
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const redactedThinkingBlockParamContract = z.object({
   type: z.literal('redacted_thinking'),

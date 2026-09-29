@@ -15,7 +15,7 @@
  * // Returns: OperationPlan object
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { operationItemIdContract } from '../operation-item-id/operation-item-id-contract';
 import { operationPlanIdContract } from '../operation-plan-id/operation-plan-id-contract';

@@ -6,7 +6,7 @@
  * // Returns validated MockProcessBehavior with branded types
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { mockSpawnResultContract } from '../mock-spawn-result/mock-spawn-result-contract';
 
 export const mockProcessBehaviorContract = z.object({

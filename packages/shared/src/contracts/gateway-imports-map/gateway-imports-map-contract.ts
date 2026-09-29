@@ -8,7 +8,7 @@
  * // Returns validated GatewayImportsMap with branded key/value types
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const gatewayImportsMapContract = z.record(
   z.string().brand<'GatewayImportsKey'>(),

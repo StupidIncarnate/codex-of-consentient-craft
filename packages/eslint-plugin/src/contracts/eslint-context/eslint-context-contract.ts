@@ -11,7 +11,7 @@
  * const contextData = eslintContextContract.parse({ filename: '/path/to/file.ts' });
  * // Returns validated context data; use EslintContext type for full context with methods
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import type { Identifier } from '@dungeonmaster/shared/contracts';
 import type { Tsestree } from '../tsestree/tsestree-contract';
 

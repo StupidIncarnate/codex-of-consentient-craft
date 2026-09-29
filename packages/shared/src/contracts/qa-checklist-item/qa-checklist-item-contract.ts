@@ -24,7 +24,7 @@
  * being deterministic. The walker classifies it; the tool only guarantees the list is complete.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { flowEdgeContract } from '../flow-edge/flow-edge-contract';
 import { flowEdgeIdContract } from '../flow-edge-id/flow-edge-id-contract';

@@ -6,7 +6,7 @@
  * // Returns: { comments: CommentBatchEntry[] } — one array entry per queued comment
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { commentBatchEntryContract } from '@dungeonmaster/shared/contracts';
 

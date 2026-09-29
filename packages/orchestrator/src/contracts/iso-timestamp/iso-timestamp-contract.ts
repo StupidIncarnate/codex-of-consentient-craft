@@ -6,7 +6,7 @@
  * // Returns a branded IsoTimestamp string
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const isoTimestampContract = z.iso.datetime().brand<'IsoTimestamp'>();
 

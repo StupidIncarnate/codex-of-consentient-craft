@@ -6,7 +6,7 @@
  * // Returns: 'agent' as SpawnerType
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const spawnerTypeContract = z.enum(['agent', 'command']);
 

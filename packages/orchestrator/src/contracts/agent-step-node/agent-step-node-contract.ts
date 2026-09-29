@@ -26,7 +26,7 @@
  * second copy of a shape the `as const` already pins is the copy that drifts.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { agentPromptNameContract } from '../agent-prompt-name/agent-prompt-name-contract';
 import { claudeModelContract } from '../claude-model/claude-model-contract';

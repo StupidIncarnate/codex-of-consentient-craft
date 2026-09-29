@@ -6,7 +6,7 @@
  * // Returns: PixelDimension branded number
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const pixelDimensionContract = z.number().int().positive().brand<'PixelDimension'>();
 

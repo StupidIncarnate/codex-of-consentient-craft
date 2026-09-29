@@ -6,7 +6,7 @@
  * // Returns: 'in_progress' as QuestStatus
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const questStatusContract = z.enum([
   'created',

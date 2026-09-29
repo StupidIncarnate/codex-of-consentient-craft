@@ -13,7 +13,7 @@
  */
 
 import { workItemRoleStatics } from '@dungeonmaster/shared/statics';
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const executionRoleContract = z.enum(workItemRoleStatics.names);
 

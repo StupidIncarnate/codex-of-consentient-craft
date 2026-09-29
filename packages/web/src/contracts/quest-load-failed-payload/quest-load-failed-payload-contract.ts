@@ -9,7 +9,7 @@
  * quest.json rejected. A generic substitution here would strand the reader with no repair path.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { questIdContract } from '@dungeonmaster/shared/contracts';
 

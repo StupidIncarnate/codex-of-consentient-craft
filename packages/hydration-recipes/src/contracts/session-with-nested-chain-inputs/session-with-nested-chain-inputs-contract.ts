@@ -12,7 +12,7 @@
  * sessionWithNestedChainInputsContract.parse({ guildPath: '/tmp/guilds-under-test/guild-1' });
  * // Returns SessionWithNestedChainInputs
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { guildPathContract } from '@dungeonmaster/shared/contracts';
 

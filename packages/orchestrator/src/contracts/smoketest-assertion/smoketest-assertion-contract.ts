@@ -6,7 +6,7 @@
  * // Returns: SmoketestAssertion (variant: quest-status)
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import {
   questStatusContract,

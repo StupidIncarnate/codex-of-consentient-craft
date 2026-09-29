@@ -6,7 +6,7 @@
  * // Returns branded SmoketestPlaceholder string
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const smoketestPlaceholderContract = z.string().min(1).brand<'SmoketestPlaceholder'>();
 

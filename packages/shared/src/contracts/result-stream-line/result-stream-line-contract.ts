@@ -5,7 +5,7 @@
  * const parsed = resultStreamLineContract.parse(JSON.parse(rawLine));
  * // Validates result messages carrying session cost, duration, and turn count
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const resultStreamLineContract = z.object({
   type: z.literal('result'),

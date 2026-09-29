@@ -6,7 +6,7 @@
  * // Returns a validated QuestStatusMetadata object
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { questStatusContract } from '../quest-status/quest-status-contract';
 import { displayHeaderContract } from '../display-header/display-header-contract';

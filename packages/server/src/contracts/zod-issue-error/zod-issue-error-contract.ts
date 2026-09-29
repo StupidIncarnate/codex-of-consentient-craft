@@ -10,7 +10,7 @@
  * // { issues: [{ message, path }, ...] } when parsedBody.error is a real ZodError
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 const zodIssuePathSegmentContract = z.union([
   z.string().brand<'ZodIssuePathSegment'>(),

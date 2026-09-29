@@ -9,7 +9,7 @@
  * // Returns: UsageSample
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { usageBucketContract } from '@dungeonmaster/shared/contracts';
 

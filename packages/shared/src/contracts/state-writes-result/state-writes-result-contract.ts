@@ -10,7 +10,7 @@
  * // Returns validated StateWritesResult
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { contentTextContract } from '../content-text/content-text-contract';
 
 export const stateWritesResultContract = z.object({

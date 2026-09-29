@@ -15,7 +15,7 @@
  * // Returns: DispatchState
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { dispatchHoldContract } from '../dispatch-hold/dispatch-hold-contract';
 

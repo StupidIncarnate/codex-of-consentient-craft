@@ -8,7 +8,7 @@
  * // Returns a branded ClaudeSpawnCommand
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const claudeSpawnCommandContract = z
   .object({

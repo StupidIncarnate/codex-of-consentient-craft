@@ -14,7 +14,7 @@
  *   those units, and its handoff is the git commit message, never this field.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const blockedReasonContract = z.string().min(1).brand<'BlockedReason'>();
 

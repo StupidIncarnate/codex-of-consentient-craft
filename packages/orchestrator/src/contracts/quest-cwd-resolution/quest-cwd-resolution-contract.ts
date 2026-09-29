@@ -14,7 +14,7 @@
  * field without discriminating further.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { absoluteFilePathContract, repoRootCwdContract } from '@dungeonmaster/shared/contracts';
 

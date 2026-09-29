@@ -6,7 +6,7 @@
  * // Returns: QuestComment object — one entry in quest.comments[]
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { commentTextContract } from '../comment-text/comment-text-contract';
 import { flowIdContract } from '../flow-id/flow-id-contract';

@@ -8,7 +8,7 @@
  */
 
 import { questQueueEntryContract } from '@dungeonmaster/shared/contracts';
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const questQueueResultContract = z.object({
   entries: z.array(questQueueEntryContract),

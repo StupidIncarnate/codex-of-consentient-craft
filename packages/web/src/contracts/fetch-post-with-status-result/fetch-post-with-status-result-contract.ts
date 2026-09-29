@@ -8,7 +8,7 @@
  * // Returns { status, ok, body } with `status` branded as HttpStatusCode.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { httpStatusStatics } from '../../statics/http-status/http-status-statics';
 

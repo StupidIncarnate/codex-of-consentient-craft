@@ -8,7 +8,7 @@
  * // Returns: AttachmentId branded string
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const attachmentIdContract = z.uuid().brand<'AttachmentId'>();
 

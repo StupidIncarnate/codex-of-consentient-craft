@@ -8,7 +8,7 @@
  * // Returns: QuestQueueEntry
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { guildIdContract } from '../guild-id/guild-id-contract';
 import { questIdContract } from '../quest-id/quest-id-contract';

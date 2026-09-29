@@ -6,7 +6,7 @@
  * // Returns: DisplayFilePath branded string
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const displayFilePathContract = z.string().min(1).brand<'DisplayFilePath'>();
 

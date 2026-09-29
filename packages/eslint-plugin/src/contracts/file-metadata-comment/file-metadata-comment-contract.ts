@@ -9,7 +9,7 @@
  * const metadata = fileMetadataCommentContract.parse({ purpose: 'Does X', usage: 'const x = func()' });
  * // Returns validated FileMetadataComment with branded strings
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const fileMetadataCommentContract = z.object({
   purpose: z.string().min(1).brand<'MetadataPurpose'>(),

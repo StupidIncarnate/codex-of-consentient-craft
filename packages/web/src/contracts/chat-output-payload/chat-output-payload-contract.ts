@@ -13,7 +13,7 @@
  * // Returns ChatOutputPayload with optional questId + workItemId, optional sessionId, chatProcessId, replay, and slotIndex.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import {
   processIdContract,

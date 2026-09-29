@@ -15,7 +15,7 @@
  * // Returns: ComposerAttachment
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { pastedImageMediaTypeContract } from '@dungeonmaster/shared/contracts';
 import { pastedImageStatics } from '@dungeonmaster/shared/statics';

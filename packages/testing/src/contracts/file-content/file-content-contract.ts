@@ -7,7 +7,7 @@
  * // Returns validated FileContent type
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const fileContentContract = z.string().brand<'FileContent'>();
 

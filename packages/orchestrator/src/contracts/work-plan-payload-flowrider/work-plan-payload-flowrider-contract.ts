@@ -28,7 +28,7 @@
  */
 
 import { filePathContract, qaWalkPathContract } from '@dungeonmaster/shared/contracts';
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { workPlanFileEntryContract } from '../work-plan-file-entry/work-plan-file-entry-contract';
 import { workPlanFlowriderUnitContract } from '../work-plan-flowrider-unit/work-plan-flowrider-unit-contract';

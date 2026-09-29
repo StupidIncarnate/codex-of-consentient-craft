@@ -6,7 +6,7 @@
  * // Returns branded FilePath type that accepts both absolute and relative paths
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { absoluteFilePathContract } from '../absolute-file-path/absolute-file-path-contract';
 import { relativeFilePathContract } from '../relative-file-path/relative-file-path-contract';
 

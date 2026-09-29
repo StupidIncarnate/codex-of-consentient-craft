@@ -6,7 +6,7 @@
  * // Returns: CheckType branded string
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const checkTypeContract = z.enum(['lint', 'typecheck', 'unit', 'integration', 'e2e']);
 

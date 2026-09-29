@@ -6,7 +6,7 @@
  * // Returns: GuildConfig object
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { guildContract } from '../guild/guild-contract';
 

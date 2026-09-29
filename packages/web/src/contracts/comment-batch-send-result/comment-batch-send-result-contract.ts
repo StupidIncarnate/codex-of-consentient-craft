@@ -9,7 +9,7 @@
  * // Returns CommentBatchSendResult telling the widget to clear its local queue
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { processIdContract } from '@dungeonmaster/shared/contracts';
 

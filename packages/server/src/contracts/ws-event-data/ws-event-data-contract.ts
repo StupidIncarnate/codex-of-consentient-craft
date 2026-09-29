@@ -6,7 +6,7 @@
  * // Returns: { data: unknown }
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const wsEventDataContract = z.object({
   data: z.unknown(),

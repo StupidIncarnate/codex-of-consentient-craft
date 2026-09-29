@@ -12,7 +12,7 @@
  * WHEN-TO-USE: namespaceMethodsGroupByDomainTransformer return type and project-map headline rendering
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { contentTextContract } from '../content-text/content-text-contract';
 
 export const methodDomainGroupContract = z.object({

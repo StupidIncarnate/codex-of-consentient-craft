@@ -8,7 +8,7 @@
 
 import type { StubArgument } from '@dungeonmaster/shared/@types';
 import { AssistantTextChatEntryStub } from '@dungeonmaster/shared/contracts';
-import type { z } from 'zod';
+import type { z } from '#gateway/npm/zod';
 
 import { orchestrationCallbacksContract } from './orchestration-callbacks-contract';
 

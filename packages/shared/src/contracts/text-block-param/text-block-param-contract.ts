@@ -6,7 +6,7 @@
  * // Returns: TextBlockParam with branded text field
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const textBlockParamContract = z.object({
   type: z.literal('text'),

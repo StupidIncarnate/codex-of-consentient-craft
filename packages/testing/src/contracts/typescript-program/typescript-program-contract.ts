@@ -6,7 +6,7 @@
  * // Use as opaque type passed between adapters
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const typescriptProgramContract = z.unknown().brand<'TypescriptProgram'>();
 

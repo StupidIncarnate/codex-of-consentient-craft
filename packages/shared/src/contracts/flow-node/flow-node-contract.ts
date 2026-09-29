@@ -21,7 +21,7 @@
  * the refusal lands on the caller's own payload rather than on a whole-quest re-parse afterwards.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { flowNodeIdContract } from '../flow-node-id/flow-node-id-contract';
 import { flowNodeTypeContract } from '../flow-node-type/flow-node-type-contract';

@@ -6,7 +6,7 @@
  * // Returns: FailCount branded number
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const failCountContract = z.number().int().nonnegative().brand<'FailCount'>();
 

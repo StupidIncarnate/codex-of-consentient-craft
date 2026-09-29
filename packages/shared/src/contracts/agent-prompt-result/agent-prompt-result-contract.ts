@@ -6,7 +6,7 @@
  * // Returns validated AgentPromptResult
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const agentPromptResultContract = z.object({
   name: z.string().min(1).brand<'AgentPromptResultName'>(),

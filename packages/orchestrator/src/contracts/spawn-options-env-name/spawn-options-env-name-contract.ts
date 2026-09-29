@@ -8,7 +8,7 @@
  * spawnOptionsEnvNameContract.parse('CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS');
  * // Returns a branded SpawnOptionsEnvName
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const spawnOptionsEnvNameContract = z.string().brand<'SpawnOptionsEnvName'>();
 

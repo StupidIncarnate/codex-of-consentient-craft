@@ -9,7 +9,7 @@
  *
  * `.loose()` so other tool-specific keys (rare; primarily `questions`) survive validation.
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const askUserQuestionToolInputContract = z
   .object({

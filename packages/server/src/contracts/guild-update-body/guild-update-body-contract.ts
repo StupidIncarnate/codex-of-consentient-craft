@@ -6,7 +6,7 @@
  * // Returns: { name?: GuildName, path?: GuildPath }
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { guildNameContract, guildPathContract } from '@dungeonmaster/shared/contracts';
 
 export const guildUpdateBodyContract = z.object({

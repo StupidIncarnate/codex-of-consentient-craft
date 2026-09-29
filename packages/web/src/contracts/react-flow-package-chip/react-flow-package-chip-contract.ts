@@ -11,7 +11,7 @@
  * // Returns: ReactFlowPackageChip
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { packageNameContract, packageTypeContract } from '@dungeonmaster/shared/contracts';
 

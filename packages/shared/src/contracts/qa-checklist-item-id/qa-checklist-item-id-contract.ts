@@ -13,7 +13,7 @@
  * All three segments are the same kebab-case shape every flow/node/edge/observable id already uses.
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 const KEBAB_SEGMENT = '[a-z][a-z0-9]*(?:-[a-z0-9]+)*';
 

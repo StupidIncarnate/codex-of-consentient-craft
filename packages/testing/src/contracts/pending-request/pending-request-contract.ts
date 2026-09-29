@@ -6,7 +6,7 @@
  * // Type-safe in-flight request tracking
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const pendingRequestContract = z.object({
   method: z.string().brand<'HttpMethod'>(),

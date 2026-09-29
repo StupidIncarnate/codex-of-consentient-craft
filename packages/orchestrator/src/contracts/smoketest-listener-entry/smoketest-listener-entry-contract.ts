@@ -5,7 +5,7 @@
  * const entry: SmoketestListenerEntry = smoketestListenerEntryContract.parse({ assertions, postTeardownChecks, stopDriver, isOrchestration });
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { smoketestAssertionContract } from '../smoketest-assertion/smoketest-assertion-contract';
 import { smoketestTeardownCheckContract } from '../smoketest-teardown-check/smoketest-teardown-check-contract';

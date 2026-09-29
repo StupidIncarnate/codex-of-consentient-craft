@@ -8,7 +8,7 @@
  * workspacePackageExportSourcePathContract.parse('./src/glob/glob.ts');
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const workspacePackageExportSourcePathContract = z
   .string()

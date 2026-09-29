@@ -6,7 +6,7 @@
  * // Returns: 'mcp' as SmoketestSuite
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const smoketestSuiteContract = z.enum(['all', 'mcp', 'signals', 'orchestration']);
 

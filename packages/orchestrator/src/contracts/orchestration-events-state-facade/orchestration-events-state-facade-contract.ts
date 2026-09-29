@@ -7,7 +7,7 @@
  * const facade = orchestrationEventsStateFacadeContract.parse(eventsModule.orchestrationEventsState);
  * facade.on({ type: 'chat-output', handler });
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 // `on` and `off` are functions — a Zod object schema cannot check callability, so both stay out
 // of the parse and are attached only through the type intersection below. `.loose()`

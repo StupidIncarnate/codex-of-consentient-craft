@@ -21,7 +21,7 @@
  * ```
  */
 
-import type { BRAND } from 'zod';
+import type { BRAND } from '#gateway/npm/zod';
 
 // ============================================================================
 // Helper Types

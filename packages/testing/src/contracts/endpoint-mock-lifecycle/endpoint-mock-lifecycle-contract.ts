@@ -6,7 +6,7 @@
  * // { listen, resetHandlers, close, assertNoUnhandledRequests }
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 // `.loose()` keeps `z.infer` of the empty shape from narrowing to `Record<string, never>` (zod
 // v4), which the function-carrying intersection below could never satisfy.

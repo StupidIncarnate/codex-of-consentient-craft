@@ -2,7 +2,7 @@
  * PURPOSE: Proves that the api route and write route produce equivalent domain state for the guild
  * ingredient under the same framework runner.
  */
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { guildContract } from '@dungeonmaster/shared/contracts';
 

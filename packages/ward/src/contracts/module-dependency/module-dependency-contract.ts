@@ -10,7 +10,7 @@
  * // Returns: ModuleDependency
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 import { moduleSpecifierContract } from '../module-specifier/module-specifier-contract';
 import { importedNameContract } from '../imported-name/imported-name-contract';
 

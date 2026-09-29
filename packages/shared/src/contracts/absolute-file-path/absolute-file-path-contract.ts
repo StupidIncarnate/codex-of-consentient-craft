@@ -6,7 +6,7 @@
  * // Returns branded AbsoluteFilePath type that starts with / or C:\ on Windows
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const absoluteFilePathContract = z
   .string()

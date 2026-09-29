@@ -14,7 +14,7 @@
  * // Returns: OperationPlanPiece object
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { filePathContract } from '../file-path/file-path-contract';
 import { operationPlanPieceIdContract } from '../operation-plan-piece-id/operation-plan-piece-id-contract';

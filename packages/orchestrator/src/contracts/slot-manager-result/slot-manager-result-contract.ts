@@ -6,7 +6,7 @@
  * // Returns validated SlotManagerResult
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { sessionIdContract } from '@dungeonmaster/shared/contracts';
 

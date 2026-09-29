@@ -6,7 +6,7 @@
  * // Returns: QuestListItem object
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { questStatusContract } from '../quest-status/quest-status-contract';
 import { sessionIdContract } from '../session-id/session-id-contract';

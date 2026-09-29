@@ -6,7 +6,7 @@
  * // Returns branded FileContents type representing the text content of a file
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const fileContentsContract = z.string().brand<'FileContents'>();
 

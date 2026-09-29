@@ -9,7 +9,7 @@
  * // Returns branded PlatformCrossingChainHop
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 export const platformCrossingChainHopContract = z
   .string()

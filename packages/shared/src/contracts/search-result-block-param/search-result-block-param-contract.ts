@@ -6,7 +6,7 @@
  * // Returns: SearchResultBlockParam
  */
 
-import { z } from 'zod';
+import { z } from '#gateway/npm/zod';
 
 import { textBlockParamContract } from '../text-block-param/text-block-param-contract';
 
