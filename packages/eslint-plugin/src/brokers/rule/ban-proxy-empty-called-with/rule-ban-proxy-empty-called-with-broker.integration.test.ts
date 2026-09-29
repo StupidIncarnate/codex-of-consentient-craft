@@ -78,6 +78,15 @@ export const proxy = () => ({ callsMatching: () => handle.callsMatching([]) });`
       filename: PROXY_FILE,
       languageOptions: LANGUAGE_OPTIONS,
     },
+    // A recorder on the gateway's stderr, matched by its import
+    {
+      code: `import { stderr } from '#gateway/node/process';
+const spy = registerSpyOn({ object: stderr, method: 'write' });
+spy.calledWith([]).implement(() => true);
+export const proxy = () => ({ getWrites: () => spy.callsMatching([]).map((call) => call[0]) });`,
+      filename: PROXY_FILE,
+      languageOptions: LANGUAGE_OPTIONS,
+    },
     // A spied method that takes no argument: calledWith([]) is the honest description
     {
       code: `const spy = registerSpyOn({ object: process, method: 'cwd' });
@@ -145,6 +154,16 @@ export const proxy = () => ({ calls: () => other.callsMatching([]) });`,
     {
       code: `const socket = { write: (chunk: string): boolean => chunk.length > 0 };
 const spy = registerSpyOn({ object: socket, method: 'write' });
+spy.calledWith([]).returns(true);
+export const proxy = () => ({ calls: () => spy.callsMatching([]) });`,
+      filename: PROXY_FILE,
+      languageOptions: LANGUAGE_OPTIONS,
+      errors: [{ messageId: 'emptyCalledWithRequiresArgs' }],
+    },
+    // A local named `stderr` is not the gateway's: it stays a catch-all
+    {
+      code: `const stderr = { write: (chunk: string): boolean => chunk.length > 0 };
+const spy = registerSpyOn({ object: stderr, method: 'write' });
 spy.calledWith([]).returns(true);
 export const proxy = () => ({ calls: () => spy.callsMatching([]) });`,
       filename: PROXY_FILE,

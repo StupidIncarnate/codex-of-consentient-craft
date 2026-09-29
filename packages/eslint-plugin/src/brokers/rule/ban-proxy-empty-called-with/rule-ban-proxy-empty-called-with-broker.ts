@@ -51,14 +51,33 @@ export const ruleBanProxyEmptyCalledWithBroker =
       // and narrow via the real TSESTree.Node cast. A handle maps to a thunk so the type checker runs
       // only when a `calledWith([])` on it is actually found.
       const takesNoArgsByHandleName = new Map<Identifier, () => boolean | undefined>();
-      // A spy on a void sink (`process.stdout|stderr` `write`, `process` `on`) is a recorder, not a
+      // A spy on a void sink (`process.stdout|stderr` `write`, `process` `on`, `stdout|stderr` imported from `#gateway/node/process`) is a recorder, not a
       // catch-all, when the proxy reads its calls back — so its report waits for Program:exit, by
       // which point every read-back in the file has been seen.
       const voidSinkHandleNames = new Set<Identifier>();
+      // Local names of `stderr`/`stdout` imported from `#gateway/node/process` (an `as` alias records
+      // the alias) — matched by import, so a local variable named `stderr` is not exempt.
+      const gatewaySinkNames = new Set<Identifier>();
       const readBackHandleNames = new Set<Identifier>();
       const deferredReports: { node: TSESTree.Node; handleName: Identifier }[] = [];
 
       return {
+        ImportDeclaration: (node: TSESTree.ImportDeclaration): void => {
+          if (!node.source.value.startsWith('#gateway/node/process')) {
+            return;
+          }
+
+          for (const specifier of node.specifiers) {
+            if (
+              specifier.type === AST_NODE_TYPES.ImportSpecifier &&
+              specifier.imported.type === AST_NODE_TYPES.Identifier &&
+              (specifier.imported.name === 'stderr' || specifier.imported.name === 'stdout')
+            ) {
+              gatewaySinkNames.add(identifierContract.parse(specifier.local.name));
+            }
+          }
+        },
+
         VariableDeclarator: (node: TSESTree.VariableDeclarator): void => {
           const { id, init } = node;
 
@@ -118,7 +137,7 @@ export const ruleBanProxyEmptyCalledWithBroker =
           ) {
             const methodName = method.value;
 
-            if (voidSinkSpyLayerBroker({ objectNode, method: methodName })) {
+            if (voidSinkSpyLayerBroker({ objectNode, method: methodName, gatewaySinkNames })) {
               voidSinkHandleNames.add(handleName);
             }
 
