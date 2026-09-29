@@ -9,7 +9,7 @@ export const hydrationRecipesStructureStatics = {
   requiredFiles: [
     'src/startup/start-hydration-recipes.ts',
     'src/flows/recipes/recipes-flow.ts',
-    'responders.ts',
+    'src/responders/responders.ts',
     'src/responders/recipes/listing/recipes-listing-responder.ts',
     'src/responders/recipes/seed/recipes-seed-responder.ts',
   ],

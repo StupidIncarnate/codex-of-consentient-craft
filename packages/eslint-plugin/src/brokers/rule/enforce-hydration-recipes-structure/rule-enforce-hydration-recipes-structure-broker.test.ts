@@ -25,7 +25,7 @@ beforeEach(() => {
       '/project/packages/hydration-recipes',
       '/project/packages/hydration-recipes/src/startup/start-hydration-recipes.ts',
       '/project/packages/hydration-recipes/src/flows/recipes/recipes-flow.ts',
-      '/project/packages/hydration-recipes/responders.ts',
+      '/project/packages/hydration-recipes/src/responders/responders.ts',
       '/project/packages/hydration-recipes/src/responders/recipes/listing/recipes-listing-responder.ts',
       '/project/packages/hydration-recipes/src/responders/recipes/seed/recipes-seed-responder.ts',
     ];
@@ -53,7 +53,7 @@ ruleTester.run(
       },
       {
         code: "export * from './src/responders/recipes/listing/recipes-listing-responder';",
-        filename: '/project/packages/hydration-recipes/responders.ts',
+        filename: '/project/packages/hydration-recipes/src/responders/responders.ts',
       },
       {
         code: "import { recipesListingBuildBroker } from '../../brokers/recipes-listing/recipes-listing-build-broker';",
@@ -118,7 +118,7 @@ ruleTester.run(
           },
           {
             messageId: 'missingStructure',
-            data: { filePath: 'responders.ts' },
+            data: { filePath: 'src/responders/responders.ts' },
           },
           {
             messageId: 'missingStructure',
