@@ -13,7 +13,7 @@
  *
  * USAGE:
  * flagContractParseTransformer({ flag: '--stop-on', parse: () => stopOnContract.parse('maybe') });
- * // Throws Error("--stop-on: Invalid enum value. Expected 'error' | 'never', received 'maybe'")
+ * // Throws Error('--stop-on must be one of error, never; got "maybe"')
  */
 
 import { zodIssueErrorContract } from '../../contracts/zod-issue-error/zod-issue-error-contract';
@@ -33,10 +33,35 @@ export const flagContractParseTransformer = <T>({
       throw error;
     }
 
-    const detail = zodIssueParse.data.issues
-      .map((issue) =>
-        issue.path.length > 0 ? `${issue.path.join('.')}: ${issue.message}` : issue.message,
-      )
+    const { issues } = zodIssueParse.data;
+    const [firstIssue] = issues;
+
+    // A lone enum refusal at the flag's own value answers as `--flag must be one of …; got "x"`,
+    // the sentence `enumFlagParseTransformer` prints, so every enum flag reads the same whichever
+    // parser reached it.
+    if (
+      issues.length === 1 &&
+      firstIssue?.code === 'invalid_enum_value' &&
+      firstIssue.path.length === 0 &&
+      firstIssue.options !== undefined &&
+      firstIssue.received !== undefined
+    ) {
+      throw new Error(
+        `${flag} must be one of ${firstIssue.options.join(', ')}; got "${String(firstIssue.received)}"`,
+        { cause: error },
+      );
+    }
+
+    const detail = issues
+      .map((issue) => {
+        const message =
+          issue.code === 'invalid_enum_value' &&
+          issue.options !== undefined &&
+          issue.received !== undefined
+            ? `must be one of ${issue.options.join(', ')}; got "${String(issue.received)}"`
+            : issue.message;
+        return issue.path.length > 0 ? `${issue.path.join('.')}: ${message}` : message;
+      })
       .join('; ');
 
     throw new Error(`${flag}: ${detail}`, { cause: error });

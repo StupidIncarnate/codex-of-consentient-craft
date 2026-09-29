@@ -231,7 +231,7 @@ describe('resultsArgsParseTransformer', () => {
           args: ['--instance', 'inst_7f3a9c21', '--where-method', 'WOOF'],
         }),
       ).toThrow(
-        /^--where-method: Invalid enum value\. Expected 'GET' \| 'POST' \| 'PUT' \| 'PATCH' \| 'DELETE' \| 'HEAD' \| 'OPTIONS', received 'WOOF'$/u,
+        /^--where-method must be one of GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS; got "WOOF"$/u,
       );
     });
   });
@@ -260,9 +260,7 @@ describe('resultsArgsParseTransformer', () => {
         resultsArgsParseTransformer({
           args: ['--instance', 'inst_7f3a9c21', '--where-level', 'fatal'],
         }),
-      ).toThrow(
-        /^--where-level: Invalid enum value\. Expected 'error' \| 'warn' \| 'info', received 'fatal'$/u,
-      );
+      ).toThrow(/^--where-level must be one of error, warn, info; got "fatal"$/u);
     });
   });
 

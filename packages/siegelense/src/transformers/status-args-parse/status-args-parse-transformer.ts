@@ -16,12 +16,15 @@
  * // Returns { instanceId: null, isJson: true } as StatusArgs
  */
 
+import { contentTextContract } from '@dungeonmaster/shared/contracts';
+
 import { instanceIdContract } from '../../contracts/instance-id/instance-id-contract';
 import {
   statusArgsContract,
   type StatusArgs,
 } from '../../contracts/status-args/status-args-contract';
 import { siegelenseOutputStatics } from '../../statics/siegelense-output/siegelense-output-statics';
+import { enumFlagParseTransformer } from '../enum-flag-parse/enum-flag-parse-transformer';
 import { flagContractParseTransformer } from '../flag-contract-parse/flag-contract-parse-transformer';
 import { flagValueReadTransformer } from '../flag-value-read/flag-value-read-transformer';
 
@@ -34,8 +37,12 @@ const KNOWN_FLAGS = [
   SINCE_FLAG,
   siegelenseOutputStatics.flags.json,
 ] as const;
-const USAGE =
-  'Usage: dungeonmaster siegelense status [--instance <instanceId>] [--branch <name>] [--since <1hr|6hr|1day|beginning>] [--json]';
+// The accepted list is read off the contract's own enum, so it can never drift from what parses.
+const sinceContract = statusArgsContract.shape.since.unwrap().unwrap();
+const SINCE_OPTIONS = sinceContract.options;
+const SINCE_ALIASES = { '1hr': '1h', '6hr': '6h', '1day': '1d' } as const;
+const DEFAULT_FLEET_SINCE = '6h';
+const USAGE = `Usage: dungeonmaster siegelense status [--instance <instanceId>] [--branch <name>] [--since <${SINCE_OPTIONS.join('|')}>] [--json]`;
 
 export const statusArgsParseTransformer = ({ args }: { args: readonly string[] }): StatusArgs => {
   for (let i = 0; i < args.length; i++) {
@@ -79,23 +86,18 @@ export const statusArgsParseTransformer = ({ args }: { args: readonly string[] }
   const rawBranch = flagValueReadTransformer({ args, flag: BRANCH_FLAG });
   const rawSince = flagValueReadTransformer({ args, flag: SINCE_FLAG });
 
-  let since: '1h' | '6h' | '1d' | 'beginning' | null = null;
+  let since: StatusArgs['since'] = null;
   if (rawSince !== null) {
-    if (rawSince === '1h' || rawSince === '1hr') {
-      since = '1h';
-    } else if (rawSince === '6h' || rawSince === '6hr') {
-      since = '6h';
-    } else if (rawSince === '1d' || rawSince === '1day') {
-      since = '1d';
-    } else if (rawSince === 'beginning') {
-      since = 'beginning';
-    } else {
-      throw new Error(
-        `--since: Only coarse-grained time windows are allowed (1hr, 6hr, 1day, beginning). Granular intervals are refused to prevent granular abuse.`,
-      );
-    }
+    since = enumFlagParseTransformer({
+      flag: SINCE_FLAG,
+      raw: contentTextContract.parse(
+        Object.entries(SINCE_ALIASES).find(([alias]) => alias === rawSince)?.[1] ?? rawSince,
+      ),
+      options: SINCE_OPTIONS,
+      parse: (value) => sinceContract.parse(value),
+    });
   } else if (instanceId === null) {
-    since = '6h';
+    since = DEFAULT_FLEET_SINCE;
   }
 
   const isJson = args.includes(siegelenseOutputStatics.flags.json);

@@ -31,6 +31,7 @@ import { stopOnContract } from '../../contracts/stop-on/stop-on-contract';
 import { siegelenseOutputStatics } from '../../statics/siegelense-output/siegelense-output-statics';
 import { stepStatics } from '../../statics/step/step-statics';
 import { flagContractParseTransformer } from '../flag-contract-parse/flag-contract-parse-transformer';
+import { stepBatchPreflightTransformer } from '../step-batch-preflight/step-batch-preflight-transformer';
 import { flagValueReadTransformer } from '../flag-value-read/flag-value-read-transformer';
 
 const INSTANCE_FLAG = '--instance';
@@ -40,8 +41,7 @@ const STOP_ON_FLAG = '--stop-on';
 
 const VALUE_FLAGS = [INSTANCE_FLAG, STEPS_FLAG, STEPS_FILE_FLAG, STOP_ON_FLAG];
 const KNOWN_FLAGS = [...VALUE_FLAGS, siegelenseOutputStatics.flags.json];
-const USAGE =
-  'Usage: dungeonmaster siegelense run --instance <instanceId> (--steps <json> | --steps-file <path>) [--stop-on error|never] [--json]';
+const USAGE = `Usage: dungeonmaster siegelense run --instance <instanceId> (--steps <json> | --steps-file <path>) [--stop-on ${stopOnContract.unwrap().options.join('|')}] [--json]`;
 
 const STEPS_SOURCE_REFUSAL =
   `Exactly one of ${STEPS_FLAG} or ${STEPS_FILE_FLAG} is required: ${STEPS_FLAG} carries the ` +
@@ -146,6 +146,11 @@ export const runArgsParseTransformer = ({
   // empty batch when a caller's argv gets more than one thing wrong at once.
   if (Array.isArray(parsedSteps) && parsedSteps.length === 0) {
     throw new Error(`${sourceFlag}: ${EMPTY_BATCH_MESSAGE}`);
+  }
+
+  const refusals = stepBatchPreflightTransformer({ steps: parsedSteps });
+  if (refusals.length > 0) {
+    throw new Error(`${sourceFlag}: ${refusals.join('; ')}`);
   }
 
   return flagContractParseTransformer({

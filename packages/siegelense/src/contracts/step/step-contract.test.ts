@@ -805,34 +805,38 @@ describe('stepContract', () => {
   });
 
   describe('the handle rule: a target OR a ref, never both and never neither', () => {
-    it('INVALID: {step: click with both a target and a ref} => rejected, naming both kinds of handle', () => {
-      expect(() =>
-        stepContract.parse({ step: 'click', target: '[data-testid="PIXEL_BTN"]', ref: 26 }),
-      ).toThrow(/a driving step takes exactly one handle/u);
-    });
+    it.each([
+      ['click', {}],
+      ['type', { value: 'x' }],
+    ] as const)(
+      'INVALID: {step: %s with both a target and a ref} => refuses with "not both", never the neither wording',
+      (verb, extra) => {
+        const result = stepContract.safeParse({
+          step: verb,
+          target: '[data-testid="PIXEL_BTN"]',
+          ref: 26,
+          ...extra,
+        });
 
-    it('INVALID: {step: click with neither} => rejected, naming both kinds of handle', () => {
-      expect(() => stepContract.parse({ step: 'click' })).toThrow(
-        /a driving step takes exactly one handle/u,
-      );
-    });
+        expect(result.error?.issues.map((issue) => issue.message)).toStrictEqual([
+          `a ${verb} step takes a \`target\` or a \`ref\`, not both: give one handle, because two handles could disagree about which element is meant.`,
+        ]);
+      },
+    );
 
-    it('INVALID: {step: type with both} => rejected', () => {
-      expect(() =>
-        stepContract.parse({
-          step: 'type',
-          target: '[data-testid="CHAT_INPUT"]',
-          ref: 14,
-          value: 'x',
-        }),
-      ).toThrow(/a driving step takes exactly one handle/u);
-    });
+    it.each([
+      ['click', {}],
+      ['type', { value: 'x' }],
+    ] as const)(
+      'INVALID: {step: %s with neither} => refuses with a generic example and no invented ref number',
+      (verb, extra) => {
+        const result = stepContract.safeParse({ step: verb, ...extra });
 
-    it('INVALID: {step: type with neither} => rejected', () => {
-      expect(() => stepContract.parse({ step: 'type', value: 'x' })).toThrow(
-        /a driving step takes exactly one handle/u,
-      );
-    });
+        expect(result.error?.issues.map((issue) => issue.message)).toStrictEqual([
+          `a ${verb} step needs a handle: a \`target\` selector — durable, so it belongs in a saved batch — or a \`ref\` from your latest \`look\`, for driving right now. Try { "step": "${verb}", "target": "[data-testid=YOUR_ID]" } or { "step": "${verb}", "ref": <a ref from your latest look> }`,
+        ]);
+      },
+    );
 
     it('VALID: {step: goto} => never graded against the handle rule, because it carries no handle at all', () => {
       const result = stepContract.parse({ step: 'goto', path: '/' });

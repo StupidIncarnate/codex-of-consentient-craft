@@ -34,6 +34,57 @@ describe('flagContractParseTransformer', () => {
     });
   });
 
+  describe('a ZodError-shaped throw for an enum value', () => {
+    it('INVALID: {root-level invalid_enum_value} => throws "flag must be one of <options>; got "<typed>"", never Zod wording', () => {
+      const zodIssueError = Object.assign(new Error('ignored'), {
+        issues: [
+          {
+            code: 'invalid_enum_value',
+            options: ['error', 'warn', 'info'],
+            received: 'warning',
+            message: "Invalid enum value. Expected 'error' | 'warn' | 'info', received 'warning'",
+            path: [],
+          },
+        ],
+      });
+
+      expect(() =>
+        flagContractParseTransformer({
+          flag: '--where-level',
+          parse: (): never => {
+            throw zodIssueError;
+          },
+        }),
+      ).toThrow(/^--where-level must be one of error, warn, info; got "warning"$/u);
+    });
+
+    it('INVALID: {invalid_enum_value nested at path ["steps", 0, "level"]} => throws the path before the enum sentence', () => {
+      const zodIssueError = Object.assign(new Error('ignored'), {
+        issues: [
+          {
+            code: 'invalid_enum_value',
+            options: ['page', 'state', 'instance'],
+            received: 'everything',
+            message:
+              "Invalid enum value. Expected 'page' | 'state' | 'instance', received 'everything'",
+            path: ['steps', 0, 'level'],
+          },
+        ],
+      });
+
+      expect(() =>
+        flagContractParseTransformer({
+          flag: '--steps',
+          parse: (): never => {
+            throw zodIssueError;
+          },
+        }),
+      ).toThrow(
+        /^--steps: steps\.0\.level: must be one of page, state, instance; got "everything"$/u,
+      );
+    });
+  });
+
   describe('a ZodError-shaped throw with a nested path', () => {
     it('INVALID: {parse throws an issue with path ["steps", 0]} => throws the path joined before the message', () => {
       const zodIssueError = Object.assign(new Error('ignored'), {

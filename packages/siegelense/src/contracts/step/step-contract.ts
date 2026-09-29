@@ -64,9 +64,6 @@ import { resetLevelContract } from '../reset-level/reset-level-contract';
 import { urlPathContract } from '../url-path/url-path-contract';
 import { videoActionContract } from '../video-action/video-action-contract';
 
-const HANDLE_MESSAGE =
-  'a driving step takes exactly one handle: a `target` selector — durable, meaning the same element on the next run, so it is what belongs in a saved batch — or a `ref`, which one `look` minted against this instance and this page state and which is for driving right now. Try { "step": "click", "target": "[data-testid=PIXEL_BTN]", "within": "[data-testid=GUILD_LIST]" } or { "step": "click", "ref": 23 }';
-
 const UNTIL_CONDITION_MESSAGE =
   'an `until` step waits on exactly one condition, never zero and never two: `visible` — a selector that has not rendered yet, { "step": "until", "visible": "[data-testid=SUBAGENT_CHAIN]", "timeoutMs": 20000 }; `predicate` — a page expression that must become truthy, { "step": "until", "predicate": "document.querySelectorAll(\'[data-testid=QUEST_ROW]\').length === 3" }; `console` — a regex SOURCE string matched against a console line\'s text, { "step": "until", "console": "hydrated" }; `response` — a network exchange by method and a path substring, { "step": "until", "response": { "method": "POST", "path": "/api/quests" }, "timeoutMs": 15000 }; or `file` — a path resolved against the lane\'s home, { "step": "until", "file": "guilds/<id>/quests/<id>/quest.json", "timeoutMs": 10000 }';
 
@@ -345,10 +342,17 @@ export const stepContract = z
     }
 
     if (step.step === 'click' || step.step === 'type') {
-      if ((step.target === null) === (step.ref === null)) {
+      if (step.target === null && step.ref === null) {
         context.addIssue({
           code: z.ZodIssueCode.custom,
-          message: HANDLE_MESSAGE,
+          message: `a ${step.step} step needs a handle: a \`target\` selector — durable, so it belongs in a saved batch — or a \`ref\` from your latest \`look\`, for driving right now. Try { "step": "${step.step}", "target": "[data-testid=YOUR_ID]" } or { "step": "${step.step}", "ref": <a ref from your latest look> }`,
+          path: ['target'],
+        });
+      }
+      if (step.target !== null && step.ref !== null) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `a ${step.step} step takes a \`target\` or a \`ref\`, not both: give one handle, because two handles could disagree about which element is meant.`,
           path: ['target'],
         });
       }

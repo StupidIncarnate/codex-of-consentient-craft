@@ -32,7 +32,7 @@ describe('statusArgsParseTransformer', () => {
   describe('--human flag', () => {
     it('INVALID: {args: [--human]} => --human is refused as an unknown flag', () => {
       expect(() => statusArgsParseTransformer({ args: ['--human'] })).toThrow(
-        /^Unknown flag: --human\n\nAccepted flags: --instance, --branch, --since, --json\n\nUsage: dungeonmaster siegelense status \[--instance <instanceId>\] \[--branch <name>\] \[--since <1hr\|6hr\|1day\|beginning>\] \[--json\]$/u,
+        /^Unknown flag: --human\n\nAccepted flags: --instance, --branch, --since, --json\n\nUsage: dungeonmaster siegelense status \[--instance <instanceId>\] \[--branch <name>\] \[--since <1h\|6h\|1d\|beginning>\] \[--json\]$/u,
       );
     });
   });
@@ -170,17 +170,32 @@ describe('statusArgsParseTransformer', () => {
       });
     });
 
-    it('INVALID: {args: [--since, 30m]} => refuses granular intervals naming the coarse windows', () => {
-      expect(() => statusArgsParseTransformer({ args: ['--since', '30m'] })).toThrow(
-        /^--since: Only coarse-grained time windows are allowed \(1hr, 6hr, 1day, beginning\)\. Granular intervals are refused to prevent granular abuse\.$/u,
+    it('INVALID: {args: [--since, 45m]} => refuses naming the accepted windows read from the contract enum', () => {
+      expect(() => statusArgsParseTransformer({ args: ['--since', '45m'] })).toThrow(
+        /^--since must be one of 1h, 6h, 1d, beginning; got "45m"$/u,
       );
+    });
+
+    it.each([
+      ['1hr', '1h'],
+      ['6hr', '6h'],
+      ['1day', '1d'],
+    ] as const)('VALID: {args: [--since, %s]} => parses the alias into %s', (alias, expected) => {
+      const result = statusArgsParseTransformer({ args: ['--since', alias] });
+
+      expect(result).toStrictEqual({
+        instanceId: null,
+        branch: null,
+        since: expected,
+        isJson: false,
+      });
     });
   });
 
   describe('an unknown flag', () => {
     it('INVALID: {args: [--bogus]} => throws naming the flag and listing the accepted ones', () => {
       expect(() => statusArgsParseTransformer({ args: ['--bogus'] })).toThrow(
-        /^Unknown flag: --bogus\n\nAccepted flags: --instance, --branch, --since, --json\n\nUsage: dungeonmaster siegelense status \[--instance <instanceId>\] \[--branch <name>\] \[--since <1hr\|6hr\|1day\|beginning>\] \[--json\]$/u,
+        /^Unknown flag: --bogus\n\nAccepted flags: --instance, --branch, --since, --json\n\nUsage: dungeonmaster siegelense status \[--instance <instanceId>\] \[--branch <name>\] \[--since <1h\|6h\|1d\|beginning>\] \[--json\]$/u,
       );
     });
   });
@@ -188,7 +203,7 @@ describe('statusArgsParseTransformer', () => {
   describe('a positional argument', () => {
     it('INVALID: {args: [extra]} => throws naming it', () => {
       expect(() => statusArgsParseTransformer({ args: ['extra'] })).toThrow(
-        /^Unexpected positional argument: extra\n\nEvery value must directly follow the flag it belongs to\.\n\nUsage: dungeonmaster siegelense status \[--instance <instanceId>\] \[--branch <name>\] \[--since <1hr\|6hr\|1day\|beginning>\] \[--json\]$/u,
+        /^Unexpected positional argument: extra\n\nEvery value must directly follow the flag it belongs to\.\n\nUsage: dungeonmaster siegelense status \[--instance <instanceId>\] \[--branch <name>\] \[--since <1h\|6h\|1d\|beginning>\] \[--json\]$/u,
       );
     });
   });

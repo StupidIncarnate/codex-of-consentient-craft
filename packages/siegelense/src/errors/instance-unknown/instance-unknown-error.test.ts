@@ -8,7 +8,7 @@ describe('InstanceUnknownError', () => {
       expect({ name: error.name, message: error.message }).toStrictEqual({
         name: 'InstanceUnknownError',
         message:
-          'No record of the instance id "inst_deadbeef". Check the id dungeonmaster siegelense start returned.',
+          'No record of the instance id "inst_deadbeef". Check the id that `dungeonmaster siegelense start` returned.',
       });
     });
 
@@ -16,7 +16,7 @@ describe('InstanceUnknownError', () => {
       const error = new InstanceUnknownError({ instanceId: 'inst_00000000' });
 
       expect(error.message).toBe(
-        'No record of the instance id "inst_00000000". Check the id dungeonmaster siegelense start returned.',
+        'No record of the instance id "inst_00000000". Check the id that `dungeonmaster siegelense start` returned.',
       );
     });
   });
